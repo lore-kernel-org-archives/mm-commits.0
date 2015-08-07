@@ -1,143 +1,139 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments.patch removed
- from -mm tree
-Date: Fri, 07 Aug 2015 12:03:24 -0700
-Message-ID: <55c500fc.7VGUckxmaYmIbxTo%akpm@linux-foundation.org>
+ mm-memory-failure-give-up-error-handling-for-non-tail-refcounted-thp.patch
+ removed from -mm tree
+Date: Fri, 07 Aug 2015 12:03:31 -0700
+Message-ID: <55c50103.MwRqV9iMgaB15hcl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41547 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41571 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946135AbbHGTDZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:03:25 -0400
+	with ESMTP id S1946135AbbHGTDc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 7 Aug 2015 15:03:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sds@tycho.nsa.gov, dave@stgolabs.net, eparis@redhat.com, hughd@google.com, manfred@colorfullife.com, mstevens@fedoraproject.org, paul@paul-moore.com, prarit@redhat.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, dnelson@redhat.com, hughd@google.com, kirill@shutemov.name, rientjes@google.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc: use private shmem or hugetlbfs inodes for shm segments.
+     Subject: mm/memory-failure: give up error handling for non-tail-refcounted thp
 has been removed from the -mm tree.  Its filename was
-     ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments.patch
+     mm-memory-failure-give-up-error-handling-for-non-tail-refcounted-thp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stephen Smalley <sds@tycho.nsa.gov>
-Subject: ipc: use private shmem or hugetlbfs inodes for shm segments.
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm/memory-failure: give up error handling for non-tail-refcounted thp
 
-The shm implementation internally uses shmem or hugetlbfs inodes for shm
-segments.  As these inodes are never directly exposed to userspace and
-only accessed through the shm operations which are already hooked by
-security modules, mark the inodes with the S_PRIVATE flag so that inode
-security initialization and permission checking is skipped.
+"non anonymous thp" case is still racy with freeing thp, which causes
+panic due to put_page() for refcount-0 page.  It seems that closing up
+this race might be hard (and/or not worth doing,) so let's give up the
+error handling for this case.
 
-This was motivated by the following lockdep warning:
-
-======================================================
- [ INFO: possible circular locking dependency detected ]
- 4.2.0-0.rc3.git0.1.fc24.x86_64+debug #1 Tainted: G        W
--------------------------------------------------------
- httpd/1597 is trying to acquire lock:
- (&ids->rwsem){+++++.}, at: [<ffffffff81385354>] shm_close+0x34/0x130
- but task is already holding lock:
- (&mm->mmap_sem){++++++}, at: [<ffffffff81386bbb>] SyS_shmdt+0x4b/0x180
- which lock already depends on the new lock.
- the existing dependency chain (in reverse order) is:
- -> #3 (&mm->mmap_sem){++++++}:
-       [<ffffffff81109a07>] lock_acquire+0xc7/0x270
-       [<ffffffff81217baa>] __might_fault+0x7a/0xa0
-       [<ffffffff81284a1e>] filldir+0x9e/0x130
-       [<ffffffffa019bb08>] xfs_dir2_block_getdents.isra.12+0x198/0x1c0 [xfs]
-       [<ffffffffa019c5b4>] xfs_readdir+0x1b4/0x330 [xfs]
-       [<ffffffffa019f38b>] xfs_file_readdir+0x2b/0x30 [xfs]
-       [<ffffffff812847e7>] iterate_dir+0x97/0x130
-       [<ffffffff81284d21>] SyS_getdents+0x91/0x120
-       [<ffffffff81871d2e>] entry_SYSCALL_64_fastpath+0x12/0x76
- -> #2 (&xfs_dir_ilock_class){++++.+}:
-       [<ffffffff81109a07>] lock_acquire+0xc7/0x270
-       [<ffffffff81101e97>] down_read_nested+0x57/0xa0
-       [<ffffffffa01b0e57>] xfs_ilock+0x167/0x350 [xfs]
-       [<ffffffffa01b10b8>] xfs_ilock_attr_map_shared+0x38/0x50 [xfs]
-       [<ffffffffa014799d>] xfs_attr_get+0xbd/0x190 [xfs]
-       [<ffffffffa01c17ad>] xfs_xattr_get+0x3d/0x70 [xfs]
-       [<ffffffff8129962f>] generic_getxattr+0x4f/0x70
-       [<ffffffff8139ba52>] inode_doinit_with_dentry+0x162/0x670
-       [<ffffffff8139cf69>] sb_finish_set_opts+0xd9/0x230
-       [<ffffffff8139d66c>] selinux_set_mnt_opts+0x35c/0x660
-       [<ffffffff8139ff97>] superblock_doinit+0x77/0xf0
-       [<ffffffff813a0020>] delayed_superblock_init+0x10/0x20
-       [<ffffffff81272d23>] iterate_supers+0xb3/0x110
-       [<ffffffff813a4e5f>] selinux_complete_init+0x2f/0x40
-       [<ffffffff813b47a3>] security_load_policy+0x103/0x600
-       [<ffffffff813a6901>] sel_write_load+0xc1/0x750
-       [<ffffffff8126e817>] __vfs_write+0x37/0x100
-       [<ffffffff8126f229>] vfs_write+0xa9/0x1a0
-       [<ffffffff8126ff48>] SyS_write+0x58/0xd0
-       [<ffffffff81871d2e>] entry_SYSCALL_64_fastpath+0x12/0x76
-....
-
-Signed-off-by: Stephen Smalley <sds@tycho.nsa.gov>
-Reported-by: Morten Stevens <mstevens@fedoraproject.org>
-Acked-by: Hugh Dickins <hughd@google.com>
-Acked-by: Paul Moore <paul@paul-moore.com>
-Cc: Manfred Spraul <manfred@colorfullife.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Prarit Bhargava <prarit@redhat.com>
-Cc: Eric Paris <eparis@redhat.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Dean Nelson <dnelson@redhat.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |    2 ++
- ipc/shm.c            |    2 +-
- mm/shmem.c           |    4 ++--
- 3 files changed, 5 insertions(+), 3 deletions(-)
+ mm/memory-failure.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments
-+++ a/fs/hugetlbfs/inode.c
-@@ -1010,6 +1010,8 @@ struct file *hugetlb_file_setup(const ch
- 	inode = hugetlbfs_get_inode(sb, NULL, S_IFREG | S_IRWXUGO, 0);
- 	if (!inode)
- 		goto out_dentry;
-+	if (creat_flags == HUGETLB_SHMFS_INODE)
-+		inode->i_flags |= S_PRIVATE;
- 
- 	file = ERR_PTR(-ENOMEM);
- 	if (hugetlb_reserve_pages(inode, 0,
-diff -puN ipc/shm.c~ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments ipc/shm.c
---- a/ipc/shm.c~ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments
-+++ a/ipc/shm.c
-@@ -545,7 +545,7 @@ static int newseg(struct ipc_namespace *
- 		if  ((shmflg & SHM_NORESERVE) &&
- 				sysctl_overcommit_memory != OVERCOMMIT_NEVER)
- 			acctflag = VM_NORESERVE;
--		file = shmem_file_setup(name, size, acctflag);
-+		file = shmem_kernel_file_setup(name, size, acctflag);
+diff -puN mm/memory-failure.c~mm-memory-failure-give-up-error-handling-for-non-tail-refcounted-thp mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failure-give-up-error-handling-for-non-tail-refcounted-thp
++++ a/mm/memory-failure.c
+@@ -909,6 +909,18 @@ int get_hwpoison_page(struct page *page)
+ 	 * directly for tail pages.
+ 	 */
+ 	if (PageTransHuge(head)) {
++		/*
++		 * Non anonymous thp exists only in allocation/free time. We
++		 * can't handle such a case correctly, so let's give it up.
++		 * This should be better than triggering BUG_ON when kernel
++		 * tries to touch the "partially handled" page.
++		 */
++		if (!PageAnon(head)) {
++			pr_err("MCE: %#lx: non anonymous thp\n",
++				page_to_pfn(page));
++			return 0;
++		}
++
+ 		if (get_page_unless_zero(head)) {
+ 			if (PageTail(page))
+ 				get_page(page);
+@@ -1134,15 +1146,6 @@ int memory_failure(unsigned long pfn, in
  	}
- 	error = PTR_ERR(file);
- 	if (IS_ERR(file))
-diff -puN mm/shmem.c~ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments mm/shmem.c
---- a/mm/shmem.c~ipc-use-private-shmem-or-hugetlbfs-inodes-for-shm-segments
-+++ a/mm/shmem.c
-@@ -3363,8 +3363,8 @@ put_path:
-  * shmem_kernel_file_setup - get an unlinked file living in tmpfs which must be
-  * 	kernel internal.  There will be NO LSM permission checks against the
-  * 	underlying inode.  So users of this interface must do LSM checks at a
-- * 	higher layer.  The one user is the big_key implementation.  LSM checks
-- * 	are provided at the key level rather than the inode level.
-+ *	higher layer.  The users are the big_key and shm implementations.  LSM
-+ *	checks are provided at the key or shm level rather than the inode.
-  * @name: name for dentry (to be seen in /proc/<pid>/maps
-  * @size: size to be set for the file
-  * @flags: VM_NORESERVE suppresses pre-accounting of the entire object size
+ 
+ 	if (!PageHuge(p) && PageTransHuge(hpage)) {
+-		if (!PageAnon(hpage)) {
+-			pr_err("MCE: %#lx: non anonymous thp\n", pfn);
+-			if (TestClearPageHWPoison(p))
+-				atomic_long_sub(nr_pages, &num_poisoned_pages);
+-			put_page(p);
+-			if (p != hpage)
+-				put_page(hpage);
+-			return -EBUSY;
+-		}
+ 		if (unlikely(split_huge_page(hpage))) {
+ 			pr_err("MCE: %#lx: thp split failed\n", pfn);
+ 			if (TestClearPageHWPoison(p))
 _
 
-Patches currently in -mm which might be from sds@tycho.nsa.gov are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 origin.patch
-linux-next.patch
+hugetlb-make-the-function-vma_shareable-bool.patch
+pagemap-check-permissions-and-capabilities-at-open-time.patch
+pagemap-switch-to-the-new-format-and-do-some-cleanup.patch
+pagemap-rework-hugetlb-and-thp-report.patch
+pagemap-hide-physical-addresses-from-non-privileged-users.patch
+pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here.patch
+pagemap-update-documentation.patch
+pagemap-update-documentation-fix.patch
+mm-page_isolation-remove-bogus-tests-for-isolated-pages.patch
+mm-rename-and-move-get-set_freepage_migratetype.patch
+mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add.patch
+mm-hugetlb-add-region_del-to-delete-a-specific-range-of-entries.patch
+mm-hugetlb-expose-hugetlb-fault-mutex-for-use-by-fallocate.patch
+hugetlbfs-hugetlb_vmtruncate_list-needs-to-take-a-range-to-delete.patch
+hugetlbfs-truncate_hugepages-takes-a-range-of-pages.patch
+mm-hugetlb-vma_has_reserves-needs-to-handle-fallocate-hole-punch.patch
+mm-hugetlb-alloc_huge_page-handle-areas-hole-punched-by-fallocate.patch
+hugetlbfs-new-huge_add_to_page_cache-helper-routine.patch
+hugetlbfs-add-hugetlbfs_fallocate.patch
+hugetlbfs-add-hugetlbfs_fallocate-fix.patch
+mm-madvise-allow-remove-operation-for-hugetlbfs.patch
+mempolicy-get-rid-of-duplicated-check-for-vmavm_pfnmap-in-queue_pages_range.patch
+mm-page_isolation-make-set-unset_migratetype_isolate-file-local.patch
+mm-compaction-more-robust-check-for-scanners-meeting.patch
+mm-compaction-simplify-handling-restart-position-in-free-pages-scanner.patch
+mm-compaction-encapsulate-resetting-cached-scanner-positions.patch
+mm-compaction-skip-compound-pages-by-order-in-free-scanner.patch
+reverted-selftests-add-hugetlbfstest.patch
+selftests-vm-point-to-libhugetlbfs-for-regression-testing.patch
+documentation-update-libhugetlbfs-location-and-use-for-testing.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
 
