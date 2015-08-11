@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + x86-use-generic-early-mem-copy-fix.patch added to -mm tree
-Date: Mon, 10 Aug 2015 16:08:00 -0700
-Message-ID: <55c92ed0.+/aK+L2ogu561umK%akpm@linux-foundation.org>
+Subject: +
+ ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix.patch added to -mm tree
+Date: Tue, 11 Aug 2015 14:07:03 -0700
+Message-ID: <55ca63f7.3waihvERsAPIoieM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56831 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60594 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933255AbbHJXIB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 10 Aug 2015 19:08:01 -0400
+	with ESMTP id S1752586AbbHKVHE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Aug 2015 17:07:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, msalter@redhat.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, herton@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-use-generic-early-mem-copy-fix
+     Subject: ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix
 has been added to the -mm tree.  Its filename is
-     x86-use-generic-early-mem-copy-fix.patch
+     ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-use-generic-early-mem-copy-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-use-generic-early-mem-copy-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,34 +40,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-use-generic-early-mem-copy-fix
+Subject: ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix
 
-remove MAX_MAP_CHUNK define, per Yinghai Lu
+use normal comment layout
 
-Cc: Mark Salter <msalter@redhat.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: "Herton R. Krzesinski" <herton@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/setup.c |    1 -
- 1 file changed, 1 deletion(-)
+ ipc/sem.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/setup.c~x86-use-generic-early-mem-copy-fix arch/x86/kernel/setup.c
---- a/arch/x86/kernel/setup.c~x86-use-generic-early-mem-copy-fix
-+++ a/arch/x86/kernel/setup.c
-@@ -317,7 +317,6 @@ static u64 __init get_ramdisk_size(void)
- 	return ramdisk_size;
- }
- 
--#define MAX_MAP_CHUNK	(NR_FIX_BTMAPS << PAGE_SHIFT)
- static void __init relocate_initrd(void)
- {
- 	/* Assume only end is not page aligned */
+diff -puN ipc/sem.c~ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix ipc/sem.c
+--- a/ipc/sem.c~ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix
++++ a/ipc/sem.c
+@@ -2075,10 +2075,12 @@ void exit_sem(struct task_struct *tsk)
+ 		un = list_entry_rcu(ulp->list_proc.next,
+ 				    struct sem_undo, list_proc);
+ 		if (&un->list_proc == &ulp->list_proc) {
+-			/* we must wait for freeary() before freeing this ulp,
++			/*
++			 * We must wait for freeary() before freeing this ulp,
+ 			 * in case we raced with last sem_undo. There is a small
+ 			 * possibility where we exit while freeary() didn't
+-			 * finish unlocking sem_undo_list */
++			 * finish unlocking sem_undo_list.
++			 */
+ 			spin_unlock_wait(&ulp->lock);
+ 			rcu_read_unlock();
+ 			break;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 arch-alpha-kernel-systblss-remove-debug-check.patch
+ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix.patch
 kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
 scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
 ocfs2-sysfile-interfaces-for-online-file-check-fix.patch
