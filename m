@@ -1,42 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch removed from -mm
- tree
-Date: Tue, 11 Aug 2015 15:00:24 -0700
-Message-ID: <55ca7078.jF5fr2enJQn+/Fsl%akpm@linux-foundation.org>
+Subject: [obsolete] mm-introduce-vm_lockonfault-checkpatch-fixes.patch
+ removed from -mm tree
+Date: Tue, 11 Aug 2015 15:03:42 -0700
+Message-ID: <55ca713e.t9K472JtJ5/08ReL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36285 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36300 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753134AbbHKWAZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Aug 2015 18:00:25 -0400
+	with ESMTP id S1752579AbbHKWEV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Aug 2015 18:04:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, emunson@akamai.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mlock-add-new-mlock-system-call-checkpatch-fixes
+     Subject: mm-introduce-vm_lockonfault-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch
+     mm-introduce-vm_lockonfault-checkpatch-fixes.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mlock-add-new-mlock-system-call-checkpatch-fixes
+Subject: mm-introduce-vm_lockonfault-checkpatch-fixes
 
-WARNING: Missing a blank line after declarations
-#99: FILE: mm/mlock.c:649:
-+	vm_flags_t vm_flags = VM_LOCKED;
-+	if (flags)
+WARNING: line over 80 characters
+#103: FILE: include/linux/mm.h:132:
++#define VM_LOCKONFAULT	0x00001000	/* Lock the pages covered when they are faulted in */
 
-total: 0 errors, 1 warnings, 51 lines checked
+WARNING: line over 80 characters
+#195: FILE: mm/hugetlb.c:3768:
++	unsigned long svm_flags = svma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
 
-./patches/mm-mlock-add-new-mlock-system-call.patch has style problems, please review.
+WARNING: line over 80 characters
+#231: FILE: mm/rmap.c:747:
++			pra->vm_flags |= (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
+
+WARNING: line over 80 characters
+#240: FILE: mm/rmap.c:768:
++			pra->vm_flags |= (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
+
+total: 0 errors, 4 warnings, 138 lines checked
+
+./patches/mm-introduce-vm_lockonfault.patch has style problems, please review.
 
 NOTE: If any of the errors are false positives, please report
       them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -47,25 +57,47 @@ Cc: Eric B Munson <emunson@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/hugetlb.c |    4 ++--
+ mm/rmap.c    |    6 ++++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN mm/mlock.c~mm-mlock-add-new-mlock-system-call-checkpatch-fixes mm/mlock.c
---- a/mm/mlock.c~mm-mlock-add-new-mlock-system-call-checkpatch-fixes
-+++ a/mm/mlock.c
-@@ -646,11 +646,10 @@ SYSCALL_DEFINE2(mlock, unsigned long, st
+diff -puN mm/hugetlb.c~mm-introduce-vm_lockonfault-checkpatch-fixes mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-introduce-vm_lockonfault-checkpatch-fixes
++++ a/mm/hugetlb.c
+@@ -3764,8 +3764,8 @@ static unsigned long page_table_shareabl
+ 	unsigned long s_end = sbase + PUD_SIZE;
  
- SYSCALL_DEFINE3(mlock2, unsigned long, start, size_t, len, int, flags)
- {
--	vm_flags_t vm_flags = VM_LOCKED;
- 	if (flags)
- 		return -EINVAL;
+ 	/* Allow segments to share if only one is marked locked */
+-	unsigned long vm_flags = vma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
+-	unsigned long svm_flags = svma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
++	unsigned long vm_flags = vma->vm_flags & ~(VM_LOCKED|VM_LOCKONFAULT);
++	unsigned long svm_flags = svma->vm_flags & ~(VM_LOCKED|VM_LOCKONFAULT);
  
--	return do_mlock(start, len, vm_flags);
-+	return do_mlock(start, len, VM_LOCKED);
- }
+ 	/*
+ 	 * match the virtual addresses, permission and the alignment of the
+diff -puN mm/rmap.c~mm-introduce-vm_lockonfault-checkpatch-fixes mm/rmap.c
+--- a/mm/rmap.c~mm-introduce-vm_lockonfault-checkpatch-fixes
++++ a/mm/rmap.c
+@@ -744,7 +744,8 @@ static int page_referenced_one(struct pa
  
- SYSCALL_DEFINE2(munlock, unsigned long, start, size_t, len)
+ 		if (vma->vm_flags & VM_LOCKED) {
+ 			spin_unlock(ptl);
+-			pra->vm_flags |= (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
++			pra->vm_flags |=
++				(vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
+ 			return SWAP_FAIL; /* To break the loop */
+ 		}
+ 
+@@ -765,7 +766,8 @@ static int page_referenced_one(struct pa
+ 
+ 		if (vma->vm_flags & VM_LOCKED) {
+ 			pte_unmap_unlock(pte, ptl);
+-			pra->vm_flags |= (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
++			pra->vm_flags |=
++				(vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
+ 			return SWAP_FAIL; /* To break the loop */
+ 		}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,7 +114,6 @@ mm.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
 userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-mm-introduce-vm_lockonfault-checkpatch-fixes.patch
 genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
 genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
 mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
