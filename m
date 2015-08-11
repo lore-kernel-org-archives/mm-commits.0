@@ -1,68 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: + fs-create-and-use-seq_show_option-for-escaping-fix.patch added
- to -mm tree
-Date: Tue, 11 Aug 2015 14:49:18 -0700
-Message-ID: <55ca6dde.qoDSuC8JiAT7RUDk%akpm@linux-foundation.org>
+Subject: [obsolete]
+ mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
+ removed from -mm tree
+Date: Tue, 11 Aug 2015 14:57:55 -0700
+Message-ID: <55ca6fe3.+HT92a5sDEr21Hfp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35603 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36277 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753917AbbHKVtT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Aug 2015 17:49:19 -0400
+	with ESMTP id S1753134AbbHKV54 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Aug 2015 17:57:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, keescook@chromium.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, emunson@akamai.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs-create-and-use-seq_show_option-for-escaping-fix
-has been added to the -mm tree.  Its filename is
-     fs-create-and-use-seq_show_option-for-escaping-fix.patch
+     Subject: mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-create-and-use-seq_show_option-for-escaping-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-create-and-use-seq_show_option-for-escaping-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-create-and-use-seq_show_option-for-escaping-fix
+Subject: mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes
 
-add lost chunk, per Kees
+WARNING: Missing a blank line after declarations
+#168: FILE: mm/mlock.c:581:
++		vm_flags_t newflags = vma->vm_flags & ~VM_LOCKED;
++		newflags |= flags;
 
-Cc: Kees Cook <keescook@chromium.org>
+total: 0 errors, 1 warnings, 90 lines checked
+
+./patches/mm-mlock-refactor-mlock-munlock-and-munlockall-code.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Eric B Munson <emunson@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/ceph/ceph_common.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mlock.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN net/ceph/ceph_common.c~fs-create-and-use-seq_show_option-for-escaping-fix net/ceph/ceph_common.c
---- a/net/ceph/ceph_common.c~fs-create-and-use-seq_show_option-for-escaping-fix
-+++ a/net/ceph/ceph_common.c
-@@ -520,7 +520,7 @@ int ceph_print_client_options(struct seq
- 	if (opt->name) {
- 		seq_puts(m, "name=");
- 		seq_escape(m, opt->name, ", \t\n\\");
--		seq_putc(',');
-+		seq_putc(m, ',');
- 	}
- 	if (opt->key)
- 		seq_puts(m, "secret=<hidden>,");
+diff -puN mm/mlock.c~mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes mm/mlock.c
+--- a/mm/mlock.c~mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes
++++ a/mm/mlock.c
+@@ -578,6 +578,7 @@ static int apply_vma_lock_flags(unsigned
+ 
+ 	for (nstart = start ; ; ) {
+ 		vm_flags_t newflags = vma->vm_flags & ~VM_LOCKED;
++
+ 		newflags |= flags;
+ 
+ 		/* Here we know that  vma->vm_start <= nstart < vma->vm_end. */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,7 +77,6 @@ mm.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
 userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
 mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch
 mm-introduce-vm_lockonfault-checkpatch-fixes.patch
 genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
