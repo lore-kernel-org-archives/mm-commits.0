@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-introduce-vm_lockonfault-v7.patch added to -mm tree
-Date: Tue, 11 Aug 2015 15:06:01 -0700
-Message-ID: <55ca71c9.r4oNLKVBcEfMIOpM%akpm@linux-foundation.org>
+Subject: + ipc-semc-update-correct-memory-barriers.patch added to -mm tree
+Date: Tue, 11 Aug 2015 15:22:07 -0700
+Message-ID: <55ca758f.pisiihrsBvjOii6y%akpm__10494.0554629595$1439331747$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36325 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36719 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753301AbbHKWGE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Aug 2015 18:06:04 -0400
+	with ESMTP id S932875AbbHKWWI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Aug 2015 18:22:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: emunson@akamai.com, kirill.shutemov@linux.intel.com, mhocko@suse.cz, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: manfred@colorfullife.com, dave@stgolabs.net, jpoimboe@redhat.com, ktkhai@parallels.com, mingo@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-introduce-vm_lockonfault-v7
+     Subject: ipc/sem.c: update/correct memory barriers
 has been added to the -mm tree.  Its filename is
-     mm-introduce-vm_lockonfault-v7.patch
+     ipc-semc-update-correct-memory-barriers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-vm_lockonfault-v7.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-semc-update-correct-memory-barriers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-vm_lockonfault-v7.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-semc-update-correct-memory-barriers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,152 +38,93 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric B Munson <emunson@akamai.com>
-Subject: mm-introduce-vm_lockonfault-v7
+From: Manfred Spraul <manfred@colorfullife.com>
+Subject: ipc/sem.c: update/correct memory barriers
 
-Signed-off-by: Eric B Munson <emunson@akamai.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+sem_lock() did not properly pair memory barriers:
+
+!spin_is_locked() and spin_unlock_wait() are both only control barriers. 
+The code needs an acquire barrier, otherwise the cpu might perform read
+operations before the lock test.
+
+As no primitive exists inside <include/spinlock.h> and since it seems
+noone wants another primitive, the code creates a local primitive within
+ipc/sem.c.
+
+With regards to -stable:
+
+The change of sem_wait_array() is a bugfix, the change to sem_lock() is a
+nop (just a preprocessor redefinition to improve the readability).  The
+bugfix is necessary for all kernels that use sem_wait_array() (i.e.:
+starting from 3.10).
+
+Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
+Reported-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Kirill Tkhai <ktkhai@parallels.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: <stable@vger.kernel.org>	[3.10+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    1 +
- fs/proc/task_mmu.c                 |    2 +-
- include/linux/mm.h                 |    2 +-
- kernel/fork.c                      |    4 ++--
- mm/gup.c                           |    6 +++---
- mm/hugetlb.c                       |    4 ++--
- mm/rmap.c                          |    6 ++++--
- 7 files changed, 14 insertions(+), 11 deletions(-)
+ ipc/sem.c |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-introduce-vm_lockonfault-v7 Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-introduce-vm_lockonfault-v7
-+++ a/Documentation/filesystems/proc.txt
-@@ -463,6 +463,7 @@ manner. The codes are the following:
-     rr  - random read advise provided
-     dc  - do not copy area on fork
-     de  - do not expand area on remapping
-+    lf  - mark area to lock pages when faulted in, do not pre-populate
-     ac  - area is accountable
-     nr  - swap space is not reserved for the area
-     ht  - area uses huge tlb pages
-diff -puN fs/proc/task_mmu.c~mm-introduce-vm_lockonfault-v7 fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-introduce-vm_lockonfault-v7
-+++ a/fs/proc/task_mmu.c
-@@ -579,13 +579,13 @@ static void show_smap_vma_flags(struct s
- #ifdef CONFIG_X86_INTEL_MPX
- 		[ilog2(VM_MPX)]		= "mp",
- #endif
--		[ilog2(VM_LOCKONFAULT)]	= "lf",
- 		[ilog2(VM_LOCKED)]	= "lo",
- 		[ilog2(VM_IO)]		= "io",
- 		[ilog2(VM_SEQ_READ)]	= "sr",
- 		[ilog2(VM_RAND_READ)]	= "rr",
- 		[ilog2(VM_DONTCOPY)]	= "dc",
- 		[ilog2(VM_DONTEXPAND)]	= "de",
-+		[ilog2(VM_LOCKONFAULT)]	= "lf",
- 		[ilog2(VM_ACCOUNT)]	= "ac",
- 		[ilog2(VM_NORESERVE)]	= "nr",
- 		[ilog2(VM_HUGETLB)]	= "ht",
-diff -puN include/linux/mm.h~mm-introduce-vm_lockonfault-v7 include/linux/mm.h
---- a/include/linux/mm.h~mm-introduce-vm_lockonfault-v7
-+++ a/include/linux/mm.h
-@@ -129,7 +129,6 @@ extern unsigned int kobjsize(const void
- #define VM_DENYWRITE	0x00000800	/* ETXTBSY on write attempts.. */
- #define VM_UFFD_WP	0x00001000	/* wrprotect pages tracking */
+diff -puN ipc/sem.c~ipc-semc-update-correct-memory-barriers ipc/sem.c
+--- a/ipc/sem.c~ipc-semc-update-correct-memory-barriers
++++ a/ipc/sem.c
+@@ -253,6 +253,16 @@ static void sem_rcu_free(struct rcu_head
+ }
  
--#define VM_LOCKONFAULT	0x00001000	/* Lock the pages covered when they are faulted in */
- #define VM_LOCKED	0x00002000
- #define VM_IO           0x00004000	/* Memory mapped I/O or similar */
+ /*
++ * spin_unlock_wait() and !spin_is_locked() are not memory barriers, they
++ * are only control barriers.
++ * The code must pair with spin_unlock(&sem->lock) or
++ * spin_unlock(&sem_perm.lock), thus just the control barrier is insufficient.
++ *
++ * smp_rmb() is sufficient, as writes cannot pass the control barrier.
++ */
++#define ipc_smp_acquire__after_spin_is_unlocked()	smp_rmb()
++
++/*
+  * Wait until all currently ongoing simple ops have completed.
+  * Caller must own sem_perm.lock.
+  * New simple ops cannot start, because simple ops first check
+@@ -275,6 +285,7 @@ static void sem_wait_array(struct sem_ar
+ 		sem = sma->sem_base + i;
+ 		spin_unlock_wait(&sem->lock);
+ 	}
++	ipc_smp_acquire__after_spin_is_unlocked();
+ }
  
-@@ -139,6 +138,7 @@ extern unsigned int kobjsize(const void
+ /*
+@@ -327,13 +338,12 @@ static inline int sem_lock(struct sem_ar
+ 		/* Then check that the global lock is free */
+ 		if (!spin_is_locked(&sma->sem_perm.lock)) {
+ 			/*
+-			 * The ipc object lock check must be visible on all
+-			 * cores before rechecking the complex count.  Otherwise
+-			 * we can race with  another thread that does:
++			 * We need a memory barrier with acquire semantics,
++			 * otherwise we can race with another thread that does:
+ 			 *	complex_count++;
+ 			 *	spin_unlock(sem_perm.lock);
+ 			 */
+-			smp_rmb();
++			ipc_smp_acquire__after_spin_is_unlocked();
  
- #define VM_DONTCOPY	0x00020000      /* Do not copy this vma on fork */
- #define VM_DONTEXPAND	0x00040000	/* Cannot expand with mremap() */
-+#define VM_LOCKONFAULT	0x00080000	/* Lock the pages covered when they are faulted in */
- #define VM_ACCOUNT	0x00100000	/* Is a VM accounted object */
- #define VM_NORESERVE	0x00200000	/* should the VM suppress accounting */
- #define VM_HUGETLB	0x00400000	/* Huge TLB Page VM */
-diff -puN kernel/fork.c~mm-introduce-vm_lockonfault-v7 kernel/fork.c
---- a/kernel/fork.c~mm-introduce-vm_lockonfault-v7
-+++ a/kernel/fork.c
-@@ -455,8 +455,8 @@ static int dup_mmap(struct mm_struct *mm
- 		tmp->vm_mm = mm;
- 		if (anon_vma_fork(tmp, mpnt))
- 			goto fail_nomem_anon_vma_fork;
--		tmp->vm_flags &= ~(VM_LOCKED | VM_LOCKONFAULT |
--				   VM_UFFD_MISSING | VM_UFFD_WP);
-+		tmp->vm_flags &= ~(VM_LOCKED | VM_UFFD_MISSING | VM_UFFD_WP |
-+					VM_LOCKONFAULT);
- 		tmp->vm_next = tmp->vm_prev = NULL;
- 		tmp->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
- 		file = tmp->vm_file;
-diff -puN mm/gup.c~mm-introduce-vm_lockonfault-v7 mm/gup.c
---- a/mm/gup.c~mm-introduce-vm_lockonfault-v7
-+++ a/mm/gup.c
-@@ -853,9 +853,9 @@ long populate_vma_page_range(struct vm_a
- 	VM_BUG_ON_VMA(end   > vma->vm_end, vma);
- 	VM_BUG_ON_MM(!rwsem_is_locked(&mm->mmap_sem), mm);
- 
--	gup_flags = FOLL_TOUCH | FOLL_MLOCK;
--	if ((vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT)) == VM_LOCKED)
--		gup_flags |= FOLL_POPULATE;
-+	gup_flags = FOLL_TOUCH | FOLL_POPULATE | FOLL_MLOCK;
-+	if (vma->vm_flags & VM_LOCKONFAULT)
-+		gup_flags &= ~FOLL_POPULATE;
- 
- 	/*
- 	 * We want to touch writable mappings with a write fault in order
-diff -puN mm/hugetlb.c~mm-introduce-vm_lockonfault-v7 mm/hugetlb.c
---- a/mm/hugetlb.c~mm-introduce-vm_lockonfault-v7
-+++ a/mm/hugetlb.c
-@@ -3764,8 +3764,8 @@ static unsigned long page_table_shareabl
- 	unsigned long s_end = sbase + PUD_SIZE;
- 
- 	/* Allow segments to share if only one is marked locked */
--	unsigned long vm_flags = vma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
--	unsigned long svm_flags = svma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
-+	unsigned long vm_flags = vma->vm_flags & ~(VM_LOCKED|VM_LOCKONFAULT);
-+	unsigned long svm_flags = svma->vm_flags & ~(VM_LOCKED|VM_LOCKONFAULT);
- 
- 	/*
- 	 * match the virtual addresses, permission and the alignment of the
-diff -puN mm/rmap.c~mm-introduce-vm_lockonfault-v7 mm/rmap.c
---- a/mm/rmap.c~mm-introduce-vm_lockonfault-v7
-+++ a/mm/rmap.c
-@@ -744,7 +744,8 @@ static int page_referenced_one(struct pa
- 
- 		if (vma->vm_flags & VM_LOCKED) {
- 			spin_unlock(ptl);
--			pra->vm_flags |= (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
-+			pra->vm_flags |=
-+				(vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
- 			return SWAP_FAIL; /* To break the loop */
- 		}
- 
-@@ -765,7 +766,8 @@ static int page_referenced_one(struct pa
- 
- 		if (vma->vm_flags & VM_LOCKED) {
- 			pte_unmap_unlock(pte, ptl);
--			pra->vm_flags |= (vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
-+			pra->vm_flags |=
-+				(vma->vm_flags & (VM_LOCKED | VM_LOCKONFAULT));
- 			return SWAP_FAIL; /* To break the loop */
- 		}
- 
+ 			/*
+ 			 * Now repeat the test of complex_count:
 _
 
-Patches currently in -mm which might be from emunson@akamai.com are
+Patches currently in -mm which might be from manfred@colorfullife.com are
 
-mm-mlock-refactor-mlock-munlock-and-munlockall-code.patch
-mm-mlock-refactor-mlock-munlock-and-munlockall-code-v7.patch
-mm-mlock-add-new-mlock-system-call.patch
-mm-mlock-add-new-mlock-system-call-v7.patch
-mm-introduce-vm_lockonfault.patch
-mm-introduce-vm_lockonfault-v7.patch
-mm-mlock-add-mlock-flags-to-enable-vm_lockonfault-usage.patch
-mm-mlock-add-mlock-flags-to-enable-vm_lockonfault-usage-v7.patch
-selftests-vm-add-tests-for-lock-on-fault.patch
-mips-add-entry-for-new-mlock2-syscall.patch
+ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits.patch
+ipcsem-remove-uneeded-sem_undo_list-lock-usage-in-exit_sem.patch
+ipc-semc-update-correct-memory-barriers.patch
+ipc-convert-invalid-scenarios-to-use-warn_on.patch
+slab-leaks3-default-y.patch
 
