@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-create-and-use-seq_show_option-for-escaping-fix2.patch added to -mm tree
-Date: Tue, 11 Aug 2015 16:10:56 -0700
-Message-ID: <55ca8100.JcrOpVz/WrhpF3+x%akpm@linux-foundation.org>
+Subject: + mm-hwpoison-fix-pagehwpoison-test-set-race.patch added to -mm
+ tree
+Date: Tue, 11 Aug 2015 16:26:04 -0700
+Message-ID: <55ca848c.trZGuqMyjv80is/5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37876 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38314 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752675AbbHKXK4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Aug 2015 19:10:56 -0400
+	with ESMTP id S932715AbbHKX0F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Aug 2015 19:26:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, mm-commits@vger.kernel.org
+To: wanpeng.li@hotmail.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs-create-and-use-seq_show_option-for-escaping-fix2
+     Subject: mm/hwpoison: fix PageHWPoison test/set race
 has been added to the -mm tree.  Its filename is
-     fs-create-and-use-seq_show_option-for-escaping-fix2.patch
+     mm-hwpoison-fix-pagehwpoison-test-set-race.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-create-and-use-seq_show_option-for-escaping-fix2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hwpoison-fix-pagehwpoison-test-set-race.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-create-and-use-seq_show_option-for-escaping-fix2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hwpoison-fix-pagehwpoison-test-set-race.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,53 +39,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: fs-create-and-use-seq_show_option-for-escaping-fix2
+From: Wanpeng Li <wanpeng.li@hotmail.com>
+Subject: mm/hwpoison: fix PageHWPoison test/set race
 
-The buildbots noticed seq_show_option should be using const parameters.
+There is a race between madvise_hwpoison path and memory_failure:
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
+ CPU0					CPU1
+
+madvise_hwpoison
+get_user_pages_fast
+PageHWPoison check (false)
+					memory_failure
+					TestSetPageHWPoison
+soft_offline_page
+PageHWPoison check (true)
+return -EBUSY (without put_page)
+
+Signed-off-by: Wanpeng Li <wanpeng.li@hotmail.com>
+Suggested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/seq_file.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/memory-failure.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/seq_file.h~fs-create-and-use-seq_show_option-for-escaping-fix2 include/linux/seq_file.h
---- a/include/linux/seq_file.h~fs-create-and-use-seq_show_option-for-escaping-fix2
-+++ a/include/linux/seq_file.h
-@@ -155,7 +155,8 @@ static inline struct user_namespace *seq
-  * @name: the mount option name
-  * @value: the mount option name's value, can be NULL
-  */
--static inline void seq_show_option(struct seq_file *m, char *name, char *value)
-+static inline void seq_show_option(struct seq_file *m, const char *name,
-+				   const char *value)
- {
- 	seq_putc(m, ',');
- 	seq_escape(m, name, ",= \t\n\\");
+diff -puN mm/memory-failure.c~mm-hwpoison-fix-pagehwpoison-test-set-race mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-fix-pagehwpoison-test-set-race
++++ a/mm/memory-failure.c
+@@ -1719,6 +1719,8 @@ int soft_offline_page(struct page *page,
+ 
+ 	if (PageHWPoison(page)) {
+ 		pr_info("soft offline: %#lx page already poisoned\n", pfn);
++		if (flags & MF_COUNT_INCREASED)
++			put_page(page);
+ 		return -EBUSY;
+ 	}
+ 	if (!PageHuge(page) && PageTransHuge(hpage)) {
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from wanpeng.li@hotmail.com are
 
-origin.patch
-user_ns-use-correct-check-for-single-threadedness.patch
-capabilities-ambient-capabilities.patch
-capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise.patch
-clk_register_clkdev-handle-callers-needing-format-string.patch
-scripts-spellingtxt-adding-misspelled-word-for-check.patch
-scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
-fs-create-and-use-seq_show_option-for-escaping.patch
-fs-create-and-use-seq_show_option-for-escaping-fix.patch
-fs-create-and-use-seq_show_option-for-escaping-fix2.patch
-procfs-always-expose-proc-pid-map_files-and-make-it-readable.patch
-procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
-procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
-lib-vsprintf-add-%pt-format-specifier.patch
-lib-string_helpers-clarify-esc-arg-in-string_escape_mem.patch
-lib-string_helpers-rename-esc-arg-to-only.patch
-fs-if-a-coredump-already-exists-unlink-and-recreate-with-o_excl.patch
-fs-dont-dump-core-if-the-corefile-would-become-world-readable.patch
-sysctl-fix-int-unsigned-long-assignments-in-int_min-case.patch
-linux-next.patch
+mm-hwpoison-fix-page-refcount-of-unkown-non-lru-page.patch
+mm-hwpoison-fix-fail-isolate-hugetlbfs-page-w-refcount-held.patch
+mm-hwpoison-fix-panic-due-to-split-huge-zero-page.patch
+mm-hwpoison-fix-fail-to-split-thp-w-refcount-held.patch
+mm-hwpoison-fix-pagehwpoison-test-set-race.patch
+mm-hwpoison-introduce-put_hwpoison_page-to-put-refcount-for-memory-error-handling.patch
+mm-hwpoison-introduce-put_hwpoison_page-to-put-refcount-for-memory-error-handling-fix.patch
+mm-hwpoison-fix-refcount-of-thp-head-page-in-no-injection-case.patch
+mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page.patch
 
