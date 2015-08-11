@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ipcsem-remove-uneeded-sem_undo_list-lock-usage-in-exit_sem.patch added to
- -mm tree
-Date: Tue, 11 Aug 2015 14:07:05 -0700
-Message-ID: <55ca63f9.pW5NMCbX22L/gX7o%akpm@linux-foundation.org>
+Subject: + zram-fix-pool-name-truncation.patch added to -mm tree
+Date: Tue, 11 Aug 2015 14:08:12 -0700
+Message-ID: <55ca643c.pk+tS0OHjuLuivT6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60596 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60625 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752586AbbHKVHG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Aug 2015 17:07:06 -0400
+	with ESMTP id S1752149AbbHKVIN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Aug 2015 17:08:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: herton@redhat.com, aquini@redhat.com, aris@redhat.com, dave@stgolabs.net, djeffery@redhat.com, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc,sem: remove uneeded sem_undo_list lock usage in exit_sem()
+     Subject: zram: fix pool name truncation
 has been added to the -mm tree.  Its filename is
-     ipcsem-remove-uneeded-sem_undo_list-lock-usage-in-exit_sem.patch
+     zram-fix-pool-name-truncation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcsem-remove-uneeded-sem_undo_list-lock-usage-in-exit_sem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-fix-pool-name-truncation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcsem-remove-uneeded-sem_undo_list-lock-usage-in-exit_sem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-fix-pool-name-truncation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,48 +38,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Herton R. Krzesinski" <herton@redhat.com>
-Subject: ipc,sem: remove uneeded sem_undo_list lock usage in exit_sem()
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram: fix pool name truncation
 
-After we acquire the sma->sem_perm lock in exit_sem(), we are protected
-against a racing IPC_RMID operation.  Also at that point, we are the last
-user of sem_undo_list.  Therefore it isn't required that we acquire or use
-ulp->lock.
+zram_meta_alloc() constructs a pool name for zs_create_pool() call as
 
-Signed-off-by: Herton R. Krzesinski <herton@redhat.com>
-Acked-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Rafael Aquini <aquini@redhat.com>
-CC: Aristeu Rozanski <aris@redhat.com>
-Cc: David Jeffery <djeffery@redhat.com>
+ snprintf(pool_name, sizeof(pool_name), "zram%d", device_id);
+
+However, it defines pool name buffer to be only 8 chars long (minus
+trailing zero), which means that we can have only 1000 pool names: zram0
+-- zram999.
+
+With CONFIG_ZSMALLOC_STAT enabled an attempt to create a device zram1000
+can fail if device zram100 already exists, because snprintf() will
+truncate new pool name to zram100 and pass it to debugfs_create_dir(),
+causing:
+
+  debugfs dir <zram100> creation failed
+  zram: Error creating memory pool
+
+... and so on (zram101 - zram1010, etc).
+
+Fix it by increasing pool_name buffer size to 15:
+
+- zram prefix (length 4)
+- int device_id can use up to 10 chars
+- terminating zero byte
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/sem.c~ipcsem-remove-uneeded-sem_undo_list-lock-usage-in-exit_sem ipc/sem.c
---- a/ipc/sem.c~ipcsem-remove-uneeded-sem_undo_list-lock-usage-in-exit_sem
-+++ a/ipc/sem.c
-@@ -2123,9 +2123,11 @@ void exit_sem(struct task_struct *tsk)
- 		ipc_assert_locked_object(&sma->sem_perm);
- 		list_del(&un->list_id);
+diff -puN drivers/block/zram/zram_drv.c~zram-fix-pool-name-truncation drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-fix-pool-name-truncation
++++ a/drivers/block/zram/zram_drv.c
+@@ -499,7 +499,7 @@ static void zram_meta_free(struct zram_m
+ static struct zram_meta *zram_meta_alloc(int device_id, u64 disksize)
+ {
+ 	size_t num_pages;
+-	char pool_name[8];
++	char pool_name[15];
+ 	struct zram_meta *meta = kmalloc(sizeof(*meta), GFP_KERNEL);
  
--		spin_lock(&ulp->lock);
-+		/* we are the last process using this ulp, acquiring ulp->lock
-+		 * isn't required. Besides that, we are also protected against
-+		 * IPC_RMID as we hold sma->sem_perm lock now
-+		 */
- 		list_del_rcu(&un->list_proc);
--		spin_unlock(&ulp->lock);
- 
- 		/* perform adjustments registered in un */
- 		for (i = 0; i < sma->sem_nsems; i++) {
+ 	if (!meta)
 _
 
-Patches currently in -mm which might be from herton@redhat.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits.patch
-ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix.patch
-ipcsem-remove-uneeded-sem_undo_list-lock-usage-in-exit_sem.patch
+zram-fix-pool-name-truncation.patch
+mm-slab_common-allow-null-cache-pointer-in-kmem_cache_destroy.patch
+mm-mempool-allow-null-pool-pointer-in-mempool_destroy.patch
+mm-dmapool-allow-null-pool-pointer-in-dma_pool_destroy.patch
+zsmalloc-drop-unused-variable-nr_to_migrate.patch
+zsmalloc-always-keep-per-class-stats.patch
+zsmalloc-introduce-zs_can_compact-function.patch
+zsmalloc-cosmetic-compaction-code-adjustments.patch
+zsmalloc-zram-introduce-zs_pool_stats-api.patch
+zsmalloc-account-the-number-of-compacted-pages.patch
+zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
+zsmalloc-partial-page-ordering-within-a-fullness_list.patch
+zsmalloc-consider-zs_almost_full-as-migrate-source.patch
+zsmalloc-use-class-pages_per_zspage.patch
+zsmalloc-do-not-take-class-lock-in-zs_shrinker_count.patch
+zsmalloc-remove-null-check-from-destroy_handle_cache.patch
+checkpatch-add-some-foo_destroy-functions-to-needless_if-tests.patch
 
