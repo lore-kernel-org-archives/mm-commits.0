@@ -1,42 +1,42 @@
 From: akpm@linux-foundation.org
 Subject: [obsolete]
- mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
- removed from -mm tree
-Date: Tue, 11 Aug 2015 14:57:55 -0700
-Message-ID: <55ca6fe3.+HT92a5sDEr21Hfp%akpm@linux-foundation.org>
+ mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch removed from -mm
+ tree
+Date: Tue, 11 Aug 2015 15:00:24 -0700
+Message-ID: <55ca7078.jF5fr2enJQn+/Fsl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36277 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36285 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753134AbbHKV54 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Aug 2015 17:57:56 -0400
+	with ESMTP id S1753134AbbHKWAZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Aug 2015 18:00:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, emunson@akamai.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes
+     Subject: mm-mlock-add-new-mlock-system-call-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes.patch
+     mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes
+Subject: mm-mlock-add-new-mlock-system-call-checkpatch-fixes
 
 WARNING: Missing a blank line after declarations
-#168: FILE: mm/mlock.c:581:
-+		vm_flags_t newflags = vma->vm_flags & ~VM_LOCKED;
-+		newflags |= flags;
+#99: FILE: mm/mlock.c:649:
++	vm_flags_t vm_flags = VM_LOCKED;
++	if (flags)
 
-total: 0 errors, 1 warnings, 90 lines checked
+total: 0 errors, 1 warnings, 51 lines checked
 
-./patches/mm-mlock-refactor-mlock-munlock-and-munlockall-code.patch has style problems, please review.
+./patches/mm-mlock-add-new-mlock-system-call.patch has style problems, please review.
 
 NOTE: If any of the errors are false positives, please report
       them to the maintainer, see CHECKPATCH in MAINTAINERS.
@@ -47,20 +47,25 @@ Cc: Eric B Munson <emunson@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mlock.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/mlock.c~mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes mm/mlock.c
---- a/mm/mlock.c~mm-mlock-refactor-mlock-munlock-and-munlockall-code-checkpatch-fixes
+diff -puN mm/mlock.c~mm-mlock-add-new-mlock-system-call-checkpatch-fixes mm/mlock.c
+--- a/mm/mlock.c~mm-mlock-add-new-mlock-system-call-checkpatch-fixes
 +++ a/mm/mlock.c
-@@ -578,6 +578,7 @@ static int apply_vma_lock_flags(unsigned
+@@ -646,11 +646,10 @@ SYSCALL_DEFINE2(mlock, unsigned long, st
  
- 	for (nstart = start ; ; ) {
- 		vm_flags_t newflags = vma->vm_flags & ~VM_LOCKED;
-+
- 		newflags |= flags;
+ SYSCALL_DEFINE3(mlock2, unsigned long, start, size_t, len, int, flags)
+ {
+-	vm_flags_t vm_flags = VM_LOCKED;
+ 	if (flags)
+ 		return -EINVAL;
  
- 		/* Here we know that  vma->vm_start <= nstart < vma->vm_end. */
+-	return do_mlock(start, len, vm_flags);
++	return do_mlock(start, len, VM_LOCKED);
+ }
+ 
+ SYSCALL_DEFINE2(munlock, unsigned long, start, size_t, len)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -77,7 +82,6 @@ mm.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
 userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-mm-mlock-add-new-mlock-system-call-checkpatch-fixes.patch
 mm-introduce-vm_lockonfault-checkpatch-fixes.patch
 genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
 genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
