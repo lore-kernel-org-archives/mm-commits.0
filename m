@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mlock-refactor-mlock-munlock-and-munlockall-code-v7.patch
- added to -mm tree
-Date: Tue, 11 Aug 2015 15:05:57 -0700
-Message-ID: <55ca71c5.pfeITn9P1YmSjBF5%akpm@linux-foundation.org>
+Subject: +
+ mm-mlock-add-mlock-flags-to-enable-vm_lockonfault-usage-v7.patch added to
+ -mm tree
+Date: Tue, 11 Aug 2015 15:06:03 -0700
+Message-ID: <55ca71cb.aHlsvzihjWI0sDUC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36316 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36325 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752579AbbHKWGA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Aug 2015 18:06:00 -0400
+	with ESMTP id S1753677AbbHKWGG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 11 Aug 2015 18:06:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: emunson@akamai.com, kirill.shutemov@linux.intel.com, kirill@shutemov.name, mhocko@suse.cz, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: emunson@akamai.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mlock-refactor-mlock-munlock-and-munlockall-code-v7
+     Subject: mm-mlock-add-mlock-flags-to-enable-vm_lockonfault-usage-v7
 has been added to the -mm tree.  Its filename is
-     mm-mlock-refactor-mlock-munlock-and-munlockall-code-v7.patch
+     mm-mlock-add-mlock-flags-to-enable-vm_lockonfault-usage-v7.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-refactor-mlock-munlock-and-munlockall-code-v7.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mlock-add-mlock-flags-to-enable-vm_lockonfault-usage-v7.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-refactor-mlock-munlock-and-munlockall-code-v7.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mlock-add-mlock-flags-to-enable-vm_lockonfault-usage-v7.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,38 +41,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Eric B Munson <emunson@akamai.com>
-Subject: mm-mlock-refactor-mlock-munlock-and-munlockall-code-v7
-
-Extending the mlock system call is very difficult because it currently
-does not take a flags argument.  A later patch in this set will extend
-mlock to support a middle ground between pages that are locked and
-faulted in immediately and unlocked pages.  To pave the way for the new
-system call, the code needs some reorganization so that all the actual
-entry point handles is checking input and translating to VMA flags.
+Subject: mm-mlock-add-mlock-flags-to-enable-vm_lockonfault-usage-v7
 
 Signed-off-by: Eric B Munson <emunson@akamai.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/mlock.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
-diff -puN mm/mlock.c~mm-mlock-refactor-mlock-munlock-and-munlockall-code-v7 mm/mlock.c
---- a/mm/mlock.c~mm-mlock-refactor-mlock-munlock-and-munlockall-code-v7
+diff -puN mm/mlock.c~mm-mlock-add-mlock-flags-to-enable-vm_lockonfault-usage-v7 mm/mlock.c
+--- a/mm/mlock.c~mm-mlock-add-mlock-flags-to-enable-vm_lockonfault-usage-v7
 +++ a/mm/mlock.c
-@@ -578,6 +578,7 @@ static int apply_vma_lock_flags(unsigned
+@@ -578,9 +578,9 @@ static int apply_vma_lock_flags(unsigned
+ 		prev = vma;
  
  	for (nstart = start ; ; ) {
- 		vm_flags_t newflags = vma->vm_flags & ~VM_LOCKED;
-+
+-		vm_flags_t newflags;
++		vm_flags_t newflags =
++			vma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
+ 
+-		newflags = vma->vm_flags & ~(VM_LOCKED | VM_LOCKONFAULT);
  		newflags |= flags;
  
  		/* Here we know that  vma->vm_start <= nstart < vma->vm_end. */
+@@ -678,7 +678,7 @@ SYSCALL_DEFINE2(munlock, unsigned long,
+  * and translate into the appropriate modifications to mm->def_flags and/or the
+  * flags for all current VMAs.
+  *
+- * There are a couple of sublties with this.  If mlockall() is called multiple
++ * There are a couple of subtleties with this.  If mlockall() is called multiple
+  * times with different flags, the values do not necessarily stack.  If mlockall
+  * is called once including the MCL_FUTURE flag and then a second time without
+  * it, VM_LOCKED and VM_LOCKONFAULT will be cleared from mm->def_flags.
+@@ -695,13 +695,6 @@ static int apply_mlockall_flags(int flag
+ 		if (flags & MCL_ONFAULT)
+ 			current->mm->def_flags |= VM_LOCKONFAULT;
+ 
+-		/*
+-		 * When there were only two flags, we used to early out if only
+-		 * MCL_FUTURE was set.  Now that we have MCL_ONFAULT, we can
+-		 * only early out if MCL_FUTURE is set, but MCL_CURRENT is not.
+-		 * This is done, even though it promotes odd behavior, to
+-		 * maintain behavior from older kernels
+-		 */
+ 		if (!(flags & MCL_CURRENT))
+ 			goto out;
+ 	}
 _
 
 Patches currently in -mm which might be from emunson@akamai.com are
