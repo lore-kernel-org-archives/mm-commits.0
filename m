@@ -1,87 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: +
- align-crash_notes-allocation-to-make-it-be-inside-one-physical-page-fix.patch added to -mm tree
-Date: Wed, 12 Aug 2015 16:16:46 -0700
-Message-ID: <55cbd3de.kY6i/I8g+Hb9yn1H%akpm@linux-foundation.org>
+Subject: [failures]
+ mm-hwpoison-introduce-put_hwpoison_page-to-put-refcount-for-memory-error-handling-fix.patch removed from -mm tree
+Date: Wed, 12 Aug 2015 16:17:47 -0700
+Message-ID: <55cbd41b.L4a0kotA8XVga10Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51010 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51016 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750953AbbHLXQr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 19:16:47 -0400
+	with ESMTP id S1750953AbbHLXRs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 19:17:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, bhe@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, n-horiguchi@ah.jp.nec.com, wanpeng.li@hotmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: align-crash_notes-allocation-to-make-it-be-inside-one-physical-page-fix
-has been added to the -mm tree.  Its filename is
-     align-crash_notes-allocation-to-make-it-be-inside-one-physical-page-fix.patch
+     Subject: mm-hwpoison-introduce-put_hwpoison_page-to-put-refcount-for-memory-error-handling-fix
+has been removed from the -mm tree.  Its filename was
+     mm-hwpoison-introduce-put_hwpoison_page-to-put-refcount-for-memory-error-handling-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/align-crash_notes-allocation-to-make-it-be-inside-one-physical-page-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/align-crash_notes-allocation-to-make-it-be-inside-one-physical-page-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it had testing failures
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: align-crash_notes-allocation-to-make-it-be-inside-one-physical-page-fix
+Subject: mm-hwpoison-introduce-put_hwpoison_page-to-put-refcount-for-memory-error-handling-fix
 
-use correct comment layout
+remove unneeded export
 
-Cc: Baoquan He <bhe@redhat.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Wanpeng Li <wanpeng.li@hotmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_core.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/memory-failure.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN kernel/kexec_core.c~align-crash_notes-allocation-to-make-it-be-inside-one-physical-page-fix kernel/kexec_core.c
---- a/kernel/kexec_core.c~align-crash_notes-allocation-to-make-it-be-inside-one-physical-page-fix
-+++ a/kernel/kexec_core.c
-@@ -1006,19 +1006,23 @@ static int __init crash_notes_memory_ini
- 	/* Allocate memory for saving cpu registers. */
- 	size_t size, align;
+diff -puN mm/memory-failure.c~mm-hwpoison-introduce-put_hwpoison_page-to-put-refcount-for-memory-error-handling-fix mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-introduce-put_hwpoison_page-to-put-refcount-for-memory-error-handling-fix
++++ a/mm/memory-failure.c
+@@ -953,7 +953,6 @@ void put_hwpoison_page(struct page *page
  
--	/* crash_notes could be allocated across 2 vmalloc pages when percpu
-+	/*
-+	 * crash_notes could be allocated across 2 vmalloc pages when percpu
- 	 * is vmalloc based . vmalloc doesn't guarantee 2 continuous vmalloc
- 	 * pages are also on 2 continuous physical pages. In this case the
- 	 * 2nd part of crash_notes in 2nd page could be lost since only the
- 	 * starting address and size of crash_notes are exported through sysfs.
- 	 * Here round up the size of crash_notes to the nearest power of two
- 	 * and pass it to __alloc_percpu as align value. This can make sure
--	 * crash_notes is allocated inside one physical page. */
-+	 * crash_notes is allocated inside one physical page.
-+	 */
- 	size = sizeof(note_buf_t);
- 	align = min(roundup_pow_of_two(sizeof(note_buf_t)), PAGE_SIZE);
+ 	put_page(page);
+ }
+-EXPORT_SYMBOL_GPL(put_hwpoison_page);
  
--	/* Break compile if size is bigger than PAGE_SIZE since crash_notes
--	 * definitely will be in 2 pages with that. */
-+	/*
-+	 * Break compile if size is bigger than PAGE_SIZE since crash_notes
-+	 * definitely will be in 2 pages with that.
-+	 */
- 	BUILD_BUG_ON(size > PAGE_SIZE);
- 
- 	crash_notes = __alloc_percpu(size, align);
+ /*
+  * Do all that is necessary to remove user space mappings. Unmap
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -114,7 +81,6 @@ mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
 mm-srcu-ify-shrinkers-fix-fix.patch
 x86-use-generic-early-mem-copy-fix.patch
 mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-status-fix.patch
-mm-hwpoison-introduce-put_hwpoison_page-to-put-refcount-for-memory-error-handling-fix.patch
 include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
 proc-add-kpageidle-file-fix-6-fix.patch
 proc-add-kpageidle-file-fix-6-fix-2-fix.patch
