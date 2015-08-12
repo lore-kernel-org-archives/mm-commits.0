@@ -1,105 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: + userfaultfd-selftest-fix.patch added to -mm tree
-Date: Wed, 12 Aug 2015 16:34:58 -0700
-Message-ID: <55cbd822.oYWELzRtpbcP8A1T%akpm@linux-foundation.org>
+Subject: [to-be-updated] zram-fix-pool-name-truncation.patch removed from
+ -mm tree
+Date: Wed, 12 Aug 2015 16:38:32 -0700
+Message-ID: <55cbd8f8.aCH3Ww1ntrDwkh8N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51141 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51213 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751169AbbHLXe7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 19:34:59 -0400
+	with ESMTP id S1751887AbbHLXic (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 19:38:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: treding@nvidia.com, aarcange@redhat.com, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: vm: pick up sanitized kernel headers
-has been added to the -mm tree.  Its filename is
-     userfaultfd-selftest-fix.patch
+     Subject: zram: fix pool name truncation
+has been removed from the -mm tree.  Its filename was
+     zram-fix-pool-name-truncation.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftest-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftest-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Thierry Reding <treding@nvidia.com>
-Subject: selftests: vm: pick up sanitized kernel headers
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram: fix pool name truncation
 
-Add the usr/include subdirectory of the top-level tree to the include
-path, and make sure to include headers without relative paths to make sure
-the sanitized headers get picked up.  Otherwise the compiler will not be
-able to find the linux/compiler.h header included by the non- sanitized
-include/uapi/linux/userfaultfd.h.
+zram_meta_alloc() constructs a pool name for zs_create_pool() call as
 
-While at it, make sure to only hardcode the syscall numbers on x86 and
-PowerPC if they haven't been properly picked up from the headers.
+ snprintf(pool_name, sizeof(pool_name), "zram%d", device_id);
 
-Signed-off-by: Thierry Reding <treding@nvidia.com>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+However, it defines pool name buffer to be only 8 chars long (minus
+trailing zero), which means that we can have only 1000 pool names: zram0
+-- zram999.
+
+With CONFIG_ZSMALLOC_STAT enabled an attempt to create a device zram1000
+can fail if device zram100 already exists, because snprintf() will
+truncate new pool name to zram100 and pass it to debugfs_create_dir(),
+causing:
+
+  debugfs dir <zram100> creation failed
+  zram: Error creating memory pool
+
+... and so on (zram101 - zram1010, etc).
+
+Fix it by increasing pool_name buffer size to 15:
+
+- zram prefix (length 4)
+- int device_id can use up to 10 chars
+- terminating zero byte
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile      |    2 +-
- tools/testing/selftests/vm/userfaultfd.c |    4 +++-
- 2 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN tools/testing/selftests/vm/Makefile~userfaultfd-selftest-fix tools/testing/selftests/vm/Makefile
---- a/tools/testing/selftests/vm/Makefile~userfaultfd-selftest-fix
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -1,6 +1,6 @@
- # Makefile for vm selftests
+diff -puN drivers/block/zram/zram_drv.c~zram-fix-pool-name-truncation drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-fix-pool-name-truncation
++++ a/drivers/block/zram/zram_drv.c
+@@ -499,7 +499,7 @@ static void zram_meta_free(struct zram_m
+ static struct zram_meta *zram_meta_alloc(int device_id, u64 disksize)
+ {
+ 	size_t num_pages;
+-	char pool_name[8];
++	char pool_name[15];
+ 	struct zram_meta *meta = kmalloc(sizeof(*meta), GFP_KERNEL);
  
--CFLAGS = -Wall
-+CFLAGS = -Wall -I ../../../../usr/include $(EXTRA_CFLAGS)
- BINARIES = compaction_test
- BINARIES += hugepage-mmap
- BINARIES += hugepage-shm
-diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-fix tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-fix
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -64,8 +64,9 @@
- #include <sys/syscall.h>
- #include <sys/ioctl.h>
- #include <pthread.h>
--#include "../../../../include/uapi/linux/userfaultfd.h"
-+#include <linux/userfaultfd.h>
- 
-+#ifndef __NR_userfaultfd
- #ifdef __x86_64__
- #define __NR_userfaultfd 323
- #elif defined(__i386__)
-@@ -75,6 +76,7 @@
- #else
- #error "missing __NR_userfaultfd definition"
- #endif
-+#endif
- 
- static unsigned long nr_cpus, nr_pages, nr_pages_per_cpu, page_size;
- 
+ 	if (!meta)
 _
 
-Patches currently in -mm which might be from treding@nvidia.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-userfaultfd-selftest-fix.patch
-selftests-vm-add-tests-for-lock-on-fault-fix.patch
-selftests-vm-add-tests-for-lock-on-fault-fix-2.patch
-selftests-vm-add-tests-for-lock-on-fault-fix-3.patch
-linux-next.patch
+zram-fix-pool-name-truncation-v3.patch
+mm-slab_common-allow-null-cache-pointer-in-kmem_cache_destroy.patch
+mm-mempool-allow-null-pool-pointer-in-mempool_destroy.patch
+mm-dmapool-allow-null-pool-pointer-in-dma_pool_destroy.patch
+zsmalloc-drop-unused-variable-nr_to_migrate.patch
+zsmalloc-always-keep-per-class-stats.patch
+zsmalloc-introduce-zs_can_compact-function.patch
+zsmalloc-cosmetic-compaction-code-adjustments.patch
+zsmalloc-zram-introduce-zs_pool_stats-api.patch
+zsmalloc-account-the-number-of-compacted-pages.patch
+zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
+zsmalloc-partial-page-ordering-within-a-fullness_list.patch
+zsmalloc-consider-zs_almost_full-as-migrate-source.patch
+zsmalloc-use-class-pages_per_zspage.patch
+zsmalloc-do-not-take-class-lock-in-zs_shrinker_count.patch
+zsmalloc-remove-null-check-from-destroy_handle_cache.patch
+zram-unify-error-reporting.patch
+checkpatch-add-some-foo_destroy-functions-to-needless_if-tests.patch
 
