@@ -1,127 +1,289 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] smaps-fill-missing-fields-for-vmavm_hugetlb.patch removed from -mm tree
-Date: Wed, 12 Aug 2015 16:54:31 -0700
-Message-ID: <55cbdcb7.O+C752qtht59G1kW%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-status.patch removed from -mm tree
+Date: Wed, 12 Aug 2015 16:54:34 -0700
+Message-ID: <55cbdcba.32Xpcb5G8fUGcBVL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51658 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51665 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751527AbbHLXyc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 19:54:32 -0400
+	with ESMTP id S1751527AbbHLXyf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 19:54:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, joern@logfs.org, mike.kravetz@oracle.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: smaps: fill missing fields for vma(VM_HUGETLB)
+     Subject: mm: hugetlb: add VmHugetlbRSS: field in /proc/pid/status
 has been removed from the -mm tree.  Its filename was
-     smaps-fill-missing-fields-for-vmavm_hugetlb.patch
+     mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-status.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 =46rom: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: smaps: fill missing fields for vma(VM_HUGETLB)
+Subject: mm: hugetlb: add VmHugetlbRSS: field in /proc/pid/status
 
-Currently smaps reports many zero fields for vma(VM_HUGETLB), which is
-inconvenient when we want to know per-task or per-vma base hugetlb usag=
-e.=20
-This patch enables these fields by introducing smaps_hugetlb_range().
+Currently there's no easy way to get per-process usage of hugetlb pages=
+,
+which is inconvenient because applications which use hugetlb typically
+want to control their processes on the basis of how much memory (includ=
+ing
+hugetlb) they use.  So this patch simply provides easy access to the in=
+fo
+via /proc/pid/status.
 
-before patch:
-
-  Size:              20480 kB
-  Rss:                   0 kB
-  Pss:                   0 kB
-  Shared_Clean:          0 kB
-  Shared_Dirty:          0 kB
-  Private_Clean:         0 kB
-  Private_Dirty:         0 kB
-  Referenced:            0 kB
-  Anonymous:             0 kB
-  AnonHugePages:         0 kB
-  Swap:                  0 kB
-  KernelPageSize:     2048 kB
-  MMUPageSize:        2048 kB
-  Locked:                0 kB
-  VmFlags: rd wr mr mw me de ht
-
-after patch:
-
-  Size:              20480 kB
-  Rss:               18432 kB
-  Pss:               18432 kB
-  Shared_Clean:          0 kB
-  Shared_Dirty:          0 kB
-  Private_Clean:         0 kB
-  Private_Dirty:     18432 kB
-  Referenced:        18432 kB
-  Anonymous:         18432 kB
-  AnonHugePages:         0 kB
-  Swap:                  0 kB
-  KernelPageSize:     2048 kB
-  MMUPageSize:        2048 kB
-  Locked:                0 kB
-  VmFlags: rd wr mr mw me de ht
+This patch shouldn't change the OOM behavior (so hugetlb usage is ignor=
+ed
+as is now,) which I guess is fine until we have some strong reason to d=
+o
+it.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: J=F6rn Engel <joern@logfs.org>
+Cc: J=F6rn Engel <joern@logfs.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ fs/proc/task_mmu.c       |    5 ++++-
+ include/linux/hugetlb.h  |   25 +++++++++++++++++++++++++
+ include/linux/mm.h       |    3 +++
+ include/linux/mm_types.h |    3 +++
+ mm/hugetlb.c             |    9 +++++++++
+ mm/memory.c              |    4 ++--
+ mm/rmap.c                |    4 +++-
+ 7 files changed, 49 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~smaps-fill-missing-fields-for-vmavm_hugetl=
-b fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~smaps-fill-missing-fields-for-vmavm_hugetlb
+diff -puN fs/proc/task_mmu.c~mm-hugetlb-add-vmhugetlbrss-field-in-proc-=
+pid-status fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-=
+status
 +++ a/fs/proc/task_mmu.c
-@@ -625,12 +625,39 @@ static void show_smap_vma_flags(struct s
- 	seq_putc(m, '\n');
- }
+@@ -22,7 +22,7 @@
+ void task_mem(struct seq_file *m, struct mm_struct *mm)
+ {
+ 	unsigned long data, text, lib, swap, ptes, pmds;
+-	unsigned long hiwater_vm, total_vm, hiwater_rss, total_rss;
++	unsigned long hiwater_vm, total_vm, hiwater_rss, total_rss, hugetlb_r=
+ss;
 =20
-+#ifdef CONFIG_HUGETLB_PAGE
-+static int smaps_hugetlb_range(pte_t *pte, unsigned long hmask,
-+				 unsigned long addr, unsigned long end,
-+				 struct mm_walk *walk)
+ 	/*
+ 	 * Note: to minimize their overhead, mm maintains hiwater_vm and
+@@ -37,6 +37,7 @@ void task_mem(struct seq_file *m, struct
+ 	hiwater_rss =3D total_rss =3D get_mm_rss(mm);
+ 	if (hiwater_rss < mm->hiwater_rss)
+ 		hiwater_rss =3D mm->hiwater_rss;
++	hugetlb_rss =3D get_hugetlb_rss(mm);
+=20
+ 	data =3D mm->total_vm - mm->shared_vm - mm->stack_vm;
+ 	text =3D (PAGE_ALIGN(mm->end_code) - (mm->start_code & PAGE_MASK)) >>=
+ 10;
+@@ -51,6 +52,7 @@ void task_mem(struct seq_file *m, struct
+ 		"VmPin:\t%8lu kB\n"
+ 		"VmHWM:\t%8lu kB\n"
+ 		"VmRSS:\t%8lu kB\n"
++		"VmHugetlbRSS:\t%8lu kB\n"
+ 		"VmData:\t%8lu kB\n"
+ 		"VmStk:\t%8lu kB\n"
+ 		"VmExe:\t%8lu kB\n"
+@@ -64,6 +66,7 @@ void task_mem(struct seq_file *m, struct
+ 		mm->pinned_vm << (PAGE_SHIFT-10),
+ 		hiwater_rss << (PAGE_SHIFT-10),
+ 		total_rss << (PAGE_SHIFT-10),
++		hugetlb_rss << (PAGE_SHIFT-10),
+ 		data << (PAGE_SHIFT-10),
+ 		mm->stack_vm << (PAGE_SHIFT-10), text, lib,
+ 		ptes >> 10,
+diff -puN include/linux/hugetlb.h~mm-hugetlb-add-vmhugetlbrss-field-in-=
+proc-pid-status include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlb-add-vmhugetlbrss-field-in-proc=
+-pid-status
++++ a/include/linux/hugetlb.h
+@@ -483,6 +483,21 @@ static inline spinlock_t *huge_pte_lockp
+ #define hugepages_supported() (HPAGE_SHIFT !=3D 0)
+ #endif
+=20
++/*
++ * This simple wrappers are to hide MM_HUGETLBPAGES from outside huget=
+lbfs
++ * subsystem. The counter MM_HUGETLBPAGES is maintained in page unit b=
+asis,
++ * so it changes by 512 for example if a 2MB hugepage is mapped or unm=
+apped.
++ */
++static inline int get_hugetlb_rss(struct mm_struct *mm)
 +{
-+	struct mem_size_stats *mss =3D walk->private;
-+	struct vm_area_struct *vma =3D walk->vma;
-+	struct page *page =3D NULL;
++	return get_mm_counter(mm, MM_HUGETLBPAGES);
++}
 +
-+	if (pte_present(*pte)) {
-+		page =3D vm_normal_page(vma, addr, *pte);
-+	} else if (is_swap_pte(*pte)) {
-+		swp_entry_t swpent =3D pte_to_swp_entry(*pte);
++static inline void mod_hugetlb_rss(struct mm_struct *mm, long value)
++{
++	add_mm_counter(mm, MM_HUGETLBPAGES, value);
++}
 +
-+		if (is_migration_entry(swpent))
-+			page =3D migration_entry_to_page(swpent);
-+	}
-+	if (page)
-+		smaps_account(mss, page, huge_page_size(hstate_vma(vma)),
-+			      pte_young(*pte), pte_dirty(*pte));
+ #else	/* CONFIG_HUGETLB_PAGE */
+ struct hstate {};
+ #define alloc_huge_page(v, a, r) NULL
+@@ -519,6 +534,16 @@ static inline spinlock_t *huge_pte_lockp
+ {
+ 	return &mm->page_table_lock;
+ }
++
++static inline int get_hugetlb_rss(struct mm_struct *mm)
++{
 +	return 0;
 +}
-+#endif /* HUGETLB_PAGE */
 +
- static int show_smap(struct seq_file *m, void *v, int is_pid)
- {
- 	struct vm_area_struct *vma =3D v;
- 	struct mem_size_stats mss;
- 	struct mm_walk smaps_walk =3D {
- 		.pmd_entry =3D smaps_pte_range,
++static inline void mod_hugetlb_rss(struct mm_struct *mm, long value)
++{
++}
++
+ #endif	/* CONFIG_HUGETLB_PAGE */
+=20
+ static inline spinlock_t *huge_pte_lock(struct hstate *h,
+diff -puN include/linux/mm.h~mm-hugetlb-add-vmhugetlbrss-field-in-proc-=
+pid-status include/linux/mm.h
+--- a/include/linux/mm.h~mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-=
+status
++++ a/include/linux/mm.h
+@@ -1342,6 +1342,9 @@ static inline void sync_mm_rss(struct mm
+ }
+ #endif
+=20
++extern inline void init_rss_vec(int *rss);
++extern inline void add_mm_rss_vec(struct mm_struct *mm, int *rss);
++
+ int vma_wants_writenotify(struct vm_area_struct *vma);
+=20
+ extern pte_t *__get_locked_pte(struct mm_struct *mm, unsigned long add=
+r,
+diff -puN include/linux/mm_types.h~mm-hugetlb-add-vmhugetlbrss-field-in=
+-proc-pid-status include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-hugetlb-add-vmhugetlbrss-field-in-pro=
+c-pid-status
++++ a/include/linux/mm_types.h
+@@ -359,6 +359,9 @@ enum {
+ 	MM_FILEPAGES,
+ 	MM_ANONPAGES,
+ 	MM_SWAPENTS,
 +#ifdef CONFIG_HUGETLB_PAGE
-+		.hugetlb_entry =3D smaps_hugetlb_range,
++	MM_HUGETLBPAGES,
 +#endif
- 		.mm =3D vma->vm_mm,
- 		.private =3D &mss,
- 	};
+ 	NR_MM_COUNTERS
+ };
+=20
+diff -puN mm/hugetlb.c~mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-st=
+atus mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-status
++++ a/mm/hugetlb.c
+@@ -2971,9 +2971,11 @@ int copy_hugetlb_page_range(struct mm_st
+ 	unsigned long mmun_start;	/* For mmu_notifiers */
+ 	unsigned long mmun_end;		/* For mmu_notifiers */
+ 	int ret =3D 0;
++	int rss[NR_MM_COUNTERS];
+=20
+ 	cow =3D (vma->vm_flags & (VM_SHARED | VM_MAYWRITE)) =3D=3D VM_MAYWRIT=
+E;
+=20
++	init_rss_vec(rss);
+ 	mmun_start =3D vma->vm_start;
+ 	mmun_end =3D vma->vm_end;
+ 	if (cow)
+@@ -3025,6 +3027,7 @@ int copy_hugetlb_page_range(struct mm_st
+ 			get_page(ptepage);
+ 			page_dup_rmap(ptepage);
+ 			set_huge_pte_at(dst, addr, dst_pte, entry);
++			rss[MM_HUGETLBPAGES] +=3D pages_per_huge_page(h);
+ 		}
+ 		spin_unlock(src_ptl);
+ 		spin_unlock(dst_ptl);
+@@ -3033,6 +3036,7 @@ int copy_hugetlb_page_range(struct mm_st
+ 	if (cow)
+ 		mmu_notifier_invalidate_range_end(src, mmun_start, mmun_end);
+=20
++	add_mm_rss_vec(dst, rss);
+ 	return ret;
+ }
+=20
+@@ -3051,6 +3055,7 @@ void __unmap_hugepage_range(struct mmu_g
+ 	unsigned long sz =3D huge_page_size(h);
+ 	const unsigned long mmun_start =3D start;	/* For mmu_notifiers */
+ 	const unsigned long mmun_end   =3D end;	/* For mmu_notifiers */
++	int rss[NR_MM_COUNTERS];
+=20
+ 	WARN_ON(!is_vm_hugetlb_page(vma));
+ 	BUG_ON(start & ~huge_page_mask(h));
+@@ -3060,6 +3065,7 @@ void __unmap_hugepage_range(struct mmu_g
+ 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
+ 	address =3D start;
+ again:
++	init_rss_vec(rss);
+ 	for (; address < end; address +=3D sz) {
+ 		ptep =3D huge_pte_offset(mm, address);
+ 		if (!ptep)
+@@ -3105,6 +3111,7 @@ again:
+ 		if (huge_pte_dirty(pte))
+ 			set_page_dirty(page);
+=20
++		rss[MM_HUGETLBPAGES] -=3D pages_per_huge_page(h);
+ 		page_remove_rmap(page);
+ 		force_flush =3D !__tlb_remove_page(tlb, page);
+ 		if (force_flush) {
+@@ -3120,6 +3127,7 @@ again:
+ unlock:
+ 		spin_unlock(ptl);
+ 	}
++	add_mm_rss_vec(mm, rss);
+ 	/*
+ 	 * mmu_gather ran out of room to batch pages, we break out of
+ 	 * the PTE lock to avoid doing the potential expensive TLB invalidate
+@@ -3501,6 +3509,7 @@ retry:
+ 				&& (vma->vm_flags & VM_SHARED)));
+ 	set_huge_pte_at(mm, address, ptep, new_pte);
+=20
++	mod_hugetlb_rss(mm, pages_per_huge_page(h));
+ 	if ((flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
+ 		/* Optimization, do the COW without a second fault */
+ 		ret =3D hugetlb_cow(mm, vma, address, ptep, new_pte, page, ptl);
+diff -puN mm/memory.c~mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-sta=
+tus mm/memory.c
+--- a/mm/memory.c~mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-status
++++ a/mm/memory.c
+@@ -621,12 +621,12 @@ int __pte_alloc_kernel(pmd_t *pmd, unsig
+ 	return 0;
+ }
+=20
+-static inline void init_rss_vec(int *rss)
++inline void init_rss_vec(int *rss)
+ {
+ 	memset(rss, 0, sizeof(int) * NR_MM_COUNTERS);
+ }
+=20
+-static inline void add_mm_rss_vec(struct mm_struct *mm, int *rss)
++inline void add_mm_rss_vec(struct mm_struct *mm, int *rss)
+ {
+ 	int i;
+=20
+diff -puN mm/rmap.c~mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-statu=
+s mm/rmap.c
+--- a/mm/rmap.c~mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-status
++++ a/mm/rmap.c
+@@ -1348,7 +1348,9 @@ static int try_to_unmap_one(struct page
+ 	update_hiwater_rss(mm);
+=20
+ 	if (PageHWPoison(page) && !(flags & TTU_IGNORE_HWPOISON)) {
+-		if (!PageHuge(page)) {
++		if (PageHuge(page)) {
++			mod_hugetlb_rss(mm, -(1 << compound_order(page)));
++		} else {
+ 			if (PageAnon(page))
+ 				dec_mm_counter(mm, MM_ANONPAGES);
+ 			else
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com =
@@ -165,7 +327,6 @@ mm-compaction-skip-compound-pages-by-order-in-free-scanner.patch
 reverted-selftests-add-hugetlbfstest.patch
 selftests-vm-point-to-libhugetlbfs-for-regression-testing.patch
 documentation-update-libhugetlbfs-location-and-use-for-testing.patch
-mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-status.patch
 documentation-filesystems-proctxt-document-hugetlb-rss.patch
 mm-hwpoison-fix-fail-to-split-thp-w-refcount-held.patch
 mm-hwpoison-fix-pagehwpoison-test-set-race.patch
