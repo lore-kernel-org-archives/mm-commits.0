@@ -1,293 +1,103 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-status.patch removed from -mm tree
-Date: Wed, 12 Aug 2015 16:54:34 -0700
-Message-ID: <55cbdcba.32Xpcb5G8fUGcBVL%akpm@linux-foundation.org>
+ documentation-filesystems-proctxt-document-hugetlb-rss.patch removed from
+ -mm tree
+Date: Wed, 12 Aug 2015 16:54:36 -0700
+Message-ID: <55cbdcbc.m8OKTs3tEFhrHWqk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51665 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51667 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751527AbbHLXyf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 19:54:35 -0400
+	with ESMTP id S1751693AbbHLXyh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 19:54:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, joern@logfs.org, mike.kravetz@oracle.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: add VmHugetlbRSS: field in /proc/pid/status
+     Subject: Documentation/filesystems/proc.txt: document hugetlb RSS
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-status.patch
+     documentation-filesystems-proctxt-document-hugetlb-rss.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-=46rom: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: hugetlb: add VmHugetlbRSS: field in /proc/pid/status
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: Documentation/filesystems/proc.txt: document hugetlb RSS
 
-Currently there's no easy way to get per-process usage of hugetlb pages=
-,
-which is inconvenient because applications which use hugetlb typically
-want to control their processes on the basis of how much memory (includ=
-ing
-hugetlb) they use.  So this patch simply provides easy access to the in=
-fo
-via /proc/pid/status.
-
-This patch shouldn't change the OOM behavior (so hugetlb usage is ignor=
-ed
-as is now,) which I guess is fine until we have some strong reason to d=
-o
+/proc/PID/{status,smaps} is aware of hugetlb RSS now, so let's document
 it.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: J=F6rn Engel <joern@logfs.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c       |    5 ++++-
- include/linux/hugetlb.h  |   25 +++++++++++++++++++++++++
- include/linux/mm.h       |    3 +++
- include/linux/mm_types.h |    3 +++
- mm/hugetlb.c             |    9 +++++++++
- mm/memory.c              |    4 ++--
- mm/rmap.c                |    4 +++-
- 7 files changed, 49 insertions(+), 4 deletions(-)
+ Documentation/filesystems/proc.txt |   23 ++++++++++++++++++-----
+ 1 file changed, 18 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-hugetlb-add-vmhugetlbrss-field-in-proc-=
-pid-status fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-=
-status
-+++ a/fs/proc/task_mmu.c
-@@ -22,7 +22,7 @@
- void task_mem(struct seq_file *m, struct mm_struct *mm)
- {
- 	unsigned long data, text, lib, swap, ptes, pmds;
--	unsigned long hiwater_vm, total_vm, hiwater_rss, total_rss;
-+	unsigned long hiwater_vm, total_vm, hiwater_rss, total_rss, hugetlb_r=
-ss;
-=20
- 	/*
- 	 * Note: to minimize their overhead, mm maintains hiwater_vm and
-@@ -37,6 +37,7 @@ void task_mem(struct seq_file *m, struct
- 	hiwater_rss =3D total_rss =3D get_mm_rss(mm);
- 	if (hiwater_rss < mm->hiwater_rss)
- 		hiwater_rss =3D mm->hiwater_rss;
-+	hugetlb_rss =3D get_hugetlb_rss(mm);
-=20
- 	data =3D mm->total_vm - mm->shared_vm - mm->stack_vm;
- 	text =3D (PAGE_ALIGN(mm->end_code) - (mm->start_code & PAGE_MASK)) >>=
- 10;
-@@ -51,6 +52,7 @@ void task_mem(struct seq_file *m, struct
- 		"VmPin:\t%8lu kB\n"
- 		"VmHWM:\t%8lu kB\n"
- 		"VmRSS:\t%8lu kB\n"
-+		"VmHugetlbRSS:\t%8lu kB\n"
- 		"VmData:\t%8lu kB\n"
- 		"VmStk:\t%8lu kB\n"
- 		"VmExe:\t%8lu kB\n"
-@@ -64,6 +66,7 @@ void task_mem(struct seq_file *m, struct
- 		mm->pinned_vm << (PAGE_SHIFT-10),
- 		hiwater_rss << (PAGE_SHIFT-10),
- 		total_rss << (PAGE_SHIFT-10),
-+		hugetlb_rss << (PAGE_SHIFT-10),
- 		data << (PAGE_SHIFT-10),
- 		mm->stack_vm << (PAGE_SHIFT-10), text, lib,
- 		ptes >> 10,
-diff -puN include/linux/hugetlb.h~mm-hugetlb-add-vmhugetlbrss-field-in-=
-proc-pid-status include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-add-vmhugetlbrss-field-in-proc=
--pid-status
-+++ a/include/linux/hugetlb.h
-@@ -483,6 +483,21 @@ static inline spinlock_t *huge_pte_lockp
- #define hugepages_supported() (HPAGE_SHIFT !=3D 0)
- #endif
-=20
-+/*
-+ * This simple wrappers are to hide MM_HUGETLBPAGES from outside huget=
-lbfs
-+ * subsystem. The counter MM_HUGETLBPAGES is maintained in page unit b=
-asis,
-+ * so it changes by 512 for example if a 2MB hugepage is mapped or unm=
-apped.
-+ */
-+static inline int get_hugetlb_rss(struct mm_struct *mm)
-+{
-+	return get_mm_counter(mm, MM_HUGETLBPAGES);
-+}
+diff -puN Documentation/filesystems/proc.txt~documentation-filesystems-proctxt-document-hugetlb-rss Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~documentation-filesystems-proctxt-document-hugetlb-rss
++++ a/Documentation/filesystems/proc.txt
+@@ -168,6 +168,7 @@ read the file /proc/PID/status:
+   VmLck:         0 kB
+   VmHWM:       476 kB
+   VmRSS:       476 kB
++  VmHugetlbRSS:  0 kB
+   VmData:      156 kB
+   VmStk:        88 kB
+   VmExe:        68 kB
+@@ -230,6 +231,7 @@ Table 1-2: Contents of the status files
+  VmLck                       locked memory size
+  VmHWM                       peak resident set size ("high water mark")
+  VmRSS                       size of memory portions
++ VmHugetlbRSS                size of hugetlb memory portions
+  VmData                      size of data, stack, and text segments
+  VmStk                       size of data, stack, and text segments
+  VmExe                       size of text segment
+@@ -440,20 +442,31 @@ The "proportional set size" (PSS) of a p
+ in memory, where each page is divided by the number of processes sharing it.
+ So if a process has 1000 pages all to itself, and 1000 shared with one other
+ process, its PSS will be 1500.
 +
-+static inline void mod_hugetlb_rss(struct mm_struct *mm, long value)
-+{
-+	add_mm_counter(mm, MM_HUGETLBPAGES, value);
-+}
+ Note that even a page which is part of a MAP_SHARED mapping, but has only
+ a single pte mapped, i.e.  is currently used by only one process, is accounted
+ as private and not as shared.
 +
- #else	/* CONFIG_HUGETLB_PAGE */
- struct hstate {};
- #define alloc_huge_page(v, a, r) NULL
-@@ -519,6 +534,16 @@ static inline spinlock_t *huge_pte_lockp
- {
- 	return &mm->page_table_lock;
- }
+ "Referenced" indicates the amount of memory currently marked as referenced or
+ accessed.
 +
-+static inline int get_hugetlb_rss(struct mm_struct *mm)
-+{
-+	return 0;
-+}
+ "Anonymous" shows the amount of memory that does not belong to any file.  Even
+ a mapping associated with a file may contain anonymous pages: when MAP_PRIVATE
+ and a page is modified, the file page is replaced by a private anonymous copy.
+-"Swap" shows how much would-be-anonymous memory is also used, but out on
+-swap.
 +
-+static inline void mod_hugetlb_rss(struct mm_struct *mm, long value)
-+{
-+}
++"Swap" shows how much would-be-anonymous memory is also used, but out on swap.
++Since 4.3, "RSS" contains the amount of mappings for hugetlb pages. Although
++RSS of hugetlb mappings is maintained separately from normal mappings
++(displayed in "VmHugetlbRSS" field of /proc/PID/status,) /proc/PID/smaps shows
++both mappings in "RSS" field. Userspace applications clearly distinguish the
++type of mapping with 'ht' flag in "VmFlags" field.
 +
- #endif	/* CONFIG_HUGETLB_PAGE */
-=20
- static inline spinlock_t *huge_pte_lock(struct hstate *h,
-diff -puN include/linux/mm.h~mm-hugetlb-add-vmhugetlbrss-field-in-proc-=
-pid-status include/linux/mm.h
---- a/include/linux/mm.h~mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-=
-status
-+++ a/include/linux/mm.h
-@@ -1342,6 +1342,9 @@ static inline void sync_mm_rss(struct mm
- }
- #endif
-=20
-+extern inline void init_rss_vec(int *rss);
-+extern inline void add_mm_rss_vec(struct mm_struct *mm, int *rss);
+ "SwapPss" shows proportional swap share of this mapping.
+-"VmFlags" field deserves a separate description. This member represents the kernel
+-flags associated with the particular virtual memory area in two letter encoded
+-manner. The codes are the following:
 +
- int vma_wants_writenotify(struct vm_area_struct *vma);
-=20
- extern pte_t *__get_locked_pte(struct mm_struct *mm, unsigned long add=
-r,
-diff -puN include/linux/mm_types.h~mm-hugetlb-add-vmhugetlbrss-field-in=
--proc-pid-status include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-hugetlb-add-vmhugetlbrss-field-in-pro=
-c-pid-status
-+++ a/include/linux/mm_types.h
-@@ -359,6 +359,9 @@ enum {
- 	MM_FILEPAGES,
- 	MM_ANONPAGES,
- 	MM_SWAPENTS,
-+#ifdef CONFIG_HUGETLB_PAGE
-+	MM_HUGETLBPAGES,
-+#endif
- 	NR_MM_COUNTERS
- };
-=20
-diff -puN mm/hugetlb.c~mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-st=
-atus mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-status
-+++ a/mm/hugetlb.c
-@@ -2971,9 +2971,11 @@ int copy_hugetlb_page_range(struct mm_st
- 	unsigned long mmun_start;	/* For mmu_notifiers */
- 	unsigned long mmun_end;		/* For mmu_notifiers */
- 	int ret =3D 0;
-+	int rss[NR_MM_COUNTERS];
-=20
- 	cow =3D (vma->vm_flags & (VM_SHARED | VM_MAYWRITE)) =3D=3D VM_MAYWRIT=
-E;
-=20
-+	init_rss_vec(rss);
- 	mmun_start =3D vma->vm_start;
- 	mmun_end =3D vma->vm_end;
- 	if (cow)
-@@ -3025,6 +3027,7 @@ int copy_hugetlb_page_range(struct mm_st
- 			get_page(ptepage);
- 			page_dup_rmap(ptepage);
- 			set_huge_pte_at(dst, addr, dst_pte, entry);
-+			rss[MM_HUGETLBPAGES] +=3D pages_per_huge_page(h);
- 		}
- 		spin_unlock(src_ptl);
- 		spin_unlock(dst_ptl);
-@@ -3033,6 +3036,7 @@ int copy_hugetlb_page_range(struct mm_st
- 	if (cow)
- 		mmu_notifier_invalidate_range_end(src, mmun_start, mmun_end);
-=20
-+	add_mm_rss_vec(dst, rss);
- 	return ret;
- }
-=20
-@@ -3051,6 +3055,7 @@ void __unmap_hugepage_range(struct mmu_g
- 	unsigned long sz =3D huge_page_size(h);
- 	const unsigned long mmun_start =3D start;	/* For mmu_notifiers */
- 	const unsigned long mmun_end   =3D end;	/* For mmu_notifiers */
-+	int rss[NR_MM_COUNTERS];
-=20
- 	WARN_ON(!is_vm_hugetlb_page(vma));
- 	BUG_ON(start & ~huge_page_mask(h));
-@@ -3060,6 +3065,7 @@ void __unmap_hugepage_range(struct mmu_g
- 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
- 	address =3D start;
- again:
-+	init_rss_vec(rss);
- 	for (; address < end; address +=3D sz) {
- 		ptep =3D huge_pte_offset(mm, address);
- 		if (!ptep)
-@@ -3105,6 +3111,7 @@ again:
- 		if (huge_pte_dirty(pte))
- 			set_page_dirty(page);
-=20
-+		rss[MM_HUGETLBPAGES] -=3D pages_per_huge_page(h);
- 		page_remove_rmap(page);
- 		force_flush =3D !__tlb_remove_page(tlb, page);
- 		if (force_flush) {
-@@ -3120,6 +3127,7 @@ again:
- unlock:
- 		spin_unlock(ptl);
- 	}
-+	add_mm_rss_vec(mm, rss);
- 	/*
- 	 * mmu_gather ran out of room to batch pages, we break out of
- 	 * the PTE lock to avoid doing the potential expensive TLB invalidate
-@@ -3501,6 +3509,7 @@ retry:
- 				&& (vma->vm_flags & VM_SHARED)));
- 	set_huge_pte_at(mm, address, ptep, new_pte);
-=20
-+	mod_hugetlb_rss(mm, pages_per_huge_page(h));
- 	if ((flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
- 		/* Optimization, do the COW without a second fault */
- 		ret =3D hugetlb_cow(mm, vma, address, ptep, new_pte, page, ptl);
-diff -puN mm/memory.c~mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-sta=
-tus mm/memory.c
---- a/mm/memory.c~mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-status
-+++ a/mm/memory.c
-@@ -621,12 +621,12 @@ int __pte_alloc_kernel(pmd_t *pmd, unsig
- 	return 0;
- }
-=20
--static inline void init_rss_vec(int *rss)
-+inline void init_rss_vec(int *rss)
- {
- 	memset(rss, 0, sizeof(int) * NR_MM_COUNTERS);
- }
-=20
--static inline void add_mm_rss_vec(struct mm_struct *mm, int *rss)
-+inline void add_mm_rss_vec(struct mm_struct *mm, int *rss)
- {
- 	int i;
-=20
-diff -puN mm/rmap.c~mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-statu=
-s mm/rmap.c
---- a/mm/rmap.c~mm-hugetlb-add-vmhugetlbrss-field-in-proc-pid-status
-+++ a/mm/rmap.c
-@@ -1348,7 +1348,9 @@ static int try_to_unmap_one(struct page
- 	update_hiwater_rss(mm);
-=20
- 	if (PageHWPoison(page) && !(flags & TTU_IGNORE_HWPOISON)) {
--		if (!PageHuge(page)) {
-+		if (PageHuge(page)) {
-+			mod_hugetlb_rss(mm, -(1 << compound_order(page)));
-+		} else {
- 			if (PageAnon(page))
- 				dec_mm_counter(mm, MM_ANONPAGES);
- 			else
++"VmFlags" field deserves a separate description.  This member represents
++the kernel flags associated with the particular virtual memory area in two
++letter encoded manner.  The codes are the following:
++
+     rd  - readable
+     wr  - writeable
+     ex  - executable
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com =
-are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 mm-hwpoison-fix-page-refcount-of-unkown-non-lru-page.patch
 mm-hwpoison-fix-fail-isolate-hugetlbfs-page-w-refcount-held.patch
@@ -314,36 +124,28 @@ hugetlbfs-new-huge_add_to_page_cache-helper-routine.patch
 hugetlbfs-add-hugetlbfs_fallocate.patch
 hugetlbfs-add-hugetlbfs_fallocate-fix.patch
 mm-madvise-allow-remove-operation-for-hugetlbfs.patch
-mempolicy-get-rid-of-duplicated-check-for-vmavm_pfnmap-in-queue_pages_r=
-ange.patch
+mempolicy-get-rid-of-duplicated-check-for-vmavm_pfnmap-in-queue_pages_range.patch
 mm-page_isolation-make-set-unset_migratetype_isolate-file-local.patch
 mm-compaction-more-robust-check-for-scanners-meeting.patch
-mm-compaction-simplify-handling-restart-position-in-free-pages-scanner.=
-patch
+mm-compaction-simplify-handling-restart-position-in-free-pages-scanner.patch
 mm-compaction-encapsulate-resetting-cached-scanner-positions.patch
-mm-compaction-always-skip-compound-pages-by-order-in-migrate-scanner.pa=
-tch
+mm-compaction-always-skip-compound-pages-by-order-in-migrate-scanner.patch
 mm-compaction-skip-compound-pages-by-order-in-free-scanner.patch
 reverted-selftests-add-hugetlbfstest.patch
 selftests-vm-point-to-libhugetlbfs-for-regression-testing.patch
 documentation-update-libhugetlbfs-location-and-use-for-testing.patch
-documentation-filesystems-proctxt-document-hugetlb-rss.patch
 mm-hwpoison-fix-fail-to-split-thp-w-refcount-held.patch
 mm-hwpoison-fix-pagehwpoison-test-set-race.patch
-mm-hwpoison-introduce-put_hwpoison_page-to-put-refcount-for-memory-erro=
-r-handling.patch
+mm-hwpoison-introduce-put_hwpoison_page-to-put-refcount-for-memory-error-handling.patch
 mm-hwpoison-fix-refcount-of-thp-head-page-in-no-injection-case.patch
-mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hw=
-poison_page.patch
-mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hw=
-poison_page-fix.patch
+mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page.patch
+mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page-fix.patch
 mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps.patch
 mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch
 page-flags-trivial-cleanup-for-pagetrans-helpers.patch
 page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
 page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.pat=
-ch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
 page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
 page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
 page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
@@ -353,13 +155,7 @@ page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
 page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
 page-flags-define-pg_uncached-behavior-on-compound-pages.patch
 page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.pat=
-ch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
 mm-sanitize-page-mapping-for-tail-pages.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
