@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + selftests-vm-add-tests-for-lock-on-fault-fix-2.patch added to
- -mm tree
-Date: Wed, 12 Aug 2015 16:33:37 -0700
-Message-ID: <55cbd7d1.RmrI6Ie8min7muls%akpm@linux-foundation.org>
+Subject: + userfaultfd-selftest-fix.patch added to -mm tree
+Date: Wed, 12 Aug 2015 16:34:58 -0700
+Message-ID: <55cbd822.oYWELzRtpbcP8A1T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51132 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51141 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751169AbbHLXdi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 19:33:38 -0400
+	with ESMTP id S1751169AbbHLXe7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 19:34:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: treding@nvidia.com, emunson@akamai.com, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
+To: treding@nvidia.com, aarcange@redhat.com, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: vm: ensure the mlock2 syscall number can be found
+     Subject: selftests: vm: pick up sanitized kernel headers
 has been added to the -mm tree.  Its filename is
-     selftests-vm-add-tests-for-lock-on-fault-fix-2.patch
+     userfaultfd-selftest-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/selftests-vm-add-tests-for-lock-on-fault-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftest-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-vm-add-tests-for-lock-on-fault-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftest-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,36 +39,65 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Thierry Reding <treding@nvidia.com>
-Subject: selftests: vm: ensure the mlock2 syscall number can be found
+Subject: selftests: vm: pick up sanitized kernel headers
 
-Include the syscall.h header to ensure that the mlock2 syscall number is
-available. Otherwise the test program will always return ENOSYS from the
-mlock2() implementation.
+Add the usr/include subdirectory of the top-level tree to the include
+path, and make sure to include headers without relative paths to make sure
+the sanitized headers get picked up.  Otherwise the compiler will not be
+able to find the linux/compiler.h header included by the non- sanitized
+include/uapi/linux/userfaultfd.h.
+
+While at it, make sure to only hardcode the syscall numbers on x86 and
+PowerPC if they haven't been properly picked up from the headers.
 
 Signed-off-by: Thierry Reding <treding@nvidia.com>
 Cc: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Eric B Munson <emunson@akamai.com
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/mlock2-tests.c |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/vm/Makefile      |    2 +-
+ tools/testing/selftests/vm/userfaultfd.c |    4 +++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN tools/testing/selftests/vm/mlock2-tests.c~selftests-vm-add-tests-for-lock-on-fault-fix-2 tools/testing/selftests/vm/mlock2-tests.c
---- a/tools/testing/selftests/vm/mlock2-tests.c~selftests-vm-add-tests-for-lock-on-fault-fix-2
-+++ a/tools/testing/selftests/vm/mlock2-tests.c
-@@ -6,6 +6,7 @@
- #include <string.h>
- #include <sys/time.h>
- #include <sys/resource.h>
-+#include <syscall.h>
- #include <errno.h>
- #include <stdbool.h>
+diff -puN tools/testing/selftests/vm/Makefile~userfaultfd-selftest-fix tools/testing/selftests/vm/Makefile
+--- a/tools/testing/selftests/vm/Makefile~userfaultfd-selftest-fix
++++ a/tools/testing/selftests/vm/Makefile
+@@ -1,6 +1,6 @@
+ # Makefile for vm selftests
+ 
+-CFLAGS = -Wall
++CFLAGS = -Wall -I ../../../../usr/include $(EXTRA_CFLAGS)
+ BINARIES = compaction_test
+ BINARIES += hugepage-mmap
+ BINARIES += hugepage-shm
+diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-fix tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-fix
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -64,8 +64,9 @@
+ #include <sys/syscall.h>
+ #include <sys/ioctl.h>
+ #include <pthread.h>
+-#include "../../../../include/uapi/linux/userfaultfd.h"
++#include <linux/userfaultfd.h>
+ 
++#ifndef __NR_userfaultfd
+ #ifdef __x86_64__
+ #define __NR_userfaultfd 323
+ #elif defined(__i386__)
+@@ -75,6 +76,7 @@
+ #else
+ #error "missing __NR_userfaultfd definition"
+ #endif
++#endif
+ 
+ static unsigned long nr_cpus, nr_pages, nr_pages_per_cpu, page_size;
  
 _
 
 Patches currently in -mm which might be from treding@nvidia.com are
 
+userfaultfd-selftest-fix.patch
 selftests-vm-add-tests-for-lock-on-fault-fix.patch
 selftests-vm-add-tests-for-lock-on-fault-fix-2.patch
 selftests-vm-add-tests-for-lock-on-fault-fix-3.patch
