@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax.patch added
- to -mm tree
-Date: Wed, 12 Aug 2015 17:03:00 -0700
-Message-ID: <55cbdeb4.6NBAsZhLyG/PMfx+%akpm@linux-foundation.org>
+Subject: + mm-dax-use-i_mmap_unlock_write-in-do_cow_fault.patch added to
+ -mm tree
+Date: Wed, 12 Aug 2015 17:03:02 -0700
+Message-ID: <55cbdeb6.n+2C8ubwQ6jdxGFa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51737 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51740 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751622AbbHMADB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 20:03:01 -0400
+	with ESMTP id S1751622AbbHMADD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 20:03:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: take i_mmap_lock in unmap_mapping_range() for DAX
+     Subject: mm, dax: use i_mmap_unlock_write() in do_cow_fault()
 has been added to the -mm tree.  Its filename is
-     mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax.patch
+     mm-dax-use-i_mmap_unlock_write-in-do_cow_fault.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dax-use-i_mmap_unlock_write-in-do_cow_fault.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dax-use-i_mmap_unlock_write-in-do_cow_fault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,107 +40,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: take i_mmap_lock in unmap_mapping_range() for DAX
+Subject: mm, dax: use i_mmap_unlock_write() in do_cow_fault()
 
-DAX is not so special: we need i_mmap_lock to protect mapping->i_mmap.
-
-__dax_pmd_fault() uses unmap_mapping_range() shoot out zero page from all
-mappings.  We need to drop i_mmap_lock there to avoid lock deadlock.
-
-Re-aquiring the lock should be fine since we check i_size after the
-point.
+__dax_fault() takes i_mmap_lock for write. Let's pair it with write
+unlock on do_cow_fault() side.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
+Acked-by: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c    |   35 +++++++++++++++++++----------------
- mm/memory.c |   11 ++---------
- 2 files changed, 21 insertions(+), 25 deletions(-)
+ mm/memory.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/dax.c~mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax fs/dax.c
---- a/fs/dax.c~mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax
-+++ a/fs/dax.c
-@@ -554,6 +554,25 @@ int __dax_pmd_fault(struct vm_area_struc
- 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
- 		goto fallback;
- 
-+	if (buffer_unwritten(&bh) || buffer_new(&bh)) {
-+		int i;
-+		for (i = 0; i < PTRS_PER_PMD; i++)
-+			clear_page(kaddr + i * PAGE_SIZE);
-+		count_vm_event(PGMAJFAULT);
-+		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
-+		result |= VM_FAULT_MAJOR;
-+	}
-+
-+	/*
-+	 * If we allocated new storage, make sure no process has any
-+	 * zero pages covering this hole
-+	 */
-+	if (buffer_new(&bh)) {
-+		i_mmap_unlock_write(mapping);
-+		unmap_mapping_range(mapping, pgoff << PAGE_SHIFT, PMD_SIZE, 0);
-+		i_mmap_lock_write(mapping);
-+	}
-+
- 	/*
- 	 * If a truncate happened while we were allocating blocks, we may
- 	 * leave blocks allocated to the file that are beyond EOF.  We can't
-@@ -568,13 +587,6 @@ int __dax_pmd_fault(struct vm_area_struc
- 	if ((pgoff | PG_PMD_COLOUR) >= size)
- 		goto fallback;
- 
--	/*
--	 * If we allocated new storage, make sure no process has any
--	 * zero pages covering this hole
--	 */
--	if (buffer_new(&bh))
--		unmap_mapping_range(mapping, pgoff << PAGE_SHIFT, PMD_SIZE, 0);
--
- 	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
- 		spinlock_t *ptl;
- 		pmd_t entry;
-@@ -605,15 +617,6 @@ int __dax_pmd_fault(struct vm_area_struc
- 		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
- 			goto fallback;
- 
--		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
--			int i;
--			for (i = 0; i < PTRS_PER_PMD; i++)
--				clear_page(kaddr + i * PAGE_SIZE);
--			count_vm_event(PGMAJFAULT);
--			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
--			result |= VM_FAULT_MAJOR;
--		}
--
- 		result |= vmf_insert_pfn_pmd(vma, address, pmd, pfn, write);
- 	}
- 
-diff -puN mm/memory.c~mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax mm/memory.c
---- a/mm/memory.c~mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax
+diff -puN mm/memory.c~mm-dax-use-i_mmap_unlock_write-in-do_cow_fault mm/memory.c
+--- a/mm/memory.c~mm-dax-use-i_mmap_unlock_write-in-do_cow_fault
 +++ a/mm/memory.c
-@@ -2426,17 +2426,10 @@ void unmap_mapping_range(struct address_
- 	if (details.last_index < details.first_index)
- 		details.last_index = ULONG_MAX;
- 
--
--	/*
--	 * DAX already holds i_mmap_lock to serialise file truncate vs
--	 * page fault and page fault vs page fault.
--	 */
--	if (!IS_DAX(mapping->host))
--		i_mmap_lock_write(mapping);
-+	i_mmap_lock_write(mapping);
- 	if (unlikely(!RB_EMPTY_ROOT(&mapping->i_mmap)))
- 		unmap_mapping_range_tree(&mapping->i_mmap, &details);
--	if (!IS_DAX(mapping->host))
--		i_mmap_unlock_write(mapping);
-+	i_mmap_unlock_write(mapping);
- }
- EXPORT_SYMBOL(unmap_mapping_range);
- 
+@@ -3013,9 +3013,9 @@ static int do_cow_fault(struct mm_struct
+ 		} else {
+ 			/*
+ 			 * The fault handler has no page to lock, so it holds
+-			 * i_mmap_lock for read to protect against truncate.
++			 * i_mmap_lock for write to protect against truncate.
+ 			 */
+-			i_mmap_unlock_read(vma->vm_file->f_mapping);
++			i_mmap_unlock_write(vma->vm_file->f_mapping);
+ 		}
+ 		goto uncharge_out;
+ 	}
+@@ -3029,9 +3029,9 @@ static int do_cow_fault(struct mm_struct
+ 	} else {
+ 		/*
+ 		 * The fault handler has no page to lock, so it holds
+-		 * i_mmap_lock for read to protect against truncate.
++		 * i_mmap_lock for write to protect against truncate.
+ 		 */
+-		i_mmap_unlock_read(vma->vm_file->f_mapping);
++		i_mmap_unlock_write(vma->vm_file->f_mapping);
+ 	}
+ 	return ret;
+ uncharge_out:
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
