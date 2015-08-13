@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + update-maintainers-for-drm-sti-driver.patch added to -mm tree
-Date: Thu, 13 Aug 2015 14:19:23 -0700
-Message-ID: <55cd09db.oKgpYdHKCCNn6F5G%akpm@linux-foundation.org>
+Subject: + mm-make-page-pfmemalloc-check-more-robust-fix.patch added to
+ -mm tree
+Date: Thu, 13 Aug 2015 14:28:16 -0700
+Message-ID: <55cd0bf0.LIEvGMPmdaVnAy9V%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54369 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54700 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751682AbbHMVTX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Aug 2015 17:19:23 -0400
+	with ESMTP id S1752884AbbHMV2R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Aug 2015 17:28:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benjamin.gaignard@linaro.org, airlied@linux.ie, vincent.abriou@st.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, eric.dumazet@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Update maintainers for DRM STI driver
+     Subject: mm-make-page-pfmemalloc-check-more-robust-fix
 has been added to the -mm tree.  Its filename is
-     update-maintainers-for-drm-sti-driver.patch
+     mm-make-page-pfmemalloc-check-more-robust-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/update-maintainers-for-drm-sti-driver.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-page-pfmemalloc-check-more-robust-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/update-maintainers-for-drm-sti-driver.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-page-pfmemalloc-check-more-robust-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,42 +39,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Update maintainers for DRM STI driver
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-make-page-pfmemalloc-check-more-robust-fix
 
-Add Vincent Abriou and myself as maintainers.
+fix blooper in slub
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Cc: Vincent Abriou <vincent.abriou@st.com>
-Cc: Dave Airlie <airlied@linux.ie>
+Cc: David Miller <davem@davemloft.net>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~update-maintainers-for-drm-sti-driver MAINTAINERS
---- a/MAINTAINERS~update-maintainers-for-drm-sti-driver
-+++ a/MAINTAINERS
-@@ -3587,6 +3587,15 @@ S:	Maintained
- F:	drivers/gpu/drm/rockchip/
- F:	Documentation/devicetree/bindings/video/rockchip*
+diff -puN mm/slub.c~mm-make-page-pfmemalloc-check-more-robust-fix mm/slub.c
+--- a/mm/slub.c~mm-make-page-pfmemalloc-check-more-robust-fix
++++ a/mm/slub.c
+@@ -1427,7 +1427,7 @@ static struct page *new_slab(struct kmem
+ 	inc_slabs_node(s, page_to_nid(page), page->objects);
+ 	page->slab_cache = s;
+ 	__SetPageSlab(page);
+-	if (page_is_pfmemalloc)
++	if (page_is_pfmemalloc(page))
+ 		SetPageSlabPfmemalloc(page);
  
-+DRM DRIVERS FOR STI
-+M:	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-+M:	Vincent Abriou <vincent.abriou@st.com>
-+L:	dri-devel@lists.freedesktop.org
-+T:	git http://git.linaro.org/people/benjamin.gaignard/kernel.git
-+S:	Maintained
-+F:	drivers/gpu/drm/sti
-+F:	Documentation/devicetree/bindings/gpu/st,stih4xx.txt
-+
- DSBR100 USB FM RADIO DRIVER
- M:	Alexey Klimov <klimov.linux@gmail.com>
- L:	linux-media@vger.kernel.org
+ 	start = page_address(page);
 _
 
-Patches currently in -mm which might be from benjamin.gaignard@linaro.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-update-maintainers-for-drm-sti-driver.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix.patch
+mm-hwpoison-fix-panic-due-to-split-huge-zero-page-fix.patch
+mm-make-page-pfmemalloc-check-more-robust-fix.patch
+kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
+scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
+ocfs2-sysfile-interfaces-for-online-file-check-fix.patch
+fs-create-and-use-seq_show_option-for-escaping-fix.patch
+watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix.patch
+watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch
+mm.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
+genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
+mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
+dax-revert-userfaultfd-change.patch
+thp-prepare-for-dax-huge-pages-fix.patch
+pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
+pagemap-update-documentation-fix.patch
+mm-show-proportional-swap-share-of-the-mapping-fix.patch
+mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
+memcg-export-struct-mem_cgroup-fix.patch
+memcg-export-struct-mem_cgroup-fix-2.patch
+mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
+mm-srcu-ify-shrinkers-fix-fix.patch
+x86-use-generic-early-mem-copy-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+proc-add-kpageidle-file-fix-6-fix.patch
+proc-add-kpageidle-file-fix-6-fix-2-fix.patch
+proc-export-idle-flag-via-kpageflags-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zswap-dynamic-pool-creation-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
+fs-coda-fix-readlink-buffer-overflow-checkpatch-fixes.patch
+kexec-split-kexec_load-syscall-from-kexec-core-code-checkpatch-fixes.patch
+align-crash_notes-allocation-to-make-it-be-inside-one-physical-page-fix.patch
+linux-next.patch
+linux-next-rejects.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix-fix.patch
+mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix-checkpatch-fixes.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
 
