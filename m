@@ -1,34 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps.patch
- added to -mm tree
-Date: Wed, 12 Aug 2015 17:01:03 -0700
-Message-ID: <55cbde3f.Arq+UGrFczbl3Spa%akpm@linux-foundation.org>
+Subject: + mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch added to -mm tree
+Date: Wed, 12 Aug 2015 17:01:05 -0700
+Message-ID: <55cbde41.o9DnhNmSX2KJimzg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51689 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51695 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240AbbHMABE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 20:01:04 -0400
+	with ESMTP id S1751240AbbHMABG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 20:01:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, joern@logfs.org, mike.kravetz@oracle.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: proc: add HugetlbPages field to /proc/PID/sm=
-aps
+     Subject: mm: hugetlb: proc: add HugetlbPages field to /proc/PID/st=
+atus
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps.patch
+     mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch
 
 This patch should soon appear at
     http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-proc-add-hugetl=
-bpages-field-to-proc-pid-smaps.patch
+bpages-field-to-proc-pid-status.patch
 and later at
     http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-proc-add-hugetl=
-bpages-field-to-proc-pid-smaps.patch
+bpages-field-to-proc-pid-status.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -44,182 +43,234 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: hugetlb: proc: add HugetlbPages field to /proc/PID/smaps
+Subject: mm: hugetlb: proc: add HugetlbPages field to /proc/PID/status
 
-Currently /proc/PID/smaps provides no usage info for vma(VM_HUGETLB), w=
-hich
-is inconvenient when we want to know per-task or per-vma base hugetlb u=
-sage.
-To solve this, this patch adds a new line for hugetlb usage like below:
+Currently there's no easy way to get per-process usage of hugetlb pages=
+,
+which is inconvenient because userspace applications which use hugetlb
+typically want to control their processes on the basis of how much memo=
+ry
+(including hugetlb) they use.  So this patch simply provides easy acces=
+s
+to the info via /proc/PID/status.
 
-  Size:              20480 kB
-  Rss:                   0 kB
-  Pss:                   0 kB
-  Shared_Clean:          0 kB
-  Shared_Dirty:          0 kB
-  Private_Clean:         0 kB
-  Private_Dirty:         0 kB
-  Referenced:            0 kB
-  Anonymous:             0 kB
-  AnonHugePages:         0 kB
-  HugetlbPages:      18432 kB
-  Swap:                  0 kB
-  KernelPageSize:     2048 kB
-  MMUPageSize:        2048 kB
-  Locked:                0 kB
-  VmFlags: rd wr mr mw me de ht
+With this patch, for example, /proc/PID/status shows a line like this:
+
+  HugetlbPages:      20480 kB (10x2048kB)
+
+If your system supports and enables multiple hugepage sizes, the line l=
+ooks
+like this:
+
+  HugetlbPages:    1069056 kB (1x1048576kB 10x2048kB)
+
+so you can easily know how many hugepages in which pagesize are used by=
+ a
+process.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: J=F6rn Engel <joern@logfs.org>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   32 ++++++++++++++++++---------
- fs/proc/task_mmu.c                 |   29 ++++++++++++++++++++++++
- 2 files changed, 51 insertions(+), 10 deletions(-)
+ Documentation/filesystems/proc.txt |    3 +++
+ fs/proc/task_mmu.c                 |    1 +
+ include/linux/hugetlb.h            |   20 ++++++++++++++++++++
+ include/linux/mm_types.h           |   10 ++++++++++
+ mm/hugetlb.c                       |   27 +++++++++++++++++++++++++++
+ mm/rmap.c                          |    4 +++-
+ 6 files changed, 64 insertions(+), 1 deletion(-)
 
 diff -puN Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetl=
-bpages-field-to-proc-pid-smaps Documentation/filesystems/proc.txt
+bpages-field-to-proc-pid-status Documentation/filesystems/proc.txt
 --- a/Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetlbpag=
-es-field-to-proc-pid-smaps
+es-field-to-proc-pid-status
 +++ a/Documentation/filesystems/proc.txt
-@@ -423,6 +423,8 @@ Private_Clean:         0 kB
- Private_Dirty:         0 kB
- Referenced:          892 kB
- Anonymous:             0 kB
-+AnonHugePages:         0 kB
-+HugetlbPages:          0 kB
- Swap:                  0 kB
- SwapPss:               0 kB
- KernelPageSize:        4 kB
-@@ -440,20 +442,30 @@ The "proportional set size" (PSS) of a p
- in memory, where each page is divided by the number of processes shari=
-ng it.
- So if a process has 1000 pages all to itself, and 1000 shared with one=
- other
- process, its PSS will be 1500.
-+
- Note that even a page which is part of a MAP_SHARED mapping, but has o=
-nly
--a single pte mapped, i.e.  is currently used by only one process, is a=
-ccounted
--as private and not as shared.
-+a single pte mapped, i.e.  is currently used by only one process, is
-+accounted as private and not as shared.
-+
- "Referenced" indicates the amount of memory currently marked as refere=
-nced or
- accessed.
--"Anonymous" shows the amount of memory that does not belong to any fil=
-e.  Even
--a mapping associated with a file may contain anonymous pages: when MAP=
-_PRIVATE
--and a page is modified, the file page is replaced by a private anonymo=
-us copy.
-+
-+"Anonymous" shows the amount of memory that does not belong to any fil=
-e.
-+Even a mapping associated with a file may contain anonymous pages: whe=
-n
-+MAP_PRIVATE and a page is modified, the file page is replaced by a pri=
-vate
-+anonymous copy.
-+
-+"AnonHugePages" shows the ammount of memory backed by transparent huge=
-page.
-+
-+"HugetlbPages" shows the ammount of memory backed by hugetlbfs page.
-+
- "Swap" shows how much would-be-anonymous memory is also used, but out =
-on
--swap.
--"SwapPss" shows proportional swap share of this mapping.
--"VmFlags" field deserves a separate description. This member represent=
-s the kernel
--flags associated with the particular virtual memory area in two letter=
- encoded
--manner. The codes are the following:
-+swap.  SwapPss" shows proportional swap share of this mapping.
-+
-+"VmFlags" field deserves a separate description.  This member represen=
-ts
-+the kernel flags associated with the particular virtual memory area in=
- two
-+letter encoded manner.  The codes are the following:
-+
-     rd  - readable
-     wr  - writeable
-     ex  - executable
+@@ -174,6 +174,7 @@ read the file /proc/PID/status:
+   VmLib:      1412 kB
+   VmPTE:        20 kb
+   VmSwap:        0 kB
++  HugetlbPages:          0 kB (0x2048kB)
+   Threads:        1
+   SigQ:   0/28578
+   SigPnd: 0000000000000000
+@@ -237,6 +238,8 @@ Table 1-2: Contents of the status files
+  VmPTE                       size of page table entries
+  VmPMD                       size of second level page tables
+  VmSwap                      size of swap usage (the number of referre=
+d swapents)
++ HugetlbPages                size of hugetlb memory portions (with add=
+itional info
++                             about number of mapped hugepages for each=
+ page size)
+  Threads                     number of threads
+  SigQ                        number of signals queued/max. number for =
+queue
+  SigPnd                      bitmap of pending signals for the thread
 diff -puN fs/proc/task_mmu.c~mm-hugetlb-proc-add-hugetlbpages-field-to-=
-proc-pid-smaps fs/proc/task_mmu.c
+proc-pid-status fs/proc/task_mmu.c
 --- a/fs/proc/task_mmu.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc=
--pid-smaps
+-pid-status
 +++ a/fs/proc/task_mmu.c
-@@ -445,6 +445,7 @@ struct mem_size_stats {
- 	unsigned long anonymous;
- 	unsigned long anonymous_thp;
- 	unsigned long swap;
-+	unsigned long hugetlb;
- 	u64 pss;
- 	u64 swap_pss;
- };
-@@ -625,12 +626,38 @@ static void show_smap_vma_flags(struct s
- 	seq_putc(m, '\n');
+@@ -69,6 +69,7 @@ void task_mem(struct seq_file *m, struct
+ 		ptes >> 10,
+ 		pmds >> 10,
+ 		swap << (PAGE_SHIFT-10));
++	hugetlb_report_usage(m, mm);
  }
 =20
-+#ifdef CONFIG_HUGETLB_PAGE
-+static int smaps_hugetlb_range(pte_t *pte, unsigned long hmask,
-+				 unsigned long addr, unsigned long end,
-+				 struct mm_walk *walk)
+ unsigned long task_vsize(struct mm_struct *mm)
+diff -puN include/linux/hugetlb.h~mm-hugetlb-proc-add-hugetlbpages-fiel=
+d-to-proc-pid-status include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlb-proc-add-hugetlbpages-field-to=
+-proc-pid-status
++++ a/include/linux/hugetlb.h
+@@ -483,6 +483,18 @@ static inline spinlock_t *huge_pte_lockp
+ #define hugepages_supported() (HPAGE_SHIFT !=3D 0)
+ #endif
+=20
++void hugetlb_report_usage(struct seq_file *m, struct mm_struct *mm);
++
++static inline void inc_hugetlb_count(struct mm_struct *mm, struct hsta=
+te *h)
 +{
-+	struct mem_size_stats *mss =3D walk->private;
-+	struct vm_area_struct *vma =3D walk->vma;
-+	struct page *page =3D NULL;
-+
-+	if (pte_present(*pte)) {
-+		page =3D vm_normal_page(vma, addr, *pte);
-+	} else if (is_swap_pte(*pte)) {
-+		swp_entry_t swpent =3D pte_to_swp_entry(*pte);
-+
-+		if (is_migration_entry(swpent))
-+			page =3D migration_entry_to_page(swpent);
-+	}
-+	if (page)
-+		mss->hugetlb +=3D huge_page_size(hstate_vma(vma));
-+	return 0;
++	atomic_long_inc(&mm->hugetlb_usage.count[hstate_index(h)]);
 +}
-+#endif /* HUGETLB_PAGE */
 +
- static int show_smap(struct seq_file *m, void *v, int is_pid)
++static inline void dec_hugetlb_count(struct mm_struct *mm, struct hsta=
+te *h)
++{
++	atomic_long_dec(&mm->hugetlb_usage.count[hstate_index(h)]);
++}
++
+ #else	/* CONFIG_HUGETLB_PAGE */
+ struct hstate {};
+ #define alloc_huge_page(v, a, r) NULL
+@@ -519,6 +531,14 @@ static inline spinlock_t *huge_pte_lockp
  {
- 	struct vm_area_struct *vma =3D v;
- 	struct mem_size_stats mss;
- 	struct mm_walk smaps_walk =3D {
- 		.pmd_entry =3D smaps_pte_range,
+ 	return &mm->page_table_lock;
+ }
++
++static inline void hugetlb_report_usage(struct seq_file *f, struct mm_=
+struct *m)
++{
++}
++
++static inline void dec_hugetlb_count(struct mm_struct *mm, struct hsta=
+te *h)
++{
++}
+ #endif	/* CONFIG_HUGETLB_PAGE */
+=20
+ static inline spinlock_t *huge_pte_lock(struct hstate *h,
+diff -puN include/linux/mm_types.h~mm-hugetlb-proc-add-hugetlbpages-fie=
+ld-to-proc-pid-status include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-hugetlb-proc-add-hugetlbpages-field-t=
+o-proc-pid-status
++++ a/include/linux/mm_types.h
+@@ -375,6 +375,12 @@ struct mm_rss_stat {
+ 	atomic_long_t count[NR_MM_COUNTERS];
+ };
+=20
 +#ifdef CONFIG_HUGETLB_PAGE
-+		.hugetlb_entry =3D smaps_hugetlb_range,
++struct hugetlb_usage {
++	atomic_long_t count[HUGE_MAX_HSTATE];
++};
 +#endif
- 		.mm =3D vma->vm_mm,
- 		.private =3D &mss,
- 	};
-@@ -652,6 +679,7 @@ static int show_smap(struct seq_file *m,
- 		   "Referenced:     %8lu kB\n"
- 		   "Anonymous:      %8lu kB\n"
- 		   "AnonHugePages:  %8lu kB\n"
-+		   "HugetlbPages:   %8lu kB\n"
- 		   "Swap:           %8lu kB\n"
- 		   "SwapPss:        %8lu kB\n"
- 		   "KernelPageSize: %8lu kB\n"
-@@ -667,6 +695,7 @@ static int show_smap(struct seq_file *m,
- 		   mss.referenced >> 10,
- 		   mss.anonymous >> 10,
- 		   mss.anonymous_thp >> 10,
-+		   mss.hugetlb >> 10,
- 		   mss.swap >> 10,
- 		   (unsigned long)(mss.swap_pss >> (10 + PSS_SHIFT)),
- 		   vma_kernel_pagesize(vma) >> 10,
++
+ struct kioctx_table;
+ struct mm_struct {
+ 	struct vm_area_struct *mmap;		/* list of VMAs */
+@@ -495,6 +501,10 @@ struct mm_struct {
+ 	/* address of the bounds directory */
+ 	void __user *bd_addr;
+ #endif
++
++#ifdef CONFIG_HUGETLB_PAGE
++	struct hugetlb_usage hugetlb_usage;
++#endif
+ };
+=20
+ static inline void mm_init_cpumask(struct mm_struct *mm)
+diff -puN mm/hugetlb.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-p=
+id-status mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-s=
+tatus
++++ a/mm/hugetlb.c
+@@ -2790,6 +2790,30 @@ void hugetlb_show_meminfo(void)
+ 				1UL << (huge_page_order(h) + PAGE_SHIFT - 10));
+ }
+=20
++void hugetlb_report_usage(struct seq_file *m, struct mm_struct *mm)
++{
++	int i;
++	unsigned long total_usage =3D 0;
++
++	for (i =3D 0; i < HUGE_MAX_HSTATE; i++) {
++		total_usage +=3D atomic_long_read(&mm->hugetlb_usage.count[i]) *
++			(huge_page_size(&hstates[i]) >> 10);
++	}
++
++	seq_printf(m, "HugetlbPages:\t%8lu kB (", total_usage);
++	for (i =3D 0; i < HUGE_MAX_HSTATE; i++) {
++		if (huge_page_order(&hstates[i]) =3D=3D 0)
++			break;
++		if (i > 0)
++			seq_puts(m, " ");
++
++		seq_printf(m, "%ldx%dkB",
++			atomic_long_read(&mm->hugetlb_usage.count[i]),
++			huge_page_size(&hstates[i]) >> 10);
++	}
++	seq_puts(m, ")\n");
++}
++
+ /* Return the number pages of memory we physically have, in PAGE_SIZE =
+units. */
+ unsigned long hugetlb_total_pages(void)
+ {
+@@ -3025,6 +3049,7 @@ int copy_hugetlb_page_range(struct mm_st
+ 			get_page(ptepage);
+ 			page_dup_rmap(ptepage);
+ 			set_huge_pte_at(dst, addr, dst_pte, entry);
++			inc_hugetlb_count(dst, h);
+ 		}
+ 		spin_unlock(src_ptl);
+ 		spin_unlock(dst_ptl);
+@@ -3105,6 +3130,7 @@ again:
+ 		if (huge_pte_dirty(pte))
+ 			set_page_dirty(page);
+=20
++		dec_hugetlb_count(mm, h);
+ 		page_remove_rmap(page);
+ 		force_flush =3D !__tlb_remove_page(tlb, page);
+ 		if (force_flush) {
+@@ -3501,6 +3527,7 @@ retry:
+ 				&& (vma->vm_flags & VM_SHARED)));
+ 	set_huge_pte_at(mm, address, ptep, new_pte);
+=20
++	inc_hugetlb_count(mm, h);
+ 	if ((flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
+ 		/* Optimization, do the COW without a second fault */
+ 		ret =3D hugetlb_cow(mm, vma, address, ptep, new_pte, page, ptl);
+diff -puN mm/rmap.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-=
+status mm/rmap.c
+--- a/mm/rmap.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-stat=
+us
++++ a/mm/rmap.c
+@@ -1348,7 +1348,9 @@ static int try_to_unmap_one(struct page
+ 	update_hiwater_rss(mm);
+=20
+ 	if (PageHWPoison(page) && !(flags & TTU_IGNORE_HWPOISON)) {
+-		if (!PageHuge(page)) {
++		if (PageHuge(page)) {
++			dec_hugetlb_count(mm, page_hstate(page));
++		} else {
+ 			if (PageAnon(page))
+ 				dec_mm_counter(mm, MM_ANONPAGES);
+ 			else
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com =
