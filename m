@@ -1,48 +1,49 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-hweight-force-inlining-of-__arch_hweight3264.patch
- removed from -mm tree
-Date: Thu, 13 Aug 2015 12:45:47 -0700
-Message-ID: <55ccf3eb.2a32JMUKMzb9AmnL%akpm@linux-foundation.org>
+Subject: [merged]
+ linux-bitmap-force-inlining-of-bitmap-weight-functions.patch removed from
+ -mm tree
+Date: Thu, 13 Aug 2015 12:45:44 -0700
+Message-ID: <55ccf3e8.kP/A9y3VlCqcRz3+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53378 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53371 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751862AbbHMTpr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Aug 2015 15:45:47 -0400
+	with ESMTP id S1751862AbbHMTpp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Aug 2015 15:45:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dvlasenk@redhat.com, mingo@kernel.org, peterz@infradead.org, rientjes@google.com, tgraf@suug.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/hweight: force inlining of __arch_hweight{32,64}()
+     Subject: linux/bitmap: force inlining of bitmap weight functions
 has been removed from the -mm tree.  Its filename was
-     x86-hweight-force-inlining-of-__arch_hweight3264.patch
+     linux-bitmap-force-inlining-of-bitmap-weight-functions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Denys Vlasenko <dvlasenk@redhat.com>
-Subject: x86/hweight: force inlining of __arch_hweight{32,64}()
+Subject: linux/bitmap: force inlining of bitmap weight functions
 
 With this config:
 http://busybox.net/~vda/kernel_config_OPTIMIZE_INLINING_and_Os
 
 gcc-4.7.2 generates many copies of these tiny functions:
 
-__arch_hweight32 (35 copies):
+bitmap_weight (55 copies):
 55                      push   %rbp
-e8 66 9b 4a 00          callq  __sw_hweight32
 48 89 e5                mov    %rsp,%rbp
+e8 3f 3a 8b 00          callq  __bitmap_weight
 5d                      pop    %rbp
 c3                      retq
 
-__arch_hweight64 (8 copies):
+hweight_long (23 copies):
 55                      push   %rbp
-e8 5e c2 8a 00          callq  __sw_hweight64
+e8 b5 65 8e 00          callq  __sw_hweight64
 48 89 e5                mov    %rsp,%rbp
 5d                      pop    %rbp
 c3                      retq
@@ -51,16 +52,12 @@ See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66122
 
 This patch fixes this via s/inline/__always_inline/
 
-To avoid touching 32-bit case where such change was not tested to be a win,
-reformat __arch_hweight64() to have completely disjoint 64-bit and 32-bit
-implementations. IOW: made #ifdef / #else / #endif blocks contain
-complete function definitions for 32 bits and 64 bits
-instead of having #ifdef / #else / #endif inside a single function body.
-Only 64-bit __arch_hweight64() is __always_inline'd.
+While at it, replaced two "__inline__" with usual "inline"
+(the rest of the source file uses the latter).
 
     text     data      bss       dec     hex filename
-86971120 17195912 36659200 140826232 864d678 vmlinux.before
-86970954 17195912 36659200 140826066 864d5d2 vmlinux
+86971357 17195880 36659200 140826437 864d745 vmlinux.before
+86971120 17195912 36659200 140826232 864d678 vmlinux
 
 Signed-off-by: Denys Vlasenko <dvlasenk@redhat.com>
 Cc: Ingo Molnar <mingo@kernel.org>
@@ -70,49 +67,52 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/arch_hweight.h |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ include/linux/bitmap.h |    2 +-
+ include/linux/bitops.h |    6 +++---
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/include/asm/arch_hweight.h~x86-hweight-force-inlining-of-__arch_hweight3264 arch/x86/include/asm/arch_hweight.h
---- a/arch/x86/include/asm/arch_hweight.h~x86-hweight-force-inlining-of-__arch_hweight3264
-+++ a/arch/x86/include/asm/arch_hweight.h
-@@ -21,7 +21,7 @@
-  * ARCH_HWEIGHT_CFLAGS in <arch/x86/Kconfig> for the respective
-  * compiler switches.
-  */
--static inline unsigned int __arch_hweight32(unsigned int w)
-+static __always_inline unsigned int __arch_hweight32(unsigned int w)
- {
- 	unsigned int res = 0;
- 
-@@ -42,20 +42,23 @@ static inline unsigned int __arch_hweigh
- 	return __arch_hweight32(w & 0xff);
+diff -puN include/linux/bitmap.h~linux-bitmap-force-inlining-of-bitmap-weight-functions include/linux/bitmap.h
+--- a/include/linux/bitmap.h~linux-bitmap-force-inlining-of-bitmap-weight-functions
++++ a/include/linux/bitmap.h
+@@ -295,7 +295,7 @@ static inline int bitmap_full(const unsi
+ 	return find_first_zero_bit(src, nbits) == nbits;
  }
  
-+#ifdef CONFIG_X86_32
- static inline unsigned long __arch_hweight64(__u64 w)
+-static inline int bitmap_weight(const unsigned long *src, unsigned int nbits)
++static __always_inline int bitmap_weight(const unsigned long *src, unsigned int nbits)
  {
--	unsigned long res = 0;
--
--#ifdef CONFIG_X86_32
- 	return  __arch_hweight32((u32)w) +
- 		__arch_hweight32((u32)(w >> 32));
-+}
- #else
-+static __always_inline unsigned long __arch_hweight64(__u64 w)
-+{
-+	unsigned long res = 0;
-+
- 	asm (ALTERNATIVE("call __sw_hweight64", POPCNT64, X86_FEATURE_POPCNT)
- 		     : "="REG_OUT (res)
- 		     : REG_IN (w));
--#endif /* CONFIG_X86_32 */
+ 	if (small_const_nbits(nbits))
+ 		return hweight_long(*src & BITMAP_LAST_WORD_MASK(nbits));
+diff -puN include/linux/bitops.h~linux-bitmap-force-inlining-of-bitmap-weight-functions include/linux/bitops.h
+--- a/include/linux/bitops.h~linux-bitmap-force-inlining-of-bitmap-weight-functions
++++ a/include/linux/bitops.h
+@@ -57,7 +57,7 @@ extern unsigned long __sw_hweight64(__u6
+ 	     (bit) < (size);					\
+ 	     (bit) = find_next_zero_bit((addr), (size), (bit) + 1))
  
- 	return res;
+-static __inline__ int get_bitmask_order(unsigned int count)
++static inline int get_bitmask_order(unsigned int count)
+ {
+ 	int order;
+ 
+@@ -65,7 +65,7 @@ static __inline__ int get_bitmask_order(
+ 	return order;	/* We could be slightly more clever with -1 here... */
  }
-+#endif /* CONFIG_X86_32 */
  
- #endif
+-static __inline__ int get_count_order(unsigned int count)
++static inline int get_count_order(unsigned int count)
+ {
+ 	int order;
+ 
+@@ -75,7 +75,7 @@ static __inline__ int get_count_order(un
+ 	return order;
+ }
+ 
+-static inline unsigned long hweight_long(unsigned long w)
++static __always_inline unsigned long hweight_long(unsigned long w)
+ {
+ 	return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
+ }
 _
 
 Patches currently in -mm which might be from dvlasenk@redhat.com are
