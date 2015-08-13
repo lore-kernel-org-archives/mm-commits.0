@@ -1,50 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- linux-bitmap-force-inlining-of-bitmap-weight-functions.patch removed from
- -mm tree
-Date: Thu, 13 Aug 2015 12:45:44 -0700
-Message-ID: <55ccf3e8.kP/A9y3VlCqcRz3+%akpm@linux-foundation.org>
+Subject: [merged] jiffies-force-inlining-of-mumsecs_to_jiffies.patch
+ removed from -mm tree
+Date: Thu, 13 Aug 2015 12:45:49 -0700
+Message-ID: <55ccf3ed.prl3jcdLfMoCSz/p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53371 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53384 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751862AbbHMTpp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Aug 2015 15:45:45 -0400
+	with ESMTP id S1752879AbbHMTpt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Aug 2015 15:45:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dvlasenk@redhat.com, mingo@kernel.org, peterz@infradead.org, rientjes@google.com, tgraf@suug.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux/bitmap: force inlining of bitmap weight functions
+     Subject: jiffies: force inlining of {m,u}msecs_to_jiffies()
 has been removed from the -mm tree.  Its filename was
-     linux-bitmap-force-inlining-of-bitmap-weight-functions.patch
+     jiffies-force-inlining-of-mumsecs_to_jiffies.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Denys Vlasenko <dvlasenk@redhat.com>
-Subject: linux/bitmap: force inlining of bitmap weight functions
+Subject: jiffies: force inlining of {m,u}msecs_to_jiffies()
 
 With this config:
 http://busybox.net/~vda/kernel_config_OPTIMIZE_INLINING_and_Os
-
 gcc-4.7.2 generates many copies of these tiny functions:
 
-bitmap_weight (55 copies):
+msecs_to_jiffies (45 copies):
 55                      push   %rbp
 48 89 e5                mov    %rsp,%rbp
-e8 3f 3a 8b 00          callq  __bitmap_weight
+e8 59 ec 03 00          callq  __msecs_to_jiffies
 5d                      pop    %rbp
 c3                      retq
 
-hweight_long (23 copies):
+usecs_to_jiffies (10 copies):
 55                      push   %rbp
-e8 b5 65 8e 00          callq  __sw_hweight64
 48 89 e5                mov    %rsp,%rbp
+e8 5d 54 5e ff          callq  __usecs_to_jiffies
 5d                      pop    %rbp
 c3                      retq
 
@@ -52,12 +50,9 @@ See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66122
 
 This patch fixes this via s/inline/__always_inline/
 
-While at it, replaced two "__inline__" with usual "inline"
-(the rest of the source file uses the latter).
-
     text     data      bss       dec     hex filename
-86971357 17195880 36659200 140826437 864d745 vmlinux.before
-86971120 17195912 36659200 140826232 864d678 vmlinux
+86970954 17195912 36659200 140826066 864d5d2 vmlinux.before
+86966150 17195912 36659200 140821262 864c30e vmlinux
 
 Signed-off-by: Denys Vlasenko <dvlasenk@redhat.com>
 Cc: Ingo Molnar <mingo@kernel.org>
@@ -67,52 +62,30 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitmap.h |    2 +-
- include/linux/bitops.h |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ include/linux/jiffies.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/bitmap.h~linux-bitmap-force-inlining-of-bitmap-weight-functions include/linux/bitmap.h
---- a/include/linux/bitmap.h~linux-bitmap-force-inlining-of-bitmap-weight-functions
-+++ a/include/linux/bitmap.h
-@@ -295,7 +295,7 @@ static inline int bitmap_full(const unsi
- 	return find_first_zero_bit(src, nbits) == nbits;
- }
- 
--static inline int bitmap_weight(const unsigned long *src, unsigned int nbits)
-+static __always_inline int bitmap_weight(const unsigned long *src, unsigned int nbits)
+diff -puN include/linux/jiffies.h~jiffies-force-inlining-of-mumsecs_to_jiffies include/linux/jiffies.h
+--- a/include/linux/jiffies.h~jiffies-force-inlining-of-mumsecs_to_jiffies
++++ a/include/linux/jiffies.h
+@@ -351,7 +351,7 @@ static inline unsigned long _msecs_to_ji
+  * directly here and from __msecs_to_jiffies() in the case where
+  * constant folding is not possible.
+  */
+-static inline unsigned long msecs_to_jiffies(const unsigned int m)
++static __always_inline unsigned long msecs_to_jiffies(const unsigned int m)
  {
- 	if (small_const_nbits(nbits))
- 		return hweight_long(*src & BITMAP_LAST_WORD_MASK(nbits));
-diff -puN include/linux/bitops.h~linux-bitmap-force-inlining-of-bitmap-weight-functions include/linux/bitops.h
---- a/include/linux/bitops.h~linux-bitmap-force-inlining-of-bitmap-weight-functions
-+++ a/include/linux/bitops.h
-@@ -57,7 +57,7 @@ extern unsigned long __sw_hweight64(__u6
- 	     (bit) < (size);					\
- 	     (bit) = find_next_zero_bit((addr), (size), (bit) + 1))
- 
--static __inline__ int get_bitmask_order(unsigned int count)
-+static inline int get_bitmask_order(unsigned int count)
+ 	if (__builtin_constant_p(m)) {
+ 		if ((int)m < 0)
+@@ -398,7 +398,7 @@ static inline unsigned long _usecs_to_ji
+  * directly here and from __msecs_to_jiffies() in the case where
+  * constant folding is not possible.
+  */
+-static inline unsigned long usecs_to_jiffies(const unsigned int u)
++static __always_inline unsigned long usecs_to_jiffies(const unsigned int u)
  {
- 	int order;
- 
-@@ -65,7 +65,7 @@ static __inline__ int get_bitmask_order(
- 	return order;	/* We could be slightly more clever with -1 here... */
- }
- 
--static __inline__ int get_count_order(unsigned int count)
-+static inline int get_count_order(unsigned int count)
- {
- 	int order;
- 
-@@ -75,7 +75,7 @@ static __inline__ int get_count_order(un
- 	return order;
- }
- 
--static inline unsigned long hweight_long(unsigned long w)
-+static __always_inline unsigned long hweight_long(unsigned long w)
- {
- 	return sizeof(w) == 4 ? hweight32(w) : hweight64(w);
- }
+ 	if (__builtin_constant_p(u)) {
+ 		if (u > jiffies_to_usecs(MAX_JIFFY_OFFSET))
 _
 
 Patches currently in -mm which might be from dvlasenk@redhat.com are
