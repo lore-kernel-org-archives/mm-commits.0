@@ -1,33 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch added to -mm tree
-Date: Wed, 12 Aug 2015 17:01:05 -0700
-Message-ID: <55cbde41.o9DnhNmSX2KJimzg%akpm@linux-foundation.org>
+Subject: + mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax.patch added
+ to -mm tree
+Date: Wed, 12 Aug 2015 17:03:00 -0700
+Message-ID: <55cbdeb4.6NBAsZhLyG/PMfx+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51695 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51737 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240AbbHMABG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 20:01:06 -0400
+	with ESMTP id S1751622AbbHMADB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 20:03:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, joern@logfs.org, mike.kravetz@oracle.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: proc: add HugetlbPages field to /proc/PID/st=
-atus
+     Subject: mm: take i_mmap_lock in unmap_mapping_range() for DAX
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch
+     mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-proc-add-hugetl=
-bpages-field-to-proc-pid-status.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-proc-add-hugetl=
-bpages-field-to-proc-pid-status.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -35,301 +33,162 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: hugetlb: proc: add HugetlbPages field to /proc/PID/status
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: take i_mmap_lock in unmap_mapping_range() for DAX
 
-Currently there's no easy way to get per-process usage of hugetlb pages=
-,
-which is inconvenient because userspace applications which use hugetlb
-typically want to control their processes on the basis of how much memo=
-ry
-(including hugetlb) they use.  So this patch simply provides easy acces=
-s
-to the info via /proc/PID/status.
+DAX is not so special: we need i_mmap_lock to protect mapping->i_mmap.
 
-With this patch, for example, /proc/PID/status shows a line like this:
+__dax_pmd_fault() uses unmap_mapping_range() shoot out zero page from all
+mappings.  We need to drop i_mmap_lock there to avoid lock deadlock.
 
-  HugetlbPages:      20480 kB (10x2048kB)
+Re-aquiring the lock should be fine since we check i_size after the
+point.
 
-If your system supports and enables multiple hugepage sizes, the line l=
-ooks
-like this:
-
-  HugetlbPages:    1069056 kB (1x1048576kB 10x2048kB)
-
-so you can easily know how many hugepages in which pagesize are used by=
- a
-process.
-
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: J=F6rn Engel <joern@logfs.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    3 +++
- fs/proc/task_mmu.c                 |    1 +
- include/linux/hugetlb.h            |   20 ++++++++++++++++++++
- include/linux/mm_types.h           |   10 ++++++++++
- mm/hugetlb.c                       |   27 +++++++++++++++++++++++++++
- mm/rmap.c                          |    4 +++-
- 6 files changed, 64 insertions(+), 1 deletion(-)
+ fs/dax.c    |   35 +++++++++++++++++++----------------
+ mm/memory.c |   11 ++---------
+ 2 files changed, 21 insertions(+), 25 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetl=
-bpages-field-to-proc-pid-status Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetlbpag=
-es-field-to-proc-pid-status
-+++ a/Documentation/filesystems/proc.txt
-@@ -174,6 +174,7 @@ read the file /proc/PID/status:
-   VmLib:      1412 kB
-   VmPTE:        20 kb
-   VmSwap:        0 kB
-+  HugetlbPages:          0 kB (0x2048kB)
-   Threads:        1
-   SigQ:   0/28578
-   SigPnd: 0000000000000000
-@@ -237,6 +238,8 @@ Table 1-2: Contents of the status files
-  VmPTE                       size of page table entries
-  VmPMD                       size of second level page tables
-  VmSwap                      size of swap usage (the number of referre=
-d swapents)
-+ HugetlbPages                size of hugetlb memory portions (with add=
-itional info
-+                             about number of mapped hugepages for each=
- page size)
-  Threads                     number of threads
-  SigQ                        number of signals queued/max. number for =
-queue
-  SigPnd                      bitmap of pending signals for the thread
-diff -puN fs/proc/task_mmu.c~mm-hugetlb-proc-add-hugetlbpages-field-to-=
-proc-pid-status fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc=
--pid-status
-+++ a/fs/proc/task_mmu.c
-@@ -69,6 +69,7 @@ void task_mem(struct seq_file *m, struct
- 		ptes >> 10,
- 		pmds >> 10,
- 		swap << (PAGE_SHIFT-10));
-+	hugetlb_report_usage(m, mm);
- }
-=20
- unsigned long task_vsize(struct mm_struct *mm)
-diff -puN include/linux/hugetlb.h~mm-hugetlb-proc-add-hugetlbpages-fiel=
-d-to-proc-pid-status include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-proc-add-hugetlbpages-field-to=
--proc-pid-status
-+++ a/include/linux/hugetlb.h
-@@ -483,6 +483,18 @@ static inline spinlock_t *huge_pte_lockp
- #define hugepages_supported() (HPAGE_SHIFT !=3D 0)
- #endif
-=20
-+void hugetlb_report_usage(struct seq_file *m, struct mm_struct *mm);
-+
-+static inline void inc_hugetlb_count(struct mm_struct *mm, struct hsta=
-te *h)
-+{
-+	atomic_long_inc(&mm->hugetlb_usage.count[hstate_index(h)]);
-+}
-+
-+static inline void dec_hugetlb_count(struct mm_struct *mm, struct hsta=
-te *h)
-+{
-+	atomic_long_dec(&mm->hugetlb_usage.count[hstate_index(h)]);
-+}
-+
- #else	/* CONFIG_HUGETLB_PAGE */
- struct hstate {};
- #define alloc_huge_page(v, a, r) NULL
-@@ -519,6 +531,14 @@ static inline spinlock_t *huge_pte_lockp
- {
- 	return &mm->page_table_lock;
- }
-+
-+static inline void hugetlb_report_usage(struct seq_file *f, struct mm_=
-struct *m)
-+{
-+}
-+
-+static inline void dec_hugetlb_count(struct mm_struct *mm, struct hsta=
-te *h)
-+{
-+}
- #endif	/* CONFIG_HUGETLB_PAGE */
-=20
- static inline spinlock_t *huge_pte_lock(struct hstate *h,
-diff -puN include/linux/mm_types.h~mm-hugetlb-proc-add-hugetlbpages-fie=
-ld-to-proc-pid-status include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-hugetlb-proc-add-hugetlbpages-field-t=
-o-proc-pid-status
-+++ a/include/linux/mm_types.h
-@@ -375,6 +375,12 @@ struct mm_rss_stat {
- 	atomic_long_t count[NR_MM_COUNTERS];
- };
-=20
-+#ifdef CONFIG_HUGETLB_PAGE
-+struct hugetlb_usage {
-+	atomic_long_t count[HUGE_MAX_HSTATE];
-+};
-+#endif
-+
- struct kioctx_table;
- struct mm_struct {
- 	struct vm_area_struct *mmap;		/* list of VMAs */
-@@ -495,6 +501,10 @@ struct mm_struct {
- 	/* address of the bounds directory */
- 	void __user *bd_addr;
- #endif
-+
-+#ifdef CONFIG_HUGETLB_PAGE
-+	struct hugetlb_usage hugetlb_usage;
-+#endif
- };
-=20
- static inline void mm_init_cpumask(struct mm_struct *mm)
-diff -puN mm/hugetlb.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-p=
-id-status mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-s=
-tatus
-+++ a/mm/hugetlb.c
-@@ -2790,6 +2790,30 @@ void hugetlb_show_meminfo(void)
- 				1UL << (huge_page_order(h) + PAGE_SHIFT - 10));
- }
-=20
-+void hugetlb_report_usage(struct seq_file *m, struct mm_struct *mm)
-+{
-+	int i;
-+	unsigned long total_usage =3D 0;
-+
-+	for (i =3D 0; i < HUGE_MAX_HSTATE; i++) {
-+		total_usage +=3D atomic_long_read(&mm->hugetlb_usage.count[i]) *
-+			(huge_page_size(&hstates[i]) >> 10);
+diff -puN fs/dax.c~mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax fs/dax.c
+--- a/fs/dax.c~mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax
++++ a/fs/dax.c
+@@ -554,6 +554,25 @@ int __dax_pmd_fault(struct vm_area_struc
+ 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
+ 		goto fallback;
+ 
++	if (buffer_unwritten(&bh) || buffer_new(&bh)) {
++		int i;
++		for (i = 0; i < PTRS_PER_PMD; i++)
++			clear_page(kaddr + i * PAGE_SIZE);
++		count_vm_event(PGMAJFAULT);
++		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
++		result |= VM_FAULT_MAJOR;
 +	}
 +
-+	seq_printf(m, "HugetlbPages:\t%8lu kB (", total_usage);
-+	for (i =3D 0; i < HUGE_MAX_HSTATE; i++) {
-+		if (huge_page_order(&hstates[i]) =3D=3D 0)
-+			break;
-+		if (i > 0)
-+			seq_puts(m, " ");
-+
-+		seq_printf(m, "%ldx%dkB",
-+			atomic_long_read(&mm->hugetlb_usage.count[i]),
-+			huge_page_size(&hstates[i]) >> 10);
++	/*
++	 * If we allocated new storage, make sure no process has any
++	 * zero pages covering this hole
++	 */
++	if (buffer_new(&bh)) {
++		i_mmap_unlock_write(mapping);
++		unmap_mapping_range(mapping, pgoff << PAGE_SHIFT, PMD_SIZE, 0);
++		i_mmap_lock_write(mapping);
 +	}
-+	seq_puts(m, ")\n");
-+}
 +
- /* Return the number pages of memory we physically have, in PAGE_SIZE =
-units. */
- unsigned long hugetlb_total_pages(void)
- {
-@@ -3025,6 +3049,7 @@ int copy_hugetlb_page_range(struct mm_st
- 			get_page(ptepage);
- 			page_dup_rmap(ptepage);
- 			set_huge_pte_at(dst, addr, dst_pte, entry);
-+			inc_hugetlb_count(dst, h);
- 		}
- 		spin_unlock(src_ptl);
- 		spin_unlock(dst_ptl);
-@@ -3105,6 +3130,7 @@ again:
- 		if (huge_pte_dirty(pte))
- 			set_page_dirty(page);
-=20
-+		dec_hugetlb_count(mm, h);
- 		page_remove_rmap(page);
- 		force_flush =3D !__tlb_remove_page(tlb, page);
- 		if (force_flush) {
-@@ -3501,6 +3527,7 @@ retry:
- 				&& (vma->vm_flags & VM_SHARED)));
- 	set_huge_pte_at(mm, address, ptep, new_pte);
-=20
-+	inc_hugetlb_count(mm, h);
- 	if ((flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
- 		/* Optimization, do the COW without a second fault */
- 		ret =3D hugetlb_cow(mm, vma, address, ptep, new_pte, page, ptl);
-diff -puN mm/rmap.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-=
-status mm/rmap.c
---- a/mm/rmap.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-stat=
-us
-+++ a/mm/rmap.c
-@@ -1348,7 +1348,9 @@ static int try_to_unmap_one(struct page
- 	update_hiwater_rss(mm);
-=20
- 	if (PageHWPoison(page) && !(flags & TTU_IGNORE_HWPOISON)) {
--		if (!PageHuge(page)) {
-+		if (PageHuge(page)) {
-+			dec_hugetlb_count(mm, page_hstate(page));
-+		} else {
- 			if (PageAnon(page))
- 				dec_mm_counter(mm, MM_ANONPAGES);
- 			else
+ 	/*
+ 	 * If a truncate happened while we were allocating blocks, we may
+ 	 * leave blocks allocated to the file that are beyond EOF.  We can't
+@@ -568,13 +587,6 @@ int __dax_pmd_fault(struct vm_area_struc
+ 	if ((pgoff | PG_PMD_COLOUR) >= size)
+ 		goto fallback;
+ 
+-	/*
+-	 * If we allocated new storage, make sure no process has any
+-	 * zero pages covering this hole
+-	 */
+-	if (buffer_new(&bh))
+-		unmap_mapping_range(mapping, pgoff << PAGE_SHIFT, PMD_SIZE, 0);
+-
+ 	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
+ 		spinlock_t *ptl;
+ 		pmd_t entry;
+@@ -605,15 +617,6 @@ int __dax_pmd_fault(struct vm_area_struc
+ 		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
+ 			goto fallback;
+ 
+-		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
+-			int i;
+-			for (i = 0; i < PTRS_PER_PMD; i++)
+-				clear_page(kaddr + i * PAGE_SIZE);
+-			count_vm_event(PGMAJFAULT);
+-			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+-			result |= VM_FAULT_MAJOR;
+-		}
+-
+ 		result |= vmf_insert_pfn_pmd(vma, address, pmd, pfn, write);
+ 	}
+ 
+diff -puN mm/memory.c~mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax mm/memory.c
+--- a/mm/memory.c~mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax
++++ a/mm/memory.c
+@@ -2426,17 +2426,10 @@ void unmap_mapping_range(struct address_
+ 	if (details.last_index < details.first_index)
+ 		details.last_index = ULONG_MAX;
+ 
+-
+-	/*
+-	 * DAX already holds i_mmap_lock to serialise file truncate vs
+-	 * page fault and page fault vs page fault.
+-	 */
+-	if (!IS_DAX(mapping->host))
+-		i_mmap_lock_write(mapping);
++	i_mmap_lock_write(mapping);
+ 	if (unlikely(!RB_EMPTY_ROOT(&mapping->i_mmap)))
+ 		unmap_mapping_range_tree(&mapping->i_mmap, &details);
+-	if (!IS_DAX(mapping->host))
+-		i_mmap_unlock_write(mapping);
++	i_mmap_unlock_write(mapping);
+ }
+ EXPORT_SYMBOL(unmap_mapping_range);
+ 
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com =
-are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-hwpoison-fix-page-refcount-of-unkown-non-lru-page.patch
-mm-hwpoison-fix-fail-isolate-hugetlbfs-page-w-refcount-held.patch
-mm-hwpoison-fix-panic-due-to-split-huge-zero-page.patch
-mm-hwpoison-fix-panic-due-to-split-huge-zero-page-fix.patch
-hugetlb-make-the-function-vma_shareable-bool.patch
-pagemap-check-permissions-and-capabilities-at-open-time.patch
-pagemap-switch-to-the-new-format-and-do-some-cleanup.patch
-pagemap-rework-hugetlb-and-thp-report.patch
-pagemap-hide-physical-addresses-from-non-privileged-users.patch
-pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here.patch
-pagemap-update-documentation.patch
-pagemap-update-documentation-fix.patch
+mm-mlock-refactor-mlock-munlock-and-munlockall-code.patch
+mm-mlock-refactor-mlock-munlock-and-munlockall-code-v7.patch
+mm-mlock-add-new-mlock-system-call.patch
+mm-introduce-vm_lockonfault.patch
+mm-introduce-vm_lockonfault-v7.patch
+mm-mlock-add-mlock-flags-to-enable-vm_lockonfault-usage.patch
+selftests-vm-add-tests-for-lock-on-fault.patch
+mips-add-entry-for-new-mlock2-syscall.patch
+mm-fix-status-code-move_pages-returns-for-zero-page.patch
+mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested.patch
+mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
+mremap-dont-leak-new_vma-if-f_op-mremap-fails.patch
+mm-move-mremap-from-file_operations-to-vm_operations_struct.patch
+mremap-dont-do-mm_populatenew_addr-on-failure.patch
+mremap-dont-do-uneccesary-checks-if-new_len-==-old_len.patch
+mremap-simplify-the-overlap-check-in-mremap_to.patch
+mm-introduce-vma_is_anonymousvma-helper.patch
+mmap-fix-the-usage-of-vm_pgoff-in-special_mapping-paths.patch
+mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma.patch
+thp-vma_adjust_trans_huge-adjust-file-backed-vma-too.patch
+dax-move-dax-related-functions-to-a-new-header.patch
+thp-prepare-for-dax-huge-pages.patch
+mm-add-a-pmd_fault-handler.patch
+mm-export-various-functions-for-the-benefit-of-dax.patch
+mm-add-vmf_insert_pfn_pmd.patch
+dax-add-huge-page-fault-support.patch
+ext2-huge-page-fault-support.patch
+ext4-huge-page-fault-support.patch
+xfs-huge-page-fault-support.patch
+thp-decrement-refcount-on-huge-zero-page-if-it-is-split.patch
+thp-fix-zap_huge_pmd-for-dax.patch
+dax-dont-use-set_huge_zero_page.patch
+dax-ensure-that-zero-pages-are-removed-from-other-processes.patch
+mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax.patch
+mm-dax-use-i_mmap_unlock_write-in-do_cow_fault.patch
 mm-page_isolation-remove-bogus-tests-for-isolated-pages.patch
 mm-rename-and-move-get-set_freepage_migratetype.patch
-mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add.patch
-mm-hugetlb-add-region_del-to-delete-a-specific-range-of-entries.patch
-mm-hugetlb-expose-hugetlb-fault-mutex-for-use-by-fallocate.patch
-hugetlbfs-hugetlb_vmtruncate_list-needs-to-take-a-range-to-delete.patch
-hugetlbfs-truncate_hugepages-takes-a-range-of-pages.patch
-mm-hugetlb-vma_has_reserves-needs-to-handle-fallocate-hole-punch.patch
-mm-hugetlb-alloc_huge_page-handle-areas-hole-punched-by-fallocate.patch
-hugetlbfs-new-huge_add_to_page_cache-helper-routine.patch
-hugetlbfs-add-hugetlbfs_fallocate.patch
-hugetlbfs-add-hugetlbfs_fallocate-fix.patch
-mm-madvise-allow-remove-operation-for-hugetlbfs.patch
-mempolicy-get-rid-of-duplicated-check-for-vmavm_pfnmap-in-queue_pages_r=
-ange.patch
-mm-page_isolation-make-set-unset_migratetype_isolate-file-local.patch
-mm-compaction-more-robust-check-for-scanners-meeting.patch
-mm-compaction-simplify-handling-restart-position-in-free-pages-scanner.=
-patch
-mm-compaction-encapsulate-resetting-cached-scanner-positions.patch
-mm-compaction-always-skip-compound-pages-by-order-in-migrate-scanner.pa=
-tch
-mm-compaction-skip-compound-pages-by-order-in-free-scanner.patch
-reverted-selftests-add-hugetlbfstest.patch
-selftests-vm-point-to-libhugetlbfs-for-regression-testing.patch
-documentation-update-libhugetlbfs-location-and-use-for-testing.patch
-mm-hwpoison-fix-fail-to-split-thp-w-refcount-held.patch
-mm-hwpoison-fix-pagehwpoison-test-set-race.patch
-mm-hwpoison-introduce-put_hwpoison_page-to-put-refcount-for-memory-erro=
-r-handling.patch
-mm-hwpoison-fix-refcount-of-thp-head-page-in-no-injection-case.patch
-mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hw=
-poison_page.patch
-mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hw=
-poison_page-fix.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch
+mempolicy-get-rid-of-duplicated-check-for-vmavm_pfnmap-in-queue_pages_range.patch
+vm_flags-vm_flags_t-and-__nocast.patch
+mm-compaction-always-skip-compound-pages-by-order-in-migrate-scanner.patch
 page-flags-trivial-cleanup-for-pagetrans-helpers.patch
 page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
 page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.pat=
-ch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
 page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
 page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
 page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
@@ -339,13 +198,17 @@ page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
 page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
 page-flags-define-pg_uncached-behavior-on-compound-pages.patch
 page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.pat=
-ch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
 mm-sanitize-page-mapping-for-tail-pages.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+fix-list_poison12-offset.patch
+use-poison_pointer_delta-for-poison-pointers.patch
+remove-not-used-poison-pointer-macros.patch
+unshare-unsharing-a-thread-does-not-require-unsharing-a-vm.patch
+usernspidns-force-thread-group-sharing-not-signal-handler-sharing.patch
+mm-mark-most-vm_operations_struct-const.patch
+mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff.patch
+mm-make-sure-all-file-vmas-have-vm_ops-set.patch
+mm-use-vma_is_anonymous-in-create_huge_pmd-and-wp_huge_pmd.patch
+mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
