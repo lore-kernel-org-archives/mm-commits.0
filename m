@@ -1,79 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: + mm-cma-mark-cma_bitmap_maxno-inline-in-header.patch added to
- -mm tree
-Date: Wed, 12 Aug 2015 17:04:41 -0700
-Message-ID: <55cbdf19.BblCqoHYawfYFMWp%akpm@linux-foundation.org>
+Subject: [merged] x86-hweight-force-inlining-of-__arch_hweight3264.patch
+ removed from -mm tree
+Date: Thu, 13 Aug 2015 12:45:47 -0700
+Message-ID: <55ccf3eb.2a32JMUKMzb9AmnL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51743 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53378 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751137AbbHMAEl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 12 Aug 2015 20:04:41 -0400
+	with ESMTP id S1751862AbbHMTpr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 13 Aug 2015 15:45:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gregory.0xf0@gmail.com, iamjoonsoo.kim@lge.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: dvlasenk@redhat.com, mingo@kernel.org, peterz@infradead.org, rientjes@google.com, tgraf@suug.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: mark cma_bitmap_maxno() inline in header
-has been added to the -mm tree.  Its filename is
-     mm-cma-mark-cma_bitmap_maxno-inline-in-header.patch
+     Subject: x86/hweight: force inlining of __arch_hweight{32,64}()
+has been removed from the -mm tree.  Its filename was
+     x86-hweight-force-inlining-of-__arch_hweight3264.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-mark-cma_bitmap_maxno-inline-in-header.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-mark-cma_bitmap_maxno-inline-in-header.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gregory Fong <gregory.0xf0@gmail.com>
-Subject: mm: cma: mark cma_bitmap_maxno() inline in header
+From: Denys Vlasenko <dvlasenk@redhat.com>
+Subject: x86/hweight: force inlining of __arch_hweight{32,64}()
 
-cma_bitmap_maxno() was marked as static and not static inline, which can
-cause warnings about this function not being used if this file is included
-in a file that does not call that function, and violates the conventions
-used elsewhere.  The two options are to move the function implementation
-back to mm/cma.c or make it inline here, and it's simple enough for the
-latter to make sense.
+With this config:
+http://busybox.net/~vda/kernel_config_OPTIMIZE_INLINING_and_Os
 
-Signed-off-by: Gregory Fong <gregory.0xf0@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+gcc-4.7.2 generates many copies of these tiny functions:
+
+__arch_hweight32 (35 copies):
+55                      push   %rbp
+e8 66 9b 4a 00          callq  __sw_hweight32
+48 89 e5                mov    %rsp,%rbp
+5d                      pop    %rbp
+c3                      retq
+
+__arch_hweight64 (8 copies):
+55                      push   %rbp
+e8 5e c2 8a 00          callq  __sw_hweight64
+48 89 e5                mov    %rsp,%rbp
+5d                      pop    %rbp
+c3                      retq
+
+See https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66122
+
+This patch fixes this via s/inline/__always_inline/
+
+To avoid touching 32-bit case where such change was not tested to be a win,
+reformat __arch_hweight64() to have completely disjoint 64-bit and 32-bit
+implementations. IOW: made #ifdef / #else / #endif blocks contain
+complete function definitions for 32 bits and 64 bits
+instead of having #ifdef / #else / #endif inside a single function body.
+Only 64-bit __arch_hweight64() is __always_inline'd.
+
+    text     data      bss       dec     hex filename
+86971120 17195912 36659200 140826232 864d678 vmlinux.before
+86970954 17195912 36659200 140826066 864d5d2 vmlinux
+
+Signed-off-by: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Thomas Graf <tgraf@suug.ch>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/include/asm/arch_hweight.h |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN mm/cma.h~mm-cma-mark-cma_bitmap_maxno-inline-in-header mm/cma.h
---- a/mm/cma.h~mm-cma-mark-cma_bitmap_maxno-inline-in-header
-+++ a/mm/cma.h
-@@ -16,7 +16,7 @@ struct cma {
- extern struct cma cma_areas[MAX_CMA_AREAS];
- extern unsigned cma_area_count;
- 
--static unsigned long cma_bitmap_maxno(struct cma *cma)
-+static inline unsigned long cma_bitmap_maxno(struct cma *cma)
+diff -puN arch/x86/include/asm/arch_hweight.h~x86-hweight-force-inlining-of-__arch_hweight3264 arch/x86/include/asm/arch_hweight.h
+--- a/arch/x86/include/asm/arch_hweight.h~x86-hweight-force-inlining-of-__arch_hweight3264
++++ a/arch/x86/include/asm/arch_hweight.h
+@@ -21,7 +21,7 @@
+  * ARCH_HWEIGHT_CFLAGS in <arch/x86/Kconfig> for the respective
+  * compiler switches.
+  */
+-static inline unsigned int __arch_hweight32(unsigned int w)
++static __always_inline unsigned int __arch_hweight32(unsigned int w)
  {
- 	return cma->count >> cma->order_per_bit;
+ 	unsigned int res = 0;
+ 
+@@ -42,20 +42,23 @@ static inline unsigned int __arch_hweigh
+ 	return __arch_hweight32(w & 0xff);
  }
+ 
++#ifdef CONFIG_X86_32
+ static inline unsigned long __arch_hweight64(__u64 w)
+ {
+-	unsigned long res = 0;
+-
+-#ifdef CONFIG_X86_32
+ 	return  __arch_hweight32((u32)w) +
+ 		__arch_hweight32((u32)(w >> 32));
++}
+ #else
++static __always_inline unsigned long __arch_hweight64(__u64 w)
++{
++	unsigned long res = 0;
++
+ 	asm (ALTERNATIVE("call __sw_hweight64", POPCNT64, X86_FEATURE_POPCNT)
+ 		     : "="REG_OUT (res)
+ 		     : REG_IN (w));
+-#endif /* CONFIG_X86_32 */
+ 
+ 	return res;
+ }
++#endif /* CONFIG_X86_32 */
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from gregory.0xf0@gmail.com are
+Patches currently in -mm which might be from dvlasenk@redhat.com are
 
-mm-cma-mark-cma_bitmap_maxno-inline-in-header.patch
 linux-next.patch
 
