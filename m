@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2.patch
- added to -mm tree
-Date: Fri, 14 Aug 2015 13:25:24 -0700
-Message-ID: <55ce4eb4.T1NmXNPkP2qdaE/L%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-2.patch added to -mm tree
+Date: Fri, 14 Aug 2015 13:31:06 -0700
+Message-ID: <55ce500a.Bqh+rPrqxlM2sVg1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53891 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53985 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751004AbbHNUZZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Aug 2015 16:25:25 -0400
+	with ESMTP id S1751592AbbHNUbH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Aug 2015 16:31:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dyoung@redhat.com, jwboyer@fedoraproject.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, joern@logfs.org, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-fix
+     Subject: mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-2
 has been added to the -mm tree.  Its filename is
-     kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2.patch
+     mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +40,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-fix
+Subject: mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-2
 
-kernel/kexec_file.c:126:1: sparse: symbol 'arch_kexec_apply_relocations' was not declared. Should it be static?
+fix printk warning
 
-the various arch_kexec functions don't appear to be declared anywhere. 
-Confused.
+mm/hugetlb.c: In function 'hugetlb_report_usage':
+mm/hugetlb.c:2812:4: warning: format '%d' expects argument of type 'int', but argument 4 has type 'long unsigned int' [-Wformat=]
+    huge_page_size(&hstates[i]) >> 10);
 
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Josh Boyer <jwboyer@fedoraproject.org>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/kexec.h~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2 include/linux/kexec.h
---- a/include/linux/kexec.h~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2
-+++ a/include/linux/kexec.h
-@@ -318,6 +318,17 @@ int crash_shrink_memory(unsigned long ne
- size_t crash_get_memory_size(void);
- void crash_free_reserved_phys_range(unsigned long begin, unsigned long end);
+diff -puN mm/hugetlb.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-2 mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-2
++++ a/mm/hugetlb.c
+@@ -2807,7 +2807,7 @@ void hugetlb_report_usage(struct seq_fil
+ 		if (i > 0)
+ 			seq_puts(m, " ");
  
-+int __weak arch_kexec_kernel_image_probe(struct kimage *image, void *buf,
-+					 unsigned long buf_len);
-+void * __weak arch_kexec_kernel_image_load(struct kimage *image);
-+void __weak arch_kimage_file_post_load_cleanup(struct kimage *image);
-+int __weak arch_kexec_kernel_verify_sig(struct kimage *image, void *buf,
-+					unsigned long buf_len);
-+int __weak arch_kexec_apply_relocations_add(const Elf_Ehdr *ehdr,
-+					Elf_Shdr *sechdrs, unsigned int relsec);
-+int __weak arch_kexec_apply_relocations(const Elf_Ehdr *ehdr, Elf_Shdr *sechdrs,
-+					unsigned int relsec);
-+
- #else /* !CONFIG_KEXEC */
- struct pt_regs;
- struct task_struct;
+-		seq_printf(m, "%ld*%dkB",
++		seq_printf(m, "%ld*%ldkB",
+ 			atomic_long_read(&mm->hugetlb_usage.count[i]),
+ 			huge_page_size(&hstates[i]) >> 10);
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -109,6 +102,7 @@ memcg-export-struct-mem_cgroup-fix-2.patch
 mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
 mm-srcu-ify-shrinkers-fix-fix.patch
 x86-use-generic-early-mem-copy-fix.patch
+mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-2.patch
 include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
 proc-add-kpageidle-file-fix-6-fix.patch
 proc-add-kpageidle-file-fix-6-fix-2-fix.patch
