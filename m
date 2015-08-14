@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2.patch
+Subject: + kexec-split-kexec_file-syscall-code-to-kexec_filec-fix.patch
  added to -mm tree
-Date: Fri, 14 Aug 2015 13:08:59 -0700
-Message-ID: <55ce4adb.8YEJUIPCa2y9aQpp%akpm@linux-foundation.org>
+Date: Fri, 14 Aug 2015 13:21:58 -0700
+Message-ID: <55ce4de6.dJ7a/RwSBF7nrElq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53846 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53882 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750808AbbHNUJA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Aug 2015 16:09:00 -0400
+	with ESMTP id S1751202AbbHNUV7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Aug 2015 16:21:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghai@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dyoung@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2
+     Subject: kexec-split-kexec_file-syscall-code-to-kexec_filec-fix
 has been added to the -mm tree.  Its filename is
-     lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2.patch
+     kexec-split-kexec_file-syscall-code-to-kexec_filec-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-split-kexec_file-syscall-code-to-kexec_filec-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-split-kexec_file-syscall-code-to-kexec_filec-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,258 +39,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kexec-split-kexec_file-syscall-code-to-kexec_filec-fix
 
--v2: fix unused warning on sh/arm/m32r from Fengguang.
+fix bisectability
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+kernel/kexec.c: In function 'crash_save_vmcoreinfo_init':
+kernel/kexec.c:1593: error: 'vmap_area_list' undeclared (first use in this function)
+kernel/kexec.c:1593: error: (Each undeclared identifier is reported only once
+kernel/kexec.c:1593: error: for each function it appears in.)
+kernel/kexec.c:1631: error: invalid use of undefined type 'struct vmap_area'
+kernel/kexec.c:1632: error: invalid use of undefined type 'struct vmap_area'
+
+Cc: Dave Young <dyoung@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/boot/compressed/decompress.c  |    2 +-
- arch/h8300/boot/compressed/misc.c      |    2 +-
- arch/m32r/boot/compressed/misc.c       |    3 ++-
- arch/mips/boot/compressed/decompress.c |    4 ++--
- arch/s390/boot/compressed/misc.c       |    2 +-
- arch/sh/boot/compressed/misc.c         |    2 +-
- arch/unicore32/boot/compressed/misc.c  |    4 ++--
- lib/decompress_bunzip2.c               |    9 ---------
- lib/decompress_inflate.c               |   13 ++-----------
- lib/decompress_unlz4.c                 |   10 ----------
- lib/decompress_unlzma.c                |   13 +------------
- lib/decompress_unlzo.c                 |    9 ---------
- lib/decompress_unxz.c                  |    9 ---------
- 13 files changed, 13 insertions(+), 69 deletions(-)
+ kernel/kexec.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/arm/boot/compressed/decompress.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2 arch/arm/boot/compressed/decompress.c
---- a/arch/arm/boot/compressed/decompress.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2
-+++ a/arch/arm/boot/compressed/decompress.c
-@@ -57,5 +57,5 @@ extern char * strstr(const char * s1, co
- 
- int do_decompress(u8 *input, int len, u8 *output, void (*error)(char *x))
- {
--	return decompress(input, len, NULL, NULL, output, NULL, error);
-+	return __decompress(input, len, NULL, NULL, output, 0, NULL, error);
- }
-diff -puN arch/h8300/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2 arch/h8300/boot/compressed/misc.c
---- a/arch/h8300/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2
-+++ a/arch/h8300/boot/compressed/misc.c
-@@ -70,5 +70,5 @@ void decompress_kernel(void)
- 	free_mem_ptr = (unsigned long)&_end;
- 	free_mem_end_ptr = free_mem_ptr + HEAP_SIZE;
- 
--	decompress(input_data, input_len, NULL, NULL, output, NULL, error);
-+	__decompress(input_data, input_len, NULL, NULL, output, 0, NULL, error);
- }
-diff -puN arch/m32r/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2 arch/m32r/boot/compressed/misc.c
---- a/arch/m32r/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2
-+++ a/arch/m32r/boot/compressed/misc.c
-@@ -86,6 +86,7 @@ decompress_kernel(int mmu_on, unsigned c
- 	free_mem_end_ptr = free_mem_ptr + BOOT_HEAP_SIZE;
- 
- 	puts("\nDecompressing Linux... ");
--	decompress(input_data, input_len, NULL, NULL, output_data, NULL, error);
-+	__decompress(input_data, input_len, NULL, NULL, output_data, 0,
-+			NULL, error);
- 	puts("done.\nBooting the kernel.\n");
- }
-diff -puN arch/mips/boot/compressed/decompress.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2 arch/mips/boot/compressed/decompress.c
---- a/arch/mips/boot/compressed/decompress.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2
-+++ a/arch/mips/boot/compressed/decompress.c
-@@ -111,8 +111,8 @@ void decompress_kernel(unsigned long boo
- 	puts("\n");
- 
- 	/* Decompress the kernel with according algorithm */
--	decompress((char *)zimage_start, zimage_size, 0, 0,
--		   (void *)VMLINUX_LOAD_ADDRESS_ULL, 0, error);
-+	__decompress((char *)zimage_start, zimage_size, 0, 0,
-+		   (void *)VMLINUX_LOAD_ADDRESS_ULL, 0, 0, error);
- 
- 	/* FIXME: should we flush cache here? */
- 	puts("Now, booting the kernel...\n");
-diff -puN arch/s390/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2 arch/s390/boot/compressed/misc.c
---- a/arch/s390/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2
-+++ a/arch/s390/boot/compressed/misc.c
-@@ -167,7 +167,7 @@ unsigned long decompress_kernel(void)
- #endif
- 
- 	puts("Uncompressing Linux... ");
--	decompress(input_data, input_len, NULL, NULL, output, NULL, error);
-+	__decompress(input_data, input_len, NULL, NULL, output, 0, NULL, error);
- 	puts("Ok, booting the kernel.\n");
- 	return (unsigned long) output;
- }
-diff -puN arch/sh/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2 arch/sh/boot/compressed/misc.c
---- a/arch/sh/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2
-+++ a/arch/sh/boot/compressed/misc.c
-@@ -132,7 +132,7 @@ void decompress_kernel(void)
- 
- 	puts("Uncompressing Linux... ");
- 	cache_control(CACHE_ENABLE);
--	decompress(input_data, input_len, NULL, NULL, output, NULL, error);
-+	__decompress(input_data, input_len, NULL, NULL, output, 0, NULL, error);
- 	cache_control(CACHE_DISABLE);
- 	puts("Ok, booting the kernel.\n");
- }
-diff -puN arch/unicore32/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2 arch/unicore32/boot/compressed/misc.c
---- a/arch/unicore32/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2
-+++ a/arch/unicore32/boot/compressed/misc.c
-@@ -119,8 +119,8 @@ unsigned long decompress_kernel(unsigned
- 	output_ptr = get_unaligned_le32(tmp);
- 
- 	arch_decomp_puts("Uncompressing Linux...");
--	decompress(input_data, input_data_end - input_data, NULL, NULL,
--			output_data, NULL, error);
-+	__decompress(input_data, input_data_end - input_data, NULL, NULL,
-+			output_data, 0, NULL, error);
- 	arch_decomp_puts(" done, booting the kernel.\n");
- 	return output_ptr;
- }
-diff -puN lib/decompress_bunzip2.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2 lib/decompress_bunzip2.c
---- a/lib/decompress_bunzip2.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2
-+++ a/lib/decompress_bunzip2.c
-@@ -743,15 +743,6 @@ exit_0:
- }
- 
- #ifdef PREBOOT
--STATIC int INIT decompress(unsigned char *buf, long len,
--			long (*fill)(void*, unsigned long),
--			long (*flush)(void*, unsigned long),
--			unsigned char *outbuf,
--			long *pos,
--			void(*error)(char *x))
--{
--	return bunzip2(buf, len - 4, fill, flush, outbuf, pos, error);
--}
- STATIC int INIT __decompress(unsigned char *buf, long len,
- 			long (*fill)(void*, unsigned long),
- 			long (*flush)(void*, unsigned long),
-diff -puN lib/decompress_inflate.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2 lib/decompress_inflate.c
---- a/lib/decompress_inflate.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2
-+++ a/lib/decompress_inflate.c
-@@ -182,6 +182,7 @@ gunzip_nomem1:
- 	return rc; /* returns Z_OK (0) if successful */
- }
- 
-+#ifndef PREBOOT
- STATIC int INIT gunzip(unsigned char *buf, long len,
- 		       long (*fill)(void*, unsigned long),
- 		       long (*flush)(void*, unsigned long),
-@@ -191,17 +192,7 @@ STATIC int INIT gunzip(unsigned char *bu
- {
- 	return __gunzip(buf, len, fill, flush, out_buf, 0, pos, error);
- }
--
--#ifdef PREBOOT
--STATIC int INIT decompress(unsigned char *buf, long len,
--			   long (*fill)(void*, unsigned long),
--			   long (*flush)(void*, unsigned long),
--			   unsigned char *out_buf,
--			   long *pos,
--			   void (*error)(char *x))
--{
--	return gunzip(buf, len, fill, flush, out_buf, pos, error);
--}
-+#else
- STATIC int INIT __decompress(unsigned char *buf, long len,
- 			   long (*fill)(void*, unsigned long),
- 			   long (*flush)(void*, unsigned long),
-diff -puN lib/decompress_unlz4.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2 lib/decompress_unlz4.c
---- a/lib/decompress_unlz4.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2
-+++ a/lib/decompress_unlz4.c
-@@ -196,16 +196,6 @@ exit_0:
- }
- 
- #ifdef PREBOOT
--STATIC int INIT decompress(unsigned char *buf, long in_len,
--			      long (*fill)(void*, unsigned long),
--			      long (*flush)(void*, unsigned long),
--			      unsigned char *output,
--			      long *posp,
--			      void(*error)(char *x)
--	)
--{
--	return unlz4(buf, in_len - 4, fill, flush, output, posp, error);
--}
- STATIC int INIT __decompress(unsigned char *buf, long in_len,
- 			      long (*fill)(void*, unsigned long),
- 			      long (*flush)(void*, unsigned long),
-diff -puN lib/decompress_unlzma.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2 lib/decompress_unlzma.c
---- a/lib/decompress_unlzma.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2
-+++ a/lib/decompress_unlzma.c
-@@ -667,23 +667,12 @@ exit_0:
- }
- 
- #ifdef PREBOOT
--STATIC int INIT decompress(unsigned char *buf, long in_len,
--			      long (*fill)(void*, unsigned long),
--			      long (*flush)(void*, unsigned long),
--			      unsigned char *output,
--			      long *posp,
--			      void(*error)(char *x)
--	)
--{
--	return unlzma(buf, in_len - 4, fill, flush, output, posp, error);
--}
- STATIC int INIT __decompress(unsigned char *buf, long in_len,
- 			      long (*fill)(void*, unsigned long),
- 			      long (*flush)(void*, unsigned long),
- 			      unsigned char *output, long out_len,
- 			      long *posp,
--			      void (*error)(char *x)
--	)
-+			      void (*error)(char *x))
- {
- 	return unlzma(buf, in_len - 4, fill, flush, output, posp, error);
- }
-diff -puN lib/decompress_unlzo.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2 lib/decompress_unlzo.c
---- a/lib/decompress_unlzo.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2
-+++ a/lib/decompress_unlzo.c
-@@ -289,15 +289,6 @@ exit:
- }
- 
- #ifdef PREBOOT
--STATIC int INIT decompress(unsigned char *buf, long len,
--			   long (*fill)(void*, unsigned long),
--			   long (*flush)(void*, unsigned long),
--			   unsigned char *out_buf,
--			   long *pos,
--			   void (*error)(char *x))
--{
--	return unlzo(buf, len, fill, flush, out_buf, pos, error);
--}
- STATIC int INIT __decompress(unsigned char *buf, long len,
- 			   long (*fill)(void*, unsigned long),
- 			   long (*flush)(void*, unsigned long),
-diff -puN lib/decompress_unxz.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2 lib/decompress_unxz.c
---- a/lib/decompress_unxz.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2
-+++ a/lib/decompress_unxz.c
-@@ -395,15 +395,6 @@ error_alloc_state:
-  * the kernel image.
-  */
- #ifdef XZ_PREBOOT
--STATIC int INIT decompress(unsigned char *buf, long len,
--			   long (*fill)(void*, unsigned long),
--			   long (*flush)(void*, unsigned long),
--			   unsigned char *out_buf,
--			   long *pos,
--			   void (*error)(char *x))
--{
--	return unxz(buf, len, fill, flush, out_buf, pos, error);
--}
- STATIC int INIT __decompress(unsigned char *buf, long len,
- 			   long (*fill)(void*, unsigned long),
- 			   long (*flush)(void*, unsigned long),
+diff -puN kernel/Makefile~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix kernel/Makefile
+diff -puN kernel/kexec.c~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix kernel/kexec.c
+--- a/kernel/kexec.c~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix
++++ a/kernel/kexec.c
+@@ -28,6 +28,7 @@
+ #include <linux/suspend.h>
+ #include <linux/device.h>
+ #include <linux/freezer.h>
++#include <linux/vmalloc.h>
+ #include <linux/pm.h>
+ #include <linux/cpu.h>
+ #include <linux/console.h>
+diff -puN kernel/kexec_file.c~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix kernel/kexec_file.c
+diff -puN kernel/kexec_internal.h~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix kernel/kexec_internal.h
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-add-utility-for-early-copy-from-unmapped-ram.patch
-arm64-support-initrd-outside-kernel-linear-map.patch
-x86-use-generic-early-mem-copy.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix.patch
+mm-hwpoison-fix-panic-due-to-split-huge-zero-page-fix.patch
+mm-make-page-pfmemalloc-check-more-robust-fix.patch
+kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
+scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
+ocfs2-sysfile-interfaces-for-online-file-check-fix.patch
+fs-create-and-use-seq_show_option-for-escaping-fix.patch
+watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix.patch
+watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch
+mm.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
+genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
+mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
+dax-revert-userfaultfd-change.patch
+thp-prepare-for-dax-huge-pages-fix.patch
+pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
+pagemap-update-documentation-fix.patch
+mm-show-proportional-swap-share-of-the-mapping-fix.patch
+mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
+memcg-export-struct-mem_cgroup-fix.patch
+memcg-export-struct-mem_cgroup-fix-2.patch
+mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
+mm-srcu-ify-shrinkers-fix-fix.patch
 x86-use-generic-early-mem-copy-fix.patch
-lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel.patch
-lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+proc-add-kpageidle-file-fix-6-fix.patch
+proc-add-kpageidle-file-fix-6-fix-2-fix.patch
+proc-export-idle-flag-via-kpageflags-fix.patch
+mm-vmscan-fix-the-page-state-calculation-in-too_many_isolated.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+zswap-dynamic-pool-creation-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
+fs-coda-fix-readlink-buffer-overflow-checkpatch-fixes.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix.patch
+kexec-split-kexec_load-syscall-from-kexec-core-code-checkpatch-fixes.patch
+align-crash_notes-allocation-to-make-it-be-inside-one-physical-page-fix.patch
 linux-next.patch
+linux-next-rejects.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix-fix.patch
+mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix-checkpatch-fixes.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+mutex-subsystem-synchro-test-module.patch
+slab-leaks3-default-y.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2.patch
 
