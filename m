@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-3.patch added to -mm tree
-Date: Fri, 14 Aug 2015 13:32:18 -0700
-Message-ID: <55ce5052.cpay0NYOQrsYT+8I%akpm@linux-foundation.org>
+Subject: + kmod-bunch-of-internal-functions-renames.patch added to -mm
+ tree
+Date: Fri, 14 Aug 2015 13:49:40 -0700
+Message-ID: <55ce5464.1sQagC7Mr4m3ysKO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53995 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54075 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750940AbbHNUcS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Aug 2015 16:32:18 -0400
+	with ESMTP id S1751601AbbHNUtl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Aug 2015 16:49:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: fweisbec@gmail.com, cl@linux.com, oleg@redhat.com, riel@redhat.com, rusty@rustcorp.com.au, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-3
+     Subject: kmod: bunch of internal functions renames
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-3.patch
+     kmod-bunch-of-internal-functions-renames.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kmod-bunch-of-internal-functions-renames.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kmod-bunch-of-internal-functions-renames.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,110 +39,168 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-3
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Subject: kmod: bunch of internal functions renames
+
+This patchset does a bunch of cleanups and converts khelper to use system
+unbound workqueues.  The 3 first patches should be uncontroversial.  The
+last 2 patches are debatable.
+
+Kmod creates kernel threads that perform userspace jobs and we want those
+to have a large affinity in order not to contend busy CPUs.  This is
+(partly) why we use khelper which has a wide affinity that the kernel
+threads it create can inherit from.  Now khelper is a dedicated workqueue
+that has singlethread properties which we aren't interested in.
+
+Hence those two debatable changes:
+
+_ We would like to use generic workqueues. System unbound workqueues are
+  a very good candidate but they are not wide affine, only node affine.
+  Now probably a node is enough to perform many parallel kmod jobs.
+
+_ We would like to remove the wait_for_helper kernel thread (UMH_WAIT_PROC
+  handler) to use the workqueue. It means that if the workqueue blocks,
+  and no other worker can take pending kmod request, we can be screwed.
+  Now if we have 512 threads, this should be enough.
 
 
+This patch (of 5):
 
+Underscores on function names aren't much verbose to explain the purpose
+of a function.  And kmod has interesting such flavours.
+
+Lets rename the following functions:
+
+* __call_usermodehelper -> call_usermodehelper_exec_work
+* ____call_usermodehelper -> call_usermodehelper_exec_async
+* wait_for_helper -> call_usermodehelper_exec_sync
+
+Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h  |    4 ----
- include/linux/mm_types.h |    4 ++++
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ kernel/kmod.c |   30 +++++++++++++++++-------------
+ 1 file changed, 17 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/hugetlb.h~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-3 include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-3
-+++ a/include/linux/hugetlb.h
-@@ -344,10 +344,6 @@ int __init alloc_bootmem_huge_page(struc
- void __init hugetlb_add_hstate(unsigned order);
- struct hstate *size_to_hstate(unsigned long size);
+diff -puN kernel/kmod.c~kmod-bunch-of-internal-functions-renames kernel/kmod.c
+--- a/kernel/kmod.c~kmod-bunch-of-internal-functions-renames
++++ a/kernel/kmod.c
+@@ -214,7 +214,7 @@ static void umh_complete(struct subproce
+ /*
+  * This is the task which runs the usermode application
+  */
+-static int ____call_usermodehelper(void *data)
++static int call_usermodehelper_exec_async(void *data)
+ {
+ 	struct subprocess_info *sub_info = data;
+ 	struct cred *new;
+@@ -259,7 +259,10 @@ static int ____call_usermodehelper(void
+ 			   (const char __user *const __user *)sub_info->envp);
+ out:
+ 	sub_info->retval = retval;
+-	/* wait_for_helper() will call umh_complete if UHM_WAIT_PROC. */
++	/*
++	 * call_usermodehelper_exec_sync() will call umh_complete
++	 * if UHM_WAIT_PROC.
++	 */
+ 	if (!(sub_info->wait & UMH_WAIT_PROC))
+ 		umh_complete(sub_info);
+ 	if (!retval)
+@@ -268,14 +271,14 @@ out:
+ }
  
--#ifndef HUGE_MAX_HSTATE
--#define HUGE_MAX_HSTATE 1
--#endif
--
- extern struct hstate hstates[HUGE_MAX_HSTATE];
- extern unsigned int default_hstate_idx;
+ /* Keventd can't block, but this (a child) can. */
+-static int wait_for_helper(void *data)
++static int call_usermodehelper_exec_sync(void *data)
+ {
+ 	struct subprocess_info *sub_info = data;
+ 	pid_t pid;
  
-diff -puN include/linux/mm_types.h~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-3 include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-3
-+++ a/include/linux/mm_types.h
-@@ -367,6 +367,10 @@ struct mm_rss_stat {
- };
+ 	/* If SIGCLD is ignored sys_wait4 won't populate the status. */
+ 	kernel_sigaction(SIGCHLD, SIG_DFL);
+-	pid = kernel_thread(____call_usermodehelper, sub_info, SIGCHLD);
++	pid = kernel_thread(call_usermodehelper_exec_async, sub_info, SIGCHLD);
+ 	if (pid < 0) {
+ 		sub_info->retval = pid;
+ 	} else {
+@@ -283,17 +286,18 @@ static int wait_for_helper(void *data)
+ 		/*
+ 		 * Normally it is bogus to call wait4() from in-kernel because
+ 		 * wait4() wants to write the exit code to a userspace address.
+-		 * But wait_for_helper() always runs as keventd, and put_user()
+-		 * to a kernel address works OK for kernel threads, due to their
+-		 * having an mm_segment_t which spans the entire address space.
++		 * But call_usermodehelper_exec_sync() always runs as keventd,
++		 * and put_user() to a kernel address works OK for kernel
++		 * threads, due to their having an mm_segment_t which spans the
++		 * entire address space.
+ 		 *
+ 		 * Thus the __user pointer cast is valid here.
+ 		 */
+ 		sys_wait4(pid, (int __user *)&ret, 0, NULL);
  
- #ifdef CONFIG_HUGETLB_PAGE
-+
-+#ifndef HUGE_MAX_HSTATE
-+#define HUGE_MAX_HSTATE	1
-+#endif
- struct hugetlb_usage {
- 	atomic_long_t count[HUGE_MAX_HSTATE];
- };
+ 		/*
+-		 * If ret is 0, either ____call_usermodehelper failed and the
+-		 * real error code is already in sub_info->retval or
++		 * If ret is 0, either call_usermodehelper_exec_async failed and
++		 * the real error code is already in sub_info->retval or
+ 		 * sub_info->retval is 0 anyway, so don't mess with it then.
+ 		 */
+ 		if (ret)
+@@ -305,17 +309,17 @@ static int wait_for_helper(void *data)
+ }
+ 
+ /* This is run by khelper thread  */
+-static void __call_usermodehelper(struct work_struct *work)
++static void call_usermodehelper_exec_work(struct work_struct *work)
+ {
+ 	struct subprocess_info *sub_info =
+ 		container_of(work, struct subprocess_info, work);
+ 	pid_t pid;
+ 
+ 	if (sub_info->wait & UMH_WAIT_PROC)
+-		pid = kernel_thread(wait_for_helper, sub_info,
++		pid = kernel_thread(call_usermodehelper_exec_sync, sub_info,
+ 				    CLONE_FS | CLONE_FILES | SIGCHLD);
+ 	else
+-		pid = kernel_thread(____call_usermodehelper, sub_info,
++		pid = kernel_thread(call_usermodehelper_exec_async, sub_info,
+ 				    SIGCHLD);
+ 
+ 	if (pid < 0) {
+@@ -510,7 +514,7 @@ struct subprocess_info *call_usermodehel
+ 	if (!sub_info)
+ 		goto out;
+ 
+-	INIT_WORK(&sub_info->work, __call_usermodehelper);
++	INIT_WORK(&sub_info->work, call_usermodehelper_exec_work);
+ 	sub_info->path = path;
+ 	sub_info->argv = argv;
+ 	sub_info->envp = envp;
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from fweisbec@gmail.com are
 
-mm-hwpoison-fix-page-refcount-of-unkown-non-lru-page.patch
-mm-hwpoison-fix-fail-isolate-hugetlbfs-page-w-refcount-held.patch
-mm-hwpoison-fix-panic-due-to-split-huge-zero-page.patch
-mm-hwpoison-fix-panic-due-to-split-huge-zero-page-fix.patch
-hugetlb-make-the-function-vma_shareable-bool.patch
-pagemap-check-permissions-and-capabilities-at-open-time.patch
-pagemap-switch-to-the-new-format-and-do-some-cleanup.patch
-pagemap-rework-hugetlb-and-thp-report.patch
-pagemap-hide-physical-addresses-from-non-privileged-users.patch
-pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here.patch
-pagemap-update-documentation.patch
-pagemap-update-documentation-fix.patch
-mm-page_isolation-remove-bogus-tests-for-isolated-pages.patch
-mm-rename-and-move-get-set_freepage_migratetype.patch
-mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add.patch
-mm-hugetlb-add-region_del-to-delete-a-specific-range-of-entries.patch
-mm-hugetlb-expose-hugetlb-fault-mutex-for-use-by-fallocate.patch
-hugetlbfs-hugetlb_vmtruncate_list-needs-to-take-a-range-to-delete.patch
-hugetlbfs-truncate_hugepages-takes-a-range-of-pages.patch
-mm-hugetlb-vma_has_reserves-needs-to-handle-fallocate-hole-punch.patch
-mm-hugetlb-alloc_huge_page-handle-areas-hole-punched-by-fallocate.patch
-hugetlbfs-new-huge_add_to_page_cache-helper-routine.patch
-hugetlbfs-add-hugetlbfs_fallocate.patch
-hugetlbfs-add-hugetlbfs_fallocate-fix.patch
-mm-madvise-allow-remove-operation-for-hugetlbfs.patch
-mempolicy-get-rid-of-duplicated-check-for-vmavm_pfnmap-in-queue_pages_range.patch
-mm-page_isolation-make-set-unset_migratetype_isolate-file-local.patch
-mm-compaction-more-robust-check-for-scanners-meeting.patch
-mm-compaction-simplify-handling-restart-position-in-free-pages-scanner.patch
-mm-compaction-encapsulate-resetting-cached-scanner-positions.patch
-mm-compaction-always-skip-compound-pages-by-order-in-migrate-scanner.patch
-mm-compaction-skip-compound-pages-by-order-in-free-scanner.patch
-reverted-selftests-add-hugetlbfstest.patch
-selftests-vm-point-to-libhugetlbfs-for-regression-testing.patch
-documentation-update-libhugetlbfs-location-and-use-for-testing.patch
-mm-hwpoison-fix-fail-to-split-thp-w-refcount-held.patch
-mm-hwpoison-fix-pagehwpoison-test-set-race.patch
-mm-hwpoison-introduce-put_hwpoison_page-to-put-refcount-for-memory-error-handling.patch
-mm-hwpoison-fix-refcount-of-thp-head-page-in-no-injection-case.patch
-mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page.patch
-mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page-fix.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-2.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-fix-3.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
+smpboot-fix-memory-leak-on-error-handling.patch
+smpboot-make-cleanup-to-mirror-setup.patch
+smpboot-allow-to-pass-the-cpumask-on-per-cpu-thread-registration.patch
+smpboot-allow-to-pass-the-cpumask-on-per-cpu-thread-registration-fix.patch
+watchdog-simplify-housekeeping-affinity-with-the-appropriate-mask.patch
+watchdog-introduce-watchdog_park_threads-and-watchdog_unpark_threads.patch
+watchdog-introduce-watchdog_suspend-and-watchdog_resume.patch
+watchdog-use-park-unpark-functions-in-update_watchdog_all_cpus.patch
+watchdog-use-suspend-resume-interface-in-fixup_ht_bug.patch
+watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix-2.patch
+watchdog-rename-watchdog_suspend-and-watchdog_resume.patch
+kmod-bunch-of-internal-functions-renames.patch
+kmod-remove-unecessary-explicit-wide-cpu-affinity-setting.patch
+kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels.patch
+kmod-use-system_unbound_wq-instead-of-khelper.patch
+kmod-handle-umh_wait_proc-from-system-unbound-workqueue.patch
+linux-next.patch
 
