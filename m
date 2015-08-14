@@ -1,60 +1,56 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix.patch removed from -mm tree
-Date: Fri, 14 Aug 2015 15:31:23 -0700
-Message-ID: <55ce6c3b.dN4Zmc2a3AUGc9tV%akpm@linux-foundation.org>
+ mm-hwpoison-fix-panic-due-to-split-huge-zero-page-fix.patch removed from
+ -mm tree
+Date: Fri, 14 Aug 2015 15:31:50 -0700
+Message-ID: <55ce6c56.t+1gwWI4BNLD7rKB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57246 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57247 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750735AbbHNWbY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Aug 2015 18:31:24 -0400
+	with ESMTP id S1750735AbbHNWbu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Aug 2015 18:31:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, herton@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, n-horiguchi@ah.jp.nec.com, wanpeng.li@hotmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix
+     Subject: mm-hwpoison-fix-panic-due-to-split-huge-zero-page-fix
 has been removed from the -mm tree.  Its filename was
-     ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix.patch
+     mm-hwpoison-fix-panic-due-to-split-huge-zero-page-fix.patch
 
-This patch was dropped because it was folded into ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits.patch
+This patch was dropped because it was folded into mm-hwpoison-fix-panic-due-to-split-huge-zero-page.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix
+Subject: mm-hwpoison-fix-panic-due-to-split-huge-zero-page-fix
 
-use normal comment layout
+remove second split, per Wanpeng
 
-Cc: "Herton R. Krzesinski" <herton@redhat.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Wanpeng Li <wanpeng.li@hotmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN ipc/sem.c~ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix ipc/sem.c
---- a/ipc/sem.c~ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits-fix
-+++ a/ipc/sem.c
-@@ -2075,10 +2075,12 @@ void exit_sem(struct task_struct *tsk)
- 		un = list_entry_rcu(ulp->list_proc.next,
- 				    struct sem_undo, list_proc);
- 		if (&un->list_proc == &ulp->list_proc) {
--			/* we must wait for freeary() before freeing this ulp,
-+			/*
-+			 * We must wait for freeary() before freeing this ulp,
- 			 * in case we raced with last sem_undo. There is a small
- 			 * possibility where we exit while freeary() didn't
--			 * finish unlocking sem_undo_list */
-+			 * finish unlocking sem_undo_list.
-+			 */
- 			spin_unlock_wait(&ulp->lock);
- 			rcu_read_unlock();
- 			break;
+diff -puN mm/memory-failure.c~mm-hwpoison-fix-panic-due-to-split-huge-zero-page-fix mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-fix-panic-due-to-split-huge-zero-page-fix
++++ a/mm/memory-failure.c
+@@ -1149,7 +1149,7 @@ int memory_failure(unsigned long pfn, in
+ 		if (!PageAnon(hpage) || unlikely(split_huge_page(hpage))) {
+ 			if (!PageAnon(hpage))
+ 				pr_err("MCE: %#lx: non anonymous thp\n", pfn);
+-			else if (unlikely(split_huge_page(hpage)))
++			else
+ 				pr_err("MCE: %#lx: thp split failed\n", pfn);
+ 			if (TestClearPageHWPoison(p))
+ 				atomic_long_sub(nr_pages, &num_poisoned_pages);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -64,7 +60,7 @@ drivers-gpu-drm-i915-intel_spritec-fix-build.patch
 drivers-gpu-drm-i915-intel_tvc-fix-build.patch
 net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
 ipcsem-fix-use-after-free-on-ipc_rmid-after-a-task-using-same-semaphore-set-exits.patch
-mm-hwpoison-fix-panic-due-to-split-huge-zero-page-fix.patch
+mm-hwpoison-fix-panic-due-to-split-huge-zero-page.patch
 mm-make-page-pfmemalloc-check-more-robust-fix.patch
 kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
 scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
