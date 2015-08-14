@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kmod-bunch-of-internal-functions-renames.patch added to -mm
- tree
-Date: Fri, 14 Aug 2015 13:49:40 -0700
-Message-ID: <55ce5464.1sQagC7Mr4m3ysKO%akpm@linux-foundation.org>
+Subject: + kmod-handle-umh_wait_proc-from-system-unbound-workqueue.patch
+ added to -mm tree
+Date: Fri, 14 Aug 2015 13:49:48 -0700
+Message-ID: <55ce546c.e60ZU40y+sJMLQr3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54075 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54097 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751601AbbHNUtl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Aug 2015 16:49:41 -0400
+	with ESMTP id S1751601AbbHNUtt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Aug 2015 16:49:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: fweisbec@gmail.com, cl@linux.com, oleg@redhat.com, riel@redhat.com, rusty@rustcorp.com.au, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmod: bunch of internal functions renames
+     Subject: kmod: handle UMH_WAIT_PROC from system unbound workqueue
 has been added to the -mm tree.  Its filename is
-     kmod-bunch-of-internal-functions-renames.patch
+     kmod-handle-umh_wait_proc-from-system-unbound-workqueue.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmod-bunch-of-internal-functions-renames.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kmod-handle-umh_wait_proc-from-system-unbound-workqueue.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmod-bunch-of-internal-functions-renames.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kmod-handle-umh_wait_proc-from-system-unbound-workqueue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,40 +40,23 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Frederic Weisbecker <fweisbec@gmail.com>
-Subject: kmod: bunch of internal functions renames
+Subject: kmod: handle UMH_WAIT_PROC from system unbound workqueue
 
-This patchset does a bunch of cleanups and converts khelper to use system
-unbound workqueues.  The 3 first patches should be uncontroversial.  The
-last 2 patches are debatable.
+The UMH_WAIT_PROC handler runs in its own thread in order to make sure
+that waiting for the exec kernel thread completion won't block other
+usermodehelper queued jobs.
 
-Kmod creates kernel threads that perform userspace jobs and we want those
-to have a large affinity in order not to contend busy CPUs.  This is
-(partly) why we use khelper which has a wide affinity that the kernel
-threads it create can inherit from.  Now khelper is a dedicated workqueue
-that has singlethread properties which we aren't interested in.
+On older workqueue implementations, worklets couldn't sleep without
+blocking the rest of the queue.  But now the workqueue subsystem handles
+that.  Khelper still had the older limitation due to its singlethread
+properties but we replaced it to system unbound workqueues.
 
-Hence those two debatable changes:
+Those are affine to the current node and can block up to some number of
+instances.
 
-_ We would like to use generic workqueues. System unbound workqueues are
-  a very good candidate but they are not wide affine, only node affine.
-  Now probably a node is enough to perform many parallel kmod jobs.
-
-_ We would like to remove the wait_for_helper kernel thread (UMH_WAIT_PROC
-  handler) to use the workqueue. It means that if the workqueue blocks,
-  and no other worker can take pending kmod request, we can be screwed.
-  Now if we have 512 threads, this should be enough.
-
-
-This patch (of 5):
-
-Underscores on function names aren't much verbose to explain the purpose
-of a function.  And kmod has interesting such flavours.
-
-Lets rename the following functions:
-
-* __call_usermodehelper -> call_usermodehelper_exec_work
-* ____call_usermodehelper -> call_usermodehelper_exec_async
-* wait_for_helper -> call_usermodehelper_exec_sync
+They are a good candidate to handle UMH_WAIT_PROC assuming that we have
+enough system unbound workers to handle lots of parallel usermodehelper
+jobs.
 
 Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
 Cc: Rik van Riel <riel@redhat.com>
@@ -84,104 +67,97 @@ Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ kernel/kmod.c |   44 ++++++++++++++++++++------------------------
+ 1 file changed, 20 insertions(+), 24 deletions(-)
 
-diff -puN kernel/kmod.c~kmod-bunch-of-internal-functions-renames kernel/kmod.c
---- a/kernel/kmod.c~kmod-bunch-of-internal-functions-renames
+diff -puN kernel/kmod.c~kmod-handle-umh_wait_proc-from-system-unbound-workqueue kernel/kmod.c
+--- a/kernel/kmod.c~kmod-handle-umh_wait_proc-from-system-unbound-workqueue
 +++ a/kernel/kmod.c
-@@ -214,7 +214,7 @@ static void umh_complete(struct subproce
- /*
-  * This is the task which runs the usermode application
-  */
--static int ____call_usermodehelper(void *data)
-+static int call_usermodehelper_exec_async(void *data)
- {
- 	struct subprocess_info *sub_info = data;
- 	struct cred *new;
-@@ -259,7 +259,10 @@ static int ____call_usermodehelper(void
- 			   (const char __user *const __user *)sub_info->envp);
- out:
- 	sub_info->retval = retval;
--	/* wait_for_helper() will call umh_complete if UHM_WAIT_PROC. */
-+	/*
-+	 * call_usermodehelper_exec_sync() will call umh_complete
-+	 * if UHM_WAIT_PROC.
-+	 */
- 	if (!(sub_info->wait & UMH_WAIT_PROC))
- 		umh_complete(sub_info);
- 	if (!retval)
-@@ -268,14 +271,14 @@ out:
+@@ -265,15 +265,9 @@ out:
+ 	do_exit(0);
  }
  
- /* Keventd can't block, but this (a child) can. */
--static int wait_for_helper(void *data)
-+static int call_usermodehelper_exec_sync(void *data)
+-/*
+- * Handles UMH_WAIT_PROC. Our parent (unbound workqueue) might not be able to
+- * run enough instances to handle usermodehelper completions without blocking
+- * some other pending requests. That's why we use a kernel thread dedicated for
+- * that purpose.
+- */
+-static int call_usermodehelper_exec_sync(void *data)
++/* Handles UMH_WAIT_PROC.  */
++static void call_usermodehelper_exec_sync(struct subprocess_info *sub_info)
  {
- 	struct subprocess_info *sub_info = data;
+-	struct subprocess_info *sub_info = data;
  	pid_t pid;
  
  	/* If SIGCLD is ignored sys_wait4 won't populate the status. */
- 	kernel_sigaction(SIGCHLD, SIG_DFL);
--	pid = kernel_thread(____call_usermodehelper, sub_info, SIGCHLD);
-+	pid = kernel_thread(call_usermodehelper_exec_async, sub_info, SIGCHLD);
- 	if (pid < 0) {
- 		sub_info->retval = pid;
- 	} else {
-@@ -283,17 +286,18 @@ static int wait_for_helper(void *data)
- 		/*
+@@ -287,9 +281,9 @@ static int call_usermodehelper_exec_sync
  		 * Normally it is bogus to call wait4() from in-kernel because
  		 * wait4() wants to write the exit code to a userspace address.
--		 * But wait_for_helper() always runs as keventd, and put_user()
--		 * to a kernel address works OK for kernel threads, due to their
--		 * having an mm_segment_t which spans the entire address space.
-+		 * But call_usermodehelper_exec_sync() always runs as keventd,
-+		 * and put_user() to a kernel address works OK for kernel
-+		 * threads, due to their having an mm_segment_t which spans the
-+		 * entire address space.
+ 		 * But call_usermodehelper_exec_sync() always runs as kernel
+-		 * thread and put_user() to a kernel address works OK for kernel
+-		 * threads, due to their having an mm_segment_t which spans the
+-		 * entire address space.
++		 * thread (workqueue) and put_user() to a kernel address works
++		 * OK for kernel threads, due to their having an mm_segment_t
++		 * which spans the entire address space.
  		 *
  		 * Thus the __user pointer cast is valid here.
  		 */
- 		sys_wait4(pid, (int __user *)&ret, 0, NULL);
+@@ -304,19 +298,21 @@ static int call_usermodehelper_exec_sync
+ 			sub_info->retval = ret;
+ 	}
  
- 		/*
--		 * If ret is 0, either ____call_usermodehelper failed and the
--		 * real error code is already in sub_info->retval or
-+		 * If ret is 0, either call_usermodehelper_exec_async failed and
-+		 * the real error code is already in sub_info->retval or
- 		 * sub_info->retval is 0 anyway, so don't mess with it then.
- 		 */
- 		if (ret)
-@@ -305,17 +309,17 @@ static int wait_for_helper(void *data)
++	/* Restore default kernel sig handler */
++	kernel_sigaction(SIGCHLD, SIG_IGN);
++
+ 	umh_complete(sub_info);
+-	do_exit(0);
  }
  
- /* This is run by khelper thread  */
--static void __call_usermodehelper(struct work_struct *work)
-+static void call_usermodehelper_exec_work(struct work_struct *work)
+ /*
+- * This function doesn't strictly needs to be called asynchronously. But we
+- * need to create the usermodehelper kernel threads from a task that is affine
++ * We need to create the usermodehelper kernel thread from a task that is affine
+  * to an optimized set of CPUs (or nohz housekeeping ones) such that they
+  * inherit a widest affinity irrespective of call_usermodehelper() callers with
+  * possibly reduced affinity (eg: per-cpu workqueues). We don't want
+  * usermodehelper targets to contend a busy CPU.
+  *
+- * Unbound workqueues provide such wide affinity.
++ * Unbound workqueues provide such wide affinity and allow to block on
++ * UMH_WAIT_PROC requests without blocking pending request (up to some limit).
+  *
+  * Besides, workqueues provide the privilege level that caller might not have
+  * to perform the usermodehelper request.
+@@ -326,18 +322,18 @@ static void call_usermodehelper_exec_wor
  {
  	struct subprocess_info *sub_info =
  		container_of(work, struct subprocess_info, work);
- 	pid_t pid;
+-	pid_t pid;
  
- 	if (sub_info->wait & UMH_WAIT_PROC)
--		pid = kernel_thread(wait_for_helper, sub_info,
-+		pid = kernel_thread(call_usermodehelper_exec_sync, sub_info,
- 				    CLONE_FS | CLONE_FILES | SIGCHLD);
- 	else
--		pid = kernel_thread(____call_usermodehelper, sub_info,
-+		pid = kernel_thread(call_usermodehelper_exec_async, sub_info,
+-	if (sub_info->wait & UMH_WAIT_PROC)
+-		pid = kernel_thread(call_usermodehelper_exec_sync, sub_info,
+-				    CLONE_FS | CLONE_FILES | SIGCHLD);
+-	else
++	if (sub_info->wait & UMH_WAIT_PROC) {
++		call_usermodehelper_exec_sync(sub_info);
++	} else {
++		pid_t pid;
++
+ 		pid = kernel_thread(call_usermodehelper_exec_async, sub_info,
  				    SIGCHLD);
+-
+-	if (pid < 0) {
+-		sub_info->retval = pid;
+-		umh_complete(sub_info);
++		if (pid < 0) {
++			sub_info->retval = pid;
++			umh_complete(sub_info);
++		}
+ 	}
+ }
  
- 	if (pid < 0) {
-@@ -510,7 +514,7 @@ struct subprocess_info *call_usermodehel
- 	if (!sub_info)
- 		goto out;
- 
--	INIT_WORK(&sub_info->work, __call_usermodehelper);
-+	INIT_WORK(&sub_info->work, call_usermodehelper_exec_work);
- 	sub_info->path = path;
- 	sub_info->argv = argv;
- 	sub_info->envp = envp;
 _
 
 Patches currently in -mm which might be from fweisbec@gmail.com are
