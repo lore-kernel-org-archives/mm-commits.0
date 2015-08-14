@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-split-kexec_file-syscall-code-to-kexec_filec-fix.patch
+Subject: + kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2.patch
  added to -mm tree
-Date: Fri, 14 Aug 2015 13:21:58 -0700
-Message-ID: <55ce4de6.dJ7a/RwSBF7nrElq%akpm@linux-foundation.org>
+Date: Fri, 14 Aug 2015 13:25:24 -0700
+Message-ID: <55ce4eb4.T1NmXNPkP2qdaE/L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53882 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53891 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751202AbbHNUV7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Aug 2015 16:21:59 -0400
+	with ESMTP id S1751004AbbHNUZZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 14 Aug 2015 16:25:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dyoung@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dyoung@redhat.com, jwboyer@fedoraproject.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec-split-kexec_file-syscall-code-to-kexec_filec-fix
+     Subject: kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-fix
 has been added to the -mm tree.  Its filename is
-     kexec-split-kexec_file-syscall-code-to-kexec_filec-fix.patch
+     kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-split-kexec_file-syscall-code-to-kexec_filec-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-split-kexec_file-syscall-code-to-kexec_filec-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,38 +40,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kexec-split-kexec_file-syscall-code-to-kexec_filec-fix
+Subject: kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-fix
 
-fix bisectability
+kernel/kexec_file.c:126:1: sparse: symbol 'arch_kexec_apply_relocations' was not declared. Should it be static?
 
-kernel/kexec.c: In function 'crash_save_vmcoreinfo_init':
-kernel/kexec.c:1593: error: 'vmap_area_list' undeclared (first use in this function)
-kernel/kexec.c:1593: error: (Each undeclared identifier is reported only once
-kernel/kexec.c:1593: error: for each function it appears in.)
-kernel/kexec.c:1631: error: invalid use of undefined type 'struct vmap_area'
-kernel/kexec.c:1632: error: invalid use of undefined type 'struct vmap_area'
+the various arch_kexec functions don't appear to be declared anywhere. 
+Confused.
 
 Cc: Dave Young <dyoung@redhat.com>
+Cc: Josh Boyer <jwboyer@fedoraproject.org>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/kexec.h |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN kernel/Makefile~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix kernel/Makefile
-diff -puN kernel/kexec.c~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix kernel/kexec.c
---- a/kernel/kexec.c~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix
-+++ a/kernel/kexec.c
-@@ -28,6 +28,7 @@
- #include <linux/suspend.h>
- #include <linux/device.h>
- #include <linux/freezer.h>
-+#include <linux/vmalloc.h>
- #include <linux/pm.h>
- #include <linux/cpu.h>
- #include <linux/console.h>
-diff -puN kernel/kexec_file.c~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix kernel/kexec_file.c
-diff -puN kernel/kexec_internal.h~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix kernel/kexec_internal.h
+diff -puN include/linux/kexec.h~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2 include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2
++++ a/include/linux/kexec.h
+@@ -318,6 +318,17 @@ int crash_shrink_memory(unsigned long ne
+ size_t crash_get_memory_size(void);
+ void crash_free_reserved_phys_range(unsigned long begin, unsigned long end);
+ 
++int __weak arch_kexec_kernel_image_probe(struct kimage *image, void *buf,
++					 unsigned long buf_len);
++void * __weak arch_kexec_kernel_image_load(struct kimage *image);
++void __weak arch_kimage_file_post_load_cleanup(struct kimage *image);
++int __weak arch_kexec_kernel_verify_sig(struct kimage *image, void *buf,
++					unsigned long buf_len);
++int __weak arch_kexec_apply_relocations_add(const Elf_Ehdr *ehdr,
++					Elf_Shdr *sechdrs, unsigned int relsec);
++int __weak arch_kexec_apply_relocations(const Elf_Ehdr *ehdr, Elf_Shdr *sechdrs,
++					unsigned int relsec);
++
+ #else /* !CONFIG_KEXEC */
+ struct pt_regs;
+ struct task_struct;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -120,6 +125,7 @@ procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
 procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
 fs-coda-fix-readlink-buffer-overflow-checkpatch-fixes.patch
 kexec-split-kexec_file-syscall-code-to-kexec_filec-fix.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2.patch
 kexec-split-kexec_load-syscall-from-kexec-core-code-checkpatch-fixes.patch
 align-crash_notes-allocation-to-make-it-be-inside-one-physical-page-fix.patch
 linux-next.patch
@@ -134,5 +140,4 @@ do_shared_fault-check-that-mmap_sem-is-held.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 mutex-subsystem-synchro-test-module.patch
 slab-leaks3-default-y.patch
-kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2.patch
 
