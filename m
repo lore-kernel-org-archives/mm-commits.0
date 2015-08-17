@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + x86-numa-kill-useless-code-to-improve-code-readability.patch
- added to -mm tree
-Date: Mon, 17 Aug 2015 14:36:11 -0700
-Message-ID: <55d253cb.S3SuK8S3KocJxxf4%akpm@linux-foundation.org>
+Subject: +
+ openvswitch-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch added to -mm tree
+Date: Mon, 17 Aug 2015 14:36:03 -0700
+Message-ID: <55d253c3.j0NvPWvCIKZLmGBA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47374 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47345 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751785AbbHQVgM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Aug 2015 17:36:12 -0400
+	with ESMTP id S1752089AbbHQVgE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Aug 2015 17:36:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jiang.liu@linux.intel.com, hpa@zytor.com, mgorman@suse.de, mingo@elte.hu, peterz@infradead.org, rafael.j.wysocki@intel.com, rientjes@google.com, tangchen@cn.fujitsu.com, tglx@linutronix.de, tj@kernel.org, tony.luck@intel.com, umgwanakikbuti@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86, numa: kill useless code to improve code readability
+     Subject: openvswitch: replace cpu_to_node() with cpu_to_mem() to support memoryless node
 has been added to the -mm tree.  Its filename is
-     x86-numa-kill-useless-code-to-improve-code-readability.patch
+     openvswitch-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-numa-kill-useless-code-to-improve-code-readability.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/openvswitch-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-numa-kill-useless-code-to-improve-code-readability.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/openvswitch-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,39 +40,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: x86, numa: kill useless code to improve code readability
+Subject: openvswitch: replace cpu_to_node() with cpu_to_mem() to support memoryless node
 
-According to x86 boot sequence, early_cpu_to_node() always returns
-NUMA_NO_NODE when called from numa_init().  So kill useless code to
-improve code readability.
+ovs_flow_stats_update() allocates memory with __GFP_THISNODE flag set,
+which may cause permanent memory allocation failure on memoryless node. 
+So replace cpu_to_node() with cpu_to_mem() to better support memoryless
+node.  For node with memory, cpu_to_mem() is the same as cpu_to_node().
 
-Related code sequence as below:
-x86_cpu_to_node_map is set until step 2, so it is still the default
-value (NUMA_NO_NODE) when accessed at step 1.
-
-start_kernel()
-	setup_arch()
-		initmem_init()
-			x86_numa_init()
-				numa_init()
-					early_cpu_to_node()
-1)						return early_per_cpu_ptr(x86_cpu_to_node_map)[cpu];
-		acpi_boot_init();
-		sfi_init()
-		x86_dtb_init()
-			generic_processor_info()
-				early_per_cpu(x86_cpu_to_apicid, cpu) = apicid;
-		init_cpu_to_node()
-			numa_set_node(cpu, node);
-2)				per_cpu(x86_cpu_to_node_map, cpu) = node;
-
-	rest_init()
-		kernel_init()
-			smp_init()
-				native_cpu_up()
-					start_secondary()
-						numa_set_node()
-							per_cpu(x86_cpu_to_node_map, cpu) = node;
+This change only affects performance and shouldn't affect functionality.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -89,24 +64,33 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/numa.c |   10 ----------
- 1 file changed, 10 deletions(-)
+ net/openvswitch/flow.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/mm/numa.c~x86-numa-kill-useless-code-to-improve-code-readability arch/x86/mm/numa.c
---- a/arch/x86/mm/numa.c~x86-numa-kill-useless-code-to-improve-code-readability
-+++ a/arch/x86/mm/numa.c
-@@ -593,8 +593,6 @@ static void __init numa_init_array(void)
+diff -puN net/openvswitch/flow.c~openvswitch-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node net/openvswitch/flow.c
+--- a/net/openvswitch/flow.c~openvswitch-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node
++++ a/net/openvswitch/flow.c
+@@ -69,7 +69,7 @@ void ovs_flow_stats_update(struct sw_flo
+ 			   const struct sk_buff *skb)
+ {
+ 	struct flow_stats *stats;
+-	int node = numa_node_id();
++	int node = numa_mem_id();
+ 	int len = skb->len + (skb_vlan_tag_present(skb) ? VLAN_HLEN : 0);
  
- 	rr = first_node(node_online_map);
- 	for (i = 0; i < nr_cpu_ids; i++) {
--		if (early_cpu_to_node(i) != NUMA_NO_NODE)
--			continue;
- 		numa_set_node(i, rr);
- 		rr = next_node(rr, node_online_map);
- 		if (rr == MAX_NUMNODES)
-@@ -646,14 +644,6 @@ static int __init numa_init(int (*init_f
- 	if (ret < 0)
- 		return ret;
- 
--	for (i = 0; i < nr_cpu_ids; i++) {
--		int nid = early_cpu_to_node(i);
+ 	stats = rcu_dereference(flow->stats[node]);
+_
+
+Patches currently in -mm which might be from jiang.liu@linux.intel.com are
+
+linux-next.patch
+x86-numa-acpi-online-node-earlier-when-doing-cpu-hot-addition.patch
+kernel-profilec-replace-cpu_to_mem-with-cpu_to_node.patch
+sgi-xp-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch
+openvswitch-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch
+i40e-use-numa_mem_id-to-better-support-memoryless-node.patch
+i40evf-use-numa_mem_id-to-better-support-memoryless-node.patch
+x86-numa-kill-useless-code-to-improve-code-readability.patch
+mm-update-_mem_id_-for-every-possible-cpu-when-memory-configuration-changes.patch
+mm-x86-enable-memoryless-node-support-to-better-support-cpu-memory-hotplug.patch
+
