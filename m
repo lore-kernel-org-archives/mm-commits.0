@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-update-_mem_id_-for-every-possible-cpu-when-memory-configuration-changes.patch added to -mm tree
-Date: Mon, 17 Aug 2015 14:36:14 -0700
-Message-ID: <55d253ce.rz+NMiskAbVzIL6h%akpm@linux-foundation.org>
+ mm-memblock-rename-local-variable-of-memblock_type-to-type.patch added to
+ -mm tree
+Date: Mon, 17 Aug 2015 14:50:14 -0700
+Message-ID: <55d25716.noKpHLjkRlGiZB4E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47384 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48166 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751170AbbHQVgP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Aug 2015 17:36:15 -0400
+	with ESMTP id S1750759AbbHQVuP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Aug 2015 17:50:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jiang.liu@linux.intel.com, hpa@zytor.com, mgorman@suse.de, mingo@elte.hu, peterz@infradead.org, rafael.j.wysocki@intel.com, rientjes@google.com, tangchen@cn.fujitsu.com, tglx@linutronix.de, tj@kernel.org, tony.luck@intel.com, umgwanakikbuti@gmail.com, mm-commits@vger.kernel.org
+To: kuleshovmail@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: update _mem_id_[] for every possible CPU when memory configuration changes
+     Subject: mm/memblock.c: rename local variable of memblock_type to 'type'
 has been added to the -mm tree.  Its filename is
-     mm-update-_mem_id_-for-every-possible-cpu-when-memory-configuration-changes.patch
+     mm-memblock-rename-local-variable-of-memblock_type-to-type.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-update-_mem_id_-for-every-possible-cpu-when-memory-configuration-changes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-rename-local-variable-of-memblock_type-to-type.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-update-_mem_id_-for-every-possible-cpu-when-memory-configuration-changes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-rename-local-variable-of-memblock_type-to-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,73 +40,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: mm: update _mem_id_[] for every possible CPU when memory configuration changes
+From: Alexander Kuleshov <kuleshovmail@gmail.com>
+Subject: mm/memblock.c: rename local variable of memblock_type to 'type'
 
-Current kernel only updates _mem_id_[cpu] for onlined CPUs when memory
-configuration changes.  So kernel may allocate memory from remote node for
-a CPU if the CPU is still in absent or offline state even if the node
-associated with the CPU has already been onlined.  This patch tries to
-improve performance by updating _mem_id_[cpu] for each possible CPU when
-memory configuration changes, thus kernel could always allocate from local
-node once the node is onlined.
+Since e3239ff92a1 (memblock: Rename memblock_region to memblock_type and
+memblock_property to memblock_region), all local variables of the
+membock_type type were renamed to 'type'.  This commit renames all
+remaining local variables with the memblock_type type to the same view.
 
-We check node_online(cpu_to_node(cpu)) because:
-1) local_memory_node(nid) needs to access NODE_DATA(nid)
-2) try_offline_node(nid) just zeroes out NODE_DATA(nid) instead of free it
-
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mike Galbraith <umgwanakikbuti@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   10 +++++-----
+ mm/memblock.c |   10 +++++-----
  1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-update-_mem_id_-for-every-possible-cpu-when-memory-configuration-changes mm/page_alloc.c
---- a/mm/page_alloc.c~mm-update-_mem_id_-for-every-possible-cpu-when-memory-configuration-changes
-+++ a/mm/page_alloc.c
-@@ -4368,13 +4368,13 @@ static int __build_all_zonelists(void *d
- 		/*
- 		 * We now know the "local memory node" for each node--
- 		 * i.e., the node of the first zone in the generic zonelist.
--		 * Set up numa_mem percpu variable for on-line cpus.  During
--		 * boot, only the boot cpu should be on-line;  we'll init the
--		 * secondary cpus' numa_mem as they come on-line.  During
--		 * node/memory hotplug, we'll fixup all on-line cpus.
-+		 * Set up numa_mem percpu variable for all possible cpus
-+		 * if associated node has been onlined.
- 		 */
--		if (cpu_online(cpu))
-+		if (node_online(cpu_to_node(cpu)))
- 			set_cpu_numa_mem(cpu, local_memory_node(cpu_to_node(cpu)));
-+		else
-+			set_cpu_numa_mem(cpu, NUMA_NO_NODE);
- #endif
- 	}
+diff -puN mm/memblock.c~mm-memblock-rename-local-variable-of-memblock_type-to-type mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-rename-local-variable-of-memblock_type-to-type
++++ a/mm/memblock.c
+@@ -615,14 +615,14 @@ static int __init_memblock memblock_add_
+ 						int nid,
+ 						unsigned long flags)
+ {
+-	struct memblock_type *_rgn = &memblock.memory;
++	struct memblock_type *type = &memblock.memory;
+ 
+ 	memblock_dbg("memblock_add: [%#016llx-%#016llx] flags %#02lx %pF\n",
+ 		     (unsigned long long)base,
+ 		     (unsigned long long)base + size - 1,
+ 		     flags, (void *)_RET_IP_);
+ 
+-	return memblock_add_range(_rgn, base, size, nid, flags);
++	return memblock_add_range(type, base, size, nid, flags);
+ }
+ 
+ int __init_memblock memblock_add(phys_addr_t base, phys_addr_t size)
+@@ -835,10 +835,10 @@ void __init_memblock __next_reserved_mem
+ 					   phys_addr_t *out_start,
+ 					   phys_addr_t *out_end)
+ {
+-	struct memblock_type *rsv = &memblock.reserved;
++	struct memblock_type *type = &memblock.reserved;
+ 
+-	if (*idx >= 0 && *idx < rsv->cnt) {
+-		struct memblock_region *r = &rsv->regions[*idx];
++	if (*idx >= 0 && *idx < type->cnt) {
++		struct memblock_region *r = &type->regions[*idx];
+ 		phys_addr_t base = r->base;
+ 		phys_addr_t size = r->size;
  
 _
 
-Patches currently in -mm which might be from jiang.liu@linux.intel.com are
+Patches currently in -mm which might be from kuleshovmail@gmail.com are
 
+sh-use-pfn_down-macro.patch
+memblock-make-memblock_overlaps_region-return-bool.patch
+mem-hotplug-handle-node-hole-when-initializing-numa_meminfo.patch
+mm-memblock-rename-local-variable-of-memblock_type-to-type.patch
 linux-next.patch
-x86-numa-acpi-online-node-earlier-when-doing-cpu-hot-addition.patch
-kernel-profilec-replace-cpu_to_mem-with-cpu_to_node.patch
-sgi-xp-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch
-openvswitch-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch
-i40e-use-numa_mem_id-to-better-support-memoryless-node.patch
-i40evf-use-numa_mem_id-to-better-support-memoryless-node.patch
-x86-numa-kill-useless-code-to-improve-code-readability.patch
-mm-update-_mem_id_-for-every-possible-cpu-when-memory-configuration-changes.patch
-mm-x86-enable-memoryless-node-support-to-better-support-cpu-memory-hotplug.patch
 
