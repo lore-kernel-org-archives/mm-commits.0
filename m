@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-profilec-replace-cpu_to_mem-with-cpu_to_node.patch added to -mm tree
-Date: Mon, 17 Aug 2015 14:35:58 -0700
-Message-ID: <55d253be.s3DdF4FmTiWvA9On%akpm@linux-foundation.org>
+Subject: + i40e-use-numa_mem_id-to-better-support-memoryless-node.patch
+ added to -mm tree
+Date: Mon, 17 Aug 2015 14:36:05 -0700
+Message-ID: <55d253c5.atWCyAXY0zlmpRVu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47321 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47356 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752063AbbHQVf7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Aug 2015 17:35:59 -0400
+	with ESMTP id S1752063AbbHQVgG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Aug 2015 17:36:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jiang.liu@linux.intel.com, hpa@zytor.com, mgorman@suse.de, mingo@elte.hu, peterz@infradead.org, rafael.j.wysocki@intel.com, rientjes@google.com, tangchen@cn.fujitsu.com, tglx@linutronix.de, tj@kernel.org, tony.luck@intel.com, umgwanakikbuti@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/profile.c: replace cpu_to_mem() with cpu_to_node()
+     Subject: i40e: use numa_mem_id() to better support memoryless node
 has been added to the -mm tree.  Its filename is
-     kernel-profilec-replace-cpu_to_mem-with-cpu_to_node.patch
+     i40e-use-numa_mem_id-to-better-support-memoryless-node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-profilec-replace-cpu_to_mem-with-cpu_to_node.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/i40e-use-numa_mem_id-to-better-support-memoryless-node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-profilec-replace-cpu_to_mem-with-cpu_to_node.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/i40e-use-numa_mem_id-to-better-support-memoryless-node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,15 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: kernel/profile.c: replace cpu_to_mem() with cpu_to_node()
+Subject: i40e: use numa_mem_id() to better support memoryless node
 
-Function profile_cpu_callback() allocates memory without specifying
-__GFP_THISNODE flag, so replace cpu_to_mem() with cpu_to_node() because
-cpu_to_mem() may cause suboptimal memory allocation if there's no free
-memory on the node returned by cpu_to_mem().
+i40e_clean_rx_irq() tries to reuse memory pages allocated from the nearest
+node.  To better support memoryless node, use numa_mem_id() instead of
+numa_node_id() to get the nearest node with memory.
 
-It's safe to use cpu_to_mem() because build_all_zonelists() also builds
-suitable fallback zonelist for memoryless node.
+This change should only affect performance.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -64,21 +63,21 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/profile.c |    2 +-
+ drivers/net/ethernet/intel/i40e/i40e_txrx.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/profile.c~kernel-profilec-replace-cpu_to_mem-with-cpu_to_node kernel/profile.c
---- a/kernel/profile.c~kernel-profilec-replace-cpu_to_mem-with-cpu_to_node
-+++ a/kernel/profile.c
-@@ -336,7 +336,7 @@ static int profile_cpu_callback(struct n
- 	switch (action) {
- 	case CPU_UP_PREPARE:
- 	case CPU_UP_PREPARE_FROZEN:
--		node = cpu_to_mem(cpu);
-+		node = cpu_to_node(cpu);
- 		per_cpu(cpu_profile_flip, cpu) = 0;
- 		if (!per_cpu(cpu_profile_hits, cpu)[1]) {
- 			page = alloc_pages_exact_node(node,
+diff -puN drivers/net/ethernet/intel/i40e/i40e_txrx.c~i40e-use-numa_mem_id-to-better-support-memoryless-node drivers/net/ethernet/intel/i40e/i40e_txrx.c
+--- a/drivers/net/ethernet/intel/i40e/i40e_txrx.c~i40e-use-numa_mem_id-to-better-support-memoryless-node
++++ a/drivers/net/ethernet/intel/i40e/i40e_txrx.c
+@@ -1518,7 +1518,7 @@ static int i40e_clean_rx_irq_ps(struct i
+ 	unsigned int total_rx_bytes = 0, total_rx_packets = 0;
+ 	u16 rx_packet_len, rx_header_len, rx_sph, rx_hbo;
+ 	u16 cleaned_count = I40E_DESC_UNUSED(rx_ring);
+-	const int current_node = numa_node_id();
++	const int current_node = numa_mem_id();
+ 	struct i40e_vsi *vsi = rx_ring->vsi;
+ 	u16 i = rx_ring->next_to_clean;
+ 	union i40e_rx_desc *rx_desc;
 _
 
 Patches currently in -mm which might be from jiang.liu@linux.intel.com are
