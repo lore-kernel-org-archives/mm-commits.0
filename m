@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-consolidate-dma_supported.patch added to -mm tree
-Date: Mon, 17 Aug 2015 14:25:39 -0700
-Message-ID: <55d25153.uPR/kRjMuUD4ts75%akpm@linux-foundation.org>
+Subject: +
+ sgi-xp-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch added to -mm tree
+Date: Mon, 17 Aug 2015 14:36:01 -0700
+Message-ID: <55d253c1.v0jtWIjA0UCXTr30%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46948 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47333 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751769AbbHQVZl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Aug 2015 17:25:41 -0400
+	with ESMTP id S1752063AbbHQVgC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Aug 2015 17:36:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, arnd@arndb.de, benh@kernel.crashing.org, catalin.marinas@arm.com, cmetcalf@ezchip.com, gxt@mprc.pku.edu.cn, hpa@zytor.com, jonas@southpole.se, linux@arm.linux.org.uk, mingo@elte.hu, monstr@monstr.eu, ralf@linux-mips.org, tglx@linutronix.de, will.deacon@arm.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: jiang.liu@linux.intel.com, hpa@zytor.com, mgorman@suse.de, mingo@elte.hu, peterz@infradead.org, rafael.j.wysocki@intel.com, rientjes@google.com, tangchen@cn.fujitsu.com, tglx@linutronix.de, tj@kernel.org, tony.luck@intel.com, umgwanakikbuti@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-mapping: consolidate dma_supported
+     Subject: sgi-xp: replace cpu_to_node() with cpu_to_mem() to support memoryless node
 has been added to the -mm tree.  Its filename is
-     dma-mapping-consolidate-dma_supported.patch
+     sgi-xp-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dma-mapping-consolidate-dma_supported.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sgi-xp-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dma-mapping-consolidate-dma_supported.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sgi-xp-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,380 +39,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: dma-mapping: consolidate dma_supported
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: sgi-xp: replace cpu_to_node() with cpu_to_mem() to support memoryless node
 
-Most architectures just call into ->dma_supported, but some also return 1
-if the method is not present, or 0 if no dma ops are present (although
-that should never happeb). Consolidate this more broad version into
-common code.
+xpc_create_gru_mq_uv() allocates memory with __GFP_THISNODE flag set,
+which may cause permanent memory allocation failure on memoryless node. 
+So replace cpu_to_node() with cpu_to_mem() to better support memoryless
+node.  For node with memory, cpu_to_mem() is the same as cpu_to_node().
 
-Also fix h8300 which inorrectly always returned 0, which would have been
-a problem if it's dma_set_mask implementation wasn't a similarly buggy
-noop.
-
-As a few architectures have much more elaborate implementations, we
-still allow for arch overrides.
-
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
-Cc: Michal Simek <monstr@monstr.eu>
-Cc: Jonas Bonn <jonas@southpole.se>
-Cc: Chris Metcalf <cmetcalf@ezchip.com>
-Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mike Galbraith <umgwanakikbuti@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/asm/dma-mapping.h      |    5 -----
- arch/arm/include/asm/dma-mapping.h        |    6 +++---
- arch/arm64/include/asm/dma-mapping.h      |    6 ------
- arch/h8300/include/asm/dma-mapping.h      |    5 -----
- arch/hexagon/include/asm/dma-mapping.h    |    1 +
- arch/ia64/include/asm/dma-mapping.h       |    6 ------
- arch/microblaze/include/asm/dma-mapping.h |   13 +------------
- arch/mips/include/asm/dma-mapping.h       |    6 ------
- arch/openrisc/include/asm/dma-mapping.h   |    5 +++--
- arch/powerpc/include/asm/dma-mapping.h    |   11 -----------
- arch/s390/include/asm/dma-mapping.h       |    9 ---------
- arch/sh/include/asm/dma-mapping.h         |   10 ----------
- arch/sparc/include/asm/dma-mapping.h      |    1 +
- arch/tile/include/asm/dma-mapping.h       |    6 ------
- arch/unicore32/include/asm/dma-mapping.h  |   10 ----------
- arch/x86/include/asm/dma-mapping.h        |    4 +++-
- include/asm-generic/dma-mapping-common.h  |   13 +++++++++++++
- 17 files changed, 25 insertions(+), 92 deletions(-)
+ drivers/misc/sgi-xp/xpc_uv.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/alpha/include/asm/dma-mapping.h
---- a/arch/alpha/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
-+++ a/arch/alpha/include/asm/dma-mapping.h
-@@ -12,11 +12,6 @@ static inline struct dma_map_ops *get_dm
+diff -puN drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node drivers/misc/sgi-xp/xpc_uv.c
+--- a/drivers/misc/sgi-xp/xpc_uv.c~sgi-xp-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node
++++ a/drivers/misc/sgi-xp/xpc_uv.c
+@@ -238,7 +238,7 @@ xpc_create_gru_mq_uv(unsigned int mq_siz
  
- #include <asm-generic/dma-mapping-common.h>
+ 	mq->mmr_blade = uv_cpu_to_blade_id(cpu);
  
--static inline int dma_supported(struct device *dev, u64 mask)
--{
--	return get_dma_ops(dev)->dma_supported(dev, mask);
--}
--
- static inline int dma_set_mask(struct device *dev, u64 mask)
- {
- 	return get_dma_ops(dev)->set_dma_mask(dev, mask);
-diff -puN arch/arm/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/arm/include/asm/dma-mapping.h
---- a/arch/arm/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
-+++ a/arch/arm/include/asm/dma-mapping.h
-@@ -38,12 +38,14 @@ static inline void set_dma_ops(struct de
- 	dev->archdata.dma_ops = ops;
- }
- 
-+#define HAVE_ARCH_DMA_SUPPORTED 1
-+extern int dma_supported(struct device *dev, u64 mask);
-+
- /*
-  * Note that while the generic code provides dummy dma_{alloc,free}_noncoherent
-  * implementations, we don't provide a dma_cache_sync function so drivers using
-  * this API are highlighted with build warnings.
-  */
--
- #include <asm-generic/dma-mapping-common.h>
- 
- static inline int dma_set_mask(struct device *dev, u64 mask)
-@@ -172,8 +174,6 @@ static inline bool dma_capable(struct de
- 
- static inline void dma_mark_clean(void *addr, size_t size) { }
- 
--extern int dma_supported(struct device *dev, u64 mask);
--
- extern int arm_dma_set_mask(struct device *dev, u64 dma_mask);
- 
- /**
-diff -puN arch/arm64/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/arm64/include/asm/dma-mapping.h
---- a/arch/arm64/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
-+++ a/arch/arm64/include/asm/dma-mapping.h
-@@ -84,12 +84,6 @@ static inline phys_addr_t dma_to_phys(st
- 	return (phys_addr_t)dev_addr;
- }
- 
--static inline int dma_supported(struct device *dev, u64 mask)
--{
--	struct dma_map_ops *ops = get_dma_ops(dev);
--	return ops->dma_supported(dev, mask);
--}
--
- static inline int dma_set_mask(struct device *dev, u64 mask)
- {
- 	if (!dev->dma_mask || !dma_supported(dev, mask))
-diff -puN arch/h8300/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/h8300/include/asm/dma-mapping.h
---- a/arch/h8300/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
-+++ a/arch/h8300/include/asm/dma-mapping.h
-@@ -10,11 +10,6 @@ static inline struct dma_map_ops *get_dm
- 
- #include <asm-generic/dma-mapping-common.h>
- 
--static inline int dma_supported(struct device *dev, u64 mask)
--{
--	return 0;
--}
--
- static inline int dma_set_mask(struct device *dev, u64 mask)
- {
- 	return 0;
-diff -puN arch/hexagon/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/hexagon/include/asm/dma-mapping.h
---- a/arch/hexagon/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
-+++ a/arch/hexagon/include/asm/dma-mapping.h
-@@ -43,6 +43,7 @@ static inline struct dma_map_ops *get_dm
- 	return dma_ops;
- }
- 
-+#define HAVE_ARCH_DMA_SUPPORTED 1
- extern int dma_supported(struct device *dev, u64 mask);
- extern int dma_set_mask(struct device *dev, u64 mask);
- extern int dma_is_consistent(struct device *dev, dma_addr_t dma_handle);
-diff -puN arch/ia64/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/ia64/include/asm/dma-mapping.h
---- a/arch/ia64/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
-+++ a/arch/ia64/include/asm/dma-mapping.h
-@@ -27,12 +27,6 @@ extern void machvec_dma_sync_sg(struct d
- 
- #include <asm-generic/dma-mapping-common.h>
- 
--static inline int dma_supported(struct device *dev, u64 mask)
--{
--	struct dma_map_ops *ops = platform_dma_get_ops(dev);
--	return ops->dma_supported(dev, mask);
--}
--
- static inline int
- dma_set_mask (struct device *dev, u64 mask)
- {
-diff -puN arch/microblaze/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/microblaze/include/asm/dma-mapping.h
---- a/arch/microblaze/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
-+++ a/arch/microblaze/include/asm/dma-mapping.h
-@@ -44,16 +44,7 @@ static inline struct dma_map_ops *get_dm
- 	return &dma_direct_ops;
- }
- 
--static inline int dma_supported(struct device *dev, u64 mask)
--{
--	struct dma_map_ops *ops = get_dma_ops(dev);
--
--	if (unlikely(!ops))
--		return 0;
--	if (!ops->dma_supported)
--		return 1;
--	return ops->dma_supported(dev, mask);
--}
-+#include <asm-generic/dma-mapping-common.h>
- 
- static inline int dma_set_mask(struct device *dev, u64 dma_mask)
- {
-@@ -69,8 +60,6 @@ static inline int dma_set_mask(struct de
- 	return 0;
- }
- 
--#include <asm-generic/dma-mapping-common.h>
--
- static inline void __dma_sync(unsigned long paddr,
- 			      size_t size, enum dma_data_direction direction)
- {
-diff -puN arch/mips/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/mips/include/asm/dma-mapping.h
---- a/arch/mips/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
-+++ a/arch/mips/include/asm/dma-mapping.h
-@@ -31,12 +31,6 @@ static inline void dma_mark_clean(void *
- 
- #include <asm-generic/dma-mapping-common.h>
- 
--static inline int dma_supported(struct device *dev, u64 mask)
--{
--	struct dma_map_ops *ops = get_dma_ops(dev);
--	return ops->dma_supported(dev, mask);
--}
--
- static inline int
- dma_set_mask(struct device *dev, u64 mask)
- {
-diff -puN arch/openrisc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/openrisc/include/asm/dma-mapping.h
---- a/arch/openrisc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
-+++ a/arch/openrisc/include/asm/dma-mapping.h
-@@ -35,14 +35,15 @@ static inline struct dma_map_ops *get_dm
- 	return &or1k_dma_map_ops;
- }
- 
--#include <asm-generic/dma-mapping-common.h>
--
-+#define HAVE_ARCH_DMA_SUPPORTED 1
- static inline int dma_supported(struct device *dev, u64 dma_mask)
- {
- 	/* Support 32 bit DMA mask exclusively */
- 	return dma_mask == DMA_BIT_MASK(32);
- }
- 
-+#include <asm-generic/dma-mapping-common.h>
-+
- static inline int dma_set_mask(struct device *dev, u64 dma_mask)
- {
- 	if (!dev->dma_mask || !dma_supported(dev, dma_mask))
-diff -puN arch/powerpc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/powerpc/include/asm/dma-mapping.h
---- a/arch/powerpc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
-+++ a/arch/powerpc/include/asm/dma-mapping.h
-@@ -124,17 +124,6 @@ static inline void set_dma_offset(struct
- 
- #include <asm-generic/dma-mapping-common.h>
- 
--static inline int dma_supported(struct device *dev, u64 mask)
--{
--	struct dma_map_ops *dma_ops = get_dma_ops(dev);
--
--	if (unlikely(dma_ops == NULL))
--		return 0;
--	if (dma_ops->dma_supported == NULL)
--		return 1;
--	return dma_ops->dma_supported(dev, mask);
--}
--
- extern int dma_set_mask(struct device *dev, u64 dma_mask);
- extern int __dma_set_mask(struct device *dev, u64 dma_mask);
- extern u64 __dma_get_required_mask(struct device *dev);
-diff -puN arch/s390/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/s390/include/asm/dma-mapping.h
---- a/arch/s390/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
-+++ a/arch/s390/include/asm/dma-mapping.h
-@@ -27,15 +27,6 @@ static inline void dma_cache_sync(struct
- 
- #include <asm-generic/dma-mapping-common.h>
- 
--static inline int dma_supported(struct device *dev, u64 mask)
--{
--	struct dma_map_ops *dma_ops = get_dma_ops(dev);
--
--	if (dma_ops->dma_supported == NULL)
--		return 1;
--	return dma_ops->dma_supported(dev, mask);
--}
--
- static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
- {
- 	if (!dev->dma_mask)
-diff -puN arch/sh/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/sh/include/asm/dma-mapping.h
---- a/arch/sh/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
-+++ a/arch/sh/include/asm/dma-mapping.h
-@@ -13,16 +13,6 @@ static inline struct dma_map_ops *get_dm
- 
- #include <asm-generic/dma-mapping-common.h>
- 
--static inline int dma_supported(struct device *dev, u64 mask)
--{
--	struct dma_map_ops *ops = get_dma_ops(dev);
--
--	if (ops->dma_supported)
--		return ops->dma_supported(dev, mask);
--
--	return 1;
--}
--
- static inline int dma_set_mask(struct device *dev, u64 mask)
- {
- 	struct dma_map_ops *ops = get_dma_ops(dev);
-diff -puN arch/sparc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/sparc/include/asm/dma-mapping.h
---- a/arch/sparc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
-+++ a/arch/sparc/include/asm/dma-mapping.h
-@@ -7,6 +7,7 @@
- 
- #define DMA_ERROR_CODE	(~(dma_addr_t)0x0)
- 
-+#define HAVE_ARCH_DMA_SUPPORTED 1
- int dma_supported(struct device *dev, u64 mask);
- 
- static inline void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
-diff -puN arch/tile/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/tile/include/asm/dma-mapping.h
---- a/arch/tile/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
-+++ a/arch/tile/include/asm/dma-mapping.h
-@@ -75,12 +75,6 @@ static inline bool dma_capable(struct de
- }
- 
- static inline int
--dma_supported(struct device *dev, u64 mask)
--{
--	return get_dma_ops(dev)->dma_supported(dev, mask);
--}
--
--static inline int
- dma_set_mask(struct device *dev, u64 mask)
- {
- 	struct dma_map_ops *dma_ops = get_dma_ops(dev);
-diff -puN arch/unicore32/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/unicore32/include/asm/dma-mapping.h
---- a/arch/unicore32/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
-+++ a/arch/unicore32/include/asm/dma-mapping.h
-@@ -28,16 +28,6 @@ static inline struct dma_map_ops *get_dm
- 	return &swiotlb_dma_map_ops;
- }
- 
--static inline int dma_supported(struct device *dev, u64 mask)
--{
--	struct dma_map_ops *dma_ops = get_dma_ops(dev);
--
--	if (unlikely(dma_ops == NULL))
--		return 0;
--
--	return dma_ops->dma_supported(dev, mask);
--}
--
- #include <asm-generic/dma-mapping-common.h>
- 
- static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
-diff -puN arch/x86/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/x86/include/asm/dma-mapping.h
---- a/arch/x86/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
-+++ a/arch/x86/include/asm/dma-mapping.h
-@@ -43,9 +43,11 @@ static inline struct dma_map_ops *get_dm
- bool arch_dma_alloc_attrs(struct device **dev, gfp_t *gfp);
- #define arch_dma_alloc_attrs arch_dma_alloc_attrs
- 
-+#define HAVE_ARCH_DMA_SUPPORTED 1
-+extern int dma_supported(struct device *hwdev, u64 mask);
-+
- #include <asm-generic/dma-mapping-common.h>
- 
--extern int dma_supported(struct device *hwdev, u64 mask);
- extern int dma_set_mask(struct device *dev, u64 mask);
- 
- extern void *dma_generic_alloc_coherent(struct device *dev, size_t size,
-diff -puN include/asm-generic/dma-mapping-common.h~dma-mapping-consolidate-dma_supported include/asm-generic/dma-mapping-common.h
---- a/include/asm-generic/dma-mapping-common.h~dma-mapping-consolidate-dma_supported
-+++ a/include/asm-generic/dma-mapping-common.h
-@@ -327,4 +327,17 @@ static inline int dma_mapping_error(stru
- #endif
- }
- 
-+#ifndef HAVE_ARCH_DMA_SUPPORTED
-+static inline int dma_supported(struct device *dev, u64 mask)
-+{
-+	struct dma_map_ops *ops = get_dma_ops(dev);
-+
-+	if (!ops)
-+		return 0;
-+	if (!ops->dma_supported)
-+		return 1;
-+	return ops->dma_supported(dev, mask);
-+}
-+#endif
-+
- #endif
+-	nid = cpu_to_node(cpu);
++	nid = cpu_to_mem(cpu);
+ 	page = alloc_pages_exact_node(nid,
+ 				      GFP_KERNEL | __GFP_ZERO | __GFP_THISNODE,
+ 				      pg_order);
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from jiang.liu@linux.intel.com are
 
-add-myself-to-get_maintainerignore.patch
-mm-swap-zswap-maybe_preload-refactoring.patch
 linux-next.patch
-dma-mapping-consolidate-dma_allocfree_attrscoherent.patch
-dma-mapping-consolidate-dma_allocfree_noncoherent.patch
-dma-mapping-cosolidate-dma_mapping_error.patch
-dma-mapping-consolidate-dma_supported.patch
-dma-mapping-consolidate-dma_set_mask.patch
+x86-numa-acpi-online-node-earlier-when-doing-cpu-hot-addition.patch
+kernel-profilec-replace-cpu_to_mem-with-cpu_to_node.patch
+sgi-xp-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch
+openvswitch-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch
+i40e-use-numa_mem_id-to-better-support-memoryless-node.patch
+i40evf-use-numa_mem_id-to-better-support-memoryless-node.patch
+x86-numa-kill-useless-code-to-improve-code-readability.patch
+mm-update-_mem_id_-for-every-possible-cpu-when-memory-configuration-changes.patch
+mm-x86-enable-memoryless-node-support-to-better-support-cpu-memory-hotplug.patch
 
