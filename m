@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix.patch added to -mm tree
-Date: Mon, 17 Aug 2015 15:48:58 -0700
-Message-ID: <55d264da.RJMST8Q2MUxbQqXr%akpm@linux-foundation.org>
+ kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix-fix.patch
+ added to -mm tree
+Date: Mon, 17 Aug 2015 15:53:09 -0700
+Message-ID: <55d265d5.MTfQDZD4hfNySZ1S%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48640 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48681 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751547AbbHQWs7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Aug 2015 18:48:59 -0400
+	with ESMTP id S1750890AbbHQWxK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 17 Aug 2015 18:53:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dyoung@redhat.com, jwboyer@fedoraproject.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix
+     Subject: kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix-fix
 has been added to the -mm tree.  Its filename is
-     kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix.patch
+     kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,9 +41,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix
-
-arch/x86/kernel/machine_kexec_64.c:381: error: conflicting types for 'arch_kimage_file_post_load_cleanup'                                                       include/linux/kexec.h:326: note: previous declaration of 'arch_kimage_file_post_load_cleanup' was here
+Subject: kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix-fix
 
 Cc: Dave Young <dyoung@redhat.com>
 Cc: Josh Boyer <jwboyer@fedoraproject.org>
@@ -50,21 +49,23 @@ Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kexec_file.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/kexec.h~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix include/linux/kexec.h
---- a/include/linux/kexec.h~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix
-+++ a/include/linux/kexec.h
-@@ -321,7 +321,7 @@ void crash_free_reserved_phys_range(unsi
- int __weak arch_kexec_kernel_image_probe(struct kimage *image, void *buf,
- 					 unsigned long buf_len);
- void * __weak arch_kexec_kernel_image_load(struct kimage *image);
--void __weak arch_kimage_file_post_load_cleanup(struct kimage *image);
-+int __weak arch_kimage_file_post_load_cleanup(struct kimage *image);
+diff -puN kernel/kexec_file.c~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix-fix kernel/kexec_file.c
+--- a/kernel/kexec_file.c~kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix-fix
++++ a/kernel/kexec_file.c
+@@ -102,8 +102,9 @@ void * __weak arch_kexec_kernel_image_lo
+ 	return ERR_PTR(-ENOEXEC);
+ }
+ 
+-void __weak arch_kimage_file_post_load_cleanup(struct kimage *image)
++int __weak arch_kimage_file_post_load_cleanup(struct kimage *image)
+ {
++	return -EINVAL;
+ }
+ 
  int __weak arch_kexec_kernel_verify_sig(struct kimage *image, void *buf,
- 					unsigned long buf_len);
- int __weak arch_kexec_apply_relocations_add(const Elf_Ehdr *ehdr,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -117,6 +118,7 @@ fs-coda-fix-readlink-buffer-overflow-checkpatch-fixes.patch
 kexec-split-kexec_file-syscall-code-to-kexec_filec-fix.patch
 kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2.patch
 kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix-fix.patch
 kexec-split-kexec_load-syscall-from-kexec-core-code-checkpatch-fixes.patch
 align-crash_notes-allocation-to-make-it-be-inside-one-physical-page-fix.patch
 linux-next.patch
