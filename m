@@ -1,80 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mailmap-andrey-ryabinin-has-moved.patch removed from -mm tree
-Date: Tue, 18 Aug 2015 12:42:32 -0700
-Message-ID: <55d38aa8.1EeruLxVyuzFaBKf%akpm@linux-foundation.org>
+Subject: [merged]
+ memory-hotplug-fix-wrong-edge-when-hot-add-a-new-node.patch removed from
+ -mm tree
+Date: Tue, 18 Aug 2015 12:42:34 -0700
+Message-ID: <55d38aaa.J+6w6GiLJFd9sxXW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43642 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43644 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753494AbbHRTmc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Aug 2015 15:42:32 -0400
+	with ESMTP id S1752891AbbHRTme (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Aug 2015 15:42:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
+To: qiuxishi@huawei.com, guz.fnst@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: .mailmap: Andrey Ryabinin has moved
+     Subject: memory-hotplug: fix wrong edge when hot add a new node
 has been removed from the -mm tree.  Its filename was
-     mailmap-andrey-ryabinin-has-moved.patch
+     memory-hotplug-fix-wrong-edge-when-hot-add-a-new-node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Subject: .mailmap: Andrey Ryabinin has moved
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: memory-hotplug: fix wrong edge when hot add a new node
 
-Update my email address.
+When we add a new node, the edge of memory may be wrong.
 
-Signed-off-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+e.g. system has 4 nodes, and node3 is movable, node3 mem:[24G-32G],
+
+1. hotremove the node3,
+2. then hotadd node3 with a part of memory, mem:[26G-30G],
+3. call hotadd_new_pgdat()
+	free_area_init_node()
+		get_pfn_range_for_nid()
+4. it will return wrong start_pfn and end_pfn, because we have not
+update the memblock.
+
+This patch also fixes a BUG_ON during hot-addition, please see
+http://marc.info/?l=linux-kernel&m=142961156129456&w=2
+
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap          |    1 +
- mm/kasan/kasan.c  |    2 +-
- mm/kasan/report.c |    2 +-
- 3 files changed, 3 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |    3 +++
+ mm/page_alloc.c     |    8 ++++++++
+ 2 files changed, 11 insertions(+)
 
-diff -puN .mailmap~mailmap-andrey-ryabinin-has-moved .mailmap
---- a/.mailmap~mailmap-andrey-ryabinin-has-moved
-+++ a/.mailmap
-@@ -17,6 +17,7 @@ Aleksey Gorelov <aleksey_gorelov@phoenix
- Al Viro <viro@ftp.linux.org.uk>
- Al Viro <viro@zenIV.linux.org.uk>
- Andreas Herrmann <aherrman@de.ibm.com>
-+Andrey Ryabinin <ryabinin.a.a@gmail.com> <a.ryabinin@samsung.com>
- Andrew Morton <akpm@linux-foundation.org>
- Andrew Vasquez <andrew.vasquez@qlogic.com>
- Andy Adamson <andros@citi.umich.edu>
-diff -puN mm/kasan/kasan.c~mailmap-andrey-ryabinin-has-moved mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~mailmap-andrey-ryabinin-has-moved
-+++ a/mm/kasan/kasan.c
-@@ -2,7 +2,7 @@
-  * This file contains shadow memory manipulation code.
-  *
-  * Copyright (c) 2014 Samsung Electronics Co., Ltd.
-- * Author: Andrey Ryabinin <a.ryabinin@samsung.com>
-+ * Author: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-  *
-  * Some of code borrowed from https://github.com/xairy/linux by
-  *        Andrey Konovalov <adech.fo@gmail.com>
-diff -puN mm/kasan/report.c~mailmap-andrey-ryabinin-has-moved mm/kasan/report.c
---- a/mm/kasan/report.c~mailmap-andrey-ryabinin-has-moved
-+++ a/mm/kasan/report.c
-@@ -2,7 +2,7 @@
-  * This file contains error reporting code.
-  *
-  * Copyright (c) 2014 Samsung Electronics Co., Ltd.
-- * Author: Andrey Ryabinin <a.ryabinin@samsung.com>
-+ * Author: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-  *
-  * Some of code borrowed from https://github.com/xairy/linux by
-  *        Andrey Konovalov <adech.fo@gmail.com>
+diff -puN mm/memory_hotplug.c~memory-hotplug-fix-wrong-edge-when-hot-add-a-new-node mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-fix-wrong-edge-when-hot-add-a-new-node
++++ a/mm/memory_hotplug.c
+@@ -1277,6 +1277,7 @@ int __ref add_memory(int nid, u64 start,
+ 
+ 	/* create new memmap entry */
+ 	firmware_map_add_hotplug(start, start + size, "System RAM");
++	memblock_add_node(start, size, nid);
+ 
+ 	goto out;
+ 
+@@ -2013,6 +2014,8 @@ void __ref remove_memory(int nid, u64 st
+ 
+ 	/* remove memmap entry */
+ 	firmware_map_remove(start, start + size, "System RAM");
++	memblock_free(start, size);
++	memblock_remove(start, size);
+ 
+ 	arch_remove_memory(start, size);
+ 
+diff -puN mm/page_alloc.c~memory-hotplug-fix-wrong-edge-when-hot-add-a-new-node mm/page_alloc.c
+--- a/mm/page_alloc.c~memory-hotplug-fix-wrong-edge-when-hot-add-a-new-node
++++ a/mm/page_alloc.c
+@@ -5060,6 +5060,10 @@ static unsigned long __meminit zone_span
+ {
+ 	unsigned long zone_start_pfn, zone_end_pfn;
+ 
++	/* When hotadd a new node, the node should be empty */
++	if (!node_start_pfn && !node_end_pfn)
++		return 0;
++
+ 	/* Get the start and end of the zone */
+ 	zone_start_pfn = arch_zone_lowest_possible_pfn[zone_type];
+ 	zone_end_pfn = arch_zone_highest_possible_pfn[zone_type];
+@@ -5123,6 +5127,10 @@ static unsigned long __meminit zone_abse
+ 	unsigned long zone_high = arch_zone_highest_possible_pfn[zone_type];
+ 	unsigned long zone_start_pfn, zone_end_pfn;
+ 
++	/* When hotadd a new node, the node should be empty */
++	if (!node_start_pfn && !node_end_pfn)
++		return 0;
++
+ 	zone_start_pfn = clamp(node_start_pfn, zone_low, zone_high);
+ 	zone_end_pfn = clamp(node_end_pfn, zone_low, zone_high);
+ 
 _
 
-Patches currently in -mm which might be from ryabinin.a.a@gmail.com are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
+memblock-make-memblock_overlaps_region-return-bool.patch
+mem-hotplug-handle-node-hole-when-initializing-numa_meminfo.patch
+memory-hotplug-remove-reset_node_managed_pages-and-reset_node_managed_pages-in-hotadd_new_pgdat.patch
 
