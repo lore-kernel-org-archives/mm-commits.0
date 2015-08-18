@@ -1,64 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-cma-mark-cma_bitmap_maxno-inline-in-header.patch
- removed from -mm tree
-Date: Tue, 18 Aug 2015 12:42:37 -0700
-Message-ID: <55d38aad.j2p7WXsOmzizV517%akpm@linux-foundation.org>
+Subject: [merged] update-maintainers-for-drm-sti-driver.patch removed from -mm tree
+Date: Tue, 18 Aug 2015 12:42:40 -0700
+Message-ID: <55d38ab0.1yT+GgmnJPthMHAt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43651 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43655 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753494AbbHRTmi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Aug 2015 15:42:38 -0400
+	with ESMTP id S1753494AbbHRTmk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Aug 2015 15:42:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gregory.0xf0@gmail.com, iamjoonsoo.kim@lge.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: benjamin.gaignard@linaro.org, airlied@linux.ie, vincent.abriou@st.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: mark cma_bitmap_maxno() inline in header
+     Subject: Update maintainers for DRM STI driver
 has been removed from the -mm tree.  Its filename was
-     mm-cma-mark-cma_bitmap_maxno-inline-in-header.patch
+     update-maintainers-for-drm-sti-driver.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gregory Fong <gregory.0xf0@gmail.com>
-Subject: mm: cma: mark cma_bitmap_maxno() inline in header
+From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Update maintainers for DRM STI driver
 
-cma_bitmap_maxno() was marked as static and not static inline, which can
-cause warnings about this function not being used if this file is included
-in a file that does not call that function, and violates the conventions
-used elsewhere.  The two options are to move the function implementation
-back to mm/cma.c or make it inline here, and it's simple enough for the
-latter to make sense.
+Add Vincent Abriou and myself as maintainers.
 
-Signed-off-by: Gregory Fong <gregory.0xf0@gmail.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Cc: Vincent Abriou <vincent.abriou@st.com>
+Cc: Dave Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/cma.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN mm/cma.h~mm-cma-mark-cma_bitmap_maxno-inline-in-header mm/cma.h
---- a/mm/cma.h~mm-cma-mark-cma_bitmap_maxno-inline-in-header
-+++ a/mm/cma.h
-@@ -16,7 +16,7 @@ struct cma {
- extern struct cma cma_areas[MAX_CMA_AREAS];
- extern unsigned cma_area_count;
+diff -puN MAINTAINERS~update-maintainers-for-drm-sti-driver MAINTAINERS
+--- a/MAINTAINERS~update-maintainers-for-drm-sti-driver
++++ a/MAINTAINERS
+@@ -3587,6 +3587,15 @@ S:	Maintained
+ F:	drivers/gpu/drm/rockchip/
+ F:	Documentation/devicetree/bindings/video/rockchip*
  
--static unsigned long cma_bitmap_maxno(struct cma *cma)
-+static inline unsigned long cma_bitmap_maxno(struct cma *cma)
- {
- 	return cma->count >> cma->order_per_bit;
- }
++DRM DRIVERS FOR STI
++M:	Benjamin Gaignard <benjamin.gaignard@linaro.org>
++M:	Vincent Abriou <vincent.abriou@st.com>
++L:	dri-devel@lists.freedesktop.org
++T:	git http://git.linaro.org/people/benjamin.gaignard/kernel.git
++S:	Maintained
++F:	drivers/gpu/drm/sti
++F:	Documentation/devicetree/bindings/gpu/st,stih4xx.txt
++
+ DSBR100 USB FM RADIO DRIVER
+ M:	Alexey Klimov <klimov.linux@gmail.com>
+ L:	linux-media@vger.kernel.org
 _
 
-Patches currently in -mm which might be from gregory.0xf0@gmail.com are
+Patches currently in -mm which might be from benjamin.gaignard@linaro.org are
 
 linux-next.patch
 
