@@ -1,114 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ipc-semc-update-correct-memory-barriers.patch removed
- from -mm tree
-Date: Tue, 18 Aug 2015 12:42:29 -0700
-Message-ID: <55d38aa5.fRMXTnJAie6DJjfD%akpm__44328.588844701$1439926967$gmane$org@linux-foundation.org>
+Subject: [merged] zram-fix-pool-name-truncation.patch removed from -mm
+ tree
+Date: Tue, 18 Aug 2015 12:42:36 -0700
+Message-ID: <55d38aac.F9xNqyxmx9CPfm1v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43638 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43650 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753137AbbHRTma (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Aug 2015 15:42:30 -0400
+	with ESMTP id S1753880AbbHRTmg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Aug 2015 15:42:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: manfred@colorfullife.com, dave@stgolabs.net, jpoimboe@redhat.com, ktkhai@parallels.com, mingo@redhat.com, oleg@redhat.com, paulmck@linux.vnet.ibm.com, peterz@infradead.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc/sem.c: update/correct memory barriers
+     Subject: zram: fix pool name truncation
 has been removed from the -mm tree.  Its filename was
-     ipc-semc-update-correct-memory-barriers.patch
+     zram-fix-pool-name-truncation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Manfred Spraul <manfred@colorfullife.com>
-Subject: ipc/sem.c: update/correct memory barriers
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram: fix pool name truncation
 
-sem_lock() did not properly pair memory barriers:
+zram_meta_alloc() constructs a pool name for zs_create_pool() call as
 
-!spin_is_locked() and spin_unlock_wait() are both only control barriers. 
-The code needs an acquire barrier, otherwise the cpu might perform read
-operations before the lock test.
+ snprintf(pool_name, sizeof(pool_name), "zram%d", device_id);
 
-As no primitive exists inside <include/spinlock.h> and since it seems
-noone wants another primitive, the code creates a local primitive within
-ipc/sem.c.
+However, it defines pool name buffer to be only 8 bytes long (minus
+trailing zero), which means that we can have only 1000 pool names: zram0
+-- zram999.
 
-With regards to -stable:
+With CONFIG_ZSMALLOC_STAT enabled an attempt to create a device zram1000
+can fail if device zram100 already exists, because snprintf() will
+truncate new pool name to zram100 and pass it debugfs_create_dir(),
+causing:
 
-The change of sem_wait_array() is a bugfix, the change to sem_lock() is a
-nop (just a preprocessor redefinition to improve the readability).  The
-bugfix is necessary for all kernels that use sem_wait_array() (i.e.:
-starting from 3.10).
+  debugfs dir <zram100> creation failed
+  zram: Error creating memory pool
 
-Signed-off-by: Manfred Spraul <manfred@colorfullife.com>
-Reported-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Cc: Kirill Tkhai <ktkhai@parallels.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: <stable@vger.kernel.org>	[3.10+]
+... and so on.
+
+Fix it by passing zram->disk->disk_name to zram_meta_alloc() instead of
+divice_id.  We construct zram%d name earlier and keep it as a ->disk_name,
+no need to snprintf() it again.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |   18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+ drivers/block/zram/zram_drv.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN ipc/sem.c~ipc-semc-update-correct-memory-barriers ipc/sem.c
---- a/ipc/sem.c~ipc-semc-update-correct-memory-barriers
-+++ a/ipc/sem.c
-@@ -253,6 +253,16 @@ static void sem_rcu_free(struct rcu_head
+diff -puN drivers/block/zram/zram_drv.c~zram-fix-pool-name-truncation drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-fix-pool-name-truncation
++++ a/drivers/block/zram/zram_drv.c
+@@ -496,10 +496,9 @@ static void zram_meta_free(struct zram_m
+ 	kfree(meta);
  }
  
- /*
-+ * spin_unlock_wait() and !spin_is_locked() are not memory barriers, they
-+ * are only control barriers.
-+ * The code must pair with spin_unlock(&sem->lock) or
-+ * spin_unlock(&sem_perm.lock), thus just the control barrier is insufficient.
-+ *
-+ * smp_rmb() is sufficient, as writes cannot pass the control barrier.
-+ */
-+#define ipc_smp_acquire__after_spin_is_unlocked()	smp_rmb()
-+
-+/*
-  * Wait until all currently ongoing simple ops have completed.
-  * Caller must own sem_perm.lock.
-  * New simple ops cannot start, because simple ops first check
-@@ -275,6 +285,7 @@ static void sem_wait_array(struct sem_ar
- 		sem = sma->sem_base + i;
- 		spin_unlock_wait(&sem->lock);
+-static struct zram_meta *zram_meta_alloc(int device_id, u64 disksize)
++static struct zram_meta *zram_meta_alloc(char *pool_name, u64 disksize)
+ {
+ 	size_t num_pages;
+-	char pool_name[8];
+ 	struct zram_meta *meta = kmalloc(sizeof(*meta), GFP_KERNEL);
+ 
+ 	if (!meta)
+@@ -512,7 +511,6 @@ static struct zram_meta *zram_meta_alloc
+ 		goto out_error;
  	}
-+	ipc_smp_acquire__after_spin_is_unlocked();
- }
  
- /*
-@@ -327,13 +338,12 @@ static inline int sem_lock(struct sem_ar
- 		/* Then check that the global lock is free */
- 		if (!spin_is_locked(&sma->sem_perm.lock)) {
- 			/*
--			 * The ipc object lock check must be visible on all
--			 * cores before rechecking the complex count.  Otherwise
--			 * we can race with  another thread that does:
-+			 * We need a memory barrier with acquire semantics,
-+			 * otherwise we can race with another thread that does:
- 			 *	complex_count++;
- 			 *	spin_unlock(sem_perm.lock);
- 			 */
--			smp_rmb();
-+			ipc_smp_acquire__after_spin_is_unlocked();
+-	snprintf(pool_name, sizeof(pool_name), "zram%d", device_id);
+ 	meta->mem_pool = zs_create_pool(pool_name, GFP_NOIO | __GFP_HIGHMEM);
+ 	if (!meta->mem_pool) {
+ 		pr_err("Error creating memory pool\n");
+@@ -1031,7 +1029,7 @@ static ssize_t disksize_store(struct dev
+ 		return -EINVAL;
  
- 			/*
- 			 * Now repeat the test of complex_count:
+ 	disksize = PAGE_ALIGN(disksize);
+-	meta = zram_meta_alloc(zram->disk->first_minor, disksize);
++	meta = zram_meta_alloc(zram->disk->disk_name, disksize);
+ 	if (!meta)
+ 		return -ENOMEM;
+ 
 _
 
-Patches currently in -mm which might be from manfred@colorfullife.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-ipc-convert-invalid-scenarios-to-use-warn_on.patch
-slab-leaks3-default-y.patch
+mm-slab_common-allow-null-cache-pointer-in-kmem_cache_destroy.patch
+mm-mempool-allow-null-pool-pointer-in-mempool_destroy.patch
+mm-dmapool-allow-null-pool-pointer-in-dma_pool_destroy.patch
+zsmalloc-drop-unused-variable-nr_to_migrate.patch
+zsmalloc-always-keep-per-class-stats.patch
+zsmalloc-introduce-zs_can_compact-function.patch
+zsmalloc-cosmetic-compaction-code-adjustments.patch
+zsmalloc-zram-introduce-zs_pool_stats-api.patch
+zsmalloc-account-the-number-of-compacted-pages.patch
+zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
+zsmalloc-partial-page-ordering-within-a-fullness_list.patch
+zsmalloc-consider-zs_almost_full-as-migrate-source.patch
+zsmalloc-use-class-pages_per_zspage.patch
+zsmalloc-do-not-take-class-lock-in-zs_shrinker_count.patch
+zsmalloc-remove-null-check-from-destroy_handle_cache.patch
+zram-unify-error-reporting.patch
+checkpatch-add-some-foo_destroy-functions-to-needless_if-tests.patch
 
