@@ -1,65 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] update-maintainers-for-drm-sti-driver.patch removed from -mm tree
-Date: Tue, 18 Aug 2015 12:42:40 -0700
-Message-ID: <55d38ab0.1yT+GgmnJPthMHAt%akpm@linux-foundation.org>
+Subject: + shmem-recalculate-file-inode-when-fstat.patch added to -mm tree
+Date: Tue, 18 Aug 2015 14:25:06 -0700
+Message-ID: <55d3a2b2.EAhX1Cqv5NUWUStj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43655 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46983 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753494AbbHRTmk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Aug 2015 15:42:40 -0400
+	with ESMTP id S1753085AbbHRVZH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Aug 2015 17:25:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: benjamin.gaignard@linaro.org, airlied@linux.ie, vincent.abriou@st.com, mm-commits@vger.kernel.org
+To: yuzhao@google.com, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Update maintainers for DRM STI driver
-has been removed from the -mm tree.  Its filename was
-     update-maintainers-for-drm-sti-driver.patch
+     Subject: shmem: recalculate file inode when fstat
+has been added to the -mm tree.  Its filename is
+     shmem-recalculate-file-inode-when-fstat.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/shmem-recalculate-file-inode-when-fstat.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/shmem-recalculate-file-inode-when-fstat.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Update maintainers for DRM STI driver
+From: Yu Zhao <yuzhao@google.com>
+Subject: shmem: recalculate file inode when fstat
 
-Add Vincent Abriou and myself as maintainers.
+Shmem uses shmem_recalc_inode to update i_blocks when it allocates page,
+undoes range or swaps.  But mm can drop clean page without notifying
+shmem.  This makes fstat sometimes return out-of-date block size.
 
-Signed-off-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Cc: Vincent Abriou <vincent.abriou@st.com>
-Cc: Dave Airlie <airlied@linux.ie>
+The problem can be partially solved when we add inode_operations->getattr
+which calls shmem_recalc_inode to update i_blocks for fstat.
+
+shmem_recalc_inode also updates counter used by statfs and
+vm_committed_as.  For them the situation is not changed.  They still
+suffer from the discrepancy after dropping clean page and before the
+function is called by aforementioned triggers.
+
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ mm/shmem.c |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN MAINTAINERS~update-maintainers-for-drm-sti-driver MAINTAINERS
---- a/MAINTAINERS~update-maintainers-for-drm-sti-driver
-+++ a/MAINTAINERS
-@@ -3587,6 +3587,15 @@ S:	Maintained
- F:	drivers/gpu/drm/rockchip/
- F:	Documentation/devicetree/bindings/video/rockchip*
+diff -puN mm/shmem.c~shmem-recalculate-file-inode-when-fstat mm/shmem.c
+--- a/mm/shmem.c~shmem-recalculate-file-inode-when-fstat
++++ a/mm/shmem.c
+@@ -542,6 +542,21 @@ void shmem_truncate_range(struct inode *
+ }
+ EXPORT_SYMBOL_GPL(shmem_truncate_range);
  
-+DRM DRIVERS FOR STI
-+M:	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-+M:	Vincent Abriou <vincent.abriou@st.com>
-+L:	dri-devel@lists.freedesktop.org
-+T:	git http://git.linaro.org/people/benjamin.gaignard/kernel.git
-+S:	Maintained
-+F:	drivers/gpu/drm/sti
-+F:	Documentation/devicetree/bindings/gpu/st,stih4xx.txt
++static int shmem_getattr(struct vfsmount *mnt, struct dentry *dentry,
++			 struct kstat *stat)
++{
++	struct inode *inode = dentry->d_inode;
++	struct shmem_inode_info *info = SHMEM_I(inode);
 +
- DSBR100 USB FM RADIO DRIVER
- M:	Alexey Klimov <klimov.linux@gmail.com>
- L:	linux-media@vger.kernel.org
++	spin_lock(&info->lock);
++	shmem_recalc_inode(inode);
++	spin_unlock(&info->lock);
++
++	generic_fillattr(inode, stat);
++
++	return 0;
++}
++
+ static int shmem_setattr(struct dentry *dentry, struct iattr *attr)
+ {
+ 	struct inode *inode = d_inode(dentry);
+@@ -3122,6 +3137,7 @@ static const struct file_operations shme
+ };
+ 
+ static const struct inode_operations shmem_inode_operations = {
++	.getattr	= shmem_getattr,
+ 	.setattr	= shmem_setattr,
+ #ifdef CONFIG_TMPFS_XATTR
+ 	.setxattr	= shmem_setxattr,
 _
 
-Patches currently in -mm which might be from benjamin.gaignard@linaro.org are
+Patches currently in -mm which might be from yuzhao@google.com are
 
-linux-next.patch
+shmem-recalculate-file-inode-when-fstat.patch
 
