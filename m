@@ -1,70 +1,84 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ipcsem-remove-uneeded-sem_undo_list-lock-usage-in-exit_sem.patch removed
+ mm-hwpoison-fix-fail-isolate-hugetlbfs-page-w-refcount-held.patch removed
  from -mm tree
-Date: Tue, 18 Aug 2015 12:42:25 -0700
-Message-ID: <55d38aa1.u796VAuq1nNGqoru%akpm@linux-foundation.org>
+Date: Tue, 18 Aug 2015 12:42:20 -0700
+Message-ID: <55d38a9c.5M7wAI60u/UeDsbC%akpm__34857.2638271891$1439926952$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43630 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43622 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753137AbbHRTm0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Aug 2015 15:42:26 -0400
+	with ESMTP id S1752425AbbHRTmU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 18 Aug 2015 15:42:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: herton@redhat.com, aquini@redhat.com, aris@redhat.com, dave@stgolabs.net, djeffery@redhat.com, manfred@colorfullife.com, mm-commits@vger.kernel.org
+To: wanpeng.li@hotmail.com, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc,sem: remove uneeded sem_undo_list lock usage in exit_sem()
+     Subject: mm/hwpoison: fix fail isolate hugetlbfs page w/ refcount held
 has been removed from the -mm tree.  Its filename was
-     ipcsem-remove-uneeded-sem_undo_list-lock-usage-in-exit_sem.patch
+     mm-hwpoison-fix-fail-isolate-hugetlbfs-page-w-refcount-held.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Herton R. Krzesinski" <herton@redhat.com>
-Subject: ipc,sem: remove uneeded sem_undo_list lock usage in exit_sem()
+From: Wanpeng Li <wanpeng.li@hotmail.com>
+Subject: mm/hwpoison: fix fail isolate hugetlbfs page w/ refcount held
 
-After we acquire the sma->sem_perm lock in exit_sem(), we are protected
-against a racing IPC_RMID operation.  Also at that point, we are the last
-user of sem_undo_list.  Therefore it isn't required that we acquire or use
-ulp->lock.
+Hugetlbfs pages will get a refcount in get_any_page() or
+madvise_hwpoison() if soft offlining through madvise.  The refcount which
+is held by the soft offline path should be released if we fail to isolate
+hugetlbfs pages.
 
-Signed-off-by: Herton R. Krzesinski <herton@redhat.com>
-Acked-by: Manfred Spraul <manfred@colorfullife.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Rafael Aquini <aquini@redhat.com>
-CC: Aristeu Rozanski <aris@redhat.com>
-Cc: David Jeffery <djeffery@redhat.com>
+Fix it by reducing the refcount for both isolation success and failure.
+
+Signed-off-by: Wanpeng Li <wanpeng.li@hotmail.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: <stable@vger.kernel.org>	[3.9+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/sem.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN ipc/sem.c~ipcsem-remove-uneeded-sem_undo_list-lock-usage-in-exit_sem ipc/sem.c
---- a/ipc/sem.c~ipcsem-remove-uneeded-sem_undo_list-lock-usage-in-exit_sem
-+++ a/ipc/sem.c
-@@ -2123,9 +2123,11 @@ void exit_sem(struct task_struct *tsk)
- 		ipc_assert_locked_object(&sma->sem_perm);
- 		list_del(&un->list_id);
+diff -puN mm/memory-failure.c~mm-hwpoison-fix-fail-isolate-hugetlbfs-page-w-refcount-held mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-fix-fail-isolate-hugetlbfs-page-w-refcount-held
++++ a/mm/memory-failure.c
+@@ -1569,13 +1569,12 @@ static int soft_offline_huge_page(struct
+ 	unlock_page(hpage);
  
--		spin_lock(&ulp->lock);
-+		/* we are the last process using this ulp, acquiring ulp->lock
-+		 * isn't required. Besides that, we are also protected against
-+		 * IPC_RMID as we hold sma->sem_perm lock now
-+		 */
- 		list_del_rcu(&un->list_proc);
--		spin_unlock(&ulp->lock);
- 
- 		/* perform adjustments registered in un */
- 		for (i = 0; i < sma->sem_nsems; i++) {
+ 	ret = isolate_huge_page(hpage, &pagelist);
+-	if (ret) {
+-		/*
+-		 * get_any_page() and isolate_huge_page() takes a refcount each,
+-		 * so need to drop one here.
+-		 */
+-		put_page(hpage);
+-	} else {
++	/*
++	 * get_any_page() and isolate_huge_page() takes a refcount each,
++	 * so need to drop one here.
++	 */
++	put_page(hpage);
++	if (!ret) {
+ 		pr_info("soft offline: %#lx hugepage failed to isolate\n", pfn);
+ 		return -EBUSY;
+ 	}
 _
 
-Patches currently in -mm which might be from herton@redhat.com are
+Patches currently in -mm which might be from wanpeng.li@hotmail.com are
 
+mm-hwpoison-fix-fail-to-split-thp-w-refcount-held.patch
+mm-hwpoison-fix-pagehwpoison-test-set-race.patch
+mm-hwpoison-introduce-put_hwpoison_page-to-put-refcount-for-memory-error-handling.patch
+mm-hwpoison-fix-refcount-of-thp-head-page-in-no-injection-case.patch
+mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page.patch
+mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page-fix.patch
+mm-hwpoison-introduce-num_poisoned_pages-wrappers.patch
+mm-hwpoison-fix-race-between-soft_offline_page-and-unpoison_memory.patch
+mm-hwpoison-dont-try-to-unpoison-containment-failed-pages.patch
 
