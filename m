@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5.patch added to -mm tree
-Date: Thu, 20 Aug 2015 14:37:35 -0700
-Message-ID: <55d6489f.Lx4mnFFI1np5ypPC%akpm@linux-foundation.org>
+ mm-unify-checks-in-alloc_pages_node-and-__alloc_pages_node.patch added to
+ -mm tree
+Date: Thu, 20 Aug 2015 15:30:50 -0700
+Message-ID: <55d6551a.7oerSj/bSGBN+lyL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57669 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58131 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751849AbbHTVhg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Aug 2015 17:37:36 -0400
+	with ESMTP id S1752150AbbHTWav (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Aug 2015 18:30:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, joern@logfs.org, mhocko@kernel.org, mike.kravetz@oracle.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, cl@linux.com, hannes@cmpxchg.org, mhocko@suse.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5
+     Subject: mm: unify checks in alloc_pages_node() and __alloc_pages_node()
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5.patch
+     mm-unify-checks-in-alloc_pages_node-and-__alloc_pages_node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-unify-checks-in-alloc_pages_node-and-__alloc_pages_node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-unify-checks-in-alloc_pages_node-and-__alloc_pages_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,229 +40,83 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm: unify checks in alloc_pages_node() and __alloc_pages_node()
 
-v4 -> v5:
-- add (struct hugetlb_usage *) to struct mm_struct
-- use %lu instead of %d for seq_printf()
-- introduce hugetlb_fork
+Perform the same debug checks in alloc_pages_node() as are done in
+__alloc_pages_node(), by making the former function a wrapper of the
+latter one.
 
-Cc: Joern Engel <joern@logfs.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+In addition to better diagnostics in DEBUG_VM builds for situations which
+have been already fatal (e.g.  out-of-bounds node id), there are two
+visible changes for potential existing buggy callers of
+alloc_pages_node():
+
+- calling alloc_pages_node() with any negative nid (e.g. due to arithmetic
+  overflow) was treated as passing NUMA_NO_NODE and fallback to local node was
+  applied. This will now be fatal.
+- calling alloc_pages_node() with an offline node will now be checked for
+  DEBUG_VM builds. Since it's not fatal if the node has been previously online,
+  and this patch may expose some existing buggy callers, change the VM_BUG_ON
+  in __alloc_pages_node() to VM_WARN_ON.
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    2 +-
- fs/hugetlbfs/inode.c               |   12 ++++++++++++
- include/linux/hugetlb.h            |   22 +++++++++++++++++++---
- include/linux/mm_types.h           |    7 ++-----
- kernel/fork.c                      |    3 +++
- mm/hugetlb.c                       |   25 ++++++++++++++++++++++---
- mm/mmap.c                          |    1 +
- 7 files changed, 60 insertions(+), 12 deletions(-)
+ include/linux/gfp.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5 Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5
-+++ a/Documentation/filesystems/proc.txt
-@@ -174,7 +174,7 @@ read the file /proc/PID/status:
-   VmLib:      1412 kB
-   VmPTE:        20 kb
-   VmSwap:        0 kB
--  HugetlbPages:          0 kB (0x2048kB)
-+  HugetlbPages:          0 kB (0*2048kB)
-   Threads:        1
-   SigQ:   0/28578
-   SigPnd: 0000000000000000
-diff -puN fs/hugetlbfs/inode.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5 fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5
-+++ a/fs/hugetlbfs/inode.c
-@@ -139,6 +139,13 @@ static int hugetlbfs_file_mmap(struct fi
- 	if (vma->vm_pgoff & (~huge_page_mask(h) >> PAGE_SHIFT))
- 		return -EINVAL;
+diff -puN include/linux/gfp.h~mm-unify-checks-in-alloc_pages_node-and-__alloc_pages_node include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-unify-checks-in-alloc_pages_node-and-__alloc_pages_node
++++ a/include/linux/gfp.h
+@@ -310,23 +310,23 @@ __alloc_pages(gfp_t gfp_mask, unsigned i
+ static inline struct page *
+ __alloc_pages_node(int nid, gfp_t gfp_mask, unsigned int order)
+ {
+-	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES || !node_online(nid));
++	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
++	VM_WARN_ON(!node_online(nid));
  
-+	if (!vma->vm_mm->hugetlb_usage) {
-+		vma->vm_mm->hugetlb_usage = kzalloc(sizeof(struct hugetlb_usage),
-+							GFP_KERNEL);
-+		if (!vma->vm_mm->hugetlb_usage)
-+			return -ENOMEM;
-+	}
-+
- 	vma_len = (loff_t)(vma->vm_end - vma->vm_start);
- 
- 	mutex_lock(&inode->i_mutex);
-@@ -162,6 +169,11 @@ out:
- 	return ret;
+ 	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
  }
  
-+void exit_hugetlb_mmap(struct mm_struct *mm)
-+{
-+	kfree(mm->hugetlb_usage);
-+}
-+
  /*
-  * Called under down_write(mmap_sem).
+  * Allocate pages, preferring the node given as nid. When nid == NUMA_NO_NODE,
+- * prefer the current CPU's node.
++ * prefer the current CPU's node. Otherwise node must be valid and online.
   */
-diff -puN include/linux/hugetlb.h~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5 include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5
-+++ a/include/linux/hugetlb.h
-@@ -483,18 +483,25 @@ static inline spinlock_t *huge_pte_lockp
- #define hugepages_supported() (HPAGE_SHIFT != 0)
- #endif
- 
-+struct hugetlb_usage {
-+	atomic_long_t count[HUGE_MAX_HSTATE];
-+};
-+
- void hugetlb_report_usage(struct seq_file *m, struct mm_struct *mm);
-+void exit_hugetlb_mmap(struct mm_struct *mm);
-+int hugetlb_fork(struct mm_struct *new, struct mm_struct *old);
- 
- static inline void inc_hugetlb_count(struct mm_struct *mm, struct hstate *h)
+ static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
+ 						unsigned int order)
  {
--	atomic_long_inc(&mm->hugetlb_usage.count[hstate_index(h)]);
-+	VM_BUG_ON_MM(!mm->hugetlb_usage, mm);
-+	atomic_long_inc(&mm->hugetlb_usage->count[hstate_index(h)]);
+-	/* Unknown node is current node */
+-	if (nid < 0)
++	if (nid == NUMA_NO_NODE)
+ 		nid = numa_node_id();
+ 
+-	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
++	return __alloc_pages_node(nid, gfp_mask, order);
  }
  
- static inline void dec_hugetlb_count(struct mm_struct *mm, struct hstate *h)
- {
--	atomic_long_dec(&mm->hugetlb_usage.count[hstate_index(h)]);
-+	VM_BUG_ON_MM(!mm->hugetlb_usage, mm);
-+	atomic_long_dec(&mm->hugetlb_usage->count[hstate_index(h)]);
- }
--
- #else	/* CONFIG_HUGETLB_PAGE */
- struct hstate {};
- #define alloc_huge_page(v, a, r) NULL
-@@ -536,6 +543,15 @@ static inline void hugetlb_report_usage(
- {
- }
- 
-+static inline void exit_hugetlb_mmap(struct mm_struct *mm)
-+{
-+}
-+
-+static inline int hugetlb_fork(struct mm_struct *new, struct mm_struct *old)
-+{
-+	return 0;
-+}
-+
- static inline void dec_hugetlb_count(struct mm_struct *mm, struct hstate *h)
- {
- }
-diff -puN include/linux/mm_types.h~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5 include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5
-+++ a/include/linux/mm_types.h
-@@ -367,9 +367,7 @@ struct mm_rss_stat {
- };
- 
- #ifdef CONFIG_HUGETLB_PAGE
--struct hugetlb_usage {
--	atomic_long_t count[HUGE_MAX_HSTATE];
--};
-+struct hugetlb_usage;
- #endif
- 
- struct kioctx_table;
-@@ -492,9 +490,8 @@ struct mm_struct {
- 	/* address of the bounds directory */
- 	void __user *bd_addr;
- #endif
--
- #ifdef CONFIG_HUGETLB_PAGE
--	struct hugetlb_usage hugetlb_usage;
-+	struct hugetlb_usage *hugetlb_usage;
- #endif
- };
- 
-diff -puN kernel/fork.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5 kernel/fork.c
---- a/kernel/fork.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5
-+++ a/kernel/fork.c
-@@ -425,6 +425,9 @@ static int dup_mmap(struct mm_struct *mm
- 	retval = khugepaged_fork(mm, oldmm);
- 	if (retval)
- 		goto out;
-+	retval = hugetlb_fork(mm, oldmm);
-+	if (retval)
-+		goto out;
- 
- 	prev = NULL;
- 	for (mpnt = oldmm->mmap; mpnt; mpnt = mpnt->vm_next) {
-diff -puN mm/hugetlb.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5 mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5
-+++ a/mm/hugetlb.c
-@@ -2790,13 +2790,20 @@ void hugetlb_show_meminfo(void)
- 				1UL << (huge_page_order(h) + PAGE_SHIFT - 10));
- }
- 
-+static unsigned long mm_hstate_usage(struct mm_struct *mm, int hs_idx)
-+{
-+	if (!mm->hugetlb_usage)
-+		return 0;
-+	return atomic_long_read(&mm->hugetlb_usage->count[hs_idx]);
-+}
-+
- void hugetlb_report_usage(struct seq_file *m, struct mm_struct *mm)
- {
- 	int i;
- 	unsigned long total_usage = 0;
- 
- 	for (i = 0; i < HUGE_MAX_HSTATE; i++) {
--		total_usage += atomic_long_read(&mm->hugetlb_usage.count[i]) *
-+		total_usage += mm_hstate_usage(mm, i) *
- 			(huge_page_size(&hstates[i]) >> 10);
- 	}
- 
-@@ -2807,13 +2814,25 @@ void hugetlb_report_usage(struct seq_fil
- 		if (i > 0)
- 			seq_puts(m, " ");
- 
--		seq_printf(m, "%ldx%dkB",
--			atomic_long_read(&mm->hugetlb_usage.count[i]),
-+		seq_printf(m, "%ld*%lukB", mm_hstate_usage(mm, i),
- 			huge_page_size(&hstates[i]) >> 10);
- 	}
- 	seq_puts(m, ")\n");
- }
- 
-+int hugetlb_fork(struct mm_struct *new, struct mm_struct *old)
-+{
-+	if (old->hugetlb_usage) {
-+		new->hugetlb_usage = kmalloc(sizeof(struct hugetlb_usage),
-+							GFP_KERNEL);
-+		if (!new->hugetlb_usage)
-+			return -ENOMEM;
-+		memcpy(new->hugetlb_usage, old->hugetlb_usage,
-+			sizeof(struct hugetlb_usage));
-+	}
-+	return 0;
-+}
-+
- /* Return the number pages of memory we physically have, in PAGE_SIZE units. */
- unsigned long hugetlb_total_pages(void)
- {
-diff -puN mm/mmap.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5 mm/mmap.c
---- a/mm/mmap.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5
-+++ a/mm/mmap.c
-@@ -2860,6 +2860,7 @@ void exit_mmap(struct mm_struct *mm)
- 			nr_accounted += vma_pages(vma);
- 		vma = remove_vma(vma);
- 	}
-+	exit_hugetlb_mmap(mm);
- 	vm_unacct_memory(nr_accounted);
- }
- 
+ #ifdef CONFIG_NUMA
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-page_isolation-make-set-unset_migratetype_isolate-file-local.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5.patch
-mm-hwpoison-introduce-num_poisoned_pages-wrappers.patch
-mm-hwpoison-dont-try-to-unpoison-containment-failed-pages.patch
+mm-page_isolation-remove-bogus-tests-for-isolated-pages.patch
+mm-page_isolation-remove-bogus-tests-for-isolated-pages-fix.patch
+mm-rename-and-move-get-set_freepage_migratetype.patch
+mm-rename-and-move-get-set_freepage_migratetype-v2.patch
+mm-compaction-more-robust-check-for-scanners-meeting.patch
+mm-compaction-simplify-handling-restart-position-in-free-pages-scanner.patch
+mm-compaction-encapsulate-resetting-cached-scanner-positions.patch
+mm-compaction-always-skip-compound-pages-by-order-in-migrate-scanner.patch
+mm-compaction-skip-compound-pages-by-order-in-free-scanner.patch
+mm-rename-alloc_pages_exact_node-to-__alloc_pages_node.patch
+mm-unify-checks-in-alloc_pages_node-and-__alloc_pages_node.patch
+mm-use-numa_mem_id-in-alloc_pages_node.patch
 
