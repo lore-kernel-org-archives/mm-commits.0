@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- list_lru-dont-call-list_lru_from_kmem-if-the-list_head-is-empty.patch added to -mm tree
-Date: Wed, 19 Aug 2015 16:55:00 -0700
-Message-ID: <55d51754.sgnyz+bUhFQ3XYH6%akpm@linux-foundation.org>
+Subject: + mm-vmscan-unlock-page-while-waiting-on-writeback.patch added to -mm tree
+Date: Thu, 20 Aug 2015 13:15:05 -0700
+Message-ID: <55d63549.5qpg1Bouo0VTc6HO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50564 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54472 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751593AbbHSXzB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 19 Aug 2015 19:55:01 -0400
+	with ESMTP id S1751842AbbHTUPH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Aug 2015 16:15:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jlayton@poochiereds.net, jeff.layton@primarydata.com, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: hughd@google.com, hannes@cmpxchg.org, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: list_lru: don't call list_lru_from_kmem if the list_head is empty
+     Subject: mm, vmscan: unlock page while waiting on writeback
 has been added to the -mm tree.  Its filename is
-     list_lru-dont-call-list_lru_from_kmem-if-the-list_head-is-empty.patch
+     mm-vmscan-unlock-page-while-waiting-on-writeback.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/list_lru-dont-call-list_lru_from_kmem-if-the-list_head-is-empty.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-unlock-page-while-waiting-on-writeback.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/list_lru-dont-call-list_lru_from_kmem-if-the-list_head-is-empty.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-unlock-page-while-waiting-on-writeback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +38,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jeff Layton <jlayton@poochiereds.net>
-Subject: list_lru: don't call list_lru_from_kmem if the list_head is empty
+From: Hugh Dickins <hughd@google.com>
+Subject: mm, vmscan: unlock page while waiting on writeback
 
-If the list_head is empty then we'll have called list_lru_from_kmem for
-nothing.  Move that call inside of the list_empty if block.
+This is merely a politeness: I've not found that shrink_page_list() leads
+to deadlock with the page it holds locked across wait_on_page_writeback();
+but nevertheless, why hold others off by keeping the page locked there?
 
-Signed-off-by: Jeff Layton <jeff.layton@primarydata.com>
-Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
+And while we're at it: remove the mistaken "not " from the commentary on
+this Case 3 (and a distracting blank line from Case 2, if I may).
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmscan.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN mm/list_lru.c~list_lru-dont-call-list_lru_from_kmem-if-the-list_head-is-empty mm/list_lru.c
---- a/mm/list_lru.c~list_lru-dont-call-list_lru_from_kmem-if-the-list_head-is-empty
-+++ a/mm/list_lru.c
-@@ -99,8 +99,8 @@ bool list_lru_add(struct list_lru *lru,
- 	struct list_lru_one *l;
- 
- 	spin_lock(&nlru->lock);
--	l = list_lru_from_kmem(nlru, item);
- 	if (list_empty(item)) {
-+		l = list_lru_from_kmem(nlru, item);
- 		list_add_tail(item, &l->list);
- 		l->nr_items++;
- 		spin_unlock(&nlru->lock);
-@@ -118,8 +118,8 @@ bool list_lru_del(struct list_lru *lru,
- 	struct list_lru_one *l;
- 
- 	spin_lock(&nlru->lock);
--	l = list_lru_from_kmem(nlru, item);
- 	if (!list_empty(item)) {
-+		l = list_lru_from_kmem(nlru, item);
- 		list_del_init(item);
- 		l->nr_items--;
- 		spin_unlock(&nlru->lock);
-_
-
-Patches currently in -mm which might be from jlayton@poochiereds.net are
-
-list_lru-dont-call-list_lru_from_kmem-if-the-list_head-is-empty.patch
-
+diff -puN mm/vmscan.c~mm-vmscan-unlock-page-while-waiting-on-writeback mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-unlock-page-while-waiting-on-writeback
++++ a/mm/vmscan.c
+@@ -982,7 +982,7 @@ static unsigned long shrink_page_list(st
+ 		 *    __GFP_IO|__GFP_FS for this reason); but more thought
+ 		 *    would probably show more reasons.
+ 		 *
+-		 * 3) Legacy memcg encounters a page that is not already marked
++		 * 3) Legacy memcg encounters a page that is already marked
+ 		 *    PageReclaim. memcg does not have any dirty pages
+ 		 *    throttling so we could easily OOM just because too many
+ 		 *    pages are in writeback and there is nothing else to
+@@ -1012,12 +1012,15 @@ static unsigned long shrink_page_list(st
+ 				 */
+ 				SetPageReclaim(page);
+ 				nr_writeback++;
