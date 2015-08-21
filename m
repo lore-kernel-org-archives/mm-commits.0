@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + add-some-typo-words-in-patch-into-spellingtxt.patch added to
- -mm tree
-Date: Fri, 21 Aug 2015 14:02:07 -0700
-Message-ID: <55d791cf.k8WW7z7avyfOAG/q%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens.patch added to -mm tree
+Date: Fri, 21 Aug 2015 14:04:49 -0700
+Message-ID: <55d79271.m/T5kegSMhZlnNeF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39948 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39957 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752221AbbHUVCI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Aug 2015 17:02:08 -0400
+	with ESMTP id S1752221AbbHUVEu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Aug 2015 17:04:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhaolei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/spelling.txt: add some typo-words
+     Subject: mm/compaction: correct to flush migrated pages if pageblock skip happens
 has been added to the -mm tree.  Its filename is
-     add-some-typo-words-in-patch-into-spellingtxt.patch
+     mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/add-some-typo-words-in-patch-into-spellingtxt.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/add-some-typo-words-in-patch-into-spellingtxt.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,207 +39,157 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Zhao Lei <zhaolei@cn.fujitsu.com>
-Subject: scripts/spelling.txt: add some typo-words
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/compaction: correct to flush migrated pages if pageblock skip happens
 
-I write a small script to show word-pair from all linux spelling-typo
-commits, and get following result by sort | uniq -c:
+We cache isolate_start_pfn before entering isolate_migratepages().  If
+pageblock is skipped in isolate_migratepages() due to whatever reason,
+cc->migrate_pfn can be far from isolate_start_pfn hence we flush pages
+that were freed.  For example, the following scenario can be possible:
 
-    181 occured -> occurred
-     78 transfered -> transferred
-     67 recieved -> received
-     65 dependant -> dependent
-     58 wether -> whether
-     56 accomodate -> accommodate
-     54 occured -> occurred
-     51 recieve -> receive
-     47 cant -> can't
-     40 sucessfully -> successfully
-     ...
+- assume order-9 compaction, pageblock order is 9
+- start_isolate_pfn is 0x200
+- isolate_migratepages()
+  - skip a number of pageblocks
+  - start to isolate from pfn 0x600
+  - cc->migrate_pfn = 0x620
+  - return
+- last_migrated_pfn is set to 0x200
+- check flushing condition
+  - current_block_start is set to 0x600
+  - last_migrated_pfn < current_block_start then do useless flush
 
-Some of them are not in spelling.txt, this patch adds the most common
-word-pairs into spelling.txt.
+This wrong flush would not help the performance and success rate so
+this patch tries to fix it. One simple way to know the exact position
+where we start to isolate migratable pages is that we cache it
+in isolate_migratepages() before entering actual isolation. This patch
+implements that and fixes the problem.
 
-Signed-off-by: Zhao Lei <zhaolei@cn.fujitsu.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |   24 ++++++++++++++++++++++++
- 1 file changed, 24 insertions(+)
+ mm/compaction.c |   30 +++++++++++++++---------------
+ mm/internal.h   |    1 +
+ 2 files changed, 16 insertions(+), 15 deletions(-)
 
-diff -puN scripts/spelling.txt~add-some-typo-words-in-patch-into-spellingtxt scripts/spelling.txt
---- a/scripts/spelling.txt~add-some-typo-words-in-patch-into-spellingtxt
-+++ a/scripts/spelling.txt
-@@ -32,6 +32,7 @@ accoring||according
- accout||account
- accquire||acquire
- accquired||acquired
-+accross||across
- acessable||accessible
- acess||access
- achitecture||architecture
-@@ -100,8 +101,10 @@ appropiate||appropriate
- appropriatly||appropriately
- approriate||appropriate
- approriately||appropriately
-+apropriate||appropriate
- aquainted||acquainted
- aquired||acquired
-+aquisition||acquisition
- arbitary||arbitrary
- architechture||architecture
- arguement||argument
-@@ -111,6 +114,8 @@ arne't||aren't
- arraival||arrival
- artifical||artificial
- artillary||artillery
-+asign||assign
-+assertation||assertion
- assiged||assigned
- assigment||assignment
- assigments||assignments
-@@ -136,6 +141,7 @@ automatize||automate
- automatized||automated
- automatizes||automates
- autonymous||autonomous
-+auxillary||auxiliary
- auxilliary||auxiliary
- avaiable||available
- avaible||available
-@@ -234,6 +240,8 @@ compatability||compatibility
- compatable||compatible
- compatibiliy||compatibility
- compatibilty||compatibility
-+compatiblity||compatibility
-+competion||completion
- compilant||compliant
- compleatly||completely
- completly||completely
-@@ -294,6 +302,7 @@ defferred||deferred
- definate||definite
- definately||definitely
- defintion||definition
-+defintions||definitions
- defualt||default
- defult||default
- deivce||device
-@@ -309,6 +318,7 @@ depreacted||deprecated
- depreacte||deprecate
- desactivate||deactivate
- desciptors||descriptors
-+descripton||description
- descrition||description
- descritptor||descriptor
- desctiptor||descriptor
-@@ -330,6 +340,7 @@ devided||divided
- deviece||device
- diable||disable
- dictionnary||dictionary
-+didnt||didn't
- diferent||different
- differrence||difference
- difinition||definition
-@@ -347,6 +358,7 @@ docuentation||documentation
- documantation||documentation
- documentaion||documentation
- documment||document
-+doesnt||doesn't
- dorp||drop
- dosen||doesn
- downlad||download
-@@ -453,11 +465,13 @@ grahical||graphical
- grahpical||graphical
- grapic||graphic
- guage||gauge
-+guarenteed||guaranteed
- guarentee||guarantee
- halfs||halves
- hander||handler
- handfull||handful
- hanled||handled
-+happend||happened
- harware||hardware
- heirarchically||hierarchically
- helpfull||helpful
-@@ -515,6 +529,7 @@ initialzed||initialized
- initilization||initialization
- initilize||initialize
- inofficial||unofficial
-+insititute||institute
- instal||install
- inteface||interface
- integreated||integrated
-@@ -549,6 +564,7 @@ invididual||individual
- invokation||invocation
- invokations||invocations
- irrelevent||irrelevant
-+isnt||isn't
- isssue||issue
- itslef||itself
- jave||java
-@@ -561,6 +577,7 @@ langauage||language
- langauge||language
- langugage||language
- lauch||launch
-+layed||laid
- leightweight||lightweight
- lengh||length
- lenght||length
-@@ -717,6 +734,7 @@ preceeding||preceding
- preceed||precede
- precendence||precedence
- precission||precision
-+preemptable||preemptible
- prefered||preferred
- prefferably||preferably
- premption||preemption
-@@ -747,6 +765,7 @@ programers||programmers
- programm||program
- programms||programs
- progresss||progress
-+promiscous||promiscuous
- promps||prompts
- pronnounced||pronounced
- prononciation||pronunciation
-@@ -820,6 +839,7 @@ reseting||resetting
- resizeable||resizable
- resouces||resources
- resoures||resources
-+responce||response
- ressizes||resizes
- ressource||resource
- ressources||resources
-@@ -872,6 +892,7 @@ setts||sets
- settting||setting
- shotdown||shutdown
- shoud||should
-+shouldnt||shouldn't
- shoule||should
- shrinked||shrunk
- siginificantly||significantly
-@@ -916,9 +937,11 @@ straming||streaming
- struc||struct
- structres||structures
- stuct||struct
-+stucture||structure
- sturcture||structure
- subdirectoires||subdirectories
- suble||subtle
-+substract||subtract
- succesfully||successfully
- succesful||successful
- successfull||successful
-@@ -1031,6 +1054,7 @@ virtiual||virtual
- visiters||visitors
- vitual||virtual
- wating||waiting
-+wether||whether
- whataver||whatever
- whcih||which
- whenver||whenever
+diff -puN mm/compaction.c~mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens
++++ a/mm/compaction.c
+@@ -1115,6 +1115,7 @@ static isolate_migrate_t isolate_migrate
+ 					struct compact_control *cc)
+ {
+ 	unsigned long low_pfn, end_pfn;
++	unsigned long isolate_start_pfn;
+ 	struct page *page;
+ 	const isolate_mode_t isolate_mode =
+ 		(sysctl_compact_unevictable_allowed ? ISOLATE_UNEVICTABLE : 0) |
+@@ -1163,6 +1164,7 @@ static isolate_migrate_t isolate_migrate
+ 			continue;
+ 
+ 		/* Perform the isolation */
++		isolate_start_pfn = low_pfn;
+ 		low_pfn = isolate_migratepages_block(cc, low_pfn, end_pfn,
+ 								isolate_mode);
+ 
+@@ -1172,6 +1174,15 @@ static isolate_migrate_t isolate_migrate
+ 		}
+ 
+ 		/*
++		 * Record where we could have freed pages by migration and not
++		 * yet flushed them to buddy allocator.
++		 * - this is the lowest page that could have been isolated and
++		 * then freed by migration.
++		 */
++		if (cc->nr_migratepages && !cc->last_migrated_pfn)
++			cc->last_migrated_pfn = isolate_start_pfn;
++
++		/*
+ 		 * Either we isolated something and proceed with migration. Or
+ 		 * we failed and compact_zone should decide if we should
+ 		 * continue or not.
+@@ -1342,7 +1353,6 @@ static int compact_zone(struct zone *zon
+ 	unsigned long end_pfn = zone_end_pfn(zone);
+ 	const int migratetype = gfpflags_to_migratetype(cc->gfp_mask);
+ 	const bool sync = cc->mode != MIGRATE_ASYNC;
+-	unsigned long last_migrated_pfn = 0;
+ 
+ 	ret = compaction_suitable(zone, cc->order, cc->alloc_flags,
+ 							cc->classzone_idx);
+@@ -1380,6 +1390,7 @@ static int compact_zone(struct zone *zon
+ 		zone->compact_cached_migrate_pfn[0] = cc->migrate_pfn;
+ 		zone->compact_cached_migrate_pfn[1] = cc->migrate_pfn;
+ 	}
++	cc->last_migrated_pfn = 0;
+ 
+ 	trace_mm_compaction_begin(start_pfn, cc->migrate_pfn,
+ 				cc->free_pfn, end_pfn, sync);
+@@ -1389,7 +1400,6 @@ static int compact_zone(struct zone *zon
+ 	while ((ret = compact_finished(zone, cc, migratetype)) ==
+ 						COMPACT_CONTINUE) {
+ 		int err;
+-		unsigned long isolate_start_pfn = cc->migrate_pfn;
+ 
+ 		switch (isolate_migratepages(zone, cc)) {
+ 		case ISOLATE_ABORT:
+@@ -1429,16 +1439,6 @@ static int compact_zone(struct zone *zon
+ 			}
+ 		}
+ 
+-		/*
+-		 * Record where we could have freed pages by migration and not
+-		 * yet flushed them to buddy allocator. We use the pfn that
+-		 * isolate_migratepages() started from in this loop iteration
+-		 * - this is the lowest page that could have been isolated and
+-		 * then freed by migration.
+-		 */
+-		if (!last_migrated_pfn)
+-			last_migrated_pfn = isolate_start_pfn;
+-
+ check_drain:
+ 		/*
+ 		 * Has the migration scanner moved away from the previous
+@@ -1447,18 +1447,18 @@ check_drain:
+ 		 * compact_finished() can detect immediately if allocation
+ 		 * would succeed.
+ 		 */
+-		if (cc->order > 0 && last_migrated_pfn) {
++		if (cc->order > 0 && cc->last_migrated_pfn) {
+ 			int cpu;
+ 			unsigned long current_block_start =
+ 				cc->migrate_pfn & ~((1UL << cc->order) - 1);
+ 
+-			if (last_migrated_pfn < current_block_start) {
++			if (cc->last_migrated_pfn < current_block_start) {
+ 				cpu = get_cpu();
+ 				lru_add_drain_cpu(cpu);
+ 				drain_local_pages(zone);
+ 				put_cpu();
+ 				/* No more flushing until we migrate again */
+-				last_migrated_pfn = 0;
++				cc->last_migrated_pfn = 0;
+ 			}
+ 		}
+ 
+diff -puN mm/internal.h~mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens mm/internal.h
+--- a/mm/internal.h~mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens
++++ a/mm/internal.h
+@@ -182,6 +182,7 @@ struct compact_control {
+ 	unsigned long nr_migratepages;	/* Number of pages to migrate */
+ 	unsigned long free_pfn;		/* isolate_freepages search base */
+ 	unsigned long migrate_pfn;	/* isolate_migratepages search base */
++	unsigned long last_migrated_pfn;/* Not yet flushed page being freed */
+ 	enum migrate_mode mode;		/* Async or sync migration mode */
+ 	bool ignore_skip_hint;		/* Scan blocks even if marked skip */
+ 	int order;			/* order a direct compactor needs */
 _
 
-Patches currently in -mm which might be from zhaolei@cn.fujitsu.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-add-some-typo-words-in-patch-into-spellingtxt.patch
+mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens.patch
 
