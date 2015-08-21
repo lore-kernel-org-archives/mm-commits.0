@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-optimize-error-handling-in-dlm_request_join.patch added
- to -mm tree
-Date: Fri, 21 Aug 2015 14:00:46 -0700
-Message-ID: <55d7917e.6vNGqCp572ubvWgE%akpm@linux-foundation.org>
+Subject: + add-some-typo-words-in-patch-into-spellingtxt.patch added to
+ -mm tree
+Date: Fri, 21 Aug 2015 14:02:07 -0700
+Message-ID: <55d791cf.k8WW7z7avyfOAG/q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39945 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39948 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752232AbbHUVAr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Aug 2015 17:00:47 -0400
+	with ESMTP id S1752221AbbHUVCI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Aug 2015 17:02:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: norton.zhu@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, srinivas.eeda@oracle.com, mm-commits@vger.kernel.org
+To: zhaolei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: optimize error handling in dlm_request_join
+     Subject: scripts/spelling.txt: add some typo-words
 has been added to the -mm tree.  Its filename is
-     ocfs2-optimize-error-handling-in-dlm_request_join.patch
+     add-some-typo-words-in-patch-into-spellingtxt.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-optimize-error-handling-in-dlm_request_join.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/add-some-typo-words-in-patch-into-spellingtxt.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-optimize-error-handling-in-dlm_request_join.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/add-some-typo-words-in-patch-into-spellingtxt.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,110 +39,207 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Norton.Zhu" <norton.zhu@huawei.com>
-Subject: ocfs2: optimize error handling in dlm_request_join
+From: Zhao Lei <zhaolei@cn.fujitsu.com>
+Subject: scripts/spelling.txt: add some typo-words
 
-Currently error handling in dlm_request_join is a little obscure, so
-optimize it to promote readability.
+I write a small script to show word-pair from all linux spelling-typo
+commits, and get following result by sort | uniq -c:
 
-If packet.code is invalid, reset it to JOIN_DISALLOW to keep it meaningful. 
-It only influences the log printing.
+    181 occured -> occurred
+     78 transfered -> transferred
+     67 recieved -> received
+     65 dependant -> dependent
+     58 wether -> whether
+     56 accomodate -> accommodate
+     54 occured -> occurred
+     51 recieve -> receive
+     47 cant -> can't
+     40 sucessfully -> successfully
+     ...
 
-Signed-off-by: Norton.Zhu <norton.zhu@huawei.com>
-Cc: Srinivas Eeda <srinivas.eeda@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+Some of them are not in spelling.txt, this patch adds the most common
+word-pairs into spelling.txt.
+
+Signed-off-by: Zhao Lei <zhaolei@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmdomain.c |   71 ++++++++++++++++++++-----------------
- 1 file changed, 39 insertions(+), 32 deletions(-)
+ scripts/spelling.txt |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
 
-diff -puN fs/ocfs2/dlm/dlmdomain.c~ocfs2-optimize-error-handling-in-dlm_request_join fs/ocfs2/dlm/dlmdomain.c
---- a/fs/ocfs2/dlm/dlmdomain.c~ocfs2-optimize-error-handling-in-dlm_request_join
-+++ a/fs/ocfs2/dlm/dlmdomain.c
-@@ -1465,39 +1465,46 @@ static int dlm_request_join(struct dlm_c
- 	if (status == -ENOPROTOOPT) {
- 		status = 0;
- 		*response = JOIN_OK_NO_MAP;
--	} else if (packet.code == JOIN_DISALLOW ||
--		   packet.code == JOIN_OK_NO_MAP) {
--		*response = packet.code;
--	} else if (packet.code == JOIN_PROTOCOL_MISMATCH) {
--		mlog(ML_NOTICE,
--		     "This node requested DLM locking protocol %u.%u and "
--		     "filesystem locking protocol %u.%u.  At least one of "
--		     "the protocol versions on node %d is not compatible, "
--		     "disconnecting\n",
--		     dlm->dlm_locking_proto.pv_major,
--		     dlm->dlm_locking_proto.pv_minor,
--		     dlm->fs_locking_proto.pv_major,
--		     dlm->fs_locking_proto.pv_minor,
--		     node);
--		status = -EPROTO;
--		*response = packet.code;
--	} else if (packet.code == JOIN_OK) {
--		*response = packet.code;
--		/* Use the same locking protocol as the remote node */
--		dlm->dlm_locking_proto.pv_minor = packet.dlm_minor;
--		dlm->fs_locking_proto.pv_minor = packet.fs_minor;
--		mlog(0,
--		     "Node %d responds JOIN_OK with DLM locking protocol "
--		     "%u.%u and fs locking protocol %u.%u\n",
--		     node,
--		     dlm->dlm_locking_proto.pv_major,
--		     dlm->dlm_locking_proto.pv_minor,
--		     dlm->fs_locking_proto.pv_major,
--		     dlm->fs_locking_proto.pv_minor);
- 	} else {
--		status = -EINVAL;
--		mlog(ML_ERROR, "invalid response %d from node %u\n",
--		     packet.code, node);
-+		*response = packet.code;
-+		switch (packet.code) {
-+		case JOIN_DISALLOW:
-+		case JOIN_OK_NO_MAP:
-+			break;
-+		case JOIN_PROTOCOL_MISMATCH:
-+			mlog(ML_NOTICE,
-+			     "This node requested DLM locking protocol %u.%u and "
-+			     "filesystem locking protocol %u.%u.  At least one of "
-+			     "the protocol versions on node %d is not compatible, "
-+			     "disconnecting\n",
-+			     dlm->dlm_locking_proto.pv_major,
-+			     dlm->dlm_locking_proto.pv_minor,
-+			     dlm->fs_locking_proto.pv_major,
-+			     dlm->fs_locking_proto.pv_minor,
-+			     node);
-+			status = -EPROTO;
-+			break;
-+		case JOIN_OK:
-+			/* Use the same locking protocol as the remote node */
-+			dlm->dlm_locking_proto.pv_minor = packet.dlm_minor;
-+			dlm->fs_locking_proto.pv_minor = packet.fs_minor;
-+			mlog(0,
-+			     "Node %d responds JOIN_OK with DLM locking protocol "
-+			     "%u.%u and fs locking protocol %u.%u\n",
-+			     node,
-+			     dlm->dlm_locking_proto.pv_major,
-+			     dlm->dlm_locking_proto.pv_minor,
-+			     dlm->fs_locking_proto.pv_major,
-+			     dlm->fs_locking_proto.pv_minor);
-+			break;
-+		default:
-+			status = -EINVAL;
-+			mlog(ML_ERROR, "invalid response %d from node %u\n",
-+			     packet.code, node);
-+			/* Reset response to JOIN_DISALLOW */
-+			*response = JOIN_DISALLOW;
-+			break;
-+		}
- 	}
- 
- 	mlog(0, "status %d, node %d response is %d\n", status, node,
+diff -puN scripts/spelling.txt~add-some-typo-words-in-patch-into-spellingtxt scripts/spelling.txt
+--- a/scripts/spelling.txt~add-some-typo-words-in-patch-into-spellingtxt
++++ a/scripts/spelling.txt
+@@ -32,6 +32,7 @@ accoring||according
+ accout||account
+ accquire||acquire
+ accquired||acquired
++accross||across
+ acessable||accessible
+ acess||access
+ achitecture||architecture
+@@ -100,8 +101,10 @@ appropiate||appropriate
+ appropriatly||appropriately
+ approriate||appropriate
+ approriately||appropriately
++apropriate||appropriate
+ aquainted||acquainted
+ aquired||acquired
++aquisition||acquisition
+ arbitary||arbitrary
+ architechture||architecture
+ arguement||argument
+@@ -111,6 +114,8 @@ arne't||aren't
+ arraival||arrival
+ artifical||artificial
+ artillary||artillery
++asign||assign
++assertation||assertion
+ assiged||assigned
+ assigment||assignment
+ assigments||assignments
+@@ -136,6 +141,7 @@ automatize||automate
+ automatized||automated
+ automatizes||automates
+ autonymous||autonomous
++auxillary||auxiliary
+ auxilliary||auxiliary
+ avaiable||available
+ avaible||available
+@@ -234,6 +240,8 @@ compatability||compatibility
+ compatable||compatible
+ compatibiliy||compatibility
+ compatibilty||compatibility
++compatiblity||compatibility
++competion||completion
+ compilant||compliant
+ compleatly||completely
+ completly||completely
+@@ -294,6 +302,7 @@ defferred||deferred
+ definate||definite
+ definately||definitely
+ defintion||definition
++defintions||definitions
+ defualt||default
+ defult||default
+ deivce||device
+@@ -309,6 +318,7 @@ depreacted||deprecated
+ depreacte||deprecate
+ desactivate||deactivate
+ desciptors||descriptors
++descripton||description
+ descrition||description
+ descritptor||descriptor
+ desctiptor||descriptor
+@@ -330,6 +340,7 @@ devided||divided
+ deviece||device
+ diable||disable
+ dictionnary||dictionary
++didnt||didn't
+ diferent||different
+ differrence||difference
+ difinition||definition
+@@ -347,6 +358,7 @@ docuentation||documentation
+ documantation||documentation
+ documentaion||documentation
+ documment||document
++doesnt||doesn't
+ dorp||drop
+ dosen||doesn
+ downlad||download
+@@ -453,11 +465,13 @@ grahical||graphical
+ grahpical||graphical
+ grapic||graphic
+ guage||gauge
++guarenteed||guaranteed
+ guarentee||guarantee
+ halfs||halves
+ hander||handler
+ handfull||handful
+ hanled||handled
++happend||happened
+ harware||hardware
+ heirarchically||hierarchically
+ helpfull||helpful
+@@ -515,6 +529,7 @@ initialzed||initialized
+ initilization||initialization
+ initilize||initialize
+ inofficial||unofficial
++insititute||institute
+ instal||install
+ inteface||interface
+ integreated||integrated
+@@ -549,6 +564,7 @@ invididual||individual
+ invokation||invocation
+ invokations||invocations
+ irrelevent||irrelevant
++isnt||isn't
+ isssue||issue
+ itslef||itself
+ jave||java
+@@ -561,6 +577,7 @@ langauage||language
+ langauge||language
+ langugage||language
+ lauch||launch
++layed||laid
+ leightweight||lightweight
+ lengh||length
+ lenght||length
+@@ -717,6 +734,7 @@ preceeding||preceding
+ preceed||precede
+ precendence||precedence
+ precission||precision
++preemptable||preemptible
+ prefered||preferred
+ prefferably||preferably
+ premption||preemption
+@@ -747,6 +765,7 @@ programers||programmers
+ programm||program
+ programms||programs
+ progresss||progress
++promiscous||promiscuous
+ promps||prompts
+ pronnounced||pronounced
+ prononciation||pronunciation
+@@ -820,6 +839,7 @@ reseting||resetting
+ resizeable||resizable
+ resouces||resources
+ resoures||resources
++responce||response
+ ressizes||resizes
+ ressource||resource
+ ressources||resources
+@@ -872,6 +892,7 @@ setts||sets
+ settting||setting
+ shotdown||shutdown
+ shoud||should
++shouldnt||shouldn't
+ shoule||should
+ shrinked||shrunk
+ siginificantly||significantly
+@@ -916,9 +937,11 @@ straming||streaming
+ struc||struct
+ structres||structures
+ stuct||struct
++stucture||structure
+ sturcture||structure
+ subdirectoires||subdirectories
+ suble||subtle
++substract||subtract
+ succesfully||successfully
+ succesful||successful
+ successfull||successful
+@@ -1031,6 +1054,7 @@ virtiual||virtual
+ visiters||visitors
+ vitual||virtual
+ wating||waiting
++wether||whether
+ whataver||whatever
+ whcih||which
+ whenver||whenever
 _
 
-Patches currently in -mm which might be from norton.zhu@huawei.com are
+Patches currently in -mm which might be from zhaolei@cn.fujitsu.com are
 
-ocfs2-optimize-error-handling-in-dlm_request_join.patch
+add-some-typo-words-in-patch-into-spellingtxt.patch
 
