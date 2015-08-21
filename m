@@ -1,79 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: + test_kasan-make-kmalloc_oob_krealloc_less-more-correctly.patch
- added to -mm tree
-Date: Fri, 21 Aug 2015 14:09:15 -0700
-Message-ID: <55d7937b.rxqUDzL6Chjsdm52%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-make-page-pfmemalloc-check-more-robust-fix.patch removed from -mm tree
+Date: Fri, 21 Aug 2015 14:10:16 -0700
+Message-ID: <55d793b8.gfkkuF+J2RIEc5Av%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39968 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39973 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752246AbbHUVJQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Aug 2015 17:09:16 -0400
+	with ESMTP id S1752337AbbHUVKR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Aug 2015 17:10:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: long.wanglong@huawei.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, eric.dumazet@gmail.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_kasan.c: make kmalloc_oob_krealloc_less more correctly
-has been added to the -mm tree.  Its filename is
-     test_kasan-make-kmalloc_oob_krealloc_less-more-correctly.patch
+     Subject: mm-make-page-pfmemalloc-check-more-robust-fix
+has been removed from the -mm tree.  Its filename was
+     mm-make-page-pfmemalloc-check-more-robust-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/test_kasan-make-kmalloc_oob_krealloc_less-more-correctly.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/test_kasan-make-kmalloc_oob_krealloc_less-more-correctly.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-make-page-pfmemalloc-check-more-robust.patch
 
 ------------------------------------------------------
-From: Wang Long <long.wanglong@huawei.com>
-Subject: lib/test_kasan.c: make kmalloc_oob_krealloc_less more correctly
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-make-page-pfmemalloc-check-more-robust-fix
 
-In kmalloc_oob_krealloc_less, I think it is better to test
-the size2 boundary.
+fix blooper in slub
 
-If we do not call krealloc, the access of position size1 will still cause
-out-of-bounds and access of position size2 does not.  After call krealloc,
-the access of position size2 cause out-of-bounds.  So using size2 is more
-correct.
-
-Signed-off-by: Wang Long <long.wanglong@huawei.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |    2 +-
+ mm/slub.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/test_kasan.c~test_kasan-make-kmalloc_oob_krealloc_less-more-correctly lib/test_kasan.c
---- a/lib/test_kasan.c~test_kasan-make-kmalloc_oob_krealloc_less-more-correctly
-+++ a/lib/test_kasan.c
-@@ -114,7 +114,7 @@ static noinline void __init kmalloc_oob_
- 		kfree(ptr1);
- 		return;
- 	}
--	ptr2[size1] = 'x';
-+	ptr2[size2] = 'x';
- 	kfree(ptr2);
- }
+diff -puN mm/slub.c~mm-make-page-pfmemalloc-check-more-robust-fix mm/slub.c
+--- a/mm/slub.c~mm-make-page-pfmemalloc-check-more-robust-fix
++++ a/mm/slub.c
+@@ -1427,7 +1427,7 @@ static struct page *new_slab(struct kmem
+ 	inc_slabs_node(s, page_to_nid(page), page->objects);
+ 	page->slab_cache = s;
+ 	__SetPageSlab(page);
+-	if (page_is_pfmemalloc)
++	if (page_is_pfmemalloc(page))
+ 		SetPageSlabPfmemalloc(page);
  
+ 	start = page_address(page);
 _
 
-Patches currently in -mm which might be from long.wanglong@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-test_kasan-just-fix-a-typo.patch
-test_kasan-make-kmalloc_oob_krealloc_less-more-correctly.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
+mm-make-page-pfmemalloc-check-more-robust.patch
+kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
+scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
+ocfs2-sysfile-interfaces-for-online-file-check-fix.patch
+fs-create-and-use-seq_show_option-for-escaping-fix.patch
+watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix.patch
+watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch
+mm.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
+genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
+mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
+dax-revert-userfaultfd-change.patch
+thp-prepare-for-dax-huge-pages-fix.patch
+pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
+pagemap-update-documentation-fix.patch
+mm-show-proportional-swap-share-of-the-mapping-fix.patch
+mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
+memcg-export-struct-mem_cgroup-fix.patch
+memcg-export-struct-mem_cgroup-fix-2.patch
+mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
+mm-srcu-ify-shrinkers-fix-fix.patch
+x86-use-generic-early-mem-copy-fix.patch
+mm-mmap-simplify-the-failure-return-working-flow-fix.patch
+memory-hot-addedthe-memory-can-not-been-added-to-movable-zone-fix.patch
+zswap-dynamic-pool-creation-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+proc-add-kpageidle-file-fix-6-fix.patch
+proc-add-kpageidle-file-fix-6-fix-2-fix.patch
+proc-export-idle-flag-via-kpageflags-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
+fs-coda-fix-readlink-buffer-overflow-checkpatch-fixes.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix-fix.patch
+kexec-split-kexec_load-syscall-from-kexec-core-code-checkpatch-fixes.patch
+align-crash_notes-allocation-to-make-it-be-inside-one-physical-page-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix-fix.patch
+mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix-checkpatch-fixes.patch
+schedh-dont-include-mm_typesh.patch
+schedh-dont-include-mm_typesh-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
