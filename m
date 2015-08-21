@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps-fix.patch added to -mm tree
-Date: Thu, 20 Aug 2015 16:40:54 -0700
-Message-ID: <55d66586.0hx6UZWASURZ3wP5%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 21 Aug 2015 13:00:39 -0700
+Message-ID: <55d78367.cweatuRzxVUD82i5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59077 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38041 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751700AbbHTXkz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 20 Aug 2015 19:40:55 -0400
+	with ESMTP id S1751730AbbHUUAk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Aug 2015 16:00:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/filesystems/proc.txt: give additional comment about hugetlb usage
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps-fix.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,38 +38,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: Documentation/filesystems/proc.txt: give additional comment about hugetlb usage
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/media/pci/cobalt/Kconfig         |    4 ----
+ drivers/media/v4l2-core/videobuf2-core.c |    3 ---
+ 2 files changed, 7 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps-fix Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps-fix
-+++ a/Documentation/filesystems/proc.txt
-@@ -457,7 +457,8 @@ anonymous copy.
+diff -puN drivers/media/pci/cobalt/Kconfig~linux-next-git-rejects drivers/media/pci/cobalt/Kconfig
+--- a/drivers/media/pci/cobalt/Kconfig~linux-next-git-rejects
++++ a/drivers/media/pci/cobalt/Kconfig
+@@ -1,12 +1,8 @@
+ config VIDEO_COBALT
+ 	tristate "Cisco Cobalt support"
+ 	depends on VIDEO_V4L2 && I2C && MEDIA_CONTROLLER
+-<<<<<<< HEAD
+-	depends on PCI_MSI && MTD_COMPLEX_MAPPINGS && GPIOLIB
+-=======
+ 	depends on PCI_MSI && MTD_COMPLEX_MAPPINGS
+ 	depends on GPIOLIB || COMPILE_TEST
+->>>>>>> linux-next/akpm-base
+ 	depends on SND
+ 	select I2C_ALGOBIT
+ 	select VIDEO_ADV7604
+diff -puN drivers/media/v4l2-core/videobuf2-core.c~linux-next-git-rejects drivers/media/v4l2-core/videobuf2-core.c
+--- a/drivers/media/v4l2-core/videobuf2-core.c~linux-next-git-rejects
++++ a/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1215,11 +1215,8 @@ void vb2_buffer_done(struct vb2_buffer *
+ 	atomic_dec(&q->owned_by_drv_count);
+ 	spin_unlock_irqrestore(&q->done_lock, flags);
  
- "AnonHugePages" shows the ammount of memory backed by transparent hugepage.
+-<<<<<<< HEAD
+-=======
+ 	trace_vb2_buf_done(q, vb);
  
--"HugetlbPages" shows the ammount of memory backed by hugetlbfs page.
-+"HugetlbPages" shows the ammount of memory backed by hugetlbfs page (which is
-+not counted in "Rss" or "Pss" field for historical reasons.)
- 
- "Swap" shows how much would-be-anonymous memory is also used, but out on
- swap.  SwapPss" shows proportional swap share of this mapping.
+->>>>>>> linux-next/akpm-base
+ 	switch (state) {
+ 	case VB2_BUF_STATE_QUEUED:
+ 		return;
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_isolation-make-set-unset_migratetype_isolate-file-local.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps-fix.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5.patch
-mm-hwpoison-introduce-num_poisoned_pages-wrappers.patch
-mm-hwpoison-dont-try-to-unpoison-containment-failed-pages.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+net-netfilter-ipset-work-around-gcc-444-initializer-bug.patch
+mm-make-page-pfmemalloc-check-more-robust-fix.patch
+kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
+scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
+ocfs2-sysfile-interfaces-for-online-file-check-fix.patch
+fs-create-and-use-seq_show_option-for-escaping-fix.patch
+watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix.patch
+watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch
+mm.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
+genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
+mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
+dax-revert-userfaultfd-change.patch
+thp-prepare-for-dax-huge-pages-fix.patch
+pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
+pagemap-update-documentation-fix.patch
+mm-show-proportional-swap-share-of-the-mapping-fix.patch
+mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
+memcg-export-struct-mem_cgroup-fix.patch
+memcg-export-struct-mem_cgroup-fix-2.patch
+mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
+mm-srcu-ify-shrinkers-fix-fix.patch
+x86-use-generic-early-mem-copy-fix.patch
+mm-mmap-simplify-the-failure-return-working-flow-fix.patch
+memory-hot-addedthe-memory-can-not-been-added-to-movable-zone-fix.patch
+zswap-dynamic-pool-creation-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+proc-add-kpageidle-file-fix-6-fix.patch
+proc-add-kpageidle-file-fix-6-fix-2-fix.patch
+proc-export-idle-flag-via-kpageflags-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
+fs-coda-fix-readlink-buffer-overflow-checkpatch-fixes.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix-fix.patch
+kexec-split-kexec_load-syscall-from-kexec-core-code-checkpatch-fixes.patch
+align-crash_notes-allocation-to-make-it-be-inside-one-physical-page-fix.patch
+linux-next-rejects.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix-fix.patch
+mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix-checkpatch-fixes.patch
+schedh-dont-include-mm_typesh.patch
+schedh-dont-include-mm_typesh-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
