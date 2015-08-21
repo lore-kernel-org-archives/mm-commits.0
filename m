@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-dlm-use-list_for_each_entry-instead-of-list_for_each.patch added to
- -mm tree
-Date: Fri, 21 Aug 2015 14:06:01 -0700
-Message-ID: <55d792b9.4imxpjJG2kuj0xKe%akpm@linux-foundation.org>
+Subject: + test_kasan-make-kmalloc_oob_krealloc_less-more-correctly.patch
+ added to -mm tree
+Date: Fri, 21 Aug 2015 14:09:15 -0700
+Message-ID: <55d7937b.rxqUDzL6Chjsdm52%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39962 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39968 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752350AbbHUVGC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Aug 2015 17:06:02 -0400
+	with ESMTP id S1752246AbbHUVJQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 21 Aug 2015 17:09:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: long.wanglong@huawei.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: use list_for_each_entry instead of list_for_each
+     Subject: lib/test_kasan.c: make kmalloc_oob_krealloc_less more correctly
 has been added to the -mm tree.  Its filename is
-     ocfs2-dlm-use-list_for_each_entry-instead-of-list_for_each.patch
+     test_kasan-make-kmalloc_oob_krealloc_less-more-correctly.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-use-list_for_each_entry-instead-of-list_for_each.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/test_kasan-make-kmalloc_oob_krealloc_less-more-correctly.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-use-list_for_each_entry-instead-of-list_for_each.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/test_kasan-make-kmalloc_oob_krealloc_less-more-correctly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,55 +39,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2/dlm: use list_for_each_entry instead of list_for_each
+From: Wang Long <long.wanglong@huawei.com>
+Subject: lib/test_kasan.c: make kmalloc_oob_krealloc_less more correctly
 
-Use list_for_each_entry instead of list_for_each to simplify code.
+In kmalloc_oob_krealloc_less, I think it is better to test
+the size2 boundary.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
+If we do not call krealloc, the access of position size1 will still cause
+out-of-bounds and access of position size2 does not.  After call krealloc,
+the access of position size2 cause out-of-bounds.  So using size2 is more
+correct.
+
+Signed-off-by: Wang Long <long.wanglong@huawei.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ lib/test_kasan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-use-list_for_each_entry-instead-of-list_for_each fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-use-list_for_each_entry-instead-of-list_for_each
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -1776,7 +1776,7 @@ static int dlm_process_recovery_data(str
- 				     struct dlm_migratable_lockres *mres)
- {
- 	struct dlm_migratable_lock *ml;
--	struct list_head *queue, *iter;
-+	struct list_head *queue;
- 	struct list_head *tmpq = NULL;
- 	struct dlm_lock *newlock = NULL;
- 	struct dlm_lockstatus *lksb = NULL;
-@@ -1821,9 +1821,7 @@ static int dlm_process_recovery_data(str
- 			spin_lock(&res->spinlock);
- 			for (j = DLM_GRANTED_LIST; j <= DLM_BLOCKED_LIST; j++) {
- 				tmpq = dlm_list_idx_to_ptr(res, j);
--				list_for_each(iter, tmpq) {
--					lock = list_entry(iter,
--						  struct dlm_lock, list);
-+				list_for_each_entry(lock, tmpq, list) {
- 					if (lock->ml.cookie == ml->cookie)
- 						break;
- 					lock = NULL;
+diff -puN lib/test_kasan.c~test_kasan-make-kmalloc_oob_krealloc_less-more-correctly lib/test_kasan.c
+--- a/lib/test_kasan.c~test_kasan-make-kmalloc_oob_krealloc_less-more-correctly
++++ a/lib/test_kasan.c
+@@ -114,7 +114,7 @@ static noinline void __init kmalloc_oob_
+ 		kfree(ptr1);
+ 		return;
+ 	}
+-	ptr2[size1] = 'x';
++	ptr2[size2] = 'x';
+ 	kfree(ptr2);
+ }
+ 
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from long.wanglong@huawei.com are
 
-ocfs2-fix-race-between-dio-and-recover-orphan.patch
-ocfs2-fix-several-issues-of-append-dio.patch
-ocfs2-do-not-bug-if-buffer-not-uptodate-in-__ocfs2_journal_access.patch
-ocfs2-clean-up-unused-local-variables-in-ocfs2_file_write_iter.patch
-ocfs2-adjust-code-to-match-locking-unlocking-order.patch
-ocfs2-remove-unneeded-code-in-ocfs2_dlm_init.patch
-ocfs2-fix-bug-when-o2hb_register_callback-fails.patch
-ocfs2-remove-unneeded-code-in-dlm_register_domain_handlers.patch
-ocfs2-dlm-use-list_for_each_entry-instead-of-list_for_each.patch
-ocfs2-fix-race-between-crashed-dio-and-rm.patch
+test_kasan-just-fix-a-typo.patch
+test_kasan-make-kmalloc_oob_krealloc_less-more-correctly.patch
 
