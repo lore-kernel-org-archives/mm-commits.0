@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + schedh-dont-include-mm_typesh-fix-2.patch added to -mm tree
-Date: Mon, 24 Aug 2015 15:03:55 -0700
-Message-ID: <55db94cb.KnZTXCusyRp21NOa%akpm@linux-foundation.org>
+Subject: +
+ uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
+ added to -mm tree
+Date: Mon, 24 Aug 2015 16:12:39 -0700
+Message-ID: <55dba4e7.cDtLdkz+pcwZAaKV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42879 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46775 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754236AbbHXWD4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Aug 2015 18:03:56 -0400
+	with ESMTP id S1750942AbbHXXMk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Aug 2015 19:12:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mgorman@techsingularity.net, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: schedh-dont-include-mm_typesh-fix-2
+     Subject: uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix
 has been added to the -mm tree.  Its filename is
-     schedh-dont-include-mm_typesh-fix-2.patch
+     uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/schedh-dont-include-mm_typesh-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/schedh-dont-include-mm_typesh-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,39 +41,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: schedh-dont-include-mm_typesh-fix-2
+Subject: uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix
 
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- 0 files changed
+ arch/arm/mm/alignment.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/amd/amdkfd/kfd_process.c~schedh-dont-include-mm_typesh-fix-2 drivers/gpu/drm/amd/amdkfd/kfd_process.c
-diff -puN fs/binfmt_elf.c~schedh-dont-include-mm_typesh-fix-2 fs/binfmt_elf.c
-diff -puN fs/binfmt_elf_fdpic.c~schedh-dont-include-mm_typesh-fix-2 fs/binfmt_elf_fdpic.c
-diff -puN fs/exec.c~schedh-dont-include-mm_typesh-fix-2 fs/exec.c
-diff -puN fs/proc/base.c~schedh-dont-include-mm_typesh-fix-2 fs/proc/base.c
-diff -puN include/linux/khugepaged.h~schedh-dont-include-mm_typesh-fix-2 include/linux/khugepaged.h
-diff -puN include/linux/ksm.h~schedh-dont-include-mm_typesh-fix-2 include/linux/ksm.h
-diff -puN include/linux/mm-config.h~schedh-dont-include-mm_typesh-fix-2 include/linux/mm-config.h
-diff -puN include/linux/mm-flags.h~schedh-dont-include-mm_typesh-fix-2 include/linux/mm-flags.h
-diff -puN include/linux/mm-rss.h~schedh-dont-include-mm_typesh-fix-2 include/linux/mm-rss.h
-diff -puN include/linux/mm.h~schedh-dont-include-mm_typesh-fix-2 include/linux/mm.h
-diff -puN include/linux/mm_types.h~schedh-dont-include-mm_typesh-fix-2 include/linux/mm_types.h
-diff -puN include/linux/page_frag.h~schedh-dont-include-mm_typesh-fix-2 include/linux/page_frag.h
-diff -puN include/linux/sched.h~schedh-dont-include-mm_typesh-fix-2 include/linux/sched.h
-diff -puN include/linux/threads.h~schedh-dont-include-mm_typesh-fix-2 include/linux/threads.h
-diff -puN kernel/events/uprobes.c~schedh-dont-include-mm_typesh-fix-2 kernel/events/uprobes.c
-diff -puN kernel/fork.c~schedh-dont-include-mm_typesh-fix-2 kernel/fork.c
-diff -puN kernel/ptrace.c~schedh-dont-include-mm_typesh-fix-2 kernel/ptrace.c
-diff -puN kernel/sys.c~schedh-dont-include-mm_typesh-fix-2 kernel/sys.c
-diff -puN kernel/user_namespace.c~schedh-dont-include-mm_typesh-fix-2 kernel/user_namespace.c
-diff -puN lib/is_single_threaded.c~schedh-dont-include-mm_typesh-fix-2 lib/is_single_threaded.c
-diff -puN mm/huge_memory.c~schedh-dont-include-mm_typesh-fix-2 mm/huge_memory.c
-diff -puN mm/ksm.c~schedh-dont-include-mm_typesh-fix-2 mm/ksm.c
+diff -puN arch/arm/mm/alignment.c~uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix arch/arm/mm/alignment.c
+--- a/arch/arm/mm/alignment.c~uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix
++++ a/arch/arm/mm/alignment.c
+@@ -783,7 +783,7 @@ do_alignment(unsigned long addr, unsigne
+ 			}
+ 		}
+ 	} else {
+-		fault = probe_kernel_address(instrptr, instr);
++		fault = probe_kernel_address((void *)instrptr, instr);
+ 		instr = __mem_to_opcode_arm(instr);
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -128,11 +119,9 @@ linux-next-rejects.patch
 fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
 fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix-fix.patch
 mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix-checkpatch-fixes.patch
-schedh-dont-include-mm_typesh.patch
-schedh-dont-include-mm_typesh-fix.patch
 uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
-schedh-dont-include-mm_typesh-fix-2.patch
 
