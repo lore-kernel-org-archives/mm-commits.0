@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-direct-write-will-call-ocfs2_rw_unlock-twice-when-doing-aiodio.patch
- added to -mm tree
-Date: Mon, 24 Aug 2015 13:57:52 -0700
-Message-ID: <55db8550.mHoT/M1WbkFS2qtC%akpm__13984.650365501$1440449891$gmane$org@linux-foundation.org>
+Subject: + mm-mmap-check-all-failures-before-set-values.patch added to -mm tree
+Date: Mon, 24 Aug 2015 14:26:06 -0700
+Message-ID: <55db8bee.EBphhGs0WQ3XDCaI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39398 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41107 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753127AbbHXU5x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Aug 2015 16:57:53 -0400
+	with ESMTP id S932270AbbHXV0H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 24 Aug 2015 17:26:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ryan.ding@oracle.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: gang.chen.5i5j@gmail.com, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: direct write will call ocfs2_rw_unlock() twice when doing aio+dio
+     Subject: mm/mmap.c:insert_vm_struct(): check for failure before setting values
 has been added to the -mm tree.  Its filename is
-     ocfs2-direct-write-will-call-ocfs2_rw_unlock-twice-when-doing-aiodio.patch
+     mm-mmap-check-all-failures-before-set-values.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-direct-write-will-call-ocfs2_rw_unlock-twice-when-doing-aiodio.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-check-all-failures-before-set-values.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-direct-write-will-call-ocfs2_rw_unlock-twice-when-doing-aiodio.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-check-all-failures-before-set-values.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,69 +38,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ryan Ding <ryan.ding@oracle.com>
-Subject: ocfs2: direct write will call ocfs2_rw_unlock() twice when doing aio+dio
+From: Chen Gang <gang.chen.5i5j@gmail.com>
+Subject: mm/mmap.c:insert_vm_struct(): check for failure before setting values
 
-Orabug: 21612107
+There's no point in initializing vma->vm_pgoff if the insertion attempt
+will be failing anyway.  Run the checks before performing the
+initialization.
 
-ocfs2_file_write_iter() is usng the wrong return value ('written').  This
-will cause ocfs2_rw_unlock() be called both in write_iter & end_io,
-triggering a BUG_ON.
-
-This issue was introduced by commit 7da839c47589 ("ocfs2: use
-__generic_file_write_iter()").
-
-Fixes: 7da839c47589 ("ocfs2: use __generic_file_write_iter()")
-Signed-off-by: Ryan Ding <ryan.ding@oracle.com>
-Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ mm/mmap.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-direct-write-will-call-ocfs2_rw_unlock-twice-when-doing-aiodio fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-direct-write-will-call-ocfs2_rw_unlock-twice-when-doing-aiodio
-+++ a/fs/ocfs2/file.c
-@@ -2372,6 +2372,20 @@ relock:
- 	/* buffered aio wouldn't have proper lock coverage today */
- 	BUG_ON(written == -EIOCBQUEUED && !(iocb->ki_flags & IOCB_DIRECT));
+diff -puN mm/mmap.c~mm-mmap-check-all-failures-before-set-values mm/mmap.c
+--- a/mm/mmap.c~mm-mmap-check-all-failures-before-set-values
++++ a/mm/mmap.c
+@@ -2859,6 +2859,13 @@ int insert_vm_struct(struct mm_struct *m
+ 	struct vm_area_struct *prev;
+ 	struct rb_node **rb_link, *rb_parent;
  
-+	/*
-+	 * deep in g_f_a_w_n()->ocfs2_direct_IO we pass in a ocfs2_dio_end_io
-+	 * function pointer which is called when o_direct io completes so that
-+	 * it can unlock our rw lock.
-+	 * Unfortunately there are error cases which call end_io and others
-+	 * that don't.  so we don't have to unlock the rw_lock if either an
-+	 * async dio is going to do it in the future or an end_io after an
-+	 * error has already done it.
-+	 */
-+	if ((written == -EIOCBQUEUED) || (!ocfs2_iocb_is_rw_locked(iocb))) {
-+		rw_level = -1;
-+		unaligned_dio = 0;
-+	}
++	if (find_vma_links(mm, vma->vm_start, vma->vm_end,
++			   &prev, &rb_link, &rb_parent))
++		return -ENOMEM;
++	if ((vma->vm_flags & VM_ACCOUNT) &&
++	     security_vm_enough_memory_mm(mm, vma_pages(vma)))
++		return -ENOMEM;
 +
- 	if (unlikely(written <= 0))
- 		goto no_sync;
- 
-@@ -2396,20 +2410,6 @@ relock:
+ 	/*
+ 	 * The vm_pgoff of a purely anonymous vma should be irrelevant
+ 	 * until its first write fault, when page's anon_vma and index
+@@ -2875,12 +2882,6 @@ int insert_vm_struct(struct mm_struct *m
+ 		BUG_ON(vma->anon_vma);
+ 		vma->vm_pgoff = vma->vm_start >> PAGE_SHIFT;
  	}
+-	if (find_vma_links(mm, vma->vm_start, vma->vm_end,
+-			   &prev, &rb_link, &rb_parent))
+-		return -ENOMEM;
+-	if ((vma->vm_flags & VM_ACCOUNT) &&
+-	     security_vm_enough_memory_mm(mm, vma_pages(vma)))
+-		return -ENOMEM;
  
- no_sync:
--	/*
--	 * deep in g_f_a_w_n()->ocfs2_direct_IO we pass in a ocfs2_dio_end_io
--	 * function pointer which is called when o_direct io completes so that
--	 * it can unlock our rw lock.
--	 * Unfortunately there are error cases which call end_io and others
--	 * that don't.  so we don't have to unlock the rw_lock if either an
--	 * async dio is going to do it in the future or an end_io after an
--	 * error has already done it.
--	 */
--	if ((ret == -EIOCBQUEUED) || (!ocfs2_iocb_is_rw_locked(iocb))) {
--		rw_level = -1;
--		unaligned_dio = 0;
--	}
+ 	vma_link(mm, vma, prev, rb_link, rb_parent);
+ 	return 0;
+_
+
+Patches currently in -mm which might be from gang.chen.5i5j@gmail.com are
+
+mm-mmap-simplify-the-failure-return-working-flow.patch
+mm-mmap-check-all-failures-before-set-values.patch
+
