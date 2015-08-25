@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-consolidate-dma_allocfree_attrscoherent-fix.patch
- added to -mm tree
-Date: Tue, 25 Aug 2015 13:23:25 -0700
-Message-ID: <55dccebd.Upv8nAok58cMQdRi%akpm@linux-foundation.org>
+Subject: + cred-remove-unnecessary-kdebug-atomic-reads.patch added to -mm
+ tree
+Date: Tue, 25 Aug 2015 13:39:34 -0700
+Message-ID: <55dcd286.9QEdsxBLVuzkTBeE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34077 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35688 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752370AbbHYUX0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Aug 2015 16:23:26 -0400
+	with ESMTP id S933018AbbHYUjf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Aug 2015 16:39:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@roeck-us.net, hch@lst.de, ralf@linux-mips.org, mm-commits@vger.kernel.org
+To: joe@perches.com, dhowells@redhat.com, jmorris@namei.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MIPS: Netlogic: Fix build error
+     Subject: kernel/cred.c: remove unnecessary kdebug atomic reads
 has been added to the -mm tree.  Its filename is
-     dma-mapping-consolidate-dma_allocfree_attrscoherent-fix.patch
+     cred-remove-unnecessary-kdebug-atomic-reads.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dma-mapping-consolidate-dma_allocfree_attrscoherent-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cred-remove-unnecessary-kdebug-atomic-reads.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dma-mapping-consolidate-dma_allocfree_attrscoherent-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cred-remove-unnecessary-kdebug-atomic-reads.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,30 +39,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: MIPS: Netlogic: Fix build error
+From: Joe Perches <joe@perches.com>
+Subject: kernel/cred.c: remove unnecessary kdebug atomic reads
 
-The variable 'ret' is no longer used in nlm_dma_alloc_coherent()
-and causes the following build error.
+Commit e0e817392b9a ("CRED: Add some configurable debugging [try #6]")
+added the kdebug mechanism to this file back in 2009.
 
-arch/mips/netlogic/common/nlm-dma.c: In function 'nlm_dma_alloc_coherent':
-arch/mips/netlogic/common/nlm-dma.c:50:8: error: unused variable 'ret'
+The kdebug macro calls no_printk which always evaluates arguments.
 
-Fixes: e4d0d18739dc ("dma-mapping: consolidate dma_{alloc,free}_{attrs,coherent}")
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Ralf Baechle <ralf@linux-mips.org>
+Most of the kdebug uses have an unnecessary call of
+	atomic_read(&cred->usage)
+
+Make the kdebug macro do nothing by defining it with
+	do { if (0) no_printk(...); } while (0)
+when not enabled.
+
+$ size kernel/cred.o* (defconfig x86-64)
+   text	   data	    bss	    dec	    hex	filename
+   2748	    336	      8	   3092	    c14	kernel/cred.o.new
+   2788	    336	      8	   3132	    c3c	kernel/cred.o.old
+
+Miscellanea:
+o Neaten the #define kdebug macros while there
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Cc: David Howells <dhowells@redhat.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/netlogic/common/nlm-dma.c |    2 --
- 1 file changed, 2 deletions(-)
+ kernel/cred.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN arch/mips/netlogic/common/nlm-dma.c~dma-mapping-consolidate-dma_allocfree_attrscoherent-fix arch/mips/netlogic/common/nlm-dma.c
---- a/arch/mips/netlogic/common/nlm-dma.c~dma-mapping-consolidate-dma_allocfree_attrscoherent-fix
-+++ a/arch/mips/netlogic/common/nlm-dma.c
-@@ -47,8 +47,6 @@ static char *nlm_swiotlb;
- static void *nlm_dma_alloc_coherent(struct device *dev, size_t size,
- 	dma_addr_t *dma_handle, gfp_t gfp, struct dma_attrs *attrs)
- {
--	void *ret;
+diff -puN kernel/cred.c~cred-remove-unnecessary-kdebug-atomic-reads kernel/cred.c
+--- a/kernel/cred.c~cred-remove-unnecessary-kdebug-atomic-reads
++++ a/kernel/cred.c
+@@ -20,11 +20,16 @@
+ #include <linux/cn_proc.h>
+ 
+ #if 0
+-#define kdebug(FMT, ...) \
+-	printk("[%-5.5s%5u] "FMT"\n", current->comm, current->pid ,##__VA_ARGS__)
++#define kdebug(FMT, ...)						\
++	printk("[%-5.5s%5u] " FMT "\n",					\
++	       current->comm, current->pid, ##__VA_ARGS__)
+ #else
+-#define kdebug(FMT, ...) \
+-	no_printk("[%-5.5s%5u] "FMT"\n", current->comm, current->pid ,##__VA_ARGS__)
++#define kdebug(FMT, ...)						\
++do {									\
++	if (0)								\
++		no_printk("[%-5.5s%5u] " FMT "\n",			\
++			  current->comm, current->pid, ##__VA_ARGS__);	\
++} while (0)
+ #endif
+ 
+ static struct kmem_cache *cred_jar;
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
+ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
+cred-remove-unnecessary-kdebug-atomic-reads.patch
+maintainers-credits-mark-maxraid-as-orphan-move-anil-ravindranath-to-credits.patch
+checkpatch-warn-on-bare-sha-1-commit-ids-in-commit-logs.patch
+checkpatch-add-warning-on-bug-bug_on-use.patch
+checkpatch-improve-suspect_code_indent-test.patch
+checkpatch-allow-longer-declaration-macros.patch
+checkpatch-add-some-foo_destroy-functions-to-needless_if-tests.patch
+checkpatch-report-the-right-line-when-using-emacs-and-file.patch
+checkpatch-always-check-block-comment-styles.patch
+checkpatch-make-strict-the-default-for-drivers-staging-files-and-patches.patch
+checkpatch-emit-an-error-on-formats-with-0x%decimal.patch
+checkpatch-avoid-some-commit-message-long-line-warnings.patch
+checkpatch-add-__pmem-to-sparse-annotations.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+
