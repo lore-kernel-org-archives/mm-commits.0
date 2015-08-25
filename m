@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + cred-remove-unnecessary-kdebug-atomic-reads.patch added to -mm
- tree
-Date: Tue, 25 Aug 2015 13:39:34 -0700
-Message-ID: <55dcd286.9QEdsxBLVuzkTBeE%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-fix-a-terrible-misleading-comment-fix.patch added to -mm tree
+Date: Tue, 25 Aug 2015 13:52:05 -0700
+Message-ID: <55dcd575.pJJxA79COQdT+CIi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36298 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933018AbbHYUjf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Aug 2015 16:39:35 -0400
+	with ESMTP id S1751042AbbHYUwG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 25 Aug 2015 16:52:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, dhowells@redhat.com, jmorris@namei.org, mm-commits@vger.kernel.org
+To: bywxiaobai@163.com, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/cred.c: remove unnecessary kdebug atomic reads
+     Subject: Documentation: clarify in calculating zone protection
 has been added to the -mm tree.  Its filename is
-     cred-remove-unnecessary-kdebug-atomic-reads.patch
+     mm-page_alloc-fix-a-terrible-misleading-comment-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cred-remove-unnecessary-kdebug-atomic-reads.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-fix-a-terrible-misleading-comment-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cred-remove-unnecessary-kdebug-atomic-reads.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-fix-a-terrible-misleading-comment-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,79 +38,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: kernel/cred.c: remove unnecessary kdebug atomic reads
+From: Yaowei Bai <bywxiaobai@163.com>
+Subject: Documentation: clarify in calculating zone protection
 
-Commit e0e817392b9a ("CRED: Add some configurable debugging [try #6]")
-added the kdebug mechanism to this file back in 2009.
+Every zone's protection is calculated from managed_pages not
+present_pages, to avoid misleading, correct it.
 
-The kdebug macro calls no_printk which always evaluates arguments.
-
-Most of the kdebug uses have an unnecessary call of
-	atomic_read(&cred->usage)
-
-Make the kdebug macro do nothing by defining it with
-	do { if (0) no_printk(...); } while (0)
-when not enabled.
-
-$ size kernel/cred.o* (defconfig x86-64)
-   text	   data	    bss	    dec	    hex	filename
-   2748	    336	      8	   3092	    c14	kernel/cred.o.new
-   2788	    336	      8	   3132	    c3c	kernel/cred.o.old
-
-Miscellanea:
-o Neaten the #define kdebug macros while there
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: James Morris <jmorris@namei.org>
+Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cred.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ Documentation/sysctl/vm.txt |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/cred.c~cred-remove-unnecessary-kdebug-atomic-reads kernel/cred.c
---- a/kernel/cred.c~cred-remove-unnecessary-kdebug-atomic-reads
-+++ a/kernel/cred.c
-@@ -20,11 +20,16 @@
- #include <linux/cn_proc.h>
+diff -puN Documentation/sysctl/vm.txt~mm-page_alloc-fix-a-terrible-misleading-comment-fix Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-page_alloc-fix-a-terrible-misleading-comment-fix
++++ a/Documentation/sysctl/vm.txt
+@@ -349,7 +349,7 @@ zone[i]'s protection[j] is calculated by
  
- #if 0
--#define kdebug(FMT, ...) \
--	printk("[%-5.5s%5u] "FMT"\n", current->comm, current->pid ,##__VA_ARGS__)
-+#define kdebug(FMT, ...)						\
-+	printk("[%-5.5s%5u] " FMT "\n",					\
-+	       current->comm, current->pid, ##__VA_ARGS__)
- #else
--#define kdebug(FMT, ...) \
--	no_printk("[%-5.5s%5u] "FMT"\n", current->comm, current->pid ,##__VA_ARGS__)
-+#define kdebug(FMT, ...)						\
-+do {									\
-+	if (0)								\
-+		no_printk("[%-5.5s%5u] " FMT "\n",			\
-+			  current->comm, current->pid, ##__VA_ARGS__);	\
-+} while (0)
- #endif
+ (i < j):
+   zone[i]->protection[j]
+-  = (total sums of present_pages from zone[i+1] to zone[j] on the node)
++  = (total sums of managed_pages from zone[i+1] to zone[j] on the node)
+     / lowmem_reserve_ratio[i];
+ (i = j):
+    (should not be protected. = 0;
+@@ -360,7 +360,7 @@ The default values of lowmem_reserve_rat
+     256 (if zone[i] means DMA or DMA32 zone)
+     32  (others).
+ As above expression, they are reciprocal number of ratio.
+-256 means 1/256. # of protection pages becomes about "0.39%" of total present
++256 means 1/256. # of protection pages becomes about "0.39%" of total managed
+ pages of higher zones on the node.
  
- static struct kmem_cache *cred_jar;
+ If you would like to protect more pages, smaller values are effective.
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from bywxiaobai@163.com are
 
-ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-cred-remove-unnecessary-kdebug-atomic-reads.patch
-maintainers-credits-mark-maxraid-as-orphan-move-anil-ravindranath-to-credits.patch
-checkpatch-warn-on-bare-sha-1-commit-ids-in-commit-logs.patch
-checkpatch-add-warning-on-bug-bug_on-use.patch
-checkpatch-improve-suspect_code_indent-test.patch
-checkpatch-allow-longer-declaration-macros.patch
-checkpatch-add-some-foo_destroy-functions-to-needless_if-tests.patch
-checkpatch-report-the-right-line-when-using-emacs-and-file.patch
-checkpatch-always-check-block-comment-styles.patch
-checkpatch-make-strict-the-default-for-drivers-staging-files-and-patches.patch
-checkpatch-emit-an-error-on-formats-with-0x%decimal.patch
-checkpatch-avoid-some-commit-message-long-line-warnings.patch
-checkpatch-add-__pmem-to-sparse-annotations.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+mm-page_alloc-fix-a-terrible-misleading-comment.patch
+mm-page_alloc-fix-a-terrible-misleading-comment-fix.patch
 
