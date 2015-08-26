@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-update-filecheck-copyright.patch added to -mm tree
-Date: Wed, 26 Aug 2015 11:25:28 -0700
-Message-ID: <55de0498.LCuA3JaEpr0Vw8xy%akpm@linux-foundation.org>
+Subject: + ocfs2-filecheck-validate_extent_block-function.patch added to
+ -mm tree
+Date: Wed, 26 Aug 2015 11:25:32 -0700
+Message-ID: <55de049c.1KaVpU/HAg/1yqlc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60315 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60322 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751819AbbHZSZ3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Aug 2015 14:25:29 -0400
+	with ESMTP id S1753030AbbHZSZd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Aug 2015 14:25:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ghe@suse.com, jlbec@evilplan.org, mfasheh@suse.com, rgoldwyn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: update filecheck copyright
+     Subject: ocfs2: filecheck validate_extent_block function
 has been added to the -mm tree.  Its filename is
-     ocfs2-update-filecheck-copyright.patch
+     ocfs2-filecheck-validate_extent_block-function.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-update-filecheck-copyright.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-filecheck-validate_extent_block-function.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-update-filecheck-copyright.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-filecheck-validate_extent_block-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,16 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Gang He <ghe@suse.com>
-Subject: ocfs2: update filecheck copyright
+Subject: ocfs2: filecheck validate_extent_block function
 
-Besides inode block online check, add file extent block online check this
-time, we will add more kinds of meta block online check/repair in the
-future.
-
-
-This patch (of 4):
-
-Update filecheck copyright to the right time/contributor
+Add validate_extent_block/repair_extent_block functions
+for online filecheck.
 
 Signed-off-by: Gang He <ghe@suse.com>
 Cc: Mark Fasheh <mfasheh@suse.com>
@@ -57,34 +52,192 @@ Cc: Goldwyn Rodrigues <rgoldwyn@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/filecheck.c |    2 +-
- fs/ocfs2/filecheck.h |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/alloc.c       |  116 +++++++++++++++++++++++++++++++++++++++
+ fs/ocfs2/alloc.h       |    4 +
+ fs/ocfs2/ocfs2_trace.h |   24 ++++++++
+ 3 files changed, 144 insertions(+)
 
-diff -puN fs/ocfs2/filecheck.c~ocfs2-update-filecheck-copyright fs/ocfs2/filecheck.c
---- a/fs/ocfs2/filecheck.c~ocfs2-update-filecheck-copyright
-+++ a/fs/ocfs2/filecheck.c
-@@ -5,7 +5,7 @@
-  *
-  * Code which implements online file check.
-  *
-- * Copyright (C) 2007, 2009 Oracle.  All rights reserved.
-+ * Copyright (C) 2015 Novell.  All rights reserved.
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public
-diff -puN fs/ocfs2/filecheck.h~ocfs2-update-filecheck-copyright fs/ocfs2/filecheck.h
---- a/fs/ocfs2/filecheck.h~ocfs2-update-filecheck-copyright
-+++ a/fs/ocfs2/filecheck.h
-@@ -5,7 +5,7 @@
-  *
-  * Online file check.
-  *
-- * Copyright (C) 2007 Oracle.  All rights reserved.
-+ * Copyright (C) 2015 Novell.  All rights reserved.
-  *
-  * This program is free software; you can redistribute it and/or
-  * modify it under the terms of the GNU General Public
+diff -puN fs/ocfs2/alloc.c~ocfs2-filecheck-validate_extent_block-function fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-filecheck-validate_extent_block-function
++++ a/fs/ocfs2/alloc.c
+@@ -51,6 +51,7 @@
+ #include "xattr.h"
+ #include "refcounttree.h"
+ #include "ocfs2_trace.h"
++#include "filecheck.h"
+ 
+ #include "buffer_head_io.h"
+ 
+@@ -934,6 +935,121 @@ bail:
+ 	return rc;
+ }
+ 
++static int ocfs2_filecheck_validate_extent_block(struct super_block *sb,
++					struct buffer_head *bh)
++{
++	int rc;
++	struct ocfs2_extent_block *eb =
++		(struct ocfs2_extent_block *)bh->b_data;
++
++	trace_ocfs2_filecheck_validate_extent_block(
++					(unsigned long long)bh->b_blocknr);
++
++	BUG_ON(!buffer_uptodate(bh));
++
++	if (!OCFS2_IS_VALID_EXTENT_BLOCK(eb)) {
++		mlog(ML_ERROR,
++		"Filecheck: extent block #%llu has bad signature %.*s\n",
++		(unsigned long long)bh->b_blocknr,
++		7, eb->h_signature);
++		return -OCFS2_FILECHECK_ERR_INVALIDEXT;
++	}
++
++	rc = ocfs2_validate_meta_ecc(sb, bh->b_data, &eb->h_check);
++	if (rc) {
++		mlog(ML_ERROR, "Filecheck: checksum failed for extent "
++		"block %llu\n",
++		(unsigned long long)bh->b_blocknr);
++		return -OCFS2_FILECHECK_ERR_BLOCKECC;
++	}
++
++	if (le64_to_cpu(eb->h_blkno) != bh->b_blocknr) {
++		mlog(ML_ERROR,
++		"Filecheck: extent block #%llu has an invalid h_blkno "
++		"of %llu\n",
++		(unsigned long long)bh->b_blocknr,
++		(unsigned long long)le64_to_cpu(eb->h_blkno));
++		return -OCFS2_FILECHECK_ERR_BLOCKNO;
++	}
++
++	if (le32_to_cpu(eb->h_fs_generation) != OCFS2_SB(sb)->fs_generation) {
++		mlog(ML_ERROR,
++		"Filecheck: extent block #%llu has an invalid "
++		"h_fs_generation of #%u\n",
++		(unsigned long long)bh->b_blocknr,
++		le32_to_cpu(eb->h_fs_generation));
++		return -OCFS2_FILECHECK_ERR_GENERATION;
++	}
++
++	return 0;
++}
++
++static int ocfs2_filecheck_repair_extent_block(struct super_block *sb,
++					struct buffer_head *bh)
++{
++	int rc;
++	int changed = 0;
++	struct ocfs2_extent_block *eb =
++		(struct ocfs2_extent_block *)bh->b_data;
++
++	rc = ocfs2_filecheck_validate_extent_block(sb, bh);
++	/* Can't fix invalid extent block */
++	if (!rc || rc == -OCFS2_FILECHECK_ERR_INVALIDEXT)
++		return rc;
++
++	trace_ocfs2_filecheck_repair_extent_block(
++					(unsigned long long)bh->b_blocknr);
++
++	if (le64_to_cpu(eb->h_blkno) != bh->b_blocknr) {
++		eb->h_blkno = cpu_to_le64(bh->b_blocknr);
++		changed = 1;
++		mlog(ML_ERROR,
++		"Filecheck: reset extent block #%llu: h_blkno to %llu\n",
++		(unsigned long long)bh->b_blocknr,
++		(unsigned long long)le64_to_cpu(eb->h_blkno));
++	}
++
++	if (le32_to_cpu(eb->h_fs_generation) != OCFS2_SB(sb)->fs_generation) {
++		eb->h_fs_generation = cpu_to_le32(OCFS2_SB(sb)->fs_generation);
++		changed = 1;
++		mlog(ML_ERROR,
++		"Filecheck: reset extent block #%llu: "
++		"h_fs_generation to %u\n",
++		(unsigned long long)bh->b_blocknr,
++		le32_to_cpu(eb->h_fs_generation));
++	}
++
++	if (changed || ocfs2_validate_meta_ecc(sb, bh->b_data, &eb->h_check)) {
++		ocfs2_compute_meta_ecc(sb, bh->b_data, &eb->h_check);
++		mark_buffer_dirty(bh);
++		mlog(ML_ERROR,
++		"Filecheck: reset extent block #%llu: compute meta ecc\n",
++		(unsigned long long)bh->b_blocknr);
++	}
++
++	return 0;
++}
++
++int
++ocfs2_filecheck_read_extent_block(struct ocfs2_caching_info *ci, u64 eb_blkno,
++				struct buffer_head **bh, unsigned int flags)
++{
++	int rc;
++	struct buffer_head *tmp = *bh;
++
++	if (!flags) /* check extent block */
++		rc = ocfs2_read_block(ci, eb_blkno, &tmp,
++				ocfs2_filecheck_validate_extent_block);
++	else /* repair extent block */
++		rc = ocfs2_read_block(ci, eb_blkno, &tmp,
++				ocfs2_filecheck_repair_extent_block);
++
++	if (!rc && !*bh)
++		*bh = tmp;
++
++	return rc;
++}
++
+ int ocfs2_read_extent_block(struct ocfs2_caching_info *ci, u64 eb_blkno,
+ 			    struct buffer_head **bh)
+ {
+diff -puN fs/ocfs2/alloc.h~ocfs2-filecheck-validate_extent_block-function fs/ocfs2/alloc.h
+--- a/fs/ocfs2/alloc.h~ocfs2-filecheck-validate_extent_block-function
++++ a/fs/ocfs2/alloc.h
+@@ -92,6 +92,10 @@ void ocfs2_init_refcount_extent_tree(str
+ int ocfs2_read_extent_block(struct ocfs2_caching_info *ci, u64 eb_blkno,
+ 			    struct buffer_head **bh);
+ 
++int
++ocfs2_filecheck_read_extent_block(struct ocfs2_caching_info *ci, u64 eb_blkno,
++				struct buffer_head **bh, unsigned int flags);
++
+ struct ocfs2_alloc_context;
+ int ocfs2_insert_extent(handle_t *handle,
+ 			struct ocfs2_extent_tree *et,
+diff -puN fs/ocfs2/ocfs2_trace.h~ocfs2-filecheck-validate_extent_block-function fs/ocfs2/ocfs2_trace.h
+--- a/fs/ocfs2/ocfs2_trace.h~ocfs2-filecheck-validate_extent_block-function
++++ a/fs/ocfs2/ocfs2_trace.h
+@@ -557,6 +557,30 @@ TRACE_EVENT(ocfs2_validate_extent_block,
+ 	TP_printk("%llu ", __entry->blkno)
+ );
+ 
++TRACE_EVENT(ocfs2_filecheck_validate_extent_block,
++	TP_PROTO(unsigned long long blkno),
++	TP_ARGS(blkno),
++	TP_STRUCT__entry(
++		__field(unsigned long long, blkno)
++	),
++	TP_fast_assign(
++		__entry->blkno = blkno;
++	),
++	TP_printk("%llu ", __entry->blkno)
++);
++
++TRACE_EVENT(ocfs2_filecheck_repair_extent_block,
++	TP_PROTO(unsigned long long blkno),
++	TP_ARGS(blkno),
++	TP_STRUCT__entry(
++		__field(unsigned long long, blkno)
++	),
++	TP_fast_assign(
++		__entry->blkno = blkno;
++	),
++	TP_printk("%llu ", __entry->blkno)
++);
++
+ TRACE_EVENT(ocfs2_rotate_leaf,
+ 	TP_PROTO(unsigned int insert_cpos, int insert_index,
+ 		 int has_empty, int next_free,
 _
 
 Patches currently in -mm which might be from ghe@suse.com are
