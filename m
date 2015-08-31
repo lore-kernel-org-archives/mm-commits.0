@@ -1,82 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-check-if-section-present-during-memory-block-registering-fix-2.patch
- added to -mm tree
-Date: Wed, 26 Aug 2015 15:17:42 -0700
-Message-ID: <55de3b06.01xH721icQvIjTbb%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ ocfs2-fix-a-tiny-case-that-inode-can-not-removed.patch removed from -mm
+ tree
+Date: Mon, 31 Aug 2015 12:54:45 -0700
+Message-ID: <55e4b105.qByLmEOMHjQZOnrK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46416 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48425 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620AbbHZWRn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 26 Aug 2015 18:17:43 -0400
+	with ESMTP id S1754090AbbHaTyp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Aug 2015 15:54:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, greg@kroah.com, mingo@elte.hu, tony.luck@intel.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: jiangyiwen@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-check-if-section-present-during-memory-block-registering-fix-2
-has been added to the -mm tree.  Its filename is
-     mm-check-if-section-present-during-memory-block-registering-fix-2.patch
+     Subject: ocfs2: fix a tiny case that inode can not removed.
+has been removed from the -mm tree.  Its filename was
+     ocfs2-fix-a-tiny-case-that-inode-can-not-removed.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-check-if-section-present-during-memory-block-registering-fix-2.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-check-if-section-present-during-memory-block-registering-fix-2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm-check-if-section-present-during-memory-block-registering-fix-2
+From: jiangyiwen <jiangyiwen@huawei.com>
+Subject: ocfs2: fix a tiny case that inode can not removed.
 
-more simplification
+When running dirop_fileop_racer we found a case that inode
+can not removed.
 
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+2 nodes, say Node A and Node B, mount the same ocfs2 volume. Create
+two dirs /race/1/ and /race/2/ in the filesystem.
+
+Node A                            Node B
+rm -r /race/2/
+                                  mv /race/1/ /race/2/
+call ocfs2_unlink(), get
+the EX mode of /race/2/
+                                  wait for B unlock /race/2/
+decrease i_nlink of /race/2/ to 0,
+and add inode of /race/2/ into
+orphan dir, unlock /race/2/
+                                  got EX mode of /race/2/. because
+                                  /race/1/ is dir, so inc i_nlink
+                                  of /race/2/ and update into disk,
+                                  unlock /race/2/
+because i_nlink of /race/2/
+is not zero, this inode will
+always remain in orphan dir
+
+This patch fixes this case by test whether i_nlink of new dir is zero.
+
+Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/namei.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN drivers/base/node.c~mm-check-if-section-present-during-memory-block-registering-fix-2 drivers/base/node.c
---- a/drivers/base/node.c~mm-check-if-section-present-during-memory-block-registering-fix-2
-+++ a/drivers/base/node.c
-@@ -396,7 +396,7 @@ int register_mem_sect_under_node(struct
- 		 * memory block could have several absent sections from start.
- 		 * skip pfn range from absent section
- 		 */
--		if (!present_section_nr(pfn_to_section_nr(pfn))) {
-+		if (!pfn_present(pfn)) {
- 			pfn = round_down(pfn + PAGES_PER_SECTION,
- 					 PAGES_PER_SECTION) - 1;
- 			continue;
+diff -puN fs/ocfs2/namei.c~ocfs2-fix-a-tiny-case-that-inode-can-not-removed fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-fix-a-tiny-case-that-inode-can-not-removed
++++ a/fs/ocfs2/namei.c
+@@ -1284,6 +1284,15 @@ static int ocfs2_rename(struct inode *ol
+ 	}
+ 	parents_locked = 1;
+ 
++	if (!new_dir->i_nlink) {
++		mlog(ML_ERROR, "new dir %llu has been removed, inode %llu "
++				"can not be moved into it.",
++				(unsigned long long)new_dir->i_ino,
++				(unsigned long long)old_inode->i_ino);
++		status = -EACCES;
++		goto bail;
++	}
++
+ 	/* make sure both dirs have bhs
+ 	 * get an extra ref on old_dir_bh if old==new */
+ 	if (!new_dir_bh) {
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from jiangyiwen@huawei.com are
 
-mm-check-if-section-present-during-memory-block-registering-fix-2.patch
-mm-improve-__gfp_noretry-comment-based-on-implementation.patch
-mm-oom-organize-oom-context-into-struct.patch
-mm-oom-pass-an-oom-order-of-1-when-triggered-by-sysrq.patch
-mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq.patch
-mm-oom-add-description-of-struct-oom_control.patch
-mm-oom-remove-unnecessary-variable.patch
+ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
+ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
 
