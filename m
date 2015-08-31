@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-a-tiny-case-that-inode-can-not-removed.patch added to -mm tree
-Date: Mon, 31 Aug 2015 13:05:28 -0700
-Message-ID: <55e4b388.1ZmpW8p9io9+5h1g%akpm@linux-foundation.org>
+Subject: +
+ mm-slab-fix-argument-order-in-cache_from_objs-error-message.patch added to
+ -mm tree
+Date: Mon, 31 Aug 2015 13:31:38 -0700
+Message-ID: <55e4b9aa.MZeszm8681OImO2H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49818 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53849 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751141AbbHaUF3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Aug 2015 16:05:29 -0400
+	with ESMTP id S1752339AbbHaUbj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Aug 2015 16:31:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, xuejiufei@huawei.com, mm-commits@vger.kernel.org
+To: daniel@iogearbox.net, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix a tiny case that inode can not removed
+     Subject: mm/slab.h: fix argument order in cache_from_obj's error message
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-a-tiny-case-that-inode-can-not-removed.patch
+     mm-slab-fix-argument-order-in-cache_from_objs-error-message.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-a-tiny-case-that-inode-can-not-removed.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-fix-argument-order-in-cache_from_objs-error-message.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-a-tiny-case-that-inode-can-not-removed.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-fix-argument-order-in-cache_from_objs-error-message.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,65 +40,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yiwen Jiang <jiangyiwen@huawei.com>
-Subject: ocfs2: fix a tiny case that inode can not removed
+From: Daniel Borkmann <daniel@iogearbox.net>
+Subject: mm/slab.h: fix argument order in cache_from_obj's error message
 
-When running dirop_fileop_racer we found a case that inode
-can not removed.
+While debugging a networking issue, I hit a condition that triggered an
+object to be freed into the wrong kmem cache, and thus triggered the
+warning in cache_from_obj().
 
-2 nodes, say Node A and Node B, mount the same ocfs2 volume. Create
-two dirs /race/1/ and /race/2/ in the filesystem.
+The arguments in the error message are in wrong order: the location
+of the object's kmem cache is in cachep, not s.
 
-Node A                            Node B
-rm -r /race/2/
-                                  mv /race/1/ /race/2/
-call ocfs2_unlink(), get
-the EX mode of /race/2/
-                                  wait for B unlock /race/2/
-decrease i_nlink of /race/2/ to 0,
-and add inode of /race/2/ into
-orphan dir, unlock /race/2/
-                                  got EX mode of /race/2/. because
-                                  /race/1/ is dir, so inc i_nlink
-                                  of /race/2/ and update into disk,
-                                  unlock /race/2/
-because i_nlink of /race/2/
-is not zero, this inode will
-always remain in orphan dir
-
-This patch fixes this case by test whether i_nlink of new dir is zero.
-
-Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: Xue jiufei <xuejiufei@huawei.com>
+Signed-off-by: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/slab.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-fix-a-tiny-case-that-inode-can-not-removed fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-fix-a-tiny-case-that-inode-can-not-removed
-+++ a/fs/ocfs2/namei.c
-@@ -1284,6 +1284,11 @@ static int ocfs2_rename(struct inode *ol
- 	}
- 	parents_locked = 1;
+diff -puN mm/slab.h~mm-slab-fix-argument-order-in-cache_from_objs-error-message mm/slab.h
+--- a/mm/slab.h~mm-slab-fix-argument-order-in-cache_from_objs-error-message
++++ a/mm/slab.h
+@@ -321,7 +321,7 @@ static inline struct kmem_cache *cache_f
+ 		return cachep;
  
-+	if (!new_dir->i_nlink) {
-+		status = -EACCES;
-+		goto bail;
-+	}
-+
- 	/* make sure both dirs have bhs
- 	 * get an extra ref on old_dir_bh if old==new */
- 	if (!new_dir_bh) {
+ 	pr_err("%s: Wrong slab cache. %s but object is from %s\n",
+-	       __func__, cachep->name, s->name);
++	       __func__, s->name, cachep->name);
+ 	WARN_ON_ONCE(1);
+ 	return s;
+ }
 _
 
-Patches currently in -mm which might be from jiangyiwen@huawei.com are
+Patches currently in -mm which might be from daniel@iogearbox.net are
 
-ocfs2-set-filesytem-read-only-when-ocfs2_delete_entry-failed.patch
-ocfs2-fix-a-tiny-case-that-inode-can-not-removed.patch
-ocfs2-avoid-access-invalid-address-when-read-o2dlm-debug-messages.patch
+mm-slab-fix-argument-order-in-cache_from_objs-error-message.patch
 
