@@ -1,159 +1,82 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- ocfs2-add-feature-document-for-online-file-check.patch removed from -mm
+ ocfs2-create-remove-sysfile-for-online-file-check.patch removed from -mm
  tree
-Date: Mon, 31 Aug 2015 14:41:08 -0700
-Message-ID: <55e4c9f4.dn5j+ByTnYJg2LEg%akpm@linux-foundation.org>
+Date: Mon, 31 Aug 2015 14:41:04 -0700
+Message-ID: <55e4c9f0.GEIZjDwZRX6RfRKH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35133 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35053 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754317AbbHaVlJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Aug 2015 17:41:09 -0400
+	with ESMTP id S1754317AbbHaVlE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Aug 2015 17:41:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ghe@suse.com, jlbec@evilplan.org, mfasheh@suse.com, rgoldwyn@suse.de, mm-commits@vger.kernel.org
+To: ghe@suse.com, jlbec@evilplan.org, mfasheh@suse.de, rgoldwyn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: add feature document for online file check
+     Subject: ocfs2: create/remove sysfile for online file check
 has been removed from the -mm tree.  Its filename was
-     ocfs2-add-feature-document-for-online-file-check.patch
+     ocfs2-create-remove-sysfile-for-online-file-check.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Gang He <ghe@suse.com>
-Subject: ocfs2: add feature document for online file check
+Subject: ocfs2: create/remove sysfile for online file check
 
-This document describes the OCFS2 online file check feature.
-
-OCFS2 is often used in high-availaibility systems.  However, OCFS2 usually
-converts the filesystem to read-only on errors.  This may not be
-necessary, since turning the filesystem read-only would affect other
-running processes as well, decreasing availability.  Then, a mount option
-(errors=continue) was introduced, which would return the EIO to the
-calling process and terminate furhter processing so that the filesystem is
-not corrupted further.  The filesystem is not converted to read-only, and
-the problematic file's inode number is reported in the kernel log.  The
-user can try to check/fix this file via online filecheck feature.
+Create online file check sysfile when ocfs2 mount, remove the related
+sysfile when ocfs2 umount.
 
 Signed-off-by: Gang He <ghe@suse.com>
-Cc: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Reviewed-by: Goldwyn Rodrigues <rgoldwyn@suse.de>
 Cc: Mark Fasheh <mfasheh@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/ocfs2-online-filecheck.txt |   95 ++++++++++
- 1 file changed, 95 insertions(+)
+ fs/ocfs2/super.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN /dev/null Documentation/filesystems/ocfs2-online-filecheck.txt
---- /dev/null
-+++ a/Documentation/filesystems/ocfs2-online-filecheck.txt
-@@ -0,0 +1,95 @@
-+		    OCFS2 online file check
-+		    -----------------------
+diff -puN fs/ocfs2/super.c~ocfs2-create-remove-sysfile-for-online-file-check fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-create-remove-sysfile-for-online-file-check
++++ a/fs/ocfs2/super.c
+@@ -74,6 +74,7 @@
+ #include "suballoc.h"
+ 
+ #include "buffer_head_io.h"
++#include "filecheck.h"
+ 
+ static struct kmem_cache *ocfs2_inode_cachep;
+ struct kmem_cache *ocfs2_dquot_cachep;
+@@ -1204,6 +1205,9 @@ static int ocfs2_fill_super(struct super
+ 	/* Start this when the mount is almost sure of being successful */
+ 	ocfs2_orphan_scan_start(osb);
+ 
++	/* Create filecheck sysfile /sys/fs/ocfs2/<devname>/filecheck */
++	ocfs2_filecheck_create_sysfs(sb);
 +
-+This document will describe OCFS2 online file check feature.
-+
-+Introduction
-+============
-+OCFS2 is often used in high-availaibility systems. However, OCFS2 usually
-+converts the filesystem to read-only on errors. This may not be necessary, since
-+turning the filesystem read-only would affect other running processes as well,
-+decreasing availability. Then, a mount option (errors=continue) was introduced,
-+which would return the EIO to the calling process and terminate furhter
-+processing so that the filesystem is not corrupted further. The filesystem is
-+not converted to read-only, and the problematic file's inode number is reported
-+in the kernel log. The user can try to check/fix this file via online filecheck
-+feature.
-+
-+Scope
-+=====
-+This effort is to check/fix small issues which may hinder day-to-day operations
-+of a cluster filesystem by turning the filesystem read-only. The scope of
-+checking/fixing is at the file level, initially for regular files and eventually
-+to all files (including system files) of the filesystem.
-+
-+In case of directory to file links is incorrect, the directory inode is
-+reported as erroneous.
-+
-+This feature is not suited for extravagant checks which involve dependency of
-+other components of the filesystem, such as but not limited to, checking if the
-+bits for file blocks in the allocation has been set. In case of such an error,
-+the offline fsck should/would be recommended.
-+
-+Finally, such an operation/feature should not be automated lest the filesystem
-+may end up with more damage than before the repair attempt. So, this has to
-+be performed using user interaction and consent.
-+
-+User interface
-+==============
-+When there are errors in the OCFS2 filesystem, they are usually accompanied
-+by the inode number which caused the error. This inode number would be the
-+input to check/fix the file.
-+
-+There is a sysfs file for each OCFS2 file system mounting:
-+
-+  /sys/fs/ocfs2/<devname>/filecheck
-+
-+Here, <devname> indicates the name of OCFS2 volumn device which has been already
-+mounted. The file above would accept inode numbers. This could be used to
-+communicate with kernel space, tell which file(inode number) will be checked or
-+fixed. Currently, three operations are supported, which includes checking
-+inode, fixing inode and setting the size of result record history.
-+
-+1. If you want to know what error exactly happened to <inode> before fixing, do
-+
-+  # echo "CHECK <inode>" > /sys/fs/ocfs2/<devname>/filecheck
-+  # cat /sys/fs/ocfs2/<devname>/filecheck
-+
-+The output is like this:
-+  INO		TYPE		DONE		ERROR
-+39502		0		1		GENERATION
-+
-+<INO> lists the inode numbers.
-+<TYPE> is what kind of operation you've done, 0 for inode check,1 for inode fix.
-+<DONE> indicates whether the operation has been finished.
-+<ERROR> says what kind of errors was found. For the detailed error numbers,
-+please refer to the file linux/fs/ocfs2/filecheck.h.
-+
-+2. If you determine to fix this inode, do
-+
-+  # echo "FIX <inode>" > /sys/fs/ocfs2/<devname>/filecheck
-+  # cat /sys/fs/ocfs2/<devname>/filecheck
-+
-+The output is like this:
-+  INO		TYPE		DONE		ERROR
-+39502		1		1		SUCCESS
-+
-+This time, the <ERROR> column indicates whether this fix is successful or not.
-+
-+3. The record cache is used to store the history of check/fix result. Its
-+defalut size is 10, and can be adjust between the range of 10 ~ 100. You can
-+adjust the size like this:
-+
-+  # echo "SET <size>" > /sys/fs/ocfs2/<devname>/filecheck
-+
-+Fixing stuff
-+============
-+On receivng the inode, the filesystem would read the inode and the
-+file metadata. In case of errors, the filesystem would fix the errors
-+and report the problems it fixed in the kernel log. As a precautionary measure,
-+the inode must first be checked for errors before performing a final fix.
-+
-+The inode and the result history will be maintained temporarily in a
-+small linked list buffer which would contain the last (N) inodes
-+fixed/checked, the detailed errors which were fixed/checked are printed in the
-+kernel log.
+ 	return status;
+ 
+ read_super_error:
+@@ -1671,6 +1675,7 @@ static void ocfs2_put_super(struct super
+ 
+ 	ocfs2_sync_blockdev(sb);
+ 	ocfs2_dismount_volume(sb, 0);
++	ocfs2_filecheck_remove_sysfs(sb);
+ }
+ 
+ static int ocfs2_statfs(struct dentry *dentry, struct kstatfs *buf)
 _
 
 Patches currently in -mm which might be from ghe@suse.com are
 
+ocfs2-check-fix-inode-block-for-online-file-check.patch
+ocfs2-add-feature-document-for-online-file-check.patch
 ocfs2-update-filecheck-copyright.patch
 ocfs2-add-errno-and-macro-definitions.patch
 ocfs2-filecheck-validate_extent_block-function.patch
