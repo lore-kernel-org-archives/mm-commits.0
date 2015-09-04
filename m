@@ -1,66 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- userfaultfd-add-new-syscall-to-provide-memory-externalization-fix.patch
- removed from -mm tree
-Date: Fri, 04 Sep 2015 15:28:09 -0700
-Message-ID: <55ea1af9.hF5xlXxYOyT+JUXM%akpm@linux-foundation.org>
+ userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix.patch removed from -mm tree
+Date: Fri, 04 Sep 2015 15:28:13 -0700
+Message-ID: <55ea1afd.PHjAqaEZ3RhJol3D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53731 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53736 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760159AbbIDW2J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:28:09 -0400
+	with ESMTP id S1760159AbbIDW2O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:28:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd-add-new-syscall-to-provide-memory-externalization-fix
+     Subject: userfaultfd: cleanup superfluous _irq locking
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-add-new-syscall-to-provide-memory-externalization-fix.patch
+     userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix.patch
 
 This patch was dropped because it was folded into userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd-add-new-syscall-to-provide-memory-externalization-fix
+Subject: userfaultfd: cleanup superfluous _irq locking
 
+This leftover shouldn't have caused any malfunction because the loop
+either schedules or it re-enables irqs immediately and schedule()
+doesn't seem to BUG_ON(irqs_disabled()). However lately we've been
+using the non blocking model so the schedule isn't really exercised
+here. Regardless of the side effects this must be fixed as it's not ok
+to enter schedule with irq disabled and it's not beneficial to toggle
+irqs in the first place.
 
-
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ fs/userfaultfd.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-add-new-syscall-to-provide-memory-externalization-fix fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-add-new-syscall-to-provide-memory-externalization-fix
+diff -puN fs/userfaultfd.c~userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix
 +++ a/fs/userfaultfd.c
-@@ -478,6 +478,21 @@ static void __wake_userfault(struct user
- static __always_inline void wake_userfault(struct userfaultfd_ctx *ctx,
- 					   struct userfaultfd_wake_range *range)
- {
-+	/*
-+	 * To be sure waitqueue_active() is not reordered by the CPU
-+	 * before the pagetable update, use an explicit SMP memory
-+	 * barrier here. PT lock release or up_read(mmap_sem) still
-+	 * have release semantics that can allow the
-+	 * waitqueue_active() to be reordered before the pte update.
-+	 */
-+	smp_mb();
-+
-+	/*
-+	 * Use waitqueue_active because it's very frequent to
-+	 * change the address space atomically even if there are no
-+	 * userfaults yet. So we take the spinlock only when we're
-+	 * sure we've userfaults to wake.
-+	 */
- 	if (waitqueue_active(&ctx->fault_wqh))
- 		__wake_userfault(ctx, range);
+@@ -433,11 +433,11 @@ static ssize_t userfaultfd_ctx_read(stru
+ 		}
+ 		spin_unlock(&ctx->fd_wqh.lock);
+ 		schedule();
+-		spin_lock_irq(&ctx->fd_wqh.lock);
++		spin_lock(&ctx->fd_wqh.lock);
+ 	}
+ 	__remove_wait_queue(&ctx->fd_wqh, &wait);
+ 	__set_current_state(TASK_RUNNING);
+-	spin_unlock_irq(&ctx->fd_wqh.lock);
++	spin_unlock(&ctx->fd_wqh.lock);
+ 
+ 	return ret;
  }
 _
 
@@ -76,8 +75,6 @@ userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
 userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
 userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
 userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix.patch
 userfaultfd-rename-uffd_apibits-into-features-fixup.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix.patch
