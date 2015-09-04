@@ -1,71 +1,102 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix-2.patch removed
- from -mm tree
-Date: Fri, 04 Sep 2015 15:26:51 -0700
-Message-ID: <55ea1aab.9D/iKDP5lv8excoB%akpm@linux-foundation.org>
+ userfaultfd-linux-documentation-vm-userfaultfdtxt-fix.patch removed from
+ -mm tree
+Date: Fri, 04 Sep 2015 15:27:25 -0700
+Message-ID: <55ea1acd.qVL10gea05NCV7gF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53715 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760264AbbIDW0w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:26:52 -0400
+	with ESMTP id S1760159AbbIDW10 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:27:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: uobergfe@redhat.com, a.p.zijlstra@chello.nl, atomlin@redhat.com, cmetcalf@ezchip.com, dzickus@redhat.com, eranian@google.com, fweisbec@gmail.com, jolsa@kernel.org, linux@roeck-us.net, mhocko@suse.cz, mingo@redhat.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: use pr_debug() in fixup_ht_bug() failure path
+     Subject: userfaultfd: documentation update
 has been removed from the -mm tree.  Its filename was
-     watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix-2.patch
+     userfaultfd-linux-documentation-vm-userfaultfdtxt-fix.patch
 
-This patch was dropped because it was folded into watchdog-use-suspend-resume-interface-in-fixup_ht_bug.patch
+This patch was dropped because it was folded into userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
 
 ------------------------------------------------------
-From: Ulrich Obergfell <uobergfe@redhat.com>
-Subject: watchdog: use pr_debug() in fixup_ht_bug() failure path
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: documentation update
 
-Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
-Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Stephane Eranian <eranian@google.com>
-Cc: Chris Metcalf <cmetcalf@ezchip.com>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@redhat.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/perf_event_intel.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/vm/userfaultfd.txt |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/perf_event_intel.c~watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix-2 arch/x86/kernel/cpu/perf_event_intel.c
---- a/arch/x86/kernel/cpu/perf_event_intel.c~watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix-2
-+++ a/arch/x86/kernel/cpu/perf_event_intel.c
-@@ -3378,7 +3378,7 @@ static __init int fixup_ht_bug(void)
- 	}
+diff -puN Documentation/vm/userfaultfd.txt~userfaultfd-linux-documentation-vm-userfaultfdtxt-fix Documentation/vm/userfaultfd.txt
+--- a/Documentation/vm/userfaultfd.txt~userfaultfd-linux-documentation-vm-userfaultfdtxt-fix
++++ a/Documentation/vm/userfaultfd.txt
+@@ -3,8 +3,8 @@
+ == Objective ==
  
- 	if (watchdog_suspend() != 0) {
--		pr_info("failed to disable PMU erratum BJ122, BV98, HSD29 workaround\n");
-+		pr_debug("failed to disable PMU erratum BJ122, BV98, HSD29 workaround\n");
- 		return 0;
- 	}
+ Userfaults allow the implementation of on-demand paging from userland
+-and more generally they allow userland to take control various memory
+-page faults, something otherwise only the kernel code could do.
++and more generally they allow userland to take control of various
++memory page faults, something otherwise only the kernel code could do.
+ 
+ For example userfaults allows a proper and more optimal implementation
+ of the PROT_NONE+SIGSEGV trick.
+@@ -75,7 +75,9 @@ The primary ioctl to resolve userfaults
+ atomically copies a page into the userfault registered range and wakes
+ up the blocked userfaults (unless uffdio_copy.mode &
+ UFFDIO_COPY_MODE_DONTWAKE is set). Other ioctl works similarly to
+-UFFDIO_COPY.
++UFFDIO_COPY. They're atomic as in guaranteeing that nothing can see an
++half copied page since it'll keep userfaulting until the copy has
++finished.
+ 
+ == QEMU/KVM ==
  
 _
 
-Patches currently in -mm which might be from uobergfe@redhat.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-watchdog-introduce-watchdog_park_threads-and-watchdog_unpark_threads.patch
-watchdog-introduce-watchdog_suspend-and-watchdog_resume.patch
-watchdog-use-park-unpark-functions-in-update_watchdog_all_cpus.patch
-watchdog-use-suspend-resume-interface-in-fixup_ht_bug.patch
-watchdog-rename-watchdog_suspend-and-watchdog_resume.patch
+userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
+userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
+userfaultfd-uapi.patch
+userfaultfd-uapi-add-missing-include-typesh.patch
+userfaultfd-linux-userfaultfd_kh.patch
+userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
+userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
+userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
+userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
+userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
+userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
+userfaultfd-add-new-syscall-to-provide-memory-externalization-fix.patch
+userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix.patch
+userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix.patch
+userfaultfd-rename-uffd_apibits-into-features-fixup.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix.patch
+userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
+userfaultfd-wake-pending-userfaults.patch
+userfaultfd-optimize-read-and-poll-to-be-o1.patch
+userfaultfd-optimize-read-and-poll-to-be-o1-fix.patch
+userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
+userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
+userfaultfd-buildsystem-activation.patch
+userfaultfd-activate-syscall.patch
+userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
+userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
+userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
+userfaultfd-require-uffdio_api-before-other-ioctls.patch
+userfaultfd-allow-signals-to-interrupt-a-userfault.patch
+userfaultfd-propagate-the-full-address-in-thp-faults.patch
+userfaultfd-avoid-missing-wakeups-during-refile-in-userfaultfd_read.patch
+userfaultfd-selftest.patch
 
