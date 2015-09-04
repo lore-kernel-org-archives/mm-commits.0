@@ -1,55 +1,54 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
- removed from -mm tree
-Date: Fri, 04 Sep 2015 15:31:40 -0700
-Message-ID: <55ea1bcc.86bfP8Pqzr6+jzoU%akpm@linux-foundation.org>
+ genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch removed
+ from -mm tree
+Date: Fri, 04 Sep 2015 15:32:05 -0700
+Message-ID: <55ea1be5.3JVjUejW4SulcAEQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54157 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933196AbbIDWbl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:31:41 -0400
+	with ESMTP id S933196AbbIDWcG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:32:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, vladimir_zapolskiy@mentor.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, sfr@canb.auug.org.au, vladimir_zapolskiy@mentor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix
+     Subject: genalloc-add-support-of-multiple-gen_pools-per-device-fix
 has been removed from the -mm tree.  Its filename was
-     genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
+     genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
 
-This patch was dropped because it was folded into genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create.patch
+This patch was dropped because it was folded into genalloc-add-support-of-multiple-gen_pools-per-device.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix
+Subject: genalloc-add-support-of-multiple-gen_pools-per-device-fix
 
-gen_pool_get() cleanup
+fix constness in devres_find()
 
 Cc: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/genalloc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/genalloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN lib/genalloc.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix lib/genalloc.c
---- a/lib/genalloc.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix
+diff -puN lib/genalloc.c~genalloc-add-support-of-multiple-gen_pools-per-device-fix lib/genalloc.c
+--- a/lib/genalloc.c~genalloc-add-support-of-multiple-gen_pools-per-device-fix
 +++ a/lib/genalloc.c
-@@ -579,9 +579,9 @@ static void devm_gen_pool_release(struct
-  */
- struct gen_pool *gen_pool_get(struct device *dev, const char *name)
+@@ -596,7 +596,8 @@ struct gen_pool *gen_pool_get(struct dev
  {
--	struct gen_pool **p = devres_find(dev, devm_gen_pool_release,
--					  NULL, NULL);
-+	struct gen_pool **p;
+ 	struct gen_pool **p;
  
-+	p = devres_find(dev, devm_gen_pool_release, NULL, NULL);
+-	p = devres_find(dev, devm_gen_pool_release, devm_gen_pool_match, name);
++	p = devres_find(dev, devm_gen_pool_release, devm_gen_pool_match,
++			(void *)name);
  	if (!p)
  		return NULL;
  	return *p;
@@ -58,7 +57,6 @@ _
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
-genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create.patch
-genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
+genalloc-add-support-of-multiple-gen_pools-per-device.patch
 mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
 
