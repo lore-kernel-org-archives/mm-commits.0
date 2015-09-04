@@ -1,68 +1,60 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-send-one-ipi-per-cpu-to-tlb-flush-all-entries-after-unmapping-pages-fix.patch removed from -mm tree
-Date: Fri, 04 Sep 2015 15:31:00 -0700
-Message-ID: <55ea1ba4.JdaFoaxDJ5Zsa9Eq%akpm@linux-foundation.org>
+ genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2.patch
+ removed from -mm tree
+Date: Fri, 04 Sep 2015 15:31:43 -0700
+Message-ID: <55ea1bcf.yuXMR0dcMOSh8gHT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54090 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54133 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760190AbbIDWbB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:31:01 -0400
+	with ESMTP id S933196AbbIDWbo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:31:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sasha.levin@oracle.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org
+To: vladimir_zapolskiy@mentor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: trace tlb flush after disabling preemption in try_to_unmap_flush
+     Subject: genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2
 has been removed from the -mm tree.  Its filename was
-     mm-send-one-ipi-per-cpu-to-tlb-flush-all-entries-after-unmapping-pages-fix.patch
+     genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2.patch
 
-This patch was dropped because it was folded into mm-send-one-ipi-per-cpu-to-tlb-flush-all-entries-after-unmapping-pages.patch
+This patch was dropped because it was folded into genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create.patch
 
 ------------------------------------------------------
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: mm: trace tlb flush after disabling preemption in try_to_unmap_flush
+From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Subject: genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2
 
-Commit "mm: send one IPI per CPU to TLB flush all entries after unmapping
-pages" added a trace_tlb_flush() while preemption was still enabled. This
-means that we'll access smp_processor_id() which in turn will get us quite
-a few warnings.
+* Added the same change in gen_pool_get() argument list
+  to account a recently added client in arm/mach-socfpga/pm.c
 
-Fix it by moving the trace to where the preemption is disabled, one line
-down.
-
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/mach-socfpga/pm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/rmap.c~mm-send-one-ipi-per-cpu-to-tlb-flush-all-entries-after-unmapping-pages-fix mm/rmap.c
---- a/mm/rmap.c~mm-send-one-ipi-per-cpu-to-tlb-flush-all-entries-after-unmapping-pages-fix
-+++ a/mm/rmap.c
-@@ -613,9 +613,10 @@ void try_to_unmap_flush(void)
- 	if (!tlb_ubc->flush_required)
- 		return;
+diff -puN arch/arm/mach-socfpga/pm.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2 arch/arm/mach-socfpga/pm.c
+--- a/arch/arm/mach-socfpga/pm.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2
++++ a/arch/arm/mach-socfpga/pm.c
+@@ -56,7 +56,7 @@ static int socfpga_setup_ocram_self_refr
+ 		goto put_node;
+ 	}
  
-+	cpu = get_cpu();
-+
- 	trace_tlb_flush(TLB_REMOTE_SHOOTDOWN, -1UL);
- 
--	cpu = get_cpu();
- 	if (cpumask_test_cpu(cpu, &tlb_ubc->cpumask))
- 		percpu_flush_tlb_batch_pages(&tlb_ubc->cpumask);
- 
+-	ocram_pool = gen_pool_get(&pdev->dev);
++	ocram_pool = gen_pool_get(&pdev->dev, NULL);
+ 	if (!ocram_pool) {
+ 		pr_warn("%s: ocram pool unavailable!\n", __func__);
+ 		ret = -ENODEV;
 _
 
-Patches currently in -mm which might be from sasha.levin@oracle.com are
+Patches currently in -mm which might be from vladimir_zapolskiy@mentor.com are
 
-mm-send-one-ipi-per-cpu-to-tlb-flush-all-entries-after-unmapping-pages.patch
+genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create.patch
+genalloc-add-support-of-multiple-gen_pools-per-device.patch
 
