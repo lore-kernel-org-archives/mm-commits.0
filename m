@@ -1,93 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- userfaultfd-optimize-read-and-poll-to-be-o1-fix.patch removed from -mm tree
-Date: Fri, 04 Sep 2015 15:29:32 -0700
-Message-ID: <55ea1b4c.NMNIm/3QK9P4E4c1%akpm@linux-foundation.org>
+Subject: [folded-merged] userfaultfd-activate-syscall-fix-2.patch removed
+ from -mm tree
+Date: Fri, 04 Sep 2015 15:29:50 -0700
+Message-ID: <55ea1b5e.4tIYDoXJU+dDjPWn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53796 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54057 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760730AbbIDW3d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:29:33 -0400
+	with ESMTP id S1760730AbbIDW3v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:29:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, benh@kernel.crashing.org, mpe@ellerman.id.au, paulus@samba.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: fs/userfaultfd.c add more comments
+     Subject: userfaultfd-activate-syscall-fix-2
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-optimize-read-and-poll-to-be-o1-fix.patch
+     userfaultfd-activate-syscall-fix-2.patch
 
-This patch was dropped because it was folded into userfaultfd-optimize-read-and-poll-to-be-o1.patch
+This patch was dropped because it was folded into userfaultfd-activate-syscall.patch
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: fs/userfaultfd.c add more comments
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: userfaultfd-activate-syscall-fix-2
 
-Add more commentary.
+don't enable userfaultfd on powerpc, per some email discussion which I've
+lost
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ arch/powerpc/include/asm/systbl.h      |    1 -
+ arch/powerpc/include/asm/unistd.h      |    2 +-
+ arch/powerpc/include/uapi/asm/unistd.h |    1 -
+ 3 files changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-optimize-read-and-poll-to-be-o1-fix fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-optimize-read-and-poll-to-be-o1-fix
-+++ a/fs/userfaultfd.c
-@@ -456,6 +456,19 @@ static ssize_t userfaultfd_ctx_read(stru
- 			 * Refile this userfault from
- 			 * fault_pending_wqh to fault_wqh, it's not
- 			 * pending anymore after we read it.
-+			 *
-+			 * Use list_del() by hand (as
-+			 * userfaultfd_wake_function also uses
-+			 * list_del_init() by hand) to be sure nobody
-+			 * changes __remove_wait_queue() to use
-+			 * list_del_init() in turn breaking the
-+			 * !list_empty_careful() check in
-+			 * handle_userfault(). The uwq->wq.task_list
-+			 * must never be empty at any time during the
-+			 * refile, or the waitqueue could disappear
-+			 * from under us. The "wait_queue_head_t"
-+			 * parameter of __remove_wait_queue() is unused
-+			 * anyway.
- 			 */
- 			list_del(&uwq->wq.task_list);
- 			__add_wait_queue(&ctx->fault_wqh, &uwq->wq);
+diff -puN arch/powerpc/include/asm/systbl.h~userfaultfd-activate-syscall-fix-2 arch/powerpc/include/asm/systbl.h
+--- a/arch/powerpc/include/asm/systbl.h~userfaultfd-activate-syscall-fix-2
++++ a/arch/powerpc/include/asm/systbl.h
+@@ -368,4 +368,3 @@ SYSCALL_SPU(memfd_create)
+ SYSCALL_SPU(bpf)
+ COMPAT_SYS(execveat)
+ PPC64ONLY(switch_endian)
+-SYSCALL_SPU(userfaultfd)
+diff -puN arch/powerpc/include/asm/unistd.h~userfaultfd-activate-syscall-fix-2 arch/powerpc/include/asm/unistd.h
+--- a/arch/powerpc/include/asm/unistd.h~userfaultfd-activate-syscall-fix-2
++++ a/arch/powerpc/include/asm/unistd.h
+@@ -12,7 +12,7 @@
+ #include <uapi/asm/unistd.h>
+ 
+ 
+-#define __NR_syscalls		365
++#define __NR_syscalls		364
+ 
+ #define __NR__exit __NR_exit
+ #define NR_syscalls	__NR_syscalls
+diff -puN arch/powerpc/include/uapi/asm/unistd.h~userfaultfd-activate-syscall-fix-2 arch/powerpc/include/uapi/asm/unistd.h
+--- a/arch/powerpc/include/uapi/asm/unistd.h~userfaultfd-activate-syscall-fix-2
++++ a/arch/powerpc/include/uapi/asm/unistd.h
+@@ -386,6 +386,5 @@
+ #define __NR_bpf		361
+ #define __NR_execveat		362
+ #define __NR_switch_endian	363
+-#define __NR_userfaultfd	364
+ 
+ #endif /* _UAPI_ASM_POWERPC_UNISTD_H_ */
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
-userfaultfd-uapi.patch
-userfaultfd-linux-userfaultfd_kh.patch
-userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
-userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
-userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
-userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
-userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
-userfaultfd-wake-pending-userfaults.patch
-userfaultfd-optimize-read-and-poll-to-be-o1.patch
-userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
-userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
-userfaultfd-buildsystem-activation.patch
+kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
 userfaultfd-activate-syscall.patch
-userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
-userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
-userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
-userfaultfd-require-uffdio_api-before-other-ioctls.patch
-userfaultfd-allow-signals-to-interrupt-a-userfault.patch
-userfaultfd-propagate-the-full-address-in-thp-faults.patch
-userfaultfd-avoid-missing-wakeups-during-refile-in-userfaultfd_read.patch
-userfaultfd-selftest.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
+genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
+mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
 
