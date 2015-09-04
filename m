@@ -1,88 +1,73 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix.patch removed from -mm tree
-Date: Fri, 04 Sep 2015 15:28:51 -0700
-Message-ID: <55ea1b23.XGIuhImm502+wIk7%akpm@linux-foundation.org>
+ userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
+ removed from -mm tree
+Date: Fri, 04 Sep 2015 15:28:56 -0700
+Message-ID: <55ea1b28./pDVNhaCfMqQUeQe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53760 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53764 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760159AbbIDW2v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:28:51 -0400
+	with ESMTP id S1760159AbbIDW25 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:28:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: documentation update
+     Subject: userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix.patch
+     userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
 
 This patch was dropped because it was folded into userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: documentation update
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+use __packed
+
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/userfaultfd.txt |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ include/uapi/linux/userfaultfd.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/vm/userfaultfd.txt~userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix Documentation/vm/userfaultfd.txt
---- a/Documentation/vm/userfaultfd.txt~userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix
-+++ a/Documentation/vm/userfaultfd.txt
-@@ -47,10 +47,10 @@ When first opened the userfaultfd must b
- UFFDIO_API ioctl specifying a uffdio_api.api value set to UFFD_API (or
- a later API version) which will specify the read/POLLIN protocol
- userland intends to speak on the UFFD and the uffdio_api.features
--userland needs to be enabled. The UFFDIO_API ioctl if successful
--(i.e. if the requested uffdio_api.api is spoken also by the running
--kernel and the requested features are going to be enabled) will return
--into uffdio_api.features and uffdio_api.ioctls two 64bit bitmasks of
-+userland requires. The UFFDIO_API ioctl if successful (i.e. if the
-+requested uffdio_api.api is spoken also by the running kernel and the
-+requested features are going to be enabled) will return into
-+uffdio_api.features and uffdio_api.ioctls two 64bit bitmasks of
- respectively all the available features of the read(2) protocol and
- the generic ioctl available.
+diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix include/uapi/linux/userfaultfd.h
+--- a/include/uapi/linux/userfaultfd.h~userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix
++++ a/include/uapi/linux/userfaultfd.h
+@@ -11,6 +11,8 @@
  
+ #include <linux/types.h>
+ 
++#include <linux/compiler.h>
++
+ #define UFFD_API ((__u64)0xAA)
+ /*
+  * After implementing the respective features it will become:
+@@ -70,7 +72,7 @@ struct uffd_msg {
+ 			__u64	reserved3;
+ 		} reserved;
+ 	} arg;
+-} __attribute__((packed));
++} __packed;
+ 
+ /*
+  * Start at 0x12 and not at 0 to be more strict against bugs.
 _
 
-Patches currently in -mm which might be from aarcange@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
-userfaultfd-uapi.patch
-userfaultfd-linux-userfaultfd_kh.patch
-userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
-userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
-userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
-userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
-userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
-userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
+kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2.patch
-userfaultfd-wake-pending-userfaults.patch
-userfaultfd-optimize-read-and-poll-to-be-o1.patch
-userfaultfd-optimize-read-and-poll-to-be-o1-fix.patch
-userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
-userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
-userfaultfd-buildsystem-activation.patch
-userfaultfd-activate-syscall.patch
-userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
-userfaultfd-mcopy_atomicmfill_zeropage-uffdio_copyuffdio_zeropage-preparation.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
-userfaultfd-uffdio_copy-and-uffdio_zeropage.patch
-userfaultfd-require-uffdio_api-before-other-ioctls.patch
-userfaultfd-allow-signals-to-interrupt-a-userfault.patch
-userfaultfd-propagate-the-full-address-in-thp-faults.patch
-userfaultfd-avoid-missing-wakeups-during-refile-in-userfaultfd_read.patch
-userfaultfd-selftest.patch
+userfaultfd-activate-syscall-fix-2.patch
+userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
+genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
+mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
 
