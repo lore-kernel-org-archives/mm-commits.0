@@ -1,66 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- userfaultfd-linux-documentation-vm-userfaultfdtxt-fix.patch removed from
- -mm tree
-Date: Fri, 04 Sep 2015 15:27:25 -0700
-Message-ID: <55ea1acd.qVL10gea05NCV7gF%akpm@linux-foundation.org>
+Subject: [folded-merged] userfaultfd-uapi-add-missing-include-typesh.patch removed from -mm tree
+Date: Fri, 04 Sep 2015 15:27:50 -0700
+Message-ID: <55ea1ae6.hyzNCqA6WN/1faYM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53715 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53721 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760159AbbIDW10 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:27:26 -0400
+	with ESMTP id S1760159AbbIDW1v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:27:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: documentation update
+     Subject: userfaultfd: uAPI: add missing include/types.h
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-linux-documentation-vm-userfaultfdtxt-fix.patch
+     userfaultfd-uapi-add-missing-include-typesh.patch
 
-This patch was dropped because it was folded into userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
+This patch was dropped because it was folded into userfaultfd-uapi.patch
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: documentation update
+Subject: userfaultfd: uAPI: add missing include/types.h
+
+This will avoid the below warning:
+
+./usr/include/linux/userfaultfd.h:14: found __[us]{8,16,32,64} type
+without #include <linux/types.h>
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/userfaultfd.txt |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/uapi/linux/userfaultfd.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN Documentation/vm/userfaultfd.txt~userfaultfd-linux-documentation-vm-userfaultfdtxt-fix Documentation/vm/userfaultfd.txt
---- a/Documentation/vm/userfaultfd.txt~userfaultfd-linux-documentation-vm-userfaultfdtxt-fix
-+++ a/Documentation/vm/userfaultfd.txt
-@@ -3,8 +3,8 @@
- == Objective ==
+diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-uapi-add-missing-include-typesh include/uapi/linux/userfaultfd.h
+--- a/include/uapi/linux/userfaultfd.h~userfaultfd-uapi-add-missing-include-typesh
++++ a/include/uapi/linux/userfaultfd.h
+@@ -9,6 +9,8 @@
+ #ifndef _LINUX_USERFAULTFD_H
+ #define _LINUX_USERFAULTFD_H
  
- Userfaults allow the implementation of on-demand paging from userland
--and more generally they allow userland to take control various memory
--page faults, something otherwise only the kernel code could do.
-+and more generally they allow userland to take control of various
-+memory page faults, something otherwise only the kernel code could do.
- 
- For example userfaults allows a proper and more optimal implementation
- of the PROT_NONE+SIGSEGV trick.
-@@ -75,7 +75,9 @@ The primary ioctl to resolve userfaults
- atomically copies a page into the userfault registered range and wakes
- up the blocked userfaults (unless uffdio_copy.mode &
- UFFDIO_COPY_MODE_DONTWAKE is set). Other ioctl works similarly to
--UFFDIO_COPY.
-+UFFDIO_COPY. They're atomic as in guaranteeing that nothing can see an
-+half copied page since it'll keep userfaulting until the copy has
-+finished.
- 
- == QEMU/KVM ==
- 
++#include <linux/types.h>
++
+ #define UFFD_API ((__u64)0xAA)
+ /* FIXME: add "|UFFD_BIT_WP" to UFFD_API_BITS after implementing it */
+ #define UFFD_API_BITS (UFFD_BIT_WRITE)
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
@@ -68,7 +59,6 @@ Patches currently in -mm which might be from aarcange@redhat.com are
 userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
 userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
 userfaultfd-uapi.patch
-userfaultfd-uapi-add-missing-include-typesh.patch
 userfaultfd-linux-userfaultfd_kh.patch
 userfaultfd-add-vm_userfaultfd_ctx-to-the-vm_area_struct.patch
 userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
