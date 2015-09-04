@@ -1,67 +1,60 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch removed from -mm tree
-Date: Fri, 04 Sep 2015 15:23:56 -0700
-Message-ID: <55ea19fc.g4nAE0x17nKNdl/T%akpm@linux-foundation.org>
+ fs-create-and-use-seq_show_option-for-escaping-fix2.patch removed from -mm
+ tree
+Date: Fri, 04 Sep 2015 15:24:40 -0700
+Message-ID: <55ea1a28.Jq7EZ6oajAMEOOUQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53310 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53338 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760260AbbIDWX5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:23:57 -0400
+	with ESMTP id S1760190AbbIDWYl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:24:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, keescook@chromium.org, maninder1.s@samsung.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts-spellingtxt-adding-misspelled-word-for-check-fix
+     Subject: fs-create-and-use-seq_show_option-for-escaping-fix2
 has been removed from the -mm tree.  Its filename was
-     scripts-spellingtxt-adding-misspelled-word-for-check-fix.patch
+     fs-create-and-use-seq_show_option-for-escaping-fix2.patch
 
-This patch was dropped because it was folded into scripts-spellingtxt-adding-misspelled-word-for-check.patch
+This patch was dropped because it was folded into fs-create-and-use-seq_show_option-for-escaping.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: scripts-spellingtxt-adding-misspelled-word-for-check-fix
+From: Kees Cook <keescook@chromium.org>
+Subject: fs-create-and-use-seq_show_option-for-escaping-fix2
 
-add whcih->which, whcih I always get wrong
+The buildbots noticed seq_show_option should be using const parameters.
 
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Maninder Singh <maninder1.s@samsung.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/spelling.txt |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/seq_file.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN scripts/spelling.txt~scripts-spellingtxt-adding-misspelled-word-for-check-fix scripts/spelling.txt
---- a/scripts/spelling.txt~scripts-spellingtxt-adding-misspelled-word-for-check-fix
-+++ a/scripts/spelling.txt
-@@ -1031,6 +1031,7 @@ visiters||visitors
- vitual||virtual
- wating||waiting
- whataver||whatever
-+whcih||which
- whenver||whenever
- wheter||whether
- whe||when
+diff -puN include/linux/seq_file.h~fs-create-and-use-seq_show_option-for-escaping-fix2 include/linux/seq_file.h
+--- a/include/linux/seq_file.h~fs-create-and-use-seq_show_option-for-escaping-fix2
++++ a/include/linux/seq_file.h
+@@ -155,7 +155,8 @@ static inline struct user_namespace *seq
+  * @name: the mount option name
+  * @value: the mount option name's value, can be NULL
+  */
+-static inline void seq_show_option(struct seq_file *m, char *name, char *value)
++static inline void seq_show_option(struct seq_file *m, const char *name,
++				   const char *value)
+ {
+ 	seq_putc(m, ',');
+ 	seq_escape(m, name, ",= \t\n\\");
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
-scripts-spellingtxt-adding-misspelled-word-for-check.patch
-fs-create-and-use-seq_show_option-for-escaping-fix.patch
-watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix.patch
-watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch
-userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
-userfaultfd-activate-syscall-fix-2.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
-genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
-genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
-mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
+clk_register_clkdev-handle-callers-needing-format-string.patch
+fs-create-and-use-seq_show_option-for-escaping.patch
 
