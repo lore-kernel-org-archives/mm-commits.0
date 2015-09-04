@@ -1,60 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch removed from -mm tree
-Date: Fri, 04 Sep 2015 15:30:26 -0700
-Message-ID: <55ea1b82.EGIf8k89dSbhIqos%akpm@linux-foundation.org>
+ mm-send-one-ipi-per-cpu-to-tlb-flush-all-entries-after-unmapping-pages-fix.patch removed from -mm tree
+Date: Fri, 04 Sep 2015 15:31:00 -0700
+Message-ID: <55ea1ba4.JdaFoaxDJ5Zsa9Eq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54087 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54090 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760730AbbIDWa1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:30:27 -0400
+	with ESMTP id S1760190AbbIDWbB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:31:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, mm-commits@vger.kernel.org
+To: sasha.levin@oracle.com, mgorman@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix
+     Subject: mm: trace tlb flush after disabling preemption in try_to_unmap_flush
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
+     mm-send-one-ipi-per-cpu-to-tlb-flush-all-entries-after-unmapping-pages-fix.patch
 
-This patch was dropped because it was folded into userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
+This patch was dropped because it was folded into mm-send-one-ipi-per-cpu-to-tlb-flush-all-entries-after-unmapping-pages.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix
+From: Sasha Levin <sasha.levin@oracle.com>
+Subject: mm: trace tlb flush after disabling preemption in try_to_unmap_flush
 
-delete weird BUILD_BUG_ON()
+Commit "mm: send one IPI per CPU to TLB flush all entries after unmapping
+pages" added a trace_tlb_flush() while preemption was still enabled. This
+means that we'll access smp_processor_id() which in turn will get us quite
+a few warnings.
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Fix it by moving the trace to where the preemption is disabled, one line
+down.
+
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Reviewed-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/userfaultfd.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/rmap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/userfaultfd.c~userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix mm/userfaultfd.c
---- a/mm/userfaultfd.c~userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix
-+++ a/mm/userfaultfd.c
-@@ -256,7 +256,6 @@ retry:
- 		if (unlikely(err == -EFAULT)) {
- 			void *page_kaddr;
+diff -puN mm/rmap.c~mm-send-one-ipi-per-cpu-to-tlb-flush-all-entries-after-unmapping-pages-fix mm/rmap.c
+--- a/mm/rmap.c~mm-send-one-ipi-per-cpu-to-tlb-flush-all-entries-after-unmapping-pages-fix
++++ a/mm/rmap.c
+@@ -613,9 +613,10 @@ void try_to_unmap_flush(void)
+ 	if (!tlb_ubc->flush_required)
+ 		return;
  
--			BUILD_BUG_ON(zeropage);
- 			up_read(&dst_mm->mmap_sem);
- 			BUG_ON(!page);
++	cpu = get_cpu();
++
+ 	trace_tlb_flush(TLB_REMOTE_SHOOTDOWN, -1UL);
+ 
+-	cpu = get_cpu();
+ 	if (cpumask_test_cpu(cpu, &tlb_ubc->cpumask))
+ 		percpu_flush_tlb_batch_pages(&tlb_ubc->cpumask);
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from sasha.levin@oracle.com are
 
-kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
-userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic.patch
-genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
-genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
-mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
+mm-send-one-ipi-per-cpu-to-tlb-flush-all-entries-after-unmapping-pages.patch
 
