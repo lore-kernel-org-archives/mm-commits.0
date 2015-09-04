@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-constant-comparison-on-left-side-test.patch
- added to -mm tree
-Date: Mon, 31 Aug 2015 16:07:01 -0700
-Message-ID: <55e4de15.fQgFFL3vztCo1Ipw%akpm@linux-foundation.org>
+Subject: + ocfs2-clean-up-redundant-null-checks-before-kfree.patch added
+ to -mm tree
+Date: Fri, 04 Sep 2015 13:20:19 -0700
+Message-ID: <55e9fd03.4fFCS7m4vUn6G4jH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46290 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39105 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752826AbbHaXHC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 31 Aug 2015 19:07:02 -0400
+	with ESMTP id S1760361AbbIDUUU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 16:20:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, dan.carpenter@oracle.com, nmorey@kalray.eu, viresh.kumar@linaro.org, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add constant comparison on left side test
+     Subject: ocfs2: clean up redundant NULL checks before kfree
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-constant-comparison-on-left-side-test.patch
+     ocfs2-clean-up-redundant-null-checks-before-kfree.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-constant-comparison-on-left-side-test.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-clean-up-redundant-null-checks-before-kfree.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-constant-comparison-on-left-side-test.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-clean-up-redundant-null-checks-before-kfree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,96 +39,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add constant comparison on left side test
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: clean up redundant NULL checks before kfree
 
-"CONST <comparison> variable" checks like:
+NULL check before kfree is redundant and so clean them up.
 
-        if (NULL != foo)
-and
-        while (0 < bar(...))
-
-where a constant (or what appears to be a constant like an upper case
-identifier) is on the left of a comparison are generally preferred to be
-written using the constant on the right side like:
-
-        if (foo != NULL)
-and
-        while (bar(...) > 0)
-
-Add a test for this.
-
-Add a --fix option too, but only do it when the code is immediately
-surrounded by parentheses to avoid misfixing things like "(0 < bar() +
-constant)"
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Nicolas Morey Chaisemartin <nmorey@kalray.eu>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ fs/ocfs2/alloc.c    |    2 +-
+ fs/ocfs2/suballoc.c |    6 ++----
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-constant-comparison-on-left-side-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-constant-comparison-on-left-side-test
-+++ a/scripts/checkpatch.pl
-@@ -4231,6 +4231,35 @@ sub process {
- 			}
- 		}
+diff -puN fs/ocfs2/alloc.c~ocfs2-clean-up-redundant-null-checks-before-kfree fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-clean-up-redundant-null-checks-before-kfree
++++ a/fs/ocfs2/alloc.c
+@@ -6178,7 +6178,7 @@ bail:
+ 		iput(tl_inode);
+ 	brelse(tl_bh);
  
-+# comparisons with a constant or upper case identifier on the left
-+#	avoid cases like "foo + BAR < baz"
-+#	only fix matches surrounded by parentheses to avoid incorrect
-+#	conversions like "FOO < baz() + 5" being "misfixed" to "baz() > FOO + 5"
-+		if ($^V && $^V ge 5.10.0 &&
-+		    $line =~ /^\+(.*)\b($Constant|[A-Z_][A-Z0-9_]*)\s*($Compare)\s*($LvalOrFunc)/) {
-+			my $lead = $1;
-+			my $const = $2;
-+			my $comp = $3;
-+			my $to = $4;
-+			my $newcomp = $comp;
-+			if ($lead !~ /$Operators\s*$/ &&
-+			    $to !~ /^(?:Constant|[A-Z_][A-Z0-9_]*)$/ &&
-+			    WARN("CONSTANT_COMPARISON",
-+				 "Comparisons should place the constant on the right side of the test\n" . $herecurr) &&
-+			    $fix) {
-+				if ($comp eq "<") {
-+					$newcomp = ">";
-+				} elsif ($comp eq "<=") {
-+					$newcomp = ">=";
-+				} elsif ($comp eq ">") {
-+					$newcomp = "<";
-+				} elsif ($comp eq ">=") {
-+					$newcomp = "<=";
-+				}
-+				$fixed[$fixlinenr] =~ s/\(\s*\Q$const\E\s*$Compare\s*\Q$to\E\s*\)/($to $newcomp $const)/;
-+			}
-+		}
-+
- # Return of what appears to be an errno should normally be negative
- 		if ($sline =~ /\breturn(?:\s*\(+\s*|\s+)(E[A-Z]+)(?:\s*\)+\s*|\s*)[;:,]/) {
- 			my $name = $1;
+-	if (status < 0 && (*tl_copy)) {
++	if (status < 0) {
+ 		kfree(*tl_copy);
+ 		*tl_copy = NULL;
+ 		mlog_errno(status);
+diff -puN fs/ocfs2/suballoc.c~ocfs2-clean-up-redundant-null-checks-before-kfree fs/ocfs2/suballoc.c
+--- a/fs/ocfs2/suballoc.c~ocfs2-clean-up-redundant-null-checks-before-kfree
++++ a/fs/ocfs2/suballoc.c
+@@ -149,10 +149,8 @@ void ocfs2_free_ac_resource(struct ocfs2
+ 	brelse(ac->ac_bh);
+ 	ac->ac_bh = NULL;
+ 	ac->ac_resv = NULL;
+-	if (ac->ac_find_loc_priv) {
+-		kfree(ac->ac_find_loc_priv);
+-		ac->ac_find_loc_priv = NULL;
+-	}
++	kfree(ac->ac_find_loc_priv);
++	ac->ac_find_loc_priv = NULL;
+ }
+ 
+ void ocfs2_free_alloc_context(struct ocfs2_alloc_context *ac)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-ocfs2-neaten-do_error-ocfs2_error-and-ocfs2_abort.patch
-cred-remove-unnecessary-kdebug-atomic-reads.patch
-maintainers-credits-mark-maxraid-as-orphan-move-anil-ravindranath-to-credits.patch
-checkpatch-warn-on-bare-sha-1-commit-ids-in-commit-logs.patch
-checkpatch-add-warning-on-bug-bug_on-use.patch
-checkpatch-improve-suspect_code_indent-test.patch
-checkpatch-allow-longer-declaration-macros.patch
-checkpatch-add-some-foo_destroy-functions-to-needless_if-tests.patch
-checkpatch-report-the-right-line-when-using-emacs-and-file.patch
-checkpatch-always-check-block-comment-styles.patch
-checkpatch-make-strict-the-default-for-drivers-staging-files-and-patches.patch
-checkpatch-emit-an-error-on-formats-with-0x%decimal.patch
-checkpatch-avoid-some-commit-message-long-line-warnings.patch
-checkpatch-add-__pmem-to-sparse-annotations.patch
-checkpatch-add-constant-comparison-on-left-side-test.patch
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
+ocfs2-fix-race-between-dio-and-recover-orphan.patch
+ocfs2-fix-several-issues-of-append-dio.patch
+ocfs2-do-not-bug-if-buffer-not-uptodate-in-__ocfs2_journal_access.patch
+ocfs2-clean-up-unused-local-variables-in-ocfs2_file_write_iter.patch
+ocfs2-adjust-code-to-match-locking-unlocking-order.patch
+ocfs2-remove-unneeded-code-in-ocfs2_dlm_init.patch
+ocfs2-fix-bug-when-o2hb_register_callback-fails.patch
+ocfs2-remove-unneeded-code-in-dlm_register_domain_handlers.patch
+ocfs2-dlm-use-list_for_each_entry-instead-of-list_for_each.patch
+ocfs2-fix-race-between-crashed-dio-and-rm.patch
+ocfs2-clean-up-redundant-null-checks-before-kfree.patch
 
