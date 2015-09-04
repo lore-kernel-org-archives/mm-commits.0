@@ -1,60 +1,64 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2.patch
+ genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
  removed from -mm tree
-Date: Fri, 04 Sep 2015 15:31:43 -0700
-Message-ID: <55ea1bcf.yuXMR0dcMOSh8gHT%akpm@linux-foundation.org>
+Date: Fri, 04 Sep 2015 15:31:40 -0700
+Message-ID: <55ea1bcc.86bfP8Pqzr6+jzoU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54133 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54124 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933196AbbIDWbo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:31:44 -0400
+	with ESMTP id S933196AbbIDWbl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:31:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vladimir_zapolskiy@mentor.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, vladimir_zapolskiy@mentor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2
+     Subject: genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix
 has been removed from the -mm tree.  Its filename was
-     genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2.patch
+     genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix.patch
 
 This patch was dropped because it was folded into genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create.patch
 
 ------------------------------------------------------
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Subject: genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix
 
-* Added the same change in gen_pool_get() argument list
-  to account a recently added client in arm/mach-socfpga/pm.c
+gen_pool_get() cleanup
 
-Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
+Cc: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-socfpga/pm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/genalloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/arm/mach-socfpga/pm.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2 arch/arm/mach-socfpga/pm.c
---- a/arch/arm/mach-socfpga/pm.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-v2
-+++ a/arch/arm/mach-socfpga/pm.c
-@@ -56,7 +56,7 @@ static int socfpga_setup_ocram_self_refr
- 		goto put_node;
- 	}
+diff -puN lib/genalloc.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix lib/genalloc.c
+--- a/lib/genalloc.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create-fix
++++ a/lib/genalloc.c
+@@ -579,9 +579,9 @@ static void devm_gen_pool_release(struct
+  */
+ struct gen_pool *gen_pool_get(struct device *dev, const char *name)
+ {
+-	struct gen_pool **p = devres_find(dev, devm_gen_pool_release,
+-					  NULL, NULL);
++	struct gen_pool **p;
  
--	ocram_pool = gen_pool_get(&pdev->dev);
-+	ocram_pool = gen_pool_get(&pdev->dev, NULL);
- 	if (!ocram_pool) {
- 		pr_warn("%s: ocram pool unavailable!\n", __func__);
- 		ret = -ENODEV;
++	p = devres_find(dev, devm_gen_pool_release, NULL, NULL);
+ 	if (!p)
+ 		return NULL;
+ 	return *p;
 _
 
-Patches currently in -mm which might be from vladimir_zapolskiy@mentor.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
 genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create.patch
-genalloc-add-support-of-multiple-gen_pools-per-device.patch
+genalloc-add-support-of-multiple-gen_pools-per-device-fix.patch
+mm-make-gup-handle-pfn-mapping-unless-foll_get-is-requested-fix.patch
 
