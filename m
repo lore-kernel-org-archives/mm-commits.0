@@ -1,66 +1,67 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix.patch removed from -mm tree
-Date: Fri, 04 Sep 2015 15:28:13 -0700
-Message-ID: <55ea1afd.PHjAqaEZ3RhJol3D%akpm@linux-foundation.org>
+ userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix.patch removed from -mm tree
+Date: Fri, 04 Sep 2015 15:28:11 -0700
+Message-ID: <55ea1afb.2I1oudOOZWEVb+5/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53736 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53733 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760159AbbIDW2O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:28:14 -0400
+	with ESMTP id S1760159AbbIDW2M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:28:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: cleanup superfluous _irq locking
+     Subject: userfaultfd: fs/userfaultfd.c add more comments
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix.patch
+     userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix.patch
 
 This patch was dropped because it was folded into userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: cleanup superfluous _irq locking
+Subject: userfaultfd: fs/userfaultfd.c add more comments
 
-This leftover shouldn't have caused any malfunction because the loop
-either schedules or it re-enables irqs immediately and schedule()
-doesn't seem to BUG_ON(irqs_disabled()). However lately we've been
-using the non blocking model so the schedule isn't really exercised
-here. Regardless of the side effects this must be fixed as it's not ok
-to enter schedule with irq disabled and it's not beneficial to toggle
-irqs in the first place.
+Add more commentary.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/userfaultfd.c |   15 ++++++++++++++-
+ 1 file changed, 14 insertions(+), 1 deletion(-)
 
-diff -puN fs/userfaultfd.c~userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix
+diff -puN fs/userfaultfd.c~userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix
 +++ a/fs/userfaultfd.c
-@@ -433,11 +433,11 @@ static ssize_t userfaultfd_ctx_read(stru
- 		}
- 		spin_unlock(&ctx->fd_wqh.lock);
- 		schedule();
--		spin_lock_irq(&ctx->fd_wqh.lock);
-+		spin_lock(&ctx->fd_wqh.lock);
- 	}
- 	__remove_wait_queue(&ctx->fd_wqh, &wait);
- 	__set_current_state(TASK_RUNNING);
--	spin_unlock_irq(&ctx->fd_wqh.lock);
-+	spin_unlock(&ctx->fd_wqh.lock);
- 
+@@ -81,7 +81,20 @@ static int userfaultfd_wake_function(wai
+ 		goto out;
+ 	ret = wake_up_state(wq->private, mode);
+ 	if (ret)
+-		/* wake only once, autoremove behavior */
++		/*
++		 * Wake only once, autoremove behavior.
++		 *
++		 * After the effect of list_del_init is visible to the
++		 * other CPUs, the waitqueue may disappear from under
++		 * us, see the !list_empty_careful() in
++		 * handle_userfault(). try_to_wake_up() has an
++		 * implicit smp_mb__before_spinlock, and the
++		 * wq->private is read before calling the extern
++		 * function "wake_up_state" (which in turns calls
++		 * try_to_wake_up). While the spin_lock;spin_unlock;
++		 * wouldn't be enough, the smp_mb__before_spinlock is
++		 * enough to avoid an explicit smp_mb() here.
++		 */
+ 		list_del_init(&wq->task_list);
+ out:
  	return ret;
- }
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
@@ -75,6 +76,7 @@ userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
 userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
 userfaultfd-prevent-khugepaged-to-merge-if-userfaultfd-is-armed.patch
 userfaultfd-add-new-syscall-to-provide-memory-externalization.patch
+userfaultfd-add-new-syscall-to-provide-memory-externalization-fix-fix-fix.patch
 userfaultfd-rename-uffd_apibits-into-features-fixup.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix.patch
