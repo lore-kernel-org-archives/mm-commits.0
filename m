@@ -1,62 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix.patch removed
+ watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch removed
  from -mm tree
-Date: Fri, 04 Sep 2015 15:26:24 -0700
-Message-ID: <55ea1a90.zbiu1A99jQCmCF6N%akpm@linux-foundation.org>
+Date: Fri, 04 Sep 2015 15:26:49 -0700
+Message-ID: <55ea1aa9.mXaaQRoJ5TqOeTKK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53643 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53672 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760264AbbIDW0Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:26:24 -0400
+	with ESMTP id S1760264AbbIDW0t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Sep 2015 18:26:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix
+     Subject: watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix
 has been removed from the -mm tree.  Its filename was
-     watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix.patch
+     watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch
 
-This patch was dropped because it was folded into watchdog-introduce-watchdog_suspend-and-watchdog_resume.patch
+This patch was dropped because it was folded into watchdog-use-suspend-resume-interface-in-fixup_ht_bug.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix
+Subject: watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix
 
-remove unneeded static initialization
+fix build with CONFIG_LOCKUP_DETECTOR=m
 
 Cc: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/nmi.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN kernel/watchdog.c~watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-introduce-watchdog_suspend-and-watchdog_resume-fix
-+++ a/kernel/watchdog.c
-@@ -67,7 +67,7 @@ unsigned long *watchdog_cpumask_bits = c
- #define for_each_watchdog_cpu(cpu) \
- 	for_each_cpu_and((cpu), cpu_online_mask, &watchdog_cpumask)
+diff -puN include/linux/nmi.h~watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix include/linux/nmi.h
+--- a/include/linux/nmi.h~watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix
++++ a/include/linux/nmi.h
+@@ -80,6 +80,15 @@ extern int proc_watchdog_cpumask(struct
+ 				 void __user *, size_t *, loff_t *);
+ extern int watchdog_suspend(void);
+ extern void watchdog_resume(void);
++#else
++static inline int watchdog_suspend(void)
++{
++	return 0;
++}
++
++static inline void watchdog_resume(void)
++{
++}
+ #endif
  
--static int __read_mostly watchdog_suspended = 0;
-+static int __read_mostly watchdog_suspended;
- static int __read_mostly watchdog_running;
- static u64 __read_mostly sample_period;
- 
+ #ifdef CONFIG_HAVE_ACPI_APEI_NMI
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
-watchdog-introduce-watchdog_suspend-and-watchdog_resume.patch
-watchdog-use-suspend-resume-interface-in-fixup_ht_bug-fix.patch
+watchdog-use-suspend-resume-interface-in-fixup_ht_bug.patch
 userfaultfd-change-the-read-api-to-return-a-uffd_msg-fix-2-fix.patch
 userfaultfd-activate-syscall-fix-2.patch
 userfaultfd-avoid-mmap_sem-read-recursion-in-mcopy_atomic-fix.patch
