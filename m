@@ -1,87 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-slub-fix-slab-double-free-in-case-of-duplicate-sysfs-filename.patch
- removed from -mm tree
-Date: Tue, 08 Sep 2015 11:03:43 -0700
-Message-ID: <55ef22ff.mhrTqttkrMVjKk7D%akpm@linux-foundation.org>
+Subject: [merged] slub-improve-bulk-alloc-strategy.patch removed from -mm
+ tree
+Date: Tue, 08 Sep 2015 11:03:32 -0700
+Message-ID: <55ef22f4.SV6gbxTIAN2RwkRJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59073 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59032 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755329AbbIHSDo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:44 -0400
+	with ESMTP id S1755329AbbIHSDd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: khlebnikov@yandex-team.ru, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slub: fix slab double-free in case of duplicate sysfs filename
+     Subject: slub: improve bulk alloc strategy
 has been removed from the -mm tree.  Its filename was
-     mm-slub-fix-slab-double-free-in-case-of-duplicate-sysfs-filename.patch
+     slub-improve-bulk-alloc-strategy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: mm/slub: fix slab double-free in case of duplicate sysfs filename
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: slub: improve bulk alloc strategy
 
-sysfs_slab_add() shouldn't call kobject_put at error path: this puts last
-reference of kmem-cache kobject and frees it.  Kmem cache will be freed
-second time at error path in kmem_cache_create().
+Call slowpath __slab_alloc() from within the bulk loop, as the side-effect
+of this call likely repopulates c->freelist.
 
-For example this happens when slub debug was enabled in runtime and
-somebody creates new kmem cache:
+Choose to reenable local IRQs while calling slowpath.
 
-# echo 1 | tee /sys/kernel/slab/*/sanity_checks
-# modprobe configfs
+Saving some optimizations for later.  E.g.  it is possible to extract
+parts of __slab_alloc() and avoid the unnecessary and expensive (37
+cycles) local_irq_{save,restore}.  For now, be happy calling
+__slab_alloc() this lower icache impact of this func and I don't have to
+worry about correctness.
 
-"configfs_dir_cache" cannot be merged because existing slab have debug and
-cannot create new slab because unique name ":t-0000096" already taken.
+Measurements on CPU CPU i7-4790K @ 4.00GHz
+Baseline normal fastpath (alloc+free cost): 42 cycles(tsc) 10.601 ns
 
-Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Acked-by: Christoph Lameter <cl@linux.com>
+Bulk- fallback                   - this-patch
+  1 -  58 cycles(tsc) 14.516 ns  -  49 cycles(tsc) 12.459 ns  improved 15.5%
+  2 -  51 cycles(tsc) 12.930 ns  -  38 cycles(tsc)  9.605 ns  improved 25.5%
+  3 -  49 cycles(tsc) 12.274 ns  -  34 cycles(tsc)  8.525 ns  improved 30.6%
+  4 -  48 cycles(tsc) 12.058 ns  -  32 cycles(tsc)  8.036 ns  improved 33.3%
+  8 -  46 cycles(tsc) 11.609 ns  -  31 cycles(tsc)  7.756 ns  improved 32.6%
+ 16 -  45 cycles(tsc) 11.451 ns  -  32 cycles(tsc)  8.148 ns  improved 28.9%
+ 30 -  79 cycles(tsc) 19.865 ns  -  68 cycles(tsc) 17.164 ns  improved 13.9%
+ 32 -  76 cycles(tsc) 19.212 ns  -  66 cycles(tsc) 16.584 ns  improved 13.2%
+ 34 -  74 cycles(tsc) 18.600 ns  -  63 cycles(tsc) 15.954 ns  improved 14.9%
+ 48 -  88 cycles(tsc) 22.092 ns  -  77 cycles(tsc) 19.373 ns  improved 12.5%
+ 64 -  80 cycles(tsc) 20.043 ns  -  68 cycles(tsc) 17.188 ns  improved 15.0%
+128 -  99 cycles(tsc) 24.818 ns  -  89 cycles(tsc) 22.404 ns  improved 10.1%
+158 -  99 cycles(tsc) 24.977 ns  -  92 cycles(tsc) 23.089 ns  improved  7.1%
+250 - 106 cycles(tsc) 26.552 ns  -  99 cycles(tsc) 24.785 ns  improved  6.6%
+
+Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ mm/slub.c |   26 ++++++++++++++++----------
+ 1 file changed, 16 insertions(+), 10 deletions(-)
 
-diff -puN mm/slub.c~mm-slub-fix-slab-double-free-in-case-of-duplicate-sysfs-filename mm/slub.c
---- a/mm/slub.c~mm-slub-fix-slab-double-free-in-case-of-duplicate-sysfs-filename
+diff -puN mm/slub.c~slub-improve-bulk-alloc-strategy mm/slub.c
+--- a/mm/slub.c~slub-improve-bulk-alloc-strategy
 +++ a/mm/slub.c
-@@ -5283,7 +5283,7 @@ static int sysfs_slab_add(struct kmem_ca
- 	s->kobj.kset = cache_kset(s);
- 	err = kobject_init_and_add(&s->kobj, &slab_ktype, NULL, "%s", name);
- 	if (err)
--		goto out_put_kobj;
-+		goto out;
+@@ -2779,8 +2779,22 @@ bool kmem_cache_alloc_bulk(struct kmem_c
+ 	for (i = 0; i < size; i++) {
+ 		void *object = c->freelist;
  
- 	err = sysfs_create_group(&s->kobj, &slab_attr_group);
- 	if (err)
-@@ -5310,8 +5310,6 @@ out:
- 	return err;
- out_del_kobj:
- 	kobject_del(&s->kobj);
--out_put_kobj:
--	kobject_put(&s->kobj);
- 	goto out;
+-		if (!object)
+-			break;
++		if (unlikely(!object)) {
++			local_irq_enable();
++			/*
++			 * Invoking slow path likely have side-effect
++			 * of re-populating per CPU c->freelist
++			 */
++			p[i] = __slab_alloc(s, flags, NUMA_NO_NODE,
++					    _RET_IP_, c);
++			if (unlikely(!p[i])) {
++				__kmem_cache_free_bulk(s, i, p);
++				return false;
++			}
++			local_irq_disable();
++			c = this_cpu_ptr(s->cpu_slab);
++			continue; /* goto for-loop */
++		}
+ 
+ 		c->freelist = get_freepointer(s, object);
+ 		p[i] = object;
+@@ -2796,14 +2810,6 @@ bool kmem_cache_alloc_bulk(struct kmem_c
+ 			memset(p[j], 0, s->object_size);
+ 	}
+ 
+-	/* Fallback to single elem alloc */
+-	for (; i < size; i++) {
+-		void *x = p[i] = kmem_cache_alloc(s, flags);
+-		if (unlikely(!x)) {
+-			__kmem_cache_free_bulk(s, i, p);
+-			return false;
+-		}
+-	}
+ 	return true;
  }
- 
+ EXPORT_SYMBOL(kmem_cache_alloc_bulk);
 _
 
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
+Patches currently in -mm which might be from brouer@redhat.com are
 
-pagemap-check-permissions-and-capabilities-at-open-time.patch
-pagemap-switch-to-the-new-format-and-do-some-cleanup.patch
-pagemap-rework-hugetlb-and-thp-report.patch
-pagemap-hide-physical-addresses-from-non-privileged-users.patch
-pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here.patch
-pagemap-update-documentation.patch
 
