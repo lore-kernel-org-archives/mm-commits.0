@@ -1,75 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
+Subject: [folded-merged] hugetlbfs-add-hugetlbfs_fallocate-fix.patch
  removed from -mm tree
-Date: Tue, 08 Sep 2015 14:42:52 -0700
-Message-ID: <55ef565c.ZvsXx3oxQtXWXu+h%akpm@linux-foundation.org>
+Date: Tue, 08 Sep 2015 14:43:21 -0700
+Message-ID: <55ef5679.+Gb5q+zx3BSJt62K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53160 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53191 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752988AbbIHVmx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 17:42:53 -0400
+	with ESMTP id S1752071AbbIHVnW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 17:43:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, fengguang.wu@intel.com, hillf.zj@alibaba-inc.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix
+     Subject: mmotm: build fix hugetlbfs fallocate if not CONFIG_NUMA
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
+     hugetlbfs-add-hugetlbfs_fallocate-fix.patch
 
-This patch was dropped because it was folded into mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add.patch
+This patch was dropped because it was folded into hugetlbfs-add-hugetlbfs_fallocate.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mmotm: build fix hugetlbfs fallocate if not CONFIG_NUMA
 
-fix typo in comment, use more cols
+Commit 56bb4d795 introduced a build error if CONFIG_NUMA is not
+defined.  When fallocate preallocation allocates pages, it will
+use the defined numa policy.  However, if numa is not defined
+there is no such policy and no code should reference numa policy.
+Create wrappers to isolate policy manipulation code that are a
+NOOP in the non-NUMA case.
 
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ fs/hugetlbfs/inode.c |   39 ++++++++++++++++++++++++++++++---------
+ 1 file changed, 30 insertions(+), 9 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix
-+++ a/mm/hugetlb.c
-@@ -339,15 +339,13 @@ out_locked:
-  * so that the subsequent region_add call will have all the
-  * regions it needs and will not fail.
-  *
-- * Upon entry, region_chg will also examine the cache of
-- * region descriptors associated with the map.  If there
-- * not enough descriptors cached, one will be allocated
-- * for the in progress add operation.
-+ * Upon entry, region_chg will also examine the cache of region descriptors
-+ * associated with the map.  If there are not enough descriptors cached, one
-+ * will be allocated for the in progress add operation.
-  *
-- * Returns the number of huge pages that need to be added
-- * to the existing reservation map for the range [f, t).
-- * This number is greater or equal to zero.  -ENOMEM is
-- * returned if a new file_region structure or cache entry
-+ * Returns the number of huge pages that need to be added to the existing
-+ * reservation map for the range [f, t).  This number is greater or equal to
-+ * zero.  -ENOMEM is returned if a new file_region structure or cache entry
-  * is needed and can not be allocated.
-  */
- static long region_chg(struct resv_map *resv, long f, long t)
+diff -puN fs/hugetlbfs/inode.c~hugetlbfs-add-hugetlbfs_fallocate-fix fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-add-hugetlbfs_fallocate-fix
++++ a/fs/hugetlbfs/inode.c
+@@ -85,6 +85,29 @@ static const match_table_t tokens = {
+ 	{Opt_err,	NULL},
+ };
+ 
++#ifdef CONFIG_NUMA
++static inline void hugetlb_set_vma_policy(struct vm_area_struct *vma,
++					struct inode *inode, pgoff_t index)
++{
++	vma->vm_policy = mpol_shared_policy_lookup(&HUGETLBFS_I(inode)->policy,
++							index);
++}
++
++static inline void hugetlb_drop_vma_policy(struct vm_area_struct *vma)
++{
++	mpol_cond_put(vma->vm_policy);
++}
++#else
++static inline void hugetlb_set_vma_policy(struct vm_area_struct *vma,
++					struct inode *inode, pgoff_t index)
++{
++}
++
++static inline void hugetlb_drop_vma_policy(struct vm_area_struct *vma)
++{
++}
++#endif
++
+ static void huge_pagevec_release(struct pagevec *pvec)
+ {
+ 	int i;
+@@ -546,9 +569,9 @@ static long hugetlbfs_fallocate(struct f
+ 		goto out;
+ 
+ 	/*
+-	 * Initialize a pseudo vma that just contains the policy used
+-	 * when allocating the huge pages.  The actual policy field
+-	 * (vm_policy) is determined based on the index in the loop below.
++	 * Initialize a pseudo vma as this is required by the huge page
++	 * allocation routines.  If NUMA is configured, use page index
++	 * as input to create an allocation policy.
+ 	 */
+ 	memset(&pseudo_vma, 0, sizeof(struct vm_area_struct));
+ 	pseudo_vma.vm_flags = (VM_HUGETLB | VM_MAYSHARE | VM_SHARED);
+@@ -574,10 +597,8 @@ static long hugetlbfs_fallocate(struct f
+ 			break;
+ 		}
+ 
+-		/* Get policy based on index */
+-		pseudo_vma.vm_policy =
+-			mpol_shared_policy_lookup(&HUGETLBFS_I(inode)->policy,
+-							index);
++		/* Set numa allocation policy based on index */
++		hugetlb_set_vma_policy(&pseudo_vma, inode, index);
+ 
+ 		/* addr is the offset within the file (zero based) */
+ 		addr = index * hpage_size;
+@@ -592,13 +613,13 @@ static long hugetlbfs_fallocate(struct f
+ 		if (page) {
+ 			put_page(page);
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+-			mpol_cond_put(pseudo_vma.vm_policy);
++			hugetlb_drop_vma_policy(&pseudo_vma);
+ 			continue;
+ 		}
+ 
+ 		/* Allocate page and add to page cache */
+ 		page = alloc_huge_page(&pseudo_vma, addr, avoid_reserve);
+-		mpol_cond_put(pseudo_vma.vm_policy);
++		hugetlb_drop_vma_policy(&pseudo_vma);
+ 		if (IS_ERR(page)) {
+ 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 			error = PTR_ERR(page);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-dax-revert-userfaultfd-change.patch
 mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add.patch
-x86-use-generic-early-mem-copy-fix.patch
-mm-mmap-simplify-the-failure-return-working-flow-fix.patch
-zswap-dynamic-pool-creation-fix.patch
+mm-hugetlb-add-region_del-to-delete-a-specific-range-of-entries.patch
+mm-hugetlb-expose-hugetlb-fault-mutex-for-use-by-fallocate.patch
+hugetlbfs-hugetlb_vmtruncate_list-needs-to-take-a-range-to-delete.patch
+hugetlbfs-truncate_hugepages-takes-a-range-of-pages.patch
+mm-hugetlb-vma_has_reserves-needs-to-handle-fallocate-hole-punch.patch
+mm-hugetlb-alloc_huge_page-handle-areas-hole-punched-by-fallocate.patch
+hugetlbfs-new-huge_add_to_page_cache-helper-routine.patch
+hugetlbfs-add-hugetlbfs_fallocate.patch
+mm-madvise-allow-remove-operation-for-hugetlbfs.patch
+reverted-selftests-add-hugetlbfstest.patch
+selftests-vm-point-to-libhugetlbfs-for-regression-testing.patch
+documentation-update-libhugetlbfs-location-and-use-for-testing.patch
 
