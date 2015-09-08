@@ -1,72 +1,71 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-mmap-simplify-the-failure-return-working-flow-fix.patch removed from -mm tree
-Date: Tue, 08 Sep 2015 14:45:22 -0700
-Message-ID: <55ef56f2.myZDGYrwjW0ryNOb%akpm@linux-foundation.org>
+ mm-page_alloc-fix-a-terrible-misleading-comment-fix.patch removed from -mm
+ tree
+Date: Tue, 08 Sep 2015 14:45:40 -0700
+Message-ID: <55ef5704.UU7yseeehUOGigeh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53506 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752402AbbIHVpX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 17:45:23 -0400
+	with ESMTP id S1752402AbbIHVpk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 17:45:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gang.chen.5i5j@gmail.com, xili_gchen_5257@hotmail.com, mm-commits@vger.kernel.org
+To: bywxiaobai@163.com, mhocko@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mmap-simplify-the-failure-return-working-flow-fix
+     Subject: Documentation: clarify in calculating zone protection
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-simplify-the-failure-return-working-flow-fix.patch
+     mm-page_alloc-fix-a-terrible-misleading-comment-fix.patch
 
-This patch was dropped because it was folded into mm-mmap-simplify-the-failure-return-working-flow.patch
+This patch was dropped because it was folded into mm-page_alloc-fix-a-terrible-misleading-comment.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mmap-simplify-the-failure-return-working-flow-fix
+From: Yaowei Bai <bywxiaobai@163.com>
+Subject: Documentation: clarify in calculating zone protection
 
-Cc: Chen Gang <gang.chen.5i5j@gmail.com>
-Cc: Chen Gang <xili_gchen_5257@hotmail.com>
+Every zone's protection is calculated from managed_pages not
+present_pages, to avoid misleading, correct it.
+
+Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ Documentation/sysctl/vm.txt |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/mmap.c~mm-mmap-simplify-the-failure-return-working-flow-fix mm/mmap.c
---- a/mm/mmap.c~mm-mmap-simplify-the-failure-return-working-flow-fix
-+++ a/mm/mmap.c
-@@ -2953,7 +2953,7 @@ struct vm_area_struct *copy_vma(struct v
- 	} else {
- 		new_vma = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
- 		if (!new_vma)
--			return NULL;
-+			goto out;
- 		*new_vma = *vma;
- 		new_vma->vm_start = addr;
- 		new_vma->vm_end = addr + len;
-@@ -2972,10 +2972,11 @@ struct vm_area_struct *copy_vma(struct v
- 	}
- 	return new_vma;
+diff -puN Documentation/sysctl/vm.txt~mm-page_alloc-fix-a-terrible-misleading-comment-fix Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-page_alloc-fix-a-terrible-misleading-comment-fix
++++ a/Documentation/sysctl/vm.txt
+@@ -349,7 +349,7 @@ zone[i]'s protection[j] is calculated by
  
-- out_free_mempol:
-+out_free_mempol:
- 	mpol_put(vma_policy(new_vma));
-- out_free_vma:
-+out_free_vma:
- 	kmem_cache_free(vm_area_cachep, new_vma);
-+out:
- 	return NULL;
- }
+ (i < j):
+   zone[i]->protection[j]
+-  = (total sums of present_pages from zone[i+1] to zone[j] on the node)
++  = (total sums of managed_pages from zone[i+1] to zone[j] on the node)
+     / lowmem_reserve_ratio[i];
+ (i = j):
+    (should not be protected. = 0;
+@@ -360,7 +360,7 @@ The default values of lowmem_reserve_rat
+     256 (if zone[i] means DMA or DMA32 zone)
+     32  (others).
+ As above expression, they are reciprocal number of ratio.
+-256 means 1/256. # of protection pages becomes about "0.39%" of total present
++256 means 1/256. # of protection pages becomes about "0.39%" of total managed
+ pages of higher zones on the node.
  
+ If you would like to protect more pages, smaller values are effective.
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from bywxiaobai@163.com are
 
-dax-revert-userfaultfd-change.patch
-mm-mmap-simplify-the-failure-return-working-flow.patch
-zswap-dynamic-pool-creation-fix.patch
+mm-page_alloc-fix-a-terrible-misleading-comment.patch
+mm-page_alloc-change-sysctl_lower_zone_reserve_ratio-to-sysctl_lowmem_reserve_ratio.patch
 
