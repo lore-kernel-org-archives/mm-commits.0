@@ -1,126 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slub-initial-bulk-free-implementation.patch removed from -mm tree
-Date: Tue, 08 Sep 2015 11:03:35 -0700
-Message-ID: <55ef22f7.1jJZ+9mxCikWls+d%akpm@linux-foundation.org>
+Subject: [merged]
+ watchdog-use-suspend-resume-interface-in-fixup_ht_bug.patch removed from
+ -mm tree
+Date: Tue, 08 Sep 2015 11:03:19 -0700
+Message-ID: <55ef22e7.X+nsjjfGR7DWWGvA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59040 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58996 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754664AbbIHSDg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:36 -0400
+	with ESMTP id S1753989AbbIHSDU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: uobergfe@redhat.com, a.p.zijlstra@chello.nl, atomlin@redhat.com, cmetcalf@ezchip.com, dzickus@redhat.com, eranian@google.com, fweisbec@gmail.com, jolsa@kernel.org, linux@roeck-us.net, mhocko@suse.cz, mingo@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: initial bulk free implementation
+     Subject: watchdog: use suspend/resume interface in fixup_ht_bug()
 has been removed from the -mm tree.  Its filename was
-     slub-initial-bulk-free-implementation.patch
+     watchdog-use-suspend-resume-interface-in-fixup_ht_bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: slub: initial bulk free implementation
+From: Ulrich Obergfell <uobergfe@redhat.com>
+Subject: watchdog: use suspend/resume interface in fixup_ht_bug()
 
-This implements SLUB specific kmem_cache_free_bulk().  SLUB allocator now
-both have bulk alloc and free implemented.
+Remove watchdog_nmi_disable_all() and watchdog_nmi_enable_all() since
+these functions are no longer needed.  If a subsystem has a need to
+deactivate the watchdog temporarily, it should utilize the
+watchdog_suspend() and watchdog_resume() functions.
 
-Choose to reenable local IRQs while calling slowpath __slab_free().  In
-worst case, where all objects hit slowpath call, the performance should
-still be faster than fallback function __kmem_cache_free_bulk(), because
-local_irq_{disable+enable} is very fast (7-cycles), while the fallback
-invokes this_cpu_cmpxchg() which is slightly slower (9-cycles). 
-Nitpicking, this should be faster for N>=4, due to the entry cost of
-local_irq_{disable+enable}.
-
-Do notice that the save+restore variant is very expensive, this is key to
-why this optimization works.
-
-CPU: i7-4790K CPU @ 4.00GHz
- * local_irq_{disable,enable}:  7 cycles(tsc) - 1.821 ns
- * local_irq_{save,restore}  : 37 cycles(tsc) - 9.443 ns
-
-Measurements on CPU CPU i7-4790K @ 4.00GHz
-Baseline normal fastpath (alloc+free cost): 43 cycles(tsc) 10.834 ns
-
-Bulk- fallback                   - this-patch
-  1 -  58 cycles(tsc) 14.542 ns  -  43 cycles(tsc) 10.811 ns  improved 25.9%
-  2 -  50 cycles(tsc) 12.659 ns  -  27 cycles(tsc)  6.867 ns  improved 46.0%
-  3 -  48 cycles(tsc) 12.168 ns  -  21 cycles(tsc)  5.496 ns  improved 56.2%
-  4 -  47 cycles(tsc) 11.987 ns  -  24 cycles(tsc)  6.038 ns  improved 48.9%
-  8 -  46 cycles(tsc) 11.518 ns  -  17 cycles(tsc)  4.280 ns  improved 63.0%
- 16 -  45 cycles(tsc) 11.366 ns  -  17 cycles(tsc)  4.483 ns  improved 62.2%
- 30 -  45 cycles(tsc) 11.433 ns  -  18 cycles(tsc)  4.531 ns  improved 60.0%
- 32 -  75 cycles(tsc) 18.983 ns  -  58 cycles(tsc) 14.586 ns  improved 22.7%
- 34 -  71 cycles(tsc) 17.940 ns  -  53 cycles(tsc) 13.391 ns  improved 25.4%
- 48 -  80 cycles(tsc) 20.077 ns  -  65 cycles(tsc) 16.268 ns  improved 18.8%
- 64 -  71 cycles(tsc) 17.799 ns  -  53 cycles(tsc) 13.440 ns  improved 25.4%
-128 -  91 cycles(tsc) 22.980 ns  -  79 cycles(tsc) 19.899 ns  improved 13.2%
-158 - 100 cycles(tsc) 25.241 ns  -  90 cycles(tsc) 22.732 ns  improved 10.0%
-250 - 102 cycles(tsc) 25.583 ns  -  95 cycles(tsc) 23.916 ns  improved  6.9%
-
-Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+[akpm@linux-foundation.org: fix build with CONFIG_LOCKUP_DETECTOR=m]
+Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
+Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Stephane Eranian <eranian@google.com>
+Cc: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   34 +++++++++++++++++++++++++++++++++-
- 1 file changed, 33 insertions(+), 1 deletion(-)
+ arch/x86/kernel/cpu/perf_event_intel.c |    7 +++-
+ include/linux/nmi.h                    |   13 +++++---
+ kernel/watchdog.c                      |   35 -----------------------
+ 3 files changed, 14 insertions(+), 41 deletions(-)
 
-diff -puN mm/slub.c~slub-initial-bulk-free-implementation mm/slub.c
---- a/mm/slub.c~slub-initial-bulk-free-implementation
-+++ a/mm/slub.c
-@@ -2753,7 +2753,39 @@ EXPORT_SYMBOL(kmem_cache_free);
- /* Note that interrupts must be enabled when calling this function. */
- void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p)
- {
--	__kmem_cache_free_bulk(s, size, p);
-+	struct kmem_cache_cpu *c;
-+	struct page *page;
-+	int i;
-+
-+	/* Debugging fallback to generic bulk */
-+	if (kmem_cache_debug(s))
-+		return __kmem_cache_free_bulk(s, size, p);
-+
-+	local_irq_disable();
-+	c = this_cpu_ptr(s->cpu_slab);
-+
-+	for (i = 0; i < size; i++) {
-+		void *object = p[i];
-+
-+		BUG_ON(!object);
-+		page = virt_to_head_page(object);
-+		BUG_ON(s != page->slab_cache); /* Check if valid slab page */
-+
-+		if (c->page == page) {
-+			/* Fastpath: local CPU free */
-+			set_freepointer(s, object, c->freelist);
-+			c->freelist = object;
-+		} else {
-+			c->tid = next_tid(c->tid);
-+			local_irq_enable();
-+			/* Slowpath: overhead locked cmpxchg_double_slab */
-+			__slab_free(s, page, object, _RET_IP_);
-+			local_irq_disable();
-+			c = this_cpu_ptr(s->cpu_slab);
-+		}
-+	}
-+	c->tid = next_tid(c->tid);
-+	local_irq_enable();
- }
- EXPORT_SYMBOL(kmem_cache_free_bulk);
+diff -puN arch/x86/kernel/cpu/perf_event_intel.c~watchdog-use-suspend-resume-interface-in-fixup_ht_bug arch/x86/kernel/cpu/perf_event_intel.c
+--- a/arch/x86/kernel/cpu/perf_event_intel.c~watchdog-use-suspend-resume-interface-in-fixup_ht_bug
++++ a/arch/x86/kernel/cpu/perf_event_intel.c
+@@ -3627,7 +3627,10 @@ static __init int fixup_ht_bug(void)
+ 		return 0;
+ 	}
  
-_
-
-Patches currently in -mm which might be from brouer@redhat.com are
-
-
+-	watchdog_nmi_disable_all();
++	if (watchdog_suspend() != 0) {
++		pr_debug("failed to disable PMU erratum BJ122, BV98, HSD29 workaround\n");
++		return 0;
++	}
+ 
+ 	x86_pmu.flags &= ~(PMU_FL_EXCL_CNTRS | PMU_FL_EXCL_ENABLED);
+ 
+@@ -3635,7 +3638,7 @@ static __init int fixup_ht_bug(void)
+ 	x86_pmu.commit_scheduling = NULL;
+ 	x86_pmu.stop_scheduling = NULL;
+ 
+-	watchdog_nmi_enable_all();
++	watchdog_resume();
+ 
+ 	get_online_cpus();
+ 
+diff -puN include/linux/nmi.h~watchdog-use-suspend-resume-interface-in-fixup_ht_bug include/linux/nmi.h
+--- a/include/linux/nmi.h~watchdog-use-suspend-resume-interface-in-fixup_ht_bug
++++ a/include/linux/nmi.h
+@@ -26,12 +26,8 @@ static inline void touch_nmi_watchdog(vo
+ 
+ #if defined(CONFIG_HARDLOCKUP_DETECTOR)
+ extern void hardlockup_detector_disable(void);
+-void watchdog_nmi_disable_all(void);
+-void watchdog_nmi_enable_all(void);
+ #else
+ static inline void hardlockup_detector_disable(void) {}
+-static inline void watchdog_nmi_disable_all(void) {}
+-static inline void watchdog_nmi_enable_all(void) {}
+ #endif
+ 
+ /*
+@@ -84,6 +80,15 @@ extern int proc_watchdog_cpumask(struct
+ 				 void __user *, size_t *, loff_t *);
+ extern int watchdog_suspend(void);
+ extern void watchdog_resume(void);
++#else
++static inline int watchdog_suspend(void)
++{
++	return 0;
++}
++
++static inline void watchdog_resume(void)
++{
++}
+ #endif
+ 
+ #ifdef CONFIG_HAVE_ACPI_APEI_NMI
+diff -puN kernel/watchdog.c~watchdog-use-suspend-resume-interface-in-fixup_ht_bug kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-use-suspend-resume-interface-in-fixup_ht_bug
++++ a/kernel/watchdog.c
+@@ -615,41 +615,6 @@ static void watchdog_nmi_disable(unsigne
+ 	}
+ }
+ 
+-void watchdog_nmi_enable_all(void)
+-{
+-	int cpu;
+-
+-	mutex_lock(&watchdog_proc_mutex);
+-
+-	if (!(watchdog_enabled & NMI_WATCHDOG_ENABLED))
+-		goto unlock;
+-
+-	get_online_cpus();
+-	for_each_watchdog_cpu(cpu)
+-		watchdog_nmi_enable(cpu);
+-	put_online_cpus();
+-
+-unlock:
+-	mutex_unlock(&watchdog_proc_mutex);
+-}
+-
+-void watchdog_nmi_disable_all(void)
+-{
+-	int cpu;
+-
+-	mutex_lock(&watchdog_proc_mutex);
+-
+-	if (!watchdog_running)
+-		goto unlock;
+-
+-	get_online_cpus();
+-	for_each_watchdog_cpu(cpu)
+-		watchdog_nmi_disable(cpu);
+-	put_online_cpus();
