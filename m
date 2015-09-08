@@ -1,183 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- watchdog-introduce-watchdog_suspend-and-watchdog_resume.patch removed from
+Subject: [merged] smpboot-make-cleanup-to-mirror-setup.patch removed from
  -mm tree
-Date: Tue, 08 Sep 2015 11:03:13 -0700
-Message-ID: <55ef22e1.SFKZAAb3Md4S6V5z%akpm@linux-foundation.org>
+Date: Tue, 08 Sep 2015 11:02:59 -0700
+Message-ID: <55ef22d3.WH5gf4o9GsWTgos8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58971 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58930 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753989AbbIHSDO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:14 -0400
+	with ESMTP id S1753989AbbIHSDA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: uobergfe@redhat.com, a.p.zijlstra@chello.nl, atomlin@redhat.com, cmetcalf@ezchip.com, dzickus@redhat.com, eranian@google.com, fweisbec@gmail.com, jolsa@kernel.org, linux@roeck-us.net, mhocko@suse.cz, mingo@redhat.com, mm-commits@vger.kernel.org
+To: fweisbec@gmail.com, cmetcalf@ezchip.com, dzickus@redhat.com, peterz@infradead.org, tglx@linutronix.de, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: introduce watchdog_suspend() and watchdog_resume()
+     Subject: smpboot: make cleanup to mirror setup
 has been removed from the -mm tree.  Its filename was
-     watchdog-introduce-watchdog_suspend-and-watchdog_resume.patch
+     smpboot-make-cleanup-to-mirror-setup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ulrich Obergfell <uobergfe@redhat.com>
-Subject: watchdog: introduce watchdog_suspend() and watchdog_resume()
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Subject: smpboot: make cleanup to mirror setup
 
-This interface can be utilized to deactivate the hard and soft lockup
-detector temporarily.  Callers are expected to minimize the duration of
-deactivation.  Multiple deactivations are allowed to occur in parallel but
-should be rare in practice.
+The per-cpu kthread cleanup() callback is the mirror of the setup()
+callback. When the per-cpu kthread is started, it first calls setup()
+to initialize the resources which are then released by cleanup() when
+the kthread exits.
 
-[akpm@linux-foundation.org: remove unneeded static initialization]
-Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
-Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
-Cc: Jiri Olsa <jolsa@kernel.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Stephane Eranian <eranian@google.com>
+Now since the introduction of a per-cpu kthread cpumask, the kthreads
+excluded by the cpumask on boot may happen to be parked immediately
+after their creation without taking the setup() stage, waiting to be
+asked to unpark to do so. Then when smpboot_unregister_percpu_thread()
+is later called, the kthread is stopped without having ever called
+setup().
+
+But this triggers a bug as the kthread unconditionally calls cleanup()
+on exit but this doesn't mirror any setup(). Thus the kernel crashes
+because we try to free resources that haven't been initialized, as in
+the watchdog case:
+
+	[  112.645556] WATCHDOG disable 0
+	[  112.648765] WATCHDOG disable 1
+	[  112.651891] WATCHDOG disable 2
+	[  112.654953] BUG: unable to handle kernel NULL pointer dereference at           (null)
+	[  112.662808] IP: [<ffffffff8111ea16>] hrtimer_active+0x26/0x60
+	[...]
+	[  112.815078] Call Trace:
+	[  112.817523]  [<ffffffff8111fe7c>] hrtimer_try_to_cancel+0x1c/0x280
+	[  112.823697]  [<ffffffff811200fd>] hrtimer_cancel+0x1d/0x30
+	[  112.829172]  [<ffffffff8115d846>] watchdog_disable+0x56/0x70
+	[  112.834818]  [<ffffffff8115d86e>] watchdog_cleanup+0xe/0x10
+	[  112.840381]  [<ffffffff810ca05c>] smpboot_thread_fn+0x23c/0x2c0
+	[  112.846296]  [<ffffffff810c9e20>] ? sort_range+0x30/0x30
+	[  112.851596]  [<ffffffff810c6478>] kthread+0xf8/0x110
+	[  112.856550]  [<ffffffff810c6380>] ? kthread_create_on_node+0x210/0x210
+	[  112.863065]  [<ffffffff8191501f>] ret_from_fork+0x3f/0x70
+	[  112.868460]  [<ffffffff810c6380>] ? kthread_create_on_node+0x210/0x210
+
+This bug is currently masked with explicit kthread unparking before
+kthread_stop() on smpboot_destroy_threads(). This forces a call to
+setup() and then unpark().
+
+We could fix this by unconditionally calling setup() on kthread entry. 
+But setup() isn't always cheap.  In the case of watchdog it launches
+hrtimer, perf events, etc...  So we may as well like to skip it if there
+are chances the kthread will never be used, as in a reduced cpumask value.
+
+So let's simply do a state machine check before calling cleanup() that
+makes sure setup() has been called before mirroring it.
+
+And remove the nasty hack workaround.
+
+Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
+Reviewed-by: Chris Metcalf <cmetcalf@ezchip.com>
+Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
 Cc: Chris Metcalf <cmetcalf@ezchip.com>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nmi.h |    2 +
- kernel/watchdog.c   |   65 ++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 67 insertions(+)
+ kernel/smpboot.c |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/nmi.h~watchdog-introduce-watchdog_suspend-and-watchdog_resume include/linux/nmi.h
---- a/include/linux/nmi.h~watchdog-introduce-watchdog_suspend-and-watchdog_resume
-+++ a/include/linux/nmi.h
-@@ -82,6 +82,8 @@ extern int proc_watchdog_thresh(struct c
- 				void __user *, size_t *, loff_t *);
- extern int proc_watchdog_cpumask(struct ctl_table *, int,
- 				 void __user *, size_t *, loff_t *);
-+extern int watchdog_suspend(void);
-+extern void watchdog_resume(void);
- #endif
- 
- #ifdef CONFIG_HAVE_ACPI_APEI_NMI
-diff -puN kernel/watchdog.c~watchdog-introduce-watchdog_suspend-and-watchdog_resume kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-introduce-watchdog_suspend-and-watchdog_resume
-+++ a/kernel/watchdog.c
-@@ -67,6 +67,7 @@ unsigned long *watchdog_cpumask_bits = c
- #define for_each_watchdog_cpu(cpu) \
- 	for_each_cpu_and((cpu), cpu_online_mask, &watchdog_cpumask)
- 
-+static int __read_mostly watchdog_suspended;
- static int __read_mostly watchdog_running;
- static u64 __read_mostly sample_period;
- 
-@@ -700,6 +701,50 @@ static void watchdog_unpark_threads(void
- 	put_online_cpus();
- }
- 
-+/*
-+ * Suspend the hard and soft lockup detector by parking the watchdog threads.
-+ */
-+int watchdog_suspend(void)
-+{
-+	int ret = 0;
-+
-+	mutex_lock(&watchdog_proc_mutex);
-+	/*
-+	 * Multiple suspend requests can be active in parallel (counted by
-+	 * the 'watchdog_suspended' variable). If the watchdog threads are
-+	 * running, the first caller takes care that they will be parked.
-+	 * The state of 'watchdog_running' cannot change while a suspend
-+	 * request is active (see related changes in 'proc' handlers).
-+	 */
-+	if (watchdog_running && !watchdog_suspended)
-+		ret = watchdog_park_threads();
-+
-+	if (ret == 0)
-+		watchdog_suspended++;
-+
-+	mutex_unlock(&watchdog_proc_mutex);
-+
-+	return ret;
-+}
-+
-+/*
-+ * Resume the hard and soft lockup detector by unparking the watchdog threads.
-+ */
-+void watchdog_resume(void)
-+{
-+	mutex_lock(&watchdog_proc_mutex);
-+
-+	watchdog_suspended--;
-+	/*
-+	 * The watchdog threads are unparked if they were previously running
-+	 * and if there is no more active suspend request.
-+	 */
-+	if (watchdog_running && !watchdog_suspended)
-+		watchdog_unpark_threads();
-+
-+	mutex_unlock(&watchdog_proc_mutex);
-+}
-+
- static void restart_watchdog_hrtimer(void *info)
+diff -puN kernel/smpboot.c~smpboot-make-cleanup-to-mirror-setup kernel/smpboot.c
+--- a/kernel/smpboot.c~smpboot-make-cleanup-to-mirror-setup
++++ a/kernel/smpboot.c
+@@ -113,7 +113,8 @@ static int smpboot_thread_fn(void *data)
+ 		if (kthread_should_stop()) {
+ 			__set_current_state(TASK_RUNNING);
+ 			preempt_enable();
+-			if (ht->cleanup)
++			/* cleanup must mirror setup */
++			if (ht->cleanup && td->status != HP_THREAD_NONE)
+ 				ht->cleanup(td->cpu, cpu_online(td->cpu));
+ 			kfree(td);
+ 			return 0;
+@@ -259,15 +260,6 @@ static void smpboot_destroy_threads(stru
  {
- 	struct hrtimer *hrtimer = raw_cpu_ptr(&watchdog_hrtimer);
-@@ -818,6 +863,12 @@ static int proc_watchdog_common(int whic
+ 	unsigned int cpu;
  
- 	mutex_lock(&watchdog_proc_mutex);
- 
-+	if (watchdog_suspended) {
-+		/* no parameter changes allowed while watchdog is suspended */
-+		err = -EAGAIN;
-+		goto out;
-+	}
-+
- 	/*
- 	 * If the parameter is being read return the state of the corresponding
- 	 * bit(s) in 'watchdog_enabled', else update 'watchdog_enabled' and the
-@@ -903,6 +954,12 @@ int proc_watchdog_thresh(struct ctl_tabl
- 
- 	mutex_lock(&watchdog_proc_mutex);
- 
-+	if (watchdog_suspended) {
-+		/* no parameter changes allowed while watchdog is suspended */
-+		err = -EAGAIN;
-+		goto out;
-+	}
-+
- 	old = ACCESS_ONCE(watchdog_thresh);
- 	err = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
- 
-@@ -934,6 +991,13 @@ int proc_watchdog_cpumask(struct ctl_tab
- 	int err;
- 
- 	mutex_lock(&watchdog_proc_mutex);
-+
-+	if (watchdog_suspended) {
-+		/* no parameter changes allowed while watchdog is suspended */
-+		err = -EAGAIN;
-+		goto out;
-+	}
-+
- 	err = proc_do_large_bitmap(table, write, buffer, lenp, ppos);
- 	if (!err && write) {
- 		/* Remove impossible cpus to keep sysctl output cleaner. */
-@@ -951,6 +1015,7 @@ int proc_watchdog_cpumask(struct ctl_tab
- 				pr_err("cpumask update failed\n");
- 		}
- 	}
-+out:
- 	mutex_unlock(&watchdog_proc_mutex);
- 	return err;
- }
-_
-
-Patches currently in -mm which might be from uobergfe@redhat.com are
-
-
+-	/* Unpark any threads that were voluntarily parked. */
+-	for_each_cpu_not(cpu, ht->cpumask) {
+-		if (cpu_online(cpu)) {
+-			struct task_struct *tsk = *per_cpu_ptr(ht->store, cpu);
+-			if (tsk)
+-				kthread_unpark(tsk);
+-		}
+-	}
