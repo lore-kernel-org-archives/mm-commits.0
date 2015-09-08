@@ -1,38 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mremap-dont-do-mm_populatenew_addr-on-failure.patch
- removed from -mm tree
-Date: Tue, 08 Sep 2015 11:12:00 -0700
-Message-ID: <55ef24f0.NkiO3lPMLjTJCw3I%akpm@linux-foundation.org>
+Subject: [merged]
+ mremap-dont-do-uneccesary-checks-if-new_len-==-old_len.patch removed from
+ -mm tree
+Date: Tue, 08 Sep 2015 11:12:03 -0700
+Message-ID: <55ef24f3.LL4K2qgN3/FWHDNB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60394 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60400 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753243AbbIHSMB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:12:01 -0400
+	with ESMTP id S1753243AbbIHSME (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:12:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, bcrl@kvack.org, hughd@google.com, jmoyer@redhat.com, kirill.shutemov@linux.intel.com, ldufour@linux.vnet.ibm.com, rientjes@google.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mremap: don't do mm_populate(new_addr) on failure
+     Subject: mremap: don't do uneccesary checks if new_len == old_len
 has been removed from the -mm tree.  Its filename was
-     mremap-dont-do-mm_populatenew_addr-on-failure.patch
+     mremap-dont-do-uneccesary-checks-if-new_len-==-old_len.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: mremap: don't do mm_populate(new_addr) on failure
+Subject: mremap: don't do uneccesary checks if new_len == old_len
 
-move_vma() sets *locked even if move_page_tables() or ->mremap() fails,
-change sys_mremap() to check "ret & ~PAGE_MASK".
+The "new_len > old_len" branch in vma_to_resize() looks very confusing. 
+It only covers the VM_DONTEXPAND/pgoff checks but everything below is
+equally unneeded if new_len == old_len.
 
-I think we should simply remove the VM_LOCKED code in move_vma(), that is
-why this patch doesn't change move_vma().  But this needs more cleanups.
+Change this code to return if "new_len == old_len", new_len < old_len is
+not possible, otherwise the code below is wrong anyway.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: David Rientjes <rientjes@google.com>
@@ -45,24 +47,47 @@ Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/mremap.c |   19 ++++++++++---------
+ 1 file changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN mm/mremap.c~mremap-dont-do-mm_populatenew_addr-on-failure mm/mremap.c
---- a/mm/mremap.c~mremap-dont-do-mm_populatenew_addr-on-failure
+diff -puN mm/mremap.c~mremap-dont-do-uneccesary-checks-if-new_len-==-old_len mm/mremap.c
+--- a/mm/mremap.c~mremap-dont-do-uneccesary-checks-if-new_len-==-old_len
 +++ a/mm/mremap.c
-@@ -578,8 +578,10 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 		ret = move_vma(vma, addr, old_len, new_len, new_addr, &locked);
- 	}
- out:
--	if (ret & ~PAGE_MASK)
-+	if (ret & ~PAGE_MASK) {
- 		vm_unacct_memory(charged);
-+		locked = 0;
-+	}
- 	up_write(&current->mm->mmap_sem);
- 	if (locked && new_len > old_len)
- 		mm_populate(new_addr + old_len, new_len - old_len);
+@@ -346,6 +346,7 @@ static struct vm_area_struct *vma_to_res
+ {
+ 	struct mm_struct *mm = current->mm;
+ 	struct vm_area_struct *vma = find_vma(mm, addr);
++	unsigned long pgoff;
+ 
+ 	if (!vma || vma->vm_start > addr)
+ 		return ERR_PTR(-EFAULT);
+@@ -357,17 +358,17 @@ static struct vm_area_struct *vma_to_res
+ 	if (old_len > vma->vm_end - addr)
+ 		return ERR_PTR(-EFAULT);
+ 
++	if (new_len == old_len)
++		return vma;
++
+ 	/* Need to be careful about a growing mapping */
+-	if (new_len > old_len) {
+-		unsigned long pgoff;
++	pgoff = (addr - vma->vm_start) >> PAGE_SHIFT;
++	pgoff += vma->vm_pgoff;
++	if (pgoff + (new_len >> PAGE_SHIFT) < pgoff)
++		return ERR_PTR(-EINVAL);
+ 
+-		if (vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP))
+-			return ERR_PTR(-EFAULT);
+-		pgoff = (addr - vma->vm_start) >> PAGE_SHIFT;
+-		pgoff += vma->vm_pgoff;
+-		if (pgoff + (new_len >> PAGE_SHIFT) < pgoff)
+-			return ERR_PTR(-EINVAL);
+-	}
++	if (vma->vm_flags & (VM_DONTEXPAND | VM_PFNMAP))
++		return ERR_PTR(-EFAULT);
+ 
+ 	if (vma->vm_flags & VM_LOCKED) {
+ 		unsigned long locked, lock_limit;
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
