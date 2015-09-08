@@ -1,64 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-rename-and-move-get-set_freepage_migratetype-v2.patch removed from -mm
- tree
-Date: Tue, 08 Sep 2015 14:42:41 -0700
-Message-ID: <55ef5651.sTcx1P7tVOv5VyWy%akpm@linux-foundation.org>
+ mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
+ removed from -mm tree
+Date: Tue, 08 Sep 2015 14:42:52 -0700
+Message-ID: <55ef565c.ZvsXx3oxQtXWXu+h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53150 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53160 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752300AbbIHVmm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 17:42:42 -0400
+	with ESMTP id S1752988AbbIHVmx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 17:42:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mike.kravetz@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-rename-and-move-get-set_freepage_migratetype-v2
+     Subject: mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix
 has been removed from the -mm tree.  Its filename was
-     mm-rename-and-move-get-set_freepage_migratetype-v2.patch
+     mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
 
-This patch was dropped because it was folded into mm-rename-and-move-get-set_freepage_migratetype.patch
+This patch was dropped because it was folded into mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add.patch
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-rename-and-move-get-set_freepage_migratetype-v2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+fix typo in comment, use more cols
+
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/hugetlb.c |   14 ++++++--------
+ 1 file changed, 6 insertions(+), 8 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-rename-and-move-get-set_freepage_migratetype-v2 mm/page_alloc.c
---- a/mm/page_alloc.c~mm-rename-and-move-get-set_freepage_migratetype-v2
-+++ a/mm/page_alloc.c
-@@ -974,7 +974,6 @@ static void __free_pages_ok(struct page
- 	migratetype = get_pfnblock_migratetype(page, pfn);
- 	local_irq_save(flags);
- 	__count_vm_events(PGFREE, 1 << order);
--	set_pcppage_migratetype(page, migratetype);
- 	free_one_page(page_zone(page), page, pfn, order, migratetype);
- 	local_irq_restore(flags);
- }
+diff -puN mm/hugetlb.c~mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix
++++ a/mm/hugetlb.c
+@@ -339,15 +339,13 @@ out_locked:
+  * so that the subsequent region_add call will have all the
+  * regions it needs and will not fail.
+  *
+- * Upon entry, region_chg will also examine the cache of
+- * region descriptors associated with the map.  If there
+- * not enough descriptors cached, one will be allocated
+- * for the in progress add operation.
++ * Upon entry, region_chg will also examine the cache of region descriptors
++ * associated with the map.  If there are not enough descriptors cached, one
++ * will be allocated for the in progress add operation.
+  *
+- * Returns the number of huge pages that need to be added
+- * to the existing reservation map for the range [f, t).
+- * This number is greater or equal to zero.  -ENOMEM is
+- * returned if a new file_region structure or cache entry
++ * Returns the number of huge pages that need to be added to the existing
++ * reservation map for the range [f, t).  This number is greater or equal to
++ * zero.  -ENOMEM is returned if a new file_region structure or cache entry
+  * is needed and can not be allocated.
+  */
+ static long region_chg(struct resv_map *resv, long f, long t)
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_isolation-remove-bogus-tests-for-isolated-pages.patch
-mm-rename-and-move-get-set_freepage_migratetype.patch
-mm-compaction-more-robust-check-for-scanners-meeting.patch
-mm-compaction-simplify-handling-restart-position-in-free-pages-scanner.patch
-mm-compaction-encapsulate-resetting-cached-scanner-positions.patch
-mm-compaction-always-skip-compound-pages-by-order-in-migrate-scanner.patch
-mm-compaction-skip-compound-pages-by-order-in-free-scanner.patch
-mm-rename-alloc_pages_exact_node-to-__alloc_pages_node.patch
-mm-unify-checks-in-alloc_pages_node-and-__alloc_pages_node.patch
-mm-use-numa_mem_id-in-alloc_pages_node.patch
+dax-revert-userfaultfd-change.patch
+mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add.patch
+x86-use-generic-early-mem-copy-fix.patch
+mm-mmap-simplify-the-failure-return-working-flow-fix.patch
+zswap-dynamic-pool-creation-fix.patch
 
