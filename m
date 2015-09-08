@@ -1,71 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-page_alloc-fix-a-terrible-misleading-comment-fix.patch removed from -mm
- tree
-Date: Tue, 08 Sep 2015 14:45:40 -0700
-Message-ID: <55ef5704.UU7yseeehUOGigeh%akpm@linux-foundation.org>
+Subject: [folded-merged] zpool-add-zpool_has_pool-fix.patch removed from
+ -mm tree
+Date: Tue, 08 Sep 2015 14:46:28 -0700
+Message-ID: <55ef5734.eNxbG8b1ahFREK7N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53506 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53525 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752402AbbIHVpk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 17:45:40 -0400
+	with ESMTP id S1753825AbbIHVq3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 17:46:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, mhocko@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: ddstreet@ieee.org, sergey.senozhatsky.work@gmail.com, sjennings@variantweb.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation: clarify in calculating zone protection
+     Subject: zpool: clarification comment for zpool_has_pool
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fix-a-terrible-misleading-comment-fix.patch
+     zpool-add-zpool_has_pool-fix.patch
 
-This patch was dropped because it was folded into mm-page_alloc-fix-a-terrible-misleading-comment.patch
+This patch was dropped because it was folded into zpool-add-zpool_has_pool.patch
 
 ------------------------------------------------------
-From: Yaowei Bai <bywxiaobai@163.com>
-Subject: Documentation: clarify in calculating zone protection
+From: Dan Streetman <ddstreet@ieee.org>
+Subject: zpool: clarification comment for zpool_has_pool
 
-Every zone's protection is calculated from managed_pages not
-present_pages, to avoid misleading, correct it.
+Add clarification in the documentation comment for zpool_has_pool() to
+explain the caller should assume the requested driver is or is not
+available, depending on return value.  If true is returned, the caller
+should assume zpool_create_pool() will succeed, but still must be prepared
+to handle failure.
 
-Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Dan Streetman <ddstreet@ieee.org>
+Cc: Seth Jennings <sjennings@variantweb.net>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/zpool.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-page_alloc-fix-a-terrible-misleading-comment-fix Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-page_alloc-fix-a-terrible-misleading-comment-fix
-+++ a/Documentation/sysctl/vm.txt
-@@ -349,7 +349,7 @@ zone[i]'s protection[j] is calculated by
- 
- (i < j):
-   zone[i]->protection[j]
--  = (total sums of present_pages from zone[i+1] to zone[j] on the node)
-+  = (total sums of managed_pages from zone[i+1] to zone[j] on the node)
-     / lowmem_reserve_ratio[i];
- (i = j):
-    (should not be protected. = 0;
-@@ -360,7 +360,7 @@ The default values of lowmem_reserve_rat
-     256 (if zone[i] means DMA or DMA32 zone)
-     32  (others).
- As above expression, they are reciprocal number of ratio.
--256 means 1/256. # of protection pages becomes about "0.39%" of total present
-+256 means 1/256. # of protection pages becomes about "0.39%" of total managed
- pages of higher zones on the node.
- 
- If you would like to protect more pages, smaller values are effective.
+diff -puN mm/zpool.c~zpool-add-zpool_has_pool-fix mm/zpool.c
+--- a/mm/zpool.c~zpool-add-zpool_has_pool-fix
++++ a/mm/zpool.c
+@@ -103,7 +103,15 @@ static void zpool_put_driver(struct zpoo
+  * zpool_has_pool() - Check if the pool driver is available
+  * @type	The type of the zpool to check (e.g. zbud, zsmalloc)
+  *
+- * This checks if the @type pool driver is available.
++ * This checks if the @type pool driver is available.  This will try to load
++ * the requested module, if needed, but there is no guarantee the module will
++ * still be loaded and available immediately after calling.  If this returns
++ * true, the caller should assume the pool is available, but must be prepared
++ * to handle the @zpool_create_pool() returning failure.  However if this
++ * returns false, the caller should assume the requested pool type is not
++ * available; either the requested pool type module does not exist, or could
++ * not be loaded, and calling @zpool_create_pool() with the pool type will
++ * fail.
+  *
+  * Returns: true if @type pool is available, false if not
+  */
 _
 
-Patches currently in -mm which might be from bywxiaobai@163.com are
+Patches currently in -mm which might be from ddstreet@ieee.org are
 
-mm-page_alloc-fix-a-terrible-misleading-comment.patch
-mm-page_alloc-change-sysctl_lower_zone_reserve_ratio-to-sysctl_lowmem_reserve_ratio.patch
+zpool-add-zpool_has_pool.patch
+zswap-dynamic-pool-creation.patch
+zswap-dynamic-pool-creation-fix-2.patch
+zswap-change-zpool-compressor-at-runtime.patch
+zswap-change-zpool-compressor-at-runtime-fix.patch
+zswap-update-docs-for-runtime-changeable-attributes.patch
+zswap-update-docs-for-runtime-changeable-attributes-v2.patch
+zpool-remove-no-op-module-init-exit.patch
 
