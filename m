@@ -1,62 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fsnotify-fix-check-in-inotify-fdinfo-printing.patch
- removed from -mm tree
-Date: Tue, 08 Sep 2015 11:01:34 -0700
-Message-ID: <55ef227e.68/zQgl9cmEj1kvK%akpm@linux-foundation.org>
+Subject: [merged]
+ capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise.patch removed
+ from -mm tree
+Date: Tue, 08 Sep 2015 11:01:25 -0700
+Message-ID: <55ef2275.KDb4w1HForyzLS/8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58678 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58661 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754664AbbIHSBe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:01:34 -0400
+	with ESMTP id S1754664AbbIHSB0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:01:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, mm-commits@vger.kernel.org
+To: luto@kernel.org, aaronmdjones@gmail.com, ahferroin7@gmail.com, cl@linux.com, corbet@lwn.net, james.l.morris@oracle.com, jarkko.sakkinen@linux.intel.com, keescook@chromium.org, morgan@kernel.org, msa@moth.iki.fi, mtk.manpages@gmail.com, serge.hallyn@canonical.com, tytso@mit.edu, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsnotify: fix check in inotify fdinfo printing
+     Subject: capabilities: add a securebit to disable PR_CAP_AMBIENT_RAISE
 has been removed from the -mm tree.  Its filename was
-     fsnotify-fix-check-in-inotify-fdinfo-printing.patch
+     capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: fsnotify: fix check in inotify fdinfo printing
+From: Andy Lutomirski <luto@kernel.org>
+Subject: capabilities: add a securebit to disable PR_CAP_AMBIENT_RAISE
 
-A check in inotify_fdinfo() checking whether mark is valid was always true
-due to a bug.  Luckily we can never get to invalidated marks since we hold
-mark_mutex and invalidated marks get removed from the group list when they
-are invalidated under that mutex.
+Per Andrew Morgan's request, add a securebit to allow admins to disable
+PR_CAP_AMBIENT_RAISE.  This securebit will prevent processes from adding
+capabilities to their ambient set.
 
-Anyway fix the check to make code more future proof.
+For simplicity, this disables PR_CAP_AMBIENT_RAISE entirely rather than
+just disabling setting previously cleared bits.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
+Acked-by: Andrew G. Morgan <morgan@kernel.org>
+Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Serge Hallyn <serge.hallyn@canonical.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Aaron Jones <aaronmdjones@gmail.com>
+Cc: Ted Ts'o <tytso@mit.edu>
+Cc: Andrew G. Morgan <morgan@kernel.org>
+Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
+Cc: Austin S Hemmelgarn <ahferroin7@gmail.com>
+Cc: Markku Savela <msa@moth.iki.fi>
+Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: James Morris <james.l.morris@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fdinfo.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/uapi/linux/securebits.h |   11 ++++++++++-
+ security/commoncap.c            |    3 ++-
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
-diff -puN fs/notify/fdinfo.c~fsnotify-fix-check-in-inotify-fdinfo-printing fs/notify/fdinfo.c
---- a/fs/notify/fdinfo.c~fsnotify-fix-check-in-inotify-fdinfo-printing
-+++ a/fs/notify/fdinfo.c
-@@ -76,7 +76,8 @@ static void inotify_fdinfo(struct seq_fi
- 	struct inotify_inode_mark *inode_mark;
- 	struct inode *inode;
+diff -puN include/uapi/linux/securebits.h~capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise include/uapi/linux/securebits.h
+--- a/include/uapi/linux/securebits.h~capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise
++++ a/include/uapi/linux/securebits.h
+@@ -43,9 +43,18 @@
+ #define SECBIT_KEEP_CAPS	(issecure_mask(SECURE_KEEP_CAPS))
+ #define SECBIT_KEEP_CAPS_LOCKED (issecure_mask(SECURE_KEEP_CAPS_LOCKED))
  
--	if (!(mark->flags & (FSNOTIFY_MARK_FLAG_ALIVE | FSNOTIFY_MARK_FLAG_INODE)))
-+	if (!(mark->flags & FSNOTIFY_MARK_FLAG_ALIVE) ||
-+	    !(mark->flags & FSNOTIFY_MARK_FLAG_INODE))
- 		return;
++/* When set, a process cannot add new capabilities to its ambient set. */
++#define SECURE_NO_CAP_AMBIENT_RAISE		6
++#define SECURE_NO_CAP_AMBIENT_RAISE_LOCKED	7  /* make bit-6 immutable */
++
++#define SECBIT_NO_CAP_AMBIENT_RAISE (issecure_mask(SECURE_NO_CAP_AMBIENT_RAISE))
++#define SECBIT_NO_CAP_AMBIENT_RAISE_LOCKED \
++			(issecure_mask(SECURE_NO_CAP_AMBIENT_RAISE_LOCKED))
++
+ #define SECURE_ALL_BITS		(issecure_mask(SECURE_NOROOT) | \
+ 				 issecure_mask(SECURE_NO_SETUID_FIXUP) | \
+-				 issecure_mask(SECURE_KEEP_CAPS))
++				 issecure_mask(SECURE_KEEP_CAPS) | \
++				 issecure_mask(SECURE_NO_CAP_AMBIENT_RAISE))
+ #define SECURE_ALL_LOCKS	(SECURE_ALL_BITS << 1)
  
- 	inode_mark = container_of(mark, struct inotify_inode_mark, fsn_mark);
+ #endif /* _UAPI_LINUX_SECUREBITS_H */
+diff -puN security/commoncap.c~capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise security/commoncap.c
+--- a/security/commoncap.c~capabilities-add-a-securebit-to-disable-pr_cap_ambient_raise
++++ a/security/commoncap.c
+@@ -993,7 +993,8 @@ int cap_task_prctl(int option, unsigned
+ 			if (arg2 == PR_CAP_AMBIENT_RAISE &&
+ 			    (!cap_raised(current_cred()->cap_permitted, arg3) ||
+ 			     !cap_raised(current_cred()->cap_inheritable,
+-					 arg3)))
++					 arg3) ||
++			     issecure(SECURE_NO_CAP_AMBIENT_RAISE)))
+ 				return -EPERM;
+ 
+ 			new = prepare_creds();
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from luto@kernel.org are
 
 
