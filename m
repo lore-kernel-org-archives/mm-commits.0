@@ -1,74 +1,96 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- watchdog-simplify-housekeeping-affinity-with-the-appropriate-mask.patch
+ watchdog-use-park-unpark-functions-in-update_watchdog_all_cpus.patch
  removed from -mm tree
-Date: Tue, 08 Sep 2015 11:03:05 -0700
-Message-ID: <55ef22d9.jgEIq4BJzqiebf78%akpm@linux-foundation.org>
+Date: Tue, 08 Sep 2015 11:03:16 -0700
+Message-ID: <55ef22e4.WSsWiE7/TJ9b8305%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58947 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58980 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753989AbbIHSDG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:06 -0400
+	with ESMTP id S1753989AbbIHSDR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fweisbec@gmail.com, cmetcalf@ezchip.com, dzickus@redhat.com, peterz@infradead.org, tglx@linutronix.de, uobergfe@redhat.com, mm-commits@vger.kernel.org
+To: uobergfe@redhat.com, a.p.zijlstra@chello.nl, atomlin@redhat.com, cmetcalf@ezchip.com, dzickus@redhat.com, eranian@google.com, fweisbec@gmail.com, jolsa@kernel.org, linux@roeck-us.net, mhocko@suse.cz, mingo@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: simplify housekeeping affinity with the appropriate mask
+     Subject: watchdog: use park/unpark functions in update_watchdog_all_cpus()
 has been removed from the -mm tree.  Its filename was
-     watchdog-simplify-housekeeping-affinity-with-the-appropriate-mask.patch
+     watchdog-use-park-unpark-functions-in-update_watchdog_all_cpus.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Subject: watchdog: simplify housekeeping affinity with the appropriate mask
+From: Ulrich Obergfell <uobergfe@redhat.com>
+Subject: watchdog: use park/unpark functions in update_watchdog_all_cpus()
 
-housekeeping_mask gathers all the CPUs that aren't part of the nohz_full
-set.  This is exactly what we want the watchdog to be affine to without
-the need to use complicated cpumask operations.
+Remove update_watchdog() and restart_watchdog_hrtimer() since these
+functions are no longer needed.  Changes of parameters such as the sample
+period are honored at the time when the watchdog threads are being
+unparked.
 
-Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
-Reviewed-by: Chris Metcalf <cmetcalf@ezchip.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Chris Metcalf <cmetcalf@ezchip.com>
+Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
+Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
 Cc: Don Zickus <dzickus@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Stephane Eranian <eranian@google.com>
+Cc: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ kernel/watchdog.c |   40 ++--------------------------------------
+ 1 file changed, 2 insertions(+), 38 deletions(-)
 
-diff -puN kernel/watchdog.c~watchdog-simplify-housekeeping-affinity-with-the-appropriate-mask kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-simplify-housekeeping-affinity-with-the-appropriate-mask
+diff -puN kernel/watchdog.c~watchdog-use-park-unpark-functions-in-update_watchdog_all_cpus kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-use-park-unpark-functions-in-update_watchdog_all_cpus
 +++ a/kernel/watchdog.c
-@@ -929,10 +929,8 @@ void __init lockup_detector_init(void)
+@@ -745,46 +745,10 @@ void watchdog_resume(void)
+ 	mutex_unlock(&watchdog_proc_mutex);
+ }
  
- #ifdef CONFIG_NO_HZ_FULL
- 	if (tick_nohz_full_enabled()) {
--		if (!cpumask_empty(tick_nohz_full_mask))
--			pr_info("Disabling watchdog on nohz_full cores by default\n");
--		cpumask_andnot(&watchdog_cpumask, cpu_possible_mask,
--			       tick_nohz_full_mask);
-+		pr_info("Disabling watchdog on nohz_full cores by default\n");
-+		cpumask_copy(&watchdog_cpumask, housekeeping_mask);
- 	} else
- 		cpumask_copy(&watchdog_cpumask, cpu_possible_mask);
- #else
-_
-
-Patches currently in -mm which might be from fweisbec@gmail.com are
-
-kmod-bunch-of-internal-functions-renames.patch
-kmod-remove-unecessary-explicit-wide-cpu-affinity-setting.patch
-kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels.patch
-kmod-use-system_unbound_wq-instead-of-khelper.patch
-kmod-handle-umh_wait_proc-from-system-unbound-workqueue.patch
-
+-static void restart_watchdog_hrtimer(void *info)
+-{
+-	struct hrtimer *hrtimer = raw_cpu_ptr(&watchdog_hrtimer);
+-	int ret;
+-
+-	/*
+-	 * No need to cancel and restart hrtimer if it is currently executing
+-	 * because it will reprogram itself with the new period now.
+-	 * We should never see it unqueued here because we are running per-cpu
+-	 * with interrupts disabled.
+-	 */
+-	ret = hrtimer_try_to_cancel(hrtimer);
+-	if (ret == 1)
+-		hrtimer_start(hrtimer, ns_to_ktime(sample_period),
+-				HRTIMER_MODE_REL_PINNED);
+-}
+-
+-static void update_watchdog(int cpu)
+-{
+-	/*
+-	 * Make sure that perf event counter will adopt to a new
+-	 * sampling period. Updating the sampling period directly would
+-	 * be much nicer but we do not have an API for that now so
+-	 * let's use a big hammer.
+-	 * Hrtimer will adopt the new period on the next tick but this
+-	 * might be late already so we have to restart the timer as well.
+-	 */
+-	watchdog_nmi_disable(cpu);
+-	smp_call_function_single(cpu, restart_watchdog_hrtimer, NULL, 1);
+-	watchdog_nmi_enable(cpu);
+-}
+-
+ static void update_watchdog_all_cpus(void)
+ {
+-	int cpu;
