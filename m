@@ -1,38 +1,100 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- watchdog-use-park-unpark-functions-in-update_watchdog_all_cpus.patch
+ watchdog-introduce-watchdog_park_threads-and-watchdog_unpark_threads.patch
  removed from -mm tree
-Date: Tue, 08 Sep 2015 11:03:16 -0700
-Message-ID: <55ef22e4.WSsWiE7/TJ9b8305%akpm@linux-foundation.org>
+Date: Tue, 08 Sep 2015 11:03:10 -0700
+Message-ID: <55ef22de.lfpd/I6Qf6J65QQA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58980 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58960 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753989AbbIHSDR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:17 -0400
+	with ESMTP id S1753989AbbIHSDL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: uobergfe@redhat.com, a.p.zijlstra@chello.nl, atomlin@redhat.com, cmetcalf@ezchip.com, dzickus@redhat.com, eranian@google.com, fweisbec@gmail.com, jolsa@kernel.org, linux@roeck-us.net, mhocko@suse.cz, mingo@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: use park/unpark functions in update_watchdog_all_cpus()
+     Subject: watchdog: introduce watchdog_park_threads() and watchdog_unpark_threads()
 has been removed from the -mm tree.  Its filename was
-     watchdog-use-park-unpark-functions-in-update_watchdog_all_cpus.patch
+     watchdog-introduce-watchdog_park_threads-and-watchdog_unpark_threads.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ulrich Obergfell <uobergfe@redhat.com>
-Subject: watchdog: use park/unpark functions in update_watchdog_all_cpus()
+Subject: watchdog: introduce watchdog_park_threads() and watchdog_unpark_threads()
 
-Remove update_watchdog() and restart_watchdog_hrtimer() since these
-functions are no longer needed.  Changes of parameters such as the sample
-period are honored at the time when the watchdog threads are being
-unparked.
+Originally watchdog_nmi_enable(cpu) and watchdog_nmi_disable(cpu) were
+only called in watchdog thread context.  However, the following commits
+utilize these functions outside of watchdog thread context too.
+
+  commit 9809b18fcf6b8d8ec4d3643677345907e6b50eca
+  Author: Michal Hocko <mhocko@suse.cz>
+  Date:   Tue Sep 24 15:27:30 2013 -0700
+
+      watchdog: update watchdog_thresh properly
+
+  commit b3738d29323344da3017a91010530cf3a58590fc
+  Author: Stephane Eranian <eranian@google.com>
+  Date:   Mon Nov 17 20:07:03 2014 +0100
+
+      watchdog: Add watchdog enable/disable all functions
+
+Hence, it is now possible that these functions execute concurrently with
+the same 'cpu' argument.  This concurrency is problematic because per-cpu
+'watchdog_ev' can be accessed/modified without adequate synchronization.
+
+The patch series aims to address the above problem.  However, instead of
+introducing locks to protect per-cpu 'watchdog_ev' a different approach is
+taken: Invoke these functions by parking and unparking the watchdog
+threads (to ensure they are always called in watchdog thread context).
+
+  static struct smp_hotplug_thread watchdog_threads = {
+           ...
+          .park   = watchdog_disable, // calls watchdog_nmi_disable()
+          .unpark = watchdog_enable,  // calls watchdog_nmi_enable()
+  };
+
+Both previously mentioned commits call these functions in a similar way
+and thus in principle contain some duplicate code.  The patch series also
+avoids this duplication by providing a commonly usable mechanism.
+
+- Patch 1/4 introduces the watchdog_{park|unpark}_threads functions that
+  park/unpark all watchdog threads specified in 'watchdog_cpumask'. They
+  are intended to be called inside of kernel/watchdog.c only.
+
+- Patch 2/4 introduces the watchdog_{suspend|resume} functions which can
+  be utilized by external callers to deactivate the hard and soft lockup
+  detector temporarily.
+
+- Patch 3/4 utilizes watchdog_{park|unpark}_threads to replace some code
+  that was introduced by commit 9809b18fcf6b8d8ec4d3643677345907e6b50eca.
+
+- Patch 4/4 utilizes watchdog_{suspend|resume} to replace some code that
+  was introduced by commit b3738d29323344da3017a91010530cf3a58590fc.
+
+A few corner cases should be mentioned here for completeness.
+
+- kthread_park() of watchdog/N could hang if cpu N is already locked up.
+  However, if watchdog is enabled the lockup will be detected anyway.
+
+- kthread_unpark() of watchdog/N could hang if cpu N got locked up after
+  kthread_park(). The occurrence of this scenario should be _very_ rare
+  in practice, in particular because it is not expected that temporary
+  deactivation will happen frequently, and if it happens at all it is
+  expected that the duration of deactivation will be short.
+
+
+This patch (of 4): introduce watchdog_park_threads() and watchdog_unpark_threads()
+
+These functions are intended to be used only from inside kernel/watchdog.c
+to park/unpark all watchdog threads that are specified in
+watchdog_cpumask.
 
 Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
 Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
@@ -49,48 +111,64 @@ Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   40 ++--------------------------------------
- 1 file changed, 2 insertions(+), 38 deletions(-)
+ kernel/watchdog.c |   36 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 36 insertions(+)
 
-diff -puN kernel/watchdog.c~watchdog-use-park-unpark-functions-in-update_watchdog_all_cpus kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-use-park-unpark-functions-in-update_watchdog_all_cpus
+diff -puN kernel/watchdog.c~watchdog-introduce-watchdog_park_threads-and-watchdog_unpark_threads kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-introduce-watchdog_park_threads-and-watchdog_unpark_threads
 +++ a/kernel/watchdog.c
-@@ -745,46 +745,10 @@ void watchdog_resume(void)
- 	mutex_unlock(&watchdog_proc_mutex);
- }
+@@ -24,6 +24,7 @@
+ #include <asm/irq_regs.h>
+ #include <linux/kvm_para.h>
+ #include <linux/perf_event.h>
++#include <linux/kthread.h>
  
--static void restart_watchdog_hrtimer(void *info)
--{
--	struct hrtimer *hrtimer = raw_cpu_ptr(&watchdog_hrtimer);
--	int ret;
--
--	/*
--	 * No need to cancel and restart hrtimer if it is currently executing
--	 * because it will reprogram itself with the new period now.
--	 * We should never see it unqueued here because we are running per-cpu
--	 * with interrupts disabled.
--	 */
--	ret = hrtimer_try_to_cancel(hrtimer);
--	if (ret == 1)
--		hrtimer_start(hrtimer, ns_to_ktime(sample_period),
--				HRTIMER_MODE_REL_PINNED);
--}
--
--static void update_watchdog(int cpu)
--{
--	/*
--	 * Make sure that perf event counter will adopt to a new
--	 * sampling period. Updating the sampling period directly would
--	 * be much nicer but we do not have an API for that now so
--	 * let's use a big hammer.
--	 * Hrtimer will adopt the new period on the next tick but this
--	 * might be late already so we have to restart the timer as well.
--	 */
--	watchdog_nmi_disable(cpu);
--	smp_call_function_single(cpu, restart_watchdog_hrtimer, NULL, 1);
--	watchdog_nmi_enable(cpu);
--}
--
- static void update_watchdog_all_cpus(void)
+ /*
+  * The run state of the lockup detectors is controlled by the content of the
+@@ -664,6 +665,41 @@ static struct smp_hotplug_thread watchdo
+ 	.unpark			= watchdog_enable,
+ };
+ 
++/*
++ * park all watchdog threads that are specified in 'watchdog_cpumask'
++ */
++static int watchdog_park_threads(void)
++{
++	int cpu, ret = 0;
++
++	get_online_cpus();
++	for_each_watchdog_cpu(cpu) {
++		ret = kthread_park(per_cpu(softlockup_watchdog, cpu));
++		if (ret)
++			break;
++	}
++	if (ret) {
++		for_each_watchdog_cpu(cpu)
++			kthread_unpark(per_cpu(softlockup_watchdog, cpu));
++	}
++	put_online_cpus();
++
++	return ret;
++}
++
++/*
++ * unpark all watchdog threads that are specified in 'watchdog_cpumask'
++ */
++static void watchdog_unpark_threads(void)
++{
++	int cpu;
++
++	get_online_cpus();
++	for_each_watchdog_cpu(cpu)
++		kthread_unpark(per_cpu(softlockup_watchdog, cpu));
++	put_online_cpus();
++}
++
+ static void restart_watchdog_hrtimer(void *info)
  {
--	int cpu;
+ 	struct hrtimer *hrtimer = raw_cpu_ptr(&watchdog_hrtimer);
+_
+
+Patches currently in -mm which might be from uobergfe@redhat.com are
+
+
