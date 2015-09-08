@@ -1,83 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] sh-use-pfn_down-macro.patch removed from -mm tree
-Date: Tue, 08 Sep 2015 11:01:56 -0700
-Message-ID: <55ef2294.jDHxb0NG5bvrW1J+%akpm@linux-foundation.org>
+Subject: [merged]
+ scripts-spellingtxt-adding-misspelled-word-for-check.patch removed from -mm tree
+Date: Tue, 08 Sep 2015 11:01:42 -0700
+Message-ID: <55ef2286.6MYgIycGXeTWccl+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58729 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58695 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755039AbbIHSB4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:01:56 -0400
+	with ESMTP id S1754664AbbIHSBm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:01:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kuleshovmail@gmail.com, geert+renesas@glider.be, mm-commits@vger.kernel.org
+To: maninder1.s@samsung.com, keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sh: use PFN_DOWN macro
+     Subject: scripts/spelling.txt: add misspelled words for check
 has been removed from the -mm tree.  Its filename was
-     sh-use-pfn_down-macro.patch
+     scripts-spellingtxt-adding-misspelled-word-for-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexander Kuleshov <kuleshovmail@gmail.com>
-Subject: sh: use PFN_DOWN macro
+From: Maninder Singh <maninder1.s@samsung.com>
+Subject: scripts/spelling.txt: add misspelled words for check
 
-Replace ((x) >> PAGE_SHIFT) with the predefined PFN_DOWN macro.
+misspelled words for check:-
+chcek
+chck
+cehck
 
-Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
-Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+I myself did these spell mistakes in changelog for patches, Thus
+suggesting to add in spelling.txt, so that checkpatch.pl warns it earlier.
+ References:-
+
+./arch/powerpc/kernel/exceptions-64e.S:456: . . . make sure you chcek
+https://lkml.org/lkml/2015/6/25/289
+./arch/x86/mm/pageattr.c:1368: * No need to cehck in that case
+
+[akpm@linux-foundation.org: add whcih->which, whcih I always get wrong]
+Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
+Acked-by: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sh/mm/init.c |    4 ++--
- arch/sh/mm/numa.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ scripts/spelling.txt |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN arch/sh/mm/init.c~sh-use-pfn_down-macro arch/sh/mm/init.c
---- a/arch/sh/mm/init.c~sh-use-pfn_down-macro
-+++ a/arch/sh/mm/init.c
-@@ -488,7 +488,7 @@ void free_initrd_mem(unsigned long start
- int arch_add_memory(int nid, u64 start, u64 size)
- {
- 	pg_data_t *pgdat;
--	unsigned long start_pfn = start >> PAGE_SHIFT;
-+	unsigned long start_pfn = PFN_DOWN(start);
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	int ret;
- 
-@@ -517,7 +517,7 @@ EXPORT_SYMBOL_GPL(memory_add_physaddr_to
- #ifdef CONFIG_MEMORY_HOTREMOVE
- int arch_remove_memory(u64 start, u64 size)
- {
--	unsigned long start_pfn = start >> PAGE_SHIFT;
-+	unsigned long start_pfn = PFN_DOWN(start);
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
- 	struct zone *zone;
- 	int ret;
-diff -puN arch/sh/mm/numa.c~sh-use-pfn_down-macro arch/sh/mm/numa.c
---- a/arch/sh/mm/numa.c~sh-use-pfn_down-macro
-+++ a/arch/sh/mm/numa.c
-@@ -33,8 +33,8 @@ void __init setup_bootmem_node(int nid,
- 	/* Don't allow bogus node assignment */
- 	BUG_ON(nid >= MAX_NUMNODES || nid <= 0);
- 
--	start_pfn = start >> PAGE_SHIFT;
--	end_pfn = end >> PAGE_SHIFT;
-+	start_pfn = PFN_DOWN(start);
-+	end_pfn = PFN_DOWN(end);
- 
- 	pmb_bolt_mapping((unsigned long)__va(start), start, end - start,
- 			 PAGE_KERNEL);
+diff -puN scripts/spelling.txt~scripts-spellingtxt-adding-misspelled-word-for-check scripts/spelling.txt
+--- a/scripts/spelling.txt~scripts-spellingtxt-adding-misspelled-word-for-check
++++ a/scripts/spelling.txt
+@@ -187,6 +187,7 @@ capatibilities||capabilities
+ carefuly||carefully
+ cariage||carriage
+ catagory||category
++cehck||check
+ challange||challenge
+ challanges||challenges
+ chanell||channel
+@@ -199,6 +200,8 @@ charactor||character
+ charater||character
+ charaters||characters
+ charcter||character
++chcek||check
++chck||check
+ checksuming||checksumming
+ childern||children
+ childs||children
+@@ -1028,6 +1031,7 @@ visiters||visitors
+ vitual||virtual
+ wating||waiting
+ whataver||whatever
++whcih||which
+ whenver||whenever
+ wheter||whether
+ whe||when
 _
 
-Patches currently in -mm which might be from kuleshovmail@gmail.com are
+Patches currently in -mm which might be from maninder1.s@samsung.com are
 
-mm-memblock-rename-local-variable-of-memblock_type-to-type.patch
-mm-memblock-typo-fixed.patch
-mm-memblockc-fix-comment-in-the-__next_mem_range.patch
+ipc-msgc-msgsnd-use-freezable-blocking-call.patch
 
