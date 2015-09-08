@@ -1,37 +1,43 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
+ userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
  removed from -mm tree
-Date: Tue, 08 Sep 2015 11:04:11 -0700
-Message-ID: <55ef231b.bSkMBbIzJZr81voL%akpm@linux-foundation.org>
+Date: Tue, 08 Sep 2015 11:04:08 -0700
+Message-ID: <55ef2318.YBAGJbPrABwFuXHs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59576 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59524 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755117AbbIHSEZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:04:25 -0400
+	with ESMTP id S1754868AbbIHSEX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:04:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, andreslc@google.com, dave.hansen@intel.com, dgilbert@redhat.com, hannes@cmpxchg.org, hughd@google.com, kirill@shutemov.name, luto@amacapital.net, mgorman@suse.de, pbonzini@redhat.com, peter.huangpeng@huawei.com, pfeiner@google.com, riel@redhat.com, sanidhya.gatech@gmail.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: teach vma_merge to merge across vma->vm_userfaultfd_ctx
+     Subject: userfaultfd: call handle_userfault() for userfaultfd_missing() faults
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx.patch
+     userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: teach vma_merge to merge across vma->vm_userfaultfd_ctx
+Subject: userfaultfd: call handle_userfault() for userfaultfd_missing() faults
 
-vma->vm_userfaultfd_ctx is yet another vma parameter that vma_merge
-must be aware about so that we can merge vmas back like they were
-originally before arming the userfaultfd on some memory range.
+This is where the page faults must be modified to call
+handle_userfault() if userfaultfd_missing() is true (so if the
+vma->vm_flags had VM_UFFD_MISSING set).
+
+handle_userfault() then takes care of blocking the page fault and
+delivering it to userland.
+
+The fault flags must also be passed as parameter so the "read|write"
+kind of fault can be passed to userland.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Acked-by: Pavel Emelyanov <xemul@parallels.com>
@@ -52,207 +58,216 @@ Cc: "Huangpeng (Peter)" <peter.huangpeng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- mm/madvise.c       |    3 ++-
- mm/mempolicy.c     |    4 ++--
- mm/mlock.c         |    3 ++-
- mm/mmap.c          |   40 +++++++++++++++++++++++++++-------------
- mm/mprotect.c      |    3 ++-
- 6 files changed, 36 insertions(+), 19 deletions(-)
+ mm/huge_memory.c |   69 ++++++++++++++++++++++++++++++---------------
+ mm/memory.c      |   16 ++++++++++
+ 2 files changed, 63 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/mm.h~userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx include/linux/mm.h
---- a/include/linux/mm.h~userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx
-+++ a/include/linux/mm.h
-@@ -1835,7 +1835,7 @@ extern int vma_adjust(struct vm_area_str
- extern struct vm_area_struct *vma_merge(struct mm_struct *,
- 	struct vm_area_struct *prev, unsigned long addr, unsigned long end,
- 	unsigned long vm_flags, struct anon_vma *, struct file *, pgoff_t,
--	struct mempolicy *);
-+	struct mempolicy *, struct vm_userfaultfd_ctx);
- extern struct anon_vma *find_mergeable_anon_vma(struct vm_area_struct *);
- extern int split_vma(struct mm_struct *,
- 	struct vm_area_struct *, unsigned long addr, int new_below);
-diff -puN mm/madvise.c~userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx mm/madvise.c
---- a/mm/madvise.c~userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx
-+++ a/mm/madvise.c
-@@ -103,7 +103,8 @@ static long madvise_behavior(struct vm_a
- 
- 	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
- 	*prev = vma_merge(mm, *prev, start, end, new_flags, vma->anon_vma,
--				vma->vm_file, pgoff, vma_policy(vma));
-+			  vma->vm_file, pgoff, vma_policy(vma),
-+			  vma->vm_userfaultfd_ctx);
- 	if (*prev) {
- 		vma = *prev;
- 		goto success;
-diff -puN mm/mempolicy.c~userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx mm/mempolicy.c
---- a/mm/mempolicy.c~userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx
-+++ a/mm/mempolicy.c
-@@ -722,8 +722,8 @@ static int mbind_range(struct mm_struct
- 		pgoff = vma->vm_pgoff +
- 			((vmstart - vma->vm_start) >> PAGE_SHIFT);
- 		prev = vma_merge(mm, prev, vmstart, vmend, vma->vm_flags,
--				  vma->anon_vma, vma->vm_file, pgoff,
--				  new_pol);
-+				 vma->anon_vma, vma->vm_file, pgoff,
-+				 new_pol, vma->vm_userfaultfd_ctx);
- 		if (prev) {
- 			vma = prev;
- 			next = vma->vm_next;
-diff -puN mm/mlock.c~userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx mm/mlock.c
---- a/mm/mlock.c~userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx
-+++ a/mm/mlock.c
-@@ -510,7 +510,8 @@ static int mlock_fixup(struct vm_area_st
- 
- 	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
- 	*prev = vma_merge(mm, *prev, start, end, newflags, vma->anon_vma,
--			  vma->vm_file, pgoff, vma_policy(vma));
-+			  vma->vm_file, pgoff, vma_policy(vma),
-+			  vma->vm_userfaultfd_ctx);
- 	if (*prev) {
- 		vma = *prev;
- 		goto success;
-diff -puN mm/mmap.c~userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx mm/mmap.c
---- a/mm/mmap.c~userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx
-+++ a/mm/mmap.c
-@@ -41,6 +41,7 @@
- #include <linux/notifier.h>
- #include <linux/memory.h>
- #include <linux/printk.h>
+diff -puN mm/huge_memory.c~userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults mm/huge_memory.c
+--- a/mm/huge_memory.c~userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults
++++ a/mm/huge_memory.c
+@@ -23,6 +23,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/migrate.h>
+ #include <linux/hashtable.h>
 +#include <linux/userfaultfd_k.h>
  
- #include <asm/uaccess.h>
- #include <asm/cacheflush.h>
-@@ -919,7 +920,8 @@ again:			remove_next = 1 + (end > next->
-  * per-vma resources, so we don't attempt to merge those.
-  */
- static inline int is_mergeable_vma(struct vm_area_struct *vma,
--			struct file *file, unsigned long vm_flags)
-+				struct file *file, unsigned long vm_flags,
-+				struct vm_userfaultfd_ctx vm_userfaultfd_ctx)
+ #include <asm/tlb.h>
+ #include <asm/pgalloc.h>
+@@ -717,7 +718,8 @@ static inline pmd_t mk_huge_pmd(struct p
+ static int __do_huge_pmd_anonymous_page(struct mm_struct *mm,
+ 					struct vm_area_struct *vma,
+ 					unsigned long haddr, pmd_t *pmd,
+-					struct page *page, gfp_t gfp)
++					struct page *page, gfp_t gfp,
++					unsigned int flags)
  {
- 	/*
- 	 * VM_SOFTDIRTY should not prevent from VMA merging, if we
-@@ -935,6 +937,8 @@ static inline int is_mergeable_vma(struc
- 		return 0;
- 	if (vma->vm_ops && vma->vm_ops->close)
- 		return 0;
-+	if (!is_mergeable_vm_userfaultfd_ctx(vma, vm_userfaultfd_ctx))
-+		return 0;
- 	return 1;
+ 	struct mem_cgroup *memcg;
+ 	pgtable_t pgtable;
+@@ -725,12 +727,16 @@ static int __do_huge_pmd_anonymous_page(
+ 
+ 	VM_BUG_ON_PAGE(!PageCompound(page), page);
+ 
+-	if (mem_cgroup_try_charge(page, mm, gfp, &memcg))
+-		return VM_FAULT_OOM;
++	if (mem_cgroup_try_charge(page, mm, gfp, &memcg)) {
++		put_page(page);
++		count_vm_event(THP_FAULT_FALLBACK);
++		return VM_FAULT_FALLBACK;
++	}
+ 
+ 	pgtable = pte_alloc_one(mm, haddr);
+ 	if (unlikely(!pgtable)) {
+ 		mem_cgroup_cancel_charge(page, memcg);
++		put_page(page);
+ 		return VM_FAULT_OOM;
+ 	}
+ 
+@@ -750,6 +756,21 @@ static int __do_huge_pmd_anonymous_page(
+ 		pte_free(mm, pgtable);
+ 	} else {
+ 		pmd_t entry;
++
++		/* Deliver the page fault to userland */
++		if (userfaultfd_missing(vma)) {
++			int ret;
++
++			spin_unlock(ptl);
++			mem_cgroup_cancel_charge(page, memcg);
++			put_page(page);
++			pte_free(mm, pgtable);
++			ret = handle_userfault(vma, haddr, flags,
++					       VM_UFFD_MISSING);
++			VM_BUG_ON(ret & VM_FAULT_FALLBACK);
++			return ret;
++		}
++
+ 		entry = mk_huge_pmd(page, vma->vm_page_prot);
+ 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+ 		page_add_new_anon_rmap(page, vma, haddr);
+@@ -760,6 +781,7 @@ static int __do_huge_pmd_anonymous_page(
+ 		add_mm_counter(mm, MM_ANONPAGES, HPAGE_PMD_NR);
+ 		atomic_long_inc(&mm->nr_ptes);
+ 		spin_unlock(ptl);
++		count_vm_event(THP_FAULT_ALLOC);
+ 	}
+ 
+ 	return 0;
+@@ -771,19 +793,16 @@ static inline gfp_t alloc_hugepage_gfpma
  }
  
-@@ -965,9 +969,11 @@ static inline int is_mergeable_anon_vma(
-  */
- static int
- can_vma_merge_before(struct vm_area_struct *vma, unsigned long vm_flags,
--	struct anon_vma *anon_vma, struct file *file, pgoff_t vm_pgoff)
-+		     struct anon_vma *anon_vma, struct file *file,
-+		     pgoff_t vm_pgoff,
-+		     struct vm_userfaultfd_ctx vm_userfaultfd_ctx)
+ /* Caller must hold page table lock. */
+-static bool set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
++static void set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
+ 		struct vm_area_struct *vma, unsigned long haddr, pmd_t *pmd,
+ 		struct page *zero_page)
  {
--	if (is_mergeable_vma(vma, file, vm_flags) &&
-+	if (is_mergeable_vma(vma, file, vm_flags, vm_userfaultfd_ctx) &&
- 	    is_mergeable_anon_vma(anon_vma, vma->anon_vma, vma)) {
- 		if (vma->vm_pgoff == vm_pgoff)
- 			return 1;
-@@ -984,9 +990,11 @@ can_vma_merge_before(struct vm_area_stru
-  */
- static int
- can_vma_merge_after(struct vm_area_struct *vma, unsigned long vm_flags,
--	struct anon_vma *anon_vma, struct file *file, pgoff_t vm_pgoff)
-+		    struct anon_vma *anon_vma, struct file *file,
-+		    pgoff_t vm_pgoff,
-+		    struct vm_userfaultfd_ctx vm_userfaultfd_ctx)
- {
--	if (is_mergeable_vma(vma, file, vm_flags) &&
-+	if (is_mergeable_vma(vma, file, vm_flags, vm_userfaultfd_ctx) &&
- 	    is_mergeable_anon_vma(anon_vma, vma->anon_vma, vma)) {
- 		pgoff_t vm_pglen;
- 		vm_pglen = vma_pages(vma);
-@@ -1029,7 +1037,8 @@ struct vm_area_struct *vma_merge(struct
- 			struct vm_area_struct *prev, unsigned long addr,
- 			unsigned long end, unsigned long vm_flags,
- 			struct anon_vma *anon_vma, struct file *file,
--			pgoff_t pgoff, struct mempolicy *policy)
-+			pgoff_t pgoff, struct mempolicy *policy,
-+			struct vm_userfaultfd_ctx vm_userfaultfd_ctx)
- {
- 	pgoff_t pglen = (end - addr) >> PAGE_SHIFT;
- 	struct vm_area_struct *area, *next;
-@@ -1056,14 +1065,17 @@ struct vm_area_struct *vma_merge(struct
- 	if (prev && prev->vm_end == addr &&
- 			mpol_equal(vma_policy(prev), policy) &&
- 			can_vma_merge_after(prev, vm_flags,
--						anon_vma, file, pgoff)) {
-+					    anon_vma, file, pgoff,
-+					    vm_userfaultfd_ctx)) {
+ 	pmd_t entry;
+-	if (!pmd_none(*pmd))
+-		return false;
+ 	entry = mk_pmd(zero_page, vma->vm_page_prot);
+ 	entry = pmd_mkhuge(entry);
+ 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
+ 	set_pmd_at(mm, haddr, pmd, entry);
+ 	atomic_long_inc(&mm->nr_ptes);
+-	return true;
+ }
+ 
+ int do_huge_pmd_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
+@@ -806,6 +825,7 @@ int do_huge_pmd_anonymous_page(struct mm
+ 		pgtable_t pgtable;
+ 		struct page *zero_page;
+ 		bool set;
++		int ret;
+ 		pgtable = pte_alloc_one(mm, haddr);
+ 		if (unlikely(!pgtable))
+ 			return VM_FAULT_OOM;
+@@ -816,14 +836,28 @@ int do_huge_pmd_anonymous_page(struct mm
+ 			return VM_FAULT_FALLBACK;
+ 		}
+ 		ptl = pmd_lock(mm, pmd);
+-		set = set_huge_zero_page(pgtable, mm, vma, haddr, pmd,
+-				zero_page);
+-		spin_unlock(ptl);
++		ret = 0;
++		set = false;
++		if (pmd_none(*pmd)) {
++			if (userfaultfd_missing(vma)) {
++				spin_unlock(ptl);
++				ret = handle_userfault(vma, haddr, flags,
++						       VM_UFFD_MISSING);
++				VM_BUG_ON(ret & VM_FAULT_FALLBACK);
++			} else {
++				set_huge_zero_page(pgtable, mm, vma,
++						   haddr, pmd,
++						   zero_page);
++				spin_unlock(ptl);
++				set = true;
++			}
++		} else
++			spin_unlock(ptl);
+ 		if (!set) {
+ 			pte_free(mm, pgtable);
+ 			put_huge_zero_page();
+ 		}
+-		return 0;
++		return ret;
+ 	}
+ 	gfp = alloc_hugepage_gfpmask(transparent_hugepage_defrag(vma), 0);
+ 	page = alloc_hugepage_vma(gfp, vma, haddr, HPAGE_PMD_ORDER);
+@@ -831,14 +865,7 @@ int do_huge_pmd_anonymous_page(struct mm
+ 		count_vm_event(THP_FAULT_FALLBACK);
+ 		return VM_FAULT_FALLBACK;
+ 	}
+-	if (unlikely(__do_huge_pmd_anonymous_page(mm, vma, haddr, pmd, page, gfp))) {
+-		put_page(page);
+-		count_vm_event(THP_FAULT_FALLBACK);
+-		return VM_FAULT_FALLBACK;
+-	}
+-
+-	count_vm_event(THP_FAULT_ALLOC);
+-	return 0;
++	return __do_huge_pmd_anonymous_page(mm, vma, haddr, pmd, page, gfp, flags);
+ }
+ 
+ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+@@ -873,16 +900,14 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 	 */
+ 	if (is_huge_zero_pmd(pmd)) {
+ 		struct page *zero_page;
+-		bool set;
  		/*
- 		 * OK, it can.  Can we now merge in the successor as well?
+ 		 * get_huge_zero_page() will never allocate a new page here,
+ 		 * since we already have a zero page to copy. It just takes a
+ 		 * reference.
  		 */
- 		if (next && end == next->vm_start &&
- 				mpol_equal(policy, vma_policy(next)) &&
- 				can_vma_merge_before(next, vm_flags,
--					anon_vma, file, pgoff+pglen) &&
-+						     anon_vma, file,
-+						     pgoff+pglen,
-+						     vm_userfaultfd_ctx) &&
- 				is_mergeable_anon_vma(prev->anon_vma,
- 						      next->anon_vma, NULL)) {
- 							/* cases 1, 6 */
-@@ -1084,7 +1096,8 @@ struct vm_area_struct *vma_merge(struct
- 	if (next && end == next->vm_start &&
- 			mpol_equal(policy, vma_policy(next)) &&
- 			can_vma_merge_before(next, vm_flags,
--					anon_vma, file, pgoff+pglen)) {
-+					     anon_vma, file, pgoff+pglen,
-+					     vm_userfaultfd_ctx)) {
- 		if (prev && addr < prev->vm_end)	/* case 4 */
- 			err = vma_adjust(prev, prev->vm_start,
- 				addr, prev->vm_pgoff, NULL);
-@@ -1570,8 +1583,8 @@ unsigned long mmap_region(struct file *f
- 	/*
- 	 * Can we just expand an old mapping?
- 	 */
--	vma = vma_merge(mm, prev, addr, addr + len, vm_flags, NULL, file, pgoff,
--			NULL);
-+	vma = vma_merge(mm, prev, addr, addr + len, vm_flags,
-+			NULL, file, pgoff, NULL, NULL_VM_UFFD_CTX);
- 	if (vma)
- 		goto out;
+ 		zero_page = get_huge_zero_page();
+-		set = set_huge_zero_page(pgtable, dst_mm, vma, addr, dst_pmd,
++		set_huge_zero_page(pgtable, dst_mm, vma, addr, dst_pmd,
+ 				zero_page);
+-		BUG_ON(!set); /* unexpected !pmd_none(dst_pmd) */
+ 		ret = 0;
+ 		goto out_unlock;
+ 	}
+diff -puN mm/memory.c~userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults mm/memory.c
+--- a/mm/memory.c~userfaultfd-call-handle_userfault-for-userfaultfd_missing-faults
++++ a/mm/memory.c
+@@ -61,6 +61,7 @@
+ #include <linux/string.h>
+ #include <linux/dma-debug.h>
+ #include <linux/debugfs.h>
++#include <linux/userfaultfd_k.h>
  
-@@ -2757,7 +2770,7 @@ static unsigned long do_brk(unsigned lon
+ #include <asm/io.h>
+ #include <asm/pgalloc.h>
+@@ -2685,6 +2686,12 @@ static int do_anonymous_page(struct mm_s
+ 		page_table = pte_offset_map_lock(mm, pmd, address, &ptl);
+ 		if (!pte_none(*page_table))
+ 			goto unlock;
++		/* Deliver the page fault to userland, check inside PT lock */
++		if (userfaultfd_missing(vma)) {
++			pte_unmap_unlock(page_table, ptl);
++			return handle_userfault(vma, address, flags,
++						VM_UFFD_MISSING);
++		}
+ 		goto setpte;
+ 	}
  
- 	/* Can we just expand an old private anonymous mapping? */
- 	vma = vma_merge(mm, prev, addr, addr + len, flags,
--					NULL, NULL, pgoff, NULL);
-+			NULL, NULL, pgoff, NULL, NULL_VM_UFFD_CTX);
- 	if (vma)
- 		goto out;
+@@ -2713,6 +2720,15 @@ static int do_anonymous_page(struct mm_s
+ 	if (!pte_none(*page_table))
+ 		goto release;
  
-@@ -2913,7 +2926,8 @@ struct vm_area_struct *copy_vma(struct v
- 	if (find_vma_links(mm, addr, addr + len, &prev, &rb_link, &rb_parent))
- 		return NULL;	/* should never get here */
- 	new_vma = vma_merge(mm, prev, addr, addr + len, vma->vm_flags,
--			vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma));
-+			    vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
-+			    vma->vm_userfaultfd_ctx);
- 	if (new_vma) {
- 		/*
- 		 * Source vma may have been merged into new_vma
-diff -puN mm/mprotect.c~userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx mm/mprotect.c
---- a/mm/mprotect.c~userfaultfd-teach-vma_merge-to-merge-across-vma-vm_userfaultfd_ctx
-+++ a/mm/mprotect.c
-@@ -292,7 +292,8 @@ mprotect_fixup(struct vm_area_struct *vm
- 	 */
- 	pgoff = vma->vm_pgoff + ((start - vma->vm_start) >> PAGE_SHIFT);
- 	*pprev = vma_merge(mm, *pprev, start, end, newflags,
--			vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma));
-+			   vma->anon_vma, vma->vm_file, pgoff, vma_policy(vma),
-+			   vma->vm_userfaultfd_ctx);
- 	if (*pprev) {
- 		vma = *pprev;
- 		goto success;
++	/* Deliver the page fault to userland, check inside PT lock */
++	if (userfaultfd_missing(vma)) {
++		pte_unmap_unlock(page_table, ptl);
++		mem_cgroup_cancel_charge(page, memcg);
++		page_cache_release(page);
++		return handle_userfault(vma, address, flags,
++					VM_UFFD_MISSING);
++	}
++
+ 	inc_mm_counter_fast(mm, MM_ANONPAGES);
+ 	page_add_new_anon_rmap(page, vma, address);
+ 	mem_cgroup_commit_charge(page, memcg, false);
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
