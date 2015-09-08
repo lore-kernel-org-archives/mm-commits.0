@@ -1,115 +1,132 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- memhp-add-hot-added-memory-ranges-to-memblock-before-allocate-node_data-for-a-node.patch removed from -mm tree
-Date: Tue, 08 Sep 2015 11:01:09 -0700
-Message-ID: <55ef2265.TD1QCkFeRdgc73dT%akpm__6049.6233440519$1441735289$gmane$org@linux-foundation.org>
+ kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch removed
+ from -mm tree
+Date: Tue, 08 Sep 2015 11:01:17 -0700
+Message-ID: <55ef226d.XlWzwATTq6QceccL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58598 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58624 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752071AbbIHSBK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:01:10 -0400
+	with ESMTP id S1753989AbbIHSBS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:01:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tangchen@cn.fujitsu.com, guz.fnst@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@techsingularity.net, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, rientjes@google.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, edumazet@google.com, nzimmer@sgi.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug: add hot-added memory ranges to memblock before allocate node_data for a node.
+     Subject: kernel/kthread.c:kthread_create_on_node(): clarify documentation
 has been removed from the -mm tree.  Its filename was
-     memhp-add-hot-added-memory-ranges-to-memblock-before-allocate-node_data-for-a-node.patch
+     kernel-kthreadc-kthread_create_on_node-clarify-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: memory-hotplug: add hot-added memory ranges to memblock before allocate node_data for a node.
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/kthread.c:kthread_create_on_node(): clarify documentation
 
-f9126ab9241f66562de ("memory-hotplug: fix wrong edge when hot add a new
-node") hot-added memory range to memblock, after creating pgdat for new
-node.
+- Make it clear that the `node' arg refers to memory allocations only:
+  kthread_create_on_node() does not pin the new thread to that node's
+  CPUs.
 
-But there is a problem:
+- Encourage the use of NUMA_NO_NODE.
 
-add_memory()
-|--> hotadd_new_pgdat()
-     |--> free_area_init_node()
-          |--> get_pfn_range_for_nid()
-               |--> find start_pfn and end_pfn in memblock
-|--> ......
-|--> memblock_add_node(start, size, nid)    --------    Here, just too late.
-
-get_pfn_range_for_nid() will find that start_pfn and end_pfn are both 0.
-As a result, when adding memory, dmesg will give the following wrong message.
-
-[ 2007.577000] Initmem setup node 5 [mem 0x0000000000000000-0xffffffffffffffff]
-[ 2007.584000] On node 5 totalpages: 0
-[ 2007.585000] Built 5 zonelists in Node order, mobility grouping on.  Total pages: 32588823
-[ 2007.594000] Policy zone: Normal
-[ 2007.598000] init_memory_mapping: [mem 0x60000000000-0x607ffffffff]
-
-The solution is simple, just add the memory range to memblock a little
-earlier, before hotadd_new_pgdat().
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>	[4.2.x]
+[nzimmer@sgi.com: use NUMA_NO_NODE in kthread_create() also]
+Cc: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Eric Dumazet <edumazet@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ include/linux/kthread.h |    2 +-
+ kernel/kthread.c        |    7 ++++---
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory_hotplug.c~memhp-add-hot-added-memory-ranges-to-memblock-before-allocate-node_data-for-a-node mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memhp-add-hot-added-memory-ranges-to-memblock-before-allocate-node_data-for-a-node
-+++ a/mm/memory_hotplug.c
-@@ -1248,6 +1248,14 @@ int __ref add_memory(int nid, u64 start,
+diff -puN include/linux/kthread.h~kernel-kthreadc-kthread_create_on_node-clarify-documentation include/linux/kthread.h
+--- a/include/linux/kthread.h~kernel-kthreadc-kthread_create_on_node-clarify-documentation
++++ a/include/linux/kthread.h
+@@ -11,7 +11,7 @@ struct task_struct *kthread_create_on_no
+ 					   const char namefmt[], ...);
  
- 	mem_hotplug_begin();
+ #define kthread_create(threadfn, data, namefmt, arg...) \
+-	kthread_create_on_node(threadfn, data, -1, namefmt, ##arg)
++	kthread_create_on_node(threadfn, data, NUMA_NO_NODE, namefmt, ##arg)
  
-+	/*
-+	 * Add new range to memblock so that when hotadd_new_pgdat() is called
-+	 * to allocate new pgdat, get_pfn_range_for_nid() will be able to find
-+	 * this new range and calculate total pages correctly.  The range will
-+	 * be removed at hot-remove time.
-+	 */
-+	memblock_add_node(start, size, nid);
-+
- 	new_node = !node_online(nid);
- 	if (new_node) {
- 		pgdat = hotadd_new_pgdat(nid, start);
-@@ -1277,7 +1285,6 @@ int __ref add_memory(int nid, u64 start,
  
- 	/* create new memmap entry */
- 	firmware_map_add_hotplug(start, start + size, "System RAM");
--	memblock_add_node(start, size, nid);
- 
- 	goto out;
- 
-@@ -1286,6 +1293,7 @@ error:
- 	if (new_pgdat)
- 		rollback_node_hotadd(nid, pgdat);
- 	release_memory_resource(res);
-+	memblock_remove(start, size);
- 
- out:
- 	mem_hotplug_done();
+ struct task_struct *kthread_create_on_cpu(int (*threadfn)(void *data),
+diff -puN kernel/kthread.c~kernel-kthreadc-kthread_create_on_node-clarify-documentation kernel/kthread.c
+--- a/kernel/kthread.c~kernel-kthreadc-kthread_create_on_node-clarify-documentation
++++ a/kernel/kthread.c
+@@ -248,15 +248,16 @@ static void create_kthread(struct kthrea
+  * kthread_create_on_node - create a kthread.
+  * @threadfn: the function to run until signal_pending(current).
+  * @data: data ptr for @threadfn.
+- * @node: memory node number.
++ * @node: task and thread structures for the thread are allocated on this node
+  * @namefmt: printf-style name for the thread.
+  *
+  * Description: This helper function creates and names a kernel
+  * thread.  The thread will be stopped: use wake_up_process() to start
+- * it.  See also kthread_run().
++ * it.  See also kthread_run().  The new thread has SCHED_NORMAL policy and
++ * is affine to all CPUs.
+  *
+  * If thread is going to be bound on a particular cpu, give its node
+- * in @node, to get NUMA affinity for kthread stack, or else give -1.
++ * in @node, to get NUMA affinity for kthread stack, or else give NUMA_NO_NODE.
+  * When woken, the thread will run @threadfn() with @data as its
+  * argument. @threadfn() can either call do_exit() directly if it is a
+  * standalone thread for which no one will call kthread_stop(), or
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-memblock-make-memblock_overlaps_region-return-bool.patch
-mem-hotplug-handle-node-hole-when-initializing-numa_meminfo.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm.patch
+dax-revert-userfaultfd-change.patch
+thp-prepare-for-dax-huge-pages-fix.patch
+pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
+pagemap-update-documentation-fix.patch
+mm-show-proportional-swap-share-of-the-mapping-fix.patch
+mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
+memcg-export-struct-mem_cgroup-fix.patch
+memcg-export-struct-mem_cgroup-fix-2.patch
+mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
+mm-srcu-ify-shrinkers-fix-fix.patch
+x86-use-generic-early-mem-copy-fix.patch
+mm-mmap-simplify-the-failure-return-working-flow-fix.patch
+zswap-dynamic-pool-creation-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+proc-add-kpageidle-file-fix-6-fix.patch
+proc-add-kpageidle-file-fix-6-fix-2-fix.patch
+proc-export-idle-flag-via-kpageflags-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
+fs-coda-fix-readlink-buffer-overflow-checkpatch-fixes.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix-fix.patch
+kexec-split-kexec_load-syscall-from-kexec-core-code-checkpatch-fixes.patch
+align-crash_notes-allocation-to-make-it-be-inside-one-physical-page-fix.patch
+linux-next-rejects.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix-fix.patch
+mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix-checkpatch-fixes.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
