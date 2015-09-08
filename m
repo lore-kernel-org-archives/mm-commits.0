@@ -1,89 +1,94 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- fs-optimize-inotify-fsnotify-code-for-unwatched-files.patch removed from
- -mm tree
-Date: Tue, 08 Sep 2015 11:01:31 -0700
-Message-ID: <55ef227b.LQcbwSdxfSEF3fS/%akpm@linux-foundation.org>
+ ocfs2-direct-write-will-call-ocfs2_rw_unlock-twice-when-doing-aiodio.patch
+ removed from -mm tree
+Date: Tue, 08 Sep 2015 11:01:12 -0700
+Message-ID: <55ef2268.wY+rFc1qNa8K7rZJ%akpm__7062.56495691395$1441735306$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58674 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58606 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754664AbbIHSBc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:01:32 -0400
+	with ESMTP id S1752071AbbIHSBN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:01:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.hansen@linux.intel.com, ak@linux.intel.com, eparis@redhat.com, jack@suse.com, john@johnmccutchan.com, rlove@rlove.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: ryan.ding@oracle.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/notify: optimize inotify/fsnotify code for unwatched files
+     Subject: ocfs2: direct write will call ocfs2_rw_unlock() twice when doing aio+dio
 has been removed from the -mm tree.  Its filename was
-     fs-optimize-inotify-fsnotify-code-for-unwatched-files.patch
+     ocfs2-direct-write-will-call-ocfs2_rw_unlock-twice-when-doing-aiodio.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: fs/notify: optimize inotify/fsnotify code for unwatched files
+From: Ryan Ding <ryan.ding@oracle.com>
+Subject: ocfs2: direct write will call ocfs2_rw_unlock() twice when doing aio+dio
 
-I have a _tiny_ microbenchmark that sits in a loop and writes single bytes
-to a file.  Writing one byte to a tmpfs file is around 2x slower than
-reading one byte from a file, which is a _bit_ more than I expecte.  This
-is a dumb benchmark, but I think it's hard to deny that write() is a hot
-path and we should avoid unnecessary overhead there.
+Orabug: 21612107
 
-I did a 'perf record' of 30-second samples of read and write.  The top
-item in a diffprofile is srcu_read_lock() from fsnotify().  There are
-active inotify fd's from systemd, but nothing is actually listening to the
-file or its part of the filesystem.
+ocfs2_file_write_iter() is usng the wrong return value ('written').  This
+will cause ocfs2_rw_unlock() be called both in write_iter & end_io,
+triggering a BUG_ON.
 
-I *think* we can avoid taking the srcu_read_lock() for the common case
-where there are no actual marks on the file.  This means that there will
-both be nothing to notify for *and* implies that there is no need for
-clearing the ignore mask.
+This issue was introduced by commit 7da839c47589 ("ocfs2: use
+__generic_file_write_iter()").
 
-This patch gave a 13.1% speedup in writes/second on my test, which is an
-improvement from the 10.8% that I saw with the last version.
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.com>
+Fixes: 7da839c47589 ("ocfs2: use __generic_file_write_iter()")
+Signed-off-by: Ryan Ding <ryan.ding@oracle.com>
+Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: John McCutchan <john@johnmccutchan.com>
-Cc: Robert Love <rlove@rlove.org>
-Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fsnotify.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ fs/ocfs2/file.c |   28 ++++++++++++++--------------
+ 1 file changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN fs/notify/fsnotify.c~fs-optimize-inotify-fsnotify-code-for-unwatched-files fs/notify/fsnotify.c
---- a/fs/notify/fsnotify.c~fs-optimize-inotify-fsnotify-code-for-unwatched-files
-+++ a/fs/notify/fsnotify.c
-@@ -205,6 +205,16 @@ int fsnotify(struct inode *to_tell, __u3
- 		mnt = NULL;
+diff -puN fs/ocfs2/file.c~ocfs2-direct-write-will-call-ocfs2_rw_unlock-twice-when-doing-aiodio fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-direct-write-will-call-ocfs2_rw_unlock-twice-when-doing-aiodio
++++ a/fs/ocfs2/file.c
+@@ -2378,6 +2378,20 @@ relock:
+ 	/* buffered aio wouldn't have proper lock coverage today */
+ 	BUG_ON(written == -EIOCBQUEUED && !(iocb->ki_flags & IOCB_DIRECT));
  
- 	/*
-+	 * Optimization: srcu_read_lock() has a memory barrier which can
-+	 * be expensive.  It protects walking the *_fsnotify_marks lists.
-+	 * However, if we do not walk the lists, we do not have to do
-+	 * SRCU because we have no references to any objects and do not
-+	 * need SRCU to keep them "alive".
-+	 */
-+	if (hlist_empty(&to_tell->i_fsnotify_marks) &&
-+	    (!mnt || hlist_empty(&mnt->mnt_fsnotify_marks)))
-+		return 0;
 +	/*
- 	 * if this is a modify event we may need to clear the ignored masks
- 	 * otherwise return if neither the inode nor the vfsmount care about
- 	 * this type of event.
-_
-
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
-
-fs-do-not-prefault-sys_write-user-buffer-pages.patch
-
++	 * deep in g_f_a_w_n()->ocfs2_direct_IO we pass in a ocfs2_dio_end_io
++	 * function pointer which is called when o_direct io completes so that
++	 * it can unlock our rw lock.
++	 * Unfortunately there are error cases which call end_io and others
++	 * that don't.  so we don't have to unlock the rw_lock if either an
++	 * async dio is going to do it in the future or an end_io after an
++	 * error has already done it.
++	 */
++	if ((written == -EIOCBQUEUED) || (!ocfs2_iocb_is_rw_locked(iocb))) {
++		rw_level = -1;
++		unaligned_dio = 0;
++	}
++
+ 	if (unlikely(written <= 0))
+ 		goto no_sync;
+ 
+@@ -2402,20 +2416,6 @@ relock:
+ 	}
+ 
+ no_sync:
+-	/*
+-	 * deep in g_f_a_w_n()->ocfs2_direct_IO we pass in a ocfs2_dio_end_io
+-	 * function pointer which is called when o_direct io completes so that
+-	 * it can unlock our rw lock.
+-	 * Unfortunately there are error cases which call end_io and others
+-	 * that don't.  so we don't have to unlock the rw_lock if either an
+-	 * async dio is going to do it in the future or an end_io after an
+-	 * error has already done it.
+-	 */
+-	if ((ret == -EIOCBQUEUED) || (!ocfs2_iocb_is_rw_locked(iocb))) {
+-		rw_level = -1;
+-		unaligned_dio = 0;
+-	}
