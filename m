@@ -1,116 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-mm-trace-when-an-ipi-is-about-to-be-sent.patch
+Subject: [merged]
+ userfaultfd-avoid-missing-wakeups-during-refile-in-userfaultfd_read.patch
  removed from -mm tree
-Date: Tue, 08 Sep 2015 11:05:06 -0700
-Message-ID: <55ef2352.AjRj4AOgjQMYGKqD%akpm@linux-foundation.org>
+Date: Tue, 08 Sep 2015 11:05:02 -0700
+Message-ID: <55ef234e.ACulqrLdcjgYQaCi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59840 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59820 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755272AbbIHSFH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:05:07 -0400
+	with ESMTP id S1755272AbbIHSFD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:05:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, dave.hansen@intel.com, mingo@kernel.org, riel@redhat.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, dave.hansen@intel.com, torvalds@linux-foundation.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86, mm: trace when an IPI is about to be sent
+     Subject: userfaultfd: avoid missing wakeups during refile in userfaultfd_read
 has been removed from the -mm tree.  Its filename was
-     x86-mm-trace-when-an-ipi-is-about-to-be-sent.patch
+     userfaultfd-avoid-missing-wakeups-during-refile-in-userfaultfd_read.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: x86, mm: trace when an IPI is about to be sent
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: avoid missing wakeups during refile in userfaultfd_read
 
-When unmapping pages it is necessary to flush the TLB.  If that page was
-accessed by another CPU then an IPI is used to flush the remote CPU.  That
-is a lot of IPIs if kswapd is scanning and unmapping >100K pages per
-second.
+During the refile in userfaultfd_read both waitqueues could look empty to
+the lockless wake_userfault().  Use a seqcount to prevent this false
+negative that could leave an userfault blocked.
 
-There already is a window between when a page is unmapped and when it is
-TLB flushed.  This series increases the window so multiple pages can be
-flushed using a single IPI.  This should be safe or the kernel is hosed
-already.
-
-Patch 1 simply made the rest of the series easier to write as ftrace
-	could identify all the senders of TLB flush IPIS.
-
-Patch 2 tracks what CPUs potentially map a PFN and then sends an IPI
-	to flush the entire TLB.
-
-Patch 3 tracks when there potentially are writable TLB entries that
-	need to be batched differently
-
-Patch 4 increases SWAP_CLUSTER_MAX to further batch flushes
-
-The performance impact is documented in the changelogs but in the optimistic
-case on a 4-socket machine the full series reduces interrupts from 900K
-interrupts/second to 60K interrupts/second.
-
-
-This patch (of 4):
-
-It is easy to trace when an IPI is received to flush a TLB but harder to
-detect what event sent it.  This patch makes it easy to identify the
-source of IPIs being transmitted for TLB flushes on x86.
-
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Reviewed-by: Rik van Riel <riel@redhat.com>
-Reviewed-by: Dave Hansen <dave.hansen@intel.com>
-Acked-by: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/tlb.c          |    1 +
- include/linux/mm_types.h   |    1 +
- include/trace/events/tlb.h |    3 ++-
- 3 files changed, 4 insertions(+), 1 deletion(-)
+ fs/userfaultfd.c |   26 ++++++++++++++++++++++++--
+ 1 file changed, 24 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/mm/tlb.c~x86-mm-trace-when-an-ipi-is-about-to-be-sent arch/x86/mm/tlb.c
---- a/arch/x86/mm/tlb.c~x86-mm-trace-when-an-ipi-is-about-to-be-sent
-+++ a/arch/x86/mm/tlb.c
-@@ -140,6 +140,7 @@ void native_flush_tlb_others(const struc
- 	info.flush_end = end;
+diff -puN fs/userfaultfd.c~userfaultfd-avoid-missing-wakeups-during-refile-in-userfaultfd_read fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-avoid-missing-wakeups-during-refile-in-userfaultfd_read
++++ a/fs/userfaultfd.c
+@@ -45,6 +45,8 @@ struct userfaultfd_ctx {
+ 	wait_queue_head_t fault_wqh;
+ 	/* waitqueue head for the pseudo fd to wakeup poll/read */
+ 	wait_queue_head_t fd_wqh;
++	/* a refile sequence protected by fault_pending_wqh lock */
++	struct seqcount refile_seq;
+ 	/* pseudo fd refcounting */
+ 	atomic_t refcount;
+ 	/* userfaultfd syscall flags */
+@@ -547,6 +549,15 @@ static ssize_t userfaultfd_ctx_read(stru
+ 		uwq = find_userfault(ctx);
+ 		if (uwq) {
+ 			/*
++			 * Use a seqcount to repeat the lockless check
++			 * in wake_userfault() to avoid missing
++			 * wakeups because during the refile both
++			 * waitqueue could become empty if this is the
++			 * only userfault.
++			 */
++			write_seqcount_begin(&ctx->refile_seq);
++
++			/*
+ 			 * The fault_pending_wqh.lock prevents the uwq
+ 			 * to disappear from under us.
+ 			 *
+@@ -570,6 +581,8 @@ static ssize_t userfaultfd_ctx_read(stru
+ 			list_del(&uwq->wq.task_list);
+ 			__add_wait_queue(&ctx->fault_wqh, &uwq->wq);
  
- 	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH);
-+	trace_tlb_flush(TLB_REMOTE_SEND_IPI, end - start);
- 	if (is_uv_system()) {
- 		unsigned int cpu;
++			write_seqcount_end(&ctx->refile_seq);
++
+ 			/* careful to always initialize msg if ret == 0 */
+ 			*msg = uwq->msg;
+ 			spin_unlock(&ctx->fault_pending_wqh.lock);
+@@ -647,6 +660,9 @@ static void __wake_userfault(struct user
+ static __always_inline void wake_userfault(struct userfaultfd_ctx *ctx,
+ 					   struct userfaultfd_wake_range *range)
+ {
++	unsigned seq;
++	bool need_wakeup;
++
+ 	/*
+ 	 * To be sure waitqueue_active() is not reordered by the CPU
+ 	 * before the pagetable update, use an explicit SMP memory
+@@ -662,8 +678,13 @@ static __always_inline void wake_userfau
+ 	 * userfaults yet. So we take the spinlock only when we're
+ 	 * sure we've userfaults to wake.
+ 	 */
+-	if (waitqueue_active(&ctx->fault_pending_wqh) ||
+-	    waitqueue_active(&ctx->fault_wqh))
++	do {
++		seq = read_seqcount_begin(&ctx->refile_seq);
++		need_wakeup = waitqueue_active(&ctx->fault_pending_wqh) ||
++			waitqueue_active(&ctx->fault_wqh);
++		cond_resched();
++	} while (read_seqcount_retry(&ctx->refile_seq, seq));
++	if (need_wakeup)
+ 		__wake_userfault(ctx, range);
+ }
  
-diff -puN include/linux/mm_types.h~x86-mm-trace-when-an-ipi-is-about-to-be-sent include/linux/mm_types.h
---- a/include/linux/mm_types.h~x86-mm-trace-when-an-ipi-is-about-to-be-sent
-+++ a/include/linux/mm_types.h
-@@ -554,6 +554,7 @@ enum tlb_flush_reason {
- 	TLB_REMOTE_SHOOTDOWN,
- 	TLB_LOCAL_SHOOTDOWN,
- 	TLB_LOCAL_MM_SHOOTDOWN,
-+	TLB_REMOTE_SEND_IPI,
- 	NR_TLB_FLUSH_REASONS,
- };
+@@ -1219,6 +1240,7 @@ static void init_once_userfaultfd_ctx(vo
+ 	init_waitqueue_head(&ctx->fault_pending_wqh);
+ 	init_waitqueue_head(&ctx->fault_wqh);
+ 	init_waitqueue_head(&ctx->fd_wqh);
++	seqcount_init(&ctx->refile_seq);
+ }
  
-diff -puN include/trace/events/tlb.h~x86-mm-trace-when-an-ipi-is-about-to-be-sent include/trace/events/tlb.h
---- a/include/trace/events/tlb.h~x86-mm-trace-when-an-ipi-is-about-to-be-sent
-+++ a/include/trace/events/tlb.h
-@@ -11,7 +11,8 @@
- 	EM(  TLB_FLUSH_ON_TASK_SWITCH,	"flush on task switch" )	\
- 	EM(  TLB_REMOTE_SHOOTDOWN,	"remote shootdown" )		\
- 	EM(  TLB_LOCAL_SHOOTDOWN,	"local shootdown" )		\
--	EMe( TLB_LOCAL_MM_SHOOTDOWN,	"local mm shootdown" )
-+	EM(  TLB_LOCAL_MM_SHOOTDOWN,	"local mm shootdown" )		\
-+	EMe( TLB_REMOTE_SEND_IPI,	"remote ipi send" )
- 
- /*
-  * First define the enums in TLB_FLUSH_REASON to be exported to userspace
+ /**
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-mm-increase-swap_cluster_max-to-batch-tlb-flushes.patch
+userfaultfd-selftest-update-userfaultfd-x86-32bit-syscall-number.patch
 
