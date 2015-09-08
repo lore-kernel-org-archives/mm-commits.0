@@ -1,175 +1,86 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- resubmit-bug_onlockres-l_level-=-dlm_lock_ex-checkpointed-tripped-in-ocfs2_ci_checkpointed.patch removed from -mm tree
-Date: Tue, 08 Sep 2015 11:02:35 -0700
-Message-ID: <55ef22bb.iPNgPGmA7FUp3Fql%akpm@linux-foundation.org>
+ ocfs2-flush-inode-data-to-disk-and-free-inode-when-i_count-becomes-zero.patch removed from -mm tree
+Date: Tue, 08 Sep 2015 11:02:22 -0700
+Message-ID: <55ef22ae.QoKoM27mi7O8HblA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58834 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58793 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753989AbbIHSCg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:02:36 -0400
+	with ESMTP id S1751864AbbIHSCX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:02:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tariq.x.saeed@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix BUG_ON() in ocfs2_ci_checkpointed()
+     Subject: ocfs2: flush inode data to disk and free inode when i_count becomes zero
 has been removed from the -mm tree.  Its filename was
-     resubmit-bug_onlockres-l_level-=-dlm_lock_ex-checkpointed-tripped-in-ocfs2_ci_checkpointed.patch
+     ocfs2-flush-inode-data-to-disk-and-free-inode-when-i_count-becomes-zero.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tariq Saeed <tariq.x.saeed@oracle.com>
-Subject: ocfs2: fix BUG_ON() in ocfs2_ci_checkpointed()
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2: flush inode data to disk and free inode when i_count becomes zero
 
-Orabug: 20189959
+Disk inode deletion may be heavily delayed when one node unlink a file
+after the same dentry is freed on another node(say N1) because of memory
+shrink but inode is left in memory.  This inode can only be freed while N1
+doing the orphan scan work.
 
-PID: 614    TASK: ffff882a739da580  CPU: 3   COMMAND: "ocfs2dc"
-  #0 [ffff882ecc3759b0] machine_kexec at ffffffff8103b35d
-  #1 [ffff882ecc375a20] crash_kexec at ffffffff810b95b5
-  #2 [ffff882ecc375af0] oops_end at ffffffff815091d8
-  #3 [ffff882ecc375b20] die at ffffffff8101868b
-  #4 [ffff882ecc375b50] do_trap at ffffffff81508bb0
-  #5 [ffff882ecc375ba0] do_invalid_op at ffffffff810165e5
-  #6 [ffff882ecc375c40] invalid_op at ffffffff815116fb
-     [exception RIP: ocfs2_ci_checkpointed+208]
-     RIP: ffffffffa0a7e940  RSP: ffff882ecc375cf0  RFLAGS: 00010002
-     RAX: 0000000000000001  RBX: 000000000000654b  RCX: ffff8812dc83f1f8
-     RDX: 00000000000017d9  RSI: ffff8812dc83f1f8  RDI: ffffffffa0b2c318
-     RBP: ffff882ecc375d20   R8: ffff882ef6ecfa60   R9: ffff88301f272200
-     R10: 0000000000000000  R11: 0000000000000000  R12: ffffffffffffffff
-     R13: ffff8812dc83f4f0  R14: 0000000000000000  R15: ffff8812dc83f1f8
-     ORIG_RAX: ffffffffffffffff  CS: 0010  SS: 0018
-  #7 [ffff882ecc375d28] ocfs2_check_meta_downconvert at ffffffffa0a7edbd [ocfs2]
-  #8 [ffff882ecc375d38] ocfs2_unblock_lock at ffffffffa0a84af8 [ocfs2]
-  #9 [ffff882ecc375dc8] ocfs2_process_blocked_lock at ffffffffa0a85285 [ocfs2]
-#10 [ffff882ecc375e18] ocfs2_downconvert_thread_do_work at ffffffffa0a85445 [ocfs2]
-#11 [ffff882ecc375e68] ocfs2_downconvert_thread at ffffffffa0a854de [ocfs2]
-#12 [ffff882ecc375ee8] kthread at ffffffff81090da7
-#13 [ffff882ecc375f48] kernel_thread_helper at ffffffff81511884
-assert is tripped because the tran is not checkpointed and the lock level is PR.
+However, N1 may skip orphan scan for several times because other nodes may
+do the work earlier.  In our tests, it may take 1 hour on 4 nodes cluster
+and it hurts the user experience.  So we think the inode should be freed
+after the data flushed to disk when i_count becomes zero to avoid such
+circumstances.
 
-Some time ago, chmod command had been executed. As result, the following call
-chain left the inode cluster lock in PR state, latter on causing the assert.
-system_call_fastpath
-  -> my_chmod
-   -> sys_chmod
-    -> sys_fchmodat
-     -> notify_change
-      -> ocfs2_setattr
-       -> posix_acl_chmod
-        -> ocfs2_iop_set_acl
-         -> ocfs2_set_acl
-          -> ocfs2_acl_set_mode
-Here is how.
-1119 int ocfs2_setattr(struct dentry *dentry, struct iattr *attr)
-1120 {
-1247         ocfs2_inode_unlock(inode, 1); <<< WRONG thing to do.
-..
-1258         if (!status && attr->ia_valid & ATTR_MODE) {
-1259                 status =  posix_acl_chmod(inode, inode->i_mode);
-
-519 posix_acl_chmod(struct inode *inode, umode_t mode)
-520 {
-..
-539         ret = inode->i_op->set_acl(inode, acl, ACL_TYPE_ACCESS);
-
-287 int ocfs2_iop_set_acl(struct inode *inode, struct posix_acl *acl, ...
-288 {
-289         return ocfs2_set_acl(NULL, inode, NULL, type, acl, NULL, NULL);
-
-224 int ocfs2_set_acl(handle_t *handle,
-225                          struct inode *inode, ...
-231 {
-..
-252                                 ret = ocfs2_acl_set_mode(inode, di_bh,
-253                                                          handle, mode);
-
-168 static int ocfs2_acl_set_mode(struct inode *inode, struct buffer_head ...
-170 {
-183         if (handle == NULL) {
-                    >>> BUG: inode lock not held in ex at this point <<<
-184                 handle = ocfs2_start_trans(OCFS2_SB(inode->i_sb),
-185                                            OCFS2_INODE_UPDATE_CREDITS);
-
-ocfs2_setattr.#1247 we unlock and at #1259 call posix_acl_chmod. When we reach
-ocfs2_acl_set_mode.#181 and do trans, the inode cluster lock is not held in EX
-mode (it should be). How this could have happended?
-
-We are the lock master, were holding lock EX and have released it in
-ocfs2_setattr.#1247. Note that there are no holders of this lock at
-this point. Another node needs the lock in PR, and we downconvert from
-EX to PR. So the inode lock is PR when do the trans in
-ocfs2_acl_set_mode.#184. The trans stays in core (not flushed to disc).
-Now another node want the lock in EX, downconvert thread gets kicked (the
-one that tripped assert abovt), finds an unflushed trans but the lock is
-not EX (it is PR). If the lock was at EX, it would have flushed the trans
-ocfs2_ci_checkpointed -> ocfs2_start_checkpoint before downconverting (to NULL)
-for the request.
-
-ocfs2_setattr must not drop inode lock ex in this code path. If it does,
-takes it again before the trans, say in ocfs2_set_acl, another cluster node can
-get in between, execute another setattr, overwriting the one in progress
-on this node, resulting in a mode acl size combo that is a mix of the two.
-
-Signed-off-by: Tariq Saeed <tariq.x.saeed@oracle.com>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Signed-off-by: Joyce.xue <xuejiufei@huawei.com>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ fs/ocfs2/inode.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/file.c~resubmit-bug_onlockres-l_level-=-dlm_lock_ex-checkpointed-tripped-in-ocfs2_ci_checkpointed fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~resubmit-bug_onlockres-l_level-=-dlm_lock_ex-checkpointed-tripped-in-ocfs2_ci_checkpointed
-+++ a/fs/ocfs2/file.c
-@@ -1130,6 +1130,7 @@ out:
- int ocfs2_setattr(struct dentry *dentry, struct iattr *attr)
+diff -puN fs/ocfs2/inode.c~ocfs2-flush-inode-data-to-disk-and-free-inode-when-i_count-becomes-zero fs/ocfs2/inode.c
+--- a/fs/ocfs2/inode.c~ocfs2-flush-inode-data-to-disk-and-free-inode-when-i_count-becomes-zero
++++ a/fs/ocfs2/inode.c
+@@ -1191,17 +1191,19 @@ void ocfs2_evict_inode(struct inode *ino
+ int ocfs2_drop_inode(struct inode *inode)
  {
- 	int status = 0, size_change;
-+	int inode_locked = 0;
- 	struct inode *inode = d_inode(dentry);
- 	struct super_block *sb = inode->i_sb;
- 	struct ocfs2_super *osb = OCFS2_SB(sb);
-@@ -1178,6 +1179,7 @@ int ocfs2_setattr(struct dentry *dentry,
- 			mlog_errno(status);
- 		goto bail_unlock_rw;
- 	}
-+	inode_locked = 1;
+ 	struct ocfs2_inode_info *oi = OCFS2_I(inode);
+-	int res;
  
- 	if (size_change) {
- 		status = inode_newsize_ok(inode, attr->ia_size);
-@@ -1258,7 +1260,10 @@ int ocfs2_setattr(struct dentry *dentry,
- bail_commit:
- 	ocfs2_commit_trans(osb, handle);
- bail_unlock:
--	ocfs2_inode_unlock(inode, 1);
-+	if (status) {
-+		ocfs2_inode_unlock(inode, 1);
-+		inode_locked = 0;
-+	}
- bail_unlock_rw:
- 	if (size_change)
- 		ocfs2_rw_unlock(inode, 1);
-@@ -1274,6 +1279,8 @@ bail:
- 		if (status < 0)
- 			mlog_errno(status);
- 	}
-+	if (inode_locked)
-+		ocfs2_inode_unlock(inode, 1);
+ 	trace_ocfs2_drop_inode((unsigned long long)oi->ip_blkno,
+ 				inode->i_nlink, oi->ip_flags);
  
- 	return status;
+-	if (oi->ip_flags & OCFS2_INODE_MAYBE_ORPHANED)
+-		res = 1;
+-	else
+-		res = generic_drop_inode(inode);
++	assert_spin_locked(&inode->i_lock);
++	inode->i_state |= I_WILL_FREE;
++	spin_unlock(&inode->i_lock);
++	write_inode_now(inode, 1);
++	spin_lock(&inode->i_lock);
++	WARN_ON(inode->i_state & I_NEW);
++	inode->i_state &= ~I_WILL_FREE;
+ 
+-	return res;
++	return 1;
  }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from tariq.x.saeed@oracle.com are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
+ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
+extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
 
