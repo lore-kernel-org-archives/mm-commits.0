@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + cgroup-fix-seq_show_option-merge-with-legacy_name.patch added
- to -mm tree
-Date: Tue, 08 Sep 2015 12:37:06 -0700
-Message-ID: <55ef38e2.ShH1+u9Y0SYrmZCQ%akpm@linux-foundation.org>
+Subject: + selftests-userfaultfd-fix-compiler-warnings-on-32-bit.patch
+ added to -mm tree
+Date: Tue, 08 Sep 2015 12:45:05 -0700
+Message-ID: <55ef3ac1.DdCbXfywzPmuw4VE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40875 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41717 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751669AbbIHThH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 15:37:07 -0400
+	with ESMTP id S1751620AbbIHTpH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 15:45:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, aarcange@redhat.com, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroup: fix seq_show_option merge with legacy_name
+     Subject: selftests/userfaultfd: fix compiler warnings on 32-bit
 has been added to the -mm tree.  Its filename is
-     cgroup-fix-seq_show_option-merge-with-legacy_name.patch
+     selftests-userfaultfd-fix-compiler-warnings-on-32-bit.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cgroup-fix-seq_show_option-merge-with-legacy_name.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/selftests-userfaultfd-fix-compiler-warnings-on-32-bit.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cgroup-fix-seq_show_option-merge-with-legacy_name.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-userfaultfd-fix-compiler-warnings-on-32-bit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,38 +39,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: cgroup: fix seq_show_option merge with legacy_name
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: selftests/userfaultfd: fix compiler warnings on 32-bit
 
-When seq_show_option (068acf2ee776) was merged, it did not correctly
-collide with cgroup's addition of legacy_name (3e1d2eed39d8) changes. 
-This fixes the reported name.
+On 32-bit:
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Acked-by: Tejun Heo <tj@kernel.org>
+    userfaultfd.c: In function 'locking_thread':
+    userfaultfd.c:152: warning: left shift count >= width of type
+    userfaultfd.c: In function 'uffd_poll_thread':
+    userfaultfd.c:295: warning: cast to pointer from integer of different size
+    userfaultfd.c: In function 'uffd_read_thread':
+    userfaultfd.c:332: warning: cast to pointer from integer of different size
+
+Fix the shift warning by splitting the shift in two parts, and the
+integer/pointer warnigns by adding intermediate casts to "unsigned long".
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/cgroup.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ tools/testing/selftests/vm/userfaultfd.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN kernel/cgroup.c~cgroup-fix-seq_show_option-merge-with-legacy_name kernel/cgroup.c
---- a/kernel/cgroup.c~cgroup-fix-seq_show_option-merge-with-legacy_name
-+++ a/kernel/cgroup.c
-@@ -1342,7 +1342,7 @@ static int cgroup_show_options(struct se
- 	if (root != &cgrp_dfl_root)
- 		for_each_subsys(ss, ssid)
- 			if (root->subsys_mask & (1 << ssid))
--				seq_show_option(seq, ss->name, NULL);
-+				seq_show_option(seq, ss->legacy_name, NULL);
- 	if (root->flags & CGRP_ROOT_NOPREFIX)
- 		seq_puts(seq, ",noprefix");
- 	if (root->flags & CGRP_ROOT_XATTR)
+diff -puN tools/testing/selftests/vm/userfaultfd.c~selftests-userfaultfd-fix-compiler-warnings-on-32-bit tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~selftests-userfaultfd-fix-compiler-warnings-on-32-bit
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -147,7 +147,8 @@ static void *locking_thread(void *arg)
+ 			if (sizeof(page_nr) > sizeof(rand_nr)) {
+ 				if (random_r(&rand, &rand_nr))
+ 					fprintf(stderr, "random_r 2 error\n"), exit(1);
+-				page_nr |= ((unsigned long) rand_nr) << 32;
++				page_nr |= (((unsigned long) rand_nr) << 16) <<
++					   16;
+ 			}
+ 		} else
+ 			page_nr += 1;
+@@ -290,7 +291,8 @@ static void *uffd_poll_thread(void *arg)
+ 				msg.event), exit(1);
+ 		if (msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE)
+ 			fprintf(stderr, "unexpected write fault\n"), exit(1);
+-		offset = (char *)msg.arg.pagefault.address - area_dst;
++		offset = (char *)(unsigned long)msg.arg.pagefault.address -
++			 area_dst;
+ 		offset &= ~(page_size-1);
+ 		if (copy_page(offset))
+ 			userfaults++;
+@@ -327,7 +329,8 @@ static void *uffd_read_thread(void *arg)
+ 		if (bounces & BOUNCE_VERIFY &&
+ 		    msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE)
+ 			fprintf(stderr, "unexpected write fault\n"), exit(1);
+-		offset = (char *)msg.arg.pagefault.address - area_dst;
++		offset = (char *)(unsigned long)msg.arg.pagefault.address -
++			 area_dst;
+ 		offset &= ~(page_size-1);
+ 		if (copy_page(offset))
+ 			(*this_cpu_userfaults)++;
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-cgroup-fix-seq_show_option-merge-with-legacy_name.patch
-lib-string_helpers-clarify-esc-arg-in-string_escape_mem.patch
-lib-string_helpers-rename-esc-arg-to-only.patch
+selftests-userfaultfd-fix-compiler-warnings-on-32-bit.patch
 
