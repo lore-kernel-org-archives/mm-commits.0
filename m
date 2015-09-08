@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix-fix-fix.patch added to -mm tree
-Date: Tue, 08 Sep 2015 11:31:17 -0700
-Message-ID: <55ef2975.pCmLfL2GiATzCpf3%akpm@linux-foundation.org>
+Subject: + cgroup-fix-seq_show_option-merge-with-legacy_name.patch added
+ to -mm tree
+Date: Tue, 08 Sep 2015 12:35:12 -0700
+Message-ID: <55ef3870.y1yobSV+ElCOsL/K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34249 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40700 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754537AbbIHSbS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:31:18 -0400
+	with ESMTP id S1751756AbbIHTfN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 15:35:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: keescook@chromium.org, tj@kernle.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix-fix-fix
+     Subject: cgroup: fix seq_show_option merge with legacy_name
 has been added to the -mm tree.  Its filename is
-     fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix-fix-fix.patch
+     cgroup-fix-seq_show_option-merge-with-legacy_name.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cgroup-fix-seq_show_option-merge-with-legacy_name.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cgroup-fix-seq_show_option-merge-with-legacy_name.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +39,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix-fix-fix
+From: Kees Cook <keescook@chromium.org>
+Subject: cgroup: fix seq_show_option merge with legacy_name
 
-fix drivers/net/ieee802154/at86rf230.c
+When seq_show_option (068acf2ee776) was merged, it did not correctly
+collide with cgroup's addition of legacy_name (3e1d2eed39d8) changes. 
+This fixes the reported name.
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Acked-by: Tejun Heo <tj@kernle.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ieee802154/at86rf230.c |   28 ++++++---------------------
- 1 file changed, 7 insertions(+), 21 deletions(-)
+ kernel/cgroup.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/ieee802154/at86rf230.c~fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix-fix-fix drivers/net/ieee802154/at86rf230.c
---- a/drivers/net/ieee802154/at86rf230.c~fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix-fix-fix
-+++ a/drivers/net/ieee802154/at86rf230.c
-@@ -1647,30 +1647,16 @@ static int at86rf230_stats_show(struct s
- 	struct at86rf230_local *lp = file->private;
- 	int ret;
- 
--	ret = seq_printf(file, "SUCCESS:\t\t%8llu\n", lp->trac.success);
--	if (ret < 0)
--		return ret;
--
--	ret = seq_printf(file, "SUCCESS_DATA_PENDING:\t%8llu\n",
-+	seq_printf(file, "SUCCESS:\t\t%8llu\n", lp->trac.success);
-+	seq_printf(file, "SUCCESS_DATA_PENDING:\t%8llu\n",
- 			 lp->trac.success_data_pending);
--	if (ret < 0)
--		return ret;
--
--	ret = seq_printf(file, "SUCCESS_WAIT_FOR_ACK:\t%8llu\n",
-+	seq_printf(file, "SUCCESS_WAIT_FOR_ACK:\t%8llu\n",
- 			 lp->trac.success_wait_for_ack);
--	if (ret < 0)
--		return ret;
--
--	ret = seq_printf(file, "CHANNEL_ACCESS_FAILURE:\t%8llu\n",
-+	seq_printf(file, "CHANNEL_ACCESS_FAILURE:\t%8llu\n",
- 			 lp->trac.channel_access_failure);
--	if (ret < 0)
--		return ret;
--
--	ret = seq_printf(file, "NO_ACK:\t\t\t%8llu\n", lp->trac.no_ack);
--	if (ret < 0)
--		return ret;
+diff -puN kernel/cgroup.c~cgroup-fix-seq_show_option-merge-with-legacy_name kernel/cgroup.c
+--- a/kernel/cgroup.c~cgroup-fix-seq_show_option-merge-with-legacy_name
++++ a/kernel/cgroup.c
+@@ -1342,7 +1342,7 @@ static int cgroup_show_options(struct se
+ 	if (root != &cgrp_dfl_root)
+ 		for_each_subsys(ss, ssid)
+ 			if (root->subsys_mask & (1 << ssid))
+-				seq_show_option(seq, ss->name, NULL);
++				seq_show_option(seq, ss->legacy_name, NULL);
+ 	if (root->flags & CGRP_ROOT_NOPREFIX)
+ 		seq_puts(seq, ",noprefix");
+ 	if (root->flags & CGRP_ROOT_XATTR)
+_
+
+Patches currently in -mm which might be from keescook@chromium.org are
+
+cgroup-fix-seq_show_option-merge-with-legacy_name.patch
+lib-string_helpers-clarify-esc-arg-in-string_escape_mem.patch
+lib-string_helpers-rename-esc-arg-to-only.patch
+
