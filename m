@@ -1,20 +1,20 @@
 From: akpm@linux-foundation.org
 Subject: + cgroup-fix-seq_show_option-merge-with-legacy_name.patch added
  to -mm tree
-Date: Tue, 08 Sep 2015 12:35:12 -0700
-Message-ID: <55ef3870.y1yobSV+ElCOsL/K%akpm@linux-foundation.org>
+Date: Tue, 08 Sep 2015 12:37:06 -0700
+Message-ID: <55ef38e2.ShH1+u9Y0SYrmZCQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40700 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40875 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751756AbbIHTfN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 15:35:13 -0400
+	with ESMTP id S1751669AbbIHThH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 15:37:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, tj@kernle.org, mm-commits@vger.kernel.org
+To: keescook@chromium.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -47,7 +47,7 @@ collide with cgroup's addition of legacy_name (3e1d2eed39d8) changes.
 This fixes the reported name.
 
 Signed-off-by: Kees Cook <keescook@chromium.org>
-Acked-by: Tejun Heo <tj@kernle.org>
+Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
