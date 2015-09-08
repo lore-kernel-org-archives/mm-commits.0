@@ -1,70 +1,72 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page-fix.patch removed from -mm tree
-Date: Tue, 08 Sep 2015 14:44:40 -0700
-Message-ID: <55ef56c8.npFdn3y1aTz0QECE%akpm@linux-foundation.org>
+ mm-mmap-simplify-the-failure-return-working-flow-fix.patch removed from -mm tree
+Date: Tue, 08 Sep 2015 14:45:22 -0700
+Message-ID: <55ef56f2.myZDGYrwjW0ryNOb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53480 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53500 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752643AbbIHVom (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 17:44:42 -0400
+	with ESMTP id S1752402AbbIHVpX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 17:45:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wanpeng.li@hotmail.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, gang.chen.5i5j@gmail.com, xili_gchen_5257@hotmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: replace most of put_page in memory error handling by put_hwpoison_page fix
+     Subject: mm-mmap-simplify-the-failure-return-working-flow-fix
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page-fix.patch
+     mm-mmap-simplify-the-failure-return-working-flow-fix.patch
 
-This patch was dropped because it was folded into mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page.patch
+This patch was dropped because it was folded into mm-mmap-simplify-the-failure-return-working-flow.patch
 
 ------------------------------------------------------
-From: Wanpeng Li <wanpeng.li@hotmail.com>
-Subject: mm/hwpoison: replace most of put_page in memory error handling by put_hwpoison_page fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-mmap-simplify-the-failure-return-working-flow-fix
 
-Signed-off-by: Wanpeng Li <wanpeng.li@hotmail.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Chen Gang <gang.chen.5i5j@gmail.com>
+Cc: Chen Gang <xili_gchen_5257@hotmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/mmap.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page-fix mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page-fix
-+++ a/mm/memory-failure.c
-@@ -1739,7 +1739,7 @@ int soft_offline_page(struct page *page,
- 	if (PageHWPoison(page)) {
- 		pr_info("soft offline: %#lx page already poisoned\n", pfn);
- 		if (flags & MF_COUNT_INCREASED)
--			put_page(page);
-+			put_hwpoison_page(page);
- 		return -EBUSY;
+diff -puN mm/mmap.c~mm-mmap-simplify-the-failure-return-working-flow-fix mm/mmap.c
+--- a/mm/mmap.c~mm-mmap-simplify-the-failure-return-working-flow-fix
++++ a/mm/mmap.c
+@@ -2953,7 +2953,7 @@ struct vm_area_struct *copy_vma(struct v
+ 	} else {
+ 		new_vma = kmem_cache_alloc(vm_area_cachep, GFP_KERNEL);
+ 		if (!new_vma)
+-			return NULL;
++			goto out;
+ 		*new_vma = *vma;
+ 		new_vma->vm_start = addr;
+ 		new_vma->vm_end = addr + len;
+@@ -2972,10 +2972,11 @@ struct vm_area_struct *copy_vma(struct v
  	}
- 	if (!PageHuge(page) && PageTransHuge(hpage)) {
-@@ -1747,7 +1747,7 @@ int soft_offline_page(struct page *page,
- 			pr_info("soft offline: %#lx: failed to split THP\n",
- 				pfn);
- 			if (flags & MF_COUNT_INCREASED)
--				put_page(page);
-+				put_hwpoison_page(page);
- 			return -EBUSY;
- 		}
- 	}
+ 	return new_vma;
+ 
+- out_free_mempol:
++out_free_mempol:
+ 	mpol_put(vma_policy(new_vma));
+- out_free_vma:
++out_free_vma:
+ 	kmem_cache_free(vm_area_cachep, new_vma);
++out:
+ 	return NULL;
+ }
+ 
 _
 
-Patches currently in -mm which might be from wanpeng.li@hotmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hwpoison-fix-fail-to-split-thp-w-refcount-held.patch
-mm-hwpoison-fix-pagehwpoison-test-set-race.patch
-mm-hwpoison-introduce-put_hwpoison_page-to-put-refcount-for-memory-error-handling.patch
-mm-hwpoison-fix-refcount-of-thp-head-page-in-no-injection-case.patch
-mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page.patch
-mm-hwpoison-fix-race-between-soft_offline_page-and-unpoison_memory.patch
+dax-revert-userfaultfd-change.patch
+mm-mmap-simplify-the-failure-return-working-flow.patch
+zswap-dynamic-pool-creation-fix.patch
 
