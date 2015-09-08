@@ -1,102 +1,36 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
- removed from -mm tree
-Date: Tue, 08 Sep 2015 11:04:35 -0700
-Message-ID: <55ef2333.RMuutfpJ+6iicRGm%akpm@linux-foundation.org>
+Subject: [merged] userfaultfd-activate-syscall.patch removed from -mm tree
+Date: Tue, 08 Sep 2015 11:04:41 -0700
+Message-ID: <55ef2339.JnHMyhGo+lvTwFhS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59710 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59734 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755386AbbIHSEg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:04:36 -0400
+	with ESMTP id S1755386AbbIHSEm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:04:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, andreslc@google.com, dave.hansen@intel.com, dgilbert@redhat.com, hannes@cmpxchg.org, hughd@google.com, kirill@shutemov.name, luto@amacapital.net, mgorman@suse.de, pbonzini@redhat.com, peter.huangpeng@huawei.com, pfeiner@google.com, riel@redhat.com, sanidhya.gatech@gmail.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, andreslc@google.com, dave.hansen@intel.com, dgilbert@redhat.com, hannes@cmpxchg.org, hughd@google.com, kirill@shutemov.name, luto@amacapital.net, mgorman@suse.de, pbonzini@redhat.com, peter.huangpeng@huawei.com, pfeiner@google.com, riel@redhat.com, sanidhya.gatech@gmail.com, sfr@canb.auug.org.au, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: solve the race between UFFDIO_COPY|ZEROPAGE and read
+     Subject: userfaultfd: activate syscall
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read.patch
+     userfaultfd-activate-syscall.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: solve the race between UFFDIO_COPY|ZEROPAGE and read
+Subject: userfaultfd: activate syscall
 
-Solve in-kernel the race between UFFDIO_COPY|ZEROPAGE and
-userfaultfd_read if they are run on different threads simultaneously.
+This activates the userfaultfd syscall.
 
-Until now qemu solved the race in userland: the race was explicitly
-and intentionally left for userland to solve. However we can also
-solve it in kernel.
-
-Requiring all users to solve this race if they use two threads (one
-for the background transfer and one for the userfault reads) isn't
-very attractive from an API prospective, furthermore this allows to
-remove a whole bunch of mutex and bitmap code from qemu, making it
-faster. The cost of __get_user_pages_fast should be insignificant
-considering it scales perfectly and the pagetables are already hot in
-the CPU cache, compared to the overhead in userland to maintain those
-structures.
-
-Applying this patch is backwards compatible with respect to the
-userfaultfd userland API, however reverting this change wouldn't be
-backwards compatible anymore.
-
-Without this patch qemu in the background transfer thread, has to read
-the old state, and do UFFDIO_WAKE if old_state is missing but it
-become REQUESTED by the time it tries to set it to RECEIVED (signaling
-the other side received an userfault).
-
-    vcpu                background_thr userfault_thr
-    -----               -----          -----
-    vcpu0 handle_mm_fault()
-
-			postcopy_place_page
-			read old_state -> MISSING
- 			UFFDIO_COPY 0x7fb76a139000 (no wakeup, still pending)
-
-    vcpu0 fault at 0x7fb76a139000 enters handle_userfault
-    poll() is kicked
-
- 					poll() -> POLLIN
- 					read() -> 0x7fb76a139000
- 					postcopy_pmi_change_state(MISSING, REQUESTED) -> REQUESTED
-
- 			tmp_state = postcopy_pmi_change_state(old_state, RECEIVED) -> REQUESTED
-			/* check that no userfault raced with UFFDIO_COPY */
-			if (old_state == MISSING && tmp_state == REQUESTED)
-				UFFDIO_WAKE from background thread
-
-And a second case where a UFFDIO_WAKE would be needed is in the userfault thread:
-
-    vcpu                background_thr userfault_thr
-    -----               -----          -----
-    vcpu0 handle_mm_fault()
-
-			postcopy_place_page
-			read old_state -> MISSING
- 			UFFDIO_COPY 0x7fb76a139000 (no wakeup, still pending)
- 			tmp_state = postcopy_pmi_change_state(old_state, RECEIVED) -> RECEIVED
-
-    vcpu0 fault at 0x7fb76a139000 enters handle_userfault
-    poll() is kicked
-
- 					poll() -> POLLIN
- 					read() -> 0x7fb76a139000
-
- 					if (postcopy_pmi_change_state(MISSING, REQUESTED) == RECEIVED)
-						UFFDIO_WAKE from userfault thread
-
-This patch removes the need of both UFFDIO_WAKE and of the associated
-per-page tristate as well.
-
+[sfr@canb.auug.org.au: activate syscall fix]
+[akpm@linux-foundation.org: don't enable userfaultfd on powerpc]
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Acked-by: Pavel Emelyanov <xemul@parallels.com>
 Cc: Sanidhya Kashyap <sanidhya.gatech@gmail.com>
@@ -113,131 +47,57 @@ Cc: Peter Feiner <pfeiner@google.com>
 Cc: "Dr. David Alan Gilbert" <dgilbert@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: "Huangpeng (Peter)" <peter.huangpeng@huawei.com>
+Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/userfaultfd.c |   81 ++++++++++++++++++++++++++++++++++++---------
- 1 file changed, 66 insertions(+), 15 deletions(-)
+ arch/x86/entry/syscalls/syscall_32.tbl |    1 +
+ arch/x86/entry/syscalls/syscall_64.tbl |    1 +
+ include/linux/syscalls.h               |    1 +
+ kernel/sys_ni.c                        |    1 +
+ 4 files changed, 4 insertions(+)
 
-diff -puN fs/userfaultfd.c~userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read fs/userfaultfd.c
---- a/fs/userfaultfd.c~userfaultfd-solve-the-race-between-uffdio_copyzeropage-and-read
-+++ a/fs/userfaultfd.c
-@@ -180,6 +180,67 @@ static inline struct uffd_msg userfault_
- }
+diff -puN arch/x86/entry/syscalls/syscall_32.tbl~userfaultfd-activate-syscall arch/x86/entry/syscalls/syscall_32.tbl
+--- a/arch/x86/entry/syscalls/syscall_32.tbl~userfaultfd-activate-syscall
++++ a/arch/x86/entry/syscalls/syscall_32.tbl
+@@ -380,3 +380,4 @@
+ 371	i386	recvfrom		sys_recvfrom			compat_sys_recvfrom
+ 372	i386	recvmsg			sys_recvmsg			compat_sys_recvmsg
+ 373	i386	shutdown		sys_shutdown
++374	i386	userfaultfd		sys_userfaultfd
+diff -puN arch/x86/entry/syscalls/syscall_64.tbl~userfaultfd-activate-syscall arch/x86/entry/syscalls/syscall_64.tbl
+--- a/arch/x86/entry/syscalls/syscall_64.tbl~userfaultfd-activate-syscall
++++ a/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -329,6 +329,7 @@
+ 320	common	kexec_file_load		sys_kexec_file_load
+ 321	common	bpf			sys_bpf
+ 322	64	execveat		stub_execveat
++323	common	userfaultfd		sys_userfaultfd
  
- /*
-+ * Verify the pagetables are still not ok after having reigstered into
-+ * the fault_pending_wqh to avoid userland having to UFFDIO_WAKE any
-+ * userfault that has already been resolved, if userfaultfd_read and
-+ * UFFDIO_COPY|ZEROPAGE are being run simultaneously on two different
-+ * threads.
-+ */
-+static inline bool userfaultfd_must_wait(struct userfaultfd_ctx *ctx,
-+					 unsigned long address,
-+					 unsigned long flags,
-+					 unsigned long reason)
-+{
-+	struct mm_struct *mm = ctx->mm;
-+	pgd_t *pgd;
-+	pud_t *pud;
-+	pmd_t *pmd, _pmd;
-+	pte_t *pte;
-+	bool ret = true;
-+
-+	VM_BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
-+
-+	pgd = pgd_offset(mm, address);
-+	if (!pgd_present(*pgd))
-+		goto out;
-+	pud = pud_offset(pgd, address);
-+	if (!pud_present(*pud))
-+		goto out;
-+	pmd = pmd_offset(pud, address);
-+	/*
-+	 * READ_ONCE must function as a barrier with narrower scope
-+	 * and it must be equivalent to:
-+	 *	_pmd = *pmd; barrier();
-+	 *
-+	 * This is to deal with the instability (as in
-+	 * pmd_trans_unstable) of the pmd.
-+	 */
-+	_pmd = READ_ONCE(*pmd);
-+	if (!pmd_present(_pmd))
-+		goto out;
-+
-+	ret = false;
-+	if (pmd_trans_huge(_pmd))
-+		goto out;
-+
-+	/*
-+	 * the pmd is stable (as in !pmd_trans_unstable) so we can re-read it
-+	 * and use the standard pte_offset_map() instead of parsing _pmd.
-+	 */
-+	pte = pte_offset_map(pmd, address);
-+	/*
-+	 * Lockless access: we're in a wait_event so it's ok if it
-+	 * changes under us.
-+	 */
-+	if (pte_none(*pte))
-+		ret = true;
-+	pte_unmap(pte);
-+
-+out:
-+	return ret;
-+}
-+
-+/*
-  * The locking rules involved in returning VM_FAULT_RETRY depending on
-  * FAULT_FLAG_ALLOW_RETRY, FAULT_FLAG_RETRY_NOWAIT and
-  * FAULT_FLAG_KILLABLE are not straightforward. The "Caution"
-@@ -201,6 +262,7 @@ int handle_userfault(struct vm_area_stru
- 	struct userfaultfd_ctx *ctx;
- 	struct userfaultfd_wait_queue uwq;
- 	int ret;
-+	bool must_wait;
+ #
+ # x32-specific system call numbers start at 512 to avoid cache impact
+diff -puN include/linux/syscalls.h~userfaultfd-activate-syscall include/linux/syscalls.h
+--- a/include/linux/syscalls.h~userfaultfd-activate-syscall
++++ a/include/linux/syscalls.h
+@@ -810,6 +810,7 @@ asmlinkage long sys_timerfd_gettime(int
+ asmlinkage long sys_eventfd(unsigned int count);
+ asmlinkage long sys_eventfd2(unsigned int count, int flags);
+ asmlinkage long sys_memfd_create(const char __user *uname_ptr, unsigned int flags);
++asmlinkage long sys_userfaultfd(int flags);
+ asmlinkage long sys_fallocate(int fd, int mode, loff_t offset, loff_t len);
+ asmlinkage long sys_old_readdir(unsigned int, struct old_linux_dirent __user *, unsigned int);
+ asmlinkage long sys_pselect6(int, fd_set __user *, fd_set __user *,
+diff -puN kernel/sys_ni.c~userfaultfd-activate-syscall kernel/sys_ni.c
+--- a/kernel/sys_ni.c~userfaultfd-activate-syscall
++++ a/kernel/sys_ni.c
+@@ -219,6 +219,7 @@ cond_syscall(compat_sys_timerfd_gettime)
+ cond_syscall(sys_eventfd);
+ cond_syscall(sys_eventfd2);
+ cond_syscall(sys_memfd_create);
++cond_syscall(sys_userfaultfd);
  
- 	BUG_ON(!rwsem_is_locked(&mm->mmap_sem));
- 
-@@ -260,9 +322,6 @@ int handle_userfault(struct vm_area_stru
- 	/* take the reference before dropping the mmap_sem */
- 	userfaultfd_ctx_get(ctx);
- 
--	/* be gentle and immediately relinquish the mmap_sem */
--	up_read(&mm->mmap_sem);
--
- 	init_waitqueue_func_entry(&uwq.wq, userfaultfd_wake_function);
- 	uwq.wq.private = current;
- 	uwq.msg = userfault_msg(address, flags, reason);
-@@ -282,7 +341,10 @@ int handle_userfault(struct vm_area_stru
- 	set_current_state(TASK_KILLABLE);
- 	spin_unlock(&ctx->fault_pending_wqh.lock);
- 
--	if (likely(!ACCESS_ONCE(ctx->released) &&
-+	must_wait = userfaultfd_must_wait(ctx, address, flags, reason);
-+	up_read(&mm->mmap_sem);
-+
-+	if (likely(must_wait && !ACCESS_ONCE(ctx->released) &&
- 		   !fatal_signal_pending(current))) {
- 		wake_up_poll(&ctx->fd_wqh, POLLIN);
- 		schedule();
-@@ -886,17 +948,6 @@ out:
- }
- 
- /*
-- * userfaultfd_wake is needed in case an userfault is in flight by the
-- * time a UFFDIO_COPY (or other ioctl variants) completes. The page
-- * may be well get mapped and the page fault if repeated wouldn't lead
-- * to a userfault anymore, but before scheduling in TASK_KILLABLE mode
-- * handle_userfault() doesn't recheck the pagetables and it doesn't
-- * serialize against UFFDO_COPY (or other ioctl variants). Ultimately
-- * the knowledge of which pages are mapped is left to userland who is
-- * responsible for handling the race between read() userfaults and
-- * background UFFDIO_COPY (or other ioctl variants), if done by
-- * separate concurrent threads.
-- *
-  * userfaultfd_wake may be used in combination with the
-  * UFFDIO_*_MODE_DONTWAKE to wakeup userfaults in batches.
-  */
+ /* performance counters: */
+ cond_syscall(sys_perf_event_open);
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
