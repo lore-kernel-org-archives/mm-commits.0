@@ -1,142 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] hugetlbfs-add-hugetlbfs_fallocate-fix.patch
- removed from -mm tree
-Date: Tue, 08 Sep 2015 14:43:21 -0700
-Message-ID: <55ef5679.+Gb5q+zx3BSJt62K%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-add-utility-for-early-copy-from-unmapped-ram-v4.patch removed from -mm
+ tree
+Date: Tue, 08 Sep 2015 14:43:46 -0700
+Message-ID: <55ef5692.h3HCnnKcGnFM8av4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53191 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53207 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752071AbbIHVnW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 17:43:22 -0400
+	with ESMTP id S1751651AbbIHVnr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 17:43:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, fengguang.wu@intel.com, hillf.zj@alibaba-inc.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: msalter@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmotm: build fix hugetlbfs fallocate if not CONFIG_NUMA
+     Subject: mm-add-utility-for-early-copy-from-unmapped-ram-v4
 has been removed from the -mm tree.  Its filename was
-     hugetlbfs-add-hugetlbfs_fallocate-fix.patch
+     mm-add-utility-for-early-copy-from-unmapped-ram-v4.patch
 
-This patch was dropped because it was folded into hugetlbfs-add-hugetlbfs_fallocate.patch
+This patch was dropped because it was folded into mm-add-utility-for-early-copy-from-unmapped-ram.patch
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mmotm: build fix hugetlbfs fallocate if not CONFIG_NUMA
+From: Mark Salter <msalter@redhat.com>
+Subject: mm-add-utility-for-early-copy-from-unmapped-ram-v4
 
-Commit 56bb4d795 introduced a build error if CONFIG_NUMA is not
-defined.  When fallocate preallocation allocates pages, it will
-use the defined numa policy.  However, if numa is not defined
-there is no such policy and no code should reference numa policy.
-Create wrappers to isolate policy manipulation code that are a
-NOOP in the non-NUMA case.
+Fixed sparse warning in copy_from_early_mem()
 
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Mark Salter <msalter@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   39 ++++++++++++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 9 deletions(-)
+ mm/early_ioremap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/hugetlbfs/inode.c~hugetlbfs-add-hugetlbfs_fallocate-fix fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~hugetlbfs-add-hugetlbfs_fallocate-fix
-+++ a/fs/hugetlbfs/inode.c
-@@ -85,6 +85,29 @@ static const match_table_t tokens = {
- 	{Opt_err,	NULL},
- };
- 
-+#ifdef CONFIG_NUMA
-+static inline void hugetlb_set_vma_policy(struct vm_area_struct *vma,
-+					struct inode *inode, pgoff_t index)
-+{
-+	vma->vm_policy = mpol_shared_policy_lookup(&HUGETLBFS_I(inode)->policy,
-+							index);
-+}
-+
-+static inline void hugetlb_drop_vma_policy(struct vm_area_struct *vma)
-+{
-+	mpol_cond_put(vma->vm_policy);
-+}
-+#else
-+static inline void hugetlb_set_vma_policy(struct vm_area_struct *vma,
-+					struct inode *inode, pgoff_t index)
-+{
-+}
-+
-+static inline void hugetlb_drop_vma_policy(struct vm_area_struct *vma)
-+{
-+}
-+#endif
-+
- static void huge_pagevec_release(struct pagevec *pvec)
- {
- 	int i;
-@@ -546,9 +569,9 @@ static long hugetlbfs_fallocate(struct f
- 		goto out;
- 
- 	/*
--	 * Initialize a pseudo vma that just contains the policy used
--	 * when allocating the huge pages.  The actual policy field
--	 * (vm_policy) is determined based on the index in the loop below.
-+	 * Initialize a pseudo vma as this is required by the huge page
-+	 * allocation routines.  If NUMA is configured, use page index
-+	 * as input to create an allocation policy.
- 	 */
- 	memset(&pseudo_vma, 0, sizeof(struct vm_area_struct));
- 	pseudo_vma.vm_flags = (VM_HUGETLB | VM_MAYSHARE | VM_SHARED);
-@@ -574,10 +597,8 @@ static long hugetlbfs_fallocate(struct f
- 			break;
- 		}
- 
--		/* Get policy based on index */
--		pseudo_vma.vm_policy =
--			mpol_shared_policy_lookup(&HUGETLBFS_I(inode)->policy,
--							index);
-+		/* Set numa allocation policy based on index */
-+		hugetlb_set_vma_policy(&pseudo_vma, inode, index);
- 
- 		/* addr is the offset within the file (zero based) */
- 		addr = index * hpage_size;
-@@ -592,13 +613,13 @@ static long hugetlbfs_fallocate(struct f
- 		if (page) {
- 			put_page(page);
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
--			mpol_cond_put(pseudo_vma.vm_policy);
-+			hugetlb_drop_vma_policy(&pseudo_vma);
- 			continue;
- 		}
- 
- 		/* Allocate page and add to page cache */
- 		page = alloc_huge_page(&pseudo_vma, addr, avoid_reserve);
--		mpol_cond_put(pseudo_vma.vm_policy);
-+		hugetlb_drop_vma_policy(&pseudo_vma);
- 		if (IS_ERR(page)) {
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 			error = PTR_ERR(page);
+diff -puN mm/early_ioremap.c~mm-add-utility-for-early-copy-from-unmapped-ram-v4 mm/early_ioremap.c
+--- a/mm/early_ioremap.c~mm-add-utility-for-early-copy-from-unmapped-ram-v4
++++ a/mm/early_ioremap.c
+@@ -232,7 +232,7 @@ void __init copy_from_early_mem(void *de
+ 			clen = MAX_MAP_CHUNK - slop;
+ 		p = early_memremap(src & PAGE_MASK, clen + slop);
+ 		memcpy(dest, p + slop, clen);
+-		early_iounmap(p, clen + slop);
++		early_memunmap(p, clen + slop);
+ 		dest += clen;
+ 		src += clen;
+ 		size -= clen;
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from msalter@redhat.com are
 
-mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add.patch
-mm-hugetlb-add-region_del-to-delete-a-specific-range-of-entries.patch
-mm-hugetlb-expose-hugetlb-fault-mutex-for-use-by-fallocate.patch
-hugetlbfs-hugetlb_vmtruncate_list-needs-to-take-a-range-to-delete.patch
-hugetlbfs-truncate_hugepages-takes-a-range-of-pages.patch
-mm-hugetlb-vma_has_reserves-needs-to-handle-fallocate-hole-punch.patch
-mm-hugetlb-alloc_huge_page-handle-areas-hole-punched-by-fallocate.patch
-hugetlbfs-new-huge_add_to_page_cache-helper-routine.patch
-hugetlbfs-add-hugetlbfs_fallocate.patch
-mm-madvise-allow-remove-operation-for-hugetlbfs.patch
-reverted-selftests-add-hugetlbfstest.patch
-selftests-vm-point-to-libhugetlbfs-for-regression-testing.patch
-documentation-update-libhugetlbfs-location-and-use-for-testing.patch
+mm-add-utility-for-early-copy-from-unmapped-ram.patch
+arm64-support-initrd-outside-kernel-linear-map.patch
+arm64-support-initrd-outside-kernel-linear-map-v4.patch
+x86-use-generic-early-mem-copy.patch
 
