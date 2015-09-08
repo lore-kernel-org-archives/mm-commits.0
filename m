@@ -1,50 +1,50 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create.patch
- removed from -mm tree
-Date: Tue, 08 Sep 2015 11:11:38 -0700
-Message-ID: <55ef24da.iNH7x3NEeAxAqKK+%akpm@linux-foundation.org>
+ genalloc-add-support-of-multiple-gen_pools-per-device.patch removed from
+ -mm tree
+Date: Tue, 08 Sep 2015 11:11:42 -0700
+Message-ID: <55ef24de.DQFoPNJadLX07I3Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60328 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60344 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751864AbbIHSLk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:11:40 -0400
+	with ESMTP id S1755478AbbIHSLn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:11:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vladimir_zapolskiy@mentor.com, alexandre.belloni@free-electrons.com, arnd@arndb.de, gregkh@linuxfoundation.org, kernel@pengutronix.de, linux@arm.linux.org.uk, mchehab@osg.samsung.com, nicolas.ferre@atmel.com, p.zabel@pengutronix.de, plagnioj@jcrosoft.com, shawnguo@kernel.org, mm-commits@vger.kernel.org
+To: vladimir_zapolskiy@mentor.com, alexandre.belloni@free-electrons.com, arnd@arndb.de, dan.carpenter@oracle.com, gregkh@linuxfoundation.org, kernel@pengutronix.de, linux@arm.linux.org.uk, mchehab@osg.samsung.com, nicolas.ferre@atmel.com, p.zabel@pengutronix.de, plagnioj@jcrosoft.com, shawnguo@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: genalloc: add name arg to gen_pool_get() and devm_gen_pool_create()
+     Subject: genalloc: add support of multiple gen_pools per device
 has been removed from the -mm tree.  Its filename was
-     genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create.patch
+     genalloc-add-support-of-multiple-gen_pools-per-device.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Subject: genalloc: add name arg to gen_pool_get() and devm_gen_pool_create()
+Subject: genalloc: add support of multiple gen_pools per device
 
-This change modifies gen_pool_get() and devm_gen_pool_create() client
-interfaces adding one more argument "name" of a gen_pool object.
+This change fills devm_gen_pool_create()/gen_pool_get() "name" argument
+stub with contents and extends of_gen_pool_get() functionality on this
+basis.
 
-Due to implementation gen_pool_get() is capable to retrieve only one
-gen_pool associated with a device even if multiple gen_pools are created,
-fortunately right at the moment it is sufficient for the clients, hence
-provide NULL as a valid argument on both producer devm_gen_pool_create()
-and consumer gen_pool_get() sides.
+If there is no associated platform device with a device node passed to
+of_gen_pool_get(), the function attempts to get a label property or device
+node name (= repeats MTD OF partition standard) and seeks for a named
+gen_pool registered by device of the parent device node.
 
-Because only one created gen_pool per device is addressable, explicitly
-add a restriction to devm_gen_pool_create() to create only one gen_pool
-per device, this implies two possible error codes returned by the
-function, account it on client side (only misc/sram).  This completes
-client side changes related to genalloc updates.
+The main idea of the change is to allow registration of independent
+gen_pools under the same umbrella device, say "partitions" on "storage
+device", the original functionality of one "partition" per "storage
+device" is untouched.
 
-[akpm@linux-foundation.org: gen_pool_get() cleanup]
+[akpm@linux-foundation.org: fix constness in devres_find()]
+[dan.carpenter@oracle.com: freeing const data pointers]
 Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
 Cc: Philipp Zabel <p.zabel@pengutronix.de>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
@@ -56,188 +56,162 @@ Cc: Shawn Guo <shawnguo@kernel.org>
 Cc: Sascha Hauer <kernel@pengutronix.de>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-at91/pm.c                   |    2 
- arch/arm/mach-imx/pm-imx5.c               |    2 
- arch/arm/mach-imx/pm-imx6.c               |    2 
- arch/arm/mach-socfpga/pm.c                |    2 
- drivers/media/platform/coda/coda-common.c |    2 
- drivers/misc/sram.c                       |    8 +--
- include/linux/genalloc.h                  |    4 -
- lib/genalloc.c                            |   49 +++++++++++---------
- 8 files changed, 39 insertions(+), 32 deletions(-)
+ include/linux/genalloc.h |    2 +
+ lib/genalloc.c           |   71 +++++++++++++++++++++++++++++--------
+ 2 files changed, 59 insertions(+), 14 deletions(-)
 
-diff -puN arch/arm/mach-at91/pm.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create arch/arm/mach-at91/pm.c
---- a/arch/arm/mach-at91/pm.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create
-+++ a/arch/arm/mach-at91/pm.c
-@@ -369,7 +369,7 @@ static void __init at91_pm_sram_init(voi
- 		return;
- 	}
- 
--	sram_pool = gen_pool_get(&pdev->dev);
-+	sram_pool = gen_pool_get(&pdev->dev, NULL);
- 	if (!sram_pool) {
- 		pr_warn("%s: sram pool unavailable!\n", __func__);
- 		return;
-diff -puN arch/arm/mach-imx/pm-imx5.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create arch/arm/mach-imx/pm-imx5.c
---- a/arch/arm/mach-imx/pm-imx5.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create
-+++ a/arch/arm/mach-imx/pm-imx5.c
-@@ -297,7 +297,7 @@ static int __init imx_suspend_alloc_ocra
- 		goto put_node;
- 	}
- 
--	ocram_pool = gen_pool_get(&pdev->dev);
-+	ocram_pool = gen_pool_get(&pdev->dev, NULL);
- 	if (!ocram_pool) {
- 		pr_warn("%s: ocram pool unavailable!\n", __func__);
- 		ret = -ENODEV;
-diff -puN arch/arm/mach-imx/pm-imx6.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create arch/arm/mach-imx/pm-imx6.c
---- a/arch/arm/mach-imx/pm-imx6.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create
-+++ a/arch/arm/mach-imx/pm-imx6.c
-@@ -451,7 +451,7 @@ static int __init imx6q_suspend_init(con
- 		goto put_node;
- 	}
- 
--	ocram_pool = gen_pool_get(&pdev->dev);
-+	ocram_pool = gen_pool_get(&pdev->dev, NULL);
- 	if (!ocram_pool) {
- 		pr_warn("%s: ocram pool unavailable!\n", __func__);
- 		ret = -ENODEV;
-diff -puN arch/arm/mach-socfpga/pm.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create arch/arm/mach-socfpga/pm.c
---- a/arch/arm/mach-socfpga/pm.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create
-+++ a/arch/arm/mach-socfpga/pm.c
-@@ -56,7 +56,7 @@ static int socfpga_setup_ocram_self_refr
- 		goto put_node;
- 	}
- 
--	ocram_pool = gen_pool_get(&pdev->dev);
-+	ocram_pool = gen_pool_get(&pdev->dev, NULL);
- 	if (!ocram_pool) {
- 		pr_warn("%s: ocram pool unavailable!\n", __func__);
- 		ret = -ENODEV;
-diff -puN drivers/media/platform/coda/coda-common.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create drivers/media/platform/coda/coda-common.c
---- a/drivers/media/platform/coda/coda-common.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create
-+++ a/drivers/media/platform/coda/coda-common.c
-@@ -2157,7 +2157,7 @@ static int coda_probe(struct platform_de
- 	/* Get IRAM pool from device tree or platform data */
- 	pool = of_gen_pool_get(np, "iram", 0);
- 	if (!pool && pdata)
--		pool = gen_pool_get(pdata->iram_dev);
-+		pool = gen_pool_get(pdata->iram_dev, NULL);
- 	if (!pool) {
- 		dev_err(&pdev->dev, "iram pool not available\n");
- 		return -ENOMEM;
-diff -puN drivers/misc/sram.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create drivers/misc/sram.c
---- a/drivers/misc/sram.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create
-+++ a/drivers/misc/sram.c
-@@ -186,10 +186,10 @@ static int sram_probe(struct platform_de
- 	if (IS_ERR(sram->virt_base))
- 		return PTR_ERR(sram->virt_base);
- 
--	sram->pool = devm_gen_pool_create(sram->dev,
--					  ilog2(SRAM_GRANULARITY), -1);
--	if (!sram->pool)
--		return -ENOMEM;
-+	sram->pool = devm_gen_pool_create(sram->dev, ilog2(SRAM_GRANULARITY),
-+					  NUMA_NO_NODE, NULL);
-+	if (IS_ERR(sram->pool))
-+		return PTR_ERR(sram->pool);
- 
- 	ret = sram_reserve_regions(sram, res);
- 	if (ret)
-diff -puN include/linux/genalloc.h~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create include/linux/genalloc.h
---- a/include/linux/genalloc.h~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create
+diff -puN include/linux/genalloc.h~genalloc-add-support-of-multiple-gen_pools-per-device include/linux/genalloc.h
+--- a/include/linux/genalloc.h~genalloc-add-support-of-multiple-gen_pools-per-device
 +++ a/include/linux/genalloc.h
-@@ -118,8 +118,8 @@ extern unsigned long gen_pool_best_fit(u
- 		unsigned long start, unsigned int nr, void *data);
+@@ -59,6 +59,8 @@ struct gen_pool {
  
- extern struct gen_pool *devm_gen_pool_create(struct device *dev,
--		int min_alloc_order, int nid);
--extern struct gen_pool *gen_pool_get(struct device *dev);
-+		int min_alloc_order, int nid, const char *name);
-+extern struct gen_pool *gen_pool_get(struct device *dev, const char *name);
+ 	genpool_algo_t algo;		/* allocation function */
+ 	void *data;
++
++	const char *name;
+ };
  
- bool addr_in_gen_pool(struct gen_pool *pool, unsigned long start,
- 			size_t size);
-diff -puN lib/genalloc.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create lib/genalloc.c
---- a/lib/genalloc.c~genalloc-add-name-arg-to-gen_pool_get-and-devm_gen_pool_create
+ /*
+diff -puN lib/genalloc.c~genalloc-add-support-of-multiple-gen_pools-per-device lib/genalloc.c
+--- a/lib/genalloc.c~genalloc-add-support-of-multiple-gen_pools-per-device
 +++ a/lib/genalloc.c
-@@ -571,23 +571,46 @@ static void devm_gen_pool_release(struct
+@@ -160,6 +160,7 @@ struct gen_pool *gen_pool_create(int min
+ 		pool->min_alloc_order = min_alloc_order;
+ 		pool->algo = gen_pool_first_fit;
+ 		pool->data = NULL;
++		pool->name = NULL;
+ 	}
+ 	return pool;
+ }
+@@ -252,8 +253,8 @@ void gen_pool_destroy(struct gen_pool *p
+ 
+ 		kfree(chunk);
+ 	}
++	kfree_const(pool->name);
+ 	kfree(pool);
+-	return;
+ }
+ EXPORT_SYMBOL(gen_pool_destroy);
+ 
+@@ -570,6 +571,20 @@ static void devm_gen_pool_release(struct
+ 	gen_pool_destroy(*(struct gen_pool **)res);
  }
  
- /**
-+ * gen_pool_get - Obtain the gen_pool (if any) for a device
-+ * @dev: device to retrieve the gen_pool from
-+ * @name: name of a gen_pool or NULL, identifies a particular gen_pool on device
-+ *
-+ * Returns the gen_pool for the device if one is present, or NULL.
-+ */
-+struct gen_pool *gen_pool_get(struct device *dev, const char *name)
++static int devm_gen_pool_match(struct device *dev, void *res, void *data)
 +{
-+	struct gen_pool **p;
++	struct gen_pool **p = res;
 +
-+	p = devres_find(dev, devm_gen_pool_release, NULL, NULL);
-+	if (!p)
-+		return NULL;
-+	return *p;
++	/* NULL data matches only a pool without an assigned name */
++	if (!data && !(*p)->name)
++		return 1;
++
++	if (!data || !(*p)->name)
++		return 0;
++
++	return !strcmp((*p)->name, data);
 +}
-+EXPORT_SYMBOL_GPL(gen_pool_get);
 +
-+/**
-  * devm_gen_pool_create - managed gen_pool_create
-  * @dev: device that provides the gen_pool
-  * @min_alloc_order: log base 2 of number of bytes each bitmap bit represents
-- * @nid: node id of the node the pool structure should be allocated on, or -1
-+ * @nid: node selector for allocated gen_pool, %NUMA_NO_NODE for all nodes
-+ * @name: name of a gen_pool or NULL, identifies a particular gen_pool on device
-  *
-  * Create a new special memory pool that can be used to manage special purpose
-  * memory not managed by the regular kmalloc/kfree interface. The pool will be
-  * automatically destroyed by the device management code.
-  */
- struct gen_pool *devm_gen_pool_create(struct device *dev, int min_alloc_order,
--		int nid)
-+				      int nid, const char *name)
+ /**
+  * gen_pool_get - Obtain the gen_pool (if any) for a device
+  * @dev: device to retrieve the gen_pool from
+@@ -581,7 +596,8 @@ struct gen_pool *gen_pool_get(struct dev
+ {
+ 	struct gen_pool **p;
+ 
+-	p = devres_find(dev, devm_gen_pool_release, NULL, NULL);
++	p = devres_find(dev, devm_gen_pool_release, devm_gen_pool_match,
++			(void *)name);
+ 	if (!p)
+ 		return NULL;
+ 	return *p;
+@@ -603,25 +619,38 @@ struct gen_pool *devm_gen_pool_create(st
+ 				      int nid, const char *name)
  {
  	struct gen_pool **ptr, *pool;
++	const char *pool_name = NULL;
  
-+	/* Check that genpool to be created is uniquely addressed on device */
-+	if (gen_pool_get(dev, name))
-+		return ERR_PTR(-EINVAL);
+ 	/* Check that genpool to be created is uniquely addressed on device */
+ 	if (gen_pool_get(dev, name))
+ 		return ERR_PTR(-EINVAL);
+ 
++	if (name) {
++		pool_name = kstrdup_const(name, GFP_KERNEL);
++		if (!pool_name)
++			return ERR_PTR(-ENOMEM);
++	}
 +
  	ptr = devres_alloc(devm_gen_pool_release, sizeof(*ptr), GFP_KERNEL);
  	if (!ptr)
--		return NULL;
-+		return ERR_PTR(-ENOMEM);
+-		return ERR_PTR(-ENOMEM);
++		goto free_pool_name;
  
  	pool = gen_pool_create(min_alloc_order, nid);
- 	if (pool) {
-@@ -595,29 +618,13 @@ struct gen_pool *devm_gen_pool_create(st
- 		devres_add(dev, ptr);
- 	} else {
- 		devres_free(ptr);
-+		return ERR_PTR(-ENOMEM);
- 	}
+-	if (pool) {
+-		*ptr = pool;
+-		devres_add(dev, ptr);
+-	} else {
+-		devres_free(ptr);
+-		return ERR_PTR(-ENOMEM);
+-	}
++	if (!pool)
++		goto free_devres;
++
++	*ptr = pool;
++	pool->name = pool_name;
++	devres_add(dev, ptr);
  
  	return pool;
++
++free_devres:
++	devres_free(ptr);
++free_pool_name:
++	kfree_const(pool_name);
++
++	return ERR_PTR(-ENOMEM);
  }
  EXPORT_SYMBOL(devm_gen_pool_create);
  
--/**
-- * gen_pool_get - Obtain the gen_pool (if any) for a device
-- * @dev: device to retrieve the gen_pool from
-- *
-- * Returns the gen_pool for the device if one is present, or NULL.
-- */
--struct gen_pool *gen_pool_get(struct device *dev)
--{
--	struct gen_pool **p = devres_find(dev, devm_gen_pool_release, NULL,
--					NULL);
--
--	if (!p)
+@@ -640,16 +669,30 @@ struct gen_pool *of_gen_pool_get(struct
+ 	const char *propname, int index)
+ {
+ 	struct platform_device *pdev;
+-	struct device_node *np_pool;
++	struct device_node *np_pool, *parent;
++	const char *name = NULL;
++	struct gen_pool *pool = NULL;
+ 
+ 	np_pool = of_parse_phandle(np, propname, index);
+ 	if (!np_pool)
+ 		return NULL;
++
+ 	pdev = of_find_device_by_node(np_pool);
++	if (!pdev) {
++		/* Check if named gen_pool is created by parent node device */
++		parent = of_get_parent(np_pool);
++		pdev = of_find_device_by_node(parent);
++		of_node_put(parent);
++
++		of_property_read_string(np_pool, "label", &name);
++		if (!name)
++			name = np_pool->name;
++	}
++	if (pdev)
++		pool = gen_pool_get(&pdev->dev, name);
+ 	of_node_put(np_pool);
+-	if (!pdev)
 -		return NULL;
--	return *p;
--}
--EXPORT_SYMBOL_GPL(gen_pool_get);
+-	return gen_pool_get(&pdev->dev, NULL);
++
++	return pool;
+ }
+ EXPORT_SYMBOL_GPL(of_gen_pool_get);
+ #endif /* CONFIG_OF */
+_
+
+Patches currently in -mm which might be from vladimir_zapolskiy@mentor.com are
+
+
