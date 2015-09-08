@@ -1,217 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- genalloc-add-support-of-multiple-gen_pools-per-device.patch removed from
- -mm tree
-Date: Tue, 08 Sep 2015 11:11:42 -0700
-Message-ID: <55ef24de.DQFoPNJadLX07I3Z%akpm@linux-foundation.org>
+Subject: [merged] mm-make-the-function-vma_has_reserves-bool.patch removed from -mm tree
+Date: Tue, 08 Sep 2015 11:12:17 -0700
+Message-ID: <55ef2501.tW0RMheetIu8nr7d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60344 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60429 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755478AbbIHSLn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:11:43 -0400
+	with ESMTP id S1753243AbbIHSMR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:12:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vladimir_zapolskiy@mentor.com, alexandre.belloni@free-electrons.com, arnd@arndb.de, dan.carpenter@oracle.com, gregkh@linuxfoundation.org, kernel@pengutronix.de, linux@arm.linux.org.uk, mchehab@osg.samsung.com, nicolas.ferre@atmel.com, p.zabel@pengutronix.de, plagnioj@jcrosoft.com, shawnguo@kernel.org, mm-commits@vger.kernel.org
+To: xerofoify@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: genalloc: add support of multiple gen_pools per device
+     Subject: mm/hugetlb.c: make vma_has_reserves() return bool
 has been removed from the -mm tree.  Its filename was
-     genalloc-add-support-of-multiple-gen_pools-per-device.patch
+     mm-make-the-function-vma_has_reserves-bool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Subject: genalloc: add support of multiple gen_pools per device
+From: Nicholas Krause <xerofoify@gmail.com>
+Subject: mm/hugetlb.c: make vma_has_reserves() return bool
 
-This change fills devm_gen_pool_create()/gen_pool_get() "name" argument
-stub with contents and extends of_gen_pool_get() functionality on this
-basis.
+This makes vma_has_reserves() return bool due to this particular function
+only returning either one or zero as its return value.
 
-If there is no associated platform device with a device node passed to
-of_gen_pool_get(), the function attempts to get a label property or device
-node name (= repeats MTD OF partition standard) and seeks for a named
-gen_pool registered by device of the parent device node.
-
-The main idea of the change is to allow registration of independent
-gen_pools under the same umbrella device, say "partitions" on "storage
-device", the original functionality of one "partition" per "storage
-device" is untouched.
-
-[akpm@linux-foundation.org: fix constness in devres_find()]
-[dan.carpenter@oracle.com: freeing const data pointers]
-Signed-off-by: Vladimir Zapolskiy <vladimir_zapolskiy@mentor.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Nicolas Ferre <nicolas.ferre@atmel.com>
-Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
-Cc: Shawn Guo <shawnguo@kernel.org>
-Cc: Sascha Hauer <kernel@pengutronix.de>
-Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/genalloc.h |    2 +
- lib/genalloc.c           |   71 +++++++++++++++++++++++++++++--------
- 2 files changed, 59 insertions(+), 14 deletions(-)
+ mm/hugetlb.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/genalloc.h~genalloc-add-support-of-multiple-gen_pools-per-device include/linux/genalloc.h
---- a/include/linux/genalloc.h~genalloc-add-support-of-multiple-gen_pools-per-device
-+++ a/include/linux/genalloc.h
-@@ -59,6 +59,8 @@ struct gen_pool {
+diff -puN mm/hugetlb.c~mm-make-the-function-vma_has_reserves-bool mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-make-the-function-vma_has_reserves-bool
++++ a/mm/hugetlb.c
+@@ -616,7 +616,7 @@ void reset_vma_resv_huge_pages(struct vm
+ }
  
- 	genpool_algo_t algo;		/* allocation function */
- 	void *data;
-+
-+	const char *name;
- };
- 
- /*
-diff -puN lib/genalloc.c~genalloc-add-support-of-multiple-gen_pools-per-device lib/genalloc.c
---- a/lib/genalloc.c~genalloc-add-support-of-multiple-gen_pools-per-device
-+++ a/lib/genalloc.c
-@@ -160,6 +160,7 @@ struct gen_pool *gen_pool_create(int min
- 		pool->min_alloc_order = min_alloc_order;
- 		pool->algo = gen_pool_first_fit;
- 		pool->data = NULL;
-+		pool->name = NULL;
+ /* Returns true if the VMA has associated reserve pages */
+-static int vma_has_reserves(struct vm_area_struct *vma, long chg)
++static bool vma_has_reserves(struct vm_area_struct *vma, long chg)
+ {
+ 	if (vma->vm_flags & VM_NORESERVE) {
+ 		/*
+@@ -629,23 +629,23 @@ static int vma_has_reserves(struct vm_ar
+ 		 * properly, so add work-around here.
+ 		 */
+ 		if (vma->vm_flags & VM_MAYSHARE && chg == 0)
+-			return 1;
++			return true;
+ 		else
+-			return 0;
++			return false;
  	}
- 	return pool;
+ 
+ 	/* Shared mappings always use reserves */
+ 	if (vma->vm_flags & VM_MAYSHARE)
+-		return 1;
++		return true;
+ 
+ 	/*
+ 	 * Only the process that called mmap() has reserves for
+ 	 * private mappings.
+ 	 */
+ 	if (is_vma_resv_set(vma, HPAGE_RESV_OWNER))
+-		return 1;
++		return true;
+ 
+-	return 0;
++	return false;
  }
-@@ -252,8 +253,8 @@ void gen_pool_destroy(struct gen_pool *p
  
- 		kfree(chunk);
- 	}
-+	kfree_const(pool->name);
- 	kfree(pool);
--	return;
- }
- EXPORT_SYMBOL(gen_pool_destroy);
- 
-@@ -570,6 +571,20 @@ static void devm_gen_pool_release(struct
- 	gen_pool_destroy(*(struct gen_pool **)res);
- }
- 
-+static int devm_gen_pool_match(struct device *dev, void *res, void *data)
-+{
-+	struct gen_pool **p = res;
-+
-+	/* NULL data matches only a pool without an assigned name */
-+	if (!data && !(*p)->name)
-+		return 1;
-+
-+	if (!data || !(*p)->name)
-+		return 0;
-+
-+	return !strcmp((*p)->name, data);
-+}
-+
- /**
-  * gen_pool_get - Obtain the gen_pool (if any) for a device
-  * @dev: device to retrieve the gen_pool from
-@@ -581,7 +596,8 @@ struct gen_pool *gen_pool_get(struct dev
- {
- 	struct gen_pool **p;
- 
--	p = devres_find(dev, devm_gen_pool_release, NULL, NULL);
-+	p = devres_find(dev, devm_gen_pool_release, devm_gen_pool_match,
-+			(void *)name);
- 	if (!p)
- 		return NULL;
- 	return *p;
-@@ -603,25 +619,38 @@ struct gen_pool *devm_gen_pool_create(st
- 				      int nid, const char *name)
- {
- 	struct gen_pool **ptr, *pool;
-+	const char *pool_name = NULL;
- 
- 	/* Check that genpool to be created is uniquely addressed on device */
- 	if (gen_pool_get(dev, name))
- 		return ERR_PTR(-EINVAL);
- 
-+	if (name) {
-+		pool_name = kstrdup_const(name, GFP_KERNEL);
-+		if (!pool_name)
-+			return ERR_PTR(-ENOMEM);
-+	}
-+
- 	ptr = devres_alloc(devm_gen_pool_release, sizeof(*ptr), GFP_KERNEL);
- 	if (!ptr)
--		return ERR_PTR(-ENOMEM);
-+		goto free_pool_name;
- 
- 	pool = gen_pool_create(min_alloc_order, nid);
--	if (pool) {
--		*ptr = pool;
--		devres_add(dev, ptr);
--	} else {
--		devres_free(ptr);
--		return ERR_PTR(-ENOMEM);
--	}
-+	if (!pool)
-+		goto free_devres;
-+
-+	*ptr = pool;
-+	pool->name = pool_name;
-+	devres_add(dev, ptr);
- 
- 	return pool;
-+
-+free_devres:
-+	devres_free(ptr);
-+free_pool_name:
-+	kfree_const(pool_name);
-+
-+	return ERR_PTR(-ENOMEM);
- }
- EXPORT_SYMBOL(devm_gen_pool_create);
- 
-@@ -640,16 +669,30 @@ struct gen_pool *of_gen_pool_get(struct
- 	const char *propname, int index)
- {
- 	struct platform_device *pdev;
--	struct device_node *np_pool;
-+	struct device_node *np_pool, *parent;
-+	const char *name = NULL;
-+	struct gen_pool *pool = NULL;
- 
- 	np_pool = of_parse_phandle(np, propname, index);
- 	if (!np_pool)
- 		return NULL;
-+
- 	pdev = of_find_device_by_node(np_pool);
-+	if (!pdev) {
-+		/* Check if named gen_pool is created by parent node device */
-+		parent = of_get_parent(np_pool);
-+		pdev = of_find_device_by_node(parent);
-+		of_node_put(parent);
-+
-+		of_property_read_string(np_pool, "label", &name);
-+		if (!name)
-+			name = np_pool->name;
-+	}
-+	if (pdev)
-+		pool = gen_pool_get(&pdev->dev, name);
- 	of_node_put(np_pool);
--	if (!pdev)
--		return NULL;
--	return gen_pool_get(&pdev->dev, NULL);
-+
-+	return pool;
- }
- EXPORT_SYMBOL_GPL(of_gen_pool_get);
- #endif /* CONFIG_OF */
+ static void enqueue_huge_page(struct hstate *h, struct page *page)
 _
 
-Patches currently in -mm which might be from vladimir_zapolskiy@mentor.com are
+Patches currently in -mm which might be from xerofoify@gmail.com are
 
+mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void.patch
 
