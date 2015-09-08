@@ -1,153 +1,183 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- smpboot-allow-to-pass-the-cpumask-on-per-cpu-thread-registration.patch
- removed from -mm tree
-Date: Tue, 08 Sep 2015 11:03:02 -0700
-Message-ID: <55ef22d6.UJTBl382x1FyEbyu%akpm@linux-foundation.org>
+ watchdog-introduce-watchdog_suspend-and-watchdog_resume.patch removed from
+ -mm tree
+Date: Tue, 08 Sep 2015 11:03:13 -0700
+Message-ID: <55ef22e1.SFKZAAb3Md4S6V5z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58938 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58971 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753989AbbIHSDD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:03 -0400
+	with ESMTP id S1753989AbbIHSDO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fweisbec@gmail.com, cmetcalf@ezchip.com, dzickus@redhat.com, peterz@infradead.org, sfr@canb.auug.org.au, tglx@linutronix.de, uobergfe@redhat.com, mm-commits@vger.kernel.org
+To: uobergfe@redhat.com, a.p.zijlstra@chello.nl, atomlin@redhat.com, cmetcalf@ezchip.com, dzickus@redhat.com, eranian@google.com, fweisbec@gmail.com, jolsa@kernel.org, linux@roeck-us.net, mhocko@suse.cz, mingo@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: smpboot: allow passing the cpumask on per-cpu thread registration
+     Subject: watchdog: introduce watchdog_suspend() and watchdog_resume()
 has been removed from the -mm tree.  Its filename was
-     smpboot-allow-to-pass-the-cpumask-on-per-cpu-thread-registration.patch
+     watchdog-introduce-watchdog_suspend-and-watchdog_resume.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Subject: smpboot: allow passing the cpumask on per-cpu thread registration
+From: Ulrich Obergfell <uobergfe@redhat.com>
+Subject: watchdog: introduce watchdog_suspend() and watchdog_resume()
 
-It makes the registration cheaper and simpler for the smpboot per-cpu
-kthread users that don't need to always update the cpumask after threads
-creation.
+This interface can be utilized to deactivate the hard and soft lockup
+detector temporarily.  Callers are expected to minimize the duration of
+deactivation.  Multiple deactivations are allowed to occur in parallel but
+should be rare in practice.
 
-[sfr@canb.auug.org.au: fix for allow passing the cpumask on per-cpu thread registration]
-Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
-Reviewed-by: Chris Metcalf <cmetcalf@ezchip.com>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Chris Metcalf <cmetcalf@ezchip.com>
+[akpm@linux-foundation.org: remove unneeded static initialization]
+Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
+Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
 Cc: Don Zickus <dzickus@redhat.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Ulrich Obergfell <uobergfe@redhat.com>
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Jiri Olsa <jolsa@kernel.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Stephane Eranian <eranian@google.com>
+Cc: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/smpboot.h |   11 ++++++++++-
- kernel/smpboot.c        |   14 +++++++++-----
- kernel/watchdog.c       |    9 +++------
- 3 files changed, 22 insertions(+), 12 deletions(-)
+ include/linux/nmi.h |    2 +
+ kernel/watchdog.c   |   65 ++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 67 insertions(+)
 
-diff -puN include/linux/smpboot.h~smpboot-allow-to-pass-the-cpumask-on-per-cpu-thread-registration include/linux/smpboot.h
---- a/include/linux/smpboot.h~smpboot-allow-to-pass-the-cpumask-on-per-cpu-thread-registration
-+++ a/include/linux/smpboot.h
-@@ -48,7 +48,16 @@ struct smp_hotplug_thread {
- 	const char			*thread_comm;
- };
+diff -puN include/linux/nmi.h~watchdog-introduce-watchdog_suspend-and-watchdog_resume include/linux/nmi.h
+--- a/include/linux/nmi.h~watchdog-introduce-watchdog_suspend-and-watchdog_resume
++++ a/include/linux/nmi.h
+@@ -82,6 +82,8 @@ extern int proc_watchdog_thresh(struct c
+ 				void __user *, size_t *, loff_t *);
+ extern int proc_watchdog_cpumask(struct ctl_table *, int,
+ 				 void __user *, size_t *, loff_t *);
++extern int watchdog_suspend(void);
++extern void watchdog_resume(void);
+ #endif
  
--int smpboot_register_percpu_thread(struct smp_hotplug_thread *plug_thread);
-+int smpboot_register_percpu_thread_cpumask(struct smp_hotplug_thread *plug_thread,
-+					   const struct cpumask *cpumask);
-+
-+static inline int
-+smpboot_register_percpu_thread(struct smp_hotplug_thread *plug_thread)
+ #ifdef CONFIG_HAVE_ACPI_APEI_NMI
+diff -puN kernel/watchdog.c~watchdog-introduce-watchdog_suspend-and-watchdog_resume kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-introduce-watchdog_suspend-and-watchdog_resume
++++ a/kernel/watchdog.c
+@@ -67,6 +67,7 @@ unsigned long *watchdog_cpumask_bits = c
+ #define for_each_watchdog_cpu(cpu) \
+ 	for_each_cpu_and((cpu), cpu_online_mask, &watchdog_cpumask)
+ 
++static int __read_mostly watchdog_suspended;
+ static int __read_mostly watchdog_running;
+ static u64 __read_mostly sample_period;
+ 
+@@ -700,6 +701,50 @@ static void watchdog_unpark_threads(void
+ 	put_online_cpus();
+ }
+ 
++/*
++ * Suspend the hard and soft lockup detector by parking the watchdog threads.
++ */
++int watchdog_suspend(void)
 +{
-+	return smpboot_register_percpu_thread_cpumask(plug_thread,
-+						      cpu_possible_mask);
++	int ret = 0;
++
++	mutex_lock(&watchdog_proc_mutex);
++	/*
++	 * Multiple suspend requests can be active in parallel (counted by
++	 * the 'watchdog_suspended' variable). If the watchdog threads are
++	 * running, the first caller takes care that they will be parked.
++	 * The state of 'watchdog_running' cannot change while a suspend
++	 * request is active (see related changes in 'proc' handlers).
++	 */
++	if (watchdog_running && !watchdog_suspended)
++		ret = watchdog_park_threads();
++
++	if (ret == 0)
++		watchdog_suspended++;
++
++	mutex_unlock(&watchdog_proc_mutex);
++
++	return ret;
 +}
 +
- void smpboot_unregister_percpu_thread(struct smp_hotplug_thread *plug_thread);
- int smpboot_update_cpumask_percpu_thread(struct smp_hotplug_thread *plug_thread,
- 					 const struct cpumask *);
-diff -puN kernel/smpboot.c~smpboot-allow-to-pass-the-cpumask-on-per-cpu-thread-registration kernel/smpboot.c
---- a/kernel/smpboot.c~smpboot-allow-to-pass-the-cpumask-on-per-cpu-thread-registration
-+++ a/kernel/smpboot.c
-@@ -273,19 +273,22 @@ static void smpboot_destroy_threads(stru
- }
- 
- /**
-- * smpboot_register_percpu_thread - Register a per_cpu thread related to hotplug
-+ * smpboot_register_percpu_thread_cpumask - Register a per_cpu thread related
-+ * 					    to hotplug
-  * @plug_thread:	Hotplug thread descriptor
-+ * @cpumask:		The cpumask where threads run
-  *
-  * Creates and starts the threads on all online cpus.
-  */
--int smpboot_register_percpu_thread(struct smp_hotplug_thread *plug_thread)
-+int smpboot_register_percpu_thread_cpumask(struct smp_hotplug_thread *plug_thread,
-+					   const struct cpumask *cpumask)
++/*
++ * Resume the hard and soft lockup detector by unparking the watchdog threads.
++ */
++void watchdog_resume(void)
++{
++	mutex_lock(&watchdog_proc_mutex);
++
++	watchdog_suspended--;
++	/*
++	 * The watchdog threads are unparked if they were previously running
++	 * and if there is no more active suspend request.
++	 */
++	if (watchdog_running && !watchdog_suspended)
++		watchdog_unpark_threads();
++
++	mutex_unlock(&watchdog_proc_mutex);
++}
++
+ static void restart_watchdog_hrtimer(void *info)
  {
- 	unsigned int cpu;
- 	int ret = 0;
+ 	struct hrtimer *hrtimer = raw_cpu_ptr(&watchdog_hrtimer);
+@@ -818,6 +863,12 @@ static int proc_watchdog_common(int whic
  
- 	if (!alloc_cpumask_var(&plug_thread->cpumask, GFP_KERNEL))
- 		return -ENOMEM;
--	cpumask_copy(plug_thread->cpumask, cpu_possible_mask);
-+	cpumask_copy(plug_thread->cpumask, cpumask);
+ 	mutex_lock(&watchdog_proc_mutex);
  
- 	get_online_cpus();
- 	mutex_lock(&smpboot_threads_lock);
-@@ -296,7 +299,8 @@ int smpboot_register_percpu_thread(struc
- 			free_cpumask_var(plug_thread->cpumask);
- 			goto out;
++	if (watchdog_suspended) {
++		/* no parameter changes allowed while watchdog is suspended */
++		err = -EAGAIN;
++		goto out;
++	}
++
+ 	/*
+ 	 * If the parameter is being read return the state of the corresponding
+ 	 * bit(s) in 'watchdog_enabled', else update 'watchdog_enabled' and the
+@@ -903,6 +954,12 @@ int proc_watchdog_thresh(struct ctl_tabl
+ 
+ 	mutex_lock(&watchdog_proc_mutex);
+ 
++	if (watchdog_suspended) {
++		/* no parameter changes allowed while watchdog is suspended */
++		err = -EAGAIN;
++		goto out;
++	}
++
+ 	old = ACCESS_ONCE(watchdog_thresh);
+ 	err = proc_dointvec_minmax(table, write, buffer, lenp, ppos);
+ 
+@@ -934,6 +991,13 @@ int proc_watchdog_cpumask(struct ctl_tab
+ 	int err;
+ 
+ 	mutex_lock(&watchdog_proc_mutex);
++
++	if (watchdog_suspended) {
++		/* no parameter changes allowed while watchdog is suspended */
++		err = -EAGAIN;
++		goto out;
++	}
++
+ 	err = proc_do_large_bitmap(table, write, buffer, lenp, ppos);
+ 	if (!err && write) {
+ 		/* Remove impossible cpus to keep sysctl output cleaner. */
+@@ -951,6 +1015,7 @@ int proc_watchdog_cpumask(struct ctl_tab
+ 				pr_err("cpumask update failed\n");
  		}
--		smpboot_unpark_thread(plug_thread, cpu);
-+		if (cpumask_test_cpu(cpu, cpumask))
-+			smpboot_unpark_thread(plug_thread, cpu);
  	}
- 	list_add(&plug_thread->list, &hotplug_threads);
- out:
-@@ -304,7 +308,7 @@ out:
- 	put_online_cpus();
- 	return ret;
++out:
+ 	mutex_unlock(&watchdog_proc_mutex);
+ 	return err;
  }
--EXPORT_SYMBOL_GPL(smpboot_register_percpu_thread);
-+EXPORT_SYMBOL_GPL(smpboot_register_percpu_thread_cpumask);
- 
- /**
-  * smpboot_unregister_percpu_thread - Unregister a per_cpu thread related to hotplug
-diff -puN kernel/watchdog.c~smpboot-allow-to-pass-the-cpumask-on-per-cpu-thread-registration kernel/watchdog.c
---- a/kernel/watchdog.c~smpboot-allow-to-pass-the-cpumask-on-per-cpu-thread-registration
-+++ a/kernel/watchdog.c
-@@ -713,15 +713,12 @@ static int watchdog_enable_all_cpus(void
- 	int err = 0;
- 
- 	if (!watchdog_running) {
--		err = smpboot_register_percpu_thread(&watchdog_threads);
-+		err = smpboot_register_percpu_thread_cpumask(&watchdog_threads,
-+							     &watchdog_cpumask);
- 		if (err)
- 			pr_err("Failed to create watchdog threads, disabled\n");
--		else {
--			if (smpboot_update_cpumask_percpu_thread(
--				    &watchdog_threads, &watchdog_cpumask))
--				pr_err("Failed to set cpumask for watchdog threads\n");
-+		else
- 			watchdog_running = 1;
--		}
- 	} else {
- 		/*
- 		 * Enable/disable the lockup detectors or
 _
 
-Patches currently in -mm which might be from fweisbec@gmail.com are
+Patches currently in -mm which might be from uobergfe@redhat.com are
 
-kmod-bunch-of-internal-functions-renames.patch
-kmod-remove-unecessary-explicit-wide-cpu-affinity-setting.patch
-kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels.patch
-kmod-use-system_unbound_wq-instead-of-khelper.patch
-kmod-handle-umh_wait_proc-from-system-unbound-workqueue.patch
 
