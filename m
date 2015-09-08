@@ -1,116 +1,83 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fsnotify-document-mark-locking.patch removed from -mm
- tree
-Date: Tue, 08 Sep 2015 11:01:36 -0700
-Message-ID: <55ef2280.cU2ljvQx7j7mOB/b%akpm@linux-foundation.org>
+Subject: [merged]
+ scripts-decode_stacktrace-fix-arm-architecture-decoding.patch removed from
+ -mm tree
+Date: Tue, 08 Sep 2015 11:01:50 -0700
+Message-ID: <55ef228e.vbhsLEnStKAWhyBK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58680 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58716 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754664AbbIHSBg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:01:36 -0400
+	with ESMTP id S1754664AbbIHSBv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:01:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.com, mm-commits@vger.kernel.org
+To: robert.jarzmik@free.fr, mmarek@suse.cz, rmk+kernel@arm.linux.org.uk, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsnotify: document mark locking
+     Subject: scripts: decode_stacktrace: fix ARM architecture decoding
 has been removed from the -mm tree.  Its filename was
-     fsnotify-document-mark-locking.patch
+     scripts-decode_stacktrace-fix-arm-architecture-decoding.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.com>
-Subject: fsnotify: document mark locking
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: scripts: decode_stacktrace: fix ARM architecture decoding
 
-Signed-off-by: Jan Kara <jack@suse.com>
+Fix the stack decoder for the ARM architecture.
+An ARM stack is designed as :
+[   81.547704] [<c023eb04>] (bucket_find_contain) from [<c023ec88>] (check_sync+0x40/0x4f8)
+[   81.559668] [<c023ec88>] (check_sync) from [<c023f8c4>] (debug_dma_sync_sg_for_cpu+0x128/0x194)
+[   81.571583] [<c023f8c4>] (debug_dma_sync_sg_for_cpu) from [<c0327dec>] (__videobuf_s
+
+The current script doesn't expect the symbols to be bound by
+parenthesis, and triggers the following errors :
+awk: cmd. line:1: error: Unmatched ( or \(: / (check_sync$/
+[   81.547704] (bucket_find_contain) from (check_sync+0x40/0x4f8)
+
+Fix it by chopping starting and ending parenthesis from the each symbol
+name.
+
+As a side note, this probably comes from the function
+dump_backtrace_entry(), which is implemented differently for each
+architecture.  That makes a single decoding script a bit a challenge.
+
+Signed-off-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fsnotify_backend.h |   50 +++++++++++++++++------------
- 1 file changed, 30 insertions(+), 20 deletions(-)
+ scripts/decode_stacktrace.sh |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/fsnotify_backend.h~fsnotify-document-mark-locking include/linux/fsnotify_backend.h
---- a/include/linux/fsnotify_backend.h~fsnotify-document-mark-locking
-+++ a/include/linux/fsnotify_backend.h
-@@ -195,40 +195,50 @@ struct fsnotify_group {
- #define FSNOTIFY_EVENT_INODE	2
+diff -puN scripts/decode_stacktrace.sh~scripts-decode_stacktrace-fix-arm-architecture-decoding scripts/decode_stacktrace.sh
+--- a/scripts/decode_stacktrace.sh~scripts-decode_stacktrace-fix-arm-architecture-decoding
++++ a/scripts/decode_stacktrace.sh
+@@ -14,11 +14,14 @@ declare -A cache
  
- /*
-- * a mark is simply an object attached to an in core inode which allows an
-+ * A mark is simply an object attached to an in core inode which allows an
-  * fsnotify listener to indicate they are either no longer interested in events
-  * of a type matching mask or only interested in those events.
-  *
-- * these are flushed when an inode is evicted from core and may be flushed
-- * when the inode is modified (as seen by fsnotify_access).  Some fsnotify users
-- * (such as dnotify) will flush these when the open fd is closed and not at
-- * inode eviction or modification.
-+ * These are flushed when an inode is evicted from core and may be flushed
-+ * when the inode is modified (as seen by fsnotify_access).  Some fsnotify
-+ * users (such as dnotify) will flush these when the open fd is closed and not
-+ * at inode eviction or modification.
-+ *
-+ * Text in brackets is showing the lock(s) protecting modifications of a
-+ * particular entry. obj_lock means either inode->i_lock or
-+ * mnt->mnt_root->d_lock depending on the mark type.
-  */
- struct fsnotify_mark {
--	__u32 mask;			/* mask this mark is for */
--	/* we hold ref for each i_list and g_list.  also one ref for each 'thing'
-+	/* Mask this mark is for [mark->lock, group->mark_mutex] */
-+	__u32 mask;
-+	/* We hold one for presence in g_list. Also one ref for each 'thing'
- 	 * in kernel that found and may be using this mark. */
--	atomic_t refcnt;		/* active things looking at this mark */
--	struct fsnotify_group *group;	/* group this mark is for */
--	struct list_head g_list;	/* list of marks by group->i_fsnotify_marks
--					 * Also reused for queueing mark into
--					 * destroy_list when it's waiting for
--					 * the end of SRCU period before it can
--					 * be freed */
--	spinlock_t lock;		/* protect group and inode */
--	struct hlist_node obj_list;	/* list of marks for inode / vfsmount */
--	struct list_head free_list;	/* tmp list used when freeing this mark */
--	union {
-+	atomic_t refcnt;
-+	/* Group this mark is for. Set on mark creation, stable until last ref
-+	 * is dropped */
-+	struct fsnotify_group *group;
-+	/* List of marks by group->i_fsnotify_marks. Also reused for queueing
-+	 * mark into destroy_list when it's waiting for the end of SRCU period
-+	 * before it can be freed. [group->mark_mutex] */
-+	struct list_head g_list;
-+	/* Protects inode / mnt pointers, flags, masks */
-+	spinlock_t lock;
-+	/* List of marks for inode / vfsmount [obj_lock] */
-+	struct hlist_node obj_list;
-+	/* tmp list used when freeing this mark */
-+	struct list_head free_list;
-+	union {	/* Object pointer [mark->lock, group->mark_mutex] */
- 		struct inode *inode;	/* inode this mark is associated with */
- 		struct vfsmount *mnt;	/* vfsmount this mark is associated with */
- 	};
--	__u32 ignored_mask;		/* events types to ignore */
-+	/* Events types to ignore [mark->lock, group->mark_mutex] */
-+	__u32 ignored_mask;
- #define FSNOTIFY_MARK_FLAG_INODE		0x01
- #define FSNOTIFY_MARK_FLAG_VFSMOUNT		0x02
- #define FSNOTIFY_MARK_FLAG_OBJECT_PINNED	0x04
- #define FSNOTIFY_MARK_FLAG_IGNORED_SURV_MODIFY	0x08
- #define FSNOTIFY_MARK_FLAG_ALIVE		0x10
--	unsigned int flags;		/* vfsmount or inode mark? */
-+	unsigned int flags;		/* flags [mark->lock] */
- 	void (*free_mark)(struct fsnotify_mark *mark); /* called on final put+free */
- };
+ parse_symbol() {
+ 	# The structure of symbol at this point is:
+-	#   [name]+[offset]/[total length]
++	#   ([name]+[offset]/[total length])
+ 	#
+ 	# For example:
+ 	#   do_basic_setup+0x9c/0xbf
  
++	# Remove the englobing parenthesis
++	symbol=${symbol#\(}
++	symbol=${symbol%\)}
+ 
+ 	# Strip the symbol name so that we could look it up
+ 	local name=${symbol%+*}
 _
 
-Patches currently in -mm which might be from jack@suse.com are
+Patches currently in -mm which might be from robert.jarzmik@free.fr are
 
 
