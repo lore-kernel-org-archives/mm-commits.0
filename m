@@ -1,574 +1,590 @@
 From: akpm@linux-foundation.org
-Subject: [merged] capabilities-ambient-capabilities.patch removed from -mm tree
-Date: Tue, 08 Sep 2015 11:01:19 -0700
-Message-ID: <55ef226f.no5VUOG0dIfM1Dh7%akpm@linux-foundation.org>
+Subject: [merged]
+ selftests-capabilities-add-tests-for-capability-evolution.patch removed
+ from -mm tree
+Date: Tue, 08 Sep 2015 11:01:22 -0700
+Message-ID: <55ef2272.0rIstVw74FABWHv9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58637 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58647 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753989AbbIHSBV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:01:21 -0400
+	with ESMTP id S1753989AbbIHSBX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:01:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luto@kernel.org, aaronmdjones@gmail.com, ahferroin7@gmail.com, cl@linux.com, corbet@lwn.net, james.l.morris@oracle.com, jarkko.sakkinen@linux.intel.com, keescook@chromium.org, morgan@kernel.org, msa@moth.iki.fi, mtk.manpages@gmail.com, serge.hallyn@ubuntu.com, tytso@mit.edu, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: luto@kernel.org, cl@linux.com, james.l.morris@oracle.com, keescook@chromium.org, serge.hallyn@ubuntu.com, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: capabilities: ambient capabilities
+     Subject: selftests/capabilities: Add tests for capability evolution
 has been removed from the -mm tree.  Its filename was
-     capabilities-ambient-capabilities.patch
+     selftests-capabilities-add-tests-for-capability-evolution.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andy Lutomirski <luto@kernel.org>
-Subject: capabilities: ambient capabilities
+Subject: selftests/capabilities: Add tests for capability evolution
 
-Credit where credit is due: this idea comes from Christoph Lameter
-with a lot of valuable input from Serge Hallyn.  This patch is
-heavily based on Christoph's patch.
+This test focuses on ambient capabilities.  It requires either root
+or the ability to create user namespaces.  Some of the test cases
+will be skipped for nonroot users.
 
-===== The status quo =====
-
-On Linux, there are a number of capabilities defined by the kernel.
-To perform various privileged tasks, processes can wield
-capabilities that they hold.
-
-Each task has four capability masks: effective (pE), permitted (pP),
-inheritable (pI), and a bounding set (X).  When the kernel checks
-for a capability, it checks pE.  The other capability masks serve to
-modify what capabilities can be in pE.
-
-Any task can remove capabilities from pE, pP, or pI at any time.  If
-a task has a capability in pP, it can add that capability to pE
-and/or pI.  If a task has CAP_SETPCAP, then it can add any
-capability to pI, and it can remove capabilities from X.
-
-Tasks are not the only things that can have capabilities; files can
-also have capabilities.  A file can have no capabilty information at
-all [1].  If a file has capability information, then it has a
-permitted mask (fP) and an inheritable mask (fI) as well as a single
-effective bit (fE) [2].  File capabilities modify the capabilities
-of tasks that execve(2) them.
-
-A task that successfully calls execve has its capabilities modified
-for the file ultimately being excecuted (i.e. the binary itself if
-that binary is ELF or for the interpreter if the binary is a
-script.) [3] In the capability evolution rules, for each mask Z, pZ
-represents the old value and pZ' represents the new value.  The
-rules are:
-
-  pP' = (X & fP) | (pI & fI)
-  pI' = pI
-  pE' = (fE ? pP' : 0)
-  X is unchanged
-
-For setuid binaries, fP, fI, and fE are modified by a moderately
-complicated set of rules that emulate POSIX behavior.  Similarly, if
-euid == 0 or ruid == 0, then fP, fI, and fE are modified differently
-(primary, fP and fI usually end up being the full set).  For nonroot
-users executing binaries with neither setuid nor file caps, fI and
-fP are empty and fE is false.
-
-As an extra complication, if you execute a process as nonroot and fE
-is set, then the "secure exec" rules are in effect: AT_SECURE gets
-set, LD_PRELOAD doesn't work, etc.
-
-This is rather messy.  We've learned that making any changes is
-dangerous, though: if a new kernel version allows an unprivileged
-program to change its security state in a way that persists cross
-execution of a setuid program or a program with file caps, this
-persistent state is surprisingly likely to allow setuid or
-file-capped programs to be exploited for privilege escalation.
-
-===== The problem =====
-
-Capability inheritance is basically useless.
-
-If you aren't root and you execute an ordinary binary, fI is zero,
-so your capabilities have no effect whatsoever on pP'.  This means
-that you can't usefully execute a helper process or a shell command
-with elevated capabilities if you aren't root.
-
-On current kernels, you can sort of work around this by setting fI
-to the full set for most or all non-setuid executable files.  This
-causes pP' = pI for nonroot, and inheritance works.  No one does
-this because it's a PITA and it isn't even supported on most
-filesystems.
-
-If you try this, you'll discover that every nonroot program ends up
-with secure exec rules, breaking many things.
-
-This is a problem that has bitten many people who have tried to use
-capabilities for anything useful.
-
-===== The proposed change =====
-
-This patch adds a fifth capability mask called the ambient mask
-(pA).  pA does what most people expect pI to do.
-
-pA obeys the invariant that no bit can ever be set in pA if it is
-not set in both pP and pI.  Dropping a bit from pP or pI drops that
-bit from pA.  This ensures that existing programs that try to drop
-capabilities still do so, with a complication.  Because capability
-inheritance is so broken, setting KEEPCAPS, using setresuid to
-switch to nonroot uids, and then calling execve effectively drops
-capabilities.  Therefore, setresuid from root to nonroot
-conditionally clears pA unless SECBIT_NO_SETUID_FIXUP is set.
-Processes that don't like this can re-add bits to pA afterwards.
-
-The capability evolution rules are changed:
-
-  pA' = (file caps or setuid or setgid ? 0 : pA)
-  pP' = (X & fP) | (pI & fI) | pA'
-  pI' = pI
-  pE' = (fE ? pP' : pA')
-  X is unchanged
-
-If you are nonroot but you have a capability, you can add it to pA.
-If you do so, your children get that capability in pA, pP, and pE.
-For example, you can set pA = CAP_NET_BIND_SERVICE, and your
-children can automatically bind low-numbered ports.  Hallelujah!
-
-Unprivileged users can create user namespaces, map themselves to a
-nonzero uid, and create both privileged (relative to their
-namespace) and unprivileged process trees.  This is currently more
-or less impossible.  Hallelujah!
-
-You cannot use pA to try to subvert a setuid, setgid, or file-capped
-program: if you execute any such program, pA gets cleared and the
-resulting evolution rules are unchanged by this patch.
-
-Users with nonzero pA are unlikely to unintentionally leak that
-capability.  If they run programs that try to drop privileges,
-dropping privileges will still work.
-
-It's worth noting that the degree of paranoia in this patch could
-possibly be reduced without causing serious problems.  Specifically,
-if we allowed pA to persist across executing non-pA-aware setuid
-binaries and across setresuid, then, naively, the only capabilities
-that could leak as a result would be the capabilities in pA, and any
-attacker *already* has those capabilities.  This would make me
-nervous, though -- setuid binaries that tried to privilege-separate
-might fail to do so, and putting CAP_DAC_READ_SEARCH or
-CAP_DAC_OVERRIDE into pA could have unexpected side effects.
-(Whether these unexpected side effects would be exploitable is an
-open question.)  I've therefore taken the more paranoid route.  We
-can revisit this later.
-
-An alternative would be to require PR_SET_NO_NEW_PRIVS before
-setting ambient capabilities.  I think that this would be annoying
-and would make granting otherwise unprivileged users minor ambient
-capabilities (CAP_NET_BIND_SERVICE or CAP_NET_RAW for example) much
-less useful than it is with this patch.
-
-===== Footnotes =====
-
-[1] Files that are missing the "security.capability" xattr or that
-have unrecognized values for that xattr end up with has_cap set to
-false.  The code that does that appears to be complicated for no
-good reason.
-
-[2] The libcap capability mask parsers and formatters are
-dangerously misleading and the documentation is flat-out wrong.  fE
-is *not* a mask; it's a single bit.  This has probably confused
-every single person who has tried to use file capabilities.
-
-[3] Linux very confusingly processes both the script and the
-interpreter if applicable, for reasons that elude me.  The results
-from thinking about a script's file capabilities and/or setuid bits
-are mostly discarded.
-
-Preliminary userspace code is here, but it needs updating:
-https://git.kernel.org/cgit/linux/kernel/git/luto/util-linux-playground.git/commit/?h=cap_ambient&id=7f5afbd175d2
-
-Here is a test program that can be used to verify the functionality (from
-Christoph):
-
-/*
- * Test program for the ambient capabilities. This program spawns a shell
- * that allows running processes with a defined set of capabilities.
- *
- * (C) 2015 Christoph Lameter <cl@linux.com>
- * Released under: GPL v3 or later.
- *
- *
- * Compile using:
- *
- *	gcc -o ambient_test ambient_test.o -lcap-ng
- *
- * This program must have the following capabilities to run properly:
- * Permissions for CAP_NET_RAW, CAP_NET_ADMIN, CAP_SYS_NICE
- *
- * A command to equip the binary with the right caps is:
- *
- *	setcap cap_net_raw,cap_net_admin,cap_sys_nice+p ambient_test
- *
- *
- * To get a shell with additional caps that can be inherited by other processes:
- *
- *	./ambient_test /bin/bash
- *
- *
- * Verifying that it works:
- *
- * From the bash spawed by ambient_test run
- *
- *	cat /proc/$$/status
- *
- * and have a look at the capabilities.
- */
-
-#include <stdlib.h>
-#include <stdio.h>
-#include <errno.h>
-#include <cap-ng.h>
-#include <sys/prctl.h>
-#include <linux/capability.h>
-
-/*
- * Definitions from the kernel header files. These are going to be removed
- * when the /usr/include files have these defined.
- */
-#define PR_CAP_AMBIENT 47
-#define PR_CAP_AMBIENT_IS_SET 1
-#define PR_CAP_AMBIENT_RAISE 2
-#define PR_CAP_AMBIENT_LOWER 3
-#define PR_CAP_AMBIENT_CLEAR_ALL 4
-
-static void set_ambient_cap(int cap)
-{
-	int rc;
-
-	capng_get_caps_process();
-	rc = capng_update(CAPNG_ADD, CAPNG_INHERITABLE, cap);
-	if (rc) {
-		printf("Cannot add inheritable cap\n");
-		exit(2);
-	}
-	capng_apply(CAPNG_SELECT_CAPS);
-
-	/* Note the two 0s at the end. Kernel checks for these */
-	if (prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, cap, 0, 0)) {
-		perror("Cannot set cap");
-		exit(1);
-	}
-}
-
-int main(int argc, char **argv)
-{
-	int rc;
-
-	set_ambient_cap(CAP_NET_RAW);
-	set_ambient_cap(CAP_NET_ADMIN);
-	set_ambient_cap(CAP_SYS_NICE);
-
-	printf("Ambient_test forking shell\n");
-	if (execv(argv[1], argv + 1))
-		perror("Cannot exec");
-
-	return 0;
-}
-
-Signed-off-by: Christoph Lameter <cl@linux.com> # Original author
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Acked-by: Serge E. Hallyn <serge.hallyn@ubuntu.com>
 Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Aaron Jones <aaronmdjones@gmail.com>
-Cc: Ted Ts'o <tytso@mit.edu>
-Cc: Andrew G. Morgan <morgan@kernel.org>
-Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Cc: Austin S Hemmelgarn <ahferroin7@gmail.com>
-Cc: Markku Savela <msa@moth.iki.fi>
-Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Christoph Lameter <cl@linux.com> # Original author
+Cc: Serge E. Hallyn <serge.hallyn@ubuntu.com>
 Cc: James Morris <james.l.morris@oracle.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c              |    5 +
- include/linux/cred.h         |    8 ++
- include/uapi/linux/prctl.h   |    7 ++
- kernel/user_namespace.c      |    1 
- security/commoncap.c         |  102 +++++++++++++++++++++++++++++----
- security/keys/process_keys.c |    1 
- 6 files changed, 113 insertions(+), 11 deletions(-)
+ tools/testing/selftests/capabilities/.gitignore     |    2 
+ tools/testing/selftests/capabilities/Makefile       |   19 
+ tools/testing/selftests/capabilities/test_execve.c  |  427 ++++++++++
+ tools/testing/selftests/capabilities/validate_cap.c |   73 +
+ 4 files changed, 521 insertions(+)
 
-diff -puN fs/proc/array.c~capabilities-ambient-capabilities fs/proc/array.c
---- a/fs/proc/array.c~capabilities-ambient-capabilities
-+++ a/fs/proc/array.c
-@@ -308,7 +308,8 @@ static void render_cap_t(struct seq_file
- static inline void task_cap(struct seq_file *m, struct task_struct *p)
- {
- 	const struct cred *cred;
--	kernel_cap_t cap_inheritable, cap_permitted, cap_effective, cap_bset;
-+	kernel_cap_t cap_inheritable, cap_permitted, cap_effective,
-+			cap_bset, cap_ambient;
- 
- 	rcu_read_lock();
- 	cred = __task_cred(p);
-@@ -316,12 +317,14 @@ static inline void task_cap(struct seq_f
- 	cap_permitted	= cred->cap_permitted;
- 	cap_effective	= cred->cap_effective;
- 	cap_bset	= cred->cap_bset;
-+	cap_ambient	= cred->cap_ambient;
- 	rcu_read_unlock();
- 
- 	render_cap_t(m, "CapInh:\t", &cap_inheritable);
- 	render_cap_t(m, "CapPrm:\t", &cap_permitted);
- 	render_cap_t(m, "CapEff:\t", &cap_effective);
- 	render_cap_t(m, "CapBnd:\t", &cap_bset);
-+	render_cap_t(m, "CapAmb:\t", &cap_ambient);
- }
- 
- static inline void task_seccomp(struct seq_file *m, struct task_struct *p)
-diff -puN include/linux/cred.h~capabilities-ambient-capabilities include/linux/cred.h
---- a/include/linux/cred.h~capabilities-ambient-capabilities
-+++ a/include/linux/cred.h
-@@ -137,6 +137,7 @@ struct cred {
- 	kernel_cap_t	cap_permitted;	/* caps we're permitted */
- 	kernel_cap_t	cap_effective;	/* caps we can actually use */
- 	kernel_cap_t	cap_bset;	/* capability bounding set */
-+	kernel_cap_t	cap_ambient;	/* Ambient capability set */
- #ifdef CONFIG_KEYS
- 	unsigned char	jit_keyring;	/* default keyring to attach requested
- 					 * keys to */
-@@ -212,6 +213,13 @@ static inline void validate_process_cred
- }
- #endif
- 
-+static inline bool cap_ambient_invariant_ok(const struct cred *cred)
-+{
-+	return cap_issubset(cred->cap_ambient,
-+			    cap_intersect(cred->cap_permitted,
-+					  cred->cap_inheritable));
-+}
+diff -puN /dev/null tools/testing/selftests/capabilities/.gitignore
+--- /dev/null
++++ a/tools/testing/selftests/capabilities/.gitignore
+@@ -0,0 +1,2 @@
++test_execve
++validate_cap
+diff -puN /dev/null tools/testing/selftests/capabilities/Makefile
+--- /dev/null
++++ a/tools/testing/selftests/capabilities/Makefile
+@@ -0,0 +1,19 @@
++all:
 +
- /**
-  * get_new_cred - Get a reference on a new set of credentials
-  * @cred: The new credentials to reference
-diff -puN include/uapi/linux/prctl.h~capabilities-ambient-capabilities include/uapi/linux/prctl.h
---- a/include/uapi/linux/prctl.h~capabilities-ambient-capabilities
-+++ a/include/uapi/linux/prctl.h
-@@ -190,4 +190,11 @@ struct prctl_mm_map {
- # define PR_FP_MODE_FR		(1 << 0)	/* 64b FP registers */
- # define PR_FP_MODE_FRE		(1 << 1)	/* 32b compatibility */
- 
-+/* Control the ambient capability set */
++include ../lib.mk
++
++.PHONY: all clean
++
++TARGETS := validate_cap test_execve
++TEST_PROGS := test_execve
++
++CFLAGS := -O2 -g -std=gnu99 -Wall -lcap-ng
++
++all: $(TARGETS)
++
++clean:
++	$(RM) $(TARGETS)
++
++$(TARGETS): %: %.c
++	$(CC) -o $@ $(CFLAGS) $(EXTRA_CFLAGS) $^ -lrt -ldl
++
+diff -puN /dev/null tools/testing/selftests/capabilities/test_execve.c
+--- /dev/null
++++ a/tools/testing/selftests/capabilities/test_execve.c
+@@ -0,0 +1,427 @@
++#define _GNU_SOURCE
++
++#include <cap-ng.h>
++#include <err.h>
++#include <linux/capability.h>
++#include <stdbool.h>
++#include <string.h>
++#include <stdio.h>
++#include <fcntl.h>
++#include <errno.h>
++#include <stdarg.h>
++#include <sched.h>
++#include <sys/mount.h>
++#include <limits.h>
++#include <libgen.h>
++#include <malloc.h>
++#include <sys/wait.h>
++#include <sys/prctl.h>
++#include <sys/stat.h>
++
++#ifndef PR_CAP_AMBIENT
 +#define PR_CAP_AMBIENT			47
 +# define PR_CAP_AMBIENT_IS_SET		1
 +# define PR_CAP_AMBIENT_RAISE		2
 +# define PR_CAP_AMBIENT_LOWER		3
 +# define PR_CAP_AMBIENT_CLEAR_ALL	4
++#endif
 +
- #endif /* _LINUX_PRCTL_H */
-diff -puN kernel/user_namespace.c~capabilities-ambient-capabilities kernel/user_namespace.c
---- a/kernel/user_namespace.c~capabilities-ambient-capabilities
-+++ a/kernel/user_namespace.c
-@@ -39,6 +39,7 @@ static void set_cred_user_ns(struct cred
- 	cred->cap_inheritable = CAP_EMPTY_SET;
- 	cred->cap_permitted = CAP_FULL_SET;
- 	cred->cap_effective = CAP_FULL_SET;
-+	cred->cap_ambient = CAP_EMPTY_SET;
- 	cred->cap_bset = CAP_FULL_SET;
- #ifdef CONFIG_KEYS
- 	key_put(cred->request_key_auth);
-diff -puN security/commoncap.c~capabilities-ambient-capabilities security/commoncap.c
---- a/security/commoncap.c~capabilities-ambient-capabilities
-+++ a/security/commoncap.c
-@@ -267,6 +267,16 @@ int cap_capset(struct cred *new,
- 	new->cap_effective   = *effective;
- 	new->cap_inheritable = *inheritable;
- 	new->cap_permitted   = *permitted;
++static int nerrs;
 +
-+	/*
-+	 * Mask off ambient bits that are no longer both permitted and
-+	 * inheritable.
-+	 */
-+	new->cap_ambient = cap_intersect(new->cap_ambient,
-+					 cap_intersect(*permitted,
-+						       *inheritable));
-+	if (WARN_ON(!cap_ambient_invariant_ok(new)))
-+		return -EINVAL;
- 	return 0;
- }
- 
-@@ -347,6 +357,7 @@ static inline int bprm_caps_from_vfs_cap
- 
- 		/*
- 		 * pP' = (X & fP) | (pI & fI)
-+		 * The addition of pA' is handled later.
- 		 */
- 		new->cap_permitted.cap[i] =
- 			(new->cap_bset.cap[i] & permitted) |
-@@ -474,10 +485,13 @@ int cap_bprm_set_creds(struct linux_binp
- {
- 	const struct cred *old = current_cred();
- 	struct cred *new = bprm->cred;
--	bool effective, has_cap = false;
-+	bool effective, has_cap = false, is_setid;
- 	int ret;
- 	kuid_t root_uid;
- 
-+	if (WARN_ON(!cap_ambient_invariant_ok(old)))
-+		return -EPERM;
++static void vmaybe_write_file(bool enoent_ok, char *filename, char *fmt, va_list ap)
++{
++	char buf[4096];
++	int fd;
++	ssize_t written;
++	int buf_len;
 +
- 	effective = false;
- 	ret = get_file_caps(bprm, &effective, &has_cap);
- 	if (ret < 0)
-@@ -522,8 +536,9 @@ skip:
- 	 *
- 	 * In addition, if NO_NEW_PRIVS, then ensure we get no new privs.
- 	 */
--	if ((!uid_eq(new->euid, old->uid) ||
--	     !gid_eq(new->egid, old->gid) ||
-+	is_setid = !uid_eq(new->euid, old->uid) || !gid_eq(new->egid, old->gid);
++	buf_len = vsnprintf(buf, sizeof(buf), fmt, ap);
++	if (buf_len < 0) {
++		err(1, "vsnprintf failed");
++	}
++	if (buf_len >= sizeof(buf)) {
++		errx(1, "vsnprintf output truncated");
++	}
 +
-+	if ((is_setid ||
- 	     !cap_issubset(new->cap_permitted, old->cap_permitted)) &&
- 	    bprm->unsafe & ~LSM_UNSAFE_PTRACE_CAP) {
- 		/* downgrade; they get no more than they had, and maybe less */
-@@ -539,10 +554,28 @@ skip:
- 	new->suid = new->fsuid = new->euid;
- 	new->sgid = new->fsgid = new->egid;
- 
-+	/* File caps or setid cancels ambient. */
-+	if (has_cap || is_setid)
-+		cap_clear(new->cap_ambient);
-+
-+	/*
-+	 * Now that we've computed pA', update pP' to give:
-+	 *   pP' = (X & fP) | (pI & fI) | pA'
-+	 */
-+	new->cap_permitted = cap_combine(new->cap_permitted, new->cap_ambient);
-+
-+	/*
-+	 * Set pE' = (fE ? pP' : pA').  Because pA' is zero if fE is set,
-+	 * this is the same as pE' = (fE ? pP' : 0) | pA'.
-+	 */
- 	if (effective)
- 		new->cap_effective = new->cap_permitted;
- 	else
--		cap_clear(new->cap_effective);
-+		new->cap_effective = new->cap_ambient;
-+
-+	if (WARN_ON(!cap_ambient_invariant_ok(new)))
-+		return -EPERM;
-+
- 	bprm->cap_effective = effective;
- 
- 	/*
-@@ -557,7 +590,7 @@ skip:
- 	 * Number 1 above might fail if you don't have a full bset, but I think
- 	 * that is interesting information to audit.
- 	 */
--	if (!cap_isclear(new->cap_effective)) {
-+	if (!cap_issubset(new->cap_effective, new->cap_ambient)) {
- 		if (!cap_issubset(CAP_FULL_SET, new->cap_effective) ||
- 		    !uid_eq(new->euid, root_uid) || !uid_eq(new->uid, root_uid) ||
- 		    issecure(SECURE_NOROOT)) {
-@@ -568,6 +601,10 @@ skip:
- 	}
- 
- 	new->securebits &= ~issecure_mask(SECURE_KEEP_CAPS);
-+
-+	if (WARN_ON(!cap_ambient_invariant_ok(new)))
-+		return -EPERM;
-+
- 	return 0;
- }
- 
-@@ -589,7 +626,7 @@ int cap_bprm_secureexec(struct linux_bin
- 	if (!uid_eq(cred->uid, root_uid)) {
- 		if (bprm->cap_effective)
- 			return 1;
--		if (!cap_isclear(cred->cap_permitted))
-+		if (!cap_issubset(cred->cap_permitted, cred->cap_ambient))
- 			return 1;
- 	}
- 
-@@ -691,10 +728,18 @@ static inline void cap_emulate_setxuid(s
- 	     uid_eq(old->suid, root_uid)) &&
- 	    (!uid_eq(new->uid, root_uid) &&
- 	     !uid_eq(new->euid, root_uid) &&
--	     !uid_eq(new->suid, root_uid)) &&
--	    !issecure(SECURE_KEEP_CAPS)) {
--		cap_clear(new->cap_permitted);
--		cap_clear(new->cap_effective);
-+	     !uid_eq(new->suid, root_uid))) {
-+		if (!issecure(SECURE_KEEP_CAPS)) {
-+			cap_clear(new->cap_permitted);
-+			cap_clear(new->cap_effective);
-+		}
-+
-+		/*
-+		 * Pre-ambient programs expect setresuid to nonroot followed
-+		 * by exec to drop capabilities.  We should make sure that
-+		 * this remains the case.
-+		 */
-+		cap_clear(new->cap_ambient);
- 	}
- 	if (uid_eq(old->euid, root_uid) && !uid_eq(new->euid, root_uid))
- 		cap_clear(new->cap_effective);
-@@ -924,6 +969,43 @@ int cap_task_prctl(int option, unsigned
- 			new->securebits &= ~issecure_mask(SECURE_KEEP_CAPS);
- 		return commit_creds(new);
- 
-+	case PR_CAP_AMBIENT:
-+		if (arg2 == PR_CAP_AMBIENT_CLEAR_ALL) {
-+			if (arg3 | arg4 | arg5)
-+				return -EINVAL;
-+
-+			new = prepare_creds();
-+			if (!new)
-+				return -ENOMEM;
-+			cap_clear(new->cap_ambient);
-+			return commit_creds(new);
-+		}
-+
-+		if (((!cap_valid(arg3)) | arg4 | arg5))
-+			return -EINVAL;
-+
-+		if (arg2 == PR_CAP_AMBIENT_IS_SET) {
-+			return !!cap_raised(current_cred()->cap_ambient, arg3);
-+		} else if (arg2 != PR_CAP_AMBIENT_RAISE &&
-+			   arg2 != PR_CAP_AMBIENT_LOWER) {
-+			return -EINVAL;
++	fd = open(filename, O_WRONLY);
++	if (fd < 0) {
++		if ((errno == ENOENT) && enoent_ok)
++			return;
++		err(1, "open of %s failed", filename);
++	}
++	written = write(fd, buf, buf_len);
++	if (written != buf_len) {
++		if (written >= 0) {
++			errx(1, "short write to %s", filename);
 +		} else {
-+			if (arg2 == PR_CAP_AMBIENT_RAISE &&
-+			    (!cap_raised(current_cred()->cap_permitted, arg3) ||
-+			     !cap_raised(current_cred()->cap_inheritable,
-+					 arg3)))
-+				return -EPERM;
++			err(1, "write to %s failed", filename);
++		}
++	}
++	if (close(fd) != 0) {
++		err(1, "close of %s failed", filename);
++	}
++}
 +
-+			new = prepare_creds();
-+			if (!new)
-+				return -ENOMEM;
-+			if (arg2 == PR_CAP_AMBIENT_RAISE)
-+				cap_raise(new->cap_ambient, arg3);
-+			else
-+				cap_lower(new->cap_ambient, arg3);
-+			return commit_creds(new);
++static void maybe_write_file(char *filename, char *fmt, ...)
++{
++	va_list ap;
++
++	va_start(ap, fmt);
++	vmaybe_write_file(true, filename, fmt, ap);
++	va_end(ap);
++}
++
++static void write_file(char *filename, char *fmt, ...)
++{
++	va_list ap;
++
++	va_start(ap, fmt);
++	vmaybe_write_file(false, filename, fmt, ap);
++	va_end(ap);
++}
++
++static bool create_and_enter_ns(uid_t inner_uid)
++{
++	uid_t outer_uid;
++	gid_t outer_gid;
++	int i;
++	bool have_outer_privilege;
++
++	outer_uid = getuid();
++	outer_gid = getgid();
++
++	/*
++	 * TODO: If we're already root, we could skip creating the userns.
++	 */
++
++	if (unshare(CLONE_NEWNS) == 0) {
++		printf("[NOTE]\tUsing global UIDs for tests\n");
++		if (prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) != 0)
++			err(1, "PR_SET_KEEPCAPS");
++		if (setresuid(inner_uid, inner_uid, -1) != 0)
++			err(1, "setresuid");
++
++		// Re-enable effective caps
++		capng_get_caps_process();
++		for (i = 0; i < CAP_LAST_CAP; i++)
++			if (capng_have_capability(CAPNG_PERMITTED, i))
++				capng_update(CAPNG_ADD, CAPNG_EFFECTIVE, i);
++		if (capng_apply(CAPNG_SELECT_CAPS) != 0)
++			err(1, "capng_apply");
++
++		have_outer_privilege = true;
++	} else if (unshare(CLONE_NEWUSER | CLONE_NEWNS) == 0) {
++		printf("[NOTE]\tUsing a user namespace for tests\n");
++		maybe_write_file("/proc/self/setgroups", "deny");
++		write_file("/proc/self/uid_map", "%d %d 1", inner_uid, outer_uid);
++		write_file("/proc/self/gid_map", "0 %d 1", outer_gid);
++
++		have_outer_privilege = false;
++	} else {
++		errx(1, "must be root or be able to create a userns");
++	}
++
++	if (mount("none", "/", NULL, MS_REC | MS_PRIVATE, NULL) != 0)
++		err(1, "remount everything private");
++
++	return have_outer_privilege;
++}
++
++static void chdir_to_tmpfs(void)
++{
++	char cwd[PATH_MAX];
++	if (getcwd(cwd, sizeof(cwd)) != cwd)
++		err(1, "getcwd");
++
++	if (mount("private_tmp", ".", "tmpfs", 0, "mode=0777") != 0)
++		err(1, "mount private tmpfs");
++
++	if (chdir(cwd) != 0)
++		err(1, "chdir to private tmpfs");
++
++	if (umount2(".", MNT_DETACH) != 0)
++		err(1, "detach private tmpfs");
++}
++
++static void copy_fromat_to(int fromfd, const char *fromname, const char *toname)
++{
++	int from = openat(fromfd, fromname, O_RDONLY);
++	if (from == -1)
++		err(1, "open copy source");
++
++	int to = open(toname, O_CREAT | O_WRONLY | O_EXCL, 0700);
++
++	while (true) {
++		char buf[4096];
++		ssize_t sz = read(from, buf, sizeof(buf));
++		if (sz == 0)
++			break;
++		if (sz < 0)
++			err(1, "read");
++
++		if (write(to, buf, sz) != sz)
++			err(1, "write");	/* no short writes on tmpfs */
++	}
++
++	close(from);
++	close(to);
++}
++
++static bool fork_wait(void)
++{
++	pid_t child = fork();
++	if (child == 0) {
++		nerrs = 0;
++		return true;
++	} else if (child > 0) {
++		int status;
++		if (waitpid(child, &status, 0) != child ||
++		    !WIFEXITED(status)) {
++			printf("[FAIL]\tChild died\n");
++			nerrs++;
++		} else if (WEXITSTATUS(status) != 0) {
++			printf("[FAIL]\tChild failed\n");
++			nerrs++;
++		} else {
++			printf("[OK]\tChild succeeded\n");
 +		}
 +
- 	default:
- 		/* No functionality available - continue with default */
- 		return -ENOSYS;
-diff -puN security/keys/process_keys.c~capabilities-ambient-capabilities security/keys/process_keys.c
---- a/security/keys/process_keys.c~capabilities-ambient-capabilities
-+++ a/security/keys/process_keys.c
-@@ -848,6 +848,7 @@ void key_change_session_keyring(struct c
- 	new->cap_inheritable	= old->cap_inheritable;
- 	new->cap_permitted	= old->cap_permitted;
- 	new->cap_effective	= old->cap_effective;
-+	new->cap_ambient	= old->cap_ambient;
- 	new->cap_bset		= old->cap_bset;
- 
- 	new->jit_keyring	= old->jit_keyring;
++		return false;
++	} else {
++		err(1, "fork");
++	}
++}
++
++static void exec_other_validate_cap(const char *name,
++				    bool eff, bool perm, bool inh, bool ambient)
++{
++	execl(name, name, (eff ? "1" : "0"),
++	      (perm ? "1" : "0"), (inh ? "1" : "0"), (ambient ? "1" : "0"),
++	      NULL);
++	err(1, "execl");
++}
++
++static void exec_validate_cap(bool eff, bool perm, bool inh, bool ambient)
++{
++	exec_other_validate_cap("./validate_cap", eff, perm, inh, ambient);
++}
++
++static int do_tests(int uid, const char *our_path)
++{
++	bool have_outer_privilege = create_and_enter_ns(uid);
++
++	int ourpath_fd = open(our_path, O_RDONLY | O_DIRECTORY);
++	if (ourpath_fd == -1)
++		err(1, "open '%s'", our_path);
++
++	chdir_to_tmpfs();
++
++	copy_fromat_to(ourpath_fd, "validate_cap", "validate_cap");
++
++	if (have_outer_privilege) {
++		uid_t gid = getegid();
++
++		copy_fromat_to(ourpath_fd, "validate_cap",
++			       "validate_cap_suidroot");
++		if (chown("validate_cap_suidroot", 0, -1) != 0)
++			err(1, "chown");
++		if (chmod("validate_cap_suidroot", S_ISUID | 0700) != 0)
++			err(1, "chmod");
++
++		copy_fromat_to(ourpath_fd, "validate_cap",
++			       "validate_cap_suidnonroot");
++		if (chown("validate_cap_suidnonroot", uid + 1, -1) != 0)
++			err(1, "chown");
++		if (chmod("validate_cap_suidnonroot", S_ISUID | 0700) != 0)
++			err(1, "chmod");
++
++		copy_fromat_to(ourpath_fd, "validate_cap",
++			       "validate_cap_sgidroot");
++		if (chown("validate_cap_sgidroot", -1, 0) != 0)
++			err(1, "chown");
++		if (chmod("validate_cap_sgidroot", S_ISGID | 0710) != 0)
++			err(1, "chmod");
++
++		copy_fromat_to(ourpath_fd, "validate_cap",
++			       "validate_cap_sgidnonroot");
++		if (chown("validate_cap_sgidnonroot", -1, gid + 1) != 0)
++			err(1, "chown");
++		if (chmod("validate_cap_sgidnonroot", S_ISGID | 0710) != 0)
++			err(1, "chmod");
++}
++
++	capng_get_caps_process();
++
++	/* Make sure that i starts out clear */
++	capng_update(CAPNG_DROP, CAPNG_INHERITABLE, CAP_NET_BIND_SERVICE);
++	if (capng_apply(CAPNG_SELECT_CAPS) != 0)
++		err(1, "capng_apply");
++
++	if (uid == 0) {
++		printf("[RUN]\tRoot => ep\n");
++		if (fork_wait())
++			exec_validate_cap(true, true, false, false);
++	} else {
++		printf("[RUN]\tNon-root => no caps\n");
++		if (fork_wait())
++			exec_validate_cap(false, false, false, false);
++	}
++
++	printf("[OK]\tCheck cap_ambient manipulation rules\n");
++
++	/* We should not be able to add ambient caps yet. */
++	if (prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, CAP_NET_BIND_SERVICE, 0, 0, 0) != -1 || errno != EPERM) {
++		if (errno == EINVAL)
++			printf("[FAIL]\tPR_CAP_AMBIENT_RAISE isn't supported\n");
++		else
++			printf("[FAIL]\tPR_CAP_AMBIENT_RAISE should have failed eith EPERM on a non-inheritable cap\n");
++		return 1;
++	}
++	printf("[OK]\tPR_CAP_AMBIENT_RAISE failed on non-inheritable cap\n");
++
++	capng_update(CAPNG_ADD, CAPNG_INHERITABLE, CAP_NET_RAW);
++	capng_update(CAPNG_DROP, CAPNG_PERMITTED, CAP_NET_RAW);
++	capng_update(CAPNG_DROP, CAPNG_EFFECTIVE, CAP_NET_RAW);
++	if (capng_apply(CAPNG_SELECT_CAPS) != 0)
++		err(1, "capng_apply");
++	if (prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, CAP_NET_RAW, 0, 0, 0) != -1 || errno != EPERM) {
++		printf("[FAIL]\tPR_CAP_AMBIENT_RAISE should have failed on a non-permitted cap\n");
++		return 1;
++	}
++	printf("[OK]\tPR_CAP_AMBIENT_RAISE failed on non-permitted cap\n");
++
++	capng_update(CAPNG_ADD, CAPNG_INHERITABLE, CAP_NET_BIND_SERVICE);
++	if (capng_apply(CAPNG_SELECT_CAPS) != 0)
++		err(1, "capng_apply");
++	if (prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, CAP_NET_BIND_SERVICE, 0, 0, 0) != 0) {
++		printf("[FAIL]\tPR_CAP_AMBIENT_RAISE should have succeeded\n");
++		return 1;
++	}
++	printf("[OK]\tPR_CAP_AMBIENT_RAISE worked\n");
++
++	if (prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_IS_SET, CAP_NET_BIND_SERVICE, 0, 0, 0) != 1) {
++		printf("[FAIL]\tPR_CAP_AMBIENT_IS_SET is broken\n");
++		return 1;
++	}
++
++	if (prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_CLEAR_ALL, 0, 0, 0, 0) != 0)
++		err(1, "PR_CAP_AMBIENT_CLEAR_ALL");
++
++	if (prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_IS_SET, CAP_NET_BIND_SERVICE, 0, 0, 0) != 0) {
++		printf("[FAIL]\tPR_CAP_AMBIENT_CLEAR_ALL didn't work\n");
++		return 1;
++	}
++
++	if (prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, CAP_NET_BIND_SERVICE, 0, 0, 0) != 0)
++		err(1, "PR_CAP_AMBIENT_RAISE");
++
++	capng_update(CAPNG_DROP, CAPNG_INHERITABLE, CAP_NET_BIND_SERVICE);
++	if (capng_apply(CAPNG_SELECT_CAPS) != 0)
++		err(1, "capng_apply");
++
++	if (prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_IS_SET, CAP_NET_BIND_SERVICE, 0, 0, 0) != 0) {
++		printf("[FAIL]\tDropping I should have dropped A\n");
++		return 1;
++	}
++
++	printf("[OK]\tBasic manipulation appears to work\n");
++
++	capng_update(CAPNG_ADD, CAPNG_INHERITABLE, CAP_NET_BIND_SERVICE);
++	if (capng_apply(CAPNG_SELECT_CAPS) != 0)
++		err(1, "capng_apply");
++	if (uid == 0) {
++		printf("[RUN]\tRoot +i => eip\n");
++		if (fork_wait())
++			exec_validate_cap(true, true, true, false);
++	} else {
++		printf("[RUN]\tNon-root +i => i\n");
++		if (fork_wait())
++			exec_validate_cap(false, false, true, false);
++	}
++
++	if (prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_RAISE, CAP_NET_BIND_SERVICE, 0, 0, 0) != 0)
++		err(1, "PR_CAP_AMBIENT_RAISE");
++
++	printf("[RUN]\tUID %d +ia => eipa\n", uid);
++	if (fork_wait())
++		exec_validate_cap(true, true, true, true);
++
++	/* The remaining tests need real privilege */
++
++	if (!have_outer_privilege) {
++		printf("[SKIP]\tSUID/SGID tests (needs privilege)\n");
++		goto done;
++	}
++
++	if (uid == 0) {
++		printf("[RUN]\tRoot +ia, suidroot => eipa\n");
++		if (fork_wait())
++			exec_other_validate_cap("./validate_cap_suidroot",
++						true, true, true, true);
++
++		printf("[RUN]\tRoot +ia, suidnonroot => ip\n");
++		if (fork_wait())
++			exec_other_validate_cap("./validate_cap_suidnonroot",
++						false, true, true, false);
++
++		printf("[RUN]\tRoot +ia, sgidroot => eipa\n");
++		if (fork_wait())
++			exec_other_validate_cap("./validate_cap_sgidroot",
++						true, true, true, true);
++
++		if (fork_wait()) {
++			printf("[RUN]\tRoot, gid != 0, +ia, sgidroot => eip\n");
++			if (setresgid(1, 1, 1) != 0)
++				err(1, "setresgid");
++			exec_other_validate_cap("./validate_cap_sgidroot",
++						true, true, true, false);
++		}
++
++		printf("[RUN]\tRoot +ia, sgidnonroot => eip\n");
++		if (fork_wait())
++			exec_other_validate_cap("./validate_cap_sgidnonroot",
++						true, true, true, false);
++	} else {
++		printf("[RUN]\tNon-root +ia, sgidnonroot => i\n");
++		exec_other_validate_cap("./validate_cap_sgidnonroot",
++						false, false, true, false);
++
++		if (fork_wait()) {
++			printf("[RUN]\tNon-root +ia, sgidroot => i\n");
++			if (setresgid(1, 1, 1) != 0)
++				err(1, "setresgid");
++			exec_other_validate_cap("./validate_cap_sgidroot",
++						false, false, true, false);
++		}
++	}
++
++done:
++	return nerrs ? 1 : 0;
++}
++
++int main(int argc, char **argv)
++{
++	char *tmp1, *tmp2, *our_path;
++
++	/* Find our path */
++	tmp1 = strdup(argv[0]);
++	if (!tmp1)
++		err(1, "strdup");
++	tmp2 = dirname(tmp1);
++	our_path = strdup(tmp2);
++	if (!our_path)
++		err(1, "strdup");
++	free(tmp1);
++
++	if (fork_wait()) {
++		printf("[RUN]\t+++ Tests with uid == 0 +++\n");
++		return do_tests(0, our_path);
++	}
++
++	if (fork_wait()) {
++		printf("[RUN]\t+++ Tests with uid != 0 +++\n");
++		return do_tests(1, our_path);
++	}
++
++	return nerrs ? 1 : 0;
++}
+diff -puN /dev/null tools/testing/selftests/capabilities/validate_cap.c
+--- /dev/null
++++ a/tools/testing/selftests/capabilities/validate_cap.c
+@@ -0,0 +1,73 @@
++#include <cap-ng.h>
++#include <err.h>
++#include <linux/capability.h>
++#include <stdbool.h>
++#include <string.h>
++#include <stdio.h>
++#include <sys/prctl.h>
++#include <sys/auxv.h>
++
++#ifndef PR_CAP_AMBIENT
++#define PR_CAP_AMBIENT			47
++# define PR_CAP_AMBIENT_IS_SET		1
++# define PR_CAP_AMBIENT_RAISE		2
++# define PR_CAP_AMBIENT_LOWER		3
++# define PR_CAP_AMBIENT_CLEAR_ALL	4
++#endif
++
++#if __GLIBC__ > 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ >= 19)
++# define HAVE_GETAUXVAL
++#endif
++
++static bool bool_arg(char **argv, int i)
++{
++	if (!strcmp(argv[i], "0"))
++		return false;
++	else if (!strcmp(argv[i], "1"))
++		return true;
++	else
++		errx(1, "wrong argv[%d]", i);
++}
++
++int main(int argc, char **argv)
++{
++	const char *atsec = "";
++
++	/*
++	 * Be careful just in case a setgid or setcapped copy of this
++	 * helper gets out.
++	 */
++
++	if (argc != 5)
++		errx(1, "wrong argc");
++
++#ifdef HAVE_GETAUXVAL
++	if (getauxval(AT_SECURE))
++		atsec = " (AT_SECURE is set)";
++	else
++		atsec = " (AT_SECURE is not set)";
++#endif
++
++	capng_get_caps_process();
++
++	if (capng_have_capability(CAPNG_EFFECTIVE, CAP_NET_BIND_SERVICE) != bool_arg(argv, 1)) {
++		printf("[FAIL]\tWrong effective state%s\n", atsec);
++		return 1;
++	}
++	if (capng_have_capability(CAPNG_PERMITTED, CAP_NET_BIND_SERVICE) != bool_arg(argv, 2)) {
++		printf("[FAIL]\tWrong permitted state%s\n", atsec);
++		return 1;
++	}
++	if (capng_have_capability(CAPNG_INHERITABLE, CAP_NET_BIND_SERVICE) != bool_arg(argv, 3)) {
++		printf("[FAIL]\tWrong inheritable state%s\n", atsec);
++		return 1;
++	}
++
++	if (prctl(PR_CAP_AMBIENT, PR_CAP_AMBIENT_IS_SET, CAP_NET_BIND_SERVICE, 0, 0, 0) != bool_arg(argv, 4)) {
++		printf("[FAIL]\tWrong ambient state%s\n", atsec);
++		return 1;
++	}
++
++	printf("[OK]\tCapabilities after execve were correct\n");
++	return 0;
++}
 _
 
 Patches currently in -mm which might be from luto@kernel.org are
