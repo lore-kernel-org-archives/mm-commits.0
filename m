@@ -1,104 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: + selftests-userfaultfd-fix-compiler-warnings-on-32-bit.patch
- added to -mm tree
-Date: Tue, 08 Sep 2015 12:45:05 -0700
-Message-ID: <55ef3ac1.DdCbXfywzPmuw4VE%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch removed from -mm tree
+Date: Tue, 08 Sep 2015 14:36:28 -0700
+Message-ID: <55ef54dc.wHYwxe9jCBL16xuB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41717 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52554 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751620AbbIHTpH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 15:45:07 -0400
+	with ESMTP id S1753550AbbIHVg3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 17:36:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, aarcange@redhat.com, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, khlebnikov@yandex-team.ru, mwilliamson@undo-software.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/userfaultfd: fix compiler warnings on 32-bit
-has been added to the -mm tree.  Its filename is
-     selftests-userfaultfd-fix-compiler-warnings-on-32-bit.patch
+     Subject: pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix
+has been removed from the -mm tree.  Its filename was
+     pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/selftests-userfaultfd-fix-compiler-warnings-on-32-bit.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-userfaultfd-fix-compiler-warnings-on-32-bit.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here.patch
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: selftests/userfaultfd: fix compiler warnings on 32-bit
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix
 
-On 32-bit:
+fix spello
 
-    userfaultfd.c: In function 'locking_thread':
-    userfaultfd.c:152: warning: left shift count >= width of type
-    userfaultfd.c: In function 'uffd_poll_thread':
-    userfaultfd.c:295: warning: cast to pointer from integer of different size
-    userfaultfd.c: In function 'uffd_read_thread':
-    userfaultfd.c:332: warning: cast to pointer from integer of different size
-
-Fix the shift warning by splitting the shift in two parts, and the
-integer/pointer warnigns by adding intermediate casts to "unsigned long".
-
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Mark Williamson <mwilliamson@undo-software.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ Documentation/vm/pagemap.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN tools/testing/selftests/vm/userfaultfd.c~selftests-userfaultfd-fix-compiler-warnings-on-32-bit tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~selftests-userfaultfd-fix-compiler-warnings-on-32-bit
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -147,7 +147,8 @@ static void *locking_thread(void *arg)
- 			if (sizeof(page_nr) > sizeof(rand_nr)) {
- 				if (random_r(&rand, &rand_nr))
- 					fprintf(stderr, "random_r 2 error\n"), exit(1);
--				page_nr |= ((unsigned long) rand_nr) << 32;
-+				page_nr |= (((unsigned long) rand_nr) << 16) <<
-+					   16;
- 			}
- 		} else
- 			page_nr += 1;
-@@ -290,7 +291,8 @@ static void *uffd_poll_thread(void *arg)
- 				msg.event), exit(1);
- 		if (msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE)
- 			fprintf(stderr, "unexpected write fault\n"), exit(1);
--		offset = (char *)msg.arg.pagefault.address - area_dst;
-+		offset = (char *)(unsigned long)msg.arg.pagefault.address -
-+			 area_dst;
- 		offset &= ~(page_size-1);
- 		if (copy_page(offset))
- 			userfaults++;
-@@ -327,7 +329,8 @@ static void *uffd_read_thread(void *arg)
- 		if (bounces & BOUNCE_VERIFY &&
- 		    msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE)
- 			fprintf(stderr, "unexpected write fault\n"), exit(1);
--		offset = (char *)msg.arg.pagefault.address - area_dst;
-+		offset = (char *)(unsigned long)msg.arg.pagefault.address -
-+			 area_dst;
- 		offset &= ~(page_size-1);
- 		if (copy_page(offset))
- 			(*this_cpu_userfaults)++;
+diff -puN Documentation/vm/pagemap.txt~pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix Documentation/vm/pagemap.txt
+--- a/Documentation/vm/pagemap.txt~pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here-fix
++++ a/Documentation/vm/pagemap.txt
+@@ -16,7 +16,7 @@ There are three components to pagemap:
+     * Bits 0-4   swap type if swapped
+     * Bits 5-54  swap offset if swapped
+     * Bit  55    pte is soft-dirty (see Documentation/vm/soft-dirty.txt)
+-    * Bit  56    page exlusively mapped
++    * Bit  56    page exclusively mapped
+     * Bits 57-60 zero
+     * Bit  61    page is file-page or shared-anon
+     * Bit  62    page swapped
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-selftests-userfaultfd-fix-compiler-warnings-on-32-bit.patch
+dax-revert-userfaultfd-change.patch
+pagemap-add-mmap-exclusive-bit-for-marking-pages-mapped-only-here.patch
+pagemap-update-documentation-fix.patch
+mm-show-proportional-swap-share-of-the-mapping-fix.patch
+mm-improve-__gfp_noretry-comment-based-on-implementation-fix.patch
+memcg-export-struct-mem_cgroup-fix.patch
+memcg-export-struct-mem_cgroup-fix-2.patch
+mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add-fix.patch
+x86-use-generic-early-mem-copy-fix.patch
+mm-mmap-simplify-the-failure-return-working-flow-fix.patch
+zswap-dynamic-pool-creation-fix.patch
 
