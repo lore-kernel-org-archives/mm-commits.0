@@ -1,34 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
- removed from -mm tree
-Date: Tue, 08 Sep 2015 11:04:44 -0700
-Message-ID: <55ef233c.MyCVB4x8CszBWsMW%akpm@linux-foundation.org>
+Subject: [merged]
+ userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch removed
+ from -mm tree
+Date: Tue, 08 Sep 2015 11:04:32 -0700
+Message-ID: <55ef2330.ntyvDmzGcn+TpEMY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59754 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59699 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755272AbbIHSEp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:04:45 -0400
+	with ESMTP id S1755386AbbIHSEe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:04:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, andreslc@google.com, dave.hansen@intel.com, dgilbert@redhat.com, hannes@cmpxchg.org, hughd@google.com, kirill@shutemov.name, luto@amacapital.net, mgorman@suse.de, pbonzini@redhat.com, peter.huangpeng@huawei.com, pfeiner@google.com, riel@redhat.com, sanidhya.gatech@gmail.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: UFFDIO_COPY|UFFDIO_ZEROPAGE uAPI
+     Subject: userfaultfd: allocate the userfaultfd_ctx cacheline aligned
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-uffdio_copyuffdio_zeropage-uapi.patch
+     userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: UFFDIO_COPY|UFFDIO_ZEROPAGE uAPI
+Subject: userfaultfd: allocate the userfaultfd_ctx cacheline aligned
 
-This implements the uABI of UFFDIO_COPY and UFFDIO_ZEROPAGE.
+Use proper slab to guarantee alignment.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Acked-by: Pavel Emelyanov <xemul@parallels.com>
@@ -49,80 +50,106 @@ Cc: "Huangpeng (Peter)" <peter.huangpeng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/userfaultfd.h |   42 ++++++++++++++++++++++++++++-
- 1 file changed, 41 insertions(+), 1 deletion(-)
+ fs/userfaultfd.c |   39 +++++++++++++++++++++++++++++++--------
+ 1 file changed, 31 insertions(+), 8 deletions(-)
 
-diff -puN include/uapi/linux/userfaultfd.h~userfaultfd-uffdio_copyuffdio_zeropage-uapi include/uapi/linux/userfaultfd.h
---- a/include/uapi/linux/userfaultfd.h~userfaultfd-uffdio_copyuffdio_zeropage-uapi
-+++ a/include/uapi/linux/userfaultfd.h
-@@ -25,7 +25,9 @@
- 	 (__u64)1 << _UFFDIO_UNREGISTER |	\
- 	 (__u64)1 << _UFFDIO_API)
- #define UFFD_API_RANGE_IOCTLS			\
--	((__u64)1 << _UFFDIO_WAKE)
-+	((__u64)1 << _UFFDIO_WAKE |		\
-+	 (__u64)1 << _UFFDIO_COPY |		\
-+	 (__u64)1 << _UFFDIO_ZEROPAGE)
+diff -puN fs/userfaultfd.c~userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-allocate-the-userfaultfd_ctx-cacheline-aligned
++++ a/fs/userfaultfd.c
+@@ -27,20 +27,26 @@
+ #include <linux/ioctl.h>
+ #include <linux/security.h>
  
- /*
-  * Valid ioctl command number range with this API is from 0x00 to
-@@ -38,6 +40,8 @@
- #define _UFFDIO_REGISTER		(0x00)
- #define _UFFDIO_UNREGISTER		(0x01)
- #define _UFFDIO_WAKE			(0x02)
-+#define _UFFDIO_COPY			(0x03)
-+#define _UFFDIO_ZEROPAGE		(0x04)
- #define _UFFDIO_API			(0x3F)
- 
- /* userfaultfd ioctl ids */
-@@ -50,6 +54,10 @@
- 				     struct uffdio_range)
- #define UFFDIO_WAKE		_IOR(UFFDIO, _UFFDIO_WAKE,	\
- 				     struct uffdio_range)
-+#define UFFDIO_COPY		_IOWR(UFFDIO, _UFFDIO_COPY,	\
-+				      struct uffdio_copy)
-+#define UFFDIO_ZEROPAGE		_IOWR(UFFDIO, _UFFDIO_ZEROPAGE,	\
-+				      struct uffdio_zeropage)
- 
- /* read() structure */
- struct uffd_msg {
-@@ -126,4 +134,36 @@ struct uffdio_register {
- 	__u64 ioctls;
++static struct kmem_cache *userfaultfd_ctx_cachep __read_mostly;
++
+ enum userfaultfd_state {
+ 	UFFD_STATE_WAIT_API,
+ 	UFFD_STATE_RUNNING,
  };
  
-+struct uffdio_copy {
-+	__u64 dst;
-+	__u64 src;
-+	__u64 len;
-+	/*
-+	 * There will be a wrprotection flag later that allows to map
-+	 * pages wrprotected on the fly. And such a flag will be
-+	 * available if the wrprotection ioctl are implemented for the
-+	 * range according to the uffdio_register.ioctls.
-+	 */
-+#define UFFDIO_COPY_MODE_DONTWAKE		((__u64)1<<0)
-+	__u64 mode;
++/*
++ * Start with fault_pending_wqh and fault_wqh so they're more likely
++ * to be in the same cacheline.
++ */
+ struct userfaultfd_ctx {
+-	/* pseudo fd refcounting */
+-	atomic_t refcount;
+ 	/* waitqueue head for the pending (i.e. not read) userfaults */
+ 	wait_queue_head_t fault_pending_wqh;
+ 	/* waitqueue head for the userfaults */
+ 	wait_queue_head_t fault_wqh;
+ 	/* waitqueue head for the pseudo fd to wakeup poll/read */
+ 	wait_queue_head_t fd_wqh;
++	/* pseudo fd refcounting */
++	atomic_t refcount;
+ 	/* userfaultfd syscall flags */
+ 	unsigned int flags;
+ 	/* state machine */
+@@ -130,7 +136,7 @@ static void userfaultfd_ctx_put(struct u
+ 		VM_BUG_ON(spin_is_locked(&ctx->fd_wqh.lock));
+ 		VM_BUG_ON(waitqueue_active(&ctx->fd_wqh));
+ 		mmput(ctx->mm);
+-		kfree(ctx);
++		kmem_cache_free(userfaultfd_ctx_cachep, ctx);
+ 	}
+ }
+ 
+@@ -1028,6 +1034,15 @@ static const struct file_operations user
+ 	.llseek		= noop_llseek,
+ };
+ 
++static void init_once_userfaultfd_ctx(void *mem)
++{
++	struct userfaultfd_ctx *ctx = (struct userfaultfd_ctx *) mem;
 +
-+	/*
-+	 * "copy" is written by the ioctl and must be at the end: the
-+	 * copy_from_user will not read the last 8 bytes.
-+	 */
-+	__s64 copy;
-+};
++	init_waitqueue_head(&ctx->fault_pending_wqh);
++	init_waitqueue_head(&ctx->fault_wqh);
++	init_waitqueue_head(&ctx->fd_wqh);
++}
 +
-+struct uffdio_zeropage {
-+	struct uffdio_range range;
-+#define UFFDIO_ZEROPAGE_MODE_DONTWAKE		((__u64)1<<0)
-+	__u64 mode;
+ /**
+  * userfaultfd_file_create - Creates an userfaultfd file pointer.
+  * @flags: Flags for the userfaultfd file.
+@@ -1058,14 +1073,11 @@ static struct file *userfaultfd_file_cre
+ 		goto out;
+ 
+ 	file = ERR_PTR(-ENOMEM);
+-	ctx = kmalloc(sizeof(*ctx), GFP_KERNEL);
++	ctx = kmem_cache_alloc(userfaultfd_ctx_cachep, GFP_KERNEL);
+ 	if (!ctx)
+ 		goto out;
+ 
+ 	atomic_set(&ctx->refcount, 1);
+-	init_waitqueue_head(&ctx->fault_pending_wqh);
+-	init_waitqueue_head(&ctx->fault_wqh);
+-	init_waitqueue_head(&ctx->fd_wqh);
+ 	ctx->flags = flags;
+ 	ctx->state = UFFD_STATE_WAIT_API;
+ 	ctx->released = false;
+@@ -1076,7 +1088,7 @@ static struct file *userfaultfd_file_cre
+ 	file = anon_inode_getfile("[userfaultfd]", &userfaultfd_fops, ctx,
+ 				  O_RDWR | (flags & UFFD_SHARED_FCNTL_FLAGS));
+ 	if (IS_ERR(file))
+-		kfree(ctx);
++		kmem_cache_free(userfaultfd_ctx_cachep, ctx);
+ out:
+ 	return file;
+ }
+@@ -1105,3 +1117,14 @@ err_put_unused_fd:
+ 
+ 	return error;
+ }
 +
-+	/*
-+	 * "zeropage" is written by the ioctl and must be at the end:
-+	 * the copy_from_user will not read the last 8 bytes.
-+	 */
-+	__s64 zeropage;
-+};
-+
- #endif /* _LINUX_USERFAULTFD_H */
++static int __init userfaultfd_init(void)
++{
++	userfaultfd_ctx_cachep = kmem_cache_create("userfaultfd_ctx_cache",
++						sizeof(struct userfaultfd_ctx),
++						0,
++						SLAB_HWCACHE_ALIGN|SLAB_PANIC,
++						init_once_userfaultfd_ctx);
++	return 0;
++}
++__initcall(userfaultfd_init);
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
