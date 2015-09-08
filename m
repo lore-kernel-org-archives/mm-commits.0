@@ -1,136 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-do-not-set-fs-read-only-if-rec-is-empty-while-committing-truncate.patch removed from -mm tree
-Date: Tue, 08 Sep 2015 11:02:47 -0700
-Message-ID: <55ef22c7.aejXNuA5rQim/zzC%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-clean-up-redundant-null-checks-before-kfree.patch
+ removed from -mm tree
+Date: Tue, 08 Sep 2015 11:02:52 -0700
+Message-ID: <55ef22cc.8aBwwTbVC8ZRlb0d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58899 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58910 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753989AbbIHSCs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:02:48 -0400
+	with ESMTP id S1753989AbbIHSCw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:02:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xuejiufei@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: do not set fs read-only if rec[0] is empty while committing truncate
+     Subject: ocfs2: clean up redundant NULL checks before kfree
 has been removed from the -mm tree.  Its filename was
-     ocfs2-do-not-set-fs-read-only-if-rec-is-empty-while-committing-truncate.patch
+     ocfs2-clean-up-redundant-null-checks-before-kfree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2: do not set fs read-only if rec[0] is empty while committing truncate
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: clean up redundant NULL checks before kfree
 
-While appending an extent to a file, it will call these functions:
-ocfs2_insert_extent
+NULL check before kfree is redundant and so clean them up.
 
-  -> call ocfs2_grow_tree() if there's no free rec
-     -> ocfs2_add_branch add a new branch to extent tree,
-        now rec[0] in the leaf of rightmost path is empty
-  -> ocfs2_do_insert_extent
-     -> ocfs2_rotate_tree_right
-       -> ocfs2_extend_rotate_transaction
-          -> jbd2_journal_restart if jbd2_journal_extend fail
-     -> ocfs2_insert_path
-        -> ocfs2_extend_trans
-          -> jbd2_journal_restart if jbd2_journal_extend fail
-        -> ocfs2_insert_at_leaf
-     -> ocfs2_et_update_clusters
-Function jbd2_journal_restart() may be called and it may happened that
-buffers dirtied in ocfs2_add_branch() are committed
-while buffers dirtied in ocfs2_insert_at_leaf() and
-ocfs2_et_update_clusters() are not.
-So an empty rec[0] is left in rightmost path which will cause
-read-only filesystem when call ocfs2_commit_truncate()
-with the error message: "Inode %lu has an empty extent record".
-
-This is not a serious problem, so remove the rightmost path when call
-ocfs2_commit_truncate().
-
-Signed-off-by: joyce.xue <xuejiufei@huawei.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
 Reviewed-by: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |   44 ++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 38 insertions(+), 6 deletions(-)
+ fs/ocfs2/alloc.c    |    2 +-
+ fs/ocfs2/suballoc.c |    6 ++----
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-do-not-set-fs-read-only-if-rec-is-empty-while-committing-truncate fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-do-not-set-fs-read-only-if-rec-is-empty-while-committing-truncate
+diff -puN fs/ocfs2/alloc.c~ocfs2-clean-up-redundant-null-checks-before-kfree fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-clean-up-redundant-null-checks-before-kfree
 +++ a/fs/ocfs2/alloc.c
-@@ -3131,6 +3131,30 @@ out:
- 	return ret;
+@@ -6178,7 +6178,7 @@ bail:
+ 		iput(tl_inode);
+ 	brelse(tl_bh);
+ 
+-	if (status < 0 && (*tl_copy)) {
++	if (status < 0) {
+ 		kfree(*tl_copy);
+ 		*tl_copy = NULL;
+ 		mlog_errno(status);
+diff -puN fs/ocfs2/suballoc.c~ocfs2-clean-up-redundant-null-checks-before-kfree fs/ocfs2/suballoc.c
+--- a/fs/ocfs2/suballoc.c~ocfs2-clean-up-redundant-null-checks-before-kfree
++++ a/fs/ocfs2/suballoc.c
+@@ -149,10 +149,8 @@ void ocfs2_free_ac_resource(struct ocfs2
+ 	brelse(ac->ac_bh);
+ 	ac->ac_bh = NULL;
+ 	ac->ac_resv = NULL;
+-	if (ac->ac_find_loc_priv) {
+-		kfree(ac->ac_find_loc_priv);
+-		ac->ac_find_loc_priv = NULL;
+-	}
++	kfree(ac->ac_find_loc_priv);
++	ac->ac_find_loc_priv = NULL;
  }
  
-+static int ocfs2_remove_rightmost_empty_extent(struct ocfs2_super *osb,
-+				struct ocfs2_extent_tree *et,
-+				struct ocfs2_path *path,
-+				struct ocfs2_cached_dealloc_ctxt *dealloc)
-+{
-+	handle_t *handle;
-+	int ret;
-+	int credits = path->p_tree_depth * 2 + 1;
-+
-+	handle = ocfs2_start_trans(osb, credits);
-+	if (IS_ERR(handle)) {
-+		ret = PTR_ERR(handle);
-+		mlog_errno(ret);
-+		return ret;
-+	}
-+
-+	ret = ocfs2_remove_rightmost_path(handle, et, path, dealloc);
-+	if (ret)
-+		mlog_errno(ret);
-+
-+	ocfs2_commit_trans(osb, handle);
-+	return ret;
-+}
-+
- /*
-  * Left rotation of btree records.
-  *
-@@ -7108,15 +7132,23 @@ start:
- 		 * to check it up here before changing the tree.
- 		*/
- 		if (root_el->l_tree_depth && rec->e_int_clusters == 0) {
--			ocfs2_error(inode->i_sb, "Inode %lu has an empty "
-+			mlog(ML_ERROR, "Inode %lu has an empty "
- 				    "extent record, depth %u\n", inode->i_ino,
- 				    le16_to_cpu(root_el->l_tree_depth));
--			status = -EROFS;
--			goto bail;
-+			status = ocfs2_remove_rightmost_empty_extent(osb,
-+					&et, path, &dealloc);
-+			if (status) {
-+				mlog_errno(status);
-+				goto bail;
-+			}
-+
-+			ocfs2_reinit_path(path, 1);
-+			goto start;
-+		} else {
-+			trunc_cpos = le32_to_cpu(rec->e_cpos);
-+			trunc_len = 0;
-+			blkno = 0;
- 		}
--		trunc_cpos = le32_to_cpu(rec->e_cpos);
--		trunc_len = 0;
--		blkno = 0;
- 	} else if (le32_to_cpu(rec->e_cpos) >= new_highest_cpos) {
- 		/*
- 		 * Truncate entire record.
+ void ocfs2_free_alloc_context(struct ocfs2_alloc_context *ac)
 _
 
-Patches currently in -mm which might be from xuejiufei@huawei.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
-extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
 
