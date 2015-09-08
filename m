@@ -1,119 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slub-improve-bulk-alloc-strategy.patch removed from -mm
- tree
-Date: Tue, 08 Sep 2015 11:03:32 -0700
-Message-ID: <55ef22f4.SV6gbxTIAN2RwkRJ%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-slub-move-slab-initialization-into-irq-enabled-region.patch removed from -mm tree
+Date: Tue, 08 Sep 2015 11:03:40 -0700
+Message-ID: <55ef22fc.clXnCoBl0LMREdBi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59032 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59067 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755329AbbIHSDd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:33 -0400
+	with ESMTP id S1755329AbbIHSDl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: tglx@linutronix.de, bigeasy@linutronix.de, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, peterz@infradead.org, rientjes@google.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: improve bulk alloc strategy
+     Subject: mm/slub: move slab initialization into irq enabled region
 has been removed from the -mm tree.  Its filename was
-     slub-improve-bulk-alloc-strategy.patch
+     mm-slub-move-slab-initialization-into-irq-enabled-region.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: slub: improve bulk alloc strategy
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: mm/slub: move slab initialization into irq enabled region
 
-Call slowpath __slab_alloc() from within the bulk loop, as the side-effect
-of this call likely repopulates c->freelist.
+Initializing a new slab can introduce rather large latencies because most
+of the initialization runs always with interrupts disabled.
 
-Choose to reenable local IRQs while calling slowpath.
+There is no point in doing so.  The newly allocated slab is not visible
+yet, so there is no reason to protect it against concurrent alloc/free.
 
-Saving some optimizations for later.  E.g.  it is possible to extract
-parts of __slab_alloc() and avoid the unnecessary and expensive (37
-cycles) local_irq_{save,restore}.  For now, be happy calling
-__slab_alloc() this lower icache impact of this func and I don't have to
-worry about correctness.
+Move the expensive parts of the initialization into allocate_slab(), so
+for all allocations with GFP_WAIT set, interrupts are enabled.
 
-Measurements on CPU CPU i7-4790K @ 4.00GHz
-Baseline normal fastpath (alloc+free cost): 42 cycles(tsc) 10.601 ns
-
-Bulk- fallback                   - this-patch
-  1 -  58 cycles(tsc) 14.516 ns  -  49 cycles(tsc) 12.459 ns  improved 15.5%
-  2 -  51 cycles(tsc) 12.930 ns  -  38 cycles(tsc)  9.605 ns  improved 25.5%
-  3 -  49 cycles(tsc) 12.274 ns  -  34 cycles(tsc)  8.525 ns  improved 30.6%
-  4 -  48 cycles(tsc) 12.058 ns  -  32 cycles(tsc)  8.036 ns  improved 33.3%
-  8 -  46 cycles(tsc) 11.609 ns  -  31 cycles(tsc)  7.756 ns  improved 32.6%
- 16 -  45 cycles(tsc) 11.451 ns  -  32 cycles(tsc)  8.148 ns  improved 28.9%
- 30 -  79 cycles(tsc) 19.865 ns  -  68 cycles(tsc) 17.164 ns  improved 13.9%
- 32 -  76 cycles(tsc) 19.212 ns  -  66 cycles(tsc) 16.584 ns  improved 13.2%
- 34 -  74 cycles(tsc) 18.600 ns  -  63 cycles(tsc) 15.954 ns  improved 14.9%
- 48 -  88 cycles(tsc) 22.092 ns  -  77 cycles(tsc) 19.373 ns  improved 12.5%
- 64 -  80 cycles(tsc) 20.043 ns  -  68 cycles(tsc) 17.188 ns  improved 15.0%
-128 -  99 cycles(tsc) 24.818 ns  -  89 cycles(tsc) 22.404 ns  improved 10.1%
-158 -  99 cycles(tsc) 24.977 ns  -  92 cycles(tsc) 23.089 ns  improved  7.1%
-250 - 106 cycles(tsc) 26.552 ns  -  99 cycles(tsc) 24.785 ns  improved  6.6%
-
-Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
+Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   26 ++++++++++++++++----------
- 1 file changed, 16 insertions(+), 10 deletions(-)
+ mm/slub.c |   89 ++++++++++++++++++++++++----------------------------
+ 1 file changed, 42 insertions(+), 47 deletions(-)
 
-diff -puN mm/slub.c~slub-improve-bulk-alloc-strategy mm/slub.c
---- a/mm/slub.c~slub-improve-bulk-alloc-strategy
+diff -puN mm/slub.c~mm-slub-move-slab-initialization-into-irq-enabled-region mm/slub.c
+--- a/mm/slub.c~mm-slub-move-slab-initialization-into-irq-enabled-region
 +++ a/mm/slub.c
-@@ -2779,8 +2779,22 @@ bool kmem_cache_alloc_bulk(struct kmem_c
- 	for (i = 0; i < size; i++) {
- 		void *object = c->freelist;
+@@ -1306,6 +1306,17 @@ static inline void slab_free_hook(struct
+ 	kasan_slab_free(s, x);
+ }
  
--		if (!object)
--			break;
-+		if (unlikely(!object)) {
-+			local_irq_enable();
-+			/*
-+			 * Invoking slow path likely have side-effect
-+			 * of re-populating per CPU c->freelist
-+			 */
-+			p[i] = __slab_alloc(s, flags, NUMA_NO_NODE,
-+					    _RET_IP_, c);
-+			if (unlikely(!p[i])) {
-+				__kmem_cache_free_bulk(s, i, p);
-+				return false;
-+			}
-+			local_irq_disable();
-+			c = this_cpu_ptr(s->cpu_slab);
-+			continue; /* goto for-loop */
-+		}
++static void setup_object(struct kmem_cache *s, struct page *page,
++				void *object)
++{
++	setup_object_debug(s, page, object);
++	if (unlikely(s->ctor)) {
++		kasan_unpoison_object_data(s, object);
++		s->ctor(object);
++		kasan_poison_object_data(s, object);
++	}
++}
++
+ /*
+  * Slab allocation and freeing
+  */
+@@ -1336,6 +1347,8 @@ static struct page *allocate_slab(struct
+ 	struct page *page;
+ 	struct kmem_cache_order_objects oo = s->oo;
+ 	gfp_t alloc_gfp;
++	void *start, *p;
++	int idx, order;
  
- 		c->freelist = get_freepointer(s, object);
- 		p[i] = object;
-@@ -2796,14 +2810,6 @@ bool kmem_cache_alloc_bulk(struct kmem_c
- 			memset(p[j], 0, s->object_size);
+ 	flags &= gfp_allowed_mask;
+ 
+@@ -1359,13 +1372,13 @@ static struct page *allocate_slab(struct
+ 		 * Try a lower order alloc if possible
+ 		 */
+ 		page = alloc_slab_page(s, alloc_gfp, node, oo);
+-
+-		if (page)
+-			stat(s, ORDER_FALLBACK);
++		if (unlikely(!page))
++			goto out;
++		stat(s, ORDER_FALLBACK);
  	}
  
--	/* Fallback to single elem alloc */
--	for (; i < size; i++) {
--		void *x = p[i] = kmem_cache_alloc(s, flags);
--		if (unlikely(!x)) {
--			__kmem_cache_free_bulk(s, i, p);
--			return false;
--		}
+-	if (kmemcheck_enabled && page
+-		&& !(s->flags & (SLAB_NOTRACK | DEBUG_DEFAULT_FLAGS))) {
++	if (kmemcheck_enabled &&
++	    !(s->flags & (SLAB_NOTRACK | DEBUG_DEFAULT_FLAGS))) {
+ 		int pages = 1 << oo_order(oo);
+ 
+ 		kmemcheck_alloc_shadow(page, oo_order(oo), alloc_gfp, node);
+@@ -1380,51 +1393,9 @@ static struct page *allocate_slab(struct
+ 			kmemcheck_mark_unallocated_pages(page, pages);
+ 	}
+ 
+-	if (flags & __GFP_WAIT)
+-		local_irq_disable();
+-	if (!page)
+-		return NULL;
+-
+ 	page->objects = oo_objects(oo);
+-	mod_zone_page_state(page_zone(page),
+-		(s->flags & SLAB_RECLAIM_ACCOUNT) ?
+-		NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
+-		1 << oo_order(oo));
+-
+-	return page;
+-}
+-
+-static void setup_object(struct kmem_cache *s, struct page *page,
+-				void *object)
+-{
+-	setup_object_debug(s, page, object);
+-	if (unlikely(s->ctor)) {
+-		kasan_unpoison_object_data(s, object);
+-		s->ctor(object);
+-		kasan_poison_object_data(s, object);
 -	}
- 	return true;
+-}
+-
+-static struct page *new_slab(struct kmem_cache *s, gfp_t flags, int node)
+-{
+-	struct page *page;
+-	void *start;
+-	void *p;
+-	int order;
+-	int idx;
+-
+-	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
+-		pr_emerg("gfp: %u\n", flags & GFP_SLAB_BUG_MASK);
+-		BUG();
+-	}
+-
+-	page = allocate_slab(s,
+-		flags & (GFP_RECLAIM_MASK | GFP_CONSTRAINT_MASK), node);
+-	if (!page)
+-		goto out;
+ 
+ 	order = compound_order(page);
+-	inc_slabs_node(s, page_to_nid(page), page->objects);
+ 	page->slab_cache = s;
+ 	__SetPageSlab(page);
+ 	if (page_is_pfmemalloc(page))
+@@ -1448,10 +1419,34 @@ static struct page *new_slab(struct kmem
+ 	page->freelist = start;
+ 	page->inuse = page->objects;
+ 	page->frozen = 1;
++
+ out:
++	if (flags & __GFP_WAIT)
++		local_irq_disable();
++	if (!page)
++		return NULL;
++
++	mod_zone_page_state(page_zone(page),
++		(s->flags & SLAB_RECLAIM_ACCOUNT) ?
++		NR_SLAB_RECLAIMABLE : NR_SLAB_UNRECLAIMABLE,
++		1 << oo_order(oo));
++
++	inc_slabs_node(s, page_to_nid(page), page->objects);
++
+ 	return page;
  }
- EXPORT_SYMBOL(kmem_cache_alloc_bulk);
+ 
++static struct page *new_slab(struct kmem_cache *s, gfp_t flags, int node)
++{
++	if (unlikely(flags & GFP_SLAB_BUG_MASK)) {
++		pr_emerg("gfp: %u\n", flags & GFP_SLAB_BUG_MASK);
++		BUG();
++	}
++
++	return allocate_slab(s,
++		flags & (GFP_RECLAIM_MASK | GFP_CONSTRAINT_MASK), node);
++}
++
+ static void __free_slab(struct kmem_cache *s, struct page *page)
+ {
+ 	int order = compound_order(page);
 _
 
-Patches currently in -mm which might be from brouer@redhat.com are
+Patches currently in -mm which might be from tglx@linutronix.de are
 
 
