@@ -1,87 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [merged] userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
+Subject: [merged] userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
  removed from -mm tree
-Date: Tue, 08 Sep 2015 11:03:50 -0700
-Message-ID: <55ef2306.s6jUuB+AfI9xL6jV%akpm@linux-foundation.org>
+Date: Tue, 08 Sep 2015 11:04:05 -0700
+Message-ID: <55ef2315.KGn2I5FFRUtEO45C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59100 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59431 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755329AbbIHSDv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:51 -0400
+	with ESMTP id S1754983AbbIHSET (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:04:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, andreslc@google.com, dave.hansen@intel.com, dgilbert@redhat.com, hannes@cmpxchg.org, hughd@google.com, kirill@shutemov.name, luto@amacapital.net, mgorman@suse.de, pbonzini@redhat.com, peter.huangpeng@huawei.com, pfeiner@google.com, riel@redhat.com, sanidhya.gatech@gmail.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: linux/Documentation/vm/userfaultfd.txt
+     Subject: userfaultfd: add VM_UFFD_MISSING and VM_UFFD_WP
 has been removed from the -mm tree.  Its filename was
-     userfaultfd-linux-documentation-vm-userfaultfdtxt.patch
+     userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: linux/Documentation/vm/userfaultfd.txt
+Subject: userfaultfd: add VM_UFFD_MISSING and VM_UFFD_WP
 
-This is the latest userfaultfd patchset.  The postcopy live migration
-feature on the qemu side is mostly ready to be merged and it entirely
-depends on the userfaultfd syscall to be merged as well.  So it'd be great
-if this patchset could be reviewed for merging in -mm.
-
-Userfaults allow to implement on demand paging from userland and more
-generally they allow userland to more efficiently take control of the
-behavior of page faults than what was available before (PROT_NONE +
-SIGSEGV trap).
-
-The use cases are:
-
-1) KVM postcopy live migration (one form of cloud memory
-   externalization).
-
-   KVM postcopy live migration is the primary driver of this work:
-
-	http://blog.zhaw.ch/icclab/setting-up-post-copy-live-migration-in-openstack/
-	http://lists.gnu.org/archive/html/qemu-devel/2015-02/msg04873.html
-
-2) postcopy live migration of binaries inside linux containers:
-
-	http://thread.gmane.org/gmane.linux.kernel.mm/132662
-
-3) KVM postcopy live snapshotting (allowing to limit/throttle the
-   memory usage, unlike fork would, plus the avoidance of fork
-   overhead in the first place).
-
-   While the wrprotect tracking is not implemented yet, the syscall API is
-   already contemplating the wrprotect fault tracking and it's generic enough
-   to allow its later implementation in a backwards compatible fashion.
-
-4) KVM userfaults on shared memory. The UFFDIO_COPY lowlevel method
-   should be extended to work also on tmpfs and then the
-   uffdio_register.ioctls will notify userland that UFFDIO_COPY is
-   available even when the registered virtual memory range is tmpfs
-   backed.
-
-5) alternate mechanism to notify web browsers or apps on embedded
-   devices that volatile pages have been reclaimed. This basically
-   avoids the need to run a syscall before the app can access with the
-   CPU the virtual regions marked volatile. This depends on point 4)
-   to be fulfilled first, as volatile pages happily apply to tmpfs.
-
-Even though there wasn't a real use case requesting it yet, it also
-allows to implement distributed shared memory in a way that readonly
-shared mappings can exist simultaneously in different hosts and they
-can be become exclusive at the first wrprotect fault.
-
-
-
-This patch (of 22):
-
-Add documentation.
+These two flags gets set in vma->vm_flags to tell the VM common code
+if the userfaultfd is armed and in which mode (only tracking missing
+faults, only tracking wrprotect faults or both). If neither flags is
+set it means the userfaultfd is not armed on the vma.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Acked-by: Pavel Emelyanov <xemul@parallels.com>
@@ -102,155 +52,49 @@ Cc: "Huangpeng (Peter)" <peter.huangpeng@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/userfaultfd.txt |  142 +++++++++++++++++++++++++++++
- 1 file changed, 142 insertions(+)
+ fs/proc/task_mmu.c |    2 ++
+ include/linux/mm.h |    2 ++
+ kernel/fork.c      |    2 +-
+ 3 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN /dev/null Documentation/vm/userfaultfd.txt
---- /dev/null
-+++ a/Documentation/vm/userfaultfd.txt
-@@ -0,0 +1,142 @@
-+= Userfaultfd =
-+
-+== Objective ==
-+
-+Userfaults allow the implementation of on-demand paging from userland
-+and more generally they allow userland to take control of various
-+memory page faults, something otherwise only the kernel code could do.
-+
-+For example userfaults allows a proper and more optimal implementation
-+of the PROT_NONE+SIGSEGV trick.
-+
-+== Design ==
-+
-+Userfaults are delivered and resolved through the userfaultfd syscall.
-+
-+The userfaultfd (aside from registering and unregistering virtual
-+memory ranges) provides two primary functionalities:
-+
-+1) read/POLLIN protocol to notify a userland thread of the faults
-+   happening
-+
-+2) various UFFDIO_* ioctls that can manage the virtual memory regions
-+   registered in the userfaultfd that allows userland to efficiently
-+   resolve the userfaults it receives via 1) or to manage the virtual
-+   memory in the background
-+
-+The real advantage of userfaults if compared to regular virtual memory
-+management of mremap/mprotect is that the userfaults in all their
-+operations never involve heavyweight structures like vmas (in fact the
-+userfaultfd runtime load never takes the mmap_sem for writing).
-+
-+Vmas are not suitable for page- (or hugepage) granular fault tracking
-+when dealing with virtual address spaces that could span
-+Terabytes. Too many vmas would be needed for that.
-+
-+The userfaultfd once opened by invoking the syscall, can also be
-+passed using unix domain sockets to a manager process, so the same
-+manager process could handle the userfaults of a multitude of
-+different processes without them being aware about what is going on
-+(well of course unless they later try to use the userfaultfd
-+themselves on the same region the manager is already tracking, which
-+is a corner case that would currently return -EBUSY).
-+
-+== API ==
-+
-+When first opened the userfaultfd must be enabled invoking the
-+UFFDIO_API ioctl specifying a uffdio_api.api value set to UFFD_API (or
-+a later API version) which will specify the read/POLLIN protocol
-+userland intends to speak on the UFFD. The UFFDIO_API ioctl if
-+successful (i.e. if the requested uffdio_api.api is spoken also by the
-+running kernel), will return into uffdio_api.features and
-+uffdio_api.ioctls two 64bit bitmasks of respectively the activated
-+feature of the read(2) protocol and the generic ioctl available.
-+
-+Once the userfaultfd has been enabled the UFFDIO_REGISTER ioctl should
-+be invoked (if present in the returned uffdio_api.ioctls bitmask) to
-+register a memory range in the userfaultfd by setting the
-+uffdio_register structure accordingly. The uffdio_register.mode
-+bitmask will specify to the kernel which kind of faults to track for
-+the range (UFFDIO_REGISTER_MODE_MISSING would track missing
-+pages). The UFFDIO_REGISTER ioctl will return the
-+uffdio_register.ioctls bitmask of ioctls that are suitable to resolve
-+userfaults on the range registered. Not all ioctls will necessarily be
-+supported for all memory types depending on the underlying virtual
-+memory backend (anonymous memory vs tmpfs vs real filebacked
-+mappings).
-+
-+Userland can use the uffdio_register.ioctls to manage the virtual
-+address space in the background (to add or potentially also remove
-+memory from the userfaultfd registered range). This means a userfault
-+could be triggering just before userland maps in the background the
-+user-faulted page.
-+
-+The primary ioctl to resolve userfaults is UFFDIO_COPY. That
-+atomically copies a page into the userfault registered range and wakes
-+up the blocked userfaults (unless uffdio_copy.mode &
-+UFFDIO_COPY_MODE_DONTWAKE is set). Other ioctl works similarly to
-+UFFDIO_COPY. They're atomic as in guaranteeing that nothing can see an
-+half copied page since it'll keep userfaulting until the copy has
-+finished.
-+
-+== QEMU/KVM ==
-+
-+QEMU/KVM is using the userfaultfd syscall to implement postcopy live
-+migration. Postcopy live migration is one form of memory
-+externalization consisting of a virtual machine running with part or
-+all of its memory residing on a different node in the cloud. The
-+userfaultfd abstraction is generic enough that not a single line of
-+KVM kernel code had to be modified in order to add postcopy live
-+migration to QEMU.
-+
-+Guest async page faults, FOLL_NOWAIT and all other GUP features work
-+just fine in combination with userfaults. Userfaults trigger async
-+page faults in the guest scheduler so those guest processes that
-+aren't waiting for userfaults (i.e. network bound) can keep running in
-+the guest vcpus.
-+
-+It is generally beneficial to run one pass of precopy live migration
-+just before starting postcopy live migration, in order to avoid
-+generating userfaults for readonly guest regions.
-+
-+The implementation of postcopy live migration currently uses one
-+single bidirectional socket but in the future two different sockets
-+will be used (to reduce the latency of the userfaults to the minimum
-+possible without having to decrease /proc/sys/net/ipv4/tcp_wmem).
-+
-+The QEMU in the source node writes all pages that it knows are missing
-+in the destination node, into the socket, and the migration thread of
-+the QEMU running in the destination node runs UFFDIO_COPY|ZEROPAGE
-+ioctls on the userfaultfd in order to map the received pages into the
-+guest (UFFDIO_ZEROCOPY is used if the source page was a zero page).
-+
-+A different postcopy thread in the destination node listens with
-+poll() to the userfaultfd in parallel. When a POLLIN event is
-+generated after a userfault triggers, the postcopy thread read() from
-+the userfaultfd and receives the fault address (or -EAGAIN in case the
-+userfault was already resolved and waken by a UFFDIO_COPY|ZEROPAGE run
-+by the parallel QEMU migration thread).
-+
-+After the QEMU postcopy thread (running in the destination node) gets
-+the userfault address it writes the information about the missing page
-+into the socket. The QEMU source node receives the information and
-+roughly "seeks" to that page address and continues sending all
-+remaining missing pages from that new page offset. Soon after that
-+(just the time to flush the tcp_wmem queue through the network) the
-+migration thread in the QEMU running in the destination node will
-+receive the page that triggered the userfault and it'll map it as
-+usual with the UFFDIO_COPY|ZEROPAGE (without actually knowing if it
-+was spontaneously sent by the source or if it was an urgent page
-+requested through an userfault).
-+
-+By the time the userfaults start, the QEMU in the destination node
-+doesn't need to keep any per-page state bitmap relative to the live
-+migration around and a single per-page bitmap has to be maintained in
-+the QEMU running in the source node to know which pages are still
-+missing in the destination node. The bitmap in the source node is
-+checked to find which missing pages to send in round robin and we seek
-+over it when receiving incoming userfaults. After sending each page of
-+course the bitmap is updated accordingly. It's also useful to avoid
-+sending the same page twice (in case the userfault is read by the
-+postcopy thread just before UFFDIO_COPY|ZEROPAGE runs in the migration
-+thread).
+diff -puN fs/proc/task_mmu.c~userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp
++++ a/fs/proc/task_mmu.c
+@@ -597,6 +597,8 @@ static void show_smap_vma_flags(struct s
+ 		[ilog2(VM_HUGEPAGE)]	= "hg",
+ 		[ilog2(VM_NOHUGEPAGE)]	= "nh",
+ 		[ilog2(VM_MERGEABLE)]	= "mg",
++		[ilog2(VM_UFFD_MISSING)]= "um",
++		[ilog2(VM_UFFD_WP)]	= "uw",
+ 	};
+ 	size_t i;
+ 
+diff -puN include/linux/mm.h~userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp include/linux/mm.h
+--- a/include/linux/mm.h~userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp
++++ a/include/linux/mm.h
+@@ -124,8 +124,10 @@ extern unsigned int kobjsize(const void
+ #define VM_MAYSHARE	0x00000080
+ 
+ #define VM_GROWSDOWN	0x00000100	/* general info on the segment */
++#define VM_UFFD_MISSING	0x00000200	/* missing pages tracking */
+ #define VM_PFNMAP	0x00000400	/* Page-ranges managed without "struct page", just pure PFN */
+ #define VM_DENYWRITE	0x00000800	/* ETXTBSY on write attempts.. */
++#define VM_UFFD_WP	0x00001000	/* wrprotect pages tracking */
+ 
+ #define VM_LOCKED	0x00002000
+ #define VM_IO           0x00004000	/* Memory mapped I/O or similar */
+diff -puN kernel/fork.c~userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp kernel/fork.c
+--- a/kernel/fork.c~userfaultfd-add-vm_uffd_missing-and-vm_uffd_wp
++++ a/kernel/fork.c
+@@ -454,7 +454,7 @@ static int dup_mmap(struct mm_struct *mm
+ 		tmp->vm_mm = mm;
+ 		if (anon_vma_fork(tmp, mpnt))
+ 			goto fail_nomem_anon_vma_fork;
+-		tmp->vm_flags &= ~VM_LOCKED;
++		tmp->vm_flags &= ~(VM_LOCKED|VM_UFFD_MISSING|VM_UFFD_WP);
+ 		tmp->vm_next = tmp->vm_prev = NULL;
+ 		tmp->vm_userfaultfd_ctx = NULL_VM_UFFD_CTX;
+ 		file = tmp->vm_file;
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
