@@ -1,114 +1,115 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-check-if-section-present-during-memory-block-registering.patch removed
- from -mm tree
-Date: Tue, 08 Sep 2015 11:01:14 -0700
-Message-ID: <55ef226a.8jdSwuX8s5L/e78J%akpm@linux-foundation.org>
+ memhp-add-hot-added-memory-ranges-to-memblock-before-allocate-node_data-for-a-node.patch removed from -mm tree
+Date: Tue, 08 Sep 2015 11:01:09 -0700
+Message-ID: <55ef2265.TD1QCkFeRdgc73dT%akpm__6049.6233440519$1441735289$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58615 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58598 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753989AbbIHSBP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:01:15 -0400
+	with ESMTP id S1752071AbbIHSBK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:01:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghai@kernel.org, greg@kroah.com, mingo@elte.hu, rientjes@google.com, stable@vger.kernel.org, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: tangchen@cn.fujitsu.com, guz.fnst@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@techsingularity.net, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, rientjes@google.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: check if section present during memory block registering
+     Subject: memory-hotplug: add hot-added memory ranges to memblock before allocate node_data for a node.
 has been removed from the -mm tree.  Its filename was
-     mm-check-if-section-present-during-memory-block-registering.patch
+     memhp-add-hot-added-memory-ranges-to-memblock-before-allocate-node_data-for-a-node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: mm: check if section present during memory block registering
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: memory-hotplug: add hot-added memory ranges to memblock before allocate node_data for a node.
 
-Tony Luck found on his setup, if memory block size 512M will cause crash
-during booting.
+f9126ab9241f66562de ("memory-hotplug: fix wrong edge when hot add a new
+node") hot-added memory range to memblock, after creating pgdat for new
+node.
 
- BUG: unable to handle kernel paging request at ffffea0074000020
- IP: [<ffffffff81670527>] get_nid_for_pfn+0x17/0x40
- PGD 128ffcb067 PUD 128ffc9067 PMD 0
- Oops: 0000 [#1] SMP
- Modules linked in:
- CPU: 0 PID: 1 Comm: swapper/0 Not tainted 4.2.0-rc8 #1
-...
- Call Trace:
-  [<ffffffff81453b56>] ? register_mem_sect_under_node+0x66/0xe0
-  [<ffffffff81453eeb>] register_one_node+0x17b/0x240
-  [<ffffffff81b1f1ed>] ? pci_iommu_alloc+0x6e/0x6e
-  [<ffffffff81b1f229>] topology_init+0x3c/0x95
-  [<ffffffff8100213d>] do_one_initcall+0xcd/0x1f0
+But there is a problem:
 
-The system has non continuous RAM address:
- BIOS-e820: [mem 0x0000001300000000-0x0000001cffffffff] usable
- BIOS-e820: [mem 0x0000001d70000000-0x0000001ec7ffefff] usable
- BIOS-e820: [mem 0x0000001f00000000-0x0000002bffffffff] usable
- BIOS-e820: [mem 0x0000002c18000000-0x0000002d6fffefff] usable
- BIOS-e820: [mem 0x0000002e00000000-0x00000039ffffffff] usable
+add_memory()
+|--> hotadd_new_pgdat()
+     |--> free_area_init_node()
+          |--> get_pfn_range_for_nid()
+               |--> find start_pfn and end_pfn in memblock
+|--> ......
+|--> memblock_add_node(start, size, nid)    --------    Here, just too late.
 
-So there are start sections in memory block not present.
-For example:
-memory block : [0x2c18000000, 0x2c20000000) 512M
-first three sections are not present.
+get_pfn_range_for_nid() will find that start_pfn and end_pfn are both 0.
+As a result, when adding memory, dmesg will give the following wrong message.
 
-Current register_mem_sect_under_node() assume first section is present,
-but memory block section number range [start_section_nr, end_section_nr]
-would include not present section.
+[ 2007.577000] Initmem setup node 5 [mem 0x0000000000000000-0xffffffffffffffff]
+[ 2007.584000] On node 5 totalpages: 0
+[ 2007.585000] Built 5 zonelists in Node order, mobility grouping on.  Total pages: 32588823
+[ 2007.594000] Policy zone: Normal
+[ 2007.598000] init_memory_mapping: [mem 0x60000000000-0x607ffffffff]
 
-For arch that support vmemmap, we don't setup memmap for struct page area
-within not present sections area.
+The solution is simple, just add the memory range to memblock a little
+earlier, before hotadd_new_pgdat().
 
-So skip the pfn range that belong to absent section.
-
-[akpm@linux-foundation.org: simplification]
-[rientjes@google.com: more simplification]
-Fixes: bdee237c0343 ("x86: mm: Use 2GB memory block size on large memory x86-64 systems")
-Fixes: 982792c782ef ("x86, mm: probe memory block size for generic x86 64bit")
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Signed-off-by: David Rientjes <rientjes@google.com>
-Reported-by: Tony Luck <tony.luck@intel.com>
-Tested-by: Tony Luck <tony.luck@intel.com>
-Cc: Greg KH <greg@kroah.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Tested-by: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>	[3.15+]
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>	[4.2.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/node.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ mm/memory_hotplug.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/node.c~mm-check-if-section-present-during-memory-block-registering drivers/base/node.c
---- a/drivers/base/node.c~mm-check-if-section-present-during-memory-block-registering
-+++ a/drivers/base/node.c
-@@ -392,6 +392,16 @@ int register_mem_sect_under_node(struct
- 	for (pfn = sect_start_pfn; pfn <= sect_end_pfn; pfn++) {
- 		int page_nid;
+diff -puN mm/memory_hotplug.c~memhp-add-hot-added-memory-ranges-to-memblock-before-allocate-node_data-for-a-node mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memhp-add-hot-added-memory-ranges-to-memblock-before-allocate-node_data-for-a-node
++++ a/mm/memory_hotplug.c
+@@ -1248,6 +1248,14 @@ int __ref add_memory(int nid, u64 start,
  
-+		/*
-+		 * memory block could have several absent sections from start.
-+		 * skip pfn range from absent section
-+		 */
-+		if (!pfn_present(pfn)) {
-+			pfn = round_down(pfn + PAGES_PER_SECTION,
-+					 PAGES_PER_SECTION) - 1;
-+			continue;
-+		}
+ 	mem_hotplug_begin();
+ 
++	/*
++	 * Add new range to memblock so that when hotadd_new_pgdat() is called
++	 * to allocate new pgdat, get_pfn_range_for_nid() will be able to find
++	 * this new range and calculate total pages correctly.  The range will
++	 * be removed at hot-remove time.
++	 */
++	memblock_add_node(start, size, nid);
 +
- 		page_nid = get_nid_for_pfn(pfn);
- 		if (page_nid < 0)
- 			continue;
+ 	new_node = !node_online(nid);
+ 	if (new_node) {
+ 		pgdat = hotadd_new_pgdat(nid, start);
+@@ -1277,7 +1285,6 @@ int __ref add_memory(int nid, u64 start,
+ 
+ 	/* create new memmap entry */
+ 	firmware_map_add_hotplug(start, start + size, "System RAM");
+-	memblock_add_node(start, size, nid);
+ 
+ 	goto out;
+ 
+@@ -1286,6 +1293,7 @@ error:
+ 	if (new_pgdat)
+ 		rollback_node_hotadd(nid, pgdat);
+ 	release_memory_resource(res);
++	memblock_remove(start, size);
+ 
+ out:
+ 	mem_hotplug_done();
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
 
-lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel.patch
-lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel-v2.patch
+memblock-make-memblock_overlaps_region-return-bool.patch
+mem-hotplug-handle-node-hole-when-initializing-numa_meminfo.patch
 
