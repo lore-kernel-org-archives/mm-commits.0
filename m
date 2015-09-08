@@ -1,74 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-clean-up-redundant-null-checks-before-kfree.patch
- removed from -mm tree
-Date: Tue, 08 Sep 2015 11:02:52 -0700
-Message-ID: <55ef22cc.8aBwwTbVC8ZRlb0d%akpm@linux-foundation.org>
+Subject: [merged] smpboot-fix-memory-leak-on-error-handling.patch removed
+ from -mm tree
+Date: Tue, 08 Sep 2015 11:02:57 -0700
+Message-ID: <55ef22d1.vYRF7D2ClL2J2PTd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58910 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58924 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753989AbbIHSCw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:02:52 -0400
+	with ESMTP id S1753989AbbIHSC6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:02:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: fweisbec@gmail.com, cmetcalf@ezchip.com, dzickus@redhat.com, peterz@infradead.org, tglx@linutronix.de, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: clean up redundant NULL checks before kfree
+     Subject: smpboot: fix memory leak on error handling
 has been removed from the -mm tree.  Its filename was
-     ocfs2-clean-up-redundant-null-checks-before-kfree.patch
+     smpboot-fix-memory-leak-on-error-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: clean up redundant NULL checks before kfree
+From: Frederic Weisbecker <fweisbec@gmail.com>
+Subject: smpboot: fix memory leak on error handling
 
-NULL check before kfree is redundant and so clean them up.
+The cpumask is allocated before threads get created. If the latter step
+fails, we need to free the cpumask.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
+Reviewed-by: Chris Metcalf <cmetcalf@ezchip.com>
+Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Cc: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c    |    2 +-
- fs/ocfs2/suballoc.c |    6 ++----
- 2 files changed, 3 insertions(+), 5 deletions(-)
+ kernel/smpboot.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-clean-up-redundant-null-checks-before-kfree fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-clean-up-redundant-null-checks-before-kfree
-+++ a/fs/ocfs2/alloc.c
-@@ -6178,7 +6178,7 @@ bail:
- 		iput(tl_inode);
- 	brelse(tl_bh);
- 
--	if (status < 0 && (*tl_copy)) {
-+	if (status < 0) {
- 		kfree(*tl_copy);
- 		*tl_copy = NULL;
- 		mlog_errno(status);
-diff -puN fs/ocfs2/suballoc.c~ocfs2-clean-up-redundant-null-checks-before-kfree fs/ocfs2/suballoc.c
---- a/fs/ocfs2/suballoc.c~ocfs2-clean-up-redundant-null-checks-before-kfree
-+++ a/fs/ocfs2/suballoc.c
-@@ -149,10 +149,8 @@ void ocfs2_free_ac_resource(struct ocfs2
- 	brelse(ac->ac_bh);
- 	ac->ac_bh = NULL;
- 	ac->ac_resv = NULL;
--	if (ac->ac_find_loc_priv) {
--		kfree(ac->ac_find_loc_priv);
--		ac->ac_find_loc_priv = NULL;
--	}
-+	kfree(ac->ac_find_loc_priv);
-+	ac->ac_find_loc_priv = NULL;
- }
- 
- void ocfs2_free_alloc_context(struct ocfs2_alloc_context *ac)
+diff -puN kernel/smpboot.c~smpboot-fix-memory-leak-on-error-handling kernel/smpboot.c
+--- a/kernel/smpboot.c~smpboot-fix-memory-leak-on-error-handling
++++ a/kernel/smpboot.c
+@@ -301,6 +301,7 @@ int smpboot_register_percpu_thread(struc
+ 		ret = __smpboot_create_thread(plug_thread, cpu);
+ 		if (ret) {
+ 			smpboot_destroy_threads(plug_thread);
++			free_cpumask_var(plug_thread->cpumask);
+ 			goto out;
+ 		}
+ 		smpboot_unpark_thread(plug_thread, cpu);
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from fweisbec@gmail.com are
 
+kmod-bunch-of-internal-functions-renames.patch
+kmod-remove-unecessary-explicit-wide-cpu-affinity-setting.patch
+kmod-add-up-to-date-explanations-on-the-purpose-of-each-asynchronous-levels.patch
+kmod-use-system_unbound_wq-instead-of-khelper.patch
+kmod-handle-umh_wait_proc-from-system-unbound-workqueue.patch
 
