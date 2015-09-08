@@ -1,102 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-fix-race-between-crashed-dio-and-rm.patch removed
- from -mm tree
-Date: Tue, 08 Sep 2015 11:02:41 -0700
-Message-ID: <55ef22c1.thdVFJLUAuPXIsMf%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-do-not-set-fs-read-only-if-rec-is-empty-while-committing-truncate.patch removed from -mm tree
+Date: Tue, 08 Sep 2015 11:02:47 -0700
+Message-ID: <55ef22c7.aejXNuA5rQim/zzC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58877 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58899 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753989AbbIHSCl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:02:41 -0400
+	with ESMTP id S1753989AbbIHSCs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:02:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix race between crashed dio and rm
+     Subject: ocfs2: do not set fs read-only if rec[0] is empty while committing truncate
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-race-between-crashed-dio-and-rm.patch
+     ocfs2-do-not-set-fs-read-only-if-rec-is-empty-while-committing-truncate.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: fix race between crashed dio and rm
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2: do not set fs read-only if rec[0] is empty while committing truncate
 
-There is a race case between crashed dio and rm, which will lead to
-OCFS2_VALID_FL not set read-only.
+While appending an extent to a file, it will call these functions:
+ocfs2_insert_extent
 
-N1                              N2
-------------------------------------------------------------------------
-dd with direct flag
-                                rm file
-crashed with an dio entry left
-in orphan dir
-                                clear OCFS2_VALID_FL in
-                                ocfs2_remove_inode
-                                recover N1 and read the corrupted inode,
-                                and set filesystem read-only
+  -> call ocfs2_grow_tree() if there's no free rec
+     -> ocfs2_add_branch add a new branch to extent tree,
+        now rec[0] in the leaf of rightmost path is empty
+  -> ocfs2_do_insert_extent
+     -> ocfs2_rotate_tree_right
+       -> ocfs2_extend_rotate_transaction
+          -> jbd2_journal_restart if jbd2_journal_extend fail
+     -> ocfs2_insert_path
+        -> ocfs2_extend_trans
+          -> jbd2_journal_restart if jbd2_journal_extend fail
+        -> ocfs2_insert_at_leaf
+     -> ocfs2_et_update_clusters
+Function jbd2_journal_restart() may be called and it may happened that
+buffers dirtied in ocfs2_add_branch() are committed
+while buffers dirtied in ocfs2_insert_at_leaf() and
+ocfs2_et_update_clusters() are not.
+So an empty rec[0] is left in rightmost path which will cause
+read-only filesystem when call ocfs2_commit_truncate()
+with the error message: "Inode %lu has an empty extent record".
 
-So we skip the inode deletion this time and wait for dio entry
-recovered first.
+This is not a serious problem, so remove the rightmost path when call
+ocfs2_commit_truncate().
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Signed-off-by: joyce.xue <xuejiufei@huawei.com>
 Reviewed-by: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.c   |    9 +++++++++
- fs/ocfs2/journal.c |    4 +++-
- 2 files changed, 12 insertions(+), 1 deletion(-)
+ fs/ocfs2/alloc.c |   44 ++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 38 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/inode.c~ocfs2-fix-race-between-crashed-dio-and-rm fs/ocfs2/inode.c
---- a/fs/ocfs2/inode.c~ocfs2-fix-race-between-crashed-dio-and-rm
-+++ a/fs/ocfs2/inode.c
-@@ -971,6 +971,7 @@ static void ocfs2_delete_inode(struct in
- 	int wipe, status;
- 	sigset_t oldset;
- 	struct buffer_head *di_bh = NULL;
-+	struct ocfs2_dinode *di = NULL;
+diff -puN fs/ocfs2/alloc.c~ocfs2-do-not-set-fs-read-only-if-rec-is-empty-while-committing-truncate fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-do-not-set-fs-read-only-if-rec-is-empty-while-committing-truncate
++++ a/fs/ocfs2/alloc.c
+@@ -3131,6 +3131,30 @@ out:
+ 	return ret;
+ }
  
- 	trace_ocfs2_delete_inode(inode->i_ino,
- 				 (unsigned long long)OCFS2_I(inode)->ip_blkno,
-@@ -1025,6 +1026,14 @@ static void ocfs2_delete_inode(struct in
- 		goto bail_unlock_nfs_sync;
- 	}
- 
-+	di = (struct ocfs2_dinode *)di_bh->b_data;
-+	/* Skip inode deletion and wait for dio orphan entry recovered
-+	 * first */
-+	if (unlikely(di->i_flags & cpu_to_le32(OCFS2_DIO_ORPHANED_FL))) {
-+		ocfs2_cleanup_delete_inode(inode, 0);
-+		goto bail_unlock_inode;
++static int ocfs2_remove_rightmost_empty_extent(struct ocfs2_super *osb,
++				struct ocfs2_extent_tree *et,
++				struct ocfs2_path *path,
++				struct ocfs2_cached_dealloc_ctxt *dealloc)
++{
++	handle_t *handle;
++	int ret;
++	int credits = path->p_tree_depth * 2 + 1;
++
++	handle = ocfs2_start_trans(osb, credits);
++	if (IS_ERR(handle)) {
++		ret = PTR_ERR(handle);
++		mlog_errno(ret);
++		return ret;
 +	}
 +
- 	/* Query the cluster. This will be the final decision made
- 	 * before we go ahead and wipe the inode. */
- 	status = ocfs2_query_inode_wipe(inode, di_bh, &wipe);
-diff -puN fs/ocfs2/journal.c~ocfs2-fix-race-between-crashed-dio-and-rm fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-fix-race-between-crashed-dio-and-rm
-+++ a/fs/ocfs2/journal.c
-@@ -2210,7 +2210,9 @@ static int ocfs2_recover_orphans(struct
- 			 * ocfs2_delete_inode. */
- 			oi->ip_flags |= OCFS2_INODE_MAYBE_ORPHANED;
- 			spin_unlock(&oi->ip_lock);
--		} else if ((orphan_reco_type == ORPHAN_NEED_TRUNCATE) &&
-+		}
++	ret = ocfs2_remove_rightmost_path(handle, et, path, dealloc);
++	if (ret)
++		mlog_errno(ret);
 +
-+		if ((orphan_reco_type == ORPHAN_NEED_TRUNCATE) &&
- 				(di->i_flags & cpu_to_le32(OCFS2_DIO_ORPHANED_FL))) {
- 			ret = ocfs2_truncate_file(inode, di_bh,
- 					i_size_read(inode));
++	ocfs2_commit_trans(osb, handle);
++	return ret;
++}
++
+ /*
+  * Left rotation of btree records.
+  *
+@@ -7108,15 +7132,23 @@ start:
+ 		 * to check it up here before changing the tree.
+ 		*/
+ 		if (root_el->l_tree_depth && rec->e_int_clusters == 0) {
+-			ocfs2_error(inode->i_sb, "Inode %lu has an empty "
++			mlog(ML_ERROR, "Inode %lu has an empty "
+ 				    "extent record, depth %u\n", inode->i_ino,
+ 				    le16_to_cpu(root_el->l_tree_depth));
+-			status = -EROFS;
+-			goto bail;
++			status = ocfs2_remove_rightmost_empty_extent(osb,
++					&et, path, &dealloc);
++			if (status) {
++				mlog_errno(status);
++				goto bail;
++			}
++
++			ocfs2_reinit_path(path, 1);
++			goto start;
++		} else {
++			trunc_cpos = le32_to_cpu(rec->e_cpos);
++			trunc_len = 0;
++			blkno = 0;
+ 		}
+-		trunc_cpos = le32_to_cpu(rec->e_cpos);
+-		trunc_len = 0;
+-		blkno = 0;
+ 	} else if (le32_to_cpu(rec->e_cpos) >= new_highest_cpos) {
+ 		/*
+ 		 * Truncate entire record.
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
+ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
+extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
 
