@@ -1,83 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slub-fix-spelling-succedd-to-succeed.patch removed from
- -mm tree
-Date: Tue, 08 Sep 2015 11:03:25 -0700
-Message-ID: <55ef22ed.04glAyko8wLY3uaA%akpm@linux-foundation.org>
+Subject: [merged]
+ slub-add-support-for-kmem_cache_debug-in-bulk-calls.patch removed from -mm
+ tree
+Date: Tue, 08 Sep 2015 11:03:38 -0700
+Message-ID: <55ef22fa.i2vCryXhkh3W29TJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59012 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59055 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753989AbbIHSD0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:26 -0400
+	with ESMTP id S1754664AbbIHSDj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Sep 2015 14:03:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: fix spelling succedd to succeed
+     Subject: slub: add support for kmem_cache_debug in bulk calls
 has been removed from the -mm tree.  Its filename was
-     slub-fix-spelling-succedd-to-succeed.patch
+     slub-add-support-for-kmem_cache_debug-in-bulk-calls.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: slub: fix spelling succedd to succeed
+Subject: slub: add support for kmem_cache_debug in bulk calls
 
-With this patchset the SLUB allocator now has both bulk alloc and free
-implemented.
+Per request of Joonsoo Kim adding kmem debug support.
 
-This patchset mostly optimizes the "fastpath" where objects are available
-on the per CPU fastpath page.  This mostly amortize the less-heavy
-none-locked cmpxchg_double used on fastpath.
+I've tested that when debugging is disabled, then there is almost no
+performance impact as this code basically gets removed by the compiler.
 
-The "fallback" bulking (e.g __kmem_cache_free_bulk) provides a good basis
-for comparison.  Measurements[1] of the fallback functions
-__kmem_cache_{free,alloc}_bulk have been copied from slab_common.c and
-forced "noinline" to force a function call like slab_common.c.
+Need some guidance in enabling and testing this.
 
-Measurements on CPU CPU i7-4790K @ 4.00GHz
-Baseline normal fastpath (alloc+free cost): 42 cycles(tsc) 10.601 ns
-
-Measurements last-patch with disabled debugging:
-
-Bulk- fallback                   - this-patch
-  1 -  57 cycles(tsc) 14.448 ns  -  44 cycles(tsc) 11.236 ns  improved 22.8%
-  2 -  51 cycles(tsc) 12.768 ns  -  28 cycles(tsc)  7.019 ns  improved 45.1%
-  3 -  48 cycles(tsc) 12.232 ns  -  22 cycles(tsc)  5.526 ns  improved 54.2%
-  4 -  48 cycles(tsc) 12.025 ns  -  19 cycles(tsc)  4.786 ns  improved 60.4%
-  8 -  46 cycles(tsc) 11.558 ns  -  18 cycles(tsc)  4.572 ns  improved 60.9%
- 16 -  45 cycles(tsc) 11.458 ns  -  18 cycles(tsc)  4.658 ns  improved 60.0%
- 30 -  45 cycles(tsc) 11.499 ns  -  18 cycles(tsc)  4.568 ns  improved 60.0%
- 32 -  79 cycles(tsc) 19.917 ns  -  65 cycles(tsc) 16.454 ns  improved 17.7%
- 34 -  78 cycles(tsc) 19.655 ns  -  63 cycles(tsc) 15.932 ns  improved 19.2%
- 48 -  68 cycles(tsc) 17.049 ns  -  50 cycles(tsc) 12.506 ns  improved 26.5%
- 64 -  80 cycles(tsc) 20.009 ns  -  63 cycles(tsc) 15.929 ns  improved 21.3%
-128 -  94 cycles(tsc) 23.749 ns  -  86 cycles(tsc) 21.583 ns  improved  8.5%
-158 -  97 cycles(tsc) 24.299 ns  -  90 cycles(tsc) 22.552 ns  improved  7.2%
-250 - 102 cycles(tsc) 25.681 ns  -  98 cycles(tsc) 24.589 ns  improved  3.9%
-
-Benchmarking shows impressive improvements in the "fastpath" with a small
-number of objects in the working set.  Once the working set increases,
-resulting in activating the "slowpath" (that contains the heavier locked
-cmpxchg_double) the improvement decreases.
-
-I'm currently working on also optimizing the "slowpath" (as network stack
-use-case hits this), but this patchset should provide a good foundation
-for further improvements.  Rest of my patch queue in this area needs some
-more work, but preliminary results are good.  I'm attending Netfilter
-Workshop[2] next week, and I'll hopefully return working on further
-improvements in this area.
-
-
-
-This patch (of 6):
-
-s/succedd/succeed/
+bulk- PREVIOUS                  - THIS-PATCH
+  1 -  43 cycles(tsc) 10.811 ns -  44 cycles(tsc) 11.236 ns  improved  -2.3%
+  2 -  27 cycles(tsc)  6.867 ns -  28 cycles(tsc)  7.019 ns  improved  -3.7%
+  3 -  21 cycles(tsc)  5.496 ns -  22 cycles(tsc)  5.526 ns  improved  -4.8%
+  4 -  24 cycles(tsc)  6.038 ns -  19 cycles(tsc)  4.786 ns  improved  20.8%
+  8 -  17 cycles(tsc)  4.280 ns -  18 cycles(tsc)  4.572 ns  improved  -5.9%
+ 16 -  17 cycles(tsc)  4.483 ns -  18 cycles(tsc)  4.658 ns  improved  -5.9%
+ 30 -  18 cycles(tsc)  4.531 ns -  18 cycles(tsc)  4.568 ns  improved   0.0%
+ 32 -  58 cycles(tsc) 14.586 ns -  65 cycles(tsc) 16.454 ns  improved -12.1%
+ 34 -  53 cycles(tsc) 13.391 ns -  63 cycles(tsc) 15.932 ns  improved -18.9%
+ 48 -  65 cycles(tsc) 16.268 ns -  50 cycles(tsc) 12.506 ns  improved  23.1%
+ 64 -  53 cycles(tsc) 13.440 ns -  63 cycles(tsc) 15.929 ns  improved -18.9%
+128 -  79 cycles(tsc) 19.899 ns -  86 cycles(tsc) 21.583 ns  improved  -8.9%
+158 -  90 cycles(tsc) 22.732 ns -  90 cycles(tsc) 22.552 ns  improved   0.0%
+250 -  95 cycles(tsc) 23.916 ns -  98 cycles(tsc) 24.589 ns  improved  -3.2%
 
 Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -87,21 +60,78 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slub.c |   28 +++++++++++++++++++---------
+ 1 file changed, 19 insertions(+), 9 deletions(-)
 
-diff -puN mm/slub.c~slub-fix-spelling-succedd-to-succeed mm/slub.c
---- a/mm/slub.c~slub-fix-spelling-succedd-to-succeed
+diff -puN mm/slub.c~slub-add-support-for-kmem_cache_debug-in-bulk-calls mm/slub.c
+--- a/mm/slub.c~slub-add-support-for-kmem_cache_debug-in-bulk-calls
 +++ a/mm/slub.c
-@@ -2712,7 +2712,7 @@ redo:
- 	 * Determine the currently cpus per cpu slab.
- 	 * The cpu may change afterward. However that does not matter since
- 	 * data is retrieved via this pointer. If we are on the same cpu
--	 * during the cmpxchg then the free will succedd.
-+	 * during the cmpxchg then the free will succeed.
- 	 */
- 	do {
- 		tid = this_cpu_read(s->cpu_slab->tid);
+@@ -2757,10 +2757,6 @@ void kmem_cache_free_bulk(struct kmem_ca
+ 	struct page *page;
+ 	int i;
+ 
+-	/* Debugging fallback to generic bulk */
+-	if (kmem_cache_debug(s))
+-		return __kmem_cache_free_bulk(s, size, p);
+-
+ 	local_irq_disable();
+ 	c = this_cpu_ptr(s->cpu_slab);
+ 
+@@ -2768,8 +2764,13 @@ void kmem_cache_free_bulk(struct kmem_ca
+ 		void *object = p[i];
+ 
+ 		BUG_ON(!object);
++		/* kmem cache debug support */
++		s = cache_from_obj(s, object);
++		if (unlikely(!s))
++			goto exit;
++		slab_free_hook(s, object);
++
+ 		page = virt_to_head_page(object);
+-		BUG_ON(s != page->slab_cache); /* Check if valid slab page */
+ 
+ 		if (c->page == page) {
+ 			/* Fastpath: local CPU free */
+@@ -2784,6 +2785,7 @@ void kmem_cache_free_bulk(struct kmem_ca
+ 			c = this_cpu_ptr(s->cpu_slab);
+ 		}
+ 	}
++exit:
+ 	c->tid = next_tid(c->tid);
+ 	local_irq_enable();
+ }
+@@ -2796,10 +2798,6 @@ bool kmem_cache_alloc_bulk(struct kmem_c
+ 	struct kmem_cache_cpu *c;
+ 	int i;
+ 
+-	/* Debugging fallback to generic bulk */
+-	if (kmem_cache_debug(s))
+-		return __kmem_cache_alloc_bulk(s, flags, size, p);
+-
+ 	/*
+ 	 * Drain objects in the per cpu slab, while disabling local
+ 	 * IRQs, which protects against PREEMPT and interrupts
+@@ -2828,8 +2826,20 @@ bool kmem_cache_alloc_bulk(struct kmem_c
+ 			continue; /* goto for-loop */
+ 		}
+ 
++		/* kmem_cache debug support */
++		s = slab_pre_alloc_hook(s, flags);
++		if (unlikely(!s)) {
++			__kmem_cache_free_bulk(s, i, p);
++			c->tid = next_tid(c->tid);
++			local_irq_enable();
++			return false;
++		}
++
+ 		c->freelist = get_freepointer(s, object);
+ 		p[i] = object;
++
++		/* kmem_cache debug support */
++		slab_post_alloc_hook(s, flags, object);
+ 	}
+ 	c->tid = next_tid(c->tid);
+ 	local_irq_enable();
 _
 
 Patches currently in -mm which might be from brouer@redhat.com are
