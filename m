@@ -1,205 +1,109 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dax-fix-race-between-simultaneous-faults.patch removed
- from -mm tree
-Date: Wed, 09 Sep 2015 12:43:25 -0700
-Message-ID: <55f08bdd.vQ29/uV2VIl5wly2%akpm@linux-foundation.org>
+Subject: [merged] ext4-add-ext4_get_block_dax.patch removed from -mm tree
+Date: Wed, 09 Sep 2015 12:43:21 -0700
+Message-ID: <55f08bd9.z0VaSNsOLgL0z4zT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38822 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38815 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753382AbbIITnZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:43:25 -0400
+	with ESMTP id S1753382AbbIITnV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:43:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@linux.intel.com, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: fix race between simultaneous faults
+     Subject: ext4: add ext4_get_block_dax()
 has been removed from the -mm tree.  Its filename was
-     dax-fix-race-between-simultaneous-faults.patch
+     ext4-add-ext4_get_block_dax.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: dax: fix race between simultaneous faults
+Subject: ext4: add ext4_get_block_dax()
 
-If two threads write-fault on the same hole at the same time, the winner
-of the race will return to userspace and complete their store, only to
-have the loser overwrite their store with zeroes.  Fix this for now by
-taking the i_mmap_sem for write instead of read, and do so outside the
-call to get_block().  Now the loser of the race will see the block has
-already been zeroed, and will not zero it again.
-
-This severely limits our scalability.  I have ideas for improving it, but
-those can wait for a later patch.
+DAX wants different semantics from any currently-existing ext4 get_block
+callback.  Unlike ext4_get_block_write(), it needs to honour the 'create'
+flag, and unlike ext4_get_block(), it needs to be able to return unwritten
+extents.  So introduce a new ext4_get_block_dax() which has those
+semantics.  We could also change ext4_get_block_write() to honour the
+'create' flag, but that might have consequences on other users that I do
+not currently understand.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c    |   33 +++++++++++++++++----------------
- mm/memory.c |   11 ++++++++---
- 2 files changed, 25 insertions(+), 19 deletions(-)
+ fs/ext4/ext4.h  |    2 ++
+ fs/ext4/file.c  |    6 +++---
+ fs/ext4/inode.c |   11 +++++++++++
+ 3 files changed, 16 insertions(+), 3 deletions(-)
 
-diff -puN fs/dax.c~dax-fix-race-between-simultaneous-faults fs/dax.c
---- a/fs/dax.c~dax-fix-race-between-simultaneous-faults
-+++ a/fs/dax.c
-@@ -272,7 +272,6 @@ static int copy_user_bh(struct page *to,
- static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
- 			struct vm_area_struct *vma, struct vm_fault *vmf)
+diff -puN fs/ext4/ext4.h~ext4-add-ext4_get_block_dax fs/ext4/ext4.h
+--- a/fs/ext4/ext4.h~ext4-add-ext4_get_block_dax
++++ a/fs/ext4/ext4.h
+@@ -2272,6 +2272,8 @@ struct buffer_head *ext4_getblk(handle_t
+ struct buffer_head *ext4_bread(handle_t *, struct inode *, ext4_lblk_t, int);
+ int ext4_get_block_write(struct inode *inode, sector_t iblock,
+ 			 struct buffer_head *bh_result, int create);
++int ext4_get_block_dax(struct inode *inode, sector_t iblock,
++			 struct buffer_head *bh_result, int create);
+ int ext4_get_block(struct inode *inode, sector_t iblock,
+ 				struct buffer_head *bh_result, int create);
+ int ext4_da_get_block_prep(struct inode *inode, sector_t iblock,
+diff -puN fs/ext4/file.c~ext4-add-ext4_get_block_dax fs/ext4/file.c
+--- a/fs/ext4/file.c~ext4-add-ext4_get_block_dax
++++ a/fs/ext4/file.c
+@@ -207,19 +207,19 @@ static void ext4_end_io_unwritten(struct
+ 
+ static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
  {
--	struct address_space *mapping = inode->i_mapping;
- 	sector_t sector = bh->b_blocknr << (inode->i_blkbits - 9);
- 	unsigned long vaddr = (unsigned long)vmf->virtual_address;
- 	void *addr;
-@@ -280,8 +279,6 @@ static int dax_insert_mapping(struct ino
- 	pgoff_t size;
- 	int error;
- 
--	i_mmap_lock_read(mapping);
--
- 	/*
- 	 * Check truncate didn't happen while we were allocating a block.
- 	 * If it did, this block may or may not be still allocated to the
-@@ -309,8 +306,6 @@ static int dax_insert_mapping(struct ino
- 	error = vm_insert_mixed(vma, vaddr, pfn);
- 
-  out:
--	i_mmap_unlock_read(mapping);
--
- 	return error;
+-	return dax_fault(vma, vmf, ext4_get_block_write, ext4_end_io_unwritten);
++	return dax_fault(vma, vmf, ext4_get_block_dax, ext4_end_io_unwritten);
  }
  
-@@ -372,15 +367,17 @@ int __dax_fault(struct vm_area_struct *v
- 			 * from a read fault and we've raced with a truncate
- 			 */
- 			error = -EIO;
--			goto unlock_page;
-+			goto unlock;
- 		}
-+	} else {
-+		i_mmap_lock_write(mapping);
- 	}
+ static int ext4_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+ 						pmd_t *pmd, unsigned int flags)
+ {
+-	return dax_pmd_fault(vma, addr, pmd, flags, ext4_get_block_write,
++	return dax_pmd_fault(vma, addr, pmd, flags, ext4_get_block_dax,
+ 				ext4_end_io_unwritten);
+ }
  
- 	error = get_block(inode, block, &bh, 0);
- 	if (!error && (bh.b_size < PAGE_SIZE))
- 		error = -EIO;		/* fs corruption? */
- 	if (error)
--		goto unlock_page;
-+		goto unlock;
+ static int ext4_dax_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+-	return dax_mkwrite(vma, vmf, ext4_get_block_write,
++	return dax_mkwrite(vma, vmf, ext4_get_block_dax,
+ 				ext4_end_io_unwritten);
+ }
  
- 	if (!buffer_mapped(&bh) && !buffer_unwritten(&bh) && !vmf->cow_page) {
- 		if (vmf->flags & FAULT_FLAG_WRITE) {
-@@ -391,8 +388,9 @@ int __dax_fault(struct vm_area_struct *v
- 			if (!error && (bh.b_size < PAGE_SIZE))
- 				error = -EIO;
- 			if (error)
--				goto unlock_page;
-+				goto unlock;
- 		} else {
-+			i_mmap_unlock_write(mapping);
- 			return dax_load_hole(mapping, page, vmf);
- 		}
- 	}
-@@ -404,17 +402,15 @@ int __dax_fault(struct vm_area_struct *v
- 		else
- 			clear_user_highpage(new_page, vaddr);
- 		if (error)
--			goto unlock_page;
-+			goto unlock;
- 		vmf->page = page;
- 		if (!page) {
--			i_mmap_lock_read(mapping);
- 			/* Check we didn't race with truncate */
- 			size = (i_size_read(inode) + PAGE_SIZE - 1) >>
- 								PAGE_SHIFT;
- 			if (vmf->pgoff >= size) {
--				i_mmap_unlock_read(mapping);
- 				error = -EIO;
--				goto out;
-+				goto unlock;
- 			}
- 		}
- 		return VM_FAULT_LOCKED;
-@@ -450,6 +446,8 @@ int __dax_fault(struct vm_area_struct *v
- 			WARN_ON_ONCE(!(vmf->flags & FAULT_FLAG_WRITE));
- 	}
+diff -puN fs/ext4/inode.c~ext4-add-ext4_get_block_dax fs/ext4/inode.c
+--- a/fs/ext4/inode.c~ext4-add-ext4_get_block_dax
++++ a/fs/ext4/inode.c
+@@ -3021,6 +3021,17 @@ static int ext4_get_block_write_nolock(s
+ 			       EXT4_GET_BLOCKS_NO_LOCK);
+ }
  
-+	if (!page)
-+		i_mmap_unlock_write(mapping);
-  out:
- 	if (error == -ENOMEM)
- 		return VM_FAULT_OOM | major;
-@@ -458,11 +456,14 @@ int __dax_fault(struct vm_area_struct *v
- 		return VM_FAULT_SIGBUS | major;
- 	return VM_FAULT_NOPAGE | major;
- 
-- unlock_page:
-+ unlock:
- 	if (page) {
- 		unlock_page(page);
- 		page_cache_release(page);
-+	} else {
-+		i_mmap_unlock_write(mapping);
- 	}
++int ext4_get_block_dax(struct inode *inode, sector_t iblock,
++		   struct buffer_head *bh_result, int create)
++{
++	int flags = EXT4_GET_BLOCKS_PRE_IO | EXT4_GET_BLOCKS_UNWRIT_EXT;
++	if (create)
++		flags |= EXT4_GET_BLOCKS_CREATE;
++	ext4_debug("ext4_get_block_dax: inode %lu, create flag %d\n",
++		   inode->i_ino, create);
++	return _ext4_get_block(inode, iblock, bh_result, flags);
++}
 +
- 	goto out;
- }
- EXPORT_SYMBOL(__dax_fault);
-@@ -540,10 +541,10 @@ int __dax_pmd_fault(struct vm_area_struc
- 	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
- 
- 	bh.b_size = PMD_SIZE;
-+	i_mmap_lock_write(mapping);
- 	length = get_block(inode, block, &bh, write);
- 	if (length)
- 		return VM_FAULT_SIGBUS;
--	i_mmap_lock_read(mapping);
- 
- 	/*
- 	 * If the filesystem isn't willing to tell us the length of a hole,
-@@ -607,11 +608,11 @@ int __dax_pmd_fault(struct vm_area_struc
- 	}
- 
-  out:
--	i_mmap_unlock_read(mapping);
--
- 	if (buffer_unwritten(&bh))
- 		complete_unwritten(&bh, !(result & VM_FAULT_ERROR));
- 
-+	i_mmap_unlock_write(mapping);
-+
- 	return result;
- 
-  fallback:
-diff -puN mm/memory.c~dax-fix-race-between-simultaneous-faults mm/memory.c
---- a/mm/memory.c~dax-fix-race-between-simultaneous-faults
-+++ a/mm/memory.c
-@@ -2427,11 +2427,16 @@ void unmap_mapping_range(struct address_
- 		details.last_index = ULONG_MAX;
- 
- 
--	/* DAX uses i_mmap_lock to serialise file truncate vs page fault */
--	i_mmap_lock_write(mapping);
-+	/*
-+	 * DAX already holds i_mmap_lock to serialise file truncate vs
-+	 * page fault and page fault vs page fault.
-+	 */
-+	if (!IS_DAX(mapping->host))
-+		i_mmap_lock_write(mapping);
- 	if (unlikely(!RB_EMPTY_ROOT(&mapping->i_mmap)))
- 		unmap_mapping_range_tree(&mapping->i_mmap, &details);
--	i_mmap_unlock_write(mapping);
-+	if (!IS_DAX(mapping->host))
-+		i_mmap_unlock_write(mapping);
- }
- EXPORT_SYMBOL(unmap_mapping_range);
- 
+ static void ext4_end_io_dio(struct kiocb *iocb, loff_t offset,
+ 			    ssize_t size, void *private)
+ {
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
