@@ -1,81 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zsmalloc-use-class-pages_per_zspage.patch removed from
- -mm tree
-Date: Wed, 09 Sep 2015 12:54:11 -0700
-Message-ID: <55f08e63.b8FKky3lX7CVJZQ6%akpm@linux-foundation.org>
+Subject: [merged]
+ userfaultfd-selftest-update-userfaultfd-x86-32bit-syscall-number.patch
+ removed from -mm tree
+Date: Wed, 09 Sep 2015 12:54:27 -0700
+Message-ID: <55f08e73.ZMfJ8fTBPEtY+P75%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41470 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41516 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755307AbbIITyL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:54:11 -0400
+	with ESMTP id S1755448AbbIITy1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:54:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: use class->pages_per_zspage
+     Subject: userfaultfd: selftest: update userfaultfd x86 32bit syscall number
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-use-class-pages_per_zspage.patch
+     userfaultfd-selftest-update-userfaultfd-x86-32bit-syscall-number.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zsmalloc: use class->pages_per_zspage
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: selftest: update userfaultfd x86 32bit syscall number
 
-There is no need to recalcurate pages_per_zspage in runtime.  Just use
-class->pages_per_zspage to avoid unnecessary runtime overhead.
+It changed as result of linux-next merge of other syscalls.
 
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-use-class-pages_per_zspage mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-use-class-pages_per_zspage
-+++ a/mm/zsmalloc.c
-@@ -1723,7 +1723,7 @@ static unsigned long zs_can_compact(stru
- 	obj_wasted /= get_maxobj_per_zspage(class->size,
- 			class->pages_per_zspage);
- 
--	return obj_wasted * get_pages_per_zspage(class->size);
-+	return obj_wasted * class->pages_per_zspage;
- }
- 
- static void __zs_compact(struct zs_pool *pool, struct size_class *class)
-@@ -1761,8 +1761,7 @@ static void __zs_compact(struct zs_pool
- 
- 		putback_zspage(pool, class, dst_page);
- 		if (putback_zspage(pool, class, src_page) == ZS_EMPTY)
--			pool->stats.pages_compacted +=
--				get_pages_per_zspage(class->size);
-+			pool->stats.pages_compacted += class->pages_per_zspage;
- 		spin_unlock(&class->lock);
- 		cond_resched();
- 		spin_lock(&class->lock);
+diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-update-userfaultfd-x86-32bit-syscall-number tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-update-userfaultfd-x86-32bit-syscall-number
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -70,7 +70,7 @@
+ #ifdef __x86_64__
+ #define __NR_userfaultfd 323
+ #elif defined(__i386__)
+-#define __NR_userfaultfd 359
++#define __NR_userfaultfd 374
+ #elif defined(__powewrpc__)
+ #define __NR_userfaultfd 364
+ #else
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-x86-add-pmd_-for-thp.patch
-sparc-add-pmd_-for-thp.patch
-powerpc-add-pmd_-for-thp.patch
-arm-add-pmd_mkclean-for-thp.patch
-arm64-add-pmd_-for-thp.patch
-mm-support-madvisemadv_free.patch
-mm-support-madvisemadv_free-fix.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
-mm-free-swp_entry-in-madvise_free.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
 
