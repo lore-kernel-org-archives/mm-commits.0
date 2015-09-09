@@ -1,78 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pagemap-update-documentation.patch removed from -mm tree
-Date: Wed, 09 Sep 2015 12:43:59 -0700
-Message-ID: <55f08bff.AnEfpDYa6alDzDTe%akpm@linux-foundation.org>
+Subject: [merged]
+ pagemap-hide-physical-addresses-from-non-privileged-users.patch removed
+ from -mm tree
+Date: Wed, 09 Sep 2015 12:43:55 -0700
+Message-ID: <55f08bfb.jFnpgM4soPKBHXKX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38898 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38859 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754858AbbIIToA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:44:00 -0400
+	with ESMTP id S1754837AbbIITnz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:43:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: khlebnikov@yandex-team.ru, mwilliamson@undo-software.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pagemap: update documentation
+     Subject: pagemap: hide physical addresses from non-privileged users
 has been removed from the -mm tree.  Its filename was
-     pagemap-update-documentation.patch
+     pagemap-hide-physical-addresses-from-non-privileged-users.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Subject: pagemap: update documentation
+Subject: pagemap: hide physical addresses from non-privileged users
 
-Notes about recent changes.
+This patch makes pagemap readable for normal users and hides physical
+addresses from them.  For some use-cases PFN isn't required at all.
 
-[akpm@linux-foundation.org: various tweaks]
+See http://lkml.kernel.org/r/1425935472-17949-1-git-send-email-kirill@shutemov.name
+
+Fixes: ab676b7d6fbf ("pagemap: do not leak physical addresses to non-privileged userspace")
 Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Mark Williamson <mwilliamson@undo-software.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Mark Williamson <mwilliamson@undo-software.com>
+Tested-by:  Mark Williamson <mwilliamson@undo-software.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/pagemap.txt |   14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ fs/proc/task_mmu.c |   25 ++++++++++++++-----------
+ 1 file changed, 14 insertions(+), 11 deletions(-)
 
-diff -puN Documentation/vm/pagemap.txt~pagemap-update-documentation Documentation/vm/pagemap.txt
---- a/Documentation/vm/pagemap.txt~pagemap-update-documentation
-+++ a/Documentation/vm/pagemap.txt
-@@ -16,12 +16,17 @@ There are three components to pagemap:
-     * Bits 0-4   swap type if swapped
-     * Bits 5-54  swap offset if swapped
-     * Bit  55    pte is soft-dirty (see Documentation/vm/soft-dirty.txt)
--    * Bit  56    page exclusively mapped
-+    * Bit  56    page exclusively mapped (since 4.2)
-     * Bits 57-60 zero
--    * Bit  61    page is file-page or shared-anon
-+    * Bit  61    page is file-page or shared-anon (since 3.5)
-     * Bit  62    page swapped
-     * Bit  63    page present
+diff -puN fs/proc/task_mmu.c~pagemap-hide-physical-addresses-from-non-privileged-users fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-hide-physical-addresses-from-non-privileged-users
++++ a/fs/proc/task_mmu.c
+@@ -939,6 +939,7 @@ typedef struct {
+ struct pagemapread {
+ 	int pos, len;		/* units: PM_ENTRY_BYTES, not bytes */
+ 	pagemap_entry_t *buffer;
++	bool show_pfn;
+ };
  
-+   Since Linux 4.0 only users with the CAP_SYS_ADMIN capability can get PFNs.
-+   In 4.0 and 4.1 opens by unprivileged fail with -EPERM.  Starting from
-+   4.2 the PFN field is zeroed if the user does not have CAP_SYS_ADMIN.
-+   Reason: information about PFNs helps in exploiting Rowhammer vulnerability.
+ #define PAGEMAP_WALK_SIZE	(PMD_SIZE)
+@@ -1015,7 +1016,8 @@ static pagemap_entry_t pte_to_pagemap_en
+ 	struct page *page = NULL;
+ 
+ 	if (pte_present(pte)) {
+-		frame = pte_pfn(pte);
++		if (pm->show_pfn)
++			frame = pte_pfn(pte);
+ 		flags |= PM_PRESENT;
+ 		page = vm_normal_page(vma, addr, pte);
+ 		if (pte_soft_dirty(pte))
+@@ -1065,8 +1067,9 @@ static int pagemap_pmd_range(pmd_t *pmdp
+ 		 */
+ 		if (pmd_present(pmd)) {
+ 			flags |= PM_PRESENT;
+-			frame = pmd_pfn(pmd) +
+-				((addr & ~PMD_MASK) >> PAGE_SHIFT);
++			if (pm->show_pfn)
++				frame = pmd_pfn(pmd) +
++					((addr & ~PMD_MASK) >> PAGE_SHIFT);
+ 		}
+ 
+ 		for (; addr != end; addr += PAGE_SIZE) {
+@@ -1075,7 +1078,7 @@ static int pagemap_pmd_range(pmd_t *pmdp
+ 			err = add_to_pagemap(addr, &pme, pm);
+ 			if (err)
+ 				break;
+-			if (flags & PM_PRESENT)
++			if (pm->show_pfn && (flags & PM_PRESENT))
+ 				frame++;
+ 		}
+ 		spin_unlock(ptl);
+@@ -1129,8 +1132,9 @@ static int pagemap_hugetlb_range(pte_t *
+ 			flags |= PM_FILE;
+ 
+ 		flags |= PM_PRESENT;
+-		frame = pte_pfn(pte) +
+-			((addr & ~hmask) >> PAGE_SHIFT);
++		if (pm->show_pfn)
++			frame = pte_pfn(pte) +
++				((addr & ~hmask) >> PAGE_SHIFT);
+ 	}
+ 
+ 	for (; addr != end; addr += PAGE_SIZE) {
+@@ -1139,7 +1143,7 @@ static int pagemap_hugetlb_range(pte_t *
+ 		err = add_to_pagemap(addr, &pme, pm);
+ 		if (err)
+ 			return err;
+-		if (flags & PM_PRESENT)
++		if (pm->show_pfn && (flags & PM_PRESENT))
+ 			frame++;
+ 	}
+ 
+@@ -1198,6 +1202,9 @@ static ssize_t pagemap_read(struct file
+ 	if (!count)
+ 		goto out_mm;
+ 
++	/* do not disclose physical addresses: attack vector */
++	pm.show_pfn = file_ns_capable(file, &init_user_ns, CAP_SYS_ADMIN);
 +
-    If the page is not present but in swap, then the PFN contains an
-    encoding of the swap file number and the page's offset into the
-    swap. Unmapped pages return a null PFN. This allows determining
-@@ -160,3 +165,8 @@ Other notes:
- Reading from any of the files will return -EINVAL if you are not starting
- the read on an 8-byte boundary (e.g., if you sought an odd number of bytes
- into the file), or if the size of the read is not a multiple of 8 bytes.
-+
-+Before Linux 3.11 pagemap bits 55-60 were used for "page-shift" (which is
-+always 12 at most architectures). Since Linux 3.11 their meaning changes
-+after first clear of soft-dirty bits. Since Linux 4.2 they are used for
-+flags unconditionally.
-_
-
-Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
-
-
+ 	pm.len = (PAGEMAP_WALK_SIZE >> PAGE_SHIFT);
+ 	pm.buffer = kmalloc(pm.len * PM_ENTRY_BYTES, GFP_TEMPORARY);
+ 	ret = -ENOMEM;
+@@ -1267,10 +1274,6 @@ static int pagemap_open(struct inode *in
+ {
+ 	struct mm_struct *mm;
+ 
+-	/* do not disclose physical addresses: attack vector */
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
