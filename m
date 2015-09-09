@@ -1,93 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq.patch removed from
+Subject: [merged] mm-oom-remove-unnecessary-variable.patch removed from
  -mm tree
-Date: Wed, 09 Sep 2015 12:45:30 -0700
-Message-ID: <55f08c5a.CyGJLiCECOM9CyS9%akpm@linux-foundation.org>
+Date: Wed, 09 Sep 2015 12:45:34 -0700
+Message-ID: <55f08c5e.+feLoLRMtwnifzYf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39003 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39010 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751390AbbIITpa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:45:30 -0400
+	with ESMTP id S1753392AbbIITpf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:45:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, mhocko@suse.cz, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, mhocko@suse.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: do not panic for oom kills triggered from sysrq
+     Subject: mm, oom: remove unnecessary variable
 has been removed from the -mm tree.  Its filename was
-     mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq.patch
+     mm-oom-remove-unnecessary-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: do not panic for oom kills triggered from sysrq
+Subject: mm, oom: remove unnecessary variable
 
-Sysrq+f is used to kill a process either for debug or when the VM is
-otherwise unresponsive.
-
-It is not intended to trigger a panic when no process may be killed.
-
-Avoid panicking the system for sysrq+f when no processes are killed.
+The "killed" variable in out_of_memory() can be removed since the call to
+oom_kill_process() where we should block to allow the process time to
+exit is obvious.
 
 Signed-off-by: David Rientjes <rientjes@google.com>
-Suggested-by: Michal Hocko <mhocko@suse.cz>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysrq.txt |    3 ++-
- mm/oom_kill.c           |    7 +++++--
- 2 files changed, 7 insertions(+), 3 deletions(-)
+ mm/oom_kill.c |   21 ++++++++-------------
+ 1 file changed, 8 insertions(+), 13 deletions(-)
 
-diff -puN Documentation/sysrq.txt~mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq Documentation/sysrq.txt
---- a/Documentation/sysrq.txt~mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq
-+++ a/Documentation/sysrq.txt
-@@ -75,7 +75,8 @@ On all -  write a character to /proc/sys
- 
- 'e'     - Send a SIGTERM to all processes, except for init.
- 
--'f'	- Will call oom_kill to kill a memory hog process.
-+'f'	- Will call the oom killer to kill a memory hog process, but do not
-+	  panic if nothing can be killed.
- 
- 'g'	- Used by kgdb (kernel debugger)
- 
-diff -puN mm/oom_kill.c~mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-do-not-panic-for-oom-kills-triggered-from-sysrq
+diff -puN mm/oom_kill.c~mm-oom-remove-unnecessary-variable mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-remove-unnecessary-variable
 +++ a/mm/oom_kill.c
-@@ -607,6 +607,9 @@ void check_panic_on_oom(struct oom_contr
- 		if (constraint != CONSTRAINT_NONE)
- 			return;
+@@ -645,7 +645,6 @@ bool out_of_memory(struct oom_control *o
+ 	unsigned long freed = 0;
+ 	unsigned int uninitialized_var(points);
+ 	enum oom_constraint constraint = CONSTRAINT_NONE;
+-	int killed = 0;
+ 
+ 	if (oom_killer_disabled)
+ 		return false;
+@@ -653,7 +652,7 @@ bool out_of_memory(struct oom_control *o
+ 	blocking_notifier_call_chain(&oom_notify_list, 0, &freed);
+ 	if (freed > 0)
+ 		/* Got some memory back in the last second. */
+-		goto out;
++		return true;
+ 
+ 	/*
+ 	 * If current has a pending SIGKILL or is exiting, then automatically
+@@ -666,7 +665,7 @@ bool out_of_memory(struct oom_control *o
+ 	if (current->mm &&
+ 	    (fatal_signal_pending(current) || task_will_free_mem(current))) {
+ 		mark_oom_victim(current);
+-		goto out;
++		return true;
  	}
-+	/* Do not panic for oom kills triggered by sysrq */
-+	if (oc->order == -1)
-+		return;
- 	dump_header(oc, NULL, memcg);
- 	panic("Out of memory: %s panic_on_oom is enabled\n",
- 		sysctl_panic_on_oom == 2 ? "compulsory" : "system-wide");
-@@ -686,11 +689,11 @@ bool out_of_memory(struct oom_control *o
+ 
+ 	/*
+@@ -684,7 +683,7 @@ bool out_of_memory(struct oom_control *o
+ 		get_task_struct(current);
+ 		oom_kill_process(oc, current, 0, totalpages, NULL,
+ 				 "Out of memory (oom_kill_allocating_task)");
+-		goto out;
++		return true;
+ 	}
  
  	p = select_bad_process(oc, &points, totalpages);
- 	/* Found nothing?!?! Either we hang forever, or we panic. */
--	if (!p) {
-+	if (!p && oc->order != -1) {
- 		dump_header(oc, NULL, NULL);
- 		panic("Out of memory and no killable processes...\n");
- 	}
--	if (p != (void *)-1UL) {
-+	if (p && p != (void *)-1UL) {
+@@ -696,16 +695,12 @@ bool out_of_memory(struct oom_control *o
+ 	if (p && p != (void *)-1UL) {
  		oom_kill_process(oc, p, points, totalpages, NULL,
  				 "Out of memory");
- 		killed = 1;
-_
-
-Patches currently in -mm which might be from rientjes@google.com are
-
-
+-		killed = 1;
+-	}
+-out:
+-	/*
+-	 * Give the killed threads a good chance of exiting before trying to
+-	 * allocate memory again.
+-	 */
+-	if (killed)
++		/*
++		 * Give the killed process a good chance to exit before trying
++		 * to allocate memory again.
++		 */
+ 		schedule_timeout_killable(1);
