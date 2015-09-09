@@ -1,88 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] shmem-recalculate-file-inode-when-fstat.patch removed
+Subject: [merged]
+ mm-hwpoison-dont-try-to-unpoison-containment-failed-pages.patch removed
  from -mm tree
-Date: Wed, 09 Sep 2015 12:53:14 -0700
-Message-ID: <55f08e2a.LmJsDeVMb4Bvhzch%akpm@linux-foundation.org>
+Date: Wed, 09 Sep 2015 12:53:12 -0700
+Message-ID: <55f08e28.x8TRLG4vBGisdCN5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41000 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40998 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755369AbbIITxP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:53:15 -0400
+	with ESMTP id S1755366AbbIITxN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:53:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yuzhao@google.com, hughd@google.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, wanpeng.li@hotmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: shmem: recalculate file inode when fstat
+     Subject: mm/hwpoison: don't try to unpoison containment-failed pages
 has been removed from the -mm tree.  Its filename was
-     shmem-recalculate-file-inode-when-fstat.patch
+     mm-hwpoison-dont-try-to-unpoison-containment-failed-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yu Zhao <yuzhao@google.com>
-Subject: shmem: recalculate file inode when fstat
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm/hwpoison: don't try to unpoison containment-failed pages
 
-Shmem uses shmem_recalc_inode to update i_blocks when it allocates page,
-undoes range or swaps.  But mm can drop clean page without notifying
-shmem.  This makes fstat sometimes return out-of-date block size.
+memory_failure() can be called at any page at any time, which means that
+we can't eliminate the possibility of containment failure.  In such case
+the best option is to leak the page intentionally (and never touch it
+later.)
 
-The problem can be partially solved when we add inode_operations->getattr
-which calls shmem_recalc_inode to update i_blocks for fstat.
+We have an unpoison function for testing, and it cannot handle such
+containment-failed pages, which results in kernel panic (visible with
+various calltraces.) So this patch suggests that we limit the unpoisonable
+pages to properly contained pages and ignore any other ones.
 
-shmem_recalc_inode also updates counter used by statfs and
-vm_committed_as.  For them the situation is not changed.  They still
-suffer from the discrepancy after dropping clean page and before the
-function is called by aforementioned triggers.
+Testers are recommended to keep in mind that there're un-unpoisonable pages
+when writing test programs.
 
-Signed-off-by: Yu Zhao <yuzhao@google.com>
-Signed-off-by: Hugh Dickins <hughd@google.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Tested-by: Wanpeng Li <wanpeng.li@hotmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   16 ++++++++++++++++
+ mm/memory-failure.c |   16 ++++++++++++++++
  1 file changed, 16 insertions(+)
 
-diff -puN mm/shmem.c~shmem-recalculate-file-inode-when-fstat mm/shmem.c
---- a/mm/shmem.c~shmem-recalculate-file-inode-when-fstat
-+++ a/mm/shmem.c
-@@ -542,6 +542,21 @@ void shmem_truncate_range(struct inode *
- }
- EXPORT_SYMBOL_GPL(shmem_truncate_range);
+diff -puN mm/memory-failure.c~mm-hwpoison-dont-try-to-unpoison-containment-failed-pages mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-hwpoison-dont-try-to-unpoison-containment-failed-pages
++++ a/mm/memory-failure.c
+@@ -1445,6 +1445,22 @@ int unpoison_memory(unsigned long pfn)
+ 		return 0;
+ 	}
  
-+static int shmem_getattr(struct vfsmount *mnt, struct dentry *dentry,
-+			 struct kstat *stat)
-+{
-+	struct inode *inode = dentry->d_inode;
-+	struct shmem_inode_info *info = SHMEM_I(inode);
++	if (page_count(page) > 1) {
++		pr_info("MCE: Someone grabs the hwpoison page %#lx\n", pfn);
++		return 0;
++	}
 +
-+	spin_lock(&info->lock);
-+	shmem_recalc_inode(inode);
-+	spin_unlock(&info->lock);
++	if (page_mapped(page)) {
++		pr_info("MCE: Someone maps the hwpoison page %#lx\n", pfn);
++		return 0;
++	}
 +
-+	generic_fillattr(inode, stat);
++	if (page_mapping(page)) {
++		pr_info("MCE: the hwpoison page has non-NULL mapping %#lx\n",
++			pfn);
++		return 0;
++	}
 +
-+	return 0;
-+}
-+
- static int shmem_setattr(struct dentry *dentry, struct iattr *attr)
- {
- 	struct inode *inode = d_inode(dentry);
-@@ -3122,6 +3137,7 @@ static const struct file_operations shme
- };
- 
- static const struct inode_operations shmem_inode_operations = {
-+	.getattr	= shmem_getattr,
- 	.setattr	= shmem_setattr,
- #ifdef CONFIG_TMPFS_XATTR
- 	.setxattr	= shmem_setxattr,
+ 	/*
+ 	 * unpoison_memory() can encounter thp only when the thp is being
+ 	 * worked by memory_failure() and the page lock is not held yet.
 _
 
-Patches currently in -mm which might be from yuzhao@google.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
+mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps.patch
+mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps-fix.patch
+mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch
+mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5.patch
 
