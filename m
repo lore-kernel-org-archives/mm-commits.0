@@ -1,127 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma.patch removed from -mm tree
-Date: Wed, 09 Sep 2015 12:42:46 -0700
-Message-ID: <55f08bb6.jlzcb6gVQ3DUep8S%akpm@linux-foundation.org>
+Subject: [merged] dax-move-dax-related-functions-to-a-new-header.patch
+ removed from -mm tree
+Date: Wed, 09 Sep 2015 12:42:52 -0700
+Message-ID: <55f08bbc.0YhuFgkpVzCVFT8Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38735 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38748 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754534AbbIITmr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:42:47 -0400
+	with ESMTP id S1754534AbbIITmx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:42:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, luto@kernel.org, torvalds@linux-foundation.org, xemul@parallels.com, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, dhillf@gmail.com, jack@suse.cz, kirill.shutemov@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mremap: fix the wrong !vma->vm_file check in copy_vma()
+     Subject: dax: move DAX-related functions to a new header
 has been removed from the -mm tree.  Its filename was
-     mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma.patch
+     dax-move-dax-related-functions-to-a-new-header.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: mremap: fix the wrong !vma->vm_file check in copy_vma()
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: dax: move DAX-related functions to a new header
 
-Test-case:
+In order to handle the !CONFIG_TRANSPARENT_HUGEPAGES case, we need to
+return VM_FAULT_FALLBACK from the inlined dax_pmd_fault(), which is
+defined in linux/mm.h.  Given that we don't want to include <linux/mm.h>
+in <linux/fs.h>, the easiest solution is to move the DAX-related functions
+to a new header, <linux/dax.h>.  We could also have moved VM_FAULT_*
+definitions to a new header, or a different header that isn't quite such a
+boil-the-ocean header as <linux/mm.h>, but this felt like the best option.
 
-	#define _GNU_SOURCE
-	#include <stdio.h>
-	#include <unistd.h>
-	#include <stdlib.h>
-	#include <string.h>
-	#include <sys/mman.h>
-	#include <assert.h>
-
-	void *find_vdso_vaddr(void)
-	{
-		FILE *perl;
-		char buf[32] = {};
-
-		perl = popen("perl -e 'open STDIN,qq|/proc/@{[getppid]}/maps|;"
-				"/^(.*?)-.*vdso/ && print hex $1 while <>'", "r");
-		fread(buf, sizeof(buf), 1, perl);
-		fclose(perl);
-
-		return (void *)atol(buf);
-	}
-
-	#define PAGE_SIZE	4096
-
-	void *get_unmapped_area(void)
-	{
-		void *p = mmap(0, PAGE_SIZE, PROT_NONE,
-				MAP_PRIVATE|MAP_ANONYMOUS, -1,0);
-		assert(p != MAP_FAILED);
-		munmap(p, PAGE_SIZE);
-		return p;
-	}
-
-	char save[2][PAGE_SIZE];
-
-	int main(void)
-	{
-		void *vdso = find_vdso_vaddr();
-		void *page[2];
-
-		assert(vdso);
-		memcpy(save, vdso, sizeof (save));
-		// force another fault on the next check
-		assert(madvise(vdso, 2 * PAGE_SIZE, MADV_DONTNEED) == 0);
-
-		page[0] = mremap(vdso,
-				PAGE_SIZE, PAGE_SIZE, MREMAP_FIXED | MREMAP_MAYMOVE,
-				get_unmapped_area());
-		page[1] = mremap(vdso + PAGE_SIZE,
-				PAGE_SIZE, PAGE_SIZE, MREMAP_FIXED | MREMAP_MAYMOVE,
-				get_unmapped_area());
-
-		assert(page[0] != MAP_FAILED && page[1] != MAP_FAILED);
-		printf("match: %d %d\n",
-			!memcmp(save[0], page[0], PAGE_SIZE),
-			!memcmp(save[1], page[1], PAGE_SIZE));
-
-		return 0;
-	}
-
-fails without this patch. Before the previous commit it gets the wrong
-page, now it segfaults (which is imho better).
-
-This is because copy_vma() wrongly assumes that if vma->vm_file == NULL
-is irrelevant until the first fault which will use do_anonymous_page().
-This is obviously wrong for the special mapping.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Pavel Emelyanov <xemul@parallels.com>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: Hillf Danton <dhillf@gmail.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/block_dev.c      |    1 +
+ fs/ext2/file.c      |    1 +
+ fs/ext2/inode.c     |    1 +
+ fs/ext4/file.c      |    1 +
+ fs/ext4/indirect.c  |    1 +
+ fs/ext4/inode.c     |    1 +
+ fs/xfs/xfs_buf.h    |    1 +
+ include/linux/dax.h |   21 +++++++++++++++++++++
+ include/linux/fs.h  |   14 --------------
+ 9 files changed, 28 insertions(+), 14 deletions(-)
 
-diff -puN mm/mmap.c~mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma mm/mmap.c
---- a/mm/mmap.c~mremap-fix-the-wrong-vma-vm_file-check-in-copy_vma
-+++ a/mm/mmap.c
-@@ -2918,7 +2918,7 @@ struct vm_area_struct *copy_vma(struct v
- 	 * If anonymous vma has not yet been faulted, update new pgoff
- 	 * to match new location, to increase its chance of merging.
- 	 */
--	if (unlikely(!vma->vm_file && !vma->anon_vma)) {
-+	if (unlikely(vma_is_anonymous(vma) && !vma->anon_vma)) {
- 		pgoff = addr >> PAGE_SHIFT;
- 		faulted_in_anon_vma = false;
- 	}
-_
-
-Patches currently in -mm which might be from oleg@redhat.com are
-
-mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff.patch
-
+diff -puN fs/block_dev.c~dax-move-dax-related-functions-to-a-new-header fs/block_dev.c
+--- a/fs/block_dev.c~dax-move-dax-related-functions-to-a-new-header
++++ a/fs/block_dev.c
+@@ -28,6 +28,7 @@
+ #include <linux/namei.h>
+ #include <linux/log2.h>
+ #include <linux/cleancache.h>
++#include <linux/dax.h>
+ #include <asm/uaccess.h>
+ #include "internal.h"
+ 
+diff -puN fs/ext2/file.c~dax-move-dax-related-functions-to-a-new-header fs/ext2/file.c
+--- a/fs/ext2/file.c~dax-move-dax-related-functions-to-a-new-header
++++ a/fs/ext2/file.c
+@@ -20,6 +20,7 @@
+ 
+ #include <linux/time.h>
+ #include <linux/pagemap.h>
++#include <linux/dax.h>
+ #include <linux/quotaops.h>
+ #include "ext2.h"
+ #include "xattr.h"
+diff -puN fs/ext2/inode.c~dax-move-dax-related-functions-to-a-new-header fs/ext2/inode.c
+--- a/fs/ext2/inode.c~dax-move-dax-related-functions-to-a-new-header
++++ a/fs/ext2/inode.c
+@@ -25,6 +25,7 @@
+ #include <linux/time.h>
+ #include <linux/highuid.h>
+ #include <linux/pagemap.h>
++#include <linux/dax.h>
+ #include <linux/quotaops.h>
+ #include <linux/writeback.h>
+ #include <linux/buffer_head.h>
+diff -puN fs/ext4/file.c~dax-move-dax-related-functions-to-a-new-header fs/ext4/file.c
+--- a/fs/ext4/file.c~dax-move-dax-related-functions-to-a-new-header
++++ a/fs/ext4/file.c
+@@ -22,6 +22,7 @@
+ #include <linux/fs.h>
+ #include <linux/mount.h>
+ #include <linux/path.h>
++#include <linux/dax.h>
+ #include <linux/quotaops.h>
+ #include <linux/pagevec.h>
+ #include <linux/uio.h>
+diff -puN fs/ext4/indirect.c~dax-move-dax-related-functions-to-a-new-header fs/ext4/indirect.c
+--- a/fs/ext4/indirect.c~dax-move-dax-related-functions-to-a-new-header
++++ a/fs/ext4/indirect.c
+@@ -22,6 +22,7 @@
+ 
+ #include "ext4_jbd2.h"
+ #include "truncate.h"
++#include <linux/dax.h>
+ #include <linux/uio.h>
+ 
+ #include <trace/events/ext4.h>
+diff -puN fs/ext4/inode.c~dax-move-dax-related-functions-to-a-new-header fs/ext4/inode.c
+--- a/fs/ext4/inode.c~dax-move-dax-related-functions-to-a-new-header
++++ a/fs/ext4/inode.c
+@@ -22,6 +22,7 @@
+ #include <linux/time.h>
+ #include <linux/highuid.h>
+ #include <linux/pagemap.h>
++#include <linux/dax.h>
+ #include <linux/quotaops.h>
+ #include <linux/string.h>
+ #include <linux/buffer_head.h>
+diff -puN fs/xfs/xfs_buf.h~dax-move-dax-related-functions-to-a-new-header fs/xfs/xfs_buf.h
+--- a/fs/xfs/xfs_buf.h~dax-move-dax-related-functions-to-a-new-header
++++ a/fs/xfs/xfs_buf.h
+@@ -23,6 +23,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/mm.h>
+ #include <linux/fs.h>
++#include <linux/dax.h>
+ #include <linux/buffer_head.h>
+ #include <linux/uio.h>
+ #include <linux/list_lru.h>
+diff -puN /dev/null include/linux/dax.h
+--- /dev/null
++++ a/include/linux/dax.h
+@@ -0,0 +1,21 @@
++#ifndef _LINUX_DAX_H
++#define _LINUX_DAX_H
++
++#include <linux/fs.h>
++#include <linux/mm.h>
++#include <asm/pgtable.h>
++
++ssize_t dax_do_io(struct kiocb *, struct inode *, struct iov_iter *, loff_t,
++		  get_block_t, dio_iodone_t, int flags);
++int dax_clear_blocks(struct inode *, sector_t block, long size);
++int dax_zero_page_range(struct inode *, loff_t from, unsigned len, get_block_t);
++int dax_truncate_page(struct inode *, loff_t from, get_block_t);
++int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t,
++		dax_iodone_t);
++int __dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t,
++		dax_iodone_t);
++int dax_pfn_mkwrite(struct vm_area_struct *, struct vm_fault *);
++#define dax_mkwrite(vma, vmf, gb, iod)		dax_fault(vma, vmf, gb, iod)
++#define __dax_mkwrite(vma, vmf, gb, iod)	__dax_fault(vma, vmf, gb, iod)
++
++#endif
+diff -puN include/linux/fs.h~dax-move-dax-related-functions-to-a-new-header include/linux/fs.h
+--- a/include/linux/fs.h~dax-move-dax-related-functions-to-a-new-header
++++ a/include/linux/fs.h
+@@ -52,7 +52,6 @@ struct swap_info_struct;
+ struct seq_file;
+ struct workqueue_struct;
+ struct iov_iter;
+-struct vm_fault;
+ 
+ extern void __init inode_init(void);
+ extern void __init inode_init_early(void);
+@@ -2678,19 +2677,6 @@ extern loff_t fixed_size_llseek(struct f
+ extern int generic_file_open(struct inode * inode, struct file * filp);
+ extern int nonseekable_open(struct inode * inode, struct file * filp);
+ 
+-ssize_t dax_do_io(struct kiocb *, struct inode *, struct iov_iter *, loff_t,
+-		  get_block_t, dio_iodone_t, int flags);
+-int dax_clear_blocks(struct inode *, sector_t block, long size);
+-int dax_zero_page_range(struct inode *, loff_t from, unsigned len, get_block_t);
+-int dax_truncate_page(struct inode *, loff_t from, get_block_t);
+-int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t,
+-		dax_iodone_t);
+-int __dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t,
+-		dax_iodone_t);
+-int dax_pfn_mkwrite(struct vm_area_struct *, struct vm_fault *);
+-#define dax_mkwrite(vma, vmf, gb, iod)		dax_fault(vma, vmf, gb, iod)
+-#define __dax_mkwrite(vma, vmf, gb, iod)	__dax_fault(vma, vmf, gb, iod)
