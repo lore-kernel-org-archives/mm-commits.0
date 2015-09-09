@@ -1,127 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- thp-vma_adjust_trans_huge-adjust-file-backed-vma-too.patch removed from -mm tree
-Date: Wed, 09 Sep 2015 12:42:49 -0700
-Message-ID: <55f08bb9.8cJuRovkFKBCF6ao%akpm@linux-foundation.org>
+Subject: [merged] dax-revert-userfaultfd-change.patch removed from -mm
+ tree
+Date: Wed, 09 Sep 2015 12:42:54 -0700
+Message-ID: <55f08bbe.pmrt+1djnFWfIg1N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38741 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38753 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754534AbbIITmu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:42:50 -0400
+	with ESMTP id S1754534AbbIITmy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:42:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, dhillf@gmail.com, jack@suse.cz, matthew.r.wilcox@intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: vma_adjust_trans_huge(): adjust file-backed VMA too
+     Subject: dax: revert userfaultfd change
 has been removed from the -mm tree.  Its filename was
-     thp-vma_adjust_trans_huge-adjust-file-backed-vma-too.patch
+     dax-revert-userfaultfd-change.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: vma_adjust_trans_huge(): adjust file-backed VMA too
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dax: revert userfaultfd change
 
-This series of patches adds support for using PMD page table entries to
-map DAX files.  We expect NV-DIMMs to start showing up that are many
-gigabytes in size and the memory consumption of 4kB PTEs will be
-astronomical.
+Undo the change which "userfaultfd: call handle_userfault() for
+userfaultfd_missing() faults" made to set_huge_zero_page().  DAX will need
+that return value.
 
-The patch series leverages much of the Transparant Huge Pages
-infrastructure, going so far as to borrow one of Kirill's patches from his
-THP page cache series.
-
-
-
-This patch (of 10):
-
-Since we're going to have huge pages in page cache, we need to call adjust
-file-backed VMA, which potentially can contain huge pages.
-
-For now we call it for all VMAs.
-
-Probably later we will need to introduce a flag to indicate that the VMA
-has huge pages.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Acked-by: Hillf Danton <dhillf@gmail.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   11 +----------
- mm/huge_memory.c        |    2 +-
- 2 files changed, 2 insertions(+), 11 deletions(-)
+ mm/huge_memory.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/huge_mm.h~thp-vma_adjust_trans_huge-adjust-file-backed-vma-too include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~thp-vma_adjust_trans_huge-adjust-file-backed-vma-too
-+++ a/include/linux/huge_mm.h
-@@ -122,7 +122,7 @@ extern void split_huge_page_pmd_mm(struc
- #endif
- extern int hugepage_madvise(struct vm_area_struct *vma,
- 			    unsigned long *vm_flags, int advice);
--extern void __vma_adjust_trans_huge(struct vm_area_struct *vma,
-+extern void vma_adjust_trans_huge(struct vm_area_struct *vma,
- 				    unsigned long start,
- 				    unsigned long end,
- 				    long adjust_next);
-@@ -138,15 +138,6 @@ static inline int pmd_trans_huge_lock(pm
- 	else
- 		return 0;
- }
--static inline void vma_adjust_trans_huge(struct vm_area_struct *vma,
--					 unsigned long start,
--					 unsigned long end,
--					 long adjust_next)
--{
--	if (!vma->anon_vma || vma->vm_ops)
--		return;
--	__vma_adjust_trans_huge(vma, start, end, adjust_next);
--}
- static inline int hpage_nr_pages(struct page *page)
- {
- 	if (unlikely(PageTransHuge(page)))
-diff -puN mm/huge_memory.c~thp-vma_adjust_trans_huge-adjust-file-backed-vma-too mm/huge_memory.c
---- a/mm/huge_memory.c~thp-vma_adjust_trans_huge-adjust-file-backed-vma-too
+diff -puN mm/huge_memory.c~dax-revert-userfaultfd-change mm/huge_memory.c
+--- a/mm/huge_memory.c~dax-revert-userfaultfd-change
 +++ a/mm/huge_memory.c
-@@ -2991,7 +2991,7 @@ static void split_huge_page_address(stru
- 	split_huge_page_pmd_mm(mm, address, pmd);
+@@ -794,16 +794,19 @@ static inline gfp_t alloc_hugepage_gfpma
  }
  
--void __vma_adjust_trans_huge(struct vm_area_struct *vma,
-+void vma_adjust_trans_huge(struct vm_area_struct *vma,
- 			     unsigned long start,
- 			     unsigned long end,
- 			     long adjust_next)
+ /* Caller must hold page table lock. */
+-static void set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
++static bool set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
+ 		struct vm_area_struct *vma, unsigned long haddr, pmd_t *pmd,
+ 		struct page *zero_page)
+ {
+ 	pmd_t entry;
++	if (!pmd_none(*pmd))
++		return false;
+ 	entry = mk_pmd(zero_page, vma->vm_page_prot);
+ 	entry = pmd_mkhuge(entry);
+ 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
+ 	set_pmd_at(mm, haddr, pmd, entry);
+ 	atomic_long_inc(&mm->nr_ptes);
++	return true;
+ }
+ 
+ int do_huge_pmd_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-mark-most-vm_operations_struct-const.patch
-mm-make-sure-all-file-vmas-have-vm_ops-set.patch
-mm-use-vma_is_anonymous-in-create_huge_pmd-and-wp_huge_pmd.patch
-mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm.patch
+mm-srcu-ify-shrinkers-fix-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+proc-add-kpageidle-file-fix-6-fix.patch
+proc-add-kpageidle-file-fix-6-fix-2-fix.patch
+proc-export-idle-flag-via-kpageflags-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix.patch
+procfs-always-expose-proc-pid-map_files-and-make-it-readable-fix-fix.patch
+fs-coda-fix-readlink-buffer-overflow-checkpatch-fixes.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix.patch
+kexec-split-kexec_file-syscall-code-to-kexec_filec-fix-2-fix-fix.patch
+kexec-split-kexec_load-syscall-from-kexec-core-code-checkpatch-fixes.patch
+align-crash_notes-allocation-to-make-it-be-inside-one-physical-page-fix.patch
+linux-next-rejects.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix.patch
+fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void-fix-fix.patch
+mm-mpx-add-vm_flags_t-vm_flags-arg-to-do_mmap_pgoff-fix-checkpatch-fixes.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
