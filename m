@@ -1,81 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vm_flags-vm_flags_t-and-__nocast.patch removed from -mm
- tree
-Date: Wed, 09 Sep 2015 12:46:49 -0700
-Message-ID: <55f08ca9.298T3+d/hxZEdrcS%akpm@linux-foundation.org>
+Subject: [merged]
+ vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages.patch removed from -mm tree
+Date: Wed, 09 Sep 2015 12:46:54 -0700
+Message-ID: <55f08cae.F8cYOaFTqz7CxibZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39383 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39452 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753772AbbIITqu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:46:50 -0400
+	with ESMTP id S1753772AbbIITqz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:46:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, hannes@cmpxchg.org, oleg@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: jaewon31.kim@samsung.com, mgorman@techsingularity.net, minchan@kernel.org, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: drop __nocast from vm_flags_t definition
+     Subject: vmscan: fix increasing nr_isolated incurred by putback unevictable pages
 has been removed from the -mm tree.  Its filename was
-     vm_flags-vm_flags_t-and-__nocast.patch
+     vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: drop __nocast from vm_flags_t definition
+From: Jaewon Kim <jaewon31.kim@samsung.com>
+Subject: vmscan: fix increasing nr_isolated incurred by putback unevictable pages
 
-__nocast does no good for vm_flags_t. It only produces useless sparse
-warnings.
+reclaim_clean_pages_from_list() assumes that shrink_page_list() returns
+number of pages removed from the candidate list.  But shrink_page_list()
+puts back mlocked pages without passing it to caller and without counting
+as nr_reclaimed.  This increases nr_isolated.
 
-Let's drop it.
+To fix this, this patch changes shrink_page_list() to pass unevictable
+pages back to caller.  Caller will take care those pages.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Minchan said:
+
+It fixes two issues.
+
+1. With unevictable page, cma_alloc will be successful.
+
+Exactly speaking, cma_alloc of current kernel will fail due to
+unevictable pages.
+
+2. fix leaking of NR_ISOLATED counter of vmstat
+
+With it, too_many_isolated works.  Otherwise, it could make hang until
+the process get SIGKILL.
+
+Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    2 +-
+ mm/vmscan.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm_types.h~vm_flags-vm_flags_t-and-__nocast include/linux/mm_types.h
---- a/include/linux/mm_types.h~vm_flags-vm_flags_t-and-__nocast
-+++ a/include/linux/mm_types.h
-@@ -235,7 +235,7 @@ struct page_frag_cache {
- 	bool pfmemalloc;
- };
+diff -puN mm/vmscan.c~vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages
++++ a/mm/vmscan.c
+@@ -1196,7 +1196,7 @@ cull_mlocked:
+ 		if (PageSwapCache(page))
+ 			try_to_free_swap(page);
+ 		unlock_page(page);
+-		putback_lru_page(page);
++		list_add(&page->lru, &ret_pages);
+ 		continue;
  
--typedef unsigned long __nocast vm_flags_t;
-+typedef unsigned long vm_flags_t;
- 
- /*
-  * A region containing a mapping of a non-memory backed file under NOMMU
+ activate_locked:
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from jaewon31.kim@samsung.com are
 
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-mark-most-vm_operations_struct-const.patch
-mm-make-sure-all-file-vmas-have-vm_ops-set.patch
-mm-use-vma_is_anonymous-in-create_huge_pmd-and-wp_huge_pmd.patch
-mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma.patch
 
