@@ -1,56 +1,191 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dax-use-linear_page_index.patch removed from -mm tree
-Date: Wed, 09 Sep 2015 12:43:35 -0700
-Message-ID: <55f08be7.U9++7l1XK/S7EIiU%akpm@linux-foundation.org>
+Subject: [merged]
+ pagemap-check-permissions-and-capabilities-at-open-time.patch removed from
+ -mm tree
+Date: Wed, 09 Sep 2015 12:43:49 -0700
+Message-ID: <55f08bf5.yU6OCtk5qN86B5dI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38839 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38864 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754679AbbIITnf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:43:35 -0400
+	with ESMTP id S1753141AbbIITnu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:43:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@linux.intel.com, mm-commits@vger.kernel.org
+To: khlebnikov@yandex-team.ru, mwilliamson@undo-software.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: use linear_page_index()
+     Subject: pagemap: check permissions and capabilities at open time
 has been removed from the -mm tree.  Its filename was
-     dax-use-linear_page_index.patch
+     pagemap-check-permissions-and-capabilities-at-open-time.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: dax: use linear_page_index()
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: pagemap: check permissions and capabilities at open time
 
-I was basically open-coding it (thanks to copying code from do_fault()
-which probably also needs to be fixed).
+This patchset makes pagemap useable again in the safe way (after row
+hammer bug it was made CAP_SYS_ADMIN-only).  This patchset restores access
+for non-privileged users but hides PFNs from them.
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Also it adds bit 'map-exclusive' which is set if page is mapped only here:
+it helps in estimation of working set without exposing pfns and allows to
+distinguish CoWed and non-CoWed private anonymous pages.
+
+Second patch removes page-shift bits and completes migration to the new
+pagemap format: flags soft-dirty and mmap-exclusive are available only in
+the new format.
+
+
+This patch (of 5):
+
+This patch moves permission checks from pagemap_read() into pagemap_open().
+
+Pointer to mm is saved in file->private_data. This reference pins only
+mm_struct itself. /proc/*/mem, maps, smaps already work in the same way.
+
+See http://lkml.kernel.org/r/CA+55aFyKpWrt_Ajzh1rzp_GcwZ4=6Y=kOv8hBz172CFJp6L8Tg@mail.gmail.com
+
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Mark Williamson <mwilliamson@undo-software.com>
+Tested-by:  Mark Williamson <mwilliamson@undo-software.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |   48 +++++++++++++++++++++++++------------------
+ 1 file changed, 28 insertions(+), 20 deletions(-)
 
-diff -puN fs/dax.c~dax-use-linear_page_index fs/dax.c
---- a/fs/dax.c~dax-use-linear_page_index
-+++ a/fs/dax.c
-@@ -529,7 +529,7 @@ int __dax_pmd_fault(struct vm_area_struc
- 	if ((pmd_addr + PMD_SIZE) > vma->vm_end)
- 		return VM_FAULT_FALLBACK;
+diff -puN fs/proc/task_mmu.c~pagemap-check-permissions-and-capabilities-at-open-time fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~pagemap-check-permissions-and-capabilities-at-open-time
++++ a/fs/proc/task_mmu.c
+@@ -1229,40 +1229,33 @@ static int pagemap_hugetlb_range(pte_t *
+ static ssize_t pagemap_read(struct file *file, char __user *buf,
+ 			    size_t count, loff_t *ppos)
+ {
+-	struct task_struct *task = get_proc_task(file_inode(file));
+-	struct mm_struct *mm;
++	struct mm_struct *mm = file->private_data;
+ 	struct pagemapread pm;
+-	int ret = -ESRCH;
+ 	struct mm_walk pagemap_walk = {};
+ 	unsigned long src;
+ 	unsigned long svpfn;
+ 	unsigned long start_vaddr;
+ 	unsigned long end_vaddr;
+-	int copied = 0;
++	int ret = 0, copied = 0;
  
--	pgoff = ((pmd_addr - vma->vm_start) >> PAGE_SHIFT) + vma->vm_pgoff;
-+	pgoff = linear_page_index(vma, pmd_addr);
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (pgoff >= size)
- 		return VM_FAULT_SIGBUS;
+-	if (!task)
++	if (!mm || !atomic_inc_not_zero(&mm->mm_users))
+ 		goto out;
+ 
+ 	ret = -EINVAL;
+ 	/* file position must be aligned */
+ 	if ((*ppos % PM_ENTRY_BYTES) || (count % PM_ENTRY_BYTES))
+-		goto out_task;
++		goto out_mm;
+ 
+ 	ret = 0;
+ 	if (!count)
+-		goto out_task;
++		goto out_mm;
+ 
+ 	pm.v2 = soft_dirty_cleared;
+ 	pm.len = (PAGEMAP_WALK_SIZE >> PAGE_SHIFT);
+ 	pm.buffer = kmalloc(pm.len * PM_ENTRY_BYTES, GFP_TEMPORARY);
+ 	ret = -ENOMEM;
+ 	if (!pm.buffer)
+-		goto out_task;
+-
+-	mm = mm_access(task, PTRACE_MODE_READ);
+-	ret = PTR_ERR(mm);
+-	if (!mm || IS_ERR(mm))
+-		goto out_free;
++		goto out_mm;
+ 
+ 	pagemap_walk.pmd_entry = pagemap_pte_range;
+ 	pagemap_walk.pte_hole = pagemap_pte_hole;
+@@ -1275,10 +1268,10 @@ static ssize_t pagemap_read(struct file
+ 	src = *ppos;
+ 	svpfn = src / PM_ENTRY_BYTES;
+ 	start_vaddr = svpfn << PAGE_SHIFT;
+-	end_vaddr = TASK_SIZE_OF(task);
++	end_vaddr = mm->task_size;
+ 
+ 	/* watch out for wraparound */
+-	if (svpfn > TASK_SIZE_OF(task) >> PAGE_SHIFT)
++	if (svpfn > mm->task_size >> PAGE_SHIFT)
+ 		start_vaddr = end_vaddr;
+ 
+ 	/*
+@@ -1305,7 +1298,7 @@ static ssize_t pagemap_read(struct file
+ 		len = min(count, PM_ENTRY_BYTES * pm.pos);
+ 		if (copy_to_user(buf, pm.buffer, len)) {
+ 			ret = -EFAULT;
+-			goto out_mm;
++			goto out_free;
+ 		}
+ 		copied += len;
+ 		buf += len;
+@@ -1315,24 +1308,38 @@ static ssize_t pagemap_read(struct file
+ 	if (!ret || ret == PM_END_OF_BUFFER)
+ 		ret = copied;
+ 
+-out_mm:
+-	mmput(mm);
+ out_free:
+ 	kfree(pm.buffer);
+-out_task:
+-	put_task_struct(task);
++out_mm:
++	mmput(mm);
+ out:
+ 	return ret;
+ }
+ 
+ static int pagemap_open(struct inode *inode, struct file *file)
+ {
++	struct mm_struct *mm;
++
+ 	/* do not disclose physical addresses: attack vector */
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 	pr_warn_once("Bits 55-60 of /proc/PID/pagemap entries are about "
+ 			"to stop being page-shift some time soon. See the "
+ 			"linux/Documentation/vm/pagemap.txt for details.\n");
++
++	mm = proc_mem_open(inode, PTRACE_MODE_READ);
++	if (IS_ERR(mm))
++		return PTR_ERR(mm);
++	file->private_data = mm;
++	return 0;
++}
++
++static int pagemap_release(struct inode *inode, struct file *file)
++{
++	struct mm_struct *mm = file->private_data;
++
++	if (mm)
++		mmdrop(mm);
+ 	return 0;
+ }
+ 
+@@ -1340,6 +1347,7 @@ const struct file_operations proc_pagema
+ 	.llseek		= mem_lseek, /* borrow this */
+ 	.read		= pagemap_read,
+ 	.open		= pagemap_open,
++	.release	= pagemap_release,
+ };
+ #endif /* CONFIG_PROC_PAGE_MONITOR */
+ 
 _
 
-Patches currently in -mm which might be from willy@linux.intel.com are
+Patches currently in -mm which might be from khlebnikov@yandex-team.ru are
 
 
