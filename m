@@ -1,37 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-prepare-for-dax-huge-pages.patch removed from -mm
- tree
-Date: Wed, 09 Sep 2015 12:42:56 -0700
-Message-ID: <55f08bc0.3VgRi822NV1hPMu0%akpm@linux-foundation.org>
+Subject: [merged] mm-add-vmf_insert_pfn_pmd.patch removed from -mm tree
+Date: Wed, 09 Sep 2015 12:43:03 -0700
+Message-ID: <55f08bc7.y/g2pdiGUR/+yj3g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38759 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38775 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754534AbbIITm5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:42:57 -0400
+	with ESMTP id S1754534AbbIITnE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:43:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: willy@linux.intel.com, dhillf@gmail.com, jack@suse.cz, kirill.shutemov@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: prepare for DAX huge pages
+     Subject: mm: add vmf_insert_pfn_pmd()
 has been removed from the -mm tree.  Its filename was
-     thp-prepare-for-dax-huge-pages.patch
+     mm-add-vmf_insert_pfn_pmd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: thp: prepare for DAX huge pages
+Subject: mm: add vmf_insert_pfn_pmd()
 
-Add a vma_is_dax() helper macro to test whether the VMA is DAX, and use it
-in zap_huge_pmd() and __split_huge_page_pmd().
+Similar to vm_insert_pfn(), but for PMDs rather than PTEs.  The 'vmf_'
+prefix instead of 'vm_' prefix is intended to indicate that it returns a
+VMF_ value rather than an errno (which would only have to be converted
+into a VMF_ value anyway).
 
-[akpm@linux-foundation.org: fix build]
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Cc: Hillf Danton <dhillf@gmail.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -40,133 +40,75 @@ Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dax.h |    4 +++
- mm/huge_memory.c    |   48 +++++++++++++++++++++++++-----------------
- 2 files changed, 33 insertions(+), 19 deletions(-)
+ include/linux/huge_mm.h |    2 +
+ mm/huge_memory.c        |   43 ++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 45 insertions(+)
 
-diff -puN include/linux/dax.h~thp-prepare-for-dax-huge-pages include/linux/dax.h
---- a/include/linux/dax.h~thp-prepare-for-dax-huge-pages
-+++ a/include/linux/dax.h
-@@ -18,4 +18,8 @@ int dax_pfn_mkwrite(struct vm_area_struc
- #define dax_mkwrite(vma, vmf, gb, iod)		dax_fault(vma, vmf, gb, iod)
- #define __dax_mkwrite(vma, vmf, gb, iod)	__dax_fault(vma, vmf, gb, iod)
+diff -puN include/linux/huge_mm.h~mm-add-vmf_insert_pfn_pmd include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-add-vmf_insert_pfn_pmd
++++ a/include/linux/huge_mm.h
+@@ -33,6 +33,8 @@ extern int move_huge_pmd(struct vm_area_
+ extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 			unsigned long addr, pgprot_t newprot,
+ 			int prot_numa);
++int vmf_insert_pfn_pmd(struct vm_area_struct *, unsigned long addr, pmd_t *,
++			unsigned long pfn, bool write);
  
-+static inline bool vma_is_dax(struct vm_area_struct *vma)
-+{
-+	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
-+}
- #endif
-diff -puN mm/huge_memory.c~thp-prepare-for-dax-huge-pages mm/huge_memory.c
---- a/mm/huge_memory.c~thp-prepare-for-dax-huge-pages
+ enum transparent_hugepage_flag {
+ 	TRANSPARENT_HUGEPAGE_FLAG,
+diff -puN mm/huge_memory.c~mm-add-vmf_insert_pfn_pmd mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-add-vmf_insert_pfn_pmd
 +++ a/mm/huge_memory.c
-@@ -16,6 +16,7 @@
- #include <linux/swap.h>
- #include <linux/shrinker.h>
- #include <linux/mm_inline.h>
-+#include <linux/dax.h>
- #include <linux/kthread.h>
- #include <linux/khugepaged.h>
- #include <linux/freezer.h>
-@@ -794,7 +795,7 @@ static inline gfp_t alloc_hugepage_gfpma
+@@ -869,6 +869,49 @@ int do_huge_pmd_anonymous_page(struct mm
+ 					    flags);
  }
  
- /* Caller must hold page table lock. */
--static bool set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
-+bool set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
- 		struct vm_area_struct *vma, unsigned long haddr, pmd_t *pmd,
- 		struct page *zero_page)
- {
-@@ -1421,7 +1422,6 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 	int ret = 0;
- 
- 	if (__pmd_trans_huge_lock(pmd, vma, &ptl) == 1) {
--		struct page *page;
- 		pgtable_t pgtable;
- 		pmd_t orig_pmd;
- 		/*
-@@ -1433,13 +1433,22 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 		orig_pmd = pmdp_huge_get_and_clear_full(tlb->mm, addr, pmd,
- 							tlb->fullmm);
- 		tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
--		pgtable = pgtable_trans_huge_withdraw(tlb->mm, pmd);
-+		if (vma_is_dax(vma)) {
-+			if (is_huge_zero_pmd(orig_pmd)) {
-+				pgtable = NULL;
-+			} else {
-+				spin_unlock(ptl);
-+				return 1;
-+			}
-+		} else {
-+			pgtable = pgtable_trans_huge_withdraw(tlb->mm, pmd);
++static int insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
++		pmd_t *pmd, unsigned long pfn, pgprot_t prot, bool write)
++{
++	struct mm_struct *mm = vma->vm_mm;
++	pmd_t entry;
++	spinlock_t *ptl;
++
++	ptl = pmd_lock(mm, pmd);
++	if (pmd_none(*pmd)) {
++		entry = pmd_mkhuge(pfn_pmd(pfn, prot));
++		if (write) {
++			entry = pmd_mkyoung(pmd_mkdirty(entry));
++			entry = maybe_pmd_mkwrite(entry, vma);
 +		}
- 		if (is_huge_zero_pmd(orig_pmd)) {
- 			atomic_long_dec(&tlb->mm->nr_ptes);
- 			spin_unlock(ptl);
- 			put_huge_zero_page();
- 		} else {
--			page = pmd_page(orig_pmd);
-+			struct page *page = pmd_page(orig_pmd);
- 			page_remove_rmap(page);
- 			VM_BUG_ON_PAGE(page_mapcount(page) < 0, page);
- 			add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
-@@ -1448,7 +1457,8 @@ int zap_huge_pmd(struct mmu_gather *tlb,
- 			spin_unlock(ptl);
- 			tlb_remove_page(tlb, page);
- 		}
--		pte_free(tlb->mm, pgtable);
-+		if (pgtable)
-+			pte_free(tlb->mm, pgtable);
- 		ret = 1;
- 	}
- 	return ret;
-@@ -2914,7 +2924,7 @@ void __split_huge_page_pmd(struct vm_are
- 		pmd_t *pmd)
- {
- 	spinlock_t *ptl;
--	struct page *page;
-+	struct page *page = NULL;
- 	struct mm_struct *mm = vma->vm_mm;
- 	unsigned long haddr = address & HPAGE_PMD_MASK;
- 	unsigned long mmun_start;	/* For mmu_notifiers */
-@@ -2927,25 +2937,25 @@ void __split_huge_page_pmd(struct vm_are
- again:
- 	mmu_notifier_invalidate_range_start(mm, mmun_start, mmun_end);
- 	ptl = pmd_lock(mm, pmd);
--	if (unlikely(!pmd_trans_huge(*pmd))) {
--		spin_unlock(ptl);
--		mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
--		return;
--	}
--	if (is_huge_zero_pmd(*pmd)) {
-+	if (unlikely(!pmd_trans_huge(*pmd)))
-+		goto unlock;
-+	if (vma_is_dax(vma)) {
-+		pmdp_huge_clear_flush(vma, haddr, pmd);
-+	} else if (is_huge_zero_pmd(*pmd)) {
- 		__split_huge_zero_page_pmd(vma, haddr, pmd);
--		spin_unlock(ptl);
--		mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
--		return;
-+	} else {
-+		page = pmd_page(*pmd);
-+		VM_BUG_ON_PAGE(!page_count(page), page);
-+		get_page(page);
- 	}
--	page = pmd_page(*pmd);
--	VM_BUG_ON_PAGE(!page_count(page), page);
--	get_page(page);
-+ unlock:
- 	spin_unlock(ptl);
- 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
- 
--	split_huge_page(page);
-+	if (!page)
-+		return;
- 
-+	split_huge_page(page);
- 	put_page(page);
- 
- 	/*
++		set_pmd_at(mm, addr, pmd, entry);
++		update_mmu_cache_pmd(vma, addr, pmd);
++	}
++	spin_unlock(ptl);
++	return VM_FAULT_NOPAGE;
++}
++
++int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
++			pmd_t *pmd, unsigned long pfn, bool write)
++{
++	pgprot_t pgprot = vma->vm_page_prot;
++	/*
++	 * If we had pmd_special, we could avoid all these restrictions,
++	 * but we need to be consistent with PTEs and architectures that
++	 * can't support a 'special' bit.
++	 */
++	BUG_ON(!(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)));
++	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
++						(VM_PFNMAP|VM_MIXEDMAP));
++	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
++	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_valid(pfn));
++
++	if (addr < vma->vm_start || addr >= vma->vm_end)
++		return VM_FAULT_SIGBUS;
++	if (track_pfn_insert(vma, &pgprot, pfn))
++		return VM_FAULT_SIGBUS;
++	return insert_pfn_pmd(vma, addr, pmd, pfn, pgprot, write);
++}
++
+ int copy_huge_pmd(struct mm_struct *dst_mm, struct mm_struct *src_mm,
+ 		  pmd_t *dst_pmd, pmd_t *src_pmd, unsigned long addr,
+ 		  struct vm_area_struct *vma)
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
