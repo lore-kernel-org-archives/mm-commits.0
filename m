@@ -1,82 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memblock-rename-local-variable-of-memblock_type-to-type.patch removed
+Subject: [merged] shmem-recalculate-file-inode-when-fstat.patch removed
  from -mm tree
-Date: Wed, 09 Sep 2015 12:53:10 -0700
-Message-ID: <55f08e26.4B8p3j0LVPF8qCn3%akpm@linux-foundation.org>
+Date: Wed, 09 Sep 2015 12:53:14 -0700
+Message-ID: <55f08e2a.LmJsDeVMb4Bvhzch%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40995 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41000 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755304AbbIITxK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:53:10 -0400
+	with ESMTP id S1755369AbbIITxP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:53:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kuleshovmail@gmail.com, mm-commits@vger.kernel.org
+To: yuzhao@google.com, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock.c: rename local variable of memblock_type to 'type'
+     Subject: shmem: recalculate file inode when fstat
 has been removed from the -mm tree.  Its filename was
-     mm-memblock-rename-local-variable-of-memblock_type-to-type.patch
+     shmem-recalculate-file-inode-when-fstat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexander Kuleshov <kuleshovmail@gmail.com>
-Subject: mm/memblock.c: rename local variable of memblock_type to 'type'
+From: Yu Zhao <yuzhao@google.com>
+Subject: shmem: recalculate file inode when fstat
 
-Since e3239ff92a1 (memblock: Rename memblock_region to memblock_type and
-memblock_property to memblock_region), all local variables of the
-membock_type type were renamed to 'type'.  This commit renames all
-remaining local variables with the memblock_type type to the same view.
+Shmem uses shmem_recalc_inode to update i_blocks when it allocates page,
+undoes range or swaps.  But mm can drop clean page without notifying
+shmem.  This makes fstat sometimes return out-of-date block size.
 
-Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
+The problem can be partially solved when we add inode_operations->getattr
+which calls shmem_recalc_inode to update i_blocks for fstat.
+
+shmem_recalc_inode also updates counter used by statfs and
+vm_committed_as.  For them the situation is not changed.  They still
+suffer from the discrepancy after dropping clean page and before the
+function is called by aforementioned triggers.
+
+Signed-off-by: Yu Zhao <yuzhao@google.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memblock.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/shmem.c |   16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
 
-diff -puN mm/memblock.c~mm-memblock-rename-local-variable-of-memblock_type-to-type mm/memblock.c
---- a/mm/memblock.c~mm-memblock-rename-local-variable-of-memblock_type-to-type
-+++ a/mm/memblock.c
-@@ -615,14 +615,14 @@ static int __init_memblock memblock_add_
- 						int nid,
- 						unsigned long flags)
- {
--	struct memblock_type *_rgn = &memblock.memory;
-+	struct memblock_type *type = &memblock.memory;
- 
- 	memblock_dbg("memblock_add: [%#016llx-%#016llx] flags %#02lx %pF\n",
- 		     (unsigned long long)base,
- 		     (unsigned long long)base + size - 1,
- 		     flags, (void *)_RET_IP_);
- 
--	return memblock_add_range(_rgn, base, size, nid, flags);
-+	return memblock_add_range(type, base, size, nid, flags);
+diff -puN mm/shmem.c~shmem-recalculate-file-inode-when-fstat mm/shmem.c
+--- a/mm/shmem.c~shmem-recalculate-file-inode-when-fstat
++++ a/mm/shmem.c
+@@ -542,6 +542,21 @@ void shmem_truncate_range(struct inode *
  }
+ EXPORT_SYMBOL_GPL(shmem_truncate_range);
  
- int __init_memblock memblock_add(phys_addr_t base, phys_addr_t size)
-@@ -835,10 +835,10 @@ void __init_memblock __next_reserved_mem
- 					   phys_addr_t *out_start,
- 					   phys_addr_t *out_end)
++static int shmem_getattr(struct vfsmount *mnt, struct dentry *dentry,
++			 struct kstat *stat)
++{
++	struct inode *inode = dentry->d_inode;
++	struct shmem_inode_info *info = SHMEM_I(inode);
++
++	spin_lock(&info->lock);
++	shmem_recalc_inode(inode);
++	spin_unlock(&info->lock);
++
++	generic_fillattr(inode, stat);
++
++	return 0;
++}
++
+ static int shmem_setattr(struct dentry *dentry, struct iattr *attr)
  {
--	struct memblock_type *rsv = &memblock.reserved;
-+	struct memblock_type *type = &memblock.reserved;
+ 	struct inode *inode = d_inode(dentry);
+@@ -3122,6 +3137,7 @@ static const struct file_operations shme
+ };
  
--	if (*idx >= 0 && *idx < rsv->cnt) {
--		struct memblock_region *r = &rsv->regions[*idx];
-+	if (*idx >= 0 && *idx < type->cnt) {
-+		struct memblock_region *r = &type->regions[*idx];
- 		phys_addr_t base = r->base;
- 		phys_addr_t size = r->size;
- 
+ static const struct inode_operations shmem_inode_operations = {
++	.getattr	= shmem_getattr,
+ 	.setattr	= shmem_setattr,
+ #ifdef CONFIG_TMPFS_XATTR
+ 	.setxattr	= shmem_setxattr,
 _
 
-Patches currently in -mm which might be from kuleshovmail@gmail.com are
+Patches currently in -mm which might be from yuzhao@google.com are
 
 
