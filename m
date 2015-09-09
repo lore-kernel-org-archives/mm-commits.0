@@ -1,83 +1,144 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- sparc32-do-not-include-swaph-from-pgtable_32h-export-struct-mem_cgroup.patch removed from -mm tree
-Date: Wed, 09 Sep 2015 12:45:42 -0700
-Message-ID: <55f08c66.01jPR2K3VEd1dLwZ%akpm@linux-foundation.org>
+ mm-page_isolation-remove-bogus-tests-for-isolated-pages.patch removed from
+ -mm tree
+Date: Wed, 09 Sep 2015 12:45:59 -0700
+Message-ID: <55f08c77.GIxpvBvNxEUOUQc4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39035 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39088 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753141AbbIITpn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:45:43 -0400
+	with ESMTP id S1754449AbbIITqA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:46:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, davem@davemloft.net, linux@roeck-us.net, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, lauraa@codeaurora.org, mgorman@techsingularity.net, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, rientjes@google.com, seungho1.park@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc32: do not include swap.h from pgtable_32.h
+     Subject: mm, page_isolation: remove bogus tests for isolated pages
 has been removed from the -mm tree.  Its filename was
-     sparc32-do-not-include-swaph-from-pgtable_32h-export-struct-mem_cgroup.patch
+     mm-page_isolation-remove-bogus-tests-for-isolated-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: sparc32: do not include swap.h from pgtable_32.h
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, page_isolation: remove bogus tests for isolated pages
 
-"memcg: export struct mem_cgroup" will add includes into
-linux/memcontrol.h which lead to further header dependency issues as
-reported by Guenter Roeck:
+The __test_page_isolated_in_pageblock() is used to verify whether all
+pages in pageblock were either successfully isolated, or are hwpoisoned. 
+Two of the possible state of pages, that are tested, are however bogus and
+misleading.
 
-In file included from include/linux/highmem.h:7:0,
-                 from include/linux/bio.h:23,
-                 from include/linux/writeback.h:192,
-                 from include/linux/memcontrol.h:30,
-                 from include/linux/swap.h:8,
-                 from ./arch/sparc/include/asm/pgtable_32.h:17,
-                 from ./arch/sparc/include/asm/pgtable.h:6,
-                 from arch/sparc/kernel/traps_32.c:23:
-include/linux/mm.h: In function 'is_vmalloc_addr':
-include/linux/mm.h:371:17: error: 'VMALLOC_START' undeclared (first use in this function)
-include/linux/mm.h:371:17: note: each undeclared identifier is reported only once for each function it appears in
-include/linux/mm.h:371:41: error: 'VMALLOC_END' undeclared (first use in this function)
-include/linux/mm.h: In function 'maybe_mkwrite':
-include/linux/mm.h:556:3: error: implicit declaration of function 'pte_mkwrite'
+Both tests rely on get_freepage_migratetype(page), which however has no
+guarantees about pages on freelists.  Specifically, it doesn't guarantee
+that the migratetype returned by the function actually matches the
+migratetype of the freelist that the page is on.  Such guarantee is not
+its purpose and would have negative impact on allocator performance.
 
-The issue is that pgtable_32.h depends on swap.h to get swap_entry_t but
-that goes all the way down to linux/mm.h which wants to have VMALLOC_*
-which is defined later in pgtable_32.h, though.
+The first test checks whether the freepage_migratetype equals
+MIGRATE_ISOLATE, supposedly to catch races between page isolation and
+allocator activity.  These races should be fixed nowadays with 51bb1a4093
+("mm/page_alloc: add freepage on isolate pageblock to correct buddy list")
+and related patches.  As explained above, the check wouldn't be able to
+catch them reliably anyway.  For the same reason false positives can
+happen, although they are harmless, as the move_freepages() call would
+just move the page to the same freelist it's already on.  So removing the
+test is not a bug fix, just cleanup.  After this patch, we assume that all
+PageBuddy pages are on the correct freelist and that the races were really
+fixed.  A truly reliable verification in the form of e.g.  VM_BUG_ON()
+would be complicated and is arguably not needed.
 
-swap_entry_t is defined in include/mm_types.h so it should be sufficient
-to include this header without more dependencies.
+The second test (page_count(page) == 0 && get_freepage_migratetype(page)
+== MIGRATE_ISOLATE) is probably supposed (the code comes from a big memory
+isolation patch from 2007) to catch pages on MIGRATE_ISOLATE pcplists. 
+However, pcplists don't contain MIGRATE_ISOLATE freepages nowadays, those
+are freed directly to free lists, so the check is obsolete.  Remove it as
+well.
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Guenter Roeck <linux@roeck-us.net>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
-Cc: David Miller <davem@davemloft.net>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Laura Abbott <lauraa@codeaurora.org>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Seungho Park <seungho1.park@lge.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/pgtable_32.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c     |    4 ++++
+ mm/page_isolation.c |   30 ++++++------------------------
+ 2 files changed, 10 insertions(+), 24 deletions(-)
 
-diff -puN arch/sparc/include/asm/pgtable_32.h~sparc32-do-not-include-swaph-from-pgtable_32h-export-struct-mem_cgroup arch/sparc/include/asm/pgtable_32.h
---- a/arch/sparc/include/asm/pgtable_32.h~sparc32-do-not-include-swaph-from-pgtable_32h-export-struct-mem_cgroup
-+++ a/arch/sparc/include/asm/pgtable_32.h
-@@ -14,7 +14,7 @@
- #include <asm-generic/4level-fixup.h>
+diff -puN mm/page_alloc.c~mm-page_isolation-remove-bogus-tests-for-isolated-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_isolation-remove-bogus-tests-for-isolated-pages
++++ a/mm/page_alloc.c
+@@ -788,7 +788,11 @@ static void free_pcppages_bulk(struct zo
+ 			page = list_entry(list->prev, struct page, lru);
+ 			/* must delete as __free_one_page list manipulates */
+ 			list_del(&page->lru);
++
+ 			mt = get_freepage_migratetype(page);
++			/* MIGRATE_ISOLATE page should not go to pcplists */
++			VM_BUG_ON_PAGE(is_migrate_isolate(mt), page);
++			/* Pageblock could have been isolated meanwhile */
+ 			if (unlikely(has_isolate_pageblock(zone)))
+ 				mt = get_pageblock_migratetype(page);
  
- #include <linux/spinlock.h>
--#include <linux/swap.h>
-+#include <linux/mm_types.h>
- #include <asm/types.h>
- #include <asm/pgtsrmmu.h>
- #include <asm/vaddrs.h>
+diff -puN mm/page_isolation.c~mm-page_isolation-remove-bogus-tests-for-isolated-pages mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-page_isolation-remove-bogus-tests-for-isolated-pages
++++ a/mm/page_isolation.c
+@@ -223,34 +223,16 @@ __test_page_isolated_in_pageblock(unsign
+ 			continue;
+ 		}
+ 		page = pfn_to_page(pfn);
+-		if (PageBuddy(page)) {
++		if (PageBuddy(page))
+ 			/*
+-			 * If race between isolatation and allocation happens,
+-			 * some free pages could be in MIGRATE_MOVABLE list
+-			 * although pageblock's migratation type of the page
+-			 * is MIGRATE_ISOLATE. Catch it and move the page into
+-			 * MIGRATE_ISOLATE list.
++			 * If the page is on a free list, it has to be on
++			 * the correct MIGRATE_ISOLATE freelist. There is no
++			 * simple way to verify that as VM_BUG_ON(), though.
+ 			 */
+-			if (get_freepage_migratetype(page) != MIGRATE_ISOLATE) {
+-				struct page *end_page;
+-
+-				end_page = page + (1 << page_order(page)) - 1;
+-				move_freepages(page_zone(page), page, end_page,
+-						MIGRATE_ISOLATE);
+-			}
+ 			pfn += 1 << page_order(page);
+-		}
+-		else if (page_count(page) == 0 &&
+-			get_freepage_migratetype(page) == MIGRATE_ISOLATE)
+-			pfn += 1;
+-		else if (skip_hwpoisoned_pages && PageHWPoison(page)) {
+-			/*
+-			 * The HWPoisoned page may be not in buddy
+-			 * system, and page_count() is not 0.
+-			 */
++		else if (skip_hwpoisoned_pages && PageHWPoison(page))
++			/* A HWPoisoned page cannot be also PageBuddy */
+ 			pfn++;
+-			continue;
+-		}
+ 		else
+ 			break;
+ 	}
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 
