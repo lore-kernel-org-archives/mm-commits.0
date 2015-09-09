@@ -1,143 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- coccinelle-mm-scripts-coccinelle-api-alloc-pool_zalloc-simplecocci.patch
+Subject: [merged] mm-add-utility-for-early-copy-from-unmapped-ram.patch
  removed from -mm tree
-Date: Wed, 09 Sep 2015 12:47:05 -0700
-Message-ID: <55f08cb9.mDpZ3q8qdUkAnXkd%akpm@linux-foundation.org>
+Date: Wed, 09 Sep 2015 12:47:29 -0700
+Message-ID: <55f08cd1.fxEfUwfFYaSYH6Lu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39598 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39826 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753240AbbIITrG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:47:06 -0400
+	with ESMTP id S1751793AbbIITra (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:47:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sean.stalley@intel.com, Gilles.Muller@lip6.fr, bhelgaas@google.com, bigeasy@linutronix.de, corbet@lwn.net, julia.lawall@lip6.fr, mmarek@suse.cz, nicolas.palix@imag.fr, vinod.koul@intel.com, mm-commits@vger.kernel.org
+To: msalter@redhat.com, ard.biesheuvel@linaro.org, arnd@arndb.de, catalin.marinas@arm.com, hpa@zytor.com, mark.rutland@arm.com, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de, will.deacon@arm.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coccinelle: mm: scripts/coccinelle/api/alloc/pool_zalloc-simple.cocci
+     Subject: mm: add utility for early copy from unmapped ram
 has been removed from the -mm tree.  Its filename was
-     coccinelle-mm-scripts-coccinelle-api-alloc-pool_zalloc-simplecocci.patch
+     mm-add-utility-for-early-copy-from-unmapped-ram.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Sean O. Stalley" <sean.stalley@intel.com>
-Subject: coccinelle: mm: scripts/coccinelle/api/alloc/pool_zalloc-simple.cocci
+From: Mark Salter <msalter@redhat.com>
+Subject: mm: add utility for early copy from unmapped ram
 
-add [pci|dma]_pool_zalloc coccinelle check.
-replaces instances of [pci|dma]_pool_alloc() followed by memset(0)
-with [pci|dma]_pool_zalloc().
+When booting an arm64 kernel w/initrd using UEFI/grub, use of mem= will
+likely cut off part or all of the initrd.  This leaves it outside the
+kernel linear map which leads to failure when unpacking.  The x86 code has
+a similar need to relocate an initrd outside of mapped memory in some
+cases.
 
-Signed-off-by: Sean O. Stalley <sean.stalley@intel.com>
-Acked-by: Julia Lawall <julia.lawall@lip6.fr>
-Cc: Vinod Koul <vinod.koul@intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Gilles Muller <Gilles.Muller@lip6.fr>
-Cc: Nicolas Palix <nicolas.palix@imag.fr>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
-Cc: Jonathan Corbet <corbet@lwn.net>
+The current x86 code uses early_memremap() to copy the original initrd
+from unmapped to mapped RAM.  This patchset creates a generic
+copy_from_early_mem() utility based on that x86 code and has arm64 and x86
+share it in their respective initrd relocation code.
+
+
+
+This patch (of 3):
+
+In some early boot circumstances, it may be necessary to copy from RAM
+outside the kernel linear mapping to mapped RAM.  The need to relocate an
+initrd is one example in the x86 code.  This patch creates a helper
+function based on current x86 code.
+
+Signed-off-by: Mark Salter <msalter@redhat.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/coccinelle/api/alloc/pool_zalloc-simple.cocci |   84 ++++++++++
- 1 file changed, 84 insertions(+)
+ include/asm-generic/early_ioremap.h |    6 ++++++
+ mm/early_ioremap.c                  |   22 ++++++++++++++++++++++
+ 2 files changed, 28 insertions(+)
 
-diff -puN /dev/null scripts/coccinelle/api/alloc/pool_zalloc-simple.cocci
---- /dev/null
-+++ a/scripts/coccinelle/api/alloc/pool_zalloc-simple.cocci
-@@ -0,0 +1,84 @@
-+///
-+/// Use *_pool_zalloc rather than *_pool_alloc followed by memset with 0
-+///
-+// Copyright: (C) 2015 Intel Corp.  GPLv2.
-+// Options: --no-includes --include-headers
-+//
-+// Keywords: dma_pool_zalloc, pci_pool_zalloc
-+//
+diff -puN include/asm-generic/early_ioremap.h~mm-add-utility-for-early-copy-from-unmapped-ram include/asm-generic/early_ioremap.h
+--- a/include/asm-generic/early_ioremap.h~mm-add-utility-for-early-copy-from-unmapped-ram
++++ a/include/asm-generic/early_ioremap.h
+@@ -33,6 +33,12 @@ extern void early_ioremap_setup(void);
+  */
+ extern void early_ioremap_reset(void);
+ 
++/*
++ * Early copy from unmapped memory to kernel mapped memory.
++ */
++extern void copy_from_early_mem(void *dest, phys_addr_t src,
++				unsigned long size);
 +
-+virtual context
-+virtual patch
-+virtual org
-+virtual report
+ #else
+ static inline void early_ioremap_init(void) { }
+ static inline void early_ioremap_setup(void) { }
+diff -puN mm/early_ioremap.c~mm-add-utility-for-early-copy-from-unmapped-ram mm/early_ioremap.c
+--- a/mm/early_ioremap.c~mm-add-utility-for-early-copy-from-unmapped-ram
++++ a/mm/early_ioremap.c
+@@ -217,6 +217,28 @@ early_memremap(resource_size_t phys_addr
+ 	return (__force void *)__early_ioremap(phys_addr, size,
+ 					       FIXMAP_PAGE_NORMAL);
+ }
 +
-+//----------------------------------------------------------
-+//  For context mode
-+//----------------------------------------------------------
++#define MAX_MAP_CHUNK	(NR_FIX_BTMAPS << PAGE_SHIFT)
 +
-+@depends on context@
-+expression x;
-+statement S;
-+@@
++void __init copy_from_early_mem(void *dest, phys_addr_t src, unsigned long size)
++{
++	unsigned long slop, clen;
++	char *p;
 +
-+* x = \(dma_pool_alloc\|pci_pool_alloc\)(...);
-+  if ((x==NULL) || ...) S
-+* memset(x,0, ...);
++	while (size) {
++		slop = src & ~PAGE_MASK;
++		clen = size;
++		if (clen > MAX_MAP_CHUNK - slop)
++			clen = MAX_MAP_CHUNK - slop;
++		p = early_memremap(src & PAGE_MASK, clen + slop);
++		memcpy(dest, p + slop, clen);
++		early_memunmap(p, clen + slop);
++		dest += clen;
++		src += clen;
++		size -= clen;
++	}
++}
 +
-+//----------------------------------------------------------
-+//  For patch mode
-+//----------------------------------------------------------
-+
-+@depends on patch@
-+expression x;
-+expression a,b,c;
-+statement S;
-+@@
-+
-+- x = dma_pool_alloc(a,b,c);
-++ x = dma_pool_zalloc(a,b,c);
-+  if ((x==NULL) || ...) S
-+- memset(x,0,...);
-+
-+@depends on patch@
-+expression x;
-+expression a,b,c;
-+statement S;
-+@@
-+
-+- x = pci_pool_alloc(a,b,c);
-++ x = pci_pool_zalloc(a,b,c);
-+  if ((x==NULL) || ...) S
-+- memset(x,0,...);
-+
-+//----------------------------------------------------------
-+//  For org and report mode
-+//----------------------------------------------------------
-+
-+@r depends on org || report@
-+expression x;
-+expression a,b,c;
-+statement S;
-+position p;
-+@@
-+
-+ x = @p\(dma_pool_alloc\|pci_pool_alloc\)(a,b,c);
-+ if ((x==NULL) || ...) S
-+ memset(x,0, ...);
-+
-+@script:python depends on org@
-+p << r.p;
-+x << r.x;
-+@@
-+
-+msg="%s" % (x)
-+msg_safe=msg.replace("[","@(").replace("]",")")
-+coccilib.org.print_todo(p[0], msg_safe)
-+
-+@script:python depends on report@
-+p << r.p;
-+x << r.x;
-+@@
-+
-+msg="WARNING: *_pool_zalloc should be used for %s, instead of *_pool_alloc/memset" % (x)
-+coccilib.report.print_report(p[0], msg)
+ #else /* CONFIG_MMU */
+ 
+ void __init __iomem *
 _
 
-Patches currently in -mm which might be from sean.stalley@intel.com are
+Patches currently in -mm which might be from msalter@redhat.com are
 
 
