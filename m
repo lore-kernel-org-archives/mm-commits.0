@@ -1,180 +1,147 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens.patch removed from -mm tree
-Date: Wed, 09 Sep 2015 12:53:32 -0700
-Message-ID: <55f08e3c.fxgLcbdTzmd4/8wP%akpm@linux-foundation.org>
+Subject: [merged] zsmalloc-always-keep-per-class-stats.patch removed from
+ -mm tree
+Date: Wed, 09 Sep 2015 12:53:55 -0700
+Message-ID: <55f08e53.qsLbAUpgwNpP5kNY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41062 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41393 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755390AbbIITxd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:53:33 -0400
+	with ESMTP id S1754651AbbIITx4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:53:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/compaction: correct to flush migrated pages if pageblock skip happens
+     Subject: zsmalloc: always keep per-class stats
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens.patch
+     zsmalloc-always-keep-per-class-stats.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/compaction: correct to flush migrated pages if pageblock skip happens
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zsmalloc: always keep per-class stats
 
-We cache isolate_start_pfn before entering isolate_migratepages().  If
-pageblock is skipped in isolate_migratepages() due to whatever reason,
-cc->migrate_pfn can be far from isolate_start_pfn hence we flush pages
-that were freed.  For example, the following scenario can be possible:
+Always account per-class `zs_size_stat' stats.  This data will help us
+make better decisions during compaction.  We are especially interested in
+OBJ_ALLOCATED and OBJ_USED, which can tell us if class compaction will
+result in any memory gain.
 
-- assume order-9 compaction, pageblock order is 9
-- start_isolate_pfn is 0x200
-- isolate_migratepages()
-  - skip a number of pageblocks
-  - start to isolate from pfn 0x600
-  - cc->migrate_pfn = 0x620
-  - return
-- last_migrated_pfn is set to 0x200
-- check flushing condition
-  - current_block_start is set to 0x600
-  - last_migrated_pfn < current_block_start then do useless flush
+For instance, we know the number of allocated objects in the class, the
+number of objects being used (so we also know how many objects are not
+used) and the number of objects per-page.  So we can ensure if we have
+enough unused objects to form at least one ZS_EMPTY zspage during
+compaction.
 
-This wrong flush would not help the performance and success rate so
-this patch tries to fix it. One simple way to know the exact position
-where we start to isolate migratable pages is that we cache it
-in isolate_migratepages() before entering actual isolation. This patch
-implements that and fixes the problem.
+We calculate this value on per-class basis so we can calculate a total
+number of zspages that can be released.  Which is exactly what a shrinker
+wants to know.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   30 +++++++++++++++---------------
- mm/internal.h   |    1 +
- 2 files changed, 16 insertions(+), 15 deletions(-)
+ mm/zsmalloc.c |   40 ++++++++--------------------------------
+ 1 file changed, 8 insertions(+), 32 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens mm/compaction.c
---- a/mm/compaction.c~mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens
-+++ a/mm/compaction.c
-@@ -1115,6 +1115,7 @@ static isolate_migrate_t isolate_migrate
- 					struct compact_control *cc)
- {
- 	unsigned long low_pfn, end_pfn;
-+	unsigned long isolate_start_pfn;
- 	struct page *page;
- 	const isolate_mode_t isolate_mode =
- 		(sysctl_compact_unevictable_allowed ? ISOLATE_UNEVICTABLE : 0) |
-@@ -1163,6 +1164,7 @@ static isolate_migrate_t isolate_migrate
- 			continue;
+diff -puN mm/zsmalloc.c~zsmalloc-always-keep-per-class-stats mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-always-keep-per-class-stats
++++ a/mm/zsmalloc.c
+@@ -169,14 +169,12 @@ enum zs_stat_type {
+ 	NR_ZS_STAT_TYPE,
+ };
  
- 		/* Perform the isolation */
-+		isolate_start_pfn = low_pfn;
- 		low_pfn = isolate_migratepages_block(cc, low_pfn, end_pfn,
- 								isolate_mode);
- 
-@@ -1172,6 +1174,15 @@ static isolate_migrate_t isolate_migrate
- 		}
- 
- 		/*
-+		 * Record where we could have freed pages by migration and not
-+		 * yet flushed them to buddy allocator.
-+		 * - this is the lowest page that could have been isolated and
-+		 * then freed by migration.
-+		 */
-+		if (cc->nr_migratepages && !cc->last_migrated_pfn)
-+			cc->last_migrated_pfn = isolate_start_pfn;
-+
-+		/*
- 		 * Either we isolated something and proceed with migration. Or
- 		 * we failed and compact_zone should decide if we should
- 		 * continue or not.
-@@ -1342,7 +1353,6 @@ static int compact_zone(struct zone *zon
- 	unsigned long end_pfn = zone_end_pfn(zone);
- 	const int migratetype = gfpflags_to_migratetype(cc->gfp_mask);
- 	const bool sync = cc->mode != MIGRATE_ASYNC;
--	unsigned long last_migrated_pfn = 0;
- 
- 	ret = compaction_suitable(zone, cc->order, cc->alloc_flags,
- 							cc->classzone_idx);
-@@ -1380,6 +1390,7 @@ static int compact_zone(struct zone *zon
- 		zone->compact_cached_migrate_pfn[0] = cc->migrate_pfn;
- 		zone->compact_cached_migrate_pfn[1] = cc->migrate_pfn;
- 	}
-+	cc->last_migrated_pfn = 0;
- 
- 	trace_mm_compaction_begin(start_pfn, cc->migrate_pfn,
- 				cc->free_pfn, end_pfn, sync);
-@@ -1389,7 +1400,6 @@ static int compact_zone(struct zone *zon
- 	while ((ret = compact_finished(zone, cc, migratetype)) ==
- 						COMPACT_CONTINUE) {
- 		int err;
--		unsigned long isolate_start_pfn = cc->migrate_pfn;
- 
- 		switch (isolate_migratepages(zone, cc)) {
- 		case ISOLATE_ABORT:
-@@ -1429,16 +1439,6 @@ static int compact_zone(struct zone *zon
- 			}
- 		}
- 
--		/*
--		 * Record where we could have freed pages by migration and not
--		 * yet flushed them to buddy allocator. We use the pfn that
--		 * isolate_migratepages() started from in this loop iteration
--		 * - this is the lowest page that could have been isolated and
--		 * then freed by migration.
--		 */
--		if (!last_migrated_pfn)
--			last_migrated_pfn = isolate_start_pfn;
+-#ifdef CONFIG_ZSMALLOC_STAT
 -
- check_drain:
- 		/*
- 		 * Has the migration scanner moved away from the previous
-@@ -1447,18 +1447,18 @@ check_drain:
- 		 * compact_finished() can detect immediately if allocation
- 		 * would succeed.
- 		 */
--		if (cc->order > 0 && last_migrated_pfn) {
-+		if (cc->order > 0 && cc->last_migrated_pfn) {
- 			int cpu;
- 			unsigned long current_block_start =
- 				cc->migrate_pfn & ~((1UL << cc->order) - 1);
+-static struct dentry *zs_stat_root;
+-
+ struct zs_size_stat {
+ 	unsigned long objs[NR_ZS_STAT_TYPE];
+ };
  
--			if (last_migrated_pfn < current_block_start) {
-+			if (cc->last_migrated_pfn < current_block_start) {
- 				cpu = get_cpu();
- 				lru_add_drain_cpu(cpu);
- 				drain_local_pages(zone);
- 				put_cpu();
- 				/* No more flushing until we migrate again */
--				last_migrated_pfn = 0;
-+				cc->last_migrated_pfn = 0;
- 			}
- 		}
++#ifdef CONFIG_ZSMALLOC_STAT
++static struct dentry *zs_stat_root;
+ #endif
  
-diff -puN mm/internal.h~mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens mm/internal.h
---- a/mm/internal.h~mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens
-+++ a/mm/internal.h
-@@ -182,6 +182,7 @@ struct compact_control {
- 	unsigned long nr_migratepages;	/* Number of pages to migrate */
- 	unsigned long free_pfn;		/* isolate_freepages search base */
- 	unsigned long migrate_pfn;	/* isolate_migratepages search base */
-+	unsigned long last_migrated_pfn;/* Not yet flushed page being freed */
- 	enum migrate_mode mode;		/* Async or sync migration mode */
- 	bool ignore_skip_hint;		/* Scan blocks even if marked skip */
- 	int order;			/* order a direct compactor needs */
-_
-
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
-
-
+ /*
+@@ -201,6 +199,8 @@ static int zs_size_classes;
+ static const int fullness_threshold_frac = 4;
+ 
+ struct size_class {
++	spinlock_t lock;
++	struct page *fullness_list[_ZS_NR_FULLNESS_GROUPS];
+ 	/*
+ 	 * Size of objects stored in this class. Must be multiple
+ 	 * of ZS_ALIGN.
+@@ -210,16 +210,10 @@ struct size_class {
+ 
+ 	/* Number of PAGE_SIZE sized pages to combine to form a 'zspage' */
+ 	int pages_per_zspage;
+-	/* huge object: pages_per_zspage == 1 && maxobj_per_zspage == 1 */
+-	bool huge;
+-
+-#ifdef CONFIG_ZSMALLOC_STAT
+ 	struct zs_size_stat stats;
+-#endif
+-
+-	spinlock_t lock;
+ 
+-	struct page *fullness_list[_ZS_NR_FULLNESS_GROUPS];
++	/* huge object: pages_per_zspage == 1 && maxobj_per_zspage == 1 */
++	bool huge;
+ };
+ 
+ /*
+@@ -441,8 +435,6 @@ static int get_size_class_index(int size
+ 	return min(zs_size_classes - 1, idx);
+ }
+ 
+-#ifdef CONFIG_ZSMALLOC_STAT
+-
+ static inline void zs_stat_inc(struct size_class *class,
+ 				enum zs_stat_type type, unsigned long cnt)
+ {
+@@ -461,6 +453,8 @@ static inline unsigned long zs_stat_get(
+ 	return class->stats.objs[type];
+ }
+ 
++#ifdef CONFIG_ZSMALLOC_STAT
++
+ static int __init zs_stat_init(void)
+ {
+ 	if (!debugfs_initialized())
+@@ -576,23 +570,6 @@ static void zs_pool_stat_destroy(struct
+ }
+ 
+ #else /* CONFIG_ZSMALLOC_STAT */
+-
+-static inline void zs_stat_inc(struct size_class *class,
+-				enum zs_stat_type type, unsigned long cnt)
+-{
+-}
+-
+-static inline void zs_stat_dec(struct size_class *class,
+-				enum zs_stat_type type, unsigned long cnt)
+-{
+-}
+-
+-static inline unsigned long zs_stat_get(struct size_class *class,
+-				enum zs_stat_type type)
+-{
+-	return 0;
+-}
+-
+ static int __init zs_stat_init(void)
+ {
+ 	return 0;
+@@ -610,7 +587,6 @@ static inline int zs_pool_stat_create(ch
+ static inline void zs_pool_stat_destroy(struct zs_pool *pool)
+ {
+ }
