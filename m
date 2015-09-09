@@ -1,89 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-zbud-constify-the-zbud_ops.patch removed from -mm
- tree
-Date: Wed, 09 Sep 2015 12:54:23 -0700
-Message-ID: <55f08e6f.+OLQbBGRY+cPTsLH%akpm@linux-foundation.org>
+Subject: [merged]
+ zsmalloc-remove-null-check-from-destroy_handle_cache.patch removed from -mm tree
+Date: Wed, 09 Sep 2015 12:54:15 -0700
+Message-ID: <55f08e67.leTlTUsVumyb4AHY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41512 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41485 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755401AbbIITyX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:54:23 -0400
+	with ESMTP id S1754563AbbIITyP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:54:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: k.kozlowski@samsung.com, ddstreet@ieee.org, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: zbud: constify the zbud_ops
+     Subject: zsmalloc: remove null check from destroy_handle_cache()
 has been removed from the -mm tree.  Its filename was
-     mm-zbud-constify-the-zbud_ops.patch
+     zsmalloc-remove-null-check-from-destroy_handle_cache.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Subject: mm: zbud: constify the zbud_ops
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zsmalloc: remove null check from destroy_handle_cache()
 
-The structure zbud_ops is not modified so make the pointer to it a
-pointer to const.
+We can pass a NULL cache pointer to kmem_cache_destroy(), because it
+NULL-checks its argument now.  Remove redundant test from
+destroy_handle_cache().
 
-Signed-off-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Acked-by: Dan Streetman <ddstreet@ieee.org>
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zbud.h |    2 +-
- mm/zbud.c            |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ mm/zsmalloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN include/linux/zbud.h~mm-zbud-constify-the-zbud_ops include/linux/zbud.h
---- a/include/linux/zbud.h~mm-zbud-constify-the-zbud_ops
-+++ a/include/linux/zbud.h
-@@ -9,7 +9,7 @@ struct zbud_ops {
- 	int (*evict)(struct zbud_pool *pool, unsigned long handle);
- };
+diff -puN mm/zsmalloc.c~zsmalloc-remove-null-check-from-destroy_handle_cache mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-remove-null-check-from-destroy_handle_cache
++++ a/mm/zsmalloc.c
+@@ -288,8 +288,7 @@ static int create_handle_cache(struct zs
  
--struct zbud_pool *zbud_create_pool(gfp_t gfp, struct zbud_ops *ops);
-+struct zbud_pool *zbud_create_pool(gfp_t gfp, const struct zbud_ops *ops);
- void zbud_destroy_pool(struct zbud_pool *pool);
- int zbud_alloc(struct zbud_pool *pool, size_t size, gfp_t gfp,
- 	unsigned long *handle);
-diff -puN mm/zbud.c~mm-zbud-constify-the-zbud_ops mm/zbud.c
---- a/mm/zbud.c~mm-zbud-constify-the-zbud_ops
-+++ a/mm/zbud.c
-@@ -96,7 +96,7 @@ struct zbud_pool {
- 	struct list_head buddied;
- 	struct list_head lru;
- 	u64 pages_nr;
--	struct zbud_ops *ops;
-+	const struct zbud_ops *ops;
- #ifdef CONFIG_ZPOOL
- 	struct zpool *zpool;
- 	const struct zpool_ops *zpool_ops;
-@@ -133,7 +133,7 @@ static int zbud_zpool_evict(struct zbud_
- 		return -ENOENT;
+ static void destroy_handle_cache(struct zs_pool *pool)
+ {
+-	if (pool->handle_cachep)
+-		kmem_cache_destroy(pool->handle_cachep);
++	kmem_cache_destroy(pool->handle_cachep);
  }
  
--static struct zbud_ops zbud_zpool_ops = {
-+static const struct zbud_ops zbud_zpool_ops = {
- 	.evict =	zbud_zpool_evict
- };
- 
-@@ -302,7 +302,7 @@ static int num_free_chunks(struct zbud_h
-  * Return: pointer to the new zbud pool or NULL if the metadata allocation
-  * failed.
-  */
--struct zbud_pool *zbud_create_pool(gfp_t gfp, struct zbud_ops *ops)
-+struct zbud_pool *zbud_create_pool(gfp_t gfp, const struct zbud_ops *ops)
- {
- 	struct zbud_pool *pool;
- 	int i;
+ static unsigned long alloc_handle(struct zs_pool *pool)
 _
 
-Patches currently in -mm which might be from k.kozlowski@samsung.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
 
