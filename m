@@ -1,213 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-swap-zswap-maybe_preload-refactoring.patch removed
- from -mm tree
-Date: Wed, 09 Sep 2015 12:54:19 -0700
-Message-ID: <55f08e6b.8qibtHc6wLe08aRB%akpm@linux-foundation.org>
+Subject: [merged] zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
+ removed from -mm tree
+Date: Wed, 09 Sep 2015 12:54:05 -0700
+Message-ID: <55f08e5d.s/KBLgQ+F9TZ5TU6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41495 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41461 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755401AbbIITyU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:54:20 -0400
+	with ESMTP id S1754803AbbIITyG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:54:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: 0x7f454c46@gmail.com, axboe@fb.com, dh.herrmann@gmail.com, hannes@cmpxchg.org, hch@lst.de, hughd@google.com, mhocko@suse.cz, minchan@kernel.org, sjennings@variantweb.net, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: swap: zswap: maybe_preload & refactoring
+     Subject: zsmalloc: use shrinker to trigger auto-compaction
 has been removed from the -mm tree.  Its filename was
-     mm-swap-zswap-maybe_preload-refactoring.patch
+     zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dmitry Safonov <0x7f454c46@gmail.com>
-Subject: mm: swap: zswap: maybe_preload & refactoring
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zsmalloc: use shrinker to trigger auto-compaction
 
-zswap_get_swap_cache_page and read_swap_cache_async have pretty much the
-same code with only significant difference in return value and usage of
-swap_readpage.
+Perform automatic pool compaction by a shrinker when system is getting
+tight on memory.
 
-I a helper __read_swap_cache_async() with the common code.  Behavior
-change: now zswap_get_swap_cache_page will use radix_tree_maybe_preload
-instead radix_tree_preload.  Looks like, this wasn't changed only by the
-reason of code duplication.
+User-space has a very little knowledge regarding zsmalloc fragmentation
+and basically has no mechanism to tell whether compaction will result in
+any memory gain.  Another issue is that user space is not always aware of
+the fact that system is getting tight on memory.  Which leads to very
+uncomfortable scenarios when user space may start issuing compaction
+'randomly' or from crontab (for example).  Fragmentation is not always
+necessarily bad, allocated and unused objects, after all, may be filled
+with the data later, w/o the need of allocating a new zspage.  On the
+other hand, we obviously don't want to waste memory when the system needs
+it.
 
-Signed-off-by: Dmitry Safonov <0x7f454c46@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: David Herrmann <dh.herrmann@gmail.com>
-Cc: Seth Jennings <sjennings@variantweb.net>
+Compaction now has a relatively quick pool scan so we are able to estimate
+the number of pages that will be freed easily, which makes it possible to
+call this function from a shrinker->count_objects() callback.  We also
+abort compaction as soon as we detect that we can't free any pages any
+more, preventing wasteful objects migrations.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Suggested-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    3 +
- mm/swap_state.c      |   37 ++++++++++++++------
- mm/zswap.c           |   73 +++--------------------------------------
- 3 files changed, 35 insertions(+), 78 deletions(-)
+ mm/zsmalloc.c |   78 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 78 insertions(+)
 
-diff -puN include/linux/swap.h~mm-swap-zswap-maybe_preload-refactoring include/linux/swap.h
---- a/include/linux/swap.h~mm-swap-zswap-maybe_preload-refactoring
-+++ a/include/linux/swap.h
-@@ -406,6 +406,9 @@ extern void free_pages_and_swap_cache(st
- extern struct page *lookup_swap_cache(swp_entry_t);
- extern struct page *read_swap_cache_async(swp_entry_t, gfp_t,
- 			struct vm_area_struct *vma, unsigned long addr);
-+extern struct page *__read_swap_cache_async(swp_entry_t, gfp_t,
-+			struct vm_area_struct *vma, unsigned long addr,
-+			bool *new_page_allocated);
- extern struct page *swapin_readahead(swp_entry_t, gfp_t,
- 			struct vm_area_struct *vma, unsigned long addr);
+diff -puN mm/zsmalloc.c~zsmalloc-use-shrinker-to-trigger-auto-compaction mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-use-shrinker-to-trigger-auto-compaction
++++ a/mm/zsmalloc.c
+@@ -246,6 +246,14 @@ struct zs_pool {
+ 	atomic_long_t pages_allocated;
  
-diff -puN mm/swap_state.c~mm-swap-zswap-maybe_preload-refactoring mm/swap_state.c
---- a/mm/swap_state.c~mm-swap-zswap-maybe_preload-refactoring
-+++ a/mm/swap_state.c
-@@ -288,17 +288,14 @@ struct page * lookup_swap_cache(swp_entr
- 	return page;
+ 	struct zs_pool_stats stats;
++
++	/* Compact classes */
++	struct shrinker shrinker;
++	/*
++	 * To signify that register_shrinker() was successful
++	 * and unregister_shrinker() will not Oops.
++	 */
++	bool shrinker_enabled;
+ #ifdef CONFIG_ZSMALLOC_STAT
+ 	struct dentry *stat_dentry;
+ #endif
+@@ -1778,6 +1786,69 @@ void zs_pool_stats(struct zs_pool *pool,
  }
+ EXPORT_SYMBOL_GPL(zs_pool_stats);
  
--/* 
-- * Locate a page of swap in physical memory, reserving swap cache space
-- * and reading the disk if it is not already cached.
-- * A failure return means that either the page allocation failed or that
-- * the swap entry is no longer in use.
-- */
--struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
--			struct vm_area_struct *vma, unsigned long addr)
-+struct page *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
-+			struct vm_area_struct *vma, unsigned long addr,
-+			bool *new_page_allocated)
- {
- 	struct page *found_page, *new_page = NULL;
-+	struct address_space *swapper_space = swap_address_space(entry);
- 	int err;
-+	*new_page_allocated = false;
- 
- 	do {
- 		/*
-@@ -306,8 +303,7 @@ struct page *read_swap_cache_async(swp_e
- 		 * called after lookup_swap_cache() failed, re-calling
- 		 * that would confuse statistics.
- 		 */
--		found_page = find_get_page(swap_address_space(entry),
--					entry.val);
-+		found_page = find_get_page(swapper_space, entry.val);
- 		if (found_page)
- 			break;
- 
-@@ -366,7 +362,7 @@ struct page *read_swap_cache_async(swp_e
- 			 * Initiate read into locked page and return.
- 			 */
- 			lru_cache_add_anon(new_page);
--			swap_readpage(new_page);
-+			*new_page_allocated = true;
- 			return new_page;
- 		}
- 		radix_tree_preload_end();
-@@ -384,6 +380,25 @@ struct page *read_swap_cache_async(swp_e
- 	return found_page;
- }
- 
-+/*
-+ * Locate a page of swap in physical memory, reserving swap cache space
-+ * and reading the disk if it is not already cached.
-+ * A failure return means that either the page allocation failed or that
-+ * the swap entry is no longer in use.
-+ */
-+struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
-+			struct vm_area_struct *vma, unsigned long addr)
++static unsigned long zs_shrinker_scan(struct shrinker *shrinker,
++		struct shrink_control *sc)
 +{
-+	bool page_was_allocated;
-+	struct page *retpage = __read_swap_cache_async(entry, gfp_mask,
-+			vma, addr, &page_was_allocated);
++	unsigned long pages_freed;
++	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
++			shrinker);
 +
-+	if (page_was_allocated)
-+		swap_readpage(retpage);
++	pages_freed = pool->stats.pages_compacted;
++	/*
++	 * Compact classes and calculate compaction delta.
++	 * Can run concurrently with a manually triggered
++	 * (by user) compaction.
++	 */
++	pages_freed = zs_compact(pool) - pages_freed;
 +
-+	return retpage;
++	return pages_freed ? pages_freed : SHRINK_STOP;
 +}
 +
- static unsigned long swapin_nr_pages(unsigned long offset)
- {
- 	static unsigned long prev_offset;
-diff -puN mm/zswap.c~mm-swap-zswap-maybe_preload-refactoring mm/zswap.c
---- a/mm/zswap.c~mm-swap-zswap-maybe_preload-refactoring
-+++ a/mm/zswap.c
-@@ -446,75 +446,14 @@ enum zswap_get_swap_ret {
- static int zswap_get_swap_cache_page(swp_entry_t entry,
- 				struct page **retpage)
- {
--	struct page *found_page, *new_page = NULL;
--	struct address_space *swapper_space = swap_address_space(entry);
--	int err;
-+	bool page_was_allocated;
++static unsigned long zs_shrinker_count(struct shrinker *shrinker,
++		struct shrink_control *sc)
++{
++	int i;
++	struct size_class *class;
++	unsigned long pages_to_free = 0;
++	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
++			shrinker);
++
++	if (!pool->shrinker_enabled)
++		return 0;
++
++	for (i = zs_size_classes - 1; i >= 0; i--) {
++		class = pool->size_class[i];
++		if (!class)
++			continue;
++		if (class->index != i)
++			continue;
++
++		spin_lock(&class->lock);
++		pages_to_free += zs_can_compact(class);
++		spin_unlock(&class->lock);
++	}
++
++	return pages_to_free;
++}
++
++static void zs_unregister_shrinker(struct zs_pool *pool)
++{
++	if (pool->shrinker_enabled) {
++		unregister_shrinker(&pool->shrinker);
++		pool->shrinker_enabled = false;
++	}
++}
++
++static int zs_register_shrinker(struct zs_pool *pool)
++{
++	pool->shrinker.scan_objects = zs_shrinker_scan;
++	pool->shrinker.count_objects = zs_shrinker_count;
++	pool->shrinker.batch = 0;
++	pool->shrinker.seeks = DEFAULT_SEEKS;
++
++	return register_shrinker(&pool->shrinker);
++}
++
+ /**
+  * zs_create_pool - Creates an allocation pool to work from.
+  * @flags: allocation flags used to allocate pool metadata
+@@ -1863,6 +1934,12 @@ struct zs_pool *zs_create_pool(char *nam
+ 	if (zs_pool_stat_create(name, pool))
+ 		goto err;
  
--	*retpage = NULL;
--	do {
--		/*
--		 * First check the swap cache.  Since this is normally
--		 * called after lookup_swap_cache() failed, re-calling
--		 * that would confuse statistics.
--		 */
--		found_page = find_get_page(swapper_space, entry.val);
--		if (found_page)
--			break;
--
--		/*
--		 * Get a new page to read into from swap.
--		 */
--		if (!new_page) {
--			new_page = alloc_page(GFP_KERNEL);
--			if (!new_page)
--				break; /* Out of memory */
--		}
--
--		/*
--		 * call radix_tree_preload() while we can wait.
--		 */
--		err = radix_tree_preload(GFP_KERNEL);
--		if (err)
--			break;
--
--		/*
--		 * Swap entry may have been freed since our caller observed it.
--		 */
--		err = swapcache_prepare(entry);
--		if (err == -EEXIST) { /* seems racy */
--			radix_tree_preload_end();
--			continue;
--		}
--		if (err) { /* swp entry is obsolete ? */
--			radix_tree_preload_end();
--			break;
--		}
--
--		/* May fail (-ENOMEM) if radix-tree node allocation failed. */
--		__set_page_locked(new_page);
--		SetPageSwapBacked(new_page);
--		err = __add_to_swap_cache(new_page, entry);
--		if (likely(!err)) {
--			radix_tree_preload_end();
--			lru_cache_add_anon(new_page);
--			*retpage = new_page;
--			return ZSWAP_SWAPCACHE_NEW;
--		}
--		radix_tree_preload_end();
--		ClearPageSwapBacked(new_page);
--		__clear_page_locked(new_page);
--		/*
--		 * add_to_swap_cache() doesn't return -EEXIST, so we can safely
--		 * clear SWAP_HAS_CACHE flag.
--		 */
--		swapcache_free(entry);
--	} while (err != -ENOMEM);
++	/*
++	 * Not critical, we still can use the pool
++	 * and user can trigger compaction manually.
++	 */
++	if (zs_register_shrinker(pool) == 0)
++		pool->shrinker_enabled = true;
+ 	return pool;
+ 
+ err:
+@@ -1875,6 +1952,7 @@ void zs_destroy_pool(struct zs_pool *poo
+ {
+ 	int i;
+ 
++	zs_unregister_shrinker(pool);
+ 	zs_pool_stat_destroy(pool);
+ 
+ 	for (i = 0; i < zs_size_classes; i++) {
+_
+
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+
+
