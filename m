@@ -1,106 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dax-dont-use-set_huge_zero_page.patch removed from -mm
- tree
-Date: Wed, 09 Sep 2015 12:43:31 -0700
-Message-ID: <55f08be3.BC/hiLuRV9/rQcY1%akpm@linux-foundation.org>
+Subject: [merged] mm-dax-use-i_mmap_unlock_write-in-do_cow_fault.patch
+ removed from -mm tree
+Date: Wed, 09 Sep 2015 12:43:39 -0700
+Message-ID: <55f08beb.cXUtLQlVh1pcgDDg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38832 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38845 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754679AbbIITnb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:43:31 -0400
+	with ESMTP id S1754783AbbIITnk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:43:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: don't use set_huge_zero_page()
+     Subject: mm, dax: use i_mmap_unlock_write() in do_cow_fault()
 has been removed from the -mm tree.  Its filename was
-     dax-dont-use-set_huge_zero_page.patch
+     mm-dax-use-i_mmap_unlock_write-in-do_cow_fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: dax: don't use set_huge_zero_page()
+Subject: mm, dax: use i_mmap_unlock_write() in do_cow_fault()
 
-This is another place where DAX assumed that pgtable_t was a pointer. 
-Open code the important parts of set_huge_zero_page() in DAX and make
-set_huge_zero_page() static again.
+__dax_fault() takes i_mmap_lock for write. Let's pair it with write
+unlock on do_cow_fault() side.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Acked-by: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c                |   18 ++++++++++++------
- include/linux/huge_mm.h |    3 ---
- mm/huge_memory.c        |    2 +-
- 3 files changed, 13 insertions(+), 10 deletions(-)
+ mm/memory.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/dax.c~dax-dont-use-set_huge_zero_page fs/dax.c
---- a/fs/dax.c~dax-dont-use-set_huge_zero_page
-+++ a/fs/dax.c
-@@ -572,18 +572,24 @@ int __dax_pmd_fault(struct vm_area_struc
- 		unmap_mapping_range(mapping, pgoff << PAGE_SHIFT, PMD_SIZE, 0);
- 
- 	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
--		bool set;
- 		spinlock_t *ptl;
--		struct mm_struct *mm = vma->vm_mm;
-+		pmd_t entry;
- 		struct page *zero_page = get_huge_zero_page();
-+
- 		if (unlikely(!zero_page))
- 			goto fallback;
- 
--		ptl = pmd_lock(mm, pmd);
--		set = set_huge_zero_page(NULL, mm, vma, pmd_addr, pmd,
--								zero_page);
--		spin_unlock(ptl);
-+		ptl = pmd_lock(vma->vm_mm, pmd);
-+		if (!pmd_none(*pmd)) {
-+			spin_unlock(ptl);
-+			goto fallback;
-+		}
-+
-+		entry = mk_pmd(zero_page, vma->vm_page_prot);
-+		entry = pmd_mkhuge(entry);
-+		set_pmd_at(vma->vm_mm, pmd_addr, pmd, entry);
- 		result = VM_FAULT_NOPAGE;
-+		spin_unlock(ptl);
+diff -puN mm/memory.c~mm-dax-use-i_mmap_unlock_write-in-do_cow_fault mm/memory.c
+--- a/mm/memory.c~mm-dax-use-i_mmap_unlock_write-in-do_cow_fault
++++ a/mm/memory.c
+@@ -3013,9 +3013,9 @@ static int do_cow_fault(struct mm_struct
+ 		} else {
+ 			/*
+ 			 * The fault handler has no page to lock, so it holds
+-			 * i_mmap_lock for read to protect against truncate.
++			 * i_mmap_lock for write to protect against truncate.
+ 			 */
+-			i_mmap_unlock_read(vma->vm_file->f_mapping);
++			i_mmap_unlock_write(vma->vm_file->f_mapping);
+ 		}
+ 		goto uncharge_out;
+ 	}
+@@ -3029,9 +3029,9 @@ static int do_cow_fault(struct mm_struct
  	} else {
- 		sector = bh.b_blocknr << (blkbits - 9);
- 		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
-diff -puN include/linux/huge_mm.h~dax-dont-use-set_huge_zero_page include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~dax-dont-use-set_huge_zero_page
-+++ a/include/linux/huge_mm.h
-@@ -163,9 +163,6 @@ static inline bool is_huge_zero_pmd(pmd_
- }
- 
- struct page *get_huge_zero_page(void);
--bool set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
--		struct vm_area_struct *vma, unsigned long haddr,
--		pmd_t *pmd, struct page *zero_page);
- 
- #else /* CONFIG_TRANSPARENT_HUGEPAGE */
- #define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
-diff -puN mm/huge_memory.c~dax-dont-use-set_huge_zero_page mm/huge_memory.c
---- a/mm/huge_memory.c~dax-dont-use-set_huge_zero_page
-+++ a/mm/huge_memory.c
-@@ -790,7 +790,7 @@ static inline gfp_t alloc_hugepage_gfpma
- }
- 
- /* Caller must hold page table lock. */
--bool set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
-+static bool set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
- 		struct vm_area_struct *vma, unsigned long haddr, pmd_t *pmd,
- 		struct page *zero_page)
- {
+ 		/*
+ 		 * The fault handler has no page to lock, so it holds
+-		 * i_mmap_lock for read to protect against truncate.
++		 * i_mmap_lock for write to protect against truncate.
+ 		 */
+-		i_mmap_unlock_read(vma->vm_file->f_mapping);
++		i_mmap_unlock_write(vma->vm_file->f_mapping);
+ 	}
+ 	return ret;
+ uncharge_out:
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
