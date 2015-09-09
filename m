@@ -1,68 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- memcg-tcp_kmem-check-for-cg_proto-in-sock_update_memcg.patch removed from
- -mm tree
-Date: Wed, 09 Sep 2015 12:45:52 -0700
-Message-ID: <55f08c70.VXtUfiJ+KhGMMl+E%akpm@linux-foundation.org>
+Subject: [merged] lib-show_memc-correct-reserved-memory-calculation.patch
+ removed from -mm tree
+Date: Wed, 09 Sep 2015 12:45:56 -0700
+Message-ID: <55f08c74.GYk2ewcl763oiata%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39059 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39072 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753830AbbIITpx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:45:53 -0400
+	with ESMTP id S1754019AbbIITp5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:45:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.cz, hannes@cmpxchg.org, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: vishnu.ps@samsung.com, dpetigara@broadcom.com, iamjoonsoo.kim@lge.com, lauraa@codeaurora.org, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mina86@mina86.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg, tcp_kmem: check for cg_proto in sock_update_memcg
+     Subject: lib/show_mem.c: correct reserved memory calculation
 has been removed from the -mm tree.  Its filename was
-     memcg-tcp_kmem-check-for-cg_proto-in-sock_update_memcg.patch
+     lib-show_memc-correct-reserved-memory-calculation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.cz>
-Subject: memcg, tcp_kmem: check for cg_proto in sock_update_memcg
+From: Vishnu Pratap Singh <vishnu.ps@samsung.com>
+Subject: lib/show_mem.c: correct reserved memory calculation
 
-sk_prot->proto_cgroup is allowed to return NULL but sock_update_memcg
-doesn't check for NULL.  The function relies on the mem_cgroup_is_root
-check because we shouldn't get NULL otherwise because mem_cgroup_from_task
-will always return !NULL.
+CMA reserved memory is not part of total reserved memory.
+Currently when we print the total reserve memory it considers
+cma as part of reserve memory and do minus of totalcma_pages
+from reserved, which is wrong. In cases where total reserved
+is less than cma reserved we will get negative values & while
+printing we print as unsigned and we will get a very large value.
 
-All other callers are checking for NULL and we can safely replace
-mem_cgroup_is_root() check by cg_proto != NULL which will be more
-straightforward (proto_cgroup returns NULL for the root memcg already).
+Below is the show mem output on X86 ubuntu based system where
+CMA reserved is 100MB (25600 pages) & total reserved is ~40MB(10316 pages).
+And reserve memory shows a large value because of this bug.
 
-Signed-off-by: Michal Hocko <mhocko@suse.cz>
-Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tejun Heo <tj@kernel.org>
+Before:
+[  127.066430] 898908 pages RAM
+[  127.066432] 671682 pages HighMem/MovableOnly
+[  127.066434] 4294952012 pages reserved
+[  127.066436] 25600 pages cma reserved
+
+After:
+[   44.663129] 898908 pages RAM
+[   44.663130] 671682 pages HighMem/MovableOnly
+[   44.663130] 10316 pages reserved
+[   44.663131] 25600 pages cma reserved
+
+Signed-off-by: Vishnu Pratap Singh <vishnu.ps@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Danesh Petigara <dpetigara@broadcom.com>
+Cc: Laura Abbott <lauraa@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ lib/show_mem.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-tcp_kmem-check-for-cg_proto-in-sock_update_memcg mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-tcp_kmem-check-for-cg_proto-in-sock_update_memcg
-+++ a/mm/memcontrol.c
-@@ -315,8 +315,7 @@ void sock_update_memcg(struct sock *sk)
- 		rcu_read_lock();
- 		memcg = mem_cgroup_from_task(current);
- 		cg_proto = sk->sk_prot->proto_cgroup(memcg);
--		if (!mem_cgroup_is_root(memcg) &&
--		    memcg_proto_active(cg_proto) &&
-+		if (cg_proto && memcg_proto_active(cg_proto) &&
- 		    css_tryget_online(&memcg->css)) {
- 			sk->sk_cgrp = cg_proto;
- 		}
+diff -puN lib/show_mem.c~lib-show_memc-correct-reserved-memory-calculation lib/show_mem.c
+--- a/lib/show_mem.c~lib-show_memc-correct-reserved-memory-calculation
++++ a/lib/show_mem.c
+@@ -38,11 +38,9 @@ void show_mem(unsigned int filter)
+ 
+ 	printk("%lu pages RAM\n", total);
+ 	printk("%lu pages HighMem/MovableOnly\n", highmem);
++	printk("%lu pages reserved\n", reserved);
+ #ifdef CONFIG_CMA
+-	printk("%lu pages reserved\n", (reserved - totalcma_pages));
+ 	printk("%lu pages cma reserved\n", totalcma_pages);
+-#else
+-	printk("%lu pages reserved\n", reserved);
+ #endif
+ #ifdef CONFIG_QUICKLIST
+ 	printk("%lu pages in pagetable cache\n",
 _
 
-Patches currently in -mm which might be from mhocko@suse.cz are
+Patches currently in -mm which might be from vishnu.ps@samsung.com are
 
 
