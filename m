@@ -1,88 +1,213 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- zsmalloc-partial-page-ordering-within-a-fullness_list.patch removed from
- -mm tree
-Date: Wed, 09 Sep 2015 12:54:07 -0700
-Message-ID: <55f08e5f.ZG4nDYx+j+R1JbCE%akpm@linux-foundation.org>
+Subject: [merged] mm-swap-zswap-maybe_preload-refactoring.patch removed
+ from -mm tree
+Date: Wed, 09 Sep 2015 12:54:19 -0700
+Message-ID: <55f08e6b.8qibtHc6wLe08aRB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41464 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41495 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755307AbbIITyI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:54:08 -0400
+	with ESMTP id S1755401AbbIITyU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:54:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: 0x7f454c46@gmail.com, axboe@fb.com, dh.herrmann@gmail.com, hannes@cmpxchg.org, hch@lst.de, hughd@google.com, mhocko@suse.cz, minchan@kernel.org, sjennings@variantweb.net, tj@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: partial page ordering within a fullness_list
+     Subject: mm: swap: zswap: maybe_preload & refactoring
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-partial-page-ordering-within-a-fullness_list.patch
+     mm-swap-zswap-maybe_preload-refactoring.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zsmalloc: partial page ordering within a fullness_list
+From: Dmitry Safonov <0x7f454c46@gmail.com>
+Subject: mm: swap: zswap: maybe_preload & refactoring
 
-We want to see more ZS_FULL pages and less ZS_ALMOST_{FULL, EMPTY} pages. 
-Put a page with higher ->inuse count first within its ->fullness_list,
-which will give us better chances to fill up this page with new objects
-(find_get_zspage() return ->fullness_list head for new object allocation),
-so some zspages will become ZS_ALMOST_FULL/ZS_FULL quicker.
+zswap_get_swap_cache_page and read_swap_cache_async have pretty much the
+same code with only significant difference in return value and usage of
+swap_readpage.
 
-It performs a trivial and cheap ->inuse compare which does not slow down
-zsmalloc and in the worst case keeps the list pages in no particular
-order.
+I a helper __read_swap_cache_async() with the common code.  Behavior
+change: now zswap_get_swap_cache_page will use radix_tree_maybe_preload
+instead radix_tree_preload.  Looks like, this wasn't changed only by the
+reason of code duplication.
 
-A more expensive solution could sort fullness_list by ->inuse count.
-
-[minchan@kernel.org: code adjustments]
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Signed-off-by: Dmitry Safonov <0x7f454c46@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Minchan Kim <minchan@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: David Herrmann <dh.herrmann@gmail.com>
+Cc: Seth Jennings <sjennings@variantweb.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ include/linux/swap.h |    3 +
+ mm/swap_state.c      |   37 ++++++++++++++------
+ mm/zswap.c           |   73 +++--------------------------------------
+ 3 files changed, 35 insertions(+), 78 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-partial-page-ordering-within-a-fullness_list mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-partial-page-ordering-within-a-fullness_list
-+++ a/mm/zsmalloc.c
-@@ -643,13 +643,22 @@ static void insert_zspage(struct page *p
- 	if (fullness >= _ZS_NR_FULLNESS_GROUPS)
- 		return;
+diff -puN include/linux/swap.h~mm-swap-zswap-maybe_preload-refactoring include/linux/swap.h
+--- a/include/linux/swap.h~mm-swap-zswap-maybe_preload-refactoring
++++ a/include/linux/swap.h
+@@ -406,6 +406,9 @@ extern void free_pages_and_swap_cache(st
+ extern struct page *lookup_swap_cache(swp_entry_t);
+ extern struct page *read_swap_cache_async(swp_entry_t, gfp_t,
+ 			struct vm_area_struct *vma, unsigned long addr);
++extern struct page *__read_swap_cache_async(swp_entry_t, gfp_t,
++			struct vm_area_struct *vma, unsigned long addr,
++			bool *new_page_allocated);
+ extern struct page *swapin_readahead(swp_entry_t, gfp_t,
+ 			struct vm_area_struct *vma, unsigned long addr);
  
--	head = &class->fullness_list[fullness];
--	if (*head)
--		list_add_tail(&page->lru, &(*head)->lru);
--
--	*head = page;
- 	zs_stat_inc(class, fullness == ZS_ALMOST_EMPTY ?
- 			CLASS_ALMOST_EMPTY : CLASS_ALMOST_FULL, 1);
-+
-+	head = &class->fullness_list[fullness];
-+	if (!*head) {
-+		*head = page;
-+		return;
-+	}
-+
-+	/*
-+	 * We want to see more ZS_FULL pages and less almost
-+	 * empty/full. Put pages with higher ->inuse first.
-+	 */
-+	list_add_tail(&page->lru, &(*head)->lru);
-+	if (page->inuse >= (*head)->inuse)
-+		*head = page;
+diff -puN mm/swap_state.c~mm-swap-zswap-maybe_preload-refactoring mm/swap_state.c
+--- a/mm/swap_state.c~mm-swap-zswap-maybe_preload-refactoring
++++ a/mm/swap_state.c
+@@ -288,17 +288,14 @@ struct page * lookup_swap_cache(swp_entr
+ 	return page;
  }
  
- /*
-_
-
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
-
-
+-/* 
+- * Locate a page of swap in physical memory, reserving swap cache space
+- * and reading the disk if it is not already cached.
+- * A failure return means that either the page allocation failed or that
+- * the swap entry is no longer in use.
+- */
+-struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
+-			struct vm_area_struct *vma, unsigned long addr)
++struct page *__read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
++			struct vm_area_struct *vma, unsigned long addr,
++			bool *new_page_allocated)
+ {
+ 	struct page *found_page, *new_page = NULL;
++	struct address_space *swapper_space = swap_address_space(entry);
+ 	int err;
++	*new_page_allocated = false;
+ 
+ 	do {
+ 		/*
+@@ -306,8 +303,7 @@ struct page *read_swap_cache_async(swp_e
+ 		 * called after lookup_swap_cache() failed, re-calling
+ 		 * that would confuse statistics.
+ 		 */
+-		found_page = find_get_page(swap_address_space(entry),
+-					entry.val);
++		found_page = find_get_page(swapper_space, entry.val);
+ 		if (found_page)
+ 			break;
+ 
+@@ -366,7 +362,7 @@ struct page *read_swap_cache_async(swp_e
+ 			 * Initiate read into locked page and return.
+ 			 */
+ 			lru_cache_add_anon(new_page);
+-			swap_readpage(new_page);
++			*new_page_allocated = true;
+ 			return new_page;
+ 		}
+ 		radix_tree_preload_end();
+@@ -384,6 +380,25 @@ struct page *read_swap_cache_async(swp_e
+ 	return found_page;
+ }
+ 
++/*
++ * Locate a page of swap in physical memory, reserving swap cache space
++ * and reading the disk if it is not already cached.
++ * A failure return means that either the page allocation failed or that
++ * the swap entry is no longer in use.
++ */
++struct page *read_swap_cache_async(swp_entry_t entry, gfp_t gfp_mask,
++			struct vm_area_struct *vma, unsigned long addr)
++{
++	bool page_was_allocated;
++	struct page *retpage = __read_swap_cache_async(entry, gfp_mask,
++			vma, addr, &page_was_allocated);
++
++	if (page_was_allocated)
++		swap_readpage(retpage);
++
++	return retpage;
++}
++
+ static unsigned long swapin_nr_pages(unsigned long offset)
+ {
+ 	static unsigned long prev_offset;
+diff -puN mm/zswap.c~mm-swap-zswap-maybe_preload-refactoring mm/zswap.c
+--- a/mm/zswap.c~mm-swap-zswap-maybe_preload-refactoring
++++ a/mm/zswap.c
+@@ -446,75 +446,14 @@ enum zswap_get_swap_ret {
+ static int zswap_get_swap_cache_page(swp_entry_t entry,
+ 				struct page **retpage)
+ {
+-	struct page *found_page, *new_page = NULL;
+-	struct address_space *swapper_space = swap_address_space(entry);
+-	int err;
++	bool page_was_allocated;
+ 
+-	*retpage = NULL;
+-	do {
+-		/*
+-		 * First check the swap cache.  Since this is normally
+-		 * called after lookup_swap_cache() failed, re-calling
+-		 * that would confuse statistics.
+-		 */
+-		found_page = find_get_page(swapper_space, entry.val);
+-		if (found_page)
+-			break;
+-
+-		/*
+-		 * Get a new page to read into from swap.
+-		 */
+-		if (!new_page) {
+-			new_page = alloc_page(GFP_KERNEL);
+-			if (!new_page)
+-				break; /* Out of memory */
+-		}
+-
+-		/*
+-		 * call radix_tree_preload() while we can wait.
+-		 */
+-		err = radix_tree_preload(GFP_KERNEL);
+-		if (err)
+-			break;
+-
+-		/*
+-		 * Swap entry may have been freed since our caller observed it.
+-		 */
+-		err = swapcache_prepare(entry);
+-		if (err == -EEXIST) { /* seems racy */
+-			radix_tree_preload_end();
+-			continue;
+-		}
+-		if (err) { /* swp entry is obsolete ? */
+-			radix_tree_preload_end();
+-			break;
+-		}
+-
+-		/* May fail (-ENOMEM) if radix-tree node allocation failed. */
+-		__set_page_locked(new_page);
+-		SetPageSwapBacked(new_page);
+-		err = __add_to_swap_cache(new_page, entry);
+-		if (likely(!err)) {
+-			radix_tree_preload_end();
+-			lru_cache_add_anon(new_page);
+-			*retpage = new_page;
+-			return ZSWAP_SWAPCACHE_NEW;
+-		}
+-		radix_tree_preload_end();
+-		ClearPageSwapBacked(new_page);
+-		__clear_page_locked(new_page);
+-		/*
+-		 * add_to_swap_cache() doesn't return -EEXIST, so we can safely
+-		 * clear SWAP_HAS_CACHE flag.
+-		 */
+-		swapcache_free(entry);
+-	} while (err != -ENOMEM);
