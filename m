@@ -1,261 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-show-proportional-swap-share-of-the-mapping.patch
- removed from -mm tree
-Date: Wed, 09 Sep 2015 12:44:07 -0700
-Message-ID: <55f08c07.41ZEoTNAldvbiJqn%akpm@linux-foundation.org>
+Subject: [merged] mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax.patch removed from -mm tree
+Date: Wed, 09 Sep 2015 12:43:37 -0700
+Message-ID: <55f08be9.uqzoTudep4Ah9xWf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38918 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38842 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754860AbbIIToI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:44:08 -0400
+	with ESMTP id S1754781AbbIITni (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:43:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, bongkyu.kim@lge.com, corbet@lwn.net, hughd@google.com, jmarchan@redhat.com, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: /proc/pid/smaps:: show proportional swap share of the mapping
+     Subject: mm: take i_mmap_lock in unmap_mapping_range() for DAX
 has been removed from the -mm tree.  Its filename was
-     mm-show-proportional-swap-share-of-the-mapping.patch
+     mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: /proc/pid/smaps:: show proportional swap share of the mapping
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: take i_mmap_lock in unmap_mapping_range() for DAX
 
-We want to know per-process workingset size for smart memory management on
-userland and we use swap(ex, zram) heavily to maximize memory efficiency
-so workingset includes swap as well as RSS.
+DAX is not so special: we need i_mmap_lock to protect mapping->i_mmap.
 
-On such system, if there are lots of shared anonymous pages, it's really
-hard to figure out exactly how many each process consumes memory(ie, rss +
-wap) if the system has lots of shared anonymous memory(e.g, android).
+__dax_pmd_fault() uses unmap_mapping_range() shoot out zero page from all
+mappings.  We need to drop i_mmap_lock there to avoid lock deadlock.
 
-This patch introduces SwapPss field on /proc/<pid>/smaps so we can get
-more exact workingset size per process.
+Re-aquiring the lock should be fine since we check i_size after the
+point.
 
-Bongkyu tested it. Result is below.
-
-1. 50M used swap
-SwapTotal: 461976 kB
-SwapFree: 411192 kB
-
-$ adb shell cat /proc/*/smaps | grep "SwapPss:" | awk '{sum += $2} END {print sum}';
-48236
-$ adb shell cat /proc/*/smaps | grep "Swap:" | awk '{sum += $2} END {print sum}';
-141184
-
-2. 240M used swap
-SwapTotal: 461976 kB
-SwapFree: 216808 kB
-
-$ adb shell cat /proc/*/smaps | grep "SwapPss:" | awk '{sum += $2} END {print sum}';
-230315
-$ adb shell cat /proc/*/smaps | grep "Swap:" | awk '{sum += $2} END {print sum}';
-1387744
-
-[akpm@linux-foundation.org: simplify kunmap_atomic() call]
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Bongkyu Kim <bongkyu.kim@lge.com>
-Tested-by: Bongkyu Kim <bongkyu.kim@lge.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Jerome Marchand <jmarchan@redhat.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   18 ++++++++---
- fs/proc/task_mmu.c                 |   18 ++++++++++-
- include/linux/swap.h               |    6 +++
- mm/swapfile.c                      |   42 +++++++++++++++++++++++++++
- 4 files changed, 77 insertions(+), 7 deletions(-)
+ fs/dax.c    |   35 +++++++++++++++++++----------------
+ mm/memory.c |   11 ++---------
+ 2 files changed, 21 insertions(+), 25 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-show-proportional-swap-share-of-the-mapping Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-show-proportional-swap-share-of-the-mapping
-+++ a/Documentation/filesystems/proc.txt
-@@ -424,6 +424,7 @@ Private_Dirty:         0 kB
- Referenced:          892 kB
- Anonymous:             0 kB
- Swap:                  0 kB
-+SwapPss:               0 kB
- KernelPageSize:        4 kB
- MMUPageSize:           4 kB
- Locked:              374 kB
-@@ -433,16 +434,23 @@ the first of these lines shows the same
- mapping in /proc/PID/maps.  The remaining lines show the size of the mapping
- (size), the amount of the mapping that is currently resident in RAM (RSS), the
- process' proportional share of this mapping (PSS), the number of clean and
--dirty private pages in the mapping.  Note that even a page which is part of a
--MAP_SHARED mapping, but has only a single pte mapped, i.e.  is currently used
--by only one process, is accounted as private and not as shared.  "Referenced"
--indicates the amount of memory currently marked as referenced or accessed.
-+dirty private pages in the mapping.
+diff -puN fs/dax.c~mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax fs/dax.c
+--- a/fs/dax.c~mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax
++++ a/fs/dax.c
+@@ -554,6 +554,25 @@ int __dax_pmd_fault(struct vm_area_struc
+ 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
+ 		goto fallback;
+ 
++	if (buffer_unwritten(&bh) || buffer_new(&bh)) {
++		int i;
++		for (i = 0; i < PTRS_PER_PMD; i++)
++			clear_page(kaddr + i * PAGE_SIZE);
++		count_vm_event(PGMAJFAULT);
++		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
++		result |= VM_FAULT_MAJOR;
++	}
 +
-+The "proportional set size" (PSS) of a process is the count of pages it has
-+in memory, where each page is divided by the number of processes sharing it.
-+So if a process has 1000 pages all to itself, and 1000 shared with one other
-+process, its PSS will be 1500.
-+Note that even a page which is part of a MAP_SHARED mapping, but has only
-+a single pte mapped, i.e.  is currently used by only one process, is accounted
-+as private and not as shared.
-+"Referenced" indicates the amount of memory currently marked as referenced or
-+accessed.
- "Anonymous" shows the amount of memory that does not belong to any file.  Even
- a mapping associated with a file may contain anonymous pages: when MAP_PRIVATE
- and a page is modified, the file page is replaced by a private anonymous copy.
- "Swap" shows how much would-be-anonymous memory is also used, but out on
- swap.
++	/*
++	 * If we allocated new storage, make sure no process has any
++	 * zero pages covering this hole
++	 */
++	if (buffer_new(&bh)) {
++		i_mmap_unlock_write(mapping);
++		unmap_mapping_range(mapping, pgoff << PAGE_SHIFT, PMD_SIZE, 0);
++		i_mmap_lock_write(mapping);
++	}
++
+ 	/*
+ 	 * If a truncate happened while we were allocating blocks, we may
+ 	 * leave blocks allocated to the file that are beyond EOF.  We can't
+@@ -568,13 +587,6 @@ int __dax_pmd_fault(struct vm_area_struc
+ 	if ((pgoff | PG_PMD_COLOUR) >= size)
+ 		goto fallback;
+ 
+-	/*
+-	 * If we allocated new storage, make sure no process has any
+-	 * zero pages covering this hole
+-	 */
+-	if (buffer_new(&bh))
+-		unmap_mapping_range(mapping, pgoff << PAGE_SHIFT, PMD_SIZE, 0);
 -
-+"SwapPss" shows proportional swap share of this mapping.
- "VmFlags" field deserves a separate description. This member represents the kernel
- flags associated with the particular virtual memory area in two letter encoded
- manner. The codes are the following:
-diff -puN fs/proc/task_mmu.c~mm-show-proportional-swap-share-of-the-mapping fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-show-proportional-swap-share-of-the-mapping
-+++ a/fs/proc/task_mmu.c
-@@ -446,6 +446,7 @@ struct mem_size_stats {
- 	unsigned long anonymous_thp;
- 	unsigned long swap;
- 	u64 pss;
-+	u64 swap_pss;
- };
+ 	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
+ 		spinlock_t *ptl;
+ 		pmd_t entry;
+@@ -605,15 +617,6 @@ int __dax_pmd_fault(struct vm_area_struc
+ 		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
+ 			goto fallback;
  
- static void smaps_account(struct mem_size_stats *mss, struct page *page,
-@@ -492,9 +493,20 @@ static void smaps_pte_entry(pte_t *pte,
- 	} else if (is_swap_pte(*pte)) {
- 		swp_entry_t swpent = pte_to_swp_entry(*pte);
- 
--		if (!non_swap_entry(swpent))
-+		if (!non_swap_entry(swpent)) {
-+			int mapcount;
-+
- 			mss->swap += PAGE_SIZE;
--		else if (is_migration_entry(swpent))
-+			mapcount = swp_swapcount(swpent);
-+			if (mapcount >= 2) {
-+				u64 pss_delta = (u64)PAGE_SIZE << PSS_SHIFT;
-+
-+				do_div(pss_delta, mapcount);
-+				mss->swap_pss += pss_delta;
-+			} else {
-+				mss->swap_pss += (u64)PAGE_SIZE << PSS_SHIFT;
-+			}
-+		} else if (is_migration_entry(swpent))
- 			page = migration_entry_to_page(swpent);
+-		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
+-			int i;
+-			for (i = 0; i < PTRS_PER_PMD; i++)
+-				clear_page(kaddr + i * PAGE_SIZE);
+-			count_vm_event(PGMAJFAULT);
+-			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+-			result |= VM_FAULT_MAJOR;
+-		}
+-
+ 		result |= vmf_insert_pfn_pmd(vma, address, pmd, pfn, write);
  	}
  
-@@ -640,6 +652,7 @@ static int show_smap(struct seq_file *m,
- 		   "Anonymous:      %8lu kB\n"
- 		   "AnonHugePages:  %8lu kB\n"
- 		   "Swap:           %8lu kB\n"
-+		   "SwapPss:        %8lu kB\n"
- 		   "KernelPageSize: %8lu kB\n"
- 		   "MMUPageSize:    %8lu kB\n"
- 		   "Locked:         %8lu kB\n",
-@@ -654,6 +667,7 @@ static int show_smap(struct seq_file *m,
- 		   mss.anonymous >> 10,
- 		   mss.anonymous_thp >> 10,
- 		   mss.swap >> 10,
-+		   (unsigned long)(mss.swap_pss >> (10 + PSS_SHIFT)),
- 		   vma_kernel_pagesize(vma) >> 10,
- 		   vma_mmu_pagesize(vma) >> 10,
- 		   (vma->vm_flags & VM_LOCKED) ?
-diff -puN include/linux/swap.h~mm-show-proportional-swap-share-of-the-mapping include/linux/swap.h
---- a/include/linux/swap.h~mm-show-proportional-swap-share-of-the-mapping
-+++ a/include/linux/swap.h
-@@ -431,6 +431,7 @@ extern unsigned int count_swap_pages(int
- extern sector_t map_swap_page(struct page *, struct block_device **);
- extern sector_t swapdev_block(int, pgoff_t);
- extern int page_swapcount(struct page *);
-+extern int swp_swapcount(swp_entry_t entry);
- extern struct swap_info_struct *page_swap_info(struct page *);
- extern int reuse_swap_page(struct page *);
- extern int try_to_free_swap(struct page *);
-@@ -521,6 +522,11 @@ static inline int page_swapcount(struct
- {
- 	return 0;
+diff -puN mm/memory.c~mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax mm/memory.c
+--- a/mm/memory.c~mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax
++++ a/mm/memory.c
+@@ -2426,17 +2426,10 @@ void unmap_mapping_range(struct address_
+ 	if (details.last_index < details.first_index)
+ 		details.last_index = ULONG_MAX;
+ 
+-
+-	/*
+-	 * DAX already holds i_mmap_lock to serialise file truncate vs
+-	 * page fault and page fault vs page fault.
+-	 */
+-	if (!IS_DAX(mapping->host))
+-		i_mmap_lock_write(mapping);
++	i_mmap_lock_write(mapping);
+ 	if (unlikely(!RB_EMPTY_ROOT(&mapping->i_mmap)))
+ 		unmap_mapping_range_tree(&mapping->i_mmap, &details);
+-	if (!IS_DAX(mapping->host))
+-		i_mmap_unlock_write(mapping);
++	i_mmap_unlock_write(mapping);
  }
-+
-+static inline int swp_swapcount(swp_entry_t entry)
-+{
-+	return 0;
-+}
+ EXPORT_SYMBOL(unmap_mapping_range);
  
- #define reuse_swap_page(page)	(page_mapcount(page) == 1)
- 
-diff -puN mm/swapfile.c~mm-show-proportional-swap-share-of-the-mapping mm/swapfile.c
---- a/mm/swapfile.c~mm-show-proportional-swap-share-of-the-mapping
-+++ a/mm/swapfile.c
-@@ -875,6 +875,48 @@ int page_swapcount(struct page *page)
- }
- 
- /*
-+ * How many references to @entry are currently swapped out?
-+ * This considers COUNT_CONTINUED so it returns exact answer.
-+ */
-+int swp_swapcount(swp_entry_t entry)
-+{
-+	int count, tmp_count, n;
-+	struct swap_info_struct *p;
-+	struct page *page;
-+	pgoff_t offset;
-+	unsigned char *map;
-+
-+	p = swap_info_get(entry);
-+	if (!p)
-+		return 0;
-+
-+	count = swap_count(p->swap_map[swp_offset(entry)]);
-+	if (!(count & COUNT_CONTINUED))
-+		goto out;
-+
-+	count &= ~COUNT_CONTINUED;
-+	n = SWAP_MAP_MAX + 1;
-+
-+	offset = swp_offset(entry);
-+	page = vmalloc_to_page(p->swap_map + offset);
-+	offset &= ~PAGE_MASK;
-+	VM_BUG_ON(page_private(page) != SWP_CONTINUED);
-+
-+	do {
-+		page = list_entry(page->lru.next, struct page, lru);
-+		map = kmap_atomic(page);
-+		tmp_count = map[offset];
-+		kunmap_atomic(map);
-+
-+		count += (tmp_count & ~COUNT_CONTINUED) * n;
-+		n *= (SWAP_CONT_MAX + 1);
-+	} while (tmp_count & COUNT_CONTINUED);
-+out:
-+	spin_unlock(&p->lock);
-+	return count;
-+}
-+
-+/*
-  * We can write to an anon page without COW if there are no other references
-  * to it.  And as a side-effect, free up its swap: because the old content
-  * on disk will never be read, and seeking back there to write new content
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-x86-add-pmd_-for-thp.patch
-sparc-add-pmd_-for-thp.patch
-powerpc-add-pmd_-for-thp.patch
-arm-add-pmd_mkclean-for-thp.patch
-arm64-add-pmd_-for-thp.patch
-mm-support-madvisemadv_free.patch
-mm-support-madvisemadv_free-fix.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
-mm-free-swp_entry-in-madvise_free.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-mark-most-vm_operations_struct-const.patch
+mm-make-sure-all-file-vmas-have-vm_ops-set.patch
+mm-use-vma_is_anonymous-in-create_huge_pmd-and-wp_huge_pmd.patch
+mm-madvise-use-vma_is_anonymous-to-check-for-anon-vma.patch
 
