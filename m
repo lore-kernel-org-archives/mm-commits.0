@@ -1,90 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- selftests-userfaultfd-fix-compiler-warnings-on-32-bit.patch removed from
- -mm tree
-Date: Wed, 09 Sep 2015 12:42:38 -0700
-Message-ID: <55f08bae.FKY4kE+/eqh/FPhP%akpm@linux-foundation.org>
+Subject: [merged] mm-introduce-vma_is_anonymousvma-helper.patch removed
+ from -mm tree
+Date: Wed, 09 Sep 2015 12:42:40 -0700
+Message-ID: <55f08bb0.ZAdQ2Eo1UY2/pD4N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38711 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38717 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754534AbbIITmi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:42:38 -0400
+	with ESMTP id S1754534AbbIITml (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:42:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, aarcange@redhat.com, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, luto@kernel.org, torvalds@linux-foundation.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/userfaultfd: fix compiler warnings on 32-bit
+     Subject: mm: introduce vma_is_anonymous(vma) helper
 has been removed from the -mm tree.  Its filename was
-     selftests-userfaultfd-fix-compiler-warnings-on-32-bit.patch
+     mm-introduce-vma_is_anonymousvma-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: selftests/userfaultfd: fix compiler warnings on 32-bit
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: mm: introduce vma_is_anonymous(vma) helper
 
-On 32-bit:
+special_mapping_fault() is absolutely broken.  It seems it was always
+wrong, but this didn't matter until vdso/vvar started to use more than one
+page.
 
-    userfaultfd.c: In function 'locking_thread':
-    userfaultfd.c:152: warning: left shift count >= width of type
-    userfaultfd.c: In function 'uffd_poll_thread':
-    userfaultfd.c:295: warning: cast to pointer from integer of different size
-    userfaultfd.c: In function 'uffd_read_thread':
-    userfaultfd.c:332: warning: cast to pointer from integer of different size
+And after this change vma_is_anonymous() becomes really trivial, it simply
+checks vm_ops == NULL.  However, I do think the helper makes sense.  There
+are a lot of ->vm_ops != NULL checks, the helper makes the caller's code
+more understandable (self-documented) and this is more grep-friendly.
 
-Fix the shift warning by splitting the shift in two parts, and the
-integer/pointer warnigns by adding intermediate casts to "unsigned long".
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>
+This patch (of 3):
+
+Preparation.  Add the new simple helper, vma_is_anonymous(vma), and change
+handle_pte_fault() to use it.  It will have more users.
+
+The name is not accurate, say a hpet_mmap()'ed vma is not anonymous. 
+Perhaps it should be named vma_has_fault() instead.  But it matches the
+logic in mmap.c/memory.c (see next changes).  "True" just means that a
+page fault will use do_anonymous_page().
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Pavel Emelyanov <xemul@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/userfaultfd.c |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/linux/mm.h |    5 +++++
+ mm/memory.c        |    8 ++++----
+ 2 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN tools/testing/selftests/vm/userfaultfd.c~selftests-userfaultfd-fix-compiler-warnings-on-32-bit tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~selftests-userfaultfd-fix-compiler-warnings-on-32-bit
-+++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -147,7 +147,8 @@ static void *locking_thread(void *arg)
- 			if (sizeof(page_nr) > sizeof(rand_nr)) {
- 				if (random_r(&rand, &rand_nr))
- 					fprintf(stderr, "random_r 2 error\n"), exit(1);
--				page_nr |= ((unsigned long) rand_nr) << 32;
-+				page_nr |= (((unsigned long) rand_nr) << 16) <<
-+					   16;
- 			}
- 		} else
- 			page_nr += 1;
-@@ -290,7 +291,8 @@ static void *uffd_poll_thread(void *arg)
- 				msg.event), exit(1);
- 		if (msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE)
- 			fprintf(stderr, "unexpected write fault\n"), exit(1);
--		offset = (char *)msg.arg.pagefault.address - area_dst;
-+		offset = (char *)(unsigned long)msg.arg.pagefault.address -
-+			 area_dst;
- 		offset &= ~(page_size-1);
- 		if (copy_page(offset))
- 			userfaults++;
-@@ -327,7 +329,8 @@ static void *uffd_read_thread(void *arg)
- 		if (bounces & BOUNCE_VERIFY &&
- 		    msg.arg.pagefault.flags & UFFD_PAGEFAULT_FLAG_WRITE)
- 			fprintf(stderr, "unexpected write fault\n"), exit(1);
--		offset = (char *)msg.arg.pagefault.address - area_dst;
-+		offset = (char *)(unsigned long)msg.arg.pagefault.address -
-+			 area_dst;
- 		offset &= ~(page_size-1);
- 		if (copy_page(offset))
- 			(*this_cpu_userfaults)++;
-_
-
-Patches currently in -mm which might be from geert@linux-m68k.org are
-
-
+diff -puN include/linux/mm.h~mm-introduce-vma_is_anonymousvma-helper include/linux/mm.h
+--- a/include/linux/mm.h~mm-introduce-vma_is_anonymousvma-helper
++++ a/include/linux/mm.h
+@@ -1260,6 +1260,11 @@ static inline int vma_growsdown(struct v
+ 	return vma && (vma->vm_end == addr) && (vma->vm_flags & VM_GROWSDOWN);
+ }
+ 
++static inline bool vma_is_anonymous(struct vm_area_struct *vma)
++{
++	return !vma->vm_ops;
++}
++
+ static inline int stack_guard_page_start(struct vm_area_struct *vma,
+ 					     unsigned long addr)
+ {
+diff -puN mm/memory.c~mm-introduce-vma_is_anonymousvma-helper mm/memory.c
+--- a/mm/memory.c~mm-introduce-vma_is_anonymousvma-helper
++++ a/mm/memory.c
+@@ -3267,12 +3267,12 @@ static int handle_pte_fault(struct mm_st
+ 	barrier();
+ 	if (!pte_present(entry)) {
+ 		if (pte_none(entry)) {
+-			if (vma->vm_ops)
++			if (vma_is_anonymous(vma))
++				return do_anonymous_page(mm, vma, address,
++							 pte, pmd, flags);
++			else
+ 				return do_fault(mm, vma, address, pte, pmd,
+ 						flags, entry);
