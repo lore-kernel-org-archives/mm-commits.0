@@ -1,63 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mempolicy-get-rid-of-duplicated-check-for-vmavm_pfnmap-in-queue_pages_range.patch removed from -mm tree
-Date: Wed, 09 Sep 2015 12:46:41 -0700
-Message-ID: <55f08ca1.Q90AEfZ2p2uv9Eo4%akpm@linux-foundation.org>
+Subject: [merged] memblock-make-memblock_overlaps_region-return-bool.patch removed from -mm tree
+Date: Wed, 09 Sep 2015 12:46:35 -0700
+Message-ID: <55f08c9b.U4dL1l83x1w0M6mp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39290 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39227 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753141AbbIITqm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:46:42 -0400
+	with ESMTP id S1754449AbbIITqg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:46:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aris@redhat.com, aarcange@redhat.com, benh@kernel.crashing.org, dave.hansen@intel.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, xemul@parallels.com, mm-commits@vger.kernel.org
+To: tangchen@cn.fujitsu.com, bhe@redhat.com, fabf@skynet.be, isimatu.yasuaki@jp.fujitsu.com, kuleshovmail@gmail.com, lcapitulino@redhat.com, qiuxishi@huawei.com, tglx@linutronix.de, tj@kernel.org, vladimir.murzin@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy.c: get rid of duplicated check for vma(VM_PFNMAP) in queue_pages_range()
+     Subject: mm/memblock.c: make memblock_overlaps_region() return bool.
 has been removed from the -mm tree.  Its filename was
-     mempolicy-get-rid-of-duplicated-check-for-vmavm_pfnmap-in-queue_pages_range.patch
+     memblock-make-memblock_overlaps_region-return-bool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Aristeu Rozanski <aris@redhat.com>
-Subject: mm/mempolicy.c: get rid of duplicated check for vma(VM_PFNMAP) in queue_pages_range()
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: mm/memblock.c: make memblock_overlaps_region() return bool.
 
-This check was introduced as part of
-   6f4576e3687 ("mempolicy: apply page table walker on queue_pages_range()")
-	
-which got duplicated by
-   48684a65b4e ("mm: pagewalk: fix misbehavior of walk_page_range for vma(VM_PFNMAP)")
+memblock_overlaps_region() checks if the given memblock region intersects
+a region in memblock.  If so, it returns the index of the intersected
+region.
 
-by reintroducing it earlier on queue_page_test_walk()
+But its only caller is memblock_is_region_reserved(), and it returns 0 if
+false, non-zero if true.
 
-Signed-off-by: Aristeu Rozanski <aris@redhat.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Acked-by: David Rientjes <rientjes@google.com>
+Both of these should return bool.
+
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Luiz Capitulino <lcapitulino@redhat.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Vladimir Murzin <vladimir.murzin@arm.com>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: Alexander Kuleshov <kuleshovmail@gmail.com>
+Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/memblock.h |    2 +-
+ mm/memblock.c            |   10 +++++-----
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/mempolicy.c~mempolicy-get-rid-of-duplicated-check-for-vmavm_pfnmap-in-queue_pages_range mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-get-rid-of-duplicated-check-for-vmavm_pfnmap-in-queue_pages_range
-+++ a/mm/mempolicy.c
-@@ -608,9 +608,6 @@ static int queue_pages_test_walk(unsigne
+diff -puN include/linux/memblock.h~memblock-make-memblock_overlaps_region-return-bool include/linux/memblock.h
+--- a/include/linux/memblock.h~memblock-make-memblock_overlaps_region-return-bool
++++ a/include/linux/memblock.h
+@@ -323,7 +323,7 @@ void memblock_enforce_memory_limit(phys_
+ int memblock_is_memory(phys_addr_t addr);
+ int memblock_is_region_memory(phys_addr_t base, phys_addr_t size);
+ int memblock_is_reserved(phys_addr_t addr);
+-int memblock_is_region_reserved(phys_addr_t base, phys_addr_t size);
++bool memblock_is_region_reserved(phys_addr_t base, phys_addr_t size);
  
- 	qp->prev = vma;
+ extern void __memblock_dump_all(void);
  
--	if (vma->vm_flags & VM_PFNMAP)
--		return 1;
+diff -puN mm/memblock.c~memblock-make-memblock_overlaps_region-return-bool mm/memblock.c
+--- a/mm/memblock.c~memblock-make-memblock_overlaps_region-return-bool
++++ a/mm/memblock.c
+@@ -91,7 +91,7 @@ static unsigned long __init_memblock mem
+ 	return ((base1 < (base2 + size2)) && (base2 < (base1 + size1)));
+ }
+ 
+-static long __init_memblock memblock_overlaps_region(struct memblock_type *type,
++static bool __init_memblock memblock_overlaps_region(struct memblock_type *type,
+ 					phys_addr_t base, phys_addr_t size)
+ {
+ 	unsigned long i;
+@@ -103,7 +103,7 @@ static long __init_memblock memblock_ove
+ 			break;
+ 	}
+ 
+-	return (i < type->cnt) ? i : -1;
++	return i < type->cnt;
+ }
+ 
+ /*
+@@ -1566,12 +1566,12 @@ int __init_memblock memblock_is_region_m
+  * Check if the region [@base, @base+@size) intersects a reserved memory block.
+  *
+  * RETURNS:
+- * 0 if false, non-zero if true
++ * True if they intersect, false if not.
+  */
+-int __init_memblock memblock_is_region_reserved(phys_addr_t base, phys_addr_t size)
++bool __init_memblock memblock_is_region_reserved(phys_addr_t base, phys_addr_t size)
+ {
+ 	memblock_cap_size(base, &size);
+-	return memblock_overlaps_region(&memblock.reserved, base, size) >= 0;
++	return memblock_overlaps_region(&memblock.reserved, base, size);
+ }
+ 
+ void __init_memblock memblock_trim_memory(phys_addr_t align)
+_
+
+Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+
+
