@@ -1,74 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-export-various-functions-for-the-benefit-of-dax.patch removed from -mm tree
-Date: Wed, 09 Sep 2015 12:43:01 -0700
-Message-ID: <55f08bc5.L7a04/p46428pcr7%akpm@linux-foundation.org>
+Subject: [merged] ext4-use-ext4_get_block_write-for-dax.patch removed from -mm tree
+Date: Wed, 09 Sep 2015 12:43:15 -0700
+Message-ID: <55f08bd3.t5H1aHCg+KuwCKLH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38805 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754534AbbIITnC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:43:02 -0400
+	with ESMTP id S1753382AbbIITnP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:43:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@linux.intel.com, dhillf@gmail.com, jack@suse.cz, kirill.shutemov@linux.intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, andy.rudoff@intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: export various functions for the benefit of DAX
+     Subject: ext4: use ext4_get_block_write() for DAX
 has been removed from the -mm tree.  Its filename was
-     mm-export-various-functions-for-the-benefit-of-dax.patch
+     ext4-use-ext4_get_block_write-for-dax.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: mm: export various functions for the benefit of DAX
+Subject: ext4: use ext4_get_block_write() for DAX
 
-To use the huge zero page in DAX, we need these functions exported.
+DAX relies on the get_block function either zeroing newly allocated blocks
+before they're findable by subsequent calls to get_block, or marking newly
+allocated blocks as unwritten.  ext4_get_block() cannot create unwritten
+extents, but ext4_get_block_write() can.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Hillf Danton <dhillf@gmail.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Reported-by: Andy Rudoff <andy.rudoff@intel.com>
 Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |   10 ++++++++++
- mm/huge_memory.c        |    7 +------
- 2 files changed, 11 insertions(+), 6 deletions(-)
+ fs/ext4/file.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/huge_mm.h~mm-export-various-functions-for-the-benefit-of-dax include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-export-various-functions-for-the-benefit-of-dax
-+++ a/include/linux/huge_mm.h
-@@ -155,6 +155,16 @@ static inline bool is_huge_zero_page(str
- 	return ACCESS_ONCE(huge_zero_page) == page;
+diff -puN fs/ext4/file.c~ext4-use-ext4_get_block_write-for-dax fs/ext4/file.c
+--- a/fs/ext4/file.c~ext4-use-ext4_get_block_write-for-dax
++++ a/fs/ext4/file.c
+@@ -196,7 +196,7 @@ out:
+ static void ext4_end_io_unwritten(struct buffer_head *bh, int uptodate)
+ {
+ 	struct inode *inode = bh->b_assoc_map->host;
+-	/* XXX: breaks on 32-bit > 16GB. Is that even supported? */
++	/* XXX: breaks on 32-bit > 16TB. Is that even supported? */
+ 	loff_t offset = (loff_t)(uintptr_t)bh->b_private << inode->i_blkbits;
+ 	int err;
+ 	if (!uptodate)
+@@ -207,8 +207,7 @@ static void ext4_end_io_unwritten(struct
+ 
+ static int ext4_dax_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+-	return dax_fault(vma, vmf, ext4_get_block, ext4_end_io_unwritten);
+-					/* Is this the right get_block? */
++	return dax_fault(vma, vmf, ext4_get_block_write, ext4_end_io_unwritten);
  }
  
-+static inline bool is_huge_zero_pmd(pmd_t pmd)
-+{
-+	return is_huge_zero_page(pmd_page(pmd));
-+}
-+
-+struct page *get_huge_zero_page(void);
-+bool set_huge_zero_page(pgtable_t pgtable, struct mm_struct *mm,
-+		struct vm_area_struct *vma, unsigned long haddr,
-+		pmd_t *pmd, struct page *zero_page);
-+
- #else /* CONFIG_TRANSPARENT_HUGEPAGE */
- #define HPAGE_PMD_SHIFT ({ BUILD_BUG(); 0; })
- #define HPAGE_PMD_MASK ({ BUILD_BUG(); 0; })
-diff -puN mm/huge_memory.c~mm-export-various-functions-for-the-benefit-of-dax mm/huge_memory.c
---- a/mm/huge_memory.c~mm-export-various-functions-for-the-benefit-of-dax
-+++ a/mm/huge_memory.c
-@@ -173,12 +173,7 @@ fail:
- static atomic_t huge_zero_refcount;
- struct page *huge_zero_page __read_mostly;
+ static int ext4_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+@@ -220,7 +219,8 @@ static int ext4_dax_pmd_fault(struct vm_
  
--static inline bool is_huge_zero_pmd(pmd_t pmd)
--{
--	return is_huge_zero_page(pmd_page(pmd));
--}
+ static int ext4_dax_mkwrite(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+-	return dax_mkwrite(vma, vmf, ext4_get_block, ext4_end_io_unwritten);
++	return dax_mkwrite(vma, vmf, ext4_get_block_write,
++				ext4_end_io_unwritten);
+ }
+ 
+ static const struct vm_operations_struct ext4_dax_vm_ops = {
+_
+
+Patches currently in -mm which might be from willy@linux.intel.com are
+
+
