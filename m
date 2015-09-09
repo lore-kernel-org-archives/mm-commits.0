@@ -1,64 +1,55 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add.patch
- removed from -mm tree
-Date: Wed, 09 Sep 2015 12:46:05 -0700
-Message-ID: <55f08c7d.sg+mCCX+fI6+BzCj%akpm@linux-foundation.org>
+ hugetlbfs-truncate_hugepages-takes-a-range-of-pages.patch removed from -mm
+ tree
+Date: Wed, 09 Sep 2015 12:46:17 -0700
+Message-ID: <55f08c89.1sowODPBmF0ptNoC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39106 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39151 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754449AbbIITqG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:46:06 -0400
+	with ESMTP id S1752102AbbIITqS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:46:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mike.kravetz@oracle.com, aneesh.kumar@linux.vnet.ibm.com, dave.hansen@linux.intel.com, dave@stgolabs.net, hch@infradead.org, hillf.zj@alibaba-inc.com, hughd@google.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: add cache of descriptors to resv_map for region_add
+     Subject: hugetlbfs: truncate_hugepages() takes a range of pages
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add.patch
+     hugetlbfs-truncate_hugepages-takes-a-range-of-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlb: add cache of descriptors to resv_map for region_add
+Subject: hugetlbfs: truncate_hugepages() takes a range of pages
 
-hugetlbfs is used today by applications that want a high degree of control
-over huge page usage.  Often, large hugetlbfs files are used to map a
-large number huge pages into the application processes.  The applications
-know when page ranges within these large files will no longer be used, and
-ideally would like to release them back to the subpool or global pools for
-other uses.  The fallocate() system call provides an interface for
-preallocation and hole punching within files.  This patch set adds
-fallocate functionality to hugetlbfs.
+Modify truncate_hugepages() to take a range of pages (start, end) instead
+of simply start.  If an end value of LLONG_MAX is passed, the current
+"truncate" functionality is maintained.  Existing callers are modified to
+pass LLONG_MAX as end of range.  By keying off end == LLONG_MAX, the
+routine behaves differently for truncate and hole punch.  Page removal is
+now synchronized with page allocation via faults by using the fault mutex
+table.  The hole punch case can experience the rare region_del error and
+must handle accordingly.
 
+Add the routine hugetlb_fix_reserve_counts to fix up reserve counts in the
+case where region_del returns an error.
 
+Since the routine handles more than just the truncate case, it is renamed
+to remove_inode_hugepages().  To be consistent, the routine
+truncate_huge_page() is renamed remove_huge_page().
 
+Downstream of remove_inode_hugepages(), the routine
+hugetlb_unreserve_pages() is also modified to take a range of pages. 
+hugetlb_unreserve_pages is modified to detect an error from region_del and
+pass it back to the caller.
 
-fallocate hole punch will want to remove a specific range of pages.  When
-pages are removed, their associated entries in the region/reserve map will
-also be removed.  This will break an assumption in the
-region_chg/region_add calling sequence.  If a new region descriptor must
-be allocated, it is done as part of the region_chg processing.  In this
-way, region_add can not fail because it does not need to attempt an
-allocation.
-
-To prepare for fallocate hole punch, create a "cache" of descriptors that
-can be used by region_add if necessary.  region_chg will ensure there are
-sufficient entries in the cache.  It will be necessary to track the number
-of in progress add operations to know a sufficient number of descriptors
-reside in the cache.  A new routine region_abort is added to adjust this
-in progress count when add operations are aborted.  vma_abort_reservation
-is also added for callers creating reservations with
-vma_needs_reservation/vma_commit_reservation.
-
-[akpm@linux-foundation.org: fix typo in comment, use more cols]
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
@@ -72,354 +63,253 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    3 
- mm/hugetlb.c            |  174 +++++++++++++++++++++++++++++++++-----
- 2 files changed, 155 insertions(+), 22 deletions(-)
+ fs/hugetlbfs/inode.c    |   98 ++++++++++++++++++++++++++++++++++----
+ include/linux/hugetlb.h |    4 +
+ mm/hugetlb.c            |   40 ++++++++++++++-
+ 3 files changed, 128 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/hugetlb.h~mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add
-+++ a/include/linux/hugetlb.h
-@@ -35,6 +35,9 @@ struct resv_map {
- 	struct kref refs;
- 	spinlock_t lock;
- 	struct list_head regions;
-+	long adds_in_progress;
-+	struct list_head region_cache;
-+	long region_cache_count;
- };
- extern struct resv_map *resv_map_alloc(void);
- void resv_map_release(struct kref *ref);
-diff -puN mm/hugetlb.c~mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-add-cache-of-descriptors-to-resv_map-for-region_add
-+++ a/mm/hugetlb.c
-@@ -240,11 +240,14 @@ struct file_region {
+diff -puN fs/hugetlbfs/inode.c~hugetlbfs-truncate_hugepages-takes-a-range-of-pages fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~hugetlbfs-truncate_hugepages-takes-a-range-of-pages
++++ a/fs/hugetlbfs/inode.c
+@@ -293,26 +293,61 @@ static int hugetlbfs_write_end(struct fi
+ 	return -EINVAL;
+ }
  
- /*
-  * Add the huge page range represented by [f, t) to the reserve
-- * map.  Existing regions will be expanded to accommodate the
-- * specified range.  We know only existing regions need to be
-- * expanded, because region_add is only called after region_chg
-- * with the same range.  If a new file_region structure must
-- * be allocated, it is done in region_chg.
-+ * map.  In the normal case, existing regions will be expanded
-+ * to accommodate the specified range.  Sufficient regions should
-+ * exist for expansion due to the previous call to region_chg
-+ * with the same range.  However, it is possible that region_del
-+ * could have been called after region_chg and modifed the map
-+ * in such a way that no region exists to be expanded.  In this
-+ * case, pull a region descriptor from the cache associated with
-+ * the map and use that for the new range.
-  *
-  * Return the number of new huge pages added to the map.  This
-  * number is greater than or equal to zero.
-@@ -261,6 +264,28 @@ static long region_add(struct resv_map *
- 		if (f <= rg->to)
- 			break;
- 
-+	/*
-+	 * If no region exists which can be expanded to include the
-+	 * specified range, the list must have been modified by an
-+	 * interleving call to region_del().  Pull a region descriptor
-+	 * from the cache and use it for this range.
-+	 */
-+	if (&rg->link == head || t < rg->from) {
-+		VM_BUG_ON(resv->region_cache_count <= 0);
-+
-+		resv->region_cache_count--;
-+		nrg = list_first_entry(&resv->region_cache, struct file_region,
-+					link);
-+		list_del(&nrg->link);
-+
-+		nrg->from = f;
-+		nrg->to = t;
-+		list_add(&nrg->link, rg->link.prev);
-+
-+		add += t - f;
-+		goto out_locked;
-+	}
-+
- 	/* Round our left edge to the current segment if it encloses us. */
- 	if (f > rg->from)
- 		f = rg->from;
-@@ -294,6 +319,8 @@ static long region_add(struct resv_map *
- 	add += t - nrg->to;		/* Added to end of region */
- 	nrg->to = t;
- 
-+out_locked:
-+	resv->adds_in_progress--;
- 	spin_unlock(&resv->lock);
- 	VM_BUG_ON(add < 0);
- 	return add;
-@@ -312,11 +339,14 @@ static long region_add(struct resv_map *
-  * so that the subsequent region_add call will have all the
-  * regions it needs and will not fail.
-  *
-- * Returns the number of huge pages that need to be added
-- * to the existing reservation map for the range [f, t).
-- * This number is greater or equal to zero.  -ENOMEM is
-- * returned if a new file_region structure is needed and can
-- * not be allocated.
-+ * Upon entry, region_chg will also examine the cache of region descriptors
-+ * associated with the map.  If there are not enough descriptors cached, one
-+ * will be allocated for the in progress add operation.
-+ *
-+ * Returns the number of huge pages that need to be added to the existing
-+ * reservation map for the range [f, t).  This number is greater or equal to
-+ * zero.  -ENOMEM is returned if a new file_region structure or cache entry
-+ * is needed and can not be allocated.
-  */
- static long region_chg(struct resv_map *resv, long f, long t)
+-static void truncate_huge_page(struct page *page)
++static void remove_huge_page(struct page *page)
  {
-@@ -326,6 +356,31 @@ static long region_chg(struct resv_map *
+ 	ClearPageDirty(page);
+ 	ClearPageUptodate(page);
+ 	delete_from_page_cache(page);
+ }
  
- retry:
- 	spin_lock(&resv->lock);
-+retry_locked:
-+	resv->adds_in_progress++;
+-static void truncate_hugepages(struct inode *inode, loff_t lstart)
 +
-+	/*
-+	 * Check for sufficient descriptors in the cache to accommodate
-+	 * the number of in progress add operations.
-+	 */
-+	if (resv->adds_in_progress > resv->region_cache_count) {
-+		struct file_region *trg;
++/*
++ * remove_inode_hugepages handles two distinct cases: truncation and hole
++ * punch.  There are subtle differences in operation for each case.
 +
-+		VM_BUG_ON(resv->adds_in_progress - resv->region_cache_count > 1);
-+		/* Must drop lock to allocate a new descriptor. */
-+		resv->adds_in_progress--;
-+		spin_unlock(&resv->lock);
++ * truncation is indicated by end of range being LLONG_MAX
++ *	In this case, we first scan the range and release found pages.
++ *	After releasing pages, hugetlb_unreserve_pages cleans up region/reserv
++ *	maps and global counts.
++ * hole punch is indicated if end is not LLONG_MAX
++ *	In the hole punch case we scan the range and release found pages.
++ *	Only when releasing a page is the associated region/reserv map
++ *	deleted.  The region/reserv map for ranges without associated
++ *	pages are not modified.
++ * Note: If the passed end of range value is beyond the end of file, but
++ * not LLONG_MAX this routine still performs a hole punch operation.
++ */
++static void remove_inode_hugepages(struct inode *inode, loff_t lstart,
++				   loff_t lend)
+ {
+ 	struct hstate *h = hstate_inode(inode);
+ 	struct address_space *mapping = &inode->i_data;
+ 	const pgoff_t start = lstart >> huge_page_shift(h);
++	const pgoff_t end = lend >> huge_page_shift(h);
++	struct vm_area_struct pseudo_vma;
+ 	struct pagevec pvec;
+ 	pgoff_t next;
+ 	int i, freed = 0;
++	long lookup_nr = PAGEVEC_SIZE;
++	bool truncate_op = (lend == LLONG_MAX);
+ 
++	memset(&pseudo_vma, 0, sizeof(struct vm_area_struct));
++	pseudo_vma.vm_flags = (VM_HUGETLB | VM_MAYSHARE | VM_SHARED);
+ 	pagevec_init(&pvec, 0);
+ 	next = start;
+-	while (1) {
+-		if (!pagevec_lookup(&pvec, mapping, next, PAGEVEC_SIZE)) {
++	while (next < end) {
++		/*
++		 * Make sure to never grab more pages that we
++		 * might possibly need.
++		 */
++		if (end - next < lookup_nr)
++			lookup_nr = end - next;
 +
-+		trg = kmalloc(sizeof(*trg), GFP_KERNEL);
-+		if (!trg)
-+			return -ENOMEM;
++		/*
++		 * This pagevec_lookup() may return pages past 'end',
++		 * so we must check for page->index > end.
++		 */
++		if (!pagevec_lookup(&pvec, mapping, next, lookup_nr)) {
+ 			if (next == start)
+ 				break;
+ 			next = start;
+@@ -321,26 +356,69 @@ static void truncate_hugepages(struct in
+ 
+ 		for (i = 0; i < pagevec_count(&pvec); ++i) {
+ 			struct page *page = pvec.pages[i];
++			u32 hash;
 +
-+		spin_lock(&resv->lock);
-+		list_add(&trg->link, &resv->region_cache);
-+		resv->region_cache_count++;
-+		goto retry_locked;
-+	}
++			hash = hugetlb_fault_mutex_hash(h, current->mm,
++							&pseudo_vma,
++							mapping, next, 0);
++			mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ 
+ 			lock_page(page);
++			if (page->index >= end) {
++				unlock_page(page);
++				mutex_unlock(&hugetlb_fault_mutex_table[hash]);
++				next = end;	/* we are done */
++				break;
++			}
 +
- 	/* Locate the region we are before or in. */
- 	list_for_each_entry(rg, head, link)
- 		if (f <= rg->to)
-@@ -336,6 +391,7 @@ retry:
- 	 * size such that we can guarantee to record the reservation. */
- 	if (&rg->link == head || t < rg->from) {
- 		if (!nrg) {
-+			resv->adds_in_progress--;
- 			spin_unlock(&resv->lock);
- 			nrg = kmalloc(sizeof(*nrg), GFP_KERNEL);
- 			if (!nrg)
-@@ -385,6 +441,25 @@ out_nrg:
++			/*
++			 * If page is mapped, it was faulted in after being
++			 * unmapped.  Do nothing in this race case.  In the
++			 * normal case page is not mapped.
++			 */
++			if (!page_mapped(page)) {
++				bool rsv_on_error = !PagePrivate(page);
++				/*
++				 * We must free the huge page and remove
++				 * from page cache (remove_huge_page) BEFORE
++				 * removing the region/reserve map
++				 * (hugetlb_unreserve_pages).  In rare out
++				 * of memory conditions, removal of the
++				 * region/reserve map could fail.  Before
++				 * free'ing the page, note PagePrivate which
++				 * is used in case of error.
++				 */
++				remove_huge_page(page);
++				freed++;
++				if (!truncate_op) {
++					if (unlikely(hugetlb_unreserve_pages(
++							inode, next,
++							next + 1, 1)))
++						hugetlb_fix_reserve_counts(
++							inode, rsv_on_error);
++				}
++			}
++
+ 			if (page->index > next)
+ 				next = page->index;
++
+ 			++next;
+-			truncate_huge_page(page);
+ 			unlock_page(page);
+-			freed++;
++
++			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
+ 		}
+ 		huge_pagevec_release(&pvec);
+ 	}
+-	BUG_ON(!lstart && mapping->nrpages);
+-	hugetlb_unreserve_pages(inode, start, freed);
++
++	if (truncate_op)
++		(void)hugetlb_unreserve_pages(inode, start, LONG_MAX, freed);
+ }
+ 
+ static void hugetlbfs_evict_inode(struct inode *inode)
+ {
+ 	struct resv_map *resv_map;
+ 
+-	truncate_hugepages(inode, 0);
++	remove_inode_hugepages(inode, 0, LLONG_MAX);
+ 	resv_map = (struct resv_map *)inode->i_mapping->private_data;
+ 	/* root inode doesn't have the resv_map, so we should check it */
+ 	if (resv_map)
+@@ -397,7 +475,7 @@ static int hugetlb_vmtruncate(struct ino
+ 	if (!RB_EMPTY_ROOT(&mapping->i_mmap))
+ 		hugetlb_vmdelete_list(&mapping->i_mmap, pgoff, 0);
+ 	i_mmap_unlock_write(mapping);
+-	truncate_hugepages(inode, offset);
++	remove_inode_hugepages(inode, offset, LLONG_MAX);
+ 	return 0;
+ }
+ 
+diff -puN include/linux/hugetlb.h~hugetlbfs-truncate_hugepages-takes-a-range-of-pages include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlbfs-truncate_hugepages-takes-a-range-of-pages
++++ a/include/linux/hugetlb.h
+@@ -83,11 +83,13 @@ int hugetlb_fault(struct mm_struct *mm,
+ int hugetlb_reserve_pages(struct inode *inode, long from, long to,
+ 						struct vm_area_struct *vma,
+ 						vm_flags_t vm_flags);
+-void hugetlb_unreserve_pages(struct inode *inode, long offset, long freed);
++long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
++						long freed);
+ int dequeue_hwpoisoned_huge_page(struct page *page);
+ bool isolate_huge_page(struct page *page, struct list_head *list);
+ void putback_active_hugepage(struct page *page);
+ void free_huge_page(struct page *page);
++void hugetlb_fix_reserve_counts(struct inode *inode, bool restore_reserve);
+ extern struct mutex *hugetlb_fault_mutex_table;
+ u32 hugetlb_fault_mutex_hash(struct hstate *h, struct mm_struct *mm,
+ 				struct vm_area_struct *vma,
+diff -puN mm/hugetlb.c~hugetlbfs-truncate_hugepages-takes-a-range-of-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~hugetlbfs-truncate_hugepages-takes-a-range-of-pages
++++ a/mm/hugetlb.c
+@@ -547,6 +547,28 @@ retry:
  }
  
  /*
-+ * Abort the in progress add operation.  The adds_in_progress field
-+ * of the resv_map keeps track of the operations in progress between
-+ * calls to region_chg and region_add.  Operations are sometimes
-+ * aborted after the call to region_chg.  In such cases, region_abort
-+ * is called to decrement the adds_in_progress counter.
-+ *
-+ * NOTE: The range arguments [f, t) are not needed or used in this
-+ * routine.  They are kept to make reading the calling code easier as
-+ * arguments will match the associated region_chg call.
++ * A rare out of memory error was encountered which prevented removal of
++ * the reserve map region for a page.  The huge page itself was free'ed
++ * and removed from the page cache.  This routine will adjust the subpool
++ * usage count, and the global reserve count if needed.  By incrementing
++ * these counts, the reserve map entry which could not be deleted will
++ * appear as a "reserved" entry instead of simply dangling with incorrect
++ * counts.
 + */
-+static void region_abort(struct resv_map *resv, long f, long t)
++void hugetlb_fix_reserve_counts(struct inode *inode, bool restore_reserve)
 +{
-+	spin_lock(&resv->lock);
-+	VM_BUG_ON(!resv->region_cache_count);
-+	resv->adds_in_progress--;
-+	spin_unlock(&resv->lock);
++	struct hugepage_subpool *spool = subpool_inode(inode);
++	long rsv_adjust;
++
++	rsv_adjust = hugepage_subpool_get_pages(spool, 1);
++	if (restore_reserve && rsv_adjust) {
++		struct hstate *h = hstate_inode(inode);
++
++		hugetlb_acct_memory(h, 1);
++	}
 +}
 +
 +/*
-  * Truncate the reserve map at index 'end'.  Modify/truncate any
-  * region which contains end.  Delete any regions past end.
-  * Return the number of huge pages removed from the map.
-@@ -544,22 +619,44 @@ static void set_vma_private_data(struct
- struct resv_map *resv_map_alloc(void)
- {
- 	struct resv_map *resv_map = kmalloc(sizeof(*resv_map), GFP_KERNEL);
--	if (!resv_map)
-+	struct file_region *rg = kmalloc(sizeof(*rg), GFP_KERNEL);
-+
-+	if (!resv_map || !rg) {
-+		kfree(resv_map);
-+		kfree(rg);
- 		return NULL;
-+	}
- 
- 	kref_init(&resv_map->refs);
- 	spin_lock_init(&resv_map->lock);
- 	INIT_LIST_HEAD(&resv_map->regions);
- 
-+	resv_map->adds_in_progress = 0;
-+
-+	INIT_LIST_HEAD(&resv_map->region_cache);
-+	list_add(&rg->link, &resv_map->region_cache);
-+	resv_map->region_cache_count = 1;
-+
- 	return resv_map;
- }
- 
- void resv_map_release(struct kref *ref)
- {
- 	struct resv_map *resv_map = container_of(ref, struct resv_map, refs);
-+	struct list_head *head = &resv_map->region_cache;
-+	struct file_region *rg, *trg;
- 
- 	/* Clear out any active regions before we release the map. */
- 	region_truncate(resv_map, 0);
-+
-+	/* ... and any entries left in the cache */
-+	list_for_each_entry_safe(rg, trg, head, link) {
-+		list_del(&rg->link);
-+		kfree(rg);
-+	}
-+
-+	VM_BUG_ON(resv_map->adds_in_progress);
-+
- 	kfree(resv_map);
- }
- 
-@@ -1473,16 +1570,18 @@ static void return_unused_surplus_pages(
- 	}
- }
- 
-+
- /*
-- * vma_needs_reservation and vma_commit_reservation are used by the huge
-- * page allocation routines to manage reservations.
-+ * vma_needs_reservation, vma_commit_reservation and vma_abort_reservation
-+ * are used by the huge page allocation routines to manage reservations.
-  *
-  * vma_needs_reservation is called to determine if the huge page at addr
-  * within the vma has an associated reservation.  If a reservation is
-  * needed, the value 1 is returned.  The caller is then responsible for
-  * managing the global reservation and subpool usage counts.  After
-  * the huge page has been allocated, vma_commit_reservation is called
-- * to add the page to the reservation map.
-+ * to add the page to the reservation map.  If the reservation must be
-+ * aborted instead of committed, vma_abort_reservation is called.
-  *
-  * In the normal case, vma_commit_reservation returns the same value
-  * as the preceding vma_needs_reservation call.  The only time this
-@@ -1490,9 +1589,14 @@ static void return_unused_surplus_pages(
-  * is the responsibility of the caller to notice the difference and
-  * take appropriate action.
+  * Count and return the number of huge pages in the reserve map
+  * that intersect with the range [f, t).
   */
-+enum vma_resv_mode {
-+	VMA_NEEDS_RESV,
-+	VMA_COMMIT_RESV,
-+	VMA_ABORT_RESV,
-+};
- static long __vma_reservation_common(struct hstate *h,
- 				struct vm_area_struct *vma, unsigned long addr,
--				bool commit)
-+				enum vma_resv_mode mode)
- {
- 	struct resv_map *resv;
- 	pgoff_t idx;
-@@ -1503,10 +1607,20 @@ static long __vma_reservation_common(str
- 		return 1;
- 
- 	idx = vma_hugecache_offset(h, vma, addr);
--	if (commit)
--		ret = region_add(resv, idx, idx + 1);
--	else
-+	switch (mode) {
-+	case VMA_NEEDS_RESV:
- 		ret = region_chg(resv, idx, idx + 1);
-+		break;
-+	case VMA_COMMIT_RESV:
-+		ret = region_add(resv, idx, idx + 1);
-+		break;
-+	case VMA_ABORT_RESV:
-+		region_abort(resv, idx, idx + 1);
-+		ret = 0;
-+		break;
-+	default:
-+		BUG();
-+	}
- 
- 	if (vma->vm_flags & VM_MAYSHARE)
- 		return ret;
-@@ -1517,13 +1631,19 @@ static long __vma_reservation_common(str
- static long vma_needs_reservation(struct hstate *h,
- 			struct vm_area_struct *vma, unsigned long addr)
- {
--	return __vma_reservation_common(h, vma, addr, false);
-+	return __vma_reservation_common(h, vma, addr, VMA_NEEDS_RESV);
- }
- 
- static long vma_commit_reservation(struct hstate *h,
- 			struct vm_area_struct *vma, unsigned long addr)
- {
--	return __vma_reservation_common(h, vma, addr, true);
-+	return __vma_reservation_common(h, vma, addr, VMA_COMMIT_RESV);
-+}
-+
-+static void vma_abort_reservation(struct hstate *h,
-+			struct vm_area_struct *vma, unsigned long addr)
-+{
-+	(void)__vma_reservation_common(h, vma, addr, VMA_ABORT_RESV);
- }
- 
- static struct page *alloc_huge_page(struct vm_area_struct *vma,
-@@ -1549,8 +1669,10 @@ static struct page *alloc_huge_page(stru
- 	if (chg < 0)
- 		return ERR_PTR(-ENOMEM);
- 	if (chg || avoid_reserve)
--		if (hugepage_subpool_get_pages(spool, 1) < 0)
-+		if (hugepage_subpool_get_pages(spool, 1) < 0) {
-+			vma_abort_reservation(h, vma, addr);
- 			return ERR_PTR(-ENOSPC);
-+		}
- 
- 	ret = hugetlb_cgroup_charge_cgroup(idx, pages_per_huge_page(h), &h_cg);
- 	if (ret)
-@@ -1596,6 +1718,7 @@ out_uncharge_cgroup:
- out_subpool_put:
- 	if (chg || avoid_reserve)
- 		hugepage_subpool_put_pages(spool, 1);
-+	vma_abort_reservation(h, vma, addr);
- 	return ERR_PTR(-ENOSPC);
- }
- 
-@@ -3236,11 +3359,14 @@ retry:
- 	 * any allocations necessary to record that reservation occur outside
- 	 * the spinlock.
- 	 */
--	if ((flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED))
-+	if ((flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
- 		if (vma_needs_reservation(h, vma, address) < 0) {
- 			ret = VM_FAULT_OOM;
- 			goto backout_unlocked;
- 		}
-+		/* Just decrements count, does not deallocate */
-+		vma_abort_reservation(h, vma, address);
-+	}
- 
- 	ptl = huge_pte_lockptr(h, mm, ptep);
- 	spin_lock(ptl);
-@@ -3387,6 +3513,8 @@ int hugetlb_fault(struct mm_struct *mm,
- 			ret = VM_FAULT_OOM;
- 			goto out_mutex;
- 		}
-+		/* Just decrements count, does not deallocate */
-+		vma_abort_reservation(h, vma, address);
- 
- 		if (!(vma->vm_flags & VM_MAYSHARE))
- 			pagecache_page = hugetlbfs_pagecache_page(h,
-@@ -3726,6 +3854,8 @@ int hugetlb_reserve_pages(struct inode *
- 	}
- 	return 0;
- out_err:
-+	if (!vma || vma->vm_flags & VM_MAYSHARE)
-+		region_abort(resv_map, from, to);
- 	if (vma && is_vma_resv_set(vma, HPAGE_RESV_OWNER))
- 		kref_put(&resv_map->refs, resv_map_release);
+@@ -3909,7 +3931,8 @@ out_err:
  	return ret;
+ }
+ 
+-void hugetlb_unreserve_pages(struct inode *inode, long offset, long freed)
++long hugetlb_unreserve_pages(struct inode *inode, long start, long end,
++								long freed)
+ {
+ 	struct hstate *h = hstate_inode(inode);
+ 	struct resv_map *resv_map = inode_resv_map(inode);
+@@ -3917,8 +3940,17 @@ void hugetlb_unreserve_pages(struct inod
+ 	struct hugepage_subpool *spool = subpool_inode(inode);
+ 	long gbl_reserve;
+ 
+-	if (resv_map)
+-		chg = region_del(resv_map, offset, LONG_MAX);
++	if (resv_map) {
++		chg = region_del(resv_map, start, end);
++		/*
++		 * region_del() can fail in the rare case where a region
++		 * must be split and another region descriptor can not be
++		 * allocated.  If end == LONG_MAX, it will not fail.
++		 */
++		if (chg < 0)
++			return chg;
++	}
++
+ 	spin_lock(&inode->i_lock);
+ 	inode->i_blocks -= (blocks_per_huge_page(h) * freed);
+ 	spin_unlock(&inode->i_lock);
+@@ -3929,6 +3961,8 @@ void hugetlb_unreserve_pages(struct inod
+ 	 */
+ 	gbl_reserve = hugepage_subpool_put_pages(spool, (chg - freed));
+ 	hugetlb_acct_memory(h, -gbl_reserve);
++
++	return 0;
+ }
+ 
+ #ifdef CONFIG_ARCH_WANT_HUGE_PMD_SHARE
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
