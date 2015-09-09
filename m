@@ -1,171 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
- removed from -mm tree
-Date: Wed, 09 Sep 2015 12:54:05 -0700
-Message-ID: <55f08e5d.s/KBLgQ+F9TZ5TU6%akpm@linux-foundation.org>
+Subject: [merged] zram-unify-error-reporting.patch removed from -mm tree
+Date: Wed, 09 Sep 2015 12:54:17 -0700
+Message-ID: <55f08e69.1xANzRUybuToHVPd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41461 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41488 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754803AbbIITyG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:54:06 -0400
+	with ESMTP id S1755401AbbIITyR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:54:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: use shrinker to trigger auto-compaction
+     Subject: zram: unify error reporting
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-use-shrinker-to-trigger-auto-compaction.patch
+     zram-unify-error-reporting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zsmalloc: use shrinker to trigger auto-compaction
+Subject: zram: unify error reporting
 
-Perform automatic pool compaction by a shrinker when system is getting
-tight on memory.
+Make zram syslog error reporting more consistent. We have random
+error levels in some places. For example, critical errors like
+  "Error allocating memory for compressed page"
+and
+  "Unable to allocate temp memory"
+are reported as KERN_INFO messages.
 
-User-space has a very little knowledge regarding zsmalloc fragmentation
-and basically has no mechanism to tell whether compaction will result in
-any memory gain.  Another issue is that user space is not always aware of
-the fact that system is getting tight on memory.  Which leads to very
-uncomfortable scenarios when user space may start issuing compaction
-'randomly' or from crontab (for example).  Fragmentation is not always
-necessarily bad, allocated and unused objects, after all, may be filled
-with the data later, w/o the need of allocating a new zspage.  On the
-other hand, we obviously don't want to waste memory when the system needs
-it.
+a) Reassign error levels
 
-Compaction now has a relatively quick pool scan so we are able to estimate
-the number of pages that will be freed easily, which makes it possible to
-call this function from a shrinker->count_objects() callback.  We also
-abort compaction as soon as we detect that we can't free any pages any
-more, preventing wasteful objects migrations.
+Error messages that directly affect zram
+functionality -- pr_err():
+
+ Error allocating zram address table
+ Error creating memory pool
+ Decompression failed! err=%d, page=%u
+ Unable to allocate temp memory
+ Compression failed! err=%d
+ Error allocating memory for compressed page: %u, size=%zu
+ Cannot initialise %s compressing backend
+ Error allocating disk queue for device %d
+ Error allocating disk structure for device %d
+ Error creating sysfs group for device %d
+ Unable to register zram-control class
+ Unable to get major number
+
+Messages that do not affect functionality, but user
+must be warned (because sysfs attrs will be removed in
+this particular case) -- pr_warn():
+
+ %d (%s) Attribute %s (and others) will be removed. %s
+
+Messages that do not affect functionality and mostly are
+informative -- pr_info():
+
+ Cannot change max compression streams
+ Can't change algorithm for initialized device
+ Cannot change disksize for initialized device
+ Added device: %s
+ Removed device: %s
+
+b) Update sysfs_create_group() error message
+
+First, it lacks a trailing new line; add it.  Second, every error message
+in zram_add() has a "for device %d" part, which makes errors more
+informative.  Add missing part to "Error creating sysfs group" message.
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Suggested-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Minchan Kim <minchan@kernel.org>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   78 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 78 insertions(+)
+ drivers/block/zram/zram_drv.c |   15 ++++++++-------
+ 1 file changed, 8 insertions(+), 7 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-use-shrinker-to-trigger-auto-compaction mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-use-shrinker-to-trigger-auto-compaction
-+++ a/mm/zsmalloc.c
-@@ -246,6 +246,14 @@ struct zs_pool {
- 	atomic_long_t pages_allocated;
+diff -puN drivers/block/zram/zram_drv.c~zram-unify-error-reporting drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-unify-error-reporting
++++ a/drivers/block/zram/zram_drv.c
+@@ -622,7 +622,7 @@ static int zram_bvec_read(struct zram *z
+ 		uncmem = user_mem;
  
- 	struct zs_pool_stats stats;
-+
-+	/* Compact classes */
-+	struct shrinker shrinker;
-+	/*
-+	 * To signify that register_shrinker() was successful
-+	 * and unregister_shrinker() will not Oops.
-+	 */
-+	bool shrinker_enabled;
- #ifdef CONFIG_ZSMALLOC_STAT
- 	struct dentry *stat_dentry;
- #endif
-@@ -1778,6 +1786,69 @@ void zs_pool_stats(struct zs_pool *pool,
- }
- EXPORT_SYMBOL_GPL(zs_pool_stats);
+ 	if (!uncmem) {
+-		pr_info("Unable to allocate temp memory\n");
++		pr_err("Unable to allocate temp memory\n");
+ 		ret = -ENOMEM;
+ 		goto out_cleanup;
+ 	}
+@@ -719,7 +719,7 @@ static int zram_bvec_write(struct zram *
  
-+static unsigned long zs_shrinker_scan(struct shrinker *shrinker,
-+		struct shrink_control *sc)
-+{
-+	unsigned long pages_freed;
-+	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
-+			shrinker);
-+
-+	pages_freed = pool->stats.pages_compacted;
-+	/*
-+	 * Compact classes and calculate compaction delta.
-+	 * Can run concurrently with a manually triggered
-+	 * (by user) compaction.
-+	 */
-+	pages_freed = zs_compact(pool) - pages_freed;
-+
-+	return pages_freed ? pages_freed : SHRINK_STOP;
-+}
-+
-+static unsigned long zs_shrinker_count(struct shrinker *shrinker,
-+		struct shrink_control *sc)
-+{
-+	int i;
-+	struct size_class *class;
-+	unsigned long pages_to_free = 0;
-+	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
-+			shrinker);
-+
-+	if (!pool->shrinker_enabled)
-+		return 0;
-+
-+	for (i = zs_size_classes - 1; i >= 0; i--) {
-+		class = pool->size_class[i];
-+		if (!class)
-+			continue;
-+		if (class->index != i)
-+			continue;
-+
-+		spin_lock(&class->lock);
-+		pages_to_free += zs_can_compact(class);
-+		spin_unlock(&class->lock);
-+	}
-+
-+	return pages_to_free;
-+}
-+
-+static void zs_unregister_shrinker(struct zs_pool *pool)
-+{
-+	if (pool->shrinker_enabled) {
-+		unregister_shrinker(&pool->shrinker);
-+		pool->shrinker_enabled = false;
-+	}
-+}
-+
-+static int zs_register_shrinker(struct zs_pool *pool)
-+{
-+	pool->shrinker.scan_objects = zs_shrinker_scan;
-+	pool->shrinker.count_objects = zs_shrinker_count;
-+	pool->shrinker.batch = 0;
-+	pool->shrinker.seeks = DEFAULT_SEEKS;
-+
-+	return register_shrinker(&pool->shrinker);
-+}
-+
- /**
-  * zs_create_pool - Creates an allocation pool to work from.
-  * @flags: allocation flags used to allocate pool metadata
-@@ -1863,6 +1934,12 @@ struct zs_pool *zs_create_pool(char *nam
- 	if (zs_pool_stat_create(name, pool))
- 		goto err;
+ 	handle = zs_malloc(meta->mem_pool, clen);
+ 	if (!handle) {
+-		pr_info("Error allocating memory for compressed page: %u, size=%zu\n",
++		pr_err("Error allocating memory for compressed page: %u, size=%zu\n",
+ 			index, clen);
+ 		ret = -ENOMEM;
+ 		goto out;
+@@ -1039,7 +1039,7 @@ static ssize_t disksize_store(struct dev
  
-+	/*
-+	 * Not critical, we still can use the pool
-+	 * and user can trigger compaction manually.
-+	 */
-+	if (zs_register_shrinker(pool) == 0)
-+		pool->shrinker_enabled = true;
- 	return pool;
+ 	comp = zcomp_create(zram->compressor, zram->max_comp_streams);
+ 	if (IS_ERR(comp)) {
+-		pr_info("Cannot initialise %s compressing backend\n",
++		pr_err("Cannot initialise %s compressing backend\n",
+ 				zram->compressor);
+ 		err = PTR_ERR(comp);
+ 		goto out_free_meta;
+@@ -1217,7 +1217,7 @@ static int zram_add(void)
+ 	/* gendisk structure */
+ 	zram->disk = alloc_disk(1);
+ 	if (!zram->disk) {
+-		pr_warn("Error allocating disk structure for device %d\n",
++		pr_err("Error allocating disk structure for device %d\n",
+ 			device_id);
+ 		ret = -ENOMEM;
+ 		goto out_free_queue;
+@@ -1266,7 +1266,8 @@ static int zram_add(void)
+ 	ret = sysfs_create_group(&disk_to_dev(zram->disk)->kobj,
+ 				&zram_disk_attr_group);
+ 	if (ret < 0) {
+-		pr_warn("Error creating sysfs group");
++		pr_err("Error creating sysfs group for device %d\n",
++				device_id);
+ 		goto out_free_disk;
+ 	}
+ 	strlcpy(zram->compressor, default_compressor, sizeof(zram->compressor));
+@@ -1406,13 +1407,13 @@ static int __init zram_init(void)
  
- err:
-@@ -1875,6 +1952,7 @@ void zs_destroy_pool(struct zs_pool *poo
- {
- 	int i;
+ 	ret = class_register(&zram_control_class);
+ 	if (ret) {
+-		pr_warn("Unable to register zram-control class\n");
++		pr_err("Unable to register zram-control class\n");
+ 		return ret;
+ 	}
  
-+	zs_unregister_shrinker(pool);
- 	zs_pool_stat_destroy(pool);
- 
- 	for (i = 0; i < zs_size_classes; i++) {
+ 	zram_major = register_blkdev(0, "zram");
+ 	if (zram_major <= 0) {
+-		pr_warn("Unable to get major number\n");
++		pr_err("Unable to get major number\n");
+ 		class_unregister(&zram_control_class);
+ 		return -EBUSY;
+ 	}
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
