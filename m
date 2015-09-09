@@ -1,110 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memblock-make-memblock_overlaps_region-return-bool.patch removed from -mm tree
-Date: Wed, 09 Sep 2015 12:46:35 -0700
-Message-ID: <55f08c9b.U4dL1l83x1w0M6mp%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-page_isolation-make-set-unset_migratetype_isolate-file-local.patch
+ removed from -mm tree
+Date: Wed, 09 Sep 2015 12:46:44 -0700
+Message-ID: <55f08ca4.rsYdv09g6MKLNcUk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39227 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39316 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754449AbbIITqg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:46:36 -0400
+	with ESMTP id S1753141AbbIITqp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:46:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tangchen@cn.fujitsu.com, bhe@redhat.com, fabf@skynet.be, isimatu.yasuaki@jp.fujitsu.com, kuleshovmail@gmail.com, lcapitulino@redhat.com, qiuxishi@huawei.com, tglx@linutronix.de, tj@kernel.org, vladimir.murzin@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, iamjoonsoo.kim@lge.com, minchan@kernel.org, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memblock.c: make memblock_overlaps_region() return bool.
+     Subject: mm, page_isolation: make set/unset_migratetype_isolate() file-local
 has been removed from the -mm tree.  Its filename was
-     memblock-make-memblock_overlaps_region-return-bool.patch
+     mm-page_isolation-make-set-unset_migratetype_isolate-file-local.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: mm/memblock.c: make memblock_overlaps_region() return bool.
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm, page_isolation: make set/unset_migratetype_isolate() file-local
 
-memblock_overlaps_region() checks if the given memblock region intersects
-a region in memblock.  If so, it returns the index of the intersected
-region.
+Nowaday, set/unset_migratetype_isolate() is defined and used only in
+mm/page_isolation, so let's limit the scope within the file.
 
-But its only caller is memblock_is_region_reserved(), and it returns 0 if
-false, non-zero if true.
-
-Both of these should return bool.
-
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Vladimir Murzin <vladimir.murzin@arm.com>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: Alexander Kuleshov <kuleshovmail@gmail.com>
-Cc: Baoquan He <bhe@redhat.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    2 +-
- mm/memblock.c            |   10 +++++-----
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ include/linux/page-isolation.h |    5 -----
+ mm/page_isolation.c            |    5 +++--
+ 2 files changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/memblock.h~memblock-make-memblock_overlaps_region-return-bool include/linux/memblock.h
---- a/include/linux/memblock.h~memblock-make-memblock_overlaps_region-return-bool
-+++ a/include/linux/memblock.h
-@@ -323,7 +323,7 @@ void memblock_enforce_memory_limit(phys_
- int memblock_is_memory(phys_addr_t addr);
- int memblock_is_region_memory(phys_addr_t base, phys_addr_t size);
- int memblock_is_reserved(phys_addr_t addr);
--int memblock_is_region_reserved(phys_addr_t base, phys_addr_t size);
-+bool memblock_is_region_reserved(phys_addr_t base, phys_addr_t size);
+diff -puN include/linux/page-isolation.h~mm-page_isolation-make-set-unset_migratetype_isolate-file-local include/linux/page-isolation.h
+--- a/include/linux/page-isolation.h~mm-page_isolation-make-set-unset_migratetype_isolate-file-local
++++ a/include/linux/page-isolation.h
+@@ -65,11 +65,6 @@ undo_isolate_page_range(unsigned long st
+ int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
+ 			bool skip_hwpoisoned_pages);
  
- extern void __memblock_dump_all(void);
+-/*
+- * Internal functions. Changes pageblock's migrate type.
+- */
+-int set_migratetype_isolate(struct page *page, bool skip_hwpoisoned_pages);
+-void unset_migratetype_isolate(struct page *page, unsigned migratetype);
+ struct page *alloc_migrate_target(struct page *page, unsigned long private,
+ 				int **resultp);
  
-diff -puN mm/memblock.c~memblock-make-memblock_overlaps_region-return-bool mm/memblock.c
---- a/mm/memblock.c~memblock-make-memblock_overlaps_region-return-bool
-+++ a/mm/memblock.c
-@@ -91,7 +91,7 @@ static unsigned long __init_memblock mem
- 	return ((base1 < (base2 + size2)) && (base2 < (base1 + size1)));
- }
+diff -puN mm/page_isolation.c~mm-page_isolation-make-set-unset_migratetype_isolate-file-local mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-page_isolation-make-set-unset_migratetype_isolate-file-local
++++ a/mm/page_isolation.c
+@@ -9,7 +9,8 @@
+ #include <linux/hugetlb.h>
+ #include "internal.h"
  
--static long __init_memblock memblock_overlaps_region(struct memblock_type *type,
-+static bool __init_memblock memblock_overlaps_region(struct memblock_type *type,
- 					phys_addr_t base, phys_addr_t size)
+-int set_migratetype_isolate(struct page *page, bool skip_hwpoisoned_pages)
++static int set_migratetype_isolate(struct page *page,
++				bool skip_hwpoisoned_pages)
  {
- 	unsigned long i;
-@@ -103,7 +103,7 @@ static long __init_memblock memblock_ove
- 			break;
- 	}
- 
--	return (i < type->cnt) ? i : -1;
-+	return i < type->cnt;
+ 	struct zone *zone;
+ 	unsigned long flags, pfn;
+@@ -72,7 +73,7 @@ out:
+ 	return ret;
  }
  
- /*
-@@ -1566,12 +1566,12 @@ int __init_memblock memblock_is_region_m
-  * Check if the region [@base, @base+@size) intersects a reserved memory block.
-  *
-  * RETURNS:
-- * 0 if false, non-zero if true
-+ * True if they intersect, false if not.
-  */
--int __init_memblock memblock_is_region_reserved(phys_addr_t base, phys_addr_t size)
-+bool __init_memblock memblock_is_region_reserved(phys_addr_t base, phys_addr_t size)
+-void unset_migratetype_isolate(struct page *page, unsigned migratetype)
++static void unset_migratetype_isolate(struct page *page, unsigned migratetype)
  {
- 	memblock_cap_size(base, &size);
--	return memblock_overlaps_region(&memblock.reserved, base, size) >= 0;
-+	return memblock_overlaps_region(&memblock.reserved, base, size);
- }
- 
- void __init_memblock memblock_trim_memory(phys_addr_t align)
+ 	struct zone *zone;
+ 	unsigned long flags, nr_pages;
 _
 
-Patches currently in -mm which might be from tangchen@cn.fujitsu.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
+mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps.patch
+mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps-fix.patch
+mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch
+mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5.patch
 
