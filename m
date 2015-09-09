@@ -1,88 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-show_memc-correct-reserved-memory-calculation.patch
+Subject: [merged] mm-rename-and-move-get-set_freepage_migratetype.patch
  removed from -mm tree
-Date: Wed, 09 Sep 2015 12:45:56 -0700
-Message-ID: <55f08c74.GYk2ewcl763oiata%akpm@linux-foundation.org>
+Date: Wed, 09 Sep 2015 12:46:02 -0700
+Message-ID: <55f08c7a.8HkWeEK3m9FnaigZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39072 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39098 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754019AbbIITp5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:45:57 -0400
+	with ESMTP id S1754449AbbIITqD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:46:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vishnu.ps@samsung.com, dpetigara@broadcom.com, iamjoonsoo.kim@lge.com, lauraa@codeaurora.org, laurent.pinchart+renesas@ideasonboard.com, m.szyprowski@samsung.com, mina86@mina86.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, lauraa@codeaurora.org, mgorman@techsingularity.net, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, rientjes@google.com, seungho1.park@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/show_mem.c: correct reserved memory calculation
+     Subject: mm: rename and move get/set_freepage_migratetype
 has been removed from the -mm tree.  Its filename was
-     lib-show_memc-correct-reserved-memory-calculation.patch
+     mm-rename-and-move-get-set_freepage_migratetype.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vishnu Pratap Singh <vishnu.ps@samsung.com>
-Subject: lib/show_mem.c: correct reserved memory calculation
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm: rename and move get/set_freepage_migratetype
 
-CMA reserved memory is not part of total reserved memory.
-Currently when we print the total reserve memory it considers
-cma as part of reserve memory and do minus of totalcma_pages
-from reserved, which is wrong. In cases where total reserved
-is less than cma reserved we will get negative values & while
-printing we print as unsigned and we will get a very large value.
+The pair of get/set_freepage_migratetype() functions are used to cache
+pageblock migratetype for a page put on a pcplist, so that it does not
+have to be retrieved again when the page is put on a free list (e.g.  when
+pcplists become full).  Historically it was also assumed that the value is
+accurate for pages on freelists (as the functions' names unfortunately
+suggest), but that cannot be guaranteed without affecting various
+allocator fast paths.  It is in fact not needed and all such uses have
+been removed.
 
-Below is the show mem output on X86 ubuntu based system where
-CMA reserved is 100MB (25600 pages) & total reserved is ~40MB(10316 pages).
-And reserve memory shows a large value because of this bug.
+The last remaining (but pointless) usage related to pages of freelists is
+in move_freepages(), which this patch removes.
 
-Before:
-[  127.066430] 898908 pages RAM
-[  127.066432] 671682 pages HighMem/MovableOnly
-[  127.066434] 4294952012 pages reserved
-[  127.066436] 25600 pages cma reserved
+To prevent further confusion, rename the functions to
+get/set_pcppage_migratetype() and expand their description.  Since all the
+users are now in mm/page_alloc.c, move the functions there from the shared
+header.
 
-After:
-[   44.663129] 898908 pages RAM
-[   44.663130] 671682 pages HighMem/MovableOnly
-[   44.663130] 10316 pages reserved
-[   44.663131] 25600 pages cma reserved
-
-Signed-off-by: Vishnu Pratap Singh <vishnu.ps@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Danesh Petigara <dpetigara@broadcom.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
 Cc: Laura Abbott <lauraa@codeaurora.org>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Seungho Park <seungho1.park@lge.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/show_mem.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ include/linux/mm.h |   12 ------------
+ mm/page_alloc.c    |   41 ++++++++++++++++++++++++++++-------------
+ 2 files changed, 28 insertions(+), 25 deletions(-)
 
-diff -puN lib/show_mem.c~lib-show_memc-correct-reserved-memory-calculation lib/show_mem.c
---- a/lib/show_mem.c~lib-show_memc-correct-reserved-memory-calculation
-+++ a/lib/show_mem.c
-@@ -38,11 +38,9 @@ void show_mem(unsigned int filter)
+diff -puN include/linux/mm.h~mm-rename-and-move-get-set_freepage_migratetype include/linux/mm.h
+--- a/include/linux/mm.h~mm-rename-and-move-get-set_freepage_migratetype
++++ a/include/linux/mm.h
+@@ -309,18 +309,6 @@ struct inode;
+ #define page_private(page)		((page)->private)
+ #define set_page_private(page, v)	((page)->private = (v))
  
- 	printk("%lu pages RAM\n", total);
- 	printk("%lu pages HighMem/MovableOnly\n", highmem);
-+	printk("%lu pages reserved\n", reserved);
- #ifdef CONFIG_CMA
--	printk("%lu pages reserved\n", (reserved - totalcma_pages));
- 	printk("%lu pages cma reserved\n", totalcma_pages);
--#else
--	printk("%lu pages reserved\n", reserved);
- #endif
- #ifdef CONFIG_QUICKLIST
- 	printk("%lu pages in pagetable cache\n",
+-/* It's valid only if the page is free path or free_list */
+-static inline void set_freepage_migratetype(struct page *page, int migratetype)
+-{
+-	page->index = migratetype;
+-}
+-
+-/* It's valid only if the page is free path or free_list */
+-static inline int get_freepage_migratetype(struct page *page)
+-{
+-	return page->index;
+-}
+-
+ /*
+  * FIXME: take this include out, include page-flags.h in
+  * files which need it (119 of them)
+diff -puN mm/page_alloc.c~mm-rename-and-move-get-set_freepage_migratetype mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-rename-and-move-get-set_freepage_migratetype
++++ a/mm/page_alloc.c
+@@ -125,6 +125,24 @@ unsigned long dirty_balance_reserve __re
+ int percpu_pagelist_fraction;
+ gfp_t gfp_allowed_mask __read_mostly = GFP_BOOT_MASK;
+ 
++/*
++ * A cached value of the page's pageblock's migratetype, used when the page is
++ * put on a pcplist. Used to avoid the pageblock migratetype lookup when
++ * freeing from pcplists in most cases, at the cost of possibly becoming stale.
++ * Also the migratetype set in the page does not necessarily match the pcplist
++ * index, e.g. page might have MIGRATE_CMA set but be on a pcplist with any
++ * other index - this ensures that it will be put on the correct CMA freelist.
++ */
++static inline int get_pcppage_migratetype(struct page *page)
++{
++	return page->index;
++}
++
++static inline void set_pcppage_migratetype(struct page *page, int migratetype)
++{
++	page->index = migratetype;
++}
++
+ #ifdef CONFIG_PM_SLEEP
+ /*
+  * The following functions are used by the suspend/hibernate code to temporarily
+@@ -789,7 +807,7 @@ static void free_pcppages_bulk(struct zo
+ 			/* must delete as __free_one_page list manipulates */
+ 			list_del(&page->lru);
+ 
+-			mt = get_freepage_migratetype(page);
++			mt = get_pcppage_migratetype(page);
+ 			/* MIGRATE_ISOLATE page should not go to pcplists */
+ 			VM_BUG_ON_PAGE(is_migrate_isolate(mt), page);
+ 			/* Pageblock could have been isolated meanwhile */
+@@ -956,7 +974,6 @@ static void __free_pages_ok(struct page
+ 	migratetype = get_pfnblock_migratetype(page, pfn);
+ 	local_irq_save(flags);
+ 	__count_vm_events(PGFREE, 1 << order);
+-	set_freepage_migratetype(page, migratetype);
+ 	free_one_page(page_zone(page), page, pfn, order, migratetype);
+ 	local_irq_restore(flags);
+ }
+@@ -1384,7 +1401,7 @@ struct page *__rmqueue_smallest(struct z
+ 		rmv_page_order(page);
+ 		area->nr_free--;
+ 		expand(zone, page, order, current_order, area, migratetype);
+-		set_freepage_migratetype(page, migratetype);
++		set_pcppage_migratetype(page, migratetype);
+ 		return page;
+ 	}
+ 
+@@ -1461,7 +1478,6 @@ int move_freepages(struct zone *zone,
+ 		order = page_order(page);
+ 		list_move(&page->lru,
+ 			  &zone->free_area[order].free_list[migratetype]);
+-		set_freepage_migratetype(page, migratetype);
+ 		page += 1 << order;
+ 		pages_moved += 1 << order;
+ 	}
+@@ -1631,14 +1647,13 @@ __rmqueue_fallback(struct zone *zone, un
+ 		expand(zone, page, order, current_order, area,
+ 					start_migratetype);
+ 		/*
+-		 * The freepage_migratetype may differ from pageblock's
++		 * The pcppage_migratetype may differ from pageblock's
+ 		 * migratetype depending on the decisions in
+-		 * try_to_steal_freepages(). This is OK as long as it
+-		 * does not differ for MIGRATE_CMA pageblocks. For CMA
+-		 * we need to make sure unallocated pages flushed from
+-		 * pcp lists are returned to the correct freelist.
++		 * find_suitable_fallback(). This is OK as long as it does not
++		 * differ for MIGRATE_CMA pageblocks. Those can be used as
++		 * fallback only via special __rmqueue_cma_fallback() function
+ 		 */
+-		set_freepage_migratetype(page, start_migratetype);
++		set_pcppage_migratetype(page, start_migratetype);
+ 
+ 		trace_mm_page_alloc_extfrag(page, order, current_order,
+ 			start_migratetype, fallback_mt);
+@@ -1714,7 +1729,7 @@ static int rmqueue_bulk(struct zone *zon
+ 		else
+ 			list_add_tail(&page->lru, list);
+ 		list = &page->lru;
+-		if (is_migrate_cma(get_freepage_migratetype(page)))
++		if (is_migrate_cma(get_pcppage_migratetype(page)))
+ 			__mod_zone_page_state(zone, NR_FREE_CMA_PAGES,
+ 					      -(1 << order));
+ 	}
+@@ -1911,7 +1926,7 @@ void free_hot_cold_page(struct page *pag
+ 		return;
+ 
+ 	migratetype = get_pfnblock_migratetype(page, pfn);
+-	set_freepage_migratetype(page, migratetype);
++	set_pcppage_migratetype(page, migratetype);
+ 	local_irq_save(flags);
+ 	__count_vm_event(PGFREE);
+ 
+@@ -2116,7 +2131,7 @@ struct page *buffered_rmqueue(struct zon
+ 		if (!page)
+ 			goto failed;
+ 		__mod_zone_freepage_state(zone, -(1 << order),
+-					  get_freepage_migratetype(page));
++					  get_pcppage_migratetype(page));
+ 	}
+ 
+ 	__mod_zone_page_state(zone, NR_ALLOC_BATCH, -(1 << order));
 _
 
-Patches currently in -mm which might be from vishnu.ps@samsung.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 
