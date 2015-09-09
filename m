@@ -1,71 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kmemleak-record-accurate-early-log-buffer-count-and-report-when-exceeded.patch removed from -mm tree
-Date: Wed, 09 Sep 2015 12:53:18 -0700
-Message-ID: <55f08e2e.KtzoMJq2Mq4lNeXF%akpm@linux-foundation.org>
+Subject: [merged] zsmalloc-consider-zs_almost_full-as-migrate-source.patch removed from -mm tree
+Date: Wed, 09 Sep 2015 12:54:09 -0700
+Message-ID: <55f08e61.wj/+WnNtfao7pzQL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41006 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41468 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755343AbbIITxS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:53:18 -0400
+	with ESMTP id S1755279AbbIITyJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:54:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: morgan.wang@huawei.com, catalin.marinas@arm.com, mm-commits@vger.kernel.org
+To: minchan.kim@lge.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmemleak: record accurate early log buffer count and report when exceeded
+     Subject: zsmalloc: consider ZS_ALMOST_FULL as migrate source
 has been removed from the -mm tree.  Its filename was
-     kmemleak-record-accurate-early-log-buffer-count-and-report-when-exceeded.patch
+     zsmalloc-consider-zs_almost_full-as-migrate-source.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wang Kai <morgan.wang@huawei.com>
-Subject: kmemleak: record accurate early log buffer count and report when exceeded
+From: Minchan Kim <minchan.kim@lge.com>
+Subject: zsmalloc: consider ZS_ALMOST_FULL as migrate source
 
-In log_early function, crt_early_log should also count once when
-'crt_early_log >= ARRAY_SIZE(early_log)'.  Otherwise the reported count
-from kmemleak_init is one less than 'actual number'.
+There is no reason to prevent select ZS_ALMOST_FULL as migration
+source if we cannot find source from ZS_ALMOST_EMPTY.
 
-Then, in kmemleak_init, if early_log buffer size equal actual number,
-kmemleak will init sucessful, so change warning condition to
-'crt_early_log > ARRAY_SIZE(early_log)'.
+With this patch, zs_can_compact will return more exact result.
 
-Signed-off-by: Wang Kai <morgan.wang@huawei.com>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Signed-off-by: Minchan Kim <minchan.kim@lge.com>
+Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/zsmalloc.c |   17 ++++++++++-------
+ 1 file changed, 10 insertions(+), 7 deletions(-)
 
-diff -puN mm/kmemleak.c~kmemleak-record-accurate-early-log-buffer-count-and-report-when-exceeded mm/kmemleak.c
---- a/mm/kmemleak.c~kmemleak-record-accurate-early-log-buffer-count-and-report-when-exceeded
-+++ a/mm/kmemleak.c
-@@ -838,6 +838,7 @@ static void __init log_early(int op_type
- 	}
+diff -puN mm/zsmalloc.c~zsmalloc-consider-zs_almost_full-as-migrate-source mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-consider-zs_almost_full-as-migrate-source
++++ a/mm/zsmalloc.c
+@@ -1691,11 +1691,17 @@ static enum fullness_group putback_zspag
  
- 	if (crt_early_log >= ARRAY_SIZE(early_log)) {
-+		crt_early_log++;
- 		kmemleak_disable();
- 		return;
- 	}
-@@ -1882,7 +1883,7 @@ void __init kmemleak_init(void)
- 	object_cache = KMEM_CACHE(kmemleak_object, SLAB_NOLEAKTRACE);
- 	scan_area_cache = KMEM_CACHE(kmemleak_scan_area, SLAB_NOLEAKTRACE);
+ static struct page *isolate_source_page(struct size_class *class)
+ {
+-	struct page *page;
++	int i;
++	struct page *page = NULL;
  
--	if (crt_early_log >= ARRAY_SIZE(early_log))
-+	if (crt_early_log > ARRAY_SIZE(early_log))
- 		pr_warning("Early log buffer exceeded (%d), please increase "
- 			   "DEBUG_KMEMLEAK_EARLY_LOG_SIZE\n", crt_early_log);
+-	page = class->fullness_list[ZS_ALMOST_EMPTY];
+-	if (page)
+-		remove_zspage(page, class, ZS_ALMOST_EMPTY);
++	for (i = ZS_ALMOST_EMPTY; i >= ZS_ALMOST_FULL; i--) {
++		page = class->fullness_list[i];
++		if (!page)
++			continue;
++
++		remove_zspage(page, class, i);
++		break;
++	}
  
-_
-
-Patches currently in -mm which might be from morgan.wang@huawei.com are
-
-
+ 	return page;
+ }
+@@ -1711,9 +1717,6 @@ static unsigned long zs_can_compact(stru
+ {
+ 	unsigned long obj_wasted;
+ 
+-	if (!zs_stat_get(class, CLASS_ALMOST_EMPTY))
+-		return 0;
