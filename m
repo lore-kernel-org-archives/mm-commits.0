@@ -1,39 +1,47 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-hugetlb-expose-hugetlb-fault-mutex-for-use-by-fallocate.patch removed
- from -mm tree
-Date: Wed, 09 Sep 2015 12:46:11 -0700
-Message-ID: <55f08c83.k2r9MKUBD00oYFLK%akpm@linux-foundation.org>
+ mm-hugetlb-add-region_del-to-delete-a-specific-range-of-entries.patch
+ removed from -mm tree
+Date: Wed, 09 Sep 2015 12:46:08 -0700
+Message-ID: <55f08c80.w1BnDagO+q7AspHZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39131 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39121 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754449AbbIITqM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:46:12 -0400
+	with ESMTP id S1754449AbbIITqJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:46:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mike.kravetz@oracle.com, aneesh.kumar@linux.vnet.ibm.com, dave.hansen@linux.intel.com, dave@stgolabs.net, hch@infradead.org, hillf.zj@alibaba-inc.com, hughd@google.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: expose hugetlb fault mutex for use by fallocate
+     Subject: mm/hugetlb: add region_del() to delete a specific range of entries
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-expose-hugetlb-fault-mutex-for-use-by-fallocate.patch
+     mm-hugetlb-add-region_del-to-delete-a-specific-range-of-entries.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlb: expose hugetlb fault mutex for use by fallocate
+Subject: mm/hugetlb: add region_del() to delete a specific range of entries
 
-hugetlb page faults are currently synchronized by the table of mutexes
-(htlb_fault_mutex_table).  fallocate code will need to synchronize with
-the page fault code when it allocates or deletes pages.  Expose interfaces
-so that fallocate operations can be synchronized with page faults.  Minor
-name changes to be more consistent with other global hugetlb symbols.
+fallocate hole punch will want to remove a specific range of pages.  The
+existing region_truncate() routine deletes all region/reserve map entries
+after a specified offset.  region_del() will provide this same
+functionality if the end of region is specified as LONG_MAX.  Hence,
+region_del() can replace region_truncate().
+
+Unlike region_truncate(), region_del() can return an error in the rare
+case where it can not allocate memory for a region descriptor.  This ONLY
+happens in the case where an existing region must be split.  Current
+callers passing LONG_MAX as end of range will never experience this error
+and do not need to deal with error handling.  Future callers of
+region_del() (such as fallocate hole punch) will need to handle this
+error.
 
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
@@ -48,100 +56,233 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    5 +++++
- mm/hugetlb.c            |   20 ++++++++++----------
- 2 files changed, 15 insertions(+), 10 deletions(-)
+ mm/hugetlb.c |  122 ++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 85 insertions(+), 37 deletions(-)
 
-diff -puN include/linux/hugetlb.h~mm-hugetlb-expose-hugetlb-fault-mutex-for-use-by-fallocate include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-expose-hugetlb-fault-mutex-for-use-by-fallocate
-+++ a/include/linux/hugetlb.h
-@@ -88,6 +88,11 @@ int dequeue_hwpoisoned_huge_page(struct
- bool isolate_huge_page(struct page *page, struct list_head *list);
- void putback_active_hugepage(struct page *page);
- void free_huge_page(struct page *page);
-+extern struct mutex *hugetlb_fault_mutex_table;
-+u32 hugetlb_fault_mutex_hash(struct hstate *h, struct mm_struct *mm,
-+				struct vm_area_struct *vma,
-+				struct address_space *mapping,
-+				pgoff_t idx, unsigned long address);
- 
- #ifdef CONFIG_ARCH_WANT_HUGE_PMD_SHARE
- pte_t *huge_pmd_share(struct mm_struct *mm, unsigned long addr, pud_t *pud);
-diff -puN mm/hugetlb.c~mm-hugetlb-expose-hugetlb-fault-mutex-for-use-by-fallocate mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-expose-hugetlb-fault-mutex-for-use-by-fallocate
+diff -puN mm/hugetlb.c~mm-hugetlb-add-region_del-to-delete-a-specific-range-of-entries mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-add-region_del-to-delete-a-specific-range-of-entries
 +++ a/mm/hugetlb.c
-@@ -64,7 +64,7 @@ DEFINE_SPINLOCK(hugetlb_lock);
-  * prevent spurious OOMs when the hugepage pool is fully utilized.
-  */
- static int num_fault_mutexes;
--static struct mutex *htlb_fault_mutex_table ____cacheline_aligned_in_smp;
-+struct mutex *hugetlb_fault_mutex_table ____cacheline_aligned_in_smp;
+@@ -460,43 +460,90 @@ static void region_abort(struct resv_map
+ }
  
- /* Forward declaration */
- static int hugetlb_acct_memory(struct hstate *h, long delta);
-@@ -2482,7 +2482,7 @@ static void __exit hugetlb_exit(void)
+ /*
+- * Truncate the reserve map at index 'end'.  Modify/truncate any
+- * region which contains end.  Delete any regions past end.
+- * Return the number of huge pages removed from the map.
++ * Delete the specified range [f, t) from the reserve map.  If the
++ * t parameter is LONG_MAX, this indicates that ALL regions after f
++ * should be deleted.  Locate the regions which intersect [f, t)
++ * and either trim, delete or split the existing regions.
++ *
++ * Returns the number of huge pages deleted from the reserve map.
++ * In the normal case, the return value is zero or more.  In the
++ * case where a region must be split, a new region descriptor must
++ * be allocated.  If the allocation fails, -ENOMEM will be returned.
++ * NOTE: If the parameter t == LONG_MAX, then we will never split
++ * a region and possibly return -ENOMEM.  Callers specifying
++ * t == LONG_MAX do not need to check for -ENOMEM error.
+  */
+-static long region_truncate(struct resv_map *resv, long end)
++static long region_del(struct resv_map *resv, long f, long t)
+ {
+ 	struct list_head *head = &resv->regions;
+ 	struct file_region *rg, *trg;
+-	long chg = 0;
++	struct file_region *nrg = NULL;
++	long del = 0;
+ 
++retry:
+ 	spin_lock(&resv->lock);
+-	/* Locate the region we are either in or before. */
+-	list_for_each_entry(rg, head, link)
+-		if (end <= rg->to)
++	list_for_each_entry_safe(rg, trg, head, link) {
++		if (rg->to <= f)
++			continue;
++		if (rg->from >= t)
+ 			break;
+-	if (&rg->link == head)
+-		goto out;
+ 
+-	/* If we are in the middle of a region then adjust it. */
+-	if (end > rg->from) {
+-		chg = rg->to - end;
+-		rg->to = end;
+-		rg = list_entry(rg->link.next, typeof(*rg), link);
+-	}
++		if (f > rg->from && t < rg->to) { /* Must split region */
++			/*
++			 * Check for an entry in the cache before dropping
++			 * lock and attempting allocation.
++			 */
++			if (!nrg &&
++			    resv->region_cache_count > resv->adds_in_progress) {
++				nrg = list_first_entry(&resv->region_cache,
++							struct file_region,
++							link);
++				list_del(&nrg->link);
++				resv->region_cache_count--;
++			}
++
++			if (!nrg) {
++				spin_unlock(&resv->lock);
++				nrg = kmalloc(sizeof(*nrg), GFP_KERNEL);
++				if (!nrg)
++					return -ENOMEM;
++				goto retry;
++			}
+ 
+-	/* Drop any remaining regions. */
+-	list_for_each_entry_safe(rg, trg, rg->link.prev, link) {
+-		if (&rg->link == head)
++			del += t - f;
++
++			/* New entry for end of split region */
++			nrg->from = t;
++			nrg->to = rg->to;
++			INIT_LIST_HEAD(&nrg->link);
++
++			/* Original entry is trimmed */
++			rg->to = f;
++
++			list_add(&nrg->link, &rg->link);
++			nrg = NULL;
+ 			break;
+-		chg += rg->to - rg->from;
+-		list_del(&rg->link);
+-		kfree(rg);
++		}
++
++		if (f <= rg->from && t >= rg->to) { /* Remove entire region */
++			del += rg->to - rg->from;
++			list_del(&rg->link);
++			kfree(rg);
++			continue;
++		}
++
++		if (f <= rg->from) {	/* Trim beginning of region */
++			del += t - rg->from;
++			rg->from = t;
++		} else {		/* Trim end of region */
++			del += rg->to - f;
++			rg->to = f;
++		}
  	}
  
- 	kobject_put(hugepages_kobj);
--	kfree(htlb_fault_mutex_table);
-+	kfree(hugetlb_fault_mutex_table);
- }
- module_exit(hugetlb_exit);
- 
-@@ -2515,12 +2515,12 @@ static int __init hugetlb_init(void)
- #else
- 	num_fault_mutexes = 1;
- #endif
--	htlb_fault_mutex_table =
-+	hugetlb_fault_mutex_table =
- 		kmalloc(sizeof(struct mutex) * num_fault_mutexes, GFP_KERNEL);
--	BUG_ON(!htlb_fault_mutex_table);
-+	BUG_ON(!hugetlb_fault_mutex_table);
- 
- 	for (i = 0; i < num_fault_mutexes; i++)
--		mutex_init(&htlb_fault_mutex_table[i]);
-+		mutex_init(&hugetlb_fault_mutex_table[i]);
- 	return 0;
- }
- module_init(hugetlb_init);
-@@ -3454,7 +3454,7 @@ backout_unlocked:
+-out:
+ 	spin_unlock(&resv->lock);
+-	return chg;
++	kfree(nrg);
++	return del;
  }
  
- #ifdef CONFIG_SMP
--static u32 fault_mutex_hash(struct hstate *h, struct mm_struct *mm,
-+u32 hugetlb_fault_mutex_hash(struct hstate *h, struct mm_struct *mm,
- 			    struct vm_area_struct *vma,
- 			    struct address_space *mapping,
- 			    pgoff_t idx, unsigned long address)
-@@ -3479,7 +3479,7 @@ static u32 fault_mutex_hash(struct hstat
-  * For uniprocesor systems we always use a single mutex, so just
-  * return 0 and avoid the hashing overhead.
-  */
--static u32 fault_mutex_hash(struct hstate *h, struct mm_struct *mm,
-+u32 hugetlb_fault_mutex_hash(struct hstate *h, struct mm_struct *mm,
- 			    struct vm_area_struct *vma,
- 			    struct address_space *mapping,
- 			    pgoff_t idx, unsigned long address)
-@@ -3527,8 +3527,8 @@ int hugetlb_fault(struct mm_struct *mm,
- 	 * get spurious allocation failures if two CPUs race to instantiate
- 	 * the same page in the page cache.
- 	 */
--	hash = fault_mutex_hash(h, mm, vma, mapping, idx, address);
--	mutex_lock(&htlb_fault_mutex_table[hash]);
-+	hash = hugetlb_fault_mutex_hash(h, mm, vma, mapping, idx, address);
-+	mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ /*
+@@ -647,7 +694,7 @@ void resv_map_release(struct kref *ref)
+ 	struct file_region *rg, *trg;
  
- 	entry = huge_ptep_get(ptep);
- 	if (huge_pte_none(entry)) {
-@@ -3613,7 +3613,7 @@ out_ptl:
- 		put_page(pagecache_page);
+ 	/* Clear out any active regions before we release the map. */
+-	region_truncate(resv_map, 0);
++	region_del(resv_map, 0, LONG_MAX);
+ 
+ 	/* ... and any entries left in the cache */
+ 	list_for_each_entry_safe(rg, trg, head, link) {
+@@ -1572,7 +1619,7 @@ static void return_unused_surplus_pages(
+ 
+ 
+ /*
+- * vma_needs_reservation, vma_commit_reservation and vma_abort_reservation
++ * vma_needs_reservation, vma_commit_reservation and vma_end_reservation
+  * are used by the huge page allocation routines to manage reservations.
+  *
+  * vma_needs_reservation is called to determine if the huge page at addr
+@@ -1580,8 +1627,9 @@ static void return_unused_surplus_pages(
+  * needed, the value 1 is returned.  The caller is then responsible for
+  * managing the global reservation and subpool usage counts.  After
+  * the huge page has been allocated, vma_commit_reservation is called
+- * to add the page to the reservation map.  If the reservation must be
+- * aborted instead of committed, vma_abort_reservation is called.
++ * to add the page to the reservation map.  If the page allocation fails,
++ * the reservation must be ended instead of committed.  vma_end_reservation
++ * is called in such cases.
+  *
+  * In the normal case, vma_commit_reservation returns the same value
+  * as the preceding vma_needs_reservation call.  The only time this
+@@ -1592,7 +1640,7 @@ static void return_unused_surplus_pages(
+ enum vma_resv_mode {
+ 	VMA_NEEDS_RESV,
+ 	VMA_COMMIT_RESV,
+-	VMA_ABORT_RESV,
++	VMA_END_RESV,
+ };
+ static long __vma_reservation_common(struct hstate *h,
+ 				struct vm_area_struct *vma, unsigned long addr,
+@@ -1614,7 +1662,7 @@ static long __vma_reservation_common(str
+ 	case VMA_COMMIT_RESV:
+ 		ret = region_add(resv, idx, idx + 1);
+ 		break;
+-	case VMA_ABORT_RESV:
++	case VMA_END_RESV:
+ 		region_abort(resv, idx, idx + 1);
+ 		ret = 0;
+ 		break;
+@@ -1640,10 +1688,10 @@ static long vma_commit_reservation(struc
+ 	return __vma_reservation_common(h, vma, addr, VMA_COMMIT_RESV);
+ }
+ 
+-static void vma_abort_reservation(struct hstate *h,
++static void vma_end_reservation(struct hstate *h,
+ 			struct vm_area_struct *vma, unsigned long addr)
+ {
+-	(void)__vma_reservation_common(h, vma, addr, VMA_ABORT_RESV);
++	(void)__vma_reservation_common(h, vma, addr, VMA_END_RESV);
+ }
+ 
+ static struct page *alloc_huge_page(struct vm_area_struct *vma,
+@@ -1670,7 +1718,7 @@ static struct page *alloc_huge_page(stru
+ 		return ERR_PTR(-ENOMEM);
+ 	if (chg || avoid_reserve)
+ 		if (hugepage_subpool_get_pages(spool, 1) < 0) {
+-			vma_abort_reservation(h, vma, addr);
++			vma_end_reservation(h, vma, addr);
+ 			return ERR_PTR(-ENOSPC);
+ 		}
+ 
+@@ -1718,7 +1766,7 @@ out_uncharge_cgroup:
+ out_subpool_put:
+ 	if (chg || avoid_reserve)
+ 		hugepage_subpool_put_pages(spool, 1);
+-	vma_abort_reservation(h, vma, addr);
++	vma_end_reservation(h, vma, addr);
+ 	return ERR_PTR(-ENOSPC);
+ }
+ 
+@@ -3365,7 +3413,7 @@ retry:
+ 			goto backout_unlocked;
+ 		}
+ 		/* Just decrements count, does not deallocate */
+-		vma_abort_reservation(h, vma, address);
++		vma_end_reservation(h, vma, address);
  	}
- out_mutex:
--	mutex_unlock(&htlb_fault_mutex_table[hash]);
-+	mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 	/*
- 	 * Generally it's safe to hold refcount during waiting page lock. But
- 	 * here we just wait to defer the next page fault to avoid busy loop and
+ 
+ 	ptl = huge_pte_lockptr(h, mm, ptep);
+@@ -3514,7 +3562,7 @@ int hugetlb_fault(struct mm_struct *mm,
+ 			goto out_mutex;
+ 		}
+ 		/* Just decrements count, does not deallocate */
+-		vma_abort_reservation(h, vma, address);
++		vma_end_reservation(h, vma, address);
+ 
+ 		if (!(vma->vm_flags & VM_MAYSHARE))
+ 			pagecache_page = hugetlbfs_pagecache_page(h,
+@@ -3870,7 +3918,7 @@ void hugetlb_unreserve_pages(struct inod
+ 	long gbl_reserve;
+ 
+ 	if (resv_map)
+-		chg = region_truncate(resv_map, offset);
++		chg = region_del(resv_map, offset, LONG_MAX);
+ 	spin_lock(&inode->i_lock);
+ 	inode->i_blocks -= (blocks_per_huge_page(h) * freed);
+ 	spin_unlock(&inode->i_lock);
 _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
