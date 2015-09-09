@@ -1,179 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page.patch removed from -mm tree
-Date: Wed, 09 Sep 2015 12:52:00 -0700
-Message-ID: <55f08de0.353BZHguHjt0vQ9Z%akpm@linux-foundation.org>
+Subject: [merged] zsmalloc-cosmetic-compaction-code-adjustments.patch
+ removed from -mm tree
+Date: Wed, 09 Sep 2015 12:53:59 -0700
+Message-ID: <55f08e57.+YxstxOpUc5BGnq0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40987 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41441 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755316AbbIITxE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:53:04 -0400
+	with ESMTP id S1754651AbbIITyA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:54:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wanpeng.li@hotmail.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hwpoison: replace most of put_page in memory error handling by put_hwpoison_page
+     Subject: zsmalloc: cosmetic compaction code adjustments
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page.patch
+     zsmalloc-cosmetic-compaction-code-adjustments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wanpeng Li <wanpeng.li@hotmail.com>
-Subject: mm/hwpoison: replace most of put_page in memory error handling by put_hwpoison_page
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zsmalloc: cosmetic compaction code adjustments
 
-Replace most instances of put_page() in memory error handling with
-put_hwpoison_page().
+Change zs_object_copy() argument order to be (DST, SRC) rather than (SRC,
+DST).  copy/move functions usually have (to, from) arguments order.
 
-Signed-off-by: Wanpeng Li <wanpeng.li@hotmail.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Rename alloc_target_page() to isolate_target_page().  This function
+doesn't allocate anything, it isolates target page, pretty much like
+isolate_source_page().
+
+Tweak __zs_compact() comment.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |   32 +++++++++++++++-----------------
- 1 file changed, 15 insertions(+), 17 deletions(-)
+ mm/zsmalloc.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/memory-failure.c~mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page mm/memory-failure.c
---- a/mm/memory-failure.c~mm-hwpoison-replace-most-of-put_page-in-memory-error-handling-by-put_hwpoison_page
-+++ a/mm/memory-failure.c
-@@ -1174,9 +1174,7 @@ int memory_failure(unsigned long pfn, in
- 				pr_err("MCE: %#lx: thp split failed\n", pfn);
- 			if (TestClearPageHWPoison(p))
- 				atomic_long_sub(nr_pages, &num_poisoned_pages);
--			put_page(p);
--			if (p != hpage)
--				put_page(hpage);
-+			put_hwpoison_page(p);
- 			return -EBUSY;
- 		}
- 		VM_BUG_ON_PAGE(!page_count(p), p);
-@@ -1237,14 +1235,14 @@ int memory_failure(unsigned long pfn, in
- 		printk(KERN_ERR "MCE %#lx: just unpoisoned\n", pfn);
- 		atomic_long_sub(nr_pages, &num_poisoned_pages);
- 		unlock_page(hpage);
--		put_page(hpage);
-+		put_hwpoison_page(hpage);
- 		return 0;
- 	}
- 	if (hwpoison_filter(p)) {
- 		if (TestClearPageHWPoison(p))
- 			atomic_long_sub(nr_pages, &num_poisoned_pages);
- 		unlock_page(hpage);
--		put_page(hpage);
-+		put_hwpoison_page(hpage);
- 		return 0;
- 	}
- 
-@@ -1258,7 +1256,7 @@ int memory_failure(unsigned long pfn, in
- 	if (PageHuge(p) && PageTail(p) && TestSetPageHWPoison(hpage)) {
- 		action_result(pfn, MF_MSG_POISONED_HUGE, MF_IGNORED);
- 		unlock_page(hpage);
--		put_page(hpage);
-+		put_hwpoison_page(hpage);
- 		return 0;
- 	}
- 	/*
-@@ -1492,9 +1490,9 @@ int unpoison_memory(unsigned long pfn)
- 	}
- 	unlock_page(page);
- 
--	put_page(page);
-+	put_hwpoison_page(page);
- 	if (freeit && !(pfn == my_zero_pfn(0) && page_count(p) == 1))
--		put_page(page);
-+		put_hwpoison_page(page);
- 
- 	return 0;
+diff -puN mm/zsmalloc.c~zsmalloc-cosmetic-compaction-code-adjustments mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-cosmetic-compaction-code-adjustments
++++ a/mm/zsmalloc.c
+@@ -1471,7 +1471,7 @@ void zs_free(struct zs_pool *pool, unsig
  }
-@@ -1554,7 +1552,7 @@ static int get_any_page(struct page *pag
- 		/*
- 		 * Try to free it.
- 		 */
--		put_page(page);
-+		put_hwpoison_page(page);
- 		shake_page(page, 1);
+ EXPORT_SYMBOL_GPL(zs_free);
  
- 		/*
-@@ -1563,7 +1561,7 @@ static int get_any_page(struct page *pag
- 		ret = __get_any_page(page, pfn, 0);
- 		if (!PageLRU(page)) {
- 			/* Drop page reference which is from __get_any_page() */
--			put_page(page);
-+			put_hwpoison_page(page);
- 			pr_info("soft_offline: %#lx: unknown non LRU page type %lx\n",
- 				pfn, page->flags);
- 			return -EIO;
-@@ -1586,7 +1584,7 @@ static int soft_offline_huge_page(struct
- 	lock_page(hpage);
- 	if (PageHWPoison(hpage)) {
- 		unlock_page(hpage);
--		put_page(hpage);
-+		put_hwpoison_page(hpage);
- 		pr_info("soft offline: %#lx hugepage already poisoned\n", pfn);
- 		return -EBUSY;
- 	}
-@@ -1597,7 +1595,7 @@ static int soft_offline_huge_page(struct
- 	 * get_any_page() and isolate_huge_page() takes a refcount each,
- 	 * so need to drop one here.
- 	 */
--	put_page(hpage);
-+	put_hwpoison_page(hpage);
- 	if (!ret) {
- 		pr_info("soft offline: %#lx hugepage failed to isolate\n", pfn);
- 		return -EBUSY;
-@@ -1646,7 +1644,7 @@ static int __soft_offline_page(struct pa
- 	wait_on_page_writeback(page);
- 	if (PageHWPoison(page)) {
- 		unlock_page(page);
--		put_page(page);
-+		put_hwpoison_page(page);
- 		pr_info("soft offline: %#lx page already poisoned\n", pfn);
- 		return -EBUSY;
- 	}
-@@ -1661,7 +1659,7 @@ static int __soft_offline_page(struct pa
- 	 * would need to fix isolation locking first.
- 	 */
- 	if (ret == 1) {
--		put_page(page);
-+		put_hwpoison_page(page);
- 		pr_info("soft_offline: %#lx: invalidated\n", pfn);
- 		SetPageHWPoison(page);
- 		atomic_long_inc(&num_poisoned_pages);
-@@ -1678,7 +1676,7 @@ static int __soft_offline_page(struct pa
- 	 * Drop page reference which is came from get_any_page()
- 	 * successful isolate_lru_page() already took another one.
- 	 */
--	put_page(page);
-+	put_hwpoison_page(page);
- 	if (!ret) {
- 		LIST_HEAD(pagelist);
- 		inc_zone_page_state(page, NR_ISOLATED_ANON +
-@@ -1741,7 +1739,7 @@ int soft_offline_page(struct page *page,
- 	if (PageHWPoison(page)) {
- 		pr_info("soft offline: %#lx page already poisoned\n", pfn);
- 		if (flags & MF_COUNT_INCREASED)
--			put_page(page);
-+			put_hwpoison_page(page);
- 		return -EBUSY;
- 	}
- 	if (!PageHuge(page) && PageTransHuge(hpage)) {
-@@ -1749,7 +1747,7 @@ int soft_offline_page(struct page *page,
- 			pr_info("soft offline: %#lx: failed to split THP\n",
- 				pfn);
- 			if (flags & MF_COUNT_INCREASED)
--				put_page(page);
-+				put_hwpoison_page(page);
- 			return -EBUSY;
- 		}
- 	}
+-static void zs_object_copy(unsigned long src, unsigned long dst,
++static void zs_object_copy(unsigned long dst, unsigned long src,
+ 				struct size_class *class)
+ {
+ 	struct page *s_page, *d_page;
+@@ -1612,7 +1612,7 @@ static int migrate_zspage(struct zs_pool
+ 
+ 		used_obj = handle_to_obj(handle);
+ 		free_obj = obj_malloc(d_page, class, handle);
+-		zs_object_copy(used_obj, free_obj, class);
++		zs_object_copy(free_obj, used_obj, class);
+ 		index++;
+ 		record_obj(handle, free_obj);
+ 		unpin_tag(handle);
+@@ -1628,7 +1628,7 @@ static int migrate_zspage(struct zs_pool
+ 	return ret;
+ }
+ 
+-static struct page *alloc_target_page(struct size_class *class)
++static struct page *isolate_target_page(struct size_class *class)
+ {
+ 	int i;
+ 	struct page *page;
+@@ -1718,11 +1718,11 @@ static unsigned long __zs_compact(struct
+ 		cc.index = 0;
+ 		cc.s_page = src_page;
+ 
+-		while ((dst_page = alloc_target_page(class))) {
++		while ((dst_page = isolate_target_page(class))) {
+ 			cc.d_page = dst_page;
+ 			/*
+-			 * If there is no more space in dst_page, try to
+-			 * allocate another zspage.
++			 * If there is no more space in dst_page, resched
++			 * and see if anyone had allocated another zspage.
+ 			 */
+ 			if (!migrate_zspage(pool, class, &cc))
+ 				break;
 _
 
-Patches currently in -mm which might be from wanpeng.li@hotmail.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
 
