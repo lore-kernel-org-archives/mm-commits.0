@@ -1,80 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_alloc-fix-a-terrible-misleading-comment.patch
- removed from -mm tree
-Date: Wed, 09 Sep 2015 12:53:42 -0700
-Message-ID: <55f08e46.7WNEX2O8S22Mg9ak%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-page_alloc-change-sysctl_lower_zone_reserve_ratio-to-sysctl_lowmem_reserve_ratio.patch removed from -mm tree
+Date: Wed, 09 Sep 2015 12:53:44 -0700
+Message-ID: <55f08e48.oHMeNgCnBz0z5WnY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41191 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41221 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755384AbbIITxn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:53:43 -0400
+	with ESMTP id S1755343AbbIITxp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:53:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: bywxiaobai@163.com, mhocko@suse.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: fix a misleading comment
+     Subject: mm/page_alloc.c: change sysctl_lower_zone_reserve_ratio to sysctl_lowmem_reserve_ratio in comments
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-fix-a-terrible-misleading-comment.patch
+     mm-page_alloc-change-sysctl_lower_zone_reserve_ratio-to-sysctl_lowmem_reserve_ratio.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Yaowei Bai <bywxiaobai@163.com>
-Subject: mm/page_alloc.c: fix a misleading comment
+Subject: mm/page_alloc.c: change sysctl_lower_zone_reserve_ratio to sysctl_lowmem_reserve_ratio in comments
 
-The comment says that the per-cpu batchsize and zone watermarks are
-determined by present_pages which is definitely wrong, they are both
-calculated from managed_pages.  Fix it.
+We use sysctl_lowmem_reserve_ratio rather than
+sysctl_lower_zone_reserve_ratio to determine how aggressive the kernel is
+in defending lowmem from the possibility of being captured into pinned
+user memory.  To avoid misleading, correct it in some comments.
 
 Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: David Rientjes <rientjes@google.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |    4 ++--
- mm/page_alloc.c             |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-page_alloc-fix-a-terrible-misleading-comment Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-page_alloc-fix-a-terrible-misleading-comment
-+++ a/Documentation/sysctl/vm.txt
-@@ -349,7 +349,7 @@ zone[i]'s protection[j] is calculated by
- 
- (i < j):
-   zone[i]->protection[j]
--  = (total sums of present_pages from zone[i+1] to zone[j] on the node)
-+  = (total sums of managed_pages from zone[i+1] to zone[j] on the node)
-     / lowmem_reserve_ratio[i];
- (i = j):
-    (should not be protected. = 0;
-@@ -360,7 +360,7 @@ The default values of lowmem_reserve_rat
-     256 (if zone[i] means DMA or DMA32 zone)
-     32  (others).
- As above expression, they are reciprocal number of ratio.
--256 means 1/256. # of protection pages becomes about "0.39%" of total present
-+256 means 1/256. # of protection pages becomes about "0.39%" of total managed
- pages of higher zones on the node.
- 
- If you would like to protect more pages, smaller values are effective.
-diff -puN mm/page_alloc.c~mm-page_alloc-fix-a-terrible-misleading-comment mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-fix-a-terrible-misleading-comment
+diff -puN mm/page_alloc.c~mm-page_alloc-change-sysctl_lower_zone_reserve_ratio-to-sysctl_lowmem_reserve_ratio mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-change-sysctl_lower_zone_reserve_ratio-to-sysctl_lowmem_reserve_ratio
 +++ a/mm/page_alloc.c
-@@ -6022,7 +6022,7 @@ void __init mem_init_print_info(const ch
-  * set_dma_reserve - set the specified number of pages reserved in the first zone
-  * @new_dma_reserve: The number of pages to mark reserved
-  *
-- * The per-cpu batchsize and zone watermarks are determined by present_pages.
-+ * The per-cpu batchsize and zone watermarks are determined by managed_pages.
-  * In the DMA zone, a significant percentage may be consumed by kernel image
-  * and other unfreeable allocations which can skew the watermarks badly. This
-  * function may optionally be used to account for unfreeable pages in the
+@@ -6075,7 +6075,7 @@ void __init page_alloc_init(void)
+ }
+ 
+ /*
+- * calculate_totalreserve_pages - called when sysctl_lower_zone_reserve_ratio
++ * calculate_totalreserve_pages - called when sysctl_lowmem_reserve_ratio
+  *	or min_free_kbytes changes.
+  */
+ static void calculate_totalreserve_pages(void)
+@@ -6119,7 +6119,7 @@ static void calculate_totalreserve_pages
+ 
+ /*
+  * setup_per_zone_lowmem_reserve - called whenever
+- *	sysctl_lower_zone_reserve_ratio changes.  Ensures that each zone
++ *	sysctl_lowmem_reserve_ratio changes.  Ensures that each zone
+  *	has a correct pages reserved value, so an adequate number of
+  *	pages are left in the zone after a successful __alloc_pages().
+  */
 _
 
 Patches currently in -mm which might be from bywxiaobai@163.com are
