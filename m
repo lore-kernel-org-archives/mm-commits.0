@@ -1,80 +1,89 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages.patch removed from -mm tree
-Date: Wed, 09 Sep 2015 12:46:54 -0700
-Message-ID: <55f08cae.F8cYOaFTqz7CxibZ%akpm@linux-foundation.org>
+ bootmem-avoid-freeing-to-bootmem-after-bootmem-is-done.patch removed from
+ -mm tree
+Date: Wed, 09 Sep 2015 12:46:46 -0700
+Message-ID: <55f08ca6.8iBPwGoitILwtKRq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39452 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39349 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753772AbbIITqz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:46:55 -0400
+	with ESMTP id S1753772AbbIITqr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:46:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jaewon31.kim@samsung.com, mgorman@techsingularity.net, minchan@kernel.org, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: cmetcalf@ezchip.com, isimatu.yasuaki@jp.fujitsu.com, mgorman@suse.de, paulmcquad@gmail.com, penberg@kernel.org, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmscan: fix increasing nr_isolated incurred by putback unevictable pages
+     Subject: bootmem: avoid freeing to bootmem after bootmem is done
 has been removed from the -mm tree.  Its filename was
-     vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages.patch
+     bootmem-avoid-freeing-to-bootmem-after-bootmem-is-done.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jaewon Kim <jaewon31.kim@samsung.com>
-Subject: vmscan: fix increasing nr_isolated incurred by putback unevictable pages
+From: Chris Metcalf <cmetcalf@ezchip.com>
+Subject: bootmem: avoid freeing to bootmem after bootmem is done
 
-reclaim_clean_pages_from_list() assumes that shrink_page_list() returns
-number of pages removed from the candidate list.  But shrink_page_list()
-puts back mlocked pages without passing it to caller and without counting
-as nr_reclaimed.  This increases nr_isolated.
+Bootmem isn't popular any more, but some architectures still use it, and
+freeing to bootmem after calling free_all_bootmem_core() can end up
+scribbling over random memory.  Instead, make sure the kernel generates a
+warning in this case by ensuring the node_bootmem_map field is non-NULL
+when are freeing or marking bootmem.
 
-To fix this, this patch changes shrink_page_list() to pass unevictable
-pages back to caller.  Caller will take care those pages.
+An instance of this bug was just fixed in the tile architecture ("tile:
+use free_bootmem_late() for initrd") and catching this case more widely
+seems like a good thing.
 
-Minchan said:
-
-It fixes two issues.
-
-1. With unevictable page, cma_alloc will be successful.
-
-Exactly speaking, cma_alloc of current kernel will fail due to
-unevictable pages.
-
-2. fix leaking of NR_ISOLATED counter of vmstat
-
-With it, too_many_isolated works.  Otherwise, it could make hang until
-the process get SIGKILL.
-
-Signed-off-by: Jaewon Kim <jaewon31.kim@samsung.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Chris Metcalf <cmetcalf@ezchip.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Paul McQuade <paulmcquad@gmail.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/bootmem.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/vmscan.c~vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages mm/vmscan.c
---- a/mm/vmscan.c~vmscan-fix-increasing-nr_isolated-incurred-by-putback-unevictable-pages
-+++ a/mm/vmscan.c
-@@ -1196,7 +1196,7 @@ cull_mlocked:
- 		if (PageSwapCache(page))
- 			try_to_free_swap(page);
- 		unlock_page(page);
--		putback_lru_page(page);
-+		list_add(&page->lru, &ret_pages);
- 		continue;
+diff -puN mm/bootmem.c~bootmem-avoid-freeing-to-bootmem-after-bootmem-is-done mm/bootmem.c
+--- a/mm/bootmem.c~bootmem-avoid-freeing-to-bootmem-after-bootmem-is-done
++++ a/mm/bootmem.c
+@@ -236,6 +236,7 @@ static unsigned long __init free_all_boo
+ 	count += pages;
+ 	while (pages--)
+ 		__free_pages_bootmem(page++, cur++, 0);
++	bdata->node_bootmem_map = NULL;
  
- activate_locked:
+ 	bdebug("nid=%td released=%lx\n", bdata - bootmem_node_data, count);
+ 
+@@ -294,6 +295,9 @@ static void __init __free(bootmem_data_t
+ 		sidx + bdata->node_min_pfn,
+ 		eidx + bdata->node_min_pfn);
+ 
++	if (WARN_ON(bdata->node_bootmem_map == NULL))
++		return;
++
+ 	if (bdata->hint_idx > sidx)
+ 		bdata->hint_idx = sidx;
+ 
+@@ -314,6 +318,9 @@ static int __init __reserve(bootmem_data
+ 		eidx + bdata->node_min_pfn,
+ 		flags);
+ 
++	if (WARN_ON(bdata->node_bootmem_map == NULL))
++		return 0;
++
+ 	for (idx = sidx; idx < eidx; idx++)
+ 		if (test_and_set_bit(idx, bdata->node_bootmem_map)) {
+ 			if (exclusive) {
 _
 
-Patches currently in -mm which might be from jaewon31.kim@samsung.com are
+Patches currently in -mm which might be from cmetcalf@ezchip.com are
 
 
