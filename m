@@ -1,136 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arm64-support-initrd-outside-kernel-linear-map.patch
- removed from -mm tree
-Date: Wed, 09 Sep 2015 12:47:32 -0700
-Message-ID: <55f08cd4.lgna0+FP6gg7KCot%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-compaction-encapsulate-resetting-cached-scanner-positions.patch removed
+ from -mm tree
+Date: Wed, 09 Sep 2015 12:47:13 -0700
+Message-ID: <55f08cc1.a4aehwWpWE97U4eD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39844 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39713 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751793AbbIITrd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:47:33 -0400
+	with ESMTP id S1753541AbbIITrO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:47:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: msalter@redhat.com, ard.biesheuvel@linaro.org, arnd@arndb.de, catalin.marinas@arm.com, hpa@zytor.com, mark.rutland@arm.com, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de, will.deacon@arm.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: support initrd outside kernel linear map
+     Subject: mm, compaction: encapsulate resetting cached scanner positions
 has been removed from the -mm tree.  Its filename was
-     arm64-support-initrd-outside-kernel-linear-map.patch
+     mm-compaction-encapsulate-resetting-cached-scanner-positions.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mark Salter <msalter@redhat.com>
-Subject: arm64: support initrd outside kernel linear map
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: encapsulate resetting cached scanner positions
 
-The use of mem= could leave part or all of the initrd outside of the
-kernel linear map.  This will lead to an error when unpacking the initrd
-and a probable failure to boot.  This patch catches that situation and
-relocates the initrd to be fully within the linear map.
+Reseting the cached compaction scanner positions is now open-coded in
+__reset_isolation_suitable() and compact_finished().  Encapsulate the
+functionality in a new function reset_cached_positions().
 
-Signed-off-by: Mark Salter <msalter@redhat.com>
-Acked-by: Will Deacon <will.deacon@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/kernel/setup.c |   62 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 62 insertions(+)
+ mm/compaction.c |   16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-diff -puN arch/arm64/kernel/setup.c~arm64-support-initrd-outside-kernel-linear-map arch/arm64/kernel/setup.c
---- a/arch/arm64/kernel/setup.c~arm64-support-initrd-outside-kernel-linear-map
-+++ a/arch/arm64/kernel/setup.c
-@@ -339,6 +339,67 @@ static void __init request_standard_reso
- 	}
+diff -puN mm/compaction.c~mm-compaction-encapsulate-resetting-cached-scanner-positions mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-encapsulate-resetting-cached-scanner-positions
++++ a/mm/compaction.c
+@@ -207,6 +207,13 @@ static inline bool isolation_suitable(st
+ 	return !get_pageblock_skip(page);
  }
  
-+#ifdef CONFIG_BLK_DEV_INITRD
-+/*
-+ * Relocate initrd if it is not completely within the linear mapping.
-+ * This would be the case if mem= cuts out all or part of it.
-+ */
-+static void __init relocate_initrd(void)
++static void reset_cached_positions(struct zone *zone)
 +{
-+	phys_addr_t orig_start = __virt_to_phys(initrd_start);
-+	phys_addr_t orig_end = __virt_to_phys(initrd_end);
-+	phys_addr_t ram_end = memblock_end_of_DRAM();
-+	phys_addr_t new_start;
-+	unsigned long size, to_free = 0;
-+	void *dest;
-+
-+	if (orig_end <= ram_end)
-+		return;
-+
-+	/*
-+	 * Any of the original initrd which overlaps the linear map should
-+	 * be freed after relocating.
-+	 */
-+	if (orig_start < ram_end)
-+		to_free = ram_end - orig_start;
-+
-+	size = orig_end - orig_start;
-+
-+	/* initrd needs to be relocated completely inside linear mapping */
-+	new_start = memblock_find_in_range(0, PFN_PHYS(max_pfn),
-+					   size, PAGE_SIZE);
-+	if (!new_start)
-+		panic("Cannot relocate initrd of size %ld\n", size);
-+	memblock_reserve(new_start, size);
-+
-+	initrd_start = __phys_to_virt(new_start);
-+	initrd_end   = initrd_start + size;
-+
-+	pr_info("Moving initrd from [%llx-%llx] to [%llx-%llx]\n",
-+		orig_start, orig_start + size - 1,
-+		new_start, new_start + size - 1);
-+
-+	dest = (void *)initrd_start;
-+
-+	if (to_free) {
-+		memcpy(dest, (void *)__phys_to_virt(orig_start), to_free);
-+		dest += to_free;
-+	}
-+
-+	copy_from_early_mem(dest, orig_start + to_free, size - to_free);
-+
-+	if (to_free) {
-+		pr_info("Freeing original RAMDISK from [%llx-%llx]\n",
-+			orig_start, orig_start + to_free - 1);
-+		memblock_free(orig_start, to_free);
-+	}
++	zone->compact_cached_migrate_pfn[0] = zone->zone_start_pfn;
++	zone->compact_cached_migrate_pfn[1] = zone->zone_start_pfn;
++	zone->compact_cached_free_pfn = zone_end_pfn(zone);
 +}
-+#else
-+static inline void __init relocate_initrd(void)
-+{
-+}
-+#endif
 +
- u64 __cpu_logical_map[NR_CPUS] = { [0 ... NR_CPUS-1] = INVALID_HWID };
+ /*
+  * This function is called to clear all cached information on pageblocks that
+  * should be skipped for page isolation when the migrate and free page scanner
+@@ -218,9 +225,6 @@ static void __reset_isolation_suitable(s
+ 	unsigned long end_pfn = zone_end_pfn(zone);
+ 	unsigned long pfn;
  
- void __init setup_arch(char **cmdline_p)
-@@ -372,6 +433,7 @@ void __init setup_arch(char **cmdline_p)
- 	acpi_boot_table_init();
+-	zone->compact_cached_migrate_pfn[0] = start_pfn;
+-	zone->compact_cached_migrate_pfn[1] = start_pfn;
+-	zone->compact_cached_free_pfn = end_pfn;
+ 	zone->compact_blockskip_flush = false;
  
- 	paging_init();
-+	relocate_initrd();
- 	request_standard_resources();
+ 	/* Walk the zone and mark every pageblock as suitable for isolation */
+@@ -238,6 +242,8 @@ static void __reset_isolation_suitable(s
  
- 	early_ioremap_reset();
+ 		clear_pageblock_skip(page);
+ 	}
++
++	reset_cached_positions(zone);
+ }
+ 
+ void reset_isolation_suitable(pg_data_t *pgdat)
+@@ -1160,9 +1166,7 @@ static int __compact_finished(struct zon
+ 	/* Compaction run completes if the migrate and free scanner meet */
+ 	if (compact_scanners_met(cc)) {
+ 		/* Let the next compaction start anew. */
+-		zone->compact_cached_migrate_pfn[0] = zone->zone_start_pfn;
+-		zone->compact_cached_migrate_pfn[1] = zone->zone_start_pfn;
+-		zone->compact_cached_free_pfn = zone_end_pfn(zone);
++		reset_cached_positions(zone);
+ 
+ 		/*
+ 		 * Mark that the PG_migrate_skip information should be cleared
 _
 
-Patches currently in -mm which might be from msalter@redhat.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 
