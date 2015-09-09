@@ -1,66 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-madvise-allow-remove-operation-for-hugetlbfs.patch
- removed from -mm tree
-Date: Wed, 09 Sep 2015 12:46:32 -0700
-Message-ID: <55f08c98.AGjkcOjM+UemvS0j%akpm@linux-foundation.org>
+Subject: [merged]
+ mempolicy-get-rid-of-duplicated-check-for-vmavm_pfnmap-in-queue_pages_range.patch removed from -mm tree
+Date: Wed, 09 Sep 2015 12:46:41 -0700
+Message-ID: <55f08ca1.Q90AEfZ2p2uv9Eo4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39208 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39290 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751390AbbIITqd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:46:33 -0400
+	with ESMTP id S1753141AbbIITqm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:46:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, aneesh.kumar@linux.vnet.ibm.com, dave.hansen@linux.intel.com, dave@stgolabs.net, hch@infradead.org, hillf.zj@alibaba-inc.com, hughd@google.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: aris@redhat.com, aarcange@redhat.com, benh@kernel.crashing.org, dave.hansen@intel.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: madvise allow remove operation for hugetlbfs
+     Subject: mm/mempolicy.c: get rid of duplicated check for vma(VM_PFNMAP) in queue_pages_range()
 has been removed from the -mm tree.  Its filename was
-     mm-madvise-allow-remove-operation-for-hugetlbfs.patch
+     mempolicy-get-rid-of-duplicated-check-for-vmavm_pfnmap-in-queue_pages_range.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm: madvise allow remove operation for hugetlbfs
+From: Aristeu Rozanski <aris@redhat.com>
+Subject: mm/mempolicy.c: get rid of duplicated check for vma(VM_PFNMAP) in queue_pages_range()
 
-Now that we have hole punching support for hugetlbfs, we can
-also support the MADV_REMOVE interface to it.
+This check was introduced as part of
+   6f4576e3687 ("mempolicy: apply page table walker on queue_pages_range()")
+	
+which got duplicated by
+   48684a65b4e ("mm: pagewalk: fix misbehavior of walk_page_range for vma(VM_PFNMAP)")
 
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Aneesh Kumar <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Christoph Hellwig <hch@infradead.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+by reintroducing it earlier on queue_page_test_walk()
+
+Signed-off-by: Aristeu Rozanski <aris@redhat.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mempolicy.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/madvise.c~mm-madvise-allow-remove-operation-for-hugetlbfs mm/madvise.c
---- a/mm/madvise.c~mm-madvise-allow-remove-operation-for-hugetlbfs
-+++ a/mm/madvise.c
-@@ -301,7 +301,7 @@ static long madvise_remove(struct vm_are
+diff -puN mm/mempolicy.c~mempolicy-get-rid-of-duplicated-check-for-vmavm_pfnmap-in-queue_pages_range mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-get-rid-of-duplicated-check-for-vmavm_pfnmap-in-queue_pages_range
++++ a/mm/mempolicy.c
+@@ -608,9 +608,6 @@ static int queue_pages_test_walk(unsigne
  
- 	*prev = NULL;	/* tell sys_madvise we drop mmap_sem */
+ 	qp->prev = vma;
  
--	if (vma->vm_flags & (VM_LOCKED | VM_HUGETLB))
-+	if (vma->vm_flags & VM_LOCKED)
- 		return -EINVAL;
- 
- 	f = vma->vm_file;
-_
-
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
-
-
+-	if (vma->vm_flags & VM_PFNMAP)
+-		return 1;
