@@ -1,121 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-utility-for-early-copy-from-unmapped-ram.patch
+Subject: [merged]
+ documentation-update-libhugetlbfs-location-and-use-for-testing.patch
  removed from -mm tree
-Date: Wed, 09 Sep 2015 12:47:29 -0700
-Message-ID: <55f08cd1.fxEfUwfFYaSYH6Lu%akpm@linux-foundation.org>
+Date: Wed, 09 Sep 2015 12:47:26 -0700
+Message-ID: <55f08cce.liVpqBtfgxuirskO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39826 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39817 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751793AbbIITra (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:47:30 -0400
+	with ESMTP id S1752026AbbIITr1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:47:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: msalter@redhat.com, ard.biesheuvel@linaro.org, arnd@arndb.de, catalin.marinas@arm.com, hpa@zytor.com, mark.rutland@arm.com, mingo@elte.hu, rmk@arm.linux.org.uk, tglx@linutronix.de, will.deacon@arm.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, dave@stgolabs.net, joern@logfs.org, n-horiguchi@ah.jp.nec.com, rientjes@google.com, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add utility for early copy from unmapped ram
+     Subject: Documentation: update libhugetlbfs location and use for testing
 has been removed from the -mm tree.  Its filename was
-     mm-add-utility-for-early-copy-from-unmapped-ram.patch
+     documentation-update-libhugetlbfs-location-and-use-for-testing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mark Salter <msalter@redhat.com>
-Subject: mm: add utility for early copy from unmapped ram
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: Documentation: update libhugetlbfs location and use for testing
 
-When booting an arm64 kernel w/initrd using UEFI/grub, use of mem= will
-likely cut off part or all of the initrd.  This leaves it outside the
-kernel linear map which leads to failure when unpacking.  The x86 code has
-a similar need to relocate an initrd outside of mapped memory in some
-cases.
+The URL for libhugetlbfs has changed.  Also, put a stronger emphasis on
+using libgugetlbfs for hugetlb regression testing.
 
-The current x86 code uses early_memremap() to copy the original initrd
-from unmapped to mapped RAM.  This patchset creates a generic
-copy_from_early_mem() utility based on that x86 code and has arm64 and x86
-share it in their respective initrd relocation code.
-
-
-
-This patch (of 3):
-
-In some early boot circumstances, it may be necessary to copy from RAM
-outside the kernel linear mapping to mapped RAM.  The need to relocate an
-initrd is one example in the x86 code.  This patch creates a helper
-function based on current x86 code.
-
-Signed-off-by: Mark Salter <msalter@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/early_ioremap.h |    6 ++++++
- mm/early_ioremap.c                  |   22 ++++++++++++++++++++++
- 2 files changed, 28 insertions(+)
+ Documentation/vm/hugetlbpage.txt |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-diff -puN include/asm-generic/early_ioremap.h~mm-add-utility-for-early-copy-from-unmapped-ram include/asm-generic/early_ioremap.h
---- a/include/asm-generic/early_ioremap.h~mm-add-utility-for-early-copy-from-unmapped-ram
-+++ a/include/asm-generic/early_ioremap.h
-@@ -33,6 +33,12 @@ extern void early_ioremap_setup(void);
-  */
- extern void early_ioremap_reset(void);
+diff -puN Documentation/vm/hugetlbpage.txt~documentation-update-libhugetlbfs-location-and-use-for-testing Documentation/vm/hugetlbpage.txt
+--- a/Documentation/vm/hugetlbpage.txt~documentation-update-libhugetlbfs-location-and-use-for-testing
++++ a/Documentation/vm/hugetlbpage.txt
+@@ -329,7 +329,14 @@ Examples
  
-+/*
-+ * Early copy from unmapped memory to kernel mapped memory.
-+ */
-+extern void copy_from_early_mem(void *dest, phys_addr_t src,
-+				unsigned long size);
-+
- #else
- static inline void early_ioremap_init(void) { }
- static inline void early_ioremap_setup(void) { }
-diff -puN mm/early_ioremap.c~mm-add-utility-for-early-copy-from-unmapped-ram mm/early_ioremap.c
---- a/mm/early_ioremap.c~mm-add-utility-for-early-copy-from-unmapped-ram
-+++ a/mm/early_ioremap.c
-@@ -217,6 +217,28 @@ early_memremap(resource_size_t phys_addr
- 	return (__force void *)__early_ioremap(phys_addr, size,
- 					       FIXMAP_PAGE_NORMAL);
- }
-+
-+#define MAX_MAP_CHUNK	(NR_FIX_BTMAPS << PAGE_SHIFT)
-+
-+void __init copy_from_early_mem(void *dest, phys_addr_t src, unsigned long size)
-+{
-+	unsigned long slop, clen;
-+	char *p;
-+
-+	while (size) {
-+		slop = src & ~PAGE_MASK;
-+		clen = size;
-+		if (clen > MAX_MAP_CHUNK - slop)
-+			clen = MAX_MAP_CHUNK - slop;
-+		p = early_memremap(src & PAGE_MASK, clen + slop);
-+		memcpy(dest, p + slop, clen);
-+		early_memunmap(p, clen + slop);
-+		dest += clen;
-+		src += clen;
-+		size -= clen;
-+	}
-+}
-+
- #else /* CONFIG_MMU */
+ 3) hugepage-mmap:  see tools/testing/selftests/vm/hugepage-mmap.c
  
- void __init __iomem *
+-4) The libhugetlbfs (http://libhugetlbfs.sourceforge.net) library provides a
+-   wide range of userspace tools to help with huge page usability, environment
+-   setup, and control. Furthermore it provides useful test cases that should be
+-   used when modifying code to ensure no regressions are introduced.
++4) The libhugetlbfs (https://github.com/libhugetlbfs/libhugetlbfs) library
++   provides a wide range of userspace tools to help with huge page usability,
++   environment setup, and control.
++
++Kernel development regression testing
++=====================================
++
++The most complete set of hugetlb tests are in the libhugetlbfs repository.
++If you modify any hugetlb related code, use the libhugetlbfs test suite
++to check for regressions.  In addition, if you add any new hugetlb
++functionality, please add appropriate tests to libhugetlbfs.
 _
 
-Patches currently in -mm which might be from msalter@redhat.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
 
