@@ -1,60 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zpool-remove-no-op-module-init-exit.patch removed from
- -mm tree
-Date: Wed, 09 Sep 2015 12:54:25 -0700
-Message-ID: <55f08e71.gNSoXO4chaBgpxkI%akpm@linux-foundation.org>
+Subject: [merged]
+ zsmalloc-do-not-take-class-lock-in-zs_shrinker_count.patch removed from -mm tree
+Date: Wed, 09 Sep 2015 12:54:13 -0700
+Message-ID: <55f08e65.5ADEvdKNIqoOW0jI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41480 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755441AbbIITyZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:54:25 -0400
+	with ESMTP id S1755401AbbIITyO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:54:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ddstreet@ieee.org, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zpool: remove no-op module init/exit
+     Subject: zsmalloc: do not take class lock in zs_shrinker_count()
 has been removed from the -mm tree.  Its filename was
-     zpool-remove-no-op-module-init-exit.patch
+     zsmalloc-do-not-take-class-lock-in-zs_shrinker_count.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Streetman <ddstreet@ieee.org>
-Subject: zpool: remove no-op module init/exit
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zsmalloc: do not take class lock in zs_shrinker_count()
 
-Remove zpool_init() and zpool_exit(); they do nothing other than print
-"loaded" and "unloaded".
+We can avoid taking class ->lock around zs_can_compact() in
+zs_shrinker_count(), because the number that we return back is outdated in
+general case, by design.  We have different sources that are able to
+change class's state right after we return from zs_can_compact() --
+ongoing I/O operations, manually triggered compaction, or two of them
+happening simultaneously.
 
-Signed-off-by: Dan Streetman <ddstreet@ieee.org>
+We re-do this calculations during compaction on a per class basis anyway.
+
+zs_unregister_shrinker() will not return until we have an active shrinker,
+so classes won't unexpectedly disappear while zs_shrinker_count() iterates
+them.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zpool.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ mm/zsmalloc.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN mm/zpool.c~zpool-remove-no-op-module-init-exit mm/zpool.c
---- a/mm/zpool.c~zpool-remove-no-op-module-init-exit
-+++ a/mm/zpool.c
-@@ -320,20 +320,6 @@ u64 zpool_get_total_size(struct zpool *z
- 	return zpool->driver->total_size(zpool->pool);
- }
+diff -puN mm/zsmalloc.c~zsmalloc-do-not-take-class-lock-in-zs_shrinker_count mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-do-not-take-class-lock-in-zs_shrinker_count
++++ a/mm/zsmalloc.c
+@@ -1710,8 +1710,6 @@ static struct page *isolate_source_page(
+  *
+  * Based on the number of unused allocated objects calculate
+  * and return the number of pages that we can free.
+- *
+- * Should be called under class->lock.
+  */
+ static unsigned long zs_can_compact(struct size_class *class)
+ {
+@@ -1834,9 +1832,7 @@ static unsigned long zs_shrinker_count(s
+ 		if (class->index != i)
+ 			continue;
  
--static int __init init_zpool(void)
--{
--	pr_info("loaded\n");
--	return 0;
--}
--
--static void __exit exit_zpool(void)
--{
--	pr_info("unloaded\n");
--}
--
--module_init(init_zpool);
--module_exit(exit_zpool);
+-		spin_lock(&class->lock);
+ 		pages_to_free += zs_can_compact(class);
+-		spin_unlock(&class->lock);
+ 	}
+ 
+ 	return pages_to_free;
+_
+
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+
+
