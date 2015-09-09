@@ -1,35 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memtest-use-kstrtouint-instead-of-simple_strtoul.patch
- removed from -mm tree
-Date: Wed, 09 Sep 2015 12:44:01 -0700
-Message-ID: <55f08c01.fr5rJPCyv5u+CzW9%akpm@linux-foundation.org>
+Subject: [merged] memtest-cleanup-log-messages.patch removed from -mm tree
+Date: Wed, 09 Sep 2015 12:44:03 -0700
+Message-ID: <55f08c03.nhl2ViL/17PY3D/4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38901 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38906 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754860AbbIIToB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:44:01 -0400
+	with ESMTP id S1754871AbbIIToD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:44:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vladimir.murzin@arm.com, leon@leon.nu, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memtest: use kstrtouint instead of simple_strtoul
+     Subject: memtest: cleanup log messages
 has been removed from the -mm tree.  Its filename was
-     memtest-use-kstrtouint-instead-of-simple_strtoul.patch
+     memtest-cleanup-log-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vladimir Murzin <vladimir.murzin@arm.com>
-Subject: memtest: use kstrtouint instead of simple_strtoul
+Subject: memtest: cleanup log messages
 
-Since simple_strtoul is obsolete and memtest_pattern is type of int, use
-kstrtouint instead.
+- prefer pr_info(...  to printk(KERN_INFO ...
+- use %pa for phys_addr_t
+- use cpu_to_be64 while printing pattern in reserve_bad_mem()
 
 Signed-off-by: Vladimir Murzin <vladimir.murzin@arm.com>
 Cc: Leon Romanovsky <leon@leon.nu>
@@ -37,34 +37,47 @@ Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memtest.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ mm/memtest.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN mm/memtest.c~memtest-use-kstrtouint-instead-of-simple_strtoul mm/memtest.c
---- a/mm/memtest.c~memtest-use-kstrtouint-instead-of-simple_strtoul
+diff -puN mm/memtest.c~memtest-cleanup-log-messages mm/memtest.c
+--- a/mm/memtest.c~memtest-cleanup-log-messages
 +++ a/mm/memtest.c
-@@ -89,16 +89,18 @@ static void __init do_one_pass(u64 patte
- }
+@@ -31,10 +31,8 @@ static u64 patterns[] __initdata = {
  
- /* default is disabled */
--static int memtest_pattern __initdata;
-+static unsigned int memtest_pattern __initdata;
- 
- static int __init parse_memtest(char *arg)
+ static void __init reserve_bad_mem(u64 pattern, phys_addr_t start_bad, phys_addr_t end_bad)
  {
-+	int ret = 0;
-+
- 	if (arg)
--		memtest_pattern = simple_strtoul(arg, NULL, 0);
-+		ret = kstrtouint(arg, 0, &memtest_pattern);
- 	else
- 		memtest_pattern = ARRAY_SIZE(patterns);
- 
--	return 0;
-+	return ret;
+-	printk(KERN_INFO "  %016llx bad mem addr %010llx - %010llx reserved\n",
+-	       (unsigned long long) pattern,
+-	       (unsigned long long) start_bad,
+-	       (unsigned long long) end_bad);
++	pr_info("  %016llx bad mem addr %pa - %pa reserved\n",
++		cpu_to_be64(pattern), &start_bad, &end_bad);
+ 	memblock_reserve(start_bad, end_bad - start_bad);
  }
  
- early_param("memtest", parse_memtest);
+@@ -79,10 +77,8 @@ static void __init do_one_pass(u64 patte
+ 		this_start = clamp(this_start, start, end);
+ 		this_end = clamp(this_end, start, end);
+ 		if (this_start < this_end) {
+-			printk(KERN_INFO "  %010llx - %010llx pattern %016llx\n",
+-			       (unsigned long long)this_start,
+-			       (unsigned long long)this_end,
+-			       (unsigned long long)cpu_to_be64(pattern));
++			pr_info("  %pa - %pa pattern %016llx\n",
++				&this_start, &this_end, cpu_to_be64(pattern));
+ 			memtest(pattern, this_start, this_end - this_start);
+ 		}
+ 	}
+@@ -113,7 +109,7 @@ void __init early_memtest(phys_addr_t st
+ 	if (!memtest_pattern)
+ 		return;
+ 
+-	printk(KERN_INFO "early_memtest: # of tests: %d\n", memtest_pattern);
++	pr_info("early_memtest: # of tests: %u\n", memtest_pattern);
+ 	for (i = memtest_pattern-1; i < UINT_MAX; --i) {
+ 		idx = i % ARRAY_SIZE(patterns);
+ 		do_one_pass(patterns[idx], start, end);
 _
 
 Patches currently in -mm which might be from vladimir.murzin@arm.com are
