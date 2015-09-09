@@ -1,104 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-compaction-skip-compound-pages-by-order-in-free-scanner.patch removed
+ selftests-vm-point-to-libhugetlbfs-for-regression-testing.patch removed
  from -mm tree
-Date: Wed, 09 Sep 2015 12:47:19 -0700
-Message-ID: <55f08cc7.ryi9o6v1bbS7K5LY%akpm@linux-foundation.org>
+Date: Wed, 09 Sep 2015 12:47:24 -0700
+Message-ID: <55f08ccc.2oFrN3FM5gwgksXa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39787 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39810 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752803AbbIITrU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:47:20 -0400
+	with ESMTP id S1752026AbbIITrZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:47:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, cl@linux.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, dave@stgolabs.net, joern@logfs.org, n-horiguchi@ah.jp.nec.com, rientjes@google.com, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: skip compound pages by order in free scanner
+     Subject: selftests:vm: point to libhugetlbfs for regression testing
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-skip-compound-pages-by-order-in-free-scanner.patch
+     selftests-vm-point-to-libhugetlbfs-for-regression-testing.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: skip compound pages by order in free scanner
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: selftests:vm: point to libhugetlbfs for regression testing
 
-The compaction free scanner is looking for PageBuddy() pages and skipping
-all others.  For large compound pages such as THP or hugetlbfs, we can
-save a lot of iterations if we skip them at once using their
-compound_order().  This is generally unsafe and we can read a bogus value
-of order due to a race, but if we are careful, the only danger is skipping
-too much.
+The hugetlb selftests provide minimal coverage.  Have run script point
+people at libhugetlbfs for better regression testing.
 
-When tested with stress-highalloc from mmtests on 4GB system with 1GB
-hugetlbfs pages, the vmstat compact_free_scanned count decreased by at
-least 15%.
-
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Acked-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Rik van Riel <riel@redhat.com>
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: David Rientjes <rientjes@google.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   25 +++++++++++++++++++++++++
- 1 file changed, 25 insertions(+)
+ tools/testing/selftests/vm/run_vmtests |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/compaction.c~mm-compaction-skip-compound-pages-by-order-in-free-scanner mm/compaction.c
---- a/mm/compaction.c~mm-compaction-skip-compound-pages-by-order-in-free-scanner
-+++ a/mm/compaction.c
-@@ -437,6 +437,24 @@ static unsigned long isolate_freepages_b
+diff -puN tools/testing/selftests/vm/run_vmtests~selftests-vm-point-to-libhugetlbfs-for-regression-testing tools/testing/selftests/vm/run_vmtests
+--- a/tools/testing/selftests/vm/run_vmtests~selftests-vm-point-to-libhugetlbfs-for-regression-testing
++++ a/tools/testing/selftests/vm/run_vmtests
+@@ -75,6 +75,10 @@ else
+ 	echo "[PASS]"
+ fi
  
- 		if (!valid_page)
- 			valid_page = page;
++echo "NOTE: The above hugetlb tests provide minimal coverage.  Use"
++echo "      https://github.com/libhugetlbfs/libhugetlbfs.git for"
++echo "      hugetlb regression testing."
 +
-+		/*
-+		 * For compound pages such as THP and hugetlbfs, we can save
-+		 * potentially a lot of iterations if we skip them at once.
-+		 * The check is racy, but we can consider only valid values
-+		 * and the only danger is skipping too much.
-+		 */
-+		if (PageCompound(page)) {
-+			unsigned int comp_order = compound_order(page);
-+
-+			if (likely(comp_order < MAX_ORDER)) {
-+				blockpfn += (1UL << comp_order) - 1;
-+				cursor += (1UL << comp_order) - 1;
-+			}
-+
-+			goto isolate_fail;
-+		}
-+
- 		if (!PageBuddy(page))
- 			goto isolate_fail;
- 
-@@ -496,6 +514,13 @@ isolate_fail:
- 
- 	}
- 
-+	/*
-+	 * There is a tiny chance that we have read bogus compound_order(),
-+	 * so be careful to not go outside of the pageblock.
-+	 */
-+	if (unlikely(blockpfn > end_pfn))
-+		blockpfn = end_pfn;
-+
- 	trace_mm_compaction_isolate_freepages(*start_pfn, blockpfn,
- 					nr_scanned, total_isolated);
- 
+ echo "--------------------"
+ echo "running userfaultfd"
+ echo "--------------------"
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
 
