@@ -1,66 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void.patch removed from -mm tree
-Date: Wed, 09 Sep 2015 12:44:15 -0700
-Message-ID: <55f08c0f.ePRiWyqjKJFsqoF8%akpm@linux-foundation.org>
+Subject: [merged] memtest-remove-unused-header-files.patch removed from
+ -mm tree
+Date: Wed, 09 Sep 2015 12:44:05 -0700
+Message-ID: <55f08c05.za5cTDnn9KQmbD3+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38937 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38909 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754904AbbIIToP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:44:15 -0400
+	with ESMTP id S1752803AbbIIToF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:44:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xerofoify@gmail.com, mhocko@suse.cz, mm-commits@vger.kernel.org
+To: vladimir.murzin@arm.com, leon@leon.nu, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make set_recommended_min_free_kbytes() return void
+     Subject: memtest: remove unused header files
 has been removed from the -mm tree.  Its filename was
-     mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void.patch
+     memtest-remove-unused-header-files.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nicholas Krause <xerofoify@gmail.com>
-Subject: mm: make set_recommended_min_free_kbytes() return void
+From: Vladimir Murzin <vladimir.murzin@arm.com>
+Subject: memtest: remove unused header files
 
-This makes set_recommended_min_free_kbytes() have a return type of void as
-it cannot fail.
+memtest does not require these headers to be included.
 
-Signed-off-by: Nicholas Krause <xerofoify@gmail.com>
-Acked-by: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Vladimir Murzin <vladimir.murzin@arm.com>
+Cc: Leon Romanovsky <leon@leon.nu>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/memtest.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void mm/huge_memory.c
---- a/mm/huge_memory.c~mm-make-the-function-set_recommended_min_free_kbytes-have-a-return-type-of-void
-+++ a/mm/huge_memory.c
-@@ -106,7 +106,7 @@ static struct khugepaged_scan khugepaged
- };
+diff -puN mm/memtest.c~memtest-remove-unused-header-files mm/memtest.c
+--- a/mm/memtest.c~memtest-remove-unused-header-files
++++ a/mm/memtest.c
+@@ -1,11 +1,6 @@
+ #include <linux/kernel.h>
+-#include <linux/errno.h>
+-#include <linux/string.h>
+ #include <linux/types.h>
+-#include <linux/mm.h>
+-#include <linux/smp.h>
+ #include <linux/init.h>
+-#include <linux/pfn.h>
+ #include <linux/memblock.h>
  
- 
--static int set_recommended_min_free_kbytes(void)
-+static void set_recommended_min_free_kbytes(void)
- {
- 	struct zone *zone;
- 	int nr_zones = 0;
-@@ -141,7 +141,6 @@ static int set_recommended_min_free_kbyt
- 		min_free_kbytes = recommended_min;
- 	}
- 	setup_per_zone_wmarks();
--	return 0;
- }
- 
- static int start_stop_khugepaged(void)
+ static u64 patterns[] __initdata = {
 _
 
-Patches currently in -mm which might be from xerofoify@gmail.com are
+Patches currently in -mm which might be from vladimir.murzin@arm.com are
 
 
