@@ -1,137 +1,180 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zsmalloc-introduce-zs_can_compact-function.patch removed from -mm tree
-Date: Wed, 09 Sep 2015 12:53:57 -0700
-Message-ID: <55f08e55.uOzXj1AT0vASBjNM%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens.patch removed from -mm tree
+Date: Wed, 09 Sep 2015 12:53:32 -0700
+Message-ID: <55f08e3c.fxgLcbdTzmd4/8wP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41419 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41062 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754920AbbIITx6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:53:58 -0400
+	with ESMTP id S1755390AbbIITxd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Sep 2015 15:53:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: introduce zs_can_compact() function
+     Subject: mm/compaction: correct to flush migrated pages if pageblock skip happens
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-introduce-zs_can_compact-function.patch
+     mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zsmalloc: introduce zs_can_compact() function
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/compaction: correct to flush migrated pages if pageblock skip happens
 
-This function checks if class compaction will free any pages.  Rephrasing
--- do we have enough unused objects to form at least one ZS_EMPTY page and
-free it.  It aborts compaction if class compaction will not result in any
-(further) savings.
+We cache isolate_start_pfn before entering isolate_migratepages().  If
+pageblock is skipped in isolate_migratepages() due to whatever reason,
+cc->migrate_pfn can be far from isolate_start_pfn hence we flush pages
+that were freed.  For example, the following scenario can be possible:
 
-EXAMPLE (this debug output is not part of this patch set):
+- assume order-9 compaction, pageblock order is 9
+- start_isolate_pfn is 0x200
+- isolate_migratepages()
+  - skip a number of pageblocks
+  - start to isolate from pfn 0x600
+  - cc->migrate_pfn = 0x620
+  - return
+- last_migrated_pfn is set to 0x200
+- check flushing condition
+  - current_block_start is set to 0x600
+  - last_migrated_pfn < current_block_start then do useless flush
 
--- class size
--- number of allocated objects
--- number of used objects
--- max objects per zspage
--- pages per zspage
--- estimated number of pages that will be freed
+This wrong flush would not help the performance and success rate so
+this patch tries to fix it. One simple way to know the exact position
+where we start to isolate migratable pages is that we cache it
+in isolate_migratepages() before entering actual isolation. This patch
+implements that and fixes the problem.
 
-[..]
-class-512 objs:544 inuse:540 maxobj-per-zspage:8  pages-per-zspage:1 zspages-to-free:0
- ... class-512 compaction is useless. break
-class-496 objs:660 inuse:570 maxobj-per-zspage:33 pages-per-zspage:4 zspages-to-free:2
-class-496 objs:627 inuse:570 maxobj-per-zspage:33 pages-per-zspage:4 zspages-to-free:1
-class-496 objs:594 inuse:570 maxobj-per-zspage:33 pages-per-zspage:4 zspages-to-free:0
- ... class-496 compaction is useless. break
-class-448 objs:657 inuse:617 maxobj-per-zspage:9  pages-per-zspage:1 zspages-to-free:4
-class-448 objs:648 inuse:617 maxobj-per-zspage:9  pages-per-zspage:1 zspages-to-free:3
-class-448 objs:639 inuse:617 maxobj-per-zspage:9  pages-per-zspage:1 zspages-to-free:2
-class-448 objs:630 inuse:617 maxobj-per-zspage:9  pages-per-zspage:1 zspages-to-free:1
-class-448 objs:621 inuse:617 maxobj-per-zspage:9  pages-per-zspage:1 zspages-to-free:0
- ... class-448 compaction is useless. break
-class-432 objs:728 inuse:685 maxobj-per-zspage:28 pages-per-zspage:3 zspages-to-free:1
-class-432 objs:700 inuse:685 maxobj-per-zspage:28 pages-per-zspage:3 zspages-to-free:0
- ... class-432 compaction is useless. break
-class-416 objs:819 inuse:705 maxobj-per-zspage:39 pages-per-zspage:4 zspages-to-free:2
-class-416 objs:780 inuse:705 maxobj-per-zspage:39 pages-per-zspage:4 zspages-to-free:1
-class-416 objs:741 inuse:705 maxobj-per-zspage:39 pages-per-zspage:4 zspages-to-free:0
- ... class-416 compaction is useless. break
-class-400 objs:690 inuse:674 maxobj-per-zspage:10 pages-per-zspage:1 zspages-to-free:1
-class-400 objs:680 inuse:674 maxobj-per-zspage:10 pages-per-zspage:1 zspages-to-free:0
- ... class-400 compaction is useless. break
-class-384 objs:736 inuse:709 maxobj-per-zspage:32 pages-per-zspage:3 zspages-to-free:0
- ... class-384 compaction is useless. break
-[..]
-
-Every "compaction is useless" indicates that we saved CPU cycles.
-
-class-512 has
-	544	object allocated
-	540	objects used
-	8	objects per-page
-
-Even if we have a ALMOST_EMPTY zspage, we still don't have enough room to
-migrate all of its objects and free this zspage; so compaction will not
-make a lot of sense, it's better to just leave it as is.
-
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ mm/compaction.c |   30 +++++++++++++++---------------
+ mm/internal.h   |    1 +
+ 2 files changed, 16 insertions(+), 15 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-introduce-zs_can_compact-function mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-introduce-zs_can_compact-function
-+++ a/mm/zsmalloc.c
-@@ -1676,6 +1676,29 @@ static struct page *isolate_source_page(
- 	return page;
- }
- 
-+/*
-+ *
-+ * Based on the number of unused allocated objects calculate
-+ * and return the number of pages that we can free.
-+ *
-+ * Should be called under class->lock.
-+ */
-+static unsigned long zs_can_compact(struct size_class *class)
-+{
-+	unsigned long obj_wasted;
-+
-+	if (!zs_stat_get(class, CLASS_ALMOST_EMPTY))
-+		return 0;
-+
-+	obj_wasted = zs_stat_get(class, OBJ_ALLOCATED) -
-+		zs_stat_get(class, OBJ_USED);
-+
-+	obj_wasted /= get_maxobj_per_zspage(class->size,
-+			class->pages_per_zspage);
-+
-+	return obj_wasted * get_pages_per_zspage(class->size);
-+}
-+
- static unsigned long __zs_compact(struct zs_pool *pool,
- 				struct size_class *class)
+diff -puN mm/compaction.c~mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens
++++ a/mm/compaction.c
+@@ -1115,6 +1115,7 @@ static isolate_migrate_t isolate_migrate
+ 					struct compact_control *cc)
  {
-@@ -1689,6 +1712,9 @@ static unsigned long __zs_compact(struct
+ 	unsigned long low_pfn, end_pfn;
++	unsigned long isolate_start_pfn;
+ 	struct page *page;
+ 	const isolate_mode_t isolate_mode =
+ 		(sysctl_compact_unevictable_allowed ? ISOLATE_UNEVICTABLE : 0) |
+@@ -1163,6 +1164,7 @@ static isolate_migrate_t isolate_migrate
+ 			continue;
  
- 		BUG_ON(!is_first_page(src_page));
+ 		/* Perform the isolation */
++		isolate_start_pfn = low_pfn;
+ 		low_pfn = isolate_migratepages_block(cc, low_pfn, end_pfn,
+ 								isolate_mode);
  
-+		if (!zs_can_compact(class))
-+			break;
+@@ -1172,6 +1174,15 @@ static isolate_migrate_t isolate_migrate
+ 		}
+ 
+ 		/*
++		 * Record where we could have freed pages by migration and not
++		 * yet flushed them to buddy allocator.
++		 * - this is the lowest page that could have been isolated and
++		 * then freed by migration.
++		 */
++		if (cc->nr_migratepages && !cc->last_migrated_pfn)
++			cc->last_migrated_pfn = isolate_start_pfn;
 +
- 		cc.index = 0;
- 		cc.s_page = src_page;
++		/*
+ 		 * Either we isolated something and proceed with migration. Or
+ 		 * we failed and compact_zone should decide if we should
+ 		 * continue or not.
+@@ -1342,7 +1353,6 @@ static int compact_zone(struct zone *zon
+ 	unsigned long end_pfn = zone_end_pfn(zone);
+ 	const int migratetype = gfpflags_to_migratetype(cc->gfp_mask);
+ 	const bool sync = cc->mode != MIGRATE_ASYNC;
+-	unsigned long last_migrated_pfn = 0;
  
+ 	ret = compaction_suitable(zone, cc->order, cc->alloc_flags,
+ 							cc->classzone_idx);
+@@ -1380,6 +1390,7 @@ static int compact_zone(struct zone *zon
+ 		zone->compact_cached_migrate_pfn[0] = cc->migrate_pfn;
+ 		zone->compact_cached_migrate_pfn[1] = cc->migrate_pfn;
+ 	}
++	cc->last_migrated_pfn = 0;
+ 
+ 	trace_mm_compaction_begin(start_pfn, cc->migrate_pfn,
+ 				cc->free_pfn, end_pfn, sync);
+@@ -1389,7 +1400,6 @@ static int compact_zone(struct zone *zon
+ 	while ((ret = compact_finished(zone, cc, migratetype)) ==
+ 						COMPACT_CONTINUE) {
+ 		int err;
+-		unsigned long isolate_start_pfn = cc->migrate_pfn;
+ 
+ 		switch (isolate_migratepages(zone, cc)) {
+ 		case ISOLATE_ABORT:
+@@ -1429,16 +1439,6 @@ static int compact_zone(struct zone *zon
+ 			}
+ 		}
+ 
+-		/*
+-		 * Record where we could have freed pages by migration and not
+-		 * yet flushed them to buddy allocator. We use the pfn that
+-		 * isolate_migratepages() started from in this loop iteration
+-		 * - this is the lowest page that could have been isolated and
+-		 * then freed by migration.
+-		 */
+-		if (!last_migrated_pfn)
+-			last_migrated_pfn = isolate_start_pfn;
+-
+ check_drain:
+ 		/*
+ 		 * Has the migration scanner moved away from the previous
+@@ -1447,18 +1447,18 @@ check_drain:
+ 		 * compact_finished() can detect immediately if allocation
+ 		 * would succeed.
+ 		 */
+-		if (cc->order > 0 && last_migrated_pfn) {
++		if (cc->order > 0 && cc->last_migrated_pfn) {
+ 			int cpu;
+ 			unsigned long current_block_start =
+ 				cc->migrate_pfn & ~((1UL << cc->order) - 1);
+ 
+-			if (last_migrated_pfn < current_block_start) {
++			if (cc->last_migrated_pfn < current_block_start) {
+ 				cpu = get_cpu();
+ 				lru_add_drain_cpu(cpu);
+ 				drain_local_pages(zone);
+ 				put_cpu();
+ 				/* No more flushing until we migrate again */
+-				last_migrated_pfn = 0;
++				cc->last_migrated_pfn = 0;
+ 			}
+ 		}
+ 
+diff -puN mm/internal.h~mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens mm/internal.h
+--- a/mm/internal.h~mm-compaction-correct-to-flush-migrated-pages-if-pageblock-skip-happens
++++ a/mm/internal.h
+@@ -182,6 +182,7 @@ struct compact_control {
+ 	unsigned long nr_migratepages;	/* Number of pages to migrate */
+ 	unsigned long free_pfn;		/* isolate_freepages search base */
+ 	unsigned long migrate_pfn;	/* isolate_migratepages search base */
++	unsigned long last_migrated_pfn;/* Not yet flushed page being freed */
+ 	enum migrate_mode mode;		/* Async or sync migration mode */
+ 	bool ignore_skip_hint;		/* Scan blocks even if marked skip */
+ 	int order;			/* order a direct compactor needs */
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
 
