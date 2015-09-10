@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-kernel-doc-processing-nofunc-for-functions-only.patch
+Subject: + mm-mmapc-remove-useless-statement-vma-=-null-in-find_vma.patch
  added to -mm tree
-Date: Thu, 10 Sep 2015 15:20:13 -0700
-Message-ID: <55f2021d.2GQJoarR9pPqVMcX%akpm@linux-foundation.org>
+Date: Thu, 10 Sep 2015 15:22:01 -0700
+Message-ID: <55f20289.lS0qS8uZyoCzxtiO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46022 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46084 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751193AbbIJWUO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Sep 2015 18:20:14 -0400
+	with ESMTP id S1751035AbbIJWWB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Sep 2015 18:22:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: danilo.cesar@collabora.co.uk, corbet@lwn.net, daniel.vetter@ffwll.ch, johannes.berg@intel.com, mm-commits@vger.kernel.org
+To: gang.chen.5i5j@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/kernel-doc: processing -nofunc for functions only
+     Subject: mm/mmap.c: remove useless statement "vma = NULL" in find_vma()
 has been added to the -mm tree.  Its filename is
-     scripts-kernel-doc-processing-nofunc-for-functions-only.patch
+     mm-mmapc-remove-useless-statement-vma-=-null-in-find_vma.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-kernel-doc-processing-nofunc-for-functions-only.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmapc-remove-useless-statement-vma-%3D-null-in-find_vma.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-kernel-doc-processing-nofunc-for-functions-only.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmapc-remove-useless-statement-vma-%3D-null-in-find_vma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,47 +39,33 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>
-Subject: scripts/kernel-doc: processing -nofunc for functions only
+From: Chen Gang <gang.chen.5i5j@gmail.com>
+Subject: mm/mmap.c: remove useless statement "vma = NULL" in find_vma()
 
-Docproc process EXPORT_SYMBOL(f1) macro and uses -nofunc f1 to avoid
-duplicated documentation in the next call.  It works for most of the
-cases, but there are some specific situations where a struct has the same
-name of an already-exported function.
+Before the main loop, vma is already is NULL.  There is no need to set it
+to NULL again.
 
-Current kernel-doc behavior ignores those structs and do not add them to
-the final documentation.  This patch fixes it.
-
-This is non-usual and the only case I've found is the drm_modeset_lock
-(function and struct) defined in drm_modeset_lock.h and
-drm_modeset_lock.c.  Considering this, it should only affect the DRM
-documentation by including struct drm_modeset_lock to the final Docbook.
-
-Signed-off-by: Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Johannes Berg <johannes.berg@intel.com>
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/kernel-doc |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN scripts/kernel-doc~scripts-kernel-doc-processing-nofunc-for-functions-only scripts/kernel-doc
---- a/scripts/kernel-doc~scripts-kernel-doc-processing-nofunc-for-functions-only
-+++ a/scripts/kernel-doc
-@@ -1746,7 +1746,7 @@ sub output_declaration {
-     my $func = "output_${functype}_$output_mode";
-     if (($function_only==0) ||
- 	( $function_only == 1 && defined($function_table{$name})) ||
--	( $function_only == 2 && !defined($function_table{$name})))
-+	( $function_only == 2 && !($functype eq "function" && defined($function_table{$name}))))
-     {
- 	&$func(@_);
- 	$section_counter++;
+diff -puN mm/mmap.c~mm-mmapc-remove-useless-statement-vma-=-null-in-find_vma mm/mmap.c
+--- a/mm/mmap.c~mm-mmapc-remove-useless-statement-vma-=-null-in-find_vma
++++ a/mm/mmap.c
+@@ -2054,7 +2054,6 @@ struct vm_area_struct *find_vma(struct m
+ 		return vma;
+ 
+ 	rb_node = mm->mm_rb.rb_node;
+-	vma = NULL;
+ 
+ 	while (rb_node) {
+ 		struct vm_area_struct *tmp;
 _
 
-Patches currently in -mm which might be from danilo.cesar@collabora.co.uk are
+Patches currently in -mm which might be from gang.chen.5i5j@gmail.com are
 
-scripts-kernel-doc-processing-nofunc-for-functions-only.patch
+mm-mmapc-remove-useless-statement-vma-=-null-in-find_vma.patch
 
