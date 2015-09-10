@@ -1,192 +1,132 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] proc-convert-to-kstrto-kstrto_from_user.patch removed
- from -mm tree
-Date: Thu, 10 Sep 2015 13:41:00 -0700
-Message-ID: <55f1eadc.xl5dPPuwE2ZUwGX8%akpm@linux-foundation.org>
+Subject: [nacked] parse_integer-convert-ext2-ext3-ext4.patch removed from
+ -mm tree
+Date: Thu, 10 Sep 2015 13:40:52 -0700
+Message-ID: <55f1ead4.o0H70gw3BdA9DBzI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35529 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35514 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751064AbbIJUlA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Sep 2015 16:41:00 -0400
+	with ESMTP id S1751064AbbIJUkx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Sep 2015 16:40:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, jack@suse.cz, linux@rasmusvillemoes.dk, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: convert to kstrto*()/kstrto*_from_user()
+     Subject: parse_integer: convert ext2, ext4
 has been removed from the -mm tree.  Its filename was
-     proc-convert-to-kstrto-kstrto_from_user.patch
+     parse_integer-convert-ext2-ext3-ext4.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: proc: convert to kstrto*()/kstrto*_from_user()
+Subject: parse_integer: convert ext2, ext4
 
-Convert from manual allocation/copy_from_user/...  to kstrto*() family
-which were designed for exactly that.
-
-One case can not be converted to kstrto*_from_user() to make code even
-more simpler because of whitespace stripping, oh well...
+Convert away from deprecated simple_strto*() interfaces.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   70 ++++++++++++++---------------------------------
- 1 file changed, 21 insertions(+), 49 deletions(-)
+ fs/ext2/super.c |    6 ++++--
+ fs/ext4/super.c |   15 +++++++--------
+ 2 files changed, 11 insertions(+), 10 deletions(-)
 
-diff -puN fs/proc/base.c~proc-convert-to-kstrto-kstrto_from_user fs/proc/base.c
---- a/fs/proc/base.c~proc-convert-to-kstrto-kstrto_from_user
-+++ a/fs/proc/base.c
-@@ -1230,10 +1230,9 @@ static ssize_t proc_loginuid_write(struc
- 				   size_t count, loff_t *ppos)
+diff -puN fs/ext2/super.c~parse_integer-convert-ext2-ext3-ext4 fs/ext2/super.c
+--- a/fs/ext2/super.c~parse_integer-convert-ext2-ext3-ext4
++++ a/fs/ext2/super.c
+@@ -383,16 +383,18 @@ static unsigned long get_sb_block(void *
  {
- 	struct inode * inode = file_inode(file);
--	char *page, *tmp;
--	ssize_t length;
- 	uid_t loginuid;
- 	kuid_t kloginuid;
+ 	unsigned long 	sb_block;
+ 	char 		*options = (char *) *data;
 +	int rv;
  
- 	rcu_read_lock();
- 	if (current != pid_task(proc_pid(inode), PIDTYPE_PID)) {
-@@ -1242,46 +1241,28 @@ static ssize_t proc_loginuid_write(struc
+ 	if (!options || strncmp(options, "sb=", 3) != 0)
+ 		return 1;	/* Default location */
+ 	options += 3;
+-	sb_block = simple_strtoul(options, &options, 0);
+-	if (*options && *options != ',') {
++	rv = parse_integer(options, 0, &sb_block);
++	if (rv < 0 || (options[rv] && options[rv] != ',')) {
+ 		printk("EXT2-fs: Invalid sb specification: %s\n",
+ 		       (char *) *data);
+ 		return 1;
  	}
- 	rcu_read_unlock();
- 
--	if (count >= PAGE_SIZE)
--		count = PAGE_SIZE - 1;
--
- 	if (*ppos != 0) {
- 		/* No partial writes. */
- 		return -EINVAL;
- 	}
--	page = (char*)__get_free_page(GFP_TEMPORARY);
--	if (!page)
--		return -ENOMEM;
--	length = -EFAULT;
--	if (copy_from_user(page, buf, count))
--		goto out_free_page;
- 
--	page[count] = '\0';
--	loginuid = simple_strtoul(page, &tmp, 10);
--	if (tmp == page) {
--		length = -EINVAL;
--		goto out_free_page;
--
--	}
-+	rv = kstrtou32_from_user(buf, count, 10, &loginuid);
-+	if (rv < 0)
-+		return rv;
- 
- 	/* is userspace tring to explicitly UNSET the loginuid? */
- 	if (loginuid == AUDIT_UID_UNSET) {
- 		kloginuid = INVALID_UID;
- 	} else {
- 		kloginuid = make_kuid(file->f_cred->user_ns, loginuid);
--		if (!uid_valid(kloginuid)) {
--			length = -EINVAL;
--			goto out_free_page;
--		}
-+		if (!uid_valid(kloginuid))
-+			return -EINVAL;
- 	}
- 
--	length = audit_set_loginuid(kloginuid);
--	if (likely(length == 0))
--		length = count;
--
--out_free_page:
--	free_page((unsigned long) page);
--	return length;
-+	rv = audit_set_loginuid(kloginuid);
-+	if (rv < 0)
-+		return rv;
-+	return count;
- }
- 
- static const struct file_operations proc_loginuid_operations = {
-@@ -1335,8 +1316,9 @@ static ssize_t proc_fault_inject_write(s
- 			const char __user * buf, size_t count, loff_t *ppos)
++	options += rv;
+ 	if (*options == ',')
+ 		options++;
+ 	*data = (void *) options;
+diff -puN fs/ext4/super.c~parse_integer-convert-ext2-ext3-ext4 fs/ext4/super.c
+--- a/fs/ext4/super.c~parse_integer-convert-ext2-ext3-ext4
++++ a/fs/ext4/super.c
+@@ -1251,18 +1251,19 @@ static ext4_fsblk_t get_sb_block(void **
  {
- 	struct task_struct *task;
--	char buffer[PROC_NUMBUF], *end;
-+	char buffer[PROC_NUMBUF];
- 	int make_it_fail;
+ 	ext4_fsblk_t	sb_block;
+ 	char		*options = (char *) *data;
 +	int rv;
  
- 	if (!capable(CAP_SYS_RESOURCE))
- 		return -EPERM;
-@@ -1345,9 +1327,9 @@ static ssize_t proc_fault_inject_write(s
- 		count = sizeof(buffer) - 1;
- 	if (copy_from_user(buffer, buf, count))
- 		return -EFAULT;
--	make_it_fail = simple_strtol(strstrip(buffer), &end, 0);
--	if (*end)
--		return -EINVAL;
-+	rv = kstrtoint(strstrip(buffer), 0, &make_it_fail);
-+	if (rv < 0)
-+		return rv;
- 	if (make_it_fail < 0 || make_it_fail > 1)
- 		return -EINVAL;
+ 	if (!options || strncmp(options, "sb=", 3) != 0)
+ 		return 1;	/* Default location */
  
-@@ -2488,32 +2470,20 @@ static ssize_t proc_coredump_filter_writ
+ 	options += 3;
+-	/* TODO: use simple_strtoll with >32bit ext4 */
+-	sb_block = simple_strtoul(options, &options, 0);
+-	if (*options && *options != ',') {
++	rv = parse_integer(options, 0, &sb_block);
++	if (rv < 0 || (options[rv] && options[rv] != ',')) {
+ 		printk(KERN_ERR "EXT4-fs: Invalid sb specification: %s\n",
+ 		       (char *) *data);
+ 		return 1;
+ 	}
++	options += rv;
+ 	if (*options == ',')
+ 		options++;
+ 	*data = (void *) options;
+@@ -2532,10 +2533,10 @@ static ssize_t inode_readahead_blks_stor
+ 					  struct ext4_sb_info *sbi,
+ 					  const char *buf, size_t count)
  {
- 	struct task_struct *task;
- 	struct mm_struct *mm;
--	char buffer[PROC_NUMBUF], *end;
- 	unsigned int val;
+-	unsigned long t;
++	unsigned int t;
  	int ret;
- 	int i;
- 	unsigned long mask;
  
--	ret = -EFAULT;
--	memset(buffer, 0, sizeof(buffer));
--	if (count > sizeof(buffer) - 1)
--		count = sizeof(buffer) - 1;
--	if (copy_from_user(buffer, buf, count))
--		goto out_no_task;
--
--	ret = -EINVAL;
--	val = (unsigned int)simple_strtoul(buffer, &end, 0);
--	if (*end == '\n')
--		end++;
--	if (end - buffer == 0)
--		goto out_no_task;
-+	ret = kstrtouint_from_user(buf, count, 0, &val);
-+	if (ret < 0)
-+		return ret;
+-	ret = kstrtoul(skip_spaces(buf), 0, &t);
++	ret = kstrtouint(skip_spaces(buf), 0, &t);
+ 	if (ret)
+ 		return ret;
  
- 	ret = -ESRCH;
- 	task = get_proc_task(file_inode(file));
- 	if (!task)
- 		goto out_no_task;
+@@ -2559,13 +2560,11 @@ static ssize_t sbi_ui_store(struct ext4_
+ 			    const char *buf, size_t count)
+ {
+ 	unsigned int *ui = (unsigned int *) (((char *) sbi) + a->u.offset);
+-	unsigned long t;
+ 	int ret;
  
--	ret = end - buffer;
- 	mm = get_task_mm(task);
- 	if (!mm)
- 		goto out_no_mm;
-@@ -2529,7 +2499,9 @@ static ssize_t proc_coredump_filter_writ
-  out_no_mm:
- 	put_task_struct(task);
-  out_no_task:
--	return ret;
-+	if (ret < 0)
-+		return ret;
-+	return count;
+-	ret = kstrtoul(skip_spaces(buf), 0, &t);
++	ret = kstrtouint(skip_spaces(buf), 0, ui);
+ 	if (ret)
+ 		return ret;
+-	*ui = t;
+ 	return count;
  }
  
- static const struct file_operations proc_coredump_filter_operations = {
 _
 
 Patches currently in -mm which might be from adobriyan@gmail.com are
 
 kstrto-accept-0-for-signed-conversion.patch
+parse_integer-convert-fs-ocfs2.patch
+parse_integer-convert-fs-9p.patch
+parse_integer-convert-fs-exofs.patch
+proc-convert-to-kstrto-kstrto_from_user.patch
 sound-convert-to-parse_integer.patch
 
