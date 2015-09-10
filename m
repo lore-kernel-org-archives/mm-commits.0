@@ -1,197 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] parse_integer-convert-fs-cachefiles.patch removed from
- -mm tree
-Date: Thu, 10 Sep 2015 13:40:50 -0700
-Message-ID: <55f1ead2./7IW3O5/44IbITYm%akpm@linux-foundation.org>
+Subject: [nacked] parse_integer-convert-fs.patch removed from -mm tree
+Date: Thu, 10 Sep 2015 13:40:48 -0700
+Message-ID: <55f1ead0.Tlr6ooQe8rOMXbug%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35509 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35506 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751047AbbIJUku (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Sep 2015 16:40:50 -0400
+	with ESMTP id S1751042AbbIJUks (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Sep 2015 16:40:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: adobriyan@gmail.com, dhowells@redhat.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: adobriyan@gmail.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: parse_integer: convert fs/cachefiles/
+     Subject: parse_integer: convert fs/
 has been removed from the -mm tree.  Its filename was
-     parse_integer-convert-fs-cachefiles.patch
+     parse_integer-convert-fs.patch
 
 This patch was dropped because it was nacked
 
 ------------------------------------------------------
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: parse_integer: convert fs/cachefiles/
+Subject: parse_integer: convert fs/
 
-Convert away from deprecated simple_strto*() interfaces.
+Convert random fs/ code away from simple_strto*() interfaces.
 
-Switch "unsigned long" to "unsigned int" where possible.
-kstrto*() functions can't be used because of trailing "%" sign. :^)
+Note about "struct simple_attr" conversion:
+->set_buf is unneeded because everything can be done from stack.
+->get_buf is useless as well, but that's a separate patch.
+Mutex is not removed, as it may guard readers from writers,
+separate story as well.
+(code has been copied to arch/powerpc/.../spufs/, don't forget!)
+
+binfmt_misc: file offset can't really be negative, type changed.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/cachefiles/daemon.c |   84 ++++++++++++++++++++-------------------
- 1 file changed, 45 insertions(+), 39 deletions(-)
+ fs/binfmt_misc.c |   12 +++++++++---
+ fs/dcache.c      |    2 +-
+ fs/inode.c       |    2 +-
+ fs/libfs.c       |   26 ++++++++++----------------
+ fs/namespace.c   |    4 ++--
+ 5 files changed, 23 insertions(+), 23 deletions(-)
 
-diff -puN fs/cachefiles/daemon.c~parse_integer-convert-fs-cachefiles fs/cachefiles/daemon.c
---- a/fs/cachefiles/daemon.c~parse_integer-convert-fs-cachefiles
-+++ a/fs/cachefiles/daemon.c
-@@ -326,14 +326,15 @@ static int cachefiles_daemon_range_error
-  */
- static int cachefiles_daemon_frun(struct cachefiles_cache *cache, char *args)
+diff -puN fs/binfmt_misc.c~parse_integer-convert-fs fs/binfmt_misc.c
+--- a/fs/binfmt_misc.c~parse_integer-convert-fs
++++ a/fs/binfmt_misc.c
+@@ -47,7 +47,7 @@ enum {Enabled, Magic};
+ typedef struct {
+ 	struct list_head list;
+ 	unsigned long flags;		/* type, status, etc. */
+-	int offset;			/* offset of magic */
++	unsigned int offset;		/* offset of magic */
+ 	int size;			/* size of magic/mask */
+ 	char *magic;			/* magic or filename extension */
+ 	char *mask;			/* mask, NULL for exact match */
+@@ -370,7 +370,13 @@ static Node *create_entry(const char __u
+ 		if (!s)
+ 			goto einval;
+ 		*s++ = '\0';
+-		e->offset = simple_strtoul(p, &p, 10);
++		err = parse_integer(p, 10, &e->offset);
++		if (err < 0) {
++			kfree(e);
++			goto out;
++
++		}
++		p += err;
+ 		if (*p++)
+ 			goto einval;
+ 		pr_debug("register: offset: %#x\n", e->offset);
+@@ -548,7 +554,7 @@ static void entry_status(Node *e, char *
+ 	if (!test_bit(Magic, &e->flags)) {
+ 		sprintf(dp, "extension .%s\n", e->magic);
+ 	} else {
+-		dp += sprintf(dp, "offset %i\nmagic ", e->offset);
++		dp += sprintf(dp, "offset %u\nmagic ", e->offset);
+ 		dp = bin2hex(dp, e->magic, e->size);
+ 		if (e->mask) {
+ 			dp += sprintf(dp, "\nmask ");
+diff -puN fs/dcache.c~parse_integer-convert-fs fs/dcache.c
+--- a/fs/dcache.c~parse_integer-convert-fs
++++ a/fs/dcache.c
+@@ -3375,7 +3375,7 @@ static int __init set_dhash_entries(char
  {
--	unsigned long frun;
-+	unsigned int frun;
-+	int rv;
- 
- 	_enter(",%s", args);
- 
--	if (!*args)
--		return -EINVAL;
--
--	frun = simple_strtoul(args, &args, 10);
-+	rv = parse_integer(args, 10, &frun);
-+	if (rv < 0)
-+		return rv;
-+	args += rv;
- 	if (args[0] != '%' || args[1] != '\0')
- 		return -EINVAL;
- 
-@@ -350,14 +351,15 @@ static int cachefiles_daemon_frun(struct
-  */
- static int cachefiles_daemon_fcull(struct cachefiles_cache *cache, char *args)
+ 	if (!str)
+ 		return 0;
+-	dhash_entries = simple_strtoul(str, &str, 0);
++	parse_integer(str, 0, &dhash_entries);
+ 	return 1;
+ }
+ __setup("dhash_entries=", set_dhash_entries);
+diff -puN fs/inode.c~parse_integer-convert-fs fs/inode.c
+--- a/fs/inode.c~parse_integer-convert-fs
++++ a/fs/inode.c
+@@ -1840,7 +1840,7 @@ static int __init set_ihash_entries(char
  {
--	unsigned long fcull;
-+	unsigned int fcull;
-+	int rv;
- 
- 	_enter(",%s", args);
- 
--	if (!*args)
--		return -EINVAL;
--
--	fcull = simple_strtoul(args, &args, 10);
-+	rv = parse_integer(args, 10, &fcull);
-+	if (rv < 0)
-+		return rv;
-+	args += rv;
- 	if (args[0] != '%' || args[1] != '\0')
- 		return -EINVAL;
- 
-@@ -374,14 +376,15 @@ static int cachefiles_daemon_fcull(struc
-  */
- static int cachefiles_daemon_fstop(struct cachefiles_cache *cache, char *args)
+ 	if (!str)
+ 		return 0;
+-	ihash_entries = simple_strtoul(str, &str, 0);
++	parse_integer(str, 0, &ihash_entries);
+ 	return 1;
+ }
+ __setup("ihash_entries=", set_ihash_entries);
+diff -puN fs/libfs.c~parse_integer-convert-fs fs/libfs.c
+--- a/fs/libfs.c~parse_integer-convert-fs
++++ a/fs/libfs.c
+@@ -747,7 +747,6 @@ struct simple_attr {
+ 	int (*get)(void *, u64 *);
+ 	int (*set)(void *, u64);
+ 	char get_buf[24];	/* enough to store a u64 and "\n\0" */
+-	char set_buf[24];
+ 	void *data;
+ 	const char *fmt;	/* format for read operation */
+ 	struct mutex mutex;	/* protects access to these buffers */
+@@ -825,31 +824,26 @@ ssize_t simple_attr_write(struct file *f
+ 			  size_t len, loff_t *ppos)
  {
--	unsigned long fstop;
-+	unsigned int fstop;
-+	int rv;
+ 	struct simple_attr *attr;
+-	u64 val;
+-	size_t size;
+-	ssize_t ret;
++	s64 val;
++	int ret;
  
- 	_enter(",%s", args);
+ 	attr = file->private_data;
+ 	if (!attr->set)
+ 		return -EACCES;
  
--	if (!*args)
--		return -EINVAL;
++	ret = kstrtos64_from_user(buf, len, 0, &val);
++	if (ret < 0)
++		return ret;
++
+ 	ret = mutex_lock_interruptible(&attr->mutex);
+ 	if (ret)
+ 		return ret;
 -
--	fstop = simple_strtoul(args, &args, 10);
-+	rv = parse_integer(args, 10, &fstop);
-+	if (rv < 0)
-+		return rv;
-+	args += rv;
- 	if (args[0] != '%' || args[1] != '\0')
- 		return -EINVAL;
+-	ret = -EFAULT;
+-	size = min(sizeof(attr->set_buf) - 1, len);
+-	if (copy_from_user(attr->set_buf, buf, size))
+-		goto out;
+-
+-	attr->set_buf[size] = '\0';
+-	val = simple_strtoll(attr->set_buf, NULL, 0);
+ 	ret = attr->set(attr->data, val);
+-	if (ret == 0)
+-		ret = len; /* on success, claim we got the whole input */
+-out:
+ 	mutex_unlock(&attr->mutex);
+-	return ret;
++	if (ret < 0)
++		return ret;
++	/* on success, claim we got the whole input */
++	return len;
+ }
+ EXPORT_SYMBOL_GPL(simple_attr_write);
  
-@@ -398,14 +401,15 @@ static int cachefiles_daemon_fstop(struc
-  */
- static int cachefiles_daemon_brun(struct cachefiles_cache *cache, char *args)
+diff -puN fs/namespace.c~parse_integer-convert-fs fs/namespace.c
+--- a/fs/namespace.c~parse_integer-convert-fs
++++ a/fs/namespace.c
+@@ -37,7 +37,7 @@ static int __init set_mhash_entries(char
  {
--	unsigned long brun;
-+	unsigned int brun;
-+	int rv;
- 
- 	_enter(",%s", args);
- 
--	if (!*args)
--		return -EINVAL;
--
--	brun = simple_strtoul(args, &args, 10);
-+	rv = parse_integer(args, 10, &brun);
-+	if (rv < 0)
-+		return rv;
-+	args += rv;
- 	if (args[0] != '%' || args[1] != '\0')
- 		return -EINVAL;
- 
-@@ -422,14 +426,15 @@ static int cachefiles_daemon_brun(struct
-  */
- static int cachefiles_daemon_bcull(struct cachefiles_cache *cache, char *args)
+ 	if (!str)
+ 		return 0;
+-	mhash_entries = simple_strtoul(str, &str, 0);
++	parse_integer(str, 0, &mhash_entries);
+ 	return 1;
+ }
+ __setup("mhash_entries=", set_mhash_entries);
+@@ -47,7 +47,7 @@ static int __init set_mphash_entries(cha
  {
--	unsigned long bcull;
-+	unsigned int bcull;
-+	int rv;
- 
- 	_enter(",%s", args);
- 
--	if (!*args)
--		return -EINVAL;
--
--	bcull = simple_strtoul(args, &args, 10);
-+	rv = parse_integer(args, 10, &bcull);
-+	if (rv < 0)
-+		return rv;
-+	args += rv;
- 	if (args[0] != '%' || args[1] != '\0')
- 		return -EINVAL;
- 
-@@ -446,14 +451,15 @@ static int cachefiles_daemon_bcull(struc
-  */
- static int cachefiles_daemon_bstop(struct cachefiles_cache *cache, char *args)
- {
--	unsigned long bstop;
-+	unsigned int bstop;
-+	int rv;
- 
- 	_enter(",%s", args);
- 
--	if (!*args)
--		return -EINVAL;
--
--	bstop = simple_strtoul(args, &args, 10);
-+	rv = parse_integer(args, 10, &bstop);
-+	if (rv < 0)
-+		return rv;
-+	args += rv;
- 	if (args[0] != '%' || args[1] != '\0')
- 		return -EINVAL;
- 
-@@ -601,21 +607,21 @@ inval:
-  */
- static int cachefiles_daemon_debug(struct cachefiles_cache *cache, char *args)
- {
--	unsigned long mask;
-+	unsigned int mask;
-+	int rv;
- 
- 	_enter(",%s", args);
- 
--	mask = simple_strtoul(args, &args, 0);
--	if (args[0] != '\0')
--		goto inval;
--
-+	rv = parse_integer(args, 0, &mask);
-+	if (rv < 0)
-+		return rv;
-+	if (args[rv] != '\0') {
-+		pr_err("debug command requires mask\n");
-+		return -EINVAL;
-+	}
- 	cachefiles_debug = mask;
- 	_leave(" = 0");
- 	return 0;
+ 	if (!str)
+ 		return 0;
+-	mphash_entries = simple_strtoul(str, &str, 0);
++	parse_integer(str, 0, &mphash_entries);
+ 	return 1;
+ }
+ __setup("mphash_entries=", set_mphash_entries);
+_
+
+Patches currently in -mm which might be from adobriyan@gmail.com are
+
+kstrto-accept-0-for-signed-conversion.patch
+parse_integer-convert-fs-cachefiles.patch
+parse_integer-convert-ext2-ext3-ext4.patch
+parse_integer-convert-fs-ocfs2.patch
+parse_integer-convert-fs-9p.patch
+parse_integer-convert-fs-exofs.patch
+proc-convert-to-kstrto-kstrto_from_user.patch
+sound-convert-to-parse_integer.patch
+
