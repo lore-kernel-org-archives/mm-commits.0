@@ -1,175 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kmod-bunch-of-internal-functions-renames.patch removed
- from -mm tree
-Date: Fri, 11 Sep 2015 11:12:45 -0700
-Message-ID: <55f3199d.+13LcWxdsWmvp5nN%akpm@linux-foundation.org>
+Subject: [merged]
+ kmod-correct-documentation-of-return-status-of-request_module.patch removed from -mm tree
+Date: Fri, 11 Sep 2015 11:12:43 -0700
+Message-ID: <55f3199b.6paMWrKb8MfNXrfu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53896 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53885 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751960AbbIKSMq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:12:46 -0400
+	with ESMTP id S1751960AbbIKSMo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:12:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fweisbec@gmail.com, cl@linux.com, oleg@redhat.com, riel@redhat.com, rusty@rustcorp.com.au, tj@kernel.org, mm-commits@vger.kernel.org
+To: neilb@suse.com, oleg@redhat.com, rgoldwyn@suse.de, rusty@rustcorp.com.au, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmod: bunch of internal functions renames
+     Subject: kmod: correct documentation of return status of request_module
 has been removed from the -mm tree.  Its filename was
-     kmod-bunch-of-internal-functions-renames.patch
+     kmod-correct-documentation-of-return-status-of-request_module.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Frederic Weisbecker <fweisbec@gmail.com>
-Subject: kmod: bunch of internal functions renames
+From: NeilBrown <neilb@suse.com>
+Subject: kmod: correct documentation of return status of request_module
 
-This patchset does a bunch of cleanups and converts khelper to use system
-unbound workqueues.  The 3 first patches should be uncontroversial.  The
-last 2 patches are debatable.
+If request_module() successfully runs modprobe, but modprobe exits with a
+non-zero status, then the return value from request_module() will be that
+(positive) error status.  So the return from request_module can be:
 
-Kmod creates kernel threads that perform userspace jobs and we want those
-to have a large affinity in order not to contend busy CPUs.  This is
-(partly) why we use khelper which has a wide affinity that the kernel
-threads it create can inherit from.  Now khelper is a dedicated workqueue
-that has singlethread properties which we aren't interested in.
+ negative errno
+ zero for success
+ positive exit code.
 
-Hence those two debatable changes:
-
-_ We would like to use generic workqueues. System unbound workqueues are
-  a very good candidate but they are not wide affine, only node affine.
-  Now probably a node is enough to perform many parallel kmod jobs.
-
-_ We would like to remove the wait_for_helper kernel thread (UMH_WAIT_PROC
-  handler) to use the workqueue. It means that if the workqueue blocks,
-  and no other worker can take pending kmod request, we can be screwed.
-  Now if we have 512 threads, this should be enough.
-
-
-This patch (of 5):
-
-Underscores on function names aren't much verbose to explain the purpose
-of a function.  And kmod has interesting such flavours.
-
-Lets rename the following functions:
-
-* __call_usermodehelper -> call_usermodehelper_exec_work
-* ____call_usermodehelper -> call_usermodehelper_exec_async
-* wait_for_helper -> call_usermodehelper_exec_sync
-
-Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
+Signed-off-by: NeilBrown <neilb@suse.com>
+Cc: Goldwyn Rodrigues <rgoldwyn@suse.de>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |   30 +++++++++++++++++-------------
- 1 file changed, 17 insertions(+), 13 deletions(-)
+ kernel/kmod.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN kernel/kmod.c~kmod-bunch-of-internal-functions-renames kernel/kmod.c
---- a/kernel/kmod.c~kmod-bunch-of-internal-functions-renames
+diff -puN kernel/kmod.c~kmod-correct-documentation-of-return-status-of-request_module kernel/kmod.c
+--- a/kernel/kmod.c~kmod-correct-documentation-of-return-status-of-request_module
 +++ a/kernel/kmod.c
-@@ -214,7 +214,7 @@ static void umh_complete(struct subproce
- /*
-  * This is the task which runs the usermode application
-  */
--static int ____call_usermodehelper(void *data)
-+static int call_usermodehelper_exec_async(void *data)
- {
- 	struct subprocess_info *sub_info = data;
- 	struct cred *new;
-@@ -259,7 +259,10 @@ static int ____call_usermodehelper(void
- 			   (const char __user *const __user *)sub_info->envp);
- out:
- 	sub_info->retval = retval;
--	/* wait_for_helper() will call umh_complete if UHM_WAIT_PROC. */
-+	/*
-+	 * call_usermodehelper_exec_sync() will call umh_complete
-+	 * if UHM_WAIT_PROC.
-+	 */
- 	if (!(sub_info->wait & UMH_WAIT_PROC))
- 		umh_complete(sub_info);
- 	if (!retval)
-@@ -268,14 +271,14 @@ out:
- }
- 
- /* Keventd can't block, but this (a child) can. */
--static int wait_for_helper(void *data)
-+static int call_usermodehelper_exec_sync(void *data)
- {
- 	struct subprocess_info *sub_info = data;
- 	pid_t pid;
- 
- 	/* If SIGCLD is ignored sys_wait4 won't populate the status. */
- 	kernel_sigaction(SIGCHLD, SIG_DFL);
--	pid = kernel_thread(____call_usermodehelper, sub_info, SIGCHLD);
-+	pid = kernel_thread(call_usermodehelper_exec_async, sub_info, SIGCHLD);
- 	if (pid < 0) {
- 		sub_info->retval = pid;
- 	} else {
-@@ -283,17 +286,18 @@ static int wait_for_helper(void *data)
- 		/*
- 		 * Normally it is bogus to call wait4() from in-kernel because
- 		 * wait4() wants to write the exit code to a userspace address.
--		 * But wait_for_helper() always runs as keventd, and put_user()
--		 * to a kernel address works OK for kernel threads, due to their
--		 * having an mm_segment_t which spans the entire address space.
-+		 * But call_usermodehelper_exec_sync() always runs as keventd,
-+		 * and put_user() to a kernel address works OK for kernel
-+		 * threads, due to their having an mm_segment_t which spans the
-+		 * entire address space.
- 		 *
- 		 * Thus the __user pointer cast is valid here.
- 		 */
- 		sys_wait4(pid, (int __user *)&ret, 0, NULL);
- 
- 		/*
--		 * If ret is 0, either ____call_usermodehelper failed and the
--		 * real error code is already in sub_info->retval or
-+		 * If ret is 0, either call_usermodehelper_exec_async failed and
-+		 * the real error code is already in sub_info->retval or
- 		 * sub_info->retval is 0 anyway, so don't mess with it then.
- 		 */
- 		if (ret)
-@@ -305,17 +309,17 @@ static int wait_for_helper(void *data)
- }
- 
- /* This is run by khelper thread  */
--static void __call_usermodehelper(struct work_struct *work)
-+static void call_usermodehelper_exec_work(struct work_struct *work)
- {
- 	struct subprocess_info *sub_info =
- 		container_of(work, struct subprocess_info, work);
- 	pid_t pid;
- 
- 	if (sub_info->wait & UMH_WAIT_PROC)
--		pid = kernel_thread(wait_for_helper, sub_info,
-+		pid = kernel_thread(call_usermodehelper_exec_sync, sub_info,
- 				    CLONE_FS | CLONE_FILES | SIGCHLD);
- 	else
--		pid = kernel_thread(____call_usermodehelper, sub_info,
-+		pid = kernel_thread(call_usermodehelper_exec_async, sub_info,
- 				    SIGCHLD);
- 
- 	if (pid < 0) {
-@@ -510,7 +514,7 @@ struct subprocess_info *call_usermodehel
- 	if (!sub_info)
- 		goto out;
- 
--	INIT_WORK(&sub_info->work, __call_usermodehelper);
-+	INIT_WORK(&sub_info->work, call_usermodehelper_exec_work);
- 	sub_info->path = path;
- 	sub_info->argv = argv;
- 	sub_info->envp = envp;
+@@ -114,10 +114,11 @@ out:
+  * @...: arguments as specified in the format string
+  *
+  * Load a module using the user mode module loader. The function returns
+- * zero on success or a negative errno code on failure. Note that a
+- * successful module load does not mean the module did not then unload
+- * and exit on an error of its own. Callers must check that the service
+- * they requested is now available not blindly invoke it.
++ * zero on success or a negative errno code or positive exit code from
++ * "modprobe" on failure. Note that a successful module load does not mean
++ * the module did not then unload and exit on an error of its own. Callers
++ * must check that the service they requested is now available not blindly
++ * invoke it.
+  *
+  * If module auto-loading support is disabled then this function
+  * becomes a no-operation.
 _
 
-Patches currently in -mm which might be from fweisbec@gmail.com are
+Patches currently in -mm which might be from neilb@suse.com are
 
 
