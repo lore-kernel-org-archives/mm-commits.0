@@ -1,76 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-warn-on-bare-sha-1-commit-ids-in-commit-logs.patch removed from
- -mm tree
-Date: Fri, 11 Sep 2015 11:12:09 -0700
-Message-ID: <55f31979.AjuXhmajX6afllcp%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-add-warning-on-bug-bug_on-use.patch removed
+ from -mm tree
+Date: Fri, 11 Sep 2015 11:12:11 -0700
+Message-ID: <55f3197b.3rMgdY8YPVFDDAxG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53780 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53787 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751426AbbIKSMJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:12:09 -0400
+	with ESMTP id S1751960AbbIKSML (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:12:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, geert@linux-m68k.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: warn on bare SHA-1 commit IDs in commit logs
+     Subject: checkpatch: add warning on BUG/BUG_ON use
 has been removed from the -mm tree.  Its filename was
-     checkpatch-warn-on-bare-sha-1-commit-ids-in-commit-logs.patch
+     checkpatch-add-warning-on-bug-bug_on-use.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn on bare SHA-1 commit IDs in commit logs
+Subject: checkpatch: add warning on BUG/BUG_ON use
 
-Commit IDs should have commit descriptions too.  Warn when a 12 to 40 byte
-SHA-1 is used in commit logs.
+Using BUG/BUG_ON crashes the kernel and is just unfriendly.
+
+Enable code that emits a warning on BUG/BUG_ON use.
+
+Make the code emit the message at WARNING level when scanning a patch and
+at CHECK level when scanning files so that script users don't feel an
+obligation to fix code that might be above their pay grade.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Tested-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ scripts/checkpatch.pl |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-on-bare-sha-1-commit-ids-in-commit-logs scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-on-bare-sha-1-commit-ids-in-commit-logs
+diff -puN scripts/checkpatch.pl~checkpatch-add-warning-on-bug-bug_on-use scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-add-warning-on-bug-bug_on-use
 +++ a/scripts/checkpatch.pl
-@@ -2317,9 +2317,11 @@ sub process {
+@@ -3448,13 +3448,15 @@ sub process {
+ 			}
  		}
  
- # Check for git id commit length and improperly formed commit descriptions
--		if ($in_commit_log && $line =~ /\b(c)ommit\s+([0-9a-f]{5,})/i) {
--			my $init_char = $1;
--			my $orig_commit = lc($2);
-+		if ($in_commit_log &&
-+		    ($line =~ /\bcommit\s+[0-9a-f]{5,}\b/i ||
-+		     $line =~ /\b[0-9a-f]{12,40}\b/i)) {
-+			my $init_char = "c";
-+			my $orig_commit = "";
- 			my $short = 1;
- 			my $long = 0;
- 			my $case = 1;
-@@ -2330,6 +2332,13 @@ sub process {
- 			my $orig_desc = "commit description";
- 			my $description = "";
+-# # no BUG() or BUG_ON()
+-# 		if ($line =~ /\b(BUG|BUG_ON)\b/) {
+-# 			print "Try to use WARN_ON & Recovery code rather than BUG() or BUG_ON()\n";
+-# 			print "$herecurr";
+-# 			$clean = 0;
+-# 		}
++# avoid BUG() or BUG_ON()
++		if ($line =~ /\b(?:BUG|BUG_ON)\b/) {
++			my $msg_type = \&WARN;
++			$msg_type = \&CHK if ($file);
++			&{$msg_type}("AVOID_BUG",
++				     "Avoid crashing the kernel - try using WARN_ON & recovery code rather than BUG() or BUG_ON()\n" . $herecurr);
++		}
  
-+			if ($line =~ /\b(c)ommit\s+([0-9a-f]{5,})\b/i) {
-+				$init_char = $1;
-+				$orig_commit = lc($2);
-+			} elsif ($line =~ /\b([0-9a-f]{12,40})\b/i) {
-+				$orig_commit = lc($1);
-+			}
-+
- 			$short = 0 if ($line =~ /\bcommit\s+[0-9a-f]{12,40}/i);
- 			$long = 1 if ($line =~ /\bcommit\s+[0-9a-f]{41,}/i);
- 			$space = 0 if ($line =~ /\bcommit [0-9a-f]/i);
++# avoid LINUX_VERSION_CODE
+ 		if ($line =~ /\bLINUX_VERSION_CODE\b/) {
+ 			WARN("LINUX_VERSION_CODE",
+ 			     "LINUX_VERSION_CODE should be avoided, code should be for the version to which it is merged\n" . $herecurr);
 _
 
 Patches currently in -mm which might be from joe@perches.com are
