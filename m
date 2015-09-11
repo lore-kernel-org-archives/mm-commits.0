@@ -1,74 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-export-kernel_image_size-to-vmcoreinfo.patch
+Subject: [merged] lib-decompress_unlzma-do-a-null-check-for-pointer.patch
  removed from -mm tree
-Date: Fri, 11 Sep 2015 11:13:28 -0700
-Message-ID: <55f319c8.bPX1M1GwRlX9kALS%akpm@linux-foundation.org>
+Date: Fri, 11 Sep 2015 11:13:38 -0700
+Message-ID: <55f319d2.a5DOS6ADD2dWYxSl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54039 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54102 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753709AbbIKSN2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:13:28 -0400
+	with ESMTP id S1753761AbbIKSNi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:13:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bhe@redhat.com, keescook@chromium.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: fabio.estevam@freescale.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: export KERNEL_IMAGE_SIZE to vmcoreinfo
+     Subject: lib/decompress_unlzma: Do a NULL check for pointer
 has been removed from the -mm tree.  Its filename was
-     kexec-export-kernel_image_size-to-vmcoreinfo.patch
+     lib-decompress_unlzma-do-a-null-check-for-pointer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Baoquan He <bhe@redhat.com>
-Subject: kexec: export KERNEL_IMAGE_SIZE to vmcoreinfo
+From: Fabio Estevam <fabio.estevam@freescale.com>
+Subject: lib/decompress_unlzma: Do a NULL check for pointer
 
-In x86_64, since v2.6.26 the KERNEL_IMAGE_SIZE is changed to 512M, and
-accordingly the MODULES_VADDR is changed to 0xffffffffa0000000.  However,
-in v3.12 Kees Cook introduced kaslr to randomise the location of kernel. 
-And the kernel text mapping addr space is enlarged from 512M to 1G.  That
-means now KERNEL_IMAGE_SIZE is variable, its value is 512M when kaslr
-support is not compiled in and 1G when kaslr support is compiled in. 
-Accordingly the MODULES_VADDR is changed too to be:
+Compare pointer-typed values to NULL rather than 0.
 
-    #define MODULES_VADDR    (__START_KERNEL_map + KERNEL_IMAGE_SIZE)
+The semantic patch that makes this change is available
+in scripts/coccinelle/null/badzero.cocci.
 
-So when kaslr is compiled in and enabled, the kernel text mapping addr
-space and modules vaddr space need be adjusted.  Otherwise makedumpfile
-will collapse since the addr for some symbols is not correct.
-
-Hence KERNEL_IMAGE_SIZE need be exported to vmcoreinfo and got in
-makedumpfile to help calculate MODULES_VADDR.
-
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Vivek Goyal <vgoyal@redhat.com>
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec_core.c |    3 +++
- 1 file changed, 3 insertions(+)
+ lib/decompress_unlzma.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/kexec_core.c~kexec-export-kernel_image_size-to-vmcoreinfo kernel/kexec_core.c
---- a/kernel/kexec_core.c~kexec-export-kernel_image_size-to-vmcoreinfo
-+++ a/kernel/kexec_core.c
-@@ -1417,6 +1417,9 @@ static int __init crash_save_vmcoreinfo_
- #endif
- 	VMCOREINFO_NUMBER(PG_head_mask);
- 	VMCOREINFO_NUMBER(PAGE_BUDDY_MAPCOUNT_VALUE);
-+#ifdef CONFIG_X86
-+	VMCOREINFO_NUMBER(KERNEL_IMAGE_SIZE);
-+#endif
- #ifdef CONFIG_HUGETLBFS
- 	VMCOREINFO_SYMBOL(free_huge_page);
- #endif
+diff -puN lib/decompress_unlzma.c~lib-decompress_unlzma-do-a-null-check-for-pointer lib/decompress_unlzma.c
+--- a/lib/decompress_unlzma.c~lib-decompress_unlzma-do-a-null-check-for-pointer
++++ a/lib/decompress_unlzma.c
+@@ -620,7 +620,7 @@ STATIC inline int INIT unlzma(unsigned c
+ 
+ 	num_probs = LZMA_BASE_SIZE + (LZMA_LIT_SIZE << (lc + lp));
+ 	p = (uint16_t *) large_malloc(num_probs * sizeof(*p));
+-	if (p == 0)
++	if (p == NULL)
+ 		goto exit_2;
+ 	num_probs = LZMA_LITERAL + (LZMA_LIT_SIZE << (lc + lp));
+ 	for (i = 0; i < num_probs; i++)
 _
 
-Patches currently in -mm which might be from bhe@redhat.com are
+Patches currently in -mm which might be from fabio.estevam@freescale.com are
 
 
