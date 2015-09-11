@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zram-fix-possible-use-after-free-in-zcomp_create.patch added to -mm tree
-Date: Fri, 11 Sep 2015 14:56:17 -0700
-Message-ID: <55f34e01.8I4DmobmKKibXcoZ%akpm@linux-foundation.org>
+Subject: + kasan-fix-last-shadow-judgement-in-memory_is_poisoned_16.patch
+ added to -mm tree
+Date: Fri, 11 Sep 2015 14:58:46 -0700
+Message-ID: <55f34e96.BVVw7fgjMY1fe0nj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47971 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48223 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752556AbbIKV4S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 17:56:18 -0400
+	with ESMTP id S1752660AbbIKV6r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 17:58:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luis.henriques@canonical.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: qiuxishi@huawei.com, adech.fo@gmail.com, aryabinin@virtuozzo.com, mmarek@suse.cz, rusty@rustcorp.com.au, zhongjiang@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: fix possible use after free in zcomp_create()
+     Subject: kasan: fix last shadow judgement in memory_is_poisoned_16()
 has been added to the -mm tree.  Its filename is
-     zram-fix-possible-use-after-free-in-zcomp_create.patch
+     kasan-fix-last-shadow-judgement-in-memory_is_poisoned_16.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-fix-possible-use-after-free-in-zcomp_create.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-fix-last-shadow-judgement-in-memory_is_poisoned_16.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-fix-possible-use-after-free-in-zcomp_create.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-fix-last-shadow-judgement-in-memory_is_poisoned_16.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,67 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Luis Henriques <luis.henriques@canonical.com>
-Subject: zram: fix possible use after free in zcomp_create()
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: kasan: fix last shadow judgement in memory_is_poisoned_16()
 
-zcomp_create() verifies the success of zcomp_strm_{multi,single}_create()
-through comp->stream, which can potentially be pointing to memory that was
-freed if these functions returned an error.
+The shadow which correspond 16 bytes memory may span 2 or 3 bytes.  If the
+memory is aligned on 8, then the shadow takes only 2 bytes.  So we check
+"shadow_first_bytes" is enough, and need not to call
+"memory_is_poisoned_1(addr + 15);".  But the code "if
+(likely(!last_byte))" is wrong judgement.
 
-While at it, replace a 'ERR_PTR(-ENOMEM)' by a more generic
-'ERR_PTR(error)' as in the future zcomp_strm_{multi,siggle}_create() could
-return other error codes.  Function documentation updated accordingly.
+e.g.  addr=0, so last_byte = 15 & KASAN_SHADOW_MASK = 7, then the code
+will continue to call "memory_is_poisoned_1(addr + 15);"
 
-Fixes: beca3ec71fe5 ("zram: add multi stream functionality")
-Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
-Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Andrey Konovalov <adech.fo@gmail.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: <zhongjiang@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ mm/kasan/kasan.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN drivers/block/zram/zcomp.c~zram-fix-possible-use-after-free-in-zcomp_create drivers/block/zram/zcomp.c
---- a/drivers/block/zram/zcomp.c~zram-fix-possible-use-after-free-in-zcomp_create
-+++ a/drivers/block/zram/zcomp.c
-@@ -330,12 +330,14 @@ void zcomp_destroy(struct zcomp *comp)
-  * allocate new zcomp and initialize it. return compressing
-  * backend pointer or ERR_PTR if things went bad. ERR_PTR(-EINVAL)
-  * if requested algorithm is not supported, ERR_PTR(-ENOMEM) in
-- * case of allocation error.
-+ * case of allocation error, or any other error potentially
-+ * returned by functions zcomp_strm_{multi,single}_create.
-  */
- struct zcomp *zcomp_create(const char *compress, int max_strm)
- {
- 	struct zcomp *comp;
- 	struct zcomp_backend *backend;
-+	int error;
+diff -puN mm/kasan/kasan.c~kasan-fix-last-shadow-judgement-in-memory_is_poisoned_16 mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-fix-last-shadow-judgement-in-memory_is_poisoned_16
++++ a/mm/kasan/kasan.c
+@@ -135,12 +135,11 @@ static __always_inline bool memory_is_po
  
- 	backend = find_backend(compress);
- 	if (!backend)
-@@ -347,12 +349,12 @@ struct zcomp *zcomp_create(const char *c
+ 	if (unlikely(*shadow_addr)) {
+ 		u16 shadow_first_bytes = *(u16 *)shadow_addr;
+-		s8 last_byte = (addr + 15) & KASAN_SHADOW_MASK;
  
- 	comp->backend = backend;
- 	if (max_strm > 1)
--		zcomp_strm_multi_create(comp, max_strm);
-+		error = zcomp_strm_multi_create(comp, max_strm);
- 	else
--		zcomp_strm_single_create(comp);
--	if (!comp->stream) {
-+		error = zcomp_strm_single_create(comp);
-+	if (error) {
- 		kfree(comp);
--		return ERR_PTR(-ENOMEM);
-+		return ERR_PTR(error);
- 	}
- 	return comp;
- }
+ 		if (unlikely(shadow_first_bytes))
+ 			return true;
+ 
+-		if (likely(!last_byte))
++		if (likely(IS_ALIGNED(addr, 8)))
+ 			return false;
+ 
+ 		return memory_is_poisoned_1(addr + 15);
 _
 
-Patches currently in -mm which might be from luis.henriques@canonical.com are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
-zram-fix-possible-use-after-free-in-zcomp_create.patch
+kasan-fix-last-shadow-judgement-in-memory_is_poisoned_16.patch
 
