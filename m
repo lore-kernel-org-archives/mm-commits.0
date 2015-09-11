@@ -1,109 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] wil6210-use-seq_hex_dump-to-dump-buffers.patch removed
- from -mm tree
-Date: Fri, 11 Sep 2015 11:13:16 -0700
-Message-ID: <55f319bc.kPpJ2osl3Ge7C2Wu%akpm@linux-foundation.org>
+Subject: [merged] kexec-export-kernel_image_size-to-vmcoreinfo.patch
+ removed from -mm tree
+Date: Fri, 11 Sep 2015 11:13:28 -0700
+Message-ID: <55f319c8.bPX1M1GwRlX9kALS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54000 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54039 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753636AbbIKSNR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:13:17 -0400
+	with ESMTP id S1753709AbbIKSN2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:13:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, catalin.marinas@arm.com, deller@gmx.de, ingo.tuchscherer@de.ibm.com, joe@perches.com, qca_vkondrat@qca.qualcomm.com, tadeusz.struk@intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: bhe@redhat.com, keescook@chromium.org, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/net/wireless/ath/wil6210: use seq_hex_dump() to dump buffers
+     Subject: kexec: export KERNEL_IMAGE_SIZE to vmcoreinfo
 has been removed from the -mm tree.  Its filename was
-     wil6210-use-seq_hex_dump-to-dump-buffers.patch
+     kexec-export-kernel_image_size-to-vmcoreinfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: drivers/net/wireless/ath/wil6210: use seq_hex_dump() to dump buffers
+From: Baoquan He <bhe@redhat.com>
+Subject: kexec: export KERNEL_IMAGE_SIZE to vmcoreinfo
 
-Instead of custom approach let's use recently introduced seq_hex_dump()
-helper.
+In x86_64, since v2.6.26 the KERNEL_IMAGE_SIZE is changed to 512M, and
+accordingly the MODULES_VADDR is changed to 0xffffffffa0000000.  However,
+in v3.12 Kees Cook introduced kaslr to randomise the location of kernel. 
+And the kernel text mapping addr space is enlarged from 512M to 1G.  That
+means now KERNEL_IMAGE_SIZE is variable, its value is 512M when kaslr
+support is not compiled in and 1G when kaslr support is compiled in. 
+Accordingly the MODULES_VADDR is changed too to be:
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Joe Perches <joe@perches.com>
-Cc: Tadeusz Struk <tadeusz.struk@intel.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Vladimir Kondratiev <qca_vkondrat@qca.qualcomm.com>
+    #define MODULES_VADDR    (__START_KERNEL_map + KERNEL_IMAGE_SIZE)
+
+So when kaslr is compiled in and enabled, the kernel text mapping addr
+space and modules vaddr space need be adjusted.  Otherwise makedumpfile
+will collapse since the addr for some symbols is not correct.
+
+Hence KERNEL_IMAGE_SIZE need be exported to vmcoreinfo and got in
+makedumpfile to help calculate MODULES_VADDR.
+
+Signed-off-by: Baoquan He <bhe@redhat.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/ath/wil6210/debugfs.c |   35 +++----------------
- 1 file changed, 7 insertions(+), 28 deletions(-)
+ kernel/kexec_core.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN drivers/net/wireless/ath/wil6210/debugfs.c~wil6210-use-seq_hex_dump-to-dump-buffers drivers/net/wireless/ath/wil6210/debugfs.c
---- a/drivers/net/wireless/ath/wil6210/debugfs.c~wil6210-use-seq_hex_dump-to-dump-buffers
-+++ a/drivers/net/wireless/ath/wil6210/debugfs.c
-@@ -156,6 +156,12 @@ static const struct file_operations fops
- 	.llseek		= seq_lseek,
- };
- 
-+static void wil_seq_hexdump(struct seq_file *s, void *p, int len,
-+			    const char *prefix)
-+{
-+	seq_hex_dump(s, prefix, DUMP_PREFIX_NONE, 16, 1, p, len, false);
-+}
-+
- static void wil_print_ring(struct seq_file *s, const char *prefix,
- 			   void __iomem *off)
- {
-@@ -212,8 +218,6 @@ static void wil_print_ring(struct seq_fi
- 				   le16_to_cpu(hdr.seq), len,
- 				   le16_to_cpu(hdr.type), hdr.flags);
- 			if (len <= MAX_MBOXITEM_SIZE) {
--				int n = 0;
--				char printbuf[16 * 3 + 2];
- 				unsigned char databuf[MAX_MBOXITEM_SIZE];
- 				void __iomem *src = wmi_buffer(wil, d.addr) +
- 					sizeof(struct wil6210_mbox_hdr);
-@@ -223,16 +227,7 @@ static void wil_print_ring(struct seq_fi
- 				 * reading header
- 				 */
- 				wil_memcpy_fromio_32(databuf, src, len);
--				while (n < len) {
--					int l = min(len - n, 16);
--
--					hex_dump_to_buffer(databuf + n, l,
--							   16, 1, printbuf,
--							   sizeof(printbuf),
--							   false);
--					seq_printf(s, "      : %s\n", printbuf);
--					n += l;
--				}
-+				wil_seq_hexdump(s, databuf, len, "      : ");
- 			}
- 		} else {
- 			seq_puts(s, "\n");
-@@ -867,22 +862,6 @@ static const struct file_operations fops
- 	.open  = simple_open,
- };
- 
--static void wil_seq_hexdump(struct seq_file *s, void *p, int len,
--			    const char *prefix)
--{
--	char printbuf[16 * 3 + 2];
--	int i = 0;
--
--	while (i < len) {
--		int l = min(len - i, 16);
--
--		hex_dump_to_buffer(p + i, l, 16, 1, printbuf,
--				   sizeof(printbuf), false);
--		seq_printf(s, "%s%s\n", prefix, printbuf);
--		i += l;
--	}
--}
+diff -puN kernel/kexec_core.c~kexec-export-kernel_image_size-to-vmcoreinfo kernel/kexec_core.c
+--- a/kernel/kexec_core.c~kexec-export-kernel_image_size-to-vmcoreinfo
++++ a/kernel/kexec_core.c
+@@ -1417,6 +1417,9 @@ static int __init crash_save_vmcoreinfo_
+ #endif
+ 	VMCOREINFO_NUMBER(PG_head_mask);
+ 	VMCOREINFO_NUMBER(PAGE_BUDDY_MAPCOUNT_VALUE);
++#ifdef CONFIG_X86
++	VMCOREINFO_NUMBER(KERNEL_IMAGE_SIZE);
++#endif
+ #ifdef CONFIG_HUGETLBFS
+ 	VMCOREINFO_SYMBOL(free_huge_page);
+ #endif
+_
+
+Patches currently in -mm which might be from bhe@redhat.com are
+
+
