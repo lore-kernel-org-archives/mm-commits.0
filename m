@@ -1,155 +1,112 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- zswap-update-docs-for-runtime-changeable-attributes.patch removed from -mm
+ hwpoison-use-page_cgroup_ino-for-filtering-by-memcg.patch removed from -mm
  tree
-Date: Fri, 11 Sep 2015 11:11:05 -0700
-Message-ID: <55f31939.mAZPPsuS3Y2llP18%akpm@linux-foundation.org>
+Date: Fri, 11 Sep 2015 11:11:10 -0700
+Message-ID: <55f3193e.zZjR6ZpB57sNdiHq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53543 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53563 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750862AbbIKSLG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:11:06 -0400
+	with ESMTP id S1750862AbbIKSLL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:11:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ddstreet@ieee.org, sergey.senozhatsky.work@gmail.com, sjennings@variantweb.net, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vdavydov@parallels.com, andreslc@google.com, corbet@lwn.net, gorcunov@openvz.org, gthelen@google.com, hannes@cmpxchg.org, mhocko@suse.cz, minchan@kernel.org, raghavendra.kt@linux.vnet.ibm.com, rientjes@google.com, walken@google.com, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zswap: update docs for runtime-changeable attributes
+     Subject: hwpoison: use page_cgroup_ino for filtering by memcg
 has been removed from the -mm tree.  Its filename was
-     zswap-update-docs-for-runtime-changeable-attributes.patch
+     hwpoison-use-page_cgroup_ino-for-filtering-by-memcg.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Dan Streetman <ddstreet@ieee.org>
-Subject: zswap: update docs for runtime-changeable attributes
+From: Vladimir Davydov <vdavydov@parallels.com>
+Subject: hwpoison: use page_cgroup_ino for filtering by memcg
 
-Change the Documentation/vm/zswap.txt doc to indicate that the "zpool" =
-and
-"compressor" params are now changeable at runtime.
+Hwpoison allows to filter pages by memory cgroup ino.  Currently, it
+calls try_get_mem_cgroup_from_page to obtain the cgroup from a page and
+then its ino using cgroup_ino, but now we have a helper method for
+that, page_cgroup_ino, so use it instead.
 
-Signed-off-by: Dan Streetman <ddstreet@ieee.org>
-Cc: Seth Jennings <sjennings@variantweb.net>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+This patch also loosens the hwpoison memcg filter dependency rules - it
+makes it depend on CONFIG_MEMCG instead of CONFIG_MEMCG_SWAP, because
+hwpoison memcg filter does not require anything (nor it used to) from
+CONFIG_MEMCG_SWAP side.
+
+Signed-off-by: Vladimir Davydov <vdavydov@parallels.com>
+Reviewed-by: Andres Lagar-Cavilla <andreslc@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Raghavendra K T <raghavendra.kt@linux.vnet.ibm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/zswap.txt |   36 +++++++++++++++++++++++++++--------
- 1 file changed, 28 insertions(+), 8 deletions(-)
+ mm/hwpoison-inject.c |    5 +----
+ mm/memory-failure.c  |   16 ++--------------
+ 2 files changed, 3 insertions(+), 18 deletions(-)
 
-diff -puN Documentation/vm/zswap.txt~zswap-update-docs-for-runtime-chan=
-geable-attributes Documentation/vm/zswap.txt
---- a/Documentation/vm/zswap.txt~zswap-update-docs-for-runtime-changeab=
-le-attributes
-+++ a/Documentation/vm/zswap.txt
-@@ -32,7 +32,7 @@ can also be enabled and disabled at runt
- An example command to enable zswap at runtime, assuming sysfs is mount=
-ed
- at /sys, is:
-=20
--echo 1 > /sys/modules/zswap/parameters/enabled
-+echo 1 > /sys/module/zswap/parameters/enabled
-=20
- When zswap is disabled at runtime it will stop storing pages that are
- being swapped out.  However, it will _not_ immediately write out or fa=
-ult
-@@ -49,14 +49,26 @@ Zswap receives pages for compression thr
- evict pages from its own compressed pool on an LRU basis and write the=
-m back to
- the backing swap device in the case that the compressed pool is full.
-=20
--Zswap makes use of zbud for the managing the compressed memory pool.  =
-Each
--allocation in zbud is not directly accessible by address.  Rather, a h=
-andle is
-+Zswap makes use of zpool for the managing the compressed memory pool. =
- Each
-+allocation in zpool is not directly accessible by address.  Rather, a =
-handle is
- returned by the allocation routine and that handle must be mapped befo=
-re being
- accessed.  The compressed memory pool grows on demand and shrinks as c=
-ompressed
--pages are freed.  The pool is not preallocated.
-+pages are freed.  The pool is not preallocated.  By default, a zpool o=
-f type
-+zbud is created, but it can be selected at boot time by setting the "z=
-pool"
-+attribute, e.g. zswap.zpool=3Dzbud.  It can also be changed at runtime=
- using the
-+sysfs "zpool" attribute, e.g.
-+
-+echo zbud > /sys/module/zswap/parameters/zpool
-+
-+The zbud type zpool allocates exactly 1 page to store 2 compressed pag=
-es, which
-+means the compression ratio will always be 2:1 or worse (because of ha=
-lf-full
-+zbud pages).  The zsmalloc type zpool has a more complex compressed pa=
-ge
-+storage method, and it can achieve greater storage densities.  However=
-,
-+zsmalloc does not implement compressed page eviction, so once zswap fi=
-lls it
-+cannot evict the oldest page, it can only reject new pages.
-=20
- When a swap page is passed from frontswap to zswap, zswap maintains a =
-mapping
--of the swap entry, a combination of the swap type and swap offset, to =
-the zbud
-+of the swap entry, a combination of the swap type and swap offset, to =
-the zpool
- handle that references that compressed swap page.  This mapping is ach=
-ieved
- with a red-black tree per swap type.  The swap offset is the search ke=
-y for the
- tree nodes.
-@@ -74,9 +86,17 @@ controlled policy:
- * max_pool_percent - The maximum percentage of memory that the compres=
-sed
-     pool can occupy.
-=20
--Zswap allows the compressor to be selected at kernel boot time by sett=
-ing the
--=E2=80=9Ccompressor=E2=80=9D attribute.  The default compressor is lzo=
-=2E  e.g.
--zswap.compressor=3Ddeflate
-+The default compressor is lzo, but it can be selected at boot time by =
-setting
-+the =E2=80=9Ccompressor=E2=80=9D attribute, e.g. zswap.compressor=3Dlz=
-o.  It can also be changed
-+at runtime using the sysfs "compressor" attribute, e.g.
-+
-+echo lzo > /sys/module/zswap/parameters/compressor
-+
-+When the zpool and/or compressor parameter is changed at runtime, any =
-existing
-+compressed pages are not modified; they are left in their own zpool.  =
-When a
-+request is made for a page in an old zpool, it is uncompressed using i=
-ts
-+original compressor.  Once all pages are removed from an old zpool, th=
-e zpool
-+and its compressor are freed.
-=20
- A debugfs interface is provided for various statistic about pool size,=
- number
- of pages stored, and various counters for the reasons pages are reject=
-ed.
-_
-
-Patches currently in -mm which might be from ddstreet@ieee.org are
-
-
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff -puN mm/hwpoison-inject.c~hwpoison-use-page_cgroup_ino-for-filtering-by-memcg mm/hwpoison-inject.c
+--- a/mm/hwpoison-inject.c~hwpoison-use-page_cgroup_ino-for-filtering-by-memcg
++++ a/mm/hwpoison-inject.c
+@@ -45,12 +45,9 @@ static int hwpoison_inject(void *data, u
+ 	/*
+ 	 * do a racy check with elevated page count, to make sure PG_hwpoison
+ 	 * will only be set for the targeted owner (or on a free page).
+-	 * We temporarily take page lock for try_get_mem_cgroup_from_page().
+ 	 * memory_failure() will redo the check reliably inside page lock.
+ 	 */
+-	lock_page(hpage);
+ 	err = hwpoison_filter(hpage);
+-	unlock_page(hpage);
+ 	if (err)
+ 		goto put_out;
+ 
+@@ -126,7 +123,7 @@ static int pfn_inject_init(void)
+ 	if (!dentry)
+ 		goto fail;
+ 
+-#ifdef CONFIG_MEMCG_SWAP
++#ifdef CONFIG_MEMCG
+ 	dentry = debugfs_create_u64("corrupt-filter-memcg", 0600,
+ 				    hwpoison_dir, &hwpoison_filter_memcg);
+ 	if (!dentry)
+diff -puN mm/memory-failure.c~hwpoison-use-page_cgroup_ino-for-filtering-by-memcg mm/memory-failure.c
+--- a/mm/memory-failure.c~hwpoison-use-page_cgroup_ino-for-filtering-by-memcg
++++ a/mm/memory-failure.c
+@@ -130,27 +130,15 @@ static int hwpoison_filter_flags(struct
+  * can only guarantee that the page either belongs to the memcg tasks, or is
+  * a freed page.
+  */
+-#ifdef	CONFIG_MEMCG_SWAP
++#ifdef CONFIG_MEMCG
+ u64 hwpoison_filter_memcg;
+ EXPORT_SYMBOL_GPL(hwpoison_filter_memcg);
+ static int hwpoison_filter_task(struct page *p)
+ {
+-	struct mem_cgroup *mem;
+-	struct cgroup_subsys_state *css;
+-	unsigned long ino;
+-
+ 	if (!hwpoison_filter_memcg)
+ 		return 0;
+ 
+-	mem = try_get_mem_cgroup_from_page(p);
+-	if (!mem)
+-		return -EINVAL;
+-
+-	css = &mem->css;
+-	ino = cgroup_ino(css->cgroup);
+-	css_put(css);
