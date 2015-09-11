@@ -1,105 +1,85 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- checkpatch-add-constant-comparison-on-left-side-test.patch removed from -mm tree
-Date: Fri, 11 Sep 2015 11:12:35 -0700
-Message-ID: <55f31993.xdlOhnF+Gy/dBdD+%akpm@linux-foundation.org>
+ hfs-fix-b-tree-corruption-after-insertion-at-position-0.patch removed from
+ -mm tree
+Date: Fri, 11 Sep 2015 11:12:40 -0700
+Message-ID: <55f31998.kY9iDbfXNAa0O/qN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53853 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53876 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753030AbbIKSMg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:12:36 -0400
+	with ESMTP id S1751960AbbIKSMl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:12:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, dan.carpenter@oracle.com, nmorey@kalray.eu, viresh.kumar@linaro.org, mm-commits@vger.kernel.org
+To: htl10@users.sourceforge.net, anton@tuxera.com, hch@infradead.org, joe@perches.com, saproj@gmail.com, slava@dubeyko.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add constant comparison on left side test
+     Subject: hfs: fix B-tree corruption after insertion at position 0
 has been removed from the -mm tree.  Its filename was
-     checkpatch-add-constant-comparison-on-left-side-test.patch
+     hfs-fix-b-tree-corruption-after-insertion-at-position-0.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add constant comparison on left side test
+From: Hin-Tak Leung <htl10@users.sourceforge.net>
+Subject: hfs: fix B-tree corruption after insertion at position 0
 
-"CONST <comparison> variable" checks like:
+Fix B-tree corruption when a new record is inserted at position 0 in the
+node in hfs_brec_insert().
 
-        if (NULL != foo)
-and
-        while (0 < bar(...))
+This is an identical change to the corresponding hfs b-tree code to Sergei
+Antonov's "hfsplus: fix B-tree corruption after insertion at position 0",
+to keep similar code paths in the hfs and hfsplus drivers in sync, where
+appropriate.
 
-where a constant (or what appears to be a constant like an upper case
-identifier) is on the left of a comparison are generally preferred to be
-written using the constant on the right side like:
-
-        if (foo != NULL)
-and
-        while (bar(...) > 0)
-
-Add a test for this.
-
-Add a --fix option too, but only do it when the code is immediately
-surrounded by parentheses to avoid misfixing things like "(0 < bar() +
-constant)"
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Nicolas Morey Chaisemartin <nmorey@kalray.eu>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Hin-Tak Leung <htl10@users.sourceforge.net>
+Cc: Sergei Antonov <saproj@gmail.com>
+Cc: Joe Perches <joe@perches.com>
+Reviewed-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Cc: Anton Altaparmakov <anton@tuxera.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
+ fs/hfs/brec.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-constant-comparison-on-left-side-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-constant-comparison-on-left-side-test
-+++ a/scripts/checkpatch.pl
-@@ -4231,6 +4231,35 @@ sub process {
- 			}
- 		}
+diff -puN fs/hfs/brec.c~hfs-fix-b-tree-corruption-after-insertion-at-position-0 fs/hfs/brec.c
+--- a/fs/hfs/brec.c~hfs-fix-b-tree-corruption-after-insertion-at-position-0
++++ a/fs/hfs/brec.c
+@@ -131,13 +131,16 @@ skip:
+ 	hfs_bnode_write(node, entry, data_off + key_len, entry_len);
+ 	hfs_bnode_dump(node);
  
-+# comparisons with a constant or upper case identifier on the left
-+#	avoid cases like "foo + BAR < baz"
-+#	only fix matches surrounded by parentheses to avoid incorrect
-+#	conversions like "FOO < baz() + 5" being "misfixed" to "baz() > FOO + 5"
-+		if ($^V && $^V ge 5.10.0 &&
-+		    $line =~ /^\+(.*)\b($Constant|[A-Z_][A-Z0-9_]*)\s*($Compare)\s*($LvalOrFunc)/) {
-+			my $lead = $1;
-+			my $const = $2;
-+			my $comp = $3;
-+			my $to = $4;
-+			my $newcomp = $comp;
-+			if ($lead !~ /$Operators\s*$/ &&
-+			    $to !~ /^(?:Constant|[A-Z_][A-Z0-9_]*)$/ &&
-+			    WARN("CONSTANT_COMPARISON",
-+				 "Comparisons should place the constant on the right side of the test\n" . $herecurr) &&
-+			    $fix) {
-+				if ($comp eq "<") {
-+					$newcomp = ">";
-+				} elsif ($comp eq "<=") {
-+					$newcomp = ">=";
-+				} elsif ($comp eq ">") {
-+					$newcomp = "<";
-+				} elsif ($comp eq ">=") {
-+					$newcomp = "<=";
-+				}
-+				$fixed[$fixlinenr] =~ s/\(\s*\Q$const\E\s*$Compare\s*\Q$to\E\s*\)/($to $newcomp $const)/;
-+			}
-+		}
-+
- # Return of what appears to be an errno should normally be negative
- 		if ($sline =~ /\breturn(?:\s*\(+\s*|\s+)(E[A-Z]+)(?:\s*\)+\s*|\s*)[;:,]/) {
- 			my $name = $1;
-_
-
-Patches currently in -mm which might be from joe@perches.com are
-
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
-
+-	if (new_node) {
+-		/* update parent key if we inserted a key
+-		 * at the start of the first node
+-		 */
+-		if (!rec && new_node != node)
+-			hfs_brec_update_parent(fd);
++	/*
++	 * update parent key if we inserted a key
++	 * at the start of the node and it is not the new node
++	 */
++	if (!rec && new_node != node) {
++		hfs_bnode_read_key(node, fd->search_key, data_off + size);
++		hfs_brec_update_parent(fd);
++	}
+ 
++	if (new_node) {
+ 		hfs_bnode_put(fd->bnode);
+ 		if (!new_node->parent) {
+ 			hfs_btree_inc_height(tree);
+@@ -166,9 +169,6 @@ skip:
+ 		goto again;
+ 	}
+ 
+-	if (!rec)
+-		hfs_brec_update_parent(fd);
