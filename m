@@ -1,71 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hexdump-do-not-print-debug-dumps-for-config_debug.patch
- removed from -mm tree
-Date: Fri, 11 Sep 2015 11:11:59 -0700
-Message-ID: <55f3196f.697ymOnNwJZTaBZb%akpm@linux-foundation.org>
+Subject: [merged]
+ lib-bitmapc-correct-a-code-style-and-do-some-optimization.patch removed
+ from -mm tree
+Date: Fri, 11 Sep 2015 11:11:53 -0700
+Message-ID: <55f31969.JL2hhPgPjwdUdpY2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53762 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53745 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751426AbbIKSL7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:11:59 -0400
+	with ESMTP id S1751491AbbIKSLy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:11:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linus.walleij@linaro.org, mm-commits@vger.kernel.org
+To: xinhuix.pan@intel.com, cmetcalf@ezchip.com, linux@rasmusvillemoes.dk, sudeep.holla@arm.com, yury.norov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hexdump: do not print debug dumps for !CONFIG_DEBUG
+     Subject: lib/bitmap.c: correct a code style and do some, optimization
 has been removed from the -mm tree.  Its filename was
-     hexdump-do-not-print-debug-dumps-for-config_debug.patch
+     lib-bitmapc-correct-a-code-style-and-do-some-optimization.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: hexdump: do not print debug dumps for !CONFIG_DEBUG
+From: Pan Xinhui <xinhuix.pan@intel.com>
+Subject: lib/bitmap.c: correct a code style and do some, optimization
 
-print_hex_dump_debug() is likely supposed to be analogous to pr_debug() or
-dev_dbg() & friends.  Currently it will adhere to dynamic debug, but will
-not stub out prints if CONFIG_DEBUG is not set.  Let's make it do the
-right thing, because I am tired of having my dmesg buffer full of hex
-dumps on production systems.
+We can avoid in-loop incrementation of ndigits.  Save current totaldigits
+to ndigits before loop, and check ndigits against totaldigits after the
+loop.
 
-Signed-off-by: Linus Walleij <linus.walleij@linaro.org>
+Signed-off-by: Pan Xinhui <xinhuix.pan@intel.com>
+Cc: Yury Norov <yury.norov@gmail.com>
+Cc: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ lib/bitmap.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/printk.h~hexdump-do-not-print-debug-dumps-for-config_debug include/linux/printk.h
---- a/include/linux/printk.h~hexdump-do-not-print-debug-dumps-for-config_debug
-+++ a/include/linux/printk.h
-@@ -456,11 +456,17 @@ static inline void print_hex_dump_bytes(
- 			     groupsize, buf, len, ascii)	\
- 	dynamic_hex_dump(prefix_str, prefix_type, rowsize,	\
- 			 groupsize, buf, len, ascii)
--#else
-+#elif defined(DEBUG)
- #define print_hex_dump_debug(prefix_str, prefix_type, rowsize,		\
- 			     groupsize, buf, len, ascii)		\
- 	print_hex_dump(KERN_DEBUG, prefix_str, prefix_type, rowsize,	\
- 		       groupsize, buf, len, ascii)
--#endif /* defined(CONFIG_DYNAMIC_DEBUG) */
-+#else
-+static inline void print_hex_dump_debug(const char *prefix_str, int prefix_type,
-+					int rowsize, int groupsize,
-+					const void *buf, size_t len, bool ascii)
-+{
-+}
-+#endif
+diff -puN lib/bitmap.c~lib-bitmapc-correct-a-code-style-and-do-some-optimization lib/bitmap.c
+--- a/lib/bitmap.c~lib-bitmapc-correct-a-code-style-and-do-some-optimization
++++ a/lib/bitmap.c
+@@ -367,7 +367,8 @@ int __bitmap_parse(const char *buf, unsi
  
- #endif
+ 	nchunks = nbits = totaldigits = c = 0;
+ 	do {
+-		chunk = ndigits = 0;
++		chunk = 0;
++		ndigits = totaldigits;
+ 
+ 		/* Get the next chunk of the bitmap */
+ 		while (buflen) {
+@@ -406,9 +407,9 @@ int __bitmap_parse(const char *buf, unsi
+ 				return -EOVERFLOW;
+ 
+ 			chunk = (chunk << 4) | hex_to_bin(c);
+-			ndigits++; totaldigits++;
++			totaldigits++;
+ 		}
+-		if (ndigits == 0)
++		if (ndigits == totaldigits)
+ 			return -EINVAL;
+ 		if (nchunks == 0 && chunk == 0)
+ 			continue;
 _
 
-Patches currently in -mm which might be from linus.walleij@linaro.org are
+Patches currently in -mm which might be from xinhuix.pan@intel.com are
 
 
