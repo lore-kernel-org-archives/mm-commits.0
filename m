@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-record-unwritten-extents-when-populate-write-desc.patch
- added to -mm tree
-Date: Fri, 11 Sep 2015 15:32:36 -0700
-Message-ID: <55f35684.7GXOE+xNp7ifSkGj%akpm@linux-foundation.org>
+Subject: + ocfs2-code-clean-up-for-direct-io.patch added to -mm tree
+Date: Fri, 11 Sep 2015 15:32:40 -0700
+Message-ID: <55f35688.VjEKWjdfpXGzeFIX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51624 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51643 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752660AbbIKWch (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 18:32:37 -0400
+	with ESMTP id S1752660AbbIKWcl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 18:32:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ryan.ding@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: record UNWRITTEN extents when populate write desc
+     Subject: ocfs2: code clean up for direct io
 has been added to the -mm tree.  Its filename is
-     ocfs2-record-unwritten-extents-when-populate-write-desc.patch
+     ocfs2-code-clean-up-for-direct-io.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-record-unwritten-extents-when-populate-write-desc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-code-clean-up-for-direct-io.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-record-unwritten-extents-when-populate-write-desc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-code-clean-up-for-direct-io.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,29 +39,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ryan Ding <ryan.ding@oracle.com>
-Subject: ocfs2: record UNWRITTEN extents when populate write desc
+Subject: ocfs2: code clean up for direct io
 
-To support direct io in ocfs2_write_begin_nolock & ocfs2_write_end_nolock.
+Clean up ocfs2_file_write_iter & ocfs2_prepare_inode_for_write:
+* remove append dio check: it will be checked in ocfs2_direct_IO()
+* remove file hole check: file hole is supported for now
+* remove inline data check: it will be checked in ocfs2_direct_IO()
+* remove the full_coherence check when append dio: we will get the inode_lock
+  in ocfs2_dio_get_block, there is no need to fall back to buffer io to ensure
+  the coherence semantics.
 
-There is still one issue in the direct write procedure.
-
-phase 1: alloc extent with UNWRITTEN flag
-phase 2: submit direct data to disk, add zero page to page cache
-phase 3: clear UNWRITTEN flag when data has been written to disk
-
-When there are 2 direct write A(0~3KB),B(4~7KB) writing to the same
-cluster 0~7KB (cluster size 8KB).  Write request A arrive phase 2 first,
-it will zero the region (4~7KB).  Before request A enter to phase 3,
-request B arrive phase 2, it will zero region (0~3KB).  This is just like
-request B steps request A.
-
-To resolve this issue, we should let request B knows this cluster is already
-under zero, to prevent it from steps the previous write request.
-
-This patch will add function ocfs2_unwritten_check() to do this job.  It
-will record all clusters that are under direct write(it will be recorded
-in the 'ip_unwritten_list' member of inode info), and prevent the later
-direct write writing to the same cluster to do the zero work again.
+Now the drop dio procedure is gone. :)
 
 Signed-off-by: Ryan Ding <ryan.ding@oracle.com>
 Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
@@ -72,220 +59,279 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c  |  104 ++++++++++++++++++++++++++++++++++++++++++---
- fs/ocfs2/inode.c |    3 +
- fs/ocfs2/inode.h |    3 +
- fs/ocfs2/super.c |    1 
- 4 files changed, 106 insertions(+), 5 deletions(-)
+ fs/ocfs2/file.c        |  138 +--------------------------------------
+ fs/ocfs2/ocfs2_trace.h |   16 +---
+ 2 files changed, 10 insertions(+), 144 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-record-unwritten-extents-when-populate-write-desc fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-record-unwritten-extents-when-populate-write-desc
-+++ a/fs/ocfs2/aops.c
-@@ -1194,6 +1194,13 @@ next_bh:
- 
- #define OCFS2_MAX_CLUSTERS_PER_PAGE	(PAGE_CACHE_SIZE / OCFS2_MIN_CLUSTERSIZE)
- 
-+struct ocfs2_unwritten_extent {
-+	struct list_head	ue_node;
-+	struct list_head	ue_ip_node;
-+	u32			ue_cpos;
-+	u32			ue_phys;
-+};
-+
- /*
-  * Describe the state of a single cluster to be written to.
-  */
-@@ -1268,6 +1275,8 @@ struct ocfs2_write_ctxt {
- 	struct buffer_head		*w_di_bh;
- 
- 	struct ocfs2_cached_dealloc_ctxt w_dealloc;
-+
-+	struct list_head		w_unwritten_list;
- };
- 
- void ocfs2_unlock_and_free_pages(struct page **pages, int num_pages)
-@@ -1306,8 +1315,25 @@ static void ocfs2_unlock_pages(struct oc
- 	ocfs2_unlock_and_free_pages(wc->w_pages, wc->w_num_pages);
+diff -puN fs/ocfs2/file.c~ocfs2-code-clean-up-for-direct-io fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-code-clean-up-for-direct-io
++++ a/fs/ocfs2/file.c
+@@ -1373,44 +1373,6 @@ out:
+ 	return ret;
  }
  
--static void ocfs2_free_write_ctxt(struct ocfs2_write_ctxt *wc)
-+static void ocfs2_free_unwritten_list(struct inode *inode,
-+				 struct list_head *head)
-+{
-+	struct ocfs2_inode_info *oi = OCFS2_I(inode);
-+	struct ocfs2_unwritten_extent *dz = NULL, *tmp = NULL;
-+
-+	list_for_each_entry_safe(dz, tmp, head, ue_node) {
-+		list_del(&dz->ue_node);
-+		spin_lock(&oi->ip_lock);
-+		list_del(&dz->ue_ip_node);
-+		spin_unlock(&oi->ip_lock);
-+		kfree(dz);
-+	}
-+}
-+
-+static void ocfs2_free_write_ctxt(struct inode *inode,
-+				  struct ocfs2_write_ctxt *wc)
+-/*
+- * Will look for holes and unwritten extents in the range starting at
+- * pos for count bytes (inclusive).
+- */
+-static int ocfs2_check_range_for_holes(struct inode *inode, loff_t pos,
+-				       size_t count)
+-{
+-	int ret = 0;
+-	unsigned int extent_flags;
+-	u32 cpos, clusters, extent_len, phys_cpos;
+-	struct super_block *sb = inode->i_sb;
+-
+-	cpos = pos >> OCFS2_SB(sb)->s_clustersize_bits;
+-	clusters = ocfs2_clusters_for_bytes(sb, pos + count) - cpos;
+-
+-	while (clusters) {
+-		ret = ocfs2_get_clusters(inode, cpos, &phys_cpos, &extent_len,
+-					 &extent_flags);
+-		if (ret < 0) {
+-			mlog_errno(ret);
+-			goto out;
+-		}
+-
+-		if (phys_cpos == 0 || (extent_flags & OCFS2_EXT_UNWRITTEN)) {
+-			ret = 1;
+-			break;
+-		}
+-
+-		if (extent_len > clusters)
+-			extent_len = clusters;
+-
+-		clusters -= extent_len;
+-		cpos += extent_len;
+-	}
+-out:
+-	return ret;
+-}
+-
+ static int ocfs2_write_remove_suid(struct inode *inode)
  {
-+	ocfs2_free_unwritten_list(inode, &wc->w_unwritten_list);
- 	ocfs2_unlock_pages(wc);
- 	brelse(wc->w_di_bh);
- 	kfree(wc);
-@@ -1339,6 +1365,7 @@ static int ocfs2_alloc_write_ctxt(struct
- 		wc->w_large_pages = 0;
+ 	int ret;
+@@ -2121,18 +2083,12 @@ out:
  
- 	ocfs2_init_dealloc_ctxt(&wc->w_dealloc);
-+	INIT_LIST_HEAD(&wc->w_unwritten_list);
+ static int ocfs2_prepare_inode_for_write(struct file *file,
+ 					 loff_t pos,
+-					 size_t count,
+-					 int appending,
+-					 int *direct_io,
+-					 int *has_refcount)
++					 size_t count)
+ {
+ 	int ret = 0, meta_level = 0;
+ 	struct dentry *dentry = file->f_path.dentry;
+ 	struct inode *inode = d_inode(dentry);
+ 	loff_t end;
+-	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+-	int full_coherency = !(osb->s_mount_opt &
+-		OCFS2_MOUNT_COHERENCY_BUFFERED);
  
- 	*wcp = wc;
- 
-@@ -1789,6 +1816,66 @@ static void ocfs2_set_target_boundaries(
- }
- 
- /*
-+ * Check if this extent is marked UNWRITTEN by direct io. If so, we need not to
-+ * do the zero work. And should not to clear UNWRITTEN since it will be cleared
-+ * by the direct io procedure.
-+ * If this is a new extent that allocated by direct io, we should mark it in
-+ * the ip_unwritten_list.
-+ */
-+static int ocfs2_unwritten_check(struct inode *inode,
-+				 struct ocfs2_write_ctxt *wc,
-+				 struct ocfs2_write_cluster_desc *desc)
-+{
-+	struct ocfs2_inode_info *oi = OCFS2_I(inode);
-+	struct ocfs2_unwritten_extent *dz = NULL, *new = NULL;
-+	int ret = 0;
-+
-+	if (!desc->c_needs_zero)
-+		return 0;
-+
-+retry:
-+	spin_lock(&oi->ip_lock);
-+	/* Needs not to zero no metter buffer or direct. The one who is zero
-+	 * the cluster is doing zero. And he will clear unwritten after all
-+	 * cluster io finished. */
-+	list_for_each_entry(dz, &oi->ip_unwritten_list, ue_ip_node) {
-+		if (desc->c_cpos == dz->ue_cpos) {
-+			BUG_ON(desc->c_new);
-+			desc->c_needs_zero = 0;
-+			desc->c_clear_unwritten = 0;
-+			goto unlock;
-+		}
-+	}
-+
-+	if (wc->w_type != OCFS2_WRITE_DIRECT)
-+		goto unlock;
-+
-+	if (new == NULL) {
-+		spin_unlock(&oi->ip_lock);
-+		new = kmalloc(sizeof(struct ocfs2_unwritten_extent),
-+			     GFP_NOFS);
-+		if (new == NULL) {
-+			ret = -ENOMEM;
-+			goto out;
-+		}
-+		goto retry;
-+	}
-+	/* This direct write will doing zero. */
-+	new->ue_cpos = desc->c_cpos;
-+	new->ue_phys = desc->c_phys;
-+	desc->c_clear_unwritten = 0;
-+	list_add_tail(&new->ue_ip_node, &oi->ip_unwritten_list);
-+	list_add_tail(&new->ue_node, &wc->w_unwritten_list);
-+	new = NULL;
-+unlock:
-+	spin_unlock(&oi->ip_lock);
-+out:
-+	if (new)
-+		kfree(new);
-+	return ret;
-+}
-+
-+/*
-  * Populate each single-cluster write descriptor in the write context
-  * with information about the i/o to be done.
-  *
-@@ -1872,6 +1959,12 @@ static int ocfs2_populate_write_desc(str
- 			desc->c_needs_zero = 1;
+ 	/*
+ 	 * We start with a read level meta lock and only jump to an ex
+@@ -2181,10 +2137,6 @@ static int ocfs2_prepare_inode_for_write
+ 							       pos,
+ 							       count,
+ 							       &meta_level);
+-			if (has_refcount)
+-				*has_refcount = 1;
+-			if (direct_io)
+-				*direct_io = 0;
  		}
  
-+		ret = ocfs2_unwritten_check(inode, wc, desc);
-+		if (ret) {
-+			mlog_errno(ret);
-+			goto out;
-+		}
-+
- 		num_clusters--;
+ 		if (ret < 0) {
+@@ -2192,67 +2144,12 @@ static int ocfs2_prepare_inode_for_write
+ 			goto out_unlock;
+ 		}
+ 
+-		/*
+-		 * Skip the O_DIRECT checks if we don't need
+-		 * them.
+-		 */
+-		if (!direct_io || !(*direct_io))
+-			break;
+-
+-		/*
+-		 * There's no sane way to do direct writes to an inode
+-		 * with inline data.
+-		 */
+-		if (OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL) {
+-			*direct_io = 0;
+-			break;
+-		}
+-
+-		/*
+-		 * Allowing concurrent direct writes means
+-		 * i_size changes wouldn't be synchronized, so
+-		 * one node could wind up truncating another
+-		 * nodes writes.
+-		 */
+-		if (end > i_size_read(inode) && !full_coherency) {
+-			*direct_io = 0;
+-			break;
+-		}
+-
+-		/*
+-		 * Fallback to old way if the feature bit is not set.
+-		 */
+-		if (end > i_size_read(inode) &&
+-				!ocfs2_supports_append_dio(osb)) {
+-			*direct_io = 0;
+-			break;
+-		}
+-
+-		/*
+-		 * We don't fill holes during direct io, so
+-		 * check for them here. If any are found, the
+-		 * caller will have to retake some cluster
+-		 * locks and initiate the io as buffered.
+-		 */
+-		ret = ocfs2_check_range_for_holes(inode, pos, count);
+-		if (ret == 1) {
+-			/*
+-			 * Fallback to old way if the feature bit is not set.
+-			 * Otherwise try dio first and then complete the rest
+-			 * request through buffer io.
+-			 */
+-			if (!ocfs2_supports_append_dio(osb))
+-				*direct_io = 0;
+-			ret = 0;
+-		} else if (ret < 0)
+-			mlog_errno(ret);
+ 		break;
  	}
  
-@@ -2208,9 +2301,8 @@ try_again:
- 	 * and non-sparse clusters we just extended.  For non-sparse writes,
- 	 * we know zeros will only be needed in the first and/or last cluster.
- 	 */
--	if (clusters_to_alloc || extents_to_split ||
--	    (wc->w_clen && (wc->w_desc[0].c_needs_zero ||
--			    wc->w_desc[wc->w_clen - 1].c_needs_zero)))
-+	if (wc->w_clen && (wc->w_desc[0].c_needs_zero ||
-+			   wc->w_desc[wc->w_clen - 1].c_needs_zero))
- 		cluster_of_pages = 1;
- 	else
- 		cluster_of_pages = 0;
-@@ -2289,7 +2381,7 @@ out_commit:
- 	ocfs2_commit_trans(osb, handle);
+ out_unlock:
+ 	trace_ocfs2_prepare_inode_for_write(OCFS2_I(inode)->ip_blkno,
+-					    pos, appending, count,
+-					    direct_io, has_refcount);
++					    pos, count);
  
- out:
--	ocfs2_free_write_ctxt(wc);
-+	ocfs2_free_write_ctxt(inode, wc);
+ 	if (meta_level >= 0)
+ 		ocfs2_inode_unlock(inode, meta_level);
+@@ -2264,18 +2161,16 @@ out:
+ static ssize_t ocfs2_file_write_iter(struct kiocb *iocb,
+ 				    struct iov_iter *from)
+ {
+-	int direct_io, appending, rw_level;
+-	int can_do_direct, has_refcount = 0;
++	int direct_io, rw_level;
+ 	ssize_t written = 0;
+ 	ssize_t ret;
+-	size_t count = iov_iter_count(from), orig_count;
++	size_t count = iov_iter_count(from);
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file_inode(file);
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 	int full_coherency = !(osb->s_mount_opt &
+ 			       OCFS2_MOUNT_COHERENCY_BUFFERED);
+ 	int unaligned_dio = 0;
+-	int dropped_dio = 0;
+ 	int append_write = ((iocb->ki_pos + count) >=
+ 			i_size_read(inode) ? 1 : 0);
  
- 	if (data_ac) {
- 		ocfs2_free_alloc_context(data_ac);
-@@ -2399,6 +2491,8 @@ int ocfs2_write_end_nolock(struct addres
- 	handle_t *handle = wc->w_handle;
- 	struct page *tmppage;
+@@ -2288,12 +2183,10 @@ static ssize_t ocfs2_file_write_iter(str
+ 	if (count == 0)
+ 		return 0;
  
-+	BUG_ON(!list_empty(&wc->w_unwritten_list));
-+
- 	if (handle) {
- 		ret = ocfs2_journal_access_di(handle, INODE_CACHE(inode),
- 				wc->w_di_bh, OCFS2_JOURNAL_ACCESS_WRITE);
-diff -puN fs/ocfs2/inode.c~ocfs2-record-unwritten-extents-when-populate-write-desc fs/ocfs2/inode.c
---- a/fs/ocfs2/inode.c~ocfs2-record-unwritten-extents-when-populate-write-desc
-+++ a/fs/ocfs2/inode.c
-@@ -1125,6 +1125,9 @@ static void ocfs2_clear_inode(struct ino
- 	mlog_bug_on_msg(!list_empty(&oi->ip_io_markers),
- 			"Clear inode of %llu, inode has io markers\n",
- 			(unsigned long long)oi->ip_blkno);
-+	mlog_bug_on_msg(!list_empty(&oi->ip_unwritten_list),
-+			"Clear inode of %llu, inode has unwritten extents\n",
-+			(unsigned long long)oi->ip_blkno);
+-	appending = iocb->ki_flags & IOCB_APPEND ? 1 : 0;
+ 	direct_io = iocb->ki_flags & IOCB_DIRECT ? 1 : 0;
  
- 	ocfs2_extent_map_trunc(inode, 0);
+ 	mutex_lock(&inode->i_mutex);
  
-diff -puN fs/ocfs2/inode.h~ocfs2-record-unwritten-extents-when-populate-write-desc fs/ocfs2/inode.h
---- a/fs/ocfs2/inode.h~ocfs2-record-unwritten-extents-when-populate-write-desc
-+++ a/fs/ocfs2/inode.h
-@@ -57,6 +57,9 @@ struct ocfs2_inode_info
- 	u32				ip_flags; /* see below */
- 	u32				ip_attr; /* inode attributes */
+-relock:
+ 	/*
+ 	 * Concurrent O_DIRECT writes are allowed with
+ 	 * mount_option "coherency=buffered".
+@@ -2326,7 +2219,6 @@ relock:
+ 		ocfs2_inode_unlock(inode, 1);
+ 	}
  
-+	/* Record unwritten extents during direct io. */
-+	struct list_head		ip_unwritten_list;
-+
- 	/* protected by recovery_lock. */
- 	struct inode			*ip_next_orphan;
+-	orig_count = iov_iter_count(from);
+ 	ret = generic_write_checks(iocb, from);
+ 	if (ret <= 0) {
+ 		if (ret)
+@@ -2335,9 +2227,7 @@ relock:
+ 	}
+ 	count = ret;
  
-diff -puN fs/ocfs2/super.c~ocfs2-record-unwritten-extents-when-populate-write-desc fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-record-unwritten-extents-when-populate-write-desc
-+++ a/fs/ocfs2/super.c
-@@ -1744,6 +1744,7 @@ static void ocfs2_inode_init_once(void *
- 	spin_lock_init(&oi->ip_lock);
- 	ocfs2_extent_map_init(&oi->vfs_inode);
- 	INIT_LIST_HEAD(&oi->ip_io_markers);
-+	INIT_LIST_HEAD(&oi->ip_unwritten_list);
- 	oi->ip_dir_start_lookup = 0;
- 	mutex_init(&oi->ip_unaligned_aio);
- 	init_rwsem(&oi->ip_alloc_sem);
+-	can_do_direct = direct_io;
+-	ret = ocfs2_prepare_inode_for_write(file, iocb->ki_pos, count, appending,
+-					    &can_do_direct, &has_refcount);
++	ret = ocfs2_prepare_inode_for_write(file, iocb->ki_pos, count);
+ 	if (ret < 0) {
+ 		mlog_errno(ret);
+ 		goto out;
+@@ -2346,22 +2236,6 @@ relock:
+ 	if (direct_io && !is_sync_kiocb(iocb))
+ 		unaligned_dio = ocfs2_is_io_unaligned(inode, count, iocb->ki_pos);
+ 
+-	/*
+-	 * We can't complete the direct I/O as requested, fall back to
+-	 * buffered I/O.
+-	 */
+-	if (direct_io && !can_do_direct) {
+-		ocfs2_rw_unlock(inode, rw_level);
+-
+-		rw_level = -1;
+-
+-		direct_io = 0;
+-		iocb->ki_flags &= ~IOCB_DIRECT;
+-		iov_iter_reexpand(from, orig_count);
+-		dropped_dio = 1;
+-		goto relock;
+-	}
+-
+ 	if (unaligned_dio) {
+ 		/*
+ 		 * Wait on previous unaligned aio to complete before
+@@ -2397,7 +2271,7 @@ relock:
+ 		goto no_sync;
+ 
+ 	if (((file->f_flags & O_DSYNC) && !direct_io) ||
+-	    IS_SYNC(inode) || dropped_dio) {
++	    IS_SYNC(inode)) {
+ 		ret = filemap_fdatawrite_range(file->f_mapping,
+ 					       iocb->ki_pos - written,
+ 					       iocb->ki_pos - 1);
+diff -puN fs/ocfs2/ocfs2_trace.h~ocfs2-code-clean-up-for-direct-io fs/ocfs2/ocfs2_trace.h
+--- a/fs/ocfs2/ocfs2_trace.h~ocfs2-code-clean-up-for-direct-io
++++ a/fs/ocfs2/ocfs2_trace.h
+@@ -1450,28 +1450,20 @@ DEFINE_OCFS2_ULL_ULL_ULL_EVENT(ocfs2_rem
+ 
+ TRACE_EVENT(ocfs2_prepare_inode_for_write,
+ 	TP_PROTO(unsigned long long ino, unsigned long long saved_pos,
+-		 int appending, unsigned long count,
+-		 int *direct_io, int *has_refcount),
+-	TP_ARGS(ino, saved_pos, appending, count, direct_io, has_refcount),
++		 unsigned long count),
++	TP_ARGS(ino, saved_pos, count),
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long long, ino)
+ 		__field(unsigned long long, saved_pos)
+-		__field(int, appending)
+ 		__field(unsigned long, count)
+-		__field(int, direct_io)
+-		__field(int, has_refcount)
+ 	),
+ 	TP_fast_assign(
+ 		__entry->ino = ino;
+ 		__entry->saved_pos = saved_pos;
+-		__entry->appending = appending;
+ 		__entry->count = count;
+-		__entry->direct_io = direct_io ? *direct_io : -1;
+-		__entry->has_refcount = has_refcount ? *has_refcount : -1;
+ 	),
+-	TP_printk("%llu %llu %d %lu %d %d", __entry->ino,
+-		  __entry->saved_pos, __entry->appending, __entry->count,
+-		  __entry->direct_io, __entry->has_refcount)
++	TP_printk("%llu %llu %lu", __entry->ino,
++		  __entry->saved_pos, __entry->count)
+ );
+ 
+ DEFINE_OCFS2_INT_EVENT(generic_file_aio_read_ret);
 _
 
 Patches currently in -mm which might be from ryan.ding@oracle.com are
