@@ -1,72 +1,63 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- lib-bitmapc-fix-a-special-string-handling-bug-in-__bitmap_parselist.patch
- removed from -mm tree
-Date: Fri, 11 Sep 2015 11:11:55 -0700
-Message-ID: <55f3196b.BSHcwQDTp/hJrym2%akpm@linux-foundation.org>
+ test_kasan-make-kmalloc_oob_krealloc_less-more-correctly.patch removed from -mm tree
+Date: Fri, 11 Sep 2015 11:12:07 -0700
+Message-ID: <55f31977.Fdse/JEHipE8r5Fm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53752 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53776 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752761AbbIKSL4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:11:56 -0400
+	with ESMTP id S1751426AbbIKSMH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:12:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xinhuix.pan@intel.com, cmetcalf@ezchip.com, linux@rasmusvillemoes.dk, sudeep.holla@arm.com, yury.norov@gmail.com, mm-commits@vger.kernel.org
+To: long.wanglong@huawei.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/bitmap.c: fix a special string handling bug in __bitmap_parselist
+     Subject: lib/test_kasan.c: make kmalloc_oob_krealloc_less more correctly
 has been removed from the -mm tree.  Its filename was
-     lib-bitmapc-fix-a-special-string-handling-bug-in-__bitmap_parselist.patch
+     test_kasan-make-kmalloc_oob_krealloc_less-more-correctly.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pan Xinhui <xinhuix.pan@intel.com>
-Subject: lib/bitmap.c: fix a special string handling bug in __bitmap_parselist
+From: Wang Long <long.wanglong@huawei.com>
+Subject: lib/test_kasan.c: make kmalloc_oob_krealloc_less more correctly
 
-If string end with '-', for exapmle, bitmap_parselist("1,0-",&mask,
-nmaskbits), It is not in a valid pattern, so add a check after loop. 
-Return -EINVAL on such condition.
+In kmalloc_oob_krealloc_less, I think it is better to test
+the size2 boundary.
 
-Signed-off-by: Pan Xinhui <xinhuix.pan@intel.com>
-Cc: Yury Norov <yury.norov@gmail.com>
-Cc: Chris Metcalf <cmetcalf@ezchip.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
+If we do not call krealloc, the access of position size1 will still cause
+out-of-bounds and access of position size2 does not.  After call krealloc,
+the access of position size2 cause out-of-bounds.  So using size2 is more
+correct.
+
+Signed-off-by: Wang Long <long.wanglong@huawei.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bitmap.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ lib/test_kasan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/bitmap.c~lib-bitmapc-fix-a-special-string-handling-bug-in-__bitmap_parselist lib/bitmap.c
---- a/lib/bitmap.c~lib-bitmapc-fix-a-special-string-handling-bug-in-__bitmap_parselist
-+++ a/lib/bitmap.c
-@@ -546,6 +546,7 @@ static int __bitmap_parselist(const char
- 					return -EINVAL;
- 				b = 0;
- 				in_range = 1;
-+				at_start = 1;
- 				continue;
- 			}
+diff -puN lib/test_kasan.c~test_kasan-make-kmalloc_oob_krealloc_less-more-correctly lib/test_kasan.c
+--- a/lib/test_kasan.c~test_kasan-make-kmalloc_oob_krealloc_less-more-correctly
++++ a/lib/test_kasan.c
+@@ -114,7 +114,7 @@ static noinline void __init kmalloc_oob_
+ 		kfree(ptr1);
+ 		return;
+ 	}
+-	ptr2[size1] = 'x';
++	ptr2[size2] = 'x';
+ 	kfree(ptr2);
+ }
  
-@@ -558,6 +559,9 @@ static int __bitmap_parselist(const char
- 			at_start = 0;
- 			totaldigits++;
- 		}
-+		/* if no digit is after '-', it's wrong*/
-+		if (at_start && in_range)
-+			return -EINVAL;
- 		if (!(a <= b))
- 			return -EINVAL;
- 		if (b >= nmaskbits)
 _
 
-Patches currently in -mm which might be from xinhuix.pan@intel.com are
+Patches currently in -mm which might be from long.wanglong@huawei.com are
 
 
