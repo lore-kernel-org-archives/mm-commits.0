@@ -1,88 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-fix-last-shadow-judgement-in-memory_is_poisoned_16.patch
- added to -mm tree
-Date: Fri, 11 Sep 2015 14:58:46 -0700
-Message-ID: <55f34e96.BVVw7fgjMY1fe0nj%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-mlock-refactor-mlock-munlock-and-munlockall-code-v7.patch removed from
+ -mm tree
+Date: Fri, 11 Sep 2015 14:59:40 -0700
+Message-ID: <55f34ecc.G5lQCbNgPOgpUZ+0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48223 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48327 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752660AbbIKV6r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 17:58:47 -0400
+	with ESMTP id S1752660AbbIKV7l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 17:59:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@huawei.com, adech.fo@gmail.com, aryabinin@virtuozzo.com, mmarek@suse.cz, rusty@rustcorp.com.au, zhongjiang@huawei.com, mm-commits@vger.kernel.org
+To: emunson@akamai.com, kirill.shutemov@linux.intel.com, kirill@shutemov.name, mhocko@suse.cz, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: fix last shadow judgement in memory_is_poisoned_16()
-has been added to the -mm tree.  Its filename is
-     kasan-fix-last-shadow-judgement-in-memory_is_poisoned_16.patch
+     Subject: mm-mlock-refactor-mlock-munlock-and-munlockall-code-v7
+has been removed from the -mm tree.  Its filename was
+     mm-mlock-refactor-mlock-munlock-and-munlockall-code-v7.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-fix-last-shadow-judgement-in-memory_is_poisoned_16.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-fix-last-shadow-judgement-in-memory_is_poisoned_16.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-mlock-refactor-mlock-munlock-and-munlockall-code.patch
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: kasan: fix last shadow judgement in memory_is_poisoned_16()
+From: Eric B Munson <emunson@akamai.com>
+Subject: mm-mlock-refactor-mlock-munlock-and-munlockall-code-v7
 
-The shadow which correspond 16 bytes memory may span 2 or 3 bytes.  If the
-memory is aligned on 8, then the shadow takes only 2 bytes.  So we check
-"shadow_first_bytes" is enough, and need not to call
-"memory_is_poisoned_1(addr + 15);".  But the code "if
-(likely(!last_byte))" is wrong judgement.
+Extending the mlock system call is very difficult because it currently
+does not take a flags argument.  A later patch in this set will extend
+mlock to support a middle ground between pages that are locked and
+faulted in immediately and unlocked pages.  To pave the way for the new
+system call, the code needs some reorganization so that all the actual
+entry point handles is checking input and translating to VMA flags.
 
-e.g.  addr=0, so last_byte = 15 & KASAN_SHADOW_MASK = 7, then the code
-will continue to call "memory_is_poisoned_1(addr + 15);"
-
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Andrey Konovalov <adech.fo@gmail.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: <zhongjiang@huawei.com>
+Signed-off-by: Eric B Munson <emunson@akamai.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/mlock.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/kasan/kasan.c~kasan-fix-last-shadow-judgement-in-memory_is_poisoned_16 mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-fix-last-shadow-judgement-in-memory_is_poisoned_16
-+++ a/mm/kasan/kasan.c
-@@ -135,12 +135,11 @@ static __always_inline bool memory_is_po
+diff -puN mm/mlock.c~mm-mlock-refactor-mlock-munlock-and-munlockall-code-v7 mm/mlock.c
+--- a/mm/mlock.c~mm-mlock-refactor-mlock-munlock-and-munlockall-code-v7
++++ a/mm/mlock.c
+@@ -578,6 +578,7 @@ static int apply_vma_lock_flags(unsigned
  
- 	if (unlikely(*shadow_addr)) {
- 		u16 shadow_first_bytes = *(u16 *)shadow_addr;
--		s8 last_byte = (addr + 15) & KASAN_SHADOW_MASK;
+ 	for (nstart = start ; ; ) {
+ 		vm_flags_t newflags = vma->vm_flags & ~VM_LOCKED;
++
+ 		newflags |= flags;
  
- 		if (unlikely(shadow_first_bytes))
- 			return true;
- 
--		if (likely(!last_byte))
-+		if (likely(IS_ALIGNED(addr, 8)))
- 			return false;
- 
- 		return memory_is_poisoned_1(addr + 15);
+ 		/* Here we know that  vma->vm_start <= nstart < vma->vm_end. */
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from emunson@akamai.com are
 
-kasan-fix-last-shadow-judgement-in-memory_is_poisoned_16.patch
+mm-mlock-refactor-mlock-munlock-and-munlockall-code.patch
+mm-mlock-add-new-mlock-system-call.patch
+mm-mlock-add-new-mlock-system-call-v7.patch
+mm-introduce-vm_lockonfault.patch
+mm-introduce-vm_lockonfault-v7.patch
+mm-mlock-add-mlock-flags-to-enable-vm_lockonfault-usage.patch
+mm-mlock-add-mlock-flags-to-enable-vm_lockonfault-usage-v7.patch
+selftests-vm-add-tests-for-lock-on-fault.patch
+mips-add-entry-for-new-mlock2-syscall.patch
 
