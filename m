@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-zsmalloc-constify-struct-zs_pool-name.patch added to -mm
- tree
-Date: Fri, 11 Sep 2015 15:26:15 -0700
-Message-ID: <55f35507.qVCkH6QuG2G8COil%akpm@linux-foundation.org>
+Subject: + ocfs2-use-c_new-to-indicate-newly-allocated-extents.patch added to -mm tree
+Date: Fri, 11 Sep 2015 15:32:28 -0700
+Message-ID: <55f3567c.e40+UMG1uVzWeiLt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51100 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51593 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752660AbbIKW0Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 18:26:16 -0400
+	with ESMTP id S1753929AbbIKWc3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 18:32:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, ddstreet@ieee.org, minchan@kernel.org, mm-commits@vger.kernel.org
+To: ryan.ding@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: zsmalloc: constify struct zs_pool name
+     Subject: ocfs2: use c_new to indicate newly allocated extents
 has been added to the -mm tree.  Its filename is
-     mm-zsmalloc-constify-struct-zs_pool-name.patch
+     ocfs2-use-c_new-to-indicate-newly-allocated-extents.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-zsmalloc-constify-struct-zs_pool-name.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-use-c_new-to-indicate-newly-allocated-extents.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zsmalloc-constify-struct-zs_pool-name.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-use-c_new-to-indicate-newly-allocated-extents.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,145 +38,132 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey SENOZHATSKY <sergey.senozhatsky@gmail.com>
-Subject: mm: zsmalloc: constify struct zs_pool name
+From: Ryan Ding <ryan.ding@oracle.com>
+Subject: ocfs2: use c_new to indicate newly allocated extents
 
-Constify `struct zs_pool' ->name.
+To support direct io in ocfs2_write_begin_nolock & ocfs2_write_end_nolock.
 
-[akpm@inux-foundation.org: constify zpool_create_pool()'s `type' arg also]
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
+There is a problem in ocfs2's direct io implement: if system crashed after
+extents allocated, and before data return, we will get a extent with dirty
+data on disk.  This problem violate the journal=order semantics, which
+means meta changes take effect after data written to disk.  To resolve
+this issue, direct write can use the UNWRITTEN flag to describe a extent
+during direct data writeback.  The direct write procedure should act in
+the following order:
+
+phase 1: alloc extent with UNWRITTEN flag
+phase 2: submit direct data to disk, add zero page to page cache
+phase 3: clear UNWRITTEN flag when data has been written to disk
+
+This patch is to change the 'c_unwritten' member of
+ocfs2_write_cluster_desc to 'c_clear_unwritten'.  Means whether to clear
+the unwritten flag.  It do not care if a extent is allocated or not.  And
+use 'c_new' to specify a newly allocated extent.  So the direct io
+procedure can use c_clear_unwritten to control the UNWRITTEN bit on
+extent.
+
+Signed-off-by: Ryan Ding <ryan.ding@oracle.com>
+Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zpool.h    |    6 ++++--
- include/linux/zsmalloc.h |    2 +-
- mm/zbud.c                |    2 +-
- mm/zpool.c               |    4 ++--
- mm/zsmalloc.c            |   10 +++++-----
- 5 files changed, 13 insertions(+), 11 deletions(-)
+ fs/ocfs2/aops.c |   22 ++++++++++++----------
+ 1 file changed, 12 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/zpool.h~mm-zsmalloc-constify-struct-zs_pool-name include/linux/zpool.h
---- a/include/linux/zpool.h~mm-zsmalloc-constify-struct-zs_pool-name
-+++ a/include/linux/zpool.h
-@@ -38,7 +38,7 @@ enum zpool_mapmode {
- 
- bool zpool_has_pool(char *type);
- 
--struct zpool *zpool_create_pool(char *type, char *name,
-+struct zpool *zpool_create_pool(const char *type, const char *name,
- 			gfp_t gfp, const struct zpool_ops *ops);
- 
- const char *zpool_get_type(struct zpool *pool);
-@@ -83,7 +83,9 @@ struct zpool_driver {
- 	atomic_t refcount;
- 	struct list_head list;
- 
--	void *(*create)(char *name, gfp_t gfp, const struct zpool_ops *ops,
-+	void *(*create)(const char *name,
-+			gfp_t gfp,
-+			const struct zpool_ops *ops,
- 			struct zpool *zpool);
- 	void (*destroy)(void *pool);
- 
-diff -puN include/linux/zsmalloc.h~mm-zsmalloc-constify-struct-zs_pool-name include/linux/zsmalloc.h
---- a/include/linux/zsmalloc.h~mm-zsmalloc-constify-struct-zs_pool-name
-+++ a/include/linux/zsmalloc.h
-@@ -41,7 +41,7 @@ struct zs_pool_stats {
- 
- struct zs_pool;
- 
--struct zs_pool *zs_create_pool(char *name, gfp_t flags);
-+struct zs_pool *zs_create_pool(const char *name, gfp_t flags);
- void zs_destroy_pool(struct zs_pool *pool);
- 
- unsigned long zs_malloc(struct zs_pool *pool, size_t size);
-diff -puN mm/zbud.c~mm-zsmalloc-constify-struct-zs_pool-name mm/zbud.c
---- a/mm/zbud.c~mm-zsmalloc-constify-struct-zs_pool-name
-+++ a/mm/zbud.c
-@@ -137,7 +137,7 @@ static const struct zbud_ops zbud_zpool_
- 	.evict =	zbud_zpool_evict
+diff -puN fs/ocfs2/aops.c~ocfs2-use-c_new-to-indicate-newly-allocated-extents fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-use-c_new-to-indicate-newly-allocated-extents
++++ a/fs/ocfs2/aops.c
+@@ -1205,7 +1205,7 @@ struct ocfs2_write_cluster_desc {
+ 	 * filled.
+ 	 */
+ 	unsigned	c_new;
+-	unsigned	c_unwritten;
++	unsigned	c_clear_unwritten;
+ 	unsigned	c_needs_zero;
  };
  
--static void *zbud_zpool_create(char *name, gfp_t gfp,
-+static void *zbud_zpool_create(const char *name, gfp_t gfp,
- 			       const struct zpool_ops *zpool_ops,
- 			       struct zpool *zpool)
- {
-diff -puN mm/zpool.c~mm-zsmalloc-constify-struct-zs_pool-name mm/zpool.c
---- a/mm/zpool.c~mm-zsmalloc-constify-struct-zs_pool-name
-+++ a/mm/zpool.c
-@@ -72,7 +72,7 @@ int zpool_unregister_driver(struct zpool
- EXPORT_SYMBOL(zpool_unregister_driver);
- 
- /* this assumes @type is null-terminated. */
--static struct zpool_driver *zpool_get_driver(char *type)
-+static struct zpool_driver *zpool_get_driver(const char *type)
- {
- 	struct zpool_driver *driver;
- 
-@@ -150,7 +150,7 @@ EXPORT_SYMBOL(zpool_has_pool);
-  *
-  * Returns: New zpool on success, NULL on failure.
+@@ -1581,19 +1581,19 @@ out:
+  * Prepare a single cluster for write one cluster into the file.
   */
--struct zpool *zpool_create_pool(char *type, char *name, gfp_t gfp,
-+struct zpool *zpool_create_pool(const char *type, const char *name, gfp_t gfp,
- 		const struct zpool_ops *ops)
+ static int ocfs2_write_cluster(struct address_space *mapping,
+-			       u32 phys, unsigned int unwritten,
++			       u32 phys, unsigned int new,
++			       unsigned int clear_unwritten,
+ 			       unsigned int should_zero,
+ 			       struct ocfs2_alloc_context *data_ac,
+ 			       struct ocfs2_alloc_context *meta_ac,
+ 			       struct ocfs2_write_ctxt *wc, u32 cpos,
+ 			       loff_t user_pos, unsigned user_len)
  {
- 	struct zpool_driver *driver;
-diff -puN mm/zsmalloc.c~mm-zsmalloc-constify-struct-zs_pool-name mm/zsmalloc.c
---- a/mm/zsmalloc.c~mm-zsmalloc-constify-struct-zs_pool-name
-+++ a/mm/zsmalloc.c
-@@ -237,7 +237,7 @@ struct link_free {
- };
+-	int ret, i, new;
++	int ret, i;
+ 	u64 v_blkno, p_blkno;
+ 	struct inode *inode = mapping->host;
+ 	struct ocfs2_extent_tree et;
  
- struct zs_pool {
--	char *name;
-+	const char *name;
+-	new = phys == 0 ? 1 : 0;
+ 	if (new) {
+ 		u32 tmp_pos;
  
- 	struct size_class **size_class;
- 	struct kmem_cache *handle_cachep;
-@@ -311,7 +311,7 @@ static void record_obj(unsigned long han
+@@ -1603,9 +1603,9 @@ static int ocfs2_write_cluster(struct ad
+ 		 */
+ 		tmp_pos = cpos;
+ 		ret = ocfs2_add_inode_data(OCFS2_SB(inode->i_sb), inode,
+-					   &tmp_pos, 1, 0, wc->w_di_bh,
+-					   wc->w_handle, data_ac,
+-					   meta_ac, NULL);
++					   &tmp_pos, 1, !clear_unwritten,
++					   wc->w_di_bh, wc->w_handle,
++					   data_ac, meta_ac, NULL);
+ 		/*
+ 		 * This shouldn't happen because we must have already
+ 		 * calculated the correct meta data allocation required. The
+@@ -1622,7 +1622,7 @@ static int ocfs2_write_cluster(struct ad
+ 			mlog_errno(ret);
+ 			goto out;
+ 		}
+-	} else if (unwritten) {
++	} else if (clear_unwritten) {
+ 		ocfs2_init_dinode_extent_tree(&et, INODE_CACHE(inode),
+ 					      wc->w_di_bh);
+ 		ret = ocfs2_mark_extent_written(inode, &et,
+@@ -1705,7 +1705,8 @@ static int ocfs2_write_cluster_by_desc(s
+ 			local_len = osb->s_clustersize - cluster_off;
  
- #ifdef CONFIG_ZPOOL
+ 		ret = ocfs2_write_cluster(mapping, desc->c_phys,
+-					  desc->c_unwritten,
++					  desc->c_new,
++					  desc->c_clear_unwritten,
+ 					  desc->c_needs_zero,
+ 					  data_ac, meta_ac,
+ 					  wc, desc->c_cpos, pos, local_len);
+@@ -1850,11 +1851,12 @@ static int ocfs2_populate_write_desc(str
+ 		if (phys == 0) {
+ 			desc->c_new = 1;
+ 			desc->c_needs_zero = 1;
++			desc->c_clear_unwritten = 1;
+ 			*clusters_to_alloc = *clusters_to_alloc + 1;
+ 		}
  
--static void *zs_zpool_create(char *name, gfp_t gfp,
-+static void *zs_zpool_create(const char *name, gfp_t gfp,
- 			     const struct zpool_ops *zpool_ops,
- 			     struct zpool *zpool)
- {
-@@ -548,7 +548,7 @@ static const struct file_operations zs_s
- 	.release        = single_release,
- };
+ 		if (ext_flags & OCFS2_EXT_UNWRITTEN) {
+-			desc->c_unwritten = 1;
++			desc->c_clear_unwritten = 1;
+ 			desc->c_needs_zero = 1;
+ 		}
  
--static int zs_pool_stat_create(char *name, struct zs_pool *pool)
-+static int zs_pool_stat_create(const char *name, struct zs_pool *pool)
- {
- 	struct dentry *entry;
- 
-@@ -588,7 +588,7 @@ static void __exit zs_stat_exit(void)
- {
- }
- 
--static inline int zs_pool_stat_create(char *name, struct zs_pool *pool)
-+static inline int zs_pool_stat_create(const char *name, struct zs_pool *pool)
- {
- 	return 0;
- }
-@@ -1866,7 +1866,7 @@ static int zs_register_shrinker(struct z
-  * On success, a pointer to the newly created pool is returned,
-  * otherwise NULL.
-  */
--struct zs_pool *zs_create_pool(char *name, gfp_t flags)
-+struct zs_pool *zs_create_pool(const char *name, gfp_t flags)
- {
- 	int i;
- 	struct zs_pool *pool;
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from ryan.ding@oracle.com are
 
-mm-zsmalloc-constify-struct-zs_pool-name.patch
+ocfs2-add-ocfs2_write_type_t-type-to-identify-the-caller-of-write.patch
+ocfs2-use-c_new-to-indicate-newly-allocated-extents.patch
+ocfs2-test-target-page-before-change-it.patch
+ocfs2-do-not-change-i_size-in-write_end-for-direct-io.patch
+ocfs2-return-the-physical-address-in-ocfs2_write_cluster.patch
+ocfs2-record-unwritten-extents-when-populate-write-desc.patch
+ocfs2-fix-sparse-file-data-ordering-issue-in-direct-io.patch
+ocfs2-code-clean-up-for-direct-io.patch
 
