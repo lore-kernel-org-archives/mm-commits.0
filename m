@@ -1,108 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-always-check-block-comment-styles.patch
- removed from -mm tree
-Date: Fri, 11 Sep 2015 11:12:21 -0700
-Message-ID: <55f31985.u5IE56FG/if+xQQ6%akpm@linux-foundation.org>
+Subject: [merged] checkpatch-fix-left-brace-warning.patch removed from -mm tree
+Date: Fri, 11 Sep 2015 11:12:29 -0700
+Message-ID: <55f3198d.s/sP0zj+G60LSTJ2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53815 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53829 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752277AbbIKSMV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:12:21 -0400
+	with ESMTP id S1753030AbbIKSM3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:12:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: ewk@edkovsky.org, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: always check block comment styles
+     Subject: checkpatch: fix left brace warning
 has been removed from the -mm tree.  Its filename was
-     checkpatch-always-check-block-comment-styles.patch
+     checkpatch-fix-left-brace-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: always check block comment styles
+From: Eddie Kovsky <ewk@edkovsky.org>
+Subject: checkpatch: fix left brace warning
 
-Some of the block comment tests that are used only for networking are
-appropriate for all patches.
+Using checkpatch.pl with Perl 5.22.0 generates the following warning:
 
-For example, these styles are not encouraged:
+    Unescaped left brace in regex is deprecated, passed through in regex;
 
-	/*
-	 block comment without introductory *
-	*/
-and
-	/*
-	 * block comment with line terminating */
+This patch fixes the warnings by escaping occurrences of the left brace
+inside the regular expression.
 
-Remove the networking specific test and add comments.
-
-There are some infrequent false positives where code is lazily
-commented out using /* and */ rather than using #if 0/#endif blocks
-like:
-	/* case foo:
-	case bar: */
-	case baz:
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Eddie Kovsky <ewk@edkovsky.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ scripts/checkpatch.pl |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-always-check-block-comment-styles scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-always-check-block-comment-styles
+diff -puN scripts/checkpatch.pl~checkpatch-fix-left-brace-warning scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-left-brace-warning
 +++ a/scripts/checkpatch.pl
-@@ -2751,6 +2751,8 @@ sub process {
- 			}
- 		}
+@@ -3571,7 +3571,7 @@ sub process {
+ # function brace can't be on same line, except for #defines of do while,
+ # or if closed on same line
+ 		if (($line=~/$Type\s*$Ident\(.*\).*\s*{/) and
+-		    !($line=~/\#\s*define.*do\s{/) and !($line=~/}/)) {
++		    !($line=~/\#\s*define.*do\s\{/) and !($line=~/}/)) {
+ 			if (ERROR("OPEN_BRACE",
+ 				  "open brace '{' following function declarations go on the next line\n" . $herecurr) &&
+ 			    $fix) {
+@@ -4083,8 +4083,8 @@ sub process {
+ ## 		}
  
-+# Block comment styles
-+# Networking with an initial /*
- 		if ($realfile =~ m@^(drivers/net/|net/)@ &&
- 		    $prevrawline =~ /^\+[ \t]*\/\*[ \t]*$/ &&
- 		    $rawline =~ /^\+[ \t]*\*/ &&
-@@ -2759,22 +2761,23 @@ sub process {
- 			     "networking block comments don't use an empty /* line, use /* Comment...\n" . $hereprev);
- 		}
- 
--		if ($realfile =~ m@^(drivers/net/|net/)@ &&
--		    $prevrawline =~ /^\+[ \t]*\/\*/ &&		#starting /*
-+# Block comments use * on subsequent lines
-+		if ($prevline =~ /$;[ \t]*$/ &&			#ends in comment
-+		    $prevrawline =~ /^\+.*?\/\*/ &&		#starting /*
- 		    $prevrawline !~ /\*\/[ \t]*$/ &&		#no trailing */
- 		    $rawline =~ /^\+/ &&			#line is new
- 		    $rawline !~ /^\+[ \t]*\*/) {		#no leading *
--			WARN("NETWORKING_BLOCK_COMMENT_STYLE",
--			     "networking block comments start with * on subsequent lines\n" . $hereprev);
-+			WARN("BLOCK_COMMENT_STYLE",
-+			     "Block comments use * on subsequent lines\n" . $hereprev);
- 		}
- 
--		if ($realfile =~ m@^(drivers/net/|net/)@ &&
--		    $rawline !~ m@^\+[ \t]*\*/[ \t]*$@ &&	#trailing */
-+# Block comments use */ on trailing lines
-+		if ($rawline !~ m@^\+[ \t]*\*/[ \t]*$@ &&	#trailing */
- 		    $rawline !~ m@^\+.*/\*.*\*/[ \t]*$@ &&	#inline /*...*/
- 		    $rawline !~ m@^\+.*\*{2,}/[ \t]*$@ &&	#trailing **/
- 		    $rawline =~ m@^\+[ \t]*.+\*\/[ \t]*$@) {	#non blank */
--			WARN("NETWORKING_BLOCK_COMMENT_STYLE",
--			     "networking block comments put the trailing */ on a separate line\n" . $herecurr);
-+			WARN("BLOCK_COMMENT_STYLE",
-+			     "Block comments use a trailing */ on a separate line\n" . $herecurr);
- 		}
- 
- # check for missing blank lines after struct/union declarations
+ #need space before brace following if, while, etc
+-		if (($line =~ /\(.*\){/ && $line !~ /\($Type\){/) ||
+-		    $line =~ /do{/) {
++		if (($line =~ /\(.*\)\{/ && $line !~ /\($Type\){/) ||
++		    $line =~ /do\{/) {
+ 			if (ERROR("SPACING",
+ 				  "space required before the open brace '{'\n" . $herecurr) &&
+ 			    $fix) {
+@@ -4531,7 +4531,7 @@ sub process {
+ 			    $dstat !~ /^for\s*$Constant$/ &&				# for (...)
+ 			    $dstat !~ /^for\s*$Constant\s+(?:$Ident|-?$Constant)$/ &&	# for (...) bar()
+ 			    $dstat !~ /^do\s*{/ &&					# do {...
+-			    $dstat !~ /^\({/ &&						# ({...
++			    $dstat !~ /^\(\{/ &&						# ({...
+ 			    $ctx !~ /^.\s*#\s*define\s+TRACE_(?:SYSTEM|INCLUDE_FILE|INCLUDE_PATH)\b/)
+ 			{
+ 				$ctx =~ s/\n*$//;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from ewk@edkovsky.org are
 
-fs-seq_file-convert-int-seq_vprint-seq_printf-etc-returns-to-void.patch
 
