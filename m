@@ -1,362 +1,297 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel.patch
- removed from -mm tree
-Date: Fri, 11 Sep 2015 11:13:35 -0700
-Message-ID: <55f319cf./6LYSLrscFa3S1hb%akpm__4660.03481201387$1441995246$gmane$org@linux-foundation.org>
+Subject: [merged] mm-mark-most-vm_operations_struct-const.patch removed
+ from -mm tree
+Date: Fri, 11 Sep 2015 11:13:46 -0700
+Message-ID: <55f319da.vXmks2X5RYJqdOHI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54090 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54204 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753759AbbIKSNg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:13:36 -0400
+	with ESMTP id S1753761AbbIKSNr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:13:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yinghai@kernel.org, acourbot@nvidia.com, hpa@zytor.com, mingo@redhat.com, stable@vger.kernel.org, swarren@wwwdotorg.org, tglx@linutronix.de, tixy@linaro.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, dave.hansen@linux.intel.com, hpa@zytor.com, luto@amacapital.net, minchan@kernel.org, mingo@elte.hu, oleg@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/decompressors: use real out buf size for gunzip with kernel
+     Subject: mm: mark most vm_operations_struct const
 has been removed from the -mm tree.  Its filename was
-     lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel.patch
+     mm-mark-most-vm_operations_struct-const.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: lib/decompressors: use real out buf size for gunzip with kernel
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: mark most vm_operations_struct const
 
-When loading x86 64bit kernel above 4GiB with patched grub2, got kernel
-gunzip error.
+With two exceptions (drm/qxl and drm/radeon) all vm_operations_struct
+structs should be constant.
 
-| early console in decompress_kernel
-| decompress_kernel:
-|       input: [0x807f2143b4-0x807ff61aee]
-|      output: [0x807cc00000-0x807f3ea29b] 0x027ea29c: output_len
-| boot via startup_64
-| KASLR using RDTSC...
-|  new output: [0x46fe000000-0x470138cfff] 0x0338d000: output_run_size
-|  decompress: [0x46fe000000-0x47007ea29b] <=== [0x807f2143b4-0x807ff61aee]
-|
-| Decompressing Linux... gz...
-|
-| uncompression error
-|
-| -- System halted
-
-the new buffer is at 0x46fe000000ULL, decompressor_gzip is using
-0xffffffb901ffffff as out_len.  gunzip in lib/zlib_inflate/inflate.c cap
-that len to 0x01ffffff and decompress fails later.
-
-We could hit this problem with crashkernel booting that uses kexec loading
-kernel above 4GiB.
-
-We have decompress_* support:
-    1. inbuf[]/outbuf[] for kernel preboot.
-    2. inbuf[]/flush() for initramfs
-    3. fill()/flush() for initrd.
-This bug only affect kernel preboot path that use outbuf[].
-
-Add __decompress and take real out_buf_len for gunzip instead of guessing
-wrong buf size.
-
-Fixes: 1431574a1c4 (lib/decompressors: fix "no limit" output buffer length)
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: Alexandre Courbot <acourbot@nvidia.com>
-Cc: Jon Medhurst <tixy@linaro.org>
-Cc: Stephen Warren <swarren@wwwdotorg.org>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/boot/compressed/decompress.c  |    2 -
- arch/h8300/boot/compressed/misc.c      |    2 -
- arch/m32r/boot/compressed/misc.c       |    3 +-
- arch/mips/boot/compressed/decompress.c |    4 +-
- arch/s390/boot/compressed/misc.c       |    2 -
- arch/sh/boot/compressed/misc.c         |    2 -
- arch/unicore32/boot/compressed/misc.c  |    4 +-
- arch/x86/boot/compressed/misc.c        |    3 +-
- lib/decompress_bunzip2.c               |    6 ++--
- lib/decompress_inflate.c               |   31 +++++++++++++++++++----
- lib/decompress_unlz4.c                 |    6 ++--
- lib/decompress_unlzma.c                |    7 ++---
- lib/decompress_unlzo.c                 |   13 ++++++++-
- lib/decompress_unxz.c                  |   12 ++++++++
- 14 files changed, 70 insertions(+), 27 deletions(-)
+ arch/x86/entry/vsyscall/vsyscall_64.c          |    2 +-
+ drivers/android/binder.c                       |    2 +-
+ drivers/gpu/drm/vgem/vgem_drv.c                |    2 +-
+ drivers/hsi/clients/cmt_speech.c               |    2 +-
+ drivers/infiniband/hw/qib/qib_file_ops.c       |    2 +-
+ drivers/infiniband/hw/qib/qib_mmap.c           |    2 +-
+ drivers/media/platform/omap/omap_vout.c        |    2 +-
+ drivers/misc/genwqe/card_dev.c                 |    2 +-
+ drivers/staging/android/ion/ion.c              |    2 +-
+ drivers/staging/comedi/comedi_fops.c           |    2 +-
+ drivers/video/fbdev/omap2/omapfb/omapfb-main.c |    2 +-
+ drivers/xen/gntalloc.c                         |    2 +-
+ drivers/xen/gntdev.c                           |    2 +-
+ drivers/xen/privcmd.c                          |    4 ++--
+ fs/ceph/addr.c                                 |    2 +-
+ fs/cifs/file.c                                 |    2 +-
+ security/selinux/selinuxfs.c                   |    2 +-
+ 17 files changed, 18 insertions(+), 18 deletions(-)
 
-diff -puN arch/arm/boot/compressed/decompress.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel arch/arm/boot/compressed/decompress.c
---- a/arch/arm/boot/compressed/decompress.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel
-+++ a/arch/arm/boot/compressed/decompress.c
-@@ -57,5 +57,5 @@ extern char * strstr(const char * s1, co
- 
- int do_decompress(u8 *input, int len, u8 *output, void (*error)(char *x))
+diff -puN arch/x86/entry/vsyscall/vsyscall_64.c~mm-mark-most-vm_operations_struct-const arch/x86/entry/vsyscall/vsyscall_64.c
+--- a/arch/x86/entry/vsyscall/vsyscall_64.c~mm-mark-most-vm_operations_struct-const
++++ a/arch/x86/entry/vsyscall/vsyscall_64.c
+@@ -277,7 +277,7 @@ static const char *gate_vma_name(struct
  {
--	return decompress(input, len, NULL, NULL, output, NULL, error);
-+	return __decompress(input, len, NULL, NULL, output, 0, NULL, error);
+ 	return "[vsyscall]";
  }
-diff -puN arch/h8300/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel arch/h8300/boot/compressed/misc.c
---- a/arch/h8300/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel
-+++ a/arch/h8300/boot/compressed/misc.c
-@@ -70,5 +70,5 @@ void decompress_kernel(void)
- 	free_mem_ptr = (unsigned long)&_end;
- 	free_mem_end_ptr = free_mem_ptr + HEAP_SIZE;
- 
--	decompress(input_data, input_len, NULL, NULL, output, NULL, error);
-+	__decompress(input_data, input_len, NULL, NULL, output, 0, NULL, error);
- }
-diff -puN arch/m32r/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel arch/m32r/boot/compressed/misc.c
---- a/arch/m32r/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel
-+++ a/arch/m32r/boot/compressed/misc.c
-@@ -86,6 +86,7 @@ decompress_kernel(int mmu_on, unsigned c
- 	free_mem_end_ptr = free_mem_ptr + BOOT_HEAP_SIZE;
- 
- 	puts("\nDecompressing Linux... ");
--	decompress(input_data, input_len, NULL, NULL, output_data, NULL, error);
-+	__decompress(input_data, input_len, NULL, NULL, output_data, 0,
-+			NULL, error);
- 	puts("done.\nBooting the kernel.\n");
- }
-diff -puN arch/mips/boot/compressed/decompress.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel arch/mips/boot/compressed/decompress.c
---- a/arch/mips/boot/compressed/decompress.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel
-+++ a/arch/mips/boot/compressed/decompress.c
-@@ -111,8 +111,8 @@ void decompress_kernel(unsigned long boo
- 	puts("\n");
- 
- 	/* Decompress the kernel with according algorithm */
--	decompress((char *)zimage_start, zimage_size, 0, 0,
--		   (void *)VMLINUX_LOAD_ADDRESS_ULL, 0, error);
-+	__decompress((char *)zimage_start, zimage_size, 0, 0,
-+		   (void *)VMLINUX_LOAD_ADDRESS_ULL, 0, 0, error);
- 
- 	/* FIXME: should we flush cache here? */
- 	puts("Now, booting the kernel...\n");
-diff -puN arch/s390/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel arch/s390/boot/compressed/misc.c
---- a/arch/s390/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel
-+++ a/arch/s390/boot/compressed/misc.c
-@@ -167,7 +167,7 @@ unsigned long decompress_kernel(void)
- #endif
- 
- 	puts("Uncompressing Linux... ");
--	decompress(input_data, input_len, NULL, NULL, output, NULL, error);
-+	__decompress(input_data, input_len, NULL, NULL, output, 0, NULL, error);
- 	puts("Ok, booting the kernel.\n");
- 	return (unsigned long) output;
- }
-diff -puN arch/sh/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel arch/sh/boot/compressed/misc.c
---- a/arch/sh/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel
-+++ a/arch/sh/boot/compressed/misc.c
-@@ -132,7 +132,7 @@ void decompress_kernel(void)
- 
- 	puts("Uncompressing Linux... ");
- 	cache_control(CACHE_ENABLE);
--	decompress(input_data, input_len, NULL, NULL, output, NULL, error);
-+	__decompress(input_data, input_len, NULL, NULL, output, 0, NULL, error);
- 	cache_control(CACHE_DISABLE);
- 	puts("Ok, booting the kernel.\n");
- }
-diff -puN arch/unicore32/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel arch/unicore32/boot/compressed/misc.c
---- a/arch/unicore32/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel
-+++ a/arch/unicore32/boot/compressed/misc.c
-@@ -119,8 +119,8 @@ unsigned long decompress_kernel(unsigned
- 	output_ptr = get_unaligned_le32(tmp);
- 
- 	arch_decomp_puts("Uncompressing Linux...");
--	decompress(input_data, input_data_end - input_data, NULL, NULL,
--			output_data, NULL, error);
-+	__decompress(input_data, input_data_end - input_data, NULL, NULL,
-+			output_data, 0, NULL, error);
- 	arch_decomp_puts(" done, booting the kernel.\n");
- 	return output_ptr;
- }
-diff -puN arch/x86/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel arch/x86/boot/compressed/misc.c
---- a/arch/x86/boot/compressed/misc.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel
-+++ a/arch/x86/boot/compressed/misc.c
-@@ -448,7 +448,8 @@ asmlinkage __visible void *decompress_ke
- #endif
- 
- 	debug_putstr("\nDecompressing Linux... ");
--	decompress(input_data, input_len, NULL, NULL, output, NULL, error);
-+	__decompress(input_data, input_len, NULL, NULL, output, output_len,
-+			NULL, error);
- 	parse_elf(output);
- 	/*
- 	 * 32-bit always performs relocations. 64-bit relocations are only
-diff -puN lib/decompress_bunzip2.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel lib/decompress_bunzip2.c
---- a/lib/decompress_bunzip2.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel
-+++ a/lib/decompress_bunzip2.c
-@@ -743,12 +743,12 @@ exit_0:
+-static struct vm_operations_struct gate_vma_ops = {
++static const struct vm_operations_struct gate_vma_ops = {
+ 	.name = gate_vma_name,
+ };
+ static struct vm_area_struct gate_vma = {
+diff -puN drivers/android/binder.c~mm-mark-most-vm_operations_struct-const drivers/android/binder.c
+--- a/drivers/android/binder.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/android/binder.c
+@@ -2834,7 +2834,7 @@ static int binder_vm_fault(struct vm_are
+ 	return VM_FAULT_SIGBUS;
  }
  
- #ifdef PREBOOT
--STATIC int INIT decompress(unsigned char *buf, long len,
-+STATIC int INIT __decompress(unsigned char *buf, long len,
- 			long (*fill)(void*, unsigned long),
- 			long (*flush)(void*, unsigned long),
--			unsigned char *outbuf,
-+			unsigned char *outbuf, long olen,
- 			long *pos,
--			void(*error)(char *x))
-+			void (*error)(char *x))
- {
- 	return bunzip2(buf, len - 4, fill, flush, outbuf, pos, error);
- }
-diff -puN lib/decompress_inflate.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel lib/decompress_inflate.c
---- a/lib/decompress_inflate.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel
-+++ a/lib/decompress_inflate.c
-@@ -1,4 +1,5 @@
- #ifdef STATIC
-+#define PREBOOT
- /* Pre-boot environment: included */
- 
- /* prevent inclusion of _LINUX_KERNEL_H in pre-boot environment: lots
-@@ -33,23 +34,23 @@ static long INIT nofill(void *buffer, un
- }
- 
- /* Included from initramfs et al code */
--STATIC int INIT gunzip(unsigned char *buf, long len,
-+STATIC int INIT __gunzip(unsigned char *buf, long len,
- 		       long (*fill)(void*, unsigned long),
- 		       long (*flush)(void*, unsigned long),
--		       unsigned char *out_buf,
-+		       unsigned char *out_buf, long out_len,
- 		       long *pos,
- 		       void(*error)(char *x)) {
- 	u8 *zbuf;
- 	struct z_stream_s *strm;
- 	int rc;
--	size_t out_len;
- 
- 	rc = -1;
- 	if (flush) {
- 		out_len = 0x8000; /* 32 K */
- 		out_buf = malloc(out_len);
- 	} else {
--		out_len = ((size_t)~0) - (size_t)out_buf; /* no limit */
-+		if (!out_len)
-+			out_len = ((size_t)~0) - (size_t)out_buf; /* no limit */
+-static struct vm_operations_struct binder_vm_ops = {
++static const struct vm_operations_struct binder_vm_ops = {
+ 	.open = binder_vma_open,
+ 	.close = binder_vma_close,
+ 	.fault = binder_vm_fault,
+diff -puN drivers/gpu/drm/vgem/vgem_drv.c~mm-mark-most-vm_operations_struct-const drivers/gpu/drm/vgem/vgem_drv.c
+--- a/drivers/gpu/drm/vgem/vgem_drv.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/gpu/drm/vgem/vgem_drv.c
+@@ -125,7 +125,7 @@ static int vgem_gem_fault(struct vm_area
  	}
- 	if (!out_buf) {
- 		error("Out of memory while allocating output buffer");
-@@ -181,4 +182,24 @@ gunzip_nomem1:
- 	return rc; /* returns Z_OK (0) if successful */
  }
  
--#define decompress gunzip
-+#ifndef PREBOOT
-+STATIC int INIT gunzip(unsigned char *buf, long len,
-+		       long (*fill)(void*, unsigned long),
-+		       long (*flush)(void*, unsigned long),
-+		       unsigned char *out_buf,
-+		       long *pos,
-+		       void (*error)(char *x))
-+{
-+	return __gunzip(buf, len, fill, flush, out_buf, 0, pos, error);
-+}
-+#else
-+STATIC int INIT __decompress(unsigned char *buf, long len,
-+			   long (*fill)(void*, unsigned long),
-+			   long (*flush)(void*, unsigned long),
-+			   unsigned char *out_buf, long out_len,
-+			   long *pos,
-+			   void (*error)(char *x))
-+{
-+	return __gunzip(buf, len, fill, flush, out_buf, out_len, pos, error);
-+}
-+#endif
-diff -puN lib/decompress_unlz4.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel lib/decompress_unlz4.c
---- a/lib/decompress_unlz4.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel
-+++ a/lib/decompress_unlz4.c
-@@ -196,12 +196,12 @@ exit_0:
+-static struct vm_operations_struct vgem_gem_vm_ops = {
++static const struct vm_operations_struct vgem_gem_vm_ops = {
+ 	.fault = vgem_gem_fault,
+ 	.open = drm_gem_vm_open,
+ 	.close = drm_gem_vm_close,
+diff -puN drivers/hsi/clients/cmt_speech.c~mm-mark-most-vm_operations_struct-const drivers/hsi/clients/cmt_speech.c
+--- a/drivers/hsi/clients/cmt_speech.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/hsi/clients/cmt_speech.c
+@@ -1110,7 +1110,7 @@ static int cs_char_vma_fault(struct vm_a
+ 	return 0;
  }
  
- #ifdef PREBOOT
--STATIC int INIT decompress(unsigned char *buf, long in_len,
-+STATIC int INIT __decompress(unsigned char *buf, long in_len,
- 			      long (*fill)(void*, unsigned long),
- 			      long (*flush)(void*, unsigned long),
--			      unsigned char *output,
-+			      unsigned char *output, long out_len,
- 			      long *posp,
--			      void(*error)(char *x)
-+			      void (*error)(char *x)
- 	)
+-static struct vm_operations_struct cs_char_vm_ops = {
++static const struct vm_operations_struct cs_char_vm_ops = {
+ 	.fault	= cs_char_vma_fault,
+ };
+ 
+diff -puN drivers/infiniband/hw/qib/qib_file_ops.c~mm-mark-most-vm_operations_struct-const drivers/infiniband/hw/qib/qib_file_ops.c
+--- a/drivers/infiniband/hw/qib/qib_file_ops.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/infiniband/hw/qib/qib_file_ops.c
+@@ -908,7 +908,7 @@ static int qib_file_vma_fault(struct vm_
+ 	return 0;
+ }
+ 
+-static struct vm_operations_struct qib_file_vm_ops = {
++static const struct vm_operations_struct qib_file_vm_ops = {
+ 	.fault = qib_file_vma_fault,
+ };
+ 
+diff -puN drivers/infiniband/hw/qib/qib_mmap.c~mm-mark-most-vm_operations_struct-const drivers/infiniband/hw/qib/qib_mmap.c
+--- a/drivers/infiniband/hw/qib/qib_mmap.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/infiniband/hw/qib/qib_mmap.c
+@@ -75,7 +75,7 @@ static void qib_vma_close(struct vm_area
+ 	kref_put(&ip->ref, qib_release_mmap_info);
+ }
+ 
+-static struct vm_operations_struct qib_vm_ops = {
++static const struct vm_operations_struct qib_vm_ops = {
+ 	.open =     qib_vma_open,
+ 	.close =    qib_vma_close,
+ };
+diff -puN drivers/media/platform/omap/omap_vout.c~mm-mark-most-vm_operations_struct-const drivers/media/platform/omap/omap_vout.c
+--- a/drivers/media/platform/omap/omap_vout.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/media/platform/omap/omap_vout.c
+@@ -872,7 +872,7 @@ static void omap_vout_vm_close(struct vm
+ 	vout->mmap_count--;
+ }
+ 
+-static struct vm_operations_struct omap_vout_vm_ops = {
++static const struct vm_operations_struct omap_vout_vm_ops = {
+ 	.open	= omap_vout_vm_open,
+ 	.close	= omap_vout_vm_close,
+ };
+diff -puN drivers/misc/genwqe/card_dev.c~mm-mark-most-vm_operations_struct-const drivers/misc/genwqe/card_dev.c
+--- a/drivers/misc/genwqe/card_dev.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/misc/genwqe/card_dev.c
+@@ -418,7 +418,7 @@ static void genwqe_vma_close(struct vm_a
+ 	kfree(dma_map);
+ }
+ 
+-static struct vm_operations_struct genwqe_vma_ops = {
++static const struct vm_operations_struct genwqe_vma_ops = {
+ 	.open   = genwqe_vma_open,
+ 	.close  = genwqe_vma_close,
+ };
+diff -puN drivers/staging/android/ion/ion.c~mm-mark-most-vm_operations_struct-const drivers/staging/android/ion/ion.c
+--- a/drivers/staging/android/ion/ion.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/staging/android/ion/ion.c
+@@ -997,7 +997,7 @@ static void ion_vm_close(struct vm_area_
+ 	mutex_unlock(&buffer->lock);
+ }
+ 
+-static struct vm_operations_struct ion_vma_ops = {
++static const struct vm_operations_struct ion_vma_ops = {
+ 	.open = ion_vm_open,
+ 	.close = ion_vm_close,
+ 	.fault = ion_vm_fault,
+diff -puN drivers/staging/comedi/comedi_fops.c~mm-mark-most-vm_operations_struct-const drivers/staging/comedi/comedi_fops.c
+--- a/drivers/staging/comedi/comedi_fops.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/staging/comedi/comedi_fops.c
+@@ -2156,7 +2156,7 @@ static void comedi_vm_close(struct vm_ar
+ 	comedi_buf_map_put(bm);
+ }
+ 
+-static struct vm_operations_struct comedi_vm_ops = {
++static const struct vm_operations_struct comedi_vm_ops = {
+ 	.open = comedi_vm_open,
+ 	.close = comedi_vm_close,
+ };
+diff -puN drivers/video/fbdev/omap2/omapfb/omapfb-main.c~mm-mark-most-vm_operations_struct-const drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+--- a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/video/fbdev/omap2/omapfb/omapfb-main.c
+@@ -1091,7 +1091,7 @@ static void mmap_user_close(struct vm_ar
+ 	omapfb_put_mem_region(rg);
+ }
+ 
+-static struct vm_operations_struct mmap_user_ops = {
++static const struct vm_operations_struct mmap_user_ops = {
+ 	.open = mmap_user_open,
+ 	.close = mmap_user_close,
+ };
+diff -puN drivers/xen/gntalloc.c~mm-mark-most-vm_operations_struct-const drivers/xen/gntalloc.c
+--- a/drivers/xen/gntalloc.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/xen/gntalloc.c
+@@ -493,7 +493,7 @@ static void gntalloc_vma_close(struct vm
+ 	mutex_unlock(&gref_mutex);
+ }
+ 
+-static struct vm_operations_struct gntalloc_vmops = {
++static const struct vm_operations_struct gntalloc_vmops = {
+ 	.open = gntalloc_vma_open,
+ 	.close = gntalloc_vma_close,
+ };
+diff -puN drivers/xen/gntdev.c~mm-mark-most-vm_operations_struct-const drivers/xen/gntdev.c
+--- a/drivers/xen/gntdev.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/xen/gntdev.c
+@@ -433,7 +433,7 @@ static struct page *gntdev_vma_find_spec
+ 	return map->pages[(addr - map->pages_vm_start) >> PAGE_SHIFT];
+ }
+ 
+-static struct vm_operations_struct gntdev_vmops = {
++static const struct vm_operations_struct gntdev_vmops = {
+ 	.open = gntdev_vma_open,
+ 	.close = gntdev_vma_close,
+ 	.find_special_page = gntdev_vma_find_special_page,
+diff -puN drivers/xen/privcmd.c~mm-mark-most-vm_operations_struct-const drivers/xen/privcmd.c
+--- a/drivers/xen/privcmd.c~mm-mark-most-vm_operations_struct-const
++++ a/drivers/xen/privcmd.c
+@@ -414,7 +414,7 @@ static int alloc_empty_pages(struct vm_a
+ 	return 0;
+ }
+ 
+-static struct vm_operations_struct privcmd_vm_ops;
++static const struct vm_operations_struct privcmd_vm_ops;
+ 
+ static long privcmd_ioctl_mmap_batch(void __user *udata, int version)
  {
- 	return unlz4(buf, in_len - 4, fill, flush, output, posp, error);
-diff -puN lib/decompress_unlzma.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel lib/decompress_unlzma.c
---- a/lib/decompress_unlzma.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel
-+++ a/lib/decompress_unlzma.c
-@@ -667,13 +667,12 @@ exit_0:
+@@ -605,7 +605,7 @@ static int privcmd_fault(struct vm_area_
+ 	return VM_FAULT_SIGBUS;
  }
  
- #ifdef PREBOOT
--STATIC int INIT decompress(unsigned char *buf, long in_len,
-+STATIC int INIT __decompress(unsigned char *buf, long in_len,
- 			      long (*fill)(void*, unsigned long),
- 			      long (*flush)(void*, unsigned long),
--			      unsigned char *output,
-+			      unsigned char *output, long out_len,
- 			      long *posp,
--			      void(*error)(char *x)
--	)
-+			      void (*error)(char *x))
- {
- 	return unlzma(buf, in_len - 4, fill, flush, output, posp, error);
- }
-diff -puN lib/decompress_unlzo.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel lib/decompress_unlzo.c
---- a/lib/decompress_unlzo.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel
-+++ a/lib/decompress_unlzo.c
-@@ -31,6 +31,7 @@
-  */
- 
- #ifdef STATIC
-+#define PREBOOT
- #include "lzo/lzo1x_decompress_safe.c"
- #else
- #include <linux/decompress/unlzo.h>
-@@ -287,4 +288,14 @@ exit:
- 	return ret;
+-static struct vm_operations_struct privcmd_vm_ops = {
++static const struct vm_operations_struct privcmd_vm_ops = {
+ 	.close = privcmd_close,
+ 	.fault = privcmd_fault
+ };
+diff -puN fs/ceph/addr.c~mm-mark-most-vm_operations_struct-const fs/ceph/addr.c
+--- a/fs/ceph/addr.c~mm-mark-most-vm_operations_struct-const
++++ a/fs/ceph/addr.c
+@@ -1593,7 +1593,7 @@ out:
+ 	return err;
  }
  
--#define decompress unlzo
-+#ifdef PREBOOT
-+STATIC int INIT __decompress(unsigned char *buf, long len,
-+			   long (*fill)(void*, unsigned long),
-+			   long (*flush)(void*, unsigned long),
-+			   unsigned char *out_buf, long olen,
-+			   long *pos,
-+			   void (*error)(char *x))
-+{
-+	return unlzo(buf, len, fill, flush, out_buf, pos, error);
-+}
-+#endif
-diff -puN lib/decompress_unxz.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel lib/decompress_unxz.c
---- a/lib/decompress_unxz.c~lib-decompressors-use-real-out-buf-size-for-gunzip-with-kernel
-+++ a/lib/decompress_unxz.c
-@@ -394,4 +394,14 @@ error_alloc_state:
-  * This macro is used by architecture-specific files to decompress
-  * the kernel image.
-  */
--#define decompress unxz
-+#ifdef XZ_PREBOOT
-+STATIC int INIT __decompress(unsigned char *buf, long len,
-+			   long (*fill)(void*, unsigned long),
-+			   long (*flush)(void*, unsigned long),
-+			   unsigned char *out_buf, long olen,
-+			   long *pos,
-+			   void (*error)(char *x))
-+{
-+	return unxz(buf, len, fill, flush, out_buf, pos, error);
-+}
-+#endif
+-static struct vm_operations_struct ceph_vmops = {
++static const struct vm_operations_struct ceph_vmops = {
+ 	.fault		= ceph_filemap_fault,
+ 	.page_mkwrite	= ceph_page_mkwrite,
+ };
+diff -puN fs/cifs/file.c~mm-mark-most-vm_operations_struct-const fs/cifs/file.c
+--- a/fs/cifs/file.c~mm-mark-most-vm_operations_struct-const
++++ a/fs/cifs/file.c
+@@ -3216,7 +3216,7 @@ cifs_page_mkwrite(struct vm_area_struct
+ 	return VM_FAULT_LOCKED;
+ }
+ 
+-static struct vm_operations_struct cifs_file_vm_ops = {
++static const struct vm_operations_struct cifs_file_vm_ops = {
+ 	.fault = filemap_fault,
+ 	.map_pages = filemap_map_pages,
+ 	.page_mkwrite = cifs_page_mkwrite,
+diff -puN security/selinux/selinuxfs.c~mm-mark-most-vm_operations_struct-const security/selinux/selinuxfs.c
+--- a/security/selinux/selinuxfs.c~mm-mark-most-vm_operations_struct-const
++++ a/security/selinux/selinuxfs.c
+@@ -472,7 +472,7 @@ static int sel_mmap_policy_fault(struct
+ 	return 0;
+ }
+ 
+-static struct vm_operations_struct sel_mmap_policy_ops = {
++static const struct vm_operations_struct sel_mmap_policy_ops = {
+ 	.fault = sel_mmap_policy_fault,
+ 	.page_mkwrite = sel_mmap_policy_fault,
+ };
 _
 
-Patches currently in -mm which might be from yinghai@kernel.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-support-madvisemadv_free-fix-3.patch
 
