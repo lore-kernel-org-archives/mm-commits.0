@@ -1,133 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: [merged] seq_file-provide-an-analogue-of-print_hex_dump.patch
+Subject: [merged]
+ fs-if-a-coredump-already-exists-unlink-and-recreate-with-o_excl.patch
  removed from -mm tree
-Date: Fri, 11 Sep 2015 11:13:01 -0700
-Message-ID: <55f319ad.vQN6P93gf3rnAbJY%akpm@linux-foundation.org>
+Date: Fri, 11 Sep 2015 11:12:57 -0700
+Message-ID: <55f319a9.s6WjKEd6DSqXvOjC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53957 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53938 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753588AbbIKSNC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:13:02 -0400
+	with ESMTP id S1751960AbbIKSM6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:12:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, catalin.marinas@arm.com, deller@gmx.de, ingo.tuchscherer@de.ibm.com, joe@perches.com, qca_vkondrat@qca.qualcomm.com, tadeusz.struk@intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: jann@thejh.net, keescook@chromium.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: seq_file: provide an analogue of print_hex_dump()
+     Subject: fs: if a coredump already exists, unlink and recreate with O_EXCL
 has been removed from the -mm tree.  Its filename was
-     seq_file-provide-an-analogue-of-print_hex_dump.patch
+     fs-if-a-coredump-already-exists-unlink-and-recreate-with-o_excl.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: seq_file: provide an analogue of print_hex_dump()
+From: Jann Horn <jann@thejh.net>
+Subject: fs: if a coredump already exists, unlink and recreate with O_EXCL
 
-This introduces a new helper and switches current users to use it.  All
-patches are compiled tested. kmemleak is tested via its own test suite.
+It was possible for an attacking user to trick root (or another user) into
+writing his coredumps into an attacker-readable, pre-existing file using
+rename() or link(), causing the disclosure of secret data from the victim
+process' virtual memory.  Depending on the configuration, it was also
+possible to trick root into overwriting system files with coredumps.  Fix
+that issue by never writing coredumps into existing files.
 
-This patch (of 6):
+Requirements for the attack:
+ - The attack only applies if the victim's process has a nonzero
+   RLIMIT_CORE and is dumpable.
+ - The attacker can trick the victim into coredumping into an
+   attacker-writable directory D, either because the core_pattern is
+   relative and the victim's cwd is attacker-writable or because an
+   absolute core_pattern pointing to a world-writable directory is used.
+ - The attacker has one of these:
+  A: on a system with protected_hardlinks=0:
+     execute access to a folder containing a victim-owned,
+     attacker-readable file on the same partition as D, and the
+     victim-owned file will be deleted before the main part of the attack
+     takes place. (In practice, there are lots of files that fulfill
+     this condition, e.g. entries in Debian's /var/lib/dpkg/info/.)
+     This does not apply to most Linux systems because most distros set
+     protected_hardlinks=1.
+  B: on a system with protected_hardlinks=1:
+     execute access to a folder containing a victim-owned,
+     attacker-readable and attacker-writable file on the same partition
+     as D, and the victim-owned file will be deleted before the main part
+     of the attack takes place.
+     (This seems to be uncommon.)
+  C: on any system, independent of protected_hardlinks:
+     write access to a non-sticky folder containing a victim-owned,
+     attacker-readable file on the same partition as D
+     (This seems to be uncommon.)
 
-The new seq_hex_dump() is a complete analogue of print_hex_dump().
+The basic idea is that the attacker moves the victim-owned file to where
+he expects the victim process to dump its core.  The victim process dumps
+its core into the existing file, and the attacker reads the coredump from
+it.
 
-We have few users of this functionality already. It allows to reduce their
-codebase.
+If the attacker can't move the file because he does not have write access
+to the containing directory, he can instead link the file to a directory
+he controls, then wait for the original link to the file to be deleted
+(because the kernel checks that the link count of the corefile is 1).
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Joe Perches <joe@perches.com>
-Cc: Tadeusz Struk <tadeusz.struk@intel.com>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Ingo Tuchscherer <ingo.tuchscherer@de.ibm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Vladimir Kondratiev <qca_vkondrat@qca.qualcomm.com>
+A less reliable variant that requires D to be non-sticky works with link()
+and does not require deletion of the original link: link() the file into
+D, but then unlink() it directly before the kernel performs the link count
+check.
+
+On systems with protected_hardlinks=0, this variant allows an attacker to
+not only gain information from coredumps, but also clobber existing,
+victim-writable files with coredumps.  (This could theoretically lead to a
+privilege escalation.)
+
+Signed-off-by: Jann Horn <jann@thejh.net>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c            |   42 +++++++++++++++++++++++++++++++++++++
- include/linux/seq_file.h |    4 +++
- 2 files changed, 46 insertions(+)
+ fs/coredump.c |   38 ++++++++++++++++++++++++++++++++------
+ 1 file changed, 32 insertions(+), 6 deletions(-)
 
-diff -puN fs/seq_file.c~seq_file-provide-an-analogue-of-print_hex_dump fs/seq_file.c
---- a/fs/seq_file.c~seq_file-provide-an-analogue-of-print_hex_dump
-+++ a/fs/seq_file.c
-@@ -12,6 +12,7 @@
- #include <linux/slab.h>
- #include <linux/cred.h>
- #include <linux/mm.h>
-+#include <linux/printk.h>
+diff -puN fs/coredump.c~fs-if-a-coredump-already-exists-unlink-and-recreate-with-o_excl fs/coredump.c
+--- a/fs/coredump.c~fs-if-a-coredump-already-exists-unlink-and-recreate-with-o_excl
++++ a/fs/coredump.c
+@@ -513,10 +513,10 @@ void do_coredump(const siginfo_t *siginf
+ 	const struct cred *old_cred;
+ 	struct cred *cred;
+ 	int retval = 0;
+-	int flag = 0;
+ 	int ispipe;
+ 	struct files_struct *displaced;
+-	bool need_nonrelative = false;
++	/* require nonrelative corefile path and be extra careful */
++	bool need_suid_safe = false;
+ 	bool core_dumped = false;
+ 	static atomic_t core_dump_count = ATOMIC_INIT(0);
+ 	struct coredump_params cprm = {
+@@ -550,9 +550,8 @@ void do_coredump(const siginfo_t *siginf
+ 	 */
+ 	if (__get_dumpable(cprm.mm_flags) == SUID_DUMP_ROOT) {
+ 		/* Setuid core dump mode */
+-		flag = O_EXCL;		/* Stop rewrite attacks */
+ 		cred->fsuid = GLOBAL_ROOT_UID;	/* Dump root private */
+-		need_nonrelative = true;
++		need_suid_safe = true;
+ 	}
  
- #include <asm/uaccess.h>
- #include <asm/page.h>
-@@ -773,6 +774,47 @@ void seq_pad(struct seq_file *m, char c)
- }
- EXPORT_SYMBOL(seq_pad);
+ 	retval = coredump_wait(siginfo->si_signo, &core_state);
+@@ -633,7 +632,7 @@ void do_coredump(const siginfo_t *siginf
+ 		if (cprm.limit < binfmt->min_coredump)
+ 			goto fail_unlock;
  
-+/* A complete analogue of print_hex_dump() */
-+void seq_hex_dump(struct seq_file *m, const char *prefix_str, int prefix_type,
-+		  int rowsize, int groupsize, const void *buf, size_t len,
-+		  bool ascii)
-+{
-+	const u8 *ptr = buf;
-+	int i, linelen, remaining = len;
-+	int ret;
+-		if (need_nonrelative && cn.corename[0] != '/') {
++		if (need_suid_safe && cn.corename[0] != '/') {
+ 			printk(KERN_WARNING "Pid %d(%s) can only dump core "\
+ 				"to fully qualified path!\n",
+ 				task_tgid_vnr(current), current->comm);
+@@ -641,8 +640,35 @@ void do_coredump(const siginfo_t *siginf
+ 			goto fail_unlock;
+ 		}
+ 
++		/*
++		 * Unlink the file if it exists unless this is a SUID
++		 * binary - in that case, we're running around with root
++		 * privs and don't want to unlink another user's coredump.
++		 */
++		if (!need_suid_safe) {
++			mm_segment_t old_fs;
 +
-+	if (rowsize != 16 && rowsize != 32)
-+		rowsize = 16;
-+
-+	for (i = 0; i < len && !seq_has_overflowed(m); i += rowsize) {
-+		linelen = min(remaining, rowsize);
-+		remaining -= rowsize;
-+
-+		switch (prefix_type) {
-+		case DUMP_PREFIX_ADDRESS:
-+			seq_printf(m, "%s%p: ", prefix_str, ptr + i);
-+			break;
-+		case DUMP_PREFIX_OFFSET:
-+			seq_printf(m, "%s%.8x: ", prefix_str, i);
-+			break;
-+		default:
-+			seq_printf(m, "%s", prefix_str);
-+			break;
++			old_fs = get_fs();
++			set_fs(KERNEL_DS);
++			/*
++			 * If it doesn't exist, that's fine. If there's some
++			 * other problem, we'll catch it at the filp_open().
++			 */
++			(void) sys_unlink((const char __user *)cn.corename);
++			set_fs(old_fs);
 +		}
 +
-+		ret = hex_dump_to_buffer(ptr + i, linelen, rowsize, groupsize,
-+					 m->buf + m->count, m->size - m->count,
-+					 ascii);
-+		if (ret >= m->size - m->count) {
-+			seq_set_overflow(m);
-+		} else {
-+			m->count += ret;
-+			seq_putc(m, '\n');
-+		}
-+	}
-+}
-+EXPORT_SYMBOL(seq_hex_dump);
-+
- struct list_head *seq_list_start(struct list_head *head, loff_t pos)
- {
- 	struct list_head *lh;
-diff -puN include/linux/seq_file.h~seq_file-provide-an-analogue-of-print_hex_dump include/linux/seq_file.h
---- a/include/linux/seq_file.h~seq_file-provide-an-analogue-of-print_hex_dump
-+++ a/include/linux/seq_file.h
-@@ -122,6 +122,10 @@ int seq_write(struct seq_file *seq, cons
- __printf(2, 3) int seq_printf(struct seq_file *, const char *, ...);
- __printf(2, 0) int seq_vprintf(struct seq_file *, const char *, va_list args);
- 
-+void seq_hex_dump(struct seq_file *m, const char *prefix_str, int prefix_type,
-+		  int rowsize, int groupsize, const void *buf, size_t len,
-+		  bool ascii);
-+
- int seq_path(struct seq_file *, const struct path *, const char *);
- int seq_file_path(struct seq_file *, struct file *, const char *);
- int seq_dentry(struct seq_file *, struct dentry *, const char *);
++		/*
++		 * There is a race between unlinking and creating the
++		 * file, but if that causes an EEXIST here, that's
++		 * fine - another process raced with us while creating
++		 * the corefile, and the other process won. To userspace,
++		 * what matters is that at least one of the two processes
++		 * writes its coredump successfully, not which one.
++		 */
+ 		cprm.file = filp_open(cn.corename,
+-				 O_CREAT | 2 | O_NOFOLLOW | O_LARGEFILE | flag,
++				 O_CREAT | 2 | O_NOFOLLOW |
++				 O_LARGEFILE | O_EXCL,
+ 				 0600);
+ 		if (IS_ERR(cprm.file))
+ 			goto fail_unlock;
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from jann@thejh.net are
 
 
