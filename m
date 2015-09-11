@@ -1,46 +1,43 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dma-mapping-consolidate-dma_set_mask.patch removed from
- -mm tree
-Date: Fri, 11 Sep 2015 11:14:10 -0700
-Message-ID: <55f319f2.HJ+hP0dnNqqr7j5e%akpm@linux-foundation.org>
+Subject: [merged] dma-mapping-consolidate-dma_supported.patch removed from -mm tree
+Date: Fri, 11 Sep 2015 11:14:07 -0700
+Message-ID: <55f319ef.QVRLKlNDK/H0bjUQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54413 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54399 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753800AbbIKSOL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:14:11 -0400
+	with ESMTP id S1753792AbbIKSOI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 14:14:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hch@lst.de, andy.shevchenko@gmail.com, arnd@arndb.de, benh@kernel.crashing.org, catalin.marinas@arm.com, cmetcalf@ezchip.com, gxt@mprc.pku.edu.cn, hpa@zytor.com, jcmvbkbc@gmail.com, jonas@southpole.se, linux@arm.linux.org.uk, mingo@elte.hu, monstr@monstr.eu, ralf@linux-mips.org, tglx@linutronix.de, will.deacon@arm.com, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-mapping: consolidate dma_set_mask
+     Subject: dma-mapping: consolidate dma_supported
 has been removed from the -mm tree.  Its filename was
-     dma-mapping-consolidate-dma_set_mask.patch
+     dma-mapping-consolidate-dma_supported.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: dma-mapping: consolidate dma_set_mask
+Subject: dma-mapping: consolidate dma_supported
 
-Almost everyone implements dma_set_mask the same way, although some time
-that's hidden in ->set_dma_mask methods.
+Most architectures just call into ->dma_supported, but some also return 1
+if the method is not present, or 0 if no dma ops are present (although
+that should never happeb). Consolidate this more broad version into
+common code.
 
-This patch consolidates those into a common implementation that either
-calls ->set_dma_mask if present or otherwise uses the default
-implementation.  Some architectures used to only call ->set_dma_mask
-after the initial checks, and those instance have been fixed to do the
-full work.  h8300 implemented dma_set_mask bogusly as a no-ops and has
-been fixed.
+Also fix h8300 which inorrectly always returned 0, which would have been
+a problem if it's dma_set_mask implementation wasn't a similarly buggy
+noop.
 
-Unfortunately some architectures overload unrelated semantics like changing
-the dma_ops into it so we still need to allow for an architecture override
-for now.
+As a few architectures have much more elaborate implementations, we
+still allow for arch overrides.
 
 [jcmvbkbc@gmail.com: fix xtensa]
 Signed-off-by: Christoph Hellwig <hch@lst.de>
@@ -64,486 +61,349 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  arch/alpha/include/asm/dma-mapping.h      |    5 -----
- arch/alpha/kernel/pci-noop.c              |   10 ----------
- arch/alpha/kernel/pci_iommu.c             |   11 -----------
- arch/arm/include/asm/dma-mapping.h        |    5 -----
- arch/arm64/include/asm/dma-mapping.h      |    9 ---------
+ arch/arm/include/asm/dma-mapping.h        |    6 +++---
+ arch/arm64/include/asm/dma-mapping.h      |    6 ------
  arch/h8300/include/asm/dma-mapping.h      |    5 -----
- arch/hexagon/include/asm/dma-mapping.h    |    1 -
- arch/hexagon/kernel/dma.c                 |   11 -----------
- arch/ia64/include/asm/dma-mapping.h       |    9 ---------
- arch/microblaze/include/asm/dma-mapping.h |   14 --------------
- arch/mips/include/asm/dma-mapping.h       |   16 ----------------
- arch/mips/loongson64/common/dma-swiotlb.c |    3 +++
- arch/openrisc/include/asm/dma-mapping.h   |    9 ---------
- arch/powerpc/include/asm/dma-mapping.h    |    4 +++-
- arch/s390/include/asm/dma-mapping.h       |    2 --
- arch/s390/pci/pci_dma.c                   |   10 ----------
- arch/sh/include/asm/dma-mapping.h         |   14 --------------
- arch/sparc/include/asm/dma-mapping.h      |    4 +++-
- arch/tile/include/asm/dma-mapping.h       |    6 ++++--
+ arch/hexagon/include/asm/dma-mapping.h    |    1 +
+ arch/ia64/include/asm/dma-mapping.h       |    6 ------
+ arch/microblaze/include/asm/dma-mapping.h |   13 +------------
+ arch/mips/include/asm/dma-mapping.h       |    6 ------
+ arch/openrisc/include/asm/dma-mapping.h   |    5 +++--
+ arch/powerpc/include/asm/dma-mapping.h    |   11 -----------
+ arch/s390/include/asm/dma-mapping.h       |    9 ---------
+ arch/sh/include/asm/dma-mapping.h         |   10 ----------
+ arch/sparc/include/asm/dma-mapping.h      |    1 +
+ arch/tile/include/asm/dma-mapping.h       |    6 ------
  arch/unicore32/include/asm/dma-mapping.h  |   10 ----------
- arch/x86/include/asm/dma-mapping.h        |    2 --
- arch/x86/kernel/pci-dma.c                 |   11 -----------
- arch/xtensa/include/asm/dma-mapping.h     |   11 -----------
- include/asm-generic/dma-mapping-common.h  |   15 +++++++++++++++
- 24 files changed, 28 insertions(+), 169 deletions(-)
+ arch/x86/include/asm/dma-mapping.h        |    4 +++-
+ arch/xtensa/include/asm/dma-mapping.h     |    6 ------
+ include/asm-generic/dma-mapping-common.h  |   13 +++++++++++++
+ 18 files changed, 25 insertions(+), 98 deletions(-)
 
-diff -puN arch/alpha/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/alpha/include/asm/dma-mapping.h
---- a/arch/alpha/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
+diff -puN arch/alpha/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/alpha/include/asm/dma-mapping.h
+--- a/arch/alpha/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
 +++ a/arch/alpha/include/asm/dma-mapping.h
 @@ -12,11 +12,6 @@ static inline struct dma_map_ops *get_dm
  
  #include <asm-generic/dma-mapping-common.h>
  
--static inline int dma_set_mask(struct device *dev, u64 mask)
+-static inline int dma_supported(struct device *dev, u64 mask)
 -{
--	return get_dma_ops(dev)->set_dma_mask(dev, mask);
+-	return get_dma_ops(dev)->dma_supported(dev, mask);
 -}
 -
- #define dma_cache_sync(dev, va, size, dir)		  ((void)0)
- 
- #endif	/* _ALPHA_DMA_MAPPING_H */
-diff -puN arch/alpha/kernel/pci-noop.c~dma-mapping-consolidate-dma_set_mask arch/alpha/kernel/pci-noop.c
---- a/arch/alpha/kernel/pci-noop.c~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/alpha/kernel/pci-noop.c
-@@ -166,15 +166,6 @@ static int alpha_noop_supported(struct d
- 	return mask < 0x00ffffffUL ? 0 : 1;
- }
- 
--static int alpha_noop_set_mask(struct device *dev, u64 mask)
--{
--	if (!dev->dma_mask || !dma_supported(dev, mask))
--		return -EIO;
--
--	*dev->dma_mask = mask;
--	return 0;
--}
--
- struct dma_map_ops alpha_noop_ops = {
- 	.alloc			= alpha_noop_alloc_coherent,
- 	.free			= alpha_noop_free_coherent,
-@@ -182,7 +173,6 @@ struct dma_map_ops alpha_noop_ops = {
- 	.map_sg			= alpha_noop_map_sg,
- 	.mapping_error		= alpha_noop_mapping_error,
- 	.dma_supported		= alpha_noop_supported,
--	.set_dma_mask		= alpha_noop_set_mask,
- };
- 
- struct dma_map_ops *dma_ops = &alpha_noop_ops;
-diff -puN arch/alpha/kernel/pci_iommu.c~dma-mapping-consolidate-dma_set_mask arch/alpha/kernel/pci_iommu.c
---- a/arch/alpha/kernel/pci_iommu.c~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/alpha/kernel/pci_iommu.c
-@@ -939,16 +939,6 @@ static int alpha_pci_mapping_error(struc
- 	return dma_addr == 0;
- }
- 
--static int alpha_pci_set_mask(struct device *dev, u64 mask)
--{
--	if (!dev->dma_mask ||
--	    !pci_dma_supported(alpha_gendev_to_pci(dev), mask))
--		return -EIO;
--
--	*dev->dma_mask = mask;
--	return 0;
--}
--
- struct dma_map_ops alpha_pci_ops = {
- 	.alloc			= alpha_pci_alloc_coherent,
- 	.free			= alpha_pci_free_coherent,
-@@ -958,7 +948,6 @@ struct dma_map_ops alpha_pci_ops = {
- 	.unmap_sg		= alpha_pci_unmap_sg,
- 	.mapping_error		= alpha_pci_mapping_error,
- 	.dma_supported		= alpha_pci_supported,
--	.set_dma_mask		= alpha_pci_set_mask,
- };
- 
- struct dma_map_ops *dma_ops = &alpha_pci_ops;
-diff -puN arch/arm/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/arm/include/asm/dma-mapping.h
---- a/arch/arm/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
+ static inline int dma_set_mask(struct device *dev, u64 mask)
+ {
+ 	return get_dma_ops(dev)->set_dma_mask(dev, mask);
+diff -puN arch/arm/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/arm/include/asm/dma-mapping.h
+--- a/arch/arm/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
 +++ a/arch/arm/include/asm/dma-mapping.h
-@@ -48,11 +48,6 @@ extern int dma_supported(struct device *
+@@ -38,12 +38,14 @@ static inline void set_dma_ops(struct de
+ 	dev->archdata.dma_ops = ops;
+ }
+ 
++#define HAVE_ARCH_DMA_SUPPORTED 1
++extern int dma_supported(struct device *dev, u64 mask);
++
+ /*
+  * Note that while the generic code provides dummy dma_{alloc,free}_noncoherent
+  * implementations, we don't provide a dma_cache_sync function so drivers using
+  * this API are highlighted with build warnings.
   */
+-
  #include <asm-generic/dma-mapping-common.h>
  
--static inline int dma_set_mask(struct device *dev, u64 mask)
--{
--	return get_dma_ops(dev)->set_dma_mask(dev, mask);
--}
+ static inline int dma_set_mask(struct device *dev, u64 mask)
+@@ -172,8 +174,6 @@ static inline bool dma_capable(struct de
+ 
+ static inline void dma_mark_clean(void *addr, size_t size) { }
+ 
+-extern int dma_supported(struct device *dev, u64 mask);
 -
- #ifdef __arch_page_to_dma
- #error Please update to __arch_pfn_to_dma
- #endif
-diff -puN arch/arm64/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/arm64/include/asm/dma-mapping.h
---- a/arch/arm64/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
+ extern int arm_dma_set_mask(struct device *dev, u64 dma_mask);
+ 
+ /**
+diff -puN arch/arm64/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/arm64/include/asm/dma-mapping.h
+--- a/arch/arm64/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
 +++ a/arch/arm64/include/asm/dma-mapping.h
-@@ -84,15 +84,6 @@ static inline phys_addr_t dma_to_phys(st
+@@ -84,12 +84,6 @@ static inline phys_addr_t dma_to_phys(st
  	return (phys_addr_t)dev_addr;
  }
  
--static inline int dma_set_mask(struct device *dev, u64 mask)
+-static inline int dma_supported(struct device *dev, u64 mask)
 -{
--	if (!dev->dma_mask || !dma_supported(dev, mask))
--		return -EIO;
--	*dev->dma_mask = mask;
--
--	return 0;
+-	struct dma_map_ops *ops = get_dma_ops(dev);
+-	return ops->dma_supported(dev, mask);
 -}
 -
- static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
+ static inline int dma_set_mask(struct device *dev, u64 mask)
  {
- 	if (!dev->dma_mask)
-diff -puN arch/h8300/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/h8300/include/asm/dma-mapping.h
---- a/arch/h8300/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
+ 	if (!dev->dma_mask || !dma_supported(dev, mask))
+diff -puN arch/h8300/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/h8300/include/asm/dma-mapping.h
+--- a/arch/h8300/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
 +++ a/arch/h8300/include/asm/dma-mapping.h
-@@ -10,9 +10,4 @@ static inline struct dma_map_ops *get_dm
+@@ -10,11 +10,6 @@ static inline struct dma_map_ops *get_dm
  
  #include <asm-generic/dma-mapping-common.h>
  
--static inline int dma_set_mask(struct device *dev, u64 mask)
+-static inline int dma_supported(struct device *dev, u64 mask)
 -{
 -	return 0;
 -}
 -
- #endif
-diff -puN arch/hexagon/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/hexagon/include/asm/dma-mapping.h
---- a/arch/hexagon/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/hexagon/include/asm/dma-mapping.h
-@@ -45,7 +45,6 @@ static inline struct dma_map_ops *get_dm
- 
- #define HAVE_ARCH_DMA_SUPPORTED 1
- extern int dma_supported(struct device *dev, u64 mask);
--extern int dma_set_mask(struct device *dev, u64 mask);
- extern int dma_is_consistent(struct device *dev, dma_addr_t dma_handle);
- extern void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
- 			   enum dma_data_direction direction);
-diff -puN arch/hexagon/kernel/dma.c~dma-mapping-consolidate-dma_set_mask arch/hexagon/kernel/dma.c
---- a/arch/hexagon/kernel/dma.c~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/hexagon/kernel/dma.c
-@@ -44,17 +44,6 @@ int dma_supported(struct device *dev, u6
- }
- EXPORT_SYMBOL(dma_supported);
- 
--int dma_set_mask(struct device *dev, u64 mask)
--{
--	if (!dev->dma_mask || !dma_supported(dev, mask))
--		return -EIO;
--
--	*dev->dma_mask = mask;
--
--	return 0;
--}
--EXPORT_SYMBOL(dma_set_mask);
--
- static struct gen_pool *coherent_pool;
- 
- 
-diff -puN arch/ia64/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/ia64/include/asm/dma-mapping.h
---- a/arch/ia64/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/ia64/include/asm/dma-mapping.h
-@@ -27,15 +27,6 @@ extern void machvec_dma_sync_sg(struct d
- 
- #include <asm-generic/dma-mapping-common.h>
- 
--static inline int
--dma_set_mask (struct device *dev, u64 mask)
--{
--	if (!dev->dma_mask || !dma_supported(dev, mask))
--		return -EIO;
--	*dev->dma_mask = mask;
--	return 0;
--}
--
- static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
+ static inline int dma_set_mask(struct device *dev, u64 mask)
  {
- 	if (!dev->dma_mask)
-diff -puN arch/microblaze/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/microblaze/include/asm/dma-mapping.h
---- a/arch/microblaze/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/microblaze/include/asm/dma-mapping.h
-@@ -46,20 +46,6 @@ static inline struct dma_map_ops *get_dm
+ 	return 0;
+diff -puN arch/hexagon/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/hexagon/include/asm/dma-mapping.h
+--- a/arch/hexagon/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
++++ a/arch/hexagon/include/asm/dma-mapping.h
+@@ -43,6 +43,7 @@ static inline struct dma_map_ops *get_dm
+ 	return dma_ops;
+ }
+ 
++#define HAVE_ARCH_DMA_SUPPORTED 1
+ extern int dma_supported(struct device *dev, u64 mask);
+ extern int dma_set_mask(struct device *dev, u64 mask);
+ extern int dma_is_consistent(struct device *dev, dma_addr_t dma_handle);
+diff -puN arch/ia64/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/ia64/include/asm/dma-mapping.h
+--- a/arch/ia64/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
++++ a/arch/ia64/include/asm/dma-mapping.h
+@@ -27,12 +27,6 @@ extern void machvec_dma_sync_sg(struct d
  
  #include <asm-generic/dma-mapping-common.h>
  
--static inline int dma_set_mask(struct device *dev, u64 dma_mask)
+-static inline int dma_supported(struct device *dev, u64 mask)
+-{
+-	struct dma_map_ops *ops = platform_dma_get_ops(dev);
+-	return ops->dma_supported(dev, mask);
+-}
+-
+ static inline int
+ dma_set_mask (struct device *dev, u64 mask)
+ {
+diff -puN arch/microblaze/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/microblaze/include/asm/dma-mapping.h
+--- a/arch/microblaze/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
++++ a/arch/microblaze/include/asm/dma-mapping.h
+@@ -44,16 +44,7 @@ static inline struct dma_map_ops *get_dm
+ 	return &dma_direct_ops;
+ }
+ 
+-static inline int dma_supported(struct device *dev, u64 mask)
 -{
 -	struct dma_map_ops *ops = get_dma_ops(dev);
 -
--	if (unlikely(ops == NULL))
--		return -EIO;
--	if (ops->set_dma_mask)
--		return ops->set_dma_mask(dev, dma_mask);
--	if (!dev->dma_mask || !dma_supported(dev, dma_mask))
--		return -EIO;
--	*dev->dma_mask = dma_mask;
--	return 0;
+-	if (unlikely(!ops))
+-		return 0;
+-	if (!ops->dma_supported)
+-		return 1;
+-	return ops->dma_supported(dev, mask);
 -}
++#include <asm-generic/dma-mapping-common.h>
+ 
+ static inline int dma_set_mask(struct device *dev, u64 dma_mask)
+ {
+@@ -69,8 +60,6 @@ static inline int dma_set_mask(struct de
+ 	return 0;
+ }
+ 
+-#include <asm-generic/dma-mapping-common.h>
 -
  static inline void __dma_sync(unsigned long paddr,
  			      size_t size, enum dma_data_direction direction)
  {
-diff -puN arch/mips/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/mips/include/asm/dma-mapping.h
---- a/arch/mips/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
+diff -puN arch/mips/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/mips/include/asm/dma-mapping.h
+--- a/arch/mips/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
 +++ a/arch/mips/include/asm/dma-mapping.h
-@@ -31,22 +31,6 @@ static inline void dma_mark_clean(void *
+@@ -31,12 +31,6 @@ static inline void dma_mark_clean(void *
  
  #include <asm-generic/dma-mapping-common.h>
  
--static inline int
--dma_set_mask(struct device *dev, u64 mask)
+-static inline int dma_supported(struct device *dev, u64 mask)
 -{
 -	struct dma_map_ops *ops = get_dma_ops(dev);
--
--	if(!dev->dma_mask || !dma_supported(dev, mask))
--		return -EIO;
--
--	if (ops->set_dma_mask)
--		return ops->set_dma_mask(dev, mask);
--
--	*dev->dma_mask = mask;
--
--	return 0;
+-	return ops->dma_supported(dev, mask);
 -}
 -
- extern void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
- 	       enum dma_data_direction direction);
- 
-diff -puN arch/mips/loongson64/common/dma-swiotlb.c~dma-mapping-consolidate-dma_set_mask arch/mips/loongson64/common/dma-swiotlb.c
---- a/arch/mips/loongson64/common/dma-swiotlb.c~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/mips/loongson64/common/dma-swiotlb.c
-@@ -85,6 +85,9 @@ static void loongson_dma_sync_sg_for_dev
- 
- static int loongson_dma_set_mask(struct device *dev, u64 mask)
- {
-+	if (!dev->dma_mask || !dma_supported(dev, mask))
-+		return -EIO;
-+
- 	if (mask > DMA_BIT_MASK(loongson_sysconf.dma_mask_bits)) {
- 		*dev->dma_mask = DMA_BIT_MASK(loongson_sysconf.dma_mask_bits);
- 		return -EIO;
-diff -puN arch/openrisc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/openrisc/include/asm/dma-mapping.h
---- a/arch/openrisc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/openrisc/include/asm/dma-mapping.h
-@@ -44,13 +44,4 @@ static inline int dma_supported(struct d
- 
- #include <asm-generic/dma-mapping-common.h>
- 
--static inline int dma_set_mask(struct device *dev, u64 dma_mask)
--{
--	if (!dev->dma_mask || !dma_supported(dev, dma_mask))
--		return -EIO;
--
--	*dev->dma_mask = dma_mask;
--
--	return 0;
--}
- #endif	/* __ASM_OPENRISC_DMA_MAPPING_H */
-diff -puN arch/powerpc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/powerpc/include/asm/dma-mapping.h
---- a/arch/powerpc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/powerpc/include/asm/dma-mapping.h
-@@ -122,9 +122,11 @@ static inline void set_dma_offset(struct
- /* this will be removed soon */
- #define flush_write_buffers()
- 
-+#define HAVE_ARCH_DMA_SET_MASK 1
-+extern int dma_set_mask(struct device *dev, u64 dma_mask);
-+
- #include <asm-generic/dma-mapping-common.h>
- 
--extern int dma_set_mask(struct device *dev, u64 dma_mask);
- extern int __dma_set_mask(struct device *dev, u64 dma_mask);
- extern u64 __dma_get_required_mask(struct device *dev);
- 
-diff -puN arch/s390/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/s390/include/asm/dma-mapping.h
---- a/arch/s390/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/s390/include/asm/dma-mapping.h
-@@ -18,8 +18,6 @@ static inline struct dma_map_ops *get_dm
- 	return &s390_dma_ops;
- }
- 
--extern int dma_set_mask(struct device *dev, u64 mask);
--
- static inline void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
- 				  enum dma_data_direction direction)
- {
-diff -puN arch/s390/pci/pci_dma.c~dma-mapping-consolidate-dma_set_mask arch/s390/pci/pci_dma.c
---- a/arch/s390/pci/pci_dma.c~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/s390/pci/pci_dma.c
-@@ -262,16 +262,6 @@ out:
- 	spin_unlock_irqrestore(&zdev->iommu_bitmap_lock, flags);
- }
- 
--int dma_set_mask(struct device *dev, u64 mask)
--{
--	if (!dev->dma_mask || !dma_supported(dev, mask))
--		return -EIO;
--
--	*dev->dma_mask = mask;
--	return 0;
--}
--EXPORT_SYMBOL_GPL(dma_set_mask);
--
- static dma_addr_t s390_dma_map_pages(struct device *dev, struct page *page,
- 				     unsigned long offset, size_t size,
- 				     enum dma_data_direction direction,
-diff -puN arch/sh/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/sh/include/asm/dma-mapping.h
---- a/arch/sh/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/sh/include/asm/dma-mapping.h
-@@ -13,20 +13,6 @@ static inline struct dma_map_ops *get_dm
- 
- #include <asm-generic/dma-mapping-common.h>
- 
--static inline int dma_set_mask(struct device *dev, u64 mask)
--{
--	struct dma_map_ops *ops = get_dma_ops(dev);
--
--	if (!dev->dma_mask || !dma_supported(dev, mask))
--		return -EIO;
--	if (ops->set_dma_mask)
--		return ops->set_dma_mask(dev, mask);
--
--	*dev->dma_mask = mask;
--
--	return 0;
--}
--
- void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
- 		    enum dma_data_direction dir);
- 
-diff -puN arch/sparc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/sparc/include/asm/dma-mapping.h
---- a/arch/sparc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/sparc/include/asm/dma-mapping.h
-@@ -37,7 +37,7 @@ static inline struct dma_map_ops *get_dm
- 	return dma_ops;
- }
- 
--#include <asm-generic/dma-mapping-common.h>
-+#define HAVE_ARCH_DMA_SET_MASK 1
- 
- static inline int dma_set_mask(struct device *dev, u64 mask)
- {
-@@ -52,4 +52,6 @@ static inline int dma_set_mask(struct de
- 	return -EINVAL;
- }
- 
-+#include <asm-generic/dma-mapping-common.h>
-+
- #endif
-diff -puN arch/tile/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/tile/include/asm/dma-mapping.h
---- a/arch/tile/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/tile/include/asm/dma-mapping.h
-@@ -59,8 +59,6 @@ static inline phys_addr_t dma_to_phys(st
- 
- static inline void dma_mark_clean(void *addr, size_t size) {}
- 
--#include <asm-generic/dma-mapping-common.h>
--
- static inline void set_dma_ops(struct device *dev, struct dma_map_ops *ops)
- {
- 	dev->archdata.dma_ops = ops;
-@@ -74,6 +72,10 @@ static inline bool dma_capable(struct de
- 	return addr + size - 1 <= *dev->dma_mask;
- }
- 
-+#define HAVE_ARCH_DMA_SET_MASK 1
-+
-+#include <asm-generic/dma-mapping-common.h>
-+
  static inline int
  dma_set_mask(struct device *dev, u64 mask)
  {
-diff -puN arch/unicore32/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/unicore32/include/asm/dma-mapping.h
---- a/arch/unicore32/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/unicore32/include/asm/dma-mapping.h
-@@ -50,16 +50,6 @@ static inline phys_addr_t dma_to_phys(st
- 
- static inline void dma_mark_clean(void *addr, size_t size) {}
- 
--static inline int dma_set_mask(struct device *dev, u64 dma_mask)
--{
--	if (!dev->dma_mask || !dma_supported(dev, dma_mask))
--		return -EIO;
--
--	*dev->dma_mask = dma_mask;
--
--	return 0;
--}
--
- static inline void dma_cache_sync(struct device *dev, void *vaddr,
- 		size_t size, enum dma_data_direction direction)
- {
-diff -puN arch/x86/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/x86/include/asm/dma-mapping.h
---- a/arch/x86/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/x86/include/asm/dma-mapping.h
-@@ -48,8 +48,6 @@ extern int dma_supported(struct device *
- 
- #include <asm-generic/dma-mapping-common.h>
- 
--extern int dma_set_mask(struct device *dev, u64 mask);
--
- extern void *dma_generic_alloc_coherent(struct device *dev, size_t size,
- 					dma_addr_t *dma_addr, gfp_t flag,
- 					struct dma_attrs *attrs);
-diff -puN arch/x86/kernel/pci-dma.c~dma-mapping-consolidate-dma_set_mask arch/x86/kernel/pci-dma.c
---- a/arch/x86/kernel/pci-dma.c~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/x86/kernel/pci-dma.c
-@@ -58,17 +58,6 @@ EXPORT_SYMBOL(x86_dma_fallback_dev);
- /* Number of entries preallocated for DMA-API debugging */
- #define PREALLOC_DMA_DEBUG_ENTRIES       65536
- 
--int dma_set_mask(struct device *dev, u64 mask)
--{
--	if (!dev->dma_mask || !dma_supported(dev, mask))
--		return -EIO;
--
--	*dev->dma_mask = mask;
--
--	return 0;
--}
--EXPORT_SYMBOL(dma_set_mask);
--
- void __init pci_iommu_alloc(void)
- {
- 	struct iommu_table_entry *p;
-diff -puN arch/xtensa/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask arch/xtensa/include/asm/dma-mapping.h
---- a/arch/xtensa/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_set_mask
-+++ a/arch/xtensa/include/asm/dma-mapping.h
-@@ -32,17 +32,6 @@ static inline struct dma_map_ops *get_dm
- 
- #include <asm-generic/dma-mapping-common.h>
- 
--static inline int
--dma_set_mask(struct device *dev, u64 mask)
--{
--	if(!dev->dma_mask || !dma_supported(dev, mask))
--		return -EIO;
--
--	*dev->dma_mask = mask;
--
--	return 0;
--}
--
- void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
- 		    enum dma_data_direction direction);
- 
-diff -puN include/asm-generic/dma-mapping-common.h~dma-mapping-consolidate-dma_set_mask include/asm-generic/dma-mapping-common.h
---- a/include/asm-generic/dma-mapping-common.h~dma-mapping-consolidate-dma_set_mask
-+++ a/include/asm-generic/dma-mapping-common.h
-@@ -340,4 +340,19 @@ static inline int dma_supported(struct d
+diff -puN arch/openrisc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/openrisc/include/asm/dma-mapping.h
+--- a/arch/openrisc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
++++ a/arch/openrisc/include/asm/dma-mapping.h
+@@ -35,14 +35,15 @@ static inline struct dma_map_ops *get_dm
+ 	return &or1k_dma_map_ops;
  }
- #endif
  
-+#ifndef HAVE_ARCH_DMA_SET_MASK
-+static inline int dma_set_mask(struct device *dev, u64 mask)
+-#include <asm-generic/dma-mapping-common.h>
+-
++#define HAVE_ARCH_DMA_SUPPORTED 1
+ static inline int dma_supported(struct device *dev, u64 dma_mask)
+ {
+ 	/* Support 32 bit DMA mask exclusively */
+ 	return dma_mask == DMA_BIT_MASK(32);
+ }
+ 
++#include <asm-generic/dma-mapping-common.h>
++
+ static inline int dma_set_mask(struct device *dev, u64 dma_mask)
+ {
+ 	if (!dev->dma_mask || !dma_supported(dev, dma_mask))
+diff -puN arch/powerpc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/powerpc/include/asm/dma-mapping.h
+--- a/arch/powerpc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
++++ a/arch/powerpc/include/asm/dma-mapping.h
+@@ -124,17 +124,6 @@ static inline void set_dma_offset(struct
+ 
+ #include <asm-generic/dma-mapping-common.h>
+ 
+-static inline int dma_supported(struct device *dev, u64 mask)
+-{
+-	struct dma_map_ops *dma_ops = get_dma_ops(dev);
+-
+-	if (unlikely(dma_ops == NULL))
+-		return 0;
+-	if (dma_ops->dma_supported == NULL)
+-		return 1;
+-	return dma_ops->dma_supported(dev, mask);
+-}
+-
+ extern int dma_set_mask(struct device *dev, u64 dma_mask);
+ extern int __dma_set_mask(struct device *dev, u64 dma_mask);
+ extern u64 __dma_get_required_mask(struct device *dev);
+diff -puN arch/s390/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/s390/include/asm/dma-mapping.h
+--- a/arch/s390/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
++++ a/arch/s390/include/asm/dma-mapping.h
+@@ -27,15 +27,6 @@ static inline void dma_cache_sync(struct
+ 
+ #include <asm-generic/dma-mapping-common.h>
+ 
+-static inline int dma_supported(struct device *dev, u64 mask)
+-{
+-	struct dma_map_ops *dma_ops = get_dma_ops(dev);
+-
+-	if (dma_ops->dma_supported == NULL)
+-		return 1;
+-	return dma_ops->dma_supported(dev, mask);
+-}
+-
+ static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
+ {
+ 	if (!dev->dma_mask)
+diff -puN arch/sh/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/sh/include/asm/dma-mapping.h
+--- a/arch/sh/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
++++ a/arch/sh/include/asm/dma-mapping.h
+@@ -13,16 +13,6 @@ static inline struct dma_map_ops *get_dm
+ 
+ #include <asm-generic/dma-mapping-common.h>
+ 
+-static inline int dma_supported(struct device *dev, u64 mask)
+-{
+-	struct dma_map_ops *ops = get_dma_ops(dev);
+-
+-	if (ops->dma_supported)
+-		return ops->dma_supported(dev, mask);
+-
+-	return 1;
+-}
+-
+ static inline int dma_set_mask(struct device *dev, u64 mask)
+ {
+ 	struct dma_map_ops *ops = get_dma_ops(dev);
+diff -puN arch/sparc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/sparc/include/asm/dma-mapping.h
+--- a/arch/sparc/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
++++ a/arch/sparc/include/asm/dma-mapping.h
+@@ -7,6 +7,7 @@
+ 
+ #define DMA_ERROR_CODE	(~(dma_addr_t)0x0)
+ 
++#define HAVE_ARCH_DMA_SUPPORTED 1
+ int dma_supported(struct device *dev, u64 mask);
+ 
+ static inline void dma_cache_sync(struct device *dev, void *vaddr, size_t size,
+diff -puN arch/tile/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/tile/include/asm/dma-mapping.h
+--- a/arch/tile/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
++++ a/arch/tile/include/asm/dma-mapping.h
+@@ -75,12 +75,6 @@ static inline bool dma_capable(struct de
+ }
+ 
+ static inline int
+-dma_supported(struct device *dev, u64 mask)
+-{
+-	return get_dma_ops(dev)->dma_supported(dev, mask);
+-}
+-
+-static inline int
+ dma_set_mask(struct device *dev, u64 mask)
+ {
+ 	struct dma_map_ops *dma_ops = get_dma_ops(dev);
+diff -puN arch/unicore32/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/unicore32/include/asm/dma-mapping.h
+--- a/arch/unicore32/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
++++ a/arch/unicore32/include/asm/dma-mapping.h
+@@ -28,16 +28,6 @@ static inline struct dma_map_ops *get_dm
+ 	return &swiotlb_dma_map_ops;
+ }
+ 
+-static inline int dma_supported(struct device *dev, u64 mask)
+-{
+-	struct dma_map_ops *dma_ops = get_dma_ops(dev);
+-
+-	if (unlikely(dma_ops == NULL))
+-		return 0;
+-
+-	return dma_ops->dma_supported(dev, mask);
+-}
+-
+ #include <asm-generic/dma-mapping-common.h>
+ 
+ static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
+diff -puN arch/x86/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/x86/include/asm/dma-mapping.h
+--- a/arch/x86/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
++++ a/arch/x86/include/asm/dma-mapping.h
+@@ -43,9 +43,11 @@ static inline struct dma_map_ops *get_dm
+ bool arch_dma_alloc_attrs(struct device **dev, gfp_t *gfp);
+ #define arch_dma_alloc_attrs arch_dma_alloc_attrs
+ 
++#define HAVE_ARCH_DMA_SUPPORTED 1
++extern int dma_supported(struct device *hwdev, u64 mask);
++
+ #include <asm-generic/dma-mapping-common.h>
+ 
+-extern int dma_supported(struct device *hwdev, u64 mask);
+ extern int dma_set_mask(struct device *dev, u64 mask);
+ 
+ extern void *dma_generic_alloc_coherent(struct device *dev, size_t size,
+diff -puN arch/xtensa/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported arch/xtensa/include/asm/dma-mapping.h
+--- a/arch/xtensa/include/asm/dma-mapping.h~dma-mapping-consolidate-dma_supported
++++ a/arch/xtensa/include/asm/dma-mapping.h
+@@ -33,12 +33,6 @@ static inline struct dma_map_ops *get_dm
+ #include <asm-generic/dma-mapping-common.h>
+ 
+ static inline int
+-dma_supported(struct device *dev, u64 mask)
+-{
+-	return 1;
+-}
+-
+-static inline int
+ dma_set_mask(struct device *dev, u64 mask)
+ {
+ 	if(!dev->dma_mask || !dma_supported(dev, mask))
+diff -puN include/asm-generic/dma-mapping-common.h~dma-mapping-consolidate-dma_supported include/asm-generic/dma-mapping-common.h
+--- a/include/asm-generic/dma-mapping-common.h~dma-mapping-consolidate-dma_supported
++++ a/include/asm-generic/dma-mapping-common.h
+@@ -327,4 +327,17 @@ static inline int dma_mapping_error(stru
+ #endif
+ }
+ 
++#ifndef HAVE_ARCH_DMA_SUPPORTED
++static inline int dma_supported(struct device *dev, u64 mask)
 +{
 +	struct dma_map_ops *ops = get_dma_ops(dev);
 +
-+	if (ops->set_dma_mask)
-+		return ops->set_dma_mask(dev, mask);
-+
-+	if (!dev->dma_mask || !dma_supported(dev, mask))
-+		return -EIO;
-+	*dev->dma_mask = mask;
-+	return 0;
++	if (!ops)
++		return 0;
++	if (!ops->dma_supported)
++		return 1;
++	return ops->dma_supported(dev, mask);
 +}
 +#endif
 +
