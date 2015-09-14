@@ -1,73 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-kmemleak-remove-unneeded-initialization-of-object-to-null.patch added to -mm tree
-Date: Fri, 11 Sep 2015 15:49:42 -0700
-Message-ID: <55f35a86.zU9L4kJGc8Nl6bYo%akpm@linux-foundation.org>
+Subject: [merged] modsign-fix-a-compilation-warning-in-extract-cert.patch
+ removed from -mm tree
+Date: Mon, 14 Sep 2015 10:28:39 -0700
+Message-ID: <55f703c7.nm4qjTSj8cqZ5P3N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53826 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48221 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754561AbbIKWtm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Sep 2015 18:49:42 -0400
+	with ESMTP id S1751274AbbINR2k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 13:28:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexey.klimov@linaro.org, catalin.marinas@arm.com, mm-commits@vger.kernel.org
+To: dhowells@redhat.com, jim.epost@gmail.com, jmorris@namei.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kmemleak.c: remove unneeded initialization of object to NULL
-has been added to the -mm tree.  Its filename is
-     mm-kmemleak-remove-unneeded-initialization-of-object-to-null.patch
+     Subject: MODSIGN: fix a compilation warning in extract-cert
+has been removed from the -mm tree.  Its filename was
+     modsign-fix-a-compilation-warning-in-extract-cert.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kmemleak-remove-unneeded-initialization-of-object-to-null.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kmemleak-remove-unneeded-initialization-of-object-to-null.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexey Klimov <alexey.klimov@linaro.org>
-Subject: mm/kmemleak.c: remove unneeded initialization of object to NULL
+From: David Howells <dhowells@redhat.com>
+Subject: MODSIGN: fix a compilation warning in extract-cert
 
-Few lines below object is reinitialized by lookup_object() so we don't
-need to init it by NULL in the beginning of find_and_get_object().
+Fix the following warning when compiling extract-cert:
 
-Signed-off-by: Alexey Klimov <alexey.klimov@linaro.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+scripts/extract-cert.c: In function `write_cert':
+scripts/extract-cert.c:89:2: warning: format not a string literal and no fo=
+rmat arguments [-Wformat-security]
+  ERR(!i2d_X509_bio(wb, x509), cert_dst);
+  ^
+
+whereby the ERR() macro is taking cert_dst as the format string.  "%s"
+should be used as the format string as the path could contain special
+characters.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Reported-by: Jim Davis <jim.epost@gmail.com>
+Acked-by : David Woodhouse <david.woodhouse@intel.com>
+Cc: James Morris <jmorris@namei.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kmemleak.c |    2 +-
+ scripts/extract-cert.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/kmemleak.c~mm-kmemleak-remove-unneeded-initialization-of-object-to-null mm/kmemleak.c
---- a/mm/kmemleak.c~mm-kmemleak-remove-unneeded-initialization-of-object-to-null
-+++ a/mm/kmemleak.c
-@@ -479,7 +479,7 @@ static void put_object(struct kmemleak_o
- static struct kmemleak_object *find_and_get_object(unsigned long ptr, int alias)
- {
- 	unsigned long flags;
--	struct kmemleak_object *object = NULL;
-+	struct kmemleak_object *object;
- 
- 	rcu_read_lock();
- 	read_lock_irqsave(&kmemleak_lock, flags);
+diff -puN scripts/extract-cert.c~modsign-fix-a-compilation-warning-in-extract-cert scripts/extract-cert.c
+--- a/scripts/extract-cert.c~modsign-fix-a-compilation-warning-in-extract-cert
++++ a/scripts/extract-cert.c
+@@ -86,7 +86,7 @@ static void write_cert(X509 *x509)
+ 		ERR(!wb, "%s", cert_dst);
+ 	}
+ 	X509_NAME_oneline(X509_get_subject_name(x509), buf, sizeof(buf));
+-	ERR(!i2d_X509_bio(wb, x509), cert_dst);
++	ERR(!i2d_X509_bio(wb, x509), "%s", cert_dst);
+ 	if (kbuild_verbose)
+ 		fprintf(stderr, "Extracted cert: %s\n", buf);
+ }
 _
 
-Patches currently in -mm which might be from alexey.klimov@linaro.org are
+Patches currently in -mm which might be from dhowells@redhat.com are
 
-mm-kmemleak-remove-unneeded-initialization-of-object-to-null.patch
+mutex-subsystem-synchro-test-module.patch
 
