@@ -1,64 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-early_ioremap-add-explicit-include-of-asm-early_ioremaph.patch removed
- from -mm tree
-Date: Mon, 14 Sep 2015 10:28:51 -0700
-Message-ID: <55f703d3.i9g9FrzBlpTZ7jZQ%akpm@linux-foundation.org>
+Subject: [merged] selftests-add-membarrier-syscall-test.patch removed from -mm tree
+Date: Mon, 14 Sep 2015 10:28:44 -0700
+Message-ID: <55f703cc.yTqswXwe5FnXc4FH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48383 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48293 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751294AbbINR2v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 13:28:51 -0400
+	with ESMTP id S1751170AbbINR2p (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 13:28:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ard.biesheuvel@linaro.org, msalter@redhat.com, mm-commits@vger.kernel.org
+To: bobby.prani@gmail.com, mathieu.desnoyers@efficios.com, mpe@ellerman.id.au, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/early_ioremap: add explicit #include of asm/early_ioremap.h
+     Subject: selftests: add membarrier syscall test
 has been removed from the -mm tree.  Its filename was
-     mm-early_ioremap-add-explicit-include-of-asm-early_ioremaph.patch
+     selftests-add-membarrier-syscall-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: mm/early_ioremap: add explicit #include of asm/early_ioremap.h
+From: Pranith Kumar <bobby.prani@gmail.com>
+Subject: selftests: add membarrier syscall test
 
-Commit 6b0f68e32ea8 ("mm: add utility for early copy from unmapped ram")
-introduces a function copy_from_early_mem() into mm/early_ioremap.c which
-itself calls early_memremap()/early_memunmap().  However, since
-early_memunmap() has not been declared yet at this point in the .c file,
-nor by any explicitly included header files, we are depending on a
-transitive include of asm/early_ioremap.h to declare it, which is fragile.
+Add a self test for the membarrier system call.
 
-So instead, include this header explicitly.
-
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Acked-by: Mark Salter <msalter@redhat.com>
+Signed-off-by: Pranith Kumar <bobby.prani@gmail.com>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/early_ioremap.c |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/Makefile                     |    1 
+ tools/testing/selftests/membarrier/.gitignore        |    1 
+ tools/testing/selftests/membarrier/Makefile          |   11 +
+ tools/testing/selftests/membarrier/membarrier_test.c |   71 ++++++++++
+ 4 files changed, 84 insertions(+)
 
-diff -puN mm/early_ioremap.c~mm-early_ioremap-add-explicit-include-of-asm-early_ioremaph mm/early_ioremap.c
---- a/mm/early_ioremap.c~mm-early_ioremap-add-explicit-include-of-asm-early_ioremaph
-+++ a/mm/early_ioremap.c
-@@ -15,6 +15,7 @@
- #include <linux/mm.h>
- #include <linux/vmalloc.h>
- #include <asm/fixmap.h>
-+#include <asm/early_ioremap.h>
- 
- #ifdef CONFIG_MMU
- static int early_ioremap_debug __initdata;
+diff -puN tools/testing/selftests/Makefile~selftests-add-membarrier-syscall-test tools/testing/selftests/Makefile
+--- a/tools/testing/selftests/Makefile~selftests-add-membarrier-syscall-test
++++ a/tools/testing/selftests/Makefile
+@@ -6,6 +6,7 @@ TARGETS += firmware
+ TARGETS += ftrace
+ TARGETS += futex
+ TARGETS += kcmp
++TARGETS += membarrier
+ TARGETS += memfd
+ TARGETS += memory-hotplug
+ TARGETS += mount
+diff -puN /dev/null tools/testing/selftests/membarrier/.gitignore
+--- /dev/null
++++ a/tools/testing/selftests/membarrier/.gitignore
+@@ -0,0 +1 @@
++membarrier_test
+diff -puN /dev/null tools/testing/selftests/membarrier/Makefile
+--- /dev/null
++++ a/tools/testing/selftests/membarrier/Makefile
+@@ -0,0 +1,11 @@
++CFLAGS += -g -I../../../../usr/include/
++
++all:
++	$(CC) $(CFLAGS) membarrier_test.c -o membarrier_test
++
++TEST_PROGS := membarrier_test
++
++include ../lib.mk
++
++clean:
++	$(RM) membarrier_test
+diff -puN /dev/null tools/testing/selftests/membarrier/membarrier_test.c
+--- /dev/null
++++ a/tools/testing/selftests/membarrier/membarrier_test.c
+@@ -0,0 +1,71 @@
++#define _GNU_SOURCE
++#define __EXPORTED_HEADERS__
++
++#include <linux/membarrier.h>
++#include <asm-generic/unistd.h>
++#include <sys/syscall.h>
++#include <stdio.h>
++#include <errno.h>
++#include <string.h>
++
++#include "../kselftest.h"
++
++static int sys_membarrier(int cmd, int flags)
++{
++	return syscall(__NR_membarrier, cmd, flags);
++}
++
++static void test_membarrier_fail(void)
++{
++	int cmd = -1, flags = 0;
++
++	if (sys_membarrier(cmd, flags) != -1) {
++		printf("membarrier: Should fail but passed\n");
++		ksft_exit_fail();
++	}
++}
++
++static void test_membarrier_success(void)
++{
++	int flags = 0;
++
++	if (sys_membarrier(MEMBARRIER_CMD_SHARED, flags) != 0) {
++		printf("membarrier: Executing MEMBARRIER failed, %s\n",
++				strerror(errno));
++		ksft_exit_fail();
++	}
++
++	printf("membarrier: MEMBARRIER_CMD_SHARED success\n");
++}
++
++static void test_membarrier(void)
++{
++	test_membarrier_fail();
++	test_membarrier_success();
++}
++
++static int test_membarrier_exists(void)
++{
++	int flags = 0;
++
++	if (sys_membarrier(MEMBARRIER_CMD_QUERY, flags))
++		return 0;
++
++	return 1;
++}
++
++int main(int argc, char **argv)
++{
++	printf("membarrier: MEMBARRIER_CMD_QUERY ");
++	if (test_membarrier_exists()) {
++		printf("syscall implemented\n");
++		test_membarrier();
++	} else {
++		printf("syscall not implemented!\n");
++		return ksft_exit_fail();
++	}
++
++	printf("membarrier: tests done!\n");
++
++	return ksft_exit_pass();
++}
 _
 
-Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
+Patches currently in -mm which might be from bobby.prani@gmail.com are
 
 
