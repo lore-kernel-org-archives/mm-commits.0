@@ -1,93 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- revert-ocfs2-dlm-use-list_for_each_entry-instead-of-list_for_each.patch
- removed from -mm tree
-Date: Mon, 14 Sep 2015 10:28:53 -0700
-Message-ID: <55f703d5.KFj9DOhmp+HsUYh7%akpm@linux-foundation.org>
+Subject: [to-be-updated] userfaultfd-selftest-fix.patch removed from -mm
+ tree
+Date: Mon, 14 Sep 2015 10:45:15 -0700
+Message-ID: <55f707ab.X9OtqBuEtCZyqHas%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48414 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50144 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751294AbbINR2y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 13:28:54 -0400
+	with ESMTP id S1751725AbbINRpQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 13:45:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@gmail.com, jlbec@evilplan.org, joseph.qi@huawei.com, julia.lawall@lip6.fr, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: treding@nvidia.com, aarcange@redhat.com, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: revert "ocfs2/dlm: use list_for_each_entry instead of list_for_each"
+     Subject: selftests: vm: pick up sanitized kernel headers
 has been removed from the -mm tree.  Its filename was
-     revert-ocfs2-dlm-use-list_for_each_entry-instead-of-list_for_each.patch
+     userfaultfd-selftest-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: revert "ocfs2/dlm: use list_for_each_entry instead of list_for_each"
+From: Thierry Reding <treding@nvidia.com>
+Subject: selftests: vm: pick up sanitized kernel headers
 
-Revert f83c7b5e9fd633fe9 ("ocfs2/dlm: use list_for_each_entry instead of
-list_for_each").
+Add the usr/include subdirectory of the top-level tree to the include
+path, and make sure to include headers without relative paths to make sure
+the sanitized headers get picked up.  Otherwise the compiler will not be
+able to find the linux/compiler.h header included by the non- sanitized
+include/uapi/linux/userfaultfd.h.
 
-list_for_each_entry() will dereference its `pos' argument, which can be
-NULL in dlm_process_recovery_data().
+While at it, make sure to only hardcode the syscall numbers on x86 and
+PowerPC if they haven't been properly picked up from the headers.
 
-Reported-by: Julia Lawall <julia.lawall@lip6.fr>
-Reported-by: Fengguang Wu <fengguang.wu@gmail.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ tools/testing/selftests/vm/Makefile      |    2 +-
+ tools/testing/selftests/vm/userfaultfd.c |    4 +++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~revert-ocfs2-dlm-use-list_for_each_entry-instead-of-list_for_each fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~revert-ocfs2-dlm-use-list_for_each_entry-instead-of-list_for_each
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -1776,7 +1776,7 @@ static int dlm_process_recovery_data(str
- 				     struct dlm_migratable_lockres *mres)
- {
- 	struct dlm_migratable_lock *ml;
--	struct list_head *queue;
-+	struct list_head *queue, *iter;
- 	struct list_head *tmpq = NULL;
- 	struct dlm_lock *newlock = NULL;
- 	struct dlm_lockstatus *lksb = NULL;
-@@ -1821,7 +1821,9 @@ static int dlm_process_recovery_data(str
- 			spin_lock(&res->spinlock);
- 			for (j = DLM_GRANTED_LIST; j <= DLM_BLOCKED_LIST; j++) {
- 				tmpq = dlm_list_idx_to_ptr(res, j);
--				list_for_each_entry(lock, tmpq, list) {
-+				list_for_each(iter, tmpq) {
-+					lock = list_entry(iter,
-+						  struct dlm_lock, list);
- 					if (lock->ml.cookie == ml->cookie)
- 						break;
- 					lock = NULL;
+diff -puN tools/testing/selftests/vm/Makefile~userfaultfd-selftest-fix tools/testing/selftests/vm/Makefile
+--- a/tools/testing/selftests/vm/Makefile~userfaultfd-selftest-fix
++++ a/tools/testing/selftests/vm/Makefile
+@@ -1,6 +1,6 @@
+ # Makefile for vm selftests
+ 
+-CFLAGS = -Wall
++CFLAGS = -Wall -I ../../../../usr/include $(EXTRA_CFLAGS)
+ BINARIES = compaction_test
+ BINARIES += hugepage-mmap
+ BINARIES += hugepage-shm
+diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-fix tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-fix
++++ a/tools/testing/selftests/vm/userfaultfd.c
+@@ -64,8 +64,9 @@
+ #include <sys/syscall.h>
+ #include <sys/ioctl.h>
+ #include <pthread.h>
+-#include "../../../../include/uapi/linux/userfaultfd.h"
++#include <linux/userfaultfd.h>
+ 
++#ifndef __NR_userfaultfd
+ #ifdef __x86_64__
+ #define __NR_userfaultfd 323
+ #elif defined(__i386__)
+@@ -75,6 +76,7 @@
+ #else
+ #error "missing __NR_userfaultfd definition"
+ #endif
++#endif
+ 
+ static unsigned long nr_cpus, nr_pages, nr_pages_per_cpu, page_size;
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from treding@nvidia.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
-mm-srcu-ify-shrinkers-fix-fix.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
 
