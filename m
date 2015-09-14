@@ -1,155 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: [merged] selftests-add-membarrier-syscall-test.patch removed from -mm tree
-Date: Mon, 14 Sep 2015 10:28:44 -0700
-Message-ID: <55f703cc.yTqswXwe5FnXc4FH%akpm@linux-foundation.org>
+Subject: [merged] selftests-enhance-membarrier-syscall-test.patch removed
+ from -mm tree
+Date: Mon, 14 Sep 2015 10:28:46 -0700
+Message-ID: <55f703ce.3wz0QxcUjyhZjpaA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48293 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48325 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751170AbbINR2p (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 13:28:45 -0400
+	with ESMTP id S1751481AbbINR2r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 13:28:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bobby.prani@gmail.com, mathieu.desnoyers@efficios.com, mpe@ellerman.id.au, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@efficios.com, bobby.prani@gmail.com, mpe@ellerman.id.au, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: add membarrier syscall test
+     Subject: selftests: enhance membarrier syscall test
 has been removed from the -mm tree.  Its filename was
-     selftests-add-membarrier-syscall-test.patch
+     selftests-enhance-membarrier-syscall-test.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Pranith Kumar <bobby.prani@gmail.com>
-Subject: selftests: add membarrier syscall test
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: selftests: enhance membarrier syscall test
 
-Add a self test for the membarrier system call.
+Update the membarrier syscall self-test to match the membarrier interface.
+Extend coverage of the interface.  Consider ENOSYS as a "SKIP" test,
+since it is a valid configuration, but does not allow testing the system
+call.
 
-Signed-off-by: Pranith Kumar <bobby.prani@gmail.com>
 Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Pranith Kumar <bobby.prani@gmail.com>
 Cc: Shuah Khan <shuahkh@osg.samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/Makefile                     |    1 
- tools/testing/selftests/membarrier/.gitignore        |    1 
- tools/testing/selftests/membarrier/Makefile          |   11 +
- tools/testing/selftests/membarrier/membarrier_test.c |   71 ++++++++++
- 4 files changed, 84 insertions(+)
+ tools/testing/selftests/membarrier/membarrier_test.c |  104 +++++++---
+ 1 file changed, 77 insertions(+), 27 deletions(-)
 
-diff -puN tools/testing/selftests/Makefile~selftests-add-membarrier-syscall-test tools/testing/selftests/Makefile
---- a/tools/testing/selftests/Makefile~selftests-add-membarrier-syscall-test
-+++ a/tools/testing/selftests/Makefile
-@@ -6,6 +6,7 @@ TARGETS += firmware
- TARGETS += ftrace
- TARGETS += futex
- TARGETS += kcmp
-+TARGETS += membarrier
- TARGETS += memfd
- TARGETS += memory-hotplug
- TARGETS += mount
-diff -puN /dev/null tools/testing/selftests/membarrier/.gitignore
---- /dev/null
-+++ a/tools/testing/selftests/membarrier/.gitignore
-@@ -0,0 +1 @@
-+membarrier_test
-diff -puN /dev/null tools/testing/selftests/membarrier/Makefile
---- /dev/null
-+++ a/tools/testing/selftests/membarrier/Makefile
-@@ -0,0 +1,11 @@
-+CFLAGS += -g -I../../../../usr/include/
-+
-+all:
-+	$(CC) $(CFLAGS) membarrier_test.c -o membarrier_test
-+
-+TEST_PROGS := membarrier_test
-+
-+include ../lib.mk
-+
-+clean:
-+	$(RM) membarrier_test
-diff -puN /dev/null tools/testing/selftests/membarrier/membarrier_test.c
---- /dev/null
+diff -puN tools/testing/selftests/membarrier/membarrier_test.c~selftests-enhance-membarrier-syscall-test tools/testing/selftests/membarrier/membarrier_test.c
+--- a/tools/testing/selftests/membarrier/membarrier_test.c~selftests-enhance-membarrier-syscall-test
 +++ a/tools/testing/selftests/membarrier/membarrier_test.c
-@@ -0,0 +1,71 @@
-+#define _GNU_SOURCE
-+#define __EXPORTED_HEADERS__
+@@ -10,62 +10,112 @@
+ 
+ #include "../kselftest.h"
+ 
++enum test_membarrier_status {
++	TEST_MEMBARRIER_PASS = 0,
++	TEST_MEMBARRIER_FAIL,
++	TEST_MEMBARRIER_SKIP,
++};
 +
-+#include <linux/membarrier.h>
-+#include <asm-generic/unistd.h>
-+#include <sys/syscall.h>
-+#include <stdio.h>
-+#include <errno.h>
-+#include <string.h>
-+
-+#include "../kselftest.h"
-+
-+static int sys_membarrier(int cmd, int flags)
-+{
-+	return syscall(__NR_membarrier, cmd, flags);
-+}
-+
-+static void test_membarrier_fail(void)
-+{
-+	int cmd = -1, flags = 0;
-+
+ static int sys_membarrier(int cmd, int flags)
+ {
+ 	return syscall(__NR_membarrier, cmd, flags);
+ }
+ 
+-static void test_membarrier_fail(void)
++static enum test_membarrier_status test_membarrier_cmd_fail(void)
+ {
+ 	int cmd = -1, flags = 0;
+ 
+ 	if (sys_membarrier(cmd, flags) != -1) {
+-		printf("membarrier: Should fail but passed\n");
+-		ksft_exit_fail();
++		printf("membarrier: Wrong command should fail but passed.\n");
++		return TEST_MEMBARRIER_FAIL;
+ 	}
++	return TEST_MEMBARRIER_PASS;
+ }
+ 
+-static void test_membarrier_success(void)
++static enum test_membarrier_status test_membarrier_flags_fail(void)
+ {
+-	int flags = 0;
++	int cmd = MEMBARRIER_CMD_QUERY, flags = 1;
+ 
+-	if (sys_membarrier(MEMBARRIER_CMD_SHARED, flags) != 0) {
+-		printf("membarrier: Executing MEMBARRIER failed, %s\n",
+-				strerror(errno));
+-		ksft_exit_fail();
 +	if (sys_membarrier(cmd, flags) != -1) {
-+		printf("membarrier: Should fail but passed\n");
-+		ksft_exit_fail();
-+	}
-+}
++		printf("membarrier: Wrong flags should fail but passed.\n");
++		return TEST_MEMBARRIER_FAIL;
+ 	}
+-
+-	printf("membarrier: MEMBARRIER_CMD_SHARED success\n");
++	return TEST_MEMBARRIER_PASS;
+ }
+ 
+-static void test_membarrier(void)
++static enum test_membarrier_status test_membarrier_success(void)
+ {
+-	test_membarrier_fail();
+-	test_membarrier_success();
++	int cmd = MEMBARRIER_CMD_SHARED, flags = 0;
 +
-+static void test_membarrier_success(void)
-+{
-+	int flags = 0;
-+
-+	if (sys_membarrier(MEMBARRIER_CMD_SHARED, flags) != 0) {
-+		printf("membarrier: Executing MEMBARRIER failed, %s\n",
++	if (sys_membarrier(cmd, flags) != 0) {
++		printf("membarrier: Executing MEMBARRIER_CMD_SHARED failed. %s.\n",
 +				strerror(errno));
-+		ksft_exit_fail();
++		return TEST_MEMBARRIER_FAIL;
 +	}
 +
-+	printf("membarrier: MEMBARRIER_CMD_SHARED success\n");
++	printf("membarrier: MEMBARRIER_CMD_SHARED success.\n");
++	return TEST_MEMBARRIER_PASS;
+ }
+ 
+-static int test_membarrier_exists(void)
++static enum test_membarrier_status test_membarrier(void)
+ {
+-	int flags = 0;
+-
+-	if (sys_membarrier(MEMBARRIER_CMD_QUERY, flags))
+-		return 0;
++	enum test_membarrier_status status;
+ 
+-	return 1;
++	status = test_membarrier_cmd_fail();
++	if (status)
++		return status;
++	status = test_membarrier_flags_fail();
++	if (status)
++		return status;
++	status = test_membarrier_success();
++	if (status)
++		return status;
++	return TEST_MEMBARRIER_PASS;
 +}
 +
-+static void test_membarrier(void)
++static enum test_membarrier_status test_membarrier_query(void)
 +{
-+	test_membarrier_fail();
-+	test_membarrier_success();
-+}
++	int flags = 0, ret;
 +
-+static int test_membarrier_exists(void)
-+{
-+	int flags = 0;
-+
-+	if (sys_membarrier(MEMBARRIER_CMD_QUERY, flags))
-+		return 0;
-+
-+	return 1;
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	printf("membarrier: MEMBARRIER_CMD_QUERY ");
-+	if (test_membarrier_exists()) {
-+		printf("syscall implemented\n");
-+		test_membarrier();
-+	} else {
-+		printf("syscall not implemented!\n");
++	printf("membarrier MEMBARRIER_CMD_QUERY ");
++	ret = sys_membarrier(MEMBARRIER_CMD_QUERY, flags);
++	if (ret < 0) {
++		printf("failed. %s.\n", strerror(errno));
++		switch (errno) {
++		case ENOSYS:
++			/*
++			 * It is valid to build a kernel with
++			 * CONFIG_MEMBARRIER=n. However, this skips the tests.
++			 */
++			return TEST_MEMBARRIER_SKIP;
++		case EINVAL:
++		default:
++			return TEST_MEMBARRIER_FAIL;
++		}
++	}
++	if (!(ret & MEMBARRIER_CMD_SHARED)) {
++		printf("command MEMBARRIER_CMD_SHARED is not supported.\n");
++		return TEST_MEMBARRIER_FAIL;
++	}
++	printf("syscall available.\n");
++	return TEST_MEMBARRIER_PASS;
+ }
+ 
+ int main(int argc, char **argv)
+ {
+-	printf("membarrier: MEMBARRIER_CMD_QUERY ");
+-	if (test_membarrier_exists()) {
+-		printf("syscall implemented\n");
+-		test_membarrier();
+-	} else {
+-		printf("syscall not implemented!\n");
++	switch (test_membarrier_query()) {
++	case TEST_MEMBARRIER_FAIL:
+ 		return ksft_exit_fail();
++	case TEST_MEMBARRIER_SKIP:
++		return ksft_exit_skip();
++	}
++	switch (test_membarrier()) {
++	case TEST_MEMBARRIER_FAIL:
 +		return ksft_exit_fail();
-+	}
-+
-+	printf("membarrier: tests done!\n");
-+
-+	return ksft_exit_pass();
-+}
-_
-
-Patches currently in -mm which might be from bobby.prani@gmail.com are
-
-
++	case TEST_MEMBARRIER_SKIP:
++		return ksft_exit_skip();
+ 	}
+ 
+ 	printf("membarrier: tests done!\n");
