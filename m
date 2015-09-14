@@ -1,76 +1,88 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-page_isolation-check-pfn-validity-before-access.patch removed from -mm
- tree
-Date: Mon, 14 Sep 2015 10:46:17 -0700
-Message-ID: <55f707e9.L1cr7cMgyabX7mjV%akpm__48365.2608505965$1442252791$gmane$org@linux-foundation.org>
+ mm-fix-invalid-use-of-pfn_valid_within-in-test_pages_in_a_zone.patch
+ removed from -mm tree
+Date: Mon, 14 Sep 2015 10:46:48 -0700
+Message-ID: <55f70808.9tBRVxeqOKUAIdDw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50191 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50224 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751556AbbINRqS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 13:46:18 -0400
+	with ESMTP id S1751395AbbINRqt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 13:46:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: weijie.yang@samsung.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, mina86@mina86.com, minchan@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: jcuster@sgi.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, rja@sgi.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_isolation: check pfn validity before access
+     Subject: mm: fix invalid use of pfn_valid_within in test_pages_in_a_zone
 has been removed from the -mm tree.  Its filename was
-     mm-page_isolation-check-pfn-validity-before-access.patch
+     mm-fix-invalid-use-of-pfn_valid_within-in-test_pages_in_a_zone.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Weijie Yang <weijie.yang@samsung.com>
-Subject: mm: page_isolation: check pfn validity before access
+From: James Custer <jcuster@sgi.com>
+Subject: mm: fix invalid use of pfn_valid_within in test_pages_in_a_zone
 
-In the undo path of start_isolate_page_range(), we need to check the pfn
-validity before accessing its page, or it will trigger an addressing
-exception if there is hole in the zone.
+Offlining memory by 'echo 0 > /sys/devices/system/memory/memory#/online'
+or reading valid_zones 'cat
+/sys/devices/system/memory/memory#/valid_zones' causes BUG: unable to
+handle kernel paging request due to invalid use of pfn_valid_within.  This
+is due to a bug in test_pages_in_a_zone.
 
-This issue is found by code-review not a test-trigger.  In
-"CONFIG_HOLES_IN_ZONE" environment, there is a certain chance that it
-would casue an addressing exception when start_isolate_page_range()
-fails, this could affect CMA, hugepage and memory-hotplug function.
+In order to use pfn_valid_within within a MAX_ORDER_NR_PAGES block of
+pages, a valid pfn within the block must first be found.  There only needs
+to be one valid pfn found in test_pages_in_a_zone in the first place.  So
+the fix is to replace pfn_valid_within with pfn_valid such that the first
+valid pfn within the pageblock is found (if it exists).  This works
+independently of CONFIG_HOLES_IN_ZONE.
 
-Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
-Acked-by: Michal Nazarewicz <mina86@mina86.com>
-Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Signed-off-by: James Custer <jcuster@sgi.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Russ Anderson <rja@sgi.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN mm/page_isolation.c~mm-page_isolation-check-pfn-validity-before-access mm/page_isolation.c
---- a/mm/page_isolation.c~mm-page_isolation-check-pfn-validity-before-access
-+++ a/mm/page_isolation.c
-@@ -179,8 +179,11 @@ int start_isolate_page_range(unsigned lo
- undo:
- 	for (pfn = start_pfn;
- 	     pfn < undo_pfn;
--	     pfn += pageblock_nr_pages)
--		unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
-+	     pfn += pageblock_nr_pages) {
-+		page = __first_valid_page(pfn, pageblock_nr_pages);
-+		if (page)
-+			unset_migratetype_isolate(page, migratetype);
-+	}
- 
- 	return -EBUSY;
+diff -puN mm/memory_hotplug.c~mm-fix-invalid-use-of-pfn_valid_within-in-test_pages_in_a_zone mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-fix-invalid-use-of-pfn_valid_within-in-test_pages_in_a_zone
++++ a/mm/memory_hotplug.c
+@@ -1358,7 +1358,7 @@ int is_mem_section_removable(unsigned lo
  }
+ 
+ /*
+- * Confirm all pages in a range [start, end) is belongs to the same zone.
++ * Confirm all pages in a range [start, end) belong to the same zone.
+  */
+ int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
+ {
+@@ -1369,10 +1369,11 @@ int test_pages_in_a_zone(unsigned long s
+ 	for (pfn = start_pfn;
+ 	     pfn < end_pfn;
+ 	     pfn += MAX_ORDER_NR_PAGES) {
+-		i = 0;
+-		/* This is just a CONFIG_HOLES_IN_ZONE check.*/
+-		while ((i < MAX_ORDER_NR_PAGES) && !pfn_valid_within(pfn + i))
+-			i++;
++		/* Find the first valid pfn in this pageblock */
++		for (i = 0; i < MAX_ORDER_NR_PAGES; i++) {
++			if (pfn_valid(pfn + i))
++				break;
++		}
+ 		if (i == MAX_ORDER_NR_PAGES)
+ 			continue;
+ 		page = pfn_to_page(pfn + i);
 _
 
-Patches currently in -mm which might be from weijie.yang@samsung.com are
+Patches currently in -mm which might be from jcuster@sgi.com are
 
 
