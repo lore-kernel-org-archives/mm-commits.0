@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: +
  ocfs2-fill-in-the-unused-portion-of-the-block-with-zeros-by-dio_zero_block.patch added to -mm tree
-Date: Mon, 14 Sep 2015 15:10:04 -0700
-Message-ID: <55f745bc.DR8fsVEAZpHyBEps%akpm@linux-foundation.org>
+Date: Mon, 14 Sep 2015 15:13:18 -0700
+Message-ID: <55f7467e.r4cQjxzrAmForwjv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52808 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52901 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751181AbbINWKF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 18:10:05 -0400
+	with ESMTP id S1751355AbbINWNS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 18:13:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
@@ -65,14 +65,14 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 diff -puN fs/ocfs2/aops.c~ocfs2-fill-in-the-unused-portion-of-the-block-with-zeros-by-dio_zero_block fs/ocfs2/aops.c
 --- a/fs/ocfs2/aops.c~ocfs2-fill-in-the-unused-portion-of-the-block-with-zeros-by-dio_zero_block
 +++ a/fs/ocfs2/aops.c
-@@ -203,6 +203,7 @@ int ocfs2_get_block(struct inode *inode,
- 			dump_stack();
+@@ -589,6 +589,7 @@ static int ocfs2_direct_IO_get_blocks(st
+ 			ret = -EIO;
  			goto bail;
  		}
 +		set_buffer_new(bh_result);
+ 		up_write(&OCFS2_I(inode)->ip_alloc_sem);
  	}
  
- 	past_eof = ocfs2_blocks_for_bytes(inode->i_sb, i_size_read(inode));
 _
 
 Patches currently in -mm which might be from jiangyiwen@huawei.com are
