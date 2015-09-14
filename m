@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-string_helpersc-fix-infinite-loop-in-string_get_size.patch
- tentatively added to -mm tree
-Date: Mon, 14 Sep 2015 14:18:02 -0700
-Message-ID: <55f7398a.BVx43aRgdIpfs02W%akpm@linux-foundation.org>
+Subject: + kasan-use-is_aligned-in-memory_is_poisoned_8.patch added to -mm tree
+Date: Mon, 14 Sep 2015 14:20:29 -0700
+Message-ID: <55f73a1d.lxExSSzYleNOOQo1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46014 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46434 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750980AbbINVSD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 17:18:03 -0400
+	with ESMTP id S1750951AbbINVUa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 17:20:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vkuznets@redhat.com, James.Bottomley@HansenPartnership.com, andriy.shevchenko@linux.intel.com, kys@microsoft.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: qiuxishi@huawei.com, adech.fo@gmail.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/string_helpers.c: fix infinite loop in string_get_size()
+     Subject: kasan: use IS_ALIGNED in memory_is_poisoned_8()
 has been added to the -mm tree.  Its filename is
-     lib-string_helpersc-fix-infinite-loop-in-string_get_size.patch
+     kasan-use-is_aligned-in-memory_is_poisoned_8.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-string_helpersc-fix-infinite-loop-in-string_get_size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-use-is_aligned-in-memory_is_poisoned_8.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-string_helpersc-fix-infinite-loop-in-string_get_size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-use-is_aligned-in-memory_is_poisoned_8.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,56 +38,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vitaly Kuznetsov <vkuznets@redhat.com>
-Subject: lib/string_helpers.c: fix infinite loop in string_get_size()
+From: Xishi Qiu <qiuxishi@huawei.com>
+Subject: kasan: use IS_ALIGNED in memory_is_poisoned_8()
 
-Some string_get_size() calls (e.g.:
- string_get_size(1, 512, STRING_UNITS_10, ..., ...)
- string_get_size(15, 64, STRING_UNITS_10, ..., ...)
-) result in an infinite loop. The problem is that if size is equal to
-divisor[units]/blk_size and is smaller than divisor[units] we'll end
-up with size == 0 when we start doing sf_cap calculations:
+Use IS_ALIGNED() to determine whether the shadow span two bytes.  It
+generates less code and more readable.  Add some comments in shadow check
+functions.
 
-For string_get_size(1, 512, STRING_UNITS_10, ..., ...) case:
-   ...
-   remainder = do_div(size, divisor[units]); -> size is 0, remainder is 1
-   remainder *= blk_size; -> remainder is 512
-   ...
-   size *= blk_size; -> size is still 0
-   size += remainder / divisor[units]; -> size is still 0
+Please apply "kasan: fix last shadow judgement in memory_is_poisoned_16()"
+first.
 
-The caller causing the issue is sd_read_capacity(), the problem was
-noticed on Hyper-V, such weird size was reported by host when scanning
-collides with device removal.  This is probably a separate issue worth
-fixing, this patch is intended to prevent the library routing from
-infinite looping.
-
-Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Andrey Konovalov <adech.fo@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string_helpers.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/kasan/kasan.c |   21 +++++++++++++++++++--
+ 1 file changed, 19 insertions(+), 2 deletions(-)
 
-diff -puN lib/string_helpers.c~lib-string_helpersc-fix-infinite-loop-in-string_get_size lib/string_helpers.c
---- a/lib/string_helpers.c~lib-string_helpersc-fix-infinite-loop-in-string_get_size
-+++ a/lib/string_helpers.c
-@@ -59,7 +59,7 @@ void string_get_size(u64 size, u64 blk_s
- 	}
+diff -puN mm/kasan/kasan.c~kasan-use-is_aligned-in-memory_is_poisoned_8 mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-use-is_aligned-in-memory_is_poisoned_8
++++ a/mm/kasan/kasan.c
+@@ -86,6 +86,10 @@ static __always_inline bool memory_is_po
+ 		if (memory_is_poisoned_1(addr + 1))
+ 			return true;
  
- 	exp = divisor[units] / (u32)blk_size;
--	if (size >= exp) {
-+	if (size > exp) {
- 		remainder = do_div(size, divisor[units]);
- 		remainder *= blk_size;
- 		i++;
++		/*
++		 * If the shadow spans two bytes, the first byte should
++		 * be zero.
++		 */
+ 		if (likely(((addr + 1) & KASAN_SHADOW_MASK) != 0))
+ 			return false;
+ 
+@@ -103,6 +107,10 @@ static __always_inline bool memory_is_po
+ 		if (memory_is_poisoned_1(addr + 3))
+ 			return true;
+ 
++		/*
++		 * If the shadow spans two bytes, the first byte should
++		 * be zero.
++		 */
+ 		if (likely(((addr + 3) & KASAN_SHADOW_MASK) >= 3))
+ 			return false;
+ 
+@@ -120,7 +128,11 @@ static __always_inline bool memory_is_po
+ 		if (memory_is_poisoned_1(addr + 7))
+ 			return true;
+ 
+-		if (likely(((addr + 7) & KASAN_SHADOW_MASK) >= 7))
++		/*
++		 * If the shadow spans two bytes, the first byte should
++		 * be zero.
++		 */
++		if (likely(IS_ALIGNED(addr, KASAN_SHADOW_SCALE_SIZE)))
+ 			return false;
+ 
+ 		return unlikely(*(u8 *)shadow_addr);
+@@ -139,7 +151,12 @@ static __always_inline bool memory_is_po
+ 		if (unlikely(shadow_first_bytes))
+ 			return true;
+ 
+-		if (likely(IS_ALIGNED(addr, 8)))
++		/*
++		 * If the shadow spans three bytes, we should continue to
++		 * check the last byte. The first two bytes which we
++		 * checked above should always be zero.
++		 */
++		if (likely(IS_ALIGNED(addr, KASAN_SHADOW_SCALE_SIZE)))
+ 			return false;
+ 
+ 		return memory_is_poisoned_1(addr + 15);
 _
 
-Patches currently in -mm which might be from vkuznets@redhat.com are
+Patches currently in -mm which might be from qiuxishi@huawei.com are
 
-lib-string_helpersc-fix-infinite-loop-in-string_get_size.patch
+kasan-fix-last-shadow-judgement-in-memory_is_poisoned_16.patch
+kasan-use-is_aligned-in-memory_is_poisoned_8.patch
 
