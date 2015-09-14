@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-fill-in-the-unused-portion-of-the-block-with-zeros-by-dio_zero_block.patch added to -mm tree
-Date: Mon, 14 Sep 2015 15:13:18 -0700
-Message-ID: <55f7467e.r4cQjxzrAmForwjv%akpm@linux-foundation.org>
+Subject: + cleanup-membarrier-selftest.patch added to -mm tree
+Date: Mon, 14 Sep 2015 15:17:10 -0700
+Message-ID: <55f74766.ndRblxLNUj0Lmdmb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52901 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53337 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751355AbbINWNS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 18:13:18 -0400
+	with ESMTP id S1751600AbbINWRL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 18:17:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@efficios.com, bobby.prani@gmail.com, mpe@ellerman.id.au, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fill in the unused portion of the block with zeros by dio_zero_block()
+     Subject: membarrier: clean up selftest
 has been added to the -mm tree.  Its filename is
-     ocfs2-fill-in-the-unused-portion-of-the-block-with-zeros-by-dio_zero_block.patch
+     cleanup-membarrier-selftest.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fill-in-the-unused-portion-of-the-block-with-zeros-by-dio_zero_block.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/cleanup-membarrier-selftest.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fill-in-the-unused-portion-of-the-block-with-zeros-by-dio_zero_block.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/cleanup-membarrier-selftest.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,43 +38,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: jiangyiwen <jiangyiwen@huawei.com>
-Subject: ocfs2: fill in the unused portion of the block with zeros by dio_zero_block()
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: membarrier: clean up selftest
 
-A simplified test case is (this case from Ryan):
-1) dd if=/dev/zero of=/mnt/hello bs=512 count=1 oflag=direct;
-2) truncate /mnt/hello -s 2097152
-file 'hello' is not exist before test. After this command,
-file 'hello' should be all zero. But 512~4096 is some random data.
+We don't need to specify an explicit rule in the Makefile, the implicit
+one will do the same.  The "__EXPORTED_HEADERS__" define is not needed,
+because we build the test against the installed kernel headers, not the
+in-tree kernel headers.  Re-use "$(TEST_PROGS)" in the clean target rather
+than spelling the executable name twice.  Include <unistd.h> rather than
+the rather specific <asm-generic/unistd.h>.  Include <syscall.h> rather
+than <sys/syscall.h>.  In both cases, the former header is located in a
+standard location and includes the latter.
 
-Setting bh state to new when get a new block, if so,
-direct_io_worker()->dio_zero_block() will fill-in the unused portion
-of the block with zero.
-
-Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Pranith Kumar <bobby.prani@gmail.com>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/selftests/membarrier/Makefile          |    7 +++----
+ tools/testing/selftests/membarrier/membarrier_test.c |    5 +----
+ 2 files changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-fill-in-the-unused-portion-of-the-block-with-zeros-by-dio_zero_block fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-fill-in-the-unused-portion-of-the-block-with-zeros-by-dio_zero_block
-+++ a/fs/ocfs2/aops.c
-@@ -589,6 +589,7 @@ static int ocfs2_direct_IO_get_blocks(st
- 			ret = -EIO;
- 			goto bail;
- 		}
-+		set_buffer_new(bh_result);
- 		up_write(&OCFS2_I(inode)->ip_alloc_sem);
- 	}
+diff -puN tools/testing/selftests/membarrier/Makefile~cleanup-membarrier-selftest tools/testing/selftests/membarrier/Makefile
+--- a/tools/testing/selftests/membarrier/Makefile~cleanup-membarrier-selftest
++++ a/tools/testing/selftests/membarrier/Makefile
+@@ -1,11 +1,10 @@
+ CFLAGS += -g -I../../../../usr/include/
  
-_
-
-Patches currently in -mm which might be from jiangyiwen@huawei.com are
-
-ocfs2-fill-in-the-unused-portion-of-the-block-with-zeros-by-dio_zero_block.patch
-
+-all:
+-	$(CC) $(CFLAGS) membarrier_test.c -o membarrier_test
+-
+ TEST_PROGS := membarrier_test
+ 
++all: $(TEST_PROGS)
++
+ include ../lib.mk
+ 
+ clean:
+-	$(RM) membarrier_test
++	$(RM) $(TEST_PROGS)
+diff -puN tools/testing/selftests/membarrier/membarrier_test.c~cleanup-membarrier-selftest tools/testing/selftests/membarrier/membarrier_test.c
+--- a/tools/testing/selftests/membarrier/membarrier_test.c~cleanup-membarrier-selftest
++++ a/tools/testing/selftests/membarrier/membarrier_test.c
+@@ -1,9 +1,6 @@
+ #define _GNU_SOURCE
+-#define __EXPORTED_HEADERS__
