@@ -1,83 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-srcu-ify-shrinkers-fix-fix.patch removed from
- -mm tree
-Date: Mon, 14 Sep 2015 10:45:46 -0700
-Message-ID: <55f707ca.PuvwJL0TKf5eXr5N%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-page_isolation-check-pfn-validity-before-access.patch removed from -mm
+ tree
+Date: Mon, 14 Sep 2015 10:46:17 -0700
+Message-ID: <55f707e9.L1cr7cMgyabX7mjV%akpm__48365.2608505965$1442252791$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50176 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50191 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751408AbbINRpq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 13:45:46 -0400
+	with ESMTP id S1751556AbbINRqS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 13:46:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave@stgolabs.net, mm-commits@vger.kernel.org
+To: weijie.yang@samsung.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, mel@csn.ul.ie, mhocko@suse.cz, mina86@mina86.com, minchan@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-srcu-ify-shrinkers-fix-fix
+     Subject: mm: page_isolation: check pfn validity before access
 has been removed from the -mm tree.  Its filename was
-     mm-srcu-ify-shrinkers-fix-fix.patch
+     mm-page_isolation-check-pfn-validity-before-access.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-srcu-ify-shrinkers-fix-fix
+From: Weijie Yang <weijie.yang@samsung.com>
+Subject: mm: page_isolation: check pfn validity before access
 
-all architectures
+In the undo path of start_isolate_page_range(), we need to check the pfn
+validity before accessing its page, or it will trigger an addressing
+exception if there is hole in the zone.
 
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+This issue is found by code-review not a test-trigger.  In
+"CONFIG_HOLES_IN_ZONE" environment, there is a certain chance that it
+would casue an addressing exception when start_isolate_page_range()
+fails, this could affect CMA, hugepage and memory-hotplug function.
+
+Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
+Reviewed-by: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |    1 -
- init/Kconfig         |    1 +
- 2 files changed, 1 insertion(+), 1 deletion(-)
+ mm/page_isolation.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/Kconfig~mm-srcu-ify-shrinkers-fix-fix arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~mm-srcu-ify-shrinkers-fix-fix
-+++ a/arch/powerpc/Kconfig
-@@ -127,7 +127,6 @@ config PPC
- 	select GENERIC_IRQ_SHOW
- 	select GENERIC_IRQ_SHOW_LEVEL
- 	select IRQ_FORCED_THREADING
--	select SRCU
- 	select HAVE_RCU_TABLE_FREE if SMP
- 	select HAVE_SYSCALL_TRACEPOINTS
- 	select HAVE_BPF_JIT
-diff -puN init/Kconfig~mm-srcu-ify-shrinkers-fix-fix init/Kconfig
---- a/init/Kconfig~mm-srcu-ify-shrinkers-fix-fix
-+++ a/init/Kconfig
-@@ -513,6 +513,7 @@ config RCU_EXPERT
+diff -puN mm/page_isolation.c~mm-page_isolation-check-pfn-validity-before-access mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-page_isolation-check-pfn-validity-before-access
++++ a/mm/page_isolation.c
+@@ -179,8 +179,11 @@ int start_isolate_page_range(unsigned lo
+ undo:
+ 	for (pfn = start_pfn;
+ 	     pfn < undo_pfn;
+-	     pfn += pageblock_nr_pages)
+-		unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
++	     pfn += pageblock_nr_pages) {
++		page = __first_valid_page(pfn, pageblock_nr_pages);
++		if (page)
++			unset_migratetype_isolate(page, migratetype);
++	}
  
- config SRCU
- 	bool
-+	default y
- 	help
- 	  This option selects the sleepable version of RCU. This version
- 	  permits arbitrary sleeping or blocking within RCU read-side critical
+ 	return -EBUSY;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from weijie.yang@samsung.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
 
