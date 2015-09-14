@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
- added to -mm tree
-Date: Mon, 14 Sep 2015 14:41:21 -0700
-Message-ID: <55f73f01.8PlPm9Ffh/2zD4uc%akpm@linux-foundation.org>
+Subject: +
+ kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses.patch tentatively added to -mm tree
+Date: Mon, 14 Sep 2015 14:46:17 -0700
+Message-ID: <55f74029.cRBqxmuiSal809lu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48716 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49330 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751927AbbINVlW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 17:41:22 -0400
+	with ESMTP id S1750980AbbINVqS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Sep 2015 17:46:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebru.akagunduz@gmail.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, gorcunov@openvz.org, hannes@cmpxchg.org, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, xiexiuqi@huawei.com, mm-commits@vger.kernel.org
+To: andreyknvl@google.com, dvyukov@google.com, glider@google.com, kcc@google.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make swapin readahead to improve thp collapse rate
+     Subject: kasan: update reported bug types for not user nor kernel memory accesses
 has been added to the -mm tree.  Its filename is
-     mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
+     kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,175 +39,155 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Subject: mm: make swapin readahead to improve thp collapse rate
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: update reported bug types for not user nor kernel memory accesses
 
-This patch makes swapin readahead to improve thp collapse rate.  When
-khugepaged scanned pages, there can be a few of the pages in swap area.
+Each access with address lower than
+kasan_shadow_to_mem(KASAN_SHADOW_START) is reported as user-memory-access.
+This is not always true, the accessed address might not be in user space.
+Fix this by reporting such accesses as null-ptr-derefs or
+wild-memory-accesses.
 
-With the patch THP can collapse 4kB pages into a THP when there are up to
-max_ptes_swap swap ptes in a 2MB range.
+There's another reason for this change.  For userspace ASan we have a
+bunch of systems that analyze error types for the purpose of
+classification and deduplication.  Sooner of later we will write them to
+KASAN as well.  Then clearly and explicitly stated error types will bring
+value.
 
-The patch was tested with a test program that allocates 400B of memory,
-writes to it, and then sleeps.  I force the system to swap out all. 
-Afterwards, the test program touches the area by writing, it skips a page
-in each 20 pages of the area.
-
-Without the patch, system did not swap in readahead.  THP rate was %65 of
-the program of the memory, it did not change over time.
-
-With this patch, after 10 minutes of waiting khugepaged had collapsed %99
-of the program's memory.
-
-Signed-off-by: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Acked-by: Rik van Riel <riel@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Xie XiuQi <xiexiuqi@huawei.com>
-Cc: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Konstantin Serebryany <kcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |   24 +++++++++++++++
- mm/huge_memory.c                   |   43 +++++++++++++++++++++++++++
- mm/internal.h                      |    4 ++
- mm/memory.c                        |    2 -
- 4 files changed, 72 insertions(+), 1 deletion(-)
+ mm/kasan/kasan.c  |    8 -------
+ mm/kasan/kasan.h  |    3 --
+ mm/kasan/report.c |   50 ++++++++++++++++++++------------------------
+ 3 files changed, 24 insertions(+), 37 deletions(-)
 
-diff -puN include/trace/events/huge_memory.h~mm-make-swapin-readahead-to-improve-thp-collapse-rate include/trace/events/huge_memory.h
---- a/include/trace/events/huge_memory.h~mm-make-swapin-readahead-to-improve-thp-collapse-rate
-+++ a/include/trace/events/huge_memory.h
-@@ -136,6 +136,30 @@ TRACE_EVENT(mm_collapse_huge_page_isolat
- 		__print_symbolic(__entry->status, SCAN_STATUS))
- );
+diff -puN mm/kasan/kasan.c~kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses
++++ a/mm/kasan/kasan.c
+@@ -252,18 +252,12 @@ static __always_inline bool memory_is_po
+ static __always_inline void check_memory_region(unsigned long addr,
+ 						size_t size, bool write)
+ {
+-	struct kasan_access_info info;
+-
+ 	if (unlikely(size == 0))
+ 		return;
  
-+TRACE_EVENT(mm_collapse_huge_page_swapin,
-+
-+	TP_PROTO(struct mm_struct *mm, int swapped_in, int ret),
-+
-+	TP_ARGS(mm, swapped_in, ret),
-+
-+	TP_STRUCT__entry(
-+		__field(struct mm_struct *, mm)
-+		__field(int, swapped_in)
-+		__field(int, ret)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->mm = mm;
-+		__entry->swapped_in = swapped_in;
-+		__entry->ret = ret;
-+	),
-+
-+	TP_printk("mm=%p, swapped_in=%d, ret=%d",
-+		__entry->mm,
-+		__entry->swapped_in,
-+		__entry->ret)
-+);
-+
- #endif /* __HUGE_MEMORY_H */
- #include <trace/define_trace.h>
+ 	if (unlikely((void *)addr <
+ 		kasan_shadow_to_mem((void *)KASAN_SHADOW_START))) {
+-		info.access_addr = (void *)addr;
+-		info.access_size = size;
+-		info.is_write = write;
+-		info.ip = _RET_IP_;
+-		kasan_report_user_access(&info);
++		kasan_report(addr, size, write, _RET_IP_);
+ 		return;
+ 	}
  
-diff -puN mm/huge_memory.c~mm-make-swapin-readahead-to-improve-thp-collapse-rate mm/huge_memory.c
---- a/mm/huge_memory.c~mm-make-swapin-readahead-to-improve-thp-collapse-rate
-+++ a/mm/huge_memory.c
-@@ -2584,6 +2584,47 @@ static bool hugepage_vma_check(struct vm
- 	return true;
+diff -puN mm/kasan/kasan.h~kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses mm/kasan/kasan.h
+--- a/mm/kasan/kasan.h~kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses
++++ a/mm/kasan/kasan.h
+@@ -54,9 +54,6 @@ struct kasan_global {
+ #endif
+ };
+ 
+-void kasan_report_error(struct kasan_access_info *info);
+-void kasan_report_user_access(struct kasan_access_info *info);
+-
+ static inline const void *kasan_shadow_to_mem(const void *shadow_addr)
+ {
+ 	return (void *)(((unsigned long)shadow_addr - KASAN_SHADOW_OFFSET)
+diff -puN mm/kasan/report.c~kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses
++++ a/mm/kasan/report.c
+@@ -189,9 +189,10 @@ static void print_shadow_for_address(con
+ 
+ static DEFINE_SPINLOCK(report_lock);
+ 
+-void kasan_report_error(struct kasan_access_info *info)
++static void kasan_report_error(struct kasan_access_info *info)
+ {
+ 	unsigned long flags;
++	const char *bug_type;
+ 
+ 	/*
+ 	 * Make sure we don't end up in loop.
+@@ -200,32 +201,26 @@ void kasan_report_error(struct kasan_acc
+ 	spin_lock_irqsave(&report_lock, flags);
+ 	pr_err("================================="
+ 		"=================================\n");
+-	print_error_description(info);
+-	print_address_description(info);
+-	print_shadow_for_address(info->first_bad_addr);
+-	pr_err("================================="
+-		"=================================\n");
+-	spin_unlock_irqrestore(&report_lock, flags);
+-	kasan_enable_current();
+-}
+-
+-void kasan_report_user_access(struct kasan_access_info *info)
+-{
+-	unsigned long flags;
+-
+-	/*
+-	 * Make sure we don't end up in loop.
+-	 */
+-	kasan_disable_current();
+-	spin_lock_irqsave(&report_lock, flags);
+-	pr_err("================================="
+-		"=================================\n");
+-	pr_err("BUG: KASan: user-memory-access on address %p\n",
+-		info->access_addr);
+-	pr_err("%s of size %zu by task %s/%d\n",
+-		info->is_write ? "Write" : "Read",
+-		info->access_size, current->comm, task_pid_nr(current));
+-	dump_stack();
++	if (info->access_addr <
++			kasan_shadow_to_mem((void *)KASAN_SHADOW_START)) {
++		if ((unsigned long)info->access_addr < PAGE_SIZE)
++			bug_type = "null-ptr-deref";
++		else if ((unsigned long)info->access_addr < TASK_SIZE)
++			bug_type = "user-memory-access";
++		else
++			bug_type = "wild-memory-access";
++		pr_err("BUG: KASan: %s on address %p\n",
++			bug_type, info->access_addr);
++		pr_err("%s of size %zu by task %s/%d\n",
++			info->is_write ? "Write" : "Read",
++			info->access_size, current->comm,
++			task_pid_nr(current));
++		dump_stack();
++	} else {
++		print_error_description(info);
++		print_address_description(info);
++		print_shadow_for_address(info->first_bad_addr);
++	}
+ 	pr_err("================================="
+ 		"=================================\n");
+ 	spin_unlock_irqrestore(&report_lock, flags);
+@@ -244,6 +239,7 @@ void kasan_report(unsigned long addr, si
+ 	info.access_size = size;
+ 	info.is_write = is_write;
+ 	info.ip = ip;
++
+ 	kasan_report_error(&info);
  }
  
-+/*
-+ * Bring missing pages in from swap, to complete THP collapse.
-+ * Only done if khugepaged_scan_pmd believes it is worthwhile.
-+ *
-+ * Called and returns without pte mapped or spinlocks held,
-+ * but with mmap_sem held to protect against vma changes.
-+ */
-+
-+static void __collapse_huge_page_swapin(struct mm_struct *mm,
-+					struct vm_area_struct *vma,
-+					unsigned long address, pmd_t *pmd,
-+					pte_t *pte)
-+{
-+	unsigned long _address;
-+	pte_t pteval = *pte;
-+	int swapped_in = 0, ret = 0;
-+
-+	pte = pte_offset_map(pmd, address);
-+	for (_address = address; _address < address + HPAGE_PMD_NR*PAGE_SIZE;
-+	     pte++, _address += PAGE_SIZE) {
-+		pteval = *pte;
-+		if (!is_swap_pte(pteval))
-+			continue;
-+		swapped_in++;
-+		ret = do_swap_page(mm, vma, _address, pte, pmd,
-+				   FAULT_FLAG_ALLOW_RETRY|FAULT_FLAG_RETRY_NOWAIT,
-+				   pteval);
-+		if (ret & VM_FAULT_ERROR) {
-+			trace_mm_collapse_huge_page_swapin(mm, swapped_in, 0);
-+			return;
-+		}
-+		/* pte is unmapped now, we need to map it */
-+		pte = pte_offset_map(pmd, _address);
-+	}
-+	pte--;
-+	pte_unmap(pte);
-+	trace_mm_collapse_huge_page_swapin(mm, swapped_in, 1);
-+}
-+
-+
-+
- static void collapse_huge_page(struct mm_struct *mm,
- 				   unsigned long address,
- 				   struct page **hpage,
-@@ -2655,6 +2696,8 @@ static void collapse_huge_page(struct mm
- 
- 	anon_vma_lock_write(vma->anon_vma);
- 
-+	__collapse_huge_page_swapin(mm, vma, address, pmd, pte);
-+
- 	pte = pte_offset_map(pmd, address);
- 	pte_ptl = pte_lockptr(mm, pmd);
- 
-diff -puN mm/internal.h~mm-make-swapin-readahead-to-improve-thp-collapse-rate mm/internal.h
---- a/mm/internal.h~mm-make-swapin-readahead-to-improve-thp-collapse-rate
-+++ a/mm/internal.h
-@@ -14,6 +14,10 @@
- #include <linux/fs.h>
- #include <linux/mm.h>
- 
-+extern int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
-+			unsigned long address, pte_t *page_table, pmd_t *pmd,
-+			unsigned int flags, pte_t orig_pte);
-+
- void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
- 		unsigned long floor, unsigned long ceiling);
- 
-diff -puN mm/memory.c~mm-make-swapin-readahead-to-improve-thp-collapse-rate mm/memory.c
---- a/mm/memory.c~mm-make-swapin-readahead-to-improve-thp-collapse-rate
-+++ a/mm/memory.c
-@@ -2441,7 +2441,7 @@ EXPORT_SYMBOL(unmap_mapping_range);
-  * We return with the mmap_sem locked or unlocked in the same cases
-  * as does filemap_fault().
-  */
--static int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
-+int do_swap_page(struct mm_struct *mm, struct vm_area_struct *vma,
- 		unsigned long address, pte_t *page_table, pmd_t *pmd,
- 		unsigned int flags, pte_t orig_pte)
- {
 _
 
-Patches currently in -mm which might be from ebru.akagunduz@gmail.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-add-tracepoint-for-scanning-pages.patch
-mm-make-optimistic-check-for-swapin-readahead.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
+kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses.patch
+kasan-update-reported-bug-types-for-kernel-memory-accesses.patch
+kasan-accurately-determine-the-type-of-the-bad-access.patch
+kasan-update-log-messages.patch
+kasan-various-fixes-in-documentation.patch
+kasan-move-kasan_sanitize-in-arch-x86-boot-makefile.patch
+kasan-update-reference-to-kasan-prototype-repo.patch
 
