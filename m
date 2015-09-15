@@ -1,118 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + kasan-use-is_aligned-in-memory_is_poisoned_8.patch added to -mm tree
-Date: Tue, 15 Sep 2015 11:13:41 -0700
-Message-ID: <55f85fd5.EjIQfXa0YU/2cA1a%akpm@linux-foundation.org>
+Subject: [merged]
+ scripts-kernel-doc-processing-nofunc-for-functions-only.patch removed from
+ -mm tree
+Date: Tue, 15 Sep 2015 12:23:43 -0700
+Message-ID: <55f8703f.BVQ0xnk/HDnYKYxr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50868 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60128 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751005AbbIOSNm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Sep 2015 14:13:42 -0400
+	with ESMTP id S1751622AbbIOTXo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Sep 2015 15:23:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@huawei.com, adech.fo@gmail.com, aryabinin@virtuozzo.com, mm-commits@vger.kernel.org
+To: danilo.cesar@collabora.co.uk, corbet@lwn.net, daniel.vetter@ffwll.ch, johannes.berg@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: use IS_ALIGNED in memory_is_poisoned_8()
-has been added to the -mm tree.  Its filename is
-     kasan-use-is_aligned-in-memory_is_poisoned_8.patch
+     Subject: scripts/kernel-doc: processing -nofunc for functions only
+has been removed from the -mm tree.  Its filename was
+     scripts-kernel-doc-processing-nofunc-for-functions-only.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kasan-use-is_aligned-in-memory_is_poisoned_8.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-use-is_aligned-in-memory_is_poisoned_8.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: kasan: use IS_ALIGNED in memory_is_poisoned_8()
+From: Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>
+Subject: scripts/kernel-doc: processing -nofunc for functions only
 
-Use IS_ALIGNED() to determine whether the shadow span two bytes.  It
-generates less code and more readable.  Also add some comments in shadow
-check functions.
+Docproc process EXPORT_SYMBOL(f1) macro and uses -nofunc f1 to avoid
+duplicated documentation in the next call.  It works for most of the
+cases, but there are some specific situations where a struct has the same
+name of an already-exported function.
 
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Andrey Konovalov <adech.fo@gmail.com>
+Current kernel-doc behavior ignores those structs and do not add them to
+the final documentation.  This patch fixes it.
+
+This is non-usual and the only case I've found is the drm_modeset_lock
+(function and struct) defined in drm_modeset_lock.h and
+drm_modeset_lock.c.  Considering this, it should only affect the DRM
+documentation by including struct drm_modeset_lock to the final Docbook.
+
+Signed-off-by: Danilo Cesar Lemes de Paula <danilo.cesar@collabora.co.uk>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Johannes Berg <johannes.berg@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/kasan.c |   24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+ scripts/kernel-doc |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/kasan/kasan.c~kasan-use-is_aligned-in-memory_is_poisoned_8 mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~kasan-use-is_aligned-in-memory_is_poisoned_8
-+++ a/mm/kasan/kasan.c
-@@ -86,6 +86,11 @@ static __always_inline bool memory_is_po
- 		if (memory_is_poisoned_1(addr + 1))
- 			return true;
- 
-+		/*
-+		 * If single shadow byte covers 2-byte access, we don't
-+		 * need to do anything more. Otherwise, test the first
-+		 * shadow byte.
-+		 */
- 		if (likely(((addr + 1) & KASAN_SHADOW_MASK) != 0))
- 			return false;
- 
-@@ -103,6 +108,11 @@ static __always_inline bool memory_is_po
- 		if (memory_is_poisoned_1(addr + 3))
- 			return true;
- 
-+		/*
-+		 * If single shadow byte covers 4-byte access, we don't
-+		 * need to do anything more. Otherwise, test the first
-+		 * shadow byte.
-+		 */
- 		if (likely(((addr + 3) & KASAN_SHADOW_MASK) >= 3))
- 			return false;
- 
-@@ -120,7 +130,12 @@ static __always_inline bool memory_is_po
- 		if (memory_is_poisoned_1(addr + 7))
- 			return true;
- 
--		if (likely(((addr + 7) & KASAN_SHADOW_MASK) >= 7))
-+		/*
-+		 * If single shadow byte covers 8-byte access, we don't
-+		 * need to do anything more. Otherwise, test the first
-+		 * shadow byte.
-+		 */
-+		if (likely(IS_ALIGNED(addr, KASAN_SHADOW_SCALE_SIZE)))
- 			return false;
- 
- 		return unlikely(*(u8 *)shadow_addr);
-@@ -139,7 +154,12 @@ static __always_inline bool memory_is_po
- 		if (unlikely(shadow_first_bytes))
- 			return true;
- 
--		if (likely(IS_ALIGNED(addr, 8)))
-+		/*
-+		 * If two shadow bytes covers 16-byte access, we don't
-+		 * need to do anything more. Otherwise, test the last
-+		 * shadow byte.
-+		 */
-+		if (likely(IS_ALIGNED(addr, KASAN_SHADOW_SCALE_SIZE)))
- 			return false;
- 
- 		return memory_is_poisoned_1(addr + 15);
+diff -puN scripts/kernel-doc~scripts-kernel-doc-processing-nofunc-for-functions-only scripts/kernel-doc
+--- a/scripts/kernel-doc~scripts-kernel-doc-processing-nofunc-for-functions-only
++++ a/scripts/kernel-doc
+@@ -1746,7 +1746,7 @@ sub output_declaration {
+     my $func = "output_${functype}_$output_mode";
+     if (($function_only==0) ||
+ 	( $function_only == 1 && defined($function_table{$name})) ||
+-	( $function_only == 2 && !defined($function_table{$name})))
++	( $function_only == 2 && !($functype eq "function" && defined($function_table{$name}))))
+     {
+ 	&$func(@_);
+ 	$section_counter++;
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from danilo.cesar@collabora.co.uk are
 
-kasan-fix-last-shadow-judgement-in-memory_is_poisoned_16.patch
-kasan-use-is_aligned-in-memory_is_poisoned_8.patch
 
