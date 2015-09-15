@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mremap-use-offset_in_page-macro.patch added to -mm tree
-Date: Tue, 15 Sep 2015 15:22:53 -0700
-Message-ID: <55f89a3d.DuwhQxssN7r+QyeE%akpm@linux-foundation.org>
+Subject: + mm-slab-convert-slab_is_available-to-boolean.patch added to -mm tree
+Date: Tue, 15 Sep 2015 15:27:14 -0700
+Message-ID: <55f89b42.guJC+6o28/CmeMcF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55969 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56457 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751693AbbIOWWy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Sep 2015 18:22:54 -0400
+	with ESMTP id S1751465AbbIOW1Q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Sep 2015 18:27:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kuleshovmail@gmail.com, mm-commits@vger.kernel.org
+To: kda@linux-powerpc.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mremap: use offset_in_page macro
+     Subject: slab: convert slab_is_available() to boolean
 has been added to the -mm tree.  Its filename is
-     mm-mremap-use-offset_in_page-macro.patch
+     mm-slab-convert-slab_is_available-to-boolean.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mremap-use-offset_in_page-macro.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-convert-slab_is_available-to-boolean.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mremap-use-offset_in_page-macro.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-convert-slab_is_available-to-boolean.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,85 +38,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexander Kuleshov <kuleshovmail@gmail.com>
-Subject: mm/mremap: use offset_in_page macro
+From: Denis Kirjanov <kda@linux-powerpc.org>
+Subject: slab: convert slab_is_available() to boolean
 
-linux/mm.h provides offset_in_page() macro.  Let's use already predefined
-macro instead of (addr & ~PAGE_MASK).
+A good candidate to return a boolean result.
 
-Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
+Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mremap.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/linux/slab.h |    2 +-
+ mm/slab_common.c     |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/mremap.c~mm-mremap-use-offset_in_page-macro mm/mremap.c
---- a/mm/mremap.c~mm-mremap-use-offset_in_page-macro
-+++ a/mm/mremap.c
-@@ -401,7 +401,7 @@ static unsigned long mremap_to(unsigned
- 	unsigned long charged = 0;
- 	unsigned long map_flags;
+diff -puN include/linux/slab.h~mm-slab-convert-slab_is_available-to-boolean include/linux/slab.h
+--- a/include/linux/slab.h~mm-slab-convert-slab_is_available-to-boolean
++++ a/include/linux/slab.h
+@@ -111,7 +111,7 @@ struct mem_cgroup;
+  * struct kmem_cache related prototypes
+  */
+ void __init kmem_cache_init(void);
+-int slab_is_available(void);
++bool slab_is_available(void);
  
--	if (new_addr & ~PAGE_MASK)
-+	if (offset_in_page(new_addr))
- 		goto out;
+ struct kmem_cache *kmem_cache_create(const char *, size_t, size_t,
+ 			unsigned long,
+diff -puN mm/slab_common.c~mm-slab-convert-slab_is_available-to-boolean mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-convert-slab_is_available-to-boolean
++++ a/mm/slab_common.c
+@@ -692,7 +692,7 @@ int kmem_cache_shrink(struct kmem_cache
+ }
+ EXPORT_SYMBOL(kmem_cache_shrink);
  
- 	if (new_len > TASK_SIZE || new_addr > TASK_SIZE - new_len)
-@@ -435,11 +435,11 @@ static unsigned long mremap_to(unsigned
- 	ret = get_unmapped_area(vma->vm_file, new_addr, new_len, vma->vm_pgoff +
- 				((addr - vma->vm_start) >> PAGE_SHIFT),
- 				map_flags);
--	if (ret & ~PAGE_MASK)
-+	if (offset_in_page(ret))
- 		goto out1;
- 
- 	ret = move_vma(vma, addr, old_len, new_len, new_addr, locked);
--	if (!(ret & ~PAGE_MASK))
-+	if (!(offset_in_page(ret)))
- 		goto out;
- out1:
- 	vm_unacct_memory(charged);
-@@ -484,7 +484,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 	if (flags & MREMAP_FIXED && !(flags & MREMAP_MAYMOVE))
- 		return ret;
- 
--	if (addr & ~PAGE_MASK)
-+	if (offset_in_page(addr))
- 		return ret;
- 
- 	old_len = PAGE_ALIGN(old_len);
-@@ -566,7 +566,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 					vma->vm_pgoff +
- 					((addr - vma->vm_start) >> PAGE_SHIFT),
- 					map_flags);
--		if (new_addr & ~PAGE_MASK) {
-+		if (offset_in_page(new_addr)) {
- 			ret = new_addr;
- 			goto out;
- 		}
-@@ -574,7 +574,7 @@ SYSCALL_DEFINE5(mremap, unsigned long, a
- 		ret = move_vma(vma, addr, old_len, new_len, new_addr, &locked);
- 	}
- out:
--	if (ret & ~PAGE_MASK) {
-+	if (offset_in_page(ret)) {
- 		vm_unacct_memory(charged);
- 		locked = 0;
- 	}
+-int slab_is_available(void)
++bool slab_is_available(void)
+ {
+ 	return slab_state >= UP;
+ }
 _
 
-Patches currently in -mm which might be from kuleshovmail@gmail.com are
+Patches currently in -mm which might be from kda@linux-powerpc.org are
 
-mm-msync-use-offset_in_page-macro.patch
-mm-nommu-use-offset_in_page-macro.patch
-mm-mincore-use-offset_in_page-macro.patch
-mm-early_ioremap-use-offset_in_page-macro.patch
-mm-percpu-use-offset_in_page-macro.patch
-mm-util-use-offset_in_page-macro.patch
-mm-mlock-use-offset_in_page-macro.patch
-mm-vmalloc-use-offset_in_page-macro.patch
-mm-mmap-use-offset_in_page-macro.patch
-mm-mremap-use-offset_in_page-macro.patch
-lib-halfmd4-use-rol32-inline-function-in-the-round-macro.patch
+mm-slab-convert-slab_is_available-to-boolean.patch
 
