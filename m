@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + userfaultfd-selftest-headers-fixup.patch added to -mm tree
-Date: Tue, 15 Sep 2015 13:04:35 -0700
-Message-ID: <55f879d3.gMCJbTiRoCDLp2kj%akpm@linux-foundation.org>
+Subject: +
+ userfaultfd-selftest-avoid-my_bcmp-false-positives-with-powerpc.patch added to -mm tree
+Date: Tue, 15 Sep 2015 13:04:39 -0700
+Message-ID: <55f879d7.01Jxj2MmEeIf6R6+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37008 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37021 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751404AbbIOUEg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Sep 2015 16:04:36 -0400
+	with ESMTP id S1751633AbbIOUEk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Sep 2015 16:04:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, dgilbert@redhat.com, mpe@ellerman.id.au, shuahkh@osg.samsung.com, treding@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: userfaultfd: selftest: headers fixup
+     Subject: userfaultfd: selftest: avoid my_bcmp false positives with powerpc
 has been added to the -mm tree.  Its filename is
-     userfaultfd-selftest-headers-fixup.patch
+     userfaultfd-selftest-avoid-my_bcmp-false-positives-with-powerpc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftest-headers-fixup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/userfaultfd-selftest-avoid-my_bcmp-false-positives-with-powerpc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftest-headers-fixup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/userfaultfd-selftest-avoid-my_bcmp-false-positives-with-powerpc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,60 +40,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: userfaultfd: selftest: headers fixup
+Subject: userfaultfd: selftest: avoid my_bcmp false positives with powerpc
 
-Depend on "make headers_install" to create proper headers to include
-and provide syscall numbers.
+Keep a non-zero placeholder after the count, for the my_bcmp comparison of
+the page against the zeropage.  The lockless increment between 255 to 256
+against a lockless my_bcmp could otherwise return false positives on
+ppc32le.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Tested-by: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Dr. David Alan Gilbert <dgilbert@redhat.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
 Cc: Shuah Khan <shuahkh@osg.samsung.com>
 Cc: Thierry Reding <treding@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile      |    7 +++++--
- tools/testing/selftests/vm/userfaultfd.c |    8 --------
- 2 files changed, 5 insertions(+), 10 deletions(-)
+ tools/testing/selftests/vm/userfaultfd.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN tools/testing/selftests/vm/Makefile~userfaultfd-selftest-headers-fixup tools/testing/selftests/vm/Makefile
---- a/tools/testing/selftests/vm/Makefile~userfaultfd-selftest-headers-fixup
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -12,8 +12,11 @@ BINARIES += userfaultfd
- all: $(BINARIES)
- %: %.c
- 	$(CC) $(CFLAGS) -o $@ $^ -lrt
--userfaultfd: userfaultfd.c
--	$(CC) $(CFLAGS) -O2 -o $@ $^ -lpthread
-+userfaultfd: userfaultfd.c ../../../../usr/include/linux/kernel.h
-+	$(CC) $(CFLAGS) -O2 -o $@ $< -lpthread
-+
-+../../../../usr/include/linux/kernel.h:
-+	make -C ../../../.. headers_install
- 
- TEST_PROGS := run_vmtests
- TEST_FILES := $(BINARIES)
-diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-headers-fixup tools/testing/selftests/vm/userfaultfd.c
---- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-headers-fixup
+diff -puN tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-avoid-my_bcmp-false-positives-with-powerpc tools/testing/selftests/vm/userfaultfd.c
+--- a/tools/testing/selftests/vm/userfaultfd.c~userfaultfd-selftest-avoid-my_bcmp-false-positives-with-powerpc
 +++ a/tools/testing/selftests/vm/userfaultfd.c
-@@ -67,16 +67,8 @@
- #include <linux/userfaultfd.h>
+@@ -465,6 +465,14 @@ static int userfaultfd_stress(void)
+ 		*area_mutex(area_src, nr) = (pthread_mutex_t)
+ 			PTHREAD_MUTEX_INITIALIZER;
+ 		count_verify[nr] = *area_count(area_src, nr) = 1;
++		/*
++		 * In the transition between 255 to 256, powerpc will
++		 * read out of order in my_bcmp and see both bytes as
++		 * zero, so leave a placeholder below always non-zero
++		 * after the count, to avoid my_bcmp to trigger false
++		 * positives.
++		 */
++		*(area_count(area_src, nr) + 1) = 1;
+ 	}
  
- #ifndef __NR_userfaultfd
--#ifdef __x86_64__
--#define __NR_userfaultfd 323
--#elif defined(__i386__)
--#define __NR_userfaultfd 374
--#elif defined(__powewrpc__)
--#define __NR_userfaultfd 364
--#else
- #error "missing __NR_userfaultfd definition"
- #endif
--#endif
- 
- static unsigned long nr_cpus, nr_pages, nr_pages_per_cpu, page_size;
- 
+ 	pipefd = malloc(sizeof(int) * nr_cpus * 2);
+@@ -610,8 +618,8 @@ int main(int argc, char **argv)
+ 		fprintf(stderr, "Usage: <MiB> <bounces>\n"), exit(1);
+ 	nr_cpus = sysconf(_SC_NPROCESSORS_ONLN);
+ 	page_size = sysconf(_SC_PAGE_SIZE);
+-	if ((unsigned long) area_count(NULL, 0) + sizeof(unsigned long long) >
+-	    page_size)
++	if ((unsigned long) area_count(NULL, 0) + sizeof(unsigned long long) * 2
++	    > page_size)
+ 		fprintf(stderr, "Impossible to run this test\n"), exit(2);
+ 	nr_pages_per_cpu = atol(argv[1]) * 1024*1024 / page_size /
+ 		nr_cpus;
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
