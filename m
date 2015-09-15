@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-replace-nr_node_ids-for-loop-with-for_each_node-in-list-lru.patch added
- to -mm tree
-Date: Tue, 15 Sep 2015 14:36:14 -0700
-Message-ID: <55f88f4e.H/tEL9MpulZ0Os53%akpm@linux-foundation.org>
+ powerpc-numa-do-not-allocate-bootmem-memory-for-non-existing-nodes.patch
+ added to -mm tree
+Date: Tue, 15 Sep 2015 14:36:16 -0700
+Message-ID: <55f88f50.GHGH3xOtniDv5zfB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48409 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48418 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751772AbbIOVgP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Sep 2015 17:36:15 -0400
+	with ESMTP id S1751772AbbIOVgR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Sep 2015 17:36:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: raghavendra.kt@linux.vnet.ibm.com, anton@samba.org, benh@kernel.crashing.org, gkurz@linux.vnet.ibm.com, grant.likely@linaro.org, mpe@ellerman.id.au, nacc@linux.vnet.ibm.com, nikunj@linux.vnet.ibm.com, paulus@samba.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/list_lru.c: replace nr_node_ids for loop with for_each_node()
+     Subject: arch/powerpc/mm/numa.c: do not allocate bootmem memory for non existing nodes
 has been added to the -mm tree.  Its filename is
-     mm-replace-nr_node_ids-for-loop-with-for_each_node-in-list-lru.patch
+     powerpc-numa-do-not-allocate-bootmem-memory-for-non-existing-nodes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-replace-nr_node_ids-for-loop-with-for_each_node-in-list-lru.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-numa-do-not-allocate-bootmem-memory-for-non-existing-nodes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-replace-nr_node_ids-for-loop-with-for_each_node-in-list-lru.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-numa-do-not-allocate-bootmem-memory-for-non-existing-nodes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,22 +41,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Raghavendra K T <raghavendra.kt@linux.vnet.ibm.com>
-Subject: mm/list_lru.c: replace nr_node_ids for loop with for_each_node()
+Subject: arch/powerpc/mm/numa.c: do not allocate bootmem memory for non existing nodes
 
-The functions used in the patch are in slowpath, which gets called
-whenever alloc_super is called during mounts.
-
-Though this should not make difference for the architectures with
-sequential numa node ids, for the powerpc which can potentially have
-sparse node ids (for e.g., 4 node system having numa ids, 0,1,16,17 is
-common), this patch saves some unnecessary allocations for non existing
-numa nodes.
-
-Even without that saving, perhaps patch makes code more readable.
-
-[vdavydov@parallels.com: take memcg_aware check outside for_each loop]
 Signed-off-by: Raghavendra K T <raghavendra.kt@linux.vnet.ibm.com>
-Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Paul Mackerras <paulus@samba.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
@@ -68,108 +56,21 @@ Cc: Nikunj A Dadhania <nikunj@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/list_lru.c |   34 +++++++++++++++++++++++-----------
- 1 file changed, 23 insertions(+), 11 deletions(-)
+ arch/powerpc/mm/numa.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/list_lru.c~mm-replace-nr_node_ids-for-loop-with-for_each_node-in-list-lru mm/list_lru.c
---- a/mm/list_lru.c~mm-replace-nr_node_ids-for-loop-with-for_each_node-in-list-lru
-+++ a/mm/list_lru.c
-@@ -42,6 +42,10 @@ static void list_lru_unregister(struct l
- #ifdef CONFIG_MEMCG_KMEM
- static inline bool list_lru_memcg_aware(struct list_lru *lru)
- {
-+	/*
-+	 * This needs node 0 to be always present, even
-+	 * in the systems supporting sparse numa ids.
-+	 */
- 	return !!lru->node[0].memcg_lrus;
- }
+diff -puN arch/powerpc/mm/numa.c~powerpc-numa-do-not-allocate-bootmem-memory-for-non-existing-nodes arch/powerpc/mm/numa.c
+--- a/arch/powerpc/mm/numa.c~powerpc-numa-do-not-allocate-bootmem-memory-for-non-existing-nodes
++++ a/arch/powerpc/mm/numa.c
+@@ -80,7 +80,7 @@ static void __init setup_node_to_cpumask
+ 		setup_nr_node_ids();
  
-@@ -377,16 +381,20 @@ static int memcg_init_list_lru(struct li
- {
- 	int i;
+ 	/* allocate the map */
+-	for (node = 0; node < nr_node_ids; node++)
++	for_each_node(node)
+ 		alloc_bootmem_cpumask_var(&node_to_cpumask_map[node]);
  
--	for (i = 0; i < nr_node_ids; i++) {
--		if (!memcg_aware)
--			lru->node[i].memcg_lrus = NULL;
--		else if (memcg_init_list_lru_node(&lru->node[i]))
-+	if (!memcg_aware)
-+		return 0;
-+
-+	for_each_node(i) {
-+		if (memcg_init_list_lru_node(&lru->node[i]))
- 			goto fail;
- 	}
- 	return 0;
- fail:
--	for (i = i - 1; i >= 0; i--)
-+	for (i = i - 1; i >= 0; i--) {
-+		if (!lru->node[i].memcg_lrus)
-+			continue;
- 		memcg_destroy_list_lru_node(&lru->node[i]);
-+	}
- 	return -ENOMEM;
- }
- 
-@@ -397,7 +405,7 @@ static void memcg_destroy_list_lru(struc
- 	if (!list_lru_memcg_aware(lru))
- 		return;
- 
--	for (i = 0; i < nr_node_ids; i++)
-+	for_each_node(i)
- 		memcg_destroy_list_lru_node(&lru->node[i]);
- }
- 
-@@ -409,16 +417,20 @@ static int memcg_update_list_lru(struct
- 	if (!list_lru_memcg_aware(lru))
- 		return 0;
- 
--	for (i = 0; i < nr_node_ids; i++) {
-+	for_each_node(i) {
- 		if (memcg_update_list_lru_node(&lru->node[i],
- 					       old_size, new_size))
- 			goto fail;
- 	}
- 	return 0;
- fail:
--	for (i = i - 1; i >= 0; i--)
-+	for (i = i - 1; i >= 0; i--) {
-+		if (!lru->node[i].memcg_lrus)
-+			continue;
-+
- 		memcg_cancel_update_list_lru_node(&lru->node[i],
- 						  old_size, new_size);
-+	}
- 	return -ENOMEM;
- }
- 
-@@ -430,7 +442,7 @@ static void memcg_cancel_update_list_lru
- 	if (!list_lru_memcg_aware(lru))
- 		return;
- 
--	for (i = 0; i < nr_node_ids; i++)
-+	for_each_node(i)
- 		memcg_cancel_update_list_lru_node(&lru->node[i],
- 						  old_size, new_size);
- }
-@@ -485,7 +497,7 @@ static void memcg_drain_list_lru(struct
- 	if (!list_lru_memcg_aware(lru))
- 		return;
- 
--	for (i = 0; i < nr_node_ids; i++)
-+	for_each_node(i)
- 		memcg_drain_list_lru_node(&lru->node[i], src_idx, dst_idx);
- }
- 
-@@ -522,7 +534,7 @@ int __list_lru_init(struct list_lru *lru
- 	if (!lru->node)
- 		goto out;
- 
--	for (i = 0; i < nr_node_ids; i++) {
-+	for_each_node(i) {
- 		spin_lock_init(&lru->node[i].lock);
- 		if (key)
- 			lockdep_set_class(&lru->node[i].lock, key);
+ 	/* cpumask_of_node() will now work */
 _
 
 Patches currently in -mm which might be from raghavendra.kt@linux.vnet.ibm.com are
