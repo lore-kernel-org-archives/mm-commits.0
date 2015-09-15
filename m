@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memory-hot-add-memory-can-not-be-added-to-movable-zone-defaultly-fix.patch added to -mm tree
-Date: Tue, 15 Sep 2015 14:49:57 -0700
-Message-ID: <55f89285.UDXsRxGDQdfNcCoV%akpm@linux-foundation.org>
+Subject: + mm-drop-page-slab_page.patch added to -mm tree
+Date: Tue, 15 Sep 2015 15:12:52 -0700
+Message-ID: <55f897e4.UK1E7G+HYt5S6S4y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54599 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751708AbbIOVt6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Sep 2015 17:49:58 -0400
+	with ESMTP id S1751272AbbIOWMx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Sep 2015 18:12:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dave.hansen@intel.com, fandd@inspur.com, guz.fnst@cn.fujitsu.com, hutao@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, laijs@cn.fujitsu.com, liuchangcheng@inspur.com, qiuxishi@huawei.com, tangchen@cn.fujitsu.com, toshi.kani@hp.com, wangnan0@huawei.com, yanxiaofeng@inspur.com, yinghai@kernel.org, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, hughd@google.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, paulmck@linux.vnet.ibm.com, rientjes@google.com, sergey.senozhatsky@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memory-hot-add-memory-can-not-be-added-to-movable-zone-defaultly-fix
+     Subject: mm: drop page->slab_page
 has been added to the -mm tree.  Its filename is
-     mm-memory-hot-add-memory-can-not-be-added-to-movable-zone-defaultly-fix.patch
+     mm-drop-page-slab_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-hot-add-memory-can-not-be-added-to-movable-zone-defaultly-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-drop-page-slab_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-hot-add-memory-can-not-be-added-to-movable-zone-defaultly-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-drop-page-slab_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,79 +38,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memory-hot-add-memory-can-not-be-added-to-movable-zone-defaultly-fix
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: drop page->slab_page
 
-fix comment, fix code layout
+Since 8456a648cf44 ("slab: use struct page for slab management") nobody
+uses slab_page field in struct page.
 
-Cc: Changsheng Liu <liuchangcheng@inspur.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Dongdong Fan <fandd@inspur.com>
-Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: Hu Tao <hutao@cn.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Wang Nan <wangnan0@huawei.com>
-Cc: Xiaofeng Yan <yanxiaofeng@inspur.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Let's drop it.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ include/linux/mm_types.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory-hot-add-memory-can-not-be-added-to-movable-zone-defaultly-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory-hot-add-memory-can-not-be-added-to-movable-zone-defaultly-fix
-+++ a/mm/memory_hotplug.c
-@@ -1201,10 +1201,10 @@ static int check_hotplug_memory_range(u6
- /*
-  * If movable zone has already been setup, newly added memory should be check.
-  * If its address is higher than movable zone, it should be added as movable.
-- * And if system boots up with movable_node and config CONFIG_MOVABLE_NOD and
-- * added memory does not overlap the zone before MOVABLE_ZONE,
-- * the memory is added as movable
-- * Without this check, movable zone may overlap with other zone.
-+ * And if system boots up with movable_node and config CONFIG_MOVABLE_NODE and
-+ * added memory does not overlap the zone before MOVABLE_ZONE, the memory is
-+ * added as movable.  Without this check, movable zone may overlap with other
-+ * zone.
-  */
- static int should_add_memory_movable(int nid, u64 start, u64 size)
- {
-@@ -1213,8 +1213,7 @@ static int should_add_memory_movable(int
- 	struct zone *movable_zone = pgdat->node_zones + ZONE_MOVABLE;
- 	struct zone *pre_zone = pgdat->node_zones + (ZONE_MOVABLE - 1);
+diff -puN include/linux/mm_types.h~mm-drop-page-slab_page include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-drop-page-slab_page
++++ a/include/linux/mm_types.h
+@@ -131,7 +131,6 @@ struct page {
+ #endif
+ 		};
  
--	if (movable_node_is_enabled()
--	&& zone_end_pfn(pre_zone) <= start_pfn)
-+	if (movable_node_is_enabled() && zone_end_pfn(pre_zone) <= start_pfn)
- 		return 1;
- 
- 	if (zone_is_empty(movable_zone))
+-		struct slab *slab_page; /* slab fields */
+ 		struct rcu_head rcu_head;	/* Used by SLAB
+ 						 * when destroying via RCU
+ 						 */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
-mm-memory-hot-add-memory-can-not-be-added-to-movable-zone-defaultly-fix.patch
-kasan-various-fixes-in-documentation-checkpatch-fixes.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-drop-page-slab_page.patch
+slab-slub-use-page-rcu_head-instead-of-page-lru-plus-cast.patch
+zsmalloc-use-page-private-instead-of-page-first_page.patch
+mm-pack-compound_dtor-and-compound_order-into-one-word-in-struct-page.patch
+mm-make-compound_head-robust.patch
+mm-use-unsigned-int-for-page-order.patch
+mm-use-unsigned-int-for-compound_dtor-compound_order-on-64bit.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-support-madvisemadv_free-fix-3.patch
 
