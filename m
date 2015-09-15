@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zlib-fix-usage-example-of-zlib_adler32.patch added to -mm tree
-Date: Tue, 15 Sep 2015 16:00:00 -0700
-Message-ID: <55f8a2f0.cq8wouzu7Anpfnxh%akpm@linux-foundation.org>
+Subject: + zram-introduce-comp-algorithm-fallback-functionality.patch
+ added to -mm tree
+Date: Tue, 15 Sep 2015 16:07:38 -0700
+Message-ID: <55f8a4ba.Yw5HWIhCxVWnRQu7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60240 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60832 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994AbbIOXAA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Sep 2015 19:00:00 -0400
+	with ESMTP id S1752244AbbIOXHi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Sep 2015 19:07:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: anish@chelsio.com, mm-commits@vger.kernel.org
+To: luis.henriques@canonical.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/zutil.h: fix usage example of zlib_adler32()
+     Subject: zram: introduce comp algorithm fallback functionality
 has been added to the -mm tree.  Its filename is
-     zlib-fix-usage-example-of-zlib_adler32.patch
+     zram-introduce-comp-algorithm-fallback-functionality.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zlib-fix-usage-example-of-zlib_adler32.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-introduce-comp-algorithm-fallback-functionality.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zlib-fix-usage-example-of-zlib_adler32.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-introduce-comp-algorithm-fallback-functionality.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,37 +39,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Anish Bhatt <anish@chelsio.com>
-Subject: include/linux/zutil.h: fix usage example of zlib_adler32()
+From: Luis Henriques <luis.henriques@canonical.com>
+Subject: zram: introduce comp algorithm fallback functionality
 
-alder32 was renamed to zlib_adler32 since before 2.6.11.
+When the user supplies an unsupported compression algorithm, keep the
+previously selected one (knowingly supported) or the default one (if the
+compression algorithm hasn't been changed yet).
 
-Signed-off-by: Anish Bhatt <anish@chelsio.com>
+Note that previously this operation (i.e. setting an invalid algorithm)
+would result in no algorithm being selected, which means that this
+represents a small change in the default behaviour.
+
+Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/zutil.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/block/zram/zram_drv.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/zutil.h~zlib-fix-usage-example-of-zlib_adler32 include/linux/zutil.h
---- a/include/linux/zutil.h~zlib-fix-usage-example-of-zlib_adler32
-+++ a/include/linux/zutil.h
-@@ -68,10 +68,10 @@ typedef uLong (*check_func) (uLong check
-    An Adler-32 checksum is almost as reliable as a CRC32 but can be computed
-    much faster. Usage example:
+diff -puN drivers/block/zram/zram_drv.c~zram-introduce-comp-algorithm-fallback-functionality drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-introduce-comp-algorithm-fallback-functionality
++++ a/drivers/block/zram/zram_drv.c
+@@ -365,6 +365,9 @@ static ssize_t comp_algorithm_store(stru
+ 	struct zram *zram = dev_to_zram(dev);
+ 	size_t sz;
  
--     uLong adler = adler32(0L, NULL, 0);
-+     uLong adler = zlib_adler32(0L, NULL, 0);
++	if (!zcomp_available_algorithm(buf))
++		return -EINVAL;
++
+ 	down_write(&zram->init_lock);
+ 	if (init_done(zram)) {
+ 		up_write(&zram->init_lock);
+@@ -378,9 +381,6 @@ static ssize_t comp_algorithm_store(stru
+ 	if (sz > 0 && zram->compressor[sz - 1] == '\n')
+ 		zram->compressor[sz - 1] = 0x00;
  
-      while (read_buffer(buffer, length) != EOF) {
--       adler = adler32(adler, buffer, length);
-+       adler = zlib_adler32(adler, buffer, length);
-      }
-      if (adler != original_adler) error();
- */
-_
-
-Patches currently in -mm which might be from anish@chelsio.com are
-
-zlib-fix-usage-example-of-zlib_adler32.patch
-
+-	if (!zcomp_available_algorithm(zram->compressor))
+-		len = -EINVAL;
