@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- slub-create-new-___slab_alloc-function-that-can-be-called-with-irqs-disabled.patch added to -mm tree
-Date: Wed, 16 Sep 2015 15:14:21 -0700
-Message-ID: <55f9e9bd.URhF7y2IO8SNETzV%akpm@linux-foundation.org>
+Subject: + signals-kill-block_all_signals-and-unblock_all_signals.patch
+ added to -mm tree
+Date: Wed, 16 Sep 2015 15:16:47 -0700
+Message-ID: <55f9ea4f.maSjVUwOai8p28x/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44948 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45065 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752349AbbIPWOW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Sep 2015 18:14:22 -0400
+	with ESMTP id S1752252AbbIPWQr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Sep 2015 18:16:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, brouer@redhat.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, airlied@gmail.com, daniel.vetter@ffwll.ch, richard@nod.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: create new ___slab_alloc function that can be called with irqs disabled
+     Subject: signals: kill block_all_signals() and unblock_all_signals()
 has been added to the -mm tree.  Its filename is
-     slub-create-new-___slab_alloc-function-that-can-be-called-with-irqs-disabled.patch
+     signals-kill-block_all_signals-and-unblock_all_signals.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-create-new-___slab_alloc-function-that-can-be-called-with-irqs-disabled.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/signals-kill-block_all_signals-and-unblock_all_signals.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-create-new-___slab_alloc-function-that-can-be-called-with-irqs-disabled.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/signals-kill-block_all_signals-and-unblock_all_signals.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,112 +39,221 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@linux.com>
-Subject: slub: create new ___slab_alloc function that can be called with irqs disabled
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: signals: kill block_all_signals() and unblock_all_signals()
 
-Bulk alloc needs a function like that because it enables interrupts before
-calling __slab_alloc which promptly disables them again using the expensive
-local_irq_save().
+It is hardly possible to enumerate all problems with block_all_signals()
+and unblock_all_signals().  Just for example,
 
-Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+1. block_all_signals(SIGSTOP/etc) simply can't help if the caller is
+   multithreaded. Another thread can dequeue the signal and force the
+   group stop.
+
+2. Even is the caller is single-threaded, it will "stop" anyway. It
+   will not sleep, but it will spin in kernel space until SIGCONT or
+   SIGKILL.
+
+And a lot more. In short, this interface doesn't work at all, at least
+the last 10+ years.
+
+Daniel said:
+
+  Yeah the only times I played around with the DRM_LOCK stuff was when
+  old drivers accidentally deadlocked - my impression is that the entire
+  DRM_LOCK thing was never really tested properly ;-) Hence I'm all for
+  purging where this leaks out of the drm subsystem.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Dave Airlie <airlied@gmail.com>
+Cc: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   44 +++++++++++++++++++++++++++++---------------
- 1 file changed, 29 insertions(+), 15 deletions(-)
+ drivers/gpu/drm/drm_lock.c |   41 ----------------------------
+ include/drm/drmP.h         |    1 
+ include/linux/sched.h      |    7 ----
+ kernel/signal.c            |   51 -----------------------------------
+ 4 files changed, 2 insertions(+), 98 deletions(-)
 
-diff -puN mm/slub.c~slub-create-new-___slab_alloc-function-that-can-be-called-with-irqs-disabled mm/slub.c
---- a/mm/slub.c~slub-create-new-___slab_alloc-function-that-can-be-called-with-irqs-disabled
-+++ a/mm/slub.c
-@@ -2298,23 +2298,15 @@ static inline void *get_freelist(struct
-  * And if we were unable to get a new slab from the partial slab lists then
-  * we need to allocate a new slab. This is the slowest path since it involves
-  * a call to the page allocator and the setup of a new slab.
-+ *
-+ * Version of __slab_alloc to use when we know that interrupts are
-+ * already disabled (which is the case for bulk allocation).
-  */
--static void *__slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,
-+static void *___slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,
- 			  unsigned long addr, struct kmem_cache_cpu *c)
- {
- 	void *freelist;
- 	struct page *page;
--	unsigned long flags;
+diff -puN drivers/gpu/drm/drm_lock.c~signals-kill-block_all_signals-and-unblock_all_signals drivers/gpu/drm/drm_lock.c
+--- a/drivers/gpu/drm/drm_lock.c~signals-kill-block_all_signals-and-unblock_all_signals
++++ a/drivers/gpu/drm/drm_lock.c
+@@ -38,8 +38,6 @@
+ #include "drm_legacy.h"
+ #include "drm_internal.h"
+ 
+-static int drm_notifier(void *priv);
 -
--	local_irq_save(flags);
--#ifdef CONFIG_PREEMPT
--	/*
--	 * We may have been preempted and rescheduled on a different
--	 * cpu before disabling interrupts. Need to reload cpu area
--	 * pointer.
--	 */
--	c = this_cpu_ptr(s->cpu_slab);
--#endif
+ static int drm_lock_take(struct drm_lock_data *lock_data, unsigned int context);
  
- 	page = c->page;
- 	if (!page)
-@@ -2372,7 +2364,6 @@ load_freelist:
- 	VM_BUG_ON(!c->page->frozen);
- 	c->freelist = get_freepointer(s, freelist);
- 	c->tid = next_tid(c->tid);
--	local_irq_restore(flags);
- 	return freelist;
- 
- new_slab:
-@@ -2389,7 +2380,6 @@ new_slab:
- 
- 	if (unlikely(!freelist)) {
- 		slab_out_of_memory(s, gfpflags, node);
--		local_irq_restore(flags);
- 		return NULL;
+ /**
+@@ -118,14 +116,8 @@ int drm_legacy_lock(struct drm_device *d
+ 	 * really probably not the correct answer but lets us debug xkb
+  	 * xserver for now */
+ 	if (!file_priv->is_master) {
+-		sigemptyset(&dev->sigmask);
+-		sigaddset(&dev->sigmask, SIGSTOP);
+-		sigaddset(&dev->sigmask, SIGTSTP);
+-		sigaddset(&dev->sigmask, SIGTTIN);
+-		sigaddset(&dev->sigmask, SIGTTOU);
+ 		dev->sigdata.context = lock->context;
+ 		dev->sigdata.lock = master->lock.hw_lock;
+-		block_all_signals(drm_notifier, dev, &dev->sigmask);
  	}
  
-@@ -2405,11 +2395,35 @@ new_slab:
- 	deactivate_slab(s, page, get_freepointer(s, freelist));
- 	c->page = NULL;
- 	c->freelist = NULL;
--	local_irq_restore(flags);
- 	return freelist;
+ 	if (dev->driver->dma_quiescent && (lock->flags & _DRM_LOCK_QUIESCENT))
+@@ -169,7 +161,6 @@ int drm_legacy_unlock(struct drm_device
+ 		/* FIXME: Should really bail out here. */
+ 	}
+ 
+-	unblock_all_signals();
+ 	return 0;
  }
  
- /*
-+ * Another one that disabled interrupt and compensates for possible
-+ * cpu changes by refetching the per cpu area pointer.
-+ */
-+static void *__slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,
-+			  unsigned long addr, struct kmem_cache_cpu *c)
-+{
-+	void *p;
-+	unsigned long flags;
+@@ -287,38 +278,6 @@ int drm_legacy_lock_free(struct drm_lock
+ 	return 0;
+ }
+ 
+-/**
+- * If we get here, it means that the process has called DRM_IOCTL_LOCK
+- * without calling DRM_IOCTL_UNLOCK.
+- *
+- * If the lock is not held, then let the signal proceed as usual.  If the lock
+- * is held, then set the contended flag and keep the signal blocked.
+- *
+- * \param priv pointer to a drm_device structure.
+- * \return one if the signal should be delivered normally, or zero if the
+- * signal should be blocked.
+- */
+-static int drm_notifier(void *priv)
+-{
+-	struct drm_device *dev = priv;
+-	struct drm_hw_lock *lock = dev->sigdata.lock;
+-	unsigned int old, new, prev;
+-
+-	/* Allow signal delivery if lock isn't held */
+-	if (!lock || !_DRM_LOCK_IS_HELD(lock->lock)
+-	    || _DRM_LOCKING_CONTEXT(lock->lock) != dev->sigdata.context)
+-		return 1;
+-
+-	/* Otherwise, set flag to force call to
+-	   drmUnlock */
+-	do {
+-		old = lock->lock;
+-		new = old | _DRM_LOCK_CONT;
+-		prev = cmpxchg(&lock->lock, old, new);
+-	} while (prev != old);
+-	return 0;
+-}
+-
+ /**
+  * This function returns immediately and takes the hw lock
+  * with the kernel context if it is free, otherwise it gets the highest priority when and if
+diff -puN include/drm/drmP.h~signals-kill-block_all_signals-and-unblock_all_signals include/drm/drmP.h
+--- a/include/drm/drmP.h~signals-kill-block_all_signals-and-unblock_all_signals
++++ a/include/drm/drmP.h
+@@ -822,7 +822,6 @@ struct drm_device {
+ 
+ 	struct drm_sg_mem *sg;	/**< Scatter gather memory */
+ 	unsigned int num_crtcs;                  /**< Number of CRTCs on this device */
+-	sigset_t sigmask;
+ 
+ 	struct {
+ 		int context;
+diff -puN include/linux/sched.h~signals-kill-block_all_signals-and-unblock_all_signals include/linux/sched.h
+--- a/include/linux/sched.h~signals-kill-block_all_signals-and-unblock_all_signals
++++ a/include/linux/sched.h
+@@ -1560,9 +1560,7 @@ struct task_struct {
+ 
+ 	unsigned long sas_ss_sp;
+ 	size_t sas_ss_size;
+-	int (*notifier)(void *priv);
+-	void *notifier_data;
+-	sigset_t *notifier_mask;
 +
-+	local_irq_save(flags);
-+#ifdef CONFIG_PREEMPT
-+	/*
-+	 * We may have been preempted and rescheduled on a different
-+	 * cpu before disabling interrupts. Need to reload cpu area
-+	 * pointer.
-+	 */
-+	c = this_cpu_ptr(s->cpu_slab);
-+#endif
-+
-+	p = ___slab_alloc(s, gfpflags, node, addr, c);
-+	local_irq_restore(flags);
-+	return p;
-+}
-+
-+/*
-  * Inlined fastpath so that allocation functions (kmalloc, kmem_cache_alloc)
-  * have the fastpath folded into their functions. So no function call
-  * overhead for requests that can be satisfied on the fastpath.
-_
-
-Patches currently in -mm which might be from cl@linux.com are
-
-slub-create-new-___slab_alloc-function-that-can-be-called-with-irqs-disabled.patch
-slub-avoid-irqoff-on-in-bulk-allocation.patch
-
+ 	struct callback_head *task_works;
+ 
+ 	struct audit_context *audit_context;
+@@ -2466,9 +2464,6 @@ static inline int dequeue_signal_lock(st
+ 	return ret;
+ }
+ 
+-extern void block_all_signals(int (*notifier)(void *priv), void *priv,
+-			      sigset_t *mask);
+-extern void unblock_all_signals(void);
+ extern void release_task(struct task_struct * p);
+ extern int send_sig_info(int, struct siginfo *, struct task_struct *);
+ extern int force_sigsegv(int, struct task_struct *);
+diff -puN kernel/signal.c~signals-kill-block_all_signals-and-unblock_all_signals kernel/signal.c
+--- a/kernel/signal.c~signals-kill-block_all_signals-and-unblock_all_signals
++++ a/kernel/signal.c
+@@ -503,41 +503,6 @@ int unhandled_signal(struct task_struct
+ 	return !tsk->ptrace;
+ }
+ 
+-/*
+- * Notify the system that a driver wants to block all signals for this
+- * process, and wants to be notified if any signals at all were to be
+- * sent/acted upon.  If the notifier routine returns non-zero, then the
+- * signal will be acted upon after all.  If the notifier routine returns 0,
+- * then then signal will be blocked.  Only one block per process is
+- * allowed.  priv is a pointer to private data that the notifier routine
+- * can use to determine if the signal should be blocked or not.
+- */
+-void
+-block_all_signals(int (*notifier)(void *priv), void *priv, sigset_t *mask)
+-{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&current->sighand->siglock, flags);
+-	current->notifier_mask = mask;
+-	current->notifier_data = priv;
+-	current->notifier = notifier;
+-	spin_unlock_irqrestore(&current->sighand->siglock, flags);
+-}
+-
+-/* Notify the system that blocking has ended. */
+-
+-void
+-unblock_all_signals(void)
+-{
+-	unsigned long flags;
+-
+-	spin_lock_irqsave(&current->sighand->siglock, flags);
+-	current->notifier = NULL;
+-	current->notifier_data = NULL;
+-	recalc_sigpending();
+-	spin_unlock_irqrestore(&current->sighand->siglock, flags);
+-}
+-
+ static void collect_signal(int sig, struct sigpending *list, siginfo_t *info)
+ {
+ 	struct sigqueue *q, *first = NULL;
+@@ -580,19 +545,8 @@ static int __dequeue_signal(struct sigpe
+ {
+ 	int sig = next_signal(pending, mask);
+ 
+-	if (sig) {
+-		if (current->notifier) {
+-			if (sigismember(current->notifier_mask, sig)) {
+-				if (!(current->notifier)(current->notifier_data)) {
+-					clear_thread_flag(TIF_SIGPENDING);
+-					return 0;
+-				}
+-			}
+-		}
+-
++	if (sig)
+ 		collect_signal(sig, pending, info);
+-	}
+-
+ 	return sig;
+ }
+ 
+@@ -2483,9 +2437,6 @@ EXPORT_SYMBOL(force_sig);
+ EXPORT_SYMBOL(send_sig);
+ EXPORT_SYMBOL(send_sig_info);
+ EXPORT_SYMBOL(sigprocmask);
+-EXPORT_SYMBOL(block_all_signals);
+-EXPORT_SYMBOL(unblock_all_signals);
