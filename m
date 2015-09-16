@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone.patch
- added to -mm tree
-Date: Wed, 16 Sep 2015 15:31:47 -0700
-Message-ID: <55f9edd3.VcMWUUIymhS1C0I+%akpm@linux-foundation.org>
+Subject: + mm-use-only-per-device-readahead-limit.patch added to -mm tree
+Date: Wed, 16 Sep 2015 15:49:50 -0700
+Message-ID: <55f9f20e.rL2CxHHF7RGt27YQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47415 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50512 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752486AbbIPWbr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Sep 2015 18:31:47 -0400
+	with ESMTP id S1752349AbbIPWtv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Sep 2015 18:49:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, mm-commits@vger.kernel.org
+To: klamm@yandex-team.ru, fengguang.wu@intel.com, jack@suse.cz, khlebnikov@yandex-team.ru, raghavendra.kt@linux.vnet.ibm.com, rientjes@google.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: remove unused parameter in init_currently_empty_zone()
+     Subject: mm: use only per-device readahead limit
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone.patch
+     mm-use-only-per-device-readahead-limit.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-only-per-device-readahead-limit.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-only-per-device-readahead-limit.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,80 +38,119 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yaowei Bai <bywxiaobai@163.com>
-Subject: mm/page_alloc: remove unused parameter in init_currently_empty_zone()
+From: Roman Gushchin <klamm@yandex-team.ru>
+Subject: mm: use only per-device readahead limit
 
-Commit a2f3aa02576632cdb ("[PATCH] Fix sparsemem on Cell") fixed an oops
-experienced on the Cell architecture when init-time functions, early_*(),
-are called at runtime by introducing an 'enum memmap_context' parameter to
-memmap_init_zone() and init_currently_empty_zone().  This parameter is
-intended to be used to tell whether the call of these two functions is
-being made on behalf of a hotplug event, or happening at boot-time. 
-However, init_currently_empty_zone() does not use this parameter at all,
-so remove it.
+Maximal readahead size is limited now by two values:
+1) by global 2Mb constant (MAX_READAHEAD in max_sane_readahead())
+2) by configurable per-device value* (bdi->ra_pages)
 
-Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
+There are devices, which require custom readahead limit.
+For instance, for RAIDs it's calculated as number of devices
+multiplied by chunk size times 2.
+
+Readahead size can never be larger than bdi->ra_pages * 2 value
+(POSIX_FADV_SEQUNTIAL doubles readahead size).
+
+If so, why do we need two limits?
+I suggest to completely remove this max_sane_readahead() stuff and
+use per-device readahead limit everywhere.
+
+Also, using right readahead size for RAID disks can significantly
+increase i/o performance:
+
+before:
+dd if=/dev/md2 of=/dev/null bs=100M count=100
+100+0 records in
+100+0 records out
+10485760000 bytes (10 GB) copied, 12.9741 s, 808 MB/s
+
+after:
+$ dd if=/dev/md2 of=/dev/null bs=100M count=100
+100+0 records in
+100+0 records out
+10485760000 bytes (10 GB) copied, 8.91317 s, 1.2 GB/s
+
+(It's an 8-disks RAID5 storage).
+
+This patch doesn't change sys_readahead and madvise(MADV_WILLNEED)
+behavior introduced by 6d2be915e589b58 ("mm/readahead.c: fix readahead
+failure for memoryless NUMA nodes and limit readahead pages").
+
+Signed-off-by: Roman Gushchin <klamm@yandex-team.ru>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Raghavendra K T <raghavendra.kt@linux.vnet.ibm.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: onstantin Khlebnikov <khlebnikov@yandex-team.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    3 +--
- mm/memory_hotplug.c    |    4 ++--
- mm/page_alloc.c        |    6 ++----
- 3 files changed, 5 insertions(+), 8 deletions(-)
+ include/linux/mm.h |    2 --
+ mm/filemap.c       |    8 +++-----
+ mm/readahead.c     |   14 ++------------
+ 3 files changed, 5 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone
-+++ a/include/linux/mmzone.h
-@@ -823,8 +823,7 @@ enum memmap_context {
- 	MEMMAP_HOTPLUG,
- };
- extern int init_currently_empty_zone(struct zone *zone, unsigned long start_pfn,
--				     unsigned long size,
--				     enum memmap_context context);
-+				     unsigned long size);
+diff -puN include/linux/mm.h~mm-use-only-per-device-readahead-limit include/linux/mm.h
+--- a/include/linux/mm.h~mm-use-only-per-device-readahead-limit
++++ a/include/linux/mm.h
+@@ -2015,8 +2015,6 @@ void page_cache_async_readahead(struct a
+ 				pgoff_t offset,
+ 				unsigned long size);
  
- extern void lruvec_init(struct lruvec *lruvec);
+-unsigned long max_sane_readahead(unsigned long nr);
+-
+ /* Generic expand stack which grows the stack according to GROWS{UP,DOWN} */
+ extern int expand_stack(struct vm_area_struct *vma, unsigned long address);
  
-diff -puN mm/memory_hotplug.c~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone
-+++ a/mm/memory_hotplug.c
-@@ -339,8 +339,8 @@ static int __ref ensure_zone_is_initiali
- 			unsigned long start_pfn, unsigned long num_pages)
+diff -puN mm/filemap.c~mm-use-only-per-device-readahead-limit mm/filemap.c
+--- a/mm/filemap.c~mm-use-only-per-device-readahead-limit
++++ a/mm/filemap.c
+@@ -1807,7 +1807,6 @@ static void do_sync_mmap_readahead(struc
+ 				   struct file *file,
+ 				   pgoff_t offset)
  {
- 	if (!zone_is_initialized(zone))
--		return init_currently_empty_zone(zone, start_pfn, num_pages,
--						 MEMMAP_HOTPLUG);
-+		return init_currently_empty_zone(zone, start_pfn, num_pages);
-+
+-	unsigned long ra_pages;
+ 	struct address_space *mapping = file->f_mapping;
+ 
+ 	/* If we don't want any read-ahead, don't bother */
+@@ -1836,10 +1835,9 @@ static void do_sync_mmap_readahead(struc
+ 	/*
+ 	 * mmap read-around
+ 	 */
+-	ra_pages = max_sane_readahead(ra->ra_pages);
+-	ra->start = max_t(long, 0, offset - ra_pages / 2);
+-	ra->size = ra_pages;
+-	ra->async_size = ra_pages / 4;
++	ra->start = max_t(long, 0, offset - ra->ra_pages / 2);
++	ra->size = ra->ra_pages;
++	ra->async_size = ra->ra_pages / 4;
+ 	ra_submit(ra, mapping, file);
+ }
+ 
+diff -puN mm/readahead.c~mm-use-only-per-device-readahead-limit mm/readahead.c
+--- a/mm/readahead.c~mm-use-only-per-device-readahead-limit
++++ a/mm/readahead.c
+@@ -213,7 +213,7 @@ int force_page_cache_readahead(struct ad
+ 	if (unlikely(!mapping->a_ops->readpage && !mapping->a_ops->readpages))
+ 		return -EINVAL;
+ 
+-	nr_to_read = max_sane_readahead(nr_to_read);
++	nr_to_read = min(nr_to_read, inode_to_bdi(mapping->host)->ra_pages);
+ 	while (nr_to_read) {
+ 		int err;
+ 
+@@ -232,16 +232,6 @@ int force_page_cache_readahead(struct ad
  	return 0;
  }
  
-diff -puN mm/page_alloc.c~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone
-+++ a/mm/page_alloc.c
-@@ -4900,8 +4900,7 @@ static __meminit void zone_pcp_init(stru
- 
- int __meminit init_currently_empty_zone(struct zone *zone,
- 					unsigned long zone_start_pfn,
--					unsigned long size,
--					enum memmap_context context)
-+					unsigned long size)
- {
- 	struct pglist_data *pgdat = zone->zone_pgdat;
- 	int ret;
-@@ -5413,8 +5412,7 @@ static void __paginginit free_area_init_
- 
- 		set_pageblock_order();
- 		setup_usemap(pgdat, zone, zone_start_pfn, size);
--		ret = init_currently_empty_zone(zone, zone_start_pfn,
--						size, MEMMAP_EARLY);
-+		ret = init_currently_empty_zone(zone, zone_start_pfn, size);
- 		BUG_ON(ret);
- 		memmap_init(size, nid, j, zone_start_pfn);
- 		zone_start_pfn += size;
-_
-
-Patches currently in -mm which might be from bywxiaobai@163.com are
-
-mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone.patch
-
+-#define MAX_READAHEAD   ((512*4096)/PAGE_CACHE_SIZE)
+-/*
+- * Given a desired number of PAGE_CACHE_SIZE readahead pages, return a
+- * sensible upper limit.
+- */
+-unsigned long max_sane_readahead(unsigned long nr)
+-{
+-	return min(nr, MAX_READAHEAD);
+-}
