@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + zswap-use-charp-for-zswap-param-strings.patch added to -mm tree
-Date: Wed, 16 Sep 2015 15:30:46 -0700
-Message-ID: <55f9ed96.6snHaJRWWPUqI+RK%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone.patch
+ added to -mm tree
+Date: Wed, 16 Sep 2015 15:31:47 -0700
+Message-ID: <55f9edd3.VcMWUUIymhS1C0I+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47361 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47415 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752377AbbIPWar (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Sep 2015 18:30:47 -0400
+	with ESMTP id S1752486AbbIPWbr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Sep 2015 18:31:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ddstreet@ieee.org, rusty@rustcorp.com.au, sjennings@variantweb.net, mm-commits@vger.kernel.org
+To: bywxiaobai@163.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zswap: use charp for zswap param strings
+     Subject: mm/page_alloc: remove unused parameter in init_currently_empty_zone()
 has been added to the -mm tree.  Its filename is
-     zswap-use-charp-for-zswap-param-strings.patch
+     mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zswap-use-charp-for-zswap-param-strings.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zswap-use-charp-for-zswap-param-strings.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,176 +40,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Streetman <ddstreet@ieee.org>
-Subject: zswap: use charp for zswap param strings
+From: Yaowei Bai <bywxiaobai@163.com>
+Subject: mm/page_alloc: remove unused parameter in init_currently_empty_zone()
 
-Instead of using a fixed-length string for the zswap params, use charp. 
-This simplifies the code and uses less memory, as most zswap param strings
-will be less than the current maximum length.
+Commit a2f3aa02576632cdb ("[PATCH] Fix sparsemem on Cell") fixed an oops
+experienced on the Cell architecture when init-time functions, early_*(),
+are called at runtime by introducing an 'enum memmap_context' parameter to
+memmap_init_zone() and init_currently_empty_zone().  This parameter is
+intended to be used to tell whether the call of these two functions is
+being made on behalf of a hotplug event, or happening at boot-time. 
+However, init_currently_empty_zone() does not use this parameter at all,
+so remove it.
 
-Signed-off-by: Dan Streetman <ddstreet@ieee.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Seth Jennings <sjennings@variantweb.net>
+Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zswap.c |   80 +++++++++++++++++++++++++--------------------------
- 1 file changed, 40 insertions(+), 40 deletions(-)
+ include/linux/mmzone.h |    3 +--
+ mm/memory_hotplug.c    |    4 ++--
+ mm/page_alloc.c        |    6 ++----
+ 3 files changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN mm/zswap.c~zswap-use-charp-for-zswap-param-strings mm/zswap.c
---- a/mm/zswap.c~zswap-use-charp-for-zswap-param-strings
-+++ a/mm/zswap.c
-@@ -82,33 +82,27 @@ module_param_named(enabled, zswap_enable
- 
- /* Crypto compressor to use */
- #define ZSWAP_COMPRESSOR_DEFAULT "lzo"
--static char zswap_compressor[CRYPTO_MAX_ALG_NAME] = ZSWAP_COMPRESSOR_DEFAULT;
--static struct kparam_string zswap_compressor_kparam = {
--	.string =	zswap_compressor,
--	.maxlen =	sizeof(zswap_compressor),
--};
-+static char *zswap_compressor = ZSWAP_COMPRESSOR_DEFAULT;
- static int zswap_compressor_param_set(const char *,
- 				      const struct kernel_param *);
- static struct kernel_param_ops zswap_compressor_param_ops = {
- 	.set =		zswap_compressor_param_set,
--	.get =		param_get_string,
-+	.get =		param_get_charp,
-+	.free =		param_free_charp,
+diff -puN include/linux/mmzone.h~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone
++++ a/include/linux/mmzone.h
+@@ -823,8 +823,7 @@ enum memmap_context {
+ 	MEMMAP_HOTPLUG,
  };
- module_param_cb(compressor, &zswap_compressor_param_ops,
--		&zswap_compressor_kparam, 0644);
-+		&zswap_compressor, 0644);
+ extern int init_currently_empty_zone(struct zone *zone, unsigned long start_pfn,
+-				     unsigned long size,
+-				     enum memmap_context context);
++				     unsigned long size);
  
- /* Compressed storage zpool to use */
- #define ZSWAP_ZPOOL_DEFAULT "zbud"
--static char zswap_zpool_type[32 /* arbitrary */] = ZSWAP_ZPOOL_DEFAULT;
--static struct kparam_string zswap_zpool_kparam = {
--	.string =	zswap_zpool_type,
--	.maxlen =	sizeof(zswap_zpool_type),
--};
-+static char *zswap_zpool_type = ZSWAP_ZPOOL_DEFAULT;
- static int zswap_zpool_param_set(const char *, const struct kernel_param *);
- static struct kernel_param_ops zswap_zpool_param_ops = {
--	.set =	zswap_zpool_param_set,
--	.get =	param_get_string,
-+	.set =		zswap_zpool_param_set,
-+	.get =		param_get_charp,
-+	.free =		param_free_charp,
- };
--module_param_cb(zpool, &zswap_zpool_param_ops, &zswap_zpool_kparam, 0644);
-+module_param_cb(zpool, &zswap_zpool_param_ops, &zswap_zpool_type, 0644);
+ extern void lruvec_init(struct lruvec *lruvec);
  
- /* The maximum percentage of memory that the compressed pool can occupy */
- static unsigned int zswap_max_pool_percent = 20;
-@@ -615,19 +609,29 @@ error:
- 	return NULL;
+diff -puN mm/memory_hotplug.c~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone
++++ a/mm/memory_hotplug.c
+@@ -339,8 +339,8 @@ static int __ref ensure_zone_is_initiali
+ 			unsigned long start_pfn, unsigned long num_pages)
+ {
+ 	if (!zone_is_initialized(zone))
+-		return init_currently_empty_zone(zone, start_pfn, num_pages,
+-						 MEMMAP_HOTPLUG);
++		return init_currently_empty_zone(zone, start_pfn, num_pages);
++
+ 	return 0;
  }
  
--static struct zswap_pool *__zswap_pool_create_fallback(void)
-+static __init struct zswap_pool *__zswap_pool_create_fallback(void)
- {
- 	if (!crypto_has_comp(zswap_compressor, 0, 0)) {
-+		if (!strcmp(zswap_compressor, ZSWAP_COMPRESSOR_DEFAULT)) {
-+			pr_err("default compressor %s not available\n",
-+			       zswap_compressor);
-+			return NULL;
-+		}
- 		pr_err("compressor %s not available, using default %s\n",
- 		       zswap_compressor, ZSWAP_COMPRESSOR_DEFAULT);
--		strncpy(zswap_compressor, ZSWAP_COMPRESSOR_DEFAULT,
--			sizeof(zswap_compressor));
-+		param_free_charp(&zswap_compressor);
-+		zswap_compressor = ZSWAP_COMPRESSOR_DEFAULT;
- 	}
- 	if (!zpool_has_pool(zswap_zpool_type)) {
-+		if (!strcmp(zswap_zpool_type, ZSWAP_ZPOOL_DEFAULT)) {
-+			pr_err("default zpool %s not available\n",
-+			       zswap_zpool_type);
-+			return NULL;
-+		}
- 		pr_err("zpool %s not available, using default %s\n",
- 		       zswap_zpool_type, ZSWAP_ZPOOL_DEFAULT);
--		strncpy(zswap_zpool_type, ZSWAP_ZPOOL_DEFAULT,
--			sizeof(zswap_zpool_type));
-+		param_free_charp(&zswap_zpool_type);
-+		zswap_zpool_type = ZSWAP_ZPOOL_DEFAULT;
- 	}
+diff -puN mm/page_alloc.c~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone
++++ a/mm/page_alloc.c
+@@ -4900,8 +4900,7 @@ static __meminit void zone_pcp_init(stru
  
- 	return zswap_pool_create(zswap_zpool_type, zswap_compressor);
-@@ -684,43 +688,39 @@ static void zswap_pool_put(struct zswap_
- * param callbacks
- **********************************/
- 
-+/* val must be a null-terminated string */
- static int __zswap_param_set(const char *val, const struct kernel_param *kp,
- 			     char *type, char *compressor)
+ int __meminit init_currently_empty_zone(struct zone *zone,
+ 					unsigned long zone_start_pfn,
+-					unsigned long size,
+-					enum memmap_context context)
++					unsigned long size)
  {
- 	struct zswap_pool *pool, *put_pool = NULL;
--	char str[kp->str->maxlen], *s;
-+	char *s = strstrip((char *)val);
+ 	struct pglist_data *pgdat = zone->zone_pgdat;
  	int ret;
+@@ -5413,8 +5412,7 @@ static void __paginginit free_area_init_
  
--	/*
--	 * kp is either zswap_zpool_kparam or zswap_compressor_kparam, defined
--	 * at the top of this file, so maxlen is CRYPTO_MAX_ALG_NAME (64) or
--	 * 32 (arbitrary).
--	 */
--	strlcpy(str, val, kp->str->maxlen);
--	s = strim(str);
-+	/* no change required */
-+	if (!strcmp(s, *(char **)kp->arg))
-+		return 0;
- 
- 	/* if this is load-time (pre-init) param setting,
- 	 * don't create a pool; that's done during init.
- 	 */
- 	if (!zswap_init_started)
--		return param_set_copystring(s, kp);
--
--	/* no change required */
--	if (!strncmp(kp->str->string, s, kp->str->maxlen))
--		return 0;
-+		return param_set_charp(s, kp);
- 
- 	if (!type) {
--		type = s;
--		if (!zpool_has_pool(type)) {
--			pr_err("zpool %s not available\n", type);
-+		if (!zpool_has_pool(s)) {
-+			pr_err("zpool %s not available\n", s);
- 			return -ENOENT;
- 		}
-+		type = s;
- 	} else if (!compressor) {
--		compressor = s;
--		if (!crypto_has_comp(compressor, 0, 0)) {
--			pr_err("compressor %s not available\n", compressor);
-+		if (!crypto_has_comp(s, 0, 0)) {
-+			pr_err("compressor %s not available\n", s);
- 			return -ENOENT;
- 		}
-+		compressor = s;
-+	} else {
-+		WARN_ON(1);
-+		return -EINVAL;
- 	}
- 
- 	spin_lock(&zswap_pools_lock);
-@@ -736,7 +736,7 @@ static int __zswap_param_set(const char
- 	}
- 
- 	if (pool)
--		ret = param_set_copystring(s, kp);
-+		ret = param_set_charp(s, kp);
- 	else
- 		ret = -EINVAL;
- 
+ 		set_pageblock_order();
+ 		setup_usemap(pgdat, zone, zone_start_pfn, size);
+-		ret = init_currently_empty_zone(zone, zone_start_pfn,
+-						size, MEMMAP_EARLY);
++		ret = init_currently_empty_zone(zone, zone_start_pfn, size);
+ 		BUG_ON(ret);
+ 		memmap_init(size, nid, j, zone_start_pfn);
+ 		zone_start_pfn += size;
 _
 
-Patches currently in -mm which might be from ddstreet@ieee.org are
+Patches currently in -mm which might be from bywxiaobai@163.com are
 
-module-export-param_free_charp.patch
-zswap-use-charp-for-zswap-param-strings.patch
-zpool-remove-redundant-zpool-type-string-const-ify-zpool_get_type.patch
+mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone.patch
 
