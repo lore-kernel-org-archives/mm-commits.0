@@ -1,95 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [nacked]
- mm-memory-hot-add-memory-can-not-be-added-to-movable-zone-defaultly.patch
- removed from -mm tree
-Date: Thu, 17 Sep 2015 11:26:42 -0700
-Message-ID: <55fb05e2.QcpWflIMr3eeRb+F%akpm@linux-foundation.org>
+Subject: +
+ uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch added to -mm tree
+Date: Thu, 17 Sep 2015 12:22:27 -0700
+Message-ID: <55fb12f3.ODywJpkZ6UWLT546%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56408 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37093 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751175AbbIQS0n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 14:26:43 -0400
+	with ESMTP id S1751059AbbIQTW2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 15:22:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: liuchangcheng@inspur.com, dave.hansen@intel.com, fandd@inspur.com, guz.fnst@cn.fujitsu.com, hutao@cn.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, laijs@cn.fujitsu.com, qiuxishi@huawei.com, tangchen@cn.fujitsu.com, toshi.kani@hp.com, wangnan0@huawei.com, yanxiaofeng@inspur.com, yinghai@kernel.org, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memory hot-add: memory can not be added to movable zone by default
-has been removed from the -mm tree.  Its filename was
-     mm-memory-hot-add-memory-can-not-be-added-to-movable-zone-defaultly.patch
+     Subject: uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix
+has been added to the -mm tree.  Its filename is
+     uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Changsheng Liu <liuchangcheng@inspur.com>
-Subject: mm: memory hot-add: memory can not be added to movable zone by default
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix
 
-After the user config CONFIG_MOVABLE_NODE and movable_node kernel option,
-when the memory is hot added, should_add_memory_movable() returns 0
-because all zones including movable zone are empty.  So the memory that
-was hot added will be added to the normal zone and the normal zone will be
-created first.  But we want the whole node to be added to movable zone by
-default.
+fix ppc warning
 
-So we change should_add_memory_movable(): if the user config
-CONFIG_MOVABLE_NODE and movable_node kernel option it will always return 1
-and all zones are empty at the same time, so that the movable zone will be
-created first and then the whole node will be added to movable zone by
-default.  If we want the node to be added to normal zone, we can do it as
-follows: "echo online_kernel > /sys/devices/system/memory/memoryXXX/state"
-
-Signed-off-by: Xiaofeng Yan <yanxiaofeng@inspur.com>
-Signed-off-by: Changsheng Liu <liuchangcheng@inspur.com>
-Tested-by: Dongdong Fan <fandd@inspur.com>
-Cc: Wang Nan <wangnan0@huawei.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Hu Tao <hutao@cn.fujitsu.com>
-Cc: Lai Jiangshan <laijs@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Cc: Toshi Kani <toshi.kani@hp.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
+Reported-by: Fengguang Wu <fengguang.wu@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ arch/powerpc/sysdev/fsl_pci.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory-hot-add-memory-can-not-be-added-to-movable-zone-defaultly mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory-hot-add-memory-can-not-be-added-to-movable-zone-defaultly
-+++ a/mm/memory_hotplug.c
-@@ -1201,6 +1201,9 @@ static int check_hotplug_memory_range(u6
- /*
-  * If movable zone has already been setup, newly added memory should be check.
-  * If its address is higher than movable zone, it should be added as movable.
-+ * And if system boots up with movable_node and config CONFIG_MOVABLE_NOD and
-+ * added memory does not overlap the zone before MOVABLE_ZONE,
-+ * the memory is added as movable
-  * Without this check, movable zone may overlap with other zone.
-  */
- static int should_add_memory_movable(int nid, u64 start, u64 size)
-@@ -1208,6 +1211,11 @@ static int should_add_memory_movable(int
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	pg_data_t *pgdat = NODE_DATA(nid);
- 	struct zone *movable_zone = pgdat->node_zones + ZONE_MOVABLE;
-+	struct zone *pre_zone = pgdat->node_zones + (ZONE_MOVABLE - 1);
-+
-+	if (movable_node_is_enabled()
-+	&& zone_end_pfn(pre_zone) <= start_pfn)
-+		return 1;
+diff -puN arch/powerpc/sysdev/fsl_pci.c~uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix arch/powerpc/sysdev/fsl_pci.c
+--- a/arch/powerpc/sysdev/fsl_pci.c~uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix
++++ a/arch/powerpc/sysdev/fsl_pci.c
+@@ -999,7 +999,7 @@ int fsl_pci_mcheck_exception(struct pt_r
+ 			ret = get_user(regs->nip, &inst);
+ 			pagefault_enable();
+ 		} else {
+-			ret = probe_kernel_address(regs->nip, inst);
++			ret = probe_kernel_address((void *)regs->nip, inst);
+ 		}
  
- 	if (zone_is_empty(movable_zone))
- 		return 0;
+ 		if (mcheck_handle_load(regs, inst)) {
 _
 
-Patches currently in -mm which might be from liuchangcheng@inspur.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+maintainers-update-ltp-mailing-list-fix.patch
+mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified-fix.patch
+revert-mm-make-sure-all-file-vmas-have-vm_ops-set.patch
+mm.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
+kasan-various-fixes-in-documentation-checkpatch-fixes.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
