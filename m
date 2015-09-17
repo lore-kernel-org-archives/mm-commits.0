@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-migrate-hugetlb-putback-destination-hugepage-to-active-list.patch added
- to -mm tree
-Date: Thu, 17 Sep 2015 12:41:35 -0700
-Message-ID: <55fb176f.qc07LTqVcpy1Ck1B%akpm@linux-foundation.org>
+Subject: + lib-iomap_copy-add-__ioread32_copy.patch added to -mm tree
+Date: Thu, 17 Sep 2015 12:58:10 -0700
+Message-ID: <55fb1b52.UNBbYdgz/pVU6uZr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39422 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41297 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752290AbbIQTlg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 15:41:36 -0400
+	with ESMTP id S1751633AbbIQT6L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 15:58:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, hughd@google.com, mhocko@suse.cz, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: sboyd@codeaurora.org, agross@codeaurora.org, bjorn.andersson@sonymobile.com, broonie@kernel.org, davidb@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: migrate: hugetlb: putback destination hugepage to active list
+     Subject: lib: iomap_copy: Add __ioread32_copy()
 has been added to the -mm tree.  Its filename is
-     mm-migrate-hugetlb-putback-destination-hugepage-to-active-list.patch
+     lib-iomap_copy-add-__ioread32_copy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-hugetlb-putback-destination-hugepage-to-active-list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-iomap_copy-add-__ioread32_copy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-hugetlb-putback-destination-hugepage-to-active-list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-iomap_copy-add-__ioread32_copy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,48 +38,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: migrate: hugetlb: putback destination hugepage to active list
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: lib: iomap_copy: Add __ioread32_copy()
 
-Since commit bcc54222309c ("mm: hugetlb: introduce page_huge_active") each
-hugetlb page maintains its active flag to avoid a race condition betwe= en
-multiple calls of isolate_huge_page(), but current kernel doesn't set the
-f= lag on a hugepage allocated by migration because the proper putback
-routine isn= 't called.  This means that users could still encounter the
-race referred to by bcc54222309c in this special case, so this patch fixes
-it.
+Some drivers need to read data out of iomem areas 32-bits at a time.  Add
+an API to do this.
 
-Fixes: bcc54222309c ("mm: hugetlb: introduce page_huge_active")
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>  [4.1.x]
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Bjorn Andersson <bjorn.andersson@sonymobile.com>
+Cc: Andy Gross <agross@codeaurora.org>
+Cc: David Brown <davidb@codeaurora.org>
+Cc: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/io.h |    1 +
+ lib/iomap_copy.c   |   21 +++++++++++++++++++++
+ 2 files changed, 22 insertions(+)
 
-diff -puN mm/migrate.c~mm-migrate-hugetlb-putback-destination-hugepage-to-active-list mm/migrate.c
---- a/mm/migrate.c~mm-migrate-hugetlb-putback-destination-hugepage-to-active-list
-+++ a/mm/migrate.c
-@@ -1075,7 +1075,7 @@ out:
- 	if (rc != MIGRATEPAGE_SUCCESS && put_new_page)
- 		put_new_page(new_hpage, private);
- 	else
--		put_page(new_hpage);
-+		putback_active_hugepage(new_hpage);
+diff -puN include/linux/io.h~lib-iomap_copy-add-__ioread32_copy include/linux/io.h
+--- a/include/linux/io.h~lib-iomap_copy-add-__ioread32_copy
++++ a/include/linux/io.h
+@@ -29,6 +29,7 @@ struct device;
+ struct resource;
  
- 	if (result) {
- 		if (rc)
+ __visible void __iowrite32_copy(void __iomem *to, const void *from, size_t count);
++void __ioread32_copy(void *to, const void __iomem *from, size_t count);
+ void __iowrite64_copy(void __iomem *to, const void *from, size_t count);
+ 
+ #ifdef CONFIG_MMU
+diff -puN lib/iomap_copy.c~lib-iomap_copy-add-__ioread32_copy lib/iomap_copy.c
+--- a/lib/iomap_copy.c~lib-iomap_copy-add-__ioread32_copy
++++ a/lib/iomap_copy.c
+@@ -42,6 +42,27 @@ void __attribute__((weak)) __iowrite32_c
+ EXPORT_SYMBOL_GPL(__iowrite32_copy);
+ 
+ /**
++ * __ioread32_copy - copy data from MMIO space, in 32-bit units
++ * @to: destination (must be 32-bit aligned)
++ * @from: source, in MMIO space (must be 32-bit aligned)
++ * @count: number of 32-bit quantities to copy
++ *
++ * Copy data from MMIO space to kernel space, in units of 32 bits at a
++ * time.  Order of access is not guaranteed, nor is a memory barrier
++ * performed afterwards.
++ */
++void __ioread32_copy(void *to, const void __iomem *from, size_t count)
++{
++	u32 *dst = to;
++	const u32 __iomem *src = from;
++	const u32 __iomem *end = src + count;
++
++	while (src < end)
++		*dst++ = __raw_readl(src++);
++}
++EXPORT_SYMBOL_GPL(__ioread32_copy);
++
++/**
+  * __iowrite64_copy - copy data to MMIO space, in 64-bit or 32-bit units
+  * @to: destination, in MMIO space (must be 64-bit aligned)
+  * @from: source (must be 64-bit aligned)
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from sboyd@codeaurora.org are
 
-mm-migrate-hugetlb-putback-destination-hugepage-to-active-list.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps-fix.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5.patch
+lib-iomap_copy-add-__ioread32_copy.patch
 
