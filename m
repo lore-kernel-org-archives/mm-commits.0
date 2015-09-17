@@ -1,92 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] lib-iomap_copy-add-__ioread32_copy.patch removed from
- -mm tree
-Date: Thu, 17 Sep 2015 14:45:18 -0700
-Message-ID: <55fb346e.Vu5ErhOWI6T/5gpY%akpm@linux-foundation.org>
+Subject: + x86-efi-kasan-undef-memset-memcpy-memmove-per-arch.patch added
+ to -mm tree
+Date: Thu, 17 Sep 2015 14:56:37 -0700
+Message-ID: <55fb3715.n3EyNd8zvgV225rw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53146 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54190 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752431AbbIQVpT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 17:45:19 -0400
+	with ESMTP id S1751929AbbIQV4i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 17:56:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sboyd@codeaurora.org, agross@codeaurora.org, bjorn.andersson@sonymobile.com, broonie@kernel.org, davidb@codeaurora.org, mm-commits@vger.kernel.org
+To: ryabinin.a.a@gmail.com, catalin.marinas@arm.com, fengguang.wu@gmail.com, hpa@zytor.com, matt.fleming@intel.com, mingo@redhat.com, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: iomap_copy: Add __ioread32_copy()
-has been removed from the -mm tree.  Its filename was
-     lib-iomap_copy-add-__ioread32_copy.patch
+     Subject: x86, efi, kasan: #undef memset/memcpy/memmove per arch
+has been added to the -mm tree.  Its filename is
+     x86-efi-kasan-undef-memset-memcpy-memmove-per-arch.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-efi-kasan-undef-memset-memcpy-memmove-per-arch.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-efi-kasan-undef-memset-memcpy-memmove-per-arch.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: lib: iomap_copy: Add __ioread32_copy()
+From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Subject: x86, efi, kasan: #undef memset/memcpy/memmove per arch
 
-Some drivers need to read data out of iomem areas 32-bits at a time.  Add
-an API to do this.
+In not-instrumented code KASAN replaces instrumented memset/memcpy/memmove
+with not-instrumented analogues __memset/__memcpy/__memove.
 
-Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Bjorn Andersson <bjorn.andersson@sonymobile.com>
-Cc: Andy Gross <agross@codeaurora.org>
-Cc: David Brown <davidb@codeaurora.org>
-Cc: Mark Brown <broonie@kernel.org>
+However, on x86 the EFI stub is not linked with the kernel.  It uses
+not-instrumented mem*() functions from arch/x86/boot/compressed/string.c
+
+So we don't replace them with __mem*() variants in EFI stub.
+
+On ARM64 the EFI stub is linked with the kernel, so we should replace
+mem*() functions with __mem*(), because the EFI stub runs before KASAN
+sets up early shadow.
+
+So let's move these #undef mem* into arch's asm/efi.h which is also
+included by the EFI stub.
+
+Also, this will fix the warning in 32-bit build reported by kbuild test
+robot:
+
+	efi-stub-helper.c:599:2: warning: implicit declaration of function 'memcpy'
+
+Signed-off-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Reported-by: Fengguang Wu <fengguang.wu@gmail.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Matt Fleming <matt.fleming@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/io.h |    1 +
- lib/iomap_copy.c   |   21 +++++++++++++++++++++
- 2 files changed, 22 insertions(+)
+ arch/x86/include/asm/efi.h             |   12 ++++++++++++
+ drivers/firmware/efi/libstub/efistub.h |    4 ----
+ 2 files changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/io.h~lib-iomap_copy-add-__ioread32_copy include/linux/io.h
---- a/include/linux/io.h~lib-iomap_copy-add-__ioread32_copy
-+++ a/include/linux/io.h
-@@ -29,6 +29,7 @@ struct device;
- struct resource;
+diff -puN arch/x86/include/asm/efi.h~x86-efi-kasan-undef-memset-memcpy-memmove-per-arch arch/x86/include/asm/efi.h
+--- a/arch/x86/include/asm/efi.h~x86-efi-kasan-undef-memset-memcpy-memmove-per-arch
++++ a/arch/x86/include/asm/efi.h
+@@ -86,6 +86,18 @@ extern u64 asmlinkage efi_call(void *fp,
+ extern void __iomem *__init efi_ioremap(unsigned long addr, unsigned long size,
+ 					u32 type, u64 attribute);
  
- __visible void __iowrite32_copy(void __iomem *to, const void *from, size_t count);
-+void __ioread32_copy(void *to, const void __iomem *from, size_t count);
- void __iowrite64_copy(void __iomem *to, const void *from, size_t count);
- 
- #ifdef CONFIG_MMU
-diff -puN lib/iomap_copy.c~lib-iomap_copy-add-__ioread32_copy lib/iomap_copy.c
---- a/lib/iomap_copy.c~lib-iomap_copy-add-__ioread32_copy
-+++ a/lib/iomap_copy.c
-@@ -42,6 +42,27 @@ void __attribute__((weak)) __iowrite32_c
- EXPORT_SYMBOL_GPL(__iowrite32_copy);
- 
- /**
-+ * __ioread32_copy - copy data from MMIO space, in 32-bit units
-+ * @to: destination (must be 32-bit aligned)
-+ * @from: source, in MMIO space (must be 32-bit aligned)
-+ * @count: number of 32-bit quantities to copy
-+ *
-+ * Copy data from MMIO space to kernel space, in units of 32 bits at a
-+ * time.  Order of access is not guaranteed, nor is a memory barrier
-+ * performed afterwards.
++/*
++ * CONFIG_KASAN may redefine memset to __memset.
++ * __memset function is present only in kernel binary.
++ * Since the EFI stub linked into a separate binary it
++ * doesn't have __memset(). So we should use standard
++ * memset from arch/x86/boot/compressed/string.c
++ * The same applies to memcpy and memmove.
 + */
-+void __ioread32_copy(void *to, const void __iomem *from, size_t count)
-+{
-+	u32 *dst = to;
-+	const u32 __iomem *src = from;
-+	const u32 __iomem *end = src + count;
++#undef memcpy
++#undef memset
++#undef memmove
 +
-+	while (src < end)
-+		*dst++ = __raw_readl(src++);
-+}
-+EXPORT_SYMBOL_GPL(__ioread32_copy);
-+
-+/**
-  * __iowrite64_copy - copy data to MMIO space, in 64-bit or 32-bit units
-  * @to: destination, in MMIO space (must be 64-bit aligned)
-  * @from: source (must be 64-bit aligned)
-_
-
-Patches currently in -mm which might be from sboyd@codeaurora.org are
-
-
+ #endif /* CONFIG_X86_32 */
+ 
+ extern struct efi_scratch efi_scratch;
+diff -puN drivers/firmware/efi/libstub/efistub.h~x86-efi-kasan-undef-memset-memcpy-memmove-per-arch drivers/firmware/efi/libstub/efistub.h
+--- a/drivers/firmware/efi/libstub/efistub.h~x86-efi-kasan-undef-memset-memcpy-memmove-per-arch
++++ a/drivers/firmware/efi/libstub/efistub.h
+@@ -5,10 +5,6 @@
+ /* error code which can't be mistaken for valid address */
+ #define EFI_ERROR	(~0UL)
+ 
+-#undef memcpy
+-#undef memset
+-#undef memmove
