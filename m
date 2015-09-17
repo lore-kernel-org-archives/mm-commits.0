@@ -1,95 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: + lib-test-string_helpersc-add-string_get_size-tests-v5.patch
- added to -mm tree
-Date: Thu, 17 Sep 2015 13:43:46 -0700
-Message-ID: <55fb2602.tjfM7c8J9zwgndPd%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps-fix.patch removed
+ from -mm tree
+Date: Thu, 17 Sep 2015 14:03:35 -0700
+Message-ID: <55fb2aa7.ru5Hy0+3AESHwEWN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46059 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48274 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751906AbbIQUnr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 16:43:47 -0400
+	with ESMTP id S1751487AbbIQVDg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 17:03:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vkuznets@redhat.com, JBottomley@Odin.com, andriy.shevchenko@linux.intel.com, kys@microsoft.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-test-string_helpersc-add-string_get_size-tests-v5
-has been added to the -mm tree.  Its filename is
-     lib-test-string_helpersc-add-string_get_size-tests-v5.patch
+     Subject: Documentation/filesystems/proc.txt: give additional comment about hugetlb usage
+has been removed from the -mm tree.  Its filename was
+     mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-test-string_helpersc-add-string_get_size-tests-v5.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test-string_helpersc-add-string_get_size-tests-v5.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps.patch
 
 ------------------------------------------------------
-From: Vitaly Kuznetsov <vkuznets@redhat.com>
-Subject: lib-test-string_helpersc-add-string_get_size-tests-v5
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: Documentation/filesystems/proc.txt: give additional comment about hugetlb usage
 
-- Single quotes in pr_warn() to see empty strings [Andy Shevchenko].
-- Check for test validity compile-time [Rasmus Villemoes, Andy Shevchenko].
-- All __test_string_get_size() arguments are const.
-
-Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: James Bottomley <JBottomley@Odin.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test-string_helpers.c |   23 ++++++++++++++++-------
- 1 file changed, 16 insertions(+), 7 deletions(-)
+ Documentation/filesystems/proc.txt |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN lib/test-string_helpers.c~lib-test-string_helpersc-add-string_get_size-tests-v5 lib/test-string_helpers.c
---- a/lib/test-string_helpers.c~lib-test-string_helpersc-add-string_get_size-tests-v5
-+++ a/lib/test-string_helpers.c
-@@ -326,21 +326,30 @@ out:
- 	kfree(out_test);
- }
+diff -puN Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps-fix Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps-fix
++++ a/Documentation/filesystems/proc.txt
+@@ -457,7 +457,8 @@ anonymous copy.
  
--static __init void test_string_get_size_one(u64 size, u64 blk_size,
--					    const enum string_size_units units,
--					    const char *exp_result)
-+#define string_get_size_maxbuf 16
-+#define test_string_get_size_one(size, blk_size, units, exp_result)            \
-+	do {                                                                   \
-+		BUILD_BUG_ON(sizeof(exp_result) >= string_get_size_maxbuf);    \
-+		__test_string_get_size((size), (blk_size), (units),            \
-+				       (exp_result));                          \
-+	} while (0)
-+
-+
-+static __init void __test_string_get_size(const u64 size, const u64 blk_size,
-+					  const enum string_size_units units,
-+					  const char *exp_result)
- {
--	char buf[256];
-+	char buf[string_get_size_maxbuf];
+ "AnonHugePages" shows the ammount of memory backed by transparent hugepage.
  
- 	string_get_size(size, blk_size, units, buf, sizeof(buf));
--	if (!strncmp(buf, exp_result, min(sizeof(buf), strlen(exp_result))))
-+	if (!memcmp(buf, exp_result, strlen(exp_result) + 1))
- 		return;
+-"HugetlbPages" shows the ammount of memory backed by hugetlbfs page.
++"HugetlbPages" shows the ammount of memory backed by hugetlbfs page (which is
++not counted in "Rss" or "Pss" field for historical reasons.)
  
-+	buf[sizeof(buf) - 1] = '\0';
- 	pr_warn("Test 'test_string_get_size_one' failed!\n");
- 	pr_warn("string_get_size(size = %llu, blk_size = %llu, units = %d\n",
- 		size, blk_size, units);
--	pr_warn("expected: %s, got %s\n", exp_result, buf);
+ "Swap" shows how much would-be-anonymous memory is also used, but out on
+ swap.  SwapPss" shows proportional swap share of this mapping.
+_
+
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+
+mm-migrate-hugetlb-putback-destination-hugepage-to-active-list.patch
+mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps.patch
+mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch
+mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5.patch
+
