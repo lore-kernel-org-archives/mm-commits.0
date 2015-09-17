@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5.patch added to
- -mm tree
-Date: Thu, 17 Sep 2015 13:40:31 -0700
-Message-ID: <55fb253f.6NLL6ywUcYK0HmBb%akpm@linux-foundation.org>
+Subject: [obsolete]
+ lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5.patch removed
+ from -mm tree
+Date: Thu, 17 Sep 2015 13:42:31 -0700
+Message-ID: <55fb25b7.r9Ho72R7+ZwaZuwF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45831 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45906 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751190AbbIQUkc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 16:40:32 -0400
+	with ESMTP id S1751487AbbIQUmc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 16:42:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vkuznets@redhat.com, JBottomley@Odin.com, andriy.shevchenko@linux.intel.com, kys@microsoft.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
@@ -20,24 +20,10 @@ To: vkuznets@redhat.com, JBottomley@Odin.com, andriy.shevchenko@linux.intel.com,
 
 The patch titled
      Subject: lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Vitaly Kuznetsov <vkuznets@redhat.com>
@@ -132,6 +118,5 @@ Patches currently in -mm which might be from vkuznets@redhat.com are
 
 lib-string_helpersc-fix-infinite-loop-in-string_get_size.patch
 lib-string_helpersc-fix-infinite-loop-in-string_get_size-v3.patch
-lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5.patch
 lib-test-string_helpersc-add-string_get_size-tests.patch
 
