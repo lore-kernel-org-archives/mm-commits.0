@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-dlm-fix-race-between-convert-and-recovery.patch added to
+Subject: +
+ lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5.patch added to
  -mm tree
-Date: Thu, 17 Sep 2015 13:33:36 -0700
-Message-ID: <55fb23a0.Xcbsfxb+ttC6an3D%akpm@linux-foundation.org>
+Date: Thu, 17 Sep 2015 13:40:31 -0700
+Message-ID: <55fb253f.6NLL6ywUcYK0HmBb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44961 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45831 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974AbbIQUdh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 16:33:37 -0400
+	with ESMTP id S1751190AbbIQUkc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 16:40:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jiangyiwen@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: vkuznets@redhat.com, JBottomley@Odin.com, andriy.shevchenko@linux.intel.com, kys@microsoft.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: fix race between convert and recovery
+     Subject: lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5
 has been added to the -mm tree.  Its filename is
-     ocfs2-dlm-fix-race-between-convert-and-recovery.patch
+     lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-fix-race-between-convert-and-recovery.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-fix-race-between-convert-and-recovery.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,75 +40,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2/dlm: fix race between convert and recovery
+From: Vitaly Kuznetsov <vkuznets@redhat.com>
+Subject: lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5
 
-There is a race window between dlmconvert_remote and
-dlm_move_lockres_to_recovery_list, which will cause a lock with
-OCFS2_LOCK_BUSY in grant list, thus system hangs.
+- Single quotes in pr_warn() to see empty strings [Andy Shevchenko].
+- Check for test validity compile-time [Rasmus Villemoes, Andy Shevchenko].
+- All __test_string_get_size() arguments are const.
 
-dlmconvert_remote
-{
-	spin_lock(&res->spinlock);
-	list_move_tail(&lock->list, &res->converting);
-	lock->convert_pending = 1;
-	spin_unlock(&res->spinlock);
-
-	status = dlm_send_remote_convert_request();
-	>>>>>> race window, master has queued ast and return DLM_NORMAL,
-	       and then down before sending ast.
-	       this node detects master down and call
-	       dlm_move_lockres_to_recovery_list, which will revert the
-	       lock to grant list.
-	       Then OCFS2_LOCK_BUSY won't be cleared as new master won't
-	       send ast any more because it thinks already be authorized.
-
-	spin_lock(&res->spinlock);
-	lock->convert_pending = 0;
-	if (status != DLM_NORMAL)
-		dlm_revert_pending_convert(res, lock);
-	spin_unlock(&res->spinlock);
-}
-
-In this case, just leave it in convert list and new master will take care
-of it after recovery.  And if convert request returns other than
-DLM_NORMAL, convert thread will do the revert itself.  So remove the
-revert logic in dlm_move_lockres_to_recovery_list.
-
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reported-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: James Bottomley <JBottomley@Odin.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |   10 +---------
- 1 file changed, 1 insertion(+), 9 deletions(-)
+ lib/string_helpers.c      |    4 ----
+ lib/test-string_helpers.c |   36 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 36 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-race-between-convert-and-recovery fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-race-between-convert-and-recovery
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -2058,15 +2058,7 @@ void dlm_move_lockres_to_recovery_list(s
- 		queue = dlm_list_idx_to_ptr(res, i);
- 		list_for_each_entry_safe(lock, next, queue, list) {
- 			dlm_lock_get(lock);
--			if (lock->convert_pending) {
--				/* move converting lock back to granted */
--				BUG_ON(i != DLM_CONVERTING_LIST);
--				mlog(0, "node died with convert pending "
--				     "on %.*s. move back to granted list.\n",
--				     res->lockname.len, res->lockname.name);
--				dlm_revert_pending_convert(res, lock);
--				lock->convert_pending = 0;
--			} else if (lock->lock_pending) {
-+			if (lock->lock_pending) {
- 				/* remove pending lock requests completely */
- 				BUG_ON(i != DLM_BLOCKED_LIST);
- 				mlog(0, "node died with lock pending "
+diff -puN lib/string_helpers.c~lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5 lib/string_helpers.c
+--- a/lib/string_helpers.c~lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5
++++ a/lib/string_helpers.c
+@@ -59,10 +59,6 @@ void string_get_size(u64 size, u64 blk_s
+ 	}
+ 
+ 	exp = divisor[units] / (u32)blk_size;
+-	/*
+-	 * size must be strictly greater than exp here to ensure that remainder
+-	 * is greater than divisor[units] coming out of the if below.
+-	 */
+ 	if (size > exp) {
+ 		remainder = do_div(size, divisor[units]);
+ 		remainder *= blk_size;
+diff -puN lib/test-string_helpers.c~lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5 lib/test-string_helpers.c
+--- a/lib/test-string_helpers.c~lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5
++++ a/lib/test-string_helpers.c
+@@ -326,6 +326,39 @@ out:
+ 	kfree(out_test);
+ }
+ 
++#define string_get_size_maxbuf 16
++#define test_string_get_size_one(size, blk_size, units, exp_result)            \
++	do {                                                                   \
++		BUILD_BUG_ON(sizeof(exp_result) >= string_get_size_maxbuf);    \
++		__test_string_get_size((size), (blk_size), (units),            \
++				       (exp_result));                          \
++	} while (0)
++
++
++static __init void __test_string_get_size(const u64 size, const u64 blk_size,
++					  const enum string_size_units units,
++					  const char *exp_result)
++{
++	char buf[string_get_size_maxbuf];
++
++	string_get_size(size, blk_size, units, buf, sizeof(buf));
++	if (!memcmp(buf, exp_result, strlen(exp_result) + 1))
++		return;
++
++	buf[sizeof(buf) - 1] = '\0';
++	pr_warn("Test 'test_string_get_size_one' failed!\n");
++	pr_warn("string_get_size(size = %llu, blk_size = %llu, units = %d\n",
++		size, blk_size, units);
++	pr_warn("expected: '%s', got '%s'\n", exp_result, buf);
++}
++
++static __init void test_string_get_size(void)
++{
++	test_string_get_size_one(16384, 512, STRING_UNITS_2, "8.00 MiB");
++	test_string_get_size_one(8192, 4096, STRING_UNITS_10, "32.7 MB");
++	test_string_get_size_one(1, 512, STRING_UNITS_10, "512 B");
++}
++
+ static int __init test_string_helpers_init(void)
+ {
+ 	unsigned int i;
+@@ -344,6 +377,9 @@ static int __init test_string_helpers_in
+ 	for (i = 0; i < (ESCAPE_ANY_NP | ESCAPE_HEX) + 1; i++)
+ 		test_string_escape("escape 1", escape1, i, TEST_STRING_2_DICT_1);
+ 
++	/* Test string_get_size() */
++	test_string_get_size();
++
+ 	return -EINVAL;
+ }
+ module_init(test_string_helpers_init);
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from vkuznets@redhat.com are
 
-ocfs2-dlm-fix-race-between-convert-and-recovery.patch
+lib-string_helpersc-fix-infinite-loop-in-string_get_size.patch
+lib-string_helpersc-fix-infinite-loop-in-string_get_size-v3.patch
+lib-string_helpersc-fix-infinite-loop-in-string_get_size-v5.patch
+lib-test-string_helpersc-add-string_get_size-tests.patch
 
