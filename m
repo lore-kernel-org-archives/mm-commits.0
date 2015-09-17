@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-optimistic-check-for-swapin-readahead-fix.patch added
- to -mm tree
-Date: Thu, 17 Sep 2015 13:05:48 -0700
-Message-ID: <55fb1d1c.G03ZFkWQHRaowugS%akpm@linux-foundation.org>
+Subject: + mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch added to -mm tree
+Date: Thu, 17 Sep 2015 13:05:50 -0700
+Message-ID: <55fb1d1e.b98pMdgReXj/fGSP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42266 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42270 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751664AbbIQUFt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 16:05:49 -0400
+	with ESMTP id S1751664AbbIQUFv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 16:05:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, ebru.akagunduz@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: avoid usage of uninitialized variable 'isolated'
+     Subject: mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix
 has been added to the -mm tree.  Its filename is
-     mm-make-optimistic-check-for-swapin-readahead-fix.patch
+     mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-optimistic-check-for-swapin-readahead-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-optimistic-check-for-swapin-readahead-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,38 +39,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: khugepaged: avoid usage of uninitialized variable 'isolated'
+Subject: mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix
 
-In file included from include/trace/events/huge_memory.h:7:0,
-                 from mm/huge_memory.c:62:
-include/linux/tracepoint.h:141:5: warning: `isolated' may be used uninitialized in this function [-Wmaybe-uninitialized]
-     ((void(*)(proto))(it_func))(args); \
-     ^
-mm/huge_memory.c:2327:6: note: `isolated' was declared here
-  int isolated, result = 0;
-
-We make use of isolated in error path before it get initialized.
+trivial cleanup of exit path of the function
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN mm/huge_memory.c~mm-make-optimistic-check-for-swapin-readahead-fix mm/huge_memory.c
---- a/mm/huge_memory.c~mm-make-optimistic-check-for-swapin-readahead-fix
+diff -puN mm/huge_memory.c~mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix
 +++ a/mm/huge_memory.c
-@@ -2595,7 +2595,7 @@ static void collapse_huge_page(struct mm
- 	pgtable_t pgtable;
- 	struct page *new_page;
- 	spinlock_t *pmd_ptl, *pte_ptl;
--	int isolated, result = 0;
-+	int isolated = 0, result = 0;
- 	unsigned long hstart, hend;
- 	struct mem_cgroup *memcg;
- 	unsigned long mmun_start;	/* For mmu_notifiers */
+@@ -2623,8 +2623,6 @@ static void __collapse_huge_page_swapin(
+ 	trace_mm_collapse_huge_page_swapin(mm, swapped_in, 1);
+ }
+ 
+-
+-
+ static void collapse_huge_page(struct mm_struct *mm,
+ 				   unsigned long address,
+ 				   struct page **hpage,
+@@ -2772,9 +2770,6 @@ static void collapse_huge_page(struct mm
+ 	result = SCAN_SUCCEED;
+ out_up_write:
+ 	up_write(&mm->mmap_sem);
+-	trace_mm_collapse_huge_page(mm, isolated, result);
+-	return;
+-
+ out_nolock:
+ 	trace_mm_collapse_huge_page(mm, isolated, result);
+ 	return;
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
