@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + x86-efi-kasan-undef-memset-memcpy-memmove-per-arch.patch added
+Subject: +
+ fs-global-sync-to-not-clear-error-status-of-individual-inodes.patch added
  to -mm tree
-Date: Thu, 17 Sep 2015 14:56:37 -0700
-Message-ID: <55fb3715.n3EyNd8zvgV225rw%akpm@linux-foundation.org>
+Date: Thu, 17 Sep 2015 15:08:38 -0700
+Message-ID: <55fb39e6.35E/QqMv41b66qRT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54190 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55325 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751929AbbIQV4i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 17:56:38 -0400
+	with ESMTP id S1751849AbbIQWIj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 18:08:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ryabinin.a.a@gmail.com, catalin.marinas@arm.com, fengguang.wu@gmail.com, hpa@zytor.com, matt.fleming@intel.com, mingo@redhat.com, tglx@linutronix.de, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: j-nomura@ce.jp.nec.com, ak@linux.intel.com, david@fromorbit.com, fengguang.wu@gmail.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86, efi, kasan: #undef memset/memcpy/memmove per arch
+     Subject: mm/filemap.c: make global sync not clear error status of individual inodes
 has been added to the -mm tree.  Its filename is
-     x86-efi-kasan-undef-memset-memcpy-memmove-per-arch.patch
+     fs-global-sync-to-not-clear-error-status-of-individual-inodes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-efi-kasan-undef-memset-memcpy-memmove-per-arch.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-global-sync-to-not-clear-error-status-of-individual-inodes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-efi-kasan-undef-memset-memcpy-memmove-per-arch.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-global-sync-to-not-clear-error-status-of-individual-inodes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,73 +40,196 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Subject: x86, efi, kasan: #undef memset/memcpy/memmove per arch
+From: Junichi Nomura <j-nomura@ce.jp.nec.com>
+Subject: mm/filemap.c: make global sync not clear error status of individual inodes
 
-In not-instrumented code KASAN replaces instrumented memset/memcpy/memmove
-with not-instrumented analogues __memset/__memcpy/__memove.
+filemap_fdatawait() is a function to wait for on-going writeback to
+complete but also consume and clear error status of the mapping set during
+writeback.
 
-However, on x86 the EFI stub is not linked with the kernel.  It uses
-not-instrumented mem*() functions from arch/x86/boot/compressed/string.c
+The latter functionality is critical for applications to detect writeback
+error with system calls like fsync(2)/fdatasync(2).
 
-So we don't replace them with __mem*() variants in EFI stub.
+However filemap_fdatawait() is also used by sync(2) or FIFREEZE ioctl,
+which don't check error status of individual mappings.
 
-On ARM64 the EFI stub is linked with the kernel, so we should replace
-mem*() functions with __mem*(), because the EFI stub runs before KASAN
-sets up early shadow.
+As a result, fsync() may not be able to detect writeback error if events
+happen in the following order:
 
-So let's move these #undef mem* into arch's asm/efi.h which is also
-included by the EFI stub.
+   Application                    System admin
+   ----------------------------------------------------------
+   write data on page cache
+                                  Run sync command
+                                  writeback completes with error
+                                  filemap_fdatawait() clears error
+   fsync returns success
+   (but the data is not on disk)
 
-Also, this will fix the warning in 32-bit build reported by kbuild test
-robot:
+This patch adds filemap_fdatawait_keep_errors() for call sites where
+writeback error is not handled so that they don't clear error status.
 
-	efi-stub-helper.c:599:2: warning: implicit declaration of function 'memcpy'
-
-Signed-off-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Reported-by: Fengguang Wu <fengguang.wu@gmail.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Matt Fleming <matt.fleming@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Jun'ichi Nomura <j-nomura@ce.jp.nec.com>
+Acked-by: Andi Kleen <ak@linux.intel.com>
+Reviewed-by: Tejun Heo <tj@kernel.org>
+Cc: Fengguang Wu <fengguang.wu@gmail.com>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/efi.h             |   12 ++++++++++++
- drivers/firmware/efi/libstub/efistub.h |    4 ----
- 2 files changed, 12 insertions(+), 4 deletions(-)
+ fs/fs-writeback.c  |    7 +++-
+ fs/sync.c          |    7 +++-
+ include/linux/fs.h |    1 
+ mm/filemap.c       |   67 ++++++++++++++++++++++++++++++++++---------
+ 4 files changed, 67 insertions(+), 15 deletions(-)
 
-diff -puN arch/x86/include/asm/efi.h~x86-efi-kasan-undef-memset-memcpy-memmove-per-arch arch/x86/include/asm/efi.h
---- a/arch/x86/include/asm/efi.h~x86-efi-kasan-undef-memset-memcpy-memmove-per-arch
-+++ a/arch/x86/include/asm/efi.h
-@@ -86,6 +86,18 @@ extern u64 asmlinkage efi_call(void *fp,
- extern void __iomem *__init efi_ioremap(unsigned long addr, unsigned long size,
- 					u32 type, u64 attribute);
+diff -puN fs/fs-writeback.c~fs-global-sync-to-not-clear-error-status-of-individual-inodes fs/fs-writeback.c
+--- a/fs/fs-writeback.c~fs-global-sync-to-not-clear-error-status-of-individual-inodes
++++ a/fs/fs-writeback.c
+@@ -2121,7 +2121,12 @@ static void wait_sb_inodes(struct super_
+ 		iput(old_inode);
+ 		old_inode = inode;
  
-+/*
-+ * CONFIG_KASAN may redefine memset to __memset.
-+ * __memset function is present only in kernel binary.
-+ * Since the EFI stub linked into a separate binary it
-+ * doesn't have __memset(). So we should use standard
-+ * memset from arch/x86/boot/compressed/string.c
-+ * The same applies to memcpy and memmove.
-+ */
-+#undef memcpy
-+#undef memset
-+#undef memmove
+-		filemap_fdatawait(mapping);
++		/*
++		 * We keep the error status of individual mapping so that
++		 * applications can catch the writeback error using fsync(2).
++		 * See filemap_fdatawait_keep_errors() for details.
++		 */
++		filemap_fdatawait_keep_errors(mapping);
+ 
+ 		cond_resched();
+ 
+diff -puN fs/sync.c~fs-global-sync-to-not-clear-error-status-of-individual-inodes fs/sync.c
+--- a/fs/sync.c~fs-global-sync-to-not-clear-error-status-of-individual-inodes
++++ a/fs/sync.c
+@@ -86,7 +86,12 @@ static void fdatawrite_one_bdev(struct b
+ 
+ static void fdatawait_one_bdev(struct block_device *bdev, void *arg)
+ {
+-	filemap_fdatawait(bdev->bd_inode->i_mapping);
++	/*
++	 * We keep the error status of individual mapping so that
++	 * applications can catch the writeback error using fsync(2).
++	 * See filemap_fdatawait_keep_errors() for details.
++	 */
++	filemap_fdatawait_keep_errors(bdev->bd_inode->i_mapping);
+ }
+ 
+ /*
+diff -puN include/linux/fs.h~fs-global-sync-to-not-clear-error-status-of-individual-inodes include/linux/fs.h
+--- a/include/linux/fs.h~fs-global-sync-to-not-clear-error-status-of-individual-inodes
++++ a/include/linux/fs.h
+@@ -2422,6 +2422,7 @@ extern int write_inode_now(struct inode
+ extern int filemap_fdatawrite(struct address_space *);
+ extern int filemap_flush(struct address_space *);
+ extern int filemap_fdatawait(struct address_space *);
++extern void filemap_fdatawait_keep_errors(struct address_space *);
+ extern int filemap_fdatawait_range(struct address_space *, loff_t lstart,
+ 				   loff_t lend);
+ extern int filemap_write_and_wait(struct address_space *mapping);
+diff -puN mm/filemap.c~fs-global-sync-to-not-clear-error-status-of-individual-inodes mm/filemap.c
+--- a/mm/filemap.c~fs-global-sync-to-not-clear-error-status-of-individual-inodes
++++ a/mm/filemap.c
+@@ -331,23 +331,14 @@ int filemap_flush(struct address_space *
+ }
+ EXPORT_SYMBOL(filemap_flush);
+ 
+-/**
+- * filemap_fdatawait_range - wait for writeback to complete
+- * @mapping:		address space structure to wait for
+- * @start_byte:		offset in bytes where the range starts
+- * @end_byte:		offset in bytes where the range ends (inclusive)
+- *
+- * Walk the list of under-writeback pages of the given address space
+- * in the given range and wait for all of them.
+- */
+-int filemap_fdatawait_range(struct address_space *mapping, loff_t start_byte,
+-			    loff_t end_byte)
++static int __filemap_fdatawait_range(struct address_space *mapping,
++				     loff_t start_byte, loff_t end_byte)
+ {
+ 	pgoff_t index = start_byte >> PAGE_CACHE_SHIFT;
+ 	pgoff_t end = end_byte >> PAGE_CACHE_SHIFT;
+ 	struct pagevec pvec;
+ 	int nr_pages;
+-	int ret2, ret = 0;
++	int ret = 0;
+ 
+ 	if (end_byte < start_byte)
+ 		goto out;
+@@ -374,6 +365,29 @@ int filemap_fdatawait_range(struct addre
+ 		cond_resched();
+ 	}
+ out:
++	return ret;
++}
 +
- #endif /* CONFIG_X86_32 */
++/**
++ * filemap_fdatawait_range - wait for writeback to complete
++ * @mapping:		address space structure to wait for
++ * @start_byte:		offset in bytes where the range starts
++ * @end_byte:		offset in bytes where the range ends (inclusive)
++ *
++ * Walk the list of under-writeback pages of the given address space
++ * in the given range and wait for all of them.  Check error status of
++ * the address space and return it.
++ *
++ * Since the error status of the address space is cleared by this function,
++ * callers are responsible for checking the return value and handling and/or
++ * reporting the error.
++ */
++int filemap_fdatawait_range(struct address_space *mapping, loff_t start_byte,
++			    loff_t end_byte)
++{
++	int ret, ret2;
++
++	ret = __filemap_fdatawait_range(mapping, start_byte, end_byte);
+ 	ret2 = filemap_check_errors(mapping);
+ 	if (!ret)
+ 		ret = ret2;
+@@ -383,11 +397,38 @@ out:
+ EXPORT_SYMBOL(filemap_fdatawait_range);
  
- extern struct efi_scratch efi_scratch;
-diff -puN drivers/firmware/efi/libstub/efistub.h~x86-efi-kasan-undef-memset-memcpy-memmove-per-arch drivers/firmware/efi/libstub/efistub.h
---- a/drivers/firmware/efi/libstub/efistub.h~x86-efi-kasan-undef-memset-memcpy-memmove-per-arch
-+++ a/drivers/firmware/efi/libstub/efistub.h
-@@ -5,10 +5,6 @@
- /* error code which can't be mistaken for valid address */
- #define EFI_ERROR	(~0UL)
- 
--#undef memcpy
--#undef memset
--#undef memmove
+ /**
++ * filemap_fdatawait_keep_errors - wait for writeback without clearing errors
++ * @mapping: address space structure to wait for
++ *
++ * Walk the list of under-writeback pages of the given address space
++ * and wait for all of them.  Unlike filemap_fdatawait(), this function
++ * does not clear error status of the address space.
++ *
++ * Use this function if callers don't handle errors themselves.  Expected
++ * call sites are system-wide / filesystem-wide data flushers: e.g. sync(2),
++ * fsfreeze(8)
++ */
++void filemap_fdatawait_keep_errors(struct address_space *mapping)
++{
++	loff_t i_size = i_size_read(mapping->host);
++
++	if (i_size == 0)
++		return;
++
++	__filemap_fdatawait_range(mapping, 0, i_size - 1);
++}
++
++/**
+  * filemap_fdatawait - wait for all under-writeback pages to complete
+  * @mapping: address space structure to wait for
+  *
+  * Walk the list of under-writeback pages of the given address space
+- * and wait for all of them.
++ * and wait for all of them.  Check error status of the address space
++ * and return it.
++ *
++ * Since the error status of the address space is cleared by this function,
++ * callers are responsible for checking the return value and handling and/or
++ * reporting the error.
+  */
+ int filemap_fdatawait(struct address_space *mapping)
+ {
+_
+
+Patches currently in -mm which might be from j-nomura@ce.jp.nec.com are
+
+fs-global-sync-to-not-clear-error-status-of-individual-inodes.patch
+
