@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- drivers-firmware-efi-libstub-efi-stub-helperc-needs-stringh.patch added to
- -mm tree
-Date: Thu, 17 Sep 2015 12:37:55 -0700
-Message-ID: <55fb1693.+EO4X5lugSHaOWzN%akpm@linux-foundation.org>
+ mm-migrate-hugetlb-putback-destination-hugepage-to-active-list.patch added
+ to -mm tree
+Date: Thu, 17 Sep 2015 12:41:35 -0700
+Message-ID: <55fb176f.qc07LTqVcpy1Ck1B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38909 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39422 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751059AbbIQThz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 15:37:55 -0400
+	with ESMTP id S1752290AbbIQTlg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 15:41:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@gmail.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, hughd@google.com, mhocko@suse.cz, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/firmware/efi/libstub/efi-stub-helper.c needs string.h
+     Subject: mm: migrate: hugetlb: putback destination hugepage to active list
 has been added to the -mm tree.  Its filename is
-     drivers-firmware-efi-libstub-efi-stub-helperc-needs-stringh.patch
+     mm-migrate-hugetlb-putback-destination-hugepage-to-active-list.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-firmware-efi-libstub-efi-stub-helperc-needs-stringh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-hugetlb-putback-destination-hugepage-to-active-list.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-firmware-efi-libstub-efi-stub-helperc-needs-stringh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-hugetlb-putback-destination-hugepage-to-active-list.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,54 +40,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/firmware/efi/libstub/efi-stub-helper.c needs string.h
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: migrate: hugetlb: putback destination hugepage to active list
 
-drivers/firmware/efi/libstub/efi-stub-helper.c: In function 'efi_relocate_kernel':
-drivers/firmware/efi/libstub/efi-stub-helper.c:599:2: warning: implicit declaration of function 'memcpy' [-Wimplicit-function-declaration]
+Since commit bcc54222309c ("mm: hugetlb: introduce page_huge_active") each
+hugetlb page maintains its active flag to avoid a race condition betwe= en
+multiple calls of isolate_huge_page(), but current kernel doesn't set the
+f= lag on a hugepage allocated by migration because the proper putback
+routine isn= 't called.  This means that users could still encounter the
+race referred to by bcc54222309c in this special case, so this patch fixes
+it.
 
-Cc: Fengguang Wu <fengguang.wu@gmail.com>
+Fixes: bcc54222309c ("mm: hugetlb: introduce page_huge_active")
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: <stable@vger.kernel.org>  [4.1.x]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/efi/libstub/efi-stub-helper.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/firmware/efi/libstub/efi-stub-helper.c~drivers-firmware-efi-libstub-efi-stub-helperc-needs-stringh drivers/firmware/efi/libstub/efi-stub-helper.c
---- a/drivers/firmware/efi/libstub/efi-stub-helper.c~drivers-firmware-efi-libstub-efi-stub-helperc-needs-stringh
-+++ a/drivers/firmware/efi/libstub/efi-stub-helper.c
-@@ -11,6 +11,7 @@
-  */
+diff -puN mm/migrate.c~mm-migrate-hugetlb-putback-destination-hugepage-to-active-list mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-hugetlb-putback-destination-hugepage-to-active-list
++++ a/mm/migrate.c
+@@ -1075,7 +1075,7 @@ out:
+ 	if (rc != MIGRATEPAGE_SUCCESS && put_new_page)
+ 		put_new_page(new_hpage, private);
+ 	else
+-		put_page(new_hpage);
++		putback_active_hugepage(new_hpage);
  
- #include <linux/efi.h>
-+#include <linux/string.h>
- #include <asm/efi.h>
- 
- #include "efistub.h"
+ 	if (result) {
+ 		if (rc)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-maintainers-update-ltp-mailing-list-fix.patch
-drivers-firmware-efi-libstub-efi-stub-helperc-needs-stringh.patch
-mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified-fix.patch
-revert-mm-make-sure-all-file-vmas-have-vm_ops-set.patch
-mm.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
-kasan-various-fixes-in-documentation-checkpatch-fixes.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-migrate-hugetlb-putback-destination-hugepage-to-active-list.patch
+mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps.patch
+mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-smaps-fix.patch
+mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch
+mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status-v5.patch
 
