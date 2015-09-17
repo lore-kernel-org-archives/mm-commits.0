@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmscan-make-inactive_anon_is_low_global-return-directly.patch added to
- -mm tree
-Date: Thu, 17 Sep 2015 14:37:41 -0700
-Message-ID: <55fb32a5.k5vKOFDqImAdemxM%akpm@linux-foundation.org>
+Subject: + mm-oom_kill-introduce-is_sysrq_oom-helper.patch added to -mm
+ tree
+Date: Thu, 17 Sep 2015 14:38:29 -0700
+Message-ID: <55fb32d5.o1RKXYqQYKTw6JPr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51990 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52039 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752316AbbIQVhl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 17:37:41 -0400
+	with ESMTP id S1751904AbbIQVi3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 17:38:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, mm-commits@vger.kernel.org
+To: bywxiaobai@163.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: make inactive_anon_is_low_global return directly
+     Subject: mm/oom_kill.c: introduce is_sysrq_oom helper
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-make-inactive_anon_is_low_global-return-directly.patch
+     mm-oom_kill-introduce-is_sysrq_oom-helper.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-make-inactive_anon_is_low_global-return-directly.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_kill-introduce-is_sysrq_oom-helper.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-make-inactive_anon_is_low_global-return-directly.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_kill-introduce-is_sysrq_oom-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,26 +40,81 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yaowei Bai <bywxiaobai@163.com>
-Subject: mm/vmscan: make inactive_anon_is_low_global return directly
+Subject: mm/oom_kill.c: introduce is_sysrq_oom helper
 
-Delete unnecessary if to let inactive_anon_is_low_global return
-directly.
+Introduce is_sysrq_oom helper function indicating oom kill triggered
+by sysrq to improve readability.
 
 No functional changes.
 
 Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/oom_kill.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-make-inactive_anon_is_low_global-return-directly mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-make-inactive_anon_is_low_global-return-directly
-+++ a/mm/vmscan.c
-@@ -1866,10 +1866,7 @@ static int inactive_anon_is_low_global(s
- 	active = zone_page_state(zone, NR_ACTIVE_ANON);
- 	inactive = zone_page_state(zone, NR_INACTIVE_ANON);
+diff -puN mm/oom_kill.c~mm-oom_kill-introduce-is_sysrq_oom-helper mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_kill-introduce-is_sysrq_oom-helper
++++ a/mm/oom_kill.c
+@@ -118,6 +118,15 @@ found:
+ 	return t;
+ }
  
--	if (inactive * zone->inactive_ratio < active)
--		return 1;
++/*
++ * order == -1 means the oom kill is required by sysrq, otherwise only
++ * for display purposes.
++ */
++static inline bool is_sysrq_oom(struct oom_control *oc)
++{
++	return oc->order == -1;
++}
++
+ /* return true if the task is not adequate as candidate victim task. */
+ static bool oom_unkillable_task(struct task_struct *p,
+ 		struct mem_cgroup *memcg, const nodemask_t *nodemask)
+@@ -265,7 +274,7 @@ enum oom_scan_t oom_scan_process_thread(
+ 	 * Don't allow any other task to have access to the reserves.
+ 	 */
+ 	if (test_tsk_thread_flag(task, TIF_MEMDIE)) {
+-		if (oc->order != -1)
++		if (!is_sysrq_oom(oc))
+ 			return OOM_SCAN_ABORT;
+ 	}
+ 	if (!task->mm)
+@@ -278,7 +287,7 @@ enum oom_scan_t oom_scan_process_thread(
+ 	if (oom_task_origin(task))
+ 		return OOM_SCAN_SELECT;
+ 
+-	if (task_will_free_mem(task) && oc->order != -1)
++	if (task_will_free_mem(task) && !is_sysrq_oom(oc))
+ 		return OOM_SCAN_ABORT;
+ 
+ 	return OOM_SCAN_OK;
+@@ -608,7 +617,7 @@ void check_panic_on_oom(struct oom_contr
+ 			return;
+ 	}
+ 	/* Do not panic for oom kills triggered by sysrq */
+-	if (oc->order == -1)
++	if (is_sysrq_oom(oc))
+ 		return;
+ 	dump_header(oc, NULL, memcg);
+ 	panic("Out of memory: %s panic_on_oom is enabled\n",
+@@ -688,7 +697,7 @@ bool out_of_memory(struct oom_control *o
+ 
+ 	p = select_bad_process(oc, &points, totalpages);
+ 	/* Found nothing?!?! Either we hang forever, or we panic. */
+-	if (!p && oc->order != -1) {
++	if (!p && !is_sysrq_oom(oc)) {
+ 		dump_header(oc, NULL, NULL);
+ 		panic("Out of memory and no killable processes...\n");
+ 	}
+_
+
+Patches currently in -mm which might be from bywxiaobai@163.com are
+
+mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone.patch
+mm-vmscan-make-inactive_anon_is_low_global-return-directly.patch
+mm-oom_kill-introduce-is_sysrq_oom-helper.patch
+
