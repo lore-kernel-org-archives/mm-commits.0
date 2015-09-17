@@ -1,68 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- lib-string_helpersc-fix-infinite-loop-in-string_get_size-v3.patch removed
- from -mm tree
-Date: Thu, 17 Sep 2015 15:59:09 -0700
-Message-ID: <55fb45bd.E7U7PkJ+xcWCfIWk%akpm@linux-foundation.org>
+Subject: [folded-merged] maintainers-update-ltp-mailing-list-fix.patch
+ removed from -mm tree
+Date: Thu, 17 Sep 2015 15:59:28 -0700
+Message-ID: <55fb45d0.36WcF9Tp+7o7EYWv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33332 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33353 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751604AbbIQW7L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 18:59:11 -0400
+	with ESMTP id S1751630AbbIQW73 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 18:59:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vkuznets@redhat.com, JBottomley@Odin.com, andriy.shevchenko@linux.intel.com, kys@microsoft.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alexey.kodanev@oracle.com, chrubis@suse.cz, jstancek@redhat.com, stanislav.kholmanskikh@oracle.com, wanlong.gao@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-string_helpersc-fix-infinite-loop-in-string_get_size-v3
+     Subject: maintainers-update-ltp-mailing-list-fix
 has been removed from the -mm tree.  Its filename was
-     lib-string_helpersc-fix-infinite-loop-in-string_get_size-v3.patch
+     maintainers-update-ltp-mailing-list-fix.patch
 
-This patch was dropped because it was folded into lib-string_helpersc-fix-infinite-loop-in-string_get_size.patch
+This patch was dropped because it was folded into maintainers-update-ltp-mailing-list.patch
 
 ------------------------------------------------------
-From: Vitaly Kuznetsov <vkuznets@redhat.com>
-Subject: lib-string_helpersc-fix-infinite-loop-in-string_get_size-v3
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: maintainers-update-ltp-mailing-list-fix
 
-Add a couple of simple tests for string_get_size().  The last one will
-hang the kernel without the 'lib/string_helpers.c: fix infinite loop in
-string_get_size()' fix.
+Wanlong Gao has moved
 
-Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
-Acked-by: James Bottomley <JBottomley@Odin.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Alexey Kodanev <alexey.kodanev@oracle.com>
+Cc: Cyril Hrubis <chrubis@suse.cz>
+Cc: Jan Stancek <jstancek@redhat.com>
+Cc: Stanislav Kholmanskikh <stanislav.kholmanskikh@oracle.com>
+Cc: Wanlong Gao <wanlong.gao@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/string_helpers.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/string_helpers.c~lib-string_helpersc-fix-infinite-loop-in-string_get_size-v3 lib/string_helpers.c
---- a/lib/string_helpers.c~lib-string_helpersc-fix-infinite-loop-in-string_get_size-v3
-+++ a/lib/string_helpers.c
-@@ -59,6 +59,10 @@ void string_get_size(u64 size, u64 blk_s
- 	}
- 
- 	exp = divisor[units] / (u32)blk_size;
-+	/*
-+	 * size must be strictly greater than exp here to ensure that remainder
-+	 * is greater than divisor[units] coming out of the if below.
-+	 */
- 	if (size > exp) {
- 		remainder = do_div(size, divisor[units]);
- 		remainder *= blk_size;
+diff -puN MAINTAINERS~maintainers-update-ltp-mailing-list-fix MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-ltp-mailing-list-fix
++++ a/MAINTAINERS
+@@ -6452,7 +6452,7 @@ F:	drivers/hwmon/ltc4261.c
+ LTP (Linux Test Project)
+ M:	Mike Frysinger <vapier@gentoo.org>
+ M:	Cyril Hrubis <chrubis@suse.cz>
+-M:	Wanlong Gao <gaowanlong@cn.fujitsu.com>
++M:	Wanlong Gao <wanlong.gao@gmail.com>
+ M:	Jan Stancek <jstancek@redhat.com>
+ M:	Stanislav Kholmanskikh <stanislav.kholmanskikh@oracle.com>
+ M:	Alexey Kodanev <alexey.kodanev@oracle.com>
 _
 
-Patches currently in -mm which might be from vkuznets@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-lib-string_helpersc-fix-infinite-loop-in-string_get_size.patch
-lib-test-string_helpersc-add-string_get_size-tests.patch
-lib-test-string_helpersc-add-string_get_size-tests-v5.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+maintainers-update-ltp-mailing-list.patch
+revert-mm-make-sure-all-file-vmas-have-vm_ops-set.patch
+mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified-fix.patch
+x86-efi-kasan-undef-memset-memcpy-memmove-per-arch-fix.patch
+mm.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
+kasan-various-fixes-in-documentation-checkpatch-fixes.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
