@@ -1,55 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- drivers-firmware-efi-libstub-efi-stub-helperc-needs-stringh.patch removed
- from -mm tree
-Date: Thu, 17 Sep 2015 13:10:20 -0700
-Message-ID: <55fb1e2c.DRscyea+Qteph3ay%akpm@linux-foundation.org>
+Subject: + x86-efi-kasan-undef-memset-memcpy-memmove-per-arch-fix.patch
+ added to -mm tree
+Date: Thu, 17 Sep 2015 13:16:28 -0700
+Message-ID: <55fb1f9c.8rrk6ipgPtmxiyzQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42769 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43285 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751160AbbIQUKU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 16:10:20 -0400
+	with ESMTP id S1751904AbbIQUQ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Sep 2015 16:16:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/firmware/efi/libstub/efi-stub-helper.c needs string.h
-has been removed from the -mm tree.  Its filename was
-     drivers-firmware-efi-libstub-efi-stub-helperc-needs-stringh.patch
+     Subject: x86-efi-kasan-undef-memset-memcpy-memmove-per-arch-fix
+has been added to the -mm tree.  Its filename is
+     x86-efi-kasan-undef-memset-memcpy-memmove-per-arch-fix.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-efi-kasan-undef-memset-memcpy-memmove-per-arch-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-efi-kasan-undef-memset-memcpy-memmove-per-arch-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/firmware/efi/libstub/efi-stub-helper.c needs string.h
+Subject: x86-efi-kasan-undef-memset-memcpy-memmove-per-arch-fix
 
-drivers/firmware/efi/libstub/efi-stub-helper.c: In function 'efi_relocate_kernel':
-drivers/firmware/efi/libstub/efi-stub-helper.c:599:2: warning: implicit declaration of function 'memcpy' [-Wimplicit-function-declaration]
+use 80 cols in comment
 
-Cc: Fengguang Wu <fengguang.wu@gmail.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/efi/libstub/efi-stub-helper.c |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/include/asm/efi.h |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN drivers/firmware/efi/libstub/efi-stub-helper.c~drivers-firmware-efi-libstub-efi-stub-helperc-needs-stringh drivers/firmware/efi/libstub/efi-stub-helper.c
---- a/drivers/firmware/efi/libstub/efi-stub-helper.c~drivers-firmware-efi-libstub-efi-stub-helperc-needs-stringh
-+++ a/drivers/firmware/efi/libstub/efi-stub-helper.c
-@@ -11,6 +11,7 @@
+diff -puN arch/x86/include/asm/efi.h~x86-efi-kasan-undef-memset-memcpy-memmove-per-arch-fix arch/x86/include/asm/efi.h
+--- a/arch/x86/include/asm/efi.h~x86-efi-kasan-undef-memset-memcpy-memmove-per-arch-fix
++++ a/arch/x86/include/asm/efi.h
+@@ -87,12 +87,10 @@ extern void __iomem *__init efi_ioremap(
+ 					u32 type, u64 attribute);
+ 
+ /*
+- * CONFIG_KASAN may redefine memset to __memset.
+- * __memset function is present only in kernel binary.
+- * Since the EFI stub linked into a separate binary it
+- * doesn't have __memset(). So we should use standard
+- * memset from arch/x86/boot/compressed/string.c
+- * The same applies to memcpy and memmove.
++ * CONFIG_KASAN may redefine memset to __memset.  __memset function is present
++ * only in kernel binary.  Since the EFI stub linked into a separate binary it
++ * doesn't have __memset().  So we should use standard memset from
++ * arch/x86/boot/compressed/string.c.  The same applies to memcpy and memmove.
   */
- 
- #include <linux/efi.h>
-+#include <linux/string.h>
- #include <asm/efi.h>
- 
- #include "efistub.h"
+ #undef memcpy
+ #undef memset
+diff -puN drivers/firmware/efi/libstub/efistub.h~x86-efi-kasan-undef-memset-memcpy-memmove-per-arch-fix drivers/firmware/efi/libstub/efistub.h
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -60,6 +82,7 @@ drivers-gpu-drm-i915-intel_tvc-fix-build.patch
 maintainers-update-ltp-mailing-list-fix.patch
 revert-mm-make-sure-all-file-vmas-have-vm_ops-set.patch
 mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified-fix.patch
+x86-efi-kasan-undef-memset-memcpy-memmove-per-arch-fix.patch
 mm.patch
 uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
 uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
