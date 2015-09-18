@@ -1,32 +1,50 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- slab-fix-the-unexpected-index-mapping-result-of-kmalloc_sizeindex_node-1.patch removed from -mm tree
-Date: Fri, 18 Sep 2015 13:24:11 -0700
-Message-ID: <55fc72eb.lFUYNqkmzTZTK/JW%akpm@linux-foundation.org>
+Subject: +
+ mm-slab-fix-unexpected-index-mapping-result-of-kmalloc_sizeindex_node1.patch added to -mm tree
+Date: Fri, 18 Sep 2015 13:24:56 -0700
+Message-ID: <55fc7318.hWLIy5bbI8o/6k58%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53349 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53451 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753431AbbIRUYM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Sep 2015 16:24:12 -0400
+	with ESMTP id S1753691AbbIRUY5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Sep 2015 16:24:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: liu.hailong6@zte.com.cn, cl@linux.com, iamjoonsoo.kim@lge.com, jiang.xuexin@zte.com.cn, js1304@gmail.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: js1304@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, liu.hailong6@zte.com.cn, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: fix unexpected index mapping result of kmalloc_size(INDEX_NODE + 1)
-has been removed from the -mm tree.  Its filename was
-     slab-fix-the-unexpected-index-mapping-result-of-kmalloc_sizeindex_node-1.patch
+     Subject: mm/slab: fix unexpected index mapping result of kmalloc_size(INDEX_NODE+1)
+has been added to the -mm tree.  Its filename is
+     mm-slab-fix-unexpected-index-mapping-result-of-kmalloc_sizeindex_node1.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-fix-unexpected-index-mapping-result-of-kmalloc_sizeindex_node1.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-fix-unexpected-index-mapping-result-of-kmalloc_sizeindex_node1.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Liuhailong <liu.hailong6@zte.com.cn>
-Subject: slab: fix unexpected index mapping result of kmalloc_size(INDEX_NODE + 1)
+From: Joonsoo Kim <js1304@gmail.com>
+Subject: mm/slab: fix unexpected index mapping result of kmalloc_size(INDEX_NODE+1)
+
+Commit description is copied from original post of this bug.
+
+http://comments.gmane.org/gmane.linux.kernel.mm/135349
 
 Kernels after v3.9 use kmalloc_size(INDEX_NODE + 1) to get the next larger
 cache size than the size index INDEX_NODE mapping.  In kernels 3.9 and
@@ -64,74 +82,49 @@ The problem on my mips64 machine is as follows:
 (6) Finally,"BUG_ON(ZERO_OR_NULL_PTR(cachep->slabp_cache));" causes the
     BUG info as the following shows (may be only mips64 has this problem):
 
- #20
-task: ffffffffc072cdc0 ti: ffffffffc06b4000 task.ti: ffffffffc06b4000
-$ 0   : 0000000000000000 0000000000000018 0000000000000001 0000000100000fff
-$ 4   : 0000000000000030 0000000000000000 0000000000001004 0000000000001000
-$ 8   : ffffffff80002800 000000000000000b 0000000000000000 0000000000000000
-$12   : 0000000080000000 0000000000000000 c0000000bf818ebc c0000000bf818eb8
-$16   : c0000000bf818ea0 0000000080002800 0000000000000000 0000000000001000
-$20   : 0000000000000034 0000000080000000 0000000000000000 0000000000000006
-$24   : ffffffffc1160000 00000000000003f4
-$28   : ffffffffc06b4000 ffffffffc06b7d40 0000000000002000 ffffffffc01d077c
-Hi    : 0000000000000fff
-Lo    : 0000000000100000
-epc   : ffffffffc01d0784 __kmem_cache_create+0x2ac/0x530
-    Not tainted
-ra    : ffffffffc01d077c __kmem_cache_create+0x2a4/0x530
-Status: 141000e2        KX SX UX KERNEL EXL
-Cause : 40808034
-PrId  : 000c1300 (Broadcom XLPII)
-Process swapper (pid: 0, threadinfo=ffffffffc06b4000, task=ffffffffc072cdc
-        0,tls=0000000000000000)
-*HwTLS: fffffffffadebeef
-Stack : 00000000c073b018 c0000000bf818ea0 0000000000000040 0000000000000000
-        ffffffffc115b360 ffffffffc115b360 0000000000000017 0000000000000007
-        0000000000000006 ffffffffc0780f54 0000000000002000 0000000000000040
-        c0000000bf818ea0 0000000000000000 0000000000000040 ffffffffc0780fec
-        0000000000002000 c0000000bf810fc0 ffffffffc115b390 0000000000000006
-        ffffffffc1160000 ffffffffc07810b0 0000000000000001 c0000000bf809000
-        ffffffffc0a30000 ffffffffc07a0000 ffffffffc07a1758 ffffffffc0a30000
-        ffffffff8c190000 ffffffff8bd02983 0000000000000000 ffffffff8c18f798
-        0000000000000000 ffffffffc07746e0 ffffffffc07a1758 0000000000000000
-        0000000000000000 ffffffff805c5580 0000000000000000 0000000000000000
-          ...
-Call Trace:
-[<ffffffffc01d0784>] __kmem_cache_create+0x2ac/0x530
-[<ffffffffc0780f54>] create_boot_cache+0x54/0x90
-[<ffffffffc0780fec>] create_kmalloc_cache+0x5c/0x94
-[<ffffffffc07810b0>] create_kmalloc_caches+0x8c/0x1b0
-[<ffffffffc07746e0>] start_kernel+0x1a0/0x408
+This patch fixes the problem of kmalloc_size(INDEX_NODE + 1) and removes
+the BUG by adding 'size >= 256' check to guarantee that all necessary
+small sized slabs are initialized regardless sequence of slab size in
+mapping table.
 
-This patch fixes the problem of kmalloc_size(INDEX_NODE + 1) removes the
-BUG.  I tested it on my mips64 mechine.
-
-Signed-off-by: Liuhailong <liu.hailong6@zte.com.cn>
-Reviewed-by: Jianxuexin <jiang.xuexin@zte.com.cn>
+Fixes: e33660165c90 ("slab: Use common kmalloc_index/kmalloc_size...")
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reported-by: Liuhailong <liu.hailong6@zte.com.cn>
 Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slab.c |   13 ++++++++++---
+ 1 file changed, 10 insertions(+), 3 deletions(-)
 
-diff -puN mm/slab.c~slab-fix-the-unexpected-index-mapping-result-of-kmalloc_sizeindex_node-1 mm/slab.c
---- a/mm/slab.c~slab-fix-the-unexpected-index-mapping-result-of-kmalloc_sizeindex_node-1
+diff -puN mm/slab.c~mm-slab-fix-unexpected-index-mapping-result-of-kmalloc_sizeindex_node1 mm/slab.c
+--- a/mm/slab.c~mm-slab-fix-unexpected-index-mapping-result-of-kmalloc_sizeindex_node1
 +++ a/mm/slab.c
-@@ -2190,7 +2190,7 @@ __kmem_cache_create (struct kmem_cache *
+@@ -2190,9 +2190,16 @@ __kmem_cache_create (struct kmem_cache *
  			size += BYTES_PER_WORD;
  	}
  #if FORCED_DEBUG && defined(CONFIG_DEBUG_PAGEALLOC)
 -	if (size >= kmalloc_size(INDEX_NODE + 1)
-+	if (size >= kmalloc_size(INDEX_NODE) * 2
- 	    && cachep->object_size > cache_line_size()
- 	    && ALIGN(size, cachep->align) < PAGE_SIZE) {
+-	    && cachep->object_size > cache_line_size()
+-	    && ALIGN(size, cachep->align) < PAGE_SIZE) {
++	/*
++	 * To activate debug pagealloc, off-slab management is necessary
++	 * requirement. In early phase of initialization, small sized slab
++	 * doesn't get initialized so it would not be possible. So, we need
++	 * to check size >= 256. It guarantees that all necessary small
++	 * sized slab is initialized in current slab initialization sequence.
++	 */
++	if (!slab_early_init && size >= kmalloc_size(INDEX_NODE) &&
++		size >= 256 && cachep->object_size > cache_line_size() &&
++		ALIGN(size, cachep->align) < PAGE_SIZE) {
  		cachep->obj_offset += PAGE_SIZE - ALIGN(size, cachep->align);
+ 		size = PAGE_SIZE;
+ 	}
 _
 
-Patches currently in -mm which might be from liu.hailong6@zte.com.cn are
+Patches currently in -mm which might be from js1304@gmail.com are
 
+mm-slab-fix-unexpected-index-mapping-result-of-kmalloc_sizeindex_node1.patch
 
