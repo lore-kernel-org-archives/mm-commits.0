@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-proc-arrayc-set-overflow-flag-in-case-of-error.patch added
- to -mm tree
-Date: Fri, 18 Sep 2015 13:01:36 -0700
-Message-ID: <55fc6da0.zcUtJ6wEqA25iR1H%akpm@linux-foundation.org>
+Subject: + seq_file-re-use-string_escape_str.patch added to -mm tree
+Date: Fri, 18 Sep 2015 13:05:29 -0700
+Message-ID: <55fc6e89.bOcy+6xJcyAbSQa5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48169 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48655 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753134AbbIRUBh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Sep 2015 16:01:37 -0400
+	with ESMTP id S1753675AbbIRUFa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Sep 2015 16:05:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/proc/array.c: set overflow flag in case of error
+     Subject: seq_file: reuse string_escape_str()
 has been added to the -mm tree.  Its filename is
-     fs-proc-arrayc-set-overflow-flag-in-case-of-error.patch
+     seq_file-re-use-string_escape_str.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-arrayc-set-overflow-flag-in-case-of-error.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/seq_file-re-use-string_escape_str.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-arrayc-set-overflow-flag-in-case-of-error.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/seq_file-re-use-string_escape_str.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,50 +39,69 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: fs/proc/array.c: set overflow flag in case of error
+Subject: seq_file: reuse string_escape_str()
 
-For now in task_name() we ignore the return code of string_escape_str()
-call.  This is not good if buffer suddenly becomes not big enough.  Do the
-proper error handling there.
+strint_escape_str() escapes input string by given criteria.  In case of
+seq_escape() the criteria is to convert some characters to their octal
+representation.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ fs/seq_file.c |   27 +++++++--------------------
+ 1 file changed, 7 insertions(+), 20 deletions(-)
 
-diff -puN fs/proc/array.c~fs-proc-arrayc-set-overflow-flag-in-case-of-error fs/proc/array.c
---- a/fs/proc/array.c~fs-proc-arrayc-set-overflow-flag-in-case-of-error
-+++ a/fs/proc/array.c
-@@ -91,18 +91,18 @@
- static inline void task_name(struct seq_file *m, struct task_struct *p)
+diff -puN fs/seq_file.c~seq_file-re-use-string_escape_str fs/seq_file.c
+--- a/fs/seq_file.c~seq_file-re-use-string_escape_str
++++ a/fs/seq_file.c
+@@ -13,6 +13,7 @@
+ #include <linux/cred.h>
+ #include <linux/mm.h>
+ #include <linux/printk.h>
++#include <linux/string_helpers.h>
+ 
+ #include <asm/uaccess.h>
+ #include <asm/page.h>
+@@ -377,26 +378,12 @@ EXPORT_SYMBOL(seq_release);
+  */
+ void seq_escape(struct seq_file *m, const char *s, const char *esc)
  {
- 	char *buf;
-+	size_t size;
- 	char tcomm[sizeof(p->comm)];
+-	char *end = m->buf + m->size;
+-	char *p;
+-	char c;
+-
+-	for (p = m->buf + m->count; (c = *s) != '\0' && p < end; s++) {
+-		if (!strchr(esc, c)) {
+-			*p++ = c;
+-			continue;
+-		}
+-		if (p + 3 < end) {
+-			*p++ = '\\';
+-			*p++ = '0' + ((c & 0300) >> 6);
+-			*p++ = '0' + ((c & 070) >> 3);
+-			*p++ = '0' + (c & 07);
+-			continue;
+-		}
+-		seq_set_overflow(m);
+-		return;
+-	}
+-	m->count = p - m->buf;
++	char *buf;
++	size_t size = seq_get_buf(m, &buf);
 +	int ret;
- 
- 	get_task_comm(tcomm, p);
- 
- 	seq_puts(m, "Name:\t");
--	buf = m->buf + m->count;
- 
--	/* Ignore error for now */
--	buf += string_escape_str(tcomm, buf, m->size - m->count,
--				 ESCAPE_SPACE | ESCAPE_SPECIAL, "\n\\");
-+	size = seq_get_buf(m, &buf);
-+	ret = string_escape_str(tcomm, buf, size, ESCAPE_SPACE | ESCAPE_SPECIAL, "\n\\");
++
++	ret = string_escape_str(s, buf, size, ESCAPE_OCTAL, esc);
 +	seq_commit(m, ret < size ? ret : -1);
- 
--	m->count = buf - m->buf;
- 	seq_putc(m, '\n');
  }
+ EXPORT_SYMBOL(seq_escape);
  
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 fs-proc-arrayc-set-overflow-flag-in-case-of-error.patch
+seq_file-re-use-string_escape_str.patch
+fs-seq_file-use-seq_-helpers-in-seq_hex_dump.patch
 
