@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + security-fix-typo-in-security_task_prctl.patch added to -mm
  tree
-Date: Mon, 21 Sep 2015 13:55:10 -0700
-Message-ID: <56006eae.c4MRX4TjtL7RD807%akpm@linux-foundation.org>
+Date: Mon, 21 Sep 2015 14:05:57 -0700
+Message-ID: <56007135.GXeRnS/CwxX9x7th%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45556 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47039 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753480AbbIUUzL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Sep 2015 16:55:11 -0400
+	with ESMTP id S1756079AbbIUVF6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Sep 2015 17:05:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jann@thejh.net, james.l.morris@oracle.com, luto@kernel.org, serge@hallyn.com, mm-commits@vger.kernel.org
@@ -56,9 +56,21 @@ Cc: "Serge E. Hallyn" <serge@hallyn.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- 0 files changed
+ include/linux/security.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff -puN include/linux/security.h~security-fix-typo-in-security_task_prctl include/linux/security.h
+--- a/include/linux/security.h~security-fix-typo-in-security_task_prctl
++++ a/include/linux/security.h
+@@ -946,7 +946,7 @@ static inline int security_task_prctl(in
+ 				      unsigned long arg4,
+ 				      unsigned long arg5)
+ {
+-	return cap_task_prctl(option, arg2, arg3, arg3, arg5);
++	return cap_task_prctl(option, arg2, arg3, arg4, arg5);
+ }
+ 
+ static inline void security_task_to_inode(struct task_struct *p, struct inode *inode)
 _
 
 Patches currently in -mm which might be from jann@thejh.net are
