@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Mon, 21 Sep 2015 11:23:57 -0700
-Message-ID: <56004b3d.bS5V5ltF2k7dJyZ9%akpm@linux-foundation.org>
+Subject: + inotify-hide-internal-kernel-bits-from-fdinfo.patch added to
+ -mm tree
+Date: Mon, 21 Sep 2015 13:02:10 -0700
+Message-ID: <56006242.tAYrxEuNdcZkUptX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49917 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36932 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757161AbbIUSX6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Sep 2015 14:23:58 -0400
+	with ESMTP id S932242AbbIUUCL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Sep 2015 16:02:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: dave.hansen@linux.intel.com, avagin@gmail.com, avagin@openvz.org, eparis@redhat.com, gorcunov@openvz.org, john@johnmccutchan.com, rlove@rlove.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: inotify: hide internal kernel bits from fdinfo
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     inotify-hide-internal-kernel-bits-from-fdinfo.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/inotify-hide-internal-kernel-bits-from-fdinfo.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/inotify-hide-internal-kernel-bits-from-fdinfo.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,80 +39,74 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: inotify: hide internal kernel bits from fdinfo
 
+There was a report that my patch:
+
+	inotify: actually check for invalid bits in sys_inotify_add_watch()
+
+broke CRIU.
+
+The reason is that CRIU looks up raw flags in /proc/$pid/fdinfo/* to
+figure out how to rebuild inotify watches and then passes those flags
+directly back in to the inotify API.  One of those flags
+(FS_EVENT_ON_CHILD) is set in mark->mask, but is not part of the inotify
+API.  It is used inside the kernel to _implement_ inotify but it is not
+and has never been part of the API.
+
+My patch above ensured that we only allow bits which are part of the API
+(IN_ALL_EVENTS).  This broke CRIU.
+
+FS_EVENT_ON_CHILD is really internal to the kernel.  It is set _anyway_ on
+all inotify marks.  So, CRIU was really just trying to set a bit that was
+already set.
+
+This patch hides that bit from fdinfo.  CRIU will not see the bit, not try
+to set it, and should work as before.  We should not have been exposing
+this bit in the first place, so this is a good patch independent of the
+CRIU problem.
+
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Reported-by: Andrey Wagin <avagin@gmail.com>
+Acked-by: Andrey Vagin <avagin@openvz.org>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Acked-by: Eric Paris <eparis@redhat.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: John McCutchan <john@johnmccutchan.com>
+Cc: Robert Love <rlove@rlove.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/uapi/asm/unistd.h |    4 ----
- arch/s390/kernel/syscalls.S         |    3 ---
- 2 files changed, 7 deletions(-)
+ fs/notify/fdinfo.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN arch/s390/include/uapi/asm/unistd.h~linux-next-git-rejects arch/s390/include/uapi/asm/unistd.h
---- a/arch/s390/include/uapi/asm/unistd.h~linux-next-git-rejects
-+++ a/arch/s390/include/uapi/asm/unistd.h
-@@ -292,7 +292,6 @@
- #define __NR_execveat		354
- #define __NR_userfaultfd	355
- #define __NR_membarrier		356
--<<<<<<< HEAD
- #define __NR_recvmmsg		357
- #define __NR_sendmmsg		358
- #define __NR_socket		359
-@@ -311,9 +310,6 @@
- #define __NR_recvmsg		372
- #define __NR_shutdown		373
- #define NR_syscalls 374
--=======
--#define NR_syscalls 357
-->>>>>>> linux-next/akpm-base
- 
- /* 
-  * There are some system calls that are not present on 64 bit, some
-diff -puN arch/s390/kernel/syscalls.S~linux-next-git-rejects arch/s390/kernel/syscalls.S
---- a/arch/s390/kernel/syscalls.S~linux-next-git-rejects
-+++ a/arch/s390/kernel/syscalls.S
-@@ -365,7 +365,6 @@ SYSCALL(sys_s390_pci_mmio_read,compat_sy
- SYSCALL(sys_execveat,compat_sys_execveat)
- SYSCALL(sys_userfaultfd,sys_userfaultfd)		/* 355 */
- SYSCALL(sys_membarrier,sys_membarrier)
--<<<<<<< HEAD
- SYSCALL(sys_recvmmsg,compat_sys_recvmmsg)
- SYSCALL(sys_sendmmsg,compat_sys_sendmmsg)
- SYSCALL(sys_socket,sys_socket)
-@@ -383,5 +382,3 @@ SYSCALL(sys_sendmsg,compat_sys_sendmsg)
- SYSCALL(sys_recvfrom,compat_sys_recvfrom)
- SYSCALL(sys_recvmsg,compat_sys_recvmsg)
- SYSCALL(sys_shutdown,sys_shutdown)
--=======
-->>>>>>> linux-next/akpm-base
+diff -puN fs/notify/fdinfo.c~inotify-hide-internal-kernel-bits-from-fdinfo fs/notify/fdinfo.c
+--- a/fs/notify/fdinfo.c~inotify-hide-internal-kernel-bits-from-fdinfo
++++ a/fs/notify/fdinfo.c
+@@ -83,9 +83,16 @@ static void inotify_fdinfo(struct seq_fi
+ 	inode_mark = container_of(mark, struct inotify_inode_mark, fsn_mark);
+ 	inode = igrab(mark->inode);
+ 	if (inode) {
++		/*
++		 * IN_ALL_EVENTS represents all of the mask bits
++		 * that we expose to userspace.  There is at
++		 * least one bit (FS_EVENT_ON_CHILD) which is
++		 * used only internally to the kernel.
++		 */
++		u32 mask = mark->mask & IN_ALL_EVENTS;
+ 		seq_printf(m, "inotify wd:%x ino:%lx sdev:%x mask:%x ignored_mask:%x ",
+ 			   inode_mark->wd, inode->i_ino, inode->i_sb->s_dev,
+-			   mark->mask, mark->ignored_mask);
++			   mask, mark->ignored_mask);
+ 		show_mark_fhandle(m, inode);
+ 		seq_putc(m, '\n');
+ 		iput(inode);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified-fix.patch
-x86-efi-kasan-undef-memset-memcpy-memmove-per-arch-fix.patch
-mm.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
-kasan-various-fixes-in-documentation-checkpatch-fixes.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-remove-abs64.patch
-include-linux-compiler-gcch-improve-__visible-documentation.patch
-linux-next-git-rejects.patch
-net-ipv4-routec-prevent-oops.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+inotify-hide-internal-kernel-bits-from-fdinfo.patch
+inotify-actually-check-for-invalid-bits-in-sys_inotify_add_watch.patch
+inotify-actually-check-for-invalid-bits-in-sys_inotify_add_watch-v2.patch
 
