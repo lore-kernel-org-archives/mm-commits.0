@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-make-mem_cgroup_inactive_anon_is_low-return-bool.patch added
- to -mm tree
-Date: Mon, 21 Sep 2015 14:29:21 -0700
-Message-ID: <560076b1.Vh6TcGhTD32FBk7J%akpm@linux-foundation.org>
+Subject: + memcg-fix-dirty-page-migration.patch added to -mm tree
+Date: Mon, 21 Sep 2015 14:34:52 -0700
+Message-ID: <560077fc.FR2D17YYHP2HNpqf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50683 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51620 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753884AbbIUV3W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Sep 2015 17:29:22 -0400
+	with ESMTP id S1753072AbbIUVex (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Sep 2015 17:34:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, mm-commits@vger.kernel.org
+To: gthelen@google.com, dave.hansen@intel.com, hannes@cmpxchg.org, mhocko@suse.cz, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol: make mem_cgroup_inactive_anon_is_low() return bool
+     Subject: memcg: fix dirty page migration
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-make-mem_cgroup_inactive_anon_is_low-return-bool.patch
+     memcg-fix-dirty-page-migration.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-make-mem_cgroup_inactive_anon_is_low-return-bool.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-fix-dirty-page-migration.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-make-mem_cgroup_inactive_anon_is_low-return-bool.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-fix-dirty-page-migration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,54 +38,151 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yaowei Bai <bywxiaobai@163.com>
-Subject: mm/memcontrol: make mem_cgroup_inactive_anon_is_low() return bool
+From: Greg Thelen <gthelen@google.com>
+Subject: memcg: fix dirty page migration
 
-Make mem_cgroup_inactive_anon_is_low return bool due to this particular
-function only using either one or zero as its return value.
+The problem starts with a file backed dirty page which is charged to a
+memcg.  Then page migration is used to move oldpage to newpage.
 
-No functional change.
+Migration:
+- copies the oldpage's data to newpage
+- clears oldpage.PG_dirty
+- sets newpage.PG_dirty
+- uncharges oldpage from memcg
+- charges newpage to memcg
 
-Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
+Clearing oldpage.PG_dirty decrements the charged memcg's dirty page count.
+ However, because newpage is not yet charged, setting newpage.PG_dirty
+does not increment the memcg's dirty page count.  After migration
+completes newpage.PG_dirty is eventually cleared, often in
+account_page_cleaned().  At this time newpage is charged to a memcg so the
+memcg's dirty page count is decremented which causes underflow because the
+count was not previously incremented by migration.  This underflow causes
+balance_dirty_pages() to see a very large unsigned number of dirty memcg
+pages which leads to aggressive throttling of buffered writes by processes
+in non root memcg.
+
+This issue:
+- can harm performance of non root memcg buffered writes.
+- can report too small (even negative) values in
+  memory.stat[(total_)dirty] counters of all memcg, including the root.
+
+To avoid polluting migrate.c with #ifdef CONFIG_MEMCG checks, introduce
+page_memcg() and set_page_memcg() helpers.
+
+Test:
+    0) setup and enter limited memcg
+    mkdir /sys/fs/cgroup/test
+    echo 1G > /sys/fs/cgroup/test/memory.limit_in_bytes
+    echo $$ > /sys/fs/cgroup/test/cgroup.procs
+
+    1) buffered writes baseline
+    dd if=/dev/zero of=/data/tmp/foo bs=1M count=1k
+    sync
+    grep ^dirty /sys/fs/cgroup/test/memory.stat
+
+    2) buffered writes with compaction antagonist to induce migration
+    yes 1 > /proc/sys/vm/compact_memory &
+    rm -rf /data/tmp/foo
+    dd if=/dev/zero of=/data/tmp/foo bs=1M count=1k
+    kill %
+    sync
+    grep ^dirty /sys/fs/cgroup/test/memory.stat
+
+    3) buffered writes without antagonist, should match baseline
+    rm -rf /data/tmp/foo
+    dd if=/dev/zero of=/data/tmp/foo bs=1M count=1k
+    sync
+    grep ^dirty /sys/fs/cgroup/test/memory.stat
+
+                       (speed, dirty residue)
+             unpatched                       patched
+    1) 841 MB/s 0 dirty pages          886 MB/s 0 dirty pages
+    2) 611 MB/s -33427456 dirty pages  793 MB/s 0 dirty pages
+    3) 114 MB/s -33427456 dirty pages  891 MB/s 0 dirty pages
+
+    Notice that unpatched baseline performance (1) fell after
+    migration (3): 841 -> 114 MB/s.  In the patched kernel, post
+    migration performance matches baseline.
+
+Fixes: c4843a7593a9 ("memcg: add per cgroup dirty page accounting")
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Reported-by: Dave Hansen <dave.hansen@intel.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>	[4.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/mm.h |   21 +++++++++++++++++++++
+ mm/migrate.c       |   12 +++++++++++-
+ 2 files changed, 32 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcontrol-make-mem_cgroup_inactive_anon_is_low-return-bool include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcontrol-make-mem_cgroup_inactive_anon_is_low-return-bool
-+++ a/include/linux/memcontrol.h
-@@ -383,7 +383,7 @@ unsigned long mem_cgroup_get_lru_size(st
- 	return mz->lru_size[lru];
+diff -puN include/linux/mm.h~memcg-fix-dirty-page-migration include/linux/mm.h
+--- a/include/linux/mm.h~memcg-fix-dirty-page-migration
++++ a/include/linux/mm.h
+@@ -905,6 +905,27 @@ static inline void set_page_links(struct
+ #endif
  }
  
--static inline int mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
-+static inline bool mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
- {
- 	unsigned long inactive_ratio;
- 	unsigned long inactive;
-@@ -586,10 +586,10 @@ static inline bool mem_cgroup_disabled(v
- 	return true;
- }
++#ifdef CONFIG_MEMCG
++static inline struct mem_cgroup *page_memcg(struct page *page)
++{
++	return page->mem_cgroup;
++}
++
++static inline void set_page_memcg(struct page *page, struct mem_cgroup *memcg)
++{
++	page->mem_cgroup = memcg;
++}
++#else
++static inline struct mem_cgroup *page_memcg(struct page *page)
++{
++	return NULL;
++}
++
++static inline void set_page_memcg(struct page *page, struct mem_cgroup *memcg)
++{
++}
++#endif
++
+ /*
+  * Some inline functions in vmstat.h depend on page_zone()
+  */
+diff -puN mm/migrate.c~memcg-fix-dirty-page-migration mm/migrate.c
+--- a/mm/migrate.c~memcg-fix-dirty-page-migration
++++ a/mm/migrate.c
+@@ -740,6 +740,15 @@ static int move_to_new_page(struct page
+ 	if (PageSwapBacked(page))
+ 		SetPageSwapBacked(newpage);
  
--static inline int
-+static inline bool
- mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
- {
--	return 1;
-+	return true;
- }
++	/*
++	 * Indirectly called below, migrate_page_copy() copies PG_dirty and thus
++	 * needs newpage's memcg set to transfer memcg dirty page accounting.
++	 * So perform memcg migration in two steps:
++	 * 1. set newpage->mem_cgroup (here)
++	 * 2. clear page->mem_cgroup (below)
++	 */
++	set_page_memcg(newpage, page_memcg(page));
++
+ 	mapping = page_mapping(page);
+ 	if (!mapping)
+ 		rc = migrate_page(mapping, newpage, page, mode);
+@@ -756,9 +765,10 @@ static int move_to_new_page(struct page
+ 		rc = fallback_migrate_page(mapping, newpage, page, mode);
  
- static inline bool mem_cgroup_lruvec_online(struct lruvec *lruvec)
+ 	if (rc != MIGRATEPAGE_SUCCESS) {
++		set_page_memcg(newpage, NULL);
+ 		newpage->mapping = NULL;
+ 	} else {
+-		mem_cgroup_migrate(page, newpage, false);
++		set_page_memcg(page, NULL);
+ 		if (page_was_mapped)
+ 			remove_migration_ptes(page, newpage);
+ 		page->mapping = NULL;
 _
 
-Patches currently in -mm which might be from bywxiaobai@163.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
-mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone.patch
-mm-vmscan-make-inactive_anon_is_low_global-return-directly.patch
-mm-oom_kill-introduce-is_sysrq_oom-helper.patch
-mm-compaction-add-an-is_via_compact_memory-helper-function.patch
-mm-vmscan-make-inactive_anon-file_is_low-return-bool.patch
-mm-memcontrol-make-mem_cgroup_inactive_anon_is_low-return-bool.patch
+memcg-fix-dirty-page-migration.patch
 
