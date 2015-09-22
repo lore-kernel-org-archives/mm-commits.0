@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-hugetlbfs-skip-shared-vmas-when-unmapping-private-pages-to-satisfy-a-fault.patch added to -mm tree
-Date: Tue, 22 Sep 2015 11:55:02 -0700
-Message-ID: <5601a406.HJm1lIc9wBSoANfN%akpm__18031.9540355869$1442948143$gmane$org@linux-foundation.org>
+ mm-compaction-export-tracepoints-status-strings-to-userspace.patch added to -mm tree
+Date: Tue, 22 Sep 2015 12:57:51 -0700
+Message-ID: <5601b2bf.+/QkMcEffSIiKMfw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44566 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53927 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759392AbbIVSzD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Sep 2015 14:55:03 -0400
+	with ESMTP id S933208AbbIVT5x (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Sep 2015 15:57:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, aarcange@redhat.com, hughd@google.com, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, stable@vger.kernel.org, sund_sky@126.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@suse.de, mingo@redhat.com, rientjes@google.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlbfs: skip shared VMAs when unmapping private pages to satisfy a fault
+     Subject: mm, compaction: export tracepoints status strings to userspace
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbfs-skip-shared-vmas-when-unmapping-private-pages-to-satisfy-a-fault.patch
+     mm-compaction-export-tracepoints-status-strings-to-userspace.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbfs-skip-shared-vmas-when-unmapping-private-pages-to-satisfy-a-fault.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-export-tracepoints-status-strings-to-userspace.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbfs-skip-shared-vmas-when-unmapping-private-pages-to-satisfy-a-fault.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-export-tracepoints-status-strings-to-userspace.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,96 +39,135 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: hugetlbfs: skip shared VMAs when unmapping private pages to satisfy a fault
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: export tracepoints status strings to userspace
 
-SunDong reported the following on
-https://bugzilla.kernel.org/show_bug.cgi?id=103841
+Some compaction tracepoints convert the integer return values to strings
+using the compaction_status_string array.  This works for in-kernel
+printing, but not userspace trace printing of raw captured trace such as
+via trace-cmd report.
 
-	I think I find a linux bug, I have the test cases is constructed. I
-	can stable recurring problems in fedora22(4.0.4) kernel version,
-	arch for x86_64.  I construct transparent huge page, when the parent
-	and child process with MAP_SHARE, MAP_PRIVATE way to access the same
-	huge page area, it has the opportunity to lead to huge page copy on
-	write failure, and then it will munmap the child corresponding mmap
-	area, but then the child mmap area with VM_MAYSHARE attributes, child
-	process munmap this area can trigger VM_BUG_ON in set_vma_resv_flags
-	functions (vma - > vm_flags & VM_MAYSHARE).
+This patch converts the private array to appropriate tracepoint macros
+that result in proper userspace support.
 
-There were a number of problems with the report (e.g.  it's hugetlbfs that
-triggers this, not transparent huge pages) but it was fundamentally
-correct in that a VM_BUG_ON in set_vma_resv_flags() can be triggered that
-looks like this
+trace-cmd output before:
+transhuge-stres-4235  [000]   453.149280: mm_compaction_finished: node=0
+  zone=ffffffff81815d7a order=9 ret=
 
-	 vma ffff8804651fd0d0 start 00007fc474e00000 end 00007fc475e00000
-	 next ffff8804651fd018 prev ffff8804651fd188 mm ffff88046b1b1800
-	 prot 8000000000000027 anon_vma           (null) vm_ops ffffffff8182a7a0
-	 pgoff 0 file ffff88106bdb9800 private_data           (null)
-	 flags: 0x84400fb(read|write|shared|mayread|maywrite|mayexec|mayshare|dontexpand|hugetlb)
-	 ------------
-	 kernel BUG at mm/hugetlb.c:462!
-	 SMP
-	 Modules linked in: xt_pkttype xt_LOG xt_limit iscsi_ibft iscsi_boot_sysfs af_packet ip6t_REJECT nf_reject_ipv6
-xt_tcpudp nf_conntrack_ipv6 nf_defrag_ipv6 ip6table_raw ipt_REJECT nf_reject_ipv4 iptable_raw xt_CT iptable_filter ip6table_mangle
-nf_conntrack_netbios_ns nf_conntrack_broadcast nf_conntrack_ipv4 nf_defrag_ipv4 ip_tables xt_conntrack nf_conntrack ip6table_filter
-ip6_tables x_tables intel_powerclamp coretemp kvm_intel kvm mgag200 ttm drm_kms_helper drm crct10dif_pclmul crc32_pclmul crc32c_intel
-ghash_clmulni_intel aesni_intel aes_x86_64 lrw ipmi_devintf gf128mul iTCO_wdt gpio_ich iTCO_vendor_support glue_helper ablk_helper
-dcdbas i7core_edac cryptd syscopyarea sysfillrect bnx2 sysimgblt lpc_ich serio_raw edac_core i2c_algo_bit shpchp mfd_core ipmi_si
-tpm_tis tpm ipmi_msghandler wmi acpi_power_meter button acpi_cpufreq processor dm_mod sr_mod cdrom ata_generic hid_generic usbhid hid
-uhci_hcd ehci_pci ehci_hcd usbcore ata_piix usb_common megaraid_sas sg
-	 CPU: 38 PID: 26839 Comm: map Not tainted 4.0.4-default #1
-	 Hardware name: Dell Inc. PowerEdge R810/0TT6JF, BIOS 2.7.4 04/26/2012
-	 task: ffff88085ed10490 ti: ffff88085ed14000 task.ti: ffff88085ed14000
-	 set_vma_resv_flags+0x2d/0x30
+after:
+transhuge-stres-4235  [000]   453.149280: mm_compaction_finished: node=0
+  zone=ffffffff81815d7a order=9 ret=partial
 
-The VM_BUG_ON is correct because private and shared mappings have
-different reservation accounting but the warning clearly shows that the
-VMA is shared.
-
-When a private COW fails to allocate a new page then only the process that
-created the VMA gets the page -- all the children unmap the page.  If the
-children access that data in the future then they get killed.
-
-The problem is that the same file is mapped shared and private.  During
-the COW, the allocation fails, the VMAs are traversed to unmap the other
-private pages but a shared VMA is found and the bug is triggered.  This
-patch identifies such VMAs and skips them.
-
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reported-by: SunDong <sund_sky@126.com>
-Reviewed-by: Michal Hocko <mhocko@suse.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Steven Rostedt <rostedt@goodmis.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/compaction.h        |    2 -
+ include/trace/events/compaction.h |   33 ++++++++++++++++++++++++++--
+ mm/compaction.c                   |   11 ---------
+ 3 files changed, 32 insertions(+), 14 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlbfs-skip-shared-vmas-when-unmapping-private-pages-to-satisfy-a-fault mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbfs-skip-shared-vmas-when-unmapping-private-pages-to-satisfy-a-fault
-+++ a/mm/hugetlb.c
-@@ -3202,6 +3202,14 @@ static void unmap_ref_private(struct mm_
- 			continue;
+diff -puN include/linux/compaction.h~mm-compaction-export-tracepoints-status-strings-to-userspace include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-export-tracepoints-status-strings-to-userspace
++++ a/include/linux/compaction.h
+@@ -15,7 +15,7 @@
+ /* For more detailed tracepoint output */
+ #define COMPACT_NO_SUITABLE_PAGE	5
+ #define COMPACT_NOT_SUITABLE_ZONE	6
+-/* When adding new state, please change compaction_status_string, too */
++/* When adding new states, please adjust include/trace/events/compaction.h */
  
- 		/*
-+		 * Shared VMAs have their own reserves and do not affect
-+		 * MAP_PRIVATE accounting but it is possible that a shared
-+		 * VMA is using the same page so check and skip such VMAs.
-+		 */
-+		if (iter_vma->vm_flags & VM_MAYSHARE)
-+			continue;
+ /* Used to signal whether compaction detected need_sched() or lock contention */
+ /* No contention detected */
+diff -puN include/trace/events/compaction.h~mm-compaction-export-tracepoints-status-strings-to-userspace include/trace/events/compaction.h
+--- a/include/trace/events/compaction.h~mm-compaction-export-tracepoints-status-strings-to-userspace
++++ a/include/trace/events/compaction.h
+@@ -9,6 +9,35 @@
+ #include <linux/tracepoint.h>
+ #include <trace/events/gfpflags.h>
+ 
++#define COMPACTION_STATUS					\
++	EM( COMPACT_DEFERRED,		"deferred")		\
++	EM( COMPACT_SKIPPED,		"skipped")		\
++	EM( COMPACT_CONTINUE,		"continue")		\
++	EM( COMPACT_PARTIAL,		"partial")		\
++	EM( COMPACT_COMPLETE,		"complete")		\
++	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
++	EMe(COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")
 +
-+		/*
- 		 * Unmap the page from other VMAs without their own reserves.
- 		 * They get marked to be SIGKILLed if they fault in these
- 		 * areas. This is because a future no-page fault on this VMA
++/*
++ * First define the enums in the above macros to be exported to userspace
++ * via TRACE_DEFINE_ENUM().
++ */
++#undef EM
++#undef EMe
++#define EM(a, b)	TRACE_DEFINE_ENUM(a);
++#define EMe(a, b)	TRACE_DEFINE_ENUM(a);
++
++COMPACTION_STATUS
++
++/*
++ * Now redefine the EM() and EMe() macros to map the enums to the strings
++ * that will be printed in the output.
++ */
++#undef EM
++#undef EMe
++#define EM(a, b)	{a, b},
++#define EMe(a, b)	{a, b}
++
+ DECLARE_EVENT_CLASS(mm_compaction_isolate_template,
+ 
+ 	TP_PROTO(
+@@ -161,7 +190,7 @@ TRACE_EVENT(mm_compaction_end,
+ 		__entry->free_pfn,
+ 		__entry->zone_end,
+ 		__entry->sync ? "sync" : "async",
+-		compaction_status_string[__entry->status])
++		__print_symbolic(__entry->status, COMPACTION_STATUS))
+ );
+ 
+ TRACE_EVENT(mm_compaction_try_to_compact_pages,
+@@ -217,7 +246,7 @@ DECLARE_EVENT_CLASS(mm_compaction_suitab
+ 		__entry->nid,
+ 		__entry->name,
+ 		__entry->order,
+-		compaction_status_string[__entry->ret])
++		__print_symbolic(__entry->ret, COMPACTION_STATUS))
+ );
+ 
+ DEFINE_EVENT(mm_compaction_suitable_template, mm_compaction_finished,
+diff -puN mm/compaction.c~mm-compaction-export-tracepoints-status-strings-to-userspace mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-export-tracepoints-status-strings-to-userspace
++++ a/mm/compaction.c
+@@ -35,17 +35,6 @@ static inline void count_compact_events(
+ #endif
+ 
+ #if defined CONFIG_COMPACTION || defined CONFIG_CMA
+-#ifdef CONFIG_TRACEPOINTS
+-static const char *const compaction_status_string[] = {
+-	"deferred",
+-	"skipped",
+-	"continue",
+-	"partial",
+-	"complete",
+-	"no_suitable_page",
+-	"not_suitable_zone",
+-};
+-#endif
+ 
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/compaction.h>
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-hugetlbfs-skip-shared-vmas-when-unmapping-private-pages-to-satisfy-a-fault.patch
+mm-migrate-count-pages-failing-all-retries-in-vmstat-and-tracepoint.patch
+mm-compaction-export-tracepoints-status-strings-to-userspace.patch
+mm-compaction-export-tracepoints-zone-names-to-userspace.patch
+mm-compaction-disginguish-contended-status-in-tracepoints.patch
 
