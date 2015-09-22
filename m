@@ -1,101 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: + dax-fix-null-pointer-in-__dax_pmd_fault.patch tentatively added to -mm tree
-Date: Tue, 22 Sep 2015 14:14:06 -0700
-Message-ID: <5601c49e.UWtXFCfbBSt4oxwb%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified-fix.patch
+ removed from -mm tree
+Date: Tue, 22 Sep 2015 14:55:19 -0700
+Message-ID: <5601ce47./RLcGQXNWwDSSNja%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36563 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42527 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934652AbbIVVOH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Sep 2015 17:14:07 -0400
+	with ESMTP id S1752379AbbIVVzU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Sep 2015 17:55:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, david@fromorbit.com, kirill.shutemov@linux.intel.com, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: fix NULL pointer in __dax_pmd_fault()
-has been added to the -mm tree.  Its filename is
-     dax-fix-null-pointer-in-__dax_pmd_fault.patch
+     Subject: mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified-fix
+has been removed from the -mm tree.  Its filename was
+     mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-fix-null-pointer-in-__dax_pmd_fault.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-fix-null-pointer-in-__dax_pmd_fault.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified.patch
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: fix NULL pointer in __dax_pmd_fault()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified-fix
 
-46c043ede471 ("mm: take i_mmap_lock in unmap_mapping_range() for DAX")
-moved some code in __dax_pmd_fault() that was responsible for zeroing
-newly allocated PMD pages.  The new location didn't properly set up
-'kaddr', so when run this code resulted in a NULL pointer BUG.
+add local vm_ops to avoid 80-cols mess
 
-Fix this by getting the correct 'kaddr' via bdev_direct_access().
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Matthew Wilcox <willy@linux.intel.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ mm/mmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/dax.c~dax-fix-null-pointer-in-__dax_pmd_fault fs/dax.c
---- a/fs/dax.c~dax-fix-null-pointer-in-__dax_pmd_fault
-+++ a/fs/dax.c
-@@ -569,8 +569,20 @@ int __dax_pmd_fault(struct vm_area_struc
- 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
- 		goto fallback;
+diff -puN mm/mmap.c~mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified-fix mm/mmap.c
+--- a/mm/mmap.c~mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified-fix
++++ a/mm/mmap.c
+@@ -1490,14 +1490,14 @@ SYSCALL_DEFINE1(old_mmap, struct mmap_ar
+ int vma_wants_writenotify(struct vm_area_struct *vma)
+ {
+ 	vm_flags_t vm_flags = vma->vm_flags;
++	const struct vm_operations_struct *vm_ops = vma->vm_ops;
  
-+	sector = bh.b_blocknr << (blkbits - 9);
-+
- 	if (buffer_unwritten(&bh) || buffer_new(&bh)) {
- 		int i;
-+
-+		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
-+						bh.b_size);
-+		if (length < 0) {
-+			result = VM_FAULT_SIGBUS;
-+			goto out;
-+		}
-+		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
-+			goto fallback;
-+
- 		for (i = 0; i < PTRS_PER_PMD; i++)
- 			clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
- 		wmb_pmem();
-@@ -623,7 +635,6 @@ int __dax_pmd_fault(struct vm_area_struc
- 		result = VM_FAULT_NOPAGE;
- 		spin_unlock(ptl);
- 	} else {
--		sector = bh.b_blocknr << (blkbits - 9);
- 		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
- 						bh.b_size);
- 		if (length < 0) {
+ 	/* If it was private or non-writable, the write bit is already clear */
+ 	if ((vm_flags & (VM_WRITE|VM_SHARED)) != ((VM_WRITE|VM_SHARED)))
+ 		return 0;
+ 
+ 	/* The backer wishes to know when pages are first written to? */
+-	if (vma->vm_ops &&
+-			(vma->vm_ops->page_mkwrite || vma->vm_ops->pfn_mkwrite))
++	if (vm_ops && (vm_ops->page_mkwrite || vm_ops->pfn_mkwrite))
+ 		return 1;
+ 
+ 	/* The open routine did something to the protections that pgprot_modify
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-dax-fix-null-pointer-in-__dax_pmd_fault.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified.patch
+x86-efi-kasan-undef-memset-memcpy-memmove-per-arch-fix.patch
+mm.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
+kasan-various-fixes-in-documentation-checkpatch-fixes.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
+include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+include-linux-compiler-gcch-improve-__visible-documentation.patch
+net-ipv4-routec-prevent-oops.patch
+remove-abs64.patch
+remove-abs64-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
