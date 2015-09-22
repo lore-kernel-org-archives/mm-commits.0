@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-refactor-nilfs_palloc_find_available_slot.patch added to -mm tree
-Date: Tue, 22 Sep 2015 13:25:14 -0700
-Message-ID: <5601b92a.JaY1Bm5Y/7tGGsN+%akpm@linux-foundation.org>
+Subject: + ocfs2-improve-performance-for-localalloc.patch added to -mm
+ tree
+Date: Tue, 22 Sep 2015 13:34:45 -0700
+Message-ID: <5601bb65.+7W6SGZg5QHPODnm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57738 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59130 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934337AbbIVUZP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Sep 2015 16:25:15 -0400
+	with ESMTP id S934571AbbIVUeq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Sep 2015 16:34:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, norton.zhu@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: refactor nilfs_palloc_find_available_slot()
+     Subject: ocfs2: improve performance for localalloc
 has been added to the -mm tree.  Its filename is
-     nilfs2-refactor-nilfs_palloc_find_available_slot.patch
+     ocfs2-improve-performance-for-localalloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-refactor-nilfs_palloc_find_available_slot.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-improve-performance-for-localalloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-refactor-nilfs_palloc_find_available_slot.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-improve-performance-for-localalloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,92 +39,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: refactor nilfs_palloc_find_available_slot()
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: improve performance for localalloc
 
-The current implementation of nilfs_palloc_find_available_slot() function
-is overkill.  The underlying bit search routine is well optimized, so this
-uses it more simply in nilfs_palloc_find_available_slot().
+Currently cluster allocation is always trying to find a victim chain (a
+chian has most space), and this may lead to poor performance because of
+discontiguous allocation in some scenarios.
 
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Our test case is block size 4k, cluster size 1M and mount option with
+localalloc=2048 (2G), since a gd is 32256M (about 31.5G) and a localalloc
+window is only 2G, creating 50G file will result in 2G from gd0, 2G from
+gd1, ...
+
+One way to improve performance is enlarge localalloc window size (max
+31104M), but this will make end user feel that about 30G is suddenly
+"missing", and localalloc currently do not support steal, which means one
+node cannot use another node's localalloc even it is not used in fact.  So
+using the last gd to record the allocation and continues with the gd if it
+has enough space for a localalloc window can make the allocation as more
+contiguous as possible.
+
+Our test result is below (evaluated in IOPS), which is using iometer
+running in VM, dynamic vhd virtual disk stored in ocfs2.
+
+IO model                Original   After   Improved(%)
+16K60%Write100%Random   703        876     24.59%
+8K90%Write100%Random    735        827     12.59%
+4K100%Write100%Random   859        915     6.52%
+4K100%Read100%Random    2092       2600    24.30%
+
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Tested-by: Norton Zhu <norton.zhu@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/alloc.c |   48 +++++++++++++++++++-------------------------
- 1 file changed, 21 insertions(+), 27 deletions(-)
+ fs/ocfs2/suballoc.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/nilfs2/alloc.c~nilfs2-refactor-nilfs_palloc_find_available_slot fs/nilfs2/alloc.c
---- a/fs/nilfs2/alloc.c~nilfs2-refactor-nilfs_palloc_find_available_slot
-+++ a/fs/nilfs2/alloc.c
-@@ -335,39 +335,33 @@ void *nilfs_palloc_block_get_entry(const
-  */
- static int nilfs_palloc_find_available_slot(unsigned char *bitmap,
- 					    unsigned long target,
--					    int bsize,
-+					    unsigned bsize,
- 					    spinlock_t *lock)
- {
--	int curr, pos, end, i;
-+	int pos, end = bsize;
- 
--	if (target > 0) {
--		end = (target + BITS_PER_LONG - 1) & ~(BITS_PER_LONG - 1);
--		if (end > bsize)
--			end = bsize;
--		pos = nilfs_find_next_zero_bit(bitmap, end, target);
--		if (pos < end && !nilfs_set_bit_atomic(lock, pos, bitmap))
--			return pos;
--	} else {
--		end = 0;
-+	if (likely(target < bsize)) {
-+		pos = target;
-+		do {
-+			pos = nilfs_find_next_zero_bit(bitmap, end, pos);
-+			if (pos >= end)
-+				break;
-+			if (!nilfs_set_bit_atomic(lock, pos, bitmap))
-+				return pos;
-+		} while (++pos < end);
-+
-+		end = target;
+diff -puN fs/ocfs2/suballoc.c~ocfs2-improve-performance-for-localalloc fs/ocfs2/suballoc.c
+--- a/fs/ocfs2/suballoc.c~ocfs2-improve-performance-for-localalloc
++++ a/fs/ocfs2/suballoc.c
+@@ -1920,7 +1920,10 @@ static int ocfs2_claim_suballoc_bits(str
+ 	status = ocfs2_search_chain(ac, handle, bits_wanted, min_bits,
+ 				    res, &bits_left);
+ 	if (!status) {
+-		hint = ocfs2_group_from_res(res);
++		if (ocfs2_is_cluster_bitmap(ac->ac_inode))
++			hint = res->sr_bg_blkno;
++		else
++			hint = ocfs2_group_from_res(res);
+ 		goto set_hint;
  	}
- 
--	for (i = 0, curr = end;
--	     i < bsize;
--	     i += BITS_PER_LONG, curr += BITS_PER_LONG) {
--		/* wrap around */
--		if (curr >= bsize)
--			curr = 0;
--		while (*((unsigned long *)bitmap + curr / BITS_PER_LONG)
--		       != ~0UL) {
--			end = curr + BITS_PER_LONG;
--			if (end > bsize)
--				end = bsize;
--			pos = nilfs_find_next_zero_bit(bitmap, end, curr);
--			if (pos < end &&
--			    !nilfs_set_bit_atomic(lock, pos, bitmap))
--				return pos;
--		}
-+	/* wrap around */
-+	for (pos = 0; pos < end; pos++) {
-+		pos = nilfs_find_next_zero_bit(bitmap, end, pos);
-+		if (pos >= end)
-+			break;
-+		if (!nilfs_set_bit_atomic(lock, pos, bitmap))
-+			return pos;
- 	}
-+
- 	return -ENOSPC;
- }
- 
+ 	if (status < 0 && status != -ENOSPC) {
 _
 
-Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-nilfs2-use-nilfs_warning-in-allocator-implementation.patch
-nilfs2-do-not-call-nilfs_mdt_bgl_lock-needlessly.patch
-nilfs2-refactor-nilfs_palloc_find_available_slot.patch
-nilfs2-get-rid-of-nilfs_palloc_group_is_in.patch
-nilfs2-add-helper-functions-to-delete-blocks-from-dat-file.patch
-nilfs2-free-unused-dat-file-blocks-during-garbage-collection.patch
+ocfs2-dlm-fix-deadlock-when-dispatch-assert-master.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery-v2.patch
+ocfs2-improve-performance-for-localalloc.patch
 
