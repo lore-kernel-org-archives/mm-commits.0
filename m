@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + dax-fix-deadlock-in-__dax_fault.patch added to -mm tree
-Date: Wed, 23 Sep 2015 13:48:32 -0700
-Message-ID: <56031020.xd6p1E0kzv00f3LB%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-export-tracepoints-zone-names-to-userspace-fix.patch added to -mm tree
+Date: Wed, 23 Sep 2015 14:12:01 -0700
+Message-ID: <560315a1.iqTVb6N7kZrSQQ3O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35226 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38890 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751195AbbIWUsd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Sep 2015 16:48:33 -0400
+	with ESMTP id S1753905AbbIWVMC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Sep 2015 17:12:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, david@fromorbit.com, kirill.shutemov@linux.intel.com, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, valentinrothberg@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: fix deadlock in __dax_fault()
+     Subject: mm, compaction: export tracepoints zone names to userspace-fix
 has been added to the -mm tree.  Its filename is
-     dax-fix-deadlock-in-__dax_fault.patch
+     mm-compaction-export-tracepoints-zone-names-to-userspace-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-fix-deadlock-in-__dax_fault.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-export-tracepoints-zone-names-to-userspace-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-fix-deadlock-in-__dax_fault.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-export-tracepoints-zone-names-to-userspace-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,55 +39,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: fix deadlock in __dax_fault()
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: export tracepoints zone names to userspace-fix
 
-Fix the deadlock exposed by xfstests generic/075.  Here is the sequence
-that was causing us to deadlock:
+Through undertaker-checkpatch it was reported that HighMem would be
+missing in the tracepoint output due to checking CONFIG_ZONE_HIGHMEM_
+instead of CONFIG_HIGHMEM.  Fix it.
 
-1) enter __dax_fault()
-2) page = find_get_page() gives us a page, so skip
-	i_mmap_lock_write(mapping)
-3) if (!buffer_mapped(&bh) && !buffer_unwritten(&bh) && !vmf->cow_page)
-	passes, enter this block
-4) if (vmf->flags & FAULT_FLAG_WRITE) fails, so do the else case and
-	i_mmap_unlock_write(mapping);
-	return dax_load_hole(mapping, page, vmf);
-
-This causes us to up_write() a semaphore that we weren't holding.
-
-The up_write() on a semaphore we didn't down_write() happens twice in
-a row, and then the next time we try and i_mmap_lock_write(), we hang.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Dave Chinner <david@fromorbit.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reported-by: Valentin Rothberg <valentinrothberg@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/trace/events/compaction.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/dax.c~dax-fix-deadlock-in-__dax_fault fs/dax.c
---- a/fs/dax.c~dax-fix-deadlock-in-__dax_fault
-+++ a/fs/dax.c
-@@ -405,7 +405,8 @@ int __dax_fault(struct vm_area_struct *v
- 			if (error)
- 				goto unlock;
- 		} else {
--			i_mmap_unlock_write(mapping);
-+			if (!page)
-+				i_mmap_unlock_write(mapping);
- 			return dax_load_hole(mapping, page, vmf);
- 		}
- 	}
+diff -puN include/trace/events/compaction.h~mm-compaction-export-tracepoints-zone-names-to-userspace-fix include/trace/events/compaction.h
+--- a/include/trace/events/compaction.h~mm-compaction-export-tracepoints-zone-names-to-userspace-fix
++++ a/include/trace/events/compaction.h
+@@ -30,7 +30,7 @@
+ #define IFDEF_ZONE_DMA32(X)
+ #endif
+ 
+-#ifdef CONFIG_ZONE_HIGHMEM_
++#ifdef CONFIG_HIGHMEM
+ #define IFDEF_ZONE_HIGHMEM(X) X
+ #else
+ #define IFDEF_ZONE_HIGHMEM(X)
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-dax-fix-null-pointer-in-__dax_pmd_fault.patch
-dax-fix-deadlock-in-__dax_fault.patch
+mm-migrate-count-pages-failing-all-retries-in-vmstat-and-tracepoint.patch
+mm-compaction-export-tracepoints-status-strings-to-userspace.patch
+mm-compaction-export-tracepoints-zone-names-to-userspace.patch
+mm-compaction-export-tracepoints-zone-names-to-userspace-fix.patch
+mm-compaction-disginguish-contended-status-in-tracepoints.patch
 
