@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-input-joystick-kconfig-zhenhuac-needs-bitreverse.patch
+Subject: + rcu-force-alignment-on-struct-callback_head-rcu_head.patch
  added to -mm tree
-Date: Wed, 23 Sep 2015 12:59:11 -0700
-Message-ID: <5603048f.a0JEM3BWfG7RnJcc%akpm@linux-foundation.org>
+Date: Wed, 23 Sep 2015 13:07:00 -0700
+Message-ID: <56030664.LKPm6SflpepXJI71%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55399 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56380 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752637AbbIWT7M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Sep 2015 15:59:12 -0400
+	with ESMTP id S1752637AbbIWUHB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Sep 2015 16:07:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dmitry.torokhov@gmail.com, fengguang.wu@gmail.com, yalin.wang2010@gmail.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, jesper.nilsson@axis.com, linux@roeck-us.net, paulmck@linux.vnet.ibm.com, starvik@axis.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/input/joystick/Kconfig: zhenhua.c needs BITREVERSE
+     Subject: rcu: force alignment on struct callback_head/rcu_head
 has been added to the -mm tree.  Its filename is
-     drivers-input-joystick-kconfig-zhenhuac-needs-bitreverse.patch
+     rcu-force-alignment-on-struct-callback_head-rcu_head.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-input-joystick-kconfig-zhenhuac-needs-bitreverse.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rcu-force-alignment-on-struct-callback_head-rcu_head.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-input-joystick-kconfig-zhenhuac-needs-bitreverse.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rcu-force-alignment-on-struct-callback_head-rcu_head.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,58 +39,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/input/joystick/Kconfig: zhenhua.c needs BITREVERSE
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: rcu: force alignment on struct callback_head/rcu_head
 
-It uses bitrev8(), so it must ensure that lib/bitrev.o gets included in
-vmlinux.
+Make struct callback_head aligned to size of pointer.  On most
+architectures it happens naturally due ABI requirements, but some
+architectures (like CRIS) have weird ABI and we need to ask it explicitly.
 
-Cc: Fengguang Wu <fengguang.wu@gmail.com>
-Cc: yalin wang <yalin.wang2010@gmail.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+The alignment is required to guarantee that bits 0 and 1 of @next will be
+clear under normal conditions -- as long as we use call_rcu(),
+call_rcu_bh(), call_rcu_sched(), or call_srcu() to queue callback.
+
+This guarantee is important for few reasons:
+ - future call_rcu_lazy() will make use of lower bits in the pointer;
+ - the structure shares storage spacer in struct page with @compound_head,
+   which encode PageTail() in bit 0. The guarantee is needed to avoid
+   false-positive PageTail().
+
+False postive PageTail() caused crash on crisv32[1].  It happend due
+misaligned task_struct->rcu, which was byte-aligned.
+
+[1] http://lkml.kernel.org/r/55FAEA67.9000102@roeck-us.net
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Guenter Roeck <linux@roeck-us.net>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/joystick/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/types.h |   16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
 
-diff -puN drivers/input/joystick/Kconfig~drivers-input-joystick-kconfig-zhenhuac-needs-bitreverse drivers/input/joystick/Kconfig
---- a/drivers/input/joystick/Kconfig~drivers-input-joystick-kconfig-zhenhuac-needs-bitreverse
-+++ a/drivers/input/joystick/Kconfig
-@@ -196,6 +196,7 @@ config JOYSTICK_TWIDJOY
- config JOYSTICK_ZHENHUA
- 	tristate "5-byte Zhenhua RC transmitter"
- 	select SERIO
-+	select BITREVERSE
- 	help
- 	  Say Y here if you have a Zhen Hua PPM-4CH transmitter which is
- 	  supplied with a ready to fly micro electric indoor helicopters
+diff -puN include/linux/types.h~rcu-force-alignment-on-struct-callback_head-rcu_head include/linux/types.h
+--- a/include/linux/types.h~rcu-force-alignment-on-struct-callback_head-rcu_head
++++ a/include/linux/types.h
+@@ -205,11 +205,25 @@ struct ustat {
+  * struct callback_head - callback structure for use with RCU and task_work
+  * @next: next update requests in a list
+  * @func: actual update function to call after the grace period.
++ *
++ * The struct is aligned to size of pointer. On most architectures it happens
++ * naturally due ABI requirements, but some architectures (like CRIS) have
++ * weird ABI and we need to ask it explicitly.
++ *
++ * The alignment is required to guarantee that bits 0 and 1 of @next will be
++ * clear under normal conditions -- as long as we use call_rcu(),
++ * call_rcu_bh(), call_rcu_sched(), or call_srcu() to queue callback.
++ *
++ * This guarantee is important for few reasons:
++ *  - future call_rcu_lazy() will make use of lower bits in the pointer;
++ *  - the structure shares storage spacer in struct page with @compound_head,
++ *    which encode PageTail() in bit 0. The guarantee is needed to avoid
++ *    false-positive PageTail().
+  */
+ struct callback_head {
+ 	struct callback_head *next;
+ 	void (*func)(struct callback_head *head);
+-};
++} __attribute__((aligned(sizeof(void *))));
+ #define rcu_head callback_head
+ 
+ typedef void (*rcu_callback_t)(struct rcu_head *head);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-memcg-make-mem_cgroup_read_stat-unsigned-fix.patch
-drivers-input-joystick-kconfig-zhenhuac-needs-bitreverse.patch
-mm.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
-kasan-various-fixes-in-documentation-checkpatch-fixes.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-include-linux-compiler-gcch-improve-__visible-documentation.patch
-net-ipv4-routec-prevent-oops.patch
-remove-abs64.patch
-remove-abs64-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified.patch
+rcu-force-alignment-on-struct-callback_head-rcu_head.patch
+mm-make-optimistic-check-for-swapin-readahead-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-drop-page-slab_page.patch
+slab-slub-use-page-rcu_head-instead-of-page-lru-plus-cast.patch
+zsmalloc-use-page-private-instead-of-page-first_page.patch
+mm-pack-compound_dtor-and-compound_order-into-one-word-in-struct-page.patch
+mm-make-compound_head-robust.patch
+mm-use-unsigned-int-for-page-order.patch
+mm-use-unsigned-int-for-compound_dtor-compound_order-on-64bit.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-support-madvisemadv_free-fix-3.patch
 
