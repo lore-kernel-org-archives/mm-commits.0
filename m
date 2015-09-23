@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-compaction-export-tracepoints-zone-names-to-userspace-fix.patch added to -mm tree
-Date: Wed, 23 Sep 2015 14:12:01 -0700
-Message-ID: <560315a1.iqTVb6N7kZrSQQ3O%akpm@linux-foundation.org>
+Subject: + memcg-remove-pcp_counter_lock.patch added to -mm tree
+Date: Wed, 23 Sep 2015 14:48:06 -0700
+Message-ID: <56031e16.+o9Mp7S9qKx4XKcT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38890 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45346 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753905AbbIWVMC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Sep 2015 17:12:02 -0400
+	with ESMTP id S1752709AbbIWVsH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Sep 2015 17:48:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, valentinrothberg@gmail.com, mm-commits@vger.kernel.org
+To: gthelen@google.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: export tracepoints zone names to userspace-fix
+     Subject: memcg: remove pcp_counter_lock
 has been added to the -mm tree.  Its filename is
-     mm-compaction-export-tracepoints-zone-names-to-userspace-fix.patch
+     memcg-remove-pcp_counter_lock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-export-tracepoints-zone-names-to-userspace-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-remove-pcp_counter_lock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-export-tracepoints-zone-names-to-userspace-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-remove-pcp_counter_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,40 +38,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: export tracepoints zone names to userspace-fix
+From: Greg Thelen <gthelen@google.com>
+Subject: memcg: remove pcp_counter_lock
 
-Through undertaker-checkpatch it was reported that HighMem would be
-missing in the tracepoint output due to checking CONFIG_ZONE_HIGHMEM_
-instead of CONFIG_HIGHMEM.  Fix it.
+Commit 733a572e66d2 ("memcg: make mem_cgroup_read_{stat|event}() iterate
+possible cpus instead of online") removed the last use of the per memcg
+pcp_counter_lock but forgot to remove the variable.
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reported-by: Valentin Rothberg <valentinrothberg@gmail.com>
+Kill the vestigial variable.
+
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/compaction.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |    1 -
+ mm/memcontrol.c            |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN include/trace/events/compaction.h~mm-compaction-export-tracepoints-zone-names-to-userspace-fix include/trace/events/compaction.h
---- a/include/trace/events/compaction.h~mm-compaction-export-tracepoints-zone-names-to-userspace-fix
-+++ a/include/trace/events/compaction.h
-@@ -30,7 +30,7 @@
- #define IFDEF_ZONE_DMA32(X)
- #endif
+diff -puN include/linux/memcontrol.h~memcg-remove-pcp_counter_lock include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-remove-pcp_counter_lock
++++ a/include/linux/memcontrol.h
+@@ -242,7 +242,6 @@ struct mem_cgroup {
+ 	 * percpu counter.
+ 	 */
+ 	struct mem_cgroup_stat_cpu __percpu *stat;
+-	spinlock_t pcp_counter_lock;
  
--#ifdef CONFIG_ZONE_HIGHMEM_
-+#ifdef CONFIG_HIGHMEM
- #define IFDEF_ZONE_HIGHMEM(X) X
- #else
- #define IFDEF_ZONE_HIGHMEM(X)
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_INET)
+ 	struct cg_proto tcp_mem;
+diff -puN mm/memcontrol.c~memcg-remove-pcp_counter_lock mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-pcp_counter_lock
++++ a/mm/memcontrol.c
+@@ -4185,7 +4185,6 @@ static struct mem_cgroup *mem_cgroup_all
+ 	if (memcg_wb_domain_init(memcg, GFP_KERNEL))
+ 		goto out_free_stat;
+ 
+-	spin_lock_init(&memcg->pcp_counter_lock);
+ 	return memcg;
+ 
+ out_free_stat:
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from gthelen@google.com are
 
-mm-migrate-count-pages-failing-all-retries-in-vmstat-and-tracepoint.patch
-mm-compaction-export-tracepoints-status-strings-to-userspace.patch
-mm-compaction-export-tracepoints-zone-names-to-userspace.patch
-mm-compaction-export-tracepoints-zone-names-to-userspace-fix.patch
-mm-compaction-disginguish-contended-status-in-tracepoints.patch
+memcg-fix-dirty-page-migration.patch
+memcg-make-mem_cgroup_read_stat-unsigned.patch
+memcg-remove-pcp_counter_lock.patch
 
