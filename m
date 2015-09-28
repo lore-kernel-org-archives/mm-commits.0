@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-doc-fix-misleading-code-reference-of-overcommit_memory.patch added to -mm tree
-Date: Mon, 28 Sep 2015 15:34:49 -0700
-Message-ID: <5609c089.kRE1Pz45yc+J/bqz%akpm@linux-foundation.org>
+Subject: + kexec-use-file-name-as-the-output-message-prefix.patch added to -mm tree
+Date: Mon, 28 Sep 2015 15:46:39 -0700
+Message-ID: <5609c34f.JR0leCmiRNo/EFsr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49469 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51119 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752763AbbI1Weu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Sep 2015 18:34:50 -0400
+	with ESMTP id S1752246AbbI1Wqk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Sep 2015 18:46:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chenchun.feed@gmail.com, mhocko@suse.com, ramichen@tencent.com, mm-commits@vger.kernel.org
+To: mnfhuang@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/sysctl/vm.txt: fix misleading code reference of overcommit_memory
+     Subject: kexec: use file name as the output message prefix
 has been added to the -mm tree.  Its filename is
-     mm-doc-fix-misleading-code-reference-of-overcommit_memory.patch
+     kexec-use-file-name-as-the-output-message-prefix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-doc-fix-misleading-code-reference-of-overcommit_memory.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-use-file-name-as-the-output-message-prefix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-doc-fix-misleading-code-reference-of-overcommit_memory.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-use-file-name-as-the-output-message-prefix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,36 +38,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chun Chen <chenchun.feed@gmail.com>
-Subject: Documentation/sysctl/vm.txt: fix misleading code reference of overcommit_memory
+From: Minfei Huang <mnfhuang@gmail.com>
+Subject: kexec: use file name as the output message prefix
 
-The origin document references to cap_vm_enough_memory is because
-cap_vm_enough_memory invoked __vm_enough_memory before and it no longer
-does now.
+kexec output message misses the prefix "kexec", when Dave Young split the
+kexec code.  Now, we use file name as the output message prefix.
 
-Signed-off-by: Chun Chen <ramichen@tencent.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Currently, the format of output message:
+[  140.290795] SYSC_kexec_load: hello, world
+[  140.291534] kexec: sanity_check_segment_list: hello, world
+
+Ideally, the format of output message:
+[   30.791503] kexec: SYSC_kexec_load, Hello, world
+[   79.182752] kexec_core: sanity_check_segment_list, Hello, world
+
+Remove the custom prefix "kexec" in output message.
+
+Signed-off-by: Minfei Huang <mnfhuang@gmail.com>
+Acked-by: Dave Young <dyoung@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/kexec.c      |    2 ++
+ kernel/kexec_core.c |    4 ++--
+ kernel/kexec_file.c |    2 ++
+ 3 files changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-doc-fix-misleading-code-reference-of-overcommit_memory Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-doc-fix-misleading-code-reference-of-overcommit_memory
-+++ a/Documentation/sysctl/vm.txt
-@@ -639,7 +639,7 @@ and don't use much of it.
- The default value is 0.
+diff -puN kernel/kexec.c~kexec-use-file-name-as-the-output-message-prefix kernel/kexec.c
+--- a/kernel/kexec.c~kexec-use-file-name-as-the-output-message-prefix
++++ a/kernel/kexec.c
+@@ -6,6 +6,8 @@
+  * Version 2.  See the file COPYING for more details.
+  */
  
- See Documentation/vm/overcommit-accounting and
--security/commoncap.c::cap_vm_enough_memory() for more information.
-+mm/mmap.c::__vm_enough_memory() for more information.
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/capability.h>
+ #include <linux/mm.h>
+ #include <linux/file.h>
+diff -puN kernel/kexec_core.c~kexec-use-file-name-as-the-output-message-prefix kernel/kexec_core.c
+--- a/kernel/kexec_core.c~kexec-use-file-name-as-the-output-message-prefix
++++ a/kernel/kexec_core.c
+@@ -6,7 +6,7 @@
+  * Version 2.  See the file COPYING for more details.
+  */
  
- ==============================================================
+-#define pr_fmt(fmt)	"kexec: " fmt
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
  
+ #include <linux/capability.h>
+ #include <linux/mm.h>
+@@ -1027,7 +1027,7 @@ static int __init crash_notes_memory_ini
+ 
+ 	crash_notes = __alloc_percpu(size, align);
+ 	if (!crash_notes) {
+-		pr_warn("Kexec: Memory allocation for saving cpu register states failed\n");
++		pr_warn("Memory allocation for saving cpu register states failed\n");
+ 		return -ENOMEM;
+ 	}
+ 	return 0;
+diff -puN kernel/kexec_file.c~kexec-use-file-name-as-the-output-message-prefix kernel/kexec_file.c
+--- a/kernel/kexec_file.c~kexec-use-file-name-as-the-output-message-prefix
++++ a/kernel/kexec_file.c
+@@ -9,6 +9,8 @@
+  * Version 2.  See the file COPYING for more details.
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/capability.h>
+ #include <linux/mm.h>
+ #include <linux/file.h>
 _
 
-Patches currently in -mm which might be from chenchun.feed@gmail.com are
+Patches currently in -mm which might be from mnfhuang@gmail.com are
 
-mm-doc-fix-misleading-code-reference-of-overcommit_memory.patch
+kexec-use-file-name-as-the-output-message-prefix.patch
 
