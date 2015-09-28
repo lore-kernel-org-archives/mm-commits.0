@@ -1,97 +1,146 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch added to -mm tree
-Date: Thu, 24 Sep 2015 14:59:05 -0700
-Message-ID: <56047229.C23QE3AzABREc0Ck%akpm@linux-foundation.org>
+Subject: [merged]
+ userfaultfd-revert-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch removed from -mm tree
+Date: Mon, 28 Sep 2015 11:15:38 -0700
+Message-ID: <560983ca.+yduCUMOCvtztNXP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44255 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37730 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753021AbbIXV7H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Sep 2015 17:59:07 -0400
+	with ESMTP id S933295AbbI1SPk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Sep 2015 14:15:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ddstreet@ieee.org, minchan@kernel.org, sergey.senozhatsky@gmail.com, zhuhui@xiaomi.com, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, dgilbert@redhat.com, mpe@ellerman.id.au, shuahkh@osg.samsung.com, treding@nvidia.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc-add-comments-for-inuse-to-zspage-v2-fix
-has been added to the -mm tree.  Its filename is
-     zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
+     Subject: userfaultfd: revert "userfaultfd: waitqueue: add nr wake parameter to __wake_up_locked_key"
+has been removed from the -mm tree.  Its filename was
+     userfaultfd-revert-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: zsmalloc-add-comments-for-inuse-to-zspage-v2-fix
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: userfaultfd: revert "userfaultfd: waitqueue: add nr wake parameter to __wake_up_locked_key"
 
-fix grammar
+This reverts commit 51360155eccb907ff8635bd10fc7de876408c2e0 and adapts
+fs/userfaultfd.c to use the old version of that function.
 
-Cc: Dan Streetman <ddstreet@ieee.org>
-Cc: Hui Zhu <zhuhui@xiaomi.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+It didn't look robust to call __wake_up_common with "nr == 1" when we
+absolutely require wakeall semantics, but we've full control of what we
+insert in the two waitqueue heads of the blocked userfaults.  No exclusive
+waitqueue risks to be inserted into those two waitqueue heads so we can as
+well stick to "nr == 1" of the old code and we can rely purely on the fact
+no waitqueue inserted in one of the two waitqueue heads we must enforce as
+wakeall, has wait->flags WQ_FLAG_EXCLUSIVE set.
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Dr. David Alan Gilbert <dgilbert@redhat.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Shuah Khan <shuahkh@osg.samsung.com>
+Cc: Thierry Reding <treding@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/userfaultfd.c     |    8 ++++----
+ include/linux/wait.h |    5 ++---
+ kernel/sched/wait.c  |    7 +++----
+ net/sunrpc/sched.c   |    2 +-
+ 4 files changed, 10 insertions(+), 12 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-add-comments-for-inuse-to-zspage-v2-fix mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-add-comments-for-inuse-to-zspage-v2-fix
-+++ a/mm/zsmalloc.c
-@@ -38,7 +38,7 @@
-  *	page->lru: links together first pages of various zspages.
-  *		Basically forming list of zspages in a fullness group.
-  *	page->mapping: class index and fullness group of the zspage
-- *	page->inuse: the objects number that is used in this zspage
-+ *	page->inuse: the number of objects that are used in this zspage
-  *
-  * Usage of struct page flags:
-  *	PG_private: identifies the first component page
+diff -puN fs/userfaultfd.c~userfaultfd-revert-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key fs/userfaultfd.c
+--- a/fs/userfaultfd.c~userfaultfd-revert-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key
++++ a/fs/userfaultfd.c
+@@ -467,8 +467,8 @@ static int userfaultfd_release(struct in
+ 	 * the fault_*wqh.
+ 	 */
+ 	spin_lock(&ctx->fault_pending_wqh.lock);
+-	__wake_up_locked_key(&ctx->fault_pending_wqh, TASK_NORMAL, 0, &range);
+-	__wake_up_locked_key(&ctx->fault_wqh, TASK_NORMAL, 0, &range);
++	__wake_up_locked_key(&ctx->fault_pending_wqh, TASK_NORMAL, &range);
++	__wake_up_locked_key(&ctx->fault_wqh, TASK_NORMAL, &range);
+ 	spin_unlock(&ctx->fault_pending_wqh.lock);
+ 
+ 	wake_up_poll(&ctx->fd_wqh, POLLHUP);
+@@ -650,10 +650,10 @@ static void __wake_userfault(struct user
+ 	spin_lock(&ctx->fault_pending_wqh.lock);
+ 	/* wake all in the range and autoremove */
+ 	if (waitqueue_active(&ctx->fault_pending_wqh))
+-		__wake_up_locked_key(&ctx->fault_pending_wqh, TASK_NORMAL, 0,
++		__wake_up_locked_key(&ctx->fault_pending_wqh, TASK_NORMAL,
+ 				     range);
+ 	if (waitqueue_active(&ctx->fault_wqh))
+-		__wake_up_locked_key(&ctx->fault_wqh, TASK_NORMAL, 0, range);
++		__wake_up_locked_key(&ctx->fault_wqh, TASK_NORMAL, range);
+ 	spin_unlock(&ctx->fault_pending_wqh.lock);
+ }
+ 
+diff -puN include/linux/wait.h~userfaultfd-revert-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key include/linux/wait.h
+--- a/include/linux/wait.h~userfaultfd-revert-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key
++++ a/include/linux/wait.h
+@@ -147,8 +147,7 @@ __remove_wait_queue(wait_queue_head_t *h
+ 
+ typedef int wait_bit_action_f(struct wait_bit_key *);
+ void __wake_up(wait_queue_head_t *q, unsigned int mode, int nr, void *key);
+-void __wake_up_locked_key(wait_queue_head_t *q, unsigned int mode, int nr,
+-			  void *key);
++void __wake_up_locked_key(wait_queue_head_t *q, unsigned int mode, void *key);
+ void __wake_up_sync_key(wait_queue_head_t *q, unsigned int mode, int nr, void *key);
+ void __wake_up_locked(wait_queue_head_t *q, unsigned int mode, int nr);
+ void __wake_up_sync(wait_queue_head_t *q, unsigned int mode, int nr);
+@@ -180,7 +179,7 @@ wait_queue_head_t *bit_waitqueue(void *,
+ #define wake_up_poll(x, m)						\
+ 	__wake_up(x, TASK_NORMAL, 1, (void *) (m))
+ #define wake_up_locked_poll(x, m)					\
+-	__wake_up_locked_key((x), TASK_NORMAL, 1, (void *) (m))
++	__wake_up_locked_key((x), TASK_NORMAL, (void *) (m))
+ #define wake_up_interruptible_poll(x, m)				\
+ 	__wake_up(x, TASK_INTERRUPTIBLE, 1, (void *) (m))
+ #define wake_up_interruptible_sync_poll(x, m)				\
+diff -puN kernel/sched/wait.c~userfaultfd-revert-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key kernel/sched/wait.c
+--- a/kernel/sched/wait.c~userfaultfd-revert-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key
++++ a/kernel/sched/wait.c
+@@ -106,10 +106,9 @@ void __wake_up_locked(wait_queue_head_t
+ }
+ EXPORT_SYMBOL_GPL(__wake_up_locked);
+ 
+-void __wake_up_locked_key(wait_queue_head_t *q, unsigned int mode, int nr,
+-			  void *key)
++void __wake_up_locked_key(wait_queue_head_t *q, unsigned int mode, void *key)
+ {
+-	__wake_up_common(q, mode, nr, 0, key);
++	__wake_up_common(q, mode, 1, 0, key);
+ }
+ EXPORT_SYMBOL_GPL(__wake_up_locked_key);
+ 
+@@ -284,7 +283,7 @@ void abort_exclusive_wait(wait_queue_hea
+ 	if (!list_empty(&wait->task_list))
+ 		list_del_init(&wait->task_list);
+ 	else if (waitqueue_active(q))
+-		__wake_up_locked_key(q, mode, 1, key);
++		__wake_up_locked_key(q, mode, key);
+ 	spin_unlock_irqrestore(&q->lock, flags);
+ }
+ EXPORT_SYMBOL(abort_exclusive_wait);
+diff -puN net/sunrpc/sched.c~userfaultfd-revert-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key net/sunrpc/sched.c
+--- a/net/sunrpc/sched.c~userfaultfd-revert-userfaultfd-waitqueue-add-nr-wake-parameter-to-__wake_up_locked_key
++++ a/net/sunrpc/sched.c
+@@ -297,7 +297,7 @@ static int rpc_complete_task(struct rpc_
+ 	clear_bit(RPC_TASK_ACTIVE, &task->tk_runstate);
+ 	ret = atomic_dec_and_test(&task->tk_count);
+ 	if (waitqueue_active(wq))
+-		__wake_up_locked_key(wq, TASK_NORMAL, 1, &k);
++		__wake_up_locked_key(wq, TASK_NORMAL, &k);
+ 	spin_unlock_irqrestore(&wq->lock, flags);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-memcg-make-mem_cgroup_read_stat-unsigned-fix.patch
-drivers-input-joystick-kconfig-zhenhuac-needs-bitreverse.patch
-mm.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
-kasan-various-fixes-in-documentation-checkpatch-fixes.patch
-zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-include-linux-compiler-gcch-improve-__visible-documentation.patch
-net-ipv4-routec-prevent-oops.patch
-remove-abs64.patch
-remove-abs64-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
 
