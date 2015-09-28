@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-use-file-name-as-the-output-message-prefix.patch added to -mm tree
-Date: Mon, 28 Sep 2015 15:46:39 -0700
-Message-ID: <5609c34f.JR0leCmiRNo/EFsr%akpm@linux-foundation.org>
+Subject: +
+ pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode.patch added
+ to -mm tree
+Date: Mon, 28 Sep 2015 16:00:15 -0700
+Message-ID: <5609c67f.ySk6HMD7/MUT7KJm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51119 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53720 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752246AbbI1Wqk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Sep 2015 18:46:40 -0400
+	with ESMTP id S1753233AbbI1XAR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Sep 2015 19:00:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mnfhuang@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: bsegall@google.com, ambrose@google.com, ebiederm@xmission.com, oleg@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: use file name as the output message prefix
+     Subject: pidns: fix set/getpriority and ioprio_set/get in PRIO_USER mode
 has been added to the -mm tree.  Its filename is
-     kexec-use-file-name-as-the-output-message-prefix.patch
+     pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-use-file-name-as-the-output-message-prefix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-use-file-name-as-the-output-message-prefix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,81 +40,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minfei Huang <mnfhuang@gmail.com>
-Subject: kexec: use file name as the output message prefix
+From: Ben Segall <bsegall@google.com>
+Subject: pidns: fix set/getpriority and ioprio_set/get in PRIO_USER mode
 
-kexec output message misses the prefix "kexec", when Dave Young split the
-kexec code.  Now, we use file name as the output message prefix.
+setpriority(PRIO_USER, 0, x) will change the priority of tasks outside of
+the current pid namespace.  This is in contrast to both the other modes of
+setpriority and the example of kill(-1).  Fix this.  getpriority and
+ioprio have the same failure mode, fix them too.
 
-Currently, the format of output message:
-[  140.290795] SYSC_kexec_load: hello, world
-[  140.291534] kexec: sanity_check_segment_list: hello, world
+Eric said:
 
-Ideally, the format of output message:
-[   30.791503] kexec: SYSC_kexec_load, Hello, world
-[   79.182752] kexec_core: sanity_check_segment_list, Hello, world
+: After some more thinking about it this patch sounds justifiable.
+: 
+: My goal with namespaces is not to build perfect isolation mechanisms
+: as that can get into ill defined territory, but to build well defined
+: mechanisms.  And to handle the corner cases so you can use only
+: a single namespace with well defined results.
+: 
+: In this case you have found the two interfaces I am aware of that
+: identify processes by uid instead of by pid.  Which quite frankly is
+: weird.  Unfortunately the weird unexpected cases are hard to handle
+: in the usual way.
+: 
+: I was hoping for a little more information.  Changes like this one we
+: have to be careful of because someone might be depending on the current
+: behavior.  I don't think they are and I do think this make sense as part
+: of the pid namespace.
 
-Remove the custom prefix "kexec" in output message.
-
-Signed-off-by: Minfei Huang <mnfhuang@gmail.com>
-Acked-by: Dave Young <dyoung@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Ben Segall <bsegall@google.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Ambrose Feinstein <ambrose@google.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c      |    2 ++
- kernel/kexec_core.c |    4 ++--
- kernel/kexec_file.c |    2 ++
- 3 files changed, 6 insertions(+), 2 deletions(-)
+ block/ioprio.c |    6 ++++--
+ kernel/sys.c   |    4 ++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN kernel/kexec.c~kexec-use-file-name-as-the-output-message-prefix kernel/kexec.c
---- a/kernel/kexec.c~kexec-use-file-name-as-the-output-message-prefix
-+++ a/kernel/kexec.c
-@@ -6,6 +6,8 @@
-  * Version 2.  See the file COPYING for more details.
-  */
+diff -puN block/ioprio.c~pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode block/ioprio.c
+--- a/block/ioprio.c~pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode
++++ a/block/ioprio.c
+@@ -123,7 +123,8 @@ SYSCALL_DEFINE3(ioprio_set, int, which,
+ 				break;
  
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/capability.h>
- #include <linux/mm.h>
- #include <linux/file.h>
-diff -puN kernel/kexec_core.c~kexec-use-file-name-as-the-output-message-prefix kernel/kexec_core.c
---- a/kernel/kexec_core.c~kexec-use-file-name-as-the-output-message-prefix
-+++ a/kernel/kexec_core.c
-@@ -6,7 +6,7 @@
-  * Version 2.  See the file COPYING for more details.
-  */
+ 			do_each_thread(g, p) {
+-				if (!uid_eq(task_uid(p), uid))
++				if (!uid_eq(task_uid(p), uid) ||
++				    !task_pid_vnr(p))
+ 					continue;
+ 				ret = set_task_ioprio(p, ioprio);
+ 				if (ret)
+@@ -220,7 +221,8 @@ SYSCALL_DEFINE2(ioprio_get, int, which,
+ 				break;
  
--#define pr_fmt(fmt)	"kexec: " fmt
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
- #include <linux/capability.h>
- #include <linux/mm.h>
-@@ -1027,7 +1027,7 @@ static int __init crash_notes_memory_ini
- 
- 	crash_notes = __alloc_percpu(size, align);
- 	if (!crash_notes) {
--		pr_warn("Kexec: Memory allocation for saving cpu register states failed\n");
-+		pr_warn("Memory allocation for saving cpu register states failed\n");
- 		return -ENOMEM;
- 	}
- 	return 0;
-diff -puN kernel/kexec_file.c~kexec-use-file-name-as-the-output-message-prefix kernel/kexec_file.c
---- a/kernel/kexec_file.c~kexec-use-file-name-as-the-output-message-prefix
-+++ a/kernel/kexec_file.c
-@@ -9,6 +9,8 @@
-  * Version 2.  See the file COPYING for more details.
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/capability.h>
- #include <linux/mm.h>
- #include <linux/file.h>
+ 			do_each_thread(g, p) {
+-				if (!uid_eq(task_uid(p), user->uid))
++				if (!uid_eq(task_uid(p), user->uid) ||
++				    !task_pid_vnr(p))
+ 					continue;
+ 				tmpio = get_task_ioprio(p);
+ 				if (tmpio < 0)
+diff -puN kernel/sys.c~pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode kernel/sys.c
+--- a/kernel/sys.c~pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode
++++ a/kernel/sys.c
+@@ -222,7 +222,7 @@ SYSCALL_DEFINE3(setpriority, int, which,
+ 				goto out_unlock;	/* No processes for this user */
+ 		}
+ 		do_each_thread(g, p) {
+-			if (uid_eq(task_uid(p), uid))
++			if (uid_eq(task_uid(p), uid) && task_pid_vnr(p))
+ 				error = set_one_prio(p, niceval, error);
+ 		} while_each_thread(g, p);
+ 		if (!uid_eq(uid, cred->uid))
+@@ -290,7 +290,7 @@ SYSCALL_DEFINE2(getpriority, int, which,
+ 				goto out_unlock;	/* No processes for this user */
+ 		}
+ 		do_each_thread(g, p) {
+-			if (uid_eq(task_uid(p), uid)) {
++			if (uid_eq(task_uid(p), uid) && task_pid_vnr(p)) {
+ 				niceval = nice_to_rlimit(task_nice(p));
+ 				if (niceval > retval)
+ 					retval = niceval;
 _
 
-Patches currently in -mm which might be from mnfhuang@gmail.com are
+Patches currently in -mm which might be from bsegall@google.com are
 
-kexec-use-file-name-as-the-output-message-prefix.patch
+pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode.patch
 
