@@ -1,71 +1,115 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-migrate-hugetlb-putback-destination-hugepage-to-active-list.patch
- removed from -mm tree
-Date: Mon, 28 Sep 2015 11:15:59 -0700
-Message-ID: <560983df.kFN8W49VhXVjDlh/%akpm@linux-foundation.org>
+ mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified.patch removed from -mm tree
+Date: Mon, 28 Sep 2015 11:15:56 -0700
+Message-ID: <560983dc.Wtd8IXwDrIlGZHwQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37796 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37788 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932752AbbI1SQA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Sep 2015 14:16:00 -0400
+	with ESMTP id S932752AbbI1SP5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Sep 2015 14:15:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, hughd@google.com, mhocko@suse.cz, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, boaz@plexistor.com, david@fromorbit.com, jack@suse.cz, matthew.r.wilcox@intel.com, yigal@plexistor.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: migrate: hugetlb: putback destination hugepage to active list
+     Subject: mm, dax: VMA with vm_ops->pfn_mkwrite wants to be write-notified
 has been removed from the -mm tree.  Its filename was
-     mm-migrate-hugetlb-putback-destination-hugepage-to-active-list.patch
+     mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: migrate: hugetlb: putback destination hugepage to active list
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm, dax: VMA with vm_ops->pfn_mkwrite wants to be write-notified
 
-Since commit bcc54222309c ("mm: hugetlb: introduce page_huge_active") each
-hugetlb page maintains its active flag to avoid a race condition betwe= en
-multiple calls of isolate_huge_page(), but current kernel doesn't set the
-f= lag on a hugepage allocated by migration because the proper putback
-routine isn= 't called.  This means that users could still encounter the
-race referred to by bcc54222309c in this special case, so this patch fixes
-it.
+For VM_PFNMAP and VM_MIXEDMAP we use vm_ops->pfn_mkwrite instead of
+vm_ops->page_mkwrite to notify abort write access.  This means we want
+vma->vm_page_prot to be write-protected if the VMA provides this vm_ops.
 
-Fixes: bcc54222309c ("mm: hugetlb: introduce page_huge_active")
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: <stable@vger.kernel.org>  [4.1.x]
+A theoretical scenario that will cause these missed events is:
+
+  On writable mapping with vm_ops->pfn_mkwrite, but without
+  vm_ops->page_mkwrite: read fault followed by write access to the pfn. 
+  Writable pte will be set up on read fault and write fault will not be
+  generated.
+
+I found it examining Dave's complaint on generic/080:
+
+	http://lkml.kernel.org/g/20150831233803.GO3902@dastard
+
+Although I don't think it's the reason.
+
+It shouldn't be a problem for ext2/ext4 as they provide both pfn_mkwrite
+and page_mkwrite.
+
+[akpm@linux-foundation.org: add local vm_ops to avoid 80-cols mess]
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Yigal Korman <yigal@plexistor.com>
+Acked-by: Boaz Harrosh <boaz@plexistor.com>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mmap.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-migrate-hugetlb-putback-destination-hugepage-to-active-list mm/migrate.c
---- a/mm/migrate.c~mm-migrate-hugetlb-putback-destination-hugepage-to-active-list
-+++ a/mm/migrate.c
-@@ -1075,7 +1075,7 @@ out:
- 	if (rc != MIGRATEPAGE_SUCCESS && put_new_page)
- 		put_new_page(new_hpage, private);
- 	else
--		put_page(new_hpage);
-+		putback_active_hugepage(new_hpage);
+diff -puN mm/mmap.c~mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified mm/mmap.c
+--- a/mm/mmap.c~mm-dax-vma-with-vm_ops-pfn_mkwrite-wants-to-be-write-notified
++++ a/mm/mmap.c
+@@ -1490,13 +1490,14 @@ SYSCALL_DEFINE1(old_mmap, struct mmap_ar
+ int vma_wants_writenotify(struct vm_area_struct *vma)
+ {
+ 	vm_flags_t vm_flags = vma->vm_flags;
++	const struct vm_operations_struct *vm_ops = vma->vm_ops;
  
- 	if (result) {
- 		if (rc)
+ 	/* If it was private or non-writable, the write bit is already clear */
+ 	if ((vm_flags & (VM_WRITE|VM_SHARED)) != ((VM_WRITE|VM_SHARED)))
+ 		return 0;
+ 
+ 	/* The backer wishes to know when pages are first written to? */
+-	if (vma->vm_ops && vma->vm_ops->page_mkwrite)
++	if (vm_ops && (vm_ops->page_mkwrite || vm_ops->pfn_mkwrite))
+ 		return 1;
+ 
+ 	/* The open routine did something to the protections that pgprot_modify
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps.patch
-mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch
-mm-hwpoison-ratelimit-messages-from-unpoison_memory.patch
+rcu-force-alignment-on-struct-callback_head-rcu_head.patch
+mm-make-optimistic-check-for-swapin-readahead-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+mm-drop-page-slab_page.patch
+slab-slub-use-page-rcu_head-instead-of-page-lru-plus-cast.patch
+zsmalloc-use-page-private-instead-of-page-first_page.patch
+mm-pack-compound_dtor-and-compound_order-into-one-word-in-struct-page.patch
+mm-make-compound_head-robust.patch
+mm-use-unsigned-int-for-page-order.patch
+mm-use-unsigned-int-for-compound_dtor-compound_order-on-64bit.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-support-madvisemadv_free-fix-3.patch
 
