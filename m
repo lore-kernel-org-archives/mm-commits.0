@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-seqfile-always-allow-oom-killer.patch added to -mm tree
-Date: Mon, 28 Sep 2015 15:33:15 -0700
-Message-ID: <5609c02b.ixOUC4CuHyOvNv1x%akpm@linux-foundation.org>
+Subject: + mm-doc-fix-misleading-code-reference-of-overcommit_memory.patch added to -mm tree
+Date: Mon, 28 Sep 2015 15:34:49 -0700
+Message-ID: <5609c089.kRE1Pz45yc+J/bqz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49328 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49469 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754227AbbI1WdQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Sep 2015 18:33:16 -0400
+	with ESMTP id S1752763AbbI1Weu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Sep 2015 18:34:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gthelen@google.com, edumazet@google.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: chenchun.feed@gmail.com, mhocko@suse.com, ramichen@tencent.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs, seqfile: always allow oom killer
+     Subject: Documentation/sysctl/vm.txt: fix misleading code reference of overcommit_memory
 has been added to the -mm tree.  Its filename is
-     fs-seqfile-always-allow-oom-killer.patch
+     mm-doc-fix-misleading-code-reference-of-overcommit_memory.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-seqfile-always-allow-oom-killer.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-doc-fix-misleading-code-reference-of-overcommit_memory.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-seqfile-always-allow-oom-killer.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-doc-fix-misleading-code-reference-of-overcommit_memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,59 +38,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: fs, seqfile: always allow oom killer
+From: Chun Chen <chenchun.feed@gmail.com>
+Subject: Documentation/sysctl/vm.txt: fix misleading code reference of overcommit_memory
 
-Since 5cec38ac866b ("fs, seq_file: fallback to vmalloc instead of oom kill
-processes") seq_buf_alloc() avoids calling the oom killer for PAGE_SIZE or
-smaller allocations; but larger allocations can use the oom killer via
-vmalloc().  Thus reads of small files can return ENOMEM, but larger files
-use the oom killer to avoid ENOMEM.
+The origin document references to cap_vm_enough_memory is because
+cap_vm_enough_memory invoked __vm_enough_memory before and it no longer
+does now.
 
-Memory overcommit requires use of the oom killer to select a victim
-regardless of file size.
-
-Enable oom killer for small seq_buf_alloc() allocations.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Acked-by: Eric Dumazet <edumazet@google.com>
+Signed-off-by: Chun Chen <ramichen@tencent.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ Documentation/sysctl/vm.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/seq_file.c~fs-seqfile-always-allow-oom-killer fs/seq_file.c
---- a/fs/seq_file.c~fs-seqfile-always-allow-oom-killer
-+++ a/fs/seq_file.c
-@@ -26,12 +26,17 @@ static void seq_set_overflow(struct seq_
- static void *seq_buf_alloc(unsigned long size)
- {
- 	void *buf;
-+	gfp_t gfp = GFP_KERNEL;
+diff -puN Documentation/sysctl/vm.txt~mm-doc-fix-misleading-code-reference-of-overcommit_memory Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-doc-fix-misleading-code-reference-of-overcommit_memory
++++ a/Documentation/sysctl/vm.txt
+@@ -639,7 +639,7 @@ and don't use much of it.
+ The default value is 0.
  
- 	/*
--	 * __GFP_NORETRY to avoid oom-killings with high-order allocations -
--	 * it's better to fall back to vmalloc() than to kill things.
-+	 * For high order allocations, use __GFP_NORETRY to avoid oom-killing -
-+	 * it's better to fall back to vmalloc() than to kill things.  For small
-+	 * allocations, just use GFP_KERNEL which will oom kill, thus no need
-+	 * for vmalloc fallback.
- 	 */
--	buf = kmalloc(size, GFP_KERNEL | __GFP_NORETRY | __GFP_NOWARN);
-+	if (size > PAGE_SIZE)
-+		gfp |= __GFP_NORETRY | __GFP_NOWARN;
-+	buf = kmalloc(size, gfp);
- 	if (!buf && size > PAGE_SIZE)
- 		buf = vmalloc(size);
- 	return buf;
+ See Documentation/vm/overcommit-accounting and
+-security/commoncap.c::cap_vm_enough_memory() for more information.
++mm/mmap.c::__vm_enough_memory() for more information.
+ 
+ ==============================================================
+ 
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from chenchun.feed@gmail.com are
 
-memcg-fix-dirty-page-migration.patch
-memcg-make-mem_cgroup_read_stat-unsigned.patch
-memcg-remove-pcp_counter_lock.patch
-fs-seqfile-always-allow-oom-killer.patch
+mm-doc-fix-misleading-code-reference-of-overcommit_memory.patch
 
