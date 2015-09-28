@@ -1,132 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-update-documentation.patch removed from -mm tree
-Date: Mon, 28 Sep 2015 11:16:17 -0700
-Message-ID: <560983f1.cESpiXWLqV1w0Ui7%akpm@linux-foundation.org>
+Subject: + mips-allocate-sys_membarrier-system-call-number.patch added to
+ -mm tree
+Date: Mon, 28 Sep 2015 13:33:16 -0700
+Message-ID: <5609a40c.lyNlmI5jvcqVIBRk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37850 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59072 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932752AbbI1SQR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Sep 2015 14:16:17 -0400
+	with ESMTP id S1750949AbbI1UdR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Sep 2015 16:33:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@efficios.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: update documentation
-has been removed from the -mm tree.  Its filename was
-     zram-update-documentation.patch
+     Subject: mips: allocate sys_membarrier system call number
+has been added to the -mm tree.  Its filename is
+     mips-allocate-sys_membarrier-system-call-number.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mips-allocate-sys_membarrier-system-call-number.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mips-allocate-sys_membarrier-system-call-number.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey SENOZHATSKY <sergey.senozhatsky@gmail.com>
-Subject: zram: update documentation
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: mips: allocate sys_membarrier system call number
 
-Several documentation changes.
-
-First, we never mentioned any errors and never required any error checks
-in documentation.
-
-Second, mention that there is another way to configure and manage zram
-devices -- zramctl, provided by util-linux.
-
-Third, add a bit of clarification on why `mem_used_max' attr is RW and
-correct some typos.
-
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/blockdev/zram.txt |   44 +++++++++++++++++++++++++++---
- 1 file changed, 40 insertions(+), 4 deletions(-)
+ arch/mips/include/uapi/asm/unistd.h |   15 +++++++++------
+ arch/mips/kernel/scall32-o32.S      |    1 +
+ arch/mips/kernel/scall64-64.S       |    1 +
+ arch/mips/kernel/scall64-n32.S      |    1 +
+ arch/mips/kernel/scall64-o32.S      |    1 +
+ 5 files changed, 13 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/blockdev/zram.txt~zram-update-documentation Documentation/blockdev/zram.txt
---- a/Documentation/blockdev/zram.txt~zram-update-documentation
-+++ a/Documentation/blockdev/zram.txt
-@@ -14,8 +14,43 @@ Statistics for individual zram devices a
+diff -puN arch/mips/include/uapi/asm/unistd.h~mips-allocate-sys_membarrier-system-call-number arch/mips/include/uapi/asm/unistd.h
+--- a/arch/mips/include/uapi/asm/unistd.h~mips-allocate-sys_membarrier-system-call-number
++++ a/arch/mips/include/uapi/asm/unistd.h
+@@ -378,16 +378,17 @@
+ #define __NR_bpf			(__NR_Linux + 355)
+ #define __NR_execveat			(__NR_Linux + 356)
+ #define __NR_mlock2			(__NR_Linux + 357)
++#define __NR_membarrier			(__NR_Linux + 358)
  
- * Usage
+ /*
+  * Offset of the last Linux o32 flavoured syscall
+  */
+-#define __NR_Linux_syscalls		357
++#define __NR_Linux_syscalls		358
  
-+There are several ways to configure and manage zram device(-s):
-+a) using zram and zram_control sysfs attributes
-+b) using zramctl utility, provided by util-linux (util-linux@vger.kernel.org).
-+
-+In this document we will describe only 'manual' zram configuration steps,
-+IOW, zram and zram_control sysfs attributes.
-+
-+In order to get a better idea about zramctl please consult util-linux
-+documentation, zramctl man-page or `zramctl --help'. Please be informed
-+that zram maintainers do not develop/maintain util-linux or zramctl, should
-+you have any questions please contact util-linux@vger.kernel.org
-+
- Following shows a typical sequence of steps for using zram.
+ #endif /* _MIPS_SIM == _MIPS_SIM_ABI32 */
  
-+WARNING
-+=======
-+For the sake of simplicity we skip error checking parts in most of the
-+examples below. However, it is your sole responsibility to handle errors.
-+
-+zram sysfs attributes always return negative values in case of errors.
-+The list of possible return codes:
-+-EBUSY	-- an attempt to modify an attribute that cannot be changed once
-+the device has been initialised. Please reset device first;
-+-ENOMEM	-- zram was not able to allocate enough memory to fulfil your
-+needs;
-+-EINVAL	-- invalid input has been provided.
-+
-+If you use 'echo', the returned value that is changed by 'echo' utility,
-+and, in general case, something like:
-+
-+	echo 3 > /sys/block/zram0/max_comp_streams
-+	if [ $? -ne 0 ];
-+		handle_error
-+	fi
-+
-+should suffice.
-+
- 1) Load Module:
- 	modprobe zram num_devices=4
- 	This creates 4 devices: /dev/zram{0,1,2,3}
-@@ -47,7 +82,7 @@ max_comp_streams adjustment.
+ #define __NR_O32_Linux			4000
+-#define __NR_O32_Linux_syscalls		357
++#define __NR_O32_Linux_syscalls		358
  
- 3) Select compression algorithm
- 	Using comp_algorithm device attribute one can see available and
--	currently selected (shown in square brackets) compression algortithms,
-+	currently selected (shown in square brackets) compression algorithms,
- 	change selected compression algorithm (once the device is initialised
- 	there is no way to change compression algorithm).
+ #if _MIPS_SIM == _MIPS_SIM_ABI64
  
-@@ -119,7 +154,7 @@ execute
- 8) Stats:
- Per-device statistics are exported as various nodes under /sys/block/zram<id>/
+@@ -713,16 +714,17 @@
+ #define __NR_bpf			(__NR_Linux + 315)
+ #define __NR_execveat			(__NR_Linux + 316)
+ #define __NR_mlock2			(__NR_Linux + 317)
++#define __NR_membarrier			(__NR_Linux + 318)
  
--A brief description of exported device attritbutes. For more details please
-+A brief description of exported device attributes. For more details please
- read Documentation/ABI/testing/sysfs-block-zram.
+ /*
+  * Offset of the last Linux 64-bit flavoured syscall
+  */
+-#define __NR_Linux_syscalls		317
++#define __NR_Linux_syscalls		318
  
- Name            access            description
-@@ -140,8 +175,9 @@ zero_pages        RO    the number of ze
- orig_data_size    RO    uncompressed size of data stored in this disk
- compr_data_size   RO    compressed size of data stored in this disk
- mem_used_total    RO    the amount of memory allocated for this disk
--mem_used_max      RW    the maximum amount memory zram have consumed to
--                        store compressed data
-+mem_used_max      RW    the maximum amount of memory zram have consumed to
-+                        store the data (to reset this counter to the actual
-+                        current value, write 1 to this attribute)
- mem_limit         RW    the maximum amount of memory ZRAM can use to store
-                         the compressed data
- pages_compacted   RO    the number of pages freed during compaction
+ #endif /* _MIPS_SIM == _MIPS_SIM_ABI64 */
+ 
+ #define __NR_64_Linux			5000
+-#define __NR_64_Linux_syscalls		317
++#define __NR_64_Linux_syscalls		318
+ 
+ #if _MIPS_SIM == _MIPS_SIM_NABI32
+ 
+@@ -1052,15 +1054,16 @@
+ #define __NR_bpf			(__NR_Linux + 319)
+ #define __NR_execveat			(__NR_Linux + 320)
+ #define __NR_mlock2			(__NR_Linux + 321)
++#define __NR_membarrier			(__NR_Linux + 322)
+ 
+ /*
+  * Offset of the last N32 flavoured syscall
+  */
+-#define __NR_Linux_syscalls		321
++#define __NR_Linux_syscalls		322
+ 
+ #endif /* _MIPS_SIM == _MIPS_SIM_NABI32 */
+ 
+ #define __NR_N32_Linux			6000
+-#define __NR_N32_Linux_syscalls		321
++#define __NR_N32_Linux_syscalls		322
+ 
+ #endif /* _UAPI_ASM_UNISTD_H */
+diff -puN arch/mips/kernel/scall32-o32.S~mips-allocate-sys_membarrier-system-call-number arch/mips/kernel/scall32-o32.S
+--- a/arch/mips/kernel/scall32-o32.S~mips-allocate-sys_membarrier-system-call-number
++++ a/arch/mips/kernel/scall32-o32.S
+@@ -600,3 +600,4 @@ EXPORT(sys_call_table)
+ 	PTR	sys_bpf				/* 4355 */
+ 	PTR	sys_execveat
+ 	PTR	sys_mlock2
++	PTR	sys_membarrier
+diff -puN arch/mips/kernel/scall64-64.S~mips-allocate-sys_membarrier-system-call-number arch/mips/kernel/scall64-64.S
+--- a/arch/mips/kernel/scall64-64.S~mips-allocate-sys_membarrier-system-call-number
++++ a/arch/mips/kernel/scall64-64.S
+@@ -437,4 +437,5 @@ EXPORT(sys_call_table)
+ 	PTR	sys_bpf				/* 5315 */
+ 	PTR	sys_execveat
+ 	PTR	sys_mlock2
++	PTR	sys_membarrier
+ 	.size	sys_call_table,.-sys_call_table
+diff -puN arch/mips/kernel/scall64-n32.S~mips-allocate-sys_membarrier-system-call-number arch/mips/kernel/scall64-n32.S
+--- a/arch/mips/kernel/scall64-n32.S~mips-allocate-sys_membarrier-system-call-number
++++ a/arch/mips/kernel/scall64-n32.S
+@@ -430,4 +430,5 @@ EXPORT(sysn32_call_table)
+ 	PTR	sys_bpf
+ 	PTR	compat_sys_execveat		/* 6320 */
+ 	PTR	sys_mlock2
++	PTR	sys_membarrier
+ 	.size	sysn32_call_table,.-sysn32_call_table
+diff -puN arch/mips/kernel/scall64-o32.S~mips-allocate-sys_membarrier-system-call-number arch/mips/kernel/scall64-o32.S
+--- a/arch/mips/kernel/scall64-o32.S~mips-allocate-sys_membarrier-system-call-number
++++ a/arch/mips/kernel/scall64-o32.S
+@@ -585,4 +585,5 @@ EXPORT(sys32_call_table)
+ 	PTR	sys_bpf				/* 4355 */
+ 	PTR	compat_sys_execveat
+ 	PTR	sys_mlock2
++	PTR	sys_membarrier
+ 	.size	sys32_call_table,.-sys32_call_table
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
 
-zram-keep-the-exact-overcommited-value-in-mem_used_max.patch
-mm-zsmalloc-constify-struct-zs_pool-name.patch
+mips-allocate-sys_membarrier-system-call-number.patch
 
