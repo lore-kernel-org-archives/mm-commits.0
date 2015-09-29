@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-only-take-lock-if-dio-entry-when-recover-orphans.patch
+Subject: + ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan.patch
  added to -mm tree
-Date: Tue, 29 Sep 2015 16:19:28 -0700
-Message-ID: <560b1c80.bpPeGJh0adgD+gbR%akpm@linux-foundation.org>
+Date: Tue, 29 Sep 2015 16:19:26 -0700
+Message-ID: <560b1c7e.Zcpyb5HDHLec3GJs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43080 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43074 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750970AbbI2XT3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Sep 2015 19:19:29 -0400
+	with ESMTP id S1750966AbbI2XT1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Sep 2015 19:19:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: only take lock if dio entry when recover orphans
+     Subject: ocfs2: do not include dio entry in case of orphan scan
 has been added to the -mm tree.  Its filename is
-     ocfs2-only-take-lock-if-dio-entry-when-recover-orphans.patch
+     ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-only-take-lock-if-dio-entry-when-recover-orphans.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-only-take-lock-if-dio-entry-when-recover-orphans.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: only take lock if dio entry when recover orphans
+Subject: ocfs2: do not include dio entry in case of orphan scan
 
-We have no need to take inode mutex, rw and inode lock if it is not dio
-entry when recover orphans.  Optimize it by adding a flag
-OCFS2_INODE_DIO_ORPHAN_ENTRY to ocfs2_inode_info to reduce contention.
+dio entry will only do truncate in case of ORPHAN_NEED_TRUNCATE. So do
+not include it when doing normal orphan scan to reduce contention.
 
 Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
@@ -52,134 +51,88 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/inode.h   |    2 +
- fs/ocfs2/journal.c |   86 +++++++++++++++++++++++--------------------
- 2 files changed, 49 insertions(+), 39 deletions(-)
+ fs/ocfs2/journal.c |   15 ++++++++++++---
+ fs/ocfs2/namei.c   |    2 --
+ fs/ocfs2/namei.h   |    3 +++
+ 3 files changed, 15 insertions(+), 5 deletions(-)
 
-diff -puN fs/ocfs2/inode.h~ocfs2-only-take-lock-if-dio-entry-when-recover-orphans fs/ocfs2/inode.h
---- a/fs/ocfs2/inode.h~ocfs2-only-take-lock-if-dio-entry-when-recover-orphans
-+++ a/fs/ocfs2/inode.h
-@@ -112,6 +112,8 @@ struct ocfs2_inode_info
- #define OCFS2_INODE_OPEN_DIRECT		0x00000020
- /* Tell the inode wipe code it's not in orphan dir */
- #define OCFS2_INODE_SKIP_ORPHAN_DIR     0x00000040
-+/* Entry in orphan dir with 'dio-' prefix */
-+#define OCFS2_INODE_DIO_ORPHAN_ENTRY	0x00000080
- 
- static inline struct ocfs2_inode_info *OCFS2_I(struct inode *inode)
- {
-diff -puN fs/ocfs2/journal.c~ocfs2-only-take-lock-if-dio-entry-when-recover-orphans fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-only-take-lock-if-dio-entry-when-recover-orphans
+diff -puN fs/ocfs2/journal.c~ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan fs/ocfs2/journal.c
+--- a/fs/ocfs2/journal.c~ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan
 +++ a/fs/ocfs2/journal.c
-@@ -2049,6 +2049,10 @@ static int ocfs2_orphan_filldir(struct d
- 	if (IS_ERR(iter))
+@@ -2021,6 +2021,7 @@ struct ocfs2_orphan_filldir_priv {
+ 	struct dir_context	ctx;
+ 	struct inode		*head;
+ 	struct ocfs2_super	*osb;
++	enum ocfs2_orphan_reco_type orphan_reco_type;
+ };
+ 
+ static int ocfs2_orphan_filldir(struct dir_context *ctx, const char *name,
+@@ -2036,6 +2037,12 @@ static int ocfs2_orphan_filldir(struct d
+ 	if (name_len == 2 && !strncmp("..", name, 2))
  		return 0;
  
-+	if (!strncmp(name, OCFS2_DIO_ORPHAN_PREFIX,
-+			OCFS2_DIO_ORPHAN_PREFIX_LEN))
-+		OCFS2_I(iter)->ip_flags |= OCFS2_INODE_DIO_ORPHAN_ENTRY;
++	/* do not include dio entry in case of orphan scan */
++	if ((p->orphan_reco_type == ORPHAN_NO_NEED_TRUNCATE) &&
++			(!strncmp(name, OCFS2_DIO_ORPHAN_PREFIX,
++			OCFS2_DIO_ORPHAN_PREFIX_LEN)))
++		return 0;
 +
- 	/* Skip inodes which are already added to recover list, since dio may
- 	 * happen concurrently with unlink/rename */
- 	if (OCFS2_I(iter)->ip_next_orphan) {
-@@ -2195,25 +2199,51 @@ static int ocfs2_recover_orphans(struct
- 		iter = oi->ip_next_orphan;
- 		oi->ip_next_orphan = NULL;
+ 	/* Skip bad inodes so that recovery can continue */
+ 	iter = ocfs2_iget(p->osb, ino,
+ 			  OCFS2_FI_FLAG_ORPHAN_RECOVERY, 0);
+@@ -2060,14 +2067,16 @@ static int ocfs2_orphan_filldir(struct d
  
--		mutex_lock(&inode->i_mutex);
--		ret = ocfs2_rw_lock(inode, 1);
--		if (ret < 0) {
--			mlog_errno(ret);
--			goto next;
--		}
--		/*
--		 * We need to take and drop the inode lock to
--		 * force read inode from disk.
--		 */
--		ret = ocfs2_inode_lock(inode, &di_bh, 1);
--		if (ret) {
--			mlog_errno(ret);
--			goto unlock_rw;
--		}
-+		if (oi->ip_flags & OCFS2_INODE_DIO_ORPHAN_ENTRY) {
-+			mutex_lock(&inode->i_mutex);
-+			ret = ocfs2_rw_lock(inode, 1);
-+			if (ret < 0) {
-+				mlog_errno(ret);
-+				goto unlock_mutex;
-+			}
-+			/*
-+			 * We need to take and drop the inode lock to
-+			 * force read inode from disk.
-+			 */
-+			ret = ocfs2_inode_lock(inode, &di_bh, 1);
-+			if (ret) {
-+				mlog_errno(ret);
-+				goto unlock_rw;
-+			}
+ static int ocfs2_queue_orphans(struct ocfs2_super *osb,
+ 			       int slot,
+-			       struct inode **head)
++			       struct inode **head,
++			       enum ocfs2_orphan_reco_type orphan_reco_type)
+ {
+ 	int status;
+ 	struct inode *orphan_dir_inode = NULL;
+ 	struct ocfs2_orphan_filldir_priv priv = {
+ 		.ctx.actor = ocfs2_orphan_filldir,
+ 		.osb = osb,
+-		.head = *head
++		.head = *head,
++		.orphan_reco_type = orphan_reco_type
+ 	};
  
--		di = (struct ocfs2_dinode *)di_bh->b_data;
-+			di = (struct ocfs2_dinode *)di_bh->b_data;
+ 	orphan_dir_inode = ocfs2_get_system_file_inode(osb,
+@@ -2170,7 +2179,7 @@ static int ocfs2_recover_orphans(struct
+ 	trace_ocfs2_recover_orphans(slot);
  
--		if (inode->i_nlink == 0) {
-+			if (di->i_flags & cpu_to_le32(OCFS2_DIO_ORPHANED_FL)) {
-+				ret = ocfs2_truncate_file(inode, di_bh,
-+						i_size_read(inode));
-+				if (ret < 0) {
-+					if (ret != -ENOSPC)
-+						mlog_errno(ret);
-+					goto unlock_inode;
-+				}
+ 	ocfs2_mark_recovering_orphan_dir(osb, slot);
+-	ret = ocfs2_queue_orphans(osb, slot, &inode);
++	ret = ocfs2_queue_orphans(osb, slot, &inode, orphan_reco_type);
+ 	ocfs2_clear_recovering_orphan_dir(osb, slot);
+ 
+ 	/* Error here should be noted, but we want to continue with as
+diff -puN fs/ocfs2/namei.c~ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan
++++ a/fs/ocfs2/namei.c
+@@ -106,8 +106,6 @@ static int ocfs2_double_lock(struct ocfs
+ static void ocfs2_double_unlock(struct inode *inode1, struct inode *inode2);
+ /* An orphan dir name is an 8 byte value, printed as a hex string */
+ #define OCFS2_ORPHAN_NAMELEN ((int)(2 * sizeof(u64)))
+-#define OCFS2_DIO_ORPHAN_PREFIX "dio-"
+-#define OCFS2_DIO_ORPHAN_PREFIX_LEN 4
+ 
+ static struct dentry *ocfs2_lookup(struct inode *dir, struct dentry *dentry,
+ 				   unsigned int flags)
+diff -puN fs/ocfs2/namei.h~ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan fs/ocfs2/namei.h
+--- a/fs/ocfs2/namei.h~ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan
++++ a/fs/ocfs2/namei.h
+@@ -26,6 +26,9 @@
+ #ifndef OCFS2_NAMEI_H
+ #define OCFS2_NAMEI_H
+ 
++#define OCFS2_DIO_ORPHAN_PREFIX "dio-"
++#define OCFS2_DIO_ORPHAN_PREFIX_LEN 4
 +
-+				ret = ocfs2_del_inode_from_orphan(osb, inode,
-+						di_bh, 0, 0);
-+				if (ret)
-+					mlog_errno(ret);
-+			}
-+unlock_inode:
-+			ocfs2_inode_unlock(inode, 1);
-+			brelse(di_bh);
-+			di_bh = NULL;
-+unlock_rw:
-+			ocfs2_rw_unlock(inode, 1);
-+unlock_mutex:
-+			mutex_unlock(&inode->i_mutex);
-+
-+			/* clear dio flag in ocfs2_inode_info */
-+			oi->ip_flags &= ~OCFS2_INODE_DIO_ORPHAN_ENTRY;
-+		} else {
- 			spin_lock(&oi->ip_lock);
- 			/* Set the proper information to get us going into
- 			 * ocfs2_delete_inode. */
-@@ -2221,28 +2251,6 @@ static int ocfs2_recover_orphans(struct
- 			spin_unlock(&oi->ip_lock);
- 		}
+ extern const struct inode_operations ocfs2_dir_iops;
  
--		if ((orphan_reco_type == ORPHAN_NEED_TRUNCATE) &&
--				(di->i_flags & cpu_to_le32(OCFS2_DIO_ORPHANED_FL))) {
--			ret = ocfs2_truncate_file(inode, di_bh,
--					i_size_read(inode));
--			if (ret < 0) {
--				if (ret != -ENOSPC)
--					mlog_errno(ret);
--				goto unlock_inode;
--			}
--
--			ret = ocfs2_del_inode_from_orphan(osb, inode, di_bh, 0, 0);
--			if (ret)
--				mlog_errno(ret);
--		} /* else if ORPHAN_NO_NEED_TRUNCATE, do nothing */
--unlock_inode:
--		ocfs2_inode_unlock(inode, 1);
--		brelse(di_bh);
--		di_bh = NULL;
--unlock_rw:
--		ocfs2_rw_unlock(inode, 1);
--next:
--		mutex_unlock(&inode->i_mutex);
- 		iput(inode);
- 		inode = iter;
- 	}
+ struct dentry *ocfs2_get_parent(struct dentry *child);
 _
 
 Patches currently in -mm which might be from joseph.qi@huawei.com are
