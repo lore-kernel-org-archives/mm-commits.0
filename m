@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan.patch
- added to -mm tree
-Date: Tue, 29 Sep 2015 16:19:26 -0700
-Message-ID: <560b1c7e.Zcpyb5HDHLec3GJs%akpm@linux-foundation.org>
+Subject: + watchdog-fix-error-handling-in-proc_watchdog_thresh.patch added to -mm tree
+Date: Tue, 29 Sep 2015 16:40:17 -0700
+Message-ID: <560b2161.Jv8zw7BF09wYgEMX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43074 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47058 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750966AbbI2XT1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Sep 2015 19:19:27 -0400
+	with ESMTP id S1751262AbbI2XkS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Sep 2015 19:40:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: uobergfe@redhat.com, atomlin@redhat.com, dzickus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: do not include dio entry in case of orphan scan
+     Subject: watchdog: fix error handling in proc_watchdog_thresh()
 has been added to the -mm tree.  Its filename is
-     ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan.patch
+     watchdog-fix-error-handling-in-proc_watchdog_thresh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-fix-error-handling-in-proc_watchdog_thresh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-fix-error-handling-in-proc_watchdog_thresh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,109 +38,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: do not include dio entry in case of orphan scan
+From: Ulrich Obergfell <uobergfe@redhat.com>
+Subject: watchdog: fix error handling in proc_watchdog_thresh()
 
-dio entry will only do truncate in case of ORPHAN_NEED_TRUNCATE. So do
-not include it when doing normal orphan scan to reduce contention.
+The original watchdog_park_threads() function that was introduced by
+81a4beef91ba4a9 ("watchdog: introduce watchdog_park_threads() and
+watchdog_unpark_threads()") takes a very simple approach to handle errors
+returned by kthread_park(): It attempts to roll back all watchdog threads
+to the unparked state.  However, this may be undesired behaviour from the
+perspective of the caller which may want to handle errors as appropriate
+in its specific context.  Currently, there are two possible call chains:
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
+- watchdog suspend/resume interface
+
+    lockup_detector_suspend
+      watchdog_park_threads
+
+- write to parameters in /proc/sys/kernel
+
+    proc_watchdog_update
+      watchdog_enable_all_cpus
+        update_watchdog_all_cpus
+          watchdog_park_threads
+
+Instead of 'blindly' attempting to unpark the watchdog threads if a
+kthread_park() call fails, the new approach is to disable the lockup
+detectors in the above call chains.  Failure becomes visible to the user
+as follows:
+
+- error messages from lockup_detector_suspend()
+                   or watchdog_enable_all_cpus()
+
+- the state that can be read from /proc/sys/kernel/watchdog_enabled
+
+- the 'write' system call in the latter call chain returns an error
+
+
+
+This patch (of 5):
+
+Restore the previous value of watchdog_thresh _and_ sample_period if
+proc_watchdog_update() returns an error.  The variables must be consistent
+to avoid false positives of the lockup detectors.
+
+Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
+Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/journal.c |   15 ++++++++++++---
- fs/ocfs2/namei.c   |    2 --
- fs/ocfs2/namei.h   |    3 +++
- 3 files changed, 15 insertions(+), 5 deletions(-)
+ kernel/watchdog.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/journal.c~ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan
-+++ a/fs/ocfs2/journal.c
-@@ -2021,6 +2021,7 @@ struct ocfs2_orphan_filldir_priv {
- 	struct dir_context	ctx;
- 	struct inode		*head;
- 	struct ocfs2_super	*osb;
-+	enum ocfs2_orphan_reco_type orphan_reco_type;
- };
+diff -puN kernel/watchdog.c~watchdog-fix-error-handling-in-proc_watchdog_thresh kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-fix-error-handling-in-proc_watchdog_thresh
++++ a/kernel/watchdog.c
+@@ -914,13 +914,14 @@ int proc_watchdog_thresh(struct ctl_tabl
+ 		goto out;
  
- static int ocfs2_orphan_filldir(struct dir_context *ctx, const char *name,
-@@ -2036,6 +2037,12 @@ static int ocfs2_orphan_filldir(struct d
- 	if (name_len == 2 && !strncmp("..", name, 2))
- 		return 0;
- 
-+	/* do not include dio entry in case of orphan scan */
-+	if ((p->orphan_reco_type == ORPHAN_NO_NEED_TRUNCATE) &&
-+			(!strncmp(name, OCFS2_DIO_ORPHAN_PREFIX,
-+			OCFS2_DIO_ORPHAN_PREFIX_LEN)))
-+		return 0;
-+
- 	/* Skip bad inodes so that recovery can continue */
- 	iter = ocfs2_iget(p->osb, ino,
- 			  OCFS2_FI_FLAG_ORPHAN_RECOVERY, 0);
-@@ -2060,14 +2067,16 @@ static int ocfs2_orphan_filldir(struct d
- 
- static int ocfs2_queue_orphans(struct ocfs2_super *osb,
- 			       int slot,
--			       struct inode **head)
-+			       struct inode **head,
-+			       enum ocfs2_orphan_reco_type orphan_reco_type)
- {
- 	int status;
- 	struct inode *orphan_dir_inode = NULL;
- 	struct ocfs2_orphan_filldir_priv priv = {
- 		.ctx.actor = ocfs2_orphan_filldir,
- 		.osb = osb,
--		.head = *head
-+		.head = *head,
-+		.orphan_reco_type = orphan_reco_type
- 	};
- 
- 	orphan_dir_inode = ocfs2_get_system_file_inode(osb,
-@@ -2170,7 +2179,7 @@ static int ocfs2_recover_orphans(struct
- 	trace_ocfs2_recover_orphans(slot);
- 
- 	ocfs2_mark_recovering_orphan_dir(osb, slot);
--	ret = ocfs2_queue_orphans(osb, slot, &inode);
-+	ret = ocfs2_queue_orphans(osb, slot, &inode, orphan_reco_type);
- 	ocfs2_clear_recovering_orphan_dir(osb, slot);
- 
- 	/* Error here should be noted, but we want to continue with as
-diff -puN fs/ocfs2/namei.c~ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan
-+++ a/fs/ocfs2/namei.c
-@@ -106,8 +106,6 @@ static int ocfs2_double_lock(struct ocfs
- static void ocfs2_double_unlock(struct inode *inode1, struct inode *inode2);
- /* An orphan dir name is an 8 byte value, printed as a hex string */
- #define OCFS2_ORPHAN_NAMELEN ((int)(2 * sizeof(u64)))
--#define OCFS2_DIO_ORPHAN_PREFIX "dio-"
--#define OCFS2_DIO_ORPHAN_PREFIX_LEN 4
- 
- static struct dentry *ocfs2_lookup(struct inode *dir, struct dentry *dentry,
- 				   unsigned int flags)
-diff -puN fs/ocfs2/namei.h~ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan fs/ocfs2/namei.h
---- a/fs/ocfs2/namei.h~ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan
-+++ a/fs/ocfs2/namei.h
-@@ -26,6 +26,9 @@
- #ifndef OCFS2_NAMEI_H
- #define OCFS2_NAMEI_H
- 
-+#define OCFS2_DIO_ORPHAN_PREFIX "dio-"
-+#define OCFS2_DIO_ORPHAN_PREFIX_LEN 4
-+
- extern const struct inode_operations ocfs2_dir_iops;
- 
- struct dentry *ocfs2_get_parent(struct dentry *child);
+ 	/*
+-	 * Update the sample period.
+-	 * Restore 'watchdog_thresh' on failure.
++	 * Update the sample period. Restore on failure.
+ 	 */
+ 	set_sample_period();
+ 	err = proc_watchdog_update();
+-	if (err)
++	if (err) {
+ 		watchdog_thresh = old;
++		set_sample_period();
++	}
+ out:
+ 	mutex_unlock(&watchdog_proc_mutex);
+ 	return err;
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from uobergfe@redhat.com are
 
-ocfs2-improve-performance-for-localalloc.patch
-ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan.patch
-ocfs2-only-take-lock-if-dio-entry-when-recover-orphans.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery-v2.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery-v3.patch
-ocfs2-dlm-fix-bug-in-dlm_move_lockres_to_recovery_list.patch
+watchdog-fix-error-handling-in-proc_watchdog_thresh.patch
+watchdog-move-watchdog_disable_all_cpus-outside-of-ifdef.patch
+watchdog-implement-error-handling-in-update_watchdog_all_cpus-and-callers.patch
+watchdog-implement-error-handling-in-lockup_detector_suspend.patch
+watchdog-do-not-unpark-threads-in-watchdog_park_threads-on-error.patch
 
