@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- watchdog-implement-error-handling-in-update_watchdog_all_cpus-and-callers.patch added to -mm tree
-Date: Tue, 29 Sep 2015 16:40:21 -0700
-Message-ID: <560b2165.d4gE/F3PMW7bLuXz%akpm@linux-foundation.org>
+ watchdog-do-not-unpark-threads-in-watchdog_park_threads-on-error.patch
+ added to -mm tree
+Date: Tue, 29 Sep 2015 16:40:25 -0700
+Message-ID: <560b2169.0kOZa4S2PB8nwG32%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47069 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47073 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751677AbbI2XkW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Sep 2015 19:40:22 -0400
+	with ESMTP id S1751309AbbI2Xk0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Sep 2015 19:40:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: uobergfe@redhat.com, atomlin@redhat.com, dzickus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: implement error handling in update_watchdog_all_cpus() and callers
+     Subject: watchdog: do not unpark threads in watchdog_park_threads() on error
 has been added to the -mm tree.  Its filename is
-     watchdog-implement-error-handling-in-update_watchdog_all_cpus-and-callers.patch
+     watchdog-do-not-unpark-threads-in-watchdog_park_threads-on-error.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-implement-error-handling-in-update_watchdog_all_cpus-and-callers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-do-not-unpark-threads-in-watchdog_park_threads-on-error.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-implement-error-handling-in-update_watchdog_all_cpus-and-callers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-do-not-unpark-threads-in-watchdog_park_threads-on-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +41,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ulrich Obergfell <uobergfe@redhat.com>
-Subject: watchdog: implement error handling in update_watchdog_all_cpus() and callers
+Subject: watchdog: do not unpark threads in watchdog_park_threads() on error
 
-update_watchdog_all_cpus() now passes errors from watchdog_park_threads()
-up to functions in the call chain.  This allows watchdog_enable_all_cpus()
-and proc_watchdog_update() to handle such errors too.
+If kthread_park() returns an error, watchdog_park_threads() should not
+blindly 'roll back' the already parked threads to the unparked state. 
+Instead leave it up to the callers to handle such errors appropriately in
+their context.  For example, it is redundant to unpark the threads if the
+lockup detectors will soon be disabled by the callers anyway.
 
 Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
 Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
@@ -53,69 +56,36 @@ Cc: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   30 +++++++++++++++++++++++-------
- 1 file changed, 23 insertions(+), 7 deletions(-)
+ kernel/watchdog.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN kernel/watchdog.c~watchdog-implement-error-handling-in-update_watchdog_all_cpus-and-callers kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-implement-error-handling-in-update_watchdog_all_cpus-and-callers
+diff -puN kernel/watchdog.c~watchdog-do-not-unpark-threads-in-watchdog_park_threads-on-error kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-do-not-unpark-threads-in-watchdog_park_threads-on-error
 +++ a/kernel/watchdog.c
-@@ -731,10 +731,17 @@ void lockup_detector_resume(void)
- 	mutex_unlock(&watchdog_proc_mutex);
- }
+@@ -654,6 +654,12 @@ static struct smp_hotplug_thread watchdo
  
--static void update_watchdog_all_cpus(void)
-+static int update_watchdog_all_cpus(void)
+ /*
+  * park all watchdog threads that are specified in 'watchdog_cpumask'
++ *
++ * This function returns an error if kthread_park() of a watchdog thread
++ * fails. In this situation, the watchdog threads of some CPUs can already
++ * be parked and the watchdog threads of other CPUs can still be runnable.
++ * Callers are expected to handle this special condition as appropriate in
++ * their context.
+  */
+ static int watchdog_park_threads(void)
  {
--	watchdog_park_threads();
-+	int ret;
-+
-+	ret = watchdog_park_threads();
-+	if (ret)
-+		return ret;
-+
- 	watchdog_unpark_threads();
-+
-+	return 0;
- }
- 
- static int watchdog_enable_all_cpus(void)
-@@ -753,9 +760,17 @@ static int watchdog_enable_all_cpus(void
- 		 * Enable/disable the lockup detectors or
- 		 * change the sample period 'on the fly'.
- 		 */
--		update_watchdog_all_cpus();
-+		err = update_watchdog_all_cpus();
-+
-+		if (err) {
-+			watchdog_disable_all_cpus();
-+			pr_err("Failed to update lockup detectors, disabled\n");
-+		}
+@@ -665,10 +671,6 @@ static int watchdog_park_threads(void)
+ 		if (ret)
+ 			break;
  	}
+-	if (ret) {
+-		for_each_watchdog_cpu(cpu)
+-			kthread_unpark(per_cpu(softlockup_watchdog, cpu));
+-	}
+ 	put_online_cpus();
  
-+	if (err)
-+		watchdog_enabled = 0;
-+
- 	return err;
- }
- 
-@@ -851,12 +866,13 @@ static int proc_watchdog_common(int whic
- 		} while (cmpxchg(&watchdog_enabled, old, new) != old);
- 
- 		/*
--		 * Update the run state of the lockup detectors.
--		 * Restore 'watchdog_enabled' on failure.
-+		 * Update the run state of the lockup detectors. There is _no_
-+		 * need to check the value returned by proc_watchdog_update()
-+		 * and to restore the previous value of 'watchdog_enabled' as
-+		 * both lockup detectors are disabled if proc_watchdog_update()
-+		 * returns an error.
- 		 */
- 		err = proc_watchdog_update();
--		if (err)
--			watchdog_enabled = old;
- 	}
- out:
- 	mutex_unlock(&watchdog_proc_mutex);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from uobergfe@redhat.com are
