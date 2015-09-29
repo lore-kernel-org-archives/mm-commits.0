@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-jffs2-wbufc-remove-stray-semicolon.patch added to -mm tree
-Date: Tue, 29 Sep 2015 15:08:57 -0700
-Message-ID: <560b0bf9.XW1r+cb8eELxkBG3%akpm@linux-foundation.org>
+Subject: +
+ mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable.patch added to -mm tree
+Date: Tue, 29 Sep 2015 16:09:39 -0700
+Message-ID: <560b1a33.zl33fZU6QlI8Egzg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57216 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41018 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752496AbbI2WI6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Sep 2015 18:08:58 -0400
+	with ESMTP id S1750810AbbI2XJk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Sep 2015 19:09:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dwmw2@infradead.org, fengguang.wu@intel.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: 00moses.alexander00@gmail.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, vbabka@suse.cz, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/jffs2/wbuf.c: remove stray semicolon
+     Subject: mm/vmscan.c: fix types of some locals
 has been added to the -mm tree.  Its filename is
-     fs-jffs2-wbufc-remove-stray-semicolon.patch
+     mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-jffs2-wbufc-remove-stray-semicolon.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-jffs2-wbufc-remove-stray-semicolon.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,59 +39,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs/jffs2/wbuf.c: remove stray semicolon
+From: Alexandru Moise <00moses.alexander00@gmail.com>
+Subject: mm/vmscan.c: fix types of some locals
 
-Reported-by: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+In zone_reclaimable_pages(), `nr' is returned by a function which is
+declared as returning "unsigned long", so declare it such.  Negative
+values are meaningless here.
+
+In zone_pagecache_reclaimable() we should also declare `delta' and
+`nr_pagecache_reclaimable' as being unsigned longs because they're used to
+store the values returned by zone_page_state() and
+zone_unmapped_file_pages() which also happen to return unsigned integers.
+
+Signed-off-by: Alexandru Moise <00moses.alexander00@gmail.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/wbuf.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/jffs2/wbuf.c~fs-jffs2-wbufc-remove-stray-semicolon fs/jffs2/wbuf.c
---- a/fs/jffs2/wbuf.c~fs-jffs2-wbufc-remove-stray-semicolon
-+++ a/fs/jffs2/wbuf.c
-@@ -1264,7 +1264,7 @@ int jffs2_dataflash_setup(struct jffs2_s
- 	if ((c->flash_size % c->sector_size) != 0) {
- 		c->flash_size = (c->flash_size / c->sector_size) * c->sector_size;
- 		pr_warn("flash size adjusted to %dKiB\n", c->flash_size);
--	};
-+	}
+diff -puN mm/vmscan.c~mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable mm/vmscan.c
+--- a/mm/vmscan.c~mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable
++++ a/mm/vmscan.c
+@@ -194,7 +194,7 @@ static bool sane_reclaim(struct scan_con
  
- 	c->wbuf_ofs = 0xFFFFFFFF;
- 	c->wbuf = kmalloc(c->wbuf_pagesize, GFP_KERNEL);
+ static unsigned long zone_reclaimable_pages(struct zone *zone)
+ {
+-	int nr;
++	unsigned long nr;
+ 
+ 	nr = zone_page_state(zone, NR_ACTIVE_FILE) +
+ 	     zone_page_state(zone, NR_INACTIVE_FILE);
+@@ -3695,8 +3695,8 @@ static inline unsigned long zone_unmappe
+ /* Work out how many page cache pages we can reclaim in this reclaim_mode */
+ static long zone_pagecache_reclaimable(struct zone *zone)
+ {
+-	long nr_pagecache_reclaimable;
+-	long delta = 0;
++	unsigned long nr_pagecache_reclaimable;
++	unsigned long delta = 0;
+ 
+ 	/*
+ 	 * If RECLAIM_UNMAP is set, then all file pages are considered
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from 00moses.alexander00@gmail.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-memcg-make-mem_cgroup_read_stat-unsigned-fix.patch
-drivers-input-joystick-kconfig-zhenhuac-needs-bitreverse.patch
-mm.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
-kasan-various-fixes-in-documentation-checkpatch-fixes.patch
-zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
-include-linux-page-flagsh-rename-macros-to-avoid-collisions.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-include-linux-compiler-gcch-improve-__visible-documentation.patch
-fs-jffs2-wbufc-remove-stray-semicolon.patch
-net-ipv4-routec-prevent-oops.patch
-remove-abs64.patch
-remove-abs64-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable.patch
 
