@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- page-flags-define-pg_swapcache-behavior-on-compound-pages.patch removed
+ page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch removed
  from -mm tree
-Date: Wed, 30 Sep 2015 14:56:51 -0700
-Message-ID: <560c5aa3.MRPGmt2MT/VUynoz%akpm@linux-foundation.org>
+Date: Wed, 30 Sep 2015 14:56:48 -0700
+Message-ID: <560c5aa0.SfMB01tgc7BTia9o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52701 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52685 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754803AbbI3V4w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 17:56:52 -0400
+	with ESMTP id S1754788AbbI3V4t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 17:56:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-flags: define PG_swapcache behavior on compound pages
+     Subject: page-flags: define PG_swapbacked behavior on compound pages
 has been removed from the -mm tree.  Its filename was
-     page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+     page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: page-flags: define PG_swapcache behavior on compound pages
+Subject: page-flags: define PG_swapbacked behavior on compound pages
 
-Swap cannot handle compound pages so far. Transparent huge pages are
-split on the way to swap.
+PG_swapbacked is used for transparent huge pages. For head pages only.
+Let's use NO_TAIL policy.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -49,21 +49,25 @@ Cc: Jerome Marchand <jmarchan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/page-flags.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/page-flags.h~page-flags-define-pg_swapcache-behavior-on-compound-pages include/linux/page-flags.h
---- a/include/linux/page-flags.h~page-flags-define-pg_swapcache-behavior-on-compound-pages
+diff -puN include/linux/page-flags.h~page-flags-define-pg_swapbacked-behavior-on-compound-pages include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-define-pg_swapbacked-behavior-on-compound-pages
 +++ a/include/linux/page-flags.h
-@@ -290,7 +290,7 @@ PAGEFLAG_FALSE(HighMem)
- #endif
+@@ -250,9 +250,9 @@ PAGEFLAG(Foreign, foreign, NO_COMPOUND)
  
- #ifdef CONFIG_SWAP
--PAGEFLAG(SwapCache, swapcache, ANY)
-+PAGEFLAG(SwapCache, swapcache, NO_COMPOUND)
- #else
- PAGEFLAG_FALSE(SwapCache)
- #endif
+ PAGEFLAG(Reserved, reserved, NO_COMPOUND)
+ 	__CLEARPAGEFLAG(Reserved, reserved, NO_COMPOUND)
+-PAGEFLAG(SwapBacked, swapbacked, ANY)
+-	__CLEARPAGEFLAG(SwapBacked, swapbacked, ANY)
+-	__SETPAGEFLAG(SwapBacked, swapbacked, ANY)
++PAGEFLAG(SwapBacked, swapbacked, NO_TAIL)
++	__CLEARPAGEFLAG(SwapBacked, swapbacked, NO_TAIL)
++	__SETPAGEFLAG(SwapBacked, swapbacked, NO_TAIL)
+ 
+ /*
+  * Private page markings that may be used by the filesystem that owns the page
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -80,6 +84,7 @@ mm-pack-compound_dtor-and-compound_order-into-one-word-in-struct-page.patch
 mm-make-compound_head-robust.patch
 mm-use-unsigned-int-for-page-order.patch
 mm-use-unsigned-int-for-compound_dtor-compound_order-on-64bit.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
 page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
 page-flags-define-pg_uncached-behavior-on-compound-pages.patch
 page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
