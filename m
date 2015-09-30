@@ -1,41 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
- removed from -mm tree
-Date: Wed, 30 Sep 2015 14:56:42 -0700
-Message-ID: <560c5a9a.aDceUKLi9jk4KCDK%akpm@linux-foundation.org>
+ page-flags-define-pg_swapcache-behavior-on-compound-pages.patch removed
+ from -mm tree
+Date: Wed, 30 Sep 2015 14:56:51 -0700
+Message-ID: <560c5aa3.MRPGmt2MT/VUynoz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52644 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52701 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750977AbbI3V4n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 17:56:43 -0400
+	with ESMTP id S1754803AbbI3V4w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 17:56:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-flags: define behavior of Xen-related flags on compound pages
+     Subject: page-flags: define PG_swapcache behavior on compound pages
 has been removed from the -mm tree.  Its filename was
-     page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+     page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: page-flags: define behavior of Xen-related flags on compound pages
+Subject: page-flags: define PG_swapcache behavior on compound pages
 
-PG_pinned and PG_savepinned are about page table's pages which are never
-compound.
-
-I'm not so sure about PG_foreign, but it seems we shouldn't see compound
-pages there too.
-
-Let's use NO_COMPOUND for all of them.
+Swap cannot handle compound pages so far. Transparent huge pages are
+split on the way to swap.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -54,28 +49,21 @@ Cc: Jerome Marchand <jmarchan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/linux/page-flags.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/page-flags.h~page-flags-define-behavior-of-xen-related-flags-on-compound-pages include/linux/page-flags.h
---- a/include/linux/page-flags.h~page-flags-define-behavior-of-xen-related-flags-on-compound-pages
+diff -puN include/linux/page-flags.h~page-flags-define-pg_swapcache-behavior-on-compound-pages include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-define-pg_swapcache-behavior-on-compound-pages
 +++ a/include/linux/page-flags.h
-@@ -242,9 +242,12 @@ PAGEFLAG(Active, active, HEAD) __CLEARPA
- __PAGEFLAG(Slab, slab, NO_TAIL)
- __PAGEFLAG(SlobFree, slob_free, NO_TAIL)
- PAGEFLAG(Checked, checked, NO_COMPOUND) /* Used by some filesystems */
--PAGEFLAG(Pinned, pinned, ANY) TESTSCFLAG(Pinned, pinned, ANY)	/* Xen */
--PAGEFLAG(SavePinned, savepinned, ANY);			/* Xen */
--PAGEFLAG(Foreign, foreign, ANY);				/* Xen */
-+
-+/* Xen */
-+PAGEFLAG(Pinned, pinned, NO_COMPOUND) TESTSCFLAG(Pinned, pinned, NO_COMPOUND)
-+PAGEFLAG(SavePinned, savepinned, NO_COMPOUND)
-+PAGEFLAG(Foreign, foreign, NO_COMPOUND)
-+
- PAGEFLAG(Reserved, reserved, ANY) __CLEARPAGEFLAG(Reserved, reserved, ANY)
- PAGEFLAG(SwapBacked, swapbacked, ANY)
- 	__CLEARPAGEFLAG(SwapBacked, swapbacked, ANY)
+@@ -290,7 +290,7 @@ PAGEFLAG_FALSE(HighMem)
+ #endif
+ 
+ #ifdef CONFIG_SWAP
+-PAGEFLAG(SwapCache, swapcache, ANY)
++PAGEFLAG(SwapCache, swapcache, NO_COMPOUND)
+ #else
+ PAGEFLAG_FALSE(SwapCache)
+ #endif
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -92,9 +80,6 @@ mm-pack-compound_dtor-and-compound_order-into-one-word-in-struct-page.patch
 mm-make-compound_head-robust.patch
 mm-use-unsigned-int-for-page-order.patch
 mm-use-unsigned-int-for-compound_dtor-compound_order-on-64bit.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
 page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
 page-flags-define-pg_uncached-behavior-on-compound-pages.patch
 page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
