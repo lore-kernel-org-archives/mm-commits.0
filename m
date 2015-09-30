@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-overflow-in-find_zone_movable_pfns_for_nodes.patch added to -mm tree
-Date: Wed, 30 Sep 2015 14:47:15 -0700
-Message-ID: <560c5863.PR1BnEnruINLs0T9%akpm@linux-foundation.org>
+Subject: +
+ fs-proc-dont-expose-absolute-kernel-addresses-via-wchan-fix.patch added to
+ -mm tree
+Date: Wed, 30 Sep 2015 14:52:45 -0700
+Message-ID: <560c59ad.+Yt2fOPn/IejJltT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50374 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51510 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754289AbbI3VrQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 17:47:16 -0400
+	with ESMTP id S932879AbbI3Vwr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 17:52:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@huawei.com, isimatu.yasuaki@jp.fujitsu.com, mgorman@suse.de, rientjes@google.com, tangchen@cn.fujitsu.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, a.p.zijlstra@chello.nl, andreyknvl@google.com, bp@alien8.de, dvlasenk@redhat.com, dvyukov@google.com, efault@gmx.de, glider@google.com, kcc@google.com, luto@kernel.org, mingo@kernel.org, ryabinin.a.a@gmail.com, sasha.levin@oracle.com, tglx@linutronix.de, torvalds@linux-foundation.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix overflow in find_zone_movable_pfns_for_nodes()
+     Subject: fs-proc-dont-expose-absolute-kernel-addresses-via-wchan-fix
 has been added to the -mm tree.  Its filename is
-     mm-fix-overflow-in-find_zone_movable_pfns_for_nodes.patch
+     fs-proc-dont-expose-absolute-kernel-addresses-via-wchan-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-overflow-in-find_zone_movable_pfns_for_nodes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-proc-dont-expose-absolute-kernel-addresses-via-wchan-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-overflow-in-find_zone_movable_pfns_for_nodes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-proc-dont-expose-absolute-kernel-addresses-via-wchan-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,40 +40,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mm: fix overflow in find_zone_movable_pfns_for_nodes()
+From: Kees Cook <keescook@chromium.org>
+Subject: fs-proc-dont-expose-absolute-kernel-addresses-via-wchan-fix
 
-If the user set "movablecore=xx" to a large number, corepages will
-overflow.  Fix the problem.
+Probably should also update Documentation/filesystems/proc.txt with
+something like:
 
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Acked-by: Tang Chen <tangchen@cn.fujitsu.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Kostya Serebryany <kcc@google.com>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/filesystems/proc.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-fix-overflow-in-find_zone_movable_pfns_for_nodes mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-overflow-in-find_zone_movable_pfns_for_nodes
-+++ a/mm/page_alloc.c
-@@ -5485,6 +5485,7 @@ static void __init find_zone_movable_pfn
- 		 */
- 		required_movablecore =
- 			roundup(required_movablecore, MAX_ORDER_NR_PAGES);
-+		required_movablecore = min(totalpages, required_movablecore);
- 		corepages = totalpages - required_movablecore;
- 
- 		required_kernelcore = max(required_kernelcore, corepages);
+diff -puN Documentation/filesystems/proc.txt~fs-proc-dont-expose-absolute-kernel-addresses-via-wchan-fix Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~fs-proc-dont-expose-absolute-kernel-addresses-via-wchan-fix
++++ a/Documentation/filesystems/proc.txt
+@@ -312,7 +312,7 @@ Table 1-4: Contents of the stat files (a
+   blocked       bitmap of blocked signals
+   sigign        bitmap of ignored signals
+   sigcatch      bitmap of caught signals
+-  wchan         address where process went to sleep
++  0             (place holder, was wchan, see /proc/PID/wchan instead)
+   0             (place holder)
+   0             (place holder)
+   exit_signal   signal to send to parent thread on exit
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-mm-fix-overflow-in-find_zone_movable_pfns_for_nodes.patch
-kasan-use-is_aligned-in-memory_is_poisoned_8.patch
+fs-proc-dont-expose-absolute-kernel-addresses-via-wchan-fix.patch
 
