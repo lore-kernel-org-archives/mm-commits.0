@@ -1,33 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: + page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+Subject: + page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
  added to -mm tree
-Date: Wed, 30 Sep 2015 15:09:49 -0700
-Message-ID: <560c5dad.Q6/MFomPPOKhWW9F%akpm@linux-foundation.org>
+Date: Wed, 30 Sep 2015 15:09:55 -0700
+Message-ID: <560c5db3.olIcyZJIdI1/E6H8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55623 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55666 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754446AbbI3WJu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 18:09:50 -0400
+	with ESMTP id S1754446AbbI3WJ4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 18:09:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jglisse@redhat.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-flags: define PG_reserved behavior on compound pages
+     Subject: page-flags: define PG_mlocked behavior on compound pages
 has been added to the -mm tree.  Its filename is
-     page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+     page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-define-pg_reser=
-ved-behavior-on-compound-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-define-pg_mlock=
+ed-behavior-on-compound-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-define-pg_reser=
-ved-behavior-on-compound-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-define-pg_mlock=
+ed-behavior-on-compound-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -43,10 +43,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: page-flags: define PG_reserved behavior on compound pages
+Subject: page-flags: define PG_mlocked behavior on compound pages
 
-As far as I can see there's no users of PG_reserved on compound pages.
-Let's use PF_NO_COMPOUND here.
+Transparent huge pages can be mlocked -- whole compund page at once.
+Something went wrong if we're trying to mlock() tail page.
+Let's use PF_NO_TAIL.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -66,25 +67,29 @@ Cc: J=E9r=F4me Glisse <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/page-flags.h |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/page-flags.h~page-flags-define-pg_reserved-beha=
-vior-on-compound-pages include/linux/page-flags.h
---- a/include/linux/page-flags.h~page-flags-define-pg_reserved-behavior=
--on-compound-pages
+diff -puN include/linux/page-flags.h~page-flags-define-pg_mlocked-behav=
+ior-on-compound-pages include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-define-pg_mlocked-behavior-=
+on-compound-pages
 +++ a/include/linux/page-flags.h
-@@ -264,7 +264,8 @@ PAGEFLAG(Pinned, pinned, PF_NO_COMPOUND)
- PAGEFLAG(SavePinned, savepinned, PF_NO_COMPOUND);
- PAGEFLAG(Foreign, foreign, PF_NO_COMPOUND);
+@@ -316,8 +316,10 @@ PAGEFLAG(Unevictable, unevictable, PF_HE
+ 	TESTCLEARFLAG(Unevictable, unevictable, PF_HEAD)
 =20
--PAGEFLAG(Reserved, reserved, PF_ANY) __CLEARPAGEFLAG(Reserved, reserve=
-d, PF_ANY)
-+PAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
-+	__CLEARPAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
- PAGEFLAG(SwapBacked, swapbacked, PF_ANY)
- 	__CLEARPAGEFLAG(SwapBacked, swapbacked, PF_ANY)
- 	__SETPAGEFLAG(SwapBacked, swapbacked, PF_ANY)
+ #ifdef CONFIG_MMU
+-PAGEFLAG(Mlocked, mlocked, PF_ANY) __CLEARPAGEFLAG(Mlocked, mlocked, P=
+=46_ANY)
+-	TESTSCFLAG(Mlocked, mlocked, PF_ANY) __TESTCLEARFLAG(Mlocked, mlocked=
+, PF_ANY)
++PAGEFLAG(Mlocked, mlocked, PF_NO_TAIL)
++	__CLEARPAGEFLAG(Mlocked, mlocked, PF_NO_TAIL)
++	TESTSCFLAG(Mlocked, mlocked, PF_NO_TAIL)
++	__TESTCLEARFLAG(Mlocked, mlocked, PF_NO_TAIL)
+ #else
+ PAGEFLAG_FALSE(Mlocked) __CLEARPAGEFLAG_NOOP(Mlocked)
+ 	TESTSCFLAG_FALSE(Mlocked) __TESTCLEARFLAG_FALSE(Mlocked)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.inte=
