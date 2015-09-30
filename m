@@ -1,64 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-2.patch
- removed from -mm tree
-Date: Wed, 30 Sep 2015 14:54:56 -0700
-Message-ID: <560c5a30.0go9qLqokKEzeXcw%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ page-flags-trivial-cleanup-for-pagetrans-helpers.patch removed from -mm
+ tree
+Date: Wed, 30 Sep 2015 14:56:24 -0700
+Message-ID: <560c5a88.GvmTm+mDttpI8NCy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52441 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52544 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754279AbbI3Vy5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 17:54:57 -0400
+	with ESMTP id S1754360AbbI3V4Z (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 17:56:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, kirill.shutemov@linux.intel.com, sudip@vectorindia.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-flags: rectify forward declaration
+     Subject: page-flags: trivial cleanup for PageTrans* helpers
 has been removed from the -mm tree.  Its filename was
-     page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-2.patch
+     page-flags-trivial-cleanup-for-pagetrans-helpers.patch
 
-This patch was dropped because it was folded into page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: page-flags: rectify forward declaration
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: page-flags: trivial cleanup for PageTrans* helpers
 
-compound_head is defined as inline in page-flags.h but in the forward
-declaration of compound_head in the same file missed "inline".  As a
-result we got plenty of build warnings while building for some
-architecture like avr32.  The warning showed as: warning: 'compound_head'
-declared inline after being called.  warning: previous declaration of
-'compound_head' was here
+Use TESTPAGEFLAG_FALSE() to get it a bit cleaner.
 
-Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Steve Capper <steve.capper@linaro.org>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Jerome Marchand <jmarchan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/page-flags.h |   18 +++---------------
+ 1 file changed, 3 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/page-flags.h~page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-2 include/linux/page-flags.h
---- a/include/linux/page-flags.h~page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-2
+diff -puN include/linux/page-flags.h~page-flags-trivial-cleanup-for-pagetrans-helpers include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-trivial-cleanup-for-pagetrans-helpers
 +++ a/include/linux/page-flags.h
-@@ -227,7 +227,7 @@ static inline int __TestClearPage##uname
- struct page;
- static inline int PageCompound(struct page *page);
- static inline int PageTail(struct page *page);
--static struct page *compound_head(struct page *page);
-+static inline struct page *compound_head(struct page *page);
+@@ -485,21 +485,9 @@ static inline int PageTransTail(struct p
+ }
  
- TESTPAGEFLAG(Locked, locked, ANY)
- PAGEFLAG(Error, error, ANY) TESTCLEARFLAG(Error, error, ANY)
+ #else
+-
+-static inline int PageTransHuge(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline int PageTransCompound(struct page *page)
+-{
+-	return 0;
+-}
+-
+-static inline int PageTransTail(struct page *page)
+-{
+-	return 0;
+-}
++TESTPAGEFLAG_FALSE(TransHuge)
++TESTPAGEFLAG_FALSE(TransCompound)
++TESTPAGEFLAG_FALSE(TransTail)
+ #endif
+ 
+ /*
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
+rcu-force-alignment-on-struct-callback_head-rcu_head.patch
+mm-make-optimistic-check-for-swapin-readahead-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+mm-drop-page-slab_page.patch
+slab-slub-use-page-rcu_head-instead-of-page-lru-plus-cast.patch
+zsmalloc-use-page-private-instead-of-page-first_page.patch
+mm-pack-compound_dtor-and-compound_order-into-one-word-in-struct-page.patch
+mm-make-compound_head-robust.patch
+mm-use-unsigned-int-for-page-order.patch
+mm-use-unsigned-int-for-compound_dtor-compound_order-on-64bit.patch
 page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-support-madvisemadv_free-fix-3.patch
 
