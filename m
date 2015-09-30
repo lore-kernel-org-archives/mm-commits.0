@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + dma-mapping-tidy-up-dma_parms-default-handling-fix.patch added
- to -mm tree
-Date: Wed, 30 Sep 2015 15:23:08 -0700
-Message-ID: <560c60cc.VVh+NiOpOEZVogLD%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
+ added to -mm tree
+Date: Wed, 30 Sep 2015 15:44:17 -0700
+Message-ID: <560c65c1./xDSB1pO9avERjhS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60088 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36664 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752734AbbI3WXJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 18:23:09 -0400
+	with ESMTP id S1753280AbbI3WoS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 18:44:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, arnd@arndb.de, m.szyprowski@samsung.com, rmk+kernel@arm.linux.org.uk, robin.murphy@arm.com, sakari.ailus@iki.fi, sumit.semwal@linaro.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-mapping-tidy-up-dma_parms-default-handling-fix
+     Subject: mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix
 has been added to the -mm tree.  Its filename is
-     dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
+     mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,33 +40,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: dma-mapping-tidy-up-dma_parms-default-handling-fix
+Subject: mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix
 
-dma-mapping.h needs sizes.h for SZ_64K
+fix build
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
-Cc: Russell King <rmk+kernel@arm.linux.org.uk>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dma-mapping.h |    1 +
- 1 file changed, 1 insertion(+)
+ mm/page_alloc.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/dma-mapping.h~dma-mapping-tidy-up-dma_parms-default-handling-fix include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~dma-mapping-tidy-up-dma_parms-default-handling-fix
-+++ a/include/linux/dma-mapping.h
-@@ -1,6 +1,7 @@
- #ifndef _LINUX_DMA_MAPPING_H
- #define _LINUX_DMA_MAPPING_H
+diff -puN mm/page_alloc.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix
++++ a/mm/page_alloc.c
+@@ -2183,7 +2183,8 @@ static bool should_fail_alloc_page(gfp_t
+ 		return false;
+ 	if (fail_page_alloc.ignore_gfp_highmem && (gfp_mask & __GFP_HIGHMEM))
+ 		return false;
+-	if (fail_page_alloc.ignore_gfp_wait && (gfp_mask & __GFP_DIRECT_RECLAIM))
++	if (fail_page_alloc.ignore_gfp_reclaim &&
++			(gfp_mask & __GFP_DIRECT_RECLAIM))
+ 		return false;
  
-+#include <linux/sizes.h>
- #include <linux/string.h>
- #include <linux/device.h>
- #include <linux/err.h>
+ 	return should_fail(&fail_page_alloc.attr, 1 << order);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,6 +77,7 @@ mm.patch
 uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
 uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
 uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
 mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
 mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
 mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
