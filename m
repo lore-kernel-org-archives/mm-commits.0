@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Wed, 30 Sep 2015 15:16:04 -0700
-Message-ID: <560c5f24.4fZUw57juaql8maK%akpm@linux-foundation.org>
+Subject: + dma-mapping-tidy-up-dma_parms-default-handling-fix.patch added
+ to -mm tree
+Date: Wed, 30 Sep 2015 15:23:08 -0700
+Message-ID: <560c60cc.VVh+NiOpOEZVogLD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57717 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60088 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751762AbbI3WQF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 18:16:05 -0400
+	with ESMTP id S1752734AbbI3WXJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 18:23:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, arnd@arndb.de, m.szyprowski@samsung.com, rmk+kernel@arm.linux.org.uk, robin.murphy@arm.com, sakari.ailus@iki.fi, sumit.semwal@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: dma-mapping-tidy-up-dma_parms-default-handling-fix
 has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,25 +40,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+Subject: dma-mapping-tidy-up-dma_parms-default-handling-fix
 
+dma-mapping.h needs sizes.h for SZ_64K
+
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Robin Murphy <robin.murphy@arm.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/Makefile |    1 +
+ include/linux/dma-mapping.h |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN tools/testing/selftests/Makefile~linux-next-rejects tools/testing/selftests/Makefile
---- a/tools/testing/selftests/Makefile~linux-next-rejects
-+++ a/tools/testing/selftests/Makefile
-@@ -6,6 +6,7 @@ TARGETS += firmware
- TARGETS += ftrace
- TARGETS += futex
- TARGETS += kcmp
-+TARGETS += kdbus
- TARGETS += lib
- TARGETS += membarrier
- TARGETS += memfd
+diff -puN include/linux/dma-mapping.h~dma-mapping-tidy-up-dma_parms-default-handling-fix include/linux/dma-mapping.h
+--- a/include/linux/dma-mapping.h~dma-mapping-tidy-up-dma_parms-default-handling-fix
++++ a/include/linux/dma-mapping.h
+@@ -1,6 +1,7 @@
+ #ifndef _LINUX_DMA_MAPPING_H
+ #define _LINUX_DMA_MAPPING_H
+ 
++#include <linux/sizes.h>
+ #include <linux/string.h>
+ #include <linux/device.h>
+ #include <linux/err.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -84,6 +93,7 @@ mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
 include-linux-compiler-gcch-improve-__visible-documentation.patch
 fs-jffs2-wbufc-remove-stray-semicolon.patch
 lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
+dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
 linux-next-rejects.patch
 net-ipv4-routec-prevent-oops.patch
 remove-abs64.patch
