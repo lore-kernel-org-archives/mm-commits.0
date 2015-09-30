@@ -1,35 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch added to
- -mm tree
-Date: Wed, 30 Sep 2015 15:09:51 -0700
-Message-ID: <560c5daf.PAnjmtCDpiDFDhfz%akpm@linux-foundation.org>
+Subject: + page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+ added to -mm tree
+Date: Wed, 30 Sep 2015 15:09:49 -0700
+Message-ID: <560c5dad.Q6/MFomPPOKhWW9F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55641 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55623 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754446AbbI3WJw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 18:09:52 -0400
+	with ESMTP id S1754446AbbI3WJu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 18:09:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jglisse@redhat.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-flags: define PG_swapbacked behavior on compound pag=
-es
+     Subject: page-flags: define PG_reserved behavior on compound pages
 has been added to the -mm tree.  Its filename is
-     page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+     page-flags-define-pg_reserved-behavior-on-compound-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-define-pg_swapb=
-acked-behavior-on-compound-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-define-pg_reser=
+ved-behavior-on-compound-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-define-pg_swapb=
-acked-behavior-on-compound-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-define-pg_reser=
+ved-behavior-on-compound-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -45,10 +43,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: page-flags: define PG_swapbacked behavior on compound pages
+Subject: page-flags: define PG_reserved behavior on compound pages
 
-PG_swapbacked is used for transparent huge pages. For head pages only.
-Let's use PF_NO_TAIL policy.
+As far as I can see there's no users of PG_reserved on compound pages.
+Let's use PF_NO_COMPOUND here.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -68,28 +66,25 @@ Cc: J=E9r=F4me Glisse <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/page-flags.h |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/page-flags.h~page-flags-define-pg_swapbacked-be=
-havior-on-compound-pages include/linux/page-flags.h
---- a/include/linux/page-flags.h~page-flags-define-pg_swapbacked-behavi=
-or-on-compound-pages
+diff -puN include/linux/page-flags.h~page-flags-define-pg_reserved-beha=
+vior-on-compound-pages include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-define-pg_reserved-behavior=
+-on-compound-pages
 +++ a/include/linux/page-flags.h
-@@ -266,9 +266,9 @@ PAGEFLAG(Foreign, foreign, PF_NO_COMPOUN
+@@ -264,7 +264,8 @@ PAGEFLAG(Pinned, pinned, PF_NO_COMPOUND)
+ PAGEFLAG(SavePinned, savepinned, PF_NO_COMPOUND);
+ PAGEFLAG(Foreign, foreign, PF_NO_COMPOUND);
 =20
- PAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
- 	__CLEARPAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
--PAGEFLAG(SwapBacked, swapbacked, PF_ANY)
--	__CLEARPAGEFLAG(SwapBacked, swapbacked, PF_ANY)
--	__SETPAGEFLAG(SwapBacked, swapbacked, PF_ANY)
-+PAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
-+	__CLEARPAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
-+	__SETPAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
-=20
- /*
-  * Private page markings that may be used by the filesystem that owns =
-the page
+-PAGEFLAG(Reserved, reserved, PF_ANY) __CLEARPAGEFLAG(Reserved, reserve=
+d, PF_ANY)
++PAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
++	__CLEARPAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
+ PAGEFLAG(SwapBacked, swapbacked, PF_ANY)
+ 	__CLEARPAGEFLAG(SwapBacked, swapbacked, PF_ANY)
+ 	__SETPAGEFLAG(SwapBacked, swapbacked, PF_ANY)
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.inte=
