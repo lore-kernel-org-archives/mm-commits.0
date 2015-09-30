@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
- added to -mm tree
-Date: Wed, 30 Sep 2015 15:44:17 -0700
-Message-ID: <560c65c1./xDSB1pO9avERjhS%akpm@linux-foundation.org>
+Subject: +
+ page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch added to
+ -mm tree
+Date: Wed, 30 Sep 2015 16:03:14 -0700
+Message-ID: <560c6a32.dGYCqH00H3vdVMoq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36664 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41502 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753280AbbI3WoS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 18:44:18 -0400
+	with ESMTP id S932914AbbI3XDP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 19:03:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix
+     Subject: mm-fs-obey-gfp_mapping-for-add_to_page_cache-fix
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
+     page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,30 +41,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix
+Subject: mm-fs-obey-gfp_mapping-for-add_to_page_cache-fix
 
-fix build
+fix fs/cifs/file.c
 
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ fs/cifs/file.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix
-+++ a/mm/page_alloc.c
-@@ -2183,7 +2183,8 @@ static bool should_fail_alloc_page(gfp_t
- 		return false;
- 	if (fail_page_alloc.ignore_gfp_highmem && (gfp_mask & __GFP_HIGHMEM))
- 		return false;
--	if (fail_page_alloc.ignore_gfp_wait && (gfp_mask & __GFP_DIRECT_RECLAIM))
-+	if (fail_page_alloc.ignore_gfp_reclaim &&
-+			(gfp_mask & __GFP_DIRECT_RECLAIM))
- 		return false;
+diff -puN fs/cifs/file.c~page-flags-define-pg_locked-behavior-on-compound-pages-fix fs/cifs/file.c
+--- a/fs/cifs/file.c~page-flags-define-pg_locked-behavior-on-compound-pages-fix
++++ a/fs/cifs/file.c
+@@ -3391,13 +3391,13 @@ readpages_get_pages(struct address_space
+ 	 * should have access to this page, we're safe to simply set
+ 	 * PG_locked without checking it first.
+ 	 */
+-	__set_page_locked(page);
++	__SetPageLocked(page);
+ 	rc = add_to_page_cache_locked(page, mapping,
+ 				      page->index, gfp);
  
- 	return should_fail(&fail_page_alloc.attr, 1 << order);
+ 	/* give up if we can't stick it in the cache */
+ 	if (rc) {
+-		__clear_page_locked(page);
++		__ClearPageLocked(page);
+ 		return rc;
+ 	}
+ 
+@@ -3418,9 +3418,9 @@ readpages_get_pages(struct address_space
+ 		if (*bytes + PAGE_CACHE_SIZE > rsize)
+ 			break;
+ 
+-		__set_page_locked(page);
++		__SetPageLocked(page);
+ 		if (add_to_page_cache_locked(page, mapping, page->index, gfp)) {
+-			__clear_page_locked(page);
++			__ClearPageLocked(page);
+ 			break;
+ 		}
+ 		list_move_tail(&page->lru, tmplist);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -99,4 +118,5 @@ remove-abs64-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
 
