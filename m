@@ -1,32 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: + page-flags-trivial-cleanup-for-pagetrans-helpers.patch added to -mm tree
-Date: Wed, 30 Sep 2015 15:09:31 -0700
-Message-ID: <560c5d9b.cHiuPLl8JJnez2DO%akpm@linux-foundation.org>
+Subject: +
+ page-flags-introduce-page-flags-policies-wrt-compound-pages.patch added to
+ -mm tree
+Date: Wed, 30 Sep 2015 15:09:36 -0700
+Message-ID: <560c5da0.QIbyVBofJmJdBtg1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55543 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002AbbI3WJc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 18:09:32 -0400
+	with ESMTP id S1751002AbbI3WJh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 18:09:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jglisse@redhat.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-flags: trivial cleanup for PageTrans* helpers
+     Subject: page-flags: introduce page flags policies wrt compound pa=
+ges
 has been added to the -mm tree.  Its filename is
-     page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+     page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-trivial-cleanup=
--for-pagetrans-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-introduce-page-=
+flags-policies-wrt-compound-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-trivial-cleanup=
--for-pagetrans-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-introduce-page-=
+flags-policies-wrt-compound-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -42,9 +45,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: page-flags: trivial cleanup for PageTrans* helpers
+Subject: page-flags: introduce page flags policies wrt compound pages
 
-Use TESTPAGEFLAG_FALSE() to get it a bit cleaner.
+This patch adds a third argument to macros which create function
+definitions for page flags.  This argument defines how page-flags helpe=
+rs
+behave on compound functions.
+
+=46or now we define four policies:
+
+- PF_ANY: the helper function operates on the page it gets, regardless
+  if it's non-compound, head or tail.
+
+- PF_HEAD: the helper function operates on the head page of the compoun=
+d
+  page if it gets tail page.
+
+- PF_NO_TAIL: only head and non-compond pages are acceptable for this
+  helper function.
+
+- PF_NO_COMPOUND: only non-compound pages are acceptable for this helpe=
+r
+  function.
+
+=46or now we use policy PF_ANY for all helpers, which matches current
+behaviour.
+
+We do not enforce the policy for TESTPAGEFLAG, because we have flags
+checked for random pages all over the kernel.  Noticeable exception to
+this is PageTransHuge() which triggers VM_BUG_ON() for tail page.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -64,39 +93,288 @@ Cc: J=E9r=F4me Glisse <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |   18 +++---------------
- 1 file changed, 3 insertions(+), 15 deletions(-)
+ include/linux/page-flags.h |  156 ++++++++++++++++++++---------------
+ 1 file changed, 91 insertions(+), 65 deletions(-)
 
-diff -puN include/linux/page-flags.h~page-flags-trivial-cleanup-for-pag=
-etrans-helpers include/linux/page-flags.h
---- a/include/linux/page-flags.h~page-flags-trivial-cleanup-for-pagetra=
-ns-helpers
+diff -puN include/linux/page-flags.h~page-flags-introduce-page-flags-po=
+licies-wrt-compound-pages include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-introduce-page-flags-polici=
+es-wrt-compound-pages
 +++ a/include/linux/page-flags.h
-@@ -485,21 +485,9 @@ static inline int PageTransTail(struct p
+@@ -154,49 +154,68 @@ static inline int PageCompound(struct pa
+ 	return test_bit(PG_head, &page->flags) || PageTail(page);
  }
 =20
++/* Page flags policies wrt compound pages */
++#define PF_ANY(page, enforce)	page
++#define PF_HEAD(page, enforce)	compound_head(page)
++#define PF_NO_TAIL(page, enforce) ({					\
++		if (enforce)						\
++			VM_BUG_ON_PAGE(PageTail(page), page);		\
++		else							\
++			page =3D compound_head(page);			\
++		page;})
++#define PF_NO_COMPOUND(page, enforce) ({					\
++		if (enforce)						\
++			VM_BUG_ON_PAGE(PageCompound(page), page);	\
++		page;})
++
+ /*
+  * Macros to create function definitions for page flags
+  */
+-#define TESTPAGEFLAG(uname, lname)					\
+-static inline int Page##uname(const struct page *page)			\
+-			{ return test_bit(PG_##lname, &page->flags); }
++#define TESTPAGEFLAG(uname, lname, policy)				\
++static inline int Page##uname(struct page *page)			\
++	{ return test_bit(PG_##lname, &policy(page, 0)->flags); }
+=20
+-#define SETPAGEFLAG(uname, lname)					\
++#define SETPAGEFLAG(uname, lname, policy)				\
+ static inline void SetPage##uname(struct page *page)			\
+-			{ set_bit(PG_##lname, &page->flags); }
++	{ set_bit(PG_##lname, &policy(page, 1)->flags); }
+=20
+-#define CLEARPAGEFLAG(uname, lname)					\
++#define CLEARPAGEFLAG(uname, lname, policy)				\
+ static inline void ClearPage##uname(struct page *page)			\
+-			{ clear_bit(PG_##lname, &page->flags); }
++	{ clear_bit(PG_##lname, &policy(page, 1)->flags); }
+=20
+-#define __SETPAGEFLAG(uname, lname)					\
++#define __SETPAGEFLAG(uname, lname, policy)				\
+ static inline void __SetPage##uname(struct page *page)			\
+-			{ __set_bit(PG_##lname, &page->flags); }
++	{ __set_bit(PG_##lname, &policy(page, 1)->flags); }
+=20
+-#define __CLEARPAGEFLAG(uname, lname)					\
++#define __CLEARPAGEFLAG(uname, lname, policy)				\
+ static inline void __ClearPage##uname(struct page *page)		\
+-			{ __clear_bit(PG_##lname, &page->flags); }
++	{ __clear_bit(PG_##lname, &policy(page, 1)->flags); }
+=20
+-#define TESTSETFLAG(uname, lname)					\
++#define TESTSETFLAG(uname, lname, policy)				\
+ static inline int TestSetPage##uname(struct page *page)			\
+-		{ return test_and_set_bit(PG_##lname, &page->flags); }
++	{ return test_and_set_bit(PG_##lname, &policy(page, 1)->flags); }
+=20
+-#define TESTCLEARFLAG(uname, lname)					\
++#define TESTCLEARFLAG(uname, lname, policy)				\
+ static inline int TestClearPage##uname(struct page *page)		\
+-		{ return test_and_clear_bit(PG_##lname, &page->flags); }
++	{ return test_and_clear_bit(PG_##lname, &policy(page, 1)->flags); }
+=20
+-#define __TESTCLEARFLAG(uname, lname)					\
++#define __TESTCLEARFLAG(uname, lname, policy)				\
+ static inline int __TestClearPage##uname(struct page *page)		\
+-		{ return __test_and_clear_bit(PG_##lname, &page->flags); }
+-
+-#define PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)		\
+-	SETPAGEFLAG(uname, lname) CLEARPAGEFLAG(uname, lname)
++	{ return __test_and_clear_bit(PG_##lname, &policy(page, 1)->flags); }
+=20
+-#define __PAGEFLAG(uname, lname) TESTPAGEFLAG(uname, lname)		\
+-	__SETPAGEFLAG(uname, lname)  __CLEARPAGEFLAG(uname, lname)
+-
+-#define TESTSCFLAG(uname, lname)					\
+-	TESTSETFLAG(uname, lname) TESTCLEARFLAG(uname, lname)
++#define PAGEFLAG(uname, lname, policy)					\
++	TESTPAGEFLAG(uname, lname, policy)				\
++	SETPAGEFLAG(uname, lname, policy)				\
++	CLEARPAGEFLAG(uname, lname, policy)
++
++#define __PAGEFLAG(uname, lname, policy)				\
++	TESTPAGEFLAG(uname, lname, policy)				\
++	__SETPAGEFLAG(uname, lname, policy)				\
++	__CLEARPAGEFLAG(uname, lname, policy)
++
++#define TESTSCFLAG(uname, lname, policy)				\
++	TESTSETFLAG(uname, lname, policy)				\
++	TESTCLEARFLAG(uname, lname, policy)
+=20
+ #define TESTPAGEFLAG_FALSE(uname)					\
+ static inline int Page##uname(const struct page *page) { return 0; }
+@@ -225,46 +244,48 @@ static inline int __TestClearPage##uname
+ #define TESTSCFLAG_FALSE(uname)						\
+ 	TESTSETFLAG_FALSE(uname) TESTCLEARFLAG_FALSE(uname)
+=20
++TESTPAGEFLAG(Locked, locked, PF_ANY)
++PAGEFLAG(Error, error, PF_ANY) TESTCLEARFLAG(Error, error, PF_ANY)
++PAGEFLAG(Referenced, referenced, PF_ANY) TESTCLEARFLAG(Referenced, ref=
+erenced, PF_ANY)
++	__SETPAGEFLAG(Referenced, referenced, PF_ANY)
++PAGEFLAG(Dirty, dirty, PF_ANY) TESTSCFLAG(Dirty, dirty, PF_ANY)
++	__CLEARPAGEFLAG(Dirty, dirty, PF_ANY)
++PAGEFLAG(LRU, lru, PF_ANY) __CLEARPAGEFLAG(LRU, lru, PF_ANY)
++PAGEFLAG(Active, active, PF_ANY) __CLEARPAGEFLAG(Active, active, PF_AN=
+Y)
++	TESTCLEARFLAG(Active, active, PF_ANY)
++__PAGEFLAG(Slab, slab, PF_ANY)
++PAGEFLAG(Checked, checked, PF_ANY)		/* Used by some filesystems */
++PAGEFLAG(Pinned, pinned, PF_ANY) TESTSCFLAG(Pinned, pinned, PF_ANY)	/*=
+ Xen */
++PAGEFLAG(SavePinned, savepinned, PF_ANY);			/* Xen */
++PAGEFLAG(Foreign, foreign, PF_ANY);				/* Xen */
++PAGEFLAG(Reserved, reserved, PF_ANY) __CLEARPAGEFLAG(Reserved, reserve=
+d, PF_ANY)
++PAGEFLAG(SwapBacked, swapbacked, PF_ANY)
++	__CLEARPAGEFLAG(SwapBacked, swapbacked, PF_ANY)
++	__SETPAGEFLAG(SwapBacked, swapbacked, PF_ANY)
+=20
+-TESTPAGEFLAG(Locked, locked)
+-PAGEFLAG(Error, error) TESTCLEARFLAG(Error, error)
+-PAGEFLAG(Referenced, referenced) TESTCLEARFLAG(Referenced, referenced)
+-	__SETPAGEFLAG(Referenced, referenced)
+-PAGEFLAG(Dirty, dirty) TESTSCFLAG(Dirty, dirty) __CLEARPAGEFLAG(Dirty,=
+ dirty)
+-PAGEFLAG(LRU, lru) __CLEARPAGEFLAG(LRU, lru)
+-PAGEFLAG(Active, active) __CLEARPAGEFLAG(Active, active)
+-	TESTCLEARFLAG(Active, active)
+-__PAGEFLAG(Slab, slab)
+-PAGEFLAG(Checked, checked)		/* Used by some filesystems */
+-PAGEFLAG(Pinned, pinned) TESTSCFLAG(Pinned, pinned)	/* Xen */
+-PAGEFLAG(SavePinned, savepinned);			/* Xen */
+-PAGEFLAG(Foreign, foreign);				/* Xen */
+-PAGEFLAG(Reserved, reserved) __CLEARPAGEFLAG(Reserved, reserved)
+-PAGEFLAG(SwapBacked, swapbacked) __CLEARPAGEFLAG(SwapBacked, swapbacke=
+d)
+-	__SETPAGEFLAG(SwapBacked, swapbacked)
+-
+-__PAGEFLAG(SlobFree, slob_free)
++__PAGEFLAG(SlobFree, slob_free, PF_ANY)
+=20
+ /*
+  * Private page markings that may be used by the filesystem that owns =
+the page
+  * for its own purposes.
+  * - PG_private and PG_private_2 cause releasepage() and co to be invo=
+ked
+  */
+-PAGEFLAG(Private, private) __SETPAGEFLAG(Private, private)
+-	__CLEARPAGEFLAG(Private, private)
+-PAGEFLAG(Private2, private_2) TESTSCFLAG(Private2, private_2)
+-PAGEFLAG(OwnerPriv1, owner_priv_1) TESTCLEARFLAG(OwnerPriv1, owner_pri=
+v_1)
++PAGEFLAG(Private, private, PF_ANY) __SETPAGEFLAG(Private, private, PF_=
+ANY)
++	__CLEARPAGEFLAG(Private, private, PF_ANY)
++PAGEFLAG(Private2, private_2, PF_ANY) TESTSCFLAG(Private2, private_2, =
+PF_ANY)
++PAGEFLAG(OwnerPriv1, owner_priv_1, PF_ANY)
++	TESTCLEARFLAG(OwnerPriv1, owner_priv_1, PF_ANY)
+=20
+ /*
+  * Only test-and-set exist for PG_writeback.  The unconditional operat=
+ors are
+  * risky: they bypass page accounting.
+  */
+-TESTPAGEFLAG(Writeback, writeback) TESTSCFLAG(Writeback, writeback)
+-PAGEFLAG(MappedToDisk, mappedtodisk)
++TESTPAGEFLAG(Writeback, writeback, PF_ANY) TESTSCFLAG(Writeback, write=
+back, PF_ANY)
++PAGEFLAG(MappedToDisk, mappedtodisk, PF_ANY)
+=20
+ /* PG_readahead is only used for reads; PG_reclaim is only for writes =
+*/
+-PAGEFLAG(Reclaim, reclaim) TESTCLEARFLAG(Reclaim, reclaim)
+-PAGEFLAG(Readahead, reclaim) TESTCLEARFLAG(Readahead, reclaim)
++PAGEFLAG(Reclaim, reclaim, PF_ANY) TESTCLEARFLAG(Reclaim, reclaim, PF_=
+ANY)
++PAGEFLAG(Readahead, reclaim, PF_ANY) TESTCLEARFLAG(Readahead, reclaim,=
+ PF_ANY)
+=20
+ #ifdef CONFIG_HIGHMEM
+ /*
+@@ -277,31 +298,32 @@ PAGEFLAG_FALSE(HighMem)
+ #endif
+=20
+ #ifdef CONFIG_SWAP
+-PAGEFLAG(SwapCache, swapcache)
++PAGEFLAG(SwapCache, swapcache, PF_ANY)
  #else
--
--static inline int PageTransHuge(struct page *page)
--{
--	return 0;
--}
--
--static inline int PageTransCompound(struct page *page)
--{
--	return 0;
--}
--
--static inline int PageTransTail(struct page *page)
--{
--	return 0;
--}
-+TESTPAGEFLAG_FALSE(TransHuge)
-+TESTPAGEFLAG_FALSE(TransCompound)
-+TESTPAGEFLAG_FALSE(TransTail)
+ PAGEFLAG_FALSE(SwapCache)
+ #endif
+=20
+-PAGEFLAG(Unevictable, unevictable) __CLEARPAGEFLAG(Unevictable, unevic=
+table)
+-	TESTCLEARFLAG(Unevictable, unevictable)
++PAGEFLAG(Unevictable, unevictable, PF_ANY)
++	__CLEARPAGEFLAG(Unevictable, unevictable, PF_ANY)
++	TESTCLEARFLAG(Unevictable, unevictable, PF_ANY)
+=20
+ #ifdef CONFIG_MMU
+-PAGEFLAG(Mlocked, mlocked) __CLEARPAGEFLAG(Mlocked, mlocked)
+-	TESTSCFLAG(Mlocked, mlocked) __TESTCLEARFLAG(Mlocked, mlocked)
++PAGEFLAG(Mlocked, mlocked, PF_ANY) __CLEARPAGEFLAG(Mlocked, mlocked, P=
+=46_ANY)
++	TESTSCFLAG(Mlocked, mlocked, PF_ANY) __TESTCLEARFLAG(Mlocked, mlocked=
+, PF_ANY)
+ #else
+ PAGEFLAG_FALSE(Mlocked) __CLEARPAGEFLAG_NOOP(Mlocked)
+ 	TESTSCFLAG_FALSE(Mlocked) __TESTCLEARFLAG_FALSE(Mlocked)
+ #endif
+=20
+ #ifdef CONFIG_ARCH_USES_PG_UNCACHED
+-PAGEFLAG(Uncached, uncached)
++PAGEFLAG(Uncached, uncached, PF_ANY)
+ #else
+ PAGEFLAG_FALSE(Uncached)
+ #endif
+=20
+ #ifdef CONFIG_MEMORY_FAILURE
+-PAGEFLAG(HWPoison, hwpoison)
+-TESTSCFLAG(HWPoison, hwpoison)
++PAGEFLAG(HWPoison, hwpoison, PF_ANY)
++TESTSCFLAG(HWPoison, hwpoison, PF_ANY)
+ #define __PG_HWPOISON (1UL << PG_hwpoison)
+ #else
+ PAGEFLAG_FALSE(HWPoison)
+@@ -309,10 +331,10 @@ PAGEFLAG_FALSE(HWPoison)
+ #endif
+=20
+ #if defined(CONFIG_IDLE_PAGE_TRACKING) && defined(CONFIG_64BIT)
+-TESTPAGEFLAG(Young, young)
+-SETPAGEFLAG(Young, young)
+-TESTCLEARFLAG(Young, young)
+-PAGEFLAG(Idle, idle)
++TESTPAGEFLAG(Young, young, PF_ANY)
++SETPAGEFLAG(Young, young, PF_ANY)
++TESTCLEARFLAG(Young, young, PF_ANY)
++PAGEFLAG(Idle, idle, PF_ANY)
  #endif
 =20
  /*
+@@ -393,7 +415,7 @@ static inline void SetPageUptodate(struc
+ 	set_bit(PG_uptodate, &(page)->flags);
+ }
+=20
+-CLEARPAGEFLAG(Uptodate, uptodate)
++CLEARPAGEFLAG(Uptodate, uptodate, PF_ANY)
+=20
+ int test_clear_page_writeback(struct page *page);
+ int __test_set_page_writeback(struct page *page, bool keep_write);
+@@ -413,7 +435,7 @@ static inline void set_page_writeback_ke
+ 	test_set_page_writeback_keepwrite(page);
+ }
+=20
+-__PAGEFLAG(Head, head) CLEARPAGEFLAG(Head, head)
++__PAGEFLAG(Head, head, PF_ANY) CLEARPAGEFLAG(Head, head, PF_ANY)
+=20
+ static inline void set_compound_head(struct page *page, struct page *h=
+ead)
+ {
+@@ -615,6 +637,10 @@ static inline int page_has_private(struc
+ 	return !!(page->flags & PAGE_FLAGS_PRIVATE);
+ }
+=20
++#undef PF_ANY
++#undef PF_HEAD
++#undef PF_NO_TAIL
++#undef PF_NO_COMPOUND
+ #endif /* !__GENERATING_BOUNDS_H */
+=20
+ #endif	/* PAGE_FLAGS_H */
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.inte=
