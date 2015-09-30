@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + watchdog-move-watchdog_disable_all_cpus-outside-of-ifdef.patch
- added to -mm tree
-Date: Tue, 29 Sep 2015 16:40:19 -0700
-Message-ID: <560b2163.H8mNCQvhvBkWbePi%akpm@linux-foundation.org>
+Subject: + x86-fix-build-failure.patch added to -mm tree
+Date: Wed, 30 Sep 2015 13:33:18 -0700
+Message-ID: <560c470e.wMAv5XKyrDvHsWvN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47066 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34127 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751674AbbI2XkU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Sep 2015 19:40:20 -0400
+	with ESMTP id S932645AbbI3UdT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 16:33:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: uobergfe@redhat.com, atomlin@redhat.com, dzickus@redhat.com, mm-commits@vger.kernel.org
+To: ryabinin.a.a@gmail.com, mingo@kernel.org, sedat.dilek@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: move watchdog_disable_all_cpus() outside of ifdef
+     Subject: arch/x86/include/asm/efi.h: fix build failure
 has been added to the -mm tree.  Its filename is
-     watchdog-move-watchdog_disable_all_cpus-outside-of-ifdef.patch
+     x86-fix-build-failure.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-move-watchdog_disable_all_cpus-outside-of-ifdef.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-fix-build-failure.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-move-watchdog_disable_all_cpus-outside-of-ifdef.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-fix-build-failure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +38,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ulrich Obergfell <uobergfe@redhat.com>
-Subject: watchdog: move watchdog_disable_all_cpus() outside of ifdef
+From: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Subject: arch/x86/include/asm/efi.h: fix build failure
 
-Move watchdog_disable_all_cpus() outside of the ifdef so that it is
-available if CONFIG_SYSCTL is not defined.  This is preparation for
-"watchdog: implement error handling in update_watchdog_all_cpus() and
-callers".
+With KMEMCHECK=y, KASAN=n:
 
-Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
-Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
+arch/x86/platform/efi/efi.c:673:3: error: implicit declaration of function `memcpy' [-Werror=implicit-function-declaration]
+arch/x86/platform/efi/efi_64.c:139:2: error: implicit declaration of function `memcpy' [-Werror=implicit-function-declaration]
+arch/x86/include/asm/desc.h:121:2: error: implicit declaration of function `memcpy' [-Werror=implicit-function-declaration]
+
+Don't #undef memcpy if KASAN=n.
+
+Fixes: 769a8089c1fd ("x86, efi, kasan: #undef memset/memcpy/memmove per arch")
+Signed-off-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Reported-by: Ingo Molnar <mingo@kernel.org>
+Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ arch/x86/include/asm/efi.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN kernel/watchdog.c~watchdog-move-watchdog_disable_all_cpus-outside-of-ifdef kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-move-watchdog_disable_all_cpus-outside-of-ifdef
-+++ a/kernel/watchdog.c
-@@ -347,6 +347,9 @@ static void watchdog_interrupt_count(voi
- static int watchdog_nmi_enable(unsigned int cpu);
- static void watchdog_nmi_disable(unsigned int cpu);
+diff -puN arch/x86/include/asm/efi.h~x86-fix-build-failure arch/x86/include/asm/efi.h
+--- a/arch/x86/include/asm/efi.h~x86-fix-build-failure
++++ a/arch/x86/include/asm/efi.h
+@@ -86,6 +86,7 @@ extern u64 asmlinkage efi_call(void *fp,
+ extern void __iomem *__init efi_ioremap(unsigned long addr, unsigned long size,
+ 					u32 type, u64 attribute);
  
-+static int watchdog_enable_all_cpus(void);
-+static void watchdog_disable_all_cpus(void);
-+
- /* watchdog kicker functions */
- static enum hrtimer_restart watchdog_timer_fn(struct hrtimer *hrtimer)
- {
-@@ -756,9 +759,6 @@ static int watchdog_enable_all_cpus(void
- 	return err;
- }
- 
--/* prepare/enable/disable routines */
--/* sysctl functions */
--#ifdef CONFIG_SYSCTL
- static void watchdog_disable_all_cpus(void)
- {
- 	if (watchdog_running) {
-@@ -767,6 +767,8 @@ static void watchdog_disable_all_cpus(vo
- 	}
- }
- 
-+#ifdef CONFIG_SYSCTL
-+
++#ifdef CONFIG_KASAN
  /*
-  * Update the run state of the lockup detectors.
-  */
+  * CONFIG_KASAN may redefine memset to __memset.  __memset function is present
+  * only in kernel binary.  Since the EFI stub linked into a separate binary it
+@@ -95,6 +96,7 @@ extern void __iomem *__init efi_ioremap(
+ #undef memcpy
+ #undef memset
+ #undef memmove
++#endif
+ 
+ #endif /* CONFIG_X86_32 */
+ 
 _
 
-Patches currently in -mm which might be from uobergfe@redhat.com are
+Patches currently in -mm which might be from ryabinin.a.a@gmail.com are
 
-watchdog-fix-error-handling-in-proc_watchdog_thresh.patch
-watchdog-move-watchdog_disable_all_cpus-outside-of-ifdef.patch
-watchdog-implement-error-handling-in-update_watchdog_all_cpus-and-callers.patch
-watchdog-implement-error-handling-in-lockup_detector_suspend.patch
-watchdog-do-not-unpark-threads-in-watchdog_park_threads-on-error.patch
+x86-fix-build-failure.patch
 
