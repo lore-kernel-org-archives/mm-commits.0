@@ -1,36 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: +
- page-flags-define-behavior-slb-related-flags-on-compound-pages.patch added
- to -mm tree
-Date: Wed, 30 Sep 2015 15:09:45 -0700
-Message-ID: <560c5da9.8DL1cGaN+MKlfPlQ%akpm@linux-foundation.org>
+ page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+ added to -mm tree
+Date: Wed, 30 Sep 2015 15:09:47 -0700
+Message-ID: <560c5dab.Gvfx/MOhYwEWnnKg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55590 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55608 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754360AbbI3WJq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 18:09:46 -0400
+	with ESMTP id S1754406AbbI3WJs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 18:09:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jglisse@redhat.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-flags: define behavior SL*B-related flags on compoun=
-d pages
+     Subject: page-flags: define behavior of Xen-related flags on compo=
+und pages
 has been added to the -mm tree.  Its filename is
-     page-flags-define-behavior-slb-related-flags-on-compound-pages.pat=
-ch
+     page-flags-define-behavior-of-xen-related-flags-on-compound-pages.=
+patch
 
 This patch should soon appear at
     http://ozlabs.org/~akpm/mmots/broken-out/page-flags-define-behavior=
--slb-related-flags-on-compound-pages.patch
+-of-xen-related-flags-on-compound-pages.patch
 and later at
     http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-define-behavior=
--slb-related-flags-on-compound-pages.patch
+-of-xen-related-flags-on-compound-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -46,15 +46,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 =46rom: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: page-flags: define behavior SL*B-related flags on compound pag=
-es
+Subject: page-flags: define behavior of Xen-related flags on compound p=
+ages
 
-SL*B uses compound pages and marks head pages with PG_slab.
-__SetPageSlab() and __ClearPageSlab() are never called for tail pages.
+PG_pinned and PG_savepinned are about page table's pages which are neve=
+r
+compound.
 
-The same situation with PG_slob_free in SLOB allocator.
+I'm not so sure about PG_foreign, but it seems we shouldn't see compoun=
+d
+pages there too.
 
-PF_NO_TAIL is appropriate for these flags.
+Let's use PF_NO_COMPOUND for all of them.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -74,37 +77,34 @@ Cc: J=E9r=F4me Glisse <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ include/linux/page-flags.h |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/page-flags.h~page-flags-define-behavior-slb-rel=
-ated-flags-on-compound-pages include/linux/page-flags.h
---- a/include/linux/page-flags.h~page-flags-define-behavior-slb-related=
--flags-on-compound-pages
+diff -puN include/linux/page-flags.h~page-flags-define-behavior-of-xen-=
+related-flags-on-compound-pages include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-define-behavior-of-xen-rela=
+ted-flags-on-compound-pages
 +++ a/include/linux/page-flags.h
-@@ -254,7 +254,8 @@ PAGEFLAG(Dirty, dirty, PF_HEAD) TESTSCFL
- PAGEFLAG(LRU, lru, PF_HEAD) __CLEARPAGEFLAG(LRU, lru, PF_HEAD)
- PAGEFLAG(Active, active, PF_HEAD) __CLEARPAGEFLAG(Active, active, PF_H=
-EAD)
- 	TESTCLEARFLAG(Active, active, PF_HEAD)
--__PAGEFLAG(Slab, slab, PF_ANY)
-+__PAGEFLAG(Slab, slab, PF_NO_TAIL)
-+__PAGEFLAG(SlobFree, slob_free, PF_NO_TAIL)
+@@ -257,9 +257,13 @@ PAGEFLAG(Active, active, PF_HEAD) __CLEA
+ __PAGEFLAG(Slab, slab, PF_NO_TAIL)
+ __PAGEFLAG(SlobFree, slob_free, PF_NO_TAIL)
  PAGEFLAG(Checked, checked, PF_NO_COMPOUND)	   /* Used by some filesyst=
 ems */
- PAGEFLAG(Pinned, pinned, PF_ANY) TESTSCFLAG(Pinned, pinned, PF_ANY)	/*=
+-PAGEFLAG(Pinned, pinned, PF_ANY) TESTSCFLAG(Pinned, pinned, PF_ANY)	/*=
  Xen */
- PAGEFLAG(SavePinned, savepinned, PF_ANY);			/* Xen */
-@@ -264,8 +265,6 @@ PAGEFLAG(SwapBacked, swapbacked, PF_ANY)
+-PAGEFLAG(SavePinned, savepinned, PF_ANY);			/* Xen */
+-PAGEFLAG(Foreign, foreign, PF_ANY);				/* Xen */
++
++/* Xen */
++PAGEFLAG(Pinned, pinned, PF_NO_COMPOUND)
++	TESTSCFLAG(Pinned, pinned, PF_NO_COMPOUND)
++PAGEFLAG(SavePinned, savepinned, PF_NO_COMPOUND);
++PAGEFLAG(Foreign, foreign, PF_NO_COMPOUND);
++
+ PAGEFLAG(Reserved, reserved, PF_ANY) __CLEARPAGEFLAG(Reserved, reserve=
+d, PF_ANY)
+ PAGEFLAG(SwapBacked, swapbacked, PF_ANY)
  	__CLEARPAGEFLAG(SwapBacked, swapbacked, PF_ANY)
- 	__SETPAGEFLAG(SwapBacked, swapbacked, PF_ANY)
-=20
--__PAGEFLAG(SlobFree, slob_free, PF_ANY)
--
- /*
-  * Private page markings that may be used by the filesystem that owns =
-the page
-  * for its own purposes.
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.inte=
