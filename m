@@ -1,38 +1,34 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
- removed from -mm tree
-Date: Wed, 30 Sep 2015 14:57:03 -0700
-Message-ID: <560c5aaf.3+Ihox/MfOVxnZwv%akpm@linux-foundation.org>
+ page-flags-define-pg_uncached-behavior-on-compound-pages.patch removed from -mm tree
+Date: Wed, 30 Sep 2015 14:56:57 -0700
+Message-ID: <560c5aa9.DcgtOYgDKQ8vqwBr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52770 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52726 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754086AbbI3V5E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 17:57:04 -0400
+	with ESMTP id S933117AbbI3V46 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Sep 2015 17:56:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-flags: look at head page if the flag is encoded in page->mapping
+     Subject: page-flags: define PG_uncached behavior on compound pages
 has been removed from the -mm tree.  Its filename was
-     page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+     page-flags-define-pg_uncached-behavior-on-compound-pages.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: page-flags: look at head page if the flag is encoded in page->mapping
+Subject: page-flags: define PG_uncached behavior on compound pages
 
-PageAnon() and PageKsm() look at lower bits of page->mapping to check if
-the page is Anon or KSM.  page->mapping can be overloaded in tail pages.
-
-Let's always look at head page to avoid false-positives.
+So far, only IA64 uses PG_uncached and only on non-compound pages.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -51,28 +47,21 @@ Cc: Jerome Marchand <jmarchan@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/page-flags.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/page-flags.h~page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping include/linux/page-flags.h
---- a/include/linux/page-flags.h~page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping
+diff -puN include/linux/page-flags.h~page-flags-define-pg_uncached-behavior-on-compound-pages include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-define-pg_uncached-behavior-on-compound-pages
 +++ a/include/linux/page-flags.h
-@@ -352,6 +352,7 @@ PAGEFLAG(Idle, idle, PF_ANY)
+@@ -309,7 +309,7 @@ PAGEFLAG_FALSE(Mlocked) __CLEARPAGEFLAG_
+ #endif
  
- static inline int PageAnon(struct page *page)
- {
-+	page = compound_head(page);
- 	return ((unsigned long)page->mapping & PAGE_MAPPING_ANON) != 0;
- }
- 
-@@ -364,6 +365,7 @@ static inline int PageAnon(struct page *
-  */
- static inline int PageKsm(struct page *page)
- {
-+	page = compound_head(page);
- 	return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) ==
- 				(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
- }
+ #ifdef CONFIG_ARCH_USES_PG_UNCACHED
+-PAGEFLAG(Uncached, uncached, ANY)
++PAGEFLAG(Uncached, uncached, NO_COMPOUND)
+ #else
+ PAGEFLAG_FALSE(Uncached)
+ #endif
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -89,6 +78,8 @@ mm-pack-compound_dtor-and-compound_order-into-one-word-in-struct-page.patch
 mm-make-compound_head-robust.patch
 mm-use-unsigned-int-for-page-order.patch
 mm-use-unsigned-int-for-compound_dtor-compound_order-on-64bit.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-on-head-page-if-the-flag-is-encoded-in-page-mapping.patch
 mm-sanitize-page-mapping-for-tail-pages.patch
 mm-support-madvisemadv_free-fix-3.patch
 
