@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + slab-implement-bulking-for-slab-allocator.patch added to -mm
- tree
-Date: Thu, 01 Oct 2015 15:00:15 -0700
-Message-ID: <560dacef.Dj6idvV6QPQ/qX9G%akpm@linux-foundation.org>
+Subject: + slub-optimize-bulk-slowpath-free-by-detached-freelist.patch
+ added to -mm tree
+Date: Thu, 01 Oct 2015 15:00:19 -0700
+Message-ID: <560dacf3.JkZF1PexUg2q+Elv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41890 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41913 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750866AbbJAWAQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2015 18:00:16 -0400
+	with ESMTP id S1751092AbbJAWAU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2015 18:00:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: brouer@redhat.com, alexander.h.duyck@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: implement bulking for SLAB allocator
+     From: Jesper Dangaard Brouer <brouer@redhat.com>
 has been added to the -mm tree.  Its filename is
-     slab-implement-bulking-for-slab-allocator.patch
+     slub-optimize-bulk-slowpath-free-by-detached-freelist.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-implement-bulking-for-slab-allocator.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-optimize-bulk-slowpath-free-by-detached-freelist.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-implement-bulking-for-slab-allocator.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-optimize-bulk-slowpath-free-by-detached-freelist.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,227 +40,252 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: slab: implement bulking for SLAB allocator
+Subject: slub: optimize bulk slowpath free by detached freelist
 
-Implement a basic approach of bulking in the SLAB allocator.  Simply use
-local_irq_{disable,enable} and call single alloc/free in a loop.  This
-simple implementation approach is surprising fast.
+This change focus on improving the speed of object freeing in the
+"slowpath" of kmem_cache_free_bulk.
 
-Notice the normal SLAB fastpath is: 96 cycles (24.119 ns).  Below table
-show that single object bulking only takes 42 cycles.  This can be
-explained by the bulk APIs requirement to be called from a known interrupt
-context, that is with interrupts enabled.  This allow us to avoid the
-expensive (37 cycles) local_irq_{save,restore}, and instead use the much
-faster (7 cycles) local_irq_{disable,restore}.
+The calls slab_free (fastpath) and __slab_free (slowpath) have been
+extended with support for bulk free, which amortize the overhead of
+the (locked) cmpxchg_double.
 
-Benchmarked[1] obj size 256 bytes on CPU i7-4790K @ 4.00GHz:
+To use the new bulking feature, we build what I call a detached
+freelist.  The detached freelist takes advantage of three properties:
 
-bulk - Current                  - simple SLAB bulk implementation
-  1 - 115 cycles(tsc) 28.812 ns - 42 cycles(tsc) 10.715 ns - improved 63.5%
-  2 - 103 cycles(tsc) 25.956 ns - 27 cycles(tsc)  6.985 ns - improved 73.8%
-  3 - 101 cycles(tsc) 25.336 ns - 22 cycles(tsc)  5.733 ns - improved 78.2%
-  4 - 100 cycles(tsc) 25.147 ns - 21 cycles(tsc)  5.319 ns - improved 79.0%
-  8 -  98 cycles(tsc) 24.616 ns - 18 cycles(tsc)  4.620 ns - improved 81.6%
- 16 -  97 cycles(tsc) 24.408 ns - 17 cycles(tsc)  4.344 ns - improved 82.5%
- 30 -  98 cycles(tsc) 24.641 ns - 16 cycles(tsc)  4.202 ns - improved 83.7%
- 32 -  98 cycles(tsc) 24.607 ns - 16 cycles(tsc)  4.199 ns - improved 83.7%
- 34 -  98 cycles(tsc) 24.605 ns - 18 cycles(tsc)  4.579 ns - improved 81.6%
- 48 -  97 cycles(tsc) 24.463 ns - 17 cycles(tsc)  4.405 ns - improved 82.5%
- 64 -  97 cycles(tsc) 24.370 ns - 17 cycles(tsc)  4.384 ns - improved 82.5%
-128 -  99 cycles(tsc) 24.763 ns - 19 cycles(tsc)  4.755 ns - improved 80.8%
-158 -  98 cycles(tsc) 24.708 ns - 18 cycles(tsc)  4.723 ns - improved 81.6%
-250 - 101 cycles(tsc) 25.342 ns - 20 cycles(tsc)  5.035 ns - improved 80.2%
+ 1) the free function call owns the object that is about to be freed,
+    thus writing into this memory is synchronization-free.
 
-Also notice how well bulking maintains the performance when the bulk
-size increases (which is a soar spot for the SLUB allocator).
+ 2) many freelist's can co-exist side-by-side in the same slab-page
+    each with a separate head pointer.
 
-Increasing the bulk size further:
- 20 cycles(tsc)  5.214 ns (bulk: 512)
- 30 cycles(tsc)  7.734 ns (bulk: 768)
- 40 cycles(tsc) 10.244 ns (bulk:1024)
- 72 cycles(tsc) 18.049 ns (bulk:2048)
- 90 cycles(tsc) 22.585 ns (bulk:4096)
+ 3) it is the visibility of the head pointer that needs synchronization.
 
-It is not recommended to perform large bulking with SLAB, as local
-interrupts are disabled for the entire period.  If these kind of use-cases
-evolve, this interface should be adjusted to mitigate/reduce the
-interrupts off period.
+Given these properties, the brilliant part is that the detached
+freelist can be constructed without any need for synchronization.  The
+freelist is constructed directly in the page objects, without any
+synchronization needed.  The detached freelist is allocated on the
+stack of the function call kmem_cache_free_bulk.  Thus, the freelist
+head pointer is not visible to other CPUs.
+
+All objects in a SLUB freelist must belong to the same slab-page.
+Thus, constructing the detached freelist is about matching objects
+that belong to the same slab-page.  The bulk free array is scanned is
+a progressive manor with a limited look-ahead facility.
+
+Kmem debug support is handled in call of slab_free().
+
+Notice kmem_cache_free_bulk no longer need to disable IRQs. This
+only slowed down single free bulk with approx 3 cycles.
+
+Performance data:
+ Benchmarked[1] obj size 256 bytes on CPU i7-4790K @ 4.00GHz
+
+SLUB fastpath single object quick reuse: 47 cycles(tsc) 11.931 ns
+
+To get stable and comparable numbers, the kernel have been booted with
+"slab_merge" (this also improve performance for larger bulk sizes).
+
+Performance data, compared against fallback bulking:
+
+bulk -  fallback bulk            - improvement with this patch
+   1 -  62 cycles(tsc) 15.662 ns - 49 cycles(tsc) 12.407 ns- improved 21.0%
+   2 -  55 cycles(tsc) 13.935 ns - 30 cycles(tsc) 7.506 ns - improved 45.5%
+   3 -  53 cycles(tsc) 13.341 ns - 23 cycles(tsc) 5.865 ns - improved 56.6%
+   4 -  52 cycles(tsc) 13.081 ns - 20 cycles(tsc) 5.048 ns - improved 61.5%
+   8 -  50 cycles(tsc) 12.627 ns - 18 cycles(tsc) 4.659 ns - improved 64.0%
+  16 -  49 cycles(tsc) 12.412 ns - 17 cycles(tsc) 4.495 ns - improved 65.3%
+  30 -  49 cycles(tsc) 12.484 ns - 18 cycles(tsc) 4.533 ns - improved 63.3%
+  32 -  50 cycles(tsc) 12.627 ns - 18 cycles(tsc) 4.707 ns - improved 64.0%
+  34 -  96 cycles(tsc) 24.243 ns - 23 cycles(tsc) 5.976 ns - improved 76.0%
+  48 -  83 cycles(tsc) 20.818 ns - 21 cycles(tsc) 5.329 ns - improved 74.7%
+  64 -  74 cycles(tsc) 18.700 ns - 20 cycles(tsc) 5.127 ns - improved 73.0%
+ 128 -  90 cycles(tsc) 22.734 ns - 27 cycles(tsc) 6.833 ns - improved 70.0%
+ 158 -  99 cycles(tsc) 24.776 ns - 30 cycles(tsc) 7.583 ns - improved 69.7%
+ 250 - 104 cycles(tsc) 26.089 ns - 37 cycles(tsc) 9.280 ns - improved 64.4%
+
+Performance data, compared current in-kernel bulking:
+
+bulk - curr in-kernel  - improvement with this patch
+   1 -  46 cycles(tsc) - 49 cycles(tsc) - improved (cycles:-3) -6.5%
+   2 -  27 cycles(tsc) - 30 cycles(tsc) - improved (cycles:-3) -11.1%
+   3 -  21 cycles(tsc) - 23 cycles(tsc) - improved (cycles:-2) -9.5%
+   4 -  18 cycles(tsc) - 20 cycles(tsc) - improved (cycles:-2) -11.1%
+   8 -  17 cycles(tsc) - 18 cycles(tsc) - improved (cycles:-1) -5.9%
+  16 -  18 cycles(tsc) - 17 cycles(tsc) - improved (cycles: 1)  5.6%
+  30 -  18 cycles(tsc) - 18 cycles(tsc) - improved (cycles: 0)  0.0%
+  32 -  18 cycles(tsc) - 18 cycles(tsc) - improved (cycles: 0)  0.0%
+  34 -  78 cycles(tsc) - 23 cycles(tsc) - improved (cycles:55) 70.5%
+  48 -  60 cycles(tsc) - 21 cycles(tsc) - improved (cycles:39) 65.0%
+  64 -  49 cycles(tsc) - 20 cycles(tsc) - improved (cycles:29) 59.2%
+ 128 -  69 cycles(tsc) - 27 cycles(tsc) - improved (cycles:42) 60.9%
+ 158 -  79 cycles(tsc) - 30 cycles(tsc) - improved (cycles:49) 62.0%
+ 250 -  86 cycles(tsc) - 37 cycles(tsc) - improved (cycles:49) 57.0%
+
+Performance with normal SLUB merging is significantly slower for
+larger bulking.  This is believed to (primarily) be an effect of not
+having to share the per-CPU data-structures, as tuning per-CPU size
+can achieve similar performance.
+
+bulk - slab_nomerge   -  normal SLUB merge
+   1 -  49 cycles(tsc) - 49 cycles(tsc) - merge slower with cycles:0
+   2 -  30 cycles(tsc) - 30 cycles(tsc) - merge slower with cycles:0
+   3 -  23 cycles(tsc) - 23 cycles(tsc) - merge slower with cycles:0
+   4 -  20 cycles(tsc) - 20 cycles(tsc) - merge slower with cycles:0
+   8 -  18 cycles(tsc) - 18 cycles(tsc) - merge slower with cycles:0
+  16 -  17 cycles(tsc) - 17 cycles(tsc) - merge slower with cycles:0
+  30 -  18 cycles(tsc) - 23 cycles(tsc) - merge slower with cycles:5
+  32 -  18 cycles(tsc) - 22 cycles(tsc) - merge slower with cycles:4
+  34 -  23 cycles(tsc) - 22 cycles(tsc) - merge slower with cycles:-1
+  48 -  21 cycles(tsc) - 22 cycles(tsc) - merge slower with cycles:1
+  64 -  20 cycles(tsc) - 48 cycles(tsc) - merge slower with cycles:28
+ 128 -  27 cycles(tsc) - 57 cycles(tsc) - merge slower with cycles:30
+ 158 -  30 cycles(tsc) - 59 cycles(tsc) - merge slower with cycles:29
+ 250 -  37 cycles(tsc) - 56 cycles(tsc) - merge slower with cycles:19
+
+Joint work with Alexander Duyck.
 
 [1] https://github.com/netoptimizer/prototype-kernel/blob/master/kernel/mm/slab_bulk_test01.c
 
 Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@redhat.com>
 Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Alexander Duyck <alexander.h.duyck@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   87 +++++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 62 insertions(+), 25 deletions(-)
+ mm/slub.c |  112 +++++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 80 insertions(+), 32 deletions(-)
 
-diff -puN mm/slab.c~slab-implement-bulking-for-slab-allocator mm/slab.c
---- a/mm/slab.c~slab-implement-bulking-for-slab-allocator
-+++ a/mm/slab.c
-@@ -3241,11 +3241,15 @@ __do_cache_alloc(struct kmem_cache *cach
- #endif /* CONFIG_NUMA */
- 
- static __always_inline void *
--slab_alloc(struct kmem_cache *cachep, gfp_t flags, unsigned long caller)
-+slab_alloc(struct kmem_cache *cachep, gfp_t flags, unsigned long caller,
-+	   bool irq_off_needed)
- {
- 	unsigned long save_flags;
- 	void *objp;
- 
-+	/* Compiler need to remove irq_off_needed branch statements */
-+	BUILD_BUG_ON(!__builtin_constant_p(irq_off_needed));
-+
- 	flags &= gfp_allowed_mask;
- 
- 	lockdep_trace_alloc(flags);
-@@ -3256,9 +3260,11 @@ slab_alloc(struct kmem_cache *cachep, gf
- 	cachep = memcg_kmem_get_cache(cachep, flags);
- 
- 	cache_alloc_debugcheck_before(cachep, flags);
--	local_irq_save(save_flags);
-+	if (irq_off_needed)
-+		local_irq_save(save_flags);
- 	objp = __do_cache_alloc(cachep, flags);
--	local_irq_restore(save_flags);
-+	if (irq_off_needed)
-+		local_irq_restore(save_flags);
- 	objp = cache_alloc_debugcheck_after(cachep, flags, objp, caller);
- 	kmemleak_alloc_recursive(objp, cachep->object_size, 1, cachep->flags,
- 				 flags);
-@@ -3414,7 +3420,7 @@ static inline void __cache_free(struct k
-  */
- void *kmem_cache_alloc(struct kmem_cache *cachep, gfp_t flags)
- {
--	void *ret = slab_alloc(cachep, flags, _RET_IP_);
-+	void *ret = slab_alloc(cachep, flags, _RET_IP_, true);
- 
- 	trace_kmem_cache_alloc(_RET_IP_, ret,
- 			       cachep->object_size, cachep->size, flags);
-@@ -3423,16 +3429,23 @@ void *kmem_cache_alloc(struct kmem_cache
- }
- EXPORT_SYMBOL(kmem_cache_alloc);
- 
--void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p)
--{
--	__kmem_cache_free_bulk(s, size, p);
--}
--EXPORT_SYMBOL(kmem_cache_free_bulk);
--
-+/* Note that interrupts must be enabled when calling this function. */
- bool kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
--								void **p)
-+			   void **p)
- {
--	return __kmem_cache_alloc_bulk(s, flags, size, p);
-+	size_t i;
-+
-+	local_irq_disable();
-+	for (i = 0; i < size; i++) {
-+		void *x = p[i] = slab_alloc(s, flags, _RET_IP_, false);
-+
-+		if (!x) {
-+			__kmem_cache_free_bulk(s, i, p);
-+			return false;
-+		}
-+	}
-+	local_irq_enable();
-+	return true;
- }
- EXPORT_SYMBOL(kmem_cache_alloc_bulk);
- 
-@@ -3442,7 +3455,7 @@ kmem_cache_alloc_trace(struct kmem_cache
- {
- 	void *ret;
- 
--	ret = slab_alloc(cachep, flags, _RET_IP_);
-+	ret = slab_alloc(cachep, flags, _RET_IP_, true);
- 
- 	trace_kmalloc(_RET_IP_, ret,
- 		      size, cachep->size, flags);
-@@ -3533,7 +3546,7 @@ static __always_inline void *__do_kmallo
- 	cachep = kmalloc_slab(size, flags);
- 	if (unlikely(ZERO_OR_NULL_PTR(cachep)))
- 		return cachep;
--	ret = slab_alloc(cachep, flags, caller);
-+	ret = slab_alloc(cachep, flags, caller, true);
- 
- 	trace_kmalloc(caller, ret,
- 		      size, cachep->size, flags);
-@@ -3553,32 +3566,56 @@ void *__kmalloc_track_caller(size_t size
- }
- EXPORT_SYMBOL(__kmalloc_track_caller);
- 
--/**
-- * kmem_cache_free - Deallocate an object
-- * @cachep: The cache the allocation was from.
-- * @objp: The previously allocated object.
-- *
-- * Free an object which was previously allocated from this
-- * cache.
-- */
--void kmem_cache_free(struct kmem_cache *cachep, void *objp)
-+/* Caller is responsible for disabling local IRQs */
-+static __always_inline void __kmem_cache_free(struct kmem_cache *cachep,
-+					      void *objp, bool irq_off_needed)
- {
- 	unsigned long flags;
-+
-+	/* Compiler need to remove irq_off_needed branch statements */
-+	BUILD_BUG_ON(!__builtin_constant_p(irq_off_needed));
-+
- 	cachep = cache_from_obj(cachep, objp);
- 	if (!cachep)
- 		return;
- 
--	local_irq_save(flags);
-+	if (irq_off_needed)
-+		local_irq_save(flags);
- 	debug_check_no_locks_freed(objp, cachep->object_size);
- 	if (!(cachep->flags & SLAB_DEBUG_OBJECTS))
- 		debug_check_no_obj_freed(objp, cachep->object_size);
- 	__cache_free(cachep, objp, _RET_IP_);
--	local_irq_restore(flags);
-+	if (irq_off_needed)
-+		local_irq_restore(flags);
-+}
- 
-+/**
-+ * kmem_cache_free - Deallocate an object
-+ * @cachep: The cache the allocation was from.
-+ * @objp: The previously allocated object.
-+ *
-+ * Free an object which was previously allocated from this
-+ * cache.
-+ */
-+void kmem_cache_free(struct kmem_cache *cachep, void *objp)
-+{
-+	__kmem_cache_free(cachep, objp, true);
- 	trace_kmem_cache_free(_RET_IP_, objp);
+diff -puN mm/slub.c~slub-optimize-bulk-slowpath-free-by-detached-freelist mm/slub.c
+--- a/mm/slub.c~slub-optimize-bulk-slowpath-free-by-detached-freelist
++++ a/mm/slub.c
+@@ -2810,44 +2810,92 @@ void kmem_cache_free(struct kmem_cache *
  }
  EXPORT_SYMBOL(kmem_cache_free);
  
-+/* Note that interrupts must be enabled when calling this function. */
-+void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p)
++struct detached_freelist {
++	struct page *page;
++	void *tail;
++	void *freelist;
++	int cnt;
++};
++
++/*
++ * This function progressively scans the array with free objects (with
++ * a limited look ahead) and extract objects belonging to the same
++ * page.  It builds a detached freelist directly within the given
++ * page/objects.  This can happen without any need for
++ * synchronization, because the objects are owned by running process.
++ * The freelist is build up as a single linked list in the objects.
++ * The idea is, that this detached freelist can then be bulk
++ * transferred to the real freelist(s), but only requiring a single
++ * synchronization primitive.  Look ahead in the array is limited due
++ * to performance reasons.
++ */
++static int build_detached_freelist(struct kmem_cache *s, size_t size,
++				   void **p, struct detached_freelist *df)
 +{
-+	size_t i;
++	size_t first_skipped_index = 0;
++	int lookahead = 3;
++	void *object;
 +
-+	local_irq_disable();
-+	for (i = 0; i < size; i++)
-+		__kmem_cache_free(s, p[i], false);
-+	local_irq_enable();
++	/* Always re-init detached_freelist */
++	df->page = NULL;
++
++	do {
++		object = p[--size];
++	} while (!object && size);
++
++	if (!object)
++		return 0;
++
++	/* Start new detached freelist */
++	set_freepointer(s, object, NULL);
++	df->page = virt_to_head_page(object);
++	df->tail = object;
++	df->freelist = object;
++	p[size] = NULL; /* mark object processed */
++	df->cnt = 1;
++
++	while (size) {
++		object = p[--size];
++		if (!object)
++			continue; /* Skip processed objects */
++
++		/* df->page is always set at this point */
++		if (df->page == virt_to_head_page(object)) {
++			/* Opportunity build freelist */
++			set_freepointer(s, object, df->freelist);
++			df->freelist = object;
++			df->cnt++;
++			p[size] = NULL; /* mark object processed */
++
++			continue;
++		}
++
++		/* Limit look ahead search */
++		if (!--lookahead)
++			break;
++
++		if (!first_skipped_index)
++			first_skipped_index = size + 1;
++	}
++
++	return first_skipped_index;
 +}
-+EXPORT_SYMBOL(kmem_cache_free_bulk);
 +
- /**
-  * kfree - free previously allocated memory
-  * @objp: pointer returned by kmalloc.
++
+ /* Note that interrupts must be enabled when calling this function. */
+ void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p)
+ {
+-	struct kmem_cache_cpu *c;
+-	struct page *page;
+-	int i;
++	BUG_ON(!size);
+ 
+-	local_irq_disable();
+-	c = this_cpu_ptr(s->cpu_slab);
++	do {
++		struct detached_freelist df;
+ 
+-	for (i = 0; i < size; i++) {
+-		void *object = p[i];
++		size = build_detached_freelist(s, size, p, &df);
++		if (unlikely(!df.page))
++			continue;
+ 
+-		BUG_ON(!object);
+-		/* kmem cache debug support */
+-		s = cache_from_obj(s, object);
+-		if (unlikely(!s))
+-			goto exit;
+-		slab_free_hook(s, object);
+-
+-		page = virt_to_head_page(object);
+-
+-		if (c->page == page) {
+-			/* Fastpath: local CPU free */
+-			set_freepointer(s, object, c->freelist);
+-			c->freelist = object;
+-		} else {
+-			c->tid = next_tid(c->tid);
+-			local_irq_enable();
+-			/* Slowpath: overhead locked cmpxchg_double_slab */
+-			__slab_free(s, page, object, object, 1, _RET_IP_);
+-			local_irq_disable();
+-			c = this_cpu_ptr(s->cpu_slab);
+-		}
+-	}
+-exit:
+-	c->tid = next_tid(c->tid);
+-	local_irq_enable();
++		slab_free(s, df.page, df.freelist, df.tail, df.cnt, _RET_IP_);
++	} while (likely(size));
+ }
+ EXPORT_SYMBOL(kmem_cache_free_bulk);
+ 
 _
 
 Patches currently in -mm which might be from brouer@redhat.com are
