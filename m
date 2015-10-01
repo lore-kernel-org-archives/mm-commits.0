@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- kexec-fix-out-of-the-elf-headers-buffer-issue-in-syscall-kexec_file_load.patch added to -mm tree
-Date: Thu, 01 Oct 2015 16:07:45 -0700
-Message-ID: <560dbcc1.iOYd+KjfHUTUNKZI%akpm@linux-foundation.org>
+Subject: + logfs-fix-build-warning.patch added to -mm tree
+Date: Thu, 01 Oct 2015 16:16:15 -0700
+Message-ID: <560dbebf.lDK2DqkCGsEvMnFT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57555 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59297 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751325AbbJAXHq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2015 19:07:46 -0400
+	with ESMTP id S1750868AbbJAXQP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2015 19:16:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joeyli.kernel@gmail.com, bhe@redhat.com, dyoung@redhat.com, hpa@zytor.com, jiang.liu@linux.intel.com, jlee@suse.com, luto@kernel.org, mhuang@redhat.com, mingo@redhat.com, sfr@canb.auug.org.au, tglx@linutronix.de, tiwai@suse.de, vgoyal@redhat.com, viresh.kumar@linaro.org, mm-commits@vger.kernel.org
+To: sudipm.mukherjee@gmail.com, joern@logfs.org, prasadjoshi.linux@gmail.com, sudip@vectorindia.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: fix out of the ELF headers buffer issue in syscall kexec_file_load()
+     Subject: logfs: fix build warning
 has been added to the -mm tree.  Its filename is
-     kexec-fix-out-of-the-elf-headers-buffer-issue-in-syscall-kexec_file_load.patch
+     logfs-fix-build-warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-fix-out-of-the-elf-headers-buffer-issue-in-syscall-kexec_file_load.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/logfs-fix-build-warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-fix-out-of-the-elf-headers-buffer-issue-in-syscall-kexec_file_load.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/logfs-fix-build-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,100 +38,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Subject: kexec: fix out of the ELF headers buffer issue in syscall kexec_file_load()
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: logfs: fix build warning
 
-This patch modifies the code in fill_up_crash_elf_data() by using
-walk_system_ram_res() instead of walk_system_ram_range() to count the max
-number of crash memory ranges.  That's because walk_system_ram_range()
-filters out small memory regions that reside in the same page, but
-walk_system_ram_res() does not.
+fs/logfs/dev_bdev.c: In function '__bdev_writeseg':
+include/linux/kernel.h:601:17: warning: comparison of distinct pointer types lacks a cast [enabled by default]
+  (void) (&_min1 == &_min2);  \
+fs/logfs/dev_bdev.c:84:14: note: in  expansion of macro 'min'
+  max_pages = min(nr_pages, BIO_MAX_PAGES);
 
-The oringial issue is page fault error that sometimes happened on big
-machines when preparing ELF headers:
+fs/logfs/dev_bdev.c: In function 'do_erase':
+include/linux/kernel.h:601:17: warning: comparison of distinct pointer types lacks a cast [enabled by default]
+ (void) (&_min1 == &_min2);  \
+fs/logfs/dev_bdev.c:174:14: note: in expansion of macro 'min'
+ max_pages = min(nr_pages, BIO_MAX_PAGES);
 
-[  305.291522] BUG: unable to handle kernel paging request at ffffc90613fc9000
-[  305.299621] IP: [<ffffffff8103d645>] prepare_elf64_ram_headers_callback+0x165/0x260
-[  305.308300] PGD e000032067 PUD 6dcbec54067 PMD 9dc9bdeb067 PTE 0
-[  305.315393] Oops: 0002 [#1] SMP
-[...snip]
-[  305.420953] task: ffff8e1c01ced600 ti: ffff8e1c03ec2000 task.ti: ffff8e1c03ec2000
-[  305.429292] RIP: 0010:[<ffffffff8103d645>]  [<ffffffff8103d645>] prepare_elf64_ra
-m_headers_callback+0x165/0x260
-[...snip]
+Lets use min_t and mention the type.
 
-After tracing prepare_elf64_headers() and
-prepare_elf64_ram_headers_callback(), the code uses walk_system_ram_res()
-to fill-in crash memory regions information to program header, so it
-counts those small memory regions that reside in a page area.  But when
-the kernel was using walk_system_ram_range() in fill_up_crash_elf_data()
-to count the number of crash memory regions, it filters out small regions.
-I printed those small memory regions, for example:
-
-kexec: Get nr_ram ranges. vaddr=0xffff880077592258 paddr=0x77592258, sz=0xdc0
-
-Base on the code in walk_system_ram_range(), this memory region will be
-filtered out:
-
-pfn = (0x77592258 + 0x1000 - 1) >> 12 = 0x77593
-end_pfn = (0x77592258 + 0xfc0 -1 + 1) >> 12 = 0x77593
-end_pfn - pfn = 0x77593 - 0x77593 = 0  <=== if (end_pfn > pfn) is FALSE
-
-So, the max_nr_ranges that's counted by kernel doesn't include small
-memory regions.  That causes the page fault in later code path for
-preparing EFL headers.
-
-This issue is not easy to reproduce on small machines that don't have too
-many CPUs because the allocated page aligned ELF buffer has more free
-space to cover those small memory regions' PT_LOAD headers.
-
-Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
-Acked-by: Dave Young <dyoung@redhat.com>
-Reviewed-by: Minfei Huang <mhuang@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Takashi Iwai <tiwai@suse.de>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Baoquan He <bhe@redhat.com>
+Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Prasad Joshi <prasadjoshi.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/crash.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ fs/logfs/dev_bdev.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/crash.c~kexec-fix-out-of-the-elf-headers-buffer-issue-in-syscall-kexec_file_load arch/x86/kernel/crash.c
---- a/arch/x86/kernel/crash.c~kexec-fix-out-of-the-elf-headers-buffer-issue-in-syscall-kexec_file_load
-+++ a/arch/x86/kernel/crash.c
-@@ -185,10 +185,9 @@ void native_machine_crash_shutdown(struc
- }
+diff -puN fs/logfs/dev_bdev.c~logfs-fix-build-warning fs/logfs/dev_bdev.c
+--- a/fs/logfs/dev_bdev.c~logfs-fix-build-warning
++++ a/fs/logfs/dev_bdev.c
+@@ -81,7 +81,7 @@ static int __bdev_writeseg(struct super_
+ 	unsigned int max_pages;
+ 	int i;
  
- #ifdef CONFIG_KEXEC_FILE
--static int get_nr_ram_ranges_callback(unsigned long start_pfn,
--				unsigned long nr_pfn, void *arg)
-+static int get_nr_ram_ranges_callback(u64 start, u64 end, void *arg)
- {
--	int *nr_ranges = arg;
-+	unsigned int *nr_ranges = arg;
+-	max_pages = min(nr_pages, BIO_MAX_PAGES);
++	max_pages = min_t(size_t, nr_pages, BIO_MAX_PAGES);
  
- 	(*nr_ranges)++;
- 	return 0;
-@@ -214,7 +213,7 @@ static void fill_up_crash_elf_data(struc
+ 	bio = bio_alloc(GFP_NOFS, max_pages);
+ 	BUG_ON(!bio);
+@@ -171,7 +171,7 @@ static int do_erase(struct super_block *
+ 	unsigned int max_pages;
+ 	int i;
  
- 	ced->image = image;
+-	max_pages = min(nr_pages, BIO_MAX_PAGES);
++	max_pages = min_t(size_t, nr_pages, BIO_MAX_PAGES);
  
--	walk_system_ram_range(0, -1, &nr_ranges,
-+	walk_system_ram_res(0, -1, &nr_ranges,
- 				get_nr_ram_ranges_callback);
- 
- 	ced->max_nr_ranges = nr_ranges;
+ 	bio = bio_alloc(GFP_NOFS, max_pages);
+ 	BUG_ON(!bio);
 _
 
-Patches currently in -mm which might be from joeyli.kernel@gmail.com are
+Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
 
-kexec-fix-out-of-the-elf-headers-buffer-issue-in-syscall-kexec_file_load.patch
+logfs-fix-build-warning.patch
 
