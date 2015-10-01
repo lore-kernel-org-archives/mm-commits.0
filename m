@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
- added to -mm tree
-Date: Thu, 01 Oct 2015 14:53:46 -0700
-Message-ID: <560dab6a.paTjbTUNzyohqlqV%akpm@linux-foundation.org>
+Subject: + slub-support-for-bulk-free-with-slub-freelists.patch added to
+ -mm tree
+Date: Thu, 01 Oct 2015 15:00:17 -0700
+Message-ID: <560dacf1./TvykUrRU2PjZZWZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40903 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41904 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750799AbbJAVxr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2015 17:53:47 -0400
+	with ESMTP id S1750795AbbJAWAS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2015 18:00:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, kwalker@redhat.com, mhocko@kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, skozina@redhat.com, mm-commits@vger.kernel.org
+To: brouer@redhat.com, alexander.h.duyck@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: change zap_threads() and zap_process() to use for_each_thread()
+     Subject: slub: support for bulk free with SLUB freelists
 has been added to the -mm tree.  Its filename is
-     coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
+     slub-support-for-bulk-free-with-slub-freelists.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-support-for-bulk-free-with-slub-freelists.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-support-for-bulk-free-with-slub-freelists.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,85 +39,262 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: change zap_threads() and zap_process() to use for_each_thread()
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: slub: support for bulk free with SLUB freelists
 
-Change zap_threads() paths to use for_each_thread() rather than
-while_each_thread().
+Make it possible to free a freelist with several objects by adjusting API
+of slab_free() and __slab_free() to have head, tail and an objects counter
+(cnt).
 
-While at it, change zap_threads() to avoid the nested if's to make the
-code more readable and lessen the indentation.
+Tail being NULL indicate single object free of head object.  This allow
+compiler inline constant propagation in slab_free() and
+slab_free_freelist_hook() to avoid adding any overhead in case of single
+object free.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+This allows a freelist with several objects (all within the same
+slab-page) to be free'ed using a single locked cmpxchg_double in
+__slab_free() and with an unlocked cmpxchg_double in slab_free().
+
+Object debugging on the free path is also extended to handle these
+freelists.  When CONFIG_SLUB_DEBUG is enabled it will also detect if
+objects don't belong to the same slab-page.
+
+These changes are needed for the next patch to bulk free the detached
+freelists it introduces and constructs.
+
+Micro benchmarking showed no performance reduction due to this change,
+when debugging is turned off (compiled with CONFIG_SLUB_DEBUG).
+
+Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@redhat.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Kyle Walker <kwalker@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Stanislav Kozina <skozina@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   27 +++++++++++++--------------
- 1 file changed, 13 insertions(+), 14 deletions(-)
+ mm/slub.c |   87 ++++++++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 68 insertions(+), 19 deletions(-)
 
-diff -puN fs/coredump.c~coredump-change-zap_threads-and-zap_process-to-use-for_each_thread fs/coredump.c
---- a/fs/coredump.c~coredump-change-zap_threads-and-zap_process-to-use-for_each_thread
-+++ a/fs/coredump.c
-@@ -290,15 +290,14 @@ static int zap_process(struct task_struc
- 	start->signal->group_exit_code = exit_code;
- 	start->signal->group_stop_count = 0;
- 
--	t = start;
--	do {
-+	for_each_thread(start, t) {
- 		task_clear_jobctl_pending(t, JOBCTL_PENDING_MASK);
- 		if (t != current && t->mm) {
- 			sigaddset(&t->pending.signal, SIGKILL);
- 			signal_wake_up(t, 1);
- 			nr++;
- 		}
--	} while_each_thread(start, t);
-+	}
- 
- 	return nr;
+diff -puN mm/slub.c~slub-support-for-bulk-free-with-slub-freelists mm/slub.c
+--- a/mm/slub.c~slub-support-for-bulk-free-with-slub-freelists
++++ a/mm/slub.c
+@@ -1063,11 +1063,15 @@ bad:
+ 	return 0;
  }
-@@ -360,18 +359,18 @@ static int zap_threads(struct task_struc
- 			continue;
- 		if (g->flags & PF_KTHREAD)
- 			continue;
--		p = g;
--		do {
--			if (p->mm) {
--				if (unlikely(p->mm == mm)) {
--					lock_task_sighand(p, &flags);
--					nr += zap_process(p, exit_code,
--							  SIGNAL_GROUP_EXIT);
--					unlock_task_sighand(p, &flags);
--				}
--				break;
+ 
++/* Supports checking bulk free of a constructed freelist */
+ static noinline struct kmem_cache_node *free_debug_processing(
+-	struct kmem_cache *s, struct page *page, void *object,
++	struct kmem_cache *s, struct page *page,
++	void *head, void *tail, int bulk_cnt,
+ 	unsigned long addr, unsigned long *flags)
+ {
+ 	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
++	void *object = head;
++	int cnt = 0;
+ 
+ 	spin_lock_irqsave(&n->list_lock, *flags);
+ 	slab_lock(page);
+@@ -1075,6 +1079,9 @@ static noinline struct kmem_cache_node *
+ 	if (!check_slab(s, page))
+ 		goto fail;
+ 
++next_object:
++	cnt++;
 +
-+		for_each_thread(g, p) {
-+			if (unlikely(!p->mm))
-+				continue;
-+			if (unlikely(p->mm == mm)) {
-+				lock_task_sighand(p, &flags);
-+				nr += zap_process(p, exit_code,
-+							SIGNAL_GROUP_EXIT);
-+				unlock_task_sighand(p, &flags);
- 			}
--		} while_each_thread(g, p);
-+			break;
-+		}
+ 	if (!check_valid_pointer(s, page, object)) {
+ 		slab_err(s, page, "Invalid object pointer 0x%p", object);
+ 		goto fail;
+@@ -1105,8 +1112,19 @@ static noinline struct kmem_cache_node *
+ 	if (s->flags & SLAB_STORE_USER)
+ 		set_track(s, object, TRACK_FREE, addr);
+ 	trace(s, page, object, 0);
++	/* Freepointer not overwritten by init_object(), SLAB_POISON moved it */
+ 	init_object(s, object, SLUB_RED_INACTIVE);
++
++	/* Reached end of constructed freelist yet? */
++	if (object != tail) {
++		object = get_freepointer(s, object);
++		goto next_object;
++	}
+ out:
++	if (cnt != bulk_cnt)
++		slab_err(s, page, "Bulk freelist count(%d) invalid(%d)\n",
++			 bulk_cnt, cnt);
++
+ 	slab_unlock(page);
+ 	/*
+ 	 * Keep node_lock to preserve integrity
+@@ -1210,7 +1228,8 @@ static inline int alloc_debug_processing
+ 	struct page *page, void *object, unsigned long addr) { return 0; }
+ 
+ static inline struct kmem_cache_node *free_debug_processing(
+-	struct kmem_cache *s, struct page *page, void *object,
++	struct kmem_cache *s, struct page *page,
++	void *head, void *tail, int bulk_cnt,
+ 	unsigned long addr, unsigned long *flags) { return NULL; }
+ 
+ static inline int slab_pad_check(struct kmem_cache *s, struct page *page)
+@@ -1306,6 +1325,29 @@ static inline void slab_free_hook(struct
+ 	kasan_slab_free(s, x);
+ }
+ 
++static inline void slab_free_freelist_hook(struct kmem_cache *s,
++					   void *head, void *tail)
++{
++/*
++ * Compiler cannot detect this function can be removed if slab_free_hook()
++ * evaluates to nothing.  Thus, catch all relevant config debug options here.
++ */
++#if defined(CONFIG_KMEMCHECK) ||		\
++	defined(CONFIG_LOCKDEP)	||		\
++	defined(CONFIG_DEBUG_KMEMLEAK) ||	\
++	defined(CONFIG_DEBUG_OBJECTS_FREE) ||	\
++	defined(CONFIG_KASAN)
++
++	void *object = head;
++	void *tail_obj = tail ? : head;
++
++	do {
++		slab_free_hook(s, object);
++	} while ((object != tail_obj) &&
++		 (object = get_freepointer(s, object)));
++#endif
++}
++
+ static void setup_object(struct kmem_cache *s, struct page *page,
+ 				void *object)
+ {
+@@ -2586,10 +2628,11 @@ EXPORT_SYMBOL(kmem_cache_alloc_node_trac
+  * handling required then we can return immediately.
+  */
+ static void __slab_free(struct kmem_cache *s, struct page *page,
+-			void *x, unsigned long addr)
++			void *head, void *tail, int cnt,
++			unsigned long addr)
++
+ {
+ 	void *prior;
+-	void **object = (void *)x;
+ 	int was_frozen;
+ 	struct page new;
+ 	unsigned long counters;
+@@ -2599,7 +2642,8 @@ static void __slab_free(struct kmem_cach
+ 	stat(s, FREE_SLOWPATH);
+ 
+ 	if (kmem_cache_debug(s) &&
+-		!(n = free_debug_processing(s, page, x, addr, &flags)))
++	    !(n = free_debug_processing(s, page, head, tail, cnt,
++					addr, &flags)))
+ 		return;
+ 
+ 	do {
+@@ -2609,10 +2653,10 @@ static void __slab_free(struct kmem_cach
+ 		}
+ 		prior = page->freelist;
+ 		counters = page->counters;
+-		set_freepointer(s, object, prior);
++		set_freepointer(s, tail, prior);
+ 		new.counters = counters;
+ 		was_frozen = new.frozen;
+-		new.inuse--;
++		new.inuse -= cnt;
+ 		if ((!new.inuse || !prior) && !was_frozen) {
+ 
+ 			if (kmem_cache_has_cpu_partial(s) && !prior) {
+@@ -2643,7 +2687,7 @@ static void __slab_free(struct kmem_cach
+ 
+ 	} while (!cmpxchg_double_slab(s, page,
+ 		prior, counters,
+-		object, new.counters,
++		head, new.counters,
+ 		"__slab_free"));
+ 
+ 	if (likely(!n)) {
+@@ -2708,15 +2752,20 @@ slab_empty:
+  *
+  * If fastpath is not possible then fall back to __slab_free where we deal
+  * with all sorts of special processing.
+- */
+-static __always_inline void slab_free(struct kmem_cache *s,
+-			struct page *page, void *x, unsigned long addr)
++ *
++ * Bulk free of a freelist with several objects (all pointing to the
++ * same page) possible by specifying head and tail ptr, plus objects
++ * count (cnt). Bulk free indicated by tail pointer being set.
++ */
++static __always_inline void slab_free(struct kmem_cache *s, struct page *page,
++				      void *head, void *tail, int cnt,
++				      unsigned long addr)
+ {
+-	void **object = (void *)x;
++	void *tail_obj = tail ? : head;
+ 	struct kmem_cache_cpu *c;
+ 	unsigned long tid;
+ 
+-	slab_free_hook(s, x);
++	slab_free_freelist_hook(s, head, tail);
+ 
+ redo:
+ 	/*
+@@ -2735,19 +2784,19 @@ redo:
+ 	barrier();
+ 
+ 	if (likely(page == c->page)) {
+-		set_freepointer(s, object, c->freelist);
++		set_freepointer(s, tail_obj, c->freelist);
+ 
+ 		if (unlikely(!this_cpu_cmpxchg_double(
+ 				s->cpu_slab->freelist, s->cpu_slab->tid,
+ 				c->freelist, tid,
+-				object, next_tid(tid)))) {
++				head, next_tid(tid)))) {
+ 
+ 			note_cmpxchg_failure("slab_free", s, tid);
+ 			goto redo;
+ 		}
+ 		stat(s, FREE_FASTPATH);
+ 	} else
+-		__slab_free(s, page, x, addr);
++		__slab_free(s, page, head, tail_obj, cnt, addr);
+ 
+ }
+ 
+@@ -2756,7 +2805,7 @@ void kmem_cache_free(struct kmem_cache *
+ 	s = cache_from_obj(s, x);
+ 	if (!s)
+ 		return;
+-	slab_free(s, virt_to_head_page(x), x, _RET_IP_);
++	slab_free(s, virt_to_head_page(x), x, NULL, 1, _RET_IP_);
+ 	trace_kmem_cache_free(_RET_IP_, x);
+ }
+ EXPORT_SYMBOL(kmem_cache_free);
+@@ -2791,7 +2840,7 @@ void kmem_cache_free_bulk(struct kmem_ca
+ 			c->tid = next_tid(c->tid);
+ 			local_irq_enable();
+ 			/* Slowpath: overhead locked cmpxchg_double_slab */
+-			__slab_free(s, page, object, _RET_IP_);
++			__slab_free(s, page, object, object, 1, _RET_IP_);
+ 			local_irq_disable();
+ 			c = this_cpu_ptr(s->cpu_slab);
+ 		}
+@@ -3531,7 +3580,7 @@ void kfree(const void *x)
+ 		__free_kmem_pages(page, compound_order(page));
+ 		return;
  	}
- 	rcu_read_unlock();
- done:
+-	slab_free(page->slab_cache, page, object, _RET_IP_);
++	slab_free(page->slab_cache, page, object, NULL, 1, _RET_IP_);
+ }
+ EXPORT_SYMBOL(kfree);
+ 
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from brouer@redhat.com are
 
-mm-fix-the-racy-mm-locked_vm-change-in.patch
-mm-add-the-struct-mm_struct-mm-local-into.patch
-signals-kill-block_all_signals-and-unblock_all_signals.patch
-coredump-ensure-all-coredumping-tasks-have-signal_group_coredump.patch
-coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
+slub-mark-the-dangling-ifdef-else-of-config_slub_debug.patch
+slab-implement-bulking-for-slab-allocator.patch
+slub-support-for-bulk-free-with-slub-freelists.patch
+slub-optimize-bulk-slowpath-free-by-detached-freelist.patch
 
