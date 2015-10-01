@@ -1,77 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch added to -mm tree
-Date: Thu, 01 Oct 2015 15:25:37 -0700
-Message-ID: <560db2e1.rg2ux0E5diqu68tD%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ memcg-make-mem_cgroup_read_stat-unsigned-fix.patch removed from -mm tree
+Date: Thu, 01 Oct 2015 15:33:56 -0700
+Message-ID: <560db4d4.5YPC65Hpi5WUcUKV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47457 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49307 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751247AbbJAWZi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2015 18:25:38 -0400
+	with ESMTP id S1750823AbbJAWd5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2015 18:33:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kwalker@redhat.com, mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, skozina@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, gthelen@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix
-has been added to the -mm tree.  Its filename is
-     mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
+     Subject: memcg-make-mem_cgroup_read_stat-unsigned-fix
+has been removed from the -mm tree.  Its filename was
+     memcg-make-mem_cgroup_read_stat-unsigned-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_kill-fix-the-wrong-task-mm-%3D%3D-mm-checks-in-oom_kill_process-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_kill-fix-the-wrong-task-mm-%3D%3D-mm-checks-in-oom_kill_process-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into memcg-make-mem_cgroup_read_stat-unsigned.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix
+Subject: memcg-make-mem_cgroup_read_stat-unsigned-fix
 
-document process_shares_mm() a bit
+fix old typo while we're in there
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Kyle Walker <kwalker@redhat.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Stanislav Kozina <skozina@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Greg Thelen <gthelen@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix
-+++ a/mm/oom_kill.c
-@@ -483,6 +483,12 @@ void oom_killer_enable(void)
- 	oom_killer_disabled = false;
- }
- 
-+/*
-+ * task->mm can be NULL if the task is the exited group leader.  So to
-+ * determine whether the task is using a particular mm, we examine all the
-+ * task's threads: if one of those is using this mm then this task was also
-+ * using it.
-+ */
- static bool process_shares_mm(struct task_struct *p, struct mm_struct *mm)
- {
- 	struct task_struct *t;
+diff -puN mm/memcontrol.c~memcg-make-mem_cgroup_read_stat-unsigned-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-make-mem_cgroup_read_stat-unsigned-fix
++++ a/mm/memcontrol.c
+@@ -661,7 +661,7 @@ mem_cgroup_largest_soft_limit_node(struc
+  *
+  * If there are kernel internal actions which can make use of some not-exact
+  * value, and reading all cpu value can be performance bottleneck in some
+- * common workload, threashold and synchronization as vmstat[] should be
++ * common workload, threshold and synchronization as vmstat[] should be
+  * implemented.
+  */
+ static unsigned long
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,7 +56,7 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-gpu-drm-i915-intel_spritec-fix-build.patch
 drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-memcg-make-mem_cgroup_read_stat-unsigned-fix.patch
+memcg-make-mem_cgroup_read_stat-unsigned.patch
 drivers-input-joystick-kconfig-zhenhuac-needs-bitreverse.patch
 mm.patch
 slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
