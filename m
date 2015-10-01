@@ -1,90 +1,138 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- memcg-make-mem_cgroup_read_stat-unsigned-fix.patch removed from -mm tree
-Date: Thu, 01 Oct 2015 15:33:56 -0700
-Message-ID: <560db4d4.5YPC65Hpi5WUcUKV%akpm@linux-foundation.org>
+Subject: +
+ kexec-fix-out-of-the-elf-headers-buffer-issue-in-syscall-kexec_file_load.patch added to -mm tree
+Date: Thu, 01 Oct 2015 16:07:45 -0700
+Message-ID: <560dbcc1.iOYd+KjfHUTUNKZI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49307 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57555 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750823AbbJAWd5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2015 18:33:57 -0400
+	with ESMTP id S1751325AbbJAXHq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2015 19:07:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gthelen@google.com, mm-commits@vger.kernel.org
+To: joeyli.kernel@gmail.com, bhe@redhat.com, dyoung@redhat.com, hpa@zytor.com, jiang.liu@linux.intel.com, jlee@suse.com, luto@kernel.org, mhuang@redhat.com, mingo@redhat.com, sfr@canb.auug.org.au, tglx@linutronix.de, tiwai@suse.de, vgoyal@redhat.com, viresh.kumar@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg-make-mem_cgroup_read_stat-unsigned-fix
-has been removed from the -mm tree.  Its filename was
-     memcg-make-mem_cgroup_read_stat-unsigned-fix.patch
+     Subject: kexec: fix out of the ELF headers buffer issue in syscall kexec_file_load()
+has been added to the -mm tree.  Its filename is
+     kexec-fix-out-of-the-elf-headers-buffer-issue-in-syscall-kexec_file_load.patch
 
-This patch was dropped because it was folded into memcg-make-mem_cgroup_read_stat-unsigned.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-fix-out-of-the-elf-headers-buffer-issue-in-syscall-kexec_file_load.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-fix-out-of-the-elf-headers-buffer-issue-in-syscall-kexec_file_load.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: memcg-make-mem_cgroup_read_stat-unsigned-fix
+From: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
+Subject: kexec: fix out of the ELF headers buffer issue in syscall kexec_file_load()
 
-fix old typo while we're in there
+This patch modifies the code in fill_up_crash_elf_data() by using
+walk_system_ram_res() instead of walk_system_ram_range() to count the max
+number of crash memory ranges.  That's because walk_system_ram_range()
+filters out small memory regions that reside in the same page, but
+walk_system_ram_res() does not.
 
-Cc: Greg Thelen <gthelen@google.com>
+The oringial issue is page fault error that sometimes happened on big
+machines when preparing ELF headers:
+
+[  305.291522] BUG: unable to handle kernel paging request at ffffc90613fc9000
+[  305.299621] IP: [<ffffffff8103d645>] prepare_elf64_ram_headers_callback+0x165/0x260
+[  305.308300] PGD e000032067 PUD 6dcbec54067 PMD 9dc9bdeb067 PTE 0
+[  305.315393] Oops: 0002 [#1] SMP
+[...snip]
+[  305.420953] task: ffff8e1c01ced600 ti: ffff8e1c03ec2000 task.ti: ffff8e1c03ec2000
+[  305.429292] RIP: 0010:[<ffffffff8103d645>]  [<ffffffff8103d645>] prepare_elf64_ra
+m_headers_callback+0x165/0x260
+[...snip]
+
+After tracing prepare_elf64_headers() and
+prepare_elf64_ram_headers_callback(), the code uses walk_system_ram_res()
+to fill-in crash memory regions information to program header, so it
+counts those small memory regions that reside in a page area.  But when
+the kernel was using walk_system_ram_range() in fill_up_crash_elf_data()
+to count the number of crash memory regions, it filters out small regions.
+I printed those small memory regions, for example:
+
+kexec: Get nr_ram ranges. vaddr=0xffff880077592258 paddr=0x77592258, sz=0xdc0
+
+Base on the code in walk_system_ram_range(), this memory region will be
+filtered out:
+
+pfn = (0x77592258 + 0x1000 - 1) >> 12 = 0x77593
+end_pfn = (0x77592258 + 0xfc0 -1 + 1) >> 12 = 0x77593
+end_pfn - pfn = 0x77593 - 0x77593 = 0  <=== if (end_pfn > pfn) is FALSE
+
+So, the max_nr_ranges that's counted by kernel doesn't include small
+memory regions.  That causes the page fault in later code path for
+preparing EFL headers.
+
+This issue is not easy to reproduce on small machines that don't have too
+many CPUs because the allocated page aligned ELF buffer has more free
+space to cover those small memory regions' PT_LOAD headers.
+
+Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+Acked-by: Dave Young <dyoung@redhat.com>
+Reviewed-by: Minfei Huang <mhuang@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/kernel/crash.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-make-mem_cgroup_read_stat-unsigned-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-make-mem_cgroup_read_stat-unsigned-fix
-+++ a/mm/memcontrol.c
-@@ -661,7 +661,7 @@ mem_cgroup_largest_soft_limit_node(struc
-  *
-  * If there are kernel internal actions which can make use of some not-exact
-  * value, and reading all cpu value can be performance bottleneck in some
-- * common workload, threashold and synchronization as vmstat[] should be
-+ * common workload, threshold and synchronization as vmstat[] should be
-  * implemented.
-  */
- static unsigned long
+diff -puN arch/x86/kernel/crash.c~kexec-fix-out-of-the-elf-headers-buffer-issue-in-syscall-kexec_file_load arch/x86/kernel/crash.c
+--- a/arch/x86/kernel/crash.c~kexec-fix-out-of-the-elf-headers-buffer-issue-in-syscall-kexec_file_load
++++ a/arch/x86/kernel/crash.c
+@@ -185,10 +185,9 @@ void native_machine_crash_shutdown(struc
+ }
+ 
+ #ifdef CONFIG_KEXEC_FILE
+-static int get_nr_ram_ranges_callback(unsigned long start_pfn,
+-				unsigned long nr_pfn, void *arg)
++static int get_nr_ram_ranges_callback(u64 start, u64 end, void *arg)
+ {
+-	int *nr_ranges = arg;
++	unsigned int *nr_ranges = arg;
+ 
+ 	(*nr_ranges)++;
+ 	return 0;
+@@ -214,7 +213,7 @@ static void fill_up_crash_elf_data(struc
+ 
+ 	ced->image = image;
+ 
+-	walk_system_ram_range(0, -1, &nr_ranges,
++	walk_system_ram_res(0, -1, &nr_ranges,
+ 				get_nr_ram_ranges_callback);
+ 
+ 	ced->max_nr_ranges = nr_ranges;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joeyli.kernel@gmail.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-memcg-make-mem_cgroup_read_stat-unsigned.patch
-drivers-input-joystick-kconfig-zhenhuac-needs-bitreverse.patch
-mm.patch
-slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
-mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
-mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
-mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
-kasan-various-fixes-in-documentation-checkpatch-fixes.patch
-zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-include-linux-compiler-gcch-improve-__visible-documentation.patch
-fs-jffs2-wbufc-remove-stray-semicolon.patch
-lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
-dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
-linux-next-rejects.patch
-net-ipv4-routec-prevent-oops.patch
-remove-abs64.patch
-remove-abs64-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+kexec-fix-out-of-the-elf-headers-buffer-issue-in-syscall-kexec_file_load.patch
 
