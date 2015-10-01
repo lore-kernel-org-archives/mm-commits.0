@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process.patch
+Subject: + mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop.patch
  added to -mm tree
-Date: Thu, 01 Oct 2015 15:25:35 -0700
-Message-ID: <560db2df.KqKcxCioVsHaKqBd%akpm@linux-foundation.org>
+Date: Thu, 01 Oct 2015 15:25:33 -0700
+Message-ID: <560db2dd.QhNqabWTtjf1Jf7k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47451 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47439 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751562AbbJAWZg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2015 18:25:36 -0400
+	with ESMTP id S1751225AbbJAWZe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2015 18:25:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: oleg@redhat.com, kwalker@redhat.com, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, skozina@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/oom_kill: fix the wrong task->mm == mm checks in oom_kill_process()
+     Subject: mm/oom_kill: cleanup the "kill sharing same memory" loop
 has been added to the -mm tree.  Its filename is
-     mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process.patch
+     mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_kill-fix-the-wrong-task-mm-%3D%3D-mm-checks-in-oom_kill_process.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_kill-fix-the-wrong-task-mm-%3D%3D-mm-checks-in-oom_kill_process.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,16 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: mm/oom_kill: fix the wrong task->mm == mm checks in oom_kill_process()
+Subject: mm/oom_kill: cleanup the "kill sharing same memory" loop
 
-Both "child->mm == mm" and "p->mm != mm" checks in oom_kill_process() are
-wrong.  task->mm can be NULL if the task is the exited group leader.  This
-means in particular that "kill sharing same memory" loop can miss a
-process with a zombie leader which uses the same ->mm.
-
-Note: the process_has_mm(child, p->mm) check is still not 100% correct,
-p->mm can be NULL too.  This is minor, but probably deserves a fix or a
-comment anyway.
+Purely cosmetic, but the complex "if" condition looks annoying to me.
+Especially because it is not consistent with OOM_SCORE_ADJ_MIN check
+which adds another if/continue.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: David Rientjes <rientjes@google.com>
@@ -61,49 +55,38 @@ Cc: Stanislav Kozina <skozina@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   16 ++++++++++++++--
- 1 file changed, 14 insertions(+), 2 deletions(-)
+ mm/oom_kill.c |   18 +++++++++++-------
+ 1 file changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process
+diff -puN mm/oom_kill.c~mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop
 +++ a/mm/oom_kill.c
-@@ -483,6 +483,18 @@ void oom_killer_enable(void)
- 	oom_killer_disabled = false;
- }
- 
-+static bool process_shares_mm(struct task_struct *p, struct mm_struct *mm)
-+{
-+	struct task_struct *t;
-+
-+	for_each_thread(p, t) {
-+		struct mm_struct *t_mm = READ_ONCE(t->mm);
-+		if (t_mm)
-+			return t_mm == mm;
-+	}
-+	return false;
-+}
-+
- #define K(x) ((x) << (PAGE_SHIFT-10))
- /*
-  * Must be called while holding a reference to p, which will be released upon
-@@ -530,7 +542,7 @@ void oom_kill_process(struct oom_control
- 		list_for_each_entry(child, &t->children, sibling) {
- 			unsigned int child_points;
- 
--			if (child->mm == p->mm)
-+			if (process_shares_mm(child, p->mm))
- 				continue;
- 			/*
- 			 * oom_badness() returns 0 if the thread is unkillable
-@@ -584,7 +596,7 @@ void oom_kill_process(struct oom_control
+@@ -583,14 +583,18 @@ void oom_kill_process(struct oom_control
+ 	 * pending fatal signal.
  	 */
  	rcu_read_lock();
- 	for_each_process(p) {
--		if (p->mm != mm)
-+		if (!process_shares_mm(p, mm))
- 			continue;
- 		if (same_thread_group(p, victim))
- 			continue;
+-	for_each_process(p)
+-		if (p->mm == mm && !same_thread_group(p, victim) &&
+-		    !(p->flags & PF_KTHREAD)) {
+-			if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
+-				continue;
++	for_each_process(p) {
++		if (p->mm != mm)
++			continue;
++		if (same_thread_group(p, victim))
++			continue;
++		if (unlikely(p->flags & PF_KTHREAD))
++			continue;
++		if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
++			continue;
+ 
+-			do_send_sig_info(SIGKILL, SEND_SIG_FORCED, p, true);
+-		}
++		do_send_sig_info(SIGKILL, SEND_SIG_FORCED, p, true);
++	}
+ 	rcu_read_unlock();
+ 
+ 	mmput(mm);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
