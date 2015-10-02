@@ -1,175 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-dirty-page-migration.patch removed from -mm
- tree
-Date: Fri, 02 Oct 2015 12:36:25 -0700
-Message-ID: <560edcb9.dA0a4tAAlfIXXY6W%akpm@linux-foundation.org>
+Subject: [merged] dax-fix-null-pointer-in-__dax_pmd_fault.patch removed
+ from -mm tree
+Date: Fri, 02 Oct 2015 12:36:19 -0700
+Message-ID: <560edcb3.FraoaudyKHeH4zk5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59691 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59676 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751052AbbJBTg0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Oct 2015 15:36:26 -0400
+	with ESMTP id S1751027AbbJBTgU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Oct 2015 15:36:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gthelen@google.com, dave.hansen@intel.com, hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, david@fromorbit.com, kirill.shutemov@linux.intel.com, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: fix dirty page migration
+     Subject: dax: fix NULL pointer in __dax_pmd_fault()
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-dirty-page-migration.patch
+     dax-fix-null-pointer-in-__dax_pmd_fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: memcg: fix dirty page migration
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: dax: fix NULL pointer in __dax_pmd_fault()
 
-The problem starts with a file backed dirty page which is charged to a
-memcg.  Then page migration is used to move oldpage to newpage.
+46c043ede471 ("mm: take i_mmap_lock in unmap_mapping_range() for DAX")
+moved some code in __dax_pmd_fault() that was responsible for zeroing
+newly allocated PMD pages.  The new location didn't properly set up
+'kaddr', so when run this code resulted in a NULL pointer BUG.
 
-Migration:
-- copies the oldpage's data to newpage
-- clears oldpage.PG_dirty
-- sets newpage.PG_dirty
-- uncharges oldpage from memcg
-- charges newpage to memcg
+Fix this by getting the correct 'kaddr' via bdev_direct_access().
 
-Clearing oldpage.PG_dirty decrements the charged memcg's dirty page count.
- However, because newpage is not yet charged, setting newpage.PG_dirty
-does not increment the memcg's dirty page count.  After migration
-completes newpage.PG_dirty is eventually cleared, often in
-account_page_cleaned().  At this time newpage is charged to a memcg so the
-memcg's dirty page count is decremented which causes underflow because the
-count was not previously incremented by migration.  This underflow causes
-balance_dirty_pages() to see a very large unsigned number of dirty memcg
-pages which leads to aggressive throttling of buffered writes by processes
-in non root memcg.
-
-This issue:
-- can harm performance of non root memcg buffered writes.
-- can report too small (even negative) values in
-  memory.stat[(total_)dirty] counters of all memcg, including the root.
-
-To avoid polluting migrate.c with #ifdef CONFIG_MEMCG checks, introduce
-page_memcg() and set_page_memcg() helpers.
-
-Test:
-    0) setup and enter limited memcg
-    mkdir /sys/fs/cgroup/test
-    echo 1G > /sys/fs/cgroup/test/memory.limit_in_bytes
-    echo $$ > /sys/fs/cgroup/test/cgroup.procs
-
-    1) buffered writes baseline
-    dd if=/dev/zero of=/data/tmp/foo bs=1M count=1k
-    sync
-    grep ^dirty /sys/fs/cgroup/test/memory.stat
-
-    2) buffered writes with compaction antagonist to induce migration
-    yes 1 > /proc/sys/vm/compact_memory &
-    rm -rf /data/tmp/foo
-    dd if=/dev/zero of=/data/tmp/foo bs=1M count=1k
-    kill %
-    sync
-    grep ^dirty /sys/fs/cgroup/test/memory.stat
-
-    3) buffered writes without antagonist, should match baseline
-    rm -rf /data/tmp/foo
-    dd if=/dev/zero of=/data/tmp/foo bs=1M count=1k
-    sync
-    grep ^dirty /sys/fs/cgroup/test/memory.stat
-
-                       (speed, dirty residue)
-             unpatched                       patched
-    1) 841 MB/s 0 dirty pages          886 MB/s 0 dirty pages
-    2) 611 MB/s -33427456 dirty pages  793 MB/s 0 dirty pages
-    3) 114 MB/s -33427456 dirty pages  891 MB/s 0 dirty pages
-
-    Notice that unpatched baseline performance (1) fell after
-    migration (3): 841 -> 114 MB/s.  In the patched kernel, post
-    migration performance matches baseline.
-
-Fixes: c4843a7593a9 ("memcg: add per cgroup dirty page accounting")
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Reported-by: Dave Hansen <dave.hansen@intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>	[4.2+]
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reported-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   21 +++++++++++++++++++++
- mm/migrate.c       |   12 +++++++++++-
- 2 files changed, 32 insertions(+), 1 deletion(-)
+ fs/dax.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~memcg-fix-dirty-page-migration include/linux/mm.h
---- a/include/linux/mm.h~memcg-fix-dirty-page-migration
-+++ a/include/linux/mm.h
-@@ -905,6 +905,27 @@ static inline void set_page_links(struct
- #endif
- }
+diff -puN fs/dax.c~dax-fix-null-pointer-in-__dax_pmd_fault fs/dax.c
+--- a/fs/dax.c~dax-fix-null-pointer-in-__dax_pmd_fault
++++ a/fs/dax.c
+@@ -569,8 +569,20 @@ int __dax_pmd_fault(struct vm_area_struc
+ 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
+ 		goto fallback;
  
-+#ifdef CONFIG_MEMCG
-+static inline struct mem_cgroup *page_memcg(struct page *page)
-+{
-+	return page->mem_cgroup;
-+}
++	sector = bh.b_blocknr << (blkbits - 9);
 +
-+static inline void set_page_memcg(struct page *page, struct mem_cgroup *memcg)
-+{
-+	page->mem_cgroup = memcg;
-+}
-+#else
-+static inline struct mem_cgroup *page_memcg(struct page *page)
-+{
-+	return NULL;
-+}
+ 	if (buffer_unwritten(&bh) || buffer_new(&bh)) {
+ 		int i;
 +
-+static inline void set_page_memcg(struct page *page, struct mem_cgroup *memcg)
-+{
-+}
-+#endif
++		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
++						bh.b_size);
++		if (length < 0) {
++			result = VM_FAULT_SIGBUS;
++			goto out;
++		}
++		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
++			goto fallback;
 +
- /*
-  * Some inline functions in vmstat.h depend on page_zone()
-  */
-diff -puN mm/migrate.c~memcg-fix-dirty-page-migration mm/migrate.c
---- a/mm/migrate.c~memcg-fix-dirty-page-migration
-+++ a/mm/migrate.c
-@@ -740,6 +740,15 @@ static int move_to_new_page(struct page
- 	if (PageSwapBacked(page))
- 		SetPageSwapBacked(newpage);
- 
-+	/*
-+	 * Indirectly called below, migrate_page_copy() copies PG_dirty and thus
-+	 * needs newpage's memcg set to transfer memcg dirty page accounting.
-+	 * So perform memcg migration in two steps:
-+	 * 1. set newpage->mem_cgroup (here)
-+	 * 2. clear page->mem_cgroup (below)
-+	 */
-+	set_page_memcg(newpage, page_memcg(page));
-+
- 	mapping = page_mapping(page);
- 	if (!mapping)
- 		rc = migrate_page(mapping, newpage, page, mode);
-@@ -756,9 +765,10 @@ static int move_to_new_page(struct page
- 		rc = fallback_migrate_page(mapping, newpage, page, mode);
- 
- 	if (rc != MIGRATEPAGE_SUCCESS) {
-+		set_page_memcg(newpage, NULL);
- 		newpage->mapping = NULL;
+ 		for (i = 0; i < PTRS_PER_PMD; i++)
+ 			clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
+ 		wmb_pmem();
+@@ -623,7 +635,6 @@ int __dax_pmd_fault(struct vm_area_struc
+ 		result = VM_FAULT_NOPAGE;
+ 		spin_unlock(ptl);
  	} else {
--		mem_cgroup_migrate(page, newpage, false);
-+		set_page_memcg(page, NULL);
- 		if (page_was_mapped)
- 			remove_migration_ptes(page, newpage);
- 		page->mapping = NULL;
+-		sector = bh.b_blocknr << (blkbits - 9);
+ 		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
+ 						bh.b_size);
+ 		if (length < 0) {
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
-fs-seqfile-always-allow-oom-killer.patch
 
