@@ -1,159 +1,92 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kprobe-use-_do_fork-in-samples-to-make-them-work-again.patch removed from
- -mm tree
-Date: Fri, 02 Oct 2015 12:36:32 -0700
-Message-ID: <560edcc0.5i38XCaN/eXcCBbe%akpm@linux-foundation.org>
+ drivers-input-joystick-kconfig-zhenhuac-needs-bitreverse.patch removed from -mm tree
+Date: Fri, 02 Oct 2015 12:36:30 -0700
+Message-ID: <560edcbe.cbNdATDPPlugO2Ef%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59712 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59708 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751052AbbJBTgd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Oct 2015 15:36:33 -0400
+	with ESMTP id S1751052AbbJBTgb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Oct 2015 15:36:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pmladek@suse.com, hpa@zytor.com, jkosina@suse.com, luto@kernel.org, masami.hiramatsu.pt@hitachi.com, mingo@redhat.com, peterz@infradead.org, tglx@linutronix.de, thiago.macieira@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dmitry.torokhov@gmail.com, fengguang.wu@gmail.com, yalin.wang2010@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kprobes: use _do_fork() in samples to make them work again
+     Subject: drivers/input/joystick/Kconfig: zhenhua.c needs BITREVERSE
 has been removed from the -mm tree.  Its filename was
-     kprobe-use-_do_fork-in-samples-to-make-them-work-again.patch
+     drivers-input-joystick-kconfig-zhenhuac-needs-bitreverse.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: kprobes: use _do_fork() in samples to make them work again
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/input/joystick/Kconfig: zhenhua.c needs BITREVERSE
 
-3033f14ab78c32687 ("clone: support passing tls argument via C rather than
-pt_regs magic") introduced _do_fork() that allowed to pass @tls parameter.
+It uses bitrev8(), so it must ensure that lib/bitrev.o gets included in
+vmlinux.
 
-The old do_fork() is defined only for architectures that are not ready to
-use this way and do not define HAVE_COPY_THREAD_TLS.
-
-Let's use _do_fork() in the kprobe examples to make them work again on all
-architectures.
-
-Signed-off-by: Petr Mladek <pmladek@suse.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Thiago Macieira <thiago.macieira@intel.com>
-Cc: Jiri Kosina <jkosina@suse.com>
+Cc: Fengguang Wu <fengguang.wu@gmail.com>
+Cc: yalin wang <yalin.wang2010@gmail.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- samples/kprobes/jprobe_example.c    |   14 +++++++-------
- samples/kprobes/kprobe_example.c    |    6 +++---
- samples/kprobes/kretprobe_example.c |    4 ++--
- 3 files changed, 12 insertions(+), 12 deletions(-)
+ drivers/input/joystick/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN samples/kprobes/jprobe_example.c~kprobe-use-_do_fork-in-samples-to-make-them-work-again samples/kprobes/jprobe_example.c
---- a/samples/kprobes/jprobe_example.c~kprobe-use-_do_fork-in-samples-to-make-them-work-again
-+++ a/samples/kprobes/jprobe_example.c
-@@ -1,13 +1,13 @@
- /*
-  * Here's a sample kernel module showing the use of jprobes to dump
-- * the arguments of do_fork().
-+ * the arguments of _do_fork().
-  *
-  * For more information on theory of operation of jprobes, see
-  * Documentation/kprobes.txt
-  *
-  * Build and insert the kernel module as done in the kprobe example.
-  * You will see the trace data in /var/log/messages and on the
-- * console whenever do_fork() is invoked to create a new process.
-+ * console whenever _do_fork() is invoked to create a new process.
-  * (Some messages may be suppressed if syslogd is configured to
-  * eliminate duplicate messages.)
-  */
-@@ -17,13 +17,13 @@
- #include <linux/kprobes.h>
- 
- /*
-- * Jumper probe for do_fork.
-+ * Jumper probe for _do_fork.
-  * Mirror principle enables access to arguments of the probed routine
-  * from the probe handler.
-  */
- 
--/* Proxy routine having the same arguments as actual do_fork() routine */
--static long jdo_fork(unsigned long clone_flags, unsigned long stack_start,
-+/* Proxy routine having the same arguments as actual _do_fork() routine */
-+static long j_do_fork(unsigned long clone_flags, unsigned long stack_start,
- 	      unsigned long stack_size, int __user *parent_tidptr,
- 	      int __user *child_tidptr)
- {
-@@ -36,9 +36,9 @@ static long jdo_fork(unsigned long clone
- }
- 
- static struct jprobe my_jprobe = {
--	.entry			= jdo_fork,
-+	.entry			= j_do_fork,
- 	.kp = {
--		.symbol_name	= "do_fork",
-+		.symbol_name	= "_do_fork",
- 	},
- };
- 
-diff -puN samples/kprobes/kprobe_example.c~kprobe-use-_do_fork-in-samples-to-make-them-work-again samples/kprobes/kprobe_example.c
---- a/samples/kprobes/kprobe_example.c~kprobe-use-_do_fork-in-samples-to-make-them-work-again
-+++ a/samples/kprobes/kprobe_example.c
-@@ -1,13 +1,13 @@
- /*
-  * NOTE: This example is works on x86 and powerpc.
-  * Here's a sample kernel module showing the use of kprobes to dump a
-- * stack trace and selected registers when do_fork() is called.
-+ * stack trace and selected registers when _do_fork() is called.
-  *
-  * For more information on theory of operation of kprobes, see
-  * Documentation/kprobes.txt
-  *
-  * You will see the trace data in /var/log/messages and on the console
-- * whenever do_fork() is invoked to create a new process.
-+ * whenever _do_fork() is invoked to create a new process.
-  */
- 
- #include <linux/kernel.h>
-@@ -16,7 +16,7 @@
- 
- /* For each probe you need to allocate a kprobe structure */
- static struct kprobe kp = {
--	.symbol_name	= "do_fork",
-+	.symbol_name	= "_do_fork",
- };
- 
- /* kprobe pre_handler: called just before the probed instruction is executed */
-diff -puN samples/kprobes/kretprobe_example.c~kprobe-use-_do_fork-in-samples-to-make-them-work-again samples/kprobes/kretprobe_example.c
---- a/samples/kprobes/kretprobe_example.c~kprobe-use-_do_fork-in-samples-to-make-them-work-again
-+++ a/samples/kprobes/kretprobe_example.c
-@@ -7,7 +7,7 @@
-  *
-  * usage: insmod kretprobe_example.ko func=<func_name>
-  *
-- * If no func_name is specified, do_fork is instrumented
-+ * If no func_name is specified, _do_fork is instrumented
-  *
-  * For more information on theory of operation of kretprobes, see
-  * Documentation/kprobes.txt
-@@ -25,7 +25,7 @@
- #include <linux/limits.h>
- #include <linux/sched.h>
- 
--static char func_name[NAME_MAX] = "do_fork";
-+static char func_name[NAME_MAX] = "_do_fork";
- module_param_string(func, func_name, NAME_MAX, S_IRUGO);
- MODULE_PARM_DESC(func, "Function to kretprobe; this module will report the"
- 			" function's execution time");
+diff -puN drivers/input/joystick/Kconfig~drivers-input-joystick-kconfig-zhenhuac-needs-bitreverse drivers/input/joystick/Kconfig
+--- a/drivers/input/joystick/Kconfig~drivers-input-joystick-kconfig-zhenhuac-needs-bitreverse
++++ a/drivers/input/joystick/Kconfig
+@@ -196,6 +196,7 @@ config JOYSTICK_TWIDJOY
+ config JOYSTICK_ZHENHUA
+ 	tristate "5-byte Zhenhua RC transmitter"
+ 	select SERIO
++	select BITREVERSE
+ 	help
+ 	  Say Y here if you have a Zhen Hua PPM-4CH transmitter which is
+ 	  supplied with a ready to fly micro electric indoor helicopters
 _
 
-Patches currently in -mm which might be from pmladek@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm.patch
+slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
+mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
+mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
+mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
+include-linux-mmzoneh-reflow-comment.patch
+kasan-various-fixes-in-documentation-checkpatch-fixes.patch
+zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+include-linux-compiler-gcch-improve-__visible-documentation.patch
+fs-jffs2-wbufc-remove-stray-semicolon.patch
+lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
+dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
+linux-next-git-rejects.patch
+linux-next-rejects.patch
+net-ipv4-routec-prevent-oops.patch
+remove-abs64.patch
+remove-abs64-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
