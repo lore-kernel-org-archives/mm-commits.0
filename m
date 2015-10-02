@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-vsprintfc-update-documentation.patch added to -mm tree
-Date: Fri, 02 Oct 2015 15:07:02 -0700
-Message-ID: <560f0006.dXJ35+tLcGdIgVLg%akpm@linux-foundation.org>
+Subject: +
+ mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix.patch added to -mm tree
+Date: Fri, 02 Oct 2015 15:08:29 -0700
+Message-ID: <560f005d.LSpHqeMEMTqzfeqv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59957 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60619 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751245AbbJBWHD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Oct 2015 18:07:03 -0400
+	with ESMTP id S1751377AbbJBWI3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Oct 2015 18:08:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, andriy.shevchenko@linux.intel.com, corbet@lwn.net, mkletzan@redhat.com, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: update documentation
+     Subject: mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix
 has been added to the -mm tree.  Its filename is
-     lib-vsprintfc-update-documentation.patch
+     mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-update-documentation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-update-documentation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,89 +39,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: update documentation
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix
 
-%n is no longer just ignored; it results in early return from vsnprintf. 
-Also add a request to add test cases for future %p extensions.
+This patch address minor comment nitpicks from Vlastimil. It is a fix for the
+mmotm patch
+mm-page_alloc-hide-some-GFP-internals-and-document-the-bit-and-flag-combinations.patch
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Reviewed-by: Martin Kletzander <mkletzan@redhat.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/printk-formats.txt |   12 ++++++------
- lib/vsprintf.c                   |    7 ++++---
- 2 files changed, 10 insertions(+), 9 deletions(-)
+ include/linux/gfp.h |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
-diff -puN Documentation/printk-formats.txt~lib-vsprintfc-update-documentation Documentation/printk-formats.txt
---- a/Documentation/printk-formats.txt~lib-vsprintfc-update-documentation
-+++ a/Documentation/printk-formats.txt
-@@ -23,6 +23,10 @@ Example:
- 
- Reminder: sizeof() result is of type size_t.
- 
-+The kernel's printf does not support %n. For obvious reasons, floating
-+point formats (%e, %f, %g, %a) are also not recognized. Use of any
-+unsupported specifier or length qualifier results in a WARN and early
-+return from vsnprintf.
- 
- Raw pointer value SHOULD be printed with %p. The kernel supports
- the following extended format specifiers for pointer types:
-@@ -305,13 +309,9 @@ Command from struct task_struct
- 
- 	Passed by reference.
- 
--Ignored argument:
-+If you add other %p extensions, please extend lib/test_printf.c with
-+one or more test cases, if at all feasible.
- 
--	%n	%n
--
--	The argument passed will be ignored.  In other words, literal "%n" will
--	be in the output and the argument will be considered for next format
--	specifier.
- 
- Thank you for your cooperation and attention.
- 
-diff -puN lib/vsprintf.c~lib-vsprintfc-update-documentation lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-update-documentation
-+++ a/lib/vsprintf.c
-@@ -1448,7 +1448,6 @@ int kptr_restrict __read_mostly;
-  * - 'Cn' For a clock, it prints the name (Common Clock Framework) or address
-  *        (legacy clock framework) of the clock
-  * - 'Cr' For a clock, it prints the current rate of the clock
-- * - 'n' For ignored argument
+diff -puN include/linux/gfp.h~mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix
++++ a/include/linux/gfp.h
+@@ -111,17 +111,18 @@ struct vm_area_struct;
   *
-  * ** Please update also Documentation/printk-formats.txt when making changes **
+  * __GFP_IO can start physical IO.
   *
-@@ -1814,8 +1813,10 @@ qualifier:
-  * @fmt: The format string to use
-  * @args: Arguments for the format string
+- * __GFP_FS can call down to the low-level FS. Avoids the allocator
+- *   recursing into the filesystem which might already be holding locks.
++ * __GFP_FS can call down to the low-level FS. Clearing the flag avoids the
++ *   allocator recursing into the filesystem which might already be holding
++ *   locks.
   *
-- * This function follows C99 vsnprintf, but has some extensions:
-- * %n is ignored
-+ * This function generally follows C99 vsnprintf, but has some
-+ * extensions and a few limitations:
+  * __GFP_DIRECT_RECLAIM indicates that the caller may enter direct reclaim.
+  *   This flag can be cleared to avoid unnecessary delays when a fallback
+  *   option is available.
+  *
+- * __GFP_KSWAPD_RECLAIM indicates that the caller wants kswapd when the low
+- *   watermark is reached and have it reclaim pages until the high watermark
+- *   is reached. A caller may wish to clear this flag when fallback options
+- *   are available and the reclaim is likely to disrupt the system. The
++ * __GFP_KSWAPD_RECLAIM indicates that the caller wants to wake kswapd when
++ *   the low watermark is reached and have it reclaim pages until the high
++ *   watermark is reached. A caller may wish to clear this flag when fallback
++ *   options are available and the reclaim is likely to disrupt the system. The
+  *   canonical example is THP allocation where a fallback is cheap but
+  *   reclaim/compaction may cause indirect stalls.
+  *
+@@ -209,11 +210,6 @@ struct vm_area_struct;
+  *   for buffers that are mapped to userspace (e.g. graphics) that hardware
+  *   still must DMA to. cpuset limits are enforced for these allocations.
+  *
+- * GFP_HIGHUSER is for userspace allocations that may be mapped to userspace,
+- *   do not need to be directly accessible by the kernel but that cannot
+- *   move once in use. An example may be a hardware allocation that maps
+- *   data directly into userspace but has no addressing limitations.
+- *
+  * GFP_DMA exists for historical reasons and should be avoided where possible.
+  *   The flags indicates that the caller requires that the lowest zone be
+  *   used (ZONE_DMA or 16M on x86-64). Ideally, this would be removed but
+@@ -224,6 +220,11 @@ struct vm_area_struct;
+  * GFP_DMA32 is similar to GFP_DMA except that the caller requires a 32-bit
+  *   address.
+  *
++ * GFP_HIGHUSER is for userspace allocations that may be mapped to userspace,
++ *   do not need to be directly accessible by the kernel but that cannot
++ *   move once in use. An example may be a hardware allocation that maps
++ *   data directly into userspace but has no addressing limitations.
 + *
-+ * %n is unsupported
-  * %p* is handled by pointer()
-  *
-  * See pointer() or Documentation/printk-formats.txt for more
+  * GFP_HIGHUSER_MOVABLE is for userspace allocations that the kernel does not
+  *   need direct access to but can use kmap() when access is required. They
+  *   are expected to be movable via page reclaim or page migration. Typically,
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-compilerh-add-support-for-function-attribute-assume_aligned.patch
-slabh-sprinkle-__assume_aligned-attributes.patch
-lib-dynamic_debugc-use-kstrdup_const.patch
-lib-vsprintfc-handle-invalid-format-specifiers-more-robustly.patch
-lib-vsprintfc-also-improve-sanity-check-in-bstr_printf.patch
-lib-vsprintfc-remove-special-handling-in-pointer.patch
-test_printf-test-printf-family-at-runtime.patch
-lib-vsprintfc-update-documentation.patch
-lib-introduce-kvasprintf_const.patch
-kobject-use-kvasprintf_const-for-formatting-name.patch
+mm-page_alloc-remove-unnecessary-parameter-from-zone_watermark_ok_safe.patch
+mm-page_alloc-remove-unnecessary-recalculations-for-dirty-zone-balancing.patch
+mm-page_alloc-remove-unnecessary-taking-of-a-seqlock-when-cpusets-are-disabled.patch
+mm-page_alloc-use-masks-and-shifts-when-converting-gfp-flags-to-migrate-types.patch
+mm-page_alloc-distinguish-between-being-unable-to-sleep-unwilling-to-sleep-and-avoiding-waking-kswapd.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim.patch
+mm-page_alloc-delete-the-zonelist_cache.patch
+mm-page_alloc-remove-migrate_reserve.patch
+mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand.patch
+mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix.patch
+mm-page_alloc-only-enforce-watermarks-for-order-0-allocations.patch
+mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix.patch
+mm-page_alloc-hide-some-GFP-internals-and-document-the-bit-and-flag-combinations.patch
+mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix.patch
 
