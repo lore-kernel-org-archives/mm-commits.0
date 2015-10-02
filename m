@@ -1,158 +1,159 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-make-mem_cgroup_read_stat-unsigned.patch removed
- from -mm tree
-Date: Fri, 02 Oct 2015 12:36:28 -0700
-Message-ID: <560edcbc.i3HCG0CHEfXLW+8O%akpm__8214.34742906622$1443814609$gmane$org@linux-foundation.org>
+Subject: [merged]
+ kprobe-use-_do_fork-in-samples-to-make-them-work-again.patch removed from
+ -mm tree
+Date: Fri, 02 Oct 2015 12:36:32 -0700
+Message-ID: <560edcc0.5i38XCaN/eXcCBbe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59701 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59712 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751052AbbJBTg3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Oct 2015 15:36:29 -0400
+	with ESMTP id S1751052AbbJBTgd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Oct 2015 15:36:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gthelen@google.com, hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: pmladek@suse.com, hpa@zytor.com, jkosina@suse.com, luto@kernel.org, masami.hiramatsu.pt@hitachi.com, mingo@redhat.com, peterz@infradead.org, tglx@linutronix.de, thiago.macieira@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: make mem_cgroup_read_stat() unsigned
+     Subject: kprobes: use _do_fork() in samples to make them work again
 has been removed from the -mm tree.  Its filename was
-     memcg-make-mem_cgroup_read_stat-unsigned.patch
+     kprobe-use-_do_fork-in-samples-to-make-them-work-again.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Greg Thelen <gthelen@google.com>
-Subject: memcg: make mem_cgroup_read_stat() unsigned
+From: Petr Mladek <pmladek@suse.com>
+Subject: kprobes: use _do_fork() in samples to make them work again
 
-mem_cgroup_read_stat() returns a page count by summing per cpu page
-counters.  The summing is racy wrt. updates, so a transient negative sum
-is possible.  Callers don't want negative values:
+3033f14ab78c32687 ("clone: support passing tls argument via C rather than
+pt_regs magic") introduced _do_fork() that allowed to pass @tls parameter.
 
-- mem_cgroup_wb_stats() doesn't want negative nr_dirty or
-  nr_writeback.  This could confuse dirty throttling.
+The old do_fork() is defined only for architectures that are not ready to
+use this way and do not define HAVE_COPY_THREAD_TLS.
 
-- oom reports and memory.stat shouldn't show confusing negative usage.
+Let's use _do_fork() in the kprobe examples to make them work again on all
+architectures.
 
-- tree_usage() already avoids negatives.
-
-Avoid returning negative page counts from mem_cgroup_read_stat() and
-convert it to unsigned.
-
-[akpm@linux-foundation.org: fix old typo while we're in there]
-Signed-off-by: Greg Thelen <gthelen@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>	[4.2+]
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Thiago Macieira <thiago.macieira@intel.com>
+Cc: Jiri Kosina <jkosina@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   30 ++++++++++++++++++------------
- 1 file changed, 18 insertions(+), 12 deletions(-)
+ samples/kprobes/jprobe_example.c    |   14 +++++++-------
+ samples/kprobes/kprobe_example.c    |    6 +++---
+ samples/kprobes/kretprobe_example.c |    4 ++--
+ 3 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-make-mem_cgroup_read_stat-unsigned mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-make-mem_cgroup_read_stat-unsigned
-+++ a/mm/memcontrol.c
-@@ -644,12 +644,14 @@ mem_cgroup_largest_soft_limit_node(struc
- }
+diff -puN samples/kprobes/jprobe_example.c~kprobe-use-_do_fork-in-samples-to-make-them-work-again samples/kprobes/jprobe_example.c
+--- a/samples/kprobes/jprobe_example.c~kprobe-use-_do_fork-in-samples-to-make-them-work-again
++++ a/samples/kprobes/jprobe_example.c
+@@ -1,13 +1,13 @@
+ /*
+  * Here's a sample kernel module showing the use of jprobes to dump
+- * the arguments of do_fork().
++ * the arguments of _do_fork().
+  *
+  * For more information on theory of operation of jprobes, see
+  * Documentation/kprobes.txt
+  *
+  * Build and insert the kernel module as done in the kprobe example.
+  * You will see the trace data in /var/log/messages and on the
+- * console whenever do_fork() is invoked to create a new process.
++ * console whenever _do_fork() is invoked to create a new process.
+  * (Some messages may be suppressed if syslogd is configured to
+  * eliminate duplicate messages.)
+  */
+@@ -17,13 +17,13 @@
+ #include <linux/kprobes.h>
  
  /*
-+ * Return page count for single (non recursive) @memcg.
-+ *
-  * Implementation Note: reading percpu statistics for memcg.
-  *
-  * Both of vmstat[] and percpu_counter has threshold and do periodic
-  * synchronization to implement "quick" read. There are trade-off between
-  * reading cost and precision of value. Then, we may have a chance to implement
-- * a periodic synchronizion of counter in memcg's counter.
-+ * a periodic synchronization of counter in memcg's counter.
-  *
-  * But this _read() function is used for user interface now. The user accounts
-  * memory usage by memory cgroup and he _always_ requires exact value because
-@@ -659,17 +661,24 @@ mem_cgroup_largest_soft_limit_node(struc
-  *
-  * If there are kernel internal actions which can make use of some not-exact
-  * value, and reading all cpu value can be performance bottleneck in some
-- * common workload, threashold and synchonization as vmstat[] should be
-+ * common workload, threshold and synchronization as vmstat[] should be
-  * implemented.
+- * Jumper probe for do_fork.
++ * Jumper probe for _do_fork.
+  * Mirror principle enables access to arguments of the probed routine
+  * from the probe handler.
   */
--static long mem_cgroup_read_stat(struct mem_cgroup *memcg,
--				 enum mem_cgroup_stat_index idx)
-+static unsigned long
-+mem_cgroup_read_stat(struct mem_cgroup *memcg, enum mem_cgroup_stat_index idx)
- {
- 	long val = 0;
- 	int cpu;
  
-+	/* Per-cpu values can be negative, use a signed accumulator */
- 	for_each_possible_cpu(cpu)
- 		val += per_cpu(memcg->stat->count[idx], cpu);
-+	/*
-+	 * Summing races with updates, so val may be negative.  Avoid exposing
-+	 * transient negative values.
-+	 */
-+	if (val < 0)
-+		val = 0;
- 	return val;
+-/* Proxy routine having the same arguments as actual do_fork() routine */
+-static long jdo_fork(unsigned long clone_flags, unsigned long stack_start,
++/* Proxy routine having the same arguments as actual _do_fork() routine */
++static long j_do_fork(unsigned long clone_flags, unsigned long stack_start,
+ 	      unsigned long stack_size, int __user *parent_tidptr,
+ 	      int __user *child_tidptr)
+ {
+@@ -36,9 +36,9 @@ static long jdo_fork(unsigned long clone
  }
  
-@@ -1254,7 +1263,7 @@ void mem_cgroup_print_oom_info(struct me
- 		for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
- 			if (i == MEM_CGROUP_STAT_SWAP && !do_swap_account)
- 				continue;
--			pr_cont(" %s:%ldKB", mem_cgroup_stat_names[i],
-+			pr_cont(" %s:%luKB", mem_cgroup_stat_names[i],
- 				K(mem_cgroup_read_stat(iter, i)));
- 		}
+ static struct jprobe my_jprobe = {
+-	.entry			= jdo_fork,
++	.entry			= j_do_fork,
+ 	.kp = {
+-		.symbol_name	= "do_fork",
++		.symbol_name	= "_do_fork",
+ 	},
+ };
  
-@@ -2819,14 +2828,11 @@ static unsigned long tree_stat(struct me
- 			       enum mem_cgroup_stat_index idx)
- {
- 	struct mem_cgroup *iter;
--	long val = 0;
-+	unsigned long val = 0;
+diff -puN samples/kprobes/kprobe_example.c~kprobe-use-_do_fork-in-samples-to-make-them-work-again samples/kprobes/kprobe_example.c
+--- a/samples/kprobes/kprobe_example.c~kprobe-use-_do_fork-in-samples-to-make-them-work-again
++++ a/samples/kprobes/kprobe_example.c
+@@ -1,13 +1,13 @@
+ /*
+  * NOTE: This example is works on x86 and powerpc.
+  * Here's a sample kernel module showing the use of kprobes to dump a
+- * stack trace and selected registers when do_fork() is called.
++ * stack trace and selected registers when _do_fork() is called.
+  *
+  * For more information on theory of operation of kprobes, see
+  * Documentation/kprobes.txt
+  *
+  * You will see the trace data in /var/log/messages and on the console
+- * whenever do_fork() is invoked to create a new process.
++ * whenever _do_fork() is invoked to create a new process.
+  */
  
--	/* Per-cpu values can be negative, use a signed accumulator */
- 	for_each_mem_cgroup_tree(iter, memcg)
- 		val += mem_cgroup_read_stat(iter, idx);
+ #include <linux/kernel.h>
+@@ -16,7 +16,7 @@
  
--	if (val < 0) /* race ? */
--		val = 0;
- 	return val;
- }
+ /* For each probe you need to allocate a kprobe structure */
+ static struct kprobe kp = {
+-	.symbol_name	= "do_fork",
++	.symbol_name	= "_do_fork",
+ };
  
-@@ -3169,7 +3175,7 @@ static int memcg_stat_show(struct seq_fi
- 	for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
- 		if (i == MEM_CGROUP_STAT_SWAP && !do_swap_account)
- 			continue;
--		seq_printf(m, "%s %ld\n", mem_cgroup_stat_names[i],
-+		seq_printf(m, "%s %lu\n", mem_cgroup_stat_names[i],
- 			   mem_cgroup_read_stat(memcg, i) * PAGE_SIZE);
- 	}
+ /* kprobe pre_handler: called just before the probed instruction is executed */
+diff -puN samples/kprobes/kretprobe_example.c~kprobe-use-_do_fork-in-samples-to-make-them-work-again samples/kprobes/kretprobe_example.c
+--- a/samples/kprobes/kretprobe_example.c~kprobe-use-_do_fork-in-samples-to-make-them-work-again
++++ a/samples/kprobes/kretprobe_example.c
+@@ -7,7 +7,7 @@
+  *
+  * usage: insmod kretprobe_example.ko func=<func_name>
+  *
+- * If no func_name is specified, do_fork is instrumented
++ * If no func_name is specified, _do_fork is instrumented
+  *
+  * For more information on theory of operation of kretprobes, see
+  * Documentation/kprobes.txt
+@@ -25,7 +25,7 @@
+ #include <linux/limits.h>
+ #include <linux/sched.h>
  
-@@ -3194,13 +3200,13 @@ static int memcg_stat_show(struct seq_fi
- 			   (u64)memsw * PAGE_SIZE);
- 
- 	for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
--		long long val = 0;
-+		unsigned long long val = 0;
- 
- 		if (i == MEM_CGROUP_STAT_SWAP && !do_swap_account)
- 			continue;
- 		for_each_mem_cgroup_tree(mi, memcg)
- 			val += mem_cgroup_read_stat(mi, i) * PAGE_SIZE;
--		seq_printf(m, "total_%s %lld\n", mem_cgroup_stat_names[i], val);
-+		seq_printf(m, "total_%s %llu\n", mem_cgroup_stat_names[i], val);
- 	}
- 
- 	for (i = 0; i < MEM_CGROUP_EVENTS_NSTATS; i++) {
+-static char func_name[NAME_MAX] = "do_fork";
++static char func_name[NAME_MAX] = "_do_fork";
+ module_param_string(func, func_name, NAME_MAX, S_IRUGO);
+ MODULE_PARM_DESC(func, "Function to kretprobe; this module will report the"
+ 			" function's execution time");
 _
 
-Patches currently in -mm which might be from gthelen@google.com are
+Patches currently in -mm which might be from pmladek@suse.com are
 
-fs-seqfile-always-allow-oom-killer.patch
 
