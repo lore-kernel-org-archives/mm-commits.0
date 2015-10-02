@@ -1,115 +1,133 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-slab-fix-unexpected-index-mapping-result-of-kmalloc_sizeindex_node1.patch removed from -mm tree
-Date: Fri, 02 Oct 2015 12:36:16 -0700
-Message-ID: <560edcb0.yFHuHIOliY2evBrN%akpm@linux-foundation.org>
+ mm-hugetlbfs-skip-shared-vmas-when-unmapping-private-pages-to-satisfy-a-fault.patch removed from -mm tree
+Date: Fri, 02 Oct 2015 12:36:22 -0700
+Message-ID: <560edcb6.n2gA2lCL+s31brIB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59668 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59685 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750715AbbJBTgR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Oct 2015 15:36:17 -0400
+	with ESMTP id S1751039AbbJBTgX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Oct 2015 15:36:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: js1304@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, liu.hailong6@zte.com.cn, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, aarcange@redhat.com, hughd@google.com, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, stable@vger.kernel.org, sund_sky@126.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: fix unexpected index mapping result of kmalloc_size(INDEX_NODE+1)
+     Subject: mm: hugetlbfs: skip shared VMAs when unmapping private pages to satisfy a fault
 has been removed from the -mm tree.  Its filename was
-     mm-slab-fix-unexpected-index-mapping-result-of-kmalloc_sizeindex_node1.patch
+     mm-hugetlbfs-skip-shared-vmas-when-unmapping-private-pages-to-satisfy-a-fault.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm/slab: fix unexpected index mapping result of kmalloc_size(INDEX_NODE+1)
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm: hugetlbfs: skip shared VMAs when unmapping private pages to satisfy a fault
 
-Commit description is copied from original post of this bug.
+SunDong reported the following on
+https://bugzilla.kernel.org/show_bug.cgi?id=103841
 
-http://comments.gmane.org/gmane.linux.kernel.mm/135349
+	I think I find a linux bug, I have the test cases is constructed. I
+	can stable recurring problems in fedora22(4.0.4) kernel version,
+	arch for x86_64.  I construct transparent huge page, when the parent
+	and child process with MAP_SHARE, MAP_PRIVATE way to access the same
+	huge page area, it has the opportunity to lead to huge page copy on
+	write failure, and then it will munmap the child corresponding mmap
+	area, but then the child mmap area with VM_MAYSHARE attributes, child
+	process munmap this area can trigger VM_BUG_ON in set_vma_resv_flags
+	functions (vma - > vm_flags & VM_MAYSHARE).
 
-Kernels after v3.9 use kmalloc_size(INDEX_NODE + 1) to get the next larger
-cache size than the size index INDEX_NODE mapping.  In kernels 3.9 and
-earlier we used malloc_sizes[INDEX_L3 + 1].cs_size.
+There were a number of problems with the report (e.g.  it's hugetlbfs that
+triggers this, not transparent huge pages) but it was fundamentally
+correct in that a VM_BUG_ON in set_vma_resv_flags() can be triggered that
+looks like this
 
-However, sometimes we can't get the right output we expected via
-kmalloc_size(INDEX_NODE + 1), causing a BUG().
+	 vma ffff8804651fd0d0 start 00007fc474e00000 end 00007fc475e00000
+	 next ffff8804651fd018 prev ffff8804651fd188 mm ffff88046b1b1800
+	 prot 8000000000000027 anon_vma           (null) vm_ops ffffffff8182a7a0
+	 pgoff 0 file ffff88106bdb9800 private_data           (null)
+	 flags: 0x84400fb(read|write|shared|mayread|maywrite|mayexec|mayshare|dontexpand|hugetlb)
+	 ------------
+	 kernel BUG at mm/hugetlb.c:462!
+	 SMP
+	 Modules linked in: xt_pkttype xt_LOG xt_limit iscsi_ibft iscsi_boot_sysfs af_packet ip6t_REJECT nf_reject_ipv6
+xt_tcpudp nf_conntrack_ipv6 nf_defrag_ipv6 ip6table_raw ipt_REJECT nf_reject_ipv4 iptable_raw xt_CT iptable_filter ip6table_mangle
+nf_conntrack_netbios_ns nf_conntrack_broadcast nf_conntrack_ipv4 nf_defrag_ipv4 ip_tables xt_conntrack nf_conntrack ip6table_filter
+ip6_tables x_tables intel_powerclamp coretemp kvm_intel kvm mgag200 ttm drm_kms_helper drm crct10dif_pclmul crc32_pclmul crc32c_intel
+ghash_clmulni_intel aesni_intel aes_x86_64 lrw ipmi_devintf gf128mul iTCO_wdt gpio_ich iTCO_vendor_support glue_helper ablk_helper
+dcdbas i7core_edac cryptd syscopyarea sysfillrect bnx2 sysimgblt lpc_ich serio_raw edac_core i2c_algo_bit shpchp mfd_core ipmi_si
+tpm_tis tpm ipmi_msghandler wmi acpi_power_meter button acpi_cpufreq processor dm_mod sr_mod cdrom ata_generic hid_generic usbhid hid
+uhci_hcd ehci_pci ehci_hcd usbcore ata_piix usb_common megaraid_sas sg
+	 CPU: 38 PID: 26839 Comm: map Not tainted 4.0.4-default #1
+	 Hardware name: Dell Inc. PowerEdge R810/0TT6JF, BIOS 2.7.4 04/26/2012
+	 task: ffff88085ed10490 ti: ffff88085ed14000 task.ti: ffff88085ed14000
+	 set_vma_resv_flags+0x2d/0x30
 
-The mapping table in the latest kernel is like:
-    index = {0,   1,  2 ,  3,  4,   5,   6,   n}
-     size = {0,   96, 192, 8, 16,  32,  64,   2^n}
-The mapping table before 3.10 is like this:
-    index = {0 , 1 , 2,   3,  4 ,  5 ,  6,   n}
-    size  = {32, 64, 96, 128, 192, 256, 512, 2^(n+3)}
+The VM_BUG_ON is correct because private and shared mappings have
+different reservation accounting but the warning clearly shows that the
+VMA is shared.
 
-The problem on my mips64 machine is as follows:
+When a private COW fails to allocate a new page then only the process that
+created the VMA gets the page -- all the children unmap the page.  If the
+children access that data in the future then they get killed.
 
-(1) When configured DEBUG_SLAB && DEBUG_PAGEALLOC && DEBUG_LOCK_ALLOC
-    && DEBUG_SPINLOCK, the sizeof(struct kmem_cache_node) will be "150",
-    and the macro INDEX_NODE turns out to be "2": #define INDEX_NODE
-    kmalloc_index(sizeof(struct kmem_cache_node))
+The problem is that the same file is mapped shared and private.  During
+the COW, the allocation fails, the VMAs are traversed to unmap the other
+private pages but a shared VMA is found and the bug is triggered.  This
+patch identifies such VMAs and skips them.
 
-(2) Then the result of kmalloc_size(INDEX_NODE + 1) is 8.
-
-(3) Then "if(size >= kmalloc_size(INDEX_NODE + 1)" will lead to "size
-    = PAGE_SIZE".
-
-(4) Then "if ((size >= (PAGE_SIZE >> 3))" test will be satisfied and
-    "flags |= CFLGS_OFF_SLAB" will be covered.
-
-(5) if (flags & CFLGS_OFF_SLAB)" test will be satisfied and will go to
-    "cachep->slabp_cache = kmalloc_slab(slab_size, 0u)", and the result
-    here may be NULL while kernel bootup.
-
-(6) Finally,"BUG_ON(ZERO_OR_NULL_PTR(cachep->slabp_cache));" causes the
-    BUG info as the following shows (may be only mips64 has this problem):
-
-This patch fixes the problem of kmalloc_size(INDEX_NODE + 1) and removes
-the BUG by adding 'size >= 256' check to guarantee that all necessary
-small sized slabs are initialized regardless sequence of slab size in
-mapping table.
-
-Fixes: e33660165c90 ("slab: Use common kmalloc_index/kmalloc_size...")
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reported-by: Liuhailong <liu.hailong6@zte.com.cn>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reported-by: SunDong <sund_sky@126.com>
+Reviewed-by: Michal Hocko <mhocko@suse.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: David Rientjes <rientjes@google.com>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   13 ++++++++++---
- 1 file changed, 10 insertions(+), 3 deletions(-)
+ mm/hugetlb.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN mm/slab.c~mm-slab-fix-unexpected-index-mapping-result-of-kmalloc_sizeindex_node1 mm/slab.c
---- a/mm/slab.c~mm-slab-fix-unexpected-index-mapping-result-of-kmalloc_sizeindex_node1
-+++ a/mm/slab.c
-@@ -2190,9 +2190,16 @@ __kmem_cache_create (struct kmem_cache *
- 			size += BYTES_PER_WORD;
- 	}
- #if FORCED_DEBUG && defined(CONFIG_DEBUG_PAGEALLOC)
--	if (size >= kmalloc_size(INDEX_NODE + 1)
--	    && cachep->object_size > cache_line_size()
--	    && ALIGN(size, cachep->align) < PAGE_SIZE) {
-+	/*
-+	 * To activate debug pagealloc, off-slab management is necessary
-+	 * requirement. In early phase of initialization, small sized slab
-+	 * doesn't get initialized so it would not be possible. So, we need
-+	 * to check size >= 256. It guarantees that all necessary small
-+	 * sized slab is initialized in current slab initialization sequence.
-+	 */
-+	if (!slab_early_init && size >= kmalloc_size(INDEX_NODE) &&
-+		size >= 256 && cachep->object_size > cache_line_size() &&
-+		ALIGN(size, cachep->align) < PAGE_SIZE) {
- 		cachep->obj_offset += PAGE_SIZE - ALIGN(size, cachep->align);
- 		size = PAGE_SIZE;
- 	}
+diff -puN mm/hugetlb.c~mm-hugetlbfs-skip-shared-vmas-when-unmapping-private-pages-to-satisfy-a-fault mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbfs-skip-shared-vmas-when-unmapping-private-pages-to-satisfy-a-fault
++++ a/mm/hugetlb.c
+@@ -3202,6 +3202,14 @@ static void unmap_ref_private(struct mm_
+ 			continue;
+ 
+ 		/*
++		 * Shared VMAs have their own reserves and do not affect
++		 * MAP_PRIVATE accounting but it is possible that a shared
++		 * VMA is using the same page so check and skip such VMAs.
++		 */
++		if (iter_vma->vm_flags & VM_MAYSHARE)
++			continue;
++
++		/*
+ 		 * Unmap the page from other VMAs without their own reserves.
+ 		 * They get marked to be SIGKILLed if they fault in these
+ 		 * areas. This is because a future no-page fault on this VMA
 _
 
-Patches currently in -mm which might be from js1304@gmail.com are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
+mm-page_alloc-remove-unnecessary-parameter-from-zone_watermark_ok_safe.patch
+mm-page_alloc-remove-unnecessary-recalculations-for-dirty-zone-balancing.patch
+mm-page_alloc-remove-unnecessary-taking-of-a-seqlock-when-cpusets-are-disabled.patch
+mm-page_alloc-use-masks-and-shifts-when-converting-gfp-flags-to-migrate-types.patch
+mm-page_alloc-distinguish-between-being-unable-to-sleep-unwilling-to-sleep-and-avoiding-waking-kswapd.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim.patch
+mm-page_alloc-delete-the-zonelist_cache.patch
+mm-page_alloc-remove-migrate_reserve.patch
+mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand.patch
+mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix.patch
+mm-page_alloc-only-enforce-watermarks-for-order-0-allocations.patch
+mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix.patch
+mm-page_alloc-hide-some-GFP-internals-and-document-the-bit-and-flag-combinations.patch
 
