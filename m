@@ -1,133 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hugetlbfs-skip-shared-vmas-when-unmapping-private-pages-to-satisfy-a-fault.patch removed from -mm tree
-Date: Fri, 02 Oct 2015 12:36:22 -0700
-Message-ID: <560edcb6.n2gA2lCL+s31brIB%akpm@linux-foundation.org>
+Subject: [merged] memcg-fix-dirty-page-migration.patch removed from -mm
+ tree
+Date: Fri, 02 Oct 2015 12:36:25 -0700
+Message-ID: <560edcb9.dA0a4tAAlfIXXY6W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59685 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59691 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751039AbbJBTgX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Oct 2015 15:36:23 -0400
+	with ESMTP id S1751052AbbJBTg0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Oct 2015 15:36:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, aarcange@redhat.com, hughd@google.com, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, stable@vger.kernel.org, sund_sky@126.com, mm-commits@vger.kernel.org
+To: gthelen@google.com, dave.hansen@intel.com, hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlbfs: skip shared VMAs when unmapping private pages to satisfy a fault
+     Subject: memcg: fix dirty page migration
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbfs-skip-shared-vmas-when-unmapping-private-pages-to-satisfy-a-fault.patch
+     memcg-fix-dirty-page-migration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: hugetlbfs: skip shared VMAs when unmapping private pages to satisfy a fault
+From: Greg Thelen <gthelen@google.com>
+Subject: memcg: fix dirty page migration
 
-SunDong reported the following on
-https://bugzilla.kernel.org/show_bug.cgi?id=103841
+The problem starts with a file backed dirty page which is charged to a
+memcg.  Then page migration is used to move oldpage to newpage.
 
-	I think I find a linux bug, I have the test cases is constructed. I
-	can stable recurring problems in fedora22(4.0.4) kernel version,
-	arch for x86_64.  I construct transparent huge page, when the parent
-	and child process with MAP_SHARE, MAP_PRIVATE way to access the same
-	huge page area, it has the opportunity to lead to huge page copy on
-	write failure, and then it will munmap the child corresponding mmap
-	area, but then the child mmap area with VM_MAYSHARE attributes, child
-	process munmap this area can trigger VM_BUG_ON in set_vma_resv_flags
-	functions (vma - > vm_flags & VM_MAYSHARE).
+Migration:
+- copies the oldpage's data to newpage
+- clears oldpage.PG_dirty
+- sets newpage.PG_dirty
+- uncharges oldpage from memcg
+- charges newpage to memcg
 
-There were a number of problems with the report (e.g.  it's hugetlbfs that
-triggers this, not transparent huge pages) but it was fundamentally
-correct in that a VM_BUG_ON in set_vma_resv_flags() can be triggered that
-looks like this
+Clearing oldpage.PG_dirty decrements the charged memcg's dirty page count.
+ However, because newpage is not yet charged, setting newpage.PG_dirty
+does not increment the memcg's dirty page count.  After migration
+completes newpage.PG_dirty is eventually cleared, often in
+account_page_cleaned().  At this time newpage is charged to a memcg so the
+memcg's dirty page count is decremented which causes underflow because the
+count was not previously incremented by migration.  This underflow causes
+balance_dirty_pages() to see a very large unsigned number of dirty memcg
+pages which leads to aggressive throttling of buffered writes by processes
+in non root memcg.
 
-	 vma ffff8804651fd0d0 start 00007fc474e00000 end 00007fc475e00000
-	 next ffff8804651fd018 prev ffff8804651fd188 mm ffff88046b1b1800
-	 prot 8000000000000027 anon_vma           (null) vm_ops ffffffff8182a7a0
-	 pgoff 0 file ffff88106bdb9800 private_data           (null)
-	 flags: 0x84400fb(read|write|shared|mayread|maywrite|mayexec|mayshare|dontexpand|hugetlb)
-	 ------------
-	 kernel BUG at mm/hugetlb.c:462!
-	 SMP
-	 Modules linked in: xt_pkttype xt_LOG xt_limit iscsi_ibft iscsi_boot_sysfs af_packet ip6t_REJECT nf_reject_ipv6
-xt_tcpudp nf_conntrack_ipv6 nf_defrag_ipv6 ip6table_raw ipt_REJECT nf_reject_ipv4 iptable_raw xt_CT iptable_filter ip6table_mangle
-nf_conntrack_netbios_ns nf_conntrack_broadcast nf_conntrack_ipv4 nf_defrag_ipv4 ip_tables xt_conntrack nf_conntrack ip6table_filter
-ip6_tables x_tables intel_powerclamp coretemp kvm_intel kvm mgag200 ttm drm_kms_helper drm crct10dif_pclmul crc32_pclmul crc32c_intel
-ghash_clmulni_intel aesni_intel aes_x86_64 lrw ipmi_devintf gf128mul iTCO_wdt gpio_ich iTCO_vendor_support glue_helper ablk_helper
-dcdbas i7core_edac cryptd syscopyarea sysfillrect bnx2 sysimgblt lpc_ich serio_raw edac_core i2c_algo_bit shpchp mfd_core ipmi_si
-tpm_tis tpm ipmi_msghandler wmi acpi_power_meter button acpi_cpufreq processor dm_mod sr_mod cdrom ata_generic hid_generic usbhid hid
-uhci_hcd ehci_pci ehci_hcd usbcore ata_piix usb_common megaraid_sas sg
-	 CPU: 38 PID: 26839 Comm: map Not tainted 4.0.4-default #1
-	 Hardware name: Dell Inc. PowerEdge R810/0TT6JF, BIOS 2.7.4 04/26/2012
-	 task: ffff88085ed10490 ti: ffff88085ed14000 task.ti: ffff88085ed14000
-	 set_vma_resv_flags+0x2d/0x30
+This issue:
+- can harm performance of non root memcg buffered writes.
+- can report too small (even negative) values in
+  memory.stat[(total_)dirty] counters of all memcg, including the root.
 
-The VM_BUG_ON is correct because private and shared mappings have
-different reservation accounting but the warning clearly shows that the
-VMA is shared.
+To avoid polluting migrate.c with #ifdef CONFIG_MEMCG checks, introduce
+page_memcg() and set_page_memcg() helpers.
 
-When a private COW fails to allocate a new page then only the process that
-created the VMA gets the page -- all the children unmap the page.  If the
-children access that data in the future then they get killed.
+Test:
+    0) setup and enter limited memcg
+    mkdir /sys/fs/cgroup/test
+    echo 1G > /sys/fs/cgroup/test/memory.limit_in_bytes
+    echo $$ > /sys/fs/cgroup/test/cgroup.procs
 
-The problem is that the same file is mapped shared and private.  During
-the COW, the allocation fails, the VMAs are traversed to unmap the other
-private pages but a shared VMA is found and the bug is triggered.  This
-patch identifies such VMAs and skips them.
+    1) buffered writes baseline
+    dd if=/dev/zero of=/data/tmp/foo bs=1M count=1k
+    sync
+    grep ^dirty /sys/fs/cgroup/test/memory.stat
 
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reported-by: SunDong <sund_sky@126.com>
-Reviewed-by: Michal Hocko <mhocko@suse.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: David Rientjes <rientjes@google.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: <stable@vger.kernel.org>
+    2) buffered writes with compaction antagonist to induce migration
+    yes 1 > /proc/sys/vm/compact_memory &
+    rm -rf /data/tmp/foo
+    dd if=/dev/zero of=/data/tmp/foo bs=1M count=1k
+    kill %
+    sync
+    grep ^dirty /sys/fs/cgroup/test/memory.stat
+
+    3) buffered writes without antagonist, should match baseline
+    rm -rf /data/tmp/foo
+    dd if=/dev/zero of=/data/tmp/foo bs=1M count=1k
+    sync
+    grep ^dirty /sys/fs/cgroup/test/memory.stat
+
+                       (speed, dirty residue)
+             unpatched                       patched
+    1) 841 MB/s 0 dirty pages          886 MB/s 0 dirty pages
+    2) 611 MB/s -33427456 dirty pages  793 MB/s 0 dirty pages
+    3) 114 MB/s -33427456 dirty pages  891 MB/s 0 dirty pages
+
+    Notice that unpatched baseline performance (1) fell after
+    migration (3): 841 -> 114 MB/s.  In the patched kernel, post
+    migration performance matches baseline.
+
+Fixes: c4843a7593a9 ("memcg: add per cgroup dirty page accounting")
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Reported-by: Dave Hansen <dave.hansen@intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>	[4.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/mm.h |   21 +++++++++++++++++++++
+ mm/migrate.c       |   12 +++++++++++-
+ 2 files changed, 32 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlbfs-skip-shared-vmas-when-unmapping-private-pages-to-satisfy-a-fault mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbfs-skip-shared-vmas-when-unmapping-private-pages-to-satisfy-a-fault
-+++ a/mm/hugetlb.c
-@@ -3202,6 +3202,14 @@ static void unmap_ref_private(struct mm_
- 			continue;
+diff -puN include/linux/mm.h~memcg-fix-dirty-page-migration include/linux/mm.h
+--- a/include/linux/mm.h~memcg-fix-dirty-page-migration
++++ a/include/linux/mm.h
+@@ -905,6 +905,27 @@ static inline void set_page_links(struct
+ #endif
+ }
  
- 		/*
-+		 * Shared VMAs have their own reserves and do not affect
-+		 * MAP_PRIVATE accounting but it is possible that a shared
-+		 * VMA is using the same page so check and skip such VMAs.
-+		 */
-+		if (iter_vma->vm_flags & VM_MAYSHARE)
-+			continue;
++#ifdef CONFIG_MEMCG
++static inline struct mem_cgroup *page_memcg(struct page *page)
++{
++	return page->mem_cgroup;
++}
 +
-+		/*
- 		 * Unmap the page from other VMAs without their own reserves.
- 		 * They get marked to be SIGKILLed if they fault in these
- 		 * areas. This is because a future no-page fault on this VMA
++static inline void set_page_memcg(struct page *page, struct mem_cgroup *memcg)
++{
++	page->mem_cgroup = memcg;
++}
++#else
++static inline struct mem_cgroup *page_memcg(struct page *page)
++{
++	return NULL;
++}
++
++static inline void set_page_memcg(struct page *page, struct mem_cgroup *memcg)
++{
++}
++#endif
++
+ /*
+  * Some inline functions in vmstat.h depend on page_zone()
+  */
+diff -puN mm/migrate.c~memcg-fix-dirty-page-migration mm/migrate.c
+--- a/mm/migrate.c~memcg-fix-dirty-page-migration
++++ a/mm/migrate.c
+@@ -740,6 +740,15 @@ static int move_to_new_page(struct page
+ 	if (PageSwapBacked(page))
+ 		SetPageSwapBacked(newpage);
+ 
++	/*
++	 * Indirectly called below, migrate_page_copy() copies PG_dirty and thus
++	 * needs newpage's memcg set to transfer memcg dirty page accounting.
++	 * So perform memcg migration in two steps:
++	 * 1. set newpage->mem_cgroup (here)
++	 * 2. clear page->mem_cgroup (below)
++	 */
++	set_page_memcg(newpage, page_memcg(page));
++
+ 	mapping = page_mapping(page);
+ 	if (!mapping)
+ 		rc = migrate_page(mapping, newpage, page, mode);
+@@ -756,9 +765,10 @@ static int move_to_new_page(struct page
+ 		rc = fallback_migrate_page(mapping, newpage, page, mode);
+ 
+ 	if (rc != MIGRATEPAGE_SUCCESS) {
++		set_page_memcg(newpage, NULL);
+ 		newpage->mapping = NULL;
+ 	} else {
+-		mem_cgroup_migrate(page, newpage, false);
++		set_page_memcg(page, NULL);
+ 		if (page_was_mapped)
+ 			remove_migration_ptes(page, newpage);
+ 		page->mapping = NULL;
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from gthelen@google.com are
 
-mm-page_alloc-remove-unnecessary-parameter-from-zone_watermark_ok_safe.patch
-mm-page_alloc-remove-unnecessary-recalculations-for-dirty-zone-balancing.patch
-mm-page_alloc-remove-unnecessary-taking-of-a-seqlock-when-cpusets-are-disabled.patch
-mm-page_alloc-use-masks-and-shifts-when-converting-gfp-flags-to-migrate-types.patch
-mm-page_alloc-distinguish-between-being-unable-to-sleep-unwilling-to-sleep-and-avoiding-waking-kswapd.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim.patch
-mm-page_alloc-delete-the-zonelist_cache.patch
-mm-page_alloc-remove-migrate_reserve.patch
-mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand.patch
-mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix.patch
-mm-page_alloc-only-enforce-watermarks-for-order-0-allocations.patch
-mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix.patch
-mm-page_alloc-hide-some-GFP-internals-and-document-the-bit-and-flag-combinations.patch
+fs-seqfile-always-allow-oom-killer.patch
 
