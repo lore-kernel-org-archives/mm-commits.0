@@ -1,87 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dax-fix-null-pointer-in-__dax_pmd_fault.patch removed
- from -mm tree
-Date: Fri, 02 Oct 2015 12:36:19 -0700
-Message-ID: <560edcb3.FraoaudyKHeH4zk5%akpm@linux-foundation.org>
+Subject: [merged] memcg-remove-pcp_counter_lock.patch removed from -mm
+ tree
+Date: Fri, 02 Oct 2015 12:36:35 -0700
+Message-ID: <560edcc3.+DMUHDEzOt2ni2uZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59676 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59720 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751027AbbJBTgU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Oct 2015 15:36:20 -0400
+	with ESMTP id S1751052AbbJBTgf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Oct 2015 15:36:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, david@fromorbit.com, kirill.shutemov@linux.intel.com, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: gthelen@google.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: fix NULL pointer in __dax_pmd_fault()
+     Subject: memcg: remove pcp_counter_lock
 has been removed from the -mm tree.  Its filename was
-     dax-fix-null-pointer-in-__dax_pmd_fault.patch
+     memcg-remove-pcp_counter_lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: fix NULL pointer in __dax_pmd_fault()
+From: Greg Thelen <gthelen@google.com>
+Subject: memcg: remove pcp_counter_lock
 
-46c043ede471 ("mm: take i_mmap_lock in unmap_mapping_range() for DAX")
-moved some code in __dax_pmd_fault() that was responsible for zeroing
-newly allocated PMD pages.  The new location didn't properly set up
-'kaddr', so when run this code resulted in a NULL pointer BUG.
+Commit 733a572e66d2 ("memcg: make mem_cgroup_read_{stat|event}() iterate
+possible cpus instead of online") removed the last use of the per memcg
+pcp_counter_lock but forgot to remove the variable.
 
-Fix this by getting the correct 'kaddr' via bdev_direct_access().
+Kill the vestigial variable.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ include/linux/memcontrol.h |    1 -
+ mm/memcontrol.c            |    1 -
+ 2 files changed, 2 deletions(-)
 
-diff -puN fs/dax.c~dax-fix-null-pointer-in-__dax_pmd_fault fs/dax.c
---- a/fs/dax.c~dax-fix-null-pointer-in-__dax_pmd_fault
-+++ a/fs/dax.c
-@@ -569,8 +569,20 @@ int __dax_pmd_fault(struct vm_area_struc
- 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
- 		goto fallback;
+diff -puN include/linux/memcontrol.h~memcg-remove-pcp_counter_lock include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-remove-pcp_counter_lock
++++ a/include/linux/memcontrol.h
+@@ -242,7 +242,6 @@ struct mem_cgroup {
+ 	 * percpu counter.
+ 	 */
+ 	struct mem_cgroup_stat_cpu __percpu *stat;
+-	spinlock_t pcp_counter_lock;
  
-+	sector = bh.b_blocknr << (blkbits - 9);
-+
- 	if (buffer_unwritten(&bh) || buffer_new(&bh)) {
- 		int i;
-+
-+		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
-+						bh.b_size);
-+		if (length < 0) {
-+			result = VM_FAULT_SIGBUS;
-+			goto out;
-+		}
-+		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
-+			goto fallback;
-+
- 		for (i = 0; i < PTRS_PER_PMD; i++)
- 			clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
- 		wmb_pmem();
-@@ -623,7 +635,6 @@ int __dax_pmd_fault(struct vm_area_struc
- 		result = VM_FAULT_NOPAGE;
- 		spin_unlock(ptl);
- 	} else {
--		sector = bh.b_blocknr << (blkbits - 9);
- 		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
- 						bh.b_size);
- 		if (length < 0) {
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_INET)
+ 	struct cg_proto tcp_mem;
+diff -puN mm/memcontrol.c~memcg-remove-pcp_counter_lock mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-remove-pcp_counter_lock
++++ a/mm/memcontrol.c
+@@ -4185,7 +4185,6 @@ static struct mem_cgroup *mem_cgroup_all
+ 	if (memcg_wb_domain_init(memcg, GFP_KERNEL))
+ 		goto out_free_stat;
+ 
+-	spin_lock_init(&memcg->pcp_counter_lock);
+ 	return memcg;
+ 
+ out_free_stat:
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
+fs-seqfile-always-allow-oom-killer.patch
 
