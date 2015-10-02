@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + include-linux-mmzoneh-reflow-comment.patch added to -mm tree
-Date: Thu, 01 Oct 2015 16:26:18 -0700
-Message-ID: <560dc11a.Mn7lc20DEU+Simb+%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Fri, 02 Oct 2015 12:35:41 -0700
+Message-ID: <560edc8d.K0vhRlrki59214CQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33205 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59635 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750947AbbJAX0S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 1 Oct 2015 19:26:18 -0400
+	with ESMTP id S1750973AbbJBTfm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Oct 2015 15:35:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/mmzone.h: reflow comment
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     include-linux-mmzoneh-reflow-comment.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-mmzoneh-reflow-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-mmzoneh-reflow-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,39 +39,67 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/mmzone.h: reflow comment
-
-Someone has an 86 column display.
+Subject: linux-next-git-rejects
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |   13 +++++++------
- 1 file changed, 7 insertions(+), 6 deletions(-)
+ drivers/acpi/ec.c |   20 --------------------
+ net/dsa/slave.c   |    4 ----
+ 2 files changed, 24 deletions(-)
 
-diff -puN include/linux/mmzone.h~include-linux-mmzoneh-reflow-comment include/linux/mmzone.h
---- a/include/linux/mmzone.h~include-linux-mmzoneh-reflow-comment
-+++ a/include/linux/mmzone.h
-@@ -337,12 +337,13 @@ struct zone {
- 	unsigned long nr_reserved_highatomic;
+diff -puN drivers/acpi/ec.c~linux-next-git-rejects drivers/acpi/ec.c
+--- a/drivers/acpi/ec.c~linux-next-git-rejects
++++ a/drivers/acpi/ec.c
+@@ -1081,25 +1081,6 @@ static int acpi_ec_query(struct acpi_ec
+ 	if (result)
+ 		goto err_exit;
  
- 	/*
--	 * We don't know if the memory that we're going to allocate will be freeable
--	 * or/and it will be released eventually, so to avoid totally wasting several
--	 * GB of ram we must reserve some of the lower zone memory (otherwise we risk
--	 * to run OOM on the lower zones despite there's tons of freeable ram
--	 * on the higher zones). This array is recalculated at runtime if the
--	 * sysctl_lowmem_reserve_ratio sysctl changes.
-+	 * We don't know if the memory that we're going to allocate will be
-+	 * freeable or/and it will be released eventually, so to avoid totally
-+	 * wasting several GB of ram we must reserve some of the lower zone
-+	 * memory (otherwise we risk to run OOM on the lower zones despite
-+	 * there being tons of freeable ram on the higher zones).  This array is
-+	 * recalculated at runtime if the sysctl_lowmem_reserve_ratio sysctl
-+	 * changes.
- 	 */
- 	long lowmem_reserve[MAX_NR_ZONES];
+-<<<<<<< HEAD
+-	mutex_lock(&ec->mutex);
+-	result = -ENODATA;
+-	list_for_each_entry(handler, &ec->list, node) {
+-		if (value == handler->query_bit) {
+-			result = 0;
+-			q->handler = acpi_ec_get_query_handler(handler);
+-			ec_dbg_evt("Query(0x%02x) scheduled",
+-				   q->handler->query_bit);
+-			/*
+-			 * It is reported that _Qxx are evaluated in a
+-			 * parallel way on Windows:
+-			 * https://bugzilla.kernel.org/show_bug.cgi?id=94411
+-			 */
+-			if (!schedule_work(&q->work))
+-				result = -EBUSY;
+-			break;
+-		}
+-=======
+ 	q->handler = acpi_ec_get_query_handler_by_value(ec, value);
+ 	if (!q->handler) {
+ 		result = -ENODATA;
+@@ -1119,7 +1100,6 @@ static int acpi_ec_query(struct acpi_ec
+ 	if (!schedule_work(&q->work)) {
+ 		ec_dbg_evt("Query(0x%02x) overlapped", value);
+ 		result = -EBUSY;
+->>>>>>> linux-next/akpm-base
+ 	}
  
+ err_exit:
+diff -puN net/dsa/slave.c~linux-next-git-rejects net/dsa/slave.c
+--- a/net/dsa/slave.c~linux-next-git-rejects
++++ a/net/dsa/slave.c
+@@ -459,11 +459,7 @@ static int dsa_slave_port_attr_set(struc
+ 
+ 	switch (attr->id) {
+ 	case SWITCHDEV_ATTR_PORT_STP_STATE:
+-<<<<<<< HEAD
+-		if (attr->trans == SWITCHDEV_TRANS_PREPARE)
+-=======
+ 		if (switchdev_trans_ph_prepare(trans))
+->>>>>>> linux-next/akpm-base
+ 			ret = ds->drv->port_stp_update ? 0 : -EOPNOTSUPP;
+ 		else
+ 			ret = ds->drv->port_stp_update(ds, p->port,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,7 +107,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-gpu-drm-i915-intel_spritec-fix-build.patch
 drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-drivers-input-joystick-kconfig-zhenhuac-needs-bitreverse.patch
 mm.patch
 slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
 uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
@@ -110,4 +137,5 @@ remove-abs64-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
+linux-next-git-rejects.patch
 
