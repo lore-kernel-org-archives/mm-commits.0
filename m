@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + pcnet32-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
+Subject: + saa7164-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
  added to -mm tree
-Date: Mon, 05 Oct 2015 14:29:05 -0700
-Message-ID: <5612eba1.43i0ymFd9ilcQlc0%akpm@linux-foundation.org>
+Date: Mon, 05 Oct 2015 14:29:10 -0700
+Message-ID: <5612eba6.DsxC6ZH31/MExR2e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42784 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42805 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241AbbJEV3H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2015 17:29:07 -0400
+	with ESMTP id S1751241AbbJEV3L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2015 17:29:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, acourbot@nvidia.com, airlied@linux.ie, airlied@redhat.com, bskeggs@redhat.com, daniel.vetter@ffwll.ch, davem@davemloft.net, deller@gmx.de, gregkh@linuxfoundation.org, hans.verkuil@cisco.com, hverkuil@xs4all.nl, jejb@parisc-linux.org, jslaby@suse.com, khoroshilov@ispras.ru, linux-net-drivers@solarflare.com, mchehab@osg.samsung.com, pawel@osciak.com, sakari.ailus@linux.intel.com, serjk@netup.ru, sshah@solarflare.com, stern@rowland.harvard.edu, stoth@kernellabs.com, treding@nvidia.com, mm-commits@vger.kernel.org
+To: hch@lst.de, hverkuil@xs4all.nl, mchehab@osg.samsung.com, stoth@kernellabs.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pcnet32: use pci_set_dma_mask insted of pci_dma_supported
+     Subject: saa7164: use pci_set_dma_mask insted of pci_dma_supported
 has been added to the -mm tree.  Its filename is
-     pcnet32-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
+     saa7164-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pcnet32-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/saa7164-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pcnet32-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/saa7164-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,62 +40,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: pcnet32: use pci_set_dma_mask insted of pci_dma_supported
-
-All drivers should be using dma_set_mask / pci_set_dma_mask to try
-to set the dma mask instead of just querying it.  Without that some
-iommu implementations may not work.
-
-pci_dma_supported is removed entirely, but dma_supported stays for
-dma_ops implementations for now.
-
-This patch (of 15):
+Subject: saa7164: use pci_set_dma_mask insted of pci_dma_supported
 
 This ensures the dma mask that is supported by the driver is recorded
 in the device structure.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Alexandre Courbot <acourbot@nvidia.com>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Jiri Slaby <jslaby@suse.com>
 Cc: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
-Cc: Pawel Osciak <pawel@osciak.com>
-Cc: Sakari Ailus <sakari.ailus@linux.intel.com>
-Cc: Sergey Kozlov <serjk@netup.ru>
-Cc: Shradha Shah <sshah@solarflare.com>
-Cc: Solarflare linux maintainers <linux-net-drivers@solarflare.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
 Cc: Steven Toth <stoth@kernellabs.com>
-Cc: Thierry Reding <treding@nvidia.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/amd/pcnet32.c |    2 +-
+ drivers/media/pci/saa7164/saa7164-core.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/ethernet/amd/pcnet32.c~pcnet32-use-pci_set_dma_mask-insted-of-pci_dma_supported drivers/net/ethernet/amd/pcnet32.c
---- a/drivers/net/ethernet/amd/pcnet32.c~pcnet32-use-pci_set_dma_mask-insted-of-pci_dma_supported
-+++ a/drivers/net/ethernet/amd/pcnet32.c
-@@ -1500,7 +1500,7 @@ pcnet32_probe_pci(struct pci_dev *pdev,
- 		return -ENODEV;
- 	}
+diff -puN drivers/media/pci/saa7164/saa7164-core.c~saa7164-use-pci_set_dma_mask-insted-of-pci_dma_supported drivers/media/pci/saa7164/saa7164-core.c
+--- a/drivers/media/pci/saa7164/saa7164-core.c~saa7164-use-pci_set_dma_mask-insted-of-pci_dma_supported
++++ a/drivers/media/pci/saa7164/saa7164-core.c
+@@ -1264,7 +1264,7 @@ static int saa7164_initdev(struct pci_de
  
--	if (!pci_dma_supported(pdev, PCNET32_DMA_MASK)) {
-+	if (!pci_set_dma_mask(pdev, PCNET32_DMA_MASK)) {
- 		if (pcnet32_debug & NETIF_MSG_PROBE)
- 			pr_err("architecture does not support 32bit PCI busmaster DMA\n");
- 		return -ENODEV;
+ 	pci_set_master(pci_dev);
+ 	/* TODO */
+-	if (!pci_dma_supported(pci_dev, 0xffffffff)) {
++	if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
+ 		printk("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
+ 		err = -EIO;
+ 		goto fail_irq;
 _
 
 Patches currently in -mm which might be from hch@lst.de are
