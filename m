@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-remove-obsolete-flag-in_crash_kexec.patch added to -mm
- tree
-Date: Mon, 05 Oct 2015 13:25:26 -0700
-Message-ID: <5612dcb6.KsO/ofyyNZTYL/cx%akpm@linux-foundation.org>
+Subject: + mm-mmapc-remove-redundant-statement-error-=-enomem.patch added
+ to -mm tree
+Date: Mon, 05 Oct 2015 13:35:11 -0700
+Message-ID: <5612deff.3V2I/pKERf4M/aev%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56956 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58675 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750892AbbJEUZ1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2015 16:25:27 -0400
+	with ESMTP id S1751255AbbJEUfM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2015 16:35:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mnfhuang@gmail.com, dzickus@redhat.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: xili_gchen_5257@hotmail.com, gang.chen.5i5j@gmail.com, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: Remove obsolete flag 'in_crash_kexec'
+     Subject: mm/mmap.c: remove redundant statement "error = -ENOMEM"
 has been added to the -mm tree.  Its filename is
-     kexec-remove-obsolete-flag-in_crash_kexec.patch
+     mm-mmapc-remove-redundant-statement-error-=-enomem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-remove-obsolete-flag-in_crash_kexec.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmapc-remove-redundant-statement-error-%3D-enomem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-remove-obsolete-flag-in_crash_kexec.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmapc-remove-redundant-statement-error-%3D-enomem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +39,34 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minfei Huang <mnfhuang@gmail.com>
-Subject: kexec: Remove obsolete flag 'in_crash_kexec'
+From: Chen Gang <xili_gchen_5257@hotmail.com>
+Subject: mm/mmap.c: remove redundant statement "error = -ENOMEM"
 
-Previously, UV NMI used 'in_crash_kexec' flag to be sure that we are in
-kdump kernel or not in commit 5edd19af18a36a4e ("x86, UV: Make kdump avoid
-stack dumps").  But this flags is removed in commit 9c48f1c629ecfa114850c0
-("x86, nmi: Wire up NMI handlers to new routines").
+It is still a little better to remove it, although it should be skipped
+by "-O2".
 
-Since it isn't used any more, remove it.
-
-Signed-off-by: Minfei Huang <mnfhuang@gmail.com>
-Acked-by: Don Zickus <dzickus@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>=0A=
+Acked-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/kdebug.h |    6 ------
- arch/x86/kernel/crash.c       |    3 ---
- 2 files changed, 9 deletions(-)
+ mm/mmap.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/x86/include/asm/kdebug.h~kexec-remove-obsolete-flag-in_crash_kexec arch/x86/include/asm/kdebug.h
---- a/arch/x86/include/asm/kdebug.h~kexec-remove-obsolete-flag-in_crash_kexec
-+++ a/arch/x86/include/asm/kdebug.h
-@@ -29,11 +29,5 @@ extern void show_trace(struct task_struc
- extern void __show_regs(struct pt_regs *regs, int all);
- extern unsigned long oops_begin(void);
- extern void oops_end(unsigned long, struct pt_regs *, int signr);
--#ifdef CONFIG_KEXEC_CORE
--extern int in_crash_kexec;
--#else
--/* no crash dump is ever in progress if no crash kernel can be kexec'd */
--#define in_crash_kexec 0
--#endif
+diff -puN mm/mmap.c~mm-mmapc-remove-redundant-statement-error-=-enomem mm/mmap.c
+--- a/mm/mmap.c~mm-mmapc-remove-redundant-statement-error-=-enomem
++++ a/mm/mmap.c
+@@ -1562,7 +1562,6 @@ unsigned long mmap_region(struct file *f
+ 	}
  
- #endif /* _ASM_X86_KDEBUG_H */
-diff -puN arch/x86/kernel/crash.c~kexec-remove-obsolete-flag-in_crash_kexec arch/x86/kernel/crash.c
---- a/arch/x86/kernel/crash.c~kexec-remove-obsolete-flag-in_crash_kexec
-+++ a/arch/x86/kernel/crash.c
-@@ -75,8 +75,6 @@ struct crash_memmap_data {
- 	unsigned int type;
- };
- 
--int in_crash_kexec;
+ 	/* Clear old maps */
+-	error = -ENOMEM;
+ 	while (find_vma_links(mm, addr, addr + len, &prev, &rb_link,
+ 			      &rb_parent)) {
+ 		if (do_munmap(mm, addr, len))
+_
+
+Patches currently in -mm which might be from xili_gchen_5257@hotmail.com are
+
+mm-mmapc-remove-redundant-statement-error-=-enomem.patch
+
