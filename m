@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups.patch
+ rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe.patch
  added to -mm tree
-Date: Mon, 05 Oct 2015 14:00:56 -0700
-Message-ID: <5612e508.BdCcRm58fMO3J5uz%akpm@linux-foundation.org>
+Date: Mon, 05 Oct 2015 14:07:14 -0700
+Message-ID: <5612e682.3QG9k1HehBtz6Oi0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36365 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37201 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752472AbbJEVA5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2015 17:00:57 -0400
+	with ESMTP id S1751837AbbJEVHP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2015 17:07:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, xuejiufei@huawei.com, mm-commits@vger.kernel.org
+To: dev@codyps.com, john@jjdev.com, peterz@infradead.org, rusty@rustcorp.com.au, tj@kernel.org, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: solve a problem of crossing the boundary in updating backups
+     Subject: rbtree: clarify documentation of rbtree_postorder_for_each_entry_safe()
 has been added to the -mm tree.  Its filename is
-     ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups.patch
+     rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,45 +40,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: jiangyiwen <jiangyiwen@huawei.com>
-Subject: ocfs2: solve a problem of crossing the boundary in updating backups
+From: Cody P Schafer <dev@codyps.com>
+Subject: rbtree: clarify documentation of rbtree_postorder_for_each_entry_safe()
 
-In update_backups() there exists a problem of crossing the boundary
-as follows:
+I noticed that commit a20135ffbc44 ("writeback: don't drain
+bdi_writeback_congested on bdi destruction") added a usage of
+rbtree_postorder_for_each_entry_safe() in mm/backing-dev.c which appears
+to try to rb_erase() elements from an rbtree while iterating over it using
+rbtree_postorder_for_each_entry_safe().
 
-we assume that lun will be resized to 1TB(cluster_size is 32kb),
-it will include 0~33554431 cluster, in update_backups func,
-it will backup super block in location of 1TB which is the 33554432th
-cluster, so the phenomenon of crossing the boundary happens.
+Doing this will cause random nodes to be missed by the iteration because
+rb_erase() may rebalance the tree, changing the ordering that we're trying
+to iterate over.
 
-Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: Xue jiufei <xuejiufei@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
+The previous documentation for rbtree_postorder_for_each_entry_safe()
+wasn't clear that this wasn't allowed, it was taken from the docs for
+list_for_each_entry_safe(), where erasing isn't a problem due to
+list_del() not reordering.
+
+Explicitly warn developers about this potential pit-fall.
+
+Note that I haven't fixed the actual issue that (it appears) the commit
+referenced above introduced (not familiar enough with that code).
+
+In general (and in this case), the patterns to follow are:
+ - switch to rb_first() + rb_erase(), don't use
+   rbtree_postorder_for_each_entry_safe().
+ - keep the postorder iteration and don't rb_erase() at all. Instead
+   just clear the fields of rb_node & cgwb_congested_tree as required by
+   other users of those structures.
+
+Signed-off-by: Cody P Schafer <dev@codyps.com>
+Cc: John de la Garza <john@jjdev.com>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/resize.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/rbtree.h |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/resize.c~ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups fs/ocfs2/resize.c
---- a/fs/ocfs2/resize.c~ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups
-+++ a/fs/ocfs2/resize.c
-@@ -187,7 +187,7 @@ static int update_backups(struct inode *
- 	for (i = 0; i < OCFS2_MAX_BACKUP_SUPERBLOCKS; i++) {
- 		blkno = ocfs2_backup_super_blkno(inode->i_sb, i);
- 		cluster = ocfs2_blocks_to_clusters(inode->i_sb, blkno);
--		if (cluster > clusters)
-+		if (cluster >= clusters)
- 			break;
+diff -puN include/linux/rbtree.h~rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe include/linux/rbtree.h
+--- a/include/linux/rbtree.h~rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe
++++ a/include/linux/rbtree.h
+@@ -101,13 +101,21 @@ static inline void rb_link_node_rcu(stru
+ 	})
  
- 		ret = ocfs2_read_blocks_sync(osb, blkno, 1, &backup);
+ /**
+- * rbtree_postorder_for_each_entry_safe - iterate over rb_root in post order of
+- * given type safe against removal of rb_node entry
++ * rbtree_postorder_for_each_entry_safe - iterate in post-order over rb_root of
++ * given type allowing the backing memory of @pos to be invalidated
+  *
+  * @pos:	the 'type *' to use as a loop cursor.
+  * @n:		another 'type *' to use as temporary storage
+  * @root:	'rb_root *' of the rbtree.
+  * @field:	the name of the rb_node field within 'type'.
++ *
++ * This function provides a similar guarantee as list_for_each_entry_safe() and
++ * allows the iteration to continue independent of changes to @pos by the body
++ * of the loop.
++ *
++ * Note, however, that it cannot handle other modifications that re-order the
++ * rbtree it is iterating over. This includes calling rb_erase() on @pos, as
++ * rb_erase() may rebalance the tree, causing us to miss some nodes.
+  */
+ #define rbtree_postorder_for_each_entry_safe(pos, n, root, field) \
+ 	for (pos = rb_entry_safe(rb_first_postorder(root), typeof(*pos), field); \
 _
 
-Patches currently in -mm which might be from jiangyiwen@huawei.com are
+Patches currently in -mm which might be from dev@codyps.com are
 
-ocfs2-fill-in-the-unused-portion-of-the-block-with-zeros-by-dio_zero_block.patch
-ocfs2-avoid-occurring-deadlock-by-changing-ocfs2_wq-from-global-to-local.patch
-ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups.patch
+rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe.patch
 
