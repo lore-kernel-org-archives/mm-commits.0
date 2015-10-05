@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fs-obey-gfp_mapping-for-add_to_page_cache.patch added to -mm tree
-Date: Mon, 05 Oct 2015 12:30:02 -0700
-Message-ID: <5612cfba.DQvjhJZMau/O+TGJ%akpm@linux-foundation.org>
+Subject: + mm-fs-introduce-mapping_gfp_constraint.patch added to -mm tree
+Date: Mon, 05 Oct 2015 12:33:27 -0700
+Message-ID: <5612d087.0f7cX0jZVMOfwsK8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44588 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45319 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751555AbbJETaE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2015 15:30:04 -0400
+	with ESMTP id S1750798AbbJETd2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2015 15:33:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, andreas.dilger@intel.com, david@fromorbit.com, hch@lst.de, ming.lei@canonical.com, oleg.drokin@intel.com, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mhocko@suse.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, fs: obey gfp_mapping for add_to_page_cache()
+     Subject: mm, fs: introduce mapping_gfp_constraint()
 has been added to the -mm tree.  Its filename is
-     mm-fs-obey-gfp_mapping-for-add_to_page_cache.patch
+     mm-fs-introduce-mapping_gfp_constraint.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fs-obey-gfp_mapping-for-add_to_page_cache.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fs-introduce-mapping_gfp_constraint.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fs-obey-gfp_mapping-for-add_to_page_cache.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fs-introduce-mapping_gfp_constraint.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,268 +39,325 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, fs: obey gfp_mapping for add_to_page_cache()
+Subject: mm, fs: introduce mapping_gfp_constraint()
 
-6afdb859b710 ("mm: do not ignore mapping_gfp_mask in page cache allocation
-paths") has caught some users of hardcoded GFP_KERNEL used in the page
-cache allocation paths.  This, however, wasn't complete and there were
-others which went unnoticed.
+There are many places which use mapping_gfp_mask to restrict a more
+generic gfp mask which would be used for allocations which are not
+directly related to the page cache but they are performed in the same
+context.
 
-Dave Chinner has reported the following deadlock for xfs on loop device:
-: With the recent merge of the loop device changes, I'm now seeing
-: XFS deadlock on my single CPU, 1GB RAM VM running xfs/073.
-:
-: The deadlocked is as follows:
-:
-: kloopd1: loop_queue_read_work
-:       xfs_file_iter_read
-:       lock XFS inode XFS_IOLOCK_SHARED (on image file)
-:       page cache read (GFP_KERNEL)
-:       radix tree alloc
-:       memory reclaim
-:       reclaim XFS inodes
-:       log force to unpin inodes
-:       <wait for log IO completion>
-:
-: xfs-cil/loop1: <does log force IO work>
-:       xlog_cil_push
-:       xlog_write
-:       <loop issuing log writes>
-:               xlog_state_get_iclog_space()
-:               <blocks due to all log buffers under write io>
-:               <waits for IO completion>
-:
-: kloopd1: loop_queue_write_work
-:       xfs_file_write_iter
-:       lock XFS inode XFS_IOLOCK_EXCL (on image file)
-:       <wait for inode to be unlocked>
-:
-: i.e. the kloopd, with it's split read and write work queues, has
-: introduced a dependency through memory reclaim. i.e. that writes
-: need to be able to progress for reads make progress.
-:
-: The problem, fundamentally, is that mpage_readpages() does a
-: GFP_KERNEL allocation, rather than paying attention to the inode's
-: mapping gfp mask, which is set to GFP_NOFS.
-:
-: The didn't used to happen, because the loop device used to issue
-: reads through the splice path and that does:
-:
-:       error = add_to_page_cache_lru(page, mapping, index,
-:                       GFP_KERNEL & mapping_gfp_mask(mapping));
-
-This has changed by aa4d86163e4 ("block: loop: switch to VFS ITER_BVEC").
-
-This patch changes mpage_readpage{s} to follow gfp mask set for the
-mapping.  There are, however, other places which are doing basically the
-same.
-
-lustre:ll_dir_filler is doing GFP_KERNEL from the function which
-apparently uses GFP_NOFS for other allocations so let's make this
-consistent.
-
-cifs:readpages_get_pages is called from cifs_readpages and
-__cifs_readpages_from_fscache called from the same path obeys mapping
-gfp.
-
-ramfs_nommu_expand_for_mapping is hardcoding GFP_KERNEL as well
-regardless it uses mapping_gfp_mask for the page allocation.
-
-ext4_mpage_readpages is the called from the page cache allocation path
-same as read_pages and read_cache_pages
-
-As I've noticed in my previous post I cannot say I would be happy about
-sprinkling mapping_gfp_mask all over the place and it sounds like we
-should drop gfp_mask argument altogether and use it internally in
-__add_to_page_cache_locked that would require all the filesystems to use
-mapping gfp consistently which I am not sure is the case here.  From a
-quick glance it seems that some file system use it all the time while
-others are selective.
+Let's introduce a helper function which makes the restriction explicit and
+easier to track.  This patch doesn't introduce any functional changes.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Dave Chinner <david@fromorbit.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Ming Lei <ming.lei@canonical.com>
-Cc: Andreas Dilger <andreas.dilger@intel.com>
-Cc: Oleg Drokin <oleg.drokin@intel.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Christoph Hellwig <hch@lst.de>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/lustre/lustre/llite/dir.c |    2 +-
- fs/cifs/file.c                            |    6 +++---
- fs/ext4/readpage.c                        |    3 ++-
- fs/mpage.c                                |   15 +++++++++------
- fs/ramfs/file-nommu.c                     |    5 +++--
- mm/readahead.c                            |    6 ++++--
- 6 files changed, 22 insertions(+), 15 deletions(-)
+ drivers/gpu/drm/drm_gem.c       |    2 +-
+ drivers/gpu/drm/i915/i915_gem.c |    3 +--
+ fs/btrfs/compression.c          |    3 +--
+ fs/btrfs/ctree.h                |    2 +-
+ fs/btrfs/free-space-cache.c     |    4 ++--
+ fs/buffer.c                     |    2 +-
+ fs/ceph/addr.c                  |    7 ++++---
+ fs/cifs/file.c                  |    2 +-
+ fs/ext4/inode.c                 |    2 +-
+ fs/ext4/readpage.c              |    2 +-
+ fs/logfs/segment.c              |    2 +-
+ fs/mpage.c                      |    4 ++--
+ fs/namei.c                      |    2 +-
+ fs/nilfs2/inode.c               |    4 ++--
+ fs/ntfs/file.c                  |    2 +-
+ fs/splice.c                     |    2 +-
+ include/linux/pagemap.h         |    7 +++++++
+ mm/filemap.c                    |    4 ++--
+ mm/readahead.c                  |    4 ++--
+ 19 files changed, 33 insertions(+), 27 deletions(-)
 
-diff -puN drivers/staging/lustre/lustre/llite/dir.c~mm-fs-obey-gfp_mapping-for-add_to_page_cache drivers/staging/lustre/lustre/llite/dir.c
---- a/drivers/staging/lustre/lustre/llite/dir.c~mm-fs-obey-gfp_mapping-for-add_to_page_cache
-+++ a/drivers/staging/lustre/lustre/llite/dir.c
-@@ -224,7 +224,7 @@ static int ll_dir_filler(void *_hash, st
+diff -puN drivers/gpu/drm/drm_gem.c~mm-fs-introduce-mapping_gfp_constraint drivers/gpu/drm/drm_gem.c
+--- a/drivers/gpu/drm/drm_gem.c~mm-fs-introduce-mapping_gfp_constraint
++++ a/drivers/gpu/drm/drm_gem.c
+@@ -491,7 +491,7 @@ struct page **drm_gem_get_pages(struct d
+ 		 * __GFP_DMA32 to be set in mapping_gfp_mask(inode->i_mapping)
+ 		 * so shmem can relocate pages during swapin if required.
+ 		 */
+-		BUG_ON((mapping_gfp_mask(mapping) & __GFP_DMA32) &&
++		BUG_ON(mapping_gfp_constraint(mapping, __GFP_DMA32) &&
+ 				(page_to_pfn(p) >= 0x00100000UL));
+ 	}
  
- 		prefetchw(&page->flags);
- 		ret = add_to_page_cache_lru(page, inode->i_mapping, offset,
--					    GFP_KERNEL);
-+					    GFP_NOFS);
- 		if (ret == 0) {
- 			unlock_page(page);
- 		} else {
-diff -puN fs/cifs/file.c~mm-fs-obey-gfp_mapping-for-add_to_page_cache fs/cifs/file.c
---- a/fs/cifs/file.c~mm-fs-obey-gfp_mapping-for-add_to_page_cache
+diff -puN drivers/gpu/drm/i915/i915_gem.c~mm-fs-introduce-mapping_gfp_constraint drivers/gpu/drm/i915/i915_gem.c
+--- a/drivers/gpu/drm/i915/i915_gem.c~mm-fs-introduce-mapping_gfp_constraint
++++ a/drivers/gpu/drm/i915/i915_gem.c
+@@ -2214,9 +2214,8 @@ i915_gem_object_get_pages_gtt(struct drm
+ 	 * Fail silently without starting the shrinker
+ 	 */
+ 	mapping = file_inode(obj->base.filp)->i_mapping;
+-	gfp = mapping_gfp_mask(mapping);
++	gfp = mapping_gfp_constraint(mapping, ~(__GFP_IO | __GFP_RECLAIM));
+ 	gfp |= __GFP_NORETRY | __GFP_NOWARN;
+-	gfp &= ~(__GFP_IO | __GFP_RECLAIM);
+ 	sg = st->sgl;
+ 	st->nents = 0;
+ 	for (i = 0; i < page_count; i++) {
+diff -puN fs/btrfs/compression.c~mm-fs-introduce-mapping_gfp_constraint fs/btrfs/compression.c
+--- a/fs/btrfs/compression.c~mm-fs-introduce-mapping_gfp_constraint
++++ a/fs/btrfs/compression.c
+@@ -482,8 +482,7 @@ static noinline int add_ra_bio_pages(str
+ 			goto next;
+ 		}
+ 
+-		page = __page_cache_alloc(mapping_gfp_mask(mapping) &
+-								~__GFP_FS);
++		page = __page_cache_alloc(mapping_gfp_constraint(mapping, ~__GFP_FS));
+ 		if (!page)
+ 			break;
+ 
+diff -puN fs/btrfs/ctree.h~mm-fs-introduce-mapping_gfp_constraint fs/btrfs/ctree.h
+--- a/fs/btrfs/ctree.h~mm-fs-introduce-mapping_gfp_constraint
++++ a/fs/btrfs/ctree.h
+@@ -3316,7 +3316,7 @@ static inline bool btrfs_mixed_space_inf
+ 
+ static inline gfp_t btrfs_alloc_write_mask(struct address_space *mapping)
+ {
+-	return mapping_gfp_mask(mapping) & ~__GFP_FS;
++	return mapping_gfp_constraint(mapping, ~__GFP_FS);
+ }
+ 
+ /* extent-tree.c */
+diff -puN fs/btrfs/free-space-cache.c~mm-fs-introduce-mapping_gfp_constraint fs/btrfs/free-space-cache.c
+--- a/fs/btrfs/free-space-cache.c~mm-fs-introduce-mapping_gfp_constraint
++++ a/fs/btrfs/free-space-cache.c
+@@ -85,8 +85,8 @@ static struct inode *__lookup_free_space
+ 	}
+ 
+ 	mapping_set_gfp_mask(inode->i_mapping,
+-			mapping_gfp_mask(inode->i_mapping) &
+-			~(__GFP_FS | __GFP_HIGHMEM));
++			mapping_gfp_constraint(inode->i_mapping,
++			~(__GFP_FS | __GFP_HIGHMEM)));
+ 
+ 	return inode;
+ }
+diff -puN fs/buffer.c~mm-fs-introduce-mapping_gfp_constraint fs/buffer.c
+--- a/fs/buffer.c~mm-fs-introduce-mapping_gfp_constraint
++++ a/fs/buffer.c
+@@ -999,7 +999,7 @@ grow_dev_page(struct block_device *bdev,
+ 	int ret = 0;		/* Will call free_more_memory() */
+ 	gfp_t gfp_mask;
+ 
+-	gfp_mask = (mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS) | gfp;
++	gfp_mask = mapping_gfp_constraint(inode->i_mapping, ~__GFP_FS) | gfp;
+ 
+ 	/*
+ 	 * XXX: __getblk_slow() can not really deal with failure and
+diff -puN fs/ceph/addr.c~mm-fs-introduce-mapping_gfp_constraint fs/ceph/addr.c
+--- a/fs/ceph/addr.c~mm-fs-introduce-mapping_gfp_constraint
++++ a/fs/ceph/addr.c
+@@ -1283,8 +1283,8 @@ static int ceph_filemap_fault(struct vm_
+ 		int ret1;
+ 		struct address_space *mapping = inode->i_mapping;
+ 		struct page *page = find_or_create_page(mapping, 0,
+-						mapping_gfp_mask(mapping) &
+-						~__GFP_FS);
++						mapping_gfp_constraint(mapping,
++						~__GFP_FS));
+ 		if (!page) {
+ 			ret = VM_FAULT_OOM;
+ 			goto out;
+@@ -1428,7 +1428,8 @@ void ceph_fill_inline_data(struct inode
+ 		if (i_size_read(inode) == 0)
+ 			return;
+ 		page = find_or_create_page(mapping, 0,
+-					   mapping_gfp_mask(mapping) & ~__GFP_FS);
++					   mapping_gfp_constraint(mapping,
++					   ~__GFP_FS));
+ 		if (!page)
+ 			return;
+ 		if (PageUptodate(page)) {
+diff -puN fs/cifs/file.c~mm-fs-introduce-mapping_gfp_constraint fs/cifs/file.c
+--- a/fs/cifs/file.c~mm-fs-introduce-mapping_gfp_constraint
 +++ a/fs/cifs/file.c
-@@ -3380,6 +3380,7 @@ readpages_get_pages(struct address_space
+@@ -3380,7 +3380,7 @@ readpages_get_pages(struct address_space
  	struct page *page, *tpage;
  	unsigned int expected_index;
  	int rc;
-+	gfp_t gfp = GFP_KERNEL & mapping_gfp_mask(mapping);
+-	gfp_t gfp = GFP_KERNEL & mapping_gfp_mask(mapping);
++	gfp_t gfp = mapping_gfp_constraint(mapping, GFP_KERNEL);
  
  	INIT_LIST_HEAD(tmplist);
  
-@@ -3392,7 +3393,7 @@ readpages_get_pages(struct address_space
- 	 */
- 	__set_page_locked(page);
- 	rc = add_to_page_cache_locked(page, mapping,
--				      page->index, GFP_KERNEL);
-+				      page->index, gfp);
+diff -puN fs/ext4/inode.c~mm-fs-introduce-mapping_gfp_constraint fs/ext4/inode.c
+--- a/fs/ext4/inode.c~mm-fs-introduce-mapping_gfp_constraint
++++ a/fs/ext4/inode.c
+@@ -3344,7 +3344,7 @@ static int __ext4_block_zero_page_range(
+ 	int err = 0;
  
- 	/* give up if we can't stick it in the cache */
- 	if (rc) {
-@@ -3418,8 +3419,7 @@ readpages_get_pages(struct address_space
- 			break;
+ 	page = find_or_create_page(mapping, from >> PAGE_CACHE_SHIFT,
+-				   mapping_gfp_mask(mapping) & ~__GFP_FS);
++				   mapping_gfp_constraint(mapping, ~__GFP_FS));
+ 	if (!page)
+ 		return -ENOMEM;
  
- 		__set_page_locked(page);
--		if (add_to_page_cache_locked(page, mapping, page->index,
--								GFP_KERNEL)) {
-+		if (add_to_page_cache_locked(page, mapping, page->index, gfp)) {
- 			__clear_page_locked(page);
- 			break;
- 		}
-diff -puN fs/ext4/readpage.c~mm-fs-obey-gfp_mapping-for-add_to_page_cache fs/ext4/readpage.c
---- a/fs/ext4/readpage.c~mm-fs-obey-gfp_mapping-for-add_to_page_cache
+diff -puN fs/ext4/readpage.c~mm-fs-introduce-mapping_gfp_constraint fs/ext4/readpage.c
+--- a/fs/ext4/readpage.c~mm-fs-introduce-mapping_gfp_constraint
 +++ a/fs/ext4/readpage.c
-@@ -166,7 +166,8 @@ int ext4_mpage_readpages(struct address_
+@@ -166,7 +166,7 @@ int ext4_mpage_readpages(struct address_
  			page = list_entry(pages->prev, struct page, lru);
  			list_del(&page->lru);
- 			if (add_to_page_cache_lru(page, mapping,
--						  page->index, GFP_KERNEL))
-+						  page->index,
-+						  GFP_KERNEL & mapping_gfp_mask(mapping)))
+ 			if (add_to_page_cache_lru(page, mapping, page->index,
+-					GFP_KERNEL & mapping_gfp_mask(mapping)))
++				  mapping_gfp_constraint(mapping, GFP_KERNEL)))
  				goto next_page;
  		}
  
-diff -puN fs/mpage.c~mm-fs-obey-gfp_mapping-for-add_to_page_cache fs/mpage.c
---- a/fs/mpage.c~mm-fs-obey-gfp_mapping-for-add_to_page_cache
+diff -puN fs/logfs/segment.c~mm-fs-introduce-mapping_gfp_constraint fs/logfs/segment.c
+--- a/fs/logfs/segment.c~mm-fs-introduce-mapping_gfp_constraint
++++ a/fs/logfs/segment.c
+@@ -57,7 +57,7 @@ static struct page *get_mapping_page(str
+ 	filler_t *filler = super->s_devops->readpage;
+ 	struct page *page;
+ 
+-	BUG_ON(mapping_gfp_mask(mapping) & __GFP_FS);
++	BUG_ON(mapping_gfp_constraint(mapping, __GFP_FS));
+ 	if (use_filler)
+ 		page = read_cache_page(mapping, index, filler, sb);
+ 	else {
+diff -puN fs/mpage.c~mm-fs-introduce-mapping_gfp_constraint fs/mpage.c
+--- a/fs/mpage.c~mm-fs-introduce-mapping_gfp_constraint
 +++ a/fs/mpage.c
-@@ -139,7 +139,8 @@ map_buffer_to_page(struct page *page, st
- static struct bio *
- do_mpage_readpage(struct bio *bio, struct page *page, unsigned nr_pages,
- 		sector_t *last_block_in_bio, struct buffer_head *map_bh,
--		unsigned long *first_logical_block, get_block_t get_block)
-+		unsigned long *first_logical_block, get_block_t get_block,
-+		gfp_t gfp)
+@@ -361,7 +361,7 @@ mpage_readpages(struct address_space *ma
+ 	sector_t last_block_in_bio = 0;
+ 	struct buffer_head map_bh;
+ 	unsigned long first_logical_block = 0;
+-	gfp_t gfp = GFP_KERNEL & mapping_gfp_mask(mapping);
++	gfp_t gfp = mapping_gfp_constraint(mapping, GFP_KERNEL);
+ 
+ 	map_bh.b_state = 0;
+ 	map_bh.b_size = 0;
+@@ -397,7 +397,7 @@ int mpage_readpage(struct page *page, ge
+ 	sector_t last_block_in_bio = 0;
+ 	struct buffer_head map_bh;
+ 	unsigned long first_logical_block = 0;
+-	gfp_t gfp = GFP_KERNEL & mapping_gfp_mask(page->mapping);
++	gfp_t gfp = mapping_gfp_constraint(page->mapping, GFP_KERNEL);
+ 
+ 	map_bh.b_state = 0;
+ 	map_bh.b_size = 0;
+diff -puN fs/namei.c~mm-fs-introduce-mapping_gfp_constraint fs/namei.c
+--- a/fs/namei.c~mm-fs-introduce-mapping_gfp_constraint
++++ a/fs/namei.c
+@@ -4603,7 +4603,7 @@ EXPORT_SYMBOL(__page_symlink);
+ int page_symlink(struct inode *inode, const char *symname, int len)
  {
- 	struct inode *inode = page->mapping->host;
- 	const unsigned blkbits = inode->i_blkbits;
-@@ -277,8 +278,7 @@ alloc_new:
- 				goto out;
- 		}
- 		bio = mpage_alloc(bdev, blocks[0] << (blkbits - 9),
--				min_t(int, nr_pages, BIO_MAX_PAGES),
--				GFP_KERNEL);
-+				min_t(int, nr_pages, BIO_MAX_PAGES), gfp);
- 		if (bio == NULL)
- 			goto confused;
- 	}
-@@ -361,6 +361,7 @@ mpage_readpages(struct address_space *ma
- 	sector_t last_block_in_bio = 0;
- 	struct buffer_head map_bh;
- 	unsigned long first_logical_block = 0;
-+	gfp_t gfp = GFP_KERNEL & mapping_gfp_mask(mapping);
+ 	return __page_symlink(inode, symname, len,
+-			!(mapping_gfp_mask(inode->i_mapping) & __GFP_FS));
++			!mapping_gfp_constraint(inode->i_mapping, __GFP_FS));
+ }
+ EXPORT_SYMBOL(page_symlink);
  
- 	map_bh.b_state = 0;
- 	map_bh.b_size = 0;
-@@ -370,12 +371,13 @@ mpage_readpages(struct address_space *ma
- 		prefetchw(&page->flags);
- 		list_del(&page->lru);
- 		if (!add_to_page_cache_lru(page, mapping,
--					page->index, GFP_KERNEL)) {
-+					page->index,
-+					gfp)) {
- 			bio = do_mpage_readpage(bio, page,
- 					nr_pages - page_idx,
- 					&last_block_in_bio, &map_bh,
- 					&first_logical_block,
--					get_block);
-+					get_block, gfp);
- 		}
- 		page_cache_release(page);
- 	}
-@@ -395,11 +397,12 @@ int mpage_readpage(struct page *page, ge
- 	sector_t last_block_in_bio = 0;
- 	struct buffer_head map_bh;
- 	unsigned long first_logical_block = 0;
-+	gfp_t gfp = GFP_KERNEL & mapping_gfp_mask(page->mapping);
+diff -puN fs/nilfs2/inode.c~mm-fs-introduce-mapping_gfp_constraint fs/nilfs2/inode.c
+--- a/fs/nilfs2/inode.c~mm-fs-introduce-mapping_gfp_constraint
++++ a/fs/nilfs2/inode.c
+@@ -356,7 +356,7 @@ struct inode *nilfs_new_inode(struct ino
+ 		goto failed;
  
- 	map_bh.b_state = 0;
- 	map_bh.b_size = 0;
- 	bio = do_mpage_readpage(bio, page, 1, &last_block_in_bio,
--			&map_bh, &first_logical_block, get_block);
-+			&map_bh, &first_logical_block, get_block, gfp);
- 	if (bio)
- 		mpage_bio_submit(READ, bio);
+ 	mapping_set_gfp_mask(inode->i_mapping,
+-			     mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
++			     mapping_gfp_constraint(inode->i_mapping, ~__GFP_FS));
+ 
+ 	root = NILFS_I(dir)->i_root;
+ 	ii = NILFS_I(inode);
+@@ -522,7 +522,7 @@ static int __nilfs_read_inode(struct sup
+ 	up_read(&NILFS_MDT(nilfs->ns_dat)->mi_sem);
+ 	nilfs_set_inode_flags(inode);
+ 	mapping_set_gfp_mask(inode->i_mapping,
+-			     mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
++			     mapping_gfp_constraint(inode->i_mapping, ~__GFP_FS));
  	return 0;
-diff -puN fs/ramfs/file-nommu.c~mm-fs-obey-gfp_mapping-for-add_to_page_cache fs/ramfs/file-nommu.c
---- a/fs/ramfs/file-nommu.c~mm-fs-obey-gfp_mapping-for-add_to_page_cache
-+++ a/fs/ramfs/file-nommu.c
-@@ -70,6 +70,7 @@ int ramfs_nommu_expand_for_mapping(struc
- 	unsigned order;
- 	void *data;
- 	int ret;
-+	gfp_t gfp = mapping_gfp_mask(inode->i_mapping);
  
- 	/* make various checks */
- 	order = get_order(newsize);
-@@ -84,7 +85,7 @@ int ramfs_nommu_expand_for_mapping(struc
+  failed_unmap:
+diff -puN fs/ntfs/file.c~mm-fs-introduce-mapping_gfp_constraint fs/ntfs/file.c
+--- a/fs/ntfs/file.c~mm-fs-introduce-mapping_gfp_constraint
++++ a/fs/ntfs/file.c
+@@ -526,7 +526,7 @@ static inline int __ntfs_grab_cache_page
+ 			}
+ 			err = add_to_page_cache_lru(*cached_page, mapping,
+ 					index,
+-					GFP_KERNEL & mapping_gfp_mask(mapping));
++					mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 			if (unlikely(err)) {
+ 				if (err == -EEXIST)
+ 					continue;
+diff -puN fs/splice.c~mm-fs-introduce-mapping_gfp_constraint fs/splice.c
+--- a/fs/splice.c~mm-fs-introduce-mapping_gfp_constraint
++++ a/fs/splice.c
+@@ -360,7 +360,7 @@ __generic_file_splice_read(struct file *
+ 				break;
  
- 	/* allocate enough contiguous pages to be able to satisfy the
- 	 * request */
--	pages = alloc_pages(mapping_gfp_mask(inode->i_mapping), order);
-+	pages = alloc_pages(gfp, order);
- 	if (!pages)
- 		return -ENOMEM;
+ 			error = add_to_page_cache_lru(page, mapping, index,
+-					GFP_KERNEL & mapping_gfp_mask(mapping));
++					mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 			if (unlikely(error)) {
+ 				page_cache_release(page);
+ 				if (error == -EEXIST)
+diff -puN include/linux/pagemap.h~mm-fs-introduce-mapping_gfp_constraint include/linux/pagemap.h
+--- a/include/linux/pagemap.h~mm-fs-introduce-mapping_gfp_constraint
++++ a/include/linux/pagemap.h
+@@ -69,6 +69,13 @@ static inline gfp_t mapping_gfp_mask(str
+ 	return (__force gfp_t)mapping->flags & __GFP_BITS_MASK;
+ }
  
-@@ -108,7 +109,7 @@ int ramfs_nommu_expand_for_mapping(struc
- 		struct page *page = pages + loop;
++/* Restricts the given gfp_mask to what the mapping allows. */
++static inline gfp_t mapping_gfp_constraint(struct address_space *mapping,
++		gfp_t gfp_mask)
++{
++	return mapping_gfp_mask(mapping) & gfp_mask;
++}
++
+ /*
+  * This is non-atomic.  Only to be used before the mapping is activated.
+  * Probably needs a barrier...
+diff -puN mm/filemap.c~mm-fs-introduce-mapping_gfp_constraint mm/filemap.c
+--- a/mm/filemap.c~mm-fs-introduce-mapping_gfp_constraint
++++ a/mm/filemap.c
+@@ -1722,7 +1722,7 @@ no_cached_page:
+ 			goto out;
+ 		}
+ 		error = add_to_page_cache_lru(page, mapping, index,
+-					GFP_KERNEL & mapping_gfp_mask(mapping));
++					mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 		if (error) {
+ 			page_cache_release(page);
+ 			if (error == -EEXIST) {
+@@ -1824,7 +1824,7 @@ static int page_cache_read(struct file *
+ 			return -ENOMEM;
  
- 		ret = add_to_page_cache_lru(page, inode->i_mapping, loop,
--					GFP_KERNEL);
-+					gfp);
- 		if (ret < 0)
- 			goto add_error;
- 
-diff -puN mm/readahead.c~mm-fs-obey-gfp_mapping-for-add_to_page_cache mm/readahead.c
---- a/mm/readahead.c~mm-fs-obey-gfp_mapping-for-add_to_page_cache
+ 		ret = add_to_page_cache_lru(page, mapping, offset,
+-				GFP_KERNEL & mapping_gfp_mask(mapping));
++				mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 		if (ret == 0)
+ 			ret = mapping->a_ops->readpage(file, page);
+ 		else if (ret == -EEXIST)
+diff -puN mm/readahead.c~mm-fs-introduce-mapping_gfp_constraint mm/readahead.c
+--- a/mm/readahead.c~mm-fs-introduce-mapping_gfp_constraint
 +++ a/mm/readahead.c
-@@ -90,7 +90,8 @@ int read_cache_pages(struct address_spac
+@@ -90,7 +90,7 @@ int read_cache_pages(struct address_spac
  		page = list_to_page(pages);
  		list_del(&page->lru);
- 		if (add_to_page_cache_lru(page, mapping,
--					page->index, GFP_KERNEL)) {
-+					page->index,
-+					GFP_KERNEL & mapping_gfp_mask(mapping))) {
+ 		if (add_to_page_cache_lru(page, mapping, page->index,
+-				GFP_KERNEL & mapping_gfp_mask(mapping))) {
++				mapping_gfp_constraint(mapping, GFP_KERNEL))) {
  			read_cache_pages_invalidate_page(mapping, page);
  			continue;
  		}
-@@ -128,7 +129,8 @@ static int read_pages(struct address_spa
+@@ -128,7 +128,7 @@ static int read_pages(struct address_spa
  		struct page *page = list_to_page(pages);
  		list_del(&page->lru);
- 		if (!add_to_page_cache_lru(page, mapping,
--					page->index, GFP_KERNEL)) {
-+					page->index,
-+					GFP_KERNEL & mapping_gfp_mask(mapping))) {
+ 		if (!add_to_page_cache_lru(page, mapping, page->index,
+-				GFP_KERNEL & mapping_gfp_mask(mapping))) {
++				mapping_gfp_constraint(mapping, GFP_KERNEL))) {
  			mapping->a_ops->readpage(filp, page);
  		}
  		page_cache_release(page);
