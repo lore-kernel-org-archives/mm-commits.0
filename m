@@ -1,127 +1,145 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix.patch added to -mm tree
-Date: Fri, 02 Oct 2015 15:08:29 -0700
-Message-ID: <560f005d.LSpHqeMEMTqzfeqv%akpm@linux-foundation.org>
+Subject: [merged] mips-allocate-sys_membarrier-system-call-number.patch
+ removed from -mm tree
+Date: Mon, 05 Oct 2015 11:28:38 -0700
+Message-ID: <5612c156.JJnWeCIZ8IdoJIoR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60619 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58926 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751377AbbJBWI3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 2 Oct 2015 18:08:29 -0400
+	with ESMTP id S1750919AbbJES2n (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2015 14:28:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@efficios.com, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix
-has been added to the -mm tree.  Its filename is
-     mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix.patch
+     Subject: mips: allocate sys_membarrier system call number
+has been removed from the -mm tree.  Its filename was
+     mips-allocate-sys_membarrier-system-call-number.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: mips: allocate sys_membarrier system call number
 
-This patch address minor comment nitpicks from Vlastimil. It is a fix for the
-mmotm patch
-mm-page_alloc-hide-some-GFP-internals-and-document-the-bit-and-flag-combinations.patch
-
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Acked-by: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
+ arch/mips/include/uapi/asm/unistd.h |   15 +++++++++------
+ arch/mips/kernel/scall32-o32.S      |    1 +
+ arch/mips/kernel/scall64-64.S       |    1 +
+ arch/mips/kernel/scall64-n32.S      |    1 +
+ arch/mips/kernel/scall64-o32.S      |    1 +
+ 5 files changed, 13 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix include/linux/gfp.h
---- a/include/linux/gfp.h~mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix
-+++ a/include/linux/gfp.h
-@@ -111,17 +111,18 @@ struct vm_area_struct;
-  *
-  * __GFP_IO can start physical IO.
-  *
-- * __GFP_FS can call down to the low-level FS. Avoids the allocator
-- *   recursing into the filesystem which might already be holding locks.
-+ * __GFP_FS can call down to the low-level FS. Clearing the flag avoids the
-+ *   allocator recursing into the filesystem which might already be holding
-+ *   locks.
-  *
-  * __GFP_DIRECT_RECLAIM indicates that the caller may enter direct reclaim.
-  *   This flag can be cleared to avoid unnecessary delays when a fallback
-  *   option is available.
-  *
-- * __GFP_KSWAPD_RECLAIM indicates that the caller wants kswapd when the low
-- *   watermark is reached and have it reclaim pages until the high watermark
-- *   is reached. A caller may wish to clear this flag when fallback options
-- *   are available and the reclaim is likely to disrupt the system. The
-+ * __GFP_KSWAPD_RECLAIM indicates that the caller wants to wake kswapd when
-+ *   the low watermark is reached and have it reclaim pages until the high
-+ *   watermark is reached. A caller may wish to clear this flag when fallback
-+ *   options are available and the reclaim is likely to disrupt the system. The
-  *   canonical example is THP allocation where a fallback is cheap but
-  *   reclaim/compaction may cause indirect stalls.
-  *
-@@ -209,11 +210,6 @@ struct vm_area_struct;
-  *   for buffers that are mapped to userspace (e.g. graphics) that hardware
-  *   still must DMA to. cpuset limits are enforced for these allocations.
-  *
-- * GFP_HIGHUSER is for userspace allocations that may be mapped to userspace,
-- *   do not need to be directly accessible by the kernel but that cannot
-- *   move once in use. An example may be a hardware allocation that maps
-- *   data directly into userspace but has no addressing limitations.
-- *
-  * GFP_DMA exists for historical reasons and should be avoided where possible.
-  *   The flags indicates that the caller requires that the lowest zone be
-  *   used (ZONE_DMA or 16M on x86-64). Ideally, this would be removed but
-@@ -224,6 +220,11 @@ struct vm_area_struct;
-  * GFP_DMA32 is similar to GFP_DMA except that the caller requires a 32-bit
-  *   address.
-  *
-+ * GFP_HIGHUSER is for userspace allocations that may be mapped to userspace,
-+ *   do not need to be directly accessible by the kernel but that cannot
-+ *   move once in use. An example may be a hardware allocation that maps
-+ *   data directly into userspace but has no addressing limitations.
-+ *
-  * GFP_HIGHUSER_MOVABLE is for userspace allocations that the kernel does not
-  *   need direct access to but can use kmap() when access is required. They
-  *   are expected to be movable via page reclaim or page migration. Typically,
+diff -puN arch/mips/include/uapi/asm/unistd.h~mips-allocate-sys_membarrier-system-call-number arch/mips/include/uapi/asm/unistd.h
+--- a/arch/mips/include/uapi/asm/unistd.h~mips-allocate-sys_membarrier-system-call-number
++++ a/arch/mips/include/uapi/asm/unistd.h
+@@ -378,16 +378,17 @@
+ #define __NR_bpf			(__NR_Linux + 355)
+ #define __NR_execveat			(__NR_Linux + 356)
+ #define __NR_mlock2			(__NR_Linux + 357)
++#define __NR_membarrier			(__NR_Linux + 358)
+ 
+ /*
+  * Offset of the last Linux o32 flavoured syscall
+  */
+-#define __NR_Linux_syscalls		357
++#define __NR_Linux_syscalls		358
+ 
+ #endif /* _MIPS_SIM == _MIPS_SIM_ABI32 */
+ 
+ #define __NR_O32_Linux			4000
+-#define __NR_O32_Linux_syscalls		357
++#define __NR_O32_Linux_syscalls		358
+ 
+ #if _MIPS_SIM == _MIPS_SIM_ABI64
+ 
+@@ -713,16 +714,17 @@
+ #define __NR_bpf			(__NR_Linux + 315)
+ #define __NR_execveat			(__NR_Linux + 316)
+ #define __NR_mlock2			(__NR_Linux + 317)
++#define __NR_membarrier			(__NR_Linux + 318)
+ 
+ /*
+  * Offset of the last Linux 64-bit flavoured syscall
+  */
+-#define __NR_Linux_syscalls		317
++#define __NR_Linux_syscalls		318
+ 
+ #endif /* _MIPS_SIM == _MIPS_SIM_ABI64 */
+ 
+ #define __NR_64_Linux			5000
+-#define __NR_64_Linux_syscalls		317
++#define __NR_64_Linux_syscalls		318
+ 
+ #if _MIPS_SIM == _MIPS_SIM_NABI32
+ 
+@@ -1052,15 +1054,16 @@
+ #define __NR_bpf			(__NR_Linux + 319)
+ #define __NR_execveat			(__NR_Linux + 320)
+ #define __NR_mlock2			(__NR_Linux + 321)
++#define __NR_membarrier			(__NR_Linux + 322)
+ 
+ /*
+  * Offset of the last N32 flavoured syscall
+  */
+-#define __NR_Linux_syscalls		321
++#define __NR_Linux_syscalls		322
+ 
+ #endif /* _MIPS_SIM == _MIPS_SIM_NABI32 */
+ 
+ #define __NR_N32_Linux			6000
+-#define __NR_N32_Linux_syscalls		321
++#define __NR_N32_Linux_syscalls		322
+ 
+ #endif /* _UAPI_ASM_UNISTD_H */
+diff -puN arch/mips/kernel/scall32-o32.S~mips-allocate-sys_membarrier-system-call-number arch/mips/kernel/scall32-o32.S
+--- a/arch/mips/kernel/scall32-o32.S~mips-allocate-sys_membarrier-system-call-number
++++ a/arch/mips/kernel/scall32-o32.S
+@@ -600,3 +600,4 @@ EXPORT(sys_call_table)
+ 	PTR	sys_bpf				/* 4355 */
+ 	PTR	sys_execveat
+ 	PTR	sys_mlock2
++	PTR	sys_membarrier
+diff -puN arch/mips/kernel/scall64-64.S~mips-allocate-sys_membarrier-system-call-number arch/mips/kernel/scall64-64.S
+--- a/arch/mips/kernel/scall64-64.S~mips-allocate-sys_membarrier-system-call-number
++++ a/arch/mips/kernel/scall64-64.S
+@@ -437,4 +437,5 @@ EXPORT(sys_call_table)
+ 	PTR	sys_bpf				/* 5315 */
+ 	PTR	sys_execveat
+ 	PTR	sys_mlock2
++	PTR	sys_membarrier
+ 	.size	sys_call_table,.-sys_call_table
+diff -puN arch/mips/kernel/scall64-n32.S~mips-allocate-sys_membarrier-system-call-number arch/mips/kernel/scall64-n32.S
+--- a/arch/mips/kernel/scall64-n32.S~mips-allocate-sys_membarrier-system-call-number
++++ a/arch/mips/kernel/scall64-n32.S
+@@ -430,4 +430,5 @@ EXPORT(sysn32_call_table)
+ 	PTR	sys_bpf
+ 	PTR	compat_sys_execveat		/* 6320 */
+ 	PTR	sys_mlock2
++	PTR	sys_membarrier
+ 	.size	sysn32_call_table,.-sysn32_call_table
+diff -puN arch/mips/kernel/scall64-o32.S~mips-allocate-sys_membarrier-system-call-number arch/mips/kernel/scall64-o32.S
+--- a/arch/mips/kernel/scall64-o32.S~mips-allocate-sys_membarrier-system-call-number
++++ a/arch/mips/kernel/scall64-o32.S
+@@ -585,4 +585,5 @@ EXPORT(sys32_call_table)
+ 	PTR	sys_bpf				/* 4355 */
+ 	PTR	compat_sys_execveat
+ 	PTR	sys_mlock2
++	PTR	sys_membarrier
+ 	.size	sys32_call_table,.-sys32_call_table
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
 
-mm-page_alloc-remove-unnecessary-parameter-from-zone_watermark_ok_safe.patch
-mm-page_alloc-remove-unnecessary-recalculations-for-dirty-zone-balancing.patch
-mm-page_alloc-remove-unnecessary-taking-of-a-seqlock-when-cpusets-are-disabled.patch
-mm-page_alloc-use-masks-and-shifts-when-converting-gfp-flags-to-migrate-types.patch
-mm-page_alloc-distinguish-between-being-unable-to-sleep-unwilling-to-sleep-and-avoiding-waking-kswapd.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim.patch
-mm-page_alloc-delete-the-zonelist_cache.patch
-mm-page_alloc-remove-migrate_reserve.patch
-mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand.patch
-mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix.patch
-mm-page_alloc-only-enforce-watermarks-for-order-0-allocations.patch
-mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix.patch
-mm-page_alloc-hide-some-GFP-internals-and-document-the-bit-and-flag-combinations.patch
-mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix.patch
+sparc-sparc64-allocate-sys_membarrier-system-call-number.patch
 
