@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + pci-remove-pci_dma_supported.patch added to -mm tree
-Date: Mon, 05 Oct 2015 14:29:32 -0700
-Message-ID: <5612ebbc.ThnMtPKmm9d/Ih8/%akpm@linux-foundation.org>
+Subject: + memcg-convert-threshold-to-bytes.patch added to -mm tree
+Date: Mon, 05 Oct 2015 15:03:26 -0700
+Message-ID: <5612f3ae.bQCUnfVYw8Uj0q+v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42863 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49048 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417AbbJEV3d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2015 17:29:33 -0400
+	with ESMTP id S1752258AbbJEWD1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2015 18:03:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, deller@gmx.de, jejb@parisc-linux.org, mm-commits@vger.kernel.org
+To: shli@fb.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pci: remove pci_dma_supported
+     Subject: memcg: convert threshold to bytes
 has been added to the -mm tree.  Its filename is
-     pci-remove-pci_dma_supported.patch
+     memcg-convert-threshold-to-bytes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pci-remove-pci_dma_supported.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-convert-threshold-to-bytes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pci-remove-pci_dma_supported.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-convert-threshold-to-bytes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,40 +38,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: pci: remove pci_dma_supported
+From: Shaohua Li <shli@fb.com>
+Subject: memcg: convert threshold to bytes
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Helge Deller <deller@gmx.de>
+page_counter_memparse() returns pages for the threshold, while
+mem_cgroup_usage() returns bytes for memory usage.  Convert the threshold
+to bytes.
+
+Looks a regression introduced by 3e32cb2e0a12b6915 ("memcg: rename
+cgroup_event to mem_cgroup_event").
+
+Signed-off-by: Shaohua Li <shli@fb.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/parisc/ccio-dma.c            |    2 --
- include/asm-generic/pci-dma-compat.h |    6 ------
- 2 files changed, 8 deletions(-)
+ mm/memcontrol.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN drivers/parisc/ccio-dma.c~pci-remove-pci_dma_supported drivers/parisc/ccio-dma.c
---- a/drivers/parisc/ccio-dma.c~pci-remove-pci_dma_supported
-+++ a/drivers/parisc/ccio-dma.c
-@@ -704,8 +704,6 @@ ccio_mark_invalid(struct ioc *ioc, dma_a
-  * ccio_dma_supported - Verify the IOMMU supports the DMA address range.
-  * @dev: The PCI device.
-  * @mask: A bit mask describing the DMA address range of the device.
-- *
-- * This function implements the pci_dma_supported function.
-  */
- static int 
- ccio_dma_supported(struct device *dev, u64 mask)
-diff -puN include/asm-generic/pci-dma-compat.h~pci-remove-pci_dma_supported include/asm-generic/pci-dma-compat.h
---- a/include/asm-generic/pci-dma-compat.h~pci-remove-pci_dma_supported
-+++ a/include/asm-generic/pci-dma-compat.h
-@@ -6,12 +6,6 @@
+diff -puN mm/memcontrol.c~memcg-convert-threshold-to-bytes mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-convert-threshold-to-bytes
++++ a/mm/memcontrol.c
+@@ -3407,6 +3407,7 @@ static int __mem_cgroup_usage_register_e
+ 	ret = page_counter_memparse(args, "-1", &threshold);
+ 	if (ret)
+ 		return ret;
++	threshold <<= PAGE_SHIFT;
  
- #include <linux/dma-mapping.h>
+ 	mutex_lock(&memcg->thresholds_lock);
  
--static inline int
--pci_dma_supported(struct pci_dev *hwdev, u64 mask)
--{
--	return dma_supported(hwdev == NULL ? NULL : &hwdev->dev, mask);
--}
+_
+
+Patches currently in -mm which might be from shli@fb.com are
+
+memcg-convert-threshold-to-bytes.patch
+
