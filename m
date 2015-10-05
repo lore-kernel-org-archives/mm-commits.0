@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + nouveau-dont-call-pci_dma_supported.patch added to -mm tree
-Date: Mon, 05 Oct 2015 14:29:24 -0700
-Message-ID: <5612ebb4.NvYTk98HKcqTs74F%akpm@linux-foundation.org>
+Subject: + sfc-dont-call-dma_supported.patch added to -mm tree
+Date: Mon, 05 Oct 2015 14:29:26 -0700
+Message-ID: <5612ebb6.vDTowxCrm5nJN/14%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42847 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42852 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751253AbbJEV3Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2015 17:29:25 -0400
+	with ESMTP id S1751722AbbJEV31 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2015 17:29:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, acourbot@nvidia.com, airlied@linux.ie, airlied@redhat.com, bskeggs@redhat.com, daniel.vetter@ffwll.ch, treding@nvidia.com, mm-commits@vger.kernel.org
+To: hch@lst.de, linux-net-drivers@solarflare.com, sshah@solarflare.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nouveau: don't call pci_dma_supported
+     Subject: sfc: don't call dma_supported
 has been added to the -mm tree.  Its filename is
-     nouveau-dont-call-pci_dma_supported.patch
+     sfc-dont-call-dma_supported.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nouveau-dont-call-pci_dma_supported.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sfc-dont-call-dma_supported.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nouveau-dont-call-pci_dma_supported.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sfc-dont-call-dma_supported.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,44 +39,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: nouveau: don't call pci_dma_supported
+Subject: sfc: don't call dma_supported
 
-Just try to set a 64-bit DMA mask first and retry with the smaller dma_mask
-if dma_set_mask failed.
+dma_set_mask already checks for a supported DMA mask before updating it,
+the call to dma_supported is redundant.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: David Airlie <airlied@linux.ie>
-Cc: Ben Skeggs <bskeggs@redhat.com>
-Cc: Alexandre Courbot <acourbot@nvidia.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Thierry Reding <treding@nvidia.com>
-Cc: Dave Airlie <airlied@redhat.com>
+Cc: Solarflare linux maintainers <linux-net-drivers@solarflare.com>
+Cc: Shradha Shah <sshah@solarflare.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/nouveau/nouveau_ttm.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ drivers/net/ethernet/sfc/efx.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN drivers/gpu/drm/nouveau/nouveau_ttm.c~nouveau-dont-call-pci_dma_supported drivers/gpu/drm/nouveau/nouveau_ttm.c
---- a/drivers/gpu/drm/nouveau/nouveau_ttm.c~nouveau-dont-call-pci_dma_supported
-+++ a/drivers/gpu/drm/nouveau/nouveau_ttm.c
-@@ -350,11 +350,14 @@ nouveau_ttm_init(struct nouveau_drm *drm
- 
- 	bits = nvxx_mmu(&drm->device)->dma_bits;
- 	if (nvxx_device(&drm->device)->func->pci) {
--		if (drm->agp.bridge ||
--		     !pci_dma_supported(dev->pdev, DMA_BIT_MASK(bits)))
-+		if (drm->agp.bridge)
- 			bits = 32;
- 
- 		ret = pci_set_dma_mask(dev->pdev, DMA_BIT_MASK(bits));
-+		if (ret && bits != 32) {
-+			bits = 32;
-+			ret = pci_set_dma_mask(dev->pdev, DMA_BIT_MASK(bits));
-+		}
- 		if (ret)
- 			return ret;
- 
+diff -puN drivers/net/ethernet/sfc/efx.c~sfc-dont-call-dma_supported drivers/net/ethernet/sfc/efx.c
+--- a/drivers/net/ethernet/sfc/efx.c~sfc-dont-call-dma_supported
++++ a/drivers/net/ethernet/sfc/efx.c
+@@ -1247,11 +1247,9 @@ static int efx_init_io(struct efx_nic *e
+ 	 * masks event though they reject 46 bit masks.
+ 	 */
+ 	while (dma_mask > 0x7fffffffUL) {
+-		if (dma_supported(&pci_dev->dev, dma_mask)) {
+-			rc = dma_set_mask_and_coherent(&pci_dev->dev, dma_mask);
+-			if (rc == 0)
+-				break;
+-		}
++		rc = dma_set_mask_and_coherent(&pci_dev->dev, dma_mask);
++		if (rc == 0)
++			break;
+ 		dma_mask >>= 1;
+ 	}
+ 	if (rc) {
 _
 
 Patches currently in -mm which might be from hch@lst.de are
