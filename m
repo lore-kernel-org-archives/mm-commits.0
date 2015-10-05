@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mmapc-remove-redundant-statement-error-=-enomem.patch added
- to -mm tree
-Date: Mon, 05 Oct 2015 13:35:11 -0700
-Message-ID: <5612deff.3V2I/pKERf4M/aev%akpm@linux-foundation.org>
+Subject: + mm-mmapc-do-not-initialize-retval-in-mmap_pgoff.patch added to
+ -mm tree
+Date: Mon, 05 Oct 2015 13:38:06 -0700
+Message-ID: <5612dfae.ZGo7CH9ifrxfLzSF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58675 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59127 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751255AbbJEUfM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2015 16:35:12 -0400
+	with ESMTP id S1751130AbbJEUiH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2015 16:38:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: xili_gchen_5257@hotmail.com, gang.chen.5i5j@gmail.com, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap.c: remove redundant statement "error = -ENOMEM"
+     Subject: mm/mmap.c: do not initialize retval in mmap_pgoff()
 has been added to the -mm tree.  Its filename is
-     mm-mmapc-remove-redundant-statement-error-=-enomem.patch
+     mm-mmapc-do-not-initialize-retval-in-mmap_pgoff.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmapc-remove-redundant-statement-error-%3D-enomem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmapc-do-not-initialize-retval-in-mmap_pgoff.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmapc-remove-redundant-statement-error-%3D-enomem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmapc-do-not-initialize-retval-in-mmap_pgoff.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,33 +40,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Chen Gang <xili_gchen_5257@hotmail.com>
-Subject: mm/mmap.c: remove redundant statement "error = -ENOMEM"
+Subject: mm/mmap.c: do not initialize retval in mmap_pgoff()
 
-It is still a little better to remove it, although it should be skipped
-by "-O2".
+When fget() fails we can return -EBADF directly.
 
-Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>=0A=
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
 Acked-by: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/mmap.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN mm/mmap.c~mm-mmapc-remove-redundant-statement-error-=-enomem mm/mmap.c
---- a/mm/mmap.c~mm-mmapc-remove-redundant-statement-error-=-enomem
+diff -puN mm/mmap.c~mm-mmapc-do-not-initialize-retval-in-mmap_pgoff mm/mmap.c
+--- a/mm/mmap.c~mm-mmapc-do-not-initialize-retval-in-mmap_pgoff
 +++ a/mm/mmap.c
-@@ -1562,7 +1562,6 @@ unsigned long mmap_region(struct file *f
- 	}
+@@ -1412,13 +1412,13 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
+ 		unsigned long, fd, unsigned long, pgoff)
+ {
+ 	struct file *file = NULL;
+-	unsigned long retval = -EBADF;
++	unsigned long retval;
  
- 	/* Clear old maps */
--	error = -ENOMEM;
- 	while (find_vma_links(mm, addr, addr + len, &prev, &rb_link,
- 			      &rb_parent)) {
- 		if (do_munmap(mm, addr, len))
+ 	if (!(flags & MAP_ANONYMOUS)) {
+ 		audit_mmap_fd(fd, flags);
+ 		file = fget(fd);
+ 		if (!file)
+-			goto out;
++			return -EBADF;
+ 		if (is_file_hugepages(file))
+ 			len = ALIGN(len, huge_page_size(hstate_file(file)));
+ 		retval = -EINVAL;
+@@ -1453,7 +1453,6 @@ SYSCALL_DEFINE6(mmap_pgoff, unsigned lon
+ out_fput:
+ 	if (file)
+ 		fput(file);
+-out:
+ 	return retval;
+ }
+ 
 _
 
 Patches currently in -mm which might be from xili_gchen_5257@hotmail.com are
 
 mm-mmapc-remove-redundant-statement-error-=-enomem.patch
+mm-mmapc-do-not-initialize-retval-in-mmap_pgoff.patch
 
