@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + modpost-add-flag-e-for-making-section-mismatches-fatal.patch
- added to -mm tree
-Date: Mon, 05 Oct 2015 15:24:56 -0700
-Message-ID: <5612f8b8.Q2c6kgoAP0Yt/Wm7%akpm@linux-foundation.org>
+Subject: + mmoom-fix-potentially-killing-unrelated-process-fix.patch added to -mm tree
+Date: Tue, 06 Oct 2015 12:25:02 -0700
+Message-ID: <5614200e.MclyqqPq0nSXlalh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52950 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58750 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752302AbbJEWY5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 5 Oct 2015 18:24:57 -0400
+	with ESMTP id S1752313AbbJFTZE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2015 15:25:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: drinkcat@chromium.org, mmarek@suse.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: oleg@redhat.com, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: modpost: add flag -E for making section mismatches fatal
+     Subject: mmoom-fix-potentially-killing-unrelated-process-fix
 has been added to the -mm tree.  Its filename is
-     modpost-add-flag-e-for-making-section-mismatches-fatal.patch
+     mmoom-fix-potentially-killing-unrelated-process-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/modpost-add-flag-e-for-making-section-mismatches-fatal.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmoom-fix-potentially-killing-unrelated-process-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/modpost-add-flag-e-for-making-section-mismatches-fatal.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmoom-fix-potentially-killing-unrelated-process-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,119 +38,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nicolas Boichat <drinkcat@chromium.org>
-Subject: modpost: add flag -E for making section mismatches fatal
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: mmoom-fix-potentially-killing-unrelated-process-fix
 
-The section mismatch warning can be easy to miss during the kernel build
-process.  Allow it to be marked as fatal to be easily caught and prevent
-bugs from slipping in.
+oom_kill_process() does atomic_inc(&mm->mm_users) to ensure that this ->mm
+can't go away and this is wrong, change it to rely on ->mm_count and
+mmdrop().
 
-Setting CONFIG_SECTION_MISMATCH_WARN_ONLY=y causes these warnings to be
-non-fatal, since there are a number of section mismatches when using
-allmodconfig on some architectures, and we do not want to break these
-builds by default.
+Firstly, we do not want to delay exit_mmap/etc if the victim exits before
+we do mmput(), but this is minor.
 
-Signed-off-by: Nicolas Boichat <drinkcat@chromium.org>
-Cc: Michal Marek <mmarek@suse.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+More importantly, we simply can not do mmput() in oom_kill_process(), this
+can deadlock if (for example) the caller holds i_mmap_rwsem and mmput()
+actually leads to exit_mmap(); the victim can have this file mmaped and in
+this case unmap_vmas/free_pgtables paths will take the same lock for
+writing.  And at least huge_pmd_share() does pmd_alloc() under
+i_mmap_rwsem because VM_HUGETLB memory is not reclaimable.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug        |    9 +++++++++
- scripts/Makefile.modpost |    1 +
- scripts/mod/modpost.c    |   24 +++++++++++++++++-------
- 3 files changed, 27 insertions(+), 7 deletions(-)
+ mm/oom_kill.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/Kconfig.debug~modpost-add-flag-e-for-making-section-mismatches-fatal lib/Kconfig.debug
---- a/lib/Kconfig.debug~modpost-add-flag-e-for-making-section-mismatches-fatal
-+++ a/lib/Kconfig.debug
-@@ -311,6 +311,15 @@ config DEBUG_SECTION_MISMATCH
- 	  - Enable verbose reporting from modpost in order to help resolve
- 	    the section mismatches that are reported.
+diff -puN mm/oom_kill.c~mmoom-fix-potentially-killing-unrelated-process-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~mmoom-fix-potentially-killing-unrelated-process-fix
++++ a/mm/oom_kill.c
+@@ -563,7 +563,7 @@ void oom_kill_process(struct oom_control
  
-+config SECTION_MISMATCH_WARN_ONLY
-+	bool "Make section mismatch errors non-fatal"
-+	default y
-+	help
-+	  If you say N here, the build process will fail if there are any
-+	  section mismatch, instead of just throwing warnings.
-+
-+	  If unsure, say Y.
-+
- #
- # Select this config option from the architecture Kconfig, if it
- # is preferred to always offer frame pointers as a config
-diff -puN scripts/Makefile.modpost~modpost-add-flag-e-for-making-section-mismatches-fatal scripts/Makefile.modpost
---- a/scripts/Makefile.modpost~modpost-add-flag-e-for-making-section-mismatches-fatal
-+++ a/scripts/Makefile.modpost
-@@ -77,6 +77,7 @@ modpost = scripts/mod/modpost
-  $(if $(KBUILD_EXTRA_SYMBOLS), $(patsubst %, -e %,$(KBUILD_EXTRA_SYMBOLS))) \
-  $(if $(KBUILD_EXTMOD),-o $(modulesymfile))      \
-  $(if $(CONFIG_DEBUG_SECTION_MISMATCH),,-S)      \
-+ $(if $(CONFIG_SECTION_MISMATCH_WARN_ONLY),,-E)  \
-  $(if $(KBUILD_EXTMOD)$(KBUILD_MODPOST_WARN),-w)
- 
- MODPOST_OPT=$(subst -i,-n,$(filter -i,$(MAKEFLAGS)))
-diff -puN scripts/mod/modpost.c~modpost-add-flag-e-for-making-section-mismatches-fatal scripts/mod/modpost.c
---- a/scripts/mod/modpost.c~modpost-add-flag-e-for-making-section-mismatches-fatal
-+++ a/scripts/mod/modpost.c
-@@ -38,6 +38,7 @@ static int warn_unresolved = 0;
- /* How a symbol is exported */
- static int sec_mismatch_count = 0;
- static int sec_mismatch_verbose = 1;
-+static int sec_mismatch_fatal = 0;
- /* ignore missing files */
- static int ignore_missing_files;
- 
-@@ -2374,7 +2375,7 @@ int main(int argc, char **argv)
- 	struct ext_sym_list *extsym_iter;
- 	struct ext_sym_list *extsym_start = NULL;
- 
--	while ((opt = getopt(argc, argv, "i:I:e:mnsST:o:awM:K:")) != -1) {
-+	while ((opt = getopt(argc, argv, "i:I:e:mnsST:o:awM:K:E")) != -1) {
- 		switch (opt) {
- 		case 'i':
- 			kernel_read = optarg;
-@@ -2415,6 +2416,9 @@ int main(int argc, char **argv)
- 		case 'w':
- 			warn_unresolved = 1;
- 			break;
-+		case 'E':
-+			sec_mismatch_fatal = 1;
-+			break;
- 		default:
- 			exit(1);
+ 	/* Get a reference to safely compare mm after task_unlock(victim) */
+ 	mm = victim->mm;
+-	atomic_inc(&mm->mm_users);
++	atomic_inc(&mm->mm_count);
+ 	/*
+ 	 * We should send SIGKILL before setting TIF_MEMDIE in order to prevent
+ 	 * the OOM victim from depleting the memory reserves from the user
+@@ -601,7 +601,7 @@ void oom_kill_process(struct oom_control
  		}
-@@ -2464,14 +2468,20 @@ int main(int argc, char **argv)
- 		sprintf(fname, "%s.mod.c", mod->name);
- 		write_if_changed(&buf, fname);
- 	}
--
- 	if (dump_write)
- 		write_dump(dump_write);
--	if (sec_mismatch_count && !sec_mismatch_verbose)
--		warn("modpost: Found %d section mismatch(es).\n"
--		     "To see full details build your kernel with:\n"
--		     "'make CONFIG_DEBUG_SECTION_MISMATCH=y'\n",
--		     sec_mismatch_count);
-+	if (sec_mismatch_count) {
-+		if (!sec_mismatch_verbose) {
-+			warn("modpost: Found %d section mismatch(es).\n"
-+			     "To see full details build your kernel with:\n"
-+			     "'make CONFIG_DEBUG_SECTION_MISMATCH=y'\n",
-+			     sec_mismatch_count);
-+		}
-+		if (sec_mismatch_fatal) {
-+			fatal("modpost: Section mismatches detected.\n"
-+			      "Set CONFIG_SECTION_MISMATCH_WARN_ONLY=y to allow them.\n");
-+		}
-+	}
+ 	rcu_read_unlock();
  
- 	return err;
+-	mmput(mm);
++	mmdrop(mm);
+ 	put_task_struct(victim);
  }
+ #undef K
 _
 
-Patches currently in -mm which might be from drinkcat@chromium.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-modpost-add-flag-e-for-making-section-mismatches-fatal.patch
+mmoom-fix-potentially-killing-unrelated-process-fix.patch
+mm-fix-the-racy-mm-locked_vm-change-in.patch
+mm-add-the-struct-mm_struct-mm-local-into.patch
+mm-oom_kill-remove-the-wrong-fatal_signal_pending-check-in-oom_kill_process.patch
+mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop.patch
+mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process.patch
+change-current_is_single_threaded-to-use-for_each_thread.patch
+signals-kill-block_all_signals-and-unblock_all_signals.patch
+signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal.patch
+signal-introduce-kernel_signal_stop-to-fix-jffs2_garbage_collect_thread.patch
+signal-remove-jffs2_garbage_collect_thread-allow_signalsigcont.patch
+coredump-ensure-all-coredumping-tasks-have-signal_group_coredump.patch
+coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
 
