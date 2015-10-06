@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + nilfs2-add-a-tracepoint-for-transaction-events.patch added to
- -mm tree
-Date: Tue, 06 Oct 2015 13:03:35 -0700
-Message-ID: <56142917.7nJb2lYdYV9jq1Xa%akpm@linux-foundation.org>
+Subject: +
+ nilfs2-add-a-tracepoint-for-tracking-stage-transition-of-segment-construction.patch added to -mm tree
+Date: Tue, 06 Oct 2015 13:03:33 -0700
+Message-ID: <56142915.0DVWlJu2/8driOez%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39447 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39417 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753908AbbJFUDg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2015 16:03:36 -0400
+	with ESMTP id S1753911AbbJFUDe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2015 16:03:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mitake.hitoshi@lab.ntt.co.jp, konishi.ryusuke@lab.ntt.co.jp, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: add a tracepoint for transaction events
+     Subject: nilfs2: add a tracepoint for tracking stage transition of segment construction
 has been added to the -mm tree.  Its filename is
-     nilfs2-add-a-tracepoint-for-transaction-events.patch
+     nilfs2-add-a-tracepoint-for-tracking-stage-transition-of-segment-construction.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-add-a-tracepoint-for-transaction-events.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nilfs2-add-a-tracepoint-for-tracking-stage-transition-of-segment-construction.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-add-a-tracepoint-for-transaction-events.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nilfs2-add-a-tracepoint-for-tracking-stage-transition-of-segment-construction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,32 +40,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hitoshi Mitake <mitake.hitoshi@lab.ntt.co.jp>
-Subject: nilfs2: add a tracepoint for transaction events
+Subject: nilfs2: add a tracepoint for tracking stage transition of segment construction
 
-This patch adds a tracepoint for transaction events of nilfs.  With the
-tracepoint, these events can be tracked: begin, abort, commit, trylock,
-lock, and unlock.  Basically, these events have corresponding functions
-e.g.  begin event corresponds nilfs_transaction_begin().  The unlock event
-is an exception.  It corresponds to the iteration in
-nilfs_transaction_lock().
+This patch adds a tracepoint for tracking stage transition of block
+collection in segment construction.  With the tracepoint, we can analysis
+the behavior of segment construction in depth.  It would be useful for
+bottleneck detection and debugging, etc.
 
-Only one tracepoint is introcued: nilfs2_transaction_transition.  The
-above events are distinguished with newly introduced enum.  With this
-tracepoint, we can analyse a critical section of segment constructoin.
+The tracepoint is created with the standard trace API of linux (like ext3,
+ext4, f2fs and btrfs).  So we can analysis with existing tools easily.  Of
+course, more detailed analysis will be possible if we can create nilfs
+specific analysis tools.
 
-Sample output by tpoint of perf-tools:
-              cp-4457  [000] ...1    63.266220: nilfs2_transaction_transition: sb = ffff8802112b8800 ti = ffff8800bf5ccc58 count = 1 flags = 9 state = BEGIN
-              cp-4457  [000] ...1    63.266221: nilfs2_transaction_transition: sb = ffff8802112b8800 ti = ffff8800bf5ccc58 count = 0 flags = 9 state = COMMIT
-              cp-4457  [000] ...1    63.266221: nilfs2_transaction_transition: sb = ffff8802112b8800 ti = ffff8800bf5ccc58 count = 0 flags = 9 state = COMMIT
-        segctord-4371  [001] ...1    68.261196: nilfs2_transaction_transition: sb = ffff8802112b8800 ti = ffff8800b889bdf8 count = 0 flags = 10 state = TRYLOCK
-        segctord-4371  [001] ...1    68.261280: nilfs2_transaction_transition: sb = ffff8802112b8800 ti = ffff8800b889bdf8 count = 0 flags = 10 state = LOCK
-        segctord-4371  [001] ...1    68.261877: nilfs2_transaction_transition: sb = ffff8802112b8800 ti = ffff8800b889bdf8 count = 1 flags = 10 state = BEGIN
-        segctord-4371  [001] ...1    68.262116: nilfs2_transaction_transition: sb = ffff8802112b8800 ti = ffff8800b889bdf8 count = 0 flags = 18 state = COMMIT
-        segctord-4371  [001] ...1    68.265032: nilfs2_transaction_transition: sb = ffff8802112b8800 ti = ffff8800b889bdf8 count = 0 flags = 18 state = UNLOCK
-        segctord-4371  [001] ...1   132.376847: nilfs2_transaction_transition: sb = ffff8802112b8800 ti = ffff8800b889bdf8 count = 0 flags = 10 state = TRYLOCK
+Below is an example of event dump with Brendan Gregg's perf-tools
+(https://github.com/brendangregg/perf-tools).  Time consumption between
+each stage can be obtained.
 
-This patch also does trivial cleaning of comma usage in collection stage
-transition event for consistent coding style.
+$ sudo bin/tpoint nilfs2:nilfs2_collection_stage_transition
+Tracing nilfs2:nilfs2_collection_stage_transition. Ctrl-C to end.
+        segctord-14875 [003] ...1 28311.067794: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_INIT
+        segctord-14875 [003] ...1 28311.068139: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_GC
+        segctord-14875 [003] ...1 28311.068139: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_FILE
+        segctord-14875 [003] ...1 28311.068486: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_IFILE
+        segctord-14875 [003] ...1 28311.068540: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_CPFILE
+        segctord-14875 [003] ...1 28311.068561: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_SUFILE
+        segctord-14875 [003] ...1 28311.068565: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_DAT
+        segctord-14875 [003] ...1 28311.068573: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_SR
+        segctord-14875 [003] ...1 28311.068574: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_DONE
+
+For capturing transition correctly, this patch adds wrappers for the
+member scnt of nilfs_cstage.  With this change, every transition of the
+stage can produce trace event in a correct manner.
 
 Signed-off-by: Hitoshi Mitake <mitake.hitoshi@lab.ntt.co.jp>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
@@ -73,173 +78,284 @@ Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/segment.c           |   33 +++++++++++++++++++
- include/trace/events/nilfs2.h |   53 ++++++++++++++++++++++++++++++++
- 2 files changed, 85 insertions(+), 1 deletion(-)
+ fs/nilfs2/segment.c           |   71 ++++++++++++++++++++++----------
+ fs/nilfs2/segment.h           |    3 -
+ include/trace/events/nilfs2.h |   50 ++++++++++++++++++++++
+ 3 files changed, 103 insertions(+), 21 deletions(-)
 
-diff -puN fs/nilfs2/segment.c~nilfs2-add-a-tracepoint-for-transaction-events fs/nilfs2/segment.c
---- a/fs/nilfs2/segment.c~nilfs2-add-a-tracepoint-for-transaction-events
+diff -puN fs/nilfs2/segment.c~nilfs2-add-a-tracepoint-for-tracking-stage-transition-of-segment-construction fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-add-a-tracepoint-for-tracking-stage-transition-of-segment-construction
 +++ a/fs/nilfs2/segment.c
-@@ -214,11 +214,18 @@ int nilfs_transaction_begin(struct super
- {
- 	struct the_nilfs *nilfs;
- 	int ret = nilfs_prepare_segment_lock(ti);
-+	struct nilfs_transaction_info *trace_ti;
+@@ -77,6 +77,36 @@ enum {
+ 	NILFS_ST_DONE,
+ };
  
- 	if (unlikely(ret < 0))
- 		return ret;
--	if (ret > 0)
-+	if (ret > 0) {
-+		trace_ti = current->journal_info;
++#define CREATE_TRACE_POINTS
++#include <trace/events/nilfs2.h>
 +
-+		trace_nilfs2_transaction_transition(sb, trace_ti,
-+				    trace_ti->ti_count, trace_ti->ti_flags,
-+				    TRACE_NILFS2_TRANSACTION_BEGIN);
- 		return 0;
-+	}
- 
- 	sb_start_intwrite(sb);
- 
-@@ -229,6 +236,11 @@ int nilfs_transaction_begin(struct super
- 		ret = -ENOSPC;
- 		goto failed;
- 	}
++/*
++ * nilfs_sc_cstage_inc(), nilfs_sc_cstage_set(), nilfs_sc_cstage_get() are
++ * wrapper functions of stage count (nilfs_sc_info->sc_stage.scnt). Users of
++ * the variable must use them because transition of stage count must involve
++ * trace events (trace_nilfs2_collection_stage_transition).
++ *
++ * nilfs_sc_cstage_get() isn't required for the above purpose because it doesn't
++ * produce tracepoint events. It is provided just for making the intention
++ * clear.
++ */
++static inline void nilfs_sc_cstage_inc(struct nilfs_sc_info *sci)
++{
++	sci->sc_stage.scnt++;
++	trace_nilfs2_collection_stage_transition(sci);
++}
 +
-+	trace_ti = current->journal_info;
-+	trace_nilfs2_transaction_transition(sb, trace_ti, trace_ti->ti_count,
-+					    trace_ti->ti_flags,
-+					    TRACE_NILFS2_TRANSACTION_BEGIN);
- 	return 0;
- 
-  failed:
-@@ -261,6 +273,8 @@ int nilfs_transaction_commit(struct supe
- 	ti->ti_flags |= NILFS_TI_COMMIT;
- 	if (ti->ti_count > 0) {
- 		ti->ti_count--;
-+		trace_nilfs2_transaction_transition(sb, ti, ti->ti_count,
-+			    ti->ti_flags, TRACE_NILFS2_TRANSACTION_COMMIT);
- 		return 0;
- 	}
- 	if (nilfs->ns_writer) {
-@@ -272,6 +286,9 @@ int nilfs_transaction_commit(struct supe
- 			nilfs_segctor_do_flush(sci, 0);
- 	}
- 	up_read(&nilfs->ns_segctor_sem);
-+	trace_nilfs2_transaction_transition(sb, ti, ti->ti_count,
-+			    ti->ti_flags, TRACE_NILFS2_TRANSACTION_COMMIT);
++static inline void nilfs_sc_cstage_set(struct nilfs_sc_info *sci, int next_scnt)
++{
++	sci->sc_stage.scnt = next_scnt;
++	trace_nilfs2_collection_stage_transition(sci);
++}
 +
- 	current->journal_info = ti->ti_save;
- 
- 	if (ti->ti_flags & NILFS_TI_SYNC)
-@@ -290,10 +307,15 @@ void nilfs_transaction_abort(struct supe
- 	BUG_ON(ti == NULL || ti->ti_magic != NILFS_TI_MAGIC);
- 	if (ti->ti_count > 0) {
- 		ti->ti_count--;
-+		trace_nilfs2_transaction_transition(sb, ti, ti->ti_count,
-+			    ti->ti_flags, TRACE_NILFS2_TRANSACTION_ABORT);
- 		return;
- 	}
- 	up_read(&nilfs->ns_segctor_sem);
- 
-+	trace_nilfs2_transaction_transition(sb, ti, ti->ti_count,
-+		    ti->ti_flags, TRACE_NILFS2_TRANSACTION_ABORT);
++static inline int nilfs_sc_cstage_get(struct nilfs_sc_info *sci)
++{
++	return sci->sc_stage.scnt;
++}
 +
- 	current->journal_info = ti->ti_save;
- 	if (ti->ti_flags & NILFS_TI_DYNAMIC_ALLOC)
- 		kmem_cache_free(nilfs_transaction_cachep, ti);
-@@ -339,6 +361,9 @@ static void nilfs_transaction_lock(struc
- 	current->journal_info = ti;
+ /* State flags of collection */
+ #define NILFS_CF_NODE		0x0001	/* Collecting node blocks */
+ #define NILFS_CF_IFILE_STARTED	0x0002	/* IFILE stage has started */
+@@ -1062,7 +1092,7 @@ static int nilfs_segctor_collect_blocks(
+ 	size_t ndone;
+ 	int err = 0;
  
- 	for (;;) {
-+		trace_nilfs2_transaction_transition(sb, ti, ti->ti_count,
-+			    ti->ti_flags, TRACE_NILFS2_TRANSACTION_TRYLOCK);
-+
- 		down_write(&nilfs->ns_segctor_sem);
- 		if (!test_bit(NILFS_SC_PRIOR_FLUSH, &sci->sc_flags))
+-	switch (sci->sc_stage.scnt) {
++	switch (nilfs_sc_cstage_get(sci)) {
+ 	case NILFS_ST_INIT:
+ 		/* Pre-processes */
+ 		sci->sc_stage.flags = 0;
+@@ -1071,7 +1101,7 @@ static int nilfs_segctor_collect_blocks(
+ 			sci->sc_nblk_inc = 0;
+ 			sci->sc_curseg->sb_sum.flags = NILFS_SS_LOGBGN;
+ 			if (mode == SC_LSEG_DSYNC) {
+-				sci->sc_stage.scnt = NILFS_ST_DSYNC;
++				nilfs_sc_cstage_set(sci, NILFS_ST_DSYNC);
+ 				goto dsync_mode;
+ 			}
+ 		}
+@@ -1079,10 +1109,10 @@ static int nilfs_segctor_collect_blocks(
+ 		sci->sc_stage.dirty_file_ptr = NULL;
+ 		sci->sc_stage.gc_inode_ptr = NULL;
+ 		if (mode == SC_FLUSH_DAT) {
+-			sci->sc_stage.scnt = NILFS_ST_DAT;
++			nilfs_sc_cstage_set(sci, NILFS_ST_DAT);
+ 			goto dat_stage;
+ 		}
+-		sci->sc_stage.scnt++;  /* Fall through */
++		nilfs_sc_cstage_inc(sci);  /* Fall through */
+ 	case NILFS_ST_GC:
+ 		if (nilfs_doing_gc()) {
+ 			head = &sci->sc_gc_inodes;
+@@ -1103,7 +1133,7 @@ static int nilfs_segctor_collect_blocks(
+ 			}
+ 			sci->sc_stage.gc_inode_ptr = NULL;
+ 		}
+-		sci->sc_stage.scnt++;  /* Fall through */
++		nilfs_sc_cstage_inc(sci);  /* Fall through */
+ 	case NILFS_ST_FILE:
+ 		head = &sci->sc_dirty_files;
+ 		ii = list_prepare_entry(sci->sc_stage.dirty_file_ptr, head,
+@@ -1125,10 +1155,10 @@ static int nilfs_segctor_collect_blocks(
+ 		}
+ 		sci->sc_stage.dirty_file_ptr = NULL;
+ 		if (mode == SC_FLUSH_FILE) {
+-			sci->sc_stage.scnt = NILFS_ST_DONE;
++			nilfs_sc_cstage_set(sci, NILFS_ST_DONE);
+ 			return 0;
+ 		}
+-		sci->sc_stage.scnt++;
++		nilfs_sc_cstage_inc(sci);
+ 		sci->sc_stage.flags |= NILFS_CF_IFILE_STARTED;
+ 		/* Fall through */
+ 	case NILFS_ST_IFILE:
+@@ -1136,7 +1166,7 @@ static int nilfs_segctor_collect_blocks(
+ 					      &nilfs_sc_file_ops);
+ 		if (unlikely(err))
  			break;
-@@ -350,6 +375,9 @@ static void nilfs_transaction_lock(struc
- 	}
- 	if (gcflag)
- 		ti->ti_flags |= NILFS_TI_GC;
-+
-+	trace_nilfs2_transaction_transition(sb, ti, ti->ti_count,
-+			    ti->ti_flags, TRACE_NILFS2_TRANSACTION_LOCK);
- }
+-		sci->sc_stage.scnt++;
++		nilfs_sc_cstage_inc(sci);
+ 		/* Creating a checkpoint */
+ 		err = nilfs_segctor_create_checkpoint(sci);
+ 		if (unlikely(err))
+@@ -1147,7 +1177,7 @@ static int nilfs_segctor_collect_blocks(
+ 					      &nilfs_sc_file_ops);
+ 		if (unlikely(err))
+ 			break;
+-		sci->sc_stage.scnt++;  /* Fall through */
++		nilfs_sc_cstage_inc(sci);  /* Fall through */
+ 	case NILFS_ST_SUFILE:
+ 		err = nilfs_sufile_freev(nilfs->ns_sufile, sci->sc_freesegs,
+ 					 sci->sc_nfreesegs, &ndone);
+@@ -1163,7 +1193,7 @@ static int nilfs_segctor_collect_blocks(
+ 					      &nilfs_sc_file_ops);
+ 		if (unlikely(err))
+ 			break;
+-		sci->sc_stage.scnt++;  /* Fall through */
++		nilfs_sc_cstage_inc(sci);  /* Fall through */
+ 	case NILFS_ST_DAT:
+  dat_stage:
+ 		err = nilfs_segctor_scan_file(sci, nilfs->ns_dat,
+@@ -1171,10 +1201,10 @@ static int nilfs_segctor_collect_blocks(
+ 		if (unlikely(err))
+ 			break;
+ 		if (mode == SC_FLUSH_DAT) {
+-			sci->sc_stage.scnt = NILFS_ST_DONE;
++			nilfs_sc_cstage_set(sci, NILFS_ST_DONE);
+ 			return 0;
+ 		}
+-		sci->sc_stage.scnt++;  /* Fall through */
++		nilfs_sc_cstage_inc(sci);  /* Fall through */
+ 	case NILFS_ST_SR:
+ 		if (mode == SC_LSEG_SR) {
+ 			/* Appending a super root */
+@@ -1184,7 +1214,7 @@ static int nilfs_segctor_collect_blocks(
+ 		}
+ 		/* End of a logical segment */
+ 		sci->sc_curseg->sb_sum.flags |= NILFS_SS_LOGEND;
+-		sci->sc_stage.scnt = NILFS_ST_DONE;
++		nilfs_sc_cstage_set(sci, NILFS_ST_DONE);
+ 		return 0;
+ 	case NILFS_ST_DSYNC:
+  dsync_mode:
+@@ -1197,7 +1227,7 @@ static int nilfs_segctor_collect_blocks(
+ 		if (unlikely(err))
+ 			break;
+ 		sci->sc_curseg->sb_sum.flags |= NILFS_SS_LOGEND;
+-		sci->sc_stage.scnt = NILFS_ST_DONE;
++		nilfs_sc_cstage_set(sci, NILFS_ST_DONE);
+ 		return 0;
+ 	case NILFS_ST_DONE:
+ 		return 0;
+@@ -1442,7 +1472,8 @@ static int nilfs_segctor_collect(struct
+ 			goto failed;
  
- static void nilfs_transaction_unlock(struct super_block *sb)
-@@ -362,6 +390,9 @@ static void nilfs_transaction_unlock(str
+ 		/* The current segment is filled up */
+-		if (mode != SC_LSEG_SR || sci->sc_stage.scnt < NILFS_ST_CPFILE)
++		if (mode != SC_LSEG_SR ||
++		    nilfs_sc_cstage_get(sci) < NILFS_ST_CPFILE)
+ 			break;
  
- 	up_write(&nilfs->ns_segctor_sem);
- 	current->journal_info = ti->ti_save;
-+
-+	trace_nilfs2_transaction_transition(sb, ti, ti->ti_count,
-+			    ti->ti_flags, TRACE_NILFS2_TRANSACTION_UNLOCK);
- }
+ 		nilfs_clear_logs(&sci->sc_segbufs);
+@@ -1946,7 +1977,7 @@ static int nilfs_segctor_do_construct(st
+ 	struct the_nilfs *nilfs = sci->sc_super->s_fs_info;
+ 	int err;
  
- static void *nilfs_segctor_map_segsum_entry(struct nilfs_sc_info *sci,
-diff -puN include/trace/events/nilfs2.h~nilfs2-add-a-tracepoint-for-transaction-events include/trace/events/nilfs2.h
---- a/include/trace/events/nilfs2.h~nilfs2-add-a-tracepoint-for-transaction-events
+-	sci->sc_stage.scnt = NILFS_ST_INIT;
++	nilfs_sc_cstage_set(sci, NILFS_ST_INIT);
+ 	sci->sc_cno = nilfs->ns_cno;
+ 
+ 	err = nilfs_segctor_collect_dirty_files(sci, nilfs);
+@@ -1974,7 +2005,7 @@ static int nilfs_segctor_do_construct(st
+ 			goto failed;
+ 
+ 		/* Avoid empty segment */
+-		if (sci->sc_stage.scnt == NILFS_ST_DONE &&
++		if (nilfs_sc_cstage_get(sci) == NILFS_ST_DONE &&
+ 		    nilfs_segbuf_empty(sci->sc_curseg)) {
+ 			nilfs_segctor_abort_construction(sci, nilfs, 1);
+ 			goto out;
+@@ -1988,7 +2019,7 @@ static int nilfs_segctor_do_construct(st
+ 			nilfs_segctor_fill_in_file_bmap(sci);
+ 
+ 		if (mode == SC_LSEG_SR &&
+-		    sci->sc_stage.scnt >= NILFS_ST_CPFILE) {
++		    nilfs_sc_cstage_get(sci) >= NILFS_ST_CPFILE) {
+ 			err = nilfs_segctor_fill_in_checkpoint(sci);
+ 			if (unlikely(err))
+ 				goto failed_to_write;
+@@ -2007,7 +2038,7 @@ static int nilfs_segctor_do_construct(st
+ 		if (unlikely(err))
+ 			goto failed_to_write;
+ 
+-		if (sci->sc_stage.scnt == NILFS_ST_DONE ||
++		if (nilfs_sc_cstage_get(sci) == NILFS_ST_DONE ||
+ 		    nilfs->ns_blocksize_bits != PAGE_CACHE_SHIFT) {
+ 			/*
+ 			 * At this point, we avoid double buffering
+@@ -2020,7 +2051,7 @@ static int nilfs_segctor_do_construct(st
+ 			if (err)
+ 				goto failed_to_write;
+ 		}
+-	} while (sci->sc_stage.scnt != NILFS_ST_DONE);
++	} while (nilfs_sc_cstage_get(sci) != NILFS_ST_DONE);
+ 
+  out:
+ 	nilfs_segctor_drop_written_files(sci, nilfs);
+diff -puN fs/nilfs2/segment.h~nilfs2-add-a-tracepoint-for-tracking-stage-transition-of-segment-construction fs/nilfs2/segment.h
+--- a/fs/nilfs2/segment.h~nilfs2-add-a-tracepoint-for-tracking-stage-transition-of-segment-construction
++++ a/fs/nilfs2/segment.h
+@@ -67,7 +67,8 @@ struct nilfs_recovery_info {
+ 
+ /**
+  * struct nilfs_cstage - Context of collection stage
+- * @scnt: Stage count
++ * @scnt: Stage count, must be accessed via wrappers:
++ *        nilfs_sc_cstage_inc(), nilfs_sc_cstage_set(), nilfs_sc_cstage_get()
+  * @flags: State flags
+  * @dirty_file_ptr: Pointer on dirty_files list, or inode of a target file
+  * @gc_inode_ptr: Pointer on the list of gc-inodes
+diff -puN /dev/null include/trace/events/nilfs2.h
+--- /dev/null
 +++ a/include/trace/events/nilfs2.h
-@@ -42,6 +42,59 @@ TRACE_EVENT(nilfs2_collection_stage_tran
- 		      show_collection_stage(__entry->stage))
- );
- 
-+#ifndef TRACE_HEADER_MULTI_READ
-+enum nilfs2_transaction_transition_state {
-+	TRACE_NILFS2_TRANSACTION_BEGIN,
-+	TRACE_NILFS2_TRANSACTION_COMMIT,
-+	TRACE_NILFS2_TRANSACTION_ABORT,
-+	TRACE_NILFS2_TRANSACTION_TRYLOCK,
-+	TRACE_NILFS2_TRANSACTION_LOCK,
-+	TRACE_NILFS2_TRANSACTION_UNLOCK,
-+};
-+#endif
+@@ -0,0 +1,50 @@
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM nilfs2
 +
-+#define show_transaction_state(type)					\
++#if !defined(_TRACE_NILFS2_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_NILFS2_H
++
++#include <linux/tracepoint.h>
++
++struct nilfs_sc_info;
++
++#define show_collection_stage(type)					\
 +	__print_symbolic(type,						\
-+			 { TRACE_NILFS2_TRANSACTION_BEGIN, "BEGIN" },	\
-+			 { TRACE_NILFS2_TRANSACTION_COMMIT, "COMMIT" },	\
-+			 { TRACE_NILFS2_TRANSACTION_ABORT, "ABORT" },	\
-+			 { TRACE_NILFS2_TRANSACTION_TRYLOCK, "TRYLOCK" }, \
-+			 { TRACE_NILFS2_TRANSACTION_LOCK, "LOCK" },	\
-+			 { TRACE_NILFS2_TRANSACTION_UNLOCK, "UNLOCK" })
++	{ NILFS_ST_INIT, "ST_INIT" },					\
++	{ NILFS_ST_GC, "ST_GC" },					\
++	{ NILFS_ST_FILE, "ST_FILE" },					\
++	{ NILFS_ST_IFILE, "ST_IFILE" },					\
++	{ NILFS_ST_CPFILE, "ST_CPFILE" },				\
++	{ NILFS_ST_SUFILE, "ST_SUFILE" },				\
++	{ NILFS_ST_DAT, "ST_DAT" },					\
++	{ NILFS_ST_SR, "ST_SR" },					\
++	{ NILFS_ST_DSYNC, "ST_DSYNC" },					\
++	{ NILFS_ST_DONE, "ST_DONE"})
 +
-+TRACE_EVENT(nilfs2_transaction_transition,
-+	    TP_PROTO(struct super_block *sb,
-+		     struct nilfs_transaction_info *ti,
-+		     int count,
-+		     unsigned int flags,
-+		     enum nilfs2_transaction_transition_state state),
++TRACE_EVENT(nilfs2_collection_stage_transition,
 +
-+	    TP_ARGS(sb, ti, count, flags, state),
++	    TP_PROTO(struct nilfs_sc_info *sci),
++
++	    TP_ARGS(sci),
 +
 +	    TP_STRUCT__entry(
-+		    __field(void *, sb)
-+		    __field(void *, ti)
-+		    __field(int, count)
-+		    __field(unsigned int, flags)
-+		    __field(int, state)
++		    __field(void *, sci)
++		    __field(int, stage)
 +	    ),
 +
 +	    TP_fast_assign(
-+		    __entry->sb = sb;
-+		    __entry->ti = ti;
-+		    __entry->count = count;
-+		    __entry->flags = flags;
-+		    __entry->state = state;
++			__entry->sci = sci;
++			__entry->stage = sci->sc_stage.scnt;
 +		    ),
 +
-+	    TP_printk("sb = %p ti = %p count = %d flags = %x state = %s",
-+		      __entry->sb,
-+		      __entry->ti,
-+		      __entry->count,
-+		      __entry->flags,
-+		      show_transaction_state(__entry->state))
++	    TP_printk("sci = %p stage = %s",
++		      __entry->sci,
++		      show_collection_stage(__entry->stage))
 +);
 +
- #endif /* _TRACE_NILFS2_H */
- 
- /* This part must be outside protection */
++#endif /* _TRACE_NILFS2_H */
++
++/* This part must be outside protection */
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_FILE nilfs2
++#include <trace/define_trace.h>
 _
 
 Patches currently in -mm which might be from mitake.hitoshi@lab.ntt.co.jp are
