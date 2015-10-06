@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mmoom-fix-potentially-killing-unrelated-process-fix.patch added to -mm tree
-Date: Tue, 06 Oct 2015 12:25:02 -0700
-Message-ID: <5614200e.MclyqqPq0nSXlalh%akpm@linux-foundation.org>
+Subject: +
+ page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch added to -mm tree
+Date: Tue, 06 Oct 2015 12:28:28 -0700
+Message-ID: <561420dc.QobhKdhTsoZDWkLy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58750 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59556 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752313AbbJFTZE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2015 15:25:04 -0400
+	with ESMTP id S1752293AbbJFT23 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2015 15:28:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmoom-fix-potentially-killing-unrelated-process-fix
+     Subject: hugetlb: clear PG_reserved before setting PG_head on gigantic pages
 has been added to the -mm tree.  Its filename is
-     mmoom-fix-potentially-killing-unrelated-process-fix.patch
+     page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmoom-fix-potentially-killing-unrelated-process-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmoom-fix-potentially-killing-unrelated-process-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,69 +39,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: mmoom-fix-potentially-killing-unrelated-process-fix
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: hugetlb: clear PG_reserved before setting PG_head on gigantic pages
 
-oom_kill_process() does atomic_inc(&mm->mm_users) to ensure that this ->mm
-can't go away and this is wrong, change it to rely on ->mm_count and
-mmdrop().
+PF_NO_COMPOUND for PG_reserved assumes we don't use PG_reserved for
+compound pages.  And we generally don't.  But during allocation of
+gigantic pages we set PG_head before clearing PG_reserved and
+__ClearPageReserved() steps on the VM_BUG_ON_PAGE().
 
-Firstly, we do not want to delay exit_mmap/etc if the victim exits before
-we do mmput(), but this is minor.
+The fix is trivial: set PG_head after PG_reserved.
 
-More importantly, we simply can not do mmput() in oom_kill_process(), this
-can deadlock if (for example) the caller holds i_mmap_rwsem and mmput()
-actually leads to exit_mmap(); the victim can have this file mmaped and in
-this case unmap_vmas/free_pgtables paths will take the same lock for
-writing.  And at least huge_pmd_share() does pmd_alloc() under
-i_mmap_rwsem because VM_HUGETLB memory is not reclaimable.
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/hugetlb.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~mmoom-fix-potentially-killing-unrelated-process-fix mm/oom_kill.c
---- a/mm/oom_kill.c~mmoom-fix-potentially-killing-unrelated-process-fix
-+++ a/mm/oom_kill.c
-@@ -563,7 +563,7 @@ void oom_kill_process(struct oom_control
+diff -puN mm/hugetlb.c~page-flags-define-pg_reserved-behavior-on-compound-pages-fix mm/hugetlb.c
+--- a/mm/hugetlb.c~page-flags-define-pg_reserved-behavior-on-compound-pages-fix
++++ a/mm/hugetlb.c
+@@ -1258,8 +1258,8 @@ static void prep_compound_gigantic_page(
  
- 	/* Get a reference to safely compare mm after task_unlock(victim) */
- 	mm = victim->mm;
--	atomic_inc(&mm->mm_users);
-+	atomic_inc(&mm->mm_count);
- 	/*
- 	 * We should send SIGKILL before setting TIF_MEMDIE in order to prevent
- 	 * the OOM victim from depleting the memory reserves from the user
-@@ -601,7 +601,7 @@ void oom_kill_process(struct oom_control
- 		}
- 	rcu_read_unlock();
- 
--	mmput(mm);
-+	mmdrop(mm);
- 	put_task_struct(victim);
- }
- #undef K
+ 	/* we rely on prep_new_huge_page to set the destructor */
+ 	set_compound_order(page, order);
+-	__SetPageHead(page);
+ 	__ClearPageReserved(page);
++	__SetPageHead(page);
+ 	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
+ 		/*
+ 		 * For gigantic hugepages allocated through bootmem at
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mmoom-fix-potentially-killing-unrelated-process-fix.patch
-mm-fix-the-racy-mm-locked_vm-change-in.patch
-mm-add-the-struct-mm_struct-mm-local-into.patch
-mm-oom_kill-remove-the-wrong-fatal_signal_pending-check-in-oom_kill_process.patch
-mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop.patch
-mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process.patch
-change-current_is_single_threaded-to-use-for_each_thread.patch
-signals-kill-block_all_signals-and-unblock_all_signals.patch
-signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal.patch
-signal-introduce-kernel_signal_stop-to-fix-jffs2_garbage_collect_thread.patch
-signal-remove-jffs2_garbage_collect_thread-allow_signalsigcont.patch
-coredump-ensure-all-coredumping-tasks-have-signal_group_coredump.patch
-coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
+rcu-force-alignment-on-struct-callback_head-rcu_head.patch
+mm-make-optimistic-check-for-swapin-readahead-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+mm-drop-page-slab_page.patch
+slab-slub-use-page-rcu_head-instead-of-page-lru-plus-cast.patch
+zsmalloc-use-page-private-instead-of-page-first_page.patch
+mm-pack-compound_dtor-and-compound_order-into-one-word-in-struct-page.patch
+mm-make-compound_head-robust.patch
+mm-make-compound_head-robust-fix.patch
+mm-use-unsigned-int-for-page-order.patch
+mm-use-unsigned-int-for-compound_dtor-compound_order-on-64bit.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-move-code-around.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-fix.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-3.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-at-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-support-madvisemadv_free-fix-3.patch
 
