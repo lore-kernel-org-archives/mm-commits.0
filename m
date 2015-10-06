@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch added to -mm tree
-Date: Tue, 06 Oct 2015 12:28:28 -0700
-Message-ID: <561420dc.QobhKdhTsoZDWkLy%akpm@linux-foundation.org>
+Subject: + remove-abs64-fix-fix.patch added to -mm tree
+Date: Tue, 06 Oct 2015 12:29:40 -0700
+Message-ID: <56142124.CYeQTaJOhdH9IS+c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59556 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59777 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752293AbbJFT23 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2015 15:28:29 -0400
+	with ESMTP id S1752559AbbJFT3l (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 6 Oct 2015 15:29:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dmitry.torokhov@gmail.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: clear PG_reserved before setting PG_head on gigantic pages
+     Subject: remove-abs64-fix-fix
 has been added to the -mm tree.  Its filename is
-     page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
+     remove-abs64-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/remove-abs64-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/remove-abs64-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,73 +38,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: hugetlb: clear PG_reserved before setting PG_head on gigantic pages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: remove-abs64-fix-fix
 
-PF_NO_COMPOUND for PG_reserved assumes we don't use PG_reserved for
-compound pages.  And we generally don't.  But during allocation of
-gigantic pages we set PG_head before clearing PG_reserved and
-__ClearPageReserved() steps on the VM_BUG_ON_PAGE().
-
-The fix is trivial: set PG_head after PG_reserved.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
+ kernel/time/clocksource.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~page-flags-define-pg_reserved-behavior-on-compound-pages-fix mm/hugetlb.c
---- a/mm/hugetlb.c~page-flags-define-pg_reserved-behavior-on-compound-pages-fix
-+++ a/mm/hugetlb.c
-@@ -1258,8 +1258,8 @@ static void prep_compound_gigantic_page(
+diff -puN kernel/time/clocksource.c~remove-abs64-fix-fix kernel/time/clocksource.c
+--- a/kernel/time/clocksource.c~remove-abs64-fix-fix
++++ a/kernel/time/clocksource.c
+@@ -217,7 +217,7 @@ static void clocksource_watchdog(unsigne
+ 			continue;
  
- 	/* we rely on prep_new_huge_page to set the destructor */
- 	set_compound_order(page, order);
--	__SetPageHead(page);
- 	__ClearPageReserved(page);
-+	__SetPageHead(page);
- 	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
- 		/*
- 		 * For gigantic hugepages allocated through bootmem at
+ 		/* Check the deviation from the watchdog clocksource. */
+-		if (abs64(cs_nsec - wd_nsec) > WATCHDOG_THRESHOLD) {
++		if (abs(cs_nsec - wd_nsec) > WATCHDOG_THRESHOLD) {
+ 			pr_warn("timekeeping watchdog: Marking clocksource '%s' as unstable because the skew is too large:\n",
+ 				cs->name);
+ 			pr_warn("                      '%s' wd_now: %llx wd_last: %llx mask: %llx\n",
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-rcu-force-alignment-on-struct-callback_head-rcu_head.patch
-mm-make-optimistic-check-for-swapin-readahead-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
-mm-drop-page-slab_page.patch
-slab-slub-use-page-rcu_head-instead-of-page-lru-plus-cast.patch
-zsmalloc-use-page-private-instead-of-page-first_page.patch
-mm-pack-compound_dtor-and-compound_order-into-one-word-in-struct-page.patch
-mm-make-compound_head-robust.patch
-mm-make-compound_head-robust-fix.patch
-mm-use-unsigned-int-for-page-order.patch
-mm-use-unsigned-int-for-compound_dtor-compound_order-on-64bit.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-move-code-around.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-fix.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-3.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-at-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-support-madvisemadv_free-fix-3.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm.patch
+slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
+mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
+mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
+mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
+include-linux-mmzoneh-reflow-comment.patch
+mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
+kasan-various-fixes-in-documentation-checkpatch-fixes.patch
+zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+include-linux-compiler-gcch-improve-__visible-documentation.patch
+fs-jffs2-wbufc-remove-stray-semicolon.patch
+lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
+rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
+dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+net-ipv4-routec-prevent-oops.patch
+remove-abs64.patch
+remove-abs64-fix.patch
+remove-abs64-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
