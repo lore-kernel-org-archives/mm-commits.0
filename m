@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kmap_atomic_to_page-has-no-users-remove-it.patch added to -mm
- tree
-Date: Wed, 07 Oct 2015 15:36:11 -0700
-Message-ID: <56159e5b.JA2C7x1aEqSxrEFt%akpm@linux-foundation.org>
+Subject: + mm-dont-offset-memmap-for-flatmem.patch added to -mm tree
+Date: Wed, 07 Oct 2015 15:38:59 -0700
+Message-ID: <56159f03.URKh9la6ZUcwHSmp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42752 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43704 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750730AbbJGWgM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Oct 2015 18:36:12 -0400
+	with ESMTP id S1750972AbbJGWjA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 7 Oct 2015 18:39:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nicolas.pitre@linaro.org, nico@linaro.org, mm-commits@vger.kernel.org
+To: laura@labbott.name, agross@codeaurora.org, arnd@arndb.de, bjorn.andersson@sonymobile.com, dave.hansen@linux.intel.com, khilman@linaro.org, lauraa@codeaurora.org, mgorman@suse.de, rmk@arm.linux.org.uk, rostedt@goodmis.org, sboyd@codeaurora.org, srinivas.kandagatla@linaro.org, ssantosh@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmap_atomic_to_page() has no users, remove it
+     Subject: mm: Don't offset memmap for flatmem
 has been added to the -mm tree.  Its filename is
-     kmap_atomic_to_page-has-no-users-remove-it.patch
+     mm-dont-offset-memmap-for-flatmem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmap_atomic_to_page-has-no-users-remove-it.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-offset-memmap-for-flatmem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmap_atomic_to_page-has-no-users-remove-it.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-offset-memmap-for-flatmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,273 +38,107 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Nicolas Pitre <nicolas.pitre@linaro.org>
-Subject: kmap_atomic_to_page() has no users, remove it
+From: Laura Abbott <laura@labbott.name>
+Subject: mm: Don't offset memmap for flatmem
 
-Removal started in 5bbeed12bdc3 ("sparc32: drop unused
-kmap_atomic_to_page").  Let's do it across the whole tree.
+Srinivas Kandagatla reported bad page messages when trying to remove the
+bottom 2MB on an ARM based IFC6410 board
 
-Signed-off-by: Nicolas Pitre <nico@linaro.org>
+BUG: Bad page state in process swapper  pfn:fffa8
+page:ef7fb500 count:0 mapcount:0 mapping:  (null) index:0x0
+flags: 0x96640253(locked|error|dirty|active|arch_1|reclaim|mlocked)
+page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
+bad because of flags:
+flags: 0x200041(locked|active|mlocked)
+Modules linked in:
+CPU: 0 PID: 0 Comm: swapper Not tainted 3.19.0-rc3-00007-g412f9ba-dirty #816
+Hardware name: Qualcomm (Flattened Device Tree)
+[<c0218280>] (unwind_backtrace) from [<c0212be8>] (show_stack+0x20/0x24)
+[<c0212be8>] (show_stack) from [<c0af7124>] (dump_stack+0x80/0x9c)
+[<c0af7124>] (dump_stack) from [<c0301570>] (bad_page+0xc8/0x128)
+[<c0301570>] (bad_page) from [<c03018a8>] (free_pages_prepare+0x168/0x1e0)
+[<c03018a8>] (free_pages_prepare) from [<c030369c>] (free_hot_cold_page+0x3c/0x174)
+[<c030369c>] (free_hot_cold_page) from [<c0303828>] (__free_pages+0x54/0x58)
+[<c0303828>] (__free_pages) from [<c030395c>] (free_highmem_page+0x38/0x88)
+[<c030395c>] (free_highmem_page) from [<c0f62d5c>] (mem_init+0x240/0x430)
+[<c0f62d5c>] (mem_init) from [<c0f5db3c>] (start_kernel+0x1e4/0x3c8)
+[<c0f5db3c>] (start_kernel) from [<80208074>] (0x80208074)
+Disabling lock debugging due to kernel taint
+
+Removing the lower 2MB made the start of the lowmem zone to no longer be
+page block aligned.  IFC6410 uses CONFIG_FLATMEM where alloc_node_mem_map
+allocates memory for the mem_map.  alloc_node_mem_map will offset for
+unaligned nodes with the assumption the pfn/page translation functions
+will account for the offset.  The functions for CONFIG_FLATMEM do not
+offset however, resulting in overrunning the memmap array.  Just use the
+allocated memmap without any offset when running with CONFIG_FLATMEM to
+avoid the overrun.
+
+Signed-off-by: Laura Abbott <laura@labbott.name>
+Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
+Reported-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Tested-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Bjorn Andersson <bjorn.andersson@sonymobile.com>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@linaro.org>
+Cc: Arnd Bergman <arnd@arndb.de>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Andy Gross <agross@codeaurora.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/include/asm/highmem.h        |    1 -
- arch/arm/mm/highmem.c                 |   10 ----------
- arch/frv/include/asm/highmem.h        |    2 --
- arch/frv/mm/highmem.c                 |    5 -----
- arch/metag/include/asm/highmem.h      |    1 -
- arch/metag/mm/highmem.c               |   14 --------------
- arch/microblaze/include/asm/highmem.h |   13 -------------
- arch/mips/include/asm/highmem.h       |    1 -
- arch/mips/mm/highmem.c                |   13 -------------
- arch/parisc/include/asm/cacheflush.h  |    1 -
- arch/powerpc/include/asm/highmem.h    |   13 -------------
- arch/tile/include/asm/highmem.h       |    1 -
- arch/tile/mm/highmem.c                |   12 ------------
- arch/x86/include/asm/highmem.h        |    1 -
- arch/x86/mm/highmem_32.c              |   14 --------------
- include/linux/highmem.h               |    1 -
- 16 files changed, 103 deletions(-)
+ mm/page_alloc.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm/include/asm/highmem.h~kmap_atomic_to_page-has-no-users-remove-it arch/arm/include/asm/highmem.h
---- a/arch/arm/include/asm/highmem.h~kmap_atomic_to_page-has-no-users-remove-it
-+++ a/arch/arm/include/asm/highmem.h
-@@ -68,7 +68,6 @@ extern void kunmap(struct page *page);
- extern void *kmap_atomic(struct page *page);
- extern void __kunmap_atomic(void *kvaddr);
- extern void *kmap_atomic_pfn(unsigned long pfn);
--extern struct page *kmap_atomic_to_page(const void *ptr);
- #endif
+diff -puN mm/page_alloc.c~mm-dont-offset-memmap-for-flatmem mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-dont-offset-memmap-for-flatmem
++++ a/mm/page_alloc.c
+@@ -5241,6 +5241,8 @@ static void __paginginit free_area_init_
  
- #endif
-diff -puN arch/arm/mm/highmem.c~kmap_atomic_to_page-has-no-users-remove-it arch/arm/mm/highmem.c
---- a/arch/arm/mm/highmem.c~kmap_atomic_to_page-has-no-users-remove-it
-+++ a/arch/arm/mm/highmem.c
-@@ -147,13 +147,3 @@ void *kmap_atomic_pfn(unsigned long pfn)
- 
- 	return (void *)vaddr;
- }
--
--struct page *kmap_atomic_to_page(const void *ptr)
--{
--	unsigned long vaddr = (unsigned long)ptr;
--
--	if (vaddr < FIXADDR_START)
--		return virt_to_page(ptr);
--
--	return pte_page(get_fixmap_pte(vaddr));
--}
-diff -puN arch/frv/include/asm/highmem.h~kmap_atomic_to_page-has-no-users-remove-it arch/frv/include/asm/highmem.h
---- a/arch/frv/include/asm/highmem.h~kmap_atomic_to_page-has-no-users-remove-it
-+++ a/arch/frv/include/asm/highmem.h
-@@ -62,8 +62,6 @@ extern void kunmap_high(struct page *pag
- extern void *kmap(struct page *page);
- extern void kunmap(struct page *page);
- 
--extern struct page *kmap_atomic_to_page(void *ptr);
--
- #endif /* !__ASSEMBLY__ */
- 
- /*
-diff -puN arch/frv/mm/highmem.c~kmap_atomic_to_page-has-no-users-remove-it arch/frv/mm/highmem.c
---- a/arch/frv/mm/highmem.c~kmap_atomic_to_page-has-no-users-remove-it
-+++ a/arch/frv/mm/highmem.c
-@@ -32,11 +32,6 @@ void kunmap(struct page *page)
- 
- EXPORT_SYMBOL(kunmap);
- 
--struct page *kmap_atomic_to_page(void *ptr)
--{
--	return virt_to_page(ptr);
--}
--
- void *kmap_atomic(struct page *page)
+ static void __init_refok alloc_node_mem_map(struct pglist_data *pgdat)
  {
- 	unsigned long paddr;
-diff -puN arch/metag/include/asm/highmem.h~kmap_atomic_to_page-has-no-users-remove-it arch/metag/include/asm/highmem.h
---- a/arch/metag/include/asm/highmem.h~kmap_atomic_to_page-has-no-users-remove-it
-+++ a/arch/metag/include/asm/highmem.h
-@@ -56,7 +56,6 @@ extern void kunmap(struct page *page);
- extern void *kmap_atomic(struct page *page);
- extern void __kunmap_atomic(void *kvaddr);
- extern void *kmap_atomic_pfn(unsigned long pfn);
--extern struct page *kmap_atomic_to_page(void *ptr);
++	unsigned long __maybe_unused offset = 0;
++
+ 	/* Skip empty nodes */
+ 	if (!pgdat->node_spanned_pages)
+ 		return;
+@@ -5257,6 +5259,7 @@ static void __init_refok alloc_node_mem_
+ 		 * for the buddy allocator to function correctly.
+ 		 */
+ 		start = pgdat->node_start_pfn & ~(MAX_ORDER_NR_PAGES - 1);
++		offset = pgdat->node_start_pfn - start;
+ 		end = pgdat_end_pfn(pgdat);
+ 		end = ALIGN(end, MAX_ORDER_NR_PAGES);
+ 		size =  (end - start) * sizeof(struct page);
+@@ -5264,7 +5267,7 @@ static void __init_refok alloc_node_mem_
+ 		if (!map)
+ 			map = memblock_virt_alloc_node_nopanic(size,
+ 							       pgdat->node_id);
+-		pgdat->node_mem_map = map + (pgdat->node_start_pfn - start);
++		pgdat->node_mem_map = map + offset;
+ 	}
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+ 	/*
+@@ -5272,9 +5275,9 @@ static void __init_refok alloc_node_mem_
+ 	 */
+ 	if (pgdat == NODE_DATA(0)) {
+ 		mem_map = NODE_DATA(0)->node_mem_map;
+-#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
++#if defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP) || defined(CONFIG_FLATMEM)
+ 		if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
+-			mem_map -= (pgdat->node_start_pfn - ARCH_PFN_OFFSET);
++			mem_map -= offset;
+ #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
+ 	}
  #endif
- 
- #endif
-diff -puN arch/metag/mm/highmem.c~kmap_atomic_to_page-has-no-users-remove-it arch/metag/mm/highmem.c
---- a/arch/metag/mm/highmem.c~kmap_atomic_to_page-has-no-users-remove-it
-+++ a/arch/metag/mm/highmem.c
-@@ -111,20 +111,6 @@ void *kmap_atomic_pfn(unsigned long pfn)
- 	return (void *)vaddr;
- }
- 
--struct page *kmap_atomic_to_page(void *ptr)
--{
--	unsigned long vaddr = (unsigned long)ptr;
--	int idx;
--	pte_t *pte;
--
--	if (vaddr < FIXADDR_START)
--		return virt_to_page(ptr);
--
--	idx = virt_to_fix(vaddr);
--	pte = kmap_pte - (idx - FIX_KMAP_BEGIN);
--	return pte_page(*pte);
--}
--
- void __init kmap_init(void)
- {
- 	unsigned long kmap_vstart;
-diff -puN arch/microblaze/include/asm/highmem.h~kmap_atomic_to_page-has-no-users-remove-it arch/microblaze/include/asm/highmem.h
---- a/arch/microblaze/include/asm/highmem.h~kmap_atomic_to_page-has-no-users-remove-it
-+++ a/arch/microblaze/include/asm/highmem.h
-@@ -76,19 +76,6 @@ static inline void *kmap_atomic(struct p
- 	return kmap_atomic_prot(page, kmap_prot);
- }
- 
--static inline struct page *kmap_atomic_to_page(void *ptr)
--{
--	unsigned long idx, vaddr = (unsigned long) ptr;
--	pte_t *pte;
--
--	if (vaddr < FIXADDR_START)
--		return virt_to_page(ptr);
--
--	idx = virt_to_fix(vaddr);
--	pte = kmap_pte - (idx - FIX_KMAP_BEGIN);
--	return pte_page(*pte);
--}
--
- #define flush_cache_kmaps()	{ flush_icache(); flush_dcache(); }
- 
- #endif /* __KERNEL__ */
-diff -puN arch/mips/include/asm/highmem.h~kmap_atomic_to_page-has-no-users-remove-it arch/mips/include/asm/highmem.h
---- a/arch/mips/include/asm/highmem.h~kmap_atomic_to_page-has-no-users-remove-it
-+++ a/arch/mips/include/asm/highmem.h
-@@ -49,7 +49,6 @@ extern void kunmap(struct page *page);
- extern void *kmap_atomic(struct page *page);
- extern void __kunmap_atomic(void *kvaddr);
- extern void *kmap_atomic_pfn(unsigned long pfn);
--extern struct page *kmap_atomic_to_page(void *ptr);
- 
- #define flush_cache_kmaps()	flush_cache_all()
- 
-diff -puN arch/mips/mm/highmem.c~kmap_atomic_to_page-has-no-users-remove-it arch/mips/mm/highmem.c
---- a/arch/mips/mm/highmem.c~kmap_atomic_to_page-has-no-users-remove-it
-+++ a/arch/mips/mm/highmem.c
-@@ -118,19 +118,6 @@ void *kmap_atomic_pfn(unsigned long pfn)
- 	return (void*) vaddr;
- }
- 
--struct page *kmap_atomic_to_page(void *ptr)
--{
--	unsigned long idx, vaddr = (unsigned long)ptr;
--	pte_t *pte;
--
--	if (vaddr < FIXADDR_START)
--		return virt_to_page(ptr);
--
--	idx = virt_to_fix(vaddr);
--	pte = kmap_pte - (idx - FIX_KMAP_BEGIN);
--	return pte_page(*pte);
--}
--
- void __init kmap_init(void)
- {
- 	unsigned long kmap_vstart;
-diff -puN arch/parisc/include/asm/cacheflush.h~kmap_atomic_to_page-has-no-users-remove-it arch/parisc/include/asm/cacheflush.h
---- a/arch/parisc/include/asm/cacheflush.h~kmap_atomic_to_page-has-no-users-remove-it
-+++ a/arch/parisc/include/asm/cacheflush.h
-@@ -156,7 +156,6 @@ static inline void __kunmap_atomic(void
- 
- #define kmap_atomic_prot(page, prot)	kmap_atomic(page)
- #define kmap_atomic_pfn(pfn)	kmap_atomic(pfn_to_page(pfn))
--#define kmap_atomic_to_page(ptr)	virt_to_page(ptr)
- 
- #endif /* _PARISC_CACHEFLUSH_H */
- 
-diff -puN arch/powerpc/include/asm/highmem.h~kmap_atomic_to_page-has-no-users-remove-it arch/powerpc/include/asm/highmem.h
---- a/arch/powerpc/include/asm/highmem.h~kmap_atomic_to_page-has-no-users-remove-it
-+++ a/arch/powerpc/include/asm/highmem.h
-@@ -84,19 +84,6 @@ static inline void *kmap_atomic(struct p
- 	return kmap_atomic_prot(page, kmap_prot);
- }
- 
--static inline struct page *kmap_atomic_to_page(void *ptr)
--{
--	unsigned long idx, vaddr = (unsigned long) ptr;
--	pte_t *pte;
--
--	if (vaddr < FIXADDR_START)
--		return virt_to_page(ptr);
--
--	idx = virt_to_fix(vaddr);
--	pte = kmap_pte - (idx - FIX_KMAP_BEGIN);
--	return pte_page(*pte);
--}
--
- 
- #define flush_cache_kmaps()	flush_cache_all()
- 
-diff -puN arch/tile/include/asm/highmem.h~kmap_atomic_to_page-has-no-users-remove-it arch/tile/include/asm/highmem.h
---- a/arch/tile/include/asm/highmem.h~kmap_atomic_to_page-has-no-users-remove-it
-+++ a/arch/tile/include/asm/highmem.h
-@@ -63,7 +63,6 @@ void *kmap_atomic(struct page *page);
- void __kunmap_atomic(void *kvaddr);
- void *kmap_atomic_pfn(unsigned long pfn);
- void *kmap_atomic_prot_pfn(unsigned long pfn, pgprot_t prot);
--struct page *kmap_atomic_to_page(void *ptr);
- void *kmap_atomic_prot(struct page *page, pgprot_t prot);
- void kmap_atomic_fix_kpte(struct page *page, int finished);
- 
-diff -puN arch/tile/mm/highmem.c~kmap_atomic_to_page-has-no-users-remove-it arch/tile/mm/highmem.c
---- a/arch/tile/mm/highmem.c~kmap_atomic_to_page-has-no-users-remove-it
-+++ a/arch/tile/mm/highmem.c
-@@ -275,15 +275,3 @@ void *kmap_atomic_prot_pfn(unsigned long
- {
- 	return kmap_atomic_prot(pfn_to_page(pfn), prot);
- }
--
--struct page *kmap_atomic_to_page(void *ptr)
--{
--	pte_t *pte;
--	unsigned long vaddr = (unsigned long)ptr;
--
--	if (vaddr < FIXADDR_START)
--		return virt_to_page(ptr);
--
--	pte = kmap_get_pte(vaddr);
--	return pte_page(*pte);
--}
-diff -puN arch/x86/include/asm/highmem.h~kmap_atomic_to_page-has-no-users-remove-it arch/x86/include/asm/highmem.h
---- a/arch/x86/include/asm/highmem.h~kmap_atomic_to_page-has-no-users-remove-it
-+++ a/arch/x86/include/asm/highmem.h
-@@ -68,7 +68,6 @@ void *kmap_atomic(struct page *page);
- void __kunmap_atomic(void *kvaddr);
- void *kmap_atomic_pfn(unsigned long pfn);
- void *kmap_atomic_prot_pfn(unsigned long pfn, pgprot_t prot);
--struct page *kmap_atomic_to_page(void *ptr);
- 
- #define flush_cache_kmaps()	do { } while (0)
- 
-diff -puN arch/x86/mm/highmem_32.c~kmap_atomic_to_page-has-no-users-remove-it arch/x86/mm/highmem_32.c
---- a/arch/x86/mm/highmem_32.c~kmap_atomic_to_page-has-no-users-remove-it
-+++ a/arch/x86/mm/highmem_32.c
-@@ -104,20 +104,6 @@ void __kunmap_atomic(void *kvaddr)
- }
- EXPORT_SYMBOL(__kunmap_atomic);
- 
--struct page *kmap_atomic_to_page(void *ptr)
--{
--	unsigned long idx, vaddr = (unsigned long)ptr;
--	pte_t *pte;
--
--	if (vaddr < FIXADDR_START)
--		return virt_to_page(ptr);
--
--	idx = virt_to_fix(vaddr);
--	pte = kmap_pte - (idx - FIX_KMAP_BEGIN);
--	return pte_page(*pte);
--}
--EXPORT_SYMBOL(kmap_atomic_to_page);
+_
+
+Patches currently in -mm which might be from laura@labbott.name are
+
+mm-dont-offset-memmap-for-flatmem.patch
+
