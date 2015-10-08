@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-vfs-remove-unnecessary-new_valid_dev-check.patch added to
- -mm tree
-Date: Thu, 08 Oct 2015 14:59:50 -0700
-Message-ID: <5616e756.AJw9+okvLB8Tz1Re%akpm@linux-foundation.org>
+Subject: + fs-kdev_t-old-new_valid_dev-can-be-boolean.patch added to -mm
+ tree
+Date: Thu, 08 Oct 2015 14:59:48 -0700
+Message-ID: <5616e754.xu2YoQ10l+IpZzqs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58119 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58108 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932452AbbJHV7v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 17:59:51 -0400
+	with ESMTP id S932452AbbJHV7t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 17:59:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: bywxiaobai@163.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/9p: remove unnecessary new_valid_dev() checks
+     Subject: include/linux/kdev_t.h: old/new_valid_dev() can return bool
 has been added to the -mm tree.  Its filename is
-     fs-vfs-remove-unnecessary-new_valid_dev-check.patch
+     fs-kdev_t-old-new_valid_dev-can-be-boolean.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-vfs-remove-unnecessary-new_valid_dev-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-kdev_t-old-new_valid_dev-can-be-boolean.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-vfs-remove-unnecessary-new_valid_dev-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-kdev_t-old-new_valid_dev-can-be-boolean.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,49 +40,42 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yaowei Bai <bywxiaobai@163.com>
-Subject: fs/9p: remove unnecessary new_valid_dev() checks
+Subject: include/linux/kdev_t.h: old/new_valid_dev() can return bool
 
-new_valid_dev() always returns 1, so the !new_valid_dev() check is not
-needed.  Remove it.
+Make old/new_valid_dev return bool due to these two particular functions
+only using either one or zero as their return value.
+
+No functional change.
 
 Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Eric Van Hensbergen <ericvh@gmail.com>
-Cc: Ron Minnich <rminnich@sandia.gov>
-Cc: Latchesar Ionkov <lucho@ionkov.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/9p/vfs_inode.c      |    3 ---
- fs/9p/vfs_inode_dotl.c |    3 ---
- 2 files changed, 6 deletions(-)
+ include/linux/kdev_t.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/9p/vfs_inode.c~fs-vfs-remove-unnecessary-new_valid_dev-check fs/9p/vfs_inode.c
---- a/fs/9p/vfs_inode.c~fs-vfs-remove-unnecessary-new_valid_dev-check
-+++ a/fs/9p/vfs_inode.c
-@@ -1368,9 +1368,6 @@ v9fs_vfs_mknod(struct inode *dir, struct
- 		 dir->i_ino, dentry, mode,
- 		 MAJOR(rdev), MINOR(rdev));
+diff -puN include/linux/kdev_t.h~fs-kdev_t-old-new_valid_dev-can-be-boolean include/linux/kdev_t.h
+--- a/include/linux/kdev_t.h~fs-kdev_t-old-new_valid_dev-can-be-boolean
++++ a/include/linux/kdev_t.h
+@@ -20,7 +20,7 @@
+ 	})
  
--	if (!new_valid_dev(rdev))
--		return -EINVAL;
--
- 	/* build extension */
- 	if (S_ISBLK(mode))
- 		sprintf(name, "b %u %u", MAJOR(rdev), MINOR(rdev));
-diff -puN fs/9p/vfs_inode_dotl.c~fs-vfs-remove-unnecessary-new_valid_dev-check fs/9p/vfs_inode_dotl.c
---- a/fs/9p/vfs_inode_dotl.c~fs-vfs-remove-unnecessary-new_valid_dev-check
-+++ a/fs/9p/vfs_inode_dotl.c
-@@ -829,9 +829,6 @@ v9fs_vfs_mknod_dotl(struct inode *dir, s
- 		 dir->i_ino, dentry, omode,
- 		 MAJOR(rdev), MINOR(rdev));
+ /* acceptable for old filesystems */
+-static inline int old_valid_dev(dev_t dev)
++static inline bool old_valid_dev(dev_t dev)
+ {
+ 	return MAJOR(dev) < 256 && MINOR(dev) < 256;
+ }
+@@ -35,7 +35,7 @@ static inline dev_t old_decode_dev(u16 v
+ 	return MKDEV((val >> 8) & 255, val & 255);
+ }
  
--	if (!new_valid_dev(rdev))
--		return -EINVAL;
--
- 	v9ses = v9fs_inode2v9ses(dir);
- 	dir_dentry = dentry->d_parent;
- 	dfid = v9fs_fid_lookup(dir_dentry);
+-static inline int new_valid_dev(dev_t dev)
++static inline bool new_valid_dev(dev_t dev)
+ {
+ 	return 1;
+ }
 _
 
 Patches currently in -mm which might be from bywxiaobai@163.com are
