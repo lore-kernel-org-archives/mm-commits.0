@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-f2fs-remove-unnecessary-new_valid_dev-check.patch added to
+Subject: + fs-jfs-remove-unnecessary-new_valid_dev-check.patch added to
  -mm tree
-Date: Thu, 08 Oct 2015 15:00:00 -0700
-Message-ID: <5616e760.d43ItcAAbes9pxp4%akpm@linux-foundation.org>
+Date: Thu, 08 Oct 2015 15:00:04 -0700
+Message-ID: <5616e764.oJJXwNn/YpboqdUh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58156 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58175 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932452AbbJHWAB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 18:00:01 -0400
+	with ESMTP id S932452AbbJHWAF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 18:00:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, chao2.yu@samsung.com, cm224.lee@samsung.com, jaegeuk@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: bywxiaobai@163.com, dave.kleikamp@oracle.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/f2fs/namei.c: remove unnecessary new_valid_dev() check
+     Subject: fs/jfs: remove unnecessary new_valid_dev() checks
 has been added to the -mm tree.  Its filename is
-     fs-f2fs-remove-unnecessary-new_valid_dev-check.patch
+     fs-jfs-remove-unnecessary-new_valid_dev-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-f2fs-remove-unnecessary-new_valid_dev-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-jfs-remove-unnecessary-new_valid_dev-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-f2fs-remove-unnecessary-new_valid_dev-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-jfs-remove-unnecessary-new_valid_dev-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,35 +40,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yaowei Bai <bywxiaobai@163.com>
-Subject: fs/f2fs/namei.c: remove unnecessary new_valid_dev() check
+Subject: fs/jfs: remove unnecessary new_valid_dev() checks
 
-new_valid_dev() always returns 1, so the !new_valid_dev() check is not
-needed.  Remove it.
+new_valid_dev() always returns 1, so the !new_valid_dev() checks are not
+needed.  Remove them.
 
 Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Jaegeuk Kim <jaegeuk@kernel.org>
-Cc: Changman Lee <cm224.lee@samsung.com>
-Cc: Chao Yu <chao2.yu@samsung.com>
+Acked-by: Dave Kleikamp <dave.kleikamp@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/f2fs/namei.c |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/jfs/namei.c |    3 ---
+ fs/jfs/super.c |    3 ---
+ 2 files changed, 6 deletions(-)
 
-diff -puN fs/f2fs/namei.c~fs-f2fs-remove-unnecessary-new_valid_dev-check fs/f2fs/namei.c
---- a/fs/f2fs/namei.c~fs-f2fs-remove-unnecessary-new_valid_dev-check
-+++ a/fs/f2fs/namei.c
-@@ -478,9 +478,6 @@ static int f2fs_mknod(struct inode *dir,
- 	struct inode *inode;
- 	int err = 0;
+diff -puN fs/jfs/namei.c~fs-jfs-remove-unnecessary-new_valid_dev-check fs/jfs/namei.c
+--- a/fs/jfs/namei.c~fs-jfs-remove-unnecessary-new_valid_dev-check
++++ a/fs/jfs/namei.c
+@@ -1372,9 +1372,6 @@ static int jfs_mknod(struct inode *dir,
+ 	tid_t tid;
+ 	struct tblock *tblk;
  
 -	if (!new_valid_dev(rdev))
 -		return -EINVAL;
 -
- 	f2fs_balance_fs(sbi);
+ 	jfs_info("jfs_mknod: %pd", dentry);
  
- 	inode = f2fs_new_inode(dir, mode);
+ 	rc = dquot_initialize(dir);
+diff -puN fs/jfs/super.c~fs-jfs-remove-unnecessary-new_valid_dev-check fs/jfs/super.c
+--- a/fs/jfs/super.c~fs-jfs-remove-unnecessary-new_valid_dev-check
++++ a/fs/jfs/super.c
+@@ -496,9 +496,6 @@ static int jfs_fill_super(struct super_b
+ 
+ 	jfs_info("In jfs_read_super: s_flags=0x%lx", sb->s_flags);
+ 
+-	if (!new_valid_dev(sb->s_bdev->bd_dev))
+-		return -EOVERFLOW;
+-
+ 	sbi = kzalloc(sizeof(struct jfs_sb_info), GFP_KERNEL);
+ 	if (!sbi)
+ 		return -ENOMEM;
 _
 
 Patches currently in -mm which might be from bywxiaobai@163.com are
