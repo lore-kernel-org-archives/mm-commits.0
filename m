@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + slab_common-rename-cache-create-destroy-helpers.patch added to
- -mm tree
-Date: Thu, 08 Oct 2015 14:19:06 -0700
-Message-ID: <5616ddca.Wp0Sc5+V+zlIkKLq%akpm@linux-foundation.org>
+Subject: + slab_common-clear-pointers-to-per-memcg-caches-on-destroy.patch added to -mm tree
+Date: Thu, 08 Oct 2015 14:19:08 -0700
+Message-ID: <5616ddcc.Fbdmi+q8VKWDT3eU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49969 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49975 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754581AbbJHVTH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 17:19:07 -0400
+	with ESMTP id S1754581AbbJHVTJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 17:19:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@virtuozzo.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab_common.c: rename cache create/destroy helpers
+     Subject: mm/slab_common.c: clear pointers to per memcg caches on destroy
 has been added to the -mm tree.  Its filename is
-     slab_common-rename-cache-create-destroy-helpers.patch
+     slab_common-clear-pointers-to-per-memcg-caches-on-destroy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab_common-rename-cache-create-destroy-helpers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab_common-clear-pointers-to-per-memcg-caches-on-destroy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab_common-rename-cache-create-destroy-helpers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slab_common-clear-pointers-to-per-memcg-caches-on-destroy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,137 +39,187 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm/slab_common.c: rename cache create/destroy helpers
+Subject: mm/slab_common.c: clear pointers to per memcg caches on destroy
 
-do_kmem_cache_create(), do_kmem_cache_shutdown(), and
-do_kmem_cache_release() sound awkward for static helper functions that are
-not supposed to be used outside slab_common.c.  Rename them to
-create_cache(), shutdown_cache(), and release_caches(), respectively. 
-This patch is a pure cleanup and does not introduce any functional
-changes.
+Currently, we do not clear pointers to per memcg caches in the
+memcg_params.memcg_caches array when a global cache is destroyed with
+kmem_cache_destroy.
+
+This is fine if the global cache does get destroyed.  However, a cache can
+be left on the list if it still has active objects when kmem_cache_destroy
+is called (due to a memory leak).  If this happens, the entries in the
+array will point to already freed areas, which is likely to result in data
+corruption when the cache is reused (via slab merging).
 
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab_common.c |   37 ++++++++++++++++++-------------------
- 1 file changed, 18 insertions(+), 19 deletions(-)
+ mm/slab.h        |    6 --
+ mm/slab_common.c |   93 +++++++++++++++++++++++++++++++++++++--------
+ 2 files changed, 78 insertions(+), 21 deletions(-)
 
-diff -puN mm/slab_common.c~slab_common-rename-cache-create-destroy-helpers mm/slab_common.c
---- a/mm/slab_common.c~slab_common-rename-cache-create-destroy-helpers
+diff -puN mm/slab.h~slab_common-clear-pointers-to-per-memcg-caches-on-destroy mm/slab.h
+--- a/mm/slab.h~slab_common-clear-pointers-to-per-memcg-caches-on-destroy
++++ a/mm/slab.h
+@@ -181,10 +181,6 @@ bool __kmem_cache_alloc_bulk(struct kmem
+ 	list_for_each_entry(iter, &(root)->memcg_params.list, \
+ 			    memcg_params.list)
+ 
+-#define for_each_memcg_cache_safe(iter, tmp, root) \
+-	list_for_each_entry_safe(iter, tmp, &(root)->memcg_params.list, \
+-				 memcg_params.list)
+-
+ static inline bool is_root_cache(struct kmem_cache *s)
+ {
+ 	return s->memcg_params.is_root_cache;
+@@ -265,8 +261,6 @@ extern void slab_init_memcg_params(struc
+ 
+ #define for_each_memcg_cache(iter, root) \
+ 	for ((void)(iter), (void)(root); 0; )
+-#define for_each_memcg_cache_safe(iter, tmp, root) \
+-	for ((void)(iter), (void)(tmp), (void)(root); 0; )
+ 
+ static inline bool is_root_cache(struct kmem_cache *s)
+ {
+diff -puN mm/slab_common.c~slab_common-clear-pointers-to-per-memcg-caches-on-destroy mm/slab_common.c
+--- a/mm/slab_common.c~slab_common-clear-pointers-to-per-memcg-caches-on-destroy
 +++ a/mm/slab_common.c
-@@ -316,10 +316,10 @@ unsigned long calculate_alignment(unsign
- 	return ALIGN(align, sizeof(void *));
- }
+@@ -461,10 +461,6 @@ static int shutdown_cache(struct kmem_ca
+ 	if (s->flags & SLAB_DESTROY_BY_RCU)
+ 		*need_rcu_barrier = true;
  
--static struct kmem_cache *
--do_kmem_cache_create(const char *name, size_t object_size, size_t size,
--		     size_t align, unsigned long flags, void (*ctor)(void *),
--		     struct mem_cgroup *memcg, struct kmem_cache *root_cache)
-+static struct kmem_cache *create_cache(const char *name,
-+		size_t object_size, size_t size, size_t align,
-+		unsigned long flags, void (*ctor)(void *),
-+		struct mem_cgroup *memcg, struct kmem_cache *root_cache)
- {
- 	struct kmem_cache *s;
- 	int err;
-@@ -418,9 +418,9 @@ kmem_cache_create(const char *name, size
- 		goto out_unlock;
- 	}
- 
--	s = do_kmem_cache_create(cache_name, size, size,
--				 calculate_alignment(flags, align, size),
--				 flags, ctor, NULL, NULL);
-+	s = create_cache(cache_name, size, size,
-+			 calculate_alignment(flags, align, size),
-+			 flags, ctor, NULL, NULL);
- 	if (IS_ERR(s)) {
- 		err = PTR_ERR(s);
- 		kfree_const(cache_name);
-@@ -448,7 +448,7 @@ out_unlock:
- }
- EXPORT_SYMBOL(kmem_cache_create);
- 
--static int do_kmem_cache_shutdown(struct kmem_cache *s,
-+static int shutdown_cache(struct kmem_cache *s,
- 		struct list_head *release, bool *need_rcu_barrier)
- {
- 	if (__kmem_cache_shutdown(s) != 0) {
-@@ -469,8 +469,7 @@ static int do_kmem_cache_shutdown(struct
+-#ifdef CONFIG_MEMCG_KMEM
+-	if (!is_root_cache(s))
+-		list_del(&s->memcg_params.list);
+-#endif
+ 	list_move(&s->list, release);
  	return 0;
  }
+@@ -597,6 +593,18 @@ void memcg_deactivate_kmem_caches(struct
+ 	put_online_cpus();
+ }
  
--static void do_kmem_cache_release(struct list_head *release,
--				  bool need_rcu_barrier)
-+static void release_caches(struct list_head *release, bool need_rcu_barrier)
++static int __shutdown_memcg_cache(struct kmem_cache *s,
++		struct list_head *release, bool *need_rcu_barrier)
++{
++	BUG_ON(is_root_cache(s));
++
++	if (shutdown_cache(s, release, need_rcu_barrier))
++		return -EBUSY;
++
++	list_del(&s->memcg_params.list);
++	return 0;
++}
++
+ void memcg_destroy_kmem_caches(struct mem_cgroup *memcg)
  {
- 	struct kmem_cache *s, *s2;
- 
-@@ -536,10 +535,10 @@ void memcg_create_kmem_cache(struct mem_
- 	if (!cache_name)
- 		goto out_unlock;
- 
--	s = do_kmem_cache_create(cache_name, root_cache->object_size,
--				 root_cache->size, root_cache->align,
--				 root_cache->flags, root_cache->ctor,
--				 memcg, root_cache);
-+	s = create_cache(cache_name, root_cache->object_size,
-+			 root_cache->size, root_cache->align,
-+			 root_cache->flags, root_cache->ctor,
-+			 memcg, root_cache);
- 	/*
- 	 * If we could not create a memcg cache, do not complain, because
- 	 * that's not critical at all as we can always proceed with the root
-@@ -615,14 +614,14 @@ void memcg_destroy_kmem_caches(struct me
+ 	LIST_HEAD(release);
+@@ -614,7 +622,7 @@ void memcg_destroy_kmem_caches(struct me
  		 * The cgroup is about to be freed and therefore has no charges
  		 * left. Hence, all its caches must be empty by now.
  		 */
--		BUG_ON(do_kmem_cache_shutdown(s, &release, &need_rcu_barrier));
-+		BUG_ON(shutdown_cache(s, &release, &need_rcu_barrier));
+-		BUG_ON(shutdown_cache(s, &release, &need_rcu_barrier));
++		BUG_ON(__shutdown_memcg_cache(s, &release, &need_rcu_barrier));
  	}
  	mutex_unlock(&slab_mutex);
  
- 	put_online_mems();
- 	put_online_cpus();
+@@ -623,6 +631,68 @@ void memcg_destroy_kmem_caches(struct me
  
--	do_kmem_cache_release(&release, need_rcu_barrier);
-+	release_caches(&release, need_rcu_barrier);
+ 	release_caches(&release, need_rcu_barrier);
  }
++
++static int shutdown_memcg_caches(struct kmem_cache *s,
++		struct list_head *release, bool *need_rcu_barrier)
++{
++	struct memcg_cache_array *arr;
++	struct kmem_cache *c, *c2;
++	LIST_HEAD(busy);
++	int i;
++
++	BUG_ON(!is_root_cache(s));
++
++	/*
++	 * First, shutdown active caches, i.e. caches that belong to online
++	 * memory cgroups.
++	 */
++	arr = rcu_dereference_protected(s->memcg_params.memcg_caches,
++					lockdep_is_held(&slab_mutex));
++	for_each_memcg_cache_index(i) {
++		c = arr->entries[i];
++		if (!c)
++			continue;
++		if (__shutdown_memcg_cache(c, release, need_rcu_barrier))
++			/*
++			 * The cache still has objects. Move it to a temporary
++			 * list so as not to try to destroy it for a second
++			 * time while iterating over inactive caches below.
++			 */
++			list_move(&c->memcg_params.list, &busy);
++		else
++			/*
++			 * The cache is empty and will be destroyed soon. Clear
++			 * the pointer to it in the memcg_caches array so that
++			 * it will never be accessed even if the root cache
++			 * stays alive.
++			 */
++			arr->entries[i] = NULL;
++	}
++
++	/*
++	 * Second, shutdown all caches left from memory cgroups that are now
++	 * offline.
++	 */
++	list_for_each_entry_safe(c, c2, &s->memcg_params.list,
++				 memcg_params.list)
++		__shutdown_memcg_cache(c, release, need_rcu_barrier);
++
++	list_splice(&busy, &s->memcg_params.list);
++
++	/*
++	 * A cache being destroyed must be empty. In particular, this means
++	 * that all per memcg caches attached to it must be empty too.
++	 */
++	if (!list_empty(&s->memcg_params.list))
++		return -EBUSY;
++	return 0;
++}
++#else
++static inline int shutdown_memcg_caches(struct kmem_cache *s,
++		struct list_head *release, bool *need_rcu_barrier)
++{
++	return 0;
++}
  #endif /* CONFIG_MEMCG_KMEM */
  
-@@ -655,12 +654,12 @@ void kmem_cache_destroy(struct kmem_cach
+ void slab_kmem_cache_release(struct kmem_cache *s)
+@@ -634,16 +704,13 @@ void slab_kmem_cache_release(struct kmem
+ 
+ void kmem_cache_destroy(struct kmem_cache *s)
+ {
+-	struct kmem_cache *c, *c2;
+ 	LIST_HEAD(release);
+ 	bool need_rcu_barrier = false;
+-	bool busy = false;
++	int err;
+ 
+ 	if (unlikely(!s))
+ 		return;
+ 
+-	BUG_ON(!is_root_cache(s));
+-
+ 	get_online_cpus();
+ 	get_online_mems();
+ 
+@@ -653,12 +720,8 @@ void kmem_cache_destroy(struct kmem_cach
+ 	if (s->refcount)
  		goto out_unlock;
  
- 	for_each_memcg_cache_safe(c, c2, s) {
--		if (do_kmem_cache_shutdown(c, &release, &need_rcu_barrier))
-+		if (shutdown_cache(c, &release, &need_rcu_barrier))
- 			busy = true;
- 	}
- 
- 	if (!busy)
--		do_kmem_cache_shutdown(s, &release, &need_rcu_barrier);
-+		shutdown_cache(s, &release, &need_rcu_barrier);
- 
- out_unlock:
- 	mutex_unlock(&slab_mutex);
-@@ -668,7 +667,7 @@ out_unlock:
- 	put_online_mems();
- 	put_online_cpus();
- 
--	do_kmem_cache_release(&release, need_rcu_barrier);
-+	release_caches(&release, need_rcu_barrier);
- }
- EXPORT_SYMBOL(kmem_cache_destroy);
- 
-_
-
-Patches currently in -mm which might be from vdavydov@virtuozzo.com are
-
-slab_common-rename-cache-create-destroy-helpers.patch
-slab_common-clear-pointers-to-per-memcg-caches-on-destroy.patch
-slab_common-do-not-warn-that-cache-is-busy-on-destroy-more-than-once.patch
-
+-	for_each_memcg_cache_safe(c, c2, s) {
+-		if (shutdown_cache(c, &release, &need_rcu_barrier))
+-			busy = true;
+-	}
