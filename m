@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-btrfs-remove-unnecessary-new_valid_dev-check.patch added to
+Subject: + fs-ext4-remove-unnecessary-new_valid_dev-check.patch added to
  -mm tree
-Date: Thu, 08 Oct 2015 14:59:52 -0700
-Message-ID: <5616e758.a0xizzK4izaJRnD4%akpm@linux-foundation.org>
+Date: Thu, 08 Oct 2015 14:59:58 -0700
+Message-ID: <5616e75e.dO+znNldwP+DvHqw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58129 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58152 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932452AbbJHV7x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 17:59:53 -0400
+	with ESMTP id S932452AbbJHV77 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 17:59:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, clm@fb.com, dsterba@suse.com, jbacik@fb.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: bywxiaobai@163.com, adilger.kernel@dilger.ca, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/btrfs/inode.c: remove unnecessary new_valid_dev() check
+     Subject: fs/ext4/namei.c: remove unnecessary new_valid_dev() check
 has been added to the -mm tree.  Its filename is
-     fs-btrfs-remove-unnecessary-new_valid_dev-check.patch
+     fs-ext4-remove-unnecessary-new_valid_dev-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-btrfs-remove-unnecessary-new_valid_dev-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ext4-remove-unnecessary-new_valid_dev-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-btrfs-remove-unnecessary-new_valid_dev-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ext4-remove-unnecessary-new_valid_dev-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,35 +40,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yaowei Bai <bywxiaobai@163.com>
-Subject: fs/btrfs/inode.c: remove unnecessary new_valid_dev() check
+Subject: fs/ext4/namei.c: remove unnecessary new_valid_dev() check
 
 new_valid_dev() always returns 1, so the !new_valid_dev() check is not
 needed.  Remove it.
 
 Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Chris Mason <clm@fb.com>
-Cc: Josef Bacik <jbacik@fb.com>
-Acked-by: David Sterba <dsterba@suse.com>
+Cc: Theodore Ts'o <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/inode.c |    3 ---
+ fs/ext4/namei.c |    3 ---
  1 file changed, 3 deletions(-)
 
-diff -puN fs/btrfs/inode.c~fs-btrfs-remove-unnecessary-new_valid_dev-check fs/btrfs/inode.c
---- a/fs/btrfs/inode.c~fs-btrfs-remove-unnecessary-new_valid_dev-check
-+++ a/fs/btrfs/inode.c
-@@ -6268,9 +6268,6 @@ static int btrfs_mknod(struct inode *dir
- 	u64 objectid;
- 	u64 index = 0;
+diff -puN fs/ext4/namei.c~fs-ext4-remove-unnecessary-new_valid_dev-check fs/ext4/namei.c
+--- a/fs/ext4/namei.c~fs-ext4-remove-unnecessary-new_valid_dev-check
++++ a/fs/ext4/namei.c
+@@ -2469,9 +2469,6 @@ static int ext4_mknod(struct inode *dir,
+ 	struct inode *inode;
+ 	int err, credits, retries = 0;
  
 -	if (!new_valid_dev(rdev))
 -		return -EINVAL;
 -
- 	/*
- 	 * 2 for inode item and ref
- 	 * 2 for dir items
+ 	err = dquot_initialize(dir);
+ 	if (err)
+ 		return err;
 _
 
 Patches currently in -mm which might be from bywxiaobai@163.com are
