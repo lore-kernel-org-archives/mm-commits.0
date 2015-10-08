@@ -1,43 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- revert-dax-fix-race-between-simultaneous-faults.patch removed from -mm tree
-Date: Thu, 08 Oct 2015 14:05:28 -0700
-Message-ID: <5616da98.HJGbzGnpDvDmBXgw%akpm@linux-foundation.org>
+Subject: + mm-dax-fix-dax-deadlocks.patch added to -mm tree
+Date: Thu, 08 Oct 2015 14:07:14 -0700
+Message-ID: <5616db02.lr8l5NC0TnocBfJP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47053 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47141 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755372AbbJHVF3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 17:05:29 -0400
+	with ESMTP id S1755627AbbJHVHP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 17:07:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, david@fromorbit.com, jack@suse.com, kirill.shutemov@linux.intel.com, matthew.r.wilcox@intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "dax: fix race between simultaneous faults"
-has been removed from the -mm tree.  Its filename was
-     revert-dax-fix-race-between-simultaneous-faults.patch
+     Subject: mm, dax: fix DAX deadlocks
+has been added to the -mm tree.  Its filename is
+     mm-dax-fix-dax-deadlocks.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dax-fix-dax-deadlocks.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dax-fix-dax-deadlocks.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Revert "dax: fix race between simultaneous faults"
+Subject: mm, dax: fix DAX deadlocks
 
-This reverts commit 843172978bb929973 ("dax: fix race between simultaneous faults").
+The following two locking commits in the DAX code:
 
-This commit and 46c043ede471 ("mm: take i_mmap_lock in
-unmap_mapping_range() for DAX") introduced a number of deadlocks and other
-issues, and need to be reverted for the v4.3 kernel.  The list of issues
-in DAX after these commits (some newly introduced by the commits, some
-preexisting) can be found here:
+commit 843172978bb9 ("dax: fix race between simultaneous faults")
+commit 46c043ede471 ("mm: take i_mmap_lock in unmap_mapping_range() for DAX")
+
+introduced a number of deadlocks and other issues which need to be fixed
+for the v4.3 kernel.  The list of issues in DAX after these commits (some
+newly introduced by the commits, some preexisting) can be found here:
 
 https://lkml.org/lkml/2015/9/25/602 (Subject: "Re: [PATCH] dax: fix
 deadlock in __dax_fault").
+
+This undoes most of the changes introduced by those two commits,
+essentially returning us to the DAX locking scheme that was used in v4.2.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
@@ -49,12 +66,12 @@ Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c    |   33 ++++++++++++++++-----------------
- mm/memory.c |   11 +++--------
- 2 files changed, 19 insertions(+), 25 deletions(-)
+ fs/dax.c    |   70 ++++++++++++++++++++------------------------------
+ mm/memory.c |    2 +
+ 2 files changed, 31 insertions(+), 41 deletions(-)
 
-diff -puN fs/dax.c~revert-dax-fix-race-between-simultaneous-faults fs/dax.c
---- a/fs/dax.c~revert-dax-fix-race-between-simultaneous-faults
+diff -puN fs/dax.c~mm-dax-fix-dax-deadlocks fs/dax.c
+--- a/fs/dax.c~mm-dax-fix-dax-deadlocks
 +++ a/fs/dax.c
 @@ -285,6 +285,7 @@ static int copy_user_bh(struct page *to,
  static int dax_insert_mapping(struct inode *inode, struct buffer_head *bh,
@@ -170,7 +187,68 @@ diff -puN fs/dax.c~revert-dax-fix-race-between-simultaneous-faults fs/dax.c
  
  	/*
  	 * If the filesystem isn't willing to tell us the length of a hole,
-@@ -637,11 +636,11 @@ int __dax_pmd_fault(struct vm_area_struc
+@@ -569,36 +568,14 @@ int __dax_pmd_fault(struct vm_area_struc
+ 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
+ 		goto fallback;
+ 
+-	sector = bh.b_blocknr << (blkbits - 9);
+-
+-	if (buffer_unwritten(&bh) || buffer_new(&bh)) {
+-		int i;
+-
+-		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
+-						bh.b_size);
+-		if (length < 0) {
+-			result = VM_FAULT_SIGBUS;
+-			goto out;
+-		}
+-		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
+-			goto fallback;
+-
+-		for (i = 0; i < PTRS_PER_PMD; i++)
+-			clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
+-		wmb_pmem();
+-		count_vm_event(PGMAJFAULT);
+-		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+-		result |= VM_FAULT_MAJOR;
+-	}
+-
+ 	/*
+ 	 * If we allocated new storage, make sure no process has any
+ 	 * zero pages covering this hole
+ 	 */
+ 	if (buffer_new(&bh)) {
+-		i_mmap_unlock_write(mapping);
++		i_mmap_unlock_read(mapping);
+ 		unmap_mapping_range(mapping, pgoff << PAGE_SHIFT, PMD_SIZE, 0);
+-		i_mmap_lock_write(mapping);
++		i_mmap_lock_read(mapping);
+ 	}
+ 
+ 	/*
+@@ -635,6 +612,7 @@ int __dax_pmd_fault(struct vm_area_struc
+ 		result = VM_FAULT_NOPAGE;
+ 		spin_unlock(ptl);
+ 	} else {
++		sector = bh.b_blocknr << (blkbits - 9);
+ 		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
+ 						bh.b_size);
+ 		if (length < 0) {
+@@ -644,15 +622,25 @@ int __dax_pmd_fault(struct vm_area_struc
+ 		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
+ 			goto fallback;
+ 
++		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
++			int i;
++			for (i = 0; i < PTRS_PER_PMD; i++)
++				clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
++			wmb_pmem();
++			count_vm_event(PGMAJFAULT);
++			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
++			result |= VM_FAULT_MAJOR;
++		}
++
+ 		result |= vmf_insert_pfn_pmd(vma, address, pmd, pfn, write);
  	}
  
   out:
@@ -180,35 +258,3 @@ diff -puN fs/dax.c~revert-dax-fix-race-between-simultaneous-faults fs/dax.c
  		complete_unwritten(&bh, !(result & VM_FAULT_ERROR));
  
 -	i_mmap_unlock_write(mapping);
--
- 	return result;
- 
-  fallback:
-diff -puN mm/memory.c~revert-dax-fix-race-between-simultaneous-faults mm/memory.c
---- a/mm/memory.c~revert-dax-fix-race-between-simultaneous-faults
-+++ a/mm/memory.c
-@@ -2427,16 +2427,11 @@ void unmap_mapping_range(struct address_
- 		details.last_index = ULONG_MAX;
- 
- 
--	/*
--	 * DAX already holds i_mmap_lock to serialise file truncate vs
--	 * page fault and page fault vs page fault.
--	 */
--	if (!IS_DAX(mapping->host))
--		i_mmap_lock_write(mapping);
-+	/* DAX uses i_mmap_lock to serialise file truncate vs page fault */
-+	i_mmap_lock_write(mapping);
- 	if (unlikely(!RB_EMPTY_ROOT(&mapping->i_mmap)))
- 		unmap_mapping_range_tree(&mapping->i_mmap, &details);
--	if (!IS_DAX(mapping->host))
--		i_mmap_unlock_write(mapping);
-+	i_mmap_unlock_write(mapping);
- }
- EXPORT_SYMBOL(unmap_mapping_range);
- 
-_
-
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
-
-
