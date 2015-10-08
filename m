@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ext4-remove-unnecessary-new_valid_dev-check.patch added to
+Subject: + fs-kdev_t-remove-unused-huge_valid_dev-function.patch added to
  -mm tree
-Date: Thu, 08 Oct 2015 14:59:58 -0700
-Message-ID: <5616e75e.dO+znNldwP+DvHqw%akpm@linux-foundation.org>
+Date: Thu, 08 Oct 2015 14:59:46 -0700
+Message-ID: <5616e752.2KV48bkDLNEXWdUm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58152 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58098 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932452AbbJHV77 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 17:59:59 -0400
+	with ESMTP id S932452AbbJHV7r (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 17:59:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, adilger.kernel@dilger.ca, tytso@mit.edu, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: bywxiaobai@163.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ext4/namei.c: remove unnecessary new_valid_dev() check
+     Subject: include/linux/kdev_t.h: remove unused huge_valid_dev()
 has been added to the -mm tree.  Its filename is
-     fs-ext4-remove-unnecessary-new_valid_dev-check.patch
+     fs-kdev_t-remove-unused-huge_valid_dev-function.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-ext4-remove-unnecessary-new_valid_dev-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-kdev_t-remove-unused-huge_valid_dev-function.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ext4-remove-unnecessary-new_valid_dev-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-kdev_t-remove-unused-huge_valid_dev-function.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,34 +40,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yaowei Bai <bywxiaobai@163.com>
-Subject: fs/ext4/namei.c: remove unnecessary new_valid_dev() check
+Subject: include/linux/kdev_t.h: remove unused huge_valid_dev()
 
-new_valid_dev() always returns 1, so the !new_valid_dev() check is not
-needed.  Remove it.
+There's no user of huge_valid_dev() any more, so remove it.
+
+No functional change.
 
 Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/namei.c |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/kdev_t.h |    5 -----
+ 1 file changed, 5 deletions(-)
 
-diff -puN fs/ext4/namei.c~fs-ext4-remove-unnecessary-new_valid_dev-check fs/ext4/namei.c
---- a/fs/ext4/namei.c~fs-ext4-remove-unnecessary-new_valid_dev-check
-+++ a/fs/ext4/namei.c
-@@ -2469,9 +2469,6 @@ static int ext4_mknod(struct inode *dir,
- 	struct inode *inode;
- 	int err, credits, retries = 0;
+diff -puN include/linux/kdev_t.h~fs-kdev_t-remove-unused-huge_valid_dev-function include/linux/kdev_t.h
+--- a/include/linux/kdev_t.h~fs-kdev_t-remove-unused-huge_valid_dev-function
++++ a/include/linux/kdev_t.h
+@@ -54,11 +54,6 @@ static inline dev_t new_decode_dev(u32 d
+ 	return MKDEV(major, minor);
+ }
  
--	if (!new_valid_dev(rdev))
--		return -EINVAL;
+-static inline int huge_valid_dev(dev_t dev)
+-{
+-	return 1;
+-}
 -
- 	err = dquot_initialize(dir);
- 	if (err)
- 		return err;
+ static inline u64 huge_encode_dev(dev_t dev)
+ {
+ 	return new_encode_dev(dev);
 _
 
 Patches currently in -mm which might be from bywxiaobai@163.com are
