@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-exofs-remove-unnecessary-new_valid_dev-check.patch added to
+Subject: + fs-ncpfs-remove-unnecessary-new_valid_dev-check.patch added to
  -mm tree
-Date: Thu, 08 Oct 2015 14:59:54 -0700
-Message-ID: <5616e75a.F/kdtHuKiRn3Jfy9%akpm@linux-foundation.org>
+Date: Thu, 08 Oct 2015 15:00:06 -0700
+Message-ID: <5616e766.r8RSoj6Hm/EMA7eb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58144 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58181 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932452AbbJHV7z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 17:59:55 -0400
+	with ESMTP id S932452AbbJHWAH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 18:00:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, bhalevy@primarydata.com, ooo@electrozaur.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: bywxiaobai@163.com, axboe@fb.com, dhowells@redhat.com, fabf@skynet.be, jack@suse.cz, petr@vandrovec.name, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/exofs/namei.c: remove unnecessary new_valid_dev() check
+     Subject: fs/ncpfs/dir.c: remove unnecessary new_valid_dev() check
 has been added to the -mm tree.  Its filename is
-     fs-exofs-remove-unnecessary-new_valid_dev-check.patch
+     fs-ncpfs-remove-unnecessary-new_valid_dev-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-exofs-remove-unnecessary-new_valid_dev-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ncpfs-remove-unnecessary-new_valid_dev-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-exofs-remove-unnecessary-new_valid_dev-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ncpfs-remove-unnecessary-new_valid_dev-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,34 +40,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yaowei Bai <bywxiaobai@163.com>
-Subject: fs/exofs/namei.c: remove unnecessary new_valid_dev() check
+Subject: fs/ncpfs/dir.c: remove unnecessary new_valid_dev() check
 
 new_valid_dev() always returns 1, so the !new_valid_dev() check is not
 needed.  Remove it.
 
 Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Acked-by: Boaz Harrosh <ooo@electrozaur.com>
-Cc: Benny Halevy <bhalevy@primarydata.com>
+Cc: Petr Vandrovec <petr@vandrovec.name>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Fabian Frederick <fabf@skynet.be>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/exofs/namei.c |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/ncpfs/dir.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/exofs/namei.c~fs-exofs-remove-unnecessary-new_valid_dev-check fs/exofs/namei.c
---- a/fs/exofs/namei.c~fs-exofs-remove-unnecessary-new_valid_dev-check
-+++ a/fs/exofs/namei.c
-@@ -80,9 +80,6 @@ static int exofs_mknod(struct inode *dir
- 	struct inode *inode;
- 	int err;
- 
+diff -puN fs/ncpfs/dir.c~fs-ncpfs-remove-unnecessary-new_valid_dev-check fs/ncpfs/dir.c
+--- a/fs/ncpfs/dir.c~fs-ncpfs-remove-unnecessary-new_valid_dev-check
++++ a/fs/ncpfs/dir.c
+@@ -1165,8 +1165,6 @@ out:
+ static int ncp_mknod(struct inode * dir, struct dentry *dentry,
+ 		     umode_t mode, dev_t rdev)
+ {
 -	if (!new_valid_dev(rdev))
 -		return -EINVAL;
--
- 	inode = exofs_new_inode(dir, mode);
- 	err = PTR_ERR(inode);
- 	if (!IS_ERR(inode)) {
+ 	if (ncp_is_nfs_extras(NCP_SERVER(dir), NCP_FINFO(dir)->volNumber)) {
+ 		ncp_dbg(1, "mode = 0%ho\n", mode);
+ 		return ncp_create_new(dir, dentry, mode, rdev, 0);
 _
 
 Patches currently in -mm which might be from bywxiaobai@163.com are
