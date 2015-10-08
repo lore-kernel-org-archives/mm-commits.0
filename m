@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-nilfs2-remove-unnecessary-new_valid_dev-check.patch added to -mm tree
-Date: Thu, 08 Oct 2015 15:00:10 -0700
-Message-ID: <5616e76a.6yFm0pkBwm2UQ7D+%akpm@linux-foundation.org>
+Subject: + fs-ubifs-remove-unnecessary-new_valid_dev-check.patch added to
+ -mm tree
+Date: Thu, 08 Oct 2015 15:00:16 -0700
+Message-ID: <5616e770.SKP+3dwQqeJEYk3G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58189 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58209 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932452AbbJHWAL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 18:00:11 -0400
+	with ESMTP id S932452AbbJHWAR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 18:00:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, konishi.ryusuke@lab.ntt.co.jp, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: bywxiaobai@163.com, adrian.hunter@intel.com, artem.bityutskiy@linux.intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/nilfs2/namei.c: remove unnecessary new_valid_dev() check
+     Subject: fs/ubifs/: remove unnecessary new_valid_dev() checks
 has been added to the -mm tree.  Its filename is
-     fs-nilfs2-remove-unnecessary-new_valid_dev-check.patch
+     fs-ubifs-remove-unnecessary-new_valid_dev-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-nilfs2-remove-unnecessary-new_valid_dev-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-ubifs-remove-unnecessary-new_valid_dev-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-nilfs2-remove-unnecessary-new_valid_dev-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ubifs-remove-unnecessary-new_valid_dev-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,33 +40,54 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yaowei Bai <bywxiaobai@163.com>
-Subject: fs/nilfs2/namei.c: remove unnecessary new_valid_dev() check
+Subject: fs/ubifs/: remove unnecessary new_valid_dev() checks
 
-new_valid_dev() always returns 1, so the !new_valid_dev() check is not
-needed.  Remove it.
+new_valid_dev() always returns 1, so the !new_valid_dev() checks are not
+needed.  Remove them.
 
 Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Acked-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Acked-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Cc: Adrian Hunter <adrian.hunter@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/namei.c |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/ubifs/dir.c  |    3 ---
+ fs/ubifs/misc.h |    9 ++-------
+ 2 files changed, 2 insertions(+), 10 deletions(-)
 
-diff -puN fs/nilfs2/namei.c~fs-nilfs2-remove-unnecessary-new_valid_dev-check fs/nilfs2/namei.c
---- a/fs/nilfs2/namei.c~fs-nilfs2-remove-unnecessary-new_valid_dev-check
-+++ a/fs/nilfs2/namei.c
-@@ -120,9 +120,6 @@ nilfs_mknod(struct inode *dir, struct de
- 	struct nilfs_transaction_info ti;
- 	int err;
+diff -puN fs/ubifs/dir.c~fs-ubifs-remove-unnecessary-new_valid_dev-check fs/ubifs/dir.c
+--- a/fs/ubifs/dir.c~fs-ubifs-remove-unnecessary-new_valid_dev-check
++++ a/fs/ubifs/dir.c
+@@ -787,9 +787,6 @@ static int ubifs_mknod(struct inode *dir
+ 
+ 	dbg_gen("dent '%pd' in dir ino %lu", dentry, dir->i_ino);
  
 -	if (!new_valid_dev(rdev))
 -		return -EINVAL;
 -
- 	err = nilfs_transaction_begin(dir->i_sb, &ti, 1);
- 	if (err)
- 		return err;
+ 	if (S_ISBLK(mode) || S_ISCHR(mode)) {
+ 		dev = kmalloc(sizeof(union ubifs_dev_desc), GFP_NOFS);
+ 		if (!dev)
+diff -puN fs/ubifs/misc.h~fs-ubifs-remove-unnecessary-new_valid_dev-check fs/ubifs/misc.h
+--- a/fs/ubifs/misc.h~fs-ubifs-remove-unnecessary-new_valid_dev-check
++++ a/fs/ubifs/misc.h
+@@ -155,13 +155,8 @@ static inline int ubifs_wbuf_sync(struct
+  */
+ static inline int ubifs_encode_dev(union ubifs_dev_desc *dev, dev_t rdev)
+ {
+-	if (new_valid_dev(rdev)) {
+-		dev->new = cpu_to_le32(new_encode_dev(rdev));
+-		return sizeof(dev->new);
+-	} else {
+-		dev->huge = cpu_to_le64(huge_encode_dev(rdev));
+-		return sizeof(dev->huge);
+-	}
++	dev->new = cpu_to_le32(new_encode_dev(rdev));
++	return sizeof(dev->new);
+ }
+ 
+ /**
 _
 
 Patches currently in -mm which might be from bywxiaobai@163.com are
