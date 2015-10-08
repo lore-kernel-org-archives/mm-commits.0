@@ -1,123 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Thu, 08 Oct 2015 13:12:02 -0700
-Message-ID: <5616ce12.rugSHmmFRHSj1CVe%akpm@linux-foundation.org>
+Subject: [merged]
+ i40evf-use-numa_mem_id-to-better-support-memoryless-node.patch removed from -mm tree
+Date: Thu, 08 Oct 2015 13:21:04 -0700
+Message-ID: <5616d030.y4H/lXZ/VjWKKcon%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36128 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38178 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753650AbbJHUME (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 16:12:04 -0400
+	with ESMTP id S1751589AbbJHUVF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 16:21:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: jiang.liu@linux.intel.com, hpa@zytor.com, kiran.patil@intel.com, mgorman@suse.de, mingo@elte.hu, peterz@infradead.org, rafael.j.wysocki@intel.com, rientjes@google.com, tangchen@cn.fujitsu.com, tglx@linutronix.de, tj@kernel.org, tony.luck@intel.com, umgwanakikbuti@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: i40evf: use numa_mem_id() to better support memoryless node
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     i40evf-use-numa_mem_id-to-better-support-memoryless-node.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: i40evf: use numa_mem_id() to better support memoryless node
 
+i40e_clean_rx_irq() tries to reuse memory pages allocated from the nearest
+node.  To better support memoryless node, use numa_mem_id() instead of
+numa_node_id() to get the nearest node with memory.
+
+This change should only affect performance.
+
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Acked-by: "Patil, Kiran" <kiran.patil@intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mike Galbraith <umgwanakikbuti@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/nand/sunxi_nand.c |   20 --------------------
- 1 file changed, 20 deletions(-)
+ drivers/net/ethernet/intel/i40evf/i40e_txrx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/mtd/nand/sunxi_nand.c~linux-next-git-rejects drivers/mtd/nand/sunxi_nand.c
---- a/drivers/mtd/nand/sunxi_nand.c~linux-next-git-rejects
-+++ a/drivers/mtd/nand/sunxi_nand.c
-@@ -690,16 +690,9 @@ static int sunxi_nfc_hw_ecc_write_chunk(
- 	if (ret)
- 		return ret;
- 
--<<<<<<< HEAD
--		/* Fill OOB data in */
--		writel(NFC_BUF_TO_USER_DATA(chip->oob_poi +
--					    layout->oobfree[i].offset),
--		       nfc->regs + NFC_REG_USER_DATA_BASE);
--=======
- 	writel(NFC_DATA_TRANS | NFC_DATA_SWAP_METHOD |
- 	       NFC_ACCESS_DIR | NFC_ECC_OP,
- 	       nfc->regs + NFC_REG_CMD);
-->>>>>>> linux-next/akpm-base
- 
- 	ret = sunxi_nfc_wait_int(nfc, NFC_CMD_INT_FLAG, 0);
- 	if (ret)
-@@ -834,23 +827,10 @@ static int sunxi_nfc_hw_syndrome_ecc_wri
- 	sunxi_nfc_hw_ecc_enable(mtd);
- 
- 	for (i = 0; i < ecc->steps; i++) {
--<<<<<<< HEAD
--		chip->write_buf(mtd, buf + (i * ecc->size), ecc->size);
--		offset += ecc->size;
--
--		/* Fill OOB data in */
--		writel(NFC_BUF_TO_USER_DATA(oob),
--		       nfc->regs + NFC_REG_USER_DATA_BASE);
--
--		tmp = NFC_DATA_TRANS | NFC_DATA_SWAP_METHOD | NFC_ACCESS_DIR |
--		      (1 << 30);
--		writel(tmp, nfc->regs + NFC_REG_CMD);
--=======
- 		int data_off = i * (ecc->size + ecc->bytes + 4);
- 		int oob_off = data_off + ecc->size;
- 		const u8 *data = buf + (i * ecc->size);
- 		const u8 *oob = chip->oob_poi + (i * (ecc->bytes + 4));
-->>>>>>> linux-next/akpm-base
- 
- 		ret = sunxi_nfc_hw_ecc_write_chunk(mtd, data, data_off,
- 						   oob, oob_off, &cur_off);
+diff -puN drivers/net/ethernet/intel/i40evf/i40e_txrx.c~i40evf-use-numa_mem_id-to-better-support-memoryless-node drivers/net/ethernet/intel/i40evf/i40e_txrx.c
+--- a/drivers/net/ethernet/intel/i40evf/i40e_txrx.c~i40evf-use-numa_mem_id-to-better-support-memoryless-node
++++ a/drivers/net/ethernet/intel/i40evf/i40e_txrx.c
+@@ -997,7 +997,7 @@ static int i40e_clean_rx_irq_ps(struct i
+ 	unsigned int total_rx_bytes = 0, total_rx_packets = 0;
+ 	u16 rx_packet_len, rx_header_len, rx_sph, rx_hbo;
+ 	u16 cleaned_count = I40E_DESC_UNUSED(rx_ring);
+-	const int current_node = numa_node_id();
++	const int current_node = numa_mem_id();
+ 	struct i40e_vsi *vsi = rx_ring->vsi;
+ 	u16 i = rx_ring->next_to_clean;
+ 	union i40e_rx_desc *rx_desc;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jiang.liu@linux.intel.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm.patch
-slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
-mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
-mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
-mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
-include-linux-mmzoneh-reflow-comment.patch
-mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
-mm-vmstatc-uninline-node_page_state.patch
-mm-vmstatc-uninline-node_page_state-fix.patch
-kasan-various-fixes-in-documentation-checkpatch-fixes.patch
-zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-include-linux-compiler-gcch-improve-__visible-documentation.patch
-fs-jffs2-wbufc-remove-stray-semicolon.patch
-lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
-rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
-dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
-panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out-fix.patch
-linux-next-rejects.patch
-net-ipv4-routec-prevent-oops.patch
-remove-abs64.patch
-remove-abs64-fix.patch
-remove-abs64-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+x86-numa-acpi-online-node-earlier-when-doing-cpu-hot-addition.patch
+kernel-profilec-replace-cpu_to_mem-with-cpu_to_node.patch
+sgi-xp-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch
+openvswitch-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch
+x86-numa-kill-useless-code-to-improve-code-readability.patch
+mm-update-_mem_id_-for-every-possible-cpu-when-memory-configuration-changes.patch
+mm-x86-enable-memoryless-node-support-to-better-support-cpu-memory-hotplug.patch
 
