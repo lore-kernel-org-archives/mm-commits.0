@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fs-ncpfs-remove-unnecessary-new_valid_dev-check.patch added to
+Subject: + fs-hpfs-remove-unnecessary-new_valid_dev-check.patch added to
  -mm tree
-Date: Thu, 08 Oct 2015 15:00:06 -0700
-Message-ID: <5616e766.r8RSoj6Hm/EMA7eb%akpm@linux-foundation.org>
+Date: Thu, 08 Oct 2015 15:00:02 -0700
+Message-ID: <5616e762.U6KxBuDMy1fjbWAN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58181 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58170 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932452AbbJHWAH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 18:00:07 -0400
+	with ESMTP id S932452AbbJHWAD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 18:00:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, axboe@fb.com, dhowells@redhat.com, fabf@skynet.be, jack@suse.cz, petr@vandrovec.name, tj@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: bywxiaobai@163.com, mikulas@artax.karlin.mff.cuni.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ncpfs/dir.c: remove unnecessary new_valid_dev() check
+     Subject: fs/hpfs/namei.c: remove unnecessary new_valid_dev() check
 has been added to the -mm tree.  Its filename is
-     fs-ncpfs-remove-unnecessary-new_valid_dev-check.patch
+     fs-hpfs-remove-unnecessary-new_valid_dev-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-ncpfs-remove-unnecessary-new_valid_dev-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-hpfs-remove-unnecessary-new_valid_dev-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-ncpfs-remove-unnecessary-new_valid_dev-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-hpfs-remove-unnecessary-new_valid_dev-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,37 +40,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yaowei Bai <bywxiaobai@163.com>
-Subject: fs/ncpfs/dir.c: remove unnecessary new_valid_dev() check
+Subject: fs/hpfs/namei.c: remove unnecessary new_valid_dev() check
 
 new_valid_dev() always returns 1, so the !new_valid_dev() check is not
 needed.  Remove it.
 
 Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Petr Vandrovec <petr@vandrovec.name>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Fabian Frederick <fabf@skynet.be>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/dir.c |    2 --
+ fs/hpfs/namei.c |    2 --
  1 file changed, 2 deletions(-)
 
-diff -puN fs/ncpfs/dir.c~fs-ncpfs-remove-unnecessary-new_valid_dev-check fs/ncpfs/dir.c
---- a/fs/ncpfs/dir.c~fs-ncpfs-remove-unnecessary-new_valid_dev-check
-+++ a/fs/ncpfs/dir.c
-@@ -1165,8 +1165,6 @@ out:
- static int ncp_mknod(struct inode * dir, struct dentry *dentry,
- 		     umode_t mode, dev_t rdev)
- {
+diff -puN fs/hpfs/namei.c~fs-hpfs-remove-unnecessary-new_valid_dev-check fs/hpfs/namei.c
+--- a/fs/hpfs/namei.c~fs-hpfs-remove-unnecessary-new_valid_dev-check
++++ a/fs/hpfs/namei.c
+@@ -227,8 +227,6 @@ static int hpfs_mknod(struct inode *dir,
+ 	int err;
+ 	if ((err = hpfs_chk_name(name, &len))) return err==-ENOENT ? -EINVAL : err;
+ 	if (hpfs_sb(dir->i_sb)->sb_eas < 2) return -EPERM;
 -	if (!new_valid_dev(rdev))
 -		return -EINVAL;
- 	if (ncp_is_nfs_extras(NCP_SERVER(dir), NCP_FINFO(dir)->volNumber)) {
- 		ncp_dbg(1, "mode = 0%ho\n", mode);
- 		return ncp_create_new(dir, dentry, mode, rdev, 0);
+ 	hpfs_lock(dir->i_sb);
+ 	err = -ENOSPC;
+ 	fnode = hpfs_alloc_fnode(dir->i_sb, hpfs_i(dir)->i_dno, &fno, &bh);
 _
 
 Patches currently in -mm which might be from bywxiaobai@163.com are
