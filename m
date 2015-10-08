@@ -1,80 +1,164 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- i40e-use-numa_mem_id-to-better-support-memoryless-node.patch removed from
- -mm tree
-Date: Thu, 08 Oct 2015 13:21:01 -0700
-Message-ID: <5616d02d.JCWXFPnidqJIyj50%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ revert-mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax.patch removed
+ from -mm tree
+Date: Thu, 08 Oct 2015 14:05:26 -0700
+Message-ID: <5616da96.53aEUZj51aoYWIOO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38158 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47046 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751261AbbJHUVC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 16:21:02 -0400
+	with ESMTP id S1755045AbbJHVF1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 17:05:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jiang.liu@linux.intel.com, hpa@zytor.com, kiran.patil@intel.com, mgorman@suse.de, mingo@elte.hu, peterz@infradead.org, rafael.j.wysocki@intel.com, rientjes@google.com, tangchen@cn.fujitsu.com, tglx@linutronix.de, tj@kernel.org, tony.luck@intel.com, umgwanakikbuti@gmail.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, david@fromorbit.com, jack@suse.com, kirill.shutemov@linux.intel.com, matthew.r.wilcox@intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: i40e: use numa_mem_id() to better support memoryless node
+     Subject: Revert "mm: take i_mmap_lock in unmap_mapping_range() for DAX"
 has been removed from the -mm tree.  Its filename was
-     i40e-use-numa_mem_id-to-better-support-memoryless-node.patch
+     revert-mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: i40e: use numa_mem_id() to better support memoryless node
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Revert "mm: take i_mmap_lock in unmap_mapping_range() for DAX"
 
-i40e_clean_rx_irq() tries to reuse memory pages allocated from the nearest
-node.  To better support memoryless node, use numa_mem_id() instead of
-numa_node_id() to get the nearest node with memory.
+This reverts commits 46c043ede4711e8d ("mm: take i_mmap_lock in
+unmap_mapping_range() for DAX") and 8346c416d17bf5b4 ("dax: fix race
+between simultaneous faults").
 
-This change should only affect performance.
+These introduced a number of deadlocks and other issues, and need to be
+reverted for the v4.3 kernel.  The list of issues in DAX after these
+commits (some newly introduced by the commits, some preexisting) can be
+found here:
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Acked-by: Kiran Patil <kiran.patil@intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mike Galbraith <umgwanakikbuti@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+https://lkml.org/lkml/2015/9/25/602 (Subject: "Re: [PATCH] dax: fix
+deadlock in __dax_fault").
+
+This revert keeps the PMEM API changes to the zeroing code in
+__dax_pmd_fault(), which were added by this commit:
+
+commit d77e92e270ed ("dax: update PMD fault handler with PMEM API")
+
+It also keeps the code dropping mapping->i_mmap_rwsem before calling
+unmap_mapping_range(), but converts it to a read lock since that's what is
+now used by the rest of __dax_pmd_fault().  This is needed to avoid
+recursively acquiring mapping->i_mmap_rwsem, once with a read lock in
+__dax_pmd_fault() and once with a write lock in unmap_mapping_range().
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Jan Kara <jack@suse.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/intel/i40e/i40e_txrx.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/dax.c    |   37 +++++++++++++------------------------
+ mm/memory.c |   11 +++++++++--
+ 2 files changed, 22 insertions(+), 26 deletions(-)
 
-diff -puN drivers/net/ethernet/intel/i40e/i40e_txrx.c~i40e-use-numa_mem_id-to-better-support-memoryless-node drivers/net/ethernet/intel/i40e/i40e_txrx.c
---- a/drivers/net/ethernet/intel/i40e/i40e_txrx.c~i40e-use-numa_mem_id-to-better-support-memoryless-node
-+++ a/drivers/net/ethernet/intel/i40e/i40e_txrx.c
-@@ -1518,7 +1518,7 @@ static int i40e_clean_rx_irq_ps(struct i
- 	unsigned int total_rx_bytes = 0, total_rx_packets = 0;
- 	u16 rx_packet_len, rx_header_len, rx_sph, rx_hbo;
- 	u16 cleaned_count = I40E_DESC_UNUSED(rx_ring);
--	const int current_node = numa_node_id();
-+	const int current_node = numa_mem_id();
- 	struct i40e_vsi *vsi = rx_ring->vsi;
- 	u16 i = rx_ring->next_to_clean;
- 	union i40e_rx_desc *rx_desc;
+diff -puN fs/dax.c~revert-mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax fs/dax.c
+--- a/fs/dax.c~revert-mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax
++++ a/fs/dax.c
+@@ -569,36 +569,14 @@ int __dax_pmd_fault(struct vm_area_struc
+ 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE)
+ 		goto fallback;
+ 
+-	sector = bh.b_blocknr << (blkbits - 9);
+-
+-	if (buffer_unwritten(&bh) || buffer_new(&bh)) {
+-		int i;
+-
+-		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
+-						bh.b_size);
+-		if (length < 0) {
+-			result = VM_FAULT_SIGBUS;
+-			goto out;
+-		}
+-		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
+-			goto fallback;
+-
+-		for (i = 0; i < PTRS_PER_PMD; i++)
+-			clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
+-		wmb_pmem();
+-		count_vm_event(PGMAJFAULT);
+-		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+-		result |= VM_FAULT_MAJOR;
+-	}
+-
+ 	/*
+ 	 * If we allocated new storage, make sure no process has any
+ 	 * zero pages covering this hole
+ 	 */
+ 	if (buffer_new(&bh)) {
+-		i_mmap_unlock_write(mapping);
++		i_mmap_unlock_read(mapping);
+ 		unmap_mapping_range(mapping, pgoff << PAGE_SHIFT, PMD_SIZE, 0);
+-		i_mmap_lock_write(mapping);
++		i_mmap_lock_read(mapping);
+ 	}
+ 
+ 	/*
+@@ -635,6 +613,7 @@ int __dax_pmd_fault(struct vm_area_struc
+ 		result = VM_FAULT_NOPAGE;
+ 		spin_unlock(ptl);
+ 	} else {
++		sector = bh.b_blocknr << (blkbits - 9);
+ 		length = bdev_direct_access(bh.b_bdev, sector, &kaddr, &pfn,
+ 						bh.b_size);
+ 		if (length < 0) {
+@@ -644,6 +623,16 @@ int __dax_pmd_fault(struct vm_area_struc
+ 		if ((length < PMD_SIZE) || (pfn & PG_PMD_COLOUR))
+ 			goto fallback;
+ 
++		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
++			int i;
++			for (i = 0; i < PTRS_PER_PMD; i++)
++				clear_pmem(kaddr + i * PAGE_SIZE, PAGE_SIZE);
++			wmb_pmem();
++			count_vm_event(PGMAJFAULT);
++			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
++			result |= VM_FAULT_MAJOR;
++		}
++
+ 		result |= vmf_insert_pfn_pmd(vma, address, pmd, pfn, write);
+ 	}
+ 
+diff -puN mm/memory.c~revert-mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax mm/memory.c
+--- a/mm/memory.c~revert-mm-take-i_mmap_lock-in-unmap_mapping_range-for-dax
++++ a/mm/memory.c
+@@ -2426,10 +2426,17 @@ void unmap_mapping_range(struct address_
+ 	if (details.last_index < details.first_index)
+ 		details.last_index = ULONG_MAX;
+ 
+-	i_mmap_lock_write(mapping);
++
++	/*
++	 * DAX already holds i_mmap_lock to serialise file truncate vs
++	 * page fault and page fault vs page fault.
++	 */
++	if (!IS_DAX(mapping->host))
++		i_mmap_lock_write(mapping);
+ 	if (unlikely(!RB_EMPTY_ROOT(&mapping->i_mmap)))
+ 		unmap_mapping_range_tree(&mapping->i_mmap, &details);
+-	i_mmap_unlock_write(mapping);
++	if (!IS_DAX(mapping->host))
++		i_mmap_unlock_write(mapping);
+ }
+ EXPORT_SYMBOL(unmap_mapping_range);
+ 
 _
 
-Patches currently in -mm which might be from jiang.liu@linux.intel.com are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
-x86-numa-acpi-online-node-earlier-when-doing-cpu-hot-addition.patch
-kernel-profilec-replace-cpu_to_mem-with-cpu_to_node.patch
-sgi-xp-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch
-openvswitch-replace-cpu_to_node-with-cpu_to_mem-to-support-memoryless-node.patch
-x86-numa-kill-useless-code-to-improve-code-readability.patch
-mm-update-_mem_id_-for-every-possible-cpu-when-memory-configuration-changes.patch
-mm-x86-enable-memoryless-node-support-to-better-support-cpu-memory-hotplug.patch
+revert-dax-fix-race-between-simultaneous-faults.patch
 
