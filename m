@@ -1,32 +1,33 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- i40evf-use-numa_mem_id-to-better-support-memoryless-node.patch removed from -mm tree
-Date: Thu, 08 Oct 2015 13:21:04 -0700
-Message-ID: <5616d030.y4H/lXZ/VjWKKcon%akpm@linux-foundation.org>
+ i40e-use-numa_mem_id-to-better-support-memoryless-node.patch removed from
+ -mm tree
+Date: Thu, 08 Oct 2015 13:21:01 -0700
+Message-ID: <5616d02d.JCWXFPnidqJIyj50%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38178 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38158 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751589AbbJHUVF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 16:21:05 -0400
+	with ESMTP id S1751261AbbJHUVC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 16:21:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jiang.liu@linux.intel.com, hpa@zytor.com, kiran.patil@intel.com, mgorman@suse.de, mingo@elte.hu, peterz@infradead.org, rafael.j.wysocki@intel.com, rientjes@google.com, tangchen@cn.fujitsu.com, tglx@linutronix.de, tj@kernel.org, tony.luck@intel.com, umgwanakikbuti@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: i40evf: use numa_mem_id() to better support memoryless node
+     Subject: i40e: use numa_mem_id() to better support memoryless node
 has been removed from the -mm tree.  Its filename was
-     i40evf-use-numa_mem_id-to-better-support-memoryless-node.patch
+     i40e-use-numa_mem_id-to-better-support-memoryless-node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: i40evf: use numa_mem_id() to better support memoryless node
+Subject: i40e: use numa_mem_id() to better support memoryless node
 
 i40e_clean_rx_irq() tries to reuse memory pages allocated from the nearest
 node.  To better support memoryless node, use numa_mem_id() instead of
@@ -35,7 +36,7 @@ numa_node_id() to get the nearest node with memory.
 This change should only affect performance.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Acked-by: "Patil, Kiran" <kiran.patil@intel.com>
+Acked-by: Kiran Patil <kiran.patil@intel.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Mike Galbraith <umgwanakikbuti@gmail.com>
@@ -50,13 +51,13 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/intel/i40evf/i40e_txrx.c |    2 +-
+ drivers/net/ethernet/intel/i40e/i40e_txrx.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/net/ethernet/intel/i40evf/i40e_txrx.c~i40evf-use-numa_mem_id-to-better-support-memoryless-node drivers/net/ethernet/intel/i40evf/i40e_txrx.c
---- a/drivers/net/ethernet/intel/i40evf/i40e_txrx.c~i40evf-use-numa_mem_id-to-better-support-memoryless-node
-+++ a/drivers/net/ethernet/intel/i40evf/i40e_txrx.c
-@@ -997,7 +997,7 @@ static int i40e_clean_rx_irq_ps(struct i
+diff -puN drivers/net/ethernet/intel/i40e/i40e_txrx.c~i40e-use-numa_mem_id-to-better-support-memoryless-node drivers/net/ethernet/intel/i40e/i40e_txrx.c
+--- a/drivers/net/ethernet/intel/i40e/i40e_txrx.c~i40e-use-numa_mem_id-to-better-support-memoryless-node
++++ a/drivers/net/ethernet/intel/i40e/i40e_txrx.c
+@@ -1518,7 +1518,7 @@ static int i40e_clean_rx_irq_ps(struct i
  	unsigned int total_rx_bytes = 0, total_rx_packets = 0;
  	u16 rx_packet_len, rx_header_len, rx_sph, rx_hbo;
  	u16 cleaned_count = I40E_DESC_UNUSED(rx_ring);
