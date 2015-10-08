@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-skip-if-required_kernelcore-is-larger-than-totalpages.patch
- added to -mm tree
-Date: Thu, 08 Oct 2015 15:26:38 -0700
-Message-ID: <5616ed9e./rk9GjxWjaod98ke%akpm@linux-foundation.org>
+Subject: + memcg-simplify-charging-kmem-pages.patch added to -mm tree
+Date: Thu, 08 Oct 2015 15:30:23 -0700
+Message-ID: <5616ee7f.knsIuCmFz/9ebeBS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35463 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36328 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755466AbbJHW0j (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 18:26:39 -0400
+	with ESMTP id S1756609AbbJHWaY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 18:30:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@huawei.com, isimatu.yasuaki@jp.fujitsu.com, mgorman@suse.de, rientjes@google.com, tangchen@cn.fujitsu.com, zhongjiang@huawei.com, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: skip ZONE_MOVABLE if required_kernelcore is larger than totalpages
+     Subject: memcg: simplify charging kmem pages
 has been added to the -mm tree.  Its filename is
-     mm-skip-if-required_kernelcore-is-larger-than-totalpages.patch
+     memcg-simplify-charging-kmem-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-skip-if-required_kernelcore-is-larger-than-totalpages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-simplify-charging-kmem-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-skip-if-required_kernelcore-is-larger-than-totalpages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-simplify-charging-kmem-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,48 +38,262 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mm/page_alloc.c: skip ZONE_MOVABLE if required_kernelcore is larger than totalpages
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: memcg: simplify charging kmem pages
 
-If kernelcore was not specified, or the kernelcore size is zero
-(required_movablecore >= totalpages), or the kernelcore size is larger
-than totalpages, there is no ZONE_MOVABLE.  We should fill the zone with
-both kernel memory and movable memory.
+Charging kmem pages proceeds in two steps.  First, we try to charge the
+allocation size to the memcg the current task belongs to, then we allocate
+a page and "commit" the charge storing the pointer to the memcg in the
+page struct.
 
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: "David Rientjes" <rientjes@google.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: <zhongjiang@huawei.com>
+Such a design looks overcomplicated, because there is not much sense in
+trying charging the allocation before actually allocating a page: we won't
+be able to consume much memory over the limit even if we charge after
+doing the actual allocation, besides we already charge user pages post
+factum, so being pedantic with kmem pages just looks pointless.
+
+So this patch simplifies the design by merging the "charge" and the
+"commit" steps into the same function, which takes the allocated page.
+
+Also, rename the charge and uncharge methods to memcg_kmem_charge and
+memcg_kmem_uncharge and make the charge method return error code instead
+of bool to conform to mem_cgroup_try_charge.
+
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ include/linux/memcontrol.h |   69 +++++++++--------------------------
+ mm/memcontrol.c            |   39 ++-----------------
+ mm/page_alloc.c            |   18 ++++-----
+ 3 files changed, 32 insertions(+), 94 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-skip-if-required_kernelcore-is-larger-than-totalpages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-skip-if-required_kernelcore-is-larger-than-totalpages
-+++ a/mm/page_alloc.c
-@@ -5495,8 +5495,11 @@ static void __init find_zone_movable_pfn
- 		required_kernelcore = max(required_kernelcore, corepages);
+diff -puN include/linux/memcontrol.h~memcg-simplify-charging-kmem-pages include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-simplify-charging-kmem-pages
++++ a/include/linux/memcontrol.h
+@@ -750,11 +750,8 @@ static inline bool memcg_kmem_is_active(
+  * conditions, but because they are pretty simple, they are expected to be
+  * fast.
+  */
+-bool __memcg_kmem_newpage_charge(gfp_t gfp, struct mem_cgroup **memcg,
+-					int order);
+-void __memcg_kmem_commit_charge(struct page *page,
+-				       struct mem_cgroup *memcg, int order);
+-void __memcg_kmem_uncharge_pages(struct page *page, int order);
++int __memcg_kmem_charge(struct page *page, gfp_t gfp, int order);
++void __memcg_kmem_uncharge(struct page *page, int order);
+ 
+ /*
+  * helper for acessing a memcg's index. It will be used as an index in the
+@@ -787,52 +784,30 @@ static inline bool __memcg_kmem_bypass(g
+ }
+ 
+ /**
+- * memcg_kmem_newpage_charge: verify if a new kmem allocation is allowed.
+- * @gfp: the gfp allocation flags.
+- * @memcg: a pointer to the memcg this was charged against.
+- * @order: allocation order.
++ * memcg_kmem_charge: charge a kmem page
++ * @page: page to charge
++ * @gfp: reclaim mode
++ * @order: allocation order
+  *
+- * returns true if the memcg where the current task belongs can hold this
+- * allocation.
+- *
+- * We return true automatically if this allocation is not to be accounted to
+- * any memcg.
++ * Returns 0 on success, an error code on failure.
+  */
+-static inline bool
+-memcg_kmem_newpage_charge(gfp_t gfp, struct mem_cgroup **memcg, int order)
++static __always_inline int memcg_kmem_charge(struct page *page,
++					     gfp_t gfp, int order)
+ {
+ 	if (__memcg_kmem_bypass(gfp))
+-		return true;
+-	return __memcg_kmem_newpage_charge(gfp, memcg, order);
++		return 0;
++	return __memcg_kmem_charge(page, gfp, order);
+ }
+ 
+ /**
+- * memcg_kmem_uncharge_pages: uncharge pages from memcg
+- * @page: pointer to struct page being freed
+- * @order: allocation order.
++ * memcg_kmem_uncharge: uncharge a kmem page
++ * @page: page to uncharge
++ * @order: allocation order
+  */
+-static inline void
+-memcg_kmem_uncharge_pages(struct page *page, int order)
++static __always_inline void memcg_kmem_uncharge(struct page *page, int order)
+ {
+ 	if (memcg_kmem_enabled())
+-		__memcg_kmem_uncharge_pages(page, order);
+-}
+-
+-/**
+- * memcg_kmem_commit_charge: embeds correct memcg in a page
+- * @page: pointer to struct page recently allocated
+- * @memcg: the memcg structure we charged against
+- * @order: allocation order.
+- *
+- * Needs to be called after memcg_kmem_newpage_charge, regardless of success or
+- * failure of the allocation. if @page is NULL, this function will revert the
+- * charges. Otherwise, it will commit @page to @memcg.
+- */
+-static inline void
+-memcg_kmem_commit_charge(struct page *page, struct mem_cgroup *memcg, int order)
+-{
+-	if (memcg_kmem_enabled() && memcg)
+-		__memcg_kmem_commit_charge(page, memcg, order);
++		__memcg_kmem_uncharge(page, order);
+ }
+ 
+ /**
+@@ -876,18 +851,12 @@ static inline bool memcg_kmem_is_active(
+ 	return false;
+ }
+ 
+-static inline bool
+-memcg_kmem_newpage_charge(gfp_t gfp, struct mem_cgroup **memcg, int order)
+-{
+-	return true;
+-}
+-
+-static inline void memcg_kmem_uncharge_pages(struct page *page, int order)
++static inline int memcg_kmem_charge(struct page *page, gfp_t gfp, int order)
+ {
++	return 0;
+ }
+ 
+-static inline void
+-memcg_kmem_commit_charge(struct page *page, struct mem_cgroup *memcg, int order)
++static inline void memcg_kmem_uncharge(struct page *page, int order)
+ {
+ }
+ 
+diff -puN mm/memcontrol.c~memcg-simplify-charging-kmem-pages mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-simplify-charging-kmem-pages
++++ a/mm/memcontrol.c
+@@ -2404,57 +2404,26 @@ void __memcg_kmem_put_cache(struct kmem_
+ 		css_put(&cachep->memcg_params.memcg->css);
+ }
+ 
+-/*
+- * We need to verify if the allocation against current->mm->owner's memcg is
+- * possible for the given order. But the page is not allocated yet, so we'll
+- * need a further commit step to do the final arrangements.
+- *
+- * It is possible for the task to switch cgroups in this mean time, so at
+- * commit time, we can't rely on task conversion any longer.  We'll then use
+- * the handle argument to return to the caller which cgroup we should commit
+- * against. We could also return the memcg directly and avoid the pointer
+- * passing, but a boolean return value gives better semantics considering
+- * the compiled-out case as well.
+- *
+- * Returning true means the allocation is possible.
+- */
+-bool
+-__memcg_kmem_newpage_charge(gfp_t gfp, struct mem_cgroup **_memcg, int order)
++int __memcg_kmem_charge(struct page *page, gfp_t gfp, int order)
+ {
+ 	struct mem_cgroup *memcg;
+ 	int ret;
+ 
+-	*_memcg = NULL;
+-
+ 	memcg = get_mem_cgroup_from_mm(current->mm);
+ 
+ 	if (!memcg_kmem_is_active(memcg)) {
+ 		css_put(&memcg->css);
+-		return true;
++		return 0;
  	}
  
--	/* If kernelcore was not specified, there is no ZONE_MOVABLE */
--	if (!required_kernelcore)
-+	/*
-+	 * If kernelcore was not specified or kernelcore size is larger
-+	 * than totalpages, there is no ZONE_MOVABLE.
-+	 */
-+	if (!required_kernelcore || required_kernelcore >= totalpages)
- 		goto out;
+ 	ret = memcg_charge_kmem(memcg, gfp, 1 << order);
+-	if (!ret)
+-		*_memcg = memcg;
  
- 	/* usable_startpfn is the lowest possible pfn ZONE_MOVABLE can be at */
+ 	css_put(&memcg->css);
+-	return (ret == 0);
+-}
+-
+-void __memcg_kmem_commit_charge(struct page *page, struct mem_cgroup *memcg,
+-			      int order)
+-{
+-	VM_BUG_ON(mem_cgroup_is_root(memcg));
+-
+-	/* The page allocation failed. Revert */
+-	if (!page) {
+-		memcg_uncharge_kmem(memcg, 1 << order);
+-		return;
+-	}
+ 	page->mem_cgroup = memcg;
++	return ret;
+ }
+ 
+-void __memcg_kmem_uncharge_pages(struct page *page, int order)
++void __memcg_kmem_uncharge(struct page *page, int order)
+ {
+ 	struct mem_cgroup *memcg = page->mem_cgroup;
+ 
+diff -puN mm/page_alloc.c~memcg-simplify-charging-kmem-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~memcg-simplify-charging-kmem-pages
++++ a/mm/page_alloc.c
+@@ -3387,24 +3387,24 @@ EXPORT_SYMBOL(__free_page_frag);
+ struct page *alloc_kmem_pages(gfp_t gfp_mask, unsigned int order)
+ {
+ 	struct page *page;
+-	struct mem_cgroup *memcg = NULL;
+ 
+-	if (!memcg_kmem_newpage_charge(gfp_mask, &memcg, order))
+-		return NULL;
+ 	page = alloc_pages(gfp_mask, order);
+-	memcg_kmem_commit_charge(page, memcg, order);
++	if (page && memcg_kmem_charge(page, gfp_mask, order) != 0) {
++		__free_pages(page, order);
++		page = NULL;
++	}
+ 	return page;
+ }
+ 
+ struct page *alloc_kmem_pages_node(int nid, gfp_t gfp_mask, unsigned int order)
+ {
+ 	struct page *page;
+-	struct mem_cgroup *memcg = NULL;
+ 
+-	if (!memcg_kmem_newpage_charge(gfp_mask, &memcg, order))
+-		return NULL;
+ 	page = alloc_pages_node(nid, gfp_mask, order);
+-	memcg_kmem_commit_charge(page, memcg, order);
++	if (page && memcg_kmem_charge(page, gfp_mask, order) != 0) {
++		__free_pages(page, order);
++		page = NULL;
++	}
+ 	return page;
+ }
+ 
+@@ -3414,7 +3414,7 @@ struct page *alloc_kmem_pages_node(int n
+  */
+ void __free_kmem_pages(struct page *page, unsigned int order)
+ {
+-	memcg_kmem_uncharge_pages(page, order);
++	memcg_kmem_uncharge(page, order);
+ 	__free_pages(page, order);
+ }
+ 
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from vdavydov@virtuozzo.com are
 
-mm-fix-overflow-in-find_zone_movable_pfns_for_nodes.patch
-mm-skip-if-required_kernelcore-is-larger-than-totalpages.patch
-kasan-use-is_aligned-in-memory_is_poisoned_8.patch
+slab_common-rename-cache-create-destroy-helpers.patch
+slab_common-clear-pointers-to-per-memcg-caches-on-destroy.patch
+slab_common-do-not-warn-that-cache-is-busy-on-destroy-more-than-once.patch
+memcg-simplify-charging-kmem-pages.patch
+memcg-unify-slab-and-other-kmem-pages-charging.patch
+memcg-simplify-and-inline-__mem_cgroup_from_kmem.patch
 
