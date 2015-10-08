@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + fs-stat-remove-unnecessary-new_valid_dev-check.patch added to
- -mm tree
-Date: Thu, 08 Oct 2015 15:00:14 -0700
-Message-ID: <5616e76e.dceIMPAbMVsRpEId%akpm@linux-foundation.org>
+Subject: + mm-change-highmem_zone-macro-definition.patch added to -mm tree
+Date: Thu, 08 Oct 2015 15:11:15 -0700
+Message-ID: <5616ea03.leufSYs6XcpnFzXP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58201 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60435 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932452AbbJHWAP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 18:00:15 -0400
+	with ESMTP id S934601AbbJHWLQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 18:11:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: yalin.wang2010@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/stat.c: remove unnecessary new_valid_dev() check
+     Subject: mm: change HIGHMEM_ZONE macro definition
 has been added to the -mm tree.  Its filename is
-     fs-stat-remove-unnecessary-new_valid_dev-check.patch
+     mm-change-highmem_zone-macro-definition.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-stat-remove-unnecessary-new_valid_dev-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-change-highmem_zone-macro-definition.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-stat-remove-unnecessary-new_valid_dev-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-change-highmem_zone-macro-definition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,57 +38,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Yaowei Bai <bywxiaobai@163.com>
-Subject: fs/stat.c: remove unnecessary new_valid_dev() check
+From: yalin wang <yalin.wang2010@gmail.com>
+Subject: mm: change HIGHMEM_ZONE macro definition
 
-new_valid_dev() always returns 1, so the !new_valid_dev() check is not
-needed.  Remove it.
+Change HIGHMEM_ZONE to be the same as the DMA_ZONE macro.
 
-Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: yalin wang <yalin.wang2010@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/stat.c |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/vm_event_item.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/stat.c~fs-stat-remove-unnecessary-new_valid_dev-check fs/stat.c
---- a/fs/stat.c~fs-stat-remove-unnecessary-new_valid_dev-check
-+++ a/fs/stat.c
-@@ -367,8 +367,6 @@ static long cp_new_stat64(struct kstat *
- 	INIT_STRUCT_STAT64_PADDING(tmp);
- #ifdef CONFIG_MIPS
- 	/* mips has weird padding, so we don't get 64 bits there */
--	if (!new_valid_dev(stat->dev) || !new_valid_dev(stat->rdev))
--		return -EOVERFLOW;
- 	tmp.st_dev = new_encode_dev(stat->dev);
- 	tmp.st_rdev = new_encode_dev(stat->rdev);
+diff -puN include/linux/vm_event_item.h~mm-change-highmem_zone-macro-definition include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~mm-change-highmem_zone-macro-definition
++++ a/include/linux/vm_event_item.h
+@@ -14,12 +14,12 @@
+ #endif
+ 
+ #ifdef CONFIG_HIGHMEM
+-#define HIGHMEM_ZONE(xx) , xx##_HIGH
++#define HIGHMEM_ZONE(xx) xx##_HIGH,
  #else
+ #define HIGHMEM_ZONE(xx)
+ #endif
+ 
+-#define FOR_ALL_ZONES(xx) DMA_ZONE(xx) DMA32_ZONE(xx) xx##_NORMAL HIGHMEM_ZONE(xx) , xx##_MOVABLE
++#define FOR_ALL_ZONES(xx) DMA_ZONE(xx) DMA32_ZONE(xx) xx##_NORMAL, HIGHMEM_ZONE(xx) xx##_MOVABLE
+ 
+ enum vm_event_item { PGPGIN, PGPGOUT, PSWPIN, PSWPOUT,
+ 		FOR_ALL_ZONES(PGALLOC),
 _
 
-Patches currently in -mm which might be from bywxiaobai@163.com are
+Patches currently in -mm which might be from yalin.wang2010@gmail.com are
 
-kernel-watchdog-is_hardlockup-can-be-boolean.patch
-mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone.patch
-mm-vmscan-make-inactive_anon_is_low_global-return-directly.patch
-mm-oom_kill-introduce-is_sysrq_oom-helper.patch
-mm-compaction-add-an-is_via_compact_memory-helper-function.patch
-mm-vmscan-make-inactive_anon-file_is_low-return-bool.patch
-mm-memcontrol-make-mem_cgroup_inactive_anon_is_low-return-bool.patch
-fs-kdev_t-remove-unused-huge_valid_dev-function.patch
-fs-kdev_t-old-new_valid_dev-can-be-boolean.patch
-fs-vfs-remove-unnecessary-new_valid_dev-check.patch
-fs-btrfs-remove-unnecessary-new_valid_dev-check.patch
-fs-exofs-remove-unnecessary-new_valid_dev-check.patch
-fs-ext2-remove-unnecessary-new_valid_dev-check.patch
-fs-ext4-remove-unnecessary-new_valid_dev-check.patch
-fs-f2fs-remove-unnecessary-new_valid_dev-check.patch
-fs-hpfs-remove-unnecessary-new_valid_dev-check.patch
-fs-jfs-remove-unnecessary-new_valid_dev-check.patch
-fs-ncpfs-remove-unnecessary-new_valid_dev-check.patch
-fs-nfs-remove-unnecessary-new_valid_dev-check.patch
-fs-nilfs2-remove-unnecessary-new_valid_dev-check.patch
-fs-reiserfs-remove-unnecessary-new_valid_dev-check.patch
-fs-stat-remove-unnecessary-new_valid_dev-check.patch
-fs-ubifs-remove-unnecessary-new_valid_dev-check.patch
+mm-change-highmem_zone-macro-definition.patch
 
