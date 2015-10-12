@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-simplify-and-inline-__mem_cgroup_from_kmem.patch added to -mm tree
-Date: Thu, 08 Oct 2015 15:30:27 -0700
-Message-ID: <5616ee83.p8LT1fGfgzGy3uog%akpm@linux-foundation.org>
+Subject: + lib-kconfig-zlib_deflate-must-select-bitreverse.patch added to
+ -mm tree
+Date: Mon, 12 Oct 2015 14:55:46 -0700
+Message-ID: <561c2c62.RnNzra/nrI74vEDq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36343 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34020 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756609AbbJHWa3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 8 Oct 2015 18:30:29 -0400
+	with ESMTP id S1752738AbbJLVzr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Oct 2015 17:55:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jim.epost@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: simplify and inline __mem_cgroup_from_kmem
+     Subject: lib/Kconfig: ZLIB_DEFLATE must select BITREVERSE
 has been added to the -mm tree.  Its filename is
-     memcg-simplify-and-inline-__mem_cgroup_from_kmem.patch
+     lib-kconfig-zlib_deflate-must-select-bitreverse.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-simplify-and-inline-__mem_cgroup_from_kmem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-kconfig-zlib_deflate-must-select-bitreverse.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-simplify-and-inline-__mem_cgroup_from_kmem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-kconfig-zlib_deflate-must-select-bitreverse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,70 +39,78 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: memcg: simplify and inline __mem_cgroup_from_kmem
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: lib/Kconfig: ZLIB_DEFLATE must select BITREVERSE
 
-Before the previous patch ("memcg: unify slab and other kmem pages
-charging"), __mem_cgroup_from_kmem had to handle two types of kmem - slab
-pages and pages allocated with alloc_kmem_pages - memcg in the page
-struct.  Now we can unify it.  Since after it, this function becomes tiny
-we can fold it into mem_cgroup_from_kmem.
+lib/built-in.o: In function `__bitrev32':
+deftree.c:(.text+0x1e799): undefined reference to `byte_rev_table'
+deftree.c:(.text+0x1e7a0): undefined reference to `byte_rev_table'
+deftree.c:(.text+0x1e7b4): undefined reference to `byte_rev_table'
+deftree.c:(.text+0x1e7c1): undefined reference to `byte_rev_table'
 
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Anything which uses bitrevX() has to select BITREVERSE, to grab
+lib/bitrev.o.
+
+Reported-by: Jim Davis <jim.epost@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 ++++---
- mm/memcontrol.c            |   18 ------------------
- 2 files changed, 4 insertions(+), 21 deletions(-)
+ lib/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/memcontrol.h~memcg-simplify-and-inline-__mem_cgroup_from_kmem include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-simplify-and-inline-__mem_cgroup_from_kmem
-+++ a/include/linux/memcontrol.h
-@@ -767,8 +767,6 @@ static inline int memcg_cache_id(struct
- struct kmem_cache *__memcg_kmem_get_cache(struct kmem_cache *cachep);
- void __memcg_kmem_put_cache(struct kmem_cache *cachep);
+diff -puN lib/Kconfig~lib-kconfig-zlib_deflate-must-select-bitreverse lib/Kconfig
+--- a/lib/Kconfig~lib-kconfig-zlib_deflate-must-select-bitreverse
++++ a/lib/Kconfig
+@@ -220,6 +220,7 @@ config ZLIB_INFLATE
  
--struct mem_cgroup *__mem_cgroup_from_kmem(void *ptr);
--
- static inline bool __memcg_kmem_bypass(gfp_t gfp)
- {
- 	if (!memcg_kmem_enabled())
-@@ -830,9 +828,12 @@ static __always_inline void memcg_kmem_p
+ config ZLIB_DEFLATE
+ 	tristate
++	select BITREVERSE
  
- static __always_inline struct mem_cgroup *mem_cgroup_from_kmem(void *ptr)
- {
-+	struct page *page;
-+
- 	if (!memcg_kmem_enabled())
- 		return NULL;
--	return __mem_cgroup_from_kmem(ptr);
-+	page = virt_to_head_page(ptr);
-+	return page->mem_cgroup;
- }
- #else
- #define for_each_memcg_cache_index(_idx)	\
-diff -puN mm/memcontrol.c~memcg-simplify-and-inline-__mem_cgroup_from_kmem mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-simplify-and-inline-__mem_cgroup_from_kmem
-+++ a/mm/memcontrol.c
-@@ -2430,24 +2430,6 @@ void __memcg_kmem_uncharge(struct page *
- 	page->mem_cgroup = NULL;
- 	css_put_many(&memcg->css, nr_pages);
- }
--
--struct mem_cgroup *__mem_cgroup_from_kmem(void *ptr)
--{
--	struct mem_cgroup *memcg = NULL;
--	struct kmem_cache *cachep;
--	struct page *page;
--
--	page = virt_to_head_page(ptr);
--	if (PageSlab(page)) {
--		cachep = page->slab_cache;
--		if (!is_root_cache(cachep))
--			memcg = cachep->memcg_params.memcg;
--	} else
--		/* page allocated by alloc_kmem_pages */
--		memcg = page->mem_cgroup;
+ config LZO_COMPRESS
+ 	tristate
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+lib-kconfig-zlib_deflate-must-select-bitreverse.patch
+mm.patch
+slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
+mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
+mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
+mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
+include-linux-mmzoneh-reflow-comment.patch
+mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
+mm-vmstatc-uninline-node_page_state.patch
+mm-vmstatc-uninline-node_page_state-fix.patch
+kasan-various-fixes-in-documentation-checkpatch-fixes.patch
+zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+include-linux-compiler-gcch-improve-__visible-documentation.patch
+fs-jffs2-wbufc-remove-stray-semicolon.patch
+lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
+rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
+dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
+panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out-fix.patch
+linux-next-rejects.patch
+net-ipv4-routec-prevent-oops.patch
+remove-abs64.patch
+remove-abs64-fix.patch
+remove-abs64-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+
