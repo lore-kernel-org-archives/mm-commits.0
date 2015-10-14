@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ksm-prepare-to-new-thp-semantics.patch added to -mm tree
-Date: Wed, 14 Oct 2015 14:13:10 -0700
-Message-ID: <561ec566.E1gRzuNAbY015mBA%akpm@linux-foundation.org>
+Subject: + mm-thp-remove-compound_lock.patch added to -mm tree
+Date: Wed, 14 Oct 2015 14:13:12 -0700
+Message-ID: <561ec568.vTj4rPOFpe6Jtr1/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50121 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50131 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753869AbbJNVNL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:13:11 -0400
+	with ESMTP id S1753869AbbJNVNN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:13:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm: prepare to new THP semantics
+     Subject: mm, thp: remove compound_lock()
 has been added to the -mm tree.  Its filename is
-     ksm-prepare-to-new-thp-semantics.patch
+     mm-thp-remove-compound_lock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ksm-prepare-to-new-thp-semantics.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-remove-compound_lock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ksm-prepare-to-new-thp-semantics.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-remove-compound_lock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,13 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: ksm: prepare to new THP semantics
+Subject: mm, thp: remove compound_lock()
 
-We don't need special code to stabilize THP. If you've got reference to
-any subpage of THP it will not be split under you.
-
-New split_huge_page() also accepts tail pages: no need in special code
-to get reference to head page.
+We are going to use migration entries to stabilize page counts. It means
+we don't need compound_lock() for that.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Tested-by: Sasha Levin <sasha.levin@oracle.com>
@@ -67,118 +64,141 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   57 +++++++++--------------------------------------------
- 1 file changed, 10 insertions(+), 47 deletions(-)
+ include/linux/mm.h         |   35 -----------------------------------
+ include/linux/page-flags.h |   12 +-----------
+ mm/debug.c                 |    3 ---
+ mm/memcontrol.c            |   11 +++--------
+ 4 files changed, 4 insertions(+), 57 deletions(-)
 
-diff -puN mm/ksm.c~ksm-prepare-to-new-thp-semantics mm/ksm.c
---- a/mm/ksm.c~ksm-prepare-to-new-thp-semantics
-+++ a/mm/ksm.c
-@@ -441,20 +441,6 @@ static void break_cow(struct rmap_item *
- 	up_read(&mm->mmap_sem);
- }
+diff -puN include/linux/mm.h~mm-thp-remove-compound_lock include/linux/mm.h
+--- a/include/linux/mm.h~mm-thp-remove-compound_lock
++++ a/include/linux/mm.h
+@@ -395,41 +395,6 @@ static inline int is_vmalloc_or_module_a
  
--static struct page *page_trans_compound_anon(struct page *page)
+ extern void kvfree(const void *addr);
+ 
+-static inline void compound_lock(struct page *page)
 -{
--	if (PageTransCompound(page)) {
--		struct page *head = compound_head(page);
--		/*
--		 * head may actually be splitted and freed from under
--		 * us but it's ok here.
--		 */
--		if (PageAnon(head))
--			return head;
--	}
--	return NULL;
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	VM_BUG_ON_PAGE(PageSlab(page), page);
+-	bit_spin_lock(PG_compound_lock, &page->flags);
+-#endif
 -}
 -
- static struct page *get_mergeable_page(struct rmap_item *rmap_item)
- {
- 	struct mm_struct *mm = rmap_item->mm;
-@@ -470,7 +456,7 @@ static struct page *get_mergeable_page(s
- 	page = follow_page(vma, addr, FOLL_GET);
- 	if (IS_ERR_OR_NULL(page))
- 		goto out;
--	if (PageAnon(page) || page_trans_compound_anon(page)) {
-+	if (PageAnon(page)) {
- 		flush_anon_page(vma, page, addr);
- 		flush_dcache_page(page);
- 	} else {
-@@ -976,33 +962,6 @@ out:
- 	return err;
- }
- 
--static int page_trans_compound_anon_split(struct page *page)
+-static inline void compound_unlock(struct page *page)
 -{
--	int ret = 0;
--	struct page *transhuge_head = page_trans_compound_anon(page);
--	if (transhuge_head) {
--		/* Get the reference on the head to split it. */
--		if (get_page_unless_zero(transhuge_head)) {
--			/*
--			 * Recheck we got the reference while the head
--			 * was still anonymous.
--			 */
--			if (PageAnon(transhuge_head))
--				ret = split_huge_page(transhuge_head);
--			else
--				/*
--				 * Retry later if split_huge_page run
--				 * from under us.
--				 */
--				ret = 1;
--			put_page(transhuge_head);
--		} else
--			/* Retry later if split_huge_page run from under us. */
--			ret = 1;
--	}
--	return ret;
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	VM_BUG_ON_PAGE(PageSlab(page), page);
+-	bit_spin_unlock(PG_compound_lock, &page->flags);
+-#endif
+-}
+-
+-static inline unsigned long compound_lock_irqsave(struct page *page)
+-{
+-	unsigned long uninitialized_var(flags);
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	local_irq_save(flags);
+-	compound_lock(page);
+-#endif
+-	return flags;
+-}
+-
+-static inline void compound_unlock_irqrestore(struct page *page,
+-					      unsigned long flags)
+-{
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	compound_unlock(page);
+-	local_irq_restore(flags);
+-#endif
 -}
 -
  /*
-  * try_to_merge_one_page - take two pages and merge them into one
-  * @vma: the vma that holds the pte pointing to page
-@@ -1023,9 +982,6 @@ static int try_to_merge_one_page(struct
+  * The atomic page->_mapcount, starts from -1: so that transitions
+  * both from it and to it can be tracked, using atomic_inc_and_test
+diff -puN include/linux/page-flags.h~mm-thp-remove-compound_lock include/linux/page-flags.h
+--- a/include/linux/page-flags.h~mm-thp-remove-compound_lock
++++ a/include/linux/page-flags.h
+@@ -101,9 +101,6 @@ enum pageflags {
+ #ifdef CONFIG_MEMORY_FAILURE
+ 	PG_hwpoison,		/* hardware poisoned page. Don't touch */
+ #endif
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	PG_compound_lock,
+-#endif
+ #if defined(CONFIG_IDLE_PAGE_TRACKING) && defined(CONFIG_64BIT)
+ 	PG_young,
+ 	PG_idle,
+@@ -621,12 +618,6 @@ static inline void ClearPageSlabPfmemall
+ #define __PG_MLOCKED		0
+ #endif
  
- 	if (!(vma->vm_flags & VM_MERGEABLE))
- 		goto out;
--	if (PageTransCompound(page) && page_trans_compound_anon_split(page))
--		goto out;
--	BUG_ON(PageTransCompound(page));
- 	if (!PageAnon(page))
- 		goto out;
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-#define __PG_COMPOUND_LOCK		(1 << PG_compound_lock)
+-#else
+-#define __PG_COMPOUND_LOCK		0
+-#endif
+-
+ /*
+  * Flags checked when a page is freed.  Pages being freed should not have
+  * these flags set.  It they are, there is a problem.
+@@ -636,8 +627,7 @@ static inline void ClearPageSlabPfmemall
+ 	 1 << PG_private | 1 << PG_private_2 | \
+ 	 1 << PG_writeback | 1 << PG_reserved | \
+ 	 1 << PG_slab	 | 1 << PG_swapcache | 1 << PG_active | \
+-	 1 << PG_unevictable | __PG_MLOCKED | \
+-	 __PG_COMPOUND_LOCK)
++	 1 << PG_unevictable | __PG_MLOCKED)
  
-@@ -1038,6 +994,13 @@ static int try_to_merge_one_page(struct
- 	 */
- 	if (!trylock_page(page))
- 		goto out;
-+
-+	if (PageTransCompound(page)) {
-+		err = split_huge_page(page);
-+		if (err)
-+			goto out_unlock;
-+	}
-+
+ /*
+  * Flags checked when a page is prepped for return by the page allocator.
+diff -puN mm/debug.c~mm-thp-remove-compound_lock mm/debug.c
+--- a/mm/debug.c~mm-thp-remove-compound_lock
++++ a/mm/debug.c
+@@ -40,9 +40,6 @@ static const struct trace_print_flags pa
+ #ifdef CONFIG_MEMORY_FAILURE
+ 	{1UL << PG_hwpoison,		"hwpoison"	},
+ #endif
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-	{1UL << PG_compound_lock,	"compound_lock"	},
+-#endif
+ #if defined(CONFIG_IDLE_PAGE_TRACKING) && defined(CONFIG_64BIT)
+ 	{1UL << PG_young,		"young"		},
+ 	{1UL << PG_idle,		"idle"		},
+diff -puN mm/memcontrol.c~mm-thp-remove-compound_lock mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-thp-remove-compound_lock
++++ a/mm/memcontrol.c
+@@ -2438,9 +2438,7 @@ void __memcg_kmem_uncharge(struct page *
+ 
+ /*
+  * Because tail pages are not marked as "used", set it. We're under
+- * zone->lru_lock, 'splitting on pmd' and compound_lock.
+- * charge/uncharge will be never happen and move_account() is done under
+- * compound_lock(), so we don't have to take care of races.
++ * zone->lru_lock and migration entries setup in all page mappings.
+  */
+ void mem_cgroup_split_huge_fixup(struct page *head)
+ {
+@@ -4505,9 +4503,7 @@ static struct page *mc_handle_file_pte(s
+  * @from: mem_cgroup which the page is moved from.
+  * @to:	mem_cgroup which the page is moved to. @from != @to.
+  *
+- * The caller must confirm following.
+- * - page is not on LRU (isolate_page() is useful.)
+- * - compound_lock is held when nr_pages > 1
++ * The caller must make sure the page is not on LRU (isolate_page() is useful.)
+  *
+  * This function doesn't do "charge" to new cgroup and doesn't do "uncharge"
+  * from old cgroup.
+@@ -4850,8 +4846,7 @@ static int mem_cgroup_move_charge_pte_ra
+ 	struct page *page;
+ 
  	/*
- 	 * If this anonymous page is mapped only here, its pte may need
- 	 * to be write-protected.  If it's mapped elsewhere, all of its
-@@ -1068,6 +1031,7 @@ static int try_to_merge_one_page(struct
- 		}
- 	}
- 
-+out_unlock:
- 	unlock_page(page);
- out:
- 	return err;
-@@ -1620,8 +1584,7 @@ next_mm:
- 				cond_resched();
- 				continue;
- 			}
--			if (PageAnon(*page) ||
--			    page_trans_compound_anon(*page)) {
-+			if (PageAnon(*page)) {
- 				flush_anon_page(vma, *page, ksm_scan.address);
- 				flush_dcache_page(*page);
- 				rmap_item = get_next_rmap_item(slot,
+-	 * We don't take compound_lock() here but no race with splitting thp
+-	 * happens because:
++	 * No race with splitting thp happens because:
+ 	 *  - if pmd_trans_huge_lock() returns 1, the relevant thp is not
+ 	 *    under splitting, which means there's no concurrent thp split,
+ 	 *  - if another thread runs into split_huge_page() just after we
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
