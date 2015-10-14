@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-proc-adjust-pss-calculation.patch added to -mm tree
-Date: Wed, 14 Oct 2015 14:12:30 -0700
-Message-ID: <561ec53e.v2HouQcB58XSCCxY%akpm@linux-foundation.org>
+Subject: + rmap-add-argument-to-charge-compound-page.patch added to -mm
+ tree
+Date: Wed, 14 Oct 2015 14:12:33 -0700
+Message-ID: <561ec541.IcQLhMPYKuwq4SWk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49933 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49948 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753783AbbJNVMc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:12:32 -0400
+	with ESMTP id S1753783AbbJNVMf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:12:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, proc: adjust PSS calculation
+     Subject: rmap: add argument to charge compound page
 has been added to the -mm tree.  Its filename is
-     mm-proc-adjust-pss-calculation.patch
+     rmap-add-argument-to-charge-compound-page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-proc-adjust-pss-calculation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rmap-add-argument-to-charge-compound-page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-proc-adjust-pss-calculation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rmap-add-argument-to-charge-compound-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,38 +40,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm, proc: adjust PSS calculation
+Subject: rmap: add argument to charge compound page
 
-The goal of this patchset is to make refcounting on THP pages cheaper with
-simpler semantics and allow the same THP compound page to be mapped with
-PMD and PTEs.  This is required to get reasonable THP-pagecache
-implementation.
+We're going to allow mapping of individual 4k pages of THP compound page. 
+It means we cannot rely on PageTransHuge() check to decide if map/unmap
+small page or THP.
 
-With the new refcounting design it's much easier to protect against
-split_huge_page(): simple reference on a page will make you the deal.  It
-makes gup_fast() implementation simpler and doesn't require special-case
-in futex code to handle tail THP pages.
-
-It should improve THP utilization over the system since splitting THP in
-one process doesn't necessary lead to splitting the page in all other
-processes have the page mapped.
-
-The patchset drastically lower complexity of get_page()/put_page()
-codepaths.  I encourage people look on this code before-and-after to
-justify time budget on reviewing this patchset.
-
-
-This patch (of 37):
-
-With new refcounting all subpages of the compound page are not necessary
-have the same mapcount.  We need to take into account mapcount of every
-sub-page.
+The patch adds new argument to rmap functions to indicate whether we want
+to operate on whole compound page or only the small page.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Tested-by: Sasha Levin <sasha.levin@oracle.com>
 Tested-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Jerome Marchand <jmarchan@redhat.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Jerome Marchand <jmarchan@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
@@ -86,94 +69,451 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   47 ++++++++++++++++++++++++++++---------------
- 1 file changed, 31 insertions(+), 16 deletions(-)
+ include/linux/rmap.h    |   12 +++++++--
+ kernel/events/uprobes.c |    4 +--
+ mm/huge_memory.c        |   16 ++++++------
+ mm/hugetlb.c            |    4 +--
+ mm/ksm.c                |    4 +--
+ mm/memory.c             |   14 +++++------
+ mm/migrate.c            |    8 +++---
+ mm/rmap.c               |   48 ++++++++++++++++++++++++--------------
+ mm/swapfile.c           |    4 +--
+ mm/userfaultfd.c        |    2 -
+ 10 files changed, 68 insertions(+), 48 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-proc-adjust-pss-calculation fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-proc-adjust-pss-calculation
-+++ a/fs/proc/task_mmu.c
-@@ -454,9 +454,10 @@ struct mem_size_stats {
- };
+diff -puN include/linux/rmap.h~rmap-add-argument-to-charge-compound-page include/linux/rmap.h
+--- a/include/linux/rmap.h~rmap-add-argument-to-charge-compound-page
++++ a/include/linux/rmap.h
+@@ -161,16 +161,22 @@ static inline void anon_vma_merge(struct
  
- static void smaps_account(struct mem_size_stats *mss, struct page *page,
--		unsigned long size, bool young, bool dirty)
-+		bool compound, bool young, bool dirty)
- {
--	int mapcount;
-+	int i, nr = compound ? HPAGE_PMD_NR : 1;
-+	unsigned long size = nr * PAGE_SIZE;
+ struct anon_vma *page_get_anon_vma(struct page *page);
  
- 	if (PageAnon(page))
- 		mss->anonymous += size;
-@@ -465,23 +466,37 @@ static void smaps_account(struct mem_siz
- 	/* Accumulate the size in pages that have been accessed. */
- 	if (young || page_is_young(page) || PageReferenced(page))
- 		mss->referenced += size;
--	mapcount = page_mapcount(page);
--	if (mapcount >= 2) {
--		u64 pss_delta;
- 
--		if (dirty || PageDirty(page))
--			mss->shared_dirty += size;
--		else
--			mss->shared_clean += size;
--		pss_delta = (u64)size << PSS_SHIFT;
--		do_div(pss_delta, mapcount);
--		mss->pss += pss_delta;
--	} else {
-+	/*
-+	 * page_count(page) == 1 guarantees the page is mapped exactly once.
-+	 * If any subpage of the compound page mapped with PTE it would elevate
-+	 * page_count().
-+	 */
-+	if (page_count(page) == 1) {
- 		if (dirty || PageDirty(page))
- 			mss->private_dirty += size;
- 		else
- 			mss->private_clean += size;
- 		mss->pss += (u64)size << PSS_SHIFT;
-+		return;
-+	}
++/* bitflags for do_page_add_anon_rmap() */
++#define RMAP_EXCLUSIVE 0x01
++#define RMAP_COMPOUND 0x02
 +
-+	for (i = 0; i < nr; i++, page++) {
-+		int mapcount = page_mapcount(page);
-+
-+		if (mapcount >= 2) {
-+			if (dirty || PageDirty(page))
-+				mss->shared_dirty += PAGE_SIZE;
-+			else
-+				mss->shared_clean += PAGE_SIZE;
-+			mss->pss += (PAGE_SIZE << PSS_SHIFT) / mapcount;
-+		} else {
-+			if (dirty || PageDirty(page))
-+				mss->private_dirty += PAGE_SIZE;
-+			else
-+				mss->private_clean += PAGE_SIZE;
-+			mss->pss += PAGE_SIZE << PSS_SHIFT;
-+		}
+ /*
+  * rmap interfaces called when adding or removing pte of page
+  */
+ void page_move_anon_rmap(struct page *, struct vm_area_struct *, unsigned long);
+-void page_add_anon_rmap(struct page *, struct vm_area_struct *, unsigned long);
++void page_add_anon_rmap(struct page *, struct vm_area_struct *,
++		unsigned long, bool);
+ void do_page_add_anon_rmap(struct page *, struct vm_area_struct *,
+ 			   unsigned long, int);
+-void page_add_new_anon_rmap(struct page *, struct vm_area_struct *, unsigned long);
++void page_add_new_anon_rmap(struct page *, struct vm_area_struct *,
++		unsigned long, bool);
+ void page_add_file_rmap(struct page *);
+-void page_remove_rmap(struct page *);
++void page_remove_rmap(struct page *, bool);
+ 
+ void hugepage_add_anon_rmap(struct page *, struct vm_area_struct *,
+ 			    unsigned long);
+diff -puN kernel/events/uprobes.c~rmap-add-argument-to-charge-compound-page kernel/events/uprobes.c
+--- a/kernel/events/uprobes.c~rmap-add-argument-to-charge-compound-page
++++ a/kernel/events/uprobes.c
+@@ -175,7 +175,7 @@ static int __replace_page(struct vm_area
+ 		goto unlock;
+ 
+ 	get_page(kpage);
+-	page_add_new_anon_rmap(kpage, vma, addr);
++	page_add_new_anon_rmap(kpage, vma, addr, false);
+ 	mem_cgroup_commit_charge(kpage, memcg, false);
+ 	lru_cache_add_active_or_unevictable(kpage, vma);
+ 
+@@ -188,7 +188,7 @@ static int __replace_page(struct vm_area
+ 	ptep_clear_flush_notify(vma, addr, ptep);
+ 	set_pte_at_notify(mm, addr, ptep, mk_pte(kpage, vma->vm_page_prot));
+ 
+-	page_remove_rmap(page);
++	page_remove_rmap(page, false);
+ 	if (!page_mapped(page))
+ 		try_to_free_swap(page);
+ 	pte_unmap_unlock(ptep, ptl);
+diff -puN mm/huge_memory.c~rmap-add-argument-to-charge-compound-page mm/huge_memory.c
+--- a/mm/huge_memory.c~rmap-add-argument-to-charge-compound-page
++++ a/mm/huge_memory.c
+@@ -828,7 +828,7 @@ static int __do_huge_pmd_anonymous_page(
+ 
+ 		entry = mk_huge_pmd(page, vma->vm_page_prot);
+ 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+-		page_add_new_anon_rmap(page, vma, haddr);
++		page_add_new_anon_rmap(page, vma, haddr, true);
+ 		mem_cgroup_commit_charge(page, memcg, false);
+ 		lru_cache_add_active_or_unevictable(page, vma);
+ 		pgtable_trans_huge_deposit(mm, pmd, pgtable);
+@@ -1170,7 +1170,7 @@ static int do_huge_pmd_wp_page_fallback(
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+ 		memcg = (void *)page_private(pages[i]);
+ 		set_page_private(pages[i], 0);
+-		page_add_new_anon_rmap(pages[i], vma, haddr);
++		page_add_new_anon_rmap(pages[i], vma, haddr, false);
+ 		mem_cgroup_commit_charge(pages[i], memcg, false);
+ 		lru_cache_add_active_or_unevictable(pages[i], vma);
+ 		pte = pte_offset_map(&_pmd, haddr);
+@@ -1182,7 +1182,7 @@ static int do_huge_pmd_wp_page_fallback(
+ 
+ 	smp_wmb(); /* make pte visible before pmd */
+ 	pmd_populate(mm, pmd, pgtable);
+-	page_remove_rmap(page);
++	page_remove_rmap(page, true);
+ 	spin_unlock(ptl);
+ 
+ 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+@@ -1302,7 +1302,7 @@ alloc:
+ 		entry = mk_huge_pmd(new_page, vma->vm_page_prot);
+ 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
+ 		pmdp_huge_clear_flush_notify(vma, haddr, pmd);
+-		page_add_new_anon_rmap(new_page, vma, haddr);
++		page_add_new_anon_rmap(new_page, vma, haddr, true);
+ 		mem_cgroup_commit_charge(new_page, memcg, false);
+ 		lru_cache_add_active_or_unevictable(new_page, vma);
+ 		set_pmd_at(mm, haddr, pmd, entry);
+@@ -1312,7 +1312,7 @@ alloc:
+ 			put_huge_zero_page();
+ 		} else {
+ 			VM_BUG_ON_PAGE(!PageHead(page), page);
+-			page_remove_rmap(page);
++			page_remove_rmap(page, true);
+ 			put_page(page);
+ 		}
+ 		ret |= VM_FAULT_WRITE;
+@@ -1539,7 +1539,7 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 		put_huge_zero_page();
+ 	} else {
+ 		struct page *page = pmd_page(orig_pmd);
+-		page_remove_rmap(page);
++		page_remove_rmap(page, true);
+ 		VM_BUG_ON_PAGE(page_mapcount(page) < 0, page);
+ 		add_mm_counter(tlb->mm, MM_ANONPAGES, -HPAGE_PMD_NR);
+ 		VM_BUG_ON_PAGE(!PageHead(page), page);
+@@ -2400,7 +2400,7 @@ static void __collapse_huge_page_copy(pt
+ 			 * superfluous.
+ 			 */
+ 			pte_clear(vma->vm_mm, address, _pte);
+-			page_remove_rmap(src_page);
++			page_remove_rmap(src_page, false);
+ 			spin_unlock(ptl);
+ 			free_page_and_swap_cache(src_page);
+ 		}
+@@ -2754,7 +2754,7 @@ static void collapse_huge_page(struct mm
+ 
+ 	spin_lock(pmd_ptl);
+ 	BUG_ON(!pmd_none(*pmd));
+-	page_add_new_anon_rmap(new_page, vma, address);
++	page_add_new_anon_rmap(new_page, vma, address, true);
+ 	mem_cgroup_commit_charge(new_page, memcg, false);
+ 	lru_cache_add_active_or_unevictable(new_page, vma);
+ 	pgtable_trans_huge_deposit(mm, pmd, pgtable);
+diff -puN mm/hugetlb.c~rmap-add-argument-to-charge-compound-page mm/hugetlb.c
+--- a/mm/hugetlb.c~rmap-add-argument-to-charge-compound-page
++++ a/mm/hugetlb.c
+@@ -3110,7 +3110,7 @@ again:
+ 			set_page_dirty(page);
+ 
+ 		hugetlb_count_sub(pages_per_huge_page(h), mm);
+-		page_remove_rmap(page);
++		page_remove_rmap(page, true);
+ 		force_flush = !__tlb_remove_page(tlb, page);
+ 		if (force_flush) {
+ 			address += sz;
+@@ -3339,7 +3339,7 @@ retry_avoidcopy:
+ 		mmu_notifier_invalidate_range(mm, mmun_start, mmun_end);
+ 		set_huge_pte_at(mm, address, ptep,
+ 				make_huge_pte(vma, new_page, 1));
+-		page_remove_rmap(old_page);
++		page_remove_rmap(old_page, true);
+ 		hugepage_add_new_anon_rmap(new_page, vma, address);
+ 		/* Make the old page be freed below */
+ 		new_page = old_page;
+diff -puN mm/ksm.c~rmap-add-argument-to-charge-compound-page mm/ksm.c
+--- a/mm/ksm.c~rmap-add-argument-to-charge-compound-page
++++ a/mm/ksm.c
+@@ -957,13 +957,13 @@ static int replace_page(struct vm_area_s
  	}
+ 
+ 	get_page(kpage);
+-	page_add_anon_rmap(kpage, vma, addr);
++	page_add_anon_rmap(kpage, vma, addr, false);
+ 
+ 	flush_cache_page(vma, addr, pte_pfn(*ptep));
+ 	ptep_clear_flush_notify(vma, addr, ptep);
+ 	set_pte_at_notify(mm, addr, ptep, mk_pte(kpage, vma->vm_page_prot));
+ 
+-	page_remove_rmap(page);
++	page_remove_rmap(page, false);
+ 	if (!page_mapped(page))
+ 		try_to_free_swap(page);
+ 	put_page(page);
+diff -puN mm/memory.c~rmap-add-argument-to-charge-compound-page mm/memory.c
+--- a/mm/memory.c~rmap-add-argument-to-charge-compound-page
++++ a/mm/memory.c
+@@ -1125,7 +1125,7 @@ again:
+ 					mark_page_accessed(page);
+ 				rss[MM_FILEPAGES]--;
+ 			}
+-			page_remove_rmap(page);
++			page_remove_rmap(page, false);
+ 			if (unlikely(page_mapcount(page) < 0))
+ 				print_bad_pte(vma, addr, ptent, page);
+ 			if (unlikely(!__tlb_remove_page(tlb, page))) {
+@@ -2113,7 +2113,7 @@ static int wp_page_copy(struct mm_struct
+ 		 * thread doing COW.
+ 		 */
+ 		ptep_clear_flush_notify(vma, address, page_table);
+-		page_add_new_anon_rmap(new_page, vma, address);
++		page_add_new_anon_rmap(new_page, vma, address, false);
+ 		mem_cgroup_commit_charge(new_page, memcg, false);
+ 		lru_cache_add_active_or_unevictable(new_page, vma);
+ 		/*
+@@ -2146,7 +2146,7 @@ static int wp_page_copy(struct mm_struct
+ 			 * mapcount is visible. So transitively, TLBs to
+ 			 * old page will be flushed before it can be reused.
+ 			 */
+-			page_remove_rmap(old_page);
++			page_remove_rmap(old_page, false);
+ 		}
+ 
+ 		/* Free the old page.. */
+@@ -2562,7 +2562,7 @@ int do_swap_page(struct mm_struct *mm, s
+ 		pte = maybe_mkwrite(pte_mkdirty(pte), vma);
+ 		flags &= ~FAULT_FLAG_WRITE;
+ 		ret |= VM_FAULT_WRITE;
+-		exclusive = 1;
++		exclusive = RMAP_EXCLUSIVE;
+ 	}
+ 	flush_icache_page(vma, page);
+ 	if (pte_swp_soft_dirty(orig_pte))
+@@ -2572,7 +2572,7 @@ int do_swap_page(struct mm_struct *mm, s
+ 		do_page_add_anon_rmap(page, vma, address, exclusive);
+ 		mem_cgroup_commit_charge(page, memcg, true);
+ 	} else { /* ksm created a completely new copy */
+-		page_add_new_anon_rmap(page, vma, address);
++		page_add_new_anon_rmap(page, vma, address, false);
+ 		mem_cgroup_commit_charge(page, memcg, false);
+ 		lru_cache_add_active_or_unevictable(page, vma);
+ 	}
+@@ -2730,7 +2730,7 @@ static int do_anonymous_page(struct mm_s
+ 	}
+ 
+ 	inc_mm_counter_fast(mm, MM_ANONPAGES);
+-	page_add_new_anon_rmap(page, vma, address);
++	page_add_new_anon_rmap(page, vma, address, false);
+ 	mem_cgroup_commit_charge(page, memcg, false);
+ 	lru_cache_add_active_or_unevictable(page, vma);
+ setpte:
+@@ -2818,7 +2818,7 @@ void do_set_pte(struct vm_area_struct *v
+ 		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+ 	if (anon) {
+ 		inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
+-		page_add_new_anon_rmap(page, vma, address);
++		page_add_new_anon_rmap(page, vma, address, false);
+ 	} else {
+ 		inc_mm_counter_fast(vma->vm_mm, MM_FILEPAGES);
+ 		page_add_file_rmap(page);
+diff -puN mm/migrate.c~rmap-add-argument-to-charge-compound-page mm/migrate.c
+--- a/mm/migrate.c~rmap-add-argument-to-charge-compound-page
++++ a/mm/migrate.c
+@@ -167,7 +167,7 @@ static int remove_migration_pte(struct p
+ 		else
+ 			page_dup_rmap(new);
+ 	} else if (PageAnon(new))
+-		page_add_anon_rmap(new, vma, addr);
++		page_add_anon_rmap(new, vma, addr, false);
+ 	else
+ 		page_add_file_rmap(new);
+ 
+@@ -1814,7 +1814,7 @@ fail_putback:
+ 	 * guarantee the copy is visible before the pagetable update.
+ 	 */
+ 	flush_cache_range(vma, mmun_start, mmun_end);
+-	page_add_anon_rmap(new_page, vma, mmun_start);
++	page_add_anon_rmap(new_page, vma, mmun_start, true);
+ 	pmdp_huge_clear_flush_notify(vma, mmun_start, pmd);
+ 	set_pmd_at(mm, mmun_start, pmd, entry);
+ 	flush_tlb_range(vma, mmun_start, mmun_end);
+@@ -1825,13 +1825,13 @@ fail_putback:
+ 		flush_tlb_range(vma, mmun_start, mmun_end);
+ 		mmu_notifier_invalidate_range(mm, mmun_start, mmun_end);
+ 		update_mmu_cache_pmd(vma, address, &entry);
+-		page_remove_rmap(new_page);
++		page_remove_rmap(new_page, true);
+ 		goto fail_putback;
+ 	}
+ 
+ 	mem_cgroup_migrate(page, new_page, false);
+ 
+-	page_remove_rmap(page);
++	page_remove_rmap(page, true);
+ 
+ 	spin_unlock(ptl);
+ 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+diff -puN mm/rmap.c~rmap-add-argument-to-charge-compound-page mm/rmap.c
+--- a/mm/rmap.c~rmap-add-argument-to-charge-compound-page
++++ a/mm/rmap.c
+@@ -1131,6 +1131,7 @@ static void __page_check_anon_rmap(struc
+  * @page:	the page to add the mapping to
+  * @vma:	the vm area in which the mapping is added
+  * @address:	the user virtual address mapped
++ * @compound:	charge the page as compound or small page
+  *
+  * The caller needs to hold the pte lock, and the page must be locked in
+  * the anon_vma case: to serialize mapping,index checking after setting,
+@@ -1138,9 +1139,9 @@ static void __page_check_anon_rmap(struc
+  * (but PageKsm is never downgraded to PageAnon).
+  */
+ void page_add_anon_rmap(struct page *page,
+-	struct vm_area_struct *vma, unsigned long address)
++	struct vm_area_struct *vma, unsigned long address, bool compound)
+ {
+-	do_page_add_anon_rmap(page, vma, address, 0);
++	do_page_add_anon_rmap(page, vma, address, compound ? RMAP_COMPOUND : 0);
  }
  
-@@ -516,7 +531,8 @@ static void smaps_pte_entry(pte_t *pte,
- 
- 	if (!page)
+ /*
+@@ -1149,21 +1150,24 @@ void page_add_anon_rmap(struct page *pag
+  * Everybody else should continue to use page_add_anon_rmap above.
+  */
+ void do_page_add_anon_rmap(struct page *page,
+-	struct vm_area_struct *vma, unsigned long address, int exclusive)
++	struct vm_area_struct *vma, unsigned long address, int flags)
+ {
+ 	int first = atomic_inc_and_test(&page->_mapcount);
+ 	if (first) {
++		bool compound = flags & RMAP_COMPOUND;
++		int nr = compound ? hpage_nr_pages(page) : 1;
+ 		/*
+ 		 * We use the irq-unsafe __{inc|mod}_zone_page_stat because
+ 		 * these counters are not modified in interrupt context, and
+ 		 * pte lock(a spinlock) is held, which implies preemption
+ 		 * disabled.
+ 		 */
+-		if (PageTransHuge(page))
++		if (compound) {
++			VM_BUG_ON_PAGE(!PageTransHuge(page), page);
+ 			__inc_zone_page_state(page,
+ 					      NR_ANON_TRANSPARENT_HUGEPAGES);
+-		__mod_zone_page_state(page_zone(page), NR_ANON_PAGES,
+-				hpage_nr_pages(page));
++		}
++		__mod_zone_page_state(page_zone(page), NR_ANON_PAGES, nr);
+ 	}
+ 	if (unlikely(PageKsm(page)))
  		return;
--	smaps_account(mss, page, PAGE_SIZE, pte_young(*pte), pte_dirty(*pte));
+@@ -1171,7 +1175,8 @@ void do_page_add_anon_rmap(struct page *
+ 	VM_BUG_ON_PAGE(!PageLocked(page), page);
+ 	/* address might be in next vma when migration races vma_adjust */
+ 	if (first)
+-		__page_set_anon_rmap(page, vma, address, exclusive);
++		__page_set_anon_rmap(page, vma, address,
++				flags & RMAP_EXCLUSIVE);
+ 	else
+ 		__page_check_anon_rmap(page, vma, address);
+ }
+@@ -1181,21 +1186,25 @@ void do_page_add_anon_rmap(struct page *
+  * @page:	the page to add the mapping to
+  * @vma:	the vm area in which the mapping is added
+  * @address:	the user virtual address mapped
++ * @compound:	charge the page as compound or small page
+  *
+  * Same as page_add_anon_rmap but must only be called on *new* pages.
+  * This means the inc-and-test can be bypassed.
+  * Page does not have to be locked.
+  */
+ void page_add_new_anon_rmap(struct page *page,
+-	struct vm_area_struct *vma, unsigned long address)
++	struct vm_area_struct *vma, unsigned long address, bool compound)
+ {
++	int nr = compound ? hpage_nr_pages(page) : 1;
 +
-+	smaps_account(mss, page, false, pte_young(*pte), pte_dirty(*pte));
+ 	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
+ 	SetPageSwapBacked(page);
+ 	atomic_set(&page->_mapcount, 0); /* increment count (starts at -1) */
+-	if (PageTransHuge(page))
++	if (compound) {
++		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
+ 		__inc_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
+-	__mod_zone_page_state(page_zone(page), NR_ANON_PAGES,
+-			hpage_nr_pages(page));
++	}
++	__mod_zone_page_state(page_zone(page), NR_ANON_PAGES, nr);
+ 	__page_set_anon_rmap(page, vma, address, 1);
  }
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-@@ -532,8 +548,7 @@ static void smaps_pmd_entry(pmd_t *pmd,
- 	if (IS_ERR_OR_NULL(page))
+@@ -1247,13 +1256,17 @@ out:
+ 
+ /**
+  * page_remove_rmap - take down pte mapping from a page
+- * @page: page to remove mapping from
++ * @page:	page to remove mapping from
++ * @compound:	uncharge the page as compound or small page
+  *
+  * The caller needs to hold the pte lock.
+  */
+-void page_remove_rmap(struct page *page)
++void page_remove_rmap(struct page *page, bool compound)
+ {
++	int nr = compound ? hpage_nr_pages(page) : 1;
++
+ 	if (!PageAnon(page)) {
++		VM_BUG_ON_PAGE(compound && !PageHuge(page), page);
+ 		page_remove_file_rmap(page);
  		return;
- 	mss->anonymous_thp += HPAGE_PMD_SIZE;
--	smaps_account(mss, page, HPAGE_PMD_SIZE,
--			pmd_young(*pmd), pmd_dirty(*pmd));
-+	smaps_account(mss, page, true, pmd_young(*pmd), pmd_dirty(*pmd));
- }
- #else
- static void smaps_pmd_entry(pmd_t *pmd, unsigned long addr,
+ 	}
+@@ -1271,11 +1284,12 @@ void page_remove_rmap(struct page *page)
+ 	 * these counters are not modified in interrupt context, and
+ 	 * pte lock(a spinlock) is held, which implies preemption disabled.
+ 	 */
+-	if (PageTransHuge(page))
++	if (compound) {
++		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
+ 		__dec_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
++	}
+ 
+-	__mod_zone_page_state(page_zone(page), NR_ANON_PAGES,
+-			      -hpage_nr_pages(page));
++	__mod_zone_page_state(page_zone(page), NR_ANON_PAGES, -nr);
+ 
+ 	if (unlikely(PageMlocked(page)))
+ 		clear_page_mlock(page);
+@@ -1416,7 +1430,7 @@ static int try_to_unmap_one(struct page
+ 	} else
+ 		dec_mm_counter(mm, MM_FILEPAGES);
+ 
+-	page_remove_rmap(page);
++	page_remove_rmap(page, false);
+ 	page_cache_release(page);
+ 
+ out_unmap:
+diff -puN mm/swapfile.c~rmap-add-argument-to-charge-compound-page mm/swapfile.c
+--- a/mm/swapfile.c~rmap-add-argument-to-charge-compound-page
++++ a/mm/swapfile.c
+@@ -1163,10 +1163,10 @@ static int unuse_pte(struct vm_area_stru
+ 	set_pte_at(vma->vm_mm, addr, pte,
+ 		   pte_mkold(mk_pte(page, vma->vm_page_prot)));
+ 	if (page == swapcache) {
+-		page_add_anon_rmap(page, vma, addr);
++		page_add_anon_rmap(page, vma, addr, false);
+ 		mem_cgroup_commit_charge(page, memcg, true);
+ 	} else { /* ksm created a completely new copy */
+-		page_add_new_anon_rmap(page, vma, addr);
++		page_add_new_anon_rmap(page, vma, addr, false);
+ 		mem_cgroup_commit_charge(page, memcg, false);
+ 		lru_cache_add_active_or_unevictable(page, vma);
+ 	}
+diff -puN mm/userfaultfd.c~rmap-add-argument-to-charge-compound-page mm/userfaultfd.c
+--- a/mm/userfaultfd.c~rmap-add-argument-to-charge-compound-page
++++ a/mm/userfaultfd.c
+@@ -76,7 +76,7 @@ static int mcopy_atomic_pte(struct mm_st
+ 		goto out_release_uncharge_unlock;
+ 
+ 	inc_mm_counter(dst_mm, MM_ANONPAGES);
+-	page_add_new_anon_rmap(page, dst_vma, dst_addr);
++	page_add_new_anon_rmap(page, dst_vma, dst_addr, false);
+ 	mem_cgroup_commit_charge(page, memcg, false);
+ 	lru_cache_add_active_or_unevictable(page, dst_vma);
+ 
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
