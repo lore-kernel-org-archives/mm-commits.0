@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch added to
+ mips-thp-remove-infrastructure-for-handling-splitting-pmds.patch added to
  -mm tree
-Date: Wed, 14 Oct 2015 14:13:14 -0700
-Message-ID: <561ec56a.OGg6MVGMxB6vw+RY%akpm@linux-foundation.org>
+Date: Wed, 14 Oct 2015 14:13:19 -0700
+Message-ID: <561ec56f.A4bPGpoWxmLzynBm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50140 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50169 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753869AbbJNVNP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:13:15 -0400
+	with ESMTP id S1753857AbbJNVNU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:13:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64, thp: remove infrastructure for handling splitting PMDs
+     Subject: mips, thp: remove infrastructure for handling splitting PMDs
 has been added to the -mm tree.  Its filename is
-     arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+     mips-thp-remove-infrastructure-for-handling-splitting-pmds.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mips-thp-remove-infrastructure-for-handling-splitting-pmds.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mips-thp-remove-infrastructure-for-handling-splitting-pmds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,7 +41,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: arm64, thp: remove infrastructure for handling splitting PMDs
+Subject: mips, thp: remove infrastructure for handling splitting PMDs
 
 With new refcounting we don't need to mark PMDs splitting. Let's drop
 code to handle this.
@@ -70,56 +70,133 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/pgtable.h |    8 --------
- arch/arm64/mm/flush.c            |   16 ----------------
- 2 files changed, 24 deletions(-)
+ arch/mips/include/asm/pgtable-bits.h |   10 ++++------
+ arch/mips/include/asm/pgtable.h      |   18 ------------------
+ arch/mips/mm/gup.c                   |   13 +------------
+ arch/mips/mm/pgtable-64.c            |   14 --------------
+ arch/mips/mm/tlbex.c                 |    1 -
+ 5 files changed, 5 insertions(+), 51 deletions(-)
 
-diff -puN arch/arm64/include/asm/pgtable.h~arm64-thp-remove-infrastructure-for-handling-splitting-pmds arch/arm64/include/asm/pgtable.h
---- a/arch/arm64/include/asm/pgtable.h~arm64-thp-remove-infrastructure-for-handling-splitting-pmds
-+++ a/arch/arm64/include/asm/pgtable.h
-@@ -310,19 +310,11 @@ static inline pgprot_t mk_sect_prot(pgpr
+diff -puN arch/mips/include/asm/pgtable-bits.h~mips-thp-remove-infrastructure-for-handling-splitting-pmds arch/mips/include/asm/pgtable-bits.h
+--- a/arch/mips/include/asm/pgtable-bits.h~mips-thp-remove-infrastructure-for-handling-splitting-pmds
++++ a/arch/mips/include/asm/pgtable-bits.h
+@@ -131,14 +131,12 @@
+ /* Huge TLB page */
+ #define _PAGE_HUGE_SHIFT	(_PAGE_MODIFIED_SHIFT + 1)
+ #define _PAGE_HUGE		(1 << _PAGE_HUGE_SHIFT)
+-#define _PAGE_SPLITTING_SHIFT	(_PAGE_HUGE_SHIFT + 1)
+-#define _PAGE_SPLITTING		(1 << _PAGE_SPLITTING_SHIFT)
+ #endif	/* CONFIG_64BIT && CONFIG_MIPS_HUGE_TLB_SUPPORT */
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- #define pmd_trans_huge(pmd)	(pmd_val(pmd) && !(pmd_val(pmd) & PMD_TABLE_BIT))
--#define pmd_trans_splitting(pmd)	pte_special(pmd_pte(pmd))
--#ifdef CONFIG_HAVE_RCU_TABLE_FREE
--#define __HAVE_ARCH_PMDP_SPLITTING_FLUSH
--struct vm_area_struct;
--void pmdp_splitting_flush(struct vm_area_struct *vma, unsigned long address,
--			  pmd_t *pmdp);
--#endif /* CONFIG_HAVE_RCU_TABLE_FREE */
- #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+ #if defined(CONFIG_CPU_MIPSR2) || defined(CONFIG_CPU_MIPSR6)
+ /* XI - page cannot be executed */
+-#ifdef _PAGE_SPLITTING_SHIFT
+-#define _PAGE_NO_EXEC_SHIFT	(_PAGE_SPLITTING_SHIFT + 1)
++#ifdef _PAGE_HUGE_SHIFT
++#define _PAGE_NO_EXEC_SHIFT	(_PAGE_HUGE_SHIFT + 1)
+ #else
+ #define _PAGE_NO_EXEC_SHIFT	(_PAGE_MODIFIED_SHIFT + 1)
+ #endif
+@@ -153,8 +151,8 @@
  
- #define pmd_dirty(pmd)		pte_dirty(pmd_pte(pmd))
- #define pmd_young(pmd)		pte_young(pmd_pte(pmd))
- #define pmd_wrprotect(pmd)	pte_pmd(pte_wrprotect(pmd_pte(pmd)))
--#define pmd_mksplitting(pmd)	pte_pmd(pte_mkspecial(pmd_pte(pmd)))
- #define pmd_mkold(pmd)		pte_pmd(pte_mkold(pmd_pte(pmd)))
- #define pmd_mkwrite(pmd)	pte_pmd(pte_mkwrite(pmd_pte(pmd)))
- #define pmd_mkdirty(pmd)	pte_pmd(pte_mkdirty(pmd_pte(pmd)))
-diff -puN arch/arm64/mm/flush.c~arm64-thp-remove-infrastructure-for-handling-splitting-pmds arch/arm64/mm/flush.c
---- a/arch/arm64/mm/flush.c~arm64-thp-remove-infrastructure-for-handling-splitting-pmds
-+++ a/arch/arm64/mm/flush.c
-@@ -99,19 +99,3 @@ EXPORT_SYMBOL(flush_dcache_page);
-  * Additional functions defined in assembly.
-  */
- EXPORT_SYMBOL(flush_icache_range);
--
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--#ifdef CONFIG_HAVE_RCU_TABLE_FREE
--void pmdp_splitting_flush(struct vm_area_struct *vma, unsigned long address,
--			  pmd_t *pmdp)
+ #if defined(_PAGE_NO_READ_SHIFT)
+ #define _PAGE_GLOBAL_SHIFT	(_PAGE_NO_READ_SHIFT + 1)
+-#elif defined(_PAGE_SPLITTING_SHIFT)
+-#define _PAGE_GLOBAL_SHIFT	(_PAGE_SPLITTING_SHIFT + 1)
++#elif defined(_PAGE_HUGE_SHIFT)
++#define _PAGE_GLOBAL_SHIFT	(_PAGE_HUGE_SHIFT + 1)
+ #else
+ #define _PAGE_GLOBAL_SHIFT	(_PAGE_MODIFIED_SHIFT + 1)
+ #endif
+diff -puN arch/mips/include/asm/pgtable.h~mips-thp-remove-infrastructure-for-handling-splitting-pmds arch/mips/include/asm/pgtable.h
+--- a/arch/mips/include/asm/pgtable.h~mips-thp-remove-infrastructure-for-handling-splitting-pmds
++++ a/arch/mips/include/asm/pgtable.h
+@@ -482,27 +482,9 @@ static inline pmd_t pmd_mkhuge(pmd_t pmd
+ 	return pmd;
+ }
+ 
+-static inline int pmd_trans_splitting(pmd_t pmd)
 -{
--	pmd_t pmd = pmd_mksplitting(*pmdp);
--
--	VM_BUG_ON(address & ~PMD_MASK);
--	set_pmd_at(vma->vm_mm, address, pmdp, pmd);
--
--	/* dummy IPI to serialise against fast_gup */
--	kick_all_cpus_sync();
+-	return !!(pmd_val(pmd) & _PAGE_SPLITTING);
 -}
--#endif /* CONFIG_HAVE_RCU_TABLE_FREE */
--#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+-
+-static inline pmd_t pmd_mksplitting(pmd_t pmd)
+-{
+-	pmd_val(pmd) |= _PAGE_SPLITTING;
+-
+-	return pmd;
+-}
+-
+ extern void set_pmd_at(struct mm_struct *mm, unsigned long addr,
+ 		       pmd_t *pmdp, pmd_t pmd);
+ 
+-#define __HAVE_ARCH_PMDP_SPLITTING_FLUSH
+-/* Extern to avoid header file madness */
+-extern void pmdp_splitting_flush(struct vm_area_struct *vma,
+-					unsigned long address,
+-					pmd_t *pmdp);
+-
+ #define __HAVE_ARCH_PMD_WRITE
+ static inline int pmd_write(pmd_t pmd)
+ {
+diff -puN arch/mips/mm/gup.c~mips-thp-remove-infrastructure-for-handling-splitting-pmds arch/mips/mm/gup.c
+--- a/arch/mips/mm/gup.c~mips-thp-remove-infrastructure-for-handling-splitting-pmds
++++ a/arch/mips/mm/gup.c
+@@ -107,18 +107,7 @@ static int gup_pmd_range(pud_t pud, unsi
+ 		pmd_t pmd = *pmdp;
+ 
+ 		next = pmd_addr_end(addr, end);
+-		/*
+-		 * The pmd_trans_splitting() check below explains why
+-		 * pmdp_splitting_flush has to flush the tlb, to stop
+-		 * this gup-fast code from running while we set the
+-		 * splitting bit in the pmd. Returning zero will take
+-		 * the slow path that will call wait_split_huge_page()
+-		 * if the pmd is still in splitting state. gup-fast
+-		 * can't because it has irq disabled and
+-		 * wait_split_huge_page() would never return as the
+-		 * tlb flush IPI wouldn't run.
+-		 */
+-		if (pmd_none(pmd) || pmd_trans_splitting(pmd))
++		if (pmd_none(pmd))
+ 			return 0;
+ 		if (unlikely(pmd_huge(pmd))) {
+ 			if (!gup_huge_pmd(pmd, addr, next, write, pages,nr))
+diff -puN arch/mips/mm/pgtable-64.c~mips-thp-remove-infrastructure-for-handling-splitting-pmds arch/mips/mm/pgtable-64.c
+--- a/arch/mips/mm/pgtable-64.c~mips-thp-remove-infrastructure-for-handling-splitting-pmds
++++ a/arch/mips/mm/pgtable-64.c
+@@ -62,20 +62,6 @@ void pmd_init(unsigned long addr, unsign
+ }
+ #endif
+ 
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-
+-void pmdp_splitting_flush(struct vm_area_struct *vma,
+-			 unsigned long address,
+-			 pmd_t *pmdp)
+-{
+-	if (!pmd_trans_splitting(*pmdp)) {
+-		pmd_t pmd = pmd_mksplitting(*pmdp);
+-		set_pmd_at(vma->vm_mm, address, pmdp, pmd);
+-	}
+-}
+-
+-#endif
+-
+ pmd_t mk_pmd(struct page *page, pgprot_t prot)
+ {
+ 	pmd_t pmd;
+diff -puN arch/mips/mm/tlbex.c~mips-thp-remove-infrastructure-for-handling-splitting-pmds arch/mips/mm/tlbex.c
+--- a/arch/mips/mm/tlbex.c~mips-thp-remove-infrastructure-for-handling-splitting-pmds
++++ a/arch/mips/mm/tlbex.c
+@@ -240,7 +240,6 @@ static void output_pgtable_bits_defines(
+ 	pr_define("_PAGE_MODIFIED_SHIFT %d\n", _PAGE_MODIFIED_SHIFT);
+ #ifdef CONFIG_MIPS_HUGE_TLB_SUPPORT
+ 	pr_define("_PAGE_HUGE_SHIFT %d\n", _PAGE_HUGE_SHIFT);
+-	pr_define("_PAGE_SPLITTING_SHIFT %d\n", _PAGE_SPLITTING_SHIFT);
+ #endif
+ #ifdef CONFIG_CPU_MIPSR2
+ 	if (cpu_has_rixi) {
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
