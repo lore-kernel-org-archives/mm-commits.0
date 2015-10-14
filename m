@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-adjust-foll_split-for-new-refcounting.patch added to -mm
- tree
-Date: Wed, 14 Oct 2015 14:12:42 -0700
-Message-ID: <561ec54a.zuH0wOA2jNcSm1pL%akpm@linux-foundation.org>
+Subject: +
+ mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
+ added to -mm tree
+Date: Wed, 14 Oct 2015 14:12:45 -0700
+Message-ID: <561ec54d.0ogc+FS4m5ZTSuiJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49986 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49998 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753783AbbJNVMn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:12:43 -0400
+	with ESMTP id S1753783AbbJNVMq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:12:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: adjust FOLL_SPLIT for new refcounting
+     Subject: mm: handle PTE-mapped tail pages in gerneric fast gup implementaiton
 has been added to the -mm tree.  Its filename is
-     mm-adjust-foll_split-for-new-refcounting.patch
+     mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-adjust-foll_split-for-new-refcounting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-adjust-foll_split-for-new-refcounting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,19 +41,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: adjust FOLL_SPLIT for new refcounting
+Subject: mm: handle PTE-mapped tail pages in gerneric fast gup implementaiton
 
-We need to prepare kernel to allow transhuge pages to be mapped with
-ptes too. We need to handle FOLL_SPLIT in follow_page_pte().
+With new refcounting we are going to see THP tail pages mapped with PTE. 
+Generic fast GUP rely on page_cache_get_speculative() to obtain reference
+on page.  page_cache_get_speculative() always fails on tail pages, because
+->_count on tail pages is always zero.
 
-Also we use split_huge_page() directly instead of split_huge_page_pmd().
-split_huge_page_pmd() will gone.
+Let's handle tail pages in gup_pte_range().
+
+New split_huge_page() will rely on migration entries to freeze page's
+counts.  Recheck PTE value after page_cache_get_speculative() on head page
+should be enough to serialize against split.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Tested-by: Sasha Levin <sasha.levin@oracle.com>
 Tested-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Jerome Marchand <jmarchan@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
@@ -68,96 +74,41 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |   67 ++++++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 49 insertions(+), 18 deletions(-)
+ mm/gup.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/gup.c~mm-adjust-foll_split-for-new-refcounting mm/gup.c
---- a/mm/gup.c~mm-adjust-foll_split-for-new-refcounting
+diff -puN mm/gup.c~mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton mm/gup.c
+--- a/mm/gup.c~mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton
 +++ a/mm/gup.c
-@@ -116,6 +116,19 @@ retry:
+@@ -1097,7 +1097,7 @@ static int gup_pte_range(pmd_t pmd, unsi
+ 		 * for an example see gup_get_pte in arch/x86/mm/gup.c
+ 		 */
+ 		pte_t pte = READ_ONCE(*ptep);
+-		struct page *page;
++		struct page *head, *page;
+ 
+ 		/*
+ 		 * Similar to the PMD case below, NUMA hinting must take slow
+@@ -1109,15 +1109,17 @@ static int gup_pte_range(pmd_t pmd, unsi
+ 
+ 		VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
+ 		page = pte_page(pte);
++		head = compound_head(page);
+ 
+-		if (!page_cache_get_speculative(page))
++		if (!page_cache_get_speculative(head))
+ 			goto pte_unmap;
+ 
+ 		if (unlikely(pte_val(pte) != pte_val(*ptep))) {
+-			put_page(page);
++			put_page(head);
+ 			goto pte_unmap;
  		}
- 	}
  
-+	if (flags & FOLL_SPLIT && PageTransCompound(page)) {
-+		int ret;
-+		get_page(page);
-+		pte_unmap_unlock(ptep, ptl);
-+		lock_page(page);
-+		ret = split_huge_page(page);
-+		unlock_page(page);
-+		put_page(page);
-+		if (ret)
-+			return ERR_PTR(ret);
-+		goto retry;
-+	}
-+
- 	if (flags & FOLL_GET)
- 		get_page_foll(page);
- 	if (flags & FOLL_TOUCH) {
-@@ -220,27 +233,45 @@ struct page *follow_page_mask(struct vm_
- 	}
- 	if ((flags & FOLL_NUMA) && pmd_protnone(*pmd))
- 		return no_page_table(vma, flags);
--	if (pmd_trans_huge(*pmd)) {
--		if (flags & FOLL_SPLIT) {
-+	if (likely(!pmd_trans_huge(*pmd)))
-+		return follow_page_pte(vma, address, pmd, flags);
-+
-+	ptl = pmd_lock(mm, pmd);
-+	if (unlikely(!pmd_trans_huge(*pmd))) {
-+		spin_unlock(ptl);
-+		return follow_page_pte(vma, address, pmd, flags);
-+	}
-+
-+	if (unlikely(pmd_trans_splitting(*pmd))) {
-+		spin_unlock(ptl);
-+		wait_split_huge_page(vma->anon_vma, pmd);
-+		return follow_page_pte(vma, address, pmd, flags);
-+	}
-+
-+	if (flags & FOLL_SPLIT) {
-+		int ret;
-+		page = pmd_page(*pmd);
-+		if (is_huge_zero_page(page)) {
-+			spin_unlock(ptl);
-+			ret = 0;
- 			split_huge_page_pmd(vma, address, pmd);
--			return follow_page_pte(vma, address, pmd, flags);
--		}
--		ptl = pmd_lock(mm, pmd);
--		if (likely(pmd_trans_huge(*pmd))) {
--			if (unlikely(pmd_trans_splitting(*pmd))) {
--				spin_unlock(ptl);
--				wait_split_huge_page(vma->anon_vma, pmd);
--			} else {
--				page = follow_trans_huge_pmd(vma, address,
--							     pmd, flags);
--				spin_unlock(ptl);
--				*page_mask = HPAGE_PMD_NR - 1;
--				return page;
--			}
--		} else
-+		} else {
-+			get_page(page);
- 			spin_unlock(ptl);
-+			lock_page(page);
-+			ret = split_huge_page(page);
-+			unlock_page(page);
-+			put_page(page);
-+		}
-+
-+		return ret ? ERR_PTR(ret) :
-+			follow_page_pte(vma, address, pmd, flags);
- 	}
--	return follow_page_pte(vma, address, pmd, flags);
-+
-+	page = follow_trans_huge_pmd(vma, address, pmd, flags);
-+	spin_unlock(ptl);
-+	*page_mask = HPAGE_PMD_NR - 1;
-+	return page;
- }
++		VM_BUG_ON_PAGE(compound_head(page) != head, page);
+ 		pages[*nr] = page;
+ 		(*nr)++;
  
- static int get_gate_page(struct mm_struct *mm, unsigned long address,
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
