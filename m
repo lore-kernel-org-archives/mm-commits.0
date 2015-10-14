@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-re-enable-thp.patch added to -mm tree
-Date: Wed, 14 Oct 2015 14:14:07 -0700
-Message-ID: <561ec59f.8sTOIB7tWLGl7uAC%akpm@linux-foundation.org>
+Subject: + migrate_pages-try-to-split-pages-on-qeueuing.patch added to -mm tree
+Date: Wed, 14 Oct 2015 14:14:01 -0700
+Message-ID: <561ec599.hEEklgj4w3lOo7c5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50391 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50364 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754644AbbJNVOI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:14:08 -0400
+	with ESMTP id S1754010AbbJNVOD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:14:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: re-enable THP
+     Subject: migrate_pages: try to split pages on qeueuing
 has been added to the -mm tree.  Its filename is
-     mm-re-enable-thp.patch
+     migrate_pages-try-to-split-pages-on-qeueuing.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-re-enable-thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/migrate_pages-try-to-split-pages-on-qeueuing.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-re-enable-thp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/migrate_pages-try-to-split-pages-on-qeueuing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,15 +39,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: re-enable THP
+Subject: migrate_pages: try to split pages on qeueuing
 
-All parts of THP with new refcounting are now in place. We can now allow
-to enable THP.
+We are not able to migrate THPs. It means it's not enough to split only
+PMD on migration -- we need to split compound page under it too.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Tested-by: Sasha Levin <sasha.levin@oracle.com>
 Tested-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Acked-by: Jerome Marchand <jmarchan@redhat.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -64,21 +64,70 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mempolicy.c |   40 ++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 36 insertions(+), 4 deletions(-)
 
-diff -puN mm/Kconfig~mm-re-enable-thp mm/Kconfig
---- a/mm/Kconfig~mm-re-enable-thp
-+++ a/mm/Kconfig
-@@ -392,7 +392,7 @@ config NOMMU_INITIAL_TRIM_EXCESS
+diff -puN mm/mempolicy.c~migrate_pages-try-to-split-pages-on-qeueuing mm/mempolicy.c
+--- a/mm/mempolicy.c~migrate_pages-try-to-split-pages-on-qeueuing
++++ a/mm/mempolicy.c
+@@ -489,14 +489,31 @@ static int queue_pages_pte_range(pmd_t *
+ 	struct page *page;
+ 	struct queue_pages *qp = walk->private;
+ 	unsigned long flags = qp->flags;
+-	int nid;
++	int nid, ret;
+ 	pte_t *pte;
+ 	spinlock_t *ptl;
  
- config TRANSPARENT_HUGEPAGE
- 	bool "Transparent Hugepage Support"
--	depends on HAVE_ARCH_TRANSPARENT_HUGEPAGE && BROKEN
-+	depends on HAVE_ARCH_TRANSPARENT_HUGEPAGE
- 	select COMPACTION
- 	help
- 	  Transparent Hugepages allows the kernel to use huge pages and
+-	split_huge_pmd(vma, pmd, addr);
+-	if (pmd_trans_unstable(pmd))
+-		return 0;
++	if (pmd_trans_huge(*pmd)) {
++		ptl = pmd_lock(walk->mm, pmd);
++		if (pmd_trans_huge(*pmd)) {
++			page = pmd_page(*pmd);
++			if (is_huge_zero_page(page)) {
++				spin_unlock(ptl);
++				split_huge_pmd(vma, pmd, addr);
++			} else {
++				get_page(page);
++				spin_unlock(ptl);
++				lock_page(page);
++				ret = split_huge_page(page);
++				unlock_page(page);
++				put_page(page);
++				if (ret)
++					return 0;
++			}
++		}
++	}
+ 
++retry:
+ 	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
+ 	for (; addr != end; pte++, addr += PAGE_SIZE) {
+ 		if (!pte_present(*pte))
+@@ -513,6 +530,21 @@ static int queue_pages_pte_range(pmd_t *
+ 		nid = page_to_nid(page);
+ 		if (node_isset(nid, *qp->nmask) == !!(flags & MPOL_MF_INVERT))
+ 			continue;
++		if (PageTail(page) && PageAnon(page)) {
++			get_page(page);
++			pte_unmap_unlock(pte, ptl);
++			lock_page(page);
++			ret = split_huge_page(page);
++			unlock_page(page);
++			put_page(page);
++			/* Failed to split -- skip. */
++			if (ret) {
++				pte = pte_offset_map_lock(walk->mm, pmd,
++						addr, &ptl);
++				continue;
++			}
++			goto retry;
++		}
+ 
+ 		if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL))
+ 			migrate_page_add(page, qp->pagelist, flags);
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
