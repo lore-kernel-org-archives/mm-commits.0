@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch added to -mm tree
-Date: Wed, 14 Oct 2015 14:12:54 -0700
-Message-ID: <561ec556.jwKLGhFVzw+PKyNO%akpm@linux-foundation.org>
+Subject: + mm-vmstats-new-thp-splitting-event.patch added to -mm tree
+Date: Wed, 14 Oct 2015 14:12:57 -0700
+Message-ID: <561ec559.9AeK4NCk9Of9g2r7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50041 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50052 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753882AbbJNVM4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:12:56 -0400
+	with ESMTP id S1753882AbbJNVM7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:12:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: rename split_huge_page_pmd() to split_huge_pmd()
+     Subject: mm, vmstats: new THP splitting event
 has been added to the -mm tree.  Its filename is
-     thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
+     mm-vmstats-new-thp-splitting-event.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstats-new-thp-splitting-event.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstats-new-thp-splitting-event.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,15 +39,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: rename split_huge_page_pmd() to split_huge_pmd()
+Subject: mm, vmstats: new THP splitting event
 
-We are going to decouple splitting THP PMD from splitting underlying
-compound page.
-
-This patch renames split_huge_page_pmd*() functions to split_huge_pmd*()
-to reflect the fact that it doesn't imply page splitting, only PMD.
+The patch replaces THP_SPLIT with tree events: THP_SPLIT_PAGE,
+THP_SPLIT_PAGE_FAILED and THP_SPLIT_PMD.  It reflects the fact that we are
+going to be able split PMD without the compound page and that
+split_huge_page() can fail.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Christoph Lameter <cl@linux.com>
 Tested-by: Sasha Levin <sasha.levin@oracle.com>
 Tested-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Acked-by: Jerome Marchand <jmarchan@redhat.com>
@@ -62,259 +62,55 @@ Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Steve Capper <steve.capper@linaro.org>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/subpage-prot.c |    2 -
- arch/x86/kernel/vm86_32.c      |    6 ++++-
- include/linux/huge_mm.h        |    8 +------
- mm/gup.c                       |    2 -
- mm/huge_memory.c               |   32 ++++++++++---------------------
- mm/memory.c                    |    2 -
- mm/mempolicy.c                 |    2 -
- mm/mprotect.c                  |    2 -
- mm/mremap.c                    |    2 -
- mm/pagewalk.c                  |    2 -
- 10 files changed, 25 insertions(+), 35 deletions(-)
+ include/linux/vm_event_item.h |    4 +++-
+ mm/huge_memory.c              |    2 +-
+ mm/vmstat.c                   |    4 +++-
+ 3 files changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/mm/subpage-prot.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd arch/powerpc/mm/subpage-prot.c
---- a/arch/powerpc/mm/subpage-prot.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd
-+++ a/arch/powerpc/mm/subpage-prot.c
-@@ -135,7 +135,7 @@ static int subpage_walk_pmd_entry(pmd_t
- 				  unsigned long end, struct mm_walk *walk)
- {
- 	struct vm_area_struct *vma = walk->vma;
--	split_huge_page_pmd(vma, addr, pmd);
-+	split_huge_pmd(vma, pmd, addr);
- 	return 0;
- }
- 
-diff -puN arch/x86/kernel/vm86_32.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd arch/x86/kernel/vm86_32.c
---- a/arch/x86/kernel/vm86_32.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd
-+++ a/arch/x86/kernel/vm86_32.c
-@@ -175,7 +175,11 @@ static void mark_screen_rdonly(struct mm
- 	if (pud_none_or_clear_bad(pud))
- 		goto out;
- 	pmd = pmd_offset(pud, 0xA0000);
--	split_huge_page_pmd_mm(mm, 0xA0000, pmd);
-+
-+	if (pmd_trans_huge(*pmd)) {
-+		struct vm_area_struct *vma = find_vma(mm, 0xA0000);
-+		split_huge_pmd(vma, pmd, 0xA0000);
-+	}
- 	if (pmd_none_or_clear_bad(pmd))
- 		goto out;
- 	pte = pte_offset_map_lock(mm, pmd, 0xA0000, &ptl);
-diff -puN include/linux/huge_mm.h~thp-rename-split_huge_page_pmd-to-split_huge_pmd include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~thp-rename-split_huge_page_pmd-to-split_huge_pmd
-+++ a/include/linux/huge_mm.h
-@@ -102,7 +102,7 @@ static inline int split_huge_page(struct
- }
- extern void __split_huge_page_pmd(struct vm_area_struct *vma,
- 		unsigned long address, pmd_t *pmd);
--#define split_huge_page_pmd(__vma, __address, __pmd)			\
-+#define split_huge_pmd(__vma, __pmd, __address)				\
- 	do {								\
- 		pmd_t *____pmd = (__pmd);				\
- 		if (unlikely(pmd_trans_huge(*____pmd)))			\
-@@ -117,8 +117,6 @@ extern void __split_huge_page_pmd(struct
- 		BUG_ON(pmd_trans_splitting(*____pmd) ||			\
- 		       pmd_trans_huge(*____pmd));			\
- 	} while (0)
--extern void split_huge_page_pmd_mm(struct mm_struct *mm, unsigned long address,
--		pmd_t *pmd);
- #if HPAGE_PMD_ORDER >= MAX_ORDER
- #error "hugepages can't be allocated by the buddy allocator"
+diff -puN include/linux/vm_event_item.h~mm-vmstats-new-thp-splitting-event include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~mm-vmstats-new-thp-splitting-event
++++ a/include/linux/vm_event_item.h
+@@ -68,7 +68,9 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ 		THP_FAULT_FALLBACK,
+ 		THP_COLLAPSE_ALLOC,
+ 		THP_COLLAPSE_ALLOC_FAILED,
+-		THP_SPLIT,
++		THP_SPLIT_PAGE,
++		THP_SPLIT_PAGE_FAILED,
++		THP_SPLIT_PMD,
+ 		THP_ZERO_PAGE_ALLOC,
+ 		THP_ZERO_PAGE_ALLOC_FAILED,
  #endif
-@@ -183,11 +181,9 @@ static inline int split_huge_page(struct
- {
- 	return 0;
- }
--#define split_huge_page_pmd(__vma, __address, __pmd)	\
--	do { } while (0)
- #define wait_split_huge_page(__anon_vma, __pmd)	\
- 	do { } while (0)
--#define split_huge_page_pmd_mm(__mm, __address, __pmd)	\
-+#define split_huge_pmd(__vma, __pmd, __address)	\
- 	do { } while (0)
- static inline int hugepage_madvise(struct vm_area_struct *vma,
- 				   unsigned long *vm_flags, int advice)
-diff -puN mm/gup.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd mm/gup.c
---- a/mm/gup.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd
-+++ a/mm/gup.c
-@@ -254,7 +254,7 @@ struct page *follow_page_mask(struct vm_
- 		if (is_huge_zero_page(page)) {
- 			spin_unlock(ptl);
- 			ret = 0;
--			split_huge_page_pmd(vma, address, pmd);
-+			split_huge_pmd(vma, pmd, address);
- 		} else {
- 			get_page(page);
- 			spin_unlock(ptl);
-diff -puN mm/huge_memory.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd mm/huge_memory.c
---- a/mm/huge_memory.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd
+diff -puN mm/huge_memory.c~mm-vmstats-new-thp-splitting-event mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-vmstats-new-thp-splitting-event
 +++ a/mm/huge_memory.c
-@@ -1264,13 +1264,13 @@ alloc:
+@@ -2053,7 +2053,7 @@ int split_huge_page_to_list(struct page
  
- 	if (unlikely(!new_page)) {
- 		if (!page) {
--			split_huge_page_pmd(vma, address, pmd);
-+			split_huge_pmd(vma, pmd, address);
- 			ret |= VM_FAULT_FALLBACK;
- 		} else {
- 			ret = do_huge_pmd_wp_page_fallback(mm, vma, address,
- 					pmd, orig_pmd, page, haddr);
- 			if (ret & VM_FAULT_OOM) {
--				split_huge_page(page);
-+				split_huge_pmd(vma, pmd, address);
- 				ret |= VM_FAULT_FALLBACK;
- 			}
- 			put_user_huge_page(page);
-@@ -1283,10 +1283,10 @@ alloc:
- 					&memcg, true))) {
- 		put_page(new_page);
- 		if (page) {
--			split_huge_page(page);
-+			split_huge_pmd(vma, pmd, address);
- 			put_user_huge_page(page);
- 		} else
--			split_huge_page_pmd(vma, address, pmd);
-+			split_huge_pmd(vma, pmd, address);
- 		ret |= VM_FAULT_FALLBACK;
- 		count_vm_event(THP_FAULT_FALLBACK);
- 		goto out;
-@@ -3207,17 +3207,7 @@ again:
- 		goto again;
- }
+ 	BUG_ON(!PageSwapBacked(page));
+ 	__split_huge_page(page, anon_vma, list);
+-	count_vm_event(THP_SPLIT);
++	count_vm_event(THP_SPLIT_PAGE);
  
--void split_huge_page_pmd_mm(struct mm_struct *mm, unsigned long address,
--		pmd_t *pmd)
--{
--	struct vm_area_struct *vma;
--
--	vma = find_vma(mm, address);
--	BUG_ON(vma == NULL);
--	split_huge_page_pmd(vma, address, pmd);
--}
--
--static void split_huge_page_address(struct mm_struct *mm,
-+static void split_huge_pmd_address(struct vm_area_struct *vma,
- 				    unsigned long address)
- {
- 	pgd_t *pgd;
-@@ -3226,7 +3216,7 @@ static void split_huge_page_address(stru
- 
- 	VM_BUG_ON(!(address & ~HPAGE_PMD_MASK));
- 
--	pgd = pgd_offset(mm, address);
-+	pgd = pgd_offset(vma->vm_mm, address);
- 	if (!pgd_present(*pgd))
- 		return;
- 
-@@ -3235,13 +3225,13 @@ static void split_huge_page_address(stru
- 		return;
- 
- 	pmd = pmd_offset(pud, address);
--	if (!pmd_present(*pmd))
-+	if (!pmd_present(*pmd) || !pmd_trans_huge(*pmd))
- 		return;
- 	/*
- 	 * Caller holds the mmap_sem write mode, so a huge pmd cannot
- 	 * materialize from under us.
- 	 */
--	split_huge_page_pmd_mm(mm, address, pmd);
-+	__split_huge_page_pmd(vma, address, pmd);
- }
- 
- void vma_adjust_trans_huge(struct vm_area_struct *vma,
-@@ -3257,7 +3247,7 @@ void vma_adjust_trans_huge(struct vm_are
- 	if (start & ~HPAGE_PMD_MASK &&
- 	    (start & HPAGE_PMD_MASK) >= vma->vm_start &&
- 	    (start & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= vma->vm_end)
--		split_huge_page_address(vma->vm_mm, start);
-+		split_huge_pmd_address(vma, start);
- 
- 	/*
- 	 * If the new end address isn't hpage aligned and it could
-@@ -3267,7 +3257,7 @@ void vma_adjust_trans_huge(struct vm_are
- 	if (end & ~HPAGE_PMD_MASK &&
- 	    (end & HPAGE_PMD_MASK) >= vma->vm_start &&
- 	    (end & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= vma->vm_end)
--		split_huge_page_address(vma->vm_mm, end);
-+		split_huge_pmd_address(vma, end);
- 
- 	/*
- 	 * If we're also updating the vma->vm_next->vm_start, if the new
-@@ -3281,6 +3271,6 @@ void vma_adjust_trans_huge(struct vm_are
- 		if (nstart & ~HPAGE_PMD_MASK &&
- 		    (nstart & HPAGE_PMD_MASK) >= next->vm_start &&
- 		    (nstart & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= next->vm_end)
--			split_huge_page_address(next->vm_mm, nstart);
-+			split_huge_pmd_address(next, nstart);
- 	}
- }
-diff -puN mm/memory.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd mm/memory.c
---- a/mm/memory.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd
-+++ a/mm/memory.c
-@@ -1204,7 +1204,7 @@ static inline unsigned long zap_pmd_rang
- 					BUG();
- 				}
+ 	BUG_ON(PageCompound(page));
+ out_unlock:
+diff -puN mm/vmstat.c~mm-vmstats-new-thp-splitting-event mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstats-new-thp-splitting-event
++++ a/mm/vmstat.c
+@@ -842,7 +842,9 @@ const char * const vmstat_text[] = {
+ 	"thp_fault_fallback",
+ 	"thp_collapse_alloc",
+ 	"thp_collapse_alloc_failed",
+-	"thp_split",
++	"thp_split_page",
++	"thp_split_page_failed",
++	"thp_split_pmd",
+ 	"thp_zero_page_alloc",
+ 	"thp_zero_page_alloc_failed",
  #endif
--				split_huge_page_pmd(vma, addr, pmd);
-+				split_huge_pmd(vma, pmd, addr);
- 			} else if (zap_huge_pmd(tlb, vma, pmd, addr))
- 				goto next;
- 			/* fall through */
-diff -puN mm/mempolicy.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd mm/mempolicy.c
---- a/mm/mempolicy.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd
-+++ a/mm/mempolicy.c
-@@ -493,7 +493,7 @@ static int queue_pages_pte_range(pmd_t *
- 	pte_t *pte;
- 	spinlock_t *ptl;
- 
--	split_huge_page_pmd(vma, addr, pmd);
-+	split_huge_pmd(vma, pmd, addr);
- 	if (pmd_trans_unstable(pmd))
- 		return 0;
- 
-diff -puN mm/mprotect.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd mm/mprotect.c
---- a/mm/mprotect.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd
-+++ a/mm/mprotect.c
-@@ -160,7 +160,7 @@ static inline unsigned long change_pmd_r
- 
- 		if (pmd_trans_huge(*pmd)) {
- 			if (next - addr != HPAGE_PMD_SIZE)
--				split_huge_page_pmd(vma, addr, pmd);
-+				split_huge_pmd(vma, pmd, addr);
- 			else {
- 				int nr_ptes = change_huge_pmd(vma, pmd, addr,
- 						newprot, prot_numa);
-diff -puN mm/mremap.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd mm/mremap.c
---- a/mm/mremap.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd
-+++ a/mm/mremap.c
-@@ -209,7 +209,7 @@ unsigned long move_page_tables(struct vm
- 				need_flush = true;
- 				continue;
- 			} else if (!err) {
--				split_huge_page_pmd(vma, old_addr, old_pmd);
-+				split_huge_pmd(vma, old_pmd, old_addr);
- 			}
- 			VM_BUG_ON(pmd_trans_huge(*old_pmd));
- 		}
-diff -puN mm/pagewalk.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd mm/pagewalk.c
---- a/mm/pagewalk.c~thp-rename-split_huge_page_pmd-to-split_huge_pmd
-+++ a/mm/pagewalk.c
-@@ -58,7 +58,7 @@ again:
- 		if (!walk->pte_entry)
- 			continue;
- 
--		split_huge_page_pmd_mm(walk->mm, addr, pmd);
-+		split_huge_pmd(walk->vma, pmd, addr);
- 		if (pmd_trans_unstable(pmd))
- 			goto again;
- 		err = walk_pte_range(pmd, addr, next, walk);
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
