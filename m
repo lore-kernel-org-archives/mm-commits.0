@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-remove-compound_lock.patch added to -mm tree
-Date: Wed, 14 Oct 2015 14:13:12 -0700
-Message-ID: <561ec568.vTj4rPOFpe6Jtr1/%akpm@linux-foundation.org>
+Subject: +
+ arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch added to
+ -mm tree
+Date: Wed, 14 Oct 2015 14:13:14 -0700
+Message-ID: <561ec56a.OGg6MVGMxB6vw+RY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50131 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50140 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753869AbbJNVNN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:13:13 -0400
+	with ESMTP id S1753869AbbJNVNP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:13:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, thp: remove compound_lock()
+     Subject: arm64, thp: remove infrastructure for handling splitting PMDs
 has been added to the -mm tree.  Its filename is
-     mm-thp-remove-compound_lock.patch
+     arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-remove-compound_lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-remove-compound_lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,16 +41,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm, thp: remove compound_lock()
+Subject: arm64, thp: remove infrastructure for handling splitting PMDs
 
-We are going to use migration entries to stabilize page counts. It means
-we don't need compound_lock() for that.
+With new refcounting we don't need to mark PMDs splitting. Let's drop
+code to handle this.
+
+pmdp_splitting_flush() is not needed too: on splitting PMD we will do
+pmdp_clear_flush() + set_pte_at(). pmdp_clear_flush() will do IPI as
+needed for fast_gup.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Tested-by: Sasha Levin <sasha.levin@oracle.com>
-Tested-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Jerome Marchand <jmarchan@redhat.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
@@ -64,141 +70,56 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h         |   35 -----------------------------------
- include/linux/page-flags.h |   12 +-----------
- mm/debug.c                 |    3 ---
- mm/memcontrol.c            |   11 +++--------
- 4 files changed, 4 insertions(+), 57 deletions(-)
+ arch/arm64/include/asm/pgtable.h |    8 --------
+ arch/arm64/mm/flush.c            |   16 ----------------
+ 2 files changed, 24 deletions(-)
 
-diff -puN include/linux/mm.h~mm-thp-remove-compound_lock include/linux/mm.h
---- a/include/linux/mm.h~mm-thp-remove-compound_lock
-+++ a/include/linux/mm.h
-@@ -395,41 +395,6 @@ static inline int is_vmalloc_or_module_a
+diff -puN arch/arm64/include/asm/pgtable.h~arm64-thp-remove-infrastructure-for-handling-splitting-pmds arch/arm64/include/asm/pgtable.h
+--- a/arch/arm64/include/asm/pgtable.h~arm64-thp-remove-infrastructure-for-handling-splitting-pmds
++++ a/arch/arm64/include/asm/pgtable.h
+@@ -310,19 +310,11 @@ static inline pgprot_t mk_sect_prot(pgpr
  
- extern void kvfree(const void *addr);
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ #define pmd_trans_huge(pmd)	(pmd_val(pmd) && !(pmd_val(pmd) & PMD_TABLE_BIT))
+-#define pmd_trans_splitting(pmd)	pte_special(pmd_pte(pmd))
+-#ifdef CONFIG_HAVE_RCU_TABLE_FREE
+-#define __HAVE_ARCH_PMDP_SPLITTING_FLUSH
+-struct vm_area_struct;
+-void pmdp_splitting_flush(struct vm_area_struct *vma, unsigned long address,
+-			  pmd_t *pmdp);
+-#endif /* CONFIG_HAVE_RCU_TABLE_FREE */
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
--static inline void compound_lock(struct page *page)
--{
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	VM_BUG_ON_PAGE(PageSlab(page), page);
--	bit_spin_lock(PG_compound_lock, &page->flags);
--#endif
--}
--
--static inline void compound_unlock(struct page *page)
--{
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	VM_BUG_ON_PAGE(PageSlab(page), page);
--	bit_spin_unlock(PG_compound_lock, &page->flags);
--#endif
--}
--
--static inline unsigned long compound_lock_irqsave(struct page *page)
--{
--	unsigned long uninitialized_var(flags);
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	local_irq_save(flags);
--	compound_lock(page);
--#endif
--	return flags;
--}
--
--static inline void compound_unlock_irqrestore(struct page *page,
--					      unsigned long flags)
--{
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	compound_unlock(page);
--	local_irq_restore(flags);
--#endif
--}
--
- /*
-  * The atomic page->_mapcount, starts from -1: so that transitions
-  * both from it and to it can be tracked, using atomic_inc_and_test
-diff -puN include/linux/page-flags.h~mm-thp-remove-compound_lock include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-thp-remove-compound_lock
-+++ a/include/linux/page-flags.h
-@@ -101,9 +101,6 @@ enum pageflags {
- #ifdef CONFIG_MEMORY_FAILURE
- 	PG_hwpoison,		/* hardware poisoned page. Don't touch */
- #endif
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	PG_compound_lock,
--#endif
- #if defined(CONFIG_IDLE_PAGE_TRACKING) && defined(CONFIG_64BIT)
- 	PG_young,
- 	PG_idle,
-@@ -621,12 +618,6 @@ static inline void ClearPageSlabPfmemall
- #define __PG_MLOCKED		0
- #endif
- 
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--#define __PG_COMPOUND_LOCK		(1 << PG_compound_lock)
--#else
--#define __PG_COMPOUND_LOCK		0
--#endif
--
- /*
-  * Flags checked when a page is freed.  Pages being freed should not have
-  * these flags set.  It they are, there is a problem.
-@@ -636,8 +627,7 @@ static inline void ClearPageSlabPfmemall
- 	 1 << PG_private | 1 << PG_private_2 | \
- 	 1 << PG_writeback | 1 << PG_reserved | \
- 	 1 << PG_slab	 | 1 << PG_swapcache | 1 << PG_active | \
--	 1 << PG_unevictable | __PG_MLOCKED | \
--	 __PG_COMPOUND_LOCK)
-+	 1 << PG_unevictable | __PG_MLOCKED)
- 
- /*
-  * Flags checked when a page is prepped for return by the page allocator.
-diff -puN mm/debug.c~mm-thp-remove-compound_lock mm/debug.c
---- a/mm/debug.c~mm-thp-remove-compound_lock
-+++ a/mm/debug.c
-@@ -40,9 +40,6 @@ static const struct trace_print_flags pa
- #ifdef CONFIG_MEMORY_FAILURE
- 	{1UL << PG_hwpoison,		"hwpoison"	},
- #endif
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--	{1UL << PG_compound_lock,	"compound_lock"	},
--#endif
- #if defined(CONFIG_IDLE_PAGE_TRACKING) && defined(CONFIG_64BIT)
- 	{1UL << PG_young,		"young"		},
- 	{1UL << PG_idle,		"idle"		},
-diff -puN mm/memcontrol.c~mm-thp-remove-compound_lock mm/memcontrol.c
---- a/mm/memcontrol.c~mm-thp-remove-compound_lock
-+++ a/mm/memcontrol.c
-@@ -2438,9 +2438,7 @@ void __memcg_kmem_uncharge(struct page *
- 
- /*
-  * Because tail pages are not marked as "used", set it. We're under
-- * zone->lru_lock, 'splitting on pmd' and compound_lock.
-- * charge/uncharge will be never happen and move_account() is done under
-- * compound_lock(), so we don't have to take care of races.
-+ * zone->lru_lock and migration entries setup in all page mappings.
+ #define pmd_dirty(pmd)		pte_dirty(pmd_pte(pmd))
+ #define pmd_young(pmd)		pte_young(pmd_pte(pmd))
+ #define pmd_wrprotect(pmd)	pte_pmd(pte_wrprotect(pmd_pte(pmd)))
+-#define pmd_mksplitting(pmd)	pte_pmd(pte_mkspecial(pmd_pte(pmd)))
+ #define pmd_mkold(pmd)		pte_pmd(pte_mkold(pmd_pte(pmd)))
+ #define pmd_mkwrite(pmd)	pte_pmd(pte_mkwrite(pmd_pte(pmd)))
+ #define pmd_mkdirty(pmd)	pte_pmd(pte_mkdirty(pmd_pte(pmd)))
+diff -puN arch/arm64/mm/flush.c~arm64-thp-remove-infrastructure-for-handling-splitting-pmds arch/arm64/mm/flush.c
+--- a/arch/arm64/mm/flush.c~arm64-thp-remove-infrastructure-for-handling-splitting-pmds
++++ a/arch/arm64/mm/flush.c
+@@ -99,19 +99,3 @@ EXPORT_SYMBOL(flush_dcache_page);
+  * Additional functions defined in assembly.
   */
- void mem_cgroup_split_huge_fixup(struct page *head)
- {
-@@ -4505,9 +4503,7 @@ static struct page *mc_handle_file_pte(s
-  * @from: mem_cgroup which the page is moved from.
-  * @to:	mem_cgroup which the page is moved to. @from != @to.
-  *
-- * The caller must confirm following.
-- * - page is not on LRU (isolate_page() is useful.)
-- * - compound_lock is held when nr_pages > 1
-+ * The caller must make sure the page is not on LRU (isolate_page() is useful.)
-  *
-  * This function doesn't do "charge" to new cgroup and doesn't do "uncharge"
-  * from old cgroup.
-@@ -4850,8 +4846,7 @@ static int mem_cgroup_move_charge_pte_ra
- 	struct page *page;
- 
- 	/*
--	 * We don't take compound_lock() here but no race with splitting thp
--	 * happens because:
-+	 * No race with splitting thp happens because:
- 	 *  - if pmd_trans_huge_lock() returns 1, the relevant thp is not
- 	 *    under splitting, which means there's no concurrent thp split,
- 	 *  - if another thread runs into split_huge_page() just after we
+ EXPORT_SYMBOL(flush_icache_range);
+-
+-#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+-#ifdef CONFIG_HAVE_RCU_TABLE_FREE
+-void pmdp_splitting_flush(struct vm_area_struct *vma, unsigned long address,
+-			  pmd_t *pmdp)
+-{
+-	pmd_t pmd = pmd_mksplitting(*pmdp);
+-
+-	VM_BUG_ON(address & ~PMD_MASK);
+-	set_pmd_at(vma->vm_mm, address, pmdp, pmd);
+-
+-	/* dummy IPI to serialise against fast_gup */
+-	kick_all_cpus_sync();
+-}
+-#endif /* CONFIG_HAVE_RCU_TABLE_FREE */
+-#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
