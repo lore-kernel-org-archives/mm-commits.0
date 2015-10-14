@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + thp-allow-mlocked-thp-again.patch added to -mm tree
-Date: Wed, 14 Oct 2015 14:14:13 -0700
-Message-ID: <561ec5a5.TBOCEz8JJjpm4xyV%akpm@linux-foundation.org>
+Subject: +
+ mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
+ added to -mm tree
+Date: Wed, 14 Oct 2015 14:13:44 -0700
+Message-ID: <561ec588.A2AphMVEL2q+ExVV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50414 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50288 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754644AbbJNVOP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:14:15 -0400
+	with ESMTP id S1754162AbbJNVNq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:13:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: allow mlocked THP again
+     Subject: mm: differentiate page_mapped() from page_mapcount() for compound pages
 has been added to the -mm tree.  Its filename is
-     thp-allow-mlocked-thp-again.patch
+     mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-allow-mlocked-thp-again.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-allow-mlocked-thp-again.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,39 +41,24 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: allow mlocked THP again
+Subject: mm: differentiate page_mapped() from page_mapcount() for compound pages
 
-Before THP refcounting rework, THP was not allowed to cross VMA boundary.
-So, if we have THP and we split it, PG_mlocked can be safely transfered to
-small pages.
+Let's define page_mapped() to be true for compound pages if any
+sub-pages of the compound page is mapped (with PMD or PTE).
 
-With new THP refcounting and naive approach to mlocking we can end up with
-this scenario:
- 1. we have a mlocked THP, which belong to one VM_LOCKED VMA.
- 2. the process does munlock() on the *part* of the THP:
-      - the VMA is split into two, one of them VM_LOCKED;
-      - huge PMD split into PTE table;
-      - THP is still mlocked;
- 3. split_huge_page():
-      - it transfers PG_mlocked to *all* small pages regrardless if it
-	blong to any VM_LOCKED VMA.
+On other hand page_mapcount() return mapcount for this particular small
+page.
 
-We probably could munlock() all small pages on split_huge_page(), but I
-think we have accounting issue already on step two.
+This will make cases like page_get_anon_vma() behave correctly once we
+allow huge pages to be mapped with PTE.
 
-Instead of forbidding mlocked pages altogether, we just avoid mlocking
-PTE-mapped THPs and munlock THPs on split_huge_pmd().
-
-This means PTE-mapped THPs will be on normal lru lists and will be
-split under memory pressure by vmscan. After the split vmscan will
-detect unevictable small pages and mlock them.
-
-With this approach we shouldn't hit situation like described above.
+Most users outside core-mm should use page_mapcount() instead of
+page_mapped().
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Jerome Marchand <jmarchan@redhat.com>
+Tested-by: Sasha Levin <sasha.levin@oracle.com>
+Tested-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Jerome Marchand <jmarchan@redhat.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -88,230 +75,224 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c         |    6 ++--
- mm/huge_memory.c |   37 ++++++++++++++++++++++-----
- mm/memory.c      |    6 ++--
- mm/mlock.c       |   61 +++++++++++++++++++++++++++++----------------
- mm/swap.c        |    1 
- 5 files changed, 78 insertions(+), 33 deletions(-)
+ arch/arc/mm/cache.c    |    4 ++--
+ arch/arm/mm/flush.c    |    2 +-
+ arch/mips/mm/c-r4k.c   |    3 ++-
+ arch/mips/mm/cache.c   |    2 +-
+ arch/mips/mm/init.c    |    6 +++---
+ arch/sh/mm/cache-sh4.c |    2 +-
+ arch/sh/mm/cache.c     |    8 ++++----
+ arch/xtensa/mm/tlb.c   |    2 +-
+ fs/proc/page.c         |    4 ++--
+ include/linux/mm.h     |   15 +++++++++++++--
+ mm/filemap.c           |    2 +-
+ 11 files changed, 31 insertions(+), 19 deletions(-)
 
-diff -puN mm/gup.c~thp-allow-mlocked-thp-again mm/gup.c
---- a/mm/gup.c~thp-allow-mlocked-thp-again
-+++ a/mm/gup.c
-@@ -143,6 +143,10 @@ retry:
- 		mark_page_accessed(page);
- 	}
- 	if ((flags & FOLL_MLOCK) && (vma->vm_flags & VM_LOCKED)) {
-+		/* Do not mlock pte-mapped THP */
-+		if (PageTransCompound(page))
-+			goto out;
-+
- 		/*
- 		 * The preliminary mapping check is mainly to avoid the
- 		 * pointless overhead of lock_page on the ZERO_PAGE
-@@ -920,8 +924,6 @@ long populate_vma_page_range(struct vm_a
- 	gup_flags = FOLL_TOUCH | FOLL_POPULATE | FOLL_MLOCK;
- 	if (vma->vm_flags & VM_LOCKONFAULT)
- 		gup_flags &= ~FOLL_POPULATE;
--	if (vma->vm_flags & VM_LOCKED)
--		gup_flags |= FOLL_SPLIT;
- 	/*
- 	 * We want to touch writable mappings with a write fault in order
- 	 * to break COW, except for shared mappings because these don't COW
-diff -puN mm/huge_memory.c~thp-allow-mlocked-thp-again mm/huge_memory.c
---- a/mm/huge_memory.c~thp-allow-mlocked-thp-again
-+++ a/mm/huge_memory.c
-@@ -904,8 +904,6 @@ int do_huge_pmd_anonymous_page(struct mm
+diff -puN arch/arc/mm/cache.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages arch/arc/mm/cache.c
+--- a/arch/arc/mm/cache.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages
++++ a/arch/arc/mm/cache.c
+@@ -582,7 +582,7 @@ void flush_dcache_page(struct page *page
+ 	 */
+ 	if (!mapping_mapped(mapping)) {
+ 		clear_bit(PG_dc_clean, &page->flags);
+-	} else if (page_mapped(page)) {
++	} else if (page_mapcount(page)) {
  
- 	if (haddr < vma->vm_start || haddr + HPAGE_PMD_SIZE > vma->vm_end)
- 		return VM_FAULT_FALLBACK;
--	if (vma->vm_flags & VM_LOCKED)
--		return VM_FAULT_FALLBACK;
- 	if (unlikely(anon_vma_prepare(vma)))
- 		return VM_FAULT_OOM;
- 	if (unlikely(khugepaged_enter(vma, vma->vm_flags)))
-@@ -1374,7 +1372,20 @@ struct page *follow_trans_huge_pmd(struc
- 			update_mmu_cache_pmd(vma, addr, pmd);
+ 		/* kernel reading from page with U-mapping */
+ 		unsigned long paddr = (unsigned long)page_address(page);
+@@ -819,7 +819,7 @@ void copy_user_highpage(struct page *to,
+ 	 * Note that while @u_vaddr refers to DST page's userspace vaddr, it is
+ 	 * equally valid for SRC page as well
+ 	 */
+-	if (page_mapped(from) && addr_not_cache_congruent(kfrom, u_vaddr)) {
++	if (page_mapcount(from) && addr_not_cache_congruent(kfrom, u_vaddr)) {
+ 		__flush_dcache_page(kfrom, u_vaddr);
+ 		clean_src_k_mappings = 1;
  	}
- 	if ((flags & FOLL_MLOCK) && (vma->vm_flags & VM_LOCKED)) {
--		if (page->mapping && trylock_page(page)) {
-+		/*
-+		 * We don't mlock() pte-mapped THPs. This way we can avoid
-+		 * leaking mlocked pages into non-VM_LOCKED VMAs.
-+		 *
-+		 * In most cases the pmd is the only mapping of the page as we
-+		 * break COW for the mlock() -- see gup_flags |= FOLL_WRITE for
-+		 * writable private mappings in populate_vma_page_range().
-+		 *
-+		 * The only scenario when we have the page shared here is if we
-+		 * mlocking read-only mapping shared over fork(). We skip
-+		 * mlocking such pages.
-+		 */
-+		if (compound_mapcount(page) == 1 && !PageDoubleMap(page) &&
-+				page->mapping && trylock_page(page)) {
- 			lru_add_drain();
- 			if (page->mapping)
- 				mlock_vma_page(page);
-@@ -2239,8 +2250,6 @@ static bool hugepage_vma_check(struct vm
- 	if ((!(vma->vm_flags & VM_HUGEPAGE) && !khugepaged_always()) ||
- 	    (vma->vm_flags & VM_NOHUGEPAGE))
- 		return false;
--	if (vma->vm_flags & VM_LOCKED)
--		return false;
- 	if (!vma->anon_vma || vma->vm_ops)
- 		return false;
- 	if (is_vma_temporary_stack(vma))
-@@ -2900,14 +2909,28 @@ void __split_huge_pmd(struct vm_area_str
+diff -puN arch/arm/mm/flush.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages arch/arm/mm/flush.c
+--- a/arch/arm/mm/flush.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages
++++ a/arch/arm/mm/flush.c
+@@ -330,7 +330,7 @@ void flush_dcache_page(struct page *page
+ 	mapping = page_mapping(page);
+ 
+ 	if (!cache_ops_need_broadcast() &&
+-	    mapping && !page_mapped(page))
++	    mapping && !page_mapcount(page))
+ 		clear_bit(PG_dcache_clean, &page->flags);
+ 	else {
+ 		__flush_dcache_page(mapping, page);
+diff -puN arch/mips/mm/c-r4k.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages arch/mips/mm/c-r4k.c
+--- a/arch/mips/mm/c-r4k.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages
++++ a/arch/mips/mm/c-r4k.c
+@@ -587,7 +587,8 @@ static inline void local_r4k_flush_cache
+ 		 * another ASID than the current one.
+ 		 */
+ 		map_coherent = (cpu_has_dc_aliases &&
+-				page_mapped(page) && !Page_dcache_dirty(page));
++				page_mapcount(page) &&
++				!Page_dcache_dirty(page));
+ 		if (map_coherent)
+ 			vaddr = kmap_coherent(page, addr);
+ 		else
+diff -puN arch/mips/mm/cache.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages arch/mips/mm/cache.c
+--- a/arch/mips/mm/cache.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages
++++ a/arch/mips/mm/cache.c
+@@ -106,7 +106,7 @@ void __flush_anon_page(struct page *page
+ 	unsigned long addr = (unsigned long) page_address(page);
+ 
+ 	if (pages_do_alias(addr, vmaddr)) {
+-		if (page_mapped(page) && !Page_dcache_dirty(page)) {
++		if (page_mapcount(page) && !Page_dcache_dirty(page)) {
+ 			void *kaddr;
+ 
+ 			kaddr = kmap_coherent(page, vmaddr);
+diff -puN arch/mips/mm/init.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages arch/mips/mm/init.c
+--- a/arch/mips/mm/init.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages
++++ a/arch/mips/mm/init.c
+@@ -165,7 +165,7 @@ void copy_user_highpage(struct page *to,
+ 
+ 	vto = kmap_atomic(to);
+ 	if (cpu_has_dc_aliases &&
+-	    page_mapped(from) && !Page_dcache_dirty(from)) {
++	    page_mapcount(from) && !Page_dcache_dirty(from)) {
+ 		vfrom = kmap_coherent(from, vaddr);
+ 		copy_page(vto, vfrom);
+ 		kunmap_coherent();
+@@ -187,7 +187,7 @@ void copy_to_user_page(struct vm_area_st
+ 	unsigned long len)
  {
- 	spinlock_t *ptl;
- 	struct mm_struct *mm = vma->vm_mm;
-+	struct page *page = NULL;
- 	unsigned long haddr = address & HPAGE_PMD_MASK;
+ 	if (cpu_has_dc_aliases &&
+-	    page_mapped(page) && !Page_dcache_dirty(page)) {
++	    page_mapcount(page) && !Page_dcache_dirty(page)) {
+ 		void *vto = kmap_coherent(page, vaddr) + (vaddr & ~PAGE_MASK);
+ 		memcpy(vto, src, len);
+ 		kunmap_coherent();
+@@ -205,7 +205,7 @@ void copy_from_user_page(struct vm_area_
+ 	unsigned long len)
+ {
+ 	if (cpu_has_dc_aliases &&
+-	    page_mapped(page) && !Page_dcache_dirty(page)) {
++	    page_mapcount(page) && !Page_dcache_dirty(page)) {
+ 		void *vfrom = kmap_coherent(page, vaddr) + (vaddr & ~PAGE_MASK);
+ 		memcpy(dst, vfrom, len);
+ 		kunmap_coherent();
+diff -puN arch/sh/mm/cache-sh4.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages arch/sh/mm/cache-sh4.c
+--- a/arch/sh/mm/cache-sh4.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages
++++ a/arch/sh/mm/cache-sh4.c
+@@ -241,7 +241,7 @@ static void sh4_flush_cache_page(void *a
+ 		 */
+ 		map_coherent = (current_cpu_data.dcache.n_aliases &&
+ 			test_bit(PG_dcache_clean, &page->flags) &&
+-			page_mapped(page));
++			page_mapcount(page));
+ 		if (map_coherent)
+ 			vaddr = kmap_coherent(page, address);
+ 		else
+diff -puN arch/sh/mm/cache.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages arch/sh/mm/cache.c
+--- a/arch/sh/mm/cache.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages
++++ a/arch/sh/mm/cache.c
+@@ -59,7 +59,7 @@ void copy_to_user_page(struct vm_area_st
+ 		       unsigned long vaddr, void *dst, const void *src,
+ 		       unsigned long len)
+ {
+-	if (boot_cpu_data.dcache.n_aliases && page_mapped(page) &&
++	if (boot_cpu_data.dcache.n_aliases && page_mapcount(page) &&
+ 	    test_bit(PG_dcache_clean, &page->flags)) {
+ 		void *vto = kmap_coherent(page, vaddr) + (vaddr & ~PAGE_MASK);
+ 		memcpy(vto, src, len);
+@@ -78,7 +78,7 @@ void copy_from_user_page(struct vm_area_
+ 			 unsigned long vaddr, void *dst, const void *src,
+ 			 unsigned long len)
+ {
+-	if (boot_cpu_data.dcache.n_aliases && page_mapped(page) &&
++	if (boot_cpu_data.dcache.n_aliases && page_mapcount(page) &&
+ 	    test_bit(PG_dcache_clean, &page->flags)) {
+ 		void *vfrom = kmap_coherent(page, vaddr) + (vaddr & ~PAGE_MASK);
+ 		memcpy(dst, vfrom, len);
+@@ -97,7 +97,7 @@ void copy_user_highpage(struct page *to,
  
- 	mmu_notifier_invalidate_range_start(mm, haddr, haddr + HPAGE_PMD_SIZE);
- 	ptl = pmd_lock(mm, pmd);
--	if (likely(pmd_trans_huge(*pmd)))
--		__split_huge_pmd_locked(vma, pmd, haddr, false);
-+	if (unlikely(!pmd_trans_huge(*pmd)))
-+		goto out;
-+	page = pmd_page(*pmd);
-+	__split_huge_pmd_locked(vma, pmd, haddr, false);
-+	if (PageMlocked(page))
-+		get_page(page);
-+	else
-+		page = NULL;
-+out:
- 	spin_unlock(ptl);
- 	mmu_notifier_invalidate_range_end(mm, haddr, haddr + HPAGE_PMD_SIZE);
-+	if (page) {
-+		lock_page(page);
-+		munlock_vma_page(page);
-+		unlock_page(page);
-+		put_page(page);
+ 	vto = kmap_atomic(to);
+ 
+-	if (boot_cpu_data.dcache.n_aliases && page_mapped(from) &&
++	if (boot_cpu_data.dcache.n_aliases && page_mapcount(from) &&
+ 	    test_bit(PG_dcache_clean, &from->flags)) {
+ 		vfrom = kmap_coherent(from, vaddr);
+ 		copy_page(vto, vfrom);
+@@ -153,7 +153,7 @@ void __flush_anon_page(struct page *page
+ 	unsigned long addr = (unsigned long) page_address(page);
+ 
+ 	if (pages_do_alias(addr, vmaddr)) {
+-		if (boot_cpu_data.dcache.n_aliases && page_mapped(page) &&
++		if (boot_cpu_data.dcache.n_aliases && page_mapcount(page) &&
+ 		    test_bit(PG_dcache_clean, &page->flags)) {
+ 			void *kaddr;
+ 
+diff -puN arch/xtensa/mm/tlb.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages arch/xtensa/mm/tlb.c
+--- a/arch/xtensa/mm/tlb.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages
++++ a/arch/xtensa/mm/tlb.c
+@@ -245,7 +245,7 @@ static int check_tlb_entry(unsigned w, u
+ 						page_mapcount(p));
+ 				if (!page_count(p))
+ 					rc |= TLB_INSANE;
+-				else if (page_mapped(p))
++				else if (page_mapcount(p))
+ 					rc |= TLB_SUSPICIOUS;
+ 			} else {
+ 				rc |= TLB_INSANE;
+diff -puN fs/proc/page.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages fs/proc/page.c
+--- a/fs/proc/page.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages
++++ a/fs/proc/page.c
+@@ -103,9 +103,9 @@ u64 stable_page_flags(struct page *page)
+ 	 * pseudo flags for the well known (anonymous) memory mapped pages
+ 	 *
+ 	 * Note that page->_mapcount is overloaded in SLOB/SLUB/SLQB, so the
+-	 * simple test in page_mapped() is not enough.
++	 * simple test in page_mapcount() is not enough.
+ 	 */
+-	if (!PageSlab(page) && page_mapped(page))
++	if (!PageSlab(page) && page_mapcount(page))
+ 		u |= 1 << KPF_MMAP;
+ 	if (PageAnon(page))
+ 		u |= 1 << KPF_ANON;
+diff -puN include/linux/mm.h~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages include/linux/mm.h
+--- a/include/linux/mm.h~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages
++++ a/include/linux/mm.h
+@@ -938,10 +938,21 @@ static inline pgoff_t page_file_index(st
+ 
+ /*
+  * Return true if this page is mapped into pagetables.
++ * For compound page it returns true if any subpage of compound page is mapped.
+  */
+-static inline int page_mapped(struct page *page)
++static inline bool page_mapped(struct page *page)
+ {
+-	return atomic_read(&(page)->_mapcount) + compound_mapcount(page) >= 0;
++	int i;
++	if (likely(!PageCompound(page)))
++		return atomic_read(&page->_mapcount) >= 0;
++	page = compound_head(page);
++	if (atomic_read(compound_mapcount_ptr(page)) >= 0)
++		return true;
++	for (i = 0; i < hpage_nr_pages(page); i++) {
++		if (atomic_read(&page[i]._mapcount) >= 0)
++			return true;
 +	}
++	return false;
  }
  
- static void split_huge_pmd_address(struct vm_area_struct *vma,
-diff -puN mm/memory.c~thp-allow-mlocked-thp-again mm/memory.c
---- a/mm/memory.c~thp-allow-mlocked-thp-again
-+++ a/mm/memory.c
-@@ -2155,15 +2155,15 @@ static int wp_page_copy(struct mm_struct
+ /*
+diff -puN mm/filemap.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages mm/filemap.c
+--- a/mm/filemap.c~mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages
++++ a/mm/filemap.c
+@@ -204,7 +204,7 @@ void __delete_from_page_cache(struct pag
+ 		__dec_zone_page_state(page, NR_FILE_PAGES);
+ 	if (PageSwapBacked(page))
+ 		__dec_zone_page_state(page, NR_SHMEM);
+-	BUG_ON(page_mapped(page));
++	VM_BUG_ON_PAGE(page_mapped(page), page);
  
- 	pte_unmap_unlock(page_table, ptl);
- 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
--	/* THP pages are never mlocked */
--	if (old_page && !PageTransCompound(old_page)) {
-+	if (old_page) {
- 		/*
- 		 * Don't let another task, with possibly unlocked vma,
- 		 * keep the mlocked page.
- 		 */
- 		if (page_copied && (vma->vm_flags & VM_LOCKED)) {
- 			lock_page(old_page);	/* LRU manipulation */
--			munlock_vma_page(old_page);
-+			if (PageMlocked(old_page))
-+				munlock_vma_page(old_page);
- 			unlock_page(old_page);
- 		}
- 		page_cache_release(old_page);
-diff -puN mm/mlock.c~thp-allow-mlocked-thp-again mm/mlock.c
---- a/mm/mlock.c~thp-allow-mlocked-thp-again
-+++ a/mm/mlock.c
-@@ -82,6 +82,9 @@ void mlock_vma_page(struct page *page)
- 	/* Serialize with page migration */
- 	BUG_ON(!PageLocked(page));
- 
-+	VM_BUG_ON_PAGE(PageTail(page), page);
-+	VM_BUG_ON_PAGE(PageCompound(page) && PageDoubleMap(page), page);
-+
- 	if (!TestSetPageMlocked(page)) {
- 		mod_zone_page_state(page_zone(page), NR_MLOCK,
- 				    hpage_nr_pages(page));
-@@ -178,6 +181,8 @@ unsigned int munlock_vma_page(struct pag
- 	/* For try_to_munlock() and to serialize with page migration */
- 	BUG_ON(!PageLocked(page));
- 
-+	VM_BUG_ON_PAGE(PageTail(page), page);
-+
  	/*
- 	 * Serialize with any parallel __split_huge_page_refcount() which
- 	 * might otherwise copy PageMlocked to part of the tail pages before
-@@ -443,29 +448,43 @@ void munlock_vma_pages_range(struct vm_a
- 		page = follow_page_mask(vma, start, FOLL_GET | FOLL_DUMP,
- 				&page_mask);
- 
--		if (page && !IS_ERR(page) && !PageTransCompound(page)) {
--			/*
--			 * Non-huge pages are handled in batches via
--			 * pagevec. The pin from follow_page_mask()
--			 * prevents them from collapsing by THP.
--			 */
--			pagevec_add(&pvec, page);
--			zone = page_zone(page);
--			zoneid = page_zone_id(page);
-+		if (page && !IS_ERR(page)) {
-+			if (PageTransTail(page)) {
-+				VM_BUG_ON_PAGE(PageMlocked(page), page);
-+				put_page(page); /* follow_page_mask() */
-+			} else if (PageTransHuge(page)) {
-+				lock_page(page);
-+				/*
-+				 * Any THP page found by follow_page_mask() may
-+				 * have gotten split before reaching
-+				 * munlock_vma_page(), so we need to recompute
-+				 * the page_mask here.
-+				 */
-+				page_mask = munlock_vma_page(page);
-+				unlock_page(page);
-+				put_page(page); /* follow_page_mask() */
-+			} else {
-+				/*
-+				 * Non-huge pages are handled in batches via
-+				 * pagevec. The pin from follow_page_mask()
-+				 * prevents them from collapsing by THP.
-+				 */
-+				pagevec_add(&pvec, page);
-+				zone = page_zone(page);
-+				zoneid = page_zone_id(page);
- 
--			/*
--			 * Try to fill the rest of pagevec using fast
--			 * pte walk. This will also update start to
--			 * the next page to process. Then munlock the
--			 * pagevec.
--			 */
--			start = __munlock_pagevec_fill(&pvec, vma,
--					zoneid, start, end);
--			__munlock_pagevec(&pvec, zone);
--			goto next;
-+				/*
-+				 * Try to fill the rest of pagevec using fast
-+				 * pte walk. This will also update start to
-+				 * the next page to process. Then munlock the
-+				 * pagevec.
-+				 */
-+				start = __munlock_pagevec_fill(&pvec, vma,
-+						zoneid, start, end);
-+				__munlock_pagevec(&pvec, zone);
-+				goto next;
-+			}
- 		}
--		/* It's a bug to munlock in the middle of a THP page */
--		VM_BUG_ON((start >> PAGE_SHIFT) & page_mask);
- 		page_increm = 1 + page_mask;
- 		start += page_increm * PAGE_SIZE;
- next:
-diff -puN mm/swap.c~thp-allow-mlocked-thp-again mm/swap.c
---- a/mm/swap.c~thp-allow-mlocked-thp-again
-+++ a/mm/swap.c
-@@ -358,6 +358,7 @@ static void __lru_cache_activate_page(st
-  */
- void mark_page_accessed(struct page *page)
- {
-+	page = compound_head(page);
- 	if (!PageActive(page) && !PageUnevictable(page) &&
- 			PageReferenced(page)) {
- 
+ 	 * At this point page must be either written or cleaned by truncate.
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
