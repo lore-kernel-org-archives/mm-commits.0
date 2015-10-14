@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault.patch added to -mm tree
-Date: Wed, 14 Oct 2015 14:12:39 -0700
-Message-ID: <561ec547.5EhcoNT/o2zx9fsk%akpm@linux-foundation.org>
+Subject: + mm-adjust-foll_split-for-new-refcounting.patch added to -mm
+ tree
+Date: Wed, 14 Oct 2015 14:12:42 -0700
+Message-ID: <561ec54a.zuH0wOA2jNcSm1pL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49972 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49986 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753783AbbJNVMk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:12:40 -0400
+	with ESMTP id S1753783AbbJNVMn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:12:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, thp: adjust conditions when we can reuse the page on WP fault
+     Subject: mm: adjust FOLL_SPLIT for new refcounting
 has been added to the -mm tree.  Its filename is
-     mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault.patch
+     mm-adjust-foll_split-for-new-refcounting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-adjust-foll_split-for-new-refcounting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-adjust-foll_split-for-new-refcounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,30 +40,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm, thp: adjust conditions when we can reuse the page on WP fault
+Subject: mm: adjust FOLL_SPLIT for new refcounting
 
-With new refcounting we will be able map the same compound page with PTEs
-and PMDs.  It requires adjustment to conditions when we can reuse the page
-on write-protection fault.
+We need to prepare kernel to allow transhuge pages to be mapped with
+ptes too. We need to handle FOLL_SPLIT in follow_page_pte().
 
-For PTE fault we can't reuse the page if it's part of huge page.
-
-For PMD we can only reuse the page if nobody else maps the huge page or
-it's part.  We can do it by checking page_mapcount() on each sub-page, but
-it's expensive.
-
-The cheaper way is to check page_count() to be equal 1: every mapcount
-takes page reference, so this way we can guarantee, that the PMD is the
-only mapping.
-
-This approach can give false negative if somebody pinned the page, but
-that doesn't affect correctness.
+Also we use split_huge_page() directly instead of split_huge_page_pmd().
+split_huge_page_pmd() will gone.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Tested-by: Sasha Levin <sasha.levin@oracle.com>
 Tested-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Jerome Marchand <jmarchan@redhat.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Jerome Marchand <jmarchan@redhat.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
@@ -79,59 +68,96 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    3 ++-
- mm/huge_memory.c     |   12 +++++++++++-
- mm/swapfile.c        |    3 +++
- 3 files changed, 16 insertions(+), 2 deletions(-)
+ mm/gup.c |   67 ++++++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 49 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/swap.h~mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault include/linux/swap.h
---- a/include/linux/swap.h~mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault
-+++ a/include/linux/swap.h
-@@ -539,7 +539,8 @@ static inline int swp_swapcount(swp_entr
- 	return 0;
+diff -puN mm/gup.c~mm-adjust-foll_split-for-new-refcounting mm/gup.c
+--- a/mm/gup.c~mm-adjust-foll_split-for-new-refcounting
++++ a/mm/gup.c
+@@ -116,6 +116,19 @@ retry:
+ 		}
+ 	}
+ 
++	if (flags & FOLL_SPLIT && PageTransCompound(page)) {
++		int ret;
++		get_page(page);
++		pte_unmap_unlock(ptep, ptl);
++		lock_page(page);
++		ret = split_huge_page(page);
++		unlock_page(page);
++		put_page(page);
++		if (ret)
++			return ERR_PTR(ret);
++		goto retry;
++	}
++
+ 	if (flags & FOLL_GET)
+ 		get_page_foll(page);
+ 	if (flags & FOLL_TOUCH) {
+@@ -220,27 +233,45 @@ struct page *follow_page_mask(struct vm_
+ 	}
+ 	if ((flags & FOLL_NUMA) && pmd_protnone(*pmd))
+ 		return no_page_table(vma, flags);
+-	if (pmd_trans_huge(*pmd)) {
+-		if (flags & FOLL_SPLIT) {
++	if (likely(!pmd_trans_huge(*pmd)))
++		return follow_page_pte(vma, address, pmd, flags);
++
++	ptl = pmd_lock(mm, pmd);
++	if (unlikely(!pmd_trans_huge(*pmd))) {
++		spin_unlock(ptl);
++		return follow_page_pte(vma, address, pmd, flags);
++	}
++
++	if (unlikely(pmd_trans_splitting(*pmd))) {
++		spin_unlock(ptl);
++		wait_split_huge_page(vma->anon_vma, pmd);
++		return follow_page_pte(vma, address, pmd, flags);
++	}
++
++	if (flags & FOLL_SPLIT) {
++		int ret;
++		page = pmd_page(*pmd);
++		if (is_huge_zero_page(page)) {
++			spin_unlock(ptl);
++			ret = 0;
+ 			split_huge_page_pmd(vma, address, pmd);
+-			return follow_page_pte(vma, address, pmd, flags);
+-		}
+-		ptl = pmd_lock(mm, pmd);
+-		if (likely(pmd_trans_huge(*pmd))) {
+-			if (unlikely(pmd_trans_splitting(*pmd))) {
+-				spin_unlock(ptl);
+-				wait_split_huge_page(vma->anon_vma, pmd);
+-			} else {
+-				page = follow_trans_huge_pmd(vma, address,
+-							     pmd, flags);
+-				spin_unlock(ptl);
+-				*page_mask = HPAGE_PMD_NR - 1;
+-				return page;
+-			}
+-		} else
++		} else {
++			get_page(page);
+ 			spin_unlock(ptl);
++			lock_page(page);
++			ret = split_huge_page(page);
++			unlock_page(page);
++			put_page(page);
++		}
++
++		return ret ? ERR_PTR(ret) :
++			follow_page_pte(vma, address, pmd, flags);
+ 	}
+-	return follow_page_pte(vma, address, pmd, flags);
++
++	page = follow_trans_huge_pmd(vma, address, pmd, flags);
++	spin_unlock(ptl);
++	*page_mask = HPAGE_PMD_NR - 1;
++	return page;
  }
  
--#define reuse_swap_page(page)	(page_mapcount(page) == 1)
-+#define reuse_swap_page(page) \
-+	(!PageTransCompound(page) && page_mapcount(page) == 1)
- 
- static inline int try_to_free_swap(struct page *page)
- {
-diff -puN mm/huge_memory.c~mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault
-+++ a/mm/huge_memory.c
-@@ -1230,7 +1230,17 @@ int do_huge_pmd_wp_page(struct mm_struct
- 
- 	page = pmd_page(orig_pmd);
- 	VM_BUG_ON_PAGE(!PageCompound(page) || !PageHead(page), page);
--	if (page_mapcount(page) == 1) {
-+	/*
-+	 * We can only reuse the page if nobody else maps the huge page or it's
-+	 * part. We can do it by checking page_mapcount() on each sub-page, but
-+	 * it's expensive.
-+	 * The cheaper way is to check page_count() to be equal 1: every
-+	 * mapcount takes page reference reference, so this way we can
-+	 * guarantee, that the PMD is the only mapping.
-+	 * This can give false negative if somebody pinned the page, but that's
-+	 * fine.
-+	 */
-+	if (page_mapcount(page) == 1 && page_count(page) == 1) {
- 		pmd_t entry;
- 		entry = pmd_mkyoung(orig_pmd);
- 		entry = maybe_pmd_mkwrite(pmd_mkdirty(entry), vma);
-diff -puN mm/swapfile.c~mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault mm/swapfile.c
---- a/mm/swapfile.c~mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault
-+++ a/mm/swapfile.c
-@@ -929,6 +929,9 @@ int reuse_swap_page(struct page *page)
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	if (unlikely(PageKsm(page)))
- 		return 0;
-+	/* The page is part of THP and cannot be reused */
-+	if (PageTransCompound(page))
-+		return 0;
- 	count = page_mapcount(page);
- 	if (count <= 1 && PageSwapCache(page)) {
- 		count += page_swapcount(page);
+ static int get_gate_page(struct mm_struct *mm, unsigned long address,
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
