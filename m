@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + thp-mm-split_huge_page-caller-need-to-lock-page.patch added to
- -mm tree
-Date: Wed, 14 Oct 2015 14:13:55 -0700
-Message-ID: <561ec593.g8viheDArdpfrLw2%akpm@linux-foundation.org>
+Subject: + mm-numa-skip-pte-mapped-thp-on-numa-fault.patch added to -mm
+ tree
+Date: Wed, 14 Oct 2015 14:13:47 -0700
+Message-ID: <561ec58b.Z5YCGFbRe6ZVuPNJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50340 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50300 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753857AbbJNVN5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:13:57 -0400
+	with ESMTP id S1753857AbbJNVNs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:13:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp, mm: split_huge_page(): caller need to lock page
+     Subject: mm, numa: skip PTE-mapped THP on numa fault
 has been added to the -mm tree.  Its filename is
-     thp-mm-split_huge_page-caller-need-to-lock-page.patch
+     mm-numa-skip-pte-mapped-thp-on-numa-fault.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-mm-split_huge_page-caller-need-to-lock-page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-numa-skip-pte-mapped-thp-on-numa-fault.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-mm-split_huge_page-caller-need-to-lock-page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-numa-skip-pte-mapped-thp-on-numa-fault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,20 +40,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp, mm: split_huge_page(): caller need to lock page
+Subject: mm, numa: skip PTE-mapped THP on numa fault
 
-We're going to use migration entries instead of compound_lock() to
-stabilize page refcounts. Setup and remove migration entries require
-page to be locked.
-
-Some of split_huge_page() callers already have the page locked. Let's
-require everybody to lock the page before calling split_huge_page().
+We're going to have THP mapped with PTEs. It will confuse numabalancing.
+Let's skip them for now.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Tested-by: Sasha Levin <sasha.levin@oracle.com>
 Tested-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Jerome Marchand <jmarchan@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
@@ -69,62 +65,25 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    8 +++++++-
- mm/migrate.c        |    8 ++++++--
- 2 files changed, 13 insertions(+), 3 deletions(-)
+ mm/memory.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN mm/memory-failure.c~thp-mm-split_huge_page-caller-need-to-lock-page mm/memory-failure.c
---- a/mm/memory-failure.c~thp-mm-split_huge_page-caller-need-to-lock-page
-+++ a/mm/memory-failure.c
-@@ -1149,7 +1149,9 @@ int memory_failure(unsigned long pfn, in
+diff -puN mm/memory.c~mm-numa-skip-pte-mapped-thp-on-numa-fault mm/memory.c
+--- a/mm/memory.c~mm-numa-skip-pte-mapped-thp-on-numa-fault
++++ a/mm/memory.c
+@@ -3186,6 +3186,12 @@ static int do_numa_page(struct mm_struct
+ 		return 0;
  	}
  
- 	if (!PageHuge(p) && PageTransHuge(hpage)) {
-+		lock_page(hpage);
- 		if (!PageAnon(hpage) || unlikely(split_huge_page(hpage))) {
-+			unlock_page(hpage);
- 			if (!PageAnon(hpage))
- 				pr_err("MCE: %#lx: non anonymous thp\n", pfn);
- 			else
-@@ -1159,6 +1161,7 @@ int memory_failure(unsigned long pfn, in
- 			put_hwpoison_page(p);
- 			return -EBUSY;
- 		}
-+		unlock_page(hpage);
- 		VM_BUG_ON_PAGE(!page_count(p), p);
- 		hpage = compound_head(p);
- 	}
-@@ -1751,7 +1754,10 @@ int soft_offline_page(struct page *page,
- 		return -EBUSY;
- 	}
- 	if (!PageHuge(page) && PageTransHuge(hpage)) {
--		if (PageAnon(hpage) && unlikely(split_huge_page(hpage))) {
-+		lock_page(page);
-+		ret = split_huge_page(hpage);
-+		unlock_page(page);
-+		if (unlikely(ret)) {
- 			pr_info("soft offline: %#lx: failed to split THP\n",
- 				pfn);
- 			if (flags & MF_COUNT_INCREASED)
-diff -puN mm/migrate.c~thp-mm-split_huge_page-caller-need-to-lock-page mm/migrate.c
---- a/mm/migrate.c~thp-mm-split_huge_page-caller-need-to-lock-page
-+++ a/mm/migrate.c
-@@ -949,9 +949,13 @@ static ICE_noinline int unmap_and_move(n
- 		goto out;
- 	}
- 
--	if (unlikely(PageTransHuge(page)))
--		if (unlikely(split_huge_page(page)))
-+	if (unlikely(PageTransHuge(page))) {
-+		lock_page(page);
-+		rc = split_huge_page(page);
-+		unlock_page(page);
-+		if (rc)
- 			goto out;
++	/* TODO: handle PTE-mapped THP */
++	if (PageCompound(page)) {
++		pte_unmap_unlock(ptep, ptl);
++		return 0;
 +	}
- 
- 	rc = __unmap_and_move(page, newpage, force, mode);
- 
++
+ 	/*
+ 	 * Avoid grouping on RO pages in general. RO pages shouldn't hurt as
+ 	 * much anyway since they can be in shared cache state. This misses
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
