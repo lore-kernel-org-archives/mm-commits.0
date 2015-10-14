@@ -1,70 +1,173 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-remove-obsolete-flag-in_crash_kexec.patch removed
- from -mm tree
-Date: Wed, 14 Oct 2015 12:51:25 -0700
-Message-ID: <561eb23d.N8buwv/JCQBZD3m+%akpm@linux-foundation.org>
+Subject: +
+ revert-kmod-handle-umh_wait_proc-from-system-unbound-workqueue.patch added
+ to -mm tree
+Date: Wed, 14 Oct 2015 13:36:22 -0700
+Message-ID: <561ebcc6.GXtTjkgzYCtIxkK/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47828 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49147 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753145AbbJNTv0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 15:51:26 -0400
+	with ESMTP id S1752964AbbJNUgX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 16:36:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mnfhuang@gmail.com, dzickus@redhat.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, cl@linux.com, fweisbec@gmail.com, riel@redhat.com, rusty@rustcorp.com.au, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: Remove obsolete flag 'in_crash_kexec'
-has been removed from the -mm tree.  Its filename was
-     kexec-remove-obsolete-flag-in_crash_kexec.patch
+     Subject: Revert "kmod: handle UMH_WAIT_PROC from system unbound workqueue"
+has been added to the -mm tree.  Its filename is
+     revert-kmod-handle-umh_wait_proc-from-system-unbound-workqueue.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/revert-kmod-handle-umh_wait_proc-from-system-unbound-workqueue.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/revert-kmod-handle-umh_wait_proc-from-system-unbound-workqueue.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Minfei Huang <mnfhuang@gmail.com>
-Subject: kexec: Remove obsolete flag 'in_crash_kexec'
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: Revert "kmod: handle UMH_WAIT_PROC from system unbound workqueue"
 
-Previously, UV NMI used 'in_crash_kexec' flag to be sure that we are in
-kdump kernel or not in commit 5edd19af18a36a4e ("x86, UV: Make kdump avoid
-stack dumps").  But this flags is removed in commit 9c48f1c629ecfa114850c0
-("x86, nmi: Wire up NMI handlers to new routines").
+This reverts bb304a5c6fc63d8506c ("kmod: handle UMH_WAIT_PROC from system
+unbound workqueue") because this patch leads to kthread zombies.
 
-Since it isn't used any more, remove it.
+call_usermodehelper_exec_sync() does fork() + wait() with "unignored"
+SIGCHLD.  What we have missed is that this worker thread can have other
+children previously forked by call_usermodehelper_exec_work() without
+UMH_WAIT_PROC.  If such a child exits in between it becomes a zombie and
+nobody can reap it (unless/until this worker thread exits too).
 
-Signed-off-by: Minfei Huang <mnfhuang@gmail.com>
-Acked-by: Don Zickus <dzickus@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/kdebug.h |    6 ------
- arch/x86/kernel/crash.c       |    3 ---
- 2 files changed, 9 deletions(-)
+ kernel/kmod.c |   44 ++++++++++++++++++++++++--------------------
+ 1 file changed, 24 insertions(+), 20 deletions(-)
 
-diff -puN arch/x86/include/asm/kdebug.h~kexec-remove-obsolete-flag-in_crash_kexec arch/x86/include/asm/kdebug.h
---- a/arch/x86/include/asm/kdebug.h~kexec-remove-obsolete-flag-in_crash_kexec
-+++ a/arch/x86/include/asm/kdebug.h
-@@ -29,11 +29,5 @@ extern void show_trace(struct task_struc
- extern void __show_regs(struct pt_regs *regs, int all);
- extern unsigned long oops_begin(void);
- extern void oops_end(unsigned long, struct pt_regs *, int signr);
--#ifdef CONFIG_KEXEC_CORE
--extern int in_crash_kexec;
--#else
--/* no crash dump is ever in progress if no crash kernel can be kexec'd */
--#define in_crash_kexec 0
--#endif
+diff -puN kernel/kmod.c~revert-kmod-handle-umh_wait_proc-from-system-unbound-workqueue kernel/kmod.c
+--- a/kernel/kmod.c~revert-kmod-handle-umh_wait_proc-from-system-unbound-workqueue
++++ a/kernel/kmod.c
+@@ -265,9 +265,15 @@ out:
+ 	do_exit(0);
+ }
  
- #endif /* _ASM_X86_KDEBUG_H */
-diff -puN arch/x86/kernel/crash.c~kexec-remove-obsolete-flag-in_crash_kexec arch/x86/kernel/crash.c
---- a/arch/x86/kernel/crash.c~kexec-remove-obsolete-flag-in_crash_kexec
-+++ a/arch/x86/kernel/crash.c
-@@ -75,8 +75,6 @@ struct crash_memmap_data {
- 	unsigned int type;
- };
+-/* Handles UMH_WAIT_PROC.  */
+-static void call_usermodehelper_exec_sync(struct subprocess_info *sub_info)
++/*
++ * Handles UMH_WAIT_PROC. Our parent (unbound workqueue) might not be able to
++ * run enough instances to handle usermodehelper completions without blocking
++ * some other pending requests. That's why we use a kernel thread dedicated for
++ * that purpose.
++ */
++static int call_usermodehelper_exec_sync(void *data)
+ {
++	struct subprocess_info *sub_info = data;
+ 	pid_t pid;
  
--int in_crash_kexec;
+ 	/* If SIGCLD is ignored sys_wait4 won't populate the status. */
+@@ -281,9 +287,9 @@ static void call_usermodehelper_exec_syn
+ 		 * Normally it is bogus to call wait4() from in-kernel because
+ 		 * wait4() wants to write the exit code to a userspace address.
+ 		 * But call_usermodehelper_exec_sync() always runs as kernel
+-		 * thread (workqueue) and put_user() to a kernel address works
+-		 * OK for kernel threads, due to their having an mm_segment_t
+-		 * which spans the entire address space.
++		 * thread and put_user() to a kernel address works OK for kernel
++		 * threads, due to their having an mm_segment_t which spans the
++		 * entire address space.
+ 		 *
+ 		 * Thus the __user pointer cast is valid here.
+ 		 */
+@@ -298,21 +304,19 @@ static void call_usermodehelper_exec_syn
+ 			sub_info->retval = ret;
+ 	}
+ 
+-	/* Restore default kernel sig handler */
+-	kernel_sigaction(SIGCHLD, SIG_IGN);
+-
+ 	umh_complete(sub_info);
++	do_exit(0);
+ }
+ 
+ /*
+- * We need to create the usermodehelper kernel thread from a task that is affine
++ * This function doesn't strictly needs to be called asynchronously. But we
++ * need to create the usermodehelper kernel threads from a task that is affine
+  * to an optimized set of CPUs (or nohz housekeeping ones) such that they
+  * inherit a widest affinity irrespective of call_usermodehelper() callers with
+  * possibly reduced affinity (eg: per-cpu workqueues). We don't want
+  * usermodehelper targets to contend a busy CPU.
+  *
+- * Unbound workqueues provide such wide affinity and allow to block on
+- * UMH_WAIT_PROC requests without blocking pending request (up to some limit).
++ * Unbound workqueues provide such wide affinity.
+  *
+  * Besides, workqueues provide the privilege level that caller might not have
+  * to perform the usermodehelper request.
+@@ -322,18 +326,18 @@ static void call_usermodehelper_exec_wor
+ {
+ 	struct subprocess_info *sub_info =
+ 		container_of(work, struct subprocess_info, work);
++	pid_t pid;
+ 
+-	if (sub_info->wait & UMH_WAIT_PROC) {
+-		call_usermodehelper_exec_sync(sub_info);
+-	} else {
+-		pid_t pid;
+-
++	if (sub_info->wait & UMH_WAIT_PROC)
++		pid = kernel_thread(call_usermodehelper_exec_sync, sub_info,
++				    CLONE_FS | CLONE_FILES | SIGCHLD);
++	else
+ 		pid = kernel_thread(call_usermodehelper_exec_async, sub_info,
+ 				    SIGCHLD);
+-		if (pid < 0) {
+-			sub_info->retval = pid;
+-			umh_complete(sub_info);
+-		}
++
++	if (pid < 0) {
++		sub_info->retval = pid;
++		umh_complete(sub_info);
+ 	}
+ }
+ 
+_
+
+Patches currently in -mm which might be from oleg@redhat.com are
+
+revert-kmod-handle-umh_wait_proc-from-system-unbound-workqueue.patch
+mmoom-fix-potentially-killing-unrelated-process-fix.patch
+mm-fix-the-racy-mm-locked_vm-change-in.patch
+mm-add-the-struct-mm_struct-mm-local-into.patch
+mm-oom_kill-remove-the-wrong-fatal_signal_pending-check-in-oom_kill_process.patch
+mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop.patch
+mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process.patch
+change-current_is_single_threaded-to-use-for_each_thread.patch
+signals-kill-block_all_signals-and-unblock_all_signals.patch
+signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal.patch
+signal-introduce-kernel_signal_stop-to-fix-jffs2_garbage_collect_thread.patch
+signal-remove-jffs2_garbage_collect_thread-allow_signalsigcont.patch
+coredump-ensure-all-coredumping-tasks-have-signal_group_coredump.patch
+coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
+
