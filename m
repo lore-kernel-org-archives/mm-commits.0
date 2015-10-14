@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + migrate_pages-try-to-split-pages-on-qeueuing.patch added to -mm tree
-Date: Wed, 14 Oct 2015 14:14:01 -0700
-Message-ID: <561ec599.hEEklgj4w3lOo7c5%akpm@linux-foundation.org>
+Subject: +
+ thp-add-option-to-setup-migration-entries-during-pmd-split.patch added to
+ -mm tree
+Date: Wed, 14 Oct 2015 14:13:52 -0700
+Message-ID: <561ec590.50p1NpMMKiMkKLgx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50364 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50324 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754010AbbJNVOD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:14:03 -0400
+	with ESMTP id S1754556AbbJNVNy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 17:13:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: migrate_pages: try to split pages on qeueuing
+     Subject: thp: add option to setup migration entries during PMD split
 has been added to the -mm tree.  Its filename is
-     migrate_pages-try-to-split-pages-on-qeueuing.patch
+     thp-add-option-to-setup-migration-entries-during-pmd-split.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/migrate_pages-try-to-split-pages-on-qeueuing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-add-option-to-setup-migration-entries-during-pmd-split.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/migrate_pages-try-to-split-pages-on-qeueuing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-add-option-to-setup-migration-entries-during-pmd-split.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,16 +41,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: migrate_pages: try to split pages on qeueuing
+Subject: thp: add option to setup migration entries during PMD split
 
-We are not able to migrate THPs. It means it's not enough to split only
-PMD on migration -- we need to split compound page under it too.
+We are going to use migration PTE entries to stabilize page counts.
+If the page is mapped with PMDs we need to split the PMD and setup
+migration entries. It's reasonable to combine these operations to avoid
+double-scanning over the page table.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Tested-by: Sasha Levin <sasha.levin@oracle.com>
 Tested-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Jerome Marchand <jmarchan@redhat.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
@@ -64,70 +68,55 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   40 ++++++++++++++++++++++++++++++++++++----
- 1 file changed, 36 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |   22 ++++++++++++++--------
+ 1 file changed, 14 insertions(+), 8 deletions(-)
 
-diff -puN mm/mempolicy.c~migrate_pages-try-to-split-pages-on-qeueuing mm/mempolicy.c
---- a/mm/mempolicy.c~migrate_pages-try-to-split-pages-on-qeueuing
-+++ a/mm/mempolicy.c
-@@ -489,14 +489,31 @@ static int queue_pages_pte_range(pmd_t *
+diff -puN mm/huge_memory.c~thp-add-option-to-setup-migration-entries-during-pmd-split mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-add-option-to-setup-migration-entries-during-pmd-split
++++ a/mm/huge_memory.c
+@@ -2771,7 +2771,7 @@ static void __split_huge_zero_page_pmd(s
+ }
+ 
+ static void __split_huge_pmd_locked(struct vm_area_struct *vma, pmd_t *pmd,
+-		unsigned long haddr)
++		unsigned long haddr, bool freeze)
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
  	struct page *page;
- 	struct queue_pages *qp = walk->private;
- 	unsigned long flags = qp->flags;
--	int nid;
-+	int nid, ret;
- 	pte_t *pte;
- 	spinlock_t *ptl;
- 
--	split_huge_pmd(vma, pmd, addr);
--	if (pmd_trans_unstable(pmd))
--		return 0;
-+	if (pmd_trans_huge(*pmd)) {
-+		ptl = pmd_lock(walk->mm, pmd);
-+		if (pmd_trans_huge(*pmd)) {
-+			page = pmd_page(*pmd);
-+			if (is_huge_zero_page(page)) {
-+				spin_unlock(ptl);
-+				split_huge_pmd(vma, pmd, addr);
-+			} else {
-+				get_page(page);
-+				spin_unlock(ptl);
-+				lock_page(page);
-+				ret = split_huge_page(page);
-+				unlock_page(page);
-+				put_page(page);
-+				if (ret)
-+					return 0;
-+			}
+@@ -2815,12 +2815,18 @@ static void __split_huge_pmd_locked(stru
+ 		 * transferred to avoid any possibility of altering
+ 		 * permissions across VMAs.
+ 		 */
+-		entry = mk_pte(page + i, vma->vm_page_prot);
+-		entry = maybe_mkwrite(pte_mkdirty(entry), vma);
+-		if (!write)
+-			entry = pte_wrprotect(entry);
+-		if (!young)
+-			entry = pte_mkold(entry);
++		if (freeze) {
++			swp_entry_t swp_entry;
++			swp_entry = make_migration_entry(page + i, write);
++			entry = swp_entry_to_pte(swp_entry);
++		} else {
++			entry = mk_pte(page + i, vma->vm_page_prot);
++			entry = maybe_mkwrite(pte_mkdirty(entry), vma);
++			if (!write)
++				entry = pte_wrprotect(entry);
++			if (!young)
++				entry = pte_mkold(entry);
 +		}
-+	}
- 
-+retry:
- 	pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
- 	for (; addr != end; pte++, addr += PAGE_SIZE) {
- 		if (!pte_present(*pte))
-@@ -513,6 +530,21 @@ static int queue_pages_pte_range(pmd_t *
- 		nid = page_to_nid(page);
- 		if (node_isset(nid, *qp->nmask) == !!(flags & MPOL_MF_INVERT))
- 			continue;
-+		if (PageTail(page) && PageAnon(page)) {
-+			get_page(page);
-+			pte_unmap_unlock(pte, ptl);
-+			lock_page(page);
-+			ret = split_huge_page(page);
-+			unlock_page(page);
-+			put_page(page);
-+			/* Failed to split -- skip. */
-+			if (ret) {
-+				pte = pte_offset_map_lock(walk->mm, pmd,
-+						addr, &ptl);
-+				continue;
-+			}
-+			goto retry;
-+		}
- 
- 		if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL))
- 			migrate_page_add(page, qp->pagelist, flags);
+ 		pte = pte_offset_map(&_pmd, haddr);
+ 		BUG_ON(!pte_none(*pte));
+ 		set_pte_at(mm, haddr, pte, entry);
+@@ -2861,7 +2867,7 @@ void __split_huge_pmd(struct vm_area_str
+ 	mmu_notifier_invalidate_range_start(mm, haddr, haddr + HPAGE_PMD_SIZE);
+ 	ptl = pmd_lock(mm, pmd);
+ 	if (likely(pmd_trans_huge(*pmd)))
+-		__split_huge_pmd_locked(vma, pmd, haddr);
++		__split_huge_pmd_locked(vma, pmd, haddr, false);
+ 	spin_unlock(ptl);
+ 	mmu_notifier_invalidate_range_end(mm, haddr, haddr + HPAGE_PMD_SIZE);
+ }
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
