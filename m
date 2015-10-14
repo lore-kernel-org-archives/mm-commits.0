@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-kconfig-zlib_deflate-must-select-bitreverse.patch added to
- -mm tree
-Date: Mon, 12 Oct 2015 14:55:46 -0700
-Message-ID: <561c2c62.RnNzra/nrI74vEDq%akpm@linux-foundation.org>
+Subject: + linux-next-git-rejects.patch added to -mm tree
+Date: Wed, 14 Oct 2015 12:43:30 -0700
+Message-ID: <561eb062.Z7YWRzcTVBEtvi1n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34020 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47689 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752738AbbJLVzr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 12 Oct 2015 17:55:47 -0400
+	with ESMTP id S1753794AbbJNTnb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 15:43:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jim.epost@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/Kconfig: ZLIB_DEFLATE must select BITREVERSE
+     Subject: linux-next-git-rejects
 has been added to the -mm tree.  Its filename is
-     lib-kconfig-zlib_deflate-must-select-bitreverse.patch
+     linux-next-git-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-kconfig-zlib_deflate-must-select-bitreverse.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-kconfig-zlib_deflate-must-select-bitreverse.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,35 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib/Kconfig: ZLIB_DEFLATE must select BITREVERSE
+Subject: linux-next-git-rejects
 
-lib/built-in.o: In function `__bitrev32':
-deftree.c:(.text+0x1e799): undefined reference to `byte_rev_table'
-deftree.c:(.text+0x1e7a0): undefined reference to `byte_rev_table'
-deftree.c:(.text+0x1e7b4): undefined reference to `byte_rev_table'
-deftree.c:(.text+0x1e7c1): undefined reference to `byte_rev_table'
-
-Anything which uses bitrevX() has to select BITREVERSE, to grab
-lib/bitrev.o.
-
-Reported-by: Jim Davis <jim.epost@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/x86/crypto/camellia_aesni_avx_glue.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN lib/Kconfig~lib-kconfig-zlib_deflate-must-select-bitreverse lib/Kconfig
---- a/lib/Kconfig~lib-kconfig-zlib_deflate-must-select-bitreverse
-+++ a/lib/Kconfig
-@@ -220,6 +220,7 @@ config ZLIB_INFLATE
+diff -puN arch/x86/crypto/camellia_aesni_avx_glue.c~linux-next-git-rejects arch/x86/crypto/camellia_aesni_avx_glue.c
+--- a/arch/x86/crypto/camellia_aesni_avx_glue.c~linux-next-git-rejects
++++ a/arch/x86/crypto/camellia_aesni_avx_glue.c
+@@ -559,12 +559,8 @@ static int __init camellia_aesni_init(vo
+ 		return -ENODEV;
+ 	}
  
- config ZLIB_DEFLATE
- 	tristate
-+	select BITREVERSE
- 
- config LZO_COMPRESS
- 	tristate
+-<<<<<<< HEAD
+-	if (!cpu_has_xfeatures(XSTATE_SSE | XSTATE_YMM, &feature_name)) {
+-=======
+ 	if (!cpu_has_xfeatures(XFEATURE_MASK_SSE | XFEATURE_MASK_YMM,
+ 				&feature_name)) {
+->>>>>>> linux-next/akpm-base
+ 		pr_info("CPU feature '%s' is not supported.\n", feature_name);
+ 		return -ENODEV;
+ 	}
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +100,7 @@ rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
 dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
 panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out-fix.patch
 linux-next-rejects.patch
+linux-next-git-rejects.patch
 net-ipv4-routec-prevent-oops.patch
 remove-abs64.patch
 remove-abs64-fix.patch
