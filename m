@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mailmap-update-javier-martinez-canillas-email.patch added to
- -mm tree
-Date: Thu, 15 Oct 2015 12:44:33 -0700
-Message-ID: <56200221.3rBniwP7FG1mU0dg%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-should-reclaim-the-inode-if-__ocfs2_mknod_locked-returns-an-error.patch added to -mm tree
+Date: Thu, 15 Oct 2015 12:49:11 -0700
+Message-ID: <56200337.tpAIQIzrRuy3e2WJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58133 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58156 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751048AbbJOToe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 15:44:34 -0400
+	with ESMTP id S1753054AbbJOTtM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 15:49:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: javier@osg.samsung.com, mm-commits@vger.kernel.org
+To: alex.chen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mailmap: update Javier Martinez Canillas' email
+     Subject: ocfs2: should reclaim the inode if '__ocfs2_mknod_locked' returns an error
 has been added to the -mm tree.  Its filename is
-     mailmap-update-javier-martinez-canillas-email.patch
+     ocfs2-should-reclaim-the-inode-if-__ocfs2_mknod_locked-returns-an-error.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mailmap-update-javier-martinez-canillas-email.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-should-reclaim-the-inode-if-__ocfs2_mknod_locked-returns-an-error.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mailmap-update-javier-martinez-canillas-email.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-should-reclaim-the-inode-if-__ocfs2_mknod_locked-returns-an-error.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,34 +39,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: mailmap: update Javier Martinez Canillas' email
+From: alex chen <alex.chen@huawei.com>
+Subject: ocfs2: should reclaim the inode if '__ocfs2_mknod_locked' returns an error
 
-The get_maintainer script still reports my old Collabora email based on
-old commits but that address no longer exist so update mailmap to report
-my current email and avoid people sending to the old address.
+In ocfs2_mknod_locked if '__ocfs2_mknod_locke		d' returns an error, we
+should reclaim the inode successfully claimed above, otherwise, the
+inode never be reused. The case is described below:
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+ocfs2_mknod
+    ocfs2_mknod_locked
+	ocfs2_claim_new_inode
+		Successfully claim the inode
+        __ocfs2_mknod_locked
+            ocfs2_journal_access_di
+            Failed because of -ENOMEM or other reasons, the inode
+			lockres has not been initialized yet.
+
+    iput(inode)
+        ocfs2_evict_inode
+            ocfs2_delete_inode
+                ocfs2_inode_lock
+                    ocfs2_inode_lock_full_nested
+                        __ocfs2_cluster_lock
+				Return -EINVAL because of the inode
+				lockres has not been initialized.
+
+		So the following operations are not performed
+		ocfs2_wipe_inode
+			ocfs2_remove_inode
+				ocfs2_free_dinode
+					ocfs2_free_suballoc_bits
+
+Signed-off-by: Alex Chen <alex.chen@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ fs/ocfs2/namei.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN .mailmap~mailmap-update-javier-martinez-canillas-email .mailmap
---- a/.mailmap~mailmap-update-javier-martinez-canillas-email
-+++ a/.mailmap
-@@ -59,6 +59,7 @@ James Bottomley <jejb@mulgrave.(none)>
- James Bottomley <jejb@titanic.il.steeleye.com>
- James E Wilson <wilson@specifix.com>
- James Ketrenos <jketreno@io.(none)>
-+<javier@osg.samsung.com> <javier.martinez@collabora.co.uk>
- Jean Tourrilhes <jt@hpl.hp.com>
- Jeff Garzik <jgarzik@pretzel.yyz.us>
- Jens Axboe <axboe@suse.de>
+diff -puN fs/ocfs2/namei.c~ocfs2-should-reclaim-the-inode-if-__ocfs2_mknod_locked-returns-an-error fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-should-reclaim-the-inode-if-__ocfs2_mknod_locked-returns-an-error
++++ a/fs/ocfs2/namei.c
+@@ -655,9 +655,18 @@ static int ocfs2_mknod_locked(struct ocf
+ 		return status;
+ 	}
+ 
+-	return __ocfs2_mknod_locked(dir, inode, dev, new_fe_bh,
++	status = __ocfs2_mknod_locked(dir, inode, dev, new_fe_bh,
+ 				    parent_fe_bh, handle, inode_ac,
+ 				    fe_blkno, suballoc_loc, suballoc_bit);
++	if (status < 0) {
++		u64 bg_blkno = ocfs2_which_suballoc_group(fe_blkno, suballoc_bit);
++		int tmp = ocfs2_free_suballoc_bits(handle, inode_ac->ac_inode,
++				inode_ac->ac_bh, suballoc_bit, bg_blkno, 1);
++		if (tmp)
++			mlog_errno(tmp);
++	}
++
++	return status;
+ }
+ 
+ static int ocfs2_mkdir(struct inode *dir,
 _
 
-Patches currently in -mm which might be from javier@osg.samsung.com are
+Patches currently in -mm which might be from alex.chen@huawei.com are
 
-mailmap-update-javier-martinez-canillas-email.patch
+ocfs2-should-reclaim-the-inode-if-__ocfs2_mknod_locked-returns-an-error.patch
 
