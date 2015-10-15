@@ -1,97 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: +
- include-linux-compiler-gcch-hide-assume_aligned-attribute-from-sparse.patch added to -mm tree
-Date: Wed, 14 Oct 2015 16:24:17 -0700
-Message-ID: <561ee421.O1O4nAx5Sxsy3a1+%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Thu, 15 Oct 2015 12:26:43 -0700
+Message-ID: <561ffdf3.QtbSsclVTqjAQ8GL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52167 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57668 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753664AbbJNXYS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 14 Oct 2015 19:24:18 -0400
+	with ESMTP id S1751850AbbJOT0o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 15:26:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, Valdis.Kletnieks@vt.edu, sparse@chrisli.org, valdis.kletnieks@vt.edu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/compiler-gcc.h: hide assume_aligned attribute from sparse
-has been added to the -mm tree.  Its filename is
-     include-linux-compiler-gcch-hide-assume_aligned-attribute-from-sparse.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-compiler-gcch-hide-assume_aligned-attribute-from-sparse.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-compiler-gcch-hide-assume_aligned-attribute-from-sparse.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: include/linux/compiler-gcc.h: hide assume_aligned attribute from sparse
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-The patch "slab.h: sprinkle __assume_aligned attributes" causes *tons* of
-whinges if you do 'make C=2' with sparse 0.5.0:
-
-  CHECK   drivers/media/usb/pwc/pwc-if.c
-include/linux/slab.h:307:43: error: attribute '__assume_aligned__': unknown attribute
-include/linux/slab.h:308:58: error: attribute '__assume_aligned__': unknown attribute
-include/linux/slab.h:337:73: error: attribute '__assume_aligned__': unknown attribute
-include/linux/slab.h:375:74: error: attribute '__assume_aligned__': unknown attribute
-include/linux/slab.h:378:80: error: attribute '__assume_aligned__': unknown attribute
-
-sparse apparently pretends to be gcc >= 4.9, yet isn't prepared to handle
-all the function attributes supported by those gccs and complains loudly. 
-So hide the definition of __assume_aligned from it (so that the generic
-one in compiler.h gets used).
-
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Reported-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Tested-By: Valdis Kletnieks <valdis.kletnieks@vt.edu>
-Cc: "Christopher Li" <sparse@chrisli.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/crypto/camellia_aesni_avx_glue.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN include/linux/compiler-gcc.h~include-linux-compiler-gcch-hide-assume_aligned-attribute-from-sparse include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~include-linux-compiler-gcch-hide-assume_aligned-attribute-from-sparse
-+++ a/include/linux/compiler-gcc.h
-@@ -211,7 +211,7 @@
- #endif
+diff -puN arch/x86/crypto/camellia_aesni_avx_glue.c~linux-next-git-rejects arch/x86/crypto/camellia_aesni_avx_glue.c
+--- a/arch/x86/crypto/camellia_aesni_avx_glue.c~linux-next-git-rejects
++++ a/arch/x86/crypto/camellia_aesni_avx_glue.c
+@@ -559,12 +559,8 @@ static int __init camellia_aesni_init(vo
+ 		return -ENODEV;
+ 	}
  
- 
--#if GCC_VERSION >= 40900
-+#if GCC_VERSION >= 40900 && !defined(__CHECKER__)
- /*
-  * __assume_aligned(n, k): Tell the optimizer that the returned
-  * pointer can be assumed to be k modulo n. The second argument is
+-<<<<<<< HEAD
+-	if (!cpu_has_xfeatures(XSTATE_SSE | XSTATE_YMM, &feature_name)) {
+-=======
+ 	if (!cpu_has_xfeatures(XFEATURE_MASK_SSE | XFEATURE_MASK_YMM,
+ 				&feature_name)) {
+->>>>>>> linux-next/akpm-base
+ 		pr_info("CPU feature '%s' is not supported.\n", feature_name);
+ 		return -ENODEV;
+ 	}
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-compilerh-add-support-for-function-attribute-assume_aligned.patch
-include-linux-compiler-gcch-hide-assume_aligned-attribute-from-sparse.patch
-slabh-sprinkle-__assume_aligned-attributes.patch
-lib-dynamic_debugc-use-kstrdup_const.patch
-lib-vsprintfc-handle-invalid-format-specifiers-more-robustly.patch
-lib-vsprintfc-also-improve-sanity-check-in-bstr_printf.patch
-lib-vsprintfc-remove-special-handling-in-pointer.patch
-test_printf-test-printf-family-at-runtime.patch
-lib-vsprintfc-update-documentation.patch
-lib-introduce-kvasprintf_const.patch
-kobject-use-kvasprintf_const-for-formatting-name.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+lib-kconfig-zlib_deflate-must-select-bitreverse.patch
+mm.patch
+slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
+mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
+mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
+mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
+include-linux-mmzoneh-reflow-comment.patch
+mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
+mm-vmstatc-uninline-node_page_state.patch
+mm-vmstatc-uninline-node_page_state-fix.patch
+kasan-various-fixes-in-documentation-checkpatch-fixes.patch
+zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+include-linux-compiler-gcch-improve-__visible-documentation.patch
+fs-jffs2-wbufc-remove-stray-semicolon.patch
+lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
+rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
+dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
+panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out-fix.patch
+linux-next-rejects.patch
+net-ipv4-routec-prevent-oops.patch
+remove-abs64.patch
+remove-abs64-fix.patch
+remove-abs64-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
