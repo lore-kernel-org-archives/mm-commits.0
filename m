@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-use-preempth-for-in_interrupt.patch added to -mm tree
-Date: Thu, 15 Oct 2015 12:43:24 -0700
-Message-ID: <562001dc.ZTel8INjkb3EVmyn%akpm@linux-foundation.org>
+Subject: + mailmap-update-javier-martinez-canillas-email.patch added to
+ -mm tree
+Date: Thu, 15 Oct 2015 12:44:33 -0700
+Message-ID: <56200221.3rBniwP7FG1mU0dg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58117 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58133 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752222AbbJOTnY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 15:43:24 -0400
+	with ESMTP id S1751048AbbJOToe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 15:44:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: javier@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: use preempt.h for in_interrupt()
+     Subject: mailmap: update Javier Martinez Canillas' email
 has been added to the -mm tree.  Its filename is
-     zsmalloc-use-preempth-for-in_interrupt.patch
+     mailmap-update-javier-martinez-canillas-email.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-use-preempth-for-in_interrupt.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mailmap-update-javier-martinez-canillas-email.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-use-preempth-for-in_interrupt.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mailmap-update-javier-martinez-canillas-email.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,42 +39,34 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: zsmalloc: use preempt.h for in_interrupt()
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: mailmap: update Javier Martinez Canillas' email
 
-A cosmetic change.
+The get_maintainer script still reports my old Collabora email based on
+old commits but that address no longer exist so update mailmap to report
+my current email and avoid people sending to the old address.
 
-Commit c60369f01125 ("staging: zsmalloc: prevent mappping in interrupt
-context") added in_interrupt() check to zs_map_object() and 'hardirq.h'
-include; but in_interrupt() macro is defined in 'preempt.h' not in
-'hardirq.h', so include it instead.
-
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/zsmalloc.c~zsmalloc-use-preempth-for-in_interrupt mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-use-preempth-for-in_interrupt
-+++ a/mm/zsmalloc.c
-@@ -58,7 +58,7 @@
- #include <linux/cpumask.h>
- #include <linux/cpu.h>
- #include <linux/vmalloc.h>
--#include <linux/hardirq.h>
-+#include <linux/preempt.h>
- #include <linux/spinlock.h>
- #include <linux/types.h>
- #include <linux/debugfs.h>
+diff -puN .mailmap~mailmap-update-javier-martinez-canillas-email .mailmap
+--- a/.mailmap~mailmap-update-javier-martinez-canillas-email
++++ a/.mailmap
+@@ -59,6 +59,7 @@ James Bottomley <jejb@mulgrave.(none)>
+ James Bottomley <jejb@titanic.il.steeleye.com>
+ James E Wilson <wilson@specifix.com>
+ James Ketrenos <jketreno@io.(none)>
++<javier@osg.samsung.com> <javier.martinez@collabora.co.uk>
+ Jean Tourrilhes <jt@hpl.hp.com>
+ Jeff Garzik <jgarzik@pretzel.yyz.us>
+ Jens Axboe <axboe@suse.de>
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from javier@osg.samsung.com are
 
-maintainers-add-myself-as-zsmalloc-reviewer.patch
-zram-keep-the-exact-overcommited-value-in-mem_used_max.patch
-mm-zsmalloc-constify-struct-zs_pool-name.patch
-zsmalloc-use-preempth-for-in_interrupt.patch
+mailmap-update-javier-martinez-canillas-email.patch
 
