@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-cma-fix-incorrect-type-conversion-for-size-during-dma-allocation.patch
- added to -mm tree
-Date: Thu, 15 Oct 2015 12:38:21 -0700
-Message-ID: <562000ad.+SjfPWMKL28cK/BY%akpm@linux-foundation.org>
+Subject: + ipcmsg-drop-dst-nil-validation-in-copy_msg.patch added to -mm
+ tree
+Date: Thu, 15 Oct 2015 12:40:46 -0700
+Message-ID: <5620013e.88iz4gVpG9/qkj4Y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58087 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58100 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751741AbbJOTiW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 15:38:22 -0400
+	with ESMTP id S1751850AbbJOTkr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 15:40:47 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rvaswani@codeaurora.org, gregkh@linuxfoundation.org, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, skinsbursky@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: cma: fix incorrect type conversion for size during dma allocation
+     Subject: ipc,msg: drop dst nil validation in copy_msg
 has been added to the -mm tree.  Its filename is
-     mm-cma-fix-incorrect-type-conversion-for-size-during-dma-allocation.patch
+     ipcmsg-drop-dst-nil-validation-in-copy_msg.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-fix-incorrect-type-conversion-for-size-during-dma-allocation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipcmsg-drop-dst-nil-validation-in-copy_msg.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-fix-incorrect-type-conversion-for-size-during-dma-allocation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipcmsg-drop-dst-nil-validation-in-copy_msg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,100 +39,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rohit Vaswani <rvaswani@codeaurora.org>
-Subject: mm: cma: fix incorrect type conversion for size during dma allocation
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: ipc,msg: drop dst nil validation in copy_msg
 
-This was found during userspace fuzzing test when a large size dma cma
-allocation is made by driver(like ion) through userspace.
+d0edd8528362 ("ipc: convert invalid scenarios to use WARN_ON") relaxed the
+nil dst parameter check, originally being a full BUG_ON.  However, this
+check seems quite unnecessary when the only purpose is for
+ceckpoint/restore (MSG_COPY flag):
 
- show_stack+0x10/0x1c
- dump_stack+0x74/0xc8
- kasan_report_error+0x2b0/0x408
- kasan_report+0x34/0x40
- __asan_storeN+0x15c/0x168
- memset+0x20/0x44
- __dma_alloc_coherent+0x114/0x18c
+o The copy variable is set initially to nil, apparently as a way of
+  ensuring that prepare_copy is previously called.  Which is in fact done,
+  unconditionally at the beginning of do_msgrcv.
 
-Signed-off-by: Rohit Vaswani <rvaswani@codeaurora.org>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+o There is no concurrency with 'copy' (stack allocated in do_msgrcv).
+
+Furthermore, any errors in 'copy' (and thus prepare_copy/copy_msg) should
+always handled by IS_ERR() family.  Therefore remove this check altogether
+as it can never occur with the current users.
+
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/dma-contiguous.c  |    2 +-
- include/linux/cma.h            |    2 +-
- include/linux/dma-contiguous.h |    4 ++--
- mm/cma.c                       |    4 ++--
- 4 files changed, 6 insertions(+), 6 deletions(-)
+ ipc/msgutil.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN drivers/base/dma-contiguous.c~mm-cma-fix-incorrect-type-conversion-for-size-during-dma-allocation drivers/base/dma-contiguous.c
---- a/drivers/base/dma-contiguous.c~mm-cma-fix-incorrect-type-conversion-for-size-during-dma-allocation
-+++ a/drivers/base/dma-contiguous.c
-@@ -187,7 +187,7 @@ int __init dma_contiguous_reserve_area(p
-  * global one. Requires architecture specific dev_get_cma_area() helper
-  * function.
-  */
--struct page *dma_alloc_from_contiguous(struct device *dev, int count,
-+struct page *dma_alloc_from_contiguous(struct device *dev, size_t count,
- 				       unsigned int align)
- {
- 	if (align > CONFIG_CMA_ALIGNMENT)
-diff -puN include/linux/cma.h~mm-cma-fix-incorrect-type-conversion-for-size-during-dma-allocation include/linux/cma.h
---- a/include/linux/cma.h~mm-cma-fix-incorrect-type-conversion-for-size-during-dma-allocation
-+++ a/include/linux/cma.h
-@@ -26,6 +26,6 @@ extern int __init cma_declare_contiguous
- extern int cma_init_reserved_mem(phys_addr_t base, phys_addr_t size,
- 					unsigned int order_per_bit,
- 					struct cma **res_cma);
--extern struct page *cma_alloc(struct cma *cma, unsigned int count, unsigned int align);
-+extern struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align);
- extern bool cma_release(struct cma *cma, const struct page *pages, unsigned int count);
- #endif
-diff -puN include/linux/dma-contiguous.h~mm-cma-fix-incorrect-type-conversion-for-size-during-dma-allocation include/linux/dma-contiguous.h
---- a/include/linux/dma-contiguous.h~mm-cma-fix-incorrect-type-conversion-for-size-during-dma-allocation
-+++ a/include/linux/dma-contiguous.h
-@@ -111,7 +111,7 @@ static inline int dma_declare_contiguous
- 	return ret;
- }
+diff -puN ipc/msgutil.c~ipcmsg-drop-dst-nil-validation-in-copy_msg ipc/msgutil.c
+--- a/ipc/msgutil.c~ipcmsg-drop-dst-nil-validation-in-copy_msg
++++ a/ipc/msgutil.c
+@@ -123,7 +123,6 @@ struct msg_msg *copy_msg(struct msg_msg
+ 	size_t len = src->m_ts;
+ 	size_t alen;
  
--struct page *dma_alloc_from_contiguous(struct device *dev, int count,
-+struct page *dma_alloc_from_contiguous(struct device *dev, size_t count,
- 				       unsigned int order);
- bool dma_release_from_contiguous(struct device *dev, struct page *pages,
- 				 int count);
-@@ -144,7 +144,7 @@ int dma_declare_contiguous(struct device
- }
+-	WARN_ON(dst == NULL);
+ 	if (src->m_ts > dst->m_ts)
+ 		return ERR_PTR(-EINVAL);
  
- static inline
--struct page *dma_alloc_from_contiguous(struct device *dev, int count,
-+struct page *dma_alloc_from_contiguous(struct device *dev, size_t count,
- 				       unsigned int order)
- {
- 	return NULL;
-diff -puN mm/cma.c~mm-cma-fix-incorrect-type-conversion-for-size-during-dma-allocation mm/cma.c
---- a/mm/cma.c~mm-cma-fix-incorrect-type-conversion-for-size-during-dma-allocation
-+++ a/mm/cma.c
-@@ -361,7 +361,7 @@ err:
-  * This function allocates part of contiguous memory on specific
-  * contiguous memory area.
-  */
--struct page *cma_alloc(struct cma *cma, unsigned int count, unsigned int align)
-+struct page *cma_alloc(struct cma *cma, size_t count, unsigned int align)
- {
- 	unsigned long mask, offset, pfn, start = 0;
- 	unsigned long bitmap_maxno, bitmap_no, bitmap_count;
-@@ -371,7 +371,7 @@ struct page *cma_alloc(struct cma *cma,
- 	if (!cma || !cma->count)
- 		return NULL;
- 
--	pr_debug("%s(cma %p, count %d, align %d)\n", __func__, (void *)cma,
-+	pr_debug("%s(cma %p, count %zu, align %d)\n", __func__, (void *)cma,
- 		 count, align);
- 
- 	if (!count)
 _
 
-Patches currently in -mm which might be from rvaswani@codeaurora.org are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-mm-cma-fix-incorrect-type-conversion-for-size-during-dma-allocation.patch
+mm-vmacache-inline-vmacache_valid_mm.patch
+ipcmsg-drop-dst-nil-validation-in-copy_msg.patch
 
