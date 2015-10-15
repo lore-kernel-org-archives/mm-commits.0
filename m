@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-dont-test-shrinker_enabled-in-zs_shrinker_count.patch
- added to -mm tree
-Date: Thu, 15 Oct 2015 12:50:49 -0700
-Message-ID: <56200399.cH0swLyfRqYVChxk%akpm@linux-foundation.org>
+Subject: + zsmalloc-remove-unless-line-in-obj_free.patch added to -mm tree
+Date: Thu, 15 Oct 2015 12:59:47 -0700
+Message-ID: <562005b3.eqaIq18gjC00Kscd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58291 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58304 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753153AbbJOTut (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 15:50:49 -0400
+	with ESMTP id S1751039AbbJOT7s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 15:59:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky.work@gmail.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: zhuhui@xiaomi.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: don't test shrinker_enabled in zs_shrinker_count()
+     Subject: mm/zsmalloc.c: remove useless line in obj_free()
 has been added to the -mm tree.  Its filename is
-     zsmalloc-dont-test-shrinker_enabled-in-zs_shrinker_count.patch
+     zsmalloc-remove-unless-line-in-obj_free.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-dont-test-shrinker_enabled-in-zs_shrinker_count.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-remove-unless-line-in-obj_free.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-dont-test-shrinker_enabled-in-zs_shrinker_count.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-remove-unless-line-in-obj_free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,27 +38,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Subject: zsmalloc: don't test shrinker_enabled in zs_shrinker_count()
+From: Hui Zhu <zhuhui@xiaomi.com>
+Subject: mm/zsmalloc.c: remove useless line in obj_free()
 
-We don't let user to disable shrinker in zsmalloc (once it's been
-enabled), so no need to check ->shrinker_enabled in zs_shrinker_count(),
-at the moment at least.
-
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Hui Zhu <zhuhui@xiaomi.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/zsmalloc.c |    3 ---
  1 file changed, 3 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-dont-test-shrinker_enabled-in-zs_shrinker_count mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-dont-test-shrinker_enabled-in-zs_shrinker_count
+diff -puN mm/zsmalloc.c~zsmalloc-remove-unless-line-in-obj_free mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-remove-unless-line-in-obj_free
 +++ a/mm/zsmalloc.c
-@@ -1823,9 +1823,6 @@ static unsigned long zs_shrinker_count(s
- 	struct zs_pool *pool = container_of(shrinker, struct zs_pool,
- 			shrinker);
+@@ -1429,8 +1429,6 @@ static void obj_free(struct zs_pool *poo
+ 	struct page *first_page, *f_page;
+ 	unsigned long f_objidx, f_offset;
+ 	void *vaddr;
+-	int class_idx;
+-	enum fullness_group fullness;
  
--	if (!pool->shrinker_enabled)
--		return 0;
+ 	BUG_ON(!obj);
+ 
+@@ -1438,7 +1436,6 @@ static void obj_free(struct zs_pool *poo
+ 	obj_to_location(obj, &f_page, &f_objidx);
+ 	first_page = get_first_page(f_page);
+ 
+-	get_zspage_mapping(first_page, &class_idx, &fullness);
+ 	f_offset = obj_idx_to_offset(f_page, f_objidx, class->size);
+ 
+ 	vaddr = kmap_atomic(f_page);
+_
+
+Patches currently in -mm which might be from zhuhui@xiaomi.com are
+
+zsmalloc-add-comments-for-inuse-to-zspage.patch
+zsmalloc-fix-obj_to_head-use-page_privatepage-as-value-but-not-pointer.patch
+zsmalloc-remove-unless-line-in-obj_free.patch
+
