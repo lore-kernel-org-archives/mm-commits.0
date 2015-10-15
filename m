@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + thp-use-is_zero_pfn-only-after-pte_present-check.patch added to -mm tree
-Date: Thu, 15 Oct 2015 13:32:29 -0700
-Message-ID: <56200d5d.sRSLRIScbg2Y/xrv%akpm__44761.7155420177$1444941167$gmane$org@linux-foundation.org>
+Subject: +
+ mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix-2.patch added to -mm tree
+Date: Thu, 15 Oct 2015 13:37:51 -0700
+Message-ID: <56200e9f.fT3wUDeERgGiEyVk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58785 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58869 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751741AbbJOUca (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 16:32:30 -0400
+	with ESMTP id S1752054AbbJOUhw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 16:37:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, aarcange@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, riel@redhat.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: yalin.wang2010@gmail.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: use is_zero_pfn() only after pte_present() check
+     Subject: mm, page_alloc: reserve pageblocks for high-order atomic allocations on demand -fix
 has been added to the -mm tree.  Its filename is
-     thp-use-is_zero_pfn-only-after-pte_present-check.patch
+     mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-use-is_zero_pfn-only-after-pte_present-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-use-is_zero_pfn-only-after-pte_present-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,64 +39,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: thp: use is_zero_pfn() only after pte_present() check
+From: yalin wang <yalin.wang2010@gmail.com>
+Subject: mm, page_alloc: reserve pageblocks for high-order atomic allocations on demand -fix
 
-Use is_zero_pfn() on pteval only after pte_present() check on pteval (It
-might be better idea to introduce is_zero_pte() which checks pte_present()
-first).
+There is a redundant check and a memory leak introduced by a patch in
+mmotm.  This patch removes an unlikely(order) check as we are sure order
+is not zero at the time.  It also checks if a page is already allocated to
+avoid a memory leak.
 
-Otherwise when working on a swap or migration entry and if pte_pfn's
-result is equal to zero_pfn by chance, we lose user's data in
-__collapse_huge_page_copy().  So if you're unlucky, the application
-segfaults and finally you could see below message on exit:
+This is a fix to the mmotm patch
+mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand.patch
 
-BUG: Bad rss-counter state mm:ffff88007f099300 idx:2 val:3
-
-Fixes: ca0984caa823 ("mm: incorporate zero pages into transparent huge pages")
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Signed-off-by: yalin wang <yalin.wang2010@gmail.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: <stable@vger.kernel.org>	[4.1+]
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-use-is_zero_pfn-only-after-pte_present-check mm/huge_memory.c
---- a/mm/huge_memory.c~thp-use-is_zero_pfn-only-after-pte_present-check
-+++ a/mm/huge_memory.c
-@@ -2206,7 +2206,8 @@ static int __collapse_huge_page_isolate(
- 	for (_pte = pte; _pte < pte+HPAGE_PMD_NR;
- 	     _pte++, address += PAGE_SIZE) {
- 		pte_t pteval = *_pte;
--		if (pte_none(pteval) || is_zero_pfn(pte_pfn(pteval))) {
-+		if (pte_none(pteval) || (pte_present(pteval) &&
-+				is_zero_pfn(pte_pfn(pteval)))) {
- 			if (!userfaultfd_armed(vma) &&
- 			    ++none_or_zero <= khugepaged_max_ptes_none)
- 				continue;
-_
-
-Patches currently in -mm which might be from minchan@kernel.org are
-
-thp-use-is_zero_pfn-only-after-pte_present-check.patch
-x86-add-pmd_-for-thp.patch
-sparc-add-pmd_-for-thp.patch
-powerpc-add-pmd_-for-thp.patch
-arm-add-pmd_mkclean-for-thp.patch
-arm64-add-pmd_-for-thp.patch
-mm-support-madvisemadv_free.patch
-mm-support-madvisemadv_free-fix.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
-mm-free-swp_entry-in-madvise_free.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
-
+diff -puN mm/page_alloc.c~mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix-2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix-2
++++ a/mm/page_alloc.c
+@@ -2212,13 +2212,13 @@ struct page *buffered_rmqueue(struct zon
+ 		spin_lock_irqsave(&zone->lock, flags);
+ 
+ 		page = NULL;
+-		if (unlikely(order) && (alloc_flags & ALLOC_HARDER)) {
++		if (alloc_flags & ALLOC_HARDER) {
+ 			page = __rmqueue_smallest(zone, order, MIGRATE_HIGHATOMIC);
+ 			if (page)
+ 				trace_mm_page_alloc_zone_locked(page, order, migratetype);
+ 		}
