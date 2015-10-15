@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- kmod-dont-run-async-usermode-helper-as-a-child-of-kworker-thread.patch
+ ksm-fix-rmap_item-anon_vma-memory-corruption-and-vma-user-after-free.patch
  added to -mm tree
-Date: Thu, 15 Oct 2015 12:31:18 -0700
-Message-ID: <561fff06.XDUoL6caS7zk1daL%akpm@linux-foundation.org>
+Date: Thu, 15 Oct 2015 12:34:53 -0700
+Message-ID: <561fffdd.muEpuYUGGXhHcP8n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57686 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58058 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751741AbbJOTbT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 15:31:19 -0400
+	with ESMTP id S1751790AbbJOTey (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 15:34:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, cl@linux.com, fweisbec@gmail.com, riel@redhat.com, rusty@rustcorp.com.au, tj@kernel.org, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, hughd@google.com, pholasek@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kmod: don't run async usermode helper as a child of kworker thread
+     Subject: ksm: fix rmap_item->anon_vma memory corruption and vma user after free
 has been added to the -mm tree.  Its filename is
-     kmod-dont-run-async-usermode-helper-as-a-child-of-kworker-thread.patch
+     ksm-fix-rmap_item-anon_vma-memory-corruption-and-vma-user-after-free.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kmod-dont-run-async-usermode-helper-as-a-child-of-kworker-thread.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ksm-fix-rmap_item-anon_vma-memory-corruption-and-vma-user-after-free.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kmod-dont-run-async-usermode-helper-as-a-child-of-kworker-thread.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ksm-fix-rmap_item-anon_vma-memory-corruption-and-vma-user-after-free.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,69 +40,214 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: kmod: don't run async usermode helper as a child of kworker thread
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: ksm: fix rmap_item->anon_vma memory corruption and vma user after free
 
-call_usermodehelper_exec_sync() does fork() + wait() with "unignored"
-SIGCHLD.  What we have missed is that this worker thread can have other
-children previously forked by call_usermodehelper_exec_work() without
-UMH_WAIT_PROC.  If such a child exits in between it becomes a zombie
-because auto-reaping only works if SIGCHLD is ignored, and nobody can reap
-it (unless/until this worker thread exits too).
+The ksm_test_exit() run after down_read(&mm->mmap_sem) assumed it could
+serialize against ksm_exit() and prevent exit_mmap() to run until the
+up_read(&mm->mmap_sem).  That is true when the rmap_item->mm is the one
+associated with the ksm_scan.mm_slot, as ksm_exit() would take the
+!easy_to_free_path.
 
-Change the !UMH_WAIT_PROC case to use CLONE_PARENT.
+The problem is that when merging the current rmap_item (the one whose ->mm
+pointer is always associated ksm_scan.mm_slot) with a tree_rmap_item in
+the unstable tree, the unstable tree tree_rmap_item->mm can be any random
+mm.  The locking technique described above is a noop if the rmap_item->mm
+is not the one associated with the ksm_scan.mm_slot.  In turn the
+tree_rmap_item when converted to a stable tree rmap_item and added to the
+stable_node->hlist, can have a &rmap_item->anon_vma that points to already
+freed memory.  The find_vma and other vma operations to reach the anon_vma
+also run on potentially already freed memory.  The get_anon_vma atomic_inc
+itself could corrupt memory randomly in already re-used memory.
 
-Note: this is only first step.  All PF_KTHREAD tasks, even created by
-kernel_thread() should have ->parent == kthreadd by default.
+The result are oopses like below:
 
-Fixes: bb304a5c6fc63d8506c ("kmod: handle UMH_WAIT_PROC from system unbound workqueue")
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+general protection fault: 0000 [#1] SMP
+last sysfs file: /sys/kernel/mm/ksm/sleep_millisecs
+CPU 14
+Modules linked in: netconsole nfs nfs_acl auth_rpcgss fscache lockd sunrpc msr binfmt_misc sr_mod
+
+Pid: 904, comm: ksmd Not tainted 2.6.32 #21 Supermicro X8DTN/X8DTN
+RIP: 0010:[<ffffffff81138300>]  [<ffffffff81138300>] drop_anon_vma+0x0/0xe0
+RSP: 0000:ffff88023b94bd28  EFLAGS: 00010206
+RAX: 0000000000000000 RBX: ffff880231e64d50 RCX: 0000000000000017
+RDX: ffff88023b94bfd8 RSI: 0000000000000216 RDI: 80000002192c6067
+RBP: ffff88023b94bd40 R08: 0000000000000001 R09: 0000000000000000
+R10: 0000000000000001 R11: 0000000000000001 R12: ffff880217fa4198
+R13: ffff880217fa4198 R14: 000000000021916f R15: ffff880217fa419b
+FS:  0000000000000000(0000) GS:ffff880030600000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0018 ES: 0018 CR0: 000000008005003b
+CR2: 0000000000d116a0 CR3: 000000023aa35000 CR4: 00000000000007e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process ksmd (pid: 904, threadinfo ffff88023b948000, task ffff88023b946500)
+Stack:
+ ffffffff8114d049 ffffea000757d048 ffffea0000000000 ffff88023b94bda0
+<d> ffffffff8114d153 ffff88023b946500 ffff88023afaab40 ffffffff8114e85d
+<d> 0100000000000038 ffff88023b94bdb0 ffff880231d33560 ffff880217fa4198
+Call Trace:
+ [<ffffffff8114d049>] ? remove_node_from_stable_tree+0x29/0x80
+ [<ffffffff8114d153>] get_ksm_page+0xb3/0x1e0
+ [<ffffffff8114e85d>] ? ksm_scan_thread+0x60d/0x1130
+ [<ffffffff8114d499>] remove_rmap_item_from_tree+0x99/0x130
+ [<ffffffff8114ed19>] ksm_scan_thread+0xac9/0x1130
+ [<ffffffff81095ce0>] ? autoremove_wake_function+0x0/0x40
+ [<ffffffff8114e250>] ? ksm_scan_thread+0x0/0x1130
+ [<ffffffff8109508b>] kthread+0x8b/0xb0
+ [<ffffffff8100c0ea>] child_rip+0xa/0x20
+ [<ffffffff8100b910>] ? restore_args+0x0/0x30
+ [<ffffffff81095000>] ? kthread+0x0/0xb0
+ [<ffffffff8100c0e0>] ? child_rip+0x0/0x20
+Code: 01 75 10 e8 d3 f7 ff ff 5d c3 90 0f 0b eb fe 0f 1f 40 00 e8 73 f6 ff ff 5d c3 e8 4c 77 01 00 5d c3 66 2e 0f 1f 84 00 00 00 00 00 <8b> 47 48 85 c0 0f 8e c5 00 00 00 55 48 89 e5 41 56 41 55 41 54
+RIP  [<ffffffff81138300>] drop_anon_vma+0x0/0xe0
+ RSP <ffff88023b94bd28>
+---[ end trace b1f69fd4c12ce1ce ]---
+
+rmap_item->anon_vma was set to the RDI value 0x80000002192c6067.
+
+   0xffffffff81138300 <+0>:     mov    0x48(%rdi),%eax
+   0xffffffff81138303 <+3>:     test   %eax,%eax
+   0xffffffff81138305 <+5>:     jle    0xffffffff811383d0       <drop_anon_vma+208>
+   0xffffffff8113830b <+11>:    push   %rbp
+
+Other oopses are more random and harder to debug side effects of memory
+corruption.  In this case the anon_vma was a dangling pointer because when
+try_to_merge_with_ksm_page did rmap_item->anon_vma = vma->anon_vma, the
+vma already was already freed and reused memory.  At other times the
+oopses materialize with an vma->anon_vma pointer that looks legit but it
+points to an already freed and reused anon_vma.
+
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Petr Holasek <pholasek@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kmod.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+ mm/ksm.c |   55 +++++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 51 insertions(+), 4 deletions(-)
 
-diff -puN kernel/kmod.c~kmod-dont-run-async-usermode-helper-as-a-child-of-kworker-thread kernel/kmod.c
---- a/kernel/kmod.c~kmod-dont-run-async-usermode-helper-as-a-child-of-kworker-thread
-+++ a/kernel/kmod.c
-@@ -327,9 +327,13 @@ static void call_usermodehelper_exec_wor
- 		call_usermodehelper_exec_sync(sub_info);
- 	} else {
- 		pid_t pid;
--
-+		/*
-+		 * Use CLONE_PARENT to reparent it to kthreadd; we do not
-+		 * want to pollute current->children, and we need a parent
-+		 * that always ignores SIGCHLD to ensure auto-reaping.
-+		 */
- 		pid = kernel_thread(call_usermodehelper_exec_async, sub_info,
--				    SIGCHLD);
-+				    CLONE_PARENT | SIGCHLD);
- 		if (pid < 0) {
- 			sub_info->retval = pid;
- 			umh_complete(sub_info);
+diff -puN mm/ksm.c~ksm-fix-rmap_item-anon_vma-memory-corruption-and-vma-user-after-free mm/ksm.c
+--- a/mm/ksm.c~ksm-fix-rmap_item-anon_vma-memory-corruption-and-vma-user-after-free
++++ a/mm/ksm.c
+@@ -350,6 +350,24 @@ static inline bool ksm_test_exit(struct
+ }
+ 
+ /*
++ * If the mm isn't the one associated with the current
++ * ksm_scan.mm_slot ksm_exit() will not down_write();up_write() and in
++ * turn the ksm_test_exit() check run inside a mm->mmap_sem critical
++ * section, will not prevent exit_mmap() to run from under us. In
++ * turn, in those cases where we could work with an "mm" that isn't
++ * guaranteed to be associated with the current ksm_scan.mm_slot,
++ * ksm_get_mm() is needed instead of the ksm_test_exit() run inside
++ * the mmap_sem. Return true if the mm_users was incremented or false
++ * if it we failed at taking the mm because it was freed from under
++ * us. If it returns 1, the caller must take care of calling mmput()
++ * after it finishes using the mm.
++ */
++static __always_inline bool ksm_get_mm(struct mm_struct *mm)
++{
++	return likely(atomic_inc_not_zero(&mm->mm_users));
++}
++
++/*
+  * We use break_ksm to break COW on a ksm page: it's a stripped down
+  *
+  *	if (get_user_pages(current, mm, addr, 1, 1, 1, &page, NULL) == 1)
+@@ -412,8 +430,6 @@ static struct vm_area_struct *find_merge
+ 		unsigned long addr)
+ {
+ 	struct vm_area_struct *vma;
+-	if (ksm_test_exit(mm))
+-		return NULL;
+ 	vma = find_vma(mm, addr);
+ 	if (!vma || vma->vm_start > addr)
+ 		return NULL;
+@@ -434,11 +450,21 @@ static void break_cow(struct rmap_item *
+ 	 */
+ 	put_anon_vma(rmap_item->anon_vma);
+ 
++	/*
++	 * The "mm" of the unstable tree rmap_item isn't necessairly
++	 * associated with the current ksm_scan.mm_slot, it could be
++	 * any random mm. So we need ksm_get_mm here to prevent the
++	 * exit_mmap to run from under us in mmput().
++	 */
++	if (!ksm_get_mm(mm))
++		return;
++
+ 	down_read(&mm->mmap_sem);
+ 	vma = find_mergeable_vma(mm, addr);
+ 	if (vma)
+ 		break_ksm(vma, addr);
+ 	up_read(&mm->mmap_sem);
++	mmput(mm);
+ }
+ 
+ static struct page *page_trans_compound_anon(struct page *page)
+@@ -462,6 +488,15 @@ static struct page *get_mergeable_page(s
+ 	struct vm_area_struct *vma;
+ 	struct page *page;
+ 
++	/*
++	 * The "mm" of the unstable tree rmap_item isn't necessairly
++	 * associated with the current ksm_scan.mm_slot, it could be
++	 * any random mm. So we need ksm_get_mm here to prevent the
++	 * exit_mmap to run from under us in mmput().
++	 */
++	if (!ksm_get_mm(mm))
++		return NULL;
++
+ 	down_read(&mm->mmap_sem);
+ 	vma = find_mergeable_vma(mm, addr);
+ 	if (!vma)
+@@ -478,6 +513,7 @@ static struct page *get_mergeable_page(s
+ out:		page = NULL;
+ 	}
+ 	up_read(&mm->mmap_sem);
++	mmput(mm);
+ 	return page;
+ }
+ 
+@@ -1086,9 +1122,19 @@ static int try_to_merge_with_ksm_page(st
+ 	struct vm_area_struct *vma;
+ 	int err = -EFAULT;
+ 
++	/*
++	 * The "mm" of the unstable tree rmap_item isn't necessairly
++	 * associated with the current ksm_scan.mm_slot, it could be
++	 * any random mm. So we need ksm_get_mm() here to prevent the
++	 * exit_mmap to run from under us in mmput(). Otherwise
++	 * rmap_item->anon_vma could point to an anon_vma that has
++	 * already been freed (i.e. get_anon_vma() below would run too
++	 * late).
++	 */
++	if (!ksm_get_mm(mm))
++		return err;
++
+ 	down_read(&mm->mmap_sem);
+-	if (ksm_test_exit(mm))
+-		goto out;
+ 	vma = find_vma(mm, rmap_item->address);
+ 	if (!vma || vma->vm_start > rmap_item->address)
+ 		goto out;
+@@ -1105,6 +1151,7 @@ static int try_to_merge_with_ksm_page(st
+ 	get_anon_vma(vma->anon_vma);
+ out:
+ 	up_read(&mm->mmap_sem);
++	mmput(mm);
+ 	return err;
+ }
+ 
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
-kmod-dont-run-async-usermode-helper-as-a-child-of-kworker-thread.patch
-mmoom-fix-potentially-killing-unrelated-process-fix.patch
-mm-fix-the-racy-mm-locked_vm-change-in.patch
-mm-add-the-struct-mm_struct-mm-local-into.patch
-mm-oom_kill-remove-the-wrong-fatal_signal_pending-check-in-oom_kill_process.patch
-mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop.patch
-mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process.patch
-change-current_is_single_threaded-to-use-for_each_thread.patch
-signals-kill-block_all_signals-and-unblock_all_signals.patch
-signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal.patch
-signal-introduce-kernel_signal_stop-to-fix-jffs2_garbage_collect_thread.patch
-signal-remove-jffs2_garbage_collect_thread-allow_signalsigcont.patch
-coredump-ensure-all-coredumping-tasks-have-signal_group_coredump.patch
-coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
+ksm-fix-rmap_item-anon_vma-memory-corruption-and-vma-user-after-free.patch
+ksm-add-cond_resched-to-the-rmap_walks.patch
+ksm-dont-fail-stable-tree-lookups-if-walking-over-stale-stable_nodes.patch
+ksm-use-the-helper-method-to-do-the-hlist_empty-check.patch
+ksm-use-find_mergeable_vma-in-try_to_merge_with_ksm_page.patch
+ksm-unstable_tree_search_insert-error-checking-cleanup.patch
 
