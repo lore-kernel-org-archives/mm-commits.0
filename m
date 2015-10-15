@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ksm-dont-fail-stable-tree-lookups-if-walking-over-stale-stable_nodes.patch
- added to -mm tree
-Date: Thu, 15 Oct 2015 12:34:57 -0700
-Message-ID: <561fffe1.uxb9oNzY/Ht21k/6%akpm@linux-foundation.org>
+Subject: + ksm-add-cond_resched-to-the-rmap_walks.patch added to -mm tree
+Date: Thu, 15 Oct 2015 12:34:55 -0700
+Message-ID: <561fffdf.adDI3pNeHV4/mM1B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58064 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58061 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751850AbbJOTe6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 15:34:58 -0400
+	with ESMTP id S1751850AbbJOTe4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 15:34:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: aarcange@redhat.com, hughd@google.com, pholasek@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm: don't fail stable tree lookups if walking over stale stable_nodes
+     Subject: ksm: add cond_resched() to the rmap_walks
 has been added to the -mm tree.  Its filename is
-     ksm-dont-fail-stable-tree-lookups-if-walking-over-stale-stable_nodes.patch
+     ksm-add-cond_resched-to-the-rmap_walks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ksm-dont-fail-stable-tree-lookups-if-walking-over-stale-stable_nodes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ksm-add-cond_resched-to-the-rmap_walks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ksm-dont-fail-stable-tree-lookups-if-walking-over-stale-stable_nodes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ksm-add-cond_resched-to-the-rmap_walks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,19 +39,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: ksm: don't fail stable tree lookups if walking over stale stable_nodes
+Subject: ksm: add cond_resched() to the rmap_walks
 
-The stable_nodes can become stale at any time if the underlying pages gets
-freed.  The stable_node gets collected and removed from the stable rbtree
-if that is detected during the rbtree tree lookups.
-
-Don't fail the lookup if running into stale stable_nodes, just restart the
-lookup after collecting the stale entries.  Otherwise the CPU spent in the
-preparation stage is wasted and the lookup must be repeated at the next
-loop potentially failing a second time in a second stale entry.
-
-This also will contribute to pruning the stable tree and releasing the
-stable_node memory more efficiently.
+While at it add it to the file and anon walks too.
 
 Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -61,68 +49,46 @@ Cc: Petr Holasek <pholasek@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   30 +++++++++++++++++++++++++++---
- 1 file changed, 27 insertions(+), 3 deletions(-)
+ mm/ksm.c  |    2 ++
+ mm/rmap.c |    4 ++++
+ 2 files changed, 6 insertions(+)
 
-diff -puN mm/ksm.c~ksm-dont-fail-stable-tree-lookups-if-walking-over-stale-stable_nodes mm/ksm.c
---- a/mm/ksm.c~ksm-dont-fail-stable-tree-lookups-if-walking-over-stale-stable_nodes
+diff -puN mm/ksm.c~ksm-add-cond_resched-to-the-rmap_walks mm/ksm.c
+--- a/mm/ksm.c~ksm-add-cond_resched-to-the-rmap_walks
 +++ a/mm/ksm.c
-@@ -1225,7 +1225,18 @@ again:
- 		stable_node = rb_entry(*new, struct stable_node, node);
- 		tree_page = get_ksm_page(stable_node, false);
- 		if (!tree_page)
--			return NULL;
-+			/*
-+			 * If we walked over a stale stable_node,
-+			 * get_ksm_page() will call rb_erase() and it
-+			 * may rebalance the tree from under us. So
-+			 * restart the search from scratch. Returning
-+			 * NULL would be safe too, but we'd generate
-+			 * false negative insertions just because some
-+			 * stable_node was stale which would waste CPU
-+			 * by doing the preparation work twice at the
-+			 * next KSM pass.
-+			 */
-+			goto again;
+@@ -1961,9 +1961,11 @@ again:
+ 		struct anon_vma_chain *vmac;
+ 		struct vm_area_struct *vma;
  
- 		ret = memcmp_pages(page, tree_page);
- 		put_page(tree_page);
-@@ -1301,12 +1312,14 @@ static struct stable_node *stable_tree_i
- 	unsigned long kpfn;
- 	struct rb_root *root;
- 	struct rb_node **new;
--	struct rb_node *parent = NULL;
-+	struct rb_node *parent;
- 	struct stable_node *stable_node;
++		cond_resched();
+ 		anon_vma_lock_read(anon_vma);
+ 		anon_vma_interval_tree_foreach(vmac, &anon_vma->rb_root,
+ 					       0, ULONG_MAX) {
++			cond_resched();
+ 			vma = vmac->vma;
+ 			if (rmap_item->address < vma->vm_start ||
+ 			    rmap_item->address >= vma->vm_end)
+diff -puN mm/rmap.c~ksm-add-cond_resched-to-the-rmap_walks mm/rmap.c
+--- a/mm/rmap.c~ksm-add-cond_resched-to-the-rmap_walks
++++ a/mm/rmap.c
+@@ -1609,6 +1609,8 @@ static int rmap_walk_anon(struct page *p
+ 		struct vm_area_struct *vma = avc->vma;
+ 		unsigned long address = vma_address(page, vma);
  
- 	kpfn = page_to_pfn(kpage);
- 	nid = get_kpfn_nid(kpfn);
- 	root = root_stable_tree + nid;
-+again:
-+	parent = NULL;
- 	new = &root->rb_node;
++		cond_resched();
++
+ 		if (rwc->invalid_vma && rwc->invalid_vma(vma, rwc->arg))
+ 			continue;
  
- 	while (*new) {
-@@ -1317,7 +1330,18 @@ static struct stable_node *stable_tree_i
- 		stable_node = rb_entry(*new, struct stable_node, node);
- 		tree_page = get_ksm_page(stable_node, false);
- 		if (!tree_page)
--			return NULL;
-+			/*
-+			 * If we walked over a stale stable_node,
-+			 * get_ksm_page() will call rb_erase() and it
-+			 * may rebalance the tree from under us. So
-+			 * restart the search from scratch. Returning
-+			 * NULL would be safe too, but we'd generate
-+			 * false negative insertions just because some
-+			 * stable_node was stale which would waste CPU
-+			 * by doing the preparation work twice at the
-+			 * next KSM pass.
-+			 */
-+			goto again;
+@@ -1658,6 +1660,8 @@ static int rmap_walk_file(struct page *p
+ 	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+ 		unsigned long address = vma_address(page, vma);
  
- 		ret = memcmp_pages(kpage, tree_page);
- 		put_page(tree_page);
++		cond_resched();
++
+ 		if (rwc->invalid_vma && rwc->invalid_vma(vma, rwc->arg))
+ 			continue;
+ 
 _
 
 Patches currently in -mm which might be from aarcange@redhat.com are
