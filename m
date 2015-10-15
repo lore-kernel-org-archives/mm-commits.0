@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ipcmsg-drop-dst-nil-validation-in-copy_msg.patch added to -mm
+Subject: + maintainers-add-myself-as-zsmalloc-reviewer.patch added to -mm
  tree
-Date: Thu, 15 Oct 2015 12:40:46 -0700
-Message-ID: <5620013e.88iz4gVpG9/qkj4Y%akpm@linux-foundation.org>
+Date: Thu, 15 Oct 2015 12:42:26 -0700
+Message-ID: <562001a2.J3lhAzp7JI60YlHK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58100 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58106 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751850AbbJOTkr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 15:40:47 -0400
+	with ESMTP id S1752145AbbJOTm1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 15:42:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave@stgolabs.net, dbueso@suse.de, skinsbursky@parallels.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipc,msg: drop dst nil validation in copy_msg
+     Subject: MAINTAINERS: add Sergey as zsmalloc reviewer
 has been added to the -mm tree.  Its filename is
-     ipcmsg-drop-dst-nil-validation-in-copy_msg.patch
+     maintainers-add-myself-as-zsmalloc-reviewer.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipcmsg-drop-dst-nil-validation-in-copy_msg.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-myself-as-zsmalloc-reviewer.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipcmsg-drop-dst-nil-validation-in-copy_msg.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-myself-as-zsmalloc-reviewer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,47 +39,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: ipc,msg: drop dst nil validation in copy_msg
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: MAINTAINERS: add Sergey as zsmalloc reviewer
 
-d0edd8528362 ("ipc: convert invalid scenarios to use WARN_ON") relaxed the
-nil dst parameter check, originally being a full BUG_ON.  However, this
-check seems quite unnecessary when the only purpose is for
-ceckpoint/restore (MSG_COPY flag):
+Nominate myself as a zsmalloc reviewer.
 
-o The copy variable is set initially to nil, apparently as a way of
-  ensuring that prepare_copy is previously called.  Which is in fact done,
-  unconditionally at the beginning of do_msgrcv.
-
-o There is no concurrency with 'copy' (stack allocated in do_msgrcv).
-
-Furthermore, any errors in 'copy' (and thus prepare_copy/copy_msg) should
-always handled by IS_ERR() family.  Therefore remove this check altogether
-as it can never occur with the current users.
-
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
-Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- ipc/msgutil.c |    1 -
- 1 file changed, 1 deletion(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN ipc/msgutil.c~ipcmsg-drop-dst-nil-validation-in-copy_msg ipc/msgutil.c
---- a/ipc/msgutil.c~ipcmsg-drop-dst-nil-validation-in-copy_msg
-+++ a/ipc/msgutil.c
-@@ -123,7 +123,6 @@ struct msg_msg *copy_msg(struct msg_msg
- 	size_t len = src->m_ts;
- 	size_t alen;
- 
--	WARN_ON(dst == NULL);
- 	if (src->m_ts > dst->m_ts)
- 		return ERR_PTR(-EINVAL);
- 
+diff -puN MAINTAINERS~maintainers-add-myself-as-zsmalloc-reviewer MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-myself-as-zsmalloc-reviewer
++++ a/MAINTAINERS
+@@ -11651,6 +11651,7 @@ F:	drivers/tty/serial/zs.*
+ ZSMALLOC COMPRESSED SLAB MEMORY ALLOCATOR
+ M:	Minchan Kim <minchan@kernel.org>
+ M:	Nitin Gupta <ngupta@vflare.org>
++R:	Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+ L:	linux-mm@kvack.org
+ S:	Maintained
+ F:	mm/zsmalloc.c
 _
 
-Patches currently in -mm which might be from dave@stgolabs.net are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-mm-vmacache-inline-vmacache_valid_mm.patch
-ipcmsg-drop-dst-nil-validation-in-copy_msg.patch
+maintainers-add-myself-as-zsmalloc-reviewer.patch
+zram-keep-the-exact-overcommited-value-in-mem_used_max.patch
+mm-zsmalloc-constify-struct-zs_pool-name.patch
 
