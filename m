@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix-2.patch added to -mm tree
-Date: Thu, 15 Oct 2015 13:37:51 -0700
-Message-ID: <56200e9f.fT3wUDeERgGiEyVk%akpm@linux-foundation.org>
+Subject: + sh-add-copy_user_page-alias-for-__copy_user.patch added to -mm
+ tree
+Date: Thu, 15 Oct 2015 13:51:26 -0700
+Message-ID: <562011ce.IVJSQivNdm/hfGLD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58869 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59069 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752054AbbJOUhw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 16:37:52 -0400
+	with ESMTP id S1753186AbbJOUwI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 15 Oct 2015 16:52:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yalin.wang2010@gmail.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, andriy.shevchenko@linux.intel.com, geert@linux-m68k.org, matt@codeblueprint.co.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: reserve pageblocks for high-order atomic allocations on demand -fix
+     Subject: sh: add copy_user_page() alias for __copy_user()
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix-2.patch
+     sh-add-copy_user_page-alias-for-__copy_user.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh-add-copy_user_page-alias-for-__copy_user.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh-add-copy_user_page-alias-for-__copy_user.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,38 +39,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: yalin wang <yalin.wang2010@gmail.com>
-Subject: mm, page_alloc: reserve pageblocks for high-order atomic allocations on demand -fix
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: sh: add copy_user_page() alias for __copy_user()
 
-There is a redundant check and a memory leak introduced by a patch in
-mmotm.  This patch removes an unlikely(order) check as we are sure order
-is not zero at the time.  It also checks if a page is already allocated to
-avoid a memory leak.
+copy_user_page() is needed by DAX.  Without this we get a compile error
+for DAX on SH:
 
-This is a fix to the mmotm patch
-mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand.patch
+fs/dax.c:280:2: error: implicit declaration of function `copy_user_page'
+[-Werror=implicit-function-declaration]
+  copy_user_page(vto, (void __force *)vfrom, vaddr, to);
+    ^
+This was done with a random config that happened to include DAX support.
 
-Signed-off-by: yalin wang <yalin.wang2010@gmail.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: David Rientjes <rientjes@google.com>
+This patch has only been compile tested.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Matt Fleming <matt@codeblueprint.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ arch/sh/include/asm/page.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix-2 mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix-2
-+++ a/mm/page_alloc.c
-@@ -2212,13 +2212,13 @@ struct page *buffered_rmqueue(struct zon
- 		spin_lock_irqsave(&zone->lock, flags);
+diff -puN arch/sh/include/asm/page.h~sh-add-copy_user_page-alias-for-__copy_user arch/sh/include/asm/page.h
+--- a/arch/sh/include/asm/page.h~sh-add-copy_user_page-alias-for-__copy_user
++++ a/arch/sh/include/asm/page.h
+@@ -59,6 +59,7 @@ pages_do_alias(unsigned long addr1, unsi
  
- 		page = NULL;
--		if (unlikely(order) && (alloc_flags & ALLOC_HARDER)) {
-+		if (alloc_flags & ALLOC_HARDER) {
- 			page = __rmqueue_smallest(zone, order, MIGRATE_HIGHATOMIC);
- 			if (page)
- 				trace_mm_page_alloc_zone_locked(page, order, migratetype);
- 		}
+ #define clear_page(page)	memset((void *)(page), 0, PAGE_SIZE)
+ extern void copy_page(void *to, void *from);
++#define copy_user_page(to, from, vaddr, pg)  __copy_user(to, from, PAGE_SIZE)
+ 
+ struct page;
+ struct vm_area_struct;
+_
+
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+
+mm-dax-fix-dax-deadlocks.patch
+sh-add-copy_user_page-alias-for-__copy_user.patch
+
