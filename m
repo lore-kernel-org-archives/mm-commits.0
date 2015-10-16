@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- tools-vm-slabinfo-use-getopt-no_argument-optional_argument.patch added to
- -mm tree
-Date: Fri, 16 Oct 2015 15:35:53 -0700
-Message-ID: <56217bc9.L5IAjTcVngHL7V7g%akpm@linux-foundation.org>
+Subject: + tools-vm-slabinfo-limit-the-number-of-reported-slabs.patch
+ added to -mm tree
+Date: Fri, 16 Oct 2015 15:35:55 -0700
+Message-ID: <56217bcb.z+1CZ2UsW7WjfAMF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56698 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56706 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752459AbbJPWfy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Oct 2015 18:35:54 -0400
+	with ESMTP id S1752468AbbJPWf4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Oct 2015 18:35:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm/slabinfo: use getopt no_argument/optional_argument
+     Subject: tools/vm/slabinfo: limit the number of reported slabs
 has been added to the -mm tree.  Its filename is
-     tools-vm-slabinfo-use-getopt-no_argument-optional_argument.patch
+     tools-vm-slabinfo-limit-the-number-of-reported-slabs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-slabinfo-use-getopt-no_argument-optional_argument.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-slabinfo-limit-the-number-of-reported-slabs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-slabinfo-use-getopt-no_argument-optional_argument.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-slabinfo-limit-the-number-of-reported-slabs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,93 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: tools/vm/slabinfo: use getopt no_argument/optional_argument
+Subject: tools/vm/slabinfo: limit the number of reported slabs
 
-This patchset adds 'extended' slabinfo mode that provides additional
-information:
-
- -- totals summary
- -- slabs sorted by size
- -- slabs sorted by loss (waste)
-
-The patches also introduces several new slabinfo options to limit the
-number of slabs reported, sort slabs by loss (waste); and some fixes.
-
-
-Extended output example (slabinfo -X -N 2):
-
- Slabcache Totals
- ----------------
- Slabcaches :              91   Aliases  :         119->69   Active:     63
- Memory used:       199798784   # Loss   :        10689376   MRatio:     5%
- # Objects  :          324301   # PartObj:           18151   ORatio:     5%
-    
- Per Cache         Average              Min              Max            Total
- ----------------------------------------------------------------------------
- #Objects             5147                1            89068           324301
- #Slabs                199                1             3886            12537
- #PartSlab              12                0              240              778
- %PartSlab             32%               0%             100%               6%
- PartObjs                5                0             4569            18151
- % PartObj             26%               0%             100%               5%
- Memory            3171409             8192        127336448        199798784
- Used              3001736              160        121429728        189109408
- Loss               169672                0          5906720         10689376
-    
- Per Object        Average              Min              Max
- -----------------------------------------------------------
- Memory                585                8             8192
- User                  583                8             8192
- Loss                    2                0               64
-    
- Slabs sorted by size
- --------------------
- Name                   Objects Objsize           Space Slabs/Part/Cpu  O/S O %Fr %Ef Flg
- ext4_inode_cache         69948    1736       127336448      3871/0/15   18 3   0  95 a
- dentry                   89068     288        26058752      3164/0/17   28 1   0  98 a
-    
- Slabs sorted by loss
- --------------------
- Name                   Objects Objsize            Loss Slabs/Part/Cpu  O/S O %Fr %Ef Flg
- ext4_inode_cache         69948    1736         5906720      3871/0/15   18 3   0  95 a
- inode_cache              11628     864          537472        642/0/4   18 2   0  94 a
-
-
-
-The last patch in the series addresses Linus' comment from
-http://marc.info/?l=linux-mm&m=144148518703321&w=2
-
-(well, it's been some time. sorry.)
-
-
-gnuplot script takes the slabinfo records file, where every record is a `slabinfo -X'
-output. So the basic workflow is, for example, as follows:
-
-	while [ 1 ]; do slabinfo -X -N 2 >> stats; sleep 1; done
-	^C
-	slabinfo-gnuplot.sh stats
-
-The last command will produce 3 png files (and 3 stats files)
--- graph of slabinfo totals
--- graph of slabs by size
--- graph of slabs by loss
-
-
-It's also possible to select a range of records for plotting (a range of collected
-slabinfo outputs) via `-r 10,100` (for example); and compare totals from several
-measurements (to visially compare slabs behaviour (10,50 range)) using
-pre-parsed totals files:
-	slabinfo-gnuplot.sh -r 10,50 -t stats-totals1 .. stats-totals2
-
-
-This also, technically, supports ktest. Upload new slabinfo to target,
-collect the stats and give the resulting stats file to slabinfo-gnuplot
-
-
-This patch (of 8):
-
-Use getopt constants in `struct option' ->has_arg instead of numerical
-representations.
+Introduce opt "-N|--lines=K" to limit the number of slabs
+being reported in output_slabs().
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -137,52 +53,75 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/slabinfo.c |   34 +++++++++++++++++-----------------
- 1 file changed, 17 insertions(+), 17 deletions(-)
+ tools/vm/slabinfo.c |   18 +++++++++++++++---
+ 1 file changed, 15 insertions(+), 3 deletions(-)
 
-diff -puN tools/vm/slabinfo.c~tools-vm-slabinfo-use-getopt-no_argument-optional_argument tools/vm/slabinfo.c
---- a/tools/vm/slabinfo.c~tools-vm-slabinfo-use-getopt-no_argument-optional_argument
+diff -puN tools/vm/slabinfo.c~tools-vm-slabinfo-limit-the-number-of-reported-slabs tools/vm/slabinfo.c
+--- a/tools/vm/slabinfo.c~tools-vm-slabinfo-limit-the-number-of-reported-slabs
 +++ a/tools/vm/slabinfo.c
-@@ -1268,23 +1268,23 @@ static void output_slabs(void)
- }
+@@ -79,6 +79,7 @@ int sort_active = 0;
+ int set_debug = 0;
+ int show_ops = 0;
+ int show_activity = 0;
++int output_lines = -1;
  
- struct option opts[] = {
--	{ "aliases", 0, NULL, 'a' },
--	{ "activity", 0, NULL, 'A' },
--	{ "debug", 2, NULL, 'd' },
--	{ "display-activity", 0, NULL, 'D' },
--	{ "empty", 0, NULL, 'e' },
--	{ "first-alias", 0, NULL, 'f' },
--	{ "help", 0, NULL, 'h' },
--	{ "inverted", 0, NULL, 'i'},
--	{ "numa", 0, NULL, 'n' },
--	{ "ops", 0, NULL, 'o' },
--	{ "report", 0, NULL, 'r' },
--	{ "shrink", 0, NULL, 's' },
--	{ "slabs", 0, NULL, 'l' },
--	{ "track", 0, NULL, 't'},
--	{ "validate", 0, NULL, 'v' },
--	{ "zero", 0, NULL, 'z' },
--	{ "1ref", 0, NULL, '1'},
-+	{ "aliases", no_argument, NULL, 'a' },
-+	{ "activity", no_argument, NULL, 'A' },
-+	{ "debug", optional_argument, NULL, 'd' },
-+	{ "display-activity", no_argument, NULL, 'D' },
-+	{ "empty", no_argument, NULL, 'e' },
-+	{ "first-alias", no_argument, NULL, 'f' },
-+	{ "help", no_argument, NULL, 'h' },
-+	{ "inverted", no_argument, NULL, 'i'},
-+	{ "numa", no_argument, NULL, 'n' },
-+	{ "ops", no_argument, NULL, 'o' },
-+	{ "report", no_argument, NULL, 'r' },
-+	{ "shrink", no_argument, NULL, 's' },
-+	{ "slabs", no_argument, NULL, 'l' },
-+	{ "track", no_argument, NULL, 't'},
-+	{ "validate", no_argument, NULL, 'v' },
-+	{ "zero", no_argument, NULL, 'z' },
-+	{ "1ref", no_argument, NULL, '1'},
+ /* Debug options */
+ int sanity = 0;
+@@ -124,6 +125,7 @@ static void usage(void)
+ 		"-v|--validate          Validate slabs\n"
+ 		"-z|--zero              Include empty slabs\n"
+ 		"-1|--1ref              Single reference\n"
++		"-N|--lines=K           Show the first K slabs\n"
+ 		"\nValid debug options (FZPUT may be combined)\n"
+ 		"a / A          Switch on all debug options (=FZUP)\n"
+ 		"-              Switch off all debug options\n"
+@@ -1242,11 +1244,14 @@ static void output_slabs(void)
+ {
+ 	struct slabinfo *slab;
+ 
+-	for (slab = slabinfo; slab < slabinfo + slabs; slab++) {
++	for (slab = slabinfo; (slab < slabinfo + slabs) &&
++			output_lines != 0; slab++) {
+ 
+ 		if (slab->alias)
+ 			continue;
+ 
++		if (output_lines != -1)
++			output_lines--;
+ 
+ 		if (show_numa)
+ 			slab_numa(slab, 0);
+@@ -1285,6 +1290,7 @@ struct option opts[] = {
+ 	{ "validate", no_argument, NULL, 'v' },
+ 	{ "zero", no_argument, NULL, 'z' },
+ 	{ "1ref", no_argument, NULL, '1'},
++	{ "lines", required_argument, NULL, 'N'},
  	{ NULL, 0, NULL, 0 }
  };
+ 
+@@ -1296,7 +1302,7 @@ int main(int argc, char *argv[])
+ 
+ 	page_size = getpagesize();
+ 
+-	while ((c = getopt_long(argc, argv, "aAd::Defhil1noprstvzTS",
++	while ((c = getopt_long(argc, argv, "aAd::Defhil1noprstvzTSN:",
+ 						opts, NULL)) != -1)
+ 		switch (c) {
+ 		case '1':
+@@ -1358,7 +1364,13 @@ int main(int argc, char *argv[])
+ 		case 'S':
+ 			sort_size = 1;
+ 			break;
+-
++		case 'N':
++			if (optarg) {
++				output_lines = atoi(optarg);
++				if (output_lines < 1)
++					output_lines = 1;
++			}
++			break;
+ 		default:
+ 			fatal("%s: Invalid option '%c'\n", argv[0], optopt);
  
 _
 
