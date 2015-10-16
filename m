@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-reduce-size_class-memory-usage.patch added to -mm tree
-Date: Fri, 16 Oct 2015 14:27:19 -0700
-Message-ID: <56216bb7.KWzdyfexf6YZsV42%akpm@linux-foundation.org>
+Subject: + disable-wframe-larger-than-warnings-with-kasan=y.patch added to -mm tree
+Date: Fri, 16 Oct 2015 15:15:37 -0700
+Message-ID: <56217709.h6NDa1arSxV3PL1K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55616 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56282 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750820AbbJPV1U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Oct 2015 17:27:20 -0400
+	with ESMTP id S1751342AbbJPWPi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Oct 2015 18:15:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky.work@gmail.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, andi@firstfloor.org, aospan@netup.ru, fengguang.wu@intel.com, m.chehab@samsung.com, mingo@kernel.org, serjk@netup.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: reduce size_class memory usage
+     Subject: lib/Kconfig.debug: disable -Wframe-larger-than warnings with KASAN=y
 has been added to the -mm tree.  Its filename is
-     zsmalloc-reduce-size_class-memory-usage.patch
+     disable-wframe-larger-than-warnings-with-kasan=y.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-reduce-size_class-memory-usage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/disable-wframe-larger-than-warnings-with-kasan%3Dy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-reduce-size_class-memory-usage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/disable-wframe-larger-than-warnings-with-kasan%3Dy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,112 +38,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Subject: zsmalloc: reduce size_class memory usage
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: lib/Kconfig.debug: disable -Wframe-larger-than warnings with KASAN=y
 
-Each `struct size_class' contains `struct zs_size_stat': an array of
-NR_ZS_STAT_TYPE `unsigned long'.  For zsmalloc built with no
-CONFIG_ZSMALLOC_STAT this results in a waste of `2 * sizeof(unsigned
-long)' per-class.
+When the kernel compiled with KASAN=y, GCC adds redzones for each variable
+on stack.  This enlarges function's stack frame and causes:
 
-The patch removes unneeded `struct zs_size_stat' members by redefining
-NR_ZS_STAT_TYPE (max stat idx in array).
+	'warning: the frame size of X bytes is larger than Y bytes'
 
-Since both NR_ZS_STAT_TYPE and zs_stat_type are compile time constants,
-GCC can eliminate zs_stat_inc()/zs_stat_dec() calls that use zs_stat_type
-larger than NR_ZS_STAT_TYPE: CLASS_ALMOST_EMPTY and CLASS_ALMOST_FULL at
-the moment.
+The worst case I've seen for now is following:
+ ../net/wireless/nl80211.c: In function `nl80211_send_wiphy':
+ ../net/wireless/nl80211.c:1731:1: warning: the frame size of 5448 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+  }
 
-./scripts/bloat-o-meter mm/zsmalloc.o.old mm/zsmalloc.o.new
-add/remove: 0/0 grow/shrink: 0/3 up/down: 0/-39 (-39)
-function                                     old     new   delta
-fix_fullness_group                            97      94      -3
-insert_zspage                                100      86     -14
-remove_zspage                                141     119     -22
+That kind of warning becomes useless with KASAN=y.  It doesn't necessarily
+indicate that there is some problem in the code, thus we should turn it
+off.
 
-To summarize:
-a) each class now uses less memory
-b) we avoid a number of dec/inc stats (a minor optimization,
-   but still).
+(The KASAN=y stack size in increased from 16k to 32k for this reason)
 
-The gain will increase once we introduce additional stats.
-
-A simple IO test.
-
-iozone -t 4 -R -r 32K -s 60M -I +Z
-                        patched                 base
-"  Initial write "       4145599.06              4127509.75
-"        Rewrite "       4146225.94              4223618.50
-"           Read "      17157606.00             17211329.50
-"        Re-read "      17380428.00             17267650.50
-"   Reverse Read "      16742768.00             16162732.75
-"    Stride read "      16586245.75             16073934.25
-"    Random read "      16349587.50             15799401.75
-" Mixed workload "      10344230.62              9775551.50
-"   Random write "       4277700.62              4260019.69
-"         Pwrite "       4302049.12              4313703.88
-"          Pread "       6164463.16              6126536.72
-"         Fwrite "       7131195.00              6952586.00
-"          Fread "      12682602.25             12619207.50
-
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Acked-by: Abylay Ospan <aospan@netup.ru>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Kozlov Sergey <serjk@netup.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   17 +++++++++++++----
- 1 file changed, 13 insertions(+), 4 deletions(-)
+ lib/Kconfig.debug |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/zsmalloc.c~zsmalloc-reduce-size_class-memory-usage mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-reduce-size_class-memory-usage
-+++ a/mm/zsmalloc.c
-@@ -167,9 +167,14 @@ enum zs_stat_type {
- 	OBJ_USED,
- 	CLASS_ALMOST_FULL,
- 	CLASS_ALMOST_EMPTY,
--	NR_ZS_STAT_TYPE,
- };
- 
-+#ifdef CONFIG_ZSMALLOC_STAT
-+#define NR_ZS_STAT_TYPE	(CLASS_ALMOST_EMPTY + 1)
-+#else
-+#define NR_ZS_STAT_TYPE	(OBJ_USED + 1)
-+#endif
-+
- struct zs_size_stat {
- 	unsigned long objs[NR_ZS_STAT_TYPE];
- };
-@@ -448,19 +453,23 @@ static int get_size_class_index(int size
- static inline void zs_stat_inc(struct size_class *class,
- 				enum zs_stat_type type, unsigned long cnt)
- {
--	class->stats.objs[type] += cnt;
-+	if (type < NR_ZS_STAT_TYPE)
-+		class->stats.objs[type] += cnt;
- }
- 
- static inline void zs_stat_dec(struct size_class *class,
- 				enum zs_stat_type type, unsigned long cnt)
- {
--	class->stats.objs[type] -= cnt;
-+	if (type < NR_ZS_STAT_TYPE)
-+		class->stats.objs[type] -= cnt;
- }
- 
- static inline unsigned long zs_stat_get(struct size_class *class,
- 				enum zs_stat_type type)
- {
--	return class->stats.objs[type];
-+	if (type < NR_ZS_STAT_TYPE)
-+		return class->stats.objs[type];
-+	return 0;
- }
- 
- #ifdef CONFIG_ZSMALLOC_STAT
+diff -puN lib/Kconfig.debug~disable-wframe-larger-than-warnings-with-kasan=y lib/Kconfig.debug
+--- a/lib/Kconfig.debug~disable-wframe-larger-than-warnings-with-kasan=y
++++ a/lib/Kconfig.debug
+@@ -197,6 +197,7 @@ config ENABLE_MUST_CHECK
+ config FRAME_WARN
+ 	int "Warn for stack frames larger than (needs gcc 4.4)"
+ 	range 0 8192
++	default 0 if KASAN
+ 	default 1024 if !64BIT
+ 	default 2048 if 64BIT
+ 	help
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
-zsmalloc-dont-test-shrinker_enabled-in-zs_shrinker_count.patch
-zsmalloc-reduce-size_class-memory-usage.patch
+disable-wframe-larger-than-warnings-with-kasan=y.patch
 
