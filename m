@@ -1,89 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: + disable-wframe-larger-than-warnings-with-kasan=y.patch added to -mm tree
-Date: Fri, 16 Oct 2015 15:15:37 -0700
-Message-ID: <56217709.h6NDa1arSxV3PL1K%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ memcg-simplify-and-inline-__mem_cgroup_from_kmem-fix.patch removed from -mm tree
+Date: Fri, 16 Oct 2015 15:17:10 -0700
+Message-ID: <56217766.KhIShEU25asNDqIV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56282 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56291 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751342AbbJPWPi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Oct 2015 18:15:38 -0400
+	with ESMTP id S1751391AbbJPWRL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Oct 2015 18:17:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, andi@firstfloor.org, aospan@netup.ru, fengguang.wu@intel.com, m.chehab@samsung.com, mingo@kernel.org, serjk@netup.ru, mm-commits@vger.kernel.org
+To: arnd@arndb.de, hannes@cmpxchg.org, mhocko@suse.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/Kconfig.debug: disable -Wframe-larger-than warnings with KASAN=y
-has been added to the -mm tree.  Its filename is
-     disable-wframe-larger-than-warnings-with-kasan=y.patch
+     Subject: memcg: include linux/mm.h
+has been removed from the -mm tree.  Its filename was
+     memcg-simplify-and-inline-__mem_cgroup_from_kmem-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/disable-wframe-larger-than-warnings-with-kasan%3Dy.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/disable-wframe-larger-than-warnings-with-kasan%3Dy.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: lib/Kconfig.debug: disable -Wframe-larger-than warnings with KASAN=y
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: memcg: include linux/mm.h
 
-When the kernel compiled with KASAN=y, GCC adds redzones for each variable
-on stack.  This enlarges function's stack frame and causes:
+A recent change to the memcg code added a call to virt_to_head_page, which
+is declared in linux/mm.h, but this is not necessarily included here and
+will cause compile errors:
 
-	'warning: the frame size of X bytes is larger than Y bytes'
+include/linux/memcontrol.h:841:9: error: implicit declaration of function 'virt_to_head_page' [-Werror=implicit-function-declaration]
 
-The worst case I've seen for now is following:
- ../net/wireless/nl80211.c: In function `nl80211_send_wiphy':
- ../net/wireless/nl80211.c:1731:1: warning: the frame size of 5448 bytes is larger than 2048 bytes [-Wframe-larger-than=]
-  }
+This adds an explicit include statement that gets rid of the error.
 
-That kind of warning becomes useless with KASAN=y.  It doesn't necessarily
-indicate that there is some problem in the code, thus we should turn it
-off.
-
-(The KASAN=y stack size in increased from 16k to 32k for this reason)
-
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Acked-by: Abylay Ospan <aospan@netup.ru>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Kozlov Sergey <serjk@netup.ru>
+Fixes: 1ead4c071978 ("memcg: simplify and inline __mem_cgroup_from_kmem")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    1 +
+ include/linux/memcontrol.h |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN lib/Kconfig.debug~disable-wframe-larger-than-warnings-with-kasan=y lib/Kconfig.debug
---- a/lib/Kconfig.debug~disable-wframe-larger-than-warnings-with-kasan=y
-+++ a/lib/Kconfig.debug
-@@ -197,6 +197,7 @@ config ENABLE_MUST_CHECK
- config FRAME_WARN
- 	int "Warn for stack frames larger than (needs gcc 4.4)"
- 	range 0 8192
-+	default 0 if KASAN
- 	default 1024 if !64BIT
- 	default 2048 if 64BIT
- 	help
+diff -puN include/linux/memcontrol.h~memcg-simplify-and-inline-__mem_cgroup_from_kmem-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-simplify-and-inline-__mem_cgroup_from_kmem-fix
++++ a/include/linux/memcontrol.h
+@@ -27,6 +27,7 @@
+ #include <linux/vmpressure.h>
+ #include <linux/eventfd.h>
+ #include <linux/mmzone.h>
++#include <linux/mm.h>
+ #include <linux/writeback.h>
+ 
+ struct mem_cgroup;
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-disable-wframe-larger-than-warnings-with-kasan=y.patch
+arm-thp-remove-infrastructure-for-handling-splitting-pmds-fix.patch
 
