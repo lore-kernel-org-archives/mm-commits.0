@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + bitopsh-add-sign_extend64.patch added to -mm tree
-Date: Fri, 16 Oct 2015 14:18:43 -0700
-Message-ID: <562169b3.4/0NJ+NCbTYYe93C%akpm@linux-foundation.org>
+Subject: + bitopsh-improve-sign_extend32s-documentation.patch added to -mm tree
+Date: Fri, 16 Oct 2015 14:18:41 -0700
+Message-ID: <562169b1.qDtZt4x6PXXfuvc9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55577 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55558 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750961AbbJPVSo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Oct 2015 17:18:44 -0400
+	with ESMTP id S1750711AbbJPVSn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Oct 2015 17:18:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: martink@posteo.de, a.p.zijlstra@chello.nl, acme@kernel.org, dvlasenk@redhat.com, hpa@zytor.com, linux@horizon.com, linux@rasmusvillemoes.dk, martin.kepplinger@theobroma-systems.com, maxime.coquelin@st.com, mingo@redhat.com, tglx@linutronix.de, torvalds@linux-foundation.org, yury.norov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bitops.h: add sign_extend64()
+     Subject: bitops.h: improve sign_extend32()'s documentation
 has been added to the -mm tree.  Its filename is
-     bitopsh-add-sign_extend64.patch
+     bitopsh-improve-sign_extend32s-documentation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bitopsh-add-sign_extend64.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/bitopsh-improve-sign_extend32s-documentation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bitopsh-add-sign_extend64.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/bitopsh-improve-sign_extend32s-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,12 +39,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Martin Kepplinger <martink@posteo.de>
-Subject: bitops.h: add sign_extend64()
+Subject: bitops.h: improve sign_extend32()'s documentation
 
-Months back, this was discussed, see https://lkml.org/lkml/2015/1/18/289
-The result was the 64-bit version being "likely fine", "valuable" and
-"correct".  The discussion fell asleep but since there are possible users,
-let's add it.
+It is often overlooked that sign_extend32(), despite its name, is safe to
+use for 16 and 8 bit types as well.  This should help prevent sign
+extension being done manually some other way.
 
 Signed-off-by: Martin Kepplinger <martin.kepplinger@theobroma-systems.com>
 Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
@@ -61,30 +60,21 @@ Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/bitops.h |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ include/linux/bitops.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/bitops.h~bitopsh-add-sign_extend64 include/linux/bitops.h
---- a/include/linux/bitops.h~bitopsh-add-sign_extend64
+diff -puN include/linux/bitops.h~bitopsh-improve-sign_extend32s-documentation include/linux/bitops.h
+--- a/include/linux/bitops.h~bitopsh-improve-sign_extend32s-documentation
 +++ a/include/linux/bitops.h
-@@ -173,6 +173,17 @@ static inline __s32 sign_extend32(__u32
- 	return (__s32)(value << shift) >> shift;
- }
- 
-+/**
-+ * sign_extend64 - sign extend a 64-bit value using specified bit as sign-bit
-+ * @value: value to sign extend
-+ * @index: 0 based bit index (0<=index<64) to sign bit
-+ */
-+static inline __s64 sign_extend64(__u64 value, int index)
-+{
-+	__u8 shift = 63 - index;
-+	return (__s64)(value << shift) >> shift;
-+}
-+
- static inline unsigned fls_long(unsigned long l)
+@@ -164,6 +164,8 @@ static inline __u8 ror8(__u8 word, unsig
+  * sign_extend32 - sign extend a 32-bit value using specified bit as sign-bit
+  * @value: value to sign extend
+  * @index: 0 based bit index (0<=index<32) to sign bit
++ *
++ * This is safe to use for 16- and 8-bit types as well.
+  */
+ static inline __s32 sign_extend32(__u32 value, int index)
  {
- 	if (sizeof(l) == 4)
 _
 
 Patches currently in -mm which might be from martink@posteo.de are
