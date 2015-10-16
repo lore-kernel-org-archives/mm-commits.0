@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + tools-vm-slabinfo-limit-the-number-of-reported-slabs.patch
- added to -mm tree
-Date: Fri, 16 Oct 2015 15:35:55 -0700
-Message-ID: <56217bcb.z+1CZ2UsW7WjfAMF%akpm@linux-foundation.org>
+Subject: + tools-vm-slabinfo-sort-slabs-by-loss.patch added to -mm tree
+Date: Fri, 16 Oct 2015 15:35:57 -0700
+Message-ID: <56217bcd.ix46EK9CDstOZGo2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56706 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56710 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752468AbbJPWf4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Oct 2015 18:35:56 -0400
+	with ESMTP id S1752057AbbJPWf6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Oct 2015 18:35:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm/slabinfo: limit the number of reported slabs
+     Subject: tools/vm/slabinfo: sort slabs by loss
 has been added to the -mm tree.  Its filename is
-     tools-vm-slabinfo-limit-the-number-of-reported-slabs.patch
+     tools-vm-slabinfo-sort-slabs-by-loss.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-slabinfo-limit-the-number-of-reported-slabs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-slabinfo-sort-slabs-by-loss.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-slabinfo-limit-the-number-of-reported-slabs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-slabinfo-sort-slabs-by-loss.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,10 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: tools/vm/slabinfo: limit the number of reported slabs
+Subject: tools/vm/slabinfo: sort slabs by loss
 
-Introduce opt "-N|--lines=K" to limit the number of slabs
-being reported in output_slabs().
+Introduce opt "-L|--sort-loss" to sort and output slabs by
+loss (waste) in slabcache().
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -53,72 +52,96 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/slabinfo.c |   18 +++++++++++++++---
- 1 file changed, 15 insertions(+), 3 deletions(-)
+ tools/vm/slabinfo.c |   25 +++++++++++++++++++++----
+ 1 file changed, 21 insertions(+), 4 deletions(-)
 
-diff -puN tools/vm/slabinfo.c~tools-vm-slabinfo-limit-the-number-of-reported-slabs tools/vm/slabinfo.c
---- a/tools/vm/slabinfo.c~tools-vm-slabinfo-limit-the-number-of-reported-slabs
+diff -puN tools/vm/slabinfo.c~tools-vm-slabinfo-sort-slabs-by-loss tools/vm/slabinfo.c
+--- a/tools/vm/slabinfo.c~tools-vm-slabinfo-sort-slabs-by-loss
 +++ a/tools/vm/slabinfo.c
-@@ -79,6 +79,7 @@ int sort_active = 0;
- int set_debug = 0;
+@@ -80,6 +80,7 @@ int set_debug = 0;
  int show_ops = 0;
  int show_activity = 0;
-+int output_lines = -1;
+ int output_lines = -1;
++int sort_loss;
  
  /* Debug options */
  int sanity = 0;
-@@ -124,6 +125,7 @@ static void usage(void)
- 		"-v|--validate          Validate slabs\n"
+@@ -126,6 +127,7 @@ static void usage(void)
  		"-z|--zero              Include empty slabs\n"
  		"-1|--1ref              Single reference\n"
-+		"-N|--lines=K           Show the first K slabs\n"
+ 		"-N|--lines=K           Show the first K slabs\n"
++		"-L|--Loss              Sort by loss\n"
  		"\nValid debug options (FZPUT may be combined)\n"
  		"a / A          Switch on all debug options (=FZUP)\n"
  		"-              Switch off all debug options\n"
-@@ -1242,11 +1244,14 @@ static void output_slabs(void)
+@@ -301,8 +303,9 @@ static void first_line(void)
+ 	if (show_activity)
+ 		printf("Name                   Objects      Alloc       Free   %%Fast Fallb O CmpX   UL\n");
+ 	else
+-		printf("Name                   Objects Objsize    Space "
+-			"Slabs/Part/Cpu  O/S O %%Fr %%Ef Flg\n");
++		printf("Name                   Objects Objsize    %s "
++			"Slabs/Part/Cpu  O/S O %%Fr %%Ef Flg\n",
++			sort_loss ? "Loss" : "Space");
+ }
+ 
+ /*
+@@ -335,6 +338,11 @@ static unsigned long slab_activity(struc
+ 		s->alloc_slowpath + s->free_slowpath;
+ }
+ 
++static unsigned long slab_waste(struct slabinfo *s)
++{
++	return	slab_size(s) - s->objects * s->object_size;
++}
++
+ static void slab_numa(struct slabinfo *s, int mode)
  {
- 	struct slabinfo *slab;
+ 	int node;
+@@ -563,7 +571,10 @@ static void slabcache(struct slabinfo *s
+ 	if (show_empty && s->slabs)
+ 		return;
  
--	for (slab = slabinfo; slab < slabinfo + slabs; slab++) {
-+	for (slab = slabinfo; (slab < slabinfo + slabs) &&
-+			output_lines != 0; slab++) {
+-	store_size(size_str, slab_size(s));
++	if (sort_loss == 0)
++		store_size(size_str, slab_size(s));
++	else
++		store_size(size_str, slab_waste(s));
+ 	snprintf(dist_str, 40, "%lu/%lu/%d", s->slabs - s->cpu_slabs,
+ 						s->partial, s->cpu_slabs);
  
- 		if (slab->alias)
- 			continue;
+@@ -1013,6 +1024,8 @@ static void sort_slabs(void)
+ 				result = slab_size(s1) < slab_size(s2);
+ 			else if (sort_active)
+ 				result = slab_activity(s1) < slab_activity(s2);
++			else if (sort_loss)
++				result = slab_waste(s1) < slab_waste(s2);
+ 			else
+ 				result = strcasecmp(s1->name, s2->name);
  
-+		if (output_lines != -1)
-+			output_lines--;
- 
- 		if (show_numa)
- 			slab_numa(slab, 0);
-@@ -1285,6 +1290,7 @@ struct option opts[] = {
- 	{ "validate", no_argument, NULL, 'v' },
+@@ -1291,6 +1304,7 @@ struct option opts[] = {
  	{ "zero", no_argument, NULL, 'z' },
  	{ "1ref", no_argument, NULL, '1'},
-+	{ "lines", required_argument, NULL, 'N'},
+ 	{ "lines", required_argument, NULL, 'N'},
++	{ "Loss", no_argument, NULL, 'L'},
  	{ NULL, 0, NULL, 0 }
  };
  
-@@ -1296,7 +1302,7 @@ int main(int argc, char *argv[])
+@@ -1302,7 +1316,7 @@ int main(int argc, char *argv[])
  
  	page_size = getpagesize();
  
--	while ((c = getopt_long(argc, argv, "aAd::Defhil1noprstvzTS",
-+	while ((c = getopt_long(argc, argv, "aAd::Defhil1noprstvzTSN:",
+-	while ((c = getopt_long(argc, argv, "aAd::Defhil1noprstvzTSN:",
++	while ((c = getopt_long(argc, argv, "aAd::Defhil1noprstvzTSN:L",
  						opts, NULL)) != -1)
  		switch (c) {
  		case '1':
-@@ -1358,7 +1364,13 @@ int main(int argc, char *argv[])
- 		case 'S':
- 			sort_size = 1;
+@@ -1371,6 +1385,9 @@ int main(int argc, char *argv[])
+ 					output_lines = 1;
+ 			}
  			break;
--
-+		case 'N':
-+			if (optarg) {
-+				output_lines = atoi(optarg);
-+				if (output_lines < 1)
-+					output_lines = 1;
-+			}
++		case 'L':
++			sort_loss = 1;
 +			break;
  		default:
  			fatal("%s: Invalid option '%c'\n", argv[0], optopt);
