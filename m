@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-simplify-and-inline-__mem_cgroup_from_kmem-fix-2.patch
- added to -mm tree
-Date: Fri, 16 Oct 2015 15:21:29 -0700
-Message-ID: <56217869.IksiGrLszJ54HsG0%akpm@linux-foundation.org>
+Subject: +
+ tools-vm-slabinfo-use-getopt-no_argument-optional_argument.patch added to
+ -mm tree
+Date: Fri, 16 Oct 2015 15:35:53 -0700
+Message-ID: <56217bc9.L5IAjTcVngHL7V7g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56307 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56698 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752426AbbJPWVa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Oct 2015 18:21:30 -0400
+	with ESMTP id S1752459AbbJPWfy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Oct 2015 18:35:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, arnd@arndb.de, hannes@cmpxchg.org, mhocko@suse.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg-simplify-and-inline-__mem_cgroup_from_kmem-fix-2
+     Subject: tools/vm/slabinfo: use getopt no_argument/optional_argument
 has been added to the -mm tree.  Its filename is
-     memcg-simplify-and-inline-__mem_cgroup_from_kmem-fix-2.patch
+     tools-vm-slabinfo-use-getopt-no_argument-optional_argument.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-simplify-and-inline-__mem_cgroup_from_kmem-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-slabinfo-use-getopt-no_argument-optional_argument.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-simplify-and-inline-__mem_cgroup_from_kmem-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-slabinfo-use-getopt-no_argument-optional_argument.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,77 +40,164 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: memcg-simplify-and-inline-__mem_cgroup_from_kmem-fix-2
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: tools/vm/slabinfo: use getopt no_argument/optional_argument
 
-move mem_cgroup_from_kmem into list_lru.c
+This patchset adds 'extended' slabinfo mode that provides additional
+information:
 
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+ -- totals summary
+ -- slabs sorted by size
+ -- slabs sorted by loss (waste)
+
+The patches also introduces several new slabinfo options to limit the
+number of slabs reported, sort slabs by loss (waste); and some fixes.
+
+
+Extended output example (slabinfo -X -N 2):
+
+ Slabcache Totals
+ ----------------
+ Slabcaches :              91   Aliases  :         119->69   Active:     63
+ Memory used:       199798784   # Loss   :        10689376   MRatio:     5%
+ # Objects  :          324301   # PartObj:           18151   ORatio:     5%
+    
+ Per Cache         Average              Min              Max            Total
+ ----------------------------------------------------------------------------
+ #Objects             5147                1            89068           324301
+ #Slabs                199                1             3886            12537
+ #PartSlab              12                0              240              778
+ %PartSlab             32%               0%             100%               6%
+ PartObjs                5                0             4569            18151
+ % PartObj             26%               0%             100%               5%
+ Memory            3171409             8192        127336448        199798784
+ Used              3001736              160        121429728        189109408
+ Loss               169672                0          5906720         10689376
+    
+ Per Object        Average              Min              Max
+ -----------------------------------------------------------
+ Memory                585                8             8192
+ User                  583                8             8192
+ Loss                    2                0               64
+    
+ Slabs sorted by size
+ --------------------
+ Name                   Objects Objsize           Space Slabs/Part/Cpu  O/S O %Fr %Ef Flg
+ ext4_inode_cache         69948    1736       127336448      3871/0/15   18 3   0  95 a
+ dentry                   89068     288        26058752      3164/0/17   28 1   0  98 a
+    
+ Slabs sorted by loss
+ --------------------
+ Name                   Objects Objsize            Loss Slabs/Part/Cpu  O/S O %Fr %Ef Flg
+ ext4_inode_cache         69948    1736         5906720      3871/0/15   18 3   0  95 a
+ inode_cache              11628     864          537472        642/0/4   18 2   0  94 a
+
+
+
+The last patch in the series addresses Linus' comment from
+http://marc.info/?l=linux-mm&m=144148518703321&w=2
+
+(well, it's been some time. sorry.)
+
+
+gnuplot script takes the slabinfo records file, where every record is a `slabinfo -X'
+output. So the basic workflow is, for example, as follows:
+
+	while [ 1 ]; do slabinfo -X -N 2 >> stats; sleep 1; done
+	^C
+	slabinfo-gnuplot.sh stats
+
+The last command will produce 3 png files (and 3 stats files)
+-- graph of slabinfo totals
+-- graph of slabs by size
+-- graph of slabs by loss
+
+
+It's also possible to select a range of records for plotting (a range of collected
+slabinfo outputs) via `-r 10,100` (for example); and compare totals from several
+measurements (to visially compare slabs behaviour (10,50 range)) using
+pre-parsed totals files:
+	slabinfo-gnuplot.sh -r 10,50 -t stats-totals1 .. stats-totals2
+
+
+This also, technically, supports ktest. Upload new slabinfo to target,
+collect the stats and give the resulting stats file to slabinfo-gnuplot
+
+
+This patch (of 8):
+
+Use getopt constants in `struct option' ->has_arg instead of numerical
+representations.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   16 ----------------
- mm/list_lru.c              |   10 ++++++++++
- 2 files changed, 10 insertions(+), 16 deletions(-)
+ tools/vm/slabinfo.c |   34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-simplify-and-inline-__mem_cgroup_from_kmem-fix-2 include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-simplify-and-inline-__mem_cgroup_from_kmem-fix-2
-+++ a/include/linux/memcontrol.h
-@@ -825,16 +825,6 @@ static __always_inline void memcg_kmem_p
- 	if (memcg_kmem_enabled())
- 		__memcg_kmem_put_cache(cachep);
- }
--
--static __always_inline struct mem_cgroup *mem_cgroup_from_kmem(void *ptr)
--{
--	struct page *page;
--
--	if (!memcg_kmem_enabled())
--		return NULL;
--	page = virt_to_head_page(ptr);
--	return page->mem_cgroup;
--}
- #else
- #define for_each_memcg_cache_index(_idx)	\
- 	for (; NULL; )
-@@ -880,11 +870,5 @@ memcg_kmem_get_cache(struct kmem_cache *
- static inline void memcg_kmem_put_cache(struct kmem_cache *cachep)
- {
- }
--
--static inline struct mem_cgroup *mem_cgroup_from_kmem(void *ptr)
--{
--	return NULL;
--}
- #endif /* CONFIG_MEMCG_KMEM */
- #endif /* _LINUX_MEMCONTROL_H */
--
-diff -puN mm/list_lru.c~memcg-simplify-and-inline-__mem_cgroup_from_kmem-fix-2 mm/list_lru.c
---- a/mm/list_lru.c~memcg-simplify-and-inline-__mem_cgroup_from_kmem-fix-2
-+++ a/mm/list_lru.c
-@@ -63,6 +63,16 @@ list_lru_from_memcg_idx(struct list_lru_
- 	return &nlru->lru;
+diff -puN tools/vm/slabinfo.c~tools-vm-slabinfo-use-getopt-no_argument-optional_argument tools/vm/slabinfo.c
+--- a/tools/vm/slabinfo.c~tools-vm-slabinfo-use-getopt-no_argument-optional_argument
++++ a/tools/vm/slabinfo.c
+@@ -1268,23 +1268,23 @@ static void output_slabs(void)
  }
  
-+static __always_inline struct mem_cgroup *mem_cgroup_from_kmem(void *ptr)
-+{
-+	struct page *page;
-+
-+	if (!memcg_kmem_enabled())
-+		return NULL;
-+	page = virt_to_head_page(ptr);
-+	return page->mem_cgroup;
-+}
-+
- static inline struct list_lru_one *
- list_lru_from_kmem(struct list_lru_node *nlru, void *ptr)
- {
+ struct option opts[] = {
+-	{ "aliases", 0, NULL, 'a' },
+-	{ "activity", 0, NULL, 'A' },
+-	{ "debug", 2, NULL, 'd' },
+-	{ "display-activity", 0, NULL, 'D' },
+-	{ "empty", 0, NULL, 'e' },
+-	{ "first-alias", 0, NULL, 'f' },
+-	{ "help", 0, NULL, 'h' },
+-	{ "inverted", 0, NULL, 'i'},
+-	{ "numa", 0, NULL, 'n' },
+-	{ "ops", 0, NULL, 'o' },
+-	{ "report", 0, NULL, 'r' },
+-	{ "shrink", 0, NULL, 's' },
+-	{ "slabs", 0, NULL, 'l' },
+-	{ "track", 0, NULL, 't'},
+-	{ "validate", 0, NULL, 'v' },
+-	{ "zero", 0, NULL, 'z' },
+-	{ "1ref", 0, NULL, '1'},
++	{ "aliases", no_argument, NULL, 'a' },
++	{ "activity", no_argument, NULL, 'A' },
++	{ "debug", optional_argument, NULL, 'd' },
++	{ "display-activity", no_argument, NULL, 'D' },
++	{ "empty", no_argument, NULL, 'e' },
++	{ "first-alias", no_argument, NULL, 'f' },
++	{ "help", no_argument, NULL, 'h' },
++	{ "inverted", no_argument, NULL, 'i'},
++	{ "numa", no_argument, NULL, 'n' },
++	{ "ops", no_argument, NULL, 'o' },
++	{ "report", no_argument, NULL, 'r' },
++	{ "shrink", no_argument, NULL, 's' },
++	{ "slabs", no_argument, NULL, 'l' },
++	{ "track", no_argument, NULL, 't'},
++	{ "validate", no_argument, NULL, 'v' },
++	{ "zero", no_argument, NULL, 'z' },
++	{ "1ref", no_argument, NULL, '1'},
+ 	{ NULL, 0, NULL, 0 }
+ };
+ 
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-memcg-simplify-and-inline-__mem_cgroup_from_kmem-fix-2.patch
+maintainers-add-myself-as-zsmalloc-reviewer.patch
+tools-vm-slabinfo-use-getopt-no_argument-optional_argument.patch
+tools-vm-slabinfo-limit-the-number-of-reported-slabs.patch
+tools-vm-slabinfo-sort-slabs-by-loss.patch
+tools-vm-slabinfo-fix-alternate-opts-names.patch
+tools-vm-slabinfo-introduce-extended-totals-mode.patch
+tools-vm-slabinfo-output-sizes-in-bytes.patch
+tools-vm-slabinfo-cosmetic-globals-cleanup.patch
+tools-vm-slabinfo-gnuplot-slabifo-extended-stat.patch
+zram-keep-the-exact-overcommited-value-in-mem_used_max.patch
+mm-zsmalloc-constify-struct-zs_pool-name.patch
+zsmalloc-use-preempth-for-in_interrupt.patch
 
