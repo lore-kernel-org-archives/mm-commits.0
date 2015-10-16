@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
- added to -mm tree
-Date: Fri, 16 Oct 2015 13:59:16 -0700
-Message-ID: <56216524.RT6P2JJuhzbC5hHQ%akpm@linux-foundation.org>
+Subject: + mm-make-sendfile2-killable.patch added to -mm tree
+Date: Fri, 16 Oct 2015 14:05:22 -0700
+Message-ID: <56216692.fMXn+SOItQvi5RA9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55285 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55304 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751477AbbJPU7R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Oct 2015 16:59:17 -0400
+	with ESMTP id S1753150AbbJPVFX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Oct 2015 17:05:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, catalin.marinas@arm.com, robin.murphy@arm.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: jack@suse.com, dvyukov@google.com, stable@vger.kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix
+     Subject: mm: make sendfile(2) killable
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
+     mm-make-sendfile2-killable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-sendfile2-killable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-sendfile2-killable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,75 +38,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix
+From: Jan Kara <jack@suse.com>
+Subject: mm: make sendfile(2) killable
 
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
+Currently a simple program below issues a sendfile(2) system call which
+takes about 62 days to complete in my test KVM instance.
+
+        int fd;
+        off_t off = 0;
+
+        fd = open("file", O_RDWR | O_TRUNC | O_SYNC | O_CREAT, 0644);
+        ftruncate(fd, 2);
+        lseek(fd, 0, SEEK_END);
+        sendfile(fd, fd, &off, 0xfffffff);
+
+Now you should not ask kernel to do a stupid stuff like copying 256MB in
+2-byte chunks and call fsync(2) after each chunk but if you do, sysadmin
+should have a way to stop you.
+
+We actually do have a check for fatal_signal_pending() in
+generic_perform_write() which triggers in this path however because we
+always succeed in writing something before the check is done, we return
+value > 0 from generic_perform_write() and thus the information about
+signal gets lost.
+
+Fix the problem by doing the signal check before writing anything.  That
+way generic_perform_write() returns -EINTR, the error gets propagated up
+and the sendfile loop terminates early.
+
+Signed-off-by: Jan Kara <jack@suse.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/dma-mapping.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/filemap.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm64/mm/dma-mapping.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix arch/arm64/mm/dma-mapping.c
---- a/arch/arm64/mm/dma-mapping.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix
-+++ a/arch/arm64/mm/dma-mapping.c
-@@ -562,7 +562,7 @@ static void *__iommu_alloc_attrs(struct
- 	 */
- 	gfp |= __GFP_ZERO;
+diff -puN mm/filemap.c~mm-make-sendfile2-killable mm/filemap.c
+--- a/mm/filemap.c~mm-make-sendfile2-killable
++++ a/mm/filemap.c
+@@ -2488,6 +2488,11 @@ again:
+ 			break;
+ 		}
  
--	if (gfp & __GFP_WAIT) {
-+	if (gfp & __GFP_RECLAIM) {
- 		struct page **pages;
- 		pgprot_t prot = __get_dma_pgprot(attrs, PAGE_KERNEL, coherent);
++		if (fatal_signal_pending(current)) {
++			status = -EINTR;
++			break;
++		}
++
+ 		status = a_ops->write_begin(file, mapping, pos, bytes, flags,
+ 						&page, &fsdata);
+ 		if (unlikely(status < 0))
+@@ -2525,10 +2530,6 @@ again:
+ 		written += copied;
  
+ 		balance_dirty_pages_ratelimited(mapping);
+-		if (fatal_signal_pending(current)) {
+-			status = -EINTR;
+-			break;
+-		}
+ 	} while (iov_iter_count(i));
+ 
+ 	return written ? written : status;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jack@suse.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-lib-kconfig-zlib_deflate-must-select-bitreverse.patch
-mm.patch
-slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
-mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
-mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
-mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
-include-linux-mmzoneh-reflow-comment.patch
-mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
-mm-vmstatc-uninline-node_page_state.patch
-mm-vmstatc-uninline-node_page_state-fix.patch
-kasan-various-fixes-in-documentation-checkpatch-fixes.patch
-zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-include-linux-compiler-gcch-improve-__visible-documentation.patch
-fs-jffs2-wbufc-remove-stray-semicolon.patch
-lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
-rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
-dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
-panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out-fix.patch
-linux-next-rejects.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-nvem-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
-net-ipv4-routec-prevent-oops.patch
-remove-abs64.patch
-remove-abs64-fix.patch
-remove-abs64-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-make-sendfile2-killable.patch
 
