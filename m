@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-use-sign_extend64-for-sign-extension.patch added to
- -mm tree
-Date: Fri, 16 Oct 2015 14:18:49 -0700
-Message-ID: <562169b9.YeynvLp5gC0cH8/T%akpm@linux-foundation.org>
+Subject: + zsmalloc-reduce-size_class-memory-usage.patch added to -mm tree
+Date: Fri, 16 Oct 2015 14:27:19 -0700
+Message-ID: <56216bb7.KWzdyfexf6YZsV42%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55599 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55616 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750984AbbJPVSu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Oct 2015 17:18:50 -0400
+	with ESMTP id S1750820AbbJPV1U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 16 Oct 2015 17:27:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: martink@posteo.de, a.p.zijlstra@chello.nl, acme@kernel.org, dvlasenk@redhat.com, hpa@zytor.com, linux@horizon.com, linux@rasmusvillemoes.dk, martin.kepplinger@theobroma-systems.com, maxime.coquelin@st.com, mingo@redhat.com, tglx@linutronix.de, torvalds@linux-foundation.org, yury.norov@gmail.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky.work@gmail.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/kernel/cpu/perf_event_msr.c: use sign_extend64() for sign extension
+     Subject: zsmalloc: reduce size_class memory usage
 has been added to the -mm tree.  Its filename is
-     arch-x86-use-sign_extend64-for-sign-extension.patch
+     zsmalloc-reduce-size_class-memory-usage.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-x86-use-sign_extend64-for-sign-extension.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-reduce-size_class-memory-usage.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-use-sign_extend64-for-sign-extension.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-reduce-size_class-memory-usage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,51 +38,112 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Martin Kepplinger <martink@posteo.de>
-Subject: arch/x86/kernel/cpu/perf_event_msr.c: use sign_extend64() for sign extension
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: zsmalloc: reduce size_class memory usage
 
-Signed-off-by: Martin Kepplinger <martin.kepplinger@theobroma-systems.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: George Spelvin <linux@horizon.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Maxime Coquelin <maxime.coquelin@st.com>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
-Cc: Yury Norov <yury.norov@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Each `struct size_class' contains `struct zs_size_stat': an array of
+NR_ZS_STAT_TYPE `unsigned long'.  For zsmalloc built with no
+CONFIG_ZSMALLOC_STAT this results in a waste of `2 * sizeof(unsigned
+long)' per-class.
+
+The patch removes unneeded `struct zs_size_stat' members by redefining
+NR_ZS_STAT_TYPE (max stat idx in array).
+
+Since both NR_ZS_STAT_TYPE and zs_stat_type are compile time constants,
+GCC can eliminate zs_stat_inc()/zs_stat_dec() calls that use zs_stat_type
+larger than NR_ZS_STAT_TYPE: CLASS_ALMOST_EMPTY and CLASS_ALMOST_FULL at
+the moment.
+
+./scripts/bloat-o-meter mm/zsmalloc.o.old mm/zsmalloc.o.new
+add/remove: 0/0 grow/shrink: 0/3 up/down: 0/-39 (-39)
+function                                     old     new   delta
+fix_fullness_group                            97      94      -3
+insert_zspage                                100      86     -14
+remove_zspage                                141     119     -22
+
+To summarize:
+a) each class now uses less memory
+b) we avoid a number of dec/inc stats (a minor optimization,
+   but still).
+
+The gain will increase once we introduce additional stats.
+
+A simple IO test.
+
+iozone -t 4 -R -r 32K -s 60M -I +Z
+                        patched                 base
+"  Initial write "       4145599.06              4127509.75
+"        Rewrite "       4146225.94              4223618.50
+"           Read "      17157606.00             17211329.50
+"        Re-read "      17380428.00             17267650.50
+"   Reverse Read "      16742768.00             16162732.75
+"    Stride read "      16586245.75             16073934.25
+"    Random read "      16349587.50             15799401.75
+" Mixed workload "      10344230.62              9775551.50
+"   Random write "       4277700.62              4260019.69
+"         Pwrite "       4302049.12              4313703.88
+"          Pread "       6164463.16              6126536.72
+"         Fwrite "       7131195.00              6952586.00
+"          Fread "      12682602.25             12619207.50
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/perf_event_msr.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/zsmalloc.c |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff -puN arch/x86/kernel/cpu/perf_event_msr.c~arch-x86-use-sign_extend64-for-sign-extension arch/x86/kernel/cpu/perf_event_msr.c
---- a/arch/x86/kernel/cpu/perf_event_msr.c~arch-x86-use-sign_extend64-for-sign-extension
-+++ a/arch/x86/kernel/cpu/perf_event_msr.c
-@@ -163,10 +163,9 @@ again:
- 		goto again;
+diff -puN mm/zsmalloc.c~zsmalloc-reduce-size_class-memory-usage mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-reduce-size_class-memory-usage
++++ a/mm/zsmalloc.c
+@@ -167,9 +167,14 @@ enum zs_stat_type {
+ 	OBJ_USED,
+ 	CLASS_ALMOST_FULL,
+ 	CLASS_ALMOST_EMPTY,
+-	NR_ZS_STAT_TYPE,
+ };
  
- 	delta = now - prev;
--	if (unlikely(event->hw.event_base == MSR_SMI_COUNT)) {
--		delta <<= 32;
--		delta >>= 32; /* sign extend */
--	}
-+	if (unlikely(event->hw.event_base == MSR_SMI_COUNT))
-+		delta = sign_extend64(delta, 31);
++#ifdef CONFIG_ZSMALLOC_STAT
++#define NR_ZS_STAT_TYPE	(CLASS_ALMOST_EMPTY + 1)
++#else
++#define NR_ZS_STAT_TYPE	(OBJ_USED + 1)
++#endif
 +
- 	local64_add(now - prev, &event->count);
+ struct zs_size_stat {
+ 	unsigned long objs[NR_ZS_STAT_TYPE];
+ };
+@@ -448,19 +453,23 @@ static int get_size_class_index(int size
+ static inline void zs_stat_inc(struct size_class *class,
+ 				enum zs_stat_type type, unsigned long cnt)
+ {
+-	class->stats.objs[type] += cnt;
++	if (type < NR_ZS_STAT_TYPE)
++		class->stats.objs[type] += cnt;
  }
  
+ static inline void zs_stat_dec(struct size_class *class,
+ 				enum zs_stat_type type, unsigned long cnt)
+ {
+-	class->stats.objs[type] -= cnt;
++	if (type < NR_ZS_STAT_TYPE)
++		class->stats.objs[type] -= cnt;
+ }
+ 
+ static inline unsigned long zs_stat_get(struct size_class *class,
+ 				enum zs_stat_type type)
+ {
+-	return class->stats.objs[type];
++	if (type < NR_ZS_STAT_TYPE)
++		return class->stats.objs[type];
++	return 0;
+ }
+ 
+ #ifdef CONFIG_ZSMALLOC_STAT
 _
 
-Patches currently in -mm which might be from martink@posteo.de are
+Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
 
-bitopsh-improve-sign_extend32s-documentation.patch
-bitopsh-add-sign_extend64.patch
-arch-sh-use-sign_extend64-for-sign-extension.patch
-arch-sh-use-sign_extend64-for-sign-extension-2.patch
-arch-x86-use-sign_extend64-for-sign-extension.patch
+zsmalloc-dont-test-shrinker_enabled-in-zs_shrinker_count.patch
+zsmalloc-reduce-size_class-memory-usage.patch
 
