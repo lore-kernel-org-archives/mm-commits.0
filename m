@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + memcg-unify-slab-and-other-kmem-pages-charging-fix.patch added
+Subject: +
+ mm-hugetlb-define-hugetlb_falloc-structure-for-hole-punch-race.patch added
  to -mm tree
-Date: Mon, 19 Oct 2015 16:03:45 -0700
-Message-ID: <562576d1.Z4X6SRQbu+eYn7nh%akpm@linux-foundation.org>
+Date: Mon, 19 Oct 2015 16:19:48 -0700
+Message-ID: <56257a94.WKdAxBY+RGAWYHJ7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48248 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48287 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751214AbbJSXDq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Oct 2015 19:03:46 -0400
+	with ESMTP id S1750784AbbJSXTt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Oct 2015 19:19:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, dave.hansen@linux.intel.com, dave@stgolabs.net, hughd@google.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg-unify-slab-and-other-kmem-pages-charging-fix
+     Subject: mm/hugetlb: define hugetlb_falloc structure for hole punch race
 has been added to the -mm tree.  Its filename is
-     memcg-unify-slab-and-other-kmem-pages-charging-fix.patch
+     mm-hugetlb-define-hugetlb_falloc-structure-for-hole-punch-race.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memcg-unify-slab-and-other-kmem-pages-charging-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-define-hugetlb_falloc-structure-for-hole-punch-race.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-unify-slab-and-other-kmem-pages-charging-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-define-hugetlb_falloc-structure-for-hole-punch-race.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,127 +40,67 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: memcg-unify-slab-and-other-kmem-pages-charging-fix
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlb: define hugetlb_falloc structure for hole punch race
 
-I think it'd be better to have an outer function than a magic parameter
-for the memcg lookup.
+The hugetlbfs fallocate hole punch code can race with page faults.  The
+result is that after a hole punch operation, pages may remain within the
+hole.  No other side effects of this race were observed.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Michal Hocko <mhocko@kernel.org>
+In preparation for adding userfaultfd support to hugetlbfs, it is
+desirable to plug or significantly shrink this hole.  This patch set uses
+the same mechanism employed in shmem (see commit f00cdc6df7 ("shmem: fix
+faulting into a hole while it's punched")).
+
+hugetlb_fault_mutex_table is already used in hugetlbfs for fault
+synchronization, and there is no swap for hugetlbfs.  So, this code is
+simpler than in shmem.  In fact, the hugetlb_fault_mutex_table could be
+used for races with small hole punch operations.  However, we need
+something that will work for large holes as well.
+
+
+This patch (of 3):
+
+A hugetlb_falloc structure is pointed to by i_private during fallocate
+hole punch operations.  Page faults check this structure and if they are
+in the hole, wait for the operation to finish.
+
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    7 +++---
- mm/memcontrol.c            |   36 +++++++++++++++++------------------
- mm/slab.h                  |    4 +--
- 3 files changed, 24 insertions(+), 23 deletions(-)
+ include/linux/hugetlb.h |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN include/linux/memcontrol.h~memcg-unify-slab-and-other-kmem-pages-charging-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-unify-slab-and-other-kmem-pages-charging-fix
-+++ a/include/linux/memcontrol.h
-@@ -750,8 +750,9 @@ static inline bool memcg_kmem_is_active(
-  * conditions, but because they are pretty simple, they are expected to be
-  * fast.
-  */
--int __memcg_kmem_charge(struct page *page, gfp_t gfp, int order,
--			struct mem_cgroup *memcg);
-+int __memcg_kmem_charge_memcg(struct page *page, gfp_t gfp, int order,
-+			      struct mem_cgroup *memcg);
-+int __memcg_kmem_charge(struct page *page, gfp_t gfp, int order);
- void __memcg_kmem_uncharge(struct page *page, int order);
+diff -puN include/linux/hugetlb.h~mm-hugetlb-define-hugetlb_falloc-structure-for-hole-punch-race include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlb-define-hugetlb_falloc-structure-for-hole-punch-race
++++ a/include/linux/hugetlb.h
+@@ -42,6 +42,16 @@ struct resv_map {
+ extern struct resv_map *resv_map_alloc(void);
+ void resv_map_release(struct kref *ref);
  
- /*
-@@ -793,7 +794,7 @@ static __always_inline int memcg_kmem_ch
- {
- 	if (__memcg_kmem_bypass(gfp))
- 		return 0;
--	return __memcg_kmem_charge(page, gfp, order, NULL);
-+	return __memcg_kmem_charge(page, gfp, order);
- }
- 
- /**
-diff -puN mm/memcontrol.c~memcg-unify-slab-and-other-kmem-pages-charging-fix mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-unify-slab-and-other-kmem-pages-charging-fix
-+++ a/mm/memcontrol.c
-@@ -2376,39 +2376,39 @@ void __memcg_kmem_put_cache(struct kmem_
- 		css_put(&cachep->memcg_params.memcg->css);
- }
- 
--/*
-- * If @memcg != NULL, charge to @memcg, otherwise charge to the memcg the
-- * current task belongs to.
-- */
--int __memcg_kmem_charge(struct page *page, gfp_t gfp, int order,
--			struct mem_cgroup *memcg)
-+int __memcg_kmem_charge_memcg(struct page *page, gfp_t gfp, int order,
-+			      struct mem_cgroup *memcg)
- {
--	struct page_counter *counter;
- 	unsigned int nr_pages = 1 << order;
--	bool put = false;
-+	struct page_counter *counter;
- 	int ret = 0;
- 
--	if (!memcg) {
--		memcg = get_mem_cgroup_from_mm(current->mm);
--		put = true;
--	}
- 	if (!memcg_kmem_is_active(memcg))
--		goto out;
-+		return 0;
- 
- 	ret = page_counter_try_charge(&memcg->kmem, nr_pages, &counter);
- 	if (ret)
--		goto out;
-+		return ret;
- 
- 	ret = try_charge(memcg, gfp, nr_pages);
- 	if (ret) {
- 		page_counter_uncharge(&memcg->kmem, nr_pages);
--		goto out;
-+		return ret;
- 	}
- 
- 	page->mem_cgroup = memcg;
--out:
--	if (put)
--		css_put(&memcg->css);
++/*
++ * hugetlb_falloc is used to prevent page faults during falloc hole punch
++ * operations.  During hole punch, inode->i_private points to this struct.
++ */
++struct hugetlb_falloc {
++	wait_queue_head_t *waitq;	/* Page faults waiting on hole punch */
++	pgoff_t start;			/* Start of fallocate hole */
++	pgoff_t end;			/* End of fallocate hole */
++};
 +
-+	return 0;
-+}
-+
-+int __memcg_kmem_charge(struct page *page, gfp_t gfp, int order)
-+{
-+	struct mem_cgroup *memcg;
-+	int ret;
-+
-+	memcg = get_mem_cgroup_from_mm(current->mm);
-+	ret = __memcg_kmem_charge_memcg(page, gfp, order, memcg);
-+	css_put(&memcg->css);
- 	return ret;
- }
- 
-diff -puN mm/slab.h~memcg-unify-slab-and-other-kmem-pages-charging-fix mm/slab.h
---- a/mm/slab.h~memcg-unify-slab-and-other-kmem-pages-charging-fix
-+++ a/mm/slab.h
-@@ -244,8 +244,8 @@ static __always_inline int memcg_charge_
- 		return 0;
- 	if (is_root_cache(s))
- 		return 0;
--	return __memcg_kmem_charge(page, gfp, order,
--				   s->memcg_params.memcg);
-+	return __memcg_kmem_charge_memcg(page, gfp, order,
-+					 s->memcg_params.memcg);
- }
- 
- extern void slab_init_memcg_params(struct kmem_cache *);
+ extern spinlock_t hugetlb_lock;
+ extern int hugetlb_max_hstate __read_mostly;
+ #define for_each_hstate(h) \
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-memcg-unify-slab-and-other-kmem-pages-charging-fix.patch
-mm-vmscan-count-slab-shrinking-results-after-each-shrink_slab.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix.patch
+mm-hugetlb-define-hugetlb_falloc-structure-for-hole-punch-race.patch
+mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch.patch
+mm-hugetlb-page-faults-check-for-fallocate-hole-punch-in-progress-and-wait.patch
 
