@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch.patch added to
- -mm tree
-Date: Mon, 19 Oct 2015 16:19:50 -0700
-Message-ID: <56257a96.aZloY/jUkXKxYqjC%akpm@linux-foundation.org>
+ mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch-fix.patch added to -mm tree
+Date: Mon, 19 Oct 2015 16:19:52 -0700
+Message-ID: <56257a98./b4C4Z3+POVfK1H+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48295 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48301 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751358AbbJSXTv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Oct 2015 19:19:51 -0400
+	with ESMTP id S1751435AbbJSXTx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Oct 2015 19:19:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, dave.hansen@linux.intel.com, dave@stgolabs.net, hughd@google.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dave.hansen@linux.intel.com, dave@stgolabs.net, hughd@google.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: set up hugetlb_falloc during fallocate hole punch
+     Subject: mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch-fix
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch.patch
+     mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,90 +39,104 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlb: set up hugetlb_falloc during fallocate hole punch
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch-fix
 
-When performing a fallocate hole punch, set up a hugetlb_falloc struct and
-make i_private point to it.  i_private will point to this struct for the
-duration of the operation.  At the end of the operation, wake up anyone
-who faulted on the hole and is on the waitq.
+tidy up hugetlb_falloc initialisation
 
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   26 +++++++++++++++++++++++---
- 1 file changed, 23 insertions(+), 3 deletions(-)
+ fs/hugetlbfs/inode.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch
+diff -puN fs/hugetlbfs/inode.c~mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch-fix fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch-fix
 +++ a/fs/hugetlbfs/inode.c
-@@ -507,7 +507,9 @@ static long hugetlbfs_punch_hole(struct
- {
- 	struct hstate *h = hstate_inode(inode);
+@@ -509,7 +509,6 @@ static long hugetlbfs_punch_hole(struct
  	loff_t hpage_size = huge_page_size(h);
-+	unsigned long hpage_shift = huge_page_shift(h);
+ 	unsigned long hpage_shift = huge_page_shift(h);
  	loff_t hole_start, hole_end;
-+	struct hugetlb_falloc hugetlb_falloc;
+-	struct hugetlb_falloc hugetlb_falloc;
  
  	/*
  	 * For hole punch round up the beginning offset of the hole and
-@@ -518,8 +520,23 @@ static long hugetlbfs_punch_hole(struct
- 
+@@ -521,15 +520,16 @@ static long hugetlbfs_punch_hole(struct
  	if (hole_end > hole_start) {
  		struct address_space *mapping = inode->i_mapping;
-+		DECLARE_WAIT_QUEUE_HEAD_ONSTACK(hugetlb_falloc_waitq);
-+
-+		/*
-+		 * Page faults on the area to be hole punched must be
-+		 * stopped during the operation.  Initialize struct and
-+		 * have inode->i_private point to it.
-+		 */
-+		hugetlb_falloc.waitq = &hugetlb_falloc_waitq;
-+		hugetlb_falloc.start = hole_start >> hpage_shift;
-+		hugetlb_falloc.end = hole_end >> hpage_shift;
+ 		DECLARE_WAIT_QUEUE_HEAD_ONSTACK(hugetlb_falloc_waitq);
+-
+ 		/*
+-		 * Page faults on the area to be hole punched must be
+-		 * stopped during the operation.  Initialize struct and
+-		 * have inode->i_private point to it.
++		 * Page faults on the area to be hole punched must be stopped
++		 * during the operation.  Initialize struct and have
++		 * inode->i_private point to it.
+ 		 */
+-		hugetlb_falloc.waitq = &hugetlb_falloc_waitq;
+-		hugetlb_falloc.start = hole_start >> hpage_shift;
+-		hugetlb_falloc.end = hole_end >> hpage_shift;
++		struct hugetlb_falloc hugetlb_falloc = {
++			.waitq = &hugetlb_falloc_waitq,
++			.start = hole_start >> hpage_shift,
++			.end = hole_end >> hpage_shift
++		};
  
  		mutex_lock(&inode->i_mutex);
-+
-+		spin_lock(&inode->i_lock);
-+		inode->i_private = &hugetlb_falloc;
-+		spin_unlock(&inode->i_lock);
-+
- 		i_mmap_lock_write(mapping);
- 		if (!RB_EMPTY_ROOT(&mapping->i_mmap))
- 			hugetlb_vmdelete_list(&mapping->i_mmap,
-@@ -527,6 +544,12 @@ static long hugetlbfs_punch_hole(struct
- 						hole_end  >> PAGE_SHIFT);
- 		i_mmap_unlock_write(mapping);
- 		remove_inode_hugepages(inode, hole_start, hole_end);
-+
-+		spin_lock(&inode->i_lock);
-+		inode->i_private = NULL;
-+		wake_up_all(&hugetlb_falloc_waitq);
-+		spin_unlock(&inode->i_lock);
-+
- 		mutex_unlock(&inode->i_mutex);
- 	}
  
-@@ -647,9 +670,6 @@ static long hugetlbfs_fallocate(struct f
- 	if (!(mode & FALLOC_FL_KEEP_SIZE) && offset + len > inode->i_size)
- 		i_size_write(inode, offset + len);
- 	inode->i_ctime = CURRENT_TIME;
--	spin_lock(&inode->i_lock);
--	inode->i_private = NULL;
--	spin_unlock(&inode->i_lock);
- out:
- 	mutex_unlock(&inode->i_mutex);
- 	return error;
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlb-define-hugetlb_falloc-structure-for-hole-punch-race.patch
-mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch.patch
-mm-hugetlb-page-faults-check-for-fallocate-hole-punch-in-progress-and-wait.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm.patch
+slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
+mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
+mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
+mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
+include-linux-mmzoneh-reflow-comment.patch
+mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
+mm-vmstatc-uninline-node_page_state.patch
+mm-vmstatc-uninline-node_page_state-fix.patch
+mm-cmac-suppress-warning.patch
+mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch-fix.patch
+kasan-various-fixes-in-documentation-checkpatch-fixes.patch
+zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+include-linux-compiler-gcch-improve-__visible-documentation.patch
+fs-jffs2-wbufc-remove-stray-semicolon.patch
+lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
+rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
+dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
+panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out-fix.patch
+linux-next-rejects.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-nvem-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix-fix.patch
+net-ipv4-routec-prevent-oops.patch
+remove-abs64.patch
+remove-abs64-fix.patch
+remove-abs64-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
