@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page-migration-remove_migration_ptes-at-lockunlock-level.patch added to
- -mm tree
-Date: Mon, 19 Oct 2015 15:03:34 -0700
-Message-ID: <562568b6.6BHKPK4ZzsUZacUn%akpm@linux-foundation.org>
+Subject: + mm-migrate-dirty-page-without-clear_page_dirty_for_io-etc.patch added to -mm tree
+Date: Mon, 19 Oct 2015 15:03:42 -0700
+Message-ID: <562568be.Y1sxnzBRLrFSoeJf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46640 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46679 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754177AbbJSWDf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Oct 2015 18:03:35 -0400
+	with ESMTP id S1752519AbbJSWDn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Oct 2015 18:03:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, andreyknvl@google.com, cl@linux.com, dave@stgolabs.net, dvyukov@google.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, riel@redhat.com, sasha.levin@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page migration remove_migration_ptes at lock+unlock level
+     Subject: mm: migrate dirty page without clear_page_dirty_for_io etc
 has been added to the -mm tree.  Its filename is
-     mm-page-migration-remove_migration_ptes-at-lockunlock-level.patch
+     mm-migrate-dirty-page-without-clear_page_dirty_for_io-etc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page-migration-remove_migration_ptes-at-lockunlock-level.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-dirty-page-without-clear_page_dirty_for_io-etc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page-migration-remove_migration_ptes-at-lockunlock-level.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-dirty-page-without-clear_page_dirty_for_io-etc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,20 +39,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: page migration remove_migration_ptes at lock+unlock level
+Subject: mm: migrate dirty page without clear_page_dirty_for_io etc
 
-Clean up page migration a little more by calling remove_migration_ptes()
-from the same level, on success or on failure, from __unmap_and_move() or
-from unmap_and_move_huge_page().
+clear_page_dirty_for_io() has accumulated writeback and memcg subtleties
+since v2.6.16 first introduced page migration; and the set_page_dirty()
+which completed its migration of PageDirty, later had to be moderated to
+__set_page_dirty_nobuffers(); then PageSwapBacked had to skip that too.
 
-Don't reset page->mapping of a PageAnon old page in move_to_new_page(),
-leave that to when the page is freed.  Except for here in page migration,
-it has been an invariant that a PageAnon (bit set in page->mapping) page
-stays PageAnon until it is freed, and I think we're safer to keep to that.
+No actual problems seen with this procedure recently, but if you look into
+what the clear_page_dirty_for_io(page)+set_page_dirty(newpage) is actually
+achieving, it turns out to be nothing more than moving the PageDirty flag,
+and its NR_FILE_DIRTY stat from one zone to another.
 
-And with the above rearrangement, it's necessary because zap_pte_range()
-wants to identify whether a migration entry represents a file or an anon
-page, to update the appropriate rss stats without waiting on it.
+It would be good to avoid a pile of irrelevant decrementations and
+incrementations, and improper event counting, and unnecessary descent of
+the radix_tree under tree_lock (to set the PAGECACHE_TAG_DIRTY which
+radix_tree_replace_slot() left in place anyway).
+
+Do the NR_FILE_DIRTY movement, like the other stats movements, while
+interrupts still disabled in migrate_page_move_mapping(); and don't even
+bother if the zone is the same.  Do the PageDirty movement there under
+tree_lock too, where old page is frozen and newpage not yet visible:
+bearing in mind that as soon as newpage becomes visible in radix_tree, an
+un-page-locked set_page_dirty() might interfere (or perhaps that's just
+not possible: anything doing so should already hold an additional
+reference to the old page, preventing its migration; but play safe).
+
+But we do still need to transfer PageDirty in migrate_page_copy(), for
+those who don't go the mapping route through migrate_page_move_mapping().
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -70,81 +82,113 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   34 +++++++++++++++++++---------------
- 1 file changed, 19 insertions(+), 15 deletions(-)
+ mm/migrate.c |   51 +++++++++++++++++++++++++++++--------------------
+ 1 file changed, 31 insertions(+), 20 deletions(-)
 
-diff -puN mm/migrate.c~mm-page-migration-remove_migration_ptes-at-lockunlock-level mm/migrate.c
---- a/mm/migrate.c~mm-page-migration-remove_migration_ptes-at-lockunlock-level
+diff -puN mm/migrate.c~mm-migrate-dirty-page-without-clear_page_dirty_for_io-etc mm/migrate.c
+--- a/mm/migrate.c~mm-migrate-dirty-page-without-clear_page_dirty_for_io-etc
 +++ a/mm/migrate.c
-@@ -722,7 +722,7 @@ static int fallback_migrate_page(struct
-  *  MIGRATEPAGE_SUCCESS - success
-  */
- static int move_to_new_page(struct page *newpage, struct page *page,
--				int page_was_mapped, enum migrate_mode mode)
-+				enum migrate_mode mode)
+@@ -30,6 +30,7 @@
+ #include <linux/mempolicy.h>
+ #include <linux/vmalloc.h>
+ #include <linux/security.h>
++#include <linux/backing-dev.h>
+ #include <linux/syscalls.h>
+ #include <linux/hugetlb.h>
+ #include <linux/hugetlb_cgroup.h>
+@@ -313,6 +314,8 @@ int migrate_page_move_mapping(struct add
+ 		struct buffer_head *head, enum migrate_mode mode,
+ 		int extra_count)
  {
- 	struct address_space *mapping;
- 	int rc;
-@@ -755,19 +755,21 @@ static int move_to_new_page(struct page
- 		 * space which also has its own migratepage callback. This
- 		 * is the most common path for page migration.
- 		 */
--		rc = mapping->a_ops->migratepage(mapping,
--						newpage, page, mode);
-+		rc = mapping->a_ops->migratepage(mapping, newpage, page, mode);
- 	else
- 		rc = fallback_migrate_page(mapping, newpage, page, mode);
++	struct zone *oldzone, *newzone;
++	int dirty;
+ 	int expected_count = 1 + extra_count;
+ 	void **pslot;
  
--	if (rc != MIGRATEPAGE_SUCCESS) {
-+	/*
-+	 * When successful, old pagecache page->mapping must be cleared before
-+	 * page is freed; but stats require that PageAnon be left as PageAnon.
-+	 */
-+	if (rc == MIGRATEPAGE_SUCCESS) {
-+		set_page_memcg(page, NULL);
-+		if (!PageAnon(page))
-+			page->mapping = NULL;
-+	} else {
- 		set_page_memcg(newpage, NULL);
- 		newpage->mapping = NULL;
--	} else {
--		set_page_memcg(page, NULL);
--		if (page_was_mapped)
--			remove_migration_ptes(page, newpage);
--		page->mapping = NULL;
+@@ -331,6 +334,9 @@ int migrate_page_move_mapping(struct add
+ 		return MIGRATEPAGE_SUCCESS;
  	}
- 	return rc;
+ 
++	oldzone = page_zone(page);
++	newzone = page_zone(newpage);
++
+ 	spin_lock_irq(&mapping->tree_lock);
+ 
+ 	pslot = radix_tree_lookup_slot(&mapping->page_tree,
+@@ -378,6 +384,13 @@ int migrate_page_move_mapping(struct add
+ 		set_page_private(newpage, page_private(page));
+ 	}
+ 
++	/* Move dirty while page refs frozen and newpage not yet exposed */
++	dirty = PageDirty(page);
++	if (dirty) {
++		ClearPageDirty(page);
++		SetPageDirty(newpage);
++	}
++
+ 	radix_tree_replace_slot(pslot, newpage);
+ 
+ 	/*
+@@ -387,6 +400,9 @@ int migrate_page_move_mapping(struct add
+ 	 */
+ 	page_unfreeze_refs(page, expected_count - 1);
+ 
++	spin_unlock(&mapping->tree_lock);
++	/* Leave irq disabled to prevent preemption while updating stats */
++
+ 	/*
+ 	 * If moved to a different zone then also account
+ 	 * the page for that zone. Other VM counters will be
+@@ -397,13 +413,19 @@ int migrate_page_move_mapping(struct add
+ 	 * via NR_FILE_PAGES and NR_ANON_PAGES if they
+ 	 * are mapped to swap space.
+ 	 */
+-	__dec_zone_page_state(page, NR_FILE_PAGES);
+-	__inc_zone_page_state(newpage, NR_FILE_PAGES);
+-	if (!PageSwapCache(page) && PageSwapBacked(page)) {
+-		__dec_zone_page_state(page, NR_SHMEM);
+-		__inc_zone_page_state(newpage, NR_SHMEM);
++	if (newzone != oldzone) {
++		__dec_zone_state(oldzone, NR_FILE_PAGES);
++		__inc_zone_state(newzone, NR_FILE_PAGES);
++		if (PageSwapBacked(page) && !PageSwapCache(page)) {
++			__dec_zone_state(oldzone, NR_SHMEM);
++			__inc_zone_state(newzone, NR_SHMEM);
++		}
++		if (dirty && mapping_cap_account_dirty(mapping)) {
++			__dec_zone_state(oldzone, NR_FILE_DIRTY);
++			__inc_zone_state(newzone, NR_FILE_DIRTY);
++		}
+ 	}
+-	spin_unlock_irq(&mapping->tree_lock);
++	local_irq_enable();
+ 
+ 	return MIGRATEPAGE_SUCCESS;
  }
-@@ -902,10 +904,11 @@ static int __unmap_and_move(struct page
- 	}
+@@ -524,20 +546,9 @@ void migrate_page_copy(struct page *newp
+ 	if (PageMappedToDisk(page))
+ 		SetPageMappedToDisk(newpage);
  
- 	if (!page_mapped(page))
--		rc = move_to_new_page(newpage, page, page_was_mapped, mode);
-+		rc = move_to_new_page(newpage, page, mode);
+-	if (PageDirty(page)) {
+-		clear_page_dirty_for_io(page);
+-		/*
+-		 * Want to mark the page and the radix tree as dirty, and
+-		 * redo the accounting that clear_page_dirty_for_io undid,
+-		 * but we can't use set_page_dirty because that function
+-		 * is actually a signal that all of the page has become dirty.
+-		 * Whereas only part of our page may be dirty.
+-		 */
+-		if (PageSwapBacked(page))
+-			SetPageDirty(newpage);
+-		else
+-			__set_page_dirty_nobuffers(newpage);
+- 	}
++	/* Move dirty on pages not done by migrate_page_move_mapping() */
++	if (PageDirty(page))
++		SetPageDirty(newpage);
  
--	if (rc && page_was_mapped)
--		remove_migration_ptes(page, page);
-+	if (page_was_mapped)
-+		remove_migration_ptes(page,
-+			rc == MIGRATEPAGE_SUCCESS ? newpage : page);
- 
- out_unlock_both:
- 	unlock_page(newpage);
-@@ -1066,10 +1069,11 @@ static int unmap_and_move_huge_page(new_
- 	}
- 
- 	if (!page_mapped(hpage))
--		rc = move_to_new_page(new_hpage, hpage, page_was_mapped, mode);
-+		rc = move_to_new_page(new_hpage, hpage, mode);
- 
--	if (rc != MIGRATEPAGE_SUCCESS && page_was_mapped)
--		remove_migration_ptes(hpage, hpage);
-+	if (page_was_mapped)
-+		remove_migration_ptes(hpage,
-+			rc == MIGRATEPAGE_SUCCESS ? new_hpage : hpage);
- 
- 	unlock_page(new_hpage);
- 
+ 	if (page_is_young(page))
+ 		set_page_young(newpage);
 _
 
 Patches currently in -mm which might be from hughd@google.com are
