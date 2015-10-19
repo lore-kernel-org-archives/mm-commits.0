@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-vmscan-count-slab-shrinking-results-after-each-shrink_slab.patch added
- to -mm tree
-Date: Mon, 19 Oct 2015 14:10:15 -0700
-Message-ID: <56255c37.nk74dy1HwvjG2d70%akpm@linux-foundation.org>
+ fault-inject-fix-inverted-interval-probability-values-in-printk.patch added to -mm tree
+Date: Mon, 19 Oct 2015 14:11:40 -0700
+Message-ID: <56255c8c.YfD2UlcDcNiT+xXc%akpm__23793.0337236778$1445289115$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45841 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45847 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751985AbbJSVKQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Oct 2015 17:10:16 -0400
+	with ESMTP id S1751194AbbJSVLl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Oct 2015 17:11:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: fw@strlen.de, akinobu.mita@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: count slab shrinking results after each shrink_slab()
+     Subject: fault-inject: fix inverted interval/probability values in printk
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-count-slab-shrinking-results-after-each-shrink_slab.patch
+     fault-inject-fix-inverted-interval-probability-values-in-printk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-count-slab-shrinking-results-after-each-shrink_slab.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fault-inject-fix-inverted-interval-probability-values-in-printk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-count-slab-shrinking-results-after-each-shrink_slab.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fault-inject-fix-inverted-interval-probability-values-in-printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,70 +39,35 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: vmscan: count slab shrinking results after each shrink_slab()
+From: Florian Westphal <fw@strlen.de>
+Subject: fault-inject: fix inverted interval/probability values in printk
 
-cb731d6c62bbc2f ("vmscan: per memory cgroup slab shrinkers") sought to
-optimize accumulating slab reclaim results in sc->nr_reclaimed only once
-per zone, but the memcg hierarchy walk itself uses sc->nr_reclaimed as an
-exit condition.  This can lead to overreclaim.
+interval displays the probability and vice versa.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
+Fixes: 6adc4a22f20bb ("fault-inject: add ratelimit option")
+Acked-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ lib/fault-inject.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-count-slab-shrinking-results-after-each-shrink_slab mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-count-slab-shrinking-results-after-each-shrink_slab
-+++ a/mm/vmscan.c
-@@ -2410,11 +2410,18 @@ static bool shrink_zone(struct zone *zon
- 			shrink_lruvec(lruvec, swappiness, sc, &lru_pages);
- 			zone_lru_pages += lru_pages;
- 
--			if (memcg && is_classzone)
-+			if (memcg && is_classzone) {
- 				shrink_slab(sc->gfp_mask, zone_to_nid(zone),
- 					    memcg, sc->nr_scanned - scanned,
- 					    lru_pages);
- 
-+				if (reclaim_state) {
-+					sc->nr_reclaimed +=
-+						reclaim_state->reclaimed_slab;
-+					reclaim_state->reclaimed_slab = 0;
-+				}
-+			}
-+
- 			/*
- 			 * Direct reclaim and kswapd have to scan all memory
- 			 * cgroups to fulfill the overall scan target for the
-@@ -2436,14 +2443,16 @@ static bool shrink_zone(struct zone *zon
- 		 * Shrink the slab caches in the same proportion that
- 		 * the eligible LRU pages were scanned.
- 		 */
--		if (global_reclaim(sc) && is_classzone)
-+		if (global_reclaim(sc) && is_classzone) {
- 			shrink_slab(sc->gfp_mask, zone_to_nid(zone), NULL,
- 				    sc->nr_scanned - nr_scanned,
- 				    zone_lru_pages);
- 
--		if (reclaim_state) {
--			sc->nr_reclaimed += reclaim_state->reclaimed_slab;
--			reclaim_state->reclaimed_slab = 0;
-+			if (reclaim_state) {
-+				sc->nr_reclaimed +=
-+					reclaim_state->reclaimed_slab;
-+				reclaim_state->reclaimed_slab = 0;
-+			}
- 		}
- 
- 		vmpressure(sc->gfp_mask, sc->target_mem_cgroup,
+diff -puN lib/fault-inject.c~fault-inject-fix-inverted-interval-probability-values-in-printk lib/fault-inject.c
+--- a/lib/fault-inject.c~fault-inject-fix-inverted-interval-probability-values-in-printk
++++ a/lib/fault-inject.c
+@@ -44,7 +44,7 @@ static void fail_dump(struct fault_attr
+ 		printk(KERN_NOTICE "FAULT_INJECTION: forcing a failure.\n"
+ 		       "name %pd, interval %lu, probability %lu, "
+ 		       "space %d, times %d\n", attr->dname,
+-		       attr->probability, attr->interval,
++		       attr->interval, attr->probability,
+ 		       atomic_read(&attr->space),
+ 		       atomic_read(&attr->times));
+ 		if (attr->verbose > 1)
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from fw@strlen.de are
 
-mm-vmscan-count-slab-shrinking-results-after-each-shrink_slab.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix.patch
+fault-inject-fix-inverted-interval-probability-values-in-printk.patch
 
