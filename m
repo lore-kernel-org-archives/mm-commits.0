@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page-migration-fix-pagemlocked-on-migrated-pages.patch added to -mm tree
-Date: Mon, 19 Oct 2015 15:03:24 -0700
-Message-ID: <562568ac.fe6Yna8jUZkewMHG%akpm@linux-foundation.org>
+Subject: + mm-rename-mem_cgroup_migrate-to-mem_cgroup_replace_page.patch
+ added to -mm tree
+Date: Mon, 19 Oct 2015 15:03:26 -0700
+Message-ID: <562568ae.9kMeDvD0k9U+o7Nu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46601 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46609 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754443AbbJSWDZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Oct 2015 18:03:25 -0400
+	with ESMTP id S1754427AbbJSWD1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Oct 2015 18:03:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, andreyknvl@google.com, cl@linux.com, dave@stgolabs.net, dvyukov@google.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, riel@redhat.com, sasha.levin@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page migration fix PageMlocked on migrated pages
+     Subject: mm: rename mem_cgroup_migrate to mem_cgroup_replace_page
 has been added to the -mm tree.  Its filename is
-     mm-page-migration-fix-pagemlocked-on-migrated-pages.patch
+     mm-rename-mem_cgroup_migrate-to-mem_cgroup_replace_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page-migration-fix-pagemlocked-on-migrated-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rename-mem_cgroup_migrate-to-mem_cgroup_replace_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page-migration-fix-pagemlocked-on-migrated-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rename-mem_cgroup_migrate-to-mem_cgroup_replace_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,25 +40,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: page migration fix PageMlocked on migrated pages
+Subject: mm: rename mem_cgroup_migrate to mem_cgroup_replace_page
 
-Commit e6c509f85455 ("mm: use clear_page_mlock() in page_remove_rmap()")
-in v3.7 inadvertently made mlock_migrate_page() impotent: page migration
-unmaps the page from userspace before migrating, and that commit clears
-PageMlocked on the final unmap, leaving mlock_migrate_page() with nothing
-to do.  Not a serious bug, the next attempt at reclaiming the page would
-fix it up; but a betrayal of page migration's intent - the new page ought
-to emerge as PageMlocked.
+After v4.3's commit 0610c25daa3e ("memcg: fix dirty page migration")
+mem_cgroup_migrate() doesn't have much to offer in page migration: convert
+migrate_misplaced_transhuge_page() to set_page_memcg() instead.
 
-I don't see how to fix it for mlock_migrate_page() itself; but easily
-fixed in remove_migration_pte(), by calling mlock_vma_page() when the vma
-is VM_LOCKED - under pte lock as in try_to_unmap_one().
-
-Delete mlock_migrate_page()?  Not quite, it does still serve a purpose for
-migrate_misplaced_transhuge_page(): where we could replace it by a test,
-clear_page_mlock(), mlock_vma_page() sequence; but would that be an
-improvement?  mlock_migrate_page() is fairly lean, and let's make it
-leaner by skipping the irq save/restore now clearly not needed.
+Then rename mem_cgroup_migrate() to mem_cgroup_replace_page(), since its
+remaining callers are replace_page_cache_page() and shmem_replace_page():
+both of whom passed lrucare true, so just eliminate that argument.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -73,75 +64,155 @@ Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h |    9 ++++-----
- mm/migrate.c  |    6 ++++--
- 2 files changed, 8 insertions(+), 7 deletions(-)
+ include/linux/memcontrol.h |    7 ++-----
+ mm/filemap.c               |    2 +-
+ mm/memcontrol.c            |   29 ++++++++---------------------
+ mm/migrate.c               |    5 ++---
+ mm/shmem.c                 |    2 +-
+ 5 files changed, 14 insertions(+), 31 deletions(-)
 
-diff -puN mm/internal.h~mm-page-migration-fix-pagemlocked-on-migrated-pages mm/internal.h
---- a/mm/internal.h~mm-page-migration-fix-pagemlocked-on-migrated-pages
-+++ a/mm/internal.h
-@@ -295,20 +295,19 @@ extern unsigned int munlock_vma_page(str
- extern void clear_page_mlock(struct page *page);
+diff -puN include/linux/memcontrol.h~mm-rename-mem_cgroup_migrate-to-mem_cgroup_replace_page include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-rename-mem_cgroup_migrate-to-mem_cgroup_replace_page
++++ a/include/linux/memcontrol.h
+@@ -297,8 +297,7 @@ void mem_cgroup_cancel_charge(struct pag
+ void mem_cgroup_uncharge(struct page *page);
+ void mem_cgroup_uncharge_list(struct list_head *page_list);
  
- /*
-- * mlock_migrate_page - called only from migrate_page_copy() to
-- * migrate the Mlocked page flag; update statistics.
-+ * mlock_migrate_page - called only from migrate_misplaced_transhuge_page()
-+ * (because that does not go through the full procedure of migration ptes):
-+ * to migrate the Mlocked page flag; update statistics.
-  */
- static inline void mlock_migrate_page(struct page *newpage, struct page *page)
+-void mem_cgroup_migrate(struct page *oldpage, struct page *newpage,
+-			bool lrucare);
++void mem_cgroup_replace_page(struct page *oldpage, struct page *newpage);
+ 
+ struct lruvec *mem_cgroup_zone_lruvec(struct zone *, struct mem_cgroup *);
+ struct lruvec *mem_cgroup_page_lruvec(struct page *, struct zone *);
+@@ -537,9 +536,7 @@ static inline void mem_cgroup_uncharge_l
  {
- 	if (TestClearPageMlocked(page)) {
--		unsigned long flags;
- 		int nr_pages = hpage_nr_pages(page);
- 
--		local_irq_save(flags);
-+		/* Holding pmd lock, no change in irq context: __mod is safe */
- 		__mod_zone_page_state(page_zone(page), NR_MLOCK, -nr_pages);
- 		SetPageMlocked(newpage);
- 		__mod_zone_page_state(page_zone(newpage), NR_MLOCK, nr_pages);
--		local_irq_restore(flags);
- 	}
  }
  
-diff -puN mm/migrate.c~mm-page-migration-fix-pagemlocked-on-migrated-pages mm/migrate.c
---- a/mm/migrate.c~mm-page-migration-fix-pagemlocked-on-migrated-pages
-+++ a/mm/migrate.c
-@@ -171,6 +171,9 @@ static int remove_migration_pte(struct p
- 	else
- 		page_add_file_rmap(new);
+-static inline void mem_cgroup_migrate(struct page *oldpage,
+-				      struct page *newpage,
+-				      bool lrucare)
++static inline void mem_cgroup_replace_page(struct page *old, struct page *new)
+ {
+ }
  
-+	if (vma->vm_flags & VM_LOCKED)
-+		mlock_vma_page(new);
-+
- 	/* No need to invalidate - it was non-present before */
- 	update_mmu_cache(vma, addr, ptep);
- unlock:
-@@ -537,7 +540,6 @@ void migrate_page_copy(struct page *newp
- 	cpupid = page_cpupid_xchg_last(page, -1);
- 	page_cpupid_xchg_last(newpage, cpupid);
+diff -puN mm/filemap.c~mm-rename-mem_cgroup_migrate-to-mem_cgroup_replace_page mm/filemap.c
+--- a/mm/filemap.c~mm-rename-mem_cgroup_migrate-to-mem_cgroup_replace_page
++++ a/mm/filemap.c
+@@ -551,7 +551,7 @@ int replace_page_cache_page(struct page
+ 			__inc_zone_page_state(new, NR_SHMEM);
+ 		spin_unlock_irqrestore(&mapping->tree_lock, flags);
+ 		mem_cgroup_end_page_stat(memcg);
+-		mem_cgroup_migrate(old, new, true);
++		mem_cgroup_replace_page(old, new);
+ 		radix_tree_preload_end();
+ 		if (freepage)
+ 			freepage(old);
+diff -puN mm/memcontrol.c~mm-rename-mem_cgroup_migrate-to-mem_cgroup_replace_page mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-rename-mem_cgroup_migrate-to-mem_cgroup_replace_page
++++ a/mm/memcontrol.c
+@@ -4532,9 +4532,8 @@ static int mem_cgroup_move_account(struc
+ 		goto out;
  
--	mlock_migrate_page(newpage, page);
- 	ksm_migrate_page(newpage, page);
  	/*
- 	 * Please do not reorder this without considering how mm/ksm.c's
-@@ -1787,7 +1789,6 @@ fail_putback:
- 			SetPageActive(page);
- 		if (TestClearPageUnevictable(new_page))
- 			SetPageUnevictable(page);
--		mlock_migrate_page(page, new_page);
+-	 * Prevent mem_cgroup_migrate() from looking at page->mem_cgroup
+-	 * of its source page while we change it: page migration takes
+-	 * both pages off the LRU, but page cache replacement doesn't.
++	 * Prevent mem_cgroup_replace_page() from looking at
++	 * page->mem_cgroup of its source page while we change it.
+ 	 */
+ 	if (!trylock_page(page))
+ 		goto out;
+@@ -5496,7 +5495,7 @@ void mem_cgroup_uncharge_list(struct lis
+ }
  
- 		unlock_page(new_page);
- 		put_page(new_page);		/* Free it */
-@@ -1829,6 +1830,7 @@ fail_putback:
- 		goto fail_putback;
+ /**
+- * mem_cgroup_migrate - migrate a charge to another page
++ * mem_cgroup_replace_page - migrate a charge to another page
+  * @oldpage: currently charged page
+  * @newpage: page to transfer the charge to
+  * @lrucare: either or both pages might be on the LRU already
+@@ -5505,16 +5504,13 @@ void mem_cgroup_uncharge_list(struct lis
+  *
+  * Both pages must be locked, @newpage->mapping must be set up.
+  */
+-void mem_cgroup_migrate(struct page *oldpage, struct page *newpage,
+-			bool lrucare)
++void mem_cgroup_replace_page(struct page *oldpage, struct page *newpage)
+ {
+ 	struct mem_cgroup *memcg;
+ 	int isolated;
+ 
+ 	VM_BUG_ON_PAGE(!PageLocked(oldpage), oldpage);
+ 	VM_BUG_ON_PAGE(!PageLocked(newpage), newpage);
+-	VM_BUG_ON_PAGE(!lrucare && PageLRU(oldpage), oldpage);
+-	VM_BUG_ON_PAGE(!lrucare && PageLRU(newpage), newpage);
+ 	VM_BUG_ON_PAGE(PageAnon(oldpage) != PageAnon(newpage), newpage);
+ 	VM_BUG_ON_PAGE(PageTransHuge(oldpage) != PageTransHuge(newpage),
+ 		       newpage);
+@@ -5526,25 +5522,16 @@ void mem_cgroup_migrate(struct page *old
+ 	if (newpage->mem_cgroup)
+ 		return;
+ 
+-	/*
+-	 * Swapcache readahead pages can get migrated before being
+-	 * charged, and migration from compaction can happen to an
+-	 * uncharged page when the PFN walker finds a page that
+-	 * reclaim just put back on the LRU but has not released yet.
+-	 */
++	/* Swapcache readahead pages can get replaced before being charged */
+ 	memcg = oldpage->mem_cgroup;
+ 	if (!memcg)
+ 		return;
+ 
+-	if (lrucare)
+-		lock_page_lru(oldpage, &isolated);
+-
++	lock_page_lru(oldpage, &isolated);
+ 	oldpage->mem_cgroup = NULL;
++	unlock_page_lru(oldpage, isolated);
+ 
+-	if (lrucare)
+-		unlock_page_lru(oldpage, isolated);
+-
+-	commit_charge(newpage, memcg, lrucare);
++	commit_charge(newpage, memcg, true);
+ }
+ 
+ /*
+diff -puN mm/migrate.c~mm-rename-mem_cgroup_migrate-to-mem_cgroup_replace_page mm/migrate.c
+--- a/mm/migrate.c~mm-rename-mem_cgroup_migrate-to-mem_cgroup_replace_page
++++ a/mm/migrate.c
+@@ -30,7 +30,6 @@
+ #include <linux/mempolicy.h>
+ #include <linux/vmalloc.h>
+ #include <linux/security.h>
+-#include <linux/memcontrol.h>
+ #include <linux/syscalls.h>
+ #include <linux/hugetlb.h>
+ #include <linux/hugetlb_cgroup.h>
+@@ -1831,8 +1830,8 @@ fail_putback:
  	}
  
-+	mlock_migrate_page(new_page, page);
- 	mem_cgroup_migrate(page, new_page, false);
- 
+ 	mlock_migrate_page(new_page, page);
+-	mem_cgroup_migrate(page, new_page, false);
+-
++	set_page_memcg(new_page, page_memcg(page));
++	set_page_memcg(page, NULL);
  	page_remove_rmap(page);
+ 
+ 	spin_unlock(ptl);
+diff -puN mm/shmem.c~mm-rename-mem_cgroup_migrate-to-mem_cgroup_replace_page mm/shmem.c
+--- a/mm/shmem.c~mm-rename-mem_cgroup_migrate-to-mem_cgroup_replace_page
++++ a/mm/shmem.c
+@@ -1025,7 +1025,7 @@ static int shmem_replace_page(struct pag
+ 		 */
+ 		oldpage = newpage;
+ 	} else {
+-		mem_cgroup_migrate(oldpage, newpage, true);
++		mem_cgroup_replace_page(oldpage, newpage);
+ 		lru_cache_add_anon(newpage);
+ 		*pagep = newpage;
+ 	}
 _
 
 Patches currently in -mm which might be from hughd@google.com are
