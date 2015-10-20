@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlb-page-faults-check-for-fallocate-hole-punch-in-progress-and-wait.patch added to -mm tree
-Date: Mon, 19 Oct 2015 16:19:54 -0700
-Message-ID: <56257a9a.Z6km8vA4gVpzLe+R%akpm@linux-foundation.org>
+Subject: + thp-reintroduce-split_huge_page-fix.patch added to -mm tree
+Date: Tue, 20 Oct 2015 14:38:10 -0700
+Message-ID: <5626b442.p1dsDs1yWBuXn7Y+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48307 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42266 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751358AbbJSXTz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 19 Oct 2015 19:19:55 -0400
+	with ESMTP id S1753570AbbJTViL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 20 Oct 2015 17:38:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, dave.hansen@linux.intel.com, dave@stgolabs.net, hughd@google.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, kirill@shutemov.name, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: page faults check for fallocate hole punch in progress and wait
+     Subject: mm: mark head page dirty in split_huge_page
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-page-faults-check-for-fallocate-hole-punch-in-progress-and-wait.patch
+     thp-reintroduce-split_huge_page-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-page-faults-check-for-fallocate-hole-punch-in-progress-and-wait.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-reintroduce-split_huge_page-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-page-faults-check-for-fallocate-hole-punch-in-progress-and-wait.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-reintroduce-split_huge_page-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,83 +38,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlb: page faults check for fallocate hole punch in progress and wait
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: mark head page dirty in split_huge_page
 
-At page fault time, check i_private which indicates a fallocate hole punch
-is in progress.  If the fault falls within the hole, wait for the hole
-punch operation to complete before proceeding with the fault.
+In thp split in old THP refcount, we mappped all of pages (ie, head +
+tails) to pte_mkdirty and mark PG_flags to every tail pages.
 
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
+But with THP refcount redesign, we can lose dirty bit in page table and
+PG_dirty for head page if we want to free the THP page using
+migration_entry.
+
+It ends up discarding head page by madvise_free suddenly.  This patch
+fixes it by mark the head page PG_dirty when VM splits the THP page.
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   37 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 37 insertions(+)
+ mm/huge_memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-page-faults-check-for-fallocate-hole-punch-in-progress-and-wait mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-page-faults-check-for-fallocate-hole-punch-in-progress-and-wait
-+++ a/mm/hugetlb.c
-@@ -3583,6 +3583,7 @@ int hugetlb_fault(struct mm_struct *mm,
- 	struct page *pagecache_page = NULL;
- 	struct hstate *h = hstate_vma(vma);
- 	struct address_space *mapping;
-+	struct inode *inode = file_inode(vma->vm_file);
- 	int need_wait_lock = 0;
+diff -puN mm/huge_memory.c~thp-reintroduce-split_huge_page-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-reintroduce-split_huge_page-fix
++++ a/mm/huge_memory.c
+@@ -3156,6 +3156,7 @@ static void __split_huge_page(struct pag
+ 	atomic_sub(tail_mapcount, &head->_count);
  
- 	address &= huge_page_mask(h);
-@@ -3606,6 +3607,42 @@ int hugetlb_fault(struct mm_struct *mm,
- 	idx = vma_hugecache_offset(h, vma, address);
+ 	ClearPageCompound(head);
++	SetPageDirty(head);
+ 	spin_unlock_irq(&zone->lru_lock);
  
- 	/*
-+	 * page faults could race with fallocate hole punch.  If a page
-+	 * is faulted between unmap and deallocation, it will still remain
-+	 * in the punched hole.  During hole punch operations, a hugetlb_falloc
-+	 * structure will be pointed to by i_private.  If this fault is for
-+	 * a page in a hole being punched, wait for the operation to finish
-+	 * before proceeding.
-+	 *
-+	 * Even with this strategy, it is still possible for a page fault to
-+	 * race with hole punch.  However, the race window is considerably
-+	 * smaller.
-+	 */
-+	if (unlikely(inode->i_private)) {
-+		struct hugetlb_falloc *hugetlb_falloc;
-+
-+		spin_lock(&inode->i_lock);
-+		hugetlb_falloc = inode->i_private;
-+		if (hugetlb_falloc && hugetlb_falloc->waitq &&
-+		    idx >= hugetlb_falloc->start &&
-+		    idx <= hugetlb_falloc->end) {
-+			wait_queue_head_t *hugetlb_falloc_waitq;
-+			DEFINE_WAIT(hugetlb_fault_wait);
-+
-+			hugetlb_falloc_waitq = hugetlb_falloc->waitq;
-+			prepare_to_wait(hugetlb_falloc_waitq,
-+					&hugetlb_fault_wait,
-+					TASK_UNINTERRUPTIBLE);
-+			spin_unlock(&inode->i_lock);
-+			schedule();
-+
-+			spin_lock(&inode->i_lock);
-+			finish_wait(hugetlb_falloc_waitq, &hugetlb_fault_wait);
-+		}
-+		spin_unlock(&inode->i_lock);
-+	}
-+
-+	/*
- 	 * Serialize hugepage allocation and instantiation, so that we don't
- 	 * get spurious allocation failures if two CPUs race to instantiate
- 	 * the same page in the page cache.
+ 	unfreeze_page(page_anon_vma(head), head);
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-mm-hugetlb-define-hugetlb_falloc-structure-for-hole-punch-race.patch
-mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch.patch
-mm-hugetlb-page-faults-check-for-fallocate-hole-punch-in-progress-and-wait.patch
+thp-use-is_zero_pfn-only-after-pte_present-check.patch
+thp-reintroduce-split_huge_page-fix.patch
+x86-add-pmd_-for-thp.patch
+sparc-add-pmd_-for-thp.patch
+powerpc-add-pmd_-for-thp.patch
+arm-add-pmd_mkclean-for-thp.patch
+arm64-add-pmd_-for-thp.patch
+mm-support-madvisemadv_free.patch
+mm-support-madvisemadv_free-fix.patch
+mm-support-madvisemadv_free-fix-5.patch
+mm-support-madvisemadv_free-fix-6.patch
+mm-mark-stable-page-dirty-in-ksm.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-5.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-6.patch
+mm-free-swp_entry-in-madvise_free.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
 
