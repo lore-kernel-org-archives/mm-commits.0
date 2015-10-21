@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch added to -mm tree
-Date: Wed, 21 Oct 2015 12:52:51 -0700
-Message-ID: <5627ed13.EiMucd5TVec4nMjY%akpm@linux-foundation.org>
+Subject: + thp-reintroduce-split_huge_page-fix-2.patch added to -mm tree
+Date: Wed, 21 Oct 2015 13:30:38 -0700
+Message-ID: <5627f5ee.bI8ese0TmUtlfFBU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44121 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44585 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932212AbbJUTww (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Oct 2015 15:52:52 -0400
+	with ESMTP id S1750846AbbJUUaj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Oct 2015 16:30:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mgorman@techsingularity.net, riel@redhat.com, mm-commits@vger.kernel.org
+To: kirill@shutemov.name, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix
+     Subject: thp-reintroduce-split_huge_page-fix-2
 has been added to the -mm tree.  Its filename is
-     mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
+     thp-reintroduce-split_huge_page-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-reintroduce-split_huge_page-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-reintroduce-split_huge_page-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,82 +38,31 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: thp-reintroduce-split_huge_page-fix-2
 
-s/SWAP_CLUSTER_MAX/SWAP_CLUSTER_MAX * 2/, per Johannes
-
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Rik van Riel <riel@redhat.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmpressure.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/vmpressure.c~mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix mm/vmpressure.c
---- a/mm/vmpressure.c~mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix
-+++ a/mm/vmpressure.c
-@@ -38,7 +38,7 @@
-  * TODO: Make the window size depend on machine size, as we do for vmstat
-  * thresholds. Currently we set it to 512 pages (2MB for 4KB pages).
-  */
--static const unsigned long vmpressure_win = SWAP_CLUSTER_MAX;
-+static const unsigned long vmpressure_win = SWAP_CLUSTER_MAX * 2;
+diff -puN mm/huge_memory.c~thp-reintroduce-split_huge_page-fix-2 mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-reintroduce-split_huge_page-fix-2
++++ a/mm/huge_memory.c
+@@ -3038,6 +3038,7 @@ static void unfreeze_page_vma(struct vm_
+ 			continue;
  
- /*
-  * These thresholds are used when we account memory pressure through
+ 		entry = pte_mkold(mk_pte(page, vma->vm_page_prot));
++		entry = pte_mkdirty(entry);
+ 		if (is_write_migration_entry(swp_entry))
+ 			entry = maybe_mkwrite(entry, vma);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill@shutemov.name are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm.patch
-slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
-mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
-mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
-mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
-include-linux-mmzoneh-reflow-comment.patch
-mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
-mm-vmstatc-uninline-node_page_state.patch
-mm-vmstatc-uninline-node_page_state-fix.patch
-mm-cmac-suppress-warning.patch
-mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch-fix.patch
-kasan-various-fixes-in-documentation-checkpatch-fixes.patch
-zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-include-linux-compiler-gcch-improve-__visible-documentation.patch
-fs-jffs2-wbufc-remove-stray-semicolon.patch
-lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
-rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
-dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
-panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out-fix.patch
-linux-next-rejects.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-nvem-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix-fix.patch
-net-ipv4-routec-prevent-oops.patch
-drivers-rtc-rtc-pcf2127c-hack.patch
-remove-abs64.patch
-remove-abs64-fix.patch
-remove-abs64-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-thp-remove-infrastructure-for-handling-splitting-pmds-fix.patch
+thp-reintroduce-split_huge_page-fix-2.patch
 
