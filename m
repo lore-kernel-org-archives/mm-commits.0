@@ -1,17 +1,16 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- migrate_pages-try-to-split-pages-on-qeueuing.patch removed from -mm tree
-Date: Wed, 21 Oct 2015 13:30:43 -0700
-Message-ID: <5627f5f3.mYO+0idiiY+OOGLW%akpm@linux-foundation.org>
+Subject: + migrate_pages-try-to-split-pages-on-qeueuing.patch added to -mm tree
+Date: Wed, 21 Oct 2015 13:32:48 -0700
+Message-ID: <5627f670.OntuCQJWeuvnHk/D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44597 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44614 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752836AbbJUUao (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Oct 2015 16:30:44 -0400
+	with ESMTP id S1755919AbbJUUct (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Oct 2015 16:32:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
@@ -19,10 +18,24 @@ To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vne
 
 The patch titled
      Subject: migrate_pages: try to split pages on qeueuing
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      migrate_pages-try-to-split-pages-on-qeueuing.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/migrate_pages-try-to-split-pages-on-qeueuing.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/migrate_pages-try-to-split-pages-on-qeueuing.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -183,6 +196,7 @@ thp-implement-split_huge_pmd.patch
 thp-add-option-to-setup-migration-entries-during-pmd-split.patch
 thp-mm-split_huge_page-caller-need-to-lock-page.patch
 thp-reintroduce-split_huge_page.patch
+migrate_pages-try-to-split-pages-on-qeueuing.patch
 thp-introduce-deferred_split_huge_page.patch
 mm-re-enable-thp.patch
 thp-update-documentation.patch
