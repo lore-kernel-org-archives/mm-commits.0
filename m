@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-use-memory-policy-when-available-fix.patch added to
- -mm tree
-Date: Wed, 21 Oct 2015 15:02:42 -0700
-Message-ID: <56280b82.W/KfDIUUU9WCPLxU%akpm@linux-foundation.org>
+Subject: + mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2.patch added to -mm tree
+Date: Wed, 21 Oct 2015 15:54:41 -0700
+Message-ID: <562817b1.zdPwWtxEHNRhrilS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45909 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46508 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752035AbbJUWCn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Oct 2015 18:02:43 -0400
+	with ESMTP id S1752141AbbJUWym (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Oct 2015 18:54:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.hansen@linux.intel.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dan.carpenter@oracle.com, hughd@google.com, mgorman@suse.de, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugetlbfs: Fix new warning in fault-time huge page allocation
+     Subject: mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-use-memory-policy-when-available-fix.patch
+     mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-use-memory-policy-when-available-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-use-memory-policy-when-available-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +38,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm, hugetlbfs: Fix new warning in fault-time huge page allocation
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2
 
-Kirill reported that he hit:
->> +	if (vma || addr) {
->> +		WARN_ON_ONCE(!addr || addr == -1);
->
-> Trinity triggered the WARN for me:
+fix layout
 
-This was just a dumb mistake. I put the WARN_ON() in and planned to
-have addr=0 mean "use nid". But, I realized pretty quickly that addr=0
-_is_ a valid place to fault. So I made it addr=-1 in
-__alloc_buddy_huge_page_no_mpol(), but I did not fix up the WARN_ON().
-
-So hitting the warning in this case was harmless.  But, fix up the
-warning condition.
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: David Rientjes <rientjes@google.com>
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/rmap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-use-memory-policy-when-available-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-use-memory-policy-when-available-fix
-+++ a/mm/hugetlb.c
-@@ -1514,8 +1514,13 @@ static struct page *__alloc_buddy_huge_p
- 	if (hstate_is_gigantic(h))
- 		return NULL;
- 
--	if (vma || addr) {
--		WARN_ON_ONCE(!addr || addr == -1);
-+	/*
-+	 * Make sure that anyone specifying 'nid' is not also specifying a VMA.
-+	 * This makes sure the caller is picking _one_ of the modes with which
-+	 * we can call this function, not both.
-+	 */
-+	if (vma || (addr != -1)) {
-+		WARN_ON_ONCE(addr == -1);
- 		WARN_ON_ONCE(nid != NUMA_NO_NODE);
- 	}
- 	/*
+diff -puN mm/rmap.c~mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2 mm/rmap.c
+--- a/mm/rmap.c~mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2
++++ a/mm/rmap.c
+@@ -1466,8 +1466,8 @@ static int try_to_unmap_one(struct page
+ 			ret = SWAP_FAIL;
+ 			goto out_unmap;
+ 		}
+-			if (!PageDirty(page))
+-				SetPageDirty(page);
++		if (!PageDirty(page))
++			SetPageDirty(page);
+ 		if (list_empty(&mm->mmlist)) {
+ 			spin_lock(&mmlist_lock);
+ 			if (list_empty(&mm->mmlist))
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-inotify-hide-internal-kernel-bits-from-fdinfo.patch
-inotify-actually-check-for-invalid-bits-in-sys_inotify_add_watch.patch
-inotify-actually-check-for-invalid-bits-in-sys_inotify_add_watch-v2.patch
-mm-hugetlb-use-memory-policy-when-available.patch
-mm-hugetlb-use-memory-policy-when-available-fix.patch
-mm-hugetlbfs-optimize-when-numa=n.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm.patch
+slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
+mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
+mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
+mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
+include-linux-mmzoneh-reflow-comment.patch
+mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
+mm-vmstatc-uninline-node_page_state.patch
+mm-vmstatc-uninline-node_page_state-fix.patch
+mm-cmac-suppress-warning.patch
+kasan-various-fixes-in-documentation-checkpatch-fixes.patch
+mm-slub-kasan-enable-user-tracking-by-default-with-kasan=y-fix.patch
+zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+include-linux-compiler-gcch-improve-__visible-documentation.patch
+fs-jffs2-wbufc-remove-stray-semicolon.patch
+lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
+rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
+dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
+panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out-fix.patch
+linux-next-rejects.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-nvem-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix-fix.patch
+net-ipv4-routec-prevent-oops.patch
+drivers-rtc-rtc-pcf2127c-hack.patch
+remove-abs64.patch
+remove-abs64-fix.patch
+remove-abs64-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
