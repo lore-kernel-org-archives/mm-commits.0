@@ -1,18 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-hugetlb-define-hugetlb_falloc-structure-for-hole-punch-race.patch
- removed from -mm tree
-Date: Wed, 21 Oct 2015 13:37:23 -0700
-Message-ID: <5627f783.Co/4m8EKRkDrwdpC%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb-define-hugetlb_falloc-structure-for-hole-punch-race.patch added
+ to -mm tree
+Date: Wed, 21 Oct 2015 13:39:39 -0700
+Message-ID: <5627f80b.GRWdBtcA1CTIhhHb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44624 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44650 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755084AbbJUUhZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Oct 2015 16:37:25 -0400
+	with ESMTP id S1752016AbbJUUjk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Oct 2015 16:39:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mike.kravetz@oracle.com, dave.hansen@linux.intel.com, dave@stgolabs.net, hughd@google.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
@@ -20,10 +20,24 @@ To: mike.kravetz@oracle.com, dave.hansen@linux.intel.com, dave@stgolabs.net, hug
 
 The patch titled
      Subject: mm/hugetlb: define hugetlb_falloc structure for hole punch race
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      mm-hugetlb-define-hugetlb_falloc-structure-for-hole-punch-race.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-define-hugetlb_falloc-structure-for-hole-punch-race.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-define-hugetlb_falloc-structure-for-hole-punch-race.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
@@ -34,18 +48,19 @@ result is that after a hole punch operation, pages may remain within the
 hole.  No other side effects of this race were observed.
 
 In preparation for adding userfaultfd support to hugetlbfs, it is
-desirable to plug or significantly shrink this hole.  This patch set uses
-the same mechanism employed in shmem (see commit f00cdc6df7 ("shmem: fix
-faulting into a hole while it's punched")).
+desirable to close the window of this race.  This patch set starts by
+using the same mechanism employed in shmem (see commit f00cdc6df7).  This
+greatly reduces the race window.  However, it is still possible for the
+race to occur.
 
-hugetlb_fault_mutex_table is already used in hugetlbfs for fault
-synchronization, and there is no swap for hugetlbfs.  So, this code is
-simpler than in shmem.  In fact, the hugetlb_fault_mutex_table could be
-used for races with small hole punch operations.  However, we need
-something that will work for large holes as well.
+The current hugetlbfs code to remove pages did not deal with pages that
+were mapped (because of such a race).  This patch set also adds code to
+unmap pages in this rare case.  This unmapping of a single page happens
+under the hugetlb_fault_mutex, so it can not be faulted again until the
+end of the operation.
 
 
-This patch (of 3):
+This patch (of 4):
 
 A hugetlb_falloc structure is pointed to by i_private during fallocate
 hole punch operations.  Page faults check this structure and if they are
@@ -86,6 +101,8 @@ _
 
 Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
+mm-hugetlb-define-hugetlb_falloc-structure-for-hole-punch-race.patch
 mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch.patch
 mm-hugetlb-page-faults-check-for-fallocate-hole-punch-in-progress-and-wait.patch
+mm-hugetlb-unmap-pages-to-remove-if-page-fault-raced-with-hole-punch.patch
 
