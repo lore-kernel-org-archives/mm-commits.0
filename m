@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-eliminate-root-memorycurrent-fix.patch added to
+Subject: +
+ futex-thp-remove-special-case-for-thp-in-get_futex_key-fix.patch added to
  -mm tree
-Date: Thu, 22 Oct 2015 12:37:16 -0700
-Message-ID: <56293aec./gso+KHx9G++xtpI%akpm@linux-foundation.org>
+Date: Thu, 22 Oct 2015 12:39:18 -0700
+Message-ID: <56293b66.6oc3ybZNo2kVKlf3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40021 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40024 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758052AbbJVThR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Oct 2015 15:37:17 -0400
+	with ESMTP id S1757354AbbJVTjT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Oct 2015 15:39:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.cz, tj@kernel.org, mm-commits@vger.kernel.org
+To: kirill@shutemov.name, artem.savkov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcontrol-eliminate-root-memorycurrent-fix
+     Subject: futex-thp-remove-special-case-for-thp-in-get_futex_key-fix
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-eliminate-root-memorycurrent-fix.patch
+     futex-thp-remove-special-case-for-thp-in-get_futex_key-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-eliminate-root-memorycurrent-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/futex-thp-remove-special-case-for-thp-in-get_futex_key-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-eliminate-root-memorycurrent-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/futex-thp-remove-special-case-for-thp-in-get_futex_key-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,83 +40,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcontrol-eliminate-root-memorycurrent-fix
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: futex-thp-remove-special-case-for-thp-in-get_futex_key-fix
 
-memory_current_read() should return nr-bytes, not nr-pages, per Michal.
+fix oops caused by treating tail page as a head page
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Tejun Heo <tj@kernel.org>
+Reported-by: Artem Savkov <artem.savkov@gmail.com>
+Tested-by: Artem Savkov <artem.savkov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/futex.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-eliminate-root-memorycurrent-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-eliminate-root-memorycurrent-fix
-+++ a/mm/memcontrol.c
-@@ -5027,7 +5027,7 @@ static void mem_cgroup_bind(struct cgrou
- static u64 memory_current_read(struct cgroup_subsys_state *css,
- 			       struct cftype *cft)
- {
--	return page_counter_read(&mem_cgroup_from_css(css)->memory);
-+	return page_counter_read(&mem_cgroup_from_css(css)->memory) << PAGE_SHIFT;
- }
+diff -puN kernel/futex.c~futex-thp-remove-special-case-for-thp-in-get_futex_key-fix kernel/futex.c
+--- a/kernel/futex.c~futex-thp-remove-special-case-for-thp-in-get_futex_key-fix
++++ a/kernel/futex.c
+@@ -461,6 +461,7 @@ get_futex_key(u32 __user *uaddr, int fsh
+ 	unsigned long address = (unsigned long)uaddr;
+ 	struct mm_struct *mm = current->mm;
+ 	struct page *page;
++	struct address_space *mapping;
+ 	int err, ro = 0;
  
- static int memory_low_show(struct seq_file *m, void *v)
+ 	/*
+@@ -526,7 +527,8 @@ again:
+ 	 * shmem_writepage move it from filecache to swapcache beneath us:
+ 	 * an unlikely race, but we do need to retry for page->mapping.
+ 	 */
+-	if (!page->mapping) {
++	mapping = compound_head(page)->mapping;
++	if (!mapping) {
+ 		int shmem_swizzled = PageSwapCache(page);
+ 		unlock_page(page);
+ 		put_page(page);
+@@ -557,7 +559,7 @@ again:
+ 		key->private.address = address;
+ 	} else {
+ 		key->both.offset |= FUT_OFF_INODE; /* inode-based key */
+-		key->shared.inode = page->mapping->host;
++		key->shared.inode = mapping->host;
+ 		key->shared.pgoff = basepage_index(page);
+ 	}
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill@shutemov.name are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm.patch
-slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
-mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
-mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
-mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
-include-linux-mmzoneh-reflow-comment.patch
-mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
-mm-vmstatc-uninline-node_page_state.patch
-mm-vmstatc-uninline-node_page_state-fix.patch
-mm-cmac-suppress-warning.patch
-mm-memcontrol-eliminate-root-memorycurrent-fix.patch
-kasan-various-fixes-in-documentation-checkpatch-fixes.patch
-mm-slub-kasan-enable-user-tracking-by-default-with-kasan=y-fix.patch
-zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-include-linux-compiler-gcch-improve-__visible-documentation.patch
-fs-jffs2-wbufc-remove-stray-semicolon.patch
-lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
-rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
-dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
-panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out-fix.patch
-linux-next-rejects.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-nvem-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix-fix.patch
-net-ipv4-routec-prevent-oops.patch
-remove-abs64.patch
-remove-abs64-fix.patch
-remove-abs64-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+futex-thp-remove-special-case-for-thp-in-get_futex_key-fix.patch
+mm-thp-remove-infrastructure-for-handling-splitting-pmds-fix.patch
+thp-reintroduce-split_huge_page-fix-2.patch
 
