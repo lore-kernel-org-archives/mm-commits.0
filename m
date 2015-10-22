@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_counter-let-page_counter_try_charge-return-bool.patch
- added to -mm tree
-Date: Thu, 22 Oct 2015 13:18:34 -0700
-Message-ID: <5629449a.OfMNS5SY2z7BOGP7%akpm@linux-foundation.org>
+Subject: + doc-slub-document-slabinfo-gnuplotsh-script.patch added to -mm
+ tree
+Date: Thu, 22 Oct 2015 13:21:38 -0700
+Message-ID: <56294552.F7AJmxJAyzbFCrE+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40474 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40508 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965085AbbJVUSf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Oct 2015 16:18:35 -0400
+	with ESMTP id S965200AbbJVUVi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Oct 2015 16:21:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page_counter: let page_counter_try_charge() return bool
+     Subject: Doc/slub: document slabinfo-gnuplot.sh script
 has been added to the -mm tree.  Its filename is
-     mm-page_counter-let-page_counter_try_charge-return-bool.patch
+     doc-slub-document-slabinfo-gnuplotsh-script.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_counter-let-page_counter_try_charge-return-bool.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/doc-slub-document-slabinfo-gnuplotsh-script.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_counter-let-page_counter_try_charge-return-bool.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/doc-slub-document-slabinfo-gnuplotsh-script.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,131 +39,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: page_counter: let page_counter_try_charge() return bool
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: Doc/slub: document slabinfo-gnuplot.sh script
 
-page_counter_try_charge() currently returns 0 on success and -ENOMEM on
-failure, which is surprising behavior given the function name.
+Add documentation on how to use slabinfo-gnuplot.sh script.
 
-Make it follow the expected pattern of try_stuff() functions that return a
-boolean true to indicate success, or false for failure.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_counter.h |    6 +++---
- mm/hugetlb_cgroup.c          |    3 ++-
- mm/memcontrol.c              |   11 +++++------
- mm/page_counter.c            |   14 +++++++-------
- 4 files changed, 17 insertions(+), 17 deletions(-)
+ Documentation/vm/slub.txt |   58 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
 
-diff -puN include/linux/page_counter.h~mm-page_counter-let-page_counter_try_charge-return-bool include/linux/page_counter.h
---- a/include/linux/page_counter.h~mm-page_counter-let-page_counter_try_charge-return-bool
-+++ a/include/linux/page_counter.h
-@@ -36,9 +36,9 @@ static inline unsigned long page_counter
+diff -puN Documentation/vm/slub.txt~doc-slub-document-slabinfo-gnuplotsh-script Documentation/vm/slub.txt
+--- a/Documentation/vm/slub.txt~doc-slub-document-slabinfo-gnuplotsh-script
++++ a/Documentation/vm/slub.txt
+@@ -280,4 +280,62 @@ of other objects.
  
- void page_counter_cancel(struct page_counter *counter, unsigned long nr_pages);
- void page_counter_charge(struct page_counter *counter, unsigned long nr_pages);
--int page_counter_try_charge(struct page_counter *counter,
--			    unsigned long nr_pages,
--			    struct page_counter **fail);
-+bool page_counter_try_charge(struct page_counter *counter,
-+			     unsigned long nr_pages,
-+			     struct page_counter **fail);
- void page_counter_uncharge(struct page_counter *counter, unsigned long nr_pages);
- int page_counter_limit(struct page_counter *counter, unsigned long limit);
- int page_counter_memparse(const char *buf, const char *max,
-diff -puN mm/hugetlb_cgroup.c~mm-page_counter-let-page_counter_try_charge-return-bool mm/hugetlb_cgroup.c
---- a/mm/hugetlb_cgroup.c~mm-page_counter-let-page_counter_try_charge-return-bool
-+++ a/mm/hugetlb_cgroup.c
-@@ -186,7 +186,8 @@ again:
- 	}
- 	rcu_read_unlock();
+ 	slub_debug=FZ,dentry
  
--	ret = page_counter_try_charge(&h_cg->hugepage[idx], nr_pages, &counter);
-+	if (!page_counter_try_charge(&h_cg->hugepage[idx], nr_pages, &counter))
-+		ret = -ENOMEM;
- 	css_put(&h_cg->css);
- done:
- 	*ptr = h_cg;
-diff -puN mm/memcontrol.c~mm-page_counter-let-page_counter_try_charge-return-bool mm/memcontrol.c
---- a/mm/memcontrol.c~mm-page_counter-let-page_counter_try_charge-return-bool
-+++ a/mm/memcontrol.c
-@@ -2016,8 +2016,8 @@ retry:
- 		return 0;
- 
- 	if (!do_swap_account ||
--	    !page_counter_try_charge(&memcg->memsw, batch, &counter)) {
--		if (!page_counter_try_charge(&memcg->memory, batch, &counter))
-+	    page_counter_try_charge(&memcg->memsw, batch, &counter)) {
-+		if (page_counter_try_charge(&memcg->memory, batch, &counter))
- 			goto done_restock;
- 		if (do_swap_account)
- 			page_counter_uncharge(&memcg->memsw, batch);
-@@ -2381,14 +2381,13 @@ int __memcg_kmem_charge_memcg(struct pag
- {
- 	unsigned int nr_pages = 1 << order;
- 	struct page_counter *counter;
--	int ret = 0;
-+	int ret;
- 
- 	if (!memcg_kmem_is_active(memcg))
- 		return 0;
- 
--	ret = page_counter_try_charge(&memcg->kmem, nr_pages, &counter);
--	if (ret)
--		return ret;
-+	if (!page_counter_try_charge(&memcg->kmem, nr_pages, &counter))
-+		return -ENOMEM;
- 
- 	ret = try_charge(memcg, gfp, nr_pages);
- 	if (ret) {
-diff -puN mm/page_counter.c~mm-page_counter-let-page_counter_try_charge-return-bool mm/page_counter.c
---- a/mm/page_counter.c~mm-page_counter-let-page_counter_try_charge-return-bool
-+++ a/mm/page_counter.c
-@@ -56,12 +56,12 @@ void page_counter_charge(struct page_cou
-  * @nr_pages: number of pages to charge
-  * @fail: points first counter to hit its limit, if any
-  *
-- * Returns 0 on success, or -ENOMEM and @fail if the counter or one of
-- * its ancestors has hit its configured limit.
-+ * Returns %true on success, or %false and @fail if the counter or one
-+ * of its ancestors has hit its configured limit.
-  */
--int page_counter_try_charge(struct page_counter *counter,
--			    unsigned long nr_pages,
--			    struct page_counter **fail)
-+bool page_counter_try_charge(struct page_counter *counter,
-+			     unsigned long nr_pages,
-+			     struct page_counter **fail)
- {
- 	struct page_counter *c;
- 
-@@ -99,13 +99,13 @@ int page_counter_try_charge(struct page_
- 		if (new > c->watermark)
- 			c->watermark = new;
- 	}
--	return 0;
-+	return true;
- 
- failed:
- 	for (c = counter; c != *fail; c = c->parent)
- 		page_counter_cancel(c, nr_pages);
- 
--	return -ENOMEM;
-+	return false;
- }
- 
- /**
++Extended slabinfo mode and plotting
++-----------------------------------
++
++slabinfo tool has a special 'extended' ('-X') mode that includes:
++ - Slabcache Totals
++ - Slabs sorted by size (up to -N <num> slabs, default 1)
++ - Slabs sorted by loss (up to -N <num> slabs, default 1)
++
++Additionally, in this mode slabinfo does not dynamically scale sizes (G/M/K)
++and reports everything in bytes (this functionality is also available to
++other slabinfo modes via '-B' option) which makes reporting more precise and
++accurate. Moreover, in some sense the `-X' mode also simplifies the analysis
++of slabs' behaviour, because its output can be plotted using the
++slabinfo-gnuplot.sh script. So it pushes the analysis from looking through
++the numbers (tons of numbers) to something easier -- visual analysis.
++
++To generate plots:
++a) collect slabinfo extended records, for example:
++
++  while [ 1 ]; do slabinfo -X >> FOO_STATS; sleep 1; done
++
++b) pass stats file(-s) to slabinfo-gnuplot.sh script:
++  slabinfo-gnuplot.sh FOO_STATS [FOO_STATS2 .. FOO_STATSN]
++
++The slabinfo-gnuplot.sh script will pre-processes the collected records
++and generates 3 png files (and 3 pre-processing cache files) per STATS
++file:
++ - Slabcache Totals: FOO_STATS-totals.png
++ - Slabs sorted by size: FOO_STATS-slabs-by-size.png
++ - Slabs sorted by loss: FOO_STATS-slabs-by-loss.png
++
++Another use case, when slabinfo-gnuplot can be useful, is when you need
++to compare slabs' behaviour "prior to" and "after" some code modification.
++To help you out there, slabinfo-gnuplot.sh script can 'merge' the
++`Slabcache Totals` sections from different measurements. To visually
++compare N plots:
++
++a) Collect as many STATS1, STATS2, .. STATSN files as you need
++  while [ 1 ]; do slabinfo -X >> STATS<X>; sleep 1; done
++
++b) Pre-process those STATS files
++  slabinfo-gnuplot.sh STATS1 STATS2 .. STATSN
++
++c) Execute slabinfo-gnuplot.sh in '-t' mode, passing all of the
++generated pre-processed *-totals
++  slabinfo-gnuplot.sh -t STATS1-totals STATS2-totals .. STATSN-totals
++
++This will produce a single plot (png file).
++
++Plots, expectedly, can be large so some fluctuations or small spikes
++can go unnoticed. To deal with that, `slabinfo-gnuplot.sh' has two
++options to 'zoom-in'/'zoom-out':
++ a) -s %d,%d  overwrites the default image width and heigh
++ b) -r %d,%d  specifies a range of samples to use (for example,
++              in `slabinfo -X >> FOO_STATS; sleep 1;' case, using
++              a "-r 40,60" range will plot only samples collected
++              between 40th and 60th seconds).
++
+ Christoph Lameter, May 30, 2007
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
-memcg-unify-slab-and-other-kmem-pages-charging-fix.patch
-mm-memcontrol-eliminate-root-memorycurrent.patch
-mm-page_counter-let-page_counter_try_charge-return-bool.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix.patch
+maintainers-add-myself-as-zsmalloc-reviewer.patch
+tools-vm-slabinfo-use-getopt-no_argument-optional_argument.patch
+tools-vm-slabinfo-limit-the-number-of-reported-slabs.patch
+tools-vm-slabinfo-sort-slabs-by-loss.patch
+tools-vm-slabinfo-fix-alternate-opts-names.patch
+tools-vm-slabinfo-introduce-extended-totals-mode.patch
+tools-vm-slabinfo-output-sizes-in-bytes.patch
+tools-vm-slabinfo-cosmetic-globals-cleanup.patch
+tools-vm-slabinfo-gnuplot-slabifo-extended-stat.patch
+doc-slub-document-slabinfo-gnuplotsh-script.patch
+zram-keep-the-exact-overcommited-value-in-mem_used_max.patch
+mm-zsmalloc-constify-struct-zs_pool-name.patch
+zsmalloc-use-preempth-for-in_interrupt.patch
 
