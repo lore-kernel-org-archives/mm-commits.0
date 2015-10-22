@@ -1,72 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2.patch added to -mm tree
-Date: Wed, 21 Oct 2015 15:54:41 -0700
-Message-ID: <562817b1.zdPwWtxEHNRhrilS%akpm@linux-foundation.org>
+Subject: [alternative-merged] drivers-rtc-rtc-pcf2127c-hack.patch removed
+ from -mm tree
+Date: Thu, 22 Oct 2015 12:24:49 -0700
+Message-ID: <56293801.zv8e0JRw0TUa0Lk3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46508 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39665 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752141AbbJUWym (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 21 Oct 2015 18:54:42 -0400
+	with ESMTP id S1753351AbbJVTYu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Oct 2015 15:24:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.carpenter@oracle.com, hughd@google.com, mgorman@suse.de, minchan@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, alexandre.belloni@free-electrons.com, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2
-has been added to the -mm tree.  Its filename is
-     mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2.patch
+     Subject: drivers/rtc/rtc-pcf2127.c hack
+has been removed from the -mm tree.  Its filename was
+     drivers-rtc-rtc-pcf2127c-hack.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2
+Subject: drivers/rtc/rtc-pcf2127.c hack
 
-fix layout
-
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Minchan Kim <minchan@kernel.org>
+Cc: Uwe Kleine-Koenig <u.kleine-koenig@pengutronix.de>
+Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rtc/rtc-pcf2127.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/rmap.c~mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2 mm/rmap.c
---- a/mm/rmap.c~mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2
-+++ a/mm/rmap.c
-@@ -1466,8 +1466,8 @@ static int try_to_unmap_one(struct page
- 			ret = SWAP_FAIL;
- 			goto out_unmap;
- 		}
--			if (!PageDirty(page))
--				SetPageDirty(page);
-+		if (!PageDirty(page))
-+			SetPageDirty(page);
- 		if (list_empty(&mm->mmlist)) {
- 			spin_lock(&mmlist_lock);
- 			if (list_empty(&mm->mmlist))
+diff -puN drivers/rtc/rtc-pcf2127.c~drivers-rtc-rtc-pcf2127c-hack drivers/rtc/rtc-pcf2127.c
+--- a/drivers/rtc/rtc-pcf2127.c~drivers-rtc-rtc-pcf2127c-hack
++++ a/drivers/rtc/rtc-pcf2127.c
+@@ -145,6 +145,7 @@ static int pcf2127_rtc_ioctl(struct devi
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	unsigned char buf = PCF2127_REG_CTRL3;
+ 	int ret;
++	int foo;
+ 
+ 	switch (cmd) {
+ 	case RTC_VL_READ:
+@@ -162,7 +163,8 @@ static int pcf2127_rtc_ioctl(struct devi
+ 
+ 		buf = buf & PCF2127_REG_CTRL3_BLF ? 1 : 0;
+ 
+-		if (copy_to_user((void __user *)arg, &buf, sizeof(int)))
++		foo = buf;	// ytf is an unsigned char called "buf"?
++		if (copy_to_user((void __user *)arg, &foo, sizeof(int)))
+ 			return -EFAULT;
+ 		return 0;
+ 	default:
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -113,7 +103,6 @@ mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-nvem-fix.patch
 mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
 mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix-fix.patch
 net-ipv4-routec-prevent-oops.patch
-drivers-rtc-rtc-pcf2127c-hack.patch
 remove-abs64.patch
 remove-abs64-fix.patch
 remove-abs64-fix-fix.patch
