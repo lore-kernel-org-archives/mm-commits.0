@@ -1,137 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: + doc-slub-document-slabinfo-gnuplotsh-script.patch added to -mm
- tree
-Date: Thu, 22 Oct 2015 13:21:38 -0700
-Message-ID: <56294552.F7AJmxJAyzbFCrE+%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ mm-memcontrol-eliminate-root-memorycurrent-fix.patch removed from -mm tree
+Date: Thu, 22 Oct 2015 13:24:50 -0700
+Message-ID: <56294612.zD4vuBfllosj41xb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40508 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40530 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965200AbbJVUVi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Oct 2015 16:21:38 -0400
+	with ESMTP id S1758006AbbJVUYv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Oct 2015 16:24:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.cz, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Doc/slub: document slabinfo-gnuplot.sh script
-has been added to the -mm tree.  Its filename is
-     doc-slub-document-slabinfo-gnuplotsh-script.patch
+     Subject: mm-memcontrol-eliminate-root-memorycurrent-fix
+has been removed from the -mm tree.  Its filename was
+     mm-memcontrol-eliminate-root-memorycurrent-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/doc-slub-document-slabinfo-gnuplotsh-script.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/doc-slub-document-slabinfo-gnuplotsh-script.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: Doc/slub: document slabinfo-gnuplot.sh script
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memcontrol-eliminate-root-memorycurrent-fix
 
-Add documentation on how to use slabinfo-gnuplot.sh script.
+memory_current_read() should return nr-bytes, not nr-pages, per Michal.
 
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slub.txt |   58 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/vm/slub.txt~doc-slub-document-slabinfo-gnuplotsh-script Documentation/vm/slub.txt
---- a/Documentation/vm/slub.txt~doc-slub-document-slabinfo-gnuplotsh-script
-+++ a/Documentation/vm/slub.txt
-@@ -280,4 +280,62 @@ of other objects.
+diff -puN mm/memcontrol.c~mm-memcontrol-eliminate-root-memorycurrent-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-eliminate-root-memorycurrent-fix
++++ a/mm/memcontrol.c
+@@ -5027,7 +5027,7 @@ static void mem_cgroup_bind(struct cgrou
+ static u64 memory_current_read(struct cgroup_subsys_state *css,
+ 			       struct cftype *cft)
+ {
+-	return page_counter_read(&mem_cgroup_from_css(css)->memory);
++	return page_counter_read(&mem_cgroup_from_css(css)->memory) << PAGE_SHIFT;
+ }
  
- 	slub_debug=FZ,dentry
- 
-+Extended slabinfo mode and plotting
-+-----------------------------------
-+
-+slabinfo tool has a special 'extended' ('-X') mode that includes:
-+ - Slabcache Totals
-+ - Slabs sorted by size (up to -N <num> slabs, default 1)
-+ - Slabs sorted by loss (up to -N <num> slabs, default 1)
-+
-+Additionally, in this mode slabinfo does not dynamically scale sizes (G/M/K)
-+and reports everything in bytes (this functionality is also available to
-+other slabinfo modes via '-B' option) which makes reporting more precise and
-+accurate. Moreover, in some sense the `-X' mode also simplifies the analysis
-+of slabs' behaviour, because its output can be plotted using the
-+slabinfo-gnuplot.sh script. So it pushes the analysis from looking through
-+the numbers (tons of numbers) to something easier -- visual analysis.
-+
-+To generate plots:
-+a) collect slabinfo extended records, for example:
-+
-+  while [ 1 ]; do slabinfo -X >> FOO_STATS; sleep 1; done
-+
-+b) pass stats file(-s) to slabinfo-gnuplot.sh script:
-+  slabinfo-gnuplot.sh FOO_STATS [FOO_STATS2 .. FOO_STATSN]
-+
-+The slabinfo-gnuplot.sh script will pre-processes the collected records
-+and generates 3 png files (and 3 pre-processing cache files) per STATS
-+file:
-+ - Slabcache Totals: FOO_STATS-totals.png
-+ - Slabs sorted by size: FOO_STATS-slabs-by-size.png
-+ - Slabs sorted by loss: FOO_STATS-slabs-by-loss.png
-+
-+Another use case, when slabinfo-gnuplot can be useful, is when you need
-+to compare slabs' behaviour "prior to" and "after" some code modification.
-+To help you out there, slabinfo-gnuplot.sh script can 'merge' the
-+`Slabcache Totals` sections from different measurements. To visually
-+compare N plots:
-+
-+a) Collect as many STATS1, STATS2, .. STATSN files as you need
-+  while [ 1 ]; do slabinfo -X >> STATS<X>; sleep 1; done
-+
-+b) Pre-process those STATS files
-+  slabinfo-gnuplot.sh STATS1 STATS2 .. STATSN
-+
-+c) Execute slabinfo-gnuplot.sh in '-t' mode, passing all of the
-+generated pre-processed *-totals
-+  slabinfo-gnuplot.sh -t STATS1-totals STATS2-totals .. STATSN-totals
-+
-+This will produce a single plot (png file).
-+
-+Plots, expectedly, can be large so some fluctuations or small spikes
-+can go unnoticed. To deal with that, `slabinfo-gnuplot.sh' has two
-+options to 'zoom-in'/'zoom-out':
-+ a) -s %d,%d  overwrites the default image width and heigh
-+ b) -r %d,%d  specifies a range of samples to use (for example,
-+              in `slabinfo -X >> FOO_STATS; sleep 1;' case, using
-+              a "-r 40,60" range will plot only samples collected
-+              between 40th and 60th seconds).
-+
- Christoph Lameter, May 30, 2007
+ static int memory_low_show(struct seq_file *m, void *v)
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-maintainers-add-myself-as-zsmalloc-reviewer.patch
-tools-vm-slabinfo-use-getopt-no_argument-optional_argument.patch
-tools-vm-slabinfo-limit-the-number-of-reported-slabs.patch
-tools-vm-slabinfo-sort-slabs-by-loss.patch
-tools-vm-slabinfo-fix-alternate-opts-names.patch
-tools-vm-slabinfo-introduce-extended-totals-mode.patch
-tools-vm-slabinfo-output-sizes-in-bytes.patch
-tools-vm-slabinfo-cosmetic-globals-cleanup.patch
-tools-vm-slabinfo-gnuplot-slabifo-extended-stat.patch
-doc-slub-document-slabinfo-gnuplotsh-script.patch
-zram-keep-the-exact-overcommited-value-in-mem_used_max.patch
-mm-zsmalloc-constify-struct-zs_pool-name.patch
-zsmalloc-use-preempth-for-in_interrupt.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm.patch
+slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
+mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
+mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
+mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
+include-linux-mmzoneh-reflow-comment.patch
+mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
+mm-vmstatc-uninline-node_page_state.patch
+mm-vmstatc-uninline-node_page_state-fix.patch
+mm-cmac-suppress-warning.patch
+kasan-various-fixes-in-documentation-checkpatch-fixes.patch
+mm-slub-kasan-enable-user-tracking-by-default-with-kasan=y-fix.patch
+zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+include-linux-compiler-gcch-improve-__visible-documentation.patch
+fs-jffs2-wbufc-remove-stray-semicolon.patch
+lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
+rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
+dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
+panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out-fix.patch
+linux-next-rejects.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-nvem-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix-fix.patch
+net-ipv4-routec-prevent-oops.patch
+remove-abs64.patch
+remove-abs64-fix.patch
+remove-abs64-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
