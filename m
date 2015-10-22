@@ -1,62 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged] drivers-rtc-rtc-pcf2127c-hack.patch removed
- from -mm tree
-Date: Thu, 22 Oct 2015 12:24:49 -0700
-Message-ID: <56293801.zv8e0JRw0TUa0Lk3%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-eliminate-root-memorycurrent-fix.patch added to
+ -mm tree
+Date: Thu, 22 Oct 2015 12:37:16 -0700
+Message-ID: <56293aec./gso+KHx9G++xtpI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39665 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40021 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753351AbbJVTYu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Oct 2015 15:24:50 -0400
+	with ESMTP id S1758052AbbJVThR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 22 Oct 2015 15:37:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, alexandre.belloni@free-electrons.com, u.kleine-koenig@pengutronix.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.cz, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/rtc/rtc-pcf2127.c hack
-has been removed from the -mm tree.  Its filename was
-     drivers-rtc-rtc-pcf2127c-hack.patch
+     Subject: mm-memcontrol-eliminate-root-memorycurrent-fix
+has been added to the -mm tree.  Its filename is
+     mm-memcontrol-eliminate-root-memorycurrent-fix.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-eliminate-root-memorycurrent-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-eliminate-root-memorycurrent-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/rtc/rtc-pcf2127.c hack
+Subject: mm-memcontrol-eliminate-root-memorycurrent-fix
 
-Cc: Uwe Kleine-Koenig <u.kleine-koenig@pengutronix.de>
-Cc: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+memory_current_read() should return nr-bytes, not nr-pages, per Michal.
+
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rtc/rtc-pcf2127.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rtc/rtc-pcf2127.c~drivers-rtc-rtc-pcf2127c-hack drivers/rtc/rtc-pcf2127.c
---- a/drivers/rtc/rtc-pcf2127.c~drivers-rtc-rtc-pcf2127c-hack
-+++ a/drivers/rtc/rtc-pcf2127.c
-@@ -145,6 +145,7 @@ static int pcf2127_rtc_ioctl(struct devi
- 	struct i2c_client *client = to_i2c_client(dev);
- 	unsigned char buf = PCF2127_REG_CTRL3;
- 	int ret;
-+	int foo;
+diff -puN mm/memcontrol.c~mm-memcontrol-eliminate-root-memorycurrent-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-eliminate-root-memorycurrent-fix
++++ a/mm/memcontrol.c
+@@ -5027,7 +5027,7 @@ static void mem_cgroup_bind(struct cgrou
+ static u64 memory_current_read(struct cgroup_subsys_state *css,
+ 			       struct cftype *cft)
+ {
+-	return page_counter_read(&mem_cgroup_from_css(css)->memory);
++	return page_counter_read(&mem_cgroup_from_css(css)->memory) << PAGE_SHIFT;
+ }
  
- 	switch (cmd) {
- 	case RTC_VL_READ:
-@@ -162,7 +163,8 @@ static int pcf2127_rtc_ioctl(struct devi
- 
- 		buf = buf & PCF2127_REG_CTRL3_BLF ? 1 : 0;
- 
--		if (copy_to_user((void __user *)arg, &buf, sizeof(int)))
-+		foo = buf;	// ytf is an unsigned char called "buf"?
-+		if (copy_to_user((void __user *)arg, &foo, sizeof(int)))
- 			return -EFAULT;
- 		return 0;
- 	default:
+ static int memory_low_show(struct seq_file *m, void *v)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +87,7 @@ mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
 mm-vmstatc-uninline-node_page_state.patch
 mm-vmstatc-uninline-node_page_state-fix.patch
 mm-cmac-suppress-warning.patch
+mm-memcontrol-eliminate-root-memorycurrent-fix.patch
 kasan-various-fixes-in-documentation-checkpatch-fixes.patch
 mm-slub-kasan-enable-user-tracking-by-default-with-kasan=y-fix.patch
 zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
