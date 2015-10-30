@@ -1,77 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [merged] disable-wframe-larger-than-warnings-with-kasan=y.patch
+Subject: [merged]
+ fault-inject-fix-inverted-interval-probability-values-in-printk.patch
  removed from -mm tree
-Date: Fri, 30 Oct 2015 12:44:45 -0700
-Message-ID: <5633c8ad.CxDjt5MMAcgEBirZ%akpm@linux-foundation.org>
+Date: Fri, 30 Oct 2015 12:44:48 -0700
+Message-ID: <5633c8b0.Z3NTb6ShHve3iz9T%akpm__12809.3782616363$1446234302$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42032 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42038 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760469AbbJ3Toq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Oct 2015 15:44:46 -0400
+	with ESMTP id S1760469AbbJ3Tos (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Oct 2015 15:44:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, andi@firstfloor.org, aospan@netup.ru, fengguang.wu@intel.com, m.chehab@samsung.com, mingo@kernel.org, serjk@netup.ru, mm-commits@vger.kernel.org
+To: fw@strlen.de, akinobu.mita@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/Kconfig.debug: disable -Wframe-larger-than warnings with KASAN=y
+     Subject: fault-inject: fix inverted interval/probability values in printk
 has been removed from the -mm tree.  Its filename was
-     disable-wframe-larger-than-warnings-with-kasan=y.patch
+     fault-inject-fix-inverted-interval-probability-values-in-printk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: lib/Kconfig.debug: disable -Wframe-larger-than warnings with KASAN=y
+From: Florian Westphal <fw@strlen.de>
+Subject: fault-inject: fix inverted interval/probability values in printk
 
-When the kernel compiled with KASAN=y, GCC adds redzones for each variable
-on stack.  This enlarges function's stack frame and causes:
+interval displays the probability and vice versa.
 
-	'warning: the frame size of X bytes is larger than Y bytes'
-
-The worst case I've seen for now is following:
- ../net/wireless/nl80211.c: In function `nl80211_send_wiphy':
- ../net/wireless/nl80211.c:1731:1: warning: the frame size of 5448 bytes is larger than 2048 bytes [-Wframe-larger-than=]
-  }
-
-That kind of warning becomes useless with KASAN=y.  It doesn't necessarily
-indicate that there is some problem in the code, thus we should turn it
-off.
-
-(The KASAN=y stack size in increased from 16k to 32k for this reason)
-
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Acked-by: Abylay Ospan <aospan@netup.ru>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Kozlov Sergey <serjk@netup.ru>
+Fixes: 6adc4a22f20bb ("fault-inject: add ratelimit option")
+Acked-by: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.debug |    1 +
- 1 file changed, 1 insertion(+)
+ lib/fault-inject.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/Kconfig.debug~disable-wframe-larger-than-warnings-with-kasan=y lib/Kconfig.debug
---- a/lib/Kconfig.debug~disable-wframe-larger-than-warnings-with-kasan=y
-+++ a/lib/Kconfig.debug
-@@ -197,6 +197,7 @@ config ENABLE_MUST_CHECK
- config FRAME_WARN
- 	int "Warn for stack frames larger than (needs gcc 4.4)"
- 	range 0 8192
-+	default 0 if KASAN
- 	default 1024 if !64BIT
- 	default 2048 if 64BIT
- 	help
+diff -puN lib/fault-inject.c~fault-inject-fix-inverted-interval-probability-values-in-printk lib/fault-inject.c
+--- a/lib/fault-inject.c~fault-inject-fix-inverted-interval-probability-values-in-printk
++++ a/lib/fault-inject.c
+@@ -44,7 +44,7 @@ static void fail_dump(struct fault_attr
+ 		printk(KERN_NOTICE "FAULT_INJECTION: forcing a failure.\n"
+ 		       "name %pd, interval %lu, probability %lu, "
+ 		       "space %d, times %d\n", attr->dname,
+-		       attr->probability, attr->interval,
++		       attr->interval, attr->probability,
+ 		       atomic_read(&attr->space),
+ 		       atomic_read(&attr->times));
+ 		if (attr->verbose > 1)
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from fw@strlen.de are
 
-mm-slub-kasan-enable-user-tracking-by-default-with-kasan=y.patch
-kasan-always-taint-kernel-on-report.patch
 
