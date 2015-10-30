@@ -1,90 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-dlm-unlock-lockres-spinlock-before-dlm_lockres_put.patch removed from -mm tree
-Date: Fri, 30 Oct 2015 12:44:50 -0700
-Message-ID: <5633c8b2.aNvjGTO9rrjyTN3z%akpm@linux-foundation.org>
+Subject: [merged] disable-wframe-larger-than-warnings-with-kasan=y.patch
+ removed from -mm tree
+Date: Fri, 30 Oct 2015 12:44:45 -0700
+Message-ID: <5633c8ad.CxDjt5MMAcgEBirZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42042 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42032 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760469AbbJ3Tou (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Oct 2015 15:44:50 -0400
+	with ESMTP id S1760469AbbJ3Toq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Oct 2015 15:44:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, andi@firstfloor.org, aospan@netup.ru, fengguang.wu@intel.com, m.chehab@samsung.com, mingo@kernel.org, serjk@netup.ru, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: unlock lockres spinlock before dlm_lockres_put
+     Subject: lib/Kconfig.debug: disable -Wframe-larger-than warnings with KASAN=y
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-unlock-lockres-spinlock-before-dlm_lockres_put.patch
+     disable-wframe-larger-than-warnings-with-kasan=y.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2/dlm: unlock lockres spinlock before dlm_lockres_put
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: lib/Kconfig.debug: disable -Wframe-larger-than warnings with KASAN=y
 
-dlm_lockres_put will call dlm_lockres_release if it is the last reference,
-and then it may call dlm_print_one_lock_resource and take lockres
-spinlock.
+When the kernel compiled with KASAN=y, GCC adds redzones for each variable
+on stack.  This enlarges function's stack frame and causes:
 
-So unlock lockres spinlock before dlm_lockres_put to avoid deadlock.
+	'warning: the frame size of X bytes is larger than Y bytes'
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
+The worst case I've seen for now is following:
+ ../net/wireless/nl80211.c: In function `nl80211_send_wiphy':
+ ../net/wireless/nl80211.c:1731:1: warning: the frame size of 5448 bytes is larger than 2048 bytes [-Wframe-larger-than=]
+  }
+
+That kind of warning becomes useless with KASAN=y.  It doesn't necessarily
+indicate that there is some problem in the code, thus we should turn it
+off.
+
+(The KASAN=y stack size in increased from 16k to 32k for this reason)
+
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Acked-by: Abylay Ospan <aospan@netup.ru>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: Kozlov Sergey <serjk@netup.ru>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c   |    3 ++-
- fs/ocfs2/dlm/dlmrecovery.c |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ lib/Kconfig.debug |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-unlock-lockres-spinlock-before-dlm_lockres_put fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-unlock-lockres-spinlock-before-dlm_lockres_put
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -1658,12 +1658,13 @@ send_response:
- 		if (ret < 0) {
- 			mlog(ML_ERROR, "failed to dispatch assert master work\n");
- 			response = DLM_MASTER_RESP_ERROR;
-+			spin_unlock(&res->spinlock);
- 			dlm_lockres_put(res);
- 		} else {
- 			dispatched = 1;
- 			__dlm_lockres_grab_inflight_worker(dlm, res);
-+			spin_unlock(&res->spinlock);
- 		}
--		spin_unlock(&res->spinlock);
- 	} else {
- 		if (res)
- 			dlm_lockres_put(res);
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-unlock-lockres-spinlock-before-dlm_lockres_put fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-unlock-lockres-spinlock-before-dlm_lockres_put
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -1723,8 +1723,8 @@ int dlm_master_requery_handler(struct o2
- 			} else {
- 				dispatched = 1;
- 				__dlm_lockres_grab_inflight_worker(dlm, res);
-+				spin_unlock(&res->spinlock);
- 			}
--			spin_unlock(&res->spinlock);
- 		} else {
- 			/* put.. incase we are not the master */
- 			spin_unlock(&res->spinlock);
+diff -puN lib/Kconfig.debug~disable-wframe-larger-than-warnings-with-kasan=y lib/Kconfig.debug
+--- a/lib/Kconfig.debug~disable-wframe-larger-than-warnings-with-kasan=y
++++ a/lib/Kconfig.debug
+@@ -197,6 +197,7 @@ config ENABLE_MUST_CHECK
+ config FRAME_WARN
+ 	int "Warn for stack frames larger than (needs gcc 4.4)"
+ 	range 0 8192
++	default 0 if KASAN
+ 	default 1024 if !64BIT
+ 	default 2048 if 64BIT
+ 	help
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
-ocfs2-improve-performance-for-localalloc.patch
-ocfs2-do-not-include-dio-entry-in-case-of-orphan-scan.patch
-ocfs2-only-take-lock-if-dio-entry-when-recover-orphans.patch
-ocfs2-fix-race-between-mount-and-delete-node-cluster.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery-v2.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery-v3.patch
-ocfs2-dlm-fix-bug-in-dlm_move_lockres_to_recovery_list.patch
+mm-slub-kasan-enable-user-tracking-by-default-with-kasan=y.patch
+kasan-always-taint-kernel-on-report.patch
 
