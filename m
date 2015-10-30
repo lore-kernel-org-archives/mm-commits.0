@@ -1,68 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-add-myself-as-zsmalloc-reviewer.patch
- removed from -mm tree
-Date: Fri, 30 Oct 2015 12:44:36 -0700
-Message-ID: <5633c8a4.QFHalX8kTCbSIERv%akpm@linux-foundation.org>
+Subject: [merged] mm-make-sendfile2-killable.patch removed from -mm tree
+Date: Fri, 30 Oct 2015 12:44:43 -0700
+Message-ID: <5633c8ab.ql0ZBw7Pymq0+Zl6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42015 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42027 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758403AbbJ3Tog (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Oct 2015 15:44:36 -0400
+	with ESMTP id S1760457AbbJ3Too (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 30 Oct 2015 15:44:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: jack@suse.com, dvyukov@google.com, stable@vger.kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add Sergey as zsmalloc reviewer
+     Subject: mm: make sendfile(2) killable
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-myself-as-zsmalloc-reviewer.patch
+     mm-make-sendfile2-killable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: MAINTAINERS: add Sergey as zsmalloc reviewer
+From: Jan Kara <jack@suse.com>
+Subject: mm: make sendfile(2) killable
 
-Nominate myself as a zsmalloc reviewer.
+Currently a simple program below issues a sendfile(2) system call which
+takes about 62 days to complete in my test KVM instance.
 
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
+        int fd;
+        off_t off = 0;
+
+        fd = open("file", O_RDWR | O_TRUNC | O_SYNC | O_CREAT, 0644);
+        ftruncate(fd, 2);
+        lseek(fd, 0, SEEK_END);
+        sendfile(fd, fd, &off, 0xfffffff);
+
+Now you should not ask kernel to do a stupid stuff like copying 256MB in
+2-byte chunks and call fsync(2) after each chunk but if you do, sysadmin
+should have a way to stop you.
+
+We actually do have a check for fatal_signal_pending() in
+generic_perform_write() which triggers in this path however because we
+always succeed in writing something before the check is done, we return
+value > 0 from generic_perform_write() and thus the information about
+signal gets lost.
+
+Fix the problem by doing the signal check before writing anything.  That
+way generic_perform_write() returns -EINTR, the error gets propagated up
+and the sendfile loop terminates early.
+
+Signed-off-by: Jan Kara <jack@suse.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ mm/filemap.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-myself-as-zsmalloc-reviewer MAINTAINERS
---- a/MAINTAINERS~maintainers-add-myself-as-zsmalloc-reviewer
-+++ a/MAINTAINERS
-@@ -11674,6 +11674,7 @@ F:	drivers/tty/serial/zs.*
- ZSMALLOC COMPRESSED SLAB MEMORY ALLOCATOR
- M:	Minchan Kim <minchan@kernel.org>
- M:	Nitin Gupta <ngupta@vflare.org>
-+R:	Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
- L:	linux-mm@kvack.org
- S:	Maintained
- F:	mm/zsmalloc.c
+diff -puN mm/filemap.c~mm-make-sendfile2-killable mm/filemap.c
+--- a/mm/filemap.c~mm-make-sendfile2-killable
++++ a/mm/filemap.c
+@@ -2488,6 +2488,11 @@ again:
+ 			break;
+ 		}
+ 
++		if (fatal_signal_pending(current)) {
++			status = -EINTR;
++			break;
++		}
++
+ 		status = a_ops->write_begin(file, mapping, pos, bytes, flags,
+ 						&page, &fsdata);
+ 		if (unlikely(status < 0))
+@@ -2525,10 +2530,6 @@ again:
+ 		written += copied;
+ 
+ 		balance_dirty_pages_ratelimited(mapping);
+-		if (fatal_signal_pending(current)) {
+-			status = -EINTR;
+-			break;
+-		}
+ 	} while (iov_iter_count(i));
+ 
+ 	return written ? written : status;
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from jack@suse.com are
 
-tools-vm-slabinfo-use-getopt-no_argument-optional_argument.patch
-tools-vm-slabinfo-limit-the-number-of-reported-slabs.patch
-tools-vm-slabinfo-sort-slabs-by-loss.patch
-tools-vm-slabinfo-fix-alternate-opts-names.patch
-tools-vm-slabinfo-introduce-extended-totals-mode.patch
-tools-vm-slabinfo-output-sizes-in-bytes.patch
-tools-vm-slabinfo-cosmetic-globals-cleanup.patch
-tools-vm-slabinfo-gnuplot-slabifo-extended-stat.patch
-doc-slub-document-slabinfo-gnuplotsh-script.patch
-zram-keep-the-exact-overcommited-value-in-mem_used_max.patch
-mm-zsmalloc-constify-struct-zs_pool-name.patch
-zsmalloc-use-preempth-for-in_interrupt.patch
 
