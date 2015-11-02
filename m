@@ -1,101 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch removed from -mm tree
-Date: Mon, 02 Nov 2015 14:49:37 -0800
-Message-ID: <5637e881.aOe+32gCPQo6LmM4%akpm@linux-foundation.org>
+Subject: [folded-merged] mm-support-madvisemadv_free-fix-3.patch removed
+ from -mm tree
+Date: Mon, 02 Nov 2015 14:49:34 -0800
+Message-ID: <5637e87e.3W7vaZXV1LOZlMkD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55870 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55864 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753774AbbKBWti (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 17:49:38 -0500
+	with ESMTP id S1753082AbbKBWtf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 17:49:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, dave.hansen@linux.intel.com, hpa@zytor.com, luto@amacapital.net, minchan@kernel.org, mingo@elte.hu, oleg@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd
+     Subject: mm, madvise: use vma_is_anonymous() to check for anon VMA
 has been removed from the -mm tree.  Its filename was
-     mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
+     mm-support-madvisemadv_free-fix-3.patch
 
 This patch was dropped because it was folded into mm-support-madvisemadv_free.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm, madvise: use vma_is_anonymous() to check for anon VMA
 
+!vma->vm_file is not reliable to detect anon VMA, because not all
+drivers bother set it. Let's use vma_is_anonymous() instead.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Oleg Nesterov <oleg@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/madvise.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/madvise.c~mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd mm/madvise.c
---- a/mm/madvise.c~mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd
+diff -puN mm/madvise.c~mm-support-madvisemadv_free-fix-3 mm/madvise.c
+--- a/mm/madvise.c~mm-support-madvisemadv_free-fix-3
 +++ a/mm/madvise.c
-@@ -277,7 +277,7 @@ static int madvise_free_pte_range(pmd_t
- 	pte_t *pte, ptent;
- 	struct page *page;
+@@ -357,7 +357,7 @@ static int madvise_free_single_vma(struc
+ 		return -EINVAL;
  
--	split_huge_page_pmd(vma, addr, pmd);
-+	split_huge_pmd(vma, addr, pmd);
- 	if (pmd_trans_unstable(pmd))
- 		return 0;
+ 	/* MADV_FREE works for only anon vma at the moment */
+-	if (vma->vm_file)
++	if (!vma_is_anonymous(vma))
+ 		return -EINVAL;
  
+ 	start = max(vma->vm_start, start_addr);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm.patch
-slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
-mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
-mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
-mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
-include-linux-mmzoneh-reflow-comment.patch
-mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
-mm-vmstatc-uninline-node_page_state.patch
-mm-vmstatc-uninline-node_page_state-fix.patch
-mm-cmac-suppress-warning.patch
-kasan-various-fixes-in-documentation-checkpatch-fixes.patch
-mm-slub-kasan-enable-user-tracking-by-default-with-kasan=y-fix.patch
-zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
-x86-add-pmd_-for-thp-fix.patch
-sparc-add-pmd_-for-thp-fix.patch
+rcu-force-alignment-on-struct-callback_head-rcu_head.patch
+mm-make-optimistic-check-for-swapin-readahead-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+mm-drop-page-slab_page.patch
+slab-slub-use-page-rcu_head-instead-of-page-lru-plus-cast.patch
+zsmalloc-use-page-private-instead-of-page-first_page.patch
+mm-pack-compound_dtor-and-compound_order-into-one-word-in-struct-page.patch
+mm-make-compound_head-robust.patch
+mm-make-compound_head-robust-fix.patch
+mm-use-unsigned-int-for-page-order.patch
+mm-use-unsigned-int-for-compound_dtor-compound_order-on-64bit.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-move-code-around.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-fix.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-3.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-at-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-proc-adjust-pss-calculation.patch
+rmap-add-argument-to-charge-compound-page.patch
+memcg-adjust-to-support-new-thp-refcounting.patch
+mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault.patch
+mm-adjust-foll_split-for-new-refcounting.patch
+mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
+thp-mlock-do-not-allow-huge-pages-in-mlocked-area.patch
+khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes.patch
+thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
+mm-vmstats-new-thp-splitting-event.patch
+mm-temporally-mark-thp-broken.patch
+thp-drop-all-split_huge_page-related-code.patch
+mm-drop-tail-page-refcounting.patch
+futex-thp-remove-special-case-for-thp-in-get_futex_key.patch
+ksm-prepare-to-new-thp-semantics.patch
+mm-thp-remove-compound_lock.patch
+arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+arm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+mips-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+powerpc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+s390-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+sparc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+tile-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+x86-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+mm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps.patch
+mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
+mm-numa-skip-pte-mapped-thp-on-numa-fault.patch
+thp-implement-split_huge_pmd.patch
+thp-add-option-to-setup-migration-entries-during-pmd-split.patch
+thp-mm-split_huge_page-caller-need-to-lock-page.patch
+thp-reintroduce-split_huge_page.patch
+migrate_pages-try-to-split-pages-on-qeueuing.patch
+thp-introduce-deferred_split_huge_page.patch
+mm-re-enable-thp.patch
+thp-update-documentation.patch
+thp-allow-mlocked-thp-again.patch
 mm-support-madvisemadv_free.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
-include-linux-compiler-gcch-improve-__visible-documentation.patch
-fs-jffs2-wbufc-remove-stray-semicolon.patch
-lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
-rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
-dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
-panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out-fix.patch
-linux-next-rejects.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-nvem-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix-fix.patch
-net-ipv4-routec-prevent-oops.patch
-remove-abs64.patch
-remove-abs64-fix.patch
-remove-abs64-fix-fix.patch
-remove-abs64-fix-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
 
