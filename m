@@ -1,65 +1,56 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-move-lazy-free-pages-to-inactive-list-fix.patch removed from -mm tree
-Date: Mon, 02 Nov 2015 14:53:02 -0800
-Message-ID: <5637e94e.qaqriDhBfHHTOecy%akpm@linux-foundation.org>
+ mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch removed from -mm tree
+Date: Mon, 02 Nov 2015 14:53:08 -0800
+Message-ID: <5637e954.xMTpDwb+gL2PZIhq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55990 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56000 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751407AbbKBWxD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 17:53:03 -0500
+	with ESMTP id S1751407AbbKBWxJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 17:53:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, Yalin.Wang@sonymobile.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, shli@kernel.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: document deactivate_page
+     Subject: mm: lru_deactivate_fn should clear PG_referenced
 has been removed from the -mm tree.  Its filename was
-     mm-move-lazy-free-pages-to-inactive-list-fix.patch
+     mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
 
 This patch was dropped because it was folded into mm-move-lazy-free-pages-to-inactive-list.patch
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: document deactivate_page
+Subject: mm: lru_deactivate_fn should clear PG_referenced
 
-This patch adds function description for deactivate_page.
+deactivate_page aims for accelerate for reclaiming through
+moving pages from active list to inactive list so we should
+clear PG_referenced for the goal.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Wang, Yalin <Yalin.Wang@sonymobile.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/swap.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/swap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/swap.c~mm-move-lazy-free-pages-to-inactive-list-fix mm/swap.c
---- a/mm/swap.c~mm-move-lazy-free-pages-to-inactive-list-fix
+diff -puN mm/swap.c~mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix mm/swap.c
+--- a/mm/swap.c~mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix
 +++ a/mm/swap.c
-@@ -631,6 +631,13 @@ void deactivate_file_page(struct page *p
- 	}
- }
+@@ -565,6 +565,7 @@ static void lru_deactivate_fn(struct pag
  
-+/**
-+ * deactivate_page - deactivate a page
-+ * @page: page to deactivate
-+ *
-+ * This function moves @page to inactive list if @page was on active list and
-+ * was not unevictable page to accelerate to reclaim @page.
-+ */
- void deactivate_page(struct page *page)
- {
- 	if (PageLRU(page) && PageActive(page) && !PageUnevictable(page)) {
+ 		del_page_from_lru_list(page, lruvec, lru + LRU_ACTIVE);
+ 		ClearPageActive(page);
++		ClearPageReferenced(page);
+ 		add_page_to_lru_list(page, lruvec, lru);
+ 
+ 		__count_vm_event(PGDEACTIVATE);
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
@@ -74,5 +65,4 @@ mm-mark-stable-page-dirty-in-ksm.patch
 mm-dont-split-thp-page-when-syscall-is-called.patch
 mm-free-swp_entry-in-madvise_free.patch
 mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
 
