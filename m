@@ -1,54 +1,56 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix.patch removed from
- -mm tree
-Date: Mon, 02 Nov 2015 14:51:10 -0800
-Message-ID: <5637e8de.bJsx3ixMqvWTXPwa%akpm@linux-foundation.org>
+ mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch removed from -mm
+ tree
+Date: Mon, 02 Nov 2015 14:51:01 -0800
+Message-ID: <5637e8d5.am/LEHnsn8S+oA/w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55967 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55954 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754356AbbKBWvK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 17:51:10 -0500
+	with ESMTP id S1753941AbbKBWvC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 17:51:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, minchan@kernel.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.cz, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix
+     Subject: mm-dont-split-thp-page-when-syscall-is-called-fix-3
 has been removed from the -mm tree.  Its filename was
-     mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix.patch
+     mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
 
 This patch was dropped because it was folded into mm-dont-split-thp-page-when-syscall-is-called.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix
+Subject: mm-dont-split-thp-page-when-syscall-is-called-fix-3
 
+fix it for mm-clarify-that-the-function-operateds-on-hugepage-pte.patch
+
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    2 +-
+ mm/huge_memory.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/rmap.h~mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix include/linux/rmap.h
---- a/include/linux/rmap.h~mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix
-+++ a/include/linux/rmap.h
-@@ -270,7 +270,7 @@ int rmap_walk(struct page *page, struct
+diff -puN mm/huge_memory.c~mm-dont-split-thp-page-when-syscall-is-called-fix-3 mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-dont-split-thp-page-when-syscall-is-called-fix-3
++++ a/mm/huge_memory.c
+@@ -1542,7 +1542,7 @@ int madvise_free_huge_pmd(struct mmu_gat
+ 		struct page *page;
+ 		pmd_t orig_pmd;
  
- static inline int page_referenced(struct page *page, int is_locked,
- 				  struct mem_cgroup *memcg,
--				  unsigned long *vm_flags,
-+				  unsigned long *vm_flags)
- {
- 	*vm_flags = 0;
- 	return 0;
+-		orig_pmd = pmdp_get_and_clear(mm, addr, pmd);
++		orig_pmd = pmdp_huge_get_and_clear(mm, addr, pmd);
+ 
+ 		/* No hugepage in swapcache */
+ 		page = pmd_page(orig_pmd);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,6 +81,7 @@ mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
 x86-add-pmd_-for-thp-fix.patch
 sparc-add-pmd_-for-thp-fix.patch
 mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix.patch
 mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2.patch
 mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
 include-linux-compiler-gcch-improve-__visible-documentation.patch
