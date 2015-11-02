@@ -1,135 +1,141 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-support-madvisemadv_free-fix-3.patch removed
+Subject: [folded-merged] mm-support-madvisemadv_free-fix-5.patch removed
  from -mm tree
-Date: Mon, 02 Nov 2015 14:49:34 -0800
-Message-ID: <5637e87e.3W7vaZXV1LOZlMkD%akpm@linux-foundation.org>
+Date: Mon, 02 Nov 2015 14:49:39 -0800
+Message-ID: <5637e883.sIwaqDz/KeSuKK2L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55864 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55871 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753082AbbKBWtf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 17:49:35 -0500
+	with ESMTP id S1753624AbbKBWtk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 17:49:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, dave.hansen@linux.intel.com, hpa@zytor.com, luto@amacapital.net, minchan@kernel.org, mingo@elte.hu, oleg@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, madvise: use vma_is_anonymous() to check for anon VMA
+     Subject: mm: MADV_FREE trivial clean up
 has been removed from the -mm tree.  Its filename was
-     mm-support-madvisemadv_free-fix-3.patch
+     mm-support-madvisemadv_free-fix-5.patch
 
 This patch was dropped because it was folded into mm-support-madvisemadv_free.patch
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm, madvise: use vma_is_anonymous() to check for anon VMA
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: MADV_FREE trivial clean up
 
-!vma->vm_file is not reliable to detect anon VMA, because not all
-drivers bother set it. Let's use vma_is_anonymous() instead.
+1. Page table waker already pass the vma it is processing
+so we don't need to pass vma.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Reviewed-by: Oleg Nesterov <oleg@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+2. If page table entry is dirty in try_to_unmap_one, the dirtiness
+should propagate to PG_dirty of the page. So, it's enough to check
+only PageDirty without other pte dirty bit checking.
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/madvise.c |   17 +++--------------
+ mm/rmap.c    |    6 ++----
+ 2 files changed, 5 insertions(+), 18 deletions(-)
 
-diff -puN mm/madvise.c~mm-support-madvisemadv_free-fix-3 mm/madvise.c
---- a/mm/madvise.c~mm-support-madvisemadv_free-fix-3
+diff -puN mm/madvise.c~mm-support-madvisemadv_free-fix-5 mm/madvise.c
+--- a/mm/madvise.c~mm-support-madvisemadv_free-fix-5
 +++ a/mm/madvise.c
-@@ -357,7 +357,7 @@ static int madvise_free_single_vma(struc
- 		return -EINVAL;
+@@ -24,11 +24,6 @@
  
- 	/* MADV_FREE works for only anon vma at the moment */
--	if (vma->vm_file)
-+	if (!vma_is_anonymous(vma))
- 		return -EINVAL;
+ #include <asm/tlb.h>
  
- 	start = max(vma->vm_start, start_addr);
+-struct madvise_free_private {
+-	struct vm_area_struct *vma;
+-	struct mmu_gather *tlb;
+-};
+-
+ /*
+  * Any behaviour which results in changes to the vma->vm_flags needs to
+  * take mmap_sem for writing. Others, which simply traverse vmas, need
+@@ -269,10 +264,9 @@ static int madvise_free_pte_range(pmd_t
+ 				unsigned long end, struct mm_walk *walk)
+ 
+ {
+-	struct madvise_free_private *fp = walk->private;
+-	struct mmu_gather *tlb = fp->tlb;
++	struct mmu_gather *tlb = walk->private;
+ 	struct mm_struct *mm = tlb->mm;
+-	struct vm_area_struct *vma = fp->vma;
++	struct vm_area_struct *vma = walk->vma;
+ 	spinlock_t *ptl;
+ 	pte_t *pte, ptent;
+ 	struct page *page;
+@@ -329,15 +323,10 @@ static void madvise_free_page_range(stru
+ 			     struct vm_area_struct *vma,
+ 			     unsigned long addr, unsigned long end)
+ {
+-	struct madvise_free_private fp = {
+-		.vma = vma,
+-		.tlb = tlb,
+-	};
+-
+ 	struct mm_walk free_walk = {
+ 		.pmd_entry = madvise_free_pte_range,
+ 		.mm = vma->vm_mm,
+-		.private = &fp,
++		.private = tlb,
+ 	};
+ 
+ 	BUG_ON(addr >= end);
+diff -puN mm/rmap.c~mm-support-madvisemadv_free-fix-5 mm/rmap.c
+--- a/mm/rmap.c~mm-support-madvisemadv_free-fix-5
++++ a/mm/rmap.c
+@@ -1376,7 +1376,6 @@ static int try_to_unmap_one(struct page
+ 	spinlock_t *ptl;
+ 	int ret = SWAP_AGAIN;
+ 	enum ttu_flags flags = (enum ttu_flags)arg;
+-	int dirty = 0;
+ 
+ 	/* munlock has nothing to gain from examining un-locked vmas */
+ 	if ((flags & TTU_MUNLOCK) && !(vma->vm_flags & VM_LOCKED))
+@@ -1426,8 +1425,7 @@ static int try_to_unmap_one(struct page
+ 	}
+ 
+ 	/* Move the dirty bit to the physical page now the pte is gone. */
+-	dirty = pte_dirty(pteval);
+-	if (dirty)
++	if (pte_dirty(pteval))
+ 		set_page_dirty(page);
+ 
+ 	/* Update high watermark before we lower rss */
+@@ -1473,7 +1471,7 @@ static int try_to_unmap_one(struct page
+ 
+ 		if (flags & TTU_FREE) {
+ 			VM_BUG_ON_PAGE(PageSwapCache(page), page);
+-			if (!dirty && !PageDirty(page)) {
++			if (!PageDirty(page)) {
+ 				/* It's a freeable page by MADV_FREE */
+ 				dec_mm_counter(mm, MM_ANONPAGES);
+ 				goto discard;
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-rcu-force-alignment-on-struct-callback_head-rcu_head.patch
-mm-make-optimistic-check-for-swapin-readahead-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
-mm-drop-page-slab_page.patch
-slab-slub-use-page-rcu_head-instead-of-page-lru-plus-cast.patch
-zsmalloc-use-page-private-instead-of-page-first_page.patch
-mm-pack-compound_dtor-and-compound_order-into-one-word-in-struct-page.patch
-mm-make-compound_head-robust.patch
-mm-make-compound_head-robust-fix.patch
-mm-use-unsigned-int-for-page-order.patch
-mm-use-unsigned-int-for-compound_dtor-compound_order-on-64bit.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-move-code-around.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-fix.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-3.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-at-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-proc-adjust-pss-calculation.patch
-rmap-add-argument-to-charge-compound-page.patch
-memcg-adjust-to-support-new-thp-refcounting.patch
-mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault.patch
-mm-adjust-foll_split-for-new-refcounting.patch
-mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
-thp-mlock-do-not-allow-huge-pages-in-mlocked-area.patch
-khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes.patch
-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
-mm-vmstats-new-thp-splitting-event.patch
-mm-temporally-mark-thp-broken.patch
-thp-drop-all-split_huge_page-related-code.patch
-mm-drop-tail-page-refcounting.patch
-futex-thp-remove-special-case-for-thp-in-get_futex_key.patch
-ksm-prepare-to-new-thp-semantics.patch
-mm-thp-remove-compound_lock.patch
-arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-arm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mips-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-powerpc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-s390-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-sparc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-tile-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-x86-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps.patch
-mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
-mm-numa-skip-pte-mapped-thp-on-numa-fault.patch
-thp-implement-split_huge_pmd.patch
-thp-add-option-to-setup-migration-entries-during-pmd-split.patch
-thp-mm-split_huge_page-caller-need-to-lock-page.patch
-thp-reintroduce-split_huge_page.patch
-migrate_pages-try-to-split-pages-on-qeueuing.patch
-thp-introduce-deferred_split_huge_page.patch
-mm-re-enable-thp.patch
-thp-update-documentation.patch
-thp-allow-mlocked-thp-again.patch
+x86-add-pmd_-for-thp.patch
+sparc-add-pmd_-for-thp.patch
+powerpc-add-pmd_-for-thp.patch
+arm-add-pmd_mkclean-for-thp.patch
+arm64-add-pmd_-for-thp.patch
 mm-support-madvisemadv_free.patch
+mm-support-madvisemadv_free-fix-6.patch
+mm-mark-stable-page-dirty-in-ksm.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-5.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-6.patch
+mm-free-swp_entry-in-madvise_free.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
+mm-move-lazy-free-pages-to-inactive-list-fix.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
 
