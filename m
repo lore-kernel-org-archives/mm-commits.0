@@ -1,53 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-support-madvisemadv_free-fix-2.patch removed
- from -mm tree
-Date: Mon, 02 Nov 2015 14:49:31 -0800
-Message-ID: <5637e87b.Yc3fHf/P7JJl8nSY%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch removed from -mm tree
+Date: Mon, 02 Nov 2015 14:49:37 -0800
+Message-ID: <5637e881.aOe+32gCPQo6LmM4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55860 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55870 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751336AbbKBWtc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 17:49:32 -0500
+	with ESMTP id S1753774AbbKBWti (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 17:49:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.cz, minchan@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-support-madvisemadv_free-fix-2
+     Subject: mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd
 has been removed from the -mm tree.  Its filename was
-     mm-support-madvisemadv_free-fix-2.patch
+     mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
 
 This patch was dropped because it was folded into mm-support-madvisemadv_free.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-support-madvisemadv_free-fix-2
+Subject: mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd
 
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
+ mm/madvise.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-support-madvisemadv_free-fix-2 mm/vmscan.c
---- a/mm/vmscan.c~mm-support-madvisemadv_free-fix-2
-+++ a/mm/vmscan.c
-@@ -1090,7 +1090,7 @@ static unsigned long shrink_page_list(st
- 				VM_BUG_ON_PAGE(PageSwapCache(page), page);
- 				if (!page_freeze_refs(page, 1))
- 					goto keep_locked;
--				__clear_page_locked(page);
-+				__ClearPageLocked(page);
- 				count_vm_event(PGLAZYFREED);
- 				goto free_it;
- 			}
+diff -puN mm/madvise.c~mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd mm/madvise.c
+--- a/mm/madvise.c~mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd
++++ a/mm/madvise.c
+@@ -277,7 +277,7 @@ static int madvise_free_pte_range(pmd_t
+ 	pte_t *pte, ptent;
+ 	struct page *page;
+ 
+-	split_huge_page_pmd(vma, addr, pmd);
++	split_huge_pmd(vma, addr, pmd);
+ 	if (pmd_trans_unstable(pmd))
+ 		return 0;
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -78,7 +76,6 @@ mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
 x86-add-pmd_-for-thp-fix.patch
 sparc-add-pmd_-for-thp-fix.patch
 mm-support-madvisemadv_free.patch
-mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
 mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
 mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix.patch
 mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2.patch
