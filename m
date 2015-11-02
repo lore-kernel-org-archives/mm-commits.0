@@ -1,174 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-move-lazy-free-pages-to-inactive-list.patch
- removed from -mm tree
-Date: Mon, 02 Nov 2015 14:53:44 -0800
-Message-ID: <5637e978.5riszk/20FEdXS8r%akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-free-swp_entry-in-madvise_free.patch removed
+ from -mm tree
+Date: Mon, 02 Nov 2015 14:53:42 -0800
+Message-ID: <5637e976.wESIadgT961fGtOR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56027 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56022 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752307AbbKBWxp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 17:53:45 -0500
+	with ESMTP id S1751684AbbKBWxm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 17:53:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, Yalin.Wang@sonymobile.com, hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, shli@kernel.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: move lazily freed pages to inactive list
+     Subject: mm: free swp_entry in madvise_free
 has been removed from the -mm tree.  Its filename was
-     mm-move-lazy-free-pages-to-inactive-list.patch
+     mm-free-swp_entry-in-madvise_free.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: move lazily freed pages to inactive list
+Subject: mm: free swp_entry in madvise_free
 
-MADV_FREE is a hint that it's okay to discard pages if there is memory
-pressure and we use reclaimers(ie, kswapd and direct reclaim) to free them
-so there is no value keeping them in the active anonymous LRU so this
-patch moves them to inactive LRU list's head.
+When I test below piece of code with 12 processes(ie, 512M * 12 = 6G
+consume) on my (3G ram + 12 cpu + 8G swap, the madvise_free is siginficat
+slower (ie, 2x times) than madvise_dontneed.
 
-This means that MADV_FREE-ed pages which were living on the inactive list
-are reclaimed first because they are more likely to be cold rather than
-recently active pages.
+loop = 5;
+mmap(512M);
+while (loop--) {
+        memset(512M);
+        madvise(MADV_FREE or MADV_DONTNEED);
+}
 
-An arguable issue for the approach would be whether we should put the page
-to the head or tail of the inactive list.  I chose head because the kernel
-cannot make sure it's really cold or warm for every MADV_FREE usecase but
-at least we know it's not *hot*, so landing of inactive head would be a
-comprimise for various usecases.
+The reason is lots of swapin.
 
-This fixes suboptimal behavior of MADV_FREE when pages living on the
-active list will sit there for a long time even under memory pressure
-while the inactive list is reclaimed heavily.  This basically breaks the
-whole purpose of using MADV_FREE to help the system to free memory which
-is might not be used.
+1) dontneed: 1,612 swapin
+2) madvfree: 879,585 swapin
+
+If we find hinted pages were already swapped out when syscall is called,
+it's pointless to keep the swapped-out pages in pte.
+Instead, let's free the cold page because swapin is more expensive
+than (alloc page + zeroing).
+
+With this patch, it reduced swapin from 879,585 to 1,878 so elapsed time
+
+1) dontneed: 6.10user 233.50system 0:50.44elapsed
+2) madvfree: 6.03user 401.17system 1:30.67elapsed
+2) madvfree + below patch: 6.70user 339.14system 1:04.45elapsed
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Wang, Yalin <Yalin.Wang@sonymobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    1 
- mm/madvise.c         |    2 +
- mm/swap.c            |   44 +++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 47 insertions(+)
+ mm/madvise.c |   26 +++++++++++++++++++++++++-
+ 1 file changed, 25 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/swap.h~mm-move-lazy-free-pages-to-inactive-list include/linux/swap.h
---- a/include/linux/swap.h~mm-move-lazy-free-pages-to-inactive-list
-+++ a/include/linux/swap.h
-@@ -308,6 +308,7 @@ extern void lru_add_drain_cpu(int cpu);
- extern void lru_add_drain_all(void);
- extern void rotate_reclaimable_page(struct page *page);
- extern void deactivate_file_page(struct page *page);
-+extern void deactivate_page(struct page *page);
- extern void swap_setup(void);
- 
- extern void add_page_to_unevictable_list(struct page *page);
-diff -puN mm/madvise.c~mm-move-lazy-free-pages-to-inactive-list mm/madvise.c
---- a/mm/madvise.c~mm-move-lazy-free-pages-to-inactive-list
+diff -puN mm/madvise.c~mm-free-swp_entry-in-madvise_free mm/madvise.c
+--- a/mm/madvise.c~mm-free-swp_entry-in-madvise_free
 +++ a/mm/madvise.c
-@@ -344,6 +344,8 @@ static int madvise_free_pte_range(pmd_t
- 		ptent = pte_mkold(ptent);
- 		ptent = pte_mkclean(ptent);
+@@ -270,7 +270,9 @@ static int madvise_free_pte_range(pmd_t
+ 	spinlock_t *ptl;
+ 	pte_t *pte, ptent;
+ 	struct page *page;
++	swp_entry_t entry;
+ 	unsigned long next;
++	int nr_swap = 0;
+ 
+ 	next = pmd_addr_end(addr, end);
+ 	if (pmd_trans_huge(*pmd)) {
+@@ -289,8 +291,22 @@ static int madvise_free_pte_range(pmd_t
+ 	for (; addr != end; pte++, addr += PAGE_SIZE) {
+ 		ptent = *pte;
+ 
+-		if (!pte_present(ptent))
++		if (pte_none(ptent))
+ 			continue;
++		/*
++		 * If the pte has swp_entry, just clear page table to
++		 * prevent swap-in which is more expensive rather than
++		 * (page allocation + zeroing).
++		 */
++		if (!pte_present(ptent)) {
++			entry = pte_to_swp_entry(ptent);
++			if (non_swap_entry(entry))
++				continue;
++			nr_swap--;
++			free_swap_and_cache(entry);
++			pte_clear_not_present_full(mm, addr, pte, tlb->fullmm);
++			continue;
++		}
+ 
+ 		page = vm_normal_page(vma, addr, ptent);
+ 		if (!page)
+@@ -330,6 +346,14 @@ static int madvise_free_pte_range(pmd_t
  		set_pte_at(mm, addr, pte, ptent);
-+		if (PageActive(page))
-+			deactivate_page(page);
  		tlb_remove_tlb_entry(tlb, pte, addr);
  	}
- 
-diff -puN mm/swap.c~mm-move-lazy-free-pages-to-inactive-list mm/swap.c
---- a/mm/swap.c~mm-move-lazy-free-pages-to-inactive-list
-+++ a/mm/swap.c
-@@ -45,6 +45,7 @@ int page_cluster;
- static DEFINE_PER_CPU(struct pagevec, lru_add_pvec);
- static DEFINE_PER_CPU(struct pagevec, lru_rotate_pvecs);
- static DEFINE_PER_CPU(struct pagevec, lru_deactivate_file_pvecs);
-+static DEFINE_PER_CPU(struct pagevec, lru_deactivate_pvecs);
- 
- /*
-  * This path almost never happens for VM activity - pages are normally
-@@ -554,6 +555,24 @@ static void lru_deactivate_file_fn(struc
- 	update_page_reclaim_stat(lruvec, file, 0);
- }
- 
 +
-+static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec,
-+			    void *arg)
-+{
-+	if (PageLRU(page) && PageActive(page) && !PageUnevictable(page)) {
-+		int file = page_is_file_cache(page);
-+		int lru = page_lru_base_type(page);
++	if (nr_swap) {
++		if (current->mm == mm)
++			sync_mm_rss(mm);
 +
-+		del_page_from_lru_list(page, lruvec, lru + LRU_ACTIVE);
-+		ClearPageActive(page);
-+		ClearPageReferenced(page);
-+		add_page_to_lru_list(page, lruvec, lru);
-+
-+		__count_vm_event(PGDEACTIVATE);
-+		update_page_reclaim_stat(lruvec, file, 0);
++		add_mm_counter(mm, MM_SWAPENTS, nr_swap);
 +	}
-+}
 +
- /*
-  * Drain pages out of the cpu's pagevecs.
-  * Either "cpu" is the current CPU, and preemption has already been
-@@ -580,6 +599,10 @@ void lru_add_drain_cpu(int cpu)
- 	if (pagevec_count(pvec))
- 		pagevec_lru_move_fn(pvec, lru_deactivate_file_fn, NULL);
- 
-+	pvec = &per_cpu(lru_deactivate_pvecs, cpu);
-+	if (pagevec_count(pvec))
-+		pagevec_lru_move_fn(pvec, lru_deactivate_fn, NULL);
-+
- 	activate_page_drain(cpu);
- }
- 
-@@ -609,6 +632,26 @@ void deactivate_file_page(struct page *p
- 	}
- }
- 
-+/**
-+ * deactivate_page - deactivate a page
-+ * @page: page to deactivate
-+ *
-+ * deactivate_page() moves @page to the inactive list if @page was on the active
-+ * list and was not an unevictable page.  This is done to accelerate the reclaim
-+ * of @page.
-+ */
-+void deactivate_page(struct page *page)
-+{
-+	if (PageLRU(page) && PageActive(page) && !PageUnevictable(page)) {
-+		struct pagevec *pvec = &get_cpu_var(lru_deactivate_pvecs);
-+
-+		page_cache_get(page);
-+		if (!pagevec_add(pvec, page))
-+			pagevec_lru_move_fn(pvec, lru_deactivate_fn, NULL);
-+		put_cpu_var(lru_deactivate_pvecs);
-+	}
-+}
-+
- void lru_add_drain(void)
- {
- 	lru_add_drain_cpu(get_cpu());
-@@ -638,6 +681,7 @@ void lru_add_drain_all(void)
- 		if (pagevec_count(&per_cpu(lru_add_pvec, cpu)) ||
- 		    pagevec_count(&per_cpu(lru_rotate_pvecs, cpu)) ||
- 		    pagevec_count(&per_cpu(lru_deactivate_file_pvecs, cpu)) ||
-+		    pagevec_count(&per_cpu(lru_deactivate_pvecs, cpu)) ||
- 		    need_activate_page_drain(cpu)) {
- 			INIT_WORK(work, lru_add_drain_per_cpu);
- 			schedule_work_on(cpu, work);
+ 	arch_leave_lazy_mmu_mode();
+ 	pte_unmap_unlock(pte - 1, ptl);
+ next:
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
@@ -178,4 +123,5 @@ sparc-add-pmd_-for-thp.patch
 powerpc-add-pmd_-for-thp.patch
 arm-add-pmd_mkclean-for-thp.patch
 arm64-add-pmd_-for-thp.patch
+mm-move-lazy-free-pages-to-inactive-list.patch
 
