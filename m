@@ -1,124 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-support-madvisemadv_free-fix.patch removed
+Subject: [folded-merged] mm-support-madvisemadv_free-fix-2.patch removed
  from -mm tree
-Date: Mon, 02 Nov 2015 14:49:28 -0800
-Message-ID: <5637e878.EwjZoNDbs8l5S2Zb%akpm@linux-foundation.org>
+Date: Mon, 02 Nov 2015 14:49:31 -0800
+Message-ID: <5637e87b.Yc3fHf/P7JJl8nSY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55851 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55860 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752307AbbKBWt3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 17:49:29 -0500
+	with ESMTP id S1751336AbbKBWtc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 17:49:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, chris@zankel.net, deller@gmx.de, fengguang.wu@intel.com, ink@jurassic.park.msu.ru, jcmvbkbc@gmail.com, jejb@parisc-linux.org, mtk.manpages@gmail.com, ralf@linux-mips.org, rth@twiddle.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.cz, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: define MADV_FREE for some arches
+     Subject: mm-support-madvisemadv_free-fix-2
 has been removed from the -mm tree.  Its filename was
-     mm-support-madvisemadv_free-fix.patch
+     mm-support-madvisemadv_free-fix-2.patch
 
 This patch was dropped because it was folded into mm-support-madvisemadv_free.patch
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: define MADV_FREE for some arches
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-support-madvisemadv_free-fix-2
 
-Most architectures use asm-generic, but alpha, mips, parisc, xtensa
-need their own definitions.
-
-This patch defines MADV_FREE for them so it should fix build break
-for their architectures.
-
-Maybe, I should split and feed piecies to arch maintainers but
-included here for mmotm convenience.
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Chris Zankel <chris@zankel.net>
-Acked-by: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/uapi/asm/mman.h  |    1 +
- arch/mips/include/uapi/asm/mman.h   |    1 +
- arch/parisc/include/uapi/asm/mman.h |    1 +
- arch/xtensa/include/uapi/asm/mman.h |    1 +
- 4 files changed, 4 insertions(+)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/alpha/include/uapi/asm/mman.h~mm-support-madvisemadv_free-fix arch/alpha/include/uapi/asm/mman.h
---- a/arch/alpha/include/uapi/asm/mman.h~mm-support-madvisemadv_free-fix
-+++ a/arch/alpha/include/uapi/asm/mman.h
-@@ -47,6 +47,7 @@
- #define MADV_WILLNEED	3		/* will need these pages */
- #define	MADV_SPACEAVAIL	5		/* ensure resources are available */
- #define MADV_DONTNEED	6		/* don't need these pages */
-+#define MADV_FREE	7		/* free pages only if memory pressure */
- 
- /* common/generic parameters */
- #define MADV_REMOVE	9		/* remove these pages & resources */
-diff -puN arch/mips/include/uapi/asm/mman.h~mm-support-madvisemadv_free-fix arch/mips/include/uapi/asm/mman.h
---- a/arch/mips/include/uapi/asm/mman.h~mm-support-madvisemadv_free-fix
-+++ a/arch/mips/include/uapi/asm/mman.h
-@@ -73,6 +73,7 @@
- #define MADV_SEQUENTIAL 2		/* expect sequential page references */
- #define MADV_WILLNEED	3		/* will need these pages */
- #define MADV_DONTNEED	4		/* don't need these pages */
-+#define MADV_FREE	5		/* free pages only if memory pressure */
- 
- /* common parameters: try to keep these consistent across architectures */
- #define MADV_REMOVE	9		/* remove these pages & resources */
-diff -puN arch/parisc/include/uapi/asm/mman.h~mm-support-madvisemadv_free-fix arch/parisc/include/uapi/asm/mman.h
---- a/arch/parisc/include/uapi/asm/mman.h~mm-support-madvisemadv_free-fix
-+++ a/arch/parisc/include/uapi/asm/mman.h
-@@ -43,6 +43,7 @@
- #define MADV_SPACEAVAIL 5               /* insure that resources are reserved */
- #define MADV_VPS_PURGE  6               /* Purge pages from VM page cache */
- #define MADV_VPS_INHERIT 7              /* Inherit parents page size */
-+#define MADV_FREE	8		/* free pages only if memory pressure */
- 
- /* common/generic parameters */
- #define MADV_REMOVE	9		/* remove these pages & resources */
-diff -puN arch/xtensa/include/uapi/asm/mman.h~mm-support-madvisemadv_free-fix arch/xtensa/include/uapi/asm/mman.h
---- a/arch/xtensa/include/uapi/asm/mman.h~mm-support-madvisemadv_free-fix
-+++ a/arch/xtensa/include/uapi/asm/mman.h
-@@ -86,6 +86,7 @@
- #define MADV_SEQUENTIAL	2		/* expect sequential page references */
- #define MADV_WILLNEED	3		/* will need these pages */
- #define MADV_DONTNEED	4		/* don't need these pages */
-+#define MADV_FREE	5		/* free pages only if memory pressure */
- 
- /* common parameters: try to keep these consistent across architectures */
- #define MADV_REMOVE	9		/* remove these pages & resources */
+diff -puN mm/vmscan.c~mm-support-madvisemadv_free-fix-2 mm/vmscan.c
+--- a/mm/vmscan.c~mm-support-madvisemadv_free-fix-2
++++ a/mm/vmscan.c
+@@ -1090,7 +1090,7 @@ static unsigned long shrink_page_list(st
+ 				VM_BUG_ON_PAGE(PageSwapCache(page), page);
+ 				if (!page_freeze_refs(page, 1))
+ 					goto keep_locked;
+-				__clear_page_locked(page);
++				__ClearPageLocked(page);
+ 				count_vm_event(PGLAZYFREED);
+ 				goto free_it;
+ 			}
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-x86-add-pmd_-for-thp.patch
-sparc-add-pmd_-for-thp.patch
-powerpc-add-pmd_-for-thp.patch
-arm-add-pmd_mkclean-for-thp.patch
-arm64-add-pmd_-for-thp.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm.patch
+slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
+mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
+mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
+mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
+include-linux-mmzoneh-reflow-comment.patch
+mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
+mm-vmstatc-uninline-node_page_state.patch
+mm-vmstatc-uninline-node_page_state-fix.patch
+mm-cmac-suppress-warning.patch
+kasan-various-fixes-in-documentation-checkpatch-fixes.patch
+mm-slub-kasan-enable-user-tracking-by-default-with-kasan=y-fix.patch
+zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
 mm-support-madvisemadv_free.patch
-mm-support-madvisemadv_free-fix-5.patch
-mm-support-madvisemadv_free-fix-6.patch
-mm-mark-stable-page-dirty-in-ksm.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-2.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-5.patch
-mm-dont-split-thp-page-when-syscall-is-called-fix-6.patch
-mm-free-swp_entry-in-madvise_free.patch
-mm-move-lazy-free-pages-to-inactive-list.patch
-mm-move-lazy-free-pages-to-inactive-list-fix.patch
-mm-move-lazy-free-pages-to-inactive-list-fix-fix-fix.patch
+mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+include-linux-compiler-gcch-improve-__visible-documentation.patch
+fs-jffs2-wbufc-remove-stray-semicolon.patch
+lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
+rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
+dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
+panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out-fix.patch
+linux-next-rejects.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-nvem-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix-fix.patch
+net-ipv4-routec-prevent-oops.patch
+remove-abs64.patch
+remove-abs64-fix.patch
+remove-abs64-fix-fix.patch
+remove-abs64-fix-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
