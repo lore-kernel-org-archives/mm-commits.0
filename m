@@ -1,57 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] x86-add-pmd_-for-thp-fix.patch removed from -mm
- tree
-Date: Mon, 02 Nov 2015 15:12:07 -0800
-Message-ID: <5637edc7.slaTR4e4tFNbv8rX%akpm@linux-foundation.org>
+Subject: [folded-merged] sparc-add-pmd_-for-thp-fix.patch removed from -mm tree
+Date: Mon, 02 Nov 2015 15:12:31 -0800
+Message-ID: <5637eddf.ZYMkG8UmTeVaWkow%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56218 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56222 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751336AbbKBXMI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 18:12:08 -0500
+	with ESMTP id S1752722AbbKBXMc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 18:12:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-add-pmd_-for-thp-fix
+     Subject: sparc-add-pmd_-for-thp-fix
 has been removed from the -mm tree.  Its filename was
-     x86-add-pmd_-for-thp-fix.patch
+     sparc-add-pmd_-for-thp-fix.patch
 
-This patch was dropped because it was folded into x86-add-pmd_-for-thp.patch
+This patch was dropped because it was folded into sparc-add-pmd_-for-thp.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-add-pmd_-for-thp-fix
+Subject: sparc-add-pmd_-for-thp-fix
 
-mm-fix-huge-zero-page-accounting-in-smaps-report.patch also added pmd_dirty()
+mm-fix-huge-zero-page-accounting-in-smaps-report.patch already added
+pmd-dirty()
 
 Cc: Minchan Kim <minchan@kernel.org>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |    5 -----
- 1 file changed, 5 deletions(-)
+ arch/sparc/include/asm/pgtable_64.h |    7 -------
+ 1 file changed, 7 deletions(-)
 
-diff -puN arch/x86/include/asm/pgtable.h~x86-add-pmd_-for-thp-fix arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~x86-add-pmd_-for-thp-fix
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -110,11 +110,6 @@ static inline int pmd_young(pmd_t pmd)
- 	return pmd_flags(pmd) & _PAGE_ACCESSED;
+diff -puN arch/sparc/include/asm/pgtable_64.h~sparc-add-pmd_-for-thp-fix arch/sparc/include/asm/pgtable_64.h
+--- a/arch/sparc/include/asm/pgtable_64.h~sparc-add-pmd_-for-thp-fix
++++ a/arch/sparc/include/asm/pgtable_64.h
+@@ -667,13 +667,6 @@ static inline unsigned long pmd_young(pm
+ 	return pte_young(pte);
  }
  
 -static inline int pmd_dirty(pmd_t pmd)
 -{
--	return pmd_flags(pmd) & _PAGE_DIRTY;
+-	pte_t pte = __pte(pmd_val(pmd));
+-
+-	return pte_dirty(pte);
 -}
 -
- static inline int pte_write(pte_t pte)
+ static inline unsigned long pmd_write(pmd_t pmd)
  {
- 	return pte_flags(pte) & _PAGE_RW;
+ 	pte_t pte = __pte(pmd_val(pmd));
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -79,8 +82,7 @@ mm-slub-kasan-enable-user-tracking-by-default-with-kasan=y-fix.patch
 zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
 page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
 mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
-x86-add-pmd_-for-thp.patch
-sparc-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp.patch
 include-linux-compiler-gcch-improve-__visible-documentation.patch
 fs-jffs2-wbufc-remove-stray-semicolon.patch
 lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
