@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes.patch
- added to -mm tree
-Date: Mon, 02 Nov 2015 13:39:39 -0800
-Message-ID: <5637d81b.ZTstRqj6Uw3BbmjE%akpm@linux-foundation.org>
+Subject: + remove-abs64-fix-fix-fix.patch added to -mm tree
+Date: Mon, 02 Nov 2015 14:09:59 -0800
+Message-ID: <5637df37.VWCQtsDGXXBosm9Y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55057 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55258 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752134AbbKBVjk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 16:39:40 -0500
+	with ESMTP id S1752401AbbKBWKA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 17:10:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, dave.hansen@linux.intel.com, dave@stgolabs.net, hillf.zj@alibaba-inc.com, hughd@google.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dmitry.torokhov@gmail.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlbfs fix bugs in fallocate hole punch of areas with holes
+     Subject: remove-abs64-fix-fix-fix
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes.patch
+     remove-abs64-fix-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/remove-abs64-fix-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/remove-abs64-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,129 +38,82 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlbfs fix bugs in fallocate hole punch of areas with holes
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: remove-abs64-fix-fix-fix
 
-Hugh Dickins pointed out problems with the new hugetlbfs fallocate hole
-punch code.  These problems are in the routine remove_inode_hugepages and
-mostly occur in the case where there are holes in the range of pages to be
-removed.  These holes could be the result of a previous hole punch or
-simply sparse allocation.
-
-remove_inode_hugepages handles both hole punch and truncate operations. 
-Page index handling was fixed/cleaned up so that holes are properly
-handled.  In addition, code was changed to ensure multiple passes of the
-address range only happens in the truncate case.  More comments were added
-to explain the different actions in each case.  A cond_resched() was added
-after removing up to PAGEVEC_SIZE pages.
-
-Some totally unnecessary code in hugetlbfs_fallocate() that remained from
-early development was also removed.
-
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: "Hillf Danton" <hillf.zj@alibaba-inc.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   44 +++++++++++++++++++++++++++--------------
- 1 file changed, 29 insertions(+), 15 deletions(-)
+ fs/ext4/mballoc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes
-+++ a/fs/hugetlbfs/inode.c
-@@ -368,10 +368,25 @@ static void remove_inode_hugepages(struc
- 			lookup_nr = end - next;
- 
- 		/*
--		 * This pagevec_lookup() may return pages past 'end',
--		 * so we must check for page->index > end.
-+		 * When no more pages are found, take different action for
-+		 * hole punch and truncate.
-+		 *
-+		 * For hole punch, this indicates we have removed each page
-+		 * within the range and are done.  Note that pages may have
-+		 * been faulted in after being removed in the hole punch case.
-+		 * This is OK as long as each page in the range was removed
-+		 * once.
-+		 *
-+		 * For truncate, we need to make sure all pages within the
-+		 * range are removed when exiting this routine.  We could
-+		 * have raced with a fault that brought in a page after it
-+		 * was first removed.  Check the range again until no pages
-+		 * are found.
- 		 */
- 		if (!pagevec_lookup(&pvec, mapping, next, lookup_nr)) {
-+			if (!truncate_op)
-+				break;
-+
- 			if (next == start)
- 				break;
- 			next = start;
-@@ -382,19 +397,23 @@ static void remove_inode_hugepages(struc
- 			struct page *page = pvec.pages[i];
- 			u32 hash;
- 
-+			/*
-+			 * The page (index) could be beyond end.  This is
-+			 * only possible in the punch hole case as end is
-+			 * LLONG_MAX for truncate.
-+			 */
-+			if (page->index >= end) {
-+				next = end;	/* we are done */
-+				break;
-+			}
-+			next = page->index;
-+
- 			hash = hugetlb_fault_mutex_hash(h, current->mm,
- 							&pseudo_vma,
- 							mapping, next, 0);
- 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
- 
- 			lock_page(page);
--			if (page->index >= end) {
--				unlock_page(page);
--				mutex_unlock(&hugetlb_fault_mutex_table[hash]);
--				next = end;	/* we are done */
--				break;
--			}
--
- 			/*
- 			 * If page is mapped, it was faulted in after being
- 			 * unmapped.  Do nothing in this race case.  In the
-@@ -423,15 +442,13 @@ static void remove_inode_hugepages(struc
- 				}
- 			}
- 
--			if (page->index > next)
--				next = page->index;
--
- 			++next;
- 			unlock_page(page);
- 
- 			mutex_unlock(&hugetlb_fault_mutex_table[hash]);
- 		}
- 		huge_pagevec_release(&pvec);
-+		cond_resched();
+diff -puN fs/ext4/mballoc.c~remove-abs64-fix-fix-fix fs/ext4/mballoc.c
+--- a/fs/ext4/mballoc.c~remove-abs64-fix-fix-fix
++++ a/fs/ext4/mballoc.c
+@@ -3332,8 +3332,8 @@ ext4_mb_check_group_pa(ext4_fsblk_t goal
+ 		atomic_inc(&pa->pa_count);
+ 		return pa;
  	}
+-	cur_distance = abs64(goal_block - cpa->pa_pstart);
+-	new_distance = abs64(goal_block - pa->pa_pstart);
++	cur_distance = abs(goal_block - cpa->pa_pstart);
++	new_distance = abs(goal_block - pa->pa_pstart);
  
- 	if (truncate_op)
-@@ -647,9 +664,6 @@ static long hugetlbfs_fallocate(struct f
- 	if (!(mode & FALLOC_FL_KEEP_SIZE) && offset + len > inode->i_size)
- 		i_size_write(inode, offset + len);
- 	inode->i_ctime = CURRENT_TIME;
--	spin_lock(&inode->i_lock);
--	inode->i_private = NULL;
--	spin_unlock(&inode->i_lock);
- out:
- 	mutex_unlock(&inode->i_mutex);
- 	return error;
+ 	if (cur_distance <= new_distance)
+ 		return cpa;
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm.patch
+slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
+mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
+mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
+mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
+include-linux-mmzoneh-reflow-comment.patch
+mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
+mm-vmstatc-uninline-node_page_state.patch
+mm-vmstatc-uninline-node_page_state-fix.patch
+mm-cmac-suppress-warning.patch
+kasan-various-fixes-in-documentation-checkpatch-fixes.patch
+mm-slub-kasan-enable-user-tracking-by-default-with-kasan=y-fix.patch
+zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
+x86-add-pmd_-for-thp-fix.patch
+sparc-add-pmd_-for-thp-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-support-madvisemadv_free-vs-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-3.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix.patch
+mm-dont-split-thp-page-when-syscall-is-called-fix-6-fix-2.patch
+mm-move-lazy-free-pages-to-inactive-list-fix-fix.patch
+include-linux-compiler-gcch-improve-__visible-documentation.patch
+fs-jffs2-wbufc-remove-stray-semicolon.patch
+lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
+rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
+dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
+panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out-fix.patch
+linux-next-rejects.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-nvem-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix-fix.patch
+net-ipv4-routec-prevent-oops.patch
+remove-abs64.patch
+remove-abs64-fix.patch
+remove-abs64-fix-fix.patch
+remove-abs64-fix-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
