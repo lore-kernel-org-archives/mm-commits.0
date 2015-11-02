@@ -1,38 +1,44 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch.patch removed
- from -mm tree
-Date: Mon, 02 Nov 2015 13:38:16 -0800
-Message-ID: <5637d7c8.hMrQHSUco7tq1oeY%akpm@linux-foundation.org>
+ mm-hugetlb-unmap-pages-to-remove-if-page-fault-raced-with-hole-punch.patch
+ removed from -mm tree
+Date: Mon, 02 Nov 2015 13:38:20 -0800
+Message-ID: <5637d7cc.VisWmrYlxHFZDTpy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55041 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55050 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752306AbbKBViT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 16:38:19 -0500
+	with ESMTP id S1752306AbbKBViV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 2 Nov 2015 16:38:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mike.kravetz@oracle.com, dave.hansen@linux.intel.com, dave@stgolabs.net, hughd@google.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: setup hugetlb_falloc during fallocate hole punch
+     Subject: mm/hugetlb: unmap pages to remove if page fault raced with hole punch
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch.patch
+     mm-hugetlb-unmap-pages-to-remove-if-page-fault-raced-with-hole-punch.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlb: setup hugetlb_falloc during fallocate hole punch
+Subject: mm/hugetlb: unmap pages to remove if page fault raced with hole punch
 
-When performing a fallocate hole punch, set up a hugetlb_falloc struct and
-make i_private point to it.  i_private will point to this struct for the
-duration of the operation.  At the end of the operation, wake up anyone
-who faulted on the hole and is on the waitq.
+Page faults can race with fallocate hole punch.  If a page fault happens
+between the unmap and remove operations, the page is not removed and
+remains within the hole.  This is not the desired behavior.  If a page is
+mapped, the remove operation (remove_inode_hugepages) will unmap the page
+before removing.  The unmap within remove_inode_hugepages occurs with the
+hugetlb_fault_mutex held so that no other faults can occur until the page
+is removed.
+
+The (unmodified) routine hugetlb_vmdelete_list was moved ahead of
+remove_inode_hugepages to satisfy the new reference.
 
 Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
@@ -42,78 +48,169 @@ Cc: Davidlohr Bueso <dave@stgolabs.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   32 +++++++++++++++++++++++++++++---
- 1 file changed, 29 insertions(+), 3 deletions(-)
+ fs/hugetlbfs/inode.c |  125 +++++++++++++++++++++--------------------
+ 1 file changed, 65 insertions(+), 60 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-hugetlb-setup-hugetlb_falloc-during-fallocate-hole-punch
+diff -puN fs/hugetlbfs/inode.c~mm-hugetlb-unmap-pages-to-remove-if-page-fault-raced-with-hole-punch fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-hugetlb-unmap-pages-to-remove-if-page-fault-raced-with-hole-punch
 +++ a/fs/hugetlbfs/inode.c
-@@ -507,6 +507,7 @@ static long hugetlbfs_punch_hole(struct
- {
- 	struct hstate *h = hstate_inode(inode);
- 	loff_t hpage_size = huge_page_size(h);
-+	unsigned long hpage_shift = huge_page_shift(h);
- 	loff_t hole_start, hole_end;
+@@ -324,11 +324,44 @@ static void remove_huge_page(struct page
+ 	delete_from_page_cache(page);
+ }
  
- 	/*
-@@ -518,8 +519,30 @@ static long hugetlbfs_punch_hole(struct
- 
- 	if (hole_end > hole_start) {
- 		struct address_space *mapping = inode->i_mapping;
-+		DECLARE_WAIT_QUEUE_HEAD_ONSTACK(hugetlb_falloc_waitq);
-+		/*
-+		 * Page faults on the area to be hole punched must be stopped
-+		 * during the operation.  Initialize struct and have
-+		 * inode->i_private point to it.
-+		 */
-+		struct hugetlb_falloc hugetlb_falloc = {
-+			.waitq = &hugetlb_falloc_waitq,
-+			.start = hole_start >> hpage_shift,
-+			.end = hole_end >> hpage_shift
-+		};
- 
- 		mutex_lock(&inode->i_mutex);
++static inline void
++hugetlb_vmdelete_list(struct rb_root *root, pgoff_t start, pgoff_t end)
++{
++	struct vm_area_struct *vma;
++
++	/*
++	 * end == 0 indicates that the entire range after
++	 * start should be unmapped.
++	 */
++	vma_interval_tree_foreach(vma, root, start, end ? end : ULONG_MAX) {
++		unsigned long v_offset;
 +
 +		/*
-+		 * inode->i_private will be checked in the page fault path.
-+		 * The locking assures that all writes to the structure are
-+		 * complete before assigning to i_private.  A fault on another
-+		 * CPU will see the fully initialized structure.
++		 * Can the expression below overflow on 32-bit arches?
++		 * No, because the interval tree returns us only those vmas
++		 * which overlap the truncated area starting at pgoff,
++		 * and no vma on a 32-bit arch can span beyond the 4GB.
 +		 */
-+		spin_lock(&inode->i_lock);
-+		inode->i_private = &hugetlb_falloc;
-+		spin_unlock(&inode->i_lock);
++		if (vma->vm_pgoff < start)
++			v_offset = (start - vma->vm_pgoff) << PAGE_SHIFT;
++		else
++			v_offset = 0;
 +
- 		i_mmap_lock_write(mapping);
- 		if (!RB_EMPTY_ROOT(&mapping->i_mmap))
- 			hugetlb_vmdelete_list(&mapping->i_mmap,
-@@ -527,6 +550,12 @@ static long hugetlbfs_punch_hole(struct
- 						hole_end  >> PAGE_SHIFT);
- 		i_mmap_unlock_write(mapping);
- 		remove_inode_hugepages(inode, hole_start, hole_end);
++		if (end) {
++			end = ((end - start) << PAGE_SHIFT) +
++			       vma->vm_start + v_offset;
++			if (end > vma->vm_end)
++				end = vma->vm_end;
++		} else
++			end = vma->vm_end;
 +
-+		spin_lock(&inode->i_lock);
-+		inode->i_private = NULL;
-+		wake_up_all(&hugetlb_falloc_waitq);
-+		spin_unlock(&inode->i_lock);
-+
- 		mutex_unlock(&inode->i_mutex);
- 	}
++		unmap_hugepage_range(vma, vma->vm_start + v_offset, end, NULL);
++	}
++}
  
-@@ -647,9 +676,6 @@ static long hugetlbfs_fallocate(struct f
- 	if (!(mode & FALLOC_FL_KEEP_SIZE) && offset + len > inode->i_size)
- 		i_size_write(inode, offset + len);
- 	inode->i_ctime = CURRENT_TIME;
--	spin_lock(&inode->i_lock);
--	inode->i_private = NULL;
--	spin_unlock(&inode->i_lock);
- out:
- 	mutex_unlock(&inode->i_mutex);
- 	return error;
-_
-
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
-
-mm-hugetlb-page-faults-check-for-fallocate-hole-punch-in-progress-and-wait.patch
-mm-hugetlb-unmap-pages-to-remove-if-page-fault-raced-with-hole-punch.patch
-
+ /*
+  * remove_inode_hugepages handles two distinct cases: truncation and hole
+  * punch.  There are subtle differences in operation for each case.
+-
+  * truncation is indicated by end of range being LLONG_MAX
+  *	In this case, we first scan the range and release found pages.
+  *	After releasing pages, hugetlb_unreserve_pages cleans up region/reserv
+@@ -381,12 +414,27 @@ static void remove_inode_hugepages(struc
+ 		for (i = 0; i < pagevec_count(&pvec); ++i) {
+ 			struct page *page = pvec.pages[i];
+ 			u32 hash;
++			bool rsv_on_error;
+ 
+ 			hash = hugetlb_fault_mutex_hash(h, current->mm,
+ 							&pseudo_vma,
+ 							mapping, next, 0);
+ 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ 
++			/*
++			 * If page is mapped, it was faulted in after being
++			 * unmapped in caller.  Unmap (again) now after taking
++			 * the fault mutex.  The mutex will prevent faults
++			 * until we finish removing the page.
++			 */
++			if (page_mapped(page)) {
++				i_mmap_lock_write(mapping);
++				hugetlb_vmdelete_list(&mapping->i_mmap,
++					next * pages_per_huge_page(h),
++					(next + 1) * pages_per_huge_page(h));
++				i_mmap_unlock_write(mapping);
++			}
++
+ 			lock_page(page);
+ 			if (page->index >= end) {
+ 				unlock_page(page);
+@@ -396,31 +444,23 @@ static void remove_inode_hugepages(struc
+ 			}
+ 
+ 			/*
+-			 * If page is mapped, it was faulted in after being
+-			 * unmapped.  Do nothing in this race case.  In the
+-			 * normal case page is not mapped.
++			 * We must free the huge page and remove from page
++			 * cache (remove_huge_page) BEFORE removing the
++			 * region/reserve map (hugetlb_unreserve_pages).
++			 * In rare out of memory conditions, removal of the
++			 * region/reserve map could fail.  Before free'ing
++			 * the page, note PagePrivate which is used in case
++			 * of error.
+ 			 */
+-			if (!page_mapped(page)) {
+-				bool rsv_on_error = !PagePrivate(page);
+-				/*
+-				 * We must free the huge page and remove
+-				 * from page cache (remove_huge_page) BEFORE
+-				 * removing the region/reserve map
+-				 * (hugetlb_unreserve_pages).  In rare out
+-				 * of memory conditions, removal of the
+-				 * region/reserve map could fail.  Before
+-				 * free'ing the page, note PagePrivate which
+-				 * is used in case of error.
+-				 */
+-				remove_huge_page(page);
+-				freed++;
+-				if (!truncate_op) {
+-					if (unlikely(hugetlb_unreserve_pages(
+-							inode, next,
+-							next + 1, 1)))
+-						hugetlb_fix_reserve_counts(
+-							inode, rsv_on_error);
+-				}
++			rsv_on_error = !PagePrivate(page);
++			remove_huge_page(page);
++			freed++;
++			if (!truncate_op) {
++				if (unlikely(hugetlb_unreserve_pages(inode,
++								next, next + 1,
++								1)))
++					hugetlb_fix_reserve_counts(inode,
++								rsv_on_error);
+ 			}
+ 
+ 			if (page->index > next)
+@@ -450,41 +490,6 @@ static void hugetlbfs_evict_inode(struct
+ 	clear_inode(inode);
+ }
+ 
+-static inline void
+-hugetlb_vmdelete_list(struct rb_root *root, pgoff_t start, pgoff_t end)
+-{
+-	struct vm_area_struct *vma;
+-
+-	/*
+-	 * end == 0 indicates that the entire range after
+-	 * start should be unmapped.
+-	 */
+-	vma_interval_tree_foreach(vma, root, start, end ? end : ULONG_MAX) {
+-		unsigned long v_offset;
+-
+-		/*
+-		 * Can the expression below overflow on 32-bit arches?
+-		 * No, because the interval tree returns us only those vmas
+-		 * which overlap the truncated area starting at pgoff,
+-		 * and no vma on a 32-bit arch can span beyond the 4GB.
+-		 */
+-		if (vma->vm_pgoff < start)
+-			v_offset = (start - vma->vm_pgoff) << PAGE_SHIFT;
+-		else
+-			v_offset = 0;
+-
+-		if (end) {
+-			end = ((end - start) << PAGE_SHIFT) +
+-			       vma->vm_start + v_offset;
+-			if (end > vma->vm_end)
+-				end = vma->vm_end;
+-		} else
+-			end = vma->vm_end;
+-
+-		unmap_hugepage_range(vma, vma->vm_start + v_offset, end, NULL);
+-	}
+-}
