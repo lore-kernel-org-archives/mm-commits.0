@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch added to -mm tree
-Date: Tue, 03 Nov 2015 15:06:33 -0800
-Message-ID: <56393df9.0f6HSHyjRrmJe3Qc%akpm@linux-foundation.org>
+Subject: + hexdump-truncate-output-in-case-of-overflow.patch added to -mm
+ tree
+Date: Tue, 03 Nov 2015 15:19:01 -0800
+Message-ID: <563940e5.BPVeghy6QB9sss/9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53351 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53370 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965042AbbKCXGe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2015 18:06:34 -0500
+	with ESMTP id S965073AbbKCXTC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2015 18:19:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, aaro.koskinen@nokia.com, catalin.marinas@arm.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes
+     Subject: lib/hexdump.c: truncate output in case of overflow
 has been added to the -mm tree.  Its filename is
-     mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+     hexdump-truncate-output-in-case-of-overflow.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hexdump-truncate-output-in-case-of-overflow.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hexdump-truncate-output-in-case-of-overflow.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,123 +39,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib/hexdump.c: truncate output in case of overflow
 
-ERROR: code indent should use tabs where possible
-#171: FILE: mm/page_idle.c:75:
-+                if (!pmd_present(*pmd))$
+There is a classical off-by-one error in case when we try to place, for
+example, 1+1 bytes as hex in the buffer of size 6.  The expected result is
+to get an output truncated, but in the reality we get 6 bytes filed
+followed by terminating NUL.
 
-WARNING: please, no spaces at the start of a line
-#171: FILE: mm/page_idle.c:75:
-+                if (!pmd_present(*pmd))$
+Change the logic how we fill the output in case of byte dumping into
+limited space.  This will follow the snprintf() behaviour by truncating
+output even on half bytes.
 
-WARNING: Missing a blank line after declarations
-#194: FILE: mm/page_idle.c:93:
-+		pmd_t pmde = *pmd;
-+		barrier();
-
-WARNING: Missing a blank line after declarations
-#304: FILE: mm/rmap.c:867:
-+		pmd_t pmde = *pmd;
-+		barrier();
-
-total: 1 errors, 3 warnings, 327 lines checked
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Fixes: 114fc1afb2de (hexdump: make it return number of bytes placed in buffer)
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Reported-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+Tested-by: Aaro Koskinen <aaro.koskinen@nokia.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_idle.c |    3 ++-
- mm/rmap.c      |    1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ lib/hexdump.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_idle.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes mm/page_idle.c
---- a/mm/page_idle.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes
-+++ a/mm/page_idle.c
-@@ -72,7 +72,7 @@ static int page_idle_clear_pte_refs_one(
- 
- 	if (pmd_trans_huge(*pmd)) {
- 		ptl = pmd_lock(mm, pmd);
--                if (!pmd_present(*pmd))
-+		if (!pmd_present(*pmd))
- 			goto unlock_pmd;
- 		if (unlikely(!pmd_trans_huge(*pmd))) {
- 			spin_unlock(ptl);
-@@ -90,6 +90,7 @@ unlock_pmd:
- 		return SWAP_AGAIN;
+diff -puN lib/hexdump.c~hexdump-truncate-output-in-case-of-overflow lib/hexdump.c
+--- a/lib/hexdump.c~hexdump-truncate-output-in-case-of-overflow
++++ a/lib/hexdump.c
+@@ -169,11 +169,15 @@ int hex_dump_to_buffer(const void *buf,
+ 		}
  	} else {
- 		pmd_t pmde = *pmd;
-+
- 		barrier();
- 		if (!pmd_present(pmde) || pmd_trans_huge(pmde))
- 			return SWAP_AGAIN;
-diff -puN mm/rmap.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes mm/rmap.c
---- a/mm/rmap.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes
-+++ a/mm/rmap.c
-@@ -864,6 +864,7 @@ unlock_pmd:
- 		return ret;
- 	} else {
- 		pmd_t pmde = *pmd;
-+
- 		barrier();
- 		if (!pmd_present(pmde) || pmd_trans_huge(pmde))
- 			return SWAP_AGAIN;
+ 		for (j = 0; j < len; j++) {
+-			if (linebuflen < lx + 3)
++			if (linebuflen < lx + 2)
+ 				goto overflow2;
+ 			ch = ptr[j];
+ 			linebuf[lx++] = hex_asc_hi(ch);
++			if (linebuflen < lx + 2)
++				goto overflow2;
+ 			linebuf[lx++] = hex_asc_lo(ch);
++			if (linebuflen < lx + 2)
++				goto overflow2;
+ 			linebuf[lx++] = ' ';
+ 		}
+ 		if (j)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm.patch
-slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
-uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
-mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
-mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
-mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
-include-linux-mmzoneh-reflow-comment.patch
-mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
-mm-vmstatc-uninline-node_page_state.patch
-mm-vmstatc-uninline-node_page_state-fix.patch
-mm-cmac-suppress-warning.patch
-kasan-various-fixes-in-documentation-checkpatch-fixes.patch
-mm-slub-kasan-enable-user-tracking-by-default-with-kasan=y-fix.patch
-zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
-include-linux-compiler-gcch-improve-__visible-documentation.patch
-fs-jffs2-wbufc-remove-stray-semicolon.patch
-lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
-rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
-dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
-panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out-fix.patch
-linux-next-rejects.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-nvem-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix-fix.patch
-net-ipv4-routec-prevent-oops.patch
-remove-abs64.patch
-remove-abs64-fix.patch
-remove-abs64-fix-fix.patch
-remove-abs64-fix-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+fs-proc-arrayc-set-overflow-flag-in-case-of-error.patch
+hexdump-truncate-output-in-case-of-overflow.patch
+fs-seq_file-use-seq_-helpers-in-seq_hex_dump.patch
+seq_file-re-use-string_escape_str.patch
 
