@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + thp-reintroduce-split_huge_page-fix-3.patch added to -mm tree
-Date: Tue, 03 Nov 2015 14:47:45 -0800
-Message-ID: <56393991.2nhYyptO2+f/28T8%akpm@linux-foundation.org>
+Subject: +
+ mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch added to -mm tree
+Date: Tue, 03 Nov 2015 15:05:20 -0800
+Message-ID: <56393db0.aeY1M6F7WrHqzcXl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52881 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53345 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752242AbbKCWrp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2015 17:47:45 -0500
+	with ESMTP id S964967AbbKCXFV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2015 18:05:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, minchan@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, hughd@google.com, minchan@kernel.org, n-horiguchi@ah.jp.nec.com, sasha.levin@oracle.com, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: fix split vs. unmap race
+     Subject: mm: prepare page_referenced() and page_idle to new THP refcounting
 has been added to the -mm tree.  Its filename is
-     thp-reintroduce-split_huge_page-fix-3.patch
+     mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-reintroduce-split_huge_page-fix-3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-reintroduce-split_huge_page-fix-3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,141 +40,382 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: fix split vs. unmap race
+Subject: mm: prepare page_referenced() and page_idle to new THP refcounting
 
-To stabilize compound page during split we use migration entries.  The
-code to implement this is buggy: I wrongly assumed that kernel would wait
-migration to finish, before zapping ptes.
+Both page_referenced() and page_idle_clear_pte_refs_one() assume that THP
+can only be mapped with PMD, so there's no reason to look on PTEs for
+PageTransHuge() pages.  That's no true anymore: THP can be mapped with
+PTEs too.
 
-But turn out that's not true.
-
-As result if zap_pte_range() races with split_huge_page(), we can end up
-with page which is not mapped anymore but has _count and _mapcount
-elevated. The page is on LRU too. So it's still reachable by vmscan and by
-pfn scanners.  It's likely that page->mapping in this case would point to
-freed anon_vma.
-
-BOOM!
-
-The patch modify freeze/unfreeze_page() code to match normal migration
-entries logic: on setup we remove page from rmap and drop pin, on removing
-we get pin back and put page on rmap. This way even if migration entry
-will be removed under us we don't corrupt page's state.
+The patch removes PageTransHuge() test from the functions and opencode
+page table check.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   22 ++++++++++++++++++----
- mm/rmap.c        |   19 +++++--------------
- 2 files changed, 23 insertions(+), 18 deletions(-)
+ include/linux/huge_mm.h |    5 -
+ include/linux/mm.h      |   19 ++++++
+ mm/huge_memory.c        |   54 -----------------
+ mm/page_idle.c          |   64 +++++++++++++++++---
+ mm/rmap.c               |  118 ++++++++++++++++++++++++++------------
+ 5 files changed, 156 insertions(+), 104 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-reintroduce-split_huge_page-fix-3 mm/huge_memory.c
---- a/mm/huge_memory.c~thp-reintroduce-split_huge_page-fix-3
-+++ a/mm/huge_memory.c
-@@ -2857,6 +2857,13 @@ static void __split_huge_pmd_locked(stru
+diff -puN include/linux/huge_mm.h~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting
++++ a/include/linux/huge_mm.h
+@@ -48,11 +48,6 @@ enum transparent_hugepage_flag {
+ #endif
+ };
  
- 	smp_wmb(); /* make pte visible before pmd */
- 	pmd_populate(mm, pmd, pgtable);
-+
-+	if (freeze) {
-+		for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
-+			page_remove_rmap(page + i, false);
-+			put_page(page + i);
-+		}
-+	}
- }
- 
- void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
-@@ -2988,6 +2995,8 @@ static void freeze_page_vma(struct vm_ar
- 		if (pte_soft_dirty(entry))
- 			swp_pte = pte_swp_mksoft_dirty(swp_pte);
- 		set_pte_at(vma->vm_mm, address, pte + i, swp_pte);
-+		page_remove_rmap(page, false);
-+		put_page(page);
- 	}
- 	pte_unmap_unlock(pte, ptl);
- }
-@@ -3026,8 +3035,6 @@ static void unfreeze_page_vma(struct vm_
- 		return;
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, address, &ptl);
- 	for (i = 0; i < HPAGE_PMD_NR; i++, address += PAGE_SIZE, page++) {
--		if (!page_mapped(page))
--			continue;
- 		if (!is_swap_pte(pte[i]))
- 			continue;
- 
-@@ -3037,6 +3044,9 @@ static void unfreeze_page_vma(struct vm_
- 		if (migration_entry_to_page(swp_entry) != page)
- 			continue;
- 
-+		get_page(page);
-+		page_add_anon_rmap(page, vma, address, false);
-+
- 		entry = pte_mkold(mk_pte(page, vma->vm_page_prot));
- 		entry = pte_mkdirty(entry);
- 		if (is_write_migration_entry(swp_entry))
-@@ -3104,8 +3114,6 @@ static int __split_huge_page_tail(struct
- 	 */
- 	atomic_add(mapcount + 1, &page_tail->_count);
- 
--	/* after clearing PageTail the gup refcount can be released */
--	smp_mb__after_atomic();
- 
- 	page_tail->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
- 	page_tail->flags |= (head->flags &
-@@ -3118,6 +3126,12 @@ static int __split_huge_page_tail(struct
- 			 (1L << PG_unevictable)));
- 	page_tail->flags |= (1L << PG_dirty);
- 
-+	/*
-+	 * After clearing PageTail the gup refcount can be released.
-+	 * Page flags also must be visible before we make the page non-compound.
-+	 */
-+	smp_wmb();
-+
- 	clear_compound_head(page_tail);
- 
- 	if (page_is_young(head))
-diff -puN mm/rmap.c~thp-reintroduce-split_huge_page-fix-3 mm/rmap.c
---- a/mm/rmap.c~thp-reintroduce-split_huge_page-fix-3
-+++ a/mm/rmap.c
-@@ -1132,20 +1132,12 @@ void do_page_add_anon_rmap(struct page *
- 	bool compound = flags & RMAP_COMPOUND;
- 	bool first;
- 
--	if (PageTransCompound(page)) {
-+	if (compound) {
-+		atomic_t *mapcount;
- 		VM_BUG_ON_PAGE(!PageLocked(page), page);
--		if (compound) {
--			atomic_t *mapcount;
+-extern pmd_t *page_check_address_pmd(struct page *page,
+-				     struct mm_struct *mm,
+-				     unsigned long address,
+-				     spinlock_t **ptl);
 -
--			VM_BUG_ON_PAGE(!PageTransHuge(page), page);
--			mapcount = compound_mapcount_ptr(page);
--			first = atomic_inc_and_test(mapcount);
--		} else {
--			/* Anon THP always mapped first with PMD */
--			first = 0;
--			VM_BUG_ON_PAGE(!page_mapcount(page), page);
--			atomic_inc(&page->_mapcount);
--		}
-+		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
-+		mapcount = compound_mapcount_ptr(page);
-+		first = atomic_inc_and_test(mapcount);
- 	} else {
- 		VM_BUG_ON_PAGE(compound, page);
- 		first = atomic_inc_and_test(&page->_mapcount);
-@@ -1160,7 +1152,6 @@ void do_page_add_anon_rmap(struct page *
- 		 * disabled.
- 		 */
- 		if (compound) {
--			VM_BUG_ON_PAGE(!PageTransHuge(page), page);
- 			__inc_zone_page_state(page,
- 					      NR_ANON_TRANSPARENT_HUGEPAGES);
+ #define HPAGE_PMD_ORDER (HPAGE_PMD_SHIFT-PAGE_SHIFT)
+ #define HPAGE_PMD_NR (1<<HPAGE_PMD_ORDER)
+ 
+diff -puN include/linux/mm.h~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting include/linux/mm.h
+--- a/include/linux/mm.h~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting
++++ a/include/linux/mm.h
+@@ -433,6 +433,25 @@ static inline int page_mapcount(struct p
+ 	return ret;
+ }
+ 
++static inline int total_mapcount(struct page *page)
++{
++	int i, ret;
++
++	VM_BUG_ON_PAGE(PageTail(page), page);
++
++	if (likely(!PageCompound(page)))
++		return atomic_read(&page->_mapcount) + 1;
++
++	ret = compound_mapcount(page);
++	if (PageHuge(page))
++		return ret;
++	for (i = 0; i < HPAGE_PMD_NR; i++)
++		ret += atomic_read(&page[i]._mapcount) + 1;
++	if (PageDoubleMap(page))
++		ret -= HPAGE_PMD_NR;
++	return ret;
++}
++
+ static inline int page_count(struct page *page)
+ {
+ 	return atomic_read(&compound_head(page)->_count);
+diff -puN mm/huge_memory.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting
++++ a/mm/huge_memory.c
+@@ -1679,46 +1679,6 @@ bool __pmd_trans_huge_lock(pmd_t *pmd, s
+ 	return false;
+ }
+ 
+-/*
+- * This function returns whether a given @page is mapped onto the @address
+- * in the virtual space of @mm.
+- *
+- * When it's true, this function returns *pmd with holding the page table lock
+- * and passing it back to the caller via @ptl.
+- * If it's false, returns NULL without holding the page table lock.
+- */
+-pmd_t *page_check_address_pmd(struct page *page,
+-			      struct mm_struct *mm,
+-			      unsigned long address,
+-			      spinlock_t **ptl)
+-{
+-	pgd_t *pgd;
+-	pud_t *pud;
+-	pmd_t *pmd;
+-
+-	if (address & ~HPAGE_PMD_MASK)
+-		return NULL;
+-
+-	pgd = pgd_offset(mm, address);
+-	if (!pgd_present(*pgd))
+-		return NULL;
+-	pud = pud_offset(pgd, address);
+-	if (!pud_present(*pud))
+-		return NULL;
+-	pmd = pmd_offset(pud, address);
+-
+-	*ptl = pmd_lock(mm, pmd);
+-	if (!pmd_present(*pmd))
+-		goto unlock;
+-	if (pmd_page(*pmd) != page)
+-		goto unlock;
+-	if (pmd_trans_huge(*pmd))
+-		return pmd;
+-unlock:
+-	spin_unlock(*ptl);
+-	return NULL;
+-}
+-
+ #define VM_NO_THP (VM_SPECIAL | VM_HUGETLB | VM_SHARED | VM_MAYSHARE)
+ 
+ int hugepage_madvise(struct vm_area_struct *vma,
+@@ -3139,20 +3099,6 @@ static void unfreeze_page(struct anon_vm
+ 	}
+ }
+ 
+-static int total_mapcount(struct page *page)
+-{
+-	int i, ret;
+-
+-	ret = compound_mapcount(page);
+-	for (i = 0; i < HPAGE_PMD_NR; i++)
+-		ret += atomic_read(&page[i]._mapcount) + 1;
+-
+-	if (PageDoubleMap(page))
+-		ret -= HPAGE_PMD_NR;
+-
+-	return ret;
+-}
+-
+ static int __split_huge_page_tail(struct page *head, int tail,
+ 		struct lruvec *lruvec, struct list_head *list)
+ {
+diff -puN mm/page_idle.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting mm/page_idle.c
+--- a/mm/page_idle.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting
++++ a/mm/page_idle.c
+@@ -56,23 +56,69 @@ static int page_idle_clear_pte_refs_one(
+ {
+ 	struct mm_struct *mm = vma->vm_mm;
+ 	spinlock_t *ptl;
++	pgd_t *pgd;
++	pud_t *pud;
+ 	pmd_t *pmd;
+ 	pte_t *pte;
+ 	bool referenced = false;
+ 
+-	if (unlikely(PageTransHuge(page))) {
+-		pmd = page_check_address_pmd(page, mm, addr, &ptl);
+-		if (pmd) {
+-			referenced = pmdp_clear_young_notify(vma, addr, pmd);
++	pgd = pgd_offset(mm, addr);
++	if (!pgd_present(*pgd))
++		return SWAP_AGAIN;
++	pud = pud_offset(pgd, addr);
++	if (!pud_present(*pud))
++		return SWAP_AGAIN;
++	pmd = pmd_offset(pud, addr);
++
++	if (pmd_trans_huge(*pmd)) {
++		ptl = pmd_lock(mm, pmd);
++                if (!pmd_present(*pmd))
++			goto unlock_pmd;
++		if (unlikely(!pmd_trans_huge(*pmd))) {
+ 			spin_unlock(ptl);
++			goto map_pte;
  		}
++
++		if (pmd_page(*pmd) != page)
++			goto unlock_pmd;
++
++		referenced = pmdp_clear_young_notify(vma, addr, pmd);
++		spin_unlock(ptl);
++		goto found;
++unlock_pmd:
++		spin_unlock(ptl);
++		return SWAP_AGAIN;
+ 	} else {
+-		pte = page_check_address(page, mm, addr, &ptl, 0);
+-		if (pte) {
+-			referenced = ptep_clear_young_notify(vma, addr, pte);
+-			pte_unmap_unlock(pte, ptl);
+-		}
++		pmd_t pmde = *pmd;
++		barrier();
++		if (!pmd_present(pmde) || pmd_trans_huge(pmde))
++			return SWAP_AGAIN;
++
++	}
++map_pte:
++	pte = pte_offset_map(pmd, addr);
++	if (!pte_present(*pte)) {
++		pte_unmap(pte);
++		return SWAP_AGAIN;
+ 	}
++
++	ptl = pte_lockptr(mm, pmd);
++	spin_lock(ptl);
++
++	if (!pte_present(*pte)) {
++		pte_unmap_unlock(pte, ptl);
++		return SWAP_AGAIN;
++	}
++
++	/* THP can be referenced by any subpage */
++	if (pte_pfn(*pte) - page_to_pfn(page) >= hpage_nr_pages(page)) {
++		pte_unmap_unlock(pte, ptl);
++		return SWAP_AGAIN;
++	}
++
++	referenced = ptep_clear_young_notify(vma, addr, pte);
++	pte_unmap_unlock(pte, ptl);
++found:
+ 	if (referenced) {
+ 		clear_page_idle(page);
+ 		/*
+diff -puN mm/rmap.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting mm/rmap.c
+--- a/mm/rmap.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting
++++ a/mm/rmap.c
+@@ -812,58 +812,104 @@ static int page_referenced_one(struct pa
+ 	spinlock_t *ptl;
+ 	int referenced = 0;
+ 	struct page_referenced_arg *pra = arg;
++	pgd_t *pgd;
++	pud_t *pud;
++	pmd_t *pmd;
++	pte_t *pte;
++
++	if (unlikely(PageHuge(page))) {
++		/* when pud is not present, pte will be NULL */
++		pte = huge_pte_offset(mm, address);
++		if (!pte)
++			return SWAP_AGAIN;
+ 
+-	if (unlikely(PageTransHuge(page))) {
+-		pmd_t *pmd;
++		ptl = huge_pte_lockptr(page_hstate(page), mm, pte);
++		goto check_pte;
++	}
+ 
+-		/*
+-		 * rmap might return false positives; we must filter
+-		 * these out using page_check_address_pmd().
+-		 */
+-		pmd = page_check_address_pmd(page, mm, address, &ptl);
+-		if (!pmd)
+-			return SWAP_AGAIN;
++	pgd = pgd_offset(mm, address);
++	if (!pgd_present(*pgd))
++		return SWAP_AGAIN;
++	pud = pud_offset(pgd, address);
++	if (!pud_present(*pud))
++		return SWAP_AGAIN;
++	pmd = pmd_offset(pud, address);
++
++	if (pmd_trans_huge(*pmd)) {
++		int ret = SWAP_AGAIN;
++
++		ptl = pmd_lock(mm, pmd);
++		if (!pmd_present(*pmd))
++			goto unlock_pmd;
++		if (unlikely(!pmd_trans_huge(*pmd))) {
++			spin_unlock(ptl);
++			goto map_pte;
++		}
++
++		if (pmd_page(*pmd) != page)
++			goto unlock_pmd;
+ 
+ 		if (vma->vm_flags & VM_LOCKED) {
+-			spin_unlock(ptl);
+ 			pra->vm_flags |= VM_LOCKED;
+-			return SWAP_FAIL; /* To break the loop */
++			ret = SWAP_FAIL; /* To break the loop */
++			goto unlock_pmd;
+ 		}
+ 
+ 		if (pmdp_clear_flush_young_notify(vma, address, pmd))
+ 			referenced++;
+ 		spin_unlock(ptl);
++		goto found;
++unlock_pmd:
++		spin_unlock(ptl);
++		return ret;
+ 	} else {
+-		pte_t *pte;
+-
+-		/*
+-		 * rmap might return false positives; we must filter
+-		 * these out using page_check_address().
+-		 */
+-		pte = page_check_address(page, mm, address, &ptl, 0);
+-		if (!pte)
++		pmd_t pmde = *pmd;
++		barrier();
++		if (!pmd_present(pmde) || pmd_trans_huge(pmde))
+ 			return SWAP_AGAIN;
++	}
++map_pte:
++	pte = pte_offset_map(pmd, address);
++	if (!pte_present(*pte)) {
++		pte_unmap(pte);
++		return SWAP_AGAIN;
++	}
+ 
+-		if (vma->vm_flags & VM_LOCKED) {
+-			pte_unmap_unlock(pte, ptl);
+-			pra->vm_flags |= VM_LOCKED;
+-			return SWAP_FAIL; /* To break the loop */
+-		}
++	ptl = pte_lockptr(mm, pmd);
++check_pte:
++	spin_lock(ptl);
+ 
+-		if (ptep_clear_flush_young_notify(vma, address, pte)) {
+-			/*
+-			 * Don't treat a reference through a sequentially read
+-			 * mapping as such.  If the page has been used in
+-			 * another mapping, we will catch it; if this other
+-			 * mapping is already gone, the unmap path will have
+-			 * set PG_referenced or activated the page.
+-			 */
+-			if (likely(!(vma->vm_flags & VM_SEQ_READ)))
+-				referenced++;
+-		}
++	if (!pte_present(*pte)) {
++		pte_unmap_unlock(pte, ptl);
++		return SWAP_AGAIN;
++	}
++
++	/* THP can be referenced by any subpage */
++	if (pte_pfn(*pte) - page_to_pfn(page) >= hpage_nr_pages(page)) {
+ 		pte_unmap_unlock(pte, ptl);
++		return SWAP_AGAIN;
++	}
++
++	if (vma->vm_flags & VM_LOCKED) {
++		pte_unmap_unlock(pte, ptl);
++		pra->vm_flags |= VM_LOCKED;
++		return SWAP_FAIL; /* To break the loop */
++	}
++
++	if (ptep_clear_flush_young_notify(vma, address, pte)) {
++		/*
++		 * Don't treat a reference through a sequentially read
++		 * mapping as such.  If the page has been used in
++		 * another mapping, we will catch it; if this other
++		 * mapping is already gone, the unmap path will have
++		 * set PG_referenced or activated the page.
++		 */
++		if (likely(!(vma->vm_flags & VM_SEQ_READ)))
++			referenced++;
+ 	}
++	pte_unmap_unlock(pte, ptl);
+ 
++found:
+ 	if (referenced)
+ 		clear_page_idle(page);
+ 	if (test_and_clear_page_young(page))
+@@ -910,7 +956,7 @@ int page_referenced(struct page *page,
+ 	int ret;
+ 	int we_locked = 0;
+ 	struct page_referenced_arg pra = {
+-		.mapcount = page_mapcount(page),
++		.mapcount = total_mapcount(page),
+ 		.memcg = memcg,
+ 	};
+ 	struct rmap_walk_control rwc = {
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -251,4 +493,5 @@ thp-introduce-deferred_split_huge_page.patch
 mm-re-enable-thp.patch
 thp-update-documentation.patch
 thp-allow-mlocked-thp-again.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
 
