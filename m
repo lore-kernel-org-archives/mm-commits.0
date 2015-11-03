@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
- added to -mm tree
-Date: Tue, 03 Nov 2015 14:46:06 -0800
-Message-ID: <5639392e.oA3Ql1SCQ7YpAVU/%akpm@linux-foundation.org>
+Subject: + thp-reintroduce-split_huge_page-fix-3.patch added to -mm tree
+Date: Tue, 03 Nov 2015 14:47:45 -0800
+Message-ID: <56393991.2nhYyptO2+f/28T8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52878 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52881 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755139AbbKCWqH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2015 17:46:07 -0500
+	with ESMTP id S1752242AbbKCWrp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2015 17:47:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, minchan@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: duplicate rmap reference for hugetlb pages as compound
+     Subject: thp: fix split vs. unmap race
 has been added to the -mm tree.  Its filename is
-     mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
+     thp-reintroduce-split_huge_page-fix-3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-reintroduce-split_huge_page-fix-3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-reintroduce-split_huge_page-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,34 +39,141 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: duplicate rmap reference for hugetlb pages as compound
+Subject: thp: fix split vs. unmap race
 
-Naoya noticed that I wrongly duplicate rmap reference for hugetlb pages
-in remove_migration_pte() as non-compound. Let's fix this.
+To stabilize compound page during split we use migration entries.  The
+code to implement this is buggy: I wrongly assumed that kernel would wait
+migration to finish, before zapping ptes.
 
-The patch can be folded into
-	"mm: rework mapcount accounting to enable 4k mapping of THPs"
+But turn out that's not true.
+
+As result if zap_pte_range() races with split_huge_page(), we can end up
+with page which is not mapped anymore but has _count and _mapcount
+elevated. The page is on LRU too. So it's still reachable by vmscan and by
+pfn scanners.  It's likely that page->mapping in this case would point to
+freed anon_vma.
+
+BOOM!
+
+The patch modify freeze/unfreeze_page() code to match normal migration
+entries logic: on setup we remove page from rmap and drop pin, on removing
+we get pin back and put page on rmap. This way even if migration entry
+will be removed under us we don't corrupt page's state.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reported-by: Minchan Kim <minchan@kernel.org>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |   22 ++++++++++++++++++----
+ mm/rmap.c        |   19 +++++--------------
+ 2 files changed, 23 insertions(+), 18 deletions(-)
 
-diff -puN mm/migrate.c~mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3 mm/migrate.c
---- a/mm/migrate.c~mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3
-+++ a/mm/migrate.c
-@@ -165,7 +165,7 @@ static int remove_migration_pte(struct p
- 		if (PageAnon(new))
- 			hugepage_add_anon_rmap(new, vma, addr);
- 		else
--			page_dup_rmap(new, false);
-+			page_dup_rmap(new, true);
- 	} else if (PageAnon(new))
- 		page_add_anon_rmap(new, vma, addr, false);
- 	else
+diff -puN mm/huge_memory.c~thp-reintroduce-split_huge_page-fix-3 mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-reintroduce-split_huge_page-fix-3
++++ a/mm/huge_memory.c
+@@ -2857,6 +2857,13 @@ static void __split_huge_pmd_locked(stru
+ 
+ 	smp_wmb(); /* make pte visible before pmd */
+ 	pmd_populate(mm, pmd, pgtable);
++
++	if (freeze) {
++		for (i = 0; i < HPAGE_PMD_NR; i++, haddr += PAGE_SIZE) {
++			page_remove_rmap(page + i, false);
++			put_page(page + i);
++		}
++	}
+ }
+ 
+ void __split_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+@@ -2988,6 +2995,8 @@ static void freeze_page_vma(struct vm_ar
+ 		if (pte_soft_dirty(entry))
+ 			swp_pte = pte_swp_mksoft_dirty(swp_pte);
+ 		set_pte_at(vma->vm_mm, address, pte + i, swp_pte);
++		page_remove_rmap(page, false);
++		put_page(page);
+ 	}
+ 	pte_unmap_unlock(pte, ptl);
+ }
+@@ -3026,8 +3035,6 @@ static void unfreeze_page_vma(struct vm_
+ 		return;
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, address, &ptl);
+ 	for (i = 0; i < HPAGE_PMD_NR; i++, address += PAGE_SIZE, page++) {
+-		if (!page_mapped(page))
+-			continue;
+ 		if (!is_swap_pte(pte[i]))
+ 			continue;
+ 
+@@ -3037,6 +3044,9 @@ static void unfreeze_page_vma(struct vm_
+ 		if (migration_entry_to_page(swp_entry) != page)
+ 			continue;
+ 
++		get_page(page);
++		page_add_anon_rmap(page, vma, address, false);
++
+ 		entry = pte_mkold(mk_pte(page, vma->vm_page_prot));
+ 		entry = pte_mkdirty(entry);
+ 		if (is_write_migration_entry(swp_entry))
+@@ -3104,8 +3114,6 @@ static int __split_huge_page_tail(struct
+ 	 */
+ 	atomic_add(mapcount + 1, &page_tail->_count);
+ 
+-	/* after clearing PageTail the gup refcount can be released */
+-	smp_mb__after_atomic();
+ 
+ 	page_tail->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+ 	page_tail->flags |= (head->flags &
+@@ -3118,6 +3126,12 @@ static int __split_huge_page_tail(struct
+ 			 (1L << PG_unevictable)));
+ 	page_tail->flags |= (1L << PG_dirty);
+ 
++	/*
++	 * After clearing PageTail the gup refcount can be released.
++	 * Page flags also must be visible before we make the page non-compound.
++	 */
++	smp_wmb();
++
+ 	clear_compound_head(page_tail);
+ 
+ 	if (page_is_young(head))
+diff -puN mm/rmap.c~thp-reintroduce-split_huge_page-fix-3 mm/rmap.c
+--- a/mm/rmap.c~thp-reintroduce-split_huge_page-fix-3
++++ a/mm/rmap.c
+@@ -1132,20 +1132,12 @@ void do_page_add_anon_rmap(struct page *
+ 	bool compound = flags & RMAP_COMPOUND;
+ 	bool first;
+ 
+-	if (PageTransCompound(page)) {
++	if (compound) {
++		atomic_t *mapcount;
+ 		VM_BUG_ON_PAGE(!PageLocked(page), page);
+-		if (compound) {
+-			atomic_t *mapcount;
+-
+-			VM_BUG_ON_PAGE(!PageTransHuge(page), page);
+-			mapcount = compound_mapcount_ptr(page);
+-			first = atomic_inc_and_test(mapcount);
+-		} else {
+-			/* Anon THP always mapped first with PMD */
+-			first = 0;
+-			VM_BUG_ON_PAGE(!page_mapcount(page), page);
+-			atomic_inc(&page->_mapcount);
+-		}
++		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
++		mapcount = compound_mapcount_ptr(page);
++		first = atomic_inc_and_test(mapcount);
+ 	} else {
+ 		VM_BUG_ON_PAGE(compound, page);
+ 		first = atomic_inc_and_test(&page->_mapcount);
+@@ -1160,7 +1152,6 @@ void do_page_add_anon_rmap(struct page *
+ 		 * disabled.
+ 		 */
+ 		if (compound) {
+-			VM_BUG_ON_PAGE(!PageTransHuge(page), page);
+ 			__inc_zone_page_state(page,
+ 					      NR_ANON_TRANSPARENT_HUGEPAGES);
+ 		}
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -140,6 +245,7 @@ thp-implement-split_huge_pmd.patch
 thp-add-option-to-setup-migration-entries-during-pmd-split.patch
 thp-mm-split_huge_page-caller-need-to-lock-page.patch
 thp-reintroduce-split_huge_page.patch
+thp-reintroduce-split_huge_page-fix-3.patch
 migrate_pages-try-to-split-pages-on-qeueuing.patch
 thp-introduce-deferred_split_huge_page.patch
 mm-re-enable-thp.patch
