@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-2.patch
+ mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
  added to -mm tree
-Date: Tue, 03 Nov 2015 14:45:09 -0800
-Message-ID: <563938f5.sI3ImkOIy/Fqby5P%akpm@linux-foundation.org>
+Date: Tue, 03 Nov 2015 14:46:06 -0800
+Message-ID: <5639392e.oA3Ql1SCQ7YpAVU/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52874 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52878 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754871AbbKCWpK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2015 17:45:10 -0500
+	with ESMTP id S1755139AbbKCWqH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 3 Nov 2015 17:46:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: do not crash on PageDoubleMap() for non-head pages
+     Subject: mm: duplicate rmap reference for hugetlb pages as compound
 has been added to the -mm tree.  Its filename is
-     mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-2.patch
+     mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,53 +41,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: do not crash on PageDoubleMap() for non-head pages
+Subject: mm: duplicate rmap reference for hugetlb pages as compound
 
-We usually don't call PageDoubleMap() on small or tail pages, but during
-read from /proc/kpageflags we don't protect the page from being freed
-under us and it can lead to VM_BUG_ON_PAGE() in PageDoubleMap():
-
- page:ffffea00033e0000 count:0 mapcount:0 mapping:          (null) index:0x700000200
- flags: 0x4000000000000000()
- page dumped because: VM_BUG_ON_PAGE(!PageHead(page))
- page->mem_cgroup:ffff88021588cc00
- ------------[ cut here ]------------
- kernel BUG at /src/linux-dev/include/linux/page-flags.h:552!
- invalid opcode: 0000 [#1] SMP DEBUG_PAGEALLOC
- Modules linked in: cfg80211 rfkill crc32c_intel virtio_balloon serio_raw i2c_piix4 virtio_blk virtio_net ata_generic pata_acpi
- CPU: 0 PID: 1183 Comm: page-types Not tainted 4.2.0-mmotm-2015-10-21-14-41-151027-1418-00014-41+ #179
- Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
- task: ffff880214a08bc0 ti: ffff880213e2c000 task.ti: ffff880213e2c000
- RIP: 0010:[<ffffffff812434b6>]  [<ffffffff812434b6>] stable_page_flags+0x336/0x340
- RSP: 0018:ffff880213e2fda8  EFLAGS: 00010292
- RAX: 0000000000000021 RBX: ffff8802150a39c0 RCX: 0000000000000000
- RDX: ffff88021ec0ff38 RSI: ffff88021ec0d658 RDI: ffff88021ec0d658
- RBP: ffff880213e2fdc8 R08: 000000000000000a R09: 000000000000132f
- R10: 0000000000000000 R11: 000000000000132f R12: 4000000000000000
- R13: ffffea00033e6340 R14: 00007fff8449e430 R15: ffffea00033e6340
- FS:  00007ff7f9525700(0000) GS:ffff88021ec00000(0000) knlGS:0000000000000000
- CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
- CR2: 000000000063b800 CR3: 00000000d9e71000 CR4: 00000000000006f0
- Stack:
-  ffff8800db82df80 ffff8802150a39c0 0000000000000008 00000000000cf98d
-  ffff880213e2fe18 ffffffff81243588 00007fff8449e430 ffff880213e2ff20
-  000000000063b800 ffff8802150a39c0 fffffffffffffffb ffff880213e2ff20
- Call Trace:
-  [<ffffffff81243588>] kpageflags_read+0xc8/0x130
-  [<ffffffff81235848>] proc_reg_read+0x48/0x70
-  [<ffffffff811d6b08>] __vfs_read+0x28/0xd0
-  [<ffffffff812ee43e>] ? security_file_permission+0xae/0xc0
-  [<ffffffff811d6f53>] ? rw_verify_area+0x53/0xf0
-  [<ffffffff811d707a>] vfs_read+0x8a/0x130
-  [<ffffffff811d7bf7>] SyS_pread64+0x77/0x90
-  [<ffffffff81648117>] entry_SYSCALL_64_fastpath+0x12/0x6a
- Code: ca 00 00 40 01 48 39 c1 48 0f 44 da e9 a2 fd ff ff 48 c7 c6 50 a6 a1 8 1 e8 58 ab f4 ff 0f 0b 48 c7 c6 90 a2 a1 81 e8 4a ab f4 ff <0f> 0b 0f 1f 84 00 00 00 00 00 66 66 66 66 90 55 48 89 e5 41 57
- RIP  [<ffffffff812434b6>] stable_page_flags+0x336/0x340
-  RSP <ffff880213e2fda8>
- ---[ end trace e5d18553088c026a ]---
-
-Let's drop the VM_BUG_ON_PAGE() from PageDoubleMap() and return false for
-non-head pages.
+Naoya noticed that I wrongly duplicate rmap reference for hugetlb pages
+in remove_migration_pte() as non-compound. Let's fix this.
 
 The patch can be folded into
 	"mm: rework mapcount accounting to enable 4k mapping of THPs"
@@ -97,22 +54,21 @@ Reported-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/migrate.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/page-flags.h~mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-2 include/linux/page-flags.h
---- a/include/linux/page-flags.h~mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-2
-+++ a/include/linux/page-flags.h
-@@ -549,8 +549,7 @@ static inline int PageTransTail(struct p
-  */
- static inline int PageDoubleMap(struct page *page)
- {
--	VM_BUG_ON_PAGE(!PageHead(page), page);
--	return test_bit(PG_double_map, &page[1].flags);
-+	return PageHead(page) && test_bit(PG_double_map, &page[1].flags);
- }
- 
- static inline int TestSetPageDoubleMap(struct page *page)
+diff -puN mm/migrate.c~mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3 mm/migrate.c
+--- a/mm/migrate.c~mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3
++++ a/mm/migrate.c
+@@ -165,7 +165,7 @@ static int remove_migration_pte(struct p
+ 		if (PageAnon(new))
+ 			hugepage_add_anon_rmap(new, vma, addr);
+ 		else
+-			page_dup_rmap(new, false);
++			page_dup_rmap(new, true);
+ 	} else if (PageAnon(new))
+ 		page_add_anon_rmap(new, vma, addr, false);
+ 	else
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -177,6 +133,7 @@ x86-thp-remove-infrastructure-for-handling-splitting-pmds.patch
 mm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
 mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps.patch
 mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-2.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
 mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
 mm-numa-skip-pte-mapped-thp-on-numa-fault.patch
 thp-implement-split_huge_pmd.patch
