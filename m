@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-add-comment-for-why-oom_adj-exists.patch added to -mm
+Subject: + maintainers-add-missing-extcon-directory.patch added to -mm
  tree
-Date: Wed, 04 Nov 2015 17:32:44 -0800
-Message-ID: <563ab1bc.JtV7t6E+yaBgxFbj%akpm@linux-foundation.org>
+Date: Thu, 05 Nov 2015 02:21:35 -0800
+Message-ID: <563b2daf.7WTLQJEV7HQjpaLi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47815 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56995 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030822AbbKEBcp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Nov 2015 20:32:45 -0500
+	with ESMTP id S1031067AbbKEKVg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Nov 2015 05:21:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, mm-commits@vger.kernel.org
+To: cw00.choi@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: add comment for why oom_adj exists
+     Subject: MAINTAINERS: add missing extcon directory
 has been added to the -mm tree.  Its filename is
-     mm-oom-add-comment-for-why-oom_adj-exists.patch
+     maintainers-add-missing-extcon-directory.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-add-comment-for-why-oom_adj-exists.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-missing-extcon-directory.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-add-comment-for-why-oom_adj-exists.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-missing-extcon-directory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +39,37 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, oom: add comment for why oom_adj exists
+From: Chanwoo Choi <cw00.choi@samsung.com>
+Subject: MAINTAINERS: add missing extcon directory
 
-/proc/pid/oom_adj exists solely to avoid breaking existing userspace
-binaries that write to the tunable.
+Add the missing extcon directory to maintain them.  When using
+get_maintainer.pl, the result should include the correct maintainer
+information.
 
-Add a comment in the only possible location within the kernel tree to
-describe the situation and motivation for keeping it around.
-
-Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Chanwoo Choi <cw00.choi@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ MAINTAINERS |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/proc/base.c~mm-oom-add-comment-for-why-oom_adj-exists fs/proc/base.c
---- a/fs/proc/base.c~mm-oom-add-comment-for-why-oom_adj-exists
-+++ a/fs/proc/base.c
-@@ -1032,6 +1032,16 @@ static ssize_t oom_adj_read(struct file
- 	return simple_read_from_buffer(buf, count, ppos, buffer, len);
- }
+diff -puN MAINTAINERS~maintainers-add-missing-extcon-directory MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-missing-extcon-directory
++++ a/MAINTAINERS
+@@ -4180,7 +4180,10 @@ L:	linux-kernel@vger.kernel.org
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/chanwoo/extcon.git
+ S:	Maintained
+ F:	drivers/extcon/
++F:	include/linux/extcon/
++F:	include/linux/extcon.h
+ F:	Documentation/extcon/
++F:	Documentation/devicetree/bindings/extcon/
  
-+/*
-+ * /proc/pid/oom_adj exists solely for backwards compatibility with previous
-+ * kernels.  The effective policy is defined by oom_score_adj, which has a
-+ * different scale: oom_adj grew exponentially and oom_score_adj grows linearly.
-+ * Values written to oom_adj are simply mapped linearly to oom_score_adj.
-+ * Processes that become oom disabled via oom_adj will still be oom disabled
-+ * with this implementation.
-+ *
-+ * oom_adj cannot be removed since existing userspace binaries use it.
-+ */
- static ssize_t oom_adj_write(struct file *file, const char __user *buf,
- 			     size_t count, loff_t *ppos)
- {
+ EXYNOS DP DRIVER
+ M:	Jingoo Han <jingoohan1@gmail.com>
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from cw00.choi@samsung.com are
 
-mm-oom-remove-task_lock-protecting-comm-printing.patch
-mm-oom-add-comment-for-why-oom_adj-exists.patch
+maintainers-add-missing-extcon-directory.patch
 
