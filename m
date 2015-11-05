@@ -1,133 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: + get_maintainer-add-subsystem-to-reviewer-output.patch added to
- -mm tree
-Date: Thu, 05 Nov 2015 03:07:10 -0800
-Message-ID: <563b385e.t6RBI9ta+/kFAkjq%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ signal-kill-the-obsolete-signal_unkillable-check-in-complete_signal.patch
+ removed from -mm tree
+Date: Thu, 05 Nov 2015 15:04:45 -0800
+Message-ID: <563be08d.1LWxRWqQG3xVj7FQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57910 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48565 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1032225AbbKELHL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Nov 2015 06:07:11 -0500
+	with ESMTP id S1754095AbbKEXEq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Nov 2015 18:04:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, k.kozlowski@samsung.com, lee.jones@linaro.org, mm-commits@vger.kernel.org
+To: oleg@redhat.com, dvyukov@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: get_maintainer: add subsystem to reviewer output
-has been added to the -mm tree.  Its filename is
-     get_maintainer-add-subsystem-to-reviewer-output.patch
+     Subject: signal: kill the obsolete SIGNAL_UNKILLABLE check in complete_signal()
+has been removed from the -mm tree.  Its filename was
+     signal-kill-the-obsolete-signal_unkillable-check-in-complete_signal.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/get_maintainer-add-subsystem-to-reviewer-output.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/get_maintainer-add-subsystem-to-reviewer-output.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: get_maintainer: add subsystem to reviewer output
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: signal: kill the obsolete SIGNAL_UNKILLABLE check in complete_signal()
 
-Reviewer output currently does not include the subsystem
-that matched.  Add it.
+complete_signal() checks SIGNAL_UNKILLABLE before it starts to destroy the
+thread group, today this is unnecessary and even not 100% correct.
 
-Miscellanea:
+After the commit f008faff0e27 ("signals: protect init from unwanted
+signals more") we rely on sig_task_ignored(), complete_signal(SIGKILL) can
+only see a SIGNAL_UNKILLABLE task if we actually want to kill it.  And
+note that after the commit b3bfa0cba867 ("signals: protect cinit from
+blocked fatal signals") we do not drop SIGKILL dequeued by /sbin/init.
 
-o Add a get_subsystem_name routine to centralize this
+And it does not look right.  fatal_signal_pending() should always imply
+that the whole thread group (except ->group_exit_task if it is not NULL)
+is killed, this check breaks the rule.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Tested-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
-Cc: Lee Jones <lee.jones@linaro.org>
+This explains WARN_ON(!JOBCTL_STOP_PENDING) in task_participate_group_stop()
+triggered by the test-case from Dmitry:
+
+	int main()
+	{
+		int pid = 1;
+		ptrace(PTRACE_ATTACH, pid, 0, 0);
+		ptrace(PTRACE_SETOPTIONS, pid, 0, PTRACE_O_EXITKILL);
+		sleep(1);
+		return 0;
+	}
+
+do_signal_stop()->signal_group_exit() returns false because
+SIGNAL_GROUP_EXIT is not set, but task_set_jobctl_pending() checks
+fatal_signal_pending() and does not set JOBCTL_STOP_PENDING.
+
+The test-case above needs root and (correctly) crashes the kernel, but we
+can trigger the same warning inside the container or using another
+test-case:
+
+	static int init(void *arg)
+	{
+		for (;;)
+			pause();
+	}
+
+	int main(void)
+	{
+		char stack[16 * 1024];
+
+		for (;;) {
+			int pid = clone(init, stack + sizeof(stack)/2,
+					CLONE_NEWPID | SIGCHLD, NULL);
+			assert(pid > 0);
+
+			assert(ptrace(PTRACE_ATTACH, pid, 0, 0) == 0);
+			assert(waitpid(-1, NULL, WSTOPPED) == pid);
+
+			assert(ptrace(PTRACE_DETACH, pid, 0, SIGSTOP) == 0);
+			assert(syscall(__NR_tkill, pid, SIGKILL) == 0);
+			assert(pid == wait(NULL));
+		}
+	}
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |   31 ++++++++++++++++---------------
- 1 file changed, 16 insertions(+), 15 deletions(-)
+ kernel/signal.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/get_maintainer.pl~get_maintainer-add-subsystem-to-reviewer-output scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~get_maintainer-add-subsystem-to-reviewer-output
-+++ a/scripts/get_maintainer.pl
-@@ -974,20 +974,29 @@ sub find_ending_index {
-     return $index;
- }
- 
--sub get_maintainer_role {
-+sub get_subsystem_name {
-     my ($index) = @_;
- 
--    my $i;
-     my $start = find_starting_index($index);
--    my $end = find_ending_index($index);
- 
--    my $role = "unknown";
-     my $subsystem = $typevalue[$start];
-     if ($output_section_maxlen && length($subsystem) > $output_section_maxlen) {
- 	$subsystem = substr($subsystem, 0, $output_section_maxlen - 3);
- 	$subsystem =~ s/\s*$//;
- 	$subsystem = $subsystem . "...";
-     }
-+    return $subsystem;
-+}
-+
-+sub get_maintainer_role {
-+    my ($index) = @_;
-+
-+    my $i;
-+    my $start = find_starting_index($index);
-+    my $end = find_ending_index($index);
-+
-+    my $role = "unknown";
-+    my $subsystem = get_subsystem_name($index);
- 
-     for ($i = $start + 1; $i < $end; $i++) {
- 	my $tv = $typevalue[$i];
-@@ -1021,16 +1030,7 @@ sub get_maintainer_role {
- sub get_list_role {
-     my ($index) = @_;
- 
--    my $i;
--    my $start = find_starting_index($index);
--    my $end = find_ending_index($index);
--
--    my $subsystem = $typevalue[$start];
--    if ($output_section_maxlen && length($subsystem) > $output_section_maxlen) {
--	$subsystem = substr($subsystem, 0, $output_section_maxlen - 3);
--	$subsystem =~ s/\s*$//;
--	$subsystem = $subsystem . "...";
--    }
-+    my $subsystem = get_subsystem_name($index);
- 
-     if ($subsystem eq "THE REST") {
- 	$subsystem = "";
-@@ -1118,7 +1118,8 @@ sub add_categories {
- 		    }
- 		}
- 		if ($email_reviewer) {
--		    push_email_addresses($pvalue, 'reviewer');
-+		    my $subsystem = get_subsystem_name($i);
-+		    push_email_addresses($pvalue, "reviewer:$subsystem");
- 		}
- 	    } elsif ($ptype eq "T") {
- 		push(@scm, $pvalue);
+diff -puN kernel/signal.c~signal-kill-the-obsolete-signal_unkillable-check-in-complete_signal kernel/signal.c
+--- a/kernel/signal.c~signal-kill-the-obsolete-signal_unkillable-check-in-complete_signal
++++ a/kernel/signal.c
+@@ -909,7 +909,7 @@ static void complete_signal(int sig, str
+ 	 * then start taking the whole group down immediately.
+ 	 */
+ 	if (sig_fatal(p, sig) &&
+-	    !(signal->flags & (SIGNAL_UNKILLABLE | SIGNAL_GROUP_EXIT)) &&
++	    !(signal->flags & SIGNAL_GROUP_EXIT) &&
+ 	    !sigismember(&t->real_blocked, sig) &&
+ 	    (sig == SIGKILL || !t->ptrace)) {
+ 		/*
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-get_maintainer-add-subsystem-to-reviewer-output.patch
-checkpatch-improve-tests-for-fixes-long-lines-and-stack-dumps-in-commit-log.patch
-checkpatch-improve-the-unnecessary-initialisers-tests.patch
+mmoom-fix-potentially-killing-unrelated-process-fix.patch
+mm-fix-the-racy-mm-locked_vm-change-in.patch
+mm-add-the-struct-mm_struct-mm-local-into.patch
+mm-oom_kill-remove-the-wrong-fatal_signal_pending-check-in-oom_kill_process.patch
+mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop.patch
+mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process.patch
+proc-actually-make-proc_fd_permission-thread-friendly.patch
+change-current_is_single_threaded-to-use-for_each_thread.patch
+signals-kill-block_all_signals-and-unblock_all_signals.patch
+signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal.patch
+signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal-fix.patch
+signal-introduce-kernel_signal_stop-to-fix-jffs2_garbage_collect_thread.patch
+signal-remove-jffs2_garbage_collect_thread-allow_signalsigcont.patch
+coredump-ensure-all-coredumping-tasks-have-signal_group_coredump.patch
+coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
 
