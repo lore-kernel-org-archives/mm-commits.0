@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-documentation-a-little-tidying-in-proctxt.patch added to -mm tree
-Date: Thu, 05 Nov 2015 02:40:02 -0800
-Message-ID: <563b3202.dMqmwHqCq/XCcH8V%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps-fix.patch
+ added to -mm tree
+Date: Thu, 05 Nov 2015 02:43:23 -0800
+Message-ID: <563b32cb.HW8Bg9mHOc7YgSlF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57175 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57416 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031853AbbKEKkD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Nov 2015 05:40:03 -0500
+	with ESMTP id S1031279AbbKEKnY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Nov 2015 05:43:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, mm-commits@vger.kernel.org
+To: hughd@google.com, joern@logfs.org, mhocko@suse.cz, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/filesystems/proc.txt: a little tidying
+     Subject: mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps-fix
 has been added to the -mm tree.  Its filename is
-     mm-documentation-a-little-tidying-in-proctxt.patch
+     mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-documentation-a-little-tidying-in-proctxt.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-documentation-a-little-tidying-in-proctxt.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,58 +41,66 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: Documentation/filesystems/proc.txt: a little tidying
+Subject: mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps-fix
 
-There's an odd line about "Locked" at the head of the description of
-/proc/meminfo: it seems to have strayed from /proc/PID/smaps, so lead it
-back there.  Move "Swap" and "SwapPss" descriptions down above it, to
-match the order in the file (though "PageSize"s still undescribed).
-
-The example of "Locked: 374 kB" (the same as Pss, neither Rss nor Size) is
-so unlikely as to be misleading: just make it 0, this is /bin/bash text;
-which would be "dw" (disabled write) not "de" (do not expand).
+fix Private_Hugetlb alignment
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Joern Engel <joern@logfs.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ Documentation/filesystems/proc.txt |    2 +-
+ fs/proc/task_mmu.c                 |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-documentation-a-little-tidying-in-proctxt Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-documentation-a-little-tidying-in-proctxt
+diff -puN Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps-fix Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps-fix
 +++ a/Documentation/filesystems/proc.txt
-@@ -433,8 +433,8 @@ Swap:                  0 kB
+@@ -426,7 +426,7 @@ Referenced:          892 kB
+ Anonymous:             0 kB
+ AnonHugePages:         0 kB
+ Shared_Hugetlb:        0 kB
+-Private_Hugetlb:        0 kB
++Private_Hugetlb:       0 kB
+ Swap:                  0 kB
  SwapPss:               0 kB
  KernelPageSize:        4 kB
- MMUPageSize:           4 kB
--Locked:              374 kB
--VmFlags: rd ex mr mw me de
-+Locked:                0 kB
-+VmFlags: rd ex mr mw me dw
- 
- the first of these lines shows the same information as is displayed for the
- mapping in /proc/PID/maps.  The remaining lines show the size of the mapping
-@@ -454,13 +454,13 @@ accessed.
- "Anonymous" shows the amount of memory that does not belong to any file.  Even
- a mapping associated with a file may contain anonymous pages: when MAP_PRIVATE
- and a page is modified, the file page is replaced by a private anonymous copy.
--"Swap" shows how much would-be-anonymous memory is also used, but out on
--swap.
--"SwapPss" shows proportional swap share of this mapping.
- "AnonHugePages" shows the ammount of memory backed by transparent hugepage.
- "Shared_Hugetlb" and "Private_Hugetlb" show the ammounts of memory backed by
- hugetlbfs page which is *not* counted in "RSS" or "PSS" field for historical
- reasons. And these are not included in {Shared,Private}_{Clean,Dirty} field.
-+"Swap" shows how much would-be-anonymous memory is also used, but out on swap.
-+"SwapPss" shows proportional swap share of this mapping.
-+"Locked" indicates whether the mapping is locked in memory or not.
- 
- "VmFlags" field deserves a separate description. This member represents the kernel
- flags associated with the particular virtual memory area in two letter encoded
-@@ -824,9 +824,6 @@ varies by architecture and compile optio
- 
- > cat /proc/meminfo
- 
--The "Locked" indicates whether the mapping is locked in memory or not.
--
+diff -puN fs/proc/task_mmu.c~mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps-fix
++++ a/fs/proc/task_mmu.c
+@@ -687,7 +687,7 @@ static int show_smap(struct seq_file *m,
+ 		   "Anonymous:      %8lu kB\n"
+ 		   "AnonHugePages:  %8lu kB\n"
+ 		   "Shared_Hugetlb: %8lu kB\n"
+-		   "Private_Hugetlb: %8lu kB\n"
++		   "Private_Hugetlb: %7lu kB\n"
+ 		   "Swap:           %8lu kB\n"
+ 		   "SwapPss:        %8lu kB\n"
+ 		   "KernelPageSize: %8lu kB\n"
+_
+
+Patches currently in -mm which might be from hughd@google.com are
+
+mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps-fix.patch
+memcg-simplify-and-inline-__mem_cgroup_from_kmem-fix-2.patch
+mm-documentation-undoc-non-linear-vmas.patch
+mm-rmap-use-pte-lock-not-mmap_sem-to-set-pagemlocked.patch
+mm-page-migration-fix-pagemlocked-on-migrated-pages.patch
+mm-rename-mem_cgroup_migrate-to-mem_cgroup_replace_page.patch
+mm-correct-a-couple-of-page-migration-comments.patch
+mm-page-migration-use-the-put_new_page-whenever-necessary.patch
+mm-page-migration-trylock-newpage-at-same-level-as-oldpage.patch
+mm-page-migration-remove_migration_ptes-at-lockunlock-level.patch
+mm-simplify-page-migrations-anon_vma-comment-and-flow.patch
+mm-page-migration-use-migration-entry-for-swapcache-too.patch
+mm-page-migration-avoid-touching-newpage-until-no-going-back.patch
+mm-migrate-dirty-page-without-clear_page_dirty_for_io-etc.patch
+tmpfs-avoid-a-little-creat-and-stat-slowdown.patch
+mm-documentation-a-little-tidying-in-proctxt.patch
+mm-use-unsigned-int-for-page-order-fix-2.patch
+
