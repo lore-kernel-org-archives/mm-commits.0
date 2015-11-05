@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- signal-kill-the-obsolete-signal_unkillable-check-in-complete_signal.patch
- added to -mm tree
-Date: Wed, 04 Nov 2015 17:22:00 -0800
-Message-ID: <563aaf38.+DiKhgJBQE4Osy15%akpm@linux-foundation.org>
+ thp-remove-unused-vma-parameter-from-khugepaged_alloc_page.patch added to
+ -mm tree
+Date: Wed, 04 Nov 2015 17:25:54 -0800
+Message-ID: <563ab022.gUXRczVYyWfhR3ul%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47790 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47797 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031345AbbKEBWB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Nov 2015 20:22:01 -0500
+	with ESMTP id S932340AbbKEBZz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 4 Nov 2015 20:25:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, dvyukov@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: atomlin@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: signal: kill the obsolete SIGNAL_UNKILLABLE check in complete_signal()
+     Subject: thp: remove unused vma parameter from khugepaged_alloc_page
 has been added to the -mm tree.  Its filename is
-     signal-kill-the-obsolete-signal_unkillable-check-in-complete_signal.patch
+     thp-remove-unused-vma-parameter-from-khugepaged_alloc_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/signal-kill-the-obsolete-signal_unkillable-check-in-complete_signal.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-remove-unused-vma-parameter-from-khugepaged_alloc_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/signal-kill-the-obsolete-signal_unkillable-check-in-complete_signal.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-remove-unused-vma-parameter-from-khugepaged_alloc_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,105 +40,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: signal: kill the obsolete SIGNAL_UNKILLABLE check in complete_signal()
+From: Aaron Tomlin <atomlin@redhat.com>
+Subject: thp: remove unused vma parameter from khugepaged_alloc_page
 
-complete_signal() checks SIGNAL_UNKILLABLE before it starts to destroy the
-thread group, today this is unnecessary and even not 100% correct.
+The "vma" parameter to khugepaged_alloc_page() is unused.  It has to
+remain unused or the drop read lock 'map_sem' optimisation introduce by
+commit 8b1645685acf ("mm, THP: don't hold mmap_sem in khugepaged when
+allocating THP") wouldn't be safe.  So let's remove it.
 
-After the commit f008faff0e27 ("signals: protect init from unwanted
-signals more") we rely on sig_task_ignored(), complete_signal(SIGKILL) can
-only see a SIGNAL_UNKILLABLE task if we actually want to kill it.  And
-note that after the commit b3bfa0cba867 ("signals: protect cinit from
-blocked fatal signals") we do not drop SIGKILL dequeued by /sbin/init.
-
-And it does not look right.  fatal_signal_pending() should always imply
-that the whole thread group (except ->group_exit_task if it is not NULL)
-is killed, this check breaks the rule.
-
-This explains WARN_ON(!JOBCTL_STOP_PENDING) in task_participate_group_stop()
-triggered by the test-case from Dmitry:
-
-	int main()
-	{
-		int pid = 1;
-		ptrace(PTRACE_ATTACH, pid, 0, 0);
-		ptrace(PTRACE_SETOPTIONS, pid, 0, PTRACE_O_EXITKILL);
-		sleep(1);
-		return 0;
-	}
-
-do_signal_stop()->signal_group_exit() returns false because
-SIGNAL_GROUP_EXIT is not set, but task_set_jobctl_pending() checks
-fatal_signal_pending() and does not set JOBCTL_STOP_PENDING.
-
-The test-case above needs root and (correctly) crashes the kernel, but we
-can trigger the same warning inside the container or using another
-test-case:
-
-	static int init(void *arg)
-	{
-		for (;;)
-			pause();
-	}
-
-	int main(void)
-	{
-		char stack[16 * 1024];
-
-		for (;;) {
-			int pid = clone(init, stack + sizeof(stack)/2,
-					CLONE_NEWPID | SIGCHLD, NULL);
-			assert(pid > 0);
-
-			assert(ptrace(PTRACE_ATTACH, pid, 0, 0) == 0);
-			assert(waitpid(-1, NULL, WSTOPPED) == pid);
-
-			assert(ptrace(PTRACE_DETACH, pid, 0, SIGSTOP) == 0);
-			assert(syscall(__NR_tkill, pid, SIGKILL) == 0);
-			assert(pid == wait(NULL));
-		}
-	}
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/huge_memory.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN kernel/signal.c~signal-kill-the-obsolete-signal_unkillable-check-in-complete_signal kernel/signal.c
---- a/kernel/signal.c~signal-kill-the-obsolete-signal_unkillable-check-in-complete_signal
-+++ a/kernel/signal.c
-@@ -909,7 +909,7 @@ static void complete_signal(int sig, str
- 	 * then start taking the whole group down immediately.
- 	 */
- 	if (sig_fatal(p, sig) &&
--	    !(signal->flags & (SIGNAL_UNKILLABLE | SIGNAL_GROUP_EXIT)) &&
-+	    !(signal->flags & SIGNAL_GROUP_EXIT) &&
- 	    !sigismember(&t->real_blocked, sig) &&
- 	    (sig == SIGKILL || !t->ptrace)) {
- 		/*
+diff -puN mm/huge_memory.c~thp-remove-unused-vma-parameter-from-khugepaged_alloc_page mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-remove-unused-vma-parameter-from-khugepaged_alloc_page
++++ a/mm/huge_memory.c
+@@ -2494,8 +2494,7 @@ static bool khugepaged_prealloc_page(str
+ 
+ static struct page *
+ khugepaged_alloc_page(struct page **hpage, gfp_t gfp, struct mm_struct *mm,
+-		       struct vm_area_struct *vma, unsigned long address,
+-		       int node)
++		       unsigned long address, int node)
+ {
+ 	VM_BUG_ON_PAGE(*hpage, *hpage);
+ 
+@@ -2562,8 +2561,7 @@ static bool khugepaged_prealloc_page(str
+ 
+ static struct page *
+ khugepaged_alloc_page(struct page **hpage, gfp_t gfp, struct mm_struct *mm,
+-		       struct vm_area_struct *vma, unsigned long address,
+-		       int node)
++		       unsigned long address, int node)
+ {
+ 	up_read(&mm->mmap_sem);
+ 	VM_BUG_ON(!*hpage);
+@@ -2649,7 +2647,7 @@ static void collapse_huge_page(struct mm
+ 		__GFP_THISNODE;
+ 
+ 	/* release the mmap_sem read lock. */
+-	new_page = khugepaged_alloc_page(hpage, gfp, mm, vma, address, node);
++	new_page = khugepaged_alloc_page(hpage, gfp, mm, address, node);
+ 	if (!new_page) {
+ 		result = SCAN_ALLOC_HUGE_PAGE_FAIL;
+ 		goto out_nolock;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from atomlin@redhat.com are
 
-mmoom-fix-potentially-killing-unrelated-process-fix.patch
-mm-fix-the-racy-mm-locked_vm-change-in.patch
-mm-add-the-struct-mm_struct-mm-local-into.patch
-mm-oom_kill-remove-the-wrong-fatal_signal_pending-check-in-oom_kill_process.patch
-mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop.patch
-mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process.patch
-proc-actually-make-proc_fd_permission-thread-friendly.patch
-change-current_is_single_threaded-to-use-for_each_thread.patch
-signals-kill-block_all_signals-and-unblock_all_signals.patch
-signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal.patch
-signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal-fix.patch
-signal-introduce-kernel_signal_stop-to-fix-jffs2_garbage_collect_thread.patch
-signal-remove-jffs2_garbage_collect_thread-allow_signalsigcont.patch
-signal-kill-the-obsolete-signal_unkillable-check-in-complete_signal.patch
-coredump-ensure-all-coredumping-tasks-have-signal_group_coredump.patch
-coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
+thp-remove-unused-vma-parameter-from-khugepaged_alloc_page.patch
 
