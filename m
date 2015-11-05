@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- watchdog-avoid-race-between-lockup-detector-suspend-resume-and-cpu-hotplug.patch added to -mm tree
-Date: Thu, 05 Nov 2015 02:30:44 -0800
-Message-ID: <563b2fd4.XTPARFEzLiFXf1uq%akpm@linux-foundation.org>
+ watchdog-remove-getput_online_cpus-from-watchdog_parkunpark_threads.patch
+ added to -mm tree
+Date: Thu, 05 Nov 2015 02:30:47 -0800
+Message-ID: <563b2fd7.S96qUtLoH8W1jWLi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57014 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57018 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031089AbbKEKap (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Nov 2015 05:30:45 -0500
+	with ESMTP id S1031089AbbKEKas (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Nov 2015 05:30:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: uobergfe@redhat.com, atomlin@redhat.com, dzickus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/watchdog.c: avoid race between lockup detector suspend/resume and CPU hotplug
+     Subject: kernel/watchdog.c: remove {get|put}_online_cpus() from watchdog_{park|unpark}_threads()
 has been added to the -mm tree.  Its filename is
-     watchdog-avoid-race-between-lockup-detector-suspend-resume-and-cpu-hotplug.patch
+     watchdog-remove-getput_online_cpus-from-watchdog_parkunpark_threads.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-avoid-race-between-lockup-detector-suspend-resume-and-cpu-hotplug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-remove-getput_online_cpus-from-watchdog_parkunpark_threads.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-avoid-race-between-lockup-detector-suspend-resume-and-cpu-hotplug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-remove-getput_online_cpus-from-watchdog_parkunpark_threads.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,20 +41,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ulrich Obergfell <uobergfe@redhat.com>
-Subject: kernel/watchdog.c: avoid race between lockup detector suspend/resume and CPU hotplug
+Subject: kernel/watchdog.c: remove {get|put}_online_cpus() from watchdog_{park|unpark}_threads()
 
-The lockup detector suspend/resume interface that was introduced by
-8c073d27d7ad293bf ("watchdog: introduce watchdog_suspend() and
-watchdog_resume()") does not protect itself against races with CPU
-hotplug.  Hence, theoretically it is possible that a new watchdog thread
-is started on a hotplugged CPU while the lockup detector is suspended, and
-the thread could thus interfere unexpectedly with the code that requested
-to suspend the lockup detector.
-
-Avoid the race by calling
-
-  get_online_cpus() in lockup_detector_suspend()
-  put_online_cpus() in lockup_detector_resume()
+watchdog_{park|unpark}_threads() are now called in code paths that protect
+themselves against CPU hotplug, so {get|put}_online_cpus() calls are
+redundant and can be removed.
 
 Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
 Cc: Don Zickus <dzickus@redhat.com>
@@ -62,28 +54,52 @@ Cc: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    2 ++
- 1 file changed, 2 insertions(+)
+ kernel/watchdog.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN kernel/watchdog.c~watchdog-avoid-race-between-lockup-detector-suspend-resume-and-cpu-hotplug kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-avoid-race-between-lockup-detector-suspend-resume-and-cpu-hotplug
+diff -puN kernel/watchdog.c~watchdog-remove-getput_online_cpus-from-watchdog_parkunpark_threads kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-remove-getput_online_cpus-from-watchdog_parkunpark_threads
 +++ a/kernel/watchdog.c
-@@ -719,6 +719,7 @@ int lockup_detector_suspend(void)
+@@ -683,33 +683,35 @@ static struct smp_hotplug_thread watchdo
+  * be parked and the watchdog threads of other CPUs can still be runnable.
+  * Callers are expected to handle this special condition as appropriate in
+  * their context.
++ *
++ * This function may only be called in a context that is protected against
++ * races with CPU hotplug - for example, via get_online_cpus().
+  */
+ static int watchdog_park_threads(void)
  {
- 	int ret = 0;
+ 	int cpu, ret = 0;
  
-+	get_online_cpus();
- 	mutex_lock(&watchdog_proc_mutex);
- 	/*
- 	 * Multiple suspend requests can be active in parallel (counted by
-@@ -759,6 +760,7 @@ void lockup_detector_resume(void)
- 		watchdog_unpark_threads();
+-	get_online_cpus();
+ 	for_each_watchdog_cpu(cpu) {
+ 		ret = kthread_park(per_cpu(softlockup_watchdog, cpu));
+ 		if (ret)
+ 			break;
+ 	}
+-	put_online_cpus();
  
- 	mutex_unlock(&watchdog_proc_mutex);
-+	put_online_cpus();
+ 	return ret;
  }
  
- static int update_watchdog_all_cpus(void)
+ /*
+  * unpark all watchdog threads that are specified in 'watchdog_cpumask'
++ *
++ * This function may only be called in a context that is protected against
++ * races with CPU hotplug - for example, via get_online_cpus().
+  */
+ static void watchdog_unpark_threads(void)
+ {
+ 	int cpu;
+ 
+-	get_online_cpus();
+ 	for_each_watchdog_cpu(cpu)
+ 		kthread_unpark(per_cpu(softlockup_watchdog, cpu));
+-	put_online_cpus();
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from uobergfe@redhat.com are
