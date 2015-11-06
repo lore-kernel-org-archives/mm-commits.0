@@ -1,95 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kasan-update-reported-bug-types-for-kernel-memory-accesses.patch removed
- from -mm tree
-Date: Fri, 06 Nov 2015 12:17:37 -0800
-Message-ID: <563d0ae1.W5bWpBCKtxKrMpcu%akpm@linux-foundation.org>
+Subject: [merged] mm-kasan-prevent-deadlock-in-kasan-reporting.patch
+ removed from -mm tree
+Date: Fri, 06 Nov 2015 12:17:33 -0800
+Message-ID: <563d0add.rZsCMWrhMELwuTyh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49111 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49105 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1162871AbbKFURi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:38 -0500
+	with ESMTP id S1162871AbbKFURd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreyknvl@google.com, dvyukov@google.com, glider@google.com, kcc@google.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
+To: aneesh.kumar@linux.vnet.ibm.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kasan: update reported bug types for kernel memory accesses
+     Subject: mm/kasan: prevent deadlock in kasan reporting
 has been removed from the -mm tree.  Its filename was
-     kasan-update-reported-bug-types-for-kernel-memory-accesses.patch
+     mm-kasan-prevent-deadlock-in-kasan-reporting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Konovalov <andreyknvl@google.com>
-Subject: kasan: update reported bug types for kernel memory accesses
+From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Subject: mm/kasan: prevent deadlock in kasan reporting
 
-Update the names of the bad access types to better reflect the type of
-the access that happended and make these error types "literals" that can
-be used for classification and deduplication in scripts.
+When we end up calling kasan_report in real mode, our shadow mapping for
+the spinlock variable will show poisoned.  This will result in us calling
+kasan_report_error with lock_report spin lock held.  To prevent this
+disable kasan reporting when we are priting error w.r.t kasan.
 
-Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: Konstantin Serebryany <kcc@google.com>
+Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Reviewed-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ mm/kasan/report.c |   12 ++++++++++--
+ 1 file changed, 10 insertions(+), 2 deletions(-)
 
-diff -puN mm/kasan/report.c~kasan-update-reported-bug-types-for-kernel-memory-accesses mm/kasan/report.c
---- a/mm/kasan/report.c~kasan-update-reported-bug-types-for-kernel-memory-accesses
+diff -puN mm/kasan/report.c~mm-kasan-prevent-deadlock-in-kasan-reporting mm/kasan/report.c
+--- a/mm/kasan/report.c~mm-kasan-prevent-deadlock-in-kasan-reporting
 +++ a/mm/kasan/report.c
-@@ -49,7 +49,7 @@ static const void *find_first_bad_addr(c
+@@ -173,12 +173,10 @@ static void print_shadow_for_address(con
+ 		 * function, because generic functions may try to
+ 		 * access kasan mapping for the passed address.
+ 		 */
+-		kasan_disable_current();
+ 		memcpy(shadow_buf, shadow_row, SHADOW_BYTES_PER_ROW);
+ 		print_hex_dump(KERN_ERR, buffer,
+ 			DUMP_PREFIX_NONE, SHADOW_BYTES_PER_ROW, 1,
+ 			shadow_buf, SHADOW_BYTES_PER_ROW, 0);
+-		kasan_enable_current();
  
- static void print_error_description(struct kasan_access_info *info)
+ 		if (row_is_guilty(shadow_row, shadow))
+ 			pr_err("%*c\n",
+@@ -195,6 +193,10 @@ void kasan_report_error(struct kasan_acc
  {
--	const char *bug_type = "unknown crash";
-+	const char *bug_type = "unknown-crash";
- 	u8 shadow_val;
+ 	unsigned long flags;
  
- 	info->first_bad_addr = find_first_bad_addr(info->access_addr,
-@@ -58,21 +58,25 @@ static void print_error_description(stru
- 	shadow_val = *(u8 *)kasan_mem_to_shadow(info->first_bad_addr);
++	/*
++	 * Make sure we don't end up in loop.
++	 */
++	kasan_disable_current();
+ 	spin_lock_irqsave(&report_lock, flags);
+ 	pr_err("================================="
+ 		"=================================\n");
+@@ -204,12 +206,17 @@ void kasan_report_error(struct kasan_acc
+ 	pr_err("================================="
+ 		"=================================\n");
+ 	spin_unlock_irqrestore(&report_lock, flags);
++	kasan_enable_current();
+ }
  
- 	switch (shadow_val) {
--	case KASAN_FREE_PAGE:
--	case KASAN_KMALLOC_FREE:
--		bug_type = "use after free";
-+	case 0 ... KASAN_SHADOW_SCALE_SIZE - 1:
-+		bug_type = "out-of-bounds";
- 		break;
- 	case KASAN_PAGE_REDZONE:
- 	case KASAN_KMALLOC_REDZONE:
-+		bug_type = "slab-out-of-bounds";
-+		break;
- 	case KASAN_GLOBAL_REDZONE:
--	case 0 ... KASAN_SHADOW_SCALE_SIZE - 1:
--		bug_type = "out of bounds access";
-+		bug_type = "global-out-of-bounds";
- 		break;
- 	case KASAN_STACK_LEFT:
- 	case KASAN_STACK_MID:
- 	case KASAN_STACK_RIGHT:
- 	case KASAN_STACK_PARTIAL:
--		bug_type = "out of bounds on stack";
-+		bug_type = "stack-out-of-bounds";
-+		break;
-+	case KASAN_FREE_PAGE:
-+	case KASAN_KMALLOC_FREE:
-+		bug_type = "use-after-free";
- 		break;
- 	}
+ void kasan_report_user_access(struct kasan_access_info *info)
+ {
+ 	unsigned long flags;
  
++	/*
++	 * Make sure we don't end up in loop.
++	 */
++	kasan_disable_current();
+ 	spin_lock_irqsave(&report_lock, flags);
+ 	pr_err("================================="
+ 		"=================================\n");
+@@ -222,6 +229,7 @@ void kasan_report_user_access(struct kas
+ 	pr_err("================================="
+ 		"=================================\n");
+ 	spin_unlock_irqrestore(&report_lock, flags);
++	kasan_enable_current();
+ }
+ 
+ void kasan_report(unsigned long addr, size_t size,
 _
 
-Patches currently in -mm which might be from andreyknvl@google.com are
+Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
 
 
