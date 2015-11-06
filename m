@@ -1,81 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-percpu-use-offset_in_page-macro.patch removed from
+Subject: [merged] mm-vmalloc-use-offset_in_page-macro.patch removed from
  -mm tree
-Date: Fri, 06 Nov 2015 12:07:46 -0800
-Message-ID: <563d0892.7kErkBrD6Qh1RHlB%akpm@linux-foundation.org>
+Date: Fri, 06 Nov 2015 12:07:52 -0800
+Message-ID: <563d0898.gPLuGb0qvYQn4pIZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48694 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48700 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1033511AbbKFUHq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:07:46 -0500
+	with ESMTP id S1033614AbbKFUHw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:07:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kuleshovmail@gmail.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: kuleshovmail@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/percpu: use offset_in_page macro
+     Subject: mm/vmalloc: use offset_in_page macro
 has been removed from the -mm tree.  Its filename was
-     mm-percpu-use-offset_in_page-macro.patch
+     mm-vmalloc-use-offset_in_page-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alexander Kuleshov <kuleshovmail@gmail.com>
-Subject: mm/percpu: use offset_in_page macro
+Subject: mm/vmalloc: use offset_in_page macro
 
 linux/mm.h provides offset_in_page() macro.  Let's use already predefined
 macro instead of (addr & ~PAGE_MASK).
 
 Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
-Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/percpu.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/vmalloc.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN mm/percpu.c~mm-percpu-use-offset_in_page-macro mm/percpu.c
---- a/mm/percpu.c~mm-percpu-use-offset_in_page-macro
-+++ a/mm/percpu.c
-@@ -1554,12 +1554,12 @@ int __init pcpu_setup_first_chunk(const
- 	PCPU_SETUP_BUG_ON(ai->nr_groups <= 0);
- #ifdef CONFIG_SMP
- 	PCPU_SETUP_BUG_ON(!ai->static_size);
--	PCPU_SETUP_BUG_ON((unsigned long)__per_cpu_start & ~PAGE_MASK);
-+	PCPU_SETUP_BUG_ON(offset_in_page(__per_cpu_start));
- #endif
- 	PCPU_SETUP_BUG_ON(!base_addr);
--	PCPU_SETUP_BUG_ON((unsigned long)base_addr & ~PAGE_MASK);
-+	PCPU_SETUP_BUG_ON(offset_in_page(base_addr));
- 	PCPU_SETUP_BUG_ON(ai->unit_size < size_sum);
--	PCPU_SETUP_BUG_ON(ai->unit_size & ~PAGE_MASK);
-+	PCPU_SETUP_BUG_ON(offset_in_page(ai->unit_size));
- 	PCPU_SETUP_BUG_ON(ai->unit_size < PCPU_MIN_UNIT_SIZE);
- 	PCPU_SETUP_BUG_ON(ai->dyn_size < PERCPU_DYNAMIC_EARLY_SIZE);
- 	PCPU_SETUP_BUG_ON(pcpu_verify_alloc_info(ai) < 0);
-@@ -1806,7 +1806,7 @@ static struct pcpu_alloc_info * __init p
+diff -puN mm/vmalloc.c~mm-vmalloc-use-offset_in_page-macro mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-use-offset_in_page-macro
++++ a/mm/vmalloc.c
+@@ -358,7 +358,7 @@ static struct vmap_area *alloc_vmap_area
+ 	struct vmap_area *first;
  
- 	alloc_size = roundup(min_unit_size, atom_size);
- 	upa = alloc_size / min_unit_size;
--	while (alloc_size % upa || ((alloc_size / upa) & ~PAGE_MASK))
-+	while (alloc_size % upa || (offset_in_page(alloc_size / upa)))
- 		upa--;
- 	max_upa = upa;
+ 	BUG_ON(!size);
+-	BUG_ON(size & ~PAGE_MASK);
++	BUG_ON(offset_in_page(size));
+ 	BUG_ON(!is_power_of_2(align));
  
-@@ -1838,7 +1838,7 @@ static struct pcpu_alloc_info * __init p
- 	for (upa = max_upa; upa; upa--) {
- 		int allocs = 0, wasted = 0;
+ 	va = kmalloc_node(sizeof(struct vmap_area),
+@@ -936,7 +936,7 @@ static void *vb_alloc(unsigned long size
+ 	void *vaddr = NULL;
+ 	unsigned int order;
  
--		if (alloc_size % upa || ((alloc_size / upa) & ~PAGE_MASK))
-+		if (alloc_size % upa || (offset_in_page(alloc_size / upa)))
- 			continue;
+-	BUG_ON(size & ~PAGE_MASK);
++	BUG_ON(offset_in_page(size));
+ 	BUG_ON(size > PAGE_SIZE*VMAP_MAX_ALLOC);
+ 	if (WARN_ON(size == 0)) {
+ 		/*
+@@ -989,7 +989,7 @@ static void vb_free(const void *addr, un
+ 	unsigned int order;
+ 	struct vmap_block *vb;
  
- 		for (group = 0; group < nr_groups; group++) {
+-	BUG_ON(size & ~PAGE_MASK);
++	BUG_ON(offset_in_page(size));
+ 	BUG_ON(size > PAGE_SIZE*VMAP_MAX_ALLOC);
+ 
+ 	flush_cache_vunmap((unsigned long)addr, (unsigned long)addr + size);
+@@ -1902,7 +1902,7 @@ static int aligned_vread(char *buf, char
+ 	while (count) {
+ 		unsigned long offset, length;
+ 
+-		offset = (unsigned long)addr & ~PAGE_MASK;
++		offset = offset_in_page(addr);
+ 		length = PAGE_SIZE - offset;
+ 		if (length > count)
+ 			length = count;
+@@ -1941,7 +1941,7 @@ static int aligned_vwrite(char *buf, cha
+ 	while (count) {
+ 		unsigned long offset, length;
+ 
+-		offset = (unsigned long)addr & ~PAGE_MASK;
++		offset = offset_in_page(addr);
+ 		length = PAGE_SIZE - offset;
+ 		if (length > count)
+ 			length = count;
+@@ -2392,7 +2392,7 @@ struct vm_struct **pcpu_get_vm_areas(con
+ 	bool purged = false;
+ 
+ 	/* verify parameters and allocate data structures */
+-	BUG_ON(align & ~PAGE_MASK || !is_power_of_2(align));
++	BUG_ON(offset_in_page(align) || !is_power_of_2(align));
+ 	for (last_area = 0, area = 0; area < nr_vms; area++) {
+ 		start = offsets[area];
+ 		end = start + sizes[area];
 _
 
 Patches currently in -mm which might be from kuleshovmail@gmail.com are
