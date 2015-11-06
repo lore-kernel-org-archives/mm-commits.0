@@ -1,129 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- signal-kill-the-obsolete-signal_unkillable-check-in-complete_signal.patch
- removed from -mm tree
-Date: Thu, 05 Nov 2015 15:04:45 -0800
-Message-ID: <563be08d.1LWxRWqQG3xVj7FQ%akpm@linux-foundation.org>
+Subject: +
+ mm-slab-only-move-management-objects-off-slab-for-sizes-larger-than-kmalloc_min_size.patch added to -mm tree
+Date: Thu, 05 Nov 2015 16:04:12 -0800
+Message-ID: <563bee7c.8ECIVSprHQ7rLV78%akpm__25922.7400333204$1446768292$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48565 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49704 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754095AbbKEXEq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Nov 2015 18:04:46 -0500
+	with ESMTP id S965645AbbKFAEN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Nov 2015 19:04:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, dvyukov@google.com, mm-commits@vger.kernel.org
+To: catalin.marinas@arm.com, cl@linux.com, geert@linux-m68k.org, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: signal: kill the obsolete SIGNAL_UNKILLABLE check in complete_signal()
-has been removed from the -mm tree.  Its filename was
-     signal-kill-the-obsolete-signal_unkillable-check-in-complete_signal.patch
+     Subject: mm: slab: only move management objects off-slab for sizes larger than KMALLOC_MIN_SIZE
+has been added to the -mm tree.  Its filename is
+     mm-slab-only-move-management-objects-off-slab-for-sizes-larger-than-kmalloc_min_size.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-only-move-management-objects-off-slab-for-sizes-larger-than-kmalloc_min_size.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-only-move-management-objects-off-slab-for-sizes-larger-than-kmalloc_min_size.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: signal: kill the obsolete SIGNAL_UNKILLABLE check in complete_signal()
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: mm: slab: only move management objects off-slab for sizes larger than KMALLOC_MIN_SIZE
 
-complete_signal() checks SIGNAL_UNKILLABLE before it starts to destroy the
-thread group, today this is unnecessary and even not 100% correct.
+On systems with a KMALLOC_MIN_SIZE of 128 (arm64, some mips and powerpc
+configurations defining ARCH_DMA_MINALIGN to 128), the first
+kmalloc_caches[] entry to be initialised after slab_early_init = 0 is
+"kmalloc-128" with index 7.  Depending on the debug kernel configuration,
+sizeof(struct kmem_cache) can be larger than 128 resulting in an
+INDEX_NODE of 8.
 
-After the commit f008faff0e27 ("signals: protect init from unwanted
-signals more") we rely on sig_task_ignored(), complete_signal(SIGKILL) can
-only see a SIGNAL_UNKILLABLE task if we actually want to kill it.  And
-note that after the commit b3bfa0cba867 ("signals: protect cinit from
-blocked fatal signals") we do not drop SIGKILL dequeued by /sbin/init.
+Commit 8fc9cf420b36 ("slab: make more slab management structure off the
+slab") enables off-slab management objects for sizes starting with
+PAGE_SIZE >> 5 (128 bytes for a 4KB page configuration) and the creation
+of the "kmalloc-128" cache would try to place the management objects
+off-slab.  However, since KMALLOC_MIN_SIZE is already 128 and
+freelist_size == 32 in __kmem_cache_create(), kmalloc_slab(freelist_size)
+returns NULL (kmalloc_caches[7] not populated yet).  This triggers the
+following bug on arm64:
 
-And it does not look right.  fatal_signal_pending() should always imply
-that the whole thread group (except ->group_exit_task if it is not NULL)
-is killed, this check breaks the rule.
+[    0.000000] kernel BUG at /work/Linux/linux-2.6-aarch64/mm/slab.c:2283!
+[    0.000000] Internal error: Oops - BUG: 0 [#1] SMP
+[    0.000000] Modules linked in:
+[    0.000000] CPU: 0 PID: 0 Comm: swapper Not tainted 4.3.0-rc4+ #540
+[    0.000000] Hardware name: Juno (DT)
+[    0.000000] task: ffffffc0006962b0 ti: ffffffc00068c000 task.ti: ffffffc00068c000
+[    0.000000] PC is at __kmem_cache_create+0x21c/0x280
+[    0.000000] LR is at __kmem_cache_create+0x210/0x280
+[...]
+[    0.000000] Call trace:
+[    0.000000] [<ffffffc000154948>] __kmem_cache_create+0x21c/0x280
+[    0.000000] [<ffffffc000652da4>] create_boot_cache+0x48/0x80
+[    0.000000] [<ffffffc000652e2c>] create_kmalloc_cache+0x50/0x88
+[    0.000000] [<ffffffc000652f14>] create_kmalloc_caches+0x4c/0xf4
+[    0.000000] [<ffffffc000654a9c>] kmem_cache_init+0x100/0x118
+[    0.000000] [<ffffffc0006447d4>] start_kernel+0x214/0x33c
 
-This explains WARN_ON(!JOBCTL_STOP_PENDING) in task_participate_group_stop()
-triggered by the test-case from Dmitry:
+This patch introduces an OFF_SLAB_MIN_SIZE definition to avoid off-slab
+management objects for sizes equal to or smaller than KMALLOC_MIN_SIZE.
 
-	int main()
-	{
-		int pid = 1;
-		ptrace(PTRACE_ATTACH, pid, 0, 0);
-		ptrace(PTRACE_SETOPTIONS, pid, 0, PTRACE_O_EXITKILL);
-		sleep(1);
-		return 0;
-	}
-
-do_signal_stop()->signal_group_exit() returns false because
-SIGNAL_GROUP_EXIT is not set, but task_set_jobctl_pending() checks
-fatal_signal_pending() and does not set JOBCTL_STOP_PENDING.
-
-The test-case above needs root and (correctly) crashes the kernel, but we
-can trigger the same warning inside the container or using another
-test-case:
-
-	static int init(void *arg)
-	{
-		for (;;)
-			pause();
-	}
-
-	int main(void)
-	{
-		char stack[16 * 1024];
-
-		for (;;) {
-			int pid = clone(init, stack + sizeof(stack)/2,
-					CLONE_NEWPID | SIGCHLD, NULL);
-			assert(pid > 0);
-
-			assert(ptrace(PTRACE_ATTACH, pid, 0, 0) == 0);
-			assert(waitpid(-1, NULL, WSTOPPED) == pid);
-
-			assert(ptrace(PTRACE_DETACH, pid, 0, SIGSTOP) == 0);
-			assert(syscall(__NR_tkill, pid, SIGKILL) == 0);
-			assert(pid == wait(NULL));
-		}
-	}
-
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: <stable@vger.kernel.org>
+Fixes: 8fc9cf420b36 ("slab: make more slab management structure off the slab")
+Signed-off-by: Catalin Marinas <catalin.marinas@arm.com>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: <stable@vger.kernel.org>	[3.15+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slab.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN kernel/signal.c~signal-kill-the-obsolete-signal_unkillable-check-in-complete_signal kernel/signal.c
---- a/kernel/signal.c~signal-kill-the-obsolete-signal_unkillable-check-in-complete_signal
-+++ a/kernel/signal.c
-@@ -909,7 +909,7 @@ static void complete_signal(int sig, str
- 	 * then start taking the whole group down immediately.
+diff -puN mm/slab.c~mm-slab-only-move-management-objects-off-slab-for-sizes-larger-than-kmalloc_min_size mm/slab.c
+--- a/mm/slab.c~mm-slab-only-move-management-objects-off-slab-for-sizes-larger-than-kmalloc_min_size
++++ a/mm/slab.c
+@@ -282,6 +282,7 @@ static void kmem_cache_node_init(struct
+ 
+ #define CFLGS_OFF_SLAB		(0x80000000UL)
+ #define	OFF_SLAB(x)	((x)->flags & CFLGS_OFF_SLAB)
++#define OFF_SLAB_MIN_SIZE	(max_t(size_t, PAGE_SIZE >> 5, KMALLOC_MIN_SIZE + 1))
+ 
+ #define BATCHREFILL_LIMIT	16
+ /*
+@@ -2212,7 +2213,7 @@ __kmem_cache_create (struct kmem_cache *
+ 	 * it too early on. Always use on-slab management when
+ 	 * SLAB_NOLEAKTRACE to avoid recursive calls into kmemleak)
  	 */
- 	if (sig_fatal(p, sig) &&
--	    !(signal->flags & (SIGNAL_UNKILLABLE | SIGNAL_GROUP_EXIT)) &&
-+	    !(signal->flags & SIGNAL_GROUP_EXIT) &&
- 	    !sigismember(&t->real_blocked, sig) &&
- 	    (sig == SIGKILL || !t->ptrace)) {
+-	if ((size >= (PAGE_SIZE >> 5)) && !slab_early_init &&
++	if (size >= OFF_SLAB_MIN_SIZE && !slab_early_init &&
+ 	    !(flags & SLAB_NOLEAKTRACE))
  		/*
+ 		 * Size is large, assume best to place the slab management obj
+@@ -2276,7 +2277,7 @@ __kmem_cache_create (struct kmem_cache *
+ 		/*
+ 		 * This is a possibility for one of the kmalloc_{dma,}_caches.
+ 		 * But since we go off slab only for object size greater than
+-		 * PAGE_SIZE/8, and kmalloc_{dma,}_caches get created
++		 * OFF_SLAB_MIN_SIZE, and kmalloc_{dma,}_caches get created
+ 		 * in ascending order,this should not happen at all.
+ 		 * But leave a BUG_ON for some lucky dude.
+ 		 */
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from catalin.marinas@arm.com are
 
-mmoom-fix-potentially-killing-unrelated-process-fix.patch
-mm-fix-the-racy-mm-locked_vm-change-in.patch
-mm-add-the-struct-mm_struct-mm-local-into.patch
-mm-oom_kill-remove-the-wrong-fatal_signal_pending-check-in-oom_kill_process.patch
-mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop.patch
-mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process.patch
-proc-actually-make-proc_fd_permission-thread-friendly.patch
-change-current_is_single_threaded-to-use-for_each_thread.patch
-signals-kill-block_all_signals-and-unblock_all_signals.patch
-signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal.patch
-signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal-fix.patch
-signal-introduce-kernel_signal_stop-to-fix-jffs2_garbage_collect_thread.patch
-signal-remove-jffs2_garbage_collect_thread-allow_signalsigcont.patch
-coredump-ensure-all-coredumping-tasks-have-signal_group_coredump.patch
-coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
+mm-slab-only-move-management-objects-off-slab-for-sizes-larger-than-kmalloc_min_size.patch
 
