@@ -1,127 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-compaction-disginguish-contended-status-in-tracepoints.patch removed
+Subject: [merged] mm-fix-the-racy-mm-locked_vm-change-in.patch removed
  from -mm tree
-Date: Fri, 06 Nov 2015 12:08:40 -0800
-Message-ID: <563d08c8.6mXj72s9K8eOpo4I%akpm@linux-foundation.org>
+Date: Fri, 06 Nov 2015 12:08:49 -0800
+Message-ID: <563d08d1.27QjwEt/3lCptmzH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48700 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48714 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966405AbbKFUIl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:41 -0500
+	with ESMTP id S1033572AbbKFUIu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@suse.de, mingo@redhat.com, rientjes@google.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: oleg@redhat.com, andreyknvl@google.com, dave@stgolabs.net, hughd@google.com, kirill@shutemov.name, sasha.levin@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: distinguish contended status in tracepoints
+     Subject: mm: fix the racy mm->locked_vm change in
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-disginguish-contended-status-in-tracepoints.patch
+     mm-fix-the-racy-mm-locked_vm-change-in.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: distinguish contended status in tracepoints
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: mm: fix the racy mm->locked_vm change in
 
-Compaction returns prematurely with COMPACT_PARTIAL when contended or has
-fatal signal pending.  This is ok for the callers, but might be misleading
-in the traces, as the usual reason to return COMPACT_PARTIAL is that we
-think the allocation should succeed.  After this patch we distinguish the
-premature ending condition in the mm_compaction_finished and
-mm_compaction_end tracepoints.
+"mm->locked_vm += grow" and vm_stat_account() in acct_stack_growth() are
+not safe; multiple threads using the same ->mm can do this at the same
+time trying to expans different vma's under down_read(mmap_sem).  This
+means that one of the "locked_vm += grow" changes can be lost and we can
+miss munlock_vma_pages_all() later.
 
-The contended status covers the following reasons:
-- lock contention or need_resched() detected in async compaction
-- fatal signal pending
-- too many pages isolated in the zone (only for async compaction)
-Further distinguishing the exact reason seems unnecessary for now.
+Move this code into the caller(s) under mm->page_table_lock.  All other
+updates to ->locked_vm hold mmap_sem for writing.
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Ingo Molnar <mingo@redhat.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Andrey Konovalov <andreyknvl@google.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h        |    1 +
- include/trace/events/compaction.h |    3 ++-
- mm/compaction.c                   |    9 ++++++---
- 3 files changed, 9 insertions(+), 4 deletions(-)
+ mm/mmap.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-disginguish-contended-status-in-tracepoints include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-disginguish-contended-status-in-tracepoints
-+++ a/include/linux/compaction.h
-@@ -15,6 +15,7 @@
- /* For more detailed tracepoint output */
- #define COMPACT_NO_SUITABLE_PAGE	5
- #define COMPACT_NOT_SUITABLE_ZONE	6
-+#define COMPACT_CONTENDED		7
- /* When adding new states, please adjust include/trace/events/compaction.h */
+diff -puN mm/mmap.c~mm-fix-the-racy-mm-locked_vm-change-in mm/mmap.c
+--- a/mm/mmap.c~mm-fix-the-racy-mm-locked_vm-change-in
++++ a/mm/mmap.c
+@@ -2138,10 +2138,6 @@ static int acct_stack_growth(struct vm_a
+ 	if (security_vm_enough_memory_mm(mm, grow))
+ 		return -ENOMEM;
  
- /* Used to signal whether compaction detected need_sched() or lock contention */
-diff -puN include/trace/events/compaction.h~mm-compaction-disginguish-contended-status-in-tracepoints include/trace/events/compaction.h
---- a/include/trace/events/compaction.h~mm-compaction-disginguish-contended-status-in-tracepoints
-+++ a/include/trace/events/compaction.h
-@@ -16,7 +16,8 @@
- 	EM( COMPACT_PARTIAL,		"partial")		\
- 	EM( COMPACT_COMPLETE,		"complete")		\
- 	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
--	EMe(COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")
-+	EM( COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")	\
-+	EMe(COMPACT_CONTENDED,		"contended")
- 
- #ifdef CONFIG_ZONE_DMA
- #define IFDEF_ZONE_DMA(X) X
-diff -puN mm/compaction.c~mm-compaction-disginguish-contended-status-in-tracepoints mm/compaction.c
---- a/mm/compaction.c~mm-compaction-disginguish-contended-status-in-tracepoints
-+++ a/mm/compaction.c
-@@ -1202,7 +1202,7 @@ static int __compact_finished(struct zon
- 	unsigned long watermark;
- 
- 	if (cc->contended || fatal_signal_pending(current))
--		return COMPACT_PARTIAL;
-+		return COMPACT_CONTENDED;
- 
- 	/* Compaction run completes if the migrate and free scanner meet */
- 	if (compact_scanners_met(cc)) {
-@@ -1393,7 +1393,7 @@ static int compact_zone(struct zone *zon
- 
- 		switch (isolate_migratepages(zone, cc)) {
- 		case ISOLATE_ABORT:
--			ret = COMPACT_PARTIAL;
-+			ret = COMPACT_CONTENDED;
- 			putback_movable_pages(&cc->migratepages);
- 			cc->nr_migratepages = 0;
- 			goto out;
-@@ -1424,7 +1424,7 @@ static int compact_zone(struct zone *zon
- 			 * and we want compact_finished() to detect it
- 			 */
- 			if (err == -ENOMEM && !compact_scanners_met(cc)) {
--				ret = COMPACT_PARTIAL;
-+				ret = COMPACT_CONTENDED;
- 				goto out;
- 			}
- 		}
-@@ -1477,6 +1477,9 @@ out:
- 	trace_mm_compaction_end(start_pfn, cc->migrate_pfn,
- 				cc->free_pfn, end_pfn, sync, ret);
- 
-+	if (ret == COMPACT_CONTENDED)
-+		ret = COMPACT_PARTIAL;
-+
- 	return ret;
+-	/* Ok, everything looks good - let it rip */
+-	if (vma->vm_flags & VM_LOCKED)
+-		mm->locked_vm += grow;
+-	vm_stat_account(mm, vma->vm_flags, vma->vm_file, grow);
+ 	return 0;
  }
  
+@@ -2202,6 +2198,10 @@ int expand_upwards(struct vm_area_struct
+ 				 * against concurrent vma expansions.
+ 				 */
+ 				spin_lock(&vma->vm_mm->page_table_lock);
++				if (vma->vm_flags & VM_LOCKED)
++					vma->vm_mm->locked_vm += grow;
++				vm_stat_account(vma->vm_mm, vma->vm_flags,
++						vma->vm_file, grow);
+ 				anon_vma_interval_tree_pre_update_vma(vma);
+ 				vma->vm_end = address;
+ 				anon_vma_interval_tree_post_update_vma(vma);
+@@ -2273,6 +2273,10 @@ int expand_downwards(struct vm_area_stru
+ 				 * against concurrent vma expansions.
+ 				 */
+ 				spin_lock(&vma->vm_mm->page_table_lock);
++				if (vma->vm_flags & VM_LOCKED)
++					vma->vm_mm->locked_vm += grow;
++				vm_stat_account(vma->vm_mm, vma->vm_flags,
++						vma->vm_file, grow);
+ 				anon_vma_interval_tree_pre_update_vma(vma);
+ 				vma->vm_start = address;
+ 				vma->vm_pgoff -= grow;
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from oleg@redhat.com are
 
+proc-actually-make-proc_fd_permission-thread-friendly.patch
+change-current_is_single_threaded-to-use-for_each_thread.patch
+signals-kill-block_all_signals-and-unblock_all_signals.patch
+signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal.patch
+signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal-fix.patch
+signal-introduce-kernel_signal_stop-to-fix-jffs2_garbage_collect_thread.patch
+signal-remove-jffs2_garbage_collect_thread-allow_signalsigcont.patch
+coredump-ensure-all-coredumping-tasks-have-signal_group_coredump.patch
+coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
 
