@@ -1,101 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-kasan-prevent-deadlock-in-kasan-reporting.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 12:17:33 -0800
-Message-ID: <563d0add.rZsCMWrhMELwuTyh%akpm@linux-foundation.org>
+Subject: [merged] kasan-update-log-messages.patch removed from -mm tree
+Date: Fri, 06 Nov 2015 12:17:41 -0800
+Message-ID: <563d0ae5.jR9lTJ8QjzXlRLt3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49105 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49117 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1162871AbbKFURd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:33 -0500
+	with ESMTP id S1162900AbbKFURm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
+To: andreyknvl@google.com, dvyukov@google.com, glider@google.com, kcc@google.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kasan: prevent deadlock in kasan reporting
+     Subject: kasan: update log messages
 has been removed from the -mm tree.  Its filename was
-     mm-kasan-prevent-deadlock-in-kasan-reporting.patch
+     kasan-update-log-messages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/kasan: prevent deadlock in kasan reporting
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: update log messages
 
-When we end up calling kasan_report in real mode, our shadow mapping for
-the spinlock variable will show poisoned.  This will result in us calling
-kasan_report_error with lock_report spin lock held.  To prevent this
-disable kasan reporting when we are priting error w.r.t kasan.
+We decided to use KASAN as the short name of the tool and
+KernelAddressSanitizer as the full one.  Update log messages according to
+that.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Konstantin Serebryany <kcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |   12 ++++++++++--
- 1 file changed, 10 insertions(+), 2 deletions(-)
+ arch/x86/mm/kasan_init_64.c |    2 +-
+ mm/kasan/kasan.c            |    2 +-
+ mm/kasan/report.c           |    4 ++--
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/kasan/report.c~mm-kasan-prevent-deadlock-in-kasan-reporting mm/kasan/report.c
---- a/mm/kasan/report.c~mm-kasan-prevent-deadlock-in-kasan-reporting
+diff -puN arch/x86/mm/kasan_init_64.c~kasan-update-log-messages arch/x86/mm/kasan_init_64.c
+--- a/arch/x86/mm/kasan_init_64.c~kasan-update-log-messages
++++ a/arch/x86/mm/kasan_init_64.c
+@@ -126,5 +126,5 @@ void __init kasan_init(void)
+ 	__flush_tlb_all();
+ 	init_task.kasan_depth = 0;
+ 
+-	pr_info("Kernel address sanitizer initialized\n");
++	pr_info("KernelAddressSanitizer initialized\n");
+ }
+diff -puN mm/kasan/kasan.c~kasan-update-log-messages mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-update-log-messages
++++ a/mm/kasan/kasan.c
+@@ -518,7 +518,7 @@ static int kasan_mem_notifier(struct not
+ 
+ static int __init kasan_memhotplug_init(void)
+ {
+-	pr_err("WARNING: KASan doesn't support memory hot-add\n");
++	pr_err("WARNING: KASAN doesn't support memory hot-add\n");
+ 	pr_err("Memory hot-add will be disabled\n");
+ 
+ 	hotplug_memory_notifier(kasan_mem_notifier, 0);
+diff -puN mm/kasan/report.c~kasan-update-log-messages mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-update-log-messages
 +++ a/mm/kasan/report.c
-@@ -173,12 +173,10 @@ static void print_shadow_for_address(con
- 		 * function, because generic functions may try to
- 		 * access kasan mapping for the passed address.
- 		 */
--		kasan_disable_current();
- 		memcpy(shadow_buf, shadow_row, SHADOW_BYTES_PER_ROW);
- 		print_hex_dump(KERN_ERR, buffer,
- 			DUMP_PREFIX_NONE, SHADOW_BYTES_PER_ROW, 1,
- 			shadow_buf, SHADOW_BYTES_PER_ROW, 0);
--		kasan_enable_current();
+@@ -91,7 +91,7 @@ static void print_error_description(stru
+ 		break;
+ 	}
  
- 		if (row_is_guilty(shadow_row, shadow))
- 			pr_err("%*c\n",
-@@ -195,6 +193,10 @@ void kasan_report_error(struct kasan_acc
- {
- 	unsigned long flags;
- 
-+	/*
-+	 * Make sure we don't end up in loop.
-+	 */
-+	kasan_disable_current();
- 	spin_lock_irqsave(&report_lock, flags);
- 	pr_err("================================="
- 		"=================================\n");
-@@ -204,12 +206,17 @@ void kasan_report_error(struct kasan_acc
- 	pr_err("================================="
- 		"=================================\n");
- 	spin_unlock_irqrestore(&report_lock, flags);
-+	kasan_enable_current();
- }
- 
- void kasan_report_user_access(struct kasan_access_info *info)
- {
- 	unsigned long flags;
- 
-+	/*
-+	 * Make sure we don't end up in loop.
-+	 */
-+	kasan_disable_current();
- 	spin_lock_irqsave(&report_lock, flags);
- 	pr_err("================================="
- 		"=================================\n");
-@@ -222,6 +229,7 @@ void kasan_report_user_access(struct kas
- 	pr_err("================================="
- 		"=================================\n");
- 	spin_unlock_irqrestore(&report_lock, flags);
-+	kasan_enable_current();
- }
- 
- void kasan_report(unsigned long addr, size_t size,
+-	pr_err("BUG: KASan: %s in %pS at addr %p\n",
++	pr_err("BUG: KASAN: %s in %pS at addr %p\n",
+ 		bug_type, (void *)info->ip,
+ 		info->access_addr);
+ 	pr_err("%s of size %zu by task %s/%d\n",
+@@ -224,7 +224,7 @@ static void kasan_report_error(struct ka
+ 			bug_type = "user-memory-access";
+ 		else
+ 			bug_type = "wild-memory-access";
+-		pr_err("BUG: KASan: %s on address %p\n",
++		pr_err("BUG: KASAN: %s on address %p\n",
+ 			bug_type, info->access_addr);
+ 		pr_err("%s of size %zu by task %s/%d\n",
+ 			info->is_write ? "Write" : "Read",
 _
 
-Patches currently in -mm which might be from aneesh.kumar@linux.vnet.ibm.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
 
