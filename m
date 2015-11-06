@@ -1,88 +1,173 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcontrol-make-mem_cgroup_inactive_anon_is_low-return-bool.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 12:08:26 -0800
-Message-ID: <563d08ba.RgD8+WpJaKGjquhd%akpm@linux-foundation.org>
+ mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps.patch removed
+ from -mm tree
+Date: Fri, 06 Nov 2015 12:08:08 -0800
+Message-ID: <563d08a8.N6fmUMY/oZmpLgob%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48705 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48703 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757584AbbKFUI0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:26 -0500
+	with ESMTP id S1033678AbbKFUIJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, hughd@google.com, joern@logfs.org, mhocko@suse.cz, mike.kravetz@oracle.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memcontrol: make mem_cgroup_inactive_anon_is_low() return bool
+     Subject: mm: hugetlb: proc: add hugetlb-related fields to /proc/PID/smaps
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-make-mem_cgroup_inactive_anon_is_low-return-bool.patch
+     mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yaowei Bai <bywxiaobai@163.com>
-Subject: mm/memcontrol: make mem_cgroup_inactive_anon_is_low() return bool
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: hugetlb: proc: add hugetlb-related fields to /proc/PID/smaps
 
-Make mem_cgroup_inactive_anon_is_low return bool due to this particular
-function only using either one or zero as its return value.
+Currently /proc/PID/smaps provides no usage info for vma(VM_HUGETLB),
+which is inconvenient when we want to know per-task or per-vma base
+hugetlb usage.  To solve this, this patch adds new fields for hugetlb
+usage like below:
 
-No functional change.
+  Size:              20480 kB
+  Rss:                   0 kB
+  Pss:                   0 kB
+  Shared_Clean:          0 kB
+  Shared_Dirty:          0 kB
+  Private_Clean:         0 kB
+  Private_Dirty:         0 kB
+  Referenced:            0 kB
+  Anonymous:             0 kB
+  AnonHugePages:         0 kB
+  Shared_Hugetlb:    18432 kB
+  Private_Hugetlb:    2048 kB
+  Swap:                  0 kB
+  KernelPageSize:     2048 kB
+  MMUPageSize:        2048 kB
+  Locked:                0 kB
+  VmFlags: rd wr mr mw me de ht
 
-Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
+[hughd@google.com: fix Private_Hugetlb alignment ]
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Joern Engel <joern@logfs.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ Documentation/filesystems/proc.txt |    8 +++++
+ fs/proc/task_mmu.c                 |   38 +++++++++++++++++++++++++++
+ 2 files changed, 46 insertions(+)
 
-diff -puN include/linux/memcontrol.h~mm-memcontrol-make-mem_cgroup_inactive_anon_is_low-return-bool include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcontrol-make-mem_cgroup_inactive_anon_is_low-return-bool
-+++ a/include/linux/memcontrol.h
-@@ -382,7 +382,7 @@ unsigned long mem_cgroup_get_lru_size(st
- 	return mz->lru_size[lru];
+diff -puN Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps
++++ a/Documentation/filesystems/proc.txt
+@@ -424,6 +424,9 @@ Private_Clean:         0 kB
+ Private_Dirty:         0 kB
+ Referenced:          892 kB
+ Anonymous:             0 kB
++AnonHugePages:         0 kB
++Shared_Hugetlb:        0 kB
++Private_Hugetlb:       0 kB
+ Swap:                  0 kB
+ SwapPss:               0 kB
+ KernelPageSize:        4 kB
+@@ -452,6 +455,11 @@ and a page is modified, the file page is
+ "Swap" shows how much would-be-anonymous memory is also used, but out on
+ swap.
+ "SwapPss" shows proportional swap share of this mapping.
++"AnonHugePages" shows the ammount of memory backed by transparent hugepage.
++"Shared_Hugetlb" and "Private_Hugetlb" show the ammounts of memory backed by
++hugetlbfs page which is *not* counted in "RSS" or "PSS" field for historical
++reasons. And these are not included in {Shared,Private}_{Clean,Dirty} field.
++
+ "VmFlags" field deserves a separate description. This member represents the kernel
+ flags associated with the particular virtual memory area in two letter encoded
+ manner. The codes are the following:
+diff -puN fs/proc/task_mmu.c~mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-hugetlb-proc-add-hugetlb-related-fields-to-proc-pid-smaps
++++ a/fs/proc/task_mmu.c
+@@ -446,6 +446,8 @@ struct mem_size_stats {
+ 	unsigned long anonymous;
+ 	unsigned long anonymous_thp;
+ 	unsigned long swap;
++	unsigned long shared_hugetlb;
++	unsigned long private_hugetlb;
+ 	u64 pss;
+ 	u64 swap_pss;
+ };
+@@ -625,12 +627,44 @@ static void show_smap_vma_flags(struct s
+ 	seq_putc(m, '\n');
  }
  
--static inline int mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
-+static inline bool mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
++#ifdef CONFIG_HUGETLB_PAGE
++static int smaps_hugetlb_range(pte_t *pte, unsigned long hmask,
++				 unsigned long addr, unsigned long end,
++				 struct mm_walk *walk)
++{
++	struct mem_size_stats *mss = walk->private;
++	struct vm_area_struct *vma = walk->vma;
++	struct page *page = NULL;
++
++	if (pte_present(*pte)) {
++		page = vm_normal_page(vma, addr, *pte);
++	} else if (is_swap_pte(*pte)) {
++		swp_entry_t swpent = pte_to_swp_entry(*pte);
++
++		if (is_migration_entry(swpent))
++			page = migration_entry_to_page(swpent);
++	}
++	if (page) {
++		int mapcount = page_mapcount(page);
++
++		if (mapcount >= 2)
++			mss->shared_hugetlb += huge_page_size(hstate_vma(vma));
++		else
++			mss->private_hugetlb += huge_page_size(hstate_vma(vma));
++	}
++	return 0;
++}
++#endif /* HUGETLB_PAGE */
++
+ static int show_smap(struct seq_file *m, void *v, int is_pid)
  {
- 	unsigned long inactive_ratio;
- 	unsigned long inactive;
-@@ -585,10 +585,10 @@ static inline bool mem_cgroup_disabled(v
- 	return true;
- }
- 
--static inline int
-+static inline bool
- mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
- {
--	return 1;
-+	return true;
- }
- 
- static inline bool mem_cgroup_lruvec_online(struct lruvec *lruvec)
+ 	struct vm_area_struct *vma = v;
+ 	struct mem_size_stats mss;
+ 	struct mm_walk smaps_walk = {
+ 		.pmd_entry = smaps_pte_range,
++#ifdef CONFIG_HUGETLB_PAGE
++		.hugetlb_entry = smaps_hugetlb_range,
++#endif
+ 		.mm = vma->vm_mm,
+ 		.private = &mss,
+ 	};
+@@ -652,6 +686,8 @@ static int show_smap(struct seq_file *m,
+ 		   "Referenced:     %8lu kB\n"
+ 		   "Anonymous:      %8lu kB\n"
+ 		   "AnonHugePages:  %8lu kB\n"
++		   "Shared_Hugetlb: %8lu kB\n"
++		   "Private_Hugetlb: %7lu kB\n"
+ 		   "Swap:           %8lu kB\n"
+ 		   "SwapPss:        %8lu kB\n"
+ 		   "KernelPageSize: %8lu kB\n"
+@@ -667,6 +703,8 @@ static int show_smap(struct seq_file *m,
+ 		   mss.referenced >> 10,
+ 		   mss.anonymous >> 10,
+ 		   mss.anonymous_thp >> 10,
++		   mss.shared_hugetlb >> 10,
++		   mss.private_hugetlb >> 10,
+ 		   mss.swap >> 10,
+ 		   (unsigned long)(mss.swap_pss >> (10 + PSS_SHIFT)),
+ 		   vma_kernel_pagesize(vma) >> 10,
 _
 
-Patches currently in -mm which might be from bywxiaobai@163.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-mm-oom_kill-introduce-is_sysrq_oom-helper.patch
-fs-kdev_t-remove-unused-huge_valid_dev-function.patch
-fs-kdev_t-old-new_valid_dev-can-be-boolean.patch
-fs-vfs-remove-unnecessary-new_valid_dev-check.patch
-fs-btrfs-remove-unnecessary-new_valid_dev-check.patch
-fs-exofs-remove-unnecessary-new_valid_dev-check.patch
-fs-ext2-remove-unnecessary-new_valid_dev-check.patch
-fs-f2fs-remove-unnecessary-new_valid_dev-check.patch
-fs-hpfs-remove-unnecessary-new_valid_dev-check.patch
-fs-jfs-remove-unnecessary-new_valid_dev-check.patch
-fs-ncpfs-remove-unnecessary-new_valid_dev-check.patch
-fs-nilfs2-remove-unnecessary-new_valid_dev-check.patch
-fs-reiserfs-remove-unnecessary-new_valid_dev-check.patch
-fs-stat-remove-unnecessary-new_valid_dev-check.patch
-fs-ubifs-remove-unnecessary-new_valid_dev-check.patch
 
