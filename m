@@ -1,134 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-page-migration-use-the-put_new_page-whenever-necessary.patch removed
- from -mm tree
-Date: Fri, 06 Nov 2015 12:16:40 -0800
-Message-ID: <563d0aa8.AK3rI2hJ038TNJIc%akpm@linux-foundation.org>
+Subject: [merged] mm-correct-a-couple-of-page-migration-comments.patch
+ removed from -mm tree
+Date: Fri, 06 Nov 2015 12:16:37 -0800
+Message-ID: <563d0aa5.7uzp0ZoXyBz/ecBY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48988 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48981 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1033202AbbKFUQl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:16:41 -0500
+	with ESMTP id S1032241AbbKFUQi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:16:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, cl@linux.com, dave@stgolabs.net, dvyukov@google.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, riel@redhat.com, sasha.levin@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: hughd@google.com, aquini@redhat.com, cl@linux.com, dave@stgolabs.net, dvyukov@google.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, riel@redhat.com, sasha.levin@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page migration use the put_new_page whenever necessary
+     Subject: mm: correct a couple of page migration comments
 has been removed from the -mm tree.  Its filename was
-     mm-page-migration-use-the-put_new_page-whenever-necessary.patch
+     mm-correct-a-couple-of-page-migration-comments.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: page migration use the put_new_page whenever necessary
+Subject: mm: correct a couple of page migration comments
 
-I don't know of any problem from the way it's used in our current tree,
-but there is one defect in page migration's custom put_new_page feature.
-
-An unused newpage is expected to be released with the put_new_page(), but
-there was one MIGRATEPAGE_SUCCESS (0) path which released it with
-putback_lru_page(): which can be very wrong for a custom pool.
-
-Fixed more easily by resetting put_new_page once it won't be needed, than
-by adding a further flag to modify the rc test.
+It's migrate.c not migration,c, and nowadays putback_movable_pages() not
+putback_lru_pages().
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Rik van Riel <riel@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Davidlohr Bueso <dave@stgolabs.net>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Sasha Levin <sasha.levin@oracle.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Acked-by: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ mm/migrate.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/migrate.c~mm-page-migration-use-the-put_new_page-whenever-necessary mm/migrate.c
---- a/mm/migrate.c~mm-page-migration-use-the-put_new_page-whenever-necessary
+diff -puN mm/migrate.c~mm-correct-a-couple-of-page-migration-comments mm/migrate.c
+--- a/mm/migrate.c~mm-correct-a-couple-of-page-migration-comments
 +++ a/mm/migrate.c
-@@ -938,10 +938,11 @@ static ICE_noinline int unmap_and_move(n
- 				   int force, enum migrate_mode mode,
- 				   enum migrate_reason reason)
- {
--	int rc = 0;
-+	int rc = MIGRATEPAGE_SUCCESS;
- 	int *result = NULL;
--	struct page *newpage = get_new_page(page, private, &result);
-+	struct page *newpage;
- 
-+	newpage = get_new_page(page, private, &result);
- 	if (!newpage)
- 		return -ENOMEM;
- 
-@@ -955,6 +956,8 @@ static ICE_noinline int unmap_and_move(n
- 			goto out;
- 
- 	rc = __unmap_and_move(page, newpage, force, mode);
-+	if (rc == MIGRATEPAGE_SUCCESS)
-+		put_new_page = NULL;
- 
- out:
- 	if (rc != -EAGAIN) {
-@@ -981,7 +984,7 @@ out:
- 	 * it.  Otherwise, putback_lru_page() will drop the reference grabbed
- 	 * during isolation.
- 	 */
--	if (rc != MIGRATEPAGE_SUCCESS && put_new_page) {
-+	if (put_new_page) {
- 		ClearPageSwapBacked(newpage);
- 		put_new_page(newpage, private);
- 	} else if (unlikely(__is_movable_balloon_page(newpage))) {
-@@ -1022,7 +1025,7 @@ static int unmap_and_move_huge_page(new_
- 				struct page *hpage, int force,
- 				enum migrate_mode mode)
- {
--	int rc = 0;
-+	int rc = -EAGAIN;
- 	int *result = NULL;
- 	int page_was_mapped = 0;
- 	struct page *new_hpage;
-@@ -1044,8 +1047,6 @@ static int unmap_and_move_huge_page(new_
- 	if (!new_hpage)
- 		return -ENOMEM;
- 
--	rc = -EAGAIN;
--
- 	if (!trylock_page(hpage)) {
- 		if (!force || mode != MIGRATE_SYNC)
- 			goto out;
-@@ -1070,8 +1071,10 @@ static int unmap_and_move_huge_page(new_
- 	if (anon_vma)
- 		put_anon_vma(anon_vma);
- 
--	if (rc == MIGRATEPAGE_SUCCESS)
-+	if (rc == MIGRATEPAGE_SUCCESS) {
- 		hugetlb_cgroup_migrate(hpage, new_hpage);
-+		put_new_page = NULL;
-+	}
- 
- 	unlock_page(hpage);
- out:
-@@ -1083,7 +1086,7 @@ out:
- 	 * it.  Otherwise, put_page() will drop the reference grabbed during
- 	 * isolation.
- 	 */
--	if (rc != MIGRATEPAGE_SUCCESS && put_new_page)
-+	if (put_new_page)
- 		put_new_page(new_hpage, private);
- 	else
- 		putback_active_hugepage(new_hpage);
+@@ -1,5 +1,5 @@
+ /*
+- * Memory Migration functionality - linux/mm/migration.c
++ * Memory Migration functionality - linux/mm/migrate.c
+  *
+  * Copyright (C) 2006 Silicon Graphics, Inc., Christoph Lameter
+  *
+@@ -1113,7 +1113,7 @@ out:
+  *
+  * The function returns after 10 attempts or if no pages are movable any more
+  * because the list has become empty or no retryable pages exist any more.
+- * The caller should call putback_lru_pages() to return pages to the LRU
++ * The caller should call putback_movable_pages() to return pages to the LRU
+  * or free list only if ret != 0.
+  *
+  * Returns the number of pages that were not migrated, or an error code.
 _
 
 Patches currently in -mm which might be from hughd@google.com are
