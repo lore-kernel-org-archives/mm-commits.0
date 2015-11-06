@@ -1,79 +1,206 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- watchdog-do-not-unpark-threads-in-watchdog_park_threads-on-error.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 12:06:14 -0800
-Message-ID: <563d0836.AMfjQrYou2dJqIW9%akpm@linux-foundation.org>
+ watchdog-perform-all-cpu-backtrace-in-case-of-hard-lockup.patch removed
+ from -mm tree
+Date: Fri, 06 Nov 2015 12:06:16 -0800
+Message-ID: <563d0838.CoE1a+853jtKuI0H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48494 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48498 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1033432AbbKFUGO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:06:14 -0500
+	with ESMTP id S1032264AbbKFUGR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:06:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: uobergfe@redhat.com, atomlin@redhat.com, dzickus@redhat.com, mm-commits@vger.kernel.org
+To: jkosina@suse.cz, atomlin@redhat.com, dzickus@redhat.com, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: do not unpark threads in watchdog_park_threads() on error
+     Subject: kernel/watchdog.c: perform all-CPU backtrace in case of hard lockup
 has been removed from the -mm tree.  Its filename was
-     watchdog-do-not-unpark-threads-in-watchdog_park_threads-on-error.patch
+     watchdog-perform-all-cpu-backtrace-in-case-of-hard-lockup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ulrich Obergfell <uobergfe@redhat.com>
-Subject: watchdog: do not unpark threads in watchdog_park_threads() on error
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: kernel/watchdog.c: perform all-CPU backtrace in case of hard lockup
 
-If kthread_park() returns an error, watchdog_park_threads() should not
-blindly 'roll back' the already parked threads to the unparked state. 
-Instead leave it up to the callers to handle such errors appropriately in
-their context.  For example, it is redundant to unpark the threads if the
-lockup detectors will soon be disabled by the callers anyway.
+In many cases of hardlockup reports, it's actually not possible to know
+why it triggered, because the CPU that got stuck is usually waiting on a
+resource (with IRQs disabled) in posession of some other CPU is holding.
 
-Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
+IOW, we are often looking at the stacktrace of the victim and not the
+actual offender.
+
+Introduce sysctl / cmdline parameter that makes it possible to have
+hardlockup detector perform all-CPU backtrace.
+
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
 Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
-Acked-by: Don Zickus <dzickus@redhat.com>
 Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Acked-by: Don Zickus <dzickus@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ Documentation/kernel-parameters.txt |    5 +++
+ Documentation/sysctl/kernel.txt     |   12 +++++++++
+ include/linux/nmi.h                 |    1 
+ kernel/sysctl.c                     |    9 +++++++
+ kernel/watchdog.c                   |   33 ++++++++++++++++++++++----
+ 5 files changed, 55 insertions(+), 5 deletions(-)
 
-diff -puN kernel/watchdog.c~watchdog-do-not-unpark-threads-in-watchdog_park_threads-on-error kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-do-not-unpark-threads-in-watchdog_park_threads-on-error
+diff -puN Documentation/kernel-parameters.txt~watchdog-perform-all-cpu-backtrace-in-case-of-hard-lockup Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~watchdog-perform-all-cpu-backtrace-in-case-of-hard-lockup
++++ a/Documentation/kernel-parameters.txt
+@@ -1269,6 +1269,11 @@ bytes respectively. Such letter suffixes
+ 			Format: <unsigned int> such that (rxsize & ~0x1fffc0) == 0.
+ 			Default: 1024
+ 
++	hardlockup_all_cpu_backtrace=
++			[KNL] Should the hard-lockup detector generate
++			backtraces on all cpus.
++			Format: <integer>
++
+ 	hashdist=	[KNL,NUMA] Large hashes allocated during boot
+ 			are distributed across NUMA nodes.  Defaults on
+ 			for 64-bit NUMA, off otherwise.
+diff -puN Documentation/sysctl/kernel.txt~watchdog-perform-all-cpu-backtrace-in-case-of-hard-lockup Documentation/sysctl/kernel.txt
+--- a/Documentation/sysctl/kernel.txt~watchdog-perform-all-cpu-backtrace-in-case-of-hard-lockup
++++ a/Documentation/sysctl/kernel.txt
+@@ -33,6 +33,7 @@ show up in /proc/sys/kernel:
+ - domainname
+ - hostname
+ - hotplug
++- hardlockup_all_cpu_backtrace
+ - hung_task_panic
+ - hung_task_check_count
+ - hung_task_timeout_secs
+@@ -293,6 +294,17 @@ domain names are in general different. F
+ see the hostname(1) man page.
+ 
+ ==============================================================
++hardlockup_all_cpu_backtrace:
++
++This value controls the hard lockup detector behavior when a hard
++lockup condition is detected as to whether or not to gather further
++debug information. If enabled, arch-specific all-CPU stack dumping
++will be initiated.
++
++0: do nothing. This is the default behavior.
++
++1: on detection capture more debug information.
++==============================================================
+ 
+ hotplug:
+ 
+diff -puN include/linux/nmi.h~watchdog-perform-all-cpu-backtrace-in-case-of-hard-lockup include/linux/nmi.h
+--- a/include/linux/nmi.h~watchdog-perform-all-cpu-backtrace-in-case-of-hard-lockup
++++ a/include/linux/nmi.h
+@@ -73,6 +73,7 @@ extern int watchdog_user_enabled;
+ extern int watchdog_thresh;
+ extern unsigned long *watchdog_cpumask_bits;
+ extern int sysctl_softlockup_all_cpu_backtrace;
++extern int sysctl_hardlockup_all_cpu_backtrace;
+ struct ctl_table;
+ extern int proc_watchdog(struct ctl_table *, int ,
+ 			 void __user *, size_t *, loff_t *);
+diff -puN kernel/sysctl.c~watchdog-perform-all-cpu-backtrace-in-case-of-hard-lockup kernel/sysctl.c
+--- a/kernel/sysctl.c~watchdog-perform-all-cpu-backtrace-in-case-of-hard-lockup
++++ a/kernel/sysctl.c
+@@ -898,6 +898,15 @@ static struct ctl_table kern_table[] = {
+ 		.extra1		= &zero,
+ 		.extra2		= &one,
+ 	},
++	{
++		.procname	= "hardlockup_all_cpu_backtrace",
++		.data		= &sysctl_hardlockup_all_cpu_backtrace,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_minmax,
++		.extra1		= &zero,
++		.extra2		= &one,
++	},
+ #endif /* CONFIG_SMP */
+ #endif
+ #if defined(CONFIG_X86_LOCAL_APIC) && defined(CONFIG_X86)
+diff -puN kernel/watchdog.c~watchdog-perform-all-cpu-backtrace-in-case-of-hard-lockup kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-perform-all-cpu-backtrace-in-case-of-hard-lockup
 +++ a/kernel/watchdog.c
-@@ -654,6 +654,12 @@ static struct smp_hotplug_thread watchdo
+@@ -57,8 +57,10 @@ int __read_mostly watchdog_thresh = 10;
+ 
+ #ifdef CONFIG_SMP
+ int __read_mostly sysctl_softlockup_all_cpu_backtrace;
++int __read_mostly sysctl_hardlockup_all_cpu_backtrace;
+ #else
+ #define sysctl_softlockup_all_cpu_backtrace 0
++#define sysctl_hardlockup_all_cpu_backtrace 0
+ #endif
+ static struct cpumask watchdog_cpumask __read_mostly;
+ unsigned long *watchdog_cpumask_bits = cpumask_bits(&watchdog_cpumask);
+@@ -112,6 +114,7 @@ static unsigned long soft_lockup_nmi_war
+ #ifdef CONFIG_HARDLOCKUP_DETECTOR
+ static int hardlockup_panic =
+ 			CONFIG_BOOTPARAM_HARDLOCKUP_PANIC_VALUE;
++static unsigned long hardlockup_allcpu_dumped;
+ /*
+  * We may not want to enable hard lockup detection by default in all cases,
+  * for example when running the kernel as a guest on a hypervisor. In these
+@@ -173,6 +176,13 @@ static int __init softlockup_all_cpu_bac
+ 	return 1;
+ }
+ __setup("softlockup_all_cpu_backtrace=", softlockup_all_cpu_backtrace_setup);
++static int __init hardlockup_all_cpu_backtrace_setup(char *str)
++{
++	sysctl_hardlockup_all_cpu_backtrace =
++		!!simple_strtol(str, NULL, 0);
++	return 1;
++}
++__setup("hardlockup_all_cpu_backtrace=", hardlockup_all_cpu_backtrace_setup);
+ #endif
  
  /*
-  * park all watchdog threads that are specified in 'watchdog_cpumask'
-+ *
-+ * This function returns an error if kthread_park() of a watchdog thread
-+ * fails. In this situation, the watchdog threads of some CPUs can already
-+ * be parked and the watchdog threads of other CPUs can still be runnable.
-+ * Callers are expected to handle this special condition as appropriate in
-+ * their context.
-  */
- static int watchdog_park_threads(void)
- {
-@@ -665,10 +671,6 @@ static int watchdog_park_threads(void)
- 		if (ret)
- 			break;
- 	}
--	if (ret) {
--		for_each_watchdog_cpu(cpu)
--			kthread_unpark(per_cpu(softlockup_watchdog, cpu));
--	}
- 	put_online_cpus();
+@@ -318,17 +328,30 @@ static void watchdog_overflow_callback(s
+ 	 */
+ 	if (is_hardlockup()) {
+ 		int this_cpu = smp_processor_id();
++		struct pt_regs *regs = get_irq_regs();
  
- 	return ret;
+ 		/* only print hardlockups once */
+ 		if (__this_cpu_read(hard_watchdog_warn) == true)
+ 			return;
+ 
+-		if (hardlockup_panic)
+-			panic("Watchdog detected hard LOCKUP on cpu %d",
+-			      this_cpu);
++		pr_emerg("Watchdog detected hard LOCKUP on cpu %d", this_cpu);
++		print_modules();
++		print_irqtrace_events(current);
++		if (regs)
++			show_regs(regs);
+ 		else
+-			WARN(1, "Watchdog detected hard LOCKUP on cpu %d",
+-			     this_cpu);
++			dump_stack();
++
++		/*
++		 * Perform all-CPU dump only once to avoid multiple hardlockups
++		 * generating interleaving traces
++		 */
++		if (sysctl_hardlockup_all_cpu_backtrace &&
++				!test_and_set_bit(0, &hardlockup_allcpu_dumped))
++			trigger_allbutself_cpu_backtrace();
++
++		if (hardlockup_panic)
++			panic("Hard LOCKUP");
+ 
+ 		__this_cpu_write(hard_watchdog_warn, true);
+ 		return;
 _
 
-Patches currently in -mm which might be from uobergfe@redhat.com are
+Patches currently in -mm which might be from jkosina@suse.cz are
 
 
