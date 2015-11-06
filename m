@@ -1,122 +1,191 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-vmscan-make-inactive_anon-file_is_low-return-bool.patch removed from -mm tree
-Date: Fri, 06 Nov 2015 12:08:24 -0800
-Message-ID: <563d08b8.S0XE01PBuTmpLiF/%akpm@linux-foundation.org>
+ mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch removed
+ from -mm tree
+Date: Fri, 06 Nov 2015 12:08:11 -0800
+Message-ID: <563d08ab.3Q1DBMMit0Ur9Bum%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48703 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48705 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966348AbbKFUIY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:24 -0500
+	with ESMTP id S1032971AbbKFUIL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, joern@logfs.org, mhocko@suse.com, mike.kravetz@oracle.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: make inactive_anon/file_is_low return bool
+     Subject: mm: hugetlb: proc: add HugetlbPages field to /proc/PID/status
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-make-inactive_anon-file_is_low-return-bool.patch
+     mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yaowei Bai <bywxiaobai@163.com>
-Subject: mm/vmscan: make inactive_anon/file_is_low return bool
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: hugetlb: proc: add HugetlbPages field to /proc/PID/status
 
-Make inactive_anon/file_is_low return bool due to these particular
-functions only using either one or zero as their return value.
+Currently there's no easy way to get per-process usage of hugetlb pages,
+which is inconvenient because userspace applications which use hugetlb
+typically want to control their processes on the basis of how much memory
+(including hugetlb) they use.  So this patch simply provides easy access
+to the info via /proc/PID/status.
 
-No functional change.
-
-Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Joern Engel <joern@logfs.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ Documentation/filesystems/proc.txt |    2 ++
+ fs/proc/task_mmu.c                 |    1 +
+ include/linux/hugetlb.h            |   19 +++++++++++++++++++
+ include/linux/mm_types.h           |    3 +++
+ mm/hugetlb.c                       |    9 +++++++++
+ mm/rmap.c                          |    4 +++-
+ 6 files changed, 37 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-make-inactive_anon-file_is_low-return-bool mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-make-inactive_anon-file_is_low-return-bool
-+++ a/mm/vmscan.c
-@@ -1859,7 +1859,7 @@ static void shrink_active_list(unsigned
+diff -puN Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status
++++ a/Documentation/filesystems/proc.txt
+@@ -175,6 +175,7 @@ read the file /proc/PID/status:
+   VmLib:      1412 kB
+   VmPTE:        20 kb
+   VmSwap:        0 kB
++  HugetlbPages:          0 kB
+   Threads:        1
+   SigQ:   0/28578
+   SigPnd: 0000000000000000
+@@ -238,6 +239,7 @@ Table 1-2: Contents of the status files
+  VmPTE                       size of page table entries
+  VmPMD                       size of second level page tables
+  VmSwap                      size of swap usage (the number of referred swapents)
++ HugetlbPages                size of hugetlb memory portions
+  Threads                     number of threads
+  SigQ                        number of signals queued/max. number for queue
+  SigPnd                      bitmap of pending signals for the thread
+diff -puN fs/proc/task_mmu.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status
++++ a/fs/proc/task_mmu.c
+@@ -70,6 +70,7 @@ void task_mem(struct seq_file *m, struct
+ 		ptes >> 10,
+ 		pmds >> 10,
+ 		swap << (PAGE_SHIFT-10));
++	hugetlb_report_usage(m, mm);
  }
  
- #ifdef CONFIG_SWAP
--static int inactive_anon_is_low_global(struct zone *zone)
-+static bool inactive_anon_is_low_global(struct zone *zone)
- {
- 	unsigned long active, inactive;
- 
-@@ -1876,14 +1876,14 @@ static int inactive_anon_is_low_global(s
-  * Returns true if the zone does not have enough inactive anon pages,
-  * meaning some active anon pages need to be deactivated.
-  */
--static int inactive_anon_is_low(struct lruvec *lruvec)
-+static bool inactive_anon_is_low(struct lruvec *lruvec)
- {
- 	/*
- 	 * If we don't have swap space, anonymous page deactivation
- 	 * is pointless.
- 	 */
- 	if (!total_swap_pages)
--		return 0;
-+		return false;
- 
- 	if (!mem_cgroup_disabled())
- 		return mem_cgroup_inactive_anon_is_low(lruvec);
-@@ -1891,9 +1891,9 @@ static int inactive_anon_is_low(struct l
- 	return inactive_anon_is_low_global(lruvec_zone(lruvec));
- }
- #else
--static inline int inactive_anon_is_low(struct lruvec *lruvec)
-+static inline bool inactive_anon_is_low(struct lruvec *lruvec)
- {
--	return 0;
-+	return false;
- }
+ unsigned long task_vsize(struct mm_struct *mm)
+diff -puN include/linux/hugetlb.h~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status
++++ a/include/linux/hugetlb.h
+@@ -483,6 +483,17 @@ static inline spinlock_t *huge_pte_lockp
+ #define hugepages_supported() (HPAGE_SHIFT != 0)
  #endif
  
-@@ -1911,7 +1911,7 @@ static inline int inactive_anon_is_low(s
-  * This uses a different ratio than the anonymous pages, because
-  * the page cache uses a use-once replacement algorithm.
-  */
--static int inactive_file_is_low(struct lruvec *lruvec)
-+static bool inactive_file_is_low(struct lruvec *lruvec)
++void hugetlb_report_usage(struct seq_file *m, struct mm_struct *mm);
++
++static inline void hugetlb_count_add(long l, struct mm_struct *mm)
++{
++	atomic_long_add(l, &mm->hugetlb_usage);
++}
++
++static inline void hugetlb_count_sub(long l, struct mm_struct *mm)
++{
++	atomic_long_sub(l, &mm->hugetlb_usage);
++}
+ #else	/* CONFIG_HUGETLB_PAGE */
+ struct hstate {};
+ #define alloc_huge_page(v, a, r) NULL
+@@ -519,6 +530,14 @@ static inline spinlock_t *huge_pte_lockp
  {
- 	unsigned long inactive;
- 	unsigned long active;
-@@ -1922,7 +1922,7 @@ static int inactive_file_is_low(struct l
- 	return active > inactive;
+ 	return &mm->page_table_lock;
+ }
++
++static inline void hugetlb_report_usage(struct seq_file *f, struct mm_struct *m)
++{
++}
++
++static inline void hugetlb_count_sub(long l, struct mm_struct *mm)
++{
++}
+ #endif	/* CONFIG_HUGETLB_PAGE */
+ 
+ static inline spinlock_t *huge_pte_lock(struct hstate *h,
+diff -puN include/linux/mm_types.h~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status
++++ a/include/linux/mm_types.h
+@@ -486,6 +486,9 @@ struct mm_struct {
+ 	/* address of the bounds directory */
+ 	void __user *bd_addr;
+ #endif
++#ifdef CONFIG_HUGETLB_PAGE
++	atomic_long_t hugetlb_usage;
++#endif
+ };
+ 
+ static inline void mm_init_cpumask(struct mm_struct *mm)
+diff -puN mm/hugetlb.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status
++++ a/mm/hugetlb.c
+@@ -2790,6 +2790,12 @@ void hugetlb_show_meminfo(void)
+ 				1UL << (huge_page_order(h) + PAGE_SHIFT - 10));
  }
  
--static int inactive_list_is_low(struct lruvec *lruvec, enum lru_list lru)
-+static bool inactive_list_is_low(struct lruvec *lruvec, enum lru_list lru)
++void hugetlb_report_usage(struct seq_file *m, struct mm_struct *mm)
++{
++	seq_printf(m, "HugetlbPages:\t%8lu kB\n",
++		   atomic_long_read(&mm->hugetlb_usage) << (PAGE_SHIFT - 10));
++}
++
+ /* Return the number pages of memory we physically have, in PAGE_SIZE units. */
+ unsigned long hugetlb_total_pages(void)
  {
- 	if (is_file_lru(lru))
- 		return inactive_file_is_low(lruvec);
+@@ -3025,6 +3031,7 @@ int copy_hugetlb_page_range(struct mm_st
+ 			get_page(ptepage);
+ 			page_dup_rmap(ptepage);
+ 			set_huge_pte_at(dst, addr, dst_pte, entry);
++			hugetlb_count_add(pages_per_huge_page(h), dst);
+ 		}
+ 		spin_unlock(src_ptl);
+ 		spin_unlock(dst_ptl);
+@@ -3105,6 +3112,7 @@ again:
+ 		if (huge_pte_dirty(pte))
+ 			set_page_dirty(page);
+ 
++		hugetlb_count_sub(pages_per_huge_page(h), mm);
+ 		page_remove_rmap(page);
+ 		force_flush = !__tlb_remove_page(tlb, page);
+ 		if (force_flush) {
+@@ -3509,6 +3517,7 @@ retry:
+ 				&& (vma->vm_flags & VM_SHARED)));
+ 	set_huge_pte_at(mm, address, ptep, new_pte);
+ 
++	hugetlb_count_add(pages_per_huge_page(h), mm);
+ 	if ((flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
+ 		/* Optimization, do the COW without a second fault */
+ 		ret = hugetlb_cow(mm, vma, address, ptep, new_pte, page, ptl);
+diff -puN mm/rmap.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status mm/rmap.c
+--- a/mm/rmap.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status
++++ a/mm/rmap.c
+@@ -1352,7 +1352,9 @@ static int try_to_unmap_one(struct page
+ 	update_hiwater_rss(mm);
+ 
+ 	if (PageHWPoison(page) && !(flags & TTU_IGNORE_HWPOISON)) {
+-		if (!PageHuge(page)) {
++		if (PageHuge(page)) {
++			hugetlb_count_sub(1 << compound_order(page), mm);
++		} else {
+ 			if (PageAnon(page))
+ 				dec_mm_counter(mm, MM_ANONPAGES);
+ 			else
 _
 
-Patches currently in -mm which might be from bywxiaobai@163.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-mm-oom_kill-introduce-is_sysrq_oom-helper.patch
-fs-kdev_t-remove-unused-huge_valid_dev-function.patch
-fs-kdev_t-old-new_valid_dev-can-be-boolean.patch
-fs-vfs-remove-unnecessary-new_valid_dev-check.patch
-fs-btrfs-remove-unnecessary-new_valid_dev-check.patch
-fs-exofs-remove-unnecessary-new_valid_dev-check.patch
-fs-ext2-remove-unnecessary-new_valid_dev-check.patch
-fs-f2fs-remove-unnecessary-new_valid_dev-check.patch
-fs-hpfs-remove-unnecessary-new_valid_dev-check.patch
-fs-jfs-remove-unnecessary-new_valid_dev-check.patch
-fs-ncpfs-remove-unnecessary-new_valid_dev-check.patch
-fs-nilfs2-remove-unnecessary-new_valid_dev-check.patch
-fs-reiserfs-remove-unnecessary-new_valid_dev-check.patch
-fs-stat-remove-unnecessary-new_valid_dev-check.patch
-fs-ubifs-remove-unnecessary-new_valid_dev-check.patch
 
