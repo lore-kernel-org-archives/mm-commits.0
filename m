@@ -1,97 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] inotify-hide-internal-kernel-bits-from-fdinfo.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 12:05:34 -0800
-Message-ID: <563d080e.+z5uoyYy9ydzfJQp%akpm@linux-foundation.org>
+Subject: [merged] logfs-fix-build-warning.patch removed from -mm tree
+Date: Fri, 06 Nov 2015 12:05:39 -0800
+Message-ID: <563d0813.qY74fv/LVRsNShAX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48422 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48433 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1032264AbbKFUFg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:05:36 -0500
+	with ESMTP id S1032955AbbKFUFj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:05:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.hansen@linux.intel.com, avagin@gmail.com, avagin@openvz.org, eparis@redhat.com, gorcunov@openvz.org, john@johnmccutchan.com, rlove@rlove.org, xemul@parallels.com, mm-commits@vger.kernel.org
+To: sudipm.mukherjee@gmail.com, joern@logfs.org, prasadjoshi.linux@gmail.com, sudip@vectorindia.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: inotify: hide internal kernel bits from fdinfo
+     Subject: logfs: fix build warning
 has been removed from the -mm tree.  Its filename was
-     inotify-hide-internal-kernel-bits-from-fdinfo.patch
+     logfs-fix-build-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: inotify: hide internal kernel bits from fdinfo
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: logfs: fix build warning
 
-There was a report that my patch:
+fs/logfs/dev_bdev.c: In function '__bdev_writeseg':
+include/linux/kernel.h:601:17: warning: comparison of distinct pointer types lacks a cast [enabled by default]
+  (void) (&_min1 == &_min2);  \
+fs/logfs/dev_bdev.c:84:14: note: in  expansion of macro 'min'
+  max_pages = min(nr_pages, BIO_MAX_PAGES);
 
-	inotify: actually check for invalid bits in sys_inotify_add_watch()
+fs/logfs/dev_bdev.c: In function 'do_erase':
+include/linux/kernel.h:601:17: warning: comparison of distinct pointer types lacks a cast [enabled by default]
+ (void) (&_min1 == &_min2);  \
+fs/logfs/dev_bdev.c:174:14: note: in expansion of macro 'min'
+ max_pages = min(nr_pages, BIO_MAX_PAGES);
 
-broke CRIU.
+Lets use min_t and mention the type.
 
-The reason is that CRIU looks up raw flags in /proc/$pid/fdinfo/* to
-figure out how to rebuild inotify watches and then passes those flags
-directly back in to the inotify API.  One of those flags
-(FS_EVENT_ON_CHILD) is set in mark->mask, but is not part of the inotify
-API.  It is used inside the kernel to _implement_ inotify but it is not
-and has never been part of the API.
-
-My patch above ensured that we only allow bits which are part of the API
-(IN_ALL_EVENTS).  This broke CRIU.
-
-FS_EVENT_ON_CHILD is really internal to the kernel.  It is set _anyway_ on
-all inotify marks.  So, CRIU was really just trying to set a bit that was
-already set.
-
-This patch hides that bit from fdinfo.  CRIU will not see the bit, not try
-to set it, and should work as before.  We should not have been exposing
-this bit in the first place, so this is a good patch independent of the
-CRIU problem.
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Reported-by: Andrey Wagin <avagin@gmail.com>
-Acked-by: Andrey Vagin <avagin@openvz.org>
-Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Acked-by: Eric Paris <eparis@redhat.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: John McCutchan <john@johnmccutchan.com>
-Cc: Robert Love <rlove@rlove.org>
+Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Prasad Joshi <prasadjoshi.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/fdinfo.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ fs/logfs/dev_bdev.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/notify/fdinfo.c~inotify-hide-internal-kernel-bits-from-fdinfo fs/notify/fdinfo.c
---- a/fs/notify/fdinfo.c~inotify-hide-internal-kernel-bits-from-fdinfo
-+++ a/fs/notify/fdinfo.c
-@@ -83,9 +83,16 @@ static void inotify_fdinfo(struct seq_fi
- 	inode_mark = container_of(mark, struct inotify_inode_mark, fsn_mark);
- 	inode = igrab(mark->inode);
- 	if (inode) {
-+		/*
-+		 * IN_ALL_EVENTS represents all of the mask bits
-+		 * that we expose to userspace.  There is at
-+		 * least one bit (FS_EVENT_ON_CHILD) which is
-+		 * used only internally to the kernel.
-+		 */
-+		u32 mask = mark->mask & IN_ALL_EVENTS;
- 		seq_printf(m, "inotify wd:%x ino:%lx sdev:%x mask:%x ignored_mask:%x ",
- 			   inode_mark->wd, inode->i_ino, inode->i_sb->s_dev,
--			   mark->mask, mark->ignored_mask);
-+			   mask, mark->ignored_mask);
- 		show_mark_fhandle(m, inode);
- 		seq_putc(m, '\n');
- 		iput(inode);
+diff -puN fs/logfs/dev_bdev.c~logfs-fix-build-warning fs/logfs/dev_bdev.c
+--- a/fs/logfs/dev_bdev.c~logfs-fix-build-warning
++++ a/fs/logfs/dev_bdev.c
+@@ -81,7 +81,7 @@ static int __bdev_writeseg(struct super_
+ 	unsigned int max_pages;
+ 	int i;
+ 
+-	max_pages = min(nr_pages, BIO_MAX_PAGES);
++	max_pages = min_t(size_t, nr_pages, BIO_MAX_PAGES);
+ 
+ 	bio = bio_alloc(GFP_NOFS, max_pages);
+ 	BUG_ON(!bio);
+@@ -171,7 +171,7 @@ static int do_erase(struct super_block *
+ 	unsigned int max_pages;
+ 	int i;
+ 
+-	max_pages = min(nr_pages, BIO_MAX_PAGES);
++	max_pages = min_t(size_t, nr_pages, BIO_MAX_PAGES);
+ 
+ 	bio = bio_alloc(GFP_NOFS, max_pages);
+ 	BUG_ON(!bio);
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
 
-mm-hugetlb-use-memory-policy-when-available.patch
-mm-hugetlbfs-optimize-when-numa=n.patch
 
