@@ -1,115 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] doc-slub-document-slabinfo-gnuplotsh-script.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 12:06:58 -0800
-Message-ID: <563d0862.UKwmH7nEA7b72ost%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-slub-calculate-start-order-with-reserved-in-consideration.patch removed
+ from -mm tree
+Date: Fri, 06 Nov 2015 12:07:06 -0800
+Message-ID: <563d086a.laPAmLkMlJogijQt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48593 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48616 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161169AbbKFUG6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:06:58 -0500
+	with ESMTP id S1757391AbbKFUHH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:07:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, cl@linux.com, mm-commits@vger.kernel.org
+To: weiyang@linux.vnet.ibm.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Doc/slub: document slabinfo-gnuplot.sh script
+     Subject: mm/slub: calculate start order with reserved in consideration
 has been removed from the -mm tree.  Its filename was
-     doc-slub-document-slabinfo-gnuplotsh-script.patch
+     mm-slub-calculate-start-order-with-reserved-in-consideration.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: Doc/slub: document slabinfo-gnuplot.sh script
+From: Wei Yang <weiyang@linux.vnet.ibm.com>
+Subject: mm/slub: calculate start order with reserved in consideration
 
-Add documentation on how to use slabinfo-gnuplot.sh script.
+In slub_order(), the order starts from max(min_order,
+get_order(min_objects * size)).  When (min_objects * size) has different
+order from (min_objects * size + reserved), it will skip this order via a
+check in the loop.
 
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+This patch optimizes this a little by calculating the start order with
+`reserved' in consideration and removing the check in loop.
+
+Signed-off-by: Wei Yang <weiyang@linux.vnet.ibm.com>
 Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slub.txt |   59 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 59 insertions(+)
+ mm/slub.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN Documentation/vm/slub.txt~doc-slub-document-slabinfo-gnuplotsh-script Documentation/vm/slub.txt
---- a/Documentation/vm/slub.txt~doc-slub-document-slabinfo-gnuplotsh-script
-+++ a/Documentation/vm/slub.txt
-@@ -280,4 +280,63 @@ of other objects.
+diff -puN mm/slub.c~mm-slub-calculate-start-order-with-reserved-in-consideration mm/slub.c
+--- a/mm/slub.c~mm-slub-calculate-start-order-with-reserved-in-consideration
++++ a/mm/slub.c
+@@ -2912,19 +2912,15 @@ static inline int slab_order(int size, i
+ 	if (order_objects(min_order, size, reserved) > MAX_OBJS_PER_PAGE)
+ 		return get_order(size * MAX_OBJS_PER_PAGE) - 1;
  
- 	slub_debug=FZ,dentry
+-	for (order = max(min_order, get_order(min_objects * size));
++	for (order = max(min_order, get_order(min_objects * size + reserved));
+ 			order <= max_order; order++) {
  
-+Extended slabinfo mode and plotting
-+-----------------------------------
-+
-+The slabinfo tool has a special 'extended' ('-X') mode that includes:
-+ - Slabcache Totals
-+ - Slabs sorted by size (up to -N <num> slabs, default 1)
-+ - Slabs sorted by loss (up to -N <num> slabs, default 1)
-+
-+Additionally, in this mode slabinfo does not dynamically scale sizes (G/M/K)
-+and reports everything in bytes (this functionality is also available to
-+other slabinfo modes via '-B' option) which makes reporting more precise and
-+accurate. Moreover, in some sense the `-X' mode also simplifies the analysis
-+of slabs' behaviour, because its output can be plotted using the
-+slabinfo-gnuplot.sh script. So it pushes the analysis from looking through
-+the numbers (tons of numbers) to something easier -- visual analysis.
-+
-+To generate plots:
-+a) collect slabinfo extended records, for example:
-+
-+  while [ 1 ]; do slabinfo -X >> FOO_STATS; sleep 1; done
-+
-+b) pass stats file(-s) to slabinfo-gnuplot.sh script:
-+  slabinfo-gnuplot.sh FOO_STATS [FOO_STATS2 .. FOO_STATSN]
-+
-+The slabinfo-gnuplot.sh script will pre-processes the collected records
-+and generates 3 png files (and 3 pre-processing cache files) per STATS
-+file:
-+ - Slabcache Totals: FOO_STATS-totals.png
-+ - Slabs sorted by size: FOO_STATS-slabs-by-size.png
-+ - Slabs sorted by loss: FOO_STATS-slabs-by-loss.png
-+
-+Another use case, when slabinfo-gnuplot can be useful, is when you need
-+to compare slabs' behaviour "prior to" and "after" some code modification.
-+To help you out there, slabinfo-gnuplot.sh script can 'merge' the
-+`Slabcache Totals` sections from different measurements. To visually
-+compare N plots:
-+
-+a) Collect as many STATS1, STATS2, .. STATSN files as you need
-+  while [ 1 ]; do slabinfo -X >> STATS<X>; sleep 1; done
-+
-+b) Pre-process those STATS files
-+  slabinfo-gnuplot.sh STATS1 STATS2 .. STATSN
-+
-+c) Execute slabinfo-gnuplot.sh in '-t' mode, passing all of the
-+generated pre-processed *-totals
-+  slabinfo-gnuplot.sh -t STATS1-totals STATS2-totals .. STATSN-totals
-+
-+This will produce a single plot (png file).
-+
-+Plots, expectedly, can be large so some fluctuations or small spikes
-+can go unnoticed. To deal with that, `slabinfo-gnuplot.sh' has two
-+options to 'zoom-in'/'zoom-out':
-+ a) -s %d,%d  overwrites the default image width and heigh
-+ b) -r %d,%d  specifies a range of samples to use (for example,
-+              in `slabinfo -X >> FOO_STATS; sleep 1;' case, using
-+              a "-r 40,60" range will plot only samples collected
-+              between 40th and 60th seconds).
-+
- Christoph Lameter, May 30, 2007
-+Sergey Senozhatsky, October 23, 2015
-_
-
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
-
-zram-keep-the-exact-overcommited-value-in-mem_used_max.patch
-mm-zsmalloc-constify-struct-zs_pool-name.patch
-zsmalloc-use-preempth-for-in_interrupt.patch
-
+ 		unsigned long slab_size = PAGE_SIZE << order;
+ 
+-		if (slab_size < min_objects * size + reserved)
+-			continue;
+-
+ 		rem = (slab_size - reserved) % size;
+ 
+ 		if (rem <= slab_size / fract_leftover)
+ 			break;
