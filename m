@@ -1,72 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-hack.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 14:31:26 -0800
-Message-ID: <563d2a3e.FwTTCOszD9I6Yc7V%akpm@linux-foundation.org>
+Subject: + mm-memcontrolc-uninline-mem_cgroup_usage.patch added to -mm
+ tree
+Date: Fri, 06 Nov 2015 14:41:46 -0800
+Message-ID: <563d2caa.OY+c/CNwV5hb3i7o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51032 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51057 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1163066AbbKFWb1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 17:31:27 -0500
+	with ESMTP id S1757596AbbKFWlr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 17:41:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-hack
-has been removed from the -mm tree.  Its filename was
-     mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-hack.patch
+     Subject: mm/memcontrol.c: uninline mem_cgroup_usage
+has been added to the -mm tree.  Its filename is
+     mm-memcontrolc-uninline-mem_cgroup_usage.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrolc-uninline-mem_cgroup_usage.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrolc-uninline-mem_cgroup_usage.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-hack
+Subject: mm/memcontrol.c: uninline mem_cgroup_usage
 
-dopey hack so I can test stuff
+gcc version 5.2.1 20151010 (Debian 5.2.1-22)
+$ size mm/memcontrol.o mm/memcontrol.o.before
+   text    data     bss     dec     hex filename
+  35535    7908      64   43507    a9f3 mm/memcontrol.o
+  35762    7908      64   43734    aad6 mm/memcontrol.o.before
 
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-hack include/linux/mm.h
---- a/include/linux/mm.h~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-hack
-+++ a/include/linux/mm.h
-@@ -435,7 +435,7 @@ static inline int page_mapcount(struct p
+diff -puN mm/memcontrol.c~mm-memcontrolc-uninline-mem_cgroup_usage mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrolc-uninline-mem_cgroup_usage
++++ a/mm/memcontrol.c
+@@ -2801,7 +2801,7 @@ static unsigned long tree_stat(struct me
+ 	return val;
+ }
  
- static inline int total_mapcount(struct page *page)
+-static inline unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
++static unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
  {
--	int i, ret;
-+	int ret;
+ 	unsigned long val;
  
- 	VM_BUG_ON_PAGE(PageTail(page), page);
- 
-@@ -445,8 +445,14 @@ static inline int total_mapcount(struct
- 	ret = compound_mapcount(page);
- 	if (PageHuge(page))
- 		return ret;
--	for (i = 0; i < HPAGE_PMD_NR; i++)
--		ret += atomic_read(&page[i]._mapcount) + 1;
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	{
-+		int i;
-+
-+		for (i = 0; i < HPAGE_PMD_NR; i++)
-+			ret += atomic_read(&page[i]._mapcount) + 1;
-+	}
-+#endif
- 	if (PageDoubleMap(page))
- 		ret -= HPAGE_PMD_NR;
- 	return ret;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -82,6 +82,7 @@ mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99.patch
 mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
 include-linux-mmzoneh-reflow-comment.patch
 mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
+mm-memcontrolc-uninline-mem_cgroup_usage.patch
 zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
 page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
 mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
