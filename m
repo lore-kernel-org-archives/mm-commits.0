@@ -1,84 +1,60 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-hugetlb-use-memory-policy-when-available-fix.patch removed from -mm tree
-Date: Thu, 05 Nov 2015 18:29:25 -0800
-Message-ID: <563c1085.Qs/d1GyTP9VHlozX%akpm@linux-foundation.org>
+ mm-memcontrol-eliminate-root-memorycurrent-fix-2.patch removed from -mm
+ tree
+Date: Thu, 05 Nov 2015 18:29:44 -0800
+Message-ID: <563c1098.uDj42aDxN66lCJ3a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52503 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52508 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031154AbbKFC30 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Nov 2015 21:29:26 -0500
+	with ESMTP id S1031154AbbKFC3o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Nov 2015 21:29:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.hansen@linux.intel.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugetlbfs: Fix new warning in fault-time huge page allocation
+     Subject: mm-memcontrol-eliminate-root-memorycurrent-fix-2
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-use-memory-policy-when-available-fix.patch
+     mm-memcontrol-eliminate-root-memorycurrent-fix-2.patch
 
-This patch was dropped because it was folded into mm-hugetlb-use-memory-policy-when-available.patch
+This patch was dropped because it was folded into mm-memcontrol-eliminate-root-memorycurrent.patch
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm, hugetlbfs: Fix new warning in fault-time huge page allocation
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm-memcontrol-eliminate-root-memorycurrent-fix-2
 
-Kirill reported that he hit:
->> +	if (vma || addr) {
->> +		WARN_ON_ONCE(!addr || addr == -1);
->
-> Trinity triggered the WARN for me:
-
-This was just a dumb mistake. I put the WARN_ON() in and planned to
-have addr=0 mean "use nid". But, I realized pretty quickly that addr=0
-_is_ a valid place to fault. So I made it addr=-1 in
-__alloc_buddy_huge_page_no_mpol(), but I did not fix up the WARN_ON().
-
-So hitting the warning in this case was harmless.  But, fix up the
-warning condition.
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ mm/memcontrol.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-use-memory-policy-when-available-fix mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-use-memory-policy-when-available-fix
-+++ a/mm/hugetlb.c
-@@ -1514,8 +1514,13 @@ static struct page *__alloc_buddy_huge_p
- 	if (hstate_is_gigantic(h))
- 		return NULL;
+diff -puN mm/memcontrol.c~mm-memcontrol-eliminate-root-memorycurrent-fix-2 mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-eliminate-root-memorycurrent-fix-2
++++ a/mm/memcontrol.c
+@@ -5026,7 +5026,9 @@ static void mem_cgroup_bind(struct cgrou
+ static u64 memory_current_read(struct cgroup_subsys_state *css,
+ 			       struct cftype *cft)
+ {
+-	return page_counter_read(&mem_cgroup_from_css(css)->memory);
++	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++
++	return (u64)page_counter_read(&memcg->memory) * PAGE_SIZE;
+ }
  
--	if (vma || addr) {
--		WARN_ON_ONCE(!addr || addr == -1);
-+	/*
-+	 * Make sure that anyone specifying 'nid' is not also specifying a VMA.
-+	 * This makes sure the caller is picking _one_ of the modes with which
-+	 * we can call this function, not both.
-+	 */
-+	if (vma || (addr != -1)) {
-+		WARN_ON_ONCE(addr == -1);
- 		WARN_ON_ONCE(nid != NUMA_NO_NODE);
- 	}
- 	/*
+ static int memory_low_show(struct seq_file *m, void *v)
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-inotify-hide-internal-kernel-bits-from-fdinfo.patch
-inotify-actually-check-for-invalid-bits-in-sys_inotify_add_watch.patch
-mm-hugetlb-use-memory-policy-when-available.patch
-mm-hugetlbfs-optimize-when-numa=n.patch
+mm-memcontrol-eliminate-root-memorycurrent.patch
+mm-page_counter-let-page_counter_try_charge-return-bool.patch
 
