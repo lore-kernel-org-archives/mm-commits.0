@@ -1,68 +1,102 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mmoom-suppress-unnecessary-sharing-same-memory-message.patch removed from
- -mm tree
-Date: Fri, 06 Nov 2015 12:08:32 -0800
-Message-ID: <563d08c0.3xrSyR0pD7YUeCs5%akpm@linux-foundation.org>
+ mmoom-reverse-the-order-of-setting-tif_memdie-and-sending-sigkill.patch
+ removed from -mm tree
+Date: Fri, 06 Nov 2015 12:08:28 -0800
+Message-ID: <563d08bc.jheR/0UTml4G3AcG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48751 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48700 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757627AbbKFUIc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:32 -0500
+	with ESMTP id S966363AbbKFUI3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@i-love.sakura.ne.jp, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
+To: penguin-kernel@i-love.sakura.ne.jp, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/oom_kill.c: suppress unnecessary "sharing same memory" message
+     Subject: mm/oom_kill.c: reverse the order of setting TIF_MEMDIE and sending SIGKILL
 has been removed from the -mm tree.  Its filename was
-     mmoom-suppress-unnecessary-sharing-same-memory-message.patch
+     mmoom-reverse-the-order-of-setting-tif_memdie-and-sending-sigkill.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Subject: mm/oom_kill.c: suppress unnecessary "sharing same memory" message
+Subject: mm/oom_kill.c: reverse the order of setting TIF_MEMDIE and sending SIGKILL
 
-oom_kill_process() sends SIGKILL to other thread groups sharing victim's
-mm.  But printing
+It was confirmed that a local unprivileged user can consume all memory
+reserves and hang up that system using time lag between the OOM killer
+sets TIF_MEMDIE on an OOM victim and sends SIGKILL to that victim, for
+printk() inside for_each_process() loop at oom_kill_process() can consume
+many seconds when there are many thread groups sharing the same memory.
 
-  "Kill process %d (%s) sharing same memory\n"
+Before starting oom-depleter process:
 
-lines makes no sense if they already have pending SIGKILL.  This patch
-reduces the "Kill process" lines by printing that line with info level
-only if SIGKILL is not pending.
+    Node 0 DMA: 3*4kB (UM) 6*8kB (U) 4*16kB (UEM) 0*32kB 0*64kB 1*128kB (M) 2*256kB (EM) 2*512kB (UE) 2*1024kB (EM) 1*2048kB (E) 1*4096kB (M) = 9980kB
+    Node 0 DMA32: 31*4kB (UEM) 27*8kB (UE) 32*16kB (UE) 13*32kB (UE) 14*64kB (UM) 7*128kB (UM) 8*256kB (UM) 8*512kB (UM) 3*1024kB (U) 4*2048kB (UM) 362*4096kB (UM) = 1503220kB
 
+As of invoking the OOM killer:
+
+    Node 0 DMA: 11*4kB (UE) 8*8kB (UEM) 6*16kB (UE) 2*32kB (EM) 0*64kB 1*128kB (U) 3*256kB (UEM) 2*512kB (UE) 3*1024kB (UEM) 1*2048kB (U) 0*4096kB = 7308kB
+    Node 0 DMA32: 1049*4kB (UEM) 507*8kB (UE) 151*16kB (UE) 53*32kB (UEM) 83*64kB (UEM) 52*128kB (EM) 25*256kB (UEM) 11*512kB (M) 6*1024kB (UM) 1*2048kB (M) 0*4096kB = 44556kB
+
+Between the thread group leader got TIF_MEMDIE and receives SIGKILL:
+
+    Node 0 DMA: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 0*256kB 0*512kB 0*1024kB 0*2048kB 0*4096kB = 0kB
+    Node 0 DMA32: 0*4kB 0*8kB 0*16kB 0*32kB 0*64kB 0*128kB 0*256kB 0*512kB 0*1024kB 0*2048kB 0*4096kB = 0kB
+
+The oom-depleter's thread group leader which got TIF_MEMDIE started
+memset() in user space after the OOM killer set TIF_MEMDIE, and it was
+free to abuse ALLOC_NO_WATERMARKS by TIF_MEMDIE for memset() in user space
+until SIGKILL is delivered.  If SIGKILL is delivered before TIF_MEMDIE is
+set, the oom-depleter can terminate without touching memory reserves.
+
+Although the possibility of hitting this time lag is very small for 3.19
+and earlier kernels because TIF_MEMDIE is set immediately before sending
+SIGKILL, preemption or long interrupts (an extreme example is SysRq-t) can
+step between and allow memory allocations which are not needed for
+terminating the OOM victim.
+
+Fixes: 83363b917a29 ("oom: make sure that TIF_MEMDIE is set under task_lock")
 Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>	[4.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/oom_kill.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~mmoom-suppress-unnecessary-sharing-same-memory-message mm/oom_kill.c
---- a/mm/oom_kill.c~mmoom-suppress-unnecessary-sharing-same-memory-message
+diff -puN mm/oom_kill.c~mmoom-reverse-the-order-of-setting-tif_memdie-and-sending-sigkill mm/oom_kill.c
+--- a/mm/oom_kill.c~mmoom-reverse-the-order-of-setting-tif_memdie-and-sending-sigkill
 +++ a/mm/oom_kill.c
-@@ -583,9 +583,11 @@ void oom_kill_process(struct oom_control
- 		    !(p->flags & PF_KTHREAD)) {
- 			if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
- 				continue;
-+			if (fatal_signal_pending(p))
-+				continue;
+@@ -554,6 +554,12 @@ void oom_kill_process(struct oom_control
  
- 			task_lock(p);	/* Protect ->comm from prctl() */
--			pr_err("Kill process %d (%s) sharing same memory\n",
-+			pr_info("Kill process %d (%s) sharing same memory\n",
- 				task_pid_nr(p), p->comm);
- 			task_unlock(p);
- 			do_send_sig_info(SIGKILL, SEND_SIG_FORCED, p, true);
+ 	/* mm cannot safely be dereferenced after task_unlock(victim) */
+ 	mm = victim->mm;
++	/*
++	 * We should send SIGKILL before setting TIF_MEMDIE in order to prevent
++	 * the OOM victim from depleting the memory reserves from the user
++	 * space under its control.
++	 */
++	do_send_sig_info(SIGKILL, SEND_SIG_FORCED, victim, true);
+ 	mark_oom_victim(victim);
+ 	pr_err("Killed process %d (%s) total-vm:%lukB, anon-rss:%lukB, file-rss:%lukB\n",
+ 		task_pid_nr(victim), victim->comm, K(victim->mm->total_vm),
+@@ -585,7 +591,6 @@ void oom_kill_process(struct oom_control
+ 		}
+ 	rcu_read_unlock();
+ 
+-	do_send_sig_info(SIGKILL, SEND_SIG_FORCED, victim, true);
+ 	put_task_struct(victim);
+ }
+ #undef K
 _
 
 Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
