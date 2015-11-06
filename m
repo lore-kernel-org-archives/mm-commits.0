@@ -1,127 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hugetlbfs-optimize-when-numa=n.patch removed from -mm tree
-Date: Fri, 06 Nov 2015 12:17:10 -0800
-Message-ID: <563d0ac6.z8jYsuJrAASPauyb%akpm@linux-foundation.org>
+Subject: [merged] mm-memcontrol-eliminate-root-memorycurrent.patch removed from -mm tree
+Date: Fri, 06 Nov 2015 12:17:12 -0800
+Message-ID: <563d0ac8./Z8hEOiElIIbmo3e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49068 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49072 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161895AbbKFURL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:11 -0500
+	with ESMTP id S1162922AbbKFURM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.hansen@linux.intel.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugetlbfs: optimize when NUMA=n
+     Subject: mm: memcontrol: eliminate root memory.current
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbfs-optimize-when-numa=n.patch
+     mm-memcontrol-eliminate-root-memorycurrent.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm, hugetlbfs: optimize when NUMA=n
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: eliminate root memory.current
 
-My recent patch "mm, hugetlb: use memory policy when available" added some
-bloat to hugetlb.o.  This patch aims to get some of the bloat back,
-especially when NUMA is not in play.
+memory.current on the root level doesn't add anything that wouldn't be
+more accurate and detailed using system statistics.  It already doesn't
+include slabs, and it'll be a pain to keep in sync when further memory
+types are accounted in the memory controller.  Remove it.
 
-It does this with an implicit #ifdef and marking some things static that
-should have been static in my first patch.  It also makes the warnings
-only VM_WARN_ON()s.  They were responsible for a pretty big chunk of the
-bloat.
+Note that this applies to the new unified hierarchy interface only.
 
-Doing this gets our NUMA=n text size back to a wee bit _below_ where we
-started before the original patch.
-
-It also shaves a bit of space off the NUMA=y case, but not much. 
-Enforcing the mempolicy definitely takes some text and it's hard to avoid.
-
-size(1) output:
-
-   text	   data	    bss	    dec	    hex	filename
-  30745	   3433	   2492	  36670	   8f3e	hugetlb.o.nonuma.baseline
-  31305	   3755	   2492	  37552	   92b0	hugetlb.o.nonuma.patch1
-  30713	   3433	   2492	  36638	   8f1e	hugetlb.o.nonuma.patch2 (this patch)
-  25235	    473	  41276	  66984	  105a8	hugetlb.o.numa.baseline
-  25715	    475	  41276	  67466	  1078a	hugetlb.o.numa.patch1
-  25491	    473	  41276	  67240	  106a8	hugetlb.o.numa.patch2 (this patch)
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |   18 +++++++++++++-----
- 1 file changed, 13 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlbfs-optimize-when-numa=n mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlbfs-optimize-when-numa=n
-+++ a/mm/hugetlb.c
-@@ -1455,9 +1455,14 @@ static struct page *__hugetlb_alloc_budd
- 
- 	/*
- 	 * We need a VMA to get a memory policy.  If we do not
--	 * have one, we use the 'nid' argument
-+	 * have one, we use the 'nid' argument.
-+	 *
-+	 * The mempolicy stuff below has some non-inlined bits
-+	 * and calls ->vm_ops.  That makes it hard to optimize at
-+	 * compile-time, even when NUMA is off and it does
-+	 * nothing.  This helps the compiler optimize it out.
- 	 */
--	if (!vma) {
-+	if (!IS_ENABLED(CONFIG_NUMA) || !vma) {
- 		/*
- 		 * If a specific node is requested, make sure to
- 		 * get memory from there, but only when a node
-@@ -1474,7 +1479,8 @@ static struct page *__hugetlb_alloc_budd
- 
- 	/*
- 	 * OK, so we have a VMA.  Fetch the mempolicy and try to
--	 * allocate a huge page with it.
-+	 * allocate a huge page with it.  We will only reach this
-+	 * when CONFIG_NUMA=y.
- 	 */
- 	do {
- 		struct page *page;
-@@ -1520,8 +1526,8 @@ static struct page *__alloc_buddy_huge_p
- 	 * we can call this function, not both.
- 	 */
- 	if (vma || (addr != -1)) {
--		WARN_ON_ONCE(addr == -1);
--		WARN_ON_ONCE(nid != NUMA_NO_NODE);
-+		VM_WARN_ON_ONCE(addr == -1);
-+		VM_WARN_ON_ONCE(nid != NUMA_NO_NODE);
- 	}
- 	/*
- 	 * Assume we will successfully allocate the surplus page to
-@@ -1585,6 +1591,7 @@ static struct page *__alloc_buddy_huge_p
-  * NUMA_NO_NODE, which means that it may be allocated
-  * anywhere.
-  */
-+static
- struct page *__alloc_buddy_huge_page_no_mpol(struct hstate *h, int nid)
+diff -puN mm/memcontrol.c~mm-memcontrol-eliminate-root-memorycurrent mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-eliminate-root-memorycurrent
++++ a/mm/memcontrol.c
+@@ -5026,7 +5026,9 @@ static void mem_cgroup_bind(struct cgrou
+ static u64 memory_current_read(struct cgroup_subsys_state *css,
+ 			       struct cftype *cft)
  {
- 	unsigned long addr = -1;
-@@ -1595,6 +1602,7 @@ struct page *__alloc_buddy_huge_page_no_
- /*
-  * Use the VMA's mpolicy to allocate a huge page from the buddy.
-  */
-+static
- struct page *__alloc_buddy_huge_page_with_mpol(struct hstate *h,
- 		struct vm_area_struct *vma, unsigned long addr)
- {
+-	return mem_cgroup_usage(mem_cgroup_from_css(css), false);
++	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++
++	return (u64)page_counter_read(&memcg->memory) * PAGE_SIZE;
+ }
+ 
+ static int memory_low_show(struct seq_file *m, void *v)
+@@ -5138,6 +5140,7 @@ static int memory_events_show(struct seq
+ static struct cftype memory_files[] = {
+ 	{
+ 		.name = "current",
++		.flags = CFTYPE_NOT_ON_ROOT,
+ 		.read_u64 = memory_current_read,
+ 	},
+ 	{
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
+mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix.patch
 
