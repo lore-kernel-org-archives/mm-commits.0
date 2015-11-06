@@ -1,82 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- powerpc-numa-do-not-allocate-bootmem-memory-for-non-existing-nodes.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 12:07:35 -0800
-Message-ID: <563d0887.im1TrK0GpeYZC0Pm%akpm@linux-foundation.org>
+Subject: [merged] mm-mlock-use-offset_in_page-macro.patch removed from -mm tree
+Date: Fri, 06 Nov 2015 12:07:50 -0800
+Message-ID: <563d0896.tMR1XIC8s3/z5DPa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48680 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48694 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966286AbbKFUHg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:07:36 -0500
+	with ESMTP id S1033223AbbKFUHu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:07:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: raghavendra.kt@linux.vnet.ibm.com, anton@samba.org, benh@kernel.crashing.org, gkurz@linux.vnet.ibm.com, grant.likely@linaro.org, mpe@ellerman.id.au, nacc@linux.vnet.ibm.com, nikunj@linux.vnet.ibm.com, paulus@samba.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: kuleshovmail@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/powerpc/mm/numa.c: do not allocate bootmem memory for non existing nodes
+     Subject: mm/mlock: use offset_in_page macro
 has been removed from the -mm tree.  Its filename was
-     powerpc-numa-do-not-allocate-bootmem-memory-for-non-existing-nodes.patch
+     mm-mlock-use-offset_in_page-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Raghavendra K T <raghavendra.kt@linux.vnet.ibm.com>
-Subject: arch/powerpc/mm/numa.c: do not allocate bootmem memory for non existing nodes
+From: Alexander Kuleshov <kuleshovmail@gmail.com>
+Subject: mm/mlock: use offset_in_page macro
 
-With the setup_nr_nodes(), we have already initialized
-node_possible_map.  So it is safe to use for_each_node here.
+linux/mm.h provides offset_in_page() macro.  Let's use already predefined
+macro instead of (addr & ~PAGE_MASK).
 
-There are many places in the kernel that use hardcoded 'for' loop with
-nr_node_ids, because all other architectures have numa nodes populated
-serially.  That should be reason we had maintained the same for
-powerpc.
-
-But, since sparse numa node ids possible on powerpc, we unnecessarily
-allocate memory for non existent numa nodes.
-
-For e.g., on a system with 0,1,16,17 as numa nodes nr_node_ids=18 and
-we allocate memory for nodes 2-14.  This patch we allocate memory for
-only existing numa nodes.
-
-The patch is boot tested on a 4 node tuleta, confirming with printks
-that it works as expected.
-
-Signed-off-by: Raghavendra K T <raghavendra.kt@linux.vnet.ibm.com>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Anton Blanchard <anton@samba.org>
-Cc: Nishanth Aravamudan <nacc@linux.vnet.ibm.com>
-Cc: Greg Kurz <gkurz@linux.vnet.ibm.com>
-Cc: Grant Likely <grant.likely@linaro.org>
-Cc: Nikunj A Dadhania <nikunj@linux.vnet.ibm.com>
+Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/mm/numa.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mlock.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/powerpc/mm/numa.c~powerpc-numa-do-not-allocate-bootmem-memory-for-non-existing-nodes arch/powerpc/mm/numa.c
---- a/arch/powerpc/mm/numa.c~powerpc-numa-do-not-allocate-bootmem-memory-for-non-existing-nodes
-+++ a/arch/powerpc/mm/numa.c
-@@ -80,7 +80,7 @@ static void __init setup_node_to_cpumask
- 		setup_nr_node_ids();
+diff -puN mm/mlock.c~mm-mlock-use-offset_in_page-macro mm/mlock.c
+--- a/mm/mlock.c~mm-mlock-use-offset_in_page-macro
++++ a/mm/mlock.c
+@@ -560,7 +560,7 @@ static int do_mlock(unsigned long start,
+ 	struct vm_area_struct * vma, * prev;
+ 	int error;
  
- 	/* allocate the map */
--	for (node = 0; node < nr_node_ids; node++)
-+	for_each_node(node)
- 		alloc_bootmem_cpumask_var(&node_to_cpumask_map[node]);
+-	VM_BUG_ON(start & ~PAGE_MASK);
++	VM_BUG_ON(offset_in_page(start));
+ 	VM_BUG_ON(len != PAGE_ALIGN(len));
+ 	end = start + len;
+ 	if (end < start)
+@@ -616,7 +616,7 @@ SYSCALL_DEFINE2(mlock, unsigned long, st
  
- 	/* cpumask_of_node() will now work */
+ 	lru_add_drain_all();	/* flush pagevec */
+ 
+-	len = PAGE_ALIGN(len + (start & ~PAGE_MASK));
++	len = PAGE_ALIGN(len + (offset_in_page(start)));
+ 	start &= PAGE_MASK;
+ 
+ 	lock_limit = rlimit(RLIMIT_MEMLOCK);
+@@ -645,7 +645,7 @@ SYSCALL_DEFINE2(munlock, unsigned long,
+ {
+ 	int ret;
+ 
+-	len = PAGE_ALIGN(len + (start & ~PAGE_MASK));
++	len = PAGE_ALIGN(len + (offset_in_page(start)));
+ 	start &= PAGE_MASK;
+ 
+ 	down_write(&current->mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from raghavendra.kt@linux.vnet.ibm.com are
+Patches currently in -mm which might be from kuleshovmail@gmail.com are
 
+mm-hugetlb-make-node_hstates-array-static.patch
+lib-halfmd4-use-rol32-inline-function-in-the-round-macro.patch
 
