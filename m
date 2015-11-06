@@ -1,80 +1,72 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop.patch removed from
- -mm tree
-Date: Fri, 06 Nov 2015 12:08:57 -0800
-Message-ID: <563d08d9.QpXMrdoXef9nKRHX%akpm@linux-foundation.org>
+ mm-oom_kill-remove-the-wrong-fatal_signal_pending-check-in-oom_kill_process.patch removed from -mm tree
+Date: Fri, 06 Nov 2015 12:08:54 -0800
+Message-ID: <563d08d6.Mvp/oJGR+EXT9Zy0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48824 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48700 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1033727AbbKFUI6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:58 -0500
+	with ESMTP id S1033719AbbKFUIz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, hillf.zj@alibaba-inc.com, kwalker@redhat.com, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, skozina@redhat.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, kwalker@redhat.com, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, skozina@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/oom_kill: cleanup the "kill sharing same memory" loop
+     Subject: mm/oom_kill: remove the wrong fatal_signal_pending() check in oom_kill_process()
 has been removed from the -mm tree.  Its filename was
-     mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop.patch
+     mm-oom_kill-remove-the-wrong-fatal_signal_pending-check-in-oom_kill_process.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: mm/oom_kill: cleanup the "kill sharing same memory" loop
+Subject: mm/oom_kill: remove the wrong fatal_signal_pending() check in oom_kill_process()
 
-Purely cosmetic, but the complex "if" condition looks annoying to me.
-Especially because it is not consistent with OOM_SCORE_ADJ_MIN check
-which adds another if/continue.
+The fatal_signal_pending() was added to suppress unnecessary "sharing same
+memory" message, but it can't 100% help anyway because it can be
+false-negative; SIGKILL can be already dequeued.
+
+And worse, it can be false-positive due to exec or coredump.  exec is
+mostly fine, but coredump is not.  It is possible that the group leader
+has the pending SIGKILL because its sub-thread originated the coredump, in
+this case we must not skip this process.
+
+We could probably add the additional ->group_exit_task check but this
+patch just removes the wrong check along with pr_info().
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
 Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: Kyle Walker <kwalker@redhat.com>
 Cc: Stanislav Kozina <skozina@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ mm/oom_kill.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_kill-cleanup-the-kill-sharing-same-memory-loop
+diff -puN mm/oom_kill.c~mm-oom_kill-remove-the-wrong-fatal_signal_pending-check-in-oom_kill_process mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_kill-remove-the-wrong-fatal_signal_pending-check-in-oom_kill_process
 +++ a/mm/oom_kill.c
-@@ -574,14 +574,18 @@ void oom_kill_process(struct oom_control
- 	 * pending fatal signal.
- 	 */
- 	rcu_read_lock();
--	for_each_process(p)
--		if (p->mm == mm && !same_thread_group(p, victim) &&
--		    !(p->flags & PF_KTHREAD)) {
--			if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
+@@ -579,11 +579,7 @@ void oom_kill_process(struct oom_control
+ 		    !(p->flags & PF_KTHREAD)) {
+ 			if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
+ 				continue;
+-			if (fatal_signal_pending(p))
 -				continue;
-+	for_each_process(p) {
-+		if (p->mm != mm)
-+			continue;
-+		if (same_thread_group(p, victim))
-+			continue;
-+		if (unlikely(p->flags & PF_KTHREAD))
-+			continue;
-+		if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
-+			continue;
  
--			do_send_sig_info(SIGKILL, SEND_SIG_FORCED, p, true);
--		}
-+		do_send_sig_info(SIGKILL, SEND_SIG_FORCED, p, true);
-+	}
+-			pr_info("Kill process %d (%s) sharing same memory\n",
+-				task_pid_nr(p), p->comm);
+ 			do_send_sig_info(SIGKILL, SEND_SIG_FORCED, p, true);
+ 		}
  	rcu_read_unlock();
- 
- 	mmdrop(mm);
 _
 
 Patches currently in -mm which might be from oleg@redhat.com are
