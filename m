@@ -1,108 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-fix-race-between-mount-and-delete-node-cluster.patch removed from -mm tree
-Date: Fri, 06 Nov 2015 12:05:51 -0800
-Message-ID: <563d081f.knyRFRgemvkpobv8%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-improve-performance-for-localalloc.patch removed
+ from -mm tree
+Date: Fri, 06 Nov 2015 12:05:45 -0800
+Message-ID: <563d0819.jfafttHaw8qQpSuI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48456 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48447 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1033242AbbKFUFv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:05:51 -0500
+	with ESMTP id S1033333AbbKFUFp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:05:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, norton.zhu@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix race between mount and delete node/cluster
+     Subject: ocfs2: improve performance for localalloc
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-race-between-mount-and-delete-node-cluster.patch
+     ocfs2-improve-performance-for-localalloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: fix race between mount and delete node/cluster
+Subject: ocfs2: improve performance for localalloc
 
-There is a race case between mount and delete node/cluster, which will
-lead o2hb_thread to malfunctioning dead loop.
+Currently cluster allocation is always trying to find a victim chain (a
+chian has most space), and this may lead to poor performance because of
+discontiguous allocation in some scenarios.
 
-o2hb_thread
-{
-	o2nm_depend_this_node();
-	<<<<<< race window, node may have already been deleted, and then
-	       enter the loop, o2hb thread will be malfunctioning
-	       because of no configured nodes found.
-	while (!kthread_should_stop() &&
-		!reg->hr_unclean_stop && !reg->hr_aborted_start) {
-}
+Our test case is block size 4k, cluster size 1M and mount option with
+localalloc=2048 (2G), since a gd is 32256M (about 31.5G) and a localalloc
+window is only 2G, creating 50G file will result in 2G from gd0, 2G from
+gd1, ...
 
-So check the return value of o2nm_depend_this_node() is needed.  If node
-has been deleted, do not enter the loop and let mount fail.
+One way to improve performance is enlarge localalloc window size (max
+31104M), but this will make end user feel that about 30G is suddenly
+"missing", and localalloc currently do not support steal, which means one
+node cannot use another node's localalloc even it is not used in fact.  So
+using the last gd to record the allocation and continues with the gd if it
+has enough space for a localalloc window can make the allocation as more
+contiguous as possible.
+
+Our test result is below (evaluated in IOPS), which is using iometer
+running in VM, dynamic vhd virtual disk stored in ocfs2.
+
+IO model                Original   After   Improved(%)
+16K60%Write100%Random   703        876     24.59%
+8K90%Write100%Random    735        827     12.59%
+4K100%Write100%Random   859        915     6.52%
+4K100%Read100%Random    2092       2600    24.30%
 
 Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Tested-by: Norton Zhu <norton.zhu@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |   19 ++++++++++++++++---
- 1 file changed, 16 insertions(+), 3 deletions(-)
+ fs/ocfs2/suballoc.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-fix-race-between-mount-and-delete-node-cluster fs/ocfs2/cluster/heartbeat.c
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-fix-race-between-mount-and-delete-node-cluster
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -219,7 +219,8 @@ struct o2hb_region {
- 	unsigned		hr_unclean_stop:1,
- 				hr_aborted_start:1,
- 				hr_item_pinned:1,
--				hr_item_dropped:1;
-+				hr_item_dropped:1,
-+				hr_node_deleted:1;
- 
- 	/* protected by the hr_callback_sem */
- 	struct task_struct 	*hr_task;
-@@ -1078,7 +1079,13 @@ static int o2hb_thread(void *data)
- 	set_user_nice(current, MIN_NICE);
- 
- 	/* Pin node */
--	o2nm_depend_this_node();
-+	ret = o2nm_depend_this_node();
-+	if (ret) {
-+		mlog(ML_ERROR, "Node has been deleted, ret = %d\n", ret);
-+		reg->hr_node_deleted = 1;
-+		wake_up(&o2hb_steady_queue);
-+		return 0;
-+	}
- 
- 	while (!kthread_should_stop() &&
- 	       !reg->hr_unclean_stop && !reg->hr_aborted_start) {
-@@ -1787,7 +1794,8 @@ static ssize_t o2hb_region_dev_write(str
- 	spin_unlock(&o2hb_live_lock);
- 
- 	ret = wait_event_interruptible(o2hb_steady_queue,
--				atomic_read(&reg->hr_steady_iterations) == 0);
-+				atomic_read(&reg->hr_steady_iterations) == 0 ||
-+				reg->hr_node_deleted);
- 	if (ret) {
- 		atomic_set(&reg->hr_steady_iterations, 0);
- 		reg->hr_aborted_start = 1;
-@@ -1798,6 +1806,11 @@ static ssize_t o2hb_region_dev_write(str
- 		goto out3;
+diff -puN fs/ocfs2/suballoc.c~ocfs2-improve-performance-for-localalloc fs/ocfs2/suballoc.c
+--- a/fs/ocfs2/suballoc.c~ocfs2-improve-performance-for-localalloc
++++ a/fs/ocfs2/suballoc.c
+@@ -1920,7 +1920,10 @@ static int ocfs2_claim_suballoc_bits(str
+ 	status = ocfs2_search_chain(ac, handle, bits_wanted, min_bits,
+ 				    res, &bits_left);
+ 	if (!status) {
+-		hint = ocfs2_group_from_res(res);
++		if (ocfs2_is_cluster_bitmap(ac->ac_inode))
++			hint = res->sr_bg_blkno;
++		else
++			hint = ocfs2_group_from_res(res);
+ 		goto set_hint;
  	}
- 
-+	if (reg->hr_node_deleted) {
-+		ret = -EINVAL;
-+		goto out3;
-+	}
-+
- 	/* Ok, we were woken.  Make sure it wasn't by drop_item() */
- 	spin_lock(&o2hb_live_lock);
- 	hb_task = reg->hr_task;
+ 	if (status < 0 && status != -ENOSPC) {
 _
 
 Patches currently in -mm which might be from joseph.qi@huawei.com are
