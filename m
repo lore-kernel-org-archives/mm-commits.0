@@ -1,93 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- watchdog-remove-getput_online_cpus-from-watchdog_parkunpark_threads.patch
+Subject: [merged] mm-slab-convert-slab_is_available-to-boolean.patch
  removed from -mm tree
-Date: Fri, 06 Nov 2015 12:06:24 -0800
-Message-ID: <563d0840.bTsIh70uF/E8OnxS%akpm@linux-foundation.org>
+Date: Fri, 06 Nov 2015 12:06:28 -0800
+Message-ID: <563d0844.viYqAgT1SChfj8Gw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48507 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48511 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1032971AbbKFUGY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:06:24 -0500
+	with ESMTP id S1033447AbbKFUG2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:06:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: uobergfe@redhat.com, atomlin@redhat.com, dzickus@redhat.com, mm-commits@vger.kernel.org
+To: kda@linux-powerpc.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/watchdog.c: remove {get|put}_online_cpus() from watchdog_{park|unpark}_threads()
+     Subject: slab: convert slab_is_available() to boolean
 has been removed from the -mm tree.  Its filename was
-     watchdog-remove-getput_online_cpus-from-watchdog_parkunpark_threads.patch
+     mm-slab-convert-slab_is_available-to-boolean.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ulrich Obergfell <uobergfe@redhat.com>
-Subject: kernel/watchdog.c: remove {get|put}_online_cpus() from watchdog_{park|unpark}_threads()
+From: Denis Kirjanov <kda@linux-powerpc.org>
+Subject: slab: convert slab_is_available() to boolean
 
-watchdog_{park|unpark}_threads() are now called in code paths that protect
-themselves against CPU hotplug, so {get|put}_online_cpus() calls are
-redundant and can be removed.
+A good candidate to return a boolean result.
 
-Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
-Acked-by: Don Zickus <dzickus@redhat.com>
-Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
+Cc: Christoph Lameter <cl@linux.com>
+Reviewed-by: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/linux/slab.h |    2 +-
+ mm/slab_common.c     |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/watchdog.c~watchdog-remove-getput_online_cpus-from-watchdog_parkunpark_threads kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-remove-getput_online_cpus-from-watchdog_parkunpark_threads
-+++ a/kernel/watchdog.c
-@@ -683,33 +683,35 @@ static struct smp_hotplug_thread watchdo
-  * be parked and the watchdog threads of other CPUs can still be runnable.
-  * Callers are expected to handle this special condition as appropriate in
-  * their context.
-+ *
-+ * This function may only be called in a context that is protected against
-+ * races with CPU hotplug - for example, via get_online_cpus().
+diff -puN include/linux/slab.h~mm-slab-convert-slab_is_available-to-boolean include/linux/slab.h
+--- a/include/linux/slab.h~mm-slab-convert-slab_is_available-to-boolean
++++ a/include/linux/slab.h
+@@ -111,7 +111,7 @@ struct mem_cgroup;
+  * struct kmem_cache related prototypes
   */
- static int watchdog_park_threads(void)
- {
- 	int cpu, ret = 0;
+ void __init kmem_cache_init(void);
+-int slab_is_available(void);
++bool slab_is_available(void);
  
--	get_online_cpus();
- 	for_each_watchdog_cpu(cpu) {
- 		ret = kthread_park(per_cpu(softlockup_watchdog, cpu));
- 		if (ret)
- 			break;
- 	}
--	put_online_cpus();
- 
- 	return ret;
+ struct kmem_cache *kmem_cache_create(const char *, size_t, size_t,
+ 			unsigned long,
+diff -puN mm/slab_common.c~mm-slab-convert-slab_is_available-to-boolean mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-convert-slab_is_available-to-boolean
++++ a/mm/slab_common.c
+@@ -692,7 +692,7 @@ int kmem_cache_shrink(struct kmem_cache
  }
+ EXPORT_SYMBOL(kmem_cache_shrink);
  
- /*
-  * unpark all watchdog threads that are specified in 'watchdog_cpumask'
-+ *
-+ * This function may only be called in a context that is protected against
-+ * races with CPU hotplug - for example, via get_online_cpus().
-  */
- static void watchdog_unpark_threads(void)
+-int slab_is_available(void)
++bool slab_is_available(void)
  {
- 	int cpu;
- 
--	get_online_cpus();
- 	for_each_watchdog_cpu(cpu)
- 		kthread_unpark(per_cpu(softlockup_watchdog, cpu));
--	put_online_cpus();
+ 	return slab_state >= UP;
  }
- 
- /*
 _
 
-Patches currently in -mm which might be from uobergfe@redhat.com are
+Patches currently in -mm which might be from kda@linux-powerpc.org are
 
 
