@@ -1,64 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-clearing-pte-in-clear_soft_dirty.patch removed from
- -mm tree
-Date: Fri, 06 Nov 2015 12:16:19 -0800
-Message-ID: <563d0a93.k6RcgJdnv8ukzNpe%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-mmapc-change-static-function-__install_special_mapping-args-order.patch
+ removed from -mm tree
+Date: Fri, 06 Nov 2015 12:15:49 -0800
+Message-ID: <563d0a75.UYLe5MSkQDG7Pwpa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48922 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48858 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1162953AbbKFUQT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:16:19 -0500
+	with ESMTP id S1031654AbbKFUPt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:15:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ldufour@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, mpe@ellerman.id.au, paulus@samba.org, xemul@parallels.com, mm-commits@vger.kernel.org
+To: gang.chen.5i5j@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: clear pte in clear_soft_dirty()
+     Subject: mm/mmap.c: change __install_special_mapping() args order
 has been removed from the -mm tree.  Its filename was
-     mm-clearing-pte-in-clear_soft_dirty.patch
+     mm-mmapc-change-static-function-__install_special_mapping-args-order.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-Subject: mm: clear pte in clear_soft_dirty()
+From: Chen Gang <gang.chen.5i5j@gmail.com>
+Subject: mm/mmap.c: change __install_special_mapping() args order
 
-As mentioned in the commit 56eecdb912b5 ("mm: Use ptep/pmdp_set_numa() for
-updating _PAGE_NUMA bit"), architectures like ppc64 don't do tlb flush in
-set_pte/pmd functions.
+Make __install_special_mapping() args order match the caller, so the
+caller can pass their register args directly to callee with no touch.
 
-So when dealing with existing pte in clear_soft_dirty, the pte must be
-cleared before being modified.
+For most of architectures, args (at least the first 5th args) are in
+registers, so this change will have effect on most of architectures.
 
-Signed-off-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Pavel Emelyanov <xemul@parallels.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
+For -O2, __install_special_mapping() may be inlined under most of
+architectures, but for -Os, it should not. So this change can get a
+little better performance for -Os, at least.
+
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/mmap.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~mm-clearing-pte-in-clear_soft_dirty fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-clearing-pte-in-clear_soft_dirty
-+++ a/fs/proc/task_mmu.c
-@@ -792,19 +792,20 @@ static inline void clear_soft_dirty(stru
- 	pte_t ptent = *pte;
+diff -puN mm/mmap.c~mm-mmapc-change-static-function-__install_special_mapping-args-order mm/mmap.c
+--- a/mm/mmap.c~mm-mmapc-change-static-function-__install_special_mapping-args-order
++++ a/mm/mmap.c
+@@ -3052,8 +3052,8 @@ static int special_mapping_fault(struct
+ static struct vm_area_struct *__install_special_mapping(
+ 	struct mm_struct *mm,
+ 	unsigned long addr, unsigned long len,
+-	unsigned long vm_flags, const struct vm_operations_struct *ops,
+-	void *priv)
++	unsigned long vm_flags, void *priv,
++	const struct vm_operations_struct *ops)
+ {
+ 	int ret;
+ 	struct vm_area_struct *vma;
+@@ -3102,8 +3102,8 @@ struct vm_area_struct *_install_special_
+ 	unsigned long addr, unsigned long len,
+ 	unsigned long vm_flags, const struct vm_special_mapping *spec)
+ {
+-	return __install_special_mapping(mm, addr, len, vm_flags,
+-					 &special_mapping_vmops, (void *)spec);
++	return __install_special_mapping(mm, addr, len, vm_flags, (void *)spec,
++					&special_mapping_vmops);
+ }
  
- 	if (pte_present(ptent)) {
-+		ptent = ptep_modify_prot_start(vma->vm_mm, addr, pte);
- 		ptent = pte_wrprotect(ptent);
- 		ptent = pte_clear_soft_dirty(ptent);
-+		ptep_modify_prot_commit(vma->vm_mm, addr, pte, ptent);
- 	} else if (is_swap_pte(ptent)) {
- 		ptent = pte_swp_clear_soft_dirty(ptent);
-+		set_pte_at(vma->vm_mm, addr, pte, ptent);
- 	}
+ int install_special_mapping(struct mm_struct *mm,
+@@ -3111,8 +3111,8 @@ int install_special_mapping(struct mm_st
+ 			    unsigned long vm_flags, struct page **pages)
+ {
+ 	struct vm_area_struct *vma = __install_special_mapping(
+-		mm, addr, len, vm_flags, &legacy_special_mapping_vmops,
+-		(void *)pages);
++		mm, addr, len, vm_flags, (void *)pages,
++		&legacy_special_mapping_vmops);
+ 
+ 	return PTR_ERR_OR_ZERO(vma);
+ }
+_
+
+Patches currently in -mm which might be from gang.chen.5i5j@gmail.com are
+
+
