@@ -1,7 +1,8 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-mlock-use-offset_in_page-macro.patch removed from -mm tree
-Date: Fri, 06 Nov 2015 12:07:50 -0800
-Message-ID: <563d0896.tMR1XIC8s3/z5DPa%akpm@linux-foundation.org>
+Subject: [merged] mm-percpu-use-offset_in_page-macro.patch removed from
+ -mm tree
+Date: Fri, 06 Nov 2015 12:07:46 -0800
+Message-ID: <563d0892.7kErkBrD6Qh1RHlB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -9,64 +10,72 @@ Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:48694 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1033223AbbKFUHu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:07:50 -0500
+	with ESMTP id S1033511AbbKFUHq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:07:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kuleshovmail@gmail.com, mm-commits@vger.kernel.org
+To: kuleshovmail@gmail.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mlock: use offset_in_page macro
+     Subject: mm/percpu: use offset_in_page macro
 has been removed from the -mm tree.  Its filename was
-     mm-mlock-use-offset_in_page-macro.patch
+     mm-percpu-use-offset_in_page-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alexander Kuleshov <kuleshovmail@gmail.com>
-Subject: mm/mlock: use offset_in_page macro
+Subject: mm/percpu: use offset_in_page macro
 
 linux/mm.h provides offset_in_page() macro.  Let's use already predefined
 macro instead of (addr & ~PAGE_MASK).
 
 Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
+Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/percpu.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/mlock.c~mm-mlock-use-offset_in_page-macro mm/mlock.c
---- a/mm/mlock.c~mm-mlock-use-offset_in_page-macro
-+++ a/mm/mlock.c
-@@ -560,7 +560,7 @@ static int do_mlock(unsigned long start,
- 	struct vm_area_struct * vma, * prev;
- 	int error;
+diff -puN mm/percpu.c~mm-percpu-use-offset_in_page-macro mm/percpu.c
+--- a/mm/percpu.c~mm-percpu-use-offset_in_page-macro
++++ a/mm/percpu.c
+@@ -1554,12 +1554,12 @@ int __init pcpu_setup_first_chunk(const
+ 	PCPU_SETUP_BUG_ON(ai->nr_groups <= 0);
+ #ifdef CONFIG_SMP
+ 	PCPU_SETUP_BUG_ON(!ai->static_size);
+-	PCPU_SETUP_BUG_ON((unsigned long)__per_cpu_start & ~PAGE_MASK);
++	PCPU_SETUP_BUG_ON(offset_in_page(__per_cpu_start));
+ #endif
+ 	PCPU_SETUP_BUG_ON(!base_addr);
+-	PCPU_SETUP_BUG_ON((unsigned long)base_addr & ~PAGE_MASK);
++	PCPU_SETUP_BUG_ON(offset_in_page(base_addr));
+ 	PCPU_SETUP_BUG_ON(ai->unit_size < size_sum);
+-	PCPU_SETUP_BUG_ON(ai->unit_size & ~PAGE_MASK);
++	PCPU_SETUP_BUG_ON(offset_in_page(ai->unit_size));
+ 	PCPU_SETUP_BUG_ON(ai->unit_size < PCPU_MIN_UNIT_SIZE);
+ 	PCPU_SETUP_BUG_ON(ai->dyn_size < PERCPU_DYNAMIC_EARLY_SIZE);
+ 	PCPU_SETUP_BUG_ON(pcpu_verify_alloc_info(ai) < 0);
+@@ -1806,7 +1806,7 @@ static struct pcpu_alloc_info * __init p
  
--	VM_BUG_ON(start & ~PAGE_MASK);
-+	VM_BUG_ON(offset_in_page(start));
- 	VM_BUG_ON(len != PAGE_ALIGN(len));
- 	end = start + len;
- 	if (end < start)
-@@ -616,7 +616,7 @@ SYSCALL_DEFINE2(mlock, unsigned long, st
+ 	alloc_size = roundup(min_unit_size, atom_size);
+ 	upa = alloc_size / min_unit_size;
+-	while (alloc_size % upa || ((alloc_size / upa) & ~PAGE_MASK))
++	while (alloc_size % upa || (offset_in_page(alloc_size / upa)))
+ 		upa--;
+ 	max_upa = upa;
  
- 	lru_add_drain_all();	/* flush pagevec */
+@@ -1838,7 +1838,7 @@ static struct pcpu_alloc_info * __init p
+ 	for (upa = max_upa; upa; upa--) {
+ 		int allocs = 0, wasted = 0;
  
--	len = PAGE_ALIGN(len + (start & ~PAGE_MASK));
-+	len = PAGE_ALIGN(len + (offset_in_page(start)));
- 	start &= PAGE_MASK;
+-		if (alloc_size % upa || ((alloc_size / upa) & ~PAGE_MASK))
++		if (alloc_size % upa || (offset_in_page(alloc_size / upa)))
+ 			continue;
  
- 	lock_limit = rlimit(RLIMIT_MEMLOCK);
-@@ -645,7 +645,7 @@ SYSCALL_DEFINE2(munlock, unsigned long,
- {
- 	int ret;
- 
--	len = PAGE_ALIGN(len + (start & ~PAGE_MASK));
-+	len = PAGE_ALIGN(len + (offset_in_page(start)));
- 	start &= PAGE_MASK;
- 
- 	down_write(&current->mm->mmap_sem);
+ 		for (group = 0; group < nr_groups; group++) {
 _
 
 Patches currently in -mm which might be from kuleshovmail@gmail.com are
