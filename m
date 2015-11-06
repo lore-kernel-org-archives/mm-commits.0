@@ -1,102 +1,110 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 12:08:03 -0800
-Message-ID: <563d08a3.V+JYAi1BkYQX5hup%akpm@linux-foundation.org>
+ mm-compaction-add-an-is_via_compact_memory-helper-function.patch removed
+ from -mm tree
+Date: Fri, 06 Nov 2015 12:08:14 -0800
+Message-ID: <563d08ae.ckbf5WFdxyLDQwxY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48714 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48700 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1033601AbbKFUID (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:03 -0500
+	with ESMTP id S1033688AbbKFUIO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, mm-commits@vger.kernel.org
+To: bywxiaobai@163.com, mgorman@techsingularity.net, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: remove unused parameter in init_currently_empty_zone()
+     Subject: mm/compaction.c: add an is_via_compact_memory() helper
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone.patch
+     mm-compaction-add-an-is_via_compact_memory-helper-function.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Yaowei Bai <bywxiaobai@163.com>
-Subject: mm/page_alloc: remove unused parameter in init_currently_empty_zone()
+Subject: mm/compaction.c: add an is_via_compact_memory() helper
 
-Commit a2f3aa02576632cdb ("[PATCH] Fix sparsemem on Cell") fixed an oops
-experienced on the Cell architecture when init-time functions, early_*(),
-are called at runtime by introducing an 'enum memmap_context' parameter to
-memmap_init_zone() and init_currently_empty_zone().  This parameter is
-intended to be used to tell whether the call of these two functions is
-being made on behalf of a hotplug event, or happening at boot-time. 
-However, init_currently_empty_zone() does not use this parameter at all,
-so remove it.
+Introduce is_via_compact_memory() helper indicating compacting via
+/proc/sys/vm/compact_memory to improve readability.
+
+To catch this situation in __compaction_suitable, use order as parameter
+directly instead of using struct compact_control.
+
+This patch has no functional changes.
 
 Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    3 +--
- mm/memory_hotplug.c    |    4 ++--
- mm/page_alloc.c        |    6 ++----
- 3 files changed, 5 insertions(+), 8 deletions(-)
+ mm/compaction.c |   26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/mmzone.h~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone
-+++ a/include/linux/mmzone.h
-@@ -823,8 +823,7 @@ enum memmap_context {
- 	MEMMAP_HOTPLUG,
- };
- extern int init_currently_empty_zone(struct zone *zone, unsigned long start_pfn,
--				     unsigned long size,
--				     enum memmap_context context);
-+				     unsigned long size);
- 
- extern void lruvec_init(struct lruvec *lruvec);
- 
-diff -puN mm/memory_hotplug.c~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone
-+++ a/mm/memory_hotplug.c
-@@ -339,8 +339,8 @@ static int __ref ensure_zone_is_initiali
- 			unsigned long start_pfn, unsigned long num_pages)
- {
- 	if (!zone_is_initialized(zone))
--		return init_currently_empty_zone(zone, start_pfn, num_pages,
--						 MEMMAP_HOTPLUG);
-+		return init_currently_empty_zone(zone, start_pfn, num_pages);
-+
- 	return 0;
+diff -puN mm/compaction.c~mm-compaction-add-an-is_via_compact_memory-helper-function mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-add-an-is_via_compact_memory-helper-function
++++ a/mm/compaction.c
+@@ -1197,6 +1197,15 @@ static isolate_migrate_t isolate_migrate
+ 	return cc->nr_migratepages ? ISOLATE_SUCCESS : ISOLATE_NONE;
  }
  
-diff -puN mm/page_alloc.c~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-remove-unused-parameter-in-init_currently_empty_zone
-+++ a/mm/page_alloc.c
-@@ -4900,8 +4900,7 @@ static __meminit void zone_pcp_init(stru
- 
- int __meminit init_currently_empty_zone(struct zone *zone,
- 					unsigned long zone_start_pfn,
--					unsigned long size,
--					enum memmap_context context)
-+					unsigned long size)
++/*
++ * order == -1 is expected when compacting via
++ * /proc/sys/vm/compact_memory
++ */
++static inline bool is_via_compact_memory(int order)
++{
++	return order == -1;
++}
++
+ static int __compact_finished(struct zone *zone, struct compact_control *cc,
+ 			    const int migratetype)
  {
- 	struct pglist_data *pgdat = zone->zone_pgdat;
- 	int ret;
-@@ -5413,8 +5412,7 @@ static void __paginginit free_area_init_
+@@ -1223,11 +1232,7 @@ static int __compact_finished(struct zon
+ 		return COMPACT_COMPLETE;
+ 	}
  
- 		set_pageblock_order();
- 		setup_usemap(pgdat, zone, zone_start_pfn, size);
--		ret = init_currently_empty_zone(zone, zone_start_pfn,
--						size, MEMMAP_EARLY);
-+		ret = init_currently_empty_zone(zone, zone_start_pfn, size);
- 		BUG_ON(ret);
- 		memmap_init(size, nid, j, zone_start_pfn);
- 		zone_start_pfn += size;
+-	/*
+-	 * order == -1 is expected when compacting via
+-	 * /proc/sys/vm/compact_memory
+-	 */
+-	if (cc->order == -1)
++	if (is_via_compact_memory(cc->order))
+ 		return COMPACT_CONTINUE;
+ 
+ 	/* Compaction run is not finished if the watermark is not met */
+@@ -1290,11 +1295,7 @@ static unsigned long __compaction_suitab
+ 	int fragindex;
+ 	unsigned long watermark;
+ 
+-	/*
+-	 * order == -1 is expected when compacting via
+-	 * /proc/sys/vm/compact_memory
+-	 */
+-	if (order == -1)
++	if (is_via_compact_memory(order))
+ 		return COMPACT_CONTINUE;
+ 
+ 	watermark = low_wmark_pages(zone);
+@@ -1658,10 +1659,11 @@ static void __compact_pgdat(pg_data_t *p
+ 		 * this makes sure we compact the whole zone regardless of
+ 		 * cached scanner positions.
+ 		 */
+-		if (cc->order == -1)
++		if (is_via_compact_memory(cc->order))
+ 			__reset_isolation_suitable(zone);
+ 
+-		if (cc->order == -1 || !compaction_deferred(zone, cc->order))
++		if (is_via_compact_memory(cc->order) ||
++				!compaction_deferred(zone, cc->order))
+ 			compact_zone(zone, cc);
+ 
+ 		if (cc->order > 0) {
 _
 
 Patches currently in -mm which might be from bywxiaobai@163.com are
