@@ -1,56 +1,84 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-kasan-dont-use-kasan-shadow-pointer-in-generic-functions.patch removed
- from -mm tree
-Date: Fri, 06 Nov 2015 12:17:31 -0800
-Message-ID: <563d0adb.rarPzIOJTapELHkR%akpm@linux-foundation.org>
+ kasan-accurately-determine-the-type-of-the-bad-access.patch removed from
+ -mm tree
+Date: Fri, 06 Nov 2015 12:17:39 -0800
+Message-ID: <563d0ae3.Vwp2nbWL8jmULHgi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49102 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49114 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1162871AbbKFURb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:31 -0500
+	with ESMTP id S1162900AbbKFURk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
+To: andreyknvl@google.com, dvyukov@google.com, glider@google.com, kcc@google.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/kasan: don't use kasan shadow pointer in generic functions
+     Subject: kasan: accurately determine the type of the bad access
 has been removed from the -mm tree.  Its filename was
-     mm-kasan-dont-use-kasan-shadow-pointer-in-generic-functions.patch
+     kasan-accurately-determine-the-type-of-the-bad-access.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/kasan: don't use kasan shadow pointer in generic functions
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: accurately determine the type of the bad access
 
-We can't use generic functions like print_hex_dump to access kasan shadow
-region.  This require us to setup another kasan shadow region for the
-address passed (kasan shadow address).  Some architectures won't be able
-to do that.  Hence make a copy of the shadow region row and pass that to
-generic functions.
+Makes KASAN accurately determine the type of the bad access. If the shadow
+byte value is in the [0, KASAN_SHADOW_SCALE_SIZE) range we can look at
+the next shadow byte to determine the type of the access.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Reviewed-by: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Konstantin Serebryany <kcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/report.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
+ mm/kasan/report.c |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN mm/kasan/report.c~mm-kasan-dont-use-kasan-shadow-pointer-in-generic-functions mm/kasan/report.c
---- a/mm/kasan/report.c~mm-kasan-dont-use-kasan-shadow-pointer-in-generic-functions
+diff -puN mm/kasan/report.c~kasan-accurately-determine-the-type-of-the-bad-access mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-accurately-determine-the-type-of-the-bad-access
 +++ a/mm/kasan/report.c
-@@ -164,14 +164,20 @@ static void print_shadow_for_address(con
- 	for (i = -SHADOW_ROWS_AROUND_ADDR; i <= SHADOW_ROWS_AROUND_ADDR; i++) {
- 		const void *kaddr = kasan_shadow_to_mem(shadow_row);
- 		char buffer[4 + (BITS_PER_LONG/8)*2];
-+		char shadow_buf[SHADOW_BYTES_PER_ROW];
+@@ -50,15 +50,26 @@ static const void *find_first_bad_addr(c
+ static void print_error_description(struct kasan_access_info *info)
+ {
+ 	const char *bug_type = "unknown-crash";
+-	u8 shadow_val;
++	u8 *shadow_addr;
  
- 		snprintf(buffer, sizeof(buffer),
- 			(i == 0) ? ">%p: " : " %p: ", kaddr);
+ 	info->first_bad_addr = find_first_bad_addr(info->access_addr,
+ 						info->access_size);
+ 
+-	shadow_val = *(u8 *)kasan_mem_to_shadow(info->first_bad_addr);
++	shadow_addr = (u8 *)kasan_mem_to_shadow(info->first_bad_addr);
+ 
+-	switch (shadow_val) {
++	/*
++	 * If shadow byte value is in [0, KASAN_SHADOW_SCALE_SIZE) we can look
++	 * at the next shadow byte to determine the type of the bad access.
++	 */
++	if (*shadow_addr > 0 && *shadow_addr <= KASAN_SHADOW_SCALE_SIZE - 1)
++		shadow_addr++;
++
++	switch (*shadow_addr) {
+ 	case 0 ... KASAN_SHADOW_SCALE_SIZE - 1:
++		/*
++		 * In theory it's still possible to see these shadow values
++		 * due to a data race in the kernel code.
++		 */
+ 		bug_type = "out-of-bounds";
+ 		break;
+ 	case KASAN_PAGE_REDZONE:
+_
+
+Patches currently in -mm which might be from andreyknvl@google.com are
+
+
