@@ -1,246 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hugetlb-use-memory-policy-when-available.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 12:17:07 -0800
-Message-ID: <563d0ac3.mJa3ktG9xH47loXY%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-page_counter-let-page_counter_try_charge-return-bool.patch removed from
+ -mm tree
+Date: Fri, 06 Nov 2015 12:17:14 -0800
+Message-ID: <563d0aca.MmrjxLDJeyFQrYBA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49062 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49076 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161895AbbKFURI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:08 -0500
+	with ESMTP id S1162924AbbKFURO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.hansen@linux.intel.com, hillf.zj@alibaba-inc.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugetlb: use memory policy when available
+     Subject: mm: page_counter: let page_counter_try_charge() return bool
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-use-memory-policy-when-available.patch
+     mm-page_counter-let-page_counter_try_charge-return-bool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: mm, hugetlb: use memory policy when available
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_counter: let page_counter_try_charge() return bool
 
-I have a hugetlbfs user which is never explicitly allocating huge pages
-with 'nr_hugepages'.  They only set 'nr_overcommit_hugepages' and then let
-the pages be allocated from the buddy allocator at fault time.
+page_counter_try_charge() currently returns 0 on success and -ENOMEM on
+failure, which is surprising behavior given the function name.
 
-This works, but they noticed that mbind() was not doing them any good and
-the pages were being allocated without respect for the policy they
-specified.
+Make it follow the expected pattern of try_stuff() functions that return a
+boolean true to indicate success, or false for failure.
 
-The code in question is this:
-
-> struct page *alloc_huge_page(struct vm_area_struct *vma,
-...
->         page = dequeue_huge_page_vma(h, vma, addr, avoid_reserve, gbl_chg);
->         if (!page) {
->                 page = alloc_buddy_huge_page(h, NUMA_NO_NODE);
-
-dequeue_huge_page_vma() is smart and will respect the VMA's memory policy.
- But, it only grabs _existing_ huge pages from the huge page pool.  If the
-pool is empty, we fall back to alloc_buddy_huge_page() which obviously
-can't do anything with the VMA's policy because it isn't even passed the
-VMA.
-
-Almost everybody preallocates huge pages.  That's probably why nobody has
-ever noticed this.  Looking back at the git history, I don't think this
-_ever_ worked from when alloc_buddy_huge_page() was introduced in
-7893d1d5, 8 years ago.
-
-The fix is to pass vma/addr down in to the places where we actually call
-in to the buddy allocator.  It's fairly straightforward plumbing.  This
-has been lightly tested.
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: David Rientjes <rientjes@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |  116 +++++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 104 insertions(+), 12 deletions(-)
+ include/linux/page_counter.h |    6 +++---
+ mm/hugetlb_cgroup.c          |    3 ++-
+ mm/memcontrol.c              |   11 +++++------
+ mm/page_counter.c            |   14 +++++++-------
+ 4 files changed, 17 insertions(+), 17 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-use-memory-policy-when-available mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-use-memory-policy-when-available
-+++ a/mm/hugetlb.c
-@@ -1437,7 +1437,76 @@ void dissolve_free_huge_pages(unsigned l
- 		dissolve_free_huge_page(pfn_to_page(pfn));
- }
+diff -puN include/linux/page_counter.h~mm-page_counter-let-page_counter_try_charge-return-bool include/linux/page_counter.h
+--- a/include/linux/page_counter.h~mm-page_counter-let-page_counter_try_charge-return-bool
++++ a/include/linux/page_counter.h
+@@ -36,9 +36,9 @@ static inline unsigned long page_counter
  
--static struct page *alloc_buddy_huge_page(struct hstate *h, int nid)
-+/*
-+ * There are 3 ways this can get called:
-+ * 1. With vma+addr: we use the VMA's memory policy
-+ * 2. With !vma, but nid=NUMA_NO_NODE:  We try to allocate a huge
-+ *    page from any node, and let the buddy allocator itself figure
-+ *    it out.
-+ * 3. With !vma, but nid!=NUMA_NO_NODE.  We allocate a huge page
-+ *    strictly from 'nid'
-+ */
-+static struct page *__hugetlb_alloc_buddy_huge_page(struct hstate *h,
-+		struct vm_area_struct *vma, unsigned long addr, int nid)
-+{
-+	int order = huge_page_order(h);
-+	gfp_t gfp = htlb_alloc_mask(h)|__GFP_COMP|__GFP_REPEAT|__GFP_NOWARN;
-+	unsigned int cpuset_mems_cookie;
-+
-+	/*
-+	 * We need a VMA to get a memory policy.  If we do not
-+	 * have one, we use the 'nid' argument
-+	 */
-+	if (!vma) {
-+		/*
-+		 * If a specific node is requested, make sure to
-+		 * get memory from there, but only when a node
-+		 * is explicitly specified.
-+		 */
-+		if (nid != NUMA_NO_NODE)
-+			gfp |= __GFP_THISNODE;
-+		/*
-+		 * Make sure to call something that can handle
-+		 * nid=NUMA_NO_NODE
-+		 */
-+		return alloc_pages_node(nid, gfp, order);
-+	}
-+
-+	/*
-+	 * OK, so we have a VMA.  Fetch the mempolicy and try to
-+	 * allocate a huge page with it.
-+	 */
-+	do {
-+		struct page *page;
-+		struct mempolicy *mpol;
-+		struct zonelist *zl;
-+		nodemask_t *nodemask;
-+
-+		cpuset_mems_cookie = read_mems_allowed_begin();
-+		zl = huge_zonelist(vma, addr, gfp, &mpol, &nodemask);
-+		mpol_cond_put(mpol);
-+		page = __alloc_pages_nodemask(gfp, order, zl, nodemask);
-+		if (page)
-+			return page;
-+	} while (read_mems_allowed_retry(cpuset_mems_cookie));
-+
-+	return NULL;
-+}
-+
-+/*
-+ * There are two ways to allocate a huge page:
-+ * 1. When you have a VMA and an address (like a fault)
-+ * 2. When you have no VMA (like when setting /proc/.../nr_hugepages)
-+ *
-+ * 'vma' and 'addr' are only for (1).  'nid' is always NUMA_NO_NODE in
-+ * this case which signifies that the allocation should be done with
-+ * respect for the VMA's memory policy.
-+ *
-+ * For (2), we ignore 'vma' and 'addr' and use 'nid' exclusively. This
-+ * implies that memory policies will not be taken in to account.
-+ */
-+static struct page *__alloc_buddy_huge_page(struct hstate *h,
-+		struct vm_area_struct *vma, unsigned long addr, int nid)
- {
- 	struct page *page;
- 	unsigned int r_nid;
-@@ -1446,6 +1515,15 @@ static struct page *alloc_buddy_huge_pag
- 		return NULL;
- 
- 	/*
-+	 * Make sure that anyone specifying 'nid' is not also specifying a VMA.
-+	 * This makes sure the caller is picking _one_ of the modes with which
-+	 * we can call this function, not both.
-+	 */
-+	if (vma || (addr != -1)) {
-+		WARN_ON_ONCE(addr == -1);
-+		WARN_ON_ONCE(nid != NUMA_NO_NODE);
-+	}
-+	/*
- 	 * Assume we will successfully allocate the surplus page to
- 	 * prevent racing processes from causing the surplus to exceed
- 	 * overcommit
-@@ -1478,14 +1556,7 @@ static struct page *alloc_buddy_huge_pag
+ void page_counter_cancel(struct page_counter *counter, unsigned long nr_pages);
+ void page_counter_charge(struct page_counter *counter, unsigned long nr_pages);
+-int page_counter_try_charge(struct page_counter *counter,
+-			    unsigned long nr_pages,
+-			    struct page_counter **fail);
++bool page_counter_try_charge(struct page_counter *counter,
++			     unsigned long nr_pages,
++			     struct page_counter **fail);
+ void page_counter_uncharge(struct page_counter *counter, unsigned long nr_pages);
+ int page_counter_limit(struct page_counter *counter, unsigned long limit);
+ int page_counter_memparse(const char *buf, const char *max,
+diff -puN mm/hugetlb_cgroup.c~mm-page_counter-let-page_counter_try_charge-return-bool mm/hugetlb_cgroup.c
+--- a/mm/hugetlb_cgroup.c~mm-page_counter-let-page_counter_try_charge-return-bool
++++ a/mm/hugetlb_cgroup.c
+@@ -186,7 +186,8 @@ again:
  	}
- 	spin_unlock(&hugetlb_lock);
+ 	rcu_read_unlock();
  
--	if (nid == NUMA_NO_NODE)
--		page = alloc_pages(htlb_alloc_mask(h)|__GFP_COMP|
--				   __GFP_REPEAT|__GFP_NOWARN,
--				   huge_page_order(h));
--	else
--		page = __alloc_pages_node(nid,
--			htlb_alloc_mask(h)|__GFP_COMP|__GFP_THISNODE|
--			__GFP_REPEAT|__GFP_NOWARN, huge_page_order(h));
-+	page = __hugetlb_alloc_buddy_huge_page(h, vma, addr, nid);
+-	ret = page_counter_try_charge(&h_cg->hugepage[idx], nr_pages, &counter);
++	if (!page_counter_try_charge(&h_cg->hugepage[idx], nr_pages, &counter))
++		ret = -ENOMEM;
+ 	css_put(&h_cg->css);
+ done:
+ 	*ptr = h_cg;
+diff -puN mm/memcontrol.c~mm-page_counter-let-page_counter_try_charge-return-bool mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-page_counter-let-page_counter_try_charge-return-bool
++++ a/mm/memcontrol.c
+@@ -2016,8 +2016,8 @@ retry:
+ 		return 0;
  
- 	spin_lock(&hugetlb_lock);
- 	if (page) {
-@@ -1510,6 +1581,27 @@ static struct page *alloc_buddy_huge_pag
+ 	if (!do_swap_account ||
+-	    !page_counter_try_charge(&memcg->memsw, batch, &counter)) {
+-		if (!page_counter_try_charge(&memcg->memory, batch, &counter))
++	    page_counter_try_charge(&memcg->memsw, batch, &counter)) {
++		if (page_counter_try_charge(&memcg->memory, batch, &counter))
+ 			goto done_restock;
+ 		if (do_swap_account)
+ 			page_counter_uncharge(&memcg->memsw, batch);
+@@ -2381,14 +2381,13 @@ int __memcg_kmem_charge_memcg(struct pag
+ {
+ 	unsigned int nr_pages = 1 << order;
+ 	struct page_counter *counter;
+-	int ret = 0;
++	int ret;
+ 
+ 	if (!memcg_kmem_is_active(memcg))
+ 		return 0;
+ 
+-	ret = page_counter_try_charge(&memcg->kmem, nr_pages, &counter);
+-	if (ret)
+-		return ret;
++	if (!page_counter_try_charge(&memcg->kmem, nr_pages, &counter))
++		return -ENOMEM;
+ 
+ 	ret = try_charge(memcg, gfp, nr_pages);
+ 	if (ret) {
+diff -puN mm/page_counter.c~mm-page_counter-let-page_counter_try_charge-return-bool mm/page_counter.c
+--- a/mm/page_counter.c~mm-page_counter-let-page_counter_try_charge-return-bool
++++ a/mm/page_counter.c
+@@ -56,12 +56,12 @@ void page_counter_charge(struct page_cou
+  * @nr_pages: number of pages to charge
+  * @fail: points first counter to hit its limit, if any
+  *
+- * Returns 0 on success, or -ENOMEM and @fail if the counter or one of
+- * its ancestors has hit its configured limit.
++ * Returns %true on success, or %false and @fail if the counter or one
++ * of its ancestors has hit its configured limit.
+  */
+-int page_counter_try_charge(struct page_counter *counter,
+-			    unsigned long nr_pages,
+-			    struct page_counter **fail)
++bool page_counter_try_charge(struct page_counter *counter,
++			     unsigned long nr_pages,
++			     struct page_counter **fail)
+ {
+ 	struct page_counter *c;
+ 
+@@ -99,13 +99,13 @@ int page_counter_try_charge(struct page_
+ 		if (new > c->watermark)
+ 			c->watermark = new;
+ 	}
+-	return 0;
++	return true;
+ 
+ failed:
+ 	for (c = counter; c != *fail; c = c->parent)
+ 		page_counter_cancel(c, nr_pages);
+ 
+-	return -ENOMEM;
++	return false;
  }
  
- /*
-+ * Allocate a huge page from 'nid'.  Note, 'nid' may be
-+ * NUMA_NO_NODE, which means that it may be allocated
-+ * anywhere.
-+ */
-+struct page *__alloc_buddy_huge_page_no_mpol(struct hstate *h, int nid)
-+{
-+	unsigned long addr = -1;
-+
-+	return __alloc_buddy_huge_page(h, NULL, addr, nid);
-+}
-+
-+/*
-+ * Use the VMA's mpolicy to allocate a huge page from the buddy.
-+ */
-+struct page *__alloc_buddy_huge_page_with_mpol(struct hstate *h,
-+		struct vm_area_struct *vma, unsigned long addr)
-+{
-+	return __alloc_buddy_huge_page(h, vma, addr, NUMA_NO_NODE);
-+}
-+
-+/*
-  * This allocation function is useful in the context where vma is irrelevant.
-  * E.g. soft-offlining uses this function because it only cares physical
-  * address of error page.
-@@ -1524,7 +1616,7 @@ struct page *alloc_huge_page_node(struct
- 	spin_unlock(&hugetlb_lock);
- 
- 	if (!page)
--		page = alloc_buddy_huge_page(h, nid);
-+		page = __alloc_buddy_huge_page_no_mpol(h, nid);
- 
- 	return page;
- }
-@@ -1554,7 +1646,7 @@ static int gather_surplus_pages(struct h
- retry:
- 	spin_unlock(&hugetlb_lock);
- 	for (i = 0; i < needed; i++) {
--		page = alloc_buddy_huge_page(h, NUMA_NO_NODE);
-+		page = __alloc_buddy_huge_page_no_mpol(h, NUMA_NO_NODE);
- 		if (!page) {
- 			alloc_ok = false;
- 			break;
-@@ -1787,7 +1879,7 @@ struct page *alloc_huge_page(struct vm_a
- 	page = dequeue_huge_page_vma(h, vma, addr, avoid_reserve, gbl_chg);
- 	if (!page) {
- 		spin_unlock(&hugetlb_lock);
--		page = alloc_buddy_huge_page(h, NUMA_NO_NODE);
-+		page = __alloc_buddy_huge_page_with_mpol(h, vma, addr);
- 		if (!page)
- 			goto out_uncharge_cgroup;
- 
+ /**
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
+mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix.patch
 
