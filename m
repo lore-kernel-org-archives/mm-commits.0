@@ -1,73 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slab-convert-slab_is_available-to-boolean.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 12:06:28 -0800
-Message-ID: <563d0844.viYqAgT1SChfj8Gw%akpm@linux-foundation.org>
+Subject: [merged]
+ include-linux-compiler-gcch-hide-assume_aligned-attribute-from-sparse.patch removed from -mm tree
+Date: Fri, 06 Nov 2015 12:06:32 -0800
+Message-ID: <563d0848.qpQC49h6zgltzOxe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48511 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48522 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1033447AbbKFUG2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:06:28 -0500
+	with ESMTP id S1031366AbbKFUGd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:06:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kda@linux-powerpc.org, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, Valdis.Kletnieks@vt.edu, sparse@chrisli.org, valdis.kletnieks@vt.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: convert slab_is_available() to boolean
+     Subject: include/linux/compiler-gcc.h: hide assume_aligned attribute from sparse
 has been removed from the -mm tree.  Its filename was
-     mm-slab-convert-slab_is_available-to-boolean.patch
+     include-linux-compiler-gcch-hide-assume_aligned-attribute-from-sparse.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Denis Kirjanov <kda@linux-powerpc.org>
-Subject: slab: convert slab_is_available() to boolean
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: include/linux/compiler-gcc.h: hide assume_aligned attribute from sparse
 
-A good candidate to return a boolean result.
+The patch "slab.h: sprinkle __assume_aligned attributes" causes *tons* of
+whinges if you do 'make C=2' with sparse 0.5.0:
 
-Signed-off-by: Denis Kirjanov <kda@linux-powerpc.org>
-Cc: Christoph Lameter <cl@linux.com>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+  CHECK   drivers/media/usb/pwc/pwc-if.c
+include/linux/slab.h:307:43: error: attribute '__assume_aligned__': unknown attribute
+include/linux/slab.h:308:58: error: attribute '__assume_aligned__': unknown attribute
+include/linux/slab.h:337:73: error: attribute '__assume_aligned__': unknown attribute
+include/linux/slab.h:375:74: error: attribute '__assume_aligned__': unknown attribute
+include/linux/slab.h:378:80: error: attribute '__assume_aligned__': unknown attribute
+
+sparse apparently pretends to be gcc >= 4.9, yet isn't prepared to handle
+all the function attributes supported by those gccs and complains loudly. 
+So hide the definition of __assume_aligned from it (so that the generic
+one in compiler.h gets used).
+
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Reported-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
+Tested-By: Valdis Kletnieks <valdis.kletnieks@vt.edu>
+Cc: Christopher Li <sparse@chrisli.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    2 +-
- mm/slab_common.c     |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ include/linux/compiler-gcc.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/slab.h~mm-slab-convert-slab_is_available-to-boolean include/linux/slab.h
---- a/include/linux/slab.h~mm-slab-convert-slab_is_available-to-boolean
-+++ a/include/linux/slab.h
-@@ -111,7 +111,7 @@ struct mem_cgroup;
-  * struct kmem_cache related prototypes
-  */
- void __init kmem_cache_init(void);
--int slab_is_available(void);
-+bool slab_is_available(void);
+diff -puN include/linux/compiler-gcc.h~include-linux-compiler-gcch-hide-assume_aligned-attribute-from-sparse include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~include-linux-compiler-gcch-hide-assume_aligned-attribute-from-sparse
++++ a/include/linux/compiler-gcc.h
+@@ -211,7 +211,7 @@
+ #endif
  
- struct kmem_cache *kmem_cache_create(const char *, size_t, size_t,
- 			unsigned long,
-diff -puN mm/slab_common.c~mm-slab-convert-slab_is_available-to-boolean mm/slab_common.c
---- a/mm/slab_common.c~mm-slab-convert-slab_is_available-to-boolean
-+++ a/mm/slab_common.c
-@@ -692,7 +692,7 @@ int kmem_cache_shrink(struct kmem_cache
- }
- EXPORT_SYMBOL(kmem_cache_shrink);
  
--int slab_is_available(void)
-+bool slab_is_available(void)
- {
- 	return slab_state >= UP;
- }
+-#if GCC_VERSION >= 40900
++#if GCC_VERSION >= 40900 && !defined(__CHECKER__)
+ /*
+  * __assume_aligned(n, k): Tell the optimizer that the returned
+  * pointer can be assumed to be k modulo n. The second argument is
 _
 
-Patches currently in -mm which might be from kda@linux-powerpc.org are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
+mm-maccessc-actually-return-efault-from-strncpy_from_unsafe.patch
+slabh-sprinkle-__assume_aligned-attributes.patch
+lib-dynamic_debugc-use-kstrdup_const.patch
+lib-vsprintfc-handle-invalid-format-specifiers-more-robustly.patch
+lib-vsprintfc-also-improve-sanity-check-in-bstr_printf.patch
+lib-vsprintfc-remove-special-handling-in-pointer.patch
+test_printf-test-printf-family-at-runtime.patch
+lib-vsprintfc-update-documentation.patch
+lib-introduce-kvasprintf_const.patch
+kobject-use-kvasprintf_const-for-formatting-name.patch
 
