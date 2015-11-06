@@ -1,78 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] logfs-fix-build-warning.patch removed from -mm tree
-Date: Fri, 06 Nov 2015 12:05:39 -0800
-Message-ID: <563d0813.qY74fv/LVRsNShAX%akpm@linux-foundation.org>
+Subject: [merged]
+ inotify-actually-check-for-invalid-bits-in-sys_inotify_add_watch.patch
+ removed from -mm tree
+Date: Fri, 06 Nov 2015 12:05:37 -0800
+Message-ID: <563d0811.yQYlfYHDXZ/wlnnc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48433 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48427 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1032955AbbKFUFj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:05:39 -0500
+	with ESMTP id S1032264AbbKFUFi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:05:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, joern@logfs.org, prasadjoshi.linux@gmail.com, sudip@vectorindia.org, mm-commits@vger.kernel.org
+To: dave.hansen@linux.intel.com, eparis@parisplace.org, john@johnmccutchan.com, jwboyer@fedoraproject.org, rlove@rlove.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: logfs: fix build warning
+     Subject: inotify: actually check for invalid bits in sys_inotify_add_watch()
 has been removed from the -mm tree.  Its filename was
-     logfs-fix-build-warning.patch
+     inotify-actually-check-for-invalid-bits-in-sys_inotify_add_watch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: logfs: fix build warning
+From: Dave Hansen <dave.hansen@linux.intel.com>
+Subject: inotify: actually check for invalid bits in sys_inotify_add_watch()
 
-fs/logfs/dev_bdev.c: In function '__bdev_writeseg':
-include/linux/kernel.h:601:17: warning: comparison of distinct pointer types lacks a cast [enabled by default]
-  (void) (&_min1 == &_min2);  \
-fs/logfs/dev_bdev.c:84:14: note: in  expansion of macro 'min'
-  max_pages = min(nr_pages, BIO_MAX_PAGES);
+The comment here says that it is checking for invalid bits.  But, the mask
+is *actually* checking to ensure that _any_ valid bit is set, which is
+quite different.
 
-fs/logfs/dev_bdev.c: In function 'do_erase':
-include/linux/kernel.h:601:17: warning: comparison of distinct pointer types lacks a cast [enabled by default]
- (void) (&_min1 == &_min2);  \
-fs/logfs/dev_bdev.c:174:14: note: in expansion of macro 'min'
- max_pages = min(nr_pages, BIO_MAX_PAGES);
+Without this check, an unexpected bit could get set on an inotify object. 
+Since these bits are also interpreted by the fsnotify/dnotify code, there
+is the potential for an object to be mishandled inside the kernel.  For
+instance, can we be sure that setting the dnotify flag FS_DN_RENAME on an
+inotify watch is harmless?
 
-Lets use min_t and mention the type.
+Add the actual check which was intended.  Retain the existing inotify bits
+are being added to the watch.  Plus, this is existing behavior which would
+be nice to preserve.
 
-Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
-Cc: Joern Engel <joern@logfs.org>
-Cc: Prasad Joshi <prasadjoshi.linux@gmail.com>
+I did a quick sniff test that inotify functions and that my
+'inotify-tools' package passes 'make check'.
+
+Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: John McCutchan <john@johnmccutchan.com>
+Cc: Robert Love <rlove@rlove.org>
+Cc: Eric Paris <eparis@parisplace.org>
+Cc: Josh Boyer <jwboyer@fedoraproject.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/logfs/dev_bdev.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/notify/inotify/inotify_user.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN fs/logfs/dev_bdev.c~logfs-fix-build-warning fs/logfs/dev_bdev.c
---- a/fs/logfs/dev_bdev.c~logfs-fix-build-warning
-+++ a/fs/logfs/dev_bdev.c
-@@ -81,7 +81,7 @@ static int __bdev_writeseg(struct super_
- 	unsigned int max_pages;
- 	int i;
+diff -puN fs/notify/inotify/inotify_user.c~inotify-actually-check-for-invalid-bits-in-sys_inotify_add_watch fs/notify/inotify/inotify_user.c
+--- a/fs/notify/inotify/inotify_user.c~inotify-actually-check-for-invalid-bits-in-sys_inotify_add_watch
++++ a/fs/notify/inotify/inotify_user.c
+@@ -706,7 +706,19 @@ SYSCALL_DEFINE3(inotify_add_watch, int,
+ 	int ret;
+ 	unsigned flags = 0;
  
--	max_pages = min(nr_pages, BIO_MAX_PAGES);
-+	max_pages = min_t(size_t, nr_pages, BIO_MAX_PAGES);
+-	/* don't allow invalid bits: we don't want flags set */
++	/*
++	 * We share a lot of code with fs/dnotify.  We also share
++	 * the bit layout between inotify's IN_* and the fsnotify
++	 * FS_*.  This check ensures that only the inotify IN_*
++	 * bits get passed in and set in watches/events.
++	 */
++	if (unlikely(mask & ~ALL_INOTIFY_BITS))
++		return -EINVAL;
++	/*
++	 * Require at least one valid bit set in the mask.
++	 * Without _something_ set, we would have no events to
++	 * watch for.
++	 */
+ 	if (unlikely(!(mask & ALL_INOTIFY_BITS)))
+ 		return -EINVAL;
  
- 	bio = bio_alloc(GFP_NOFS, max_pages);
- 	BUG_ON(!bio);
-@@ -171,7 +171,7 @@ static int do_erase(struct super_block *
- 	unsigned int max_pages;
- 	int i;
- 
--	max_pages = min(nr_pages, BIO_MAX_PAGES);
-+	max_pages = min_t(size_t, nr_pages, BIO_MAX_PAGES);
- 
- 	bio = bio_alloc(GFP_NOFS, max_pages);
- 	BUG_ON(!bio);
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from dave.hansen@linux.intel.com are
 
+mm-hugetlb-use-memory-policy-when-available.patch
+mm-hugetlbfs-optimize-when-numa=n.patch
 
