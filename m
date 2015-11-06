@@ -1,280 +1,280 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-rmap-use-pte-lock-not-mmap_sem-to-set-pagemlocked.patch removed from -mm tree
-Date: Fri, 06 Nov 2015 12:16:28 -0800
-Message-ID: <563d0a9c.7Q6qw4EH/z+mCTgD%akpm@linux-foundation.org>
+Subject: [merged] memcg-simplify-charging-kmem-pages.patch removed from
+ -mm tree
+Date: Fri, 06 Nov 2015 12:16:02 -0800
+Message-ID: <563d0a82.Y96J5Ss2AJmx0cHX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48952 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48886 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1162955AbbKFUQ3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:16:29 -0500
+	with ESMTP id S966228AbbKFUQD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:16:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, cl@linux.com, dave@stgolabs.net, dvyukov@google.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, riel@redhat.com, sasha.levin@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: rmap use pte lock not mmap_sem to set PageMlocked
+     Subject: memcg: simplify charging kmem pages
 has been removed from the -mm tree.  Its filename was
-     mm-rmap-use-pte-lock-not-mmap_sem-to-set-pagemlocked.patch
+     memcg-simplify-charging-kmem-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: rmap use pte lock not mmap_sem to set PageMlocked
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: memcg: simplify charging kmem pages
 
-KernelThreadSanitizer (ktsan) has shown that the down_read_trylock() of
-mmap_sem in try_to_unmap_one() (when going to set PageMlocked on a page
-found mapped in a VM_LOCKED vma) is ineffective against races with
-exit_mmap()'s munlock_vma_pages_all(), because mmap_sem is not held when
-tearing down an mm.
+Charging kmem pages proceeds in two steps.  First, we try to charge the
+allocation size to the memcg the current task belongs to, then we allocate
+a page and "commit" the charge storing the pointer to the memcg in the
+page struct.
 
-But that's okay, those races are benign; and although we've believed for
-years in that ugly down_read_trylock(), it's unsuitable for the job, and
-frustrates the good intention of setting PageMlocked when it fails.
+Such a design looks overcomplicated, because there is not much sense in
+trying charging the allocation before actually allocating a page: we won't
+be able to consume much memory over the limit even if we charge after
+doing the actual allocation, besides we already charge user pages post
+factum, so being pedantic with kmem pages just looks pointless.
 
-It just doesn't matter if here we read vm_flags an instant before or after
-a racing mlock() or munlock() or exit_mmap() sets or clears VM_LOCKED: the
-syscalls (or exit) work their way up the address space (taking pt locks
-after updating vm_flags) to establish the final state.
+So this patch simplifies the design by merging the "charge" and the
+"commit" steps into the same function, which takes the allocated page.
 
-We do still need to be careful never to mark a page Mlocked (hence
-unevictable) by any race that will not be corrected shortly after.  The
-page lock protects from many of the races, but not all (a page is not
-necessarily locked when it's unmapped).  But the pte lock we just dropped
-is good to cover the rest (and serializes even with
-munlock_vma_pages_all(), so no special barriers required): now hold on to
-the pte lock while calling mlock_vma_page().  Is that lock ordering safe? 
-Yes, that's how follow_page_pte() calls it, and how page_remove_rmap()
-calls the complementary clear_page_mlock().
+Also, rename the charge and uncharge methods to memcg_kmem_charge and
+memcg_kmem_uncharge and make the charge method return error code instead
+of bool to conform to mem_cgroup_try_charge.
 
-This fixes the following case (though not a case which anyone has
-complained of), which mmap_sem did not: truncation's preliminary
-unmap_mapping_range() is supposed to remove even the anonymous COWs of
-filecache pages, and that might race with try_to_unmap_one() on a
-VM_LOCKED vma, so that mlock_vma_page() sets PageMlocked just after
-zap_pte_range() unmaps the page, causing "Bad page state (mlocked)" when
-freed.  The pte lock protects against this.
-
-You could say that it also protects against the more ordinary case, racing
-with the preliminary unmapping of a filecache page itself: but in our
-current tree, that's independently protected by i_mmap_rwsem; and that
-race would be why "Bad page state (mlocked)" was seen before commit
-48ec833b7851 ("Revert mm/memory.c: share the i_mmap_rwsem").
-
-Vlastimil Babka points out another race which this patch protects against.
- try_to_unmap_one() might reach its mlock_vma_page() TestSetPageMlocked a
-moment after munlock_vma_pages_all() did its Phase 1 TestClearPageMlocked:
-leaving PageMlocked and unevictable when it should be evictable.  mmap_sem
-is ineffective because exit_mmap() does not hold it; page lock ineffective
-because __munlock_pagevec() only takes it afterwards, in Phase 2; pte lock
-is effective because __munlock_pagevec_fill() takes it to get the page,
-after VM_LOCKED was cleared from vm_flags, so visible to try_to_unmap_one.
-
-Kirill Shutemov points out that if the compiler chooses to implement a
-"vma->vm_flags &= VM_WHATEVER" or "vma->vm_flags |= VM_WHATEVER" operation
-with an intermediate store of unrelated bits set, since I'm here foregoing
-its usual protection by mmap_sem, try_to_unmap_one() might catch sight of
-a spurious VM_LOCKED in vm_flags, and make the wrong decision.  This does
-not appear to be an immediate problem, but we may want to define vm_flags
-accessors in future, to guard against such a possibility.
-
-While we're here, make a related optimization in try_to_munmap_one(): if
-it's doing TTU_MUNLOCK, then there's no point at all in descending the
-page tables and getting the pt lock, unless the vma is VM_LOCKED.  Yes,
-that can change racily, but it can change racily even without the
-optimization: it's not critical.  Far better not to waste time here.
-
-Stopped short of separating try_to_munlock_one() from try_to_munmap_one()
-on this occasion, but that's probably the sensible next step - with a
-rename, given that try_to_munlock()'s business is to try to set Mlocked.
-
-Updated the unevictable-lru Documentation, to remove its reference to mmap
-semaphore, but found a few more updates needed in just that area.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/unevictable-lru.txt |   65 ++++++-------------------
- mm/rmap.c                            |   36 ++++---------
- 2 files changed, 29 insertions(+), 72 deletions(-)
+ include/linux/memcontrol.h |   69 +++++++++--------------------------
+ mm/memcontrol.c            |   39 ++-----------------
+ mm/page_alloc.c            |   18 ++++-----
+ 3 files changed, 32 insertions(+), 94 deletions(-)
 
-diff -puN Documentation/vm/unevictable-lru.txt~mm-rmap-use-pte-lock-not-mmap_sem-to-set-pagemlocked Documentation/vm/unevictable-lru.txt
---- a/Documentation/vm/unevictable-lru.txt~mm-rmap-use-pte-lock-not-mmap_sem-to-set-pagemlocked
-+++ a/Documentation/vm/unevictable-lru.txt
-@@ -531,37 +531,20 @@ map.
+diff -puN include/linux/memcontrol.h~memcg-simplify-charging-kmem-pages include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-simplify-charging-kmem-pages
++++ a/include/linux/memcontrol.h
+@@ -752,11 +752,8 @@ static inline bool memcg_kmem_is_active(
+  * conditions, but because they are pretty simple, they are expected to be
+  * fast.
+  */
+-bool __memcg_kmem_newpage_charge(gfp_t gfp, struct mem_cgroup **memcg,
+-					int order);
+-void __memcg_kmem_commit_charge(struct page *page,
+-				       struct mem_cgroup *memcg, int order);
+-void __memcg_kmem_uncharge_pages(struct page *page, int order);
++int __memcg_kmem_charge(struct page *page, gfp_t gfp, int order);
++void __memcg_kmem_uncharge(struct page *page, int order);
  
- try_to_unmap() is always called, by either vmscan for reclaim or for page
- migration, with the argument page locked and isolated from the LRU.  Separate
--functions handle anonymous and mapped file pages, as these types of pages have
--different reverse map mechanisms.
--
-- (*) try_to_unmap_anon()
--
--     To unmap anonymous pages, each VMA in the list anchored in the anon_vma
--     must be visited - at least until a VM_LOCKED VMA is encountered.  If the
--     page is being unmapped for migration, VM_LOCKED VMAs do not stop the
--     process because mlocked pages are migratable.  However, for reclaim, if
--     the page is mapped into a VM_LOCKED VMA, the scan stops.
--
--     try_to_unmap_anon() attempts to acquire in read mode the mmap semaphore of
--     the mm_struct to which the VMA belongs.  If this is successful, it will
--     mlock the page via mlock_vma_page() - we wouldn't have gotten to
--     try_to_unmap_anon() if the page were already mlocked - and will return
--     SWAP_MLOCK, indicating that the page is unevictable.
--
--     If the mmap semaphore cannot be acquired, we are not sure whether the page
--     is really unevictable or not.  In this case, try_to_unmap_anon() will
--     return SWAP_AGAIN.
--
-- (*) try_to_unmap_file()
--
--     Unmapping of a mapped file page works the same as for anonymous mappings,
--     except that the scan visits all VMAs that map the page's index/page offset
--     in the page's mapping's reverse map interval search tree.
--
--     As for anonymous pages, on encountering a VM_LOCKED VMA for a mapped file
--     page, try_to_unmap_file() will attempt to acquire the associated
--     mm_struct's mmap semaphore to mlock the page, returning SWAP_MLOCK if this
--     is successful, and SWAP_AGAIN, if not.
-+functions handle anonymous and mapped file and KSM pages, as these types of
-+pages have different reverse map lookup mechanisms, with different locking.
-+In each case, whether rmap_walk_anon() or rmap_walk_file() or rmap_walk_ksm(),
-+it will call try_to_unmap_one() for every VMA which might contain the page.
-+
-+When trying to reclaim, if try_to_unmap_one() finds the page in a VM_LOCKED
-+VMA, it will then mlock the page via mlock_vma_page() instead of unmapping it,
-+and return SWAP_MLOCK to indicate that the page is unevictable: and the scan
-+stops there.
-+
-+mlock_vma_page() is called while holding the page table's lock (in addition
-+to the page lock, and the rmap lock): to serialize against concurrent mlock or
-+munlock or munmap system calls, mm teardown (munlock_vma_pages_all), reclaim,
-+holepunching, and truncation of file pages and their anonymous COWed pages.
- 
- 
- try_to_munlock() REVERSE MAP SCAN
-@@ -577,22 +560,15 @@ all PTEs from the page.  For this purpos
- introduced a variant of try_to_unmap() called try_to_munlock().
- 
- try_to_munlock() calls the same functions as try_to_unmap() for anonymous and
--mapped file pages with an additional argument specifying unlock versus unmap
-+mapped file and KSM pages with a flag argument specifying unlock versus unmap
- processing.  Again, these functions walk the respective reverse maps looking
- for VM_LOCKED VMAs.  When such a VMA is found, as in the try_to_unmap() case,
--the functions attempt to acquire the associated mmap semaphore, mlock the page
--via mlock_vma_page() and return SWAP_MLOCK.  This effectively undoes the
--pre-clearing of the page's PG_mlocked done by munlock_vma_page.
--
--If try_to_unmap() is unable to acquire a VM_LOCKED VMA's associated mmap
--semaphore, it will return SWAP_AGAIN.  This will allow shrink_page_list() to
--recycle the page on the inactive list and hope that it has better luck with the
--page next time.
-+the functions mlock the page via mlock_vma_page() and return SWAP_MLOCK.  This
-+undoes the pre-clearing of the page's PG_mlocked done by munlock_vma_page.
- 
- Note that try_to_munlock()'s reverse map walk must visit every VMA in a page's
- reverse map to determine that a page is NOT mapped into any VM_LOCKED VMA.
--However, the scan can terminate when it encounters a VM_LOCKED VMA and can
--successfully acquire the VMA's mmap semaphore for read and mlock the page.
-+However, the scan can terminate when it encounters a VM_LOCKED VMA.
- Although try_to_munlock() might be called a great many times when munlocking a
- large region or tearing down a large address space that has been mlocked via
- mlockall(), overall this is a fairly rare event.
-@@ -620,11 +596,6 @@ Some examples of these unevictable pages
-  (3) mlocked pages that could not be isolated from the LRU and moved to the
-      unevictable list in mlock_vma_page().
- 
-- (4) Pages mapped into multiple VM_LOCKED VMAs, but try_to_munlock() couldn't
--     acquire the VMA's mmap semaphore to test the flags and set PageMlocked.
--     munlock_vma_page() was forced to let the page back on to the normal LRU
--     list for vmscan to handle.
--
- shrink_inactive_list() also diverts any unevictable pages that it finds on the
- inactive lists to the appropriate zone's unevictable list.
- 
-diff -puN mm/rmap.c~mm-rmap-use-pte-lock-not-mmap_sem-to-set-pagemlocked mm/rmap.c
---- a/mm/rmap.c~mm-rmap-use-pte-lock-not-mmap_sem-to-set-pagemlocked
-+++ a/mm/rmap.c
-@@ -1304,6 +1304,10 @@ static int try_to_unmap_one(struct page
- 	int ret = SWAP_AGAIN;
- 	enum ttu_flags flags = (enum ttu_flags)arg;
- 
-+	/* munlock has nothing to gain from examining un-locked vmas */
-+	if ((flags & TTU_MUNLOCK) && !(vma->vm_flags & VM_LOCKED))
-+		goto out;
-+
- 	pte = page_check_address(page, mm, address, &ptl, 0);
- 	if (!pte)
- 		goto out;
-@@ -1314,9 +1318,12 @@ static int try_to_unmap_one(struct page
- 	 * skipped over this mm) then we should reactivate it.
- 	 */
- 	if (!(flags & TTU_IGNORE_MLOCK)) {
--		if (vma->vm_flags & VM_LOCKED)
--			goto out_mlock;
--
-+		if (vma->vm_flags & VM_LOCKED) {
-+			/* Holding pte lock, we do *not* need mmap_sem here */
-+			mlock_vma_page(page);
-+			ret = SWAP_MLOCK;
-+			goto out_unmap;
-+		}
- 		if (flags & TTU_MUNLOCK)
- 			goto out_unmap;
- 	}
-@@ -1421,31 +1428,10 @@ static int try_to_unmap_one(struct page
- 
- out_unmap:
- 	pte_unmap_unlock(pte, ptl);
--	if (ret != SWAP_FAIL && !(flags & TTU_MUNLOCK))
-+	if (ret != SWAP_FAIL && ret != SWAP_MLOCK && !(flags & TTU_MUNLOCK))
- 		mmu_notifier_invalidate_page(mm, address);
- out:
- 	return ret;
--
--out_mlock:
--	pte_unmap_unlock(pte, ptl);
--
--
--	/*
--	 * We need mmap_sem locking, Otherwise VM_LOCKED check makes
--	 * unstable result and race. Plus, We can't wait here because
--	 * we now hold anon_vma->rwsem or mapping->i_mmap_rwsem.
--	 * if trylock failed, the page remain in evictable lru and later
--	 * vmscan could retry to move the page to unevictable lru if the
--	 * page is actually mlocked.
--	 */
--	if (down_read_trylock(&vma->vm_mm->mmap_sem)) {
--		if (vma->vm_flags & VM_LOCKED) {
--			mlock_vma_page(page);
--			ret = SWAP_MLOCK;
--		}
--		up_read(&vma->vm_mm->mmap_sem);
--	}
--	return ret;
+ /*
+  * helper for acessing a memcg's index. It will be used as an index in the
+@@ -789,52 +786,30 @@ static inline bool __memcg_kmem_bypass(g
  }
  
- bool is_vma_temporary_stack(struct vm_area_struct *vma)
+ /**
+- * memcg_kmem_newpage_charge: verify if a new kmem allocation is allowed.
+- * @gfp: the gfp allocation flags.
+- * @memcg: a pointer to the memcg this was charged against.
+- * @order: allocation order.
++ * memcg_kmem_charge: charge a kmem page
++ * @page: page to charge
++ * @gfp: reclaim mode
++ * @order: allocation order
+  *
+- * returns true if the memcg where the current task belongs can hold this
+- * allocation.
+- *
+- * We return true automatically if this allocation is not to be accounted to
+- * any memcg.
++ * Returns 0 on success, an error code on failure.
+  */
+-static inline bool
+-memcg_kmem_newpage_charge(gfp_t gfp, struct mem_cgroup **memcg, int order)
++static __always_inline int memcg_kmem_charge(struct page *page,
++					     gfp_t gfp, int order)
+ {
+ 	if (__memcg_kmem_bypass(gfp))
+-		return true;
+-	return __memcg_kmem_newpage_charge(gfp, memcg, order);
++		return 0;
++	return __memcg_kmem_charge(page, gfp, order);
+ }
+ 
+ /**
+- * memcg_kmem_uncharge_pages: uncharge pages from memcg
+- * @page: pointer to struct page being freed
+- * @order: allocation order.
++ * memcg_kmem_uncharge: uncharge a kmem page
++ * @page: page to uncharge
++ * @order: allocation order
+  */
+-static inline void
+-memcg_kmem_uncharge_pages(struct page *page, int order)
++static __always_inline void memcg_kmem_uncharge(struct page *page, int order)
+ {
+ 	if (memcg_kmem_enabled())
+-		__memcg_kmem_uncharge_pages(page, order);
+-}
+-
+-/**
+- * memcg_kmem_commit_charge: embeds correct memcg in a page
+- * @page: pointer to struct page recently allocated
+- * @memcg: the memcg structure we charged against
+- * @order: allocation order.
+- *
+- * Needs to be called after memcg_kmem_newpage_charge, regardless of success or
+- * failure of the allocation. if @page is NULL, this function will revert the
+- * charges. Otherwise, it will commit @page to @memcg.
+- */
+-static inline void
+-memcg_kmem_commit_charge(struct page *page, struct mem_cgroup *memcg, int order)
+-{
+-	if (memcg_kmem_enabled() && memcg)
+-		__memcg_kmem_commit_charge(page, memcg, order);
++		__memcg_kmem_uncharge(page, order);
+ }
+ 
+ /**
+@@ -878,18 +853,12 @@ static inline bool memcg_kmem_is_active(
+ 	return false;
+ }
+ 
+-static inline bool
+-memcg_kmem_newpage_charge(gfp_t gfp, struct mem_cgroup **memcg, int order)
+-{
+-	return true;
+-}
+-
+-static inline void memcg_kmem_uncharge_pages(struct page *page, int order)
++static inline int memcg_kmem_charge(struct page *page, gfp_t gfp, int order)
+ {
++	return 0;
+ }
+ 
+-static inline void
+-memcg_kmem_commit_charge(struct page *page, struct mem_cgroup *memcg, int order)
++static inline void memcg_kmem_uncharge(struct page *page, int order)
+ {
+ }
+ 
+diff -puN mm/memcontrol.c~memcg-simplify-charging-kmem-pages mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-simplify-charging-kmem-pages
++++ a/mm/memcontrol.c
+@@ -2404,57 +2404,26 @@ void __memcg_kmem_put_cache(struct kmem_
+ 		css_put(&cachep->memcg_params.memcg->css);
+ }
+ 
+-/*
+- * We need to verify if the allocation against current->mm->owner's memcg is
+- * possible for the given order. But the page is not allocated yet, so we'll
+- * need a further commit step to do the final arrangements.
+- *
+- * It is possible for the task to switch cgroups in this mean time, so at
+- * commit time, we can't rely on task conversion any longer.  We'll then use
+- * the handle argument to return to the caller which cgroup we should commit
+- * against. We could also return the memcg directly and avoid the pointer
+- * passing, but a boolean return value gives better semantics considering
+- * the compiled-out case as well.
+- *
+- * Returning true means the allocation is possible.
+- */
+-bool
+-__memcg_kmem_newpage_charge(gfp_t gfp, struct mem_cgroup **_memcg, int order)
++int __memcg_kmem_charge(struct page *page, gfp_t gfp, int order)
+ {
+ 	struct mem_cgroup *memcg;
+ 	int ret;
+ 
+-	*_memcg = NULL;
+-
+ 	memcg = get_mem_cgroup_from_mm(current->mm);
+ 
+ 	if (!memcg_kmem_is_active(memcg)) {
+ 		css_put(&memcg->css);
+-		return true;
++		return 0;
+ 	}
+ 
+ 	ret = memcg_charge_kmem(memcg, gfp, 1 << order);
+-	if (!ret)
+-		*_memcg = memcg;
+ 
+ 	css_put(&memcg->css);
+-	return (ret == 0);
+-}
+-
+-void __memcg_kmem_commit_charge(struct page *page, struct mem_cgroup *memcg,
+-			      int order)
+-{
+-	VM_BUG_ON(mem_cgroup_is_root(memcg));
+-
+-	/* The page allocation failed. Revert */
+-	if (!page) {
+-		memcg_uncharge_kmem(memcg, 1 << order);
+-		return;
+-	}
+ 	page->mem_cgroup = memcg;
++	return ret;
+ }
+ 
+-void __memcg_kmem_uncharge_pages(struct page *page, int order)
++void __memcg_kmem_uncharge(struct page *page, int order)
+ {
+ 	struct mem_cgroup *memcg = page->mem_cgroup;
+ 
+diff -puN mm/page_alloc.c~memcg-simplify-charging-kmem-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~memcg-simplify-charging-kmem-pages
++++ a/mm/page_alloc.c
+@@ -3428,24 +3428,24 @@ EXPORT_SYMBOL(__free_page_frag);
+ struct page *alloc_kmem_pages(gfp_t gfp_mask, unsigned int order)
+ {
+ 	struct page *page;
+-	struct mem_cgroup *memcg = NULL;
+ 
+-	if (!memcg_kmem_newpage_charge(gfp_mask, &memcg, order))
+-		return NULL;
+ 	page = alloc_pages(gfp_mask, order);
+-	memcg_kmem_commit_charge(page, memcg, order);
++	if (page && memcg_kmem_charge(page, gfp_mask, order) != 0) {
++		__free_pages(page, order);
++		page = NULL;
++	}
+ 	return page;
+ }
+ 
+ struct page *alloc_kmem_pages_node(int nid, gfp_t gfp_mask, unsigned int order)
+ {
+ 	struct page *page;
+-	struct mem_cgroup *memcg = NULL;
+ 
+-	if (!memcg_kmem_newpage_charge(gfp_mask, &memcg, order))
+-		return NULL;
+ 	page = alloc_pages_node(nid, gfp_mask, order);
+-	memcg_kmem_commit_charge(page, memcg, order);
++	if (page && memcg_kmem_charge(page, gfp_mask, order) != 0) {
++		__free_pages(page, order);
++		page = NULL;
++	}
+ 	return page;
+ }
+ 
+@@ -3455,7 +3455,7 @@ struct page *alloc_kmem_pages_node(int n
+  */
+ void __free_kmem_pages(struct page *page, unsigned int order)
+ {
+-	memcg_kmem_uncharge_pages(page, order);
++	memcg_kmem_uncharge(page, order);
+ 	__free_pages(page, order);
+ }
+ 
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from vdavydov@virtuozzo.com are
 
-osd-fs-__r4w_get_page-rely-on-pageuptodate-for-uptodate.patch
-mm-use-unsigned-int-for-page-order-fix-2.patch
 
