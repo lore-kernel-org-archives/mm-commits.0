@@ -1,63 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-change-highmem_zone-macro-definition.patch removed
- from -mm tree
-Date: Fri, 06 Nov 2015 12:15:55 -0800
-Message-ID: <563d0a7b.oeCzERlMAUseuBvj%akpm@linux-foundation.org>
+Subject: [merged] mm-vmacache-inline-vmacache_valid_mm.patch removed from
+ -mm tree
+Date: Fri, 06 Nov 2015 12:15:58 -0800
+Message-ID: <563d0a7e.ThB7SDPg/MjbSSEN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48873 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48876 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1033404AbbKFUP4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:15:56 -0500
+	with ESMTP id S1033430AbbKFUP7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:15:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yalin.wang2010@gmail.com, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/vm_event_item.h: change HIGHMEM_ZONE macro definition
+     Subject: mm/vmacache: inline vmacache_valid_mm()
 has been removed from the -mm tree.  Its filename was
-     mm-change-highmem_zone-macro-definition.patch
+     mm-vmacache-inline-vmacache_valid_mm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: yalin wang <yalin.wang2010@gmail.com>
-Subject: include/linux/vm_event_item.h: change HIGHMEM_ZONE macro definition
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: mm/vmacache: inline vmacache_valid_mm()
 
-Change HIGHMEM_ZONE to be the same as the DMA_ZONE macro.
+This function incurs in very hot paths and merely does a few loads for
+validity check.  Lets inline it, such that we can save the function call
+overhead.
 
-Signed-off-by: yalin wang <yalin.wang2010@gmail.com>
+(akpm: this is cosmetic - the compiler already inlines vmacache_valid_mm())
+
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vm_event_item.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/vmacache.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/vm_event_item.h~mm-change-highmem_zone-macro-definition include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-change-highmem_zone-macro-definition
-+++ a/include/linux/vm_event_item.h
-@@ -14,12 +14,12 @@
- #endif
- 
- #ifdef CONFIG_HIGHMEM
--#define HIGHMEM_ZONE(xx) , xx##_HIGH
-+#define HIGHMEM_ZONE(xx) xx##_HIGH,
- #else
- #define HIGHMEM_ZONE(xx)
- #endif
- 
--#define FOR_ALL_ZONES(xx) DMA_ZONE(xx) DMA32_ZONE(xx) xx##_NORMAL HIGHMEM_ZONE(xx) , xx##_MOVABLE
-+#define FOR_ALL_ZONES(xx) DMA_ZONE(xx) DMA32_ZONE(xx) xx##_NORMAL, HIGHMEM_ZONE(xx) xx##_MOVABLE
- 
- enum vm_event_item { PGPGIN, PGPGOUT, PSWPIN, PSWPOUT,
- 		FOR_ALL_ZONES(PGALLOC),
+diff -puN mm/vmacache.c~mm-vmacache-inline-vmacache_valid_mm mm/vmacache.c
+--- a/mm/vmacache.c~mm-vmacache-inline-vmacache_valid_mm
++++ a/mm/vmacache.c
+@@ -52,7 +52,7 @@ void vmacache_flush_all(struct mm_struct
+  * Also handle the case where a kernel thread has adopted this mm via use_mm().
+  * That kernel thread's vmacache is not applicable to this mm.
+  */
+-static bool vmacache_valid_mm(struct mm_struct *mm)
++static inline bool vmacache_valid_mm(struct mm_struct *mm)
+ {
+ 	return current->mm == mm && !(current->flags & PF_KTHREAD);
+ }
 _
 
-Patches currently in -mm which might be from yalin.wang2010@gmail.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand-fix-2.patch
+ipcmsg-drop-dst-nil-validation-in-copy_msg.patch
 
