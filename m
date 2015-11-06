@@ -1,84 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-documentation-a-little-tidying-in-proctxt.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 12:17:23 -0800
-Message-ID: <563d0ad3.enxugw255tzgm8mW%akpm@linux-foundation.org>
+Subject: [merged] memcg-fix-thresholds-for-32b-architectures.patch removed from -mm tree
+Date: Fri, 06 Nov 2015 12:17:16 -0800
+Message-ID: <563d0acc.iMeYhTWGoSg9zPDF%akpm__46789.1004322611$1446841062$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49092 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49080 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1162916AbbKFURX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:23 -0500
+	with ESMTP id S1161895AbbKFURR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mhocko@suse.com, ben@decadent.org.uk, hannes@cmpxchg.org, stable@vger.kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/filesystems/proc.txt: a little tidying
+     Subject: memcg: fix thresholds for 32b architectures.
 has been removed from the -mm tree.  Its filename was
-     mm-documentation-a-little-tidying-in-proctxt.patch
+     memcg-fix-thresholds-for-32b-architectures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: Documentation/filesystems/proc.txt: a little tidying
+From: Michal Hocko <mhocko@suse.com>
+Subject: memcg: fix thresholds for 32b architectures.
 
-There's an odd line about "Locked" at the head of the description of
-/proc/meminfo: it seems to have strayed from /proc/PID/smaps, so lead it
-back there.  Move "Swap" and "SwapPss" descriptions down above it, to
-match the order in the file (though "PageSize"s still undescribed).
+424cdc141380 ("memcg: convert threshold to bytes") has fixed a regression
+introduced by 3e32cb2e0a12 ("mm: memcontrol: lockless page counters")
+where thresholds were silently converted to use page units rather than
+bytes when interpreting the user input.
 
-The example of "Locked: 374 kB" (the same as Pss, neither Rss nor Size) is
-so unlikely as to be misleading: just make it 0, this is /bin/bash text;
-which would be "dw" (disabled write) not "de" (do not expand).
+The fix is not complete, though, as properly pointed out by Ben Hutchings
+during stable backport review.  The page count is converted to bytes but
+unsigned long is used to hold the value which would be obviously not
+sufficient for 32b systems with more than 4G thresholds.  The same applies
+to usage as taken from mem_cgroup_usage which might overflow.
 
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Let's remove this bytes vs.  pages internal tracking differences and
+handle thresholds in page units internally.  Chage mem_cgroup_usage() to
+return the value in page units and revert 424cdc141380 because this should
+be sufficient for the consistent handling.  mem_cgroup_read_u64 as the
+only users of mem_cgroup_usage outside of the threshold handling code is
+converted to give the proper in bytes result.  It is doing that already
+for page_counter output so this is more consistent as well.
+
+The value presented to the userspace is still in bytes units.
+
+Fixes: 424cdc141380 ("memcg: convert threshold to bytes")
+Fixes: 3e32cb2e0a12 ("mm: memcontrol: lockless page counters")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Ben Hutchings <ben@decadent.org.uk>
+Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-documentation-a-little-tidying-in-proctxt Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-documentation-a-little-tidying-in-proctxt
-+++ a/Documentation/filesystems/proc.txt
-@@ -433,8 +433,8 @@ Swap:                  0 kB
- SwapPss:               0 kB
- KernelPageSize:        4 kB
- MMUPageSize:           4 kB
--Locked:              374 kB
--VmFlags: rd ex mr mw me de
-+Locked:                0 kB
-+VmFlags: rd ex mr mw me dw
+diff -puN mm/memcontrol.c~memcg-fix-thresholds-for-32b-architectures mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-thresholds-for-32b-architectures
++++ a/mm/memcontrol.c
+@@ -2836,9 +2836,9 @@ static unsigned long tree_stat(struct me
+ 	return val;
+ }
  
- the first of these lines shows the same information as is displayed for the
- mapping in /proc/PID/maps.  The remaining lines show the size of the mapping
-@@ -454,13 +454,13 @@ accessed.
- "Anonymous" shows the amount of memory that does not belong to any file.  Even
- a mapping associated with a file may contain anonymous pages: when MAP_PRIVATE
- and a page is modified, the file page is replaced by a private anonymous copy.
--"Swap" shows how much would-be-anonymous memory is also used, but out on
--swap.
--"SwapPss" shows proportional swap share of this mapping.
- "AnonHugePages" shows the ammount of memory backed by transparent hugepage.
- "Shared_Hugetlb" and "Private_Hugetlb" show the ammounts of memory backed by
- hugetlbfs page which is *not* counted in "RSS" or "PSS" field for historical
- reasons. And these are not included in {Shared,Private}_{Clean,Dirty} field.
-+"Swap" shows how much would-be-anonymous memory is also used, but out on swap.
-+"SwapPss" shows proportional swap share of this mapping.
-+"Locked" indicates whether the mapping is locked in memory or not.
+-static inline u64 mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
++static inline unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
+ {
+-	u64 val;
++	unsigned long val;
  
- "VmFlags" field deserves a separate description. This member represents the kernel
- flags associated with the particular virtual memory area in two letter encoded
-@@ -824,9 +824,6 @@ varies by architecture and compile optio
+ 	if (mem_cgroup_is_root(memcg)) {
+ 		val = tree_stat(memcg, MEM_CGROUP_STAT_CACHE);
+@@ -2851,7 +2851,7 @@ static inline u64 mem_cgroup_usage(struc
+ 		else
+ 			val = page_counter_read(&memcg->memsw);
+ 	}
+-	return val << PAGE_SHIFT;
++	return val;
+ }
  
- > cat /proc/meminfo
+ enum {
+@@ -2885,9 +2885,9 @@ static u64 mem_cgroup_read_u64(struct cg
+ 	switch (MEMFILE_ATTR(cft->private)) {
+ 	case RES_USAGE:
+ 		if (counter == &memcg->memory)
+-			return mem_cgroup_usage(memcg, false);
++			return (u64)mem_cgroup_usage(memcg, false) * PAGE_SIZE;
+ 		if (counter == &memcg->memsw)
+-			return mem_cgroup_usage(memcg, true);
++			return (u64)mem_cgroup_usage(memcg, true) * PAGE_SIZE;
+ 		return (u64)page_counter_read(counter) * PAGE_SIZE;
+ 	case RES_LIMIT:
+ 		return (u64)counter->limit * PAGE_SIZE;
+@@ -3387,7 +3387,6 @@ static int __mem_cgroup_usage_register_e
+ 	ret = page_counter_memparse(args, "-1", &threshold);
+ 	if (ret)
+ 		return ret;
+-	threshold <<= PAGE_SHIFT;
  
--The "Locked" indicates whether the mapping is locked in memory or not.
--
+ 	mutex_lock(&memcg->thresholds_lock);
+ 
+_
+
+Patches currently in -mm which might be from mhocko@suse.com are
+
+mm-fs-introduce-mapping_gfp_constraint.patch
+
