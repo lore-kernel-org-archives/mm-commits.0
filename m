@@ -1,904 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged] selftests-vm-add-tests-for-lock-on-fault.patch removed
- from -mm tree
-Date: Fri, 06 Nov 2015 12:18:10 -0800
-Message-ID: <563d0b02.0vlK8tOlT9VBLj2Y%akpm@linux-foundation.org>
+Subject: [merged] lib-test_kasan-add-some-testcases.patch removed from -mm tree
+Date: Fri, 06 Nov 2015 12:17:49 -0800
+Message-ID: <563d0aed.oPI2QDZTgpM3RlOx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49220 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49130 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1033480AbbKFUSL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:18:11 -0500
+	with ESMTP id S1161815AbbKFURt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: emunson@akamai.com, catalin.marinas@arm.com, corbet@lwn.net, geert@linux-m68k.org, heiko.carstens@de.ibm.com, kirill.shutemov@linux.intel.com, linux@roeck-us.net, mhocko@suse.cz, mtk.manpages@gmail.com, ralf@linux-mips.org, sfr@canb.auug.org.au, shuahkh@osg.samsung.com, treding@nvidia.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: long.wanglong@huawei.com, aryabinin@virtuozzo.com, vladimir.murzin@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests: vm: add tests for lock on fault
+     Subject: lib: test_kasan: add some testcases
 has been removed from the -mm tree.  Its filename was
-     selftests-vm-add-tests-for-lock-on-fault.patch
+     lib-test_kasan-add-some-testcases.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eric B Munson <emunson@akamai.com>
-Subject: selftests: vm: add tests for lock on fault
+From: Wang Long <long.wanglong@huawei.com>
+Subject: lib: test_kasan: add some testcases
 
-Test the mmap() flag, and the mlockall() flag.  These tests ensure that
-pages are not faulted in until they are accessed, that the pages are
-unevictable once faulted in, and that VMA splitting and merging works with
-the new VM flag.  The second test ensures that mlock limits are respected.
- Note that the limit test needs to be run a normal user.
+Add some out of bounds testcases to test_kasan module.
 
-Also add tests to use the new mlock2 family of system calls.
-
-[treding@nvidia.com: : Fix mlock2-tests for 32-bit architectures]
-[treding@nvidia.com: ensure the mlock2 syscall number can be found]
-[treding@nvidia.com: use the right arguments for main()]
-Signed-off-by: Eric B Munson <emunson@akamai.com>
-Cc: Shuah Khan <shuahkh@osg.samsung.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Signed-off-by: Thierry Reding <treding@nvidia.com>
+Signed-off-by: Wang Long <long.wanglong@huawei.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Vladimir Murzin <vladimir.murzin@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/Makefile         |    2 
- tools/testing/selftests/vm/mlock2-tests.c   |  737 ++++++++++++++++++
- tools/testing/selftests/vm/on-fault-limit.c |   47 +
- tools/testing/selftests/vm/run_vmtests      |   22 
- 4 files changed, 808 insertions(+)
+ lib/test_kasan.c |   69 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 69 insertions(+)
 
-diff -puN tools/testing/selftests/vm/Makefile~selftests-vm-add-tests-for-lock-on-fault tools/testing/selftests/vm/Makefile
---- a/tools/testing/selftests/vm/Makefile~selftests-vm-add-tests-for-lock-on-fault
-+++ a/tools/testing/selftests/vm/Makefile
-@@ -5,6 +5,8 @@ BINARIES = compaction_test
- BINARIES += hugepage-mmap
- BINARIES += hugepage-shm
- BINARIES += map_hugetlb
-+BINARIES += mlock2-tests
-+BINARIES += on-fault-limit
- BINARIES += thuge-gen
- BINARIES += transhuge-stress
- BINARIES += userfaultfd
-diff -puN /dev/null tools/testing/selftests/vm/mlock2-tests.c
---- /dev/null
-+++ a/tools/testing/selftests/vm/mlock2-tests.c
-@@ -0,0 +1,737 @@
-+#include <sys/mman.h>
-+#include <stdint.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <unistd.h>
-+#include <string.h>
-+#include <sys/time.h>
-+#include <sys/resource.h>
-+#include <syscall.h>
-+#include <errno.h>
-+#include <stdbool.h>
-+
-+#ifndef MLOCK_ONFAULT
-+#define MLOCK_ONFAULT 1
-+#endif
-+
-+#ifndef MCL_ONFAULT
-+#define MCL_ONFAULT (MCL_FUTURE << 1)
-+#endif
-+
-+static int mlock2_(void *start, size_t len, int flags)
-+{
-+#ifdef __NR_mlock2
-+	return syscall(__NR_mlock2, start, len, flags);
-+#else
-+	errno = ENOSYS;
-+	return -1;
-+#endif
-+}
-+
-+struct vm_boundaries {
-+	unsigned long start;
-+	unsigned long end;
-+};
-+
-+static int get_vm_area(unsigned long addr, struct vm_boundaries *area)
-+{
-+	FILE *file;
-+	int ret = 1;
-+	char line[1024] = {0};
-+	char *end_addr;
-+	char *stop;
-+	unsigned long start;
-+	unsigned long end;
-+
-+	if (!area)
-+		return ret;
-+
-+	file = fopen("/proc/self/maps", "r");
-+	if (!file) {
-+		perror("fopen");
-+		return ret;
-+	}
-+
-+	memset(area, 0, sizeof(struct vm_boundaries));
-+
-+	while(fgets(line, 1024, file)) {
-+		end_addr = strchr(line, '-');
-+		if (!end_addr) {
-+			printf("cannot parse /proc/self/maps\n");
-+			goto out;
-+		}
-+		*end_addr = '\0';
-+		end_addr++;
-+		stop = strchr(end_addr, ' ');
-+		if (!stop) {
-+			printf("cannot parse /proc/self/maps\n");
-+			goto out;
-+		}
-+		stop = '\0';
-+
-+		sscanf(line, "%lx", &start);
-+		sscanf(end_addr, "%lx", &end);
-+
-+		if (start <= addr && end > addr) {
-+			area->start = start;
-+			area->end = end;
-+			ret = 0;
-+			goto out;
-+		}
-+	}
-+out:
-+	fclose(file);
-+	return ret;
-+}
-+
-+static uint64_t get_pageflags(unsigned long addr)
-+{
-+	FILE *file;
-+	uint64_t pfn;
-+	unsigned long offset;
-+
-+	file = fopen("/proc/self/pagemap", "r");
-+	if (!file) {
-+		perror("fopen pagemap");
-+		_exit(1);
-+	}
-+
-+	offset = addr / getpagesize() * sizeof(pfn);
-+
-+	if (fseek(file, offset, SEEK_SET)) {
-+		perror("fseek pagemap");
-+		_exit(1);
-+	}
-+
-+	if (fread(&pfn, sizeof(pfn), 1, file) != 1) {
-+		perror("fread pagemap");
-+		_exit(1);
-+	}
-+
-+	fclose(file);
-+	return pfn;
-+}
-+
-+static uint64_t get_kpageflags(unsigned long pfn)
-+{
-+	uint64_t flags;
-+	FILE *file;
-+
-+	file = fopen("/proc/kpageflags", "r");
-+	if (!file) {
-+		perror("fopen kpageflags");
-+		_exit(1);
-+	}
-+
-+	if (fseek(file, pfn * sizeof(flags), SEEK_SET)) {
-+		perror("fseek kpageflags");
-+		_exit(1);
-+	}
-+
-+	if (fread(&flags, sizeof(flags), 1, file) != 1) {
-+		perror("fread kpageflags");
-+		_exit(1);
-+	}
-+
-+	fclose(file);
-+	return flags;
-+}
-+
-+static FILE *seek_to_smaps_entry(unsigned long addr)
-+{
-+	FILE *file;
-+	char *line = NULL;
-+	size_t size = 0;
-+	unsigned long start, end;
-+	char perms[5];
-+	unsigned long offset;
-+	char dev[32];
-+	unsigned long inode;
-+	char path[BUFSIZ];
-+
-+	file = fopen("/proc/self/smaps", "r");
-+	if (!file) {
-+		perror("fopen smaps");
-+		_exit(1);
-+	}
-+
-+	while (getline(&line, &size, file) > 0) {
-+		if (sscanf(line, "%lx-%lx %s %lx %s %lu %s\n",
-+			   &start, &end, perms, &offset, dev, &inode, path) < 6)
-+			goto next;
-+
-+		if (start <= addr && addr < end)
-+			goto out;
-+
-+next:
-+		free(line);
-+		line = NULL;
-+		size = 0;
-+	}
-+
-+	fclose(file);
-+	file = NULL;
-+
-+out:
-+	free(line);
-+	return file;
-+}
-+
-+#define VMFLAGS "VmFlags:"
-+
-+static bool is_vmflag_set(unsigned long addr, const char *vmflag)
-+{
-+	char *line = NULL;
-+	char *flags;
-+	size_t size = 0;
-+	bool ret = false;
-+	FILE *smaps;
-+
-+	smaps = seek_to_smaps_entry(addr);
-+	if (!smaps) {
-+		printf("Unable to parse /proc/self/smaps\n");
-+		goto out;
-+	}
-+
-+	while (getline(&line, &size, smaps) > 0) {
-+		if (!strstr(line, VMFLAGS)) {
-+			free(line);
-+			line = NULL;
-+			size = 0;
-+			continue;
-+		}
-+
-+		flags = line + strlen(VMFLAGS);
-+		ret = (strstr(flags, vmflag) != NULL);
-+		goto out;
-+	}
-+
-+out:
-+	free(line);
-+	fclose(smaps);
-+	return ret;
-+}
-+
-+#define SIZE "Size:"
-+#define RSS  "Rss:"
-+#define LOCKED "lo"
-+
-+static bool is_vma_lock_on_fault(unsigned long addr)
-+{
-+	bool ret = false;
-+	bool locked;
-+	FILE *smaps = NULL;
-+	unsigned long vma_size, vma_rss;
-+	char *line = NULL;
-+	char *value;
-+	size_t size = 0;
-+
-+	locked = is_vmflag_set(addr, LOCKED);
-+	if (!locked)
-+		goto out;
-+
-+	smaps = seek_to_smaps_entry(addr);
-+	if (!smaps) {
-+		printf("Unable to parse /proc/self/smaps\n");
-+		goto out;
-+	}
-+
-+	while (getline(&line, &size, smaps) > 0) {
-+		if (!strstr(line, SIZE)) {
-+			free(line);
-+			line = NULL;
-+			size = 0;
-+			continue;
-+		}
-+
-+		value = line + strlen(SIZE);
-+		if (sscanf(value, "%lu kB", &vma_size) < 1) {
-+			printf("Unable to parse smaps entry for Size\n");
-+			goto out;
-+		}
-+		break;
-+	}
-+
-+	while (getline(&line, &size, smaps) > 0) {
-+		if (!strstr(line, RSS)) {
-+			free(line);
-+			line = NULL;
-+			size = 0;
-+			continue;
-+		}
-+
-+		value = line + strlen(RSS);
-+		if (sscanf(value, "%lu kB", &vma_rss) < 1) {
-+			printf("Unable to parse smaps entry for Rss\n");
-+			goto out;
-+		}
-+		break;
-+	}
-+
-+	ret = locked && (vma_rss < vma_size);
-+out:
-+	free(line);
-+	if (smaps)
-+		fclose(smaps);
-+	return ret;
-+}
-+
-+#define PRESENT_BIT     0x8000000000000000
-+#define PFN_MASK        0x007FFFFFFFFFFFFF
-+#define UNEVICTABLE_BIT (1UL << 18)
-+
-+static int lock_check(char *map)
-+{
-+	unsigned long page_size = getpagesize();
-+	uint64_t page1_flags, page2_flags;
-+
-+	page1_flags = get_pageflags((unsigned long)map);
-+	page2_flags = get_pageflags((unsigned long)map + page_size);
-+
-+	/* Both pages should be present */
-+	if (((page1_flags & PRESENT_BIT) == 0) ||
-+	    ((page2_flags & PRESENT_BIT) == 0)) {
-+		printf("Failed to make both pages present\n");
-+		return 1;
-+	}
-+
-+	page1_flags = get_kpageflags(page1_flags & PFN_MASK);
-+	page2_flags = get_kpageflags(page2_flags & PFN_MASK);
-+
-+	/* Both pages should be unevictable */
-+	if (((page1_flags & UNEVICTABLE_BIT) == 0) ||
-+	    ((page2_flags & UNEVICTABLE_BIT) == 0)) {
-+		printf("Failed to make both pages unevictable\n");
-+		return 1;
-+	}
-+
-+	if (!is_vmflag_set((unsigned long)map, LOCKED)) {
-+		printf("VMA flag %s is missing on page 1\n", LOCKED);
-+		return 1;
-+	}
-+
-+	if (!is_vmflag_set((unsigned long)map + page_size, LOCKED)) {
-+		printf("VMA flag %s is missing on page 2\n", LOCKED);
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static int unlock_lock_check(char *map)
-+{
-+	unsigned long page_size = getpagesize();
-+	uint64_t page1_flags, page2_flags;
-+
-+	page1_flags = get_pageflags((unsigned long)map);
-+	page2_flags = get_pageflags((unsigned long)map + page_size);
-+	page1_flags = get_kpageflags(page1_flags & PFN_MASK);
-+	page2_flags = get_kpageflags(page2_flags & PFN_MASK);
-+
-+	if ((page1_flags & UNEVICTABLE_BIT) || (page2_flags & UNEVICTABLE_BIT)) {
-+		printf("A page is still marked unevictable after unlock\n");
-+		return 1;
-+	}
-+
-+	if (is_vmflag_set((unsigned long)map, LOCKED)) {
-+		printf("VMA flag %s is present on page 1 after unlock\n", LOCKED);
-+		return 1;
-+	}
-+
-+	if (is_vmflag_set((unsigned long)map + page_size, LOCKED)) {
-+		printf("VMA flag %s is present on page 2 after unlock\n", LOCKED);
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static int test_mlock_lock()
-+{
-+	char *map;
-+	int ret = 1;
-+	unsigned long page_size = getpagesize();
-+
-+	map = mmap(NULL, 2 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-+	if (map == MAP_FAILED) {
-+		perror("test_mlock_locked mmap");
-+		goto out;
-+	}
-+
-+	if (mlock2_(map, 2 * page_size, 0)) {
-+		if (errno == ENOSYS) {
-+			printf("Cannot call new mlock family, skipping test\n");
-+			_exit(0);
-+		}
-+		perror("mlock2(0)");
-+		goto unmap;
-+	}
-+
-+	if (lock_check(map))
-+		goto unmap;
-+
-+	/* Now unlock and recheck attributes */
-+	if (munlock(map, 2 * page_size)) {
-+		perror("munlock()");
-+		goto unmap;
-+	}
-+
-+	ret = unlock_lock_check(map);
-+
-+unmap:
-+	munmap(map, 2 * page_size);
-+out:
-+	return ret;
-+}
-+
-+static int onfault_check(char *map)
-+{
-+	unsigned long page_size = getpagesize();
-+	uint64_t page1_flags, page2_flags;
-+
-+	page1_flags = get_pageflags((unsigned long)map);
-+	page2_flags = get_pageflags((unsigned long)map + page_size);
-+
-+	/* Neither page should be present */
-+	if ((page1_flags & PRESENT_BIT) || (page2_flags & PRESENT_BIT)) {
-+		printf("Pages were made present by MLOCK_ONFAULT\n");
-+		return 1;
-+	}
-+
-+	*map = 'a';
-+	page1_flags = get_pageflags((unsigned long)map);
-+	page2_flags = get_pageflags((unsigned long)map + page_size);
-+
-+	/* Only page 1 should be present */
-+	if ((page1_flags & PRESENT_BIT) == 0) {
-+		printf("Page 1 is not present after fault\n");
-+		return 1;
-+	} else if (page2_flags & PRESENT_BIT) {
-+		printf("Page 2 was made present\n");
-+		return 1;
-+	}
-+
-+	page1_flags = get_kpageflags(page1_flags & PFN_MASK);
-+
-+	/* Page 1 should be unevictable */
-+	if ((page1_flags & UNEVICTABLE_BIT) == 0) {
-+		printf("Failed to make faulted page unevictable\n");
-+		return 1;
-+	}
-+
-+	if (!is_vma_lock_on_fault((unsigned long)map)) {
-+		printf("VMA is not marked for lock on fault\n");
-+		return 1;
-+	}
-+
-+	if (!is_vma_lock_on_fault((unsigned long)map + page_size)) {
-+		printf("VMA is not marked for lock on fault\n");
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static int unlock_onfault_check(char *map)
-+{
-+	unsigned long page_size = getpagesize();
-+	uint64_t page1_flags;
-+
-+	page1_flags = get_pageflags((unsigned long)map);
-+	page1_flags = get_kpageflags(page1_flags & PFN_MASK);
-+
-+	if (page1_flags & UNEVICTABLE_BIT) {
-+		printf("Page 1 is still marked unevictable after unlock\n");
-+		return 1;
-+	}
-+
-+	if (is_vma_lock_on_fault((unsigned long)map) ||
-+	    is_vma_lock_on_fault((unsigned long)map + page_size)) {
-+		printf("VMA is still lock on fault after unlock\n");
-+		return 1;
-+	}
-+
-+	return 0;
-+}
-+
-+static int test_mlock_onfault()
-+{
-+	char *map;
-+	int ret = 1;
-+	unsigned long page_size = getpagesize();
-+
-+	map = mmap(NULL, 2 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-+	if (map == MAP_FAILED) {
-+		perror("test_mlock_locked mmap");
-+		goto out;
-+	}
-+
-+	if (mlock2_(map, 2 * page_size, MLOCK_ONFAULT)) {
-+		if (errno == ENOSYS) {
-+			printf("Cannot call new mlock family, skipping test\n");
-+			_exit(0);
-+		}
-+		perror("mlock2(MLOCK_ONFAULT)");
-+		goto unmap;
-+	}
-+
-+	if (onfault_check(map))
-+		goto unmap;
-+
-+	/* Now unlock and recheck attributes */
-+	if (munlock(map, 2 * page_size)) {
-+		if (errno == ENOSYS) {
-+			printf("Cannot call new mlock family, skipping test\n");
-+			_exit(0);
-+		}
-+		perror("munlock()");
-+		goto unmap;
-+	}
-+
-+	ret = unlock_onfault_check(map);
-+unmap:
-+	munmap(map, 2 * page_size);
-+out:
-+	return ret;
-+}
-+
-+static int test_lock_onfault_of_present()
-+{
-+	char *map;
-+	int ret = 1;
-+	unsigned long page_size = getpagesize();
-+	uint64_t page1_flags, page2_flags;
-+
-+	map = mmap(NULL, 2 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-+	if (map == MAP_FAILED) {
-+		perror("test_mlock_locked mmap");
-+		goto out;
-+	}
-+
-+	*map = 'a';
-+
-+	if (mlock2_(map, 2 * page_size, MLOCK_ONFAULT)) {
-+		if (errno == ENOSYS) {
-+			printf("Cannot call new mlock family, skipping test\n");
-+			_exit(0);
-+		}
-+		perror("mlock2(MLOCK_ONFAULT)");
-+		goto unmap;
-+	}
-+
-+	page1_flags = get_pageflags((unsigned long)map);
-+	page2_flags = get_pageflags((unsigned long)map + page_size);
-+	page1_flags = get_kpageflags(page1_flags & PFN_MASK);
-+	page2_flags = get_kpageflags(page2_flags & PFN_MASK);
-+
-+	/* Page 1 should be unevictable */
-+	if ((page1_flags & UNEVICTABLE_BIT) == 0) {
-+		printf("Failed to make present page unevictable\n");
-+		goto unmap;
-+	}
-+
-+	if (!is_vma_lock_on_fault((unsigned long)map) ||
-+	    !is_vma_lock_on_fault((unsigned long)map + page_size)) {
-+		printf("VMA with present pages is not marked lock on fault\n");
-+		goto unmap;
-+	}
-+	ret = 0;
-+unmap:
-+	munmap(map, 2 * page_size);
-+out:
-+	return ret;
-+}
-+
-+static int test_munlockall()
-+{
-+	char *map;
-+	int ret = 1;
-+	unsigned long page_size = getpagesize();
-+
-+	map = mmap(NULL, 2 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-+
-+	if (map == MAP_FAILED) {
-+		perror("test_munlockall mmap");
-+		goto out;
-+	}
-+
-+	if (mlockall(MCL_CURRENT)) {
-+		perror("mlockall(MCL_CURRENT)");
-+		goto out;
-+	}
-+
-+	if (lock_check(map))
-+		goto unmap;
-+
-+	if (munlockall()) {
-+		perror("munlockall()");
-+		goto unmap;
-+	}
-+
-+	if (unlock_lock_check(map))
-+		goto unmap;
-+
-+	munmap(map, 2 * page_size);
-+
-+	map = mmap(NULL, 2 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-+
-+	if (map == MAP_FAILED) {
-+		perror("test_munlockall second mmap");
-+		goto out;
-+	}
-+
-+	if (mlockall(MCL_CURRENT | MCL_ONFAULT)) {
-+		perror("mlockall(MCL_CURRENT | MCL_ONFAULT)");
-+		goto unmap;
-+	}
-+
-+	if (onfault_check(map))
-+		goto unmap;
-+
-+	if (munlockall()) {
-+		perror("munlockall()");
-+		goto unmap;
-+	}
-+
-+	if (unlock_onfault_check(map))
-+		goto unmap;
-+
-+	if (mlockall(MCL_CURRENT | MCL_FUTURE)) {
-+		perror("mlockall(MCL_CURRENT | MCL_FUTURE)");
-+		goto out;
-+	}
-+
-+	if (lock_check(map))
-+		goto unmap;
-+
-+	if (munlockall()) {
-+		perror("munlockall()");
-+		goto unmap;
-+	}
-+
-+	ret = unlock_lock_check(map);
-+
-+unmap:
-+	munmap(map, 2 * page_size);
-+out:
-+	munlockall();
-+	return ret;
-+}
-+
-+static int test_vma_management(bool call_mlock)
-+{
-+	int ret = 1;
-+	void *map;
-+	unsigned long page_size = getpagesize();
-+	struct vm_boundaries page1;
-+	struct vm_boundaries page2;
-+	struct vm_boundaries page3;
-+
-+	map = mmap(NULL, 3 * page_size, PROT_READ | PROT_WRITE,
-+		   MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
-+	if (map == MAP_FAILED) {
-+		perror("mmap()");
-+		return ret;
-+	}
-+
-+	if (call_mlock && mlock2_(map, 3 * page_size, MLOCK_ONFAULT)) {
-+		if (errno == ENOSYS) {
-+			printf("Cannot call new mlock family, skipping test\n");
-+			_exit(0);
-+		}
-+		perror("mlock(ONFAULT)\n");
-+		goto out;
-+	}
-+
-+	if (get_vm_area((unsigned long)map, &page1) ||
-+	    get_vm_area((unsigned long)map + page_size, &page2) ||
-+	    get_vm_area((unsigned long)map + page_size * 2, &page3)) {
-+		printf("couldn't find mapping in /proc/self/maps\n");
-+		goto out;
-+	}
-+
-+	/*
-+	 * Before we unlock a portion, we need to that all three pages are in
-+	 * the same VMA.  If they are not we abort this test (Note that this is
-+	 * not a failure)
-+	 */
-+	if (page1.start != page2.start || page2.start != page3.start) {
-+		printf("VMAs are not merged to start, aborting test\n");
-+		ret = 0;
-+		goto out;
-+	}
-+
-+	if (munlock(map + page_size, page_size)) {
-+		perror("munlock()");
-+		goto out;
-+	}
-+
-+	if (get_vm_area((unsigned long)map, &page1) ||
-+	    get_vm_area((unsigned long)map + page_size, &page2) ||
-+	    get_vm_area((unsigned long)map + page_size * 2, &page3)) {
-+		printf("couldn't find mapping in /proc/self/maps\n");
-+		goto out;
-+	}
-+
-+	/* All three VMAs should be different */
-+	if (page1.start == page2.start || page2.start == page3.start) {
-+		printf("failed to split VMA for munlock\n");
-+		goto out;
-+	}
-+
-+	/* Now unlock the first and third page and check the VMAs again */
-+	if (munlock(map, page_size * 3)) {
-+		perror("munlock()");
-+		goto out;
-+	}
-+
-+	if (get_vm_area((unsigned long)map, &page1) ||
-+	    get_vm_area((unsigned long)map + page_size, &page2) ||
-+	    get_vm_area((unsigned long)map + page_size * 2, &page3)) {
-+		printf("couldn't find mapping in /proc/self/maps\n");
-+		goto out;
-+	}
-+
-+	/* Now all three VMAs should be the same */
-+	if (page1.start != page2.start || page2.start != page3.start) {
-+		printf("failed to merge VMAs after munlock\n");
-+		goto out;
-+	}
-+
-+	ret = 0;
-+out:
-+	munmap(map, 3 * page_size);
-+	return ret;
-+}
-+
-+static int test_mlockall(int (test_function)(bool call_mlock))
-+{
-+	int ret = 1;
-+
-+	if (mlockall(MCL_CURRENT | MCL_ONFAULT | MCL_FUTURE)) {
-+		perror("mlockall");
-+		return ret;
-+	}
-+
-+	ret = test_function(false);
-+	munlockall();
-+	return ret;
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	int ret = 0;
-+	ret += test_mlock_lock();
-+	ret += test_mlock_onfault();
-+	ret += test_munlockall();
-+	ret += test_lock_onfault_of_present();
-+	ret += test_vma_management(true);
-+	ret += test_mlockall(test_vma_management);
-+	return ret;
-+}
-+
-diff -puN /dev/null tools/testing/selftests/vm/on-fault-limit.c
---- /dev/null
-+++ a/tools/testing/selftests/vm/on-fault-limit.c
-@@ -0,0 +1,47 @@
-+#include <sys/mman.h>
-+#include <stdio.h>
-+#include <unistd.h>
-+#include <string.h>
-+#include <sys/time.h>
-+#include <sys/resource.h>
-+
-+#ifndef MCL_ONFAULT
-+#define MCL_ONFAULT (MCL_FUTURE << 1)
-+#endif
-+
-+static int test_limit(void)
-+{
-+	int ret = 1;
-+	struct rlimit lims;
-+	void *map;
-+
-+	if (getrlimit(RLIMIT_MEMLOCK, &lims)) {
-+		perror("getrlimit");
-+		return ret;
-+	}
-+
-+	if (mlockall(MCL_CURRENT | MCL_ONFAULT | MCL_FUTURE)) {
-+		perror("mlockall");
-+		return ret;
-+	}
-+
-+	map = mmap(NULL, 2 * lims.rlim_max, PROT_READ | PROT_WRITE,
-+		   MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE, 0, 0);
-+	if (map != MAP_FAILED)
-+		printf("mmap should have failed, but didn't\n");
-+	else {
-+		ret = 0;
-+		munmap(map, 2 * lims.rlim_max);
-+	}
-+
-+	munlockall();
-+	return ret;
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	int ret = 0;
-+
-+	ret += test_limit();
-+	return ret;
-+}
-diff -puN tools/testing/selftests/vm/run_vmtests~selftests-vm-add-tests-for-lock-on-fault tools/testing/selftests/vm/run_vmtests
---- a/tools/testing/selftests/vm/run_vmtests~selftests-vm-add-tests-for-lock-on-fault
-+++ a/tools/testing/selftests/vm/run_vmtests
-@@ -106,4 +106,26 @@ else
- 	echo "[PASS]"
- fi
+diff -puN lib/test_kasan.c~lib-test_kasan-add-some-testcases lib/test_kasan.c
+--- a/lib/test_kasan.c~lib-test_kasan-add-some-testcases
++++ a/lib/test_kasan.c
+@@ -138,6 +138,71 @@ static noinline void __init kmalloc_oob_
+ 	kfree(ptr2);
+ }
  
-+echo "--------------------"
-+echo "running on-fault-limit"
-+echo "--------------------"
-+sudo -u nobody ./on-fault-limit
-+if [ $? -ne 0 ]; then
-+	echo "[FAIL]"
-+	exitcode=1
-+else
-+	echo "[PASS]"
-+fi
++static noinline void __init kmalloc_oob_memset_2(void)
++{
++	char *ptr;
++	size_t size = 8;
 +
-+echo "--------------------"
-+echo "running mlock2-tests"
-+echo "--------------------"
-+./mlock2-tests
-+if [ $? -ne 0 ]; then
-+	echo "[FAIL]"
-+	exitcode=1
-+else
-+	echo "[PASS]"
-+fi
++	pr_info("out-of-bounds in memset2\n");
++	ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
 +
- exit $exitcode
++	memset(ptr+7, 0, 2);
++	kfree(ptr);
++}
++
++static noinline void __init kmalloc_oob_memset_4(void)
++{
++	char *ptr;
++	size_t size = 8;
++
++	pr_info("out-of-bounds in memset4\n");
++	ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	memset(ptr+5, 0, 4);
++	kfree(ptr);
++}
++
++
++static noinline void __init kmalloc_oob_memset_8(void)
++{
++	char *ptr;
++	size_t size = 8;
++
++	pr_info("out-of-bounds in memset8\n");
++	ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	memset(ptr+1, 0, 8);
++	kfree(ptr);
++}
++
++static noinline void __init kmalloc_oob_memset_16(void)
++{
++	char *ptr;
++	size_t size = 16;
++
++	pr_info("out-of-bounds in memset16\n");
++	ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	memset(ptr+1, 0, 16);
++	kfree(ptr);
++}
++
+ static noinline void __init kmalloc_oob_in_memset(void)
+ {
+ 	char *ptr;
+@@ -264,6 +329,10 @@ static int __init kmalloc_tests_init(voi
+ 	kmalloc_oob_krealloc_less();
+ 	kmalloc_oob_16();
+ 	kmalloc_oob_in_memset();
++	kmalloc_oob_memset_2();
++	kmalloc_oob_memset_4();
++	kmalloc_oob_memset_8();
++	kmalloc_oob_memset_16();
+ 	kmalloc_uaf();
+ 	kmalloc_uaf_memset();
+ 	kmalloc_uaf2();
 _
 
-Patches currently in -mm which might be from emunson@akamai.com are
+Patches currently in -mm which might be from long.wanglong@huawei.com are
 
-mips-add-entry-for-new-mlock2-syscall.patch
 
