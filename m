@@ -1,49 +1,46 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page-migration-use-migration-entry-for-swapcache-too.patch removed from
- -mm tree
-Date: Fri, 06 Nov 2015 12:16:52 -0800
-Message-ID: <563d0ab4.ZPPOnmk93ePShcss%akpm@linux-foundation.org>
+ mm-page-migration-trylock-newpage-at-same-level-as-oldpage.patch removed
+ from -mm tree
+Date: Fri, 06 Nov 2015 12:16:43 -0800
+Message-ID: <563d0aab.NSb5NDCpTCh7v4y1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49025 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48996 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1032012AbbKFUQx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:16:53 -0500
+	with ESMTP id S1161884AbbKFUQo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:16:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, cl@linux.com, dave@stgolabs.net, dvyukov@google.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, riel@redhat.com, sasha.levin@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: hughd@google.com, aquini@redhat.com, cl@linux.com, dave@stgolabs.net, dvyukov@google.com, kirill.shutemov@linux.intel.com, kosaki.motohiro@jp.fujitsu.com, oleg@redhat.com, riel@redhat.com, sasha.levin@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: page migration use migration entry for swapcache too
+     Subject: mm: page migration trylock newpage at same level as oldpage
 has been removed from the -mm tree.  Its filename was
-     mm-page-migration-use-migration-entry-for-swapcache-too.patch
+     mm-page-migration-trylock-newpage-at-same-level-as-oldpage.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: page migration use migration entry for swapcache too
+Subject: mm: page migration trylock newpage at same level as oldpage
 
-Hitherto page migration has avoided using a migration entry for a
-swapcache page mapped into userspace, apparently for historical reasons. 
-So any page blessed with swapcache would entail a minor fault when it's
-next touched, which page migration otherwise tries to avoid.  Swapcache in
-an mlocked area is rare, so won't often matter, but still better fixed.
+Clean up page migration a little by moving the trylock of newpage from
+move_to_new_page() into __unmap_and_move(), where the old page has been
+locked.  Adjust unmap_and_move_huge_page() and balloon_page_migrate()
+accordingly.
 
-Just rearrange the block in try_to_unmap_one(), to handle TTU_MIGRATION
-before checking PageAnon, that's all (apart from some reindenting).
+But make one kind-of-functional change on the way: whereas trylock of
+newpage used to BUG() if it failed, now simply return -EAGAIN if so. 
+Cutting out BUG()s is good, right?  But, to be honest, this is really to
+extend the usefulness of the custom put_new_page feature, allowing a pool
+of new pages to be shared perhaps with racing uses.
 
-Well, no, that's not quite all: doesn't this by the way fix a soft_dirty
-bug, that page migration of a file page was forgetting to transfer the
-soft_dirty bit?  Probably not a serious bug: if I understand correctly,
-soft_dirty afficionados usually have to handle file pages separately
-anyway; but we publish the bit in /proc/<pid>/pagemap on file mappings as
-well as anonymous, so page migration ought not to perturb it.
+Use an "else" instead of that "skip_unmap" label.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -55,93 +52,155 @@ Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Sasha Levin <sasha.levin@oracle.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Reviewed-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Acked-by: Rafael Aquini <aquini@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |   63 ++++++++++++++++++++++++----------------------------
- 1 file changed, 30 insertions(+), 33 deletions(-)
+ mm/balloon_compaction.c |   10 +-------
+ mm/migrate.c            |   46 +++++++++++++++++++++-----------------
+ 2 files changed, 28 insertions(+), 28 deletions(-)
 
-diff -puN mm/rmap.c~mm-page-migration-use-migration-entry-for-swapcache-too mm/rmap.c
---- a/mm/rmap.c~mm-page-migration-use-migration-entry-for-swapcache-too
-+++ a/mm/rmap.c
-@@ -1379,47 +1379,44 @@ static int try_to_unmap_one(struct page
- 			dec_mm_counter(mm, MM_ANONPAGES);
- 		else
- 			dec_mm_counter(mm, MM_FILEPAGES);
-+	} else if (IS_ENABLED(CONFIG_MIGRATION) && (flags & TTU_MIGRATION)) {
-+		swp_entry_t entry;
-+		pte_t swp_pte;
-+		/*
-+		 * Store the pfn of the page in a special migration
-+		 * pte. do_swap_page() will wait until the migration
-+		 * pte is removed and then restart fault handling.
-+		 */
-+		entry = make_migration_entry(page, pte_write(pteval));
-+		swp_pte = swp_entry_to_pte(entry);
-+		if (pte_soft_dirty(pteval))
-+			swp_pte = pte_swp_mksoft_dirty(swp_pte);
-+		set_pte_at(mm, address, pte, swp_pte);
- 	} else if (PageAnon(page)) {
- 		swp_entry_t entry = { .val = page_private(page) };
- 		pte_t swp_pte;
+diff -puN mm/balloon_compaction.c~mm-page-migration-trylock-newpage-at-same-level-as-oldpage mm/balloon_compaction.c
+--- a/mm/balloon_compaction.c~mm-page-migration-trylock-newpage-at-same-level-as-oldpage
++++ a/mm/balloon_compaction.c
+@@ -199,23 +199,17 @@ int balloon_page_migrate(struct page *ne
+ 	struct balloon_dev_info *balloon = balloon_page_device(page);
+ 	int rc = -EAGAIN;
+ 
+-	/*
+-	 * Block others from accessing the 'newpage' when we get around to
+-	 * establishing additional references. We should be the only one
+-	 * holding a reference to the 'newpage' at this point.
+-	 */
+-	BUG_ON(!trylock_page(newpage));
++	VM_BUG_ON_PAGE(!PageLocked(page), page);
++	VM_BUG_ON_PAGE(!PageLocked(newpage), newpage);
+ 
+ 	if (WARN_ON(!__is_movable_balloon_page(page))) {
+ 		dump_page(page, "not movable balloon page");
+-		unlock_page(newpage);
+ 		return rc;
+ 	}
+ 
+ 	if (balloon && balloon->migratepage)
+ 		rc = balloon->migratepage(balloon, newpage, page, mode);
+ 
+-	unlock_page(newpage);
+ 	return rc;
+ }
+ #endif /* CONFIG_BALLOON_COMPACTION */
+diff -puN mm/migrate.c~mm-page-migration-trylock-newpage-at-same-level-as-oldpage mm/migrate.c
+--- a/mm/migrate.c~mm-page-migration-trylock-newpage-at-same-level-as-oldpage
++++ a/mm/migrate.c
+@@ -727,13 +727,8 @@ static int move_to_new_page(struct page
+ 	struct address_space *mapping;
+ 	int rc;
+ 
+-	/*
+-	 * Block others from accessing the page when we get around to
+-	 * establishing additional references. We are the only one
+-	 * holding a reference to the new page at this point.
+-	 */
+-	if (!trylock_page(newpage))
+-		BUG();
++	VM_BUG_ON_PAGE(!PageLocked(page), page);
++	VM_BUG_ON_PAGE(!PageLocked(newpage), newpage);
+ 
+ 	/* Prepare mapping for the new page.*/
+ 	newpage->index = page->index;
+@@ -774,9 +769,6 @@ static int move_to_new_page(struct page
+ 			remove_migration_ptes(page, newpage);
+ 		page->mapping = NULL;
+ 	}
 -
--		if (PageSwapCache(page)) {
--			/*
--			 * Store the swap location in the pte.
--			 * See handle_pte_fault() ...
--			 */
--			if (swap_duplicate(entry) < 0) {
--				set_pte_at(mm, address, pte, pteval);
--				ret = SWAP_FAIL;
--				goto out_unmap;
--			}
--			if (list_empty(&mm->mmlist)) {
--				spin_lock(&mmlist_lock);
--				if (list_empty(&mm->mmlist))
--					list_add(&mm->mmlist, &init_mm.mmlist);
--				spin_unlock(&mmlist_lock);
--			}
--			dec_mm_counter(mm, MM_ANONPAGES);
--			inc_mm_counter(mm, MM_SWAPENTS);
--		} else if (IS_ENABLED(CONFIG_MIGRATION)) {
--			/*
--			 * Store the pfn of the page in a special migration
--			 * pte. do_swap_page() will wait until the migration
--			 * pte is removed and then restart fault handling.
--			 */
--			BUG_ON(!(flags & TTU_MIGRATION));
--			entry = make_migration_entry(page, pte_write(pteval));
-+		/*
-+		 * Store the swap location in the pte.
-+		 * See handle_pte_fault() ...
-+		 */
-+		VM_BUG_ON_PAGE(!PageSwapCache(page), page);
-+		if (swap_duplicate(entry) < 0) {
-+			set_pte_at(mm, address, pte, pteval);
-+			ret = SWAP_FAIL;
-+			goto out_unmap;
+-	unlock_page(newpage);
+-
+ 	return rc;
+ }
+ 
+@@ -861,6 +853,17 @@ static int __unmap_and_move(struct page
  		}
-+		if (list_empty(&mm->mmlist)) {
-+			spin_lock(&mmlist_lock);
-+			if (list_empty(&mm->mmlist))
-+				list_add(&mm->mmlist, &init_mm.mmlist);
-+			spin_unlock(&mmlist_lock);
-+		}
-+		dec_mm_counter(mm, MM_ANONPAGES);
-+		inc_mm_counter(mm, MM_SWAPENTS);
- 		swp_pte = swp_entry_to_pte(entry);
- 		if (pte_soft_dirty(pteval))
- 			swp_pte = pte_swp_mksoft_dirty(swp_pte);
- 		set_pte_at(mm, address, pte, swp_pte);
--	} else if (IS_ENABLED(CONFIG_MIGRATION) &&
--		   (flags & TTU_MIGRATION)) {
--		/* Establish migration entry for a file page */
--		swp_entry_t entry;
--		entry = make_migration_entry(page, pte_write(pteval));
--		set_pte_at(mm, address, pte, swp_entry_to_pte(entry));
- 	} else
- 		dec_mm_counter(mm, MM_FILEPAGES);
+ 	}
+ 
++	/*
++	 * Block others from accessing the new page when we get around to
++	 * establishing additional references. We are usually the only one
++	 * holding a reference to newpage at this point. We used to have a BUG
++	 * here if trylock_page(newpage) fails, but would like to allow for
++	 * cases where there might be a race with the previous use of newpage.
++	 * This is much like races on refcount of oldpage: just don't BUG().
++	 */
++	if (unlikely(!trylock_page(newpage)))
++		goto out_unlock;
++
+ 	if (unlikely(isolated_balloon_page(page))) {
+ 		/*
+ 		 * A ballooned page does not need any special attention from
+@@ -870,7 +873,7 @@ static int __unmap_and_move(struct page
+ 		 * the page migration right away (proteced by page lock).
+ 		 */
+ 		rc = balloon_page_migrate(newpage, page, mode);
+-		goto out_unlock;
++		goto out_unlock_both;
+ 	}
+ 
+ 	/*
+@@ -889,30 +892,27 @@ static int __unmap_and_move(struct page
+ 		VM_BUG_ON_PAGE(PageAnon(page), page);
+ 		if (page_has_private(page)) {
+ 			try_to_free_buffers(page);
+-			goto out_unlock;
++			goto out_unlock_both;
+ 		}
+-		goto skip_unmap;
+-	}
+-
+-	/* Establish migration ptes or remove ptes */
+-	if (page_mapped(page)) {
++	} else if (page_mapped(page)) {
++		/* Establish migration ptes */
+ 		try_to_unmap(page,
+ 			TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS);
+ 		page_was_mapped = 1;
+ 	}
+ 
+-skip_unmap:
+ 	if (!page_mapped(page))
+ 		rc = move_to_new_page(newpage, page, page_was_mapped, mode);
+ 
+ 	if (rc && page_was_mapped)
+ 		remove_migration_ptes(page, page);
+ 
++out_unlock_both:
++	unlock_page(newpage);
++out_unlock:
+ 	/* Drop an anon_vma reference if we took one */
+ 	if (anon_vma)
+ 		put_anon_vma(anon_vma);
+-
+-out_unlock:
+ 	unlock_page(page);
+ out:
+ 	return rc;
+@@ -1056,6 +1056,9 @@ static int unmap_and_move_huge_page(new_
+ 	if (PageAnon(hpage))
+ 		anon_vma = page_get_anon_vma(hpage);
+ 
++	if (unlikely(!trylock_page(new_hpage)))
++		goto put_anon;
++
+ 	if (page_mapped(hpage)) {
+ 		try_to_unmap(hpage,
+ 			TTU_MIGRATION|TTU_IGNORE_MLOCK|TTU_IGNORE_ACCESS);
+@@ -1068,6 +1071,9 @@ static int unmap_and_move_huge_page(new_
+ 	if (rc != MIGRATEPAGE_SUCCESS && page_was_mapped)
+ 		remove_migration_ptes(hpage, hpage);
+ 
++	unlock_page(new_hpage);
++
++put_anon:
+ 	if (anon_vma)
+ 		put_anon_vma(anon_vma);
  
 _
 
