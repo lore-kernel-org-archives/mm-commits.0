@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-hack.patch
+Subject: + mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99.patch
  added to -mm tree
-Date: Thu, 05 Nov 2015 16:34:10 -0800
-Message-ID: <563bf582.2poGYjo+gkjYFnjC%akpm@linux-foundation.org>
+Date: Thu, 05 Nov 2015 16:52:35 -0800
+Message-ID: <563bf9d3.JU+ug8t12WG3pmi3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49986 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50527 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965414AbbKFAeL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Nov 2015 19:34:11 -0500
+	with ESMTP id S932868AbbKFAwg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Nov 2015 19:52:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-hack
+     Subject: mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99
 has been added to the -mm tree.  Its filename is
-     mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-hack.patch
+     mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-hack.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-hack.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,46 +40,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-hack
+Subject: mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99
 
-dopey hack so I can test stuff
-
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ block/blk-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-hack include/linux/mm.h
---- a/include/linux/mm.h~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-hack
-+++ a/include/linux/mm.h
-@@ -435,7 +435,7 @@ static inline int page_mapcount(struct p
+diff -puN block/blk-core.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99 block/blk-core.c
+--- a/block/blk-core.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99
++++ a/block/blk-core.c
+@@ -638,7 +638,7 @@ int blk_queue_enter(struct request_queue
+ 		if (percpu_ref_tryget_live(&q->q_usage_counter))
+ 			return 0;
  
- static inline int total_mapcount(struct page *page)
- {
--	int i, ret;
-+	int ret;
+-		if (!(gfp & __GFP_WAIT))
++		if (!gfpflags_allow_blocking(gfp))
+ 			return -EBUSY;
  
- 	VM_BUG_ON_PAGE(PageTail(page), page);
- 
-@@ -445,8 +445,14 @@ static inline int total_mapcount(struct
- 	ret = compound_mapcount(page);
- 	if (PageHuge(page))
- 		return ret;
--	for (i = 0; i < HPAGE_PMD_NR; i++)
--		ret += atomic_read(&page[i]._mapcount) + 1;
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	{
-+		int i;
-+
-+		for (i = 0; i < HPAGE_PMD_NR; i++)
-+			ret += atomic_read(&page[i]._mapcount) + 1;
-+	}
-+#endif
- 	if (PageDoubleMap(page))
- 		ret -= HPAGE_PMD_NR;
- 	return ret;
+ 		ret = wait_event_interruptible(q->mq_freeze_wq,
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -130,4 +110,5 @@ remove-abs64-fix-fix-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99.patch
 
