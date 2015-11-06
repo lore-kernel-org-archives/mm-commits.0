@@ -1,129 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-simplify-and-inline-__mem_cgroup_from_kmem.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 12:16:07 -0800
-Message-ID: <563d0a87.vfPmJ/yzy+qK6Cd/%akpm@linux-foundation.org>
+Subject: [merged] mm-dont-offset-memmap-for-flatmem.patch removed from -mm tree
+Date: Fri, 06 Nov 2015 12:15:53 -0800
+Message-ID: <563d0a79.P+ludvR7BGNsb8tw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48899 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48869 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1162891AbbKFUQH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:16:07 -0500
+	with ESMTP id S1033352AbbKFUPy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:15:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: laura@labbott.name, agross@codeaurora.org, arnd@arndb.de, bjorn.andersson@sonymobile.com, dave.hansen@linux.intel.com, khilman@linaro.org, lauraa@codeaurora.org, mgorman@suse.de, rmk@arm.linux.org.uk, rostedt@goodmis.org, sboyd@codeaurora.org, srinivas.kandagatla@linaro.org, ssantosh@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: simplify and inline __mem_cgroup_from_kmem
+     Subject: mm: Don't offset memmap for flatmem
 has been removed from the -mm tree.  Its filename was
-     memcg-simplify-and-inline-__mem_cgroup_from_kmem.patch
+     mm-dont-offset-memmap-for-flatmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: memcg: simplify and inline __mem_cgroup_from_kmem
+From: Laura Abbott <laura@labbott.name>
+Subject: mm: Don't offset memmap for flatmem
 
-Before the previous patch ("memcg: unify slab and other kmem pages
-charging"), __mem_cgroup_from_kmem had to handle two types of kmem - slab
-pages and pages allocated with alloc_kmem_pages - memcg in the page
-struct.  Now we can unify it.  Since after it, this function becomes tiny
-we can fold it into mem_cgroup_from_kmem.
+Srinivas Kandagatla reported bad page messages when trying to remove the
+bottom 2MB on an ARM based IFC6410 board
 
-[hughd@google.com: move mem_cgroup_from_kmem into list_lru.c]
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Hugh Dickins <hughd@google.com>
+BUG: Bad page state in process swapper  pfn:fffa8
+page:ef7fb500 count:0 mapcount:0 mapping:  (null) index:0x0
+flags: 0x96640253(locked|error|dirty|active|arch_1|reclaim|mlocked)
+page dumped because: PAGE_FLAGS_CHECK_AT_FREE flag(s) set
+bad because of flags:
+flags: 0x200041(locked|active|mlocked)
+Modules linked in:
+CPU: 0 PID: 0 Comm: swapper Not tainted 3.19.0-rc3-00007-g412f9ba-dirty #816
+Hardware name: Qualcomm (Flattened Device Tree)
+[<c0218280>] (unwind_backtrace) from [<c0212be8>] (show_stack+0x20/0x24)
+[<c0212be8>] (show_stack) from [<c0af7124>] (dump_stack+0x80/0x9c)
+[<c0af7124>] (dump_stack) from [<c0301570>] (bad_page+0xc8/0x128)
+[<c0301570>] (bad_page) from [<c03018a8>] (free_pages_prepare+0x168/0x1e0)
+[<c03018a8>] (free_pages_prepare) from [<c030369c>] (free_hot_cold_page+0x3c/0x174)
+[<c030369c>] (free_hot_cold_page) from [<c0303828>] (__free_pages+0x54/0x58)
+[<c0303828>] (__free_pages) from [<c030395c>] (free_highmem_page+0x38/0x88)
+[<c030395c>] (free_highmem_page) from [<c0f62d5c>] (mem_init+0x240/0x430)
+[<c0f62d5c>] (mem_init) from [<c0f5db3c>] (start_kernel+0x1e4/0x3c8)
+[<c0f5db3c>] (start_kernel) from [<80208074>] (0x80208074)
+Disabling lock debugging due to kernel taint
+
+Removing the lower 2MB made the start of the lowmem zone to no longer be
+page block aligned.  IFC6410 uses CONFIG_FLATMEM where alloc_node_mem_map
+allocates memory for the mem_map.  alloc_node_mem_map will offset for
+unaligned nodes with the assumption the pfn/page translation functions
+will account for the offset.  The functions for CONFIG_FLATMEM do not
+offset however, resulting in overrunning the memmap array.  Just use the
+allocated memmap without any offset when running with CONFIG_FLATMEM to
+avoid the overrun.
+
+Signed-off-by: Laura Abbott <laura@labbott.name>
+Signed-off-by: Laura Abbott <lauraa@codeaurora.org>
+Reported-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Tested-by: Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Tested-by: Bjorn Andersson <bjorn.andersson@sonymobile.com>
+Cc: Santosh Shilimkar <ssantosh@kernel.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Kevin Hilman <khilman@linaro.org>
+Cc: Arnd Bergman <arnd@arndb.de>
+Cc: Stephen Boyd <sboyd@codeaurora.org>
+Cc: Andy Gross <agross@codeaurora.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   15 ---------------
- mm/list_lru.c              |   10 ++++++++++
- mm/memcontrol.c            |   18 ------------------
- 3 files changed, 10 insertions(+), 33 deletions(-)
+ mm/page_alloc.c |    9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-simplify-and-inline-__mem_cgroup_from_kmem include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-simplify-and-inline-__mem_cgroup_from_kmem
-+++ a/include/linux/memcontrol.h
-@@ -770,8 +770,6 @@ static inline int memcg_cache_id(struct
- struct kmem_cache *__memcg_kmem_get_cache(struct kmem_cache *cachep);
- void __memcg_kmem_put_cache(struct kmem_cache *cachep);
+diff -puN mm/page_alloc.c~mm-dont-offset-memmap-for-flatmem mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-dont-offset-memmap-for-flatmem
++++ a/mm/page_alloc.c
+@@ -5421,6 +5421,8 @@ static void __paginginit free_area_init_
  
--struct mem_cgroup *__mem_cgroup_from_kmem(void *ptr);
--
- static inline bool __memcg_kmem_bypass(gfp_t gfp)
+ static void __init_refok alloc_node_mem_map(struct pglist_data *pgdat)
  {
- 	if (!memcg_kmem_enabled())
-@@ -830,13 +828,6 @@ static __always_inline void memcg_kmem_p
- 	if (memcg_kmem_enabled())
- 		__memcg_kmem_put_cache(cachep);
- }
--
--static __always_inline struct mem_cgroup *mem_cgroup_from_kmem(void *ptr)
--{
--	if (!memcg_kmem_enabled())
--		return NULL;
--	return __mem_cgroup_from_kmem(ptr);
--}
- #else
- #define for_each_memcg_cache_index(_idx)	\
- 	for (; NULL; )
-@@ -882,11 +873,5 @@ memcg_kmem_get_cache(struct kmem_cache *
- static inline void memcg_kmem_put_cache(struct kmem_cache *cachep)
- {
- }
--
--static inline struct mem_cgroup *mem_cgroup_from_kmem(void *ptr)
--{
--	return NULL;
--}
- #endif /* CONFIG_MEMCG_KMEM */
- #endif /* _LINUX_MEMCONTROL_H */
--
-diff -puN mm/list_lru.c~memcg-simplify-and-inline-__mem_cgroup_from_kmem mm/list_lru.c
---- a/mm/list_lru.c~memcg-simplify-and-inline-__mem_cgroup_from_kmem
-+++ a/mm/list_lru.c
-@@ -63,6 +63,16 @@ list_lru_from_memcg_idx(struct list_lru_
- 	return &nlru->lru;
- }
- 
-+static __always_inline struct mem_cgroup *mem_cgroup_from_kmem(void *ptr)
-+{
-+	struct page *page;
++	unsigned long __maybe_unused offset = 0;
 +
-+	if (!memcg_kmem_enabled())
-+		return NULL;
-+	page = virt_to_head_page(ptr);
-+	return page->mem_cgroup;
-+}
-+
- static inline struct list_lru_one *
- list_lru_from_kmem(struct list_lru_node *nlru, void *ptr)
- {
-diff -puN mm/memcontrol.c~memcg-simplify-and-inline-__mem_cgroup_from_kmem mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-simplify-and-inline-__mem_cgroup_from_kmem
-+++ a/mm/memcontrol.c
-@@ -2430,24 +2430,6 @@ void __memcg_kmem_uncharge(struct page *
- 	page->mem_cgroup = NULL;
- 	css_put_many(&memcg->css, nr_pages);
- }
--
--struct mem_cgroup *__mem_cgroup_from_kmem(void *ptr)
--{
--	struct mem_cgroup *memcg = NULL;
--	struct kmem_cache *cachep;
--	struct page *page;
--
--	page = virt_to_head_page(ptr);
--	if (PageSlab(page)) {
--		cachep = page->slab_cache;
--		if (!is_root_cache(cachep))
--			memcg = cachep->memcg_params.memcg;
--	} else
--		/* page allocated by alloc_kmem_pages */
--		memcg = page->mem_cgroup;
+ 	/* Skip empty nodes */
+ 	if (!pgdat->node_spanned_pages)
+ 		return;
+@@ -5437,6 +5439,7 @@ static void __init_refok alloc_node_mem_
+ 		 * for the buddy allocator to function correctly.
+ 		 */
+ 		start = pgdat->node_start_pfn & ~(MAX_ORDER_NR_PAGES - 1);
++		offset = pgdat->node_start_pfn - start;
+ 		end = pgdat_end_pfn(pgdat);
+ 		end = ALIGN(end, MAX_ORDER_NR_PAGES);
+ 		size =  (end - start) * sizeof(struct page);
+@@ -5444,7 +5447,7 @@ static void __init_refok alloc_node_mem_
+ 		if (!map)
+ 			map = memblock_virt_alloc_node_nopanic(size,
+ 							       pgdat->node_id);
+-		pgdat->node_mem_map = map + (pgdat->node_start_pfn - start);
++		pgdat->node_mem_map = map + offset;
+ 	}
+ #ifndef CONFIG_NEED_MULTIPLE_NODES
+ 	/*
+@@ -5452,9 +5455,9 @@ static void __init_refok alloc_node_mem_
+ 	 */
+ 	if (pgdat == NODE_DATA(0)) {
+ 		mem_map = NODE_DATA(0)->node_mem_map;
+-#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
++#if defined(CONFIG_HAVE_MEMBLOCK_NODE_MAP) || defined(CONFIG_FLATMEM)
+ 		if (page_to_pfn(mem_map) != pgdat->node_start_pfn)
+-			mem_map -= (pgdat->node_start_pfn - ARCH_PFN_OFFSET);
++			mem_map -= offset;
+ #endif /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
+ 	}
+ #endif
+_
+
+Patches currently in -mm which might be from laura@labbott.name are
+
+
