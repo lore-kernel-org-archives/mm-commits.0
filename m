@@ -1,35 +1,46 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tools-vm-slabinfo-sort-slabs-by-loss.patch removed from
- -mm tree
-Date: Fri, 06 Nov 2015 12:06:46 -0800
-Message-ID: <563d0856.4KtsWBvBmkUTW0jl%akpm@linux-foundation.org>
+Subject: [merged] tools-vm-slabinfo-gnuplot-slabifo-extended-stat.patch
+ removed from -mm tree
+Date: Fri, 06 Nov 2015 12:06:56 -0800
+Message-ID: <563d0860.IYhfADOcWNrijD2D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48557 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48588 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1033238AbbKFUGr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:06:47 -0500
+	with ESMTP id S1161169AbbKFUG5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:06:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sergey.senozhatsky@gmail.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm/slabinfo: sort slabs by loss
+     Subject: tools/vm/slabinfo: gnuplot slabifo extended stat
 has been removed from the -mm tree.  Its filename was
-     tools-vm-slabinfo-sort-slabs-by-loss.patch
+     tools-vm-slabinfo-gnuplot-slabifo-extended-stat.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: tools/vm/slabinfo: sort slabs by loss
+Subject: tools/vm/slabinfo: gnuplot slabifo extended stat
 
-Introduce opt "-L|--sort-loss" to sort and output slabs by
-loss (waste) in slabcache().
+GNUplot `slabinfo -X' stats, collected, for example, using the
+following command:
+  while [ 1 ]; do slabinfo -X >> stats; sleep 1; done
+
+`slabinfo-gnuplot.sh stats' pre-processes collected records
+and generate graphs (totals, slabs sorted by size, slabs
+sorted by size).
+
+Graphs can be [individually] regenerate with different samples
+range and graph width-heigh (-r %d,%d and -s %d,%d options).
+
+To visually compare N `totals' graphs:
+  slabinfo-gnuplot.sh -t FILE1-totals FILE2-totals ... FILEN-totals
 
 Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -39,100 +50,288 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/slabinfo.c |   25 +++++++++++++++++++++----
- 1 file changed, 21 insertions(+), 4 deletions(-)
+ tools/vm/slabinfo-gnuplot.sh |  275 +++++++++++++++++++++++++++++++++
+ 1 file changed, 275 insertions(+)
 
-diff -puN tools/vm/slabinfo.c~tools-vm-slabinfo-sort-slabs-by-loss tools/vm/slabinfo.c
---- a/tools/vm/slabinfo.c~tools-vm-slabinfo-sort-slabs-by-loss
-+++ a/tools/vm/slabinfo.c
-@@ -80,6 +80,7 @@ int set_debug = 0;
- int show_ops = 0;
- int show_activity = 0;
- int output_lines = -1;
-+int sort_loss;
- 
- /* Debug options */
- int sanity = 0;
-@@ -126,6 +127,7 @@ static void usage(void)
- 		"-z|--zero              Include empty slabs\n"
- 		"-1|--1ref              Single reference\n"
- 		"-N|--lines=K           Show the first K slabs\n"
-+		"-L|--Loss              Sort by loss\n"
- 		"\nValid debug options (FZPUT may be combined)\n"
- 		"a / A          Switch on all debug options (=FZUP)\n"
- 		"-              Switch off all debug options\n"
-@@ -301,8 +303,9 @@ static void first_line(void)
- 	if (show_activity)
- 		printf("Name                   Objects      Alloc       Free   %%Fast Fallb O CmpX   UL\n");
- 	else
--		printf("Name                   Objects Objsize    Space "
--			"Slabs/Part/Cpu  O/S O %%Fr %%Ef Flg\n");
-+		printf("Name                   Objects Objsize    %s "
-+			"Slabs/Part/Cpu  O/S O %%Fr %%Ef Flg\n",
-+			sort_loss ? "Loss" : "Space");
- }
- 
- /*
-@@ -335,6 +338,11 @@ static unsigned long slab_activity(struc
- 		s->alloc_slowpath + s->free_slowpath;
- }
- 
-+static unsigned long slab_waste(struct slabinfo *s)
+diff -puN /dev/null tools/vm/slabinfo-gnuplot.sh
+--- /dev/null
++++ a/tools/vm/slabinfo-gnuplot.sh
+@@ -0,0 +1,275 @@
++#!/bin/sh
++
++# Sergey Senozhatsky, 2015
++# sergey.senozhatsky.work@gmail.com
++#
++# This software is licensed under the terms of the GNU General Public
++# License version 2, as published by the Free Software Foundation, and
++# may be copied, distributed, and modified under those terms.
++#
++# This program is distributed in the hope that it will be useful,
++# but WITHOUT ANY WARRANTY; without even the implied warranty of
++# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++# GNU General Public License for more details.
++
++
++# This program is intended to plot a `slabinfo -X' stats, collected,
++# for example, using the following command:
++#   while [ 1 ]; do slabinfo -X >> stats; sleep 1; done
++#
++# Use `slabinfo-gnuplot.sh stats' to pre-process collected records
++# and generate graphs (totals, slabs sorted by size, slabs sorted
++# by size).
++#
++# Graphs can be [individually] regenerate with different ranges and
++# size (-r %d,%d and -s %d,%d options).
++#
++# To visually compare N `totals' graphs, do
++# slabinfo-gnuplot.sh -t FILE1-totals FILE2-totals ... FILEN-totals
++#
++
++min_slab_name_size=11
++xmin=0
++xmax=0
++width=1500
++height=700
++mode=preprocess
++
++usage()
 +{
-+	return	slab_size(s) - s->objects * s->object_size;
++	echo "Usage: [-s W,H] [-r MIN,MAX] [-t|-l] FILE1 [FILE2 ..]"
++	echo "FILEs must contain 'slabinfo -X' samples"
++	echo "-t 			- plot totals for FILE(s)"
++	echo "-l 			- plot slabs stats for FILE(s)"
++	echo "-s %d,%d		- set image width and height"
++	echo "-r %d,%d		- use data samples from a given range"
 +}
 +
- static void slab_numa(struct slabinfo *s, int mode)
- {
- 	int node;
-@@ -563,7 +571,10 @@ static void slabcache(struct slabinfo *s
- 	if (show_empty && s->slabs)
- 		return;
- 
--	store_size(size_str, slab_size(s));
-+	if (sort_loss == 0)
-+		store_size(size_str, slab_size(s));
-+	else
-+		store_size(size_str, slab_waste(s));
- 	snprintf(dist_str, 40, "%lu/%lu/%d", s->slabs - s->cpu_slabs,
- 						s->partial, s->cpu_slabs);
- 
-@@ -1013,6 +1024,8 @@ static void sort_slabs(void)
- 				result = slab_size(s1) < slab_size(s2);
- 			else if (sort_active)
- 				result = slab_activity(s1) < slab_activity(s2);
-+			else if (sort_loss)
-+				result = slab_waste(s1) < slab_waste(s2);
- 			else
- 				result = strcasecmp(s1->name, s2->name);
- 
-@@ -1291,6 +1304,7 @@ struct option opts[] = {
- 	{ "zero", no_argument, NULL, 'z' },
- 	{ "1ref", no_argument, NULL, '1'},
- 	{ "lines", required_argument, NULL, 'N'},
-+	{ "Loss", no_argument, NULL, 'L'},
- 	{ NULL, 0, NULL, 0 }
- };
- 
-@@ -1302,7 +1316,7 @@ int main(int argc, char *argv[])
- 
- 	page_size = getpagesize();
- 
--	while ((c = getopt_long(argc, argv, "aAd::Defhil1noprstvzTSN:",
-+	while ((c = getopt_long(argc, argv, "aAd::Defhil1noprstvzTSN:L",
- 						opts, NULL)) != -1)
- 		switch (c) {
- 		case '1':
-@@ -1371,6 +1385,9 @@ int main(int argc, char *argv[])
- 					output_lines = 1;
- 			}
- 			break;
-+		case 'L':
-+			sort_loss = 1;
-+			break;
- 		default:
- 			fatal("%s: Invalid option '%c'\n", argv[0], optopt);
- 
++check_file_exist()
++{
++	if [ ! -f "$1" ]; then
++		echo "File '$1' does not exist"
++		exit 1
++	fi
++}
++
++do_slabs_plotting()
++{
++	local file=$1
++	local out_file
++	local range="every ::$xmin"
++	local xtic=""
++	local xtic_rotate="norotate"
++	local lines=2000000
++	local wc_lines
++
++	check_file_exist "$file"
++
++	out_file=`basename "$file"`
++	if [ $xmax -ne 0 ]; then
++		range="$range::$xmax"
++		lines=$((xmax-xmin))
++	fi
++
++	wc_lines=`cat "$file" | wc -l`
++	if [ $? -ne 0 ] || [ "$wc_lines" -eq 0 ] ; then
++		wc_lines=$lines
++	fi
++
++	if [ "$wc_lines" -lt "$lines" ]; then
++		lines=$wc_lines
++	fi
++
++	if [ $((width / lines)) -gt $min_slab_name_size ]; then
++		xtic=":xtic(1)"
++		xtic_rotate=90
++	fi
++
++gnuplot -p << EOF
++#!/usr/bin/env gnuplot
++
++set terminal png enhanced size $width,$height large
++set output '$out_file.png'
++set autoscale xy
++set xlabel 'samples'
++set ylabel 'bytes'
++set style histogram columnstacked title textcolor lt -1
++set style fill solid 0.15
++set xtics rotate $xtic_rotate
++set key left above Left title reverse
++
++plot "$file" $range u 2$xtic title 'SIZE' with boxes,\
++	'' $range u 3 title 'LOSS' with boxes
++EOF
++
++	if [ $? -eq 0 ]; then
++		echo "$out_file.png"
++	fi
++}
++
++do_totals_plotting()
++{
++	local gnuplot_cmd=""
++	local range="every ::$xmin"
++	local file=""
++
++	if [ $xmax -ne 0 ]; then
++		range="$range::$xmax"
++	fi
++
++	for i in "${t_files[@]}"; do
++		check_file_exist "$i"
++
++		file="$file"`basename "$i"`
++		gnuplot_cmd="$gnuplot_cmd '$i' $range using 1 title\
++			'$i Memory usage' with lines,"
++		gnuplot_cmd="$gnuplot_cmd '' $range using 2 title \
++			'$i Loss' with lines,"
++	done
++
++gnuplot -p << EOF
++#!/usr/bin/env gnuplot
++
++set terminal png enhanced size $width,$height large
++set autoscale xy
++set output '$file.png'
++set xlabel 'samples'
++set ylabel 'bytes'
++set key left above Left title reverse
++
++plot $gnuplot_cmd
++EOF
++
++	if [ $? -eq 0 ]; then
++		echo "$file.png"
++	fi
++}
++
++do_preprocess()
++{
++	local out
++	local lines
++	local in=$1
++
++	check_file_exist "$in"
++
++	# use only 'TOP' slab (biggest memory usage or loss)
++	let lines=3
++	out=`basename "$in"`"-slabs-by-loss"
++	`cat "$in" | grep -A "$lines" 'Slabs sorted by loss' |\
++		egrep -iv '\-\-|Name|Slabs'\
++		| awk '{print $1" "$4+$2*$3" "$4}' > "$out"`
++	if [ $? -eq 0 ]; then
++		do_slabs_plotting "$out"
++	fi
++
++	let lines=3
++	out=`basename "$in"`"-slabs-by-size"
++	`cat "$in" | grep -A "$lines" 'Slabs sorted by size' |\
++		egrep -iv '\-\-|Name|Slabs'\
++		| awk '{print $1" "$4" "$4-$2*$3}' > "$out"`
++	if [ $? -eq 0 ]; then
++		do_slabs_plotting "$out"
++	fi
++
++	out=`basename "$in"`"-totals"
++	`cat "$in" | grep "Memory used" |\
++		awk '{print $3" "$7}' > "$out"`
++	if [ $? -eq 0 ]; then
++		t_files[0]=$out
++		do_totals_plotting
++	fi
++}
++
++parse_opts()
++{
++	local opt
++
++	while getopts "tlr::s::h" opt; do
++		case $opt in
++			t)
++				mode=totals
++				;;
++			l)
++				mode=slabs
++				;;
++			s)
++				array=(${OPTARG//,/ })
++				width=${array[0]}
++				height=${array[1]}
++				;;
++			r)
++				array=(${OPTARG//,/ })
++				xmin=${array[0]}
++				xmax=${array[1]}
++				;;
++			h)
++				usage
++				exit 0
++				;;
++			\?)
++				echo "Invalid option: -$OPTARG" >&2
++				exit 1
++				;;
++			:)
++				echo "-$OPTARG requires an argument." >&2
++				exit 1
++				;;
++		esac
++	done
++
++	return $OPTIND
++}
++
++parse_args()
++{
++	local idx=0
++	local p
++
++	for p in "$@"; do
++		case $mode in
++			preprocess)
++				files[$idx]=$p
++				idx=$idx+1
++				;;
++			totals)
++				t_files[$idx]=$p
++				idx=$idx+1
++				;;
++			slabs)
++				files[$idx]=$p
++				idx=$idx+1
++				;;
++		esac
++	done
++}
++
++parse_opts "$@"
++argstart=$?
++parse_args "${@:$argstart}"
++
++if [ ${#files[@]} -eq 0 ] && [ ${#t_files[@]} -eq 0 ]; then
++	usage
++	exit 1
++fi
++
++case $mode in
++	preprocess)
++		for i in "${files[@]}"; do
++			do_preprocess "$i"
++		done
++		;;
++	totals)
++		do_totals_plotting
++		;;
++	slabs)
++		for i in "${files[@]}"; do
++			do_slabs_plotting "$i"
++		done
++		;;
++	*)
++		echo "Unknown mode $mode" >&2
++		usage
++		exit 1
++	;;
++esac
 _
 
 Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
