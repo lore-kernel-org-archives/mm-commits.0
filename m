@@ -1,191 +1,219 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch removed
- from -mm tree
-Date: Fri, 06 Nov 2015 12:08:11 -0800
-Message-ID: <563d08ab.3Q1DBMMit0Ur9Bum%akpm@linux-foundation.org>
+ fs-global-sync-to-not-clear-error-status-of-individual-inodes.patch removed from -mm tree
+Date: Fri, 06 Nov 2015 12:08:16 -0800
+Message-ID: <563d08b0./883hhiVZVqdawWv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48705 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48714 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1032971AbbKFUIL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:11 -0500
+	with ESMTP id S1033689AbbKFUIR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, joern@logfs.org, mhocko@suse.com, mike.kravetz@oracle.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: j-nomura@ce.jp.nec.com, ak@linux.intel.com, david@fromorbit.com, fengguang.wu@gmail.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: hugetlb: proc: add HugetlbPages field to /proc/PID/status
+     Subject: mm/filemap.c: make global sync not clear error status of individual inodes
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status.patch
+     fs-global-sync-to-not-clear-error-status-of-individual-inodes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm: hugetlb: proc: add HugetlbPages field to /proc/PID/status
+From: Junichi Nomura <j-nomura@ce.jp.nec.com>
+Subject: mm/filemap.c: make global sync not clear error status of individual inodes
 
-Currently there's no easy way to get per-process usage of hugetlb pages,
-which is inconvenient because userspace applications which use hugetlb
-typically want to control their processes on the basis of how much memory
-(including hugetlb) they use.  So this patch simply provides easy access
-to the info via /proc/PID/status.
+filemap_fdatawait() is a function to wait for on-going writeback to
+complete but also consume and clear error status of the mapping set during
+writeback.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Joern Engel <joern@logfs.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+The latter functionality is critical for applications to detect writeback
+error with system calls like fsync(2)/fdatasync(2).
+
+However filemap_fdatawait() is also used by sync(2) or FIFREEZE ioctl,
+which don't check error status of individual mappings.
+
+As a result, fsync() may not be able to detect writeback error if events
+happen in the following order:
+
+   Application                    System admin
+   ----------------------------------------------------------
+   write data on page cache
+                                  Run sync command
+                                  writeback completes with error
+                                  filemap_fdatawait() clears error
+   fsync returns success
+   (but the data is not on disk)
+
+This patch adds filemap_fdatawait_keep_errors() for call sites where
+writeback error is not handled so that they don't clear error status.
+
+Signed-off-by: Jun'ichi Nomura <j-nomura@ce.jp.nec.com>
+Acked-by: Andi Kleen <ak@linux.intel.com>
+Reviewed-by: Tejun Heo <tj@kernel.org>
+Cc: Fengguang Wu <fengguang.wu@gmail.com>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |    2 ++
- fs/proc/task_mmu.c                 |    1 +
- include/linux/hugetlb.h            |   19 +++++++++++++++++++
- include/linux/mm_types.h           |    3 +++
- mm/hugetlb.c                       |    9 +++++++++
- mm/rmap.c                          |    4 +++-
- 6 files changed, 37 insertions(+), 1 deletion(-)
+ fs/fs-writeback.c  |    7 +++-
+ fs/sync.c          |    7 +++-
+ include/linux/fs.h |    1 
+ mm/filemap.c       |   67 ++++++++++++++++++++++++++++++++++---------
+ 4 files changed, 67 insertions(+), 15 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status
-+++ a/Documentation/filesystems/proc.txt
-@@ -175,6 +175,7 @@ read the file /proc/PID/status:
-   VmLib:      1412 kB
-   VmPTE:        20 kb
-   VmSwap:        0 kB
-+  HugetlbPages:          0 kB
-   Threads:        1
-   SigQ:   0/28578
-   SigPnd: 0000000000000000
-@@ -238,6 +239,7 @@ Table 1-2: Contents of the status files
-  VmPTE                       size of page table entries
-  VmPMD                       size of second level page tables
-  VmSwap                      size of swap usage (the number of referred swapents)
-+ HugetlbPages                size of hugetlb memory portions
-  Threads                     number of threads
-  SigQ                        number of signals queued/max. number for queue
-  SigPnd                      bitmap of pending signals for the thread
-diff -puN fs/proc/task_mmu.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status
-+++ a/fs/proc/task_mmu.c
-@@ -70,6 +70,7 @@ void task_mem(struct seq_file *m, struct
- 		ptes >> 10,
- 		pmds >> 10,
- 		swap << (PAGE_SHIFT-10));
-+	hugetlb_report_usage(m, mm);
- }
+diff -puN fs/fs-writeback.c~fs-global-sync-to-not-clear-error-status-of-individual-inodes fs/fs-writeback.c
+--- a/fs/fs-writeback.c~fs-global-sync-to-not-clear-error-status-of-individual-inodes
++++ a/fs/fs-writeback.c
+@@ -2149,7 +2149,12 @@ static void wait_sb_inodes(struct super_
+ 		iput(old_inode);
+ 		old_inode = inode;
  
- unsigned long task_vsize(struct mm_struct *mm)
-diff -puN include/linux/hugetlb.h~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status
-+++ a/include/linux/hugetlb.h
-@@ -483,6 +483,17 @@ static inline spinlock_t *huge_pte_lockp
- #define hugepages_supported() (HPAGE_SHIFT != 0)
- #endif
+-		filemap_fdatawait(mapping);
++		/*
++		 * We keep the error status of individual mapping so that
++		 * applications can catch the writeback error using fsync(2).
++		 * See filemap_fdatawait_keep_errors() for details.
++		 */
++		filemap_fdatawait_keep_errors(mapping);
  
-+void hugetlb_report_usage(struct seq_file *m, struct mm_struct *mm);
-+
-+static inline void hugetlb_count_add(long l, struct mm_struct *mm)
-+{
-+	atomic_long_add(l, &mm->hugetlb_usage);
-+}
-+
-+static inline void hugetlb_count_sub(long l, struct mm_struct *mm)
-+{
-+	atomic_long_sub(l, &mm->hugetlb_usage);
-+}
- #else	/* CONFIG_HUGETLB_PAGE */
- struct hstate {};
- #define alloc_huge_page(v, a, r) NULL
-@@ -519,6 +530,14 @@ static inline spinlock_t *huge_pte_lockp
+ 		cond_resched();
+ 
+diff -puN fs/sync.c~fs-global-sync-to-not-clear-error-status-of-individual-inodes fs/sync.c
+--- a/fs/sync.c~fs-global-sync-to-not-clear-error-status-of-individual-inodes
++++ a/fs/sync.c
+@@ -86,7 +86,12 @@ static void fdatawrite_one_bdev(struct b
+ 
+ static void fdatawait_one_bdev(struct block_device *bdev, void *arg)
  {
- 	return &mm->page_table_lock;
- }
-+
-+static inline void hugetlb_report_usage(struct seq_file *f, struct mm_struct *m)
-+{
-+}
-+
-+static inline void hugetlb_count_sub(long l, struct mm_struct *mm)
-+{
-+}
- #endif	/* CONFIG_HUGETLB_PAGE */
- 
- static inline spinlock_t *huge_pte_lock(struct hstate *h,
-diff -puN include/linux/mm_types.h~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status
-+++ a/include/linux/mm_types.h
-@@ -486,6 +486,9 @@ struct mm_struct {
- 	/* address of the bounds directory */
- 	void __user *bd_addr;
- #endif
-+#ifdef CONFIG_HUGETLB_PAGE
-+	atomic_long_t hugetlb_usage;
-+#endif
- };
- 
- static inline void mm_init_cpumask(struct mm_struct *mm)
-diff -puN mm/hugetlb.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status
-+++ a/mm/hugetlb.c
-@@ -2790,6 +2790,12 @@ void hugetlb_show_meminfo(void)
- 				1UL << (huge_page_order(h) + PAGE_SHIFT - 10));
+-	filemap_fdatawait(bdev->bd_inode->i_mapping);
++	/*
++	 * We keep the error status of individual mapping so that
++	 * applications can catch the writeback error using fsync(2).
++	 * See filemap_fdatawait_keep_errors() for details.
++	 */
++	filemap_fdatawait_keep_errors(bdev->bd_inode->i_mapping);
  }
  
-+void hugetlb_report_usage(struct seq_file *m, struct mm_struct *mm)
-+{
-+	seq_printf(m, "HugetlbPages:\t%8lu kB\n",
-+		   atomic_long_read(&mm->hugetlb_usage) << (PAGE_SHIFT - 10));
-+}
-+
- /* Return the number pages of memory we physically have, in PAGE_SIZE units. */
- unsigned long hugetlb_total_pages(void)
+ /*
+diff -puN include/linux/fs.h~fs-global-sync-to-not-clear-error-status-of-individual-inodes include/linux/fs.h
+--- a/include/linux/fs.h~fs-global-sync-to-not-clear-error-status-of-individual-inodes
++++ a/include/linux/fs.h
+@@ -2422,6 +2422,7 @@ extern int write_inode_now(struct inode
+ extern int filemap_fdatawrite(struct address_space *);
+ extern int filemap_flush(struct address_space *);
+ extern int filemap_fdatawait(struct address_space *);
++extern void filemap_fdatawait_keep_errors(struct address_space *);
+ extern int filemap_fdatawait_range(struct address_space *, loff_t lstart,
+ 				   loff_t lend);
+ extern int filemap_write_and_wait(struct address_space *mapping);
+diff -puN mm/filemap.c~fs-global-sync-to-not-clear-error-status-of-individual-inodes mm/filemap.c
+--- a/mm/filemap.c~fs-global-sync-to-not-clear-error-status-of-individual-inodes
++++ a/mm/filemap.c
+@@ -331,23 +331,14 @@ int filemap_flush(struct address_space *
+ }
+ EXPORT_SYMBOL(filemap_flush);
+ 
+-/**
+- * filemap_fdatawait_range - wait for writeback to complete
+- * @mapping:		address space structure to wait for
+- * @start_byte:		offset in bytes where the range starts
+- * @end_byte:		offset in bytes where the range ends (inclusive)
+- *
+- * Walk the list of under-writeback pages of the given address space
+- * in the given range and wait for all of them.
+- */
+-int filemap_fdatawait_range(struct address_space *mapping, loff_t start_byte,
+-			    loff_t end_byte)
++static int __filemap_fdatawait_range(struct address_space *mapping,
++				     loff_t start_byte, loff_t end_byte)
  {
-@@ -3025,6 +3031,7 @@ int copy_hugetlb_page_range(struct mm_st
- 			get_page(ptepage);
- 			page_dup_rmap(ptepage);
- 			set_huge_pte_at(dst, addr, dst_pte, entry);
-+			hugetlb_count_add(pages_per_huge_page(h), dst);
- 		}
- 		spin_unlock(src_ptl);
- 		spin_unlock(dst_ptl);
-@@ -3105,6 +3112,7 @@ again:
- 		if (huge_pte_dirty(pte))
- 			set_page_dirty(page);
+ 	pgoff_t index = start_byte >> PAGE_CACHE_SHIFT;
+ 	pgoff_t end = end_byte >> PAGE_CACHE_SHIFT;
+ 	struct pagevec pvec;
+ 	int nr_pages;
+-	int ret2, ret = 0;
++	int ret = 0;
  
-+		hugetlb_count_sub(pages_per_huge_page(h), mm);
- 		page_remove_rmap(page);
- 		force_flush = !__tlb_remove_page(tlb, page);
- 		if (force_flush) {
-@@ -3509,6 +3517,7 @@ retry:
- 				&& (vma->vm_flags & VM_SHARED)));
- 	set_huge_pte_at(mm, address, ptep, new_pte);
+ 	if (end_byte < start_byte)
+ 		goto out;
+@@ -374,6 +365,29 @@ int filemap_fdatawait_range(struct addre
+ 		cond_resched();
+ 	}
+ out:
++	return ret;
++}
++
++/**
++ * filemap_fdatawait_range - wait for writeback to complete
++ * @mapping:		address space structure to wait for
++ * @start_byte:		offset in bytes where the range starts
++ * @end_byte:		offset in bytes where the range ends (inclusive)
++ *
++ * Walk the list of under-writeback pages of the given address space
++ * in the given range and wait for all of them.  Check error status of
++ * the address space and return it.
++ *
++ * Since the error status of the address space is cleared by this function,
++ * callers are responsible for checking the return value and handling and/or
++ * reporting the error.
++ */
++int filemap_fdatawait_range(struct address_space *mapping, loff_t start_byte,
++			    loff_t end_byte)
++{
++	int ret, ret2;
++
++	ret = __filemap_fdatawait_range(mapping, start_byte, end_byte);
+ 	ret2 = filemap_check_errors(mapping);
+ 	if (!ret)
+ 		ret = ret2;
+@@ -383,11 +397,38 @@ out:
+ EXPORT_SYMBOL(filemap_fdatawait_range);
  
-+	hugetlb_count_add(pages_per_huge_page(h), mm);
- 	if ((flags & FAULT_FLAG_WRITE) && !(vma->vm_flags & VM_SHARED)) {
- 		/* Optimization, do the COW without a second fault */
- 		ret = hugetlb_cow(mm, vma, address, ptep, new_pte, page, ptl);
-diff -puN mm/rmap.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status mm/rmap.c
---- a/mm/rmap.c~mm-hugetlb-proc-add-hugetlbpages-field-to-proc-pid-status
-+++ a/mm/rmap.c
-@@ -1352,7 +1352,9 @@ static int try_to_unmap_one(struct page
- 	update_hiwater_rss(mm);
- 
- 	if (PageHWPoison(page) && !(flags & TTU_IGNORE_HWPOISON)) {
--		if (!PageHuge(page)) {
-+		if (PageHuge(page)) {
-+			hugetlb_count_sub(1 << compound_order(page), mm);
-+		} else {
- 			if (PageAnon(page))
- 				dec_mm_counter(mm, MM_ANONPAGES);
- 			else
+ /**
++ * filemap_fdatawait_keep_errors - wait for writeback without clearing errors
++ * @mapping: address space structure to wait for
++ *
++ * Walk the list of under-writeback pages of the given address space
++ * and wait for all of them.  Unlike filemap_fdatawait(), this function
++ * does not clear error status of the address space.
++ *
++ * Use this function if callers don't handle errors themselves.  Expected
++ * call sites are system-wide / filesystem-wide data flushers: e.g. sync(2),
++ * fsfreeze(8)
++ */
++void filemap_fdatawait_keep_errors(struct address_space *mapping)
++{
++	loff_t i_size = i_size_read(mapping->host);
++
++	if (i_size == 0)
++		return;
++
++	__filemap_fdatawait_range(mapping, 0, i_size - 1);
++}
++
++/**
+  * filemap_fdatawait - wait for all under-writeback pages to complete
+  * @mapping: address space structure to wait for
+  *
+  * Walk the list of under-writeback pages of the given address space
+- * and wait for all of them.
++ * and wait for all of them.  Check error status of the address space
++ * and return it.
++ *
++ * Since the error status of the address space is cleared by this function,
++ * callers are responsible for checking the return value and handling and/or
++ * reporting the error.
+  */
+ int filemap_fdatawait(struct address_space *mapping)
+ {
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from j-nomura@ce.jp.nec.com are
 
 
