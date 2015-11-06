@@ -1,36 +1,77 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- watchdog-implement-error-handling-in-update_watchdog_all_cpus-and-callers.patch removed from -mm tree
-Date: Fri, 06 Nov 2015 12:06:10 -0800
-Message-ID: <563d0832.jOrhdnsE6nDlMfOj%akpm@linux-foundation.org>
+ watchdog-fix-error-handling-in-proc_watchdog_thresh.patch removed from -mm
+ tree
+Date: Fri, 06 Nov 2015 12:06:05 -0800
+Message-ID: <563d082d.ozcVRk7eVxGxvsBq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48488 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48483 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161824AbbKFUGL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:06:11 -0500
+	with ESMTP id S1161814AbbKFUGG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:06:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: uobergfe@redhat.com, atomlin@redhat.com, dzickus@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: implement error handling in update_watchdog_all_cpus() and callers
+     Subject: watchdog: fix error handling in proc_watchdog_thresh()
 has been removed from the -mm tree.  Its filename was
-     watchdog-implement-error-handling-in-update_watchdog_all_cpus-and-callers.patch
+     watchdog-fix-error-handling-in-proc_watchdog_thresh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ulrich Obergfell <uobergfe@redhat.com>
-Subject: watchdog: implement error handling in update_watchdog_all_cpus() and callers
+Subject: watchdog: fix error handling in proc_watchdog_thresh()
 
-update_watchdog_all_cpus() now passes errors from watchdog_park_threads()
-up to functions in the call chain.  This allows watchdog_enable_all_cpus()
-and proc_watchdog_update() to handle such errors too.
+The original watchdog_park_threads() function that was introduced by
+81a4beef91ba4a9 ("watchdog: introduce watchdog_park_threads() and
+watchdog_unpark_threads()") takes a very simple approach to handle errors
+returned by kthread_park(): It attempts to roll back all watchdog threads
+to the unparked state.  However, this may be undesired behaviour from the
+perspective of the caller which may want to handle errors as appropriate
+in its specific context.  Currently, there are two possible call chains:
+
+- watchdog suspend/resume interface
+
+    lockup_detector_suspend
+      watchdog_park_threads
+
+- write to parameters in /proc/sys/kernel
+
+    proc_watchdog_update
+      watchdog_enable_all_cpus
+        update_watchdog_all_cpus
+          watchdog_park_threads
+
+Instead of 'blindly' attempting to unpark the watchdog threads if a
+kthread_park() call fails, the new approach is to disable the lockup
+detectors in the above call chains.  Failure becomes visible to the user
+as follows:
+
+- error messages from lockup_detector_suspend()
+                   or watchdog_enable_all_cpus()
+
+- the state that can be read from /proc/sys/kernel/watchdog_enabled
+
+- the 'write' system call in the latter call chain returns an error
+
+
+I did not experience kthread_park() failures in practice, I used some
+instrumentation to fake error returns from kthread_park() in order to test
+the patches.
+
+
+This patch (of 5):
+
+Restore the previous value of watchdog_thresh _and_ sample_period if
+proc_watchdog_update() returns an error.  The variables must be consistent
+to avoid false positives of the lockup detectors.
 
 Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
 Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
@@ -39,69 +80,30 @@ Cc: Ulrich Obergfell <uobergfe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |   30 +++++++++++++++++++++++-------
- 1 file changed, 23 insertions(+), 7 deletions(-)
+ kernel/watchdog.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN kernel/watchdog.c~watchdog-implement-error-handling-in-update_watchdog_all_cpus-and-callers kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-implement-error-handling-in-update_watchdog_all_cpus-and-callers
+diff -puN kernel/watchdog.c~watchdog-fix-error-handling-in-proc_watchdog_thresh kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-fix-error-handling-in-proc_watchdog_thresh
 +++ a/kernel/watchdog.c
-@@ -731,10 +731,17 @@ void lockup_detector_resume(void)
- 	mutex_unlock(&watchdog_proc_mutex);
- }
+@@ -914,13 +914,14 @@ int proc_watchdog_thresh(struct ctl_tabl
+ 		goto out;
  
--static void update_watchdog_all_cpus(void)
-+static int update_watchdog_all_cpus(void)
- {
--	watchdog_park_threads();
-+	int ret;
-+
-+	ret = watchdog_park_threads();
-+	if (ret)
-+		return ret;
-+
- 	watchdog_unpark_threads();
-+
-+	return 0;
- }
- 
- static int watchdog_enable_all_cpus(void)
-@@ -753,9 +760,17 @@ static int watchdog_enable_all_cpus(void
- 		 * Enable/disable the lockup detectors or
- 		 * change the sample period 'on the fly'.
- 		 */
--		update_watchdog_all_cpus();
-+		err = update_watchdog_all_cpus();
-+
-+		if (err) {
-+			watchdog_disable_all_cpus();
-+			pr_err("Failed to update lockup detectors, disabled\n");
-+		}
- 	}
- 
-+	if (err)
-+		watchdog_enabled = 0;
-+
- 	return err;
- }
- 
-@@ -851,12 +866,13 @@ static int proc_watchdog_common(int whic
- 		} while (cmpxchg(&watchdog_enabled, old, new) != old);
- 
- 		/*
--		 * Update the run state of the lockup detectors.
--		 * Restore 'watchdog_enabled' on failure.
-+		 * Update the run state of the lockup detectors. There is _no_
-+		 * need to check the value returned by proc_watchdog_update()
-+		 * and to restore the previous value of 'watchdog_enabled' as
-+		 * both lockup detectors are disabled if proc_watchdog_update()
-+		 * returns an error.
- 		 */
- 		err = proc_watchdog_update();
--		if (err)
--			watchdog_enabled = old;
- 	}
+ 	/*
+-	 * Update the sample period.
+-	 * Restore 'watchdog_thresh' on failure.
++	 * Update the sample period. Restore on failure.
+ 	 */
+ 	set_sample_period();
+ 	err = proc_watchdog_update();
+-	if (err)
++	if (err) {
+ 		watchdog_thresh = old;
++		set_sample_period();
++	}
  out:
  	mutex_unlock(&watchdog_proc_mutex);
+ 	return err;
 _
 
 Patches currently in -mm which might be from uobergfe@redhat.com are
