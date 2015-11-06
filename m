@@ -1,131 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-test_kasan-add-some-testcases.patch removed from -mm tree
-Date: Fri, 06 Nov 2015 12:17:49 -0800
-Message-ID: <563d0aed.oPI2QDZTgpM3RlOx%akpm@linux-foundation.org>
+Subject: [merged] kasan-update-reference-to-kasan-prototype-repo.patch
+ removed from -mm tree
+Date: Fri, 06 Nov 2015 12:17:47 -0800
+Message-ID: <563d0aeb.MQczNc6bEkQ51IYY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49130 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49126 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161815AbbKFURt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:49 -0500
+	with ESMTP id S1162975AbbKFURs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: long.wanglong@huawei.com, aryabinin@virtuozzo.com, vladimir.murzin@arm.com, mm-commits@vger.kernel.org
+To: andreyknvl@google.com, dvyukov@google.com, glider@google.com, kcc@google.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: test_kasan: add some testcases
+     Subject: kasan: update reference to kasan prototype repo
 has been removed from the -mm tree.  Its filename was
-     lib-test_kasan-add-some-testcases.patch
+     kasan-update-reference-to-kasan-prototype-repo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wang Long <long.wanglong@huawei.com>
-Subject: lib: test_kasan: add some testcases
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: update reference to kasan prototype repo
 
-Add some out of bounds testcases to test_kasan module.
+Update the reference to the kasan prototype repository on github, since it
+was renamed.
 
-Signed-off-by: Wang Long <long.wanglong@huawei.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Vladimir Murzin <vladimir.murzin@arm.com>
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Konstantin Serebryany <kcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_kasan.c |   69 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 69 insertions(+)
+ mm/kasan/kasan.c  |    2 +-
+ mm/kasan/report.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/test_kasan.c~lib-test_kasan-add-some-testcases lib/test_kasan.c
---- a/lib/test_kasan.c~lib-test_kasan-add-some-testcases
-+++ a/lib/test_kasan.c
-@@ -138,6 +138,71 @@ static noinline void __init kmalloc_oob_
- 	kfree(ptr2);
- }
- 
-+static noinline void __init kmalloc_oob_memset_2(void)
-+{
-+	char *ptr;
-+	size_t size = 8;
-+
-+	pr_info("out-of-bounds in memset2\n");
-+	ptr = kmalloc(size, GFP_KERNEL);
-+	if (!ptr) {
-+		pr_err("Allocation failed\n");
-+		return;
-+	}
-+
-+	memset(ptr+7, 0, 2);
-+	kfree(ptr);
-+}
-+
-+static noinline void __init kmalloc_oob_memset_4(void)
-+{
-+	char *ptr;
-+	size_t size = 8;
-+
-+	pr_info("out-of-bounds in memset4\n");
-+	ptr = kmalloc(size, GFP_KERNEL);
-+	if (!ptr) {
-+		pr_err("Allocation failed\n");
-+		return;
-+	}
-+
-+	memset(ptr+5, 0, 4);
-+	kfree(ptr);
-+}
-+
-+
-+static noinline void __init kmalloc_oob_memset_8(void)
-+{
-+	char *ptr;
-+	size_t size = 8;
-+
-+	pr_info("out-of-bounds in memset8\n");
-+	ptr = kmalloc(size, GFP_KERNEL);
-+	if (!ptr) {
-+		pr_err("Allocation failed\n");
-+		return;
-+	}
-+
-+	memset(ptr+1, 0, 8);
-+	kfree(ptr);
-+}
-+
-+static noinline void __init kmalloc_oob_memset_16(void)
-+{
-+	char *ptr;
-+	size_t size = 16;
-+
-+	pr_info("out-of-bounds in memset16\n");
-+	ptr = kmalloc(size, GFP_KERNEL);
-+	if (!ptr) {
-+		pr_err("Allocation failed\n");
-+		return;
-+	}
-+
-+	memset(ptr+1, 0, 16);
-+	kfree(ptr);
-+}
-+
- static noinline void __init kmalloc_oob_in_memset(void)
- {
- 	char *ptr;
-@@ -264,6 +329,10 @@ static int __init kmalloc_tests_init(voi
- 	kmalloc_oob_krealloc_less();
- 	kmalloc_oob_16();
- 	kmalloc_oob_in_memset();
-+	kmalloc_oob_memset_2();
-+	kmalloc_oob_memset_4();
-+	kmalloc_oob_memset_8();
-+	kmalloc_oob_memset_16();
- 	kmalloc_uaf();
- 	kmalloc_uaf_memset();
- 	kmalloc_uaf2();
+diff -puN mm/kasan/kasan.c~kasan-update-reference-to-kasan-prototype-repo mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-update-reference-to-kasan-prototype-repo
++++ a/mm/kasan/kasan.c
+@@ -4,7 +4,7 @@
+  * Copyright (c) 2014 Samsung Electronics Co., Ltd.
+  * Author: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+  *
+- * Some of code borrowed from https://github.com/xairy/linux by
++ * Some code borrowed from https://github.com/xairy/kasan-prototype by
+  *        Andrey Konovalov <adech.fo@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
+diff -puN mm/kasan/report.c~kasan-update-reference-to-kasan-prototype-repo mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-update-reference-to-kasan-prototype-repo
++++ a/mm/kasan/report.c
+@@ -4,7 +4,7 @@
+  * Copyright (c) 2014 Samsung Electronics Co., Ltd.
+  * Author: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+  *
+- * Some of code borrowed from https://github.com/xairy/linux by
++ * Some code borrowed from https://github.com/xairy/kasan-prototype by
+  *        Andrey Konovalov <adech.fo@gmail.com>
+  *
+  * This program is free software; you can redistribute it and/or modify
 _
 
-Patches currently in -mm which might be from long.wanglong@huawei.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
 
