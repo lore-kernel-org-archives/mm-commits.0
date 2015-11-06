@@ -1,208 +1,213 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- memcg-punt-high-overage-reclaim-to-return-to-userland-path.patch removed
+ slab_common-clear-pointers-to-per-memcg-caches-on-destroy.patch removed
  from -mm tree
-Date: Fri, 06 Nov 2015 12:07:22 -0800
-Message-ID: <563d087a.O1YhdvLqRapDoQLB%akpm@linux-foundation.org>
+Date: Fri, 06 Nov 2015 12:06:36 -0800
+Message-ID: <563d084c.c58vBHp4uo/8LSS7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48650 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48534 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757602AbbKFUHX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:07:23 -0500
+	with ESMTP id S1033202AbbKFUGh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:06:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, hannes@cmpxchg.org, mhocko@kernel.org, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: punt high overage reclaim to return-to-userland path
+     Subject: mm/slab_common.c: clear pointers to per memcg caches on destroy
 has been removed from the -mm tree.  Its filename was
-     memcg-punt-high-overage-reclaim-to-return-to-userland-path.patch
+     slab_common-clear-pointers-to-per-memcg-caches-on-destroy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: memcg: punt high overage reclaim to return-to-userland path
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: mm/slab_common.c: clear pointers to per memcg caches on destroy
 
-Currently, try_charge() tries to reclaim memory synchronously when the
-high limit is breached; however, if the allocation doesn't have
-__GFP_WAIT, synchronous reclaim is skipped.  If a process performs only
-speculative allocations, it can blow way past the high limit.  This is
-actually easily reproducible by simply doing "find /".  slab/slub
-allocator tries speculative allocations first, so as long as there's
-memory which can be consumed without blocking, it can keep allocating
-memory regardless of the high limit.
+Currently, we do not clear pointers to per memcg caches in the
+memcg_params.memcg_caches array when a global cache is destroyed with
+kmem_cache_destroy.
 
-This patch makes try_charge() always punt the over-high reclaim to the
-return-to-userland path.  If try_charge() detects that high limit is
-breached, it adds the overage to current->memcg_nr_pages_over_high and
-schedules execution of mem_cgroup_handle_over_high() which performs
-synchronous reclaim from the return-to-userland path.
+This is fine if the global cache does get destroyed.  However, a cache can
+be left on the list if it still has active objects when kmem_cache_destroy
+is called (due to a memory leak).  If this happens, the entries in the
+array will point to already freed areas, which is likely to result in data
+corruption when the cache is reused (via slab merging).
 
-As long as kernel doesn't have a run-away allocation spree, this should
-provide enough protection while making kmemcg behave more consistently. 
-It also has the following benefits.
-
-- All over-high reclaims can use GFP_KERNEL regardless of the specific
-  gfp mask in use, e.g. GFP_NOFS, when the limit was breached.
-
-- It copes with prio inversion.  Previously, a low-prio task with
-  small memory.high might perform over-high reclaim with a bunch of
-  locks held.  If a higher prio task needed any of these locks, it
-  would have to wait until the low prio task finished reclaim and
-  released the locks.  By handing over-high reclaim to the task exit
-  path this issue can be avoided.
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Acked-by: Michal Hocko <mhocko@kernel.org>
-Reviewed-by: Vladimir Davydov <vdavydov@parallels.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    6 ++++
- include/linux/sched.h      |    3 ++
- include/linux/tracehook.h  |    3 ++
- mm/memcontrol.c            |   47 +++++++++++++++++++++++++++++------
- 4 files changed, 51 insertions(+), 8 deletions(-)
+ mm/slab.h        |    6 --
+ mm/slab_common.c |   93 +++++++++++++++++++++++++++++++++++++--------
+ 2 files changed, 78 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/memcontrol.h~memcg-punt-high-overage-reclaim-to-return-to-userland-path include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~memcg-punt-high-overage-reclaim-to-return-to-userland-path
-+++ a/include/linux/memcontrol.h
-@@ -401,6 +401,8 @@ static inline int mem_cgroup_inactive_an
- 	return inactive * inactive_ratio < active;
- }
+diff -puN mm/slab.h~slab_common-clear-pointers-to-per-memcg-caches-on-destroy mm/slab.h
+--- a/mm/slab.h~slab_common-clear-pointers-to-per-memcg-caches-on-destroy
++++ a/mm/slab.h
+@@ -181,10 +181,6 @@ bool __kmem_cache_alloc_bulk(struct kmem
+ 	list_for_each_entry(iter, &(root)->memcg_params.list, \
+ 			    memcg_params.list)
  
-+void mem_cgroup_handle_over_high(void);
-+
- void mem_cgroup_print_oom_info(struct mem_cgroup *memcg,
- 				struct task_struct *p);
- 
-@@ -620,6 +622,10 @@ static inline void mem_cgroup_end_page_s
+-#define for_each_memcg_cache_safe(iter, tmp, root) \
+-	list_for_each_entry_safe(iter, tmp, &(root)->memcg_params.list, \
+-				 memcg_params.list)
+-
+ static inline bool is_root_cache(struct kmem_cache *s)
  {
+ 	return s->memcg_params.is_root_cache;
+@@ -265,8 +261,6 @@ extern void slab_init_memcg_params(struc
+ 
+ #define for_each_memcg_cache(iter, root) \
+ 	for ((void)(iter), (void)(root); 0; )
+-#define for_each_memcg_cache_safe(iter, tmp, root) \
+-	for ((void)(iter), (void)(tmp), (void)(root); 0; )
+ 
+ static inline bool is_root_cache(struct kmem_cache *s)
+ {
+diff -puN mm/slab_common.c~slab_common-clear-pointers-to-per-memcg-caches-on-destroy mm/slab_common.c
+--- a/mm/slab_common.c~slab_common-clear-pointers-to-per-memcg-caches-on-destroy
++++ a/mm/slab_common.c
+@@ -461,10 +461,6 @@ static int shutdown_cache(struct kmem_ca
+ 	if (s->flags & SLAB_DESTROY_BY_RCU)
+ 		*need_rcu_barrier = true;
+ 
+-#ifdef CONFIG_MEMCG_KMEM
+-	if (!is_root_cache(s))
+-		list_del(&s->memcg_params.list);
+-#endif
+ 	list_move(&s->list, release);
+ 	return 0;
+ }
+@@ -597,6 +593,18 @@ void memcg_deactivate_kmem_caches(struct
+ 	put_online_cpus();
  }
  
-+static inline void mem_cgroup_handle_over_high(void)
++static int __shutdown_memcg_cache(struct kmem_cache *s,
++		struct list_head *release, bool *need_rcu_barrier)
 +{
++	BUG_ON(is_root_cache(s));
++
++	if (shutdown_cache(s, release, need_rcu_barrier))
++		return -EBUSY;
++
++	list_del(&s->memcg_params.list);
++	return 0;
 +}
 +
- static inline void mem_cgroup_oom_enable(void)
+ void memcg_destroy_kmem_caches(struct mem_cgroup *memcg)
  {
+ 	LIST_HEAD(release);
+@@ -614,7 +622,7 @@ void memcg_destroy_kmem_caches(struct me
+ 		 * The cgroup is about to be freed and therefore has no charges
+ 		 * left. Hence, all its caches must be empty by now.
+ 		 */
+-		BUG_ON(shutdown_cache(s, &release, &need_rcu_barrier));
++		BUG_ON(__shutdown_memcg_cache(s, &release, &need_rcu_barrier));
+ 	}
+ 	mutex_unlock(&slab_mutex);
+ 
+@@ -623,6 +631,68 @@ void memcg_destroy_kmem_caches(struct me
+ 
+ 	release_caches(&release, need_rcu_barrier);
  }
-diff -puN include/linux/sched.h~memcg-punt-high-overage-reclaim-to-return-to-userland-path include/linux/sched.h
---- a/include/linux/sched.h~memcg-punt-high-overage-reclaim-to-return-to-userland-path
-+++ a/include/linux/sched.h
-@@ -1809,6 +1809,9 @@ struct task_struct {
- 	struct mem_cgroup *memcg_in_oom;
- 	gfp_t memcg_oom_gfp_mask;
- 	int memcg_oom_order;
 +
-+	/* number of pages to reclaim on returning to userland */
-+	unsigned int memcg_nr_pages_over_high;
- #endif
- #ifdef CONFIG_UPROBES
- 	struct uprobe_task *utask;
-diff -puN include/linux/tracehook.h~memcg-punt-high-overage-reclaim-to-return-to-userland-path include/linux/tracehook.h
---- a/include/linux/tracehook.h~memcg-punt-high-overage-reclaim-to-return-to-userland-path
-+++ a/include/linux/tracehook.h
-@@ -50,6 +50,7 @@
- #include <linux/ptrace.h>
- #include <linux/security.h>
- #include <linux/task_work.h>
-+#include <linux/memcontrol.h>
- struct linux_binprm;
- 
- /*
-@@ -188,6 +189,8 @@ static inline void tracehook_notify_resu
- 	smp_mb__after_atomic();
- 	if (unlikely(current->task_works))
- 		task_work_run();
-+
-+	mem_cgroup_handle_over_high();
- }
- 
- #endif	/* <linux/tracehook.h> */
-diff -puN mm/memcontrol.c~memcg-punt-high-overage-reclaim-to-return-to-userland-path mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-punt-high-overage-reclaim-to-return-to-userland-path
-+++ a/mm/memcontrol.c
-@@ -62,6 +62,7 @@
- #include <linux/oom.h>
- #include <linux/lockdep.h>
- #include <linux/file.h>
-+#include <linux/tracehook.h>
- #include "internal.h"
- #include <net/sock.h>
- #include <net/ip.h>
-@@ -1972,6 +1973,31 @@ static int memcg_cpu_hotplug_callback(st
- 	return NOTIFY_OK;
- }
- 
-+/*
-+ * Scheduled by try_charge() to be executed from the userland return path
-+ * and reclaims memory over the high limit.
-+ */
-+void mem_cgroup_handle_over_high(void)
++static int shutdown_memcg_caches(struct kmem_cache *s,
++		struct list_head *release, bool *need_rcu_barrier)
 +{
-+	unsigned int nr_pages = current->memcg_nr_pages_over_high;
-+	struct mem_cgroup *memcg, *pos;
++	struct memcg_cache_array *arr;
++	struct kmem_cache *c, *c2;
++	LIST_HEAD(busy);
++	int i;
 +
-+	if (likely(!nr_pages))
-+		return;
++	BUG_ON(!is_root_cache(s));
 +
-+	pos = memcg = get_mem_cgroup_from_mm(current->mm);
-+
-+	do {
-+		if (page_counter_read(&pos->memory) <= pos->high)
++	/*
++	 * First, shutdown active caches, i.e. caches that belong to online
++	 * memory cgroups.
++	 */
++	arr = rcu_dereference_protected(s->memcg_params.memcg_caches,
++					lockdep_is_held(&slab_mutex));
++	for_each_memcg_cache_index(i) {
++		c = arr->entries[i];
++		if (!c)
 +			continue;
-+		mem_cgroup_events(pos, MEMCG_HIGH, 1);
-+		try_to_free_mem_cgroup_pages(pos, nr_pages, GFP_KERNEL, true);
-+	} while ((pos = parent_mem_cgroup(pos)));
++		if (__shutdown_memcg_cache(c, release, need_rcu_barrier))
++			/*
++			 * The cache still has objects. Move it to a temporary
++			 * list so as not to try to destroy it for a second
++			 * time while iterating over inactive caches below.
++			 */
++			list_move(&c->memcg_params.list, &busy);
++		else
++			/*
++			 * The cache is empty and will be destroyed soon. Clear
++			 * the pointer to it in the memcg_caches array so that
++			 * it will never be accessed even if the root cache
++			 * stays alive.
++			 */
++			arr->entries[i] = NULL;
++	}
 +
-+	css_put(&memcg->css);
-+	current->memcg_nr_pages_over_high = 0;
++	/*
++	 * Second, shutdown all caches left from memory cgroups that are now
++	 * offline.
++	 */
++	list_for_each_entry_safe(c, c2, &s->memcg_params.list,
++				 memcg_params.list)
++		__shutdown_memcg_cache(c, release, need_rcu_barrier);
++
++	list_splice(&busy, &s->memcg_params.list);
++
++	/*
++	 * A cache being destroyed must be empty. In particular, this means
++	 * that all per memcg caches attached to it must be empty too.
++	 */
++	if (!list_empty(&s->memcg_params.list))
++		return -EBUSY;
++	return 0;
 +}
-+
- static int try_charge(struct mem_cgroup *memcg, gfp_t gfp_mask,
- 		      unsigned int nr_pages)
++#else
++static inline int shutdown_memcg_caches(struct kmem_cache *s,
++		struct list_head *release, bool *need_rcu_barrier)
++{
++	return 0;
++}
+ #endif /* CONFIG_MEMCG_KMEM */
+ 
+ void slab_kmem_cache_release(struct kmem_cache *s)
+@@ -634,16 +704,13 @@ void slab_kmem_cache_release(struct kmem
+ 
+ void kmem_cache_destroy(struct kmem_cache *s)
  {
-@@ -2080,17 +2106,22 @@ done_restock:
- 	css_get_many(&memcg->css, batch);
- 	if (batch > nr_pages)
- 		refill_stock(memcg, batch - nr_pages);
--	if (!(gfp_mask & __GFP_WAIT))
--		goto done;
-+
- 	/*
--	 * If the hierarchy is above the normal consumption range,
--	 * make the charging task trim their excess contribution.
-+	 * If the hierarchy is above the normal consumption range, schedule
-+	 * reclaim on returning to userland.  We can perform reclaim here
-+	 * if __GFP_WAIT but let's always punt for simplicity and so that
-+	 * GFP_KERNEL can consistently be used during reclaim.  @memcg is
-+	 * not recorded as it most likely matches current's and won't
-+	 * change in the meantime.  As high limit is checked again before
-+	 * reclaim, the cost of mismatch is negligible.
- 	 */
- 	do {
--		if (page_counter_read(&memcg->memory) <= memcg->high)
--			continue;
--		mem_cgroup_events(memcg, MEMCG_HIGH, 1);
--		try_to_free_mem_cgroup_pages(memcg, nr_pages, gfp_mask, true);
-+		if (page_counter_read(&memcg->memory) > memcg->high) {
-+			current->memcg_nr_pages_over_high += nr_pages;
-+			set_notify_resume(current);
-+			break;
-+		}
- 	} while ((memcg = parent_mem_cgroup(memcg)));
- done:
- 	return ret;
-_
-
-Patches currently in -mm which might be from tj@kernel.org are
-
-
+-	struct kmem_cache *c, *c2;
+ 	LIST_HEAD(release);
+ 	bool need_rcu_barrier = false;
+-	bool busy = false;
++	int err;
+ 
+ 	if (unlikely(!s))
+ 		return;
+ 
+-	BUG_ON(!is_root_cache(s));
+-
+ 	get_online_cpus();
+ 	get_online_mems();
+ 
+@@ -653,12 +720,8 @@ void kmem_cache_destroy(struct kmem_cach
+ 	if (s->refcount)
+ 		goto out_unlock;
+ 
+-	for_each_memcg_cache_safe(c, c2, s) {
+-		if (shutdown_cache(c, &release, &need_rcu_barrier))
+-			busy = true;
+-	}
