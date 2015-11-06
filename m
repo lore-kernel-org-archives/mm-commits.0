@@ -1,90 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- inotify-actually-check-for-invalid-bits-in-sys_inotify_add_watch.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 12:05:37 -0800
-Message-ID: <563d0811.yQYlfYHDXZ/wlnnc%akpm@linux-foundation.org>
+ ocfs2-fill-in-the-unused-portion-of-the-block-with-zeros-by-dio_zero_block.patch removed from -mm tree
+Date: Fri, 06 Nov 2015 12:05:43 -0800
+Message-ID: <563d0817.1Cf5XDRdvcqcxIgW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48427 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48443 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1032264AbbKFUFi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:05:38 -0500
+	with ESMTP id S1032955AbbKFUFn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:05:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dave.hansen@linux.intel.com, eparis@parisplace.org, john@johnmccutchan.com, jwboyer@fedoraproject.org, rlove@rlove.org, mm-commits@vger.kernel.org
+To: jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: inotify: actually check for invalid bits in sys_inotify_add_watch()
+     Subject: ocfs2: fill in the unused portion of the block with zeros by dio_zero_block()
 has been removed from the -mm tree.  Its filename was
-     inotify-actually-check-for-invalid-bits-in-sys_inotify_add_watch.patch
+     ocfs2-fill-in-the-unused-portion-of-the-block-with-zeros-by-dio_zero_block.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dave Hansen <dave.hansen@linux.intel.com>
-Subject: inotify: actually check for invalid bits in sys_inotify_add_watch()
+From: jiangyiwen <jiangyiwen@huawei.com>
+Subject: ocfs2: fill in the unused portion of the block with zeros by dio_zero_block()
 
-The comment here says that it is checking for invalid bits.  But, the mask
-is *actually* checking to ensure that _any_ valid bit is set, which is
-quite different.
+A simplified test case is (this case from Ryan):
+1) dd if=/dev/zero of=/mnt/hello bs=512 count=1 oflag=direct;
+2) truncate /mnt/hello -s 2097152
+file 'hello' is not exist before test. After this command,
+file 'hello' should be all zero. But 512~4096 is some random data.
 
-Without this check, an unexpected bit could get set on an inotify object. 
-Since these bits are also interpreted by the fsnotify/dnotify code, there
-is the potential for an object to be mishandled inside the kernel.  For
-instance, can we be sure that setting the dnotify flag FS_DN_RENAME on an
-inotify watch is harmless?
+Setting bh state to new when get a new block, if so,
+direct_io_worker()->dio_zero_block() will fill-in the unused portion
+of the block with zero.
 
-Add the actual check which was intended.  Retain the existing inotify bits
-are being added to the watch.  Plus, this is existing behavior which would
-be nice to preserve.
-
-I did a quick sniff test that inotify functions and that my
-'inotify-tools' package passes 'make check'.
-
-Signed-off-by: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: John McCutchan <john@johnmccutchan.com>
-Cc: Robert Love <rlove@rlove.org>
-Cc: Eric Paris <eparis@parisplace.org>
-Cc: Josh Boyer <jwboyer@fedoraproject.org>
+Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/inotify/inotify_user.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ fs/ocfs2/aops.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/notify/inotify/inotify_user.c~inotify-actually-check-for-invalid-bits-in-sys_inotify_add_watch fs/notify/inotify/inotify_user.c
---- a/fs/notify/inotify/inotify_user.c~inotify-actually-check-for-invalid-bits-in-sys_inotify_add_watch
-+++ a/fs/notify/inotify/inotify_user.c
-@@ -706,7 +706,19 @@ SYSCALL_DEFINE3(inotify_add_watch, int,
- 	int ret;
- 	unsigned flags = 0;
- 
--	/* don't allow invalid bits: we don't want flags set */
-+	/*
-+	 * We share a lot of code with fs/dnotify.  We also share
-+	 * the bit layout between inotify's IN_* and the fsnotify
-+	 * FS_*.  This check ensures that only the inotify IN_*
-+	 * bits get passed in and set in watches/events.
-+	 */
-+	if (unlikely(mask & ~ALL_INOTIFY_BITS))
-+		return -EINVAL;
-+	/*
-+	 * Require at least one valid bit set in the mask.
-+	 * Without _something_ set, we would have no events to
-+	 * watch for.
-+	 */
- 	if (unlikely(!(mask & ALL_INOTIFY_BITS)))
- 		return -EINVAL;
+diff -puN fs/ocfs2/aops.c~ocfs2-fill-in-the-unused-portion-of-the-block-with-zeros-by-dio_zero_block fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-fill-in-the-unused-portion-of-the-block-with-zeros-by-dio_zero_block
++++ a/fs/ocfs2/aops.c
+@@ -589,6 +589,7 @@ static int ocfs2_direct_IO_get_blocks(st
+ 			ret = -EIO;
+ 			goto bail;
+ 		}
++		set_buffer_new(bh_result);
+ 		up_write(&OCFS2_I(inode)->ip_alloc_sem);
+ 	}
  
 _
 
-Patches currently in -mm which might be from dave.hansen@linux.intel.com are
+Patches currently in -mm which might be from jiangyiwen@huawei.com are
 
-mm-hugetlb-use-memory-policy-when-available.patch
-mm-hugetlbfs-optimize-when-numa=n.patch
+ocfs2-avoid-occurring-deadlock-by-changing-ocfs2_wq-from-global-to-local.patch
+ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups.patch
 
