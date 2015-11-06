@@ -1,156 +1,122 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-compaction-export-tracepoints-status-strings-to-userspace.patch removed
- from -mm tree
-Date: Fri, 06 Nov 2015 12:08:34 -0800
-Message-ID: <563d08c2.Sx/Iq/Hvn7twFa77%akpm@linux-foundation.org>
+ mm-vmscan-make-inactive_anon-file_is_low-return-bool.patch removed from -mm tree
+Date: Fri, 06 Nov 2015 12:08:24 -0800
+Message-ID: <563d08b8.S0XE01PBuTmpLiF/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48774 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48703 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966383AbbKFUIg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:36 -0500
+	with ESMTP id S966348AbbKFUIY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@suse.de, mingo@redhat.com, rientjes@google.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: bywxiaobai@163.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: export tracepoints status strings to userspace
+     Subject: mm/vmscan: make inactive_anon/file_is_low return bool
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-export-tracepoints-status-strings-to-userspace.patch
+     mm-vmscan-make-inactive_anon-file_is_low-return-bool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: export tracepoints status strings to userspace
+From: Yaowei Bai <bywxiaobai@163.com>
+Subject: mm/vmscan: make inactive_anon/file_is_low return bool
 
-Some compaction tracepoints convert the integer return values to strings
-using the compaction_status_string array.  This works for in-kernel
-printing, but not userspace trace printing of raw captured trace such as
-via trace-cmd report.
+Make inactive_anon/file_is_low return bool due to these particular
+functions only using either one or zero as their return value.
 
-This patch converts the private array to appropriate tracepoint macros
-that result in proper userspace support.
+No functional change.
 
-trace-cmd output before:
-transhuge-stres-4235  [000]   453.149280: mm_compaction_finished: node=0
-  zone=ffffffff81815d7a order=9 ret=
-
-after:
-transhuge-stres-4235  [000]   453.149280: mm_compaction_finished: node=0
-  zone=ffffffff81815d7a order=9 ret=partial
-
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Steven Rostedt <rostedt@goodmis.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: David Rientjes <rientjes@google.com>
+Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h        |    2 -
- include/trace/events/compaction.h |   33 ++++++++++++++++++++++++++--
- mm/compaction.c                   |   11 ---------
- 3 files changed, 32 insertions(+), 14 deletions(-)
+ mm/vmscan.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-export-tracepoints-status-strings-to-userspace include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-export-tracepoints-status-strings-to-userspace
-+++ a/include/linux/compaction.h
-@@ -15,7 +15,7 @@
- /* For more detailed tracepoint output */
- #define COMPACT_NO_SUITABLE_PAGE	5
- #define COMPACT_NOT_SUITABLE_ZONE	6
--/* When adding new state, please change compaction_status_string, too */
-+/* When adding new states, please adjust include/trace/events/compaction.h */
+diff -puN mm/vmscan.c~mm-vmscan-make-inactive_anon-file_is_low-return-bool mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-make-inactive_anon-file_is_low-return-bool
++++ a/mm/vmscan.c
+@@ -1859,7 +1859,7 @@ static void shrink_active_list(unsigned
+ }
  
- /* Used to signal whether compaction detected need_sched() or lock contention */
- /* No contention detected */
-diff -puN include/trace/events/compaction.h~mm-compaction-export-tracepoints-status-strings-to-userspace include/trace/events/compaction.h
---- a/include/trace/events/compaction.h~mm-compaction-export-tracepoints-status-strings-to-userspace
-+++ a/include/trace/events/compaction.h
-@@ -9,6 +9,35 @@
- #include <linux/tracepoint.h>
- #include <trace/events/gfpflags.h>
+ #ifdef CONFIG_SWAP
+-static int inactive_anon_is_low_global(struct zone *zone)
++static bool inactive_anon_is_low_global(struct zone *zone)
+ {
+ 	unsigned long active, inactive;
  
-+#define COMPACTION_STATUS					\
-+	EM( COMPACT_DEFERRED,		"deferred")		\
-+	EM( COMPACT_SKIPPED,		"skipped")		\
-+	EM( COMPACT_CONTINUE,		"continue")		\
-+	EM( COMPACT_PARTIAL,		"partial")		\
-+	EM( COMPACT_COMPLETE,		"complete")		\
-+	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
-+	EMe(COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")
-+
-+/*
-+ * First define the enums in the above macros to be exported to userspace
-+ * via TRACE_DEFINE_ENUM().
-+ */
-+#undef EM
-+#undef EMe
-+#define EM(a, b)	TRACE_DEFINE_ENUM(a);
-+#define EMe(a, b)	TRACE_DEFINE_ENUM(a);
-+
-+COMPACTION_STATUS
-+
-+/*
-+ * Now redefine the EM() and EMe() macros to map the enums to the strings
-+ * that will be printed in the output.
-+ */
-+#undef EM
-+#undef EMe
-+#define EM(a, b)	{a, b},
-+#define EMe(a, b)	{a, b}
-+
- DECLARE_EVENT_CLASS(mm_compaction_isolate_template,
+@@ -1876,14 +1876,14 @@ static int inactive_anon_is_low_global(s
+  * Returns true if the zone does not have enough inactive anon pages,
+  * meaning some active anon pages need to be deactivated.
+  */
+-static int inactive_anon_is_low(struct lruvec *lruvec)
++static bool inactive_anon_is_low(struct lruvec *lruvec)
+ {
+ 	/*
+ 	 * If we don't have swap space, anonymous page deactivation
+ 	 * is pointless.
+ 	 */
+ 	if (!total_swap_pages)
+-		return 0;
++		return false;
  
- 	TP_PROTO(
-@@ -161,7 +190,7 @@ TRACE_EVENT(mm_compaction_end,
- 		__entry->free_pfn,
- 		__entry->zone_end,
- 		__entry->sync ? "sync" : "async",
--		compaction_status_string[__entry->status])
-+		__print_symbolic(__entry->status, COMPACTION_STATUS))
- );
- 
- TRACE_EVENT(mm_compaction_try_to_compact_pages,
-@@ -217,7 +246,7 @@ DECLARE_EVENT_CLASS(mm_compaction_suitab
- 		__entry->nid,
- 		__entry->name,
- 		__entry->order,
--		compaction_status_string[__entry->ret])
-+		__print_symbolic(__entry->ret, COMPACTION_STATUS))
- );
- 
- DEFINE_EVENT(mm_compaction_suitable_template, mm_compaction_finished,
-diff -puN mm/compaction.c~mm-compaction-export-tracepoints-status-strings-to-userspace mm/compaction.c
---- a/mm/compaction.c~mm-compaction-export-tracepoints-status-strings-to-userspace
-+++ a/mm/compaction.c
-@@ -35,17 +35,6 @@ static inline void count_compact_events(
+ 	if (!mem_cgroup_disabled())
+ 		return mem_cgroup_inactive_anon_is_low(lruvec);
+@@ -1891,9 +1891,9 @@ static int inactive_anon_is_low(struct l
+ 	return inactive_anon_is_low_global(lruvec_zone(lruvec));
+ }
+ #else
+-static inline int inactive_anon_is_low(struct lruvec *lruvec)
++static inline bool inactive_anon_is_low(struct lruvec *lruvec)
+ {
+-	return 0;
++	return false;
+ }
  #endif
  
- #if defined CONFIG_COMPACTION || defined CONFIG_CMA
--#ifdef CONFIG_TRACEPOINTS
--static const char *const compaction_status_string[] = {
--	"deferred",
--	"skipped",
--	"continue",
--	"partial",
--	"complete",
--	"no_suitable_page",
--	"not_suitable_zone",
--};
--#endif
+@@ -1911,7 +1911,7 @@ static inline int inactive_anon_is_low(s
+  * This uses a different ratio than the anonymous pages, because
+  * the page cache uses a use-once replacement algorithm.
+  */
+-static int inactive_file_is_low(struct lruvec *lruvec)
++static bool inactive_file_is_low(struct lruvec *lruvec)
+ {
+ 	unsigned long inactive;
+ 	unsigned long active;
+@@ -1922,7 +1922,7 @@ static int inactive_file_is_low(struct l
+ 	return active > inactive;
+ }
  
- #define CREATE_TRACE_POINTS
- #include <trace/events/compaction.h>
+-static int inactive_list_is_low(struct lruvec *lruvec, enum lru_list lru)
++static bool inactive_list_is_low(struct lruvec *lruvec, enum lru_list lru)
+ {
+ 	if (is_file_lru(lru))
+ 		return inactive_file_is_low(lruvec);
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from bywxiaobai@163.com are
 
+mm-oom_kill-introduce-is_sysrq_oom-helper.patch
+fs-kdev_t-remove-unused-huge_valid_dev-function.patch
+fs-kdev_t-old-new_valid_dev-can-be-boolean.patch
+fs-vfs-remove-unnecessary-new_valid_dev-check.patch
+fs-btrfs-remove-unnecessary-new_valid_dev-check.patch
+fs-exofs-remove-unnecessary-new_valid_dev-check.patch
+fs-ext2-remove-unnecessary-new_valid_dev-check.patch
+fs-f2fs-remove-unnecessary-new_valid_dev-check.patch
+fs-hpfs-remove-unnecessary-new_valid_dev-check.patch
+fs-jfs-remove-unnecessary-new_valid_dev-check.patch
+fs-ncpfs-remove-unnecessary-new_valid_dev-check.patch
+fs-nilfs2-remove-unnecessary-new_valid_dev-check.patch
+fs-reiserfs-remove-unnecessary-new_valid_dev-check.patch
+fs-stat-remove-unnecessary-new_valid_dev-check.patch
+fs-ubifs-remove-unnecessary-new_valid_dev-check.patch
 
