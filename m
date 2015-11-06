@@ -1,113 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tmpfs-avoid-a-little-creat-and-stat-slowdown.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 12:17:21 -0800
-Message-ID: <563d0ad1.h/pmPMXcyVtkEXcw%akpm@linux-foundation.org>
+Subject: [merged] mm-oom-add-comment-for-why-oom_adj-exists.patch removed
+ from -mm tree
+Date: Fri, 06 Nov 2015 12:17:19 -0800
+Message-ID: <563d0acf.7+WY0jgp/fI6q1Yf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49088 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49085 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1162916AbbKFURW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:22 -0500
+	with ESMTP id S1162911AbbKFURT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, jbacik@fb.com, ying.huang@linux.intel.com, yuzhao@google.com, mm-commits@vger.kernel.org
+To: rientjes@google.com, hillf.zj@alibaba-inc.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: avoid a little creat and stat slowdown
+     Subject: mm, oom: add comment for why oom_adj exists
 has been removed from the -mm tree.  Its filename was
-     tmpfs-avoid-a-little-creat-and-stat-slowdown.patch
+     mm-oom-add-comment-for-why-oom_adj-exists.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: avoid a little creat and stat slowdown
+From: David Rientjes <rientjes@google.com>
+Subject: mm, oom: add comment for why oom_adj exists
 
-LKP reports that v4.2 commit afa2db2fb6f1 ("tmpfs: truncate prealloc
-blocks past i_size") causes a 14.5% slowdown in the AIM9 creat-clo
-benchmark.
+/proc/pid/oom_adj exists solely to avoid breaking existing userspace
+binaries that write to the tunable.
 
-creat-clo does just what you'd expect from the name, and creat's O_TRUNC
-on 0-length file does indeed get into more overhead now shmem_setattr()
-tests "0 <= 0" instead of "0 < 0".
+Add a comment in the only possible location within the kernel tree to
+describe the situation and motivation for keeping it around.
 
-I'm not sure how much we care, but I think it would not be too VW-like to
-add in a check for whether any pages (or swap) are allocated: if none are
-allocated, there's none to remove from the radix_tree.  At first I thought
-that check would be good enough for the unmaps too, but no: we should not
-skip the unlikely case of unmapping pages beyond the new EOF, which were
-COWed from holes which have now been reclaimed, leaving none.
-
-This gives me an 8.5% speedup: on Haswell instead of LKP's Westmere, and
-running a debug config before and after: I hope those account for the
-lesser speedup.
-
-And probably someone has a benchmark where a thousand threads keep on
-stat'ing the same file repeatedly: forestall that report by adjusting v4.3
-commit 44a30220bc0a ("shmem: recalculate file inode when fstat") not to
-take the spinlock in shmem_getattr() when there's no work to do.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reported-by: Ying Huang <ying.huang@linux.intel.com>
-Tested-by: Ying Huang <ying.huang@linux.intel.com>
-Cc: Josef Bacik <jbacik@fb.com>
-Cc: Yu Zhao <yuzhao@google.com>
+Signed-off-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/shmem.c |   22 ++++++++++++++--------
- 1 file changed, 14 insertions(+), 8 deletions(-)
+ fs/proc/base.c |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff -puN mm/shmem.c~tmpfs-avoid-a-little-creat-and-stat-slowdown mm/shmem.c
---- a/mm/shmem.c~tmpfs-avoid-a-little-creat-and-stat-slowdown
-+++ a/mm/shmem.c
-@@ -548,12 +548,12 @@ static int shmem_getattr(struct vfsmount
- 	struct inode *inode = dentry->d_inode;
- 	struct shmem_inode_info *info = SHMEM_I(inode);
- 
--	spin_lock(&info->lock);
--	shmem_recalc_inode(inode);
--	spin_unlock(&info->lock);
--
-+	if (info->alloced - info->swapped != inode->i_mapping->nrpages) {
-+		spin_lock(&info->lock);
-+		shmem_recalc_inode(inode);
-+		spin_unlock(&info->lock);
-+	}
- 	generic_fillattr(inode, stat);
--
- 	return 0;
+diff -puN fs/proc/base.c~mm-oom-add-comment-for-why-oom_adj-exists fs/proc/base.c
+--- a/fs/proc/base.c~mm-oom-add-comment-for-why-oom_adj-exists
++++ a/fs/proc/base.c
+@@ -1032,6 +1032,16 @@ static ssize_t oom_adj_read(struct file
+ 	return simple_read_from_buffer(buf, count, ppos, buffer, len);
  }
  
-@@ -586,10 +586,16 @@ static int shmem_setattr(struct dentry *
- 		}
- 		if (newsize <= oldsize) {
- 			loff_t holebegin = round_up(newsize, PAGE_SIZE);
--			unmap_mapping_range(inode->i_mapping, holebegin, 0, 1);
--			shmem_truncate_range(inode, newsize, (loff_t)-1);
-+			if (oldsize > holebegin)
-+				unmap_mapping_range(inode->i_mapping,
-+							holebegin, 0, 1);
-+			if (info->alloced)
-+				shmem_truncate_range(inode,
-+							newsize, (loff_t)-1);
- 			/* unmap again to remove racily COWed private pages */
--			unmap_mapping_range(inode->i_mapping, holebegin, 0, 1);
-+			if (oldsize > holebegin)
-+				unmap_mapping_range(inode->i_mapping,
-+							holebegin, 0, 1);
- 		}
- 	}
- 
++/*
++ * /proc/pid/oom_adj exists solely for backwards compatibility with previous
++ * kernels.  The effective policy is defined by oom_score_adj, which has a
++ * different scale: oom_adj grew exponentially and oom_score_adj grows linearly.
++ * Values written to oom_adj are simply mapped linearly to oom_score_adj.
++ * Processes that become oom disabled via oom_adj will still be oom disabled
++ * with this implementation.
++ *
++ * oom_adj cannot be removed since existing userspace binaries use it.
++ */
+ static ssize_t oom_adj_write(struct file *file, const char __user *buf,
+ 			     size_t count, loff_t *ppos)
+ {
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from rientjes@google.com are
 
-osd-fs-__r4w_get_page-rely-on-pageuptodate-for-uptodate.patch
-mm-use-unsigned-int-for-page-order-fix-2.patch
 
