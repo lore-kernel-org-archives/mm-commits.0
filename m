@@ -1,62 +1,66 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- doc-slub-document-slabinfo-gnuplotsh-script-fix.patch removed from -mm tree
-Date: Thu, 05 Nov 2015 18:22:02 -0800
-Message-ID: <563c0eca.1WROAZpWI0uAEhyL%akpm@linux-foundation.org>
+ uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
+ removed from -mm tree
+Date: Thu, 05 Nov 2015 18:22:26 -0800
+Message-ID: <563c0ee2.MtLxT3Z3W3c6WxOP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52364 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52366 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031154AbbKFCWD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Nov 2015 21:22:03 -0500
+	with ESMTP id S1031154AbbKFCW1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 5 Nov 2015 21:22:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky.work@gmail.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: doc-slub-document-slabinfo-gnuplotsh-script-fix
+     Subject: uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix
 has been removed from the -mm tree.  Its filename was
-     doc-slub-document-slabinfo-gnuplotsh-script-fix.patch
+     uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix.patch
 
-This patch was dropped because it was folded into doc-slub-document-slabinfo-gnuplotsh-script.patch
+This patch was dropped because it was folded into uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Subject: doc-slub-document-slabinfo-gnuplotsh-script-fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix
 
-V2: Fix grammar (Christoph Lameter)
 
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/slub.txt |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/arm/mm/alignment.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/vm/slub.txt~doc-slub-document-slabinfo-gnuplotsh-script-fix Documentation/vm/slub.txt
---- a/Documentation/vm/slub.txt~doc-slub-document-slabinfo-gnuplotsh-script-fix
-+++ a/Documentation/vm/slub.txt
-@@ -283,7 +283,7 @@ of other objects.
- Extended slabinfo mode and plotting
- -----------------------------------
+diff -puN arch/arm/mm/alignment.c~uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix arch/arm/mm/alignment.c
+--- a/arch/arm/mm/alignment.c~uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix
++++ a/arch/arm/mm/alignment.c
+@@ -803,7 +803,7 @@ do_alignment(unsigned long addr, unsigne
+ 			}
+ 		}
+ 	} else {
+-		fault = probe_kernel_address(instrptr, instr);
++		fault = probe_kernel_address((void *)instrptr, instr);
+ 		instr = __mem_to_opcode_arm(instr);
+ 	}
  
--slabinfo tool has a special 'extended' ('-X') mode that includes:
-+The slabinfo tool has a special 'extended' ('-X') mode that includes:
-  - Slabcache Totals
-  - Slabs sorted by size (up to -N <num> slabs, default 1)
-  - Slabs sorted by loss (up to -N <num> slabs, default 1)
-@@ -339,3 +339,4 @@ options to 'zoom-in'/'zoom-out':
-               between 40th and 60th seconds).
- 
- Christoph Lameter, May 30, 2007
-+Sergey Senozhatsky, October 23, 2015
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-doc-slub-document-slabinfo-gnuplotsh-script.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read.patch
+uaccess-reimplement-probe_kernel_address-using-probe_kernel_read-fix-fix.patch
+mm-fix-declarations-of-nr-delta-and-nr_pagecache_reclaimable-fix.patch
+mm-oom_kill-fix-the-wrong-task-mm-==-mm-checks-in-oom_kill_process-fix.patch
+mm-vmstatc-uninline-node_page_state.patch
+mm-vmstatc-uninline-node_page_state-fix.patch
+mm-cmac-suppress-warning.patch
+memcg-fix-thresholds-for-32b-architectures-fix-fix.patch
+kasan-various-fixes-in-documentation-checkpatch-fixes.patch
+mm-slub-kasan-enable-user-tracking-by-default-with-kasan=y-fix.patch
 
