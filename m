@@ -1,79 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-vmscan-make-inactive_anon_is_low_global-return-directly.patch removed
+Subject: [merged] mm-early_ioremap-use-offset_in_page-macro.patch removed
  from -mm tree
-Date: Fri, 06 Nov 2015 12:08:12 -0800
-Message-ID: <563d08ac.c26XlQp6eOyJHCFv%akpm@linux-foundation.org>
+Date: Fri, 06 Nov 2015 12:07:44 -0800
+Message-ID: <563d0890.lLSP/lRKd/DwdG0E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48735 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48692 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1033520AbbKFUIN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:13 -0500
+	with ESMTP id S1033397AbbKFUHo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:07:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: kuleshovmail@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan: make inactive_anon_is_low_global return directly
+     Subject: mm/early_ioremap: use offset_in_page macro
 has been removed from the -mm tree.  Its filename was
-     mm-vmscan-make-inactive_anon_is_low_global-return-directly.patch
+     mm-early_ioremap-use-offset_in_page-macro.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yaowei Bai <bywxiaobai@163.com>
-Subject: mm/vmscan: make inactive_anon_is_low_global return directly
+From: Alexander Kuleshov <kuleshovmail@gmail.com>
+Subject: mm/early_ioremap: use offset_in_page macro
 
-Delete unnecessary if to let inactive_anon_is_low_global return
-directly.
+linux/mm.h provides offset_in_page() macro.  Let's use already predefined
+macro instead of (addr & ~PAGE_MASK).
 
-No functional changes.
-
-Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ mm/early_ioremap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-make-inactive_anon_is_low_global-return-directly mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-make-inactive_anon_is_low_global-return-directly
-+++ a/mm/vmscan.c
-@@ -1866,10 +1866,7 @@ static int inactive_anon_is_low_global(s
- 	active = zone_page_state(zone, NR_ACTIVE_ANON);
- 	inactive = zone_page_state(zone, NR_INACTIVE_ANON);
+diff -puN mm/early_ioremap.c~mm-early_ioremap-use-offset_in_page-macro mm/early_ioremap.c
+--- a/mm/early_ioremap.c~mm-early_ioremap-use-offset_in_page-macro
++++ a/mm/early_ioremap.c
+@@ -126,7 +126,7 @@ __early_ioremap(resource_size_t phys_add
+ 	/*
+ 	 * Mappings have to be page-aligned
+ 	 */
+-	offset = phys_addr & ~PAGE_MASK;
++	offset = offset_in_page(phys_addr);
+ 	phys_addr &= PAGE_MASK;
+ 	size = PAGE_ALIGN(last_addr + 1) - phys_addr;
  
--	if (inactive * zone->inactive_ratio < active)
--		return 1;
--
--	return 0;
-+	return inactive * zone->inactive_ratio < active;
- }
+@@ -189,7 +189,7 @@ void __init early_iounmap(void __iomem *
+ 	if (WARN_ON(virt_addr < fix_to_virt(FIX_BTMAP_BEGIN)))
+ 		return;
  
- /**
+-	offset = virt_addr & ~PAGE_MASK;
++	offset = offset_in_page(virt_addr);
+ 	nrpages = PAGE_ALIGN(offset + size) >> PAGE_SHIFT;
+ 
+ 	idx = FIX_BTMAP_BEGIN - NR_FIX_BTMAPS*slot;
+@@ -234,7 +234,7 @@ void __init copy_from_early_mem(void *de
+ 	char *p;
+ 
+ 	while (size) {
+-		slop = src & ~PAGE_MASK;
++		slop = offset_in_page(src);
+ 		clen = size;
+ 		if (clen > MAX_MAP_CHUNK - slop)
+ 			clen = MAX_MAP_CHUNK - slop;
 _
 
-Patches currently in -mm which might be from bywxiaobai@163.com are
+Patches currently in -mm which might be from kuleshovmail@gmail.com are
 
-mm-oom_kill-introduce-is_sysrq_oom-helper.patch
-fs-kdev_t-remove-unused-huge_valid_dev-function.patch
-fs-kdev_t-old-new_valid_dev-can-be-boolean.patch
-fs-vfs-remove-unnecessary-new_valid_dev-check.patch
-fs-btrfs-remove-unnecessary-new_valid_dev-check.patch
-fs-exofs-remove-unnecessary-new_valid_dev-check.patch
-fs-ext2-remove-unnecessary-new_valid_dev-check.patch
-fs-f2fs-remove-unnecessary-new_valid_dev-check.patch
-fs-hpfs-remove-unnecessary-new_valid_dev-check.patch
-fs-jfs-remove-unnecessary-new_valid_dev-check.patch
-fs-ncpfs-remove-unnecessary-new_valid_dev-check.patch
-fs-nilfs2-remove-unnecessary-new_valid_dev-check.patch
-fs-reiserfs-remove-unnecessary-new_valid_dev-check.patch
-fs-stat-remove-unnecessary-new_valid_dev-check.patch
-fs-ubifs-remove-unnecessary-new_valid_dev-check.patch
+mm-hugetlb-make-node_hstates-array-static.patch
+lib-halfmd4-use-rol32-inline-function-in-the-round-macro.patch
 
