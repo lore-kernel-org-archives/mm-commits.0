@@ -1,89 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-mmapc-change-static-function-__install_special_mapping-args-order.patch
+Subject: [merged] memcg-simplify-and-inline-__mem_cgroup_from_kmem.patch
  removed from -mm tree
-Date: Fri, 06 Nov 2015 12:15:49 -0800
-Message-ID: <563d0a75.UYLe5MSkQDG7Pwpa%akpm@linux-foundation.org>
+Date: Fri, 06 Nov 2015 12:16:07 -0800
+Message-ID: <563d0a87.vfPmJ/yzy+qK6Cd/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48858 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48899 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1031654AbbKFUPt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:15:49 -0500
+	with ESMTP id S1162891AbbKFUQH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:16:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gang.chen.5i5j@gmail.com, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap.c: change __install_special_mapping() args order
+     Subject: memcg: simplify and inline __mem_cgroup_from_kmem
 has been removed from the -mm tree.  Its filename was
-     mm-mmapc-change-static-function-__install_special_mapping-args-order.patch
+     memcg-simplify-and-inline-__mem_cgroup_from_kmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chen Gang <gang.chen.5i5j@gmail.com>
-Subject: mm/mmap.c: change __install_special_mapping() args order
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: memcg: simplify and inline __mem_cgroup_from_kmem
 
-Make __install_special_mapping() args order match the caller, so the
-caller can pass their register args directly to callee with no touch.
+Before the previous patch ("memcg: unify slab and other kmem pages
+charging"), __mem_cgroup_from_kmem had to handle two types of kmem - slab
+pages and pages allocated with alloc_kmem_pages - memcg in the page
+struct.  Now we can unify it.  Since after it, this function becomes tiny
+we can fold it into mem_cgroup_from_kmem.
 
-For most of architectures, args (at least the first 5th args) are in
-registers, so this change will have effect on most of architectures.
-
-For -O2, __install_special_mapping() may be inlined under most of
-architectures, but for -Os, it should not. So this change can get a
-little better performance for -Os, at least.
-
-Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+[hughd@google.com: move mem_cgroup_from_kmem into list_lru.c]
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/linux/memcontrol.h |   15 ---------------
+ mm/list_lru.c              |   10 ++++++++++
+ mm/memcontrol.c            |   18 ------------------
+ 3 files changed, 10 insertions(+), 33 deletions(-)
 
-diff -puN mm/mmap.c~mm-mmapc-change-static-function-__install_special_mapping-args-order mm/mmap.c
---- a/mm/mmap.c~mm-mmapc-change-static-function-__install_special_mapping-args-order
-+++ a/mm/mmap.c
-@@ -3052,8 +3052,8 @@ static int special_mapping_fault(struct
- static struct vm_area_struct *__install_special_mapping(
- 	struct mm_struct *mm,
- 	unsigned long addr, unsigned long len,
--	unsigned long vm_flags, const struct vm_operations_struct *ops,
--	void *priv)
-+	unsigned long vm_flags, void *priv,
-+	const struct vm_operations_struct *ops)
+diff -puN include/linux/memcontrol.h~memcg-simplify-and-inline-__mem_cgroup_from_kmem include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-simplify-and-inline-__mem_cgroup_from_kmem
++++ a/include/linux/memcontrol.h
+@@ -770,8 +770,6 @@ static inline int memcg_cache_id(struct
+ struct kmem_cache *__memcg_kmem_get_cache(struct kmem_cache *cachep);
+ void __memcg_kmem_put_cache(struct kmem_cache *cachep);
+ 
+-struct mem_cgroup *__mem_cgroup_from_kmem(void *ptr);
+-
+ static inline bool __memcg_kmem_bypass(gfp_t gfp)
  {
- 	int ret;
- 	struct vm_area_struct *vma;
-@@ -3102,8 +3102,8 @@ struct vm_area_struct *_install_special_
- 	unsigned long addr, unsigned long len,
- 	unsigned long vm_flags, const struct vm_special_mapping *spec)
+ 	if (!memcg_kmem_enabled())
+@@ -830,13 +828,6 @@ static __always_inline void memcg_kmem_p
+ 	if (memcg_kmem_enabled())
+ 		__memcg_kmem_put_cache(cachep);
+ }
+-
+-static __always_inline struct mem_cgroup *mem_cgroup_from_kmem(void *ptr)
+-{
+-	if (!memcg_kmem_enabled())
+-		return NULL;
+-	return __mem_cgroup_from_kmem(ptr);
+-}
+ #else
+ #define for_each_memcg_cache_index(_idx)	\
+ 	for (; NULL; )
+@@ -882,11 +873,5 @@ memcg_kmem_get_cache(struct kmem_cache *
+ static inline void memcg_kmem_put_cache(struct kmem_cache *cachep)
  {
--	return __install_special_mapping(mm, addr, len, vm_flags,
--					 &special_mapping_vmops, (void *)spec);
-+	return __install_special_mapping(mm, addr, len, vm_flags, (void *)spec,
-+					&special_mapping_vmops);
+ }
+-
+-static inline struct mem_cgroup *mem_cgroup_from_kmem(void *ptr)
+-{
+-	return NULL;
+-}
+ #endif /* CONFIG_MEMCG_KMEM */
+ #endif /* _LINUX_MEMCONTROL_H */
+-
+diff -puN mm/list_lru.c~memcg-simplify-and-inline-__mem_cgroup_from_kmem mm/list_lru.c
+--- a/mm/list_lru.c~memcg-simplify-and-inline-__mem_cgroup_from_kmem
++++ a/mm/list_lru.c
+@@ -63,6 +63,16 @@ list_lru_from_memcg_idx(struct list_lru_
+ 	return &nlru->lru;
  }
  
- int install_special_mapping(struct mm_struct *mm,
-@@ -3111,8 +3111,8 @@ int install_special_mapping(struct mm_st
- 			    unsigned long vm_flags, struct page **pages)
++static __always_inline struct mem_cgroup *mem_cgroup_from_kmem(void *ptr)
++{
++	struct page *page;
++
++	if (!memcg_kmem_enabled())
++		return NULL;
++	page = virt_to_head_page(ptr);
++	return page->mem_cgroup;
++}
++
+ static inline struct list_lru_one *
+ list_lru_from_kmem(struct list_lru_node *nlru, void *ptr)
  {
- 	struct vm_area_struct *vma = __install_special_mapping(
--		mm, addr, len, vm_flags, &legacy_special_mapping_vmops,
--		(void *)pages);
-+		mm, addr, len, vm_flags, (void *)pages,
-+		&legacy_special_mapping_vmops);
- 
- 	return PTR_ERR_OR_ZERO(vma);
+diff -puN mm/memcontrol.c~memcg-simplify-and-inline-__mem_cgroup_from_kmem mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-simplify-and-inline-__mem_cgroup_from_kmem
++++ a/mm/memcontrol.c
+@@ -2430,24 +2430,6 @@ void __memcg_kmem_uncharge(struct page *
+ 	page->mem_cgroup = NULL;
+ 	css_put_many(&memcg->css, nr_pages);
  }
-_
-
-Patches currently in -mm which might be from gang.chen.5i5j@gmail.com are
-
-
+-
+-struct mem_cgroup *__mem_cgroup_from_kmem(void *ptr)
+-{
+-	struct mem_cgroup *memcg = NULL;
+-	struct kmem_cache *cachep;
+-	struct page *page;
+-
+-	page = virt_to_head_page(ptr);
+-	if (PageSlab(page)) {
+-		cachep = page->slab_cache;
+-		if (!is_root_cache(cachep))
+-			memcg = cachep->memcg_params.memcg;
+-	} else
+-		/* page allocated by alloc_kmem_pages */
+-		memcg = page->mem_cgroup;
