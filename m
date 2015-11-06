@@ -1,81 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mmoom-fix-potentially-killing-unrelated-process.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 12:08:30 -0800
-Message-ID: <563d08be.WP3c5LLeceI1GJEi%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-compaction-disginguish-contended-status-in-tracepoints.patch removed
+ from -mm tree
+Date: Fri, 06 Nov 2015 12:08:40 -0800
+Message-ID: <563d08c8.6mXj72s9K8eOpo4I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48714 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48700 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966367AbbKFUIa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:30 -0500
+	with ESMTP id S966405AbbKFUIl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:08:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@i-love.sakura.ne.jp, mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@suse.de, mingo@redhat.com, rientjes@google.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/oom_kill.c: fix potentially killing unrelated process
+     Subject: mm, compaction: distinguish contended status in tracepoints
 has been removed from the -mm tree.  Its filename was
-     mmoom-fix-potentially-killing-unrelated-process.patch
+     mm-compaction-disginguish-contended-status-in-tracepoints.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Subject: mm/oom_kill.c: fix potentially killing unrelated process
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, compaction: distinguish contended status in tracepoints
 
-At the for_each_process() loop in oom_kill_process(), we are comparing
-address of OOM victim's mm without holding a reference to that mm.  If
-there are a lot of processes to compare or a lot of "Kill process %d (%s)
-sharing same memory" messages to print, for_each_process() loop could take
-very long time.
+Compaction returns prematurely with COMPACT_PARTIAL when contended or has
+fatal signal pending.  This is ok for the callers, but might be misleading
+in the traces, as the usual reason to return COMPACT_PARTIAL is that we
+think the allocation should succeed.  After this patch we distinguish the
+premature ending condition in the mm_compaction_finished and
+mm_compaction_end tracepoints.
 
-It is possible that meanwhile the OOM victim exits and releases its mm,
-and then mm is allocated with the same address and assigned to some
-unrelated process.  When we hit such race, the unrelated process will be
-killed by error.  To make sure that the OOM victim's mm does not go away
-until for_each_process() loop finishes, get a reference on the OOM
-victim's mm before calling task_unlock(victim).
+The contended status covers the following reasons:
+- lock contention or need_resched() detected in async compaction
+- fatal signal pending
+- too many pages isolated in the zone (only for async compaction)
+Further distinguishing the exact reason seems unnecessary for now.
 
-[oleg@redhat.com: several fixes]
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: David Rientjes <rientjes@google.com>
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ include/linux/compaction.h        |    1 +
+ include/trace/events/compaction.h |    3 ++-
+ mm/compaction.c                   |    9 ++++++---
+ 3 files changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN mm/oom_kill.c~mmoom-fix-potentially-killing-unrelated-process mm/oom_kill.c
---- a/mm/oom_kill.c~mmoom-fix-potentially-killing-unrelated-process
-+++ a/mm/oom_kill.c
-@@ -552,8 +552,9 @@ void oom_kill_process(struct oom_control
- 		victim = p;
- 	}
+diff -puN include/linux/compaction.h~mm-compaction-disginguish-contended-status-in-tracepoints include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-disginguish-contended-status-in-tracepoints
++++ a/include/linux/compaction.h
+@@ -15,6 +15,7 @@
+ /* For more detailed tracepoint output */
+ #define COMPACT_NO_SUITABLE_PAGE	5
+ #define COMPACT_NOT_SUITABLE_ZONE	6
++#define COMPACT_CONTENDED		7
+ /* When adding new states, please adjust include/trace/events/compaction.h */
  
--	/* mm cannot safely be dereferenced after task_unlock(victim) */
-+	/* Get a reference to safely compare mm after task_unlock(victim) */
- 	mm = victim->mm;
-+	atomic_inc(&mm->mm_count);
- 	/*
- 	 * We should send SIGKILL before setting TIF_MEMDIE in order to prevent
- 	 * the OOM victim from depleting the memory reserves from the user
-@@ -591,6 +592,7 @@ void oom_kill_process(struct oom_control
+ /* Used to signal whether compaction detected need_sched() or lock contention */
+diff -puN include/trace/events/compaction.h~mm-compaction-disginguish-contended-status-in-tracepoints include/trace/events/compaction.h
+--- a/include/trace/events/compaction.h~mm-compaction-disginguish-contended-status-in-tracepoints
++++ a/include/trace/events/compaction.h
+@@ -16,7 +16,8 @@
+ 	EM( COMPACT_PARTIAL,		"partial")		\
+ 	EM( COMPACT_COMPLETE,		"complete")		\
+ 	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
+-	EMe(COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")
++	EM( COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")	\
++	EMe(COMPACT_CONTENDED,		"contended")
+ 
+ #ifdef CONFIG_ZONE_DMA
+ #define IFDEF_ZONE_DMA(X) X
+diff -puN mm/compaction.c~mm-compaction-disginguish-contended-status-in-tracepoints mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-disginguish-contended-status-in-tracepoints
++++ a/mm/compaction.c
+@@ -1202,7 +1202,7 @@ static int __compact_finished(struct zon
+ 	unsigned long watermark;
+ 
+ 	if (cc->contended || fatal_signal_pending(current))
+-		return COMPACT_PARTIAL;
++		return COMPACT_CONTENDED;
+ 
+ 	/* Compaction run completes if the migrate and free scanner meet */
+ 	if (compact_scanners_met(cc)) {
+@@ -1393,7 +1393,7 @@ static int compact_zone(struct zone *zon
+ 
+ 		switch (isolate_migratepages(zone, cc)) {
+ 		case ISOLATE_ABORT:
+-			ret = COMPACT_PARTIAL;
++			ret = COMPACT_CONTENDED;
+ 			putback_movable_pages(&cc->migratepages);
+ 			cc->nr_migratepages = 0;
+ 			goto out;
+@@ -1424,7 +1424,7 @@ static int compact_zone(struct zone *zon
+ 			 * and we want compact_finished() to detect it
+ 			 */
+ 			if (err == -ENOMEM && !compact_scanners_met(cc)) {
+-				ret = COMPACT_PARTIAL;
++				ret = COMPACT_CONTENDED;
+ 				goto out;
+ 			}
  		}
- 	rcu_read_unlock();
+@@ -1477,6 +1477,9 @@ out:
+ 	trace_mm_compaction_end(start_pfn, cc->migrate_pfn,
+ 				cc->free_pfn, end_pfn, sync, ret);
  
-+	mmdrop(mm);
- 	put_task_struct(victim);
++	if (ret == COMPACT_CONTENDED)
++		ret = COMPACT_PARTIAL;
++
+ 	return ret;
  }
- #undef K
+ 
 _
 
-Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 
