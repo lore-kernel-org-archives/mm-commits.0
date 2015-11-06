@@ -1,113 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memcg-fix-thresholds-for-32b-architectures.patch removed from -mm tree
-Date: Fri, 06 Nov 2015 12:17:16 -0800
-Message-ID: <563d0acc.iMeYhTWGoSg9zPDF%akpm__46789.1004322611$1446841062$gmane$org@linux-foundation.org>
+Subject: [merged]
+ kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses.patch removed from -mm tree
+Date: Fri, 06 Nov 2015 12:17:35 -0800
+Message-ID: <563d0adf.TjvoueIGCXbm9eVw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49080 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49108 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161895AbbKFURR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:17 -0500
+	with ESMTP id S1162902AbbKFURg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:17:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, ben@decadent.org.uk, hannes@cmpxchg.org, stable@vger.kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: andreyknvl@google.com, dvyukov@google.com, glider@google.com, kcc@google.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: fix thresholds for 32b architectures.
+     Subject: kasan: update reported bug types for not user nor kernel memory accesses
 has been removed from the -mm tree.  Its filename was
-     memcg-fix-thresholds-for-32b-architectures.patch
+     kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: memcg: fix thresholds for 32b architectures.
+From: Andrey Konovalov <andreyknvl@google.com>
+Subject: kasan: update reported bug types for not user nor kernel memory accesses
 
-424cdc141380 ("memcg: convert threshold to bytes") has fixed a regression
-introduced by 3e32cb2e0a12 ("mm: memcontrol: lockless page counters")
-where thresholds were silently converted to use page units rather than
-bytes when interpreting the user input.
+Each access with address lower than
+kasan_shadow_to_mem(KASAN_SHADOW_START) is reported as user-memory-access.
+This is not always true, the accessed address might not be in user space.
+Fix this by reporting such accesses as null-ptr-derefs or
+wild-memory-accesses.
 
-The fix is not complete, though, as properly pointed out by Ben Hutchings
-during stable backport review.  The page count is converted to bytes but
-unsigned long is used to hold the value which would be obviously not
-sufficient for 32b systems with more than 4G thresholds.  The same applies
-to usage as taken from mem_cgroup_usage which might overflow.
+There's another reason for this change.  For userspace ASan we have a
+bunch of systems that analyze error types for the purpose of
+classification and deduplication.  Sooner of later we will write them to
+KASAN as well.  Then clearly and explicitly stated error types will bring
+value.
 
-Let's remove this bytes vs.  pages internal tracking differences and
-handle thresholds in page units internally.  Chage mem_cgroup_usage() to
-return the value in page units and revert 424cdc141380 because this should
-be sufficient for the consistent handling.  mem_cgroup_read_u64 as the
-only users of mem_cgroup_usage outside of the threshold handling code is
-converted to give the proper in bytes result.  It is doing that already
-for page_counter output so this is more consistent as well.
-
-The value presented to the userspace is still in bytes units.
-
-Fixes: 424cdc141380 ("memcg: convert threshold to bytes")
-Fixes: 3e32cb2e0a12 ("mm: memcontrol: lockless page counters")
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Ben Hutchings <ben@decadent.org.uk>
-Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrey Konovalov <andreyknvl@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Konstantin Serebryany <kcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/kasan/kasan.c  |    8 -------
+ mm/kasan/kasan.h  |    3 --
+ mm/kasan/report.c |   50 ++++++++++++++++++++------------------------
+ 3 files changed, 24 insertions(+), 37 deletions(-)
 
-diff -puN mm/memcontrol.c~memcg-fix-thresholds-for-32b-architectures mm/memcontrol.c
---- a/mm/memcontrol.c~memcg-fix-thresholds-for-32b-architectures
-+++ a/mm/memcontrol.c
-@@ -2836,9 +2836,9 @@ static unsigned long tree_stat(struct me
- 	return val;
- }
- 
--static inline u64 mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
-+static inline unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
+diff -puN mm/kasan/kasan.c~kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses
++++ a/mm/kasan/kasan.c
+@@ -235,18 +235,12 @@ static __always_inline bool memory_is_po
+ static __always_inline void check_memory_region(unsigned long addr,
+ 						size_t size, bool write)
  {
--	u64 val;
-+	unsigned long val;
+-	struct kasan_access_info info;
+-
+ 	if (unlikely(size == 0))
+ 		return;
  
- 	if (mem_cgroup_is_root(memcg)) {
- 		val = tree_stat(memcg, MEM_CGROUP_STAT_CACHE);
-@@ -2851,7 +2851,7 @@ static inline u64 mem_cgroup_usage(struc
- 		else
- 			val = page_counter_read(&memcg->memsw);
+ 	if (unlikely((void *)addr <
+ 		kasan_shadow_to_mem((void *)KASAN_SHADOW_START))) {
+-		info.access_addr = (void *)addr;
+-		info.access_size = size;
+-		info.is_write = write;
+-		info.ip = _RET_IP_;
+-		kasan_report_user_access(&info);
++		kasan_report(addr, size, write, _RET_IP_);
+ 		return;
  	}
--	return val << PAGE_SHIFT;
-+	return val;
+ 
+diff -puN mm/kasan/kasan.h~kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses mm/kasan/kasan.h
+--- a/mm/kasan/kasan.h~kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses
++++ a/mm/kasan/kasan.h
+@@ -54,9 +54,6 @@ struct kasan_global {
+ #endif
+ };
+ 
+-void kasan_report_error(struct kasan_access_info *info);
+-void kasan_report_user_access(struct kasan_access_info *info);
+-
+ static inline const void *kasan_shadow_to_mem(const void *shadow_addr)
+ {
+ 	return (void *)(((unsigned long)shadow_addr - KASAN_SHADOW_OFFSET)
+diff -puN mm/kasan/report.c~kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses mm/kasan/report.c
+--- a/mm/kasan/report.c~kasan-update-reported-bug-types-for-not-user-nor-kernel-memory-accesses
++++ a/mm/kasan/report.c
+@@ -189,9 +189,10 @@ static void print_shadow_for_address(con
+ 
+ static DEFINE_SPINLOCK(report_lock);
+ 
+-void kasan_report_error(struct kasan_access_info *info)
++static void kasan_report_error(struct kasan_access_info *info)
+ {
+ 	unsigned long flags;
++	const char *bug_type;
+ 
+ 	/*
+ 	 * Make sure we don't end up in loop.
+@@ -200,32 +201,26 @@ void kasan_report_error(struct kasan_acc
+ 	spin_lock_irqsave(&report_lock, flags);
+ 	pr_err("================================="
+ 		"=================================\n");
+-	print_error_description(info);
+-	print_address_description(info);
+-	print_shadow_for_address(info->first_bad_addr);
+-	pr_err("================================="
+-		"=================================\n");
+-	spin_unlock_irqrestore(&report_lock, flags);
+-	kasan_enable_current();
+-}
+-
+-void kasan_report_user_access(struct kasan_access_info *info)
+-{
+-	unsigned long flags;
+-
+-	/*
+-	 * Make sure we don't end up in loop.
+-	 */
+-	kasan_disable_current();
+-	spin_lock_irqsave(&report_lock, flags);
+-	pr_err("================================="
+-		"=================================\n");
+-	pr_err("BUG: KASan: user-memory-access on address %p\n",
+-		info->access_addr);
+-	pr_err("%s of size %zu by task %s/%d\n",
+-		info->is_write ? "Write" : "Read",
+-		info->access_size, current->comm, task_pid_nr(current));
+-	dump_stack();
++	if (info->access_addr <
++			kasan_shadow_to_mem((void *)KASAN_SHADOW_START)) {
++		if ((unsigned long)info->access_addr < PAGE_SIZE)
++			bug_type = "null-ptr-deref";
++		else if ((unsigned long)info->access_addr < TASK_SIZE)
++			bug_type = "user-memory-access";
++		else
++			bug_type = "wild-memory-access";
++		pr_err("BUG: KASan: %s on address %p\n",
++			bug_type, info->access_addr);
++		pr_err("%s of size %zu by task %s/%d\n",
++			info->is_write ? "Write" : "Read",
++			info->access_size, current->comm,
++			task_pid_nr(current));
++		dump_stack();
++	} else {
++		print_error_description(info);
++		print_address_description(info);
++		print_shadow_for_address(info->first_bad_addr);
++	}
+ 	pr_err("================================="
+ 		"=================================\n");
+ 	spin_unlock_irqrestore(&report_lock, flags);
+@@ -244,6 +239,7 @@ void kasan_report(unsigned long addr, si
+ 	info.access_size = size;
+ 	info.is_write = is_write;
+ 	info.ip = ip;
++
+ 	kasan_report_error(&info);
  }
- 
- enum {
-@@ -2885,9 +2885,9 @@ static u64 mem_cgroup_read_u64(struct cg
- 	switch (MEMFILE_ATTR(cft->private)) {
- 	case RES_USAGE:
- 		if (counter == &memcg->memory)
--			return mem_cgroup_usage(memcg, false);
-+			return (u64)mem_cgroup_usage(memcg, false) * PAGE_SIZE;
- 		if (counter == &memcg->memsw)
--			return mem_cgroup_usage(memcg, true);
-+			return (u64)mem_cgroup_usage(memcg, true) * PAGE_SIZE;
- 		return (u64)page_counter_read(counter) * PAGE_SIZE;
- 	case RES_LIMIT:
- 		return (u64)counter->limit * PAGE_SIZE;
-@@ -3387,7 +3387,6 @@ static int __mem_cgroup_usage_register_e
- 	ret = page_counter_memparse(args, "-1", &threshold);
- 	if (ret)
- 		return ret;
--	threshold <<= PAGE_SHIFT;
- 
- 	mutex_lock(&memcg->thresholds_lock);
  
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from andreyknvl@google.com are
 
-mm-fs-introduce-mapping_gfp_constraint.patch
 
