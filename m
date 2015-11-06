@@ -1,113 +1,108 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- watchdog-avoid-races-between-proc-handlers-and-cpu-hotplug.patch removed
+ compilerh-add-support-for-function-attribute-assume_aligned.patch removed
  from -mm tree
-Date: Fri, 06 Nov 2015 12:06:22 -0800
-Message-ID: <563d083e.r06NTAD7SzzuBhPZ%akpm@linux-foundation.org>
+Date: Fri, 06 Nov 2015 12:06:30 -0800
+Message-ID: <563d0846.aVB9A4C+HGg8LmD+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48504 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48519 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1033447AbbKFUGX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:06:23 -0500
+	with ESMTP id S1031366AbbKFUGb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:06:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: uobergfe@redhat.com, atomlin@redhat.com, dzickus@redhat.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/watchdog.c: avoid races between /proc handlers and CPU hotplug
+     Subject: compiler.h: add support for function attribute assume_aligned
 has been removed from the -mm tree.  Its filename was
-     watchdog-avoid-races-between-proc-handlers-and-cpu-hotplug.patch
+     compilerh-add-support-for-function-attribute-assume_aligned.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ulrich Obergfell <uobergfe@redhat.com>
-Subject: kernel/watchdog.c: avoid races between /proc handlers and CPU hotplug
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: compiler.h: add support for function attribute assume_aligned
 
-The handler functions for watchdog parameters in /proc/sys/kernel do not
-protect themselves against races with CPU hotplug.  Hence, theoretically
-it is possible that a new watchdog thread is started on a hotplugged CPU
-while a parameter is being modified, and the thread could thus use a
-parameter value that is 'in transition'.
+gcc 4.9 added the function attribute assume_aligned, indicating to the
+caller that the returned pointer may be assumed to have a certain minimal
+alignment.  This is useful if, for example, the return value is passed to
+memset().  Add a shorthand macro for that.
 
-For example, if 'watchdog_thresh' is being set to zero (note: this
-disables the lockup detectors) the thread would erroneously use the value
-zero as the sample period.
-
-To avoid such races and to keep the /proc handler code consistent,
-call
-     {get|put}_online_cpus() in proc_watchdog_common()
-     {get|put}_online_cpus() in proc_watchdog_thresh()
-     {get|put}_online_cpus() in proc_watchdog_cpumask()
-
-Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
-Acked-by: Don Zickus <dzickus@redhat.com>
-Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/linux/compiler-gcc.h |   17 +++++++++++++++++
+ include/linux/compiler.h     |    8 ++++++++
+ 2 files changed, 25 insertions(+)
 
-diff -puN kernel/watchdog.c~watchdog-avoid-races-between-proc-handlers-and-cpu-hotplug kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-avoid-races-between-proc-handlers-and-cpu-hotplug
-+++ a/kernel/watchdog.c
-@@ -857,6 +857,7 @@ static int proc_watchdog_common(int whic
- 	int err, old, new;
- 	int *watchdog_param = (int *)table->data;
+diff -puN include/linux/compiler-gcc.h~compilerh-add-support-for-function-attribute-assume_aligned include/linux/compiler-gcc.h
+--- a/include/linux/compiler-gcc.h~compilerh-add-support-for-function-attribute-assume_aligned
++++ a/include/linux/compiler-gcc.h
+@@ -210,6 +210,23 @@
+ #define __visible	__attribute__((externally_visible))
+ #endif
  
-+	get_online_cpus();
- 	mutex_lock(&watchdog_proc_mutex);
++
++#if GCC_VERSION >= 40900
++/*
++ * __assume_aligned(n, k): Tell the optimizer that the returned
++ * pointer can be assumed to be k modulo n. The second argument is
++ * optional (default 0), so we use a variadic macro to make the
++ * shorthand.
++ *
++ * Beware: Do not apply this to functions which may return
++ * ERR_PTRs. Also, it is probably unwise to apply it to functions
++ * returning extra information in the low bits (but in that case the
++ * compiler should see some alignment anyway, when the return value is
++ * massaged by 'flags = ptr & 3; ptr &= ~3;').
++ */
++#define __assume_aligned(a, ...) __attribute__((__assume_aligned__(a, ## __VA_ARGS__)))
++#endif
++
+ /*
+  * GCC 'asm goto' miscompiles certain code sequences:
+  *
+diff -puN include/linux/compiler.h~compilerh-add-support-for-function-attribute-assume_aligned include/linux/compiler.h
+--- a/include/linux/compiler.h~compilerh-add-support-for-function-attribute-assume_aligned
++++ a/include/linux/compiler.h
+@@ -417,6 +417,14 @@ static __always_inline void __write_once
+ #define __visible
+ #endif
  
- 	if (watchdog_suspended) {
-@@ -908,6 +909,7 @@ static int proc_watchdog_common(int whic
- 	}
- out:
- 	mutex_unlock(&watchdog_proc_mutex);
-+	put_online_cpus();
- 	return err;
- }
- 
-@@ -949,6 +951,7 @@ int proc_watchdog_thresh(struct ctl_tabl
- {
- 	int err, old;
- 
-+	get_online_cpus();
- 	mutex_lock(&watchdog_proc_mutex);
- 
- 	if (watchdog_suspended) {
-@@ -974,6 +977,7 @@ int proc_watchdog_thresh(struct ctl_tabl
- 	}
- out:
- 	mutex_unlock(&watchdog_proc_mutex);
-+	put_online_cpus();
- 	return err;
- }
- 
-@@ -988,6 +992,7 @@ int proc_watchdog_cpumask(struct ctl_tab
- {
- 	int err;
- 
-+	get_online_cpus();
- 	mutex_lock(&watchdog_proc_mutex);
- 
- 	if (watchdog_suspended) {
-@@ -1015,6 +1020,7 @@ int proc_watchdog_cpumask(struct ctl_tab
- 	}
- out:
- 	mutex_unlock(&watchdog_proc_mutex);
-+	put_online_cpus();
- 	return err;
- }
- 
++/*
++ * Assume alignment of return value.
++ */
++#ifndef __assume_aligned
++#define __assume_aligned(a, ...)
++#endif
++
++
+ /* Are two types/vars the same type (ignoring qualifiers)? */
+ #ifndef __same_type
+ # define __same_type(a, b) __builtin_types_compatible_p(typeof(a), typeof(b))
 _
 
-Patches currently in -mm which might be from uobergfe@redhat.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
+mm-maccessc-actually-return-efault-from-strncpy_from_unsafe.patch
+slabh-sprinkle-__assume_aligned-attributes.patch
+lib-dynamic_debugc-use-kstrdup_const.patch
+lib-vsprintfc-handle-invalid-format-specifiers-more-robustly.patch
+lib-vsprintfc-also-improve-sanity-check-in-bstr_printf.patch
+lib-vsprintfc-remove-special-handling-in-pointer.patch
+test_printf-test-printf-family-at-runtime.patch
+lib-vsprintfc-update-documentation.patch
+lib-introduce-kvasprintf_const.patch
+kobject-use-kvasprintf_const-for-formatting-name.patch
 
