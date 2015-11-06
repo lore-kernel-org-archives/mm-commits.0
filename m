@@ -1,111 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- watchdog-fix-error-handling-in-proc_watchdog_thresh.patch removed from -mm
- tree
-Date: Fri, 06 Nov 2015 12:06:05 -0800
-Message-ID: <563d082d.ozcVRk7eVxGxvsBq%akpm@linux-foundation.org>
+Subject: [merged] 9p-do-not-overwrite-return-code-when-locking-fails.patch removed from -mm tree
+Date: Fri, 06 Nov 2015 12:06:01 -0800
+Message-ID: <563d0829.82eoMZUvCRJ7YgmX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48483 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48474 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161814AbbKFUGG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:06:06 -0500
+	with ESMTP id S1161823AbbKFUGC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:06:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: uobergfe@redhat.com, atomlin@redhat.com, dzickus@redhat.com, mm-commits@vger.kernel.org
+To: dominique.martinet@cea.fr, ericvh@gmail.com, lucho@ionkov.net, rminnich@sandia.gov, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: watchdog: fix error handling in proc_watchdog_thresh()
+     Subject: 9p: do not overwrite return code when locking fails
 has been removed from the -mm tree.  Its filename was
-     watchdog-fix-error-handling-in-proc_watchdog_thresh.patch
+     9p-do-not-overwrite-return-code-when-locking-fails.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ulrich Obergfell <uobergfe@redhat.com>
-Subject: watchdog: fix error handling in proc_watchdog_thresh()
+From: Dominique Martinet <dominique.martinet@cea.fr>
+Subject: 9p: do not overwrite return code when locking fails
 
-The original watchdog_park_threads() function that was introduced by
-81a4beef91ba4a9 ("watchdog: introduce watchdog_park_threads() and
-watchdog_unpark_threads()") takes a very simple approach to handle errors
-returned by kthread_park(): It attempts to roll back all watchdog threads
-to the unparked state.  However, this may be undesired behaviour from the
-perspective of the caller which may want to handle errors as appropriate
-in its specific context.  Currently, there are two possible call chains:
+If the remote locking fail, we run a local vfs unlock that should work and
+return success to userland when we didn't actually lock at all.  We need
+to tell the application that tried to lock that it didn't get it, not that
+all went well.
 
-- watchdog suspend/resume interface
-
-    lockup_detector_suspend
-      watchdog_park_threads
-
-- write to parameters in /proc/sys/kernel
-
-    proc_watchdog_update
-      watchdog_enable_all_cpus
-        update_watchdog_all_cpus
-          watchdog_park_threads
-
-Instead of 'blindly' attempting to unpark the watchdog threads if a
-kthread_park() call fails, the new approach is to disable the lockup
-detectors in the above call chains.  Failure becomes visible to the user
-as follows:
-
-- error messages from lockup_detector_suspend()
-                   or watchdog_enable_all_cpus()
-
-- the state that can be read from /proc/sys/kernel/watchdog_enabled
-
-- the 'write' system call in the latter call chain returns an error
-
-
-I did not experience kthread_park() failures in practice, I used some
-instrumentation to fake error returns from kthread_park() in order to test
-the patches.
-
-
-This patch (of 5):
-
-Restore the previous value of watchdog_thresh _and_ sample_period if
-proc_watchdog_update() returns an error.  The variables must be consistent
-to avoid false positives of the lockup detectors.
-
-Signed-off-by: Ulrich Obergfell <uobergfe@redhat.com>
-Reviewed-by: Aaron Tomlin <atomlin@redhat.com>
-Acked-by: Don Zickus <dzickus@redhat.com>
-Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Signed-off-by: Dominique Martinet <dominique.martinet@cea.fr>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Ron Minnich <rminnich@sandia.gov>
+Cc: Latchesar Ionkov <lucho@ionkov.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/watchdog.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/9p/vfs_file.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN kernel/watchdog.c~watchdog-fix-error-handling-in-proc_watchdog_thresh kernel/watchdog.c
---- a/kernel/watchdog.c~watchdog-fix-error-handling-in-proc_watchdog_thresh
-+++ a/kernel/watchdog.c
-@@ -914,13 +914,14 @@ int proc_watchdog_thresh(struct ctl_tabl
- 		goto out;
- 
- 	/*
--	 * Update the sample period.
--	 * Restore 'watchdog_thresh' on failure.
-+	 * Update the sample period. Restore on failure.
- 	 */
- 	set_sample_period();
- 	err = proc_watchdog_update();
--	if (err)
-+	if (err) {
- 		watchdog_thresh = old;
-+		set_sample_period();
-+	}
+diff -puN fs/9p/vfs_file.c~9p-do-not-overwrite-return-code-when-locking-fails fs/9p/vfs_file.c
+--- a/fs/9p/vfs_file.c~9p-do-not-overwrite-return-code-when-locking-fails
++++ a/fs/9p/vfs_file.c
+@@ -231,7 +231,8 @@ out_unlock:
+ 	if (res < 0 && fl->fl_type != F_UNLCK) {
+ 		fl_type = fl->fl_type;
+ 		fl->fl_type = F_UNLCK;
+-		res = posix_lock_file_wait(filp, fl);
++		/* Even if this fails we want to return the remote error */
++		posix_lock_file_wait(filp, fl);
+ 		fl->fl_type = fl_type;
+ 	}
  out:
- 	mutex_unlock(&watchdog_proc_mutex);
- 	return err;
 _
 
-Patches currently in -mm which might be from uobergfe@redhat.com are
+Patches currently in -mm which might be from dominique.martinet@cea.fr are
 
 
