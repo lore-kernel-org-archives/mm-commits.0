@@ -1,75 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ksm-use-find_mergeable_vma-in-try_to_merge_with_ksm_page.patch removed from -mm tree
-Date: Fri, 06 Nov 2015 12:16:15 -0800
-Message-ID: <563d0a8f.tmrQidt+Ok0Y4o8D%akpm@linux-foundation.org>
+Subject: [merged] mm-clear_soft_dirty_pmd-requires-thp.patch removed from
+ -mm tree
+Date: Fri, 06 Nov 2015 12:16:21 -0800
+Message-ID: <563d0a95.nxDAzNiPbHedTZp9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48914 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48930 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1162062AbbKFUQP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:16:15 -0500
+	with ESMTP id S1162955AbbKFUQW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 15:16:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aarcange@redhat.com, hughd@google.com, pholasek@redhat.com, mm-commits@vger.kernel.org
+To: ldufour@linux.vnet.ibm.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, mpe@ellerman.id.au, paulus@samba.org, xemul@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm: use find_mergeable_vma in try_to_merge_with_ksm_page
+     Subject: mm: clear_soft_dirty_pmd() requires THP
 has been removed from the -mm tree.  Its filename was
-     ksm-use-find_mergeable_vma-in-try_to_merge_with_ksm_page.patch
+     mm-clear_soft_dirty_pmd-requires-thp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrea Arcangeli <aarcange@redhat.com>
-Subject: ksm: use find_mergeable_vma in try_to_merge_with_ksm_page
+From: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Subject: mm: clear_soft_dirty_pmd() requires THP
 
-Doing the VM_MERGEABLE check after the page == kpage check won't provide
-any meaningful benefit.  The !vma->anon_vma check of find_mergeable_vma is
-the only superfluous bit in using find_mergeable_vma because the !PageAnon
-check of try_to_merge_one_page() implicitly checks for that, but it still
-looks cleaner to share the same find_mergeable_vma().
+Don't build clear_soft_dirty_pmd() if transparent huge pages are not
+enabled.
 
-Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Petr Holasek <pholasek@redhat.com>
+Signed-off-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Pavel Emelyanov <xemul@parallels.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ fs/proc/task_mmu.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN mm/ksm.c~ksm-use-find_mergeable_vma-in-try_to_merge_with_ksm_page mm/ksm.c
---- a/mm/ksm.c~ksm-use-find_mergeable_vma-in-try_to_merge_with_ksm_page
-+++ a/mm/ksm.c
-@@ -1021,8 +1021,6 @@ static int try_to_merge_one_page(struct
- 	if (page == kpage)			/* ksm page forked */
- 		return 0;
+diff -puN fs/proc/task_mmu.c~mm-clear_soft_dirty_pmd-requires-thp fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-clear_soft_dirty_pmd-requires-thp
++++ a/fs/proc/task_mmu.c
+@@ -801,7 +801,14 @@ static inline void clear_soft_dirty(stru
+ 		set_pte_at(vma->vm_mm, addr, pte, ptent);
+ 	}
+ }
++#else
++static inline void clear_soft_dirty(struct vm_area_struct *vma,
++		unsigned long addr, pte_t *pte)
++{
++}
++#endif
  
--	if (!(vma->vm_flags & VM_MERGEABLE))
--		goto out;
- 	if (PageTransCompound(page) && page_trans_compound_anon_split(page))
- 		goto out;
- 	BUG_ON(PageTransCompound(page));
-@@ -1087,10 +1085,8 @@ static int try_to_merge_with_ksm_page(st
- 	int err = -EFAULT;
++#if defined(CONFIG_MEM_SOFT_DIRTY) && defined(CONFIG_TRANSPARENT_HUGEPAGE)
+ static inline void clear_soft_dirty_pmd(struct vm_area_struct *vma,
+ 		unsigned long addr, pmd_t *pmdp)
+ {
+@@ -815,14 +822,7 @@ static inline void clear_soft_dirty_pmd(
  
- 	down_read(&mm->mmap_sem);
--	if (ksm_test_exit(mm))
--		goto out;
--	vma = find_vma(mm, rmap_item->address);
--	if (!vma || vma->vm_start > rmap_item->address)
-+	vma = find_mergeable_vma(mm, rmap_item->address);
-+	if (!vma)
- 		goto out;
- 
- 	err = try_to_merge_one_page(vma, page, kpage);
-_
-
-Patches currently in -mm which might be from aarcange@redhat.com are
-
-
+ 	set_pmd_at(vma->vm_mm, addr, pmdp, pmd);
+ }
+-
+ #else
+-
+-static inline void clear_soft_dirty(struct vm_area_struct *vma,
+-		unsigned long addr, pte_t *pte)
+-{
+-}
