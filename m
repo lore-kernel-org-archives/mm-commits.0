@@ -1,59 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-use-unsigned-int-for-page-order-fix-2.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 16:13:01 -0800
-Message-ID: <563d420d.MkAITEAx2e6LYz02%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ lib-documentation-synchronize-%p-formatting-documentation-fix.patch removed from -mm tree
+Date: Fri, 06 Nov 2015 16:13:56 -0800
+Message-ID: <563d4244.j1bjeuJJuxMIFM6E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52669 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52682 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753331AbbKGANB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 19:13:01 -0500
+	with ESMTP id S1753331AbbKGAN5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 19:13:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: mkletzan@redhat.com, andriy.shevchenko@linux.intel.com, corbet@lwn.net, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use unsigned int for page order fix 2
+     Subject: lib-documentation-synchronize-%p-formatting-documentation-fix
 has been removed from the -mm tree.  Its filename was
-     mm-use-unsigned-int-for-page-order-fix-2.patch
+     lib-documentation-synchronize-%p-formatting-documentation-fix.patch
 
-This patch was dropped because it was folded into mm-use-unsigned-int-for-page-order.patch
+This patch was dropped because it was folded into lib-documentation-synchronize-%p-formatting-documentation.patch
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: use unsigned int for page order fix 2
+From: Martin Kletzander <mkletzan@redhat.com>
+Subject: lib-documentation-synchronize-%p-formatting-documentation-fix
 
-Some configs now end up with MAX_ORDER and pageblock_order having
-different types: silence compiler warning in __free_one_page().
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ Documentation/printk-formats.txt |    6 ++++--
+ lib/vsprintf.c                   |   13 ++++++++-----
+ 2 files changed, 12 insertions(+), 7 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-use-unsigned-int-for-page-order-fix-2 mm/page_alloc.c
---- a/mm/page_alloc.c~mm-use-unsigned-int-for-page-order-fix-2
-+++ a/mm/page_alloc.c
-@@ -675,7 +675,7 @@ static inline void __free_one_page(struc
- 		 * pageblock. Without this, pageblock isolation
- 		 * could cause incorrect freepage accounting.
- 		 */
--		max_order = min(MAX_ORDER, pageblock_order + 1);
-+		max_order = min_t(unsigned int, MAX_ORDER, pageblock_order + 1);
- 	} else {
- 		__mod_zone_freepage_state(zone, 1 << order, migratetype);
- 	}
+diff -puN Documentation/printk-formats.txt~lib-documentation-synchronize-%p-formatting-documentation-fix Documentation/printk-formats.txt
+--- a/Documentation/printk-formats.txt~lib-documentation-synchronize-%p-formatting-documentation-fix
++++ a/Documentation/printk-formats.txt
+@@ -307,9 +307,11 @@ Command from struct task_struct
+ 
+ Ignored argument:
+ 
+-	%pn
++	%n	%n
+ 
+-	The argument passed will be ignored.
++	The argument passed will be ignored.  In other words, literal "%n" will
++	be in the output and the argument will be considered for next format
++	specifier.
+ 
+ Thank you for your cooperation and attention.
+ 
+diff -puN lib/vsprintf.c~lib-documentation-synchronize-%p-formatting-documentation-fix lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-documentation-synchronize-%p-formatting-documentation-fix
++++ a/lib/vsprintf.c
+@@ -1450,7 +1450,7 @@ int kptr_restrict __read_mostly;
+  * - 'Cr' For a clock, it prints the current rate of the clock
+  * - 'n' For ignored argument
+  *
+- * ** Please update Documentation/printk-formats.txt when making changes **
++ * ** Please update also Documentation/printk-formats.txt when making changes **
+  *
+  * Note: The difference between 'S' and 'F' is that on ia64 and ppc64
+  * function pointers are really function descriptors, which contain a
+@@ -1814,11 +1814,14 @@ qualifier:
+  * @fmt: The format string to use
+  * @args: Arguments for the format string
+  *
+- * This function follows C99 vsnprintf, but has some extensions.  See
+- * pointer() or Documentation/printk-formats.txt for all format
+- * specifiers.
++ * This function follows C99 vsnprintf, but has some extensions:
++ * %n is ignored
++ * %p* is handled by pointer()
+  *
+- * ** Please update the documentation when making changes **
++ * See pointer() or Documentation/printk-formats.txt for more
++ * extensive description.
++ *
++ * ** Please update the documentation on both places when making changes **
+  *
+  * The return value is the number of characters which would
+  * be generated for the given input, excluding the trailing
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from mkletzan@redhat.com are
 
-mm-use-unsigned-int-for-page-order.patch
+lib-documentation-synchronize-%p-formatting-documentation.patch
 
