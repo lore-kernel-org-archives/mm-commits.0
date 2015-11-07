@@ -1,105 +1,79 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix.patch
- removed from -mm tree
-Date: Fri, 06 Nov 2015 16:10:14 -0800
-Message-ID: <563d4166.KbPDyBSWY1z8TiWb%akpm@linux-foundation.org>
+ mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch removed from -mm tree
+Date: Fri, 06 Nov 2015 16:10:17 -0800
+Message-ID: <563d4169.P1xNlRU+Rhd1r1H7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52641 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52650 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753367AbbKGAKP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 19:10:15 -0500
+	with ESMTP id S1757287AbbKGAKS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 19:10:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, cl@linux.com, hannes@cmpxchg.org, mhocko@suse.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, vitalywool@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cl@linux.com, hannes@cmpxchg.org, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, vitalywool@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_alloc: only enforce watermarks for order-0 allocations -fix
+     Subject: mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix.patch
+     mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
 
 This patch was dropped because it was folded into mm-page_alloc-only-enforce-watermarks-for-order-0-allocations.patch
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm, page_alloc: only enforce watermarks for order-0 allocations -fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix
 
-This patch is updating comments for clarity and converts a bool to an int.
- The code as-is is ok as the compiler is meant to cast it correctly but it
-looks odd to people who know the value would be truncated and lost for
-other types.
+simplify __zone_watermark_ok(), per Vlastimil
 
-This is a fix to the mmotm patch
-mm-page_alloc-only-enforce-watermarks-for-order-0-allocations.patch
-
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Vitaly Wool <vitalywool@gmail.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Rik van Riel <riel@redhat.com>
+Cc: Vitaly Wool <vitalywool@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix
+diff -puN mm/page_alloc.c~mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix
 +++ a/mm/page_alloc.c
-@@ -2333,7 +2333,7 @@ static bool __zone_watermark_ok(struct z
- {
- 	long min = mark;
- 	int o;
--	const bool alloc_harder = (alloc_flags & ALLOC_HARDER);
-+	const int alloc_harder = (alloc_flags & ALLOC_HARDER);
+@@ -2377,11 +2377,8 @@ static bool __zone_watermark_ok(struct z
+ 		if (!area->nr_free)
+ 			continue;
  
- 	/* free_pages may go negative - that's OK */
- 	free_pages -= (1 << order) - 1;
-@@ -2357,14 +2357,19 @@ static bool __zone_watermark_ok(struct z
- 		free_pages -= zone_page_state(z, NR_FREE_CMA_PAGES);
- #endif
+-		if (alloc_harder) {
+-			if (area->nr_free)
+-				return true;
+-			continue;
+-		}
++		if (alloc_harder)
++			return true;
  
-+	/*
-+	 * Check watermarks for an order-0 allocation request. If these
-+	 * are not met, then a high-order request also cannot go ahead
-+	 * even if a suitable page happened to be free.
-+	 */
- 	if (free_pages <= min + z->lowmem_reserve[classzone_idx])
- 		return false;
- 
--	/* order-0 watermarks are ok */
-+	/* If this is an order-0 request then the watermark is fine */
- 	if (!order)
- 		return true;
- 
--	/* Check at least one high-order page is free */
-+	/* For a high-order request, check at least one suitable page is free */
- 	for (o = order; o < MAX_ORDER; o++) {
- 		struct free_area *area = &z->free_area[o];
- 		int mt;
+ 		for (mt = 0; mt < MIGRATE_PCPTYPES; mt++) {
+ 			if (!list_empty(&area->free_list[mt]))
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-page_alloc-remove-unnecessary-parameter-from-zone_watermark_ok_safe.patch
-mm-page_alloc-remove-unnecessary-recalculations-for-dirty-zone-balancing.patch
-mm-page_alloc-remove-unnecessary-taking-of-a-seqlock-when-cpusets-are-disabled.patch
-mm-page_alloc-use-masks-and-shifts-when-converting-gfp-flags-to-migrate-types.patch
-mm-page_alloc-distinguish-between-being-unable-to-sleep-unwilling-to-sleep-and-avoiding-waking-kswapd.patch
-mm-page_alloc-distinguish-between-being-unable-to-sleep-unwilling-to-sleep-and-avoiding-waking-kswapd-fix.patch
-mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim.patch
-mm-page_alloc-delete-the-zonelist_cache.patch
-mm-page_alloc-remove-migrate_reserve.patch
-mm-page_alloc-reserve-pageblocks-for-high-order-atomic-allocations-on-demand.patch
 mm-page_alloc-only-enforce-watermarks-for-order-0-allocations.patch
-mm-page_alloc-hide-some-GFP-internals-and-document-the-bit-and-flag-combinations.patch
-mm-page_alloc-hide-some-gfp-internals-and-document-the-bit-and-flag-combinations-fix.patch
+include-linux-mmzoneh-reflow-comment.patch
+mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
+mm-memcontrolc-uninline-mem_cgroup_usage.patch
+zsmalloc-add-comments-for-inuse-to-zspage-v2-fix.patch
+include-linux-compiler-gcch-improve-__visible-documentation.patch
+fs-jffs2-wbufc-remove-stray-semicolon.patch
+lib-documentation-synchronize-%p-formatting-documentation-fix-fix.patch
+rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
+dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
+panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out-fix.patch
 
