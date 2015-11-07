@@ -1,67 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch removed from -mm tree
-Date: Fri, 06 Nov 2015 16:15:26 -0800
-Message-ID: <563d429e.lpE2UHSRGQd4rKUH%akpm@linux-foundation.org>
+ signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal-fix.patch
+ removed from -mm tree
+Date: Fri, 06 Nov 2015 16:16:05 -0800
+Message-ID: <563d42c5.ZQjt6TmUJ5qfznCs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52698 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52702 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753331AbbKGAP1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 19:15:27 -0500
+	with ESMTP id S1757804AbbKGAQG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 19:16:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dev@codyps.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, balbi@ti.com, dwmw2@infradead.org, mpa@pengutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix
+     Subject: signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal-fix
 has been removed from the -mm tree.  Its filename was
-     rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix.patch
+     signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal-fix.patch
 
-This patch was dropped because it was folded into rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe.patch
+This patch was dropped because it was folded into signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal-fix
 
-s/this function/rbtree_postorder_for_each_entry_safe()/ (it isn't a function!)
+As Markus reports (thanks!)
 
-Cc: Cody P Schafer <dev@codyps.com>
+	signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal.patch
+
+conflicts with the recent change in Linus' tree,
+
+> I just realised that this patch will conflict with a fixup patch for nbd
+> that will be included in rc7.
+>
+> dcc909d90ccd (nbd: Add locking for tasks)
+>
+> I think there is basically one new instance of dequeue_signal_lock() that
+> needs to be replaced with kernel_dequeue_signal().
+
+Unless I missed something, this new dequeue_signal_lock() should simply
+die, but lets fix the conflict first.
+
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Markus Pargmann <mpa@pengutronix.de>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rbtree.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/block/nbd.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/rbtree.h~rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix include/linux/rbtree.h
---- a/include/linux/rbtree.h~rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe-fix
-+++ a/include/linux/rbtree.h
-@@ -109,9 +109,9 @@ static inline void rb_link_node_rcu(stru
-  * @root:	'rb_root *' of the rbtree.
-  * @field:	the name of the rb_node field within 'type'.
-  *
-- * This function provides a similar guarantee as list_for_each_entry_safe() and
-- * allows the iteration to continue independent of changes to @pos by the body
-- * of the loop.
-+ * rbtree_postorder_for_each_entry_safe() provides a similar guarantee as
-+ * list_for_each_entry_safe() and allows the iteration to continue independent
-+ * of changes to @pos by the body of the loop.
-  *
-  * Note, however, that it cannot handle other modifications that re-order the
-  * rbtree it is iterating over. This includes calling rb_erase() on @pos, as
+diff -puN drivers/block/nbd.c~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal-fix drivers/block/nbd.c
+--- a/drivers/block/nbd.c~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal-fix
++++ a/drivers/block/nbd.c
+@@ -587,10 +587,8 @@ static int nbd_thread_send(void *data)
+ 	spin_unlock_irqrestore(&nbd->tasks_lock, flags);
+ 
+ 	/* Clear maybe pending signals */
+-	if (signal_pending(current)) {
+-		siginfo_t info;
+-		dequeue_signal_lock(current, &current->blocked, &info);
+-	}
++	if (signal_pending(current))
++		kernel_dequeue_signal(NULL);
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from oleg@redhat.com are
 
-include-linux-mmzoneh-reflow-comment.patch
-mm-memcontrolc-uninline-mem_cgroup_usage.patch
-include-linux-compiler-gcch-improve-__visible-documentation.patch
-fs-jffs2-wbufc-remove-stray-semicolon.patch
-rbtree-clarify-documentation-of-rbtree_postorder_for_each_entry_safe.patch
-dma-mapping-tidy-up-dma_parms-default-handling-fix.patch
-panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out-fix.patch
+proc-actually-make-proc_fd_permission-thread-friendly.patch
+change-current_is_single_threaded-to-use-for_each_thread.patch
+signals-kill-block_all_signals-and-unblock_all_signals.patch
+signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal.patch
+signal-introduce-kernel_signal_stop-to-fix-jffs2_garbage_collect_thread.patch
+signal-remove-jffs2_garbage_collect_thread-allow_signalsigcont.patch
+coredump-ensure-all-coredumping-tasks-have-signal_group_coredump.patch
+coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
 
