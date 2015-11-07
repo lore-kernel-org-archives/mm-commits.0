@@ -1,87 +1,137 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99.patch removed from
- -mm tree
-Date: Fri, 06 Nov 2015 16:08:37 -0800
-Message-ID: <563d4105.gnMx42N0fBSqzv7c%akpm@linux-foundation.org>
+ mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
+ removed from -mm tree
+Date: Fri, 06 Nov 2015 16:08:34 -0800
+Message-ID: <563d4102.bPmRuY8GMoDqnGi7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52616 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52614 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757821AbbKGAIi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 19:08:38 -0500
+	with ESMTP id S1757821AbbKGAIf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 6 Nov 2015 19:08:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99
+     Subject: mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99.patch
+     mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99
+Subject: mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes
+
+WARNING: line over 80 characters
+#110: FILE: drivers/block/drbd/drbd_bitmap.c:1010:
++		page = mempool_alloc(drbd_md_io_page_pool, __GFP_HIGHMEM|__GFP_RECLAIM);
+
+WARNING: line over 80 characters
+#139: FILE: drivers/block/nvme-core.c:1039:
++		ret = blk_rq_map_user(q, req, NULL, ubuffer, bufflen, __GFP_RECLAIM);
+
+WARNING: line over 80 characters
+#466: FILE: include/linux/gfp.h:110:
++#define __GFP_RECLAIM ((__force gfp_t)(___GFP_DIRECT_RECLAIM|___GFP_KSWAPD_RECLAIM))
+
+ERROR: code indent should use tabs where possible
+#547: FILE: kernel/power/swap.c:978:
++^I^I           __get_free_page(__GFP_RECLAIM | __GFP_HIGH);$
+
+ERROR: code indent should use tabs where possible
+#557: FILE: kernel/power/swap.c:1245:
++^I^I                                  __GFP_RECLAIM | __GFP_HIGH :$
+
+ERROR: code indent should use tabs where possible
+#558: FILE: kernel/power/swap.c:1246:
++^I^I                                  __GFP_RECLAIM | __GFP_NOWARN |$
+
+WARNING: line over 80 characters
+#570: FILE: lib/percpu_ida.c:138:
++ * used for internal memory allocations); thus if passed __GFP_RECLAIM we may sleep
+
+ERROR: code indent should use tabs where possible
+#596: FILE: mm/failslab.c:19:
++        if (failslab.ignore_gfp_reclaim && (gfpflags & __GFP_RECLAIM))$
+
+WARNING: please, no spaces at the start of a line
+#596: FILE: mm/failslab.c:19:
++        if (failslab.ignore_gfp_reclaim && (gfpflags & __GFP_RECLAIM))$
+
+WARNING: line over 80 characters
+#617: FILE: mm/filemap.c:2717:
++ * this page (__GFP_IO), and whether the call may block (__GFP_RECLAIM & __GFP_FS).
+
+total: 4 errors, 6 warnings, 463 lines checked
+
+NOTE: Whitespace errors detected.
+      You may wish to use scripts/cleanpatch or scripts/cleanfile
+
+./patches/mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/blk-core.c        |    4 ++--
- drivers/nvme/host/pci.c |    6 ++++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ kernel/power/swap.c |    8 ++++----
+ mm/failslab.c       |    2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN block/blk-core.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99 block/blk-core.c
---- a/block/blk-core.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99
-+++ a/block/blk-core.c
-@@ -638,7 +638,7 @@ int blk_queue_enter(struct request_queue
- 		if (percpu_ref_tryget_live(&q->q_usage_counter))
- 			return 0;
+diff -puN kernel/power/swap.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes kernel/power/swap.c
+--- a/kernel/power/swap.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes
++++ a/kernel/power/swap.c
+@@ -975,7 +975,7 @@ static int get_swap_reader(struct swap_m
+ 		last = tmp;
  
--		if (!(gfp & __GFP_WAIT))
-+		if (!gfpflags_allow_blocking(gfp))
- 			return -EBUSY;
+ 		tmp->map = (struct swap_map_page *)
+-		           __get_free_page(__GFP_RECLAIM | __GFP_HIGH);
++			   __get_free_page(__GFP_RECLAIM | __GFP_HIGH);
+ 		if (!tmp->map) {
+ 			release_swap_reader(handle);
+ 			return -ENOMEM;
+@@ -1242,9 +1242,9 @@ static int load_image_lzo(struct swap_ma
  
- 		ret = wait_event_interruptible(q->mq_freeze_wq,
-@@ -2038,7 +2038,7 @@ void generic_make_request(struct bio *bi
- 	do {
- 		struct request_queue *q = bdev_get_queue(bio->bi_bdev);
+ 	for (i = 0; i < read_pages; i++) {
+ 		page[i] = (void *)__get_free_page(i < LZO_CMP_PAGES ?
+-		                                  __GFP_RECLAIM | __GFP_HIGH :
+-		                                  __GFP_RECLAIM | __GFP_NOWARN |
+-		                                  __GFP_NORETRY);
++						  __GFP_RECLAIM | __GFP_HIGH :
++						  __GFP_RECLAIM | __GFP_NOWARN |
++						  __GFP_NORETRY);
  
--		if (likely(blk_queue_enter(q, __GFP_WAIT) == 0)) {
-+		if (likely(blk_queue_enter(q, __GFP_DIRECT_RECLAIM) == 0)) {
+ 		if (!page[i]) {
+ 			if (i < LZO_CMP_PAGES) {
+diff -puN mm/failslab.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes mm/failslab.c
+--- a/mm/failslab.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-checkpatch-fixes
++++ a/mm/failslab.c
+@@ -16,7 +16,7 @@ bool should_failslab(size_t size, gfp_t
+ 	if (gfpflags & __GFP_NOFAIL)
+ 		return false;
  
- 			q->make_request_fn(q, bio);
+-        if (failslab.ignore_gfp_reclaim && (gfpflags & __GFP_RECLAIM))
++	if (failslab.ignore_gfp_reclaim && (gfpflags & __GFP_RECLAIM))
+ 		return false;
  
-diff -puN drivers/nvme/host/pci.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99 drivers/nvme/host/pci.c
---- a/drivers/nvme/host/pci.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99
-+++ a/drivers/nvme/host/pci.c
-@@ -1025,11 +1025,13 @@ int __nvme_submit_sync_cmd(struct reques
- 	req->special = (void *)0;
- 
- 	if (buffer && bufflen) {
--		ret = blk_rq_map_kern(q, req, buffer, bufflen, __GFP_WAIT);
-+		ret = blk_rq_map_kern(q, req, buffer, bufflen,
-+				      __GFP_DIRECT_RECLAIM);
- 		if (ret)
- 			goto out;
- 	} else if (ubuffer && bufflen) {
--		ret = blk_rq_map_user(q, req, NULL, ubuffer, bufflen, __GFP_WAIT);
-+		ret = blk_rq_map_user(q, req, NULL, ubuffer, bufflen,
-+				      __GFP_DIRECT_RECLAIM);
- 		if (ret)
- 			goto out;
- 		bio = req->bio;
+ 	if (failslab.cache_filter && !(cache_flags & SLAB_FAILSLAB))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim.patch
+mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-fix-99.patch
 mm-page_alloc-only-enforce-watermarks-for-order-0-allocations-fix-fix.patch
 include-linux-mmzoneh-reflow-comment.patch
 mm-fs-introduce-mapping_gfp_constraint-checkpatch-fixes.patch
