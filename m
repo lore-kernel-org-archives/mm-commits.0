@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-uninline-slowpath-of-page_mapcount.patch added to -mm tree
-Date: Mon, 09 Nov 2015 13:20:50 -0800
-Message-ID: <56410e32.JFOPACjqdK+96CaN%akpm@linux-foundation.org>
+Subject: + string_helpers-fix-precision-loss-for-some-inputs.patch added
+ to -mm tree
+Date: Mon, 09 Nov 2015 13:23:45 -0800
+Message-ID: <56410ee1.wOUk4/P+mcOHrU+Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59342 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59417 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751078AbbKIVUu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 16:20:50 -0500
+	with ESMTP id S1751707AbbKIVXq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 16:23:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: JBottomley@Odin.com, stable@vger.kernel.org, vkuznets@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: uninline slowpath of page_mapcount()
+     Subject: string_helpers: fix precision loss for some inputs
 has been added to the -mm tree.  Its filename is
-     mm-uninline-slowpath-of-page_mapcount.patch
+     string_helpers-fix-precision-loss-for-some-inputs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-uninline-slowpath-of-page_mapcount.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/string_helpers-fix-precision-loss-for-some-inputs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-uninline-slowpath-of-page_mapcount.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/string_helpers-fix-precision-loss-for-some-inputs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,145 +39,131 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: uninline slowpath of page_mapcount()
+From: James Bottomley <JBottomley@Odin.com>
+Subject: string_helpers: fix precision loss for some inputs
 
-Let's move page_mapcount() part for compound page into mm/util.c.
+It was noticed that we lose precision in the final calculation for some
+inputs.  The most egregious example is size=3000 blk_size=1900 in units of
+10 should yield 5.70 MB but in fact yields 3.00 MB (oops).  This is
+because the current algorithm doesn't correctly account for all the
+remainders in the logarithms.  Fix this by doing a correct calculation in
+the remainders based on napier's algorithm.  Additionally, now we have the
+correct result, we have to account for arithmetic rounding because we're
+printing 3 digits of precision.  This means that if the fourth digit is
+five or greater, we have to round up, so add a section to ensure correct
+rounding.  Finally account for all possible inputs correctly, including
+zero for block size.
 
-make allyesconfig:
-
-  text	   data	    bss	    dec	    hex	filename
-188515051	153360535	85458720	427334306	19789aa2	vmlinux.o.before
-188512917	153356439	85458720	427328076	1978824c	vmlinux.o.after
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Fixes: b9f28d863594c429e1df35a0474d2663ca28b307
+Signed-off-by: James Bottomley <JBottomley@Odin.com>
+Reported-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   14 +++++---------
- mm/util.c          |   14 ++++++++++++++
- 2 files changed, 19 insertions(+), 9 deletions(-)
+ lib/string_helpers.c |   63 +++++++++++++++++++++++++++--------------
+ 1 file changed, 43 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/mm.h~mm-uninline-slowpath-of-page_mapcount include/linux/mm.h
---- a/include/linux/mm.h~mm-uninline-slowpath-of-page_mapcount
-+++ a/include/linux/mm.h
-@@ -418,19 +418,15 @@ static inline void page_mapcount_reset(s
- 	atomic_set(&(page)->_mapcount, -1);
- }
+diff -puN lib/string_helpers.c~string_helpers-fix-precision-loss-for-some-inputs lib/string_helpers.c
+--- a/lib/string_helpers.c~string_helpers-fix-precision-loss-for-some-inputs
++++ a/lib/string_helpers.c
+@@ -43,50 +43,73 @@ void string_get_size(u64 size, u64 blk_s
+ 		[STRING_UNITS_10] = 1000,
+ 		[STRING_UNITS_2] = 1024,
+ 	};
+-	int i, j;
+-	u32 remainder = 0, sf_cap, exp;
++	static const unsigned int rounding[] = { 500, 50, 5 };
++	int i = 0, j;
++	u32 remainder = 0, sf_cap;
+ 	char tmp[8];
+ 	const char *unit;
  
-+int __page_mapcount(struct page *page);
+ 	tmp[0] = '\0';
+-	i = 0;
+-	if (!size)
 +
- static inline int page_mapcount(struct page *page)
- {
--	int ret;
- 	VM_BUG_ON_PAGE(PageSlab(page), page);
++	if (blk_size == 0)
++		size = 0;
++	if (size == 0)
+ 		goto out;
  
--	ret = atomic_read(&page->_mapcount) + 1;
--	if (PageCompound(page)) {
--		page = compound_head(page);
--		ret += atomic_read(compound_mapcount_ptr(page)) + 1;
--		if (PageDoubleMap(page))
--			ret--;
--	}
--	return ret;
-+	if (unlikely(PageCompound(page)))
-+		return __page_mapcount(page);
-+	return atomic_read(&page->_mapcount) + 1;
- }
+-	while (blk_size >= divisor[units]) {
+-		remainder = do_div(blk_size, divisor[units]);
++	/* This is Napier's algorithm.  Reduce the original block size to
++	 *
++	 * coefficient * divisor[units]^i
++	 *
++	 * we do the reduction so both coefficients are just under 32 bits so
++	 * that multiplying them together won't overflow 64 bits and we keep
++	 * as much precision as possible in the numbers.
++	 *
++	 * Note: it's safe to throw away the remainders here because all the
++	 * precision is in the coefficients.
++	 */
++	while (blk_size >> 32) {
++		do_div(blk_size, divisor[units]);
+ 		i++;
+ 	}
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-diff -puN mm/util.c~mm-uninline-slowpath-of-page_mapcount mm/util.c
---- a/mm/util.c~mm-uninline-slowpath-of-page_mapcount
-+++ a/mm/util.c
-@@ -376,6 +376,20 @@ struct address_space *page_mapping(struc
- 	return mapping;
- }
+-	exp = divisor[units] / (u32)blk_size;
+-	/*
+-	 * size must be strictly greater than exp here to ensure that remainder
+-	 * is greater than divisor[units] coming out of the if below.
+-	 */
+-	if (size > exp) {
+-		remainder = do_div(size, divisor[units]);
+-		remainder *= blk_size;
++	while (size >> 32) {
++		do_div(size, divisor[units]);
+ 		i++;
+-	} else {
+-		remainder *= size;
+ 	}
  
-+/* Slow path of page_mapcount() for compound pages */
-+int __page_mapcount(struct page *page)
-+{
-+	int ret;
++	/* now perform the actual multiplication keeping i as the sum of the
++	 * two logarithms */
+ 	size *= blk_size;
+-	size += remainder / divisor[units];
+-	remainder %= divisor[units];
+ 
++	/* and logarithmically reduce it until it's just under the divisor */
+ 	while (size >= divisor[units]) {
+ 		remainder = do_div(size, divisor[units]);
+ 		i++;
+ 	}
+ 
++	/* work out in j how many digits of precision we need from the
++	 * remainder */
+ 	sf_cap = size;
+ 	for (j = 0; sf_cap*10 < 1000; j++)
+ 		sf_cap *= 10;
+ 
+-	if (j) {
++	if (units == STRING_UNITS_2) {
++		/* express the remainder as a decimal.  It's currently the
++		 * numerator of a fraction whose denominator is
++		 * divisor[units], which is 1 << 10 for STRING_UNITS_2 */
+ 		remainder *= 1000;
+-		remainder /= divisor[units];
++		remainder >>= 10;
++	}
 +
-+	page = compound_head(page);
-+	ret = atomic_read(&page->_mapcount) + 1;
-+	ret += atomic_read(compound_mapcount_ptr(page)) + 1;
-+	if (PageDoubleMap(page))
-+		ret--;
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(__page_mapcount);
++	/* add a 5 to the digit below what will be printed to ensure
++	 * an arithmetical round up and carry it through to size */
++	remainder += rounding[j];
++	if (remainder >= 1000) {
++		remainder -= 1000;
++		size += 1;
++	}
 +
- int overcommit_ratio_handler(struct ctl_table *table, int write,
- 			     void __user *buffer, size_t *lenp,
- 			     loff_t *ppos)
++	if (j) {
+ 		snprintf(tmp, sizeof(tmp), ".%03u", remainder);
+ 		tmp[j+1] = '\0';
+ 	}
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from JBottomley@Odin.com are
 
-mm-make-optimistic-check-for-swapin-readahead-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-move-code-around.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-fix.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-3.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-at-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-mm-proc-adjust-pss-calculation.patch
-rmap-add-argument-to-charge-compound-page.patch
-memcg-adjust-to-support-new-thp-refcounting.patch
-mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault.patch
-mm-adjust-foll_split-for-new-refcounting.patch
-mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
-thp-mlock-do-not-allow-huge-pages-in-mlocked-area.patch
-khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes.patch
-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
-mm-vmstats-new-thp-splitting-event.patch
-mm-temporally-mark-thp-broken.patch
-thp-drop-all-split_huge_page-related-code.patch
-mm-drop-tail-page-refcounting.patch
-futex-thp-remove-special-case-for-thp-in-get_futex_key.patch
-ksm-prepare-to-new-thp-semantics.patch
-mm-thp-remove-compound_lock.patch
-arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-arm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mips-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-powerpc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-s390-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-sparc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-tile-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-x86-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-2.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
-mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
-mm-numa-skip-pte-mapped-thp-on-numa-fault.patch
-thp-implement-split_huge_pmd.patch
-thp-add-option-to-setup-migration-entries-during-pmd-split.patch
-thp-mm-split_huge_page-caller-need-to-lock-page.patch
-thp-reintroduce-split_huge_page.patch
-thp-reintroduce-split_huge_page-fix-3.patch
-migrate_pages-try-to-split-pages-on-qeueuing.patch
-thp-introduce-deferred_split_huge_page.patch
-mm-re-enable-thp.patch
-thp-update-documentation.patch
-thp-allow-mlocked-thp-again.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
-mm-uninline-slowpath-of-page_mapcount.patch
+string_helpers-fix-precision-loss-for-some-inputs.patch
 
