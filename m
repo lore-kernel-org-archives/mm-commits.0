@@ -1,56 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- include-linux-compiler-gcch-improve-__visible-documentation.patch removed
- from -mm tree
-Date: Mon, 09 Nov 2015 11:45:42 -0800
-Message-ID: <5640f7e6.K6sR8ESeH82ZYN43%akpm@linux-foundation.org>
+Subject: [merged] fs-jffs2-wbufc-remove-stray-semicolon.patch removed from -mm tree
+Date: Mon, 09 Nov 2015 11:45:44 -0800
+Message-ID: <5640f7e8.owG4pryK9DkY2Yv5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57273 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57275 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751101AbbKITpm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 14:45:42 -0500
+	with ESMTP id S1751654AbbKITpo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 14:45:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andi@firstfloor.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dwmw2@infradead.org, fengguang.wu@intel.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/compiler-gcc.h: improve __visible documentation
+     Subject: fs/jffs2/wbuf.c: remove stray semicolon
 has been removed from the -mm tree.  Its filename was
-     include-linux-compiler-gcch-improve-__visible-documentation.patch
+     fs-jffs2-wbufc-remove-stray-semicolon.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/compiler-gcc.h: improve __visible documentation
+Subject: fs/jffs2/wbuf.c: remove stray semicolon
 
-Cc: Andi Kleen <andi@firstfloor.org>
+Reported-by: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/jffs2/wbuf.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/compiler-gcc.h~include-linux-compiler-gcch-improve-__visible-documentation include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~include-linux-compiler-gcch-improve-__visible-documentation
-+++ a/include/linux/compiler-gcc.h
-@@ -205,7 +205,10 @@
+diff -puN fs/jffs2/wbuf.c~fs-jffs2-wbufc-remove-stray-semicolon fs/jffs2/wbuf.c
+--- a/fs/jffs2/wbuf.c~fs-jffs2-wbufc-remove-stray-semicolon
++++ a/fs/jffs2/wbuf.c
+@@ -1264,7 +1264,7 @@ int jffs2_dataflash_setup(struct jffs2_s
+ 	if ((c->flash_size % c->sector_size) != 0) {
+ 		c->flash_size = (c->flash_size / c->sector_size) * c->sector_size;
+ 		pr_warn("flash size adjusted to %dKiB\n", c->flash_size);
+-	};
++	}
  
- #if GCC_VERSION >= 40600
- /*
-- * Tell the optimizer that something else uses this function or variable.
-+ * When used with Link Time Optimization, gcc can optimize away C functions or
-+ * variables which are referenced only from assembly code.  __visible tells the
-+ * optimizer that something else uses this function or variable, thus preventing
-+ * this.
-  */
- #define __visible	__attribute__((externally_visible))
- #endif
+ 	c->wbuf_ofs = 0xFFFFFFFF;
+ 	c->wbuf = kmalloc(c->wbuf_pagesize, GFP_KERNEL);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
