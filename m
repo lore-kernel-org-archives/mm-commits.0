@@ -1,246 +1,165 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- signals-kill-block_all_signals-and-unblock_all_signals.patch removed from
- -mm tree
-Date: Mon, 09 Nov 2015 12:13:24 -0800
-Message-ID: <5640fe64.xsfIBwy876rZc6Z0%akpm@linux-foundation.org>
+ signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal.patch removed
+ from -mm tree
+Date: Mon, 09 Nov 2015 12:13:26 -0800
+Message-ID: <5640fe66.RRNnECVMeww7oeHc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57648 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57652 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751797AbbKIUNY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:24 -0500
+	with ESMTP id S1752377AbbKIUN1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, airlied@redhat.com, daniel.vetter@ffwll.ch, richard@nod.at, mm-commits@vger.kernel.org
+To: oleg@redhat.com, balbi@ti.com, dwmw2@infradead.org, mpa@pengutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: signals: kill block_all_signals() and unblock_all_signals()
+     Subject: signal: turn dequeue_signal_lock() into kernel_dequeue_signal()
 has been removed from the -mm tree.  Its filename was
-     signals-kill-block_all_signals-and-unblock_all_signals.patch
+     signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Oleg Nesterov <oleg@redhat.com>
-Subject: signals: kill block_all_signals() and unblock_all_signals()
+Subject: signal: turn dequeue_signal_lock() into kernel_dequeue_signal()
 
-It is hardly possible to enumerate all problems with block_all_signals()
-and unblock_all_signals().  Just for example,
+1. Rename dequeue_signal_lock() to kernel_dequeue_signal(). This
+   matches another "for kthreads only" kernel_sigaction() helper.
 
-1. block_all_signals(SIGSTOP/etc) simply can't help if the caller is
-   multithreaded. Another thread can dequeue the signal and force the
-   group stop.
+2. Remove the "tsk" and "mask" arguments, they are always current
+   and current->blocked. And it is simply wrong if tsk != current.
 
-2. Even is the caller is single-threaded, it will "stop" anyway. It
-   will not sleep, but it will spin in kernel space until SIGCONT or
-   SIGKILL.
+3. We could also remove the 3rd "siginfo_t *info" arg but it looks
+   potentially useful. However we can simplify the callers if we
+   change kernel_dequeue_signal() to accept info => NULL.
 
-And a lot more. In short, this interface doesn't work at all, at least
-the last 10+ years.
-
-Daniel said:
-
-  Yeah the only times I played around with the DRM_LOCK stuff was when
-  old drivers accidentally deadlocked - my impression is that the entire
-  DRM_LOCK thing was never really tested properly ;-) Hence I'm all for
-  purging where this leaks out of the drm subsystem.
+4. Remove _irqsave, it is never called from atomic context.
 
 Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-Acked-by: Dave Airlie <airlied@redhat.com>
-Cc: Richard Weinberger <richard@nod.at>
+Reviewed-by: Tejun Heo <tj@kernel.org>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Felipe Balbi <balbi@ti.com>
+Cc: Markus Pargmann <mpa@pengutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_lock.c |   41 ----------------------------
- include/drm/drmP.h         |    1 
- include/linux/sched.h      |    7 ----
- kernel/signal.c            |   51 -----------------------------------
- 4 files changed, 2 insertions(+), 98 deletions(-)
+ drivers/block/nbd.c                          |   15 ++++-----------
+ drivers/usb/gadget/function/f_mass_storage.c |    4 +---
+ fs/jffs2/background.c                        |    3 +--
+ include/linux/sched.h                        |   11 ++++++-----
+ 4 files changed, 12 insertions(+), 21 deletions(-)
 
-diff -puN drivers/gpu/drm/drm_lock.c~signals-kill-block_all_signals-and-unblock_all_signals drivers/gpu/drm/drm_lock.c
---- a/drivers/gpu/drm/drm_lock.c~signals-kill-block_all_signals-and-unblock_all_signals
-+++ a/drivers/gpu/drm/drm_lock.c
-@@ -38,8 +38,6 @@
- #include "drm_legacy.h"
- #include "drm_internal.h"
+diff -puN drivers/block/nbd.c~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal drivers/block/nbd.c
+--- a/drivers/block/nbd.c~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal
++++ a/drivers/block/nbd.c
+@@ -444,9 +444,7 @@ static int nbd_thread_recv(struct nbd_de
+ 	spin_unlock_irqrestore(&nbd->tasks_lock, flags);
  
--static int drm_notifier(void *priv);
+ 	if (signal_pending(current)) {
+-		siginfo_t info;
 -
- static int drm_lock_take(struct drm_lock_data *lock_data, unsigned int context);
+-		ret = dequeue_signal_lock(current, &current->blocked, &info);
++		ret = kernel_dequeue_signal(NULL);
+ 		dev_warn(nbd_to_dev(nbd), "pid %d, %s, got signal %d\n",
+ 			 task_pid_nr(current), current->comm, ret);
+ 		mutex_lock(&nbd->tx_lock);
+@@ -560,11 +558,8 @@ static int nbd_thread_send(void *data)
+ 					 !list_empty(&nbd->waiting_queue));
  
- /**
-@@ -118,14 +116,8 @@ int drm_legacy_lock(struct drm_device *d
- 	 * really probably not the correct answer but lets us debug xkb
-  	 * xserver for now */
- 	if (!file_priv->is_master) {
--		sigemptyset(&dev->sigmask);
--		sigaddset(&dev->sigmask, SIGSTOP);
--		sigaddset(&dev->sigmask, SIGTSTP);
--		sigaddset(&dev->sigmask, SIGTTIN);
--		sigaddset(&dev->sigmask, SIGTTOU);
- 		dev->sigdata.context = lock->context;
- 		dev->sigdata.lock = master->lock.hw_lock;
--		block_all_signals(drm_notifier, dev, &dev->sigmask);
- 	}
+ 		if (signal_pending(current)) {
+-			siginfo_t info;
+-			int ret;
++			int ret = kernel_dequeue_signal(NULL);
  
- 	if (dev->driver->dma_quiescent && (lock->flags & _DRM_LOCK_QUIESCENT))
-@@ -169,7 +161,6 @@ int drm_legacy_unlock(struct drm_device
- 		/* FIXME: Should really bail out here. */
- 	}
+-			ret = dequeue_signal_lock(current, &current->blocked,
+-						  &info);
+ 			dev_warn(nbd_to_dev(nbd), "pid %d, %s, got signal %d\n",
+ 				 task_pid_nr(current), current->comm, ret);
+ 			mutex_lock(&nbd->tx_lock);
+@@ -592,10 +587,8 @@ static int nbd_thread_send(void *data)
+ 	spin_unlock_irqrestore(&nbd->tasks_lock, flags);
  
--	unblock_all_signals();
+ 	/* Clear maybe pending signals */
+-	if (signal_pending(current)) {
+-		siginfo_t info;
+-		dequeue_signal_lock(current, &current->blocked, &info);
+-	}
++	if (signal_pending(current))
++		kernel_dequeue_signal(NULL);
+ 
  	return 0;
  }
+diff -puN drivers/usb/gadget/function/f_mass_storage.c~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal drivers/usb/gadget/function/f_mass_storage.c
+--- a/drivers/usb/gadget/function/f_mass_storage.c~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal
++++ a/drivers/usb/gadget/function/f_mass_storage.c
+@@ -2345,7 +2345,6 @@ static void fsg_disable(struct usb_funct
  
-@@ -287,38 +278,6 @@ int drm_legacy_lock_free(struct drm_lock
- 	return 0;
- }
+ static void handle_exception(struct fsg_common *common)
+ {
+-	siginfo_t		info;
+ 	int			i;
+ 	struct fsg_buffhd	*bh;
+ 	enum fsg_state		old_state;
+@@ -2357,8 +2356,7 @@ static void handle_exception(struct fsg_
+ 	 * into a high-priority EXIT exception.
+ 	 */
+ 	for (;;) {
+-		int sig =
+-			dequeue_signal_lock(current, &current->blocked, &info);
++		int sig = kernel_dequeue_signal(NULL);
+ 		if (!sig)
+ 			break;
+ 		if (sig != SIGUSR1) {
+diff -puN fs/jffs2/background.c~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal fs/jffs2/background.c
+--- a/fs/jffs2/background.c~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal
++++ a/fs/jffs2/background.c
+@@ -121,13 +121,12 @@ static int jffs2_garbage_collect_thread(
+ 		/* Put_super will send a SIGKILL and then wait on the sem.
+ 		 */
+ 		while (signal_pending(current) || freezing(current)) {
+-			siginfo_t info;
+ 			unsigned long signr;
  
--/**
-- * If we get here, it means that the process has called DRM_IOCTL_LOCK
-- * without calling DRM_IOCTL_UNLOCK.
-- *
-- * If the lock is not held, then let the signal proceed as usual.  If the lock
-- * is held, then set the contended flag and keep the signal blocked.
-- *
-- * \param priv pointer to a drm_device structure.
-- * \return one if the signal should be delivered normally, or zero if the
-- * signal should be blocked.
-- */
--static int drm_notifier(void *priv)
--{
--	struct drm_device *dev = priv;
--	struct drm_hw_lock *lock = dev->sigdata.lock;
--	unsigned int old, new, prev;
--
--	/* Allow signal delivery if lock isn't held */
--	if (!lock || !_DRM_LOCK_IS_HELD(lock->lock)
--	    || _DRM_LOCKING_CONTEXT(lock->lock) != dev->sigdata.context)
--		return 1;
--
--	/* Otherwise, set flag to force call to
--	   drmUnlock */
--	do {
--		old = lock->lock;
--		new = old | _DRM_LOCK_CONT;
--		prev = cmpxchg(&lock->lock, old, new);
--	} while (prev != old);
--	return 0;
--}
--
- /**
-  * This function returns immediately and takes the hw lock
-  * with the kernel context if it is free, otherwise it gets the highest priority when and if
-diff -puN include/drm/drmP.h~signals-kill-block_all_signals-and-unblock_all_signals include/drm/drmP.h
---- a/include/drm/drmP.h~signals-kill-block_all_signals-and-unblock_all_signals
-+++ a/include/drm/drmP.h
-@@ -822,7 +822,6 @@ struct drm_device {
+ 			if (try_to_freeze())
+ 				goto again;
  
- 	struct drm_sg_mem *sg;	/**< Scatter gather memory */
- 	unsigned int num_crtcs;                  /**< Number of CRTCs on this device */
--	sigset_t sigmask;
+-			signr = dequeue_signal_lock(current, &current->blocked, &info);
++			signr = kernel_dequeue_signal(NULL);
  
- 	struct {
- 		int context;
-diff -puN include/linux/sched.h~signals-kill-block_all_signals-and-unblock_all_signals include/linux/sched.h
---- a/include/linux/sched.h~signals-kill-block_all_signals-and-unblock_all_signals
+ 			switch(signr) {
+ 			case SIGSTOP:
+diff -puN include/linux/sched.h~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal include/linux/sched.h
+--- a/include/linux/sched.h~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal
 +++ a/include/linux/sched.h
-@@ -1570,9 +1570,7 @@ struct task_struct {
+@@ -2462,14 +2462,15 @@ extern void ignore_signals(struct task_s
+ extern void flush_signal_handlers(struct task_struct *, int force_default);
+ extern int dequeue_signal(struct task_struct *tsk, sigset_t *mask, siginfo_t *info);
  
- 	unsigned long sas_ss_sp;
- 	size_t sas_ss_size;
--	int (*notifier)(void *priv);
--	void *notifier_data;
--	sigset_t *notifier_mask;
-+
- 	struct callback_head *task_works;
+-static inline int dequeue_signal_lock(struct task_struct *tsk, sigset_t *mask, siginfo_t *info)
++static inline int kernel_dequeue_signal(siginfo_t *info)
+ {
+-	unsigned long flags;
++	struct task_struct *tsk = current;
++	siginfo_t __info;
+ 	int ret;
  
- 	struct audit_context *audit_context;
-@@ -2476,9 +2474,6 @@ static inline int dequeue_signal_lock(st
+-	spin_lock_irqsave(&tsk->sighand->siglock, flags);
+-	ret = dequeue_signal(tsk, mask, info);
+-	spin_unlock_irqrestore(&tsk->sighand->siglock, flags);
++	spin_lock_irq(&tsk->sighand->siglock);
++	ret = dequeue_signal(tsk, &tsk->blocked, info ?: &__info);
++	spin_unlock_irq(&tsk->sighand->siglock);
+ 
  	return ret;
  }
- 
--extern void block_all_signals(int (*notifier)(void *priv), void *priv,
--			      sigset_t *mask);
--extern void unblock_all_signals(void);
- extern void release_task(struct task_struct * p);
- extern int send_sig_info(int, struct siginfo *, struct task_struct *);
- extern int force_sigsegv(int, struct task_struct *);
-diff -puN kernel/signal.c~signals-kill-block_all_signals-and-unblock_all_signals kernel/signal.c
---- a/kernel/signal.c~signals-kill-block_all_signals-and-unblock_all_signals
-+++ a/kernel/signal.c
-@@ -503,41 +503,6 @@ int unhandled_signal(struct task_struct
- 	return !tsk->ptrace;
- }
- 
--/*
-- * Notify the system that a driver wants to block all signals for this
-- * process, and wants to be notified if any signals at all were to be
-- * sent/acted upon.  If the notifier routine returns non-zero, then the
-- * signal will be acted upon after all.  If the notifier routine returns 0,
-- * then then signal will be blocked.  Only one block per process is
-- * allowed.  priv is a pointer to private data that the notifier routine
-- * can use to determine if the signal should be blocked or not.
-- */
--void
--block_all_signals(int (*notifier)(void *priv), void *priv, sigset_t *mask)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&current->sighand->siglock, flags);
--	current->notifier_mask = mask;
--	current->notifier_data = priv;
--	current->notifier = notifier;
--	spin_unlock_irqrestore(&current->sighand->siglock, flags);
--}
--
--/* Notify the system that blocking has ended. */
--
--void
--unblock_all_signals(void)
--{
--	unsigned long flags;
--
--	spin_lock_irqsave(&current->sighand->siglock, flags);
--	current->notifier = NULL;
--	current->notifier_data = NULL;
--	recalc_sigpending();
--	spin_unlock_irqrestore(&current->sighand->siglock, flags);
--}
--
- static void collect_signal(int sig, struct sigpending *list, siginfo_t *info)
- {
- 	struct sigqueue *q, *first = NULL;
-@@ -580,19 +545,8 @@ static int __dequeue_signal(struct sigpe
- {
- 	int sig = next_signal(pending, mask);
- 
--	if (sig) {
--		if (current->notifier) {
--			if (sigismember(current->notifier_mask, sig)) {
--				if (!(current->notifier)(current->notifier_data)) {
--					clear_thread_flag(TIF_SIGPENDING);
--					return 0;
--				}
--			}
--		}
--
-+	if (sig)
- 		collect_signal(sig, pending, info);
--	}
--
- 	return sig;
- }
- 
-@@ -2483,9 +2437,6 @@ EXPORT_SYMBOL(force_sig);
- EXPORT_SYMBOL(send_sig);
- EXPORT_SYMBOL(send_sig_info);
- EXPORT_SYMBOL(sigprocmask);
--EXPORT_SYMBOL(block_all_signals);
--EXPORT_SYMBOL(unblock_all_signals);
+_
+
+Patches currently in -mm which might be from oleg@redhat.com are
+
+
