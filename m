@@ -1,103 +1,124 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-get-rid-of-nilfs_palloc_group_is_in.patch removed from -mm tree
-Date: Mon, 09 Nov 2015 12:13:04 -0800
-Message-ID: <5640fe50.i578HO3zTGdgjYb0%akpm@linux-foundation.org>
+Subject: [merged]
+ nilfs2-add-helper-functions-to-delete-blocks-from-dat-file.patch removed
+ from -mm tree
+Date: Mon, 09 Nov 2015 12:13:08 -0800
+Message-ID: <5640fe54.Lf2nXxb9DkLhn802%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57620 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57623 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752259AbbKIUNE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:04 -0500
+	with ESMTP id S1752242AbbKIUNI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: get rid of nilfs_palloc_group_is_in()
+     Subject: nilfs2: add helper functions to delete blocks from dat file
 has been removed from the -mm tree.  Its filename was
-     nilfs2-get-rid-of-nilfs_palloc_group_is_in.patch
+     nilfs2-add-helper-functions-to-delete-blocks-from-dat-file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Subject: nilfs2: get rid of nilfs_palloc_group_is_in()
+Subject: nilfs2: add helper functions to delete blocks from dat file
 
-This unfolds nilfs_palloc_group_is_in() helper function into
-nilfs_palloc_freev() function to simplify a range check and an index
-calculation repeatedy performed in a loop of the function.
+This adds delete functions for data blocks of metadata files using bitmap
+based allocator.  nilfs_palloc_delete_entry_block() deletes an entry block
+(e.g.  block storing dat entries), and nilfs_palloc_delete_bitmap_block()
+deletes a bitmap block, respectively.
+
+These helpers are intended to be used in the successive change on
+deallocator of block addresses ("nilfs2: free unused dat file blocks
+during garbage collection").
 
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/alloc.c |   28 +++++++++-------------------
- 1 file changed, 9 insertions(+), 19 deletions(-)
+ fs/nilfs2/alloc.c |   50 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 50 insertions(+)
 
-diff -puN fs/nilfs2/alloc.c~nilfs2-get-rid-of-nilfs_palloc_group_is_in fs/nilfs2/alloc.c
---- a/fs/nilfs2/alloc.c~nilfs2-get-rid-of-nilfs_palloc_group_is_in
+diff -puN fs/nilfs2/alloc.c~nilfs2-add-helper-functions-to-delete-blocks-from-dat-file fs/nilfs2/alloc.c
+--- a/fs/nilfs2/alloc.c~nilfs2-add-helper-functions-to-delete-blocks-from-dat-file
 +++ a/fs/nilfs2/alloc.c
-@@ -673,22 +673,6 @@ void nilfs_palloc_abort_free_entry(struc
+@@ -236,6 +236,26 @@ static int nilfs_palloc_get_block(struct
  }
  
  /**
-- * nilfs_palloc_group_is_in - judge if an entry is in a group
-- * @inode: inode of metadata file using this allocator
-- * @group: group number
-- * @nr: serial number of the entry (e.g. inode number)
-- */
--static int
--nilfs_palloc_group_is_in(struct inode *inode, unsigned long group, __u64 nr)
--{
--	__u64 first, last;
--
--	first = group * nilfs_palloc_entries_per_group(inode);
--	last = first + nilfs_palloc_entries_per_group(inode) - 1;
--	return (nr >= first) && (nr <= last);
--}
--
--/**
-  * nilfs_palloc_freev - deallocate a set of persistent objects
++ * nilfs_palloc_delete_block - delete a block on the persistent allocator file
++ * @inode: inode of metadata file using this allocator
++ * @blkoff: block offset
++ * @prev: nilfs_bh_assoc struct of the last used buffer
++ * @lock: spin lock protecting @prev
++ */
++static int nilfs_palloc_delete_block(struct inode *inode, unsigned long blkoff,
++				     struct nilfs_bh_assoc *prev,
++				     spinlock_t *lock)
++{
++	spin_lock(lock);
++	if (prev->bh && blkoff == prev->blkoff) {
++		brelse(prev->bh);
++		prev->bh = NULL;
++	}
++	spin_unlock(lock);
++	return nilfs_mdt_delete_block(inode, blkoff);
++}
++
++/**
+  * nilfs_palloc_get_desc_block - get buffer head of a group descriptor block
   * @inode: inode of metadata file using this allocator
-  * @entry_nrs: array of entry numbers to be deallocated
-@@ -701,6 +685,8 @@ int nilfs_palloc_freev(struct inode *ino
- 	unsigned char *bitmap;
- 	void *desc_kaddr, *bitmap_kaddr;
- 	unsigned long group, group_offset;
-+	__u64 group_min_nr;
-+	const unsigned long epg = nilfs_palloc_entries_per_group(inode);
- 	spinlock_t *lock;
- 	int i, j, n, ret;
+  * @group: group number
+@@ -274,6 +294,22 @@ static int nilfs_palloc_get_bitmap_block
+ }
  
-@@ -715,6 +701,10 @@ int nilfs_palloc_freev(struct inode *ino
- 			brelse(desc_bh);
- 			return ret;
- 		}
+ /**
++ * nilfs_palloc_delete_bitmap_block - delete a bitmap block
++ * @inode: inode of metadata file using this allocator
++ * @group: group number
++ */
++static int nilfs_palloc_delete_bitmap_block(struct inode *inode,
++					    unsigned long group)
++{
++	struct nilfs_palloc_cache *cache = NILFS_MDT(inode)->mi_palloc_cache;
 +
-+		/* Get the first entry number of the group */
-+		group_min_nr = (__u64)group * epg;
++	return nilfs_palloc_delete_block(inode,
++					 nilfs_palloc_bitmap_blkoff(inode,
++								    group),
++					 &cache->prev_bitmap, &cache->lock);
++}
 +
- 		desc_kaddr = kmap(desc_bh->b_page);
- 		desc = nilfs_palloc_block_get_group_desc(
- 			inode, group, desc_bh, desc_kaddr);
-@@ -722,10 +712,10 @@ int nilfs_palloc_freev(struct inode *ino
- 		bitmap = bitmap_kaddr + bh_offset(bitmap_bh);
- 		lock = nilfs_mdt_bgl_lock(inode, group);
- 		for (j = i, n = 0;
--		     (j < nitems) && nilfs_palloc_group_is_in(inode, group,
--							      entry_nrs[j]);
-+		     j < nitems && entry_nrs[j] >= group_min_nr &&
-+			     entry_nrs[j] < group_min_nr + epg;
- 		     j++) {
--			nilfs_palloc_group(inode, entry_nrs[j], &group_offset);
-+			group_offset = entry_nrs[j] - group_min_nr;
- 			if (!nilfs_clear_bit_atomic(lock, group_offset,
- 						    bitmap)) {
- 				nilfs_warning(inode->i_sb, __func__,
++/**
+  * nilfs_palloc_get_entry_block - get buffer head of an entry block
+  * @inode: inode of metadata file using this allocator
+  * @nr: serial number of the entry (e.g. inode number)
+@@ -292,6 +328,20 @@ int nilfs_palloc_get_entry_block(struct
+ }
+ 
+ /**
++ * nilfs_palloc_delete_entry_block - delete an entry block
++ * @inode: inode of metadata file using this allocator
++ * @nr: serial number of the entry
++ */
++static int nilfs_palloc_delete_entry_block(struct inode *inode, __u64 nr)
++{
++	struct nilfs_palloc_cache *cache = NILFS_MDT(inode)->mi_palloc_cache;
++
++	return nilfs_palloc_delete_block(inode,
++					 nilfs_palloc_entry_blkoff(inode, nr),
++					 &cache->prev_entry, &cache->lock);
++}
++
++/**
+  * nilfs_palloc_block_get_group_desc - get kernel address of a group descriptor
+  * @inode: inode of metadata file using this allocator
+  * @group: group number
 _
 
 Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
