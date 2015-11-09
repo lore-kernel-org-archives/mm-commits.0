@@ -1,104 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kexec-use-file-name-as-the-output-message-prefix.patch
- removed from -mm tree
-Date: Mon, 09 Nov 2015 12:13:42 -0800
-Message-ID: <5640fe76.oJScfaXn7up1hGnS%akpm@linux-foundation.org>
+Subject: [merged] dma-debug-check-nents-in-dma_sync_sg.patch removed from
+ -mm tree
+Date: Mon, 09 Nov 2015 12:13:50 -0800
+Message-ID: <5640fe7e.qYU849skOWT9byt9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57686 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57708 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752388AbbKIUNm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:42 -0500
+	with ESMTP id S1752125AbbKIUNv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mnfhuang@gmail.com, dyoung@redhat.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: robin.murphy@arm.com, arnd@arndb.de, m.szyprowski@samsung.com, rmk+kernel@arm.linux.org.uk, sakari.ailus@iki.fi, sumit.semwal@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: use file name as the output message prefix
+     Subject: dma-debug: check nents in dma_sync_sg*
 has been removed from the -mm tree.  Its filename was
-     kexec-use-file-name-as-the-output-message-prefix.patch
+     dma-debug-check-nents-in-dma_sync_sg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minfei Huang <mnfhuang@gmail.com>
-Subject: kexec: use file name as the output message prefix
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: dma-debug: check nents in dma_sync_sg*
 
-kexec output message misses the prefix "kexec", when Dave Young split the
-kexec code.  Now, we use file name as the output message prefix.
+Like dma_unmap_sg, dma_sync_sg* should be called with the original number
+of entries passed to dma_map_sg, so do the same check in the sync path as
+we do in the unmap path.
 
-Currently, the format of output message:
-[  140.290795] SYSC_kexec_load: hello, world
-[  140.291534] kexec: sanity_check_segment_list: hello, world
-
-Ideally, the format of output message:
-[   30.791503] kexec: SYSC_kexec_load, Hello, world
-[   79.182752] kexec_core: sanity_check_segment_list, Hello, world
-
-Remove the custom prefix "kexec" in output message.
-
-Signed-off-by: Minfei Huang <mnfhuang@gmail.com>
-Acked-by: Dave Young <dyoung@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Robin Murphy <robin.murphy@arm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c      |    2 ++
- kernel/kexec_core.c |    4 ++--
- kernel/kexec_file.c |    2 ++
- 3 files changed, 6 insertions(+), 2 deletions(-)
+ lib/dma-debug.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN kernel/kexec.c~kexec-use-file-name-as-the-output-message-prefix kernel/kexec.c
---- a/kernel/kexec.c~kexec-use-file-name-as-the-output-message-prefix
-+++ a/kernel/kexec.c
-@@ -6,6 +6,8 @@
-  * Version 2.  See the file COPYING for more details.
-  */
+diff -puN lib/dma-debug.c~dma-debug-check-nents-in-dma_sync_sg lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-check-nents-in-dma_sync_sg
++++ a/lib/dma-debug.c
+@@ -1249,6 +1249,14 @@ static void check_sync(struct device *de
+ 				dir2name[entry->direction],
+ 				dir2name[ref->direction]);
  
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++	if (ref->sg_call_ents && ref->type == dma_debug_sg &&
++	    ref->sg_call_ents != entry->sg_call_ents) {
++		err_printk(ref->dev, entry, "DMA-API: device driver syncs "
++			   "DMA sg list with different entry count "
++			   "[map count=%d] [sync count=%d]\n",
++			   entry->sg_call_ents, ref->sg_call_ents);
++	}
 +
- #include <linux/capability.h>
- #include <linux/mm.h>
- #include <linux/file.h>
-diff -puN kernel/kexec_core.c~kexec-use-file-name-as-the-output-message-prefix kernel/kexec_core.c
---- a/kernel/kexec_core.c~kexec-use-file-name-as-the-output-message-prefix
-+++ a/kernel/kexec_core.c
-@@ -6,7 +6,7 @@
-  * Version 2.  See the file COPYING for more details.
-  */
- 
--#define pr_fmt(fmt)	"kexec: " fmt
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
- 
- #include <linux/capability.h>
- #include <linux/mm.h>
-@@ -1027,7 +1027,7 @@ static int __init crash_notes_memory_ini
- 
- 	crash_notes = __alloc_percpu(size, align);
- 	if (!crash_notes) {
--		pr_warn("Kexec: Memory allocation for saving cpu register states failed\n");
-+		pr_warn("Memory allocation for saving cpu register states failed\n");
- 		return -ENOMEM;
- 	}
- 	return 0;
-diff -puN kernel/kexec_file.c~kexec-use-file-name-as-the-output-message-prefix kernel/kexec_file.c
---- a/kernel/kexec_file.c~kexec-use-file-name-as-the-output-message-prefix
-+++ a/kernel/kexec_file.c
-@@ -9,6 +9,8 @@
-  * Version 2.  See the file COPYING for more details.
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/capability.h>
- #include <linux/mm.h>
- #include <linux/file.h>
+ out:
+ 	put_hash_bucket(bucket, &flags);
+ }
 _
 
-Patches currently in -mm which might be from mnfhuang@gmail.com are
+Patches currently in -mm which might be from robin.murphy@arm.com are
 
+dma-debug-allow-poisoning-nonzero-allocations.patch
 
