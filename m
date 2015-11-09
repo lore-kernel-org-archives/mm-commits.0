@@ -1,95 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-ubifs-remove-unnecessary-new_valid_dev-check.patch
- removed from -mm tree
-Date: Mon, 09 Nov 2015 12:14:01 -0800
-Message-ID: <5640fe89.cMo2nPoQzYQrGdKY%akpm@linux-foundation.org>
+Subject: + selftests-mlock2-add-ull-prefix-to-64-bit-constants.patch added to -mm tree
+Date: Mon, 09 Nov 2015 13:05:25 -0800
+Message-ID: <56410a95.t+qO3af+S7iJwEd/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57729 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59224 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752388AbbKIUOC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:14:02 -0500
+	with ESMTP id S1751892AbbKIVF0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 16:05:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, adrian.hunter@intel.com, artem.bityutskiy@linux.intel.com, richard@nod.at, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, emunson@akamai.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/ubifs/: remove unnecessary new_valid_dev() checks
-has been removed from the -mm tree.  Its filename was
-     fs-ubifs-remove-unnecessary-new_valid_dev-check.patch
+     Subject: selftests/mlock2: add ULL suffix to 64-bit constants
+has been added to the -mm tree.  Its filename is
+     selftests-mlock2-add-ull-prefix-to-64-bit-constants.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/selftests-mlock2-add-ull-prefix-to-64-bit-constants.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/selftests-mlock2-add-ull-prefix-to-64-bit-constants.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Yaowei Bai <bywxiaobai@163.com>
-Subject: fs/ubifs/: remove unnecessary new_valid_dev() checks
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: selftests/mlock2: add ULL suffix to 64-bit constants
 
-new_valid_dev() always returns 1, so the !new_valid_dev() checks are not
-needed.  Remove them.
+On 32-bit (e.g. m68k):
 
-Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Acked-by: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
-Cc: Adrian Hunter <adrian.hunter@intel.com>
-Reviewed-by: Richard Weinberger <richard@nod.at>
+mlock2-tests.c: In function 'lock_check':
+mlock2-tests.c:293: warning: integer constant is too large for 'long' type
+mlock2-tests.c:294: warning: integer constant is too large for 'long' type
+mlock2-tests.c:299: warning: integer constant is too large for 'long' type
+mlock2-tests.c:300: warning: integer constant is too large for 'long' type
+mlock2-tests.c: In function 'unlock_lock_check':
+mlock2-tests.c:329: warning: integer constant is too large for 'long' type
+mlock2-tests.c:330: warning: integer constant is too large for 'long' type
+mlock2-tests.c: In function 'onfault_check':
+mlock2-tests.c:398: warning: integer constant is too large for 'long' type
+mlock2-tests.c:398: warning: integer constant is too large for 'long' type
+mlock2-tests.c:408: warning: integer constant is too large for 'long' type
+mlock2-tests.c:411: warning: integer constant is too large for 'long' type
+mlock2-tests.c:416: warning: integer constant is too large for 'long' type
+mlock2-tests.c: In function 'unlock_onfault_check':
+mlock2-tests.c:443: warning: integer constant is too large for 'long' type
+mlock2-tests.c: In function 'test_lock_onfault_of_present':
+mlock2-tests.c:528: warning: integer constant is too large for 'long' type
+mlock2-tests.c:529: warning: integer constant is too large for 'long' type
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Eric B Munson <emunson@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ubifs/dir.c  |    3 ---
- fs/ubifs/misc.h |    9 ++-------
- 2 files changed, 2 insertions(+), 10 deletions(-)
+ tools/testing/selftests/vm/mlock2-tests.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ubifs/dir.c~fs-ubifs-remove-unnecessary-new_valid_dev-check fs/ubifs/dir.c
---- a/fs/ubifs/dir.c~fs-ubifs-remove-unnecessary-new_valid_dev-check
-+++ a/fs/ubifs/dir.c
-@@ -787,9 +787,6 @@ static int ubifs_mknod(struct inode *dir
- 
- 	dbg_gen("dent '%pd' in dir ino %lu", dentry, dir->i_ino);
- 
--	if (!new_valid_dev(rdev))
--		return -EINVAL;
--
- 	if (S_ISBLK(mode) || S_ISCHR(mode)) {
- 		dev = kmalloc(sizeof(union ubifs_dev_desc), GFP_NOFS);
- 		if (!dev)
-diff -puN fs/ubifs/misc.h~fs-ubifs-remove-unnecessary-new_valid_dev-check fs/ubifs/misc.h
---- a/fs/ubifs/misc.h~fs-ubifs-remove-unnecessary-new_valid_dev-check
-+++ a/fs/ubifs/misc.h
-@@ -155,13 +155,8 @@ static inline int ubifs_wbuf_sync(struct
-  */
- static inline int ubifs_encode_dev(union ubifs_dev_desc *dev, dev_t rdev)
- {
--	if (new_valid_dev(rdev)) {
--		dev->new = cpu_to_le32(new_encode_dev(rdev));
--		return sizeof(dev->new);
--	} else {
--		dev->huge = cpu_to_le64(huge_encode_dev(rdev));
--		return sizeof(dev->huge);
--	}
-+	dev->new = cpu_to_le32(new_encode_dev(rdev));
-+	return sizeof(dev->new);
+diff -puN tools/testing/selftests/vm/mlock2-tests.c~selftests-mlock2-add-ull-prefix-to-64-bit-constants tools/testing/selftests/vm/mlock2-tests.c
+--- a/tools/testing/selftests/vm/mlock2-tests.c~selftests-mlock2-add-ull-prefix-to-64-bit-constants
++++ a/tools/testing/selftests/vm/mlock2-tests.c
+@@ -277,8 +277,8 @@ out:
+ 	return ret;
  }
  
- /**
+-#define PRESENT_BIT     0x8000000000000000
+-#define PFN_MASK        0x007FFFFFFFFFFFFF
++#define PRESENT_BIT     0x8000000000000000ULL
++#define PFN_MASK        0x007FFFFFFFFFFFFFULL
+ #define UNEVICTABLE_BIT (1UL << 18)
+ 
+ static int lock_check(char *map)
 _
 
-Patches currently in -mm which might be from bywxiaobai@163.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
-fs-kdev_t-remove-unused-huge_valid_dev-function.patch
-fs-kdev_t-old-new_valid_dev-can-be-boolean.patch
-fs-vfs-remove-unnecessary-new_valid_dev-check.patch
-fs-btrfs-remove-unnecessary-new_valid_dev-check.patch
-fs-exofs-remove-unnecessary-new_valid_dev-check.patch
-fs-ext2-remove-unnecessary-new_valid_dev-check.patch
-fs-f2fs-remove-unnecessary-new_valid_dev-check.patch
-fs-hpfs-remove-unnecessary-new_valid_dev-check.patch
-fs-jfs-remove-unnecessary-new_valid_dev-check.patch
-fs-ncpfs-remove-unnecessary-new_valid_dev-check.patch
-fs-nilfs2-remove-unnecessary-new_valid_dev-check.patch
-fs-reiserfs-remove-unnecessary-new_valid_dev-check.patch
-fs-stat-remove-unnecessary-new_valid_dev-check.patch
+selftests-mlock2-add-missing-define-_gnu_source.patch
+selftests-mlock2-add-ull-prefix-to-64-bit-constants.patch
 
