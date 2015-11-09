@@ -1,49 +1,45 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-use-unsigned-int-for-compound_dtor-compound_order-on-64bit.patch removed from -mm tree
-Date: Mon, 09 Nov 2015 11:45:35 -0800
-Message-ID: <5640f7df.UvMat9Cstrkv4E0l%akpm@linux-foundation.org>
+ zsmalloc-use-page-private-instead-of-page-first_page.patch removed from -mm tree
+Date: Mon, 09 Nov 2015 11:45:24 -0800
+Message-ID: <5640f7d4.tr+j9A6xSmsXwWE6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57262 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57221 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751925AbbKITpg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 14:45:36 -0500
+	with ESMTP id S1752468AbbKITpZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 14:45:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, hughd@google.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, paulmck@linux.vnet.ibm.com, rientjes@google.com, sergey.senozhatsky@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use 'unsigned int' for compound_dtor/compound_order on 64BIT
+     Subject: zsmalloc: use page->private instead of page->first_page
 has been removed from the -mm tree.  Its filename was
-     mm-use-unsigned-int-for-compound_dtor-compound_order-on-64bit.patch
+     zsmalloc-use-page-private-instead-of-page-first_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: use 'unsigned int' for compound_dtor/compound_order on 64BIT
+Subject: zsmalloc: use page->private instead of page->first_page
 
-On 64 bit system we have enough space in struct page to encode
-compound_dtor and compound_order with unsigned int.
+We are going to rework how compound_head() work. It will not use
+page->first_page as we have it now.
 
-On x86-64 it leads to slightly smaller code size due usesage of plain
-MOV instead of MOVZX (zero-extended move) or similar effect.
+The only other user of page->first_page beyond compound pages is
+zsmalloc.
 
-allyesconfig:
-
-   text	   data	    bss	    dec	    hex	filename
-159520446	48146736	72196096	279863278	10ae5fee	vmlinux.pre
-159520382	48146736	72196096	279863214	10ae5fae	vmlinux.post
-
-On other architectures without native support of 16-bit data types the
+Let's use page->private instead of page->first_page here. It occupies
+the same storage space.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
 Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Cc: Andi Kleen <ak@linux.intel.com>
@@ -52,37 +48,62 @@ Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/zsmalloc.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-use-unsigned-int-for-compound_dtor-compound_order-on-64bit include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-use-unsigned-int-for-compound_dtor-compound_order-on-64bit
-+++ a/include/linux/mm_types.h
-@@ -143,8 +143,19 @@ struct page {
- 			unsigned long compound_head; /* If bit zero is set */
+diff -puN mm/zsmalloc.c~zsmalloc-use-page-private-instead-of-page-first_page mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-use-page-private-instead-of-page-first_page
++++ a/mm/zsmalloc.c
+@@ -16,7 +16,7 @@
+  * struct page(s) to form a zspage.
+  *
+  * Usage of struct page fields:
+- *	page->first_page: points to the first component (0-order) page
++ *	page->private: points to the first component (0-order) page
+  *	page->index (union with page->freelist): offset of the first object
+  *		starting in this page. For the first page, this is
+  *		always 0, so we use this field (aka freelist) to point
+@@ -26,8 +26,7 @@
+  *
+  *	For _first_ page only:
+  *
+- *	page->private (union with page->first_page): refers to the
+- *		component page after the first page
++ *	page->private: refers to the component page after the first page
+  *		If the page is first_page for huge object, it stores handle.
+  *		Look at size_class->huge.
+  *	page->freelist: points to the first free object in zspage.
+@@ -774,7 +773,7 @@ static struct page *get_first_page(struc
+ 	if (is_first_page(page))
+ 		return page;
+ 	else
+-		return page->first_page;
++		return (struct page *)page_private(page);
+ }
  
- 			/* First tail page only */
-+#ifdef CONFIG_64BIT
-+			/*
-+			 * On 64 bit system we have enough space in struct page
-+			 * to encode compound_dtor and compound_order with
-+			 * unsigned int. It can help compiler generate better or
-+			 * smaller code on some archtectures.
-+			 */
-+			unsigned int compound_dtor;
-+			unsigned int compound_order;
-+#else
- 			unsigned short int compound_dtor;
- 			unsigned short int compound_order;
-+#endif
- 		};
- 
- #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && USE_SPLIT_PMD_PTLOCKS
+ static struct page *get_next_page(struct page *page)
+@@ -959,7 +958,7 @@ static struct page *alloc_zspage(struct
+ 	 * Allocate individual pages and link them together as:
+ 	 * 1. first page->private = first sub-page
+ 	 * 2. all sub-pages are linked together using page->lru
+-	 * 3. each sub-page is linked to the first page using page->first_page
++	 * 3. each sub-page is linked to the first page using page->private
+ 	 *
+ 	 * For each size class, First/Head pages are linked together using
+ 	 * page->lru. Also, we set PG_private to identify the first page
+@@ -984,7 +983,7 @@ static struct page *alloc_zspage(struct
+ 		if (i == 1)
+ 			set_page_private(first_page, (unsigned long)page);
+ 		if (i >= 1)
+-			page->first_page = first_page;
++			set_page_private(page, (unsigned long)first_page);
+ 		if (i >= 2)
+ 			list_add(&page->lru, &prev_page->lru);
+ 		if (i == class->pages_per_zspage - 1)	/* last page */
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
