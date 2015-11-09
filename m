@@ -1,116 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode.patch
- removed from -mm tree
-Date: Mon, 09 Nov 2015 12:13:44 -0800
-Message-ID: <5640fe78.hx+SefQ0vCrGWRjP%akpm@linux-foundation.org>
+Subject: [merged] zlib-fix-usage-example-of-zlib_adler32.patch removed
+ from -mm tree
+Date: Mon, 09 Nov 2015 12:13:55 -0800
+Message-ID: <5640fe83.KP7u7Xk7w4nLgTYJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57693 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57717 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752388AbbKIUNp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:45 -0500
+	with ESMTP id S1752125AbbKIUNz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bsegall@google.com, ambrose@google.com, ebiederm@xmission.com, oleg@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: anish@chelsio.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pidns: fix set/getpriority and ioprio_set/get in PRIO_USER mode
+     Subject: include/linux/zutil.h: fix usage example of zlib_adler32()
 has been removed from the -mm tree.  Its filename was
-     pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode.patch
+     zlib-fix-usage-example-of-zlib_adler32.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ben Segall <bsegall@google.com>
-Subject: pidns: fix set/getpriority and ioprio_set/get in PRIO_USER mode
+From: Anish Bhatt <anish@chelsio.com>
+Subject: include/linux/zutil.h: fix usage example of zlib_adler32()
 
-setpriority(PRIO_USER, 0, x) will change the priority of tasks outside of
-the current pid namespace.  This is in contrast to both the other modes of
-setpriority and the example of kill(-1).  Fix this.  getpriority and
-ioprio have the same failure mode, fix them too.
+alder32 was renamed to zlib_adler32 since before 2.6.11.
 
-Eric said:
-
-: After some more thinking about it this patch sounds justifiable.
-: 
-: My goal with namespaces is not to build perfect isolation mechanisms
-: as that can get into ill defined territory, but to build well defined
-: mechanisms.  And to handle the corner cases so you can use only
-: a single namespace with well defined results.
-: 
-: In this case you have found the two interfaces I am aware of that
-: identify processes by uid instead of by pid.  Which quite frankly is
-: weird.  Unfortunately the weird unexpected cases are hard to handle
-: in the usual way.
-: 
-: I was hoping for a little more information.  Changes like this one we
-: have to be careful of because someone might be depending on the current
-: behavior.  I don't think they are and I do think this make sense as part
-: of the pid namespace.
-
-Signed-off-by: Ben Segall <bsegall@google.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Ambrose Feinstein <ambrose@google.com>
-Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Anish Bhatt <anish@chelsio.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/ioprio.c |    6 ++++--
- kernel/sys.c   |    4 ++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ include/linux/zutil.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN block/ioprio.c~pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode block/ioprio.c
---- a/block/ioprio.c~pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode
-+++ a/block/ioprio.c
-@@ -123,7 +123,8 @@ SYSCALL_DEFINE3(ioprio_set, int, which,
- 				break;
+diff -puN include/linux/zutil.h~zlib-fix-usage-example-of-zlib_adler32 include/linux/zutil.h
+--- a/include/linux/zutil.h~zlib-fix-usage-example-of-zlib_adler32
++++ a/include/linux/zutil.h
+@@ -68,10 +68,10 @@ typedef uLong (*check_func) (uLong check
+    An Adler-32 checksum is almost as reliable as a CRC32 but can be computed
+    much faster. Usage example:
  
- 			do_each_thread(g, p) {
--				if (!uid_eq(task_uid(p), uid))
-+				if (!uid_eq(task_uid(p), uid) ||
-+				    !task_pid_vnr(p))
- 					continue;
- 				ret = set_task_ioprio(p, ioprio);
- 				if (ret)
-@@ -220,7 +221,8 @@ SYSCALL_DEFINE2(ioprio_get, int, which,
- 				break;
+-     uLong adler = adler32(0L, NULL, 0);
++     uLong adler = zlib_adler32(0L, NULL, 0);
  
- 			do_each_thread(g, p) {
--				if (!uid_eq(task_uid(p), user->uid))
-+				if (!uid_eq(task_uid(p), user->uid) ||
-+				    !task_pid_vnr(p))
- 					continue;
- 				tmpio = get_task_ioprio(p);
- 				if (tmpio < 0)
-diff -puN kernel/sys.c~pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode kernel/sys.c
---- a/kernel/sys.c~pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode
-+++ a/kernel/sys.c
-@@ -222,7 +222,7 @@ SYSCALL_DEFINE3(setpriority, int, which,
- 				goto out_unlock;	/* No processes for this user */
- 		}
- 		do_each_thread(g, p) {
--			if (uid_eq(task_uid(p), uid))
-+			if (uid_eq(task_uid(p), uid) && task_pid_vnr(p))
- 				error = set_one_prio(p, niceval, error);
- 		} while_each_thread(g, p);
- 		if (!uid_eq(uid, cred->uid))
-@@ -290,7 +290,7 @@ SYSCALL_DEFINE2(getpriority, int, which,
- 				goto out_unlock;	/* No processes for this user */
- 		}
- 		do_each_thread(g, p) {
--			if (uid_eq(task_uid(p), uid)) {
-+			if (uid_eq(task_uid(p), uid) && task_pid_vnr(p)) {
- 				niceval = nice_to_rlimit(task_nice(p));
- 				if (niceval > retval)
- 					retval = niceval;
+      while (read_buffer(buffer, length) != EOF) {
+-       adler = adler32(adler, buffer, length);
++       adler = zlib_adler32(adler, buffer, length);
+      }
+      if (adler != original_adler) error();
+ */
 _
 
-Patches currently in -mm which might be from bsegall@google.com are
+Patches currently in -mm which might be from anish@chelsio.com are
 
 
