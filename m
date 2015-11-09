@@ -1,78 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-seq_file-use-seq_-helpers-in-seq_hex_dump.patch
+Subject: [merged]
+ coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
  removed from -mm tree
-Date: Mon, 09 Nov 2015 12:13:36 -0800
-Message-ID: <5640fe70.7keW76NwrAkVA1hF%akpm@linux-foundation.org>
+Date: Mon, 09 Nov 2015 12:13:34 -0800
+Message-ID: <5640fe6e.E17ufqb/EzGlK5Z8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57680 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57677 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752515AbbKIUNg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:36 -0500
+	with ESMTP id S1751762AbbKIUNf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: oleg@redhat.com, kwalker@redhat.com, mhocko@kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, skozina@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/seq_file: use seq_* helpers in seq_hex_dump()
+     Subject: coredump: change zap_threads() and zap_process() to use for_each_thread()
 has been removed from the -mm tree.  Its filename was
-     fs-seq_file-use-seq_-helpers-in-seq_hex_dump.patch
+     coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: fs/seq_file: use seq_* helpers in seq_hex_dump()
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: coredump: change zap_threads() and zap_process() to use for_each_thread()
 
-This improves code readability.
+Change zap_threads() paths to use for_each_thread() rather than
+while_each_thread().
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+While at it, change zap_threads() to avoid the nested if's to make the
+code more readable and lessen the indentation.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Kyle Walker <kwalker@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Stanislav Kozina <skozina@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ fs/coredump.c |   27 +++++++++++++--------------
+ 1 file changed, 13 insertions(+), 14 deletions(-)
 
-diff -puN fs/seq_file.c~fs-seq_file-use-seq_-helpers-in-seq_hex_dump fs/seq_file.c
---- a/fs/seq_file.c~fs-seq_file-use-seq_-helpers-in-seq_hex_dump
-+++ a/fs/seq_file.c
-@@ -773,6 +773,8 @@ void seq_hex_dump(struct seq_file *m, co
- {
- 	const u8 *ptr = buf;
- 	int i, linelen, remaining = len;
-+	char *buffer;
-+	size_t size;
- 	int ret;
+diff -puN fs/coredump.c~coredump-change-zap_threads-and-zap_process-to-use-for_each_thread fs/coredump.c
+--- a/fs/coredump.c~coredump-change-zap_threads-and-zap_process-to-use-for_each_thread
++++ a/fs/coredump.c
+@@ -290,15 +290,14 @@ static int zap_process(struct task_struc
+ 	start->signal->group_exit_code = exit_code;
+ 	start->signal->group_stop_count = 0;
  
- 	if (rowsize != 16 && rowsize != 32)
-@@ -794,15 +796,12 @@ void seq_hex_dump(struct seq_file *m, co
- 			break;
+-	t = start;
+-	do {
++	for_each_thread(start, t) {
+ 		task_clear_jobctl_pending(t, JOBCTL_PENDING_MASK);
+ 		if (t != current && t->mm) {
+ 			sigaddset(&t->pending.signal, SIGKILL);
+ 			signal_wake_up(t, 1);
+ 			nr++;
  		}
+-	} while_each_thread(start, t);
++	}
  
-+		size = seq_get_buf(m, &buffer);
- 		ret = hex_dump_to_buffer(ptr + i, linelen, rowsize, groupsize,
--					 m->buf + m->count, m->size - m->count,
--					 ascii);
--		if (ret >= m->size - m->count) {
--			seq_set_overflow(m);
--		} else {
--			m->count += ret;
--			seq_putc(m, '\n');
--		}
-+					 buffer, size, ascii);
-+		seq_commit(m, ret < size ? ret : -1);
-+
-+		seq_putc(m, '\n');
- 	}
+ 	return nr;
  }
- EXPORT_SYMBOL(seq_hex_dump);
+@@ -360,18 +359,18 @@ static int zap_threads(struct task_struc
+ 			continue;
+ 		if (g->flags & PF_KTHREAD)
+ 			continue;
+-		p = g;
+-		do {
+-			if (p->mm) {
+-				if (unlikely(p->mm == mm)) {
+-					lock_task_sighand(p, &flags);
+-					nr += zap_process(p, exit_code,
+-							  SIGNAL_GROUP_EXIT);
+-					unlock_task_sighand(p, &flags);
+-				}
+-				break;
++
++		for_each_thread(g, p) {
++			if (unlikely(!p->mm))
++				continue;
++			if (unlikely(p->mm == mm)) {
++				lock_task_sighand(p, &flags);
++				nr += zap_process(p, exit_code,
++							SIGNAL_GROUP_EXIT);
++				unlock_task_sighand(p, &flags);
+ 			}
+-		} while_each_thread(g, p);
++			break;
++		}
+ 	}
+ 	rcu_read_unlock();
+ done:
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 
