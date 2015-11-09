@@ -1,102 +1,77 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out.patch removed from -mm tree
-Date: Mon, 09 Nov 2015 12:13:52 -0800
-Message-ID: <5640fe80.nduHxs8bRrpY/sEH%akpm@linux-foundation.org>
+ mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch removed from -mm tree
+Date: Mon, 09 Nov 2015 12:13:59 -0800
+Message-ID: <5640fe87.6a6oFQj+awCF34Fk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57714 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57724 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752125AbbKIUNx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:53 -0500
+	with ESMTP id S1752550AbbKIUN7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vkuznets@redhat.com, bhe@redhat.com, d.hatayama@jp.fujitsu.com, jack@suse.cz, jkosina@suse.cz, kys@microsoft.com, masami.hiramatsu.pt@hitachi.com, prarit@redhat.com, sjenning@redhat.com, xiexiuqi@huawei.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, catalin.marinas@arm.com, robin.murphy@arm.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: panic: release stale console lock to always get the logbuf printed out
+     Subject: arm64: fixup for mm renames
 has been removed from the -mm tree.  Its filename was
-     panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out.patch
+     mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vitaly Kuznetsov <vkuznets@redhat.com>
-Subject: panic: release stale console lock to always get the logbuf printed out
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arm64: fixup for mm renames
 
-In some cases we may end up killing the CPU holding the console lock
-while still having valuable data in logbuf. E.g. I'm observing the
-following:
+__GFP_WAIT was renamed for __GFP_RECLAIM and the gfpflags_allow_blocking()
+helper was added.
 
-- A crash is happening on one CPU and console_unlock() is being called on
-  some other.
-
-- console_unlock() tries to print out the buffer before releasing the lock
-  and on slow console it takes time.
-
-- in the meanwhile crashing CPU does lots of printk()-s with valuable data
-  (which go to the logbuf) and sends IPIs to all other CPUs.
-
-- console_unlock() finishes printing previous chunk and enables interrupts
-  before trying to print out the rest, the CPU catches the IPI and never
-  releases console lock.
-
-This is not the only possible case: in VT/fb subsystems we have many other
-console_lock()/console_unlock() users.  Non-masked interrupts (or
-receiving NMI in case of extreme slowness) will have the same result. 
-Getting the whole console buffer printed out on crash should be top
-priority.
-
-[akpm@linux-foundation.org: tweak comment text]
-Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Baoquan He <bhe@redhat.com>
-Cc: Prarit Bhargava <prarit@redhat.com>
-Cc: Xie XiuQi <xiexiuqi@huawei.com>
-Cc: Seth Jennings <sjenning@redhat.com>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Jan Kara <jack@suse.cz>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Robin Murphy <robin.murphy@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/panic.c |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ arch/arm64/mm/dma-mapping.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/panic.c~panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out kernel/panic.c
---- a/kernel/panic.c~panic-release-stale-console-lock-to-always-get-the-logbuf-printed-out
-+++ a/kernel/panic.c
-@@ -23,6 +23,7 @@
- #include <linux/sysrq.h>
- #include <linux/init.h>
- #include <linux/nmi.h>
-+#include <linux/console.h>
+diff -puN arch/arm64/mm/dma-mapping.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix arch/arm64/mm/dma-mapping.c
+--- a/arch/arm64/mm/dma-mapping.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix
++++ a/arch/arm64/mm/dma-mapping.c
+@@ -562,7 +562,7 @@ static void *__iommu_alloc_attrs(struct 
+ 	 */
+ 	gfp |= __GFP_ZERO;
  
- #define PANIC_TIMER_STEP 100
- #define PANIC_BLINK_SPD 18
-@@ -147,6 +148,15 @@ void panic(const char *fmt, ...)
- 
- 	bust_spinlocks(0);
- 
-+	/*
-+	 * We may have ended up stopping the CPU holding the lock (in
-+	 * smp_send_stop()) while still having some valuable data in the console
-+	 * buffer.  Try to acquire the lock then release it regardless of the
-+	 * result.  The release will also print the buffers out.
-+	 */
-+	console_trylock();
-+	console_unlock();
-+
- 	if (!panic_blink)
- 		panic_blink = no_blink;
+-	if (gfp & __GFP_WAIT) {
++	if (gfpflags_allow_blocking(gfp)) {
+ 		struct page **pages;
+ 		pgprot_t prot = __get_dma_pgprot(attrs, PAGE_KERNEL, coherent);
  
 _
 
-Patches currently in -mm which might be from vkuznets@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm.patch
+slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
+net-ipv4-routec-prevent-oops.patch
+remove-abs64.patch
+remove-abs64-fix.patch
+remove-abs64-fix-fix.patch
+remove-abs64-fix-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
