@@ -1,96 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-introduce-kvasprintf_const.patch removed from -mm
- tree
-Date: Mon, 09 Nov 2015 12:12:42 -0800
-Message-ID: <5640fe3a.tMhplxtkfWXlIgGc%akpm@linux-foundation.org>
+Subject: [merged] kobject-use-kvasprintf_const-for-formatting-name.patch
+ removed from -mm tree
+Date: Mon, 09 Nov 2015 12:12:44 -0800
+Message-ID: <5640fe3c.Ypz7VJFWHO3lSRt2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57583 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57586 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752436AbbKIUMm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:12:42 -0500
+	with ESMTP id S1751974AbbKIUMo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:12:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/kasprintf.c: introduce kvasprintf_const
+     Subject: lib/kobject.c: use kvasprintf_const for formatting ->name
 has been removed from the -mm tree.  Its filename was
-     lib-introduce-kvasprintf_const.patch
+     kobject-use-kvasprintf_const-for-formatting-name.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/kasprintf.c: introduce kvasprintf_const
+Subject: lib/kobject.c: use kvasprintf_const for formatting ->name
 
-This adds kvasprintf_const which tries to use kstrdup_const if possible:
-If the format string contains no % characters, or if the format string is
-exactly "%s", we delegate to kstrdup_const.  Otherwise, we fall back to
-kvasprintf.
+Sometimes kobject_set_name_vargs is called with a format string conaining
+no %, or a format string of precisely "%s", where the single vararg
+happens to point to .rodata.  kvasprintf_const detects these cases for us
+and returns a copy of that pointer instead of duplicating the string, thus
+saving some run-time memory.  Otherwise, it falls back to kvasprintf.  We
+just need to always deallocate ->name using kfree_const.
 
-Just as for kstrdup_const, the main motivation is to save memory by
-reusing .rodata when possible.
+Unfortunately, the dance we need to do to perform the '/' -> '!'
+sanitization makes the resulting code rather ugly.
 
-The return value should be freed by kfree_const, just like for
-kstrdup_const.
-
-There is deliberately no kasprintf_const: In the vast majority of cases,
-the format string argument is a literal, so one can determine statically
-whether one could instead use kstrdup_const directly (which would also
-require one to change all corresponding kfree calls to kfree_const).
+I instrumented kstrdup_const to provide some statistics on the memory
+saved, and for me this gave an additional ~14KB after boot (306KB was
+already saved; this patch bumped that to 320KB).  I have
+KMALLOC_SHIFT_LOW==3, and since 80% of the kvasprintf_const hits were
+satisfied by an 8-byte allocation, the 14K would roughly be quadrupled
+when KMALLOC_SHIFT_LOW==5.  Whether these numbers are sufficient to
+justify the ugliness I'll leave to others to decide.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    2 ++
- lib/kasprintf.c        |   16 ++++++++++++++++
- 2 files changed, 18 insertions(+)
+ lib/kobject.c |   30 ++++++++++++++++++++++--------
+ 1 file changed, 22 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/kernel.h~lib-introduce-kvasprintf_const include/linux/kernel.h
---- a/include/linux/kernel.h~lib-introduce-kvasprintf_const
-+++ a/include/linux/kernel.h
-@@ -413,6 +413,8 @@ extern __printf(2, 3)
- char *kasprintf(gfp_t gfp, const char *fmt, ...);
- extern __printf(2, 0)
- char *kvasprintf(gfp_t gfp, const char *fmt, va_list args);
-+extern __printf(2, 0)
-+const char *kvasprintf_const(gfp_t gfp, const char *fmt, va_list args);
- 
- extern __scanf(2, 3)
- int sscanf(const char *, const char *, ...);
-diff -puN lib/kasprintf.c~lib-introduce-kvasprintf_const lib/kasprintf.c
---- a/lib/kasprintf.c~lib-introduce-kvasprintf_const
-+++ a/lib/kasprintf.c
-@@ -31,6 +31,22 @@ char *kvasprintf(gfp_t gfp, const char *
- }
- EXPORT_SYMBOL(kvasprintf);
- 
-+/*
-+ * If fmt contains no % (or is exactly %s), use kstrdup_const. If fmt
-+ * (or the sole vararg) points to rodata, we will then save a memory
-+ * allocation and string copy. In any case, the return value should be
-+ * freed using kfree_const().
-+ */
-+const char *kvasprintf_const(gfp_t gfp, const char *fmt, va_list ap)
-+{
-+	if (!strchr(fmt, '%'))
-+		return kstrdup_const(fmt, gfp);
-+	if (!strcmp(fmt, "%s"))
-+		return kstrdup_const(va_arg(ap, const char*), gfp);
-+	return kvasprintf(gfp, fmt, ap);
-+}
-+EXPORT_SYMBOL(kvasprintf_const);
-+
- char *kasprintf(gfp_t gfp, const char *fmt, ...)
+diff -puN lib/kobject.c~kobject-use-kvasprintf_const-for-formatting-name lib/kobject.c
+--- a/lib/kobject.c~kobject-use-kvasprintf_const-for-formatting-name
++++ a/lib/kobject.c
+@@ -257,18 +257,32 @@ static int kobject_add_internal(struct k
+ int kobject_set_name_vargs(struct kobject *kobj, const char *fmt,
+ 				  va_list vargs)
  {
- 	va_list ap;
+-	char *s;
++	const char *s;
+ 
+ 	if (kobj->name && !fmt)
+ 		return 0;
+ 
+-	s = kvasprintf(GFP_KERNEL, fmt, vargs);
++	s = kvasprintf_const(GFP_KERNEL, fmt, vargs);
+ 	if (!s)
+ 		return -ENOMEM;
+ 
+-	/* ewww... some of these buggers have '/' in the name ... */
+-	strreplace(s, '/', '!');
+-	kfree(kobj->name);
++	/*
++	 * ewww... some of these buggers have '/' in the name ... If
++	 * that's the case, we need to make sure we have an actual
++	 * allocated copy to modify, since kvasprintf_const may have
++	 * returned something from .rodata.
++	 */
++	if (strchr(s, '/')) {
++		char *t;
++
++		t = kstrdup(s, GFP_KERNEL);
++		kfree_const(s);
++		if (!t)
++			return -ENOMEM;
++		strreplace(t, '/', '!');
++		s = t;
++	}
++	kfree_const(kobj->name);
+ 	kobj->name = s;
+ 
+ 	return 0;
+@@ -466,7 +480,7 @@ int kobject_rename(struct kobject *kobj,
+ 	envp[0] = devpath_string;
+ 	envp[1] = NULL;
+ 
+-	name = dup_name = kstrdup(new_name, GFP_KERNEL);
++	name = dup_name = kstrdup_const(new_name, GFP_KERNEL);
+ 	if (!name) {
+ 		error = -ENOMEM;
+ 		goto out;
+@@ -486,7 +500,7 @@ int kobject_rename(struct kobject *kobj,
+ 	kobject_uevent_env(kobj, KOBJ_MOVE, envp);
+ 
+ out:
+-	kfree(dup_name);
++	kfree_const(dup_name);
+ 	kfree(devpath_string);
+ 	kfree(devpath);
+ 	kobject_put(kobj);
+@@ -634,7 +648,7 @@ static void kobject_cleanup(struct kobje
+ 	/* free name if we allocated it */
+ 	if (name) {
+ 		pr_debug("kobject: '%s': free name\n", name);
+-		kfree(name);
++		kfree_const(name);
+ 	}
+ }
+ 
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
