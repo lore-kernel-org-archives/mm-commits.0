@@ -1,59 +1,106 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- get_maintainer-add-missing-documentation-for-git-blame-signatures.patch
- removed from -mm tree
-Date: Mon, 09 Nov 2015 11:46:04 -0800
-Message-ID: <5640f7fc.X1PLMsne0p+zErjA%akpm@linux-foundation.org>
+Subject: [merged] lib-vsprintfc-update-documentation.patch removed from
+ -mm tree
+Date: Mon, 09 Nov 2015 11:46:00 -0800
+Message-ID: <5640f7f8.Ns4KVsmC7NhT9oOx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57326 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57314 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752386AbbKITqE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 14:46:04 -0500
+	with ESMTP id S1752578AbbKITqA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 14:46:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: computersforpeace@gmail.com, joe@perches.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, andriy.shevchenko@linux.intel.com, corbet@lwn.net, mkletzan@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: get_maintainer: add missing documentation for --git-blame-signatures
+     Subject: lib/vsprintf.c: update documentation
 has been removed from the -mm tree.  Its filename was
-     get_maintainer-add-missing-documentation-for-git-blame-signatures.patch
+     lib-vsprintfc-update-documentation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Brian Norris <computersforpeace@gmail.com>
-Subject: get_maintainer: add missing documentation for --git-blame-signatures
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: lib/vsprintf.c: update documentation
 
-I really haven't used this option much myself, so feel free to improve on
-the documentation for it.  I just noticed it while inspecting this script
-for undocumented features.
+%n is no longer just ignored; it results in early return from vsnprintf. 
+Also add a request to add test cases for future %p extensions.
 
-Signed-off-by: Brian Norris <computersforpeace@gmail.com>
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Reviewed-by: Martin Kletzander <mkletzan@redhat.com>
+Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    1 +
- 1 file changed, 1 insertion(+)
+ Documentation/printk-formats.txt |   12 ++++++------
+ lib/vsprintf.c                   |    7 ++++---
+ 2 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN scripts/get_maintainer.pl~get_maintainer-add-missing-documentation-for-git-blame-signatures scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~get_maintainer-add-missing-documentation-for-git-blame-signatures
-+++ a/scripts/get_maintainer.pl
-@@ -781,6 +781,7 @@ MAINTAINER field selection options:
-     --git-max-maintainers => maximum maintainers to add (default: $email_git_max_maintainers)
-     --git-min-percent => minimum percentage of commits required (default: $email_git_min_percent)
-     --git-blame => use git blame to find modified commits for patch or file
-+    --git-blame-signatures => when used with --git-blame, also include all commit signers
-     --git-since => git history to use (default: $email_git_since)
-     --hg-since => hg history to use (default: $email_hg_since)
-     --interactive => display a menu (mostly useful if used with the --git option)
+diff -puN Documentation/printk-formats.txt~lib-vsprintfc-update-documentation Documentation/printk-formats.txt
+--- a/Documentation/printk-formats.txt~lib-vsprintfc-update-documentation
++++ a/Documentation/printk-formats.txt
+@@ -23,6 +23,10 @@ Example:
+ 
+ Reminder: sizeof() result is of type size_t.
+ 
++The kernel's printf does not support %n. For obvious reasons, floating
++point formats (%e, %f, %g, %a) are also not recognized. Use of any
++unsupported specifier or length qualifier results in a WARN and early
++return from vsnprintf.
+ 
+ Raw pointer value SHOULD be printed with %p. The kernel supports
+ the following extended format specifiers for pointer types:
+@@ -305,13 +309,9 @@ Command from struct task_struct
+ 
+ 	Passed by reference.
+ 
+-Ignored argument:
++If you add other %p extensions, please extend lib/test_printf.c with
++one or more test cases, if at all feasible.
+ 
+-	%n	%n
+-
+-	The argument passed will be ignored.  In other words, literal "%n" will
+-	be in the output and the argument will be considered for next format
+-	specifier.
+ 
+ Thank you for your cooperation and attention.
+ 
+diff -puN lib/vsprintf.c~lib-vsprintfc-update-documentation lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-update-documentation
++++ a/lib/vsprintf.c
+@@ -1448,7 +1448,6 @@ int kptr_restrict __read_mostly;
+  * - 'Cn' For a clock, it prints the name (Common Clock Framework) or address
+  *        (legacy clock framework) of the clock
+  * - 'Cr' For a clock, it prints the current rate of the clock
+- * - 'n' For ignored argument
+  *
+  * ** Please update also Documentation/printk-formats.txt when making changes **
+  *
+@@ -1814,8 +1813,10 @@ qualifier:
+  * @fmt: The format string to use
+  * @args: Arguments for the format string
+  *
+- * This function follows C99 vsnprintf, but has some extensions:
+- * %n is ignored
++ * This function generally follows C99 vsnprintf, but has some
++ * extensions and a few limitations:
++ *
++ * %n is unsupported
+  * %p* is handled by pointer()
+  *
+  * See pointer() or Documentation/printk-formats.txt for more
 _
 
-Patches currently in -mm which might be from computersforpeace@gmail.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
+lib-introduce-kvasprintf_const.patch
+kobject-use-kvasprintf_const-for-formatting-name.patch
+slabh-sprinkle-__assume_aligned-attributes.patch
 
