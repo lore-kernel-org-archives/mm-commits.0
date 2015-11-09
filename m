@@ -1,130 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kobject-use-kvasprintf_const-for-formatting-name.patch
+Subject: [merged] arch-sh-use-sign_extend64-for-sign-extension.patch
  removed from -mm tree
-Date: Mon, 09 Nov 2015 12:12:44 -0800
-Message-ID: <5640fe3c.Ypz7VJFWHO3lSRt2%akpm@linux-foundation.org>
+Date: Mon, 09 Nov 2015 12:12:28 -0800
+Message-ID: <5640fe2c.v+aduwxwXItMMubG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57586 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57549 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751974AbbKIUMo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:12:44 -0500
+	with ESMTP id S1751673AbbKIUM3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:12:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, greg@kroah.com, mm-commits@vger.kernel.org
+To: martink@posteo.de, a.p.zijlstra@chello.nl, acme@kernel.org, dvlasenk@redhat.com, hpa@zytor.com, linux@horizon.com, linux@rasmusvillemoes.dk, martin.kepplinger@theobroma-systems.com, maxime.coquelin@st.com, mingo@redhat.com, tglx@linutronix.de, torvalds@linux-foundation.org, yury.norov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/kobject.c: use kvasprintf_const for formatting ->name
+     Subject: arch/sh/kernel/traps_64.c: use sign_extend64() for sign extension
 has been removed from the -mm tree.  Its filename was
-     kobject-use-kvasprintf_const-for-formatting-name.patch
+     arch-sh-use-sign_extend64-for-sign-extension.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/kobject.c: use kvasprintf_const for formatting ->name
+From: Martin Kepplinger <martink@posteo.de>
+Subject: arch/sh/kernel/traps_64.c: use sign_extend64() for sign extension
 
-Sometimes kobject_set_name_vargs is called with a format string conaining
-no %, or a format string of precisely "%s", where the single vararg
-happens to point to .rodata.  kvasprintf_const detects these cases for us
-and returns a copy of that pointer instead of duplicating the string, thus
-saving some run-time memory.  Otherwise, it falls back to kvasprintf.  We
-just need to always deallocate ->name using kfree_const.
-
-Unfortunately, the dance we need to do to perform the '/' -> '!'
-sanitization makes the resulting code rather ugly.
-
-I instrumented kstrdup_const to provide some statistics on the memory
-saved, and for me this gave an additional ~14KB after boot (306KB was
-already saved; this patch bumped that to 320KB).  I have
-KMALLOC_SHIFT_LOW==3, and since 80% of the kvasprintf_const hits were
-satisfied by an 8-byte allocation, the 14K would roughly be quadrupled
-when KMALLOC_SHIFT_LOW==5.  Whether these numbers are sufficient to
-justify the ugliness I'll leave to others to decide.
-
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Greg KH <greg@kroah.com>
+Signed-off-by: Martin Kepplinger <martin.kepplinger@theobroma-systems.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: George Spelvin <linux@horizon.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Maxime Coquelin <maxime.coquelin@st.com>
+Cc: Denys Vlasenko <dvlasenk@redhat.com>
+Cc: Yury Norov <yury.norov@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kobject.c |   30 ++++++++++++++++++++++--------
- 1 file changed, 22 insertions(+), 8 deletions(-)
+ arch/sh/kernel/cpu/sh5/unwind.c |    2 +-
+ arch/sh/kernel/traps_64.c       |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN lib/kobject.c~kobject-use-kvasprintf_const-for-formatting-name lib/kobject.c
---- a/lib/kobject.c~kobject-use-kvasprintf_const-for-formatting-name
-+++ a/lib/kobject.c
-@@ -257,18 +257,32 @@ static int kobject_add_internal(struct k
- int kobject_set_name_vargs(struct kobject *kobj, const char *fmt,
- 				  va_list vargs)
- {
--	char *s;
-+	const char *s;
+diff -puN arch/sh/kernel/cpu/sh5/unwind.c~arch-sh-use-sign_extend64-for-sign-extension arch/sh/kernel/cpu/sh5/unwind.c
+--- a/arch/sh/kernel/cpu/sh5/unwind.c~arch-sh-use-sign_extend64-for-sign-extension
++++ a/arch/sh/kernel/cpu/sh5/unwind.c
+@@ -159,7 +159,7 @@ static int lookup_prev_stack_frame(unsig
  
- 	if (kobj->name && !fmt)
- 		return 0;
- 
--	s = kvasprintf(GFP_KERNEL, fmt, vargs);
-+	s = kvasprintf_const(GFP_KERNEL, fmt, vargs);
- 	if (!s)
- 		return -ENOMEM;
- 
--	/* ewww... some of these buggers have '/' in the name ... */
--	strreplace(s, '/', '!');
--	kfree(kobj->name);
-+	/*
-+	 * ewww... some of these buggers have '/' in the name ... If
-+	 * that's the case, we need to make sure we have an actual
-+	 * allocated copy to modify, since kvasprintf_const may have
-+	 * returned something from .rodata.
-+	 */
-+	if (strchr(s, '/')) {
-+		char *t;
-+
-+		t = kstrdup(s, GFP_KERNEL);
-+		kfree_const(s);
-+		if (!t)
-+			return -ENOMEM;
-+		strreplace(t, '/', '!');
-+		s = t;
-+	}
-+	kfree_const(kobj->name);
- 	kobj->name = s;
- 
- 	return 0;
-@@ -466,7 +480,7 @@ int kobject_rename(struct kobject *kobj,
- 	envp[0] = devpath_string;
- 	envp[1] = NULL;
- 
--	name = dup_name = kstrdup(new_name, GFP_KERNEL);
-+	name = dup_name = kstrdup_const(new_name, GFP_KERNEL);
- 	if (!name) {
- 		error = -ENOMEM;
- 		goto out;
-@@ -486,7 +500,7 @@ int kobject_rename(struct kobject *kobj,
- 	kobject_uevent_env(kobj, KOBJ_MOVE, envp);
- 
- out:
--	kfree(dup_name);
-+	kfree_const(dup_name);
- 	kfree(devpath_string);
- 	kfree(devpath);
- 	kobject_put(kobj);
-@@ -634,7 +648,7 @@ static void kobject_cleanup(struct kobje
- 	/* free name if we allocated it */
- 	if (name) {
- 		pr_debug("kobject: '%s': free name\n", name);
--		kfree(name);
-+		kfree_const(name);
- 	}
- }
- 
+ 			/* Sign extend */
+ 			regcache[dest] =
+-				((((s64)(u64)op >> 10) & 0xffff) << 54) >> 54;
++				sign_extend64((((u64)op >> 10) & 0xffff), 9);
+ 			break;
+ 		case (0xd0 >> 2): /* addi */
+ 		case (0xd4 >> 2): /* addi.l */
+diff -puN arch/sh/kernel/traps_64.c~arch-sh-use-sign_extend64-for-sign-extension arch/sh/kernel/traps_64.c
+--- a/arch/sh/kernel/traps_64.c~arch-sh-use-sign_extend64-for-sign-extension
++++ a/arch/sh/kernel/traps_64.c
+@@ -101,7 +101,7 @@ static int generate_and_check_address(st
+ 	if (displacement_not_indexed) {
+ 		__s64 displacement;
+ 		displacement = (opcode >> 10) & 0x3ff;
+-		displacement = ((displacement << 54) >> 54); /* sign extend */
++		displacement = sign_extend64(displacement, 9);
+ 		addr = (__u64)((__s64)base_address + (displacement << width_shift));
+ 	} else {
+ 		__u64 offset;
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from martink@posteo.de are
 
-slabh-sprinkle-__assume_aligned-attributes.patch
 
