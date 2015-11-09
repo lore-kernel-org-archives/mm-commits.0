@@ -1,70 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arch-x86-use-sign_extend64-for-sign-extension.patch
- removed from -mm tree
-Date: Mon, 09 Nov 2015 12:12:31 -0800
-Message-ID: <5640fe2f.81wXbpflIRHKct2o%akpm@linux-foundation.org>
+Subject: [merged] lib-introduce-kvasprintf_const.patch removed from -mm
+ tree
+Date: Mon, 09 Nov 2015 12:12:42 -0800
+Message-ID: <5640fe3a.tMhplxtkfWXlIgGc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57567 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57583 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752408AbbKIUMc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:12:32 -0500
+	with ESMTP id S1752436AbbKIUMm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:12:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: martink@posteo.de, a.p.zijlstra@chello.nl, acme@kernel.org, dvlasenk@redhat.com, hpa@zytor.com, linux@horizon.com, linux@rasmusvillemoes.dk, martin.kepplinger@theobroma-systems.com, maxime.coquelin@st.com, mingo@redhat.com, tglx@linutronix.de, torvalds@linux-foundation.org, yury.norov@gmail.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, greg@kroah.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/kernel/cpu/perf_event_msr.c: use sign_extend64() for sign extension
+     Subject: lib/kasprintf.c: introduce kvasprintf_const
 has been removed from the -mm tree.  Its filename was
-     arch-x86-use-sign_extend64-for-sign-extension.patch
+     lib-introduce-kvasprintf_const.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Martin Kepplinger <martink@posteo.de>
-Subject: arch/x86/kernel/cpu/perf_event_msr.c: use sign_extend64() for sign extension
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: lib/kasprintf.c: introduce kvasprintf_const
 
-Signed-off-by: Martin Kepplinger <martin.kepplinger@theobroma-systems.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: George Spelvin <linux@horizon.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Maxime Coquelin <maxime.coquelin@st.com>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
-Cc: Yury Norov <yury.norov@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+This adds kvasprintf_const which tries to use kstrdup_const if possible:
+If the format string contains no % characters, or if the format string is
+exactly "%s", we delegate to kstrdup_const.  Otherwise, we fall back to
+kvasprintf.
+
+Just as for kstrdup_const, the main motivation is to save memory by
+reusing .rodata when possible.
+
+The return value should be freed by kfree_const, just like for
+kstrdup_const.
+
+There is deliberately no kasprintf_const: In the vast majority of cases,
+the format string argument is a literal, so one can determine statically
+whether one could instead use kstrdup_const directly (which would also
+require one to change all corresponding kfree calls to kfree_const).
+
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Greg KH <greg@kroah.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/cpu/perf_event_msr.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ include/linux/kernel.h |    2 ++
+ lib/kasprintf.c        |   16 ++++++++++++++++
+ 2 files changed, 18 insertions(+)
 
-diff -puN arch/x86/kernel/cpu/perf_event_msr.c~arch-x86-use-sign_extend64-for-sign-extension arch/x86/kernel/cpu/perf_event_msr.c
---- a/arch/x86/kernel/cpu/perf_event_msr.c~arch-x86-use-sign_extend64-for-sign-extension
-+++ a/arch/x86/kernel/cpu/perf_event_msr.c
-@@ -163,10 +163,9 @@ again:
- 		goto again;
+diff -puN include/linux/kernel.h~lib-introduce-kvasprintf_const include/linux/kernel.h
+--- a/include/linux/kernel.h~lib-introduce-kvasprintf_const
++++ a/include/linux/kernel.h
+@@ -413,6 +413,8 @@ extern __printf(2, 3)
+ char *kasprintf(gfp_t gfp, const char *fmt, ...);
+ extern __printf(2, 0)
+ char *kvasprintf(gfp_t gfp, const char *fmt, va_list args);
++extern __printf(2, 0)
++const char *kvasprintf_const(gfp_t gfp, const char *fmt, va_list args);
  
- 	delta = now - prev;
--	if (unlikely(event->hw.event_base == MSR_SMI_COUNT)) {
--		delta <<= 32;
--		delta >>= 32; /* sign extend */
--	}
-+	if (unlikely(event->hw.event_base == MSR_SMI_COUNT))
-+		delta = sign_extend64(delta, 31);
-+
- 	local64_add(now - prev, &event->count);
+ extern __scanf(2, 3)
+ int sscanf(const char *, const char *, ...);
+diff -puN lib/kasprintf.c~lib-introduce-kvasprintf_const lib/kasprintf.c
+--- a/lib/kasprintf.c~lib-introduce-kvasprintf_const
++++ a/lib/kasprintf.c
+@@ -31,6 +31,22 @@ char *kvasprintf(gfp_t gfp, const char *
  }
+ EXPORT_SYMBOL(kvasprintf);
  
++/*
++ * If fmt contains no % (or is exactly %s), use kstrdup_const. If fmt
++ * (or the sole vararg) points to rodata, we will then save a memory
++ * allocation and string copy. In any case, the return value should be
++ * freed using kfree_const().
++ */
++const char *kvasprintf_const(gfp_t gfp, const char *fmt, va_list ap)
++{
++	if (!strchr(fmt, '%'))
++		return kstrdup_const(fmt, gfp);
++	if (!strcmp(fmt, "%s"))
++		return kstrdup_const(va_arg(ap, const char*), gfp);
++	return kvasprintf(gfp, fmt, ap);
++}
++EXPORT_SYMBOL(kvasprintf_const);
++
+ char *kasprintf(gfp_t gfp, const char *fmt, ...)
+ {
+ 	va_list ap;
 _
 
-Patches currently in -mm which might be from martink@posteo.de are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
+slabh-sprinkle-__assume_aligned-attributes.patch
 
