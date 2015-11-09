@@ -1,84 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- signal-introduce-kernel_signal_stop-to-fix-jffs2_garbage_collect_thread.patch removed from -mm tree
-Date: Mon, 09 Nov 2015 12:13:28 -0800
-Message-ID: <5640fe68.FWd7UkJf1OboeITt%akpm@linux-foundation.org>
+Subject: [merged] fs-seqfile-always-allow-oom-killer.patch removed from
+ -mm tree
+Date: Mon, 09 Nov 2015 12:13:40 -0800
+Message-ID: <5640fe74.pg+MSanEshbR1P3o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57658 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57684 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752377AbbKIUN3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:29 -0500
+	with ESMTP id S1752408AbbKIUNl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, balbi@ti.com, dwmw2@infradead.org, mpa@pengutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
+To: gthelen@google.com, edumazet@google.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: signal: introduce kernel_signal_stop() to fix jffs2_garbage_collect_thread()
+     Subject: fs, seqfile: always allow oom killer
 has been removed from the -mm tree.  Its filename was
-     signal-introduce-kernel_signal_stop-to-fix-jffs2_garbage_collect_thread.patch
+     fs-seqfile-always-allow-oom-killer.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: signal: introduce kernel_signal_stop() to fix jffs2_garbage_collect_thread()
+From: Greg Thelen <gthelen@google.com>
+Subject: fs, seqfile: always allow oom killer
 
-jffs2_garbage_collect_thread() can race with SIGCONT and sleep in
-TASK_STOPPED state after it was already sent. Add the new helper,
-kernel_signal_stop(), which does this correctly.
+Since 5cec38ac866b ("fs, seq_file: fallback to vmalloc instead of oom kill
+processes") seq_buf_alloc() avoids calling the oom killer for PAGE_SIZE or
+smaller allocations; but larger allocations can use the oom killer via
+vmalloc().  Thus reads of small files can return ENOMEM, but larger files
+use the oom killer to avoid ENOMEM.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: Tejun Heo <tj@kernel.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Markus Pargmann <mpa@pengutronix.de>
+The effect of this bug is that reads from /proc and other virtual
+filesystems can return ENOMEM instead of the preferred behavior - oom
+killing something (possibly the calling process).  I don't know of anyone
+except Google who has noticed the issue.
+
+I suspect the fix is more needed in smaller systems where there isn't any
+reclaimable memory.  But these seem like the kinds of systems which
+probably don't use the oom killer for production situations.
+
+Memory overcommit requires use of the oom killer to select a victim
+regardless of file size.
+
+Enable oom killer for small seq_buf_alloc() allocations.
+
+Fixes: 5cec38ac866b ("fs, seq_file: fallback to vmalloc instead of oom kill processes")
+Signed-off-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Greg Thelen <gthelen@google.com>
+Acked-by: Eric Dumazet <edumazet@google.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/jffs2/background.c |    3 +--
- include/linux/sched.h |   10 ++++++++++
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ fs/seq_file.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN fs/jffs2/background.c~signal-introduce-kernel_signal_stop-to-fix-jffs2_garbage_collect_thread fs/jffs2/background.c
---- a/fs/jffs2/background.c~signal-introduce-kernel_signal_stop-to-fix-jffs2_garbage_collect_thread
-+++ a/fs/jffs2/background.c
-@@ -132,8 +132,7 @@ static int jffs2_garbage_collect_thread(
- 			case SIGSTOP:
- 				jffs2_dbg(1, "%s(): SIGSTOP received\n",
- 					  __func__);
--				set_current_state(TASK_STOPPED);
--				schedule();
-+				kernel_signal_stop();
- 				break;
+diff -puN fs/seq_file.c~fs-seqfile-always-allow-oom-killer fs/seq_file.c
+--- a/fs/seq_file.c~fs-seqfile-always-allow-oom-killer
++++ a/fs/seq_file.c
+@@ -26,12 +26,17 @@ static void seq_set_overflow(struct seq_
+ static void *seq_buf_alloc(unsigned long size)
+ {
+ 	void *buf;
++	gfp_t gfp = GFP_KERNEL;
  
- 			case SIGKILL:
-diff -puN include/linux/sched.h~signal-introduce-kernel_signal_stop-to-fix-jffs2_garbage_collect_thread include/linux/sched.h
---- a/include/linux/sched.h~signal-introduce-kernel_signal_stop-to-fix-jffs2_garbage_collect_thread
-+++ a/include/linux/sched.h
-@@ -2475,6 +2475,16 @@ static inline int kernel_dequeue_signal(
- 	return ret;
- }
- 
-+static inline void kernel_signal_stop(void)
-+{
-+	spin_lock_irq(&current->sighand->siglock);
-+	if (current->jobctl & JOBCTL_STOP_DEQUEUED)
-+		__set_current_state(TASK_STOPPED);
-+	spin_unlock_irq(&current->sighand->siglock);
-+
-+	schedule();
-+}
-+
- extern void release_task(struct task_struct * p);
- extern int send_sig_info(int, struct siginfo *, struct task_struct *);
- extern int force_sigsegv(int, struct task_struct *);
+ 	/*
+-	 * __GFP_NORETRY to avoid oom-killings with high-order allocations -
+-	 * it's better to fall back to vmalloc() than to kill things.
++	 * For high order allocations, use __GFP_NORETRY to avoid oom-killing -
++	 * it's better to fall back to vmalloc() than to kill things.  For small
++	 * allocations, just use GFP_KERNEL which will oom kill, thus no need
++	 * for vmalloc fallback.
+ 	 */
+-	buf = kmalloc(size, GFP_KERNEL | __GFP_NORETRY | __GFP_NOWARN);
++	if (size > PAGE_SIZE)
++		gfp |= __GFP_NORETRY | __GFP_NOWARN;
++	buf = kmalloc(size, gfp);
+ 	if (!buf && size > PAGE_SIZE)
+ 		buf = vmalloc(size);
+ 	return buf;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from gthelen@google.com are
 
 
