@@ -1,105 +1,116 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
+ pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode.patch
  removed from -mm tree
-Date: Mon, 09 Nov 2015 12:13:34 -0800
-Message-ID: <5640fe6e.E17ufqb/EzGlK5Z8%akpm@linux-foundation.org>
+Date: Mon, 09 Nov 2015 12:13:44 -0800
+Message-ID: <5640fe78.hx+SefQ0vCrGWRjP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57677 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57693 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751762AbbKIUNf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:35 -0500
+	with ESMTP id S1752388AbbKIUNp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, kwalker@redhat.com, mhocko@kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, skozina@redhat.com, mm-commits@vger.kernel.org
+To: bsegall@google.com, ambrose@google.com, ebiederm@xmission.com, oleg@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: coredump: change zap_threads() and zap_process() to use for_each_thread()
+     Subject: pidns: fix set/getpriority and ioprio_set/get in PRIO_USER mode
 has been removed from the -mm tree.  Its filename was
-     coredump-change-zap_threads-and-zap_process-to-use-for_each_thread.patch
+     pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: coredump: change zap_threads() and zap_process() to use for_each_thread()
+From: Ben Segall <bsegall@google.com>
+Subject: pidns: fix set/getpriority and ioprio_set/get in PRIO_USER mode
 
-Change zap_threads() paths to use for_each_thread() rather than
-while_each_thread().
+setpriority(PRIO_USER, 0, x) will change the priority of tasks outside of
+the current pid namespace.  This is in contrast to both the other modes of
+setpriority and the example of kill(-1).  Fix this.  getpriority and
+ioprio have the same failure mode, fix them too.
 
-While at it, change zap_threads() to avoid the nested if's to make the
-code more readable and lessen the indentation.
+Eric said:
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Kyle Walker <kwalker@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Stanislav Kozina <skozina@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+: After some more thinking about it this patch sounds justifiable.
+: 
+: My goal with namespaces is not to build perfect isolation mechanisms
+: as that can get into ill defined territory, but to build well defined
+: mechanisms.  And to handle the corner cases so you can use only
+: a single namespace with well defined results.
+: 
+: In this case you have found the two interfaces I am aware of that
+: identify processes by uid instead of by pid.  Which quite frankly is
+: weird.  Unfortunately the weird unexpected cases are hard to handle
+: in the usual way.
+: 
+: I was hoping for a little more information.  Changes like this one we
+: have to be careful of because someone might be depending on the current
+: behavior.  I don't think they are and I do think this make sense as part
+: of the pid namespace.
+
+Signed-off-by: Ben Segall <bsegall@google.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Ambrose Feinstein <ambrose@google.com>
+Acked-by: "Eric W. Biederman" <ebiederm@xmission.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   27 +++++++++++++--------------
- 1 file changed, 13 insertions(+), 14 deletions(-)
+ block/ioprio.c |    6 ++++--
+ kernel/sys.c   |    4 ++--
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN fs/coredump.c~coredump-change-zap_threads-and-zap_process-to-use-for_each_thread fs/coredump.c
---- a/fs/coredump.c~coredump-change-zap_threads-and-zap_process-to-use-for_each_thread
-+++ a/fs/coredump.c
-@@ -290,15 +290,14 @@ static int zap_process(struct task_struc
- 	start->signal->group_exit_code = exit_code;
- 	start->signal->group_stop_count = 0;
+diff -puN block/ioprio.c~pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode block/ioprio.c
+--- a/block/ioprio.c~pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode
++++ a/block/ioprio.c
+@@ -123,7 +123,8 @@ SYSCALL_DEFINE3(ioprio_set, int, which,
+ 				break;
  
--	t = start;
--	do {
-+	for_each_thread(start, t) {
- 		task_clear_jobctl_pending(t, JOBCTL_PENDING_MASK);
- 		if (t != current && t->mm) {
- 			sigaddset(&t->pending.signal, SIGKILL);
- 			signal_wake_up(t, 1);
- 			nr++;
+ 			do_each_thread(g, p) {
+-				if (!uid_eq(task_uid(p), uid))
++				if (!uid_eq(task_uid(p), uid) ||
++				    !task_pid_vnr(p))
+ 					continue;
+ 				ret = set_task_ioprio(p, ioprio);
+ 				if (ret)
+@@ -220,7 +221,8 @@ SYSCALL_DEFINE2(ioprio_get, int, which,
+ 				break;
+ 
+ 			do_each_thread(g, p) {
+-				if (!uid_eq(task_uid(p), user->uid))
++				if (!uid_eq(task_uid(p), user->uid) ||
++				    !task_pid_vnr(p))
+ 					continue;
+ 				tmpio = get_task_ioprio(p);
+ 				if (tmpio < 0)
+diff -puN kernel/sys.c~pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode kernel/sys.c
+--- a/kernel/sys.c~pidns-fix-set-getpriority-and-ioprio_set-get-in-prio_user-mode
++++ a/kernel/sys.c
+@@ -222,7 +222,7 @@ SYSCALL_DEFINE3(setpriority, int, which,
+ 				goto out_unlock;	/* No processes for this user */
  		}
--	} while_each_thread(start, t);
-+	}
- 
- 	return nr;
- }
-@@ -360,18 +359,18 @@ static int zap_threads(struct task_struc
- 			continue;
- 		if (g->flags & PF_KTHREAD)
- 			continue;
--		p = g;
--		do {
--			if (p->mm) {
--				if (unlikely(p->mm == mm)) {
--					lock_task_sighand(p, &flags);
--					nr += zap_process(p, exit_code,
--							  SIGNAL_GROUP_EXIT);
--					unlock_task_sighand(p, &flags);
--				}
--				break;
-+
-+		for_each_thread(g, p) {
-+			if (unlikely(!p->mm))
-+				continue;
-+			if (unlikely(p->mm == mm)) {
-+				lock_task_sighand(p, &flags);
-+				nr += zap_process(p, exit_code,
-+							SIGNAL_GROUP_EXIT);
-+				unlock_task_sighand(p, &flags);
- 			}
--		} while_each_thread(g, p);
-+			break;
-+		}
- 	}
- 	rcu_read_unlock();
- done:
+ 		do_each_thread(g, p) {
+-			if (uid_eq(task_uid(p), uid))
++			if (uid_eq(task_uid(p), uid) && task_pid_vnr(p))
+ 				error = set_one_prio(p, niceval, error);
+ 		} while_each_thread(g, p);
+ 		if (!uid_eq(uid, cred->uid))
+@@ -290,7 +290,7 @@ SYSCALL_DEFINE2(getpriority, int, which,
+ 				goto out_unlock;	/* No processes for this user */
+ 		}
+ 		do_each_thread(g, p) {
+-			if (uid_eq(task_uid(p), uid)) {
++			if (uid_eq(task_uid(p), uid) && task_pid_vnr(p)) {
+ 				niceval = nice_to_rlimit(task_nice(p));
+ 				if (niceval > retval)
+ 					retval = niceval;
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from bsegall@google.com are
 
 
