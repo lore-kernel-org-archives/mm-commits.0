@@ -1,81 +1,112 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- thp-remove-unused-vma-parameter-from-khugepaged_alloc_page.patch removed
- from -mm tree
-Date: Mon, 09 Nov 2015 11:44:44 -0800
-Message-ID: <5640f7ac.IlDcgRxTLwCUeJ7H%akpm@linux-foundation.org>
+ zram-make-is_partial_io-valid_io_request-page_zero_filled-return-boolean.patch removed from -mm tree
+Date: Mon, 09 Nov 2015 11:44:54 -0800
+Message-ID: <5640f7b6.DejdySystlVbZAlA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57129 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57144 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751900AbbKIToo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 14:44:44 -0500
+	with ESMTP id S1752324AbbKIToy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 14:44:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: atomlin@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: geliangtang@163.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: remove unused vma parameter from khugepaged_alloc_page
+     Subject: zram: make is_partial_io/valid_io_request/page_zero_filled return boolean
 has been removed from the -mm tree.  Its filename was
-     thp-remove-unused-vma-parameter-from-khugepaged_alloc_page.patch
+     zram-make-is_partial_io-valid_io_request-page_zero_filled-return-boolean.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Aaron Tomlin <atomlin@redhat.com>
-Subject: thp: remove unused vma parameter from khugepaged_alloc_page
+From: Geliang Tang <geliangtang@163.com>
+Subject: zram: make is_partial_io/valid_io_request/page_zero_filled return boolean
 
-The "vma" parameter to khugepaged_alloc_page() is unused.  It has to
-remain unused or the drop read lock 'map_sem' optimisation introduce by
-commit 8b1645685acf ("mm, THP: don't hold mmap_sem in khugepaged when
-allocating THP") wouldn't be safe.  So let's remove it.
+Make is_partial_io()/valid_io_request()/page_zero_filled() return boolean,
+since each function only uses either one or zero as its return value.
 
-Signed-off-by: Aaron Tomlin <atomlin@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Geliang Tang <geliangtang@163.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ drivers/block/zram/zram_drv.c |   18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-remove-unused-vma-parameter-from-khugepaged_alloc_page mm/huge_memory.c
---- a/mm/huge_memory.c~thp-remove-unused-vma-parameter-from-khugepaged_alloc_page
-+++ a/mm/huge_memory.c
-@@ -2413,8 +2413,7 @@ static bool khugepaged_prealloc_page(str
+diff -puN drivers/block/zram/zram_drv.c~zram-make-is_partial_io-valid_io_request-page_zero_filled-return-boolean drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-make-is_partial_io-valid_io_request-page_zero_filled-return-boolean
++++ a/drivers/block/zram/zram_drv.c
+@@ -106,7 +106,7 @@ static void zram_set_obj_size(struct zra
+ 	meta->table[index].value = (flags << ZRAM_FLAG_SHIFT) | size;
+ }
  
- static struct page *
- khugepaged_alloc_page(struct page **hpage, gfp_t gfp, struct mm_struct *mm,
--		       struct vm_area_struct *vma, unsigned long address,
--		       int node)
-+		       unsigned long address, int node)
+-static inline int is_partial_io(struct bio_vec *bvec)
++static inline bool is_partial_io(struct bio_vec *bvec)
  {
- 	VM_BUG_ON_PAGE(*hpage, *hpage);
- 
-@@ -2481,8 +2480,7 @@ static bool khugepaged_prealloc_page(str
- 
- static struct page *
- khugepaged_alloc_page(struct page **hpage, gfp_t gfp, struct mm_struct *mm,
--		       struct vm_area_struct *vma, unsigned long address,
--		       int node)
-+		       unsigned long address, int node)
+ 	return bvec->bv_len != PAGE_SIZE;
+ }
+@@ -114,25 +114,25 @@ static inline int is_partial_io(struct b
+ /*
+  * Check if request is within bounds and aligned on zram logical blocks.
+  */
+-static inline int valid_io_request(struct zram *zram,
++static inline bool valid_io_request(struct zram *zram,
+ 		sector_t start, unsigned int size)
  {
- 	up_read(&mm->mmap_sem);
- 	VM_BUG_ON(!*hpage);
-@@ -2530,7 +2528,7 @@ static void collapse_huge_page(struct mm
- 		__GFP_THISNODE;
+ 	u64 end, bound;
  
- 	/* release the mmap_sem read lock. */
--	new_page = khugepaged_alloc_page(hpage, gfp, mm, vma, address, node);
-+	new_page = khugepaged_alloc_page(hpage, gfp, mm, address, node);
- 	if (!new_page)
- 		return;
+ 	/* unaligned request */
+ 	if (unlikely(start & (ZRAM_SECTOR_PER_LOGICAL_BLOCK - 1)))
+-		return 0;
++		return false;
+ 	if (unlikely(size & (ZRAM_LOGICAL_BLOCK_SIZE - 1)))
+-		return 0;
++		return false;
  
+ 	end = start + (size >> SECTOR_SHIFT);
+ 	bound = zram->disksize >> SECTOR_SHIFT;
+ 	/* out of range range */
+ 	if (unlikely(start >= bound || end > bound || start > end))
+-		return 0;
++		return false;
+ 
+ 	/* I/O request is valid */
+-	return 1;
++	return true;
+ }
+ 
+ static void update_position(u32 *index, int *offset, struct bio_vec *bvec)
+@@ -157,7 +157,7 @@ static inline void update_used_max(struc
+ 	} while (old_max != cur_max);
+ }
+ 
+-static int page_zero_filled(void *ptr)
++static bool page_zero_filled(void *ptr)
+ {
+ 	unsigned int pos;
+ 	unsigned long *page;
+@@ -166,10 +166,10 @@ static int page_zero_filled(void *ptr)
+ 
+ 	for (pos = 0; pos != PAGE_SIZE / sizeof(*page); pos++) {
+ 		if (page[pos])
+-			return 0;
++			return false;
+ 	}
+ 
+-	return 1;
++	return true;
+ }
+ 
+ static void handle_zero_page(struct bio_vec *bvec)
 _
 
-Patches currently in -mm which might be from atomlin@redhat.com are
+Patches currently in -mm which might be from geliangtang@163.com are
 
 
