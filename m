@@ -1,165 +1,349 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal.patch removed
- from -mm tree
-Date: Mon, 09 Nov 2015 12:13:26 -0800
-Message-ID: <5640fe66.RRNnECVMeww7oeHc%akpm@linux-foundation.org>
+ nilfs2-add-a-tracepoint-for-tracking-stage-transition-of-segment-construction.patch removed from -mm tree
+Date: Mon, 09 Nov 2015 12:13:10 -0800
+Message-ID: <5640fe56.yfnKImvxA69SkXNd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57652 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57626 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752377AbbKIUN1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:27 -0500
+	with ESMTP id S1751965AbbKIUNK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, balbi@ti.com, dwmw2@infradead.org, mpa@pengutronix.de, tj@kernel.org, mm-commits@vger.kernel.org
+To: mitake.hitoshi@lab.ntt.co.jp, konishi.ryusuke@lab.ntt.co.jp, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: signal: turn dequeue_signal_lock() into kernel_dequeue_signal()
+     Subject: nilfs2: add a tracepoint for tracking stage transition of segment construction
 has been removed from the -mm tree.  Its filename was
-     signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal.patch
+     nilfs2-add-a-tracepoint-for-tracking-stage-transition-of-segment-construction.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: signal: turn dequeue_signal_lock() into kernel_dequeue_signal()
+From: Hitoshi Mitake <mitake.hitoshi@lab.ntt.co.jp>
+Subject: nilfs2: add a tracepoint for tracking stage transition of segment construction
 
-1. Rename dequeue_signal_lock() to kernel_dequeue_signal(). This
-   matches another "for kthreads only" kernel_sigaction() helper.
+This patch adds a tracepoint for tracking stage transition of block
+collection in segment construction.  With the tracepoint, we can analysis
+the behavior of segment construction in depth.  It would be useful for
+bottleneck detection and debugging, etc.
 
-2. Remove the "tsk" and "mask" arguments, they are always current
-   and current->blocked. And it is simply wrong if tsk != current.
+The tracepoint is created with the standard trace API of linux (like ext3,
+ext4, f2fs and btrfs).  So we can analysis with existing tools easily.  Of
+course, more detailed analysis will be possible if we can create nilfs
+specific analysis tools.
 
-3. We could also remove the 3rd "siginfo_t *info" arg but it looks
-   potentially useful. However we can simplify the callers if we
-   change kernel_dequeue_signal() to accept info => NULL.
+Below is an example of event dump with Brendan Gregg's perf-tools
+(https://github.com/brendangregg/perf-tools).  Time consumption between
+each stage can be obtained.
 
-4. Remove _irqsave, it is never called from atomic context.
+$ sudo bin/tpoint nilfs2:nilfs2_collection_stage_transition
+Tracing nilfs2:nilfs2_collection_stage_transition. Ctrl-C to end.
+        segctord-14875 [003] ...1 28311.067794: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_INIT
+        segctord-14875 [003] ...1 28311.068139: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_GC
+        segctord-14875 [003] ...1 28311.068139: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_FILE
+        segctord-14875 [003] ...1 28311.068486: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_IFILE
+        segctord-14875 [003] ...1 28311.068540: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_CPFILE
+        segctord-14875 [003] ...1 28311.068561: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_SUFILE
+        segctord-14875 [003] ...1 28311.068565: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_DAT
+        segctord-14875 [003] ...1 28311.068573: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_SR
+        segctord-14875 [003] ...1 28311.068574: nilfs2_collection_stage_transition: sci = ffff8800ce6de000 stage = ST_DONE
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Reviewed-by: Tejun Heo <tj@kernel.org>
-Cc: David Woodhouse <dwmw2@infradead.org>
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Markus Pargmann <mpa@pengutronix.de>
+For capturing transition correctly, this patch adds wrappers for the
+member scnt of nilfs_cstage.  With this change, every transition of the
+stage can produce trace event in a correct manner.
+
+Signed-off-by: Hitoshi Mitake <mitake.hitoshi@lab.ntt.co.jp>
+Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Cc: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/nbd.c                          |   15 ++++-----------
- drivers/usb/gadget/function/f_mass_storage.c |    4 +---
- fs/jffs2/background.c                        |    3 +--
- include/linux/sched.h                        |   11 ++++++-----
- 4 files changed, 12 insertions(+), 21 deletions(-)
+ fs/nilfs2/segment.c           |   71 ++++++++++++++++++++++----------
+ fs/nilfs2/segment.h           |    3 -
+ include/trace/events/nilfs2.h |   50 ++++++++++++++++++++++
+ 3 files changed, 103 insertions(+), 21 deletions(-)
 
-diff -puN drivers/block/nbd.c~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal drivers/block/nbd.c
---- a/drivers/block/nbd.c~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal
-+++ a/drivers/block/nbd.c
-@@ -444,9 +444,7 @@ static int nbd_thread_recv(struct nbd_de
- 	spin_unlock_irqrestore(&nbd->tasks_lock, flags);
+diff -puN fs/nilfs2/segment.c~nilfs2-add-a-tracepoint-for-tracking-stage-transition-of-segment-construction fs/nilfs2/segment.c
+--- a/fs/nilfs2/segment.c~nilfs2-add-a-tracepoint-for-tracking-stage-transition-of-segment-construction
++++ a/fs/nilfs2/segment.c
+@@ -77,6 +77,36 @@ enum {
+ 	NILFS_ST_DONE,
+ };
  
- 	if (signal_pending(current)) {
--		siginfo_t info;
--
--		ret = dequeue_signal_lock(current, &current->blocked, &info);
-+		ret = kernel_dequeue_signal(NULL);
- 		dev_warn(nbd_to_dev(nbd), "pid %d, %s, got signal %d\n",
- 			 task_pid_nr(current), current->comm, ret);
- 		mutex_lock(&nbd->tx_lock);
-@@ -560,11 +558,8 @@ static int nbd_thread_send(void *data)
- 					 !list_empty(&nbd->waiting_queue));
++#define CREATE_TRACE_POINTS
++#include <trace/events/nilfs2.h>
++
++/*
++ * nilfs_sc_cstage_inc(), nilfs_sc_cstage_set(), nilfs_sc_cstage_get() are
++ * wrapper functions of stage count (nilfs_sc_info->sc_stage.scnt). Users of
++ * the variable must use them because transition of stage count must involve
++ * trace events (trace_nilfs2_collection_stage_transition).
++ *
++ * nilfs_sc_cstage_get() isn't required for the above purpose because it doesn't
++ * produce tracepoint events. It is provided just for making the intention
++ * clear.
++ */
++static inline void nilfs_sc_cstage_inc(struct nilfs_sc_info *sci)
++{
++	sci->sc_stage.scnt++;
++	trace_nilfs2_collection_stage_transition(sci);
++}
++
++static inline void nilfs_sc_cstage_set(struct nilfs_sc_info *sci, int next_scnt)
++{
++	sci->sc_stage.scnt = next_scnt;
++	trace_nilfs2_collection_stage_transition(sci);
++}
++
++static inline int nilfs_sc_cstage_get(struct nilfs_sc_info *sci)
++{
++	return sci->sc_stage.scnt;
++}
++
+ /* State flags of collection */
+ #define NILFS_CF_NODE		0x0001	/* Collecting node blocks */
+ #define NILFS_CF_IFILE_STARTED	0x0002	/* IFILE stage has started */
+@@ -1062,7 +1092,7 @@ static int nilfs_segctor_collect_blocks(
+ 	size_t ndone;
+ 	int err = 0;
  
- 		if (signal_pending(current)) {
--			siginfo_t info;
--			int ret;
-+			int ret = kernel_dequeue_signal(NULL);
- 
--			ret = dequeue_signal_lock(current, &current->blocked,
--						  &info);
- 			dev_warn(nbd_to_dev(nbd), "pid %d, %s, got signal %d\n",
- 				 task_pid_nr(current), current->comm, ret);
- 			mutex_lock(&nbd->tx_lock);
-@@ -592,10 +587,8 @@ static int nbd_thread_send(void *data)
- 	spin_unlock_irqrestore(&nbd->tasks_lock, flags);
- 
- 	/* Clear maybe pending signals */
--	if (signal_pending(current)) {
--		siginfo_t info;
--		dequeue_signal_lock(current, &current->blocked, &info);
--	}
-+	if (signal_pending(current))
-+		kernel_dequeue_signal(NULL);
- 
- 	return 0;
- }
-diff -puN drivers/usb/gadget/function/f_mass_storage.c~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal drivers/usb/gadget/function/f_mass_storage.c
---- a/drivers/usb/gadget/function/f_mass_storage.c~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal
-+++ a/drivers/usb/gadget/function/f_mass_storage.c
-@@ -2345,7 +2345,6 @@ static void fsg_disable(struct usb_funct
- 
- static void handle_exception(struct fsg_common *common)
- {
--	siginfo_t		info;
- 	int			i;
- 	struct fsg_buffhd	*bh;
- 	enum fsg_state		old_state;
-@@ -2357,8 +2356,7 @@ static void handle_exception(struct fsg_
- 	 * into a high-priority EXIT exception.
- 	 */
- 	for (;;) {
--		int sig =
--			dequeue_signal_lock(current, &current->blocked, &info);
-+		int sig = kernel_dequeue_signal(NULL);
- 		if (!sig)
+-	switch (sci->sc_stage.scnt) {
++	switch (nilfs_sc_cstage_get(sci)) {
+ 	case NILFS_ST_INIT:
+ 		/* Pre-processes */
+ 		sci->sc_stage.flags = 0;
+@@ -1071,7 +1101,7 @@ static int nilfs_segctor_collect_blocks(
+ 			sci->sc_nblk_inc = 0;
+ 			sci->sc_curseg->sb_sum.flags = NILFS_SS_LOGBGN;
+ 			if (mode == SC_LSEG_DSYNC) {
+-				sci->sc_stage.scnt = NILFS_ST_DSYNC;
++				nilfs_sc_cstage_set(sci, NILFS_ST_DSYNC);
+ 				goto dsync_mode;
+ 			}
+ 		}
+@@ -1079,10 +1109,10 @@ static int nilfs_segctor_collect_blocks(
+ 		sci->sc_stage.dirty_file_ptr = NULL;
+ 		sci->sc_stage.gc_inode_ptr = NULL;
+ 		if (mode == SC_FLUSH_DAT) {
+-			sci->sc_stage.scnt = NILFS_ST_DAT;
++			nilfs_sc_cstage_set(sci, NILFS_ST_DAT);
+ 			goto dat_stage;
+ 		}
+-		sci->sc_stage.scnt++;  /* Fall through */
++		nilfs_sc_cstage_inc(sci);  /* Fall through */
+ 	case NILFS_ST_GC:
+ 		if (nilfs_doing_gc()) {
+ 			head = &sci->sc_gc_inodes;
+@@ -1103,7 +1133,7 @@ static int nilfs_segctor_collect_blocks(
+ 			}
+ 			sci->sc_stage.gc_inode_ptr = NULL;
+ 		}
+-		sci->sc_stage.scnt++;  /* Fall through */
++		nilfs_sc_cstage_inc(sci);  /* Fall through */
+ 	case NILFS_ST_FILE:
+ 		head = &sci->sc_dirty_files;
+ 		ii = list_prepare_entry(sci->sc_stage.dirty_file_ptr, head,
+@@ -1125,10 +1155,10 @@ static int nilfs_segctor_collect_blocks(
+ 		}
+ 		sci->sc_stage.dirty_file_ptr = NULL;
+ 		if (mode == SC_FLUSH_FILE) {
+-			sci->sc_stage.scnt = NILFS_ST_DONE;
++			nilfs_sc_cstage_set(sci, NILFS_ST_DONE);
+ 			return 0;
+ 		}
+-		sci->sc_stage.scnt++;
++		nilfs_sc_cstage_inc(sci);
+ 		sci->sc_stage.flags |= NILFS_CF_IFILE_STARTED;
+ 		/* Fall through */
+ 	case NILFS_ST_IFILE:
+@@ -1136,7 +1166,7 @@ static int nilfs_segctor_collect_blocks(
+ 					      &nilfs_sc_file_ops);
+ 		if (unlikely(err))
  			break;
- 		if (sig != SIGUSR1) {
-diff -puN fs/jffs2/background.c~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal fs/jffs2/background.c
---- a/fs/jffs2/background.c~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal
-+++ a/fs/jffs2/background.c
-@@ -121,13 +121,12 @@ static int jffs2_garbage_collect_thread(
- 		/* Put_super will send a SIGKILL and then wait on the sem.
- 		 */
- 		while (signal_pending(current) || freezing(current)) {
--			siginfo_t info;
- 			unsigned long signr;
+-		sci->sc_stage.scnt++;
++		nilfs_sc_cstage_inc(sci);
+ 		/* Creating a checkpoint */
+ 		err = nilfs_segctor_create_checkpoint(sci);
+ 		if (unlikely(err))
+@@ -1147,7 +1177,7 @@ static int nilfs_segctor_collect_blocks(
+ 					      &nilfs_sc_file_ops);
+ 		if (unlikely(err))
+ 			break;
+-		sci->sc_stage.scnt++;  /* Fall through */
++		nilfs_sc_cstage_inc(sci);  /* Fall through */
+ 	case NILFS_ST_SUFILE:
+ 		err = nilfs_sufile_freev(nilfs->ns_sufile, sci->sc_freesegs,
+ 					 sci->sc_nfreesegs, &ndone);
+@@ -1163,7 +1193,7 @@ static int nilfs_segctor_collect_blocks(
+ 					      &nilfs_sc_file_ops);
+ 		if (unlikely(err))
+ 			break;
+-		sci->sc_stage.scnt++;  /* Fall through */
++		nilfs_sc_cstage_inc(sci);  /* Fall through */
+ 	case NILFS_ST_DAT:
+  dat_stage:
+ 		err = nilfs_segctor_scan_file(sci, nilfs->ns_dat,
+@@ -1171,10 +1201,10 @@ static int nilfs_segctor_collect_blocks(
+ 		if (unlikely(err))
+ 			break;
+ 		if (mode == SC_FLUSH_DAT) {
+-			sci->sc_stage.scnt = NILFS_ST_DONE;
++			nilfs_sc_cstage_set(sci, NILFS_ST_DONE);
+ 			return 0;
+ 		}
+-		sci->sc_stage.scnt++;  /* Fall through */
++		nilfs_sc_cstage_inc(sci);  /* Fall through */
+ 	case NILFS_ST_SR:
+ 		if (mode == SC_LSEG_SR) {
+ 			/* Appending a super root */
+@@ -1184,7 +1214,7 @@ static int nilfs_segctor_collect_blocks(
+ 		}
+ 		/* End of a logical segment */
+ 		sci->sc_curseg->sb_sum.flags |= NILFS_SS_LOGEND;
+-		sci->sc_stage.scnt = NILFS_ST_DONE;
++		nilfs_sc_cstage_set(sci, NILFS_ST_DONE);
+ 		return 0;
+ 	case NILFS_ST_DSYNC:
+  dsync_mode:
+@@ -1197,7 +1227,7 @@ static int nilfs_segctor_collect_blocks(
+ 		if (unlikely(err))
+ 			break;
+ 		sci->sc_curseg->sb_sum.flags |= NILFS_SS_LOGEND;
+-		sci->sc_stage.scnt = NILFS_ST_DONE;
++		nilfs_sc_cstage_set(sci, NILFS_ST_DONE);
+ 		return 0;
+ 	case NILFS_ST_DONE:
+ 		return 0;
+@@ -1442,7 +1472,8 @@ static int nilfs_segctor_collect(struct
+ 			goto failed;
  
- 			if (try_to_freeze())
- 				goto again;
+ 		/* The current segment is filled up */
+-		if (mode != SC_LSEG_SR || sci->sc_stage.scnt < NILFS_ST_CPFILE)
++		if (mode != SC_LSEG_SR ||
++		    nilfs_sc_cstage_get(sci) < NILFS_ST_CPFILE)
+ 			break;
  
--			signr = dequeue_signal_lock(current, &current->blocked, &info);
-+			signr = kernel_dequeue_signal(NULL);
+ 		nilfs_clear_logs(&sci->sc_segbufs);
+@@ -1946,7 +1977,7 @@ static int nilfs_segctor_do_construct(st
+ 	struct the_nilfs *nilfs = sci->sc_super->s_fs_info;
+ 	int err;
  
- 			switch(signr) {
- 			case SIGSTOP:
-diff -puN include/linux/sched.h~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal include/linux/sched.h
---- a/include/linux/sched.h~signal-turn-dequeue_signal_lock-into-kernel_dequeue_signal
-+++ a/include/linux/sched.h
-@@ -2462,14 +2462,15 @@ extern void ignore_signals(struct task_s
- extern void flush_signal_handlers(struct task_struct *, int force_default);
- extern int dequeue_signal(struct task_struct *tsk, sigset_t *mask, siginfo_t *info);
+-	sci->sc_stage.scnt = NILFS_ST_INIT;
++	nilfs_sc_cstage_set(sci, NILFS_ST_INIT);
+ 	sci->sc_cno = nilfs->ns_cno;
  
--static inline int dequeue_signal_lock(struct task_struct *tsk, sigset_t *mask, siginfo_t *info)
-+static inline int kernel_dequeue_signal(siginfo_t *info)
- {
--	unsigned long flags;
-+	struct task_struct *tsk = current;
-+	siginfo_t __info;
- 	int ret;
+ 	err = nilfs_segctor_collect_dirty_files(sci, nilfs);
+@@ -1974,7 +2005,7 @@ static int nilfs_segctor_do_construct(st
+ 			goto failed;
  
--	spin_lock_irqsave(&tsk->sighand->siglock, flags);
--	ret = dequeue_signal(tsk, mask, info);
--	spin_unlock_irqrestore(&tsk->sighand->siglock, flags);
-+	spin_lock_irq(&tsk->sighand->siglock);
-+	ret = dequeue_signal(tsk, &tsk->blocked, info ?: &__info);
-+	spin_unlock_irq(&tsk->sighand->siglock);
+ 		/* Avoid empty segment */
+-		if (sci->sc_stage.scnt == NILFS_ST_DONE &&
++		if (nilfs_sc_cstage_get(sci) == NILFS_ST_DONE &&
+ 		    nilfs_segbuf_empty(sci->sc_curseg)) {
+ 			nilfs_segctor_abort_construction(sci, nilfs, 1);
+ 			goto out;
+@@ -1988,7 +2019,7 @@ static int nilfs_segctor_do_construct(st
+ 			nilfs_segctor_fill_in_file_bmap(sci);
  
- 	return ret;
- }
+ 		if (mode == SC_LSEG_SR &&
+-		    sci->sc_stage.scnt >= NILFS_ST_CPFILE) {
++		    nilfs_sc_cstage_get(sci) >= NILFS_ST_CPFILE) {
+ 			err = nilfs_segctor_fill_in_checkpoint(sci);
+ 			if (unlikely(err))
+ 				goto failed_to_write;
+@@ -2007,7 +2038,7 @@ static int nilfs_segctor_do_construct(st
+ 		if (unlikely(err))
+ 			goto failed_to_write;
+ 
+-		if (sci->sc_stage.scnt == NILFS_ST_DONE ||
++		if (nilfs_sc_cstage_get(sci) == NILFS_ST_DONE ||
+ 		    nilfs->ns_blocksize_bits != PAGE_CACHE_SHIFT) {
+ 			/*
+ 			 * At this point, we avoid double buffering
+@@ -2020,7 +2051,7 @@ static int nilfs_segctor_do_construct(st
+ 			if (err)
+ 				goto failed_to_write;
+ 		}
+-	} while (sci->sc_stage.scnt != NILFS_ST_DONE);
++	} while (nilfs_sc_cstage_get(sci) != NILFS_ST_DONE);
+ 
+  out:
+ 	nilfs_segctor_drop_written_files(sci, nilfs);
+diff -puN fs/nilfs2/segment.h~nilfs2-add-a-tracepoint-for-tracking-stage-transition-of-segment-construction fs/nilfs2/segment.h
+--- a/fs/nilfs2/segment.h~nilfs2-add-a-tracepoint-for-tracking-stage-transition-of-segment-construction
++++ a/fs/nilfs2/segment.h
+@@ -67,7 +67,8 @@ struct nilfs_recovery_info {
+ 
+ /**
+  * struct nilfs_cstage - Context of collection stage
+- * @scnt: Stage count
++ * @scnt: Stage count, must be accessed via wrappers:
++ *        nilfs_sc_cstage_inc(), nilfs_sc_cstage_set(), nilfs_sc_cstage_get()
+  * @flags: State flags
+  * @dirty_file_ptr: Pointer on dirty_files list, or inode of a target file
+  * @gc_inode_ptr: Pointer on the list of gc-inodes
+diff -puN /dev/null include/trace/events/nilfs2.h
+--- /dev/null
++++ a/include/trace/events/nilfs2.h
+@@ -0,0 +1,50 @@
++#undef TRACE_SYSTEM
++#define TRACE_SYSTEM nilfs2
++
++#if !defined(_TRACE_NILFS2_H) || defined(TRACE_HEADER_MULTI_READ)
++#define _TRACE_NILFS2_H
++
++#include <linux/tracepoint.h>
++
++struct nilfs_sc_info;
++
++#define show_collection_stage(type)					\
++	__print_symbolic(type,						\
++	{ NILFS_ST_INIT, "ST_INIT" },					\
++	{ NILFS_ST_GC, "ST_GC" },					\
++	{ NILFS_ST_FILE, "ST_FILE" },					\
++	{ NILFS_ST_IFILE, "ST_IFILE" },					\
++	{ NILFS_ST_CPFILE, "ST_CPFILE" },				\
++	{ NILFS_ST_SUFILE, "ST_SUFILE" },				\
++	{ NILFS_ST_DAT, "ST_DAT" },					\
++	{ NILFS_ST_SR, "ST_SR" },					\
++	{ NILFS_ST_DSYNC, "ST_DSYNC" },					\
++	{ NILFS_ST_DONE, "ST_DONE"})
++
++TRACE_EVENT(nilfs2_collection_stage_transition,
++
++	    TP_PROTO(struct nilfs_sc_info *sci),
++
++	    TP_ARGS(sci),
++
++	    TP_STRUCT__entry(
++		    __field(void *, sci)
++		    __field(int, stage)
++	    ),
++
++	    TP_fast_assign(
++			__entry->sci = sci;
++			__entry->stage = sci->sc_stage.scnt;
++		    ),
++
++	    TP_printk("sci = %p stage = %s",
++		      __entry->sci,
++		      show_collection_stage(__entry->stage))
++);
++
++#endif /* _TRACE_NILFS2_H */
++
++/* This part must be outside protection */
++#undef TRACE_INCLUDE_FILE
++#define TRACE_INCLUDE_FILE nilfs2
++#include <trace/define_trace.h>
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from mitake.hitoshi@lab.ntt.co.jp are
 
 
