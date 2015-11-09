@@ -1,106 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-vsprintfc-update-documentation.patch removed from
- -mm tree
-Date: Mon, 09 Nov 2015 11:46:00 -0800
-Message-ID: <5640f7f8.Ns4KVsmC7NhT9oOx%akpm@linux-foundation.org>
+Subject: [merged] get_maintainer-add-subsystem-to-reviewer-output.patch
+ removed from -mm tree
+Date: Mon, 09 Nov 2015 11:46:12 -0800
+Message-ID: <5640f804.rPK/839IzZ/xBrvJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57314 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57339 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752578AbbKITqA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 14:46:00 -0500
+	with ESMTP id S1751697AbbKITqM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 14:46:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, andriy.shevchenko@linux.intel.com, corbet@lwn.net, mkletzan@redhat.com, mm-commits@vger.kernel.org
+To: joe@perches.com, k.kozlowski@samsung.com, lee.jones@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: update documentation
+     Subject: get_maintainer: add subsystem to reviewer output
 has been removed from the -mm tree.  Its filename was
-     lib-vsprintfc-update-documentation.patch
+     get_maintainer-add-subsystem-to-reviewer-output.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: update documentation
+From: Joe Perches <joe@perches.com>
+Subject: get_maintainer: add subsystem to reviewer output
 
-%n is no longer just ignored; it results in early return from vsnprintf. 
-Also add a request to add test cases for future %p extensions.
+Reviewer output currently does not include the subsystem
+that matched.  Add it.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Reviewed-by: Martin Kletzander <mkletzan@redhat.com>
-Reviewed-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Miscellanea:
+
+o Add a get_subsystem_name routine to centralize this
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Tested-by: Krzysztof Kozlowski <k.kozlowski@samsung.com>
+Cc: Lee Jones <lee.jones@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/printk-formats.txt |   12 ++++++------
- lib/vsprintf.c                   |    7 ++++---
- 2 files changed, 10 insertions(+), 9 deletions(-)
+ scripts/get_maintainer.pl |   31 ++++++++++++++++---------------
+ 1 file changed, 16 insertions(+), 15 deletions(-)
 
-diff -puN Documentation/printk-formats.txt~lib-vsprintfc-update-documentation Documentation/printk-formats.txt
---- a/Documentation/printk-formats.txt~lib-vsprintfc-update-documentation
-+++ a/Documentation/printk-formats.txt
-@@ -23,6 +23,10 @@ Example:
+diff -puN scripts/get_maintainer.pl~get_maintainer-add-subsystem-to-reviewer-output scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainer-add-subsystem-to-reviewer-output
++++ a/scripts/get_maintainer.pl
+@@ -974,20 +974,29 @@ sub find_ending_index {
+     return $index;
+ }
  
- Reminder: sizeof() result is of type size_t.
+-sub get_maintainer_role {
++sub get_subsystem_name {
+     my ($index) = @_;
  
-+The kernel's printf does not support %n. For obvious reasons, floating
-+point formats (%e, %f, %g, %a) are also not recognized. Use of any
-+unsupported specifier or length qualifier results in a WARN and early
-+return from vsnprintf.
+-    my $i;
+     my $start = find_starting_index($index);
+-    my $end = find_ending_index($index);
  
- Raw pointer value SHOULD be printed with %p. The kernel supports
- the following extended format specifiers for pointer types:
-@@ -305,13 +309,9 @@ Command from struct task_struct
+-    my $role = "unknown";
+     my $subsystem = $typevalue[$start];
+     if ($output_section_maxlen && length($subsystem) > $output_section_maxlen) {
+ 	$subsystem = substr($subsystem, 0, $output_section_maxlen - 3);
+ 	$subsystem =~ s/\s*$//;
+ 	$subsystem = $subsystem . "...";
+     }
++    return $subsystem;
++}
++
++sub get_maintainer_role {
++    my ($index) = @_;
++
++    my $i;
++    my $start = find_starting_index($index);
++    my $end = find_ending_index($index);
++
++    my $role = "unknown";
++    my $subsystem = get_subsystem_name($index);
  
- 	Passed by reference.
+     for ($i = $start + 1; $i < $end; $i++) {
+ 	my $tv = $typevalue[$i];
+@@ -1021,16 +1030,7 @@ sub get_maintainer_role {
+ sub get_list_role {
+     my ($index) = @_;
  
--Ignored argument:
-+If you add other %p extensions, please extend lib/test_printf.c with
-+one or more test cases, if at all feasible.
- 
--	%n	%n
+-    my $i;
+-    my $start = find_starting_index($index);
+-    my $end = find_ending_index($index);
 -
--	The argument passed will be ignored.  In other words, literal "%n" will
--	be in the output and the argument will be considered for next format
--	specifier.
+-    my $subsystem = $typevalue[$start];
+-    if ($output_section_maxlen && length($subsystem) > $output_section_maxlen) {
+-	$subsystem = substr($subsystem, 0, $output_section_maxlen - 3);
+-	$subsystem =~ s/\s*$//;
+-	$subsystem = $subsystem . "...";
+-    }
++    my $subsystem = get_subsystem_name($index);
  
- Thank you for your cooperation and attention.
- 
-diff -puN lib/vsprintf.c~lib-vsprintfc-update-documentation lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-update-documentation
-+++ a/lib/vsprintf.c
-@@ -1448,7 +1448,6 @@ int kptr_restrict __read_mostly;
-  * - 'Cn' For a clock, it prints the name (Common Clock Framework) or address
-  *        (legacy clock framework) of the clock
-  * - 'Cr' For a clock, it prints the current rate of the clock
-- * - 'n' For ignored argument
-  *
-  * ** Please update also Documentation/printk-formats.txt when making changes **
-  *
-@@ -1814,8 +1813,10 @@ qualifier:
-  * @fmt: The format string to use
-  * @args: Arguments for the format string
-  *
-- * This function follows C99 vsnprintf, but has some extensions:
-- * %n is ignored
-+ * This function generally follows C99 vsnprintf, but has some
-+ * extensions and a few limitations:
-+ *
-+ * %n is unsupported
-  * %p* is handled by pointer()
-  *
-  * See pointer() or Documentation/printk-formats.txt for more
+     if ($subsystem eq "THE REST") {
+ 	$subsystem = "";
+@@ -1118,7 +1118,8 @@ sub add_categories {
+ 		    }
+ 		}
+ 		if ($email_reviewer) {
+-		    push_email_addresses($pvalue, 'reviewer');
++		    my $subsystem = get_subsystem_name($i);
++		    push_email_addresses($pvalue, "reviewer:$subsystem");
+ 		}
+ 	    } elsif ($ptype eq "T") {
+ 		push(@scm, $pvalue);
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from joe@perches.com are
 
-lib-introduce-kvasprintf_const.patch
-kobject-use-kvasprintf_const-for-formatting-name.patch
-slabh-sprinkle-__assume_aligned-attributes.patch
+checkpatch-improve-tests-for-fixes-long-lines-and-stack-dumps-in-commit-log.patch
+checkpatch-improve-the-unnecessary-initialisers-tests.patch
 
