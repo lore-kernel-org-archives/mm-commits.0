@@ -1,66 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-drop-page-slab_page.patch removed from -mm tree
-Date: Mon, 09 Nov 2015 11:45:18 -0800
-Message-ID: <5640f7ce.L5ammywptPYltQgM%akpm@linux-foundation.org>
+Subject: [merged]
+ slab-slub-use-page-rcu_head-instead-of-page-lru-plus-cast.patch removed
+ from -mm tree
+Date: Mon, 09 Nov 2015 11:45:21 -0800
+Message-ID: <5640f7d1.I6wcPjlAY+MnkM58%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57200 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57210 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752426AbbKITpT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 14:45:19 -0500
+	with ESMTP id S1752426AbbKITpW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 14:45:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, ak@linux.intel.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, hughd@google.com, iamjoonsoo.kim@lge.com, mhocko@suse.com, paulmck@linux.vnet.ibm.com, rientjes@google.com, sergey.senozhatsky@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: drop page->slab_page
+     Subject: slab, slub: use page->rcu_head instead of page->lru plus cast
 has been removed from the -mm tree.  Its filename was
-     mm-drop-page-slab_page.patch
+     slab-slub-use-page-rcu_head-instead-of-page-lru-plus-cast.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: drop page->slab_page
+Subject: slab, slub: use page->rcu_head instead of page->lru plus cast
 
-Since 8456a648cf44 ("slab: use struct page for slab management") nobody
-uses slab_page field in struct page.
-
-Let's drop it.
+We have properly typed page->rcu_head, no need to cast page->lru.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Andi Kleen <ak@linux.intel.com>
+Acked-by: Christoph Lameter <cl@linux.com>
 Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Cc: Andi Kleen <ak@linux.intel.com>
 Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Hugh Dickins <hughd@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm_types.h |    1 -
- 1 file changed, 1 deletion(-)
+ mm/slab.c |   17 +++--------------
+ mm/slub.c |    5 +----
+ 2 files changed, 4 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/mm_types.h~mm-drop-page-slab_page include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-drop-page-slab_page
-+++ a/include/linux/mm_types.h
-@@ -131,7 +131,6 @@ struct page {
- #endif
- 		};
+diff -puN mm/slab.c~slab-slub-use-page-rcu_head-instead-of-page-lru-plus-cast mm/slab.c
+--- a/mm/slab.c~slab-slub-use-page-rcu_head-instead-of-page-lru-plus-cast
++++ a/mm/slab.c
+@@ -1889,21 +1889,10 @@ static void slab_destroy(struct kmem_cac
  
--		struct slab *slab_page; /* slab fields */
- 		struct rcu_head rcu_head;	/* Used by SLAB
- 						 * when destroying via RCU
- 						 */
+ 	freelist = page->freelist;
+ 	slab_destroy_debugcheck(cachep, page);
+-	if (unlikely(cachep->flags & SLAB_DESTROY_BY_RCU)) {
+-		struct rcu_head *head;
+-
+-		/*
+-		 * RCU free overloads the RCU head over the LRU.
+-		 * slab_page has been overloeaded over the LRU,
+-		 * however it is not used from now on so that
+-		 * we can use it safely.
+-		 */
+-		head = (void *)&page->rcu_head;
+-		call_rcu(head, kmem_rcu_free);
+-
+-	} else {
++	if (unlikely(cachep->flags & SLAB_DESTROY_BY_RCU))
++		call_rcu(&page->rcu_head, kmem_rcu_free);
++	else
+ 		kmem_freepages(cachep, page);
+-	}
+ 
+ 	/*
+ 	 * From now on, we don't use freelist
+diff -puN mm/slub.c~slab-slub-use-page-rcu_head-instead-of-page-lru-plus-cast mm/slub.c
+--- a/mm/slub.c~slab-slub-use-page-rcu_head-instead-of-page-lru-plus-cast
++++ a/mm/slub.c
+@@ -1507,10 +1507,7 @@ static void free_slab(struct kmem_cache
+ 			VM_BUG_ON(s->reserved != sizeof(*head));
+ 			head = page_address(page) + offset;
+ 		} else {
+-			/*
+-			 * RCU free overloads the RCU head over the LRU
+-			 */
+-			head = (void *)&page->lru;
++			head = &page->rcu_head;
+ 		}
+ 
+ 		call_rcu(head, rcu_free_slab);
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
