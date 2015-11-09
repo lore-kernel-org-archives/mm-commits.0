@@ -1,76 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] nilfs2-drop-null-test-before-destroy-functions.patch
+Subject: [merged] nilfs2-refactor-nilfs_palloc_find_available_slot.patch
  removed from -mm tree
-Date: Mon, 09 Nov 2015 12:12:56 -0800
-Message-ID: <5640fe48.ocgKTsakCqgpwgJP%akpm@linux-foundation.org>
+Date: Mon, 09 Nov 2015 12:13:02 -0800
+Message-ID: <5640fe4e.oshTkg8Oa6ydC5hC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57609 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57616 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752259AbbKIUM4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:12:56 -0500
+	with ESMTP id S1752259AbbKIUNC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Julia.Lawall@lip6.fr, konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
+To: konishi.ryusuke@lab.ntt.co.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: drop null test before destroy functions
+     Subject: nilfs2: refactor nilfs_palloc_find_available_slot()
 has been removed from the -mm tree.  Its filename was
-     nilfs2-drop-null-test-before-destroy-functions.patch
+     nilfs2-refactor-nilfs_palloc_find_available_slot.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: nilfs2: drop null test before destroy functions
+From: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
+Subject: nilfs2: refactor nilfs_palloc_find_available_slot()
 
-Remove unneeded NULL test.
+The current implementation of nilfs_palloc_find_available_slot() function
+is overkill.  The underlying bit search routine is well optimized, so this
+uses it more simply in nilfs_palloc_find_available_slot().
 
-The semantic patch that makes this change is as follows:
-(http://coccinelle.lip6.fr/)
-
-// <smpl>
-@@ expression x; @@
--if (x != NULL)
-  \(kmem_cache_destroy\|mempool_destroy\|dma_pool_destroy\)(x);
-// </smpl>
-
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/super.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ fs/nilfs2/alloc.c |   48 +++++++++++++++++++-------------------------
+ 1 file changed, 21 insertions(+), 27 deletions(-)
 
-diff -puN fs/nilfs2/super.c~nilfs2-drop-null-test-before-destroy-functions fs/nilfs2/super.c
---- a/fs/nilfs2/super.c~nilfs2-drop-null-test-before-destroy-functions
-+++ a/fs/nilfs2/super.c
-@@ -1405,14 +1405,10 @@ static void nilfs_destroy_cachep(void)
- 	 */
- 	rcu_barrier();
+diff -puN fs/nilfs2/alloc.c~nilfs2-refactor-nilfs_palloc_find_available_slot fs/nilfs2/alloc.c
+--- a/fs/nilfs2/alloc.c~nilfs2-refactor-nilfs_palloc_find_available_slot
++++ a/fs/nilfs2/alloc.c
+@@ -335,39 +335,33 @@ void *nilfs_palloc_block_get_entry(const
+  */
+ static int nilfs_palloc_find_available_slot(unsigned char *bitmap,
+ 					    unsigned long target,
+-					    int bsize,
++					    unsigned bsize,
+ 					    spinlock_t *lock)
+ {
+-	int curr, pos, end, i;
++	int pos, end = bsize;
  
--	if (nilfs_inode_cachep)
--		kmem_cache_destroy(nilfs_inode_cachep);
--	if (nilfs_transaction_cachep)
--		kmem_cache_destroy(nilfs_transaction_cachep);
--	if (nilfs_segbuf_cachep)
--		kmem_cache_destroy(nilfs_segbuf_cachep);
--	if (nilfs_btree_path_cache)
--		kmem_cache_destroy(nilfs_btree_path_cache);
-+	kmem_cache_destroy(nilfs_inode_cachep);
-+	kmem_cache_destroy(nilfs_transaction_cachep);
-+	kmem_cache_destroy(nilfs_segbuf_cachep);
-+	kmem_cache_destroy(nilfs_btree_path_cache);
+-	if (target > 0) {
+-		end = (target + BITS_PER_LONG - 1) & ~(BITS_PER_LONG - 1);
+-		if (end > bsize)
+-			end = bsize;
+-		pos = nilfs_find_next_zero_bit(bitmap, end, target);
+-		if (pos < end && !nilfs_set_bit_atomic(lock, pos, bitmap))
+-			return pos;
+-	} else {
+-		end = 0;
++	if (likely(target < bsize)) {
++		pos = target;
++		do {
++			pos = nilfs_find_next_zero_bit(bitmap, end, pos);
++			if (pos >= end)
++				break;
++			if (!nilfs_set_bit_atomic(lock, pos, bitmap))
++				return pos;
++		} while (++pos < end);
++
++		end = target;
+ 	}
+ 
+-	for (i = 0, curr = end;
+-	     i < bsize;
+-	     i += BITS_PER_LONG, curr += BITS_PER_LONG) {
+-		/* wrap around */
+-		if (curr >= bsize)
+-			curr = 0;
+-		while (*((unsigned long *)bitmap + curr / BITS_PER_LONG)
+-		       != ~0UL) {
+-			end = curr + BITS_PER_LONG;
+-			if (end > bsize)
+-				end = bsize;
+-			pos = nilfs_find_next_zero_bit(bitmap, end, curr);
+-			if (pos < end &&
+-			    !nilfs_set_bit_atomic(lock, pos, bitmap))
+-				return pos;
+-		}
++	/* wrap around */
++	for (pos = 0; pos < end; pos++) {
++		pos = nilfs_find_next_zero_bit(bitmap, end, pos);
++		if (pos >= end)
++			break;
++		if (!nilfs_set_bit_atomic(lock, pos, bitmap))
++			return pos;
+ 	}
++
+ 	return -ENOSPC;
  }
  
- static int __init nilfs_init_cachep(void)
 _
 
-Patches currently in -mm which might be from Julia.Lawall@lip6.fr are
+Patches currently in -mm which might be from konishi.ryusuke@lab.ntt.co.jp are
 
 
