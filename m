@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- checkpatch-warn-when-casting-constants-to-c90-int-or-longer-types.patch
- added to -mm tree
-Date: Mon, 09 Nov 2015 13:25:35 -0800
-Message-ID: <56410f4f.QNfODjHQpe8jjzCy%akpm@linux-foundation.org>
+ mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch added to -mm tree
+Date: Mon, 09 Nov 2015 13:27:06 -0800
+Message-ID: <56410faa.CGCtxUljQAOc5Jjd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59421 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59424 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751093AbbKIVZg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 16:25:36 -0500
+	with ESMTP id S1751051AbbKIV1G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 16:27:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: warn when casting constants to c90 int or longer types
+     Subject: mm: uninline slowpath of page_mapcount()
 has been added to the -mm tree.  Its filename is
-     checkpatch-warn-when-casting-constants-to-c90-int-or-longer-types.patch
+     mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-warn-when-casting-constants-to-c90-int-or-longer-types.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-warn-when-casting-constants-to-c90-int-or-longer-types.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,94 +39,145 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: warn when casting constants to c90 int or longer types
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: uninline slowpath of page_mapcount()
 
-Linus Torvalds wrote:
+Let's move page_mapcount() part for compound page into mm/util.c.
 
-> I can't but help to react that this:
->  #define IOMMU_ERROR_CODE       (~(unsigned long) 0)
-> Not that this *matters*, but it's a bit odd to have to cast constants
-> to perfectly regular C types.
+make allyesconfig:
 
-So add a test that looks for constants that are cast to
-standard C90 int or longer types and suggest using C90
-"6.4.4.1 Integer constants" integer-suffixes instead.
+  text	   data	    bss	    dec	    hex	filename
+188515051	153360535	85458720	427334306	19789aa2	vmlinux.o.before
+188512917	153356439	85458720	427328076	1978824c	vmlinux.o.after
 
-Miscellanea:
-
-o Add a --fix option too
-
-Signed-off-by: Joe Perches <joe@perches.com>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   42 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 42 insertions(+)
+ include/linux/mm.h |   14 +++++---------
+ mm/util.c          |   14 ++++++++++++++
+ 2 files changed, 19 insertions(+), 9 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-warn-when-casting-constants-to-c90-int-or-longer-types scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-warn-when-casting-constants-to-c90-int-or-longer-types
-+++ a/scripts/checkpatch.pl
-@@ -433,6 +433,28 @@ our @typeList = (
- 	qr{${Ident}_handler_fn},
- 	@typeListMisordered,
- );
-+
-+our $C90_int_types = qr{(?x:
-+	long\s+long\s+int\s+(?:un)?signed|
-+	long\s+long\s+(?:un)?signed\s+int|
-+	long\s+long\s+(?:un)?signed|
-+	(?:(?:un)?signed\s+)?long\s+long\s+int|
-+	(?:(?:un)?signed\s+)?long\s+long|
-+	int\s+long\s+long\s+(?:un)?signed|
-+	int\s+(?:(?:un)?signed\s+)?long\s+long|
-+
-+	long\s+int\s+(?:un)?signed|
-+	long\s+(?:un)?signed\s+int|
-+	long\s+(?:un)?signed|
-+	(?:(?:un)?signed\s+)?long\s+int|
-+	(?:(?:un)?signed\s+)?long|
-+	int\s+long\s+(?:un)?signed|
-+	int\s+(?:(?:un)?signed\s+)?long|
-+
-+	int\s+(?:un)?signed|
-+	(?:(?:un)?signed\s+)?int
-+)};
-+
- our @typeListFile = ();
- our @typeListWithAttr = (
- 	@typeList,
-@@ -5241,6 +5263,26 @@ sub process {
- 			}
- 		}
+diff -puN include/linux/mm.h~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix include/linux/mm.h
+--- a/include/linux/mm.h~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix
++++ a/include/linux/mm.h
+@@ -418,19 +418,15 @@ static inline void page_mapcount_reset(s
+ 	atomic_set(&(page)->_mapcount, -1);
+ }
  
-+# check for cast of C90 native int or longer types constants
-+		if ($line =~ /(\(\s*$C90_int_types\s*\)\s*)($Constant)\b/) {
-+			my $cast = $1;
-+			my $const = $2;
-+			if (WARN("TYPECAST_INT_CONSTANT",
-+				 "Unnecessary typecast of c90 int constant\n" . $herecurr) &&
-+			    $fix) {
-+				my $suffix = "";
-+				my $newconst = $const;
-+				$newconst =~ s/${Int_type}$//;
-+				$suffix .= 'U' if ($cast =~ /\bunsigned\b/);
-+				if ($cast =~ /\blong\s+long\b/) {
-+					$suffix .= 'LL';
-+				} elsif ($cast =~ /\blong\b/) {
-+					$suffix .= 'L';
-+				}
-+				$fixed[$fixlinenr] =~ s/\Q$cast\E$const\b/$newconst$suffix/;
-+			}
-+		}
++int __page_mapcount(struct page *page);
 +
- # check for sizeof(&)
- 		if ($line =~ /\bsizeof\s*\(\s*\&/) {
- 			WARN("SIZEOF_ADDRESS",
+ static inline int page_mapcount(struct page *page)
+ {
+-	int ret;
+ 	VM_BUG_ON_PAGE(PageSlab(page), page);
+ 
+-	ret = atomic_read(&page->_mapcount) + 1;
+-	if (PageCompound(page)) {
+-		page = compound_head(page);
+-		ret += atomic_read(compound_mapcount_ptr(page)) + 1;
+-		if (PageDoubleMap(page))
+-			ret--;
+-	}
+-	return ret;
++	if (unlikely(PageCompound(page)))
++		return __page_mapcount(page);
++	return atomic_read(&page->_mapcount) + 1;
+ }
+ 
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+diff -puN mm/util.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix mm/util.c
+--- a/mm/util.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix
++++ a/mm/util.c
+@@ -376,6 +376,20 @@ struct address_space *page_mapping(struc
+ 	return mapping;
+ }
+ 
++/* Slow path of page_mapcount() for compound pages */
++int __page_mapcount(struct page *page)
++{
++	int ret;
++
++	page = compound_head(page);
++	ret = atomic_read(&page->_mapcount) + 1;
++	ret += atomic_read(compound_mapcount_ptr(page)) + 1;
++	if (PageDoubleMap(page))
++		ret--;
++	return ret;
++}
++EXPORT_SYMBOL_GPL(__page_mapcount);
++
+ int overcommit_ratio_handler(struct ctl_table *table, int write,
+ 			     void __user *buffer, size_t *lenp,
+ 			     loff_t *ppos)
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-checkpatch-warn-when-casting-constants-to-c90-int-or-longer-types.patch
+mm-make-optimistic-check-for-swapin-readahead-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-move-code-around.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-fix.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-3.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-at-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+mm-proc-adjust-pss-calculation.patch
+rmap-add-argument-to-charge-compound-page.patch
+memcg-adjust-to-support-new-thp-refcounting.patch
+mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault.patch
+mm-adjust-foll_split-for-new-refcounting.patch
+mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
+thp-mlock-do-not-allow-huge-pages-in-mlocked-area.patch
+khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes.patch
+thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
+mm-vmstats-new-thp-splitting-event.patch
+mm-temporally-mark-thp-broken.patch
+thp-drop-all-split_huge_page-related-code.patch
+mm-drop-tail-page-refcounting.patch
+futex-thp-remove-special-case-for-thp-in-get_futex_key.patch
+ksm-prepare-to-new-thp-semantics.patch
+mm-thp-remove-compound_lock.patch
+arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+arm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+mips-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+powerpc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+s390-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+sparc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+tile-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+x86-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+mm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-2.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
+mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
+mm-numa-skip-pte-mapped-thp-on-numa-fault.patch
+thp-implement-split_huge_pmd.patch
+thp-add-option-to-setup-migration-entries-during-pmd-split.patch
+thp-mm-split_huge_page-caller-need-to-lock-page.patch
+thp-reintroduce-split_huge_page.patch
+thp-reintroduce-split_huge_page-fix-3.patch
+migrate_pages-try-to-split-pages-on-qeueuing.patch
+thp-introduce-deferred_split_huge_page.patch
+mm-re-enable-thp.patch
+thp-update-documentation.patch
+thp-allow-mlocked-thp-again.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
 
