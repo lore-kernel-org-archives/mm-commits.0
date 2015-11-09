@@ -1,90 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [merged] seq_file-re-use-string_escape_str.patch removed from -mm tree
-Date: Mon, 09 Nov 2015 12:13:38 -0800
-Message-ID: <5640fe72.WYnHEdpM+IbkIrZU%akpm@linux-foundation.org>
+Subject: [merged]
+ coredump-ensure-all-coredumping-tasks-have-signal_group_coredump.patch
+ removed from -mm tree
+Date: Mon, 09 Nov 2015 12:13:32 -0800
+Message-ID: <5640fe6c.ANTR1y8NgWmd3FDC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57682 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57669 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752388AbbKIUNi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:38 -0500
+	with ESMTP id S1752377AbbKIUNd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: oleg@redhat.com, kwalker@redhat.com, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, skozina@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: seq_file: reuse string_escape_str()
+     Subject: coredump: ensure all coredumping tasks have SIGNAL_GROUP_COREDUMP
 has been removed from the -mm tree.  Its filename was
-     seq_file-re-use-string_escape_str.patch
+     coredump-ensure-all-coredumping-tasks-have-signal_group_coredump.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: seq_file: reuse string_escape_str()
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: coredump: ensure all coredumping tasks have SIGNAL_GROUP_COREDUMP
 
-strint_escape_str() escapes input string by given criteria.  In case of
-seq_escape() the criteria is to convert some characters to their octal
-representation.
+task_will_free_mem() is wrong in many ways, and in particular the
+SIGNAL_GROUP_COREDUMP check is not reliable: a task can participate in the
+coredumping without SIGNAL_GROUP_COREDUMP bit set.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+change zap_threads() paths to always set SIGNAL_GROUP_COREDUMP even if
+other CLONE_VM processes can't react to SIGKILL.  Fortunately, at least
+oom-kill case if fine; it kills all tasks sharing the same mm, so it
+should also kill the process which actually dumps the core.
+
+The change in prepare_signal() is not strictly necessary, it just ensures
+that the patch does not bring another subtle behavioural change.  But it
+reminds us that this SIGNAL_GROUP_EXIT/COREDUMP case needs more changes.
+
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Kyle Walker <kwalker@redhat.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Stanislav Kozina <skozina@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/seq_file.c |   27 +++++++--------------------
- 1 file changed, 7 insertions(+), 20 deletions(-)
+ fs/coredump.c   |   12 ++++++------
+ kernel/signal.c |    2 +-
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/seq_file.c~seq_file-re-use-string_escape_str fs/seq_file.c
---- a/fs/seq_file.c~seq_file-re-use-string_escape_str
-+++ a/fs/seq_file.c
-@@ -13,6 +13,7 @@
- #include <linux/cred.h>
- #include <linux/mm.h>
- #include <linux/printk.h>
-+#include <linux/string_helpers.h>
- 
- #include <asm/uaccess.h>
- #include <asm/page.h>
-@@ -377,26 +378,12 @@ EXPORT_SYMBOL(seq_release);
-  */
- void seq_escape(struct seq_file *m, const char *s, const char *esc)
- {
--	char *end = m->buf + m->size;
--	char *p;
--	char c;
--
--	for (p = m->buf + m->count; (c = *s) != '\0' && p < end; s++) {
--		if (!strchr(esc, c)) {
--			*p++ = c;
--			continue;
--		}
--		if (p + 3 < end) {
--			*p++ = '\\';
--			*p++ = '0' + ((c & 0300) >> 6);
--			*p++ = '0' + ((c & 070) >> 3);
--			*p++ = '0' + (c & 07);
--			continue;
--		}
--		seq_set_overflow(m);
--		return;
--	}
--	m->count = p - m->buf;
-+	char *buf;
-+	size_t size = seq_get_buf(m, &buf);
-+	int ret;
-+
-+	ret = string_escape_str(s, buf, size, ESCAPE_OCTAL, esc);
-+	seq_commit(m, ret < size ? ret : -1);
+diff -puN fs/coredump.c~coredump-ensure-all-coredumping-tasks-have-signal_group_coredump fs/coredump.c
+--- a/fs/coredump.c~coredump-ensure-all-coredumping-tasks-have-signal_group_coredump
++++ a/fs/coredump.c
+@@ -280,11 +280,13 @@ out:
+ 	return ispipe;
  }
- EXPORT_SYMBOL(seq_escape);
  
+-static int zap_process(struct task_struct *start, int exit_code)
++static int zap_process(struct task_struct *start, int exit_code, int flags)
+ {
+ 	struct task_struct *t;
+ 	int nr = 0;
+ 
++	/* ignore all signals except SIGKILL, see prepare_signal() */
++	start->signal->flags = SIGNAL_GROUP_COREDUMP | flags;
+ 	start->signal->group_exit_code = exit_code;
+ 	start->signal->group_stop_count = 0;
+ 
+@@ -311,10 +313,8 @@ static int zap_threads(struct task_struc
+ 	spin_lock_irq(&tsk->sighand->siglock);
+ 	if (!signal_group_exit(tsk->signal)) {
+ 		mm->core_state = core_state;
+-		nr = zap_process(tsk, exit_code);
+ 		tsk->signal->group_exit_task = tsk;
+-		/* ignore all signals except SIGKILL, see prepare_signal() */
+-		tsk->signal->flags = SIGNAL_GROUP_COREDUMP;
++		nr = zap_process(tsk, exit_code, 0);
+ 		clear_tsk_thread_flag(tsk, TIF_SIGPENDING);
+ 	}
+ 	spin_unlock_irq(&tsk->sighand->siglock);
+@@ -365,8 +365,8 @@ static int zap_threads(struct task_struc
+ 			if (p->mm) {
+ 				if (unlikely(p->mm == mm)) {
+ 					lock_task_sighand(p, &flags);
+-					nr += zap_process(p, exit_code);
+-					p->signal->flags = SIGNAL_GROUP_EXIT;
++					nr += zap_process(p, exit_code,
++							  SIGNAL_GROUP_EXIT);
+ 					unlock_task_sighand(p, &flags);
+ 				}
+ 				break;
+diff -puN kernel/signal.c~coredump-ensure-all-coredumping-tasks-have-signal_group_coredump kernel/signal.c
+--- a/kernel/signal.c~coredump-ensure-all-coredumping-tasks-have-signal_group_coredump
++++ a/kernel/signal.c
+@@ -788,7 +788,7 @@ static bool prepare_signal(int sig, stru
+ 	sigset_t flush;
+ 
+ 	if (signal->flags & (SIGNAL_GROUP_EXIT | SIGNAL_GROUP_COREDUMP)) {
+-		if (signal->flags & SIGNAL_GROUP_COREDUMP)
++		if (!(signal->flags & SIGNAL_GROUP_EXIT))
+ 			return sig == SIGKILL;
+ 		/*
+ 		 * The process is in the middle of dying, nothing to do.
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 
