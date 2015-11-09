@@ -1,77 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch removed from -mm tree
-Date: Mon, 09 Nov 2015 12:13:59 -0800
-Message-ID: <5640fe87.6a6oFQj+awCF34Fk%akpm@linux-foundation.org>
+Subject: [merged] ipcmsg-drop-dst-nil-validation-in-copy_msg.patch removed from -mm tree
+Date: Mon, 09 Nov 2015 12:13:57 -0800
+Message-ID: <5640fe85.jX27lPOlrPmoIK6A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57724 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57720 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752550AbbKIUN7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:59 -0500
+	with ESMTP id S1752388AbbKIUN5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, catalin.marinas@arm.com, robin.murphy@arm.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, skinsbursky@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: fixup for mm renames
+     Subject: ipc,msg: drop dst nil validation in copy_msg
 has been removed from the -mm tree.  Its filename was
-     mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix.patch
+     ipcmsg-drop-dst-nil-validation-in-copy_msg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arm64: fixup for mm renames
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: ipc,msg: drop dst nil validation in copy_msg
 
-__GFP_WAIT was renamed for __GFP_RECLAIM and the gfpflags_allow_blocking()
-helper was added.
+d0edd8528362 ("ipc: convert invalid scenarios to use WARN_ON") relaxed the
+nil dst parameter check, originally being a full BUG_ON.  However, this
+check seems quite unnecessary when the only purpose is for
+ceckpoint/restore (MSG_COPY flag):
 
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Robin Murphy <robin.murphy@arm.com>
+o The copy variable is set initially to nil, apparently as a way of
+  ensuring that prepare_copy is previously called.  Which is in fact done,
+  unconditionally at the beginning of do_msgrcv.
+
+o There is no concurrency with 'copy' (stack allocated in do_msgrcv).
+
+Furthermore, any errors in 'copy' (and thus prepare_copy/copy_msg) should
+always handled by IS_ERR() family.  Therefore remove this check altogether
+as it can never occur with the current users.
+
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Cc: Stanislav Kinsbursky <skinsbursky@parallels.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/dma-mapping.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ ipc/msgutil.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/arm64/mm/dma-mapping.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix arch/arm64/mm/dma-mapping.c
---- a/arch/arm64/mm/dma-mapping.c~mm-page_alloc-rename-__gfp_wait-to-__gfp_reclaim-arm-fix
-+++ a/arch/arm64/mm/dma-mapping.c
-@@ -562,7 +562,7 @@ static void *__iommu_alloc_attrs(struct 
- 	 */
- 	gfp |= __GFP_ZERO;
+diff -puN ipc/msgutil.c~ipcmsg-drop-dst-nil-validation-in-copy_msg ipc/msgutil.c
+--- a/ipc/msgutil.c~ipcmsg-drop-dst-nil-validation-in-copy_msg
++++ a/ipc/msgutil.c
+@@ -123,7 +123,6 @@ struct msg_msg *copy_msg(struct msg_msg
+ 	size_t len = src->m_ts;
+ 	size_t alen;
  
--	if (gfp & __GFP_WAIT) {
-+	if (gfpflags_allow_blocking(gfp)) {
- 		struct page **pages;
- 		pgprot_t prot = __get_dma_pgprot(attrs, PAGE_KERNEL, coherent);
+-	WARN_ON(dst == NULL);
+ 	if (src->m_ts > dst->m_ts)
+ 		return ERR_PTR(-EINVAL);
  
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm.patch
-slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
-net-ipv4-routec-prevent-oops.patch
-remove-abs64.patch
-remove-abs64-fix.patch
-remove-abs64-fix-fix.patch
-remove-abs64-fix-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
 
