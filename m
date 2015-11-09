@@ -1,175 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- nilfs2-add-tracepoints-for-analyzing-sufile-manipulation.patch removed from -mm tree
-Date: Mon, 09 Nov 2015 12:13:14 -0800
-Message-ID: <5640fe5a.z5qGtgoHz2Ap0heu%akpm@linux-foundation.org>
+Subject: [merged] seq_file-re-use-string_escape_str.patch removed from -mm tree
+Date: Mon, 09 Nov 2015 12:13:38 -0800
+Message-ID: <5640fe72.WYnHEdpM+IbkIrZU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57633 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57682 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752259AbbKIUNO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:14 -0500
+	with ESMTP id S1752388AbbKIUNi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 15:13:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mitake.hitoshi@lab.ntt.co.jp, TK.Kato@wdc.com, benixon.dhas@wdc.com, konishi.ryusuke@lab.ntt.co.jp, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nilfs2: add tracepoints for analyzing sufile manipulation
+     Subject: seq_file: reuse string_escape_str()
 has been removed from the -mm tree.  Its filename was
-     nilfs2-add-tracepoints-for-analyzing-sufile-manipulation.patch
+     seq_file-re-use-string_escape_str.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Hitoshi Mitake <mitake.hitoshi@lab.ntt.co.jp>
-Subject: nilfs2: add tracepoints for analyzing sufile manipulation
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: seq_file: reuse string_escape_str()
 
-This patch adds tracepoints which would be useful for analyzing segment
-usage from a perspective of high level sufile manipulation (check, alloc,
-free).  sufile is an important in-place updated metadata file, so
-analyzing the behavior would be useful for performance turning.
+strint_escape_str() escapes input string by given criteria.  In case of
+seq_escape() the criteria is to convert some characters to their octal
+representation.
 
-example of usage (a case of allocation):
-
-$ sudo bin/tpoint nilfs2:nilfs2_segment_usage_allocated
-Tracing nilfs2:nilfs2_segment_usage_allocated. Ctrl-C to end.
-        segctord-17800 [002] ...1 10671.867294: nilfs2_segment_usage_allocated: sufile = ffff880054f908a8 segnum = 2
-        segctord-17800 [002] ...1 10675.073477: nilfs2_segment_usage_allocated: sufile = ffff880054f908a8 segnum = 3
-
-Signed-off-by: Hitoshi Mitake <mitake.hitoshi@lab.ntt.co.jp>
-Signed-off-by: Ryusuke Konishi <konishi.ryusuke@lab.ntt.co.jp>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Benixon Dhas <benixon.dhas@wdc.com>
-Cc: TK Kato <TK.Kato@wdc.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/nilfs2/sufile.c            |    8 +++
- include/trace/events/nilfs2.h |   67 ++++++++++++++++++++++++++++++++
- 2 files changed, 75 insertions(+)
+ fs/seq_file.c |   27 +++++++--------------------
+ 1 file changed, 7 insertions(+), 20 deletions(-)
 
-diff -puN fs/nilfs2/sufile.c~nilfs2-add-tracepoints-for-analyzing-sufile-manipulation fs/nilfs2/sufile.c
---- a/fs/nilfs2/sufile.c~nilfs2-add-tracepoints-for-analyzing-sufile-manipulation
-+++ a/fs/nilfs2/sufile.c
-@@ -30,6 +30,8 @@
- #include "mdt.h"
- #include "sufile.h"
+diff -puN fs/seq_file.c~seq_file-re-use-string_escape_str fs/seq_file.c
+--- a/fs/seq_file.c~seq_file-re-use-string_escape_str
++++ a/fs/seq_file.c
+@@ -13,6 +13,7 @@
+ #include <linux/cred.h>
+ #include <linux/mm.h>
+ #include <linux/printk.h>
++#include <linux/string_helpers.h>
  
-+#include <trace/events/nilfs2.h>
+ #include <asm/uaccess.h>
+ #include <asm/page.h>
+@@ -377,26 +378,12 @@ EXPORT_SYMBOL(seq_release);
+  */
+ void seq_escape(struct seq_file *m, const char *s, const char *esc)
+ {
+-	char *end = m->buf + m->size;
+-	char *p;
+-	char c;
+-
+-	for (p = m->buf + m->count; (c = *s) != '\0' && p < end; s++) {
+-		if (!strchr(esc, c)) {
+-			*p++ = c;
+-			continue;
+-		}
+-		if (p + 3 < end) {
+-			*p++ = '\\';
+-			*p++ = '0' + ((c & 0300) >> 6);
+-			*p++ = '0' + ((c & 070) >> 3);
+-			*p++ = '0' + (c & 07);
+-			continue;
+-		}
+-		seq_set_overflow(m);
+-		return;
+-	}
+-	m->count = p - m->buf;
++	char *buf;
++	size_t size = seq_get_buf(m, &buf);
++	int ret;
 +
- /**
-  * struct nilfs_sufile_info - on-memory private data of sufile
-  * @mi: on-memory private data of metadata file
-@@ -358,6 +360,7 @@ int nilfs_sufile_alloc(struct inode *suf
- 				break; /* never happens */
- 			}
- 		}
-+		trace_nilfs2_segment_usage_check(sufile, segnum, cnt);
- 		ret = nilfs_sufile_get_segment_usage_block(sufile, segnum, 1,
- 							   &su_bh);
- 		if (ret < 0)
-@@ -388,6 +391,9 @@ int nilfs_sufile_alloc(struct inode *suf
- 			nilfs_mdt_mark_dirty(sufile);
- 			brelse(su_bh);
- 			*segnump = segnum;
-+
-+			trace_nilfs2_segment_usage_allocated(sufile, segnum);
-+
- 			goto out_header;
- 		}
- 
-@@ -490,6 +496,8 @@ void nilfs_sufile_do_free(struct inode *
- 	NILFS_SUI(sufile)->ncleansegs++;
- 
- 	nilfs_mdt_mark_dirty(sufile);
-+
-+	trace_nilfs2_segment_usage_freed(sufile, segnum);
++	ret = string_escape_str(s, buf, size, ESCAPE_OCTAL, esc);
++	seq_commit(m, ret < size ? ret : -1);
  }
+ EXPORT_SYMBOL(seq_escape);
  
- /**
-diff -puN include/trace/events/nilfs2.h~nilfs2-add-tracepoints-for-analyzing-sufile-manipulation include/trace/events/nilfs2.h
---- a/include/trace/events/nilfs2.h~nilfs2-add-tracepoints-for-analyzing-sufile-manipulation
-+++ a/include/trace/events/nilfs2.h
-@@ -95,6 +95,73 @@ TRACE_EVENT(nilfs2_transaction_transitio
- 		      show_transaction_state(__entry->state))
- );
- 
-+TRACE_EVENT(nilfs2_segment_usage_check,
-+	    TP_PROTO(struct inode *sufile,
-+		     __u64 segnum,
-+		     unsigned long cnt),
-+
-+	    TP_ARGS(sufile, segnum, cnt),
-+
-+	    TP_STRUCT__entry(
-+		    __field(struct inode *, sufile)
-+		    __field(__u64, segnum)
-+		    __field(unsigned long, cnt)
-+	    ),
-+
-+	    TP_fast_assign(
-+		    __entry->sufile = sufile;
-+		    __entry->segnum = segnum;
-+		    __entry->cnt = cnt;
-+		    ),
-+
-+	    TP_printk("sufile = %p segnum = %llu cnt = %lu",
-+		      __entry->sufile,
-+		      __entry->segnum,
-+		      __entry->cnt)
-+);
-+
-+TRACE_EVENT(nilfs2_segment_usage_allocated,
-+	    TP_PROTO(struct inode *sufile,
-+		     __u64 segnum),
-+
-+	    TP_ARGS(sufile, segnum),
-+
-+	    TP_STRUCT__entry(
-+		    __field(struct inode *, sufile)
-+		    __field(__u64, segnum)
-+	    ),
-+
-+	    TP_fast_assign(
-+		    __entry->sufile = sufile;
-+		    __entry->segnum = segnum;
-+		    ),
-+
-+	    TP_printk("sufile = %p segnum = %llu",
-+		      __entry->sufile,
-+		      __entry->segnum)
-+);
-+
-+TRACE_EVENT(nilfs2_segment_usage_freed,
-+	    TP_PROTO(struct inode *sufile,
-+		     __u64 segnum),
-+
-+	    TP_ARGS(sufile, segnum),
-+
-+	    TP_STRUCT__entry(
-+		    __field(struct inode *, sufile)
-+		    __field(__u64, segnum)
-+	    ),
-+
-+	    TP_fast_assign(
-+		    __entry->sufile = sufile;
-+		    __entry->segnum = segnum;
-+		    ),
-+
-+	    TP_printk("sufile = %p segnum = %llu",
-+		      __entry->sufile,
-+		      __entry->segnum)
-+);
-+
- #endif /* _TRACE_NILFS2_H */
- 
- /* This part must be outside protection */
 _
 
-Patches currently in -mm which might be from mitake.hitoshi@lab.ntt.co.jp are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 
