@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + iio-documentation-add-iio-configfs-documentation.patch added to -mm tree
-Date: Tue, 10 Nov 2015 13:10:07 -0800
-Message-ID: <56425d2f.U0/4ykbi52a8srR5%akpm@linux-foundation.org>
+Subject: + iio-core-introduce-iio-software-triggers.patch added to -mm
+ tree
+Date: Tue, 10 Nov 2015 13:10:01 -0800
+Message-ID: <56425d29.WnMblFHrHvyE1x3/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35431 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35401 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751059AbbKJVKI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 16:10:08 -0500
+	with ESMTP id S1751059AbbKJVKC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 16:10:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.baluta@intel.com, adriana.reus@intel.com, cmo@melexis.com, cristina.opriceana@gmail.com, hch@lst.de, jlbec@evilplan.org, knaack.h@gmx.de, lars@metafoo.de, octavian.purdila@intel.com, pebolle@tiscali.nl, pmeerw@pmeerw.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: daniel.baluta@intel.com, adriana.reus@intel.com, cristina.opriceana@gmail.com, hch@lst.de, jlbec@evilplan.org, knaack.h@gmx.de, lars@metafoo.de, matt.ranostay@intel.com, octavian.purdila@intel.com, pebolle@tiscali.nl, pmeerw@pmeerw.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: iio: Documentation: add IIO configfs documentation
+     Subject: iio: core: introduce IIO software triggers
 has been added to the -mm tree.  Its filename is
-     iio-documentation-add-iio-configfs-documentation.patch
+     iio-core-introduce-iio-software-triggers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/iio-documentation-add-iio-configfs-documentation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/iio-core-introduce-iio-software-triggers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/iio-documentation-add-iio-configfs-documentation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/iio-core-introduce-iio-software-triggers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,10 +40,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Daniel Baluta <daniel.baluta@intel.com>
-Subject: iio: Documentation: add IIO configfs documentation
+Subject: iio: core: introduce IIO software triggers
+
+A software trigger associates an IIO device trigger with a software
+interrupt source (e.g: timer, sysfs).  This patch adds the generic
+infrastructure for handling software triggers.
+
+Software interrupts sources are kept in a iio_trigger_types_list and
+registered separately when the associated kernel module is loaded.
+
+Software triggers can be created directly from drivers or from user space
+via configfs interface.
+
+To sum up, this dynamically creates "triggers" group to be found under
+/config/iio/triggers and offers the possibility of dynamically creating
+trigger types groups.  The first supported trigger type is "hrtimer" found
+under /config/iio/triggers/hrtimer.
 
 Signed-off-by: Daniel Baluta <daniel.baluta@intel.com>
-Acked-by: Crt Mori <cmo@melexis.com>
+Tested-by: Matt Ranostay <matt.ranostay@intel.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Lars-Peter Clausen <lars@metafoo.de>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -50,139 +66,309 @@ Cc: Hartmut Knaack <knaack.h@gmx.de>
 Cc: Octavian Purdila <octavian.purdila@intel.com>
 Cc: Paul Bolle <pebolle@tiscali.nl>
 Cc: Adriana Reus <adriana.reus@intel.com>
-Cc: Daniel Baluta <daniel.baluta@intel.com>
 Cc: Cristina Opriceana <cristina.opriceana@gmail.com>
 Cc: Peter Meerwald <pmeerw@pmeerw.net>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/ABI/testing/configfs-iio |   21 +++++
- Documentation/iio/iio_configfs.txt     |   93 +++++++++++++++++++++++
- 2 files changed, 114 insertions(+)
+ drivers/iio/Kconfig                   |    8 +
+ drivers/iio/Makefile                  |    1 
+ drivers/iio/industrialio-sw-trigger.c |  183 ++++++++++++++++++++++++
+ include/linux/iio/sw_trigger.h        |   71 +++++++++
+ 4 files changed, 263 insertions(+)
 
-diff -puN /dev/null Documentation/ABI/testing/configfs-iio
+diff -puN drivers/iio/Kconfig~iio-core-introduce-iio-software-triggers drivers/iio/Kconfig
+--- a/drivers/iio/Kconfig~iio-core-introduce-iio-software-triggers
++++ a/drivers/iio/Kconfig
+@@ -46,6 +46,14 @@ config IIO_CONSUMERS_PER_TRIGGER
+ 	This value controls the maximum number of consumers that a
+ 	given trigger may handle. Default is 2.
+ 
++config IIO_SW_TRIGGER
++	tristate "Enable software triggers support"
++	select IIO_CONFIGFS
++	help
++	 Provides IIO core support for software triggers. A software
++	 trigger can be created via configfs or directly by a driver
++	 using the API provided.
++
+ config IIO_TRIGGERED_EVENT
+ 	tristate
+ 	select IIO_TRIGGER
+diff -puN drivers/iio/Makefile~iio-core-introduce-iio-software-triggers drivers/iio/Makefile
+--- a/drivers/iio/Makefile~iio-core-introduce-iio-software-triggers
++++ a/drivers/iio/Makefile
+@@ -8,6 +8,7 @@ industrialio-$(CONFIG_IIO_BUFFER) += ind
+ industrialio-$(CONFIG_IIO_TRIGGER) += industrialio-trigger.o
+ 
+ obj-$(CONFIG_IIO_CONFIGFS) += industrialio-configfs.o
++obj-$(CONFIG_IIO_SW_TRIGGER) += industrialio-sw-trigger.o
+ obj-$(CONFIG_IIO_TRIGGERED_EVENT) += industrialio-triggered-event.o
+ 
+ obj-y += accel/
+diff -puN /dev/null drivers/iio/industrialio-sw-trigger.c
 --- /dev/null
-+++ a/Documentation/ABI/testing/configfs-iio
-@@ -0,0 +1,21 @@
-+What:		/config/iio
-+Date:		October 2015
-+KernelVersion:	4.4
-+Contact:	linux-iio@vger.kernel.org
-+Description:
-+		This represents Industrial IO configuration entry point
-+		directory. It contains sub-groups corresponding to IIO
-+		objects.
-+
-+What:		/config/iio/triggers
-+Date:		October 2015
-+KernelVersion:	4.4
-+Description:
-+		Industrial IO software triggers directory.
-+
-+What:		/config/iio/triggers/hrtimers
-+Date:		October 2015
-+KernelVersion:	4.4
-+Description:
-+		High resolution timers directory. Creating a directory here
-+		will result in creating a hrtimer trigger in the IIO subsystem.
-diff -puN /dev/null Documentation/iio/iio_configfs.txt
---- /dev/null
-+++ a/Documentation/iio/iio_configfs.txt
-@@ -0,0 +1,93 @@
-+Industrial IIO configfs support
-+
-+1. Overview
-+
-+Configfs is a filesystem-based manager of kernel objects. IIO uses some
-+objects that could be easily configured using configfs (e.g.: devices,
-+triggers).
-+
-+See Documentation/filesystems/configfs/configfs.txt for more information
-+about how configfs works.
-+
-+2. Usage
-+
-+In order to use configfs support in IIO we need to select it at compile
-+time via CONFIG_IIO_CONFIGFS config option.
-+
-+Then, mount the configfs filesystem (usually under /config directory):
-+
-+$ mkdir /config
-+$ mount -t configfs none /config
-+
-+At this point, all default IIO groups will be created and can be accessed
-+under /config/iio. Next chapters will describe available IIO configuration
-+objects.
-+
-+3. Software triggers
-+
-+One of the IIO default configfs groups is the "triggers" group. It is
-+automagically accessible when the configfs is mounted and can be found
-+under /config/iio/triggers.
-+
-+IIO software triggers implementation offers support for creating multiple
-+trigger types. A new trigger type is usually implemented as a separate
-+kernel module following the interface in include/linux/iio/sw_trigger.h:
-+
++++ a/drivers/iio/industrialio-sw-trigger.c
+@@ -0,0 +1,183 @@
 +/*
-+ * drivers/iio/trigger/iio-trig-sample.c
-+ * sample kernel module implementing a new trigger type
++ * The Industrial I/O core, software trigger functions
++ *
++ * Copyright (c) 2015 Intel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
 + */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/kmod.h>
++#include <linux/list.h>
++#include <linux/slab.h>
++
 +#include <linux/iio/sw_trigger.h>
++#include <linux/configfs.h>
 +
++static struct config_group *iio_triggers_group;
++static struct config_item_type iio_trigger_type_group_type;
 +
-+static struct iio_sw_trigger *iio_trig_sample_probe(const char *name)
-+{
-+	/*
-+	 * This allocates and registers an IIO trigger plus other
-+	 * trigger type specific initialization.
-+	 */
-+}
-+
-+static int iio_trig_hrtimer_remove(struct iio_sw_trigger *swt)
-+{
-+	/*
-+	 * This undoes the actions in iio_trig_sample_probe
-+	 */
-+}
-+
-+static const struct iio_sw_trigger_ops iio_trig_sample_ops = {
-+	.probe		= iio_trig_sample_probe,
-+	.remove		= iio_trig_sample_remove,
++static struct config_item_type iio_triggers_group_type = {
++	.ct_owner = THIS_MODULE,
 +};
 +
-+static struct iio_sw_trigger_type iio_trig_sample = {
-+	.name = "trig-sample",
-+	.owner = THIS_MODULE,
-+	.ops = &iio_trig_sample_ops,
++static LIST_HEAD(iio_trigger_types_list);
++static DEFINE_MUTEX(iio_trigger_types_lock);
++
++static
++struct iio_sw_trigger_type *__iio_find_sw_trigger_type(const char *name,
++						       unsigned len)
++{
++	struct iio_sw_trigger_type *t = NULL, *iter;
++
++	list_for_each_entry(iter, &iio_trigger_types_list, list)
++		if (!strcmp(iter->name, name)) {
++			t = iter;
++			break;
++		}
++
++	return t;
++}
++
++int iio_register_sw_trigger_type(struct iio_sw_trigger_type *t)
++{
++	struct iio_sw_trigger_type *iter;
++	int ret = 0;
++
++	mutex_lock(&iio_trigger_types_lock);
++	iter = __iio_find_sw_trigger_type(t->name, strlen(t->name));
++	if (iter)
++		ret = -EBUSY;
++	else
++		list_add_tail(&t->list, &iio_trigger_types_list);
++	mutex_unlock(&iio_trigger_types_lock);
++
++	if (ret)
++		return ret;
++
++	t->group = configfs_register_default_group(iio_triggers_group, t->name,
++						&iio_trigger_type_group_type);
++	if (IS_ERR(t->group))
++		ret = PTR_ERR(t->group);
++
++	return ret;
++}
++EXPORT_SYMBOL(iio_register_sw_trigger_type);
++
++void iio_unregister_sw_trigger_type(struct iio_sw_trigger_type *t)
++{
++	struct iio_sw_trigger_type *iter;
++
++	mutex_lock(&iio_trigger_types_lock);
++	iter = __iio_find_sw_trigger_type(t->name, strlen(t->name));
++	if (iter)
++		list_del(&t->list);
++	mutex_unlock(&iio_trigger_types_lock);
++
++	configfs_unregister_default_group(t->group);
++}
++EXPORT_SYMBOL(iio_unregister_sw_trigger_type);
++
++static
++struct iio_sw_trigger_type *iio_get_sw_trigger_type(const char *name)
++{
++	struct iio_sw_trigger_type *t;
++
++	mutex_lock(&iio_trigger_types_lock);
++	t = __iio_find_sw_trigger_type(name, strlen(name));
++	if (t && !try_module_get(t->owner))
++		t = NULL;
++	mutex_unlock(&iio_trigger_types_lock);
++
++	return t;
++}
++
++struct iio_sw_trigger *iio_sw_trigger_create(const char *type, const char *name)
++{
++	struct iio_sw_trigger *t;
++	struct iio_sw_trigger_type *tt;
++
++	tt = iio_get_sw_trigger_type(type);
++	if (!tt) {
++		pr_err("Invalid trigger type: %s\n", type);
++		return ERR_PTR(-EINVAL);
++	}
++	t = tt->ops->probe(name);
++	if (IS_ERR(t))
++		goto out_module_put;
++
++	t->trigger_type = tt;
++
++	return t;
++out_module_put:
++	module_put(tt->owner);
++	return t;
++}
++EXPORT_SYMBOL(iio_sw_trigger_create);
++
++void iio_sw_trigger_destroy(struct iio_sw_trigger *t)
++{
++	struct iio_sw_trigger_type *tt = t->trigger_type;
++
++	tt->ops->remove(t);
++	module_put(tt->owner);
++}
++EXPORT_SYMBOL(iio_sw_trigger_destroy);
++
++static struct config_group *trigger_make_group(struct config_group *group,
++					       const char *name)
++{
++	struct iio_sw_trigger *t;
++
++	t = iio_sw_trigger_create(group->cg_item.ci_name, name);
++	if (IS_ERR(t))
++		return ERR_CAST(t);
++
++	config_item_set_name(&t->group.cg_item, "%s", name);
++
++	return &t->group;
++}
++
++static void trigger_drop_group(struct config_group *group,
++			       struct config_item *item)
++{
++	struct iio_sw_trigger *t = to_iio_sw_trigger(item);
++
++	iio_sw_trigger_destroy(t);
++	config_item_put(item);
++}
++
++static struct configfs_group_operations trigger_ops = {
++	.make_group	= &trigger_make_group,
++	.drop_item	= &trigger_drop_group,
 +};
 +
-+module_iio_sw_trigger_driver(iio_trig_sample);
++static struct config_item_type iio_trigger_type_group_type = {
++	.ct_group_ops = &trigger_ops,
++	.ct_owner       = THIS_MODULE,
++};
 +
-+Each trigger type has its own directory under /config/iio/triggers. Loading
-+iio-trig-sample module will create 'trig-sample' trigger type directory
-+/config/iio/triggers/trig-sample.
++static int __init iio_sw_trigger_init(void)
++{
++	iio_triggers_group =
++		configfs_register_default_group(&iio_configfs_subsys.su_group,
++						"triggers",
++						&iio_triggers_group_type);
++	if (IS_ERR(iio_triggers_group))
++		return PTR_ERR(iio_triggers_group);
++	return 0;
++}
++module_init(iio_sw_trigger_init);
 +
-+We support the following interrupt sources (trigger types):
-+	* hrtimer, uses high resolution timers as interrupt source
++static void __exit iio_sw_trigger_exit(void)
++{
++	configfs_unregister_default_group(iio_triggers_group);
++}
++module_exit(iio_sw_trigger_exit);
 +
-+3.1 Hrtimer triggers creation and destruction
++MODULE_AUTHOR("Daniel Baluta <daniel.baluta@intel.com>");
++MODULE_DESCRIPTION("Industrial I/O software triggers support");
++MODULE_LICENSE("GPL v2");
+diff -puN /dev/null include/linux/iio/sw_trigger.h
+--- /dev/null
++++ a/include/linux/iio/sw_trigger.h
+@@ -0,0 +1,71 @@
++/*
++ * Industrial I/O software trigger interface
++ *
++ * Copyright (c) 2015 Intel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
 +
-+Loading iio-trig-hrtimer module will register hrtimer trigger types allowing
-+users to create hrtimer triggers under /config/iio/triggers/hrtimer.
++#ifndef __IIO_SW_TRIGGER
++#define __IIO_SW_TRIGGER
 +
-+e.g:
++#include <linux/module.h>
++#include <linux/device.h>
++#include <linux/iio/iio.h>
++#include <linux/configfs.h>
 +
-+$ mkdir /config/triggers/hrtimer/instance1
-+$ rmdir /config/triggers/hrtimer/instance1
++#define module_iio_sw_trigger_driver(__iio_sw_trigger_type) \
++	module_driver(__iio_sw_trigger_type, iio_register_sw_trigger_type, \
++		      iio_unregister_sw_trigger_type)
 +
-+Each trigger can have one or more attributes specific to the trigger type.
++extern struct configfs_subsystem iio_configfs_subsys;
++struct iio_sw_trigger_ops;
 +
-+3.2 "hrtimer" trigger types attributes
++struct iio_sw_trigger_type {
++	const char *name;
++	struct module *owner;
++	const struct iio_sw_trigger_ops *ops;
++	struct list_head list;
++	struct config_group *group;
++};
 +
-+"hrtimer" trigger type doesn't have any configurable attribute from /config dir.
-+It does introduce the sampling_frequency attribute to trigger directory.
++struct iio_sw_trigger {
++	struct iio_trigger *trigger;
++	struct iio_sw_trigger_type *trigger_type;
++	struct config_group group;
++};
++
++struct iio_sw_trigger_ops {
++	struct iio_sw_trigger* (*probe)(const char *);
++	int (*remove)(struct iio_sw_trigger *);
++};
++
++static inline
++struct iio_sw_trigger *to_iio_sw_trigger(struct config_item *item)
++{
++	return container_of(to_config_group(item), struct iio_sw_trigger,
++			    group);
++}
++
++int iio_register_sw_trigger_type(struct iio_sw_trigger_type *tt);
++void iio_unregister_sw_trigger_type(struct iio_sw_trigger_type *tt);
++
++struct iio_sw_trigger *iio_sw_trigger_create(const char *, const char *);
++void iio_sw_trigger_destroy(struct iio_sw_trigger *);
++
++int iio_sw_trigger_type_configfs_register(struct iio_sw_trigger_type *tt);
++void iio_sw_trigger_type_configfs_unregister(struct iio_sw_trigger_type *tt);
++
++static inline
++void iio_swt_group_init_type_name(struct iio_sw_trigger *t,
++				  const char *name,
++				  struct config_item_type *type)
++{
++#ifdef CONFIG_CONFIGFS_FS
++	config_group_init_type_name(&t->group, name, type);
++#endif
++}
++
++#endif /* __IIO_SW_TRIGGER */
 _
 
 Patches currently in -mm which might be from daniel.baluta@intel.com are
