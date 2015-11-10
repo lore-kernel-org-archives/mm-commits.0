@@ -1,119 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dma-remove-external-references-to-dma_supported.patch
- removed from -mm tree
-Date: Tue, 10 Nov 2015 12:33:12 -0800
-Message-ID: <56425488.SLn6i9fSHDJufM3u%akpm@linux-foundation.org>
+Subject: [merged] cxgbi-fix-build-with-extra_cflags.patch removed from -mm tree
+Date: Tue, 10 Nov 2015 12:33:14 -0800
+Message-ID: <5642548a.AkPJbKvK6MloVNuH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34044 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34050 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751109AbbKJUdM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 15:33:12 -0500
+	with ESMTP id S1751618AbbKJUdO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 15:33:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
+To: jslaby@suse.cz, James.Bottomley@HansenPartnership.com, jthumshirn@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma: remove external references to dma_supported
+     Subject: drivers/scsi/cxgbi: fix build with EXTRA_CFLAGS
 has been removed from the -mm tree.  Its filename was
-     dma-remove-external-references-to-dma_supported.patch
+     cxgbi-fix-build-with-extra_cflags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: dma: remove external references to dma_supported
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: drivers/scsi/cxgbi: fix build with EXTRA_CFLAGS
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Alan Stern <stern@rowland.harvard.edu>
+EXTRA_CFLAGS are intended to be used on the command line, not by Kbuild. 
+In case of cxgbi drivers, use of EXTRA_CFLAGS results in a compilation
+failure:
+
+drivers/scsi/cxgbi/cxgb4i/cxgb4i.c:24:21: fatal error: t4_regs.h: No such file or directory
+
+when building like:
+
+$ make drivers/scsi/cxgbi/ EXTRA_CFLAGS=-Wwhatever
+
+Use ccflags-y instead of EXTRA_CFLAGS.
+
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Reviewed-by: Johannes Thumshirn <jthumshirn@suse.de>
+Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/DMA-API.txt       |   13 -------------
- drivers/usb/host/ehci-hcd.c     |    2 +-
- drivers/usb/host/fotg210-hcd.c  |    2 +-
- drivers/usb/host/oxu210hp-hcd.c |    2 +-
- 4 files changed, 3 insertions(+), 16 deletions(-)
+ drivers/scsi/cxgbi/cxgb3i/Kbuild |    2 +-
+ drivers/scsi/cxgbi/cxgb4i/Kbuild |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/DMA-API.txt~dma-remove-external-references-to-dma_supported Documentation/DMA-API.txt
---- a/Documentation/DMA-API.txt~dma-remove-external-references-to-dma_supported
-+++ a/Documentation/DMA-API.txt
-@@ -142,19 +142,6 @@ Part Ic - DMA addressing limitations
- ------------------------------------
+diff -puN drivers/scsi/cxgbi/cxgb3i/Kbuild~cxgbi-fix-build-with-extra_cflags drivers/scsi/cxgbi/cxgb3i/Kbuild
+--- a/drivers/scsi/cxgbi/cxgb3i/Kbuild~cxgbi-fix-build-with-extra_cflags
++++ a/drivers/scsi/cxgbi/cxgb3i/Kbuild
+@@ -1,3 +1,3 @@
+-EXTRA_CFLAGS += -I$(srctree)/drivers/net/ethernet/chelsio/cxgb3
++ccflags-y += -I$(srctree)/drivers/net/ethernet/chelsio/cxgb3
  
- int
--dma_supported(struct device *dev, u64 mask)
--
--Checks to see if the device can support DMA to the memory described by
--mask.
--
--Returns: 1 if it can and 0 if it can't.
--
--Notes: This routine merely tests to see if the mask is possible.  It
--won't change the current mask settings.  It is more intended as an
--internal API for use by the platform than an external API for use by
--driver writers.
--
--int
- dma_set_mask_and_coherent(struct device *dev, u64 mask)
+ obj-$(CONFIG_SCSI_CXGB3_ISCSI) += cxgb3i.o
+diff -puN drivers/scsi/cxgbi/cxgb4i/Kbuild~cxgbi-fix-build-with-extra_cflags drivers/scsi/cxgbi/cxgb4i/Kbuild
+--- a/drivers/scsi/cxgbi/cxgb4i/Kbuild~cxgbi-fix-build-with-extra_cflags
++++ a/drivers/scsi/cxgbi/cxgb4i/Kbuild
+@@ -1,3 +1,3 @@
+-EXTRA_CFLAGS += -I$(srctree)/drivers/net/ethernet/chelsio/cxgb4
++ccflags-y += -I$(srctree)/drivers/net/ethernet/chelsio/cxgb4
  
- Checks to see if the mask is possible and updates the device
-diff -puN drivers/usb/host/ehci-hcd.c~dma-remove-external-references-to-dma_supported drivers/usb/host/ehci-hcd.c
---- a/drivers/usb/host/ehci-hcd.c~dma-remove-external-references-to-dma_supported
-+++ a/drivers/usb/host/ehci-hcd.c
-@@ -589,7 +589,7 @@ static int ehci_run (struct usb_hcd *hcd
- 	 * streaming mappings for I/O buffers, like pci_map_single(),
- 	 * can return segments above 4GB, if the device allows.
- 	 *
--	 * NOTE:  the dma mask is visible through dma_supported(), so
-+	 * NOTE:  the dma mask is visible through dev->dma_mask, so
- 	 * drivers can pass this info along ... like NETIF_F_HIGHDMA,
- 	 * Scsi_Host.highmem_io, and so forth.  It's readonly to all
- 	 * host side drivers though.
-diff -puN drivers/usb/host/fotg210-hcd.c~dma-remove-external-references-to-dma_supported drivers/usb/host/fotg210-hcd.c
---- a/drivers/usb/host/fotg210-hcd.c~dma-remove-external-references-to-dma_supported
-+++ a/drivers/usb/host/fotg210-hcd.c
-@@ -5063,7 +5063,7 @@ static int fotg210_run(struct usb_hcd *h
- 	 * streaming mappings for I/O buffers, like pci_map_single(),
- 	 * can return segments above 4GB, if the device allows.
- 	 *
--	 * NOTE:  the dma mask is visible through dma_supported(), so
-+	 * NOTE:  the dma mask is visible through dev->dma_mask, so
- 	 * drivers can pass this info along ... like NETIF_F_HIGHDMA,
- 	 * Scsi_Host.highmem_io, and so forth.  It's readonly to all
- 	 * host side drivers though.
-diff -puN drivers/usb/host/oxu210hp-hcd.c~dma-remove-external-references-to-dma_supported drivers/usb/host/oxu210hp-hcd.c
---- a/drivers/usb/host/oxu210hp-hcd.c~dma-remove-external-references-to-dma_supported
-+++ a/drivers/usb/host/oxu210hp-hcd.c
-@@ -2721,7 +2721,7 @@ static int oxu_run(struct usb_hcd *hcd)
- 	 * streaming mappings for I/O buffers, like pci_map_single(),
- 	 * can return segments above 4GB, if the device allows.
- 	 *
--	 * NOTE:  the dma mask is visible through dma_supported(), so
-+	 * NOTE:  the dma mask is visible through dev->dma_mask, so
- 	 * drivers can pass this info along ... like NETIF_F_HIGHDMA,
- 	 * Scsi_Host.highmem_io, and so forth.  It's readonly to all
- 	 * host side drivers though.
+ obj-$(CONFIG_SCSI_CXGB4_ISCSI) += cxgb4i.o
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from jslaby@suse.cz are
 
-pcnet32-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
-tw68-core-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
-saa7164-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
-saa7134-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
-cx88-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
-cx25821-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
-cx23885-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
-netup_unidvb-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
-nouveau-dont-call-pci_dma_supported.patch
-sfc-dont-call-dma_supported.patch
-kaweth-remove-ifdefed-out-call-to-dma_supported.patch
-usbnet-remove-ifdefed-out-call-to-dma_supported.patch
-pci-remove-pci_dma_supported.patch
 
