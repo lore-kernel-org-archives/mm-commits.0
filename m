@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-improve-macros-with-flow-control-test.patch added to -mm tree
-Date: Tue, 10 Nov 2015 13:31:59 -0800
-Message-ID: <5642624f.EWpnjPEqd/chleTx%akpm@linux-foundation.org>
+Subject: + instmem-gk20a-do-not-use-non-portable-dma_to_phys.patch added
+ to -mm tree
+Date: Tue, 10 Nov 2015 15:02:56 -0800
+Message-ID: <564277a0.7FsV6PD3IRnyfISG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35734 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36626 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751031AbbKJVcA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 16:32:00 -0500
+	with ESMTP id S1751393AbbKJXC5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 18:02:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: acourbot@nvidia.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve macros with flow control test
+     Subject: instmem/gk20a: do not use non-portable dma_to_phys()
 has been added to the -mm tree.  Its filename is
-     checkpatch-improve-macros-with-flow-control-test.patch
+     instmem-gk20a-do-not-use-non-portable-dma_to_phys.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-macros-with-flow-control-test.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/instmem-gk20a-do-not-use-non-portable-dma_to_phys.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-macros-with-flow-control-test.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/instmem-gk20a-do-not-use-non-portable-dma_to_phys.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,42 +39,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve macros with flow control test
+From: Alexandre Courbot <acourbot@nvidia.com>
+Subject: instmem/gk20a: do not use non-portable dma_to_phys()
 
-The current test excludes any macro with ## concatenation from being
-reported with hidden flow control.
+dma_to_phys() is not guaranteed to be available on all platforms and
+should not be used outside of arch/. Replace it with what it is expected
+to do in our case: simply cast the DMA handle to a physical address.
 
-Some macros are used with return or goto statements along with ##args or
-##__VA_ARGS__.  A somewhat common case is a logging macro like
-pr_info(fmt, ...) then a return or goto statement.
-
-Check the concatenated variable for args or __VA_ARGS__ and allow those
-macros to also be reported when they contain a return or goto.
-
-Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Alexandre Courbot <acourbot@nvidia.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-macros-with-flow-control-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-macros-with-flow-control-test
-+++ a/scripts/checkpatch.pl
-@@ -4517,7 +4517,7 @@ sub process {
- 			#print "LINE<$lines[$ln-1]> len<" . length($lines[$ln-1]) . "\n";
+diff -puN drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c~instmem-gk20a-do-not-use-non-portable-dma_to_phys drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c~instmem-gk20a-do-not-use-non-portable-dma_to_phys
++++ a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c
+@@ -134,13 +134,17 @@ static void __iomem *
+ gk20a_instobj_cpu_map_dma(struct nvkm_memory *memory)
+ {
+ 	struct gk20a_instobj_dma *node = gk20a_instobj_dma(memory);
+-	struct device *dev = node->base.imem->base.subdev.device->dev;
+ 	int npages = nvkm_memory_size(memory) >> 12;
+ 	struct page *pages[npages];
+ 	int i;
  
- 			$has_flow_statement = 1 if ($ctx =~ /\b(goto|return)\b/);
--			$has_arg_concat = 1 if ($ctx =~ /\#\#/);
-+			$has_arg_concat = 1 if ($ctx =~ /\#\#/ && $ctx !~ /\#\#\s*(?:__VA_ARGS__|args)\b/);
+-	/* phys_to_page does not exist on all platforms... */
+-	pages[0] = pfn_to_page(dma_to_phys(dev, node->handle) >> PAGE_SHIFT);
++	/*
++	 * Ideally we would have a function to translate a handle to a physical
++	 * address, but there is no portable way of doing this. However since we
++	 * always use the DMA API without an IOMMU, we can assume that handles
++	 * are actual physical addresses.
++	 */
++	pages[0] = pfn_to_page(((phys_addr_t)node->handle) >> PAGE_SHIFT);
+ 	for (i = 1; i < npages; i++)
+ 		pages[i] = pages[0] + i;
  
- 			$dstat =~ s/^.\s*\#\s*define\s+$Ident(?:\([^\)]*\))?\s*//;
- 			$dstat =~ s/$;//g;
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from acourbot@nvidia.com are
 
-checkpatch-warn-when-casting-constants-to-c90-int-or-longer-types.patch
-checkpatch-improve-macros-with-flow-control-test.patch
+instmem-gk20a-do-not-use-non-portable-dma_to_phys.patch
 
