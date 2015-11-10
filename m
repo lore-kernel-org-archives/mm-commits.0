@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + iio-core-introduce-iio-configfs-support.patch added to -mm tree
-Date: Tue, 10 Nov 2015 13:09:59 -0800
-Message-ID: <56425d27.EdXdwrKeHxlP4YRi%akpm@linux-foundation.org>
+Subject: + iio-documentation-add-iio-configfs-documentation.patch added to -mm tree
+Date: Tue, 10 Nov 2015 13:10:07 -0800
+Message-ID: <56425d2f.U0/4ykbi52a8srR5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35391 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35431 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751059AbbKJVKA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 16:10:00 -0500
+	with ESMTP id S1751059AbbKJVKI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 16:10:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: daniel.baluta@intel.com, adriana.reus@intel.com, cristina.opriceana@gmail.com, hch@lst.de, jlbec@evilplan.org, knaack.h@gmx.de, lars@metafoo.de, octavian.purdila@intel.com, pebolle@tiscali.nl, pmeerw@pmeerw.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: daniel.baluta@intel.com, adriana.reus@intel.com, cmo@melexis.com, cristina.opriceana@gmail.com, hch@lst.de, jlbec@evilplan.org, knaack.h@gmx.de, lars@metafoo.de, octavian.purdila@intel.com, pebolle@tiscali.nl, pmeerw@pmeerw.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: iio: core: introduce IIO configfs support
+     Subject: iio: Documentation: add IIO configfs documentation
 has been added to the -mm tree.  Its filename is
-     iio-core-introduce-iio-configfs-support.patch
+     iio-documentation-add-iio-configfs-documentation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/iio-core-introduce-iio-configfs-support.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/iio-documentation-add-iio-configfs-documentation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/iio-core-introduce-iio-configfs-support.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/iio-documentation-add-iio-configfs-documentation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,16 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Daniel Baluta <daniel.baluta@intel.com>
-Subject: iio: core: introduce IIO configfs support
-
-This patch creates the IIO configfs root group.  The group will appear
-under <mount-point>/iio/, usually /config/iio.
-
-We introduce configfs support in IIO in order to be able to easily create
-IIO objects from userspace.  The first supported IIO objects are triggers
-introduced with next patches.
+Subject: iio: Documentation: add IIO configfs documentation
 
 Signed-off-by: Daniel Baluta <daniel.baluta@intel.com>
+Acked-by: Crt Mori <cmo@melexis.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Lars-Peter Clausen <lars@metafoo.de>
 Cc: Christoph Hellwig <hch@lst.de>
@@ -56,100 +50,139 @@ Cc: Hartmut Knaack <knaack.h@gmx.de>
 Cc: Octavian Purdila <octavian.purdila@intel.com>
 Cc: Paul Bolle <pebolle@tiscali.nl>
 Cc: Adriana Reus <adriana.reus@intel.com>
+Cc: Daniel Baluta <daniel.baluta@intel.com>
 Cc: Cristina Opriceana <cristina.opriceana@gmail.com>
 Cc: Peter Meerwald <pmeerw@pmeerw.net>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iio/Kconfig                 |    8 ++++
- drivers/iio/Makefile                |    1 
- drivers/iio/industrialio-configfs.c |   50 ++++++++++++++++++++++++++
- 3 files changed, 59 insertions(+)
+ Documentation/ABI/testing/configfs-iio |   21 +++++
+ Documentation/iio/iio_configfs.txt     |   93 +++++++++++++++++++++++
+ 2 files changed, 114 insertions(+)
 
-diff -puN drivers/iio/Kconfig~iio-core-introduce-iio-configfs-support drivers/iio/Kconfig
---- a/drivers/iio/Kconfig~iio-core-introduce-iio-configfs-support
-+++ a/drivers/iio/Kconfig
-@@ -22,6 +22,14 @@ if IIO_BUFFER
- 	source "drivers/iio/buffer/Kconfig"
- endif # IIO_BUFFER
- 
-+config IIO_CONFIGFS
-+	tristate "Enable IIO configuration via configfs"
-+	select CONFIGFS_FS
-+	help
-+	  This allows configuring various IIO bits through configfs
-+	  (e.g. software triggers). For more info see
-+	  Documentation/iio/iio_configfs.txt.
-+
- config IIO_TRIGGER
- 	bool "Enable triggered sampling support"
- 	help
-diff -puN drivers/iio/Makefile~iio-core-introduce-iio-configfs-support drivers/iio/Makefile
---- a/drivers/iio/Makefile~iio-core-introduce-iio-configfs-support
-+++ a/drivers/iio/Makefile
-@@ -7,6 +7,7 @@ industrialio-y := industrialio-core.o in
- industrialio-$(CONFIG_IIO_BUFFER) += industrialio-buffer.o
- industrialio-$(CONFIG_IIO_TRIGGER) += industrialio-trigger.o
- 
-+obj-$(CONFIG_IIO_CONFIGFS) += industrialio-configfs.o
- obj-$(CONFIG_IIO_TRIGGERED_EVENT) += industrialio-triggered-event.o
- 
- obj-y += accel/
-diff -puN /dev/null drivers/iio/industrialio-configfs.c
+diff -puN /dev/null Documentation/ABI/testing/configfs-iio
 --- /dev/null
-+++ a/drivers/iio/industrialio-configfs.c
-@@ -0,0 +1,50 @@
++++ a/Documentation/ABI/testing/configfs-iio
+@@ -0,0 +1,21 @@
++What:		/config/iio
++Date:		October 2015
++KernelVersion:	4.4
++Contact:	linux-iio@vger.kernel.org
++Description:
++		This represents Industrial IO configuration entry point
++		directory. It contains sub-groups corresponding to IIO
++		objects.
++
++What:		/config/iio/triggers
++Date:		October 2015
++KernelVersion:	4.4
++Description:
++		Industrial IO software triggers directory.
++
++What:		/config/iio/triggers/hrtimers
++Date:		October 2015
++KernelVersion:	4.4
++Description:
++		High resolution timers directory. Creating a directory here
++		will result in creating a hrtimer trigger in the IIO subsystem.
+diff -puN /dev/null Documentation/iio/iio_configfs.txt
+--- /dev/null
++++ a/Documentation/iio/iio_configfs.txt
+@@ -0,0 +1,93 @@
++Industrial IIO configfs support
++
++1. Overview
++
++Configfs is a filesystem-based manager of kernel objects. IIO uses some
++objects that could be easily configured using configfs (e.g.: devices,
++triggers).
++
++See Documentation/filesystems/configfs/configfs.txt for more information
++about how configfs works.
++
++2. Usage
++
++In order to use configfs support in IIO we need to select it at compile
++time via CONFIG_IIO_CONFIGFS config option.
++
++Then, mount the configfs filesystem (usually under /config directory):
++
++$ mkdir /config
++$ mount -t configfs none /config
++
++At this point, all default IIO groups will be created and can be accessed
++under /config/iio. Next chapters will describe available IIO configuration
++objects.
++
++3. Software triggers
++
++One of the IIO default configfs groups is the "triggers" group. It is
++automagically accessible when the configfs is mounted and can be found
++under /config/iio/triggers.
++
++IIO software triggers implementation offers support for creating multiple
++trigger types. A new trigger type is usually implemented as a separate
++kernel module following the interface in include/linux/iio/sw_trigger.h:
++
 +/*
-+ * Industrial I/O configfs bits
-+ *
-+ * Copyright (c) 2015 Intel Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
++ * drivers/iio/trigger/iio-trig-sample.c
++ * sample kernel module implementing a new trigger type
 + */
++#include <linux/iio/sw_trigger.h>
 +
-+#include <linux/configfs.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/kmod.h>
-+#include <linux/slab.h>
 +
-+#include <linux/iio/iio.h>
++static struct iio_sw_trigger *iio_trig_sample_probe(const char *name)
++{
++	/*
++	 * This allocates and registers an IIO trigger plus other
++	 * trigger type specific initialization.
++	 */
++}
 +
-+static struct config_item_type iio_root_group_type = {
-+	.ct_owner       = THIS_MODULE,
++static int iio_trig_hrtimer_remove(struct iio_sw_trigger *swt)
++{
++	/*
++	 * This undoes the actions in iio_trig_sample_probe
++	 */
++}
++
++static const struct iio_sw_trigger_ops iio_trig_sample_ops = {
++	.probe		= iio_trig_sample_probe,
++	.remove		= iio_trig_sample_remove,
 +};
 +
-+struct configfs_subsystem iio_configfs_subsys = {
-+	.su_group = {
-+		.cg_item = {
-+			.ci_namebuf = "iio",
-+			.ci_type = &iio_root_group_type,
-+		},
-+	},
-+	.su_mutex = __MUTEX_INITIALIZER(iio_configfs_subsys.su_mutex),
++static struct iio_sw_trigger_type iio_trig_sample = {
++	.name = "trig-sample",
++	.owner = THIS_MODULE,
++	.ops = &iio_trig_sample_ops,
 +};
-+EXPORT_SYMBOL(iio_configfs_subsys);
 +
-+static int __init iio_configfs_init(void)
-+{
-+	config_group_init(&iio_configfs_subsys.su_group);
++module_iio_sw_trigger_driver(iio_trig_sample);
 +
-+	return configfs_register_subsystem(&iio_configfs_subsys);
-+}
-+module_init(iio_configfs_init);
++Each trigger type has its own directory under /config/iio/triggers. Loading
++iio-trig-sample module will create 'trig-sample' trigger type directory
++/config/iio/triggers/trig-sample.
 +
-+static void __exit iio_configfs_exit(void)
-+{
-+	configfs_unregister_subsystem(&iio_configfs_subsys);
-+}
-+module_exit(iio_configfs_exit);
++We support the following interrupt sources (trigger types):
++	* hrtimer, uses high resolution timers as interrupt source
 +
-+MODULE_AUTHOR("Daniel Baluta <daniel.baluta@intel.com>");
-+MODULE_DESCRIPTION("Industrial I/O configfs support");
-+MODULE_LICENSE("GPL v2");
++3.1 Hrtimer triggers creation and destruction
++
++Loading iio-trig-hrtimer module will register hrtimer trigger types allowing
++users to create hrtimer triggers under /config/iio/triggers/hrtimer.
++
++e.g:
++
++$ mkdir /config/triggers/hrtimer/instance1
++$ rmdir /config/triggers/hrtimer/instance1
++
++Each trigger can have one or more attributes specific to the trigger type.
++
++3.2 "hrtimer" trigger types attributes
++
++"hrtimer" trigger type doesn't have any configurable attribute from /config dir.
++It does introduce the sampling_frequency attribute to trigger directory.
 _
 
 Patches currently in -mm which might be from daniel.baluta@intel.com are
