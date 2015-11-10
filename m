@@ -1,59 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] remove-abs64-fix-fix-fix.patch removed from -mm
+Subject: [merged] fs-fix-inodec-kernel-doc-warning.patch removed from -mm
  tree
-Date: Mon, 09 Nov 2015 14:52:21 -0800
-Message-ID: <564123a5.nAHt8F3Jw5IUdATD%akpm@linux-foundation.org>
+Date: Tue, 10 Nov 2015 12:32:54 -0800
+Message-ID: <56425476.pIIytRINvRoUC5yR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33060 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34000 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751093AbbKIWwW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 9 Nov 2015 17:52:22 -0500
+	with ESMTP id S1750749AbbKJUcz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 15:32:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dmitry.torokhov@gmail.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: rdunlap@infradead.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: remove-abs64-fix-fix-fix
+     Subject: fs/inode.c: fix kernel-doc warning
 has been removed from the -mm tree.  Its filename was
-     remove-abs64-fix-fix-fix.patch
+     fs-fix-inodec-kernel-doc-warning.patch
 
-This patch was dropped because it was folded into remove-abs64.patch
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: remove-abs64-fix-fix-fix
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: fs/inode.c: fix kernel-doc warning
 
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Fix kernel-doc warning in fs/inode.c:
+
+..//fs/inode.c:1606: warning: No description found for parameter 'inode'
+
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/mballoc.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/inode.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ext4/mballoc.c~remove-abs64-fix-fix-fix fs/ext4/mballoc.c
---- a/fs/ext4/mballoc.c~remove-abs64-fix-fix-fix
-+++ a/fs/ext4/mballoc.c
-@@ -3333,8 +3333,8 @@ ext4_mb_check_group_pa(ext4_fsblk_t goal
- 		atomic_inc(&pa->pa_count);
- 		return pa;
- 	}
--	cur_distance = abs64(goal_block - cpa->pa_pstart);
--	new_distance = abs64(goal_block - pa->pa_pstart);
-+	cur_distance = abs(goal_block - cpa->pa_pstart);
-+	new_distance = abs(goal_block - pa->pa_pstart);
- 
- 	if (cur_distance <= new_distance)
- 		return cpa;
+diff -puN fs/inode.c~fs-fix-inodec-kernel-doc-warning fs/inode.c
+--- a/fs/inode.c~fs-fix-inodec-kernel-doc-warning
++++ a/fs/inode.c
+@@ -1597,6 +1597,7 @@ static int update_time(struct inode *ino
+ /**
+  *	touch_atime	-	update the access time
+  *	@path: the &struct path to update
++ *	@inode: inode to update
+  *
+  *	Update the accessed time on an inode and mark it for writeback.
+  *	This function automatically handles read only file systems and media,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-remove-abs64.patch
-remove-abs64-fix-fix-fix-fix.patch
 
