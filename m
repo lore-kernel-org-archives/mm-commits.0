@@ -1,134 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernelh-make-abs-work-with-64-bit-types.patch removed
- from -mm tree
-Date: Tue, 10 Nov 2015 12:33:04 -0800
-Message-ID: <56425480.53lsc9GqcampR04g%akpm@linux-foundation.org>
+Subject: [merged] dma-remove-external-references-to-dma_supported.patch
+ removed from -mm tree
+Date: Tue, 10 Nov 2015 12:33:12 -0800
+Message-ID: <56425488.SLn6i9fSHDJufM3u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34024 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34044 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751109AbbKJUdF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 15:33:05 -0500
+	with ESMTP id S1751109AbbKJUdM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 15:33:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mina86@mina86.com, a.p.zijlstra@chello.nl, john.stultz@linaro.org, masami.hiramatsu.pt@hitachi.com, mingo@kernel.org, peterz@infradead.org, rostedt@goodmis.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: hch@lst.de, gregkh@linuxfoundation.org, stern@rowland.harvard.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel.h: make abs() work with 64-bit types
+     Subject: dma: remove external references to dma_supported
 has been removed from the -mm tree.  Its filename was
-     kernelh-make-abs-work-with-64-bit-types.patch
+     dma-remove-external-references-to-dma_supported.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Nazarewicz <mina86@mina86.com>
-Subject: kernel.h: make abs() work with 64-bit types
+From: Christoph Hellwig <hch@lst.de>
+Subject: dma: remove external references to dma_supported
 
-For 64-bit arguments, the abs macro casts it to an int which leads to lost
-precision and may cause incorrect results.  To deal with 64-bit types
-abs64 macro has been introduced but still there are places where abs macro
-is used incorrectly.
-
-To deal with the problem, expand abs macro such that it operates on s64
-type when dealing with 64-bit types while still returning long when
-dealing with smaller types.
-
-This fixes one known bug (per John):
-
-The internal clocksteering done for fine-grained error correction uses a
-: logarithmic approximation, so any time adjtimex() adjusts the clock
-: steering, timekeeping_freqadjust() quickly approximates the correct clock
-: frequency over a series of ticks.
-: 
-: Unfortunately, the logic in timekeeping_freqadjust(), introduced in commit
-: dc491596f639438 (Rework frequency adjustments to work better w/ nohz),
-: used the abs() function with a s64 error value to calculate the size of
-: the approximated adjustment to be made.
-: 
-: Per include/linux/kernel.h: "abs() should not be used for 64-bit types
-: (s64, u64, long long) - use abs64()".
-: 
-: Thus on 32-bit platforms, this resulted in the clocksteering to take a
-: quite dampended random walk trying to converge on the proper frequency,
-: which caused the adjustments to be made much slower then intended (most
-: easily observed when large adjustments are made).
-
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Reported-by: John Stultz <john.stultz@linaro.org>
-Tested-by: John Stultz <john.stultz@linaro.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |   43 ++++++++++++++++++++-------------------
- 1 file changed, 23 insertions(+), 20 deletions(-)
+ Documentation/DMA-API.txt       |   13 -------------
+ drivers/usb/host/ehci-hcd.c     |    2 +-
+ drivers/usb/host/fotg210-hcd.c  |    2 +-
+ drivers/usb/host/oxu210hp-hcd.c |    2 +-
+ 4 files changed, 3 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/kernel.h~kernelh-make-abs-work-with-64-bit-types include/linux/kernel.h
---- a/include/linux/kernel.h~kernelh-make-abs-work-with-64-bit-types
-+++ a/include/linux/kernel.h
-@@ -200,28 +200,31 @@ extern int _cond_resched(void);
+diff -puN Documentation/DMA-API.txt~dma-remove-external-references-to-dma_supported Documentation/DMA-API.txt
+--- a/Documentation/DMA-API.txt~dma-remove-external-references-to-dma_supported
++++ a/Documentation/DMA-API.txt
+@@ -142,19 +142,6 @@ Part Ic - DMA addressing limitations
+ ------------------------------------
  
- #define might_sleep_if(cond) do { if (cond) might_sleep(); } while (0)
+ int
+-dma_supported(struct device *dev, u64 mask)
+-
+-Checks to see if the device can support DMA to the memory described by
+-mask.
+-
+-Returns: 1 if it can and 0 if it can't.
+-
+-Notes: This routine merely tests to see if the mask is possible.  It
+-won't change the current mask settings.  It is more intended as an
+-internal API for use by the platform than an external API for use by
+-driver writers.
+-
+-int
+ dma_set_mask_and_coherent(struct device *dev, u64 mask)
  
--/*
-- * abs() handles unsigned and signed longs, ints, shorts and chars.  For all
-- * input types abs() returns a signed long.
-- * abs() should not be used for 64-bit types (s64, u64, long long) - use abs64()
-- * for those.
-+/**
-+ * abs - return absolute value of an argument
-+ * @x: the value.  If it is unsigned type, it is converted to signed type first
-+ *   (s64, long or int depending on its size).
-+ *
-+ * Return: an absolute value of x.  If x is 64-bit, macro's return type is s64,
-+ *   otherwise it is signed long.
-  */
--#define abs(x) ({						\
--		long ret;					\
--		if (sizeof(x) == sizeof(long)) {		\
--			long __x = (x);				\
--			ret = (__x < 0) ? -__x : __x;		\
--		} else {					\
--			int __x = (x);				\
--			ret = (__x < 0) ? -__x : __x;		\
--		}						\
--		ret;						\
--	})
-+#define abs(x) __builtin_choose_expr(sizeof(x) == sizeof(s64), ({	\
-+		s64 __x = (x);						\
-+		(__x < 0) ? -__x : __x;					\
-+	}), ({								\
-+		long ret;						\
-+		if (sizeof(x) == sizeof(long)) {			\
-+			long __x = (x);					\
-+			ret = (__x < 0) ? -__x : __x;			\
-+		} else {						\
-+			int __x = (x);					\
-+			ret = (__x < 0) ? -__x : __x;			\
-+		}							\
-+		ret;							\
-+	}))
- 
--#define abs64(x) ({				\
--		s64 __x = (x);			\
--		(__x < 0) ? -__x : __x;		\
--	})
-+/* Deprecated, use abs instead. */
-+#define abs64(x) abs((s64)(x))
- 
- /**
-  * reciprocal_scale - "scale" a value into range [0, ep_ro)
+ Checks to see if the mask is possible and updates the device
+diff -puN drivers/usb/host/ehci-hcd.c~dma-remove-external-references-to-dma_supported drivers/usb/host/ehci-hcd.c
+--- a/drivers/usb/host/ehci-hcd.c~dma-remove-external-references-to-dma_supported
++++ a/drivers/usb/host/ehci-hcd.c
+@@ -589,7 +589,7 @@ static int ehci_run (struct usb_hcd *hcd
+ 	 * streaming mappings for I/O buffers, like pci_map_single(),
+ 	 * can return segments above 4GB, if the device allows.
+ 	 *
+-	 * NOTE:  the dma mask is visible through dma_supported(), so
++	 * NOTE:  the dma mask is visible through dev->dma_mask, so
+ 	 * drivers can pass this info along ... like NETIF_F_HIGHDMA,
+ 	 * Scsi_Host.highmem_io, and so forth.  It's readonly to all
+ 	 * host side drivers though.
+diff -puN drivers/usb/host/fotg210-hcd.c~dma-remove-external-references-to-dma_supported drivers/usb/host/fotg210-hcd.c
+--- a/drivers/usb/host/fotg210-hcd.c~dma-remove-external-references-to-dma_supported
++++ a/drivers/usb/host/fotg210-hcd.c
+@@ -5063,7 +5063,7 @@ static int fotg210_run(struct usb_hcd *h
+ 	 * streaming mappings for I/O buffers, like pci_map_single(),
+ 	 * can return segments above 4GB, if the device allows.
+ 	 *
+-	 * NOTE:  the dma mask is visible through dma_supported(), so
++	 * NOTE:  the dma mask is visible through dev->dma_mask, so
+ 	 * drivers can pass this info along ... like NETIF_F_HIGHDMA,
+ 	 * Scsi_Host.highmem_io, and so forth.  It's readonly to all
+ 	 * host side drivers though.
+diff -puN drivers/usb/host/oxu210hp-hcd.c~dma-remove-external-references-to-dma_supported drivers/usb/host/oxu210hp-hcd.c
+--- a/drivers/usb/host/oxu210hp-hcd.c~dma-remove-external-references-to-dma_supported
++++ a/drivers/usb/host/oxu210hp-hcd.c
+@@ -2721,7 +2721,7 @@ static int oxu_run(struct usb_hcd *hcd)
+ 	 * streaming mappings for I/O buffers, like pci_map_single(),
+ 	 * can return segments above 4GB, if the device allows.
+ 	 *
+-	 * NOTE:  the dma mask is visible through dma_supported(), so
++	 * NOTE:  the dma mask is visible through dev->dma_mask, so
+ 	 * drivers can pass this info along ... like NETIF_F_HIGHDMA,
+ 	 * Scsi_Host.highmem_io, and so forth.  It's readonly to all
+ 	 * host side drivers though.
 _
 
-Patches currently in -mm which might be from mina86@mina86.com are
+Patches currently in -mm which might be from hch@lst.de are
 
+pcnet32-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
+tw68-core-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
+saa7164-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
+saa7134-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
+cx88-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
+cx25821-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
+cx23885-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
+netup_unidvb-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
+nouveau-dont-call-pci_dma_supported.patch
+sfc-dont-call-dma_supported.patch
+kaweth-remove-ifdefed-out-call-to-dma_supported.patch
+usbnet-remove-ifdefed-out-call-to-dma_supported.patch
+pci-remove-pci_dma_supported.patch
 
