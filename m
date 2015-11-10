@@ -1,53 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-kdev_t-remove-unused-huge_valid_dev-function.patch
+Subject: [merged] fs-f2fs-remove-unnecessary-new_valid_dev-check.patch
  removed from -mm tree
-Date: Tue, 10 Nov 2015 12:33:18 -0800
-Message-ID: <5642548e.0Xe6LB1tjU9/JoRk%akpm@linux-foundation.org>
+Date: Tue, 10 Nov 2015 12:33:30 -0800
+Message-ID: <5642549a.8yvcZU/Md2qY6wXw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34055 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34080 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751691AbbKJUdS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 15:33:18 -0500
+	with ESMTP id S1751761AbbKJUda (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 15:33:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: bywxiaobai@163.com, chao2.yu@samsung.com, cm224.lee@samsung.com, jaegeuk@kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/kdev_t.h: remove unused huge_valid_dev()
+     Subject: fs/f2fs/namei.c: remove unnecessary new_valid_dev() check
 has been removed from the -mm tree.  Its filename was
-     fs-kdev_t-remove-unused-huge_valid_dev-function.patch
+     fs-f2fs-remove-unnecessary-new_valid_dev-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Yaowei Bai <bywxiaobai@163.com>
-Subject: include/linux/kdev_t.h: remove unused huge_valid_dev()
+Subject: fs/f2fs/namei.c: remove unnecessary new_valid_dev() check
 
-There's no user of huge_valid_dev() any more, so remove it.
-
-No functional change.
+new_valid_dev() always returns 1, so the !new_valid_dev() check is not
+needed.  Remove it.
 
 Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Jaegeuk Kim <jaegeuk@kernel.org>
+Cc: Changman Lee <cm224.lee@samsung.com>
+Cc: Chao Yu <chao2.yu@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kdev_t.h |    5 -----
- 1 file changed, 5 deletions(-)
+ fs/f2fs/namei.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN include/linux/kdev_t.h~fs-kdev_t-remove-unused-huge_valid_dev-function include/linux/kdev_t.h
---- a/include/linux/kdev_t.h~fs-kdev_t-remove-unused-huge_valid_dev-function
-+++ a/include/linux/kdev_t.h
-@@ -54,11 +54,6 @@ static inline dev_t new_decode_dev(u32 d
- 	return MKDEV(major, minor);
- }
+diff -puN fs/f2fs/namei.c~fs-f2fs-remove-unnecessary-new_valid_dev-check fs/f2fs/namei.c
+--- a/fs/f2fs/namei.c~fs-f2fs-remove-unnecessary-new_valid_dev-check
++++ a/fs/f2fs/namei.c
+@@ -481,9 +481,6 @@ static int f2fs_mknod(struct inode *dir,
+ 	struct inode *inode;
+ 	int err = 0;
  
--static inline int huge_valid_dev(dev_t dev)
--{
--	return 1;
--}
+-	if (!new_valid_dev(rdev))
+-		return -EINVAL;
