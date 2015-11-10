@@ -1,58 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-stat-remove-unnecessary-new_valid_dev-check.patch
- removed from -mm tree
-Date: Tue, 10 Nov 2015 12:33:43 -0800
-Message-ID: <564254a7.gXTb3ua95zkABNxk%akpm@linux-foundation.org>
+Subject: + lib-string-add-ull-suffix-to-the-constant-definition.patch
+ added to -mm tree
+Date: Tue, 10 Nov 2015 12:58:02 -0800
+Message-ID: <56425a5a.a4PHueuhMQeJVEx0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34106 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35265 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751761AbbKJUdn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 15:33:43 -0500
+	with ESMTP id S1751028AbbKJU6D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 15:58:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bywxiaobai@163.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/stat.c: remove unnecessary new_valid_dev() check
-has been removed from the -mm tree.  Its filename was
-     fs-stat-remove-unnecessary-new_valid_dev-check.patch
+     Subject: lib/string.c: add ULL suffix to the constant definition
+has been added to the -mm tree.  Its filename is
+     lib-string-add-ull-suffix-to-the-constant-definition.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-string-add-ull-suffix-to-the-constant-definition.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-string-add-ull-suffix-to-the-constant-definition.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Yaowei Bai <bywxiaobai@163.com>
-Subject: fs/stat.c: remove unnecessary new_valid_dev() check
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib/string.c: add ULL suffix to the constant definition
 
-new_valid_dev() always returns 1, so the !new_valid_dev() check is not
-needed.  Remove it.
+8-byte constant is too big for long and compiler complains about this.
 
-Signed-off-by: Yaowei Bai <bywxiaobai@163.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+lib/string.c:907:20: warning: constant 0x0101010101010101 is so big it is long
+
+Append ULL suffix to explicitly show its type.
+
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/stat.c |    2 --
- 1 file changed, 2 deletions(-)
+ lib/string.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/stat.c~fs-stat-remove-unnecessary-new_valid_dev-check fs/stat.c
---- a/fs/stat.c~fs-stat-remove-unnecessary-new_valid_dev-check
-+++ a/fs/stat.c
-@@ -367,8 +367,6 @@ static long cp_new_stat64(struct kstat *
- 	INIT_STRUCT_STAT64_PADDING(tmp);
- #ifdef CONFIG_MIPS
- 	/* mips has weird padding, so we don't get 64 bits there */
--	if (!new_valid_dev(stat->dev) || !new_valid_dev(stat->rdev))
--		return -EOVERFLOW;
- 	tmp.st_dev = new_encode_dev(stat->dev);
- 	tmp.st_rdev = new_encode_dev(stat->rdev);
- #else
+diff -puN lib/string.c~lib-string-add-ull-suffix-to-the-constant-definition lib/string.c
+--- a/lib/string.c~lib-string-add-ull-suffix-to-the-constant-definition
++++ a/lib/string.c
+@@ -904,7 +904,7 @@ void *memchr_inv(const void *start, int
+ 
+ 	value64 = value;
+ #if defined(CONFIG_ARCH_HAS_FAST_MULTIPLIER) && BITS_PER_LONG == 64
+-	value64 *= 0x0101010101010101;
++	value64 *= 0x0101010101010101ULL;
+ #elif defined(CONFIG_ARCH_HAS_FAST_MULTIPLIER)
+ 	value64 *= 0x01010101;
+ 	value64 |= value64 << 32;
 _
 
-Patches currently in -mm which might be from bywxiaobai@163.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
+lib-string-add-ull-suffix-to-the-constant-definition.patch
 
