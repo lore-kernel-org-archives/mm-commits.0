@@ -1,60 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-doc-fix-misleading-code-reference-of-overcommit_memory.patch removed
+Subject: [merged] kernelh-make-abs-work-with-64-bit-types.patch removed
  from -mm tree
-Date: Tue, 10 Nov 2015 12:33:10 -0800
-Message-ID: <56425486.pOQSXIe0Aa3mvhH+%akpm@linux-foundation.org>
+Date: Tue, 10 Nov 2015 12:33:04 -0800
+Message-ID: <56425480.53lsc9GqcampR04g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34040 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34024 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751109AbbKJUdK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 15:33:10 -0500
+	with ESMTP id S1751109AbbKJUdF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 15:33:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chenchun.feed@gmail.com, mhocko@suse.com, ramichen@tencent.com, mm-commits@vger.kernel.org
+To: mina86@mina86.com, a.p.zijlstra@chello.nl, john.stultz@linaro.org, masami.hiramatsu.pt@hitachi.com, mingo@kernel.org, peterz@infradead.org, rostedt@goodmis.org, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/sysctl/vm.txt: fix misleading code reference of overcommit_memory
+     Subject: kernel.h: make abs() work with 64-bit types
 has been removed from the -mm tree.  Its filename was
-     mm-doc-fix-misleading-code-reference-of-overcommit_memory.patch
+     kernelh-make-abs-work-with-64-bit-types.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chun Chen <chenchun.feed@gmail.com>
-Subject: Documentation/sysctl/vm.txt: fix misleading code reference of overcommit_memory
+From: Michal Nazarewicz <mina86@mina86.com>
+Subject: kernel.h: make abs() work with 64-bit types
 
-The origin document references to cap_vm_enough_memory is because
-cap_vm_enough_memory invoked __vm_enough_memory before and it no longer
-does now.
+For 64-bit arguments, the abs macro casts it to an int which leads to lost
+precision and may cause incorrect results.  To deal with 64-bit types
+abs64 macro has been introduced but still there are places where abs macro
+is used incorrectly.
 
-Signed-off-by: Chun Chen <ramichen@tencent.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+To deal with the problem, expand abs macro such that it operates on s64
+type when dealing with 64-bit types while still returning long when
+dealing with smaller types.
+
+This fixes one known bug (per John):
+
+The internal clocksteering done for fine-grained error correction uses a
+: logarithmic approximation, so any time adjtimex() adjusts the clock
+: steering, timekeeping_freqadjust() quickly approximates the correct clock
+: frequency over a series of ticks.
+: 
+: Unfortunately, the logic in timekeeping_freqadjust(), introduced in commit
+: dc491596f639438 (Rework frequency adjustments to work better w/ nohz),
+: used the abs() function with a s64 error value to calculate the size of
+: the approximated adjustment to be made.
+: 
+: Per include/linux/kernel.h: "abs() should not be used for 64-bit types
+: (s64, u64, long long) - use abs64()".
+: 
+: Thus on 32-bit platforms, this resulted in the clocksteering to take a
+: quite dampended random walk trying to converge on the proper frequency,
+: which caused the adjustments to be made much slower then intended (most
+: easily observed when large adjustments are made).
+
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Reported-by: John Stultz <john.stultz@linaro.org>
+Tested-by: John Stultz <john.stultz@linaro.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/sysctl/vm.txt |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/kernel.h |   43 ++++++++++++++++++++-------------------
+ 1 file changed, 23 insertions(+), 20 deletions(-)
 
-diff -puN Documentation/sysctl/vm.txt~mm-doc-fix-misleading-code-reference-of-overcommit_memory Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~mm-doc-fix-misleading-code-reference-of-overcommit_memory
-+++ a/Documentation/sysctl/vm.txt
-@@ -639,7 +639,7 @@ and don't use much of it.
- The default value is 0.
+diff -puN include/linux/kernel.h~kernelh-make-abs-work-with-64-bit-types include/linux/kernel.h
+--- a/include/linux/kernel.h~kernelh-make-abs-work-with-64-bit-types
++++ a/include/linux/kernel.h
+@@ -200,28 +200,31 @@ extern int _cond_resched(void);
  
- See Documentation/vm/overcommit-accounting and
--security/commoncap.c::cap_vm_enough_memory() for more information.
-+mm/mmap.c::__vm_enough_memory() for more information.
+ #define might_sleep_if(cond) do { if (cond) might_sleep(); } while (0)
  
- ==============================================================
+-/*
+- * abs() handles unsigned and signed longs, ints, shorts and chars.  For all
+- * input types abs() returns a signed long.
+- * abs() should not be used for 64-bit types (s64, u64, long long) - use abs64()
+- * for those.
++/**
++ * abs - return absolute value of an argument
++ * @x: the value.  If it is unsigned type, it is converted to signed type first
++ *   (s64, long or int depending on its size).
++ *
++ * Return: an absolute value of x.  If x is 64-bit, macro's return type is s64,
++ *   otherwise it is signed long.
+  */
+-#define abs(x) ({						\
+-		long ret;					\
+-		if (sizeof(x) == sizeof(long)) {		\
+-			long __x = (x);				\
+-			ret = (__x < 0) ? -__x : __x;		\
+-		} else {					\
+-			int __x = (x);				\
+-			ret = (__x < 0) ? -__x : __x;		\
+-		}						\
+-		ret;						\
+-	})
++#define abs(x) __builtin_choose_expr(sizeof(x) == sizeof(s64), ({	\
++		s64 __x = (x);						\
++		(__x < 0) ? -__x : __x;					\
++	}), ({								\
++		long ret;						\
++		if (sizeof(x) == sizeof(long)) {			\
++			long __x = (x);					\
++			ret = (__x < 0) ? -__x : __x;			\
++		} else {						\
++			int __x = (x);					\
++			ret = (__x < 0) ? -__x : __x;			\
++		}							\
++		ret;							\
++	}))
  
+-#define abs64(x) ({				\
+-		s64 __x = (x);			\
+-		(__x < 0) ? -__x : __x;		\
+-	})
++/* Deprecated, use abs instead. */
++#define abs64(x) abs((s64)(x))
+ 
+ /**
+  * reciprocal_scale - "scale" a value into range [0, ep_ro)
 _
 
-Patches currently in -mm which might be from chenchun.feed@gmail.com are
+Patches currently in -mm which might be from mina86@mina86.com are
 
 
