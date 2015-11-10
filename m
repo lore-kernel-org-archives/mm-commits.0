@@ -1,71 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-fix-writebackc-kernel-doc-warnings.patch removed from -mm tree
-Date: Tue, 10 Nov 2015 12:32:57 -0800
-Message-ID: <56425479.taPK4jHHQTYAn+ZD%akpm@linux-foundation.org>
+Subject: [merged]
+ sparc-sparc64-allocate-sys_membarrier-system-call-number.patch removed from -mm tree
+Date: Tue, 10 Nov 2015 12:33:02 -0800
+Message-ID: <5642547e.5/8zCbYm+Oo9zasS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34003 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34019 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751109AbbKJUc5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 15:32:57 -0500
+	with ESMTP id S1751109AbbKJUdC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 15:33:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@infradead.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mathieu.desnoyers@efficios.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/writeback.c: fix kernel-doc warnings
+     Subject: sparc/sparc64: allocate sys_membarrier system call number
 has been removed from the -mm tree.  Its filename was
-     fs-fix-writebackc-kernel-doc-warnings.patch
+     sparc-sparc64-allocate-sys_membarrier-system-call-number.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: fs/writeback.c: fix kernel-doc warnings
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Subject: sparc/sparc64: allocate sys_membarrier system call number
 
-Fix kernel-doc warnings in fs/fs-writeback.c by moving a #define macro to
-after the function's opening brace.  Also #undef this macro at the end of
-the function.
-
-..//fs/fs-writeback.c:1984: warning: Excess function parameter 'inode' description in 'I_DIRTY_INODE'
-..//fs/fs-writeback.c:1984: warning: Excess function parameter 'flags' description in 'I_DIRTY_INODE'
-
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Acked-by: "David S. Miller" <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ arch/sparc/include/uapi/asm/unistd.h |    3 ++-
+ arch/sparc/kernel/systbls_32.S       |    2 +-
+ arch/sparc/kernel/systbls_64.S       |    4 ++--
+ 3 files changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN fs/fs-writeback.c~fs-fix-writebackc-kernel-doc-warnings fs/fs-writeback.c
---- a/fs/fs-writeback.c~fs-fix-writebackc-kernel-doc-warnings
-+++ a/fs/fs-writeback.c
-@@ -1981,9 +1981,9 @@ static noinline void block_dump___mark_i
-  * page->mapping->host, so the page-dirtying time is recorded in the internal
-  * blockdev inode.
-  */
--#define I_DIRTY_INODE (I_DIRTY_SYNC | I_DIRTY_DATASYNC)
- void __mark_inode_dirty(struct inode *inode, int flags)
- {
-+#define I_DIRTY_INODE (I_DIRTY_SYNC | I_DIRTY_DATASYNC)
- 	struct super_block *sb = inode->i_sb;
- 	int dirtytime;
+diff -puN arch/sparc/include/uapi/asm/unistd.h~sparc-sparc64-allocate-sys_membarrier-system-call-number arch/sparc/include/uapi/asm/unistd.h
+--- a/arch/sparc/include/uapi/asm/unistd.h~sparc-sparc64-allocate-sys_membarrier-system-call-number
++++ a/arch/sparc/include/uapi/asm/unistd.h
+@@ -416,8 +416,9 @@
+ #define __NR_memfd_create	348
+ #define __NR_bpf		349
+ #define __NR_execveat		350
++#define __NR_membarrier		351
  
-@@ -2093,6 +2093,7 @@ void __mark_inode_dirty(struct inode *in
- out_unlock_inode:
- 	spin_unlock(&inode->i_lock);
+-#define NR_syscalls		351
++#define NR_syscalls		352
  
-+#undef I_DIRTY_INODE
- }
- EXPORT_SYMBOL(__mark_inode_dirty);
+ /* Bitmask values returned from kern_features system call.  */
+ #define KERN_FEATURE_MIXED_MODE_STACK	0x00000001
+diff -puN arch/sparc/kernel/systbls_32.S~sparc-sparc64-allocate-sys_membarrier-system-call-number arch/sparc/kernel/systbls_32.S
+--- a/arch/sparc/kernel/systbls_32.S~sparc-sparc64-allocate-sys_membarrier-system-call-number
++++ a/arch/sparc/kernel/systbls_32.S
+@@ -87,4 +87,4 @@ sys_call_table:
+ /*335*/	.long sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
+ /*340*/	.long sys_ni_syscall, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ /*345*/	.long sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+-/*350*/	.long sys_execveat
++/*350*/	.long sys_execveat, sys_membarrier
+diff -puN arch/sparc/kernel/systbls_64.S~sparc-sparc64-allocate-sys_membarrier-system-call-number arch/sparc/kernel/systbls_64.S
+--- a/arch/sparc/kernel/systbls_64.S~sparc-sparc64-allocate-sys_membarrier-system-call-number
++++ a/arch/sparc/kernel/systbls_64.S
+@@ -88,7 +88,7 @@ sys_call_table32:
+ 	.word sys_syncfs, compat_sys_sendmmsg, sys_setns, compat_sys_process_vm_readv, compat_sys_process_vm_writev
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ 	.word sys32_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+-/*350*/	.word sys32_execveat
++/*350*/	.word sys32_execveat, sys_membarrier
  
+ #endif /* CONFIG_COMPAT */
+ 
+@@ -168,4 +168,4 @@ sys_call_table:
+ 	.word sys_syncfs, sys_sendmmsg, sys_setns, sys_process_vm_readv, sys_process_vm_writev
+ /*340*/	.word sys_kern_features, sys_kcmp, sys_finit_module, sys_sched_setattr, sys_sched_getattr
+ 	.word sys_renameat2, sys_seccomp, sys_getrandom, sys_memfd_create, sys_bpf
+-/*350*/	.word sys64_execveat
++/*350*/	.word sys64_execveat, sys_membarrier
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from mathieu.desnoyers@efficios.com are
 
 
