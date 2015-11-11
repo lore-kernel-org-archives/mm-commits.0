@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- maintainers-add-myself-as-reviewer-for-fpga-manager-framework.patch added
- to -mm tree
-Date: Wed, 11 Nov 2015 12:52:11 -0800
-Message-ID: <5643aa7b.turlBJ0qVQmGwiiu%akpm@linux-foundation.org>
+ mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes-v3.patch
+ added to -mm tree
+Date: Wed, 11 Nov 2015 13:06:59 -0800
+Message-ID: <5643adf3.eZL/9e/7ISVt0+js%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56159 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56195 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752258AbbKKUwM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 15:52:12 -0500
+	with ESMTP id S1751522AbbKKVHA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 16:07:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: moritz.fischer@ettus.com, atull@opensource.altera.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, dave.hansen@linux.intel.com, dave@stgolabs.net, hillf.zj@alibaba-inc.com, hughd@google.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add Moritz as reviewer for FPGA Manager Framework
+     Subject: mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes-v3
 has been added to the -mm tree.  Its filename is
-     maintainers-add-myself-as-reviewer-for-fpga-manager-framework.patch
+     mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes-v3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-myself-as-reviewer-for-fpga-manager-framework.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes-v3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-myself-as-reviewer-for-fpga-manager-framework.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes-v3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,34 +40,138 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Moritz Fischer <moritz.fischer@ettus.com>
-Subject: MAINTAINERS: add Moritz as reviewer for FPGA Manager Framework
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes-v3
 
-Nominate myself as Reviewer.
+V3:
+  Add more descriptive comments and minor improvements as suggested by
+  Naoya Horiguchi
+v2:
+  Make remove_inode_hugepages simpler after verifying truncate can not
+  race with page faults here.
 
-Signed-off-by: Moritz Fischer <moritz.fischer@ettus.com>
-Acked-by: Alan Tull <atull@opensource.altera.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: "Hillf Danton" <hillf.zj@alibaba-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ fs/hugetlbfs/inode.c |   65 +++++++++++++++--------------------------
+ 1 file changed, 25 insertions(+), 40 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-add-myself-as-reviewer-for-fpga-manager-framework MAINTAINERS
---- a/MAINTAINERS~maintainers-add-myself-as-reviewer-for-fpga-manager-framework
-+++ a/MAINTAINERS
-@@ -4408,6 +4408,7 @@ K:	fmc_d.*register
+diff -puN fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes-v3 fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes-v3
++++ a/fs/hugetlbfs/inode.c
+@@ -332,12 +332,17 @@ static void remove_huge_page(struct page
+  * truncation is indicated by end of range being LLONG_MAX
+  *	In this case, we first scan the range and release found pages.
+  *	After releasing pages, hugetlb_unreserve_pages cleans up region/reserv
+- *	maps and global counts.
++ *	maps and global counts.  Page faults can not race with truncation
++ *	in this routine.  hugetlb_no_page() prevents page faults in the
++ *	truncated range.  It checks i_size before allocation, and again after
++ *	with the page table lock for the page held.  The same lock must be
++ *	acquired to unmap a page.
+  * hole punch is indicated if end is not LLONG_MAX
+  *	In the hole punch case we scan the range and release found pages.
+  *	Only when releasing a page is the associated region/reserv map
+  *	deleted.  The region/reserv map for ranges without associated
+- *	pages are not modified.
++ *	pages are not modified.  Page faults can race with hole punch.
++ *	This is indicated if we find a mapped page.
+  * Note: If the passed end of range value is beyond the end of file, but
+  * not LLONG_MAX this routine still performs a hole punch operation.
+  */
+@@ -361,37 +366,16 @@ static void remove_inode_hugepages(struc
+ 	next = start;
+ 	while (next < end) {
+ 		/*
+-		 * Make sure to never grab more pages that we
+-		 * might possibly need.
++		 * Don't grab more pages than the number left in the range.
+ 		 */
+ 		if (end - next < lookup_nr)
+ 			lookup_nr = end - next;
  
- FPGA MANAGER FRAMEWORK
- M:	Alan Tull <atull@opensource.altera.com>
-+R:	Moritz Fischer <moritz.fischer@ettus.com>
- S:	Maintained
- F:	drivers/fpga/
- F:	include/linux/fpga/fpga-mgr.h
-_
-
-Patches currently in -mm which might be from moritz.fischer@ettus.com are
-
-maintainers-add-myself-as-reviewer-for-fpga-manager-framework.patch
-
+ 		/*
+-		 * When no more pages are found, take different action for
+-		 * hole punch and truncate.
+-		 *
+-		 * For hole punch, this indicates we have removed each page
+-		 * within the range and are done.  Note that pages may have
+-		 * been faulted in after being removed in the hole punch case.
+-		 * This is OK as long as each page in the range was removed
+-		 * once.
+-		 *
+-		 * For truncate, we need to make sure all pages within the
+-		 * range are removed when exiting this routine.  We could
+-		 * have raced with a fault that brought in a page after it
+-		 * was first removed.  Check the range again until no pages
+-		 * are found.
++		 * When no more pages are found, we are done.
+ 		 */
+-		if (!pagevec_lookup(&pvec, mapping, next, lookup_nr)) {
+-			if (!truncate_op)
+-				break;
+-
+-			if (next == start)
+-				break;
+-			next = start;
+-			continue;
+-		}
++		if (!pagevec_lookup(&pvec, mapping, next, lookup_nr))
++			break;
+ 
+ 		for (i = 0; i < pagevec_count(&pvec); ++i) {
+ 			struct page *page = pvec.pages[i];
+@@ -400,13 +384,11 @@ static void remove_inode_hugepages(struc
+ 			/*
+ 			 * The page (index) could be beyond end.  This is
+ 			 * only possible in the punch hole case as end is
+-			 * LLONG_MAX for truncate.
++			 * max page offset in the truncate case.
+ 			 */
+-			if (page->index >= end) {
+-				next = end;	/* we are done */
+-				break;
+-			}
+ 			next = page->index;
++			if (next >= end)
++				break;
+ 
+ 			hash = hugetlb_fault_mutex_hash(h, current->mm,
+ 							&pseudo_vma,
+@@ -414,12 +396,7 @@ static void remove_inode_hugepages(struc
+ 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ 
+ 			lock_page(page);
+-			/*
+-			 * If page is mapped, it was faulted in after being
+-			 * unmapped.  Do nothing in this race case.  In the
+-			 * normal case page is not mapped.
+-			 */
+-			if (!page_mapped(page)) {
++			if (likely(!page_mapped(page))) {
+ 				bool rsv_on_error = !PagePrivate(page);
+ 				/*
+ 				 * We must free the huge page and remove
+@@ -440,13 +417,21 @@ static void remove_inode_hugepages(struc
+ 						hugetlb_fix_reserve_counts(
+ 							inode, rsv_on_error);
+ 				}
++			} else {
++				/*
++				 * If page is mapped, it was faulted in after
++				 * being unmapped.  It indicates a race between
++				 * hole punch and page fault.  Do nothing in
++				 * this case.  Getting here in a truncate
++				 * operation is a bug.
++				 */
++				BUG_ON(truncate_op);
+ 			}
+ 
+-			++next;
+ 			unlock_page(page);
