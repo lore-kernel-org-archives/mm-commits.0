@@ -1,59 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] selftests-mlock2-add-missing-define-_gnu_source.patch
- removed from -mm tree
-Date: Wed, 11 Nov 2015 11:48:04 -0800
-Message-ID: <56439b74.0w9i8N6sKjJDLdly%akpm@linux-foundation.org>
+Subject: [merged]
+ lib-string-add-ull-suffix-to-the-constant-definition.patch removed from -mm tree
+Date: Wed, 11 Nov 2015 11:48:11 -0800
+Message-ID: <56439b7b.miKJtDsOmNHpuVyD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55395 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55403 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752187AbbKKTsF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 14:48:05 -0500
+	with ESMTP id S1752046AbbKKTsL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 14:48:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geert@linux-m68k.org, emunson@akamai.com, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: selftests/mlock2: add missing #define _GNU_SOURCE
+     Subject: lib/string.c: add ULL suffix to the constant definition
 has been removed from the -mm tree.  Its filename was
-     selftests-mlock2-add-missing-define-_gnu_source.patch
+     lib-string-add-ull-suffix-to-the-constant-definition.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: selftests/mlock2: add missing #define _GNU_SOURCE
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib/string.c: add ULL suffix to the constant definition
 
-On glibc 2.3.6:
+8-byte constant is too big for long and compiler complains about this.
 
-    mlock2-tests.c: In function 'seek_to_smaps_entry':
-    mlock2-tests.c:158: warning: implicit declaration of function 'getline'
+lib/string.c:907:20: warning: constant 0x0101010101010101 is so big it is long
 
-According to the manpage of getline(), it needs _GNU_SOURCE before glibc
-2.10.
+Append ULL suffix to explicitly show its type.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Acked-by: Eric B Munson <emunson@akamai.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/selftests/vm/mlock2-tests.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/string.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN tools/testing/selftests/vm/mlock2-tests.c~selftests-mlock2-add-missing-define-_gnu_source tools/testing/selftests/vm/mlock2-tests.c
---- a/tools/testing/selftests/vm/mlock2-tests.c~selftests-mlock2-add-missing-define-_gnu_source
-+++ a/tools/testing/selftests/vm/mlock2-tests.c
-@@ -1,3 +1,4 @@
-+#define _GNU_SOURCE
- #include <sys/mman.h>
- #include <stdint.h>
- #include <stdio.h>
+diff -puN lib/string.c~lib-string-add-ull-suffix-to-the-constant-definition lib/string.c
+--- a/lib/string.c~lib-string-add-ull-suffix-to-the-constant-definition
++++ a/lib/string.c
+@@ -904,7 +904,7 @@ void *memchr_inv(const void *start, int
+ 
+ 	value64 = value;
+ #if defined(CONFIG_ARCH_HAS_FAST_MULTIPLIER) && BITS_PER_LONG == 64
+-	value64 *= 0x0101010101010101;
++	value64 *= 0x0101010101010101ULL;
+ #elif defined(CONFIG_ARCH_HAS_FAST_MULTIPLIER)
+ 	value64 *= 0x01010101;
+ 	value64 |= value64 << 32;
 _
 
-Patches currently in -mm which might be from geert@linux-m68k.org are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 
