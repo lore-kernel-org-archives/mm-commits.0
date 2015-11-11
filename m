@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + thp-reintroduce-split_huge_page-fix-4.patch added to -mm tree
-Date: Wed, 11 Nov 2015 12:13:22 -0800
-Message-ID: <5643a162.8B/vta8pwbkVy4wt%akpm@linux-foundation.org>
+Subject: +
+ mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch added to -mm tree
+Date: Wed, 11 Nov 2015 12:15:26 -0800
+Message-ID: <5643a1de.L7yQ33cWaWPKJtpd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55668 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55681 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752274AbbKKUNX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 15:13:23 -0500
+	with ESMTP id S1751971AbbKKUP0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 15:15:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: fix leak due split_huge_page() vs. exit race
+     Subject: mm: fix __page_mapcount()
 has been added to the -mm tree.  Its filename is
-     thp-reintroduce-split_huge_page-fix-4.patch
+     mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-reintroduce-split_huge_page-fix-4.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-reintroduce-split_huge_page-fix-4.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,89 +40,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: fix leak due split_huge_page() vs. exit race
+Subject: mm: fix __page_mapcount()
 
-Consider following race:
+I made mistake in uninlining patch: we need to read _mapcount of the
+page which caller pointed us to, not head page.
 
-		CPU0				CPU1
-shrink_page_list()
-  add_to_swap()
-    split_huge_page_to_list()
-      __split_huge_pmd_locked()
-        pmdp_huge_clear_flush_notify()
-	// pmd_none() == true
-					exit_mmap()
-					  unmap_vmas()
-					    zap_pmd_range()
-					      // no action on pmd since pmd_none() == true
-	pmd_populate()
-
-As result the THP will not be freed. The leak is detected by check_mm():
-
-	BUG: Bad rss-counter state mm:ffff880058d2e580 idx:1 val:512
-
-The patch restore the logic original split_huge_page() had before
-refcounting rework: never have intermediate pmd_none() == true.
-
-There are few other places where we do have pmd_none() == true for some
-time, but they are safe:
-
- - __split_huge_zero_page_pmd() is not reachable during exit, since huge
-   zero page is not on LRU.
-
- - do_huge_pmd_wp_page() and do_huge_pmd_wp_page_fallback() are also not
-   reachable during exit: exit_mmap() and handling page fault for the mm
-   are mutual exclusive.
+It's fixlet for
+ "mm: uninline slowpath of page_mapcount()"
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   25 ++++++++++++++++++++++---
- 1 file changed, 22 insertions(+), 3 deletions(-)
+ mm/util.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~thp-reintroduce-split_huge_page-fix-4 mm/huge_memory.c
---- a/mm/huge_memory.c~thp-reintroduce-split_huge_page-fix-4
-+++ a/mm/huge_memory.c
-@@ -2802,9 +2802,6 @@ static void __split_huge_pmd_locked(stru
- 	write = pmd_write(*pmd);
- 	young = pmd_young(*pmd);
+diff -puN mm/util.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix mm/util.c
+--- a/mm/util.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix
++++ a/mm/util.c
+@@ -381,8 +381,8 @@ int __page_mapcount(struct page *page)
+ {
+ 	int ret;
  
--	/* leave pmd empty until pte is filled */
--	pmdp_huge_clear_flush_notify(vma, haddr, pmd);
--
- 	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
- 	pmd_populate(mm, &_pmd, pgtable);
- 
-@@ -2854,6 +2851,28 @@ static void __split_huge_pmd_locked(stru
- 	}
- 
- 	smp_wmb(); /* make pte visible before pmd */
-+	/*
-+	 * Up to this point the pmd is present and huge and userland has the
-+	 * whole access to the hugepage during the split (which happens in
-+	 * place). If we overwrite the pmd with the not-huge version pointing
-+	 * to the pte here (which of course we could if all CPUs were bug
-+	 * free), userland could trigger a small page size TLB miss on the
-+	 * small sized TLB while the hugepage TLB entry is still established in
-+	 * the huge TLB. Some CPU doesn't like that.
-+	 * See http://support.amd.com/us/Processor_TechDocs/41322.pdf, Erratum
-+	 * 383 on page 93. Intel should be safe but is also warns that it's
-+	 * only safe if the permission and cache attributes of the two entries
-+	 * loaded in the two TLB is identical (which should be the case here).
-+	 * But it is generally safer to never allow small and huge TLB entries
-+	 * for the same virtual address to be loaded simultaneously. So instead
-+	 * of doing "pmd_populate(); flush_pmd_tlb_range();" we first mark the
-+	 * current pmd notpresent (atomically because here the pmd_trans_huge
-+	 * and pmd_trans_splitting must remain set at all times on the pmd
-+	 * until the split is complete for this pmd), then we flush the SMP TLB
-+	 * and finally we write the non-huge version of the pmd entry with
-+	 * pmd_populate.
-+	 */
-+	pmdp_invalidate(vma, haddr, pmd);
- 	pmd_populate(mm, pmd, pgtable);
- 
- 	if (freeze) {
+-	page = compound_head(page);
+ 	ret = atomic_read(&page->_mapcount) + 1;
++	page = compound_head(page);
+ 	ret += atomic_read(compound_mapcount_ptr(page)) + 1;
+ 	if (PageDoubleMap(page))
+ 		ret--;
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -193,4 +139,5 @@ thp-update-documentation.patch
 thp-allow-mlocked-thp-again.patch
 mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
 mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch
 
