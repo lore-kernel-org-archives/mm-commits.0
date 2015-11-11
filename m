@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes-v3.patch
+Subject: + test_hexdump-go-through-all-possible-lengths-of-buffer.patch
  added to -mm tree
-Date: Wed, 11 Nov 2015 13:06:59 -0800
-Message-ID: <5643adf3.eZL/9e/7ISVt0+js%akpm@linux-foundation.org>
+Date: Wed, 11 Nov 2015 13:17:58 -0800
+Message-ID: <5643b086.+oJSQjUANCUQKWly%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56195 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56304 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751522AbbKKVHA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 16:07:00 -0500
+	with ESMTP id S1752584AbbKKVR7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 16:17:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, dave.hansen@linux.intel.com, dave@stgolabs.net, hillf.zj@alibaba-inc.com, hughd@google.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes-v3
+     Subject: test_hexdump: go through all possible lengths of buffer
 has been added to the -mm tree.  Its filename is
-     mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes-v3.patch
+     test_hexdump-go-through-all-possible-lengths-of-buffer.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/test_hexdump-go-through-all-possible-lengths-of-buffer.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/test_hexdump-go-through-all-possible-lengths-of-buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,138 +39,88 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes-v3
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: test_hexdump: go through all possible lengths of buffer
 
-V3:
-  Add more descriptive comments and minor improvements as suggested by
-  Naoya Horiguchi
-v2:
-  Make remove_inode_hugepages simpler after verifying truncate can not
-  race with page faults here.
+When test for overflow do iterate the buffer length in a range
+0 .. BUF_SIZE.
 
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: "Hillf Danton" <hillf.zj@alibaba-inc.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   65 +++++++++++++++--------------------------
- 1 file changed, 25 insertions(+), 40 deletions(-)
+ lib/test_hexdump.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes-v3 fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes-v3
-+++ a/fs/hugetlbfs/inode.c
-@@ -332,12 +332,17 @@ static void remove_huge_page(struct page
-  * truncation is indicated by end of range being LLONG_MAX
-  *	In this case, we first scan the range and release found pages.
-  *	After releasing pages, hugetlb_unreserve_pages cleans up region/reserv
-- *	maps and global counts.
-+ *	maps and global counts.  Page faults can not race with truncation
-+ *	in this routine.  hugetlb_no_page() prevents page faults in the
-+ *	truncated range.  It checks i_size before allocation, and again after
-+ *	with the page table lock for the page held.  The same lock must be
-+ *	acquired to unmap a page.
-  * hole punch is indicated if end is not LLONG_MAX
-  *	In the hole punch case we scan the range and release found pages.
-  *	Only when releasing a page is the associated region/reserv map
-  *	deleted.  The region/reserv map for ranges without associated
-- *	pages are not modified.
-+ *	pages are not modified.  Page faults can race with hole punch.
-+ *	This is indicated if we find a mapped page.
-  * Note: If the passed end of range value is beyond the end of file, but
-  * not LLONG_MAX this routine still performs a hole punch operation.
-  */
-@@ -361,37 +366,16 @@ static void remove_inode_hugepages(struc
- 	next = start;
- 	while (next < end) {
- 		/*
--		 * Make sure to never grab more pages that we
--		 * might possibly need.
-+		 * Don't grab more pages than the number left in the range.
- 		 */
- 		if (end - next < lookup_nr)
- 			lookup_nr = end - next;
+diff -puN lib/test_hexdump.c~test_hexdump-go-through-all-possible-lengths-of-buffer lib/test_hexdump.c
+--- a/lib/test_hexdump.c~test_hexdump-go-through-all-possible-lengths-of-buffer
++++ a/lib/test_hexdump.c
+@@ -126,17 +126,17 @@ static void __init test_hexdump_set(int
+ 	test_hexdump(len, rowsize, 1, ascii);
+ }
  
- 		/*
--		 * When no more pages are found, take different action for
--		 * hole punch and truncate.
--		 *
--		 * For hole punch, this indicates we have removed each page
--		 * within the range and are done.  Note that pages may have
--		 * been faulted in after being removed in the hole punch case.
--		 * This is OK as long as each page in the range was removed
--		 * once.
--		 *
--		 * For truncate, we need to make sure all pages within the
--		 * range are removed when exiting this routine.  We could
--		 * have raced with a fault that brought in a page after it
--		 * was first removed.  Check the range again until no pages
--		 * are found.
-+		 * When no more pages are found, we are done.
- 		 */
--		if (!pagevec_lookup(&pvec, mapping, next, lookup_nr)) {
--			if (!truncate_op)
--				break;
--
--			if (next == start)
--				break;
--			next = start;
--			continue;
--		}
-+		if (!pagevec_lookup(&pvec, mapping, next, lookup_nr))
-+			break;
+-static void __init test_hexdump_overflow(bool ascii)
++static void __init test_hexdump_overflow(size_t buflen, bool ascii)
+ {
+-	char buf[56];
++	char buf[TEST_HEXDUMP_BUF_SIZE];
+ 	const char *t = test_data_1_le[0];
+-	size_t l = get_random_int() % sizeof(buf);
++	size_t l = buflen;
+ 	bool a;
+ 	int e, r;
  
- 		for (i = 0; i < pagevec_count(&pvec); ++i) {
- 			struct page *page = pvec.pages[i];
-@@ -400,13 +384,11 @@ static void remove_inode_hugepages(struc
- 			/*
- 			 * The page (index) could be beyond end.  This is
- 			 * only possible in the punch hole case as end is
--			 * LLONG_MAX for truncate.
-+			 * max page offset in the truncate case.
- 			 */
--			if (page->index >= end) {
--				next = end;	/* we are done */
--				break;
--			}
- 			next = page->index;
-+			if (next >= end)
-+				break;
+ 	memset(buf, ' ', sizeof(buf));
  
- 			hash = hugetlb_fault_mutex_hash(h, current->mm,
- 							&pseudo_vma,
-@@ -414,12 +396,7 @@ static void remove_inode_hugepages(struc
- 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
+-	r = hex_dump_to_buffer(data_b, 1, 16, 1, buf, l, ascii);
++	r = hex_dump_to_buffer(data_b, 1, 16, 1, buf, buflen, ascii);
  
- 			lock_page(page);
--			/*
--			 * If page is mapped, it was faulted in after being
--			 * unmapped.  Do nothing in this race case.  In the
--			 * normal case page is not mapped.
--			 */
--			if (!page_mapped(page)) {
-+			if (likely(!page_mapped(page))) {
- 				bool rsv_on_error = !PagePrivate(page);
- 				/*
- 				 * We must free the huge page and remove
-@@ -440,13 +417,21 @@ static void remove_inode_hugepages(struc
- 						hugetlb_fix_reserve_counts(
- 							inode, rsv_on_error);
- 				}
-+			} else {
-+				/*
-+				 * If page is mapped, it was faulted in after
-+				 * being unmapped.  It indicates a race between
-+				 * hole punch and page fault.  Do nothing in
-+				 * this case.  Getting here in a truncate
-+				 * operation is a bug.
-+				 */
-+				BUG_ON(truncate_op);
- 			}
+ 	if (ascii)
+ 		e = 50;
+@@ -144,7 +144,7 @@ static void __init test_hexdump_overflow
+ 		e = 2;
+ 	buf[e + 2] = '\0';
  
--			++next;
- 			unlock_page(page);
+-	if (!l) {
++	if (!buflen) {
+ 		a = r == e && buf[0] == ' ';
+ 	} else if (l < 3) {
+ 		a = r == e && buf[0] == '\0';
+@@ -160,7 +160,7 @@ static void __init test_hexdump_overflow
+ 	}
+ 
+ 	if (!a) {
+-		pr_err("Len: %zu rc: %u strlen: %zu\n", l, r, strlen(buf));
++		pr_err("Len: %zu rc: %u strlen: %zu\n", buflen, r, strlen(buf));
+ 		pr_err("Result: '%s'\n", buf);
+ 	}
+ }
+@@ -180,11 +180,11 @@ static int __init test_hexdump_init(void
+ 	for (i = 0; i < 16; i++)
+ 		test_hexdump_set(rowsize, true);
+ 
+-	for (i = 0; i < 16; i++)
+-		test_hexdump_overflow(false);
++	for (i = 0; i <= TEST_HEXDUMP_BUF_SIZE; i++)
++		test_hexdump_overflow(i, false);
+ 
+-	for (i = 0; i < 16; i++)
+-		test_hexdump_overflow(true);
++	for (i = 0; i <= TEST_HEXDUMP_BUF_SIZE; i++)
++		test_hexdump_overflow(i, true);
+ 
+ 	return -EINVAL;
+ }
+_
+
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+
+test_hexdump-rename-to-test_hexdump.patch
+test_hexdump-introduce-test_hexdump_prepare_test-helper.patch
+test_hexdump-go-through-all-possible-lengths-of-buffer.patch
+test_hexdump-replace-magic-numbers-by-their-meaning.patch
+test_hexdump-check-all-bytes-in-real-buffer.patch
+test_hexdump-test-all-possible-group-sizes-for-overflow.patch
+test_hexdump-print-statistics-at-the-end.patch
+
