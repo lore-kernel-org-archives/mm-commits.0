@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + test_hexdump-test-all-possible-group-sizes-for-overflow.patch
- added to -mm tree
-Date: Wed, 11 Nov 2015 13:18:04 -0800
-Message-ID: <5643b08c.WEhnrOyADba1lGOc%akpm@linux-foundation.org>
+Subject: + test_hexdump-check-all-bytes-in-real-buffer.patch added to -mm
+ tree
+Date: Wed, 11 Nov 2015 13:18:02 -0800
+Message-ID: <5643b08a.cJsqmNmDSLJD3Qi5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56313 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56310 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752608AbbKKVSF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 16:18:05 -0500
+	with ESMTP id S1752589AbbKKVSD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 16:18:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: test_hexdump: test all possible group sizes for overflow
+     Subject: test_hexdump: check all bytes in real buffer
 has been added to the -mm tree.  Its filename is
-     test_hexdump-test-all-possible-group-sizes-for-overflow.patch
+     test_hexdump-check-all-bytes-in-real-buffer.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/test_hexdump-test-all-possible-group-sizes-for-overflow.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/test_hexdump-check-all-bytes-in-real-buffer.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/test_hexdump-test-all-possible-group-sizes-for-overflow.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/test_hexdump-check-all-bytes-in-real-buffer.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,71 +40,86 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: test_hexdump: test all possible group sizes for overflow
+Subject: test_hexdump: check all bytes in real buffer
 
-Currently only one combination is tested for overflow, i.e. rowsize = 16,
-groupsize = 1, len = 1.  Do various test to go all possible branches.
+After processing by hex_dump_to_buffer() check all the parts to be expected.
+
+Part 1. The actual expected hex dump with or without ASCII part.
+	This is provided by plain strcmp() call including check for the
+	terminating NUL.
+
+Part 2. Check if the buffer is dirty beyond needed.
+	We fill the buffer by ' ' (space) characters, so, we expect to have the
+	tail of buffer will be left untouched. Check all bytes in the tail of
+	the buffer.
+
+Part 3. Return code should be as expected.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hexdump.c |   23 ++++++++++++++++++-----
- 1 file changed, 18 insertions(+), 5 deletions(-)
+ lib/test_hexdump.c |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN lib/test_hexdump.c~test_hexdump-test-all-possible-group-sizes-for-overflow lib/test_hexdump.c
---- a/lib/test_hexdump.c~test_hexdump-test-all-possible-group-sizes-for-overflow
+diff -puN lib/test_hexdump.c~test_hexdump-check-all-bytes-in-real-buffer lib/test_hexdump.c
+--- a/lib/test_hexdump.c~test_hexdump-check-all-bytes-in-real-buffer
 +++ a/lib/test_hexdump.c
-@@ -126,12 +126,13 @@ static void __init test_hexdump_set(int
- 	test_hexdump(len, rowsize, 1, ascii);
- }
+@@ -128,10 +128,9 @@ static void __init test_hexdump_set(int
  
--static void __init test_hexdump_overflow(size_t buflen, bool ascii)
-+static void __init test_hexdump_overflow(size_t buflen, size_t len,
-+					 int rowsize, int groupsize,
-+					 bool ascii)
+ static void __init test_hexdump_overflow(size_t buflen, bool ascii)
  {
- 	char test[TEST_HEXDUMP_BUF_SIZE];
++	char test[TEST_HEXDUMP_BUF_SIZE];
  	char buf[TEST_HEXDUMP_BUF_SIZE];
--	size_t len = 1;
--	int rs = 16, gs = 1;
-+	int rs = rowsize, gs = groupsize;
+-	const char *t = test_data_1_le[0];
+ 	size_t len = 1;
+-	size_t l = buflen;
+ 	int rs = 16, gs = 1;
  	int ae, he, e, r;
  	bool a;
+@@ -147,26 +146,27 @@ static void __init test_hexdump_overflow
+ 		e = ae;
+ 	else
+ 		e = he;
+-	buf[e + 2] = '\0';
  
-@@ -170,6 +171,18 @@ static void __init test_hexdump_overflow
+ 	if (!buflen) {
+-		a = r == e && buf[0] == ' ';
+-	} else if (l < 3) {
+-		a = r == e && buf[0] == '\0';
+-	} else if (l < 4) {
+-		a = r == e && !strcmp(buf, t);
+-	} else if (ascii) {
+-		if (l < 51)
+-			a = r == e && buf[l - 1] == '\0' && buf[l - 2] == ' ';
+-		else
+-			a = r == e && buf[50] == '\0' && buf[49] == '.';
++		memset(test, ' ', sizeof(test));
++		test[sizeof(buf) - 1] = '\0';
++
++		a = r == e && !memchr_inv(buf, ' ', sizeof(buf));
+ 	} else {
+-		a = r == e && buf[e] == '\0';
++		int f = min_t(int, e + 1, buflen);
++
++		test_hexdump_prepare_test(len, rs, gs, test, sizeof(test), ascii);
++		test[f - 1] = '\0';
++
++		a = r == e && !memchr_inv(buf + f, ' ', sizeof(buf) - f) && !strcmp(buf, test);
+ 	}
+ 
++	buf[sizeof(buf) - 1] = '\0';
++
+ 	if (!a) {
+-		pr_err("Len: %zu rc: %u strlen: %zu\n", buflen, r, strlen(buf));
+-		pr_err("Result: '%s'\n", buf);
++		pr_err("Len: %zu buflen: %zu strlen: %zu\n", len, buflen, strlen(buf));
++		pr_err("Result: %d '%s'\n", r, buf);
++		pr_err("Expect: %d '%s'\n", e, test);
  	}
  }
  
-+static void __init test_hexdump_overflow_set(size_t buflen, bool ascii)
-+{
-+	unsigned int i = 0;
-+
-+	do {
-+		int gs = 1 << i;
-+		size_t len = get_random_int() % 16 + gs;
-+
-+		test_hexdump_overflow(buflen, rounddown(len, gs), 16, gs, ascii);
-+	} while (i++ < 3);
-+}
-+
- static int __init test_hexdump_init(void)
- {
- 	unsigned int i;
-@@ -186,10 +199,10 @@ static int __init test_hexdump_init(void
- 		test_hexdump_set(rowsize, true);
- 
- 	for (i = 0; i <= TEST_HEXDUMP_BUF_SIZE; i++)
--		test_hexdump_overflow(i, false);
-+		test_hexdump_overflow_set(i, false);
- 
- 	for (i = 0; i <= TEST_HEXDUMP_BUF_SIZE; i++)
--		test_hexdump_overflow(i, true);
-+		test_hexdump_overflow_set(i, true);
- 
- 	return -EINVAL;
- }
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
