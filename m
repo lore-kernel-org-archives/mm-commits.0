@@ -1,258 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2015-11-10-15-53 uploaded
-Date: Tue, 10 Nov 2015 15:54:08 -0800
-Message-ID: <564283a0.beR7/+fS68wfuK2o%akpm__2918.88015713102$1447199679$gmane$org@linux-foundation.org>
+Subject: [alternative-merged]
+ instmem-gk20a-do-not-use-non-portable-dma_to_phys.patch removed from -mm
+ tree
+Date: Wed, 11 Nov 2015 11:45:53 -0800
+Message-ID: <56439af1.BImj5h8UsscJBF/a%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37480 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55390 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751762AbbKJXyK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 10 Nov 2015 18:54:10 -0500
+	with ESMTP id S1751971AbbKKTpy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 14:45:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz
-
-The mm-of-the-moment snapshot 2015-11-10-15-53 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (4.x
-or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+To: acourbot@nvidia.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: instmem/gk20a: do not use non-portable dma_to_phys()
+has been removed from the -mm tree.  Its filename was
+     instmem-gk20a-do-not-use-non-portable-dma_to_phys.patch
 
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+This patch was dropped because an alternative patch was merged
 
-To develop on top of mmotm git:
+------------------------------------------------------
+From: Alexandre Courbot <acourbot@nvidia.com>
+Subject: instmem/gk20a: do not use non-portable dma_to_phys()
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+dma_to_phys() is not guaranteed to be available on all platforms and
+should not be used outside of arch/. Replace it with what it is expected
+to do in our case: simply cast the DMA handle to a physical address.
 
-To rebase a branch with older patches to a new mmotm release:
+Signed-off-by: Alexandre Courbot <acourbot@nvidia.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+ drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c |   10 +++++++---
+ 1 file changed, 7 insertions(+), 3 deletions(-)
+
+diff -puN drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c~instmem-gk20a-do-not-use-non-portable-dma_to_phys drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c
+--- a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c~instmem-gk20a-do-not-use-non-portable-dma_to_phys
++++ a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c
+@@ -134,13 +134,17 @@ static void __iomem *
+ gk20a_instobj_cpu_map_dma(struct nvkm_memory *memory)
+ {
+ 	struct gk20a_instobj_dma *node = gk20a_instobj_dma(memory);
+-	struct device *dev = node->base.imem->base.subdev.device->dev;
+ 	int npages = nvkm_memory_size(memory) >> 12;
+ 	struct page *pages[npages];
+ 	int i;
+ 
+-	/* phys_to_page does not exist on all platforms... */
+-	pages[0] = pfn_to_page(dma_to_phys(dev, node->handle) >> PAGE_SHIFT);
++	/*
++	 * Ideally we would have a function to translate a handle to a physical
++	 * address, but there is no portable way of doing this. However since we
++	 * always use the DMA API without an IOMMU, we can assume that handles
++	 * are actual physical addresses.
++	 */
++	pages[0] = pfn_to_page(((phys_addr_t)node->handle) >> PAGE_SHIFT);
+ 	for (i = 1; i < npages; i++)
+ 		pages[i] = pages[0] + i;
+ 
+_
+
+Patches currently in -mm which might be from acourbot@nvidia.com are
 
 
-
-
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
-
-A git copy of this tree is available at
-
-	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
-
-and use of this tree is similar to
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
-
-
-This mmotm tree contains the following patches against 4.3:
-(patches marked "*" will be included in linux-next)
-
-  origin.patch
-  arch-alpha-kernel-systblss-remove-debug-check.patch
-  drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-  drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-  arm-mm-do-not-use-virt_to_idmap-for-nommu-systems.patch
-* selftests-mlock2-add-missing-define-_gnu_source.patch
-* selftests-mlock2-add-ull-prefix-to-64-bit-constants.patch
-* hugetlb-trivial-comment-fix.patch
-* lib-string-add-ull-suffix-to-the-constant-definition.patch
-* pcnet32-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
-* tw68-core-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
-* saa7164-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
-* saa7134-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
-* cx88-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
-* cx25821-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
-* cx23885-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
-* netup_unidvb-use-pci_set_dma_mask-insted-of-pci_dma_supported.patch
-* nouveau-dont-call-pci_dma_supported.patch
-* sfc-dont-call-dma_supported.patch
-* kaweth-remove-ifdefed-out-call-to-dma_supported.patch
-* usbnet-remove-ifdefed-out-call-to-dma_supported.patch
-* pci-remove-pci_dma_supported.patch
-* configfs-allow-dynamic-group-creation.patch
-* instmem-gk20a-do-not-use-non-portable-dma_to_phys.patch
-* iio-core-introduce-iio-configfs-support.patch
-* iio-core-introduce-iio-software-triggers.patch
-* iio-core-introduce-iio-software-triggers-fix.patch
-* iio-trigger-introduce-iio-hrtimer-based-trigger.patch
-* iio-documentation-add-iio-configfs-documentation.patch
-* fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-* ocfs2-add-ocfs2_write_type_t-type-to-identify-the-caller-of-write.patch
-* ocfs2-use-c_new-to-indicate-newly-allocated-extents.patch
-* ocfs2-test-target-page-before-change-it.patch
-* ocfs2-do-not-change-i_size-in-write_end-for-direct-io.patch
-* ocfs2-return-the-physical-address-in-ocfs2_write_cluster.patch
-* ocfs2-record-unwritten-extents-when-populate-write-desc.patch
-* ocfs2-fix-sparse-file-data-ordering-issue-in-direct-io.patch
-* ocfs2-code-clean-up-for-direct-io.patch
-* ocfs2-dlm-fix-race-between-convert-and-recovery.patch
-* ocfs2-dlm-fix-race-between-convert-and-recovery-v2.patch
-* ocfs2-dlm-fix-race-between-convert-and-recovery-v3.patch
-* ocfs2-dlm-fix-bug-in-dlm_move_lockres_to_recovery_list.patch
-* ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
-* extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
-* ocfs2-avoid-occurring-deadlock-by-changing-ocfs2_wq-from-global-to-local.patch
-* ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-  mm.patch
-* slub-create-new-___slab_alloc-function-that-can-be-called-with-irqs-disabled.patch
-* slub-avoid-irqoff-on-in-bulk-allocation.patch
-* slub-mark-the-dangling-ifdef-else-of-config_slub_debug.patch
-* slab-implement-bulking-for-slab-allocator.patch
-* slub-support-for-bulk-free-with-slub-freelists.patch
-* slub-optimize-bulk-slowpath-free-by-detached-freelist.patch
-* slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
-* slabh-sprinkle-__assume_aligned-attributes.patch
-* mm-add-tracepoint-for-scanning-pages.patch
-* mm-add-tracepoint-for-scanning-pages-fix.patch
-* mm-make-optimistic-check-for-swapin-readahead.patch
-* mm-make-optimistic-check-for-swapin-readahead-fix.patch
-* mm-make-optimistic-check-for-swapin-readahead-fix-2.patch
-* mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
-* mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-* mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-* mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
-* osd-fs-__r4w_get_page-rely-on-pageuptodate-for-uptodate.patch
-* mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes.patch
-* page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-* page-flags-move-code-around.patch
-* page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-* page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
-* page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-fix.patch
-* page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-3.patch
-* page-flags-define-pg_locked-behavior-on-compound-pages.patch
-* page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-* page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-* page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-* page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-* page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-* page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-* page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
-* page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-* page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-* page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-* page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-* page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-* page-flags-look-at-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-* mm-sanitize-page-mapping-for-tail-pages.patch
-* mm-proc-adjust-pss-calculation.patch
-* rmap-add-argument-to-charge-compound-page.patch
-* memcg-adjust-to-support-new-thp-refcounting.patch
-* mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault.patch
-* mm-adjust-foll_split-for-new-refcounting.patch
-* mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
-* thp-mlock-do-not-allow-huge-pages-in-mlocked-area.patch
-* khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes.patch
-* thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
-* mm-vmstats-new-thp-splitting-event.patch
-* mm-temporally-mark-thp-broken.patch
-* thp-drop-all-split_huge_page-related-code.patch
-* mm-drop-tail-page-refcounting.patch
-* futex-thp-remove-special-case-for-thp-in-get_futex_key.patch
-* futex-thp-remove-special-case-for-thp-in-get_futex_key-fix.patch
-* ksm-prepare-to-new-thp-semantics.patch
-* mm-thp-remove-compound_lock.patch
-* arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-* arm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-* arm-thp-remove-infrastructure-for-handling-splitting-pmds-fix.patch
-* mips-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-* powerpc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-* s390-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-* sparc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-* tile-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-* x86-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-* mm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-* mm-thp-remove-infrastructure-for-handling-splitting-pmds-fix.patch
-* mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps.patch
-* mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-* mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-2.patch
-* mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
-* mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-4.patch
-* mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
-* mm-numa-skip-pte-mapped-thp-on-numa-fault.patch
-* thp-implement-split_huge_pmd.patch
-* thp-add-option-to-setup-migration-entries-during-pmd-split.patch
-* thp-mm-split_huge_page-caller-need-to-lock-page.patch
-* mm-hwpoison-adjust-for-new-thp-refcounting.patch
-* mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-* thp-reintroduce-split_huge_page.patch
-* thp-reintroduce-split_huge_page-fix-2.patch
-* thp-reintroduce-split_huge_page-fix-3.patch
-* migrate_pages-try-to-split-pages-on-qeueuing.patch
-* thp-introduce-deferred_split_huge_page.patch
-* mm-re-enable-thp.patch
-* thp-update-documentation.patch
-* thp-allow-mlocked-thp-again.patch
-* mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
-* mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix.patch
-* mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-* mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
-* mm-increase-swap_cluster_max-to-batch-tlb-flushes.patch
-* mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix.patch
-* mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
-* use-poison_pointer_delta-for-poison-pointers.patch
-* string_helpers-fix-precision-loss-for-some-inputs.patch
-* mm-utilc-add-kstrimdup.patch
-* lib-add-crc64-ecma-module.patch
-* checkpatch-warn-when-casting-constants-to-c90-int-or-longer-types.patch
-* checkpatch-improve-macros-with-flow-control-test.patch
-* fat-add-fat_fallocate-operation.patch
-* fat-skip-cluster-allocation-on-fallocated-region.patch
-* fat-permit-to-return-phy-block-number-by-fibmap-in-fallocated-region.patch
-* documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch
-* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
-* dma-debug-allow-poisoning-nonzero-allocations.patch
-* ipc-msgc-msgsnd-use-freezable-blocking-call.patch
-* msgrcv-use-freezable-blocking-call.patch
-  linux-next.patch
-  linux-next-git-rejects.patch
-  mm-add-strictlimit-knob-v2.patch
-  do_shared_fault-check-that-mmap_sem-is-held.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
