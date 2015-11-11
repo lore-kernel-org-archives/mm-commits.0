@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + test_hexdump-replace-magic-numbers-by-their-meaning.patch added to -mm tree
-Date: Wed, 11 Nov 2015 13:18:00 -0800
-Message-ID: <5643b088.OFcDui2NhOkfGQTp%akpm@linux-foundation.org>
+Subject: + test_hexdump-introduce-test_hexdump_prepare_test-helper.patch
+ added to -mm tree
+Date: Wed, 11 Nov 2015 13:17:56 -0800
+Message-ID: <5643b084.R+fuhJkh/XXuoycG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56307 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56301 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752587AbbKKVSB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 16:18:01 -0500
+	with ESMTP id S1752581AbbKKVR5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 16:17:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: test_hexdump: replace magic numbers by their meaning
+     Subject: test_hexdump: introduce test_hexdump_prepare_test() helper
 has been added to the -mm tree.  Its filename is
-     test_hexdump-replace-magic-numbers-by-their-meaning.patch
+     test_hexdump-introduce-test_hexdump_prepare_test-helper.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/test_hexdump-replace-magic-numbers-by-their-meaning.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/test_hexdump-introduce-test_hexdump_prepare_test-helper.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/test_hexdump-replace-magic-numbers-by-their-meaning.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/test_hexdump-introduce-test_hexdump_prepare_test-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,53 +40,75 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: test_hexdump: replace magic numbers by their meaning
+Subject: test_hexdump: introduce test_hexdump_prepare_test() helper
 
-The magic numbers of the length are converted to their actual meaning,
-such as end of the buffer with and without ASCII part.
-
-We don't touch the rest magic constants that will be removed in the
-following commits.
+The function prepares the expected result in the provided buffer.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hexdump.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ lib/test_hexdump.c |   26 +++++++++++++++++++-------
+ 1 file changed, 19 insertions(+), 7 deletions(-)
 
-diff -puN lib/test_hexdump.c~test_hexdump-replace-magic-numbers-by-their-meaning lib/test_hexdump.c
---- a/lib/test_hexdump.c~test_hexdump-replace-magic-numbers-by-their-meaning
+diff -puN lib/test_hexdump.c~test_hexdump-introduce-test_hexdump_prepare_test-helper lib/test_hexdump.c
+--- a/lib/test_hexdump.c~test_hexdump-introduce-test_hexdump_prepare_test-helper
 +++ a/lib/test_hexdump.c
-@@ -130,18 +130,23 @@ static void __init test_hexdump_overflow
+@@ -42,19 +42,16 @@ static const char * const test_data_8_le
+ 	"e9ac0f9cad319ca6", "0cafb1439919d14c",
+ };
+ 
+-static void __init test_hexdump(size_t len, int rowsize, int groupsize,
+-				bool ascii)
++static void __init test_hexdump_prepare_test(size_t len, int rowsize,
++					     int groupsize, char *test,
++					     size_t testlen, bool ascii)
  {
- 	char buf[TEST_HEXDUMP_BUF_SIZE];
- 	const char *t = test_data_1_le[0];
-+	size_t len = 1;
- 	size_t l = buflen;
-+	int rs = 16, gs = 1;
-+	int ae, he, e, r;
- 	bool a;
--	int e, r;
+-	char test[32 * 3 + 2 + 32 + 1];
+-	char real[32 * 3 + 2 + 32 + 1];
+ 	char *p;
+ 	const char * const *result;
+ 	size_t l = len;
+ 	int gs = groupsize, rs = rowsize;
+ 	unsigned int i;
  
- 	memset(buf, ' ', sizeof(buf));
+-	hex_dump_to_buffer(data_b, l, rs, gs, real, sizeof(real), ascii);
+-
+ 	if (rs != 16 && rs != 32)
+ 		rs = 16;
  
--	r = hex_dump_to_buffer(data_b, 1, 16, 1, buf, buflen, ascii);
-+	r = hex_dump_to_buffer(data_b, len, rs, gs, buf, buflen, ascii);
-+
-+	ae = rs * 2 /* hex */ + rs / gs /* spaces */ + 1 /* space */ + len /* ascii */;
-+	he = (gs * 2 /* hex */ + 1 /* space */) * len / gs - 1 /* no trailing space */;
- 
- 	if (ascii)
--		e = 50;
-+		e = ae;
+@@ -73,7 +70,7 @@ static void __init test_hexdump(size_t l
  	else
--		e = 2;
-+		e = he;
- 	buf[e + 2] = '\0';
+ 		result = test_data_1_le;
  
- 	if (!buflen) {
+-	memset(test, ' ', sizeof(test));
++	memset(test, ' ', testlen);
+ 
+ 	/* hex dump */
+ 	p = test;
+@@ -95,6 +92,21 @@ static void __init test_hexdump(size_t l
+ 	}
+ 
+ 	*p = '\0';
++}
++
++#define TEST_HEXDUMP_BUF_SIZE		(32 * 3 + 2 + 32 + 1)
++
++static void __init test_hexdump(size_t len, int rowsize, int groupsize,
++				bool ascii)
++{
++	char test[TEST_HEXDUMP_BUF_SIZE];
++	char real[TEST_HEXDUMP_BUF_SIZE];
++
++	hex_dump_to_buffer(data_b, len, rowsize, groupsize, real, sizeof(real),
++			   ascii);
++
++	test_hexdump_prepare_test(len, rowsize, groupsize, test, sizeof(test),
++				  ascii);
+ 
+ 	if (strcmp(test, real)) {
+ 		pr_err("Len: %zu row: %d group: %d\n", len, rowsize, groupsize);
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
