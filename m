@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-fix-a-number-of-complex_macro-false-positives.patch
- added to -mm tree
-Date: Wed, 11 Nov 2015 13:59:23 -0800
-Message-ID: <5643ba3b.FH2BUzh3/daKC5B2%akpm@linux-foundation.org>
+Subject: + asm-sections-add-helpers-to-check-for-section-data.patch added
+ to -mm tree
+Date: Wed, 11 Nov 2015 14:02:30 -0800
+Message-ID: <5643baf6.6/m8pdFn9kAqCO+C%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56516 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56525 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751522AbbKKV7Y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 16:59:24 -0500
+	with ESMTP id S1752424AbbKKWCb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 17:02:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vz@mleia.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: treding@nvidia.com, arnd@arndb.de, gregkh@linuxfoundation.org, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: fix a number of COMPLEX_MACRO false positives
+     Subject: asm/sections: add helpers to check for section data
 has been added to the -mm tree.  Its filename is
-     checkpatch-fix-a-number-of-complex_macro-false-positives.patch
+     asm-sections-add-helpers-to-check-for-section-data.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-fix-a-number-of-complex_macro-false-positives.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/asm-sections-add-helpers-to-check-for-section-data.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-fix-a-number-of-complex_macro-false-positives.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/asm-sections-add-helpers-to-check-for-section-data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,61 +39,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Zapolskiy <vz@mleia.com>
-Subject: checkpatch: fix a number of COMPLEX_MACRO false positives
+From: Thierry Reding <treding@nvidia.com>
+Subject: asm/sections: add helpers to check for section data
 
-A simple search over the kernel souce displays a number of correctly
-defined multiline macro, which generally are used as an array element
-initializer:
+Add a helper to check if an object (given an address and a size) is part
+of a section (given beginning and end addresses).  For convenience, also
+provide a helper that performs this check for __init data using the
+__init_begin and __init_end limits.
 
-% find ../linux -type f | xargs grep -B1 -H '^[:space]*\[.*\\$'
-
-However checkpatch.pl unexpectedly complains about all these macro
-definitions:
-
-% ./scripts/checkpatch.pl --types COMPLEX_MACRO -f include/linux/perf/arm_pmu.h
-
-ERROR: Macros with complex values should be enclosed in parentheses
-+#define PERF_MAP_ALL_UNSUPPORTED					\
-+	 [0 ... PERF_COUNT_HW_MAX - 1] = HW_OP_UNSUPPORTED
-
-The change intends to fix this type of false positives by flattening
-only array members and skipping array element designators.
-
-Signed-off-by: Vladimir Zapolskiy <vz@mleia.com>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ include/asm-generic/sections.h |   65 +++++++++++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-a-number-of-complex_macro-false-positives scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-a-number-of-complex_macro-false-positives
-+++ a/scripts/checkpatch.pl
-@@ -4550,7 +4550,7 @@ sub process {
- 			# Flatten any parentheses and braces
- 			while ($dstat =~ s/\([^\(\)]*\)/1/ ||
- 			       $dstat =~ s/\{[^\{\}]*\}/1/ ||
--			       $dstat =~ s/\[[^\[\]]*\]/1/)
-+			       $dstat =~ s/.\[[^\[\]]*\]/1/)
- 			{
- 			}
+diff -puN include/asm-generic/sections.h~asm-sections-add-helpers-to-check-for-section-data include/asm-generic/sections.h
+--- a/include/asm-generic/sections.h~asm-sections-add-helpers-to-check-for-section-data
++++ a/include/asm-generic/sections.h
+@@ -4,6 +4,7 @@
+ /* References to section boundaries */
  
-@@ -4570,7 +4570,8 @@ sub process {
- 				union|
- 				struct|
- 				\.$Ident\s*=\s*|
--				^\"|\"$
-+				^\"|\"$|
-+				^\[
- 			}x;
- 			#print "REST<$rest> dstat<$dstat> ctx<$ctx>\n";
- 			if ($dstat ne '' &&
+ #include <linux/compiler.h>
++#include <linux/types.h>
+ 
+ /*
+  * Usage guidelines:
+@@ -63,4 +64,68 @@ static inline int arch_is_kernel_data(un
+ }
+ #endif
+ 
++/**
++ * memory_contains - checks if an object is contained within a memory region
++ * @begin: virtual address of the beginning of the memory region
++ * @end: virtual address of the end of the memory region
++ * @virt: virtual address of the memory object
++ * @size: size of the memory object
++ *
++ * Returns: true if the object specified by @virt and @size is entirely
++ * contained within the memory region defined by @begin and @end, false
++ * otherwise.
++ */
++static inline bool memory_contains(void *begin, void *end, void *virt,
++				   size_t size)
++{
++	return virt >= begin && virt + size <= end;
++}
++
++/**
++ * memory_intersects - checks if the region occupied by an object intersects
++ *                     with another memory region
++ * @begin: virtual address of the beginning of the memory regien
++ * @end: virtual address of the end of the memory region
++ * @virt: virtual address of the memory object
++ * @size: size of the memory object
++ *
++ * Returns: true if an object's memory region, specified by @virt and @size,
++ * intersects with the region specified by @begin and @end, false otherwise.
++ */
++static inline bool memory_intersects(void *begin, void *end, void *virt,
++				     size_t size)
++{
++	void *vend = virt + size;
++
++	return (virt >= begin && virt < end) || (vend >= begin && vend < end);
++}
++
++/**
++ * init_section_contains - checks if an object is contained within the init
++ *                         section
++ * @virt: virtual address of the memory object
++ * @size: size of the memory object
++ *
++ * Returns: true if the object specified by @virt and @size is entirely
++ * contained within the init section, false otherwise.
++ */
++static inline bool init_section_contains(void *virt, size_t size)
++{
++	return memory_contains(__init_begin, __init_end, virt, size);
++}
++
++/**
++ * init_section_intersects - checks if the region occupied by an object
++ *                           intersects with the init section
++ * @virt: virtual address of the memory object
++ * @size: size of the memory object
++ *
++ * Returns: true if an object's memory region, specified by @virt and @size,
++ * intersects with the init section, false otherwise.
++ */
++static inline bool init_section_intersects(void *virt, size_t size)
++{
++	return memory_intersects(__init_begin, __init_end, virt, size);
++}
++
+ #endif /* _ASM_GENERIC_SECTIONS_H_ */
 _
 
-Patches currently in -mm which might be from vz@mleia.com are
+Patches currently in -mm which might be from treding@nvidia.com are
 
-checkpatch-fix-a-number-of-complex_macro-false-positives.patch
+asm-sections-add-helpers-to-check-for-section-data.patch
+printk-only-unregister-boot-consoles-when-necessary.patch
 
