@@ -1,72 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- instmem-gk20a-do-not-use-non-portable-dma_to_phys.patch removed from -mm
+Subject: [merged]
+ selftests-mlock2-add-ull-prefix-to-64-bit-constants.patch removed from -mm
  tree
-Date: Wed, 11 Nov 2015 11:45:53 -0800
-Message-ID: <56439af1.BImj5h8UsscJBF/a%akpm@linux-foundation.org>
+Date: Wed, 11 Nov 2015 11:48:07 -0800
+Message-ID: <56439b77.jJtmgWD0F4a3v3Qk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55390 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55400 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751971AbbKKTpy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 14:45:54 -0500
+	with ESMTP id S1752306AbbKKTsH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 14:48:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: acourbot@nvidia.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: geert@linux-m68k.org, emunson@akamai.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: instmem/gk20a: do not use non-portable dma_to_phys()
+     Subject: selftests/mlock2: add ULL suffix to 64-bit constants
 has been removed from the -mm tree.  Its filename was
-     instmem-gk20a-do-not-use-non-portable-dma_to_phys.patch
+     selftests-mlock2-add-ull-prefix-to-64-bit-constants.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexandre Courbot <acourbot@nvidia.com>
-Subject: instmem/gk20a: do not use non-portable dma_to_phys()
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: selftests/mlock2: add ULL suffix to 64-bit constants
 
-dma_to_phys() is not guaranteed to be available on all platforms and
-should not be used outside of arch/. Replace it with what it is expected
-to do in our case: simply cast the DMA handle to a physical address.
+On 32-bit (e.g. m68k):
 
-Signed-off-by: Alexandre Courbot <acourbot@nvidia.com>
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+mlock2-tests.c: In function 'lock_check':
+mlock2-tests.c:293: warning: integer constant is too large for 'long' type
+mlock2-tests.c:294: warning: integer constant is too large for 'long' type
+mlock2-tests.c:299: warning: integer constant is too large for 'long' type
+mlock2-tests.c:300: warning: integer constant is too large for 'long' type
+mlock2-tests.c: In function 'unlock_lock_check':
+mlock2-tests.c:329: warning: integer constant is too large for 'long' type
+mlock2-tests.c:330: warning: integer constant is too large for 'long' type
+mlock2-tests.c: In function 'onfault_check':
+mlock2-tests.c:398: warning: integer constant is too large for 'long' type
+mlock2-tests.c:398: warning: integer constant is too large for 'long' type
+mlock2-tests.c:408: warning: integer constant is too large for 'long' type
+mlock2-tests.c:411: warning: integer constant is too large for 'long' type
+mlock2-tests.c:416: warning: integer constant is too large for 'long' type
+mlock2-tests.c: In function 'unlock_onfault_check':
+mlock2-tests.c:443: warning: integer constant is too large for 'long' type
+mlock2-tests.c: In function 'test_lock_onfault_of_present':
+mlock2-tests.c:528: warning: integer constant is too large for 'long' type
+mlock2-tests.c:529: warning: integer constant is too large for 'long' type
+
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Acked-by: Eric B Munson <emunson@akamai.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c |   10 +++++++---
- 1 file changed, 7 insertions(+), 3 deletions(-)
+ tools/testing/selftests/vm/mlock2-tests.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c~instmem-gk20a-do-not-use-non-portable-dma_to_phys drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c
---- a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c~instmem-gk20a-do-not-use-non-portable-dma_to_phys
-+++ a/drivers/gpu/drm/nouveau/nvkm/subdev/instmem/gk20a.c
-@@ -134,13 +134,17 @@ static void __iomem *
- gk20a_instobj_cpu_map_dma(struct nvkm_memory *memory)
- {
- 	struct gk20a_instobj_dma *node = gk20a_instobj_dma(memory);
--	struct device *dev = node->base.imem->base.subdev.device->dev;
- 	int npages = nvkm_memory_size(memory) >> 12;
- 	struct page *pages[npages];
- 	int i;
+diff -puN tools/testing/selftests/vm/mlock2-tests.c~selftests-mlock2-add-ull-prefix-to-64-bit-constants tools/testing/selftests/vm/mlock2-tests.c
+--- a/tools/testing/selftests/vm/mlock2-tests.c~selftests-mlock2-add-ull-prefix-to-64-bit-constants
++++ a/tools/testing/selftests/vm/mlock2-tests.c
+@@ -277,8 +277,8 @@ out:
+ 	return ret;
+ }
  
--	/* phys_to_page does not exist on all platforms... */
--	pages[0] = pfn_to_page(dma_to_phys(dev, node->handle) >> PAGE_SHIFT);
-+	/*
-+	 * Ideally we would have a function to translate a handle to a physical
-+	 * address, but there is no portable way of doing this. However since we
-+	 * always use the DMA API without an IOMMU, we can assume that handles
-+	 * are actual physical addresses.
-+	 */
-+	pages[0] = pfn_to_page(((phys_addr_t)node->handle) >> PAGE_SHIFT);
- 	for (i = 1; i < npages; i++)
- 		pages[i] = pages[0] + i;
+-#define PRESENT_BIT     0x8000000000000000
+-#define PFN_MASK        0x007FFFFFFFFFFFFF
++#define PRESENT_BIT     0x8000000000000000ULL
++#define PFN_MASK        0x007FFFFFFFFFFFFFULL
+ #define UNEVICTABLE_BIT (1UL << 18)
  
+ static int lock_check(char *map)
 _
 
-Patches currently in -mm which might be from acourbot@nvidia.com are
+Patches currently in -mm which might be from geert@linux-m68k.org are
 
 
