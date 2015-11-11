@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch added to
- -mm tree
-Date: Wed, 11 Nov 2015 13:56:17 -0800
-Message-ID: <5643b981.88PrikgSTW4BbUqr%akpm@linux-foundation.org>
+Subject: + checkpatch-fix-a-number-of-complex_macro-false-positives.patch
+ added to -mm tree
+Date: Wed, 11 Nov 2015 13:59:23 -0800
+Message-ID: <5643ba3b.FH2BUzh3/daKC5B2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56507 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56516 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752448AbbKKV4S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 16:56:18 -0500
+	with ESMTP id S1751522AbbKKV7Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 11 Nov 2015 16:59:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: vz@mleia.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: account-certain-kmem-allocations-to-memcg-checkpatch-fixes
+     Subject: checkpatch: fix a number of COMPLEX_MACRO false positives
 has been added to the -mm tree.  Its filename is
-     account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+     checkpatch-fix-a-number-of-complex_macro-false-positives.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-fix-a-number-of-complex_macro-false-positives.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-fix-a-number-of-complex_macro-false-positives.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,71 +39,61 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: account-certain-kmem-allocations-to-memcg-checkpatch-fixes
+From: Vladimir Zapolskiy <vz@mleia.com>
+Subject: checkpatch: fix a number of COMPLEX_MACRO false positives
 
-CHECK: spaces preferred around that '|' (ctx:VxV)
-#130: FILE: drivers/staging/lustre/lustre/llite/super25.c:109:
-+					    0, SLAB_HWCACHE_ALIGN|SLAB_ACCOUNT,
- 					                         ^
+A simple search over the kernel souce displays a number of correctly
+defined multiline macro, which generally are used as an array element
+initializer:
 
-ERROR: code indent should use tabs where possible
-#456: FILE: fs/gfs2/main.c:115:
-+^I^I^I^I^I          SLAB_MEM_SPREAD|$
+% find ../linux -type f | xargs grep -B1 -H '^[:space]*\[.*\\$'
 
-CHECK: spaces preferred around that '|' (ctx:VxV)
-#1012: FILE: net/sunrpc/rpc_pipe.c:1503:
-+						SLAB_MEM_SPREAD|SLAB_ACCOUNT),
- 						               ^
+However checkpatch.pl unexpectedly complains about all these macro
+definitions:
 
-total: 1 errors, 0 warnings, 2 checks, 640 lines checked
+% ./scripts/checkpatch.pl --types COMPLEX_MACRO -f include/linux/perf/arm_pmu.h
 
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
+ERROR: Macros with complex values should be enclosed in parentheses
++#define PERF_MAP_ALL_UNSUPPORTED					\
++	 [0 ... PERF_COUNT_HW_MAX - 1] = HW_OP_UNSUPPORTED
 
-./patches/account-certain-kmem-allocations-to-memcg.patch has style problems, please review.
+The change intends to fix this type of false positives by flattening
+only array members and skipping array element designators.
 
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Signed-off-by: Vladimir Zapolskiy <vz@mleia.com>
+Acked-by: Joe Perches <joe@perches.com>
+Cc: Andy Whitcroft <apw@canonical.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/gfs2/main.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/gfs2/main.c~account-certain-kmem-allocations-to-memcg-checkpatch-fixes fs/gfs2/main.c
---- a/fs/gfs2/main.c~account-certain-kmem-allocations-to-memcg-checkpatch-fixes
-+++ a/fs/gfs2/main.c
-@@ -112,7 +112,7 @@ static int __init init_gfs2_fs(void)
- 	gfs2_inode_cachep = kmem_cache_create("gfs2_inode",
- 					      sizeof(struct gfs2_inode),
- 					      0,  SLAB_RECLAIM_ACCOUNT|
--					          SLAB_MEM_SPREAD|
-+						  SLAB_MEM_SPREAD|
- 						  SLAB_ACCOUNT,
- 					      gfs2_init_inode_once);
- 	if (!gfs2_inode_cachep)
+diff -puN scripts/checkpatch.pl~checkpatch-fix-a-number-of-complex_macro-false-positives scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-fix-a-number-of-complex_macro-false-positives
++++ a/scripts/checkpatch.pl
+@@ -4550,7 +4550,7 @@ sub process {
+ 			# Flatten any parentheses and braces
+ 			while ($dstat =~ s/\([^\(\)]*\)/1/ ||
+ 			       $dstat =~ s/\{[^\{\}]*\}/1/ ||
+-			       $dstat =~ s/\[[^\[\]]*\]/1/)
++			       $dstat =~ s/.\[[^\[\]]*\]/1/)
+ 			{
+ 			}
+ 
+@@ -4570,7 +4570,8 @@ sub process {
+ 				union|
+ 				struct|
+ 				\.$Ident\s*=\s*|
+-				^\"|\"$
++				^\"|\"$|
++				^\[
+ 			}x;
+ 			#print "REST<$rest> dstat<$dstat> ctx<$ctx>\n";
+ 			if ($dstat ne '' &&
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vz@mleia.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm.patch
-slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
-linux-next-git-rejects.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+checkpatch-fix-a-number-of-complex_macro-false-positives.patch
 
