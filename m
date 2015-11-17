@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-change-mm_vmscan_lru_shrink_inactive-proto-types.patch added to -mm tree
-Date: Tue, 17 Nov 2015 15:49:55 -0800
-Message-ID: <564bbd23.vh7yKZJiExasizPR%akpm@linux-foundation.org>
+Subject: + ipc-shm-is_file_shm_hugepages-can-be-boolean.patch added to -mm tree
+Date: Tue, 17 Nov 2015 15:51:09 -0800
+Message-ID: <564bbd6d.KjW6KMrzQUbLhDgP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48233 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48315 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753314AbbKQXt4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Nov 2015 18:49:56 -0500
+	with ESMTP id S1753314AbbKQXvJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Nov 2015 18:51:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yalin.wang2010@gmail.com, rostedt@goodmis.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: baiyaowei@cmss.chinamobile.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: change mm_vmscan_lru_shrink_inactive() proto types
+     Subject: ipc/shm.c: is_file_shm_hugepages() can be boolean
 has been added to the -mm tree.  Its filename is
-     mm-change-mm_vmscan_lru_shrink_inactive-proto-types.patch
+     ipc-shm-is_file_shm_hugepages-can-be-boolean.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-change-mm_vmscan_lru_shrink_inactive-proto-types.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ipc-shm-is_file_shm_hugepages-can-be-boolean.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-change-mm_vmscan_lru_shrink_inactive-proto-types.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ipc-shm-is_file_shm_hugepages-can-be-boolean.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,80 +38,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: yalin wang <yalin.wang2010@gmail.com>
-Subject: mm: change mm_vmscan_lru_shrink_inactive() proto types
+From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Subject: ipc/shm.c: is_file_shm_hugepages() can be boolean
 
-Move node_id zone_idx shrink flags into trace function, so thay we don't
-need caculate these args if the trace is disabled, and will make this
-function have less arguments.
+Make is_file_shm_hugepages() return bool to improve readability due to
+this particular function only using either one or zero as its return
+value.
 
-Signed-off-by: yalin wang <yalin.wang2010@gmail.com>
-Reviewed-by: Steven Rostedt <rostedt@goodmis.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+No functional change.
+
+Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |   14 +++++++-------
- mm/vmscan.c                   |    7 ++-----
- 2 files changed, 9 insertions(+), 12 deletions(-)
+ include/linux/shm.h |    6 +++---
+ ipc/shm.c           |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/trace/events/vmscan.h~mm-change-mm_vmscan_lru_shrink_inactive-proto-types include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~mm-change-mm_vmscan_lru_shrink_inactive-proto-types
-+++ a/include/trace/events/vmscan.h
-@@ -352,11 +352,11 @@ TRACE_EVENT(mm_vmscan_writepage,
+diff -puN include/linux/shm.h~ipc-shm-is_file_shm_hugepages-can-be-boolean include/linux/shm.h
+--- a/include/linux/shm.h~ipc-shm-is_file_shm_hugepages-can-be-boolean
++++ a/include/linux/shm.h
+@@ -52,7 +52,7 @@ struct sysv_shm {
  
- TRACE_EVENT(mm_vmscan_lru_shrink_inactive,
- 
--	TP_PROTO(int nid, int zid,
--			unsigned long nr_scanned, unsigned long nr_reclaimed,
--			int priority, int reclaim_flags),
-+	TP_PROTO(struct zone *zone,
-+		unsigned long nr_scanned, unsigned long nr_reclaimed,
-+		int priority, int file),
- 
--	TP_ARGS(nid, zid, nr_scanned, nr_reclaimed, priority, reclaim_flags),
-+	TP_ARGS(zone, nr_scanned, nr_reclaimed, priority, file),
- 
- 	TP_STRUCT__entry(
- 		__field(int, nid)
-@@ -368,12 +368,12 @@ TRACE_EVENT(mm_vmscan_lru_shrink_inactiv
- 	),
- 
- 	TP_fast_assign(
--		__entry->nid = nid;
--		__entry->zid = zid;
-+		__entry->nid = zone_to_nid(zone);
-+		__entry->zid = zone_idx(zone);
- 		__entry->nr_scanned = nr_scanned;
- 		__entry->nr_reclaimed = nr_reclaimed;
- 		__entry->priority = priority;
--		__entry->reclaim_flags = reclaim_flags;
-+		__entry->reclaim_flags = trace_shrink_flags(file);
- 	),
- 
- 	TP_printk("nid=%d zid=%d nr_scanned=%ld nr_reclaimed=%ld priority=%d flags=%s",
-diff -puN mm/vmscan.c~mm-change-mm_vmscan_lru_shrink_inactive-proto-types mm/vmscan.c
---- a/mm/vmscan.c~mm-change-mm_vmscan_lru_shrink_inactive-proto-types
-+++ a/mm/vmscan.c
-@@ -1691,11 +1691,8 @@ shrink_inactive_list(unsigned long nr_to
- 	    current_may_throttle())
- 		wait_iff_congested(zone, BLK_RW_ASYNC, HZ/10);
- 
--	trace_mm_vmscan_lru_shrink_inactive(zone->zone_pgdat->node_id,
--		zone_idx(zone),
--		nr_scanned, nr_reclaimed,
--		sc->priority,
--		trace_shrink_flags(file));
-+	trace_mm_vmscan_lru_shrink_inactive(zone, nr_scanned, nr_reclaimed,
-+			sc->priority, file);
- 	return nr_reclaimed;
+ long do_shmat(int shmid, char __user *shmaddr, int shmflg, unsigned long *addr,
+ 	      unsigned long shmlba);
+-int is_file_shm_hugepages(struct file *file);
++bool is_file_shm_hugepages(struct file *file);
+ void exit_shm(struct task_struct *task);
+ #define shm_init_task(task) INIT_LIST_HEAD(&(task)->sysvshm.shm_clist)
+ #else
+@@ -66,9 +66,9 @@ static inline long do_shmat(int shmid, c
+ {
+ 	return -ENOSYS;
  }
+-static inline int is_file_shm_hugepages(struct file *file)
++static inline bool is_file_shm_hugepages(struct file *file)
+ {
+-	return 0;
++	return false;
+ }
+ static inline void exit_shm(struct task_struct *task)
+ {
+diff -puN ipc/shm.c~ipc-shm-is_file_shm_hugepages-can-be-boolean ipc/shm.c
+--- a/ipc/shm.c~ipc-shm-is_file_shm_hugepages-can-be-boolean
++++ a/ipc/shm.c
+@@ -459,7 +459,7 @@ static const struct file_operations shm_
+ 	.fallocate	= shm_fallocate,
+ };
  
+-int is_file_shm_hugepages(struct file *file)
++bool is_file_shm_hugepages(struct file *file)
+ {
+ 	return file->f_op == &shm_file_operations_huge;
+ }
 _
 
-Patches currently in -mm which might be from yalin.wang2010@gmail.com are
+Patches currently in -mm which might be from baiyaowei@cmss.chinamobile.com are
 
-mm-change-trace_mm_vmscan_writepage-proto-type.patch
-mm-change-mm_vmscan_lru_shrink_inactive-proto-types.patch
-mm-fix-kernel-crash-in-khugepaged-thread.patch
+fs-statc-drop-the-last-new_valid_dev-check.patch
+include-linux-kdev_th-remove-new_valid_dev.patch
+ipc-shm-is_file_shm_hugepages-can-be-boolean.patch
 
