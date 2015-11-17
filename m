@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch added to
+Subject: + rmap-add-argument-to-charge-compound-page-fix.patch added to
  -mm tree
-Date: Tue, 17 Nov 2015 14:03:25 -0800
-Message-ID: <564ba42d.rMu2xHw5DTuH7ZUd%akpm@linux-foundation.org>
+Date: Tue, 17 Nov 2015 14:13:52 -0800
+Message-ID: <564ba6a0.F/PSMwLHiYvX7Y1A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45216 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45258 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754864AbbKQWD0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Nov 2015 17:03:26 -0500
+	with ESMTP id S1751465AbbKQWNx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Nov 2015 17:13:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, mgorman@suse.de, n-horiguchi@ah.jp.nec.com, nyc@holomorphy.com, nzimmer@sgi.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, kirill.shutemov@linux.intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2
+     Subject: mm: fix mapcount mismatch in hugepage migration
 has been added to the -mm tree.  Its filename is
-     mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+     rmap-add-argument-to-charge-compound-page-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rmap-add-argument-to-charge-compound-page-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rmap-add-argument-to-charge-compound-page-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,73 +39,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: fix mapcount mismatch in hugepage migration
 
-tidy up code comments
+try_to_unmap_one() should be able to handle hugetlb, but page_remove_rmap()
+in that function takes false as a compound flag, which breaks hugepage migration
+with the following message.
 
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Nadia Yvette Chambers <nyc@holomorphy.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Nathan Zimmer <nzimmer@sgi.com>
+  Soft offlining page 0x1d4a00 at 0x7ff634a00000
+  soft offline: 0x1d4a00: migration failed 1, type 60000000000401c
+  BUG: Bad page state in process sysctl  pfn:1d4a00
+  page:ffffea0007528000 count:0 mapcount:0 mapping:          (null) index:0x0 compound_mapcount: 10
+  flags: 0x600000000004008(uptodate|head)
+  page dumped because: nonzero mapcount
+  Modules linked in: cfg80211 rfkill crc32c_intel virtio_balloon serio_raw i2c_piix4 virtio_blk virtio_net ata_generic pata_acpi
+  CPU: 3 PID: 11882 Comm: sysctl Tainted: G        W       4.3.0-mmotm-2015-11-10-15-53-151112-1812-00015-53+ #240
+  Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+   ffffffff81a1a124 ffff8800da047bd0 ffffffff81340adf ffffea0007528000
+   ffff8800da047bf8 ffffffff8116e206 0000000000000009 ffffffff81f72538
+   ffffea0007528000 ffff8800da047c48 ffffffff8116e6d6 0000020000000000
+  Call Trace:
+   [<ffffffff81340adf>] dump_stack+0x44/0x55
+   [<ffffffff8116e206>] bad_page+0xc6/0x110
+   [<ffffffff8116e6d6>] free_pages_prepare+0x486/0x500
+   [<ffffffff81170f9a>] __free_pages_ok+0x1a/0xb0
+   [<ffffffff81171af1>] __free_pages+0x21/0x40
+   [<ffffffff811b5d79>] update_and_free_page+0xa9/0x230
+   [<ffffffff811b6641>] free_pool_huge_page+0xc1/0xe0
+   [<ffffffff811b6d02>] set_max_huge_pages+0x382/0x4d0
+   [<ffffffff811b7002>] hugetlb_sysctl_handler_common+0xa2/0xd0
+   [<ffffffff811b823e>] hugetlb_sysctl_handler+0x1e/0x20
+   [<ffffffff812535fe>] proc_sys_call_handler+0xae/0xc0
+   [<ffffffff81253624>] proc_sys_write+0x14/0x20
+   [<ffffffff811e8758>] __vfs_write+0x28/0xe0
+   [<ffffffff810d1864>] ? percpu_down_read+0x14/0x60
+   [<ffffffff811e8d29>] vfs_write+0xa9/0x190
+   [<ffffffff811e9646>] SyS_write+0x46/0xb0
+   [<ffffffff8163d797>] entry_SYSCALL_64_fastpath+0x12/0x6a
+
+This patch simply fixes this by giving the compound flag via PageHuge.
+
+
+Fixes: "rmap: add argument to charge compound page".
+
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/rmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mempolicy.c~mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2 mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2
-+++ a/mm/mempolicy.c
-@@ -2146,8 +2146,10 @@ bool __mpol_equal(struct mempolicy *a, s
-  * for any accesses to the tree.
-  */
+diff -puN mm/rmap.c~rmap-add-argument-to-charge-compound-page-fix mm/rmap.c
+--- a/mm/rmap.c~rmap-add-argument-to-charge-compound-page-fix
++++ a/mm/rmap.c
+@@ -1436,7 +1436,7 @@ static int try_to_unmap_one(struct page
+ 	} else
+ 		dec_mm_counter(mm, MM_FILEPAGES);
  
--/* lookup first element intersecting start-end */
--/* Caller holds sp->lock */
-+/*
-+ * lookup first element intersecting start-end.  Caller holds sp->lock for
-+ * reading or for writing
-+ */
- static struct sp_node *
- sp_lookup(struct shared_policy *sp, unsigned long start, unsigned long end)
- {
-@@ -2178,8 +2180,10 @@ sp_lookup(struct shared_policy *sp, unsi
- 	return rb_entry(n, struct sp_node, nd);
- }
+-	page_remove_rmap(page, false);
++	page_remove_rmap(page, PageHuge(page));
+ 	page_cache_release(page);
  
--/* Insert a new shared policy into the list. */
--/* Caller holds the write of sp->lock */
-+/*
-+ * Insert a new shared policy into the list.  Caller holds sp->lock for
-+ * writing.
-+ */
- static void sp_insert(struct shared_policy *sp, struct sp_node *new)
- {
- 	struct rb_node **p = &sp->root.rb_node;
+ out_unmap:
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-ncpfs-dont-allow-negative-timeouts-fix.patch
-mm.patch
-slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+tools-vm-page-typesc-support-kpf_idle.patch
+rmap-add-argument-to-charge-compound-page-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting.patch
 
