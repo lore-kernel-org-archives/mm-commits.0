@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + slub-fix-kmem-cgroup-bug-in-kmem_cache_alloc_bulk.patch added
- to -mm tree
-Date: Tue, 17 Nov 2015 15:13:43 -0800
-Message-ID: <564bb4a7.ovf3ciLcwy7Xu89s%akpm@linux-foundation.org>
+Subject: +
+ slub-add-missing-kmem-cgroup-support-to-kmem_cache_free_bulk.patch added to -mm tree
+Date: Tue, 17 Nov 2015 15:13:45 -0800
+Message-ID: <564bb4a9.wsMksfAmJdkuawpB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47755 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47764 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754953AbbKQXNo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Nov 2015 18:13:44 -0500
+	with ESMTP id S1754953AbbKQXNq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Nov 2015 18:13:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: fix kmem cgroup bug in kmem_cache_alloc_bulk
+     Subject: slub: add missing kmem cgroup support to kmem_cache_free_bulk
 has been added to the -mm tree.  Its filename is
-     slub-fix-kmem-cgroup-bug-in-kmem_cache_alloc_bulk.patch
+     slub-add-missing-kmem-cgroup-support-to-kmem_cache_free_bulk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-fix-kmem-cgroup-bug-in-kmem_cache_alloc_bulk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-add-missing-kmem-cgroup-support-to-kmem_cache_free_bulk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-fix-kmem-cgroup-bug-in-kmem_cache_alloc_bulk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-add-missing-kmem-cgroup-support-to-kmem_cache_free_bulk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,30 +40,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: slub: fix kmem cgroup bug in kmem_cache_alloc_bulk
+Subject: slub: add missing kmem cgroup support to kmem_cache_free_bulk
 
-The call slab_pre_alloc_hook() interacts with kmemgc and is not allowed to
-be called several times inside the bulk alloc for loop, due to the call to
-memcg_kmem_get_cache().
+Initial implementation missed support for kmem cgroup support in
+kmem_cache_free_bulk() call, add this.
 
-This would result in hitting the VM_BUG_ON in __memcg_kmem_get_cache.
+If CONFIG_MEMCG_KMEM is not enabled, the compiler should be smart enough
+to not add any asm code.
 
-As suggested by Vladimir Davydov, change slab_post_alloc_hook() to be able
-to handle an array of objects.
-
-A subtle detail is, loop iterator "i" in slab_post_alloc_hook() must have
-same type (size_t) as size argument.  This helps the compiler to easier
-realize that it can remove the loop, when all debug statements inside loop
-evaluates to nothing.  Note, this is only an issue because the kernel is
-compiled with GCC option: -fno-strict-overflow
-
-In slab_alloc_node() the compiler inlines and optimizes the invocation of
-slab_post_alloc_hook(s, flags, 1, &object) by removing the loop and access
-object directly.
+Incoming bulk free objects can belong to different kmem cgroups, and
+object free call can happen at a later point outside memcg context.  Thus,
+we need to keep the orig kmem_cache, to correctly verify if a memcg object
+match against its "root_cache" (s->memcg_params.root_cache).
 
 Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Reported-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Suggested-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
@@ -72,90 +62,40 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   40 ++++++++++++++++++++++------------------
- 1 file changed, 22 insertions(+), 18 deletions(-)
+ mm/slub.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-fix-kmem-cgroup-bug-in-kmem_cache_alloc_bulk mm/slub.c
---- a/mm/slub.c~slub-fix-kmem-cgroup-bug-in-kmem_cache_alloc_bulk
+diff -puN mm/slub.c~slub-add-missing-kmem-cgroup-support-to-kmem_cache_free_bulk mm/slub.c
+--- a/mm/slub.c~slub-add-missing-kmem-cgroup-support-to-kmem_cache_free_bulk
 +++ a/mm/slub.c
-@@ -1292,14 +1292,21 @@ static inline struct kmem_cache *slab_pr
- 	return memcg_kmem_get_cache(s, flags);
- }
+@@ -2887,13 +2887,17 @@ static int build_detached_freelist(struc
  
--static inline void slab_post_alloc_hook(struct kmem_cache *s,
--					gfp_t flags, void *object)
-+static inline void slab_post_alloc_hook(struct kmem_cache *s, gfp_t flags,
-+					size_t size, void **p)
+ 
+ /* Note that interrupts must be enabled when calling this function. */
+-void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p)
++void kmem_cache_free_bulk(struct kmem_cache *orig_s, size_t size, void **p)
  {
-+	size_t i;
+ 	if (WARN_ON(!size))
+ 		return;
+ 
+ 	do {
+ 		struct detached_freelist df;
++		struct kmem_cache *s;
 +
- 	flags &= gfp_allowed_mask;
--	kmemcheck_slab_alloc(s, flags, object, slab_ksize(s));
--	kmemleak_alloc_recursive(object, s->object_size, 1, s->flags, flags);
-+	for (i = 0; i < size; i++) {
-+		void *object = p[i];
-+
-+		kmemcheck_slab_alloc(s, flags, object, slab_ksize(s));
-+		kmemleak_alloc_recursive(object, s->object_size, 1,
-+					 s->flags, flags);
-+		kasan_slab_alloc(s, object);
-+	}
- 	memcg_kmem_put_cache(s);
--	kasan_slab_alloc(s, object);
- }
++		/* Support for memcg */
++		s = cache_from_obj(orig_s, p[size - 1]);
  
- static inline void slab_free_hook(struct kmem_cache *s, void *x)
-@@ -2475,7 +2482,7 @@ static void *__slab_alloc(struct kmem_ca
- static __always_inline void *slab_alloc_node(struct kmem_cache *s,
- 		gfp_t gfpflags, int node, unsigned long addr)
- {
--	void **object;
-+	void *object;
- 	struct kmem_cache_cpu *c;
- 	struct page *page;
- 	unsigned long tid;
-@@ -2554,7 +2561,7 @@ redo:
- 	if (unlikely(gfpflags & __GFP_ZERO) && object)
- 		memset(object, 0, s->object_size);
- 
--	slab_post_alloc_hook(s, gfpflags, object);
-+	slab_post_alloc_hook(s, gfpflags, 1, &object);
- 
- 	return object;
- }
-@@ -2904,6 +2911,10 @@ bool kmem_cache_alloc_bulk(struct kmem_c
- 	struct kmem_cache_cpu *c;
- 	int i;
- 
-+	/* memcg and kmem_cache debug support */
-+	s = slab_pre_alloc_hook(s, flags);
-+	if (unlikely(!s))
-+		return false;
- 	/*
- 	 * Drain objects in the per cpu slab, while disabling local
- 	 * IRQs, which protects against PREEMPT and interrupts
-@@ -2928,17 +2939,8 @@ bool kmem_cache_alloc_bulk(struct kmem_c
- 			c = this_cpu_ptr(s->cpu_slab);
- 			continue; /* goto for-loop */
- 		}
--
--		/* kmem_cache debug support */
--		s = slab_pre_alloc_hook(s, flags);
--		if (unlikely(!s))
--			goto error;
--
- 		c->freelist = get_freepointer(s, object);
- 		p[i] = object;
--
--		/* kmem_cache debug support */
--		slab_post_alloc_hook(s, flags, object);
- 	}
- 	c->tid = next_tid(c->tid);
- 	local_irq_enable();
-@@ -2951,11 +2953,13 @@ bool kmem_cache_alloc_bulk(struct kmem_c
- 			memset(p[j], 0, s->object_size);
- 	}
- 
-+	/* memcg and kmem_cache debug support */
-+	slab_post_alloc_hook(s, flags, size, p);
- 	return true;
+ 		size = build_detached_freelist(s, size, p, &df);
+ 		if (unlikely(!df.page))
+_
+
+Patches currently in -mm which might be from brouer@redhat.com are
+
+slub-mark-the-dangling-ifdef-else-of-config_slub_debug.patch
+slab-implement-bulking-for-slab-allocator.patch
+slub-support-for-bulk-free-with-slub-freelists.patch
+slub-optimize-bulk-slowpath-free-by-detached-freelist.patch
+slub-fix-kmem-cgroup-bug-in-kmem_cache_alloc_bulk.patch
+slub-add-missing-kmem-cgroup-support-to-kmem_cache_free_bulk.patch
+slab-slub-adjust-kmem_cache_alloc_bulk-api.patch
+
