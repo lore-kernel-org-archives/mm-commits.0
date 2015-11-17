@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + include-define-__phys_to_pfn-as-phys_pfn-fix.patch added to -mm tree
-Date: Tue, 17 Nov 2015 13:52:15 -0800
-Message-ID: <564ba18f.zBfDWIlAX92E+180%akpm@linux-foundation.org>
+Subject: + mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
+ added to -mm tree
+Date: Tue, 17 Nov 2015 13:58:59 -0800
+Message-ID: <564ba323.w5PwYBRlVJBBYsOp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45113 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45131 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754810AbbKQVwQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Nov 2015 16:52:16 -0500
+	with ESMTP id S1751664AbbKQV7A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Nov 2015 16:59:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gang.chen.5i5j@gmail.com, xili_gchen_5257@hotmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, mgorman@suse.de, n-horiguchi@ah.jp.nec.com, nyc@holomorphy.com, nzimmer@sgi.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include-define-__phys_to_pfn-as-phys_pfn-fix
+     Subject: mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix
 has been added to the -mm tree.  Its filename is
-     include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+     mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,29 +40,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include-define-__phys_to_pfn-as-phys_pfn-fix
+Subject: mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix
 
-use macro arg name `x'
+we'd better include rwlock.h, not spinlock.h
 
-Cc: Chen Gang <gang.chen.5i5j@gmail.com>
-Cc: Chen Gang <xili_gchen_5257@hotmail.com>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Nadia Yvette Chambers <nyc@holomorphy.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Nathan Zimmer <nzimmer@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pfn.h |    2 +-
+ include/linux/mempolicy.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/pfn.h~include-define-__phys_to_pfn-as-phys_pfn-fix include/linux/pfn.h
---- a/include/linux/pfn.h~include-define-__phys_to_pfn-as-phys_pfn-fix
-+++ a/include/linux/pfn.h
-@@ -9,6 +9,6 @@
- #define PFN_UP(x)	(((x) + PAGE_SIZE-1) >> PAGE_SHIFT)
- #define PFN_DOWN(x)	((x) >> PAGE_SHIFT)
- #define PFN_PHYS(x)	((phys_addr_t)(x) << PAGE_SHIFT)
--#define PHYS_PFN(y)	((unsigned long)((y) >> PAGE_SHIFT))
-+#define PHYS_PFN(x)	((unsigned long)((x) >> PAGE_SHIFT))
- 
- #endif
+diff -puN include/linux/mempolicy.h~mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix
++++ a/include/linux/mempolicy.h
+@@ -9,7 +9,7 @@
+ #include <linux/mmzone.h>
+ #include <linux/slab.h>
+ #include <linux/rbtree.h>
+-#include <linux/spinlock.h>
++#include <linux/rwlock.h>
+ #include <linux/nodemask.h>
+ #include <linux/pagemap.h>
+ #include <uapi/linux/mempolicy.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +81,7 @@ slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
 account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
 mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
 include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
 page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
 mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
 mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
