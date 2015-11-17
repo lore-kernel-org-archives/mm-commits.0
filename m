@@ -1,202 +1,209 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Mon, 16 Nov 2015 12:24:19 -0800
-Message-ID: <564a3b73.JCXxEj6kNJHehaLo%akpm@linux-foundation.org>
+Subject: + mm-fix-kernel-crash-in-khugepaged-thread.patch added to -mm
+ tree
+Date: Mon, 16 Nov 2015 16:48:18 -0800
+Message-ID: <564a7952.FBSf8pDJ9zDmf35f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45448 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51456 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751636AbbKPUYU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Nov 2015 15:24:20 -0500
+	with ESMTP id S1750967AbbKQAsT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Nov 2015 19:48:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: yalin.wang2010@gmail.com, kirill.shutemov@linux.intel.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: mm: fix kernel crash in khugepaged thread
+has been added to the -mm tree.  Its filename is
+     mm-fix-kernel-crash-in-khugepaged-thread.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-kernel-crash-in-khugepaged-thread.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-kernel-crash-in-khugepaged-thread.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: yalin wang <yalin.wang2010@gmail.com>
+Subject: mm: fix kernel crash in khugepaged thread
 
+This crash is caused by NULL pointer deference, in page_to_pfn() marco,
+when page == NULL :
+
+[  182.639154 ] Unable to handle kernel NULL pointer dereference at virtual address 00000000
+[  182.639491 ] pgd = ffffffc00077a000
+[  182.639761 ] [00000000] *pgd=00000000b9422003, *pud=00000000b9422003, *pmd=00000000b9423003, *pte=0060000008000707
+[  182.640749 ] Internal error: Oops: 94000006 [#1] SMP
+[  182.641197 ] Modules linked in:
+[  182.641580 ] CPU: 1 PID: 26 Comm: khugepaged Tainted: G        W       4.3.0-rc6-next-20151022ajb-00001-g32f3386-dirty #3
+[  182.642077 ] Hardware name: linux,dummy-virt (DT)
+[  182.642227 ] task: ffffffc07957c080 ti: ffffffc079638000 task.ti: ffffffc079638000
+[  182.642598 ] PC is at khugepaged+0x378/0x1af8
+[  182.642826 ] LR is at khugepaged+0x418/0x1af8
+[  182.643047 ] pc : [<ffffffc0001980ac>] lr : [<ffffffc00019814c>] pstate: 60000145
+[  182.643490 ] sp : ffffffc07963bca0
+[  182.643650 ] x29: ffffffc07963bca0 x28: ffffffc00075c000
+[  182.644024 ] x27: ffffffc00f275040 x26: ffffffc0006c7000
+[  182.644334 ] x25: 00e8000048800f51 x24: 0000000006400000
+[  182.644687 ] x23: 0000000000000002 x22: 0000000000000000
+[  182.644972 ] x21: 0000000000000000 x20: 0000000000000000
+[  182.645446 ] x19: 0000000000000000 x18: 0000007ff86d0990
+[  182.645931 ] x17: 00000000007ef9c8 x16: ffffffc000098390
+[  182.646236 ] x15: ffffffffffffffff x14: 00000000ffffffff
+[  182.646649 ] x13: 000000000000016a x12: 0000000000000000
+[  182.647046 ] x11: ffffffc07f025020 x10: 0000000000000000
+[  182.647395 ] x9 : 0000000000000048 x8 : ffffffc000721e28
+[  182.647872 ] x7 : 0000000000000000 x6 : ffffffc07f02d000
+[  182.648261 ] x5 : fffffffffffffe00 x4 : ffffffc00f275040
+[  182.648611 ] x3 : 0000000000000000 x2 : ffffffc00f2ad000
+[  182.648908 ] x1 : 0000000000000000 x0 : ffffffc000727000
+[  182.649147 ]
+[  182.649252 ] Process khugepaged (pid: 26, stack limit = 0xffffffc079638020)
+[  182.649724 ] Stack: (0xffffffc07963bca0 to 0xffffffc07963c000)
+[  182.650141 ] bca0: ffffffc07963be30 ffffffc0000b5044 ffffffc07961fb80 ffffffc00072e630
+[  182.650587 ] bcc0: ffffffc0005d5090 0000000000000000 ffffffc000197d34 0000000000000000
+[  182.651009 ] bce0: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[  182.651446 ] bd00: ffffffc07963bd90 ffffffc07f1cbf80 000000004f3be003 ffffffc00f2750a4
+[  182.651956 ] bd20: ffffffc00f3bf000 ffffffc000000001 0000000000000001 ffffffc07f085740
+[  182.652520 ] bd40: ffffffc00f2ad188 ffffffc000000000 0000000006200000 ffffffc00f275040
+[  182.652972 ] bd60: ffffffc0006b1a90 ffffffc079638000 ffffffc07963be20 ffffffc00f0144d0
+[  182.653357 ] bd80: ffffffc000000000 0000000006400000 ffffffc00f0144d0 00000a0800000001
+[  182.653793 ] bda0: 0000100000000001 ffffffc000000001 ffffffc07f025000 ffffffc00f2750a8
+[  182.654226 ] bdc0: 00000001000005f8 ffffffc00075a000 0000000006a00000 ffffffc000727000
+[  182.654522 ] bde0: ffffffc0006e8478 ffffffc000000000 0000000100000000 ffffffc078fb9000
+[  182.654869 ] be00: ffffffc07963be30 ffffffc000000000 ffffffc07957c080 ffffffc0000cfc4c
+[  182.655225 ] be20: ffffffc07963be20 ffffffc07963be20 0000000000000000 ffffffc000085c50
+[  182.655588 ] be40: ffffffc0000b4f64 ffffffc07961fb80 0000000000000000 0000000000000000
+[  182.656138 ] be60: 0000000000000000 ffffffc0000bee2c ffffffc0000b4f64 0000000000000000
+[  182.656609 ] be80: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[  182.657145 ] bea0: ffffffc07963bea0 ffffffc07963bea0 0000000000000000 ffffffc000000000
+[  182.657475 ] bec0: ffffffc07963bec0 ffffffc07963bec0 0000000000000000 0000000000000000
+[  182.657922 ] bee0: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[  182.658558 ] bf00: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[  182.658972 ] bf20: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[  182.659291 ] bf40: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[  182.659722 ] bf60: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[  182.660122 ] bf80: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[  182.660654 ] bfa0: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[  182.661064 ] bfc0: 0000000000000000 0000000000000000 0000000000000000 0000000000000005
+[  182.661466 ] bfe0: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[  182.661848 ] Call trace:
+[  182.662050 ] [<ffffffc0001980ac>] khugepaged+0x378/0x1af8
+[  182.662294 ] [<ffffffc0000b5040>] kthread+0xdc/0xf4
+[  182.662605 ] [<ffffffc000085c4c>] ret_from_fork+0xc/0x40
+[  182.663046 ] Code: 35001700 f0002c60 aa0703e3 f9009fa0 (f94000e0)
+[  182.663901 ] ---[ end trace 637503d8e28ae69e  ]---
+[  182.664160 ] Kernel panic - not syncing: Fatal exception
+[  182.664571 ] CPU2: stopping
+[  182.664794 ] CPU: 2 PID: 0 Comm: swapper/2 Tainted: G      D W       4.3.0-rc6-next-20151022ajb-00001-g32f3386-dirty #3
+[  182.665248 ] Hardware name: linux,dummy-virt (DT)
+
+Signed-off-by: yalin wang <yalin.wang2010@gmail.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/mach-pxa/palm27x.c                |    4 ----
- arch/arm/mach-pxa/palmtc.c                 |    4 ----
- arch/arm64/boot/dts/marvell/berlin4ct.dtsi |    3 ---
- drivers/soc/Kconfig                        |    3 ---
- drivers/soc/Makefile                       |    3 ---
- drivers/soc/ti/knav_qmss_queue.c           |    6 ------
- fs/direct-io.c                             |   10 ----------
- include/linux/fs.h                         |    3 ---
- 8 files changed, 36 deletions(-)
+ include/trace/events/huge_memory.h |   12 ++++++------
+ mm/huge_memory.c                   |    6 +++---
+ 2 files changed, 9 insertions(+), 9 deletions(-)
 
-diff -puN arch/arm/mach-pxa/palm27x.c~linux-next-git-rejects arch/arm/mach-pxa/palm27x.c
---- a/arch/arm/mach-pxa/palm27x.c~linux-next-git-rejects
-+++ a/arch/arm/mach-pxa/palm27x.c
-@@ -344,11 +344,7 @@ void __init palm27x_pwm_init(int bl, int
- {
- 	palm_bl_power	= bl;
- 	palm_lcd_power	= lcd;
--<<<<<<< HEAD
--	pwm_add_lookup(palm27x_pwm_lookup, ARRAY_SIZE(palm27x_pwm_lookup));
--=======
- 	pwm_add_table(palm27x_pwm_lookup, ARRAY_SIZE(palm27x_pwm_lookup));
-->>>>>>> linux-next/akpm-base
- 	platform_device_register(&palm27x_backlight);
+diff -puN include/trace/events/huge_memory.h~mm-fix-kernel-crash-in-khugepaged-thread include/trace/events/huge_memory.h
+--- a/include/trace/events/huge_memory.h~mm-fix-kernel-crash-in-khugepaged-thread
++++ a/include/trace/events/huge_memory.h
+@@ -46,10 +46,10 @@ SCAN_STATUS
+ 
+ TRACE_EVENT(mm_khugepaged_scan_pmd,
+ 
+-	TP_PROTO(struct mm_struct *mm, unsigned long pfn, bool writable,
++	TP_PROTO(struct mm_struct *mm, struct page *page, bool writable,
+ 		 bool referenced, int none_or_zero, int status, int unmapped),
+ 
+-	TP_ARGS(mm, pfn, writable, referenced, none_or_zero, status, unmapped),
++	TP_ARGS(mm, page, writable, referenced, none_or_zero, status, unmapped),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(struct mm_struct *, mm)
+@@ -63,7 +63,7 @@ TRACE_EVENT(mm_khugepaged_scan_pmd,
+ 
+ 	TP_fast_assign(
+ 		__entry->mm = mm;
+-		__entry->pfn = pfn;
++		__entry->pfn = page ? page_to_pfn(page) : -1;
+ 		__entry->writable = writable;
+ 		__entry->referenced = referenced;
+ 		__entry->none_or_zero = none_or_zero;
+@@ -107,10 +107,10 @@ TRACE_EVENT(mm_collapse_huge_page,
+ 
+ TRACE_EVENT(mm_collapse_huge_page_isolate,
+ 
+-	TP_PROTO(unsigned long pfn, int none_or_zero,
++	TP_PROTO(struct page *page, int none_or_zero,
+ 		 bool referenced, bool  writable, int status),
+ 
+-	TP_ARGS(pfn, none_or_zero, referenced, writable, status),
++	TP_ARGS(page, none_or_zero, referenced, writable, status),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, pfn)
+@@ -121,7 +121,7 @@ TRACE_EVENT(mm_collapse_huge_page_isolat
+ 	),
+ 
+ 	TP_fast_assign(
+-		__entry->pfn = pfn;
++		__entry->pfn = page ? page_to_pfn(page) : -1;
+ 		__entry->none_or_zero = none_or_zero;
+ 		__entry->referenced = referenced;
+ 		__entry->writable = writable;
+diff -puN mm/huge_memory.c~mm-fix-kernel-crash-in-khugepaged-thread mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-fix-kernel-crash-in-khugepaged-thread
++++ a/mm/huge_memory.c
+@@ -2346,7 +2346,7 @@ static int __collapse_huge_page_isolate(
+ 	if (likely(writable)) {
+ 		if (likely(referenced)) {
+ 			result = SCAN_SUCCEED;
+-			trace_mm_collapse_huge_page_isolate(page_to_pfn(page), none_or_zero,
++			trace_mm_collapse_huge_page_isolate(page, none_or_zero,
+ 							    referenced, writable, result);
+ 			return 1;
+ 		}
+@@ -2356,7 +2356,7 @@ static int __collapse_huge_page_isolate(
+ 
+ out:
+ 	release_pte_pages(pte, _pte);
+-	trace_mm_collapse_huge_page_isolate(page_to_pfn(page), none_or_zero,
++	trace_mm_collapse_huge_page_isolate(page, none_or_zero,
+ 					    referenced, writable, result);
+ 	return 0;
  }
- #endif
-diff -puN arch/arm/mach-pxa/palmtc.c~linux-next-git-rejects arch/arm/mach-pxa/palmtc.c
---- a/arch/arm/mach-pxa/palmtc.c~linux-next-git-rejects
-+++ a/arch/arm/mach-pxa/palmtc.c
-@@ -169,11 +169,7 @@ static inline void palmtc_keys_init(void
- #if defined(CONFIG_BACKLIGHT_PWM) || defined(CONFIG_BACKLIGHT_PWM_MODULE)
- static struct pwm_lookup palmtc_pwm_lookup[] = {
- 	PWM_LOOKUP("pxa25x-pwm.1", 0, "pwm-backlight.0", NULL, PALMTC_PERIOD_NS,
--<<<<<<< HEAD
--		   PWM_PERIOD_NORMAL),
--=======
- 		   PWM_POLARITY_NORMAL),
-->>>>>>> linux-next/akpm-base
- };
- 
- static struct platform_pwm_backlight_data palmtc_backlight_data = {
-diff -puN arch/arm64/boot/dts/marvell/berlin4ct.dtsi~linux-next-git-rejects arch/arm64/boot/dts/marvell/berlin4ct.dtsi
---- a/arch/arm64/boot/dts/marvell/berlin4ct.dtsi~linux-next-git-rejects
-+++ a/arch/arm64/boot/dts/marvell/berlin4ct.dtsi
-@@ -225,8 +225,6 @@
- 			};
- 		};
- 
--<<<<<<< HEAD
--=======
- 		soc_pinctrl: pin-controller@ea8000 {
- 			compatible = "marvell,berlin4ct-soc-pinctrl";
- 			reg = <0xea8000 0x14>;
-@@ -237,7 +235,6 @@
- 			reg = <0xea8400 0x8>;
- 		};
- 
-->>>>>>> linux-next/akpm-base
- 		apb@fc0000 {
- 			compatible = "simple-bus";
- 			#address-cells = <1>;
-diff -puN drivers/soc/Kconfig~linux-next-git-rejects drivers/soc/Kconfig
---- a/drivers/soc/Kconfig~linux-next-git-rejects
-+++ a/drivers/soc/Kconfig
-@@ -4,10 +4,7 @@ source "drivers/soc/brcmstb/Kconfig"
- source "drivers/soc/mediatek/Kconfig"
- source "drivers/soc/qcom/Kconfig"
- source "drivers/soc/rockchip/Kconfig"
--<<<<<<< HEAD
--=======
- source "drivers/soc/samsung/Kconfig"
-->>>>>>> linux-next/akpm-base
- source "drivers/soc/sunxi/Kconfig"
- source "drivers/soc/ti/Kconfig"
- source "drivers/soc/versatile/Kconfig"
-diff -puN drivers/soc/Makefile~linux-next-git-rejects drivers/soc/Makefile
---- a/drivers/soc/Makefile~linux-next-git-rejects
-+++ a/drivers/soc/Makefile
-@@ -6,10 +6,7 @@ obj-$(CONFIG_SOC_BRCMSTB)	+= brcmstb/
- obj-$(CONFIG_MACH_DOVE)		+= dove/
- obj-$(CONFIG_ARCH_MEDIATEK)	+= mediatek/
- obj-$(CONFIG_ARCH_QCOM)		+= qcom/
--<<<<<<< HEAD
--=======
- obj-$(CONFIG_SOC_SAMSUNG)	+= samsung/
-->>>>>>> linux-next/akpm-base
- obj-$(CONFIG_ARCH_ROCKCHIP)		+= rockchip/
- obj-$(CONFIG_ARCH_SUNXI)	+= sunxi/
- obj-$(CONFIG_ARCH_TEGRA)	+= tegra/
-diff -puN drivers/soc/ti/knav_qmss_queue.c~linux-next-git-rejects drivers/soc/ti/knav_qmss_queue.c
---- a/drivers/soc/ti/knav_qmss_queue.c~linux-next-git-rejects
-+++ a/drivers/soc/ti/knav_qmss_queue.c
-@@ -1519,15 +1519,9 @@ static int knav_queue_load_pdsp(struct k
- 
- 	for (i = 0; i < ARRAY_SIZE(knav_acc_firmwares); i++) {
- 		if (knav_acc_firmwares[i]) {
--<<<<<<< HEAD
--			ret = request_firmware(&fw,
--					       knav_acc_firmwares[i],
--					       kdev->dev);
--=======
- 			ret = request_firmware_direct(&fw,
- 						      knav_acc_firmwares[i],
- 						      kdev->dev);
-->>>>>>> linux-next/akpm-base
- 			if (!ret) {
- 				found = true;
- 				break;
-diff -puN fs/direct-io.c~linux-next-git-rejects fs/direct-io.c
---- a/fs/direct-io.c~linux-next-git-rejects
-+++ a/fs/direct-io.c
-@@ -399,24 +399,14 @@ static inline void dio_bio_submit(struct
- 	if (dio->is_async && dio->rw == READ && dio->should_dirty)
- 		bio_set_pages_dirty(bio);
- 
--<<<<<<< HEAD
--	dio->bio_bdev = bio->bi_bdev;
--
--=======
-->>>>>>> linux-next/akpm-base
- 	if (sdio->submit_io) {
- 		sdio->submit_io(dio->rw, bio, dio->inode,
- 			       sdio->logical_offset_in_bio);
- 		dio->bio_cookie = BLK_QC_T_NONE;
--<<<<<<< HEAD
--	} else
--		dio->bio_cookie = submit_bio(dio->rw, bio);
--=======
- 	} else {
- 		dio->bio_cookie = submit_bio(dio->rw, bio);
- 		dio->bio_bdev = bio->bi_bdev;
+@@ -2852,7 +2852,7 @@ out_unmap:
+ 		collapse_huge_page(mm, address, hpage, vma, node);
  	}
-->>>>>>> linux-next/akpm-base
- 
- 	sdio->bio = NULL;
- 	sdio->boundary = 0;
-diff -puN include/linux/fs.h~linux-next-git-rejects include/linux/fs.h
---- a/include/linux/fs.h~linux-next-git-rejects
-+++ a/include/linux/fs.h
-@@ -1682,10 +1682,7 @@ struct inode_operations {
- 			   umode_t create_mode, int *opened);
- 	int (*tmpfile) (struct inode *, struct dentry *, umode_t);
- 	int (*set_acl)(struct inode *, struct posix_acl *, int);
--<<<<<<< HEAD
--=======
- 	int (*set_richacl)(struct inode *, struct richacl *);
-->>>>>>> linux-next/akpm-base
- } ____cacheline_aligned;
- 
- ssize_t rw_copy_check_uvector(int type, const struct iovec __user * uvector,
+ out:
+-	trace_mm_khugepaged_scan_pmd(mm, page_to_pfn(page), writable, referenced,
++	trace_mm_khugepaged_scan_pmd(mm, page, writable, referenced,
+ 				     none_or_zero, result, unmapped);
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from yalin.wang2010@gmail.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-ncpfs-dont-allow-negative-timeouts-fix.patch
-mm.patch
-slub-optimize-bulk-slowpath-free-by-detached-freelist-fix.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-fix-kernel-crash-in-khugepaged-thread.patch
 
