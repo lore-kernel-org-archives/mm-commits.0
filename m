@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-optimize-bad-declarations-and-redundant-assignment.patch
- added to -mm tree
-Date: Tue, 17 Nov 2015 15:48:28 -0800
-Message-ID: <564bbccc.HFEmdr0JWoXUq08k%akpm@linux-foundation.org>
+Subject: + mm-change-mm_vmscan_lru_shrink_inactive-proto-types.patch added to -mm tree
+Date: Tue, 17 Nov 2015 15:49:55 -0800
+Message-ID: <564bbd23.vh7yKZJiExasizPR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48228 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48233 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750867AbbKQXs3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Nov 2015 18:48:29 -0500
+	with ESMTP id S1753314AbbKQXt4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Nov 2015 18:49:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: norton.zhu@huawei.com, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: yalin.wang2010@gmail.com, rostedt@goodmis.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: optimize bad declarations and redundant assignment
+     Subject: mm: change mm_vmscan_lru_shrink_inactive() proto types
 has been added to the -mm tree.  Its filename is
-     ocfs2-optimize-bad-declarations-and-redundant-assignment.patch
+     mm-change-mm_vmscan_lru_shrink_inactive-proto-types.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-optimize-bad-declarations-and-redundant-assignment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-change-mm_vmscan_lru_shrink_inactive-proto-types.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-optimize-bad-declarations-and-redundant-assignment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-change-mm_vmscan_lru_shrink_inactive-proto-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,76 +38,80 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Norton.Zhu" <norton.zhu@huawei.com>
-Subject: ocfs2: optimize bad declarations and redundant assignment
+From: yalin wang <yalin.wang2010@gmail.com>
+Subject: mm: change mm_vmscan_lru_shrink_inactive() proto types
 
-In ocfs2_parse_options,
+Move node_id zone_idx shrink flags into trace function, so thay we don't
+need caculate these args if the trace is disabled, and will make this
+function have less arguments.
 
-a) it's better to declare variables(small size) outside of while loop;
-
-b) 'option' will be set by match_int, 'option = 0;' makes no sense, if
-   match_int failed, it just goto bail and return.
-
-Signed-off-by: Norton.Zhu <norton.zhu@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Gang He <ghe@suse.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: yalin wang <yalin.wang2010@gmail.com>
+Reviewed-by: Steven Rostedt <rostedt@goodmis.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ include/trace/events/vmscan.h |   14 +++++++-------
+ mm/vmscan.c                   |    7 ++-----
+ 2 files changed, 9 insertions(+), 12 deletions(-)
 
-diff -puN fs/ocfs2/super.c~ocfs2-optimize-bad-declarations-and-redundant-assignment fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-optimize-bad-declarations-and-redundant-assignment
-+++ a/fs/ocfs2/super.c
-@@ -1280,6 +1280,8 @@ static int ocfs2_parse_options(struct su
- 	int status, user_stack = 0;
- 	char *p;
- 	u32 tmp;
-+	int token, option;
-+	substring_t args[MAX_OPT_ARGS];
+diff -puN include/trace/events/vmscan.h~mm-change-mm_vmscan_lru_shrink_inactive-proto-types include/trace/events/vmscan.h
+--- a/include/trace/events/vmscan.h~mm-change-mm_vmscan_lru_shrink_inactive-proto-types
++++ a/include/trace/events/vmscan.h
+@@ -352,11 +352,11 @@ TRACE_EVENT(mm_vmscan_writepage,
  
- 	trace_ocfs2_parse_options(is_remount, options ? options : "(none)");
+ TRACE_EVENT(mm_vmscan_lru_shrink_inactive,
  
-@@ -1298,9 +1300,6 @@ static int ocfs2_parse_options(struct su
- 	}
+-	TP_PROTO(int nid, int zid,
+-			unsigned long nr_scanned, unsigned long nr_reclaimed,
+-			int priority, int reclaim_flags),
++	TP_PROTO(struct zone *zone,
++		unsigned long nr_scanned, unsigned long nr_reclaimed,
++		int priority, int file),
  
- 	while ((p = strsep(&options, ",")) != NULL) {
--		int token, option;
--		substring_t args[MAX_OPT_ARGS];
--
- 		if (!*p)
- 			continue;
+-	TP_ARGS(nid, zid, nr_scanned, nr_reclaimed, priority, reclaim_flags),
++	TP_ARGS(zone, nr_scanned, nr_reclaimed, priority, file),
  
-@@ -1367,7 +1366,6 @@ static int ocfs2_parse_options(struct su
- 				mopt->atime_quantum = option;
- 			break;
- 		case Opt_slot:
--			option = 0;
- 			if (match_int(&args[0], &option)) {
- 				status = 0;
- 				goto bail;
-@@ -1376,7 +1374,6 @@ static int ocfs2_parse_options(struct su
- 				mopt->slot = (s16)option;
- 			break;
- 		case Opt_commit:
--			option = 0;
- 			if (match_int(&args[0], &option)) {
- 				status = 0;
- 				goto bail;
-@@ -1388,7 +1385,6 @@ static int ocfs2_parse_options(struct su
- 			mopt->commit_interval = HZ * option;
- 			break;
- 		case Opt_localalloc:
--			option = 0;
- 			if (match_int(&args[0], &option)) {
- 				status = 0;
- 				goto bail;
+ 	TP_STRUCT__entry(
+ 		__field(int, nid)
+@@ -368,12 +368,12 @@ TRACE_EVENT(mm_vmscan_lru_shrink_inactiv
+ 	),
+ 
+ 	TP_fast_assign(
+-		__entry->nid = nid;
+-		__entry->zid = zid;
++		__entry->nid = zone_to_nid(zone);
++		__entry->zid = zone_idx(zone);
+ 		__entry->nr_scanned = nr_scanned;
+ 		__entry->nr_reclaimed = nr_reclaimed;
+ 		__entry->priority = priority;
+-		__entry->reclaim_flags = reclaim_flags;
++		__entry->reclaim_flags = trace_shrink_flags(file);
+ 	),
+ 
+ 	TP_printk("nid=%d zid=%d nr_scanned=%ld nr_reclaimed=%ld priority=%d flags=%s",
+diff -puN mm/vmscan.c~mm-change-mm_vmscan_lru_shrink_inactive-proto-types mm/vmscan.c
+--- a/mm/vmscan.c~mm-change-mm_vmscan_lru_shrink_inactive-proto-types
++++ a/mm/vmscan.c
+@@ -1691,11 +1691,8 @@ shrink_inactive_list(unsigned long nr_to
+ 	    current_may_throttle())
+ 		wait_iff_congested(zone, BLK_RW_ASYNC, HZ/10);
+ 
+-	trace_mm_vmscan_lru_shrink_inactive(zone->zone_pgdat->node_id,
+-		zone_idx(zone),
+-		nr_scanned, nr_reclaimed,
+-		sc->priority,
+-		trace_shrink_flags(file));
++	trace_mm_vmscan_lru_shrink_inactive(zone, nr_scanned, nr_reclaimed,
++			sc->priority, file);
+ 	return nr_reclaimed;
+ }
+ 
 _
 
-Patches currently in -mm which might be from norton.zhu@huawei.com are
+Patches currently in -mm which might be from yalin.wang2010@gmail.com are
 
-ocfs2-optimize-bad-declarations-and-redundant-assignment.patch
+mm-change-trace_mm_vmscan_writepage-proto-type.patch
+mm-change-mm_vmscan_lru_shrink_inactive-proto-types.patch
+mm-fix-kernel-crash-in-khugepaged-thread.patch
 
