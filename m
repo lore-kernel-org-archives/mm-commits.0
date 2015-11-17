@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-change-trace_mm_vmscan_writepage-proto-type.patch added to
- -mm tree
-Date: Tue, 17 Nov 2015 13:42:33 -0800
-Message-ID: <564b9f49.zceNq61N2YzYYY32%akpm@linux-foundation.org>
+Subject: +
+ mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area.patch added
+ to -mm tree
+Date: Tue, 17 Nov 2015 13:44:23 -0800
+Message-ID: <564b9fb7.03d3mw00IoAX7d9g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45083 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45086 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752730AbbKQVmd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Nov 2015 16:42:33 -0500
+	with ESMTP id S1754813AbbKQVoY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Nov 2015 16:44:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yalin.wang2010@gmail.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: jmarchan@redhat.com, aryabinin@virtuozzo.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan.c: change trace_mm_vmscan_writepage() proto type
+     Subject: mm: vmalloc: don't remove inexistent guard hole in remove_vm_area()
 has been added to the -mm tree.  Its filename is
-     mm-change-trace_mm_vmscan_writepage-proto-type.patch
+     mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-change-trace_mm_vmscan_writepage-proto-type.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-change-trace_mm_vmscan_writepage-proto-type.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +40,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: yalin wang <yalin.wang2010@gmail.com>
-Subject: mm/vmscan.c: change trace_mm_vmscan_writepage() proto type
+From: "Jerome Marchand" <jmarchan@redhat.com>
+Subject: mm: vmalloc: don't remove inexistent guard hole in remove_vm_area()
 
-Move trace_reclaim_flags() into trace function, so that we don't need
-caculate these flags if the trace is disabled.
+Commit 71394fe50146 ("mm: vmalloc: add flag preventing guard hole
+allocation") missed a spot.  Currently remove_vm_area() decreases vm->size
+to "remove" the guard hole page, even when it isn't present.  All but one
+users just free the vm_struct rigth away and never access vm->size anyway.
 
-Signed-off-by: yalin wang <yalin.wang2010@gmail.com>
-Reviewed-by: Steven Rostedt <rostedt@goodmis.org>
+Don't touch the size in remove_vm_area() and have __vunmap() use the
+proper get_vm_area_size() helper.
+
+Signed-off-by: Jerome Marchand <jmarchan@redhat.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |    7 +++----
- mm/vmscan.c                   |    2 +-
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ mm/vmalloc.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/trace/events/vmscan.h~mm-change-trace_mm_vmscan_writepage-proto-type include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~mm-change-trace_mm_vmscan_writepage-proto-type
-+++ a/include/trace/events/vmscan.h
-@@ -330,10 +330,9 @@ DEFINE_EVENT(mm_vmscan_lru_isolate_templ
+diff -puN mm/vmalloc.c~mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area
++++ a/mm/vmalloc.c
+@@ -1443,7 +1443,6 @@ struct vm_struct *remove_vm_area(const v
+ 		vmap_debug_free_range(va->va_start, va->va_end);
+ 		kasan_free_shadow(vm);
+ 		free_unmap_vmap_area(va);
+-		vm->size -= PAGE_SIZE;
  
- TRACE_EVENT(mm_vmscan_writepage,
- 
--	TP_PROTO(struct page *page,
--		int reclaim_flags),
-+	TP_PROTO(struct page *page),
- 
--	TP_ARGS(page, reclaim_flags),
-+	TP_ARGS(page),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, pfn)
-@@ -342,7 +341,7 @@ TRACE_EVENT(mm_vmscan_writepage,
- 
- 	TP_fast_assign(
- 		__entry->pfn = page_to_pfn(page);
--		__entry->reclaim_flags = reclaim_flags;
-+		__entry->reclaim_flags = trace_reclaim_flags(page);
- 	),
- 
- 	TP_printk("page=%p pfn=%lu flags=%s",
-diff -puN mm/vmscan.c~mm-change-trace_mm_vmscan_writepage-proto-type mm/vmscan.c
---- a/mm/vmscan.c~mm-change-trace_mm_vmscan_writepage-proto-type
-+++ a/mm/vmscan.c
-@@ -594,7 +594,7 @@ static pageout_t pageout(struct page *pa
- 			/* synchronous write or broken a_ops? */
- 			ClearPageReclaim(page);
- 		}
--		trace_mm_vmscan_writepage(page, trace_reclaim_flags(page));
-+		trace_mm_vmscan_writepage(page);
- 		inc_zone_page_state(page, NR_VMSCAN_WRITE);
- 		return PAGE_SUCCESS;
+ 		return vm;
  	}
+@@ -1468,8 +1467,8 @@ static void __vunmap(const void *addr, i
+ 		return;
+ 	}
+ 
+-	debug_check_no_locks_freed(addr, area->size);
+-	debug_check_no_obj_freed(addr, area->size);
++	debug_check_no_locks_freed(addr, get_vm_area_size(area));
++	debug_check_no_obj_freed(addr, get_vm_area_size(area));
+ 
+ 	if (deallocate_pages) {
+ 		int i;
 _
 
-Patches currently in -mm which might be from yalin.wang2010@gmail.com are
+Patches currently in -mm which might be from jmarchan@redhat.com are
 
-mm-change-trace_mm_vmscan_writepage-proto-type.patch
-mm-fix-kernel-crash-in-khugepaged-thread.patch
+mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area.patch
 
