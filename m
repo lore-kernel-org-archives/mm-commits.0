@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area.patch added
- to -mm tree
-Date: Tue, 17 Nov 2015 13:44:23 -0800
-Message-ID: <564b9fb7.03d3mw00IoAX7d9g%akpm@linux-foundation.org>
+Subject: + mm-loosen-madv_nohugepage-to-enable-qemu-postcopy-on-s390.patch added to -mm tree
+Date: Tue, 17 Nov 2015 13:45:44 -0800
+Message-ID: <564ba008.wsfxKfqtUYOa07KH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45086 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45092 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754813AbbKQVoY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Nov 2015 16:44:24 -0500
+	with ESMTP id S1753964AbbKQVpp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Nov 2015 16:45:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jmarchan@redhat.com, aryabinin@virtuozzo.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: jjherne@linux.vnet.ibm.com, aarcange@redhat.com, borntraeger@de.ibm.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmalloc: don't remove inexistent guard hole in remove_vm_area()
+     Subject: mm: Loosen MADV_NOHUGEPAGE to enable Qemu postcopy on s390
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area.patch
+     mm-loosen-madv_nohugepage-to-enable-qemu-postcopy-on-s390.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-loosen-madv_nohugepage-to-enable-qemu-postcopy-on-s390.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-loosen-madv_nohugepage-to-enable-qemu-postcopy-on-s390.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,51 +38,52 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Jerome Marchand" <jmarchan@redhat.com>
-Subject: mm: vmalloc: don't remove inexistent guard hole in remove_vm_area()
+From: "Jason J. Herne" <jjherne@linux.vnet.ibm.com>
+Subject: mm: Loosen MADV_NOHUGEPAGE to enable Qemu postcopy on s390
 
-Commit 71394fe50146 ("mm: vmalloc: add flag preventing guard hole
-allocation") missed a spot.  Currently remove_vm_area() decreases vm->size
-to "remove" the guard hole page, even when it isn't present.  All but one
-users just free the vm_struct rigth away and never access vm->size anyway.
+MADV_NOHUGEPAGE processing is too restrictive.  kvm already disables
+hugepage but hugepage_madvise() takes the error path when we ask to turn
+on the MADV_NOHUGEPAGE bit and the bit is already on.  This causes Qemu's
+new postcopy migration feature to fail on s390 because its first action is
+to madvise the guest address space as NOHUGEPAGE.  This patch modifies the
+code so that the operation succeeds without error now.
 
-Don't touch the size in remove_vm_area() and have __vunmap() use the
-proper get_vm_area_size() helper.
+For consistency reasons do the same for MADV_HUGEPAGE.
 
-Signed-off-by: Jerome Marchand <jmarchan@redhat.com>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Signed-off-by: Jason J. Herne <jjherne@linux.vnet.ibm.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Acked-by: Christian Borntraeger <borntraeger@de.ibm.com>
 Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ mm/huge_memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area
-+++ a/mm/vmalloc.c
-@@ -1443,7 +1443,6 @@ struct vm_struct *remove_vm_area(const v
- 		vmap_debug_free_range(va->va_start, va->va_end);
- 		kasan_free_shadow(vm);
- 		free_unmap_vmap_area(va);
--		vm->size -= PAGE_SIZE;
- 
- 		return vm;
- 	}
-@@ -1468,8 +1467,8 @@ static void __vunmap(const void *addr, i
- 		return;
- 	}
- 
--	debug_check_no_locks_freed(addr, area->size);
--	debug_check_no_obj_freed(addr, area->size);
-+	debug_check_no_locks_freed(addr, get_vm_area_size(area));
-+	debug_check_no_obj_freed(addr, get_vm_area_size(area));
- 
- 	if (deallocate_pages) {
- 		int i;
+diff -puN mm/huge_memory.c~mm-loosen-madv_nohugepage-to-enable-qemu-postcopy-on-s390 mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-loosen-madv_nohugepage-to-enable-qemu-postcopy-on-s390
++++ a/mm/huge_memory.c
+@@ -2009,7 +2009,7 @@ int hugepage_madvise(struct vm_area_stru
+ 		/*
+ 		 * Be somewhat over-protective like KSM for now!
+ 		 */
+-		if (*vm_flags & (VM_HUGEPAGE | VM_NO_THP))
++		if (*vm_flags & VM_NO_THP)
+ 			return -EINVAL;
+ 		*vm_flags &= ~VM_NOHUGEPAGE;
+ 		*vm_flags |= VM_HUGEPAGE;
+@@ -2025,7 +2025,7 @@ int hugepage_madvise(struct vm_area_stru
+ 		/*
+ 		 * Be somewhat over-protective like KSM for now!
+ 		 */
+-		if (*vm_flags & (VM_NOHUGEPAGE | VM_NO_THP))
++		if (*vm_flags & VM_NO_THP)
+ 			return -EINVAL;
+ 		*vm_flags &= ~VM_HUGEPAGE;
+ 		*vm_flags |= VM_NOHUGEPAGE;
 _
 
-Patches currently in -mm which might be from jmarchan@redhat.com are
+Patches currently in -mm which might be from jjherne@linux.vnet.ibm.com are
 
-mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area.patch
+mm-loosen-madv_nohugepage-to-enable-qemu-postcopy-on-s390.patch
 
