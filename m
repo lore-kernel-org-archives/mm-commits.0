@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-kernel-crash-in-khugepaged-thread.patch added to -mm
- tree
-Date: Mon, 16 Nov 2015 16:48:18 -0800
-Message-ID: <564a7952.FBSf8pDJ9zDmf35f%akpm@linux-foundation.org>
+Subject: + blackfin-convert-to-dma_map_ops.patch added to -mm tree
+Date: Tue, 17 Nov 2015 13:38:03 -0800
+Message-ID: <564b9e3b.aNGVSLtoTAp20DKQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51456 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45018 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750967AbbKQAsT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 16 Nov 2015 19:48:19 -0500
+	with ESMTP id S1752819AbbKQViE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 17 Nov 2015 16:38:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yalin.wang2010@gmail.com, kirill.shutemov@linux.intel.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: hch@lst.de, realmz6@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix kernel crash in khugepaged thread
+     Subject: blackfin: convert to dma_map_ops
 has been added to the -mm tree.  Its filename is
-     mm-fix-kernel-crash-in-khugepaged-thread.patch
+     blackfin-convert-to-dma_map_ops.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-kernel-crash-in-khugepaged-thread.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/blackfin-convert-to-dma_map_ops.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-kernel-crash-in-khugepaged-thread.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/blackfin-convert-to-dma_map_ops.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,171 +38,287 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: yalin wang <yalin.wang2010@gmail.com>
-Subject: mm: fix kernel crash in khugepaged thread
+From: Christoph Hellwig <hch@lst.de>
+Subject: blackfin: convert to dma_map_ops
 
-This crash is caused by NULL pointer deference, in page_to_pfn() marco,
-when page == NULL :
-
-[  182.639154 ] Unable to handle kernel NULL pointer dereference at virtual address 00000000
-[  182.639491 ] pgd = ffffffc00077a000
-[  182.639761 ] [00000000] *pgd=00000000b9422003, *pud=00000000b9422003, *pmd=00000000b9423003, *pte=0060000008000707
-[  182.640749 ] Internal error: Oops: 94000006 [#1] SMP
-[  182.641197 ] Modules linked in:
-[  182.641580 ] CPU: 1 PID: 26 Comm: khugepaged Tainted: G        W       4.3.0-rc6-next-20151022ajb-00001-g32f3386-dirty #3
-[  182.642077 ] Hardware name: linux,dummy-virt (DT)
-[  182.642227 ] task: ffffffc07957c080 ti: ffffffc079638000 task.ti: ffffffc079638000
-[  182.642598 ] PC is at khugepaged+0x378/0x1af8
-[  182.642826 ] LR is at khugepaged+0x418/0x1af8
-[  182.643047 ] pc : [<ffffffc0001980ac>] lr : [<ffffffc00019814c>] pstate: 60000145
-[  182.643490 ] sp : ffffffc07963bca0
-[  182.643650 ] x29: ffffffc07963bca0 x28: ffffffc00075c000
-[  182.644024 ] x27: ffffffc00f275040 x26: ffffffc0006c7000
-[  182.644334 ] x25: 00e8000048800f51 x24: 0000000006400000
-[  182.644687 ] x23: 0000000000000002 x22: 0000000000000000
-[  182.644972 ] x21: 0000000000000000 x20: 0000000000000000
-[  182.645446 ] x19: 0000000000000000 x18: 0000007ff86d0990
-[  182.645931 ] x17: 00000000007ef9c8 x16: ffffffc000098390
-[  182.646236 ] x15: ffffffffffffffff x14: 00000000ffffffff
-[  182.646649 ] x13: 000000000000016a x12: 0000000000000000
-[  182.647046 ] x11: ffffffc07f025020 x10: 0000000000000000
-[  182.647395 ] x9 : 0000000000000048 x8 : ffffffc000721e28
-[  182.647872 ] x7 : 0000000000000000 x6 : ffffffc07f02d000
-[  182.648261 ] x5 : fffffffffffffe00 x4 : ffffffc00f275040
-[  182.648611 ] x3 : 0000000000000000 x2 : ffffffc00f2ad000
-[  182.648908 ] x1 : 0000000000000000 x0 : ffffffc000727000
-[  182.649147 ]
-[  182.649252 ] Process khugepaged (pid: 26, stack limit = 0xffffffc079638020)
-[  182.649724 ] Stack: (0xffffffc07963bca0 to 0xffffffc07963c000)
-[  182.650141 ] bca0: ffffffc07963be30 ffffffc0000b5044 ffffffc07961fb80 ffffffc00072e630
-[  182.650587 ] bcc0: ffffffc0005d5090 0000000000000000 ffffffc000197d34 0000000000000000
-[  182.651009 ] bce0: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-[  182.651446 ] bd00: ffffffc07963bd90 ffffffc07f1cbf80 000000004f3be003 ffffffc00f2750a4
-[  182.651956 ] bd20: ffffffc00f3bf000 ffffffc000000001 0000000000000001 ffffffc07f085740
-[  182.652520 ] bd40: ffffffc00f2ad188 ffffffc000000000 0000000006200000 ffffffc00f275040
-[  182.652972 ] bd60: ffffffc0006b1a90 ffffffc079638000 ffffffc07963be20 ffffffc00f0144d0
-[  182.653357 ] bd80: ffffffc000000000 0000000006400000 ffffffc00f0144d0 00000a0800000001
-[  182.653793 ] bda0: 0000100000000001 ffffffc000000001 ffffffc07f025000 ffffffc00f2750a8
-[  182.654226 ] bdc0: 00000001000005f8 ffffffc00075a000 0000000006a00000 ffffffc000727000
-[  182.654522 ] bde0: ffffffc0006e8478 ffffffc000000000 0000000100000000 ffffffc078fb9000
-[  182.654869 ] be00: ffffffc07963be30 ffffffc000000000 ffffffc07957c080 ffffffc0000cfc4c
-[  182.655225 ] be20: ffffffc07963be20 ffffffc07963be20 0000000000000000 ffffffc000085c50
-[  182.655588 ] be40: ffffffc0000b4f64 ffffffc07961fb80 0000000000000000 0000000000000000
-[  182.656138 ] be60: 0000000000000000 ffffffc0000bee2c ffffffc0000b4f64 0000000000000000
-[  182.656609 ] be80: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-[  182.657145 ] bea0: ffffffc07963bea0 ffffffc07963bea0 0000000000000000 ffffffc000000000
-[  182.657475 ] bec0: ffffffc07963bec0 ffffffc07963bec0 0000000000000000 0000000000000000
-[  182.657922 ] bee0: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-[  182.658558 ] bf00: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-[  182.658972 ] bf20: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-[  182.659291 ] bf40: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-[  182.659722 ] bf60: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-[  182.660122 ] bf80: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-[  182.660654 ] bfa0: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-[  182.661064 ] bfc0: 0000000000000000 0000000000000000 0000000000000000 0000000000000005
-[  182.661466 ] bfe0: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
-[  182.661848 ] Call trace:
-[  182.662050 ] [<ffffffc0001980ac>] khugepaged+0x378/0x1af8
-[  182.662294 ] [<ffffffc0000b5040>] kthread+0xdc/0xf4
-[  182.662605 ] [<ffffffc000085c4c>] ret_from_fork+0xc/0x40
-[  182.663046 ] Code: 35001700 f0002c60 aa0703e3 f9009fa0 (f94000e0)
-[  182.663901 ] ---[ end trace 637503d8e28ae69e  ]---
-[  182.664160 ] Kernel panic - not syncing: Fatal exception
-[  182.664571 ] CPU2: stopping
-[  182.664794 ] CPU: 2 PID: 0 Comm: swapper/2 Tainted: G      D W       4.3.0-rc6-next-20151022ajb-00001-g32f3386-dirty #3
-[  182.665248 ] Hardware name: linux,dummy-virt (DT)
-
-Signed-off-by: yalin wang <yalin.wang2010@gmail.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Cc: Steven Miao <realmz6@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |   12 ++++++------
- mm/huge_memory.c                   |    6 +++---
- 2 files changed, 9 insertions(+), 9 deletions(-)
+ arch/blackfin/Kconfig                   |    1 
+ arch/blackfin/include/asm/dma-mapping.h |  127 ----------------------
+ arch/blackfin/kernel/dma-mapping.c      |   52 ++++++---
+ 3 files changed, 43 insertions(+), 137 deletions(-)
 
-diff -puN include/trace/events/huge_memory.h~mm-fix-kernel-crash-in-khugepaged-thread include/trace/events/huge_memory.h
---- a/include/trace/events/huge_memory.h~mm-fix-kernel-crash-in-khugepaged-thread
-+++ a/include/trace/events/huge_memory.h
-@@ -46,10 +46,10 @@ SCAN_STATUS
+diff -puN arch/blackfin/Kconfig~blackfin-convert-to-dma_map_ops arch/blackfin/Kconfig
+--- a/arch/blackfin/Kconfig~blackfin-convert-to-dma_map_ops
++++ a/arch/blackfin/Kconfig
+@@ -40,6 +40,7 @@ config BLACKFIN
+ 	select HAVE_MOD_ARCH_SPECIFIC
+ 	select MODULES_USE_ELF_RELA
+ 	select HAVE_DEBUG_STACKOVERFLOW
++	select HAVE_DMA_ATTRS
  
- TRACE_EVENT(mm_khugepaged_scan_pmd,
+ config GENERIC_CSUM
+ 	def_bool y
+diff -puN arch/blackfin/include/asm/dma-mapping.h~blackfin-convert-to-dma_map_ops arch/blackfin/include/asm/dma-mapping.h
+--- a/arch/blackfin/include/asm/dma-mapping.h~blackfin-convert-to-dma_map_ops
++++ a/arch/blackfin/include/asm/dma-mapping.h
+@@ -8,36 +8,6 @@
+ #define _BLACKFIN_DMA_MAPPING_H
  
--	TP_PROTO(struct mm_struct *mm, unsigned long pfn, bool writable,
-+	TP_PROTO(struct mm_struct *mm, struct page *page, bool writable,
- 		 bool referenced, int none_or_zero, int status, int unmapped),
+ #include <asm/cacheflush.h>
+-struct scatterlist;
+-
+-void *dma_alloc_coherent(struct device *dev, size_t size,
+-			 dma_addr_t *dma_handle, gfp_t gfp);
+-void dma_free_coherent(struct device *dev, size_t size, void *vaddr,
+-		       dma_addr_t dma_handle);
+-
+-/*
+- * Now for the API extensions over the pci_ one
+- */
+-#define dma_alloc_noncoherent(d, s, h, f) dma_alloc_coherent(d, s, h, f)
+-#define dma_free_noncoherent(d, s, v, h) dma_free_coherent(d, s, v, h)
+-#define dma_supported(d, m)         (1)
+-
+-static inline int
+-dma_set_mask(struct device *dev, u64 dma_mask)
+-{
+-	if (!dev->dma_mask || !dma_supported(dev, dma_mask))
+-		return -EIO;
+-
+-	*dev->dma_mask = dma_mask;
+-
+-	return 0;
+-}
+-
+-static inline int
+-dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+-{
+-	return 0;
+-}
  
--	TP_ARGS(mm, pfn, writable, referenced, none_or_zero, status, unmapped),
-+	TP_ARGS(mm, page, writable, referenced, none_or_zero, status, unmapped),
- 
- 	TP_STRUCT__entry(
- 		__field(struct mm_struct *, mm)
-@@ -63,7 +63,7 @@ TRACE_EVENT(mm_khugepaged_scan_pmd,
- 
- 	TP_fast_assign(
- 		__entry->mm = mm;
--		__entry->pfn = pfn;
-+		__entry->pfn = page ? page_to_pfn(page) : -1;
- 		__entry->writable = writable;
- 		__entry->referenced = referenced;
- 		__entry->none_or_zero = none_or_zero;
-@@ -107,10 +107,10 @@ TRACE_EVENT(mm_collapse_huge_page,
- 
- TRACE_EVENT(mm_collapse_huge_page_isolate,
- 
--	TP_PROTO(unsigned long pfn, int none_or_zero,
-+	TP_PROTO(struct page *page, int none_or_zero,
- 		 bool referenced, bool  writable, int status),
- 
--	TP_ARGS(pfn, none_or_zero, referenced, writable, status),
-+	TP_ARGS(page, none_or_zero, referenced, writable, status),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, pfn)
-@@ -121,7 +121,7 @@ TRACE_EVENT(mm_collapse_huge_page_isolat
- 	),
- 
- 	TP_fast_assign(
--		__entry->pfn = pfn;
-+		__entry->pfn = page ? page_to_pfn(page) : -1;
- 		__entry->none_or_zero = none_or_zero;
- 		__entry->referenced = referenced;
- 		__entry->writable = writable;
-diff -puN mm/huge_memory.c~mm-fix-kernel-crash-in-khugepaged-thread mm/huge_memory.c
---- a/mm/huge_memory.c~mm-fix-kernel-crash-in-khugepaged-thread
-+++ a/mm/huge_memory.c
-@@ -2346,7 +2346,7 @@ static int __collapse_huge_page_isolate(
- 	if (likely(writable)) {
- 		if (likely(referenced)) {
- 			result = SCAN_SUCCEED;
--			trace_mm_collapse_huge_page_isolate(page_to_pfn(page), none_or_zero,
-+			trace_mm_collapse_huge_page_isolate(page, none_or_zero,
- 							    referenced, writable, result);
- 			return 1;
- 		}
-@@ -2356,7 +2356,7 @@ static int __collapse_huge_page_isolate(
- 
- out:
- 	release_pte_pages(pte, _pte);
--	trace_mm_collapse_huge_page_isolate(page_to_pfn(page), none_or_zero,
-+	trace_mm_collapse_huge_page_isolate(page, none_or_zero,
- 					    referenced, writable, result);
- 	return 0;
+ extern void
+ __dma_sync(dma_addr_t addr, size_t size, enum dma_data_direction dir);
+@@ -66,102 +36,13 @@ _dma_sync(dma_addr_t addr, size_t size,
+ 		__dma_sync(addr, size, dir);
  }
-@@ -2852,7 +2852,7 @@ out_unmap:
- 		collapse_huge_page(mm, address, hpage, vma, node);
- 	}
- out:
--	trace_mm_khugepaged_scan_pmd(mm, page_to_pfn(page), writable, referenced,
-+	trace_mm_khugepaged_scan_pmd(mm, page, writable, referenced,
- 				     none_or_zero, result, unmapped);
+ 
+-static inline dma_addr_t
+-dma_map_single(struct device *dev, void *ptr, size_t size,
+-	       enum dma_data_direction dir)
+-{
+-	_dma_sync((dma_addr_t)ptr, size, dir);
+-	return (dma_addr_t) ptr;
+-}
+-
+-static inline dma_addr_t
+-dma_map_page(struct device *dev, struct page *page,
+-	     unsigned long offset, size_t size,
+-	     enum dma_data_direction dir)
+-{
+-	return dma_map_single(dev, page_address(page) + offset, size, dir);
+-}
+-
+-static inline void
+-dma_unmap_single(struct device *dev, dma_addr_t dma_addr, size_t size,
+-		 enum dma_data_direction dir)
+-{
+-	BUG_ON(!valid_dma_direction(dir));
+-}
++extern struct dma_map_ops bfin_dma_ops;
+ 
+-static inline void
+-dma_unmap_page(struct device *dev, dma_addr_t dma_addr, size_t size,
+-	       enum dma_data_direction dir)
++static inline struct dma_map_ops *get_dma_ops(struct device *dev)
+ {
+-	dma_unmap_single(dev, dma_addr, size, dir);
++	return &bfin_dma_ops;
+ }
+ 
+-extern int dma_map_sg(struct device *dev, struct scatterlist *sg, int nents,
+-		      enum dma_data_direction dir);
+-
+-static inline void
+-dma_unmap_sg(struct device *dev, struct scatterlist *sg,
+-	     int nhwentries, enum dma_data_direction dir)
+-{
+-	BUG_ON(!valid_dma_direction(dir));
+-}
+-
+-static inline void
+-dma_sync_single_range_for_cpu(struct device *dev, dma_addr_t handle,
+-			      unsigned long offset, size_t size,
+-			      enum dma_data_direction dir)
+-{
+-	BUG_ON(!valid_dma_direction(dir));
+-}
+-
+-static inline void
+-dma_sync_single_range_for_device(struct device *dev, dma_addr_t handle,
+-				 unsigned long offset, size_t size,
+-				 enum dma_data_direction dir)
+-{
+-	_dma_sync(handle + offset, size, dir);
+-}
+-
+-static inline void
+-dma_sync_single_for_cpu(struct device *dev, dma_addr_t handle, size_t size,
+-			enum dma_data_direction dir)
+-{
+-	dma_sync_single_range_for_cpu(dev, handle, 0, size, dir);
+-}
+-
+-static inline void
+-dma_sync_single_for_device(struct device *dev, dma_addr_t handle, size_t size,
+-			   enum dma_data_direction dir)
+-{
+-	dma_sync_single_range_for_device(dev, handle, 0, size, dir);
+-}
+-
+-static inline void
+-dma_sync_sg_for_cpu(struct device *dev, struct scatterlist *sg, int nents,
+-		    enum dma_data_direction dir)
+-{
+-	BUG_ON(!valid_dma_direction(dir));
+-}
+-
+-extern void
+-dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg,
+-		       int nents, enum dma_data_direction dir);
+-
+-static inline void
+-dma_cache_sync(struct device *dev, void *vaddr, size_t size,
+-	       enum dma_data_direction dir)
+-{
+-	_dma_sync((dma_addr_t)vaddr, size, dir);
+-}
+-
+-/* drivers/base/dma-mapping.c */
+-extern int dma_common_mmap(struct device *dev, struct vm_area_struct *vma,
+-			   void *cpu_addr, dma_addr_t dma_addr, size_t size);
+-extern int dma_common_get_sgtable(struct device *dev, struct sg_table *sgt,
+-				  void *cpu_addr, dma_addr_t dma_addr,
+-				  size_t size);
+-
+-#define dma_mmap_coherent(d, v, c, h, s) dma_common_mmap(d, v, c, h, s)
+-#define dma_get_sgtable(d, t, v, h, s) dma_common_get_sgtable(d, t, v, h, s)
++#include <asm-generic/dma-mapping-common.h>
+ 
+ #endif				/* _BLACKFIN_DMA_MAPPING_H */
+diff -puN arch/blackfin/kernel/dma-mapping.c~blackfin-convert-to-dma_map_ops arch/blackfin/kernel/dma-mapping.c
+--- a/arch/blackfin/kernel/dma-mapping.c~blackfin-convert-to-dma_map_ops
++++ a/arch/blackfin/kernel/dma-mapping.c
+@@ -78,8 +78,8 @@ static void __free_dma_pages(unsigned lo
+ 	spin_unlock_irqrestore(&dma_page_lock, flags);
+ }
+ 
+-void *dma_alloc_coherent(struct device *dev, size_t size,
+-			 dma_addr_t *dma_handle, gfp_t gfp)
++static void *bfin_dma_alloc(struct device *dev, size_t size,
++		dma_addr_t *dma_handle, gfp_t gfp, struct dma_attrs *attrs)
+ {
+ 	void *ret;
+ 
+@@ -92,15 +92,12 @@ void *dma_alloc_coherent(struct device *
+ 
  	return ret;
  }
+-EXPORT_SYMBOL(dma_alloc_coherent);
+ 
+-void
+-dma_free_coherent(struct device *dev, size_t size, void *vaddr,
+-		  dma_addr_t dma_handle)
++static void bfin_dma_free(struct device *dev, size_t size, void *vaddr,
++		  dma_addr_t dma_handle, struct dma_attrs *attrs)
+ {
+ 	__free_dma_pages((unsigned long)vaddr, get_pages(size));
+ }
+-EXPORT_SYMBOL(dma_free_coherent);
+ 
+ /*
+  * Streaming DMA mappings
+@@ -112,9 +109,9 @@ void __dma_sync(dma_addr_t addr, size_t
+ }
+ EXPORT_SYMBOL(__dma_sync);
+ 
+-int
+-dma_map_sg(struct device *dev, struct scatterlist *sg_list, int nents,
+-	   enum dma_data_direction direction)
++static int bfin_dma_map_sg(struct device *dev, struct scatterlist *sg_list,
++		int nents, enum dma_data_direction direction,
++		struct dma_attrs *attrs)
+ {
+ 	struct scatterlist *sg;
+ 	int i;
+@@ -126,10 +123,10 @@ dma_map_sg(struct device *dev, struct sc
+ 
+ 	return nents;
+ }
+-EXPORT_SYMBOL(dma_map_sg);
+ 
+-void dma_sync_sg_for_device(struct device *dev, struct scatterlist *sg_list,
+-			    int nelems, enum dma_data_direction direction)
++static void bfin_dma_sync_sg_for_device(struct device *dev,
++		struct scatterlist *sg_list, int nelems,
++		enum dma_data_direction direction)
+ {
+ 	struct scatterlist *sg;
+ 	int i;
+@@ -139,4 +136,31 @@ void dma_sync_sg_for_device(struct devic
+ 		__dma_sync(sg_dma_address(sg), sg_dma_len(sg), direction);
+ 	}
+ }
+-EXPORT_SYMBOL(dma_sync_sg_for_device);
++
++static dma_addr_t bfin_dma_map_page(struct device *dev, struct page *page,
++		unsigned long offset, size_t size, enum dma_data_direction dir,
++		struct dma_attrs *attrs)
++{
++	dma_addr_t handle = (dma_addr_t)(page_address(page) + offset);
++
++	_dma_sync(handle, size, dir);
++	return handle;
++}
++
++static inline void bfin_dma_sync_single_for_device(struct device *dev,
++		dma_addr_t handle, size_t size, enum dma_data_direction dir)
++{
++	_dma_sync(handle, size, dir);
++}
++
++struct dma_map_ops bfin_dma_ops = {
++	.alloc			= bfin_dma_alloc,
++	.free			= bfin_dma_free,
++
++	.map_page		= bfin_dma_map_page,
++	.map_sg			= bfin_dma_map_sg,
++
++	.sync_single_for_device	= bfin_dma_sync_single_for_device,
++	.sync_sg_for_device	= bfin_dma_sync_sg_for_device,
++};
++EXPORT_SYMBOL(bfin_dma_ops);
 _
 
-Patches currently in -mm which might be from yalin.wang2010@gmail.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-mm-fix-kernel-crash-in-khugepaged-thread.patch
+dma-mapping-make-the-generic-coherent-dma-mmap-implementation-optional.patch
+arc-convert-to-dma_map_ops.patch
+avr32-convert-to-dma_map_ops.patch
+blackfin-convert-to-dma_map_ops.patch
+c6x-convert-to-dma_map_ops.patch
+cris-convert-to-dma_map_ops.patch
+nios2-convert-to-dma_map_ops.patch
+frv-convert-to-dma_map_ops.patch
+parisc-convert-to-dma_map_ops.patch
+mn10300-convert-to-dma_map_ops.patch
+m68k-convert-to-dma_map_ops.patch
+metag-convert-to-dma_map_ops.patch
+sparc-use-generic-dma_set_mask.patch
+tile-uninline-dma_set_mask.patch
+dma-mapping-always-provide-the-dma_map_ops-based-implementation.patch
+dma-mapping-remove-asm-generic-dma-coherenth.patch
 
