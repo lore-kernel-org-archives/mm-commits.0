@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-use-list_first_entry_or_null.patch added to -mm tree
-Date: Wed, 18 Nov 2015 14:03:23 -0800
-Message-ID: <564cf5ab.O5t9OxkV+Zi/BZct%akpm@linux-foundation.org>
+Subject: +
+ include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page.patch added to -mm tree
+Date: Wed, 18 Nov 2015 14:06:06 -0800
+Message-ID: <564cf64e.uY254XEw/wH0BVG8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48370 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48513 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753016AbbKRWDY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Nov 2015 17:03:24 -0500
+	with ESMTP id S1757240AbbKRWGI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Nov 2015 17:06:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geliangtang@163.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: xili_gchen_5257@hotmail.com, gang.chen.5i5j@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, thp: use list_first_entry_or_null()
+     Subject: include/asm-generic/page.h: remove useless get_user_page() and free_user_page()
 has been added to the -mm tree.  Its filename is
-     mm-thp-use-list_first_entry_or_null.patch
+     include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-use-list_first_entry_or_null.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-use-list_first_entry_or_null.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,44 +39,108 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geliang Tang <geliangtang@163.com>
-Subject: mm, thp: use list_first_entry_or_null()
+From: Chen Gang <xili_gchen_5257@hotmail.com>
+Subject: include/asm-generic/page.h: remove useless get_user_page() and free_user_page()
 
-Simplify the code with list_first_entry_or_null().
+They are not symmetric with each other and have no users, so remove them.
 
-Signed-off-by: Geliang Tang <geliangtang@163.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/pgtable-generic.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ arch/arc/include/asm/page.h       |    3 ---
+ arch/arm/include/asm/page-nommu.h |    3 ---
+ arch/frv/include/asm/page.h       |    3 ---
+ arch/m68k/include/asm/page_mm.h   |    3 ---
+ arch/m68k/include/asm/page_no.h   |    3 ---
+ arch/openrisc/include/asm/page.h  |    3 ---
+ include/asm-generic/page.h        |    3 ---
+ 7 files changed, 21 deletions(-)
 
-diff -puN mm/pgtable-generic.c~mm-thp-use-list_first_entry_or_null mm/pgtable-generic.c
---- a/mm/pgtable-generic.c~mm-thp-use-list_first_entry_or_null
-+++ a/mm/pgtable-generic.c
-@@ -176,13 +176,10 @@ pgtable_t pgtable_trans_huge_withdraw(st
+diff -puN arch/arc/include/asm/page.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page arch/arc/include/asm/page.h
+--- a/arch/arc/include/asm/page.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page
++++ a/arch/arc/include/asm/page.h
+@@ -13,9 +13,6 @@
  
- 	/* FIFO */
- 	pgtable = pmd_huge_pte(mm, pmdp);
--	if (list_empty(&pgtable->lru))
--		pmd_huge_pte(mm, pmdp) = NULL;
--	else {
--		pmd_huge_pte(mm, pmdp) = list_entry(pgtable->lru.next,
--					      struct page, lru);
-+	pmd_huge_pte(mm, pmdp) = list_first_entry_or_null(&pgtable->lru,
-+							  struct page, lru);
-+	if (pmd_huge_pte(mm, pmdp))
- 		list_del(&pgtable->lru);
--	}
- 	return pgtable;
- }
+ #ifndef __ASSEMBLY__
+ 
+-#define get_user_page(vaddr)		__get_free_page(GFP_KERNEL)
+-#define free_user_page(page, addr)	free_page(addr)
+-
+ #define clear_page(paddr)		memset((paddr), 0, PAGE_SIZE)
+ #define copy_page(to, from)		memcpy((to), (from), PAGE_SIZE)
+ 
+diff -puN arch/arm/include/asm/page-nommu.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page arch/arm/include/asm/page-nommu.h
+--- a/arch/arm/include/asm/page-nommu.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page
++++ a/arch/arm/include/asm/page-nommu.h
+@@ -17,9 +17,6 @@
+ #define KTHREAD_SIZE PAGE_SIZE
  #endif
-_
-
-Patches currently in -mm which might be from geliangtang@163.com are
-
-fsnotify-use-list_next_entry-in-fsnotify_unmount_inodes.patch
-mm-vmalloc-use-list_nextfirst_entry.patch
-mm-thp-use-list_first_entry_or_null.patch
-
+  
+-#define get_user_page(vaddr)		__get_free_page(GFP_KERNEL)
+-#define free_user_page(page, addr)	free_page(addr)
+-
+ #define clear_page(page)	memset((page), 0, PAGE_SIZE)
+ #define copy_page(to,from)	memcpy((to), (from), PAGE_SIZE)
+ 
+diff -puN arch/frv/include/asm/page.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page arch/frv/include/asm/page.h
+--- a/arch/frv/include/asm/page.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page
++++ a/arch/frv/include/asm/page.h
+@@ -8,9 +8,6 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
+-#define get_user_page(vaddr)			__get_free_page(GFP_KERNEL)
+-#define free_user_page(page, addr)		free_page(addr)
+-
+ #define clear_page(pgaddr)			memset((pgaddr), 0, PAGE_SIZE)
+ #define copy_page(to,from)			memcpy((to), (from), PAGE_SIZE)
+ 
+diff -puN arch/m68k/include/asm/page_mm.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page arch/m68k/include/asm/page_mm.h
+--- a/arch/m68k/include/asm/page_mm.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page
++++ a/arch/m68k/include/asm/page_mm.h
+@@ -6,9 +6,6 @@
+ #include <linux/compiler.h>
+ #include <asm/module.h>
+ 
+-#define get_user_page(vaddr)		__get_free_page(GFP_KERNEL)
+-#define free_user_page(page, addr)	free_page(addr)
+-
+ /*
+  * We don't need to check for alignment etc.
+  */
+diff -puN arch/m68k/include/asm/page_no.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page arch/m68k/include/asm/page_no.h
+--- a/arch/m68k/include/asm/page_no.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page
++++ a/arch/m68k/include/asm/page_no.h
+@@ -6,9 +6,6 @@
+ extern unsigned long memory_start;
+ extern unsigned long memory_end;
+ 
+-#define get_user_page(vaddr)		__get_free_page(GFP_KERNEL)
+-#define free_user_page(page, addr)	free_page(addr)
+-
+ #define clear_page(page)	memset((page), 0, PAGE_SIZE)
+ #define copy_page(to,from)	memcpy((to), (from), PAGE_SIZE)
+ 
+diff -puN arch/openrisc/include/asm/page.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page arch/openrisc/include/asm/page.h
+--- a/arch/openrisc/include/asm/page.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page
++++ a/arch/openrisc/include/asm/page.h
+@@ -40,9 +40,6 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
+-#define get_user_page(vaddr)            __get_free_page(GFP_KERNEL)
+-#define free_user_page(page, addr)      free_page(addr)
+-
+ #define clear_page(page)	memset((page), 0, PAGE_SIZE)
+ #define copy_page(to, from)	memcpy((to), (from), PAGE_SIZE)
+ 
+diff -puN include/asm-generic/page.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page include/asm-generic/page.h
+--- a/include/asm-generic/page.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page
++++ a/include/asm-generic/page.h
+@@ -24,9 +24,6 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
+-#define get_user_page(vaddr)		__get_free_page(GFP_KERNEL)
+-#define free_user_page(page, addr)	free_page(addr)
