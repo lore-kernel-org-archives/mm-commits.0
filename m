@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page.patch added to -mm tree
-Date: Wed, 18 Nov 2015 14:06:06 -0800
-Message-ID: <564cf64e.uY254XEw/wH0BVG8%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-umask-ignored-issue.patch added to -mm tree
+Date: Wed, 18 Nov 2015 14:11:39 -0800
+Message-ID: <564cf79b.6Nc6JVKUJ9TWeqX/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48513 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48595 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757240AbbKRWGI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Nov 2015 17:06:08 -0500
+	with ESMTP id S1750735AbbKRWLk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Nov 2015 17:11:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xili_gchen_5257@hotmail.com, gang.chen.5i5j@gmail.com, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, ghe@suse.com, jlbec@evilplan.org, mfasheh@suse.de, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/asm-generic/page.h: remove useless get_user_page() and free_user_page()
+     Subject: ocfs2: fix umask ignored issue
 has been added to the -mm tree.  Its filename is
-     include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page.patch
+     ocfs2-fix-umask-ignored-issue.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-umask-ignored-issue.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-umask-ignored-issue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,108 +38,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Chen Gang <xili_gchen_5257@hotmail.com>
-Subject: include/asm-generic/page.h: remove useless get_user_page() and free_user_page()
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: fix umask ignored issue
 
-They are not symmetric with each other and have no users, so remove them.
+New created file's mode is not masked with umask, and this makes umask not
+work for ocfs2 volume.
 
-Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+Fixes: 702e5bc ("ocfs2: use generic posix ACL infrastructure")
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Gang He <ghe@suse.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/include/asm/page.h       |    3 ---
- arch/arm/include/asm/page-nommu.h |    3 ---
- arch/frv/include/asm/page.h       |    3 ---
- arch/m68k/include/asm/page_mm.h   |    3 ---
- arch/m68k/include/asm/page_no.h   |    3 ---
- arch/openrisc/include/asm/page.h  |    3 ---
- include/asm-generic/page.h        |    3 ---
- 7 files changed, 21 deletions(-)
+ fs/ocfs2/namei.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/arc/include/asm/page.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page arch/arc/include/asm/page.h
---- a/arch/arc/include/asm/page.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page
-+++ a/arch/arc/include/asm/page.h
-@@ -13,9 +13,6 @@
+diff -puN fs/ocfs2/namei.c~ocfs2-fix-umask-ignored-issue fs/ocfs2/namei.c
+--- a/fs/ocfs2/namei.c~ocfs2-fix-umask-ignored-issue
++++ a/fs/ocfs2/namei.c
+@@ -372,6 +372,8 @@ static int ocfs2_mknod(struct inode *dir
+ 		mlog_errno(status);
+ 		goto leave;
+ 	}
++	/* update inode->i_mode after mask with "umask". */
++	inode->i_mode = mode;
  
- #ifndef __ASSEMBLY__
- 
--#define get_user_page(vaddr)		__get_free_page(GFP_KERNEL)
--#define free_user_page(page, addr)	free_page(addr)
--
- #define clear_page(paddr)		memset((paddr), 0, PAGE_SIZE)
- #define copy_page(to, from)		memcpy((to), (from), PAGE_SIZE)
- 
-diff -puN arch/arm/include/asm/page-nommu.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page arch/arm/include/asm/page-nommu.h
---- a/arch/arm/include/asm/page-nommu.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page
-+++ a/arch/arm/include/asm/page-nommu.h
-@@ -17,9 +17,6 @@
- #define KTHREAD_SIZE PAGE_SIZE
- #endif
-  
--#define get_user_page(vaddr)		__get_free_page(GFP_KERNEL)
--#define free_user_page(page, addr)	free_page(addr)
--
- #define clear_page(page)	memset((page), 0, PAGE_SIZE)
- #define copy_page(to,from)	memcpy((to), (from), PAGE_SIZE)
- 
-diff -puN arch/frv/include/asm/page.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page arch/frv/include/asm/page.h
---- a/arch/frv/include/asm/page.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page
-+++ a/arch/frv/include/asm/page.h
-@@ -8,9 +8,6 @@
- 
- #ifndef __ASSEMBLY__
- 
--#define get_user_page(vaddr)			__get_free_page(GFP_KERNEL)
--#define free_user_page(page, addr)		free_page(addr)
--
- #define clear_page(pgaddr)			memset((pgaddr), 0, PAGE_SIZE)
- #define copy_page(to,from)			memcpy((to), (from), PAGE_SIZE)
- 
-diff -puN arch/m68k/include/asm/page_mm.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page arch/m68k/include/asm/page_mm.h
---- a/arch/m68k/include/asm/page_mm.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page
-+++ a/arch/m68k/include/asm/page_mm.h
-@@ -6,9 +6,6 @@
- #include <linux/compiler.h>
- #include <asm/module.h>
- 
--#define get_user_page(vaddr)		__get_free_page(GFP_KERNEL)
--#define free_user_page(page, addr)	free_page(addr)
--
- /*
-  * We don't need to check for alignment etc.
-  */
-diff -puN arch/m68k/include/asm/page_no.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page arch/m68k/include/asm/page_no.h
---- a/arch/m68k/include/asm/page_no.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page
-+++ a/arch/m68k/include/asm/page_no.h
-@@ -6,9 +6,6 @@
- extern unsigned long memory_start;
- extern unsigned long memory_end;
- 
--#define get_user_page(vaddr)		__get_free_page(GFP_KERNEL)
--#define free_user_page(page, addr)	free_page(addr)
--
- #define clear_page(page)	memset((page), 0, PAGE_SIZE)
- #define copy_page(to,from)	memcpy((to), (from), PAGE_SIZE)
- 
-diff -puN arch/openrisc/include/asm/page.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page arch/openrisc/include/asm/page.h
---- a/arch/openrisc/include/asm/page.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page
-+++ a/arch/openrisc/include/asm/page.h
-@@ -40,9 +40,6 @@
- 
- #ifndef __ASSEMBLY__
- 
--#define get_user_page(vaddr)            __get_free_page(GFP_KERNEL)
--#define free_user_page(page, addr)      free_page(addr)
--
- #define clear_page(page)	memset((page), 0, PAGE_SIZE)
- #define copy_page(to, from)	memcpy((to), (from), PAGE_SIZE)
- 
-diff -puN include/asm-generic/page.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page include/asm-generic/page.h
---- a/include/asm-generic/page.h~include-asm-generic-pageh-remove-useless-get_user_page-and-free_user_page
-+++ a/include/asm-generic/page.h
-@@ -24,9 +24,6 @@
- 
- #ifndef __ASSEMBLY__
- 
--#define get_user_page(vaddr)		__get_free_page(GFP_KERNEL)
--#define free_user_page(page, addr)	free_page(addr)
+ 	handle = ocfs2_start_trans(osb, ocfs2_mknod_credits(osb->sb,
+ 							    S_ISDIR(mode),
+_
+
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
+
+ocfs2-fix-umask-ignored-issue.patch
+
