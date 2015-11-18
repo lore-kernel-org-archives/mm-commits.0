@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-shmem-add-internal-shmem-resident-memory-accounting.patch
+Subject: +
+ mm-procfs-breakdown-rss-for-anon-shmem-and-file-in-proc-pid-status.patch
  added to -mm tree
-Date: Wed, 18 Nov 2015 13:59:18 -0800
-Message-ID: <564cf4b6.H+Txmm7Gjy0nujm9%akpm@linux-foundation.org>
+Date: Wed, 18 Nov 2015 13:59:20 -0800
+Message-ID: <564cf4b8.DbhMQXnaR28Knt4b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48356 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48359 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757315AbbKRV7U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Nov 2015 16:59:20 -0500
+	with ESMTP id S1757319AbbKRV7V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 18 Nov 2015 16:59:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: jmarchan@redhat.com, hughd@google.com, khlebnikov@yandex-team.ru, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, shmem: add internal shmem resident memory accounting
+     Subject: mm, procfs: breakdown RSS for anon, shmem and file in /proc/pid/status
 has been added to the -mm tree.  Its filename is
-     mm-shmem-add-internal-shmem-resident-memory-accounting.patch
+     mm-procfs-breakdown-rss-for-anon-shmem-and-file-in-proc-pid-status.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-shmem-add-internal-shmem-resident-memory-accounting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-procfs-breakdown-rss-for-anon-shmem-and-file-in-proc-pid-status.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-shmem-add-internal-shmem-resident-memory-accounting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-procfs-breakdown-rss-for-anon-shmem-and-file-in-proc-pid-status.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,21 +41,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jerome Marchand <jmarchan@redhat.com>
-Subject: mm, shmem: add internal shmem resident memory accounting
+Subject: mm, procfs: breakdown RSS for anon, shmem and file in /proc/pid/status
 
-Currently looking at /proc/<pid>/status or statm, there is no way to
-distinguish shmem pages from pages mapped to a regular file (shmem pages
-are mapped to /dev/zero), even though their implication in actual memory
-use is quite different.
+There are several shortcomings with the accounting of shared memory (SysV
+shm, shared anonymous mapping, mapping of a tmpfs file).  The values in
+/proc/<pid>/status and <...>/statm don't allow to distinguish between
+shmem memory and a shared mapping to a regular file, even though theirs
+implication on memory usage are quite different: during reclaim, file
+mapping can be dropped or written back on disk, while shmem needs a place
+in swap.
 
-The internal accounting currently counts shmem pages together with regular
-files.  As a preparation to extend the userspace interfaces, this patch
-adds MM_SHMEMPAGES counter to mm_rss_stat to account for shmem pages
-separately from MM_FILEPAGES.  The next patch will expose it to userspace
-- this patch doesn't change the exported values yet, by adding up
-MM_SHMEMPAGES to MM_FILEPAGES at places where MM_FILEPAGES was used
-before.  The only user-visible change after this patch is the OOM killer
-message that separates the reported "shmem-rss" from "file-rss".
+Also, to distinguish the memory occupied by anonymous and file mappings,
+one has to read the /proc/pid/statm file, which has a field for the file
+mappings (again, including shmem) and total memory occupied by these
+mappings (i.e.  equivalent to VmRSS in the <...>/status file.  Getting the
+value for anonymous mappings only is thus not exactly user-friendly (the
+statm file is intended to be rather efficiently machine-readable).
+
+To address both of these shortcomings, this patch adds a breakdown of
+VmRSS in /proc/<pid>/status via new fields RssAnon, RssFile and RssShmem,
+making use of the previous preparatory patch.  These fields tell the user
+the memory occupied by private anonymous pages, mapped regular files and
+shmem, respectively.  Other existing fields in /status and /statm files
+are left without change.  The /statm file can be extended in the future,
+if there's a need for that.
+
+Example (part of) /proc/pid/status output including the new Rss* fields:
+
+VmPeak:  2001008 kB
+VmSize:  2001004 kB
+VmLck:         0 kB
+VmPin:         0 kB
+VmHWM:      5108 kB
+VmRSS:      5108 kB
+RssAnon:              92 kB
+RssFile:            1324 kB
+RssShmem:           3692 kB
+VmData:      192 kB
+VmStk:       136 kB
+VmExe:         4 kB
+VmLib:      1784 kB
+VmPTE:      3928 kB
+VmPMD:        20 kB
+VmSwap:        0 kB
+HugetlbPages:          0 kB
 
 [vbabka@suse.cz: forward-porting, tweak changelog]
 Signed-off-by: Jerome Marchand <jmarchan@redhat.com>
@@ -65,247 +95,94 @@ Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/mm/pgtable.c   |    5 +----
- fs/proc/task_mmu.c       |    3 ++-
- include/linux/mm.h       |   18 +++++++++++++++++-
- include/linux/mm_types.h |    7 ++++---
- kernel/events/uprobes.c  |    2 +-
- mm/memory.c              |   30 ++++++++++--------------------
- mm/oom_kill.c            |    5 +++--
- mm/rmap.c                |   12 +++---------
- 8 files changed, 41 insertions(+), 41 deletions(-)
+ Documentation/filesystems/proc.txt |   13 +++++++++++--
+ fs/proc/task_mmu.c                 |   14 ++++++++++++--
+ 2 files changed, 23 insertions(+), 4 deletions(-)
 
-diff -puN arch/s390/mm/pgtable.c~mm-shmem-add-internal-shmem-resident-memory-accounting arch/s390/mm/pgtable.c
---- a/arch/s390/mm/pgtable.c~mm-shmem-add-internal-shmem-resident-memory-accounting
-+++ a/arch/s390/mm/pgtable.c
-@@ -603,10 +603,7 @@ static void gmap_zap_swap_entry(swp_entr
- 	else if (is_migration_entry(entry)) {
- 		struct page *page = migration_entry_to_page(entry);
- 
--		if (PageAnon(page))
--			dec_mm_counter(mm, MM_ANONPAGES);
--		else
--			dec_mm_counter(mm, MM_FILEPAGES);
-+		dec_mm_counter(mm, mm_counter(page));
- 	}
- 	free_swap_and_cache(entry);
- }
-diff -puN fs/proc/task_mmu.c~mm-shmem-add-internal-shmem-resident-memory-accounting fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~mm-shmem-add-internal-shmem-resident-memory-accounting
+diff -puN Documentation/filesystems/proc.txt~mm-procfs-breakdown-rss-for-anon-shmem-and-file-in-proc-pid-status Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~mm-procfs-breakdown-rss-for-anon-shmem-and-file-in-proc-pid-status
++++ a/Documentation/filesystems/proc.txt
+@@ -169,6 +169,9 @@ read the file /proc/PID/status:
+   VmLck:         0 kB
+   VmHWM:       476 kB
+   VmRSS:       476 kB
++  RssAnon:             352 kB
++  RssFile:             120 kB
++  RssShmem:              4 kB
+   VmData:      156 kB
+   VmStk:        88 kB
+   VmExe:        68 kB
+@@ -231,7 +234,12 @@ Table 1-2: Contents of the status files
+  VmSize                      total program size
+  VmLck                       locked memory size
+  VmHWM                       peak resident set size ("high water mark")
+- VmRSS                       size of memory portions
++ VmRSS                       size of memory portions. It contains the three
++                             following parts (VmRSS = RssAnon + RssFile + RssShmem)
++ RssAnon                     size of resident anonymous memory
++ RssFile                     size of resident file mappings
++ RssShmem                    size of resident shmem memory (includes SysV shm,
++                             mapping of tmpfs and shared anonymous mappings)
+  VmData                      size of data, stack, and text segments
+  VmStk                       size of data, stack, and text segments
+  VmExe                       size of text segment
+@@ -266,7 +274,8 @@ Table 1-3: Contents of the statm files (
+  Field    Content
+  size     total program size (pages)		(same as VmSize in status)
+  resident size of memory portions (pages)	(same as VmRSS in status)
+- shared   number of pages that are shared	(i.e. backed by a file)
++ shared   number of pages that are shared	(i.e. backed by a file, same
++						as RssFile+RssShmem in status)
+  trs      number of pages that are 'code'	(not including libs; broken,
+ 							includes data segment)
+  lrs      number of pages of library		(always 0 on 2.6)
+diff -puN fs/proc/task_mmu.c~mm-procfs-breakdown-rss-for-anon-shmem-and-file-in-proc-pid-status fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-procfs-breakdown-rss-for-anon-shmem-and-file-in-proc-pid-status
 +++ a/fs/proc/task_mmu.c
-@@ -83,7 +83,8 @@ unsigned long task_statm(struct mm_struc
- 			 unsigned long *shared, unsigned long *text,
- 			 unsigned long *data, unsigned long *resident)
+@@ -23,9 +23,13 @@
+ 
+ void task_mem(struct seq_file *m, struct mm_struct *mm)
  {
--	*shared = get_mm_counter(mm, MM_FILEPAGES);
-+	*shared = get_mm_counter(mm, MM_FILEPAGES) +
-+			get_mm_counter(mm, MM_SHMEMPAGES);
- 	*text = (PAGE_ALIGN(mm->end_code) - (mm->start_code & PAGE_MASK))
- 								>> PAGE_SHIFT;
- 	*data = mm->total_vm - mm->shared_vm;
-diff -puN include/linux/mm.h~mm-shmem-add-internal-shmem-resident-memory-accounting include/linux/mm.h
---- a/include/linux/mm.h~mm-shmem-add-internal-shmem-resident-memory-accounting
-+++ a/include/linux/mm.h
-@@ -1361,10 +1361,26 @@ static inline void dec_mm_counter(struct
- 	atomic_long_dec(&mm->rss_stat.count[member]);
- }
+-	unsigned long data, text, lib, swap, ptes, pmds;
++	unsigned long data, text, lib, swap, ptes, pmds, anon, file, shmem;
+ 	unsigned long hiwater_vm, total_vm, hiwater_rss, total_rss;
  
-+/* Optimized variant when page is already known not to be PageAnon */
-+static inline int mm_counter_file(struct page *page)
-+{
-+	if (PageSwapBacked(page))
-+		return MM_SHMEMPAGES;
-+	return MM_FILEPAGES;
-+}
++	anon = get_mm_counter(mm, MM_ANONPAGES);
++	file = get_mm_counter(mm, MM_FILEPAGES);
++	shmem = get_mm_counter(mm, MM_SHMEMPAGES);
 +
-+static inline int mm_counter(struct page *page)
-+{
-+	if (PageAnon(page))
-+		return MM_ANONPAGES;
-+	return mm_counter_file(page);
-+}
-+
- static inline unsigned long get_mm_rss(struct mm_struct *mm)
- {
- 	return get_mm_counter(mm, MM_FILEPAGES) +
--		get_mm_counter(mm, MM_ANONPAGES);
-+		get_mm_counter(mm, MM_ANONPAGES) +
-+		get_mm_counter(mm, MM_SHMEMPAGES);
- }
- 
- static inline unsigned long get_mm_hiwater_rss(struct mm_struct *mm)
-diff -puN include/linux/mm_types.h~mm-shmem-add-internal-shmem-resident-memory-accounting include/linux/mm_types.h
---- a/include/linux/mm_types.h~mm-shmem-add-internal-shmem-resident-memory-accounting
-+++ a/include/linux/mm_types.h
-@@ -369,9 +369,10 @@ struct core_state {
- };
- 
- enum {
--	MM_FILEPAGES,
--	MM_ANONPAGES,
--	MM_SWAPENTS,
-+	MM_FILEPAGES,	/* Resident file mapping pages */
-+	MM_ANONPAGES,	/* Resident anonymous pages */
-+	MM_SWAPENTS,	/* Anonymous swap entries */
-+	MM_SHMEMPAGES,	/* Resident shared memory pages */
- 	NR_MM_COUNTERS
- };
- 
-diff -puN kernel/events/uprobes.c~mm-shmem-add-internal-shmem-resident-memory-accounting kernel/events/uprobes.c
---- a/kernel/events/uprobes.c~mm-shmem-add-internal-shmem-resident-memory-accounting
-+++ a/kernel/events/uprobes.c
-@@ -180,7 +180,7 @@ static int __replace_page(struct vm_area
- 	lru_cache_add_active_or_unevictable(kpage, vma);
- 
- 	if (!PageAnon(page)) {
--		dec_mm_counter(mm, MM_FILEPAGES);
-+		dec_mm_counter(mm, mm_counter_file(page));
- 		inc_mm_counter(mm, MM_ANONPAGES);
- 	}
- 
-diff -puN mm/memory.c~mm-shmem-add-internal-shmem-resident-memory-accounting mm/memory.c
---- a/mm/memory.c~mm-shmem-add-internal-shmem-resident-memory-accounting
-+++ a/mm/memory.c
-@@ -832,10 +832,7 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 		} else if (is_migration_entry(entry)) {
- 			page = migration_entry_to_page(entry);
- 
--			if (PageAnon(page))
--				rss[MM_ANONPAGES]++;
--			else
--				rss[MM_FILEPAGES]++;
-+			rss[mm_counter(page)]++;
- 
- 			if (is_write_migration_entry(entry) &&
- 					is_cow_mapping(vm_flags)) {
-@@ -874,10 +871,7 @@ copy_one_pte(struct mm_struct *dst_mm, s
- 	if (page) {
- 		get_page(page);
- 		page_dup_rmap(page);
--		if (PageAnon(page))
--			rss[MM_ANONPAGES]++;
--		else
--			rss[MM_FILEPAGES]++;
-+		rss[mm_counter(page)]++;
- 	}
- 
- out_set_pte:
-@@ -1113,9 +1107,8 @@ again:
- 			tlb_remove_tlb_entry(tlb, pte, addr);
- 			if (unlikely(!page))
- 				continue;
--			if (PageAnon(page))
--				rss[MM_ANONPAGES]--;
--			else {
-+
-+			if (!PageAnon(page)) {
- 				if (pte_dirty(ptent)) {
- 					force_flush = 1;
- 					set_page_dirty(page);
-@@ -1123,8 +1116,8 @@ again:
- 				if (pte_young(ptent) &&
- 				    likely(!(vma->vm_flags & VM_SEQ_READ)))
- 					mark_page_accessed(page);
--				rss[MM_FILEPAGES]--;
- 			}
-+			rss[mm_counter(page)]--;
- 			page_remove_rmap(page);
- 			if (unlikely(page_mapcount(page) < 0))
- 				print_bad_pte(vma, addr, ptent, page);
-@@ -1146,11 +1139,7 @@ again:
- 			struct page *page;
- 
- 			page = migration_entry_to_page(entry);
--
--			if (PageAnon(page))
--				rss[MM_ANONPAGES]--;
--			else
--				rss[MM_FILEPAGES]--;
-+			rss[mm_counter(page)]--;
- 		}
- 		if (unlikely(!free_swap_and_cache(entry)))
- 			print_bad_pte(vma, addr, ptent, NULL);
-@@ -1460,7 +1449,7 @@ static int insert_page(struct vm_area_st
- 
- 	/* Ok, finally just insert the thing.. */
- 	get_page(page);
--	inc_mm_counter_fast(mm, MM_FILEPAGES);
-+	inc_mm_counter_fast(mm, mm_counter_file(page));
- 	page_add_file_rmap(page);
- 	set_pte_at(mm, addr, pte, mk_pte(page, prot));
- 
-@@ -2097,7 +2086,8 @@ static int wp_page_copy(struct mm_struct
- 	if (likely(pte_same(*page_table, orig_pte))) {
- 		if (old_page) {
- 			if (!PageAnon(old_page)) {
--				dec_mm_counter_fast(mm, MM_FILEPAGES);
-+				dec_mm_counter_fast(mm,
-+						mm_counter_file(old_page));
- 				inc_mm_counter_fast(mm, MM_ANONPAGES);
- 			}
- 		} else {
-@@ -2820,7 +2810,7 @@ void do_set_pte(struct vm_area_struct *v
- 		inc_mm_counter_fast(vma->vm_mm, MM_ANONPAGES);
- 		page_add_new_anon_rmap(page, vma, address);
- 	} else {
--		inc_mm_counter_fast(vma->vm_mm, MM_FILEPAGES);
-+		inc_mm_counter_fast(vma->vm_mm, mm_counter_file(page));
- 		page_add_file_rmap(page);
- 	}
- 	set_pte_at(vma->vm_mm, address, pte, entry);
-diff -puN mm/oom_kill.c~mm-shmem-add-internal-shmem-resident-memory-accounting mm/oom_kill.c
---- a/mm/oom_kill.c~mm-shmem-add-internal-shmem-resident-memory-accounting
-+++ a/mm/oom_kill.c
-@@ -585,10 +585,11 @@ void oom_kill_process(struct oom_control
- 	 */
- 	do_send_sig_info(SIGKILL, SEND_SIG_FORCED, victim, true);
- 	mark_oom_victim(victim);
--	pr_err("Killed process %d (%s) total-vm:%lukB, anon-rss:%lukB, file-rss:%lukB\n",
-+	pr_err("Killed process %d (%s) total-vm:%lukB, anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB\n",
- 		task_pid_nr(victim), victim->comm, K(victim->mm->total_vm),
- 		K(get_mm_counter(victim->mm, MM_ANONPAGES)),
--		K(get_mm_counter(victim->mm, MM_FILEPAGES)));
-+		K(get_mm_counter(victim->mm, MM_FILEPAGES)),
-+		K(get_mm_counter(victim->mm, MM_SHMEMPAGES)));
- 	task_unlock(victim);
- 
  	/*
-diff -puN mm/rmap.c~mm-shmem-add-internal-shmem-resident-memory-accounting mm/rmap.c
---- a/mm/rmap.c~mm-shmem-add-internal-shmem-resident-memory-accounting
-+++ a/mm/rmap.c
-@@ -1364,10 +1364,7 @@ static int try_to_unmap_one(struct page
- 		if (PageHuge(page)) {
- 			hugetlb_count_sub(1 << compound_order(page), mm);
- 		} else {
--			if (PageAnon(page))
--				dec_mm_counter(mm, MM_ANONPAGES);
--			else
--				dec_mm_counter(mm, MM_FILEPAGES);
-+			dec_mm_counter(mm, mm_counter(page));
- 		}
- 		set_pte_at(mm, address, pte,
- 			   swp_entry_to_pte(make_hwpoison_entry(page)));
-@@ -1377,10 +1374,7 @@ static int try_to_unmap_one(struct page
- 		 * interest anymore. Simply discard the pte, vmscan
- 		 * will take care of the rest.
- 		 */
--		if (PageAnon(page))
--			dec_mm_counter(mm, MM_ANONPAGES);
--		else
--			dec_mm_counter(mm, MM_FILEPAGES);
-+		dec_mm_counter(mm, mm_counter(page));
- 	} else if (IS_ENABLED(CONFIG_MIGRATION) && (flags & TTU_MIGRATION)) {
- 		swp_entry_t entry;
- 		pte_t swp_pte;
-@@ -1420,7 +1414,7 @@ static int try_to_unmap_one(struct page
- 			swp_pte = pte_swp_mksoft_dirty(swp_pte);
- 		set_pte_at(mm, address, pte, swp_pte);
- 	} else
--		dec_mm_counter(mm, MM_FILEPAGES);
-+		dec_mm_counter(mm, mm_counter_file(page));
+ 	 * Note: to minimize their overhead, mm maintains hiwater_vm and
+ 	 * hiwater_rss only when about to *lower* total_vm or rss.  Any
+@@ -36,7 +40,7 @@ void task_mem(struct seq_file *m, struct
+ 	hiwater_vm = total_vm = mm->total_vm;
+ 	if (hiwater_vm < mm->hiwater_vm)
+ 		hiwater_vm = mm->hiwater_vm;
+-	hiwater_rss = total_rss = get_mm_rss(mm);
++	hiwater_rss = total_rss = anon + file + shmem;
+ 	if (hiwater_rss < mm->hiwater_rss)
+ 		hiwater_rss = mm->hiwater_rss;
  
- 	page_remove_rmap(page);
- 	page_cache_release(page);
+@@ -53,6 +57,9 @@ void task_mem(struct seq_file *m, struct
+ 		"VmPin:\t%8lu kB\n"
+ 		"VmHWM:\t%8lu kB\n"
+ 		"VmRSS:\t%8lu kB\n"
++		"RssAnon:\t%8lu kB\n"
++		"RssFile:\t%8lu kB\n"
++		"RssShmem:\t%8lu kB\n"
+ 		"VmData:\t%8lu kB\n"
+ 		"VmStk:\t%8lu kB\n"
+ 		"VmExe:\t%8lu kB\n"
+@@ -66,6 +73,9 @@ void task_mem(struct seq_file *m, struct
+ 		mm->pinned_vm << (PAGE_SHIFT-10),
+ 		hiwater_rss << (PAGE_SHIFT-10),
+ 		total_rss << (PAGE_SHIFT-10),
++		anon << (PAGE_SHIFT-10),
++		file << (PAGE_SHIFT-10),
++		shmem << (PAGE_SHIFT-10),
+ 		data << (PAGE_SHIFT-10),
+ 		mm->stack_vm << (PAGE_SHIFT-10), text, lib,
+ 		ptes >> 10,
 _
 
 Patches currently in -mm which might be from jmarchan@redhat.com are
