@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lz4-fix-wrong-compress-buffer-size-for-64-bits.patch added to
+Subject: + frv-io-accept-const-void-pointers-for-readbwl.patch added to
  -mm tree
-Date: Thu, 19 Nov 2015 11:58:26 -0800
-Message-ID: <564e29e2.BqGXKjtuEpkXlvJ1%akpm@linux-foundation.org>
+Date: Thu, 19 Nov 2015 12:12:12 -0800
+Message-ID: <564e2d1c.4StdRXZ1AM4GWNPm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48186 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48690 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751888AbbKST61 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Nov 2015 14:58:27 -0500
+	with ESMTP id S1161183AbbKSUMN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Nov 2015 15:12:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: bongkyu.kim@lge.com, chanho.min@lge.com, kyungsik.lee@lge.com, yann.collet.73@gmail.com, mm-commits@vger.kernel.org
+To: sboyd@codeaurora.org, bjorn.andersson@sonymobile.com, dhowells@redhat.com, hauke@hauke-m.de, paul@pwsan.com, zajec5@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lz4: fix wrong compress buffer size for 64-bits
+     Subject: arch/frv/include/asm/io.h: accept const void pointers for read{b,w,l}()
 has been added to the -mm tree.  Its filename is
-     lz4-fix-wrong-compress-buffer-size-for-64-bits.patch
+     frv-io-accept-const-void-pointers-for-readbwl.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lz4-fix-wrong-compress-buffer-size-for-64-bits.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/frv-io-accept-const-void-pointers-for-readbwl.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lz4-fix-wrong-compress-buffer-size-for-64-bits.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/frv-io-accept-const-void-pointers-for-readbwl.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +39,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Bongkyu Kim <bongkyu.kim@lge.com>
-Subject: lz4: fix wrong compress buffer size for 64-bits
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: arch/frv/include/asm/io.h: accept const void pointers for read{b,w,l}()
 
-The current lz4 compress buffer is 16kb on 32-bits, 32kb on 64-bits
-system.  But, lz4 needs only 16kb on both.  On 64-bits, this causes wasted
-cpu cycles for additional memset during every compression.
+The SMD driver is reading and writing chunks of data to iomem, and there's
+an __iowrite32_copy() function for the writing part, but no
+__ioread32_copy() function for the reading part.  This series adds
+__ioread32_copy() and uses it in two places.
 
-In case of lz4hc,
-the current buffer size is (256kb + 8) on 32-bits, (512kb + 16) on 64-bits.
-But, lz4hc needs only (256kb + 2 * pointer) on both.
 
-This patch fixes these wrong compress buffer sizes for 64-bits.
+This patch (of 4):
 
-Signed-off-by: Bongkyu Kim <bongkyu.kim@lge.com>
-Cc: Chanho Min <chanho.min@lge.com>
-Cc: Yann Collet <yann.collet.73@gmail.com>
-Cc: Kyungsik Lee <kyungsik.lee@lge.com>
+The frv port uses compiler builtins, __builtin_read*(), for the I/O read
+routines.  Unfortunately, these don't accept const void pointers although
+the generic ASM implementations do, so generic code passing const pointers
+to these APIs cause compilers to emit warnings.  Add wrapper functions
+that cast away the const to avoid the warnings.
+
+Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
+Cc: David Howells <dhowells@redhat.com>
+Cc: <zajec5@gmail.com>
+Cc: Bjorn Andersson <bjorn.andersson@sonymobile.com>
+Cc: Hauke Mehrtens <hauke@hauke-m.de>
+Cc: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/lz4.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/frv/include/asm/io.h |   17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/lz4.h~lz4-fix-wrong-compress-buffer-size-for-64-bits include/linux/lz4.h
---- a/include/linux/lz4.h~lz4-fix-wrong-compress-buffer-size-for-64-bits
-+++ a/include/linux/lz4.h
-@@ -9,8 +9,8 @@
-  * it under the terms of the GNU General Public License version 2 as
-  * published by the Free Software Foundation.
-  */
--#define LZ4_MEM_COMPRESS	(4096 * sizeof(unsigned char *))
--#define LZ4HC_MEM_COMPRESS	(65538 * sizeof(unsigned char *))
-+#define LZ4_MEM_COMPRESS	(16384)
-+#define LZ4HC_MEM_COMPRESS	(262144 + (2 * sizeof(unsigned char *)))
+diff -puN arch/frv/include/asm/io.h~frv-io-accept-const-void-pointers-for-readbwl arch/frv/include/asm/io.h
+--- a/arch/frv/include/asm/io.h~frv-io-accept-const-void-pointers-for-readbwl
++++ a/arch/frv/include/asm/io.h
+@@ -43,9 +43,20 @@ static inline unsigned long _swapl(unsig
+ //#define __iormb() asm volatile("membar")
+ //#define __iowmb() asm volatile("membar")
  
- /*
-  * lz4_compressbound()
+-#define __raw_readb __builtin_read8
+-#define __raw_readw __builtin_read16
+-#define __raw_readl __builtin_read32
++static inline u8 __raw_readb(const volatile void __iomem *addr)
++{
++	return __builtin_read8((volatile void __iomem *)addr);
++}
++
++static inline u16 __raw_readw(const volatile void __iomem *addr)
++{
++	return __builtin_read16((volatile void __iomem *)addr);
++}
++
++static inline u32 __raw_readl(const volatile void __iomem *addr)
++{
++	return __builtin_read32((volatile void __iomem *)addr);
++}
+ 
+ #define __raw_writeb(datum, addr) __builtin_write8(addr, datum)
+ #define __raw_writew(datum, addr) __builtin_write16(addr, datum)
 _
 
-Patches currently in -mm which might be from bongkyu.kim@lge.com are
+Patches currently in -mm which might be from sboyd@codeaurora.org are
 
-lz4-fix-wrong-compress-buffer-size-for-64-bits.patch
+frv-io-accept-const-void-pointers-for-readbwl.patch
+lib-iomap_copy-add-__ioread32_copy.patch
+soc-qcom-smd-use-__ioread32_copy-instead-of-open-coding-it.patch
+firmware-bcm47xx_nvram-use-__ioread32_copy-instead-of-open-coding.patch
 
