@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + frv-io-accept-const-void-pointers-for-readbwl.patch added to
- -mm tree
-Date: Thu, 19 Nov 2015 12:12:12 -0800
-Message-ID: <564e2d1c.4StdRXZ1AM4GWNPm%akpm@linux-foundation.org>
+Subject: + lib-iomap_copy-add-__ioread32_copy.patch added to -mm tree
+Date: Thu, 19 Nov 2015 12:12:14 -0800
+Message-ID: <564e2d1e.+7s488zqxpwp0rUO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48690 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48700 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161183AbbKSUMN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Nov 2015 15:12:13 -0500
+	with ESMTP id S1161183AbbKSUMP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Nov 2015 15:12:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sboyd@codeaurora.org, bjorn.andersson@sonymobile.com, dhowells@redhat.com, hauke@hauke-m.de, paul@pwsan.com, zajec5@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/frv/include/asm/io.h: accept const void pointers for read{b,w,l}()
+     Subject: lib/iomap_copy.c: add __ioread32_copy()
 has been added to the -mm tree.  Its filename is
-     frv-io-accept-const-void-pointers-for-readbwl.patch
+     lib-iomap_copy-add-__ioread32_copy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/frv-io-accept-const-void-pointers-for-readbwl.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-iomap_copy-add-__ioread32_copy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/frv-io-accept-const-void-pointers-for-readbwl.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-iomap_copy-add-__ioread32_copy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,61 +39,66 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: arch/frv/include/asm/io.h: accept const void pointers for read{b,w,l}()
+Subject: lib/iomap_copy.c: add __ioread32_copy()
 
-The SMD driver is reading and writing chunks of data to iomem, and there's
-an __iowrite32_copy() function for the writing part, but no
-__ioread32_copy() function for the reading part.  This series adds
-__ioread32_copy() and uses it in two places.
-
-
-This patch (of 4):
-
-The frv port uses compiler builtins, __builtin_read*(), for the I/O read
-routines.  Unfortunately, these don't accept const void pointers although
-the generic ASM implementations do, so generic code passing const pointers
-to these APIs cause compilers to emit warnings.  Add wrapper functions
-that cast away the const to avoid the warnings.
+Some drivers need to read data out of iomem areas 32-bits at a
+time. Add an API to do this.
 
 Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: David Howells <dhowells@redhat.com>
-Cc: <zajec5@gmail.com>
 Cc: Bjorn Andersson <bjorn.andersson@sonymobile.com>
+Cc: <zajec5@gmail.com>
+Cc: David Howells <dhowells@redhat.com>
 Cc: Hauke Mehrtens <hauke@hauke-m.de>
 Cc: Paul Walmsley <paul@pwsan.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/frv/include/asm/io.h |   17 ++++++++++++++---
- 1 file changed, 14 insertions(+), 3 deletions(-)
+ include/linux/io.h |    1 +
+ lib/iomap_copy.c   |   21 +++++++++++++++++++++
+ 2 files changed, 22 insertions(+)
 
-diff -puN arch/frv/include/asm/io.h~frv-io-accept-const-void-pointers-for-readbwl arch/frv/include/asm/io.h
---- a/arch/frv/include/asm/io.h~frv-io-accept-const-void-pointers-for-readbwl
-+++ a/arch/frv/include/asm/io.h
-@@ -43,9 +43,20 @@ static inline unsigned long _swapl(unsig
- //#define __iormb() asm volatile("membar")
- //#define __iowmb() asm volatile("membar")
+diff -puN include/linux/io.h~lib-iomap_copy-add-__ioread32_copy include/linux/io.h
+--- a/include/linux/io.h~lib-iomap_copy-add-__ioread32_copy
++++ a/include/linux/io.h
+@@ -29,6 +29,7 @@ struct device;
+ struct resource;
  
--#define __raw_readb __builtin_read8
--#define __raw_readw __builtin_read16
--#define __raw_readl __builtin_read32
-+static inline u8 __raw_readb(const volatile void __iomem *addr)
-+{
-+	return __builtin_read8((volatile void __iomem *)addr);
-+}
-+
-+static inline u16 __raw_readw(const volatile void __iomem *addr)
-+{
-+	return __builtin_read16((volatile void __iomem *)addr);
-+}
-+
-+static inline u32 __raw_readl(const volatile void __iomem *addr)
-+{
-+	return __builtin_read32((volatile void __iomem *)addr);
-+}
+ __visible void __iowrite32_copy(void __iomem *to, const void *from, size_t count);
++void __ioread32_copy(void *to, const void __iomem *from, size_t count);
+ void __iowrite64_copy(void __iomem *to, const void *from, size_t count);
  
- #define __raw_writeb(datum, addr) __builtin_write8(addr, datum)
- #define __raw_writew(datum, addr) __builtin_write16(addr, datum)
+ #ifdef CONFIG_MMU
+diff -puN lib/iomap_copy.c~lib-iomap_copy-add-__ioread32_copy lib/iomap_copy.c
+--- a/lib/iomap_copy.c~lib-iomap_copy-add-__ioread32_copy
++++ a/lib/iomap_copy.c
+@@ -42,6 +42,27 @@ void __attribute__((weak)) __iowrite32_c
+ EXPORT_SYMBOL_GPL(__iowrite32_copy);
+ 
+ /**
++ * __ioread32_copy - copy data from MMIO space, in 32-bit units
++ * @to: destination (must be 32-bit aligned)
++ * @from: source, in MMIO space (must be 32-bit aligned)
++ * @count: number of 32-bit quantities to copy
++ *
++ * Copy data from MMIO space to kernel space, in units of 32 bits at a
++ * time.  Order of access is not guaranteed, nor is a memory barrier
++ * performed afterwards.
++ */
++void __ioread32_copy(void *to, const void __iomem *from, size_t count)
++{
++	u32 *dst = to;
++	const u32 __iomem *src = from;
++	const u32 __iomem *end = src + count;
++
++	while (src < end)
++		*dst++ = __raw_readl(src++);
++}
++EXPORT_SYMBOL_GPL(__ioread32_copy);
++
++/**
+  * __iowrite64_copy - copy data to MMIO space, in 64-bit or 32-bit units
+  * @to: destination, in MMIO space (must be 64-bit aligned)
+  * @from: source (must be 64-bit aligned)
 _
 
 Patches currently in -mm which might be from sboyd@codeaurora.org are
