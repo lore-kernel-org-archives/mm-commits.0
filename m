@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + include-define-__phys_to_pfn-as-phys_pfn-fix-2.patch added to
- -mm tree
-Date: Thu, 19 Nov 2015 16:25:56 -0800
-Message-ID: <564e6894.Dh/8Q4kfUHDPPrAM%akpm@linux-foundation.org>
+Subject: +
+ vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small.patch added to -mm tree
+Date: Fri, 20 Nov 2015 13:43:58 -0800
+Message-ID: <564f941e./CwiDb2nBFFgvPqB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46797 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753981AbbKTAZ5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 19 Nov 2015 19:25:57 -0500
+	with ESMTP id S932397AbbKTVn7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Nov 2015 16:43:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, gang.chen.5i5j@gmail.com, xili_gchen_5257@hotmail.com, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mgorman@techsingularity.net, mhocko@kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: include linux/pfn.h for PHYS_PFN definition
+     Subject: vmscan: do not force-scan file lru if its absolute size is small
 has been added to the -mm tree.  Its filename is
-     include-define-__phys_to_pfn-as-phys_pfn-fix-2.patch
+     vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-define-__phys_to_pfn-as-phys_pfn-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-define-__phys_to_pfn-as-phys_pfn-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,44 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm: include linux/pfn.h for PHYS_PFN definition
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: vmscan: do not force-scan file lru if its absolute size is small
 
-A change to asm-generic/memory_model.h caused a new build error
-in some configurations:
+We assume there is enough inactive page cache if the size of inactive
+file lru is greater than the size of active file lru, in which case we
+force-scan file lru ignoring anonymous pages. While this logic works
+fine when there are plenty of page cache pages, it fails if the size of
+file lru is small (several MB): in this case (lru_size >> prio) will be
+0 for normal scan priorities, as a result, if inactive file lru happens
+to be larger than active file lru, anonymous pages of a cgroup will
+never get evicted unless the system experiences severe memory pressure,
+even if there are gigabytes of unused anonymous memory there, which is
+unfair in respect to other cgroups, whose workloads might be page cache
+oriented.
 
-mach-clps711x/common.c:39:10: error: implicit declaration of function 'PHYS_PFN'
-   .pfn  = __phys_to_pfn(CLPS711X_PHYS_BASE),
+This patch attempts to fix this by elaborating the "enough inactive page
+cache" check: it makes it not only check that inactive lru size > active
+lru size, but also that we will scan something from the cgroup at the
+current scan priority. If these conditions do not hold, we proceed to
+SCAN_FRACT as usual.
 
-This includes the linux/pfn.h header from the same file to avoid the
-error.
-
-Fixes: bf1c6c9895de ("mm: add PHYS_PFN, use it in __phys_to_pfn()")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Chen Gang <xili_gchen_5257@hotmail.com>
-Cc: Chen Gang <gang.chen.5i5j@gmail.com>
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/memory_model.h |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/vmscan.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/asm-generic/memory_model.h~include-define-__phys_to_pfn-as-phys_pfn-fix-2 include/asm-generic/memory_model.h
---- a/include/asm-generic/memory_model.h~include-define-__phys_to_pfn-as-phys_pfn-fix-2
-+++ a/include/asm-generic/memory_model.h
-@@ -1,6 +1,8 @@
- #ifndef __ASM_MEMORY_MODEL_H
- #define __ASM_MEMORY_MODEL_H
- 
-+#include <linux/pfn.h>
-+
- #ifndef __ASSEMBLY__
- 
- #if defined(CONFIG_FLATMEM)
+diff -puN mm/vmscan.c~vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small
++++ a/mm/vmscan.c
+@@ -2046,7 +2046,8 @@ static void get_scan_count(struct lruvec
+ 	 * There is enough inactive page cache, do not reclaim
+ 	 * anything from the anonymous working set right now.
+ 	 */
+-	if (!inactive_file_is_low(lruvec)) {
++	if (!inactive_file_is_low(lruvec) &&
++	    get_lru_size(lruvec, LRU_INACTIVE_FILE) >> sc->priority > 0) {
+ 		scan_balance = SCAN_FILE;
+ 		goto out;
+ 	}
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from vdavydov@virtuozzo.com are
 
-include-define-__phys_to_pfn-as-phys_pfn-fix-2.patch
-arm-thp-remove-infrastructure-for-handling-splitting-pmds-fix.patch
+revert-kernfs-do-not-account-ino_ida-allocations-to-memcg.patch
+revert-gfp-add-__gfp_noaccount.patch
+memcg-only-account-kmem-allocations-marked-as-__gfp_account.patch
+slab-add-slab_account-flag.patch
+vmalloc-allow-to-account-vmalloc-to-memcg.patch
+account-certain-kmem-allocations-to-memcg.patch
+vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small.patch
 
