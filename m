@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-up-sparse-warning-in-gfpflags_allow_blocking.patch added to -mm tree
-Date: Fri, 20 Nov 2015 14:17:28 -0800
-Message-ID: <564f9bf8.Y530DD3Dfx1E37Ei%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb-fix-hugepage-memory-leak-caused-by-wrong-reserve-count.patch
+ added to -mm tree
+Date: Fri, 20 Nov 2015 14:26:55 -0800
+Message-ID: <564f9e2f.HawcIm/D7/Kud5lP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47262 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47303 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751651AbbKTWR3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Nov 2015 17:17:29 -0500
+	with ESMTP id S935169AbbKTW04 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 20 Nov 2015 17:26:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jlayton@poochiereds.net, jeff.layton@primarydata.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, dave.hansen@intel.com, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, mike.kravetz@oracle.com, rientjes@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix up sparse warning in gfpflags_allow_blocking
+     Subject: mm: hugetlb: fix hugepage memory leak caused by wrong reserve count
 has been added to the -mm tree.  Its filename is
-     mm-fix-up-sparse-warning-in-gfpflags_allow_blocking.patch
+     mm-hugetlb-fix-hugepage-memory-leak-caused-by-wrong-reserve-count.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-up-sparse-warning-in-gfpflags_allow_blocking.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-hugepage-memory-leak-caused-by-wrong-reserve-count.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-up-sparse-warning-in-gfpflags_allow_blocking.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-hugepage-memory-leak-caused-by-wrong-reserve-count.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,41 +40,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jeff Layton <jlayton@poochiereds.net>
-Subject: mm: fix up sparse warning in gfpflags_allow_blocking
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: hugetlb: fix hugepage memory leak caused by wrong reserve count
 
-sparse says:
+When dequeue_huge_page_vma() in alloc_huge_page() fails, we fall back to
+alloc_buddy_huge_page() to directly create a hugepage from the buddy allocator.
+In that case, however, if alloc_buddy_huge_page() succeeds we don't decrement
+h->resv_huge_pages, which means that successful hugetlb_fault() returns without
+releasing the reserve count. As a result, subsequent hugetlb_fault() might fail
+despite that there are still free hugepages.
 
-    include/linux/gfp.h:274:26: warning: incorrect type in return expression (different base types)
-    include/linux/gfp.h:274:26:    expected bool
-    include/linux/gfp.h:274:26:    got restricted gfp_t
+This patch simply adds decrementing code on that code path.
 
-...add a forced cast to silence the warning.
+I reproduced this problem when testing v4.3 kernel in the following situation:
+- the test machine/VM is a NUMA system,
+- hugepage overcommiting is enabled,
+- most of hugepages are allocated and there's only one free hugepage
+  which is on node 0 (for example),
+- another program, which calls set_mempolicy(MPOL_BIND) to bind itself to
+  node 1, tries to allocate a hugepage,
+- the allocation should fail but the reserve count is still hold.
 
-Signed-off-by: Jeff Layton <jeff.layton@primarydata.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: <stable@vger.kernel.org> [3.16+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/gfp.h~mm-fix-up-sparse-warning-in-gfpflags_allow_blocking include/linux/gfp.h
---- a/include/linux/gfp.h~mm-fix-up-sparse-warning-in-gfpflags_allow_blocking
-+++ a/include/linux/gfp.h
-@@ -271,7 +271,7 @@ static inline int gfpflags_to_migratetyp
- 
- static inline bool gfpflags_allow_blocking(const gfp_t gfp_flags)
- {
--	return gfp_flags & __GFP_DIRECT_RECLAIM;
-+	return (bool __force)(gfp_flags & __GFP_DIRECT_RECLAIM);
- }
- 
- #ifdef CONFIG_HIGHMEM
-_
-
-Patches currently in -mm which might be from jlayton@poochiereds.net are
-
-mm-fix-up-sparse-warning-in-gfpflags_allow_blocking.patch
-fsnotify-destroy-marks-with-call_srcu-instead-of-dedicated-thread.patch
-
+diff -puN mm/hugetlb.c~mm-hugetlb-fix-hugepage-memory-leak-caused-by-wrong-reserve-count mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-fix-hugepage-memory-leak-caused-by-wrong-reserve-count
++++ a/mm/hugetlb.c
+@@ -1886,7 +1886,10 @@ struct page *alloc_huge_page(struct vm_a
+ 		page = __alloc_buddy_huge_page_with_mpol(h, vma, addr);
+ 		if (!page)
+ 			goto out_uncharge_cgroup;
