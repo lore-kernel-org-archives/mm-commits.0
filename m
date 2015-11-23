@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + nios2-convert-to-dma_map_ops-fix.patch added to -mm tree
-Date: Mon, 23 Nov 2015 14:45:18 -0800
-Message-ID: <565396fe.HlbUzVlmbc84BEU0%akpm@linux-foundation.org>
+Subject: +
+ mm-do-not-loop-over-alloc_no_watermarks-without-triggering-reclaim.patch
+ added to -mm tree
+Date: Mon, 23 Nov 2015 14:57:16 -0800
+Message-ID: <565399cc.bUXdP6jxotOTX7tu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56681 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56698 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755135AbbKWWpT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 17:45:19 -0500
+	with ESMTP id S1751255AbbKWW5R (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 17:57:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, linux@roeck-us.net, mm-commits@vger.kernel.org
+To: mhocko@suse.com, mgorman@suse.de, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: nios2: dma mapping fixes
+     Subject: mm/page_alloc.c: do not loop over ALLOC_NO_WATERMARKS without triggering reclaim
 has been added to the -mm tree.  Its filename is
-     nios2-convert-to-dma_map_ops-fix.patch
+     mm-do-not-loop-over-alloc_no_watermarks-without-triggering-reclaim.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nios2-convert-to-dma_map_ops-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-do-not-loop-over-alloc_no_watermarks-without-triggering-reclaim.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nios2-convert-to-dma_map_ops-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-do-not-loop-over-alloc_no_watermarks-without-triggering-reclaim.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,74 +40,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Hellwig <hch@lst.de>
-Subject: nios2: dma mapping fixes
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm/page_alloc.c: do not loop over ALLOC_NO_WATERMARKS without triggering reclaim
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
-Reported-by: Guenter Roeck <linux@roeck-us.net>
+__alloc_pages_slowpath is looping over ALLOC_NO_WATERMARKS requests if
+__GFP_NOFAIL is requested.  This is fragile because we are basically
+relying on somebody else to make the reclaim (be it the direct reclaim or
+OOM killer) for us.  The caller might be holding resources (e.g.  locks)
+which block other other reclaimers from making any progress for example. 
+Remove the retry loop and rely on __alloc_pages_slowpath to invoke all
+allowed reclaim steps and retry logic.
+
+We have to be careful about __GFP_NOFAIL allocations from the PF_MEMALLOC
+context even though this is a very bad idea to begin with because no
+progress can be gurateed at all.  We shouldn't break the __GFP_NOFAIL
+semantic here though.  It could be argued that this is essentially
+GFP_NOWAIT context which we do not support but PF_MEMALLOC is much harder
+to check for existing users because they might happen deep down the code
+path performed much later after setting the flag so we cannot really rule
+out there is no kernel path triggering this combination.
+
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/nios2/mm/dma-mapping.c |   20 +++++++++++---------
- 1 file changed, 11 insertions(+), 9 deletions(-)
+ mm/page_alloc.c |   32 ++++++++++++++++++--------------
+ 1 file changed, 18 insertions(+), 14 deletions(-)
 
-diff -puN arch/nios2/mm/dma-mapping.c~nios2-convert-to-dma_map_ops-fix arch/nios2/mm/dma-mapping.c
---- a/arch/nios2/mm/dma-mapping.c~nios2-convert-to-dma_map_ops-fix
-+++ a/arch/nios2/mm/dma-mapping.c
-@@ -128,7 +128,7 @@ static void nios2_dma_unmap_page(struct
- 	__dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
- }
+diff -puN mm/page_alloc.c~mm-do-not-loop-over-alloc_no_watermarks-without-triggering-reclaim mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-do-not-loop-over-alloc_no_watermarks-without-triggering-reclaim
++++ a/mm/page_alloc.c
+@@ -3020,32 +3020,36 @@ retry:
+ 		 * allocations are system rather than user orientated
+ 		 */
+ 		ac->zonelist = node_zonelist(numa_node_id(), gfp_mask);
+-		do {
+-			page = get_page_from_freelist(gfp_mask, order,
+-						      ALLOC_NO_WATERMARKS, ac);
+-			if (page)
+-				goto got_pg;
+-
+-			if (gfp_mask & __GFP_NOFAIL)
+-				wait_iff_congested(ac->preferred_zone,
+-						   BLK_RW_ASYNC, HZ/50);
+-		} while (gfp_mask & __GFP_NOFAIL);
++		page = get_page_from_freelist(gfp_mask, order,
++						ALLOC_NO_WATERMARKS, ac);
++		if (page)
++			goto got_pg;
+ 	}
  
--static void dma_unmap_sg(struct device *dev, struct scatterlist *sg,
-+static void nios2_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
- 		int nhwentries, enum dma_data_direction direction,
- 		struct dma_attrs *attrs)
- {
-@@ -183,13 +183,15 @@ static void nios2_dma_sync_sg_for_device
- }
+ 	/* Caller is not willing to reclaim, we can't balance anything */
+ 	if (!can_direct_reclaim) {
+ 		/*
+-		 * All existing users of the deprecated __GFP_NOFAIL are
+-		 * blockable, so warn of any new users that actually allow this
+-		 * type of allocation to fail.
++		 * All existing users of the __GFP_NOFAIL are blockable, so warn
++		 * of any new users that actually allow this type of allocation
++		 * to fail.
+ 		 */
+ 		WARN_ON_ONCE(gfp_mask & __GFP_NOFAIL);
+ 		goto nopage;
+ 	}
  
- struct dma_map_ops nios2_dma_ops = {
--	.alloc                  = nios2_dma_alloc,
--	.free                   = nios2_dma_free,
--	.map_page               = nios2_dma_map_page,
--	.map_sg                 = nios2_dma_map_sg,
--	.sync_single_for_device = nios2_dma_sync_single_for_device,
--	.sync_single_for_cpu    = nios2_dma_sync_single_for_cpu,
--	.sync_sg_for_cpu        = nios2_dma_sync_sg_for_cpu,
--	.sync_sg_for_dev        = nios2_dma_sync_sg_for_device,
-+	.alloc			= nios2_dma_alloc,
-+	.free			= nios2_dma_free,
-+	.map_page		= nios2_dma_map_page,
-+	.unmap_page		= nios2_dma_unmap_page,
-+	.map_sg			= nios2_dma_map_sg,
-+	.unmap_sg		= nios2_dma_unmap_sg,
-+	.sync_single_for_device	= nios2_dma_sync_single_for_device,
-+	.sync_single_for_cpu	= nios2_dma_sync_single_for_cpu,
-+	.sync_sg_for_cpu	= nios2_dma_sync_sg_for_cpu,
-+	.sync_sg_for_device	= nios2_dma_sync_sg_for_device,
- };
- EXPORT_SYMBOL(nios2_dma_ops);
+ 	/* Avoid recursion of direct reclaim */
+-	if (current->flags & PF_MEMALLOC)
++	if (current->flags & PF_MEMALLOC) {
++		/*
++		 * __GFP_NOFAIL request from this context is rather bizarre
++		 * because we cannot reclaim anything and only can loop waiting
++		 * for somebody to do a work for us.
++		 */
++		if (WARN_ON_ONCE(gfp_mask & __GFP_NOFAIL)) {
++			cond_resched();
++			goto retry;
++		}
+ 		goto nopage;
++	}
+ 
+ 	/* Avoid allocations with no watermarks from looping endlessly */
+ 	if (test_thread_flag(TIF_MEMDIE) && !(gfp_mask & __GFP_NOFAIL))
 _
 
-Patches currently in -mm which might be from hch@lst.de are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-dma-mapping-make-the-generic-coherent-dma-mmap-implementation-optional.patch
-arc-convert-to-dma_map_ops.patch
-arc-convert-to-dma_map_ops-fix.patch
-avr32-convert-to-dma_map_ops.patch
-blackfin-convert-to-dma_map_ops.patch
-c6x-convert-to-dma_map_ops.patch
-c6x-convert-to-dma_map_ops-fix-2.patch
-cris-convert-to-dma_map_ops.patch
-nios2-convert-to-dma_map_ops.patch
-nios2-convert-to-dma_map_ops-fix.patch
-frv-convert-to-dma_map_ops.patch
-parisc-convert-to-dma_map_ops.patch
-mn10300-convert-to-dma_map_ops.patch
-m68k-convert-to-dma_map_ops.patch
-metag-convert-to-dma_map_ops.patch
-sparc-use-generic-dma_set_mask.patch
-tile-uninline-dma_set_mask.patch
-dma-mapping-always-provide-the-dma_map_ops-based-implementation.patch
-dma-mapping-remove-asm-generic-dma-coherenth.patch
+mm-get-rid-of-__alloc_pages_high_priority.patch
+mm-do-not-loop-over-alloc_no_watermarks-without-triggering-reclaim.patch
 
