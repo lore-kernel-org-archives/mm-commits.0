@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-fix-swapped-movable-and-reclaimable-in-proc-pagetypeinfo.patch added to
- -mm tree
-Date: Mon, 23 Nov 2015 15:47:37 -0800
-Message-ID: <5653a599.wagLwF1GtwAvxmeN%akpm@linux-foundation.org>
+Subject: + drivers-base-cpuc-use-__cpu__mask-directly.patch added to -mm
+ tree
+Date: Mon, 23 Nov 2015 15:56:27 -0800
+Message-ID: <5653a7ab.i5NLIq9EctK5L2EA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57126 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57166 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750874AbbKWXri (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 18:47:38 -0500
+	with ESMTP id S1751700AbbKWX42 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 18:56:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, mgorman@techsingularity.net, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, gregkh@linuxfoundation.org, mpe@ellerman.id.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix swapped Movable and Reclaimable in /proc/pagetypeinfo
+     Subject: drivers/base/cpu.c: use __cpu_*_mask directly
 has been added to the -mm tree.  Its filename is
-     mm-fix-swapped-movable-and-reclaimable-in-proc-pagetypeinfo.patch
+     drivers-base-cpuc-use-__cpu__mask-directly.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-swapped-movable-and-reclaimable-in-proc-pagetypeinfo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-base-cpuc-use-__cpu__mask-directly.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-swapped-movable-and-reclaimable-in-proc-pagetypeinfo.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-base-cpuc-use-__cpu__mask-directly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,69 +39,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm: fix swapped Movable and Reclaimable in /proc/pagetypeinfo
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: drivers/base/cpu.c: use __cpu_*_mask directly
 
-Commit 016c13daa5c9 ("mm, page_alloc: use masks and shifts when converting
-GFP flags to migrate types") has swapped MIGRATE_MOVABLE and
-MIGRATE_RECLAIMABLE in the enum definition.  However, migratetype_names
-wasn't updated to reflect that.  As a result, the file /proc/pagetypeinfo
-shows the counts for Movable as Reclaimable and vice versa.
+The only user of the lvalue-ness of the cpu_*_mask variables is in
+drivers/base/cpu.c, and that is mostly a work-around for the fact that not
+even const variables can be used in static initialization.  Now that the
+underlying struct cpumasks are exposed we can take their address.
 
-Additionally, commit 0aaa29a56e4f ("mm, page_alloc: reserve pageblocks for
-high-order atomic allocations on demand") introduced MIGRATE_HIGHATOMIC,
-but did not add a letter to distinguish it into show_migration_types(), so
-it doesn't appear in the listing of free areas during page alloc failures
-or oom kills.
-
-This patch fixes both problems.  The atomic reserves will show with a
-letter 'H' in the free areas listings.
-
-Fixes: 016c13daa5c9 ("mm, page_alloc: use masks and shifts when converting GFP flags to migrate types") 
-Fixes: 0aaa29a56e4f ("mm, page_alloc: reserve pageblocks for high-order atomic allocations on demand")
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- mm/vmstat.c     |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ drivers/base/cpu.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-fix-swapped-movable-and-reclaimable-in-proc-pagetypeinfo mm/page_alloc.c
---- a/mm/page_alloc.c~mm-fix-swapped-movable-and-reclaimable-in-proc-pagetypeinfo
-+++ a/mm/page_alloc.c
-@@ -3647,8 +3647,9 @@ static void show_migration_types(unsigne
+diff -puN drivers/base/cpu.c~drivers-base-cpuc-use-__cpu__mask-directly drivers/base/cpu.c
+--- a/drivers/base/cpu.c~drivers-base-cpuc-use-__cpu__mask-directly
++++ a/drivers/base/cpu.c
+@@ -200,7 +200,7 @@ static const struct attribute_group *hot
+ 
+ struct cpu_attr {
+ 	struct device_attribute attr;
+-	const struct cpumask *const * const map;
++	const struct cpumask *const map;
+ };
+ 
+ static ssize_t show_cpus_attr(struct device *dev,
+@@ -209,7 +209,7 @@ static ssize_t show_cpus_attr(struct dev
  {
- 	static const char types[MIGRATE_TYPES] = {
- 		[MIGRATE_UNMOVABLE]	= 'U',
--		[MIGRATE_RECLAIMABLE]	= 'E',
- 		[MIGRATE_MOVABLE]	= 'M',
-+		[MIGRATE_RECLAIMABLE]	= 'E',
-+		[MIGRATE_HIGHATOMIC]	= 'H',
- #ifdef CONFIG_CMA
- 		[MIGRATE_CMA]		= 'C',
- #endif
-diff -puN mm/vmstat.c~mm-fix-swapped-movable-and-reclaimable-in-proc-pagetypeinfo mm/vmstat.c
---- a/mm/vmstat.c~mm-fix-swapped-movable-and-reclaimable-in-proc-pagetypeinfo
-+++ a/mm/vmstat.c
-@@ -921,8 +921,8 @@ static void walk_zones_in_node(struct se
- #ifdef CONFIG_PROC_FS
- static char * const migratetype_names[MIGRATE_TYPES] = {
- 	"Unmovable",
--	"Reclaimable",
- 	"Movable",
-+	"Reclaimable",
- 	"HighAtomic",
- #ifdef CONFIG_CMA
- 	"CMA",
+ 	struct cpu_attr *ca = container_of(attr, struct cpu_attr, attr);
+ 
+-	return cpumap_print_to_pagebuf(true, buf, *ca->map);
++	return cpumap_print_to_pagebuf(true, buf, ca->map);
+ }
+ 
+ #define _CPU_ATTR(name, map) \
+@@ -217,9 +217,9 @@ static ssize_t show_cpus_attr(struct dev
+ 
+ /* Keep in sync with cpu_subsys_attrs */
+ static struct cpu_attr cpu_attrs[] = {
+-	_CPU_ATTR(online, &cpu_online_mask),
+-	_CPU_ATTR(possible, &cpu_possible_mask),
+-	_CPU_ATTR(present, &cpu_present_mask),
++	_CPU_ATTR(online, &__cpu_online_mask),
++	_CPU_ATTR(possible, &__cpu_possible_mask),
++	_CPU_ATTR(present, &__cpu_present_mask),
+ };
+ 
+ /*
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-mm-fix-swapped-movable-and-reclaimable-in-proc-pagetypeinfo.patch
-mm-documentation-clarify-proc-pid-status-vmswap-limitations-for-shmem.patch
-mm-proc-account-for-shmem-swap-in-proc-pid-smaps.patch
-mm-proc-reduce-cost-of-proc-pid-smaps-for-shmem-mappings.patch
-mm-proc-reduce-cost-of-proc-pid-smaps-for-unpopulated-shmem-mappings.patch
+powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header.patch
+kernel-cpuc-change-type-of-cpu_possible_bits-and-friends.patch
+kernel-cpuc-export-__cpu__mask.patch
+drivers-base-cpuc-use-__cpu__mask-directly.patch
+kernel-cpuc-eliminate-cpu__mask.patch
+kernel-cpuc-make-set_cpu_-static-inlines.patch
 
