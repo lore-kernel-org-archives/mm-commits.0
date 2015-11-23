@@ -1,105 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fat-fix-fake_offset-handling-on-error-path.patch removed from -mm tree
-Date: Mon, 23 Nov 2015 12:15:13 -0800
-Message-ID: <565373d1.TNnNkXDRoM7gDtPy%akpm@linux-foundation.org>
+Subject: [merged]
+ panic-turn-off-locks-debug-before-releasing-console-lock.patch removed from -mm tree
+Date: Mon, 23 Nov 2015 12:15:19 -0800
+Message-ID: <565373d7.kppfmBBn5PTcV0x6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53609 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53624 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753366AbbKWUPN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:15:13 -0500
+	with ESMTP id S1753429AbbKWUPU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:15:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hirofumi@mail.parknet.co.jp, richard.weinberger@gmail.com, stable@vger.kernel.org, vegard.nossum@oracle.com, mm-commits@vger.kernel.org
+To: vkuznets@redhat.com, bhe@redhat.com, d.hatayama@jp.fujitsu.com, isimatu.yasuaki@jp.fujitsu.com, jack@suse.cz, jkosina@suse.cz, kys@microsoft.com, masami.hiramatsu.pt@hitachi.com, pmladek@suse.cz, prarit@redhat.com, sjenning@redhat.com, xiexiuqi@huawei.com, ying.huang@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: fix fake_offset handling on error path
+     Subject: kernel/panic.c: turn off locks debug before releasing console lock
 has been removed from the -mm tree.  Its filename was
-     fat-fix-fake_offset-handling-on-error-path.patch
+     panic-turn-off-locks-debug-before-releasing-console-lock.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Subject: fat: fix fake_offset handling on error path
+From: Vitaly Kuznetsov <vkuznets@redhat.com>
+Subject: kernel/panic.c: turn off locks debug before releasing console lock
 
-For the root directory, .  and ..  are faked (using dir_emit_dots()) and
-ctx->pos is reset from 2 to 0.
+Commit 08d78658f393 ("panic: release stale console lock to always get the
+logbuf printed out") introduced an unwanted bad unlock balance report when
+panic() is called directly and not from OOPS (e.g.  from out_of_memory()).
+The difference is that in case of OOPS we disable locks debug in
+oops_enter() and on direct panic call nobody does that.
 
-A corrupted root directory could cause fat_get_entry() to fail, but
-->iterate() (fat_readdir()) reports progress to the VFS (with ctx->pos
-rewound to 0), so any following calls to ->iterate() continue to return
-the same entries again and again.
-
-The result is that userspace will never see the end of the directory,
-causing e.g.  'ls' to hang in a getdents() loop.
-
-[hirofumi@mail.parknet.co.jp: cleanup and make sure to correct fake_offset]
-Reported-by: Vegard Nossum <vegard.nossum@oracle.com>
-Tested-by: Vegard Nossum <vegard.nossum@oracle.com>
-Signed-off-by: Richard Weinberger <richard.weinberger@gmail.com>
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Cc: <stable@vger.kernel.org>
+Fixes: 08d78658f393 ("panic: release stale console lock to always get the logbuf printed out")
+Reported-by: kernel test robot <ying.huang@linux.intel.com>
+Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
+Cc: Masami Hiramatsu <masami.hiramatsu.pt@hitachi.com>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Baoquan He <bhe@redhat.com>
+Cc: Prarit Bhargava <prarit@redhat.com>
+Cc: Xie XiuQi <xiexiuqi@huawei.com>
+Cc: Seth Jennings <sjenning@redhat.com>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Petr Mladek <pmladek@suse.cz>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/dir.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ kernel/panic.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN fs/fat/dir.c~fat-fix-fake_offset-handling-on-error-path fs/fat/dir.c
---- a/fs/fat/dir.c~fat-fix-fake_offset-handling-on-error-path
-+++ a/fs/fat/dir.c
-@@ -610,9 +610,9 @@ parse_record:
- 		int status = fat_parse_long(inode, &cpos, &bh, &de,
- 					    &unicode, &nr_slots);
- 		if (status < 0) {
--			ctx->pos = cpos;
-+			bh = NULL;
- 			ret = status;
--			goto out;
-+			goto end_of_dir;
- 		} else if (status == PARSE_INVALID)
- 			goto record_end;
- 		else if (status == PARSE_NOT_LONGNAME)
-@@ -654,8 +654,9 @@ parse_record:
- 	fill_len = short_len;
- 
- start_filldir:
--	if (!fake_offset)
--		ctx->pos = cpos - (nr_slots + 1) * sizeof(struct msdos_dir_entry);
-+	ctx->pos = cpos - (nr_slots + 1) * sizeof(struct msdos_dir_entry);
-+	if (fake_offset && ctx->pos < 2)
-+		ctx->pos = 2;
- 
- 	if (!memcmp(de->name, MSDOS_DOT, MSDOS_NAME)) {
- 		if (!dir_emit_dot(file, ctx))
-@@ -681,14 +682,19 @@ record_end:
- 	fake_offset = 0;
- 	ctx->pos = cpos;
- 	goto get_new;
-+
- end_of_dir:
--	ctx->pos = cpos;
-+	if (fake_offset && cpos < 2)
-+		ctx->pos = 2;
-+	else
-+		ctx->pos = cpos;
- fill_failed:
- 	brelse(bh);
- 	if (unicode)
- 		__putname(unicode);
- out:
- 	mutex_unlock(&sbi->s_lock);
-+
- 	return ret;
- }
+diff -puN kernel/panic.c~panic-turn-off-locks-debug-before-releasing-console-lock kernel/panic.c
+--- a/kernel/panic.c~panic-turn-off-locks-debug-before-releasing-console-lock
++++ a/kernel/panic.c
+@@ -152,8 +152,11 @@ void panic(const char *fmt, ...)
+ 	 * We may have ended up stopping the CPU holding the lock (in
+ 	 * smp_send_stop()) while still having some valuable data in the console
+ 	 * buffer.  Try to acquire the lock then release it regardless of the
+-	 * result.  The release will also print the buffers out.
++	 * result.  The release will also print the buffers out.  Locks debug
++	 * should be disabled to avoid reporting bad unlock balance when
++	 * panic() is not being callled from OOPS.
+ 	 */
++	debug_locks_off();
+ 	console_trylock();
+ 	console_unlock();
  
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from vkuznets@redhat.com are
 
 
