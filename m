@@ -1,282 +1,219 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- slub-optimize-bulk-slowpath-free-by-detached-freelist.patch removed from
- -mm tree
-Date: Mon, 23 Nov 2015 12:15:39 -0800
-Message-ID: <565373eb.JFgeNoAN72ltg9fK%akpm@linux-foundation.org>
+Subject: [merged] various-fix-pci_set_dma_mask-return-value-checking.patch removed from -mm tree
+Date: Mon, 23 Nov 2015 12:15:07 -0800
+Message-ID: <565373cb.wJ8LVd456s8Hzlrc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53624 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53593 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753191AbbKWUPk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:15:40 -0500
+	with ESMTP id S1753222AbbKWUPH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:15:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: brouer@redhat.com, alexander.h.duyck@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: hch@lst.de, crope@iki.fi, hverkuil@xs4all.nl, jongman.heo@samsung.com, mchehab@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: optimize bulk slowpath free by detached freelist
+     Subject: various: fix pci_set_dma_mask return value checking
 has been removed from the -mm tree.  Its filename was
-     slub-optimize-bulk-slowpath-free-by-detached-freelist.patch
+     various-fix-pci_set_dma_mask-return-value-checking.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: slub: optimize bulk slowpath free by detached freelist
+From: Christoph Hellwig <hch@lst.de>
+Subject: various: fix pci_set_dma_mask return value checking
 
-This change focus on improving the speed of object freeing in the
-"slowpath" of kmem_cache_free_bulk.
+pci_set_dma_mask returns a negative errno value, not a bool like
+pci_dma_supported.  This of course was just a giant test for attention :)
 
-The calls slab_free (fastpath) and __slab_free (slowpath) have been
-extended with support for bulk free, which amortize the overhead of
-the (locked) cmpxchg_double.
-
-To use the new bulking feature, we build what I call a detached
-freelist.  The detached freelist takes advantage of three properties:
-
- 1) the free function call owns the object that is about to be freed,
-    thus writing into this memory is synchronization-free.
-
- 2) many freelist's can co-exist side-by-side in the same slab-page
-    each with a separate head pointer.
-
- 3) it is the visibility of the head pointer that needs synchronization.
-
-Given these properties, the brilliant part is that the detached
-freelist can be constructed without any need for synchronization.  The
-freelist is constructed directly in the page objects, without any
-synchronization needed.  The detached freelist is allocated on the
-stack of the function call kmem_cache_free_bulk.  Thus, the freelist
-head pointer is not visible to other CPUs.
-
-All objects in a SLUB freelist must belong to the same slab-page.
-Thus, constructing the detached freelist is about matching objects
-that belong to the same slab-page.  The bulk free array is scanned is
-a progressive manor with a limited look-ahead facility.
-
-Kmem debug support is handled in call of slab_free().
-
-Notice kmem_cache_free_bulk no longer need to disable IRQs. This
-only slowed down single free bulk with approx 3 cycles.
-
-Performance data:
- Benchmarked[1] obj size 256 bytes on CPU i7-4790K @ 4.00GHz
-
-SLUB fastpath single object quick reuse: 47 cycles(tsc) 11.931 ns
-
-To get stable and comparable numbers, the kernel have been booted with
-"slab_merge" (this also improve performance for larger bulk sizes).
-
-Performance data, compared against fallback bulking:
-
-bulk -  fallback bulk            - improvement with this patch
-   1 -  62 cycles(tsc) 15.662 ns - 49 cycles(tsc) 12.407 ns- improved 21.0%
-   2 -  55 cycles(tsc) 13.935 ns - 30 cycles(tsc) 7.506 ns - improved 45.5%
-   3 -  53 cycles(tsc) 13.341 ns - 23 cycles(tsc) 5.865 ns - improved 56.6%
-   4 -  52 cycles(tsc) 13.081 ns - 20 cycles(tsc) 5.048 ns - improved 61.5%
-   8 -  50 cycles(tsc) 12.627 ns - 18 cycles(tsc) 4.659 ns - improved 64.0%
-  16 -  49 cycles(tsc) 12.412 ns - 17 cycles(tsc) 4.495 ns - improved 65.3%
-  30 -  49 cycles(tsc) 12.484 ns - 18 cycles(tsc) 4.533 ns - improved 63.3%
-  32 -  50 cycles(tsc) 12.627 ns - 18 cycles(tsc) 4.707 ns - improved 64.0%
-  34 -  96 cycles(tsc) 24.243 ns - 23 cycles(tsc) 5.976 ns - improved 76.0%
-  48 -  83 cycles(tsc) 20.818 ns - 21 cycles(tsc) 5.329 ns - improved 74.7%
-  64 -  74 cycles(tsc) 18.700 ns - 20 cycles(tsc) 5.127 ns - improved 73.0%
- 128 -  90 cycles(tsc) 22.734 ns - 27 cycles(tsc) 6.833 ns - improved 70.0%
- 158 -  99 cycles(tsc) 24.776 ns - 30 cycles(tsc) 7.583 ns - improved 69.7%
- 250 - 104 cycles(tsc) 26.089 ns - 37 cycles(tsc) 9.280 ns - improved 64.4%
-
-Performance data, compared current in-kernel bulking:
-
-bulk - curr in-kernel  - improvement with this patch
-   1 -  46 cycles(tsc) - 49 cycles(tsc) - improved (cycles:-3) -6.5%
-   2 -  27 cycles(tsc) - 30 cycles(tsc) - improved (cycles:-3) -11.1%
-   3 -  21 cycles(tsc) - 23 cycles(tsc) - improved (cycles:-2) -9.5%
-   4 -  18 cycles(tsc) - 20 cycles(tsc) - improved (cycles:-2) -11.1%
-   8 -  17 cycles(tsc) - 18 cycles(tsc) - improved (cycles:-1) -5.9%
-  16 -  18 cycles(tsc) - 17 cycles(tsc) - improved (cycles: 1)  5.6%
-  30 -  18 cycles(tsc) - 18 cycles(tsc) - improved (cycles: 0)  0.0%
-  32 -  18 cycles(tsc) - 18 cycles(tsc) - improved (cycles: 0)  0.0%
-  34 -  78 cycles(tsc) - 23 cycles(tsc) - improved (cycles:55) 70.5%
-  48 -  60 cycles(tsc) - 21 cycles(tsc) - improved (cycles:39) 65.0%
-  64 -  49 cycles(tsc) - 20 cycles(tsc) - improved (cycles:29) 59.2%
- 128 -  69 cycles(tsc) - 27 cycles(tsc) - improved (cycles:42) 60.9%
- 158 -  79 cycles(tsc) - 30 cycles(tsc) - improved (cycles:49) 62.0%
- 250 -  86 cycles(tsc) - 37 cycles(tsc) - improved (cycles:49) 57.0%
-
-Performance with normal SLUB merging is significantly slower for
-larger bulking.  This is believed to (primarily) be an effect of not
-having to share the per-CPU data-structures, as tuning per-CPU size
-can achieve similar performance.
-
-bulk - slab_nomerge   -  normal SLUB merge
-   1 -  49 cycles(tsc) - 49 cycles(tsc) - merge slower with cycles:0
-   2 -  30 cycles(tsc) - 30 cycles(tsc) - merge slower with cycles:0
-   3 -  23 cycles(tsc) - 23 cycles(tsc) - merge slower with cycles:0
-   4 -  20 cycles(tsc) - 20 cycles(tsc) - merge slower with cycles:0
-   8 -  18 cycles(tsc) - 18 cycles(tsc) - merge slower with cycles:0
-  16 -  17 cycles(tsc) - 17 cycles(tsc) - merge slower with cycles:0
-  30 -  18 cycles(tsc) - 23 cycles(tsc) - merge slower with cycles:5
-  32 -  18 cycles(tsc) - 22 cycles(tsc) - merge slower with cycles:4
-  34 -  23 cycles(tsc) - 22 cycles(tsc) - merge slower with cycles:-1
-  48 -  21 cycles(tsc) - 22 cycles(tsc) - merge slower with cycles:1
-  64 -  20 cycles(tsc) - 48 cycles(tsc) - merge slower with cycles:28
- 128 -  27 cycles(tsc) - 57 cycles(tsc) - merge slower with cycles:30
- 158 -  30 cycles(tsc) - 59 cycles(tsc) - merge slower with cycles:29
- 250 -  37 cycles(tsc) - 56 cycles(tsc) - merge slower with cycles:19
-
-Joint work with Alexander Duyck.
-
-[1] https://github.com/netoptimizer/prototype-kernel/blob/master/kernel/mm/slab_bulk_test01.c
-
-[akpm@linux-foundation.org: BUG_ON -> WARN_ON;return]
-Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Signed-off-by: Alexander Duyck <alexander.h.duyck@redhat.com>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reported-by: Jongman Heo <jongman.heo@samsung.com>
+Tested-by: Jongman Heo <jongman.heo@samsung.com>	[pcnet32]
+Acked-by: Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Antti Palosaari <crope@iki.fi>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |  113 +++++++++++++++++++++++++++++++++++++---------------
- 1 file changed, 81 insertions(+), 32 deletions(-)
+ drivers/media/pci/cx23885/cx23885-core.c           |    4 ++--
+ drivers/media/pci/cx25821/cx25821-core.c           |    3 ++-
+ drivers/media/pci/cx88/cx88-alsa.c                 |    4 ++--
+ drivers/media/pci/cx88/cx88-mpeg.c                 |    3 ++-
+ drivers/media/pci/cx88/cx88-video.c                |    4 ++--
+ drivers/media/pci/netup_unidvb/netup_unidvb_core.c |    2 +-
+ drivers/media/pci/saa7134/saa7134-core.c           |    4 ++--
+ drivers/media/pci/saa7164/saa7164-core.c           |    4 ++--
+ drivers/media/pci/tw68/tw68-core.c                 |    4 ++--
+ drivers/net/ethernet/amd/pcnet32.c                 |    5 +++--
+ 10 files changed, 20 insertions(+), 17 deletions(-)
 
-diff -puN mm/slub.c~slub-optimize-bulk-slowpath-free-by-detached-freelist mm/slub.c
---- a/mm/slub.c~slub-optimize-bulk-slowpath-free-by-detached-freelist
-+++ a/mm/slub.c
-@@ -2807,44 +2807,93 @@ void kmem_cache_free(struct kmem_cache *
- }
- EXPORT_SYMBOL(kmem_cache_free);
+diff -puN drivers/media/pci/cx23885/cx23885-core.c~various-fix-pci_set_dma_mask-return-value-checking drivers/media/pci/cx23885/cx23885-core.c
+--- a/drivers/media/pci/cx23885/cx23885-core.c~various-fix-pci_set_dma_mask-return-value-checking
++++ a/drivers/media/pci/cx23885/cx23885-core.c
+@@ -1992,9 +1992,9 @@ static int cx23885_initdev(struct pci_de
+ 		(unsigned long long)pci_resource_start(pci_dev, 0));
  
-+struct detached_freelist {
-+	struct page *page;
-+	void *tail;
-+	void *freelist;
-+	int cnt;
-+};
-+
-+/*
-+ * This function progressively scans the array with free objects (with
-+ * a limited look ahead) and extract objects belonging to the same
-+ * page.  It builds a detached freelist directly within the given
-+ * page/objects.  This can happen without any need for
-+ * synchronization, because the objects are owned by running process.
-+ * The freelist is build up as a single linked list in the objects.
-+ * The idea is, that this detached freelist can then be bulk
-+ * transferred to the real freelist(s), but only requiring a single
-+ * synchronization primitive.  Look ahead in the array is limited due
-+ * to performance reasons.
-+ */
-+static int build_detached_freelist(struct kmem_cache *s, size_t size,
-+				   void **p, struct detached_freelist *df)
-+{
-+	size_t first_skipped_index = 0;
-+	int lookahead = 3;
-+	void *object;
-+
-+	/* Always re-init detached_freelist */
-+	df->page = NULL;
-+
-+	do {
-+		object = p[--size];
-+	} while (!object && size);
-+
-+	if (!object)
-+		return 0;
-+
-+	/* Start new detached freelist */
-+	set_freepointer(s, object, NULL);
-+	df->page = virt_to_head_page(object);
-+	df->tail = object;
-+	df->freelist = object;
-+	p[size] = NULL; /* mark object processed */
-+	df->cnt = 1;
-+
-+	while (size) {
-+		object = p[--size];
-+		if (!object)
-+			continue; /* Skip processed objects */
-+
-+		/* df->page is always set at this point */
-+		if (df->page == virt_to_head_page(object)) {
-+			/* Opportunity build freelist */
-+			set_freepointer(s, object, df->freelist);
-+			df->freelist = object;
-+			df->cnt++;
-+			p[size] = NULL; /* mark object processed */
-+
-+			continue;
-+		}
-+
-+		/* Limit look ahead search */
-+		if (!--lookahead)
-+			break;
-+
-+		if (!first_skipped_index)
-+			first_skipped_index = size + 1;
-+	}
-+
-+	return first_skipped_index;
-+}
-+
-+
- /* Note that interrupts must be enabled when calling this function. */
- void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p)
- {
--	struct kmem_cache_cpu *c;
--	struct page *page;
--	int i;
-+	if (WARN_ON(!size))
-+		return;
+ 	pci_set_master(pci_dev);
+-	if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
++	err = pci_set_dma_mask(pci_dev, 0xffffffff);
++	if (err) {
+ 		printk("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
+-		err = -EIO;
+ 		goto fail_context;
+ 	}
  
--	local_irq_disable();
--	c = this_cpu_ptr(s->cpu_slab);
-+	do {
-+		struct detached_freelist df;
+diff -puN drivers/media/pci/cx25821/cx25821-core.c~various-fix-pci_set_dma_mask-return-value-checking drivers/media/pci/cx25821/cx25821-core.c
+--- a/drivers/media/pci/cx25821/cx25821-core.c~various-fix-pci_set_dma_mask-return-value-checking
++++ a/drivers/media/pci/cx25821/cx25821-core.c
+@@ -1319,7 +1319,8 @@ static int cx25821_initdev(struct pci_de
+ 		dev->pci_lat, (unsigned long long)dev->base_io_addr);
  
--	for (i = 0; i < size; i++) {
--		void *object = p[i];
-+		size = build_detached_freelist(s, size, p, &df);
-+		if (unlikely(!df.page))
-+			continue;
+ 	pci_set_master(pci_dev);
+-	if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
++	err = pci_set_dma_mask(pci_dev, 0xffffffff);
++	if (err) {
+ 		pr_err("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
+ 		err = -EIO;
+ 		goto fail_irq;
+diff -puN drivers/media/pci/cx88/cx88-alsa.c~various-fix-pci_set_dma_mask-return-value-checking drivers/media/pci/cx88/cx88-alsa.c
+--- a/drivers/media/pci/cx88/cx88-alsa.c~various-fix-pci_set_dma_mask-return-value-checking
++++ a/drivers/media/pci/cx88/cx88-alsa.c
+@@ -890,9 +890,9 @@ static int snd_cx88_create(struct snd_ca
+ 		return err;
+ 	}
  
--		BUG_ON(!object);
--		/* kmem cache debug support */
--		s = cache_from_obj(s, object);
--		if (unlikely(!s))
--			goto exit;
--		slab_free_hook(s, object);
--
--		page = virt_to_head_page(object);
--
--		if (c->page == page) {
--			/* Fastpath: local CPU free */
--			set_freepointer(s, object, c->freelist);
--			c->freelist = object;
--		} else {
--			c->tid = next_tid(c->tid);
--			local_irq_enable();
--			/* Slowpath: overhead locked cmpxchg_double_slab */
--			__slab_free(s, page, object, object, 1, _RET_IP_);
--			local_irq_disable();
--			c = this_cpu_ptr(s->cpu_slab);
--		}
--	}
--exit:
--	c->tid = next_tid(c->tid);
--	local_irq_enable();
-+		slab_free(s, df.page, df.freelist, df.tail, df.cnt, _RET_IP_);
-+	} while (likely(size));
- }
- EXPORT_SYMBOL(kmem_cache_free_bulk);
+-	if (!pci_set_dma_mask(pci,DMA_BIT_MASK(32))) {
++	err = pci_set_dma_mask(pci,DMA_BIT_MASK(32));
++	if (err) {
+ 		dprintk(0, "%s/1: Oops: no 32bit PCI DMA ???\n",core->name);
+-		err = -EIO;
+ 		cx88_core_put(core, pci);
+ 		return err;
+ 	}
+diff -puN drivers/media/pci/cx88/cx88-mpeg.c~various-fix-pci_set_dma_mask-return-value-checking drivers/media/pci/cx88/cx88-mpeg.c
+--- a/drivers/media/pci/cx88/cx88-mpeg.c~various-fix-pci_set_dma_mask-return-value-checking
++++ a/drivers/media/pci/cx88/cx88-mpeg.c
+@@ -393,7 +393,8 @@ static int cx8802_init_common(struct cx8
+ 	if (pci_enable_device(dev->pci))
+ 		return -EIO;
+ 	pci_set_master(dev->pci);
+-	if (!pci_set_dma_mask(dev->pci,DMA_BIT_MASK(32))) {
++	err = pci_set_dma_mask(dev->pci,DMA_BIT_MASK(32));
++	if (err) {
+ 		printk("%s/2: Oops: no 32bit PCI DMA ???\n",dev->core->name);
+ 		return -EIO;
+ 	}
+diff -puN drivers/media/pci/cx88/cx88-video.c~various-fix-pci_set_dma_mask-return-value-checking drivers/media/pci/cx88/cx88-video.c
+--- a/drivers/media/pci/cx88/cx88-video.c~various-fix-pci_set_dma_mask-return-value-checking
++++ a/drivers/media/pci/cx88/cx88-video.c
+@@ -1314,9 +1314,9 @@ static int cx8800_initdev(struct pci_dev
+ 	       dev->pci_lat,(unsigned long long)pci_resource_start(pci_dev,0));
  
+ 	pci_set_master(pci_dev);
+-	if (!pci_set_dma_mask(pci_dev,DMA_BIT_MASK(32))) {
++	err = pci_set_dma_mask(pci_dev,DMA_BIT_MASK(32));
++	if (err) {
+ 		printk("%s/0: Oops: no 32bit PCI DMA ???\n",core->name);
+-		err = -EIO;
+ 		goto fail_core;
+ 	}
+ 	dev->alloc_ctx = vb2_dma_sg_init_ctx(&pci_dev->dev);
+diff -puN drivers/media/pci/netup_unidvb/netup_unidvb_core.c~various-fix-pci_set_dma_mask-return-value-checking drivers/media/pci/netup_unidvb/netup_unidvb_core.c
+--- a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c~various-fix-pci_set_dma_mask-return-value-checking
++++ a/drivers/media/pci/netup_unidvb/netup_unidvb_core.c
+@@ -810,7 +810,7 @@ static int netup_unidvb_initdev(struct p
+ 		"%s(): board vendor 0x%x, revision 0x%x\n",
+ 		__func__, board_vendor, board_revision);
+ 	pci_set_master(pci_dev);
+-	if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
++	if (pci_set_dma_mask(pci_dev, 0xffffffff) < 0) {
+ 		dev_err(&pci_dev->dev,
+ 			"%s(): 32bit PCI DMA is not supported\n", __func__);
+ 		goto pci_detect_err;
+diff -puN drivers/media/pci/saa7134/saa7134-core.c~various-fix-pci_set_dma_mask-return-value-checking drivers/media/pci/saa7134/saa7134-core.c
+--- a/drivers/media/pci/saa7134/saa7134-core.c~various-fix-pci_set_dma_mask-return-value-checking
++++ a/drivers/media/pci/saa7134/saa7134-core.c
+@@ -951,9 +951,9 @@ static int saa7134_initdev(struct pci_de
+ 	       pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
+ 	       dev->pci_lat,(unsigned long long)pci_resource_start(pci_dev,0));
+ 	pci_set_master(pci_dev);
+-	if (!pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32))) {
++	err = pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32));
++	if (err) {
+ 		pr_warn("%s: Oops: no 32bit PCI DMA ???\n", dev->name);
+-		err = -EIO;
+ 		goto fail1;
+ 	}
+ 
+diff -puN drivers/media/pci/saa7164/saa7164-core.c~various-fix-pci_set_dma_mask-return-value-checking drivers/media/pci/saa7164/saa7164-core.c
+--- a/drivers/media/pci/saa7164/saa7164-core.c~various-fix-pci_set_dma_mask-return-value-checking
++++ a/drivers/media/pci/saa7164/saa7164-core.c
+@@ -1264,9 +1264,9 @@ static int saa7164_initdev(struct pci_de
+ 
+ 	pci_set_master(pci_dev);
+ 	/* TODO */
+-	if (!pci_set_dma_mask(pci_dev, 0xffffffff)) {
++	err = pci_set_dma_mask(pci_dev, 0xffffffff);
++	if (err) {
+ 		printk("%s/0: Oops: no 32bit PCI DMA ???\n", dev->name);
+-		err = -EIO;
+ 		goto fail_irq;
+ 	}
+ 
+diff -puN drivers/media/pci/tw68/tw68-core.c~various-fix-pci_set_dma_mask-return-value-checking drivers/media/pci/tw68/tw68-core.c
+--- a/drivers/media/pci/tw68/tw68-core.c~various-fix-pci_set_dma_mask-return-value-checking
++++ a/drivers/media/pci/tw68/tw68-core.c
+@@ -257,9 +257,9 @@ static int tw68_initdev(struct pci_dev *
+ 		dev->name, pci_name(pci_dev), dev->pci_rev, pci_dev->irq,
+ 		dev->pci_lat, (u64)pci_resource_start(pci_dev, 0));
+ 	pci_set_master(pci_dev);
+-	if (!pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32))) {
++	err = pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32));
++	if (err) {
+ 		pr_info("%s: Oops: no 32bit PCI DMA ???\n", dev->name);
+-		err = -EIO;
+ 		goto fail1;
+ 	}
+ 
+diff -puN drivers/net/ethernet/amd/pcnet32.c~various-fix-pci_set_dma_mask-return-value-checking drivers/net/ethernet/amd/pcnet32.c
+--- a/drivers/net/ethernet/amd/pcnet32.c~various-fix-pci_set_dma_mask-return-value-checking
++++ a/drivers/net/ethernet/amd/pcnet32.c
+@@ -1500,10 +1500,11 @@ pcnet32_probe_pci(struct pci_dev *pdev,
+ 		return -ENODEV;
+ 	}
+ 
+-	if (!pci_set_dma_mask(pdev, PCNET32_DMA_MASK)) {
++	err = pci_set_dma_mask(pdev, PCNET32_DMA_MASK);
++	if (err) {
+ 		if (pcnet32_debug & NETIF_MSG_PROBE)
+ 			pr_err("architecture does not support 32bit PCI busmaster DMA\n");
+-		return -ENODEV;
++		return err;
+ 	}
+ 	if (!request_region(ioaddr, PCNET32_TOTAL_SIZE, "pcnet32_probe_pci")) {
+ 		if (pcnet32_debug & NETIF_MSG_PROBE)
 _
 
-Patches currently in -mm which might be from brouer@redhat.com are
+Patches currently in -mm which might be from hch@lst.de are
 
+dma-mapping-make-the-generic-coherent-dma-mmap-implementation-optional.patch
+arc-convert-to-dma_map_ops.patch
+avr32-convert-to-dma_map_ops.patch
+blackfin-convert-to-dma_map_ops.patch
+c6x-convert-to-dma_map_ops.patch
+cris-convert-to-dma_map_ops.patch
+nios2-convert-to-dma_map_ops.patch
+frv-convert-to-dma_map_ops.patch
+parisc-convert-to-dma_map_ops.patch
+mn10300-convert-to-dma_map_ops.patch
+m68k-convert-to-dma_map_ops.patch
+metag-convert-to-dma_map_ops.patch
+sparc-use-generic-dma_set_mask.patch
+tile-uninline-dma_set_mask.patch
+dma-mapping-always-provide-the-dma_map_ops-based-implementation.patch
+dma-mapping-remove-asm-generic-dma-coherenth.patch
 
