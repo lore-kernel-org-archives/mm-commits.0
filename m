@@ -1,16 +1,16 @@
 From: akpm@linux-foundation.org
 Subject: + nios2-convert-to-dma_map_ops-fix.patch added to -mm tree
-Date: Mon, 23 Nov 2015 14:44:43 -0800
-Message-ID: <565396db.FzG/vl2js65gnJe1%akpm@linux-foundation.org>
+Date: Mon, 23 Nov 2015 14:45:18 -0800
+Message-ID: <565396fe.HlbUzVlmbc84BEU0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56675 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56681 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753263AbbKWWon (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 17:44:43 -0500
+	with ESMTP id S1755135AbbKWWpT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 17:45:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hch@lst.de, linux@roeck-us.net, mm-commits@vger.kernel.org
@@ -41,7 +41,7 @@ there every 3-4 working days
 From: Christoph Hellwig <hch@lst.de>
 Subject: nios2: dma mapping fixes
 
-Signed-off-by: Christoph Hellwig <hch@lst.de
+Signed-off-by: Christoph Hellwig <hch@lst.de>
 Reported-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
