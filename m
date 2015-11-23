@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + zram-try-vmalloc-after-kmalloc.patch added to -mm tree
-Date: Mon, 23 Nov 2015 15:18:34 -0800
-Message-ID: <56539eca.LaPxYN5SAl1OrZqr%akpm@linux-foundation.org>
+Subject: +
+ fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch added to
+ -mm tree
+Date: Mon, 23 Nov 2015 15:44:44 -0800
+Message-ID: <5653a4ec.JglbiMaOWpo5NSVI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56982 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57121 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752806AbbKWXSf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 18:18:35 -0500
+	with ESMTP id S1751523AbbKWXop (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 18:44:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kyeongdon.kim@lge.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, axboe@fb.com, dan.j.williams@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: try vmalloc() after kmalloc()
+     Subject: fs/block_dev.c:bdev_write_page(): use blk_queue_enter(..., GFP_NOIO)
 has been added to the -mm tree.  Its filename is
-     zram-try-vmalloc-after-kmalloc.patch
+     fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-try-vmalloc-after-kmalloc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-try-vmalloc-after-kmalloc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,133 +40,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kyeongdon Kim <kyeongdon.kim@lge.com>
-Subject: zram: try vmalloc() after kmalloc()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/block_dev.c:bdev_write_page(): use blk_queue_enter(..., GFP_NOIO)
 
-When we're using LZ4 multi compression streams for zram swap, we found out
-page allocation failure message in system running test.  That was not only
-once, but a few(2 - 5 times per test).  Also, some failure cases were
-continually occurring to try allocation order 3.
+bdev_write_page() is used by swapout and by writepage where we cannot use
+__GFP_FS or __GFP_IO.  So it is misleading to mention GFP_KERNEL here.
 
-In order to make parallel compression private data, we should call
-kzalloc() with order 2/3 in runtime(lzo/lz4).  But if there is no order
-2/3 size memory to allocate in that time, page allocation fails.  This
-patch makes to use vmalloc() as fallback of kmalloc(), this prevents page
-alloc failure warning.
+blk_queue_enter() only actually looks at __GFP_DIRECT_RECLAIM, so no bugs
+were harmed in the making of this patch.
 
-After using this, we never found warning message in running test, also It
-could reduce process startup latency about 60-120ms in each case.
-
-For reference a call trace :
-
-Binder_1: page allocation failure: order:3, mode:0x10c0d0
-CPU: 0 PID: 424 Comm: Binder_1 Tainted: GW 3.10.49-perf-g991d02b-dirty #20
-Call trace:
-[<ffffffc0002069c8>] dump_backtrace+0x0/0x270
-[<ffffffc000206c48>] show_stack+0x10/0x1c
-[<ffffffc000cb51c8>] dump_stack+0x1c/0x28
-[<ffffffc0002bbfc8>] warn_alloc_failed+0xfc/0x11c
-[<ffffffc0002bf518>] __alloc_pages_nodemask+0x724/0x7f0
-[<ffffffc0002bf5f8>] __get_free_pages+0x14/0x5c
-[<ffffffc0002ed6a4>] kmalloc_order_trace+0x38/0xd8
-[<ffffffc0005d9738>] zcomp_lz4_create+0x2c/0x38
-[<ffffffc0005d78f0>] zcomp_strm_alloc+0x34/0x78
-[<ffffffc0005d7a58>] zcomp_strm_multi_find+0x124/0x1ec
-[<ffffffc0005d7c14>] zcomp_strm_find+0xc/0x18
-[<ffffffc0005d8fa0>] zram_bvec_rw+0x2fc/0x780
-[<ffffffc0005d9680>] zram_make_request+0x25c/0x2d4
-[<ffffffc00040f8ac>] generic_make_request+0x80/0xbc
-[<ffffffc00040f98c>] submit_bio+0xa4/0x15c
-[<ffffffc0002e8bb0>] __swap_writepage+0x218/0x230
-[<ffffffc0002e8c04>] swap_writepage+0x3c/0x4c
-[<ffffffc0002c7384>] shrink_page_list+0x51c/0x8d0
-[<ffffffc0002c7e88>] shrink_inactive_list+0x3f8/0x60c
-[<ffffffc0002c86c8>] shrink_lruvec+0x33c/0x4cc
-[<ffffffc0002c8894>] shrink_zone+0x3c/0x100
-[<ffffffc0002c8c10>] try_to_free_pages+0x2b8/0x54c
-[<ffffffc0002bf308>] __alloc_pages_nodemask+0x514/0x7f0
-[<ffffffc0002bf5f8>] __get_free_pages+0x14/0x5c
-[<ffffffc0003446cc>] proc_info_read+0x50/0xe4
-[<ffffffc0002f5204>] vfs_read+0xa0/0x12c
-[<ffffffc0002f59c8>] SyS_read+0x44/0x74
-DMA: 3397*4kB (MC) 26*8kB (RC) 0*16kB 0*32kB 0*64kB 0*128kB 0*256kB
-     0*512kB 0*1024kB 0*2048kB 0*4096kB = 13796kB
-
-Signed-off-by: Kyeongdon Kim <kyeongdon.kim@lge.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jens Axboe <axboe@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp_lz4.c |   12 ++++++++++--
- drivers/block/zram/zcomp_lzo.c |   12 ++++++++++--
- 2 files changed, 20 insertions(+), 4 deletions(-)
+ fs/block_dev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/block/zram/zcomp_lz4.c~zram-try-vmalloc-after-kmalloc drivers/block/zram/zcomp_lz4.c
---- a/drivers/block/zram/zcomp_lz4.c~zram-try-vmalloc-after-kmalloc
-+++ a/drivers/block/zram/zcomp_lz4.c
-@@ -10,17 +10,25 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/lz4.h>
-+#include <linux/vmalloc.h>
-+#include <linux/mm.h>
+diff -puN fs/block_dev.c~fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio fs/block_dev.c
+--- a/fs/block_dev.c~fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio
++++ a/fs/block_dev.c
+@@ -432,7 +432,7 @@ int bdev_write_page(struct block_device
  
- #include "zcomp_lz4.h"
+ 	if (!ops->rw_page || bdev_get_integrity(bdev))
+ 		return -EOPNOTSUPP;
+-	result = blk_queue_enter(bdev->bd_queue, GFP_KERNEL);
++	result = blk_queue_enter(bdev->bd_queue, GFP_NOIO);
+ 	if (result)
+ 		return result;
  
- static void *zcomp_lz4_create(void)
- {
--	return kzalloc(LZ4_MEM_COMPRESS, GFP_KERNEL);
-+	void *ret;
-+
-+	ret = kzalloc(LZ4_MEM_COMPRESS,
-+			__GFP_NORETRY|__GFP_NOWARN|__GFP_NOMEMALLOC);
-+	if (!ret)
-+		ret = vzalloc(LZ4_MEM_COMPRESS);
-+	return ret;
- }
- 
- static void zcomp_lz4_destroy(void *private)
- {
--	kfree(private);
-+	kvfree(private);
- }
- 
- static int zcomp_lz4_compress(const unsigned char *src, unsigned char *dst,
-diff -puN drivers/block/zram/zcomp_lzo.c~zram-try-vmalloc-after-kmalloc drivers/block/zram/zcomp_lzo.c
---- a/drivers/block/zram/zcomp_lzo.c~zram-try-vmalloc-after-kmalloc
-+++ a/drivers/block/zram/zcomp_lzo.c
-@@ -10,17 +10,25 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/lzo.h>
-+#include <linux/vmalloc.h>
-+#include <linux/mm.h>
- 
- #include "zcomp_lzo.h"
- 
- static void *lzo_create(void)
- {
--	return kzalloc(LZO1X_MEM_COMPRESS, GFP_KERNEL);
-+	void *ret;
-+
-+	ret = kzalloc(LZO1X_MEM_COMPRESS,
-+			__GFP_NORETRY|__GFP_NOWARN|__GFP_NOMEMALLOC);
-+	if (!ret)
-+		ret = vzalloc(LZO1X_MEM_COMPRESS);
-+	return ret;
- }
- 
- static void lzo_destroy(void *private)
- {
--	kfree(private);
-+	kvfree(private);
- }
- 
- static int lzo_compress(const unsigned char *src, unsigned char *dst,
 _
 
-Patches currently in -mm which might be from kyeongdon.kim@lge.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-zram-try-vmalloc-after-kmalloc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm.patch
+account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
+mm-zonelist-enumerate-zonelists-array-index-fix.patch
+mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
