@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + c6x-convert-to-dma_map_ops-fix-2.patch added to -mm tree
-Date: Mon, 23 Nov 2015 14:44:12 -0800
-Message-ID: <565396bc.HaD7/Wl08jwHD3Tz%akpm@linux-foundation.org>
+Subject: + nios2-convert-to-dma_map_ops-fix.patch added to -mm tree
+Date: Mon, 23 Nov 2015 14:44:43 -0800
+Message-ID: <565396db.FzG/vl2js65gnJe1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56609 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56675 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754082AbbKWWoM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 17:44:12 -0500
+	with ESMTP id S1753263AbbKWWon (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 17:44:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hch@lst.de, linux@roeck-us.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: c6x: dma mapping fixes
+     Subject: nios2: dma mapping fixes
 has been added to the -mm tree.  Its filename is
-     c6x-convert-to-dma_map_ops-fix-2.patch
+     nios2-convert-to-dma_map_ops-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/c6x-convert-to-dma_map_ops-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/nios2-convert-to-dma_map_ops-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/c6x-convert-to-dma_map_ops-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/nios2-convert-to-dma_map_ops-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,83 +39,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: c6x: dma mapping fixes
+Subject: nios2: dma mapping fixes
 
-Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Christoph Hellwig <hch@lst.de
 Reported-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/c6x/include/asm/dma-mapping.h |    6 ++++++
- arch/c6x/kernel/dma.c              |    2 ++
- arch/c6x/mm/dma-coherent.c         |   10 ++++------
- 3 files changed, 12 insertions(+), 6 deletions(-)
+ arch/nios2/mm/dma-mapping.c |   20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
 
-diff -puN arch/c6x/include/asm/dma-mapping.h~c6x-convert-to-dma_map_ops-fix-2 arch/c6x/include/asm/dma-mapping.h
---- a/arch/c6x/include/asm/dma-mapping.h~c6x-convert-to-dma_map_ops-fix-2
-+++ a/arch/c6x/include/asm/dma-mapping.h
-@@ -26,4 +26,10 @@ static inline struct dma_map_ops *get_dm
- 
- #include <asm-generic/dma-mapping-common.h>
- 
-+extern void coherent_mem_init(u32 start, u32 size);
-+void *c6x_dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
-+		gfp_t gfp, struct dma_attrs *attrs);
-+void c6x_dma_free(struct device *dev, size_t size, void *vaddr,
-+		dma_addr_t dma_handle, struct dma_attrs *attrs);
-+
- #endif	/* _ASM_C6X_DMA_MAPPING_H */
-diff -puN arch/c6x/kernel/dma.c~c6x-convert-to-dma_map_ops-fix-2 arch/c6x/kernel/dma.c
---- a/arch/c6x/kernel/dma.c~c6x-convert-to-dma_map_ops-fix-2
-+++ a/arch/c6x/kernel/dma.c
-@@ -122,7 +122,9 @@ struct dma_map_ops c6x_dma_ops = {
- 	.alloc			= c6x_dma_alloc,
- 	.free			= c6x_dma_free,
- 	.map_page		= c6x_dma_map_page,
-+	.unmap_page		= c6x_dma_unmap_page,
- 	.map_sg			= c6x_dma_map_sg,
-+	.unmap_sg		= c6x_dma_unmap_sg,
- 	.sync_single_for_device	= c6x_dma_sync_single_for_device,
- 	.sync_single_for_cpu	= c6x_dma_sync_single_for_cpu,
- 	.sync_sg_for_device	= c6x_dma_sync_sg_for_device,
-diff -puN arch/c6x/mm/dma-coherent.c~c6x-convert-to-dma_map_ops-fix-2 arch/c6x/mm/dma-coherent.c
---- a/arch/c6x/mm/dma-coherent.c~c6x-convert-to-dma_map_ops-fix-2
-+++ a/arch/c6x/mm/dma-coherent.c
-@@ -73,8 +73,8 @@ static void __free_dma_pages(u32 addr, i
-  * Allocate DMA coherent memory space and return both the kernel
-  * virtual and DMA address for that space.
-  */
--void *dma_alloc_coherent(struct device *dev, size_t size,
--			 dma_addr_t *handle, gfp_t gfp)
-+void *c6x_dma_alloc(struct device *dev, size_t size, dma_addr_t *handle,
-+		gfp_t gfp, struct dma_attrs *attrs)
- {
- 	u32 paddr;
- 	int order;
-@@ -94,13 +94,12 @@ void *dma_alloc_coherent(struct device *
- 
- 	return phys_to_virt(paddr);
+diff -puN arch/nios2/mm/dma-mapping.c~nios2-convert-to-dma_map_ops-fix arch/nios2/mm/dma-mapping.c
+--- a/arch/nios2/mm/dma-mapping.c~nios2-convert-to-dma_map_ops-fix
++++ a/arch/nios2/mm/dma-mapping.c
+@@ -128,7 +128,7 @@ static void nios2_dma_unmap_page(struct
+ 	__dma_sync_for_cpu(phys_to_virt(dma_address), size, direction);
  }
--EXPORT_SYMBOL(dma_alloc_coherent);
  
- /*
-  * Free DMA coherent memory as defined by the above mapping.
-  */
--void dma_free_coherent(struct device *dev, size_t size, void *vaddr,
--		       dma_addr_t dma_handle)
-+void c6x_dma_free(struct device *dev, size_t size, void *vaddr,
-+		dma_addr_t dma_handle, struct dma_attrs *attrs)
+-static void dma_unmap_sg(struct device *dev, struct scatterlist *sg,
++static void nios2_dma_unmap_sg(struct device *dev, struct scatterlist *sg,
+ 		int nhwentries, enum dma_data_direction direction,
+ 		struct dma_attrs *attrs)
  {
- 	int order;
- 
-@@ -111,7 +110,6 @@ void dma_free_coherent(struct device *de
- 
- 	__free_dma_pages(virt_to_phys(vaddr), order);
+@@ -183,13 +183,15 @@ static void nios2_dma_sync_sg_for_device
  }
--EXPORT_SYMBOL(dma_free_coherent);
  
- /*
-  * Initialise the coherent DMA memory allocator using the given uncached region.
+ struct dma_map_ops nios2_dma_ops = {
+-	.alloc                  = nios2_dma_alloc,
+-	.free                   = nios2_dma_free,
+-	.map_page               = nios2_dma_map_page,
+-	.map_sg                 = nios2_dma_map_sg,
+-	.sync_single_for_device = nios2_dma_sync_single_for_device,
+-	.sync_single_for_cpu    = nios2_dma_sync_single_for_cpu,
+-	.sync_sg_for_cpu        = nios2_dma_sync_sg_for_cpu,
+-	.sync_sg_for_dev        = nios2_dma_sync_sg_for_device,
++	.alloc			= nios2_dma_alloc,
++	.free			= nios2_dma_free,
++	.map_page		= nios2_dma_map_page,
++	.unmap_page		= nios2_dma_unmap_page,
++	.map_sg			= nios2_dma_map_sg,
++	.unmap_sg		= nios2_dma_unmap_sg,
++	.sync_single_for_device	= nios2_dma_sync_single_for_device,
++	.sync_single_for_cpu	= nios2_dma_sync_single_for_cpu,
++	.sync_sg_for_cpu	= nios2_dma_sync_sg_for_cpu,
++	.sync_sg_for_device	= nios2_dma_sync_sg_for_device,
+ };
+ EXPORT_SYMBOL(nios2_dma_ops);
 _
 
 Patches currently in -mm which might be from hch@lst.de are
@@ -129,6 +98,7 @@ c6x-convert-to-dma_map_ops.patch
 c6x-convert-to-dma_map_ops-fix-2.patch
 cris-convert-to-dma_map_ops.patch
 nios2-convert-to-dma_map_ops.patch
+nios2-convert-to-dma_map_ops-fix.patch
 frv-convert-to-dma_map_ops.patch
 parisc-convert-to-dma_map_ops.patch
 mn10300-convert-to-dma_map_ops.patch
