@@ -1,59 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tools-vm-page-typesc-support-kpf_idle.patch removed from -mm tree
-Date: Mon, 23 Nov 2015 12:15:01 -0800
-Message-ID: <565373c5.GhbbBjKeTDO+qVMJ%akpm@linux-foundation.org>
+Subject: [merged]
+ maintainers-add-myself-as-reviewer-for-fpga-manager-framework.patch removed from -mm tree
+Date: Mon, 23 Nov 2015 12:14:54 -0800
+Message-ID: <565373be.TicMTHusVxBCZHZr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53580 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53558 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752833AbbKWUPB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:15:01 -0500
+	with ESMTP id S1751422AbbKWUOy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:14:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: moritz.fischer@ettus.com, atull@opensource.altera.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm/page-types.c: support KPF_IDLE
+     Subject: MAINTAINERS: add Moritz as reviewer for FPGA Manager Framework
 has been removed from the -mm tree.  Its filename was
-     tools-vm-page-typesc-support-kpf_idle.patch
+     maintainers-add-myself-as-reviewer-for-fpga-manager-framework.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: tools/vm/page-types.c: support KPF_IDLE
+From: Moritz Fischer <moritz.fischer@ettus.com>
+Subject: MAINTAINERS: add Moritz as reviewer for FPGA Manager Framework
 
-PageIdle is exported in include/uapi/linux/kernel-page-flags.h, so let's
-make page-types.c tool handle it.
+Nominate myself as Reviewer.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Signed-off-by: Moritz Fischer <moritz.fischer@ettus.com>
+Acked-by: Alan Tull <atull@opensource.altera.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page-types.c |    1 +
+ MAINTAINERS |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN tools/vm/page-types.c~tools-vm-page-typesc-support-kpf_idle tools/vm/page-types.c
---- a/tools/vm/page-types.c~tools-vm-page-typesc-support-kpf_idle
-+++ a/tools/vm/page-types.c
-@@ -128,6 +128,7 @@ static const char * const page_flag_name
- 	[KPF_THP]		= "t:thp",
- 	[KPF_BALLOON]		= "o:balloon",
- 	[KPF_ZERO_PAGE]		= "z:zero_page",
-+	[KPF_IDLE]              = "i:idle_page",
+diff -puN MAINTAINERS~maintainers-add-myself-as-reviewer-for-fpga-manager-framework MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-myself-as-reviewer-for-fpga-manager-framework
++++ a/MAINTAINERS
+@@ -4409,6 +4409,7 @@ K:	fmc_d.*register
  
- 	[KPF_RESERVED]		= "r:reserved",
- 	[KPF_MLOCKED]		= "m:mlocked",
+ FPGA MANAGER FRAMEWORK
+ M:	Alan Tull <atull@opensource.altera.com>
++R:	Moritz Fischer <moritz.fischer@ettus.com>
+ S:	Maintained
+ F:	drivers/fpga/
+ F:	include/linux/fpga/fpga-mgr.h
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from moritz.fischer@ettus.com are
 
-mm-hugetlb-fix-hugepage-memory-leak-caused-by-wrong-reserve-count.patch
-rmap-add-argument-to-charge-compound-page-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting.patch
 
