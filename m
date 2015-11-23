@@ -1,187 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slab-slub-adjust-kmem_cache_alloc_bulk-api.patch removed from -mm tree
-Date: Mon, 23 Nov 2015 12:15:46 -0800
-Message-ID: <565373f2.nTNwNKwujcAbYwOE%akpm@linux-foundation.org>
+Subject: [merged]
+ slub-create-new-___slab_alloc-function-that-can-be-called-with-irqs-disabled.patch removed from -mm tree
+Date: Mon, 23 Nov 2015 12:15:28 -0800
+Message-ID: <565373e0.AqE/wG18D5tW1uxD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53624 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753641AbbKWUPr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:15:47 -0500
+	with ESMTP id S1753661AbbKWUP2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:15:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: cl@linux.com, alexander.h.duyck@redhat.com, brouer@redhat.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab/slub: adjust kmem_cache_alloc_bulk API
+     Subject: slub: create new ___slab_alloc function that can be called with irqs disabled
 has been removed from the -mm tree.  Its filename was
-     slab-slub-adjust-kmem_cache_alloc_bulk-api.patch
+     slub-create-new-___slab_alloc-function-that-can-be-called-with-irqs-disabled.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: slab/slub: adjust kmem_cache_alloc_bulk API
+From: Christoph Lameter <cl@linux.com>
+Subject: slub: create new ___slab_alloc function that can be called with irqs disabled
 
-Adjust kmem_cache_alloc_bulk API before we have any real users.
+Bulk alloc needs a function like that because it enables interrupts before
+calling __slab_alloc which promptly disables them again using the expensive
+local_irq_save().
 
-Adjust API to return type 'int' instead of previously type 'bool'.  This
-is done to allow future extension of the bulk alloc API.
-
-A future extension could be to allow SLUB to stop at a page boundary, when
-specified by a flag, and then return the number of objects.
-
-The advantage of this approach, would make it easier to make bulk alloc
-run without local IRQs disabled.  With an approach of cmpxchg "stealing"
-the entire c->freelist or page->freelist.  To avoid overshooting we would
-stop processing at a slab-page boundary.  Else we always end up returning
-some objects at the cost of another cmpxchg.
-
-To keep compatible with future users of this API linking against an older
-kernel when using the new flag, we need to return the number of allocated
-objects with this API change.
-
-Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Christoph Lameter <cl@linux.com>
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Alexander Duyck <alexander.h.duyck@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    2 +-
- mm/slab.c            |    8 ++++----
- mm/slab.h            |    2 +-
- mm/slab_common.c     |    6 +++---
- mm/slob.c            |    2 +-
- mm/slub.c            |    8 ++++----
- 6 files changed, 14 insertions(+), 14 deletions(-)
+ mm/slub.c |   44 +++++++++++++++++++++++++++++---------------
+ 1 file changed, 29 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/slab.h~slab-slub-adjust-kmem_cache_alloc_bulk-api include/linux/slab.h
---- a/include/linux/slab.h~slab-slub-adjust-kmem_cache_alloc_bulk-api
-+++ a/include/linux/slab.h
-@@ -316,7 +316,7 @@ void kmem_cache_free(struct kmem_cache *
-  * Note that interrupts must be enabled when calling these functions.
-  */
- void kmem_cache_free_bulk(struct kmem_cache *, size_t, void **);
--bool kmem_cache_alloc_bulk(struct kmem_cache *, gfp_t, size_t, void **);
-+int kmem_cache_alloc_bulk(struct kmem_cache *, gfp_t, size_t, void **);
- 
- #ifdef CONFIG_NUMA
- void *__kmalloc_node(size_t size, gfp_t flags, int node) __assume_kmalloc_alignment;
-diff -puN mm/slab.c~slab-slub-adjust-kmem_cache_alloc_bulk-api mm/slab.c
---- a/mm/slab.c~slab-slub-adjust-kmem_cache_alloc_bulk-api
-+++ a/mm/slab.c
-@@ -3420,8 +3420,8 @@ void *kmem_cache_alloc(struct kmem_cache
- EXPORT_SYMBOL(kmem_cache_alloc);
- 
- /* Note that interrupts must be enabled when calling this function. */
--bool kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
--			   void **p)
-+int kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
-+			  void **p)
- {
- 	size_t i;
- 
-@@ -3431,11 +3431,11 @@ bool kmem_cache_alloc_bulk(struct kmem_c
- 
- 		if (!x) {
- 			__kmem_cache_free_bulk(s, i, p);
--			return false;
-+			return 0;
- 		}
- 	}
- 	local_irq_enable();
--	return true;
-+	return i;
- }
- EXPORT_SYMBOL(kmem_cache_alloc_bulk);
- 
-diff -puN mm/slab.h~slab-slub-adjust-kmem_cache_alloc_bulk-api mm/slab.h
---- a/mm/slab.h~slab-slub-adjust-kmem_cache_alloc_bulk-api
-+++ a/mm/slab.h
-@@ -170,7 +170,7 @@ ssize_t slabinfo_write(struct file *file
-  * may be allocated or freed using these operations.
-  */
- void __kmem_cache_free_bulk(struct kmem_cache *, size_t, void **);
--bool __kmem_cache_alloc_bulk(struct kmem_cache *, gfp_t, size_t, void **);
-+int __kmem_cache_alloc_bulk(struct kmem_cache *, gfp_t, size_t, void **);
- 
- #ifdef CONFIG_MEMCG_KMEM
- /*
-diff -puN mm/slab_common.c~slab-slub-adjust-kmem_cache_alloc_bulk-api mm/slab_common.c
---- a/mm/slab_common.c~slab-slub-adjust-kmem_cache_alloc_bulk-api
-+++ a/mm/slab_common.c
-@@ -112,7 +112,7 @@ void __kmem_cache_free_bulk(struct kmem_
- 		kmem_cache_free(s, p[i]);
- }
- 
--bool __kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t nr,
-+int __kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t nr,
- 								void **p)
- {
- 	size_t i;
-@@ -121,10 +121,10 @@ bool __kmem_cache_alloc_bulk(struct kmem
- 		void *x = p[i] = kmem_cache_alloc(s, flags);
- 		if (!x) {
- 			__kmem_cache_free_bulk(s, i, p);
--			return false;
-+			return 0;
- 		}
- 	}
--	return true;
-+	return i;
- }
- 
- #ifdef CONFIG_MEMCG_KMEM
-diff -puN mm/slob.c~slab-slub-adjust-kmem_cache_alloc_bulk-api mm/slob.c
---- a/mm/slob.c~slab-slub-adjust-kmem_cache_alloc_bulk-api
-+++ a/mm/slob.c
-@@ -617,7 +617,7 @@ void kmem_cache_free_bulk(struct kmem_ca
- }
- EXPORT_SYMBOL(kmem_cache_free_bulk);
- 
--bool kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
-+int kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
- 								void **p)
- {
- 	return __kmem_cache_alloc_bulk(s, flags, size, p);
-diff -puN mm/slub.c~slab-slub-adjust-kmem_cache_alloc_bulk-api mm/slub.c
---- a/mm/slub.c~slab-slub-adjust-kmem_cache_alloc_bulk-api
+diff -puN mm/slub.c~slub-create-new-___slab_alloc-function-that-can-be-called-with-irqs-disabled mm/slub.c
+--- a/mm/slub.c~slub-create-new-___slab_alloc-function-that-can-be-called-with-irqs-disabled
 +++ a/mm/slub.c
-@@ -2909,8 +2909,8 @@ void kmem_cache_free_bulk(struct kmem_ca
- EXPORT_SYMBOL(kmem_cache_free_bulk);
- 
- /* Note that interrupts must be enabled when calling this function. */
--bool kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
--			   void **p)
-+int kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
-+			  void **p)
+@@ -2295,23 +2295,15 @@ static inline void *get_freelist(struct
+  * And if we were unable to get a new slab from the partial slab lists then
+  * we need to allocate a new slab. This is the slowest path since it involves
+  * a call to the page allocator and the setup of a new slab.
++ *
++ * Version of __slab_alloc to use when we know that interrupts are
++ * already disabled (which is the case for bulk allocation).
+  */
+-static void *__slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,
++static void *___slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,
+ 			  unsigned long addr, struct kmem_cache_cpu *c)
  {
- 	struct kmem_cache_cpu *c;
- 	int i;
-@@ -2959,12 +2959,12 @@ bool kmem_cache_alloc_bulk(struct kmem_c
+ 	void *freelist;
+ 	struct page *page;
+-	unsigned long flags;
+-
+-	local_irq_save(flags);
+-#ifdef CONFIG_PREEMPT
+-	/*
+-	 * We may have been preempted and rescheduled on a different
+-	 * cpu before disabling interrupts. Need to reload cpu area
+-	 * pointer.
+-	 */
+-	c = this_cpu_ptr(s->cpu_slab);
+-#endif
  
- 	/* memcg and kmem_cache debug support */
- 	slab_post_alloc_hook(s, flags, size, p);
--	return true;
-+	return i;
- error:
- 	local_irq_enable();
- 	slab_post_alloc_hook(s, flags, i, p);
- 	__kmem_cache_free_bulk(s, i, p);
--	return false;
-+	return 0;
+ 	page = c->page;
+ 	if (!page)
+@@ -2369,7 +2361,6 @@ load_freelist:
+ 	VM_BUG_ON(!c->page->frozen);
+ 	c->freelist = get_freepointer(s, freelist);
+ 	c->tid = next_tid(c->tid);
+-	local_irq_restore(flags);
+ 	return freelist;
+ 
+ new_slab:
+@@ -2386,7 +2377,6 @@ new_slab:
+ 
+ 	if (unlikely(!freelist)) {
+ 		slab_out_of_memory(s, gfpflags, node);
+-		local_irq_restore(flags);
+ 		return NULL;
+ 	}
+ 
+@@ -2402,11 +2392,35 @@ new_slab:
+ 	deactivate_slab(s, page, get_freepointer(s, freelist));
+ 	c->page = NULL;
+ 	c->freelist = NULL;
+-	local_irq_restore(flags);
+ 	return freelist;
  }
- EXPORT_SYMBOL(kmem_cache_alloc_bulk);
  
+ /*
++ * Another one that disabled interrupt and compensates for possible
++ * cpu changes by refetching the per cpu area pointer.
++ */
++static void *__slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,
++			  unsigned long addr, struct kmem_cache_cpu *c)
++{
++	void *p;
++	unsigned long flags;
++
++	local_irq_save(flags);
++#ifdef CONFIG_PREEMPT
++	/*
++	 * We may have been preempted and rescheduled on a different
++	 * cpu before disabling interrupts. Need to reload cpu area
++	 * pointer.
++	 */
++	c = this_cpu_ptr(s->cpu_slab);
++#endif
++
++	p = ___slab_alloc(s, gfpflags, node, addr, c);
++	local_irq_restore(flags);
++	return p;
++}
++
++/*
+  * Inlined fastpath so that allocation functions (kmalloc, kmem_cache_alloc)
+  * have the fastpath folded into their functions. So no function call
+  * overhead for requests that can be satisfied on the fastpath.
 _
 
-Patches currently in -mm which might be from brouer@redhat.com are
+Patches currently in -mm which might be from cl@linux.com are
 
 
