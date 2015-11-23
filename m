@@ -1,170 +1,282 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes.patch
- removed from -mm tree
-Date: Mon, 23 Nov 2015 12:15:11 -0800
-Message-ID: <565373cf.2w0Srpwh/1Dsj9Rt%akpm@linux-foundation.org>
+ slub-optimize-bulk-slowpath-free-by-detached-freelist.patch removed from
+ -mm tree
+Date: Mon, 23 Nov 2015 12:15:39 -0800
+Message-ID: <565373eb.JFgeNoAN72ltg9fK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53602 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53624 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753322AbbKWUPM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:15:12 -0500
+	with ESMTP id S1753191AbbKWUPk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:15:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, dave.hansen@linux.intel.com, dave@stgolabs.net, hillf.zj@alibaba-inc.com, hughd@google.com, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: brouer@redhat.com, alexander.h.duyck@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlbfs: fix bugs in fallocate hole punch of areas with holes
+     Subject: slub: optimize bulk slowpath free by detached freelist
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes.patch
+     slub-optimize-bulk-slowpath-free-by-detached-freelist.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: mm/hugetlbfs: fix bugs in fallocate hole punch of areas with holes
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: slub: optimize bulk slowpath free by detached freelist
 
-Hugh Dickins pointed out problems with the new hugetlbfs fallocate hole
-punch code.  These problems are in the routine remove_inode_hugepages and
-mostly occur in the case where there are holes in the range of pages to be
-removed.  These holes could be the result of a previous hole punch or
-simply sparse allocation.  The current code could access pages outside the
-specified range.
+This change focus on improving the speed of object freeing in the
+"slowpath" of kmem_cache_free_bulk.
 
-remove_inode_hugepages handles both hole punch and truncate operations. 
-Page index handling was fixed/cleaned up so that the loop index always
-matches the page being processed.  The code now only makes a single pass
-through the range of pages as it was determined page faults could not race
-with truncate.  A cond_resched() was added after removing up to
-PAGEVEC_SIZE pages.
+The calls slab_free (fastpath) and __slab_free (slowpath) have been
+extended with support for bulk free, which amortize the overhead of
+the (locked) cmpxchg_double.
 
-Some totally unnecessary code in hugetlbfs_fallocate() that remained from
-early development was also removed.
+To use the new bulking feature, we build what I call a detached
+freelist.  The detached freelist takes advantage of three properties:
 
-Tested with fallocate tests submitted here:
-http://librelist.com/browser//libhugetlbfs/2015/6/25/patch-tests-add-tests-for-fallocate-system-call/
-And, some ftruncate tests under development
+ 1) the free function call owns the object that is about to be freed,
+    thus writing into this memory is synchronization-free.
 
-Fixes: b5cec28d36f5 ("hugetlbfs: truncate_hugepages() takes a range of pages")
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: "Hillf Danton" <hillf.zj@alibaba-inc.com>
-Cc: <stable@vger.kernel.org>	[4.3]
+ 2) many freelist's can co-exist side-by-side in the same slab-page
+    each with a separate head pointer.
+
+ 3) it is the visibility of the head pointer that needs synchronization.
+
+Given these properties, the brilliant part is that the detached
+freelist can be constructed without any need for synchronization.  The
+freelist is constructed directly in the page objects, without any
+synchronization needed.  The detached freelist is allocated on the
+stack of the function call kmem_cache_free_bulk.  Thus, the freelist
+head pointer is not visible to other CPUs.
+
+All objects in a SLUB freelist must belong to the same slab-page.
+Thus, constructing the detached freelist is about matching objects
+that belong to the same slab-page.  The bulk free array is scanned is
+a progressive manor with a limited look-ahead facility.
+
+Kmem debug support is handled in call of slab_free().
+
+Notice kmem_cache_free_bulk no longer need to disable IRQs. This
+only slowed down single free bulk with approx 3 cycles.
+
+Performance data:
+ Benchmarked[1] obj size 256 bytes on CPU i7-4790K @ 4.00GHz
+
+SLUB fastpath single object quick reuse: 47 cycles(tsc) 11.931 ns
+
+To get stable and comparable numbers, the kernel have been booted with
+"slab_merge" (this also improve performance for larger bulk sizes).
+
+Performance data, compared against fallback bulking:
+
+bulk -  fallback bulk            - improvement with this patch
+   1 -  62 cycles(tsc) 15.662 ns - 49 cycles(tsc) 12.407 ns- improved 21.0%
+   2 -  55 cycles(tsc) 13.935 ns - 30 cycles(tsc) 7.506 ns - improved 45.5%
+   3 -  53 cycles(tsc) 13.341 ns - 23 cycles(tsc) 5.865 ns - improved 56.6%
+   4 -  52 cycles(tsc) 13.081 ns - 20 cycles(tsc) 5.048 ns - improved 61.5%
+   8 -  50 cycles(tsc) 12.627 ns - 18 cycles(tsc) 4.659 ns - improved 64.0%
+  16 -  49 cycles(tsc) 12.412 ns - 17 cycles(tsc) 4.495 ns - improved 65.3%
+  30 -  49 cycles(tsc) 12.484 ns - 18 cycles(tsc) 4.533 ns - improved 63.3%
+  32 -  50 cycles(tsc) 12.627 ns - 18 cycles(tsc) 4.707 ns - improved 64.0%
+  34 -  96 cycles(tsc) 24.243 ns - 23 cycles(tsc) 5.976 ns - improved 76.0%
+  48 -  83 cycles(tsc) 20.818 ns - 21 cycles(tsc) 5.329 ns - improved 74.7%
+  64 -  74 cycles(tsc) 18.700 ns - 20 cycles(tsc) 5.127 ns - improved 73.0%
+ 128 -  90 cycles(tsc) 22.734 ns - 27 cycles(tsc) 6.833 ns - improved 70.0%
+ 158 -  99 cycles(tsc) 24.776 ns - 30 cycles(tsc) 7.583 ns - improved 69.7%
+ 250 - 104 cycles(tsc) 26.089 ns - 37 cycles(tsc) 9.280 ns - improved 64.4%
+
+Performance data, compared current in-kernel bulking:
+
+bulk - curr in-kernel  - improvement with this patch
+   1 -  46 cycles(tsc) - 49 cycles(tsc) - improved (cycles:-3) -6.5%
+   2 -  27 cycles(tsc) - 30 cycles(tsc) - improved (cycles:-3) -11.1%
+   3 -  21 cycles(tsc) - 23 cycles(tsc) - improved (cycles:-2) -9.5%
+   4 -  18 cycles(tsc) - 20 cycles(tsc) - improved (cycles:-2) -11.1%
+   8 -  17 cycles(tsc) - 18 cycles(tsc) - improved (cycles:-1) -5.9%
+  16 -  18 cycles(tsc) - 17 cycles(tsc) - improved (cycles: 1)  5.6%
+  30 -  18 cycles(tsc) - 18 cycles(tsc) - improved (cycles: 0)  0.0%
+  32 -  18 cycles(tsc) - 18 cycles(tsc) - improved (cycles: 0)  0.0%
+  34 -  78 cycles(tsc) - 23 cycles(tsc) - improved (cycles:55) 70.5%
+  48 -  60 cycles(tsc) - 21 cycles(tsc) - improved (cycles:39) 65.0%
+  64 -  49 cycles(tsc) - 20 cycles(tsc) - improved (cycles:29) 59.2%
+ 128 -  69 cycles(tsc) - 27 cycles(tsc) - improved (cycles:42) 60.9%
+ 158 -  79 cycles(tsc) - 30 cycles(tsc) - improved (cycles:49) 62.0%
+ 250 -  86 cycles(tsc) - 37 cycles(tsc) - improved (cycles:49) 57.0%
+
+Performance with normal SLUB merging is significantly slower for
+larger bulking.  This is believed to (primarily) be an effect of not
+having to share the per-CPU data-structures, as tuning per-CPU size
+can achieve similar performance.
+
+bulk - slab_nomerge   -  normal SLUB merge
+   1 -  49 cycles(tsc) - 49 cycles(tsc) - merge slower with cycles:0
+   2 -  30 cycles(tsc) - 30 cycles(tsc) - merge slower with cycles:0
+   3 -  23 cycles(tsc) - 23 cycles(tsc) - merge slower with cycles:0
+   4 -  20 cycles(tsc) - 20 cycles(tsc) - merge slower with cycles:0
+   8 -  18 cycles(tsc) - 18 cycles(tsc) - merge slower with cycles:0
+  16 -  17 cycles(tsc) - 17 cycles(tsc) - merge slower with cycles:0
+  30 -  18 cycles(tsc) - 23 cycles(tsc) - merge slower with cycles:5
+  32 -  18 cycles(tsc) - 22 cycles(tsc) - merge slower with cycles:4
+  34 -  23 cycles(tsc) - 22 cycles(tsc) - merge slower with cycles:-1
+  48 -  21 cycles(tsc) - 22 cycles(tsc) - merge slower with cycles:1
+  64 -  20 cycles(tsc) - 48 cycles(tsc) - merge slower with cycles:28
+ 128 -  27 cycles(tsc) - 57 cycles(tsc) - merge slower with cycles:30
+ 158 -  30 cycles(tsc) - 59 cycles(tsc) - merge slower with cycles:29
+ 250 -  37 cycles(tsc) - 56 cycles(tsc) - merge slower with cycles:19
+
+Joint work with Alexander Duyck.
+
+[1] https://github.com/netoptimizer/prototype-kernel/blob/master/kernel/mm/slab_bulk_test01.c
+
+[akpm@linux-foundation.org: BUG_ON -> WARN_ON;return]
+Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Signed-off-by: Alexander Duyck <alexander.h.duyck@redhat.com>
+Acked-by: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   65 ++++++++++++++++++++---------------------
- 1 file changed, 32 insertions(+), 33 deletions(-)
+ mm/slub.c |  113 +++++++++++++++++++++++++++++++++++++---------------
+ 1 file changed, 81 insertions(+), 32 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-bugs-in-fallocate-hole-punch-of-areas-with-holes
-+++ a/fs/hugetlbfs/inode.c
-@@ -332,12 +332,17 @@ static void remove_huge_page(struct page
-  * truncation is indicated by end of range being LLONG_MAX
-  *	In this case, we first scan the range and release found pages.
-  *	After releasing pages, hugetlb_unreserve_pages cleans up region/reserv
-- *	maps and global counts.
-+ *	maps and global counts.  Page faults can not race with truncation
-+ *	in this routine.  hugetlb_no_page() prevents page faults in the
-+ *	truncated range.  It checks i_size before allocation, and again after
-+ *	with the page table lock for the page held.  The same lock must be
-+ *	acquired to unmap a page.
-  * hole punch is indicated if end is not LLONG_MAX
-  *	In the hole punch case we scan the range and release found pages.
-  *	Only when releasing a page is the associated region/reserv map
-  *	deleted.  The region/reserv map for ranges without associated
-- *	pages are not modified.
-+ *	pages are not modified.  Page faults can race with hole punch.
-+ *	This is indicated if we find a mapped page.
-  * Note: If the passed end of range value is beyond the end of file, but
-  * not LLONG_MAX this routine still performs a hole punch operation.
-  */
-@@ -361,46 +366,37 @@ static void remove_inode_hugepages(struc
- 	next = start;
- 	while (next < end) {
- 		/*
--		 * Make sure to never grab more pages that we
--		 * might possibly need.
-+		 * Don't grab more pages than the number left in the range.
- 		 */
- 		if (end - next < lookup_nr)
- 			lookup_nr = end - next;
+diff -puN mm/slub.c~slub-optimize-bulk-slowpath-free-by-detached-freelist mm/slub.c
+--- a/mm/slub.c~slub-optimize-bulk-slowpath-free-by-detached-freelist
++++ a/mm/slub.c
+@@ -2807,44 +2807,93 @@ void kmem_cache_free(struct kmem_cache *
+ }
+ EXPORT_SYMBOL(kmem_cache_free);
  
- 		/*
--		 * This pagevec_lookup() may return pages past 'end',
--		 * so we must check for page->index > end.
-+		 * When no more pages are found, we are done.
- 		 */
--		if (!pagevec_lookup(&pvec, mapping, next, lookup_nr)) {
--			if (next == start)
--				break;
--			next = start;
--			continue;
--		}
-+		if (!pagevec_lookup(&pvec, mapping, next, lookup_nr))
-+			break;
- 
- 		for (i = 0; i < pagevec_count(&pvec); ++i) {
- 			struct page *page = pvec.pages[i];
- 			u32 hash;
- 
-+			/*
-+			 * The page (index) could be beyond end.  This is
-+			 * only possible in the punch hole case as end is
-+			 * max page offset in the truncate case.
-+			 */
-+			next = page->index;
-+			if (next >= end)
-+				break;
++struct detached_freelist {
++	struct page *page;
++	void *tail;
++	void *freelist;
++	int cnt;
++};
 +
- 			hash = hugetlb_fault_mutex_hash(h, current->mm,
- 							&pseudo_vma,
- 							mapping, next, 0);
- 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
++/*
++ * This function progressively scans the array with free objects (with
++ * a limited look ahead) and extract objects belonging to the same
++ * page.  It builds a detached freelist directly within the given
++ * page/objects.  This can happen without any need for
++ * synchronization, because the objects are owned by running process.
++ * The freelist is build up as a single linked list in the objects.
++ * The idea is, that this detached freelist can then be bulk
++ * transferred to the real freelist(s), but only requiring a single
++ * synchronization primitive.  Look ahead in the array is limited due
++ * to performance reasons.
++ */
++static int build_detached_freelist(struct kmem_cache *s, size_t size,
++				   void **p, struct detached_freelist *df)
++{
++	size_t first_skipped_index = 0;
++	int lookahead = 3;
++	void *object;
++
++	/* Always re-init detached_freelist */
++	df->page = NULL;
++
++	do {
++		object = p[--size];
++	} while (!object && size);
++
++	if (!object)
++		return 0;
++
++	/* Start new detached freelist */
++	set_freepointer(s, object, NULL);
++	df->page = virt_to_head_page(object);
++	df->tail = object;
++	df->freelist = object;
++	p[size] = NULL; /* mark object processed */
++	df->cnt = 1;
++
++	while (size) {
++		object = p[--size];
++		if (!object)
++			continue; /* Skip processed objects */
++
++		/* df->page is always set at this point */
++		if (df->page == virt_to_head_page(object)) {
++			/* Opportunity build freelist */
++			set_freepointer(s, object, df->freelist);
++			df->freelist = object;
++			df->cnt++;
++			p[size] = NULL; /* mark object processed */
++
++			continue;
++		}
++
++		/* Limit look ahead search */
++		if (!--lookahead)
++			break;
++
++		if (!first_skipped_index)
++			first_skipped_index = size + 1;
++	}
++
++	return first_skipped_index;
++}
++
++
+ /* Note that interrupts must be enabled when calling this function. */
+ void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p)
+ {
+-	struct kmem_cache_cpu *c;
+-	struct page *page;
+-	int i;
++	if (WARN_ON(!size))
++		return;
  
- 			lock_page(page);
--			if (page->index >= end) {
--				unlock_page(page);
--				mutex_unlock(&hugetlb_fault_mutex_table[hash]);
--				next = end;	/* we are done */
--				break;
--			}
--
--			/*
--			 * If page is mapped, it was faulted in after being
--			 * unmapped.  Do nothing in this race case.  In the
--			 * normal case page is not mapped.
--			 */
--			if (!page_mapped(page)) {
-+			if (likely(!page_mapped(page))) {
- 				bool rsv_on_error = !PagePrivate(page);
- 				/*
- 				 * We must free the huge page and remove
-@@ -421,17 +417,23 @@ static void remove_inode_hugepages(struc
- 						hugetlb_fix_reserve_counts(
- 							inode, rsv_on_error);
- 				}
-+			} else {
-+				/*
-+				 * If page is mapped, it was faulted in after
-+				 * being unmapped.  It indicates a race between
-+				 * hole punch and page fault.  Do nothing in
-+				 * this case.  Getting here in a truncate
-+				 * operation is a bug.
-+				 */
-+				BUG_ON(truncate_op);
- 			}
+-	local_irq_disable();
+-	c = this_cpu_ptr(s->cpu_slab);
++	do {
++		struct detached_freelist df;
  
--			if (page->index > next)
--				next = page->index;
+-	for (i = 0; i < size; i++) {
+-		void *object = p[i];
++		size = build_detached_freelist(s, size, p, &df);
++		if (unlikely(!df.page))
++			continue;
+ 
+-		BUG_ON(!object);
+-		/* kmem cache debug support */
+-		s = cache_from_obj(s, object);
+-		if (unlikely(!s))
+-			goto exit;
+-		slab_free_hook(s, object);
 -
--			++next;
- 			unlock_page(page);
+-		page = virt_to_head_page(object);
+-
+-		if (c->page == page) {
+-			/* Fastpath: local CPU free */
+-			set_freepointer(s, object, c->freelist);
+-			c->freelist = object;
+-		} else {
+-			c->tid = next_tid(c->tid);
+-			local_irq_enable();
+-			/* Slowpath: overhead locked cmpxchg_double_slab */
+-			__slab_free(s, page, object, object, 1, _RET_IP_);
+-			local_irq_disable();
+-			c = this_cpu_ptr(s->cpu_slab);
+-		}
+-	}
+-exit:
+-	c->tid = next_tid(c->tid);
+-	local_irq_enable();
++		slab_free(s, df.page, df.freelist, df.tail, df.cnt, _RET_IP_);
++	} while (likely(size));
+ }
+ EXPORT_SYMBOL(kmem_cache_free_bulk);
+ 
+_
+
+Patches currently in -mm which might be from brouer@redhat.com are
+
+
