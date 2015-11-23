@@ -1,135 +1,78 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- slub-create-new-___slab_alloc-function-that-can-be-called-with-irqs-disabled.patch removed from -mm tree
-Date: Mon, 23 Nov 2015 12:15:28 -0800
-Message-ID: <565373e0.AqE/wG18D5tW1uxD%akpm@linux-foundation.org>
+Subject: + dma-mapping-use-offset_in_page-macro.patch added to -mm tree
+Date: Mon, 23 Nov 2015 14:30:33 -0800
+Message-ID: <56539389.TK5ari5EqFsZmFVV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53624 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56218 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753661AbbKWUP2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:15:28 -0500
+	with ESMTP id S1752917AbbKWWae (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 17:30:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, alexander.h.duyck@redhat.com, brouer@redhat.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: geliangtang@163.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: create new ___slab_alloc function that can be called with irqs disabled
-has been removed from the -mm tree.  Its filename was
-     slub-create-new-___slab_alloc-function-that-can-be-called-with-irqs-disabled.patch
+     Subject: dma-mapping: use offset_in_page macro
+has been added to the -mm tree.  Its filename is
+     dma-mapping-use-offset_in_page-macro.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/dma-mapping-use-offset_in_page-macro.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/dma-mapping-use-offset_in_page-macro.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@linux.com>
-Subject: slub: create new ___slab_alloc function that can be called with irqs disabled
+From: Geliang Tang <geliangtang@163.com>
+Subject: dma-mapping: use offset_in_page macro
 
-Bulk alloc needs a function like that because it enables interrupts before
-calling __slab_alloc which promptly disables them again using the expensive
-local_irq_save().
+Use offset_in_page macro instead of (addr & ~PAGE_MASK).
 
-Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Alexander Duyck <alexander.h.duyck@redhat.com>
+Signed-off-by: Geliang Tang <geliangtang@163.com>
+Acked-by: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   44 +++++++++++++++++++++++++++++---------------
- 1 file changed, 29 insertions(+), 15 deletions(-)
+ include/linux/dma-mapping.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/slub.c~slub-create-new-___slab_alloc-function-that-can-be-called-with-irqs-disabled mm/slub.c
---- a/mm/slub.c~slub-create-new-___slab_alloc-function-that-can-be-called-with-irqs-disabled
-+++ a/mm/slub.c
-@@ -2295,23 +2295,15 @@ static inline void *get_freelist(struct
-  * And if we were unable to get a new slab from the partial slab lists then
-  * we need to allocate a new slab. This is the slowest path since it involves
-  * a call to the page allocator and the setup of a new slab.
-+ *
-+ * Version of __slab_alloc to use when we know that interrupts are
-+ * already disabled (which is the case for bulk allocation).
-  */
--static void *__slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,
-+static void *___slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,
- 			  unsigned long addr, struct kmem_cache_cpu *c)
- {
- 	void *freelist;
- 	struct page *page;
--	unsigned long flags;
--
--	local_irq_save(flags);
--#ifdef CONFIG_PREEMPT
--	/*
--	 * We may have been preempted and rescheduled on a different
--	 * cpu before disabling interrupts. Need to reload cpu area
--	 * pointer.
--	 */
--	c = this_cpu_ptr(s->cpu_slab);
--#endif
- 
- 	page = c->page;
- 	if (!page)
-@@ -2369,7 +2361,6 @@ load_freelist:
- 	VM_BUG_ON(!c->page->frozen);
- 	c->freelist = get_freepointer(s, freelist);
- 	c->tid = next_tid(c->tid);
--	local_irq_restore(flags);
- 	return freelist;
- 
- new_slab:
-@@ -2386,7 +2377,6 @@ new_slab:
- 
- 	if (unlikely(!freelist)) {
- 		slab_out_of_memory(s, gfpflags, node);
--		local_irq_restore(flags);
- 		return NULL;
- 	}
- 
-@@ -2402,11 +2392,35 @@ new_slab:
- 	deactivate_slab(s, page, get_freepointer(s, freelist));
- 	c->page = NULL;
- 	c->freelist = NULL;
--	local_irq_restore(flags);
- 	return freelist;
+diff -puN include/linux/dma-mapping.h~dma-mapping-use-offset_in_page-macro include/linux/dma-mapping.h
+--- a/include/linux/dma-mapping.h~dma-mapping-use-offset_in_page-macro
++++ a/include/linux/dma-mapping.h
+@@ -131,10 +131,10 @@ static inline dma_addr_t dma_map_single_
+ 	kmemcheck_mark_initialized(ptr, size);
+ 	BUG_ON(!valid_dma_direction(dir));
+ 	addr = ops->map_page(dev, virt_to_page(ptr),
+-			     (unsigned long)ptr & ~PAGE_MASK, size,
++			     offset_in_page(ptr), size,
+ 			     dir, attrs);
+ 	debug_dma_map_page(dev, virt_to_page(ptr),
+-			   (unsigned long)ptr & ~PAGE_MASK, size,
++			   offset_in_page(ptr), size,
+ 			   dir, addr, true);
+ 	return addr;
  }
- 
- /*
-+ * Another one that disabled interrupt and compensates for possible
-+ * cpu changes by refetching the per cpu area pointer.
-+ */
-+static void *__slab_alloc(struct kmem_cache *s, gfp_t gfpflags, int node,
-+			  unsigned long addr, struct kmem_cache_cpu *c)
-+{
-+	void *p;
-+	unsigned long flags;
-+
-+	local_irq_save(flags);
-+#ifdef CONFIG_PREEMPT
-+	/*
-+	 * We may have been preempted and rescheduled on a different
-+	 * cpu before disabling interrupts. Need to reload cpu area
-+	 * pointer.
-+	 */
-+	c = this_cpu_ptr(s->cpu_slab);
-+#endif
-+
-+	p = ___slab_alloc(s, gfpflags, node, addr, c);
-+	local_irq_restore(flags);
-+	return p;
-+}
-+
-+/*
-  * Inlined fastpath so that allocation functions (kmalloc, kmem_cache_alloc)
-  * have the fastpath folded into their functions. So no function call
-  * overhead for requests that can be satisfied on the fastpath.
 _
 
-Patches currently in -mm which might be from cl@linux.com are
+Patches currently in -mm which might be from geliangtang@163.com are
 
+fsnotify-use-list_next_entry-in-fsnotify_unmount_inodes.patch
+mm-vmalloc-use-list_nextfirst_entry.patch
+mm-thp-use-list_first_entry_or_null.patch
+dma-mapping-use-offset_in_page-macro.patch
 
