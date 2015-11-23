@@ -1,180 +1,227 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slabh-sprinkle-__assume_aligned-attributes.patch removed from -mm tree
-Date: Mon, 23 Nov 2015 12:14:51 -0800
-Message-ID: <565373bb.3JSwnAxdU/Ix2rlx%akpm@linux-foundation.org>
+Subject: [merged] configfs-allow-dynamic-group-creation.patch removed from -mm tree
+Date: Mon, 23 Nov 2015 12:14:56 -0800
+Message-ID: <565373c0.aTluCRjRuUcgT4zC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53554 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53563 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751347AbbKWUOw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:14:52 -0500
+	with ESMTP id S1752833AbbKWUO5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:14:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: daniel.baluta@intel.com, adriana.reus@intel.com, cristina.opriceana@gmail.com, hch@lst.de, jlbec@evilplan.org, knaack.h@gmx.de, lars@metafoo.de, octavian.purdila@intel.com, pebolle@tiscali.nl, pmeerw@pmeerw.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab.h: sprinkle __assume_aligned attributes
+     Subject: configfs: allow dynamic group creation
 has been removed from the -mm tree.  Its filename was
-     slabh-sprinkle-__assume_aligned-attributes.patch
+     configfs-allow-dynamic-group-creation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: slab.h: sprinkle __assume_aligned attributes
+From: Daniel Baluta <daniel.baluta@intel.com>
+Subject: configfs: allow dynamic group creation
 
-The various allocators return aligned memory.  Telling the compiler that
-allows it to generate better code in many cases, for example when the
-return value is immediately passed to memset().
+This patchset introduces IIO software triggers, offers a way of configuring
+them via configfs and adds the IIO hrtimer based interrupt source to be used
+with software triggers.
 
-Some code does become larger, but at least we win twice as much as we lose:
+The architecture is now split in 3 parts, to remove all IIO trigger specific
+parts from IIO configfs core:
 
-$ scripts/bloat-o-meter /tmp/vmlinux vmlinux
-add/remove: 0/0 grow/shrink: 13/52 up/down: 995/-2140 (-1145)
+(1) IIO configfs - creates the root of the IIO configfs subsys.
+(2) IIO software triggers - software trigger implementation, dynamically
+    creating /config/iio/triggers group.
+(3) IIO hrtimer trigger - is the first interrupt source for software triggers
+    (with syfs to follow). Each trigger type can implement its own set of
+    attributes.
 
-An example of the different (and smaller) code can be seen in mm_alloc(). Before:
+Lockdep seems to be happy with the locking in configfs patch.
+	
 
-:       48 8d 78 08             lea    0x8(%rax),%rdi
-:       48 89 c1                mov    %rax,%rcx
-:       48 89 c2                mov    %rax,%rdx
-:       48 c7 00 00 00 00 00    movq   $0x0,(%rax)
-:       48 c7 80 48 03 00 00    movq   $0x0,0x348(%rax)
-:       00 00 00 00
-:       31 c0                   xor    %eax,%eax
-:       48 83 e7 f8             and    $0xfffffffffffffff8,%rdi
-:       48 29 f9                sub    %rdi,%rcx
-:       81 c1 50 03 00 00       add    $0x350,%ecx
-:       c1 e9 03                shr    $0x3,%ecx
-:       f3 48 ab                rep stos %rax,%es:(%rdi)
 
-After:
+This patch (of 5):
 
-:       48 89 c2                mov    %rax,%rdx
-:       b9 6a 00 00 00          mov    $0x6a,%ecx
-:       31 c0                   xor    %eax,%eax
-:       48 89 d7                mov    %rdx,%rdi
-:       f3 48 ab                rep stos %rax,%es:(%rdi)
+We don't want to hardcode default groups at subsystem
+creation time. We export:
+	* configfs_register_group
+	* configfs_unregister_group
+to allow drivers to programatically create/destroy groups
+later, after module init time.
 
-So gcc's strategy is to do two possibly (but not really, of course)
-unaligned stores to the first and last word, then do an aligned rep stos
-covering the middle part with a little overlap.  Maybe arches which do not
-allow unaligned stores gain even more.
+This is needed for IIO configfs support.
 
-I don't know if gcc can actually make use of alignments greater than 8 for
-anything, so one could probably drop the __assume_xyz_alignment macros and
-just use __assume_aligned(8).
+(akpm: the other 4 patches to be merged via the IIO tree)
 
-The increases in code size are mostly caused by gcc deciding to
-opencode strlen() using the check-four-bytes-at-a-time trick when it
-knows the buffer is sufficiently aligned (one function grew by 200
-bytes). Now it turns out that many of these strlen() calls showing up
-were in fact redundant, and they're gone from -next. Applying the two
-patches to next-20151001 bloat-o-meter instead says
-
-add/remove: 0/0 grow/shrink: 6/52 up/down: 244/-2140 (-1896)
-
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Daniel Baluta <daniel.baluta@intel.com>
+Suggested-by: Lars-Peter Clausen <lars@metafoo.de>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Joel Becker <jlbec@evilplan.org>
+Cc: Hartmut Knaack <knaack.h@gmx.de>
+Cc: Octavian Purdila <octavian.purdila@intel.com>
+Cc: Paul Bolle <pebolle@tiscali.nl>
+Cc: Adriana Reus <adriana.reus@intel.com>
+Cc: Cristina Opriceana <cristina.opriceana@gmail.com>
+Cc: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |   43 ++++++++++++++++++++++++-----------------
- 1 file changed, 26 insertions(+), 17 deletions(-)
+ fs/configfs/dir.c        |  110 +++++++++++++++++++++++++++++++++++++
+ include/linux/configfs.h |   10 +++
+ 2 files changed, 120 insertions(+)
 
-diff -puN include/linux/slab.h~slabh-sprinkle-__assume_aligned-attributes include/linux/slab.h
---- a/include/linux/slab.h~slabh-sprinkle-__assume_aligned-attributes
-+++ a/include/linux/slab.h
-@@ -158,6 +158,24 @@ size_t ksize(const void *);
- #endif
+diff -puN fs/configfs/dir.c~configfs-allow-dynamic-group-creation fs/configfs/dir.c
+--- a/fs/configfs/dir.c~configfs-allow-dynamic-group-creation
++++ a/fs/configfs/dir.c
+@@ -1636,6 +1636,116 @@ const struct file_operations configfs_di
+ 	.iterate	= configfs_readdir,
+ };
  
- /*
-+ * Setting ARCH_SLAB_MINALIGN in arch headers allows a different alignment.
-+ * Intended for arches that get misalignment faults even for 64 bit integer
-+ * aligned buffers.
++/**
++ * configfs_register_group - creates a parent-child relation between two groups
++ * @parent_group:	parent group
++ * @group:		child group
++ *
++ * link groups, creates dentry for the child and attaches it to the
++ * parent dentry.
++ *
++ * Return: 0 on success, negative errno code on error
 + */
-+#ifndef ARCH_SLAB_MINALIGN
-+#define ARCH_SLAB_MINALIGN __alignof__(unsigned long long)
-+#endif
++int configfs_register_group(struct config_group *parent_group,
++			    struct config_group *group)
++{
++	struct configfs_subsystem *subsys = parent_group->cg_subsys;
++	struct dentry *parent;
++	int ret;
 +
-+/*
-+ * kmalloc and friends return ARCH_KMALLOC_MINALIGN aligned
-+ * pointers. kmem_cache_alloc and friends return ARCH_SLAB_MINALIGN
-+ * aligned pointers.
++	mutex_lock(&subsys->su_mutex);
++	link_group(parent_group, group);
++	mutex_unlock(&subsys->su_mutex);
++
++	parent = parent_group->cg_item.ci_dentry;
++
++	mutex_lock_nested(&d_inode(parent)->i_mutex, I_MUTEX_PARENT);
++	ret = create_default_group(parent_group, group);
++	if (!ret) {
++		spin_lock(&configfs_dirent_lock);
++		configfs_dir_set_ready(group->cg_item.ci_dentry->d_fsdata);
++		spin_unlock(&configfs_dirent_lock);
++	}
++	mutex_unlock(&d_inode(parent)->i_mutex);
++	return ret;
++}
++EXPORT_SYMBOL(configfs_register_group);
++
++/**
++ * configfs_unregister_group() - unregisters a child group from its parent
++ * @group: parent group to be unregistered
++ *
++ * Undoes configfs_register_group()
 + */
-+#define __assume_kmalloc_alignment __assume_aligned(ARCH_KMALLOC_MINALIGN)
-+#define __assume_slab_alignment __assume_aligned(ARCH_SLAB_MINALIGN)
-+#define __assume_page_alignment __assume_aligned(PAGE_SIZE)
++void configfs_unregister_group(struct config_group *group)
++{
++	struct configfs_subsystem *subsys = group->cg_subsys;
++	struct dentry *dentry = group->cg_item.ci_dentry;
++	struct dentry *parent = group->cg_item.ci_parent->ci_dentry;
 +
-+/*
-  * Kmalloc array related definitions
-  */
- 
-@@ -286,8 +304,8 @@ static __always_inline int kmalloc_index
- }
- #endif /* !CONFIG_SLOB */
- 
--void *__kmalloc(size_t size, gfp_t flags);
--void *kmem_cache_alloc(struct kmem_cache *, gfp_t flags);
-+void *__kmalloc(size_t size, gfp_t flags) __assume_kmalloc_alignment;
-+void *kmem_cache_alloc(struct kmem_cache *, gfp_t flags) __assume_slab_alignment;
- void kmem_cache_free(struct kmem_cache *, void *);
- 
- /*
-@@ -301,8 +319,8 @@ void kmem_cache_free_bulk(struct kmem_ca
- bool kmem_cache_alloc_bulk(struct kmem_cache *, gfp_t, size_t, void **);
- 
- #ifdef CONFIG_NUMA
--void *__kmalloc_node(size_t size, gfp_t flags, int node);
--void *kmem_cache_alloc_node(struct kmem_cache *, gfp_t flags, int node);
-+void *__kmalloc_node(size_t size, gfp_t flags, int node) __assume_kmalloc_alignment;
-+void *kmem_cache_alloc_node(struct kmem_cache *, gfp_t flags, int node) __assume_slab_alignment;
- #else
- static __always_inline void *__kmalloc_node(size_t size, gfp_t flags, int node)
++	mutex_lock_nested(&d_inode(parent)->i_mutex, I_MUTEX_PARENT);
++	spin_lock(&configfs_dirent_lock);
++	configfs_detach_prep(dentry, NULL);
++	spin_unlock(&configfs_dirent_lock);
++
++	configfs_detach_group(&group->cg_item);
++	d_inode(dentry)->i_flags |= S_DEAD;
++	dont_mount(dentry);
++	d_delete(dentry);
++	mutex_unlock(&d_inode(parent)->i_mutex);
++
++	dput(dentry);
++
++	mutex_lock(&subsys->su_mutex);
++	unlink_group(group);
++	mutex_unlock(&subsys->su_mutex);
++}
++EXPORT_SYMBOL(configfs_unregister_group);
++
++/**
++ * configfs_register_default_group() - allocates and registers a child group
++ * @parent_group:	parent group
++ * @name:		child group name
++ * @item_type:		child item type description
++ *
++ * boilerplate to allocate and register a child group with its parent. We need
++ * kzalloc'ed memory because child's default_group is initially empty.
++ *
++ * Return: allocated config group or ERR_PTR() on error
++ */
++struct config_group *
++configfs_register_default_group(struct config_group *parent_group,
++				const char *name,
++				struct config_item_type *item_type)
++{
++	int ret;
++	struct config_group *group;
++
++	group = kzalloc(sizeof(*group), GFP_KERNEL);
++	if (!group)
++		return ERR_PTR(-ENOMEM);
++	config_group_init_type_name(group, name, item_type);
++
++	ret = configfs_register_group(parent_group, group);
++	if (ret) {
++		kfree(group);
++		return ERR_PTR(ret);
++	}
++	return group;
++}
++EXPORT_SYMBOL(configfs_register_default_group);
++
++/**
++ * configfs_unregister_default_group() - unregisters and frees a child group
++ * @group:	the group to act on
++ */
++void configfs_unregister_default_group(struct config_group *group)
++{
++	configfs_unregister_group(group);
++	kfree(group);
++}
++EXPORT_SYMBOL(configfs_unregister_default_group);
++
+ int configfs_register_subsystem(struct configfs_subsystem *subsys)
  {
-@@ -316,12 +334,12 @@ static __always_inline void *kmem_cache_
- #endif
+ 	int err;
+diff -puN include/linux/configfs.h~configfs-allow-dynamic-group-creation include/linux/configfs.h
+--- a/include/linux/configfs.h~configfs-allow-dynamic-group-creation
++++ a/include/linux/configfs.h
+@@ -197,6 +197,16 @@ static inline struct configfs_subsystem
+ int configfs_register_subsystem(struct configfs_subsystem *subsys);
+ void configfs_unregister_subsystem(struct configfs_subsystem *subsys);
  
- #ifdef CONFIG_TRACING
--extern void *kmem_cache_alloc_trace(struct kmem_cache *, gfp_t, size_t);
-+extern void *kmem_cache_alloc_trace(struct kmem_cache *, gfp_t, size_t) __assume_slab_alignment;
- 
- #ifdef CONFIG_NUMA
- extern void *kmem_cache_alloc_node_trace(struct kmem_cache *s,
- 					   gfp_t gfpflags,
--					   int node, size_t size);
-+					   int node, size_t size) __assume_slab_alignment;
- #else
- static __always_inline void *
- kmem_cache_alloc_node_trace(struct kmem_cache *s,
-@@ -354,10 +372,10 @@ kmem_cache_alloc_node_trace(struct kmem_
- }
- #endif /* CONFIG_TRACING */
- 
--extern void *kmalloc_order(size_t size, gfp_t flags, unsigned int order);
-+extern void *kmalloc_order(size_t size, gfp_t flags, unsigned int order) __assume_page_alignment;
- 
- #ifdef CONFIG_TRACING
--extern void *kmalloc_order_trace(size_t size, gfp_t flags, unsigned int order);
-+extern void *kmalloc_order_trace(size_t size, gfp_t flags, unsigned int order) __assume_page_alignment;
- #else
- static __always_inline void *
- kmalloc_order_trace(size_t size, gfp_t flags, unsigned int order)
-@@ -482,15 +500,6 @@ static __always_inline void *kmalloc_nod
- 	return __kmalloc_node(size, flags, node);
- }
- 
--/*
-- * Setting ARCH_SLAB_MINALIGN in arch headers allows a different alignment.
-- * Intended for arches that get misalignment faults even for 64 bit integer
-- * aligned buffers.
-- */
--#ifndef ARCH_SLAB_MINALIGN
--#define ARCH_SLAB_MINALIGN __alignof__(unsigned long long)
--#endif
++int configfs_register_group(struct config_group *parent_group,
++			    struct config_group *group);
++void configfs_unregister_group(struct config_group *group);
++
++struct config_group *
++configfs_register_default_group(struct config_group *parent_group,
++				const char *name,
++				struct config_item_type *item_type);
++void configfs_unregister_default_group(struct config_group *group);
++
+ /* These functions can sleep and can alloc with GFP_KERNEL */
+ /* WARNING: These cannot be called underneath configfs callbacks!! */
+ int configfs_depend_item(struct configfs_subsystem *subsys, struct config_item *target);
+_
+
+Patches currently in -mm which might be from daniel.baluta@intel.com are
+
+iio-core-introduce-iio-configfs-support.patch
+iio-core-introduce-iio-software-triggers.patch
+iio-trigger-introduce-iio-hrtimer-based-trigger.patch
+iio-documentation-add-iio-configfs-documentation.patch
+
