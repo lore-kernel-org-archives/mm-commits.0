@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2.patch
- added to -mm tree
-Date: Mon, 23 Nov 2015 15:03:02 -0800
-Message-ID: <56539b26.ECCmAZdChc7V7qK4%akpm@linux-foundation.org>
+Subject: + vfs-avoid-softlockups-with-sendfile2.patch added to -mm tree
+Date: Mon, 23 Nov 2015 15:07:40 -0800
+Message-ID: <56539c3c.WYwai2jGTf622YaD%akpm__11641.0131137402$1448320078$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56712 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56733 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751104AbbKWXDD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 18:03:03 -0500
+	with ESMTP id S1752526AbbKWXHl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 18:07:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mgorman@techsingularity.net, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: jack@suse.cz, dvyukov@google.com, stable@vger.kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2
+     Subject: vfs: avoid softlockups with sendfile(2)
 has been added to the -mm tree.  Its filename is
-     vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2.patch
+     vfs-avoid-softlockups-with-sendfile2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vfs-avoid-softlockups-with-sendfile2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vfs-avoid-softlockups-with-sendfile2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,57 +38,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2
+From: Jan Kara <jack@suse.cz>
+Subject: vfs: avoid softlockups with sendfile(2)
 
-Changes in v2:
- - remove unnecessary > 0 (Johannes)
- - elaborate on the comment (Andrew)
+The following test program from Dmitry can cause softlockups or RCU stalls
+as it copies 1GB from tmpfs into eventfd and we don't have any scheduling
+point at that path in sendfile(2) implementation:
 
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+        int r1 = eventfd(0, 0);
+        int r2 = memfd_create("", 0);
+        unsigned long n = 1<<30;
+        fallocate(r2, 0, 0, n);
+        sendfile(r1, r2, 0, n);
+
+Add cond_resched() into __splice_from_pipe() to fix the problem.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Tested-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   11 ++++++++---
- 1 file changed, 8 insertions(+), 3 deletions(-)
+ fs/splice.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/vmscan.c~vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2 mm/vmscan.c
---- a/mm/vmscan.c~vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2
-+++ a/mm/vmscan.c
-@@ -2043,11 +2043,16 @@ static void get_scan_count(struct lruvec
- 	}
+diff -puN fs/splice.c~vfs-avoid-softlockups-with-sendfile2 fs/splice.c
+--- a/fs/splice.c~vfs-avoid-softlockups-with-sendfile2
++++ a/fs/splice.c
+@@ -891,6 +891,7 @@ ssize_t __splice_from_pipe(struct pipe_i
  
- 	/*
--	 * There is enough inactive page cache, do not reclaim
--	 * anything from the anonymous working set right now.
-+	 * If there is enough inactive page cache, i.e. if the size of the
-+	 * inactive list is greater than that of the active list *and* the
-+	 * inactive list actually has some pages to scan on this priority, we
-+	 * do not reclaim anything from the anonymous working set right now.
-+	 * Without the second condition we could end up never scanning an
-+	 * lruvec even if it has plenty of old anonymous pages unless the
-+	 * system is under heavy pressure.
- 	 */
- 	if (!inactive_file_is_low(lruvec) &&
--	    get_lru_size(lruvec, LRU_INACTIVE_FILE) >> sc->priority > 0) {
-+	    get_lru_size(lruvec, LRU_INACTIVE_FILE) >> sc->priority) {
- 		scan_balance = SCAN_FILE;
- 		goto out;
- 	}
+ 	splice_from_pipe_begin(sd);
+ 	do {
++		cond_resched();
+ 		ret = splice_from_pipe_next(pipe, sd);
+ 		if (ret > 0)
+ 			ret = splice_from_pipe_feed(pipe, sd, actor);
 _
 
-Patches currently in -mm which might be from vdavydov@virtuozzo.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-revert-kernfs-do-not-account-ino_ida-allocations-to-memcg.patch
-revert-gfp-add-__gfp_noaccount.patch
-memcg-only-account-kmem-allocations-marked-as-__gfp_account.patch
-slab-add-slab_account-flag.patch
-vmalloc-allow-to-account-vmalloc-to-memcg.patch
-account-certain-kmem-allocations-to-memcg.patch
-vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small.patch
-vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2.patch
+vfs-make-sendfile2-killable-even-better.patch
+vfs-avoid-softlockups-with-sendfile2.patch
 
