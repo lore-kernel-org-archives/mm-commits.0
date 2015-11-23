@@ -1,90 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] signal-unexport-sigsuspend.patch removed from -mm tree
-Date: Mon, 23 Nov 2015 12:15:17 -0800
-Message-ID: <565373d5.ECf9BZlJjJSkDLie%akpm__46527.8882220902$1448309775$gmane$org@linux-foundation.org>
+Subject: [merged]
+ writeback-initialize-m_dirty-to-avoid-compile-warning.patch removed from
+ -mm tree
+Date: Mon, 23 Nov 2015 12:15:09 -0800
+Message-ID: <565373cd.5RaaiQHC2RB+teAu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53615 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53599 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753212AbbKWUPS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:15:18 -0500
+	with ESMTP id S1753232AbbKWUPJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:15:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: richard@nod.at, oleg@redhat.com, stable@vger.kernel.org, vegard.nossum@oracle.com, mm-commits@vger.kernel.org
+To: yang.shi@linaro.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/signal.c: unexport sigsuspend()
+     Subject: mm/page-writeback.c: initialize m_dirty to avoid compile warning
 has been removed from the -mm tree.  Its filename was
-     signal-unexport-sigsuspend.patch
+     writeback-initialize-m_dirty-to-avoid-compile-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Richard Weinberger <richard@nod.at>
-Subject: kernel/signal.c: unexport sigsuspend()
+From: Yang Shi <yang.shi@linaro.org>
+Subject: mm/page-writeback.c: initialize m_dirty to avoid compile warning
 
-sigsuspend() is nowhere used except in signal.c itself, so we can mark it
-static do not pollute the global namespace.
+When building kernel with gcc 5.2, the below warning is raised:
 
-But this patch is more than a boring cleanup patch, it fixes a real issue
-on UserModeLinux.  UML has a special console driver to display ttys using
-xterm, or other terminal emulators, on the host side.  Vegard reported
-that sometimes UML is unable to spawn a xterm and he's facing the
-following warning:
+mm/page-writeback.c: In function 'balance_dirty_pages.isra.10':
+mm/page-writeback.c:1545:17: warning: 'm_dirty' may be used uninitialized in this function [-Wmaybe-uninitialized]
+   unsigned long m_dirty, m_thresh, m_bg_thresh;
 
-WARNING: CPU: 0 PID: 908 at include/linux/thread_info.h:128 sigsuspend+0xab/0xc0()
+The m_dirty{thresh, bg_thresh} are initialized in the block of "if
+(mdtc)", so if mdts is null, they won't be initialized before being used. 
+Initialize m_dirty to zero, also initialize m_thresh and m_bg_thresh to
+keep consistency.
 
-It turned out that this warning makes absolutely no sense as the UML xterm
-code calls sigsuspend() on the host side, at least it tries.  But as the
-kernel itself offers a sigsuspend() symbol the linker choose this one
-instead of the glibc wrapper.  Interestingly this code used to work since
-ever but always blocked signals on the wrong side.  Some recent kernel
-change made the WARN_ON() trigger and uncovered the bug.
+They are used later by if condition: !mdtc || m_dirty <=
+dirty_freerun_ceiling(m_thresh, m_bg_thresh)
 
-It is a wonderful example of how much works by chance on computers. :-)
+If mdtc is null, dirty_freerun_ceiling will not be called at all, so the
+initialization will not change any behavior other than just ceasing the
+compile warning.
 
-Fixes: 68f3f16d9ad0f1 ("new helper: sigsuspend()")
-Signed-off-by: Richard Weinberger <richard@nod.at>
-Reported-by: Vegard Nossum <vegard.nossum@oracle.com>
-Tested-by: Vegard Nossum <vegard.nossum@oracle.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Cc: <stable@vger.kernel.org>	[3.5+]
+(akpm: the patch actually reduces .text size by ~20 bytes on gcc-4.x.y)
+
+[akpm@linux-foundation.org: add comment]
+Signed-off-by: Yang Shi <yang.shi@linaro.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/signal.h |    1 -
- kernel/signal.c        |    2 +-
- 2 files changed, 1 insertion(+), 2 deletions(-)
+ mm/page-writeback.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/signal.h~signal-unexport-sigsuspend include/linux/signal.h
---- a/include/linux/signal.h~signal-unexport-sigsuspend
-+++ a/include/linux/signal.h
-@@ -239,7 +239,6 @@ extern int sigprocmask(int, sigset_t *,
- extern void set_current_blocked(sigset_t *);
- extern void __set_current_blocked(const sigset_t *);
- extern int show_unhandled_signals;
--extern int sigsuspend(sigset_t *);
+diff -puN mm/page-writeback.c~writeback-initialize-m_dirty-to-avoid-compile-warning mm/page-writeback.c
+--- a/mm/page-writeback.c~writeback-initialize-m_dirty-to-avoid-compile-warning
++++ a/mm/page-writeback.c
+@@ -1542,7 +1542,9 @@ static void balance_dirty_pages(struct a
+ 	for (;;) {
+ 		unsigned long now = jiffies;
+ 		unsigned long dirty, thresh, bg_thresh;
+-		unsigned long m_dirty, m_thresh, m_bg_thresh;
++		unsigned long m_dirty = 0;	/* stop bogus uninit warnings */
++		unsigned long m_thresh = 0;
++		unsigned long m_bg_thresh = 0;
  
- struct sigaction {
- #ifndef __ARCH_HAS_IRIX_SIGACTION
-diff -puN kernel/signal.c~signal-unexport-sigsuspend kernel/signal.c
---- a/kernel/signal.c~signal-unexport-sigsuspend
-+++ a/kernel/signal.c
-@@ -3503,7 +3503,7 @@ SYSCALL_DEFINE0(pause)
- 
- #endif
- 
--int sigsuspend(sigset_t *set)
-+static int sigsuspend(sigset_t *set)
- {
- 	current->saved_sigmask = current->blocked;
- 	set_current_blocked(set);
+ 		/*
+ 		 * Unstable writes are a feature of certain networked
 _
 
-Patches currently in -mm which might be from richard@nod.at are
+Patches currently in -mm which might be from yang.shi@linaro.org are
 
 
