@@ -1,65 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ncpfs-dont-allow-negative-timeouts.patch removed from
- -mm tree
-Date: Mon, 23 Nov 2015 12:14:59 -0800
-Message-ID: <565373c3.a4BBFPHfQFzGwwLX%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area.patch
+ removed from -mm tree
+Date: Mon, 23 Nov 2015 12:15:03 -0800
+Message-ID: <565373c7.UQVc8cFtl1Bc56gU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53573 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53583 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753092AbbKWUPA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:15:00 -0500
+	with ESMTP id S1753210AbbKWUPE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 15:15:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, dhowells@redhat.com, jack@suse.com, jack@suse.cz, petr@vandrovec.name, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: jmarchan@redhat.com, aryabinin@virtuozzo.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ncpfs: don't allow negative timeouts
+     Subject: mm: vmalloc: don't remove inexistent guard hole in remove_vm_area()
 has been removed from the -mm tree.  Its filename was
-     ncpfs-dont-allow-negative-timeouts.patch
+     mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: ncpfs: don't allow negative timeouts
+From: "Jerome Marchand" <jmarchan@redhat.com>
+Subject: mm: vmalloc: don't remove inexistent guard hole in remove_vm_area()
 
-This code causes a static checker warning because it's a user controlled
-variable where we cap the upper bound but not the lower bound.  Let's
-return an -EINVAL for negative timeouts.
+Commit 71394fe50146 ("mm: vmalloc: add flag preventing guard hole
+allocation") missed a spot.  Currently remove_vm_area() decreases vm->size
+to "remove" the guard hole page, even when it isn't present.  All but one
+users just free the vm_struct rigth away and never access vm->size anyway.
 
-[akpm@linux-foundation.org: remove unneeded `else']
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Reviewed-by: Jan Kara <jack@suse.com>
-Cc: Petr Vandrovec <petr@vandrovec.name>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Don't touch the size in remove_vm_area() and have __vunmap() use the
+proper get_vm_area_size() helper.
+
+Signed-off-by: Jerome Marchand <jmarchan@redhat.com>
+Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ncpfs/ioctl.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/vmalloc.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN fs/ncpfs/ioctl.c~ncpfs-dont-allow-negative-timeouts fs/ncpfs/ioctl.c
---- a/fs/ncpfs/ioctl.c~ncpfs-dont-allow-negative-timeouts
-+++ a/fs/ncpfs/ioctl.c
-@@ -525,6 +525,8 @@ static long __ncp_ioctl(struct inode *in
- 			switch (rqdata.cmd) {
- 				case NCP_LOCK_EX:
- 				case NCP_LOCK_SH:
-+						if (rqdata.timeout < 0)
-+							return -EINVAL;
- 						if (rqdata.timeout == 0)
- 							rqdata.timeout = NCP_LOCK_DEFAULT_TIMEOUT;
- 						else if (rqdata.timeout > NCP_LOCK_MAX_TIMEOUT)
+diff -puN mm/vmalloc.c~mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-dont-remove-inexistent-guard-hole-in-remove_vm_area
++++ a/mm/vmalloc.c
+@@ -1443,7 +1443,6 @@ struct vm_struct *remove_vm_area(const v
+ 		vmap_debug_free_range(va->va_start, va->va_end);
+ 		kasan_free_shadow(vm);
+ 		free_unmap_vmap_area(va);
+-		vm->size -= PAGE_SIZE;
+ 
+ 		return vm;
+ 	}
+@@ -1468,8 +1467,8 @@ static void __vunmap(const void *addr, i
+ 		return;
+ 	}
+ 
+-	debug_check_no_locks_freed(addr, area->size);
+-	debug_check_no_obj_freed(addr, area->size);
++	debug_check_no_locks_freed(addr, get_vm_area_size(area));
++	debug_check_no_obj_freed(addr, get_vm_area_size(area));
+ 
+ 	if (deallocate_pages) {
+ 		int i;
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from jmarchan@redhat.com are
 
-mm-add-tracepoint-for-scanning-pages-fix.patch
+mm-shmem-add-internal-shmem-resident-memory-accounting.patch
+mm-procfs-breakdown-rss-for-anon-shmem-and-file-in-proc-pid-status.patch
 
