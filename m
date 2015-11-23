@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + vfs-make-sendfile2-killable-even-better.patch added to -mm tree
-Date: Mon, 23 Nov 2015 15:07:38 -0800
-Message-ID: <56539c3a.NexrV3l6vxA/byBD%akpm@linux-foundation.org>
+Subject: + memcg-fix-memoryhigh-target.patch added to -mm tree
+Date: Mon, 23 Nov 2015 15:08:50 -0800
+Message-ID: <56539c82.X4esX40Q0nJN7+in%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56729 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56739 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752526AbbKWXHj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 18:07:39 -0500
+	with ESMTP id S1752162AbbKWXIv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 18:08:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, dvyukov@google.com, stable@vger.kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vfs: make sendfile(2) killable even better
+     Subject: memcg: fix memory.high target
 has been added to the -mm tree.  Its filename is
-     vfs-make-sendfile2-killable-even-better.patch
+     memcg-fix-memoryhigh-target.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vfs-make-sendfile2-killable-even-better.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memcg-fix-memoryhigh-target.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vfs-make-sendfile2-killable-even-better.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memcg-fix-memoryhigh-target.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,63 +38,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: vfs: make sendfile(2) killable even better
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: memcg: fix memory.high target
 
-Commit 296291cdd162 ("mm: make sendfile(2) killable") fixed an issue where
-sendfile(2) was doing a lot of tiny writes into a filesystem and thus was
-unkillable for a long time.  However sendfile(2) can be (mis)used to issue
-lots of writes into arbitrary file descriptor such as eventfd or similar
-special file descriptors which never hit the standard filesystem write
-path and thus are still unkillable.  E.g.  the following example from
-Dmitry burns CPU for ~16s on my test system without possibility to be
-killed:
+When the memory.high threshold is exceeded, try_charge() schedules a
+task_work to reclaim the excess.  The reclaim target is set to the number
+of pages requested by try_charge().  This is wrong, because try_charge()
+usually charges more pages than requested (batch > nr_pages) in order to
+refill per cpu stocks.  As a result, a process in a cgroup can easily
+exceed memory.high significantly when doing a lot of charges w/o returning
+to userspace (e.g.  reading a file in big chunks).
 
-        int r1 = eventfd(0, 0);
-        int r2 = memfd_create("", 0);
-        unsigned long n = 1<<30;
-        fallocate(r2, 0, 0, n);
-        sendfile(r1, r2, 0, n);
+Fix this issue by assuring that when exceeding memory.high a process
+reclaims as many pages as were actually charged (i.e.  batch).
 
-There are actually quite a few tests for pending signals in sendfile code
-however when data to write is always available none of them seems to
-trigger.  So fix the problem by adding a test for pending signal into
-splice_from_pipe_next() also before the loop waiting for pipe buffers to
-be available.  This should fix all the lockup issues with sendfile of the
-do-ton-of-tiny-writes nature.
-
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Tested-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/memcontrol.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/splice.c~vfs-make-sendfile2-killable-even-better fs/splice.c
---- a/fs/splice.c~vfs-make-sendfile2-killable-even-better
-+++ a/fs/splice.c
-@@ -809,6 +809,13 @@ static int splice_from_pipe_feed(struct
-  */
- static int splice_from_pipe_next(struct pipe_inode_info *pipe, struct splice_desc *sd)
- {
-+	/*
-+	 * Check for signal early to make process killable when there are
-+	 * always buffers available
-+	 */
-+	if (signal_pending(current))
-+		return -ERESTARTSYS;
-+
- 	while (!pipe->nrbufs) {
- 		if (!pipe->writers)
- 			return 0;
+diff -puN mm/memcontrol.c~memcg-fix-memoryhigh-target mm/memcontrol.c
+--- a/mm/memcontrol.c~memcg-fix-memoryhigh-target
++++ a/mm/memcontrol.c
+@@ -2128,7 +2128,7 @@ done_restock:
+ 	 */
+ 	do {
+ 		if (page_counter_read(&memcg->memory) > memcg->high) {
+-			current->memcg_nr_pages_over_high += nr_pages;
++			current->memcg_nr_pages_over_high += batch;
+ 			set_notify_resume(current);
+ 			break;
+ 		}
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from vdavydov@virtuozzo.com are
 
-vfs-make-sendfile2-killable-even-better.patch
-vfs-avoid-softlockups-with-sendfile2.patch
+memcg-fix-memoryhigh-target.patch
+revert-kernfs-do-not-account-ino_ida-allocations-to-memcg.patch
+revert-gfp-add-__gfp_noaccount.patch
+memcg-only-account-kmem-allocations-marked-as-__gfp_account.patch
+slab-add-slab_account-flag.patch
+vmalloc-allow-to-account-vmalloc-to-memcg.patch
+account-certain-kmem-allocations-to-memcg.patch
+vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small.patch
+vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2.patch
 
