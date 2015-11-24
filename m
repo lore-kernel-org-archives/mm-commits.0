@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount.patch
- added to -mm tree
-Date: Tue, 24 Nov 2015 15:08:57 -0800
-Message-ID: <5654ee09.K8x6awb8re7HIGIF%akpm@linux-foundation.org>
+Subject: + ocfs2-return-non-zero-st_blocks-for-inline-data.patch added to
+ -mm tree
+Date: Tue, 24 Nov 2015 15:13:16 -0800
+Message-ID: <5654ef0c.ZLrXbSau6VqU2rZI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56202 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56284 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754143AbbKXXI6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Nov 2015 18:08:58 -0500
+	with ESMTP id S932267AbbKXXNR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Nov 2015 18:13:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, tariq.x.saeed@oracle.com, mm-commits@vger.kernel.org
+To: john.haxby@oracle.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix BUG due to uncleaned localalloc during mount
+     Subject: ocfs2: return non-zero st_blocks for inline data
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount.patch
+     ocfs2-return-non-zero-st_blocks-for-inline-data.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-return-non-zero-st_blocks-for-inline-data.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-return-non-zero-st_blocks-for-inline-data.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,155 +39,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: fix BUG due to uncleaned localalloc during mount
+From: John Haxby <john.haxby@oracle.com>
+Subject: ocfs2: return non-zero st_blocks for inline data
 
-Tariq has reported a BUG before and posted a fix at:
-https://oss.oracle.com/pipermail/ocfs2-devel/2015-April/010696.html
+Some versions of tar assume that files with st_blocks == 0 do not contain
+any data and will skip reading them entirely.  See also commit
+9206c561554c ("ext4: return non-zero st_blocks for inline data").
 
-This is because during umount, localalloc shutdown relies on journal
-shutdown.  But during journal shutdown, it just stops commit thread
-without checking its result.  So it may happen that localalloc shutdown
-uncleaned during I/O error and after that, journal then has been marked
-clean if I/O restores.
-
-Then during mount, localalloc won't be recovered because of clean journal
-and then trigger BUG when claiming clusters from localalloc.
-
-In Tariq's fix, we have to run fsck offline and a separate fix to fsck is
-needed because it currently does not support clearing out localalloc
-inode.  And my way to fix this issue is checking localalloc before
-actually loading it during mount.  And this is somewhat online.
-
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reported-by: Tariq Saeed <tariq.x.saeed@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Signed-off-by: John Haxby <john.haxby@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/localalloc.c |   19 ++++++++++++-------
- fs/ocfs2/localalloc.h |    2 +-
- fs/ocfs2/super.c      |   17 ++++++++++++++---
- 3 files changed, 27 insertions(+), 11 deletions(-)
+ fs/ocfs2/file.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN fs/ocfs2/localalloc.c~ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount fs/ocfs2/localalloc.c
---- a/fs/ocfs2/localalloc.c~ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount
-+++ a/fs/ocfs2/localalloc.c
-@@ -281,7 +281,7 @@ bail:
- 	return ret;
- }
- 
--int ocfs2_load_local_alloc(struct ocfs2_super *osb)
-+int ocfs2_load_local_alloc(struct ocfs2_super *osb, int check, int *recovery)
- {
- 	int status = 0;
- 	struct ocfs2_dinode *alloc = NULL;
-@@ -345,21 +345,26 @@ int ocfs2_load_local_alloc(struct ocfs2_
- 	if (num_used
- 	    || alloc->id1.bitmap1.i_used
- 	    || alloc->id1.bitmap1.i_total
--	    || la->la_bm_off)
-+	    || la->la_bm_off) {
- 		mlog(ML_ERROR, "Local alloc hasn't been recovered!\n"
- 		     "found = %u, set = %u, taken = %u, off = %u\n",
- 		     num_used, le32_to_cpu(alloc->id1.bitmap1.i_used),
- 		     le32_to_cpu(alloc->id1.bitmap1.i_total),
- 		     OCFS2_LOCAL_ALLOC(alloc)->la_bm_off);
-+		status = -EINVAL;
-+		*recovery = 1;
-+		goto bail;
-+	}
- 
--	osb->local_alloc_bh = alloc_bh;
--	osb->local_alloc_state = OCFS2_LA_ENABLED;
-+	if (!check) {
-+		osb->local_alloc_bh = alloc_bh;
-+		osb->local_alloc_state = OCFS2_LA_ENABLED;
-+	}
- 
- bail:
--	if (status < 0)
-+	if (status < 0 || check)
- 		brelse(alloc_bh);
--	if (inode)
--		iput(inode);
-+	iput(inode);
- 
- 	trace_ocfs2_load_local_alloc(osb->local_alloc_bits);
- 
-diff -puN fs/ocfs2/localalloc.h~ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount fs/ocfs2/localalloc.h
---- a/fs/ocfs2/localalloc.h~ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount
-+++ a/fs/ocfs2/localalloc.h
-@@ -26,7 +26,7 @@
- #ifndef OCFS2_LOCALALLOC_H
- #define OCFS2_LOCALALLOC_H
- 
--int ocfs2_load_local_alloc(struct ocfs2_super *osb);
-+int ocfs2_load_local_alloc(struct ocfs2_super *osb, int check, int *recovery);
- 
- void ocfs2_shutdown_local_alloc(struct ocfs2_super *osb);
- 
-diff -puN fs/ocfs2/super.c~ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount
-+++ a/fs/ocfs2/super.c
-@@ -2424,6 +2424,7 @@ static int ocfs2_check_volume(struct ocf
- 	int status;
- 	int dirty;
- 	int local;
-+	int la_dirty = 0, recovery = 0;
- 	struct ocfs2_dinode *local_alloc = NULL; /* only used if we
- 						  * recover
- 						  * ourselves. */
-@@ -2445,6 +2446,16 @@ static int ocfs2_check_volume(struct ocf
- 	 * recover anything. Otherwise, journal_load will do that
- 	 * dirty work for us :) */
- 	if (!dirty) {
-+		/* It may happen that local alloc is unclean shutdown, but
-+		 * journal has been marked clean, so check it here and do
-+		 * recovery if needed */
-+		status = ocfs2_load_local_alloc(osb, 1, &recovery);
-+		if (recovery) {
-+			printk(KERN_NOTICE "ocfs2: local alloc needs recovery "
-+					"on device (%s).\n", osb->dev_str);
-+			la_dirty = 1;
-+		}
-+
- 		status = ocfs2_journal_wipe(osb->journal, 0);
- 		if (status < 0) {
- 			mlog_errno(status);
-@@ -2473,7 +2484,7 @@ static int ocfs2_check_volume(struct ocf
- 				JBD2_FEATURE_COMPAT_CHECKSUM, 0,
- 				JBD2_FEATURE_INCOMPAT_ASYNC_COMMIT);
- 
--	if (dirty) {
-+	if (dirty || la_dirty) {
- 		/* recover my local alloc if we didn't unmount cleanly. */
- 		status = ocfs2_begin_local_alloc_recovery(osb,
- 							  osb->slot_num,
-@@ -2486,13 +2497,13 @@ static int ocfs2_check_volume(struct ocf
- 		 * ourselves as mounted. */
+diff -puN fs/ocfs2/file.c~ocfs2-return-non-zero-st_blocks-for-inline-data fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-return-non-zero-st_blocks-for-inline-data
++++ a/fs/ocfs2/file.c
+@@ -1302,6 +1302,14 @@ int ocfs2_getattr(struct vfsmount *mnt,
  	}
  
--	status = ocfs2_load_local_alloc(osb);
-+	status = ocfs2_load_local_alloc(osb, 0, &recovery);
- 	if (status < 0) {
- 		mlog_errno(status);
- 		goto finally;
- 	}
+ 	generic_fillattr(inode, stat);
++	/*
++	 * If there is inline data in the inode, the inode will normally not
++	 * have data blocks allocated (it may have an external xattr block).
++	 * Report at least one sector for such files, so tools like tar, rsync,
++	 * others don't incorrectly think the file is completely sparse.
++	 */
++	if (unlikely(OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL))
++		stat->blocks += (stat->size + 511)>>9;
  
--	if (dirty) {
-+	if (dirty || la_dirty) {
- 		/* Recovery will be completed after we've mounted the
- 		 * rest of the volume. */
- 		osb->dirty = 1;
+ 	/* We set the blksize from the cluster size for performance */
+ 	stat->blksize = osb->s_clustersize;
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from john.haxby@oracle.com are
 
-ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery-v2.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery-v3.patch
-ocfs2-dlm-fix-bug-in-dlm_move_lockres_to_recovery_list.patch
+ocfs2-return-non-zero-st_blocks-for-inline-data.patch
 
