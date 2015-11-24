@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmscan-consider-isolated-pages-in-zone_reclaimable_pages.patch added to
- -mm tree
-Date: Tue, 24 Nov 2015 13:32:39 -0800
-Message-ID: <5654d777.QlZPhfsa9ar7kzHG%akpm@linux-foundation.org>
+Subject: + memstick-use-sector_div-instead-of-do_div.patch added to -mm
+ tree
+Date: Tue, 24 Nov 2015 14:05:10 -0800
+Message-ID: <5654df16.2azxCGo6lDfk3vMy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53617 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54323 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753521AbbKXVck (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Nov 2015 16:32:40 -0500
+	with ESMTP id S1754077AbbKXWFL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Nov 2015 17:05:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, mgorman@suse.de, vbabka@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, maximlevitsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmscan: consider isolated pages in zone_reclaimable_pages
+     Subject: memstick: use sector_div instead of do_div
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-consider-isolated-pages-in-zone_reclaimable_pages.patch
+     memstick-use-sector_div-instead-of-do_div.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-consider-isolated-pages-in-zone_reclaimable_pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memstick-use-sector_div-instead-of-do_div.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-consider-isolated-pages-in-zone_reclaimable_pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memstick-use-sector_div-instead-of-do_div.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,57 +39,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, vmscan: consider isolated pages in zone_reclaimable_pages
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: memstick: use sector_div instead of do_div
 
-zone_reclaimable_pages counts how many pages are reclaimable in the given
-zone.  This currently includes all pages on file lrus and anon lrus if
-there is an available swap storage.  We do not consider
-NR_ISOLATED_{ANON,FILE} counters though which is not correct because these
-counters reflect temporarily isolated pages which are still reclaimable
-because they either get back to their LRU or get freed either by the page
-reclaim or page migration.
+do_div is the wrong way to divide a sector_t, as it is less efficient when
+sector_t is 32-bit wide.  With the upcoming do_div optimizations, the
+kernel starts warning about this:
 
-The number of these pages might be sufficiently high to confuse users of
-zone_reclaimable_pages (e.g.  mbind can migrate large ranges of memory at
-once).
+drivers/memstick/core/ms_block.c: In function 'msb_io_work':
+include/asm-generic/div64.h:207:28: warning: comparison of distinct pointer types lacks a cast
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
+This changes the code to use sector_div instead, which always produces
+optimal code.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/memstick/core/ms_block.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-consider-isolated-pages-in-zone_reclaimable_pages mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-consider-isolated-pages-in-zone_reclaimable_pages
-+++ a/mm/vmscan.c
-@@ -197,11 +197,13 @@ static unsigned long zone_reclaimable_pa
- 	unsigned long nr;
+diff -puN drivers/memstick/core/ms_block.c~memstick-use-sector_div-instead-of-do_div drivers/memstick/core/ms_block.c
+--- a/drivers/memstick/core/ms_block.c~memstick-use-sector_div-instead-of-do_div
++++ a/drivers/memstick/core/ms_block.c
+@@ -1909,7 +1909,7 @@ static void msb_io_work(struct work_stru
+ 		lba = blk_rq_pos(msb->req);
  
- 	nr = zone_page_state(zone, NR_ACTIVE_FILE) +
--	     zone_page_state(zone, NR_INACTIVE_FILE);
-+	     zone_page_state(zone, NR_INACTIVE_FILE) +
-+	     zone_page_state(zone, NR_ISOLATED_FILE);
+ 		sector_div(lba, msb->page_size / 512);
+-		page = do_div(lba, msb->pages_in_block);
++		page = sector_div(lba, msb->pages_in_block);
  
- 	if (get_nr_swap_pages() > 0)
- 		nr += zone_page_state(zone, NR_ACTIVE_ANON) +
--		      zone_page_state(zone, NR_INACTIVE_ANON);
-+		      zone_page_state(zone, NR_INACTIVE_ANON) +
-+		      zone_page_state(zone, NR_ISOLATED_ANON);
- 
- 	return nr;
- }
+ 		if (rq_data_dir(msb->req) == READ)
+ 			error = msb_do_read_request(msb, lba, page, sg,
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-get-rid-of-__alloc_pages_high_priority.patch
-mm-do-not-loop-over-alloc_no_watermarks-without-triggering-reclaim.patch
-mm-vmscan-consider-isolated-pages-in-zone_reclaimable_pages.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix-2.patch
+arm-thp-remove-infrastructure-for-handling-splitting-pmds-fix.patch
+memstick-use-sector_div-instead-of-do_div.patch
 
