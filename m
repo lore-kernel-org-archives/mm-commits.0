@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-take-ip_alloc_sem-in-ocfs2_dio_get_block-ocfs2_dio_end_io_write.patch added to -mm tree
-Date: Mon, 23 Nov 2015 16:25:09 -0800
-Message-ID: <5653ae65.IozK0bCG0kDFlwlE%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-a-deadlock-issue-in-ocfs2_dio_end_io_write.patch
+ added to -mm tree
+Date: Mon, 23 Nov 2015 16:25:13 -0800
+Message-ID: <5653ae69.8AdX4AzxwZsVL7DJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57581 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57591 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751831AbbKXAZK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 19:25:10 -0500
+	with ESMTP id S1751831AbbKXAZO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 19:25:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ryan.ding@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: take ip_alloc_sem in ocfs2_dio_get_block & ocfs2_dio_end_io_write
+     Subject: ocfs2: fix a deadlock issue in ocfs2_dio_end_io_write()
 has been added to the -mm tree.  Its filename is
-     ocfs2-take-ip_alloc_sem-in-ocfs2_dio_get_block-ocfs2_dio_end_io_write.patch
+     ocfs2-fix-a-deadlock-issue-in-ocfs2_dio_end_io_write.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-take-ip_alloc_sem-in-ocfs2_dio_get_block-ocfs2_dio_end_io_write.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-a-deadlock-issue-in-ocfs2_dio_end_io_write.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-take-ip_alloc_sem-in-ocfs2_dio_get_block-ocfs2_dio_end_io_write.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-a-deadlock-issue-in-ocfs2_dio_end_io_write.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +40,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ryan Ding <ryan.ding@oracle.com>
-Subject: ocfs2: take ip_alloc_sem in ocfs2_dio_get_block & ocfs2_dio_end_io_write
+Subject: ocfs2: fix a deadlock issue in ocfs2_dio_end_io_write()
 
-Take ip_alloc_sem to prevent concurrent access to extent tree, which may
-cause the extent tree in an unstable state.
+Should call ocfs2_free_alloc_context() to free meta_ac & data_ac before
+calling ocfs2_run_deallocs().  Because ocfs2_run_deallocs() will acquire
+the system inode's i_mutex hold by meta_ac.  So try to release the lock
+before ocfs2_run_deallocs().
 
+Fixes: af1310367f41 ("ocfs2: fix sparse file & data ordering issue in direct io.")
 Signed-off-by: Ryan Ding <ryan.ding@oracle.com>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Joseph Qi <joseph.qi@huawei.com>
@@ -53,94 +56,42 @@ Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/aops.c |   23 +++++++++++++++++------
- 1 file changed, 17 insertions(+), 6 deletions(-)
+ fs/ocfs2/aops.c |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN fs/ocfs2/aops.c~ocfs2-take-ip_alloc_sem-in-ocfs2_dio_get_block-ocfs2_dio_end_io_write fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~ocfs2-take-ip_alloc_sem-in-ocfs2_dio_get_block-ocfs2_dio_end_io_write
+diff -puN fs/ocfs2/aops.c~ocfs2-fix-a-deadlock-issue-in-ocfs2_dio_end_io_write fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-fix-a-deadlock-issue-in-ocfs2_dio_end_io_write
 +++ a/fs/ocfs2/aops.c
-@@ -2151,6 +2151,7 @@ static int ocfs2_dio_get_block(struct in
- 			       struct buffer_head *bh_result, int create)
- {
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
-+	struct ocfs2_inode_info *oi = OCFS2_I(inode);
- 	struct ocfs2_write_ctxt *wc;
- 	struct ocfs2_write_cluster_desc *desc = NULL;
- 	struct ocfs2_dio_write_ctxt *dwc = NULL;
-@@ -2166,9 +2167,12 @@ static int ocfs2_dio_get_block(struct in
- 	mlog(0, "get block of %lu at %llu:%u req %u\n",
- 			inode->i_ino, pos, len, total_len);
+@@ -2341,6 +2341,10 @@ static void ocfs2_dio_end_io_write(struc
  
-+	down_read(&oi->ip_alloc_sem);
- 	/* This is the fast path for re-write. */
- 	ret = ocfs2_get_block(inode, iblock, bh_result, create);
- 
-+	up_read(&oi->ip_alloc_sem);
-+
- 	if (buffer_mapped(bh_result) &&
- 	    !buffer_new(bh_result) &&
- 	    ret == 0)
-@@ -2206,6 +2210,8 @@ static int ocfs2_dio_get_block(struct in
- 		goto out;
- 	}
- 
-+	down_write(&oi->ip_alloc_sem);
-+
- 	if (first_get_block) {
- 		if (ocfs2_sparse_alloc(OCFS2_SB(inode->i_sb)))
- 			ret = ocfs2_zero_tail(inode, di_bh, pos);
-@@ -2259,6 +2265,7 @@ static int ocfs2_dio_get_block(struct in
- 	BUG_ON(ret != len);
- 	ret = 0;
- unlock:
-+	up_write(&oi->ip_alloc_sem);
- 	ocfs2_inode_unlock(inode, 1);
- 	brelse(di_bh);
- out:
-@@ -2275,6 +2282,7 @@ static void ocfs2_dio_end_io_write(struc
- 	struct ocfs2_cached_dealloc_ctxt dealloc;
- 	struct ocfs2_extent_tree et;
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
-+	struct ocfs2_inode_info *oi = OCFS2_I(inode);
- 	struct ocfs2_unwritten_extent *ue = NULL;
- 	struct buffer_head *di_bh = NULL;
- 	struct ocfs2_dinode *di;
-@@ -2293,12 +2301,6 @@ static void ocfs2_dio_end_io_write(struc
- 	    !dwc->dw_orphaned)
- 		goto out;
- 
--	ret = ocfs2_inode_lock(inode, &di_bh, 1);
--	if (ret < 0) {
--		mlog_errno(ret);
--		goto out;
--	}
--
- 	/* ocfs2_file_write_iter will get i_mutex, so we need not lock if we
- 	 * are in that context. */
- 	if (dwc->dw_writer_pid != task_pid_nr(current)) {
-@@ -2306,6 +2308,14 @@ static void ocfs2_dio_end_io_write(struc
- 		locked = 1;
- 	}
- 
-+	ret = ocfs2_inode_lock(inode, &di_bh, 1);
-+	if (ret < 0) {
+ 	ret = ocfs2_lock_allocators(inode, &et, 0, dwc->dw_zero_count*2,
+ 				    &data_ac, &meta_ac);
++	if (ret) {
 +		mlog_errno(ret);
-+		goto out;
++		goto unlock;
 +	}
-+
-+	down_write(&oi->ip_alloc_sem);
-+
- 	/* Delete orphan before acquire i_mutex. */
- 	if (dwc->dw_orphaned) {
- 		BUG_ON(dwc->dw_writer_pid != task_pid_nr(current));
-@@ -2359,6 +2369,7 @@ static void ocfs2_dio_end_io_write(struc
- commit:
- 	ocfs2_commit_trans(osb, handle);
- unlock:
-+	up_write(&oi->ip_alloc_sem);
+ 
+ 	credits = ocfs2_calc_extend_credits(inode->i_sb, &di->id2.i_list);
+ 
+@@ -2380,14 +2384,14 @@ unlock:
  	ocfs2_inode_unlock(inode, 1);
  	brelse(di_bh);
  out:
+-	ocfs2_run_deallocs(osb, &dealloc);
+-	if (locked)
+-		mutex_unlock(&inode->i_mutex);
+-	ocfs2_dio_free_write_ctx(inode, dwc);
+ 	if (data_ac)
+ 		ocfs2_free_alloc_context(data_ac);
+ 	if (meta_ac)
+ 		ocfs2_free_alloc_context(meta_ac);
++	ocfs2_run_deallocs(osb, &dealloc);
++	if (locked)
++		mutex_unlock(&inode->i_mutex);
++	ocfs2_dio_free_write_ctx(inode, dwc);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from ryan.ding@oracle.com are
