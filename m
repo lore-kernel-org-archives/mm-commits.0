@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock.patch
- added to -mm tree
-Date: Tue, 24 Nov 2015 14:45:18 -0800
-Message-ID: <5654e87e.7Hfkj68GdjHHKKsh%akpm@linux-foundation.org>
+Subject: + mm-page_owner-copy-page-owner-info-during-migration.patch added to -mm tree
+Date: Tue, 24 Nov 2015 14:45:22 -0800
+Message-ID: <5654e882.TIrWjTFetsPCJPMy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55738 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55751 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932110AbbKXWpT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Nov 2015 17:45:19 -0500
+	with ESMTP id S932109AbbKXWpX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Nov 2015 17:45:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_owner: print symbolic migratetype of both page and pageblock
+     Subject: mm, page_owner: copy page owner info during migration
 has been added to the -mm tree.  Its filename is
-     mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock.patch
+     mm-page_owner-copy-page-owner-info-during-migration.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-copy-page-owner-info-during-migration.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-copy-page-owner-info-during-migration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,39 +39,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_owner: print symbolic migratetype of both page and pageblock
+Subject: mm, page_owner: copy page owner info during migration
 
-The information in /sys/kernel/debug/page_owner includes the migratetype
-of the pageblock the page belongs to.  This is also checked against the
-page's migratetype (as declared by gfp_flags during its allocation), and
-the page is reported as Fallback if its migratetype differs from the
-pageblock's one.
+The page_owner mechanism stores gfp_flags of an allocation and stack trace
+that lead to it.  During page migration, the original information is
+practically replaced by the allocation of free page as the migration
+target.  Arguably this is less useful and might lead to all the page_owner
+info for migratable pages gradually converge towards compaction or numa
+balancing migrations.  It has also lead to inaccuracies such as one fixed
+by commit e2cfc91120fa ("mm/page_owner: set correct gfp_mask on
+page_owner").
 
-This is somewhat misleading because in fact fallback allocation is not the
-only reason why these two can differ.  It also doesn't direcly provide the
-page's migratetype, although it's possible to derive that from the
-gfp_flags.
-
-It's arguably better to print both page and pageblock's migratetype and
-leave the interpretation to the consumer than to suggest fallback
-allocation as the only possible reason.  While at it, we can print the
-migratetypes as string the same way as /proc/pagetypeinfo does, as some of
-the numeric values depend on kernel configuration.  For that, this patch
-moves the migratetype_names array from #ifdef CONFIG_PROC_FS part of
-mm/vmstat.c to mm/page_alloc.c and exports it.
-
-Example page_owner entry after the patch:
-
-Page allocated via order 0, mask 0x2420848
-PFN 512 type Reclaimable Block 1 type Reclaimable Flags   R  LA
- [<ffffffff81164e8a>] __alloc_pages_nodemask+0x15a/0xa30
- [<ffffffff811ab808>] alloc_pages_current+0x88/0x120
- [<ffffffff8115bc36>] __page_cache_alloc+0xe6/0x120
- [<ffffffff8115c226>] pagecache_get_page+0x56/0x200
- [<ffffffff81205892>] __getblk_slow+0xd2/0x2b0
- [<ffffffff81205ab0>] __getblk_gfp+0x40/0x50
- [<ffffffff81206ad7>] __breadahead+0x17/0x50
- [<ffffffffa0437b27>] __ext4_get_inode_loc+0x397/0x3e0 [ext4]
+This patch thus introduces copying the page_owner info during migration. 
+However, since the fact that the page has been migrated from its original
+place might be useful for debugging, the next patch will introduce a way
+to track that information as well.
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
@@ -85,82 +65,115 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmzone.h |    3 +++
- mm/page_alloc.c        |   13 +++++++++++++
- mm/page_owner.c        |    6 +++---
- mm/vmstat.c            |   13 -------------
- 4 files changed, 19 insertions(+), 16 deletions(-)
+ include/linux/page_owner.h |   10 +++++++++-
+ mm/migrate.c               |    3 +++
+ mm/page_owner.c            |   25 +++++++++++++++++++++++++
+ 3 files changed, 37 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mmzone.h~mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock
-+++ a/include/linux/mmzone.h
-@@ -63,6 +63,9 @@ enum {
- 	MIGRATE_TYPES
- };
+diff -puN include/linux/page_owner.h~mm-page_owner-copy-page-owner-info-during-migration include/linux/page_owner.h
+--- a/include/linux/page_owner.h~mm-page_owner-copy-page-owner-info-during-migration
++++ a/include/linux/page_owner.h
+@@ -11,6 +11,7 @@ extern void __reset_page_owner(struct pa
+ extern void __set_page_owner(struct page *page,
+ 			unsigned int order, gfp_t gfp_mask);
+ extern gfp_t __get_page_owner_gfp(struct page *page);
++extern void __copy_page_owner(struct page *oldpage, struct page *newpage);
  
-+/* In mm/page_alloc.c; keep in sync also with show_migration_types() there */
-+extern char * const migratetype_names[MIGRATE_TYPES];
-+
- #ifdef CONFIG_CMA
- #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
+ static inline void reset_page_owner(struct page *page, unsigned int order)
+ {
+@@ -32,6 +33,11 @@ static inline gfp_t get_page_owner_gfp(s
+ 	else
+ 		return 0;
+ }
++static inline void copy_page_owner(struct page *oldpage, struct page *newpage)
++{
++	if (static_branch_unlikely(&page_owner_inited))
++		__copy_page_owner(oldpage, newpage);
++}
  #else
-diff -puN mm/page_alloc.c~mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock
-+++ a/mm/page_alloc.c
-@@ -229,6 +229,19 @@ static char * const zone_names[MAX_NR_ZO
- #endif
- };
+ static inline void reset_page_owner(struct page *page, unsigned int order)
+ {
+@@ -44,6 +50,8 @@ static inline gfp_t get_page_owner_gfp(s
+ {
+ 	return 0;
+ }
+-
++static inline void copy_page_owner(struct page *oldpage, struct page *newpage)
++{
++}
+ #endif /* CONFIG_PAGE_OWNER */
+ #endif /* __LINUX_PAGE_OWNER_H */
+diff -puN mm/migrate.c~mm-page_owner-copy-page-owner-info-during-migration mm/migrate.c
+--- a/mm/migrate.c~mm-page_owner-copy-page-owner-info-during-migration
++++ a/mm/migrate.c
+@@ -38,6 +38,7 @@
+ #include <linux/balloon_compaction.h>
+ #include <linux/mmu_notifier.h>
+ #include <linux/page_idle.h>
++#include <linux/page_owner.h>
  
-+char * const migratetype_names[MIGRATE_TYPES] = {
-+	"Unmovable",
-+	"Movable",
-+	"Reclaimable",
-+	"HighAtomic",
-+#ifdef CONFIG_CMA
-+	"CMA",
-+#endif
-+#ifdef CONFIG_MEMORY_ISOLATION
-+	"Isolate",
-+#endif
-+};
+ #include <asm/tlbflush.h>
+ 
+@@ -578,6 +579,8 @@ void migrate_page_copy(struct page *newp
+ 	 */
+ 	if (PageWriteback(newpage))
+ 		end_page_writeback(newpage);
 +
- compound_page_dtor * const compound_page_dtors[] = {
- 	NULL,
- 	free_compound_page,
-diff -puN mm/page_owner.c~mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock
-+++ a/mm/page_owner.c
-@@ -110,11 +110,11 @@ print_page_owner(char __user *buf, size_
- 	pageblock_mt = get_pfnblock_migratetype(page, pfn);
- 	page_mt  = gfpflags_to_migratetype(page_ext->gfp_mask);
- 	ret += snprintf(kbuf + ret, count - ret,
--			"PFN %lu Block %lu type %d %s Flags %s%s%s%s%s%s%s%s%s%s%s%s\n",
-+			"PFN %lu type %s Block %lu type %s Flags %s%s%s%s%s%s%s%s%s%s%s%s\n",
- 			pfn,
-+			migratetype_names[page_mt],
- 			pfn >> pageblock_order,
--			pageblock_mt,
--			pageblock_mt != page_mt ? "Fallback" : "        ",
-+			migratetype_names[pageblock_mt],
- 			PageLocked(page)	? "K" : " ",
- 			PageError(page)		? "E" : " ",
- 			PageReferenced(page)	? "R" : " ",
-diff -puN mm/vmstat.c~mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock mm/vmstat.c
---- a/mm/vmstat.c~mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock
-+++ a/mm/vmstat.c
-@@ -921,19 +921,6 @@ static void walk_zones_in_node(struct se
- #endif
++	copy_page_owner(page, newpage);
+ }
  
- #ifdef CONFIG_PROC_FS
--static char * const migratetype_names[MIGRATE_TYPES] = {
--	"Unmovable",
--	"Movable",
--	"Reclaimable",
--	"HighAtomic",
--#ifdef CONFIG_CMA
--	"CMA",
--#endif
--#ifdef CONFIG_MEMORY_ISOLATION
--	"Isolate",
--#endif
--};
+ /************************************************************
+diff -puN mm/page_owner.c~mm-page_owner-copy-page-owner-info-during-migration mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-copy-page-owner-info-during-migration
++++ a/mm/page_owner.c
+@@ -84,6 +84,31 @@ gfp_t __get_page_owner_gfp(struct page *
+ 	return page_ext->gfp_mask;
+ }
+ 
++void __copy_page_owner(struct page *oldpage, struct page *newpage)
++{
++	struct page_ext *old_ext = lookup_page_ext(oldpage);
++	struct page_ext *new_ext = lookup_page_ext(newpage);
++	int i;
++
++	new_ext->order = old_ext->order;
++	new_ext->gfp_mask = old_ext->gfp_mask;
++	new_ext->nr_entries = old_ext->nr_entries;
++
++	for (i = 0; i < ARRAY_SIZE(new_ext->trace_entries); i++)
++		new_ext->trace_entries[i] = old_ext->trace_entries[i];
++
++	/*
++	 * We don't clear the bit on the oldpage as it's going to be freed
++	 * after migration. Until then, the info can be useful in case of
++	 * a bug, and the overal stats will be off a bit only temporarily.
++	 * Also, migrate_misplaced_transhuge_page() can still fail the
++	 * migration and then we want the oldpage to retain the info. But
++	 * in that case we also don't need to explicitly clear the info from
++	 * the new page, which will be freed.
++	 */
++	__set_bit(PAGE_EXT_OWNER, &new_ext->flags);
++}
++
+ static ssize_t
+ print_page_owner(char __user *buf, size_t count, unsigned long pfn,
+ 		struct page *page, struct page_ext *page_ext)
+_
+
+Patches currently in -mm which might be from vbabka@suse.cz are
+
+mm-fix-swapped-movable-and-reclaimable-in-proc-pagetypeinfo.patch
+mm-documentation-clarify-proc-pid-status-vmswap-limitations-for-shmem.patch
+mm-proc-account-for-shmem-swap-in-proc-pid-smaps.patch
+mm-proc-reduce-cost-of-proc-pid-smaps-for-shmem-mappings.patch
+mm-proc-reduce-cost-of-proc-pid-smaps-for-unpopulated-shmem-mappings.patch
+mm-debug-fix-wrongly-filtered-flags-in-dump_vma.patch
+mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock.patch
+mm-page_owner-convert-page_owner_inited-to-static-key.patch
+mm-page_owner-copy-page-owner-info-during-migration.patch
+mm-page_owner-track-and-print-last-migrate-reason.patch
+mm-debug-introduce-dump_gfpflag_names-for-symbolic-printing-of-gfp_flags.patch
+mm-page_owner-dump-page-owner-info-from-dump_page.patch
+mm-page_alloc-print-symbolic-gfp_flags-on-allocation-failure.patch
+mm-oom-print-symbolic-gfp_flags-in-oom-warning.patch
+
