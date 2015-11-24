@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-page_check_address_transhuge-helper.patch added to -mm
- tree
-Date: Mon, 23 Nov 2015 16:10:51 -0800
-Message-ID: <5653ab0b.O8qnMWMxuE9IF1aN%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue.patch
+ added to -mm tree
+Date: Mon, 23 Nov 2015 16:25:07 -0800
+Message-ID: <5653ae63.vh7Fqp3OC+cV92bB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57549 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57574 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751812AbbKXAKw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 19:10:52 -0500
+	with ESMTP id S1751831AbbKXAZI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 23 Nov 2015 19:25:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: ryan.ding@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add page_check_address_transhuge() helper
+     Subject: ocfs2: fix ip_unaligned_aio deadlock with dio work queue
 has been added to the -mm tree.  Its filename is
-     mm-add-page_check_address_transhuge-helper.patch
+     ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-page_check_address_transhuge-helper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-page_check_address_transhuge-helper.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,325 +39,191 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: add page_check_address_transhuge() helper
+From: Ryan Ding <ryan.ding@oracle.com>
+Subject: ocfs2: fix ip_unaligned_aio deadlock with dio work queue
 
-page_referenced_one() and page_idle_clear_pte_refs_one() duplicate the
-code for looking up pte of a (possibly transhuge) page.  Move this code to
-a new helper function, page_check_address_transhuge(), and make the above
-mentioned functions use it.
+In the current implementation of unaligned aio+dio, lock order behave as
+follow:
 
-This is just a cleanup, no functional changes are intended.
+in user process context:
+  -> call io_submit()
+    -> get i_mutex
+		<== window1
+      -> get ip_unaligned_aio
+        -> submit direct io to block device
+    -> release i_mutex
+  -> io_submit() return
 
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+in dio work queue context(the work queue is created in __blockdev_direct_IO):
+  -> release ip_unaligned_aio
+		<== window2
+    -> get i_mutex
+      -> clear unwritten flag & change i_size
+    -> release i_mutex
+
+There is a limitation to the thread number of dio work queue.  256 at
+default.  If all 256 thread are in the above 'window2' stage, and there is
+a user process in the 'window1' stage, the system will became deadlock. 
+Since the user process hold i_mutex to wait ip_unaligned_aio lock, while
+there is a direct bio hold ip_unaligned_aio mutex who is waiting for a dio
+work queue thread to be schedule.  But all the dio work queue thread is
+waiting for i_mutex lock in 'window2'.
+
+This case only happened in a test which send a large number(more than 256)
+of aio at one io_submit() call.
+
+My design is to remove ip_unaligned_aio lock.  Change it to a sync io
+instead.  Just like ip_unaligned_aio lock, serialize the unaligned aio
+dio.
+
+Signed-off-by: Ryan Ding <ryan.ding@oracle.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    8 ++
- mm/page_idle.c       |   63 ++---------------------
- mm/rmap.c            |  110 ++++++++++++++++++++++++-----------------
- 3 files changed, 81 insertions(+), 100 deletions(-)
+ fs/ocfs2/aops.c  |    6 ------
+ fs/ocfs2/aops.h  |    7 -------
+ fs/ocfs2/file.c  |   27 +++++++++------------------
+ fs/ocfs2/inode.h |    3 ---
+ fs/ocfs2/super.c |    1 -
+ 5 files changed, 9 insertions(+), 35 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-add-page_check_address_transhuge-helper include/linux/rmap.h
---- a/include/linux/rmap.h~mm-add-page_check_address_transhuge-helper
-+++ a/include/linux/rmap.h
-@@ -216,6 +216,14 @@ static inline pte_t *page_check_address(
- }
+diff -puN fs/ocfs2/aops.c~ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue
++++ a/fs/ocfs2/aops.c
+@@ -2388,12 +2388,6 @@ static void ocfs2_dio_end_io(struct kioc
+ 	/* this io's submitter should not have unlocked this before we could */
+ 	BUG_ON(!ocfs2_iocb_is_rw_locked(iocb));
  
- /*
-+ * Used by idle page tracking to check if a page was referenced via page
-+ * tables.
-+ */
-+bool page_check_address_transhuge(struct page *page, struct mm_struct *mm,
-+				  unsigned long address, pmd_t **pmdp,
-+				  pte_t **ptep, spinlock_t **ptlp);
-+
-+/*
-  * Used by swapoff to help locate where page is expected in vma.
-  */
- unsigned long page_address_in_vma(struct page *, struct vm_area_struct *);
-diff -puN mm/page_idle.c~mm-add-page_check_address_transhuge-helper mm/page_idle.c
---- a/mm/page_idle.c~mm-add-page_check_address_transhuge-helper
-+++ a/mm/page_idle.c
-@@ -55,71 +55,22 @@ static int page_idle_clear_pte_refs_one(
- 					unsigned long addr, void *arg)
- {
- 	struct mm_struct *mm = vma->vm_mm;
--	spinlock_t *ptl;
--	pgd_t *pgd;
--	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
-+	spinlock_t *ptl;
- 	bool referenced = false;
- 
--	pgd = pgd_offset(mm, addr);
--	if (!pgd_present(*pgd))
--		return SWAP_AGAIN;
--	pud = pud_offset(pgd, addr);
--	if (!pud_present(*pud))
--		return SWAP_AGAIN;
--	pmd = pmd_offset(pud, addr);
+-	if (ocfs2_iocb_is_unaligned_aio(iocb)) {
+-		ocfs2_iocb_clear_unaligned_aio(iocb);
 -
--	if (pmd_trans_huge(*pmd)) {
--		ptl = pmd_lock(mm, pmd);
--		if (!pmd_present(*pmd))
--			goto unlock_pmd;
--		if (unlikely(!pmd_trans_huge(*pmd))) {
--			spin_unlock(ptl);
--			goto map_pte;
--		}
--
--		if (pmd_page(*pmd) != page)
--			goto unlock_pmd;
--
--		referenced = pmdp_clear_young_notify(vma, addr, pmd);
--		spin_unlock(ptl);
--		goto found;
--unlock_pmd:
--		spin_unlock(ptl);
-+	if (!page_check_address_transhuge(page, mm, addr, &pmd, &pte, &ptl))
- 		return SWAP_AGAIN;
--	} else {
--		pmd_t pmde = *pmd;
- 
--		barrier();
--		if (!pmd_present(pmde) || pmd_trans_huge(pmde))
--			return SWAP_AGAIN;
--
--	}
--map_pte:
--	pte = pte_offset_map(pmd, addr);
--	if (!pte_present(*pte)) {
-+	if (pte) {
-+		referenced = ptep_clear_young_notify(vma, addr, pte);
- 		pte_unmap(pte);
--		return SWAP_AGAIN;
+-		mutex_unlock(&OCFS2_I(inode)->ip_unaligned_aio);
 -	}
 -
--	ptl = pte_lockptr(mm, pmd);
--	spin_lock(ptl);
+ 	if (private)
+ 		ocfs2_dio_end_io_write(inode, private, offset, bytes);
+ 
+diff -puN fs/ocfs2/aops.h~ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue fs/ocfs2/aops.h
+--- a/fs/ocfs2/aops.h~ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue
++++ a/fs/ocfs2/aops.h
+@@ -93,11 +93,4 @@ enum ocfs2_iocb_lock_bits {
+ #define ocfs2_iocb_rw_locked_level(iocb) \
+ 	test_bit(OCFS2_IOCB_RW_LOCK_LEVEL, (unsigned long *)&iocb->private)
+ 
+-#define ocfs2_iocb_set_unaligned_aio(iocb) \
+-	set_bit(OCFS2_IOCB_UNALIGNED_IO, (unsigned long *)&iocb->private)
+-#define ocfs2_iocb_clear_unaligned_aio(iocb) \
+-	clear_bit(OCFS2_IOCB_UNALIGNED_IO, (unsigned long *)&iocb->private)
+-#define ocfs2_iocb_is_unaligned_aio(iocb) \
+-	test_bit(OCFS2_IOCB_UNALIGNED_IO, (unsigned long *)&iocb->private)
 -
--	if (!pte_present(*pte)) {
--		pte_unmap_unlock(pte, ptl);
--		return SWAP_AGAIN;
--	}
-+	} else
-+		referenced = pmdp_clear_young_notify(vma, addr, pmd);
+ #endif /* OCFS2_FILE_H */
+diff -puN fs/ocfs2/file.c~ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue
++++ a/fs/ocfs2/file.c
+@@ -2170,7 +2170,7 @@ static ssize_t ocfs2_file_write_iter(str
+ 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
+ 	int full_coherency = !(osb->s_mount_opt &
+ 			       OCFS2_MOUNT_COHERENCY_BUFFERED);
+-	int unaligned_dio = 0;
++	void *saved_ki_complete = NULL;
+ 	int append_write = ((iocb->ki_pos + count) >=
+ 			i_size_read(inode) ? 1 : 0);
  
--	/* THP can be referenced by any subpage */
--	if (pte_pfn(*pte) - page_to_pfn(page) >= hpage_nr_pages(page)) {
--		pte_unmap_unlock(pte, ptl);
--		return SWAP_AGAIN;
--	}
-+	spin_unlock(ptl);
+@@ -2233,17 +2233,12 @@ static ssize_t ocfs2_file_write_iter(str
+ 		goto out;
+ 	}
  
--	referenced = ptep_clear_young_notify(vma, addr, pte);
--	pte_unmap_unlock(pte, ptl);
--found:
- 	if (referenced) {
- 		clear_page_idle(page);
+-	if (direct_io && !is_sync_kiocb(iocb))
+-		unaligned_dio = ocfs2_is_io_unaligned(inode, count, iocb->ki_pos);
+-
+-	if (unaligned_dio) {
++	if (direct_io && !is_sync_kiocb(iocb) &&
++	    ocfs2_is_io_unaligned(inode, count, iocb->ki_pos)) {
  		/*
-diff -puN mm/rmap.c~mm-add-page_check_address_transhuge-helper mm/rmap.c
---- a/mm/rmap.c~mm-add-page_check_address_transhuge-helper
-+++ a/mm/rmap.c
-@@ -798,48 +798,43 @@ int page_mapped_in_vma(struct page *page
- 	return 1;
- }
- 
--struct page_referenced_arg {
--	int mapcount;
--	int referenced;
--	unsigned long vm_flags;
--	struct mem_cgroup *memcg;
--};
- /*
-- * arg: page_referenced_arg will be passed
-+ * Check that @page is mapped at @address into @mm. In contrast to
-+ * page_check_address(), this function can handle transparent huge pages.
-+ *
-+ * On success returns true with pte mapped and locked. For PMD-mapped
-+ * transparent huge pages *@ptep is set to NULL.
-  */
--static int page_referenced_one(struct page *page, struct vm_area_struct *vma,
--			unsigned long address, void *arg)
-+bool page_check_address_transhuge(struct page *page, struct mm_struct *mm,
-+				  unsigned long address, pmd_t **pmdp,
-+				  pte_t **ptep, spinlock_t **ptlp)
- {
--	struct mm_struct *mm = vma->vm_mm;
--	spinlock_t *ptl;
--	int referenced = 0;
--	struct page_referenced_arg *pra = arg;
- 	pgd_t *pgd;
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
-+	spinlock_t *ptl;
- 
- 	if (unlikely(PageHuge(page))) {
- 		/* when pud is not present, pte will be NULL */
- 		pte = huge_pte_offset(mm, address);
- 		if (!pte)
--			return SWAP_AGAIN;
-+			return false;
- 
- 		ptl = huge_pte_lockptr(page_hstate(page), mm, pte);
-+		pmd = NULL;
- 		goto check_pte;
+-		 * Wait on previous unaligned aio to complete before
+-		 * proceeding.
++		 * Make it a sync io if it's an unaligned aio.
+ 		 */
+-		mutex_lock(&OCFS2_I(inode)->ip_unaligned_aio);
+-		/* Mark the iocb as needing an unlock in ocfs2_dio_end_io */
+-		ocfs2_iocb_set_unaligned_aio(iocb);
++		saved_ki_complete = xchg(&iocb->ki_complete, NULL);
  	}
  
- 	pgd = pgd_offset(mm, address);
- 	if (!pgd_present(*pgd))
--		return SWAP_AGAIN;
-+		return false;
- 	pud = pud_offset(pgd, address);
- 	if (!pud_present(*pud))
--		return SWAP_AGAIN;
-+		return false;
- 	pmd = pmd_offset(pud, address);
+ 	/* communicate with ocfs2_dio_end_io */
+@@ -2264,11 +2259,10 @@ static ssize_t ocfs2_file_write_iter(str
+ 	 */
+ 	if ((written == -EIOCBQUEUED) || (!ocfs2_iocb_is_rw_locked(iocb))) {
+ 		rw_level = -1;
+-		unaligned_dio = 0;
+ 	}
  
- 	if (pmd_trans_huge(*pmd)) {
--		int ret = SWAP_AGAIN;
+ 	if (unlikely(written <= 0))
+-		goto no_sync;
++		goto out;
+ 
+ 	if (((file->f_flags & O_DSYNC) && !direct_io) ||
+ 	    IS_SYNC(inode)) {
+@@ -2290,13 +2284,10 @@ static ssize_t ocfs2_file_write_iter(str
+ 						      iocb->ki_pos - 1);
+ 	}
+ 
+-no_sync:
+-	if (unaligned_dio && ocfs2_iocb_is_unaligned_aio(iocb)) {
+-		ocfs2_iocb_clear_unaligned_aio(iocb);
+-		mutex_unlock(&OCFS2_I(inode)->ip_unaligned_aio);
+-	}
 -
- 		ptl = pmd_lock(mm, pmd);
- 		if (!pmd_present(*pmd))
- 			goto unlock_pmd;
-@@ -851,31 +846,23 @@ static int page_referenced_one(struct pa
- 		if (pmd_page(*pmd) != page)
- 			goto unlock_pmd;
+ out:
++	if (saved_ki_complete)
++		xchg(&iocb->ki_complete, saved_ki_complete);
++
+ 	if (rw_level != -1)
+ 		ocfs2_rw_unlock(inode, rw_level);
  
--		if (vma->vm_flags & VM_LOCKED) {
--			pra->vm_flags |= VM_LOCKED;
--			ret = SWAP_FAIL; /* To break the loop */
--			goto unlock_pmd;
--		}
+diff -puN fs/ocfs2/inode.h~ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue fs/ocfs2/inode.h
+--- a/fs/ocfs2/inode.h~ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue
++++ a/fs/ocfs2/inode.h
+@@ -43,9 +43,6 @@ struct ocfs2_inode_info
+ 	/* protects extended attribute changes on this inode */
+ 	struct rw_semaphore		ip_xattr_sem;
+ 
+-	/* Number of outstanding AIO's which are not page aligned */
+-	struct mutex			ip_unaligned_aio;
 -
--		if (pmdp_clear_flush_young_notify(vma, address, pmd))
--			referenced++;
--		spin_unlock(ptl);
-+		pte = NULL;
- 		goto found;
- unlock_pmd:
- 		spin_unlock(ptl);
--		return ret;
-+		return false;
- 	} else {
- 		pmd_t pmde = *pmd;
- 
- 		barrier();
- 		if (!pmd_present(pmde) || pmd_trans_huge(pmde))
--			return SWAP_AGAIN;
-+			return false;
- 	}
- map_pte:
- 	pte = pte_offset_map(pmd, address);
- 	if (!pte_present(*pte)) {
- 		pte_unmap(pte);
--		return SWAP_AGAIN;
-+		return false;
- 	}
- 
- 	ptl = pte_lockptr(mm, pmd);
-@@ -884,35 +871,70 @@ check_pte:
- 
- 	if (!pte_present(*pte)) {
- 		pte_unmap_unlock(pte, ptl);
--		return SWAP_AGAIN;
-+		return false;
- 	}
- 
- 	/* THP can be referenced by any subpage */
- 	if (pte_pfn(*pte) - page_to_pfn(page) >= hpage_nr_pages(page)) {
- 		pte_unmap_unlock(pte, ptl);
--		return SWAP_AGAIN;
-+		return false;
- 	}
-+found:
-+	*ptep = pte;
-+	*pmdp = pmd;
-+	*ptlp = ptl;
-+	return true;
-+}
-+
-+struct page_referenced_arg {
-+	int mapcount;
-+	int referenced;
-+	unsigned long vm_flags;
-+	struct mem_cgroup *memcg;
-+};
-+/*
-+ * arg: page_referenced_arg will be passed
-+ */
-+static int page_referenced_one(struct page *page, struct vm_area_struct *vma,
-+			unsigned long address, void *arg)
-+{
-+	struct mm_struct *mm = vma->vm_mm;
-+	struct page_referenced_arg *pra = arg;
-+	pmd_t *pmd;
-+	pte_t *pte;
-+	spinlock_t *ptl;
-+	int referenced = 0;
-+
-+	if (!page_check_address_transhuge(page, mm, address, &pmd, &pte, &ptl))
-+		return SWAP_AGAIN;
- 
- 	if (vma->vm_flags & VM_LOCKED) {
--		pte_unmap_unlock(pte, ptl);
-+		if (pte)
-+			pte_unmap(pte);
-+		spin_unlock(ptl);
- 		pra->vm_flags |= VM_LOCKED;
- 		return SWAP_FAIL; /* To break the loop */
- 	}
- 
--	if (ptep_clear_flush_young_notify(vma, address, pte)) {
--		/*
--		 * Don't treat a reference through a sequentially read
--		 * mapping as such.  If the page has been used in
--		 * another mapping, we will catch it; if this other
--		 * mapping is already gone, the unmap path will have
--		 * set PG_referenced or activated the page.
--		 */
--		if (likely(!(vma->vm_flags & VM_SEQ_READ)))
-+	if (pte) {
-+		if (ptep_clear_flush_young_notify(vma, address, pte)) {
-+			/*
-+			 * Don't treat a reference through a sequentially read
-+			 * mapping as such.  If the page has been used in
-+			 * another mapping, we will catch it; if this other
-+			 * mapping is already gone, the unmap path will have
-+			 * set PG_referenced or activated the page.
-+			 */
-+			if (likely(!(vma->vm_flags & VM_SEQ_READ)))
-+				referenced++;
-+		}
-+		pte_unmap(pte);
-+	} else {
-+		if (pmdp_clear_flush_young_notify(vma, address, pmd))
- 			referenced++;
- 	}
--	pte_unmap_unlock(pte, ptl);
-+	spin_unlock(ptl);
- 
--found:
- 	if (referenced)
- 		clear_page_idle(page);
- 	if (test_and_clear_page_young(page))
+ 	/* These fields are protected by ip_lock */
+ 	spinlock_t			ip_lock;
+ 	u32				ip_open_count;
+diff -puN fs/ocfs2/super.c~ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue
++++ a/fs/ocfs2/super.c
+@@ -1742,7 +1742,6 @@ static void ocfs2_inode_init_once(void *
+ 	INIT_LIST_HEAD(&oi->ip_io_markers);
+ 	INIT_LIST_HEAD(&oi->ip_unwritten_list);
+ 	oi->ip_dir_start_lookup = 0;
+-	mutex_init(&oi->ip_unaligned_aio);
+ 	init_rwsem(&oi->ip_alloc_sem);
+ 	init_rwsem(&oi->ip_xattr_sem);
+ 	mutex_init(&oi->ip_io_mutex);
 _
 
-Patches currently in -mm which might be from vdavydov@virtuozzo.com are
+Patches currently in -mm which might be from ryan.ding@oracle.com are
 
-memcg-fix-memoryhigh-target.patch
-revert-kernfs-do-not-account-ino_ida-allocations-to-memcg.patch
-revert-gfp-add-__gfp_noaccount.patch
-memcg-only-account-kmem-allocations-marked-as-__gfp_account.patch
-slab-add-slab_account-flag.patch
-vmalloc-allow-to-account-vmalloc-to-memcg.patch
-account-certain-kmem-allocations-to-memcg.patch
-vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small.patch
-vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2.patch
-memcg-do-not-allow-to-disable-tcp-accounting-after-limit-is-set.patch
-mm-add-page_check_address_transhuge-helper.patch
+ocfs2-add-ocfs2_write_type_t-type-to-identify-the-caller-of-write.patch
+ocfs2-use-c_new-to-indicate-newly-allocated-extents.patch
+ocfs2-test-target-page-before-change-it.patch
+ocfs2-do-not-change-i_size-in-write_end-for-direct-io.patch
+ocfs2-return-the-physical-address-in-ocfs2_write_cluster.patch
+ocfs2-record-unwritten-extents-when-populate-write-desc.patch
+ocfs2-fix-sparse-file-data-ordering-issue-in-direct-io.patch
+ocfs2-code-clean-up-for-direct-io.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue.patch
+ocfs2-take-ip_alloc_sem-in-ocfs2_dio_get_block-ocfs2_dio_end_io_write.patch
+ocfs2-fix-disk-file-size-and-memory-file-size-mismatch.patch
+ocfs2-fix-a-deadlock-issue-in-ocfs2_dio_end_io_write.patch
 
