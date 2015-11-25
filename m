@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mm-support-arch_mmap_rnd_bits.patch added to -mm tree
-Date: Tue, 24 Nov 2015 16:40:18 -0800
-Message-ID: <56550372.QGeLmKgQmBRHGsv4%akpm@linux-foundation.org>
+Subject: + mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-fix.patch added to -mm tree
+Date: Tue, 24 Nov 2015 17:35:01 -0800
+Message-ID: <56551045.SpazuCqOH5oMQmjB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58292 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60388 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932226AbbKYAkU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Nov 2015 19:40:20 -0500
+	with ESMTP id S932385AbbKYBfC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 24 Nov 2015 20:35:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dcashman@google.com, aarcange@redhat.com, benh@kernel.crashing.org, bp@suse.de, catalin.marinas@arm.com, corbet@lwn.net, dzickus@redhat.com, ebiederm@xmission.com, hecmargi@upv.es, hpa@zytor.com, jeffv@google.com, jpoimboe@redhat.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, linux@arm.linux.org.uk, mgorman@suse.de, mingo@kernel.org, n-horiguchi@ah.jp.nec.com, nnk@google.com, ralf@linux-mips.org, rientjes@google.com, salyzyn@android.com, tglx@linutronix.de, will.deacon@arm.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, benh@kernel.crashing.org, bp@suse.de, catalin.marinas@arm.com, corbet@lwn.net, dcashman@google.com, dzickus@redhat.com, ebiederm@xmission.com, hecmargi@upv.es, hpa@zytor.com, jeffv@google.com, jpoimboe@redhat.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, linux@arm.linux.org.uk, mgorman@suse.de, mingo@kernel.org, n-horiguchi@ah.jp.nec.com, nnk@google.com, ralf@linux-mips.org, rientjes@google.com, salyzyn@android.com, tglx@linutronix.de, will.deacon@arm.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: mm: support ARCH_MMAP_RND_BITS
+     Subject: mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-fix
 has been added to the -mm tree.  Its filename is
-     x86-mm-support-arch_mmap_rnd_bits.patch
+     mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-support-arch_mmap_rnd_bits.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-support-arch_mmap_rnd_bits.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,113 +38,89 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Cashman <dcashman@google.com>
-Subject: x86: mm: support ARCH_MMAP_RND_BITS
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-fix
 
-x86: arch_mmap_rnd() uses hard-coded values, 8 for 32-bit and 28 for
-64-bit, to generate the random offset for the mmap base address.  This
-value represents a compromise between increased ASLR effectiveness and
-avoiding address-space fragmentation.  Replace it with a Kconfig option,
-which is sensibly bounded, so that platform developers may choose where to
-place this compromise.  Keep default values as new minimums.
+switch the /proc/sys/kernel/ tunables to 0600
 
-Signed-off-by: Daniel Cashman <dcashman@google.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Daniel Cashman <dcashman@google.com>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Don Zickus <dzickus@redhat.com>
 Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mark Salyzyn <salyzyn@android.com>
-Cc: Jeff Vander Stoep <jeffv@google.com>
-Cc: Nick Kralevich <nnk@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: Hector Marco-Gisbert <hecmargi@upv.es>
-Cc: Borislav Petkov <bp@suse.de>
+Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jeff Vander Stoep <jeffv@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mark Salyzyn <salyzyn@android.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Nick Kralevich <nnk@google.com>
 Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc; Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc; Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig   |   16 ++++++++++++++++
- arch/x86/mm/mmap.c |   12 ++++++------
- 2 files changed, 22 insertions(+), 6 deletions(-)
+ kernel/sysctl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/Kconfig~x86-mm-support-arch_mmap_rnd_bits arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-mm-support-arch_mmap_rnd_bits
-+++ a/arch/x86/Kconfig
-@@ -82,6 +82,8 @@ config X86
- 	select HAVE_ARCH_KASAN			if X86_64 && SPARSEMEM_VMEMMAP
- 	select HAVE_ARCH_KGDB
- 	select HAVE_ARCH_KMEMCHECK
-+	select HAVE_ARCH_MMAP_RND_BITS
-+	select HAVE_ARCH_MMAP_RND_COMPAT_BITS if COMPAT
- 	select HAVE_ARCH_SECCOMP_FILTER
- 	select HAVE_ARCH_SOFT_DIRTY		if X86_64
- 	select HAVE_ARCH_TRACEHOOK
-@@ -183,6 +185,20 @@ config HAVE_LATENCYTOP_SUPPORT
- config MMU
- 	def_bool y
- 
-+config ARCH_MMAP_RND_BITS_MIN
-+       default 28 if 64BIT
-+       default 8
-+
-+config ARCH_MMAP_RND_BITS_MAX
-+	default 32 if 64BIT
-+	default 16
-+
-+config ARCH_MMAP_RND_COMPAT_BITS_MIN
-+	default 8
-+
-+config ARCH_MMAP_RND_COMPAT_BITS_MAX
-+	default 16
-+
- config SBUS
- 	bool
- 
-diff -puN arch/x86/mm/mmap.c~x86-mm-support-arch_mmap_rnd_bits arch/x86/mm/mmap.c
---- a/arch/x86/mm/mmap.c~x86-mm-support-arch_mmap_rnd_bits
-+++ a/arch/x86/mm/mmap.c
-@@ -69,14 +69,14 @@ unsigned long arch_mmap_rnd(void)
- {
- 	unsigned long rnd;
- 
--	/*
--	 *  8 bits of randomness in 32bit mmaps, 20 address space bits
--	 * 28 bits of randomness in 64bit mmaps, 40 address space bits
--	 */
- 	if (mmap_is_ia32())
--		rnd = (unsigned long)get_random_int() % (1<<8);
-+#ifdef CONFIG_COMPAT
-+		rnd = (unsigned long)get_random_int() % (1 << mmap_rnd_compat_bits);
-+#else
-+		rnd = (unsigned long)get_random_int() % (1 << mmap_rnd_bits);
-+#endif
- 	else
--		rnd = (unsigned long)get_random_int() % (1<<28);
-+		rnd = (unsigned long)get_random_int() % (1 << mmap_rnd_bits);
- 
- 	return rnd << PAGE_SHIFT;
- }
+diff -puN kernel/sysctl.c~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-fix
++++ a/kernel/sysctl.c
+@@ -1573,7 +1573,7 @@ static struct ctl_table vm_table[] = {
+ 		.procname	= "mmap_rnd_bits",
+ 		.data		= &mmap_rnd_bits,
+ 		.maxlen		= sizeof(mmap_rnd_bits),
+-		.mode		= 0644,
++		.mode		= 0600,
+ 		.proc_handler	= proc_dointvec_minmax,
+ 		.extra1		= &mmap_rnd_bits_min,
+ 		.extra2		= &mmap_rnd_bits_max,
+@@ -1584,7 +1584,7 @@ static struct ctl_table vm_table[] = {
+ 		.procname	= "mmap_rnd_compat_bits",
+ 		.data		= &mmap_rnd_compat_bits,
+ 		.maxlen		= sizeof(mmap_rnd_compat_bits),
+-		.mode		= 0644,
++		.mode		= 0600,
+ 		.proc_handler	= proc_dointvec_minmax,
+ 		.extra1		= &mmap_rnd_compat_bits_min,
+ 		.extra2		= &mmap_rnd_compat_bits_max,
 _
 
-Patches currently in -mm which might be from dcashman@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mmap-add-new-proc-tunable-for-mmap_base-aslr.patch
-arm-mm-support-arch_mmap_rnd_bits.patch
-arm64-mm-support-arch_mmap_rnd_bits.patch
-x86-mm-support-arch_mmap_rnd_bits.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm.patch
+account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
+mm-zonelist-enumerate-zonelists-array-index-fix.patch
+mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
+mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-fix.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
