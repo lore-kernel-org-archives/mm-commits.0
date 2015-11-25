@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-cma-always-check-which-page-cause-allocation-failure-v2.patch added to
- -mm tree
-Date: Wed, 25 Nov 2015 14:06:24 -0800
-Message-ID: <565630e0.zVPwwpk0BsmR5j8E%akpm@linux-foundation.org>
+ mm-compaction-improve-comment-for-compact_memory-tunable-knob-handler.patch added to -mm tree
+Date: Wed, 25 Nov 2015 14:07:08 -0800
+Message-ID: <5656310c.WeFbbl/CQxERbxKK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57331 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57336 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751106AbbKYWGZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Nov 2015 17:06:25 -0500
+	with ESMTP id S1752478AbbKYWHI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Nov 2015 17:07:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: js1304@gmail.com, iamjoonsoo.kim@lge.com, mina86@mina86.com, minchan@kernel.org, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: baiyaowei@cmss.chinamobile.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/cma: always check which page cause allocation failure
+     Subject: mm/compaction: improve comment for compact_memory tunable knob handler
 has been added to the -mm tree.  Its filename is
-     mm-cma-always-check-which-page-cause-allocation-failure-v2.patch
+     mm-compaction-improve-comment-for-compact_memory-tunable-knob-handler.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-always-check-which-page-cause-allocation-failure-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-improve-comment-for-compact_memory-tunable-knob-handler.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-always-check-which-page-cause-allocation-failure-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-improve-comment-for-compact_memory-tunable-knob-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,49 +39,51 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm/cma: always check which page cause allocation failure
+From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Subject: mm/compaction: improve comment for compact_memory tunable knob handler
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+sysctl_compaction_handler() is the handler function for compact_memory
+tunable knob under /proc/sys/vm, add the missing knob name to make this
+more accurate in comment.
+
+No functional change.
+
+Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   13 +++++++++++++
- 1 file changed, 13 insertions(+)
+ mm/compaction.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-cma-always-check-which-page-cause-allocation-failure-v2 mm/page_alloc.c
---- a/mm/page_alloc.c~mm-cma-always-check-which-page-cause-allocation-failure-v2
-+++ a/mm/page_alloc.c
-@@ -6763,6 +6763,19 @@ int alloc_contig_range(unsigned long sta
- 		outer_start &= ~0UL << order;
- 	}
+diff -puN mm/compaction.c~mm-compaction-improve-comment-for-compact_memory-tunable-knob-handler mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-improve-comment-for-compact_memory-tunable-knob-handler
++++ a/mm/compaction.c
+@@ -1708,7 +1708,10 @@ static void compact_nodes(void)
+ /* The written value is actually unused, all memory is compacted */
+ int sysctl_compact_memory;
  
-+	if (outer_start != start) {
-+		order = page_order(pfn_to_page(outer_start));
-+
-+		/*
-+		 * outer_start page could be small order buddy page and
-+		 * it doesn't include start page. Adjust outer_start
-+		 * in this case to report failed page properly
-+		 * on tracepoint in test_pages_isolated()
-+		 */
-+		if (outer_start + (1UL << order) <= start)
-+			outer_start = start;
-+	}
-+
- 	/* Make sure the range is really isolated. */
- 	if (test_pages_isolated(outer_start, end, false)) {
- 		pr_info("%s: [%lx, %lx) PFNs busy\n",
+-/* This is the entry point for compacting all nodes via /proc/sys/vm */
++/*
++ * This is the entry point for compacting all nodes via
++ * /proc/sys/vm/compact_memory
++ */
+ int sysctl_compaction_handler(struct ctl_table *table, int write,
+ 			void __user *buffer, size_t *length, loff_t *ppos)
+ {
 _
 
-Patches currently in -mm which might be from js1304@gmail.com are
+Patches currently in -mm which might be from baiyaowei@cmss.chinamobile.com are
 
-mm-page_isolation-return-last-tested-pfn-rather-than-failure-indicator.patch
-mm-page_isolation-add-new-tracepoint-test_pages_isolated.patch
-mm-cma-always-check-which-page-cause-allocation-failure.patch
-mm-cma-always-check-which-page-cause-allocation-failure-v2.patch
+mm-hugetlb-is_file_hugepages-can-be-boolean.patch
+mm-memblock-memblock_is_memory-reserved-can-be-boolean.patch
+mm-lru-remove-unused-is_unevictable_lru-function.patch
+mm-zonelist-enumerate-zonelists-array-index.patch
+mm-mmzone-memmap_valid_within-can-be-boolean.patch
+mm-compaction-improve-comment-for-compact_memory-tunable-knob-handler.patch
+fs-statc-drop-the-last-new_valid_dev-check.patch
+include-linux-kdev_th-remove-new_valid_dev.patch
+init-mainc-obsolete_checksetup-can-be-boolean.patch
+init-do_mounts-initrd_load-can-be-boolean.patch
+ipc-shm-is_file_shm_hugepages-can-be-boolean.patch
 
