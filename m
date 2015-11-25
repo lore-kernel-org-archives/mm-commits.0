@@ -1,155 +1,220 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] zram-try-vmalloc-after-kmalloc.patch removed from -mm tree
-Date: Wed, 25 Nov 2015 14:17:16 -0800
-Message-ID: <5656336c.lST0nhwXSHdS8xW7%akpm@linux-foundation.org>
+Subject: [to-be-updated] zram-zcomp-use-gfp_noio-to-allocate-streams.patch removed from -mm tree
+Date: Wed, 25 Nov 2015 14:17:21 -0800
+Message-ID: <56563371.IuC+Tdu+i8/RYt65%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57364 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57367 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751106AbbKYWRR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Nov 2015 17:17:17 -0500
+	with ESMTP id S1751106AbbKYWRW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Nov 2015 17:17:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kyeongdon.kim@lge.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, kyeongdon.kim@lge.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: try vmalloc() after kmalloc()
+     Subject: zram/zcomp: use GFP_NOIO to allocate streams
 has been removed from the -mm tree.  Its filename was
-     zram-try-vmalloc-after-kmalloc.patch
+     zram-zcomp-use-gfp_noio-to-allocate-streams.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Kyeongdon Kim <kyeongdon.kim@lge.com>
-Subject: zram: try vmalloc() after kmalloc()
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: zram/zcomp: use GFP_NOIO to allocate streams
 
-When we're using LZ4 multi compression streams for zram swap, we found out
-page allocation failure message in system running test.  That was not only
-once, but a few(2 - 5 times per test).  Also, some failure cases were
-continually occurring to try allocation order 3.
+We can end up allocating a new compression stream with GFP_KERNEL from
+within the IO path, which may result is nested (recursive) IO operations. 
+That can introduce problems if the IO path in question is a reclaimer,
+holding some locks that will deadlock nested IOs.
 
-In order to make parallel compression private data, we should call
-kzalloc() with order 2/3 in runtime(lzo/lz4).  But if there is no order
-2/3 size memory to allocate in that time, page allocation fails.  This
-patch makes to use vmalloc() as fallback of kmalloc(), this prevents page
-alloc failure warning.
+Allocate streams and working memory using GFP_NOIO flag, forbidding
+recursive IO and FS operations.
 
-After using this, we never found warning message in running test, also It
-could reduce process startup latency about 60-120ms in each case.
+An example:
 
-For reference a call trace :
+[  747.233722] inconsistent {IN-RECLAIM_FS-W} -> {RECLAIM_FS-ON-W} usage.
+[  747.233724] git/20158 [HC0[0]:SC0[0]:HE1:SE1] takes:
+[  747.233725]  (jbd2_handle){+.+.?.}, at: [<ffffffff811e31db>] start_this_handle+0x4ca/0x555
+[  747.233733] {IN-RECLAIM_FS-W} state was registered at:
+[  747.233735]   [<ffffffff8107b8e9>] __lock_acquire+0x8da/0x117b
+[  747.233738]   [<ffffffff8107c950>] lock_acquire+0x10c/0x1a7
+[  747.233740]   [<ffffffff811e323e>] start_this_handle+0x52d/0x555
+[  747.233742]   [<ffffffff811e331a>] jbd2__journal_start+0xb4/0x237
+[  747.233744]   [<ffffffff811cc6c7>] __ext4_journal_start_sb+0x108/0x17e
+[  747.233748]   [<ffffffff811a90bf>] ext4_dirty_inode+0x32/0x61
+[  747.233750]   [<ffffffff8115f37e>] __mark_inode_dirty+0x16b/0x60c
+[  747.233754]   [<ffffffff81150ad6>] iput+0x11e/0x274
+[  747.233757]   [<ffffffff8114bfbd>] __dentry_kill+0x148/0x1b8
+[  747.233759]   [<ffffffff8114c9d9>] shrink_dentry_list+0x274/0x44a
+[  747.233761]   [<ffffffff8114d38a>] prune_dcache_sb+0x4a/0x55
+[  747.233763]   [<ffffffff8113b1ad>] super_cache_scan+0xfc/0x176
+[  747.233767]   [<ffffffff810fa089>] shrink_slab.part.14.constprop.25+0x2a2/0x4d3
+[  747.233770]   [<ffffffff810fcccb>] shrink_zone+0x74/0x140
+[  747.233772]   [<ffffffff810fd924>] kswapd+0x6b7/0x930
+[  747.233774]   [<ffffffff81058887>] kthread+0x107/0x10f
+[  747.233778]   [<ffffffff814fadff>] ret_from_fork+0x3f/0x70
+[  747.233783] irq event stamp: 138297
+[  747.233784] hardirqs last  enabled at (138297): [<ffffffff8107aff3>] debug_check_no_locks_freed+0x113/0x12f
+[  747.233786] hardirqs last disabled at (138296): [<ffffffff8107af13>] debug_check_no_locks_freed+0x33/0x12f
+[  747.233788] softirqs last  enabled at (137818): [<ffffffff81040f89>] __do_softirq+0x2d3/0x3e9
+[  747.233792] softirqs last disabled at (137813): [<ffffffff81041292>] irq_exit+0x41/0x95
+[  747.233794]
+               other info that might help us debug this:
+[  747.233796]  Possible unsafe locking scenario:
+[  747.233797]        CPU0
+[  747.233798]        ----
+[  747.233799]   lock(jbd2_handle);
+[  747.233801]   <Interrupt>
+[  747.233801]     lock(jbd2_handle);
+[  747.233803]
+                *** DEADLOCK ***
+[  747.233805] 5 locks held by git/20158:
+[  747.233806]  #0:  (sb_writers#7){.+.+.+}, at: [<ffffffff81155411>] mnt_want_write+0x24/0x4b
+[  747.233811]  #1:  (&type->i_mutex_dir_key#2/1){+.+.+.}, at: [<ffffffff81145087>] lock_rename+0xd9/0xe3
+[  747.233817]  #2:  (&sb->s_type->i_mutex_key#11){+.+.+.}, at: [<ffffffff8114f8e2>] lock_two_nondirectories+0x3f/0x6b
+[  747.233822]  #3:  (&sb->s_type->i_mutex_key#11/4){+.+.+.}, at: [<ffffffff8114f909>] lock_two_nondirectories+0x66/0x6b
+[  747.233827]  #4:  (jbd2_handle){+.+.?.}, at: [<ffffffff811e31db>] start_this_handle+0x4ca/0x555
+[  747.233831]
+               stack backtrace:
+[  747.233834] CPU: 2 PID: 20158 Comm: git Not tainted 4.1.0-rc7-next-20150615-dbg-00016-g8bdf555-dirty #211
+[  747.233837]  ffff8800a56cea40 ffff88010d0a75f8 ffffffff814f446d ffffffff81077036
+[  747.233840]  ffffffff823a84b0 ffff88010d0a7638 ffffffff814f3849 0000000000000001
+[  747.233843]  000000000000000a ffff8800a56cf6f8 ffff8800a56cea40 ffffffff810795dd
+[  747.233846] Call Trace:
+[  747.233849]  [<ffffffff814f446d>] dump_stack+0x4c/0x6e
+[  747.233852]  [<ffffffff81077036>] ? up+0x39/0x3e
+[  747.233854]  [<ffffffff814f3849>] print_usage_bug.part.23+0x25b/0x26a
+[  747.233857]  [<ffffffff810795dd>] ? print_shortest_lock_dependencies+0x182/0x182
+[  747.233859]  [<ffffffff8107a9c9>] mark_lock+0x384/0x56d
+[  747.233862]  [<ffffffff8107ac11>] mark_held_locks+0x5f/0x76
+[  747.233865]  [<ffffffffa023d2f3>] ? zcomp_strm_alloc+0x25/0x73 [zram]
+[  747.233867]  [<ffffffff8107d13b>] lockdep_trace_alloc+0xb2/0xb5
+[  747.233870]  [<ffffffff8112bac7>] kmem_cache_alloc_trace+0x32/0x1e2
+[  747.233873]  [<ffffffffa023d2f3>] zcomp_strm_alloc+0x25/0x73 [zram]
+[  747.233876]  [<ffffffffa023d428>] zcomp_strm_multi_find+0xe7/0x173 [zram]
+[  747.233879]  [<ffffffffa023d58b>] zcomp_strm_find+0xc/0xe [zram]
+[  747.233881]  [<ffffffffa023f292>] zram_bvec_rw+0x2ca/0x7e0 [zram]
+[  747.233885]  [<ffffffffa023fa8c>] zram_make_request+0x1fa/0x301 [zram]
+[  747.233889]  [<ffffffff812142f8>] generic_make_request+0x9c/0xdb
+[  747.233891]  [<ffffffff8121442e>] submit_bio+0xf7/0x120
+[  747.233895]  [<ffffffff810f1c0c>] ? __test_set_page_writeback+0x1a0/0x1b8
+[  747.233897]  [<ffffffff811a9d00>] ext4_io_submit+0x2e/0x43
+[  747.233899]  [<ffffffff811a9efa>] ext4_bio_write_page+0x1b7/0x300
+[  747.233902]  [<ffffffff811a2106>] mpage_submit_page+0x60/0x77
+[  747.233905]  [<ffffffff811a25b0>] mpage_map_and_submit_buffers+0x10f/0x21d
+[  747.233907]  [<ffffffff811a6814>] ext4_writepages+0xc8c/0xe1b
+[  747.233910]  [<ffffffff810f3f77>] do_writepages+0x23/0x2c
+[  747.233913]  [<ffffffff810ea5d1>] __filemap_fdatawrite_range+0x84/0x8b
+[  747.233915]  [<ffffffff810ea657>] filemap_flush+0x1c/0x1e
+[  747.233917]  [<ffffffff811a3851>] ext4_alloc_da_blocks+0xb8/0x117
+[  747.233919]  [<ffffffff811af52a>] ext4_rename+0x132/0x6dc
+[  747.233921]  [<ffffffff8107ac11>] ? mark_held_locks+0x5f/0x76
+[  747.233924]  [<ffffffff811afafd>] ext4_rename2+0x29/0x2b
+[  747.233926]  [<ffffffff811427ea>] vfs_rename+0x540/0x636
+[  747.233928]  [<ffffffff81146a01>] SyS_renameat2+0x359/0x44d
+[  747.233931]  [<ffffffff81146b26>] SyS_rename+0x1e/0x20
+[  747.233933]  [<ffffffff814faa17>] entry_SYSCALL_64_fastpath+0x12/0x6f
 
-Binder_1: page allocation failure: order:3, mode:0x10c0d0
-CPU: 0 PID: 424 Comm: Binder_1 Tainted: GW 3.10.49-perf-g991d02b-dirty #20
-Call trace:
-[<ffffffc0002069c8>] dump_backtrace+0x0/0x270
-[<ffffffc000206c48>] show_stack+0x10/0x1c
-[<ffffffc000cb51c8>] dump_stack+0x1c/0x28
-[<ffffffc0002bbfc8>] warn_alloc_failed+0xfc/0x11c
-[<ffffffc0002bf518>] __alloc_pages_nodemask+0x724/0x7f0
-[<ffffffc0002bf5f8>] __get_free_pages+0x14/0x5c
-[<ffffffc0002ed6a4>] kmalloc_order_trace+0x38/0xd8
-[<ffffffc0005d9738>] zcomp_lz4_create+0x2c/0x38
-[<ffffffc0005d78f0>] zcomp_strm_alloc+0x34/0x78
-[<ffffffc0005d7a58>] zcomp_strm_multi_find+0x124/0x1ec
-[<ffffffc0005d7c14>] zcomp_strm_find+0xc/0x18
-[<ffffffc0005d8fa0>] zram_bvec_rw+0x2fc/0x780
-[<ffffffc0005d9680>] zram_make_request+0x25c/0x2d4
-[<ffffffc00040f8ac>] generic_make_request+0x80/0xbc
-[<ffffffc00040f98c>] submit_bio+0xa4/0x15c
-[<ffffffc0002e8bb0>] __swap_writepage+0x218/0x230
-[<ffffffc0002e8c04>] swap_writepage+0x3c/0x4c
-[<ffffffc0002c7384>] shrink_page_list+0x51c/0x8d0
-[<ffffffc0002c7e88>] shrink_inactive_list+0x3f8/0x60c
-[<ffffffc0002c86c8>] shrink_lruvec+0x33c/0x4cc
-[<ffffffc0002c8894>] shrink_zone+0x3c/0x100
-[<ffffffc0002c8c10>] try_to_free_pages+0x2b8/0x54c
-[<ffffffc0002bf308>] __alloc_pages_nodemask+0x514/0x7f0
-[<ffffffc0002bf5f8>] __get_free_pages+0x14/0x5c
-[<ffffffc0003446cc>] proc_info_read+0x50/0xe4
-[<ffffffc0002f5204>] vfs_read+0xa0/0x12c
-[<ffffffc0002f59c8>] SyS_read+0x44/0x74
-DMA: 3397*4kB (MC) 26*8kB (RC) 0*16kB 0*32kB 0*64kB 0*128kB 0*256kB
-     0*512kB 0*1024kB 0*2048kB 0*4096kB = 13796kB
+The patch also does some very trivial cosmetic tweaks, not worth
+of a separate patch.
 
-Signed-off-by: Kyeongdon Kim <kyeongdon.kim@lge.com>
-Acked-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Kyeongdon Kim <kyeongdon.kim@lge.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp_lz4.c |   12 ++++++++++--
- drivers/block/zram/zcomp_lzo.c |   12 ++++++++++--
- 2 files changed, 20 insertions(+), 4 deletions(-)
+ drivers/block/zram/zcomp.c     |    4 ++--
+ drivers/block/zram/zcomp_lz4.c |   12 ++++++++----
+ drivers/block/zram/zcomp_lzo.c |   12 ++++++++----
+ 3 files changed, 18 insertions(+), 10 deletions(-)
 
-diff -puN drivers/block/zram/zcomp_lz4.c~zram-try-vmalloc-after-kmalloc drivers/block/zram/zcomp_lz4.c
---- a/drivers/block/zram/zcomp_lz4.c~zram-try-vmalloc-after-kmalloc
-+++ a/drivers/block/zram/zcomp_lz4.c
-@@ -10,17 +10,25 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/lz4.h>
-+#include <linux/vmalloc.h>
-+#include <linux/mm.h>
- 
- #include "zcomp_lz4.h"
- 
- static void *zcomp_lz4_create(void)
+diff -puN drivers/block/zram/zcomp.c~zram-zcomp-use-gfp_noio-to-allocate-streams drivers/block/zram/zcomp.c
+--- a/drivers/block/zram/zcomp.c~zram-zcomp-use-gfp_noio-to-allocate-streams
++++ a/drivers/block/zram/zcomp.c
+@@ -76,7 +76,7 @@ static void zcomp_strm_free(struct zcomp
+  */
+ static struct zcomp_strm *zcomp_strm_alloc(struct zcomp *comp)
  {
--	return kzalloc(LZ4_MEM_COMPRESS, GFP_KERNEL);
-+	void *ret;
+-	struct zcomp_strm *zstrm = kmalloc(sizeof(*zstrm), GFP_KERNEL);
++	struct zcomp_strm *zstrm = kmalloc(sizeof(*zstrm), GFP_NOIO);
+ 	if (!zstrm)
+ 		return NULL;
+ 
+@@ -85,7 +85,7 @@ static struct zcomp_strm *zcomp_strm_all
+ 	 * allocate 2 pages. 1 for compressed data, plus 1 extra for the
+ 	 * case when compressed size is larger than the original one
+ 	 */
+-	zstrm->buffer = (void *)__get_free_pages(GFP_KERNEL | __GFP_ZERO, 1);
++	zstrm->buffer = (void *)__get_free_pages(GFP_NOIO | __GFP_ZERO, 1);
+ 	if (!zstrm->private || !zstrm->buffer) {
+ 		zcomp_strm_free(comp, zstrm);
+ 		zstrm = NULL;
+diff -puN drivers/block/zram/zcomp_lz4.c~zram-zcomp-use-gfp_noio-to-allocate-streams drivers/block/zram/zcomp_lz4.c
+--- a/drivers/block/zram/zcomp_lz4.c~zram-zcomp-use-gfp_noio-to-allocate-streams
++++ a/drivers/block/zram/zcomp_lz4.c
+@@ -20,10 +20,13 @@ static void *zcomp_lz4_create(void)
+ 	void *ret;
+ 
+ 	ret = kzalloc(LZ4_MEM_COMPRESS,
+-			__GFP_NORETRY|__GFP_NOWARN|__GFP_NOMEMALLOC);
+-	if (!ret)
+-		ret = vzalloc(LZ4_MEM_COMPRESS);
+-	return ret;
++			__GFP_NORETRY | __GFP_NOWARN | __GFP_NOMEMALLOC);
++	if (ret)
++		return ret;
 +
-+	ret = kzalloc(LZ4_MEM_COMPRESS,
-+			__GFP_NORETRY|__GFP_NOWARN|__GFP_NOMEMALLOC);
-+	if (!ret)
-+		ret = vzalloc(LZ4_MEM_COMPRESS);
-+	return ret;
++	return __vmalloc(LZ4_MEM_COMPRESS,
++			GFP_NOIO | __GFP_NOWARN | __GFP_HIGHMEM | __GFP_ZERO,
++			PAGE_KERNEL);
  }
  
  static void zcomp_lz4_destroy(void *private)
+@@ -42,6 +45,7 @@ static int zcomp_lz4_decompress(const un
+ 		unsigned char *dst)
  {
--	kfree(private);
-+	kvfree(private);
- }
- 
- static int zcomp_lz4_compress(const unsigned char *src, unsigned char *dst,
-diff -puN drivers/block/zram/zcomp_lzo.c~zram-try-vmalloc-after-kmalloc drivers/block/zram/zcomp_lzo.c
---- a/drivers/block/zram/zcomp_lzo.c~zram-try-vmalloc-after-kmalloc
-+++ a/drivers/block/zram/zcomp_lzo.c
-@@ -10,17 +10,25 @@
- #include <linux/kernel.h>
- #include <linux/slab.h>
- #include <linux/lzo.h>
-+#include <linux/vmalloc.h>
-+#include <linux/mm.h>
- 
- #include "zcomp_lzo.h"
- 
- static void *lzo_create(void)
- {
--	return kzalloc(LZO1X_MEM_COMPRESS, GFP_KERNEL);
-+	void *ret;
+ 	size_t dst_len = PAGE_SIZE;
 +
-+	ret = kzalloc(LZO1X_MEM_COMPRESS,
-+			__GFP_NORETRY|__GFP_NOWARN|__GFP_NOMEMALLOC);
-+	if (!ret)
-+		ret = vzalloc(LZO1X_MEM_COMPRESS);
-+	return ret;
+ 	/* return  : Success if return 0 */
+ 	return lz4_decompress_unknownoutputsize(src, src_len, dst, &dst_len);
+ }
+diff -puN drivers/block/zram/zcomp_lzo.c~zram-zcomp-use-gfp_noio-to-allocate-streams drivers/block/zram/zcomp_lzo.c
+--- a/drivers/block/zram/zcomp_lzo.c~zram-zcomp-use-gfp_noio-to-allocate-streams
++++ a/drivers/block/zram/zcomp_lzo.c
+@@ -20,10 +20,13 @@ static void *lzo_create(void)
+ 	void *ret;
+ 
+ 	ret = kzalloc(LZO1X_MEM_COMPRESS,
+-			__GFP_NORETRY|__GFP_NOWARN|__GFP_NOMEMALLOC);
+-	if (!ret)
+-		ret = vzalloc(LZO1X_MEM_COMPRESS);
+-	return ret;
++			__GFP_NORETRY | __GFP_NOWARN | __GFP_NOMEMALLOC);
++	if (ret)
++		return ret;
++
++	return __vmalloc(LZO1X_MEM_COMPRESS,
++			GFP_NOIO | __GFP_NOWARN | __GFP_HIGHMEM | __GFP_ZERO,
++			PAGE_KERNEL);
  }
  
  static void lzo_destroy(void *private)
+@@ -42,6 +45,7 @@ static int lzo_decompress(const unsigned
+ 		unsigned char *dst)
  {
--	kfree(private);
-+	kvfree(private);
+ 	size_t dst_len = PAGE_SIZE;
++
+ 	int ret = lzo1x_decompress_safe(src, src_len, dst, &dst_len);
+ 	return ret == LZO_E_OK ? 0 : ret;
  }
- 
- static int lzo_compress(const unsigned char *src, unsigned char *dst,
 _
 
-Patches currently in -mm which might be from kyeongdon.kim@lge.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
 
