@@ -1,61 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [nacked] scripts-fix-the-sys-path-for-gdb-scripts.patch removed
- from -mm tree
-Date: Wed, 25 Nov 2015 13:58:34 -0800
-Message-ID: <56562f0a.va0b1xaKiJ0mVSVW%akpm@linux-foundation.org>
+Subject: +
+ mm-cma-always-check-which-page-cause-allocation-failure-v2.patch added to
+ -mm tree
+Date: Wed, 25 Nov 2015 14:06:24 -0800
+Message-ID: <565630e0.zVPwwpk0BsmR5j8E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57306 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57331 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752006AbbKYV6f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Nov 2015 16:58:35 -0500
+	with ESMTP id S1751106AbbKYWGZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 25 Nov 2015 17:06:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yalin.wang2010@gmail.com, jan.kiszka@siemens.com, mm-commits@vger.kernel.org
+To: js1304@gmail.com, iamjoonsoo.kim@lge.com, mina86@mina86.com, minchan@kernel.org, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb/vmlinux-gdb.py: fix the sys path for gdb scripts
-has been removed from the -mm tree.  Its filename was
-     scripts-fix-the-sys-path-for-gdb-scripts.patch
+     Subject: mm/cma: always check which page cause allocation failure
+has been added to the -mm tree.  Its filename is
+     mm-cma-always-check-which-page-cause-allocation-failure-v2.patch
 
-This patch was dropped because it was nacked
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-cma-always-check-which-page-cause-allocation-failure-v2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-cma-always-check-which-page-cause-allocation-failure-v2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: yalin wang <yalin.wang2010@gmail.com>
-Subject: scripts/gdb/vmlinux-gdb.py: fix the sys path for gdb scripts
+From: Joonsoo Kim <js1304@gmail.com>
+Subject: mm/cma: always check which page cause allocation failure
 
-The sys.path should be scripts/gdb, so that we can import linux lib
-correctly.
-
-Signed-off-by: yalin wang <yalin.wang2010@gmail.com>
-Cc: Jan Kiszka <jan.kiszka@siemens.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/vmlinux-gdb.py |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN scripts/gdb/vmlinux-gdb.py~scripts-fix-the-sys-path-for-gdb-scripts scripts/gdb/vmlinux-gdb.py
---- a/scripts/gdb/vmlinux-gdb.py~scripts-fix-the-sys-path-for-gdb-scripts
-+++ a/scripts/gdb/vmlinux-gdb.py
-@@ -13,7 +13,7 @@
+diff -puN mm/page_alloc.c~mm-cma-always-check-which-page-cause-allocation-failure-v2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-cma-always-check-which-page-cause-allocation-failure-v2
++++ a/mm/page_alloc.c
+@@ -6763,6 +6763,19 @@ int alloc_contig_range(unsigned long sta
+ 		outer_start &= ~0UL << order;
+ 	}
  
- import os
- 
--sys.path.insert(0, os.path.dirname(__file__) + "/scripts/gdb")
-+sys.path.insert(0, os.path.dirname(__file__))
- 
- try:
-     gdb.parse_and_eval("0")
++	if (outer_start != start) {
++		order = page_order(pfn_to_page(outer_start));
++
++		/*
++		 * outer_start page could be small order buddy page and
++		 * it doesn't include start page. Adjust outer_start
++		 * in this case to report failed page properly
++		 * on tracepoint in test_pages_isolated()
++		 */
++		if (outer_start + (1UL << order) <= start)
++			outer_start = start;
++	}
++
+ 	/* Make sure the range is really isolated. */
+ 	if (test_pages_isolated(outer_start, end, false)) {
+ 		pr_info("%s: [%lx, %lx) PFNs busy\n",
 _
 
-Patches currently in -mm which might be from yalin.wang2010@gmail.com are
+Patches currently in -mm which might be from js1304@gmail.com are
 
-mm-change-trace_mm_vmscan_writepage-proto-type.patch
-mm-change-mm_vmscan_lru_shrink_inactive-proto-types.patch
-mm-fix-kernel-crash-in-khugepaged-thread.patch
+mm-page_isolation-return-last-tested-pfn-rather-than-failure-indicator.patch
+mm-page_isolation-add-new-tracepoint-test_pages_isolated.patch
+mm-cma-always-check-which-page-cause-allocation-failure.patch
+mm-cma-always-check-which-page-cause-allocation-failure-v2.patch
 
