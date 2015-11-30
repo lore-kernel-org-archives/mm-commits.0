@@ -1,82 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Mon, 30 Nov 2015 12:34:32 -0800
-Message-ID: <565cb2d8.ZwMw56sJjBTe9umt%akpm@linux-foundation.org>
+Subject: [merged] vfs-avoid-softlockups-with-sendfile2.patch removed from
+ -mm tree
+Date: Mon, 30 Nov 2015 12:34:50 -0800
+Message-ID: <565cb2ea.PyspEKMQK8hfpQR7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55971 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56002 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752040AbbK3Ued (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Nov 2015 15:34:33 -0500
+	with ESMTP id S1752040AbbK3Uev (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Nov 2015 15:34:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: jack@suse.cz, dvyukov@google.com, stable@vger.kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: vfs: avoid softlockups with sendfile(2)
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     vfs-avoid-softlockups-with-sendfile2.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Jan Kara <jack@suse.cz>
+Subject: vfs: avoid softlockups with sendfile(2)
 
+The following test program from Dmitry can cause softlockups or RCU stalls
+as it copies 1GB from tmpfs into eventfd and we don't have any scheduling
+point at that path in sendfile(2) implementation:
+
+        int r1 = eventfd(0, 0);
+        int r2 = memfd_create("", 0);
+        unsigned long n = 1<<30;
+        fallocate(r2, 0, 0, n);
+        sendfile(r1, r2, 0, n);
+
+Add cond_resched() into __splice_from_pipe() to fix the problem.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Tested-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kvm_host.h |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/splice.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/kvm_host.h~linux-next-git-rejects include/linux/kvm_host.h
---- a/include/linux/kvm_host.h~linux-next-git-rejects
-+++ a/include/linux/kvm_host.h
-@@ -467,14 +467,11 @@ static inline struct kvm_vcpu *kvm_get_v
- 	struct kvm_vcpu *vcpu;
- 	int i;
+diff -puN fs/splice.c~vfs-avoid-softlockups-with-sendfile2 fs/splice.c
+--- a/fs/splice.c~vfs-avoid-softlockups-with-sendfile2
++++ a/fs/splice.c
+@@ -891,6 +891,7 @@ ssize_t __splice_from_pipe(struct pipe_i
  
--<<<<<<< HEAD
--=======
- 	if (id < 0 || id >= KVM_MAX_VCPUS)
- 		return NULL;
- 	vcpu = kvm_get_vcpu(kvm, id);
- 	if (vcpu && vcpu->vcpu_id == id)
- 		return vcpu;
-->>>>>>> linux-next/akpm-base
- 	kvm_for_each_vcpu(i, vcpu, kvm)
- 		if (vcpu->vcpu_id == id)
- 			return vcpu;
+ 	splice_from_pipe_begin(sd);
+ 	do {
++		cond_resched();
+ 		ret = splice_from_pipe_next(pipe, sd);
+ 		if (ret > 0)
+ 			ret = splice_from_pipe_feed(pipe, sd, actor);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jack@suse.cz are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-fix.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
 
