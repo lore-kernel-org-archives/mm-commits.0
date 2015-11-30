@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + arm64-mm-support-arch_mmap_rnd_bits-v4.patch added to -mm tree
-Date: Mon, 30 Nov 2015 15:58:24 -0800
-Message-ID: <565ce2a0.+xIQADbxp8IqHBHX%akpm@linux-foundation.org>
+Subject: + mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4.patch added
+ to -mm tree
+Date: Mon, 30 Nov 2015 15:58:18 -0800
+Message-ID: <565ce29a.l+iViWEIVH+P/u8I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35445 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35417 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753998AbbK3X6Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Nov 2015 18:58:25 -0500
+	with ESMTP id S1753998AbbK3X6T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Nov 2015 18:58:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dcashman@android.com, catalin.marinas@arm.com, linux@arm.linux.org.uk, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: dcashman@android.com, aarcange@redhat.com, benh@kernel.crashing.org, bp@suse.de, catalin.marinas@arm.com, corbet@lwn.net, dzickus@redhat.com, ebiederm@xmission.com, hecmargi@upv.es, hpa@zytor.com, jeffv@google.com, jpoimboe@redhat.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, linux@arm.linux.org.uk, mgorman@suse.de, mingo@kernel.org, n-horiguchi@ah.jp.nec.com, nnk@google.com, ralf@linux-mips.org, rientjes@google.com, salyzyn@android.com, tglx@linutronix.de, will.deacon@arm.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64-mm-support-arch_mmap_rnd_bits-v4
+     Subject: mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4
 has been added to the -mm tree.  Its filename is
-     arm64-mm-support-arch_mmap_rnd_bits-v4.patch
+     mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm64-mm-support-arch_mmap_rnd_bits-v4.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-mm-support-arch_mmap_rnd_bits-v4.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,79 +40,188 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Daniel Cashman <dcashman@android.com>
-Subject: arm64-mm-support-arch_mmap_rnd_bits-v4
+Subject: mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4
 
-arm64: arch_mmap_rnd() uses STACK_RND_MASK to generate the
-random offset for the mmap base address.  This value represents a
-compromise between increased ASLR effectiveness and avoiding
-address-space fragmentation. Replace it with a Kconfig option, which
-is sensibly bounded, so that platform developers may choose where to
-place this compromise. Keep default values as new minimums.
+ASLR  only uses as few as 8 bits to generate the random offset for the
+mmap base address on 32 bit architectures. This value was chosen to
+prevent a poorly chosen value from dividing the address space in such
+a way as to prevent large allocations. This may not be an issue on all
+platforms. Allow the specification of a minimum number of bits so that
+platforms desiring greater ASLR protection may determine where to place
+the trade-off.
 
 Signed-off-by: Daniel Cashman <dcashman@android.com>
 Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mark Salyzyn <salyzyn@android.com>
+Cc: Jeff Vander Stoep <jeffv@google.com>
+Cc: Nick Kralevich <nnk@google.com>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Will Deacon <will.deacon@arm.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Hector Marco-Gisbert <hecmargi@upv.es>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc; Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc; Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig   |   20 ++++++++++++++------
- arch/arm64/mm/mmap.c |    2 ++
- 2 files changed, 16 insertions(+), 6 deletions(-)
+ Documentation/sysctl/vm.txt |    4 ++--
+ arch/Kconfig                |    8 ++++++--
+ include/linux/mm.h          |   12 ++++++------
+ kernel/sysctl.c             |   12 ++++++------
+ mm/mmap.c                   |   12 ++++++------
+ 5 files changed, 26 insertions(+), 22 deletions(-)
 
-diff -puN arch/arm64/Kconfig~arm64-mm-support-arch_mmap_rnd_bits-v4 arch/arm64/Kconfig
---- a/arch/arm64/Kconfig~arm64-mm-support-arch_mmap_rnd_bits-v4
-+++ a/arch/arm64/Kconfig
-@@ -108,20 +108,28 @@ config MMU
+diff -puN Documentation/sysctl/vm.txt~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4 Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4
++++ a/Documentation/sysctl/vm.txt
+@@ -496,7 +496,7 @@ tuning address space randomization.  Thi
+ by the architecture's minimum and maximum supported values.
  
- config ARCH_MMAP_RND_BITS_MIN
-        default 15 if ARM64_64K_PAGES
-+       default 17 if ARM64_16K_PAGES
-        default 19
+ This value can be changed after boot using the
+-/proc/sys/kernel/mmap_rnd_bits tunable
++/proc/sys/vm/mmap_rnd_bits tunable
  
- config ARCH_MMAP_RND_BITS_MAX
--       default 20 if ARM64_64K_PAGES && ARCH_VA_BITS=39
--       default 24 if ARCH_VA_BITS=39
--       default 23 if ARM64_64K_PAGES && ARCH_VA_BITS=42
--       default 27 if ARCH_VA_BITS=42
--       default 29 if ARM64_64K_PAGES && ARCH_VA_BITS=48
--       default 33 if ARCH_VA_BITS=48
-+       default 19 if ARM64_VA_BITS=36
-+       default 20 if ARM64_64K_PAGES && ARM64_VA_BITS=39
-+       default 22 if ARM64_16K_PAGES && ARM64_VA_BITS=39
-+       default 24 if ARM64_VA_BITS=39
-+       default 23 if ARM64_64K_PAGES && ARM64_VA_BITS=42
-+       default 25 if ARM64_16K_PAGES && ARM64_VA_BITS=42
-+       default 27 if ARM64_VA_BITS=42
-+       default 30 if ARM64_VA_BITS=47
-+       default 29 if ARM64_64K_PAGES && ARM64_VA_BITS=48
-+       default 31 if ARM64_16K_PAGES && ARM64_VA_BITS=48
-+       default 33 if ARM64_VA_BITS=48
-        default 15 if ARM64_64K_PAGES
-+       default 17 if ARM64_16K_PAGES
-        default 19
+ ==============================================================
  
- config ARCH_MMAP_RND_COMPAT_BITS_MIN
-        default 7 if ARM64_64K_PAGES
-+       default 9 if ARM64_16K_PAGES
-        default 11
+@@ -510,7 +510,7 @@ space randomization.  This value will be
+ architecture's minimum and maximum supported values.
  
+ This value can be changed after boot using the
+-/proc/sys/kernel/mmap_rnd_compat_bits tunable
++/proc/sys/vm/mmap_rnd_compat_bits tunable
+ 
+ ==============================================================
+ 
+diff -puN arch/Kconfig~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4 arch/Kconfig
+--- a/arch/Kconfig~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4
++++ a/arch/Kconfig
+@@ -542,7 +542,7 @@ config ARCH_MMAP_RND_BITS
+ 	  by the architecture's minimum and maximum supported values.
+ 
+ 	  This value can be changed after boot using the
+-	  /proc/sys/kernel/mmap_rnd_bits tunable
++	  /proc/sys/vm/mmap_rnd_bits tunable
+ 
+ config HAVE_ARCH_MMAP_RND_COMPAT_BITS
+ 	bool
+@@ -560,9 +560,13 @@ config ARCH_MMAP_RND_COMPAT_BITS_MIN
  config ARCH_MMAP_RND_COMPAT_BITS_MAX
-diff -puN arch/arm64/mm/mmap.c~arm64-mm-support-arch_mmap_rnd_bits-v4 arch/arm64/mm/mmap.c
---- a/arch/arm64/mm/mmap.c~arm64-mm-support-arch_mmap_rnd_bits-v4
-+++ a/arch/arm64/mm/mmap.c
-@@ -51,9 +51,11 @@ unsigned long arch_mmap_rnd(void)
- {
- 	unsigned long rnd;
+ 	int
  
-+ifdef CONFIG_COMPAT
- 	if (test_thread_flag(TIF_32BIT))
- 		rnd = (unsigned long)get_random_int() % (1 << mmap_rnd_compat_bits);
- 	else
-+#endif
- 		rnd = (unsigned long)get_random_int() % (1 << mmap_rnd_bits);
- 	return rnd << PAGE_SHIFT;
- }
++config ARCH_MMAP_RND_COMPAT_BITS_DEFAULT
++	int
++
+ config ARCH_MMAP_RND_COMPAT_BITS
+ 	int "Number of bits to use for ASLR of mmap base address for compatible applications" if EXPERT
+ 	range ARCH_MMAP_RND_COMPAT_BITS_MIN ARCH_MMAP_RND_COMPAT_BITS_MAX
++	default ARCH_MMAP_RND_COMPAT_BITS_DEFAULT if ARCH_MMAP_RND_COMPAT_BITS_DEFAULT
+ 	default ARCH_MMAP_RND_COMPAT_BITS_MIN
+ 	depends on HAVE_ARCH_MMAP_RND_COMPAT_BITS
+ 	help
+@@ -573,7 +577,7 @@ config ARCH_MMAP_RND_COMPAT_BITS
+ 	  supported values.
+ 
+ 	  This value can be changed after boot using the
+-	  /proc/sys/kernel/mmap_rnd_compat_bits tunable
++	  /proc/sys/vm/mmap_rnd_compat_bits tunable
+ 
+ config HAVE_COPY_THREAD_TLS
+ 	bool
+diff -puN include/linux/mm.h~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4 include/linux/mm.h
+--- a/include/linux/mm.h~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4
++++ a/include/linux/mm.h
+@@ -52,14 +52,14 @@ extern int sysctl_legacy_va_layout;
+ #endif
+ 
+ #ifdef CONFIG_HAVE_ARCH_MMAP_RND_BITS
+-extern int mmap_rnd_bits_min;
+-extern int mmap_rnd_bits_max;
+-extern int mmap_rnd_bits;
++extern const int mmap_rnd_bits_min;
++extern const int mmap_rnd_bits_max;
++extern int mmap_rnd_bits __read_mostly;
+ #endif
+ #ifdef CONFIG_HAVE_ARCH_MMAP_RND_COMPAT_BITS
+-extern int mmap_rnd_compat_bits_min;
+-extern int mmap_rnd_compat_bits_max;
+-extern int mmap_rnd_compat_bits;
++extern const int mmap_rnd_compat_bits_min;
++extern const int mmap_rnd_compat_bits_max;
++extern int mmap_rnd_compat_bits __read_mostly;
+ #endif
+ 
+ #include <asm/page.h>
+diff -puN kernel/sysctl.c~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4 kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4
++++ a/kernel/sysctl.c
+@@ -1573,10 +1573,10 @@ static struct ctl_table vm_table[] = {
+ 		.procname	= "mmap_rnd_bits",
+ 		.data		= &mmap_rnd_bits,
+ 		.maxlen		= sizeof(mmap_rnd_bits),
+-		.mode		= 0644,
++		.mode		= 0600,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= &mmap_rnd_bits_min,
+-		.extra2		= &mmap_rnd_bits_max,
++		.extra1		= (void *) &mmap_rnd_bits_min,
++		.extra2		= (void *) &mmap_rnd_bits_max,
+ 	},
+ #endif
+ #ifdef CONFIG_HAVE_ARCH_MMAP_RND_COMPAT_BITS
+@@ -1584,10 +1584,10 @@ static struct ctl_table vm_table[] = {
+ 		.procname	= "mmap_rnd_compat_bits",
+ 		.data		= &mmap_rnd_compat_bits,
+ 		.maxlen		= sizeof(mmap_rnd_compat_bits),
+-		.mode		= 0644,
++		.mode		= 0600,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= &mmap_rnd_compat_bits_min,
+-		.extra2		= &mmap_rnd_compat_bits_max,
++		.extra1		= (void *) &mmap_rnd_compat_bits_min,
++		.extra2		= (void *) &mmap_rnd_compat_bits_max,
+ 	},
+ #endif
+ 	{ }
+diff -puN mm/mmap.c~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4 mm/mmap.c
+--- a/mm/mmap.c~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4
++++ a/mm/mmap.c
+@@ -59,14 +59,14 @@
+ #endif
+ 
+ #ifdef CONFIG_HAVE_ARCH_MMAP_RND_BITS
+-int mmap_rnd_bits_min = CONFIG_ARCH_MMAP_RND_BITS_MIN;
+-int mmap_rnd_bits_max = CONFIG_ARCH_MMAP_RND_BITS_MAX;
+-int mmap_rnd_bits = CONFIG_ARCH_MMAP_RND_BITS;
++const int mmap_rnd_bits_min = CONFIG_ARCH_MMAP_RND_BITS_MIN;
++const int mmap_rnd_bits_max = CONFIG_ARCH_MMAP_RND_BITS_MAX;
++int mmap_rnd_bits __read_mostly = CONFIG_ARCH_MMAP_RND_BITS;
+ #endif
+ #ifdef CONFIG_HAVE_ARCH_MMAP_RND_COMPAT_BITS
+-int mmap_rnd_compat_bits_min = CONFIG_ARCH_MMAP_RND_COMPAT_BITS_MIN;
+-int mmap_rnd_compat_bits_max = CONFIG_ARCH_MMAP_RND_COMPAT_BITS_MAX;
+-int mmap_rnd_compat_bits = CONFIG_ARCH_MMAP_RND_COMPAT_BITS;
++const int mmap_rnd_compat_bits_min = CONFIG_ARCH_MMAP_RND_COMPAT_BITS_MIN;
++const int mmap_rnd_compat_bits_max = CONFIG_ARCH_MMAP_RND_COMPAT_BITS_MAX;
++int mmap_rnd_compat_bits __read_mostly = CONFIG_ARCH_MMAP_RND_COMPAT_BITS;
+ #endif
+ 
+ 
 _
 
 Patches currently in -mm which might be from dcashman@android.com are
