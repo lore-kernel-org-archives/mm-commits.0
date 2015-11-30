@@ -1,208 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-allow-gfp_iofs-for-page_cache_read-page-cache-allocation.patch added to
- -mm tree
-Date: Mon, 30 Nov 2015 15:35:54 -0800
-Message-ID: <565cdd5a.fcfh55EV/DmwqlBS%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-fix.patch removed from -mm
+ tree
+Date: Mon, 30 Nov 2015 15:54:34 -0800
+Message-ID: <565ce1ba.4wR61SRRZfOf14rG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34894 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35396 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755310AbbK3Xfz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Nov 2015 18:35:55 -0500
+	with ESMTP id S1755075AbbK3Xyf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Nov 2015 18:54:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, david@fromorbit.com, jack@suse.com, mfasheh@suse.com, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, benh@kernel.crashing.org, bp@suse.de, catalin.marinas@arm.com, corbet@lwn.net, dcashman@google.com, dzickus@redhat.com, ebiederm@xmission.com, hecmargi@upv.es, hpa@zytor.com, jeffv@google.com, jpoimboe@redhat.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, linux@arm.linux.org.uk, mgorman@suse.de, mingo@kernel.org, n-horiguchi@ah.jp.nec.com, nnk@google.com, ralf@linux-mips.org, rientjes@google.com, salyzyn@android.com, tglx@linutronix.de, will.deacon@arm.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: allow GFP_{FS,IO} for page_cache_read page cache allocation
-has been added to the -mm tree.  Its filename is
-     mm-allow-gfp_iofs-for-page_cache_read-page-cache-allocation.patch
+     Subject: mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-fix
+has been removed from the -mm tree.  Its filename was
+     mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-allow-gfp_iofs-for-page_cache_read-page-cache-allocation.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-allow-gfp_iofs-for-page_cache_read-page-cache-allocation.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: allow GFP_{FS,IO} for page_cache_read page cache allocation
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-fix
 
-page_cache_read has been historically using page_cache_alloc_cold to
-allocate a new page.  This means that mapping_gfp_mask is used as the base
-for the gfp_mask.  Many filesystems are setting this mask to GFP_NOFS to
-prevent from fs recursion issues.  page_cache_read is called from the
-vm_operations_struct::fault() context during the page fault.  This context
-doesn't need the reclaim protection normally.
+switch the /proc/sys/kernel/ tunables to 0600
 
-ceph and ocfs2 which call filemap_fault from their fault handlers seem to
-be OK because they are not taking any fs lock before invoking generic
-implementation.  xfs which takes XFS_MMAPLOCK_SHARED is safe from the
-reclaim recursion POV because this lock serializes truncate and punch hole
-with the page faults and it doesn't get involved in the reclaim.
-
-There is simply no reason to deliberately use a weaker allocation context
-when a __GFP_FS | __GFP_IO can be used.  The GFP_NOFS protection might be
-even harmful.  There is a push to fail GFP_NOFS allocations rather than
-loop within allocator indefinitely with a very limited reclaim ability. 
-Once we start failing those requests the OOM killer might be triggered
-prematurely because the page cache allocation failure is propagated up the
-page fault path and end up in pagefault_out_of_memory.
-
-We cannot play with mapping_gfp_mask directly because that would be racy
-wrt.  parallel page faults and it might interfere with other users who
-really rely on NOFS semantic from the stored gfp_mask.  The mask is also
-inode proper so it would even be a layering violation.  What we can do
-instead is to push the gfp_mask into struct vm_fault and allow fs layer to
-overwrite it should the callback need to be called with a different
-allocation context.
-
-Initialize the default to (mapping_gfp_mask | __GFP_FS | __GFP_IO) because
-this should be safe from the page fault path normally.  Why do we care
-about mapping_gfp_mask at all then?  Because this doesn't hold only
-reclaim protection flags but it also might contain zone and movability
-restrictions (GFP_DMA32, __GFP_MOVABLE and others) so we have to respect
-those.
-
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Jan Kara <jack@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Daniel Cashman <dcashman@google.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Hector Marco-Gisbert <hecmargi@upv.es>
+Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jeff Vander Stoep <jeffv@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mark Salyzyn <salyzyn@android.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Nick Kralevich <nnk@google.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 ++++
- mm/filemap.c       |    9 ++++-----
- mm/memory.c        |   17 +++++++++++++++++
- 3 files changed, 25 insertions(+), 5 deletions(-)
+ kernel/sysctl.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~mm-allow-gfp_iofs-for-page_cache_read-page-cache-allocation include/linux/mm.h
---- a/include/linux/mm.h~mm-allow-gfp_iofs-for-page_cache_read-page-cache-allocation
-+++ a/include/linux/mm.h
-@@ -236,10 +236,14 @@ extern pgprot_t protection_map[16];
-  * ->fault function. The vma's ->fault is responsible for returning a bitmask
-  * of VM_FAULT_xxx flags that give details about how the fault was handled.
-  *
-+ * MM layer fills up gfp_mask for page allocations but fault handler might
-+ * alter it if its implementation requires a different allocation context.
-+ *
-  * pgoff should be used in favour of virtual_address, if possible.
-  */
- struct vm_fault {
- 	unsigned int flags;		/* FAULT_FLAG_xxx flags */
-+	gfp_t gfp_mask;			/* gfp mask to be used for allocations */
- 	pgoff_t pgoff;			/* Logical page offset based on vma */
- 	void __user *virtual_address;	/* Faulting virtual address */
- 
-diff -puN mm/filemap.c~mm-allow-gfp_iofs-for-page_cache_read-page-cache-allocation mm/filemap.c
---- a/mm/filemap.c~mm-allow-gfp_iofs-for-page_cache_read-page-cache-allocation
-+++ a/mm/filemap.c
-@@ -1812,19 +1812,18 @@ EXPORT_SYMBOL(generic_file_read_iter);
-  * This adds the requested page to the page cache if it isn't already there,
-  * and schedules an I/O to read in its contents from disk.
-  */
--static int page_cache_read(struct file *file, pgoff_t offset)
-+static int page_cache_read(struct file *file, pgoff_t offset, gfp_t gfp_mask)
- {
- 	struct address_space *mapping = file->f_mapping;
- 	struct page *page;
- 	int ret;
- 
- 	do {
--		page = page_cache_alloc_cold(mapping);
-+		page = __page_cache_alloc(gfp_mask|__GFP_COLD);
- 		if (!page)
- 			return -ENOMEM;
- 
--		ret = add_to_page_cache_lru(page, mapping, offset,
--				mapping_gfp_constraint(mapping, GFP_KERNEL));
-+		ret = add_to_page_cache_lru(page, mapping, offset, gfp_mask & GFP_KERNEL);
- 		if (ret == 0)
- 			ret = mapping->a_ops->readpage(file, page);
- 		else if (ret == -EEXIST)
-@@ -2005,7 +2004,7 @@ no_cached_page:
- 	 * We're only likely to ever get here if MADV_RANDOM is in
- 	 * effect.
- 	 */
--	error = page_cache_read(file, offset);
-+	error = page_cache_read(file, offset, vmf->gfp_mask);
- 
- 	/*
- 	 * The page we want has now been added to the page cache.
-diff -puN mm/memory.c~mm-allow-gfp_iofs-for-page_cache_read-page-cache-allocation mm/memory.c
---- a/mm/memory.c~mm-allow-gfp_iofs-for-page_cache_read-page-cache-allocation
-+++ a/mm/memory.c
-@@ -1938,6 +1938,20 @@ static inline void cow_user_page(struct
- 		copy_user_highpage(dst, src, va, vma);
- }
- 
-+static gfp_t __get_fault_gfp_mask(struct vm_area_struct *vma)
-+{
-+	struct file *vm_file = vma->vm_file;
-+
-+	if (vm_file)
-+		return mapping_gfp_mask(vm_file->f_mapping) | __GFP_FS | __GFP_IO;
-+
-+	/*
-+	 * Special mappings (e.g. VDSO) do not have any file so fake
-+	 * a default GFP_KERNEL for them.
-+	 */
-+	return GFP_KERNEL;
-+}
-+
- /*
-  * Notify the address space that the page is about to become writable so that
-  * it can prohibit this or wait for the page to get into an appropriate state.
-@@ -1953,6 +1967,7 @@ static int do_page_mkwrite(struct vm_are
- 	vmf.virtual_address = (void __user *)(address & PAGE_MASK);
- 	vmf.pgoff = page->index;
- 	vmf.flags = FAULT_FLAG_WRITE|FAULT_FLAG_MKWRITE;
-+	vmf.gfp_mask = __get_fault_gfp_mask(vma);
- 	vmf.page = page;
- 	vmf.cow_page = NULL;
- 
-@@ -2757,6 +2772,7 @@ static int __do_fault(struct vm_area_str
- 	vmf.pgoff = pgoff;
- 	vmf.flags = flags;
- 	vmf.page = NULL;
-+	vmf.gfp_mask = __get_fault_gfp_mask(vma);
- 	vmf.cow_page = cow_page;
- 
- 	ret = vma->vm_ops->fault(vma, &vmf);
-@@ -2923,6 +2939,7 @@ static void do_fault_around(struct vm_ar
- 	vmf.pgoff = pgoff;
- 	vmf.max_pgoff = max_pgoff;
- 	vmf.flags = flags;
-+	vmf.gfp_mask = __get_fault_gfp_mask(vma);
- 	vma->vm_ops->map_pages(vma, &vmf);
- }
- 
+diff -puN kernel/sysctl.c~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-fix
++++ a/kernel/sysctl.c
+@@ -1573,7 +1573,7 @@ static struct ctl_table vm_table[] = {
+ 		.procname	= "mmap_rnd_bits",
+ 		.data		= &mmap_rnd_bits,
+ 		.maxlen		= sizeof(mmap_rnd_bits),
+-		.mode		= 0644,
++		.mode		= 0600,
+ 		.proc_handler	= proc_dointvec_minmax,
+ 		.extra1		= &mmap_rnd_bits_min,
+ 		.extra2		= &mmap_rnd_bits_max,
+@@ -1584,7 +1584,7 @@ static struct ctl_table vm_table[] = {
+ 		.procname	= "mmap_rnd_compat_bits",
+ 		.data		= &mmap_rnd_compat_bits,
+ 		.maxlen		= sizeof(mmap_rnd_compat_bits),
+-		.mode		= 0644,
++		.mode		= 0600,
+ 		.proc_handler	= proc_dointvec_minmax,
+ 		.extra1		= &mmap_rnd_compat_bits_min,
+ 		.extra2		= &mmap_rnd_compat_bits_max,
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmstat-allow-wq-concurrency-to-discover-memory-reclaim-doesnt-make-any-progress.patch
-mm-get-rid-of-__alloc_pages_high_priority.patch
-mm-do-not-loop-over-alloc_no_watermarks-without-triggering-reclaim.patch
-mm-vmscan-consider-isolated-pages-in-zone_reclaimable_pages.patch
-mm-allow-gfp_iofs-for-page_cache_read-page-cache-allocation.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm.patch
+account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
+mm-zonelist-enumerate-zonelists-array-index-fix.patch
+mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
+mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4-fix.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
