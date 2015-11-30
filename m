@@ -1,85 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged] vfs-make-sendfile2-killable-even-better.patch removed
- from -mm tree
-Date: Mon, 30 Nov 2015 12:34:47 -0800
-Message-ID: <565cb2e7.9UB127LLKE08K552%akpm__512.675863183354$1448915708$gmane$org@linux-foundation.org>
+Subject: [merged] adfs-constify-adfs_dir_ops-structures.patch removed from -mm tree
+Date: Mon, 30 Nov 2015 12:34:52 -0800
+Message-ID: <565cb2ec.vS9N+Blr09rUEqzE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55972 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56004 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752040AbbK3Ues (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Nov 2015 15:34:48 -0500
+	with ESMTP id S1752040AbbK3Uew (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Nov 2015 15:34:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, dvyukov@google.com, stable@vger.kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: Julia.Lawall@lip6.fr, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vfs: make sendfile(2) killable even better
+     Subject: adfs: constify adfs_dir_ops structures
 has been removed from the -mm tree.  Its filename was
-     vfs-make-sendfile2-killable-even-better.patch
+     adfs-constify-adfs_dir_ops-structures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: vfs: make sendfile(2) killable even better
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: adfs: constify adfs_dir_ops structures
 
-Commit 296291cdd162 ("mm: make sendfile(2) killable") fixed an issue where
-sendfile(2) was doing a lot of tiny writes into a filesystem and thus was
-unkillable for a long time.  However sendfile(2) can be (mis)used to issue
-lots of writes into arbitrary file descriptor such as eventfd or similar
-special file descriptors which never hit the standard filesystem write
-path and thus are still unkillable.  E.g.  the following example from
-Dmitry burns CPU for ~16s on my test system without possibility to be
-killed:
+The adfs_dir_ops structures are never modified, so declare them as const.
 
-        int r1 = eventfd(0, 0);
-        int r2 = memfd_create("", 0);
-        unsigned long n = 1<<30;
-        fallocate(r2, 0, 0, n);
-        sendfile(r1, r2, 0, n);
+Done with the help of Coccinelle.
 
-There are actually quite a few tests for pending signals in sendfile code
-however when data to write is always available none of them seems to
-trigger.  So fix the problem by adding a test for pending signal into
-splice_from_pipe_next() also before the loop waiting for pipe buffers to
-be available.  This should fix all the lockup issues with sendfile of the
-do-ton-of-tiny-writes nature.
-
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Tested-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/splice.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ fs/adfs/adfs.h      |    6 +++---
+ fs/adfs/dir.c       |    6 +++---
+ fs/adfs/dir_f.c     |    2 +-
+ fs/adfs/dir_fplus.c |    2 +-
+ 4 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN fs/splice.c~vfs-make-sendfile2-killable-even-better fs/splice.c
---- a/fs/splice.c~vfs-make-sendfile2-killable-even-better
-+++ a/fs/splice.c
-@@ -809,6 +809,13 @@ static int splice_from_pipe_feed(struct
-  */
- static int splice_from_pipe_next(struct pipe_inode_info *pipe, struct splice_desc *sd)
+diff -puN fs/adfs/adfs.h~adfs-constify-adfs_dir_ops-structures fs/adfs/adfs.h
+--- a/fs/adfs/adfs.h~adfs-constify-adfs_dir_ops-structures
++++ a/fs/adfs/adfs.h
+@@ -45,7 +45,7 @@ struct adfs_dir_ops;
+ struct adfs_sb_info {
+ 	union { struct {
+ 		struct adfs_discmap *s_map;	/* bh list containing map	 */
+-		struct adfs_dir_ops *s_dir;	/* directory operations		 */
++		const struct adfs_dir_ops *s_dir; /* directory operations	 */
+ 		};
+ 		struct rcu_head rcu;		/* used only at shutdown time	 */
+ 	};
+@@ -168,8 +168,8 @@ void __adfs_error(struct super_block *sb
+ extern const struct inode_operations adfs_dir_inode_operations;
+ extern const struct file_operations adfs_dir_operations;
+ extern const struct dentry_operations adfs_dentry_operations;
+-extern struct adfs_dir_ops adfs_f_dir_ops;
+-extern struct adfs_dir_ops adfs_fplus_dir_ops;
++extern const struct adfs_dir_ops adfs_f_dir_ops;
++extern const struct adfs_dir_ops adfs_fplus_dir_ops;
+ 
+ extern int adfs_dir_update(struct super_block *sb, struct object_info *obj,
+ 			   int wait);
+diff -puN fs/adfs/dir.c~adfs-constify-adfs_dir_ops-structures fs/adfs/dir.c
+--- a/fs/adfs/dir.c~adfs-constify-adfs_dir_ops-structures
++++ a/fs/adfs/dir.c
+@@ -21,7 +21,7 @@ adfs_readdir(struct file *file, struct d
  {
-+	/*
-+	 * Check for signal early to make process killable when there are
-+	 * always buffers available
-+	 */
-+	if (signal_pending(current))
-+		return -ERESTARTSYS;
-+
- 	while (!pipe->nrbufs) {
- 		if (!pipe->writers)
- 			return 0;
+ 	struct inode *inode = file_inode(file);
+ 	struct super_block *sb = inode->i_sb;
+-	struct adfs_dir_ops *ops = ADFS_SB(sb)->s_dir;
++	const struct adfs_dir_ops *ops = ADFS_SB(sb)->s_dir;
+ 	struct object_info obj;
+ 	struct adfs_dir dir;
+ 	int ret = 0;
+@@ -69,7 +69,7 @@ adfs_dir_update(struct super_block *sb,
+ {
+ 	int ret = -EINVAL;
+ #ifdef CONFIG_ADFS_FS_RW
+-	struct adfs_dir_ops *ops = ADFS_SB(sb)->s_dir;
++	const struct adfs_dir_ops *ops = ADFS_SB(sb)->s_dir;
+ 	struct adfs_dir dir;
+ 
+ 	printk(KERN_INFO "adfs_dir_update: object %06X in dir %06X\n",
+@@ -129,7 +129,7 @@ static int
+ adfs_dir_lookup_byname(struct inode *inode, struct qstr *name, struct object_info *obj)
+ {
+ 	struct super_block *sb = inode->i_sb;
+-	struct adfs_dir_ops *ops = ADFS_SB(sb)->s_dir;
++	const struct adfs_dir_ops *ops = ADFS_SB(sb)->s_dir;
+ 	struct adfs_dir dir;
+ 	int ret;
+ 
+diff -puN fs/adfs/dir_f.c~adfs-constify-adfs_dir_ops-structures fs/adfs/dir_f.c
+--- a/fs/adfs/dir_f.c~adfs-constify-adfs_dir_ops-structures
++++ a/fs/adfs/dir_f.c
+@@ -476,7 +476,7 @@ adfs_f_free(struct adfs_dir *dir)
+ 	dir->sb = NULL;
+ }
+ 
+-struct adfs_dir_ops adfs_f_dir_ops = {
++const struct adfs_dir_ops adfs_f_dir_ops = {
+ 	.read		= adfs_f_read,
+ 	.setpos		= adfs_f_setpos,
+ 	.getnext	= adfs_f_getnext,
+diff -puN fs/adfs/dir_fplus.c~adfs-constify-adfs_dir_ops-structures fs/adfs/dir_fplus.c
+--- a/fs/adfs/dir_fplus.c~adfs-constify-adfs_dir_ops-structures
++++ a/fs/adfs/dir_fplus.c
+@@ -256,7 +256,7 @@ adfs_fplus_free(struct adfs_dir *dir)
+ 	dir->sb = NULL;
+ }
+ 
+-struct adfs_dir_ops adfs_fplus_dir_ops = {
++const struct adfs_dir_ops adfs_fplus_dir_ops = {
+ 	.read		= adfs_fplus_read,
+ 	.setpos		= adfs_fplus_setpos,
+ 	.getnext	= adfs_fplus_getnext,
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from Julia.Lawall@lip6.fr are
 
 
