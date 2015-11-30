@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fat-allow-time_offset-to-be-upto-24-hours.patch added to -mm
- tree
-Date: Mon, 30 Nov 2015 14:26:29 -0800
-Message-ID: <565ccd15.JQfXIt9HsKDQ33Ls%akpm@linux-foundation.org>
+Subject: + fat-add-simple-validation-for-directory-inode.patch added to
+ -mm tree
+Date: Mon, 30 Nov 2015 14:40:12 -0800
+Message-ID: <565cd04c.WY/tA8BOmlNHkZQ6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59953 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59981 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754534AbbK3W0a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Nov 2015 17:26:30 -0500
+	with ESMTP id S1753839AbbK3WkM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Nov 2015 17:40:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, hirofumi@mail.parknet.co.jp, list0570@paradise.net.nz, mm-commits@vger.kernel.org
+To: hirofumi@mail.parknet.co.jp, vegard.nossum@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: allow time_offset to be up to 24 hours
+     Subject: fat: add simple validation for directory inode
 has been added to the -mm tree.  Its filename is
-     fat-allow-time_offset-to-be-upto-24-hours.patch
+     fat-add-simple-validation-for-directory-inode.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fat-allow-time_offset-to-be-upto-24-hours.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fat-add-simple-validation-for-directory-inode.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fat-allow-time_offset-to-be-upto-24-hours.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fat-add-simple-validation-for-directory-inode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,44 +39,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kara <jack@suse.cz>
-Subject: fat: allow time_offset to be up to 24 hours
+From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Subject: fat: add simple validation for directory inode
 
-Currently we limit values of time_offset mount option to be between -12
-and 12 hours.  However e.g.  zone GMT+12 can have a DST correction on top
-which makes the total time difference 13 hours.  Update the checks in
-mount option parsing to allow offset of upto 24 hours to allow for unusual
-cases.
+This detects simple corruption cases of directory, and tries to avoid
+further damage to user data.
 
-Signed-off-by: Jan Kara <jack@suse.cz>
-Reported-by: Volker Kuhlmann <list0570@paradise.net.nz>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+And performance impact of this validation should be very low, or not
+measurable.
+
+Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Reported-by: Vegard Nossum <vegard.nossum@oracle.com>
+Tested-by: Vegard Nossum <vegard.nossum@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ fs/fat/inode.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff -puN fs/fat/inode.c~fat-allow-time_offset-to-be-upto-24-hours fs/fat/inode.c
---- a/fs/fat/inode.c~fat-allow-time_offset-to-be-upto-24-hours
+diff -puN fs/fat/inode.c~fat-add-simple-validation-for-directory-inode fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-add-simple-validation-for-directory-inode
 +++ a/fs/fat/inode.c
-@@ -1146,7 +1146,12 @@ static int parse_options(struct super_bl
- 		case Opt_time_offset:
- 			if (match_int(&args[0], &option))
- 				return -EINVAL;
--			if (option < -12 * 60 || option > 12 * 60)
-+			/*
-+			 * GMT+-12 zones may have DST corrections so at least
-+			 * 13 hours difference is needed. Make the limit 24
-+			 * just in case someone invents something unusual.
-+			 */
-+			if (option < -24 * 60 || option > 24 * 60)
- 				return -EINVAL;
- 			opts->tz_set = 1;
- 			opts->time_offset = option;
+@@ -449,6 +449,24 @@ static int fat_calc_dir_size(struct inod
+ 	return 0;
+ }
+ 
++static int fat_validate_dir(struct inode *dir)
++{
++	struct super_block *sb = dir->i_sb;
++
++	if (dir->i_nlink < 2) {
++		/* Directory should have "."/".." entries at least. */
++		fat_fs_error(sb, "corrupted directory (invalid entries)");
++		return -EIO;
++	}
++	if (MSDOS_I(dir)->i_start == 0 ||
++	    MSDOS_I(dir)->i_start == MSDOS_SB(sb)->root_cluster) {
++		/* Directory should point valid cluster. */
++		fat_fs_error(sb, "corrupted directory (invalid i_start)");
++		return -EIO;
++	}
++	return 0;
++}
++
+ /* doesn't deal with root inode */
+ int fat_fill_inode(struct inode *inode, struct msdos_dir_entry *de)
+ {
+@@ -475,6 +493,10 @@ int fat_fill_inode(struct inode *inode,
+ 		MSDOS_I(inode)->mmu_private = inode->i_size;
+ 
+ 		set_nlink(inode, fat_subdirs(inode));
++
++		error = fat_validate_dir(inode);
++		if (error < 0)
++			return error;
+ 	} else { /* not a directory */
+ 		inode->i_generation |= 1;
+ 		inode->i_mode = fat_make_mode(sbi, de->attr,
 _
 
-Patches currently in -mm which might be from jack@suse.cz are
+Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
 
-fat-allow-time_offset-to-be-upto-24-hours.patch
+fat-add-simple-validation-for-directory-inode.patch
 
