@@ -1,17 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4-fix.patch
- added to -mm tree
-Date: Mon, 30 Nov 2015 15:58:20 -0800
-Message-ID: <565ce29c.H6/l8R/t5OrmpunO%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4-fix.patch removed from
+ -mm tree
+Date: Mon, 30 Nov 2015 15:59:26 -0800
+Message-ID: <565ce2de.G30GppiLjd5bh9of%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35440 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35461 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753998AbbK3X6W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Nov 2015 18:58:22 -0500
+	with ESMTP id S1753998AbbK3X72 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 30 Nov 2015 18:59:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, aarcange@redhat.com, benh@kernel.crashing.org, bp@suse.de, catalin.marinas@arm.com, corbet@lwn.net, dcashman@android.com, dzickus@redhat.com, ebiederm@xmission.com, hecmargi@upv.es, hpa@zytor.com, jeffv@google.com, jpoimboe@redhat.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, linux@arm.linux.org.uk, mgorman@suse.de, mingo@kernel.org, n-horiguchi@ah.jp.nec.com, nnk@google.com, ralf@linux-mips.org, rientjes@google.com, salyzyn@android.com, tglx@linutronix.de, will.deacon@arm.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
@@ -19,24 +20,10 @@ To: akpm@linux-foundation.org, aarcange@redhat.com, benh@kernel.crashing.org, bp
 
 The patch titled
      Subject: mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4-fix
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
@@ -117,7 +104,6 @@ mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
 mm-zonelist-enumerate-zonelists-array-index-fix.patch
 mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
 fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4-fix.patch
 page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
 mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
 mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
