@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-test_printfc-test-dentry-printing.patch added to -mm tree
-Date: Tue, 01 Dec 2015 15:39:30 -0800
-Message-ID: <565e2fb2.F7mVSVhnvdK4bCZi%akpm@linux-foundation.org>
+Subject: + lib-test_printfc-add-a-few-string-tests.patch added to -mm tree
+Date: Tue, 01 Dec 2015 15:39:24 -0800
+Message-ID: <565e2fac.xPhpeOqbX9h+cwta%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58514 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58503 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757310AbbLAXjb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:31 -0500
+	with ESMTP id S1757337AbbLAXjZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_printf.c: test dentry printing
+     Subject: lib/test_printf.c: add a few string tests
 has been added to the -mm tree.  Its filename is
-     lib-test_printfc-test-dentry-printing.patch
+     lib-test_printfc-add-a-few-string-tests.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_printfc-test-dentry-printing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_printfc-add-a-few-string-tests.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_printfc-test-dentry-printing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_printfc-add-a-few-string-tests.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/test_printf.c: test dentry printing
+Subject: lib/test_printf.c: add a few string tests
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_printf.c |   27 +++++++++++++++++++++++++++
- 1 file changed, 27 insertions(+)
+ lib/test_printf.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN lib/test_printf.c~lib-test_printfc-test-dentry-printing lib/test_printf.c
---- a/lib/test_printf.c~lib-test_printfc-test-dentry-printing
+diff -puN lib/test_printf.c~lib-test_printfc-add-a-few-string-tests lib/test_printf.c
+--- a/lib/test_printf.c~lib-test_printfc-add-a-few-string-tests
 +++ a/lib/test_printf.c
-@@ -13,6 +13,7 @@
- #include <linux/string.h>
- 
- #include <linux/bitmap.h>
-+#include <linux/dcache.h>
- #include <linux/socket.h>
- #include <linux/in.h>
- 
-@@ -297,9 +298,35 @@ uuid(void)
- 	test("03020100-0504-0706-0809-0A0B0C0D0E0F", "%pUL", uuid);
- }
- 
-+static struct dentry test_dentry[4] __initdata = {
-+	{ .d_parent = &test_dentry[0],
-+	  .d_name = { .len = 3, .name = test_dentry[0].d_iname },
-+	  .d_iname = "foo" },
-+	{ .d_parent = &test_dentry[0],
-+	  .d_name = { .len = 5, .name = test_dentry[1].d_iname },
-+	  .d_iname = "bravo" },
-+	{ .d_parent = &test_dentry[1],
-+	  .d_name = { .len = 4, .name = test_dentry[2].d_iname },
-+	  .d_iname = "alfa" },
-+	{ .d_parent = &test_dentry[2],
-+	  .d_name = { .len = 5, .name = test_dentry[3].d_iname },
-+	  .d_iname = "romeo" },
-+};
-+
- static void __init
- dentry(void)
- {
-+	test("foo", "%pd", &test_dentry[0]);
-+	test("foo", "%pd2", &test_dentry[0]);
-+
-+	test("romeo", "%pd", &test_dentry[3]);
-+	test("alfa/romeo", "%pd2", &test_dentry[3]);
-+	test("bravo/alfa/romeo", "%pd3", &test_dentry[3]);
-+	test("/bravo/alfa/romeo", "%pd4", &test_dentry[3]);
-+	test("/bravo/alfa", "%pd4", &test_dentry[2]);
-+
-+	test("bravo/alfa  |bravo/alfa  ", "%-12pd2|%*pd2", &test_dentry[2], -12, &test_dentry[2]);
-+	test("  bravo/alfa|  bravo/alfa", "%12pd2|%*pd2", &test_dentry[2], 12, &test_dentry[2]);
- }
- 
- static void __init
+@@ -166,6 +166,10 @@ test_string(void)
+ 	test("", "%s%.0s", "", "123");
+ 	test("ABCD|abc|123", "%s|%.3s|%.*s", "ABCD", "abcdef", 3, "123456");
+ 	test("1  |  2|3  |  4|5  ", "%-3s|%3s|%-*s|%*s|%*s", "1", "2", 3, "3", 3, "4", -3, "5");
++	test("1234      ", "%-10.4s", "123456");
++	test("      1234", "%10.4s", "123456");
++	/* Negative precision should be treated as 0. */
++	test("    ", "%4.*s", -5, "123456");
+ 	/*
+ 	 * POSIX and C99 say that a missing precision should be
+ 	 * treated as a precision of 0. However, the kernel's printf
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
