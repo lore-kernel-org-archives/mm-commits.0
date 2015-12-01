@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-test_printfc-dont-bug.patch added to -mm tree
-Date: Tue, 01 Dec 2015 15:39:20 -0800
-Message-ID: <565e2fa8.+eEDscEXa/0ol3f3%akpm@linux-foundation.org>
+Subject: + lib-test_printfc-add-test-for-large-bitmaps.patch added to -mm
+ tree
+Date: Tue, 01 Dec 2015 15:39:28 -0800
+Message-ID: <565e2fb0.wFGpj6M4I4TNJb6E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58496 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58513 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757337AbbLAXjV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:21 -0500
+	with ESMTP id S1757337AbbLAXj3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, keescook@chromium.org, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, keescook@chromium.org, mlombard@redhat.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_printf.c: don't BUG
+     Subject: lib/test_printf.c: add test for large bitmaps
 has been added to the -mm tree.  Its filename is
-     lib-test_printfc-dont-bug.patch
+     lib-test_printfc-add-test-for-large-bitmaps.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_printfc-dont-bug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_printfc-add-test-for-large-bitmaps.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_printfc-dont-bug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_printfc-add-test-for-large-bitmaps.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,37 +40,62 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/test_printf.c: don't BUG
+Subject: lib/test_printf.c: add test for large bitmaps
 
-BUG is a completely unnecessarily big hammer, and we're more likely to get
-the internal bug reported if we just pr_err() and ensure the test suite
-fails.
+Following "lib/vsprintf.c: expand field_width to 24 bits", let's add a
+test to see that we now actually support bitmaps with 65536 bits.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Maurizio Lombardi <mlombard@redhat.com>
 Cc: Kees Cook <keescook@chromium.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_printf.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ lib/test_printf.c |   17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
 
-diff -puN lib/test_printf.c~lib-test_printfc-dont-bug lib/test_printf.c
---- a/lib/test_printf.c~lib-test_printfc-dont-bug
+diff -puN lib/test_printf.c~lib-test_printfc-add-test-for-large-bitmaps lib/test_printf.c
+--- a/lib/test_printf.c~lib-test_printfc-add-test-for-large-bitmaps
 +++ a/lib/test_printf.c
-@@ -91,7 +91,12 @@ __test(const char *expect, int elen, con
- 	int rand;
- 	char *p;
+@@ -12,6 +12,7 @@
+ #include <linux/slab.h>
+ #include <linux/string.h>
  
--	BUG_ON(elen >= BUF_SIZE);
-+	if (elen >= BUF_SIZE) {
-+		pr_err("error in test suite: expected output length %d too long. Format was '%s'.\n",
-+		       elen, fmt);
-+		failed_tests++;
++#include <linux/bitmap.h>
+ #include <linux/socket.h>
+ #include <linux/in.h>
+ 
+@@ -312,6 +313,20 @@ struct_clk(void)
+ }
+ 
+ static void __init
++large_bitmap(void)
++{
++	const int nbits = 1 << 16;
++	unsigned long *bits = kcalloc(BITS_TO_LONGS(nbits), sizeof(long), GFP_KERNEL);
++	if (!bits)
 +		return;
-+	}
++
++	bitmap_set(bits, 1, 20);
++	bitmap_set(bits, 60000, 15);
++	test("1-20,60000-60014", "%*pbl", nbits, bits);
++	kfree(bits);
++}
++
++static void __init
+ bitmap(void)
+ {
+ 	DECLARE_BITMAP(bits, 20);
+@@ -330,6 +345,8 @@ bitmap(void)
+ 	bitmap_fill(bits, 20);
+ 	test("fffff|fffff", "%20pb|%*pb", bits, 20, bits);
+ 	test("0-19|0-19", "%20pbl|%*pbl", bits, 20, bits);
++
++	large_bitmap();
+ }
  
- 	va_start(ap, fmt);
- 
+ static void __init
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
