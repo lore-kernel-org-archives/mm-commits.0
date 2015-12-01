@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-vsprintfc-pull-out-padding-code-from-dentry_name.patch
- added to -mm tree
-Date: Tue, 01 Dec 2015 15:39:08 -0800
-Message-ID: <565e2f9c.MSJjdVcSKUfyQcrY%akpm@linux-foundation.org>
+Subject: + lib-vsprintfc-eliminate-potential-race-in-string.patch added to -mm tree
+Date: Tue, 01 Dec 2015 15:39:12 -0800
+Message-ID: <565e2fa0.dkAVvihNVv0haTmA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58477 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58484 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757503AbbLAXjJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:09 -0500
+	with ESMTP id S1757503AbbLAXjN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mingo@kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, mingo@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: pull out padding code from dentry_name()
+     Subject: lib/vsprintf.c: eliminate potential race in string()
 has been added to the -mm tree.  Its filename is
-     lib-vsprintfc-pull-out-padding-code-from-dentry_name.patch
+     lib-vsprintfc-eliminate-potential-race-in-string.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-pull-out-padding-code-from-dentry_name.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-eliminate-potential-race-in-string.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-pull-out-padding-code-from-dentry_name.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-eliminate-potential-race-in-string.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,89 +39,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: pull out padding code from dentry_name()
+Subject: lib/vsprintf.c: eliminate potential race in string()
 
-Pull out the logic in dentry_name() which handles field width space
-padding, in preparation for reusing it from string().  Rename the widen()
-helper to move_right(), since it is used for handling the !(flags & LEFT)
-case.
+If the string corresponding to a %s specifier can change under us, we
+might end up copying a \0 byte to the output buffer.  There might be
+callers who expect the output buffer to contain a genuine C string whose
+length is exactly the snprintf return value (assuming truncation hasn't
+happened or has been checked for).
+
+We can avoid this by only passing over the source string once, stopping
+the first time we meet a nul byte (or when we reach the given precision),
+and then letting widen_string() handle left/right space padding.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   46 +++++++++++++++++++++++++++++++---------------
- 1 file changed, 31 insertions(+), 15 deletions(-)
+ lib/vsprintf.c |   28 +++++++++-------------------
+ 1 file changed, 9 insertions(+), 19 deletions(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-pull-out-padding-code-from-dentry_name lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-pull-out-padding-code-from-dentry_name
+diff -puN lib/vsprintf.c~lib-vsprintfc-eliminate-potential-race-in-string lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-eliminate-potential-race-in-string
 +++ a/lib/vsprintf.c
-@@ -538,7 +538,7 @@ char *string(char *buf, char *end, const
- 	return buf;
- }
- 
--static void widen(char *buf, char *end, unsigned len, unsigned spaces)
-+static void move_right(char *buf, char *end, unsigned len, unsigned spaces)
- {
- 	size_t size;
- 	if (buf >= end)	/* nowhere to put anything */
-@@ -556,6 +556,35 @@ static void widen(char *buf, char *end,
- 	memset(buf, ' ', spaces);
- }
- 
-+/*
-+ * Handle field width padding for a string.
-+ * @buf: current buffer position
-+ * @n: length of string
-+ * @end: end of output buffer
-+ * @spec: for field width and flags
-+ * Returns: new buffer position after padding.
-+ */
-+static noinline_for_stack
-+char *widen_string(char *buf, int n, char *end, struct printf_spec spec)
-+{
-+	unsigned spaces;
-+
-+	if (likely(n >= spec.field_width))
-+		return buf;
-+	/* we want to pad the sucker */
-+	spaces = spec.field_width - n;
-+	if (!(spec.flags & LEFT)) {
-+		move_right(buf - n, end, n, spaces);
-+		return buf + spaces;
-+	}
-+	while (spaces--) {
-+		if (buf < end)
-+			*buf = ' ';
-+		++buf;
-+	}
-+	return buf;
-+}
-+
+@@ -557,32 +557,22 @@ char *widen_string(char *buf, int n, cha
  static noinline_for_stack
- char *dentry_name(char *buf, char *end, const struct dentry *d, struct printf_spec spec,
- 		  const char *fmt)
-@@ -597,20 +626,7 @@ char *dentry_name(char *buf, char *end,
- 			*buf = c;
- 	}
- 	rcu_read_unlock();
--	if (n < spec.field_width) {
--		/* we want to pad the sucker */
--		unsigned spaces = spec.field_width - n;
--		if (!(spec.flags & LEFT)) {
--			widen(buf - n, end, n, spaces);
--			return buf + spaces;
--		}
--		while (spaces--) {
+ char *string(char *buf, char *end, const char *s, struct printf_spec spec)
+ {
+-	int len, i;
++	int len = 0;
++	size_t lim = spec.precision;
+ 
+ 	if ((unsigned long)s < PAGE_SIZE)
+ 		s = "(null)";
+ 
+-	len = strnlen(s, spec.precision);
+-
+-	if (!(spec.flags & LEFT)) {
+-		while (len < spec.field_width--) {
 -			if (buf < end)
 -				*buf = ' ';
 -			++buf;
 -		}
 -	}
+-	for (i = 0; i < len; ++i) {
++	while (lim--) {
++		char c = *s++;
++		if (!c)
++			break;
+ 		if (buf < end)
+-			*buf = *s;
+-		++buf; ++s;
+-	}
+-	while (len < spec.field_width--) {
+-		if (buf < end)
+-			*buf = ' ';
++			*buf = c;
+ 		++buf;
++		++len;
+ 	}
+-
 -	return buf;
-+	return widen_string(buf, n, end, spec);
++	return widen_string(buf, len, end, spec);
  }
  
  static noinline_for_stack
