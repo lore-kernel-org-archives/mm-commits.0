@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-vsprintfc-help-gcc-make-number-smaller.patch added to -mm
- tree
-Date: Tue, 01 Dec 2015 15:39:16 -0800
-Message-ID: <565e2fa4.TDdJ1F2NJrcuTgzU%akpm@linux-foundation.org>
+Subject: + lib-test_printfc-test-dentry-printing.patch added to -mm tree
+Date: Tue, 01 Dec 2015 15:39:30 -0800
+Message-ID: <565e2fb2.F7mVSVhnvdK4bCZi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58492 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58514 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757337AbbLAXjR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:17 -0500
+	with ESMTP id S1757310AbbLAXjb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: help gcc make number() smaller
+     Subject: lib/test_printf.c: test dentry printing
 has been added to the -mm tree.  Its filename is
-     lib-vsprintfc-help-gcc-make-number-smaller.patch
+     lib-test_printfc-test-dentry-printing.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-help-gcc-make-number-smaller.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_printfc-test-dentry-printing.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-help-gcc-make-number-smaller.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_printfc-test-dentry-printing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,102 +39,63 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: help gcc make number() smaller
-
-One consequence of the reorganization of struct printf_spec to make
-field_width 24 bits was that number() gained about 180 bytes.  Since spec
-is never passed to other functions, we can help gcc make number() lose
-most of that extra weight by using local variables for the field width and
-precision.
+Subject: lib/test_printf.c: test dentry printing
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ lib/test_printf.c |   27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-help-gcc-make-number-smaller lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-help-gcc-make-number-smaller
-+++ a/lib/vsprintf.c
-@@ -399,6 +399,8 @@ char *number(char *buf, char *end, unsig
- 	int need_pfx = ((spec.flags & SPECIAL) && spec.base != 10);
- 	int i;
- 	bool is_zero = num == 0LL;
-+	int field_width = spec.field_width;
-+	int precision = spec.precision;
+diff -puN lib/test_printf.c~lib-test_printfc-test-dentry-printing lib/test_printf.c
+--- a/lib/test_printf.c~lib-test_printfc-test-dentry-printing
++++ a/lib/test_printf.c
+@@ -13,6 +13,7 @@
+ #include <linux/string.h>
  
- 	/* locase = 0 or 0x20. ORing digits or letters with 'locase'
- 	 * produces same digits or (maybe lowercased) letters */
-@@ -410,20 +412,20 @@ char *number(char *buf, char *end, unsig
- 		if ((signed long long)num < 0) {
- 			sign = '-';
- 			num = -(signed long long)num;
--			spec.field_width--;
-+			field_width--;
- 		} else if (spec.flags & PLUS) {
- 			sign = '+';
--			spec.field_width--;
-+			field_width--;
- 		} else if (spec.flags & SPACE) {
- 			sign = ' ';
--			spec.field_width--;
-+			field_width--;
- 		}
- 	}
- 	if (need_pfx) {
- 		if (spec.base == 16)
--			spec.field_width -= 2;
-+			field_width -= 2;
- 		else if (!is_zero)
--			spec.field_width--;
-+			field_width--;
- 	}
+ #include <linux/bitmap.h>
++#include <linux/dcache.h>
+ #include <linux/socket.h>
+ #include <linux/in.h>
  
- 	/* generate full string in tmp[], in reverse order */
-@@ -445,12 +447,12 @@ char *number(char *buf, char *end, unsig
- 	}
+@@ -297,9 +298,35 @@ uuid(void)
+ 	test("03020100-0504-0706-0809-0A0B0C0D0E0F", "%pUL", uuid);
+ }
  
- 	/* printing 100 using %2d gives "100", not "00" */
--	if (i > spec.precision)
--		spec.precision = i;
-+	if (i > precision)
-+		precision = i;
- 	/* leading space padding */
--	spec.field_width -= spec.precision;
-+	field_width -= precision;
- 	if (!(spec.flags & (ZEROPAD | LEFT))) {
--		while (--spec.field_width >= 0) {
-+		while (--field_width >= 0) {
- 			if (buf < end)
- 				*buf = ' ';
- 			++buf;
-@@ -479,14 +481,14 @@ char *number(char *buf, char *end, unsig
- 	if (!(spec.flags & LEFT)) {
- 		char c = ' ' + (spec.flags & ZEROPAD);
- 		BUILD_BUG_ON(' ' + ZEROPAD != '0');
--		while (--spec.field_width >= 0) {
-+		while (--field_width >= 0) {
- 			if (buf < end)
- 				*buf = c;
- 			++buf;
- 		}
- 	}
- 	/* hmm even more zero padding? */
--	while (i <= --spec.precision) {
-+	while (i <= --precision) {
- 		if (buf < end)
- 			*buf = '0';
- 		++buf;
-@@ -498,7 +500,7 @@ char *number(char *buf, char *end, unsig
- 		++buf;
- 	}
- 	/* trailing space padding */
--	while (--spec.field_width >= 0) {
-+	while (--field_width >= 0) {
- 		if (buf < end)
- 			*buf = ' ';
- 		++buf;
++static struct dentry test_dentry[4] __initdata = {
++	{ .d_parent = &test_dentry[0],
++	  .d_name = { .len = 3, .name = test_dentry[0].d_iname },
++	  .d_iname = "foo" },
++	{ .d_parent = &test_dentry[0],
++	  .d_name = { .len = 5, .name = test_dentry[1].d_iname },
++	  .d_iname = "bravo" },
++	{ .d_parent = &test_dentry[1],
++	  .d_name = { .len = 4, .name = test_dentry[2].d_iname },
++	  .d_iname = "alfa" },
++	{ .d_parent = &test_dentry[2],
++	  .d_name = { .len = 5, .name = test_dentry[3].d_iname },
++	  .d_iname = "romeo" },
++};
++
+ static void __init
+ dentry(void)
+ {
++	test("foo", "%pd", &test_dentry[0]);
++	test("foo", "%pd2", &test_dentry[0]);
++
++	test("romeo", "%pd", &test_dentry[3]);
++	test("alfa/romeo", "%pd2", &test_dentry[3]);
++	test("bravo/alfa/romeo", "%pd3", &test_dentry[3]);
++	test("/bravo/alfa/romeo", "%pd4", &test_dentry[3]);
++	test("/bravo/alfa", "%pd4", &test_dentry[2]);
++
++	test("bravo/alfa  |bravo/alfa  ", "%-12pd2|%*pd2", &test_dentry[2], -12, &test_dentry[2]);
++	test("  bravo/alfa|  bravo/alfa", "%12pd2|%*pd2", &test_dentry[2], 12, &test_dentry[2]);
+ }
+ 
+ static void __init
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
