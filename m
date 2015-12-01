@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-test_printfc-check-for-out-of-bound-writes.patch added to
- -mm tree
-Date: Tue, 01 Dec 2015 15:39:22 -0800
-Message-ID: <565e2faa.qO4+TqwyS6RV/6Py%akpm@linux-foundation.org>
+Subject: + lib-vsprintfc-expand-field_width-to-24-bits.patch added to -mm
+ tree
+Date: Tue, 01 Dec 2015 15:39:14 -0800
+Message-ID: <565e2fa2.Mxlw99tNHmYMJgc0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58491 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757337AbbLAXjX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:23 -0500
+	with ESMTP id S1757503AbbLAXjP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, keescook@chromium.org, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, joe@perches.com, mlombard@redhat.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_printf.c: check for out-of-bound writes
+     Subject: lib/vsprintf.c: expand field_width to 24 bits
 has been added to the -mm tree.  Its filename is
-     lib-test_printfc-check-for-out-of-bound-writes.patch
+     lib-vsprintfc-expand-field_width-to-24-bits.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_printfc-check-for-out-of-bound-writes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-expand-field_width-to-24-bits.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_printfc-check-for-out-of-bound-writes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-expand-field_width-to-24-bits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,96 +40,124 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/test_printf.c: check for out-of-bound writes
+Subject: lib/vsprintf.c: expand field_width to 24 bits
 
-Add a few padding bytes on either side of the test buffer, and check that
-these (and the part of the buffer not used) are untouched by vsnprintf.
+Maurizio Lombardi reported a problem [1] with the %pb extension: It
+doesn't work for sufficiently large bitmaps, since the size is stashed in
+the field_width field of the struct printf_spec, which is currently an
+s16.  Concretely, this manifested itself in
+/sys/bus/pseudo/drivers/scsi_debug/map being empty, since the bitmap
+printer got a size of 0, which is the 16 bit truncation of the actual
+bitmap size.
+
+We do want to keep struct printf_spec at 8 bytes so that it can cheaply be
+passed by value.  The qualifier field is only used for internal
+bookkeeping in format_decode, so we might as well use a local variable for
+that.  This gives us an additional 8 bits, which we can then use for the
+field width.
+
+To stay in 8 bytes, we need to do a little rearranging and make the type
+member a bitfield as well.  For consistency, change all the members to bit
+fields.  gcc doesn't generate much worse code with these changes (in fact,
+bloat-o-meter says we save 300 bytes - which I think is a little
+surprising).
+
+I didn't find a BUILD_BUG/compiletime_assertion/... which would work
+outside function context, so for now I just open-coded it.
+
+[1] http://thread.gmane.org/gmane.linux.kernel/2034835
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Kees Cook <keescook@chromium.org>
+Reported-by: Maurizio Lombardi <mlombard@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_printf.c |   24 +++++++++++++++++++-----
- 1 file changed, 19 insertions(+), 5 deletions(-)
+ lib/vsprintf.c |   39 ++++++++++++++++++++-------------------
+ 1 file changed, 20 insertions(+), 19 deletions(-)
 
-diff -puN lib/test_printf.c~lib-test_printfc-check-for-out-of-bound-writes lib/test_printf.c
---- a/lib/test_printf.c~lib-test_printfc-check-for-out-of-bound-writes
-+++ a/lib/test_printf.c
-@@ -16,6 +16,7 @@
- #include <linux/in.h>
+diff -puN lib/vsprintf.c~lib-vsprintfc-expand-field_width-to-24-bits lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-expand-field_width-to-24-bits
++++ a/lib/vsprintf.c
+@@ -380,13 +380,13 @@ enum format_type {
+ };
  
- #define BUF_SIZE 256
-+#define PAD_SIZE 16
- #define FILL_CHAR '$'
+ struct printf_spec {
+-	u8	type;		/* format_type enum */
+-	u8	flags;		/* flags to number() */
+-	u8	base;		/* number base, 8, 10 or 16 only */
+-	u8	qualifier;	/* number qualifier, one of 'hHlLtzZ' */
+-	s16	field_width;	/* width of output field */
+-	s16	precision;	/* # of digits/chars */
++	unsigned int	type:8;		/* format_type enum */
++	signed int	field_width:24;	/* width of output field */
++	unsigned int	flags:8;	/* flags to number() */
++	unsigned int	base:8;		/* number base, 8, 10 or 16 only */
++	signed int	precision:16;	/* # of digits/chars */
+ };
++extern char __check_printf_spec[1-2*(sizeof(struct printf_spec) != 8)];
  
- #define PTR1 ((void*)0x01234567)
-@@ -39,6 +40,7 @@
- static unsigned total_tests __initdata;
- static unsigned failed_tests __initdata;
- static char *test_buffer __initdata;
-+static char *alloced_buffer __initdata;
- 
- static int __printf(4, 0) __init
- do_test(int bufsize, const char *expect, int elen,
-@@ -49,7 +51,7 @@ do_test(int bufsize, const char *expect,
- 
- 	total_tests++;
- 
--	memset(test_buffer, FILL_CHAR, BUF_SIZE);
-+	memset(alloced_buffer, FILL_CHAR, BUF_SIZE + 2*PAD_SIZE);
- 	va_copy(aq, ap);
- 	ret = vsnprintf(test_buffer, bufsize, fmt, aq);
- 	va_end(aq);
-@@ -60,8 +62,13 @@ do_test(int bufsize, const char *expect,
- 		return 1;
- 	}
- 
-+	if (memchr_inv(alloced_buffer, FILL_CHAR, PAD_SIZE)) {
-+		pr_warn("vsnprintf(buf, %d, \"%s\", ...) wrote before buffer\n", bufsize, fmt);
-+		return 1;
-+	}
-+
- 	if (!bufsize) {
--		if (memchr_inv(test_buffer, FILL_CHAR, BUF_SIZE)) {
-+		if (memchr_inv(test_buffer, FILL_CHAR, BUF_SIZE + PAD_SIZE)) {
- 			pr_warn("vsnprintf(buf, 0, \"%s\", ...) wrote to buffer\n",
- 				fmt);
- 			return 1;
-@@ -76,6 +83,12 @@ do_test(int bufsize, const char *expect,
- 		return 1;
- 	}
- 
-+	if (memchr_inv(test_buffer + written + 1, FILL_CHAR, BUF_SIZE + PAD_SIZE - (written + 1))) {
-+		pr_warn("vsnprintf(buf, %d, \"%s\", ...) wrote beyond the nul-terminator\n",
-+			bufsize, fmt);
-+		return 1;
-+	}
-+
- 	if (memcmp(test_buffer, expect, written)) {
- 		pr_warn("vsnprintf(buf, %d, \"%s\", ...) wrote '%s', expected '%.*s'\n",
- 			bufsize, fmt, test_buffer, written, expect);
-@@ -342,16 +355,17 @@ test_pointer(void)
- static int __init
- test_printf_init(void)
+ static noinline_for_stack
+ char *number(char *buf, char *end, unsigned long long num,
+@@ -1641,6 +1641,7 @@ static noinline_for_stack
+ int format_decode(const char *fmt, struct printf_spec *spec)
  {
--	test_buffer = kmalloc(BUF_SIZE, GFP_KERNEL);
--	if (!test_buffer)
-+	alloced_buffer = kmalloc(BUF_SIZE + 2*PAD_SIZE, GFP_KERNEL);
-+	if (!alloced_buffer)
- 		return -ENOMEM;
-+	test_buffer = alloced_buffer + PAD_SIZE;
+ 	const char *start = fmt;
++	char qualifier;
  
- 	test_basic();
- 	test_number();
- 	test_string();
- 	test_pointer();
+ 	/* we finished early by reading the field width */
+ 	if (spec->type == FORMAT_TYPE_WIDTH) {
+@@ -1723,16 +1724,16 @@ precision:
  
--	kfree(test_buffer);
-+	kfree(alloced_buffer);
+ qualifier:
+ 	/* get the conversion qualifier */
+-	spec->qualifier = -1;
++	qualifier = 0;
+ 	if (*fmt == 'h' || _tolower(*fmt) == 'l' ||
+ 	    _tolower(*fmt) == 'z' || *fmt == 't') {
+-		spec->qualifier = *fmt++;
+-		if (unlikely(spec->qualifier == *fmt)) {
+-			if (spec->qualifier == 'l') {
+-				spec->qualifier = 'L';
++		qualifier = *fmt++;
++		if (unlikely(qualifier == *fmt)) {
++			if (qualifier == 'l') {
++				qualifier = 'L';
+ 				++fmt;
+-			} else if (spec->qualifier == 'h') {
+-				spec->qualifier = 'H';
++			} else if (qualifier == 'h') {
++				qualifier = 'H';
+ 				++fmt;
+ 			}
+ 		}
+@@ -1789,19 +1790,19 @@ qualifier:
+ 		return fmt - start;
+ 	}
  
- 	if (failed_tests == 0)
- 		pr_info("all %u tests passed\n", total_tests);
+-	if (spec->qualifier == 'L')
++	if (qualifier == 'L')
+ 		spec->type = FORMAT_TYPE_LONG_LONG;
+-	else if (spec->qualifier == 'l') {
++	else if (qualifier == 'l') {
+ 		BUILD_BUG_ON(FORMAT_TYPE_ULONG + SIGN != FORMAT_TYPE_LONG);
+ 		spec->type = FORMAT_TYPE_ULONG + (spec->flags & SIGN);
+-	} else if (_tolower(spec->qualifier) == 'z') {
++	} else if (_tolower(qualifier) == 'z') {
+ 		spec->type = FORMAT_TYPE_SIZE_T;
+-	} else if (spec->qualifier == 't') {
++	} else if (qualifier == 't') {
+ 		spec->type = FORMAT_TYPE_PTRDIFF;
+-	} else if (spec->qualifier == 'H') {
++	} else if (qualifier == 'H') {
+ 		BUILD_BUG_ON(FORMAT_TYPE_UBYTE + SIGN != FORMAT_TYPE_BYTE);
+ 		spec->type = FORMAT_TYPE_UBYTE + (spec->flags & SIGN);
+-	} else if (spec->qualifier == 'h') {
++	} else if (qualifier == 'h') {
+ 		BUILD_BUG_ON(FORMAT_TYPE_USHORT + SIGN != FORMAT_TYPE_SHORT);
+ 		spec->type = FORMAT_TYPE_USHORT + (spec->flags & SIGN);
+ 	} else {
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
