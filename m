@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-vsprintfc-eliminate-potential-race-in-string.patch added to -mm tree
-Date: Tue, 01 Dec 2015 15:39:12 -0800
-Message-ID: <565e2fa0.dkAVvihNVv0haTmA%akpm@linux-foundation.org>
+Subject: + lib-vsprintfc-move-string-below-widen_string.patch added to -mm tree
+Date: Tue, 01 Dec 2015 15:39:10 -0800
+Message-ID: <565e2f9e.MQrnzkCGSYvRfgAV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58484 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58481 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757503AbbLAXjN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:13 -0500
+	with ESMTP id S1757337AbbLAXjL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mingo@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: eliminate potential race in string()
+     Subject: lib/vsprintf.c: move string() below widen_string()
 has been added to the -mm tree.  Its filename is
-     lib-vsprintfc-eliminate-potential-race-in-string.patch
+     lib-vsprintfc-move-string-below-widen_string.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-eliminate-potential-race-in-string.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-move-string-below-widen_string.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-eliminate-potential-race-in-string.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-move-string-below-widen_string.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,40 +39,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: eliminate potential race in string()
+Subject: lib/vsprintf.c: move string() below widen_string()
 
-If the string corresponding to a %s specifier can change under us, we
-might end up copying a \0 byte to the output buffer.  There might be
-callers who expect the output buffer to contain a genuine C string whose
-length is exactly the snprintf return value (assuming truncation hasn't
-happened or has been checked for).
-
-We can avoid this by only passing over the source string once, stopping
-the first time we meet a nul byte (or when we reach the given precision),
-and then letting widen_string() handle left/right space padding.
+This is pure code movement, making sure the widen_string() helper is
+defined before the string() function.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   28 +++++++++-------------------
- 1 file changed, 9 insertions(+), 19 deletions(-)
+ lib/vsprintf.c |   62 +++++++++++++++++++++++------------------------
+ 1 file changed, 31 insertions(+), 31 deletions(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-eliminate-potential-race-in-string lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-eliminate-potential-race-in-string
+diff -puN lib/vsprintf.c~lib-vsprintfc-move-string-below-widen_string lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-move-string-below-widen_string
 +++ a/lib/vsprintf.c
-@@ -557,32 +557,22 @@ char *widen_string(char *buf, int n, cha
- static noinline_for_stack
- char *string(char *buf, char *end, const char *s, struct printf_spec spec)
- {
+@@ -507,37 +507,6 @@ char *number(char *buf, char *end, unsig
+ 	return buf;
+ }
+ 
+-static noinline_for_stack
+-char *string(char *buf, char *end, const char *s, struct printf_spec spec)
+-{
 -	int len, i;
-+	int len = 0;
-+	size_t lim = spec.precision;
- 
- 	if ((unsigned long)s < PAGE_SIZE)
- 		s = "(null)";
- 
+-
+-	if ((unsigned long)s < PAGE_SIZE)
+-		s = "(null)";
+-
 -	len = strnlen(s, spec.precision);
 -
 -	if (!(spec.flags & LEFT)) {
@@ -83,27 +77,60 @@ diff -puN lib/vsprintf.c~lib-vsprintfc-eliminate-potential-race-in-string lib/vs
 -		}
 -	}
 -	for (i = 0; i < len; ++i) {
-+	while (lim--) {
-+		char c = *s++;
-+		if (!c)
-+			break;
- 		if (buf < end)
+-		if (buf < end)
 -			*buf = *s;
 -		++buf; ++s;
 -	}
 -	while (len < spec.field_width--) {
 -		if (buf < end)
 -			*buf = ' ';
-+			*buf = c;
- 		++buf;
-+		++len;
- 	}
+-		++buf;
+-	}
 -
 -	return buf;
-+	return widen_string(buf, len, end, spec);
+-}
+-
+ static void move_right(char *buf, char *end, unsigned len, unsigned spaces)
+ {
+ 	size_t size;
+@@ -585,6 +554,37 @@ char *widen_string(char *buf, int n, cha
+ 	return buf;
  }
  
++static noinline_for_stack
++char *string(char *buf, char *end, const char *s, struct printf_spec spec)
++{
++	int len, i;
++
++	if ((unsigned long)s < PAGE_SIZE)
++		s = "(null)";
++
++	len = strnlen(s, spec.precision);
++
++	if (!(spec.flags & LEFT)) {
++		while (len < spec.field_width--) {
++			if (buf < end)
++				*buf = ' ';
++			++buf;
++		}
++	}
++	for (i = 0; i < len; ++i) {
++		if (buf < end)
++			*buf = *s;
++		++buf; ++s;
++	}
++	while (len < spec.field_width--) {
++		if (buf < end)
++			*buf = ' ';
++		++buf;
++	}
++
++	return buf;
++}
++
  static noinline_for_stack
+ char *dentry_name(char *buf, char *end, const struct dentry *d, struct printf_spec spec,
+ 		  const char *fmt)
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
