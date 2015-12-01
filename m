@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-vsprintfc-move-string-below-widen_string.patch added to -mm tree
-Date: Tue, 01 Dec 2015 15:39:10 -0800
-Message-ID: <565e2f9e.MQrnzkCGSYvRfgAV%akpm@linux-foundation.org>
+Subject: + lib-test_printfc-check-for-out-of-bound-writes.patch added to
+ -mm tree
+Date: Tue, 01 Dec 2015 15:39:22 -0800
+Message-ID: <565e2faa.qO4+TqwyS6RV/6Py%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58481 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58500 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757337AbbLAXjL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:11 -0500
+	with ESMTP id S1757337AbbLAXjX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mingo@kernel.org, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: move string() below widen_string()
+     Subject: lib/test_printf.c: check for out-of-bound writes
 has been added to the -mm tree.  Its filename is
-     lib-vsprintfc-move-string-below-widen_string.patch
+     lib-test_printfc-check-for-out-of-bound-writes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-move-string-below-widen_string.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_printfc-check-for-out-of-bound-writes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-move-string-below-widen_string.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_printfc-check-for-out-of-bound-writes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,98 +40,96 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: move string() below widen_string()
+Subject: lib/test_printf.c: check for out-of-bound writes
 
-This is pure code movement, making sure the widen_string() helper is
-defined before the string() function.
+Add a few padding bytes on either side of the test buffer, and check that
+these (and the part of the buffer not used) are untouched by vsnprintf.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   62 +++++++++++++++++++++++------------------------
- 1 file changed, 31 insertions(+), 31 deletions(-)
+ lib/test_printf.c |   24 +++++++++++++++++++-----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-move-string-below-widen_string lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-move-string-below-widen_string
-+++ a/lib/vsprintf.c
-@@ -507,37 +507,6 @@ char *number(char *buf, char *end, unsig
- 	return buf;
- }
+diff -puN lib/test_printf.c~lib-test_printfc-check-for-out-of-bound-writes lib/test_printf.c
+--- a/lib/test_printf.c~lib-test_printfc-check-for-out-of-bound-writes
++++ a/lib/test_printf.c
+@@ -16,6 +16,7 @@
+ #include <linux/in.h>
  
--static noinline_for_stack
--char *string(char *buf, char *end, const char *s, struct printf_spec spec)
--{
--	int len, i;
--
--	if ((unsigned long)s < PAGE_SIZE)
--		s = "(null)";
--
--	len = strnlen(s, spec.precision);
--
--	if (!(spec.flags & LEFT)) {
--		while (len < spec.field_width--) {
--			if (buf < end)
--				*buf = ' ';
--			++buf;
--		}
--	}
--	for (i = 0; i < len; ++i) {
--		if (buf < end)
--			*buf = *s;
--		++buf; ++s;
--	}
--	while (len < spec.field_width--) {
--		if (buf < end)
--			*buf = ' ';
--		++buf;
--	}
--
--	return buf;
--}
--
- static void move_right(char *buf, char *end, unsigned len, unsigned spaces)
+ #define BUF_SIZE 256
++#define PAD_SIZE 16
+ #define FILL_CHAR '$'
+ 
+ #define PTR1 ((void*)0x01234567)
+@@ -39,6 +40,7 @@
+ static unsigned total_tests __initdata;
+ static unsigned failed_tests __initdata;
+ static char *test_buffer __initdata;
++static char *alloced_buffer __initdata;
+ 
+ static int __printf(4, 0) __init
+ do_test(int bufsize, const char *expect, int elen,
+@@ -49,7 +51,7 @@ do_test(int bufsize, const char *expect,
+ 
+ 	total_tests++;
+ 
+-	memset(test_buffer, FILL_CHAR, BUF_SIZE);
++	memset(alloced_buffer, FILL_CHAR, BUF_SIZE + 2*PAD_SIZE);
+ 	va_copy(aq, ap);
+ 	ret = vsnprintf(test_buffer, bufsize, fmt, aq);
+ 	va_end(aq);
+@@ -60,8 +62,13 @@ do_test(int bufsize, const char *expect,
+ 		return 1;
+ 	}
+ 
++	if (memchr_inv(alloced_buffer, FILL_CHAR, PAD_SIZE)) {
++		pr_warn("vsnprintf(buf, %d, \"%s\", ...) wrote before buffer\n", bufsize, fmt);
++		return 1;
++	}
++
+ 	if (!bufsize) {
+-		if (memchr_inv(test_buffer, FILL_CHAR, BUF_SIZE)) {
++		if (memchr_inv(test_buffer, FILL_CHAR, BUF_SIZE + PAD_SIZE)) {
+ 			pr_warn("vsnprintf(buf, 0, \"%s\", ...) wrote to buffer\n",
+ 				fmt);
+ 			return 1;
+@@ -76,6 +83,12 @@ do_test(int bufsize, const char *expect,
+ 		return 1;
+ 	}
+ 
++	if (memchr_inv(test_buffer + written + 1, FILL_CHAR, BUF_SIZE + PAD_SIZE - (written + 1))) {
++		pr_warn("vsnprintf(buf, %d, \"%s\", ...) wrote beyond the nul-terminator\n",
++			bufsize, fmt);
++		return 1;
++	}
++
+ 	if (memcmp(test_buffer, expect, written)) {
+ 		pr_warn("vsnprintf(buf, %d, \"%s\", ...) wrote '%s', expected '%.*s'\n",
+ 			bufsize, fmt, test_buffer, written, expect);
+@@ -342,16 +355,17 @@ test_pointer(void)
+ static int __init
+ test_printf_init(void)
  {
- 	size_t size;
-@@ -585,6 +554,37 @@ char *widen_string(char *buf, int n, cha
- 	return buf;
- }
+-	test_buffer = kmalloc(BUF_SIZE, GFP_KERNEL);
+-	if (!test_buffer)
++	alloced_buffer = kmalloc(BUF_SIZE + 2*PAD_SIZE, GFP_KERNEL);
++	if (!alloced_buffer)
+ 		return -ENOMEM;
++	test_buffer = alloced_buffer + PAD_SIZE;
  
-+static noinline_for_stack
-+char *string(char *buf, char *end, const char *s, struct printf_spec spec)
-+{
-+	int len, i;
-+
-+	if ((unsigned long)s < PAGE_SIZE)
-+		s = "(null)";
-+
-+	len = strnlen(s, spec.precision);
-+
-+	if (!(spec.flags & LEFT)) {
-+		while (len < spec.field_width--) {
-+			if (buf < end)
-+				*buf = ' ';
-+			++buf;
-+		}
-+	}
-+	for (i = 0; i < len; ++i) {
-+		if (buf < end)
-+			*buf = *s;
-+		++buf; ++s;
-+	}
-+	while (len < spec.field_width--) {
-+		if (buf < end)
-+			*buf = ' ';
-+		++buf;
-+	}
-+
-+	return buf;
-+}
-+
- static noinline_for_stack
- char *dentry_name(char *buf, char *end, const struct dentry *d, struct printf_spec spec,
- 		  const char *fmt)
+ 	test_basic();
+ 	test_number();
+ 	test_string();
+ 	test_pointer();
+ 
+-	kfree(test_buffer);
++	kfree(alloced_buffer);
+ 
+ 	if (failed_tests == 0)
+ 		pr_info("all %u tests passed\n", total_tests);
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
