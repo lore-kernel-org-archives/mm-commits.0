@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-test_printfc-account-for-kvasprintf-tests.patch added to
+Subject: + lib-kasprintfc-add-sanity-check-to-kvasprintf.patch added to
  -mm tree
-Date: Tue, 01 Dec 2015 15:39:26 -0800
-Message-ID: <565e2fae.oFzYuVlUwQC8FgM/%akpm@linux-foundation.org>
+Date: Tue, 01 Dec 2015 15:39:32 -0800
+Message-ID: <565e2fb4.lRG8RdCPUOEnVTMv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58506 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58517 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757527AbbLAXj1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:27 -0500
+	with ESMTP id S1757337AbbLAXjd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, keescook@chromium.org, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_printf.c: account for kvasprintf tests
+     Subject: lib/kasprintf.c: add sanity check to kvasprintf
 has been added to the -mm tree.  Its filename is
-     lib-test_printfc-account-for-kvasprintf-tests.patch
+     lib-kasprintfc-add-sanity-check-to-kvasprintf.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_printfc-account-for-kvasprintf-tests.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-kasprintfc-add-sanity-check-to-kvasprintf.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_printfc-account-for-kvasprintf-tests.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-kasprintfc-add-sanity-check-to-kvasprintf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,29 +40,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/test_printf.c: account for kvasprintf tests
+Subject: lib/kasprintf.c: add sanity check to kvasprintf
 
-These should also count as performed tests.
+kasprintf relies on being able to replay the formatting and getting the
+same result (in particular, the same length).  This will almost always
+work, but it is possible that the object pointed to by a %s or %p argument
+changed under us (so we might get truncated output).  Add a somewhat
+paranoid sanity check and let's see if it ever triggers.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_printf.c |    1 +
- 1 file changed, 1 insertion(+)
+ lib/kasprintf.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN lib/test_printf.c~lib-test_printfc-account-for-kvasprintf-tests lib/test_printf.c
---- a/lib/test_printf.c~lib-test_printfc-account-for-kvasprintf-tests
-+++ a/lib/test_printf.c
-@@ -127,6 +127,7 @@ __test(const char *expect, int elen, con
+diff -puN lib/kasprintf.c~lib-kasprintfc-add-sanity-check-to-kvasprintf lib/kasprintf.c
+--- a/lib/kasprintf.c~lib-kasprintfc-add-sanity-check-to-kvasprintf
++++ a/lib/kasprintf.c
+@@ -13,19 +13,21 @@
+ /* Simplified asprintf. */
+ char *kvasprintf(gfp_t gfp, const char *fmt, va_list ap)
+ {
+-	unsigned int len;
++	unsigned int first, second;
+ 	char *p;
+ 	va_list aq;
  
- 	p = kvasprintf(GFP_KERNEL, fmt, ap);
- 	if (p) {
-+		total_tests++;
- 		if (memcmp(p, expect, elen+1)) {
- 			pr_warn("kvasprintf(..., \"%s\", ...) returned '%s', expected '%s'\n",
- 				fmt, p, expect);
+ 	va_copy(aq, ap);
+-	len = vsnprintf(NULL, 0, fmt, aq);
++	first = vsnprintf(NULL, 0, fmt, aq);
+ 	va_end(aq);
+ 
+-	p = kmalloc_track_caller(len+1, gfp);
++	p = kmalloc_track_caller(first+1, gfp);
+ 	if (!p)
+ 		return NULL;
+ 
+-	vsnprintf(p, len+1, fmt, ap);
++	second = vsnprintf(p, first+1, fmt, ap);
++	WARN(first != second, "different return values (%u and %u) from vsnprintf(\"%s\", ...)",
++	     first, second, fmt);
+ 
+ 	return p;
+ }
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
