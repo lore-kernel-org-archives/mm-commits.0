@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch added
- to -mm tree
-Date: Tue, 01 Dec 2015 15:39:18 -0800
-Message-ID: <565e2fa6.BffFjr9m72E88cte%akpm@linux-foundation.org>
+Subject: + lib-vsprintfc-help-gcc-make-number-smaller.patch added to -mm
+ tree
+Date: Tue, 01 Dec 2015 15:39:16 -0800
+Message-ID: <565e2fa4.TDdJ1F2NJrcuTgzU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58494 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58492 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757330AbbLAXjT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:19 -0500
+	with ESMTP id S1757337AbbLAXjR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: warn about too large precisions and field widths
+     Subject: lib/vsprintf.c: help gcc make number() smaller
 has been added to the -mm tree.  Its filename is
-     lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch
+     lib-vsprintfc-help-gcc-make-number-smaller.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-help-gcc-make-number-smaller.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-help-gcc-make-number-smaller.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,78 +40,102 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: warn about too large precisions and field widths
+Subject: lib/vsprintf.c: help gcc make number() smaller
 
-The field width is overloaded to pass some extra information for some %p
-extensions (e.g.  #bits for %pb).  But we might silently truncate the
-passed value when we stash it in struct printf_spec (see e.g. 
-"lib/vsprintf.c: expand field_width to 24 bits").  Hopefully 23 value bits
-should now be enough for everybody, but if not, let's make some noise.
-
-Do the same for the precision.  In both cases, clamping seems more
-sensible than truncating.  A negative precision is the same as 0, so use
-that as lower bound.  For the field width, the smallest representable
-value is actually -(1<<23), but a negative field width means 'set the LEFT
-flag and use the absolute value', so we want the absolute value to fit.
+One consequence of the reorganization of struct printf_spec to make
+field_width 24 bits was that number() gained about 180 bytes.  Since spec
+is never passed to other functions, we can help gcc make number() lose
+most of that extra weight by using local variables for the field width and
+precision.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+ lib/vsprintf.c |   26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-warn-about-too-large-precisions-and-field-widths lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-warn-about-too-large-precisions-and-field-widths
+diff -puN lib/vsprintf.c~lib-vsprintfc-help-gcc-make-number-smaller lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-help-gcc-make-number-smaller
 +++ a/lib/vsprintf.c
-@@ -386,6 +386,8 @@ struct printf_spec {
- 	unsigned int	base:8;		/* number base, 8, 10 or 16 only */
- 	signed int	precision:16;	/* # of digits/chars */
- };
-+#define FIELD_WIDTH_MAX ((1 << 23) - 1)
-+#define PRECISION_MAX ((1 << 15) - 1)
- extern char __check_printf_spec[1-2*(sizeof(struct printf_spec) != 8)];
+@@ -399,6 +399,8 @@ char *number(char *buf, char *end, unsig
+ 	int need_pfx = ((spec.flags & SPECIAL) && spec.base != 10);
+ 	int i;
+ 	bool is_zero = num == 0LL;
++	int field_width = spec.field_width;
++	int precision = spec.precision;
  
- static noinline_for_stack
-@@ -1815,6 +1817,24 @@ qualifier:
- 	return ++fmt - start;
- }
- 
-+static inline void
-+set_field_width(struct printf_spec *spec, int width)
-+{
-+	spec->field_width = width;
-+	if (WARN_ONCE(spec->field_width != width, "field width %d too large", width)) {
-+		spec->field_width = clamp(width, -FIELD_WIDTH_MAX, FIELD_WIDTH_MAX);
-+	}
-+}
-+
-+static inline void
-+set_precision(struct printf_spec *spec, int prec)
-+{
-+	spec->precision = prec;
-+	if (WARN_ONCE(spec->precision != prec, "precision %d too large", prec)) {
-+		spec->precision = clamp(prec, 0, PRECISION_MAX);
-+	}
-+}
-+
- /**
-  * vsnprintf - Format a string and place it in a buffer
-  * @buf: The buffer to place the result into
-@@ -1882,11 +1902,11 @@ int vsnprintf(char *buf, size_t size, co
+ 	/* locase = 0 or 0x20. ORing digits or letters with 'locase'
+ 	 * produces same digits or (maybe lowercased) letters */
+@@ -410,20 +412,20 @@ char *number(char *buf, char *end, unsig
+ 		if ((signed long long)num < 0) {
+ 			sign = '-';
+ 			num = -(signed long long)num;
+-			spec.field_width--;
++			field_width--;
+ 		} else if (spec.flags & PLUS) {
+ 			sign = '+';
+-			spec.field_width--;
++			field_width--;
+ 		} else if (spec.flags & SPACE) {
+ 			sign = ' ';
+-			spec.field_width--;
++			field_width--;
  		}
+ 	}
+ 	if (need_pfx) {
+ 		if (spec.base == 16)
+-			spec.field_width -= 2;
++			field_width -= 2;
+ 		else if (!is_zero)
+-			spec.field_width--;
++			field_width--;
+ 	}
  
- 		case FORMAT_TYPE_WIDTH:
--			spec.field_width = va_arg(args, int);
-+			set_field_width(&spec, va_arg(args, int));
- 			break;
+ 	/* generate full string in tmp[], in reverse order */
+@@ -445,12 +447,12 @@ char *number(char *buf, char *end, unsig
+ 	}
  
- 		case FORMAT_TYPE_PRECISION:
--			spec.precision = va_arg(args, int);
-+			set_precision(&spec, va_arg(args, int));
- 			break;
- 
- 		case FORMAT_TYPE_CHAR: {
+ 	/* printing 100 using %2d gives "100", not "00" */
+-	if (i > spec.precision)
+-		spec.precision = i;
++	if (i > precision)
++		precision = i;
+ 	/* leading space padding */
+-	spec.field_width -= spec.precision;
++	field_width -= precision;
+ 	if (!(spec.flags & (ZEROPAD | LEFT))) {
+-		while (--spec.field_width >= 0) {
++		while (--field_width >= 0) {
+ 			if (buf < end)
+ 				*buf = ' ';
+ 			++buf;
+@@ -479,14 +481,14 @@ char *number(char *buf, char *end, unsig
+ 	if (!(spec.flags & LEFT)) {
+ 		char c = ' ' + (spec.flags & ZEROPAD);
+ 		BUILD_BUG_ON(' ' + ZEROPAD != '0');
+-		while (--spec.field_width >= 0) {
++		while (--field_width >= 0) {
+ 			if (buf < end)
+ 				*buf = c;
+ 			++buf;
+ 		}
+ 	}
+ 	/* hmm even more zero padding? */
+-	while (i <= --spec.precision) {
++	while (i <= --precision) {
+ 		if (buf < end)
+ 			*buf = '0';
+ 		++buf;
+@@ -498,7 +500,7 @@ char *number(char *buf, char *end, unsig
+ 		++buf;
+ 	}
+ 	/* trailing space padding */
+-	while (--spec.field_width >= 0) {
++	while (--field_width >= 0) {
+ 		if (buf < end)
+ 			*buf = ' ';
+ 		++buf;
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
