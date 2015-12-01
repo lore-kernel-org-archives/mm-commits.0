@@ -1,59 +1,92 @@
 From: akpm@linux-foundation.org
 Subject: [withdrawn]
- include-linux-sysctlh-make-ctl_tableextra1-2-const.patch removed from -mm
- tree
-Date: Tue, 01 Dec 2015 14:10:01 -0800
-Message-ID: <565e1ab9.XQshxT1vfSVaZhcZ%akpm@linux-foundation.org>
+ mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4-fix.patch removed from
+ -mm tree
+Date: Tue, 01 Dec 2015 14:10:04 -0800
+Message-ID: <565e1abc.t6sc2/jaSg3l+IuO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54930 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54944 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756979AbbLAWKC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 17:10:02 -0500
+	with ESMTP id S1756979AbbLAWKF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 17:10:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dcashman@android.com, keescook@chromium.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, benh@kernel.crashing.org, bp@suse.de, catalin.marinas@arm.com, corbet@lwn.net, dcashman@android.com, dzickus@redhat.com, ebiederm@xmission.com, hecmargi@upv.es, hpa@zytor.com, jeffv@google.com, jpoimboe@redhat.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, linux@arm.linux.org.uk, mgorman@suse.de, mingo@kernel.org, n-horiguchi@ah.jp.nec.com, nnk@google.com, ralf@linux-mips.org, rientjes@google.com, salyzyn@android.com, tglx@linutronix.de, will.deacon@arm.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/sysctl.h: make ctl_table.extra1/2 const
+     Subject: mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4-fix
 has been removed from the -mm tree.  Its filename was
-     include-linux-sysctlh-make-ctl_tableextra1-2-const.patch
+     mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4-fix.patch
 
 This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/sysctl.h: make ctl_table.extra1/2 const
+Subject: mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4-fix
 
-Nothing should be altering these values.  Declare the pointed-to values to
-be const so we can actually use const values.
+remove unneeded casts
 
-Cc: Kees Cook <keescook@chromium.org>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Daniel Cashman <dcashman@android.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Don Zickus <dzickus@redhat.com>
+Cc: Eric W. Biederman <ebiederm@xmission.com>
+Cc: Hector Marco-Gisbert <hecmargi@upv.es>
+Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Jeff Vander Stoep <jeffv@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Josh Poimboeuf <jpoimboe@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mark Salyzyn <salyzyn@android.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Nick Kralevich <nnk@google.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sysctl.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ kernel/sysctl.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/sysctl.h~include-linux-sysctlh-make-ctl_tableextra1-2-const include/linux/sysctl.h
---- a/include/linux/sysctl.h~include-linux-sysctlh-make-ctl_tableextra1-2-const
-+++ a/include/linux/sysctl.h
-@@ -111,8 +111,8 @@ struct ctl_table
- 	struct ctl_table *child;	/* Deprecated */
- 	proc_handler *proc_handler;	/* Callback for text formatting */
- 	struct ctl_table_poll *poll;
--	void *extra1;
--	void *extra2;
-+	const void *extra1;
-+	const void *extra2;
- };
- 
- struct ctl_node {
+diff -puN kernel/sysctl.c~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4-fix
++++ a/kernel/sysctl.c
+@@ -1575,8 +1575,8 @@ static struct ctl_table vm_table[] = {
+ 		.maxlen		= sizeof(mmap_rnd_bits),
+ 		.mode		= 0600,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= (void *) &mmap_rnd_bits_min,
+-		.extra2		= (void *) &mmap_rnd_bits_max,
++		.extra1		= &mmap_rnd_bits_min,
++		.extra2		= &mmap_rnd_bits_max,
+ 	},
+ #endif
+ #ifdef CONFIG_HAVE_ARCH_MMAP_RND_COMPAT_BITS
+@@ -1586,8 +1586,8 @@ static struct ctl_table vm_table[] = {
+ 		.maxlen		= sizeof(mmap_rnd_compat_bits),
+ 		.mode		= 0600,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= (void *) &mmap_rnd_compat_bits_min,
+-		.extra2		= (void *) &mmap_rnd_compat_bits_max,
++		.extra1		= &mmap_rnd_compat_bits_min,
++		.extra2		= &mmap_rnd_compat_bits_max,
+ 	},
+ #endif
+ 	{ }
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -71,7 +104,6 @@ mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
 mm-zonelist-enumerate-zonelists-array-index-fix.patch
 mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
 fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4-fix.patch
 page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
 mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
 mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
