@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-test_printfc-add-a-few-string-tests.patch added to -mm tree
-Date: Tue, 01 Dec 2015 15:39:24 -0800
-Message-ID: <565e2fac.xPhpeOqbX9h+cwta%akpm@linux-foundation.org>
+Subject: + lib-test_printfc-account-for-kvasprintf-tests.patch added to
+ -mm tree
+Date: Tue, 01 Dec 2015 15:39:26 -0800
+Message-ID: <565e2fae.oFzYuVlUwQC8FgM/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58503 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58506 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757337AbbLAXjZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:25 -0500
+	with ESMTP id S1757527AbbLAXj1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 18:39:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_printf.c: add a few string tests
+     Subject: lib/test_printf.c: account for kvasprintf tests
 has been added to the -mm tree.  Its filename is
-     lib-test_printfc-add-a-few-string-tests.patch
+     lib-test_printfc-account-for-kvasprintf-tests.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_printfc-add-a-few-string-tests.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_printfc-account-for-kvasprintf-tests.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_printfc-add-a-few-string-tests.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_printfc-account-for-kvasprintf-tests.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,30 +40,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/test_printf.c: add a few string tests
+Subject: lib/test_printf.c: account for kvasprintf tests
+
+These should also count as performed tests.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_printf.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ lib/test_printf.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/test_printf.c~lib-test_printfc-add-a-few-string-tests lib/test_printf.c
---- a/lib/test_printf.c~lib-test_printfc-add-a-few-string-tests
+diff -puN lib/test_printf.c~lib-test_printfc-account-for-kvasprintf-tests lib/test_printf.c
+--- a/lib/test_printf.c~lib-test_printfc-account-for-kvasprintf-tests
 +++ a/lib/test_printf.c
-@@ -166,6 +166,10 @@ test_string(void)
- 	test("", "%s%.0s", "", "123");
- 	test("ABCD|abc|123", "%s|%.3s|%.*s", "ABCD", "abcdef", 3, "123456");
- 	test("1  |  2|3  |  4|5  ", "%-3s|%3s|%-*s|%*s|%*s", "1", "2", 3, "3", 3, "4", -3, "5");
-+	test("1234      ", "%-10.4s", "123456");
-+	test("      1234", "%10.4s", "123456");
-+	/* Negative precision should be treated as 0. */
-+	test("    ", "%4.*s", -5, "123456");
- 	/*
- 	 * POSIX and C99 say that a missing precision should be
- 	 * treated as a precision of 0. However, the kernel's printf
+@@ -127,6 +127,7 @@ __test(const char *expect, int elen, con
+ 
+ 	p = kvasprintf(GFP_KERNEL, fmt, ap);
+ 	if (p) {
++		total_tests++;
+ 		if (memcmp(p, expect, elen+1)) {
+ 			pr_warn("kvasprintf(..., \"%s\", ...) returned '%s', expected '%s'\n",
+ 				fmt, p, expect);
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
