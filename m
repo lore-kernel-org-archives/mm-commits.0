@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + x86-add-pmd_-for-thp.patch added to -mm tree
-Date: Wed, 02 Dec 2015 15:28:46 -0800
-Message-ID: <565f7eae.5vBOCsO0JzEy4szC%akpm@linux-foundation.org>
+Subject: + mm-mark-stable-page-dirty-in-ksm.patch added to -mm tree
+Date: Wed, 02 Dec 2015 15:28:43 -0800
+Message-ID: <565f7eab.3n0RQsRb29oD+T2A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39543 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39512 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757507AbbLBX2r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 18:28:47 -0500
+	with ESMTP id S1756827AbbLBX2o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 18:28:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: minchan@kernel.org, aarcange@redhat.com, arnd@arndb.de, benh@kernel.crashing.org, catalin.marinas@arm.com, chris@zankel.net, danielmicay@gmail.com, darrick.wong@oracle.com, davem@davemloft.net, deller@gmx.de, fengguang.wu@intel.com, gang.chen.5i5j@gmail.com, hannes@cmpxchg.org, hughd@google.com, ink@jurassic.park.msu.ru, jcmvbkbc@gmail.com, je@fb.com, jejb@parisc-linux.org, kirill@shutemov.name, kosaki.motohiro@jp.fujitsu.com, luto@amacapital.net, mattst88@gmail.com, mgorman@suse.de, mhocko@suse.com, mika.penttila@nextfour.com, mtk.manpages@gmail.com, ralf@linux-mips.org, riel@redhat.com, rmk@arm.linux.org.uk, roland@kernel.org, rth@twiddle.net, shli@kernel.org, will.deacon@arm.com, yalin.wang2010@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/include/asm/pgtable.h: add pmd_[dirty|mkclean] for THP
+     Subject: mm/ksm.c: mark stable page dirty
 has been added to the -mm tree.  Its filename is
-     x86-add-pmd_-for-thp.patch
+     mm-mark-stable-page-dirty-in-ksm.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-add-pmd_-for-thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mark-stable-page-dirty-in-ksm.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-add-pmd_-for-thp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mark-stable-page-dirty-in-ksm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,14 +39,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: arch/x86/include/asm/pgtable.h: add pmd_[dirty|mkclean] for THP
+Subject: mm/ksm.c: mark stable page dirty
 
-MADV_FREE needs pmd_dirty and pmd_mkclean for detecting recent overwrite
-of the contents since MADV_FREE syscall is called for THP page.
+The MADV_FREE patchset changes page reclaim to simply free a clean
+anonymous page with no dirty ptes, instead of swapping it out; but KSM
+uses clean write-protected ptes to reference the stable ksm page.  So be
+sure to mark that page dirty, so it's never mistakenly discarded.
 
-This patch adds pmd_dirty and pmd_mkclean for THP page MADV_FREE support.
-
+[hughd@google.com: adjusted comments]
 Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Hugh Dickins <hughd@google.com>
 Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: "Shaohua Li" <shli@kernel.org>
@@ -62,7 +64,6 @@ Cc: Daniel Micay <danielmicay@gmail.com>
 Cc: Darrick J. Wong <darrick.wong@oracle.com>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Helge Deller <deller@gmx.de>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
 Cc: Jason Evans <je@fb.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -85,24 +86,25 @@ Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |    5 +++++
- 1 file changed, 5 insertions(+)
+ mm/ksm.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN arch/x86/include/asm/pgtable.h~x86-add-pmd_-for-thp arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~x86-add-pmd_-for-thp
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -269,6 +269,11 @@ static inline pmd_t pmd_mkold(pmd_t pmd)
- 	return pmd_clear_flags(pmd, _PAGE_ACCESSED);
- }
- 
-+static inline pmd_t pmd_mkclean(pmd_t pmd)
-+{
-+	return pmd_clear_flags(pmd, _PAGE_DIRTY);
-+}
-+
- static inline pmd_t pmd_wrprotect(pmd_t pmd)
- {
- 	return pmd_clear_flags(pmd, _PAGE_RW);
+diff -puN mm/ksm.c~mm-mark-stable-page-dirty-in-ksm mm/ksm.c
+--- a/mm/ksm.c~mm-mark-stable-page-dirty-in-ksm
++++ a/mm/ksm.c
+@@ -1015,6 +1015,12 @@ static int try_to_merge_one_page(struct
+ 			 */
+ 			set_page_stable_node(page, NULL);
+ 			mark_page_accessed(page);
++			/*
++			 * Page reclaim just frees a clean page with no dirty
++			 * ptes: make sure that the ksm page would be swapped.
++			 */
++			if (!PageDirty(page))
++				SetPageDirty(page);
+ 			err = 0;
+ 		} else if (pages_identical(page, kpage))
+ 			err = replace_page(vma, page, kpage, orig_pte);
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
