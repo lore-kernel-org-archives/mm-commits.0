@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-oom-give-__gfp_nofail-allocations-access-to-memory-reserves.patch added
- to -mm tree
-Date: Wed, 02 Dec 2015 14:55:14 -0800
-Message-ID: <565f76d2.qenPTVnuANr+kxQw%akpm@linux-foundation.org>
+ arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures.patch added to -mm tree
+Date: Wed, 02 Dec 2015 15:28:34 -0800
+Message-ID: <565f7ea2.k03OB5oT8fCiAvas%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38028 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39439 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757738AbbLBWzP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 17:55:15 -0500
+	with ESMTP id S1757400AbbLBX2g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 18:28:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, aarcange@redhat.com, hannes@cmpxchg.org, mgorman@techsingularity.net, mm-commits@vger.kernel.org
+To: gang.chen.5i5j@gmail.com, aarcange@redhat.com, arnd@arndb.de, benh@kernel.crashing.org, catalin.marinas@arm.com, chris@zankel.net, danielmicay@gmail.com, darrick.wong@oracle.com, davem@davemloft.net, deller@gmx.de, fengguang.wu@intel.com, hannes@cmpxchg.org, hughd@google.com, ink@jurassic.park.msu.ru, jcmvbkbc@gmail.com, je@fb.com, jejb@parisc-linux.org, kirill@shutemov.name, kosaki.motohiro@jp.fujitsu.com, luto@amacapital.net, mattst88@gmail.com, mgorman@suse.de, mhocko@suse.com, mika.penttila@nextfour.com, minchan@kernel.org, mtk.manpages@gmail.com, ralf@linux-mips.org, riel@redhat.com, rmk@arm.linux.org.uk, roland@kernel.org, rth@twiddle.net, shli@kernel.org, will.deacon@arm.com, yalin.wang2010@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom: give __GFP_NOFAIL allocations access to memory reserves
+     Subject: arch/*/include/uapi/asm/mman.h: : let MADV_FREE have same value for all architectures
 has been added to the -mm tree.  Its filename is
-     mm-oom-give-__gfp_nofail-allocations-access-to-memory-reserves.patch
+     arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-give-__gfp_nofail-allocations-access-to-memory-reserves.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-give-__gfp_nofail-allocations-access-to-memory-reserves.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,67 +39,124 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom: give __GFP_NOFAIL allocations access to memory reserves
+From: Chen Gang <gang.chen.5i5j@gmail.com>
+Subject: arch/*/include/uapi/asm/mman.h: : let MADV_FREE have same value for all architectures
 
-__GFP_NOFAIL is a big hammer used to ensure that the allocation request
-can never fail.  This is a strong requirement and as such it also deserves
-a special treatment when the system is OOM.  The primary problem here is
-that the allocation request might have come with some locks held and the
-oom victim might be blocked on the same locks.  This is basically an OOM
-deadlock situation.
+For uapi, need try to let all macros have same value, and MADV_FREE is
+added into main branch recently, so need redefine MADV_FREE for it.
 
-This patch tries to reduce the risk of such a deadlocks by giving
-__GFP_NOFAIL allocations a special treatment and let them dive into memory
-reserves after oom killer invocation.  This should help them to make a
-progress and release resources they are holding.  The OOM victim should
-compensate for the reserves consumption.
+At present, '8' can be shared with all architectures, so redefine it to
+'8'.
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Suggested-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: "Shaohua Li" <shli@kernel.org>
+Cc: <yalin.wang2010@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Daniel Micay <danielmicay@gmail.com>
+Cc: Jason Evans <je@fb.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mika Penttil <mika.penttila@nextfour.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   15 ++++++++++++++-
- 1 file changed, 14 insertions(+), 1 deletion(-)
+ arch/alpha/include/uapi/asm/mman.h     |    1 +
+ arch/mips/include/uapi/asm/mman.h      |    1 +
+ arch/parisc/include/uapi/asm/mman.h    |    1 +
+ arch/xtensa/include/uapi/asm/mman.h    |    1 +
+ include/uapi/asm-generic/mman-common.h |    2 +-
+ 5 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-oom-give-__gfp_nofail-allocations-access-to-memory-reserves mm/page_alloc.c
---- a/mm/page_alloc.c~mm-oom-give-__gfp_nofail-allocations-access-to-memory-reserves
-+++ a/mm/page_alloc.c
-@@ -2732,8 +2732,21 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 			goto out;
- 	}
- 	/* Exhausted what can be done so it's blamo time */
--	if (out_of_memory(&oc) || WARN_ON_ONCE(gfp_mask & __GFP_NOFAIL))
-+	if (out_of_memory(&oc) || WARN_ON_ONCE(gfp_mask & __GFP_NOFAIL)) {
- 		*did_some_progress = 1;
-+
-+		if (gfp_mask & __GFP_NOFAIL) {
-+			page = get_page_from_freelist(gfp_mask, order,
-+					ALLOC_NO_WATERMARKS|ALLOC_CPUSET, ac);
-+			/*
-+			 * fallback to ignore cpuset restriction if our nodes
-+			 * are depleted
-+			 */
-+			if (!page)
-+				page = get_page_from_freelist(gfp_mask, order,
-+					ALLOC_NO_WATERMARKS, ac);
-+		}
-+	}
- out:
- 	mutex_unlock(&oom_lock);
- 	return page;
+diff -puN arch/alpha/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures arch/alpha/include/uapi/asm/mman.h
+--- a/arch/alpha/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures
++++ a/arch/alpha/include/uapi/asm/mman.h
+@@ -50,6 +50,7 @@
+ #define MADV_FREE	7		/* free pages only if memory pressure */
+ 
+ /* common/generic parameters */
++#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+diff -puN arch/mips/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures arch/mips/include/uapi/asm/mman.h
+--- a/arch/mips/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures
++++ a/arch/mips/include/uapi/asm/mman.h
+@@ -76,6 +76,7 @@
+ #define MADV_FREE	5		/* free pages only if memory pressure */
+ 
+ /* common parameters: try to keep these consistent across architectures */
++#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+diff -puN arch/parisc/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures arch/parisc/include/uapi/asm/mman.h
+--- a/arch/parisc/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures
++++ a/arch/parisc/include/uapi/asm/mman.h
+@@ -46,6 +46,7 @@
+ #define MADV_FREE	8		/* free pages only if memory pressure */
+ 
+ /* common/generic parameters */
++#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+diff -puN arch/xtensa/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures arch/xtensa/include/uapi/asm/mman.h
+--- a/arch/xtensa/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures
++++ a/arch/xtensa/include/uapi/asm/mman.h
+@@ -89,6 +89,7 @@
+ #define MADV_FREE	5		/* free pages only if memory pressure */
+ 
+ /* common parameters: try to keep these consistent across architectures */
++#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+diff -puN include/uapi/asm-generic/mman-common.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures include/uapi/asm-generic/mman-common.h
+--- a/include/uapi/asm-generic/mman-common.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures
++++ a/include/uapi/asm-generic/mman-common.h
+@@ -39,9 +39,9 @@
+ #define MADV_SEQUENTIAL	2		/* expect sequential page references */
+ #define MADV_WILLNEED	3		/* will need these pages */
+ #define MADV_DONTNEED	4		/* don't need these pages */
+-#define MADV_FREE	5		/* free pages only if memory pressure */
+ 
+ /* common parameters: try to keep these consistent across architectures */
++#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from gang.chen.5i5j@gmail.com are
 
-mm-vmstat-allow-wq-concurrency-to-discover-memory-reclaim-doesnt-make-any-progress.patch
-virtio-do-not-drop-__gfp_high-in-alloc_indirect.patch
-mm-get-rid-of-__alloc_pages_high_priority.patch
-mm-do-not-loop-over-alloc_no_watermarks-without-triggering-reclaim.patch
-mm-vmscan-consider-isolated-pages-in-zone_reclaimable_pages.patch
-mm-allow-gfp_iofs-for-page_cache_read-page-cache-allocation.patch
-mm-oom-give-__gfp_nofail-allocations-access-to-memory-reserves.patch
+mm-mmapc-remove-redundant-local-variables-for-may_expand_vm.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures.patch
 
