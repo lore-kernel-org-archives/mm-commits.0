@@ -1,102 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- lib-vsprintfc-eliminate-potential-race-in-string.patch removed from -mm
- tree
-Date: Wed, 02 Dec 2015 13:25:27 -0800
-Message-ID: <565f61c7.MLe7vQwQohkXYlkA%akpm@linux-foundation.org>
+Subject: [to-be-updated] lib-vsprintfc-help-gcc-make-number-smaller.patch
+ removed from -mm tree
+Date: Wed, 02 Dec 2015 13:25:31 -0800
+Message-ID: <565f61cb.m55LoHv+UCZu10/y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36190 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36194 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754424AbbLBVZ1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 16:25:27 -0500
+	with ESMTP id S1753918AbbLBVZb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 16:25:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: eliminate potential race in string()
+     Subject: lib/vsprintf.c: help gcc make number() smaller
 has been removed from the -mm tree.  Its filename was
-     lib-vsprintfc-eliminate-potential-race-in-string.patch
+     lib-vsprintfc-help-gcc-make-number-smaller.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: eliminate potential race in string()
+Subject: lib/vsprintf.c: help gcc make number() smaller
 
-If the string corresponding to a %s specifier can change under us, we
-might end up copying a \0 byte to the output buffer.  There might be
-callers who expect the output buffer to contain a genuine C string whose
-length is exactly the snprintf return value (assuming truncation hasn't
-happened or has been checked for).
-
-We can avoid this by only passing over the source string once, stopping
-the first time we meet a nul byte (or when we reach the given precision),
-and then letting widen_string() handle left/right space padding.
+One consequence of the reorganization of struct printf_spec to make
+field_width 24 bits was that number() gained about 180 bytes.  Since spec
+is never passed to other functions, we can help gcc make number() lose
+most of that extra weight by using local variables for the field width and
+precision.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   28 +++++++++-------------------
- 1 file changed, 9 insertions(+), 19 deletions(-)
+ lib/vsprintf.c |   26 ++++++++++++++------------
+ 1 file changed, 14 insertions(+), 12 deletions(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-eliminate-potential-race-in-string lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-eliminate-potential-race-in-string
+diff -puN lib/vsprintf.c~lib-vsprintfc-help-gcc-make-number-smaller lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-help-gcc-make-number-smaller
 +++ a/lib/vsprintf.c
-@@ -558,32 +558,22 @@ char *widen_string(char *buf, int n, cha
- static noinline_for_stack
- char *string(char *buf, char *end, const char *s, struct printf_spec spec)
- {
--	int len, i;
-+	int len = 0;
-+	size_t lim = spec.precision;
+@@ -400,6 +400,8 @@ char *number(char *buf, char *end, unsig
+ 	int need_pfx = ((spec.flags & SPECIAL) && spec.base != 10);
+ 	int i;
+ 	bool is_zero = num == 0LL;
++	int field_width = spec.field_width;
++	int precision = spec.precision;
  
- 	if ((unsigned long)s < PAGE_SIZE)
- 		s = "(null)";
- 
--	len = strnlen(s, spec.precision);
--
--	if (!(spec.flags & LEFT)) {
--		while (len < spec.field_width--) {
--			if (buf < end)
--				*buf = ' ';
--			++buf;
--		}
--	}
--	for (i = 0; i < len; ++i) {
-+	while (lim--) {
-+		char c = *s++;
-+		if (!c)
-+			break;
- 		if (buf < end)
--			*buf = *s;
--		++buf; ++s;
--	}
--	while (len < spec.field_width--) {
--		if (buf < end)
--			*buf = ' ';
-+			*buf = c;
- 		++buf;
-+		++len;
+ 	/* locase = 0 or 0x20. ORing digits or letters with 'locase'
+ 	 * produces same digits or (maybe lowercased) letters */
+@@ -411,20 +413,20 @@ char *number(char *buf, char *end, unsig
+ 		if ((signed long long)num < 0) {
+ 			sign = '-';
+ 			num = -(signed long long)num;
+-			spec.field_width--;
++			field_width--;
+ 		} else if (spec.flags & PLUS) {
+ 			sign = '+';
+-			spec.field_width--;
++			field_width--;
+ 		} else if (spec.flags & SPACE) {
+ 			sign = ' ';
+-			spec.field_width--;
++			field_width--;
+ 		}
  	}
--
--	return buf;
-+	return widen_string(buf, len, end, spec);
- }
+ 	if (need_pfx) {
+ 		if (spec.base == 16)
+-			spec.field_width -= 2;
++			field_width -= 2;
+ 		else if (!is_zero)
+-			spec.field_width--;
++			field_width--;
+ 	}
  
- static noinline_for_stack
+ 	/* generate full string in tmp[], in reverse order */
+@@ -446,12 +448,12 @@ char *number(char *buf, char *end, unsig
+ 	}
+ 
+ 	/* printing 100 using %2d gives "100", not "00" */
+-	if (i > spec.precision)
+-		spec.precision = i;
++	if (i > precision)
++		precision = i;
+ 	/* leading space padding */
+-	spec.field_width -= spec.precision;
++	field_width -= precision;
+ 	if (!(spec.flags & (ZEROPAD | LEFT))) {
+-		while (--spec.field_width >= 0) {
++		while (--field_width >= 0) {
+ 			if (buf < end)
+ 				*buf = ' ';
+ 			++buf;
+@@ -480,14 +482,14 @@ char *number(char *buf, char *end, unsig
+ 	if (!(spec.flags & LEFT)) {
+ 		char c = ' ' + (spec.flags & ZEROPAD);
+ 		BUILD_BUG_ON(' ' + ZEROPAD != '0');
+-		while (--spec.field_width >= 0) {
++		while (--field_width >= 0) {
+ 			if (buf < end)
+ 				*buf = c;
+ 			++buf;
+ 		}
+ 	}
+ 	/* hmm even more zero padding? */
+-	while (i <= --spec.precision) {
++	while (i <= --precision) {
+ 		if (buf < end)
+ 			*buf = '0';
+ 		++buf;
+@@ -499,7 +501,7 @@ char *number(char *buf, char *end, unsig
+ 		++buf;
+ 	}
+ 	/* trailing space padding */
+-	while (--spec.field_width >= 0) {
++	while (--field_width >= 0) {
+ 		if (buf < end)
+ 			*buf = ' ';
+ 		++buf;
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-lib-vsprintfc-expand-field_width-to-24-bits.patch
-lib-vsprintfc-help-gcc-make-number-smaller.patch
 lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch
 lib-test_printfc-dont-bug.patch
 lib-test_printfc-check-for-out-of-bound-writes.patch
