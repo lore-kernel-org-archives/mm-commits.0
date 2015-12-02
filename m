@@ -1,135 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- lib-vsprintfc-pull-out-padding-code-from-dentry_name.patch removed from -mm tree
-Date: Wed, 02 Dec 2015 13:25:22 -0800
-Message-ID: <565f61c2.2Qr9H4opGkk/pc9+%akpm@linux-foundation.org>
+Subject: [nacked]
+ ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount.patch removed from
+ -mm tree
+Date: Wed, 02 Dec 2015 13:29:51 -0800
+Message-ID: <565f62cf.AbfY85UQ50zVpzDv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36186 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36222 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755308AbbLBVZX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 16:25:23 -0500
+	with ESMTP id S1756984AbbLBV3w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 16:29:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.com, tariq.x.saeed@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: pull out padding code from dentry_name()
+     Subject: ocfs2: fix BUG due to uncleaned localalloc during mount
 has been removed from the -mm tree.  Its filename was
-     lib-vsprintfc-pull-out-padding-code-from-dentry_name.patch
+     ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount.patch
 
-This patch was dropped because an updated version will be merged
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: pull out padding code from dentry_name()
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: fix BUG due to uncleaned localalloc during mount
 
-Pull out the logic in dentry_name() which handles field width space
-padding, in preparation for reusing it from string().  Rename the widen()
-helper to move_right(), since it is used for handling the !(flags & LEFT)
-case.
+Tariq has reported a BUG before and posted a fix at:
+https://oss.oracle.com/pipermail/ocfs2-devel/2015-April/010696.html
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+This is because during umount, localalloc shutdown relies on journal
+shutdown.  But during journal shutdown, it just stops commit thread
+without checking its result.  So it may happen that localalloc shutdown
+uncleaned during I/O error and after that, journal then has been marked
+clean if I/O restores.
+
+Then during mount, localalloc won't be recovered because of clean journal
+and then trigger BUG when claiming clusters from localalloc.
+
+In Tariq's fix, we have to run fsck offline and a separate fix to fsck is
+needed because it currently does not support clearing out localalloc
+inode.  And my way to fix this issue is checking localalloc before
+actually loading it during mount.  And this is somewhat online.
+
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reported-by: Tariq Saeed <tariq.x.saeed@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   46 +++++++++++++++++++++++++++++++---------------
- 1 file changed, 31 insertions(+), 15 deletions(-)
+ fs/ocfs2/localalloc.c |   19 ++++++++++++-------
+ fs/ocfs2/localalloc.h |    2 +-
+ fs/ocfs2/super.c      |   17 ++++++++++++++---
+ 3 files changed, 27 insertions(+), 11 deletions(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-pull-out-padding-code-from-dentry_name lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-pull-out-padding-code-from-dentry_name
-+++ a/lib/vsprintf.c
-@@ -539,7 +539,7 @@ char *string(char *buf, char *end, const
- 	return buf;
+diff -puN fs/ocfs2/localalloc.c~ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount fs/ocfs2/localalloc.c
+--- a/fs/ocfs2/localalloc.c~ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount
++++ a/fs/ocfs2/localalloc.c
+@@ -281,7 +281,7 @@ bail:
+ 	return ret;
  }
  
--static void widen(char *buf, char *end, unsigned len, unsigned spaces)
-+static void move_right(char *buf, char *end, unsigned len, unsigned spaces)
+-int ocfs2_load_local_alloc(struct ocfs2_super *osb)
++int ocfs2_load_local_alloc(struct ocfs2_super *osb, int check, int *recovery)
  {
- 	size_t size;
- 	if (buf >= end)	/* nowhere to put anything */
-@@ -557,6 +557,35 @@ static void widen(char *buf, char *end,
- 	memset(buf, ' ', spaces);
- }
+ 	int status = 0;
+ 	struct ocfs2_dinode *alloc = NULL;
+@@ -345,21 +345,26 @@ int ocfs2_load_local_alloc(struct ocfs2_
+ 	if (num_used
+ 	    || alloc->id1.bitmap1.i_used
+ 	    || alloc->id1.bitmap1.i_total
+-	    || la->la_bm_off)
++	    || la->la_bm_off) {
+ 		mlog(ML_ERROR, "Local alloc hasn't been recovered!\n"
+ 		     "found = %u, set = %u, taken = %u, off = %u\n",
+ 		     num_used, le32_to_cpu(alloc->id1.bitmap1.i_used),
+ 		     le32_to_cpu(alloc->id1.bitmap1.i_total),
+ 		     OCFS2_LOCAL_ALLOC(alloc)->la_bm_off);
++		status = -EINVAL;
++		*recovery = 1;
++		goto bail;
++	}
  
-+/*
-+ * Handle field width padding for a string.
-+ * @buf: current buffer position
-+ * @n: length of string
-+ * @end: end of output buffer
-+ * @spec: for field width and flags
-+ * Returns: new buffer position after padding.
-+ */
-+static noinline_for_stack
-+char *widen_string(char *buf, int n, char *end, struct printf_spec spec)
-+{
-+	unsigned spaces;
-+
-+	if (likely(n >= spec.field_width))
-+		return buf;
-+	/* we want to pad the sucker */
-+	spaces = spec.field_width - n;
-+	if (!(spec.flags & LEFT)) {
-+		move_right(buf - n, end, n, spaces);
-+		return buf + spaces;
+-	osb->local_alloc_bh = alloc_bh;
+-	osb->local_alloc_state = OCFS2_LA_ENABLED;
++	if (!check) {
++		osb->local_alloc_bh = alloc_bh;
++		osb->local_alloc_state = OCFS2_LA_ENABLED;
 +	}
-+	while (spaces--) {
-+		if (buf < end)
-+			*buf = ' ';
-+		++buf;
-+	}
-+	return buf;
-+}
+ 
+ bail:
+-	if (status < 0)
++	if (status < 0 || check)
+ 		brelse(alloc_bh);
+-	if (inode)
+-		iput(inode);
++	iput(inode);
+ 
+ 	trace_ocfs2_load_local_alloc(osb->local_alloc_bits);
+ 
+diff -puN fs/ocfs2/localalloc.h~ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount fs/ocfs2/localalloc.h
+--- a/fs/ocfs2/localalloc.h~ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount
++++ a/fs/ocfs2/localalloc.h
+@@ -26,7 +26,7 @@
+ #ifndef OCFS2_LOCALALLOC_H
+ #define OCFS2_LOCALALLOC_H
+ 
+-int ocfs2_load_local_alloc(struct ocfs2_super *osb);
++int ocfs2_load_local_alloc(struct ocfs2_super *osb, int check, int *recovery);
+ 
+ void ocfs2_shutdown_local_alloc(struct ocfs2_super *osb);
+ 
+diff -puN fs/ocfs2/super.c~ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-fix-bug-due-to-uncleaned-localalloc-during-mount
++++ a/fs/ocfs2/super.c
+@@ -2424,6 +2424,7 @@ static int ocfs2_check_volume(struct ocf
+ 	int status;
+ 	int dirty;
+ 	int local;
++	int la_dirty = 0, recovery = 0;
+ 	struct ocfs2_dinode *local_alloc = NULL; /* only used if we
+ 						  * recover
+ 						  * ourselves. */
+@@ -2445,6 +2446,16 @@ static int ocfs2_check_volume(struct ocf
+ 	 * recover anything. Otherwise, journal_load will do that
+ 	 * dirty work for us :) */
+ 	if (!dirty) {
++		/* It may happen that local alloc is unclean shutdown, but
++		 * journal has been marked clean, so check it here and do
++		 * recovery if needed */
++		status = ocfs2_load_local_alloc(osb, 1, &recovery);
++		if (recovery) {
++			printk(KERN_NOTICE "ocfs2: local alloc needs recovery "
++					"on device (%s).\n", osb->dev_str);
++			la_dirty = 1;
++		}
 +
- static noinline_for_stack
- char *dentry_name(char *buf, char *end, const struct dentry *d, struct printf_spec spec,
- 		  const char *fmt)
-@@ -598,20 +627,7 @@ char *dentry_name(char *buf, char *end,
- 			*buf = c;
+ 		status = ocfs2_journal_wipe(osb->journal, 0);
+ 		if (status < 0) {
+ 			mlog_errno(status);
+@@ -2473,7 +2484,7 @@ static int ocfs2_check_volume(struct ocf
+ 				JBD2_FEATURE_COMPAT_CHECKSUM, 0,
+ 				JBD2_FEATURE_INCOMPAT_ASYNC_COMMIT);
+ 
+-	if (dirty) {
++	if (dirty || la_dirty) {
+ 		/* recover my local alloc if we didn't unmount cleanly. */
+ 		status = ocfs2_begin_local_alloc_recovery(osb,
+ 							  osb->slot_num,
+@@ -2486,13 +2497,13 @@ static int ocfs2_check_volume(struct ocf
+ 		 * ourselves as mounted. */
  	}
- 	rcu_read_unlock();
--	if (n < spec.field_width) {
--		/* we want to pad the sucker */
--		unsigned spaces = spec.field_width - n;
--		if (!(spec.flags & LEFT)) {
--			widen(buf - n, end, n, spaces);
--			return buf + spaces;
--		}
--		while (spaces--) {
--			if (buf < end)
--				*buf = ' ';
--			++buf;
--		}
--	}
--	return buf;
-+	return widen_string(buf, n, end, spec);
- }
  
- static noinline_for_stack
+-	status = ocfs2_load_local_alloc(osb);
++	status = ocfs2_load_local_alloc(osb, 0, &recovery);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+ 		goto finally;
+ 	}
+ 
+-	if (dirty) {
++	if (dirty || la_dirty) {
+ 		/* Recovery will be completed after we've mounted the
+ 		 * rest of the volume. */
+ 		osb->dirty = 1;
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-lib-vsprintfc-move-string-below-widen_string.patch
-lib-vsprintfc-eliminate-potential-race-in-string.patch
-lib-vsprintfc-expand-field_width-to-24-bits.patch
-lib-vsprintfc-help-gcc-make-number-smaller.patch
-lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch
-lib-test_printfc-dont-bug.patch
-lib-test_printfc-check-for-out-of-bound-writes.patch
-lib-test_printfc-add-a-few-string-tests.patch
-lib-test_printfc-account-for-kvasprintf-tests.patch
-lib-test_printfc-add-test-for-large-bitmaps.patch
-lib-test_printfc-test-dentry-printing.patch
-lib-kasprintfc-add-sanity-check-to-kvasprintf.patch
-powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header.patch
-kernel-cpuc-change-type-of-cpu_possible_bits-and-friends.patch
-kernel-cpuc-export-__cpu__mask.patch
-drivers-base-cpuc-use-__cpu__mask-directly.patch
-kernel-cpuc-eliminate-cpu__mask.patch
-kernel-cpuc-make-set_cpu_-static-inlines.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery-v2.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery-v3.patch
+ocfs2-dlm-fix-bug-in-dlm_move_lockres_to_recovery_list.patch
 
