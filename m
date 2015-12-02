@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + sparc-add-pmd_-for-thp.patch added to -mm tree
-Date: Wed, 02 Dec 2015 15:28:49 -0800
-Message-ID: <565f7eb1.+UvnT6aNRr2rfyLe%akpm@linux-foundation.org>
+Subject: + arm-add-pmd_mkclean-for-thp.patch added to -mm tree
+Date: Wed, 02 Dec 2015 15:28:55 -0800
+Message-ID: <565f7eb7.aEAm1IbhQ0/rq0DB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39568 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39620 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757334AbbLBX2u (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 18:28:50 -0500
+	with ESMTP id S1758039AbbLBX24 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 18:28:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: minchan@kernel.org, aarcange@redhat.com, arnd@arndb.de, benh@kernel.crashing.org, catalin.marinas@arm.com, chris@zankel.net, danielmicay@gmail.com, darrick.wong@oracle.com, davem@davemloft.net, deller@gmx.de, fengguang.wu@intel.com, gang.chen.5i5j@gmail.com, hannes@cmpxchg.org, hughd@google.com, ink@jurassic.park.msu.ru, jcmvbkbc@gmail.com, je@fb.com, jejb@parisc-linux.org, kirill@shutemov.name, kosaki.motohiro@jp.fujitsu.com, luto@amacapital.net, mattst88@gmail.com, mgorman@suse.de, mhocko@suse.com, mika.penttila@nextfour.com, mtk.manpages@gmail.com, ralf@linux-mips.org, riel@redhat.com, rmk@arm.linux.org.uk, roland@kernel.org, rth@twiddle.net, shli@kernel.org, will.deacon@arm.com, yalin.wang2010@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/sparc/include/asm/pgtable_64.h: add pmd_[dirty|mkclean] for THP
+     Subject: arch/arm/include/asm/pgtable-3level.h: add pmd_mkclean for THP
 has been added to the -mm tree.  Its filename is
-     sparc-add-pmd_-for-thp.patch
+     arm-add-pmd_mkclean-for-thp.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sparc-add-pmd_-for-thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-add-pmd_mkclean-for-thp.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sparc-add-pmd_-for-thp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-add-pmd_mkclean-for-thp.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,15 +39,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: arch/sparc/include/asm/pgtable_64.h: add pmd_[dirty|mkclean] for THP
+Subject: arch/arm/include/asm/pgtable-3level.h: add pmd_mkclean for THP
 
 MADV_FREE needs pmd_dirty and pmd_mkclean for detecting recent overwrite
 of the contents since MADV_FREE syscall is called for THP page.
 
-This patch adds pmd_dirty and pmd_mkclean for THP page MADV_FREE
-support.
+This patch adds pmd_mkclean for THP page MADV_FREE support.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: "Shaohua Li" <shli@kernel.org>
@@ -56,7 +58,6 @@ Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Chen Gang <gang.chen.5i5j@gmail.com>
 Cc: Chris Zankel <chris@zankel.net>
 Cc: Daniel Micay <danielmicay@gmail.com>
@@ -79,35 +80,25 @@ Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Richard Henderson <rth@twiddle.net>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Roland Dreier <roland@kernel.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: Shaohua Li <shli@kernel.org>
-Cc: Will Deacon <will.deacon@arm.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/pgtable_64.h |    9 +++++++++
- 1 file changed, 9 insertions(+)
+ arch/arm/include/asm/pgtable-3level.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/sparc/include/asm/pgtable_64.h~sparc-add-pmd_-for-thp arch/sparc/include/asm/pgtable_64.h
---- a/arch/sparc/include/asm/pgtable_64.h~sparc-add-pmd_-for-thp
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -710,6 +710,15 @@ static inline pmd_t pmd_mkdirty(pmd_t pm
- 	return __pmd(pte_val(pte));
- }
+diff -puN arch/arm/include/asm/pgtable-3level.h~arm-add-pmd_mkclean-for-thp arch/arm/include/asm/pgtable-3level.h
+--- a/arch/arm/include/asm/pgtable-3level.h~arm-add-pmd_mkclean-for-thp
++++ a/arch/arm/include/asm/pgtable-3level.h
+@@ -240,6 +240,7 @@ PMD_BIT_FUNC(wrprotect,	|= L_PMD_SECT_RD
+ PMD_BIT_FUNC(mkold,	&= ~PMD_SECT_AF);
+ PMD_BIT_FUNC(mkwrite,   &= ~L_PMD_SECT_RDONLY);
+ PMD_BIT_FUNC(mkdirty,   |= L_PMD_SECT_DIRTY);
++PMD_BIT_FUNC(mkclean,   &= ~L_PMD_SECT_DIRTY);
+ PMD_BIT_FUNC(mkyoung,   |= PMD_SECT_AF);
  
-+static inline pmd_t pmd_mkclean(pmd_t pmd)
-+{
-+	pte_t pte = __pte(pmd_val(pmd));
-+
-+	pte = pte_mkclean(pte);
-+
-+	return __pmd(pte_val(pte));
-+}
-+
- static inline pmd_t pmd_mkyoung(pmd_t pmd)
- {
- 	pte_t pte = __pte(pmd_val(pmd));
+ #define pmd_mkhuge(pmd)		(__pmd(pmd_val(pmd) & ~PMD_TABLE_BIT))
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
