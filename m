@@ -1,192 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- zram-pass-gfp-from-zcomp-frontend-to-backend.patch removed from -mm tree
-Date: Tue, 01 Dec 2015 16:38:00 -0800
-Message-ID: <565e3d68.bDGJuHnCpfdlUoAI%akpm@linux-foundation.org>
+Subject: [to-be-updated] zram-try-vmalloc-after-kmalloc.patch removed from -mm tree
+Date: Tue, 01 Dec 2015 16:37:58 -0800
+Message-ID: <565e3d66.x3c8t55F7tamOt+L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60735 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60726 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751883AbbLBAiB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 19:38:01 -0500
+	with ESMTP id S932229AbbLBAh7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 19:37:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: kyeongdon.kim@lge.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: pass gfp from zcomp frontend to backend
+     Subject: zram: try vmalloc() after kmalloc()
 has been removed from the -mm tree.  Its filename was
-     zram-pass-gfp-from-zcomp-frontend-to-backend.patch
+     zram-try-vmalloc-after-kmalloc.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: pass gfp from zcomp frontend to backend
+From: Kyeongdon Kim <kyeongdon.kim@lge.com>
+Subject: zram: try vmalloc() after kmalloc()
 
-Each zcomp backend uses own gfp flag but it's pointless because the
-context they could be called is driven by upper layer(ie, zcomp frontend).
- As well, zcomp frondend could call them in different context.  One
-context(ie, zram init part) is it should be better to make sure successful
-allocation other context(ie, further stream allocation part for
-accelarating I/O speed) is just optional so let's pass gfp down from
-driver (ie, zcomp frontend) like normal MM convention.
+When we're using LZ4 multi compression streams for zram swap, we found out
+page allocation failure message in system running test.  That was not only
+once, but a few(2 - 5 times per test).  Also, some failure cases were
+continually occurring to try allocation order 3.
 
-[sergey.senozhatsky@gmail.com: add missing __vmalloc zero and highmem gfps]
+In order to make parallel compression private data, we should call
+kzalloc() with order 2/3 in runtime(lzo/lz4).  But if there is no order
+2/3 size memory to allocate in that time, page allocation fails.  This
+patch makes to use vmalloc() as fallback of kmalloc(), this prevents page
+alloc failure warning.
+
+After using this, we never found warning message in running test, also It
+could reduce process startup latency about 60-120ms in each case.
+
+For reference a call trace :
+
+Binder_1: page allocation failure: order:3, mode:0x10c0d0
+CPU: 0 PID: 424 Comm: Binder_1 Tainted: GW 3.10.49-perf-g991d02b-dirty #20
+Call trace:
+[<ffffffc0002069c8>] dump_backtrace+0x0/0x270
+[<ffffffc000206c48>] show_stack+0x10/0x1c
+[<ffffffc000cb51c8>] dump_stack+0x1c/0x28
+[<ffffffc0002bbfc8>] warn_alloc_failed+0xfc/0x11c
+[<ffffffc0002bf518>] __alloc_pages_nodemask+0x724/0x7f0
+[<ffffffc0002bf5f8>] __get_free_pages+0x14/0x5c
+[<ffffffc0002ed6a4>] kmalloc_order_trace+0x38/0xd8
+[<ffffffc0005d9738>] zcomp_lz4_create+0x2c/0x38
+[<ffffffc0005d78f0>] zcomp_strm_alloc+0x34/0x78
+[<ffffffc0005d7a58>] zcomp_strm_multi_find+0x124/0x1ec
+[<ffffffc0005d7c14>] zcomp_strm_find+0xc/0x18
+[<ffffffc0005d8fa0>] zram_bvec_rw+0x2fc/0x780
+[<ffffffc0005d9680>] zram_make_request+0x25c/0x2d4
+[<ffffffc00040f8ac>] generic_make_request+0x80/0xbc
+[<ffffffc00040f98c>] submit_bio+0xa4/0x15c
+[<ffffffc0002e8bb0>] __swap_writepage+0x218/0x230
+[<ffffffc0002e8c04>] swap_writepage+0x3c/0x4c
+[<ffffffc0002c7384>] shrink_page_list+0x51c/0x8d0
+[<ffffffc0002c7e88>] shrink_inactive_list+0x3f8/0x60c
+[<ffffffc0002c86c8>] shrink_lruvec+0x33c/0x4cc
+[<ffffffc0002c8894>] shrink_zone+0x3c/0x100
+[<ffffffc0002c8c10>] try_to_free_pages+0x2b8/0x54c
+[<ffffffc0002bf308>] __alloc_pages_nodemask+0x514/0x7f0
+[<ffffffc0002bf5f8>] __get_free_pages+0x14/0x5c
+[<ffffffc0003446cc>] proc_info_read+0x50/0xe4
+[<ffffffc0002f5204>] vfs_read+0xa0/0x12c
+[<ffffffc0002f59c8>] SyS_read+0x44/0x74
+DMA: 3397*4kB (MC) 26*8kB (RC) 0*16kB 0*32kB 0*64kB 0*128kB 0*256kB
+     0*512kB 0*1024kB 0*2048kB 0*4096kB = 13796kB
+
+[minchan@kernel.org: change vmalloc gfp and adding comment about gfp]
+[sergey.senozhatsky@gmail.com: tweak comments and styles]
+Signed-off-by: Kyeongdon Kim <kyeongdon.kim@lge.com>
 Signed-off-by: Minchan Kim <minchan@kernel.org>
 Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zcomp.c     |   24 ++++++++++++++++--------
- drivers/block/zram/zcomp.h     |    2 +-
- drivers/block/zram/zcomp_lz4.c |   16 +++-------------
- drivers/block/zram/zcomp_lzo.c |   16 +++-------------
- 4 files changed, 23 insertions(+), 35 deletions(-)
+ drivers/block/zram/zcomp_lz4.c |   23 +++++++++++++++++++++--
+ drivers/block/zram/zcomp_lzo.c |   23 +++++++++++++++++++++--
+ 2 files changed, 42 insertions(+), 4 deletions(-)
 
-diff -puN drivers/block/zram/zcomp.c~zram-pass-gfp-from-zcomp-frontend-to-backend drivers/block/zram/zcomp.c
---- a/drivers/block/zram/zcomp.c~zram-pass-gfp-from-zcomp-frontend-to-backend
-+++ a/drivers/block/zram/zcomp.c
-@@ -74,18 +74,18 @@ static void zcomp_strm_free(struct zcomp
-  * allocate new zcomp_strm structure with ->private initialized by
-  * backend, return NULL on error
-  */
--static struct zcomp_strm *zcomp_strm_alloc(struct zcomp *comp)
-+static struct zcomp_strm *zcomp_strm_alloc(struct zcomp *comp, gfp_t flags)
- {
--	struct zcomp_strm *zstrm = kmalloc(sizeof(*zstrm), GFP_NOIO);
-+	struct zcomp_strm *zstrm = kmalloc(sizeof(*zstrm), flags);
- 	if (!zstrm)
- 		return NULL;
- 
--	zstrm->private = comp->backend->create();
-+	zstrm->private = comp->backend->create(flags);
- 	/*
- 	 * allocate 2 pages. 1 for compressed data, plus 1 extra for the
- 	 * case when compressed size is larger than the original one
- 	 */
--	zstrm->buffer = (void *)__get_free_pages(GFP_NOIO | __GFP_ZERO, 1);
-+	zstrm->buffer = (void *)__get_free_pages(flags | __GFP_ZERO, 1);
- 	if (!zstrm->private || !zstrm->buffer) {
- 		zcomp_strm_free(comp, zstrm);
- 		zstrm = NULL;
-@@ -120,8 +120,16 @@ static struct zcomp_strm *zcomp_strm_mul
- 		/* allocate new zstrm stream */
- 		zs->avail_strm++;
- 		spin_unlock(&zs->strm_lock);
--
--		zstrm = zcomp_strm_alloc(comp);
-+		/*
-+		 * This function can be called in swapout/fs write path
-+		 * so we can't use GFP_FS|IO. And it assumes we already
-+		 * have at least one stream in zram initialization so we
-+		 * don't do best effort to allocate more stream in here.
-+		 * A default stream will work well without further multiple
-+		 * streams. That's why we use NORETRY | NOWARN | NOMEMALLOC.
-+		 */
-+		zstrm = zcomp_strm_alloc(comp, GFP_NOIO | __GFP_NORETRY |
-+					__GFP_NOWARN | __GFP_NOMEMALLOC);
- 		if (!zstrm) {
- 			spin_lock(&zs->strm_lock);
- 			zs->avail_strm--;
-@@ -209,7 +217,7 @@ static int zcomp_strm_multi_create(struc
- 	zs->max_strm = max_strm;
- 	zs->avail_strm = 1;
- 
--	zstrm = zcomp_strm_alloc(comp);
-+	zstrm = zcomp_strm_alloc(comp, GFP_KERNEL);
- 	if (!zstrm) {
- 		kfree(zs);
- 		return -ENOMEM;
-@@ -259,7 +267,7 @@ static int zcomp_strm_single_create(stru
- 
- 	comp->stream = zs;
- 	mutex_init(&zs->strm_lock);
--	zs->zstrm = zcomp_strm_alloc(comp);
-+	zs->zstrm = zcomp_strm_alloc(comp, GFP_KERNEL);
- 	if (!zs->zstrm) {
- 		kfree(zs);
- 		return -ENOMEM;
-diff -puN drivers/block/zram/zcomp.h~zram-pass-gfp-from-zcomp-frontend-to-backend drivers/block/zram/zcomp.h
---- a/drivers/block/zram/zcomp.h~zram-pass-gfp-from-zcomp-frontend-to-backend
-+++ a/drivers/block/zram/zcomp.h
-@@ -33,7 +33,7 @@ struct zcomp_backend {
- 	int (*decompress)(const unsigned char *src, size_t src_len,
- 			unsigned char *dst);
- 
--	void *(*create)(void);
-+	void *(*create)(gfp_t flags);
- 	void (*destroy)(void *private);
- 
- 	const char *name;
-diff -puN drivers/block/zram/zcomp_lz4.c~zram-pass-gfp-from-zcomp-frontend-to-backend drivers/block/zram/zcomp_lz4.c
---- a/drivers/block/zram/zcomp_lz4.c~zram-pass-gfp-from-zcomp-frontend-to-backend
+diff -puN drivers/block/zram/zcomp_lz4.c~zram-try-vmalloc-after-kmalloc drivers/block/zram/zcomp_lz4.c
+--- a/drivers/block/zram/zcomp_lz4.c~zram-try-vmalloc-after-kmalloc
 +++ a/drivers/block/zram/zcomp_lz4.c
-@@ -15,24 +15,14 @@
+@@ -10,17 +10,36 @@
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/lz4.h>
++#include <linux/vmalloc.h>
++#include <linux/mm.h>
  
  #include "zcomp_lz4.h"
  
--static void *zcomp_lz4_create(void)
-+static void *zcomp_lz4_create(gfp_t flags)
+ static void *zcomp_lz4_create(void)
  {
- 	void *ret;
- 
--	/*
--	 * This function can be called in swapout/fs write path
--	 * so we can't use GFP_FS|IO. And it assumes we already
--	 * have at least one stream in zram initialization so we
--	 * don't do best effort to allocate more stream in here.
--	 * A default stream will work well without further multiple
--	 * streams. That's why we use NORETRY | NOWARN | NOMEMALLOC.
--	 */
--	ret = kzalloc(LZ4_MEM_COMPRESS, GFP_NOIO | __GFP_NORETRY |
--					__GFP_NOWARN | __GFP_NOMEMALLOC);
-+	ret = kzalloc(LZ4_MEM_COMPRESS, flags);
- 	if (!ret)
- 		ret = __vmalloc(LZ4_MEM_COMPRESS,
--				GFP_NOIO | __GFP_NORETRY | __GFP_NOWARN |
--				__GFP_NOMEMALLOC | __GFP_ZERO | __GFP_HIGHMEM,
-+				flags | __GFP_ZERO | __GFP_HIGHMEM,
- 				PAGE_KERNEL);
- 	return ret;
+-	return kzalloc(LZ4_MEM_COMPRESS, GFP_NOIO);
++	void *ret;
++
++	/*
++	 * This function can be called in swapout/fs write path
++	 * so we can't use GFP_FS|IO. And it assumes we already
++	 * have at least one stream in zram initialization so we
++	 * don't do best effort to allocate more stream in here.
++	 * A default stream will work well without further multiple
++	 * streams. That's why we use NORETRY | NOWARN | NOMEMALLOC.
++	 */
++	ret = kzalloc(LZ4_MEM_COMPRESS, GFP_NOIO | __GFP_NORETRY |
++					__GFP_NOWARN | __GFP_NOMEMALLOC);
++	if (!ret)
++		ret = __vmalloc(LZ4_MEM_COMPRESS,
++				GFP_NOIO | __GFP_NORETRY | __GFP_NOWARN |
++				__GFP_NOMEMALLOC | __GFP_ZERO | __GFP_HIGHMEM,
++				PAGE_KERNEL);
++	return ret;
  }
-diff -puN drivers/block/zram/zcomp_lzo.c~zram-pass-gfp-from-zcomp-frontend-to-backend drivers/block/zram/zcomp_lzo.c
---- a/drivers/block/zram/zcomp_lzo.c~zram-pass-gfp-from-zcomp-frontend-to-backend
+ 
+ static void zcomp_lz4_destroy(void *private)
+ {
+-	kfree(private);
++	kvfree(private);
+ }
+ 
+ static int zcomp_lz4_compress(const unsigned char *src, unsigned char *dst,
+diff -puN drivers/block/zram/zcomp_lzo.c~zram-try-vmalloc-after-kmalloc drivers/block/zram/zcomp_lzo.c
+--- a/drivers/block/zram/zcomp_lzo.c~zram-try-vmalloc-after-kmalloc
 +++ a/drivers/block/zram/zcomp_lzo.c
-@@ -15,24 +15,14 @@
+@@ -10,17 +10,36 @@
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+ #include <linux/lzo.h>
++#include <linux/vmalloc.h>
++#include <linux/mm.h>
  
  #include "zcomp_lzo.h"
  
--static void *lzo_create(void)
-+static void *lzo_create(gfp_t flags)
+ static void *lzo_create(void)
  {
- 	void *ret;
- 
--	/*
--	 * This function can be called in swapout/fs write path
--	 * so we can't use GFP_FS|IO. And it assumes we already
--	 * have at least one stream in zram initialization so we
--	 * don't do best effort to allocate more stream in here.
--	 * A default stream will work well without further multiple
--	 * streams. That's why we use NORETRY | NOWARN | NOMEMALLOC.
--	 */
--	ret = kzalloc(LZO1X_MEM_COMPRESS, GFP_NOIO | __GFP_NORETRY |
--					__GFP_NOWARN | __GFP_NOMEMALLOC);
-+	ret = kzalloc(LZO1X_MEM_COMPRESS, flags);
- 	if (!ret)
- 		ret = __vmalloc(LZO1X_MEM_COMPRESS,
--				GFP_NOIO | __GFP_NORETRY | __GFP_NOWARN |
--				__GFP_NOMEMALLOC | __GFP_ZERO | __GFP_HIGHMEM,
-+				flags | __GFP_ZERO | __GFP_HIGHMEM,
- 				PAGE_KERNEL);
- 	return ret;
+-	return kzalloc(LZO1X_MEM_COMPRESS, GFP_NOIO);
++	void *ret;
++
++	/*
++	 * This function can be called in swapout/fs write path
++	 * so we can't use GFP_FS|IO. And it assumes we already
++	 * have at least one stream in zram initialization so we
++	 * don't do best effort to allocate more stream in here.
++	 * A default stream will work well without further multiple
++	 * streams. That's why we use NORETRY | NOWARN | NOMEMALLOC.
++	 */
++	ret = kzalloc(LZO1X_MEM_COMPRESS, GFP_NOIO | __GFP_NORETRY |
++					__GFP_NOWARN | __GFP_NOMEMALLOC);
++	if (!ret)
++		ret = __vmalloc(LZO1X_MEM_COMPRESS,
++				GFP_NOIO | __GFP_NORETRY | __GFP_NOWARN |
++				__GFP_NOMEMALLOC | __GFP_ZERO | __GFP_HIGHMEM,
++				PAGE_KERNEL);
++	return ret;
  }
+ 
+ static void lzo_destroy(void *private)
+ {
+-	kfree(private);
++	kvfree(private);
+ }
+ 
+ static int lzo_compress(const unsigned char *src, unsigned char *dst,
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from kyeongdon.kim@lge.com are
 
 
