@@ -1,108 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch
- removed from -mm tree
-Date: Wed, 02 Dec 2015 13:25:33 -0800
-Message-ID: <565f61cd.uLcNs/JvOItZ24L5%akpm@linux-foundation.org>
+Subject: [to-be-updated] lib-vsprintfc-expand-field_width-to-24-bits.patch removed from -mm tree
+Date: Wed, 02 Dec 2015 13:25:29 -0800
+Message-ID: <565f61c9.AeollhNqFJjYOEg7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36196 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36192 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755174AbbLBVZd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 16:25:33 -0500
+	with ESMTP id S1754437AbbLBVZ3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 16:25:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: warn about too large precisions and field widths
+     Subject: lib/vsprintf.c: expand field_width to 24 bits
 has been removed from the -mm tree.  Its filename was
-     lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch
+     lib-vsprintfc-expand-field_width-to-24-bits.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: warn about too large precisions and field widths
+Subject: lib/vsprintf.c: expand field_width to 24 bits
 
-The field width is overloaded to pass some extra information for some %p
-extensions (e.g.  #bits for %pb).  But we might silently truncate the
-passed value when we stash it in struct printf_spec (see e.g. 
-"lib/vsprintf.c: expand field_width to 24 bits").  Hopefully 23 value bits
-should now be enough for everybody, but if not, let's make some noise.
+Maurizio Lombardi reported a problem [1] with the %pb extension: It
+doesn't work for sufficiently large bitmaps, since the size is stashed in
+the field_width field of the struct printf_spec, which is currently an
+s16.  Concretely, this manifested itself in
+/sys/bus/pseudo/drivers/scsi_debug/map being empty, since the bitmap
+printer got a size of 0, which is the 16 bit truncation of the actual
+bitmap size.
 
-Do the same for the precision.  In both cases, clamping seems more
-sensible than truncating.  A negative precision is the same as 0, so use
-that as lower bound.  For the field width, the smallest representable
-value is actually -(1<<23), but a negative field width means 'set the LEFT
-flag and use the absolute value', so we want the absolute value to fit.
+We do want to keep struct printf_spec at 8 bytes so that it can cheaply be
+passed by value.  The qualifier field is only used for internal
+bookkeeping in format_decode, so we might as well use a local variable for
+that.  This gives us an additional 8 bits, which we can then use for the
+field width.
+
+To stay in 8 bytes, we need to do a little rearranging and make the type
+member a bitfield as well.  For consistency, change all the members to bit
+fields.  gcc doesn't generate much worse code with these changes (in fact,
+bloat-o-meter says we save 300 bytes - which I think is a little
+surprising).
+
+I didn't find a BUILD_BUG/compiletime_assertion/... which would work
+outside function context, so for now I just open-coded it.
+
+[1] http://thread.gmane.org/gmane.linux.kernel/2034835
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   24 ++++++++++++++++++++++--
- 1 file changed, 22 insertions(+), 2 deletions(-)
+ lib/vsprintf.c |   39 ++++++++++++++++++++-------------------
+ 1 file changed, 20 insertions(+), 19 deletions(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-warn-about-too-large-precisions-and-field-widths lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-warn-about-too-large-precisions-and-field-widths
+diff -puN lib/vsprintf.c~lib-vsprintfc-expand-field_width-to-24-bits lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-expand-field_width-to-24-bits
 +++ a/lib/vsprintf.c
-@@ -387,6 +387,8 @@ struct printf_spec {
- 	unsigned int	base:8;		/* number base, 8, 10 or 16 only */
- 	signed int	precision:16;	/* # of digits/chars */
+@@ -381,13 +381,13 @@ enum format_type {
  };
-+#define FIELD_WIDTH_MAX ((1 << 23) - 1)
-+#define PRECISION_MAX ((1 << 15) - 1)
- extern char __check_printf_spec[1-2*(sizeof(struct printf_spec) != 8)];
+ 
+ struct printf_spec {
+-	u8	type;		/* format_type enum */
+-	u8	flags;		/* flags to number() */
+-	u8	base;		/* number base, 8, 10 or 16 only */
+-	u8	qualifier;	/* number qualifier, one of 'hHlLtzZ' */
+-	s16	field_width;	/* width of output field */
+-	s16	precision;	/* # of digits/chars */
++	unsigned int	type:8;		/* format_type enum */
++	signed int	field_width:24;	/* width of output field */
++	unsigned int	flags:8;	/* flags to number() */
++	unsigned int	base:8;		/* number base, 8, 10 or 16 only */
++	signed int	precision:16;	/* # of digits/chars */
+ };
++extern char __check_printf_spec[1-2*(sizeof(struct printf_spec) != 8)];
  
  static noinline_for_stack
-@@ -1846,6 +1848,24 @@ qualifier:
- 	return ++fmt - start;
- }
+ char *number(char *buf, char *end, unsigned long long num,
+@@ -1672,6 +1672,7 @@ static noinline_for_stack
+ int format_decode(const char *fmt, struct printf_spec *spec)
+ {
+ 	const char *start = fmt;
++	char qualifier;
  
-+static inline void
-+set_field_width(struct printf_spec *spec, int width)
-+{
-+	spec->field_width = width;
-+	if (WARN_ONCE(spec->field_width != width, "field width %d too large", width)) {
-+		spec->field_width = clamp(width, -FIELD_WIDTH_MAX, FIELD_WIDTH_MAX);
-+	}
-+}
-+
-+static inline void
-+set_precision(struct printf_spec *spec, int prec)
-+{
-+	spec->precision = prec;
-+	if (WARN_ONCE(spec->precision != prec, "precision %d too large", prec)) {
-+		spec->precision = clamp(prec, 0, PRECISION_MAX);
-+	}
-+}
-+
- /**
-  * vsnprintf - Format a string and place it in a buffer
-  * @buf: The buffer to place the result into
-@@ -1913,11 +1933,11 @@ int vsnprintf(char *buf, size_t size, co
+ 	/* we finished early by reading the field width */
+ 	if (spec->type == FORMAT_TYPE_WIDTH) {
+@@ -1754,16 +1755,16 @@ precision:
+ 
+ qualifier:
+ 	/* get the conversion qualifier */
+-	spec->qualifier = -1;
++	qualifier = 0;
+ 	if (*fmt == 'h' || _tolower(*fmt) == 'l' ||
+ 	    _tolower(*fmt) == 'z' || *fmt == 't') {
+-		spec->qualifier = *fmt++;
+-		if (unlikely(spec->qualifier == *fmt)) {
+-			if (spec->qualifier == 'l') {
+-				spec->qualifier = 'L';
++		qualifier = *fmt++;
++		if (unlikely(qualifier == *fmt)) {
++			if (qualifier == 'l') {
++				qualifier = 'L';
+ 				++fmt;
+-			} else if (spec->qualifier == 'h') {
+-				spec->qualifier = 'H';
++			} else if (qualifier == 'h') {
++				qualifier = 'H';
+ 				++fmt;
+ 			}
  		}
+@@ -1820,19 +1821,19 @@ qualifier:
+ 		return fmt - start;
+ 	}
  
- 		case FORMAT_TYPE_WIDTH:
--			spec.field_width = va_arg(args, int);
-+			set_field_width(&spec, va_arg(args, int));
- 			break;
- 
- 		case FORMAT_TYPE_PRECISION:
--			spec.precision = va_arg(args, int);
-+			set_precision(&spec, va_arg(args, int));
- 			break;
- 
- 		case FORMAT_TYPE_CHAR: {
+-	if (spec->qualifier == 'L')
++	if (qualifier == 'L')
+ 		spec->type = FORMAT_TYPE_LONG_LONG;
+-	else if (spec->qualifier == 'l') {
++	else if (qualifier == 'l') {
+ 		BUILD_BUG_ON(FORMAT_TYPE_ULONG + SIGN != FORMAT_TYPE_LONG);
+ 		spec->type = FORMAT_TYPE_ULONG + (spec->flags & SIGN);
+-	} else if (_tolower(spec->qualifier) == 'z') {
++	} else if (_tolower(qualifier) == 'z') {
+ 		spec->type = FORMAT_TYPE_SIZE_T;
+-	} else if (spec->qualifier == 't') {
++	} else if (qualifier == 't') {
+ 		spec->type = FORMAT_TYPE_PTRDIFF;
+-	} else if (spec->qualifier == 'H') {
++	} else if (qualifier == 'H') {
+ 		BUILD_BUG_ON(FORMAT_TYPE_UBYTE + SIGN != FORMAT_TYPE_BYTE);
+ 		spec->type = FORMAT_TYPE_UBYTE + (spec->flags & SIGN);
+-	} else if (spec->qualifier == 'h') {
++	} else if (qualifier == 'h') {
+ 		BUILD_BUG_ON(FORMAT_TYPE_USHORT + SIGN != FORMAT_TYPE_SHORT);
+ 		spec->type = FORMAT_TYPE_USHORT + (spec->flags & SIGN);
+ 	} else {
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
+lib-vsprintfc-help-gcc-make-number-smaller.patch
+lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch
 lib-test_printfc-dont-bug.patch
 lib-test_printfc-check-for-out-of-bound-writes.patch
 lib-test_printfc-add-a-few-string-tests.patch
