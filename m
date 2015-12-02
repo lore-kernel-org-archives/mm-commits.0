@@ -1,128 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-page_owner-provide-symbolic-page-flags-and-gfp_flags.patch removed from
- -mm tree
-Date: Wed, 02 Dec 2015 14:14:54 -0800
-Message-ID: <565f6d5e.jkrIZ7Obe+/pauAy%akpm@linux-foundation.org>
+Subject: +
+ drivers-memory-prohibit-offlining-of-memory-blocks-with-missing-sections.patch added to -mm tree
+Date: Wed, 02 Dec 2015 14:46:01 -0800
+Message-ID: <565f74a9.U6rxwFW10ihtsdCs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37058 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37907 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755237AbbLBWOz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 17:14:55 -0500
+	with ESMTP id S1757008AbbLBWqC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 17:46:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, linux@rasmusvillemoes.dk, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: sjennings@variantweb.net, abanman@sgi.com, daniel@numascale.com, greg@kroah.com, rja@sgi.com, stable@vger.kernel.org, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_owner: provide symbolic page flags and gfp_flags
-has been removed from the -mm tree.  Its filename was
-     mm-page_owner-provide-symbolic-page-flags-and-gfp_flags.patch
+     Subject: drivers/base/memory.c: prohibit offlining of memory blocks with missing sections
+has been added to the -mm tree.  Its filename is
+     drivers-memory-prohibit-offlining-of-memory-blocks-with-missing-sections.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-memory-prohibit-offlining-of-memory-blocks-with-missing-sections.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-memory-prohibit-offlining-of-memory-blocks-with-missing-sections.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_owner: provide symbolic page flags and gfp_flags
+From: Seth Jennings <sjennings@variantweb.net>
+Subject: drivers/base/memory.c: prohibit offlining of memory blocks with missing sections
 
-With the new format strings for flags, we can now provide symbolic page
-and gfp flags in the /sys/kernel/debug/page_owner file.  This replaces the
-positional printing of page flags as single letters, which might have
-looked nicer, but was limited to a subset of flags, and required the user
-to remember the letters.
+bdee237c ("x86: mm: Use 2GB memory block size on large-memory x86-64
+systems") and 982792c7 ("x86, mm: probe memory block size for generic x86
+64bit") introduced large block sizes for x86.  This made it possible to
+have multiple sections per memory block where previously, there was a only
+every one section per block.
 
-Example of the adjusted format:
+Since blocks consist of contiguous ranges of section, there can be holes
+in the blocks where sections are not present.  If one attempts to offline
+such a block, a crash occurs since the code is not designed to deal with
+this.
 
-Page allocated via order 0, mask 0x24213ca(GFP_HIGHUSER_MOVABLE|GFP_COLD|GFP_NOWARN|GFP_NORETRY)
-PFN 674308 type Movable Block 1317 type Movable Flags 0x1fffff80010068(uptodate|lru|active|mappedtodisk)
- [<ffffffff81164e9a>] __alloc_pages_nodemask+0x15a/0xa30
- [<ffffffff811ab938>] alloc_pages_current+0x88/0x120
- [<ffffffff8115bc46>] __page_cache_alloc+0xe6/0x120
- [<ffffffff81168b9b>] __do_page_cache_readahead+0xdb/0x200
- [<ffffffff81168df5>] ondemand_readahead+0x135/0x260
- [<ffffffff81168f8c>] page_cache_async_readahead+0x6c/0x70
- [<ffffffff8115d5f8>] generic_file_read_iter+0x378/0x590
- [<ffffffff811d12a7>] __vfs_read+0xa7/0xd0
-Page has been migrated, last migrate reason: compaction
+This patch is a quick fix to gaurd against the crash by not allowing
+blocks with non-present sections to be offlined.
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Addresses https://bugzilla.kernel.org/show_bug.cgi?id=107781
+
+Signed-off-by: Seth Jennings <sjennings@variantweb.net>
+Reported-by: Andrew Banman <abanman@sgi.com>
+Cc: Daniel J Blueman <daniel@numascale.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Russ Anderson <rja@sgi.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |   19 ++++---------------
- 1 file changed, 4 insertions(+), 15 deletions(-)
+ drivers/base/memory.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/page_owner.c~mm-page_owner-provide-symbolic-page-flags-and-gfp_flags mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-provide-symbolic-page-flags-and-gfp_flags
-+++ a/mm/page_owner.c
-@@ -135,8 +135,8 @@ print_page_owner(char __user *buf, size_
- 		return -ENOMEM;
+diff -puN drivers/base/memory.c~drivers-memory-prohibit-offlining-of-memory-blocks-with-missing-sections drivers/base/memory.c
+--- a/drivers/base/memory.c~drivers-memory-prohibit-offlining-of-memory-blocks-with-missing-sections
++++ a/drivers/base/memory.c
+@@ -303,6 +303,10 @@ static int memory_subsys_offline(struct
+ 	if (mem->state == MEM_OFFLINE)
+ 		return 0;
  
- 	ret = snprintf(kbuf, count,
--			"Page allocated via order %u, mask 0x%x\n",
--			page_ext->order, page_ext->gfp_mask);
-+			"Page allocated via order %u, mask %pgg\n",
-+			page_ext->order, &page_ext->gfp_mask);
++	/* Can't offline block with non-present sections */
++	if (mem->section_count != sections_per_block)
++		return -EINVAL;
++
+ 	return memory_block_change_state(mem, MEM_OFFLINE, MEM_ONLINE);
+ }
  
- 	if (ret >= count)
- 		goto err;
-@@ -145,23 +145,12 @@ print_page_owner(char __user *buf, size_
- 	pageblock_mt = get_pfnblock_migratetype(page, pfn);
- 	page_mt  = gfpflags_to_migratetype(page_ext->gfp_mask);
- 	ret += snprintf(kbuf + ret, count - ret,
--			"PFN %lu type %s Block %lu type %s Flags %s%s%s%s%s%s%s%s%s%s%s%s\n",
-+			"PFN %lu type %s Block %lu type %s Flags %pgp\n",
- 			pfn,
- 			migratetype_names[page_mt],
- 			pfn >> pageblock_order,
- 			migratetype_names[pageblock_mt],
--			PageLocked(page)	? "K" : " ",
--			PageError(page)		? "E" : " ",
--			PageReferenced(page)	? "R" : " ",
--			PageUptodate(page)	? "U" : " ",
--			PageDirty(page)		? "D" : " ",
--			PageLRU(page)		? "L" : " ",
--			PageActive(page)	? "A" : " ",
--			PageSlab(page)		? "S" : " ",
--			PageWriteback(page)	? "W" : " ",
--			PageCompound(page)	? "C" : " ",
--			PageSwapCache(page)	? "B" : " ",
--			PageMappedToDisk(page)	? "M" : " ");
-+			&page->flags);
- 
- 	if (ret >= count)
- 		goto err;
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from sjennings@variantweb.net are
 
-mm-fix-swapped-movable-and-reclaimable-in-proc-pagetypeinfo.patch
-mm-documentation-clarify-proc-pid-status-vmswap-limitations-for-shmem.patch
-mm-proc-account-for-shmem-swap-in-proc-pid-smaps.patch
-mm-proc-reduce-cost-of-proc-pid-smaps-for-shmem-mappings.patch
-mm-proc-reduce-cost-of-proc-pid-smaps-for-unpopulated-shmem-mappings.patch
-mm-debug-fix-wrongly-filtered-flags-in-dump_vma.patch
-mm-debug-fix-wrongly-filtered-flags-in-dump_vma-fix.patch
-mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock.patch
-mm-page_owner-convert-page_owner_inited-to-static-key.patch
-mm-page_owner-copy-page-owner-info-during-migration.patch
-mm-page_owner-track-and-print-last-migrate-reason.patch
-mm-page_owner-track-and-print-last-migrate-reason-fix.patch
-mm-debug-introduce-dump_gfpflag_names-for-symbolic-printing-of-gfp_flags.patch
-mm-page_owner-dump-page-owner-info-from-dump_page.patch
-mm-page_owner-dump-page-owner-info-from-dump_page-fix.patch
-mm-page_alloc-print-symbolic-gfp_flags-on-allocation-failure.patch
-mm-oom-print-symbolic-gfp_flags-in-oom-warning.patch
+drivers-memory-prohibit-offlining-of-memory-blocks-with-missing-sections.patch
+drivers-memory-clean-up-section-counting.patch
+drivers-memory-rename-remove_memory_block-to-remove_memory_section.patch
 
