@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + arm-mm-support-arch_mmap_rnd_bits-v5.patch added to -mm tree
-Date: Tue, 01 Dec 2015 16:24:55 -0800
-Message-ID: <565e3a57.B/Ek4hj8d367jSUI%akpm@linux-foundation.org>
+Subject: + mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix.patch
+ added to -mm tree
+Date: Tue, 01 Dec 2015 16:24:53 -0800
+Message-ID: <565e3a55.4vwL8Xddn+bYWd7H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59686 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59683 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756196AbbLBAY4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 19:24:56 -0500
+	with ESMTP id S1755329AbbLBAYy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Dec 2015 19:24:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dcashman@android.com, catalin.marinas@arm.com, linux@arm.linux.org.uk, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dcashman@android.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm-mm-support-arch_mmap_rnd_bits-v5
+     Subject: mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix
 has been added to the -mm tree.  Its filename is
-     arm-mm-support-arch_mmap_rnd_bits-v5.patch
+     mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm-mm-support-arch_mmap_rnd_bits-v5.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm-mm-support-arch_mmap_rnd_bits-v5.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,44 +39,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Daniel Cashman <dcashman@android.com>
-Subject: arm-mm-support-arch_mmap_rnd_bits-v5
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix
 
-Signed-off-by: Daniel Cashman <dcashman@android.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
+restore the casts
+
+Cc: Daniel Cashman <dcashman@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ kernel/sysctl.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm/Kconfig~arm-mm-support-arch_mmap_rnd_bits-v5 arch/arm/Kconfig
---- a/arch/arm/Kconfig~arm-mm-support-arch_mmap_rnd_bits-v5
-+++ a/arch/arm/Kconfig
-@@ -313,10 +313,9 @@ config ARCH_MMAP_RND_BITS_MIN
- 	default 8
- 
- config ARCH_MMAP_RND_BITS_MAX
--	default 14 if MMU && PAGE_OFFSET=0x40000000
--	default 15 if MMU && PAGE_OFFSET=0x80000000
--	default 16 if MMU
--	default 8
-+	default 14 if PAGE_OFFSET=0x40000000
-+	default 15 if PAGE_OFFSET=0x80000000
-+	default 16
- 
- #
- # The "ARM system type" choice list is ordered alphabetically by option
+diff -puN kernel/sysctl.c~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix
++++ a/kernel/sysctl.c
+@@ -1575,8 +1575,8 @@ static struct ctl_table vm_table[] = {
+ 		.maxlen		= sizeof(mmap_rnd_bits),
+ 		.mode		= 0600,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= &mmap_rnd_bits_min,
+-		.extra2		= &mmap_rnd_bits_max,
++		.extra1		= (void *)&mmap_rnd_bits_min,
++		.extra2		= (void *)&mmap_rnd_bits_max,
+ 	},
+ #endif
+ #ifdef CONFIG_HAVE_ARCH_MMAP_RND_COMPAT_BITS
+@@ -1586,8 +1586,8 @@ static struct ctl_table vm_table[] = {
+ 		.maxlen		= sizeof(mmap_rnd_compat_bits),
+ 		.mode		= 0600,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= &mmap_rnd_compat_bits_min,
+-		.extra2		= &mmap_rnd_compat_bits_max,
++		.extra1		= (void *)&mmap_rnd_compat_bits_min,
++		.extra2		= (void *)&mmap_rnd_compat_bits_max,
+ 	},
+ #endif
+ 	{ }
 _
 
-Patches currently in -mm which might be from dcashman@android.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v4.patch
-mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5.patch
-arm-mm-support-arch_mmap_rnd_bits-v5.patch
-arm64-mm-support-arch_mmap_rnd_bits-v4.patch
-arm64-mm-support-arch_mmap_rnd_bits-v5.patch
-x86-mm-support-arch_mmap_rnd_bits-v5.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm.patch
+account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
+mm-zonelist-enumerate-zonelists-array-index-fix.patch
+mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
+mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
