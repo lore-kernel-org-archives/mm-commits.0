@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- drivers-memory-rename-remove_memory_block-to-remove_memory_section.patch
- added to -mm tree
-Date: Wed, 02 Dec 2015 14:46:25 -0800
-Message-ID: <565f74c1.MWt2JeG7ljXwJXnG%akpm@linux-foundation.org>
+Subject: + mm-page_allocc-use-list_for_each_entry-in-mark_free_pages.patch added to -mm tree
+Date: Wed, 02 Dec 2015 14:53:39 -0800
+Message-ID: <565f7673.tm6/uc3ErW5SdRy9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37924 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37947 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757170AbbLBWq0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 17:46:26 -0500
+	with ESMTP id S1757271AbbLBWxk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 17:53:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sjennings@variantweb.net, abanman@sgi.com, daniel@numascale.com, greg@kroah.com, rja@sgi.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: geliangtang@163.com, mgorman@techsingularity.net, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/base/memory.c: rename remove_memory_block() to remove_memory_section()
+     Subject: mm/page_alloc.c: use list_for_each_entry in mark_free_pages()
 has been added to the -mm tree.  Its filename is
-     drivers-memory-rename-remove_memory_block-to-remove_memory_section.patch
+     mm-page_allocc-use-list_for_each_entry-in-mark_free_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-memory-rename-remove_memory_block-to-remove_memory_section.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_allocc-use-list_for_each_entry-in-mark_free_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-memory-rename-remove_memory_block-to-remove_memory_section.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_allocc-use-list_for_each_entry-in-mark_free_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,50 +38,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Seth Jennings <sjennings@variantweb.net>
-Subject: drivers/base/memory.c: rename remove_memory_block() to remove_memory_section()
+From: Geliang Tang <geliangtang@163.com>
+Subject: mm/page_alloc.c: use list_for_each_entry in mark_free_pages()
 
-The function removes a section, not a block.  Rename to reflect actual
-functionality.
+Use list_for_each_entry instead of list_for_each + list_entry to
+simplify the code.
 
-Signed-off-by: Seth Jennings <sjennings@variantweb.net>
-Cc: Andrew Banman <abanman@sgi.com>
-Cc: Daniel J Blueman <daniel@numascale.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Russ Anderson <rja@sgi.com>
+Signed-off-by: Geliang Tang <geliangtang@163.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN drivers/base/memory.c~drivers-memory-rename-remove_memory_block-to-remove_memory_section drivers/base/memory.c
---- a/drivers/base/memory.c~drivers-memory-rename-remove_memory_block-to-remove_memory_section
-+++ a/drivers/base/memory.c
-@@ -692,7 +692,7 @@ unregister_memory(struct memory_block *m
- 	device_unregister(&memory->dev);
- }
+diff -puN mm/page_alloc.c~mm-page_allocc-use-list_for_each_entry-in-mark_free_pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-use-list_for_each_entry-in-mark_free_pages
++++ a/mm/page_alloc.c
+@@ -1980,7 +1980,7 @@ void mark_free_pages(struct zone *zone)
+ 	unsigned long pfn, max_zone_pfn;
+ 	unsigned long flags;
+ 	unsigned int order, t;
+-	struct list_head *curr;
++	struct page *page;
  
--static int remove_memory_block(unsigned long node_id,
-+static int remove_memory_section(unsigned long node_id,
- 			       struct mem_section *section, int phys_device)
- {
- 	struct memory_block *mem;
-@@ -716,7 +716,7 @@ int unregister_memory_section(struct mem
- 	if (!present_section(section))
- 		return -EINVAL;
+ 	if (zone_is_empty(zone))
+ 		return;
+@@ -1990,17 +1990,17 @@ void mark_free_pages(struct zone *zone)
+ 	max_zone_pfn = zone_end_pfn(zone);
+ 	for (pfn = zone->zone_start_pfn; pfn < max_zone_pfn; pfn++)
+ 		if (pfn_valid(pfn)) {
+-			struct page *page = pfn_to_page(pfn);
+-
++			page = pfn_to_page(pfn);
+ 			if (!swsusp_page_is_forbidden(page))
+ 				swsusp_unset_page_free(page);
+ 		}
  
--	return remove_memory_block(0, section, 0);
-+	return remove_memory_section(0, section, 0);
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
+ 	for_each_migratetype_order(order, t) {
+-		list_for_each(curr, &zone->free_area[order].free_list[t]) {
++		list_for_each_entry(page,
++				&zone->free_area[order].free_list[t], lru) {
+ 			unsigned long i;
  
+-			pfn = page_to_pfn(list_entry(curr, struct page, lru));
++			pfn = page_to_pfn(page);
+ 			for (i = 0; i < (1UL << order); i++)
+ 				swsusp_set_page_free(pfn_to_page(pfn + i));
+ 		}
 _
 
-Patches currently in -mm which might be from sjennings@variantweb.net are
+Patches currently in -mm which might be from geliangtang@163.com are
 
-drivers-memory-prohibit-offlining-of-memory-blocks-with-missing-sections.patch
-drivers-memory-clean-up-section-counting.patch
-drivers-memory-rename-remove_memory_block-to-remove_memory_section.patch
+fsnotify-use-list_next_entry-in-fsnotify_unmount_inodes.patch
+mm-vmalloc-use-list_nextfirst_entry.patch
+mm-thp-use-list_first_entry_or_null.patch
+mm-page_allocc-use-list_firstlast_entry-instead-of-list_entry.patch
+mm-page_allocc-use-list_for_each_entry-in-mark_free_pages.patch
+dma-mapping-use-offset_in_page-macro.patch
 
