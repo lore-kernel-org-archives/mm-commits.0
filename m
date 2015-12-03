@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-vsprintfc-expand-field_width-to-24-bits-fix.patch added to
- -mm tree
-Date: Thu, 03 Dec 2015 15:35:29 -0800
-Message-ID: <5660d1c1.zFsDSYfe5W4+248n%akpm@linux-foundation.org>
+Subject: + lib-vsprintfc-expand-field_width-to-24-bits.patch added to -mm
+ tree
+Date: Thu, 03 Dec 2015 15:35:27 -0800
+Message-ID: <5660d1bf.GeM0V8gFJPg/rbO/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44306 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44298 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753533AbbLCXfa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2015 18:35:30 -0500
+	with ESMTP id S1753668AbbLCXf2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2015 18:35:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, joe@perches.com, keescook@chromium.org, linux@rasmusvillemoes.dk, mingo@kernel.org, mlombard@redhat.com, tj@kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, andriy.shevchenko@linux.intel.com, joe@perches.com, keescook@chromium.org, mingo@kernel.org, mlombard@redhat.com, tj@kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-vsprintfc-expand-field_width-to-24-bits-fix
+     Subject: lib/vsprintf.c: expand field_width to 24 bits
 has been added to the -mm tree.  Its filename is
-     lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
+     lib-vsprintfc-expand-field_width-to-24-bits.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-expand-field_width-to-24-bits.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-expand-field_width-to-24-bits.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,73 +39,152 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-vsprintfc-expand-field_width-to-24-bits-fix
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: lib/vsprintf.c: expand field_width to 24 bits
 
-avoid open-coded BUILD_BUG_ON
+Maurizio Lombardi reported a problem [1] with the %pb extension: It
+doesn't work for sufficiently large bitmaps, since the size is stashed
+in the field_width field of the struct printf_spec, which is currently
+an s16. Concretely, this manifested itself in
+/sys/bus/pseudo/drivers/scsi_debug/map being empty, since the bitmap
+printer got a size of 0, which is the 16 bit truncation of the actual
+bitmap size.
 
+We do want to keep struct printf_spec at 8 bytes so that it can
+cheaply be passed by value. The qualifier field is only used for
+internal bookkeeping in format_decode, so we might as well use a local
+variable for that. This gives us an additional 8 bits, which we can
+then use for the field width.
+
+To stay in 8 bytes, we need to do a little rearranging and make the
+type member a bitfield as well. For consistency, change all the
+members to bit fields. gcc doesn't generate much worse code with these
+changes (in fact, bloat-o-meter says we save 300 bytes - which I think
+is a little surprising).
+
+I didn't find a BUILD_BUG/compiletime_assertion/... which would work
+outside function context, so for now I just open-coded it.
+
+[1] http://thread.gmane.org/gmane.linux.kernel/2034835
+
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Reported-by: Maurizio Lombardi <mlombard@redhat.com>
+Acked-by: Tejun Heo <tj@kernel.org>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Joe Perches <joe@perches.com>
 Cc: Kees Cook <keescook@chromium.org>
-Cc: Maurizio Lombardi <mlombard@redhat.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ lib/vsprintf.c |   41 +++++++++++++++++++++--------------------
+ 1 file changed, 21 insertions(+), 20 deletions(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-expand-field_width-to-24-bits-fix lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-expand-field_width-to-24-bits-fix
+diff -puN lib/vsprintf.c~lib-vsprintfc-expand-field_width-to-24-bits lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-expand-field_width-to-24-bits
 +++ a/lib/vsprintf.c
-@@ -386,7 +386,6 @@ struct printf_spec {
- 	unsigned int	base:8;		/* number base, 8, 10 or 16 only */
- 	signed int	precision:16;	/* # of digits/chars */
- } __packed;
--extern char __check_printf_spec[1-2*(sizeof(struct printf_spec) != 8)];
+@@ -380,13 +380,13 @@ enum format_type {
+ };
+ 
+ struct printf_spec {
+-	u8	type;		/* format_type enum */
+-	u8	flags;		/* flags to number() */
+-	u8	base;		/* number base, 8, 10 or 16 only */
+-	u8	qualifier;	/* number qualifier, one of 'hHlLtzZ' */
+-	s16	field_width;	/* width of output field */
+-	s16	precision;	/* # of digits/chars */
+-};
++	unsigned int	type:8;		/* format_type enum */
++	signed int	field_width:24;	/* width of output field */
++	unsigned int	flags:8;	/* flags to number() */
++	unsigned int	base:8;		/* number base, 8, 10 or 16 only */
++	signed int	precision:16;	/* # of digits/chars */
++} __packed;
++extern char __check_printf_spec[1-2*(sizeof(struct printf_spec) != 8)];
  
  static noinline_for_stack
  char *number(char *buf, char *end, unsigned long long num,
-@@ -400,6 +399,8 @@ char *number(char *buf, char *end, unsig
- 	int i;
- 	bool is_zero = num == 0LL;
+@@ -1641,6 +1641,7 @@ static noinline_for_stack
+ int format_decode(const char *fmt, struct printf_spec *spec)
+ {
+ 	const char *start = fmt;
++	char qualifier;
  
-+	BUILD_BUG_ON(sizeof(struct printf_spec) != 8);
-+
- 	/* locase = 0 or 0x20. ORing digits or letters with 'locase'
- 	 * produces same digits or (maybe lowercased) letters */
- 	locase = (spec.flags & SMALL);
+ 	/* we finished early by reading the field width */
+ 	if (spec->type == FORMAT_TYPE_WIDTH) {
+@@ -1723,16 +1724,16 @@ precision:
+ 
+ qualifier:
+ 	/* get the conversion qualifier */
+-	spec->qualifier = -1;
++	qualifier = 0;
+ 	if (*fmt == 'h' || _tolower(*fmt) == 'l' ||
+ 	    _tolower(*fmt) == 'z' || *fmt == 't') {
+-		spec->qualifier = *fmt++;
+-		if (unlikely(spec->qualifier == *fmt)) {
+-			if (spec->qualifier == 'l') {
+-				spec->qualifier = 'L';
++		qualifier = *fmt++;
++		if (unlikely(qualifier == *fmt)) {
++			if (qualifier == 'l') {
++				qualifier = 'L';
+ 				++fmt;
+-			} else if (spec->qualifier == 'h') {
+-				spec->qualifier = 'H';
++			} else if (qualifier == 'h') {
++				qualifier = 'H';
+ 				++fmt;
+ 			}
+ 		}
+@@ -1789,19 +1790,19 @@ qualifier:
+ 		return fmt - start;
+ 	}
+ 
+-	if (spec->qualifier == 'L')
++	if (qualifier == 'L')
+ 		spec->type = FORMAT_TYPE_LONG_LONG;
+-	else if (spec->qualifier == 'l') {
++	else if (qualifier == 'l') {
+ 		BUILD_BUG_ON(FORMAT_TYPE_ULONG + SIGN != FORMAT_TYPE_LONG);
+ 		spec->type = FORMAT_TYPE_ULONG + (spec->flags & SIGN);
+-	} else if (_tolower(spec->qualifier) == 'z') {
++	} else if (_tolower(qualifier) == 'z') {
+ 		spec->type = FORMAT_TYPE_SIZE_T;
+-	} else if (spec->qualifier == 't') {
++	} else if (qualifier == 't') {
+ 		spec->type = FORMAT_TYPE_PTRDIFF;
+-	} else if (spec->qualifier == 'H') {
++	} else if (qualifier == 'H') {
+ 		BUILD_BUG_ON(FORMAT_TYPE_UBYTE + SIGN != FORMAT_TYPE_BYTE);
+ 		spec->type = FORMAT_TYPE_UBYTE + (spec->flags & SIGN);
+-	} else if (spec->qualifier == 'h') {
++	} else if (qualifier == 'h') {
+ 		BUILD_BUG_ON(FORMAT_TYPE_USHORT + SIGN != FORMAT_TYPE_SHORT);
+ 		spec->type = FORMAT_TYPE_USHORT + (spec->flags & SIGN);
+ 	} else {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
-lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+lib-vsprintfc-pull-out-padding-code-from-dentry_name.patch
+lib-vsprintfc-move-string-below-widen_string.patch
+lib-vsprintfc-eliminate-potential-race-in-string.patch
+lib-vsprintfc-expand-field_width-to-24-bits.patch
+lib-vsprintfc-help-gcc-make-number-smaller.patch
+lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch
+lib-kasprintfc-add-sanity-check-to-kvasprintf.patch
+lib-test_printfc-dont-bug.patch
+lib-test_printfc-check-for-out-of-bound-writes.patch
+lib-test_printfc-test-precision-quirks.patch
+lib-test_printfc-add-a-few-number-tests.patch
+lib-test_printfc-account-for-kvasprintf-tests.patch
+lib-test_printfc-add-test-for-large-bitmaps.patch
+lib-test_printfc-test-dentry-printing.patch
+powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header.patch
+kernel-cpuc-change-type-of-cpu_possible_bits-and-friends.patch
+kernel-cpuc-export-__cpu__mask.patch
+drivers-base-cpuc-use-__cpu__mask-directly.patch
+kernel-cpuc-eliminate-cpu__mask.patch
+kernel-cpuc-make-set_cpu_-static-inlines.patch
 
