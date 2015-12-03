@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- printk-do-cond_resched-between-lines-while-outputting-to-consoles.patch
- added to -mm tree
-Date: Wed, 02 Dec 2015 15:57:14 -0800
-Message-ID: <565f855a./bN6NB3bZKjpF4Wa%akpm@linux-foundation.org>
+Subject: + fs-clear-file-privilege-bits-when-mmap-writing.patch added to
+ -mm tree
+Date: Wed, 02 Dec 2015 16:19:00 -0800
+Message-ID: <565f8a74.3XnIx/EJzdFYGkJD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39949 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40177 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754627AbbLBX5P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 18:57:15 -0500
+	with ESMTP id S1757914AbbLCATB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 19:19:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, calvinowens@fb.com, davej@codemonkey.org.uk, jack@suse.com, kyle@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: keescook@chromium.org, aarcange@redhat.com, dave@stgolabs.net, ebiederm@xmission.com, gang.chen.5i5j@gmail.com, jack@suse.cz, kirill.shutemov@linux.intel.com, oleg@redhat.com, riel@redhat.com, stable@vger.kernel.org, viro@ftp.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: do cond_resched() between lines while outputting to consoles
+     Subject: mm/mmap.c: clear file privilege bits when mmap writing
 has been added to the -mm tree.  Its filename is
-     printk-do-cond_resched-between-lines-while-outputting-to-consoles.patch
+     fs-clear-file-privilege-bits-when-mmap-writing.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-do-cond_resched-between-lines-while-outputting-to-consoles.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-clear-file-privilege-bits-when-mmap-writing.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-do-cond_resched-between-lines-while-outputting-to-consoles.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-clear-file-privilege-bits-when-mmap-writing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,86 +39,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: printk: do cond_resched() between lines while outputting to consoles
+From: Kees Cook <keescook@chromium.org>
+Subject: mm/mmap.c: clear file privilege bits when mmap writing
 
-@console_may_schedule tracks whether console_sem was acquired through lock
-or trylock.  If the former, we're inside a sleepable context and
-console_conditional_schedule() performs cond_resched().  This allows
-console drivers which use console_lock for synchronization to yield while
-performing time-consuming operations such as scrolling.
+Normally, when a user can modify a file that has setuid or setgid bits,
+those bits are cleared when they are not the file owner or a member of the
+group.  This is enforced when using write and truncate but not when
+writing to a shared mmap on the file.  This could allow the file writer to
+gain privileges by changing a binary without losing the setuid/setgid/caps
+bits.
 
-However, the actual console outputting is performed while holding irq-safe
-logbuf_lock, so console_unlock() clears @console_may_schedule before
-starting outputting lines.  Also, only a few drivers call
-console_conditional_schedule() to begin with.  This means that when a lot
-of lines need to be output by console_unlock(), for example on a console
-registration, the task doing console_unlock() may not yield for a long
-time on a non-preemptible kernel.
+Changing the bits requires holding inode->i_mutex, so it cannot be done
+during the page fault (due to mmap_sem being held during the fault). 
+Instead, clear the bits if PROT_WRITE is being used at mmap time.
 
-If this happens with a slow console devices, for example a serial console,
-the outputting task may occupy the cpu for a very long time.  Long enough
-to trigger softlockup and/or RCU stall warnings, which in turn pile more
-messages, sometimes enough to trigger the next cycle of warnings
-incapacitating the system.
-
-Fix it by making console_unlock() insert cond_resched() between lines if
-@console_may_schedule.
-
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Calvin Owens <calvinowens@fb.com>
-Acked-by: Jan Kara <jack@suse.com>
-Cc: Dave Jones <davej@codemonkey.org.uk>
-Cc: Kyle McMartin <kyle@kernel.org>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Willy Tarreau <w@1wt.eu>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Chen Gang <gang.chen.5i5j@gmail.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Alexander Viro <viro@ftp.linux.org.uk>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   16 +++++++++++++++-
- 1 file changed, 15 insertions(+), 1 deletion(-)
+ mm/mmap.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN kernel/printk/printk.c~printk-do-cond_resched-between-lines-while-outputting-to-consoles kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-do-cond_resched-between-lines-while-outputting-to-consoles
-+++ a/kernel/printk/printk.c
-@@ -2234,13 +2234,24 @@ void console_unlock(void)
- 	static u64 seen_seq;
- 	unsigned long flags;
- 	bool wake_klogd = false;
--	bool retry;
-+	bool do_cond_resched, retry;
+diff -puN mm/mmap.c~fs-clear-file-privilege-bits-when-mmap-writing mm/mmap.c
+--- a/mm/mmap.c~fs-clear-file-privilege-bits-when-mmap-writing
++++ a/mm/mmap.c
+@@ -1352,6 +1352,17 @@ unsigned long do_mmap(struct file *file,
+ 			if (locks_verify_locked(file))
+ 				return -EAGAIN;
  
- 	if (console_suspended) {
- 		up_console_sem();
- 		return;
- 	}
- 
-+	/*
-+	 * Console drivers are called under logbuf_lock, so
-+	 * @console_may_schedule should be cleared before; however, we may
-+	 * end up dumping a lot of lines, for example, if called from
-+	 * console registration path, and should invoke cond_resched()
-+	 * between lines if allowable.  Not doing so can cause a very long
-+	 * scheduling stall on a slow console leading to RCU stall and
-+	 * softlockup warnings which exacerbate the issue with more
-+	 * messages practically incapacitating the system.
-+	 */
-+	do_cond_resched = console_may_schedule;
- 	console_may_schedule = 0;
- 
- 	/* flush buffered message fragment immediately to console */
-@@ -2312,6 +2323,9 @@ skip:
- 		call_console_drivers(level, ext_text, ext_len, text, len);
- 		start_critical_timings();
- 		local_irq_restore(flags);
++			/*
++			 * If we must remove privs, we do it here since
++			 * doing it during page COW is expensive and
++			 * cannot hold inode->i_mutex.
++			 */
++			if (prot & PROT_WRITE && !IS_NOSEC(inode)) {
++				mutex_lock(&inode->i_mutex);
++				file_remove_privs(file);
++				mutex_unlock(&inode->i_mutex);
++			}
 +
-+		if (do_cond_resched)
-+			cond_resched();
- 	}
- 	console_locked = 0;
- 
+ 			vm_flags |= VM_SHARED | VM_MAYSHARE;
+ 			if (!(file->f_mode & FMODE_WRITE))
+ 				vm_flags &= ~(VM_MAYWRITE | VM_SHARED);
 _
 
-Patches currently in -mm which might be from tj@kernel.org are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-printk-do-cond_resched-between-lines-while-outputting-to-consoles.patch
+fs-clear-file-privilege-bits-when-mmap-writing.patch
+sysctl-enable-strict-writes.patch
 
