@@ -1,86 +1,158 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- fs-clear-file-privilege-bits-when-mmap-writing.patch removed from -mm tree
-Date: Thu, 03 Dec 2015 15:01:01 -0800
-Message-ID: <5660c9ad.Ju88VBCPs9YW5TYW%akpm@linux-foundation.org>
+Subject: + lib-vsprintfc-pull-out-padding-code-from-dentry_name.patch
+ added to -mm tree
+Date: Thu, 03 Dec 2015 15:35:21 -0800
+Message-ID: <5660d1b9.tvOs57nmbIB6Dqbn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43245 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44274 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751037AbbLCXBD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2015 18:01:03 -0500
+	with ESMTP id S1753665AbbLCXfW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2015 18:35:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, aarcange@redhat.com, dave@stgolabs.net, ebiederm@xmission.com, gang.chen.5i5j@gmail.com, jack@suse.cz, kirill.shutemov@linux.intel.com, oleg@redhat.com, riel@redhat.com, stable@vger.kernel.org, viro@ftp.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, andriy.shevchenko@linux.intel.com, joe@perches.com, keescook@chromium.org, mingo@kernel.org, mlombard@redhat.com, tj@kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mmap.c: clear file privilege bits when mmap writing
-has been removed from the -mm tree.  Its filename was
-     fs-clear-file-privilege-bits-when-mmap-writing.patch
+     Subject: lib/vsprintf.c: pull out padding code from dentry_name()
+has been added to the -mm tree.  Its filename is
+     lib-vsprintfc-pull-out-padding-code-from-dentry_name.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-pull-out-padding-code-from-dentry_name.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-pull-out-padding-code-from-dentry_name.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: mm/mmap.c: clear file privilege bits when mmap writing
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: lib/vsprintf.c: pull out padding code from dentry_name()
 
-Normally, when a user can modify a file that has setuid or setgid bits,
-those bits are cleared when they are not the file owner or a member of the
-group.  This is enforced when using write and truncate but not when
-writing to a shared mmap on the file.  This could allow the file writer to
-gain privileges by changing a binary without losing the setuid/setgid/caps
-bits.
+Pull out the logic in dentry_name() which handles field width space
+padding, in preparation for reusing it from string().  Rename the widen()
+helper to move_right(), since it is used for handling the !(flags & LEFT)
+case.
 
-Changing the bits requires holding inode->i_mutex, so it cannot be done
-during the page fault (due to mmap_sem being held during the fault). 
-Instead, clear the bits if PROT_WRITE is being used at mmap time.
-
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Willy Tarreau <w@1wt.eu>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Chen Gang <gang.chen.5i5j@gmail.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Alexander Viro <viro@ftp.linux.org.uk>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Maurizio Lombardi <mlombard@redhat.com>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mmap.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ lib/vsprintf.c |   46 +++++++++++++++++++++++++++++++---------------
+ 1 file changed, 31 insertions(+), 15 deletions(-)
 
-diff -puN mm/mmap.c~fs-clear-file-privilege-bits-when-mmap-writing mm/mmap.c
---- a/mm/mmap.c~fs-clear-file-privilege-bits-when-mmap-writing
-+++ a/mm/mmap.c
-@@ -1352,6 +1352,17 @@ unsigned long do_mmap(struct file *file,
- 			if (locks_verify_locked(file))
- 				return -EAGAIN;
+diff -puN lib/vsprintf.c~lib-vsprintfc-pull-out-padding-code-from-dentry_name lib/vsprintf.c
+--- a/lib/vsprintf.c~lib-vsprintfc-pull-out-padding-code-from-dentry_name
++++ a/lib/vsprintf.c
+@@ -538,7 +538,7 @@ char *string(char *buf, char *end, const
+ 	return buf;
+ }
  
-+			/*
-+			 * If we must remove privs, we do it here since
-+			 * doing it during page COW is expensive and
-+			 * cannot hold inode->i_mutex.
-+			 */
-+			if (prot & PROT_WRITE && !IS_NOSEC(inode)) {
-+				mutex_lock(&inode->i_mutex);
-+				file_remove_privs(file);
-+				mutex_unlock(&inode->i_mutex);
-+			}
+-static void widen(char *buf, char *end, unsigned len, unsigned spaces)
++static void move_right(char *buf, char *end, unsigned len, unsigned spaces)
+ {
+ 	size_t size;
+ 	if (buf >= end)	/* nowhere to put anything */
+@@ -556,6 +556,35 @@ static void widen(char *buf, char *end,
+ 	memset(buf, ' ', spaces);
+ }
+ 
++/*
++ * Handle field width padding for a string.
++ * @buf: current buffer position
++ * @n: length of string
++ * @end: end of output buffer
++ * @spec: for field width and flags
++ * Returns: new buffer position after padding.
++ */
++static noinline_for_stack
++char *widen_string(char *buf, int n, char *end, struct printf_spec spec)
++{
++	unsigned spaces;
 +
- 			vm_flags |= VM_SHARED | VM_MAYSHARE;
- 			if (!(file->f_mode & FMODE_WRITE))
- 				vm_flags &= ~(VM_MAYWRITE | VM_SHARED);
++	if (likely(n >= spec.field_width))
++		return buf;
++	/* we want to pad the sucker */
++	spaces = spec.field_width - n;
++	if (!(spec.flags & LEFT)) {
++		move_right(buf - n, end, n, spaces);
++		return buf + spaces;
++	}
++	while (spaces--) {
++		if (buf < end)
++			*buf = ' ';
++		++buf;
++	}
++	return buf;
++}
++
+ static noinline_for_stack
+ char *dentry_name(char *buf, char *end, const struct dentry *d, struct printf_spec spec,
+ 		  const char *fmt)
+@@ -597,20 +626,7 @@ char *dentry_name(char *buf, char *end,
+ 			*buf = c;
+ 	}
+ 	rcu_read_unlock();
+-	if (n < spec.field_width) {
+-		/* we want to pad the sucker */
+-		unsigned spaces = spec.field_width - n;
+-		if (!(spec.flags & LEFT)) {
+-			widen(buf - n, end, n, spaces);
+-			return buf + spaces;
+-		}
+-		while (spaces--) {
+-			if (buf < end)
+-				*buf = ' ';
+-			++buf;
+-		}
+-	}
+-	return buf;
++	return widen_string(buf, n, end, spec);
+ }
+ 
+ static noinline_for_stack
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-sysctl-enable-strict-writes.patch
+lib-vsprintfc-pull-out-padding-code-from-dentry_name.patch
+lib-vsprintfc-move-string-below-widen_string.patch
+lib-vsprintfc-eliminate-potential-race-in-string.patch
+lib-vsprintfc-expand-field_width-to-24-bits.patch
+lib-vsprintfc-help-gcc-make-number-smaller.patch
+lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch
+lib-kasprintfc-add-sanity-check-to-kvasprintf.patch
+lib-test_printfc-dont-bug.patch
+lib-test_printfc-check-for-out-of-bound-writes.patch
+lib-test_printfc-test-precision-quirks.patch
+lib-test_printfc-add-a-few-number-tests.patch
+lib-test_printfc-account-for-kvasprintf-tests.patch
+lib-test_printfc-add-test-for-large-bitmaps.patch
+lib-test_printfc-test-dentry-printing.patch
+powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header.patch
+kernel-cpuc-change-type-of-cpu_possible_bits-and-friends.patch
+kernel-cpuc-export-__cpu__mask.patch
+drivers-base-cpuc-use-__cpu__mask-directly.patch
+kernel-cpuc-eliminate-cpu__mask.patch
+kernel-cpuc-make-set_cpu_-static-inlines.patch
 
