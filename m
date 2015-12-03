@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch added
- to -mm tree
-Date: Thu, 03 Dec 2015 15:35:33 -0800
-Message-ID: <5660d1c5.VNT95x+5hSXHYKoZ%akpm@linux-foundation.org>
+Subject: + lib-test_printfc-test-precision-quirks.patch added to -mm tree
+Date: Thu, 03 Dec 2015 15:35:41 -0800
+Message-ID: <5660d1cd.TN/PLD6FUjcXjOmG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44317 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44346 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753844AbbLCXfe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2015 18:35:34 -0500
+	with ESMTP id S1753844AbbLCXfm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2015 18:35:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, andriy.shevchenko@linux.intel.com, joe@perches.com, keescook@chromium.org, mingo@kernel.org, mlombard@redhat.com, tj@kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: warn about too large precisions and field widths
+     Subject: lib/test_printf.c: test precision quirks
 has been added to the -mm tree.  Its filename is
-     lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch
+     lib-test_printfc-test-precision-quirks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_printfc-test-precision-quirks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_printfc-test-precision-quirks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,23 +39,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: warn about too large precisions and field widths
+Subject: lib/test_printf.c: test precision quirks
 
-The field width is overloaded to pass some extra information for
-some %p extensions (e.g. #bits for %pb). But we might silently
-truncate the passed value when we stash it in struct printf_spec (see
-e.g. "lib/vsprintf.c: expand field_width to 24 bits").  Hopefully 23
-value bits should now be enough for everybody, but if not, let's make
-some noise.
-
-Do the same for the precision. In both cases, clamping seems more
-sensible than truncating. While, according to POSIX, "A negative
-precision is taken as if the precision were omitted.", the kernel's
-printf has always treated that case as if the precision was 0, so we
-use that as lower bound. For the field width, the smallest
-representable value is actually -(1<<23), but a negative field width
-means 'set the LEFT flag and use the absolute value', so we want the
-absolute value to fit.
+The kernel's printf doesn't follow the standards in a few corner cases
+(which are probably mostly irrelevant). Add tests that document the
+current behaviour.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
@@ -70,74 +56,42 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   28 ++++++++++++++++++++++++----
- 1 file changed, 24 insertions(+), 4 deletions(-)
+ lib/test_printf.c |   21 +++++++++++++++------
+ 1 file changed, 15 insertions(+), 6 deletions(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-warn-about-too-large-precisions-and-field-widths lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-warn-about-too-large-precisions-and-field-widths
-+++ a/lib/vsprintf.c
-@@ -386,6 +386,8 @@ struct printf_spec {
- 	unsigned int	base:8;		/* number base, 8, 10 or 16 only */
- 	signed int	precision:16;	/* # of digits/chars */
- } __packed;
-+#define FIELD_WIDTH_MAX ((1 << 23) - 1)
-+#define PRECISION_MAX ((1 << 15) - 1)
- 
- static noinline_for_stack
- char *number(char *buf, char *end, unsigned long long num,
-@@ -1816,6 +1818,24 @@ qualifier:
- 	return ++fmt - start;
+diff -puN lib/test_printf.c~lib-test_printfc-test-precision-quirks lib/test_printf.c
+--- a/lib/test_printf.c~lib-test_printfc-test-precision-quirks
++++ a/lib/test_printf.c
+@@ -166,14 +166,23 @@ test_string(void)
+ 	test("", "%s%.0s", "", "123");
+ 	test("ABCD|abc|123", "%s|%.3s|%.*s", "ABCD", "abcdef", 3, "123456");
+ 	test("1  |  2|3  |  4|5  ", "%-3s|%3s|%-*s|%*s|%*s", "1", "2", 3, "3", 3, "4", -3, "5");
++	test("1234      ", "%-10.4s", "123456");
++	test("      1234", "%10.4s", "123456");
+ 	/*
+-	 * POSIX and C99 say that a missing precision should be
+-	 * treated as a precision of 0. However, the kernel's printf
+-	 * implementation treats this case as if the . wasn't
+-	 * present. Let's add a test case documenting the current
+-	 * behaviour; should anyone ever feel the need to follow the
+-	 * standards more closely, this can be revisited.
++	 * POSIX and C99 say that a negative precision (which is only
++	 * possible to pass via a * argument) should be treated as if
++	 * the precision wasn't present, and that if the precision is
++	 * omitted (as in %.s), the precision should be taken to be
++	 * 0. However, the kernel's printf behave exactly opposite,
++	 * treating a negative precision as 0 and treating an omitted
++	 * precision specifier as if no precision was given.
++	 *
++	 * These test cases document the current behaviour; should
++	 * anyone ever feel the need to follow the standards more
++	 * closely, this can be revisited.
+ 	 */
++	test("    ", "%4.*s", -5, "123456");
++	test("123456", "%.s", "123456");
+ 	test("a||", "%.s|%.0s|%.*s", "a", "b", 0, "c");
+ 	test("a  |   |   ", "%-3.s|%-3.0s|%-3.*s", "a", "b", 0, "c");
  }
- 
-+static void
-+set_field_width(struct printf_spec *spec, int width)
-+{
-+	spec->field_width = width;
-+	if (WARN_ONCE(spec->field_width != width, "field width %d too large", width)) {
-+		spec->field_width = clamp(width, -FIELD_WIDTH_MAX, FIELD_WIDTH_MAX);
-+	}
-+}
-+
-+static void
-+set_precision(struct printf_spec *spec, int prec)
-+{
-+	spec->precision = prec;
-+	if (WARN_ONCE(spec->precision != prec, "precision %d too large", prec)) {
-+		spec->precision = clamp(prec, 0, PRECISION_MAX);
-+	}
-+}
-+
- /**
-  * vsnprintf - Format a string and place it in a buffer
-  * @buf: The buffer to place the result into
-@@ -1883,11 +1903,11 @@ int vsnprintf(char *buf, size_t size, co
- 		}
- 
- 		case FORMAT_TYPE_WIDTH:
--			spec.field_width = va_arg(args, int);
-+			set_field_width(&spec, va_arg(args, int));
- 			break;
- 
- 		case FORMAT_TYPE_PRECISION:
--			spec.precision = va_arg(args, int);
-+			set_precision(&spec, va_arg(args, int));
- 			break;
- 
- 		case FORMAT_TYPE_CHAR: {
-@@ -2327,11 +2347,11 @@ int bstr_printf(char *buf, size_t size,
- 		}
- 
- 		case FORMAT_TYPE_WIDTH:
--			spec.field_width = get_arg(int);
-+			set_field_width(&spec, get_arg(int));
- 			break;
- 
- 		case FORMAT_TYPE_PRECISION:
--			spec.precision = get_arg(int);
-+			set_precision(&spec, get_arg(int));
- 			break;
- 
- 		case FORMAT_TYPE_CHAR: {
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
