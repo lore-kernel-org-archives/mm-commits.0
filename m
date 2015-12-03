@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + fs-clear-file-privilege-bits-when-mmap-writing.patch added to
- -mm tree
-Date: Wed, 02 Dec 2015 16:19:00 -0800
-Message-ID: <565f8a74.3XnIx/EJzdFYGkJD%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ fs-clear-file-privilege-bits-when-mmap-writing.patch removed from -mm tree
+Date: Thu, 03 Dec 2015 15:01:01 -0800
+Message-ID: <5660c9ad.Ju88VBCPs9YW5TYW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40177 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43245 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757914AbbLCATB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 2 Dec 2015 19:19:01 -0500
+	with ESMTP id S1751037AbbLCXBD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2015 18:01:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: keescook@chromium.org, aarcange@redhat.com, dave@stgolabs.net, ebiederm@xmission.com, gang.chen.5i5j@gmail.com, jack@suse.cz, kirill.shutemov@linux.intel.com, oleg@redhat.com, riel@redhat.com, stable@vger.kernel.org, viro@ftp.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
@@ -19,24 +19,10 @@ To: keescook@chromium.org, aarcange@redhat.com, dave@stgolabs.net, ebiederm@xmis
 
 The patch titled
      Subject: mm/mmap.c: clear file privilege bits when mmap writing
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      fs-clear-file-privilege-bits-when-mmap-writing.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fs-clear-file-privilege-bits-when-mmap-writing.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fs-clear-file-privilege-bits-when-mmap-writing.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
@@ -96,6 +82,5 @@ _
 
 Patches currently in -mm which might be from keescook@chromium.org are
 
-fs-clear-file-privilege-bits-when-mmap-writing.patch
 sysctl-enable-strict-writes.patch
 
