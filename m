@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-test_printfc-test-precision-quirks.patch added to -mm tree
-Date: Thu, 03 Dec 2015 15:35:41 -0800
-Message-ID: <5660d1cd.TN/PLD6FUjcXjOmG%akpm@linux-foundation.org>
+Subject: + lib-kasprintfc-add-sanity-check-to-kvasprintf.patch added to
+ -mm tree
+Date: Thu, 03 Dec 2015 15:35:35 -0800
+Message-ID: <5660d1c7.EJRWoBFcI8xaEwB/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44346 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44326 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753844AbbLCXfm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2015 18:35:42 -0500
+	with ESMTP id S1753844AbbLCXfg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 3 Dec 2015 18:35:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, andriy.shevchenko@linux.intel.com, joe@perches.com, keescook@chromium.org, mingo@kernel.org, mlombard@redhat.com, tj@kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/test_printf.c: test precision quirks
+     Subject: lib/kasprintf.c: add sanity check to kvasprintf
 has been added to the -mm tree.  Its filename is
-     lib-test_printfc-test-precision-quirks.patch
+     lib-kasprintfc-add-sanity-check-to-kvasprintf.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_printfc-test-precision-quirks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-kasprintfc-add-sanity-check-to-kvasprintf.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_printfc-test-precision-quirks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-kasprintfc-add-sanity-check-to-kvasprintf.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,11 +40,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/test_printf.c: test precision quirks
+Subject: lib/kasprintf.c: add sanity check to kvasprintf
 
-The kernel's printf doesn't follow the standards in a few corner cases
-(which are probably mostly irrelevant). Add tests that document the
-current behaviour.
+kasprintf relies on being able to replay the formatting and getting
+the same result (in particular, the same length). This will almost
+always work, but it is possible that the object pointed to by a %s or
+%p argument changed under us (so we might get truncated output). Add a
+somewhat paranoid sanity check and let's see if it ever triggers.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
@@ -56,41 +59,37 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_printf.c |   21 +++++++++++++++------
- 1 file changed, 15 insertions(+), 6 deletions(-)
+ lib/kasprintf.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN lib/test_printf.c~lib-test_printfc-test-precision-quirks lib/test_printf.c
---- a/lib/test_printf.c~lib-test_printfc-test-precision-quirks
-+++ a/lib/test_printf.c
-@@ -166,14 +166,23 @@ test_string(void)
- 	test("", "%s%.0s", "", "123");
- 	test("ABCD|abc|123", "%s|%.3s|%.*s", "ABCD", "abcdef", 3, "123456");
- 	test("1  |  2|3  |  4|5  ", "%-3s|%3s|%-*s|%*s|%*s", "1", "2", 3, "3", 3, "4", -3, "5");
-+	test("1234      ", "%-10.4s", "123456");
-+	test("      1234", "%10.4s", "123456");
- 	/*
--	 * POSIX and C99 say that a missing precision should be
--	 * treated as a precision of 0. However, the kernel's printf
--	 * implementation treats this case as if the . wasn't
--	 * present. Let's add a test case documenting the current
--	 * behaviour; should anyone ever feel the need to follow the
--	 * standards more closely, this can be revisited.
-+	 * POSIX and C99 say that a negative precision (which is only
-+	 * possible to pass via a * argument) should be treated as if
-+	 * the precision wasn't present, and that if the precision is
-+	 * omitted (as in %.s), the precision should be taken to be
-+	 * 0. However, the kernel's printf behave exactly opposite,
-+	 * treating a negative precision as 0 and treating an omitted
-+	 * precision specifier as if no precision was given.
-+	 *
-+	 * These test cases document the current behaviour; should
-+	 * anyone ever feel the need to follow the standards more
-+	 * closely, this can be revisited.
- 	 */
-+	test("    ", "%4.*s", -5, "123456");
-+	test("123456", "%.s", "123456");
- 	test("a||", "%.s|%.0s|%.*s", "a", "b", 0, "c");
- 	test("a  |   |   ", "%-3.s|%-3.0s|%-3.*s", "a", "b", 0, "c");
+diff -puN lib/kasprintf.c~lib-kasprintfc-add-sanity-check-to-kvasprintf lib/kasprintf.c
+--- a/lib/kasprintf.c~lib-kasprintfc-add-sanity-check-to-kvasprintf
++++ a/lib/kasprintf.c
+@@ -13,19 +13,21 @@
+ /* Simplified asprintf. */
+ char *kvasprintf(gfp_t gfp, const char *fmt, va_list ap)
+ {
+-	unsigned int len;
++	unsigned int first, second;
+ 	char *p;
+ 	va_list aq;
+ 
+ 	va_copy(aq, ap);
+-	len = vsnprintf(NULL, 0, fmt, aq);
++	first = vsnprintf(NULL, 0, fmt, aq);
+ 	va_end(aq);
+ 
+-	p = kmalloc_track_caller(len+1, gfp);
++	p = kmalloc_track_caller(first+1, gfp);
+ 	if (!p)
+ 		return NULL;
+ 
+-	vsnprintf(p, len+1, fmt, ap);
++	second = vsnprintf(p, first+1, fmt, ap);
++	WARN(first != second, "different return values (%u and %u) from vsnprintf(\"%s\", ...)",
++	     first, second, fmt);
+ 
+ 	return p;
  }
 _
 
