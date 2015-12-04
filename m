@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-printk-introduce-new-format-string-for-flags.patch added to
- -mm tree
-Date: Fri, 04 Dec 2015 15:46:14 -0800
-Message-ID: <566225c6.j9YWQwc6cKHdidYW%akpm@linux-foundation.org>
+Subject: + mm-debug-move-bad-flags-printing-to-bad_page.patch added to -mm tree
+Date: Fri, 04 Dec 2015 15:46:19 -0800
+Message-ID: <566225cb.MEVQkynTFLs+ETD8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48410 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48425 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750999AbbLDXqP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2015 18:46:15 -0500
+	with ESMTP id S1751996AbbLDXqU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2015 18:46:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, linux@rasmusvillemoes.dk, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, printk: introduce new format string for flags
+     Subject: mm, debug: move bad flags printing to bad_page()
 has been added to the -mm tree.  Its filename is
-     mm-printk-introduce-new-format-string-for-flags.patch
+     mm-debug-move-bad-flags-printing-to-bad_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-printk-introduce-new-format-string-for-flags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-debug-move-bad-flags-printing-to-bad_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-printk-introduce-new-format-string-for-flags.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-debug-move-bad-flags-printing-to-bad_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,28 +39,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, printk: introduce new format string for flags
+Subject: mm, debug: move bad flags printing to bad_page()
 
-In mm we use several kinds of flags bitfields that are sometimes printed
-for debugging purposes, or exported to userspace via sysfs.  To make them
-easier to interpret independently on kernel version and config, we want to
-dump also the symbolic flag names.  So far this has been done with
-repeated calls to pr_cont(), which is unreliable on SMP, and not usable
-for e.g.  sysfs export.
+Since bad_page() is the only user of the badflags parameter of
+dump_page_badflags(), we can move the code to bad_page() and simplify a
+bit.
 
-To get a more reliable and universal solution, this patch extends printk()
-format string for pointers to handle the page flags (%pgp), gfp_flags
-(%pgg) and vma flags (%pgv).  Existing users of dump_flag_names() are
-converted and simplified.
+The dump_page_badflags() function is renamed to __dump_page() and can
+still be called separately from dump_page() for temporary debug prints
+where page_owner info is not desired.
 
-It would be possible to pass flags by value instead of pointer, but the %p
-format string for pointers already has extensions for various kernel
-structures, so it's a good fit, and the extra indirection in a
-non-critical path is negligible.
+The only user-visible change is that page->mem_cgroup is printed before
+the bad flags.
 
-[linux@rasmusvillemoes.dk: lots of good implementation suggestions]
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Sasha Levin <sasha.levin@oracle.com>
@@ -71,438 +62,92 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/printk-formats.txt |   14 +++
- include/linux/mmdebug.h          |    7 +
- include/linux/trace_events.h     |   10 --
- include/linux/tracepoint.h       |   10 ++
- lib/vsprintf.c                   |   75 ++++++++++++++++
- mm/debug.c                       |  135 ++++++++++-------------------
- mm/oom_kill.c                    |    5 -
- mm/page_alloc.c                  |    5 -
- mm/page_owner.c                  |    6 -
- 9 files changed, 160 insertions(+), 107 deletions(-)
+ include/linux/mmdebug.h |    3 +--
+ mm/debug.c              |   14 +++-----------
+ mm/page_alloc.c         |   10 +++++++---
+ 3 files changed, 11 insertions(+), 16 deletions(-)
 
-diff -puN Documentation/printk-formats.txt~mm-printk-introduce-new-format-string-for-flags Documentation/printk-formats.txt
---- a/Documentation/printk-formats.txt~mm-printk-introduce-new-format-string-for-flags
-+++ a/Documentation/printk-formats.txt
-@@ -292,6 +292,20 @@ bitmap and its derivatives such as cpuma
- 
- 	Passed by reference.
- 
-+Flags bitfields such as page flags, gfp_flags:
-+
-+	%pgp	referenced|uptodate|lru|active|private
-+	%pgg	GFP_USER|GFP_DMA32|GFP_NOWARN
-+	%pgv	read|exec|mayread|maywrite|mayexec|denywrite
-+
-+	For printing flags bitfields as a collection of symbolic constants that
-+	would construct the value. The type of flags is given by the third
-+	character. Currently supported are [p]age flags, [g]fp_flags and
-+	[v]ma_flags. The flag names and print order depends on the particular
-+	type.
-+
-+	Passed by reference.
-+
- Network device features:
- 
- 	%pNF	0x000000000000c000
-diff -puN include/linux/mmdebug.h~mm-printk-introduce-new-format-string-for-flags include/linux/mmdebug.h
---- a/include/linux/mmdebug.h~mm-printk-introduce-new-format-string-for-flags
+diff -puN include/linux/mmdebug.h~mm-debug-move-bad-flags-printing-to-bad_page include/linux/mmdebug.h
+--- a/include/linux/mmdebug.h~mm-debug-move-bad-flags-printing-to-bad_page
 +++ a/include/linux/mmdebug.h
-@@ -2,15 +2,20 @@
- #define LINUX_MM_DEBUG_H 1
+@@ -14,8 +14,7 @@ extern const struct trace_print_flags vm
+ extern const struct trace_print_flags gfpflag_names[];
  
- #include <linux/stringify.h>
-+#include <linux/types.h>
-+#include <linux/tracepoint.h>
- 
- struct page;
- struct vm_area_struct;
- struct mm_struct;
- 
-+extern const struct trace_print_flags pageflag_names[];
-+extern const struct trace_print_flags vmaflag_names[];
-+extern const struct trace_print_flags gfpflag_names[];
-+
  extern void dump_page(struct page *page, const char *reason);
- extern void dump_page_badflags(struct page *page, const char *reason,
- 			       unsigned long badflags);
--extern void dump_gfpflag_names(unsigned long gfp_flags);
+-extern void dump_page_badflags(struct page *page, const char *reason,
+-			       unsigned long badflags);
++extern void __dump_page(struct page *page, const char *reason);
  void dump_vma(const struct vm_area_struct *vma);
  void dump_mm(const struct mm_struct *mm);
  
-diff -puN include/linux/trace_events.h~mm-printk-introduce-new-format-string-for-flags include/linux/trace_events.h
---- a/include/linux/trace_events.h~mm-printk-introduce-new-format-string-for-flags
-+++ a/include/linux/trace_events.h
-@@ -15,16 +15,6 @@ struct tracer;
- struct dentry;
- struct bpf_prog;
- 
--struct trace_print_flags {
--	unsigned long		mask;
--	const char		*name;
--};
--
--struct trace_print_flags_u64 {
--	unsigned long long	mask;
--	const char		*name;
--};
--
- const char *trace_print_flags_seq(struct trace_seq *p, const char *delim,
- 				  unsigned long flags,
- 				  const struct trace_print_flags *flag_array);
-diff -puN include/linux/tracepoint.h~mm-printk-introduce-new-format-string-for-flags include/linux/tracepoint.h
---- a/include/linux/tracepoint.h~mm-printk-introduce-new-format-string-for-flags
-+++ a/include/linux/tracepoint.h
-@@ -43,6 +43,16 @@ struct trace_enum_map {
- 	unsigned long		enum_value;
- };
- 
-+struct trace_print_flags {
-+	unsigned long		mask;
-+	const char		*name;
-+};
-+
-+struct trace_print_flags_u64 {
-+	unsigned long long	mask;
-+	const char		*name;
-+};
-+
- #define TRACEPOINT_DEFAULT_PRIO	10
- 
- extern int
-diff -puN lib/vsprintf.c~mm-printk-introduce-new-format-string-for-flags lib/vsprintf.c
---- a/lib/vsprintf.c~mm-printk-introduce-new-format-string-for-flags
-+++ a/lib/vsprintf.c
-@@ -31,6 +31,7 @@
- #include <linux/dcache.h>
- #include <linux/cred.h>
- #include <net/addrconf.h>
-+#include <linux/mmdebug.h>
- 
- #include <asm/page.h>		/* for PAGE_SIZE */
- #include <asm/sections.h>	/* for dereference_function_descriptor() */
-@@ -1372,6 +1373,73 @@ char *clock(char *buf, char *end, struct
- 	}
- }
- 
-+static
-+char *format_flags(char *buf, char *end, unsigned long flags,
-+					const struct trace_print_flags *names)
-+{
-+	unsigned long mask;
-+	const struct printf_spec strspec = {
-+		.field_width = -1,
-+		.precision = -1,
-+	};
-+	const struct printf_spec numspec = {
-+		.flags = SPECIAL|SMALL,
-+		.field_width = -1,
-+		.precision = -1,
-+		.base = 16,
-+	};
-+
-+	for ( ; flags && (names->mask || names->name); names++) {
-+		mask = names->mask;
-+		if ((flags & mask) != mask)
-+			continue;
-+
-+		buf = string(buf, end, names->name, strspec);
-+
-+		flags &= ~mask;
-+		if (flags) {
-+			if (buf < end)
-+				*buf = '|';
-+			buf++;
-+		}
-+	}
-+
-+	if (flags)
-+		buf = number(buf, end, flags, numspec);
-+
-+	return buf;
-+}
-+
-+static noinline_for_stack
-+char *flags_string(char *buf, char *end, void *flags_ptr,
-+			struct printf_spec spec, const char *fmt)
-+{
-+	unsigned long flags;
-+	const struct trace_print_flags *names;
-+
-+	switch (fmt[1]) {
-+	case 'p':
-+		flags = *(unsigned long *)flags_ptr;
-+		/* Remove zone id */
-+		flags &= (1UL << NR_PAGEFLAGS) - 1;
-+		names = pageflag_names;
-+		break;
-+	case 'v':
-+		flags = *(unsigned long *)flags_ptr;
-+		names = vmaflag_names;
-+		break;
-+	case 'g':
-+		flags = *(gfp_t *)flags_ptr;
-+		names = gfpflag_names;
-+		break;
-+	default:
-+		WARN_ONCE(1, "Unsupported flags modifier: %c\n", fmt[1]);
-+		return buf;
-+	}
-+
-+	return format_flags(buf, end, flags, names);
-+}
-+
- int kptr_restrict __read_mostly;
- 
- /*
-@@ -1459,6 +1527,11 @@ int kptr_restrict __read_mostly;
-  * - 'Cn' For a clock, it prints the name (Common Clock Framework) or address
-  *        (legacy clock framework) of the clock
-  * - 'Cr' For a clock, it prints the current rate of the clock
-+ * - 'g' For flags to be printed as a collection of symbolic strings that would
-+ *       construct the specific value. Supported flags given by option:
-+ *       p page flags (see struct page) given as pointer to unsigned long
-+ *       g gfp flags (GFP_* and __GFP_*) given as pointer to gfp_t
-+ *       v vma flags (VM_*) given as pointer to unsigned long
-  *
-  * ** Please update also Documentation/printk-formats.txt when making changes **
-  *
-@@ -1611,6 +1684,8 @@ char *pointer(const char *fmt, char *buf
- 		return dentry_name(buf, end,
- 				   ((const struct file *)ptr)->f_path.dentry,
- 				   spec, fmt);
-+	case 'g':
-+		return flags_string(buf, end, ptr, spec, fmt);
- 	}
- 	spec.flags |= SMALL;
- 	if (spec.field_width == -1) {
-diff -puN mm/debug.c~mm-printk-introduce-new-format-string-for-flags mm/debug.c
---- a/mm/debug.c~mm-printk-introduce-new-format-string-for-flags
+diff -puN mm/debug.c~mm-debug-move-bad-flags-printing-to-bad_page mm/debug.c
+--- a/mm/debug.c~mm-debug-move-bad-flags-printing-to-bad_page
 +++ a/mm/debug.c
-@@ -23,7 +23,7 @@ char *migrate_reason_names[MR_TYPES] = {
- 	"cma",
+@@ -109,25 +109,17 @@ const struct trace_print_flags gfpflag_n
+ 	{0, NULL},
  };
  
--static const struct trace_print_flags pageflag_names[] = {
-+const struct trace_print_flags pageflag_names[] = {
- 	{1UL << PG_locked,		"locked"	},
- 	{1UL << PG_error,		"error"		},
- 	{1UL << PG_referenced,		"referenced"	},
-@@ -57,86 +57,10 @@ static const struct trace_print_flags pa
- 	{1UL << PG_young,		"young"		},
- 	{1UL << PG_idle,		"idle"		},
- #endif
-+	{0,				NULL		},
- };
- 
--static const struct trace_print_flags gfpflag_names[] = {
--	__def_gfpflag_names
--};
--
--static void dump_flag_names(unsigned long flags,
--			const struct trace_print_flags *names, int count)
--{
--	const char *delim = "";
--	unsigned long mask;
--	int i;
--
--	pr_cont("(");
--
--	for (i = 0; i < count && flags; i++) {
--
--		mask = names[i].mask;
--		if ((flags & mask) != mask)
--			continue;
--
--		flags &= ~mask;
--		pr_cont("%s%s", delim, names[i].name);
--		delim = "|";
--	}
--
--	/* check for left over flags */
--	if (flags)
--		pr_cont("%s%#lx", delim, flags);
--
--	pr_cont(")\n");
--}
--
--void dump_gfpflag_names(unsigned long gfp_flags)
--{
--	dump_flag_names(gfp_flags, gfpflag_names, ARRAY_SIZE(gfpflag_names));
--}
--
 -void dump_page_badflags(struct page *page, const char *reason,
 -		unsigned long badflags)
--{
++void __dump_page(struct page *page, const char *reason)
+ {
 -	unsigned long printflags = page->flags;
 -
--	pr_emerg("page:%p count:%d mapcount:%d mapping:%p index:%#lx",
--		  page, atomic_read(&page->_count), page_mapcount(page),
--		  page->mapping, page->index);
--	if (PageCompound(page))
--		pr_cont(" compound_mapcount: %d", compound_mapcount(page));
--	pr_cont("\n");
--	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS);
--
--	pr_emerg("flags: %#lx", printflags);
--	/* remove zone id */
--	printflags &= (1UL << NR_PAGEFLAGS) - 1;
--	dump_flag_names(printflags, pageflag_names, ARRAY_SIZE(pageflag_names));
--
--	if (reason)
--		pr_alert("page dumped because: %s\n", reason);
+ 	pr_emerg("page:%p count:%d mapcount:%d mapping:%p index:%#lx\n",
+ 		  page, atomic_read(&page->_count), page_mapcount(page),
+ 		  page->mapping, page->index);
+ 	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS + 1);
+ 
+-	pr_emerg("flags: %#lx(%pgp)\n", printflags, &printflags);
++	pr_emerg("flags: %#lx(%pgp)\n", page->flags, &page->flags);
+ 
+ 	if (reason)
+ 		pr_alert("page dumped because: %s\n", reason);
 -	if (page->flags & badflags) {
 -		printflags = page->flags & badflags;
--		pr_alert("bad because of flags: %#lx:", printflags);
--		dump_flag_names(printflags, pageflag_names,
--						ARRAY_SIZE(pageflag_names));
+-		pr_alert("bad because of flags: %#lx(%pgp)\n", printflags,
+-								&printflags);
 -	}
--#ifdef CONFIG_MEMCG
--	if (page->mem_cgroup)
--		pr_alert("page->mem_cgroup:%p\n", page->mem_cgroup);
--#endif
--}
--
--void dump_page(struct page *page, const char *reason)
--{
+ #ifdef CONFIG_MEMCG
+ 	if (page->mem_cgroup)
+ 		pr_alert("page->mem_cgroup:%p\n", page->mem_cgroup);
+@@ -136,7 +128,7 @@ void dump_page_badflags(struct page *pag
+ 
+ void dump_page(struct page *page, const char *reason)
+ {
 -	dump_page_badflags(page, reason, 0);
--	dump_page_owner(page);
--}
--EXPORT_SYMBOL(dump_page);
--
--#ifdef CONFIG_DEBUG_VM
--
--static const struct trace_print_flags vmaflags_names[] = {
-+const struct trace_print_flags vmaflag_names[] = {
- 	{VM_READ,			"read"		},
- 	{VM_WRITE,			"write"		},
- 	{VM_EXEC,			"exec"		},
-@@ -177,22 +101,61 @@ static const struct trace_print_flags vm
- 	{VM_HUGEPAGE,			"hugepage"	},
- 	{VM_NOHUGEPAGE,			"nohugepage"	},
- 	{VM_MERGEABLE,			"mergeable"	},
-+	{0,				NULL		},
-+};
-+
-+const struct trace_print_flags gfpflag_names[] = {
-+	__def_gfpflag_names,
-+	{0, NULL},
- };
- 
-+void dump_page_badflags(struct page *page, const char *reason,
-+		unsigned long badflags)
-+{
-+	unsigned long printflags = page->flags;
-+
-+	pr_emerg("page:%p count:%d mapcount:%d mapping:%p index:%#lx\n",
-+		  page, atomic_read(&page->_count), page_mapcount(page),
-+		  page->mapping, page->index);
-+	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS + 1);
-+
-+	pr_emerg("flags: %#lx(%pgp)\n", printflags, &printflags);
-+
-+	if (reason)
-+		pr_alert("page dumped because: %s\n", reason);
-+	if (page->flags & badflags) {
-+		printflags = page->flags & badflags;
-+		pr_alert("bad because of flags: %#lx(%pgp)\n", printflags,
-+								&printflags);
-+	}
-+#ifdef CONFIG_MEMCG
-+	if (page->mem_cgroup)
-+		pr_alert("page->mem_cgroup:%p\n", page->mem_cgroup);
-+#endif
-+}
-+
-+void dump_page(struct page *page, const char *reason)
-+{
-+	dump_page_badflags(page, reason, 0);
-+	dump_page_owner(page);
-+}
-+EXPORT_SYMBOL(dump_page);
-+
-+#ifdef CONFIG_DEBUG_VM
-+
- void dump_vma(const struct vm_area_struct *vma)
- {
- 	pr_emerg("vma %p start %p end %p\n"
- 		"next %p prev %p mm %p\n"
- 		"prot %lx anon_vma %p vm_ops %p\n"
--		"pgoff %lx file %p private_data %p\n",
-+		"pgoff %lx file %p private_data %p\n"
-+		"flags: %#lx(%pgv)\n",
- 		vma, (void *)vma->vm_start, (void *)vma->vm_end, vma->vm_next,
- 		vma->vm_prev, vma->vm_mm,
- 		(unsigned long)pgprot_val(vma->vm_page_prot),
- 		vma->anon_vma, vma->vm_ops, vma->vm_pgoff,
--		vma->vm_file, vma->vm_private_data);
--	pr_emerg("flags: %#lx", vma->vm_flags);
--	dump_flag_names(vma->vm_flags, vmaflags_names,
--						ARRAY_SIZE(vmaflags_names));
-+		vma->vm_file, vma->vm_private_data,
-+		vma->vm_flags, &vma->vm_flags);
++	__dump_page(page, reason);
+ 	dump_page_owner(page);
  }
- EXPORT_SYMBOL(dump_vma);
- 
-@@ -263,9 +226,7 @@ void dump_mm(const struct mm_struct *mm)
- 		""		/* This is here to not have a comma! */
- 		);
- 
--	pr_emerg("def_flags: %#lx", mm->def_flags);
--	dump_flag_names(mm->def_flags, vmaflags_names,
--					ARRAY_SIZE(vmaflags_names));
-+	pr_emerg("def_flags: %#lx(%pgv)\n", mm->def_flags, &mm->def_flags);
- }
- 
- #endif		/* CONFIG_DEBUG_VM */
-diff -puN mm/oom_kill.c~mm-printk-introduce-new-format-string-for-flags mm/oom_kill.c
---- a/mm/oom_kill.c~mm-printk-introduce-new-format-string-for-flags
-+++ a/mm/oom_kill.c
-@@ -387,10 +387,9 @@ static void dump_header(struct oom_contr
- 			struct mem_cgroup *memcg)
- {
- 	pr_warning("%s invoked oom-killer: order=%d, oom_score_adj=%hd, "
--			"gfp_mask=0x%x",
-+			"gfp_mask=%#x(%pgg)\n",
- 		current->comm, oc->order, current->signal->oom_score_adj,
--		oc->gfp_mask);
--	dump_gfpflag_names(oc->gfp_mask);
-+		oc->gfp_mask, &oc->gfp_mask);
- 
- 	cpuset_print_current_mems_allowed();
- 	dump_stack();
-diff -puN mm/page_alloc.c~mm-printk-introduce-new-format-string-for-flags mm/page_alloc.c
---- a/mm/page_alloc.c~mm-printk-introduce-new-format-string-for-flags
+ EXPORT_SYMBOL(dump_page);
+diff -puN mm/page_alloc.c~mm-debug-move-bad-flags-printing-to-bad_page mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-debug-move-bad-flags-printing-to-bad_page
 +++ a/mm/page_alloc.c
-@@ -2703,9 +2703,8 @@ void warn_alloc_failed(gfp_t gfp_mask, u
- 		va_end(args);
- 	}
+@@ -428,7 +428,7 @@ static void bad_page(struct page *page,
+ 			goto out;
+ 		}
+ 		if (nr_unshown) {
+-			printk(KERN_ALERT
++			pr_alert(
+ 			      "BUG: Bad page state: %lu messages suppressed\n",
+ 				nr_unshown);
+ 			nr_unshown = 0;
+@@ -438,9 +438,13 @@ static void bad_page(struct page *page,
+ 	if (nr_shown++ == 0)
+ 		resume = jiffies + 60 * HZ;
  
--	pr_warn("%s: page allocation failure: order:%u, mode:0x%x",
--		current->comm, order, gfp_mask);
--	dump_gfpflag_names(gfp_mask);
-+	pr_warn("%s: page allocation failure: order:%u, mode:%#x(%pgg)\n",
-+		current->comm, order, gfp_mask, &gfp_mask);
- 	dump_stack();
- 	if (!should_suppress_show_mem())
- 		show_mem(filter);
-diff -puN mm/page_owner.c~mm-printk-introduce-new-format-string-for-flags mm/page_owner.c
---- a/mm/page_owner.c~mm-printk-introduce-new-format-string-for-flags
-+++ a/mm/page_owner.c
-@@ -208,9 +208,9 @@ void __dump_page_owner(struct page *page
- 		return;
- 	}
+-	printk(KERN_ALERT "BUG: Bad page state in process %s  pfn:%05lx\n",
++	pr_alert("BUG: Bad page state in process %s  pfn:%05lx\n",
+ 		current->comm, page_to_pfn(page));
+-	dump_page_badflags(page, reason, bad_flags);
++	__dump_page(page, reason);
++	bad_flags &= page->flags;
++	if (bad_flags)
++		pr_alert("bad because of flags: %#lx(%pgp)\n",
++						bad_flags, &bad_flags);
+ 	dump_page_owner(page);
  
--	pr_alert("page allocated via order %u, migratetype %s, gfp_mask 0x%x",
--			page_ext->order, migratetype_names[mt], gfp_mask);
--	dump_gfpflag_names(gfp_mask);
-+	pr_alert("page allocated via order %u, migratetype %s, "
-+			"gfp_mask %#x(%pgg)\n", page_ext->order,
-+			migratetype_names[mt], gfp_mask, &gfp_mask);
- 	print_stack_trace(&trace, 0);
- 
- 	if (page_ext->last_migrate_reason != -1)
+ 	print_modules();
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
