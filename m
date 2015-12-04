@@ -1,69 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] arm-mm-support-arch_mmap_rnd_bits-fix.patch
+Subject: [folded-merged] arm-mm-support-arch_mmap_rnd_bits-v5.patch
  removed from -mm tree
-Date: Fri, 04 Dec 2015 15:15:11 -0800
-Message-ID: <56621e7f.Rjip7+Nq/TGj9L15%akpm@linux-foundation.org>
+Date: Fri, 04 Dec 2015 15:15:14 -0800
+Message-ID: <56621e82.P3Ci0MvJGOX3UfN6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47532 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47537 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755498AbbLDXPM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2015 18:15:12 -0500
+	with ESMTP id S1755445AbbLDXPP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2015 18:15:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, dcashman@google.com, mm-commits@vger.kernel.org
+To: dcashman@android.com, catalin.marinas@arm.com, linux@arm.linux.org.uk, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARM: avoid ARCH_MMAP_RND_BITS for NOMMU
+     Subject: arm-mm-support-arch_mmap_rnd_bits-v5
 has been removed from the -mm tree.  Its filename was
-     arm-mm-support-arch_mmap_rnd_bits-fix.patch
+     arm-mm-support-arch_mmap_rnd_bits-v5.patch
 
 This patch was dropped because it was folded into arm-mm-support-arch_mmap_rnd_bits.patch
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: ARM: avoid ARCH_MMAP_RND_BITS for NOMMU
+From: Daniel Cashman <dcashman@android.com>
+Subject: arm-mm-support-arch_mmap_rnd_bits-v5
 
-ARM kernels with MMU disabled fail to build because of CONFIG_ARCH_MMAP_RND_BITS:
-
-kernel/built-in.o:(.data+0x754): undefined reference to `mmap_rnd_bits'
-kernel/built-in.o:(.data+0x76c): undefined reference to `mmap_rnd_bits_min'
-kernel/built-in.o:(.data+0x770): undefined reference to `mmap_rnd_bits_max'
-
-This changes the newly added line to only select this allow for
-MMU-enabled kernels.
-
-Fixes: 14570b3fd31a ("arm: mm: support ARCH_MMAP_RND_BITS")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Daniel Cashman <dcashman@google.com>
+Signed-off-by: Daniel Cashman <dcashman@android.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/Kconfig |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff -puN arch/arm/Kconfig~arm-mm-support-arch_mmap_rnd_bits-fix arch/arm/Kconfig
---- a/arch/arm/Kconfig~arm-mm-support-arch_mmap_rnd_bits-fix
+diff -puN arch/arm/Kconfig~arm-mm-support-arch_mmap_rnd_bits-v5 arch/arm/Kconfig
+--- a/arch/arm/Kconfig~arm-mm-support-arch_mmap_rnd_bits-v5
 +++ a/arch/arm/Kconfig
-@@ -35,7 +35,7 @@ config ARM
- 	select HAVE_ARCH_BITREVERSE if (CPU_32v7M || CPU_32v7) && !CPU_32v6
- 	select HAVE_ARCH_JUMP_LABEL if !XIP_KERNEL && !CPU_ENDIAN_BE32
- 	select HAVE_ARCH_KGDB if !CPU_ENDIAN_BE32
--	select HAVE_ARCH_MMAP_RND_BITS
-+	select HAVE_ARCH_MMAP_RND_BITS if MMU
- 	select HAVE_ARCH_SECCOMP_FILTER if (AEABI && !OABI_COMPAT)
- 	select HAVE_ARCH_TRACEHOOK
- 	select HAVE_BPF_JIT
+@@ -313,10 +313,9 @@ config ARCH_MMAP_RND_BITS_MIN
+ 	default 8
+ 
+ config ARCH_MMAP_RND_BITS_MAX
+-	default 14 if MMU && PAGE_OFFSET=0x40000000
+-	default 15 if MMU && PAGE_OFFSET=0x80000000
+-	default 16 if MMU
+-	default 8
++	default 14 if PAGE_OFFSET=0x40000000
++	default 15 if PAGE_OFFSET=0x80000000
++	default 16
+ 
+ #
+ # The "ARM system type" choice list is ordered alphabetically by option
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from dcashman@android.com are
 
-include-define-__phys_to_pfn-as-phys_pfn-fix-2.patch
 arm-mm-support-arch_mmap_rnd_bits.patch
-arm-thp-remove-infrastructure-for-handling-splitting-pmds-fix.patch
-memstick-use-sector_div-instead-of-do_div.patch
+arm64-mm-support-arch_mmap_rnd_bits-v4.patch
+arm64-mm-support-arch_mmap_rnd_bits-v5.patch
+x86-mm-support-arch_mmap_rnd_bits-v5.patch
 
