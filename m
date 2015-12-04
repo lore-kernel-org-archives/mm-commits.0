@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch added
- to -mm tree
-Date: Fri, 04 Dec 2015 00:47:15 -0800
-Message-ID: <56615313.ImU2mnRPGycfkqGB%akpm@linux-foundation.org>
+Subject: + lib-test_printfc-test-dentry-printing-fix.patch added to -mm
+ tree
+Date: Fri, 04 Dec 2015 00:47:14 -0800
+Message-ID: <56615312.yVf1MnTgblz7BdxK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55746 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55741 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755372AbbLDIrR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2015 03:47:17 -0500
+	with ESMTP id S1755372AbbLDIrQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2015 03:47:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, linux@rasmusvillemoes.dk, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, joe@perches.com, keescook@chromium.org, linux@rasmusvillemoes.dk, mingo@kernel.org, mlombard@redhat.com, tj@kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/dcache.h: remove semicolons from HASH_LEN_DECLARE
+     Subject: lib-test_printfc-test-dentry-printing-fix
 has been added to the -mm tree.  Its filename is
-     include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
+     lib-test_printfc-test-dentry-printing-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_printfc-test-dentry-printing-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_printfc-test-dentry-printing-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,33 +40,45 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/dcache.h: remove semicolons from HASH_LEN_DECLARE
+Subject: lib-test_printfc-test-dentry-printing-fix
 
-A little cleanup - the invocation site provdes the semicolon.
-
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Maurizio Lombardi <mlombard@redhat.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dcache.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ lib/test_printf.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/dcache.h~include-linux-dcacheh-remove-semicolons-from-hash_len_declare include/linux/dcache.h
---- a/include/linux/dcache.h~include-linux-dcacheh-remove-semicolons-from-hash_len_declare
-+++ a/include/linux/dcache.h
-@@ -27,10 +27,10 @@ struct vfsmount;
+diff -puN lib/test_printf.c~lib-test_printfc-test-dentry-printing-fix lib/test_printf.c
+--- a/lib/test_printf.c~lib-test_printfc-test-dentry-printing-fix
++++ a/lib/test_printf.c
+@@ -329,16 +329,16 @@ uuid(void)
  
- /* The hash is always the low bits of hash_len */
- #ifdef __LITTLE_ENDIAN
-- #define HASH_LEN_DECLARE u32 hash; u32 len;
-+ #define HASH_LEN_DECLARE u32 hash; u32 len
-  #define bytemask_from_count(cnt)	(~(~0ul << (cnt)*8))
- #else
-- #define HASH_LEN_DECLARE u32 len; u32 hash;
-+ #define HASH_LEN_DECLARE u32 len; u32 hash
-  #define bytemask_from_count(cnt)	(~(~0ul >> (cnt)*8))
- #endif
+ static struct dentry test_dentry[4] __initdata = {
+ 	{ .d_parent = &test_dentry[0],
+-	  .d_name = { .len = 3, .name = test_dentry[0].d_iname },
++	  .d_name = QSTR_INIT(test_dentry[0].d_iname, 3),
+ 	  .d_iname = "foo" },
+ 	{ .d_parent = &test_dentry[0],
+-	  .d_name = { .len = 5, .name = test_dentry[1].d_iname },
++	  .d_name = QSTR_INIT(test_dentry[1].d_iname, 5),
+ 	  .d_iname = "bravo" },
+ 	{ .d_parent = &test_dentry[1],
+-	  .d_name = { .len = 4, .name = test_dentry[2].d_iname },
++	  .d_name = QSTR_INIT(test_dentry[2].d_iname, 4),
+ 	  .d_iname = "alfa" },
+ 	{ .d_parent = &test_dentry[2],
+-	  .d_name = { .len = 5, .name = test_dentry[3].d_iname },
++	  .d_name = QSTR_INIT(test_dentry[3].d_iname, 5),
+ 	  .d_iname = "romeo" },
+ };
  
 _
 
