@@ -1,100 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix.patch removed from
- -mm tree
-Date: Fri, 04 Dec 2015 15:14:50 -0800
-Message-ID: <56621e6a.oXP3gyvf0XZMfnVv%akpm@linux-foundation.org>
+Subject: [folded-merged] arm-mm-support-arch_mmap_rnd_bits-fix.patch
+ removed from -mm tree
+Date: Fri, 04 Dec 2015 15:15:11 -0800
+Message-ID: <56621e7f.Rjip7+Nq/TGj9L15%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47525 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47532 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756564AbbLDXOv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2015 18:14:51 -0500
+	with ESMTP id S1755498AbbLDXPM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2015 18:15:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dcashman@android.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, dcashman@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix
+     Subject: ARM: avoid ARCH_MMAP_RND_BITS for NOMMU
 has been removed from the -mm tree.  Its filename was
-     mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix.patch
+     arm-mm-support-arch_mmap_rnd_bits-fix.patch
 
-This patch was dropped because it was folded into mm-mmap-add-new-proc-tunable-for-mmap_base-aslr.patch
+This patch was dropped because it was folded into arm-mm-support-arch_mmap_rnd_bits.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: ARM: avoid ARCH_MMAP_RND_BITS for NOMMU
 
-restore the casts
+ARM kernels with MMU disabled fail to build because of CONFIG_ARCH_MMAP_RND_BITS:
 
-Cc: Daniel Cashman <dcashman@android.com>
+kernel/built-in.o:(.data+0x754): undefined reference to `mmap_rnd_bits'
+kernel/built-in.o:(.data+0x76c): undefined reference to `mmap_rnd_bits_min'
+kernel/built-in.o:(.data+0x770): undefined reference to `mmap_rnd_bits_max'
+
+This changes the newly added line to only select this allow for
+MMU-enabled kernels.
+
+Fixes: 14570b3fd31a ("arm: mm: support ARCH_MMAP_RND_BITS")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Daniel Cashman <dcashman@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/arm/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/sysctl.c~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix kernel/sysctl.c
---- a/kernel/sysctl.c~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix
-+++ a/kernel/sysctl.c
-@@ -1575,8 +1575,8 @@ static struct ctl_table vm_table[] = {
- 		.maxlen		= sizeof(mmap_rnd_bits),
- 		.mode		= 0600,
- 		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= &mmap_rnd_bits_min,
--		.extra2		= &mmap_rnd_bits_max,
-+		.extra1		= (void *)&mmap_rnd_bits_min,
-+		.extra2		= (void *)&mmap_rnd_bits_max,
- 	},
- #endif
- #ifdef CONFIG_HAVE_ARCH_MMAP_RND_COMPAT_BITS
-@@ -1586,8 +1586,8 @@ static struct ctl_table vm_table[] = {
- 		.maxlen		= sizeof(mmap_rnd_compat_bits),
- 		.mode		= 0600,
- 		.proc_handler	= proc_dointvec_minmax,
--		.extra1		= &mmap_rnd_compat_bits_min,
--		.extra2		= &mmap_rnd_compat_bits_max,
-+		.extra1		= (void *)&mmap_rnd_compat_bits_min,
-+		.extra2		= (void *)&mmap_rnd_compat_bits_max,
- 	},
- #endif
- 	{ }
+diff -puN arch/arm/Kconfig~arm-mm-support-arch_mmap_rnd_bits-fix arch/arm/Kconfig
+--- a/arch/arm/Kconfig~arm-mm-support-arch_mmap_rnd_bits-fix
++++ a/arch/arm/Kconfig
+@@ -35,7 +35,7 @@ config ARM
+ 	select HAVE_ARCH_BITREVERSE if (CPU_32v7M || CPU_32v7) && !CPU_32v6
+ 	select HAVE_ARCH_JUMP_LABEL if !XIP_KERNEL && !CPU_ENDIAN_BE32
+ 	select HAVE_ARCH_KGDB if !CPU_ENDIAN_BE32
+-	select HAVE_ARCH_MMAP_RND_BITS
++	select HAVE_ARCH_MMAP_RND_BITS if MMU
+ 	select HAVE_ARCH_SECCOMP_FILTER if (AEABI && !OABI_COMPAT)
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select HAVE_BPF_JIT
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-oom-kill-init-lead-panic-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-mm-mmap-add-new-proc-tunable-for-mmap_base-aslr.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
-lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
-lib-test_printfc-test-dentry-printing-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-linux-next-git-rejects.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix-2.patch
+arm-mm-support-arch_mmap_rnd_bits.patch
+arm-thp-remove-infrastructure-for-handling-splitting-pmds-fix.patch
+memstick-use-sector_div-instead-of-do_div.patch
 
