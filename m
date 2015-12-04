@@ -1,117 +1,97 @@
 From: akpm@linux-foundation.org
-Subject: + lib-test_printfc-test-dentry-printing-fix.patch added to -mm
+Subject: [folded-merged]
+ mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5.patch removed from -mm
  tree
-Date: Fri, 04 Dec 2015 00:47:14 -0800
-Message-ID: <56615312.yVf1MnTgblz7BdxK%akpm@linux-foundation.org>
+Date: Fri, 04 Dec 2015 15:14:47 -0800
+Message-ID: <56621e67.5JHqgGLqz2q3J2Kv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55741 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47523 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755372AbbLDIrQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2015 03:47:16 -0500
+	with ESMTP id S1756564AbbLDXOs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2015 18:14:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, joe@perches.com, keescook@chromium.org, linux@rasmusvillemoes.dk, mingo@kernel.org, mlombard@redhat.com, tj@kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: dcashman@android.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib-test_printfc-test-dentry-printing-fix
-has been added to the -mm tree.  Its filename is
-     lib-test_printfc-test-dentry-printing-fix.patch
+     Subject: mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5
+has been removed from the -mm tree.  Its filename was
+     mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-test_printfc-test-dentry-printing-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-test_printfc-test-dentry-printing-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-mmap-add-new-proc-tunable-for-mmap_base-aslr.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: lib-test_printfc-test-dentry-printing-fix
+From: Daniel Cashman <dcashman@android.com>
+Subject: mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5
 
-Cc: Al Viro <viro@ZenIV.linux.org.uk>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Joe Perches <joe@perches.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Maurizio Lombardi <mlombard@redhat.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Tejun Heo <tj@kernel.org>
+Signed-off-by: Daniel Cashman <dcashman@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_printf.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/Kconfig    |    6 +++---
+ kernel/sysctl.c |    8 ++++----
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN lib/test_printf.c~lib-test_printfc-test-dentry-printing-fix lib/test_printf.c
---- a/lib/test_printf.c~lib-test_printfc-test-dentry-printing-fix
-+++ a/lib/test_printf.c
-@@ -329,16 +329,16 @@ uuid(void)
+diff -puN arch/Kconfig~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5 arch/Kconfig
+--- a/arch/Kconfig~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5
++++ a/arch/Kconfig
+@@ -516,7 +516,7 @@ config HAVE_ARCH_MMAP_RND_BITS
+ 	help
+ 	  An arch should select this symbol if it supports setting a variable
+ 	  number of bits for use in establishing the base address for mmap
+-	  allocations and provides values for both:
++	  allocations, has MMU enabled and provides values for both:
+ 	  - ARCH_MMAP_RND_BITS_MIN
+ 	  - ARCH_MMAP_RND_BITS_MAX
  
- static struct dentry test_dentry[4] __initdata = {
- 	{ .d_parent = &test_dentry[0],
--	  .d_name = { .len = 3, .name = test_dentry[0].d_iname },
-+	  .d_name = QSTR_INIT(test_dentry[0].d_iname, 3),
- 	  .d_iname = "foo" },
- 	{ .d_parent = &test_dentry[0],
--	  .d_name = { .len = 5, .name = test_dentry[1].d_iname },
-+	  .d_name = QSTR_INIT(test_dentry[1].d_iname, 5),
- 	  .d_iname = "bravo" },
- 	{ .d_parent = &test_dentry[1],
--	  .d_name = { .len = 4, .name = test_dentry[2].d_iname },
-+	  .d_name = QSTR_INIT(test_dentry[2].d_iname, 4),
- 	  .d_iname = "alfa" },
- 	{ .d_parent = &test_dentry[2],
--	  .d_name = { .len = 5, .name = test_dentry[3].d_iname },
-+	  .d_name = QSTR_INIT(test_dentry[3].d_iname, 5),
- 	  .d_iname = "romeo" },
- };
+@@ -549,8 +549,8 @@ config HAVE_ARCH_MMAP_RND_COMPAT_BITS
+ 	help
+ 	  An arch should select this symbol if it supports running applications
+ 	  in compatibility mode, supports setting a variable number of bits for
+-	  use in establishing the base address for mmap allocations, and
+-	  provides values for both:
++	  use in establishing the base address for mmap allocations, has MMU
++	  enabled and provides values for both:
+ 	  - ARCH_MMAP_RND_COMPAT_BITS_MIN
+ 	  - ARCH_MMAP_RND_COMPAT_BITS_MAX
  
+diff -puN kernel/sysctl.c~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5 kernel/sysctl.c
+--- a/kernel/sysctl.c~mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5
++++ a/kernel/sysctl.c
+@@ -1575,8 +1575,8 @@ static struct ctl_table vm_table[] = {
+ 		.maxlen		= sizeof(mmap_rnd_bits),
+ 		.mode		= 0600,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= (void *) &mmap_rnd_bits_min,
+-		.extra2		= (void *) &mmap_rnd_bits_max,
++		.extra1		= &mmap_rnd_bits_min,
++		.extra2		= &mmap_rnd_bits_max,
+ 	},
+ #endif
+ #ifdef CONFIG_HAVE_ARCH_MMAP_RND_COMPAT_BITS
+@@ -1586,8 +1586,8 @@ static struct ctl_table vm_table[] = {
+ 		.maxlen		= sizeof(mmap_rnd_compat_bits),
+ 		.mode		= 0600,
+ 		.proc_handler	= proc_dointvec_minmax,
+-		.extra1		= (void *) &mmap_rnd_compat_bits_min,
+-		.extra2		= (void *) &mmap_rnd_compat_bits_max,
++		.extra1		= &mmap_rnd_compat_bits_min,
++		.extra2		= &mmap_rnd_compat_bits_max,
+ 	},
+ #endif
+ 	{ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dcashman@android.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-oom-kill-init-lead-panic-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-mm-mmap-add-new-proc-tunable-for-mmap_base-aslr-v5-fix.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
-lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
-lib-test_printfc-test-dentry-printing-fix.patch
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-linux-next-git-rejects.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-mmap-add-new-proc-tunable-for-mmap_base-aslr.patch
+arm-mm-support-arch_mmap_rnd_bits-v5.patch
+arm64-mm-support-arch_mmap_rnd_bits-v4.patch
+arm64-mm-support-arch_mmap_rnd_bits-v5.patch
+x86-mm-support-arch_mmap_rnd_bits-v5.patch
 
