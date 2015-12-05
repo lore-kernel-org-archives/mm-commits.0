@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch added to -mm tree
-Date: Fri, 04 Dec 2015 16:19:09 -0800
-Message-ID: <56622d7d.ok3OTU1fjHDp+Dh2%akpm@linux-foundation.org>
+Subject: + kernel-printk-specify-alignment-for-struct-printk_log.patch
+ added to -mm tree
+Date: Fri, 04 Dec 2015 16:40:29 -0800
+Message-ID: <5662327d.tsf5NjTmKqXpJ54X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48692 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48777 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753603AbbLEATL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2015 19:19:11 -0500
+	with ESMTP id S932176AbbLEAka (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2015 19:40:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aconole@redhat.com, dvyukov@google.com, jbaron@akamai.com, joe@perches.com, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, corbet@lwn.net, dvyukov@google.com, hpa@zytor.com, kcc@google.com, koct9i@gmail.com, linux@rasmusvillemoes.dk, mingo@redhat.com, mmarek@suse.cz, peterz@infradead.org, rdunlap@infradead.org, sasha.levin@oracle.com, tglx@linutronix.de, y.gribov@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix
+     Subject: kernel: printk: specify alignment for struct printk_log
 has been added to the -mm tree.  Its filename is
-     printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
+     kernel-printk-specify-alignment-for-struct-printk_log.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-printk-specify-alignment-for-struct-printk_log.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-printk-specify-alignment-for-struct-printk_log.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,67 +39,70 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: kernel: printk: specify alignment for struct printk_log
 
-remove braces, per Joe
+On architectures that have support for efficient unaligned access struct
+printk_log has 4-byte alignment.  Specify alignment attribute in type
+declaration.
 
-Cc: Aaron Conole <aconole@redhat.com>
+The whole point of this patch is to fix deadlock which happening when
+UBSAN detects unaligned access in printk() thus UBSAN recursively calls
+printk() with logbuf_lock held by top printk() call.
+
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Yury Gribov <y.gribov@samsung.com>
 Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Jason Baron <jbaron@akamai.com>
-Cc: Joe Perches <joe@perches.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Kostya Serebryany <kcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/printk.h |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ kernel/printk/printk.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/printk.h~printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix include/linux/printk.h
---- a/include/linux/printk.h~printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix
-+++ a/include/linux/printk.h
-@@ -110,9 +110,8 @@ struct va_format {
-  */
- #define no_printk(fmt, ...)			\
- do {						\
--	if (0) {				\
-+	if (0)					\
- 		printk(fmt, ##__VA_ARGS__);	\
--	}					\
- } while (0)
+diff -puN kernel/printk/printk.c~kernel-printk-specify-alignment-for-struct-printk_log kernel/printk/printk.c
+--- a/kernel/printk/printk.c~kernel-printk-specify-alignment-for-struct-printk_log
++++ a/kernel/printk/printk.c
+@@ -233,7 +233,11 @@ struct printk_log {
+ 	u8 facility;		/* syslog facility */
+ 	u8 flags:5;		/* internal record flags */
+ 	u8 level:3;		/* syslog level */
+-};
++}
++#ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
++__packed __aligned(4)
++#endif
++;
  
- #ifdef CONFIG_EARLY_PRINTK
+ /*
+  * The logbuf_lock protects kmsg buffer, indices, counters.  This can be taken
+@@ -274,11 +278,7 @@ static u32 clear_idx;
+ #define LOG_FACILITY(v)		((v) >> 3 & 0xff)
+ 
+ /* record buffer */
+-#if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)
+-#define LOG_ALIGN 4
+-#else
+ #define LOG_ALIGN __alignof__(struct printk_log)
+-#endif
+ #define __LOG_BUF_LEN (1 << CONFIG_LOG_BUF_SHIFT)
+ static char __log_buf[__LOG_BUF_LEN] __aligned(LOG_ALIGN);
+ static char *log_buf = __log_buf;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-oom-kill-init-lead-panic-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
-lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
-lib-test_printfc-test-dentry-printing-fix.patch
-printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-linux-next-git-rejects.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+kernel-printk-specify-alignment-for-struct-printk_log.patch
+mac80211-prevent-build-failure-with-config_ubsan=y.patch
+ubsan-run-time-undefined-behavior-sanity-checker.patch
 
