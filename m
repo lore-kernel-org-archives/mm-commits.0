@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-support-madvisemadv_free-fix-2.patch added to -mm tree
-Date: Fri, 04 Dec 2015 16:51:21 -0800
-Message-ID: <56623509.eQLnlm/znTnVLdID%akpm@linux-foundation.org>
+Subject: + mm-support-madvisemadv_free-fix-2-fix.patch added to -mm tree
+Date: Fri, 04 Dec 2015 16:51:23 -0800
+Message-ID: <5662350b.lQbzmVR9GfgEnhb8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48913 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48918 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755644AbbLEAvW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2015 19:51:22 -0500
+	with ESMTP id S1755672AbbLEAvY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Dec 2015 19:51:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, danielmicay@gmail.com, hannes@cmpxchg.org, hughd@google.com, je@fb.com, kirill@shutemov.name, mhocko@suse.cz, riel@redhat.com, shli@kernel.org, yalin.wang2010@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: account pglazyfreed exactly
+     Subject: mm-support-madvisemadv_free-fix-2-fix
 has been added to the -mm tree.  Its filename is
-     mm-support-madvisemadv_free-fix-2.patch
+     mm-support-madvisemadv_free-fix-2-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-support-madvisemadv_free-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-support-madvisemadv_free-fix-2-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-support-madvisemadv_free-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-support-madvisemadv_free-fix-2-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,186 +38,81 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: account pglazyfreed exactly
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-support-madvisemadv_free-fix-2-fix
 
-If anon pages are zapped by unmapping between page_mapped check and
-try_to_unmap in shrink_page_list, they could be !PG_dirty although thre
-are not MADV_FREEed pages so that VM accoutns it as pglazyfreed wrongly.
+small cleanups
 
-To fix, this patch counts the number of lazyfree ptes in try_to_unmap_one
-and try_to_unmap returns SWAP_LZFREE only if the count is not zero, page
-is !PG_dirty and SWAP_SUCCESS.
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Jason Evans <je@fb.com>
-Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: <yalin.wang2010@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    1 +
- mm/rmap.c            |   29 +++++++++++++++++++++++++----
- mm/vmscan.c          |    8 ++++++--
- 3 files changed, 32 insertions(+), 6 deletions(-)
+ mm/rmap.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-support-madvisemadv_free-fix-2 include/linux/rmap.h
---- a/include/linux/rmap.h~mm-support-madvisemadv_free-fix-2
-+++ a/include/linux/rmap.h
-@@ -312,5 +312,6 @@ static inline int page_mkclean(struct pa
- #define SWAP_AGAIN	1
- #define SWAP_FAIL	2
- #define SWAP_MLOCK	3
-+#define SWAP_LZFREE	4
- 
- #endif	/* _LINUX_RMAP_H */
-diff -puN mm/rmap.c~mm-support-madvisemadv_free-fix-2 mm/rmap.c
---- a/mm/rmap.c~mm-support-madvisemadv_free-fix-2
+diff -puN mm/rmap.c~mm-support-madvisemadv_free-fix-2-fix mm/rmap.c
+--- a/mm/rmap.c~mm-support-madvisemadv_free-fix-2-fix
 +++ a/mm/rmap.c
-@@ -1408,6 +1408,11 @@ void page_remove_rmap(struct page *page,
- 	 */
- }
+@@ -1605,7 +1605,7 @@ int try_to_unmap(struct page *page, enum
  
-+struct rmap_private {
-+	enum ttu_flags flags;
-+	int lazyfreed;
-+};
-+
- /*
-  * @arg: enum ttu_flags will be passed to this argument
-  */
-@@ -1419,7 +1424,8 @@ static int try_to_unmap_one(struct page
- 	pte_t pteval;
- 	spinlock_t *ptl;
- 	int ret = SWAP_AGAIN;
--	enum ttu_flags flags = (enum ttu_flags)arg;
-+	struct rmap_private *rp = arg;
-+	enum ttu_flags flags = rp->flags;
- 
- 	/* munlock has nothing to gain from examining un-locked vmas */
- 	if ((flags & TTU_MUNLOCK) && !(vma->vm_flags & VM_LOCKED))
-@@ -1515,6 +1521,7 @@ static int try_to_unmap_one(struct page
- 		if (!PageDirty(page) && (flags & TTU_LZFREE)) {
- 			/* It's a freeable page by MADV_FREE */
- 			dec_mm_counter(mm, MM_ANONPAGES);
-+			rp->lazyfreed++;
- 			goto discard;
- 		}
- 
-@@ -1591,9 +1598,14 @@ static int page_not_mapped(struct page *
- int try_to_unmap(struct page *page, enum ttu_flags flags)
- {
- 	int ret;
-+	struct rmap_private rp = {
-+		.flags = flags,
-+		.lazyfreed = 0,
-+	};
-+
  	struct rmap_walk_control rwc = {
  		.rmap_one = try_to_unmap_one,
--		.arg = (void *)flags,
-+		.arg = (void *)&rp,
+-		.arg = (void *)&rp,
++		.arg = &rp,
  		.done = page_not_mapped,
  		.anon_lock = page_lock_anon_vma_read,
  	};
-@@ -1613,8 +1625,11 @@ int try_to_unmap(struct page *page, enum
- 
- 	ret = rmap_walk(page, &rwc);
- 
--	if (ret != SWAP_MLOCK && !page_mapped(page))
-+	if (ret != SWAP_MLOCK && !page_mapped(page)) {
- 		ret = SWAP_SUCCESS;
-+		if (rp.lazyfreed && !PageDirty(page))
-+			ret = SWAP_LZFREE;
-+	}
- 	return ret;
- }
- 
-@@ -1636,9 +1651,15 @@ int try_to_unmap(struct page *page, enum
+@@ -1651,7 +1651,6 @@ int try_to_unmap(struct page *page, enum
  int try_to_munlock(struct page *page)
  {
  	int ret;
-+
-+	struct rmap_private rp = {
-+		.flags = TTU_MUNLOCK,
-+		.lazyfreed = 0,
-+	};
-+
+-
+ 	struct rmap_private rp = {
+ 		.flags = TTU_MUNLOCK,
+ 		.lazyfreed = 0,
+@@ -1659,7 +1658,7 @@ int try_to_munlock(struct page *page)
+ 
  	struct rmap_walk_control rwc = {
  		.rmap_one = try_to_unmap_one,
--		.arg = (void *)TTU_MUNLOCK,
-+		.arg = (void *)&rp,
+-		.arg = (void *)&rp,
++		.arg = &rp,
  		.done = page_not_mapped,
  		.anon_lock = page_lock_anon_vma_read,
  
-diff -puN mm/vmscan.c~mm-support-madvisemadv_free-fix-2 mm/vmscan.c
---- a/mm/vmscan.c~mm-support-madvisemadv_free-fix-2
-+++ a/mm/vmscan.c
-@@ -909,6 +909,7 @@ static unsigned long shrink_page_list(st
- 		enum page_references references = PAGEREF_RECLAIM_CLEAN;
- 		bool dirty, writeback;
- 		bool lazyfree = false;
-+		int ret = SWAP_SUCCESS;
- 
- 		cond_resched();
- 
-@@ -1064,7 +1065,7 @@ static unsigned long shrink_page_list(st
- 		 * processes. Try to unmap it here.
- 		 */
- 		if (page_mapped(page) && mapping) {
--			switch (try_to_unmap(page, lazyfree ?
-+			switch (ret = try_to_unmap(page, lazyfree ?
- 				(ttu_flags | TTU_BATCH_FLUSH | TTU_LZFREE) :
- 				(ttu_flags | TTU_BATCH_FLUSH))) {
- 			case SWAP_FAIL:
-@@ -1073,6 +1074,8 @@ static unsigned long shrink_page_list(st
- 				goto keep_locked;
- 			case SWAP_MLOCK:
- 				goto cull_mlocked;
-+			case SWAP_LZFREE:
-+				goto lazyfree;
- 			case SWAP_SUCCESS:
- 				; /* try to free the page below */
- 			}
-@@ -1179,6 +1182,7 @@ static unsigned long shrink_page_list(st
- 			}
- 		}
- 
-+lazyfree:
- 		if (!mapping || !__remove_mapping(mapping, page, true))
- 			goto keep_locked;
- 
-@@ -1191,7 +1195,7 @@ static unsigned long shrink_page_list(st
- 		 */
- 		__ClearPageLocked(page);
- free_it:
--		if (lazyfree && !PageDirty(page))
-+		if (ret == SWAP_LZFREE)
- 			count_vm_event(PGLAZYFREED);
- 
- 		nr_reclaimed++;
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-zram-pass-gfp-from-zcomp-frontend-to-backend.patch
-mm-support-madvisemadv_free.patch
-mm-support-madvisemadv_free-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-define-madv_free-for-some-arches.patch
-mm-free-swp_entry-in-madvise_free.patch
-mm-move-lazily-freed-pages-to-inactive-list.patch
-mm-mark-stable-page-dirty-in-ksm.patch
-x86-add-pmd_-for-thp.patch
-sparc-add-pmd_-for-thp.patch
-powerpc-add-pmd_-for-thp.patch
-arm-add-pmd_mkclean-for-thp.patch
-arm64-add-pmd_mkclean-for-thp.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+oom-kill-init-lead-panic-fix.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
+mm.patch
+account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
+mm-zonelist-enumerate-zonelists-array-index-fix.patch
+mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
+mm-support-madvisemadv_free-fix-2-fix.patch
+lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
+lib-test_printfc-test-dentry-printing-fix.patch
+printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
+linux-next-git-rejects.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
