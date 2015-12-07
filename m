@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + arm64-mm-support-arch_mmap_rnd_bits-fix.patch added to -mm tree
-Date: Mon, 07 Dec 2015 15:33:35 -0800
-Message-ID: <5666174f.xPTXyN/3ONvT8+Wb%akpm@linux-foundation.org>
+Subject: +
+ arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch added to -mm tree
+Date: Mon, 07 Dec 2015 15:35:04 -0800
+Message-ID: <566617a8.qiFuTIemQT5lSJ78%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59823 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59946 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932730AbbLGXdg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Dec 2015 18:33:36 -0500
+	with ESMTP id S932433AbbLGXfF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Dec 2015 18:35:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, catalin.marinas@arm.com, dcashman@google.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64-mm-support-arch_mmap_rnd_bits-fix
+     Subject: arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2
 has been added to the -mm tree.  Its filename is
-     arm64-mm-support-arch_mmap_rnd_bits-fix.patch
+     arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm64-mm-support-arch_mmap_rnd_bits-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-mm-support-arch_mmap_rnd_bits-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,29 +40,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arm64-mm-support-arch_mmap_rnd_bits-fix
+Subject: arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2
 
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Daniel Cashman <dcashman@google.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: kbuild test robot <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/xtensa/include/uapi/asm/mman.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/arm64/mm/mmap.c~arm64-mm-support-arch_mmap_rnd_bits-fix arch/arm64/mm/mmap.c
---- a/arch/arm64/mm/mmap.c~arm64-mm-support-arch_mmap_rnd_bits-fix
-+++ a/arch/arm64/mm/mmap.c
-@@ -51,7 +51,7 @@ unsigned long arch_mmap_rnd(void)
- {
- 	unsigned long rnd;
+diff -puN arch/xtensa/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2 arch/xtensa/include/uapi/asm/mman.h
+--- a/arch/xtensa/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2
++++ a/arch/xtensa/include/uapi/asm/mman.h
+@@ -86,7 +86,6 @@
+ #define MADV_SEQUENTIAL	2		/* expect sequential page references */
+ #define MADV_WILLNEED	3		/* will need these pages */
+ #define MADV_DONTNEED	4		/* don't need these pages */
+-#define MADV_FREE	5		/* free pages only if memory pressure */
  
--ifdef CONFIG_COMPAT
-+#ifdef CONFIG_COMPAT
- 	if (test_thread_flag(TIF_32BIT))
- 		rnd = (unsigned long)get_random_int() % (1 << mmap_rnd_compat_bits);
- 	else
+ /* common parameters: try to keep these consistent across architectures */
+ #define MADV_FREE	8		/* free pages only if memory pressure */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -90,6 +89,7 @@ mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes
 mm-increase-swap_cluster_max-to-batch-tlb-flushes-fix-fix.patch
 mm-support-madvisemadv_free-fix-2-fix.patch
 arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
 lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
 lib-test_printfc-test-dentry-printing-fix.patch
 printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
