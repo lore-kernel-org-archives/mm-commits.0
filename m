@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-constify-ocfs2_extent_tree_operations-structures.patch
- added to -mm tree
-Date: Tue, 08 Dec 2015 13:51:35 -0800
-Message-ID: <566750e7.urFqKAvvpRVgH/s/%akpm@linux-foundation.org>
+Subject: + epoll-add-epollexclusive-flag.patch added to -mm tree
+Date: Tue, 08 Dec 2015 14:05:57 -0800
+Message-ID: <56675445.CjwXC52UWF27rFq2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55070 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56490 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750737AbbLHVvg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 16:51:36 -0500
+	with ESMTP id S1750752AbbLHWF6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 17:05:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: Julia.Lawall@lip6.fr, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: jbaron@akamai.com, corbet@lwn.net, hagen@jauu.net, luto@amacapital.net, m@silodev.com, mingo@kernel.org, mtk.manpages@gmail.com, normalperson@yhbt.net, peterz@infradead.org, viro@ftp.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: constify ocfs2_extent_tree_operations structures
+     Subject: epoll: add EPOLLEXCLUSIVE flag
 has been added to the -mm tree.  Its filename is
-     ocfs2-constify-ocfs2_extent_tree_operations-structures.patch
+     epoll-add-epollexclusive-flag.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-constify-ocfs2_extent_tree_operations-structures.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/epoll-add-epollexclusive-flag.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-constify-ocfs2_extent_tree_operations-structures.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/epoll-add-epollexclusive-flag.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,96 +38,146 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-Subject: ocfs2: constify ocfs2_extent_tree_operations structures
+From: Jason Baron <jbaron@akamai.com>
+Subject: epoll: add EPOLLEXCLUSIVE flag
 
-The ocfs2_extent_tree_operations structures are never modified, so declare
-them as const.
+Currently, epoll file descriptors or epfds (the fd returned from
+epoll_create[1]()) that are added to a shared wakeup source are always
+added in a non-exclusive manner.  This means that when we have multiple
+epfds attached to a shared fd source they are all woken up.  This creates
+thundering herd type behavior.
 
-Done with the help of Coccinelle.
+Introduce a new 'EPOLLEXCLUSIVE' flag that can be passed as part of the
+'event' argument during an epoll_ctl() EPOLL_CTL_ADD operation.  This new
+flag allows for exclusive wakeups when there are multiple epfds attached
+to a shared fd event source.
 
-Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
+The implementation walks the list of exclusive waiters, and queues an
+event to each epfd, until it finds the first waiter that has threads
+blocked on it via epoll_wait().  The idea is to search for threads which
+are idle and ready to process the wakeup events.  Thus, we queue an event
+to at least 1 epfd, but may still potentially queue an event to all epfds
+that are attached to the shared fd source.
+
+Performance testing was done by Madars Vitolins using a modified version
+of Enduro/X.  The use of the 'EPOLLEXCLUSIVE' flag reduce the length of
+this particular workload from 860s down to 24s.
+
+Sample epoll_clt text:
+
+EPOLLEXCLUSIVE
+
+  Sets an exclusive wakeup mode for the epfd file descriptor that is
+  being attached to the target file descriptor, fd.  Thus, when an event
+  occurs and multiple epfd file descriptors are attached to the same
+  target file using EPOLLEXCLUSIVE, one or more epfds will receive an
+  event with epoll_wait(2).  The default in this scenario (when
+  EPOLLEXCLUSIVE is not set) is for all epfds to receive an event. 
+  EPOLLEXCLUSIVE may only be specified with the op EPOLL_CTL_ADD.  
+
+Signed-off-by: Jason Baron <jbaron@akamai.com>
+Tested-by: Madars Vitolins <m@silodev.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Al Viro <viro@ftp.linux.org.uk>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Eric Wong <normalperson@yhbt.net>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Hagen Paul Pfeifer <hagen@jauu.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |   12 ++++++------
- fs/ocfs2/alloc.h |    2 +-
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ fs/eventpoll.c                 |   24 +++++++++++++++++++++---
+ include/uapi/linux/eventpoll.h |    3 +++
+ 2 files changed, 24 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-constify-ocfs2_extent_tree_operations-structures fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-constify-ocfs2_extent_tree_operations-structures
-+++ a/fs/ocfs2/alloc.c
-@@ -164,7 +164,7 @@ static int ocfs2_dinode_insert_check(str
- 				     struct ocfs2_extent_rec *rec);
- static int ocfs2_dinode_sanity_check(struct ocfs2_extent_tree *et);
- static void ocfs2_dinode_fill_root_el(struct ocfs2_extent_tree *et);
--static struct ocfs2_extent_tree_operations ocfs2_dinode_et_ops = {
-+static const struct ocfs2_extent_tree_operations ocfs2_dinode_et_ops = {
- 	.eo_set_last_eb_blk	= ocfs2_dinode_set_last_eb_blk,
- 	.eo_get_last_eb_blk	= ocfs2_dinode_get_last_eb_blk,
- 	.eo_update_clusters	= ocfs2_dinode_update_clusters,
-@@ -286,7 +286,7 @@ static void ocfs2_xattr_value_update_clu
- 	le32_add_cpu(&vb->vb_xv->xr_clusters, clusters);
- }
- 
--static struct ocfs2_extent_tree_operations ocfs2_xattr_value_et_ops = {
-+static const struct ocfs2_extent_tree_operations ocfs2_xattr_value_et_ops = {
- 	.eo_set_last_eb_blk	= ocfs2_xattr_value_set_last_eb_blk,
- 	.eo_get_last_eb_blk	= ocfs2_xattr_value_get_last_eb_blk,
- 	.eo_update_clusters	= ocfs2_xattr_value_update_clusters,
-@@ -332,7 +332,7 @@ static void ocfs2_xattr_tree_update_clus
- 	le32_add_cpu(&xb->xb_attrs.xb_root.xt_clusters, clusters);
- }
- 
--static struct ocfs2_extent_tree_operations ocfs2_xattr_tree_et_ops = {
-+static const struct ocfs2_extent_tree_operations ocfs2_xattr_tree_et_ops = {
- 	.eo_set_last_eb_blk	= ocfs2_xattr_tree_set_last_eb_blk,
- 	.eo_get_last_eb_blk	= ocfs2_xattr_tree_get_last_eb_blk,
- 	.eo_update_clusters	= ocfs2_xattr_tree_update_clusters,
-@@ -379,7 +379,7 @@ static void ocfs2_dx_root_fill_root_el(s
- 	et->et_root_el = &dx_root->dr_list;
- }
- 
--static struct ocfs2_extent_tree_operations ocfs2_dx_root_et_ops = {
-+static const struct ocfs2_extent_tree_operations ocfs2_dx_root_et_ops = {
- 	.eo_set_last_eb_blk	= ocfs2_dx_root_set_last_eb_blk,
- 	.eo_get_last_eb_blk	= ocfs2_dx_root_get_last_eb_blk,
- 	.eo_update_clusters	= ocfs2_dx_root_update_clusters,
-@@ -425,7 +425,7 @@ ocfs2_refcount_tree_extent_contig(struct
- 	return CONTIG_NONE;
- }
- 
--static struct ocfs2_extent_tree_operations ocfs2_refcount_tree_et_ops = {
-+static const struct ocfs2_extent_tree_operations ocfs2_refcount_tree_et_ops = {
- 	.eo_set_last_eb_blk	= ocfs2_refcount_tree_set_last_eb_blk,
- 	.eo_get_last_eb_blk	= ocfs2_refcount_tree_get_last_eb_blk,
- 	.eo_update_clusters	= ocfs2_refcount_tree_update_clusters,
-@@ -438,7 +438,7 @@ static void __ocfs2_init_extent_tree(str
- 				     struct buffer_head *bh,
- 				     ocfs2_journal_access_func access,
- 				     void *obj,
--				     struct ocfs2_extent_tree_operations *ops)
-+				     const struct ocfs2_extent_tree_operations *ops)
- {
- 	et->et_ops = ops;
- 	et->et_root_bh = bh;
-diff -puN fs/ocfs2/alloc.h~ocfs2-constify-ocfs2_extent_tree_operations-structures fs/ocfs2/alloc.h
---- a/fs/ocfs2/alloc.h~ocfs2-constify-ocfs2_extent_tree_operations-structures
-+++ a/fs/ocfs2/alloc.h
-@@ -54,7 +54,7 @@
+diff -puN fs/eventpoll.c~epoll-add-epollexclusive-flag fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-add-epollexclusive-flag
++++ a/fs/eventpoll.c
+@@ -92,7 +92,7 @@
   */
- struct ocfs2_extent_tree_operations;
- struct ocfs2_extent_tree {
--	struct ocfs2_extent_tree_operations	*et_ops;
-+	const struct ocfs2_extent_tree_operations *et_ops;
- 	struct buffer_head			*et_root_bh;
- 	struct ocfs2_extent_list		*et_root_el;
- 	struct ocfs2_caching_info		*et_ci;
+ 
+ /* Epoll private bits inside the event mask */
+-#define EP_PRIVATE_BITS (EPOLLWAKEUP | EPOLLONESHOT | EPOLLET)
++#define EP_PRIVATE_BITS (EPOLLWAKEUP | EPOLLONESHOT | EPOLLET | EPOLLEXCLUSIVE)
+ 
+ /* Maximum number of nesting allowed inside epoll sets */
+ #define EP_MAX_NESTS 4
+@@ -1002,6 +1002,7 @@ static int ep_poll_callback(wait_queue_t
+ 	unsigned long flags;
+ 	struct epitem *epi = ep_item_from_wait(wait);
+ 	struct eventpoll *ep = epi->ep;
++	int ewake = 0;
+ 
+ 	if ((unsigned long)key & POLLFREE) {
+ 		ep_pwq_from_wait(wait)->whead = NULL;
+@@ -1066,8 +1067,10 @@ static int ep_poll_callback(wait_queue_t
+ 	 * Wake up ( if active ) both the eventpoll wait list and the ->poll()
+ 	 * wait list.
+ 	 */
+-	if (waitqueue_active(&ep->wq))
++	if (waitqueue_active(&ep->wq)) {
++		ewake = 1;
+ 		wake_up_locked(&ep->wq);
++	}
+ 	if (waitqueue_active(&ep->poll_wait))
+ 		pwake++;
+ 
+@@ -1078,6 +1081,9 @@ out_unlock:
+ 	if (pwake)
+ 		ep_poll_safewake(&ep->poll_wait);
+ 
++	if (epi->event.events & EPOLLEXCLUSIVE)
++		return ewake;
++
+ 	return 1;
+ }
+ 
+@@ -1095,7 +1101,10 @@ static void ep_ptable_queue_proc(struct
+ 		init_waitqueue_func_entry(&pwq->wait, ep_poll_callback);
+ 		pwq->whead = whead;
+ 		pwq->base = epi;
+-		add_wait_queue(whead, &pwq->wait);
++		if (epi->event.events & EPOLLEXCLUSIVE)
++			add_wait_queue_exclusive(whead, &pwq->wait);
++		else
++			add_wait_queue(whead, &pwq->wait);
+ 		list_add_tail(&pwq->llink, &epi->pwqlist);
+ 		epi->nwait++;
+ 	} else {
+@@ -1862,6 +1871,15 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
+ 		goto error_tgt_fput;
+ 
+ 	/*
++	 * epoll adds to the wakeup queue at EPOLL_CTL_ADD time only,
++	 * so EPOLLEXCLUSIVE is not allowed for a EPOLL_CTL_MOD operation.
++	 * Also, we do not currently supported nested exclusive wakeups.
++	 */
++	if ((epds.events & EPOLLEXCLUSIVE) && (op == EPOLL_CTL_MOD ||
++		(op == EPOLL_CTL_ADD && is_file_epoll(tf.file))))
++		goto error_tgt_fput;
++
++	/*
+ 	 * At this point it is safe to assume that the "private_data" contains
+ 	 * our own data structure.
+ 	 */
+diff -puN include/uapi/linux/eventpoll.h~epoll-add-epollexclusive-flag include/uapi/linux/eventpoll.h
+--- a/include/uapi/linux/eventpoll.h~epoll-add-epollexclusive-flag
++++ a/include/uapi/linux/eventpoll.h
+@@ -26,6 +26,9 @@
+ #define EPOLL_CTL_DEL 2
+ #define EPOLL_CTL_MOD 3
+ 
++/* Set exclusive wakeup mode for the target file descriptor */
++#define EPOLLEXCLUSIVE (1 << 28)
++
+ /*
+  * Request the handling of system wakeup events so as to prevent system suspends
+  * from happening while those events are being processed.
 _
 
-Patches currently in -mm which might be from Julia.Lawall@lip6.fr are
+Patches currently in -mm which might be from jbaron@akamai.com are
 
-ocfs2-constify-ocfs2_extent_tree_operations-structures.patch
+epoll-add-epollexclusive-flag.patch
 
