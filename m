@@ -1,119 +1,179 @@
 From: akpm@linux-foundation.org
-Subject: +
- ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch added to -mm tree
-Date: Tue, 08 Dec 2015 15:30:31 -0800
-Message-ID: <56676817.N99yJC1jte6dgtTm%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ fs-clear-file-privilege-bits-when-mmap-writing.patch removed from -mm tree
+Date: Tue, 08 Dec 2015 15:32:37 -0800
+Message-ID: <56676895.vDYUVHZKHmC8etIY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38262 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38468 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750912AbbLHXad (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 18:30:33 -0500
+	with ESMTP id S1751214AbbLHXci (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 18:32:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jann@thejh.net, keescook@chromium.org, mm-commits@vger.kernel.org
+To: keescook@chromium.org, aarcange@redhat.com, dave@stgolabs.net, ebiederm@xmission.com, gang.chen.5i5j@gmail.com, jack@suse.cz, kirill.shutemov@linux.intel.com, oleg@redhat.com, riel@redhat.com, viro@ftp.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix
-has been added to the -mm tree.  Its filename is
-     ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
+     Subject: fs: clear file privilege bits when mmap writing
+has been removed from the -mm tree.  Its filename was
+     fs-clear-file-privilege-bits-when-mmap-writing.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix
+From: Kees Cook <keescook@chromium.org>
+Subject: fs: clear file privilege bits when mmap writing
 
-fix warning
+Normally, when a user can modify a file that has setuid or setgid bits,
+those bits are cleared when they are not the file owner or a member of the
+group.  This is enforced when using write and truncate but not when
+writing to a shared mmap on the file.  This could allow the file writer to
+gain privileges by changing a binary without losing the setuid/setgid/caps
+bits.
 
-kernel/ptrace.c: In function '__ptrace_may_access':
-kernel/ptrace.c:238: warning: ISO C90 forbids mixed declarations and code
+Changing the bits requires holding inode->i_mutex, so it cannot be done
+during the page fault (due to mmap_sem being held during the fault). 
+Instead, clear the bits if PROT_WRITE is being used at mmap open time. 
+But we can't do the check in the right place inside mmap, so we have to do
+it before holding mmap_sem, which means duplicating some checks, which
+have to be available to the non-MMU builds too.
 
-Cc: Jann Horn <jann@thejh.net>
-Cc: Kees Cook <keescook@chromium.org>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Willy Tarreau <w@1wt.eu>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Chen Gang <gang.chen.5i5j@gmail.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Alexander Viro <viro@ftp.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/mm.h |    1 
+ mm/mmap.c          |   19 +++-------------
+ mm/util.c          |   50 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 55 insertions(+), 15 deletions(-)
 
-diff -puN kernel/ptrace.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix
-+++ a/kernel/ptrace.c
-@@ -219,6 +219,7 @@ static int ptrace_has_cap(struct user_na
- static int __ptrace_may_access(struct task_struct *task, unsigned int mode)
- {
- 	const struct cred *cred = current_cred(), *tcred;
-+	int dumpable = 0;
- 	kuid_t caller_uid;
- 	kgid_t caller_gid;
+diff -puN include/linux/mm.h~fs-clear-file-privilege-bits-when-mmap-writing include/linux/mm.h
+--- a/include/linux/mm.h~fs-clear-file-privilege-bits-when-mmap-writing
++++ a/include/linux/mm.h
+@@ -1943,6 +1943,7 @@ extern unsigned long get_unmapped_area(s
  
-@@ -235,7 +236,7 @@ static int __ptrace_may_access(struct ta
- 	 * because setting up the necessary parent/child relationship
- 	 * or halting the specified task is impossible.
- 	 */
--	int dumpable = 0;
+ extern unsigned long mmap_region(struct file *file, unsigned long addr,
+ 	unsigned long len, vm_flags_t vm_flags, unsigned long pgoff);
++extern int do_mmap_shared_checks(struct file *file, unsigned long prot);
+ extern unsigned long do_mmap(struct file *file, unsigned long addr,
+ 	unsigned long len, unsigned long prot, unsigned long flags,
+ 	vm_flags_t vm_flags, unsigned long pgoff, unsigned long *populate);
+diff -puN mm/mmap.c~fs-clear-file-privilege-bits-when-mmap-writing mm/mmap.c
+--- a/mm/mmap.c~fs-clear-file-privilege-bits-when-mmap-writing
++++ a/mm/mmap.c
+@@ -1333,24 +1333,13 @@ unsigned long do_mmap(struct file *file,
+ 
+ 	if (file) {
+ 		struct inode *inode = file_inode(file);
++		int err;
+ 
+ 		switch (flags & MAP_TYPE) {
+ 		case MAP_SHARED:
+-			if ((prot&PROT_WRITE) && !(file->f_mode&FMODE_WRITE))
+-				return -EACCES;
+-
+-			/*
+-			 * Make sure we don't allow writing to an append-only
+-			 * file..
+-			 */
+-			if (IS_APPEND(inode) && (file->f_mode & FMODE_WRITE))
+-				return -EACCES;
+-
+-			/*
+-			 * Make sure there are no mandatory locks on the file.
+-			 */
+-			if (locks_verify_locked(file))
+-				return -EAGAIN;
++			err = do_mmap_shared_checks(file, prot);
++			if (err)
++				return err;
+ 
+ 			vm_flags |= VM_SHARED | VM_MAYSHARE;
+ 			if (!(file->f_mode & FMODE_WRITE))
+diff -puN mm/util.c~fs-clear-file-privilege-bits-when-mmap-writing mm/util.c
+--- a/mm/util.c~fs-clear-file-privilege-bits-when-mmap-writing
++++ a/mm/util.c
+@@ -283,6 +283,29 @@ int __weak get_user_pages_fast(unsigned
+ }
+ EXPORT_SYMBOL_GPL(get_user_pages_fast);
+ 
++int do_mmap_shared_checks(struct file *file, unsigned long prot)
++{
++	struct inode *inode = file_inode(file);
 +
- 	/* Don't let security modules deny introspection */
- 	if (same_thread_group(task, current))
- 		return 0;
++	if ((prot & PROT_WRITE) && !(file->f_mode & FMODE_WRITE))
++		return -EACCES;
++
++	/*
++	 * Make sure we don't allow writing to an append-only
++	 * file..
++	 */
++	if (IS_APPEND(inode) && (file->f_mode & FMODE_WRITE))
++		return -EACCES;
++
++	/*
++	 * Make sure there are no mandatory locks on the file.
++	 */
++	if (locks_verify_locked(file))
++		return -EAGAIN;
++
++	return 0;
++}
++
+ unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
+ 	unsigned long len, unsigned long prot,
+ 	unsigned long flag, unsigned long pgoff)
+@@ -291,6 +314,33 @@ unsigned long vm_mmap_pgoff(struct file
+ 	struct mm_struct *mm = current->mm;
+ 	unsigned long populate;
+ 
++	/*
++	 * If we must remove privs, we do it here since doing it during
++	 * page fault may be expensive and cannot hold inode->i_mutex,
++	 * since mm->mmap_sem is already held.
++	 */
++	if (file && (flag & MAP_TYPE) == MAP_SHARED && (prot & PROT_WRITE)) {
++		struct inode *inode = file_inode(file);
++		int err;
++
++		if (!IS_NOSEC(inode)) {
++			/*
++			 * Make sure we can't strip privs from a file that
++			 * wouldn't otherwise be allowed to be mmapped.
++			 */
++			err = do_mmap_shared_checks(file, prot);
++			if (err)
++				return err;
++
++			mutex_lock(&inode->i_mutex);
++			err = file_remove_privs(file);
++			mutex_unlock(&inode->i_mutex);
++
++			if (err)
++				return err;
++		}
++	}
++
+ 	ret = security_mmap_file(file, prot, flag);
+ 	if (!ret) {
+ 		down_write(&mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from keescook@chromium.org are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-oom-kill-init-lead-panic-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-arm64-mm-support-arch_mmap_rnd_bits-fix.patch
-mm-memblock-use-memblock_insert_region-for-the-empty-array-checkpatch-fixes.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-support-madvisemadv_free-fix-2-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
-lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
-lib-test_printfc-test-dentry-printing-fix.patch
-printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
-linux-next-rejects.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+sysctl-enable-strict-writes.patch
 
