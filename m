@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch added to -mm tree
-Date: Tue, 08 Dec 2015 14:30:58 -0800
-Message-ID: <56675a22.PuyLD0TRFRlb5GRT%akpm@linux-foundation.org>
+Subject: + mm-ksmc-use-list_for_each_entry_safe.patch added to -mm tree
+Date: Tue, 08 Dec 2015 14:31:48 -0800
+Message-ID: <56675a54.dK4OR/B31zXzgXvF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59516 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59611 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750752AbbLHWa7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 17:30:59 -0500
+	with ESMTP id S1750752AbbLHWbt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 17:31:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, gang.chen.5i5j@gmail.com, minchan@kernel.org, sudip@vectorindia.org, mm-commits@vger.kernel.org
+To: geliangtang@163.com, hughd@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/*/include/uapi/asm/mman.h: correct uniform value of MADV_FREE
+     Subject: mm/ksm.c: use list_for_each_entry_safe
 has been added to the -mm tree.  Its filename is
-     arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch
+     mm-ksmc-use-list_for_each_entry_safe.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-ksmc-use-list_for_each_entry_safe.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-ksmc-use-list_for_each_entry_safe.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,39 +38,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: arch/*/include/uapi/asm/mman.h: correct uniform value of MADV_FREE
+From: Geliang Tang <geliangtang@163.com>
+Subject: mm/ksm.c: use list_for_each_entry_safe
 
-commit d53d95838c7d introduced uniform values for all architecture but
-missed removing the old value.
+Use list_for_each_entry_safe() instead of list_for_each_safe() to simplify
+the code.
 
-As a result we are having build failure with mips defconfig, alpha
-defconfig.
-
-Fixes: d53d95838c7d ("arch/*/include/uapi/asm/mman.h: : let MADV_FREE have same value for all architectures")
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Chen Gang <gang.chen.5i5j@gmail.com>
-Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+Signed-off-by: Geliang Tang <geliangtang@163.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/parisc/include/uapi/asm/mman.h |    1 -
- 1 file changed, 1 deletion(-)
+ mm/ksm.c |   20 +++++++-------------
+ 1 file changed, 7 insertions(+), 13 deletions(-)
 
-diff -puN arch/parisc/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4 arch/parisc/include/uapi/asm/mman.h
---- a/arch/parisc/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4
-+++ a/arch/parisc/include/uapi/asm/mman.h
-@@ -43,7 +43,6 @@
- #define MADV_SPACEAVAIL 5               /* insure that resources are reserved */
- #define MADV_VPS_PURGE  6               /* Purge pages from VM page cache */
- #define MADV_VPS_INHERIT 7              /* Inherit parents page size */
--#define MADV_FREE	8		/* free pages only if memory pressure */
+diff -puN mm/ksm.c~mm-ksmc-use-list_for_each_entry_safe mm/ksm.c
+--- a/mm/ksm.c~mm-ksmc-use-list_for_each_entry_safe
++++ a/mm/ksm.c
+@@ -740,8 +740,7 @@ static int remove_stable_node(struct sta
  
- /* common/generic parameters */
- #define MADV_FREE	8		/* free pages only if memory pressure */
+ static int remove_all_stable_nodes(void)
+ {
+-	struct stable_node *stable_node;
+-	struct list_head *this, *next;
++	struct stable_node *stable_node, *next;
+ 	int nid;
+ 	int err = 0;
+ 
+@@ -756,8 +755,7 @@ static int remove_all_stable_nodes(void)
+ 			cond_resched();
+ 		}
+ 	}
+-	list_for_each_safe(this, next, &migrate_nodes) {
+-		stable_node = list_entry(this, struct stable_node, list);
++	list_for_each_entry_safe(stable_node, next, &migrate_nodes, list) {
+ 		if (remove_stable_node(stable_node))
+ 			err = -EBUSY;
+ 		cond_resched();
+@@ -1583,13 +1581,11 @@ static struct rmap_item *scan_get_next_r
+ 		 * so prune them once before each full scan.
+ 		 */
+ 		if (!ksm_merge_across_nodes) {
+-			struct stable_node *stable_node;
+-			struct list_head *this, *next;
++			struct stable_node *stable_node, *next;
+ 			struct page *page;
+ 
+-			list_for_each_safe(this, next, &migrate_nodes) {
+-				stable_node = list_entry(this,
+-						struct stable_node, list);
++			list_for_each_entry_safe(stable_node, next,
++						 &migrate_nodes, list) {
+ 				page = get_ksm_page(stable_node, false);
+ 				if (page)
+ 					put_page(page);
+@@ -2012,8 +2008,7 @@ static void wait_while_offlining(void)
+ static void ksm_check_stable_tree(unsigned long start_pfn,
+ 				  unsigned long end_pfn)
+ {
+-	struct stable_node *stable_node;
+-	struct list_head *this, *next;
++	struct stable_node *stable_node, *next;
+ 	struct rb_node *node;
+ 	int nid;
+ 
+@@ -2034,8 +2029,7 @@ static void ksm_check_stable_tree(unsign
+ 			cond_resched();
+ 		}
+ 	}
+-	list_for_each_safe(this, next, &migrate_nodes) {
+-		stable_node = list_entry(this, struct stable_node, list);
++	list_for_each_entry_safe(stable_node, next, &migrate_nodes, list) {
+ 		if (stable_node->kpfn >= start_pfn &&
+ 		    stable_node->kpfn < end_pfn)
+ 			remove_node_from_stable_tree(stable_node);
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from geliangtang@163.com are
 
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch
+fsnotify-use-list_next_entry-in-fsnotify_unmount_inodes.patch
+mm-slab-use-list_first_entry_or_null.patch
+mm-slab-use-list_for_each_entry-in-cache_flusharray.patch
+mm-slabc-add-a-helper-function-get_first_slab.patch
+mm-vmalloc-use-list_nextfirst_entry.patch
+mm-thp-use-list_first_entry_or_null.patch
+mm-page_allocc-use-list_firstlast_entry-instead-of-list_entry.patch
+mm-page_allocc-use-list_for_each_entry-in-mark_free_pages.patch
+mm-swapfilec-use-list_nextfirst_entry.patch
+mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page.patch
+mm-ksmc-use-list_for_each_entry_safe.patch
+mm-zbud-use-list_last_entry-instead-of-list_tail_entry.patch
+dma-mapping-use-offset_in_page-macro.patch
 
