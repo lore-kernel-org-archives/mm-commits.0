@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5.patch
- added to -mm tree
-Date: Tue, 08 Dec 2015 14:58:11 -0800
-Message-ID: <56676083.fOT201dXX7wmlBYl%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-give-the-kmem-states-more-descriptive-names.patch added to -mm tree
+Date: Tue, 08 Dec 2015 15:06:40 -0800
+Message-ID: <56676280./WDsSIfunBAxBY/I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34255 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35230 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750780AbbLHW6M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 17:58:12 -0500
+	with ESMTP id S1751017AbbLHXGm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 18:06:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memcg: ignore partial THP when moving task
+     Subject: mm: memcontrol: give the kmem states more descriptive names
 has been added to the -mm tree.  Its filename is
-     mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5.patch
+     mm-memcontrol-give-the-kmem-states-more-descriptive-names.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-give-the-kmem-states-more-descriptive-names.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-give-the-kmem-states-more-descriptive-names.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,64 +38,281 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: memcg: ignore partial THP when moving task
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: give the kmem states more descriptive names
 
-After "mm: rework mapcount accounting to enable 4k mapping of THPs" it is
-possible to have a partial THP accessible via ptes.  Memcg task migration
-code is not prepared for this situation and uncharges the tail page from
-the original memcg while the original THP is still charged via the head
-page which is not mapped to the moved task.  The page counter of the
-origin memcg will underflow when the whole THP is uncharged later on and
-lead to: WARNING: CPU: 0 PID: 1340 at mm/page_counter.c:26
-page_counter_cancel+0x34/0x40() reported by Minchan Kim.
+On any given memcg, the kmem accounting feature has three separate states:
+not initialized, structures allocated, and actively accounting slab
+memory.  These are represented through a combination of the
+kmem_acct_activated and kmem_acct_active flags, which is confusing.
 
-This patch prevents from the underflow by skipping any partial THP pages
-in mem_cgroup_move_charge_pte_range.  PageTransCompound is checked when we
-do pte walk.  This means that a process might leave a partial THP behind
-in the original memcg if there is no other process mapping it via pmd but
-this is considered acceptable because it shouldn't happen often and this
-is not considered a memory leak because the original THP is still
-accessible and reclaimable.  Moreover the task migration has always been
-racy and never guaranteed to move all pages.
+Convert to a kmem_state enum with the states NONE, ALLOCATED, and ONLINE. 
+Then rename the functions to modify the state accordingly.  This follows
+the nomenclature of css object states more closely.
 
-Reported-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 ++++++++
- 1 file changed, 8 insertions(+)
+ include/linux/memcontrol.h |   15 ++++++----
+ mm/memcontrol.c            |   52 ++++++++++++++++-------------------
+ mm/slab_common.c           |    4 +-
+ mm/vmscan.c                |    2 -
+ 4 files changed, 38 insertions(+), 35 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5 mm/memcontrol.c
---- a/mm/memcontrol.c~mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5
+diff -puN include/linux/memcontrol.h~mm-memcontrol-give-the-kmem-states-more-descriptive-names include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-give-the-kmem-states-more-descriptive-names
++++ a/include/linux/memcontrol.h
+@@ -152,6 +152,12 @@ struct mem_cgroup_thresholds {
+ 	struct mem_cgroup_threshold_ary *spare;
+ };
+ 
++enum memcg_kmem_state {
++	KMEM_NONE,
++	KMEM_ALLOCATED,
++	KMEM_ONLINE,
++};
++
+ /*
+  * The memory controller data structure. The memory controller controls both
+  * page cache and RSS per cgroup. We would eventually like to provide
+@@ -233,8 +239,7 @@ struct mem_cgroup {
+ #if defined(CONFIG_MEMCG_KMEM)
+         /* Index in the kmem_cache->memcg_params.memcg_caches array */
+ 	int kmemcg_id;
+-	bool kmem_acct_activated;
+-	bool kmem_acct_active;
++	enum memcg_kmem_state kmem_state;
+ #endif
+ 
+ 	int last_scanned_node;
+@@ -750,9 +755,9 @@ static inline bool memcg_kmem_enabled(vo
+ 	return static_branch_unlikely(&memcg_kmem_enabled_key);
+ }
+ 
+-static inline bool memcg_kmem_is_active(struct mem_cgroup *memcg)
++static inline bool memcg_kmem_online(struct mem_cgroup *memcg)
+ {
+-	return memcg->kmem_acct_active;
++	return memcg->kmem_state == KMEM_ONLINE;
+ }
+ 
+ /*
+@@ -850,7 +855,7 @@ static inline bool memcg_kmem_enabled(vo
+ 	return false;
+ }
+ 
+-static inline bool memcg_kmem_is_active(struct mem_cgroup *memcg)
++static inline bool memcg_kmem_online(struct mem_cgroup *memcg)
+ {
+ 	return false;
+ }
+diff -puN mm/memcontrol.c~mm-memcontrol-give-the-kmem-states-more-descriptive-names mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-give-the-kmem-states-more-descriptive-names
 +++ a/mm/memcontrol.c
-@@ -4864,6 +4864,14 @@ retry:
- 		switch (get_mctgt_type(vma, addr, ptent, &target)) {
- 		case MC_TARGET_PAGE:
- 			page = target.page;
-+			/*
-+			 * We can have a part of the split pmd here. Moving it
-+			 * can be done but it would be too convoluted so simply
-+			 * ignore such a partial THP and keep it in original
-+			 * memcg. There should be somebody mapping the head.
-+			 */
-+			if (PageCompound(page))
-+				goto put;
- 			if (isolate_lru_page(page))
- 				goto put;
- 			if (!mem_cgroup_move_account(page, false,
+@@ -2357,7 +2357,7 @@ int __memcg_kmem_charge_memcg(struct pag
+ 	struct page_counter *counter;
+ 	int ret;
+ 
+-	if (!memcg_kmem_is_active(memcg))
++	if (!memcg_kmem_online(memcg))
+ 		return 0;
+ 
+ 	if (!page_counter_try_charge(&memcg->kmem, nr_pages, &counter))
+@@ -2840,14 +2840,13 @@ static u64 mem_cgroup_read_u64(struct cg
+ }
+ 
+ #ifdef CONFIG_MEMCG_KMEM
+-static int memcg_activate_kmem(struct mem_cgroup *memcg)
++static int memcg_online_kmem(struct mem_cgroup *memcg)
+ {
+ 	int err = 0;
+ 	int memcg_id;
+ 
+ 	BUG_ON(memcg->kmemcg_id >= 0);
+-	BUG_ON(memcg->kmem_acct_activated);
+-	BUG_ON(memcg->kmem_acct_active);
++	BUG_ON(memcg->kmem_state);
+ 
+ 	/*
+ 	 * For simplicity, we won't allow this to be disabled.  It also can't
+@@ -2877,14 +2876,13 @@ static int memcg_activate_kmem(struct me
+ 
+ 	static_branch_inc(&memcg_kmem_enabled_key);
+ 	/*
+-	 * A memory cgroup is considered kmem-active as soon as it gets
++	 * A memory cgroup is considered kmem-online as soon as it gets
+ 	 * kmemcg_id. Setting the id after enabling static branching will
+ 	 * guarantee no one starts accounting before all call sites are
+ 	 * patched.
+ 	 */
+ 	memcg->kmemcg_id = memcg_id;
+-	memcg->kmem_acct_activated = true;
+-	memcg->kmem_acct_active = true;
++	memcg->kmem_state = KMEM_ONLINE;
+ out:
+ 	return err;
+ }
+@@ -2896,8 +2894,8 @@ static int memcg_update_kmem_limit(struc
+ 
+ 	mutex_lock(&memcg_limit_mutex);
+ 	/* Top-level cgroup doesn't propagate from root */
+-	if (!memcg_kmem_is_active(memcg)) {
+-		ret = memcg_activate_kmem(memcg);
++	if (!memcg_kmem_online(memcg)) {
++		ret = memcg_online_kmem(memcg);
+ 		if (ret)
+ 			goto out;
+ 	}
+@@ -2917,11 +2915,12 @@ static int memcg_propagate_kmem(struct m
+ 
+ 	mutex_lock(&memcg_limit_mutex);
+ 	/*
+-	 * If the parent cgroup is not kmem-active now, it cannot be activated
+-	 * after this point, because it has at least one child already.
++	 * If the parent cgroup is not kmem-online now, it cannot be
++	 * onlined after this point, because it has at least one child
++	 * already.
+ 	 */
+-	if (memcg_kmem_is_active(parent))
+-		ret = memcg_activate_kmem(memcg);
++	if (memcg_kmem_online(parent))
++		ret = memcg_online_kmem(memcg);
+ 	mutex_unlock(&memcg_limit_mutex);
+ 	return ret;
+ }
+@@ -3568,22 +3567,21 @@ static int memcg_init_kmem(struct mem_cg
+ 	return tcp_init_cgroup(memcg);
+ }
+ 
+-static void memcg_deactivate_kmem(struct mem_cgroup *memcg)
++static void memcg_offline_kmem(struct mem_cgroup *memcg)
+ {
+ 	struct cgroup_subsys_state *css;
+ 	struct mem_cgroup *parent, *child;
+ 	int kmemcg_id;
+ 
+-	if (!memcg->kmem_acct_active)
++	if (memcg->kmem_state != KMEM_ONLINE)
+ 		return;
+-
+ 	/*
+-	 * Clear the 'active' flag before clearing memcg_caches arrays entries.
+-	 * Since we take the slab_mutex in memcg_deactivate_kmem_caches(), it
+-	 * guarantees no cache will be created for this cgroup after we are
+-	 * done (see memcg_create_kmem_cache()).
++	 * Clear the online state before clearing memcg_caches array
++	 * entries. The slab_mutex in memcg_deactivate_kmem_caches()
++	 * guarantees that no cache will be created for this cgroup
++	 * after we are done (see memcg_create_kmem_cache()).
+ 	 */
+-	memcg->kmem_acct_active = false;
++	memcg->kmem_state = KMEM_ALLOCATED;
+ 
+ 	memcg_deactivate_kmem_caches(memcg);
+ 
+@@ -3614,9 +3612,9 @@ static void memcg_deactivate_kmem(struct
+ 	memcg_free_cache_id(kmemcg_id);
+ }
+ 
+-static void memcg_destroy_kmem(struct mem_cgroup *memcg)
++static void memcg_free_kmem(struct mem_cgroup *memcg)
+ {
+-	if (memcg->kmem_acct_activated) {
++	if (memcg->kmem_state == KMEM_ALLOCATED) {
+ 		memcg_destroy_kmem_caches(memcg);
+ 		static_branch_dec(&memcg_kmem_enabled_key);
+ 		WARN_ON(page_counter_read(&memcg->kmem));
+@@ -3629,11 +3627,11 @@ static int memcg_init_kmem(struct mem_cg
+ 	return 0;
+ }
+ 
+-static void memcg_deactivate_kmem(struct mem_cgroup *memcg)
++static void memcg_offline_kmem(struct mem_cgroup *memcg)
+ {
+ }
+ 
+-static void memcg_destroy_kmem(struct mem_cgroup *memcg)
++static void memcg_free_kmem(struct mem_cgroup *memcg)
+ {
+ }
+ #endif
+@@ -4286,7 +4284,7 @@ static void mem_cgroup_css_offline(struc
+ 
+ 	vmpressure_cleanup(&memcg->vmpressure);
+ 
+-	memcg_deactivate_kmem(memcg);
++	memcg_offline_kmem(memcg);
+ 
+ 	wb_memcg_offline(memcg);
+ }
+@@ -4295,7 +4293,7 @@ static void mem_cgroup_css_free(struct c
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+ 
+-	memcg_destroy_kmem(memcg);
++	memcg_free_kmem(memcg);
+ #ifdef CONFIG_INET
+ 	if (cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_nosocket)
+ 		static_branch_dec(&memcg_sockets_enabled_key);
+diff -puN mm/slab_common.c~mm-memcontrol-give-the-kmem-states-more-descriptive-names mm/slab_common.c
+--- a/mm/slab_common.c~mm-memcontrol-give-the-kmem-states-more-descriptive-names
++++ a/mm/slab_common.c
+@@ -503,10 +503,10 @@ void memcg_create_kmem_cache(struct mem_
+ 	mutex_lock(&slab_mutex);
+ 
+ 	/*
+-	 * The memory cgroup could have been deactivated while the cache
++	 * The memory cgroup could have been offlined while the cache
+ 	 * creation work was pending.
+ 	 */
+-	if (!memcg_kmem_is_active(memcg))
++	if (!memcg_kmem_online(memcg))
+ 		goto out_unlock;
+ 
+ 	idx = memcg_cache_id(memcg);
+diff -puN mm/vmscan.c~mm-memcontrol-give-the-kmem-states-more-descriptive-names mm/vmscan.c
+--- a/mm/vmscan.c~mm-memcontrol-give-the-kmem-states-more-descriptive-names
++++ a/mm/vmscan.c
+@@ -411,7 +411,7 @@ static unsigned long shrink_slab(gfp_t g
+ 	struct shrinker *shrinker;
+ 	unsigned long freed = 0;
+ 
+-	if (memcg && !memcg_kmem_is_active(memcg))
++	if (memcg && !memcg_kmem_online(memcg))
+ 		return 0;
+ 
+ 	if (nr_scanned == 0)
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-vmstat-allow-wq-concurrency-to-discover-memory-reclaim-doesnt-make-any-progress.patch
-mm-get-rid-of-__alloc_pages_high_priority.patch
-mm-do-not-loop-over-alloc_no_watermarks-without-triggering-reclaim.patch
-mm-vmscan-consider-isolated-pages-in-zone_reclaimable_pages.patch
-mm-allow-gfp_iofs-for-page_cache_read-page-cache-allocation.patch
-mm-oom-give-__gfp_nofail-allocations-access-to-memory-reserves.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5.patch
+maintainers-make-vladimir-co-maintainer-of-the-memory-controller.patch
+mm-page_alloc-generalize-the-dirty-balance-reserve.patch
+proc-meminfo-estimate-available-memory-more-conservatively.patch
+mm-memcontrol-export-root_mem_cgroup.patch
+net-tcp_memcontrol-properly-detect-ancestor-socket-pressure.patch
+net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation.patch
+net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
+net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets.patch
+net-tcp_memcontrol-simplify-the-per-memcg-limit-access.patch
+net-tcp_memcontrol-sanitize-tcp-memory-accounting-callbacks.patch
+net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter.patch
+mm-memcontrol-generalize-the-socket-accounting-jump-label.patch
+mm-memcontrol-do-not-account-memoryswap-on-unified-hierarchy.patch
+mm-memcontrol-move-socket-code-for-unified-hierarchy-accounting.patch
+mm-memcontrol-account-socket-memory-in-unified-hierarchy-memory-controller.patch
+mm-memcontrol-hook-up-vmpressure-to-socket-pressure.patch
+mm-memcontrol-switch-to-the-updated-jump-label-api.patch
+mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem.patch
+mm-memcontrol-remove-double-kmem-page_counter-init.patch
+mm-memcontrol-give-the-kmem-states-more-descriptive-names.patch
+mm-memcontrol-group-kmem-init-and-exit-functions-together.patch
+mm-memcontrol-separate-kmem-code-from-legacy-tcp-accounting-code.patch
+mm-memcontrol-move-kmem-accounting-code-to-config_memcg.patch
+mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller.patch
+mm-memcontrol-introduce-config_memcg_legacy_kmem.patch
 
