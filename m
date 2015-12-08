@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks.patch added to
+Subject: + ocfs2-dlm-fix-a-race-between-purge-and-migratio.patch added to
  -mm tree
-Date: Tue, 08 Dec 2015 13:14:19 -0800
-Message-ID: <5667482b.hjR1ErGc9rNOzQFz%akpm@linux-foundation.org>
+Date: Tue, 08 Dec 2015 13:16:52 -0800
+Message-ID: <566748c4.Ho1xYcfBrYkaJm5o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50504 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50761 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752749AbbLHVOV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 16:14:21 -0500
+	with ESMTP id S1752845AbbLHVQx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 16:16:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jann@thejh.net, andriy.shevchenko@linux.intel.com, casey@schaufler-ca.com, ebiederm@xmission.com, james.l.morris@oracle.com, keescook@chromium.org, luto@kernel.org, mingo@redhat.com, oleg@redhat.com, serge.hallyn@ubuntu.com, viro@zeniv.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ptrace: use fsuid, fsgid, effective creds for fs access checks
+     Subject: ocfs2/dlm: fix a race between purge and migratio
 has been added to the -mm tree.  Its filename is
-     ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks.patch
+     ocfs2-dlm-fix-a-race-between-purge-and-migratio.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-fix-a-race-between-purge-and-migratio.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-fix-a-race-between-purge-and-migratio.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,384 +39,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jann Horn <jann@thejh.net>
-Subject: ptrace: use fsuid, fsgid, effective creds for fs access checks
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2/dlm: fix a race between purge and migratio
 
-By checking the effective credentials instead of the real UID / permitted
-capabilities, ensure that the calling process actually intended to use its
-credentials.
+We found a race between purge and migration when doing code review.  Node
+A put lockres to purgelist before receiving the migrate message from node
+B which is the master.  dlm_mig_lockres_handler finds the lockres and
+releases the dlm spinlock.  Then dlm_thread on node A can purge the
+lockres.  dlm_mig_lockres_handler then gets the lockres spinlock and sends
+assert master message to tell other nodes that node A is the master now
+even lockres is purged.  If node C set the master to node A, and another
+node D master the lockres because no node respond he is the master.  That
+will make node C crash when node D send assert master to node C.  So check
+if lockres gets unhashed in dlm_mig_lockres_handler to fix this race.
 
-To ensure that all ptrace checks use the correct caller credentials (e.g. 
-in case out-of-tree code or newly added code omits the PTRACE_MODE_*CREDS
-flag), use two new flags and require one of them to be set.
-
-The problem was that when a privileged task had temporarily dropped its
-privileges, e.g.  by calling setreuid(0, user_uid), with the intent to
-perform following syscalls with the credentials of a user, it still passed
-ptrace access checks that the user would not be able to pass.
-
-While an attacker should not be able to convince the privileged task to
-perform a ptrace() syscall, this is a problem because the ptrace access
-check is reused for things in procfs.
-
-In particular, the following somewhat interesting procfs entries only rely
-on ptrace access checks:
-
- /proc/$pid/stat - uses the check for determining whether pointers
-     should be visible, useful for bypassing ASLR
- /proc/$pid/maps - also useful for bypassing ASLR
- /proc/$pid/cwd - useful for gaining access to restricted
-     directories that contain files with lax permissions, e.g. in
-     this scenario:
-     lrwxrwxrwx root root /proc/13020/cwd -> /root/foobar
-     drwx------ root root /root
-     drwxr-xr-x root root /root/foobar
-     -rw-r--r-- root root /root/foobar/secret
-
-Therefore, on a system where a root-owned mode 6755 binary changes its
-effective credentials as described and then dumps a user-specified file,
-this could be used by an attacker to reveal the memory layout of root's
-processes or reveal the contents of files he is not allowed to access
-(through /proc/$pid/cwd).
-
-Signed-off-by: Jann Horn <jann@thejh.net>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: "Serge E. Hallyn" <serge.hallyn@ubuntu.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Willy Tarreau <w@1wt.eu>
+Signed-off-by: Jiufei Xue <xuejiufei@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/array.c        |    2 +-
- fs/proc/base.c         |   21 +++++++++++----------
- fs/proc/namespaces.c   |    4 ++--
- include/linux/ptrace.h |   24 +++++++++++++++++++++++-
- kernel/events/core.c   |    2 +-
- kernel/futex.c         |    2 +-
- kernel/futex_compat.c  |    2 +-
- kernel/kcmp.c          |    4 ++--
- kernel/ptrace.c        |   36 +++++++++++++++++++++++++++++-------
- mm/process_vm_access.c |    2 +-
- security/commoncap.c   |    7 ++++++-
- 11 files changed, 78 insertions(+), 28 deletions(-)
+ fs/ocfs2/dlm/dlmrecovery.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff -puN fs/proc/array.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks fs/proc/array.c
---- a/fs/proc/array.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks
-+++ a/fs/proc/array.c
-@@ -395,7 +395,7 @@ static int do_task_stat(struct seq_file
- 
- 	state = *get_task_state(task);
- 	vsize = eip = esp = 0;
--	permitted = ptrace_may_access(task, PTRACE_MODE_READ | PTRACE_MODE_NOAUDIT);
-+	permitted = ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS | PTRACE_MODE_NOAUDIT);
- 	mm = get_task_mm(task);
- 	if (mm) {
- 		vsize = task_vsize(mm);
-diff -puN fs/proc/base.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks fs/proc/base.c
---- a/fs/proc/base.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks
-+++ a/fs/proc/base.c
-@@ -403,7 +403,7 @@ static const struct file_operations proc
- static int proc_pid_auxv(struct seq_file *m, struct pid_namespace *ns,
- 			 struct pid *pid, struct task_struct *task)
- {
--	struct mm_struct *mm = mm_access(task, PTRACE_MODE_READ);
-+	struct mm_struct *mm = mm_access(task, PTRACE_MODE_READ_FSCREDS);
- 	if (mm && !IS_ERR(mm)) {
- 		unsigned int nwords = 0;
- 		do {
-@@ -430,7 +430,8 @@ static int proc_pid_wchan(struct seq_fil
- 
- 	wchan = get_wchan(task);
- 
--	if (wchan && ptrace_may_access(task, PTRACE_MODE_READ) && !lookup_symbol_name(wchan, symname))
-+	if (wchan && ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS)
-+			&& !lookup_symbol_name(wchan, symname))
- 		seq_printf(m, "%s", symname);
- 	else
- 		seq_putc(m, '0');
-@@ -444,7 +445,7 @@ static int lock_trace(struct task_struct
- 	int err = mutex_lock_killable(&task->signal->cred_guard_mutex);
- 	if (err)
- 		return err;
--	if (!ptrace_may_access(task, PTRACE_MODE_ATTACH)) {
-+	if (!ptrace_may_access(task, PTRACE_MODE_ATTACH_FSCREDS)) {
- 		mutex_unlock(&task->signal->cred_guard_mutex);
- 		return -EPERM;
- 	}
-@@ -697,7 +698,7 @@ static int proc_fd_access_allowed(struct
- 	 */
- 	task = get_proc_task(inode);
- 	if (task) {
--		allowed = ptrace_may_access(task, PTRACE_MODE_READ);
-+		allowed = ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS);
- 		put_task_struct(task);
- 	}
- 	return allowed;
-@@ -732,7 +733,7 @@ static bool has_pid_permissions(struct p
- 		return true;
- 	if (in_group_p(pid->pid_gid))
- 		return true;
--	return ptrace_may_access(task, PTRACE_MODE_READ);
-+	return ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS);
- }
- 
- 
-@@ -809,7 +810,7 @@ struct mm_struct *proc_mem_open(struct i
- 	struct mm_struct *mm = ERR_PTR(-ESRCH);
- 
- 	if (task) {
--		mm = mm_access(task, mode);
-+		mm = mm_access(task, mode | PTRACE_MODE_FSCREDS);
- 		put_task_struct(task);
- 
- 		if (!IS_ERR_OR_NULL(mm)) {
-@@ -1856,7 +1857,7 @@ static int map_files_d_revalidate(struct
- 	if (!task)
- 		goto out_notask;
- 
--	mm = mm_access(task, PTRACE_MODE_READ);
-+	mm = mm_access(task, PTRACE_MODE_READ_FSCREDS);
- 	if (IS_ERR_OR_NULL(mm))
- 		goto out;
- 
-@@ -2007,7 +2008,7 @@ static struct dentry *proc_map_files_loo
- 		goto out;
- 
- 	result = -EACCES;
--	if (!ptrace_may_access(task, PTRACE_MODE_READ))
-+	if (!ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS))
- 		goto out_put_task;
- 
- 	result = -ENOENT;
-@@ -2060,7 +2061,7 @@ proc_map_files_readdir(struct file *file
- 		goto out;
- 
- 	ret = -EACCES;
--	if (!ptrace_may_access(task, PTRACE_MODE_READ))
-+	if (!ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS))
- 		goto out_put_task;
- 
- 	ret = 0;
-@@ -2529,7 +2530,7 @@ static int do_io_accounting(struct task_
- 	if (result)
- 		return result;
- 
--	if (!ptrace_may_access(task, PTRACE_MODE_READ)) {
-+	if (!ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS)) {
- 		result = -EACCES;
- 		goto out_unlock;
- 	}
-diff -puN fs/proc/namespaces.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks fs/proc/namespaces.c
---- a/fs/proc/namespaces.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks
-+++ a/fs/proc/namespaces.c
-@@ -42,7 +42,7 @@ static const char *proc_ns_follow_link(s
- 	if (!task)
- 		return error;
- 
--	if (ptrace_may_access(task, PTRACE_MODE_READ)) {
-+	if (ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS)) {
- 		error = ns_get_path(&ns_path, task, ns_ops);
- 		if (!error)
- 			nd_jump_link(&ns_path);
-@@ -63,7 +63,7 @@ static int proc_ns_readlink(struct dentr
- 	if (!task)
- 		return res;
- 
--	if (ptrace_may_access(task, PTRACE_MODE_READ)) {
-+	if (ptrace_may_access(task, PTRACE_MODE_READ_FSCREDS)) {
- 		res = ns_get_name(name, sizeof(name), task, ns_ops);
- 		if (res >= 0)
- 			res = readlink_copy(buffer, buflen, name);
-diff -puN include/linux/ptrace.h~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks include/linux/ptrace.h
---- a/include/linux/ptrace.h~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks
-+++ a/include/linux/ptrace.h
-@@ -57,7 +57,29 @@ extern void exit_ptrace(struct task_stru
- #define PTRACE_MODE_READ	0x01
- #define PTRACE_MODE_ATTACH	0x02
- #define PTRACE_MODE_NOAUDIT	0x04
--/* Returns true on success, false on denial. */
-+#define PTRACE_MODE_FSCREDS 0x08
-+#define PTRACE_MODE_REALCREDS 0x10
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-a-race-between-purge-and-migratio fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-a-race-between-purge-and-migratio
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -1400,11 +1400,33 @@ int dlm_mig_lockres_handler(struct o2net
+ 	/* lookup the lock to see if we have a secondary queue for this
+ 	 * already...  just add the locks in and this will have its owner
+ 	 * and RECOVERY flag changed when it completes. */
++way_up_top:
+ 	res = dlm_lookup_lockres(dlm, mres->lockname, mres->lockname_len);
+ 	if (res) {
+ 	 	/* this will get a ref on res */
+ 		/* mark it as recovering/migrating and hash it */
+ 		spin_lock(&res->spinlock);
 +
-+/* shorthands for READ/ATTACH and FSCREDS/REALCREDS combinations */
-+#define PTRACE_MODE_READ_FSCREDS (PTRACE_MODE_READ | PTRACE_MODE_FSCREDS)
-+#define PTRACE_MODE_READ_REALCREDS (PTRACE_MODE_READ | PTRACE_MODE_REALCREDS)
-+#define PTRACE_MODE_ATTACH_FSCREDS (PTRACE_MODE_ATTACH | PTRACE_MODE_FSCREDS)
-+#define PTRACE_MODE_ATTACH_REALCREDS (PTRACE_MODE_ATTACH | PTRACE_MODE_REALCREDS)
-+
-+/**
-+ * ptrace_may_access - check whether the caller is permitted to access
-+ * a target task.
-+ * @task: target task
-+ * @mode: selects type of access and caller credentials
-+ *
-+ * Returns true on success, false on denial.
-+ *
-+ * One of the flags PTRACE_MODE_FSCREDS and PTRACE_MODE_REALCREDS must
-+ * be set in @mode to specify whether the access was requested through
-+ * a filesystem syscall (should use effective capabilities and fsuid
-+ * of the caller) or through an explicit syscall such as
-+ * process_vm_writev or ptrace (and should use the real credentials).
-+ */
- extern bool ptrace_may_access(struct task_struct *task, unsigned int mode);
- 
- static inline int ptrace_reparented(struct task_struct *child)
-diff -puN kernel/events/core.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks kernel/events/core.c
---- a/kernel/events/core.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks
-+++ a/kernel/events/core.c
-@@ -3430,7 +3430,7 @@ find_lively_task_by_vpid(pid_t vpid)
- 
- 	/* Reuse ptrace permission checks for now. */
- 	err = -EACCES;
--	if (!ptrace_may_access(task, PTRACE_MODE_READ))
-+	if (!ptrace_may_access(task, PTRACE_MODE_READ_REALCREDS))
- 		goto errout;
- 
- 	return task;
-diff -puN kernel/futex.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks kernel/futex.c
---- a/kernel/futex.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks
-+++ a/kernel/futex.c
-@@ -2846,7 +2846,7 @@ SYSCALL_DEFINE3(get_robust_list, int, pi
- 	}
- 
- 	ret = -EPERM;
--	if (!ptrace_may_access(p, PTRACE_MODE_READ))
-+	if (!ptrace_may_access(p, PTRACE_MODE_READ_REALCREDS))
- 		goto err_unlock;
- 
- 	head = p->robust_list;
-diff -puN kernel/futex_compat.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks kernel/futex_compat.c
---- a/kernel/futex_compat.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks
-+++ a/kernel/futex_compat.c
-@@ -155,7 +155,7 @@ COMPAT_SYSCALL_DEFINE3(get_robust_list,
- 	}
- 
- 	ret = -EPERM;
--	if (!ptrace_may_access(p, PTRACE_MODE_READ))
-+	if (!ptrace_may_access(p, PTRACE_MODE_READ_REALCREDS))
- 		goto err_unlock;
- 
- 	head = p->compat_robust_list;
-diff -puN kernel/kcmp.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks kernel/kcmp.c
---- a/kernel/kcmp.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks
-+++ a/kernel/kcmp.c
-@@ -122,8 +122,8 @@ SYSCALL_DEFINE5(kcmp, pid_t, pid1, pid_t
- 			&task2->signal->cred_guard_mutex);
- 	if (ret)
- 		goto err;
--	if (!ptrace_may_access(task1, PTRACE_MODE_READ) ||
--	    !ptrace_may_access(task2, PTRACE_MODE_READ)) {
-+	if (!ptrace_may_access(task1, PTRACE_MODE_READ_REALCREDS) ||
-+	    !ptrace_may_access(task2, PTRACE_MODE_READ_REALCREDS)) {
- 		ret = -EPERM;
- 		goto err_unlock;
- 	}
-diff -puN kernel/ptrace.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks
-+++ a/kernel/ptrace.c
-@@ -219,6 +219,13 @@ static int ptrace_has_cap(struct user_na
- static int __ptrace_may_access(struct task_struct *task, unsigned int mode)
- {
- 	const struct cred *cred = current_cred(), *tcred;
-+	kuid_t caller_uid;
-+	kgid_t caller_gid;
-+
-+	if (!(mode & PTRACE_MODE_FSCREDS) == !(mode & PTRACE_MODE_REALCREDS)) {
-+		WARN(1, "denying ptrace access check without PTRACE_MODE_*CREDS\n");
-+		return -EPERM;
-+	}
- 
- 	/* May we inspect the given task?
- 	 * This check is used both for attaching with ptrace
-@@ -233,13 +240,28 @@ static int __ptrace_may_access(struct ta
- 	if (same_thread_group(task, current))
- 		return 0;
- 	rcu_read_lock();
-+	if (mode & PTRACE_MODE_FSCREDS) {
-+		caller_uid = cred->fsuid;
-+		caller_gid = cred->fsgid;
-+	} else {
 +		/*
-+		 * Using the euid would make more sense here, but something
-+		 * in userland might rely on the old behavior, and this
-+		 * shouldn't be a security problem since
-+		 * PTRACE_MODE_REALCREDS implies that the caller explicitly
-+		 * used a syscall that requests access to another process
-+		 * (and not a filesystem syscall to procfs).
++		 * Right after dlm spinlock was released, dlm_thread could have
++		 * purged the lockres. Check if lockres got unhashed. If so
++		 * start over.
 +		 */
-+		caller_uid = cred->uid;
-+		caller_gid = cred->gid;
-+	}
- 	tcred = __task_cred(task);
--	if (uid_eq(cred->uid, tcred->euid) &&
--	    uid_eq(cred->uid, tcred->suid) &&
--	    uid_eq(cred->uid, tcred->uid)  &&
--	    gid_eq(cred->gid, tcred->egid) &&
--	    gid_eq(cred->gid, tcred->sgid) &&
--	    gid_eq(cred->gid, tcred->gid))
-+	if (uid_eq(caller_uid, tcred->euid) &&
-+	    uid_eq(caller_uid, tcred->suid) &&
-+	    uid_eq(caller_uid, tcred->uid)  &&
-+	    gid_eq(caller_gid, tcred->egid) &&
-+	    gid_eq(caller_gid, tcred->sgid) &&
-+	    gid_eq(caller_gid, tcred->gid))
- 		goto ok;
- 	if (ptrace_has_cap(tcred->user_ns, mode))
- 		goto ok;
-@@ -306,7 +328,7 @@ static int ptrace_attach(struct task_str
- 		goto out;
- 
- 	task_lock(task);
--	retval = __ptrace_may_access(task, PTRACE_MODE_ATTACH);
-+	retval = __ptrace_may_access(task, PTRACE_MODE_ATTACH_REALCREDS);
- 	task_unlock(task);
- 	if (retval)
- 		goto unlock_creds;
-diff -puN mm/process_vm_access.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks mm/process_vm_access.c
---- a/mm/process_vm_access.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks
-+++ a/mm/process_vm_access.c
-@@ -194,7 +194,7 @@ static ssize_t process_vm_rw_core(pid_t
- 		goto free_proc_pages;
- 	}
- 
--	mm = mm_access(task, PTRACE_MODE_ATTACH);
-+	mm = mm_access(task, PTRACE_MODE_ATTACH_REALCREDS);
- 	if (!mm || IS_ERR(mm)) {
- 		rc = IS_ERR(mm) ? PTR_ERR(mm) : -ESRCH;
- 		/*
-diff -puN security/commoncap.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks security/commoncap.c
---- a/security/commoncap.c~ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks
-+++ a/security/commoncap.c
-@@ -137,12 +137,17 @@ int cap_ptrace_access_check(struct task_
- {
- 	int ret = 0;
- 	const struct cred *cred, *child_cred;
-+	const kernel_cap_t *caller_caps;
- 
- 	rcu_read_lock();
- 	cred = current_cred();
- 	child_cred = __task_cred(child);
-+	if (mode & PTRACE_MODE_FSCREDS)
-+		caller_caps = &cred->cap_effective;
-+	else
-+		caller_caps = &cred->cap_permitted;
- 	if (cred->user_ns == child_cred->user_ns &&
--	    cap_issubset(child_cred->cap_permitted, cred->cap_permitted))
-+	    cap_issubset(child_cred->cap_permitted, *caller_caps))
- 		goto out;
- 	if (ns_capable(child_cred->user_ns, CAP_SYS_PTRACE))
- 		goto out;
++		if (hlist_unhashed(&res->hash_node)) {
++			spin_unlock(&res->spinlock);
++			dlm_lockres_put(res);
++			goto way_up_top;
++		}
++
++		/* Wait on the resource purge to complete before continuing */
++		if (res->state & DLM_LOCK_RES_DROPPING_REF) {
++			__dlm_wait_on_lockres_flags(res,
++					DLM_LOCK_RES_DROPPING_REF);
++			spin_unlock(&res->spinlock);
++			dlm_lockres_put(res);
++			goto way_up_top;
++		}
++
+ 		if (mres->flags & DLM_MRES_RECOVERY) {
+ 			res->state |= DLM_LOCK_RES_RECOVERING;
+ 		} else {
 _
 
-Patches currently in -mm which might be from jann@thejh.net are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
-security-let-security-modules-use-ptrace_mode_-with-bitmasks.patch
-ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks.patch
+ocfs2-dlm-fix-a-race-between-purge-and-migratio.patch
+ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
+extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
 
