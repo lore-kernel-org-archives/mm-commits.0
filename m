@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-sgid-not-inherited-issue.patch added to -mm tree
-Date: Tue, 08 Dec 2015 13:21:47 -0800
-Message-ID: <566749eb.vXB3eC33AccugUWq%akpm@linux-foundation.org>
+Subject: + ocfs2-constify-ocfs2_extent_tree_operations-structures.patch
+ added to -mm tree
+Date: Tue, 08 Dec 2015 13:51:35 -0800
+Message-ID: <566750e7.urFqKAvvpRVgH/s/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51125 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55070 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752929AbbLHVVs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 16:21:48 -0500
+	with ESMTP id S1750737AbbLHVvg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 16:51:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: junxiao.bi@oracle.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: Julia.Lawall@lip6.fr, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix SGID not inherited issue
+     Subject: ocfs2: constify ocfs2_extent_tree_operations structures
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-sgid-not-inherited-issue.patch
+     ocfs2-constify-ocfs2_extent_tree_operations-structures.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-sgid-not-inherited-issue.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-constify-ocfs2_extent_tree_operations-structures.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-sgid-not-inherited-issue.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-constify-ocfs2_extent_tree_operations-structures.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,47 +39,96 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: fix SGID not inherited issue
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+Subject: ocfs2: constify ocfs2_extent_tree_operations structures
 
-commit 8f1eb48758aa ("ocfs2: fix umask ignored issue") introduced an
-issue, SGID of sub dir was not inherited from its parents dir.  It is
-because SGID is set into "inode->i_mode" in ocfs2_get_init_inode(), but is
-overwritten by "mode" which don't have SGID set later.
+The ocfs2_extent_tree_operations structures are never modified, so declare
+them as const.
 
-Fixes: 8f1eb48758aa ("ocfs2: fix umask ignored issue")
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Done with the help of Coccinelle.
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/namei.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/ocfs2/alloc.c |   12 ++++++------
+ fs/ocfs2/alloc.h |    2 +-
+ 2 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN fs/ocfs2/namei.c~ocfs2-fix-sgid-not-inherited-issue fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-fix-sgid-not-inherited-issue
-+++ a/fs/ocfs2/namei.c
-@@ -367,13 +367,11 @@ static int ocfs2_mknod(struct inode *dir
- 		goto leave;
- 	}
+diff -puN fs/ocfs2/alloc.c~ocfs2-constify-ocfs2_extent_tree_operations-structures fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-constify-ocfs2_extent_tree_operations-structures
++++ a/fs/ocfs2/alloc.c
+@@ -164,7 +164,7 @@ static int ocfs2_dinode_insert_check(str
+ 				     struct ocfs2_extent_rec *rec);
+ static int ocfs2_dinode_sanity_check(struct ocfs2_extent_tree *et);
+ static void ocfs2_dinode_fill_root_el(struct ocfs2_extent_tree *et);
+-static struct ocfs2_extent_tree_operations ocfs2_dinode_et_ops = {
++static const struct ocfs2_extent_tree_operations ocfs2_dinode_et_ops = {
+ 	.eo_set_last_eb_blk	= ocfs2_dinode_set_last_eb_blk,
+ 	.eo_get_last_eb_blk	= ocfs2_dinode_get_last_eb_blk,
+ 	.eo_update_clusters	= ocfs2_dinode_update_clusters,
+@@ -286,7 +286,7 @@ static void ocfs2_xattr_value_update_clu
+ 	le32_add_cpu(&vb->vb_xv->xr_clusters, clusters);
+ }
  
--	status = posix_acl_create(dir, &mode, &default_acl, &acl);
-+	status = posix_acl_create(dir, &inode->i_mode, &default_acl, &acl);
- 	if (status) {
- 		mlog_errno(status);
- 		goto leave;
- 	}
--	/* update inode->i_mode after mask with "umask". */
--	inode->i_mode = mode;
+-static struct ocfs2_extent_tree_operations ocfs2_xattr_value_et_ops = {
++static const struct ocfs2_extent_tree_operations ocfs2_xattr_value_et_ops = {
+ 	.eo_set_last_eb_blk	= ocfs2_xattr_value_set_last_eb_blk,
+ 	.eo_get_last_eb_blk	= ocfs2_xattr_value_get_last_eb_blk,
+ 	.eo_update_clusters	= ocfs2_xattr_value_update_clusters,
+@@ -332,7 +332,7 @@ static void ocfs2_xattr_tree_update_clus
+ 	le32_add_cpu(&xb->xb_attrs.xb_root.xt_clusters, clusters);
+ }
  
- 	handle = ocfs2_start_trans(osb, ocfs2_mknod_credits(osb->sb,
- 							    S_ISDIR(mode),
+-static struct ocfs2_extent_tree_operations ocfs2_xattr_tree_et_ops = {
++static const struct ocfs2_extent_tree_operations ocfs2_xattr_tree_et_ops = {
+ 	.eo_set_last_eb_blk	= ocfs2_xattr_tree_set_last_eb_blk,
+ 	.eo_get_last_eb_blk	= ocfs2_xattr_tree_get_last_eb_blk,
+ 	.eo_update_clusters	= ocfs2_xattr_tree_update_clusters,
+@@ -379,7 +379,7 @@ static void ocfs2_dx_root_fill_root_el(s
+ 	et->et_root_el = &dx_root->dr_list;
+ }
+ 
+-static struct ocfs2_extent_tree_operations ocfs2_dx_root_et_ops = {
++static const struct ocfs2_extent_tree_operations ocfs2_dx_root_et_ops = {
+ 	.eo_set_last_eb_blk	= ocfs2_dx_root_set_last_eb_blk,
+ 	.eo_get_last_eb_blk	= ocfs2_dx_root_get_last_eb_blk,
+ 	.eo_update_clusters	= ocfs2_dx_root_update_clusters,
+@@ -425,7 +425,7 @@ ocfs2_refcount_tree_extent_contig(struct
+ 	return CONTIG_NONE;
+ }
+ 
+-static struct ocfs2_extent_tree_operations ocfs2_refcount_tree_et_ops = {
++static const struct ocfs2_extent_tree_operations ocfs2_refcount_tree_et_ops = {
+ 	.eo_set_last_eb_blk	= ocfs2_refcount_tree_set_last_eb_blk,
+ 	.eo_get_last_eb_blk	= ocfs2_refcount_tree_get_last_eb_blk,
+ 	.eo_update_clusters	= ocfs2_refcount_tree_update_clusters,
+@@ -438,7 +438,7 @@ static void __ocfs2_init_extent_tree(str
+ 				     struct buffer_head *bh,
+ 				     ocfs2_journal_access_func access,
+ 				     void *obj,
+-				     struct ocfs2_extent_tree_operations *ops)
++				     const struct ocfs2_extent_tree_operations *ops)
+ {
+ 	et->et_ops = ops;
+ 	et->et_root_bh = bh;
+diff -puN fs/ocfs2/alloc.h~ocfs2-constify-ocfs2_extent_tree_operations-structures fs/ocfs2/alloc.h
+--- a/fs/ocfs2/alloc.h~ocfs2-constify-ocfs2_extent_tree_operations-structures
++++ a/fs/ocfs2/alloc.h
+@@ -54,7 +54,7 @@
+  */
+ struct ocfs2_extent_tree_operations;
+ struct ocfs2_extent_tree {
+-	struct ocfs2_extent_tree_operations	*et_ops;
++	const struct ocfs2_extent_tree_operations *et_ops;
+ 	struct buffer_head			*et_root_bh;
+ 	struct ocfs2_extent_list		*et_root_el;
+ 	struct ocfs2_caching_info		*et_ci;
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from Julia.Lawall@lip6.fr are
 
-ocfs2-dlm-fix-deadlock-due-to-nested-lock.patch
-ocfs2-fix-sgid-not-inherited-issue.patch
-o2hb-increase-unsteady-iterations.patch
+ocfs2-constify-ocfs2_extent_tree_operations-structures.patch
 
