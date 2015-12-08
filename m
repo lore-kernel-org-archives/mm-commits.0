@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller.patch
- added to -mm tree
-Date: Tue, 08 Dec 2015 15:06:48 -0800
-Message-ID: <56676288.o+j/yob/As3Oq/AO%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-introduce-config_memcg_legacy_kmem.patch added to -mm tree
+Date: Tue, 08 Dec 2015 15:06:50 -0800
+Message-ID: <5667628a.PzvWs4kJ95pB2ios%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35275 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35279 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751017AbbLHXGu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 18:06:50 -0500
+	with ESMTP id S1751017AbbLHXGv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 18:06:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, mhocko@suse.cz, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: account "kmem" consumers in cgroup2 memory controller
+     Subject: mm: memcontrol: introduce CONFIG_MEMCG_LEGACY_KMEM
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller.patch
+     mm-memcontrol-introduce-config_memcg_legacy_kmem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-introduce-config_memcg_legacy_kmem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-introduce-config_memcg_legacy_kmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,53 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: account "kmem" consumers in cgroup2 memory controller
+Subject: mm: memcontrol: introduce CONFIG_MEMCG_LEGACY_KMEM
 
-The original cgroup memory controller has an extension to account slab
-memory (and other "kernel memory" consumers) in a separate "kmem" counter,
-once the user set an explicit limit on that "kmem" pool.
-
-However, this includes various consumers whose sizes are directly
-linked to userspace activity. Accounting them as an optional "kmem"
-extension is problematic for several reasons:
-
-1. It leaves the main memory interface with incomplete semantics. A
-   user who puts their workload into a cgroup and configures a memory
-   limit does not expect us to leave holes in the containment as big
-   as the dentry and inode cache, or the kernel stack pages.
-
-2. If the limit set on this random historical subgroup of consumers is
-   reached, subsequent allocations will fail even when the main memory
-   pool available to the cgroup is not yet exhausted and/or has
-   reclaimable memory in it.
-
-3. Calling it 'kernel memory' is misleading. The dentry and inode
-   caches are no more 'kernel' (or no less 'user') memory than the
-   page cache itself. Treating these consumers as different classes is
-   a historical implementation detail that should not leak to users.
-
-So, in addition to page cache, anonymous memory, and network socket
-memory, account the following memory consumers per default in the
-cgroup2 memory controller:
-
-     - threadinfo
-     - task_struct
-     - task_delay_info
-     - pid
-     - cred
-     - mm_struct
-     - vm_area_struct and vm_region (nommu)
-     - anon_vma and anon_vma_chain
-     - signal_struct
-     - sighand_struct
-     - fs_struct
-     - files_struct
-     - fdtable and fdtable->full_fds_bits
-     - dentry and external_name
-     - inode for all filesystems.
-
-This should give us reasonable memory isolation for most common
-workloads out of the box.
+Let the user know that CONFIG_MEMCG_KMEM does not apply to the cgroup2
+interface. This also makes legacy-only code sections stand out better.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -96,53 +51,150 @@ Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   18 +++++++++++-------
- 1 file changed, 11 insertions(+), 7 deletions(-)
+ include/linux/memcontrol.h |    4 ++--
+ init/Kconfig               |   10 +++++++++-
+ mm/memcontrol.c            |   16 ++++++++--------
+ net/ipv4/Makefile          |    2 +-
+ 4 files changed, 20 insertions(+), 12 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller
-+++ a/mm/memcontrol.c
-@@ -2356,13 +2356,14 @@ int __memcg_kmem_charge_memcg(struct pag
- 	if (!memcg_kmem_online(memcg))
- 		return 0;
- 
--	if (!page_counter_try_charge(&memcg->kmem, nr_pages, &counter))
--		return -ENOMEM;
--
- 	ret = try_charge(memcg, gfp, nr_pages);
--	if (ret) {
--		page_counter_uncharge(&memcg->kmem, nr_pages);
-+	if (ret)
- 		return ret;
-+
-+	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) &&
-+	    !page_counter_try_charge(&memcg->kmem, nr_pages, &counter)) {
-+		cancel_charge(memcg, nr_pages);
-+		return -ENOMEM;
- 	}
- 
- 	page->mem_cgroup = memcg;
-@@ -2391,7 +2392,9 @@ void __memcg_kmem_uncharge(struct page *
- 
- 	VM_BUG_ON_PAGE(mem_cgroup_is_root(memcg), page);
- 
--	page_counter_uncharge(&memcg->kmem, nr_pages);
-+	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+		page_counter_uncharge(&memcg->kmem, nr_pages);
-+
- 	page_counter_uncharge(&memcg->memory, nr_pages);
- 	if (do_memsw_account())
- 		page_counter_uncharge(&memcg->memsw, nr_pages);
-@@ -2895,7 +2898,8 @@ static int memcg_propagate_kmem(struct m
- 	 * onlined after this point, because it has at least one child
- 	 * already.
+diff -puN include/linux/memcontrol.h~mm-memcontrol-introduce-config_memcg_legacy_kmem include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-introduce-config_memcg_legacy_kmem
++++ a/include/linux/memcontrol.h
+@@ -233,7 +233,7 @@ struct mem_cgroup {
  	 */
--	if (memcg_kmem_online(parent))
-+	if (cgroup_subsys_on_dfl(memory_cgrp_subsys) ||
-+	    memcg_kmem_online(parent))
- 		ret = memcg_online_kmem(memcg);
- 	mutex_unlock(&memcg_limit_mutex);
- 	return ret;
+ 	struct mem_cgroup_stat_cpu __percpu *stat;
+ 
+-#if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_INET)
++#if defined(CONFIG_MEMCG_LEGACY_KMEM) && defined(CONFIG_INET)
+ 	struct cg_proto tcp_mem;
+ #endif
+ 
+@@ -873,7 +873,7 @@ extern struct static_key_false memcg_soc
+ #define mem_cgroup_sockets_enabled static_branch_unlikely(&memcg_sockets_enabled_key)
+ static inline bool mem_cgroup_under_socket_pressure(struct mem_cgroup *memcg)
+ {
+-#ifdef CONFIG_MEMCG_KMEM
++#ifdef CONFIG_MEMCG_LEGACY_KMEM
+ 	if (memcg->tcp_mem.memory_pressure)
+ 		return true;
+ #endif
+diff -puN init/Kconfig~mm-memcontrol-introduce-config_memcg_legacy_kmem init/Kconfig
+--- a/init/Kconfig~mm-memcontrol-introduce-config_memcg_legacy_kmem
++++ a/init/Kconfig
+@@ -1040,10 +1040,13 @@ config MEMCG_SWAP_ENABLED
+ 	  For those who want to have the feature enabled by default should
+ 	  select this option (if, for some reason, they need to disable it
+ 	  then swapaccount=0 does the trick).
++config MEMCG_LEGACY_KMEM
++       bool
+ config MEMCG_KMEM
+-	bool "Memory Resource Controller Kernel Memory accounting"
++	bool "Legacy Memory Resource Controller Kernel Memory accounting"
+ 	depends on MEMCG
+ 	depends on SLUB || SLAB
++	select MEMCG_LEGACY_KMEM
+ 	help
+ 	  The Kernel Memory extension for Memory Resource Controller can limit
+ 	  the amount of memory used by kernel objects in the system. Those are
+@@ -1052,6 +1055,11 @@ config MEMCG_KMEM
+ 	  the kmem extension can use it to guarantee that no group of processes
+ 	  will ever exhaust kernel resources alone.
+ 
++	  This option affects the ORIGINAL cgroup interface. The cgroup2 memory
++	  controller includes important in-kernel memory consumers per default.
++
++	  If you're using cgroup2, say N.
++
+ config CGROUP_HUGETLB
+ 	bool "HugeTLB Resource Controller for Control Groups"
+ 	depends on HUGETLB_PAGE
+diff -puN mm/memcontrol.c~mm-memcontrol-introduce-config_memcg_legacy_kmem mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-introduce-config_memcg_legacy_kmem
++++ a/mm/memcontrol.c
+@@ -2959,7 +2959,7 @@ static void memcg_free_kmem(struct mem_c
+ 	}
+ }
+ 
+-#ifdef CONFIG_MEMCG_KMEM
++#ifdef CONFIG_MEMCG_LEGACY_KMEM
+ static int memcg_update_kmem_limit(struct mem_cgroup *memcg,
+ 				   unsigned long limit)
+ {
+@@ -2983,7 +2983,7 @@ static int memcg_update_kmem_limit(struc
+ {
+ 	return -EINVAL;
+ }
+-#endif /* CONFIG_MEMCG_KMEM */
++#endif /* CONFIG_MEMCG_LEGACY_KMEM */
+ 
+ /*
+  * The user of this function is...
+@@ -3995,7 +3995,7 @@ static struct cftype mem_cgroup_legacy_f
+ 		.seq_show = memcg_numa_stat_show,
+ 	},
+ #endif
+-#ifdef CONFIG_MEMCG_KMEM
++#ifdef CONFIG_MEMCG_LEGACY_KMEM
+ 	{
+ 		.name = "kmem.limit_in_bytes",
+ 		.private = MEMFILE_PRIVATE(_KMEM, RES_LIMIT),
+@@ -4220,7 +4220,7 @@ mem_cgroup_css_online(struct cgroup_subs
+ 	if (ret)
+ 		return ret;
+ 
+-#ifdef CONFIG_MEMCG_KMEM
++#ifdef CONFIG_MEMCG_LEGACY_KMEM
+ 	ret = tcp_init_cgroup(memcg);
+ 	if (ret)
+ 		return ret;
+@@ -4276,7 +4276,7 @@ static void mem_cgroup_css_free(struct c
+ 
+ 	memcg_free_kmem(memcg);
+ 
+-#ifdef CONFIG_MEMCG_KMEM
++#ifdef CONFIG_MEMCG_LEGACY_KMEM
+ 	tcp_destroy_cgroup(memcg);
+ #endif
+ 
+@@ -5504,7 +5504,7 @@ void sock_update_memcg(struct sock *sk)
+ 	memcg = mem_cgroup_from_task(current);
+ 	if (memcg == root_mem_cgroup)
+ 		goto out;
+-#ifdef CONFIG_MEMCG_KMEM
++#ifdef CONFIG_MEMCG_LEGACY_KMEM
+ 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) && !memcg->tcp_mem.active)
+ 		goto out;
+ #endif
+@@ -5533,7 +5533,7 @@ bool mem_cgroup_charge_skmem(struct mem_
+ {
+ 	gfp_t gfp_mask = GFP_KERNEL;
+ 
+-#ifdef CONFIG_MEMCG_KMEM
++#ifdef CONFIG_MEMCG_LEGACY_KMEM
+ 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys)) {
+ 		struct page_counter *counter;
+ 
+@@ -5565,7 +5565,7 @@ bool mem_cgroup_charge_skmem(struct mem_
+  */
+ void mem_cgroup_uncharge_skmem(struct mem_cgroup *memcg, unsigned int nr_pages)
+ {
+-#ifdef CONFIG_MEMCG_KMEM
++#ifdef CONFIG_MEMCG_LEGACY_KMEM
+ 	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys)) {
+ 		page_counter_uncharge(&memcg->tcp_mem.memory_allocated,
+ 				      nr_pages);
+diff -puN net/ipv4/Makefile~mm-memcontrol-introduce-config_memcg_legacy_kmem net/ipv4/Makefile
+--- a/net/ipv4/Makefile~mm-memcontrol-introduce-config_memcg_legacy_kmem
++++ a/net/ipv4/Makefile
+@@ -56,7 +56,7 @@ obj-$(CONFIG_TCP_CONG_SCALABLE) += tcp_s
+ obj-$(CONFIG_TCP_CONG_LP) += tcp_lp.o
+ obj-$(CONFIG_TCP_CONG_YEAH) += tcp_yeah.o
+ obj-$(CONFIG_TCP_CONG_ILLINOIS) += tcp_illinois.o
+-obj-$(CONFIG_MEMCG_KMEM) += tcp_memcontrol.o
++obj-$(CONFIG_MEMCG_LEGACY_KMEM) += tcp_memcontrol.o
+ obj-$(CONFIG_NETLABEL) += cipso_ipv4.o
+ 
+ obj-$(CONFIG_XFRM) += xfrm4_policy.o xfrm4_state.o xfrm4_input.o \
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
