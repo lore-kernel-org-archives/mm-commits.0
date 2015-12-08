@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-ksmc-use-list_for_each_entry_safe.patch added to -mm tree
-Date: Tue, 08 Dec 2015 14:31:48 -0800
-Message-ID: <56675a54.dK4OR/B31zXzgXvF%akpm@linux-foundation.org>
+Subject: + hfs-use-list_for_each_entry-in-hfs_cat_delete.patch added to
+ -mm tree
+Date: Tue, 08 Dec 2015 14:32:28 -0800
+Message-ID: <56675a7c.d1KDHb7Q8LAVPenJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59611 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59717 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750752AbbLHWbt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 17:31:49 -0500
+	with ESMTP id S1750752AbbLHWc3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 17:32:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geliangtang@163.com, hughd@google.com, mm-commits@vger.kernel.org
+To: geliangtang@163.com, slava@dubeyko.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/ksm.c: use list_for_each_entry_safe
+     Subject: fs/hfs/catalog.c: use list_for_each_entry in hfs_cat_delete
 has been added to the -mm tree.  Its filename is
-     mm-ksmc-use-list_for_each_entry_safe.patch
+     hfs-use-list_for_each_entry-in-hfs_cat_delete.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-ksmc-use-list_for_each_entry_safe.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hfs-use-list_for_each_entry-in-hfs_cat_delete.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-ksmc-use-list_for_each_entry_safe.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hfs-use-list_for_each_entry-in-hfs_cat_delete.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,79 +40,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Geliang Tang <geliangtang@163.com>
-Subject: mm/ksm.c: use list_for_each_entry_safe
+Subject: fs/hfs/catalog.c: use list_for_each_entry in hfs_cat_delete
 
-Use list_for_each_entry_safe() instead of list_for_each_safe() to simplify
-the code.
+Use list_for_each_entry() instead of list_for_each() to simplify the code.
 
 Signed-off-by: Geliang Tang <geliangtang@163.com>
-Cc: Hugh Dickins <hughd@google.com>
+Reviewed-by: Vyacheslav Dubeyko <slava@dubeyko.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |   20 +++++++-------------
- 1 file changed, 7 insertions(+), 13 deletions(-)
+ fs/hfs/catalog.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN mm/ksm.c~mm-ksmc-use-list_for_each_entry_safe mm/ksm.c
---- a/mm/ksm.c~mm-ksmc-use-list_for_each_entry_safe
-+++ a/mm/ksm.c
-@@ -740,8 +740,7 @@ static int remove_stable_node(struct sta
- 
- static int remove_all_stable_nodes(void)
+diff -puN fs/hfs/catalog.c~hfs-use-list_for_each_entry-in-hfs_cat_delete fs/hfs/catalog.c
+--- a/fs/hfs/catalog.c~hfs-use-list_for_each_entry-in-hfs_cat_delete
++++ a/fs/hfs/catalog.c
+@@ -214,7 +214,7 @@ int hfs_cat_delete(u32 cnid, struct inod
  {
--	struct stable_node *stable_node;
--	struct list_head *this, *next;
-+	struct stable_node *stable_node, *next;
- 	int nid;
- 	int err = 0;
+ 	struct super_block *sb;
+ 	struct hfs_find_data fd;
+-	struct list_head *pos;
++	struct hfs_readdir_data *rd;
+ 	int res, type;
  
-@@ -756,8 +755,7 @@ static int remove_all_stable_nodes(void)
- 			cond_resched();
+ 	hfs_dbg(CAT_MOD, "delete_cat: %s,%u\n", str ? str->name : NULL, cnid);
+@@ -240,9 +240,7 @@ int hfs_cat_delete(u32 cnid, struct inod
  		}
  	}
--	list_for_each_safe(this, next, &migrate_nodes) {
--		stable_node = list_entry(this, struct stable_node, list);
-+	list_for_each_entry_safe(stable_node, next, &migrate_nodes, list) {
- 		if (remove_stable_node(stable_node))
- 			err = -EBUSY;
- 		cond_resched();
-@@ -1583,13 +1581,11 @@ static struct rmap_item *scan_get_next_r
- 		 * so prune them once before each full scan.
- 		 */
- 		if (!ksm_merge_across_nodes) {
--			struct stable_node *stable_node;
--			struct list_head *this, *next;
-+			struct stable_node *stable_node, *next;
- 			struct page *page;
  
--			list_for_each_safe(this, next, &migrate_nodes) {
--				stable_node = list_entry(this,
--						struct stable_node, list);
-+			list_for_each_entry_safe(stable_node, next,
-+						 &migrate_nodes, list) {
- 				page = get_ksm_page(stable_node, false);
- 				if (page)
- 					put_page(page);
-@@ -2012,8 +2008,7 @@ static void wait_while_offlining(void)
- static void ksm_check_stable_tree(unsigned long start_pfn,
- 				  unsigned long end_pfn)
- {
--	struct stable_node *stable_node;
--	struct list_head *this, *next;
-+	struct stable_node *stable_node, *next;
- 	struct rb_node *node;
- 	int nid;
- 
-@@ -2034,8 +2029,7 @@ static void ksm_check_stable_tree(unsign
- 			cond_resched();
- 		}
+-	list_for_each(pos, &HFS_I(dir)->open_dir_list) {
+-		struct hfs_readdir_data *rd =
+-			list_entry(pos, struct hfs_readdir_data, list);
++	list_for_each_entry(rd, &HFS_I(dir)->open_dir_list, list) {
+ 		if (fd.tree->keycmp(fd.search_key, (void *)&rd->key) < 0)
+ 			rd->file->f_pos--;
  	}
--	list_for_each_safe(this, next, &migrate_nodes) {
--		stable_node = list_entry(this, struct stable_node, list);
-+	list_for_each_entry_safe(stable_node, next, &migrate_nodes, list) {
- 		if (stable_node->kpfn >= start_pfn &&
- 		    stable_node->kpfn < end_pfn)
- 			remove_node_from_stable_tree(stable_node);
 _
 
 Patches currently in -mm which might be from geliangtang@163.com are
@@ -128,5 +91,6 @@ mm-swapfilec-use-list_nextfirst_entry.patch
 mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page.patch
 mm-ksmc-use-list_for_each_entry_safe.patch
 mm-zbud-use-list_last_entry-instead-of-list_tail_entry.patch
+hfs-use-list_for_each_entry-in-hfs_cat_delete.patch
 dma-mapping-use-offset_in_page-macro.patch
 
