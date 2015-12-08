@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem.patch added to -mm tree
-Date: Tue, 08 Dec 2015 15:06:36 -0800
-Message-ID: <5667627c.liOA4dzfKU/gZjhq%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-remove-double-kmem-page_counter-init.patch added
+ to -mm tree
+Date: Tue, 08 Dec 2015 15:06:38 -0800
+Message-ID: <5667627e.2aSjaaJqLT8uf3h8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35219 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35224 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751017AbbLHXGh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 18:06:37 -0500
+	with ESMTP id S1751017AbbLHXGk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 18:06:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, mhocko@suse.cz, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: drop unused @css argument in memcg_init_kmem
+     Subject: mm: memcontrol: remove double kmem page_counter init
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem.patch
+     mm-memcontrol-remove-double-kmem-page_counter-init.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-remove-double-kmem-page_counter-init.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-remove-double-kmem-page_counter-init.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,28 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: drop unused @css argument in memcg_init_kmem
+Subject: mm: memcontrol: remove double kmem page_counter init
 
-This series adds accounting of the historical "kmem" memory consumers to
-the cgroup2 memory controller.
-
-These consumers include the dentry cache, the inode cache, kernel stack
-pages, and a few others that are pointed out in patch 7/8.  The footprint
-of these consumers is directly tied to userspace activity in common
-workloads, and so they have to be part of the minimally viable
-configuration in order to present a complete feature to our users.
-
-The cgroup2 interface of the memory controller is far from complete, but
-this series, along with the socket memory accounting series, provides the
-final semantic changes for the existing memory knobs in the cgroup2
-interface, which is scheduled for initial release in the next merge
-window.
-
-
-
-This patch (of 8):
-
-Remove unused css argument frmo memcg_init_kmem()
+The kmem page_counter's limit is initialized to PAGE_COUNTER_MAX inside
+mem_cgroup_css_online().  There is no need to repeat this from
+memcg_propagate_kmem().
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -69,65 +53,64 @@ Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/tcp_memcontrol.h |    3 ++-
- mm/memcontrol.c              |    6 +++---
- net/ipv4/tcp_memcontrol.c    |    2 +-
- 3 files changed, 6 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   24 ++++++++++--------------
+ 1 file changed, 10 insertions(+), 14 deletions(-)
 
-diff -puN include/net/tcp_memcontrol.h~mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem include/net/tcp_memcontrol.h
---- a/include/net/tcp_memcontrol.h~mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem
-+++ a/include/net/tcp_memcontrol.h
-@@ -1,6 +1,7 @@
- #ifndef _TCP_MEMCG_H
- #define _TCP_MEMCG_H
- 
--int tcp_init_cgroup(struct mem_cgroup *memcg, struct cgroup_subsys *ss);
-+int tcp_init_cgroup(struct mem_cgroup *memcg);
- void tcp_destroy_cgroup(struct mem_cgroup *memcg);
-+
- #endif /* _TCP_MEMCG_H */
-diff -puN mm/memcontrol.c~mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem
+diff -puN mm/memcontrol.c~mm-memcontrol-remove-double-kmem-page_counter-init mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-remove-double-kmem-page_counter-init
 +++ a/mm/memcontrol.c
-@@ -3561,7 +3561,7 @@ static int mem_cgroup_oom_control_write(
+@@ -2840,8 +2840,7 @@ static u64 mem_cgroup_read_u64(struct cg
  }
  
  #ifdef CONFIG_MEMCG_KMEM
--static int memcg_init_kmem(struct mem_cgroup *memcg, struct cgroup_subsys *ss)
-+static int memcg_init_kmem(struct mem_cgroup *memcg)
+-static int memcg_activate_kmem(struct mem_cgroup *memcg,
+-			       unsigned long nr_pages)
++static int memcg_activate_kmem(struct mem_cgroup *memcg)
  {
+ 	int err = 0;
+ 	int memcg_id;
+@@ -2876,13 +2875,6 @@ static int memcg_activate_kmem(struct me
+ 		goto out;
+ 	}
+ 
+-	/*
+-	 * We couldn't have accounted to this cgroup, because it hasn't got
+-	 * activated yet, so this should succeed.
+-	 */
+-	err = page_counter_limit(&memcg->kmem, nr_pages);
+-	VM_BUG_ON(err);
+-
+ 	static_branch_inc(&memcg_kmem_enabled_key);
+ 	/*
+ 	 * A memory cgroup is considered kmem-active as soon as it gets
+@@ -2903,10 +2895,14 @@ static int memcg_update_kmem_limit(struc
  	int ret;
  
-@@ -3569,7 +3569,7 @@ static int memcg_init_kmem(struct mem_cg
- 	if (ret)
- 		return ret;
- 
--	return tcp_init_cgroup(memcg, ss);
-+	return tcp_init_cgroup(memcg);
+ 	mutex_lock(&memcg_limit_mutex);
+-	if (!memcg_kmem_is_active(memcg))
+-		ret = memcg_activate_kmem(memcg, limit);
+-	else
+-		ret = page_counter_limit(&memcg->kmem, limit);
++	/* Top-level cgroup doesn't propagate from root */
++	if (!memcg_kmem_is_active(memcg)) {
++		ret = memcg_activate_kmem(memcg);
++		if (ret)
++			goto out;
++	}
++	ret = page_counter_limit(&memcg->kmem, limit);
++out:
+ 	mutex_unlock(&memcg_limit_mutex);
+ 	return ret;
  }
- 
- static void memcg_deactivate_kmem(struct mem_cgroup *memcg)
-@@ -4252,7 +4252,7 @@ mem_cgroup_css_online(struct cgroup_subs
- 	}
- 	mutex_unlock(&memcg_create_mutex);
- 
--	ret = memcg_init_kmem(memcg, &memory_cgrp_subsys);
-+	ret = memcg_init_kmem(memcg);
- 	if (ret)
- 		return ret;
- 
-diff -puN net/ipv4/tcp_memcontrol.c~mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem net/ipv4/tcp_memcontrol.c
---- a/net/ipv4/tcp_memcontrol.c~mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem
-+++ a/net/ipv4/tcp_memcontrol.c
-@@ -6,7 +6,7 @@
- #include <linux/memcontrol.h>
- #include <linux/module.h>
- 
--int tcp_init_cgroup(struct mem_cgroup *memcg, struct cgroup_subsys *ss)
-+int tcp_init_cgroup(struct mem_cgroup *memcg)
- {
- 	struct mem_cgroup *parent = parent_mem_cgroup(memcg);
- 	struct page_counter *counter_parent = NULL;
+@@ -2925,7 +2921,7 @@ static int memcg_propagate_kmem(struct m
+ 	 * after this point, because it has at least one child already.
+ 	 */
+ 	if (memcg_kmem_is_active(parent))
+-		ret = memcg_activate_kmem(memcg, PAGE_COUNTER_MAX);
++		ret = memcg_activate_kmem(memcg);
+ 	mutex_unlock(&memcg_limit_mutex);
+ 	return ret;
+ }
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
