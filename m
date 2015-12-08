@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + printk-formatstxt-remove-unimplemented-%pt.patch added to -mm
- tree
-Date: Tue, 08 Dec 2015 12:52:11 -0800
-Message-ID: <566742fb.V+ZoSUX6nI7qwKgi%akpm@linux-foundation.org>
+Subject: +
+ security-let-security-modules-use-ptrace_mode_-with-bitmasks.patch added to -mm tree
+Date: Tue, 08 Dec 2015 13:14:17 -0800
+Message-ID: <56674829.kaenbKM2RbJJ8KYZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47110 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50485 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752642AbbLHUwM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 15:52:12 -0500
+	with ESMTP id S1752749AbbLHVOS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 16:14:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: jann@thejh.net, andriy.shevchenko@linux.intel.com, casey@schaufler-ca.com, ebiederm@xmission.com, james.l.morris@oracle.com, keescook@chromium.org, luto@kernel.org, mingo@redhat.com, oleg@redhat.com, serge.hallyn@ubuntu.com, viro@zeniv.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk-formats.txt: remove unimplemented %pT
+     Subject: security: let security modules use PTRACE_MODE_* with bitmasks
 has been added to the -mm tree.  Its filename is
-     printk-formatstxt-remove-unimplemented-%pt.patch
+     security-let-security-modules-use-ptrace_mode_-with-bitmasks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-formatstxt-remove-unimplemented-%25pt.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/security-let-security-modules-use-ptrace_mode_-with-bitmasks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-formatstxt-remove-unimplemented-%25pt.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/security-let-security-modules-use-ptrace_mode_-with-bitmasks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +39,77 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: printk-formats.txt: remove unimplemented %pT
+From: Jann Horn <jann@thejh.net>
+Subject: security: let security modules use PTRACE_MODE_* with bitmasks
 
-%pT for task->comm has been proposed (several times, I think), but is not
-actually implemented.  Remove it from printk-formats.txt and add it back
-if/when it gets implemented.
+It looks like smack and yama weren't aware that the ptrace mode
+can have flags ORed into it - PTRACE_MODE_NOAUDIT until now, but
+only for /proc/$pid/stat, and with the PTRACE_MODE_*CREDS patch,
+all modes have flags ORed into them.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Signed-off-by: Jann Horn <jann@thejh.net>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Morris <james.l.morris@oracle.com>
+Cc: "Serge E. Hallyn" <serge.hallyn@ubuntu.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Willy Tarreau <w@1wt.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/printk-formats.txt |    9 ---------
- 1 file changed, 9 deletions(-)
+ security/smack/smack_lsm.c |    8 +++-----
+ security/yama/yama_lsm.c   |    4 ++--
+ 2 files changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/printk-formats.txt~printk-formatstxt-remove-unimplemented-%pt Documentation/printk-formats.txt
---- a/Documentation/printk-formats.txt~printk-formatstxt-remove-unimplemented-%pt
-+++ a/Documentation/printk-formats.txt
-@@ -314,15 +314,6 @@ Network device features:
+diff -puN security/smack/smack_lsm.c~security-let-security-modules-use-ptrace_mode_-with-bitmasks security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~security-let-security-modules-use-ptrace_mode_-with-bitmasks
++++ a/security/smack/smack_lsm.c
+@@ -398,12 +398,10 @@ static int smk_copy_relabel(struct list_
+  */
+ static inline unsigned int smk_ptrace_mode(unsigned int mode)
+ {
+-	switch (mode) {
+-	case PTRACE_MODE_READ:
+-		return MAY_READ;
+-	case PTRACE_MODE_ATTACH:
++	if (mode & PTRACE_MODE_ATTACH)
+ 		return MAY_READWRITE;
+-	}
++	if (mode & PTRACE_MODE_READ)
++		return MAY_READ;
  
- 	Passed by reference.
+ 	return 0;
+ }
+diff -puN security/yama/yama_lsm.c~security-let-security-modules-use-ptrace_mode_-with-bitmasks security/yama/yama_lsm.c
+--- a/security/yama/yama_lsm.c~security-let-security-modules-use-ptrace_mode_-with-bitmasks
++++ a/security/yama/yama_lsm.c
+@@ -281,7 +281,7 @@ static int yama_ptrace_access_check(stru
+ 	int rc = 0;
  
--Command from struct task_struct
--
--	%pT	ls
--
--	For printing executable name excluding path from struct
--	task_struct.
--
--	Passed by reference.
--
- If you add other %p extensions, please extend lib/test_printf.c with
- one or more test cases, if at all feasible.
+ 	/* require ptrace target be a child of ptracer on attach */
+-	if (mode == PTRACE_MODE_ATTACH) {
++	if (mode & PTRACE_MODE_ATTACH) {
+ 		switch (ptrace_scope) {
+ 		case YAMA_SCOPE_DISABLED:
+ 			/* No additional restrictions. */
+@@ -307,7 +307,7 @@ static int yama_ptrace_access_check(stru
+ 		}
+ 	}
  
+-	if (rc) {
++	if (rc && (mode & PTRACE_MODE_NOAUDIT) == 0) {
+ 		printk_ratelimited(KERN_NOTICE
+ 			"ptrace of pid %d was attempted by: %s (pid %d)\n",
+ 			child->pid, current->comm, current->pid);
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from jann@thejh.net are
 
-lib-vsprintfc-pull-out-padding-code-from-dentry_name.patch
-lib-vsprintfc-move-string-below-widen_string.patch
-lib-vsprintfc-eliminate-potential-race-in-string.patch
-lib-vsprintfc-expand-field_width-to-24-bits.patch
-lib-vsprintfc-help-gcc-make-number-smaller.patch
-lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch
-lib-kasprintfc-add-sanity-check-to-kvasprintf.patch
-lib-test_printfc-dont-bug.patch
-lib-test_printfc-check-for-out-of-bound-writes.patch
-lib-test_printfc-test-precision-quirks.patch
-lib-test_printfc-add-a-few-number-tests.patch
-lib-test_printfc-account-for-kvasprintf-tests.patch
-lib-test_printfc-add-test-for-large-bitmaps.patch
-lib-test_printfc-test-dentry-printing.patch
-printk-formatstxt-remove-unimplemented-%pt.patch
-powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header.patch
-kernel-cpuc-change-type-of-cpu_possible_bits-and-friends.patch
-kernel-cpuc-export-__cpu__mask.patch
-drivers-base-cpuc-use-__cpu__mask-directly.patch
-kernel-cpuc-eliminate-cpu__mask.patch
-kernel-cpuc-make-set_cpu_-static-inlines.patch
+security-let-security-modules-use-ptrace_mode_-with-bitmasks.patch
+ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks.patch
 
