@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
+ net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets.patch
  added to -mm tree
-Date: Tue, 08 Dec 2015 14:51:53 -0800
-Message-ID: <56675f09.hQSe9JumC7ShCOYV%akpm@linux-foundation.org>
+Date: Tue, 08 Dec 2015 14:51:55 -0800
+Message-ID: <56675f0b.5x8JyXSZJ5fQfQn4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33630 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33634 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751358AbbLHWvz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 17:51:55 -0500
+	with ESMTP id S1751157AbbLHWv4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 17:51:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, davem@davemloft.net, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: net: tcp_memcontrol: protect all tcp_memcontrol calls by jump-label
+     Subject: net: tcp_memcontrol: remove dead per-memcg count of allocated sockets
 has been added to the -mm tree.  Its filename is
-     net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
+     net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,14 +41,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: net: tcp_memcontrol: protect all tcp_memcontrol calls by jump-label
+Subject: net: tcp_memcontrol: remove dead per-memcg count of allocated sockets
 
-Move the jump-label from sock_update_memcg() and sock_release_memcg() to
-the callsite, and so eliminate those function calls when socket accounting
-is not enabled.
+The number of allocated sockets is used for calculations in the soft limit
+phase, where packets are accepted but the socket is under memory pressure.
+ Since there is no soft limit phase in tcp_memcontrol, and memory pressure
+is only entered when packets are already dropped, this is actually dead
+code.  Remove it.
 
-This also eliminates the need for dummy functions because the calls will
-be optimized away if the Kconfig options are not enabled.
+As this is the last user of parent_cg_proto(), remove that too.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: David S. Miller <davem@davemloft.net>
@@ -56,164 +57,109 @@ Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    9 -----
- mm/memcontrol.c            |   62 +++++++++++++++--------------------
- net/core/sock.c            |    9 +----
- net/ipv4/tcp.c             |    3 +
- net/ipv4/tcp_ipv4.c        |    4 +-
- 5 files changed, 35 insertions(+), 52 deletions(-)
+ include/linux/memcontrol.h |    1 
+ include/net/sock.h         |   39 ++---------------------------------
+ net/ipv4/tcp_memcontrol.c  |    3 --
+ 3 files changed, 3 insertions(+), 40 deletions(-)
 
-diff -puN include/linux/memcontrol.h~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label
+diff -puN include/linux/memcontrol.h~net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets
 +++ a/include/linux/memcontrol.h
-@@ -694,17 +694,8 @@ static inline void mem_cgroup_wb_stats(s
- #endif	/* CONFIG_CGROUP_WRITEBACK */
+@@ -87,7 +87,6 @@ enum mem_cgroup_events_target {
  
- struct sock;
--#if defined(CONFIG_INET) && defined(CONFIG_MEMCG_KMEM)
- void sock_update_memcg(struct sock *sk);
- void sock_release_memcg(struct sock *sk);
--#else
--static inline void sock_update_memcg(struct sock *sk)
+ struct cg_proto {
+ 	struct page_counter	memory_allocated;	/* Current allocated memory. */
+-	struct percpu_counter	sockets_allocated;	/* Current number of sockets. */
+ 	int			memory_pressure;
+ 	bool			active;
+ 	long			sysctl_mem[3];
+diff -puN include/net/sock.h~net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets include/net/sock.h
+--- a/include/net/sock.h~net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets
++++ a/include/net/sock.h
+@@ -1096,19 +1096,9 @@ static inline void sk_refcnt_debug_relea
+ 
+ #if defined(CONFIG_MEMCG_KMEM) && defined(CONFIG_NET)
+ extern struct static_key memcg_socket_limit_enabled;
+-static inline struct cg_proto *parent_cg_proto(struct proto *proto,
+-					       struct cg_proto *cg_proto)
 -{
+-	return proto->proto_cgroup(parent_mem_cgroup(cg_proto->memcg));
 -}
--static inline void sock_release_memcg(struct sock *sk)
+ #define mem_cgroup_sockets_enabled static_key_false(&memcg_socket_limit_enabled)
+ #else
+ #define mem_cgroup_sockets_enabled 0
+-static inline struct cg_proto *parent_cg_proto(struct proto *proto,
+-					       struct cg_proto *cg_proto)
 -{
+-	return NULL;
 -}
--#endif /* CONFIG_INET && CONFIG_MEMCG_KMEM */
+ #endif
  
- #ifdef CONFIG_MEMCG_KMEM
- extern struct static_key memcg_kmem_enabled_key;
-diff -puN mm/memcontrol.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label mm/memcontrol.c
---- a/mm/memcontrol.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label
-+++ a/mm/memcontrol.c
-@@ -293,46 +293,40 @@ static inline struct mem_cgroup *mem_cgr
+ static inline bool sk_stream_memory_free(const struct sock *sk)
+@@ -1234,41 +1224,18 @@ sk_memory_allocated_sub(struct sock *sk,
  
- void sock_update_memcg(struct sock *sk)
+ static inline void sk_sockets_allocated_dec(struct sock *sk)
  {
--	if (mem_cgroup_sockets_enabled) {
--		struct mem_cgroup *memcg;
--		struct cg_proto *cg_proto;
+-	struct proto *prot = sk->sk_prot;
 -
--		BUG_ON(!sk->sk_prot->proto_cgroup);
--
--		/* Socket cloning can throw us here with sk_cgrp already
--		 * filled. It won't however, necessarily happen from
--		 * process context. So the test for root memcg given
--		 * the current task's memcg won't help us in this case.
--		 *
--		 * Respecting the original socket's memcg is a better
--		 * decision in this case.
--		 */
--		if (sk->sk_cgrp) {
--			BUG_ON(mem_cgroup_is_root(sk->sk_cgrp->memcg));
--			css_get(&sk->sk_cgrp->memcg->css);
--			return;
--		}
--
--		rcu_read_lock();
--		memcg = mem_cgroup_from_task(current);
--		cg_proto = sk->sk_prot->proto_cgroup(memcg);
--		if (cg_proto && cg_proto->active &&
--		    css_tryget_online(&memcg->css)) {
--			sk->sk_cgrp = cg_proto;
--		}
--		rcu_read_unlock();
-+	struct mem_cgroup *memcg;
-+	struct cg_proto *cg_proto;
-+
-+	BUG_ON(!sk->sk_prot->proto_cgroup);
-+
-+	/* Socket cloning can throw us here with sk_cgrp already
-+	 * filled. It won't however, necessarily happen from
-+	 * process context. So the test for root memcg given
-+	 * the current task's memcg won't help us in this case.
-+	 *
-+	 * Respecting the original socket's memcg is a better
-+	 * decision in this case.
-+	 */
-+	if (sk->sk_cgrp) {
-+		BUG_ON(mem_cgroup_is_root(sk->sk_cgrp->memcg));
-+		css_get(&sk->sk_cgrp->memcg->css);
-+		return;
- 	}
-+
-+	rcu_read_lock();
-+	memcg = mem_cgroup_from_task(current);
-+	cg_proto = sk->sk_prot->proto_cgroup(memcg);
-+	if (cg_proto && cg_proto->active &&
-+	    css_tryget_online(&memcg->css)) {
-+		sk->sk_cgrp = cg_proto;
-+	}
-+	rcu_read_unlock();
- }
- EXPORT_SYMBOL(sock_update_memcg);
- 
- void sock_release_memcg(struct sock *sk)
- {
 -	if (mem_cgroup_sockets_enabled && sk->sk_cgrp) {
--		struct mem_cgroup *memcg;
--		WARN_ON(!sk->sk_cgrp->memcg);
--		memcg = sk->sk_cgrp->memcg;
--		css_put(&sk->sk_cgrp->memcg->css);
--	}
-+	WARN_ON(!sk->sk_cgrp->memcg);
-+	css_put(&sk->sk_cgrp->memcg->css);
- }
- 
- struct cg_proto *tcp_proto_cgroup(struct mem_cgroup *memcg)
-diff -puN net/core/sock.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label net/core/sock.c
---- a/net/core/sock.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label
-+++ a/net/core/sock.c
-@@ -1488,12 +1488,6 @@ void sk_free(struct sock *sk)
- }
- EXPORT_SYMBOL(sk_free);
- 
--static void sk_update_clone(const struct sock *sk, struct sock *newsk)
--{
--	if (mem_cgroup_sockets_enabled && sk->sk_cgrp)
--		sock_update_memcg(newsk);
--}
+-		struct cg_proto *cg_proto = sk->sk_cgrp;
 -
- /**
-  *	sk_clone_lock - clone a socket, and lock its clone
-  *	@sk: the socket to clone
-@@ -1588,7 +1582,8 @@ struct sock *sk_clone_lock(const struct
- 		sk_set_socket(newsk, NULL);
- 		newsk->sk_wq = NULL;
- 
--		sk_update_clone(sk, newsk);
-+		if (mem_cgroup_sockets_enabled && sk->sk_cgrp)
-+			sock_update_memcg(newsk);
- 
- 		if (newsk->sk_prot->sockets_allocated)
- 			sk_sockets_allocated_inc(newsk);
-diff -puN net/ipv4/tcp.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label net/ipv4/tcp.c
---- a/net/ipv4/tcp.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label
-+++ a/net/ipv4/tcp.c
-@@ -422,7 +422,8 @@ void tcp_init_sock(struct sock *sk)
- 	sk->sk_rcvbuf = sysctl_tcp_rmem[1];
- 
- 	local_bh_disable();
--	sock_update_memcg(sk);
-+	if (mem_cgroup_sockets_enabled)
-+		sock_update_memcg(sk);
- 	sk_sockets_allocated_inc(sk);
- 	local_bh_enable();
+-		for (; cg_proto; cg_proto = parent_cg_proto(prot, cg_proto))
+-			percpu_counter_dec(&cg_proto->sockets_allocated);
+-	}
+-
+-	percpu_counter_dec(prot->sockets_allocated);
++	percpu_counter_dec(sk->sk_prot->sockets_allocated);
  }
-diff -puN net/ipv4/tcp_ipv4.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label net/ipv4/tcp_ipv4.c
---- a/net/ipv4/tcp_ipv4.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label
-+++ a/net/ipv4/tcp_ipv4.c
-@@ -1813,7 +1813,9 @@ void tcp_v4_destroy_sock(struct sock *sk
- 	tcp_saved_syn_free(tp);
  
- 	sk_sockets_allocated_dec(sk);
--	sock_release_memcg(sk);
-+
-+	if (mem_cgroup_sockets_enabled && sk->sk_cgrp)
-+		sock_release_memcg(sk);
+ static inline void sk_sockets_allocated_inc(struct sock *sk)
+ {
+-	struct proto *prot = sk->sk_prot;
+-
+-	if (mem_cgroup_sockets_enabled && sk->sk_cgrp) {
+-		struct cg_proto *cg_proto = sk->sk_cgrp;
+-
+-		for (; cg_proto; cg_proto = parent_cg_proto(prot, cg_proto))
+-			percpu_counter_inc(&cg_proto->sockets_allocated);
+-	}
+-
+-	percpu_counter_inc(prot->sockets_allocated);
++	percpu_counter_inc(sk->sk_prot->sockets_allocated);
  }
- EXPORT_SYMBOL(tcp_v4_destroy_sock);
+ 
+ static inline int
+ sk_sockets_allocated_read_positive(struct sock *sk)
+ {
+-	struct proto *prot = sk->sk_prot;
+-
+-	if (mem_cgroup_sockets_enabled && sk->sk_cgrp)
+-		return percpu_counter_read_positive(&sk->sk_cgrp->sockets_allocated);
+-
+-	return percpu_counter_read_positive(prot->sockets_allocated);
++	return percpu_counter_read_positive(sk->sk_prot->sockets_allocated);
+ }
+ 
+ static inline int
+diff -puN net/ipv4/tcp_memcontrol.c~net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets net/ipv4/tcp_memcontrol.c
+--- a/net/ipv4/tcp_memcontrol.c~net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets
++++ a/net/ipv4/tcp_memcontrol.c
+@@ -32,7 +32,6 @@ int tcp_init_cgroup(struct mem_cgroup *m
+ 		counter_parent = &parent_cg->memory_allocated;
+ 
+ 	page_counter_init(&cg_proto->memory_allocated, counter_parent);
+-	percpu_counter_init(&cg_proto->sockets_allocated, 0, GFP_KERNEL);
+ 
+ 	return 0;
+ }
+@@ -46,8 +45,6 @@ void tcp_destroy_cgroup(struct mem_cgrou
+ 	if (!cg_proto)
+ 		return;
+ 
+-	percpu_counter_destroy(&cg_proto->sockets_allocated);
+-
+ 	if (cg_proto->active)
+ 		static_key_slow_dec(&memcg_socket_limit_enabled);
  
 _
 
