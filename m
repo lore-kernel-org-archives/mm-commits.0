@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page.patch
- added to -mm tree
-Date: Tue, 08 Dec 2015 14:26:19 -0800
-Message-ID: <5667590b.5r3PKCrZ7Dd9jZ6N%akpm@linux-foundation.org>
+ arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch added to -mm tree
+Date: Tue, 08 Dec 2015 14:30:58 -0800
+Message-ID: <56675a22.PuyLD0TRFRlb5GRT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58404 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59516 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750752AbbLHW0T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 17:26:19 -0500
+	with ESMTP id S1750752AbbLHWa7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 17:30:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geliangtang@163.com, mm-commits@vger.kernel.org
+To: sudipm.mukherjee@gmail.com, gang.chen.5i5j@gmail.com, minchan@kernel.org, sudip@vectorindia.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/readahead.c, mm/vmscan.c: use lru_to_page instead of list_to_page
+     Subject: arch/*/include/uapi/asm/mman.h: correct uniform value of MADV_FREE
 has been added to the -mm tree.  Its filename is
-     mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page.patch
+     arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,77 +39,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geliang Tang <geliangtang@163.com>
-Subject: mm/readahead.c, mm/vmscan.c: use lru_to_page instead of list_to_page
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: arch/*/include/uapi/asm/mman.h: correct uniform value of MADV_FREE
 
-list_to_page() in readahead.c is the same as lru_to_page() in vmscan.c. 
-So I move lru_to_page to internal.h and drop list_to_page().
+commit d53d95838c7d introduced uniform values for all architecture but
+missed removing the old value.
 
-Signed-off-by: Geliang Tang <geliangtang@163.com>
+As a result we are having build failure with mips defconfig, alpha
+defconfig.
+
+Fixes: d53d95838c7d ("arch/*/include/uapi/asm/mman.h: : let MADV_FREE have same value for all architectures")
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Chen Gang <gang.chen.5i5j@gmail.com>
+Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h  |    2 ++
- mm/readahead.c |    8 +++-----
- mm/vmscan.c    |    2 --
- 3 files changed, 5 insertions(+), 7 deletions(-)
+ arch/parisc/include/uapi/asm/mman.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/internal.h~mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page mm/internal.h
---- a/mm/internal.h~mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page
-+++ a/mm/internal.h
-@@ -119,6 +119,8 @@ extern int isolate_lru_page(struct page
- extern void putback_lru_page(struct page *page);
- extern bool zone_reclaimable(struct zone *zone);
+diff -puN arch/parisc/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4 arch/parisc/include/uapi/asm/mman.h
+--- a/arch/parisc/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4
++++ a/arch/parisc/include/uapi/asm/mman.h
+@@ -43,7 +43,6 @@
+ #define MADV_SPACEAVAIL 5               /* insure that resources are reserved */
+ #define MADV_VPS_PURGE  6               /* Purge pages from VM page cache */
+ #define MADV_VPS_INHERIT 7              /* Inherit parents page size */
+-#define MADV_FREE	8		/* free pages only if memory pressure */
  
-+#define lru_to_page(_head) (list_entry((_head)->prev, struct page, lru))
-+
- /*
-  * in mm/rmap.c:
-  */
-diff -puN mm/readahead.c~mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page mm/readahead.c
---- a/mm/readahead.c~mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page
-+++ a/mm/readahead.c
-@@ -32,8 +32,6 @@ file_ra_state_init(struct file_ra_state
- }
- EXPORT_SYMBOL_GPL(file_ra_state_init);
- 
--#define list_to_page(head) (list_entry((head)->prev, struct page, lru))
--
- /*
-  * see if a page needs releasing upon read_cache_pages() failure
-  * - the caller of read_cache_pages() may have set PG_private or PG_fscache
-@@ -64,7 +62,7 @@ static void read_cache_pages_invalidate_
- 	struct page *victim;
- 
- 	while (!list_empty(pages)) {
--		victim = list_to_page(pages);
-+		victim = lru_to_page(pages);
- 		list_del(&victim->lru);
- 		read_cache_pages_invalidate_page(mapping, victim);
- 	}
-@@ -87,7 +85,7 @@ int read_cache_pages(struct address_spac
- 	int ret = 0;
- 
- 	while (!list_empty(pages)) {
--		page = list_to_page(pages);
-+		page = lru_to_page(pages);
- 		list_del(&page->lru);
- 		if (add_to_page_cache_lru(page, mapping, page->index,
- 				mapping_gfp_constraint(mapping, GFP_KERNEL))) {
-@@ -125,7 +123,7 @@ static int read_pages(struct address_spa
- 	}
- 
- 	for (page_idx = 0; page_idx < nr_pages; page_idx++) {
--		struct page *page = list_to_page(pages);
-+		struct page *page = lru_to_page(pages);
- 		list_del(&page->lru);
- 		if (!add_to_page_cache_lru(page, mapping, page->index,
- 				mapping_gfp_constraint(mapping, GFP_KERNEL))) {
-diff -puN mm/vmscan.c~mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page mm/vmscan.c
---- a/mm/vmscan.c~mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page
-+++ a/mm/vmscan.c
-@@ -106,8 +106,6 @@ struct scan_control {
- 	unsigned long nr_reclaimed;
- };
- 
--#define lru_to_page(_head) (list_entry((_head)->prev, struct page, lru))
+ /* common/generic parameters */
+ #define MADV_FREE	8		/* free pages only if memory pressure */
+_
+
+Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch
+
