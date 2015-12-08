@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + net-tcp_memcontrol-simplify-the-per-memcg-limit-access.patch
+Subject: +
+ net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
  added to -mm tree
-Date: Tue, 08 Dec 2015 14:51:57 -0800
-Message-ID: <56675f0d.1OabDKTvvcIHKnn/%akpm@linux-foundation.org>
+Date: Tue, 08 Dec 2015 14:51:53 -0800
+Message-ID: <56675f09.hQSe9JumC7ShCOYV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33642 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33630 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751157AbbLHWv7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 17:51:59 -0500
+	with ESMTP id S1751358AbbLHWvz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 17:51:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, davem@davemloft.net, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: net: tcp_memcontrol: simplify the per-memcg limit access
+     Subject: net: tcp_memcontrol: protect all tcp_memcontrol calls by jump-label
 has been added to the -mm tree.  Its filename is
-     net-tcp_memcontrol-simplify-the-per-memcg-limit-access.patch
+     net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/net-tcp_memcontrol-simplify-the-per-memcg-limit-access.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/net-tcp_memcontrol-simplify-the-per-memcg-limit-access.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,85 +41,180 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: net: tcp_memcontrol: simplify the per-memcg limit access
+Subject: net: tcp_memcontrol: protect all tcp_memcontrol calls by jump-label
 
-tcp_memcontrol replicates the global sysctl_mem limit array per cgroup,
-but it only ever sets these entries to the value of the memory_allocated
-page_counter limit.  Use the latter directly.
+Move the jump-label from sock_update_memcg() and sock_release_memcg() to
+the callsite, and so eliminate those function calls when socket accounting
+is not enabled.
+
+This also eliminates the need for dummy functions because the calls will
+be optimized away if the Kconfig options are not enabled.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Acked-by: David S. Miller <davem@davemloft.net>
+Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    1 -
- include/net/sock.h         |    8 +++++---
- net/ipv4/tcp_memcontrol.c  |    8 --------
- 3 files changed, 5 insertions(+), 12 deletions(-)
+ include/linux/memcontrol.h |    9 -----
+ mm/memcontrol.c            |   62 +++++++++++++++--------------------
+ net/core/sock.c            |    9 +----
+ net/ipv4/tcp.c             |    3 +
+ net/ipv4/tcp_ipv4.c        |    4 +-
+ 5 files changed, 35 insertions(+), 52 deletions(-)
 
-diff -puN include/linux/memcontrol.h~net-tcp_memcontrol-simplify-the-per-memcg-limit-access include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~net-tcp_memcontrol-simplify-the-per-memcg-limit-access
+diff -puN include/linux/memcontrol.h~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label
 +++ a/include/linux/memcontrol.h
-@@ -89,7 +89,6 @@ struct cg_proto {
- 	struct page_counter	memory_allocated;	/* Current allocated memory. */
- 	int			memory_pressure;
- 	bool			active;
--	long			sysctl_mem[3];
- 	/*
- 	 * memcg field is used to find which memcg we belong directly
- 	 * Each memcg struct can hold more than one cg_proto, so container_of
-diff -puN include/net/sock.h~net-tcp_memcontrol-simplify-the-per-memcg-limit-access include/net/sock.h
---- a/include/net/sock.h~net-tcp_memcontrol-simplify-the-per-memcg-limit-access
-+++ a/include/net/sock.h
-@@ -1160,10 +1160,12 @@ static inline void sk_enter_memory_press
+@@ -694,17 +694,8 @@ static inline void mem_cgroup_wb_stats(s
+ #endif	/* CONFIG_CGROUP_WRITEBACK */
  
- static inline long sk_prot_mem_limits(const struct sock *sk, int index)
+ struct sock;
+-#if defined(CONFIG_INET) && defined(CONFIG_MEMCG_KMEM)
+ void sock_update_memcg(struct sock *sk);
+ void sock_release_memcg(struct sock *sk);
+-#else
+-static inline void sock_update_memcg(struct sock *sk)
+-{
+-}
+-static inline void sock_release_memcg(struct sock *sk)
+-{
+-}
+-#endif /* CONFIG_INET && CONFIG_MEMCG_KMEM */
+ 
+ #ifdef CONFIG_MEMCG_KMEM
+ extern struct static_key memcg_kmem_enabled_key;
+diff -puN mm/memcontrol.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label mm/memcontrol.c
+--- a/mm/memcontrol.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label
++++ a/mm/memcontrol.c
+@@ -293,46 +293,40 @@ static inline struct mem_cgroup *mem_cgr
+ 
+ void sock_update_memcg(struct sock *sk)
  {
--	long *prot = sk->sk_prot->sysctl_mem;
-+	long limit = sk->sk_prot->sysctl_mem[index];
+-	if (mem_cgroup_sockets_enabled) {
+-		struct mem_cgroup *memcg;
+-		struct cg_proto *cg_proto;
+-
+-		BUG_ON(!sk->sk_prot->proto_cgroup);
+-
+-		/* Socket cloning can throw us here with sk_cgrp already
+-		 * filled. It won't however, necessarily happen from
+-		 * process context. So the test for root memcg given
+-		 * the current task's memcg won't help us in this case.
+-		 *
+-		 * Respecting the original socket's memcg is a better
+-		 * decision in this case.
+-		 */
+-		if (sk->sk_cgrp) {
+-			BUG_ON(mem_cgroup_is_root(sk->sk_cgrp->memcg));
+-			css_get(&sk->sk_cgrp->memcg->css);
+-			return;
+-		}
+-
+-		rcu_read_lock();
+-		memcg = mem_cgroup_from_task(current);
+-		cg_proto = sk->sk_prot->proto_cgroup(memcg);
+-		if (cg_proto && cg_proto->active &&
+-		    css_tryget_online(&memcg->css)) {
+-			sk->sk_cgrp = cg_proto;
+-		}
+-		rcu_read_unlock();
++	struct mem_cgroup *memcg;
++	struct cg_proto *cg_proto;
 +
- 	if (mem_cgroup_sockets_enabled && sk->sk_cgrp)
--		prot = sk->sk_cgrp->sysctl_mem;
--	return prot[index];
-+		limit = min_t(long, limit, sk->sk_cgrp->memory_allocated.limit);
++	BUG_ON(!sk->sk_prot->proto_cgroup);
 +
-+	return limit;
++	/* Socket cloning can throw us here with sk_cgrp already
++	 * filled. It won't however, necessarily happen from
++	 * process context. So the test for root memcg given
++	 * the current task's memcg won't help us in this case.
++	 *
++	 * Respecting the original socket's memcg is a better
++	 * decision in this case.
++	 */
++	if (sk->sk_cgrp) {
++		BUG_ON(mem_cgroup_is_root(sk->sk_cgrp->memcg));
++		css_get(&sk->sk_cgrp->memcg->css);
++		return;
+ 	}
++
++	rcu_read_lock();
++	memcg = mem_cgroup_from_task(current);
++	cg_proto = sk->sk_prot->proto_cgroup(memcg);
++	if (cg_proto && cg_proto->active &&
++	    css_tryget_online(&memcg->css)) {
++		sk->sk_cgrp = cg_proto;
++	}
++	rcu_read_unlock();
+ }
+ EXPORT_SYMBOL(sock_update_memcg);
+ 
+ void sock_release_memcg(struct sock *sk)
+ {
+-	if (mem_cgroup_sockets_enabled && sk->sk_cgrp) {
+-		struct mem_cgroup *memcg;
+-		WARN_ON(!sk->sk_cgrp->memcg);
+-		memcg = sk->sk_cgrp->memcg;
+-		css_put(&sk->sk_cgrp->memcg->css);
+-	}
++	WARN_ON(!sk->sk_cgrp->memcg);
++	css_put(&sk->sk_cgrp->memcg->css);
  }
  
- static inline void memcg_memory_allocated_add(struct cg_proto *prot,
-diff -puN net/ipv4/tcp_memcontrol.c~net-tcp_memcontrol-simplify-the-per-memcg-limit-access net/ipv4/tcp_memcontrol.c
---- a/net/ipv4/tcp_memcontrol.c~net-tcp_memcontrol-simplify-the-per-memcg-limit-access
-+++ a/net/ipv4/tcp_memcontrol.c
-@@ -21,9 +21,6 @@ int tcp_init_cgroup(struct mem_cgroup *m
- 	if (!cg_proto)
- 		return 0;
+ struct cg_proto *tcp_proto_cgroup(struct mem_cgroup *memcg)
+diff -puN net/core/sock.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label net/core/sock.c
+--- a/net/core/sock.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label
++++ a/net/core/sock.c
+@@ -1488,12 +1488,6 @@ void sk_free(struct sock *sk)
+ }
+ EXPORT_SYMBOL(sk_free);
  
--	cg_proto->sysctl_mem[0] = sysctl_tcp_mem[0];
--	cg_proto->sysctl_mem[1] = sysctl_tcp_mem[1];
--	cg_proto->sysctl_mem[2] = sysctl_tcp_mem[2];
- 	cg_proto->memory_pressure = 0;
- 	cg_proto->memcg = memcg;
- 
-@@ -54,7 +51,6 @@ EXPORT_SYMBOL(tcp_destroy_cgroup);
- static int tcp_update_limit(struct mem_cgroup *memcg, unsigned long nr_pages)
- {
- 	struct cg_proto *cg_proto;
--	int i;
- 	int ret;
- 
- 	cg_proto = tcp_prot.proto_cgroup(memcg);
-@@ -65,10 +61,6 @@ static int tcp_update_limit(struct mem_c
- 	if (ret)
- 		return ret;
- 
--	for (i = 0; i < 3; i++)
--		cg_proto->sysctl_mem[i] = min_t(long, nr_pages,
--						sysctl_tcp_mem[i]);
+-static void sk_update_clone(const struct sock *sk, struct sock *newsk)
+-{
+-	if (mem_cgroup_sockets_enabled && sk->sk_cgrp)
+-		sock_update_memcg(newsk);
+-}
 -
- 	if (!cg_proto->active) {
- 		/*
- 		 * The active flag needs to be written after the static_key
+ /**
+  *	sk_clone_lock - clone a socket, and lock its clone
+  *	@sk: the socket to clone
+@@ -1588,7 +1582,8 @@ struct sock *sk_clone_lock(const struct
+ 		sk_set_socket(newsk, NULL);
+ 		newsk->sk_wq = NULL;
+ 
+-		sk_update_clone(sk, newsk);
++		if (mem_cgroup_sockets_enabled && sk->sk_cgrp)
++			sock_update_memcg(newsk);
+ 
+ 		if (newsk->sk_prot->sockets_allocated)
+ 			sk_sockets_allocated_inc(newsk);
+diff -puN net/ipv4/tcp.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label net/ipv4/tcp.c
+--- a/net/ipv4/tcp.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label
++++ a/net/ipv4/tcp.c
+@@ -422,7 +422,8 @@ void tcp_init_sock(struct sock *sk)
+ 	sk->sk_rcvbuf = sysctl_tcp_rmem[1];
+ 
+ 	local_bh_disable();
+-	sock_update_memcg(sk);
++	if (mem_cgroup_sockets_enabled)
++		sock_update_memcg(sk);
+ 	sk_sockets_allocated_inc(sk);
+ 	local_bh_enable();
+ }
+diff -puN net/ipv4/tcp_ipv4.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label net/ipv4/tcp_ipv4.c
+--- a/net/ipv4/tcp_ipv4.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label
++++ a/net/ipv4/tcp_ipv4.c
+@@ -1813,7 +1813,9 @@ void tcp_v4_destroy_sock(struct sock *sk
+ 	tcp_saved_syn_free(tp);
+ 
+ 	sk_sockets_allocated_dec(sk);
+-	sock_release_memcg(sk);
++
++	if (mem_cgroup_sockets_enabled && sk->sk_cgrp)
++		sock_release_memcg(sk);
+ }
+ EXPORT_SYMBOL(tcp_v4_destroy_sock);
+ 
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
