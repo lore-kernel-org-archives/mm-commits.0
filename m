@@ -1,179 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- fs-clear-file-privilege-bits-when-mmap-writing.patch removed from -mm tree
-Date: Tue, 08 Dec 2015 15:32:37 -0800
-Message-ID: <56676895.vDYUVHZKHmC8etIY%akpm@linux-foundation.org>
+Subject: + ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+ added to -mm tree
+Date: Tue, 08 Dec 2015 15:59:34 -0800
+Message-ID: <56676ee6.N/fpt7cvNDSQGwKj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38468 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42966 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751214AbbLHXci (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 18:32:38 -0500
+	with ESMTP id S1751033AbbLHX7f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 18:59:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, aarcange@redhat.com, dave@stgolabs.net, ebiederm@xmission.com, gang.chen.5i5j@gmail.com, jack@suse.cz, kirill.shutemov@linux.intel.com, oleg@redhat.com, riel@redhat.com, viro@ftp.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs: clear file privilege bits when mmap writing
-has been removed from the -mm tree.  Its filename was
-     fs-clear-file-privilege-bits-when-mmap-writing.patch
+     Subject: ubsan-run-time-undefined-behavior-sanity-checker-fix-3
+has been added to the -mm tree.  Its filename is
+     ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: fs: clear file privilege bits when mmap writing
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ubsan-run-time-undefined-behavior-sanity-checker-fix-3
 
-Normally, when a user can modify a file that has setuid or setgid bits,
-those bits are cleared when they are not the file owner or a member of the
-group.  This is enforced when using write and truncate but not when
-writing to a shared mmap on the file.  This could allow the file writer to
-gain privileges by changing a binary without losing the setuid/setgid/caps
-bits.
+fix __int128 build woes
 
-Changing the bits requires holding inode->i_mutex, so it cannot be done
-during the page fault (due to mmap_sem being held during the fault). 
-Instead, clear the bits if PROT_WRITE is being used at mmap open time. 
-But we can't do the check in the right place inside mmap, so we have to do
-it before holding mmap_sem, which means duplicating some checks, which
-have to be available to the non-MMU builds too.
-
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Willy Tarreau <w@1wt.eu>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Chen Gang <gang.chen.5i5j@gmail.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Alexander Viro <viro@ftp.linux.org.uk>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 
- mm/mmap.c          |   19 +++-------------
- mm/util.c          |   50 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 55 insertions(+), 15 deletions(-)
+ lib/ubsan.c |    2 +-
+ lib/ubsan.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/mm.h~fs-clear-file-privilege-bits-when-mmap-writing include/linux/mm.h
---- a/include/linux/mm.h~fs-clear-file-privilege-bits-when-mmap-writing
-+++ a/include/linux/mm.h
-@@ -1943,6 +1943,7 @@ extern unsigned long get_unmapped_area(s
+diff -puN lib/ubsan.c~ubsan-run-time-undefined-behavior-sanity-checker-fix-3 lib/ubsan.c
+--- a/lib/ubsan.c~ubsan-run-time-undefined-behavior-sanity-checker-fix-3
++++ a/lib/ubsan.c
+@@ -120,7 +120,7 @@ static void val_to_string(char *str, siz
+ {
+ 	if (type_is_int(type)) {
+ 		if (type_bit_width(type) == 128) {
+-#ifdef CONFIG_ARCH_SUPPORTS_INT128
++#if defined(CONFIG_ARCH_SUPPORTS_INT128) && defined(__SIZEOF_INT128__)
+ 			u_max val = get_unsigned_val(type, value);
  
- extern unsigned long mmap_region(struct file *file, unsigned long addr,
- 	unsigned long len, vm_flags_t vm_flags, unsigned long pgoff);
-+extern int do_mmap_shared_checks(struct file *file, unsigned long prot);
- extern unsigned long do_mmap(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot, unsigned long flags,
- 	vm_flags_t vm_flags, unsigned long pgoff, unsigned long *populate);
-diff -puN mm/mmap.c~fs-clear-file-privilege-bits-when-mmap-writing mm/mmap.c
---- a/mm/mmap.c~fs-clear-file-privilege-bits-when-mmap-writing
-+++ a/mm/mmap.c
-@@ -1333,24 +1333,13 @@ unsigned long do_mmap(struct file *file,
+ 			scnprintf(str, size, "0x%08x%08x%08x%08x",
+diff -puN lib/ubsan.h~ubsan-run-time-undefined-behavior-sanity-checker-fix-3 lib/ubsan.h
+--- a/lib/ubsan.h~ubsan-run-time-undefined-behavior-sanity-checker-fix-3
++++ a/lib/ubsan.h
+@@ -73,7 +73,7 @@ struct invalid_value_data {
+ 	struct type_descriptor *type;
+ };
  
- 	if (file) {
- 		struct inode *inode = file_inode(file);
-+		int err;
- 
- 		switch (flags & MAP_TYPE) {
- 		case MAP_SHARED:
--			if ((prot&PROT_WRITE) && !(file->f_mode&FMODE_WRITE))
--				return -EACCES;
--
--			/*
--			 * Make sure we don't allow writing to an append-only
--			 * file..
--			 */
--			if (IS_APPEND(inode) && (file->f_mode & FMODE_WRITE))
--				return -EACCES;
--
--			/*
--			 * Make sure there are no mandatory locks on the file.
--			 */
--			if (locks_verify_locked(file))
--				return -EAGAIN;
-+			err = do_mmap_shared_checks(file, prot);
-+			if (err)
-+				return err;
- 
- 			vm_flags |= VM_SHARED | VM_MAYSHARE;
- 			if (!(file->f_mode & FMODE_WRITE))
-diff -puN mm/util.c~fs-clear-file-privilege-bits-when-mmap-writing mm/util.c
---- a/mm/util.c~fs-clear-file-privilege-bits-when-mmap-writing
-+++ a/mm/util.c
-@@ -283,6 +283,29 @@ int __weak get_user_pages_fast(unsigned
- }
- EXPORT_SYMBOL_GPL(get_user_pages_fast);
- 
-+int do_mmap_shared_checks(struct file *file, unsigned long prot)
-+{
-+	struct inode *inode = file_inode(file);
-+
-+	if ((prot & PROT_WRITE) && !(file->f_mode & FMODE_WRITE))
-+		return -EACCES;
-+
-+	/*
-+	 * Make sure we don't allow writing to an append-only
-+	 * file..
-+	 */
-+	if (IS_APPEND(inode) && (file->f_mode & FMODE_WRITE))
-+		return -EACCES;
-+
-+	/*
-+	 * Make sure there are no mandatory locks on the file.
-+	 */
-+	if (locks_verify_locked(file))
-+		return -EAGAIN;
-+
-+	return 0;
-+}
-+
- unsigned long vm_mmap_pgoff(struct file *file, unsigned long addr,
- 	unsigned long len, unsigned long prot,
- 	unsigned long flag, unsigned long pgoff)
-@@ -291,6 +314,33 @@ unsigned long vm_mmap_pgoff(struct file
- 	struct mm_struct *mm = current->mm;
- 	unsigned long populate;
- 
-+	/*
-+	 * If we must remove privs, we do it here since doing it during
-+	 * page fault may be expensive and cannot hold inode->i_mutex,
-+	 * since mm->mmap_sem is already held.
-+	 */
-+	if (file && (flag & MAP_TYPE) == MAP_SHARED && (prot & PROT_WRITE)) {
-+		struct inode *inode = file_inode(file);
-+		int err;
-+
-+		if (!IS_NOSEC(inode)) {
-+			/*
-+			 * Make sure we can't strip privs from a file that
-+			 * wouldn't otherwise be allowed to be mmapped.
-+			 */
-+			err = do_mmap_shared_checks(file, prot);
-+			if (err)
-+				return err;
-+
-+			mutex_lock(&inode->i_mutex);
-+			err = file_remove_privs(file);
-+			mutex_unlock(&inode->i_mutex);
-+
-+			if (err)
-+				return err;
-+		}
-+	}
-+
- 	ret = security_mmap_file(file, prot, flag);
- 	if (!ret) {
- 		down_write(&mm->mmap_sem);
+-#ifdef CONFIG_ARCH_SUPPORTS_INT128
++#if defined(CONFIG_ARCH_SUPPORTS_INT128) && defined(__SIZEOF_INT128__)
+ typedef __int128 s_max;
+ typedef unsigned __int128 u_max;
+ #else
 _
 
-Patches currently in -mm which might be from keescook@chromium.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-sysctl-enable-strict-writes.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+oom-kill-init-lead-panic-fix.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
+mm.patch
+account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
+mm-zonelist-enumerate-zonelists-array-index-fix.patch
+mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
+arm64-mm-support-arch_mmap_rnd_bits-fix.patch
+mm-memblock-use-memblock_insert_region-for-the-empty-array-checkpatch-fixes.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+mm-support-madvisemadv_free-fix-2-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
+lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
+lib-test_printfc-test-dentry-printing-fix.patch
+printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+linux-next-rejects.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
