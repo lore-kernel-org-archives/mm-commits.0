@@ -1,115 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- mm-increase-swap_cluster_max-to-batch-tlb-flushes.patch removed from -mm
- tree
-Date: Tue, 08 Dec 2015 12:36:32 -0800
-Message-ID: <56673f50.Ew0S1vuqi78qLSn7%akpm@linux-foundation.org>
+Subject: +
+ mm-memblock-use-memblock_insert_region-for-the-empty-array.patch added to
+ -mm tree
+Date: Tue, 08 Dec 2015 12:43:37 -0800
+Message-ID: <566740f9.oKz2gwI6Y3ycN5k+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45020 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46030 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752593AbbLHUge (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 15:36:34 -0500
+	with ESMTP id S1752594AbbLHUni (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 15:43:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@suse.de, dave.hansen@intel.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mingo@kernel.org, riel@redhat.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: kuleshovmail@gmail.com, penberg@kernel.org, tangchen@cn.fujitsu.com, tony.luck@intel.com, weiyang@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: increase SWAP_CLUSTER_MAX to batch TLB flushes
-has been removed from the -mm tree.  Its filename was
-     mm-increase-swap_cluster_max-to-batch-tlb-flushes.patch
+     Subject: mm/memblock.c: use memblock_insert_region() for the empty array
+has been added to the -mm tree.  Its filename is
+     mm-memblock-use-memblock_insert_region-for-the-empty-array.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memblock-use-memblock_insert_region-for-the-empty-array.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memblock-use-memblock_insert_region-for-the-empty-array.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@suse.de>
-Subject: mm: increase SWAP_CLUSTER_MAX to batch TLB flushes
+From: Alexander Kuleshov <kuleshovmail@gmail.com>
+Subject: mm/memblock.c: use memblock_insert_region() for the empty array
 
-Pages that are unmapped for reclaim must be flushed before being freed to
-avoid corruption due to a page being freed and reallocated while a stale
-TLB entry exists.  When reclaiming mapped pages, the requires one IPI per
-SWAP_CLUSTER_MAX.  This patch increases SWAP_CLUSTER_MAX to 256 so more
-pages can be flushed with a single IPI.  This number was selected because
-it reduced IPIs for TLB shootdowns by 40% on a workload that is dominated
-by mapped pages.
+We have the special case for an empty array in memblock_add_range().  At
+the same time we have almost the same functionality in
+memblock_insert_region().  Let's use memblock_insert_region() instead of
+direct initialization.
 
-Note that it is expected that doubling SWAP_CLUSTER_MAX would not always
-halve the IPIs as it is workload dependent.  Reclaim efficiency was not
-100% on this workload which was picked for being IPI-intensive and was
-closer to 35%.  More importantly, reclaim does not always isolate in
-SWAP_CLUSTER_MAX pages.  The LRU lists for a zone may be small, the
-priority can be low and even when reclaiming a lot of pages, the last
-isolation may not be exactly SWAP_CLUSTER_MAX.
-
-There are a few potential issues with increasing SWAP_CLUSTER_MAX.
-
-1. LRU lock hold times increase slightly because more pages are being
-   isolated.
-2. There are slight timing changes due to more pages having to be
-   processed before they are freed. There is a slight risk that more
-   pages than are necessary get reclaimed.
-3. There is a risk that too_many_isolated checks will be easier to
-   trigger resulting in a HZ/10 stall.
-4. The rotation rate of active->inactive is slightly faster but there
-   should be fewer rotations before the lists get balanced so it
-   shouldn't matter.
-5. More pages are reclaimed in a single pass if zone_reclaim_mode is
-   active but that thing sucks hard when it's enabled no matter what
-6. More pages are isolated for compaction so page hold times there
-   are longer while they are being copied
-
-It's unlikely any of these will be problems but worth keeping in mind if
-there are any reclaim-related bug reports in the near future.
-
-[hannes@cmpxchg.org: fix scan window after SWAP_CLUSTER_MAX increase]
-[akpm@linux-foundation.org: s/SWAP_CLUSTER_MAX/SWAP_CLUSTER_MAX * 2/, per Johannes]
-[js1304@gmail.com: restore COMPACT_CLUSTER_MAX to 32]
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Acked-by: Ingo Molnar <mingo@kernel.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Wei Yang <weiyang@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    4 ++--
- mm/vmpressure.c      |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ mm/memblock.c |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/swap.h~mm-increase-swap_cluster_max-to-batch-tlb-flushes include/linux/swap.h
---- a/include/linux/swap.h~mm-increase-swap_cluster_max-to-batch-tlb-flushes
-+++ a/include/linux/swap.h
-@@ -154,8 +154,8 @@ enum {
- 	SWP_SCANNING	= (1 << 10),	/* refcount in scan_swap_map */
- };
+diff -puN mm/memblock.c~mm-memblock-use-memblock_insert_region-for-the-empty-array mm/memblock.c
+--- a/mm/memblock.c~mm-memblock-use-memblock_insert_region-for-the-empty-array
++++ a/mm/memblock.c
+@@ -493,12 +493,16 @@ static void __init_memblock memblock_ins
+ 	struct memblock_region *rgn = &type->regions[idx];
  
--#define SWAP_CLUSTER_MAX 32UL
--#define COMPACT_CLUSTER_MAX SWAP_CLUSTER_MAX
-+#define SWAP_CLUSTER_MAX 256UL
-+#define COMPACT_CLUSTER_MAX 32UL
+ 	BUG_ON(type->cnt >= type->max);
+-	memmove(rgn + 1, rgn, (type->cnt - idx) * sizeof(*rgn));
++	/* special case for empty array */
++	if (idx)
++	{
++		memmove(rgn + 1, rgn, (type->cnt - idx) * sizeof(*rgn));
++		type->cnt++;
++	}
+ 	rgn->base = base;
+ 	rgn->size = size;
+ 	rgn->flags = flags;
+ 	memblock_set_region_node(rgn, nid);
+-	type->cnt++;
+ 	type->total_size += size;
+ }
  
- /*
-  * Ratio between zone->managed_pages and the "gap" that above the per-zone
-diff -puN mm/vmpressure.c~mm-increase-swap_cluster_max-to-batch-tlb-flushes mm/vmpressure.c
---- a/mm/vmpressure.c~mm-increase-swap_cluster_max-to-batch-tlb-flushes
-+++ a/mm/vmpressure.c
-@@ -38,7 +38,7 @@
-  * TODO: Make the window size depend on machine size, as we do for vmstat
-  * thresholds. Currently we set it to 512 pages (2MB for 4KB pages).
-  */
--static const unsigned long vmpressure_win = SWAP_CLUSTER_MAX * 16;
-+static const unsigned long vmpressure_win = SWAP_CLUSTER_MAX * 2;
- 
- /*
-  * These thresholds are used when we account memory pressure through
+@@ -534,11 +538,7 @@ int __init_memblock memblock_add_range(s
+ 	/* special case for empty array */
+ 	if (type->regions[0].size == 0) {
+ 		WARN_ON(type->cnt != 1 || type->total_size);
+-		type->regions[0].base = base;
+-		type->regions[0].size = size;
+-		type->regions[0].flags = flags;
+-		memblock_set_region_node(&type->regions[0], nid);
+-		type->total_size = size;
++		memblock_insert_region(type, 0, base, size, nid, flags);
+ 		return 0;
+ 	}
+ repeat:
 _
 
-Patches currently in -mm which might be from mgorman@suse.de are
+Patches currently in -mm which might be from kuleshovmail@gmail.com are
 
+mm-memblock-remove-rgnbase-and-rgnsize-variables.patch
+mm-memblock-introduce-for_each_memblock_type.patch
+mm-memblock-use-memblock_insert_region-for-the-empty-array.patch
 
