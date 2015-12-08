@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- net-tcp_memcontrol-properly-detect-ancestor-socket-pressure.patch added to
- -mm tree
-Date: Tue, 08 Dec 2015 14:51:49 -0800
-Message-ID: <56675f05.azsCpRYGgHtTOvDN%akpm@linux-foundation.org>
+ net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation.patch added
+ to -mm tree
+Date: Tue, 08 Dec 2015 14:51:51 -0800
+Message-ID: <56675f07.du+yq7OL9AfzlUC8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33615 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33624 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751157AbbLHWvu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 17:51:50 -0500
+	with ESMTP id S1751157AbbLHWvw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 8 Dec 2015 17:51:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, davem@davemloft.net, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: net: tcp_memcontrol: properly detect ancestor socket pressure
+     Subject: net: tcp_memcontrol: remove bogus hierarchy pressure propagation
 has been added to the -mm tree.  Its filename is
-     net-tcp_memcontrol-properly-detect-ancestor-socket-pressure.patch
+     net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/net-tcp_memcontrol-properly-detect-ancestor-socket-pressure.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/net-tcp_memcontrol-properly-detect-ancestor-socket-pressure.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,49 +41,65 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: net: tcp_memcontrol: properly detect ancestor socket pressure
+Subject: net: tcp_memcontrol: remove bogus hierarchy pressure propagation
 
-When charging socket memory, the code currently checks only the local page
-counter for excess to determine whether the memcg is under socket
-pressure.  But even if the local counter is fine, one of the ancestors
-could have breached its limit, which should also force this child to enter
-socket pressure.  This currently doesn't happen.
+When a cgroup currently breaches its socket memory limit, it enters memory
+pressure mode for itself and its *ancestors*.  This throttles transmission
+in unrelated sibling and cousin subtrees that have nothing to do with the
+breached limit.
 
-Fix this by using page_counter_try_charge() first.  If that fails, it
-means that either the local counter or one of the ancestors are in excess
-of their limit, and the child should enter socket pressure.
+On the contrary, breaching a limit should make that group and its
+*children* enter memory pressure mode.  But this happens already, albeit
+lazily: if an ancestor limit is breached, siblings will enter memory
+pressure on their own once the next packet arrives for them.
 
-Fixes: 3e32cb2e0a12 ("mm: memcontrol: lockless page counters")
+So no additional hierarchy code is needed. Remove the bogus stuff.
+
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: David S. Miller <davem@davemloft.net>
 Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/sock.h |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ include/net/sock.h |   19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
-diff -puN include/net/sock.h~net-tcp_memcontrol-properly-detect-ancestor-socket-pressure include/net/sock.h
---- a/include/net/sock.h~net-tcp_memcontrol-properly-detect-ancestor-socket-pressure
+diff -puN include/net/sock.h~net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation include/net/sock.h
+--- a/include/net/sock.h~net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation
 +++ a/include/net/sock.h
-@@ -1191,11 +1191,13 @@ static inline void memcg_memory_allocate
- 					      unsigned long amt,
- 					      int *parent_status)
- {
--	page_counter_charge(&prot->memory_allocated, amt);
-+	struct page_counter *counter;
-+
-+	if (page_counter_try_charge(&prot->memory_allocated, amt, &counter))
-+		return;
+@@ -1153,14 +1153,8 @@ static inline void sk_leave_memory_press
+ 	if (*memory_pressure)
+ 		*memory_pressure = 0;
  
--	if (page_counter_read(&prot->memory_allocated) >
--	    prot->memory_allocated.limit)
--		*parent_status = OVER_LIMIT;
-+	page_counter_charge(&prot->memory_allocated, amt);
-+	*parent_status = OVER_LIMIT;
+-	if (mem_cgroup_sockets_enabled && sk->sk_cgrp) {
+-		struct cg_proto *cg_proto = sk->sk_cgrp;
+-		struct proto *prot = sk->sk_prot;
+-
+-		for (; cg_proto; cg_proto = parent_cg_proto(prot, cg_proto))
+-			cg_proto->memory_pressure = 0;
+-	}
+-
++	if (mem_cgroup_sockets_enabled && sk->sk_cgrp)
++		sk->sk_cgrp->memory_pressure = 0;
  }
  
- static inline void memcg_memory_allocated_sub(struct cg_proto *prot,
+ static inline void sk_enter_memory_pressure(struct sock *sk)
+@@ -1168,13 +1162,8 @@ static inline void sk_enter_memory_press
+ 	if (!sk->sk_prot->enter_memory_pressure)
+ 		return;
+ 
+-	if (mem_cgroup_sockets_enabled && sk->sk_cgrp) {
+-		struct cg_proto *cg_proto = sk->sk_cgrp;
+-		struct proto *prot = sk->sk_prot;
+-
+-		for (; cg_proto; cg_proto = parent_cg_proto(prot, cg_proto))
+-			cg_proto->memory_pressure = 1;
+-	}
++	if (mem_cgroup_sockets_enabled && sk->sk_cgrp)
++		sk->sk_cgrp->memory_pressure = 1;
+ 
+ 	sk->sk_prot->enter_memory_pressure(sk);
+ }
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
