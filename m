@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + printk-nmi-use-irq-work-only-when-ready.patch added to -mm tree
-Date: Wed, 09 Dec 2015 15:50:30 -0800
-Message-ID: <5668be46.3v1f60WVSbYM//ZS%akpm@linux-foundation.org>
+Subject: +
+ printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable.patch
+ added to -mm tree
+Date: Wed, 09 Dec 2015 15:50:37 -0800
+Message-ID: <5668be4d.ktLGPvUBt1QneQ3u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42651 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42747 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754189AbbLIXub (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2015 18:50:31 -0500
+	with ESMTP id S1753433AbbLIXuj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2015 18:50:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: pmladek@suse.com, benh@kernel.crashing.org, daniel.thompson@linaro.org, davem@davemloft.net, jack@suse.cz, jkosina@suse.com, mingo@redhat.com, peterz@infradead.org, ralf@linux-mips.org, rmk+kernel@arm.linux.org.uk, rostedt@goodmis.org, schwidefsky@de.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk/nmi: use IRQ work only when ready
+     Subject: printk/nmi: increase the size of NMI buffer and make it configurable
 has been added to the -mm tree.  Its filename is
-     printk-nmi-use-irq-work-only-when-ready.patch
+     printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-nmi-use-irq-work-only-when-ready.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-nmi-use-irq-work-only-when-ready.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,13 +41,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Petr Mladek <pmladek@suse.com>
-Subject: printk/nmi: use IRQ work only when ready
+Subject: printk/nmi: increase the size of NMI buffer and make it configurable
 
-NMIs could happen at any time.  This patch makes sure that the safe
-printk() in NMI will schedule IRQ work only when the related structs are
-initialized.
+Testing has shown that the backtrace sometimes does not fit into the 4kB
+temporary buffer that is used in NMI context.  The warnings are gone when
+I double the temporary buffer size.
 
-All pending messages are flushed when the IRQ work is being initialized.
+This patch doubles the buffer size and makes it configurable.
+
+Note that this problem existed even in the x86-specific implementation
+that was added by the commit a9edc8809328 ("x86/nmi: Perform a safe NMI
+stack trace on all CPUs").  Nobody noticed it because it did not print any
+warnings.
 
 Signed-off-by: Petr Mladek <pmladek@suse.com>
 Cc: Jan Kara <jack@suse.cz>
@@ -63,47 +70,55 @@ Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/nmi.c |   13 ++++++++++++-
- 1 file changed, 12 insertions(+), 1 deletion(-)
+ init/Kconfig        |   22 ++++++++++++++++++++++
+ kernel/printk/nmi.c |    3 ++-
+ 2 files changed, 24 insertions(+), 1 deletion(-)
 
-diff -puN kernel/printk/nmi.c~printk-nmi-use-irq-work-only-when-ready kernel/printk/nmi.c
---- a/kernel/printk/nmi.c~printk-nmi-use-irq-work-only-when-ready
+diff -puN init/Kconfig~printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable init/Kconfig
+--- a/init/Kconfig~printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable
++++ a/init/Kconfig
+@@ -866,6 +866,28 @@ config LOG_CPU_MAX_BUF_SHIFT
+ 		     13 =>   8 KB for each CPU
+ 		     12 =>   4 KB for each CPU
+ 
++config NMI_LOG_BUF_SHIFT
++	int "Temporary per-CPU NMI log buffer size (12 => 4KB, 13 => 8KB)"
++	range 10 21
++	default 13
++	depends on PRINTK && HAVE_NMI
++	help
++	  Select the size of a per-CPU buffer where NMI messages are temporary
++	  stored. They are copied to the main log buffer in a safe context
++	  to avoid a deadlock. The value defines the size as a power of 2.
++
++	  NMI messages are rare and limited. The largest one is when
++	  a backtrace is printed. It usually fits into 4KB. Select
++	  8KB if you want to be on the safe side.
++
++	  Examples:
++		     17 => 128 KB for each CPU
++		     16 =>  64 KB for each CPU
++		     15 =>  32 KB for each CPU
++		     14 =>  16 KB for each CPU
++		     13 =>   8 KB for each CPU
++		     12 =>   4 KB for each CPU
++
+ #
+ # Architectures with an unreliable sched_clock() should select this:
+ #
+diff -puN kernel/printk/nmi.c~printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable kernel/printk/nmi.c
+--- a/kernel/printk/nmi.c~printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable
 +++ a/kernel/printk/nmi.c
-@@ -38,6 +38,7 @@
-  * were handled or when IRQs are blocked.
-  */
- DEFINE_PER_CPU(printk_func_t, printk_func) = vprintk_default;
-+static int printk_nmi_irq_ready;
+@@ -41,7 +41,8 @@ DEFINE_PER_CPU(printk_func_t, printk_fun
+ static int printk_nmi_irq_ready;
+ atomic_t nmi_message_lost;
  
- #define NMI_LOG_BUF_LEN (4096 - sizeof(atomic_t) - sizeof(struct irq_work))
+-#define NMI_LOG_BUF_LEN (4096 - sizeof(atomic_t) - sizeof(struct irq_work))
++#define NMI_LOG_BUF_LEN ((1 << CONFIG_NMI_LOG_BUF_SHIFT) -		\
++			 sizeof(atomic_t) - sizeof(struct irq_work))
  
-@@ -83,8 +84,11 @@ again:
- 		goto again;
- 
- 	/* Get flushed in a more safe context. */
--	if (add)
-+	if (add && printk_nmi_irq_ready) {
-+		/* Make sure that IRQ work is really initialized. */
-+		smp_rmb();
- 		irq_work_queue(&s->work);
-+	}
- 
- 	return add;
- }
-@@ -190,6 +194,13 @@ void __init printk_nmi_init(void)
- 
- 		init_irq_work(&s->work, __printk_nmi_flush);
- 	}
-+
-+	/* Make sure that IRQ works are initialized before enabling. */
-+	smp_wmb();
-+	printk_nmi_irq_ready = 1;
-+
-+	/* Flush pending messages that did not have scheduled IRQ works. */
-+	printk_nmi_flush();
- }
- 
- void printk_nmi_enter(void)
+ struct nmi_seq_buf {
+ 	atomic_t		len;	/* length of written data */
 _
 
 Patches currently in -mm which might be from pmladek@suse.com are
