@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context.patch added
- to -mm tree
-Date: Wed, 09 Dec 2015 15:50:34 -0800
-Message-ID: <5668be4a.B1B/Zjn0SYQRbs1/%akpm@linux-foundation.org>
+Subject: + printk-nmi-use-irq-work-only-when-ready.patch added to -mm tree
+Date: Wed, 09 Dec 2015 15:50:30 -0800
+Message-ID: <5668be46.3v1f60WVSbYM//ZS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42732 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42651 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753433AbbLIXui (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2015 18:50:38 -0500
+	with ESMTP id S1754189AbbLIXub (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2015 18:50:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: pmladek@suse.com, benh@kernel.crashing.org, daniel.thompson@linaro.org, davem@davemloft.net, jack@suse.cz, jkosina@suse.com, mingo@redhat.com, peterz@infradead.org, ralf@linux-mips.org, rmk+kernel@arm.linux.org.uk, rostedt@goodmis.org, schwidefsky@de.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk/nmi: warn when some message has been lost in NMI context
+     Subject: printk/nmi: use IRQ work only when ready
 has been added to the -mm tree.  Its filename is
-     printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context.patch
+     printk-nmi-use-irq-work-only-when-ready.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-nmi-use-irq-work-only-when-ready.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-nmi-use-irq-work-only-when-ready.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,14 +39,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Petr Mladek <pmladek@suse.com>
-Subject: printk/nmi: warn when some message has been lost in NMI context
+Subject: printk/nmi: use IRQ work only when ready
 
-We could not resize the temporary buffer in NMI context.  Let's warn if a
-message is lost.
+NMIs could happen at any time.  This patch makes sure that the safe
+printk() in NMI will schedule IRQ work only when the related structs are
+initialized.
 
-This is rather theoretical.  printk() should not be used in NMI.  The only
-sensible use is when we want to print backtrace from all CPUs.  The
-current buffer should be enough for this purpose.
+All pending messages are flushed when the IRQ work is being initialized.
 
 Signed-off-by: Petr Mladek <pmladek@suse.com>
 Cc: Jan Kara <jack@suse.cz>
@@ -66,87 +63,47 @@ Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/nmi.c    |    5 ++++-
- kernel/printk/printk.c |   10 ++++++++++
- kernel/printk/printk.h |   11 +++++++++++
- 3 files changed, 25 insertions(+), 1 deletion(-)
+ kernel/printk/nmi.c |   13 ++++++++++++-
+ 1 file changed, 12 insertions(+), 1 deletion(-)
 
-diff -puN kernel/printk/nmi.c~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context kernel/printk/nmi.c
---- a/kernel/printk/nmi.c~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context
+diff -puN kernel/printk/nmi.c~printk-nmi-use-irq-work-only-when-ready kernel/printk/nmi.c
+--- a/kernel/printk/nmi.c~printk-nmi-use-irq-work-only-when-ready
 +++ a/kernel/printk/nmi.c
-@@ -39,6 +39,7 @@
+@@ -38,6 +38,7 @@
+  * were handled or when IRQs are blocked.
   */
  DEFINE_PER_CPU(printk_func_t, printk_func) = vprintk_default;
- static int printk_nmi_irq_ready;
-+atomic_t nmi_message_lost;
++static int printk_nmi_irq_ready;
  
  #define NMI_LOG_BUF_LEN (4096 - sizeof(atomic_t) - sizeof(struct irq_work))
  
-@@ -63,8 +64,10 @@ static int vprintk_nmi(const char *fmt,
- again:
- 	len = atomic_read(&s->len);
+@@ -83,8 +84,11 @@ again:
+ 		goto again;
  
--	if (len >=  sizeof(s->buffer))
-+	if (len >=  sizeof(s->buffer)) {
-+		atomic_inc(&nmi_message_lost);
- 		return 0;
+ 	/* Get flushed in a more safe context. */
+-	if (add)
++	if (add && printk_nmi_irq_ready) {
++		/* Make sure that IRQ work is really initialized. */
++		smp_rmb();
+ 		irq_work_queue(&s->work);
 +	}
  
- 	/*
- 	 * Make sure that all old data have been read before the buffer was
-diff -puN kernel/printk/printk.c~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context
-+++ a/kernel/printk/printk.c
-@@ -1670,6 +1670,7 @@ asmlinkage int vprintk_emit(int facility
- 	unsigned long flags;
- 	int this_cpu;
- 	int printed_len = 0;
-+	int nmi_message_lost;
- 	bool in_sched = false;
- 	/* cpu currently holding logbuf_lock in this function */
- 	static unsigned int logbuf_cpu = UINT_MAX;
-@@ -1720,6 +1721,15 @@ asmlinkage int vprintk_emit(int facility
- 					 strlen(recursion_msg));
+ 	return add;
+ }
+@@ -190,6 +194,13 @@ void __init printk_nmi_init(void)
+ 
+ 		init_irq_work(&s->work, __printk_nmi_flush);
  	}
- 
-+	nmi_message_lost = get_nmi_message_lost();
-+	if (unlikely(nmi_message_lost)) {
-+		text_len = scnprintf(textbuf, sizeof(textbuf),
-+				     "BAD LUCK: lost %d message(s) from NMI context!",
-+				     nmi_message_lost);
-+		printed_len += log_store(0, 2, LOG_PREFIX|LOG_NEWLINE, 0,
-+					 NULL, 0, textbuf, text_len);
-+	}
 +
- 	/*
- 	 * The printf needs to come first; we need the syslog
- 	 * prefix which might be passed-in as a parameter.
-diff -puN kernel/printk/printk.h~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context kernel/printk/printk.h
---- a/kernel/printk/printk.h~printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context
-+++ a/kernel/printk/printk.h
-@@ -34,6 +34,12 @@ static inline __printf(1, 0) int vprintk
- 	return this_cpu_read(printk_func)(fmt, args);
++	/* Make sure that IRQ works are initialized before enabling. */
++	smp_wmb();
++	printk_nmi_irq_ready = 1;
++
++	/* Flush pending messages that did not have scheduled IRQ works. */
++	printk_nmi_flush();
  }
  
-+extern atomic_t nmi_message_lost;
-+static inline int get_nmi_message_lost(void)
-+{
-+	return atomic_xchg(&nmi_message_lost, 0);
-+}
-+
- #else /* CONFIG_PRINTK_NMI */
- 
- static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
-@@ -41,4 +47,9 @@ static inline __printf(1, 0) int vprintk
- 	return vprintk_default(fmt, args);
- }
- 
-+static inline int get_nmi_message_lost(void)
-+{
-+	return 0;
-+}
-+
- #endif /* CONFIG_PRINTK_NMI */
+ void printk_nmi_enter(void)
 _
 
 Patches currently in -mm which might be from pmladek@suse.com are
