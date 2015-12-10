@@ -1,438 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] test_hexdump-rename-to-test_hexdump.patch removed from -mm tree
-Date: Wed, 09 Dec 2015 16:23:21 -0800
-Message-ID: <5668c5f9.950ki/uoz4LzbXEN%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ test_hexdump-introduce-test_hexdump_prepare_test-helper.patch removed from
+ -mm tree
+Date: Wed, 09 Dec 2015 16:23:23 -0800
+Message-ID: <5668c5fb.4lRlOrI/YhGMijyI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46607 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46610 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751937AbbLJAXV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2015 19:23:21 -0500
+	with ESMTP id S1753162AbbLJAXX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2015 19:23:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: test_hexdump: rename to test_hexdump
+     Subject: test_hexdump: introduce test_hexdump_prepare_test() helper
 has been removed from the -mm tree.  Its filename was
-     test_hexdump-rename-to-test_hexdump.patch
+     test_hexdump-introduce-test_hexdump_prepare_test-helper.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: test_hexdump: rename to test_hexdump
+Subject: test_hexdump: introduce test_hexdump_prepare_test() helper
 
-The test suite currently doesn't cover many corner cases when
-hex_dump_to_buffer() runs into overflow.  Refactor and amend test suite to
-cover most of the cases.
-
-
-This patch (of 7):
-
-Just to follow the scheme that most of the test modules are using.
-
-There is no fuctional change.
+The function prepares the expected result in the provided buffer.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile       |    2 
- lib/test-hexdump.c |  180 -------------------------------------------
- lib/test_hexdump.c |  180 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 181 insertions(+), 181 deletions(-)
+ lib/test_hexdump.c |   26 +++++++++++++++++++-------
+ 1 file changed, 19 insertions(+), 7 deletions(-)
 
-diff -puN lib/Makefile~test_hexdump-rename-to-test_hexdump lib/Makefile
---- a/lib/Makefile~test_hexdump-rename-to-test_hexdump
-+++ a/lib/Makefile
-@@ -31,7 +31,7 @@ obj-y += bcd.o div64.o sort.o parser.o h
- obj-y += string_helpers.o
- obj-$(CONFIG_TEST_STRING_HELPERS) += test-string_helpers.o
- obj-y += hexdump.o
--obj-$(CONFIG_TEST_HEXDUMP) += test-hexdump.o
-+obj-$(CONFIG_TEST_HEXDUMP) += test_hexdump.o
- obj-y += kstrtox.o
- obj-$(CONFIG_TEST_BPF) += test_bpf.o
- obj-$(CONFIG_TEST_FIRMWARE) += test_firmware.o
-diff -puN lib/test-hexdump.c~test_hexdump-rename-to-test_hexdump /dev/null
---- a/lib/test-hexdump.c
-+++ /dev/null
-@@ -1,180 +0,0 @@
--/*
-- * Test cases for lib/hexdump.c module.
-- */
--#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
--
--#include <linux/init.h>
--#include <linux/kernel.h>
--#include <linux/module.h>
--#include <linux/random.h>
--#include <linux/string.h>
--
--static const unsigned char data_b[] = {
--	'\xbe', '\x32', '\xdb', '\x7b', '\x0a', '\x18', '\x93', '\xb2',	/* 00 - 07 */
--	'\x70', '\xba', '\xc4', '\x24', '\x7d', '\x83', '\x34', '\x9b',	/* 08 - 0f */
--	'\xa6', '\x9c', '\x31', '\xad', '\x9c', '\x0f', '\xac', '\xe9',	/* 10 - 17 */
--	'\x4c', '\xd1', '\x19', '\x99', '\x43', '\xb1', '\xaf', '\x0c',	/* 18 - 1f */
--};
--
--static const unsigned char data_a[] = ".2.{....p..$}.4...1.....L...C...";
--
--static const char * const test_data_1_le[] __initconst = {
--	"be", "32", "db", "7b", "0a", "18", "93", "b2",
--	"70", "ba", "c4", "24", "7d", "83", "34", "9b",
--	"a6", "9c", "31", "ad", "9c", "0f", "ac", "e9",
--	"4c", "d1", "19", "99", "43", "b1", "af", "0c",
--};
--
--static const char * const test_data_2_le[] __initconst = {
--	"32be", "7bdb", "180a", "b293",
--	"ba70", "24c4", "837d", "9b34",
--	"9ca6", "ad31", "0f9c", "e9ac",
--	"d14c", "9919", "b143", "0caf",
--};
--
--static const char * const test_data_4_le[] __initconst = {
--	"7bdb32be", "b293180a", "24c4ba70", "9b34837d",
--	"ad319ca6", "e9ac0f9c", "9919d14c", "0cafb143",
--};
--
--static const char * const test_data_8_le[] __initconst = {
--	"b293180a7bdb32be", "9b34837d24c4ba70",
--	"e9ac0f9cad319ca6", "0cafb1439919d14c",
--};
--
+diff -puN lib/test_hexdump.c~test_hexdump-introduce-test_hexdump_prepare_test-helper lib/test_hexdump.c
+--- a/lib/test_hexdump.c~test_hexdump-introduce-test_hexdump_prepare_test-helper
++++ a/lib/test_hexdump.c
+@@ -42,19 +42,16 @@ static const char * const test_data_8_le
+ 	"e9ac0f9cad319ca6", "0cafb1439919d14c",
+ };
+ 
 -static void __init test_hexdump(size_t len, int rowsize, int groupsize,
 -				bool ascii)
--{
++static void __init test_hexdump_prepare_test(size_t len, int rowsize,
++					     int groupsize, char *test,
++					     size_t testlen, bool ascii)
+ {
 -	char test[32 * 3 + 2 + 32 + 1];
 -	char real[32 * 3 + 2 + 32 + 1];
--	char *p;
--	const char * const *result;
--	size_t l = len;
--	int gs = groupsize, rs = rowsize;
--	unsigned int i;
--
+ 	char *p;
+ 	const char * const *result;
+ 	size_t l = len;
+ 	int gs = groupsize, rs = rowsize;
+ 	unsigned int i;
+ 
 -	hex_dump_to_buffer(data_b, l, rs, gs, real, sizeof(real), ascii);
 -
--	if (rs != 16 && rs != 32)
--		rs = 16;
--
--	if (l > rs)
--		l = rs;
--
--	if (!is_power_of_2(gs) || gs > 8 || (len % gs != 0))
--		gs = 1;
--
--	if (gs == 8)
--		result = test_data_8_le;
--	else if (gs == 4)
--		result = test_data_4_le;
--	else if (gs == 2)
--		result = test_data_2_le;
--	else
--		result = test_data_1_le;
--
+ 	if (rs != 16 && rs != 32)
+ 		rs = 16;
+ 
+@@ -73,7 +70,7 @@ static void __init test_hexdump(size_t l
+ 	else
+ 		result = test_data_1_le;
+ 
 -	memset(test, ' ', sizeof(test));
--
--	/* hex dump */
--	p = test;
--	for (i = 0; i < l / gs; i++) {
--		const char *q = *result++;
--		size_t amount = strlen(q);
--
--		strncpy(p, q, amount);
--		p += amount + 1;
--	}
--	if (i)
--		p--;
--
--	/* ASCII part */
--	if (ascii) {
--		p = test + rs * 2 + rs / gs + 1;
--		strncpy(p, data_a, l);
--		p += l;
--	}
--
--	*p = '\0';
--
--	if (strcmp(test, real)) {
--		pr_err("Len: %zu row: %d group: %d\n", len, rowsize, groupsize);
--		pr_err("Result: '%s'\n", real);
--		pr_err("Expect: '%s'\n", test);
--	}
--}
--
--static void __init test_hexdump_set(int rowsize, bool ascii)
--{
--	size_t d = min_t(size_t, sizeof(data_b), rowsize);
--	size_t len = get_random_int() % d + 1;
--
--	test_hexdump(len, rowsize, 4, ascii);
--	test_hexdump(len, rowsize, 2, ascii);
--	test_hexdump(len, rowsize, 8, ascii);
--	test_hexdump(len, rowsize, 1, ascii);
--}
--
--static void __init test_hexdump_overflow(bool ascii)
--{
--	char buf[56];
--	const char *t = test_data_1_le[0];
--	size_t l = get_random_int() % sizeof(buf);
--	bool a;
--	int e, r;
--
--	memset(buf, ' ', sizeof(buf));
--
--	r = hex_dump_to_buffer(data_b, 1, 16, 1, buf, l, ascii);
--
--	if (ascii)
--		e = 50;
--	else
--		e = 2;
--	buf[e + 2] = '\0';
--
--	if (!l) {
--		a = r == e && buf[0] == ' ';
--	} else if (l < 3) {
--		a = r == e && buf[0] == '\0';
--	} else if (l < 4) {
--		a = r == e && !strcmp(buf, t);
--	} else if (ascii) {
--		if (l < 51)
--			a = r == e && buf[l - 1] == '\0' && buf[l - 2] == ' ';
--		else
--			a = r == e && buf[50] == '\0' && buf[49] == '.';
--	} else {
--		a = r == e && buf[e] == '\0';
--	}
--
--	if (!a) {
--		pr_err("Len: %zu rc: %u strlen: %zu\n", l, r, strlen(buf));
--		pr_err("Result: '%s'\n", buf);
--	}
--}
--
--static int __init test_hexdump_init(void)
--{
--	unsigned int i;
--	int rowsize;
--
--	pr_info("Running tests...\n");
--
--	rowsize = (get_random_int() % 2 + 1) * 16;
--	for (i = 0; i < 16; i++)
--		test_hexdump_set(rowsize, false);
--
--	rowsize = (get_random_int() % 2 + 1) * 16;
--	for (i = 0; i < 16; i++)
--		test_hexdump_set(rowsize, true);
--
--	for (i = 0; i < 16; i++)
--		test_hexdump_overflow(false);
--
--	for (i = 0; i < 16; i++)
--		test_hexdump_overflow(true);
--
--	return -EINVAL;
--}
--module_init(test_hexdump_init);
--MODULE_LICENSE("Dual BSD/GPL");
-diff -puN /dev/null lib/test_hexdump.c
---- /dev/null
-+++ a/lib/test_hexdump.c
-@@ -0,0 +1,180 @@
-+/*
-+ * Test cases for lib/hexdump.c module.
-+ */
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++	memset(test, ' ', testlen);
+ 
+ 	/* hex dump */
+ 	p = test;
+@@ -95,6 +92,21 @@ static void __init test_hexdump(size_t l
+ 	}
+ 
+ 	*p = '\0';
++}
 +
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/random.h>
-+#include <linux/string.h>
-+
-+static const unsigned char data_b[] = {
-+	'\xbe', '\x32', '\xdb', '\x7b', '\x0a', '\x18', '\x93', '\xb2',	/* 00 - 07 */
-+	'\x70', '\xba', '\xc4', '\x24', '\x7d', '\x83', '\x34', '\x9b',	/* 08 - 0f */
-+	'\xa6', '\x9c', '\x31', '\xad', '\x9c', '\x0f', '\xac', '\xe9',	/* 10 - 17 */
-+	'\x4c', '\xd1', '\x19', '\x99', '\x43', '\xb1', '\xaf', '\x0c',	/* 18 - 1f */
-+};
-+
-+static const unsigned char data_a[] = ".2.{....p..$}.4...1.....L...C...";
-+
-+static const char * const test_data_1_le[] __initconst = {
-+	"be", "32", "db", "7b", "0a", "18", "93", "b2",
-+	"70", "ba", "c4", "24", "7d", "83", "34", "9b",
-+	"a6", "9c", "31", "ad", "9c", "0f", "ac", "e9",
-+	"4c", "d1", "19", "99", "43", "b1", "af", "0c",
-+};
-+
-+static const char * const test_data_2_le[] __initconst = {
-+	"32be", "7bdb", "180a", "b293",
-+	"ba70", "24c4", "837d", "9b34",
-+	"9ca6", "ad31", "0f9c", "e9ac",
-+	"d14c", "9919", "b143", "0caf",
-+};
-+
-+static const char * const test_data_4_le[] __initconst = {
-+	"7bdb32be", "b293180a", "24c4ba70", "9b34837d",
-+	"ad319ca6", "e9ac0f9c", "9919d14c", "0cafb143",
-+};
-+
-+static const char * const test_data_8_le[] __initconst = {
-+	"b293180a7bdb32be", "9b34837d24c4ba70",
-+	"e9ac0f9cad319ca6", "0cafb1439919d14c",
-+};
++#define TEST_HEXDUMP_BUF_SIZE		(32 * 3 + 2 + 32 + 1)
 +
 +static void __init test_hexdump(size_t len, int rowsize, int groupsize,
 +				bool ascii)
 +{
-+	char test[32 * 3 + 2 + 32 + 1];
-+	char real[32 * 3 + 2 + 32 + 1];
-+	char *p;
-+	const char * const *result;
-+	size_t l = len;
-+	int gs = groupsize, rs = rowsize;
-+	unsigned int i;
++	char test[TEST_HEXDUMP_BUF_SIZE];
++	char real[TEST_HEXDUMP_BUF_SIZE];
 +
-+	hex_dump_to_buffer(data_b, l, rs, gs, real, sizeof(real), ascii);
++	hex_dump_to_buffer(data_b, len, rowsize, groupsize, real, sizeof(real),
++			   ascii);
 +
-+	if (rs != 16 && rs != 32)
-+		rs = 16;
-+
-+	if (l > rs)
-+		l = rs;
-+
-+	if (!is_power_of_2(gs) || gs > 8 || (len % gs != 0))
-+		gs = 1;
-+
-+	if (gs == 8)
-+		result = test_data_8_le;
-+	else if (gs == 4)
-+		result = test_data_4_le;
-+	else if (gs == 2)
-+		result = test_data_2_le;
-+	else
-+		result = test_data_1_le;
-+
-+	memset(test, ' ', sizeof(test));
-+
-+	/* hex dump */
-+	p = test;
-+	for (i = 0; i < l / gs; i++) {
-+		const char *q = *result++;
-+		size_t amount = strlen(q);
-+
-+		strncpy(p, q, amount);
-+		p += amount + 1;
-+	}
-+	if (i)
-+		p--;
-+
-+	/* ASCII part */
-+	if (ascii) {
-+		p = test + rs * 2 + rs / gs + 1;
-+		strncpy(p, data_a, l);
-+		p += l;
-+	}
-+
-+	*p = '\0';
-+
-+	if (strcmp(test, real)) {
-+		pr_err("Len: %zu row: %d group: %d\n", len, rowsize, groupsize);
-+		pr_err("Result: '%s'\n", real);
-+		pr_err("Expect: '%s'\n", test);
-+	}
-+}
-+
-+static void __init test_hexdump_set(int rowsize, bool ascii)
-+{
-+	size_t d = min_t(size_t, sizeof(data_b), rowsize);
-+	size_t len = get_random_int() % d + 1;
-+
-+	test_hexdump(len, rowsize, 4, ascii);
-+	test_hexdump(len, rowsize, 2, ascii);
-+	test_hexdump(len, rowsize, 8, ascii);
-+	test_hexdump(len, rowsize, 1, ascii);
-+}
-+
-+static void __init test_hexdump_overflow(bool ascii)
-+{
-+	char buf[56];
-+	const char *t = test_data_1_le[0];
-+	size_t l = get_random_int() % sizeof(buf);
-+	bool a;
-+	int e, r;
-+
-+	memset(buf, ' ', sizeof(buf));
-+
-+	r = hex_dump_to_buffer(data_b, 1, 16, 1, buf, l, ascii);
-+
-+	if (ascii)
-+		e = 50;
-+	else
-+		e = 2;
-+	buf[e + 2] = '\0';
-+
-+	if (!l) {
-+		a = r == e && buf[0] == ' ';
-+	} else if (l < 3) {
-+		a = r == e && buf[0] == '\0';
-+	} else if (l < 4) {
-+		a = r == e && !strcmp(buf, t);
-+	} else if (ascii) {
-+		if (l < 51)
-+			a = r == e && buf[l - 1] == '\0' && buf[l - 2] == ' ';
-+		else
-+			a = r == e && buf[50] == '\0' && buf[49] == '.';
-+	} else {
-+		a = r == e && buf[e] == '\0';
-+	}
-+
-+	if (!a) {
-+		pr_err("Len: %zu rc: %u strlen: %zu\n", l, r, strlen(buf));
-+		pr_err("Result: '%s'\n", buf);
-+	}
-+}
-+
-+static int __init test_hexdump_init(void)
-+{
-+	unsigned int i;
-+	int rowsize;
-+
-+	pr_info("Running tests...\n");
-+
-+	rowsize = (get_random_int() % 2 + 1) * 16;
-+	for (i = 0; i < 16; i++)
-+		test_hexdump_set(rowsize, false);
-+
-+	rowsize = (get_random_int() % 2 + 1) * 16;
-+	for (i = 0; i < 16; i++)
-+		test_hexdump_set(rowsize, true);
-+
-+	for (i = 0; i < 16; i++)
-+		test_hexdump_overflow(false);
-+
-+	for (i = 0; i < 16; i++)
-+		test_hexdump_overflow(true);
-+
-+	return -EINVAL;
-+}
-+module_init(test_hexdump_init);
-+MODULE_LICENSE("Dual BSD/GPL");
++	test_hexdump_prepare_test(len, rowsize, groupsize, test, sizeof(test),
++				  ascii);
+ 
+ 	if (strcmp(test, real)) {
+ 		pr_err("Len: %zu row: %d group: %d\n", len, rowsize, groupsize);
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-test_hexdump-introduce-test_hexdump_prepare_test-helper.patch
 test_hexdump-go-through-all-possible-lengths-of-buffer.patch
 test_hexdump-replace-magic-numbers-by-their-meaning.patch
 test_hexdump-check-all-bytes-in-real-buffer.patch
