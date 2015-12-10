@@ -1,96 +1,122 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix.patch added to
- -mm tree
-Date: Thu, 10 Dec 2015 12:56:26 -0800
-Message-ID: <5669e6fa.MVUECAyZ7oyBO9Vz%akpm@linux-foundation.org>
+Subject: [to-be-updated] ocfs2-dlm-fix-deadlock-due-to-nested-lock.patch
+ removed from -mm tree
+Date: Thu, 10 Dec 2015 14:04:20 -0800
+Message-ID: <5669f6e4.PhDCEwnvGexeu1XQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54822 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35656 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751047AbbLJU41 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Dec 2015 15:56:27 -0500
+	with ESMTP id S1751072AbbLJWEV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Dec 2015 17:04:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, jlbec@evilplan.org, mfasheh@suse.de, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix
-has been added to the -mm tree.  Its filename is
-     mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix.patch
+     Subject: ocfs2: dlm: fix deadlock due to nested lock
+has been removed from the -mm tree.  Its filename was
+     ocfs2-dlm-fix-deadlock-due-to-nested-lock.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: dlm: fix deadlock due to nested lock
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+DLM allows nested cluster locking.  One node X can acquire a cluster lock
+two times before release it.  But between these two acquiring, if another
+node Y asks for the same lock and is blocked, then a bast will be sent to
+node X and OCFS2_LOCK_BLOCKED will be set in that lock's lockres.  In this
+case, the second acquiring of that lock in node X will cause a deadlock. 
+Not block for nested locking can fix this.
+
+Use ocfs2-test multiple reflink test can reproduce this on v4.3 kernel,
+the whole cluster hung, and get the following call trace.
+
+ INFO: task multi_reflink_t:10118 blocked for more than 120 seconds.
+       Tainted: G           OE   4.3.0 #1
+ "echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+ multi_reflink_t D ffff88003e816980     0 10118  10117 0x00000080
+  ffff880005b735f8 0000000000000082 ffffffff81a25500 ffff88003e750000
+  ffff880005b735c8 ffffffff8117992f ffffea0000929f80 ffff88003e816980
+  7fffffffffffffff 0000000000000000 0000000000000001 ffffea0000929f80
+ Call Trace:
+  [<ffffffff8117992f>] ? find_get_entry+0x2f/0xc0
+  [<ffffffff816a68fe>] schedule+0x3e/0x80
+  [<ffffffff816a9358>] schedule_timeout+0x1c8/0x220
+  [<ffffffffa067eee4>] ? ocfs2_inode_cache_unlock+0x14/0x20 [ocfs2]
+  [<ffffffffa06bb1e9>] ? ocfs2_metadata_cache_unlock+0x19/0x30 [ocfs2]
+  [<ffffffffa06bb399>] ? ocfs2_buffer_cached+0x99/0x170 [ocfs2]
+  [<ffffffffa067eee4>] ? ocfs2_inode_cache_unlock+0x14/0x20 [ocfs2]
+  [<ffffffffa06bb1e9>] ? ocfs2_metadata_cache_unlock+0x19/0x30 [ocfs2]
+  [<ffffffff810c5f41>] ? __raw_callee_save___pv_queued_spin_unlock+0x11/0x20
+  [<ffffffff816a78ae>] wait_for_completion+0xde/0x110
+  [<ffffffff810a81b0>] ? try_to_wake_up+0x240/0x240
+  [<ffffffffa066f65d>] __ocfs2_cluster_lock+0x20d/0x720 [ocfs2]
+  [<ffffffff810c5f41>] ? __raw_callee_save___pv_queued_spin_unlock+0x11/0x20
+  [<ffffffffa0674841>] ocfs2_inode_lock_full_nested+0x181/0x400 [ocfs2]
+  [<ffffffffa06d0db3>] ? ocfs2_iop_get_acl+0x53/0x113 [ocfs2]
+  [<ffffffff81210cd2>] ? igrab+0x42/0x70
+  [<ffffffffa06d0db3>] ocfs2_iop_get_acl+0x53/0x113 [ocfs2]
+  [<ffffffff81254583>] get_acl+0x53/0x70
+  [<ffffffff81254923>] posix_acl_create+0x73/0x130
+  [<ffffffffa068f0bf>] ocfs2_mknod+0x7cf/0x1140 [ocfs2]
+  [<ffffffffa068fba2>] ocfs2_create+0x62/0x110 [ocfs2]
+  [<ffffffff8120be25>] ? __d_alloc+0x65/0x190
+  [<ffffffff81201b3e>] ? __inode_permission+0x4e/0xd0
+  [<ffffffff81202cf5>] vfs_create+0xd5/0x100
+  [<ffffffff812009ed>] ? lookup_real+0x1d/0x60
+  [<ffffffff81203a03>] lookup_open+0x173/0x1a0
+  [<ffffffff810c59c6>] ? percpu_down_read+0x16/0x70
+  [<ffffffff81205fea>] do_last+0x31a/0x830
+  [<ffffffff81201b3e>] ? __inode_permission+0x4e/0xd0
+  [<ffffffff81201bd8>] ? inode_permission+0x18/0x50
+  [<ffffffff812046b0>] ? link_path_walk+0x290/0x550
+  [<ffffffff8120657c>] path_openat+0x7c/0x140
+  [<ffffffff812066c5>] do_filp_open+0x85/0xe0
+  [<ffffffff8120190f>] ? getname_flags+0x7f/0x1f0
+  [<ffffffff811f613a>] do_sys_open+0x11a/0x220
+  [<ffffffff8100374b>] ? syscall_trace_enter_phase1+0x15b/0x170
+  [<ffffffff811f627e>] SyS_open+0x1e/0x20
+  [<ffffffff816aa2ae>] entry_SYSCALL_64_fastpath+0x12/0x71
+
+commit 743b5f1434f5 ("ocfs2: take inode lock in ocfs2_iop_set/get_acl()")
+add a nested locking to ocfs2_mknod() which exports this deadlock, but
+indeed this is a common issue, it can be triggered in other place.
+
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slab.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/dlmglue.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/slab.h~mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix include/linux/slab.h
---- a/include/linux/slab.h~mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix
-+++ a/include/linux/slab.h
-@@ -86,7 +86,7 @@
- #else
- # define SLAB_FAILSLAB		0x00000000UL
- #endif
--#ifdef CONFIG_MEMCG_KMEM
-+#if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
- # define SLAB_ACCOUNT		0x04000000UL	/* Account to memcg */
- #else
- # define SLAB_ACCOUNT		0x00000000UL
+diff -puN fs/ocfs2/dlmglue.c~ocfs2-dlm-fix-deadlock-due-to-nested-lock fs/ocfs2/dlmglue.c
+--- a/fs/ocfs2/dlmglue.c~ocfs2-dlm-fix-deadlock-due-to-nested-lock
++++ a/fs/ocfs2/dlmglue.c
+@@ -1295,7 +1295,9 @@ static inline int ocfs2_may_continue_on_
+ {
+ 	BUG_ON(!(lockres->l_flags & OCFS2_LOCK_BLOCKED));
+ 
+-	return wanted <= ocfs2_highest_compat_lock_level(lockres->l_blocking);
++	/* allow nested lock request go to avoid deadlock. */
++	return wanted <= ocfs2_highest_compat_lock_level(lockres->l_blocking)
++		|| lockres->l_ro_holders || lockres->l_ex_holders;
+ }
+ 
+ static void ocfs2_init_mask_waiter(struct ocfs2_mask_waiter *mw)
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
-maintainers-make-vladimir-co-maintainer-of-the-memory-controller.patch
-mm-page_alloc-generalize-the-dirty-balance-reserve.patch
-proc-meminfo-estimate-available-memory-more-conservatively.patch
-mm-memcontrol-export-root_mem_cgroup.patch
-net-tcp_memcontrol-properly-detect-ancestor-socket-pressure.patch
-net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation.patch
-net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
-net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets.patch
-net-tcp_memcontrol-simplify-the-per-memcg-limit-access.patch
-net-tcp_memcontrol-sanitize-tcp-memory-accounting-callbacks.patch
-net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter.patch
-mm-memcontrol-generalize-the-socket-accounting-jump-label.patch
-mm-memcontrol-do-not-account-memoryswap-on-unified-hierarchy.patch
-mm-memcontrol-move-socket-code-for-unified-hierarchy-accounting.patch
-mm-memcontrol-account-socket-memory-in-unified-hierarchy-memory-controller.patch
-mm-memcontrol-hook-up-vmpressure-to-socket-pressure.patch
-mm-memcontrol-switch-to-the-updated-jump-label-api.patch
-mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem.patch
-mm-memcontrol-remove-double-kmem-page_counter-init.patch
-mm-memcontrol-give-the-kmem-states-more-descriptive-names.patch
-mm-memcontrol-group-kmem-init-and-exit-functions-together.patch
-mm-memcontrol-separate-kmem-code-from-legacy-tcp-accounting-code.patch
-mm-memcontrol-move-kmem-accounting-code-to-config_memcg.patch
-mm-memcontrol-move-kmem-accounting-code-to-config_memcg-v2.patch
-mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix.patch
-mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller.patch
-mm-memcontrol-introduce-config_memcg_legacy_kmem.patch
+ocfs2-fix-sgid-not-inherited-issue.patch
+o2hb-increase-unsteady-iterations.patch
 
