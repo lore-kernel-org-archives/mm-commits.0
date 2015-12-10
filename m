@@ -1,93 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] test_hexdump-print-statistics-at-the-end.patch
- removed from -mm tree
-Date: Wed, 09 Dec 2015 16:23:33 -0800
-Message-ID: <5668c605.1H/GByPlwW2kgXqe%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ test_hexdump-replace-magic-numbers-by-their-meaning.patch removed from -mm
+ tree
+Date: Wed, 09 Dec 2015 16:23:27 -0800
+Message-ID: <5668c5ff.T0vxfbQa2WSiOaeW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46640 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46623 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754731AbbLJAXd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2015 19:23:33 -0500
+	with ESMTP id S1751937AbbLJAX1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2015 19:23:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: test_hexdump: print statistics at the end
+     Subject: test_hexdump: replace magic numbers by their meaning
 has been removed from the -mm tree.  Its filename was
-     test_hexdump-print-statistics-at-the-end.patch
+     test_hexdump-replace-magic-numbers-by-their-meaning.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: test_hexdump: print statistics at the end
+Subject: test_hexdump: replace magic numbers by their meaning
 
-Like others test are doing print the gathered statistics after test module
-is finished.  Return from the module based on the result.
+The magic numbers of the length are converted to their actual meaning,
+such as end of the buffer with and without ASCII part.
+
+We don't touch the rest magic constants that will be removed in the
+following commits.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hexdump.c |   20 +++++++++++++++++---
- 1 file changed, 17 insertions(+), 3 deletions(-)
+ lib/test_hexdump.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-diff -puN lib/test_hexdump.c~test_hexdump-print-statistics-at-the-end lib/test_hexdump.c
---- a/lib/test_hexdump.c~test_hexdump-print-statistics-at-the-end
+diff -puN lib/test_hexdump.c~test_hexdump-replace-magic-numbers-by-their-meaning lib/test_hexdump.c
+--- a/lib/test_hexdump.c~test_hexdump-replace-magic-numbers-by-their-meaning
 +++ a/lib/test_hexdump.c
-@@ -42,6 +42,9 @@ static const char * const test_data_8_le
- 	"e9ac0f9cad319ca6", "0cafb1439919d14c",
- };
- 
-+static unsigned total_tests __initdata;
-+static unsigned failed_tests __initdata;
-+
- static void __init test_hexdump_prepare_test(size_t len, int rowsize,
- 					     int groupsize, char *test,
- 					     size_t testlen, bool ascii)
-@@ -102,6 +105,8 @@ static void __init test_hexdump(size_t l
- 	char test[TEST_HEXDUMP_BUF_SIZE];
- 	char real[TEST_HEXDUMP_BUF_SIZE];
- 
-+	total_tests++;
-+
- 	hex_dump_to_buffer(data_b, len, rowsize, groupsize, real, sizeof(real),
- 			   ascii);
- 
-@@ -112,6 +117,7 @@ static void __init test_hexdump(size_t l
- 		pr_err("Len: %zu row: %d group: %d\n", len, rowsize, groupsize);
- 		pr_err("Result: '%s'\n", real);
- 		pr_err("Expect: '%s'\n", test);
-+		failed_tests++;
- 	}
- }
- 
-@@ -136,6 +142,8 @@ static void __init test_hexdump_overflow
- 	int ae, he, e, r;
+@@ -130,18 +130,23 @@ static void __init test_hexdump_overflow
+ {
+ 	char buf[TEST_HEXDUMP_BUF_SIZE];
+ 	const char *t = test_data_1_le[0];
++	size_t len = 1;
+ 	size_t l = buflen;
++	int rs = 16, gs = 1;
++	int ae, he, e, r;
  	bool a;
+-	int e, r;
  
-+	total_tests++;
-+
  	memset(buf, ' ', sizeof(buf));
  
- 	r = hex_dump_to_buffer(data_b, len, rs, gs, buf, buflen, ascii);
-@@ -168,6 +176,7 @@ static void __init test_hexdump_overflow
- 		pr_err("Len: %zu buflen: %zu strlen: %zu\n", len, buflen, strlen(buf));
- 		pr_err("Result: %d '%s'\n", r, buf);
- 		pr_err("Expect: %d '%s'\n", e, test);
-+		failed_tests++;
- 	}
- }
+-	r = hex_dump_to_buffer(data_b, 1, 16, 1, buf, buflen, ascii);
++	r = hex_dump_to_buffer(data_b, len, rs, gs, buf, buflen, ascii);
++
++	ae = rs * 2 /* hex */ + rs / gs /* spaces */ + 1 /* space */ + len /* ascii */;
++	he = (gs * 2 /* hex */ + 1 /* space */) * len / gs - 1 /* no trailing space */;
  
-@@ -188,8 +197,6 @@ static int __init test_hexdump_init(void
- 	unsigned int i;
- 	int rowsize;
+ 	if (ascii)
+-		e = 50;
++		e = ae;
+ 	else
+-		e = 2;
++		e = he;
+ 	buf[e + 2] = '\0';
  
--	pr_info("Running tests...\n");
+ 	if (!buflen) {
+_
+
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+
+test_hexdump-check-all-bytes-in-real-buffer.patch
+test_hexdump-test-all-possible-group-sizes-for-overflow.patch
+test_hexdump-print-statistics-at-the-end.patch
+
