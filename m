@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-dlm-wait-until-dlm_lock_res_setref_inprog-is-cleared-in-dlm_deref_lockres_worker.patch added to -mm tree
-Date: Wed, 09 Dec 2015 16:15:14 -0800
-Message-ID: <5668c412.E7EhOnzyGDyfYVXz%akpm@linux-foundation.org>
+Subject: + sh64-fix-__nr_fgetxattr.patch added to -mm tree
+Date: Wed, 09 Dec 2015 16:16:31 -0800
+Message-ID: <5668c45f.EVzzuc39ECcx/0KZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45864 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45937 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754431AbbLJAPP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2015 19:15:15 -0500
+	with ESMTP id S1753592AbbLJAQb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2015 19:16:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: ldv@altlinux.org, geert+renesas@glider.be, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: wait until DLM_LOCK_RES_SETREF_INPROG is cleared in dlm_deref_lockres_worker
+     Subject: sh64: fix __NR_fgetxattr
 has been added to the -mm tree.  Its filename is
-     ocfs2-dlm-wait-until-dlm_lock_res_setref_inprog-is-cleared-in-dlm_deref_lockres_worker.patch
+     sh64-fix-__nr_fgetxattr.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-wait-until-dlm_lock_res_setref_inprog-is-cleared-in-dlm_deref_lockres_worker.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sh64-fix-__nr_fgetxattr.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-wait-until-dlm_lock_res_setref_inprog-is-cleared-in-dlm_deref_lockres_worker.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sh64-fix-__nr_fgetxattr.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,80 +38,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: jiangyiwen <jiangyiwen@huawei.com>
-Subject: ocfs2/dlm: wait until DLM_LOCK_RES_SETREF_INPROG is cleared in dlm_deref_lockres_worker
+From: "Dmitry V. Levin" <ldv@altlinux.org>
+Subject: sh64: fix __NR_fgetxattr
 
-commit f3f854648de6 ("ocfs2_dlm: Ensure correct ordering of set/clear
-refmap bit on lockres") still exists a race which can't ensure the
-ordering is exactly correct.
+According to arch/sh/kernel/syscalls_64.S and common sense, __NR_fgetxattr
+has to be defined to 259, but it doesn't.  Instead, it's defined to 269,
+which is of course used by another syscall, __NR_sched_setaffinity in this
+case.
 
-Node1               Node2                    Node3
-umount, migrate
-lockres to Node2
-                    migrate finished,
-                    send migrate request
-                    to Node3
-                                              received migrate request,
-                                              create a migration_mle,
-                                              respond to Node2.
-                    set DLM_LOCK_RES_SETREF_INPROG
-                    and send assert master to
-                    Node3
-                                              delete migration_mle in
-                                              assert_master_handler,
-                                              Node3 umount without response
-                                              dlm_thread purge
-                                              this lockres, send drop
-                                              deref message to Node2
-                    found the flag of
-                    DLM_LOCK_RES_SETREF_INPROG
-                    is set, dispatch
-                    dlm_deref_lockres_worker to
-                    clear refmap, but in function of
-                    dlm_deref_lockres_worker,
-                    only if node in refmap it wait
-                    DLM_LOCK_RES_SETREF_INPROG
-                    to be cleared. So worker is
-                    done successfully
+This bug was found by strace test suite.
 
-                                              purge lockres, send
-                                              assert master response
-                                              to Node1, and finish umount
-                    set Node3 in refmap, and it
-                    won't be cleared forever, thus
-                    lead to umount hung
-
-so wait until DLM_LOCK_RES_SETREF_INPROG is cleared in
-dlm_deref_lockres_worker.
-
-Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
+Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |    2 +-
+ arch/sh/include/uapi/asm/unistd_64.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-wait-until-dlm_lock_res_setref_inprog-is-cleared-in-dlm_deref_lockres_worker fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-wait-until-dlm_lock_res_setref_inprog-is-cleared-in-dlm_deref_lockres_worker
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -2388,8 +2388,8 @@ static void dlm_deref_lockres_worker(str
- 
- 	spin_lock(&res->spinlock);
- 	BUG_ON(res->state & DLM_LOCK_RES_DROPPING_REF);
-+	__dlm_wait_on_lockres_flags(res, DLM_LOCK_RES_SETREF_INPROG);
- 	if (test_bit(node, res->refmap)) {
--		__dlm_wait_on_lockres_flags(res, DLM_LOCK_RES_SETREF_INPROG);
- 		dlm_lockres_clear_refmap_bit(dlm, res, node);
- 		cleared = 1;
- 	}
+diff -puN arch/sh/include/uapi/asm/unistd_64.h~sh64-fix-__nr_fgetxattr arch/sh/include/uapi/asm/unistd_64.h
+--- a/arch/sh/include/uapi/asm/unistd_64.h~sh64-fix-__nr_fgetxattr
++++ a/arch/sh/include/uapi/asm/unistd_64.h
+@@ -278,7 +278,7 @@
+ #define __NR_fsetxattr		256
+ #define __NR_getxattr		257
+ #define __NR_lgetxattr		258
+-#define __NR_fgetxattr		269
++#define __NR_fgetxattr		259
+ #define __NR_listxattr		260
+ #define __NR_llistxattr		261
+ #define __NR_flistxattr		262
 _
 
-Patches currently in -mm which might be from jiangyiwen@huawei.com are
+Patches currently in -mm which might be from ldv@altlinux.org are
 
-ocfs2-dlm-wait-until-dlm_lock_res_setref_inprog-is-cleared-in-dlm_deref_lockres_worker.patch
-ocfs2-avoid-occurring-deadlock-by-changing-ocfs2_wq-from-global-to-local.patch
-ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups.patch
+sh64-fix-__nr_fgetxattr.patch
 
