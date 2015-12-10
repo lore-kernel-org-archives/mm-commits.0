@@ -1,108 +1,114 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- test_hexdump-introduce-test_hexdump_prepare_test-helper.patch removed from
- -mm tree
-Date: Wed, 09 Dec 2015 16:23:23 -0800
-Message-ID: <5668c5fb.4lRlOrI/YhGMijyI%akpm@linux-foundation.org>
+Subject: [to-be-updated] test_hexdump-check-all-bytes-in-real-buffer.patch removed from -mm tree
+Date: Wed, 09 Dec 2015 16:23:29 -0800
+Message-ID: <5668c601.FAsu3i/blIUr+15P%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46610 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46630 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753162AbbLJAXX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2015 19:23:23 -0500
+	with ESMTP id S1754731AbbLJAXa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2015 19:23:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: test_hexdump: introduce test_hexdump_prepare_test() helper
+     Subject: test_hexdump: check all bytes in real buffer
 has been removed from the -mm tree.  Its filename was
-     test_hexdump-introduce-test_hexdump_prepare_test-helper.patch
+     test_hexdump-check-all-bytes-in-real-buffer.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: test_hexdump: introduce test_hexdump_prepare_test() helper
+Subject: test_hexdump: check all bytes in real buffer
 
-The function prepares the expected result in the provided buffer.
+After processing by hex_dump_to_buffer() check all the parts to be expected.
+
+Part 1. The actual expected hex dump with or without ASCII part.
+	This is provided by plain strcmp() call including check for the
+	terminating NUL.
+
+Part 2. Check if the buffer is dirty beyond needed.
+	We fill the buffer by ' ' (space) characters, so, we expect to have the
+	tail of buffer will be left untouched. Check all bytes in the tail of
+	the buffer.
+
+Part 3. Return code should be as expected.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hexdump.c |   26 +++++++++++++++++++-------
- 1 file changed, 19 insertions(+), 7 deletions(-)
+ lib/test_hexdump.c |   32 ++++++++++++++++----------------
+ 1 file changed, 16 insertions(+), 16 deletions(-)
 
-diff -puN lib/test_hexdump.c~test_hexdump-introduce-test_hexdump_prepare_test-helper lib/test_hexdump.c
---- a/lib/test_hexdump.c~test_hexdump-introduce-test_hexdump_prepare_test-helper
+diff -puN lib/test_hexdump.c~test_hexdump-check-all-bytes-in-real-buffer lib/test_hexdump.c
+--- a/lib/test_hexdump.c~test_hexdump-check-all-bytes-in-real-buffer
 +++ a/lib/test_hexdump.c
-@@ -42,19 +42,16 @@ static const char * const test_data_8_le
- 	"e9ac0f9cad319ca6", "0cafb1439919d14c",
- };
+@@ -128,10 +128,9 @@ static void __init test_hexdump_set(int
  
--static void __init test_hexdump(size_t len, int rowsize, int groupsize,
--				bool ascii)
-+static void __init test_hexdump_prepare_test(size_t len, int rowsize,
-+					     int groupsize, char *test,
-+					     size_t testlen, bool ascii)
+ static void __init test_hexdump_overflow(size_t buflen, bool ascii)
  {
--	char test[32 * 3 + 2 + 32 + 1];
--	char real[32 * 3 + 2 + 32 + 1];
- 	char *p;
- 	const char * const *result;
- 	size_t l = len;
- 	int gs = groupsize, rs = rowsize;
- 	unsigned int i;
- 
--	hex_dump_to_buffer(data_b, l, rs, gs, real, sizeof(real), ascii);
--
- 	if (rs != 16 && rs != 32)
- 		rs = 16;
- 
-@@ -73,7 +70,7 @@ static void __init test_hexdump(size_t l
++	char test[TEST_HEXDUMP_BUF_SIZE];
+ 	char buf[TEST_HEXDUMP_BUF_SIZE];
+-	const char *t = test_data_1_le[0];
+ 	size_t len = 1;
+-	size_t l = buflen;
+ 	int rs = 16, gs = 1;
+ 	int ae, he, e, r;
+ 	bool a;
+@@ -147,26 +146,27 @@ static void __init test_hexdump_overflow
+ 		e = ae;
  	else
- 		result = test_data_1_le;
+ 		e = he;
+-	buf[e + 2] = '\0';
  
--	memset(test, ' ', sizeof(test));
-+	memset(test, ' ', testlen);
- 
- 	/* hex dump */
- 	p = test;
-@@ -95,6 +92,21 @@ static void __init test_hexdump(size_t l
+ 	if (!buflen) {
+-		a = r == e && buf[0] == ' ';
+-	} else if (l < 3) {
+-		a = r == e && buf[0] == '\0';
+-	} else if (l < 4) {
+-		a = r == e && !strcmp(buf, t);
+-	} else if (ascii) {
+-		if (l < 51)
+-			a = r == e && buf[l - 1] == '\0' && buf[l - 2] == ' ';
+-		else
+-			a = r == e && buf[50] == '\0' && buf[49] == '.';
++		memset(test, ' ', sizeof(test));
++		test[sizeof(buf) - 1] = '\0';
++
++		a = r == e && !memchr_inv(buf, ' ', sizeof(buf));
+ 	} else {
+-		a = r == e && buf[e] == '\0';
++		int f = min_t(int, e + 1, buflen);
++
++		test_hexdump_prepare_test(len, rs, gs, test, sizeof(test), ascii);
++		test[f - 1] = '\0';
++
++		a = r == e && !memchr_inv(buf + f, ' ', sizeof(buf) - f) && !strcmp(buf, test);
  	}
  
- 	*p = '\0';
-+}
++	buf[sizeof(buf) - 1] = '\0';
 +
-+#define TEST_HEXDUMP_BUF_SIZE		(32 * 3 + 2 + 32 + 1)
-+
-+static void __init test_hexdump(size_t len, int rowsize, int groupsize,
-+				bool ascii)
-+{
-+	char test[TEST_HEXDUMP_BUF_SIZE];
-+	char real[TEST_HEXDUMP_BUF_SIZE];
-+
-+	hex_dump_to_buffer(data_b, len, rowsize, groupsize, real, sizeof(real),
-+			   ascii);
-+
-+	test_hexdump_prepare_test(len, rowsize, groupsize, test, sizeof(test),
-+				  ascii);
+ 	if (!a) {
+-		pr_err("Len: %zu rc: %u strlen: %zu\n", buflen, r, strlen(buf));
+-		pr_err("Result: '%s'\n", buf);
++		pr_err("Len: %zu buflen: %zu strlen: %zu\n", len, buflen, strlen(buf));
++		pr_err("Result: %d '%s'\n", r, buf);
++		pr_err("Expect: %d '%s'\n", e, test);
+ 	}
+ }
  
- 	if (strcmp(test, real)) {
- 		pr_err("Len: %zu row: %d group: %d\n", len, rowsize, groupsize);
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-test_hexdump-go-through-all-possible-lengths-of-buffer.patch
-test_hexdump-replace-magic-numbers-by-their-meaning.patch
-test_hexdump-check-all-bytes-in-real-buffer.patch
 test_hexdump-test-all-possible-group-sizes-for-overflow.patch
 test_hexdump-print-statistics-at-the-end.patch
 
