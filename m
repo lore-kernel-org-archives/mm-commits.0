@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + test_hexdump-print-statistics-at-the-end.patch added to -mm
- tree
-Date: Wed, 09 Dec 2015 16:31:13 -0800
-Message-ID: <5668c7d1.U8tdQPpbjCC8TMGK%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-introduce-config_memcg_legacy_kmem-fix.patch
+ added to -mm tree
+Date: Wed, 09 Dec 2015 16:31:50 -0800
+Message-ID: <5668c7f6.chmiolxyOj3SQw6b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47824 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47887 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750865AbbLJAbO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2015 19:31:14 -0500
+	with ESMTP id S1750849AbbLJAbv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Dec 2015 19:31:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: arnd@arndb.de, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: test_hexdump: print statistics at the end
+     Subject: mm: memcontrol: only manage socket pressure for CONFIG_INET
 has been added to the -mm tree.  Its filename is
-     test_hexdump-print-statistics-at-the-end.patch
+     mm-memcontrol-introduce-config_memcg_legacy_kmem-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/test_hexdump-print-statistics-at-the-end.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-introduce-config_memcg_legacy_kmem-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/test_hexdump-print-statistics-at-the-end.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-introduce-config_memcg_legacy_kmem-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,109 +39,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: test_hexdump: print statistics at the end
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: memcontrol: only manage socket pressure for CONFIG_INET
 
-Like others test are doing print the gathered statistics after test module
-is finished.  Return from the module based on the result.
+When IPV4 support is disabled, the memcg->socket_pressure field is
+not defined and we get a build error from the vmpressure code:
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+mm/vmpressure.c: In function 'vmpressure':
+mm/vmpressure.c:287:9: error: 'struct mem_cgroup' has no member named 'socket_pressure'
+    memcg->socket_pressure = jiffies + HZ;
+mm/built-in.o: In function `mem_cgroup_css_free':
+:(.text+0x1c03a): undefined reference to `tcp_destroy_cgroup'
+mm/built-in.o: In function `mem_cgroup_css_online':
+:(.text+0x1c20e): undefined reference to `tcp_init_cgroup'
+
+This puts the code causing this in the same #ifdef that guards the
+struct member and the TCP implementation.
+
+Fixes: 20cc40e66c42 ("mm: memcontrol: hook up vmpressure to socket pressure")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hexdump.c |   26 +++++++++++++++++++++++---
- 1 file changed, 23 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    4 ++--
+ mm/vmpressure.c |    2 ++
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN lib/test_hexdump.c~test_hexdump-print-statistics-at-the-end lib/test_hexdump.c
---- a/lib/test_hexdump.c~test_hexdump-print-statistics-at-the-end
-+++ a/lib/test_hexdump.c
-@@ -44,6 +44,9 @@ static const char * const test_data_8_le
+diff -puN mm/memcontrol.c~mm-memcontrol-introduce-config_memcg_legacy_kmem-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-introduce-config_memcg_legacy_kmem-fix
++++ a/mm/memcontrol.c
+@@ -4223,13 +4223,13 @@ mem_cgroup_css_online(struct cgroup_subs
+ 	if (ret)
+ 		return ret;
  
- #define FILL_CHAR	'#'
++#ifdef CONFIG_INET
+ #ifdef CONFIG_MEMCG_LEGACY_KMEM
+ 	ret = tcp_init_cgroup(memcg);
+ 	if (ret)
+ 		return ret;
+ #endif
  
-+static unsigned total_tests __initdata;
-+static unsigned failed_tests __initdata;
-+
- static void __init test_hexdump_prepare_test(size_t len, int rowsize,
- 					     int groupsize, char *test,
- 					     size_t testlen, bool ascii)
-@@ -107,6 +110,8 @@ static void __init test_hexdump(size_t l
- 	char test[TEST_HEXDUMP_BUF_SIZE];
- 	char real[TEST_HEXDUMP_BUF_SIZE];
+-#ifdef CONFIG_INET
+ 	if (cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_nosocket)
+ 		static_branch_inc(&memcg_sockets_enabled_key);
+ #endif
+@@ -4279,7 +4279,7 @@ static void mem_cgroup_css_free(struct c
  
-+	total_tests++;
-+
- 	memset(real, FILL_CHAR, sizeof(real));
- 	hex_dump_to_buffer(data_b, len, rowsize, groupsize, real, sizeof(real),
- 			   ascii);
-@@ -119,6 +124,7 @@ static void __init test_hexdump(size_t l
- 		pr_err("Len: %zu row: %d group: %d\n", len, rowsize, groupsize);
- 		pr_err("Result: '%s'\n", real);
- 		pr_err("Expect: '%s'\n", test);
-+		failed_tests++;
+ 	memcg_free_kmem(memcg);
+ 
+-#ifdef CONFIG_MEMCG_LEGACY_KMEM
++#if defined(CONFIG_MEMCG_LEGACY_KMEM) && defined(CONFIG_INET)
+ 	tcp_destroy_cgroup(memcg);
+ #endif
+ 
+diff -puN mm/vmpressure.c~mm-memcontrol-introduce-config_memcg_legacy_kmem-fix mm/vmpressure.c
+--- a/mm/vmpressure.c~mm-memcontrol-introduce-config_memcg_legacy_kmem-fix
++++ a/mm/vmpressure.c
+@@ -275,6 +275,7 @@ void vmpressure(gfp_t gfp, struct mem_cg
+ 
+ 		level = vmpressure_calc_level(scanned, reclaimed);
+ 
++#ifdef CONFIG_INET
+ 		if (level > VMPRESSURE_LOW) {
+ 			/*
+ 			 * Let the socket buffer allocator know that
+@@ -286,6 +287,7 @@ void vmpressure(gfp_t gfp, struct mem_cg
+ 			 */
+ 			memcg->socket_pressure = jiffies + HZ;
+ 		}
++#endif
  	}
  }
  
-@@ -143,6 +149,8 @@ static void __init test_hexdump_overflow
- 	int ae, he, e, f, r;
- 	bool a;
- 
-+	total_tests++;
-+
- 	memset(buf, FILL_CHAR, sizeof(buf));
- 
- 	r = hex_dump_to_buffer(data_b, len, rs, gs, buf, buflen, ascii);
-@@ -175,6 +183,7 @@ static void __init test_hexdump_overflow
- 			len, buflen, strnlen(buf, sizeof(buf)));
- 		pr_err("Result: %d '%s'\n", r, buf);
- 		pr_err("Expect: %d '%s'\n", e, test);
-+		failed_tests++;
- 	}
- }
- 
-@@ -196,8 +205,6 @@ static int __init test_hexdump_init(void
- 	unsigned int i;
- 	int rowsize;
- 
--	pr_info("Running tests...\n");
--
- 	rowsize = (get_random_int() % 2 + 1) * 16;
- 	for (i = 0; i < 16; i++)
- 		test_hexdump_set(rowsize, false);
-@@ -212,7 +219,20 @@ static int __init test_hexdump_init(void
- 	for (i = 0; i <= TEST_HEXDUMP_BUF_SIZE; i++)
- 		test_hexdump_overflow_set(i, true);
- 
--	return -EINVAL;
-+	if (failed_tests == 0)
-+		pr_info("all %u tests passed\n", total_tests);
-+	else
-+		pr_err("failed %u out of %u tests\n", failed_tests, total_tests);
-+
-+	return failed_tests ? -EINVAL : 0;
- }
- module_init(test_hexdump_init);
-+
-+static void __exit test_hexdump_exit(void)
-+{
-+	/* do nothing */
-+}
-+module_exit(test_hexdump_exit);
-+
-+MODULE_AUTHOR("Andy Shevchenko <andriy.shevchenko@linux.intel.com>");
- MODULE_LICENSE("Dual BSD/GPL");
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-test_hexdump-rename-to-test_hexdump.patch
-test_hexdump-introduce-test_hexdump_prepare_test-helper.patch
-test_hexdump-define-fill_char-constant.patch
-test_hexdump-go-through-all-possible-lengths-of-buffer.patch
-test_hexdump-replace-magic-numbers-by-their-meaning.patch
-test_hexdump-switch-to-memcmp.patch
-test_hexdump-check-all-bytes-in-real-buffer.patch
-test_hexdump-test-all-possible-group-sizes-for-overflow.patch
-test_hexdump-print-statistics-at-the-end.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix-2.patch
+arm-thp-remove-infrastructure-for-handling-splitting-pmds-fix.patch
+mm-printk-introduce-new-format-string-for-flags-fix.patch
+memstick-use-sector_div-instead-of-do_div.patch
+mm-memcontrol-introduce-config_memcg_legacy_kmem-fix.patch
 
