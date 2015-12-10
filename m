@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5-fix.patch
- added to -mm tree
-Date: Thu, 10 Dec 2015 14:08:44 -0800
-Message-ID: <5669f7ec.vkoNxyfp+GLDCl5s%akpm@linux-foundation.org>
+Subject: + mips-fix-dma-contiguous-allocation.patch added to -mm tree
+Date: Thu, 10 Dec 2015 14:18:00 -0800
+Message-ID: <5669fa18.yc6+mfHuqdvpXCTa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36275 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37596 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751929AbbLJWIp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Dec 2015 17:08:45 -0500
+	with ESMTP id S1750835AbbLJWSB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Dec 2015 17:18:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@kernel.org, hannes@cmpxchg.org, kirill.shutemov@linux.intel.com, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: qais.yousef@imgtec.com, mgorman@techsingularity.net, ralf@linux-mips.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5-fix
+     Subject: MIPS: fix DMA contiguous allocation
 has been added to the -mm tree.  Its filename is
-     mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5-fix.patch
+     mips-fix-dma-contiguous-allocation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mips-fix-dma-contiguous-allocation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mips-fix-dma-contiguous-allocation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,36 +38,49 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@kernel.org>
-Subject: mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5-fix
+From: Qais Yousef <qais.yousef@imgtec.com>
+Subject: MIPS: fix DMA contiguous allocation
 
-Dohh, forgot to git add after s@PageCoumpound@PageTransCompound@
+Recent changes to how GFP_ATOMIC is defined seems to have broken the
+condition to use mips_alloc_from_contiguous() in
+mips_dma_alloc_coherent().
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+I couldn't bottom out the exact change but I think it's this one
+
+d0164adc89f6 ("mm, page_alloc: distinguish between being unable to sleep,
+unwilling to sleep and avoiding waking kswapd").
+
+GFP_ATOMIC has multiple bits set and the check for !(gfp & GFP_ATOMIC)
+isn't enough.
+
+The reason behind this condition is to check whether we can potentially do
+a sleeping memory allocation.  Use gfpflags_allow_blocking() instead which
+should be more robust.
+
+Signed-off-by: Qais Yousef <qais.yousef@imgtec.com>
+Acked-by: Mel Gorman <mgorman@techsingularity.net>
+Cc: Ralf Baechle <ralf@linux-mips.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 +-
+ arch/mips/mm/dma-default.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5-fix
-+++ a/mm/memcontrol.c
-@@ -4874,7 +4874,7 @@ retry:
- 			 * ignore such a partial THP and keep it in original
- 			 * memcg. There should be somebody mapping the head.
- 			 */
--			if (PageCompound(page))
-+			if (PageTransCompound(page))
- 				goto put;
- 			if (isolate_lru_page(page))
- 				goto put;
+diff -puN arch/mips/mm/dma-default.c~mips-fix-dma-contiguous-allocation arch/mips/mm/dma-default.c
+--- a/arch/mips/mm/dma-default.c~mips-fix-dma-contiguous-allocation
++++ a/arch/mips/mm/dma-default.c
+@@ -145,7 +145,7 @@ static void *mips_dma_alloc_coherent(str
+ 
+ 	gfp = massage_gfp_flags(dev, gfp);
+ 
+-	if (IS_ENABLED(CONFIG_DMA_CMA) && !(gfp & GFP_ATOMIC))
++	if (IS_ENABLED(CONFIG_DMA_CMA) && gfpflags_allow_blocking(gfp))
+ 		page = dma_alloc_from_contiguous(dev,
+ 					count, get_order(size));
+ 	if (!page)
 _
 
-Patches currently in -mm which might be from mhocko@kernel.org are
+Patches currently in -mm which might be from qais.yousef@imgtec.com are
 
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5-fix.patch
+mips-fix-dma-contiguous-allocation.patch
 
