@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + printk-nmi-generic-solution-for-safe-printk-in-nmi-v4.patch
- added to -mm tree
-Date: Fri, 11 Dec 2015 15:06:59 -0800
-Message-ID: <566b5713.Kowd1EbyCFUgHXnb%akpm@linux-foundation.org>
+Subject: + arm64-mm-support-arch_mmap_rnd_bits-v6.patch added to -mm tree
+Date: Fri, 11 Dec 2015 15:22:33 -0800
+Message-ID: <566b5ab9.Q2iHXYp1Qt93nhdZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55722 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57406 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752822AbbLKXHA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Dec 2015 18:07:00 -0500
+	with ESMTP id S1755098AbbLKXWe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Dec 2015 18:22:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pmladek@suse.com, mm-commits@vger.kernel.org
+To: dcashman@google.com, dcashman@android.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk-nmi-generic-solution-for-safe-printk-in-nmi-v4
+     Subject: arm64-mm-support-arch_mmap_rnd_bits-v6
 has been added to the -mm tree.  Its filename is
-     printk-nmi-generic-solution-for-safe-printk-in-nmi-v4.patch
+     arm64-mm-support-arch_mmap_rnd_bits-v6.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-nmi-generic-solution-for-safe-printk-in-nmi-v4.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm64-mm-support-arch_mmap_rnd_bits-v6.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-nmi-generic-solution-for-safe-printk-in-nmi-v4.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-mm-support-arch_mmap_rnd_bits-v6.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,174 +38,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: printk-nmi-generic-solution-for-safe-printk-in-nmi-v4
+From: Daniel Cashman <dcashman@google.com>
+Subject: arm64-mm-support-arch_mmap_rnd_bits-v6
 
-rename from kernel/printk/printk.h
-rename to kernel/printk/internal.h
+arm64: arch_mmap_rnd() uses STACK_RND_MASK to generate the
+random offset for the mmap base address.  This value represents a
+compromise between increased ASLR effectiveness and avoiding
+address-space fragmentation. Replace it with a Kconfig option, which
+is sensibly bounded, so that platform developers may choose where to
+place this compromise. Keep default values as new minimums.
 
-Signed-off-by: Petr Mladek <pmladek@suse.com>
+Signed-off-by: Daniel Cashman <dcashman@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/internal.h |   44 +++++++++++++++++++++++++++++++++++++
- kernel/printk/nmi.c      |   14 +++++++----
- kernel/printk/printk.c   |    2 -
- kernel/printk/printk.h   |   44 -------------------------------------
- 4 files changed, 54 insertions(+), 50 deletions(-)
+ arch/arm64/Kconfig |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN /dev/null kernel/printk/internal.h
---- /dev/null
-+++ a/kernel/printk/internal.h
-@@ -0,0 +1,44 @@
-+/*
-+ * internal.h - printk internal definitions
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, see <http://www.gnu.org/licenses/>.
-+ */
-+#include <linux/percpu.h>
-+
-+typedef __printf(1, 0) int (*printk_func_t)(const char *fmt, va_list args);
-+
-+int __printf(1, 0) vprintk_default(const char *fmt, va_list args);
-+
-+#ifdef CONFIG_PRINTK_NMI
-+
-+/*
-+ * printk() could not take logbuf_lock in NMI context. Instead,
-+ * it temporary stores the strings into a per-CPU buffer.
-+ * The alternative implementation is chosen transparently
-+ * via per-CPU variable.
-+ */
-+DECLARE_PER_CPU(printk_func_t, printk_func);
-+static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
-+{
-+	return this_cpu_read(printk_func)(fmt, args);
-+}
-+
-+#else /* CONFIG_PRINTK_NMI */
-+
-+static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
-+{
-+	return vprintk_default(fmt, args);
-+}
-+
-+#endif /* CONFIG_PRINTK_NMI */
-diff -puN kernel/printk/nmi.c~printk-nmi-generic-solution-for-safe-printk-in-nmi-v4 kernel/printk/nmi.c
---- a/kernel/printk/nmi.c~printk-nmi-generic-solution-for-safe-printk-in-nmi-v4
-+++ a/kernel/printk/nmi.c
-@@ -22,7 +22,7 @@
- #include <linux/irq_work.h>
- #include <linux/printk.h>
+diff -puN arch/arm64/Kconfig~arm64-mm-support-arch_mmap_rnd_bits-v6 arch/arm64/Kconfig
+--- a/arch/arm64/Kconfig~arm64-mm-support-arch_mmap_rnd_bits-v6
++++ a/arch/arm64/Kconfig
+@@ -51,8 +51,8 @@ config ARM64
+ 	select HAVE_ARCH_JUMP_LABEL
+ 	select HAVE_ARCH_KASAN if SPARSEMEM_VMEMMAP && !(ARM64_16K_PAGES && ARM64_VA_BITS_48)
+ 	select HAVE_ARCH_KGDB
+-	select HAVE_ARCH_MMAP_RND_BITS if MMU
+-	select HAVE_ARCH_MMAP_RND_COMPAT_BITS if MMU && COMPAT
++	select HAVE_ARCH_MMAP_RND_BITS
++	select HAVE_ARCH_MMAP_RND_COMPAT_BITS if COMPAT
+ 	select HAVE_ARCH_SECCOMP_FILTER
+ 	select HAVE_ARCH_TRACEHOOK
+ 	select HAVE_BPF_JIT
+@@ -107,10 +107,12 @@ config MMU
+ 	def_bool y
  
--#include "printk.h"
-+#include "internal.h"
+ config ARCH_MMAP_RND_BITS_MIN
+-       default 15 if ARM64_64K_PAGES
+-       default 17 if ARM64_16K_PAGES
+-       default 19
++       default 14 if ARM64_64K_PAGES
++       default 16 if ARM64_16K_PAGES
++       default 18
  
- /*
-  * printk() could not take logbuf_lock in NMI context. Instead,
-@@ -57,12 +57,13 @@ static DEFINE_PER_CPU(struct nmi_seq_buf
- static int vprintk_nmi(const char *fmt, va_list args)
- {
- 	struct nmi_seq_buf *s = this_cpu_ptr(&nmi_print_seq);
--	int add = 0, len;
-+	int add = 0;
-+	size_t len;
++# max bits determined by the following formula:
++#  VA_BITS - PAGE_SHIFT - 3
+ config ARCH_MMAP_RND_BITS_MAX
+        default 19 if ARM64_VA_BITS=36
+        default 20 if ARM64_64K_PAGES && ARM64_VA_BITS=39
+@@ -125,7 +127,7 @@ config ARCH_MMAP_RND_BITS_MAX
+        default 33 if ARM64_VA_BITS=48
+        default 15 if ARM64_64K_PAGES
+        default 17 if ARM64_16K_PAGES
+-       default 19
++       default 18
  
- again:
- 	len = atomic_read(&s->len);
- 
--	if (len >=  sizeof(s->buffer))
-+	if (len >= sizeof(s->buffer))
- 		return 0;
- 
- 	/*
-@@ -109,7 +110,8 @@ static void __printk_nmi_flush(struct ir
- 	static raw_spinlock_t read_lock =
- 		__RAW_SPIN_LOCK_INITIALIZER(read_lock);
- 	struct nmi_seq_buf *s = container_of(work, struct nmi_seq_buf, work);
--	int len, size, i, last_i;
-+	size_t len, size;
-+	int i, last_i;
- 
- 	/*
- 	 * The lock has two functions. First, one reader has to flush all
-@@ -129,7 +131,9 @@ more:
- 	 * the buffer an unexpected way. If we printed something then
- 	 * @len must only increase.
- 	 */
--	WARN_ON(i && i >= len);
-+	if (i && i >= len)
-+		pr_err("printk_nmi_flush: internal error: i=%d >= len=%lu\n",
-+		       i, len);
- 
- 	if (!len)
- 		goto out; /* Someone else has already flushed the buffer. */
-diff -puN kernel/printk/printk.c~printk-nmi-generic-solution-for-safe-printk-in-nmi-v4 kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-nmi-generic-solution-for-safe-printk-in-nmi-v4
-+++ a/kernel/printk/printk.c
-@@ -55,7 +55,7 @@
- 
- #include "console_cmdline.h"
- #include "braille.h"
--#include "printk.h"
-+#include "internal.h"
- 
- int console_printk[4] = {
- 	CONSOLE_LOGLEVEL_DEFAULT,	/* console_loglevel */
-diff -puN kernel/printk/printk.h~printk-nmi-generic-solution-for-safe-printk-in-nmi-v4 /dev/null
---- a/kernel/printk/printk.h
-+++ /dev/null
-@@ -1,44 +0,0 @@
--/*
-- * printk.h - printk internal definitions
-- *
-- * This program is free software; you can redistribute it and/or
-- * modify it under the terms of the GNU General Public License
-- * as published by the Free Software Foundation; either version 2
-- * of the License, or (at your option) any later version.
-- *
-- * This program is distributed in the hope that it will be useful,
-- * but WITHOUT ANY WARRANTY; without even the implied warranty of
-- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-- * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, see <http://www.gnu.org/licenses/>.
-- */
--#include <linux/percpu.h>
--
--typedef __printf(1, 0) int (*printk_func_t)(const char *fmt, va_list args);
--
--int __printf(1, 0) vprintk_default(const char *fmt, va_list args);
--
--#ifdef CONFIG_PRINTK_NMI
--
--/*
-- * printk() could not take logbuf_lock in NMI context. Instead,
-- * it temporary stores the strings into a per-CPU buffer.
-- * The alternative implementation is chosen transparently
-- * via per-CPU variable.
-- */
--DECLARE_PER_CPU(printk_func_t, printk_func);
--static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
--{
--	return this_cpu_read(printk_func)(fmt, args);
--}
--
--#else /* CONFIG_PRINTK_NMI */
--
--static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
--{
--	return vprintk_default(fmt, args);
--}
+ config ARCH_MMAP_RND_COMPAT_BITS_MIN
+        default 7 if ARM64_64K_PAGES
+_
+
+Patches currently in -mm which might be from dcashman@google.com are
+
+mm-mmap-add-new-proc-tunable-for-mmap_base-aslr.patch
+arm-mm-support-arch_mmap_rnd_bits.patch
+arm64-mm-support-arch_mmap_rnd_bits.patch
+arm64-mm-support-arch_mmap_rnd_bits-v6.patch
+x86-mm-support-arch_mmap_rnd_bits.patch
+
