@@ -1,59 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] oom-kill-init-lead-panic-fix.patch removed from
- -mm tree
-Date: Fri, 11 Dec 2015 13:38:06 -0800
-Message-ID: <566b423e.ytAQ90I4Ry8Y4okn%akpm@linux-foundation.org>
+Subject: + include-linux-propertyh-fix-build-issues-with-gcc-444-fix.patch added to -mm tree
+Date: Fri, 11 Dec 2015 13:54:49 -0800
+Message-ID: <566b4629.xdmL7TFukm9Sq8kV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44146 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46873 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753058AbbLKViH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Dec 2015 16:38:07 -0500
+	with ESMTP id S1753523AbbLKVyu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Dec 2015 16:54:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ben@decadent.org.uk, broonie@kernel.org, chenjie6@huawei.com, lizefan@huawei.com, mhocko@suse.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, heikki.krogerus@linux.intel.com, kevin@scrye.com, mika.westerberg@linux.intel.com, rafael.j.wysocki@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom-kill-init-lead-panic-fix
-has been removed from the -mm tree.  Its filename was
-     oom-kill-init-lead-panic-fix.patch
+     Subject: include-linux-propertyh-fix-build-issues-with-gcc-444-fix
+has been added to the -mm tree.  Its filename is
+     include-linux-propertyh-fix-build-issues-with-gcc-444-fix.patch
 
-This patch was dropped because it was folded into oom-kill-init-lead-panic.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-propertyh-fix-build-issues-with-gcc-444-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-propertyh-fix-build-issues-with-gcc-444-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: oom-kill-init-lead-panic-fix
+Subject: include-linux-propertyh-fix-build-issues-with-gcc-444-fix
 
-fix inverted test, per Ben
-
-Cc: Chen Jie <chenjie6@huawei.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Li Zefan <lizefan@huawei.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mark Brown <broonie@kernel.org>
-Cc: Ben Hutchings <ben@decadent.org.uk>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Kevin Fenzi <kevin@scrye.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 +-
+ include/linux/property.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~oom-kill-init-lead-panic-fix mm/oom_kill.c
---- a/mm/oom_kill.c~oom-kill-init-lead-panic-fix
-+++ a/mm/oom_kill.c
-@@ -608,7 +608,7 @@ void oom_kill_process(struct oom_control
- 			continue;
- 		if (unlikely(p->flags & PF_KTHREAD))
- 			continue;
--		if (!is_global_init(p))
-+		if (is_global_init(p))
- 			continue;
- 		if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
- 			continue;
+diff -puN include/linux/property.h~include-linux-propertyh-fix-build-issues-with-gcc-444-fix include/linux/property.h
+--- a/include/linux/property.h~include-linux-propertyh-fix-build-issues-with-gcc-444-fix
++++ a/include/linux/property.h
+@@ -187,7 +187,7 @@ struct property_entry {
+ 	.length = ARRAY_SIZE(_val_) * sizeof(_type_),		\
+ 	.is_array = true,					\
+ 	.is_string = false,					\
+-	{ .pointer = _type_##_data = _val_ } },			\
++	{ .pointer = { _type_##_data = _val_ } },		\
+ }
+ 
+ #define PROPERTY_ENTRY_U8_ARRAY(_name_, _val_)			\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -61,7 +71,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-gpu-drm-i915-intel_spritec-fix-build.patch
 drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-oom-kill-init-lead-panic.patch
 ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
 include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
 mm.patch
@@ -97,6 +106,7 @@ ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
 ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
 linux-next-rejects.patch
 include-linux-propertyh-fix-build-issues-with-gcc-444.patch
+include-linux-propertyh-fix-build-issues-with-gcc-444-fix.patch
 fs-overlayfs-superc-needs-pagemaph.patch
 fs-adfs-adfsh-tidy-up-comments.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
