@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix.patch
+Subject: + include-linux-propertyh-fix-build-issues-with-gcc-444.patch
  added to -mm tree
-Date: Thu, 10 Dec 2015 16:35:01 -0800
-Message-ID: <566a1a35.EzzNgQouc4jfbX3H%akpm@linux-foundation.org>
+Date: Thu, 10 Dec 2015 16:54:52 -0800
+Message-ID: <566a1edc.Xj1yIp5QNObaPriO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55756 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58323 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751072AbbLKAfC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Dec 2015 19:35:02 -0500
+	with ESMTP id S1750748AbbLKAyx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Dec 2015 19:54:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, heikki.krogerus@linux.intel.com, kevin@scrye.com, mika.westerberg@linux.intel.com, rafael.j.wysocki@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix
+     Subject: include/linux/property.h: fix build issues with gcc-4.4.4
 has been added to the -mm tree.  Its filename is
-     ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix.patch
+     include-linux-propertyh-fix-build-issues-with-gcc-444.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-propertyh-fix-build-issues-with-gcc-444.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-propertyh-fix-build-issues-with-gcc-444.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,31 +40,77 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix
+Subject: include/linux/property.h: fix build issues with gcc-4.4.4
 
-these BUILD_BUG_ONs are triggering
+gcc-4.4.4 has problems with initialization of anonymous unions:
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+drivers/mfd/intel-lpss-acpi.c:30: error: unknown field 'value' specified in initializer
+
+work around this by crafting the initializers in a manner which the
+compiler can handle.
+
+Cc: Kevin Fenzi <kevin@scrye.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/property.h |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN mm/ksm.c~ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix mm/ksm.c
---- a/mm/ksm.c~ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix
-+++ a/mm/ksm.c
-@@ -629,8 +629,8 @@ static void remove_node_from_stable_tree
- 	 * from &migrate_nodes. This will verify that future list.h changes
- 	 * don't break STABLE_NODE_DUP_HEAD.
- 	 */
--	BUILD_BUG_ON(STABLE_NODE_DUP_HEAD <= &migrate_nodes);
--	BUILD_BUG_ON(STABLE_NODE_DUP_HEAD >= &migrate_nodes + 1);
-+	WARN_ON_ONCE(STABLE_NODE_DUP_HEAD <= &migrate_nodes);
-+	WARN_ON_ONCE(STABLE_NODE_DUP_HEAD >= &migrate_nodes + 1);
+diff -puN include/linux/property.h~include-linux-propertyh-fix-build-issues-with-gcc-444 include/linux/property.h
+--- a/include/linux/property.h~include-linux-propertyh-fix-build-issues-with-gcc-444
++++ a/include/linux/property.h
+@@ -175,12 +175,19 @@ struct property_entry {
+ 	};
+ };
  
- 	if (stable_node->head == &migrate_nodes)
- 		list_del(&stable_node->list);
++/*
++ * Note: the below four initializers for the anonymous union are carefully
++ * crafted to avoid gcc-4.4.4's problems with initialization of anon unions
++ * and structs.
++ */
++
+ #define PROPERTY_ENTRY_INTEGER_ARRAY(_name_, _type_, _val_)	\
+ {								\
+ 	.name = _name_,						\
+ 	.length = ARRAY_SIZE(_val_) * sizeof(_type_),		\
+ 	.is_array = true,					\
+-	.pointer._type_##_data = _val_,				\
++	.is_string = false,					\
++	{ .pointer = _type_##_data = _val_ } },			\
+ }
+ 
+ #define PROPERTY_ENTRY_U8_ARRAY(_name_, _val_)			\
+@@ -198,14 +205,15 @@ struct property_entry {
+ 	.length = ARRAY_SIZE(_val_) * sizeof(const char *),	\
+ 	.is_array = true,					\
+ 	.is_string = true,					\
+-	.pointer.str = _val_,					\
++	{ .pointer = { .str = _val_ } },			\
+ }
+ 
+ #define PROPERTY_ENTRY_INTEGER(_name_, _type_, _val_)	\
+ {							\
+ 	.name = _name_,					\
+ 	.length = sizeof(_type_),			\
+-	.value._type_##_data = _val_,			\
++	.is_string = false,				\
++	{ .value = { ._type_##_data = _val_ } },	\
+ }
+ 
+ #define PROPERTY_ENTRY_U8(_name_, _val_)		\
+@@ -222,7 +230,7 @@ struct property_entry {
+ 	.name = _name_,					\
+ 	.length = sizeof(_val_),			\
+ 	.is_string = true,				\
+-	.value.str = _val_,				\
++	{ .value = {.str = _val_} },			\
+ }
+ 
+ #define PROPERTY_ENTRY_BOOL(_name_)		\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -106,6 +151,7 @@ ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
 ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
 ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
 linux-next-rejects.patch
+include-linux-propertyh-fix-build-issues-with-gcc-444.patch
 include-linux-propertyh-fix-build-with-gcc-444.patch
 fs-adfs-adfsh-tidy-up-comments.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
