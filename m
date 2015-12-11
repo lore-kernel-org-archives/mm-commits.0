@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch added to -mm tree
-Date: Thu, 10 Dec 2015 17:29:40 -0800
-Message-ID: <566a2704.+QgvNwm0hOLrut3r%akpm@linux-foundation.org>
+Subject: + fs-overlayfs-superc-needs-pagemaph.patch added to -mm tree
+Date: Thu, 10 Dec 2015 17:34:48 -0800
+Message-ID: <566a2838.j2SRioLJlf9w7T4F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34430 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35347 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751054AbbLKB3l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Dec 2015 20:29:41 -0500
+	with ESMTP id S1752970AbbLKBet (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Dec 2015 20:34:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, hughd@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, miklos@szeredi.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2
+     Subject: fs/overlayfs/super.c needs pagemap.h
 has been added to the -mm tree.  Its filename is
-     ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+     fs-overlayfs-superc-needs-pagemaph.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-overlayfs-superc-needs-pagemaph.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-overlayfs-superc-needs-pagemaph.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,30 +39,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2
+Subject: fs/overlayfs/super.c needs pagemap.h
 
-fix non-NUMA build
+i386 allmodconfig:
 
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
+In file included from fs/overlayfs/super.c:10:0:
+fs/overlayfs/super.c: In function 'ovl_fill_super':
+include/linux/fs.h:898:36: error: 'PAGE_CACHE_SIZE' undeclared (first use in this function)
+ #define MAX_LFS_FILESIZE (((loff_t)PAGE_CACHE_SIZE << (BITS_PER_LONG-1))-1) 
+                                    ^
+fs/overlayfs/super.c:939:19: note: in expansion of macro 'MAX_LFS_FILESIZE'
+  sb->s_maxbytes = MAX_LFS_FILESIZE;
+                   ^
+include/linux/fs.h:898:36: note: each undeclared identifier is reported only once for each function it appears in
+ #define MAX_LFS_FILESIZE (((loff_t)PAGE_CACHE_SIZE << (BITS_PER_LONG-1))-1) 
+                                    ^
+fs/overlayfs/super.c:939:19: note: in expansion of macro 'MAX_LFS_FILESIZE'
+  sb->s_maxbytes = MAX_LFS_FILESIZE;
+                   ^
+
+Cc: Miklos Szeredi <miklos@szeredi.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/ksm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/overlayfs/super.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/ksm.c~ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2 mm/ksm.c
---- a/mm/ksm.c~ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2
-+++ a/mm/ksm.c
-@@ -557,7 +557,7 @@ static struct stable_node *alloc_stable_
- 		INIT_HLIST_HEAD(&chain->hlist);
- 		chain->chain_prune_time = jiffies;
- 		chain->rmap_hlist_len = STABLE_NODE_CHAIN;
--#ifdef CONFIG_DEBUG_VM
-+#if defined (CONFIG_DEBUG_VM) && defined(CONFIG_NUMA)
- 		chain->nid = -1; /* debug */
- #endif
- 		ksm_stable_node_chains++;
+diff -puN fs/overlayfs/super.c~fs-overlayfs-superc-needs-pagemaph fs/overlayfs/super.c
+--- a/fs/overlayfs/super.c~fs-overlayfs-superc-needs-pagemaph
++++ a/fs/overlayfs/super.c
+@@ -15,6 +15,7 @@
+ #include <linux/slab.h>
+ #include <linux/parser.h>
+ #include <linux/module.h>
++#include <linux/pagemap.h>
+ #include <linux/sched.h>
+ #include <linux/statfs.h>
+ #include <linux/seq_file.h>
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,6 +98,7 @@ mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
 fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
 arm64-mm-support-arch_mmap_rnd_bits-fix.patch
 ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
 page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
 mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
 mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
@@ -109,5 +122,5 @@ fs-adfs-adfsh-tidy-up-comments.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+fs-overlayfs-superc-needs-pagemaph.patch
 
