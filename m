@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2.patch added
- to -mm tree
-Date: Fri, 11 Dec 2015 14:15:04 -0800
-Message-ID: <566b4ae8.VALjzn+43j9IIXbY%akpm@linux-foundation.org>
+Subject: +
+ zsmalloc-reorganize-struct-size_class-to-pack-4-bytes-hole.patch added to
+ -mm tree
+Date: Fri, 11 Dec 2015 14:34:16 -0800
+Message-ID: <566b4f68.tx3YRervnUGymFWg%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49455 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51739 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754217AbbLKWPF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Dec 2015 17:15:05 -0500
+	with ESMTP id S1750724AbbLKWeQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Dec 2015 17:34:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xuejiufei@huawei.com, jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: weijie.yang@samsung.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2
+     Subject: zsmalloc: reorganize struct size_class to pack 4 bytes hole
 has been added to the -mm tree.  Its filename is
-     ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2.patch
+     zsmalloc-reorganize-struct-size_class-to-pack-4-bytes-hole.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-reorganize-struct-size_class-to-pack-4-bytes-hole.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-reorganize-struct-size_class-to-pack-4-bytes-hole.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,92 +40,40 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2
+From: Weijie Yang <weijie.yang@samsung.com>
+Subject: zsmalloc: reorganize struct size_class to pack 4 bytes hole
 
-Signed-off-by: Jiufei Xue <xuejiufei@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Yiwen Jiang <jiangyiwen@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
+Reoder the pages_per_zspage field in struct size_class which can eliminate
+the 4 bytes hole between it and stats field.
+
+Signed-off-by: Weijie Yang <weijie.yang@samsung.com>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |   31 ++++++++-----------------------
- 1 file changed, 8 insertions(+), 23 deletions(-)
+ mm/zsmalloc.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2 fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -1373,6 +1373,7 @@ int dlm_mig_lockres_handler(struct o2net
- 	char *buf = NULL;
- 	struct dlm_work_item *item = NULL;
- 	struct dlm_lock_resource *res = NULL;
-+	unsigned int hash;
+diff -puN mm/zsmalloc.c~zsmalloc-reorganize-struct-size_class-to-pack-4-bytes-hole mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-reorganize-struct-size_class-to-pack-4-bytes-hole
++++ a/mm/zsmalloc.c
+@@ -213,10 +213,10 @@ struct size_class {
+ 	int size;
+ 	unsigned int index;
  
- 	if (!dlm_grab(dlm))
- 		return -EINVAL;
-@@ -1400,33 +1401,14 @@ int dlm_mig_lockres_handler(struct o2net
- 	/* lookup the lock to see if we have a secondary queue for this
- 	 * already...  just add the locks in and this will have its owner
- 	 * and RECOVERY flag changed when it completes. */
--way_up_top:
--	res = dlm_lookup_lockres(dlm, mres->lockname, mres->lockname_len);
-+	hash = dlm_lockid_hash(mres->lockname, mres->lockname_len);
-+	spin_lock(&dlm->spinlock);
-+	res = __dlm_lookup_lockres(dlm, mres->lockname, mres->lockname_len,
-+			hash);
- 	if (res) {
- 	 	/* this will get a ref on res */
- 		/* mark it as recovering/migrating and hash it */
- 		spin_lock(&res->spinlock);
--
--		/*
--		 * Right after dlm spinlock was released, dlm_thread could have
--		 * purged the lockres. Check if lockres got unhashed. If so
--		 * start over.
--		 */
--		if (hlist_unhashed(&res->hash_node)) {
--			spin_unlock(&res->spinlock);
--			dlm_lockres_put(res);
--			goto way_up_top;
--		}
--
--		/* Wait on the resource purge to complete before continuing */
--		if (res->state & DLM_LOCK_RES_DROPPING_REF) {
--			__dlm_wait_on_lockres_flags(res,
--					DLM_LOCK_RES_DROPPING_REF);
--			spin_unlock(&res->spinlock);
--			dlm_lockres_put(res);
--			goto way_up_top;
--		}
--
- 		if (mres->flags & DLM_MRES_RECOVERY) {
- 			res->state |= DLM_LOCK_RES_RECOVERING;
- 		} else {
-@@ -1443,13 +1425,16 @@ way_up_top:
- 				     mres->lockname_len, mres->lockname);
- 				ret = -EFAULT;
- 				spin_unlock(&res->spinlock);
-+				spin_unlock(&dlm->spinlock);
- 				dlm_lockres_put(res);
- 				goto leave;
- 			}
- 			res->state |= DLM_LOCK_RES_MIGRATING;
- 		}
- 		spin_unlock(&res->spinlock);
-+		spin_unlock(&dlm->spinlock);
- 	} else {
-+		spin_unlock(&dlm->spinlock);
- 		/* need to allocate, just like if it was
- 		 * mastered here normally  */
- 		res = dlm_new_lockres(dlm, mres->lockname, mres->lockname_len);
+-	/* Number of PAGE_SIZE sized pages to combine to form a 'zspage' */
+-	int pages_per_zspage;
+ 	struct zs_size_stat stats;
+ 
++	/* Number of PAGE_SIZE sized pages to combine to form a 'zspage' */
++	int pages_per_zspage;
+ 	/* huge object: pages_per_zspage == 1 && maxobj_per_zspage == 1 */
+ 	bool huge;
+ };
 _
 
-Patches currently in -mm which might be from xuejiufei@huawei.com are
+Patches currently in -mm which might be from weijie.yang@samsung.com are
 
-ocfs2-dlm-fix-a-race-between-purge-and-migratio.patch
-ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2.patch
-ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
-extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
+zsmalloc-reorganize-struct-size_class-to-pack-4-bytes-hole.patch
 
