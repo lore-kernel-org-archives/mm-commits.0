@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-enable-ubsan-support-fix.patch added to -mm tree
-Date: Fri, 11 Dec 2015 14:11:43 -0800
-Message-ID: <566b4a1f.qyET3B7tLXob7p5Q%akpm@linux-foundation.org>
+Subject: + ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2.patch added
+ to -mm tree
+Date: Fri, 11 Dec 2015 14:15:04 -0800
+Message-ID: <566b4ae8.VALjzn+43j9IIXbY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48990 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49455 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754048AbbLKWLo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Dec 2015 17:11:44 -0500
+	with ESMTP id S1754217AbbLKWPF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Dec 2015 17:15:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: valentinrothberg@gmail.com, aryabinin@virtuozzo.com, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/powerpc/Kconfig: fix typo in select statement
+     Subject: ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2
 has been added to the -mm tree.  Its filename is
-     powerpc-enable-ubsan-support-fix.patch
+     ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-enable-ubsan-support-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-enable-ubsan-support-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,38 +39,92 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Valentin Rothberg <valentinrothberg@gmail.com>
-Subject: arch/powerpc/Kconfig: fix typo in select statement
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2
 
-The 'I' in sanitize was missing:
-s/ARCH_HAS_UBSAN_SANTIZE_ALL/ARCH_HAS_UBSAN_SANITIZE_ALL/
-
-Fixes: 257e4ee82dbd ("powerpc: enable UBSAN support")
-Signed-off-by: Valentin Rothberg <valentinrothberg@gmail.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Jiufei Xue <xuejiufei@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Yiwen Jiang <jiangyiwen@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmrecovery.c |   31 ++++++++-----------------------
+ 1 file changed, 8 insertions(+), 23 deletions(-)
 
-diff -puN arch/powerpc/Kconfig~powerpc-enable-ubsan-support-fix arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~powerpc-enable-ubsan-support-fix
-+++ a/arch/powerpc/Kconfig
-@@ -158,7 +158,7 @@ config PPC
- 	select EDAC_ATOMIC_SCRUB
- 	select ARCH_HAS_DMA_SET_COHERENT_MASK
- 	select HAVE_ARCH_SECCOMP_FILTER
--	select ARCH_HAS_UBSAN_SANTIZE_ALL
-+	select ARCH_HAS_UBSAN_SANITIZE_ALL
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2 fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -1373,6 +1373,7 @@ int dlm_mig_lockres_handler(struct o2net
+ 	char *buf = NULL;
+ 	struct dlm_work_item *item = NULL;
+ 	struct dlm_lock_resource *res = NULL;
++	unsigned int hash;
  
- config GENERIC_CSUM
- 	def_bool CPU_LITTLE_ENDIAN
+ 	if (!dlm_grab(dlm))
+ 		return -EINVAL;
+@@ -1400,33 +1401,14 @@ int dlm_mig_lockres_handler(struct o2net
+ 	/* lookup the lock to see if we have a secondary queue for this
+ 	 * already...  just add the locks in and this will have its owner
+ 	 * and RECOVERY flag changed when it completes. */
+-way_up_top:
+-	res = dlm_lookup_lockres(dlm, mres->lockname, mres->lockname_len);
++	hash = dlm_lockid_hash(mres->lockname, mres->lockname_len);
++	spin_lock(&dlm->spinlock);
++	res = __dlm_lookup_lockres(dlm, mres->lockname, mres->lockname_len,
++			hash);
+ 	if (res) {
+ 	 	/* this will get a ref on res */
+ 		/* mark it as recovering/migrating and hash it */
+ 		spin_lock(&res->spinlock);
+-
+-		/*
+-		 * Right after dlm spinlock was released, dlm_thread could have
+-		 * purged the lockres. Check if lockres got unhashed. If so
+-		 * start over.
+-		 */
+-		if (hlist_unhashed(&res->hash_node)) {
+-			spin_unlock(&res->spinlock);
+-			dlm_lockres_put(res);
+-			goto way_up_top;
+-		}
+-
+-		/* Wait on the resource purge to complete before continuing */
+-		if (res->state & DLM_LOCK_RES_DROPPING_REF) {
+-			__dlm_wait_on_lockres_flags(res,
+-					DLM_LOCK_RES_DROPPING_REF);
+-			spin_unlock(&res->spinlock);
+-			dlm_lockres_put(res);
+-			goto way_up_top;
+-		}
+-
+ 		if (mres->flags & DLM_MRES_RECOVERY) {
+ 			res->state |= DLM_LOCK_RES_RECOVERING;
+ 		} else {
+@@ -1443,13 +1425,16 @@ way_up_top:
+ 				     mres->lockname_len, mres->lockname);
+ 				ret = -EFAULT;
+ 				spin_unlock(&res->spinlock);
++				spin_unlock(&dlm->spinlock);
+ 				dlm_lockres_put(res);
+ 				goto leave;
+ 			}
+ 			res->state |= DLM_LOCK_RES_MIGRATING;
+ 		}
+ 		spin_unlock(&res->spinlock);
++		spin_unlock(&dlm->spinlock);
+ 	} else {
++		spin_unlock(&dlm->spinlock);
+ 		/* need to allocate, just like if it was
+ 		 * mastered here normally  */
+ 		res = dlm_new_lockres(dlm, mres->lockname, mres->lockname_len);
 _
 
-Patches currently in -mm which might be from valentinrothberg@gmail.com are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
-powerpc-enable-ubsan-support-fix.patch
-dma-mapping-always-provide-the-dma_map_ops-based-implementation-fix.patch
+ocfs2-dlm-fix-a-race-between-purge-and-migratio.patch
+ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2.patch
+ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
+extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
 
