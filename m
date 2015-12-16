@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate.patch
- added to -mm tree
-Date: Tue, 15 Dec 2015 16:16:55 -0800
-Message-ID: <5670ad77.zLiPMG54ZpzvakIm%akpm@linux-foundation.org>
+Subject: + mm-dax-pmem-introduce-pfn_t.patch added to -mm tree
+Date: Tue, 15 Dec 2015 16:16:49 -0800
+Message-ID: <5670ad71.pERRPBRXMfga10Rz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47285 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47252 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754475AbbLPAQ4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Dec 2015 19:16:56 -0500
+	with ESMTP id S1754512AbbLPAQu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Dec 2015 19:16:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, dave.hansen@linux.intel.com, hpa@zytor.com, lkp@intel.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, dave.hansen@linux.intel.com, hch@lst.de, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86, mm: introduce vmem_altmap to augment vmemmap_populate()
+     Subject: mm, dax, pmem: introduce pfn_t
 has been added to the -mm tree.  Its filename is
-     x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate.patch
+     mm-dax-pmem-introduce-pfn_t.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dax-pmem-introduce-pfn_t.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dax-pmem-introduce-pfn_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,667 +39,324 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: x86, mm: introduce vmem_altmap to augment vmemmap_populate()
+Subject: mm, dax, pmem: introduce pfn_t
 
-In support of providing struct page for large persistent memory
-capacities, use struct vmem_altmap to change the default policy for
-allocating memory for the memmap array.  The default vmemmap_populate()
-allocates page table storage area from the page allocator.  Given
-persistent memory capacities relative to DRAM it may not be feasible to
-store the memmap in 'System Memory'.  Instead vmem_altmap represents
-pre-allocated "device pages" to satisfy vmemmap_alloc_block_buf()
-requests.
+For the purpose of communicating the optional presence of a 'struct page'
+for the pfn returned from ->direct_access(), introduce a type that
+encapsulates a page-frame-number plus flags.  These flags contain the
+historical "page_link" encoding for a scatterlist entry, but can also
+denote "device memory".  Where "device memory" is a set of pfns that are
+not part of the kernel's linear mapping by default, but are accessed via
+the same memory controller as ram.
+
+The motivation for this new type is large capacity persistent memory that
+needs struct page entries in the 'memmap' to support 3rd party DMA (i.e. 
+O_DIRECT I/O with a persistent memory source/target).  However, we also
+need it in support of maintaining a list of mapped inodes which need to be
+unmapped at driver teardown or freeze_bdev() time.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: kbuild test robot <lkp@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/page_mm.h |    1 
- arch/m68k/include/asm/page_no.h |    1 
- arch/mn10300/include/asm/page.h |    1 
- arch/x86/mm/init_64.c           |   32 ++++++++--
- drivers/nvdimm/pmem.c           |    6 +
- include/linux/memory_hotplug.h  |    3 
- include/linux/mm.h              |   92 ++++++++++++++++++++++++++++--
- kernel/memremap.c               |   61 +++++++++++++++++++
- mm/memory_hotplug.c             |   66 +++++++++++++++------
- mm/page_alloc.c                 |   10 ++-
- mm/sparse-vmemmap.c             |   37 +++++++++++-
- mm/sparse.c                     |    8 +-
- 12 files changed, 277 insertions(+), 41 deletions(-)
+ arch/powerpc/sysdev/axonram.c |    8 +--
+ drivers/block/brd.c           |    4 -
+ drivers/nvdimm/pmem.c         |   12 +++--
+ drivers/s390/block/dcssblk.c  |   10 +---
+ fs/dax.c                      |   10 ++--
+ include/linux/blkdev.h        |    4 -
+ include/linux/mm.h            |   66 ++++++++++++++++++++++++++++++++
+ include/linux/pfn.h           |    9 ++++
+ 8 files changed, 100 insertions(+), 23 deletions(-)
 
-diff -puN arch/m68k/include/asm/page_mm.h~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate arch/m68k/include/asm/page_mm.h
---- a/arch/m68k/include/asm/page_mm.h~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate
-+++ a/arch/m68k/include/asm/page_mm.h
-@@ -125,6 +125,7 @@ static inline void *__va(unsigned long x
+diff -puN arch/powerpc/sysdev/axonram.c~mm-dax-pmem-introduce-pfn_t arch/powerpc/sysdev/axonram.c
+--- a/arch/powerpc/sysdev/axonram.c~mm-dax-pmem-introduce-pfn_t
++++ a/arch/powerpc/sysdev/axonram.c
+@@ -142,15 +142,13 @@ axon_ram_make_request(struct request_que
   */
- #define virt_to_pfn(kaddr)	(__pa(kaddr) >> PAGE_SHIFT)
- #define pfn_to_virt(pfn)	__va((pfn) << PAGE_SHIFT)
-+#define	__pfn_to_phys(pfn)	PFN_PHYS(pfn)
- 
- extern int m68k_virt_to_node_shift;
- 
-diff -puN arch/m68k/include/asm/page_no.h~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate arch/m68k/include/asm/page_no.h
---- a/arch/m68k/include/asm/page_no.h~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate
-+++ a/arch/m68k/include/asm/page_no.h
-@@ -24,6 +24,7 @@ extern unsigned long memory_end;
- 
- #define virt_to_pfn(kaddr)	(__pa(kaddr) >> PAGE_SHIFT)
- #define pfn_to_virt(pfn)	__va((pfn) << PAGE_SHIFT)
-+#define	__pfn_to_phys(pfn)	PFN_PHYS(pfn)
- 
- #define virt_to_page(addr)	(mem_map + (((unsigned long)(addr)-PAGE_OFFSET) >> PAGE_SHIFT))
- #define page_to_virt(page)	__va(((((page) - mem_map) << PAGE_SHIFT) + PAGE_OFFSET))
-diff -puN arch/mn10300/include/asm/page.h~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate arch/mn10300/include/asm/page.h
---- a/arch/mn10300/include/asm/page.h~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate
-+++ a/arch/mn10300/include/asm/page.h
-@@ -107,6 +107,7 @@ static inline int get_order(unsigned lon
- #define pfn_to_kaddr(pfn)	__va((pfn) << PAGE_SHIFT)
- #define pfn_to_page(pfn)	(mem_map + ((pfn) - __pfn_disp))
- #define page_to_pfn(page)	((unsigned long)((page) - mem_map) + __pfn_disp)
-+#define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
- 
- #define pfn_valid(pfn)					\
- ({							\
-diff -puN arch/x86/mm/init_64.c~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate arch/x86/mm/init_64.c
---- a/arch/x86/mm/init_64.c~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate
-+++ a/arch/x86/mm/init_64.c
-@@ -714,6 +714,12 @@ static void __meminit free_pagetable(str
+ static long
+ axon_ram_direct_access(struct block_device *device, sector_t sector,
+-		       void __pmem **kaddr, unsigned long *pfn)
++		       void __pmem **kaddr, pfn_t *pfn)
  {
- 	unsigned long magic;
- 	unsigned int nr_pages = 1 << order;
-+	struct vmem_altmap *altmap = to_vmem_altmap((unsigned long) page);
-+
-+	if (altmap) {
-+		vmem_altmap_free(altmap, nr_pages);
-+		return;
-+	}
+ 	struct axon_ram_bank *bank = device->bd_disk->private_data;
+ 	loff_t offset = (loff_t)sector << AXON_RAM_SECTOR_SHIFT;
+-	void *addr = (void *)(bank->ph_addr + offset);
+-
+-	*kaddr = (void __pmem *)addr;
+-	*pfn = virt_to_phys(addr) >> PAGE_SHIFT;
  
- 	/* bootmem page has reserved flag */
- 	if (PageReserved(page)) {
-@@ -1018,13 +1024,19 @@ int __ref arch_remove_memory(u64 start,
- {
- 	unsigned long start_pfn = start >> PAGE_SHIFT;
- 	unsigned long nr_pages = size >> PAGE_SHIFT;
-+	struct page *page = pfn_to_page(start_pfn);
-+	struct vmem_altmap *altmap;
- 	struct zone *zone;
- 	int ret;
- 
--	zone = page_zone(pfn_to_page(start_pfn));
--	kernel_physical_mapping_remove(start, start + size);
-+	/* With altmap the first mapped page is offset from @start */
-+	altmap = to_vmem_altmap((unsigned long) page);
-+	if (altmap)
-+		page += vmem_altmap_offset(altmap);
-+	zone = page_zone(page);
- 	ret = __remove_pages(zone, start_pfn, nr_pages);
- 	WARN_ON_ONCE(ret);
-+	kernel_physical_mapping_remove(start, start + size);
- 
- 	return ret;
++	*kaddr = (void __pmem __force *) bank->io_addr + offset;
++	*pfn = phys_to_pfn_t(bank->ph_addr + offset, PFN_DEV);
+ 	return bank->size - offset;
  }
-@@ -1236,7 +1248,7 @@ static void __meminitdata *p_start, *p_e
- static int __meminitdata node_start;
  
- static int __meminit vmemmap_populate_hugepages(unsigned long start,
--						unsigned long end, int node)
-+		unsigned long end, int node, struct vmem_altmap *altmap)
+diff -puN drivers/block/brd.c~mm-dax-pmem-introduce-pfn_t drivers/block/brd.c
+--- a/drivers/block/brd.c~mm-dax-pmem-introduce-pfn_t
++++ a/drivers/block/brd.c
+@@ -378,7 +378,7 @@ static int brd_rw_page(struct block_devi
+ 
+ #ifdef CONFIG_BLK_DEV_RAM_DAX
+ static long brd_direct_access(struct block_device *bdev, sector_t sector,
+-			void __pmem **kaddr, unsigned long *pfn)
++			void __pmem **kaddr, pfn_t *pfn)
  {
- 	unsigned long addr;
- 	unsigned long next;
-@@ -1259,7 +1271,7 @@ static int __meminit vmemmap_populate_hu
- 		if (pmd_none(*pmd)) {
- 			void *p;
+ 	struct brd_device *brd = bdev->bd_disk->private_data;
+ 	struct page *page;
+@@ -389,7 +389,7 @@ static long brd_direct_access(struct blo
+ 	if (!page)
+ 		return -ENOSPC;
+ 	*kaddr = (void __pmem *)page_address(page);
+-	*pfn = page_to_pfn(page);
++	*pfn = page_to_pfn_t(page);
  
--			p = vmemmap_alloc_block_buf(PMD_SIZE, node);
-+			p = __vmemmap_alloc_block_buf(PMD_SIZE, node, altmap);
- 			if (p) {
- 				pte_t entry;
- 
-@@ -1280,7 +1292,8 @@ static int __meminit vmemmap_populate_hu
- 				addr_end = addr + PMD_SIZE;
- 				p_end = p + PMD_SIZE;
- 				continue;
--			}
-+			} else if (altmap)
-+				return -ENOMEM; /* no fallback */
- 		} else if (pmd_large(*pmd)) {
- 			vmemmap_verify((pte_t *)pmd, node, addr, next);
- 			continue;
-@@ -1294,11 +1307,16 @@ static int __meminit vmemmap_populate_hu
- 
- int __meminit vmemmap_populate(unsigned long start, unsigned long end, int node)
- {
-+	struct vmem_altmap *altmap = to_vmem_altmap(start);
- 	int err;
- 
- 	if (cpu_has_pse)
--		err = vmemmap_populate_hugepages(start, end, node);
--	else
-+		err = vmemmap_populate_hugepages(start, end, node, altmap);
-+	else if (altmap) {
-+		pr_err_once("%s: no cpu support for altmap allocations\n",
-+				__func__);
-+		err = -ENOMEM;
-+	} else
- 		err = vmemmap_populate_basepages(start, end, node);
- 	if (!err)
- 		sync_global_pgds(start, end - 1, 0);
-diff -puN drivers/nvdimm/pmem.c~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate drivers/nvdimm/pmem.c
---- a/drivers/nvdimm/pmem.c~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate
+ 	return PAGE_SIZE;
+ }
+diff -puN drivers/nvdimm/pmem.c~mm-dax-pmem-introduce-pfn_t drivers/nvdimm/pmem.c
+--- a/drivers/nvdimm/pmem.c~mm-dax-pmem-introduce-pfn_t
 +++ a/drivers/nvdimm/pmem.c
-@@ -143,7 +143,8 @@ static struct pmem_device *pmem_alloc(st
+@@ -39,6 +39,7 @@ struct pmem_device {
+ 	phys_addr_t		phys_addr;
+ 	/* when non-zero this device is hosting a 'pfn' instance */
+ 	phys_addr_t		data_offset;
++	unsigned long		pfn_flags;
+ 	void __pmem		*virt_addr;
+ 	size_t			size;
+ };
+@@ -101,13 +102,13 @@ static int pmem_rw_page(struct block_dev
+ }
  
- 	pmem->pfn_flags = PFN_DEV;
- 	if (pmem_should_map_pages(dev)) {
--		pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, res);
-+		pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, res,
-+				NULL);
- 		pmem->pfn_flags |= PFN_MAP;
- 	} else
+ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
+-		      void __pmem **kaddr, unsigned long *pfn)
++		      void __pmem **kaddr, pfn_t *pfn)
+ {
+ 	struct pmem_device *pmem = bdev->bd_disk->private_data;
+ 	resource_size_t offset = sector * 512 + pmem->data_offset;
+ 
+ 	*kaddr = pmem->virt_addr + offset;
+-	*pfn = (pmem->phys_addr + offset) >> PAGE_SHIFT;
++	*pfn = phys_to_pfn_t(pmem->phys_addr + offset, pmem->pfn_flags);
+ 
+ 	return pmem->size - offset;
+ }
+@@ -140,9 +141,11 @@ static struct pmem_device *pmem_alloc(st
+ 		return ERR_PTR(-EBUSY);
+ 	}
+ 
+-	if (pmem_should_map_pages(dev))
++	pmem->pfn_flags = PFN_DEV;
++	if (pmem_should_map_pages(dev)) {
+ 		pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, res);
+-	else
++		pmem->pfn_flags |= PFN_MAP;
++	} else
  		pmem->virt_addr = (void __pmem *) devm_memremap(dev,
-@@ -355,7 +356,8 @@ static int nvdimm_namespace_attach_pfn(s
- 	/* establish pfn range for lookup, and switch to direct map */
+ 				pmem->phys_addr, pmem->size,
+ 				ARCH_MEMREMAP_PMEM);
+@@ -353,6 +356,7 @@ static int nvdimm_namespace_attach_pfn(s
  	pmem = dev_get_drvdata(dev);
  	devm_memunmap(dev, (void __force *) pmem->virt_addr);
--	pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, &nsio->res);
-+	pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, &nsio->res,
-+			NULL);
- 	pmem->pfn_flags |= PFN_MAP;
+ 	pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, &nsio->res);
++	pmem->pfn_flags |= PFN_MAP;
  	if (IS_ERR(pmem->virt_addr)) {
  		rc = PTR_ERR(pmem->virt_addr);
-diff -puN include/linux/memory_hotplug.h~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate
-+++ a/include/linux/memory_hotplug.h
-@@ -275,7 +275,8 @@ extern int offline_pages(unsigned long s
- extern bool is_memblock_offlined(struct memory_block *mem);
- extern void remove_memory(int nid, u64 start, u64 size);
- extern int sparse_add_one_section(struct zone *zone, unsigned long start_pfn);
--extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms);
-+extern void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
-+		unsigned long map_offset);
- extern struct page *sparse_decode_mem_map(unsigned long coded_mem_map,
- 					  unsigned long pnum);
+ 		goto err;
+diff -puN drivers/s390/block/dcssblk.c~mm-dax-pmem-introduce-pfn_t drivers/s390/block/dcssblk.c
+--- a/drivers/s390/block/dcssblk.c~mm-dax-pmem-introduce-pfn_t
++++ a/drivers/s390/block/dcssblk.c
+@@ -30,7 +30,7 @@ static void dcssblk_release(struct gendi
+ static blk_qc_t dcssblk_make_request(struct request_queue *q,
+ 						struct bio *bio);
+ static long dcssblk_direct_access(struct block_device *bdev, sector_t secnum,
+-			 void __pmem **kaddr, unsigned long *pfn);
++			 void __pmem **kaddr, pfn_t *pfn);
  
-diff -puN include/linux/mm.h~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate include/linux/mm.h
---- a/include/linux/mm.h~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate
-+++ a/include/linux/mm.h
-@@ -689,20 +689,89 @@ static inline enum zone_type page_zonenu
- struct resource;
- struct device;
- /**
-+ * struct vmem_altmap - pre-allocated storage for vmemmap_populate
-+ * @base_pfn: base of the entire dev_pagemap mapping
-+ * @reserve: pages mapped, but reserved for driver use (relative to @base)
-+ * @free: free pages set aside in the mapping for memmap storage
-+ * @align: pages reserved to meet allocation alignments
-+ * @alloc: track pages consumed, private to vmemmap_populate()
-+ */
-+struct vmem_altmap {
-+	const unsigned long base_pfn;
-+	const unsigned long reserve;
-+	unsigned long free;
-+	unsigned long align;
-+	unsigned long alloc;
-+};
-+
-+static inline unsigned long vmem_altmap_nr_free(struct vmem_altmap *altmap)
-+{
-+	unsigned long allocated = altmap->alloc + altmap->align;
-+
-+	if (altmap->free > allocated)
-+		return altmap->free - allocated;
-+	return 0;
-+}
-+
-+static inline unsigned long vmem_altmap_offset(struct vmem_altmap *altmap)
-+{
-+	/* number of pfns from base where pfn_to_page() is valid */
-+	return altmap->reserve + altmap->free;
-+}
-+
-+static inline unsigned long vmem_altmap_next_pfn(struct vmem_altmap *altmap)
-+{
-+	return altmap->base_pfn + altmap->reserve + altmap->alloc
-+		+ altmap->align;
-+}
-+
-+/**
-+ * vmem_altmap_alloc - allocate pages from the vmem_altmap reservation
-+ * @altmap - reserved page pool for the allocation
-+ * @nr_pfns - size (in pages) of the allocation
-+ *
-+ * Allocations are aligned to the size of the request
-+ */
-+static inline unsigned long vmem_altmap_alloc(struct vmem_altmap *altmap,
-+		unsigned long nr_pfns)
-+{
-+	unsigned long pfn = vmem_altmap_next_pfn(altmap);
-+	unsigned long nr_align;
-+
-+	nr_align = 1UL << find_first_bit(&nr_pfns, BITS_PER_LONG);
-+	nr_align = ALIGN(pfn, nr_align) - pfn;
-+
-+	if (nr_pfns + nr_align > vmem_altmap_nr_free(altmap))
-+		return ULONG_MAX;
-+	altmap->alloc += nr_pfns;
-+	altmap->align += nr_align;
-+	return pfn + nr_align;
-+}
-+
-+static inline void vmem_altmap_free(struct vmem_altmap *altmap,
-+		unsigned long nr_pfns)
-+{
-+	altmap->alloc -= nr_pfns;
-+}
-+
-+/**
-  * struct dev_pagemap - metadata for ZONE_DEVICE mappings
-+ * @altmap: pre-allocated/reserved memory for vmemmap allocations
-  * @dev: host device of the mapping for debug
-  */
- struct dev_pagemap {
--	/* TODO: vmem_altmap and percpu_ref count */
-+	struct vmem_altmap *altmap;
-+	const struct resource *res;
- 	struct device *dev;
+ static char dcssblk_segments[DCSSBLK_PARM_LEN] = "\0";
+ 
+@@ -883,20 +883,18 @@ fail:
+ 
+ static long
+ dcssblk_direct_access (struct block_device *bdev, sector_t secnum,
+-			void __pmem **kaddr, unsigned long *pfn)
++			void __pmem **kaddr, pfn_t *pfn)
+ {
+ 	struct dcssblk_dev_info *dev_info;
+ 	unsigned long offset, dev_sz;
+-	void *addr;
+ 
+ 	dev_info = bdev->bd_disk->private_data;
+ 	if (!dev_info)
+ 		return -ENODEV;
+ 	dev_sz = dev_info->end - dev_info->start;
+ 	offset = secnum * 512;
+-	addr = (void *) (dev_info->start + offset);
+-	*pfn = virt_to_phys(addr) >> PAGE_SHIFT;
+-	*kaddr = (void __pmem *) addr;
++	*kaddr = (void __pmem *) (dev_info->start + offset);
++	*pfn = phys_to_pfn_t(dev_info->start + offset, PFN_DEV);
+ 
+ 	return dev_sz - offset;
+ }
+diff -puN fs/dax.c~mm-dax-pmem-introduce-pfn_t fs/dax.c
+--- a/fs/dax.c~mm-dax-pmem-introduce-pfn_t
++++ a/fs/dax.c
+@@ -362,7 +362,7 @@ static int dax_insert_mapping(struct ino
+ 	}
+ 	dax_unmap_atomic(bdev, &dax);
+ 
+-	error = vm_insert_mixed(vma, vaddr, dax.pfn);
++	error = vm_insert_mixed(vma, vaddr, pfn_t_to_pfn(dax.pfn));
+ 
+  out:
+ 	i_mmap_unlock_read(mapping);
+@@ -667,7 +667,8 @@ int __dax_pmd_fault(struct vm_area_struc
+ 			result = VM_FAULT_SIGBUS;
+ 			goto out;
+ 		}
+-		if ((length < PMD_SIZE) || (dax.pfn & PG_PMD_COLOUR)) {
++		if (length < PMD_SIZE
++				|| (pfn_t_to_pfn(dax.pfn) & PG_PMD_COLOUR)) {
+ 			dax_unmap_atomic(bdev, &dax);
+ 			goto fallback;
+ 		}
+@@ -676,7 +677,7 @@ int __dax_pmd_fault(struct vm_area_struc
+ 		 * TODO: teach vmf_insert_pfn_pmd() to support
+ 		 * 'pte_special' for pmds
+ 		 */
+-		if (pfn_valid(dax.pfn)) {
++		if (pfn_t_has_page(dax.pfn)) {
+ 			dax_unmap_atomic(bdev, &dax);
+ 			goto fallback;
+ 		}
+@@ -690,7 +691,8 @@ int __dax_pmd_fault(struct vm_area_struc
+ 		}
+ 		dax_unmap_atomic(bdev, &dax);
+ 
+-		result |= vmf_insert_pfn_pmd(vma, address, pmd, dax.pfn, write);
++		result |= vmf_insert_pfn_pmd(vma, address, pmd,
++				pfn_t_to_pfn(dax.pfn), write);
+ 	}
+ 
+  out:
+diff -puN include/linux/blkdev.h~mm-dax-pmem-introduce-pfn_t include/linux/blkdev.h
+--- a/include/linux/blkdev.h~mm-dax-pmem-introduce-pfn_t
++++ a/include/linux/blkdev.h
+@@ -1627,7 +1627,7 @@ struct blk_dax_ctl {
+ 	sector_t sector;
+ 	void __pmem *addr;
+ 	long size;
+-	unsigned long pfn;
++	pfn_t pfn;
  };
  
- #ifdef CONFIG_ZONE_DEVICE
--void *devm_memremap_pages(struct device *dev, struct resource *res);
-+void *devm_memremap_pages(struct device *dev, struct resource *res,
-+		struct vmem_altmap *altmap);
- struct dev_pagemap *find_dev_pagemap(resource_size_t phys);
- #else
- static inline void *devm_memremap_pages(struct device *dev,
--		struct resource *res)
-+		struct resource *res, struct vmem_altmap *altmap)
- {
- 	/*
- 	 * Fail attempts to call devm_memremap_pages() without
-@@ -719,6 +788,15 @@ static inline struct dev_pagemap *find_d
- }
+ struct block_device_operations {
+@@ -1637,7 +1637,7 @@ struct block_device_operations {
+ 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	long (*direct_access)(struct block_device *, sector_t, void __pmem **,
+-			unsigned long *pfn);
++			pfn_t *);
+ 	unsigned int (*check_events) (struct gendisk *disk,
+ 				      unsigned int clearing);
+ 	/* ->media_changed() is DEPRECATED, use ->check_events() instead */
+diff -puN include/linux/mm.h~mm-dax-pmem-introduce-pfn_t include/linux/mm.h
+--- a/include/linux/mm.h~mm-dax-pmem-introduce-pfn_t
++++ a/include/linux/mm.h
+@@ -896,6 +896,72 @@ static inline void set_page_memcg(struct
  #endif
  
-+#if defined(CONFIG_SPARSEMEM_VMEMMAP) && defined(CONFIG_ZONE_DEVICE)
-+struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start);
-+#else
-+static inline struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start)
+ /*
++ * PFN_FLAGS_MASK - mask of all the possible valid pfn_t flags
++ * PFN_SG_CHAIN - pfn is a pointer to the next scatterlist entry
++ * PFN_SG_LAST - pfn references a page and is the last scatterlist entry
++ * PFN_DEV - pfn is not covered by system memmap by default
++ * PFN_MAP - pfn has a dynamic page mapping established by a device driver
++ */
++#define PFN_FLAGS_MASK (((unsigned long) ~PAGE_MASK) \
++		<< (BITS_PER_LONG - PAGE_SHIFT))
++#define PFN_SG_CHAIN (1UL << (BITS_PER_LONG - 1))
++#define PFN_SG_LAST (1UL << (BITS_PER_LONG - 2))
++#define PFN_DEV (1UL << (BITS_PER_LONG - 3))
++#define PFN_MAP (1UL << (BITS_PER_LONG - 4))
++
++static inline pfn_t __pfn_to_pfn_t(unsigned long pfn, unsigned long flags)
 +{
++	pfn_t pfn_t = { .val = pfn | (flags & PFN_FLAGS_MASK), };
++
++	return pfn_t;
++}
++
++/* a default pfn to pfn_t conversion assumes that @pfn is pfn_valid() */
++static inline pfn_t pfn_to_pfn_t(unsigned long pfn)
++{
++	return __pfn_to_pfn_t(pfn, 0);
++}
++
++static inline pfn_t phys_to_pfn_t(dma_addr_t addr, unsigned long flags)
++{
++	return __pfn_to_pfn_t(addr >> PAGE_SHIFT, flags);
++}
++
++static inline bool pfn_t_has_page(pfn_t pfn)
++{
++	return (pfn.val & PFN_MAP) == PFN_MAP || (pfn.val & PFN_DEV) == 0;
++}
++
++static inline unsigned long pfn_t_to_pfn(pfn_t pfn)
++{
++	return pfn.val & ~PFN_FLAGS_MASK;
++}
++
++static inline struct page *pfn_t_to_page(pfn_t pfn)
++{
++	if (pfn_t_has_page(pfn))
++		return pfn_to_page(pfn_t_to_pfn(pfn));
 +	return NULL;
 +}
-+#endif
 +
- #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
- #define SECTION_IN_PAGE_FLAGS
- #endif
-@@ -2320,7 +2398,13 @@ pud_t *vmemmap_pud_populate(pgd_t *pgd,
- pmd_t *vmemmap_pmd_populate(pud_t *pud, unsigned long addr, int node);
- pte_t *vmemmap_pte_populate(pmd_t *pmd, unsigned long addr, int node);
- void *vmemmap_alloc_block(unsigned long size, int node);
--void *vmemmap_alloc_block_buf(unsigned long size, int node);
-+void *__vmemmap_alloc_block_buf(unsigned long size, int node,
-+		struct vmem_altmap *altmap);
-+static inline void *vmemmap_alloc_block_buf(unsigned long size, int node)
++static inline dma_addr_t pfn_t_to_phys(pfn_t pfn)
 +{
-+	return __vmemmap_alloc_block_buf(size, node, NULL);
++	return PFN_PHYS(pfn_t_to_pfn(pfn));
 +}
 +
- void vmemmap_verify(pte_t *, int, unsigned long, unsigned long);
- int vmemmap_populate_basepages(unsigned long start, unsigned long end,
- 			       int node);
-diff -puN kernel/memremap.c~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate kernel/memremap.c
---- a/kernel/memremap.c~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate
-+++ a/kernel/memremap.c
-@@ -164,6 +164,7 @@ struct page_map {
- 	struct resource res;
- 	struct percpu_ref *ref;
- 	struct dev_pagemap pgmap;
-+	struct vmem_altmap altmap;
- };
++static inline void *pfn_t_to_virt(pfn_t pfn)
++{
++	if (pfn_t_has_page(pfn))
++		return __va(pfn_t_to_phys(pfn));
++	return NULL;
++}
++
++static inline pfn_t page_to_pfn_t(struct page *page)
++{
++	return pfn_to_pfn_t(page_to_pfn(page));
++}
++
++/*
+  * Some inline functions in vmstat.h depend on page_zone()
+  */
+ #include <linux/vmstat.h>
+diff -puN include/linux/pfn.h~mm-dax-pmem-introduce-pfn_t include/linux/pfn.h
+--- a/include/linux/pfn.h~mm-dax-pmem-introduce-pfn_t
++++ a/include/linux/pfn.h
+@@ -3,6 +3,15 @@
  
- static void pgmap_radix_release(struct resource *res)
-@@ -181,6 +182,7 @@ static void devm_memremap_pages_release(
- 	struct page_map *page_map = data;
- 	struct resource *res = &page_map->res;
- 	resource_size_t align_start, align_size;
-+	struct dev_pagemap *pgmap = &page_map->pgmap;
- 
- 	pgmap_radix_release(res);
- 
-@@ -188,6 +190,8 @@ static void devm_memremap_pages_release(
- 	align_start = res->start & ~(SECTION_SIZE - 1);
- 	align_size = ALIGN(resource_size(res), SECTION_SIZE);
- 	arch_remove_memory(align_start, align_size);
-+	dev_WARN_ONCE(dev, pgmap->altmap && pgmap->altmap->alloc,
-+			"%s: failed to free all reserved pages\n", __func__);
- }
- 
- /* assumes rcu_read_lock() held at entry */
-@@ -201,11 +205,23 @@ struct dev_pagemap *find_dev_pagemap(res
- 	return page_map ? &page_map->pgmap : NULL;
- }
- 
--void *devm_memremap_pages(struct device *dev, struct resource *res)
-+/**
-+ * devm_memremap_pages - remap and provide memmap backing for the given resource
-+ * @dev: hosting device for @res
-+ * @res: "host memory" address range
-+ * @altmap: optional descriptor for allocating the memmap from @res
-+ *
-+ * Note, the expectation is that @res is a host memory range that could
-+ * feasibly be treated as a "System RAM" range, i.e. not a device mmio
-+ * range, but this is not enforced.
+ #ifndef __ASSEMBLY__
+ #include <linux/types.h>
++
++/*
++ * pfn_t: encapsulates a page-frame number that is optionally backed
++ * by memmap (struct page).  Whether a pfn_t has a 'struct page'
++ * backing is indicated by flags in the high bits of the value.
 + */
-+void *devm_memremap_pages(struct device *dev, struct resource *res,
-+		struct vmem_altmap *altmap)
- {
- 	int is_ram = region_intersects(res->start, resource_size(res),
- 			"System RAM");
- 	resource_size_t key, align_start, align_size;
-+	struct dev_pagemap *pgmap;
- 	struct page_map *page_map;
- 	int error, nid;
++typedef struct {
++	unsigned long val;
++} pfn_t;
+ #endif
  
-@@ -218,14 +234,27 @@ void *devm_memremap_pages(struct device
- 	if (is_ram == REGION_INTERSECTS)
- 		return __va(res->start);
- 
-+	if (altmap && !IS_ENABLED(CONFIG_SPARSEMEM_VMEMMAP)) {
-+		dev_err(dev, "%s: altmap requires CONFIG_SPARSEMEM_VMEMMAP=y\n",
-+				__func__);
-+		return ERR_PTR(-ENXIO);
-+	}
-+
- 	page_map = devres_alloc_node(devm_memremap_pages_release,
- 			sizeof(*page_map), GFP_KERNEL, dev_to_node(dev));
- 	if (!page_map)
- 		return ERR_PTR(-ENOMEM);
-+	pgmap = &page_map->pgmap;
- 
- 	memcpy(&page_map->res, res, sizeof(*res));
- 
--	page_map->pgmap.dev = dev;
-+	pgmap->dev = dev;
-+	if (altmap) {
-+		memcpy(&page_map->altmap, altmap, sizeof(*altmap));
-+		pgmap->altmap = &page_map->altmap;
-+	}
-+	pgmap->res = &page_map->res;
-+
- 	mutex_lock(&pgmap_lock);
- 	error = 0;
- 	for (key = res->start; key <= res->end; key += SECTION_SIZE) {
-@@ -272,3 +301,31 @@ void *devm_memremap_pages(struct device
- }
- EXPORT_SYMBOL(devm_memremap_pages);
- #endif /* CONFIG_ZONE_DEVICE */
-+
-+#if defined(CONFIG_SPARSEMEM_VMEMMAP) && defined(CONFIG_ZONE_DEVICE)
-+struct vmem_altmap *to_vmem_altmap(unsigned long memmap_start)
-+{
-+	/*
-+	 * 'memmap_start' is the virtual address for the first "struct
-+	 * page" in this range of the vmemmap array.  In the case of
-+	 * CONFIG_SPARSE_VMEMMAP a page_to_pfn conversion is simple
-+	 * pointer arithmetic, so we can perform this to_vmem_altmap()
-+	 * conversion without concern for the initialization state of
-+	 * the struct page fields.
-+	 */
-+	struct page *page = (struct page *) memmap_start;
-+	struct dev_pagemap *pgmap;
-+
-+	/*
-+	 * Uncoditionally retrieve a dev_pagemap associated with the
-+	 * given physical address, this is only for use in the
-+	 * arch_{add|remove}_memory() for setting up and tearing down
-+	 * the memmap.
-+	 */
-+	rcu_read_lock();
-+	pgmap = find_dev_pagemap(__pfn_to_phys(page_to_pfn(page)));
-+	rcu_read_unlock();
-+
-+	return pgmap ? pgmap->altmap : NULL;
-+}
-+#endif /* defined(CONFIG_SPARSEMEM_VMEMMAP) && defined(CONFIG_ZONE_DEVICE) */
-diff -puN mm/memory_hotplug.c~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate
-+++ a/mm/memory_hotplug.c
-@@ -505,10 +505,25 @@ int __ref __add_pages(int nid, struct zo
- 	unsigned long i;
- 	int err = 0;
- 	int start_sec, end_sec;
-+	struct vmem_altmap *altmap;
-+
- 	/* during initialize mem_map, align hot-added range to section */
- 	start_sec = pfn_to_section_nr(phys_start_pfn);
- 	end_sec = pfn_to_section_nr(phys_start_pfn + nr_pages - 1);
- 
-+	altmap = to_vmem_altmap((unsigned long) pfn_to_page(phys_start_pfn));
-+	if (altmap) {
-+		/*
-+		 * Validate altmap is within bounds of the total request
-+		 */
-+		if (altmap->base_pfn != phys_start_pfn
-+				|| vmem_altmap_offset(altmap) > nr_pages) {
-+			pr_warn_once("memory add fail, invalid altmap\n");
-+			return -EINVAL;
-+		}
-+		altmap->alloc = 0;
-+	}
-+
- 	for (i = start_sec; i <= end_sec; i++) {
- 		err = __add_section(nid, zone, section_nr_to_pfn(i));
- 
-@@ -730,7 +745,8 @@ static void __remove_zone(struct zone *z
- 	pgdat_resize_unlock(zone->zone_pgdat, &flags);
- }
- 
--static int __remove_section(struct zone *zone, struct mem_section *ms)
-+static int __remove_section(struct zone *zone, struct mem_section *ms,
-+		unsigned long map_offset)
- {
- 	unsigned long start_pfn;
- 	int scn_nr;
-@@ -747,7 +763,7 @@ static int __remove_section(struct zone
- 	start_pfn = section_nr_to_pfn(scn_nr);
- 	__remove_zone(zone, start_pfn);
- 
--	sparse_remove_one_section(zone, ms);
-+	sparse_remove_one_section(zone, ms, map_offset);
- 	return 0;
- }
- 
-@@ -766,9 +782,32 @@ int __remove_pages(struct zone *zone, un
- 		 unsigned long nr_pages)
- {
- 	unsigned long i;
--	int sections_to_remove;
--	resource_size_t start, size;
--	int ret = 0;
-+	unsigned long map_offset = 0;
-+	int sections_to_remove, ret = 0;
-+
-+	/* In the ZONE_DEVICE case device driver owns the memory region */
-+	if (is_dev_zone(zone)) {
-+		struct page *page = pfn_to_page(phys_start_pfn);
-+		struct vmem_altmap *altmap;
-+
-+		altmap = to_vmem_altmap((unsigned long) page);
-+		if (altmap)
-+			map_offset = vmem_altmap_offset(altmap);
-+	} else {
-+		resource_size_t start, size;
-+
-+		start = phys_start_pfn << PAGE_SHIFT;
-+		size = nr_pages * PAGE_SIZE;
-+
-+		ret = release_mem_region_adjustable(&iomem_resource, start,
-+					size);
-+		if (ret) {
-+			resource_size_t endres = start + size - 1;
-+
-+			pr_warn("Unable to release resource <%pa-%pa> (%d)\n",
-+					&start, &endres, ret);
-+		}
-+	}
- 
- 	/*
- 	 * We can only remove entire sections
-@@ -776,23 +815,12 @@ int __remove_pages(struct zone *zone, un
- 	BUG_ON(phys_start_pfn & ~PAGE_SECTION_MASK);
- 	BUG_ON(nr_pages % PAGES_PER_SECTION);
- 
--	start = phys_start_pfn << PAGE_SHIFT;
--	size = nr_pages * PAGE_SIZE;
--
--	/* in the ZONE_DEVICE case device driver owns the memory region */
--	if (!is_dev_zone(zone))
--		ret = release_mem_region_adjustable(&iomem_resource, start, size);
--	if (ret) {
--		resource_size_t endres = start + size - 1;
--
--		pr_warn("Unable to release resource <%pa-%pa> (%d)\n",
--				&start, &endres, ret);
--	}
--
- 	sections_to_remove = nr_pages / PAGES_PER_SECTION;
- 	for (i = 0; i < sections_to_remove; i++) {
- 		unsigned long pfn = phys_start_pfn + i*PAGES_PER_SECTION;
--		ret = __remove_section(zone, __pfn_to_section(pfn));
-+
-+		ret = __remove_section(zone, __pfn_to_section(pfn), map_offset);
-+		map_offset = 0;
- 		if (ret)
- 			break;
- 	}
-diff -puN mm/page_alloc.c~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate mm/page_alloc.c
---- a/mm/page_alloc.c~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate
-+++ a/mm/page_alloc.c
-@@ -4502,8 +4502,9 @@ static inline unsigned long wait_table_b
- void __meminit memmap_init_zone(unsigned long size, int nid, unsigned long zone,
- 		unsigned long start_pfn, enum memmap_context context)
- {
--	pg_data_t *pgdat = NODE_DATA(nid);
-+	struct vmem_altmap *altmap = to_vmem_altmap(__pfn_to_phys(start_pfn));
- 	unsigned long end_pfn = start_pfn + size;
-+	pg_data_t *pgdat = NODE_DATA(nid);
- 	unsigned long pfn;
- 	struct zone *z;
- 	unsigned long nr_initialised = 0;
-@@ -4511,6 +4512,13 @@ void __meminit memmap_init_zone(unsigned
- 	if (highest_memmap_pfn < end_pfn - 1)
- 		highest_memmap_pfn = end_pfn - 1;
- 
-+	/*
-+	 * Honor reservation requested by the driver for this ZONE_DEVICE
-+	 * memory
-+	 */
-+	if (altmap && start_pfn == altmap->base_pfn)
-+		start_pfn += altmap->reserve;
-+
- 	z = &pgdat->node_zones[zone];
- 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
- 		/*
-diff -puN mm/sparse-vmemmap.c~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate mm/sparse-vmemmap.c
---- a/mm/sparse-vmemmap.c~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate
-+++ a/mm/sparse-vmemmap.c
-@@ -70,7 +70,7 @@ void * __meminit vmemmap_alloc_block(uns
- }
- 
- /* need to make sure size is all the same during early stage */
--void * __meminit vmemmap_alloc_block_buf(unsigned long size, int node)
-+static void * __meminit alloc_block_buf(unsigned long size, int node)
- {
- 	void *ptr;
- 
-@@ -87,6 +87,39 @@ void * __meminit vmemmap_alloc_block_buf
- 	return ptr;
- }
- 
-+static void * __meminit altmap_alloc_block_buf(unsigned long size,
-+		struct vmem_altmap *altmap)
-+{
-+	unsigned long pfn, nr_pfns;
-+	void *ptr;
-+
-+	if (size & ~PAGE_MASK) {
-+		pr_warn_once("%s: allocations must be multiple of PAGE_SIZE (%ld)\n",
-+				__func__, size);
-+		return NULL;
-+	}
-+
-+	nr_pfns = size >> PAGE_SHIFT;
-+	pfn = vmem_altmap_alloc(altmap, nr_pfns);
-+	if (pfn < ULONG_MAX)
-+		ptr = __va(__pfn_to_phys(pfn));
-+	else
-+		ptr = NULL;
-+	pr_debug("%s: pfn: %#lx alloc: %ld align: %ld nr: %#lx\n",
-+			__func__, pfn, altmap->alloc, altmap->align, nr_pfns);
-+
-+	return ptr;
-+}
-+
-+/* need to make sure size is all the same during early stage */
-+void * __meminit __vmemmap_alloc_block_buf(unsigned long size, int node,
-+		struct vmem_altmap *altmap)
-+{
-+	if (altmap)
-+		return altmap_alloc_block_buf(size, altmap);
-+	return alloc_block_buf(size, node);
-+}
-+
- void __meminit vmemmap_verify(pte_t *pte, int node,
- 				unsigned long start, unsigned long end)
- {
-@@ -103,7 +136,7 @@ pte_t * __meminit vmemmap_pte_populate(p
- 	pte_t *pte = pte_offset_kernel(pmd, addr);
- 	if (pte_none(*pte)) {
- 		pte_t entry;
--		void *p = vmemmap_alloc_block_buf(PAGE_SIZE, node);
-+		void *p = alloc_block_buf(PAGE_SIZE, node);
- 		if (!p)
- 			return NULL;
- 		entry = pfn_pte(__pa(p) >> PAGE_SHIFT, PAGE_KERNEL);
-diff -puN mm/sparse.c~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate mm/sparse.c
---- a/mm/sparse.c~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate
-+++ a/mm/sparse.c
-@@ -748,7 +748,7 @@ static void clear_hwpoisoned_pages(struc
- 	if (!memmap)
- 		return;
- 
--	for (i = 0; i < PAGES_PER_SECTION; i++) {
-+	for (i = 0; i < nr_pages; i++) {
- 		if (PageHWPoison(&memmap[i])) {
- 			atomic_long_sub(1, &num_poisoned_pages);
- 			ClearPageHWPoison(&memmap[i]);
-@@ -788,7 +788,8 @@ static void free_section_usemap(struct p
- 		free_map_bootmem(memmap);
- }
- 
--void sparse_remove_one_section(struct zone *zone, struct mem_section *ms)
-+void sparse_remove_one_section(struct zone *zone, struct mem_section *ms,
-+		unsigned long map_offset)
- {
- 	struct page *memmap = NULL;
- 	unsigned long *usemap = NULL, flags;
-@@ -804,7 +805,8 @@ void sparse_remove_one_section(struct zo
- 	}
- 	pgdat_resize_unlock(pgdat, &flags);
- 
--	clear_hwpoisoned_pages(memmap, PAGES_PER_SECTION);
-+	clear_hwpoisoned_pages(memmap + map_offset,
-+			PAGES_PER_SECTION - map_offset);
- 	free_section_usemap(memmap, usemap);
- }
- #endif /* CONFIG_MEMORY_HOTREMOVE */
+ #define PFN_ALIGN(x)	(((unsigned long)(x) + (PAGE_SIZE - 1)) & PAGE_MASK)
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
