@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory.patch added
- to -mm tree
-Date: Tue, 15 Dec 2015 16:16:58 -0800
-Message-ID: <5670ad7a.0SWkBDvhVqae+G67%akpm@linux-foundation.org>
+Subject: + um-kill-pfn_t.patch added to -mm tree
+Date: Tue, 15 Dec 2015 16:16:45 -0800
+Message-ID: <5670ad6d.kX4xqVPswZIdLEZv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47289 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47243 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932463AbbLPAQ7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Dec 2015 19:16:59 -0500
+	with ESMTP id S1754512AbbLPAQq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Dec 2015 19:16:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, david@fromorbit.com, hch@lst.de, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, dave.hansen@linux.intel.com, jdike@addtoit.com, richard@nod.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: libnvdimm, pfn, pmem: allocate memmap array in persistent memory
+     Subject: um: kill pfn_t
 has been added to the -mm tree.  Its filename is
-     libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory.patch
+     um-kill-pfn_t.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/um-kill-pfn_t.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/um-kill-pfn_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,95 +39,97 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: libnvdimm, pfn, pmem: allocate memmap array in persistent memory
+Subject: um: kill pfn_t
 
-Use the new vmem_altmap capability to enable the pmem driver to arrange
-for a struct page memmap to be established in persistent memory.
+The core has developed a need for a "pfn_t" type [1].  Convert the usage
+of pfn_t by usermode-linux to an unsigned long, and update pfn_to_phys()
+to drop its expectation of a typed pfn.
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-September/002199.html
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/ia64/include/asm/page.h |    1 +
- drivers/nvdimm/pfn_devs.c    |    3 +--
- drivers/nvdimm/pmem.c        |   19 +++++++++++++++++--
- 3 files changed, 19 insertions(+), 4 deletions(-)
+ arch/um/include/asm/page.h           |    7 +++----
+ arch/um/include/asm/pgtable-3level.h |    4 ++--
+ arch/um/include/asm/pgtable.h        |    2 +-
+ 3 files changed, 6 insertions(+), 7 deletions(-)
 
-diff -puN arch/ia64/include/asm/page.h~libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory arch/ia64/include/asm/page.h
---- a/arch/ia64/include/asm/page.h~libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory
-+++ a/arch/ia64/include/asm/page.h
-@@ -105,6 +105,7 @@ extern struct page *vmem_map;
- #ifdef CONFIG_DISCONTIGMEM
- # define page_to_pfn(page)	((unsigned long) (page - vmem_map))
- # define pfn_to_page(pfn)	(vmem_map + (pfn))
-+# define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
+diff -puN arch/um/include/asm/page.h~um-kill-pfn_t arch/um/include/asm/page.h
+--- a/arch/um/include/asm/page.h~um-kill-pfn_t
++++ a/arch/um/include/asm/page.h
+@@ -18,6 +18,7 @@
+ 
+ struct page;
+ 
++#include <linux/pfn.h>
+ #include <linux/types.h>
+ #include <asm/vm-flags.h>
+ 
+@@ -52,7 +53,6 @@ typedef struct { unsigned long pgd; } pg
+ #define pmd_val(x)	((x).pmd)
+ #define __pmd(x) ((pmd_t) { (x) } )
+ 
+-typedef unsigned long long pfn_t;
+ typedef unsigned long long phys_t;
+ 
  #else
- # include <asm-generic/memory_model.h>
+@@ -76,7 +76,6 @@ typedef struct { unsigned long pmd; } pm
+ #define pte_is_zero(p) (!((p).pte & ~_PAGE_NEWPAGE))
+ #define pte_set_val(p, phys, prot) (p).pte = (phys | pgprot_val(prot))
+ 
+-typedef unsigned long pfn_t;
+ typedef unsigned long phys_t;
+ 
  #endif
-diff -puN drivers/nvdimm/pfn_devs.c~libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory drivers/nvdimm/pfn_devs.c
---- a/drivers/nvdimm/pfn_devs.c~libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory
-+++ a/drivers/nvdimm/pfn_devs.c
-@@ -83,8 +83,7 @@ static ssize_t mode_store(struct device
+@@ -109,8 +108,8 @@ extern unsigned long uml_physmem;
+ #define __pa(virt) to_phys((void *) (unsigned long) (virt))
+ #define __va(phys) to_virt((unsigned long) (phys))
  
- 		if (strncmp(buf, "pmem\n", n) == 0
- 				|| strncmp(buf, "pmem", n) == 0) {
--			/* TODO: allocate from PMEM support */
--			rc = -ENOTTY;
-+			nd_pfn->mode = PFN_MODE_PMEM;
- 		} else if (strncmp(buf, "ram\n", n) == 0
- 				|| strncmp(buf, "ram", n) == 0)
- 			nd_pfn->mode = PFN_MODE_RAM;
-diff -puN drivers/nvdimm/pmem.c~libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory drivers/nvdimm/pmem.c
---- a/drivers/nvdimm/pmem.c~libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory
-+++ a/drivers/nvdimm/pmem.c
-@@ -315,12 +315,16 @@ static int nvdimm_namespace_attach_pfn(s
- 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
- 	struct nd_pfn *nd_pfn = to_nd_pfn(ndns->claim);
- 	struct device *dev = &nd_pfn->dev;
--	struct vmem_altmap *altmap;
- 	struct nd_region *nd_region;
-+	struct vmem_altmap *altmap;
- 	struct nd_pfn_sb *pfn_sb;
- 	struct pmem_device *pmem;
- 	phys_addr_t offset;
- 	int rc;
-+	struct vmem_altmap __altmap = {
-+		.base_pfn = __phys_to_pfn(nsio->res.start),
-+		.reserve = __phys_to_pfn(SZ_8K),
-+	};
+-#define phys_to_pfn(p) ((pfn_t) ((p) >> PAGE_SHIFT))
+-#define pfn_to_phys(pfn) ((phys_t) ((pfn) << PAGE_SHIFT))
++#define phys_to_pfn(p) ((p) >> PAGE_SHIFT)
++#define pfn_to_phys(pfn) PFN_PHYS(pfn)
  
- 	if (!nd_pfn->uuid || !nd_pfn->ndns)
- 		return -ENODEV;
-@@ -348,6 +352,17 @@ static int nvdimm_namespace_attach_pfn(s
- 			return -EINVAL;
- 		nd_pfn->npfns = le64_to_cpu(pfn_sb->npfns);
- 		altmap = NULL;
-+	} else if (nd_pfn->mode == PFN_MODE_PMEM) {
-+		nd_pfn->npfns = (resource_size(&nsio->res) - offset)
-+			/ PAGE_SIZE;
-+		if (le64_to_cpu(nd_pfn->pfn_sb->npfns) > nd_pfn->npfns)
-+			dev_info(&nd_pfn->dev,
-+					"number of pfns truncated from %lld to %ld\n",
-+					le64_to_cpu(nd_pfn->pfn_sb->npfns),
-+					nd_pfn->npfns);
-+		altmap = & __altmap;
-+		altmap->free = __phys_to_pfn(offset - SZ_8K);
-+		altmap->alloc = 0;
- 	} else {
- 		rc = -ENXIO;
- 		goto err;
-@@ -357,7 +372,7 @@ static int nvdimm_namespace_attach_pfn(s
- 	pmem = dev_get_drvdata(dev);
- 	devm_memunmap(dev, (void __force *) pmem->virt_addr);
- 	pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, &nsio->res,
--			NULL);
-+			altmap);
- 	pmem->pfn_flags |= PFN_MAP;
- 	if (IS_ERR(pmem->virt_addr)) {
- 		rc = PTR_ERR(pmem->virt_addr);
+ #define pfn_valid(pfn) ((pfn) < max_mapnr)
+ #define virt_addr_valid(v) pfn_valid(phys_to_pfn(__pa(v)))
+diff -puN arch/um/include/asm/pgtable-3level.h~um-kill-pfn_t arch/um/include/asm/pgtable-3level.h
+--- a/arch/um/include/asm/pgtable-3level.h~um-kill-pfn_t
++++ a/arch/um/include/asm/pgtable-3level.h
+@@ -98,7 +98,7 @@ static inline unsigned long pte_pfn(pte_
+ 	return phys_to_pfn(pte_val(pte));
+ }
+ 
+-static inline pte_t pfn_pte(pfn_t page_nr, pgprot_t pgprot)
++static inline pte_t pfn_pte(unsigned long page_nr, pgprot_t pgprot)
+ {
+ 	pte_t pte;
+ 	phys_t phys = pfn_to_phys(page_nr);
+@@ -107,7 +107,7 @@ static inline pte_t pfn_pte(pfn_t page_n
+ 	return pte;
+ }
+ 
+-static inline pmd_t pfn_pmd(pfn_t page_nr, pgprot_t pgprot)
++static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
+ {
+ 	return __pmd((page_nr << PAGE_SHIFT) | pgprot_val(pgprot));
+ }
+diff -puN arch/um/include/asm/pgtable.h~um-kill-pfn_t arch/um/include/asm/pgtable.h
+--- a/arch/um/include/asm/pgtable.h~um-kill-pfn_t
++++ a/arch/um/include/asm/pgtable.h
+@@ -271,7 +271,7 @@ static inline int pte_same(pte_t pte_a,
+ 
+ #define phys_to_page(phys) pfn_to_page(phys_to_pfn(phys))
+ #define __virt_to_page(virt) phys_to_page(__pa(virt))
+-#define page_to_phys(page) pfn_to_phys((pfn_t) page_to_pfn(page))
++#define page_to_phys(page) pfn_to_phys(page_to_pfn(page))
+ #define virt_to_page(addr) __virt_to_page((const unsigned long) addr)
+ 
+ #define mk_pte(page, pgprot) \
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
