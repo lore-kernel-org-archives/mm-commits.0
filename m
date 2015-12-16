@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t.patch added to -mm
+Subject: + mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd.patch added to -mm
  tree
-Date: Tue, 15 Dec 2015 16:17:10 -0800
-Message-ID: <5670ad86.4XslxeRd1mU1FM9j%akpm@linux-foundation.org>
+Date: Tue, 15 Dec 2015 16:17:18 -0800
+Message-ID: <5670ad8e.7jbq3EuIVLdJ1FgP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47312 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47327 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932727AbbLPARL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Dec 2015 19:17:11 -0500
+	with ESMTP id S932727AbbLPART (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Dec 2015 19:17:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, dave.hansen@linux.intel.com, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, aarcange@redhat.com, dave.hansen@linux.intel.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, peterz@infradead.org, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, dax: convert vmf_insert_pfn_pmd() to pfn_t
+     Subject: mm, dax: dax-pmd vs thp-pmd vs hugetlbfs-pmd
 has been added to the -mm tree.  Its filename is
-     mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t.patch
+     mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,266 +40,279 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm, dax: convert vmf_insert_pfn_pmd() to pfn_t
+Subject: mm, dax: dax-pmd vs thp-pmd vs hugetlbfs-pmd
 
-Similar to the conversion of vm_insert_mixed() use pfn_t in the
-vmf_insert_pfn_pmd() to tag the resulting pte with _PAGE_DEVICE when the
-pfn is backed by a devm_memremap_pages() mapping.
+A dax-huge-page mapping while it uses some thp helpers is ultimately not a
+transparent huge page.  The distinction is especially important in the
+get_user_pages() path.  pmd_devmap() is used to distinguish dax-pmds from
+pmd_huge() and pmd_trans_huge() which have slightly different semantics.
+
+Explicitly mark the pmd_trans_huge() helpers that dax needs by adding
+pmd_devmap() checks.
+
+Also, before we introduce usages of pmd_pfn() in common code, include a
+definition for archs that have not needed it to date.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/pgtable_64.h     |    1 +
- arch/x86/include/asm/pgtable.h          |    6 ++++++
- arch/x86/mm/pat.c                       |    4 ++--
- drivers/gpu/drm/exynos/exynos_drm_gem.c |    2 +-
- drivers/gpu/drm/msm/msm_gem.c           |    2 +-
- drivers/gpu/drm/omapdrm/omap_gem.c      |    4 ++--
- fs/dax.c                                |    2 +-
- include/asm-generic/pgtable.h           |    6 ++++--
- include/linux/huge_mm.h                 |    2 +-
- include/linux/mm.h                      |   10 +++++++++-
- mm/huge_memory.c                        |   10 ++++++----
- mm/memory.c                             |    2 +-
- 12 files changed, 35 insertions(+), 16 deletions(-)
+ arch/ia64/include/asm/pgtable.h      |    1 
+ arch/sh/include/asm/pgtable-3level.h |    1 
+ arch/x86/include/asm/pgtable.h       |    8 +++++-
+ include/asm-generic/pgtable.h        |    4 +++
+ include/linux/huge_mm.h              |    3 +-
+ include/linux/mm.h                   |    4 +++
+ mm/huge_memory.c                     |   33 ++++++++++++++-----------
+ mm/memory.c                          |    8 +++---
+ mm/mprotect.c                        |    5 ++-
+ mm/pgtable-generic.c                 |    2 -
+ 10 files changed, 46 insertions(+), 23 deletions(-)
 
-diff -puN arch/sparc/include/asm/pgtable_64.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t arch/sparc/include/asm/pgtable_64.h
---- a/arch/sparc/include/asm/pgtable_64.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
-+++ a/arch/sparc/include/asm/pgtable_64.h
-@@ -245,6 +245,7 @@ static inline pte_t pfn_pte(unsigned lon
- #define mk_pte(page, pgprot)	pfn_pte(page_to_pfn(page), (pgprot))
+diff -puN arch/ia64/include/asm/pgtable.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd arch/ia64/include/asm/pgtable.h
+--- a/arch/ia64/include/asm/pgtable.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd
++++ a/arch/ia64/include/asm/pgtable.h
+@@ -273,6 +273,7 @@ extern unsigned long VMALLOC_END;
+ #define pmd_clear(pmdp)			(pmd_val(*(pmdp)) = 0UL)
+ #define pmd_page_vaddr(pmd)		((unsigned long) __va(pmd_val(pmd) & _PFN_MASK))
+ #define pmd_page(pmd)			virt_to_page((pmd_val(pmd) + PAGE_OFFSET))
++#define pmd_pfn(pmd)			(pmd_val(pmd) >> PAGE_SHIFT)
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+#define pfn_pmd pfn_pmd
- static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
- {
- 	pte_t pte = pfn_pte(page_nr, pgprot);
-diff -puN arch/x86/include/asm/pgtable.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
+ #define pud_none(pud)			(!pud_val(pud))
+ #define pud_bad(pud)			(!ia64_phys_addr_valid(pud_val(pud)))
+diff -puN arch/sh/include/asm/pgtable-3level.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd arch/sh/include/asm/pgtable-3level.h
+--- a/arch/sh/include/asm/pgtable-3level.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd
++++ a/arch/sh/include/asm/pgtable-3level.h
+@@ -29,6 +29,7 @@
+ 
+ typedef struct { unsigned long long pmd; } pmd_t;
+ #define pmd_val(x)	((x).pmd)
++#define pmd_pfn(x)	((pmd_val(x) & PMD_MASK) >> PAGE_SHIFT)
+ #define __pmd(x)	((pmd_t) { (x) } )
+ 
+ static inline unsigned long pud_page_vaddr(pud_t pud)
+diff -puN arch/x86/include/asm/pgtable.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd
 +++ a/arch/x86/include/asm/pgtable.h
-@@ -289,6 +289,11 @@ static inline pmd_t pmd_mkdirty(pmd_t pm
- 	return pmd_set_flags(pmd, _PAGE_DIRTY | _PAGE_SOFT_DIRTY);
- }
- 
-+static inline pmd_t pmd_mkdevmap(pmd_t pmd)
-+{
-+	return pmd_set_flags(pmd, _PAGE_DEVMAP);
+@@ -167,7 +167,13 @@ static inline int pmd_large(pmd_t pte)
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ static inline int pmd_trans_huge(pmd_t pmd)
+ {
+-	return pmd_val(pmd) & _PAGE_PSE;
++	return (pmd_val(pmd) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
 +}
 +
- static inline pmd_t pmd_mkhuge(pmd_t pmd)
- {
- 	return pmd_set_flags(pmd, _PAGE_PSE);
-@@ -363,6 +368,7 @@ static inline pte_t pfn_pte(unsigned lon
- 		     massage_pgprot(pgprot));
++#define pmd_devmap pmd_devmap
++static inline int pmd_devmap(pmd_t pmd)
++{
++	return !!(pmd_val(pmd) & _PAGE_DEVMAP);
  }
  
-+#define pfn_pmd pfn_pmd
- static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
- {
- 	return __pmd(((phys_addr_t)page_nr << PAGE_SHIFT) |
-diff -puN arch/x86/mm/pat.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t arch/x86/mm/pat.c
---- a/arch/x86/mm/pat.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
-+++ a/arch/x86/mm/pat.c
-@@ -949,7 +949,7 @@ int track_pfn_remap(struct vm_area_struc
- }
- 
- int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
--		     unsigned long pfn)
-+		     pfn_t pfn)
- {
- 	enum page_cache_mode pcm;
- 
-@@ -957,7 +957,7 @@ int track_pfn_insert(struct vm_area_stru
- 		return 0;
- 
- 	/* Set prot based on lookup */
--	pcm = lookup_memtype((resource_size_t)pfn << PAGE_SHIFT);
-+	pcm = lookup_memtype(pfn_t_to_phys(pfn));
- 	*prot = __pgprot((pgprot_val(vma->vm_page_prot) & (~_PAGE_CACHE_MASK)) |
- 			 cachemode2protval(pcm));
- 
-diff -puN drivers/gpu/drm/exynos/exynos_drm_gem.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t drivers/gpu/drm/exynos/exynos_drm_gem.c
---- a/drivers/gpu/drm/exynos/exynos_drm_gem.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
-+++ a/drivers/gpu/drm/exynos/exynos_drm_gem.c
-@@ -491,7 +491,7 @@ int exynos_drm_gem_fault(struct vm_area_
- 
- 	pfn = page_to_pfn(exynos_gem->pages[page_offset]);
- 	ret = vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
--			pfn_to_pfn_t(pfn, PFN_DEV));
-+			__pfn_to_pfn_t(pfn, PFN_DEV));
- 
- out:
- 	switch (ret) {
-diff -puN drivers/gpu/drm/msm/msm_gem.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t drivers/gpu/drm/msm/msm_gem.c
---- a/drivers/gpu/drm/msm/msm_gem.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
-+++ a/drivers/gpu/drm/msm/msm_gem.c
-@@ -223,7 +223,7 @@ int msm_gem_fault(struct vm_area_struct
- 			pfn, pfn << PAGE_SHIFT);
- 
- 	ret = vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
--			pfn_to_pfn_t(pfn, PFN_DEV));
-+			__pfn_to_pfn_t(pfn, PFN_DEV));
- 
- out_unlock:
- 	mutex_unlock(&dev->struct_mutex);
-diff -puN drivers/gpu/drm/omapdrm/omap_gem.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t drivers/gpu/drm/omapdrm/omap_gem.c
---- a/drivers/gpu/drm/omapdrm/omap_gem.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
-+++ a/drivers/gpu/drm/omapdrm/omap_gem.c
-@@ -386,7 +386,7 @@ static int fault_1d(struct drm_gem_objec
- 			pfn, pfn << PAGE_SHIFT);
- 
- 	return vm_insert_mixed(vma, (unsigned long)vmf->virtual_address,
--			pfn_to_pfn_t(pfn, PFN_DEV));
-+			__pfn_to_pfn_t(pfn, PFN_DEV));
- }
- 
- /* Special handling for the case of faulting in 2d tiled buffers */
-@@ -480,7 +480,7 @@ static int fault_2d(struct drm_gem_objec
- 
- 	for (i = n; i > 0; i--) {
- 		vm_insert_mixed(vma, (unsigned long)vaddr,
--				pfn_to_pfn_t(pfn, PFN_DEV));
-+				__pfn_to_pfn_t(pfn, PFN_DEV));
- 		pfn += usergart[fmt].stride_pfn;
- 		vaddr += PAGE_SIZE * m;
- 	}
-diff -puN fs/dax.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t fs/dax.c
---- a/fs/dax.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
-+++ a/fs/dax.c
-@@ -692,7 +692,7 @@ int __dax_pmd_fault(struct vm_area_struc
- 		dax_unmap_atomic(bdev, &dax);
- 
- 		result |= vmf_insert_pfn_pmd(vma, address, pmd,
--				pfn_t_to_pfn(dax.pfn), write);
-+				dax.pfn, write);
- 	}
- 
-  out:
-diff -puN include/asm-generic/pgtable.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
+ static inline int has_transparent_hugepage(void)
+diff -puN include/asm-generic/pgtable.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd include/asm-generic/pgtable.h
+--- a/include/asm-generic/pgtable.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd
 +++ a/include/asm-generic/pgtable.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_GENERIC_PGTABLE_H
- #define _ASM_GENERIC_PGTABLE_H
- 
-+#include <linux/pfn.h>
-+
- #ifndef __ASSEMBLY__
- #ifdef CONFIG_MMU
- 
-@@ -549,7 +551,7 @@ static inline int track_pfn_remap(struct
-  * by vm_insert_pfn().
-  */
- static inline int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
--				   unsigned long pfn)
-+				   pfn_t pfn)
+@@ -616,6 +616,10 @@ static inline int pmd_trans_huge(pmd_t p
  {
  	return 0;
  }
-@@ -577,7 +579,7 @@ extern int track_pfn_remap(struct vm_are
- 			   unsigned long pfn, unsigned long addr,
- 			   unsigned long size);
- extern int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
--			    unsigned long pfn);
-+			    pfn_t pfn);
- extern int track_pfn_copy(struct vm_area_struct *vma);
- extern void untrack_pfn(struct vm_area_struct *vma, unsigned long pfn,
- 			unsigned long size);
-diff -puN include/linux/huge_mm.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
++static inline int pmd_devmap(pmd_t pmd)
++{
++	return 0;
++}
+ #ifndef __HAVE_ARCH_PMD_WRITE
+ static inline int pmd_write(pmd_t pmd)
+ {
+diff -puN include/linux/huge_mm.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd
 +++ a/include/linux/huge_mm.h
-@@ -37,7 +37,7 @@ extern int change_huge_pmd(struct vm_are
- 			unsigned long addr, pgprot_t newprot,
- 			int prot_numa);
- int vmf_insert_pfn_pmd(struct vm_area_struct *, unsigned long addr, pmd_t *,
--			unsigned long pfn, bool write);
-+			pfn_t pfn, bool write);
+@@ -104,7 +104,8 @@ void __split_huge_pmd(struct vm_area_str
+ #define split_huge_pmd(__vma, __pmd, __address)				\
+ 	do {								\
+ 		pmd_t *____pmd = (__pmd);				\
+-		if (pmd_trans_huge(*____pmd))				\
++		if (pmd_trans_huge(*____pmd)				\
++					|| pmd_devmap(*____pmd))	\
+ 			__split_huge_pmd(__vma, __pmd, __address);	\
+ 	}  while (0)
  
- enum transparent_hugepage_flag {
- 	TRANSPARENT_HUGEPAGE_FLAG,
-diff -puN include/linux/mm.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t include/linux/mm.h
---- a/include/linux/mm.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
+diff -puN include/linux/mm.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd include/linux/mm.h
+--- a/include/linux/mm.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd
 +++ a/include/linux/mm.h
-@@ -1081,7 +1081,14 @@ static inline pte_t pfn_t_pte(pfn_t pfn,
- }
+@@ -1944,6 +1944,10 @@ static inline void pgtable_pmd_page_dtor
+ #define pte_devmap(x) (0)
  #endif
  
--#ifdef __HAVE_ARCH_PTE_DEVICE
-+#ifdef pfn_pmd
-+static inline pmd_t pfn_t_pmd(pfn_t pfn, pgprot_t pgprot)
-+{
-+	return pfn_pmd(pfn_t_to_pfn(pfn), pgprot);
-+}
++#ifndef pmd_devmap
++#define pmd_devmap(x) (0)
 +#endif
 +
-+#ifdef __HAVE_ARCH_PTE_DEVMAP
- static inline bool pfn_t_devmap(pfn_t pfn)
+ static inline spinlock_t *pmd_lock(struct mm_struct *mm, pmd_t *pmd)
  {
- 	const unsigned long flags = PFN_DEV|PFN_MAP;
-@@ -1094,6 +1101,7 @@ static inline bool pfn_t_devmap(pfn_t pf
- 	return false;
- }
- pte_t pte_mkdevmap(pte_t pte);
-+pmd_t pmd_mkdevmap(pmd_t pmd);
- #endif
- 
- /*
-diff -puN mm/huge_memory.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t mm/huge_memory.c
---- a/mm/huge_memory.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
+ 	spinlock_t *ptl = pmd_lockptr(mm, pmd);
+diff -puN mm/huge_memory.c~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd
 +++ a/mm/huge_memory.c
-@@ -960,14 +960,16 @@ int do_huge_pmd_anonymous_page(struct mm
- }
+@@ -1023,7 +1023,7 @@ int copy_huge_pmd(struct mm_struct *dst_
  
- static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
--		pmd_t *pmd, unsigned long pfn, pgprot_t prot, bool write)
-+		pmd_t *pmd, pfn_t pfn, pgprot_t prot, bool write)
+ 	ret = -EAGAIN;
+ 	pmd = *src_pmd;
+-	if (unlikely(!pmd_trans_huge(pmd))) {
++	if (unlikely(!pmd_trans_huge(pmd) && !pmd_devmap(pmd))) {
+ 		pte_free(dst_mm, pgtable);
+ 		goto out_unlock;
+ 	}
+@@ -1046,17 +1046,20 @@ int copy_huge_pmd(struct mm_struct *dst_
+ 		goto out_unlock;
+ 	}
+ 
+-	src_page = pmd_page(pmd);
+-	VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
+-	get_page(src_page);
+-	page_dup_rmap(src_page, true);
+-	add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
++	if (pmd_trans_huge(pmd)) {
++		/* thp accounting separate from pmd_devmap accounting */
++		src_page = pmd_page(pmd);
++		VM_BUG_ON_PAGE(!PageHead(src_page), src_page);
++		get_page(src_page);
++		page_dup_rmap(src_page, true);
++		add_mm_counter(dst_mm, MM_ANONPAGES, HPAGE_PMD_NR);
++		atomic_long_inc(&dst_mm->nr_ptes);
++		pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
++	}
+ 
+ 	pmdp_set_wrprotect(src_mm, addr, src_pmd);
+ 	pmd = pmd_mkold(pmd_wrprotect(pmd));
+-	pgtable_trans_huge_deposit(dst_mm, dst_pmd, pgtable);
+ 	set_pmd_at(dst_mm, addr, dst_pmd, pmd);
+-	atomic_long_inc(&dst_mm->nr_ptes);
+ 
+ 	ret = 0;
+ out_unlock:
+@@ -1744,7 +1747,7 @@ bool __pmd_trans_huge_lock(pmd_t *pmd, s
+ 		spinlock_t **ptl)
  {
- 	struct mm_struct *mm = vma->vm_mm;
- 	pmd_t entry;
- 	spinlock_t *ptl;
+ 	*ptl = pmd_lock(vma->vm_mm, pmd);
+-	if (likely(pmd_trans_huge(*pmd)))
++	if (likely(pmd_trans_huge(*pmd) || pmd_devmap(*pmd)))
+ 		return true;
+ 	spin_unlock(*ptl);
+ 	return false;
+@@ -2861,7 +2864,7 @@ static void __split_huge_pmd_locked(stru
+ 	VM_BUG_ON(haddr & ~HPAGE_PMD_MASK);
+ 	VM_BUG_ON_VMA(vma->vm_start > haddr, vma);
+ 	VM_BUG_ON_VMA(vma->vm_end < haddr + HPAGE_PMD_SIZE, vma);
+-	VM_BUG_ON(!pmd_trans_huge(*pmd));
++	VM_BUG_ON(!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd));
  
+ 	count_vm_event(THP_SPLIT_PMD);
+ 
+@@ -2974,11 +2977,13 @@ void __split_huge_pmd(struct vm_area_str
+ 
+ 	mmu_notifier_invalidate_range_start(mm, haddr, haddr + HPAGE_PMD_SIZE);
  	ptl = pmd_lock(mm, pmd);
--	entry = pmd_mkhuge(pfn_pmd(pfn, prot));
-+	entry = pmd_mkhuge(pfn_t_pmd(pfn, prot));
-+	if (pfn_t_devmap(pfn))
-+		entry = pmd_mkdevmap(entry);
- 	if (write) {
- 		entry = pmd_mkyoung(pmd_mkdirty(entry));
- 		entry = maybe_pmd_mkwrite(entry, vma);
-@@ -978,7 +980,7 @@ static void insert_pfn_pmd(struct vm_are
- }
+-	if (unlikely(!pmd_trans_huge(*pmd)))
++	if (unlikely(!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)))
+ 		goto out;
+-	page = pmd_page(*pmd);
+ 	__split_huge_pmd_locked(vma, pmd, haddr, false);
+-	if (PageMlocked(page))
++
++	if (pmd_trans_huge(*pmd))
++		page = pmd_page(*pmd);
++	if (page && PageMlocked(page))
+ 		get_page(page);
+ 	else
+ 		page = NULL;
+@@ -3011,7 +3016,7 @@ static void split_huge_pmd_address(struc
+ 		return;
  
- int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
--			pmd_t *pmd, unsigned long pfn, bool write)
-+			pmd_t *pmd, pfn_t pfn, bool write)
- {
- 	pgprot_t pgprot = vma->vm_page_prot;
+ 	pmd = pmd_offset(pud, address);
+-	if (!pmd_present(*pmd) || !pmd_trans_huge(*pmd))
++	if (!pmd_present(*pmd) || (!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)))
+ 		return;
  	/*
-@@ -990,7 +992,7 @@ int vmf_insert_pfn_pmd(struct vm_area_st
- 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
- 						(VM_PFNMAP|VM_MIXEDMAP));
- 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
--	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_valid(pfn));
-+	BUG_ON(!pfn_t_devmap(pfn));
- 
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return VM_FAULT_SIGBUS;
-diff -puN mm/memory.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t mm/memory.c
---- a/mm/memory.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
+ 	 * Caller holds the mmap_sem write mode, so a huge pmd cannot
+diff -puN mm/memory.c~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd mm/memory.c
+--- a/mm/memory.c~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd
 +++ a/mm/memory.c
-@@ -1566,7 +1566,7 @@ int vm_insert_pfn(struct vm_area_struct
+@@ -949,7 +949,7 @@ static inline int copy_pmd_range(struct
+ 	src_pmd = pmd_offset(src_pud, addr);
+ 	do {
+ 		next = pmd_addr_end(addr, end);
+-		if (pmd_trans_huge(*src_pmd)) {
++		if (pmd_trans_huge(*src_pmd) || pmd_devmap(*src_pmd)) {
+ 			int err;
+ 			VM_BUG_ON(next-addr != HPAGE_PMD_SIZE);
+ 			err = copy_huge_pmd(dst_mm, src_mm,
+@@ -1176,7 +1176,7 @@ static inline unsigned long zap_pmd_rang
+ 	pmd = pmd_offset(pud, addr);
+ 	do {
+ 		next = pmd_addr_end(addr, end);
+-		if (pmd_trans_huge(*pmd)) {
++		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
+ 			if (next - addr != HPAGE_PMD_SIZE) {
+ #ifdef CONFIG_DEBUG_VM
+ 				if (!rwsem_is_locked(&tlb->mm->mmap_sem)) {
+@@ -3374,7 +3374,7 @@ static int __handle_mm_fault(struct mm_s
+ 		int ret;
  
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return -EFAULT;
--	if (track_pfn_insert(vma, &pgprot, pfn))
-+	if (track_pfn_insert(vma, &pgprot, __pfn_to_pfn_t(pfn, PFN_DEV)))
- 		return -EINVAL;
+ 		barrier();
+-		if (pmd_trans_huge(orig_pmd)) {
++		if (pmd_trans_huge(orig_pmd) || pmd_devmap(orig_pmd)) {
+ 			unsigned int dirty = flags & FAULT_FLAG_WRITE;
  
- 	ret = insert_pfn(vma, addr, __pfn_to_pfn_t(pfn, PFN_DEV), pgprot);
+ 			if (pmd_protnone(orig_pmd))
+@@ -3403,7 +3403,7 @@ static int __handle_mm_fault(struct mm_s
+ 	    unlikely(__pte_alloc(mm, vma, pmd, address)))
+ 		return VM_FAULT_OOM;
+ 	/* if an huge pmd materialized from under us just retry later */
+-	if (unlikely(pmd_trans_huge(*pmd)))
++	if (unlikely(pmd_trans_huge(*pmd) || pmd_devmap(*pmd)))
+ 		return 0;
+ 	/*
+ 	 * A regular pmd is established and it can't morph into a huge pmd
+diff -puN mm/mprotect.c~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd mm/mprotect.c
+--- a/mm/mprotect.c~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd
++++ a/mm/mprotect.c
+@@ -149,7 +149,8 @@ static inline unsigned long change_pmd_r
+ 		unsigned long this_pages;
+ 
+ 		next = pmd_addr_end(addr, end);
+-		if (!pmd_trans_huge(*pmd) && pmd_none_or_clear_bad(pmd))
++		if (!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)
++				&& pmd_none_or_clear_bad(pmd))
+ 			continue;
+ 
+ 		/* invoke the mmu notifier if the pmd is populated */
+@@ -158,7 +159,7 @@ static inline unsigned long change_pmd_r
+ 			mmu_notifier_invalidate_range_start(mm, mni_start, end);
+ 		}
+ 
+-		if (pmd_trans_huge(*pmd)) {
++		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
+ 			if (next - addr != HPAGE_PMD_SIZE)
+ 				split_huge_pmd(vma, pmd, addr);
+ 			else {
+diff -puN mm/pgtable-generic.c~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd mm/pgtable-generic.c
+--- a/mm/pgtable-generic.c~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd
++++ a/mm/pgtable-generic.c
+@@ -132,7 +132,7 @@ pmd_t pmdp_huge_clear_flush(struct vm_ar
+ {
+ 	pmd_t pmd;
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+-	VM_BUG_ON(!pmd_trans_huge(*pmdp));
++	VM_BUG_ON(!pmd_trans_huge(*pmdp) && !pmd_devmap(*pmdp));
+ 	pmd = pmdp_huge_get_and_clear(vma->vm_mm, address, pmdp);
+ 	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+ 	return pmd;
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
