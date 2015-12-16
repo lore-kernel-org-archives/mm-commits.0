@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mm-introduce-_page_devmap.patch added to -mm tree
-Date: Tue, 15 Dec 2015 16:17:06 -0800
-Message-ID: <5670ad82.DIvUuM6fNKHxFg9F%akpm@linux-foundation.org>
+Subject: + hugetlb-fix-compile-error-on-tile.patch added to -mm tree
+Date: Tue, 15 Dec 2015 16:17:02 -0800
+Message-ID: <5670ad7e.eWWahXmIOFVEV6Cx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47305 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47296 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932727AbbLPARH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Dec 2015 19:17:07 -0500
+	with ESMTP id S932463AbbLPARD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Dec 2015 19:17:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, hpa@zytor.com, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, dhowells@redhat.com, liviu.dudau@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86, mm: introduce _PAGE_DEVMAP
+     Subject: hugetlb: fix compile error on tile
 has been added to the -mm tree.  Its filename is
-     x86-mm-introduce-_page_devmap.patch
+     hugetlb-fix-compile-error-on-tile.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-introduce-_page_devmap.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hugetlb-fix-compile-error-on-tile.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-introduce-_page_devmap.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hugetlb-fix-compile-error-on-tile.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,52 +39,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: x86, mm: introduce _PAGE_DEVMAP
+Subject: hugetlb: fix compile error on tile
 
-_PAGE_DEVMAP is a hardware-unused pte bit that will later be used in the
-get_user_pages() path to identify pfns backed by the dynamic allocation
-established by devm_memremap_pages.  Upon seeing that bit the gup path
-will lookup and pin the allocation while the pages are in use.
+Include asm/pgtable.h to get the definition for pud_t to fix:
 
-Since the _PAGE_DEVMAP bit is > 32 it must be cast to u64 instead of a
-pteval_t to allow pmd_flags() usage in the realmode boot code to build.
+include/linux/hugetlb.h:203:29: error: unknown type name 'pud_t'
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Liviu Dudau <liviu.dudau@arm.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable_types.h |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ include/linux/hugetlb.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/include/asm/pgtable_types.h~x86-mm-introduce-_page_devmap arch/x86/include/asm/pgtable_types.h
---- a/arch/x86/include/asm/pgtable_types.h~x86-mm-introduce-_page_devmap
-+++ a/arch/x86/include/asm/pgtable_types.h
-@@ -24,7 +24,9 @@
- #define _PAGE_BIT_CPA_TEST	_PAGE_BIT_SOFTW1
- #define _PAGE_BIT_HIDDEN	_PAGE_BIT_SOFTW3 /* hidden by kmemcheck */
- #define _PAGE_BIT_SOFT_DIRTY	_PAGE_BIT_SOFTW3 /* software dirty tracking */
--#define _PAGE_BIT_NX           63       /* No execute: only valid after cpuid check */
-+#define _PAGE_BIT_SOFTW4	58	/* available for programmer */
-+#define _PAGE_BIT_DEVMAP		_PAGE_BIT_SOFTW4
-+#define _PAGE_BIT_NX		63	/* No execute: only valid after cpuid check */
+diff -puN include/linux/hugetlb.h~hugetlb-fix-compile-error-on-tile include/linux/hugetlb.h
+--- a/include/linux/hugetlb.h~hugetlb-fix-compile-error-on-tile
++++ a/include/linux/hugetlb.h
+@@ -8,6 +8,7 @@
+ #include <linux/cgroup.h>
+ #include <linux/list.h>
+ #include <linux/kref.h>
++#include <asm/pgtable.h>
  
- /* If _PAGE_BIT_PRESENT is clear, we use these: */
- /* - if the user mapped it with PROT_NONE; pte_present gives true */
-@@ -83,8 +85,11 @@
- 
- #if defined(CONFIG_X86_64) || defined(CONFIG_X86_PAE)
- #define _PAGE_NX	(_AT(pteval_t, 1) << _PAGE_BIT_NX)
-+#define _PAGE_DEVMAP	(_AT(u64, 1) << _PAGE_BIT_DEVMAP)
-+#define __HAVE_ARCH_PTE_DEVMAP
- #else
- #define _PAGE_NX	(_AT(pteval_t, 0))
-+#define _PAGE_DEVMAP	(_AT(pteval_t, 0))
- #endif
- 
- #define _PAGE_PROTNONE	(_AT(pteval_t, 1) << _PAGE_BIT_PROTNONE)
+ struct ctl_table;
+ struct user_struct;
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
