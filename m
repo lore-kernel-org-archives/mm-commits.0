@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + avr32-convert-to-asm-generic-memory_modelh.patch added to -mm
- tree
-Date: Tue, 15 Dec 2015 16:17:00 -0800
-Message-ID: <5670ad7c.zOcmrByxGNqJRJiA%akpm@linux-foundation.org>
+Subject: +
+ libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory.patch added
+ to -mm tree
+Date: Tue, 15 Dec 2015 16:16:58 -0800
+Message-ID: <5670ad7a.0SWkBDvhVqae+G67%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47292 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47289 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932463AbbLPARB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Dec 2015 19:17:01 -0500
+	with ESMTP id S932463AbbLPAQ7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Dec 2015 19:16:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, egtvedt@samfundet.no, hskinnemoen@gmail.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, david@fromorbit.com, hch@lst.de, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: avr32: convert to asm-generic/memory_model.h
+     Subject: libnvdimm, pfn, pmem: allocate memmap array in persistent memory
 has been added to the -mm tree.  Its filename is
-     avr32-convert-to-asm-generic-memory_modelh.patch
+     libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/avr32-convert-to-asm-generic-memory_modelh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/avr32-convert-to-asm-generic-memory_modelh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,44 +41,95 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: avr32: convert to asm-generic/memory_model.h
+Subject: libnvdimm, pfn, pmem: allocate memmap array in persistent memory
 
-Switch avr32/include/asm/page.h to use the common defintions for
-pfn_to_page(), page_to_pfn(), and ARCH_PFN_OFFSET.
+Use the new vmem_altmap capability to enable the pmem driver to arrange
+for a struct page memmap to be established in persistent memory.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
-Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/avr32/include/asm/page.h |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ arch/ia64/include/asm/page.h |    1 +
+ drivers/nvdimm/pfn_devs.c    |    3 +--
+ drivers/nvdimm/pmem.c        |   19 +++++++++++++++++--
+ 3 files changed, 19 insertions(+), 4 deletions(-)
 
-diff -puN arch/avr32/include/asm/page.h~avr32-convert-to-asm-generic-memory_modelh arch/avr32/include/asm/page.h
---- a/arch/avr32/include/asm/page.h~avr32-convert-to-asm-generic-memory_modelh
-+++ a/arch/avr32/include/asm/page.h
-@@ -83,11 +83,9 @@ static inline int get_order(unsigned lon
+diff -puN arch/ia64/include/asm/page.h~libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory arch/ia64/include/asm/page.h
+--- a/arch/ia64/include/asm/page.h~libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory
++++ a/arch/ia64/include/asm/page.h
+@@ -105,6 +105,7 @@ extern struct page *vmem_map;
+ #ifdef CONFIG_DISCONTIGMEM
+ # define page_to_pfn(page)	((unsigned long) (page - vmem_map))
+ # define pfn_to_page(pfn)	(vmem_map + (pfn))
++# define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
+ #else
+ # include <asm-generic/memory_model.h>
+ #endif
+diff -puN drivers/nvdimm/pfn_devs.c~libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory drivers/nvdimm/pfn_devs.c
+--- a/drivers/nvdimm/pfn_devs.c~libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory
++++ a/drivers/nvdimm/pfn_devs.c
+@@ -83,8 +83,7 @@ static ssize_t mode_store(struct device
  
- #ifndef CONFIG_NEED_MULTIPLE_NODES
+ 		if (strncmp(buf, "pmem\n", n) == 0
+ 				|| strncmp(buf, "pmem", n) == 0) {
+-			/* TODO: allocate from PMEM support */
+-			rc = -ENOTTY;
++			nd_pfn->mode = PFN_MODE_PMEM;
+ 		} else if (strncmp(buf, "ram\n", n) == 0
+ 				|| strncmp(buf, "ram", n) == 0)
+ 			nd_pfn->mode = PFN_MODE_RAM;
+diff -puN drivers/nvdimm/pmem.c~libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory drivers/nvdimm/pmem.c
+--- a/drivers/nvdimm/pmem.c~libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory
++++ a/drivers/nvdimm/pmem.c
+@@ -315,12 +315,16 @@ static int nvdimm_namespace_attach_pfn(s
+ 	struct nd_namespace_io *nsio = to_nd_namespace_io(&ndns->dev);
+ 	struct nd_pfn *nd_pfn = to_nd_pfn(ndns->claim);
+ 	struct device *dev = &nd_pfn->dev;
+-	struct vmem_altmap *altmap;
+ 	struct nd_region *nd_region;
++	struct vmem_altmap *altmap;
+ 	struct nd_pfn_sb *pfn_sb;
+ 	struct pmem_device *pmem;
+ 	phys_addr_t offset;
+ 	int rc;
++	struct vmem_altmap __altmap = {
++		.base_pfn = __phys_to_pfn(nsio->res.start),
++		.reserve = __phys_to_pfn(SZ_8K),
++	};
  
--#define PHYS_PFN_OFFSET		(CONFIG_PHYS_OFFSET >> PAGE_SHIFT)
-+#define ARCH_PFN_OFFSET		(CONFIG_PHYS_OFFSET >> PAGE_SHIFT)
- 
--#define pfn_to_page(pfn)	(mem_map + ((pfn) - PHYS_PFN_OFFSET))
--#define page_to_pfn(page)	((unsigned long)((page) - mem_map) + PHYS_PFN_OFFSET)
--#define pfn_valid(pfn)		((pfn) >= PHYS_PFN_OFFSET && (pfn) < (PHYS_PFN_OFFSET + max_mapnr))
-+#define pfn_valid(pfn)		((pfn) >= ARCH_PFN_OFFSET && (pfn) < (ARCH_PFN_OFFSET + max_mapnr))
- #endif /* CONFIG_NEED_MULTIPLE_NODES */
- 
- #define virt_to_page(kaddr)	pfn_to_page(__pa(kaddr) >> PAGE_SHIFT)
-@@ -101,4 +99,6 @@ static inline int get_order(unsigned lon
-  */
- #define HIGHMEM_START		0x20000000UL
- 
-+#include <asm-generic/memory_model.h>
-+
- #endif /* __ASM_AVR32_PAGE_H */
+ 	if (!nd_pfn->uuid || !nd_pfn->ndns)
+ 		return -ENODEV;
+@@ -348,6 +352,17 @@ static int nvdimm_namespace_attach_pfn(s
+ 			return -EINVAL;
+ 		nd_pfn->npfns = le64_to_cpu(pfn_sb->npfns);
+ 		altmap = NULL;
++	} else if (nd_pfn->mode == PFN_MODE_PMEM) {
++		nd_pfn->npfns = (resource_size(&nsio->res) - offset)
++			/ PAGE_SIZE;
++		if (le64_to_cpu(nd_pfn->pfn_sb->npfns) > nd_pfn->npfns)
++			dev_info(&nd_pfn->dev,
++					"number of pfns truncated from %lld to %ld\n",
++					le64_to_cpu(nd_pfn->pfn_sb->npfns),
++					nd_pfn->npfns);
++		altmap = & __altmap;
++		altmap->free = __phys_to_pfn(offset - SZ_8K);
++		altmap->alloc = 0;
+ 	} else {
+ 		rc = -ENXIO;
+ 		goto err;
+@@ -357,7 +372,7 @@ static int nvdimm_namespace_attach_pfn(s
+ 	pmem = dev_get_drvdata(dev);
+ 	devm_memunmap(dev, (void __force *) pmem->virt_addr);
+ 	pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, &nsio->res,
+-			NULL);
++			altmap);
+ 	pmem->pfn_flags |= PFN_MAP;
+ 	if (IS_ERR(pmem->virt_addr)) {
+ 		rc = PTR_ERR(pmem->virt_addr);
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
