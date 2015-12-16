@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + um-kill-pfn_t.patch added to -mm tree
-Date: Tue, 15 Dec 2015 16:16:45 -0800
-Message-ID: <5670ad6d.kX4xqVPswZIdLEZv%akpm@linux-foundation.org>
+Subject: + frv-fix-compiler-warning-from-definition-of-__pmd.patch added
+ to -mm tree
+Date: Tue, 15 Dec 2015 16:17:04 -0800
+Message-ID: <5670ad80.7aTlVBn7mUnxxe+R%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47243 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47300 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754512AbbLPAQq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Dec 2015 19:16:46 -0500
+	with ESMTP id S932727AbbLPARF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Dec 2015 19:17:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, dave.hansen@linux.intel.com, jdike@addtoit.com, richard@nod.at, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: um: kill pfn_t
+     Subject: frv: fix compiler warning from definition of __pmd()
 has been added to the -mm tree.  Its filename is
-     um-kill-pfn_t.patch
+     frv-fix-compiler-warning-from-definition-of-__pmd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/um-kill-pfn_t.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/frv-fix-compiler-warning-from-definition-of-__pmd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/um-kill-pfn_t.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/frv-fix-compiler-warning-from-definition-of-__pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,97 +40,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: um: kill pfn_t
+Subject: frv: fix compiler warning from definition of __pmd()
 
-The core has developed a need for a "pfn_t" type [1].  Convert the usage
-of pfn_t by usermode-linux to an unsigned long, and update pfn_to_phys()
-to drop its expectation of a typed pfn.
+Take into account that the pmd_t type is a array inside a struct, so it
+needs two levels of brackets to initialize.  Otherwise, a usage of __pmd
+generates a warning:
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-September/002199.html
+include/linux/mm.h:986:2: warning: missing braces around initializer [-Wmissing-braces]
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Jeff Dike <jdike@addtoit.com>
-Cc: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/um/include/asm/page.h           |    7 +++----
- arch/um/include/asm/pgtable-3level.h |    4 ++--
- arch/um/include/asm/pgtable.h        |    2 +-
- 3 files changed, 6 insertions(+), 7 deletions(-)
+ arch/frv/include/asm/page.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/um/include/asm/page.h~um-kill-pfn_t arch/um/include/asm/page.h
---- a/arch/um/include/asm/page.h~um-kill-pfn_t
-+++ a/arch/um/include/asm/page.h
-@@ -18,6 +18,7 @@
+diff -puN arch/frv/include/asm/page.h~frv-fix-compiler-warning-from-definition-of-__pmd arch/frv/include/asm/page.h
+--- a/arch/frv/include/asm/page.h~frv-fix-compiler-warning-from-definition-of-__pmd
++++ a/arch/frv/include/asm/page.h
+@@ -34,7 +34,7 @@ typedef struct page *pgtable_t;
+ #define pgprot_val(x)	((x).pgprot)
  
- struct page;
- 
-+#include <linux/pfn.h>
- #include <linux/types.h>
- #include <asm/vm-flags.h>
- 
-@@ -52,7 +53,6 @@ typedef struct { unsigned long pgd; } pg
- #define pmd_val(x)	((x).pmd)
- #define __pmd(x) ((pmd_t) { (x) } )
- 
--typedef unsigned long long pfn_t;
- typedef unsigned long long phys_t;
- 
- #else
-@@ -76,7 +76,6 @@ typedef struct { unsigned long pmd; } pm
- #define pte_is_zero(p) (!((p).pte & ~_PAGE_NEWPAGE))
- #define pte_set_val(p, phys, prot) (p).pte = (phys | pgprot_val(prot))
- 
--typedef unsigned long pfn_t;
- typedef unsigned long phys_t;
- 
- #endif
-@@ -109,8 +108,8 @@ extern unsigned long uml_physmem;
- #define __pa(virt) to_phys((void *) (unsigned long) (virt))
- #define __va(phys) to_virt((unsigned long) (phys))
- 
--#define phys_to_pfn(p) ((pfn_t) ((p) >> PAGE_SHIFT))
--#define pfn_to_phys(pfn) ((phys_t) ((pfn) << PAGE_SHIFT))
-+#define phys_to_pfn(p) ((p) >> PAGE_SHIFT)
-+#define pfn_to_phys(pfn) PFN_PHYS(pfn)
- 
- #define pfn_valid(pfn) ((pfn) < max_mapnr)
- #define virt_addr_valid(v) pfn_valid(phys_to_pfn(__pa(v)))
-diff -puN arch/um/include/asm/pgtable-3level.h~um-kill-pfn_t arch/um/include/asm/pgtable-3level.h
---- a/arch/um/include/asm/pgtable-3level.h~um-kill-pfn_t
-+++ a/arch/um/include/asm/pgtable-3level.h
-@@ -98,7 +98,7 @@ static inline unsigned long pte_pfn(pte_
- 	return phys_to_pfn(pte_val(pte));
- }
- 
--static inline pte_t pfn_pte(pfn_t page_nr, pgprot_t pgprot)
-+static inline pte_t pfn_pte(unsigned long page_nr, pgprot_t pgprot)
- {
- 	pte_t pte;
- 	phys_t phys = pfn_to_phys(page_nr);
-@@ -107,7 +107,7 @@ static inline pte_t pfn_pte(pfn_t page_n
- 	return pte;
- }
- 
--static inline pmd_t pfn_pmd(pfn_t page_nr, pgprot_t pgprot)
-+static inline pmd_t pfn_pmd(unsigned long page_nr, pgprot_t pgprot)
- {
- 	return __pmd((page_nr << PAGE_SHIFT) | pgprot_val(pgprot));
- }
-diff -puN arch/um/include/asm/pgtable.h~um-kill-pfn_t arch/um/include/asm/pgtable.h
---- a/arch/um/include/asm/pgtable.h~um-kill-pfn_t
-+++ a/arch/um/include/asm/pgtable.h
-@@ -271,7 +271,7 @@ static inline int pte_same(pte_t pte_a,
- 
- #define phys_to_page(phys) pfn_to_page(phys_to_pfn(phys))
- #define __virt_to_page(virt) phys_to_page(__pa(virt))
--#define page_to_phys(page) pfn_to_phys((pfn_t) page_to_pfn(page))
-+#define page_to_phys(page) pfn_to_phys(page_to_pfn(page))
- #define virt_to_page(addr) __virt_to_page((const unsigned long) addr)
- 
- #define mk_pte(page, pgprot) \
+ #define __pte(x)	((pte_t) { (x) } )
+-#define __pmd(x)	((pmd_t) { (x) } )
++#define __pmd(x)	((pmd_t) { { (x) } } )
+ #define __pud(x)	((pud_t) { (x) } )
+ #define __pgd(x)	((pgd_t) { (x) } )
+ #define __pgprot(x)	((pgprot_t) { (x) } )
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
