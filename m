@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable.patch added
- to -mm tree
-Date: Tue, 15 Dec 2015 16:16:41 -0800
-Message-ID: <5670ad69.EEAb6SeIeeanqg8w%akpm@linux-foundation.org>
+ dax-guarantee-page-aligned-results-from-bdev_direct_access.patch added to
+ -mm tree
+Date: Tue, 15 Dec 2015 16:16:35 -0800
+Message-ID: <5670ad63.BLxTcDwn+YRwJy7o%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47223 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47204 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754507AbbLPAQm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Dec 2015 19:16:42 -0500
+	with ESMTP id S1754431AbbLPAQg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Dec 2015 19:16:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, jmoyer@redhat.com, toshi.kani@hpe.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, dax: fix livelock, allow dax pmd mappings to become writeable
+     Subject: dax: guarantee page aligned results from bdev_direct_access()
 has been added to the -mm tree.  Its filename is
-     mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable.patch
+     dax-guarantee-page-aligned-results-from-bdev_direct_access.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-guarantee-page-aligned-results-from-bdev_direct_access.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-guarantee-page-aligned-results-from-bdev_direct_access.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,58 +40,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: mm, dax: fix livelock, allow dax pmd mappings to become writeable
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: dax: guarantee page aligned results from bdev_direct_access()
 
-Prior to this change DAX PMD mappings that were made read-only were never
-able to be made writable again.  This is because the code in
-insert_pfn_pmd() that calls pmd_mkdirty() and pmd_mkwrite() would skip
-these calls if the PMD already existed in the page table.
+If a ->direct_access() implementation ever returns a map count less than
+PAGE_SIZE, catch the error in bdev_direct_access().  This simplifies error
+checking in upper layers.
 
-Instead, if we are doing a write always mark the PMD entry as dirty and
-writeable.  Without this code we can get into a condition where we mark
-the PMD as read-only, and then on a subsequent write fault we get into an
-infinite loop of PMD faults where we try unsuccessfully to make the PMD
-writeable.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
-Reported-by: Toshi Kani <toshi.kani@hpe.com>
+Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ fs/block_dev.c |    2 ++
+ fs/dax.c       |    1 -
+ 2 files changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable mm/huge_memory.c
---- a/mm/huge_memory.c~mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable
-+++ a/mm/huge_memory.c
-@@ -967,15 +967,13 @@ static void insert_pfn_pmd(struct vm_are
- 	spinlock_t *ptl;
- 
- 	ptl = pmd_lock(mm, pmd);
--	if (pmd_none(*pmd)) {
--		entry = pmd_mkhuge(pfn_pmd(pfn, prot));
--		if (write) {
--			entry = pmd_mkyoung(pmd_mkdirty(entry));
--			entry = maybe_pmd_mkwrite(entry, vma);
--		}
--		set_pmd_at(mm, addr, pmd, entry);
--		update_mmu_cache_pmd(vma, addr, pmd);
-+	entry = pmd_mkhuge(pfn_pmd(pfn, prot));
-+	if (write) {
-+		entry = pmd_mkyoung(pmd_mkdirty(entry));
-+		entry = maybe_pmd_mkwrite(entry, vma);
- 	}
-+	set_pmd_at(mm, addr, pmd, entry);
-+	update_mmu_cache_pmd(vma, addr, pmd);
- 	spin_unlock(ptl);
+diff -puN fs/block_dev.c~dax-guarantee-page-aligned-results-from-bdev_direct_access fs/block_dev.c
+--- a/fs/block_dev.c~dax-guarantee-page-aligned-results-from-bdev_direct_access
++++ a/fs/block_dev.c
+@@ -489,6 +489,8 @@ long bdev_direct_access(struct block_dev
+ 	avail = ops->direct_access(bdev, sector, addr, pfn);
+ 	if (!avail)
+ 		return -ERANGE;
++	if (avail > 0 && avail & ~PAGE_MASK)
++		return -ENXIO;
+ 	return min(avail, size);
  }
- 
+ EXPORT_SYMBOL_GPL(bdev_direct_access);
+diff -puN fs/dax.c~dax-guarantee-page-aligned-results-from-bdev_direct_access fs/dax.c
+--- a/fs/dax.c~dax-guarantee-page-aligned-results-from-bdev_direct_access
++++ a/fs/dax.c
+@@ -52,7 +52,6 @@ int dax_clear_blocks(struct inode *inode
+ 		sz = min_t(long, count, SZ_128K);
+ 		clear_pmem(addr, sz);
+ 		size -= sz;
+-		BUG_ON(sz & 511);
+ 		sector += sz / 512;
+ 		cond_resched();
+ 	} while (size);
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable.patch
+scatterlist-fix-sg_phys-masking.patch
+pmem-dax-clean-up-clear_pmem.patch
+dax-increase-granularity-of-dax_clear_blocks-operations.patch
+dax-guarantee-page-aligned-results-from-bdev_direct_access.patch
+dax-fix-lifetime-of-in-kernel-dax-mappings-with-dax_map_atomic.patch
+dax-fix-lifetime-of-in-kernel-dax-mappings-with-dax_map_atomic-v3.patch
+um-kill-pfn_t.patch
+kvm-rename-pfn_t-to-kvm_pfn_t.patch
+mm-dax-pmem-introduce-pfn_t.patch
+mm-dax-pmem-introduce-pfn_t-v3.patch
+mm-introduce-find_dev_pagemap.patch
+x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate.patch
+libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory.patch
+avr32-convert-to-asm-generic-memory_modelh.patch
+hugetlb-fix-compile-error-on-tile.patch
+frv-fix-compiler-warning-from-definition-of-__pmd.patch
+x86-mm-introduce-_page_devmap.patch
+mm-dax-gpu-convert-vm_insert_mixed-to-pfn_t.patch
+mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t.patch
+list-introduce-list_del_poison.patch
+libnvdimm-pmem-move-request_queue-allocation-earlier-in-probe.patch
+mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup.patch
+mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd.patch
+mm-x86-get_user_pages-for-dax-mappings.patch
+dax-provide-diagnostics-for-pmd-mapping-failures.patch
+dax-re-enable-dax-pmd-mappings.patch
 
