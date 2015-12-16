@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-clean-up-redundant-null-check-before-iput.patch added to
+Subject: +
+ mm-make-sure-isolate_lru_page-is-never-called-for-tail-page.patch added to
  -mm tree
-Date: Wed, 16 Dec 2015 14:04:06 -0800
-Message-ID: <5671dfd6.0k0yT6xWQ6V/d68g%akpm@linux-foundation.org>
+Date: Wed, 16 Dec 2015 14:06:05 -0800
+Message-ID: <5671e04d.qDWA7A0V8dI8TSjv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45761 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46093 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967060AbbLPWEH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Dec 2015 17:04:07 -0500
+	with ESMTP id S966439AbbLPWGG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Dec 2015 17:06:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: clean up redundant NULL check before iput
+     Subject: mm: make sure isolate_lru_page() is never called for tail page
 has been added to the -mm tree.  Its filename is
-     ocfs2-clean-up-redundant-null-check-before-iput.patch
+     mm-make-sure-isolate_lru_page-is-never-called-for-tail-page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-clean-up-redundant-null-check-before-iput.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-sure-isolate_lru_page-is-never-called-for-tail-page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-clean-up-redundant-null-check-before-iput.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-sure-isolate_lru_page-is-never-called-for-tail-page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,168 +40,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: clean up redundant NULL check before iput
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: make sure isolate_lru_page() is never called for tail page
 
-Since iput will take care the NULL check itself, NULL check before
-calling it is redundant. So clean them up.
+The VM_BUG_ON_PAGE() would catch such cases if any still exists.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c      |    3 +--
- fs/ocfs2/ioctl.c      |    4 +---
- fs/ocfs2/journal.c    |   10 +++-------
- fs/ocfs2/localalloc.c |   10 +++-------
- fs/ocfs2/namei.c      |    3 +--
- fs/ocfs2/slot_map.c   |    3 +--
- fs/ocfs2/super.c      |    3 +--
- 7 files changed, 11 insertions(+), 25 deletions(-)
+ mm/vmscan.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-clean-up-redundant-null-check-before-iput fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-clean-up-redundant-null-check-before-iput
-+++ a/fs/ocfs2/alloc.c
-@@ -6174,8 +6174,7 @@ int ocfs2_begin_truncate_log_recovery(st
- 	}
+diff -puN mm/vmscan.c~mm-make-sure-isolate_lru_page-is-never-called-for-tail-page mm/vmscan.c
+--- a/mm/vmscan.c~mm-make-sure-isolate_lru_page-is-never-called-for-tail-page
++++ a/mm/vmscan.c
+@@ -1426,6 +1426,7 @@ int isolate_lru_page(struct page *page)
+ 	int ret = -EBUSY;
  
- bail:
--	if (tl_inode)
--		iput(tl_inode);
-+	iput(tl_inode);
- 	brelse(tl_bh);
+ 	VM_BUG_ON_PAGE(!page_count(page), page);
++	VM_BUG_ON_PAGE(PageTail(page), page);
  
- 	if (status < 0) {
-diff -puN fs/ocfs2/ioctl.c~ocfs2-clean-up-redundant-null-check-before-iput fs/ocfs2/ioctl.c
---- a/fs/ocfs2/ioctl.c~ocfs2-clean-up-redundant-null-check-before-iput
-+++ a/fs/ocfs2/ioctl.c
-@@ -606,9 +606,7 @@ bail:
- 	if (gb_inode)
- 		mutex_unlock(&gb_inode->i_mutex);
- 
--	if (gb_inode)
--		iput(gb_inode);
--
-+	iput(gb_inode);
- 	brelse(bh);
- 
- 	return status;
-diff -puN fs/ocfs2/journal.c~ocfs2-clean-up-redundant-null-check-before-iput fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-clean-up-redundant-null-check-before-iput
-+++ a/fs/ocfs2/journal.c
-@@ -1042,8 +1042,7 @@ void ocfs2_journal_shutdown(struct ocfs2
- 
- //	up_write(&journal->j_trans_barrier);
- done:
--	if (inode)
--		iput(inode);
-+	iput(inode);
- }
- 
- static void ocfs2_clear_journal_error(struct super_block *sb,
-@@ -1687,9 +1686,7 @@ done:
- 	if (got_lock)
- 		ocfs2_inode_unlock(inode, 1);
- 
--	if (inode)
--		iput(inode);
--
-+	iput(inode);
- 	brelse(bh);
- 
- 	return status;
-@@ -1796,8 +1793,7 @@ static int ocfs2_trylock_journal(struct
- 
- 	ocfs2_inode_unlock(inode, 1);
- bail:
--	if (inode)
--		iput(inode);
-+	iput(inode);
- 
- 	return status;
- }
-diff -puN fs/ocfs2/localalloc.c~ocfs2-clean-up-redundant-null-check-before-iput fs/ocfs2/localalloc.c
---- a/fs/ocfs2/localalloc.c~ocfs2-clean-up-redundant-null-check-before-iput
-+++ a/fs/ocfs2/localalloc.c
-@@ -358,8 +358,7 @@ int ocfs2_load_local_alloc(struct ocfs2_
- bail:
- 	if (status < 0)
- 		brelse(alloc_bh);
--	if (inode)
--		iput(inode);
-+	iput(inode);
- 
- 	trace_ocfs2_load_local_alloc(osb->local_alloc_bits);
- 
-@@ -473,8 +472,7 @@ out_mutex:
- 	iput(main_bm_inode);
- 
- out:
--	if (local_alloc_inode)
--		iput(local_alloc_inode);
-+	iput(local_alloc_inode);
- 
- 	kfree(alloc_copy);
- }
-@@ -1327,9 +1325,7 @@ bail:
- 
- 	brelse(main_bm_bh);
- 
--	if (main_bm_inode)
--		iput(main_bm_inode);
--
-+	iput(main_bm_inode);
- 	kfree(alloc_copy);
- 
- 	if (ac)
-diff -puN fs/ocfs2/namei.c~ocfs2-clean-up-redundant-null-check-before-iput fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-clean-up-redundant-null-check-before-iput
-+++ a/fs/ocfs2/namei.c
-@@ -1683,8 +1683,7 @@ bail:
- 	if (new_inode)
- 		sync_mapping_buffers(old_inode->i_mapping);
- 
--	if (new_inode)
--		iput(new_inode);
-+	iput(new_inode);
- 
- 	ocfs2_free_dir_lookup_result(&target_lookup_res);
- 	ocfs2_free_dir_lookup_result(&old_entry_lookup);
-diff -puN fs/ocfs2/slot_map.c~ocfs2-clean-up-redundant-null-check-before-iput fs/ocfs2/slot_map.c
---- a/fs/ocfs2/slot_map.c~ocfs2-clean-up-redundant-null-check-before-iput
-+++ a/fs/ocfs2/slot_map.c
-@@ -322,8 +322,7 @@ static void __ocfs2_free_slot_info(struc
- 	if (si == NULL)
- 		return;
- 
--	if (si->si_inode)
--		iput(si->si_inode);
-+	iput(si->si_inode);
- 	if (si->si_bh) {
- 		for (i = 0; i < si->si_blocks; i++) {
- 			if (si->si_bh[i]) {
-diff -puN fs/ocfs2/super.c~ocfs2-clean-up-redundant-null-check-before-iput fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-clean-up-redundant-null-check-before-iput
-+++ a/fs/ocfs2/super.c
-@@ -1722,8 +1722,7 @@ static int ocfs2_statfs(struct dentry *d
- 	ocfs2_inode_unlock(inode, 0);
- 	status = 0;
- bail:
--	if (inode)
--		iput(inode);
-+	iput(inode);
- 
- 	if (status)
- 		mlog_errno(status);
+ 	if (PageLRU(page)) {
+ 		struct zone *zone = page_zone(page);
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-ocfs2-clean-up-redundant-null-check-before-iput.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery-v2.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery-v3.patch
-ocfs2-dlm-fix-bug-in-dlm_move_lockres_to_recovery_list.patch
+mm-make-sure-isolate_lru_page-is-never-called-for-tail-page.patch
+mm-make-optimistic-check-for-swapin-readahead-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-move-code-around.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-fix.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-3.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-at-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+page-flags-drop-__testclearpage-helpers.patch
+mm-proc-adjust-pss-calculation.patch
+rmap-add-argument-to-charge-compound-page.patch
+memcg-adjust-to-support-new-thp-refcounting.patch
+mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault.patch
+mm-adjust-foll_split-for-new-refcounting.patch
+mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
+thp-mlock-do-not-allow-huge-pages-in-mlocked-area.patch
+khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes.patch
+thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
+mm-vmstats-new-thp-splitting-event.patch
+mm-temporally-mark-thp-broken.patch
+thp-drop-all-split_huge_page-related-code.patch
+mm-drop-tail-page-refcounting.patch
+futex-thp-remove-special-case-for-thp-in-get_futex_key.patch
+ksm-prepare-to-new-thp-semantics.patch
+mm-thp-remove-compound_lock.patch
+arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+arm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+mips-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+powerpc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+s390-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+sparc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+tile-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+x86-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+mm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-2.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
+mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
+mm-numa-skip-pte-mapped-thp-on-numa-fault.patch
+thp-implement-split_huge_pmd.patch
+thp-add-option-to-setup-migration-entries-during-pmd-split.patch
+thp-mm-split_huge_page-caller-need-to-lock-page.patch
+thp-reintroduce-split_huge_page.patch
+thp-reintroduce-split_huge_page-fix-3.patch
+thp-reintroduce-split_huge_page-fix-4.patch
+migrate_pages-try-to-split-pages-on-qeueuing.patch
+thp-introduce-deferred_split_huge_page.patch
+thp-introduce-deferred_split_huge_page-fix.patch
+mm-re-enable-thp.patch
+thp-update-documentation.patch
+thp-allow-mlocked-thp-again.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch
 
