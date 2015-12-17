@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 16 Dec 2015 16:50:58 -0800
-Message-ID: <567206f2.YGnf4yt7EvykGWP8%akpm@linux-foundation.org>
+Subject: + mm-oom-introduce-oom-reaper.patch added to -mm tree
+Date: Wed, 16 Dec 2015 16:51:00 -0800
+Message-ID: <567206f4.AEPrUZB0+hcM1hdf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40696 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40702 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755374AbbLQAu7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Dec 2015 19:50:59 -0500
+	with ESMTP id S1755374AbbLQAvB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Dec 2015 19:51:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, andrea@kernel.org, hughd@google.com, mgorman@suse.de, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes
+     Subject: mm, oom: introduce oom reaper
 has been added to the -mm tree.  Its filename is
-     mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+     mm-oom-introduce-oom-reaper.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-introduce-oom-reaper.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-introduce-oom-reaper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,98 +38,342 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, oom: introduce oom reaper
 
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
-#9: 
-The first condition was added by a41f24ea9fd6 ("page allocator: smarter
+This is based on the idea from Mel Gorman discussed during LSFMM 2015 and
+independently brought up by Oleg Nesterov.
 
-WARNING: line over 80 characters
-#47: FILE: mm/page_alloc.c:3005:
-+ * the last reclaim round) and no_progress_loops (number of reclaim rounds without
+The OOM killer currently allows to kill only a single task in a good hope
+that the task will terminate in a reasonable time and frees up its memory.
+ Such a task (oom victim) will get an access to memory reserves via
+mark_oom_victim to allow a forward progress should there be a need for
+additional memory during exit path.
 
-total: 1 errors, 1 warnings, 68 lines checked
+It has been shown (e.g.  by Tetsuo Handa) that it is not that hard to
+construct workloads which break the core assumption mentioned above and
+the OOM victim might take unbounded amount of time to exit because it
+might be blocked in the uninterruptible state waiting for on an event
+(e.g.  lock) which is blocked by another task looping in the page
+allocator.
 
-./patches/mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch has style problems, please review.
+This patch reduces the probability of such a lockup by introducing a
+specialized kernel thread (oom_reaper) which tries to reclaim additional
+memory by preemptively reaping the anonymous or swapped out memory owned
+by the oom victim under an assumption that such a memory won't be needed
+when its owner is killed and kicked from the userspace anyway.  There is
+one notable exception to this, though, if the OOM victim was in the
+process of coredumping the result would be incomplete.  This is considered
+a reasonable constrain because the overall system health is more important
+than debugability of a particular application.
 
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+A kernel thread has been chosen because we need a reliable way of
+invocation so workqueue context is not appropriate because all the workers
+might be busy (e.g.  allocating memory).  Kswapd which sounds like another
+good fit is not appropriate as well because it might get blocked on locks
+during reclaim as well.
 
-Please run checkpatch prior to sending patches
+oom_reaper has to take mmap_sem on the target task for reading so the
+solution is not 100% because the semaphore might be held or blocked for
+write but the probability is reduced considerably wrt.  basically any lock
+blocking forward progress as described above.  In order to prevent from
+blocking on the lock without any forward progress we are using only a
+trylock and retry 10 times with a short sleep in between.  Users of
+mmap_sem which need it for write should be carefully reviewed to use
+_killable waiting as much as possible and reduce allocations requests done
+with the lock held to absolute minimum to reduce the risk even further.
 
-Cc: Michal Hocko <mhocko@suse.com>
+The API between oom killer and oom reaper is quite trivial. 
+wake_oom_reaper updates mm_to_reap with cmpxchg to guarantee only NULL->mm
+transition and oom_reaper clear this atomically once it is done with the
+work.  This means that only a single mm_struct can be reaped at the time. 
+As the operation is potentially disruptive we are trying to limit it to
+the ncessary minimum and the reaper blocks any updates while it operates
+on an mm.  mm_struct is pinned by mm_count to allow parallel exit_mmap and
+a race is detected by atomic_inc_not_zero(mm_users).
+
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Mel Gorman <mgorman@suse.de>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Argangeli <andrea@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/mm.h |    2 
+ mm/internal.h      |    5 +
+ mm/memory.c        |   12 +--
+ mm/oom_kill.c      |  139 ++++++++++++++++++++++++++++++++++++++++++-
+ 4 files changed, 149 insertions(+), 9 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes mm/page_alloc.c
---- a/mm/page_alloc.c~mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes
-+++ a/mm/page_alloc.c
-@@ -3002,9 +3002,9 @@ static inline bool is_thp_gfp_mask(gfp_t
-  * Checks whether it makes sense to retry the reclaim to make a forward progress
-  * for the given allocation request.
-  * The reclaim feedback represented by did_some_progress (any progress during
-- * the last reclaim round) and no_progress_loops (number of reclaim rounds without
-- * any progress in a row) is considered as well as the reclaimable pages on the
-- * applicable zone list (with a backoff mechanism which is a function of
-+ * the last reclaim round) and no_progress_loops (number of reclaim rounds
-+ * without any progress in a row) is considered as well as the reclaimable pages
-+ * on the applicable zone list (with a backoff mechanism which is a function of
-  * no_progress_loops).
-  *
-  * Returns true if a retry is viable or false to enter the oom path.
+diff -puN include/linux/mm.h~mm-oom-introduce-oom-reaper include/linux/mm.h
+--- a/include/linux/mm.h~mm-oom-introduce-oom-reaper
++++ a/include/linux/mm.h
+@@ -1357,6 +1357,8 @@ struct zap_details {
+ 	struct address_space *check_mapping;	/* Check page->mapping if set */
+ 	pgoff_t	first_index;			/* Lowest page->index to unmap */
+ 	pgoff_t last_index;			/* Highest page->index to unmap */
++	bool ignore_dirty;			/* Ignore dirty pages */
++	bool check_swap_entries;		/* Check also swap entries */
+ };
+ 
+ struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
+diff -puN mm/internal.h~mm-oom-introduce-oom-reaper mm/internal.h
+--- a/mm/internal.h~mm-oom-introduce-oom-reaper
++++ a/mm/internal.h
+@@ -43,6 +43,11 @@ extern int do_swap_page(struct mm_struct
+ void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
+ 		unsigned long floor, unsigned long ceiling);
+ 
++void unmap_page_range(struct mmu_gather *tlb,
++			     struct vm_area_struct *vma,
++			     unsigned long addr, unsigned long end,
++			     struct zap_details *details);
++
+ static inline void set_page_count(struct page *page, int v)
+ {
+ 	atomic_set(&page->_count, v);
+diff -puN mm/memory.c~mm-oom-introduce-oom-reaper mm/memory.c
+--- a/mm/memory.c~mm-oom-introduce-oom-reaper
++++ a/mm/memory.c
+@@ -1104,6 +1104,9 @@ again:
+ 
+ 			if (!PageAnon(page)) {
+ 				if (pte_dirty(ptent)) {
++					/* oom_reaper cannot tear down dirty pages */
++					if (unlikely(details && details->ignore_dirty))
++						continue;
+ 					force_flush = 1;
+ 					set_page_dirty(page);
+ 				}
+@@ -1122,8 +1125,8 @@ again:
+ 			}
+ 			continue;
+ 		}
+-		/* If details->check_mapping, we leave swap entries. */
+-		if (unlikely(details))
++		/* only check swap_entries if explicitly asked for in details */
++		if (unlikely(details && !details->check_swap_entries))
+ 			continue;
+ 
+ 		entry = pte_to_swp_entry(ptent);
+@@ -1228,7 +1231,7 @@ static inline unsigned long zap_pud_rang
+ 	return addr;
+ }
+ 
+-static void unmap_page_range(struct mmu_gather *tlb,
++void unmap_page_range(struct mmu_gather *tlb,
+ 			     struct vm_area_struct *vma,
+ 			     unsigned long addr, unsigned long end,
+ 			     struct zap_details *details)
+@@ -1236,9 +1239,6 @@ static void unmap_page_range(struct mmu_
+ 	pgd_t *pgd;
+ 	unsigned long next;
+ 
+-	if (details && !details->check_mapping)
+-		details = NULL;
+-
+ 	BUG_ON(addr >= end);
+ 	tlb_start_vma(tlb, vma);
+ 	pgd = pgd_offset(vma->vm_mm, addr);
+diff -puN mm/oom_kill.c~mm-oom-introduce-oom-reaper mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-introduce-oom-reaper
++++ a/mm/oom_kill.c
+@@ -35,6 +35,11 @@
+ #include <linux/freezer.h>
+ #include <linux/ftrace.h>
+ #include <linux/ratelimit.h>
++#include <linux/kthread.h>
++#include <linux/module.h>
++
++#include <asm/tlb.h>
++#include "internal.h"
+ 
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/oom.h>
+@@ -409,6 +414,105 @@ static DECLARE_WAIT_QUEUE_HEAD(oom_victi
+ 
+ bool oom_killer_disabled __read_mostly;
+ 
++/*
++ * OOM Reaper kernel thread which tries to reap the memory used by the OOM
++ * victim (if that is possible) to help the OOM killer to move on.
++ */
++static struct task_struct *oom_reaper_th;
++static struct mm_struct *mm_to_reap;
++static DECLARE_WAIT_QUEUE_HEAD(oom_reaper_wait);
++
++static bool __oom_reap_vmas(struct mm_struct *mm)
++{
++	struct mmu_gather tlb;
++	struct vm_area_struct *vma;
++	struct zap_details details = {.check_swap_entries = true,
++				      .ignore_dirty = true};
++	bool ret = true;
++
++	/* We might have raced with exit path */
++	if (!atomic_inc_not_zero(&mm->mm_users))
++		return true;
++
++	if (!down_read_trylock(&mm->mmap_sem)) {
++		ret = false;
++		goto out;
++	}
++
++	tlb_gather_mmu(&tlb, mm, 0, -1);
++	for (vma = mm->mmap ; vma; vma = vma->vm_next) {
++		if (is_vm_hugetlb_page(vma))
++			continue;
++
++		/*
++		 * Only anonymous pages have a good chance to be dropped
++		 * without additional steps which we cannot afford as we
++		 * are OOM already.
++		 *
++		 * We do not even care about fs backed pages because all
++		 * which are reclaimable have already been reclaimed and
++		 * we do not want to block exit_mmap by keeping mm ref
++		 * count elevated without a good reason.
++		 */
++		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED))
++			unmap_page_range(&tlb, vma, vma->vm_start, vma->vm_end,
++					 &details);
++	}
++	tlb_finish_mmu(&tlb, 0, -1);
++	up_read(&mm->mmap_sem);
++out:
++	mmput(mm);
++	return ret;
++}
++
++static void oom_reap_vmas(struct mm_struct *mm)
++{
++	int attempts = 0;
++
++	while (attempts++ < 10 && !__oom_reap_vmas(mm))
++		schedule_timeout(HZ/10);
++
++	/* Drop a reference taken by wake_oom_reaper */
++	mmdrop(mm);
++}
++
++static int oom_reaper(void *unused)
++{
++	while (true) {
++		struct mm_struct *mm;
++		wait_event_freezable(oom_reaper_wait, (mm = READ_ONCE(mm_to_reap)));
++		oom_reap_vmas(mm);
++		WRITE_ONCE(mm_to_reap, NULL);
++	}
++
++	return 0;
++}
++
++static void wake_oom_reaper(struct mm_struct *mm)
++{
++	struct mm_struct *old_mm;
++
++	if (!oom_reaper_th)
++		return;
++
++	/*
++	 * Pin the given mm. Use mm_count instead of mm_users because
++	 * we do not want to delay the address space tear down.
++	 */
++	atomic_inc(&mm->mm_count);
++
++	/*
++	 * Make sure that only a single mm is ever queued for the reaper
++	 * because multiple are not necessary and the operation might be
++	 * disruptive so better reduce it to the bare minimum.
++	 */
++	old_mm = cmpxchg(&mm_to_reap, NULL, mm);
++	if (!old_mm)
++		wake_up(&oom_reaper_wait);
++	else
++		mmdrop(mm);
++}
++
+ /**
+  * mark_oom_victim - mark the given task as OOM victim
+  * @tsk: task to mark
+@@ -518,6 +622,7 @@ void oom_kill_process(struct oom_control
+ 	unsigned int victim_points = 0;
+ 	static DEFINE_RATELIMIT_STATE(oom_rs, DEFAULT_RATELIMIT_INTERVAL,
+ 					      DEFAULT_RATELIMIT_BURST);
++	bool can_oom_reap = true;
+ 
+ 	/*
+ 	 * If the task is already exiting, don't alarm the sysadmin or kill
+@@ -608,17 +713,25 @@ void oom_kill_process(struct oom_control
+ 			continue;
+ 		if (same_thread_group(p, victim))
+ 			continue;
+-		if (unlikely(p->flags & PF_KTHREAD))
+-			continue;
+ 		if (is_global_init(p))
+ 			continue;
+-		if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
++		if (unlikely(p->flags & PF_KTHREAD) ||
++		    p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
++			/*
++			 * We cannot use oom_reaper for the mm shared by this process
++			 * because it wouldn't get killed and so the memory might be
++			 * still used.
++			 */
++			can_oom_reap = false;
+ 			continue;
++		}
+ 
+ 		do_send_sig_info(SIGKILL, SEND_SIG_FORCED, p, true);
+ 	}
+ 	rcu_read_unlock();
+ 
++	if (can_oom_reap)
++		wake_oom_reaper(mm);
+ 	mmdrop(mm);
+ 	put_task_struct(victim);
+ }
+@@ -770,3 +883,23 @@ void pagefault_out_of_memory(void)
+ 
+ 	mutex_unlock(&oom_lock);
+ }
++
++static int __init oom_init(void)
++{
++	oom_reaper_th = kthread_run(oom_reaper, NULL, "oom_reaper");
++	if (IS_ERR(oom_reaper_th)) {
++		pr_err("Unable to start OOM reaper %ld. Continuing regardless\n",
++				PTR_ERR(oom_reaper_th));
++		oom_reaper_th = NULL;
++	} else {
++		struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
++
++		/*
++		 * Make sure our oom reaper thread will get scheduled when
++		 * ASAP and that it won't get preempted by malicious userspace.
++		 */
++		sched_setscheduler(oom_reaper_th, SCHED_FIFO, &param);
++	}
++	return 0;
++}
++module_init(oom_init)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-arm64-mm-support-arch_mmap_rnd_bits-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-printk-introduce-new-format-string-for-flags-fix-2.patch
-mm-support-madvisemadv_free-fix-2-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
-kernel-stop_machinec-remove-config_smp-dependencies.patch
-lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
-lib-test_printfc-test-dentry-printing-fix.patch
-printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
-printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
-linux-next-rejects.patch
-include-linux-propertyh-fix-build-issues-with-gcc-444.patch
-include-linux-propertyh-fix-build-issues-with-gcc-444-fix.patch
-fs-overlayfs-superc-needs-pagemaph.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-get-rid-of-__alloc_pages_high_priority.patch
+mm-do-not-loop-over-alloc_no_watermarks-without-triggering-reclaim.patch
+mm-vmscan-consider-isolated-pages-in-zone_reclaimable_pages.patch
+mm-allow-gfp_iofs-for-page_cache_read-page-cache-allocation.patch
+mm-oom-give-__gfp_nofail-allocations-access-to-memory-reserves.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5.patch
+mm-oom-rework-oom-detection.patch
+mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
+mm-oom-introduce-oom-reaper.patch
 
