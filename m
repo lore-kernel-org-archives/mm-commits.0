@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-rework-oom-detection-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 16 Dec 2015 16:50:55 -0800
-Message-ID: <567206ef.s2hGKzgrw5reZe9D%akpm@linux-foundation.org>
+Subject: + mm-oom-introduce-oom-reaper-checkpatch-fixes.patch added to -mm tree
+Date: Wed, 16 Dec 2015 16:51:02 -0800
+Message-ID: <567206f6.Eqz8Q76uH8KAUG16%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40686 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40712 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755374AbbLQAu4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Dec 2015 19:50:56 -0500
+	with ESMTP id S1755395AbbLQAvD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Dec 2015 19:51:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, kamezawa.hiroyu@jp.fujitsu.com, mgorman@suse.de, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mgorman@suse.de, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-oom-rework-oom-detection-checkpatch-fixes
+     Subject: mm-oom-introduce-oom-reaper-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-oom-rework-oom-detection-checkpatch-fixes.patch
+     mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-rework-oom-detection-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-rework-oom-detection-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,105 +39,96 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-oom-rework-oom-detection-checkpatch-fixes
+Subject: mm-oom-introduce-oom-reaper-checkpatch-fixes
 
-Cc: David Rientjes <rientjes@google.com>
-
-WARNING: line over 80 characters
-#99: FILE: mm/page_alloc.c:2965:
-+ * zone list (with a backoff mechanism which is a function of no_progress_loops).
+Cc: Mel Gorman <mgorman@suse.de>
 
 WARNING: line over 80 characters
-#129: FILE: mm/page_alloc.c:2995:
-+	 * Keep reclaiming pages while there is a chance this will lead somewhere.
+#124: FILE: mm/memory.c:1107:
++					/* oom_reaper cannot tear down dirty pages */
 
 WARNING: line over 80 characters
-#134: FILE: mm/page_alloc.c:3000:
-+	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx, ac->nodemask) {
+#125: FILE: mm/memory.c:1108:
++					if (unlikely(details && details->ignore_dirty))
 
 WARNING: line over 80 characters
-#138: FILE: mm/page_alloc.c:3004:
-+		available -= DIV_ROUND_UP(no_progress_loops * available, MAX_RECLAIM_RETRIES);
+#245: FILE: mm/oom_kill.c:483:
++		wait_event_freezable(oom_reaper_wait, (mm = READ_ONCE(mm_to_reap)));
+
+WARNING: Missing a blank line after declarations
+#245: FILE: mm/oom_kill.c:483:
++		struct mm_struct *mm;
++		wait_event_freezable(oom_reaper_wait, (mm = READ_ONCE(mm_to_reap)));
 
 WARNING: line over 80 characters
-#142: FILE: mm/page_alloc.c:3008:
-+		 * Would the allocation succeed if we reclaimed the whole available?
+#301: FILE: mm/oom_kill.c:721:
++			 * We cannot use oom_reaper for the mm shared by this process
 
 WARNING: line over 80 characters
-#146: FILE: mm/page_alloc.c:3012:
-+			/* Wait for some write requests to complete then retry */
+#302: FILE: mm/oom_kill.c:722:
++			 * because it wouldn't get killed and so the memory might be
 
-total: 0 errors, 6 warnings, 202 lines checked
+total: 0 errors, 6 warnings, 228 lines checked
 
-./patches/mm-oom-rework-oom-detection.patch has style problems, please review.
+./patches/mm-oom-introduce-oom-reaper.patch has style problems, please review.
 
 NOTE: If any of the errors are false positives, please report
       them to the maintainer, see CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@kernel.org>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   22 +++++++++++++---------
- 1 file changed, 13 insertions(+), 9 deletions(-)
+ mm/memory.c   |    5 ++++-
+ mm/oom_kill.c |   10 ++++++----
+ 2 files changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-oom-rework-oom-detection-checkpatch-fixes mm/page_alloc.c
---- a/mm/page_alloc.c~mm-oom-rework-oom-detection-checkpatch-fixes
-+++ a/mm/page_alloc.c
-@@ -3005,7 +3005,8 @@ static inline bool is_thp_gfp_mask(gfp_t
-  * the last reclaim round), pages_reclaimed (cumulative number of reclaimed
-  * pages) and no_progress_loops (number of reclaim rounds without any progress
-  * in a row) is considered as well as the reclaimable pages on the applicable
-- * zone list (with a backoff mechanism which is a function of no_progress_loops).
-+ * zone list (with a backoff mechanism which is a function of
-+ * no_progress_loops).
-  *
-  * Returns true if a retry is viable or false to enter the oom path.
-  */
-@@ -3035,24 +3036,27 @@ should_reclaim_retry(gfp_t gfp_mask, uns
+diff -puN mm/memory.c~mm-oom-introduce-oom-reaper-checkpatch-fixes mm/memory.c
+--- a/mm/memory.c~mm-oom-introduce-oom-reaper-checkpatch-fixes
++++ a/mm/memory.c
+@@ -1104,7 +1104,10 @@ again:
+ 
+ 			if (!PageAnon(page)) {
+ 				if (pte_dirty(ptent)) {
+-					/* oom_reaper cannot tear down dirty pages */
++					/*
++					 * oom_reaper cannot tear down dirty
++					 * pages
++					 */
+ 					if (unlikely(details && details->ignore_dirty))
+ 						continue;
+ 					force_flush = 1;
+diff -puN mm/oom_kill.c~mm-oom-introduce-oom-reaper-checkpatch-fixes mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-introduce-oom-reaper-checkpatch-fixes
++++ a/mm/oom_kill.c
+@@ -480,7 +480,9 @@ static int oom_reaper(void *unused)
+ {
+ 	while (true) {
+ 		struct mm_struct *mm;
+-		wait_event_freezable(oom_reaper_wait, (mm = READ_ONCE(mm_to_reap)));
++
++		wait_event_freezable(oom_reaper_wait,
++				     (mm = READ_ONCE(mm_to_reap)));
+ 		oom_reap_vmas(mm);
+ 		WRITE_ONCE(mm_to_reap, NULL);
  	}
- 
- 	/*
--	 * Keep reclaiming pages while there is a chance this will lead somewhere.
--	 * If none of the target zones can satisfy our allocation request even
--	 * if all reclaimable pages are considered then we are screwed and have
--	 * to go OOM.
-+	 * Keep reclaiming pages while there is a chance this will lead
-+	 * somewhere.  If none of the target zones can satisfy our allocation
-+	 * request even if all reclaimable pages are considered then we are
-+	 * screwed and have to go OOM.
- 	 */
--	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx, ac->nodemask) {
-+	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist,
-+			ac->high_zoneidx, ac->nodemask) {
- 		unsigned long available;
- 
- 		available = zone_reclaimable_pages(zone);
--		available -= DIV_ROUND_UP(no_progress_loops * available, MAX_RECLAIM_RETRIES);
-+		available -= DIV_ROUND_UP(no_progress_loops * available,
-+					  MAX_RECLAIM_RETRIES);
- 		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
- 
- 		/*
--		 * Would the allocation succeed if we reclaimed the whole available?
-+		 * Would the allocation succeed if we reclaimed the whole
-+		 * available?
- 		 */
- 		if (__zone_watermark_ok(zone, order, min_wmark_pages(zone),
- 				ac->high_zoneidx, alloc_flags, available)) {
--			/* Wait for some write requests to complete then retry */
-+			/* Wait for some writes to complete then retry */
- 			wait_iff_congested(zone, BLK_RW_ASYNC, HZ/50);
- 			return true;
- 		}
+@@ -718,9 +720,9 @@ void oom_kill_process(struct oom_control
+ 		if (unlikely(p->flags & PF_KTHREAD) ||
+ 		    p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
+ 			/*
+-			 * We cannot use oom_reaper for the mm shared by this process
+-			 * because it wouldn't get killed and so the memory might be
+-			 * still used.
++			 * We cannot use oom_reaper for the mm shared by this
++			 * process because it wouldn't get killed and so the
++			 * memory might be still used.
+ 			 */
+ 			can_oom_reap = false;
+ 			continue;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
