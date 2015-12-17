@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-introduce-oom-reaper-fix-fix-2.patch added to -mm tree
-Date: Thu, 17 Dec 2015 15:19:44 -0800
-Message-ID: <56734310.WrzGmh1aK1V9sbk7%akpm@linux-foundation.org>
+Subject: +
+ vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix.patch added to -mm tree
+Date: Thu, 17 Dec 2015 15:29:01 -0800
+Message-ID: <5673453d.GqexZQAjy5h/GL02%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46349 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47274 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751709AbbLQXTp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Dec 2015 18:19:45 -0500
+	with ESMTP id S1752832AbbLQX3C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Dec 2015 18:29:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: cl@linux.com, hannes@cmpxchg.org, mhocko@suse.cz, penguin-kernel@i-love.sakura.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-oom-introduce-oom-reaper-fix-fix-2
+     Subject: vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix
 has been added to the -mm tree.  Its filename is
-     mm-oom-introduce-oom-reaper-fix-fix-2.patch
+     vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-introduce-oom-reaper-fix-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-introduce-oom-reaper-fix-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,80 +39,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-oom-introduce-oom-reaper-fix-fix-2
+From: Christoph Lameter <cl@linux.com>
+Subject: vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix
 
-include delay.h for msleep_interruptible()
+Hmmm... We got a race condition since quiet_vmstat touches cpu_stat_off
+which may not be allocated early in the bootup sequence. Causes oopses on
+boot.
 
-Cc: Michal Hocko <mhocko@kernel.org>
+Subject: vmstat: quieting vmstat requires a running system
+
+Do not do anything unless the system is actually running. Otherwise
+we may crash on bootup.
+
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/vmstat.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/oom_kill.c~mm-oom-introduce-oom-reaper-fix-fix-2 mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-introduce-oom-reaper-fix-fix-2
-+++ a/mm/oom_kill.c
-@@ -32,6 +32,7 @@
- #include <linux/mempolicy.h>
- #include <linux/security.h>
- #include <linux/ptrace.h>
-+#include <linux/delay.h>
- #include <linux/freezer.h>
- #include <linux/ftrace.h>
- #include <linux/ratelimit.h>
+diff -puN mm/vmstat.c~vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix
++++ a/mm/vmstat.c
+@@ -1416,6 +1416,9 @@ static void vmstat_update(struct work_st
+  */
+ void quiet_vmstat(void)
+ {
++	if (system_state != SYSTEM_RUNNING)
++		return;
++
+ 	do {
+ 		if (!cpumask_test_and_set_cpu(smp_processor_id(), cpu_stat_off))
+ 			cancel_delayed_work(this_cpu_ptr(&vmstat_work));
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from cl@linux.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-arm64-mm-support-arch_mmap_rnd_bits-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-printk-introduce-new-format-string-for-flags-fix-2.patch
-mm-support-madvisemadv_free-fix-2-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-mm-oom-introduce-oom-reaper-fix-fix.patch
-mm-oom-introduce-oom-reaper-fix-fix-2.patch
-mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
-kernel-stop_machinec-remove-config_smp-dependencies.patch
-lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
-lib-test_printfc-test-dentry-printing-fix.patch
-printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
-printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
-linux-next-rejects.patch
-include-linux-propertyh-fix-build-issues-with-gcc-444.patch
-include-linux-propertyh-fix-build-issues-with-gcc-444-fix.patch
-fs-overlayfs-superc-needs-pagemaph.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle.patch
+vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix.patch
 
