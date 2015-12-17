@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-free-swap-cache-aggressively-if-memcg-swap-is-full.patch
- added to -mm tree
-Date: Thu, 17 Dec 2015 13:59:55 -0800
-Message-ID: <5673305b.H+lEanpifhYIX0Jx%akpm@linux-foundation.org>
+Subject: + mm-vmscan-pass-memcg-to-get_scan_count.patch added to -mm tree
+Date: Thu, 17 Dec 2015 13:59:47 -0800
+Message-ID: <56733053.NQvXtF/PuS/SU/V2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36744 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36709 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932828AbbLQV74 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Dec 2015 16:59:56 -0500
+	with ESMTP id S932828AbbLQV7s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Dec 2015 16:59:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: free swap cache aggressively if memcg swap is full
+     Subject: mm: vmscan: pass memcg to get_scan_count()
 has been added to the -mm tree.  Its filename is
-     mm-free-swap-cache-aggressively-if-memcg-swap-is-full.patch
+     mm-vmscan-pass-memcg-to-get_scan_count.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-free-swap-cache-aggressively-if-memcg-swap-is-full.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-pass-memcg-to-get_scan_count.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-free-swap-cache-aggressively-if-memcg-swap-is-full.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-pass-memcg-to-get_scan_count.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,13 +39,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: free swap cache aggressively if memcg swap is full
+Subject: mm: vmscan: pass memcg to get_scan_count()
 
-Swap cache pages are freed aggressively if swap is nearly full (>50%
-currently), because otherwise we are likely to stop scanning anonymous
-when we near the swap limit even if there is plenty of freeable swap cache
-pages.  We should follow the same trend in case of memory cgroup, which
-has its own swap limit.
+memcg will come in handy in get_scan_count().  It can already be used for
+getting swappiness immediately in get_scan_count() instead of passing it
+around.  The following patches will add more memcg-related values, which
+will be used there.
 
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -54,105 +52,88 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |    6 ++++++
- mm/memcontrol.c      |   22 ++++++++++++++++++++++
- mm/memory.c          |    3 ++-
- mm/swapfile.c        |    2 +-
- mm/vmscan.c          |    2 +-
- 5 files changed, 32 insertions(+), 3 deletions(-)
+ mm/vmscan.c |   20 ++++++++------------
+ 1 file changed, 8 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/swap.h~mm-free-swap-cache-aggressively-if-memcg-swap-is-full include/linux/swap.h
---- a/include/linux/swap.h~mm-free-swap-cache-aggressively-if-memcg-swap-is-full
-+++ a/include/linux/swap.h
-@@ -553,6 +553,7 @@ extern void mem_cgroup_swapout(struct pa
- extern int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry);
- extern void mem_cgroup_uncharge_swap(swp_entry_t entry);
- extern long mem_cgroup_get_nr_swap_pages(struct mem_cgroup *memcg);
-+extern bool mem_cgroup_swap_full(struct page *page);
- #else
- static inline void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
- {
-@@ -572,6 +573,11 @@ static inline long mem_cgroup_get_nr_swa
- {
- 	return get_nr_swap_pages();
- }
-+
-+static inline bool mem_cgroup_swap_full(struct page *page)
-+{
-+	return vm_swap_full();
-+}
- #endif
- 
- #endif /* __KERNEL__*/
-diff -puN mm/memcontrol.c~mm-free-swap-cache-aggressively-if-memcg-swap-is-full mm/memcontrol.c
---- a/mm/memcontrol.c~mm-free-swap-cache-aggressively-if-memcg-swap-is-full
-+++ a/mm/memcontrol.c
-@@ -5746,6 +5746,28 @@ long mem_cgroup_get_nr_swap_pages(struct
- 	return nr_swap_pages;
- }
- 
-+bool mem_cgroup_swap_full(struct page *page)
-+{
-+	struct mem_cgroup *memcg;
-+
-+	VM_BUG_ON_PAGE(!PageLocked(page), page);
-+
-+	if (vm_swap_full())
-+		return true;
-+	if (!do_swap_account || !cgroup_subsys_on_dfl(memory_cgrp_subsys))
-+		return false;
-+
-+	memcg = page->mem_cgroup;
-+	if (!memcg)
-+		return false;
-+
-+	for (; memcg != root_mem_cgroup; memcg = parent_mem_cgroup(memcg))
-+		if (page_counter_read(&memcg->swap) * 2 >= memcg->swap.limit)
-+			return true;
-+
-+	return false;
-+}
-+
- /* for remember boot option*/
- #ifdef CONFIG_MEMCG_SWAP_ENABLED
- static int really_do_swap_account __initdata = 1;
-diff -puN mm/memory.c~mm-free-swap-cache-aggressively-if-memcg-swap-is-full mm/memory.c
---- a/mm/memory.c~mm-free-swap-cache-aggressively-if-memcg-swap-is-full
-+++ a/mm/memory.c
-@@ -2584,7 +2584,8 @@ int do_swap_page(struct mm_struct *mm, s
- 	}
- 
- 	swap_free(entry);
--	if (vm_swap_full() || (vma->vm_flags & VM_LOCKED) || PageMlocked(page))
-+	if (mem_cgroup_swap_full(page) ||
-+	    (vma->vm_flags & VM_LOCKED) || PageMlocked(page))
- 		try_to_free_swap(page);
- 	unlock_page(page);
- 	if (page != swapcache) {
-diff -puN mm/swapfile.c~mm-free-swap-cache-aggressively-if-memcg-swap-is-full mm/swapfile.c
---- a/mm/swapfile.c~mm-free-swap-cache-aggressively-if-memcg-swap-is-full
-+++ a/mm/swapfile.c
-@@ -1006,7 +1006,7 @@ int free_swap_and_cache(swp_entry_t entr
- 		 * Also recheck PageSwapCache now page is locked (above).
- 		 */
- 		if (PageSwapCache(page) && !PageWriteback(page) &&
--				(!page_mapped(page) || vm_swap_full())) {
-+		    (!page_mapped(page) || mem_cgroup_swap_full(page))) {
- 			delete_from_swap_cache(page);
- 			SetPageDirty(page);
- 		}
-diff -puN mm/vmscan.c~mm-free-swap-cache-aggressively-if-memcg-swap-is-full mm/vmscan.c
---- a/mm/vmscan.c~mm-free-swap-cache-aggressively-if-memcg-swap-is-full
+diff -puN mm/vmscan.c~mm-vmscan-pass-memcg-to-get_scan_count mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-pass-memcg-to-get_scan_count
 +++ a/mm/vmscan.c
-@@ -1214,7 +1214,7 @@ cull_mlocked:
+@@ -1966,10 +1966,11 @@ enum scan_balance {
+  * nr[0] = anon inactive pages to scan; nr[1] = anon active pages to scan
+  * nr[2] = file inactive pages to scan; nr[3] = file active pages to scan
+  */
+-static void get_scan_count(struct lruvec *lruvec, int swappiness,
++static void get_scan_count(struct lruvec *lruvec, struct mem_cgroup *memcg,
+ 			   struct scan_control *sc, unsigned long *nr,
+ 			   unsigned long *lru_pages)
+ {
++	int swappiness = mem_cgroup_swappiness(memcg);
+ 	struct zone_reclaim_stat *reclaim_stat = &lruvec->reclaim_stat;
+ 	u64 fraction[2];
+ 	u64 denominator = 0;	/* gcc */
+@@ -2193,9 +2194,10 @@ static inline void init_tlb_ubc(void)
+ /*
+  * This is a basic per-zone page freer.  Used by both kswapd and direct reclaim.
+  */
+-static void shrink_lruvec(struct lruvec *lruvec, int swappiness,
+-			  struct scan_control *sc, unsigned long *lru_pages)
++static void shrink_zone_memcg(struct zone *zone, struct mem_cgroup *memcg,
++			      struct scan_control *sc, unsigned long *lru_pages)
+ {
++	struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, memcg);
+ 	unsigned long nr[NR_LRU_LISTS];
+ 	unsigned long targets[NR_LRU_LISTS];
+ 	unsigned long nr_to_scan;
+@@ -2205,7 +2207,7 @@ static void shrink_lruvec(struct lruvec
+ 	struct blk_plug plug;
+ 	bool scan_adjusted;
  
- activate_locked:
- 		/* Not a candidate for swapping, so reclaim swap space. */
--		if (PageSwapCache(page) && vm_swap_full())
-+		if (PageSwapCache(page) && mem_cgroup_swap_full(page))
- 			try_to_free_swap(page);
- 		VM_BUG_ON_PAGE(PageActive(page), page);
- 		SetPageActive(page);
+-	get_scan_count(lruvec, swappiness, sc, nr, lru_pages);
++	get_scan_count(lruvec, memcg, sc, nr, lru_pages);
+ 
+ 	/* Record the original scan target for proportional adjustments later */
+ 	memcpy(targets, nr, sizeof(nr));
+@@ -2409,8 +2411,6 @@ static bool shrink_zone(struct zone *zon
+ 			unsigned long lru_pages;
+ 			unsigned long reclaimed;
+ 			unsigned long scanned;
+-			struct lruvec *lruvec;
+-			int swappiness;
+ 
+ 			if (mem_cgroup_low(root, memcg)) {
+ 				if (!sc->may_thrash)
+@@ -2418,12 +2418,10 @@ static bool shrink_zone(struct zone *zon
+ 				mem_cgroup_events(memcg, MEMCG_LOW, 1);
+ 			}
+ 
+-			lruvec = mem_cgroup_zone_lruvec(zone, memcg);
+-			swappiness = mem_cgroup_swappiness(memcg);
+ 			reclaimed = sc->nr_reclaimed;
+ 			scanned = sc->nr_scanned;
+ 
+-			shrink_lruvec(lruvec, swappiness, sc, &lru_pages);
++			shrink_zone_memcg(zone, memcg, sc, &lru_pages);
+ 			zone_lru_pages += lru_pages;
+ 
+ 			if (memcg && is_classzone)
+@@ -2876,8 +2874,6 @@ unsigned long mem_cgroup_shrink_node_zon
+ 		.may_unmap = 1,
+ 		.may_swap = !noswap,
+ 	};
+-	struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, memcg);
+-	int swappiness = mem_cgroup_swappiness(memcg);
+ 	unsigned long lru_pages;
+ 
+ 	sc.gfp_mask = (gfp_mask & GFP_RECLAIM_MASK) |
+@@ -2894,7 +2890,7 @@ unsigned long mem_cgroup_shrink_node_zon
+ 	 * will pick up pages from other mem cgroup's as well. We hack
+ 	 * the priority and make it zero.
+ 	 */
+-	shrink_lruvec(lruvec, swappiness, &sc, &lru_pages);
++	shrink_zone_memcg(zone, memcg, &sc, &lru_pages);
+ 
+ 	trace_mm_vmscan_memcg_softlimit_reclaim_end(sc.nr_reclaimed);
+ 
 _
 
 Patches currently in -mm which might be from vdavydov@virtuozzo.com are
