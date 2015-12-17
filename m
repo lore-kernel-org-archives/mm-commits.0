@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom-introduce-oom-reaper-fix-fix.patch added to -mm tree
-Date: Thu, 17 Dec 2015 13:15:17 -0800
-Message-ID: <567325e5.iWJHxuI56AkUBuae%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-charge-swap-to-cgroup2.patch added to -mm tree
+Date: Thu, 17 Dec 2015 13:59:45 -0800
+Message-ID: <56733051.I8zEM8VRiSIGuIe9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58872 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36703 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932670AbbLQVPR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Dec 2015 16:15:17 -0500
+	with ESMTP id S932828AbbLQV7q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Dec 2015 16:59:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-oom-introduce-oom-reaper-fix-fix
+     Subject: mm: memcontrol: charge swap to cgroup2
 has been added to the -mm tree.  Its filename is
-     mm-oom-introduce-oom-reaper-fix-fix.patch
+     mm-memcontrol-charge-swap-to-cgroup2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-introduce-oom-reaper-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-charge-swap-to-cgroup2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-introduce-oom-reaper-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-charge-swap-to-cgroup2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,79 +38,368 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-oom-introduce-oom-reaper-fix-fix
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: mm: memcontrol: charge swap to cgroup2
 
-document the msleep
+This patchset introduces swap accounting to cgroup2.
 
+
+
+This patch (of 7):
+
+In the legacy hierarchy we charge memsw, which is dubious, because:
+
+ - memsw.limit must be >= memory.limit, so it is impossible to limit
+   swap usage less than memory usage. Taking into account the fact that
+   the primary limiting mechanism in the unified hierarchy is
+   memory.high while memory.limit is either left unset or set to a very
+   large value, moving memsw.limit knob to the unified hierarchy would
+   effectively make it impossible to limit swap usage according to the
+   user preference.
+
+ - memsw.usage != memory.usage + swap.usage, because a page occupying
+   both swap entry and a swap cache page is charged only once to memsw
+   counter. As a result, it is possible to effectively eat up to
+   memory.limit of memory pages *and* memsw.limit of swap entries, which
+   looks unexpected.
+
+That said, we should provide a different swap limiting mechanism for
+cgroup2.
+
+This patch adds mem_cgroup->swap counter, which charges the actual number
+of swap entries used by a cgroup.  It is only charged in the unified
+hierarchy, while the legacy hierarchy memsw logic is left intact.
+
+The swap usage can be monitored using new memory.swap.current file and
+limited using memory.swap.max.
+
+Note, to charge swap resource properly in the unified hierarchy, we have
+to make swap_entry_free uncharge swap only when ->usage reaches zero, not
+just ->count, i.e.  when all references to a swap entry, including the one
+taken by swap cache, are gone.  This is necessary, because otherwise
+swap-in could result in uncharging swap even if the page is still in swap
+cache and hence still occupies a swap entry.  At the same time, this
+shouldn't break memsw counter logic, where a page is never charged twice
+for using both memory and swap, because in case of legacy hierarchy we
+uncharge swap on commit (see mem_cgroup_commit_charge).
+
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/memcontrol.h |    1 
+ include/linux/swap.h       |    6 +
+ mm/memcontrol.c            |  118 ++++++++++++++++++++++++++++++++---
+ mm/shmem.c                 |    4 +
+ mm/swap_state.c            |    5 +
+ mm/swapfile.c              |    4 -
+ 6 files changed, 128 insertions(+), 10 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-introduce-oom-reaper-fix-fix mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-introduce-oom-reaper-fix-fix
-+++ a/mm/oom_kill.c
-@@ -469,6 +469,7 @@ static void oom_reap_vmas(struct mm_stru
+diff -puN include/linux/memcontrol.h~mm-memcontrol-charge-swap-to-cgroup2 include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-charge-swap-to-cgroup2
++++ a/include/linux/memcontrol.h
+@@ -163,6 +163,7 @@ struct mem_cgroup {
+ 
+ 	/* Accounted resources */
+ 	struct page_counter memory;
++	struct page_counter swap;
+ 
+ 	/* Legacy consumer-oriented counters */
+ 	struct page_counter memsw;
+diff -puN include/linux/swap.h~mm-memcontrol-charge-swap-to-cgroup2 include/linux/swap.h
+--- a/include/linux/swap.h~mm-memcontrol-charge-swap-to-cgroup2
++++ a/include/linux/swap.h
+@@ -369,11 +369,17 @@ static inline int mem_cgroup_swappiness(
+ #endif
+ #ifdef CONFIG_MEMCG_SWAP
+ extern void mem_cgroup_swapout(struct page *page, swp_entry_t entry);
++extern int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry);
+ extern void mem_cgroup_uncharge_swap(swp_entry_t entry);
+ #else
+ static inline void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
  {
- 	int attempts = 0;
+ }
++static inline int mem_cgroup_try_charge_swap(struct page *page,
++					     swp_entry_t entry)
++{
++	return 0;
++}
+ static inline void mem_cgroup_uncharge_swap(swp_entry_t entry)
+ {
+ }
+diff -puN mm/memcontrol.c~mm-memcontrol-charge-swap-to-cgroup2 mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-charge-swap-to-cgroup2
++++ a/mm/memcontrol.c
+@@ -1206,7 +1206,7 @@ void mem_cgroup_print_oom_info(struct me
+ 		pr_cont(":");
  
-+	/* Retry the down_read_trylock(mmap_sem) a few times */
- 	while (attempts++ < 10 && !__oom_reap_vmas(mm))
- 		msleep_interruptible(100);
+ 		for (i = 0; i < MEM_CGROUP_STAT_NSTATS; i++) {
+-			if (i == MEM_CGROUP_STAT_SWAP && !do_memsw_account())
++			if (i == MEM_CGROUP_STAT_SWAP && !do_swap_account)
+ 				continue;
+ 			pr_cont(" %s:%luKB", mem_cgroup_stat_names[i],
+ 				K(mem_cgroup_read_stat(iter, i)));
+@@ -1245,9 +1245,12 @@ static unsigned long mem_cgroup_get_limi
+ 	limit = memcg->memory.limit;
+ 	if (mem_cgroup_swappiness(memcg)) {
+ 		unsigned long memsw_limit;
++		unsigned long swap_limit;
  
+ 		memsw_limit = memcg->memsw.limit;
+-		limit = min(limit + total_swap_pages, memsw_limit);
++		swap_limit = memcg->swap.limit;
++		swap_limit = min(swap_limit, (unsigned long)total_swap_pages);
++		limit = min(limit + swap_limit, memsw_limit);
+ 	}
+ 	return limit;
+ }
+@@ -4193,11 +4196,13 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 		memcg->use_hierarchy = true;
+ 		memcg->oom_kill_disable = parent->oom_kill_disable;
+ 		page_counter_init(&memcg->memory, &parent->memory);
++		page_counter_init(&memcg->swap, &parent->swap);
+ 		page_counter_init(&memcg->memsw, &parent->memsw);
+ 		page_counter_init(&memcg->kmem, &parent->kmem);
+ 		page_counter_init(&memcg->tcpmem, &parent->tcpmem);
+ 	} else {
+ 		page_counter_init(&memcg->memory, NULL);
++		page_counter_init(&memcg->swap, NULL);
+ 		page_counter_init(&memcg->memsw, NULL);
+ 		page_counter_init(&memcg->kmem, NULL);
+ 		page_counter_init(&memcg->tcpmem, NULL);
+@@ -5209,7 +5214,7 @@ int mem_cgroup_try_charge(struct page *p
+ 		if (page->mem_cgroup)
+ 			goto out;
+ 
+-		if (do_memsw_account()) {
++		if (do_swap_account) {
+ 			swp_entry_t ent = { .val = page_private(page), };
+ 			unsigned short id = lookup_swap_cgroup_id(ent);
+ 
+@@ -5662,26 +5667,66 @@ void mem_cgroup_swapout(struct page *pag
+ 	memcg_check_events(memcg, page);
+ }
+ 
++/*
++ * mem_cgroup_try_charge_swap - try charging a swap entry
++ * @page: page being added to swap
++ * @entry: swap entry to charge
++ *
++ * Try to charge @entry to the memcg that @page belongs to.
++ *
++ * Returns 0 on success, -ENOMEM on failure.
++ */
++int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry)
++{
++	struct mem_cgroup *memcg;
++	struct page_counter *counter;
++	unsigned short oldid;
++
++	if (!cgroup_subsys_on_dfl(memory_cgrp_subsys) || !do_swap_account)
++		return 0;
++
++	memcg = page->mem_cgroup;
++
++	/* Readahead page, never charged */
++	if (!memcg)
++		return 0;
++
++	if (!mem_cgroup_is_root(memcg) &&
++	    !page_counter_try_charge(&memcg->swap, 1, &counter))
++		return -ENOMEM;
++
++	oldid = swap_cgroup_record(entry, mem_cgroup_id(memcg));
++	VM_BUG_ON_PAGE(oldid, page);
++	mem_cgroup_swap_statistics(memcg, true);
++
++	css_get(&memcg->css);
++	return 0;
++}
++
+ /**
+  * mem_cgroup_uncharge_swap - uncharge a swap entry
+  * @entry: swap entry to uncharge
+  *
+- * Drop the memsw charge associated with @entry.
++ * Drop the swap charge associated with @entry.
+  */
+ void mem_cgroup_uncharge_swap(swp_entry_t entry)
+ {
+ 	struct mem_cgroup *memcg;
+ 	unsigned short id;
+ 
+-	if (!do_memsw_account())
++	if (!do_swap_account)
+ 		return;
+ 
+ 	id = swap_cgroup_record(entry, 0);
+ 	rcu_read_lock();
+ 	memcg = mem_cgroup_from_id(id);
+ 	if (memcg) {
+-		if (!mem_cgroup_is_root(memcg))
+-			page_counter_uncharge(&memcg->memsw, 1);
++		if (!mem_cgroup_is_root(memcg)) {
++			if (cgroup_subsys_on_dfl(memory_cgrp_subsys))
++				page_counter_uncharge(&memcg->swap, 1);
++			else
++				page_counter_uncharge(&memcg->memsw, 1);
++		}
+ 		mem_cgroup_swap_statistics(memcg, false);
+ 		css_put(&memcg->css);
+ 	}
+@@ -5705,6 +5750,63 @@ static int __init enable_swap_account(ch
+ }
+ __setup("swapaccount=", enable_swap_account);
+ 
++static u64 swap_current_read(struct cgroup_subsys_state *css,
++			     struct cftype *cft)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
++
++	return (u64)page_counter_read(&memcg->swap) * PAGE_SIZE;
++}
++
++static int swap_max_show(struct seq_file *m, void *v)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
++	unsigned long max = READ_ONCE(memcg->swap.limit);
++
++	if (max == PAGE_COUNTER_MAX)
++		seq_puts(m, "max\n");
++	else
++		seq_printf(m, "%llu\n", (u64)max * PAGE_SIZE);
++
++	return 0;
++}
++
++static ssize_t swap_max_write(struct kernfs_open_file *of,
++			      char *buf, size_t nbytes, loff_t off)
++{
++	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
++	unsigned long max;
++	int err;
++
++	buf = strstrip(buf);
++	err = page_counter_memparse(buf, "max", &max);
++	if (err)
++		return err;
++
++	mutex_lock(&memcg_limit_mutex);
++	err = page_counter_limit(&memcg->swap, max);
++	mutex_unlock(&memcg_limit_mutex);
++	if (err)
++		return err;
++
++	return nbytes;
++}
++
++static struct cftype swap_files[] = {
++	{
++		.name = "swap.current",
++		.flags = CFTYPE_NOT_ON_ROOT,
++		.read_u64 = swap_current_read,
++	},
++	{
++		.name = "swap.max",
++		.flags = CFTYPE_NOT_ON_ROOT,
++		.seq_show = swap_max_show,
++		.write = swap_max_write,
++	},
++	{ }	/* terminate */
++};
++
+ static struct cftype memsw_cgroup_files[] = {
+ 	{
+ 		.name = "memsw.usage_in_bytes",
+@@ -5736,6 +5838,8 @@ static int __init mem_cgroup_swap_init(v
+ {
+ 	if (!mem_cgroup_disabled() && really_do_swap_account) {
+ 		do_swap_account = 1;
++		WARN_ON(cgroup_add_dfl_cftypes(&memory_cgrp_subsys,
++					       swap_files));
+ 		WARN_ON(cgroup_add_legacy_cftypes(&memory_cgrp_subsys,
+ 						  memsw_cgroup_files));
+ 	}
+diff -puN mm/shmem.c~mm-memcontrol-charge-swap-to-cgroup2 mm/shmem.c
+--- a/mm/shmem.c~mm-memcontrol-charge-swap-to-cgroup2
++++ a/mm/shmem.c
+@@ -912,6 +912,9 @@ static int shmem_writepage(struct page *
+ 	if (!swap.val)
+ 		goto redirty;
+ 
++	if (mem_cgroup_try_charge_swap(page, swap))
++		goto free_swap;
++
+ 	/*
+ 	 * Add inode to shmem_unuse()'s list of swapped-out inodes,
+ 	 * if it's not already there.  Do it now before the page is
+@@ -940,6 +943,7 @@ static int shmem_writepage(struct page *
+ 	}
+ 
+ 	mutex_unlock(&shmem_swaplist_mutex);
++free_swap:
+ 	swapcache_free(swap);
+ redirty:
+ 	set_page_dirty(page);
+diff -puN mm/swap_state.c~mm-memcontrol-charge-swap-to-cgroup2 mm/swap_state.c
+--- a/mm/swap_state.c~mm-memcontrol-charge-swap-to-cgroup2
++++ a/mm/swap_state.c
+@@ -170,6 +170,11 @@ int add_to_swap(struct page *page, struc
+ 	if (!entry.val)
+ 		return 0;
+ 
++	if (mem_cgroup_try_charge_swap(page, entry)) {
++		swapcache_free(entry);
++		return 0;
++	}
++
+ 	if (unlikely(PageTransHuge(page)))
+ 		if (unlikely(split_huge_page_to_list(page, list))) {
+ 			swapcache_free(entry);
+diff -puN mm/swapfile.c~mm-memcontrol-charge-swap-to-cgroup2 mm/swapfile.c
+--- a/mm/swapfile.c~mm-memcontrol-charge-swap-to-cgroup2
++++ a/mm/swapfile.c
+@@ -785,14 +785,12 @@ static unsigned char swap_entry_free(str
+ 			count--;
+ 	}
+ 
+-	if (!count)
+-		mem_cgroup_uncharge_swap(entry);
+-
+ 	usage = count | has_cache;
+ 	p->swap_map[offset] = usage;
+ 
+ 	/* free if no reference */
+ 	if (!usage) {
++		mem_cgroup_uncharge_swap(entry);
+ 		dec_cluster_info_page(p, p->cluster_info, offset);
+ 		if (offset < p->lowest_bit)
+ 			p->lowest_bit = offset;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vdavydov@virtuozzo.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-arm64-mm-support-arch_mmap_rnd_bits-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-printk-introduce-new-format-string-for-flags-fix-2.patch
-mm-support-madvisemadv_free-fix-2-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-mm-oom-introduce-oom-reaper-fix-fix.patch
-mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
-kernel-stop_machinec-remove-config_smp-dependencies.patch
-lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
-lib-test_printfc-test-dentry-printing-fix.patch
-printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
-printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
-linux-next-rejects.patch
-include-linux-propertyh-fix-build-issues-with-gcc-444.patch
-include-linux-propertyh-fix-build-issues-with-gcc-444-fix.patch
-fs-overlayfs-superc-needs-pagemaph.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+revert-kernfs-do-not-account-ino_ida-allocations-to-memcg.patch
+revert-gfp-add-__gfp_noaccount.patch
+memcg-only-account-kmem-allocations-marked-as-__gfp_account.patch
+slab-add-slab_account-flag.patch
+vmalloc-allow-to-account-vmalloc-to-memcg.patch
+account-certain-kmem-allocations-to-memcg.patch
+vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small.patch
+vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2.patch
+memcg-do-not-allow-to-disable-tcp-accounting-after-limit-is-set.patch
+mm-add-page_check_address_transhuge-helper.patch
+mm-add-page_check_address_transhuge-helper-fix.patch
+mm-memcontrol-allow-to-disable-kmem-accounting-for-cgroup2.patch
+net-drop-tcp_memcontrolc.patch
+mm-memcontrol-charge-swap-to-cgroup2.patch
+mm-vmscan-pass-memcg-to-get_scan_count.patch
+mm-memcontrol-replace-mem_cgroup_lruvec_online-with-mem_cgroup_online.patch
+swaph-move-memcg-related-stuff-to-the-end-of-the-file.patch
+mm-vmscan-do-not-scan-anon-pages-if-memcg-swap-limit-is-hit.patch
+mm-free-swap-cache-aggressively-if-memcg-swap-is-full.patch
+documentation-cgroup-add-memoryswapcurrentmax-description.patch
 
