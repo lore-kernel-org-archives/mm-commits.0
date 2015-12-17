@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + swaph-move-memcg-related-stuff-to-the-end-of-the-file.patch
- added to -mm tree
-Date: Thu, 17 Dec 2015 13:59:51 -0800
-Message-ID: <56733057.lFL5XBdTGEepgl8V%akpm@linux-foundation.org>
+Subject: + documentation-cgroup-add-memoryswapcurrentmax-description.patch added to -mm tree
+Date: Thu, 17 Dec 2015 13:59:57 -0800
+Message-ID: <5673305d.T0ZoxWSQyJ7l6IkZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36721 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36753 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932828AbbLQV7w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Dec 2015 16:59:52 -0500
+	with ESMTP id S932828AbbLQV76 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Dec 2015 16:59:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: swap.h: move memcg related stuff to the end of the file
+     Subject: Documentation: cgroup: add memory.swap.{current,max} description
 has been added to the -mm tree.  Its filename is
-     swaph-move-memcg-related-stuff-to-the-end-of-the-file.patch
+     documentation-cgroup-add-memoryswapcurrentmax-description.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/swaph-move-memcg-related-stuff-to-the-end-of-the-file.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/documentation-cgroup-add-memoryswapcurrentmax-description.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/swaph-move-memcg-related-stuff-to-the-end-of-the-file.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-cgroup-add-memoryswapcurrentmax-description.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +39,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: swap.h: move memcg related stuff to the end of the file
+Subject: Documentation: cgroup: add memory.swap.{current,max} description
 
-The following patches will add more functions to the memcg section of
-include/linux/swap.h.  Some of them will need values defined below the
-current location of the section.  So let's move the section to the end of
-the file.  No functional changes intended.
+The rationale of separate swap counter is given by Johannes Weiner.
 
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -53,96 +49,56 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/swap.h |   70 ++++++++++++++++++++++-------------------
- 1 file changed, 38 insertions(+), 32 deletions(-)
+ Documentation/cgroup.txt |   33 +++++++++++++++++++++++++++++++++
+ 1 file changed, 33 insertions(+)
 
-diff -puN include/linux/swap.h~swaph-move-memcg-related-stuff-to-the-end-of-the-file include/linux/swap.h
---- a/include/linux/swap.h~swaph-move-memcg-related-stuff-to-the-end-of-the-file
-+++ a/include/linux/swap.h
-@@ -351,39 +351,7 @@ extern void check_move_unevictable_pages
+diff -puN Documentation/cgroup.txt~documentation-cgroup-add-memoryswapcurrentmax-description Documentation/cgroup.txt
+--- a/Documentation/cgroup.txt~documentation-cgroup-add-memoryswapcurrentmax-description
++++ a/Documentation/cgroup.txt
+@@ -819,6 +819,22 @@ PAGE_SIZE multiple when read back.
+ 		the cgroup.  This may not exactly match the number of
+ 		processes killed but should generally be close.
  
- extern int kswapd_run(int nid);
- extern void kswapd_stop(int nid);
--#ifdef CONFIG_MEMCG
--static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
--{
--	/* root ? */
--	if (mem_cgroup_disabled() || !memcg->css.parent)
--		return vm_swappiness;
--
--	return memcg->swappiness;
--}
++  memory.swap.current
++
++	A read-only single value file which exists on non-root
++	cgroups.
++
++	The total amount of swap currently being used by the cgroup
++	and its descendants.
++
++  memory.swap.max
++
++	A read-write single value file which exists on non-root
++	cgroups.  The default is "max".
++
++	Swap usage hard limit.  If a cgroup's swap usage reaches this
++	limit, anonymous meomry of the cgroup will not be swapped out.
++
  
--#else
--static inline int mem_cgroup_swappiness(struct mem_cgroup *mem)
--{
--	return vm_swappiness;
--}
--#endif
--#ifdef CONFIG_MEMCG_SWAP
--extern void mem_cgroup_swapout(struct page *page, swp_entry_t entry);
--extern int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry);
--extern void mem_cgroup_uncharge_swap(swp_entry_t entry);
--#else
--static inline void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
--{
--}
--static inline int mem_cgroup_try_charge_swap(struct page *page,
--					     swp_entry_t entry)
--{
--	return 0;
--}
--static inline void mem_cgroup_uncharge_swap(swp_entry_t entry)
--{
--}
--#endif
- #ifdef CONFIG_SWAP
- /* linux/mm/page_io.c */
- extern int swap_readpage(struct page *);
-@@ -562,5 +530,43 @@ static inline swp_entry_t get_swap_page(
- }
+ 5-2-2. General Usage
  
- #endif /* CONFIG_SWAP */
+@@ -1291,3 +1307,20 @@ allocation from the slack available in o
+ system than killing the group.  Otherwise, memory.max is there to
+ limit this type of spillover and ultimately contain buggy or even
+ malicious applications.
 +
-+#ifdef CONFIG_MEMCG
-+static inline int mem_cgroup_swappiness(struct mem_cgroup *memcg)
-+{
-+	/* root ? */
-+	if (mem_cgroup_disabled() || !memcg->css.parent)
-+		return vm_swappiness;
++The combined memory+swap accounting and limiting is replaced by real
++control over swap space.
 +
-+	return memcg->swappiness;
-+}
++The main argument for a combined memory+swap facility in the original
++cgroup design was that global or parental pressure would always be
++able to swap all anonymous memory of a child group, regardless of the
++child's own (possibly untrusted) configuration.  However, untrusted
++groups can sabotage swapping by other means - such as referencing its
++anonymous memory in a tight loop - and an admin can not assume full
++swappability when overcommitting untrusted jobs.
 +
-+#else
-+static inline int mem_cgroup_swappiness(struct mem_cgroup *mem)
-+{
-+	return vm_swappiness;
-+}
-+#endif
-+
-+#ifdef CONFIG_MEMCG_SWAP
-+extern void mem_cgroup_swapout(struct page *page, swp_entry_t entry);
-+extern int mem_cgroup_try_charge_swap(struct page *page, swp_entry_t entry);
-+extern void mem_cgroup_uncharge_swap(swp_entry_t entry);
-+#else
-+static inline void mem_cgroup_swapout(struct page *page, swp_entry_t entry)
-+{
-+}
-+
-+static inline int mem_cgroup_try_charge_swap(struct page *page,
-+					     swp_entry_t entry)
-+{
-+	return 0;
-+}
-+
-+static inline void mem_cgroup_uncharge_swap(swp_entry_t entry)
-+{
-+}
-+#endif
-+
- #endif /* __KERNEL__*/
- #endif /* _LINUX_SWAP_H */
++For trusted jobs, on the other hand, a combined counter is not an
++intuitive userspace interface, and it flies in the face of the idea
++that cgroup controllers should account and limit specific physical
++resources.  Swap space is a resource like all others in the system,
++and that's why unified hierarchy allows distributing it separately.
 _
 
 Patches currently in -mm which might be from vdavydov@virtuozzo.com are
