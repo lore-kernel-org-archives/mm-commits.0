@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-git-url-for-wireless-drivers.patch added to -mm tree
-Date: Fri, 18 Dec 2015 15:33:50 -0800
-Message-ID: <567497de.TayNB9ou2gFYDXtx%akpm@linux-foundation.org>
+Subject: + maintainers-add-git-url-for-devicetree.patch added to -mm tree
+Date: Fri, 18 Dec 2015 15:33:52 -0800
+Message-ID: <567497e0.Qh7bI78bxbYEvEJj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46475 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46480 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751592AbbLRXdv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:51 -0500
+	with ESMTP id S1751592AbbLRXdx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, kvalo@codeaurora.org, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add git URL for wireless drivers
+     Subject: MAINTAINERS: add git URL for devicetree
 has been added to the -mm tree.  Its filename is
-     maintainers-add-git-url-for-wireless-drivers.patch
+     maintainers-add-git-url-for-devicetree.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-wireless-drivers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-devicetree.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-wireless-drivers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-devicetree.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,31 +39,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: add git URL for wireless drivers
-
-Also fixup the tailing /
+Subject: MAINTAINERS: add git URL for devicetree
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Acked-by: Kalle Valo <kvalo@codeaurora.org>
+Cc: Rob Herring <robh+dt@kernel.org>
+Cc: Pawel Moll <pawel.moll@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>
+Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
+Cc: Kumar Gala <galak@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-add-git-url-for-wireless-drivers MAINTAINERS
---- a/MAINTAINERS~maintainers-add-git-url-for-wireless-drivers
+diff -puN MAINTAINERS~maintainers-add-git-url-for-devicetree MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-git-url-for-devicetree
 +++ a/MAINTAINERS
-@@ -7518,7 +7518,8 @@ NETWORKING DRIVERS (WIRELESS)
- M:	Kalle Valo <kvalo@codeaurora.org>
- L:	linux-wireless@vger.kernel.org
- Q:	http://patchwork.kernel.org/project/linux-wireless/list/
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kvalo/wireless-drivers.git/
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kvalo/wireless-drivers.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kvalo/wireless-drivers-next.git
+@@ -7920,6 +7920,7 @@ M:	Mark Rutland <mark.rutland@arm.com>
+ M:	Ian Campbell <ijc+devicetree@hellion.org.uk>
+ M:	Kumar Gala <galak@codeaurora.org>
+ L:	devicetree@vger.kernel.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux.git
  S:	Maintained
- F:	drivers/net/wireless/
- 
+ F:	Documentation/devicetree/
+ F:	arch/*/boot/dts/
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
