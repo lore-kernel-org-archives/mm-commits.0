@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix.patch added to -mm tree
-Date: Fri, 18 Dec 2015 14:40:31 -0800
-Message-ID: <56748b5f.vQmv48Jf1AreOge/%akpm@linux-foundation.org>
+Subject: + memory-hotplug-dont-bug-in-register_memory_resource-fix.patch
+ added to -mm tree
+Date: Fri, 18 Dec 2015 14:51:00 -0800
+Message-ID: <56748dd4.7TTWcNhRNsFzQVqH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40417 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41616 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751762AbbLRWkc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 17:40:32 -0500
+	with ESMTP id S1751958AbbLRWvB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 17:51:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dan.j.williams@intel.com, david.vrabel@citrix.com, imammedo@redhat.com, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, rientjes@google.com, shengyong1@huawei.com, tangchen@cn.fujitsu.com, vkuznets@redhat.com, zhugh.fnst@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix
+     Subject: memory-hotplug-dont-bug-in-register_memory_resource-fix
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix.patch
+     memory-hotplug-dont-bug-in-register_memory_resource-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-dont-bug-in-register_memory_resource-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-dont-bug-in-register_memory_resource-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,50 +40,58 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix
+Subject: memory-hotplug-dont-bug-in-register_memory_resource-fix
 
-really suppress the __must_check warning
+preserve request_resource() retval
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Sheng Yong <shengyong1@huawei.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/memory_hotplug.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix
-+++ a/mm/memcontrol.c
-@@ -851,6 +851,9 @@ static struct mem_cgroup *get_mem_cgroup
- 	return memcg;
+diff -puN mm/memory_hotplug.c~memory-hotplug-dont-bug-in-register_memory_resource-fix mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-dont-bug-in-register_memory_resource-fix
++++ a/mm/memory_hotplug.c
+@@ -131,7 +131,9 @@ static int register_memory_resource(u64
+ 				    struct resource **resource)
+ {
+ 	struct resource *res;
++	int ret = 0;
+ 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
++
+ 	if (!res)
+ 		return -ENOMEM;
+ 
+@@ -139,13 +141,14 @@ static int register_memory_resource(u64
+ 	res->start = start;
+ 	res->end = start + size - 1;
+ 	res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+-	if (request_resource(&iomem_resource, res) < 0) {
++	ret = request_resource(&iomem_resource, res);
++	if (ret < 0) {
+ 		pr_debug("System RAM resource %pR cannot be added\n", res);
+ 		kfree(res);
+-		return -EEXIST;
++	} else {
++		*resource = res;
+ 	}
+-	*resource = res;
+-	return 0;
++	return ret;
  }
  
-+/* Move this to compiler.h if it proves worthy */
-+#define defeat_must_check(expr) do { if (expr) ; } while (0)
-+
- /**
-  * mem_cgroup_iter - iterate over memory cgroup hierarchy
-  * @root: hierarchy root
-@@ -915,7 +918,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 			 * might block it. So we clear iter->position right
- 			 * away.
- 			 */
--			(void)cmpxchg(&iter->position, pos, NULL);
-+			defeat_must_check(cmpxchg(&iter->position, pos, NULL));
- 		}
- 	}
- 
-@@ -967,7 +970,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 		 * thread, so check that the value hasn't changed since we read
- 		 * it to avoid reclaiming from the same cgroup twice.
- 		 */
--		(void)cmpxchg(&iter->position, pos, memcg);
-+		defeat_must_check(cmpxchg(&iter->position, pos, memcg));
- 
- 		/*
- 		 * pairs with css_tryget when dereferencing iter->position
+ static void release_memory_resource(struct resource *res)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -107,6 +115,7 @@ fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
 arm64-mm-support-arch_mmap_rnd_bits-fix.patch
 ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix.patch
 ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+memory-hotplug-dont-bug-in-register_memory_resource-fix.patch
 page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
 mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
 mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
