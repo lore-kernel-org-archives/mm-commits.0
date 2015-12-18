@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-git-url-for-hexagon.patch added to -mm tree
-Date: Fri, 18 Dec 2015 15:34:00 -0800
-Message-ID: <567497e8.vx9sYVhmWBQUFpkW%akpm@linux-foundation.org>
+Subject: + maintainers-add-git-url-for-nvdimm.patch added to -mm tree
+Date: Fri, 18 Dec 2015 15:33:46 -0800
+Message-ID: <567497da.7PjXE9X1rFDh/SFh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46466 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752088AbbLRXeB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:34:01 -0500
+	with ESMTP id S1751592AbbLRXdr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, rkuo@codeaurora.org, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, dan.j.williams@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add git URL for hexagon
+     Subject: MAINTAINERS: add git URL for nvdimm
 has been added to the -mm tree.  Its filename is
-     maintainers-add-git-url-for-hexagon.patch
+     maintainers-add-git-url-for-nvdimm.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-hexagon.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-nvdimm.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-hexagon.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-nvdimm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,27 +39,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: add git URL for hexagon
+Subject: MAINTAINERS: add git URL for nvdimm
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Richard Kuo <rkuo@codeaurora.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-add-git-url-for-hexagon MAINTAINERS
---- a/MAINTAINERS~maintainers-add-git-url-for-hexagon
+diff -puN MAINTAINERS~maintainers-add-git-url-for-nvdimm MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-git-url-for-nvdimm
 +++ a/MAINTAINERS
-@@ -8819,6 +8819,7 @@ F:	drivers/net/wireless/ath/ath10k/
- QUALCOMM HEXAGON ARCHITECTURE
- M:	Richard Kuo <rkuo@codeaurora.org>
- L:	linux-hexagon@vger.kernel.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rkuo/linux-hexagon-kernel.git
+@@ -6366,6 +6366,7 @@ LIBNVDIMM: NON-VOLATILE MEMORY DEVICE SU
+ M:	Dan Williams <dan.j.williams@intel.com>
+ L:	linux-nvdimm@lists.01.org
+ Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/nvdimm/nvdimm.git
  S:	Supported
- F:	arch/hexagon/
- 
+ F:	drivers/nvdimm/*
+ F:	include/linux/nd.h
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
