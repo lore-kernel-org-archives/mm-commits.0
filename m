@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-git-url-for-reset.patch added to -mm tree
-Date: Fri, 18 Dec 2015 15:34:02 -0800
-Message-ID: <567497ea.FfBhYO8Ov/Bk/kVI%akpm@linux-foundation.org>
+Subject: + maintainers-update-git-url-for-pstore.patch added to -mm tree
+Date: Fri, 18 Dec 2015 15:33:56 -0800
+Message-ID: <567497e4.ZqHLfUVvB/XDwHL3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46505 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46491 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752088AbbLRXeD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:34:03 -0500
+	with ESMTP id S1751925AbbLRXd5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, p.zabel@pengutronix.de, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, anton@enomsg.org, ccross@android.com, keescook@chromium.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add git URL for reset
+     Subject: MAINTAINERS: update git URL for pstore
 has been added to the -mm tree.  Its filename is
-     maintainers-add-git-url-for-reset.patch
+     maintainers-update-git-url-for-pstore.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-reset.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-git-url-for-pstore.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-reset.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-git-url-for-pstore.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,27 +39,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: add git URL for reset
+Subject: MAINTAINERS: update git URL for pstore
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Anton Vorontsov <anton@enomsg.org>
+Cc: Colin Cross <ccross@android.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-add-git-url-for-reset MAINTAINERS
---- a/MAINTAINERS~maintainers-add-git-url-for-reset
+diff -puN MAINTAINERS~maintainers-update-git-url-for-pstore MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-git-url-for-pstore
 +++ a/MAINTAINERS
-@@ -9012,6 +9012,7 @@ F:	include/linux/sh_eth.h
- 
- RESET CONTROLLER FRAMEWORK
- M:	Philipp Zabel <p.zabel@pengutronix.de>
-+T:	git git://git.pengutronix.de/git/pza/linux
+@@ -8610,7 +8610,7 @@ M:	Colin Cross <ccross@android.com>
+ M:	Kees Cook <keescook@chromium.org>
+ M:	Tony Luck <tony.luck@intel.com>
  S:	Maintained
- F:	drivers/reset/
- F:	Documentation/devicetree/bindings/reset/
+-T:	git git://git.infradead.org/users/cbou/linux-pstore.git
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/aegl/linux.git
+ F:	fs/pstore/
+ F:	include/linux/pstore*
+ F:	drivers/firmware/efi/efi-pstore.c
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
