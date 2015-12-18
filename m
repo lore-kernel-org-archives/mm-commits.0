@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + sched-add-schedule_timeout_idle.patch added to -mm tree
-Date: Fri, 18 Dec 2015 13:14:05 -0800
-Message-ID: <5674771d.LIqgral0tnKHVQr5%akpm@linux-foundation.org>
+Subject: + mm-oom-introduce-oom-reaper-fix-4-fix.patch added to -mm tree
+Date: Fri, 18 Dec 2015 13:14:53 -0800
+Message-ID: <5674774d.vefGGOApPUqumqNs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57753 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58004 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965164AbbLRVOG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 16:14:06 -0500
+	with ESMTP id S965191AbbLRVOx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 16:14:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mhocko@kernel.org, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sched: add schedule_timeout_idle()
+     Subject: mm-oom-introduce-oom-reaper-fix-4-fix
 has been added to the -mm tree.  Its filename is
-     sched-add-schedule_timeout_idle.patch
+     mm-oom-introduce-oom-reaper-fix-4-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sched-add-schedule_timeout_idle.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-introduce-oom-reaper-fix-4-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sched-add-schedule_timeout_idle.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-introduce-oom-reaper-fix-4-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,52 +39,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sched: add schedule_timeout_idle()
+Subject: mm-oom-introduce-oom-reaper-fix-4-fix
 
-This will be needed in the patch "mm, oom: introduce oom reaper".
+use schedule_timeout_idle()
 
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    1 +
- kernel/time/timer.c   |   11 +++++++++++
- 2 files changed, 12 insertions(+)
+ mm/oom_kill.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN kernel/time/timer.c~sched-add-schedule_timeout_idle kernel/time/timer.c
---- a/kernel/time/timer.c~sched-add-schedule_timeout_idle
-+++ a/kernel/time/timer.c
-@@ -1566,6 +1566,17 @@ signed long __sched schedule_timeout_uni
- }
- EXPORT_SYMBOL(schedule_timeout_uninterruptible);
+diff -puN mm/oom_kill.c~mm-oom-introduce-oom-reaper-fix-4-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-introduce-oom-reaper-fix-4-fix
++++ a/mm/oom_kill.c
+@@ -472,10 +472,8 @@ static void oom_reap_vmas(struct mm_stru
+ 	int attempts = 0;
  
-+/*
-+ * Like schedule_timeout_uninterruptible(), except this task will not contribute
-+ * to load average.
-+ */
-+signed long __sched schedule_timeout_idle(signed long timeout)
-+{
-+	__set_current_state(TASK_IDLE);
-+	return schedule_timeout(timeout);
-+}
-+EXPORT_SYMBOL(schedule_timeout_idle);
-+
- #ifdef CONFIG_HOTPLUG_CPU
- static void migrate_timer_list(struct tvec_base *new_base, struct hlist_head *head)
- {
-diff -puN include/linux/sched.h~sched-add-schedule_timeout_idle include/linux/sched.h
---- a/include/linux/sched.h~sched-add-schedule_timeout_idle
-+++ a/include/linux/sched.h
-@@ -423,6 +423,7 @@ extern signed long schedule_timeout(sign
- extern signed long schedule_timeout_interruptible(signed long timeout);
- extern signed long schedule_timeout_killable(signed long timeout);
- extern signed long schedule_timeout_uninterruptible(signed long timeout);
-+extern signed long schedule_timeout_idle(signed long timeout);
- asmlinkage void schedule(void);
- extern void schedule_preempt_disabled(void);
+ 	/* Retry the down_read_trylock(mmap_sem) a few times */
+-	while (attempts++ < 10 && !__oom_reap_vmas(mm)) {
+-		__set_task_state(current, TASK_IDLE);
+-		schedule_timeout(HZ/10);
+-	}
++	while (attempts++ < 10 && !__oom_reap_vmas(mm))
++		schedule_timeout_idle(HZ/10);
  
+ 	/* Drop a reference taken by wake_oom_reaper */
+ 	mmdrop(mm);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -123,6 +104,7 @@ mm-oom-introduce-oom-reaper-fix-fix.patch
 mm-oom-introduce-oom-reaper-fix-fix-2.patch
 mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
 mm-oom-introduce-oom-reaper-fix-3.patch
+mm-oom-introduce-oom-reaper-fix-4-fix.patch
 kernel-stop_machinec-remove-config_smp-dependencies.patch
 kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
 lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
