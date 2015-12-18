@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-git-url-for-chrome.patch added to -mm tree
-Date: Fri, 18 Dec 2015 15:33:16 -0800
-Message-ID: <567497bc.aHsofq/0VT+CTUbf%akpm@linux-foundation.org>
+Subject: + maintainers-add-git-url-for-at91.patch added to -mm tree
+Date: Fri, 18 Dec 2015 15:33:05 -0800
+Message-ID: <567497b1.QnrcugB8BhRuCxxG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46384 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46348 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752036AbbLRXdR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:17 -0500
+	with ESMTP id S1751979AbbLRXdG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, olof@lixom.net, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, alexandre.belloni@free-electrons.com, nicolas.ferre@atmel.com, plagnioj@jcrosoft.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add git URL for chrome
+     Subject: MAINTAINERS: add git URL for at91
 has been added to the -mm tree.  Its filename is
-     maintainers-add-git-url-for-chrome.patch
+     maintainers-add-git-url-for-at91.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-chrome.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-at91.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-chrome.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-at91.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,27 +39,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: add git URL for chrome
+Subject: MAINTAINERS: add git URL for at91
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Olof Johansson <olof@lixom.net>
+Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Cc: Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-add-git-url-for-chrome MAINTAINERS
---- a/MAINTAINERS~maintainers-add-git-url-for-chrome
+diff -puN MAINTAINERS~maintainers-add-git-url-for-at91 MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-git-url-for-at91
 +++ a/MAINTAINERS
-@@ -2805,6 +2805,7 @@ F:	drivers/input/touchscreen/chipone_icn
- CHROME HARDWARE PLATFORM SUPPORT
- M:	Olof Johansson <olof@lixom.net>
- S:	Maintained
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/olof/chrome-platform.git
- F:	drivers/platform/chrome/
- 
- CISCO VIC ETHERNET NIC DRIVER
+@@ -947,6 +947,7 @@ M:	Alexandre Belloni <alexandre.belloni@
+ M:	Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ W:	http://www.linux4sam.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/nferre/linux-at91.git
+ S:	Supported
+ F:	arch/arm/mach-at91/
+ F:	include/soc/at91/
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
