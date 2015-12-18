@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-git-url-for-kvm-s390.patch added to -mm tree
-Date: Fri, 18 Dec 2015 15:33:40 -0800
-Message-ID: <567497d4.OmpvyHwe+VkE05RL%akpm@linux-foundation.org>
+Subject: + maintainers-add-git-url-for-wireless-drivers.patch added to -mm tree
+Date: Fri, 18 Dec 2015 15:33:50 -0800
+Message-ID: <567497de.TayNB9ou2gFYDXtx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46456 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46475 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751592AbbLRXdl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:41 -0500
+	with ESMTP id S1751592AbbLRXdv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, borntraeger@de.ibm.com, cornelia.huck@de.ibm.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, kvalo@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add git URL for KVM/s390
+     Subject: MAINTAINERS: add git URL for wireless drivers
 has been added to the -mm tree.  Its filename is
-     maintainers-add-git-url-for-kvm-s390.patch
+     maintainers-add-git-url-for-wireless-drivers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-kvm-s390.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-wireless-drivers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-kvm-s390.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-wireless-drivers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,28 +39,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: add git URL for KVM/s390
+Subject: MAINTAINERS: add git URL for wireless drivers
+
+Also fixup the tailing /
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Acked-by: Cornelia Huck <cornelia.huck@de.ibm.com>
+Acked-by: Kalle Valo <kvalo@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-add-git-url-for-kvm-s390 MAINTAINERS
---- a/MAINTAINERS~maintainers-add-git-url-for-kvm-s390
+diff -puN MAINTAINERS~maintainers-add-git-url-for-wireless-drivers MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-git-url-for-wireless-drivers
 +++ a/MAINTAINERS
-@@ -6120,6 +6120,7 @@ M:	Christian Borntraeger <borntraeger@de
- M:	Cornelia Huck <cornelia.huck@de.ibm.com>
- L:	linux-s390@vger.kernel.org
- W:	http://www.ibm.com/developerworks/linux/linux390/
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kvms390/linux.git
- S:	Supported
- F:	Documentation/s390/kvm.txt
- F:	arch/s390/include/asm/kvm*
+@@ -7518,7 +7518,8 @@ NETWORKING DRIVERS (WIRELESS)
+ M:	Kalle Valo <kvalo@codeaurora.org>
+ L:	linux-wireless@vger.kernel.org
+ Q:	http://patchwork.kernel.org/project/linux-wireless/list/
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kvalo/wireless-drivers.git/
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kvalo/wireless-drivers.git
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kvalo/wireless-drivers-next.git
+ S:	Maintained
+ F:	drivers/net/wireless/
+ 
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
