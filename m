@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-git-url-for-pcmcia.patch added to -mm tree
-Date: Fri, 18 Dec 2015 15:33:54 -0800
-Message-ID: <567497e2.lkB0yuglFs6Ld6Ni%akpm@linux-foundation.org>
+Subject: + maintainers-add-git-url-for-hexagon.patch added to -mm tree
+Date: Fri, 18 Dec 2015 15:34:00 -0800
+Message-ID: <567497e8.vx9sYVhmWBQUFpkW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46484 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46500 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751925AbbLRXdz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:55 -0500
+	with ESMTP id S1752088AbbLRXeB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:34:01 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, rkuo@codeaurora.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update git URL for PCMCIA
+     Subject: MAINTAINERS: add git URL for hexagon
 has been added to the -mm tree.  Its filename is
-     maintainers-update-git-url-for-pcmcia.patch
+     maintainers-add-git-url-for-hexagon.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-git-url-for-pcmcia.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-hexagon.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-git-url-for-pcmcia.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-hexagon.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,28 +39,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: update git URL for PCMCIA
+Subject: MAINTAINERS: add git URL for hexagon
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Dominik Brodowski <linux@dominikbrodowski.net>
+Cc: Richard Kuo <rkuo@codeaurora.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-update-git-url-for-pcmcia MAINTAINERS
---- a/MAINTAINERS~maintainers-update-git-url-for-pcmcia
+diff -puN MAINTAINERS~maintainers-add-git-url-for-hexagon MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-git-url-for-hexagon
 +++ a/MAINTAINERS
-@@ -8297,7 +8297,7 @@ PCMCIA SUBSYSTEM
- P:	Linux PCMCIA Team
- L:	linux-pcmcia@lists.infradead.org
- W:	http://lists.infradead.org/mailman/listinfo/linux-pcmcia
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/brodo/pcmcia-2.6.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/brodo/pcmcia.git
- S:	Maintained
- F:	Documentation/pcmcia/
- F:	drivers/pcmcia/
+@@ -8819,6 +8819,7 @@ F:	drivers/net/wireless/ath/ath10k/
+ QUALCOMM HEXAGON ARCHITECTURE
+ M:	Richard Kuo <rkuo@codeaurora.org>
+ L:	linux-hexagon@vger.kernel.org
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rkuo/linux-hexagon-kernel.git
+ S:	Supported
+ F:	arch/hexagon/
+ 
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
