@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-git-url-for-ecryptfs.patch added to -mm tree
-Date: Fri, 18 Dec 2015 15:33:26 -0800
-Message-ID: <567497c6.NAcc6OSp/rQGfH3o%akpm@linux-foundation.org>
+Subject: + maintainers-add-git-url-for-ext4.patch added to -mm tree
+Date: Fri, 18 Dec 2015 15:33:30 -0800
+Message-ID: <567497ca.5Z6OZFQAJebLKZNh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46411 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46429 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752036AbbLRXd1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:27 -0500
+	with ESMTP id S1752036AbbLRXdb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, tyhicks@canonical.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add git URL for eCryptfs
+     Subject: MAINTAINERS: add git URL for ext4
 has been added to the -mm tree.  Its filename is
-     maintainers-add-git-url-for-ecryptfs.patch
+     maintainers-add-git-url-for-ext4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-ecryptfs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-ext4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-ecryptfs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-ext4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,27 +39,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: add git URL for eCryptfs
+Subject: MAINTAINERS: add git URL for ext4
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Tyler Hicks <tyhicks@canonical.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-add-git-url-for-ecryptfs MAINTAINERS
---- a/MAINTAINERS~maintainers-add-git-url-for-ecryptfs
+diff -puN MAINTAINERS~maintainers-add-git-url-for-ext4 MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-git-url-for-ext4
 +++ a/MAINTAINERS
-@@ -3958,6 +3958,7 @@ M:	Tyler Hicks <tyhicks@canonical.com>
- L:	ecryptfs@vger.kernel.org
- W:	http://ecryptfs.org
- W:	https://launchpad.net/ecryptfs
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tyhicks/ecryptfs.git
- S:	Supported
- F:	Documentation/filesystems/ecryptfs.txt
- F:	fs/ecryptfs/
+@@ -4237,6 +4237,7 @@ M:	Andreas Dilger <adilger.kernel@dilger
+ L:	linux-ext4@vger.kernel.org
+ W:	http://ext4.wiki.kernel.org
+ Q:	http://patchwork.ozlabs.org/project/linux-ext4/list/
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tytso/ext4.git
+ S:	Maintained
+ F:	Documentation/filesystems/ext4.txt
+ F:	fs/ext4/
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
