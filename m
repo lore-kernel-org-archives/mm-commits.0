@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
+Subject: +
+ mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix-2.patch
  added to -mm tree
-Date: Fri, 18 Dec 2015 12:56:15 -0800
-Message-ID: <567472ef.jlanSmeyJPRTxxYK%akpm@linux-foundation.org>
+Date: Fri, 18 Dec 2015 12:58:30 -0800
+Message-ID: <56747376.QrZaq+Gc47J196qX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55910 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56038 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964992AbbLRU4Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 15:56:16 -0500
+	with ESMTP id S933011AbbLRU6b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 15:58:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chris@chris-wilson.co.uk, mingo@kernel.org, valentinrothberg@gmail.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-stop_machinec-remove-config_smp-dependencies-fix
+     Subject: memcg: fix SLOB build regression
 has been added to the -mm tree.  Its filename is
-     kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
+     mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,92 +40,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-stop_machinec-remove-config_smp-dependencies-fix
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: memcg: fix SLOB build regression
 
-stop_machine.o is only built if CONFIG_SMP=y, so this ifdef always
-evaluates to true.
+A recent cleanup broke the build when CONFIG_SLOB is used:
 
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Valentin Rothberg <valentinrothberg@gmail.com>
+mm/memcontrol.c: In function 'memcg_update_kmem_limit':
+mm/memcontrol.c:2974:9: error: implicit declaration of function 'memcg_online_kmem' [-Werror=implicit-function-declaration]
+mm/memcontrol.c: In function 'mem_cgroup_css_alloc':
+mm/memcontrol.c:4229:10: error: too many arguments to function 'memcg_propagate_kmem'
+mm/memcontrol.c:2949:12: note: declared here
+
+This fixes the memcg_propagate_kmem prototype to match the normal
+implementation and adds the respective memcg_online_kmem helper
+function that was needed.
+
+Fixes: a5ed904c5039 ("mm: memcontrol: clean up alloc, online, offline, free functions")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/stop_machine.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/memcontrol.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN kernel/stop_machine.c~kernel-stop_machinec-remove-config_smp-dependencies-fix kernel/stop_machine.c
---- a/kernel/stop_machine.c~kernel-stop_machinec-remove-config_smp-dependencies-fix
-+++ a/kernel/stop_machine.c
-@@ -531,8 +531,6 @@ static int __init cpu_stop_init(void)
+diff -puN mm/memcontrol.c~mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix-2 mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix-2
++++ a/mm/memcontrol.c
+@@ -2943,7 +2943,11 @@ static void memcg_free_kmem(struct mem_c
+ 	}
  }
- early_initcall(cpu_stop_init);
- 
--#ifdef CONFIG_HOTPLUG_CPU
--
- static int __stop_machine(cpu_stop_fn_t fn, void *data, const struct cpumask *cpus)
+ #else
+-static int memcg_propagate_kmem(struct mem_cgroup *memcg)
++static int memcg_propagate_kmem(struct mem_cgroup *parent, struct mem_cgroup *memcg)
++{
++	return 0;
++}
++static int memcg_online_kmem(struct mem_cgroup *memcg)
  {
- 	struct multi_stop_data msdata = {
-@@ -630,5 +628,3 @@ int stop_machine_from_inactive_cpu(cpu_s
- 	mutex_unlock(&stop_cpus_mutex);
- 	return ret ?: done.ret;
+ 	return 0;
  }
--
--#endif	/* CONFIG_HOTPLUG_CPU */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-arm64-mm-support-arch_mmap_rnd_bits-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-printk-introduce-new-format-string-for-flags-fix-2.patch
-mm-support-madvisemadv_free-fix-2-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-mm-oom-introduce-oom-reaper-fix-fix.patch
-mm-oom-introduce-oom-reaper-fix-fix-2.patch
-mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
-mm-oom-introduce-oom-reaper-fix-3.patch
-kernel-stop_machinec-remove-config_smp-dependencies.patch
-kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
-lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
-lib-test_printfc-test-dentry-printing-fix.patch
-printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
-printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
-linux-next-rejects.patch
-include-linux-propertyh-fix-build-issues-with-gcc-444.patch
-include-linux-propertyh-fix-build-issues-with-gcc-444-fix.patch
-fs-overlayfs-superc-needs-pagemaph.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix-2.patch
+arm-thp-remove-infrastructure-for-handling-splitting-pmds-fix.patch
+mm-printk-introduce-new-format-string-for-flags-fix.patch
+memstick-use-sector_div-instead-of-do_div.patch
+mm-memcontrol-introduce-config_memcg_legacy_kmem-fix.patch
+mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix-2.patch
 
