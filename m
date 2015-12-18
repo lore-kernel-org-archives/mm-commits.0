@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-git-url-for-pstore.patch added to -mm tree
-Date: Fri, 18 Dec 2015 15:33:56 -0800
-Message-ID: <567497e4.ZqHLfUVvB/XDwHL3%akpm@linux-foundation.org>
+Subject: + maintainers-add-git-url-for-s390.patch added to -mm tree
+Date: Fri, 18 Dec 2015 15:34:04 -0800
+Message-ID: <567497ec.GCTEq2CkHHMvUYzA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46491 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46511 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751925AbbLRXd5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:57 -0500
+	with ESMTP id S1752036AbbLRXeF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:34:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, anton@enomsg.org, ccross@android.com, keescook@chromium.org, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update git URL for pstore
+     Subject: MAINTAINERS: add git URL for s390
 has been added to the -mm tree.  Its filename is
-     maintainers-update-git-url-for-pstore.patch
+     maintainers-add-git-url-for-s390.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-git-url-for-pstore.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-s390.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-git-url-for-pstore.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-s390.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,31 +39,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: update git URL for pstore
+Subject: MAINTAINERS: add git URL for s390
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Anton Vorontsov <anton@enomsg.org>
-Cc: Colin Cross <ccross@android.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Tony Luck <tony.luck@intel.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-update-git-url-for-pstore MAINTAINERS
---- a/MAINTAINERS~maintainers-update-git-url-for-pstore
+diff -puN MAINTAINERS~maintainers-add-git-url-for-s390 MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-git-url-for-s390
 +++ a/MAINTAINERS
-@@ -8610,7 +8610,7 @@ M:	Colin Cross <ccross@android.com>
- M:	Kees Cook <keescook@chromium.org>
- M:	Tony Luck <tony.luck@intel.com>
- S:	Maintained
--T:	git git://git.infradead.org/users/cbou/linux-pstore.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/aegl/linux.git
- F:	fs/pstore/
- F:	include/linux/pstore*
- F:	drivers/firmware/efi/efi-pstore.c
+@@ -9160,6 +9160,7 @@ M:	Martin Schwidefsky <schwidefsky@de.ib
+ M:	Heiko Carstens <heiko.carstens@de.ibm.com>
+ L:	linux-s390@vger.kernel.org
+ W:	http://www.ibm.com/developerworks/linux/linux390/
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/s390/linux.git
+ S:	Supported
+ F:	arch/s390/
+ F:	drivers/s390/
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
