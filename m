@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-fix-tree-format-for-samsung-thermal.patch added to
- -mm tree
-Date: Fri, 18 Dec 2015 15:34:06 -0800
-Message-ID: <567497ee.9eeMXNBq04psSDuu%akpm@linux-foundation.org>
+Subject: + maintainers-fix-tree-format-for-tpm.patch added to -mm tree
+Date: Fri, 18 Dec 2015 15:34:18 -0800
+Message-ID: <567497fa.cbuJHRuO6+bybxMj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46515 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46537 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752036AbbLRXeH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:34:07 -0500
+	with ESMTP id S1752292AbbLRXeT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:34:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, l.majewski@samsung.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, jarkko.sakkinen@linux.intel.com, peterhuewe@gmx.de, tpmdd@selhorst.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: fix tree format for SAMSUNG thermal
+     Subject: MAINTAINERS: fix tree format for TPM
 has been added to the -mm tree.  Its filename is
-     maintainers-fix-tree-format-for-samsung-thermal.patch
+     maintainers-fix-tree-format-for-tpm.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-fix-tree-format-for-samsung-thermal.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-fix-tree-format-for-tpm.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-fix-tree-format-for-samsung-thermal.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-fix-tree-format-for-tpm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,28 +39,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: fix tree format for SAMSUNG thermal
+Subject: MAINTAINERS: fix tree format for TPM
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Lukasz Majewski <l.majewski@samsung.com>
+Cc: Peter Huewe <peterhuewe@gmx.de>
+Cc: Marcel Selhorst <tpmdd@selhorst.net>
+Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-fix-tree-format-for-samsung-thermal MAINTAINERS
---- a/MAINTAINERS~maintainers-fix-tree-format-for-samsung-thermal
+diff -puN MAINTAINERS~maintainers-fix-tree-format-for-tpm MAINTAINERS
+--- a/MAINTAINERS~maintainers-fix-tree-format-for-tpm
 +++ a/MAINTAINERS
-@@ -9351,7 +9351,7 @@ M:	Lukasz Majewski <l.majewski@samsung.c
- L:	linux-pm@vger.kernel.org
- L:	linux-samsung-soc@vger.kernel.org
- S:	Supported
--T:	https://github.com/lmajewski/linux-samsung-thermal.git
-+T:	git https://github.com/lmajewski/linux-samsung-thermal.git
- F:	drivers/thermal/samsung/
+@@ -10920,7 +10920,7 @@ R:	Jason Gunthorpe <jgunthorpe@obsidianr
+ W:	http://tpmdd.sourceforge.net
+ L:	tpmdd-devel@lists.sourceforge.net (moderated for non-subscribers)
+ Q:	git git://github.com/PeterHuewe/linux-tpmdd.git
+-T:	https://github.com/PeterHuewe/linux-tpmdd
++T:	git https://github.com/PeterHuewe/linux-tpmdd
+ S:	Maintained
+ F:	drivers/char/tpm/
  
- SAMSUNG USB2 PHY DRIVER
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
