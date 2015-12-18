@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-git-url-for-tile.patch added to -mm tree
-Date: Fri, 18 Dec 2015 15:34:16 -0800
-Message-ID: <567497f8.ZrA3BDuY8FczWxE9%akpm@linux-foundation.org>
+Subject: + maintainers-add-git-url-for-squashfs.patch added to -mm tree
+Date: Fri, 18 Dec 2015 15:34:10 -0800
+Message-ID: <567497f2.0C4lR5Alnq1LdyoM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46534 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46524 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752170AbbLRXeR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:34:17 -0500
+	with ESMTP id S1752095AbbLRXeL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:34:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, cmetcalf@ezchip.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, phillip@squashfs.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add git URL for tile
+     Subject: MAINTAINERS: add git URL for squashfs
 has been added to the -mm tree.  Its filename is
-     maintainers-add-git-url-for-tile.patch
+     maintainers-add-git-url-for-squashfs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-tile.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-squashfs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-tile.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-squashfs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,27 +39,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: add git URL for tile
+Subject: MAINTAINERS: add git URL for squashfs
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: Phillip Lougher <phillip@squashfs.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-add-git-url-for-tile MAINTAINERS
---- a/MAINTAINERS~maintainers-add-git-url-for-tile
+diff -puN MAINTAINERS~maintainers-add-git-url-for-squashfs MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-git-url-for-squashfs
 +++ a/MAINTAINERS
-@@ -10796,6 +10796,7 @@ F:	net/tipc/
- TILE ARCHITECTURE
- M:	Chris Metcalf <cmetcalf@ezchip.com>
- W:	http://www.ezchip.com/scm/
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/cmetcalf/linux-tile.git
- S:	Supported
- F:	arch/tile/
- F:	drivers/char/tile-srom.c
+@@ -10176,6 +10176,7 @@ SQUASHFS FILE SYSTEM
+ M:	Phillip Lougher <phillip@squashfs.org.uk>
+ L:	squashfs-devel@lists.sourceforge.net (subscribers-only)
+ W:	http://squashfs.org.uk
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/pkl/squashfs-next.git
+ S:	Maintained
+ F:	Documentation/filesystems/squashfs.txt
+ F:	fs/squashfs/
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
