@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-git-url-for-swiotlb.patch added to -mm tree
-Date: Fri, 18 Dec 2015 15:34:12 -0800
-Message-ID: <567497f4.FeBMBMNhFbNjOC6E%akpm@linux-foundation.org>
+Subject: + maintainers-add-git-url-for-tile.patch added to -mm tree
+Date: Fri, 18 Dec 2015 15:34:16 -0800
+Message-ID: <567497f8.ZrA3BDuY8FczWxE9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46527 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46534 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752277AbbLRXeN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:34:13 -0500
+	with ESMTP id S1752170AbbLRXeR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:34:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, konrad.wilk@oracle.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, cmetcalf@ezchip.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add git URL for swiotlb
+     Subject: MAINTAINERS: add git URL for tile
 has been added to the -mm tree.  Its filename is
-     maintainers-add-git-url-for-swiotlb.patch
+     maintainers-add-git-url-for-tile.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-swiotlb.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-tile.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-swiotlb.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-tile.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,27 +39,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: add git URL for swiotlb
+Subject: MAINTAINERS: add git URL for tile
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Chris Metcalf <cmetcalf@ezchip.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-add-git-url-for-swiotlb MAINTAINERS
---- a/MAINTAINERS~maintainers-add-git-url-for-swiotlb
+diff -puN MAINTAINERS~maintainers-add-git-url-for-tile MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-git-url-for-tile
 +++ a/MAINTAINERS
-@@ -10373,6 +10373,7 @@ F:	arch/x86/boot/video*
- SWIOTLB SUBSYSTEM
- M:	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
- L:	linux-kernel@vger.kernel.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/konrad/swiotlb.git
+@@ -10796,6 +10796,7 @@ F:	net/tipc/
+ TILE ARCHITECTURE
+ M:	Chris Metcalf <cmetcalf@ezchip.com>
+ W:	http://www.ezchip.com/scm/
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/cmetcalf/linux-tile.git
  S:	Supported
- F:	lib/swiotlb.c
- F:	arch/*/kernel/pci-swiotlb.c
+ F:	arch/tile/
+ F:	drivers/char/tile-srom.c
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
