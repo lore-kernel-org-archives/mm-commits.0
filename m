@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-git-url-for-ipvs.patch added to -mm tree
-Date: Fri, 18 Dec 2015 15:33:36 -0800
-Message-ID: <567497d0.tOlzjwKr1v6B+Bp1%akpm@linux-foundation.org>
+Subject: + maintainers-add-git-url-for-hwspinlock.patch added to -mm tree
+Date: Fri, 18 Dec 2015 15:33:32 -0800
+Message-ID: <567497cc.cdqEN9qudNL6i+2x%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46446 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46432 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752036AbbLRXdh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:37 -0500
+	with ESMTP id S1752036AbbLRXdd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, horms@verge.net.au, ja@ssi.bg, wensong@linux-vs.org, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, ohad@wizery.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add git URL for IPVS
+     Subject: MAINTAINERS: add git URL for hwspinlock
 has been added to the -mm tree.  Its filename is
-     maintainers-add-git-url-for-ipvs.patch
+     maintainers-add-git-url-for-hwspinlock.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-ipvs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-hwspinlock.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-ipvs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-hwspinlock.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,30 +39,27 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: add git URL for IPVS
+Subject: MAINTAINERS: add git URL for hwspinlock
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Wensong Zhang <wensong@linux-vs.org>
-Cc: Simon Horman <horms@verge.net.au>
-Cc: Julian Anastasov <ja@ssi.bg>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 ++
- 1 file changed, 2 insertions(+)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-add-git-url-for-ipvs MAINTAINERS
---- a/MAINTAINERS~maintainers-add-git-url-for-ipvs
+diff -puN MAINTAINERS~maintainers-add-git-url-for-hwspinlock MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-git-url-for-hwspinlock
 +++ a/MAINTAINERS
-@@ -5778,6 +5778,8 @@ M:	Julian Anastasov <ja@ssi.bg>
- L:	netdev@vger.kernel.org
- L:	lvs-devel@vger.kernel.org
+@@ -4920,6 +4920,7 @@ F:	include/linux/hw_random.h
+ HARDWARE SPINLOCK CORE
+ M:	Ohad Ben-Cohen <ohad@wizery.com>
  S:	Maintained
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs-next.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/horms/ipvs.git
- F:	Documentation/networking/ipvs-sysctl.txt
- F:	include/net/ip_vs.h
- F:	include/uapi/linux/ip_vs.h
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/ohad/hwspinlock.git
+ F:	Documentation/hwspinlock.txt
+ F:	drivers/hwspinlock/hwspinlock_*
+ F:	include/linux/hwspinlock.h
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
