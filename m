@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-git-url-for-devicetree.patch added to -mm tree
-Date: Fri, 18 Dec 2015 15:33:52 -0800
-Message-ID: <567497e0.Qh7bI78bxbYEvEJj%akpm@linux-foundation.org>
+Subject: + maintainers-update-git-url-for-pcmcia.patch added to -mm tree
+Date: Fri, 18 Dec 2015 15:33:54 -0800
+Message-ID: <567497e2.lkB0yuglFs6Ld6Ni%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46480 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46484 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751592AbbLRXdx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:53 -0500
+	with ESMTP id S1751925AbbLRXdz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, galak@codeaurora.org, ijc+devicetree@hellion.org.uk, mark.rutland@arm.com, pawel.moll@arm.com, robh+dt@kernel.org, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, linux@dominikbrodowski.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add git URL for devicetree
+     Subject: MAINTAINERS: update git URL for PCMCIA
 has been added to the -mm tree.  Its filename is
-     maintainers-add-git-url-for-devicetree.patch
+     maintainers-update-git-url-for-pcmcia.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-devicetree.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-git-url-for-pcmcia.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-devicetree.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-git-url-for-pcmcia.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,31 +39,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: add git URL for devicetree
+Subject: MAINTAINERS: update git URL for PCMCIA
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Rob Herring <robh+dt@kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>
-Cc: Ian Campbell <ijc+devicetree@hellion.org.uk>
-Cc: Kumar Gala <galak@codeaurora.org>
+Cc: Dominik Brodowski <linux@dominikbrodowski.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-add-git-url-for-devicetree MAINTAINERS
---- a/MAINTAINERS~maintainers-add-git-url-for-devicetree
+diff -puN MAINTAINERS~maintainers-update-git-url-for-pcmcia MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-git-url-for-pcmcia
 +++ a/MAINTAINERS
-@@ -7920,6 +7920,7 @@ M:	Mark Rutland <mark.rutland@arm.com>
- M:	Ian Campbell <ijc+devicetree@hellion.org.uk>
- M:	Kumar Gala <galak@codeaurora.org>
- L:	devicetree@vger.kernel.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/robh/linux.git
+@@ -8297,7 +8297,7 @@ PCMCIA SUBSYSTEM
+ P:	Linux PCMCIA Team
+ L:	linux-pcmcia@lists.infradead.org
+ W:	http://lists.infradead.org/mailman/listinfo/linux-pcmcia
+-T:	git git://git.kernel.org/pub/scm/linux/kernel/git/brodo/pcmcia-2.6.git
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/brodo/pcmcia.git
  S:	Maintained
- F:	Documentation/devicetree/
- F:	arch/*/boot/dts/
+ F:	Documentation/pcmcia/
+ F:	drivers/pcmcia/
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
