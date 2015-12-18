@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-git-url-for-md.patch added to -mm tree
-Date: Fri, 18 Dec 2015 15:34:08 -0800
-Message-ID: <567497f0.FGS6vPwQV1t3zAnw%akpm@linux-foundation.org>
+Subject: + maintainers-add-git-url-for-uml.patch added to -mm tree
+Date: Fri, 18 Dec 2015 15:34:20 -0800
+Message-ID: <567497fc.T7rjVtnmwGaaIbtK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46522 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46548 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752036AbbLRXeJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:34:09 -0500
+	with ESMTP id S1752296AbbLRXeV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:34:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, neilb@suse.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, jdike@addtoit.com, richard@nod.at, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add git URL for md
+     Subject: MAINTAINERS: add git URL for UML
 has been added to the -mm tree.  Its filename is
-     maintainers-add-git-url-for-md.patch
+     maintainers-add-git-url-for-uml.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-md.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-uml.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-md.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-uml.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,27 +39,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: add git URL for md
+Subject: MAINTAINERS: add git URL for UML
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Neil Brown <neilb@suse.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Richard Weinberger <richard@nod.at>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-add-git-url-for-md MAINTAINERS
---- a/MAINTAINERS~maintainers-add-git-url-for-md
+diff -puN MAINTAINERS~maintainers-add-git-url-for-uml MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-git-url-for-uml
 +++ a/MAINTAINERS
-@@ -10004,6 +10004,7 @@ F:	drivers/media/pci/solo6x10/
- SOFTWARE RAID (Multiple Disks) SUPPORT
- M:	Neil Brown <neilb@suse.com>
- L:	linux-raid@vger.kernel.org
-+T:	git git://neil.brown.name/md
- S:	Supported
- F:	drivers/md/
- F:	include/linux/raid/
+@@ -11377,6 +11377,7 @@ M:	Richard Weinberger <richard@nod.at>
+ L:	user-mode-linux-devel@lists.sourceforge.net
+ L:	user-mode-linux-user@lists.sourceforge.net
+ W:	http://user-mode-linux.sourceforge.net
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/rw/uml.git
+ S:	Maintained
+ F:	Documentation/virtual/uml/
+ F:	arch/um/
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
