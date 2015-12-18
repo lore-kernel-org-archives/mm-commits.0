@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t-fix.patch added to
- -mm tree
-Date: Fri, 18 Dec 2015 13:42:25 -0800
-Message-ID: <56747dc1.aSMWEo5cr/Wu/Uty%akpm@linux-foundation.org>
+Subject: +
+ printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2.patch added to -mm tree
+Date: Fri, 18 Dec 2015 14:23:42 -0800
+Message-ID: <5674876e.7hPk0/0CEPA8p2f6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32997 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37719 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965392AbbLRVm0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 16:42:26 -0500
+	with ESMTP id S965257AbbLRWXm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 17:23:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sfr@canb.auug.org.au, dan.j.williams@intel.com, mm-commits@vger.kernel.org
+To: pmladek@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, dax: convert vmf_insert_pfn_pmd() to pfn_t fix
+     Subject: printk/nmi: Remove the questionable CONFIG_NEED_PRINTK_NMI
 has been added to the -mm tree.  Its filename is
-     mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t-fix.patch
+     printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,31 +39,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: mm, dax: convert vmf_insert_pfn_pmd() to pfn_t fix
+From: Petr Mladek <pmladek@suse.com>
+Subject: printk/nmi: Remove the questionable CONFIG_NEED_PRINTK_NMI
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Dan Williams <dan.j.williams@intel.com>
+The flag NEED_PRINTK_NMI was added because of Arm.  It used the NMI safe
+backtrace implementation on all Arm systems.  But it did not have a real
+NMI handling on CPU_V7M.
+
+It seems that it causes more confusion than good.  Let's use HAVE_NMI on
+all arm systems and get rid of the problematic flag.
+
+Signed-off-by: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/pgtable.h |    1 +
- 1 file changed, 1 insertion(+)
+ arch/Kconfig     |    3 ---
+ arch/arm/Kconfig |    3 +--
+ init/Kconfig     |    2 +-
+ 3 files changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t-fix arch/powerpc/include/asm/book3s/64/pgtable.h
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t-fix
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -186,6 +186,7 @@ void pgtable_cache_init(void);
- struct page *realmode_pfn_to_page(unsigned long pfn);
+diff -puN arch/Kconfig~printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2 arch/Kconfig
+--- a/arch/Kconfig~printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2
++++ a/arch/Kconfig
+@@ -190,9 +190,6 @@ config HAVE_KPROBES_ON_FTRACE
+ config HAVE_NMI
+ 	bool
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+#define pfn_pmd pfn_pmd
- extern pmd_t pfn_pmd(unsigned long pfn, pgprot_t pgprot);
- extern pmd_t mk_pmd(struct page *page, pgprot_t pgprot);
- extern pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot);
+-config NEED_PRINTK_NMI
+-	bool
+-
+ config HAVE_NMI_WATCHDOG
+ 	depends on HAVE_NMI
+ 	bool
+diff -puN arch/arm/Kconfig~printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2 arch/arm/Kconfig
+--- a/arch/arm/Kconfig~printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2
++++ a/arch/arm/Kconfig
+@@ -64,8 +64,7 @@ config ARM
+ 	select HAVE_KRETPROBES if (HAVE_KPROBES)
+ 	select HAVE_MEMBLOCK
+ 	select HAVE_MOD_ARCH_SPECIFIC
+-	select HAVE_NMI if (!CPU_V7M)
+-	select NEED_PRINTK_NMI if (CPU_V7M)
++	select HAVE_NMI
+ 	select HAVE_OPROFILE if (HAVE_PERF_EVENTS)
+ 	select HAVE_OPTPROBES if !THUMB2_KERNEL
+ 	select HAVE_PERF_EVENTS
+diff -puN init/Kconfig~printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2 init/Kconfig
+--- a/init/Kconfig~printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2
++++ a/init/Kconfig
+@@ -1481,7 +1481,7 @@ config PRINTK
+ config PRINTK_NMI
+ 	def_bool y
+ 	depends on PRINTK
+-	depends on HAVE_NMI || NEED_PRINTK_NMI
++	depends on HAVE_NMI
+ 
+ config BUG
+ 	bool "BUG() support" if EXPERT
 _
 
-Patches currently in -mm which might be from sfr@canb.auug.org.au are
+Patches currently in -mm which might be from pmladek@suse.com are
 
-mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t-fix.patch
+printk-nmi-generic-solution-for-safe-printk-in-nmi.patch
+printk-nmi-generic-solution-for-safe-printk-in-nmi-v4.patch
+printk-nmi-use-irq-work-only-when-ready.patch
+printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context.patch
+printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable.patch
+printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix.patch
+printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2.patch
 
