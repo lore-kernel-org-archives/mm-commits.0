@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-update-git-url-for-dlm.patch added to -mm tree
-Date: Fri, 18 Dec 2015 15:33:24 -0800
-Message-ID: <567497c4.Ubke+QLUd5tV2jva%akpm@linux-foundation.org>
+Subject: + maintainers-fix-git-url-for-edac.patch added to -mm tree
+Date: Fri, 18 Dec 2015 15:33:28 -0800
+Message-ID: <567497c8.tqgdd/tfz05RvFu9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46401 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46421 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752036AbbLRXdZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:25 -0500
+	with ESMTP id S1752036AbbLRXd3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, ccaulfie@redhat.com, teigland@redhat.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, bp@alien8.de, dougthompson@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update git URL for DLM
+     Subject: MAINTAINERS: fix git URL for EDAC
 has been added to the -mm tree.  Its filename is
-     maintainers-update-git-url-for-dlm.patch
+     maintainers-fix-git-url-for-edac.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-git-url-for-dlm.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-fix-git-url-for-edac.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-git-url-for-dlm.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-fix-git-url-for-edac.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,29 +39,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: update git URL for DLM
+Subject: MAINTAINERS: fix git URL for EDAC
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Christine Caulfield <ccaulfie@redhat.com>
-Cc: David Teigland <teigland@redhat.com>
+Cc: Doug Thompson <dougthompson@xmission.com>
+Cc: Borislav Petkov <bp@alien8.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-update-git-url-for-dlm MAINTAINERS
---- a/MAINTAINERS~maintainers-update-git-url-for-dlm
+diff -puN MAINTAINERS~maintainers-fix-git-url-for-edac MAINTAINERS
+--- a/MAINTAINERS~maintainers-fix-git-url-for-edac
 +++ a/MAINTAINERS
-@@ -3554,7 +3554,7 @@ M:	Christine Caulfield <ccaulfie@redhat.
- M:	David Teigland <teigland@redhat.com>
- L:	cluster-devel@redhat.com
- W:	http://sources.redhat.com/cluster/
--T:	git git://git.kernel.org/pub/scm/linux/kernel/git/teigland/dlm.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/teigland/linux-dlm.git
+@@ -3968,8 +3968,8 @@ M:	Doug Thompson <dougthompson@xmission.
+ M:	Borislav Petkov <bp@alien8.de>
+ M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
+ L:	linux-edac@vger.kernel.org
+-T:	git://git.kernel.org/pub/scm/linux/kernel/git/bp/bp.git#for-next
+-T:	git://git.kernel.org/pub/linux/kernel/git/mchehab/linux-edac.git#linux_next
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/bp/bp.git for-next
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-edac.git linux_next
  S:	Supported
- F:	fs/dlm/
- 
+ F:	Documentation/edac.txt
+ F:	drivers/edac/
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
