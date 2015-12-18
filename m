@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-add-git-url-for-nfsd.patch added to -mm tree
-Date: Fri, 18 Dec 2015 15:33:38 -0800
-Message-ID: <567497d2.+0N9cCMXqNVoehxK%akpm@linux-foundation.org>
+Subject: + maintainers-add-git-url-for-kvm-arm.patch added to -mm tree
+Date: Fri, 18 Dec 2015 15:33:42 -0800
+Message-ID: <567497d6.rALGXmBzsfgbbSRI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46451 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46460 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752212AbbLRXdj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:39 -0500
+	with ESMTP id S1751592AbbLRXdn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:33:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, bfields@fieldses.org, jlayton@poochiereds.net, trond.myklebust@primarydata.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, christoffer.dall@linaro.org, marc.zyngier@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add git URL for nfsd
+     Subject: MAINTAINERS: add git URL for KVM/ARM
 has been added to the -mm tree.  Its filename is
-     maintainers-add-git-url-for-nfsd.patch
+     maintainers-add-git-url-for-kvm-arm.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-nfsd.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-add-git-url-for-kvm-arm.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-nfsd.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-add-git-url-for-kvm-arm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,29 +39,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: add git URL for nfsd
+Subject: MAINTAINERS: add git URL for KVM/ARM
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: Jeff Layton <jlayton@poochiereds.net>
-Cc: Trond Myklebust <trond.myklebust@primarydata.com>
+Acked-by: Christoffer Dall <christoffer.dall@linaro.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-add-git-url-for-nfsd MAINTAINERS
---- a/MAINTAINERS~maintainers-add-git-url-for-nfsd
+diff -puN MAINTAINERS~maintainers-add-git-url-for-kvm-arm MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-git-url-for-kvm-arm
 +++ a/MAINTAINERS
-@@ -6063,6 +6063,7 @@ M:	"J. Bruce Fields" <bfields@fieldses.o
- M:	Jeff Layton <jlayton@poochiereds.net>
- L:	linux-nfs@vger.kernel.org
- W:	http://nfs.sourceforge.net/
-+T:	git git://linux-nfs.org/~bfields/linux.git
+@@ -6132,6 +6132,7 @@ M:	Marc Zyngier <marc.zyngier@arm.com>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ L:	kvmarm@lists.cs.columbia.edu
+ W:	http://systems.cs.columbia.edu/projects/kvm-arm
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kvmarm/kvmarm.git
  S:	Supported
- F:	fs/nfsd/
- F:	include/uapi/linux/nfsd/
+ F:	arch/arm/include/uapi/asm/kvm*
+ F:	arch/arm/include/asm/kvm*
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
