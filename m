@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-dlm-return-appropriate-value-when-dlm_grab-returns-null.patch added
- to -mm tree
-Date: Fri, 18 Dec 2015 15:51:36 -0800
-Message-ID: <56749c08.LSOm9yORzM2W7eQ9%akpm@linux-foundation.org>
+Subject: + fs-affs-replace-time_t-with-time64_t.patch added to -mm tree
+Date: Fri, 18 Dec 2015 16:19:33 -0800
+Message-ID: <5674a295.HwCtvAQ7i7A8Gbk5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48446 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51826 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751796AbbLRXvh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 18:51:37 -0500
+	with ESMTP id S1751422AbbLSATe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 18 Dec 2015 19:19:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xuejiufei@huawei.com, jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: chao.deng@linaro.org, arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: return appropriate value when dlm_grab() returns NULL
+     Subject: fs/affs: replace time_t with time64_t
 has been added to the -mm tree.  Its filename is
-     ocfs2-dlm-return-appropriate-value-when-dlm_grab-returns-null.patch
+     fs-affs-replace-time_t-with-time64_t.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-return-appropriate-value-when-dlm_grab-returns-null.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-affs-replace-time_t-with-time64_t.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-return-appropriate-value-when-dlm_grab-returns-null.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-affs-replace-time_t-with-time64_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,79 +38,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2/dlm: return appropriate value when dlm_grab() returns NULL
+From: DengChao <chao.deng@linaro.org>
+Subject: fs/affs: replace time_t with time64_t
 
-Function dlm_grab() may return NULL when the node is doing unmount.  When
-doing code review, we found that some dlm handlers may return error to
-caller when dlm_grab() returns NULL and make caller BUG or other problems.
- Here is an example:
+The affs code uses time_t and get_seconds().  This will cause problems
+on 32-bit architectures in 2038 when time_t overflows.  This patch
+replaces them with time64_t and ktime_get_real_seconds().
 
-Node 1                                 Node 2
-receives migration message
-from node 3, and send
-migrate request to others
-                                     start unmounting
-
-                                     receives migrate request
-                                     from node 1 and call
-                                     dlm_migrate_request_handler()
-
-                                     unmount thread unregisters
-                                     domain handlers and removes
-                                     dlm_context from dlm_domains
-
-                                     dlm_migrate_request_handlers()
-                                     returns -EINVAL to node 1
-Exit migration neither clearing the
-migration state nor sending
-assert master message to node 3 which
-cause node 3 hung.
-
-Signed-off-by: Jiufei Xue <xuejiufei@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Signed-off-by: DengChao <chao.deng@linaro.org>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |    2 +-
- fs/ocfs2/dlm/dlmunlock.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ fs/affs/affs.h     |    2 +-
+ fs/affs/amigaffs.c |   13 +++++++------
+ fs/affs/super.c    |    2 +-
+ 3 files changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-return-appropriate-value-when-dlm_grab-returns-null fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-return-appropriate-value-when-dlm_grab-returns-null
-+++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -3048,7 +3048,7 @@ int dlm_migrate_request_handler(struct o
- 	int ret = 0;
+diff -puN fs/affs/affs.h~fs-affs-replace-time_t-with-time64_t fs/affs/affs.h
+--- a/fs/affs/affs.h~fs-affs-replace-time_t-with-time64_t
++++ a/fs/affs/affs.h
+@@ -138,7 +138,7 @@ extern int	affs_remove_hash(struct inode
+ extern int	affs_remove_header(struct dentry *dentry);
+ extern u32	affs_checksum_block(struct super_block *sb, struct buffer_head *bh);
+ extern void	affs_fix_checksum(struct super_block *sb, struct buffer_head *bh);
+-extern void	secs_to_datestamp(time_t secs, struct affs_date *ds);
++extern void	secs_to_datestamp(time64_t secs, struct affs_date *ds);
+ extern umode_t	prot_to_mode(u32 prot);
+ extern void	mode_to_prot(struct inode *inode);
+ __printf(3, 4)
+diff -puN fs/affs/amigaffs.c~fs-affs-replace-time_t-with-time64_t fs/affs/amigaffs.c
+--- a/fs/affs/amigaffs.c~fs-affs-replace-time_t-with-time64_t
++++ a/fs/affs/amigaffs.c
+@@ -8,6 +8,7 @@
+  *  Please send bug reports to: hjw@zvw.de
+  */
  
- 	if (!dlm_grab(dlm))
--		return -EINVAL;
-+		return 0;
++#include <linux/math64.h>
+ #include "affs.h"
  
- 	name = migrate->name;
- 	namelen = migrate->namelen;
-diff -puN fs/ocfs2/dlm/dlmunlock.c~ocfs2-dlm-return-appropriate-value-when-dlm_grab-returns-null fs/ocfs2/dlm/dlmunlock.c
---- a/fs/ocfs2/dlm/dlmunlock.c~ocfs2-dlm-return-appropriate-value-when-dlm_grab-returns-null
-+++ a/fs/ocfs2/dlm/dlmunlock.c
-@@ -421,7 +421,7 @@ int dlm_unlock_lock_handler(struct o2net
- 	}
+ /*
+@@ -366,22 +367,22 @@ affs_fix_checksum(struct super_block *sb
+ }
  
- 	if (!dlm_grab(dlm))
--		return DLM_REJECTED;
-+		return DLM_FORWARD;
+ void
+-secs_to_datestamp(time_t secs, struct affs_date *ds)
++secs_to_datestamp(time64_t secs, struct affs_date *ds)
+ {
+ 	u32	 days;
+ 	u32	 minute;
++	s32	 rem;
  
- 	mlog_bug_on_msg(!dlm_domain_fully_joined(dlm),
- 			"Domain %s not fully joined!\n", dlm->name);
+ 	secs -= sys_tz.tz_minuteswest * 60 + ((8 * 365 + 2) * 24 * 60 * 60);
+ 	if (secs < 0)
+ 		secs = 0;
+-	days    = secs / 86400;
+-	secs   -= days * 86400;
+-	minute  = secs / 60;
+-	secs   -= minute * 60;
++	days    = div_s64_rem(secs, 86400, &rem);
++	minute  = rem / 60;
++	rem    -= minute * 60;
+ 
+ 	ds->days = cpu_to_be32(days);
+ 	ds->mins = cpu_to_be32(minute);
+-	ds->ticks = cpu_to_be32(secs * 50);
++	ds->ticks = cpu_to_be32(rem * 50);
+ }
+ 
+ umode_t
+diff -puN fs/affs/super.c~fs-affs-replace-time_t-with-time64_t fs/affs/super.c
+--- a/fs/affs/super.c~fs-affs-replace-time_t-with-time64_t
++++ a/fs/affs/super.c
+@@ -32,7 +32,7 @@ affs_commit_super(struct super_block *sb
+ 	struct affs_root_tail *tail = AFFS_ROOT_TAIL(sb, bh);
+ 
+ 	lock_buffer(bh);
+-	secs_to_datestamp(get_seconds(), &tail->disk_change);
++	secs_to_datestamp(ktime_get_real_seconds(), &tail->disk_change);
+ 	affs_fix_checksum(sb, bh);
+ 	unlock_buffer(bh);
+ 
 _
 
-Patches currently in -mm which might be from xuejiufei@huawei.com are
+Patches currently in -mm which might be from chao.deng@linaro.org are
 
-ocfs2-dlm-fix-a-race-between-purge-and-migratio.patch
-ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2.patch
-ocfs2-dlm-return-appropriate-value-when-dlm_grab-returns-null.patch
-ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
-extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
+fs-affs-replace-time_t-with-time64_t.patch
 
