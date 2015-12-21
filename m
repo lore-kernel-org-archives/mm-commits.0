@@ -1,56 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-fix-git-url-for-edac.patch removed from -mm
- tree
-Date: Mon, 21 Dec 2015 12:25:04 -0800
-Message-ID: <56786020.g9Jp8Q0bYxhTrII/%akpm@linux-foundation.org>
+Subject: [merged] maintainers-add-git-url-for-kvm-arm.patch removed from
+ -mm tree
+Date: Mon, 21 Dec 2015 12:25:06 -0800
+Message-ID: <56786022.sX665todWan4Hqmp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56105 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56114 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751285AbbLUUZF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Dec 2015 15:25:05 -0500
+	with ESMTP id S1751285AbbLUUZH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Dec 2015 15:25:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, bp@alien8.de, dougthompson@xmission.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, christoffer.dall@linaro.org, marc.zyngier@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: fix git URL for EDAC
+     Subject: MAINTAINERS: add git URL for KVM/ARM
 has been removed from the -mm tree.  Its filename was
-     maintainers-fix-git-url-for-edac.patch
+     maintainers-add-git-url-for-kvm-arm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: fix git URL for EDAC
+Subject: MAINTAINERS: add git URL for KVM/ARM
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Doug Thompson <dougthompson@xmission.com>
-Cc: Borislav Petkov <bp@alien8.de>
+Acked-by: Christoffer Dall <christoffer.dall@linaro.org>
+Cc: Marc Zyngier <marc.zyngier@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ MAINTAINERS |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-fix-git-url-for-edac MAINTAINERS
---- a/MAINTAINERS~maintainers-fix-git-url-for-edac
+diff -puN MAINTAINERS~maintainers-add-git-url-for-kvm-arm MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-git-url-for-kvm-arm
 +++ a/MAINTAINERS
-@@ -3968,8 +3968,8 @@ M:	Doug Thompson <dougthompson@xmission.
- M:	Borislav Petkov <bp@alien8.de>
- M:	Mauro Carvalho Chehab <mchehab@osg.samsung.com>
- L:	linux-edac@vger.kernel.org
--T:	git://git.kernel.org/pub/scm/linux/kernel/git/bp/bp.git#for-next
--T:	git://git.kernel.org/pub/linux/kernel/git/mchehab/linux-edac.git#linux_next
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/bp/bp.git for-next
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-edac.git linux_next
+@@ -6132,6 +6132,7 @@ M:	Marc Zyngier <marc.zyngier@arm.com>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+ L:	kvmarm@lists.cs.columbia.edu
+ W:	http://systems.cs.columbia.edu/projects/kvm-arm
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kvmarm/kvmarm.git
  S:	Supported
- F:	Documentation/edac.txt
- F:	drivers/edac/
+ F:	arch/arm/include/uapi/asm/kvm*
+ F:	arch/arm/include/asm/kvm*
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
