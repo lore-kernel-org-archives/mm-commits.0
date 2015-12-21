@@ -1,75 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix.patch removed from -mm tree
-Date: Mon, 21 Dec 2015 14:10:13 -0800
-Message-ID: <567878c5.oUutb9h51jDgwEYp%akpm@linux-foundation.org>
+Subject: + mm-oom-introduce-oom-reaper-fix-5-fix.patch added to -mm tree
+Date: Mon, 21 Dec 2015 14:24:47 -0800
+Message-ID: <56787c2f.OeUFLEHD2Ka4xBqa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37183 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38585 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751434AbbLUWKO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Dec 2015 17:10:14 -0500
+	with ESMTP id S1751799AbbLUWYs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Dec 2015 17:24:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix
-has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix.patch
+     Subject: mm-oom-introduce-oom-reaper-fix-5-fix
+has been added to the -mm tree.  Its filename is
+     mm-oom-introduce-oom-reaper-fix-5-fix.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-introduce-oom-reaper-fix-5-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-introduce-oom-reaper-fix-5-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix
+Subject: mm-oom-introduce-oom-reaper-fix-5-fix
 
-really suppress the __must_check warning
+Commit "mm, oom: introduce oom reaper" forgot to initialize the two new
+fields of struct zap_details in unmap_mapping_range().  This caused using
+stack garbage on the call to unmap_mapping_range_tree().
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
 Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix
-+++ a/mm/memcontrol.c
-@@ -851,6 +851,9 @@ static struct mem_cgroup *get_mem_cgroup
- 	return memcg;
- }
+diff -puN mm/memory.c~mm-oom-introduce-oom-reaper-fix-5-fix mm/memory.c
+--- a/mm/memory.c~mm-oom-introduce-oom-reaper-fix-5-fix
++++ a/mm/memory.c
+@@ -2414,7 +2414,7 @@ static inline void unmap_mapping_range_t
+ void unmap_mapping_range(struct address_space *mapping,
+ 		loff_t const holebegin, loff_t const holelen, int even_cows)
+ {
+-	struct zap_details details;
++	struct zap_details details = { };
+ 	pgoff_t hba = holebegin >> PAGE_SHIFT;
+ 	pgoff_t hlen = (holelen + PAGE_SIZE - 1) >> PAGE_SHIFT;
  
-+/* Move this to compiler.h if it proves worthy */
-+#define defeat_must_check(expr) do { if (expr) ; } while (0)
-+
- /**
-  * mem_cgroup_iter - iterate over memory cgroup hierarchy
-  * @root: hierarchy root
-@@ -915,7 +918,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 			 * might block it. So we clear iter->position right
- 			 * away.
- 			 */
--			(void)cmpxchg(&iter->position, pos, NULL);
-+			defeat_must_check(cmpxchg(&iter->position, pos, NULL));
- 		}
- 	}
- 
-@@ -967,7 +970,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 		 * thread, so check that the value hasn't changed since we read
- 		 * it to avoid reclaiming from the same cgroup twice.
- 		 */
--		(void)cmpxchg(&iter->position, pos, memcg);
-+		defeat_must_check(cmpxchg(&iter->position, pos, memcg));
- 
- 		/*
- 		 * pairs with css_tryget when dereferencing iter->position
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -110,6 +105,7 @@ mm-oom-introduce-oom-reaper-fix-fix-2.patch
 mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
 mm-oom-introduce-oom-reaper-fix-3.patch
 mm-oom-introduce-oom-reaper-fix-4-fix.patch
+mm-oom-introduce-oom-reaper-fix-5-fix.patch
 kernel-stop_machinec-remove-config_smp-dependencies.patch
 kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
 lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
