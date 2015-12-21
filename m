@@ -1,64 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- proc-fix-esrch-error-when-writing-to-proc-pid-coredump_filter.patch removed from -mm tree
-Date: Mon, 21 Dec 2015 12:24:57 -0800
-Message-ID: <56786019.kO0E3CHY2+3WT+Ty%akpm__20749.478651169$1450729510$gmane$org@linux-foundation.org>
+Subject: [merged] mm-zswap-change-incorrect-strncmp-use-to-strcmp.patch
+ removed from -mm tree
+Date: Mon, 21 Dec 2015 12:25:00 -0800
+Message-ID: <5678601c.onhLSyJ/JxPiz66w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56091 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56094 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751204AbbLUUY6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Dec 2015 15:24:58 -0500
+	with ESMTP id S1751285AbbLUUZA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Dec 2015 15:25:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: colin.king@canonical.com, keescook@chromium.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: ddstreet@ieee.org, sjennings@variantweb.net, weijie.yang@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: fix -ESRCH error when writing to /proc/$pid/coredump_filter
+     Subject: mm/zswap: change incorrect strncmp use to strcmp
 has been removed from the -mm tree.  Its filename was
-     proc-fix-esrch-error-when-writing-to-proc-pid-coredump_filter.patch
+     mm-zswap-change-incorrect-strncmp-use-to-strcmp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Colin Ian King <colin.king@canonical.com>
-Subject: proc: fix -ESRCH error when writing to /proc/$pid/coredump_filter
+From: Dan Streetman <ddstreet@ieee.org>
+Subject: mm/zswap: change incorrect strncmp use to strcmp
 
-echo 0 > /proc/self/coredump_filter
-bash: echo: write error: No such process
+Change the use of strncmp in zswap_pool_find_get() to strcmp.
 
-Writing to /proc/$pid/coredump_filter always returns -ESRCH because commit
-774636e19ed51 ("proc: convert to kstrto*()/kstrto*_from_user()") removed
-the setting of ret after the get_proc_task call and incorrectly left it as
--ESRCH.  Instead, return 0 when successful.
+The use of strncmp is no longer correct, now that zswap_zpool_type is not
+an array; sizeof() will return the size of a pointer, which isn't the
+right length to compare.  We don't need to use strncmp anyway, because the
+existing params and the passed in params are all guaranteed to be null
+terminated, so strcmp should be used.
 
-Fixes: 774636e19ed51 ("proc: convert to kstrto*()/kstrto*_from_user()")
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: <stable@vger.kernel.org> [4.3+]
+Signed-off-by: Dan Streetman <ddstreet@ieee.org>
+Reported-by: Weijie Yang <weijie.yang@samsung.com>
+Cc: Seth Jennings <sjennings@variantweb.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/zswap.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/base.c~proc-fix-esrch-error-when-writing-to-proc-pid-coredump_filter fs/proc/base.c
---- a/fs/proc/base.c~proc-fix-esrch-error-when-writing-to-proc-pid-coredump_filter
-+++ a/fs/proc/base.c
-@@ -2494,6 +2494,7 @@ static ssize_t proc_coredump_filter_writ
- 	mm = get_task_mm(task);
- 	if (!mm)
- 		goto out_no_mm;
-+	ret = 0;
+diff -puN mm/zswap.c~mm-zswap-change-incorrect-strncmp-use-to-strcmp mm/zswap.c
+--- a/mm/zswap.c~mm-zswap-change-incorrect-strncmp-use-to-strcmp
++++ a/mm/zswap.c
+@@ -541,6 +541,7 @@ static struct zswap_pool *zswap_pool_las
+ 	return last;
+ }
  
- 	for (i = 0, mask = 1; i < MMF_DUMP_FILTER_BITS; i++, mask <<= 1) {
- 		if (val & mask)
++/* type and compressor must be null-terminated */
+ static struct zswap_pool *zswap_pool_find_get(char *type, char *compressor)
+ {
+ 	struct zswap_pool *pool;
+@@ -548,10 +549,9 @@ static struct zswap_pool *zswap_pool_fin
+ 	assert_spin_locked(&zswap_pools_lock);
+ 
+ 	list_for_each_entry_rcu(pool, &zswap_pools, list) {
+-		if (strncmp(pool->tfm_name, compressor, sizeof(pool->tfm_name)))
++		if (strcmp(pool->tfm_name, compressor))
+ 			continue;
+-		if (strncmp(zpool_get_type(pool->zpool), type,
+-			    sizeof(zswap_zpool_type)))
++		if (strcmp(zpool_get_type(pool->zpool), type))
+ 			continue;
+ 		/* if we can't get it, it's about to be destroyed */
+ 		if (!zswap_pool_get(pool))
 _
 
-Patches currently in -mm which might be from colin.king@canonical.com are
+Patches currently in -mm which might be from ddstreet@ieee.org are
 
 
