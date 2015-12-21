@@ -1,74 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: + arch-x86-xen-suspendc-include-xen-xenh.patch added to -mm tree
-Date: Mon, 21 Dec 2015 14:07:36 -0800
-Message-ID: <56787828.oldYWmt3fVlFsucl%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix.patch removed from -mm tree
+Date: Mon, 21 Dec 2015 14:10:13 -0800
+Message-ID: <567878c5.oUutb9h51jDgwEYp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36310 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37183 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751944AbbLUWHh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Dec 2015 17:07:37 -0500
+	with ESMTP id S1751434AbbLUWKO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Dec 2015 17:10:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, boris.ostrovsky@oracle.com, david.vrabel@citrix.com, fengguang.wu@intel.com, konrad.wilk@oracle.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/xen/suspend.c: include xen/xen.h
-has been added to the -mm tree.  Its filename is
-     arch-x86-xen-suspendc-include-xen-xenh.patch
+     Subject: mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix
+has been removed from the -mm tree.  Its filename was
+     mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-x86-xen-suspendc-include-xen-xenh.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-xen-suspendc-include-xen-xenh.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/x86/xen/suspend.c: include xen/xen.h
+Subject: mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix
 
-arch/x86/xen/suspend.c: In function 'xen_arch_pre_suspend':
-arch/x86/xen/suspend.c:70:9: error: implicit declaration of function 'xen_pv_domain' [-Werror=implicit-function-declaration]
-        if (xen_pv_domain())
+really suppress the __must_check warning
 
-            ^
-
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: David Vrabel <david.vrabel@citrix.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/xen/suspend.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memcontrol.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/xen/suspend.c~arch-x86-xen-suspendc-include-xen-xenh arch/x86/xen/suspend.c
---- a/arch/x86/xen/suspend.c~arch-x86-xen-suspendc-include-xen-xenh
-+++ a/arch/x86/xen/suspend.c
-@@ -1,6 +1,7 @@
- #include <linux/types.h>
- #include <linux/tick.h>
+diff -puN mm/memcontrol.c~mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix
++++ a/mm/memcontrol.c
+@@ -851,6 +851,9 @@ static struct mem_cgroup *get_mem_cgroup
+ 	return memcg;
+ }
  
-+#include <xen/xen.h>
- #include <xen/interface/xen.h>
- #include <xen/grant_table.h>
- #include <xen/events.h>
++/* Move this to compiler.h if it proves worthy */
++#define defeat_must_check(expr) do { if (expr) ; } while (0)
++
+ /**
+  * mem_cgroup_iter - iterate over memory cgroup hierarchy
+  * @root: hierarchy root
+@@ -915,7 +918,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 			 * might block it. So we clear iter->position right
+ 			 * away.
+ 			 */
+-			(void)cmpxchg(&iter->position, pos, NULL);
++			defeat_must_check(cmpxchg(&iter->position, pos, NULL));
+ 		}
+ 	}
+ 
+@@ -967,7 +970,7 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 		 * thread, so check that the value hasn't changed since we read
+ 		 * it to avoid reclaiming from the same cgroup twice.
+ 		 */
+-		(void)cmpxchg(&iter->position, pos, memcg);
++		defeat_must_check(cmpxchg(&iter->position, pos, memcg));
+ 
+ 		/*
+ 		 * pairs with css_tryget when dereferencing iter->position
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -76,7 +77,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-gpu-drm-i915-intel_spritec-fix-build.patch
 drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-fix.patch
 arch-x86-xen-suspendc-include-xen-xenh.patch
 ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
 include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
