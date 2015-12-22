@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + pmem-add-wb_cache_pmem-to-the-pmem-api.patch added to -mm tree
-Date: Tue, 22 Dec 2015 14:46:43 -0800
-Message-ID: <5679d2d3.tbJGG1bQQoyMANtn%akpm@linux-foundation.org>
+Subject: + lib-clz_tabc-put-in-lib-y-rather-than-obj-y.patch added to -mm
+ tree
+Date: Tue, 22 Dec 2015 14:55:25 -0800
+Message-ID: <5679d4dd.DWLA8ntaG+REqhs2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59679 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60471 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932711AbbLVWqo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Dec 2015 17:46:44 -0500
+	with ESMTP id S1752823AbbLVWz0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Dec 2015 17:55:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, adilger.kernel@dilger.ca, bfields@fieldses.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@fromorbit.com, hpa@zytor.com, jack@suse.com, jlayton@poochiereds.net, matthew.r.wilcox@intel.com, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: cmetcalf@ezchip.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pmem: add wb_cache_pmem() to the PMEM API
+     Subject: lib/clz_tab.c: put in lib-y rather than obj-y
 has been added to the -mm tree.  Its filename is
-     pmem-add-wb_cache_pmem-to-the-pmem-api.patch
+     lib-clz_tabc-put-in-lib-y-rather-than-obj-y.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/pmem-add-wb_cache_pmem-to-the-pmem-api.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-clz_tabc-put-in-lib-y-rather-than-obj-y.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/pmem-add-wb_cache_pmem-to-the-pmem-api.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-clz_tabc-put-in-lib-y-rather-than-obj-y.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,138 +39,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: pmem: add wb_cache_pmem() to the PMEM API
+From: Chris Metcalf <cmetcalf@ezchip.com>
+Subject: lib/clz_tab.c: put in lib-y rather than obj-y
 
-The function __arch_wb_cache_pmem() was already an internal implementation
-detail of the x86 PMEM API, but this functionality needs to be exported as
-part of the general PMEM API to handle the fsync/msync case for DAX mmaps.
+The clz table (__clz_tab) in lib/clz_tab.c is also provided as part of
+libgcc.a, and many architectures link against libgcc.  To allow the linker
+to avoid a multiple-definition link failure, clz_tab.o has to be in
+lib/lib.a rather than lib/builtin.o.  The specific issue is that libgcc.a
+comes before lib/builtin.o on vmlinux.o's link command line, so its _clz.o
+is pulled to satisfy __clz_tab, and then when the remainder of
+lib/builtin.o is pulled in to satisfy all the other dependencies, the
+__clz_tab symbols conflict.  By putting clz_tab.o in lib.a, the linker can
+simply avoid pulling it into vmlinux.o when this situation arises.
 
-One thing worth noting is that we really do want this to be part of the
-PMEM API as opposed to a stand-alone function like clflush_cache_range()
-because of ordering restrictions.  By having wb_cache_pmem() as part of
-the PMEM API we can leave it unordered, call it multiple times to write
-back large amounts of memory, and then order the multiple calls with a
-single wmb_pmem().
+The definitions of __clz_tab are the same in libgcc.a and in the kernel;
+arguably we could also simply rename the kernel version, but it's unlikely
+the libgcc version will ever change to become incompatible, so just using
+it seems reasonably safe.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jan Kara <jack@suse.com>
-Cc: Jeff Layton <jlayton@poochiereds.net>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Signed-off-by: Chris Metcalf <cmetcalf@ezchip.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pmem.h |   11 ++++++-----
- include/linux/pmem.h        |   22 +++++++++++++++++++++-
- 2 files changed, 27 insertions(+), 6 deletions(-)
+ lib/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/x86/include/asm/pmem.h~pmem-add-wb_cache_pmem-to-the-pmem-api arch/x86/include/asm/pmem.h
---- a/arch/x86/include/asm/pmem.h~pmem-add-wb_cache_pmem-to-the-pmem-api
-+++ a/arch/x86/include/asm/pmem.h
-@@ -67,18 +67,19 @@ static inline void arch_wmb_pmem(void)
- }
+diff -puN lib/Makefile~lib-clz_tabc-put-in-lib-y-rather-than-obj-y lib/Makefile
+--- a/lib/Makefile~lib-clz_tabc-put-in-lib-y-rather-than-obj-y
++++ a/lib/Makefile
+@@ -153,7 +153,7 @@ obj-$(CONFIG_GLOB) += glob.o
+ obj-$(CONFIG_MPILIB) += mpi/
+ obj-$(CONFIG_SIGNATURE) += digsig.o
  
- /**
-- * __arch_wb_cache_pmem - write back a cache range with CLWB
-+ * arch_wb_cache_pmem - write back a cache range with CLWB
-  * @vaddr:	virtual start address
-  * @size:	number of bytes to write back
-  *
-  * Write back a cache range using the CLWB (cache line write back)
-  * instruction.  This function requires explicit ordering with an
-- * arch_wmb_pmem() call.  This API is internal to the x86 PMEM implementation.
-+ * arch_wmb_pmem() call.
-  */
--static inline void __arch_wb_cache_pmem(void *vaddr, size_t size)
-+static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
- {
- 	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
- 	unsigned long clflush_mask = x86_clflush_size - 1;
-+	void *vaddr = (void __force *)addr;
- 	void *vend = vaddr + size;
- 	void *p;
+-obj-$(CONFIG_CLZ_TAB) += clz_tab.o
++lib-$(CONFIG_CLZ_TAB) += clz_tab.o
  
-@@ -115,7 +116,7 @@ static inline size_t arch_copy_from_iter
- 	len = copy_from_iter_nocache(vaddr, bytes, i);
+ obj-$(CONFIG_DDR) += jedec_ddr_data.o
  
- 	if (__iter_needs_pmem_wb(i))
--		__arch_wb_cache_pmem(vaddr, bytes);
-+		arch_wb_cache_pmem(addr, bytes);
- 
- 	return len;
- }
-@@ -133,7 +134,7 @@ static inline void arch_clear_pmem(void
- 	void *vaddr = (void __force *)addr;
- 
- 	memset(vaddr, 0, size);
--	__arch_wb_cache_pmem(vaddr, size);
-+	arch_wb_cache_pmem(vaddr, size);
- }
- 
- static inline bool __arch_has_wmb_pmem(void)
-diff -puN include/linux/pmem.h~pmem-add-wb_cache_pmem-to-the-pmem-api include/linux/pmem.h
---- a/include/linux/pmem.h~pmem-add-wb_cache_pmem-to-the-pmem-api
-+++ a/include/linux/pmem.h
-@@ -53,12 +53,18 @@ static inline void arch_clear_pmem(void
- {
- 	BUG();
- }
-+
-+static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
-+{
-+	BUG();
-+}
- #endif
- 
- /*
-  * Architectures that define ARCH_HAS_PMEM_API must provide
-  * implementations for arch_memcpy_to_pmem(), arch_wmb_pmem(),
-- * arch_copy_from_iter_pmem(), arch_clear_pmem() and arch_has_wmb_pmem().
-+ * arch_copy_from_iter_pmem(), arch_clear_pmem(), arch_wb_cache_pmem()
-+ * and arch_has_wmb_pmem().
-  */
- static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
- {
-@@ -178,4 +184,18 @@ static inline void clear_pmem(void __pme
- 	else
- 		default_clear_pmem(addr, size);
- }
-+
-+/**
-+ * wb_cache_pmem - write back processor cache for PMEM memory range
-+ * @addr:	virtual start address
-+ * @size:	number of bytes to write back
-+ *
-+ * Write back the processor cache range starting at 'addr' for 'size' bytes.
-+ * This function requires explicit ordering with a wmb_pmem() call.
-+ */
-+static inline void wb_cache_pmem(void __pmem *addr, size_t size)
-+{
-+	if (arch_has_pmem_api())
-+		arch_wb_cache_pmem(addr, size);
-+}
- #endif /* __PMEM_H__ */
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from cmetcalf@ezchip.com are
 
-mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable.patch
-pmem-add-wb_cache_pmem-to-the-pmem-api.patch
-dax-support-dirty-dax-entries-in-radix-tree.patch
-mm-add-find_get_entries_tag.patch
-dax-add-support-for-fsync-sync.patch
-ext2-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
-ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
-xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+lib-clz_tabc-put-in-lib-y-rather-than-obj-y.patch
 
