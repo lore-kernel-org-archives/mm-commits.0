@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch added to -mm tree
-Date: Tue, 22 Dec 2015 14:47:05 -0800
-Message-ID: <5679d2e9.4/Gxk4jvf0plczsA%akpm@linux-foundation.org>
+Subject: + dax-add-support-for-fsync-sync-fix.patch added to -mm tree
+Date: Tue, 22 Dec 2015 14:46:57 -0800
+Message-ID: <5679d2e1.+Lh1bLqAsZNUtbND%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59772 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59737 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754013AbbLVWrG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Dec 2015 17:47:06 -0500
+	with ESMTP id S1753375AbbLVWq6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Dec 2015 17:46:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, adilger.kernel@dilger.ca, bfields@fieldses.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@fromorbit.com, hpa@zytor.com, jack@suse.com, jlayton@poochiereds.net, matthew.r.wilcox@intel.com, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xfs: call dax_pfn_mkwrite() for DAX fsync/msync
+     Subject: dax-add-support-for-fsync-sync-fix
 has been added to the -mm tree.  Its filename is
-     xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+     dax-add-support-for-fsync-sync-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-add-support-for-fsync-sync-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-add-support-for-fsync-sync-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,68 +38,103 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: xfs: call dax_pfn_mkwrite() for DAX fsync/msync
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dax-add-support-for-fsync-sync-fix
 
-To properly support the new DAX fsync/msync infrastructure filesystems
-need to call dax_pfn_mkwrite() so that DAX can track when user pages are
-dirtied.
+simplify WARN expressions
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jan Kara <jack@suse.com>
-Cc: Jeff Layton <jlayton@poochiereds.net>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_file.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/dax.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN fs/xfs/xfs_file.c~xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync fs/xfs/xfs_file.c
---- a/fs/xfs/xfs_file.c~xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync
-+++ a/fs/xfs/xfs_file.c
-@@ -1603,9 +1603,8 @@ xfs_filemap_pmd_fault(
- /*
-  * pfn_mkwrite was originally inteneded to ensure we capture time stamp
-  * updates on write faults. In reality, it's need to serialise against
-- * truncate similar to page_mkwrite. Hence we open-code dax_pfn_mkwrite()
-- * here and cycle the XFS_MMAPLOCK_SHARED to ensure we serialise the fault
-- * barrier in place.
-+ * truncate similar to page_mkwrite. Hence we cycle the XFS_MMAPLOCK_SHARED
-+ * to ensure we serialise the fault barrier in place.
-  */
- static int
- xfs_filemap_pfn_mkwrite(
-@@ -1628,6 +1627,8 @@ xfs_filemap_pfn_mkwrite(
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
-+	else if (IS_DAX(inode))
-+		ret = dax_pfn_mkwrite(vma, vmf);
- 	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
- 	sb_end_pagefault(inode->i_sb);
- 	return ret;
+diff -puN fs/dax.c~dax-add-support-for-fsync-sync-fix fs/dax.c
+--- a/fs/dax.c~dax-add-support-for-fsync-sync-fix
++++ a/fs/dax.c
+@@ -383,10 +383,8 @@ static void dax_writeback_one(struct add
+ 	struct radix_tree_node *node;
+ 	void **slot;
+ 
+-	if (type != RADIX_DAX_PTE && type != RADIX_DAX_PMD) {
+-		WARN_ON_ONCE(1);
++	if (WARN_ON_ONCE(type != RADIX_DAX_PTE && type != RADIX_DAX_PMD))
+ 		return;
+-	}
+ 
+ 	spin_lock_irq(&mapping->tree_lock);
+ 	/*
+@@ -428,10 +426,8 @@ void dax_writeback_mapping_range(struct
+ 	void *entry;
+ 	int i;
+ 
+-	if (inode->i_blkbits != PAGE_SHIFT) {
+-		WARN_ON_ONCE(1);
++	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
+ 		return;
+-	}
+ 
+ 	rcu_read_lock();
+ 	entry = radix_tree_lookup(&mapping->page_tree, start & PMD_MASK);
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable.patch
-pmem-add-wb_cache_pmem-to-the-pmem-api.patch
-dax-support-dirty-dax-entries-in-radix-tree.patch
-mm-add-find_get_entries_tag.patch
-dax-add-support-for-fsync-sync.patch
-ext2-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
-ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
-xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+arch-x86-xen-suspendc-include-xen-xenh.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
+mm.patch
+account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
+mm-zonelist-enumerate-zonelists-array-index-fix.patch
+mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
+arm64-mm-support-arch_mmap_rnd_bits-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+mm-printk-introduce-new-format-string-for-flags-fix-2.patch
+mm-support-madvisemadv_free-fix-2-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+mm-oom-introduce-oom-reaper-fix-fix.patch
+mm-oom-introduce-oom-reaper-fix-fix-2.patch
+mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
+mm-oom-introduce-oom-reaper-fix-3.patch
+mm-oom-introduce-oom-reaper-fix-4-fix.patch
+mm-oom-introduce-oom-reaper-fix-5-fix.patch
+kernel-stop_machinec-remove-config_smp-dependencies.patch
+kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
+lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
+lib-test_printfc-test-dentry-printing-fix.patch
+printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
+printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+linux-next-rejects.patch
+include-linux-propertyh-fix-build-issues-with-gcc-444.patch
+include-linux-propertyh-fix-build-issues-with-gcc-444-fix.patch
+fs-overlayfs-superc-needs-pagemaph.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+dax-support-dirty-dax-entries-in-radix-tree-fix.patch
+dax-add-support-for-fsync-sync-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
