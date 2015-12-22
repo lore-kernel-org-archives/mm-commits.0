@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-reign-in-the-config-space-madness-fix.patch added to -mm tree
-Date: Tue, 22 Dec 2015 15:11:51 -0800
-Message-ID: <5679d8b7.mnhaZhHOyOKmlCcQ%akpm@linux-foundation.org>
+Subject: + net-drop-tcp_memcontrolc-fix.patch added to -mm tree
+Date: Tue, 22 Dec 2015 15:11:49 -0800
+Message-ID: <5679d8b5.UhsMHSRd3z8Sy0aD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33098 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33092 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964797AbbLVXLw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Dec 2015 18:11:52 -0500
+	with ESMTP id S964797AbbLVXLu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Dec 2015 18:11:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, davem@davemloft.net, hannes@cmpxchg.org, mhocko@suse.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-memcontrol-reign-in-the-config-space-madness-fix
+     Subject: net-drop-tcp_memcontrolc-fix
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-reign-in-the-config-space-madness-fix.patch
+     net-drop-tcp_memcontrolc-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-reign-in-the-config-space-madness-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/net-drop-tcp_memcontrolc-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-reign-in-the-config-space-madness-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/net-drop-tcp_memcontrolc-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,28 +39,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-memcontrol-reign-in-the-config-space-madness-fix
+Subject: net-drop-tcp_memcontrolc-fix
 
+Cc: "David S. Miller" <davem@davemloft.net>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memcontrol.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-reign-in-the-config-space-madness-fix mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-reign-in-the-config-space-madness-fix
+diff -puN mm/memcontrol.c~net-drop-tcp_memcontrolc-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~net-drop-tcp_memcontrolc-fix
 +++ a/mm/memcontrol.c
-@@ -4380,6 +4380,8 @@ static void mem_cgroup_css_free(struct c
- 	if (cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_nosocket)
+@@ -4421,8 +4421,6 @@ static void mem_cgroup_css_free(struct c
  		static_branch_dec(&memcg_sockets_enabled_key);
+ #endif
  
-+	memcg_free_kmem(memcg);
-+
- 	if (memcg->tcp_mem.active)
- 		static_branch_dec(&memcg_sockets_enabled_key);
+-	memcg_free_kmem(memcg);
+-
+ 	__mem_cgroup_free(memcg);
+ }
  
 _
 
