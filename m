@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-flock-panic-issue.patch added to -mm tree
-Date: Tue, 22 Dec 2015 13:22:36 -0800
-Message-ID: <5679bf1c.Y5TlA4PIH95IvUgg%akpm@linux-foundation.org>
+Subject: + ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch added to
+ -mm tree
+Date: Tue, 22 Dec 2015 14:47:02 -0800
+Message-ID: <5679d2e6.IkYrwD3fp7sGibvs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53352 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59758 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755160AbbLVVWh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Dec 2015 16:22:37 -0500
+	with ESMTP id S1753856AbbLVWrD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Dec 2015 17:47:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: junxiao.bi@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, adilger.kernel@dilger.ca, bfields@fieldses.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@fromorbit.com, hpa@zytor.com, jack@suse.com, jlayton@poochiereds.net, matthew.r.wilcox@intel.com, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix flock panic issue
+     Subject: ext4: call dax_pfn_mkwrite() for DAX fsync/msync
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-flock-panic-issue.patch
+     ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-flock-panic-issue.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-flock-panic-issue.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,76 +39,66 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: fix flock panic issue
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: ext4: call dax_pfn_mkwrite() for DAX fsync/msync
 
-Commit 4f6563677ae8 ("Move locks API users to locks_lock_inode_wait()")
-move flock/posix lock indentify code to locks_lock_inode_wait(), but
-missed to set fl_flags to FL_FLOCK which caused the following kernel panic
-on 4.4.0_rc5.
+To properly support the new DAX fsync/msync infrastructure filesystems
+need to call dax_pfn_mkwrite() so that DAX can track when user pages are
+dirtied.
 
-[19343.650448] kernel BUG at fs/locks.c:1895!
-[19343.650448] invalid opcode: 0000 [#1] SMP
-[19343.650448] Modules linked in: ocfs2(O) ocfs2_dlmfs(O) ocfs2_stack_o2cb(O) ocfs2_dlm(O) ocfs2_nodemanager(O) ocfs2_stackglue(O) iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi xen_kbdfront xen_netfront xen_fbfront xen_blkfront
-[19343.650448] CPU: 0 PID: 20268 Comm: flock_unit_test Tainted: G           O    4.4.0-rc5-next-20151217 #1
-[19343.650448] Hardware name: Xen HVM domU, BIOS 4.3.1OVM 05/14/2014
-[19343.650448] task: ffff88007b3672c0 ti: ffff880028b58000 task.ti: ffff880028b58000
-[19343.650448] RIP: 0010:[<ffffffff811def7e>]  [<ffffffff811def7e>] locks_lock_inode_wait+0x2e/0x160
-[19343.650448] RSP: 0018:ffff880028b5bce8  EFLAGS: 00010293
-[19343.650448] RAX: 0000000000000000 RBX: ffff880028b5bdb8 RCX: 0000000000000000
-[19343.650448] RDX: 0000000000000007 RSI: ffff880028b5bdb8 RDI: ffff88006842bb08
-[19343.650448] RBP: ffff880028b5bd98 R08: ffff88007d21b930 R09: ffff880076a005b0
-[19343.650448] R10: ffff88007a0e9360 R11: ffff880028b5be78 R12: ffff880040b45408
-[19343.650448] R13: ffff880079cbf000 R14: ffff88006842bb08 R15: 0000000000000001
-[19343.650448] FS:  00007f17572c7700(0000) GS:ffff88007d200000(0000) knlGS:0000000000000000
-[19343.650448] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[19343.650448] CR2: 00007f17572d7000 CR3: 000000007b2cf000 CR4: 00000000000406f0
-[19343.650448] Stack:
-[19343.650448]  ffff880028a70a38 ffffffff0000005a ffff880028a70800 000000000000005a
-[19343.650448]  ffff880028b5bda8 0000000100000001 000000000000005a ffff880028a70a30
-[19343.650448]  0000000000000292 0000000000000001 0000000000000001 0000000000000292
-[19343.650448] Call Trace:
-[19343.650448]  [<ffffffff810a15ee>] ? __wake_up+0x4e/0x70
-[19343.650448]  [<ffffffff810a1180>] ? bit_waitqueue+0x90/0x90
-[19343.650448]  [<ffffffffa010ee01>] ocfs2_do_flock+0x91/0x160 [ocfs2]
-[19343.650448]  [<ffffffffa010ef46>] ocfs2_flock+0x76/0xd0 [ocfs2]
-[19343.650448]  [<ffffffff811df1bf>] SyS_flock+0x10f/0x1a0
-[19343.650448]  [<ffffffff8191b6ae>] entry_SYSCALL_64_fastpath+0x12/0x71
-[19343.650448] Code: e5 41 57 41 56 49 89 fe 41 55 41 54 53 48 89 f3 48 81 ec 88 00 00 00 8b 46 40 83 e0 03 83 f8 01 0f 84 ad 00 00 00 83 f8 02 74 04 <0f> 0b eb fe 4c 8d ad 60 ff ff ff 4c 8d 7b 58 e8 0e 8e 73 00 4d
-[19343.650448] RIP  [<ffffffff811def7e>] locks_lock_inode_wait+0x2e/0x160
-[19343.650448]  RSP <ffff880028b5bce8>
-[19343.819187] ---[ end trace dfca74ec9b5b274c ]---
-
-Fixes: 4f6563677ae8 ("Move locks API users to locks_lock_inode_wait()")
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jan Kara <jack@suse.com>
+Cc: Jeff Layton <jlayton@poochiereds.net>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/locks.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ fs/ext4/file.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/locks.c~ocfs2-fix-flock-panic-issue fs/ocfs2/locks.c
---- a/fs/ocfs2/locks.c~ocfs2-fix-flock-panic-issue
-+++ a/fs/ocfs2/locks.c
-@@ -67,7 +67,10 @@ static int ocfs2_do_flock(struct file *f
- 		 */
+diff -puN fs/ext4/file.c~ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync fs/ext4/file.c
+--- a/fs/ext4/file.c~ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync
++++ a/fs/ext4/file.c
+@@ -291,8 +291,8 @@ static int ext4_dax_pfn_mkwrite(struct v
+ {
+ 	struct inode *inode = file_inode(vma->vm_file);
+ 	struct super_block *sb = inode->i_sb;
+-	int ret = VM_FAULT_NOPAGE;
+ 	loff_t size;
++	int ret;
  
- 		locks_lock_file_wait(file,
--				     &(struct file_lock){.fl_type = F_UNLCK});
-+				&(struct file_lock) {
-+					.fl_type = F_UNLCK,
-+					.fl_flags = FL_FLOCK
-+				});
+ 	sb_start_pagefault(sb);
+ 	file_update_time(vma->vm_file);
+@@ -300,6 +300,8 @@ static int ext4_dax_pfn_mkwrite(struct v
+ 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	if (vmf->pgoff >= size)
+ 		ret = VM_FAULT_SIGBUS;
++	else
++		ret = dax_pfn_mkwrite(vma, vmf);
+ 	up_read(&EXT4_I(inode)->i_mmap_sem);
+ 	sb_end_pagefault(sb);
  
- 		ocfs2_file_unlock(file);
- 	}
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
-ocfs2-fix-flock-panic-issue.patch
-o2hb-increase-unsteady-iterations.patch
+mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable.patch
+pmem-add-wb_cache_pmem-to-the-pmem-api.patch
+dax-support-dirty-dax-entries-in-radix-tree.patch
+mm-add-find_get_entries_tag.patch
+dax-add-support-for-fsync-sync.patch
+ext2-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
 
