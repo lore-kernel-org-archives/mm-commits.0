@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file.patch added to -mm tree
-Date: Mon, 21 Dec 2015 15:28:02 -0800
-Message-ID: <56788b02.CJhodpzR/Up1l9fq%akpm@linux-foundation.org>
+Subject: + mm-move-lru_to_page-to-mm_inlineh.patch added to -mm tree
+Date: Mon, 21 Dec 2015 16:16:50 -0800
+Message-ID: <56789672.BV13v/vU0sPD/8aZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43578 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47989 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751436AbbLUX2D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Dec 2015 18:28:03 -0500
+	with ESMTP id S1751304AbbLVAQv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Dec 2015 19:16:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xlpang@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
+To: geliangtang@163.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: move some memembers and definitions within the scope of CONFIG_KEXEC_FILE
+     Subject: mm: move lru_to_page to mm_inline.h
 has been added to the -mm tree.  Its filename is
-     kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file.patch
+     mm-move-lru_to_page-to-mm_inlineh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-move-lru_to_page-to-mm_inlineh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-move-lru_to_page-to-mm_inlineh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,191 +38,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xunlei Pang <xlpang@redhat.com>
-Subject: kexec: move some memembers and definitions within the scope of CONFIG_KEXEC_FILE
+From: Geliang Tang <geliangtang@163.com>
+Subject: mm: move lru_to_page to mm_inline.h
 
-Move the stuff currently only used by the kexec file code within
-CONFIG_KEXEC_FILE (and CONFIG_KEXEC_VERIFY_SIG).
+Move lru_to_page() from internal.h to mm_inline.h.
 
-Also move internal "struct kexec_sha_region" and "struct kexec_buf" into
-"kexec_internal.h".
-
-Signed-off-by: Xunlei Pang <xlpang@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Dave Young <dyoung@redhat.com>
+Signed-off-by: Geliang Tang <geliangtang@163.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/machine_kexec_64.c |    2 
- include/linux/kexec.h              |   62 ++++++++++-----------------
- kernel/kexec_file.c                |    2 
- kernel/kexec_internal.h            |   21 +++++++++
- 4 files changed, 50 insertions(+), 37 deletions(-)
+ include/linux/mm_inline.h |    2 ++
+ mm/internal.h             |    2 --
+ mm/readahead.c            |    1 +
+ 3 files changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -385,6 +385,7 @@ int arch_kimage_file_post_load_cleanup(s
- 	return image->fops->cleanup(image->image_loader_data);
+diff -puN include/linux/mm_inline.h~mm-move-lru_to_page-to-mm_inlineh include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~mm-move-lru_to_page-to-mm_inlineh
++++ a/include/linux/mm_inline.h
+@@ -100,4 +100,6 @@ static __always_inline enum lru_list pag
+ 	return lru;
  }
  
-+#ifdef CONFIG_KEXEC_VERIFY_SIG
- int arch_kexec_kernel_verify_sig(struct kimage *image, void *kernel,
- 				 unsigned long kernel_len)
- {
-@@ -395,6 +396,7 @@ int arch_kexec_kernel_verify_sig(struct
++#define lru_to_page(head) (list_entry((head)->prev, struct page, lru))
++
+ #endif
+diff -puN mm/internal.h~mm-move-lru_to_page-to-mm_inlineh mm/internal.h
+--- a/mm/internal.h~mm-move-lru_to_page-to-mm_inlineh
++++ a/mm/internal.h
+@@ -119,8 +119,6 @@ extern int isolate_lru_page(struct page
+ extern void putback_lru_page(struct page *page);
+ extern bool zone_reclaimable(struct zone *zone);
  
- 	return image->fops->verify_sig(kernel, kernel_len);
- }
-+#endif
- 
+-#define lru_to_page(_head) (list_entry((_head)->prev, struct page, lru))
+-
  /*
-  * Apply purgatory relocations.
-diff -puN include/linux/kexec.h~kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file include/linux/kexec.h
---- a/include/linux/kexec.h~kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file
-+++ a/include/linux/kexec.h
-@@ -109,11 +109,7 @@ struct compat_kexec_segment {
- };
- #endif
+  * in mm/rmap.c:
+  */
+diff -puN mm/readahead.c~mm-move-lru_to_page-to-mm_inlineh mm/readahead.c
+--- a/mm/readahead.c~mm-move-lru_to_page-to-mm_inlineh
++++ a/mm/readahead.c
+@@ -17,6 +17,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/syscalls.h>
+ #include <linux/file.h>
++#include <linux/mm_inline.h>
  
--struct kexec_sha_region {
--	unsigned long start;
--	unsigned long len;
--};
--
-+#ifdef CONFIG_KEXEC_FILE
- struct purgatory_info {
- 	/* Pointer to elf header of read only purgatory */
- 	Elf_Ehdr *ehdr;
-@@ -130,6 +126,28 @@ struct purgatory_info {
- 	unsigned long purgatory_load_addr;
- };
+ #include "internal.h"
  
-+typedef int (kexec_probe_t)(const char *kernel_buf, unsigned long kernel_size);
-+typedef void *(kexec_load_t)(struct kimage *image, char *kernel_buf,
-+			     unsigned long kernel_len, char *initrd,
-+			     unsigned long initrd_len, char *cmdline,
-+			     unsigned long cmdline_len);
-+typedef int (kexec_cleanup_t)(void *loader_data);
-+
-+#ifdef CONFIG_KEXEC_VERIFY_SIG
-+typedef int (kexec_verify_sig_t)(const char *kernel_buf,
-+				 unsigned long kernel_len);
-+#endif
-+
-+struct kexec_file_ops {
-+	kexec_probe_t *probe;
-+	kexec_load_t *load;
-+	kexec_cleanup_t *cleanup;
-+#ifdef CONFIG_KEXEC_VERIFY_SIG
-+	kexec_verify_sig_t *verify_sig;
-+#endif
-+};
-+#endif
-+
- struct kimage {
- 	kimage_entry_t head;
- 	kimage_entry_t *entry;
-@@ -161,6 +179,7 @@ struct kimage {
- 	struct kimage_arch arch;
- #endif
- 
-+#ifdef CONFIG_KEXEC_FILE
- 	/* Additional fields for file based kexec syscall */
- 	void *kernel_buf;
- 	unsigned long kernel_buf_len;
-@@ -179,38 +198,7 @@ struct kimage {
- 
- 	/* Information for loading purgatory */
- 	struct purgatory_info purgatory_info;
--};
--
--/*
-- * Keeps track of buffer parameters as provided by caller for requesting
-- * memory placement of buffer.
-- */
--struct kexec_buf {
--	struct kimage *image;
--	char *buffer;
--	unsigned long bufsz;
--	unsigned long mem;
--	unsigned long memsz;
--	unsigned long buf_align;
--	unsigned long buf_min;
--	unsigned long buf_max;
--	bool top_down;		/* allocate from top of memory hole */
--};
--
--typedef int (kexec_probe_t)(const char *kernel_buf, unsigned long kernel_size);
--typedef void *(kexec_load_t)(struct kimage *image, char *kernel_buf,
--			     unsigned long kernel_len, char *initrd,
--			     unsigned long initrd_len, char *cmdline,
--			     unsigned long cmdline_len);
--typedef int (kexec_cleanup_t)(void *loader_data);
--typedef int (kexec_verify_sig_t)(const char *kernel_buf,
--				 unsigned long kernel_len);
--
--struct kexec_file_ops {
--	kexec_probe_t *probe;
--	kexec_load_t *load;
--	kexec_cleanup_t *cleanup;
--	kexec_verify_sig_t *verify_sig;
-+#endif
- };
- 
- /* kexec interface functions */
-diff -puN kernel/kexec_file.c~kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file kernel/kexec_file.c
---- a/kernel/kexec_file.c~kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file
-+++ a/kernel/kexec_file.c
-@@ -109,11 +109,13 @@ int __weak arch_kimage_file_post_load_cl
- 	return -EINVAL;
- }
- 
-+#ifdef CONFIG_KEXEC_VERIFY_SIG
- int __weak arch_kexec_kernel_verify_sig(struct kimage *image, void *buf,
- 					unsigned long buf_len)
- {
- 	return -EKEYREJECTED;
- }
-+#endif
- 
- /* Apply relocations of type RELA */
- int __weak
-diff -puN kernel/kexec_internal.h~kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file kernel/kexec_internal.h
---- a/kernel/kexec_internal.h~kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file
-+++ a/kernel/kexec_internal.h
-@@ -15,6 +15,27 @@ int kimage_is_destination_range(struct k
- extern struct mutex kexec_mutex;
- 
- #ifdef CONFIG_KEXEC_FILE
-+struct kexec_sha_region {
-+	unsigned long start;
-+	unsigned long len;
-+};
-+
-+/*
-+ * Keeps track of buffer parameters as provided by caller for requesting
-+ * memory placement of buffer.
-+ */
-+struct kexec_buf {
-+	struct kimage *image;
-+	char *buffer;
-+	unsigned long bufsz;
-+	unsigned long mem;
-+	unsigned long memsz;
-+	unsigned long buf_align;
-+	unsigned long buf_min;
-+	unsigned long buf_max;
-+	bool top_down;		/* allocate from top of memory hole */
-+};
-+
- void kimage_file_post_load_cleanup(struct kimage *image);
- #else /* CONFIG_KEXEC_FILE */
- static inline void kimage_file_post_load_cleanup(struct kimage *image) { }
 _
 
-Patches currently in -mm which might be from xlpang@redhat.com are
+Patches currently in -mm which might be from geliangtang@163.com are
 
-kexec-set-kexec_type_crash-before-sanity_check_segment_list.patch
-kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file.patch
+fsnotify-use-list_next_entry-in-fsnotify_unmount_inodes.patch
+mm-slab-use-list_first_entry_or_null.patch
+mm-slab-use-list_for_each_entry-in-cache_flusharray.patch
+mm-slabc-add-a-helper-function-get_first_slab.patch
+mm-vmalloc-use-list_nextfirst_entry.patch
+mm-thp-use-list_first_entry_or_null.patch
+mm-page_allocc-use-list_firstlast_entry-instead-of-list_entry.patch
+mm-page_allocc-use-list_for_each_entry-in-mark_free_pages.patch
+mm-swapfilec-use-list_nextfirst_entry.patch
+mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page.patch
+mm-ksmc-use-list_for_each_entry_safe.patch
+mm-swapfilec-use-list_for_each_entry_safe-in-free_swap_count_continuations.patch
+mm-move-lru_to_page-to-mm_inlineh.patch
+mm-zbud-use-list_last_entry-instead-of-list_tail_entry.patch
+hfs-use-list_for_each_entry-in-hfs_cat_delete.patch
+kexec-use-list_for_each_entry_safe-in-kimage_free_page_list.patch
+dma-mapping-use-offset_in_page-macro.patch
 
