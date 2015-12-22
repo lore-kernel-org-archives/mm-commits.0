@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + net-drop-tcp_memcontrolc-fix.patch added to -mm tree
-Date: Tue, 22 Dec 2015 15:11:49 -0800
-Message-ID: <5679d8b5.UhsMHSRd3z8Sy0aD%akpm@linux-foundation.org>
+Subject: +
+ drivers-memory-check-for-missing-sections-in-test_pages_in_a_zone.patch
+ added to -mm tree
+Date: Tue, 22 Dec 2015 15:27:43 -0800
+Message-ID: <5679dc6f.fnaegq/j6BSnSLoz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33092 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34069 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964797AbbLVXLu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Dec 2015 18:11:50 -0500
+	with ESMTP id S1753423AbbLVX1o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Dec 2015 18:27:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, hannes@cmpxchg.org, mhocko@suse.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: abanman@sgi.com, athorlton@sgi.com, greg@kroah.com, rja@sgi.com, sjennings@variantweb.net, stable@vger.kernel.org, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: net-drop-tcp_memcontrolc-fix
+     Subject: mm/memory_hotplug.c: check for missing sections in test_pages_in_a_zone()
 has been added to the -mm tree.  Its filename is
-     net-drop-tcp_memcontrolc-fix.patch
+     drivers-memory-check-for-missing-sections-in-test_pages_in_a_zone.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/net-drop-tcp_memcontrolc-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-memory-check-for-missing-sections-in-test_pages_in_a_zone.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/net-drop-tcp_memcontrolc-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-memory-check-for-missing-sections-in-test_pages_in_a_zone.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,91 +40,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: net-drop-tcp_memcontrolc-fix
+From: Andrew Banman <abanman@sgi.com>
+Subject: mm/memory_hotplug.c: check for missing sections in test_pages_in_a_zone()
 
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+test_pages_in_a_zone() does not account for the possibility of missing
+sections in the given pfn range.  pfn_valid_within always returns 1 when
+CONFIG_HOLES_IN_ZONE is not set, allowing invalid pfns from missing
+sections to pass the test, leading to a kernel oops.
+
+Wrap an additional pfn loop with PAGES_PER_SECTION granularity to check
+for missing sections before proceeding into the zone-check code.
+
+This also prevents a crash from offlining memory devices with missing
+sections.  Despite this, it may be a good idea to keep the related patch
+'[PATCH 3/3] drivers: memory: prohibit offlining of memory blocks with
+missing sections' because missing sections in a memory block may lead to
+other problems not covered by the scope of this fix.
+
+Signed-off-by: Andrew Banman <abanman@sgi.com>
+Acked-by: Alex Thorlton <athorlton@sgi.com>
+Cc: Russ Anderson <rja@sgi.com>
+Cc: Alex Thorlton <athorlton@sgi.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Seth Jennings <sjennings@variantweb.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    2 --
- 1 file changed, 2 deletions(-)
+ mm/memory_hotplug.c |   31 +++++++++++++++++++------------
+ 1 file changed, 19 insertions(+), 12 deletions(-)
 
-diff -puN mm/memcontrol.c~net-drop-tcp_memcontrolc-fix mm/memcontrol.c
---- a/mm/memcontrol.c~net-drop-tcp_memcontrolc-fix
-+++ a/mm/memcontrol.c
-@@ -4421,8 +4421,6 @@ static void mem_cgroup_css_free(struct c
- 		static_branch_dec(&memcg_sockets_enabled_key);
- #endif
- 
--	memcg_free_kmem(memcg);
--
- 	__mem_cgroup_free(memcg);
+diff -puN mm/memory_hotplug.c~drivers-memory-check-for-missing-sections-in-test_pages_in_a_zone mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~drivers-memory-check-for-missing-sections-in-test_pages_in_a_zone
++++ a/mm/memory_hotplug.c
+@@ -1375,23 +1375,30 @@ int is_mem_section_removable(unsigned lo
+  */
+ int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
+ {
+-	unsigned long pfn;
++	unsigned long pfn, sec_end_pfn;
+ 	struct zone *zone = NULL;
+ 	struct page *page;
+ 	int i;
+-	for (pfn = start_pfn;
++	for (pfn = start_pfn, sec_end_pfn = SECTION_ALIGN_UP(start_pfn);
+ 	     pfn < end_pfn;
+-	     pfn += MAX_ORDER_NR_PAGES) {
+-		i = 0;
+-		/* This is just a CONFIG_HOLES_IN_ZONE check.*/
+-		while ((i < MAX_ORDER_NR_PAGES) && !pfn_valid_within(pfn + i))
+-			i++;
+-		if (i == MAX_ORDER_NR_PAGES)
++	     pfn = sec_end_pfn + 1, sec_end_pfn += PAGES_PER_SECTION) {
++		/* Make sure the memory section is present first */
++		if (!present_section_nr(pfn_to_section_nr(pfn)))
+ 			continue;
+-		page = pfn_to_page(pfn + i);
+-		if (zone && page_zone(page) != zone)
+-			return 0;
+-		zone = page_zone(page);
++		for (; pfn < sec_end_pfn && pfn < end_pfn;
++		     pfn += MAX_ORDER_NR_PAGES) {
++			i = 0;
++			/* This is just a CONFIG_HOLES_IN_ZONE check.*/
++			while ((i < MAX_ORDER_NR_PAGES) &&
++				!pfn_valid_within(pfn + i))
++				i++;
++			if (i == MAX_ORDER_NR_PAGES)
++				continue;
++			page = pfn_to_page(pfn + i);
++			if (zone && page_zone(page) != zone)
++				return 0;
++			zone = page_zone(page);
++		}
+ 	}
+ 	return 1;
  }
- 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from abanman@sgi.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-arch-x86-xen-suspendc-include-xen-xenh.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-arm64-mm-support-arch_mmap_rnd_bits-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-printk-introduce-new-format-string-for-flags-fix-2.patch
-mm-support-madvisemadv_free-fix-2-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom-introduce-oom-reaper-fix-fix.patch
-mm-oom-introduce-oom-reaper-fix-fix-2.patch
-mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
-mm-oom-introduce-oom-reaper-fix-3.patch
-mm-oom-introduce-oom-reaper-fix-4-fix.patch
-mm-oom-introduce-oom-reaper-fix-5-fix.patch
-kernel-stop_machinec-remove-config_smp-dependencies.patch
-kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
-lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
-lib-test_printfc-test-dentry-printing-fix.patch
-printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
-printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
-linux-next-rejects.patch
-include-linux-propertyh-fix-build-issues-with-gcc-444.patch
-include-linux-propertyh-fix-build-issues-with-gcc-444-fix.patch
-fs-overlayfs-superc-needs-pagemaph.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-net-drop-tcp_memcontrolc-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix.patch
-dax-support-dirty-dax-entries-in-radix-tree-fix.patch
-dax-add-support-for-fsync-sync-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+drivers-memory-check-for-missing-sections-in-test_pages_in_a_zone.patch
+drivers-memory-check-for-missing-sections-when-testing-zones.patch
 
