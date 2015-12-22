@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- nfs-hangs-in-__ocfs2_cluster_lock-due-to-race-with-ocfs2_unblock_lock.patch added to -mm tree
-Date: Tue, 22 Dec 2015 15:00:58 -0800
-Message-ID: <5679d62a.TGhxMzELvgjYvjNL%akpm__22322.7571267218$1450825272$gmane$org@linux-foundation.org>
+Subject: + mm-memcontrol-reign-in-the-config-space-madness-fix.patch added to -mm tree
+Date: Tue, 22 Dec 2015 15:11:51 -0800
+Message-ID: <5679d8b7.mnhaZhHOyOKmlCcQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60742 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33098 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752467AbbLVXA7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Dec 2015 18:00:59 -0500
+	with ESMTP id S964797AbbLVXLw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Dec 2015 18:11:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tariq.x.saeed@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, santosh.shilimkar@oracle.com, stable@vger.kernel.org, wen.gang.wang@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: NFS hangs in __ocfs2_cluster_lock due to race with ocfs2_unblock_lock
+     Subject: mm-memcontrol-reign-in-the-config-space-madness-fix
 has been added to the -mm tree.  Its filename is
-     nfs-hangs-in-__ocfs2_cluster_lock-due-to-race-with-ocfs2_unblock_lock.patch
+     mm-memcontrol-reign-in-the-config-space-madness-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/nfs-hangs-in-__ocfs2_cluster_lock-due-to-race-with-ocfs2_unblock_lock.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-reign-in-the-config-space-madness-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/nfs-hangs-in-__ocfs2_cluster_lock-due-to-race-with-ocfs2_unblock_lock.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-reign-in-the-config-space-madness-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,95 +38,90 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tariq Saeed <tariq.x.saeed@oracle.com>
-Subject: ocfs2: NFS hangs in __ocfs2_cluster_lock due to race with ocfs2_unblock_lock
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memcontrol-reign-in-the-config-space-madness-fix
 
-Orabug: 20933419
-
-NFS on a 2 node ocfs2 cluster each node exporting dir.  The lock causing
-the hang is the global bit map inode lock.  Node 1 is master, has the lock
-granted in PR mode; Node 2 is in the converting list (PR -> EX).  There
-are no holders of the lock on the master node so it should downconvert to
-NL and grant EX to node 2 but that does not happen.  BLOCKED + QUEUED in
-lock res are set and it is on osb blocked list.  Threads are waiting in
-__ocfs2_cluster_lock on BLOCKED.  One thread wants EX, rest want PR.  So
-it is as though the downconvert thread needs to be kicked to complete the
-conv.
-
-The hang is caused by an EX req coming into __ocfs2_cluster_lock on the
-heels of a PR req after it sets BUSY (drops l_lock, releasing EX thread),
-forcing the incoming EX to wait on BUSY without doing anything.  PR has
-called ocfs2_dlm_lock, which sets the node 1 lock from NL -> PR, queues
-ast.
-
-At this time, upconvert (PR ->EX) arrives from node 2, finds conflict with
-node 1 lock in PR, so the lock res is put on dlm thread's dirty listt.
-
-After ret from ocf2_dlm_lock, PR thread now waits behind EX on BUSY till
-awoken by ast.
-
-Now it is dlm_thread that serially runs dlm_shuffle_lists, ast, bast, in
-that order.  dlm_shuffle_lists ques a bast on behalf of node 2 (which will
-be run by dlm_thread right after the ast).  ast does its part, sets
-UPCONVERT_FINISHING, clears BUSY and wakes its waiters.  Next, dlm_thread
-runs bast.  It sets BLOCKED and kicks dc thread.  dc thread runs
-ocfs2_unblock_lock, but since UPCONVERT_FINISHING set, skips doing
-anything and reques.
-
-Inside of __ocfs2_cluster_lock, since EX has been waiting on BUSY ahead of
-PR, it wakes up first, finds BLOCKED set and skips doing anything but
-clearing UPCONVERT_FINISHING (which was actually "meant" for the PR
-thread), and this time waits on BLOCKED.  Next, the PR thread comes out of
-wait but since UPCONVERT_FINISHING is not set, it skips updating the
-l_ro_holders and goes straight to wait on BLOCKED.  So there, we have a
-hang!  Threads in __ocfs2_cluster_lock wait on BLOCKED, lock res in osb
-blocked list.  Only when dc thread is awoken, it will run
-ocfs2_unblock_lock and things will unhang.
-
-One way to fix this is to wake the dc thread on the flag after clearing
-UPCONVERT_FINISHING
-
-Signed-off-by: Tariq Saeed <tariq.x.saeed@oracle.com>
-Signed-off-by: Santosh Shilimkar <santosh.shilimkar@oracle.com>
-Reviewed-by: Wengang Wang <wen.gang.wang@oracle.com>
-Reviewed-by: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: <stable@vger.kernel.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ mm/memcontrol.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/ocfs2/dlmglue.c~nfs-hangs-in-__ocfs2_cluster_lock-due-to-race-with-ocfs2_unblock_lock fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~nfs-hangs-in-__ocfs2_cluster_lock-due-to-race-with-ocfs2_unblock_lock
-+++ a/fs/ocfs2/dlmglue.c
-@@ -1390,6 +1390,7 @@ static int __ocfs2_cluster_lock(struct o
- 	unsigned int gen;
- 	int noqueue_attempted = 0;
- 	int dlm_locked = 0;
-+	int kick_dc = 0;
+diff -puN mm/memcontrol.c~mm-memcontrol-reign-in-the-config-space-madness-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-reign-in-the-config-space-madness-fix
++++ a/mm/memcontrol.c
+@@ -4380,6 +4380,8 @@ static void mem_cgroup_css_free(struct c
+ 	if (cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_nosocket)
+ 		static_branch_dec(&memcg_sockets_enabled_key);
  
- 	if (!(lockres->l_flags & OCFS2_LOCK_INITIALIZED)) {
- 		mlog_errno(-EINVAL);
-@@ -1524,7 +1525,12 @@ update_holders:
- unlock:
- 	lockres_clear_flags(lockres, OCFS2_LOCK_UPCONVERT_FINISHING);
- 
-+	/* ocfs2_unblock_lock reques on seeing OCFS2_LOCK_UPCONVERT_FINISHING */
-+	kick_dc = (lockres->l_flags & OCFS2_LOCK_BLOCKED);
++	memcg_free_kmem(memcg);
 +
- 	spin_unlock_irqrestore(&lockres->l_lock, flags);
-+	if (kick_dc)
-+		ocfs2_wake_downconvert_thread(osb);
- out:
- 	/*
- 	 * This is helping work around a lock inversion between the page lock
+ 	if (memcg->tcp_mem.active)
+ 		static_branch_dec(&memcg_sockets_enabled_key);
+ 
 _
 
-Patches currently in -mm which might be from tariq.x.saeed@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-nfs-hangs-in-__ocfs2_cluster_lock-due-to-race-with-ocfs2_unblock_lock.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+arch-x86-xen-suspendc-include-xen-xenh.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
+mm.patch
+account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
+mm-zonelist-enumerate-zonelists-array-index-fix.patch
+mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
+arm64-mm-support-arch_mmap_rnd_bits-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+mm-printk-introduce-new-format-string-for-flags-fix-2.patch
+mm-support-madvisemadv_free-fix-2-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+mm-oom-introduce-oom-reaper-fix-fix.patch
+mm-oom-introduce-oom-reaper-fix-fix-2.patch
+mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
+mm-oom-introduce-oom-reaper-fix-3.patch
+mm-oom-introduce-oom-reaper-fix-4-fix.patch
+mm-oom-introduce-oom-reaper-fix-5-fix.patch
+kernel-stop_machinec-remove-config_smp-dependencies.patch
+kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
+lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
+lib-test_printfc-test-dentry-printing-fix.patch
+printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
+printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+linux-next-rejects.patch
+include-linux-propertyh-fix-build-issues-with-gcc-444.patch
+include-linux-propertyh-fix-build-issues-with-gcc-444-fix.patch
+fs-overlayfs-superc-needs-pagemaph.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+net-drop-tcp_memcontrolc-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix.patch
+dax-support-dirty-dax-entries-in-radix-tree-fix.patch
+dax-add-support-for-fsync-sync-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
