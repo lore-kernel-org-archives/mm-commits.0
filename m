@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch added to -mm tree
-Date: Wed, 23 Dec 2015 13:01:53 -0800
-Message-ID: <567b0bc1.cvY+cV2+F1LG9tjC%akpm@linux-foundation.org>
+Subject: +
+ mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-2.patch added to -mm tree
+Date: Wed, 23 Dec 2015 14:33:05 -0800
+Message-ID: <567b2121.4iUBAbteUDDlHTxz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44265 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51013 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934194AbbLWVBz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Dec 2015 16:01:55 -0500
+	with ESMTP id S934377AbbLWWdH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Dec 2015 17:33:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, adilger.kernel@dilger.ca, bfields@fieldses.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@fromorbit.com, hpa@zytor.com, jack@suse.com, jlayton@poochiereds.net, matthew.r.wilcox@intel.com, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xfs: call dax_pfn_mkwrite() for DAX fsync/msync
+     Subject: mm: memcontrol: fix possible memcg leak due to interrupted reclaim fix
 has been added to the -mm tree.  Its filename is
-     xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+     mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,71 +39,69 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: xfs: call dax_pfn_mkwrite() for DAX fsync/msync
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: fix possible memcg leak due to interrupted reclaim fix
 
-To properly support the new DAX fsync/msync infrastructure filesystems
-need to call dax_pfn_mkwrite() so that DAX can track when user pages are
-dirtied.
+When we handled multiple css references in mem_cgroup_iter() it got a
+little confusing which puts belong to which gets. Now that we only ref
+the position css it's obvious, and a multi-line comment to explain it
+gets in the way of reading an already long function.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jan Kara <jack@suse.com>
-Cc: Jeff Layton <jlayton@poochiereds.net>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_file.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN fs/xfs/xfs_file.c~xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync fs/xfs/xfs_file.c
---- a/fs/xfs/xfs_file.c~xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync
-+++ a/fs/xfs/xfs_file.c
-@@ -1603,9 +1603,8 @@ xfs_filemap_pmd_fault(
- /*
-  * pfn_mkwrite was originally inteneded to ensure we capture time stamp
-  * updates on write faults. In reality, it's need to serialise against
-- * truncate similar to page_mkwrite. Hence we open-code dax_pfn_mkwrite()
-- * here and cycle the XFS_MMAPLOCK_SHARED to ensure we serialise the fault
-- * barrier in place.
-+ * truncate similar to page_mkwrite. Hence we cycle the XFS_MMAPLOCK_SHARED
-+ * to ensure we serialise the fault barrier in place.
-  */
- static int
- xfs_filemap_pfn_mkwrite(
-@@ -1628,6 +1627,8 @@ xfs_filemap_pfn_mkwrite(
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
-+	else if (IS_DAX(inode))
-+		ret = dax_pfn_mkwrite(vma, vmf);
- 	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
- 	sb_end_pagefault(inode->i_sb);
- 	return ret;
+diff -puN mm/memcontrol.c~mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-2 mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-2
++++ a/mm/memcontrol.c
+@@ -969,10 +969,6 @@ struct mem_cgroup *mem_cgroup_iter(struc
+ 		 */
+ 		(void)cmpxchg(&iter->position, pos, memcg);
+ 
+-		/*
+-		 * pairs with css_tryget when dereferencing iter->position
+-		 * above.
+-		 */
+ 		if (pos)
+ 			css_put(&pos->css);
+ 
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable.patch
-pmem-add-wb_cache_pmem-to-the-pmem-api.patch
-pmem-add-wb_cache_pmem-to-the-pmem-api-v6.patch
-dax-support-dirty-dax-entries-in-radix-tree.patch
-dax-support-dirty-dax-entries-in-radix-tree-v6.patch
-mm-add-find_get_entries_tag.patch
-dax-add-support-for-fsync-sync.patch
-dax-add-support-for-fsync-sync-v6.patch
-ext2-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
-ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
-xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-2.patch
+mm-page_alloc-generalize-the-dirty-balance-reserve.patch
+proc-meminfo-estimate-available-memory-more-conservatively.patch
+mm-memcontrol-export-root_mem_cgroup.patch
+net-tcp_memcontrol-properly-detect-ancestor-socket-pressure.patch
+net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation.patch
+net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
+net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets.patch
+net-tcp_memcontrol-simplify-the-per-memcg-limit-access.patch
+net-tcp_memcontrol-sanitize-tcp-memory-accounting-callbacks.patch
+net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter.patch
+net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter-fix.patch
+mm-memcontrol-generalize-the-socket-accounting-jump-label.patch
+mm-memcontrol-do-not-account-memoryswap-on-unified-hierarchy.patch
+mm-memcontrol-move-socket-code-for-unified-hierarchy-accounting.patch
+mm-memcontrol-account-socket-memory-in-unified-hierarchy-memory-controller.patch
+mm-memcontrol-hook-up-vmpressure-to-socket-pressure.patch
+mm-memcontrol-switch-to-the-updated-jump-label-api.patch
+mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem.patch
+mm-memcontrol-remove-double-kmem-page_counter-init.patch
+mm-memcontrol-give-the-kmem-states-more-descriptive-names.patch
+mm-memcontrol-group-kmem-init-and-exit-functions-together.patch
+mm-memcontrol-separate-kmem-code-from-legacy-tcp-accounting-code.patch
+mm-memcontrol-move-kmem-accounting-code-to-config_memcg.patch
+mm-memcontrol-move-kmem-accounting-code-to-config_memcg-v2.patch
+mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix.patch
+mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller.patch
+mm-memcontrol-introduce-config_memcg_legacy_kmem.patch
+mm-memcontrol-reign-in-the-config-space-madness.patch
+mm-memcontrol-flatten-struct-cg_proto.patch
+mm-memcontrol-clean-up-alloc-online-offline-free-functions.patch
+mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix.patch
 
