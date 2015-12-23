@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes.patch added to -mm tree
-Date: Wed, 23 Dec 2015 12:26:51 -0800
-Message-ID: <567b038b.7aAYDwWDV+26FAKw%akpm@linux-foundation.org>
+ kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory.patch added to -mm tree
+Date: Wed, 23 Dec 2015 12:30:10 -0800
+Message-ID: <567b0452.dze2X3NejkxlS25t%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41409 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42005 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934160AbbLWU0w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Dec 2015 15:26:52 -0500
+	with ESMTP id S1751481AbbLWUaL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Dec 2015 15:30:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jiangyiwen@huawei.com, mm-commits@vger.kernel.org
+To: xlpang@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes
+     Subject: kexec: Introduce a protection mechanism for the crashkernel reserved memory
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes.patch
+     kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,105 +39,127 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes
+From: Xunlei Pang <xlpang@redhat.com>
+Subject: kexec: Introduce a protection mechanism for the crashkernel reserved memory
 
-WARNING: line over 80 characters
-#52: FILE: fs/ocfs2/slot_map.c:508:
-+		 * if write block failed, invalidate slot to avoid overwrite slot during
+For the cases that some kernel (module) path stamps the crash reserved
+memory(already mapped by the kernel) where has been loaded the second
+kernel data, the kdump kernel will probably fail to boot when panic
+happens (or even not happens) leaving the culprit at large, this is
+unacceptable.
 
-total: 0 errors, 1 warnings, 18 lines checked
+The patch introduces a mechanism for detecting such cases:
 
-./patches/ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount.patch has style problems, please review.
+1) After each crash kexec loading, it simply marks the reserved memory
+   regions readonly since we no longer access it after that.  When someone
+   stamps the region, the first kernel will panic and trigger the kdump. 
+   The weak arch_kexec_protect_crashkres() is introduced to do the actual
+   protection.
 
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+2) To allow multiple loading, once 1) was done we also need to remark
+   the reserved memory to readwrite each time a system call related to
+   kdump is made.  The weak arch_kexec_unprotect_crashkres() is introduced
+   to do the actual protection.
 
-Please run checkpatch prior to sending patches
+The architecture can make its specific implementation by overriding
+arch_kexec_protect_crashkres() and arch_kexec_unprotect_crashkres().
 
-Cc: Yiwen Jiang <jiangyiwen@huawei.com>
+Signed-off-by: Xunlei Pang <xlpang@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Dave Young <dyoung@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/slot_map.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kexec.h |    2 ++
+ kernel/kexec.c        |    9 ++++++++-
+ kernel/kexec_core.c   |    6 ++++++
+ kernel/kexec_file.c   |    8 +++++++-
+ 4 files changed, 23 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/slot_map.c~ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes fs/ocfs2/slot_map.c
---- a/fs/ocfs2/slot_map.c~ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes
-+++ a/fs/ocfs2/slot_map.c
-@@ -505,8 +505,8 @@ int ocfs2_find_slot(struct ocfs2_super *
- 	if (status < 0) {
- 		mlog_errno(status);
- 		/*
--		 * if write block failed, invalidate slot to avoid overwrite slot during
--		 * dismount in case another node rightly has mounted
-+		 * if write block failed, invalidate slot to avoid overwrite
-+		 * slot during dismount in case another node rightly has mounted
- 		 */
- 		spin_lock(&osb->osb_lock);
- 		ocfs2_invalidate_slot(si, osb->slot_num);
+diff -puN include/linux/kexec.h~kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory
++++ a/include/linux/kexec.h
+@@ -316,6 +316,8 @@ int __weak arch_kexec_apply_relocations_
+ 					Elf_Shdr *sechdrs, unsigned int relsec);
+ int __weak arch_kexec_apply_relocations(const Elf_Ehdr *ehdr, Elf_Shdr *sechdrs,
+ 					unsigned int relsec);
++void arch_kexec_protect_crashkres(void);
++void arch_kexec_unprotect_crashkres(void);
+ 
+ #else /* !CONFIG_KEXEC_CORE */
+ struct pt_regs;
+diff -puN kernel/kexec.c~kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory kernel/kexec.c
+--- a/kernel/kexec.c~kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory
++++ a/kernel/kexec.c
+@@ -167,8 +167,12 @@ SYSCALL_DEFINE4(kexec_load, unsigned lon
+ 		return -EBUSY;
+ 
+ 	dest_image = &kexec_image;
+-	if (flags & KEXEC_ON_CRASH)
++	if (flags & KEXEC_ON_CRASH) {
+ 		dest_image = &kexec_crash_image;
++		if (kexec_crash_image)
++			arch_kexec_unprotect_crashkres();
++	}
++
+ 	if (nr_segments > 0) {
+ 		unsigned long i;
+ 
+@@ -211,6 +215,9 @@ SYSCALL_DEFINE4(kexec_load, unsigned lon
+ 	image = xchg(dest_image, image);
+ 
+ out:
++	if ((flags & KEXEC_ON_CRASH) && kexec_crash_image)
++		arch_kexec_protect_crashkres();
++
+ 	mutex_unlock(&kexec_mutex);
+ 	kimage_free(image);
+ 
+diff -puN kernel/kexec_core.c~kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory kernel/kexec_core.c
+--- a/kernel/kexec_core.c~kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory
++++ a/kernel/kexec_core.c
+@@ -1529,3 +1529,9 @@ void __weak crash_map_reserved_pages(voi
+ 
+ void __weak crash_unmap_reserved_pages(void)
+ {}
++
++void __weak arch_kexec_protect_crashkres(void)
++{}
++
++void __weak arch_kexec_unprotect_crashkres(void)
++{}
+diff -puN kernel/kexec_file.c~kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory kernel/kexec_file.c
+--- a/kernel/kexec_file.c~kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory
++++ a/kernel/kexec_file.c
+@@ -329,8 +329,11 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
+ 		return -EBUSY;
+ 
+ 	dest_image = &kexec_image;
+-	if (flags & KEXEC_FILE_ON_CRASH)
++	if (flags & KEXEC_FILE_ON_CRASH) {
+ 		dest_image = &kexec_crash_image;
++		if (kexec_crash_image)
++			arch_kexec_unprotect_crashkres();
++	}
+ 
+ 	if (flags & KEXEC_FILE_UNLOAD)
+ 		goto exchange;
+@@ -379,6 +382,9 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
+ exchange:
+ 	image = xchg(dest_image, image);
+ out:
++	if ((flags & KEXEC_ON_CRASH) && kexec_crash_image)
++		arch_kexec_protect_crashkres();
++
+ 	mutex_unlock(&kexec_mutex);
+ 	kimage_free(image);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from xlpang@redhat.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-arch-x86-xen-suspendc-include-xen-xenh.patch
-ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-arm64-mm-support-arch_mmap_rnd_bits-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-printk-introduce-new-format-string-for-flags-fix-2.patch
-mm-support-madvisemadv_free-fix-2-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom-introduce-oom-reaper-fix-fix.patch
-mm-oom-introduce-oom-reaper-fix-fix-2.patch
-mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
-mm-oom-introduce-oom-reaper-fix-3.patch
-mm-oom-introduce-oom-reaper-fix-4-fix.patch
-mm-oom-introduce-oom-reaper-fix-5-fix.patch
-kernel-stop_machinec-remove-config_smp-dependencies.patch
-kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
-lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
-lib-test_printfc-test-dentry-printing-fix.patch
-printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
-printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
-linux-next-rejects.patch
-include-linux-propertyh-fix-build-issues-with-gcc-444.patch
-include-linux-propertyh-fix-build-issues-with-gcc-444-fix.patch
-fs-overlayfs-superc-needs-pagemaph.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-net-drop-tcp_memcontrolc-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
-dax-support-dirty-dax-entries-in-radix-tree-fix.patch
-dax-add-support-for-fsync-sync-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+kexec-set-kexec_type_crash-before-sanity_check_segment_list.patch
+kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file.patch
+kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory.patch
+kexec-provide-arch_kexec_protectunprotect_crashkres.patch
 
