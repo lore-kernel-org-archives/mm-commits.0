@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + arc-convert-to-dma_map_ops-fix-2.patch added to -mm tree
-Date: Wed, 23 Dec 2015 12:13:06 -0800
-Message-ID: <567b0052.d5tMnuqjBKBV+MYD%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
+ added to -mm tree
+Date: Wed, 23 Dec 2015 12:18:10 -0800
+Message-ID: <567b0182.bmSRUAlTxYpNhBly%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40466 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40815 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934071AbbLWUNH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Dec 2015 15:13:07 -0500
+	with ESMTP id S932864AbbLWUSL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Dec 2015 15:18:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vgupta@synopsys.com, CARLOS.PALMINHA@synopsys.com, hch@lst.de, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ARC: dma mapping fixes #2
+     Subject: mm-memcontrol-reign-in-the-config-space-madness-fix-fix
 has been added to the -mm tree.  Its filename is
-     arc-convert-to-dma_map_ops-fix-2.patch
+     mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arc-convert-to-dma_map_ops-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arc-convert-to-dma_map_ops-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,58 +39,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vineet Gupta <vgupta@synopsys.com>
-Subject: ARC: dma mapping fixes #2
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-memcontrol-reign-in-the-config-space-madness-fix-fix
 
-Carlos Palminha reported linux-next boot broken for ARC.
+rework mem_cgroup_css_free() statement ordering
 
-(1) dma_map_single() would recursively call itself
-
-| #define dma_map_single(d, a, s, r) dma_map_single_attrs(d, a, s, r, NULL)
-| dma_map_single_attrs
-|   ops->map_page
-|     arc_dma_map_page
-|        dma_map_single
-
-(2) arc_dma_free() to iounmap if memory is coherent
-
-Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
-Reported-by: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arc/mm/dma.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/memcontrol.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/arc/mm/dma.c~arc-convert-to-dma_map_ops-fix-2 arch/arc/mm/dma.c
---- a/arch/arc/mm/dma.c~arc-convert-to-dma_map_ops-fix-2
-+++ a/arch/arc/mm/dma.c
-@@ -72,8 +72,8 @@ static void *arc_dma_alloc(struct device
- static void arc_dma_free(struct device *dev, size_t size, void *vaddr,
- 		dma_addr_t dma_handle, struct dma_attrs *attrs)
- {
--	if (!(is_isa_arcv2() && ioc_exists) ||
--	    dma_get_attr(DMA_ATTR_NON_CONSISTENT, attrs))
-+	if (!dma_get_attr(DMA_ATTR_NON_CONSISTENT, attrs) &&
-+	    !(is_isa_arcv2() && ioc_exists))
- 		iounmap((void __force __iomem *)vaddr);
+diff -puN mm/memcontrol.c~mm-memcontrol-reign-in-the-config-space-madness-fix-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-reign-in-the-config-space-madness-fix-fix
++++ a/mm/memcontrol.c
+@@ -4380,11 +4380,10 @@ static void mem_cgroup_css_free(struct c
+ 	if (cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_nosocket)
+ 		static_branch_dec(&memcg_sockets_enabled_key);
  
- 	free_pages_exact((void *)dma_handle, size);
-@@ -107,7 +107,8 @@ static dma_addr_t arc_dma_map_page(struc
- 		struct dma_attrs *attrs)
- {
- 	unsigned long paddr = page_to_phys(page) + offset;
--	return dma_map_single(dev, (void *)paddr, size, dir);
-+	_dma_cache_sync(paddr, size, dir);
-+	return (dma_addr_t)paddr;
+-	memcg_free_kmem(memcg);
+-
+ 	if (memcg->tcp_mem.active)
+ 		static_branch_dec(&memcg_sockets_enabled_key);
+ 
++	memcg_free_kmem(memcg);
+ 	__mem_cgroup_free(memcg);
  }
  
- static int arc_dma_map_sg(struct device *dev, struct scatterlist *sg,
 _
 
-Patches currently in -mm which might be from vgupta@synopsys.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-arc-convert-to-dma_map_ops-fix-2.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+arch-x86-xen-suspendc-include-xen-xenh.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
+mm.patch
+account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+mm-mmapc-remove-redundant-local-variables-for-may_expand_vm-fix.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
+mm-zonelist-enumerate-zonelists-array-index-fix.patch
+mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
+arm64-mm-support-arch_mmap_rnd_bits-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+mm-printk-introduce-new-format-string-for-flags-fix-2.patch
+mm-support-madvisemadv_free-fix-2-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+mm-oom-introduce-oom-reaper-fix-fix.patch
+mm-oom-introduce-oom-reaper-fix-fix-2.patch
+mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
+mm-oom-introduce-oom-reaper-fix-3.patch
+mm-oom-introduce-oom-reaper-fix-4-fix.patch
+mm-oom-introduce-oom-reaper-fix-5-fix.patch
+kernel-stop_machinec-remove-config_smp-dependencies.patch
+kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
+lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
+lib-test_printfc-test-dentry-printing-fix.patch
+printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
+printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+linux-next-rejects.patch
+include-linux-propertyh-fix-build-issues-with-gcc-444.patch
+include-linux-propertyh-fix-build-issues-with-gcc-444-fix.patch
+fs-overlayfs-superc-needs-pagemaph.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+net-drop-tcp_memcontrolc-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
+dax-support-dirty-dax-entries-in-radix-tree-fix.patch
+dax-add-support-for-fsync-sync-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
