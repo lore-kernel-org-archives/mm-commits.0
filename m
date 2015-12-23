@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + um-fix-build-error-and-kconfig-for-i386.patch added to -mm tree
-Date: Wed, 23 Dec 2015 12:10:16 -0800
-Message-ID: <567affa8.pZ8cgvx1FHNw51m5%akpm@linux-foundation.org>
+Subject: + arc-convert-to-dma_map_ops-fix-2.patch added to -mm tree
+Date: Wed, 23 Dec 2015 12:13:06 -0800
+Message-ID: <567b0052.d5tMnuqjBKBV+MYD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40440 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40466 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932864AbbLWUKR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Dec 2015 15:10:17 -0500
+	with ESMTP id S934071AbbLWUNH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Dec 2015 15:13:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mic@digikod.net, mm-commits@vger.kernel.org
+To: vgupta@synopsys.com, CARLOS.PALMINHA@synopsys.com, hch@lst.de, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: um: fix build error and kconfig for i386
+     Subject: ARC: dma mapping fixes #2
 has been added to the -mm tree.  Its filename is
-     um-fix-build-error-and-kconfig-for-i386.patch
+     arc-convert-to-dma_map_ops-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/um-fix-build-error-and-kco=
-nfig-for-i386.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arc-convert-to-dma_map_ops-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/um-fix-build-error-and-kco=
-nfig-for-i386.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arc-convert-to-dma_map_ops-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,52 +32,64 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Micka=EBl Sala=FCn <mic@digikod.net>
-Subject: um: fix build error and kconfig for i386
+From: Vineet Gupta <vgupta@synopsys.com>
+Subject: ARC: dma mapping fixes #2
 
-=46ix build error by selecting COREDUMP when X86_32 is selected:
+Carlos Palminha reported linux-next boot broken for ARC.
 
-arch/x86/um/built-in.o: In function `elf_core_write_extra_phdrs':
-(.text+0x3e62): undefined reference to `dump_emit'
-arch/x86/um/built-in.o: In function `elf_core_write_extra_data':
-(.text+0x3eef): undefined reference to `dump_emit'
+(1) dma_map_single() would recursively call itself
 
-=46ixes: 5d2acfc7b974 ("kconfig: make allnoconfig disable options behin=
-d EMBEDDED and EXPERT")
-Signed-off-by: Micka=EBl Sala=FCn <mic@digikod.net>
+| #define dma_map_single(d, a, s, r) dma_map_single_attrs(d, a, s, r, NULL)
+| dma_map_single_attrs
+|   ops->map_page
+|     arc_dma_map_page
+|        dma_map_single
+
+(2) arc_dma_free() to iounmap if memory is coherent
+
+Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
+Reported-by: Carlos Palminha <CARLOS.PALMINHA@synopsys.com>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/um/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ arch/arc/mm/dma.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/um/Kconfig~um-fix-build-error-and-kconfig-for-i386 a=
-rch/x86/um/Kconfig
---- a/arch/x86/um/Kconfig~um-fix-build-error-and-kconfig-for-i386
-+++ a/arch/x86/um/Kconfig
-@@ -26,6 +26,7 @@ config X86_32
- 	select CLONE_BACKWARDS
- 	select OLD_SIGSUSPEND3
- 	select OLD_SIGACTION
-+	select COREDUMP
-=20
- config X86_64
- 	def_bool 64BIT
+diff -puN arch/arc/mm/dma.c~arc-convert-to-dma_map_ops-fix-2 arch/arc/mm/dma.c
+--- a/arch/arc/mm/dma.c~arc-convert-to-dma_map_ops-fix-2
++++ a/arch/arc/mm/dma.c
+@@ -72,8 +72,8 @@ static void *arc_dma_alloc(struct device
+ static void arc_dma_free(struct device *dev, size_t size, void *vaddr,
+ 		dma_addr_t dma_handle, struct dma_attrs *attrs)
+ {
+-	if (!(is_isa_arcv2() && ioc_exists) ||
+-	    dma_get_attr(DMA_ATTR_NON_CONSISTENT, attrs))
++	if (!dma_get_attr(DMA_ATTR_NON_CONSISTENT, attrs) &&
++	    !(is_isa_arcv2() && ioc_exists))
+ 		iounmap((void __force __iomem *)vaddr);
+ 
+ 	free_pages_exact((void *)dma_handle, size);
+@@ -107,7 +107,8 @@ static dma_addr_t arc_dma_map_page(struc
+ 		struct dma_attrs *attrs)
+ {
+ 	unsigned long paddr = page_to_phys(page) + offset;
+-	return dma_map_single(dev, (void *)paddr, size, dir);
++	_dma_cache_sync(paddr, size, dir);
++	return (dma_addr_t)paddr;
+ }
+ 
+ static int arc_dma_map_sg(struct device *dev, struct scatterlist *sg,
 _
 
-Patches currently in -mm which might be from mic@digikod.net are
+Patches currently in -mm which might be from vgupta@synopsys.com are
 
-um-fix-build-error-and-kconfig-for-i386.patch
+arc-convert-to-dma_map_ops-fix-2.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
