@@ -1,36 +1,52 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
- removed from -mm tree
-Date: Wed, 23 Dec 2015 12:57:36 -0800
-Message-ID: <567b0ac0.kKuQ+eFLxKyNkosI%akpm@linux-foundation.org>
+Subject: + dax-support-dirty-dax-entries-in-radix-tree-v6.patch added to
+ -mm tree
+Date: Wed, 23 Dec 2015 13:01:47 -0800
+Message-ID: <567b0bbb.PH9u5fXSgSBgCi9k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43922 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44232 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932172AbbLWU5h (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Dec 2015 15:57:37 -0500
+	with ESMTP id S1752145AbbLWVBt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Dec 2015 16:01:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, adilger.kernel@dilger.ca, bfields@fieldses.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@fromorbit.com, hpa@zytor.com, jack@suse.com, jlayton@poochiereds.net, matthew.r.wilcox@intel.com, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, adilger.kernel@dilger.ca, bfields@fieldses.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@fromorbit.com, hpa@zytor.com, hughd@google.com, jack@suse.com, jlayton@poochiereds.net, matthew.r.wilcox@intel.com, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xfs: call dax_pfn_mkwrite() for DAX fsync/msync
-has been removed from the -mm tree.  Its filename was
-     xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+     Subject: dax-support-dirty-dax-entries-in-radix-tree-v6
+has been added to the -mm tree.  Its filename is
+     dax-support-dirty-dax-entries-in-radix-tree-v6.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-support-dirty-dax-entries-in-radix-tree-v6.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-support-dirty-dax-entries-in-radix-tree-v6.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: xfs: call dax_pfn_mkwrite() for DAX fsync/msync
+Subject: dax-support-dirty-dax-entries-in-radix-tree-v6
 
-To properly support the new DAX fsync/msync infrastructure filesystems
-need to call dax_pfn_mkwrite() so that DAX can track when user pages are
-dirtied.
+5) Got rid of the 'nrdax' variable in struct address_space and renamed
+'nrshadows' to 'nrexceptional' so that it can be used for both DAX and
+shadow exceptional entries.  We explicitly prevent shadow entries from
+being added to radix trees for DAX mappings, so the single counter can
+safely be reused for both purposes. (Jan)
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -47,36 +63,185 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/xfs/xfs_file.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ fs/block_dev.c             |    3 +--
+ fs/inode.c                 |    3 +--
+ include/linux/fs.h         |    4 ++--
+ include/linux/radix-tree.h |   10 +++++-----
+ mm/filemap.c               |   10 ++++------
+ mm/truncate.c              |   15 +++++++--------
+ mm/workingset.c            |    4 ++--
+ 7 files changed, 22 insertions(+), 27 deletions(-)
 
-diff -puN fs/xfs/xfs_file.c~xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync fs/xfs/xfs_file.c
---- a/fs/xfs/xfs_file.c~xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync
-+++ a/fs/xfs/xfs_file.c
-@@ -1603,9 +1603,8 @@ xfs_filemap_pmd_fault(
- /*
-  * pfn_mkwrite was originally inteneded to ensure we capture time stamp
-  * updates on write faults. In reality, it's need to serialise against
-- * truncate similar to page_mkwrite. Hence we open-code dax_pfn_mkwrite()
-- * here and cycle the XFS_MMAPLOCK_SHARED to ensure we serialise the fault
-- * barrier in place.
-+ * truncate similar to page_mkwrite. Hence we cycle the XFS_MMAPLOCK_SHARED
-+ * to ensure we serialise the fault barrier in place.
+diff -puN fs/block_dev.c~dax-support-dirty-dax-entries-in-radix-tree-v6 fs/block_dev.c
+--- a/fs/block_dev.c~dax-support-dirty-dax-entries-in-radix-tree-v6
++++ a/fs/block_dev.c
+@@ -75,8 +75,7 @@ void kill_bdev(struct block_device *bdev
+ {
+ 	struct address_space *mapping = bdev->bd_inode->i_mapping;
+ 
+-	if (mapping->nrpages == 0 && mapping->nrshadows == 0 &&
+-			mapping->nrdax == 0)
++	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
+ 		return;
+ 
+ 	invalidate_bh_lrus();
+diff -puN fs/inode.c~dax-support-dirty-dax-entries-in-radix-tree-v6 fs/inode.c
+--- a/fs/inode.c~dax-support-dirty-dax-entries-in-radix-tree-v6
++++ a/fs/inode.c
+@@ -495,8 +495,7 @@ void clear_inode(struct inode *inode)
+ 	 */
+ 	spin_lock_irq(&inode->i_data.tree_lock);
+ 	BUG_ON(inode->i_data.nrpages);
+-	BUG_ON(inode->i_data.nrshadows);
+-	BUG_ON(inode->i_data.nrdax);
++	BUG_ON(inode->i_data.nrexceptional);
+ 	spin_unlock_irq(&inode->i_data.tree_lock);
+ 	BUG_ON(!list_empty(&inode->i_data.private_list));
+ 	BUG_ON(!(inode->i_state & I_FREEING));
+diff -puN include/linux/fs.h~dax-support-dirty-dax-entries-in-radix-tree-v6 include/linux/fs.h
+--- a/include/linux/fs.h~dax-support-dirty-dax-entries-in-radix-tree-v6
++++ a/include/linux/fs.h
+@@ -432,8 +432,8 @@ struct address_space {
+ 	struct rw_semaphore	i_mmap_rwsem;	/* protect tree, count, list */
+ 	/* Protected by tree_lock together with the radix tree */
+ 	unsigned long		nrpages;	/* number of total pages */
+-	unsigned long		nrshadows;	/* number of shadow entries */
+-	unsigned long		nrdax;	        /* number of DAX entries */
++	/* number of shadow or DAX exceptional entries */
++	unsigned long		nrexceptional;
+ 	pgoff_t			writeback_index;/* writeback starts here */
+ 	const struct address_space_operations *a_ops;	/* methods */
+ 	unsigned long		flags;		/* error bits/gfp mask */
+diff -puN include/linux/radix-tree.h~dax-support-dirty-dax-entries-in-radix-tree-v6 include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~dax-support-dirty-dax-entries-in-radix-tree-v6
++++ a/include/linux/radix-tree.h
+@@ -52,13 +52,13 @@
+ #define RADIX_TREE_EXCEPTIONAL_SHIFT	2
+ 
+ #define RADIX_DAX_MASK	0xf
++#define RADIX_DAX_SHIFT	4
+ #define RADIX_DAX_PTE  (0x4 | RADIX_TREE_EXCEPTIONAL_ENTRY)
+ #define RADIX_DAX_PMD  (0x8 | RADIX_TREE_EXCEPTIONAL_ENTRY)
+-#define RADIX_DAX_TYPE(entry) ((__force unsigned long)entry & RADIX_DAX_MASK)
+-#define RADIX_DAX_ADDR(entry) ((void __pmem *)((unsigned long)entry & \
+-			~RADIX_DAX_MASK))
+-#define RADIX_DAX_ENTRY(addr, pmd) ((void *)((__force unsigned long)addr | \
+-			(pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE)))
++#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_MASK)
++#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
++#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
++		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE)))
+ 
+ static inline int radix_tree_is_indirect_ptr(void *ptr)
+ {
+diff -puN mm/filemap.c~dax-support-dirty-dax-entries-in-radix-tree-v6 mm/filemap.c
+--- a/mm/filemap.c~dax-support-dirty-dax-entries-in-radix-tree-v6
++++ a/mm/filemap.c
+@@ -124,9 +124,9 @@ static void page_cache_tree_delete(struc
+ 	__radix_tree_lookup(&mapping->page_tree, page->index, &node, &slot);
+ 
+ 	if (shadow) {
+-		mapping->nrshadows++;
++		mapping->nrexceptional++;
+ 		/*
+-		 * Make sure the nrshadows update is committed before
++		 * Make sure the nrexceptional update is committed before
+ 		 * the nrpages update so that final truncate racing
+ 		 * with reclaim does not see both counters 0 at the
+ 		 * same time and miss a shadow entry.
+@@ -581,14 +581,12 @@ static int page_cache_tree_insert(struct
+ 		if (!radix_tree_exceptional_entry(p))
+ 			return -EEXIST;
+ 
+-		if (dax_mapping(mapping)) {
+-			WARN_ON(1);
++		if (WARN_ON(dax_mapping(mapping)))
+ 			return -EINVAL;
+-		}
+ 
+ 		if (shadowp)
+ 			*shadowp = p;
+-		mapping->nrshadows--;
++		mapping->nrexceptional--;
+ 		if (node)
+ 			workingset_node_shadows_dec(node);
+ 	}
+diff -puN mm/truncate.c~dax-support-dirty-dax-entries-in-radix-tree-v6 mm/truncate.c
+--- a/mm/truncate.c~dax-support-dirty-dax-entries-in-radix-tree-v6
++++ a/mm/truncate.c
+@@ -38,7 +38,7 @@ static void clear_exceptional_entry(stru
+ 
+ 	if (dax_mapping(mapping)) {
+ 		if (radix_tree_delete_item(&mapping->page_tree, index, entry))
+-			mapping->nrdax--;
++			mapping->nrexceptional--;
+ 	} else {
+ 		/*
+ 		 * Regular page slots are stabilized by the page lock even
+@@ -51,7 +51,7 @@ static void clear_exceptional_entry(stru
+ 		if (*slot != entry)
+ 			goto unlock;
+ 		radix_tree_replace_slot(slot, NULL);
+-		mapping->nrshadows--;
++		mapping->nrexceptional--;
+ 		if (!node)
+ 			goto unlock;
+ 		workingset_node_shadows_dec(node);
+@@ -237,8 +237,7 @@ void truncate_inode_pages_range(struct a
+ 	int		i;
+ 
+ 	cleancache_invalidate_inode(mapping);
+-	if (mapping->nrpages == 0 && mapping->nrshadows == 0 &&
+-			mapping->nrdax == 0)
++	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
+ 		return;
+ 
+ 	/* Offsets within partial pages */
+@@ -412,7 +411,7 @@ EXPORT_SYMBOL(truncate_inode_pages);
   */
- static int
- xfs_filemap_pfn_mkwrite(
-@@ -1628,6 +1627,8 @@ xfs_filemap_pfn_mkwrite(
- 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		ret = VM_FAULT_SIGBUS;
-+	else if (IS_DAX(inode))
-+		ret = dax_pfn_mkwrite(vma, vmf);
- 	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
- 	sb_end_pagefault(inode->i_sb);
- 	return ret;
+ void truncate_inode_pages_final(struct address_space *mapping)
+ {
+-	unsigned long nrshadows;
++	unsigned long nrexceptional;
+ 	unsigned long nrpages;
+ 
+ 	/*
+@@ -426,14 +425,14 @@ void truncate_inode_pages_final(struct a
+ 
+ 	/*
+ 	 * When reclaim installs eviction entries, it increases
+-	 * nrshadows first, then decreases nrpages.  Make sure we see
++	 * nrexceptional first, then decreases nrpages.  Make sure we see
+ 	 * this in the right order or we might miss an entry.
+ 	 */
+ 	nrpages = mapping->nrpages;
+ 	smp_rmb();
+-	nrshadows = mapping->nrshadows;
++	nrexceptional = mapping->nrexceptional;
+ 
+-	if (nrpages || nrshadows || mapping->nrdax) {
++	if (nrpages || nrexceptional) {
+ 		/*
+ 		 * As truncation uses a lockless tree lookup, cycle
+ 		 * the tree lock to make sure any ongoing tree
+diff -puN mm/workingset.c~dax-support-dirty-dax-entries-in-radix-tree-v6 mm/workingset.c
+--- a/mm/workingset.c~dax-support-dirty-dax-entries-in-radix-tree-v6
++++ a/mm/workingset.c
+@@ -351,8 +351,8 @@ static enum lru_status shadow_lru_isolat
+ 			node->slots[i] = NULL;
+ 			BUG_ON(node->count < (1U << RADIX_TREE_COUNT_SHIFT));
+ 			node->count -= 1U << RADIX_TREE_COUNT_SHIFT;
+-			BUG_ON(!mapping->nrshadows);
+-			mapping->nrshadows--;
++			BUG_ON(!mapping->nrexceptional);
++			mapping->nrexceptional--;
+ 		}
+ 	}
+ 	BUG_ON(node->count);
 _
 
 Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
@@ -91,4 +256,5 @@ dax-add-support-for-fsync-sync.patch
 dax-add-support-for-fsync-sync-v6.patch
 ext2-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
 ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
 
