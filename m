@@ -1,57 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] dax-support-dirty-dax-entries-in-radix-tree-fix.patch
- removed from -mm tree
-Date: Wed, 23 Dec 2015 12:51:19 -0800
-Message-ID: <567b0947.9fBxixJoO75Yewsc%akpm@linux-foundation.org>
+Subject: [obsolete] dax-add-support-for-fsync-sync-fix.patch removed from
+ -mm tree
+Date: Wed, 23 Dec 2015 12:57:28 -0800
+Message-ID: <567b0ab8.ERuzN5BfGycFGUxw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43399 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43915 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933212AbbLWUvU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Dec 2015 15:51:20 -0500
+	with ESMTP id S932172AbbLWU53 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Dec 2015 15:57:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax-support-dirty-dax-entries-in-radix-tree-fix
+     Subject: dax-add-support-for-fsync-sync-fix
 has been removed from the -mm tree.  Its filename was
-     dax-support-dirty-dax-entries-in-radix-tree-fix.patch
+     dax-add-support-for-fsync-sync-fix.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: dax-support-dirty-dax-entries-in-radix-tree-fix
+Subject: dax-add-support-for-fsync-sync-fix
 
-simplify page_cache_tree_insert()
+simplify WARN expressions
 
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ fs/dax.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff -puN mm/filemap.c~dax-support-dirty-dax-entries-in-radix-tree-fix mm/filemap.c
---- a/mm/filemap.c~dax-support-dirty-dax-entries-in-radix-tree-fix
-+++ a/mm/filemap.c
-@@ -581,10 +581,8 @@ static int page_cache_tree_insert(struct
- 		if (!radix_tree_exceptional_entry(p))
- 			return -EEXIST;
+diff -puN fs/dax.c~dax-add-support-for-fsync-sync-fix fs/dax.c
+--- a/fs/dax.c~dax-add-support-for-fsync-sync-fix
++++ a/fs/dax.c
+@@ -383,10 +383,8 @@ static void dax_writeback_one(struct add
+ 	struct radix_tree_node *node;
+ 	void **slot;
  
--		if (dax_mapping(mapping)) {
--			WARN_ON(1);
-+		if (WARN_ON(dax_mapping(mapping)))
- 			return -EINVAL;
--		}
+-	if (type != RADIX_DAX_PTE && type != RADIX_DAX_PMD) {
+-		WARN_ON_ONCE(1);
++	if (WARN_ON_ONCE(type != RADIX_DAX_PTE && type != RADIX_DAX_PMD))
+ 		return;
+-	}
  
- 		if (shadowp)
- 			*shadowp = p;
+ 	spin_lock_irq(&mapping->tree_lock);
+ 	/*
+@@ -428,10 +426,8 @@ void dax_writeback_mapping_range(struct
+ 	void *entry;
+ 	int i;
+ 
+-	if (inode->i_blkbits != PAGE_SHIFT) {
+-		WARN_ON_ONCE(1);
++	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
+ 		return;
+-	}
+ 
+ 	rcu_read_lock();
+ 	entry = radix_tree_lookup(&mapping->page_tree, start & PMD_MASK);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,7 +123,6 @@ fs-adfs-adfsh-tidy-up-comments.patch
 net-drop-tcp_memcontrolc-fix.patch
 mm-memcontrol-reign-in-the-config-space-madness-fix.patch
 mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
-dax-add-support-for-fsync-sync-fix.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
