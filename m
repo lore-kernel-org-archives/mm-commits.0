@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-stop-__munlock_pagevec_fill-if-thp-enounted.patch added to
- -mm tree
-Date: Mon, 28 Dec 2015 15:21:49 -0800
-Message-ID: <5681c40d.5/scRnaOoR7bzBZl%akpm@linux-foundation.org>
+Subject: + thp-increase-split_huge_page-success-rate.patch added to -mm
+ tree
+Date: Mon, 28 Dec 2015 15:30:33 -0800
+Message-ID: <5681c619.e4cDgLnqUk8WlX9l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45132 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45649 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752948AbbL1XVu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Dec 2015 18:21:50 -0500
+	with ESMTP id S1752662AbbL1Xae (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Dec 2015 18:30:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: stop __munlock_pagevec_fill() if THP enounted
+     Subject: thp: increase split_huge_page() success rate
 has been added to the -mm tree.  Its filename is
-     mm-stop-__munlock_pagevec_fill-if-thp-enounted.patch
+     thp-increase-split_huge_page-success-rate.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-stop-__munlock_pagevec_fill-if-thp-enounted.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-increase-split_huge_page-success-rate.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-stop-__munlock_pagevec_fill-if-thp-enounted.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-increase-split_huge_page-success-rate.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,38 +40,37 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: stop __munlock_pagevec_fill() if THP enounted
+Subject: thp: increase split_huge_page() success rate
 
-THP is properly handled in munlock_vma_pages_range().
+During freeze_page(), we remove the page from rmap.  It munlocks the page
+if it was mlocked.  clear_page_mlock() uses thelru cache, which temporary
+pins the page.
 
-It fixes crashes like this:
- http://lkml.kernel.org/r/565C5C38.3040705@oracle.com
+Let's drain the lru cache before checking page's count vs.  mapcount.  The
+change makes mlocked page split on first attempt, if it was not pinned by
+somebody else.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Tested-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/huge_memory.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/mlock.c~mm-stop-__munlock_pagevec_fill-if-thp-enounted mm/mlock.c
---- a/mm/mlock.c~mm-stop-__munlock_pagevec_fill-if-thp-enounted
-+++ a/mm/mlock.c
-@@ -393,6 +393,13 @@ static unsigned long __munlock_pagevec_f
- 		if (!page || page_zone_id(page) != zoneid)
- 			break;
+diff -puN mm/huge_memory.c~thp-increase-split_huge_page-success-rate mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-increase-split_huge_page-success-rate
++++ a/mm/huge_memory.c
+@@ -3293,6 +3293,9 @@ int split_huge_page_to_list(struct page
+ 	freeze_page(anon_vma, head);
+ 	VM_BUG_ON_PAGE(compound_mapcount(head), head);
  
-+		/*
-+		 * Do not use pagevec for PTE-mapped THP,
-+		 * munlock_vma_pages_range() will handle them.
-+		 */
-+		if (PageTransCompound(page))
-+			break;
++	/* Make sure the page is not on per-CPU pagevec as it takes pin */
++	lru_add_drain();
 +
- 		get_page(page);
- 		/*
- 		 * Increase the address that will be returned *before* the
+ 	/* Prevent deferred_split_scan() touching ->_count */
+ 	spin_lock(&split_queue_lock);
+ 	count = page_count(head);
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -149,5 +148,6 @@ mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
 mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch
 thp-add-debugfs-handle-to-split-all-huge-pages.patch
 mm-stop-__munlock_pagevec_fill-if-thp-enounted.patch
+thp-increase-split_huge_page-success-rate.patch
 mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch
 
