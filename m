@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch added to
+Subject: + mm-stop-__munlock_pagevec_fill-if-thp-enounted.patch added to
  -mm tree
-Date: Mon, 28 Dec 2015 15:19:05 -0800
-Message-ID: <5681c369.NUC7dyHWDtPkGXzu%akpm@linux-foundation.org>
+Date: Mon, 28 Dec 2015 15:21:49 -0800
+Message-ID: <5681c40d.5/scRnaOoR7bzBZl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44887 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45132 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566AbbL1XTG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Dec 2015 18:19:06 -0500
+	with ESMTP id S1752948AbbL1XVu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Dec 2015 18:21:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: fix regression in handling mlocked pages in  __split_huge_pmd()
+     Subject: mm: stop __munlock_pagevec_fill() if THP enounted
 has been added to the -mm tree.  Its filename is
-     mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch
+     mm-stop-__munlock_pagevec_fill-if-thp-enounted.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-stop-__munlock_pagevec_fill-if-thp-enounted.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-stop-__munlock_pagevec_fill-if-thp-enounted.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,54 +40,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: fix regression in handling mlocked pages in  __split_huge_pmd()
+Subject: mm: stop __munlock_pagevec_fill() if THP enounted
 
-This patch fixes regression caused by patch
- "mm, dax: dax-pmd vs thp-pmd vs hugetlbfs-pmd"
+THP is properly handled in munlock_vma_pages_range().
 
-The patch makes pmd_trans_huge() check and "page = pmd_page(*pmd)" after
-__split_huge_pmd_locked(). It can never succeed, since the pmd already
-points to a page table. As result the page is never get munlocked.
-
-It causes crashes like this:
- http://lkml.kernel.org/r/5661FBB6.6050307@oracle.com
+It fixes crashes like this:
+ http://lkml.kernel.org/r/565C5C38.3040705@oracle.com
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Tested-by: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ mm/mlock.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/huge_memory.c~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix mm/huge_memory.c
---- a/mm/huge_memory.c~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix
-+++ a/mm/huge_memory.c
-@@ -2979,16 +2979,15 @@ void __split_huge_pmd(struct vm_area_str
+diff -puN mm/mlock.c~mm-stop-__munlock_pagevec_fill-if-thp-enounted mm/mlock.c
+--- a/mm/mlock.c~mm-stop-__munlock_pagevec_fill-if-thp-enounted
++++ a/mm/mlock.c
+@@ -393,6 +393,13 @@ static unsigned long __munlock_pagevec_f
+ 		if (!page || page_zone_id(page) != zoneid)
+ 			break;
  
- 	mmu_notifier_invalidate_range_start(mm, haddr, haddr + HPAGE_PMD_SIZE);
- 	ptl = pmd_lock(mm, pmd);
--	if (unlikely(!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)))
-+	if (pmd_trans_huge(*pmd)) {
-+		page = pmd_page(*pmd);
-+		if (PageMlocked(page))
-+			get_page(page);
-+		else
-+			page = NULL;
-+	} else if (!pmd_devmap(*pmd))
- 		goto out;
- 	__split_huge_pmd_locked(vma, pmd, haddr, false);
--
--	if (pmd_trans_huge(*pmd))
--		page = pmd_page(*pmd);
--	if (page && PageMlocked(page))
--		get_page(page);
--	else
--		page = NULL;
- out:
- 	spin_unlock(ptl);
- 	mmu_notifier_invalidate_range_end(mm, haddr, haddr + HPAGE_PMD_SIZE);
++		/*
++		 * Do not use pagevec for PTE-mapped THP,
++		 * munlock_vma_pages_range() will handle them.
++		 */
++		if (PageTransCompound(page))
++			break;
++
+ 		get_page(page);
+ 		/*
+ 		 * Increase the address that will be returned *before* the
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -164,5 +148,6 @@ mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
 mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
 mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch
 thp-add-debugfs-handle-to-split-all-huge-pages.patch
+mm-stop-__munlock_pagevec_fill-if-thp-enounted.patch
 mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch
 
