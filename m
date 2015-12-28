@@ -1,18 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: +
- thp-fix-regression-in-handling-mlocked-pages-in-__split_huge_pmd.patch
- added to -mm tree
-Date: Mon, 28 Dec 2015 15:17:35 -0800
-Message-ID: <5681c30f.W5MCD1/NMkKw56FM%akpm@linux-foundation.org>
+Subject: + mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch added to
+ -mm tree
+Date: Mon, 28 Dec 2015 15:19:05 -0800
+Message-ID: <5681c369.NUC7dyHWDtPkGXzu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44879 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44887 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566AbbL1XRg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Dec 2015 18:17:36 -0500
+	with ESMTP id S1752566AbbL1XTG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Dec 2015 18:19:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
@@ -21,12 +20,12 @@ To: kirill.shutemov@linux.intel.com, dan.j.williams@intel.com, sasha.levin@oracl
 The patch titled
      Subject: thp: fix regression in handling mlocked pages in  __split_huge_pmd()
 has been added to the -mm tree.  Its filename is
-     thp-fix-regression-in-handling-mlocked-pages-in-__split_huge_pmd.patch
+     mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-fix-regression-in-handling-mlocked-pages-in-__split_huge_pmd.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-fix-regression-in-handling-mlocked-pages-in-__split_huge_pmd.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -62,8 +61,8 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/huge_memory.c |   15 +++++++--------
  1 file changed, 7 insertions(+), 8 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-fix-regression-in-handling-mlocked-pages-in-__split_huge_pmd mm/huge_memory.c
---- a/mm/huge_memory.c~thp-fix-regression-in-handling-mlocked-pages-in-__split_huge_pmd
+diff -puN mm/huge_memory.c~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix
 +++ a/mm/huge_memory.c
 @@ -2979,16 +2979,15 @@ void __split_huge_pmd(struct vm_area_str
  
@@ -165,5 +164,5 @@ mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
 mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
 mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch
 thp-add-debugfs-handle-to-split-all-huge-pages.patch
-thp-fix-regression-in-handling-mlocked-pages-in-__split_huge_pmd.patch
+mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch
 
