@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-x86-get_user_pages-for-dax-mappings-v5.patch added to -mm
- tree
-Date: Mon, 28 Dec 2015 16:14:44 -0800
-Message-ID: <5681d074.noA1Q9miK8lAxTDB%akpm@linux-foundation.org>
+Subject: + mmoom-exclude-tif_memdie-processes-from-candidates.patch added
+ to -mm tree
+Date: Tue, 29 Dec 2015 12:29:03 -0800
+Message-ID: <5682ed0f.CjJVi0Uvrn9E7j53%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48291 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51413 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752808AbbL2AOp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Dec 2015 19:14:45 -0500
+	with ESMTP id S1753805AbbL2U3E (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Dec 2015 15:29:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, aarcange@redhat.com, dave@sr71.net, hpa@zytor.com, logang@deltatee.com, mgorman@suse.de, mingo@redhat.com, peterz@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: penguin-kernel@i-love.sakura.ne.jp, mgorman@suse.de, mhocko@kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, x86: get_user_pages() for dax mappings
+     Subject: mm,oom: exclude TIF_MEMDIE processes from candidates.
 has been added to the -mm tree.  Its filename is
-     mm-x86-get_user_pages-for-dax-mappings-v5.patch
+     mmoom-exclude-tif_memdie-processes-from-candidates.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-x86-get_user_pages-for-dax-mappings-v5.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmoom-exclude-tif_memdie-processes-from-candidates.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-x86-get_user_pages-for-dax-mappings-v5.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmoom-exclude-tif_memdie-processes-from-candidates.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,193 +39,177 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm, x86: get_user_pages() for dax mappings
+From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Subject: mm,oom: exclude TIF_MEMDIE processes from candidates.
 
-Changes since v4:
+The OOM reaper kernel thread can reclaim OOM victim's memory before the
+victim terminates.  But since oom_kill_process() tries to kill children of
+the memory hog process first, the OOM reaper can not reclaim enough memory
+for terminating the victim if the victim is consuming little memory.  The
+result is OOM livelock as usual, for timeout based next OOM victim
+selection is not implemented.
 
-1/ Fix put_page() to drop the zone_device dev_pagemap reference, otherwise
-we hang at driver unload due to busy references.
+While SysRq-f (manual invocation of the OOM killer) can wake up the OOM
+killer, the OOM killer chooses the same OOM victim which already has
+TIF_MEMDIE.  This is effectively disabling SysRq-f.
 
-2/ Fix follow_page_pte() to properly handle the dev_pagemap reference
-count.
+This patch excludes TIF_MEMDIE processes from candidates so that the
+memory hog process itself will be killed when all children of the memory
+hog process got stuck with TIF_MEMDIE pending.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Tested-by: Logan Gunthorpe <logang@deltatee.com>
-Cc: Dave Hansen <dave@sr71.net>
+[  120.078776] oom-write invoked oom-killer: order=0, oom_score_adj=0, gfp_mask=0x24280ca(GFP_HIGHUSER_MOVABLE|GFP_ZERO)
+[  120.088610] oom-write cpuset=/ mems_allowed=0
+[  120.095558] CPU: 0 PID: 9546 Comm: oom-write Not tainted 4.4.0-rc6-next-20151223 #260
+(...snipped...)
+[  120.194148] [ pid ]   uid  tgid total_vm      rss nr_ptes nr_pmds swapents oom_score_adj name
+(...snipped...)
+[  120.260191] [ 9546]  1000  9546   541716   453473     896       6        0             0 oom-write
+[  120.262166] [ 9547]  1000  9547       40        1       3       2        0             0 write
+[  120.264071] [ 9548]  1000  9548       40        1       3       2        0             0 write
+[  120.265939] [ 9549]  1000  9549       40        1       4       2        0             0 write
+[  120.267794] [ 9550]  1000  9550       40        1       3       2        0             0 write
+[  120.269654] [ 9551]  1000  9551       40        1       3       2        0             0 write
+[  120.271447] [ 9552]  1000  9552       40        1       3       2        0             0 write
+[  120.273220] [ 9553]  1000  9553       40        1       3       2        0             0 write
+[  120.274975] [ 9554]  1000  9554       40        1       3       2        0             0 write
+[  120.276745] [ 9555]  1000  9555       40        1       3       2        0             0 write
+[  120.278516] [ 9556]  1000  9556       40        1       3       2        0             0 write
+[  120.280227] Out of memory: Kill process 9546 (oom-write) score 892 or sacrifice child
+[  120.282010] Killed process 9549 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
+(...snipped...)
+[  122.506001] systemd-journal invoked oom-killer: order=0, oom_score_adj=0, gfp_mask=0x24201ca(GFP_HIGHUSER_MOVABLE|GFP_COLD)
+[  122.515041] systemd-journal cpuset=/ mems_allowed=0
+(...snipped...)
+[  122.697515] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
+[  122.699492] [ 9551]  1000  9551       40        1       3       2        0             0 write
+[  122.701399] [ 9552]  1000  9552       40        1       3       2        0             0 write
+[  122.703282] [ 9553]  1000  9553       40        1       3       2        0             0 write
+[  122.705188] [ 9554]  1000  9554       40        1       3       2        0             0 write
+[  122.707017] [ 9555]  1000  9555       40        1       3       2        0             0 write
+[  122.708842] [ 9556]  1000  9556       40        1       3       2        0             0 write
+[  122.710675] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
+[  122.712475] Killed process 9551 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
+[  139.606508] sysrq: SysRq : Manual OOM execution
+[  139.612371] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
+[  139.620210] kworker/0:2 cpuset=/ mems_allowed=0
+(...snipped...)
+[  139.795759] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
+[  139.797649] [ 9551]  1000  9551       40        0       3       2        0             0 write
+[  139.799526] [ 9552]  1000  9552       40        1       3       2        0             0 write
+[  139.801368] [ 9553]  1000  9553       40        1       3       2        0             0 write
+[  139.803249] [ 9554]  1000  9554       40        1       3       2        0             0 write
+[  139.805020] [ 9555]  1000  9555       40        1       3       2        0             0 write
+[  139.806799] [ 9556]  1000  9556       40        1       3       2        0             0 write
+[  139.808524] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
+[  139.810216] Killed process 9552 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
+(...snipped...)
+[  142.571815] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
+[  142.573840] [ 9551]  1000  9551       40        0       3       2        0             0 write
+[  142.575754] [ 9552]  1000  9552       40        0       3       2        0             0 write
+[  142.577633] [ 9553]  1000  9553       40        1       3       2        0             0 write
+[  142.579433] [ 9554]  1000  9554       40        1       3       2        0             0 write
+[  142.581250] [ 9555]  1000  9555       40        1       3       2        0             0 write
+[  142.583003] [ 9556]  1000  9556       40        1       3       2        0             0 write
+[  142.585055] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
+[  142.586796] Killed process 9553 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
+[  143.599058] sysrq: SysRq : Manual OOM execution
+[  143.604300] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
+(...snipped...)
+[  143.783739] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
+[  143.785691] [ 9551]  1000  9551       40        0       3       2        0             0 write
+[  143.787532] [ 9552]  1000  9552       40        0       3       2        0             0 write
+[  143.789377] [ 9553]  1000  9553       40        0       3       2        0             0 write
+[  143.791172] [ 9554]  1000  9554       40        1       3       2        0             0 write
+[  143.792985] [ 9555]  1000  9555       40        1       3       2        0             0 write
+[  143.794730] [ 9556]  1000  9556       40        1       3       2        0             0 write
+[  143.796723] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
+[  143.798338] Killed process 9554 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
+[  144.374525] sysrq: SysRq : Manual OOM execution
+[  144.379779] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
+(...snipped...)
+[  144.560718] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
+[  144.562657] [ 9551]  1000  9551       40        0       3       2        0             0 write
+[  144.564560] [ 9552]  1000  9552       40        0       3       2        0             0 write
+[  144.566369] [ 9553]  1000  9553       40        0       3       2        0             0 write
+[  144.568246] [ 9554]  1000  9554       40        0       3       2        0             0 write
+[  144.570001] [ 9555]  1000  9555       40        1       3       2        0             0 write
+[  144.571794] [ 9556]  1000  9556       40        1       3       2        0             0 write
+[  144.573502] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
+[  144.575119] Killed process 9555 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
+[  145.158485] sysrq: SysRq : Manual OOM execution
+[  145.163600] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
+(...snipped...)
+[  145.346059] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
+[  145.348012] [ 9551]  1000  9551       40        0       3       2        0             0 write
+[  145.349954] [ 9552]  1000  9552       40        0       3       2        0             0 write
+[  145.351817] [ 9553]  1000  9553       40        0       3       2        0             0 write
+[  145.353701] [ 9554]  1000  9554       40        0       3       2        0             0 write
+[  145.355568] [ 9555]  1000  9555       40        0       3       2        0             0 write
+[  145.357319] [ 9556]  1000  9556       40        1       3       2        0             0 write
+[  145.359114] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
+[  145.360733] Killed process 9556 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
+[  169.158408] sysrq: SysRq : Manual OOM execution
+[  169.163612] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
+(...snipped...)
+[  169.343115] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
+[  169.345053] [ 9551]  1000  9551       40        0       3       2        0             0 write
+[  169.346884] [ 9552]  1000  9552       40        0       3       2        0             0 write
+[  169.348965] [ 9553]  1000  9553       40        0       3       2        0             0 write
+[  169.350893] [ 9554]  1000  9554       40        0       3       2        0             0 write
+[  169.352713] [ 9555]  1000  9555       40        0       3       2        0             0 write
+[  169.354551] [ 9556]  1000  9556       40        0       3       2        0             0 write
+[  169.356450] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
+[  169.358105] Killed process 9551 (write) total-vm:160kB, anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
+[  178.950315] sysrq: SysRq : Manual OOM execution
+[  178.955560] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
+(...snipped...)
+[  179.140752] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
+[  179.142653] [ 9551]  1000  9551       40        0       3       2        0             0 write
+[  179.144997] [ 9552]  1000  9552       40        0       3       2        0             0 write
+[  179.146849] [ 9553]  1000  9553       40        0       3       2        0             0 write
+[  179.148654] [ 9554]  1000  9554       40        0       3       2        0             0 write
+[  179.150411] [ 9555]  1000  9555       40        0       3       2        0             0 write
+[  179.152291] [ 9556]  1000  9556       40        0       3       2        0             0 write
+[  179.154002] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
+[  179.155666] Killed process 9551 (write) total-vm:160kB, anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
+
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   23 +++++++++++++----------
- kernel/memremap.c  |   12 ++----------
- mm/gup.c           |   13 +++++++++++--
- mm/swap.c          |    2 --
- 4 files changed, 26 insertions(+), 24 deletions(-)
+ mm/oom_kill.c |   12 ++++++++++++
+ 1 file changed, 12 insertions(+)
 
-diff -puN include/linux/mm.h~mm-x86-get_user_pages-for-dax-mappings-v5 include/linux/mm.h
---- a/include/linux/mm.h~mm-x86-get_user_pages-for-dax-mappings-v5
-+++ a/include/linux/mm.h
-@@ -477,13 +477,6 @@ static inline void init_page_count(struc
+diff -puN mm/oom_kill.c~mmoom-exclude-tif_memdie-processes-from-candidates mm/oom_kill.c
+--- a/mm/oom_kill.c~mmoom-exclude-tif_memdie-processes-from-candidates
++++ a/mm/oom_kill.c
+@@ -111,6 +111,18 @@ struct task_struct *find_lock_task_mm(st
  
- void __put_page(struct page *page);
+ 	rcu_read_lock();
  
--static inline void put_page(struct page *page)
--{
--	page = compound_head(page);
--	if (put_page_testzero(page))
--		__put_page(page);
--}
--
- void put_pages_list(struct list_head *pages);
- 
- void split_page(struct page *page, unsigned int order);
-@@ -666,7 +659,7 @@ static inline enum zone_type page_zonenu
- 
- #ifdef CONFIG_ZONE_DEVICE
- void get_zone_device_page(struct page *page);
--int release_zone_device_page(struct page *page);
-+void put_zone_device_page(struct page *page);
- static inline bool is_zone_device_page(const struct page *page)
- {
- 	return page_zonenum(page) == ZONE_DEVICE;
-@@ -675,9 +668,8 @@ static inline bool is_zone_device_page(c
- static inline void get_zone_device_page(struct page *page)
- {
- }
--static inline int release_zone_device_page(struct page *page)
-+static inline void put_zone_device_page(struct page *page)
- {
--	return 0;
- }
- static inline bool is_zone_device_page(const struct page *page)
- {
-@@ -699,6 +691,17 @@ static inline void get_page(struct page
- 		get_zone_device_page(page);
- }
- 
-+static inline void put_page(struct page *page)
-+{
-+	page = compound_head(page);
-+
-+	if (put_page_testzero(page))
-+		__put_page(page);
-+
-+	if (unlikely(is_zone_device_page(page)))
-+		put_zone_device_page(page);
-+}
-+
- #if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
- #define SECTION_IN_PAGE_FLAGS
- #endif
-diff -puN kernel/memremap.c~mm-x86-get_user_pages-for-dax-mappings-v5 kernel/memremap.c
---- a/kernel/memremap.c~mm-x86-get_user_pages-for-dax-mappings-v5
-+++ a/kernel/memremap.c
-@@ -175,19 +175,11 @@ void get_zone_device_page(struct page *p
- }
- EXPORT_SYMBOL(get_zone_device_page);
- 
--int release_zone_device_page(struct page *page)
-+void put_zone_device_page(struct page *page)
- {
--	/*
--	 * ZONE_DEVICE pages are never "onlined" so their reference
--	 * counts never reach zero.  They are always owned by a device
--	 * driver, not the mm core.  I.e. the page is 'idle' when the
--	 * count is 1.
--	 */
--	VM_BUG_ON_PAGE(atomic_read(&page->_count) == 1, page);
- 	put_dev_pagemap(page->pgmap);
--	return atomic_dec_return(&page->_count) == 1;
- }
--EXPORT_SYMBOL(release_zone_device_page);
-+EXPORT_SYMBOL(put_zone_device_page);
- 
- static void pgmap_radix_release(struct resource *res)
- {
-diff -puN mm/gup.c~mm-x86-get_user_pages-for-dax-mappings-v5 mm/gup.c
---- a/mm/gup.c~mm-x86-get_user_pages-for-dax-mappings-v5
-+++ a/mm/gup.c
-@@ -63,6 +63,7 @@ static struct page *follow_page_pte(stru
- 		unsigned long address, pmd_t *pmd, unsigned int flags)
- {
- 	struct mm_struct *mm = vma->vm_mm;
-+	struct dev_pagemap *pgmap = NULL;
- 	struct page *page;
- 	spinlock_t *ptl;
- 	pte_t *ptep, pte;
-@@ -104,7 +105,8 @@ retry:
- 		 * Only return device mapping pages in the FOLL_GET case since
- 		 * they are only valid while holding the pgmap reference.
- 		 */
--		if (get_dev_pagemap(pte_pfn(pte), NULL))
-+		pgmap = get_dev_pagemap(pte_pfn(pte), NULL);
-+		if (pgmap)
- 			page = pte_page(pte);
- 		else
- 			goto no_page;
-@@ -139,8 +141,15 @@ retry:
- 		goto retry;
- 	}
- 
--	if (flags & FOLL_GET)
-+	if (flags & FOLL_GET) {
- 		get_page(page);
-+
-+		/* drop the pgmap reference now that we hold the page */
-+		if (pgmap) {
-+			put_dev_pagemap(pgmap);
-+			pgmap = NULL;
-+		}
++	/*
++	 * Treat the whole process p as unkillable when one of subthreads has
++	 * TIF_MEMDIE pending. Otherwise, we may end up setting TIF_MEMDIE on
++	 * the same victim forever (e.g. making SysRq-f unusable).
++	 */
++	for_each_thread(p, t) {
++		if (likely(!test_tsk_thread_flag(t, TIF_MEMDIE)))
++			continue;
++		t = NULL;
++		goto found;
 +	}
- 	if (flags & FOLL_TOUCH) {
- 		if ((flags & FOLL_WRITE) &&
- 		    !pte_dirty(pte) && !PageDirty(page))
-diff -puN mm/swap.c~mm-x86-get_user_pages-for-dax-mappings-v5 mm/swap.c
---- a/mm/swap.c~mm-x86-get_user_pages-for-dax-mappings-v5
-+++ a/mm/swap.c
-@@ -95,8 +95,6 @@ void __put_page(struct page *page)
- {
- 	if (unlikely(PageCompound(page)))
- 		__put_compound_page(page);
--	else if (unlikely(is_zone_device_page(page)))
--		release_zone_device_page(page);
- 	else
- 		__put_single_page(page);
- }
++
+ 	for_each_thread(p, t) {
+ 		task_lock(t);
+ 		if (likely(t->mm))
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
 
-pmem-dax-clean-up-clear_pmem.patch
-dax-increase-granularity-of-dax_clear_blocks-operations.patch
-dax-guarantee-page-aligned-results-from-bdev_direct_access.patch
-dax-fix-lifetime-of-in-kernel-dax-mappings-with-dax_map_atomic.patch
-dax-fix-lifetime-of-in-kernel-dax-mappings-with-dax_map_atomic-v3.patch
-um-kill-pfn_t.patch
-kvm-rename-pfn_t-to-kvm_pfn_t.patch
-mm-dax-pmem-introduce-pfn_t.patch
-mm-skip-memory-block-registration-for-zone_device.patch
-mm-introduce-find_dev_pagemap.patch
-x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate.patch
-libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory.patch
-avr32-convert-to-asm-generic-memory_modelh.patch
-hugetlb-fix-compile-error-on-tile.patch
-frv-fix-compiler-warning-from-definition-of-__pmd.patch
-x86-mm-introduce-_page_devmap.patch
-mm-dax-gpu-convert-vm_insert_mixed-to-pfn_t.patch
-mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t.patch
-libnvdimm-pmem-move-request_queue-allocation-earlier-in-probe.patch
-mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup.patch
-mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd.patch
-mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5.patch
-mm-x86-get_user_pages-for-dax-mappings.patch
-mm-x86-get_user_pages-for-dax-mappings-v5.patch
-dax-provide-diagnostics-for-pmd-mapping-failures.patch
-dax-re-enable-dax-pmd-mappings.patch
+tree-wide-use-kvfree-than-conditional-kfree-vfree.patch
+mmoom-exclude-tif_memdie-processes-from-candidates.patch
 
