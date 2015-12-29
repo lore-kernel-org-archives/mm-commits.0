@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-export-ocfs2_kset-for-online-file-check.patch added to
- -mm tree
-Date: Tue, 29 Dec 2015 13:41:24 -0800
-Message-ID: <5682fe04.4HAW8V7U3ZmlYPgu%akpm@linux-foundation.org>
+Subject: + ocfs2-export-ocfs2_kset-for-online-file-check-fix.patch added
+ to -mm tree
+Date: Tue, 29 Dec 2015 13:41:26 -0800
+Message-ID: <5682fe06.Rc2UR8NCXnBIxhQo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57605 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57611 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753920AbbL2VlZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Dec 2015 16:41:25 -0500
+	with ESMTP id S1753920AbbL2Vl1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Dec 2015 16:41:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: export ocfs2_kset for online file check
+     Subject: ocfs2-export-ocfs2_kset-for-online-file-check-fix
 has been added to the -mm tree.  Its filename is
-     ocfs2-export-ocfs2_kset-for-online-file-check.patch
+     ocfs2-export-ocfs2_kset-for-online-file-check-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-export-ocfs2_kset-for-online-file-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-export-ocfs2_kset-for-online-file-check-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-export-ocfs2_kset-for-online-file-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-export-ocfs2_kset-for-online-file-check-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +39,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gang He <ghe@suse.com>
-Subject: ocfs2: export ocfs2_kset for online file check
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ocfs2-export-ocfs2_kset-for-online-file-check-fix
 
-When there are errors in the ocfs2 filesystem,
-they are usually accompanied by the inode number which caused the error.
-This inode number would be the input to fixing the file.
-One of these options could be considered:
+remove unneeded EXPORT_SYMBOL_GPL(ocfs2_kset)
 
-A file in the sys filesytem which would accept inode numbers.
-This could be used to communication back what has to be fixed or is fixed.
-You could write:
-
-$# echo "<inode>" > /sys/fs/ocfs2/devname/filecheck/check
-
-or
-
-$# echo "<inode>" > /sys/fs/ocfs2/devname/filecheck/fix
-
-Compare with second version, I re-design filecheck sysfs interfaces, there
-are three sysfs files (check, fix and set) under filecheck directory (see
-above), sysfs will accept only one argument <inode>.  Second, I adjust
-some code in ocfs2_filecheck_repair_inode_block() function according to
-upstream feedback, we cannot just add VALID_FL flag back as a inode block
-fix, then we will not fix this field corruption currently until having a
-complete solution.  Compare with first version, I use strncasecmp instead
-of double strncmp functions.  Second, update the source file contribution
-vendor.
-
-
-This patch (of 4):
-
-Export ocfs2_kset object from ocfs2_stackglue kernel module, then online
-file check code will create the related sysfiles under ocfs2_kset object.
-
-Signed-off-by: Gang He <ghe@suse.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Gang He <ghe@suse.com>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Joseph Qi <joseph.qi@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stackglue.c |    3 ++-
- fs/ocfs2/stackglue.h |    2 ++
- 2 files changed, 4 insertions(+), 1 deletion(-)
+ fs/ocfs2/stackglue.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/ocfs2/stackglue.c~ocfs2-export-ocfs2_kset-for-online-file-check fs/ocfs2/stackglue.c
---- a/fs/ocfs2/stackglue.c~ocfs2-export-ocfs2_kset-for-online-file-check
+diff -puN fs/ocfs2/stackglue.c~ocfs2-export-ocfs2_kset-for-online-file-check-fix fs/ocfs2/stackglue.c
+--- a/fs/ocfs2/stackglue.c~ocfs2-export-ocfs2_kset-for-online-file-check-fix
 +++ a/fs/ocfs2/stackglue.c
-@@ -629,7 +629,8 @@ static struct attribute_group ocfs2_attr
- 	.attrs = ocfs2_attrs,
+@@ -630,7 +630,6 @@ static struct attribute_group ocfs2_attr
  };
  
--static struct kset *ocfs2_kset;
-+struct kset *ocfs2_kset;
-+EXPORT_SYMBOL_GPL(ocfs2_kset);
+ struct kset *ocfs2_kset;
+-EXPORT_SYMBOL_GPL(ocfs2_kset);
  
  static void ocfs2_sysfs_exit(void)
  {
-diff -puN fs/ocfs2/stackglue.h~ocfs2-export-ocfs2_kset-for-online-file-check fs/ocfs2/stackglue.h
---- a/fs/ocfs2/stackglue.h~ocfs2-export-ocfs2_kset-for-online-file-check
-+++ a/fs/ocfs2/stackglue.h
-@@ -298,4 +298,6 @@ void ocfs2_stack_glue_set_max_proto_vers
- int ocfs2_stack_glue_register(struct ocfs2_stack_plugin *plugin);
- void ocfs2_stack_glue_unregister(struct ocfs2_stack_plugin *plugin);
- 
-+extern struct kset *ocfs2_kset;
-+
- #endif  /* STACKGLUE_H */
 _
 
-Patches currently in -mm which might be from ghe@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-export-ocfs2_kset-for-online-file-check.patch
-ocfs2-sysfile-interfaces-for-online-file-check.patch
-ocfs2-create-remove-sysfile-for-online-file-check.patch
-ocfs2-check-fix-inode-block-for-online-file-check.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+arch-x86-xen-suspendc-include-xen-xenh.patch
+ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+ocfs2-export-ocfs2_kset-for-online-file-check-fix.patch
+include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
+mm.patch
+account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
+mm-zonelist-enumerate-zonelists-array-index-fix.patch
+mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
+arm64-mm-support-arch_mmap_rnd_bits-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+mm-printk-introduce-new-format-string-for-flags-fix-2.patch
+mm-support-madvisemadv_free-fix-2-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+mm-oom-introduce-oom-reaper-fix-fix.patch
+mm-oom-introduce-oom-reaper-fix-fix-2.patch
+mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
+mm-oom-introduce-oom-reaper-fix-3.patch
+mm-oom-introduce-oom-reaper-fix-4-fix.patch
+mm-oom-introduce-oom-reaper-fix-5-fix.patch
+kernel-stop_machinec-remove-config_smp-dependencies.patch
+kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
+lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
+lib-test_printfc-test-dentry-printing-fix.patch
+printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
+printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix-fix.patch
+printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+include-linux-propertyh-fix-build-issues-with-gcc-444.patch
+include-linux-propertyh-fix-build-issues-with-gcc-444-fix.patch
+fs-overlayfs-superc-needs-pagemaph.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+net-drop-tcp_memcontrolc-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
