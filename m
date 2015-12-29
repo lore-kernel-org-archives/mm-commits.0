@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-noisy-sparse-warning-in-libcfs_alloc_pre.patch added to
- -mm tree
-Date: Tue, 29 Dec 2015 13:27:54 -0800
-Message-ID: <5682fada.GtA+PpD+6fqIqVF2%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-dlm-do-not-insert-a-new-mle-when-another-process-is-already-migrating.patch added to -mm tree
+Date: Tue, 29 Dec 2015 13:32:12 -0800
+Message-ID: <5682fbdc.4kPS52jhyeZjjWt8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56301 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56694 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753613AbbL2V1z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Dec 2015 16:27:55 -0500
+	with ESMTP id S1753613AbbL2VcN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Dec 2015 16:32:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: stillcompiling@gmail.com, mgorman@techsingularity.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix noisy sparse warning in LIBCFS_ALLOC_PRE()
+     Subject: ocfs2/dlm: do not insert a new mle when another process is already migrating
 has been added to the -mm tree.  Its filename is
-     mm-fix-noisy-sparse-warning-in-libcfs_alloc_pre.patch
+     ocfs2-dlm-do-not-insert-a-new-mle-when-another-process-is-already-migrating.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-noisy-sparse-warning-in-libcfs_alloc_pre.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-do-not-insert-a-new-mle-when-another-process-is-already-migrating.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-noisy-sparse-warning-in-libcfs_alloc_pre.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-do-not-insert-a-new-mle-when-another-process-is-already-migrating.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,39 +39,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joshua Clayton <stillcompiling@gmail.com>
-Subject: mm: fix noisy sparse warning in LIBCFS_ALLOC_PRE()
+From: xuejiufei <xuejiufei@huawei.com>
+Subject: ocfs2/dlm: do not insert a new mle when another process is already migrating
 
-running sparse on drivers/staging/lustre results in dozens of warnings:
-include/linux/gfp.h:281:41: warning:
-odd constant _Bool cast (400000 becomes 1)
+When two processes are migrating the same lockres, dlm_add_migration_mle()
+return -EEXIST, but insert a new mle in hash list.  dlm_migrate_lockres()
+will detach the old mle and free the new one which is already in hash
+list, that will destroy the list.
 
-Use "!!" to explicitly convert to bool and get rid of the warning.
-
-Signed-off-by: Joshua Clayton <stillcompiling@gmail.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Jiufei Xue <xuejiufei@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmmaster.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-fix-noisy-sparse-warning-in-libcfs_alloc_pre include/linux/gfp.h
---- a/include/linux/gfp.h~mm-fix-noisy-sparse-warning-in-libcfs_alloc_pre
-+++ a/include/linux/gfp.h
-@@ -278,7 +278,7 @@ static inline int gfpflags_to_migratetyp
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-do-not-insert-a-new-mle-when-another-process-is-already-migrating fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-do-not-insert-a-new-mle-when-another-process-is-already-migrating
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -2549,7 +2549,7 @@ static int dlm_migrate_lockres(struct dl
+ 	}
  
- static inline bool gfpflags_allow_blocking(const gfp_t gfp_flags)
- {
--	return (bool __force)(gfp_flags & __GFP_DIRECT_RECLAIM);
-+	return !!(gfp_flags & __GFP_DIRECT_RECLAIM);
- }
- 
- #ifdef CONFIG_HIGHMEM
+ fail:
+-	if (oldmle) {
++	if (ret != -EEXIST && oldmle) {
+ 		/* master is known, detach if not already detached */
+ 		dlm_mle_detach_hb_events(dlm, oldmle);
+ 		dlm_put_mle(oldmle);
+@@ -3136,7 +3136,8 @@ static int dlm_add_migration_mle(struct
+ 				mlog(0, "tried to migrate %.*s, but some "
+ 				     "process beat me to it\n",
+ 				     namelen, name);
+-				ret = -EEXIST;
++				spin_unlock(&tmp->spinlock);
++				return -EEXIST;
+ 			} else {
+ 				/* bad.  2 NODES are trying to migrate! */
+ 				mlog(ML_ERROR, "migration error  mle: "
 _
 
-Patches currently in -mm which might be from stillcompiling@gmail.com are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
-mm-fix-noisy-sparse-warning-in-libcfs_alloc_pre.patch
+ocfs2-dlm-clear-migration_pending-when-migration-target-goes-down.patch
+ocfs2-dlm-fix-a-race-between-purge-and-migratio.patch
+ocfs2-dlm-fix-a-race-between-purge-and-migratio-v2.patch
+ocfs2-dlm-return-appropriate-value-when-dlm_grab-returns-null.patch
+ocfs2-dlm-ignore-cleaning-the-migration-mle-that-is-inuse.patch
+ocfs2-dlm-do-not-insert-a-new-mle-when-another-process-is-already-migrating.patch
+ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
+extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
 
