@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mmoom-exclude-tif_memdie-processes-from-candidates.patch added
- to -mm tree
-Date: Tue, 29 Dec 2015 12:29:03 -0800
-Message-ID: <5682ed0f.CjJVi0Uvrn9E7j53%akpm@linux-foundation.org>
+Subject: + mm-vmstat-fix-overflow-in-mod_zone_page_state.patch added to
+ -mm tree
+Date: Tue, 29 Dec 2015 12:31:23 -0800
+Message-ID: <5682ed9b.5XOOxP/clw6fjwdn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51413 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51736 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753805AbbL2U3E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Dec 2015 15:29:04 -0500
+	with ESMTP id S1753661AbbL2UbY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Dec 2015 15:31:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@i-love.sakura.ne.jp, mgorman@suse.de, mhocko@kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: heiko.carstens@de.ibm.com, cl@linux.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,oom: exclude TIF_MEMDIE processes from candidates.
+     Subject: mm/vmstat: fix overflow in mod_zone_page_state()
 has been added to the -mm tree.  Its filename is
-     mmoom-exclude-tif_memdie-processes-from-candidates.patch
+     mm-vmstat-fix-overflow-in-mod_zone_page_state.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmoom-exclude-tif_memdie-processes-from-candidates.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-fix-overflow-in-mod_zone_page_state.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmoom-exclude-tif_memdie-processes-from-candidates.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-fix-overflow-in-mod_zone_page_state.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,177 +39,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Subject: mm,oom: exclude TIF_MEMDIE processes from candidates.
+From: Heiko Carstens <heiko.carstens@de.ibm.com>
+Subject: mm/vmstat: fix overflow in mod_zone_page_state()
 
-The OOM reaper kernel thread can reclaim OOM victim's memory before the
-victim terminates.  But since oom_kill_process() tries to kill children of
-the memory hog process first, the OOM reaper can not reclaim enough memory
-for terminating the victim if the victim is consuming little memory.  The
-result is OOM livelock as usual, for timeout based next OOM victim
-selection is not implemented.
+mod_zone_page_state() takes a "delta" integer argument.  delta contains
+the number of pages that should be added or subtracted from a struct
+zone's vm_stat field.
 
-While SysRq-f (manual invocation of the OOM killer) can wake up the OOM
-killer, the OOM killer chooses the same OOM victim which already has
-TIF_MEMDIE.  This is effectively disabling SysRq-f.
+If a zone is larger than 8TB this will cause overflows.  E.g.  for a zone
+with a size slightly larger than 8TB the line
 
-This patch excludes TIF_MEMDIE processes from candidates so that the
-memory hog process itself will be killed when all children of the memory
-hog process got stuck with TIF_MEMDIE pending.
+	mod_zone_page_state(zone, NR_ALLOC_BATCH, zone->managed_pages);
 
-[  120.078776] oom-write invoked oom-killer: order=0, oom_score_adj=0, gfp_mask=0x24280ca(GFP_HIGHUSER_MOVABLE|GFP_ZERO)
-[  120.088610] oom-write cpuset=/ mems_allowed=0
-[  120.095558] CPU: 0 PID: 9546 Comm: oom-write Not tainted 4.4.0-rc6-next-20151223 #260
-(...snipped...)
-[  120.194148] [ pid ]   uid  tgid total_vm      rss nr_ptes nr_pmds swapents oom_score_adj name
-(...snipped...)
-[  120.260191] [ 9546]  1000  9546   541716   453473     896       6        0             0 oom-write
-[  120.262166] [ 9547]  1000  9547       40        1       3       2        0             0 write
-[  120.264071] [ 9548]  1000  9548       40        1       3       2        0             0 write
-[  120.265939] [ 9549]  1000  9549       40        1       4       2        0             0 write
-[  120.267794] [ 9550]  1000  9550       40        1       3       2        0             0 write
-[  120.269654] [ 9551]  1000  9551       40        1       3       2        0             0 write
-[  120.271447] [ 9552]  1000  9552       40        1       3       2        0             0 write
-[  120.273220] [ 9553]  1000  9553       40        1       3       2        0             0 write
-[  120.274975] [ 9554]  1000  9554       40        1       3       2        0             0 write
-[  120.276745] [ 9555]  1000  9555       40        1       3       2        0             0 write
-[  120.278516] [ 9556]  1000  9556       40        1       3       2        0             0 write
-[  120.280227] Out of memory: Kill process 9546 (oom-write) score 892 or sacrifice child
-[  120.282010] Killed process 9549 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
-(...snipped...)
-[  122.506001] systemd-journal invoked oom-killer: order=0, oom_score_adj=0, gfp_mask=0x24201ca(GFP_HIGHUSER_MOVABLE|GFP_COLD)
-[  122.515041] systemd-journal cpuset=/ mems_allowed=0
-(...snipped...)
-[  122.697515] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
-[  122.699492] [ 9551]  1000  9551       40        1       3       2        0             0 write
-[  122.701399] [ 9552]  1000  9552       40        1       3       2        0             0 write
-[  122.703282] [ 9553]  1000  9553       40        1       3       2        0             0 write
-[  122.705188] [ 9554]  1000  9554       40        1       3       2        0             0 write
-[  122.707017] [ 9555]  1000  9555       40        1       3       2        0             0 write
-[  122.708842] [ 9556]  1000  9556       40        1       3       2        0             0 write
-[  122.710675] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
-[  122.712475] Killed process 9551 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
-[  139.606508] sysrq: SysRq : Manual OOM execution
-[  139.612371] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
-[  139.620210] kworker/0:2 cpuset=/ mems_allowed=0
-(...snipped...)
-[  139.795759] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
-[  139.797649] [ 9551]  1000  9551       40        0       3       2        0             0 write
-[  139.799526] [ 9552]  1000  9552       40        1       3       2        0             0 write
-[  139.801368] [ 9553]  1000  9553       40        1       3       2        0             0 write
-[  139.803249] [ 9554]  1000  9554       40        1       3       2        0             0 write
-[  139.805020] [ 9555]  1000  9555       40        1       3       2        0             0 write
-[  139.806799] [ 9556]  1000  9556       40        1       3       2        0             0 write
-[  139.808524] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
-[  139.810216] Killed process 9552 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
-(...snipped...)
-[  142.571815] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
-[  142.573840] [ 9551]  1000  9551       40        0       3       2        0             0 write
-[  142.575754] [ 9552]  1000  9552       40        0       3       2        0             0 write
-[  142.577633] [ 9553]  1000  9553       40        1       3       2        0             0 write
-[  142.579433] [ 9554]  1000  9554       40        1       3       2        0             0 write
-[  142.581250] [ 9555]  1000  9555       40        1       3       2        0             0 write
-[  142.583003] [ 9556]  1000  9556       40        1       3       2        0             0 write
-[  142.585055] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
-[  142.586796] Killed process 9553 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
-[  143.599058] sysrq: SysRq : Manual OOM execution
-[  143.604300] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
-(...snipped...)
-[  143.783739] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
-[  143.785691] [ 9551]  1000  9551       40        0       3       2        0             0 write
-[  143.787532] [ 9552]  1000  9552       40        0       3       2        0             0 write
-[  143.789377] [ 9553]  1000  9553       40        0       3       2        0             0 write
-[  143.791172] [ 9554]  1000  9554       40        1       3       2        0             0 write
-[  143.792985] [ 9555]  1000  9555       40        1       3       2        0             0 write
-[  143.794730] [ 9556]  1000  9556       40        1       3       2        0             0 write
-[  143.796723] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
-[  143.798338] Killed process 9554 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
-[  144.374525] sysrq: SysRq : Manual OOM execution
-[  144.379779] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
-(...snipped...)
-[  144.560718] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
-[  144.562657] [ 9551]  1000  9551       40        0       3       2        0             0 write
-[  144.564560] [ 9552]  1000  9552       40        0       3       2        0             0 write
-[  144.566369] [ 9553]  1000  9553       40        0       3       2        0             0 write
-[  144.568246] [ 9554]  1000  9554       40        0       3       2        0             0 write
-[  144.570001] [ 9555]  1000  9555       40        1       3       2        0             0 write
-[  144.571794] [ 9556]  1000  9556       40        1       3       2        0             0 write
-[  144.573502] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
-[  144.575119] Killed process 9555 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
-[  145.158485] sysrq: SysRq : Manual OOM execution
-[  145.163600] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
-(...snipped...)
-[  145.346059] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
-[  145.348012] [ 9551]  1000  9551       40        0       3       2        0             0 write
-[  145.349954] [ 9552]  1000  9552       40        0       3       2        0             0 write
-[  145.351817] [ 9553]  1000  9553       40        0       3       2        0             0 write
-[  145.353701] [ 9554]  1000  9554       40        0       3       2        0             0 write
-[  145.355568] [ 9555]  1000  9555       40        0       3       2        0             0 write
-[  145.357319] [ 9556]  1000  9556       40        1       3       2        0             0 write
-[  145.359114] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
-[  145.360733] Killed process 9556 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
-[  169.158408] sysrq: SysRq : Manual OOM execution
-[  169.163612] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
-(...snipped...)
-[  169.343115] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
-[  169.345053] [ 9551]  1000  9551       40        0       3       2        0             0 write
-[  169.346884] [ 9552]  1000  9552       40        0       3       2        0             0 write
-[  169.348965] [ 9553]  1000  9553       40        0       3       2        0             0 write
-[  169.350893] [ 9554]  1000  9554       40        0       3       2        0             0 write
-[  169.352713] [ 9555]  1000  9555       40        0       3       2        0             0 write
-[  169.354551] [ 9556]  1000  9556       40        0       3       2        0             0 write
-[  169.356450] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
-[  169.358105] Killed process 9551 (write) total-vm:160kB, anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
-[  178.950315] sysrq: SysRq : Manual OOM execution
-[  178.955560] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
-(...snipped...)
-[  179.140752] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
-[  179.142653] [ 9551]  1000  9551       40        0       3       2        0             0 write
-[  179.144997] [ 9552]  1000  9552       40        0       3       2        0             0 write
-[  179.146849] [ 9553]  1000  9553       40        0       3       2        0             0 write
-[  179.148654] [ 9554]  1000  9554       40        0       3       2        0             0 write
-[  179.150411] [ 9555]  1000  9555       40        0       3       2        0             0 write
-[  179.152291] [ 9556]  1000  9556       40        0       3       2        0             0 write
-[  179.154002] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
-[  179.155666] Killed process 9551 (write) total-vm:160kB, anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
+in mm/page_alloc.c:free_area_init_core() will result in a negative result
+for the NR_ALLOC_BATCH entry within the zone's vm_stat, since 8TB contain
+0x8xxxxxxx pages which will be sign extended to a negative value.
 
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
+Fix this by changing the delta argument to long type.
+
+This could fix an early boot problem seen on s390, where we have a 9TB
+system with only one node.  ZONE_DMA contains 2GB and ZONE_NORMAL the
+rest.  The system is trying to allocate a GFP_DMA page but ZONE_DMA is
+completely empty, so it tries to reclaim pages in an endless loop.
+
+This was seen on a heavily patched 3.10 kernel.  One possible explaination
+seem to be the overflows caused by mod_zone_page_state().  Unfortunately I
+did not have the chance to verify that this patch actually fixes the
+problem, since I don't have access to the system right now.  However the
+overflow problem does exist anyway.
+
+Given the description that a system with slightly less than 8TB does work,
+this seems to be a candidate for the observed problem.
+
+Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ include/linux/vmstat.h |    6 +++---
+ mm/vmstat.c            |   10 +++++-----
+ 2 files changed, 8 insertions(+), 8 deletions(-)
 
-diff -puN mm/oom_kill.c~mmoom-exclude-tif_memdie-processes-from-candidates mm/oom_kill.c
---- a/mm/oom_kill.c~mmoom-exclude-tif_memdie-processes-from-candidates
-+++ a/mm/oom_kill.c
-@@ -111,6 +111,18 @@ struct task_struct *find_lock_task_mm(st
+diff -puN include/linux/vmstat.h~mm-vmstat-fix-overflow-in-mod_zone_page_state include/linux/vmstat.h
+--- a/include/linux/vmstat.h~mm-vmstat-fix-overflow-in-mod_zone_page_state
++++ a/include/linux/vmstat.h
+@@ -176,11 +176,11 @@ extern void zone_statistics(struct zone
+ #define sub_zone_page_state(__z, __i, __d) mod_zone_page_state(__z, __i, -(__d))
  
- 	rcu_read_lock();
+ #ifdef CONFIG_SMP
+-void __mod_zone_page_state(struct zone *, enum zone_stat_item item, int);
++void __mod_zone_page_state(struct zone *, enum zone_stat_item item, long);
+ void __inc_zone_page_state(struct page *, enum zone_stat_item);
+ void __dec_zone_page_state(struct page *, enum zone_stat_item);
  
-+	/*
-+	 * Treat the whole process p as unkillable when one of subthreads has
-+	 * TIF_MEMDIE pending. Otherwise, we may end up setting TIF_MEMDIE on
-+	 * the same victim forever (e.g. making SysRq-f unusable).
-+	 */
-+	for_each_thread(p, t) {
-+		if (likely(!test_tsk_thread_flag(t, TIF_MEMDIE)))
-+			continue;
-+		t = NULL;
-+		goto found;
-+	}
-+
- 	for_each_thread(p, t) {
- 		task_lock(t);
- 		if (likely(t->mm))
+-void mod_zone_page_state(struct zone *, enum zone_stat_item, int);
++void mod_zone_page_state(struct zone *, enum zone_stat_item, long);
+ void inc_zone_page_state(struct page *, enum zone_stat_item);
+ void dec_zone_page_state(struct page *, enum zone_stat_item);
+ 
+@@ -205,7 +205,7 @@ void set_pgdat_percpu_threshold(pg_data_
+  * The functions directly modify the zone and global counters.
+  */
+ static inline void __mod_zone_page_state(struct zone *zone,
+-			enum zone_stat_item item, int delta)
++			enum zone_stat_item item, long delta)
+ {
+ 	zone_page_state_add(delta, zone, item);
+ }
+diff -puN mm/vmstat.c~mm-vmstat-fix-overflow-in-mod_zone_page_state mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstat-fix-overflow-in-mod_zone_page_state
++++ a/mm/vmstat.c
+@@ -219,7 +219,7 @@ void set_pgdat_percpu_threshold(pg_data_
+  * particular counter cannot be updated from interrupt context.
+  */
+ void __mod_zone_page_state(struct zone *zone, enum zone_stat_item item,
+-				int delta)
++			   long delta)
+ {
+ 	struct per_cpu_pageset __percpu *pcp = zone->pageset;
+ 	s8 __percpu *p = pcp->vm_stat_diff + item;
+@@ -318,8 +318,8 @@ EXPORT_SYMBOL(__dec_zone_page_state);
+  *     1       Overstepping half of threshold
+  *     -1      Overstepping minus half of threshold
+ */
+-static inline void mod_state(struct zone *zone,
+-       enum zone_stat_item item, int delta, int overstep_mode)
++static inline void mod_state(struct zone *zone, enum zone_stat_item item,
++			     long delta, int overstep_mode)
+ {
+ 	struct per_cpu_pageset __percpu *pcp = zone->pageset;
+ 	s8 __percpu *p = pcp->vm_stat_diff + item;
+@@ -357,7 +357,7 @@ static inline void mod_state(struct zone
+ }
+ 
+ void mod_zone_page_state(struct zone *zone, enum zone_stat_item item,
+-					int delta)
++			 long delta)
+ {
+ 	mod_state(zone, item, delta, 0);
+ }
+@@ -384,7 +384,7 @@ EXPORT_SYMBOL(dec_zone_page_state);
+  * Use interrupt disable to serialize counter updates
+  */
+ void mod_zone_page_state(struct zone *zone, enum zone_stat_item item,
+-					int delta)
++			 long delta)
+ {
+ 	unsigned long flags;
+ 
 _
 
-Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
+Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
 
-tree-wide-use-kvfree-than-conditional-kfree-vfree.patch
-mmoom-exclude-tif_memdie-processes-from-candidates.patch
+mm-vmstat-fix-overflow-in-mod_zone_page_state.patch
 
