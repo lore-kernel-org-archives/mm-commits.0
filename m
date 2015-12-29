@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + thp-allow-mlocked-thp-again-fix-2.patch added to -mm tree
-Date: Tue, 29 Dec 2015 12:53:00 -0800
-Message-ID: <5682f2ac.7QSsEXwDDUJ3UVw1%akpm@linux-foundation.org>
+Subject: + mm-oom-introduce-oom-reaper-fix-6.patch added to -mm tree
+Date: Tue, 29 Dec 2015 12:54:17 -0800
+Message-ID: <5682f2f9.byNC5FhoFwme4ec5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53334 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53357 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752026AbbL2UxB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Dec 2015 15:53:01 -0500
+	with ESMTP id S1753729AbbL2UyS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Dec 2015 15:54:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, mhocko@suse.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, thp: clear PG_mlocked when last mapping gone
+     Subject: mm, oom: skip mlocked VMAs in __oom_reap_vmas()
 has been added to the -mm tree.  Its filename is
-     thp-allow-mlocked-thp-again-fix-2.patch
+     mm-oom-introduce-oom-reaper-fix-6.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-allow-mlocked-thp-again-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-introduce-oom-reaper-fix-6.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-allow-mlocked-thp-again-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-introduce-oom-reaper-fix-6.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,44 +39,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm, thp: clear PG_mlocked when last mapping gone
+Subject: mm, oom: skip mlocked VMAs in __oom_reap_vmas()
 
-I missed clear_page_mlock() in page_remove_anon_compound_rmap().
-It usually shouldn't cause any problems since we munlock pages
-explicitly, but in conjunction with missed munlock in __oom_reap_vmas()
-it causes problems:
+As far as I can see we explicitly munlock pages everywhere before unmap
+them. The only case when we don't to that is OOM-reaper.
+
+I don't think we should bother with munlocking in this case, we can just
+skip the locked VMA.
+
+I think this patch would fix this crash:
  http://lkml.kernel.org/r/5661FBB6.6050307@oracle.com
-
-Let's put it in place an mirror behaviour for small pages.
-
-NOTE: I'm not entirely sure why we ever need clear_page_mlock() in
-page_remove_rmap() codepath. It looks redundant to me as we munlock
-pages anyway. But this is out of scope of the patch.
-
-The patch can be folded into
- "thp: allow mlocked THP again"
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/rmap.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/oom_kill.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/rmap.c~thp-allow-mlocked-thp-again-fix-2 mm/rmap.c
---- a/mm/rmap.c~thp-allow-mlocked-thp-again-fix-2
-+++ a/mm/rmap.c
-@@ -1282,6 +1282,9 @@ static void page_remove_anon_compound_rm
- 		nr = HPAGE_PMD_NR;
- 	}
+diff -puN mm/oom_kill.c~mm-oom-introduce-oom-reaper-fix-6 mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-introduce-oom-reaper-fix-6
++++ a/mm/oom_kill.c
+@@ -447,6 +447,13 @@ static bool __oom_reap_vmas(struct mm_st
+ 			continue;
  
-+	if (unlikely(PageMlocked(page)))
-+		clear_page_mlock(page);
+ 		/*
++		 * mlocked VMAs require explicit munlocking before unmap.
++		 * Let's keep it simple here and skip such VMAs.
++		 */
++		if (vma->vm_flags & VM_LOCKED)
++			continue;
 +
- 	if (nr) {
- 		__mod_zone_page_state(page_zone(page), NR_ANON_PAGES, -nr);
- 		deferred_split_huge_page(page);
++		/*
+ 		 * Only anonymous pages have a good chance to be dropped
+ 		 * without additional steps which we cannot afford as we
+ 		 * are OOM already.
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -157,4 +156,5 @@ mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patc
 thp-add-debugfs-handle-to-split-all-huge-pages.patch
 thp-increase-split_huge_page-success-rate.patch
 mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch
+mm-oom-introduce-oom-reaper-fix-6.patch
 
