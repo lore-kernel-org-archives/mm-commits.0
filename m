@@ -1,118 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- ocfs2-export-ocfs2_kset-for-online-file-check-fix.patch removed from -mm
- tree
-Date: Tue, 29 Dec 2015 22:18:57 -0800
-Message-ID: <56837751.dFAVVfikEHo/Ii+e%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-fix-bug-when-calculate-new-backup-super.patch
+ removed from -mm tree
+Date: Wed, 30 Dec 2015 12:40:09 -0800
+Message-ID: <56844129.VEVJ2L0GQ7tlxXe2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42051 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35167 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750814AbbL3GS6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2015 01:18:58 -0500
+	with ESMTP id S1754483AbbL3UkK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2015 15:40:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jiangyiwen@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, stable@vger.kernel.org, xuejiufei@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-export-ocfs2_kset-for-online-file-check-fix
+     Subject: ocfs2: fix BUG when calculate new backup super
 has been removed from the -mm tree.  Its filename was
-     ocfs2-export-ocfs2_kset-for-online-file-check-fix.patch
+     ocfs2-fix-bug-when-calculate-new-backup-super.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-export-ocfs2_kset-for-online-file-check-fix
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2: fix BUG when calculate new backup super
 
-remove unneeded EXPORT_SYMBOL_GPL(ocfs2_kset)
+When resizing, it firstly extends the last gd.  Once it should backup
+super in the gd, it calculates new backup super and update the
+corresponding value.  But it currently doesn't consider the situation that
+the backup super is already done.  And in this case, it still sets the bit
+in gd bitmap and then decrease from bg_free_bits_count, which leads to a
+corrupted gd and trigger the BUG in ocfs2_block_group_set_bits:
+BUG_ON(le16_to_cpu(bg->bg_free_bits_count) < num_bits); So check whether
+the backup super is done and then do the updates.
 
-Cc: Gang He <ghe@suse.com>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Joseph Qi <joseph.qi@huawei.com>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: Jiufei Xue <xuejiufei@huawei.com>
+Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/stackglue.c |    1 -
- 1 file changed, 1 deletion(-)
+ fs/ocfs2/resize.c |   15 ++++++++++++---
+ 1 file changed, 12 insertions(+), 3 deletions(-)
 
-diff -puN fs/ocfs2/stackglue.c~ocfs2-export-ocfs2_kset-for-online-file-check-fix fs/ocfs2/stackglue.c
---- a/fs/ocfs2/stackglue.c~ocfs2-export-ocfs2_kset-for-online-file-check-fix
-+++ a/fs/ocfs2/stackglue.c
-@@ -630,7 +630,6 @@ static struct attribute_group ocfs2_attr
- };
- 
- struct kset *ocfs2_kset;
--EXPORT_SYMBOL_GPL(ocfs2_kset);
- 
- static void ocfs2_sysfs_exit(void)
+diff -puN fs/ocfs2/resize.c~ocfs2-fix-bug-when-calculate-new-backup-super fs/ocfs2/resize.c
+--- a/fs/ocfs2/resize.c~ocfs2-fix-bug-when-calculate-new-backup-super
++++ a/fs/ocfs2/resize.c
+@@ -54,11 +54,12 @@
+ static u16 ocfs2_calc_new_backup_super(struct inode *inode,
+ 				       struct ocfs2_group_desc *gd,
+ 				       u16 cl_cpg,
++				       u16 old_bg_clusters,
+ 				       int set)
  {
+ 	int i;
+ 	u16 backups = 0;
+-	u32 cluster;
++	u32 cluster, lgd_cluster;
+ 	u64 blkno, gd_blkno, lgd_blkno = le64_to_cpu(gd->bg_blkno);
+ 
+ 	for (i = 0; i < OCFS2_MAX_BACKUP_SUPERBLOCKS; i++) {
+@@ -71,6 +72,12 @@ static u16 ocfs2_calc_new_backup_super(s
+ 		else if (gd_blkno > lgd_blkno)
+ 			break;
+ 
++		/* check if already done backup super */
++		lgd_cluster = ocfs2_blocks_to_clusters(inode->i_sb, lgd_blkno);
++		lgd_cluster += old_bg_clusters;
++		if (lgd_cluster >= cluster)
++			continue;
++
+ 		if (set)
+ 			ocfs2_set_bit(cluster % cl_cpg,
+ 				      (unsigned long *)gd->bg_bitmap);
+@@ -99,6 +106,7 @@ static int ocfs2_update_last_group_and_i
+ 	u16 chain, num_bits, backups = 0;
+ 	u16 cl_bpc = le16_to_cpu(cl->cl_bpc);
+ 	u16 cl_cpg = le16_to_cpu(cl->cl_cpg);
++	u16 old_bg_clusters;
+ 
+ 	trace_ocfs2_update_last_group_and_inode(new_clusters,
+ 						first_new_cluster);
+@@ -112,6 +120,7 @@ static int ocfs2_update_last_group_and_i
+ 
+ 	group = (struct ocfs2_group_desc *)group_bh->b_data;
+ 
++	old_bg_clusters = le16_to_cpu(group->bg_bits) / cl_bpc;
+ 	/* update the group first. */
+ 	num_bits = new_clusters * cl_bpc;
+ 	le16_add_cpu(&group->bg_bits, num_bits);
+@@ -125,7 +134,7 @@ static int ocfs2_update_last_group_and_i
+ 				     OCFS2_FEATURE_COMPAT_BACKUP_SB)) {
+ 		backups = ocfs2_calc_new_backup_super(bm_inode,
+ 						     group,
+-						     cl_cpg, 1);
++						     cl_cpg, old_bg_clusters, 1);
+ 		le16_add_cpu(&group->bg_free_bits_count, -1 * backups);
+ 	}
+ 
+@@ -163,7 +172,7 @@ out_rollback:
+ 	if (ret < 0) {
+ 		ocfs2_calc_new_backup_super(bm_inode,
+ 					    group,
+-					    cl_cpg, 0);
++					    cl_cpg, old_bg_clusters, 0);
+ 		le16_add_cpu(&group->bg_free_bits_count, backups);
+ 		le16_add_cpu(&group->bg_bits, -1 * num_bits);
+ 		le16_add_cpu(&group->bg_free_bits_count, -1 * num_bits);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-arch-x86-xen-suspendc-include-xen-xenh.patch
-ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-arm64-mm-support-arch_mmap_rnd_bits-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-printk-introduce-new-format-string-for-flags-fix-2.patch
-mm-support-madvisemadv_free-fix-2-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom-introduce-oom-reaper-fix-fix.patch
-mm-oom-introduce-oom-reaper-fix-fix-2.patch
-mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
-mm-oom-introduce-oom-reaper-fix-3.patch
-mm-oom-introduce-oom-reaper-fix-4-fix.patch
-mm-oom-introduce-oom-reaper-fix-5-fix.patch
-kernel-stop_machinec-remove-config_smp-dependencies.patch
-kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
-lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
-lib-test_printfc-test-dentry-printing-fix.patch
-printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
-printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix-fix.patch
-printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-include-linux-propertyh-fix-build-issues-with-gcc-444.patch
-fs-overlayfs-superc-needs-pagemaph.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-net-drop-tcp_memcontrolc-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+ocfs2-clean-up-redundant-null-check-before-iput.patch
+ocfs2-access-orphan-dinode-before-delete-entry-in-ocfs2_orphan_del.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery-v2.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery-v3.patch
+ocfs2-dlm-fix-bug-in-dlm_move_lockres_to_recovery_list.patch
 
