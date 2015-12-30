@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5-fix.patch added
- to -mm tree
-Date: Wed, 30 Dec 2015 13:12:58 -0800
-Message-ID: <568448da.ksEwVlrKetubpVqm%akpm@linux-foundation.org>
+Subject: + m32r-fix-m32104ut_defconfig-build-fail.patch added to -mm tree
+Date: Wed, 30 Dec 2015 13:18:08 -0800
+Message-ID: <56844a10.xUGve+wkl7n6sTS8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37726 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38143 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754794AbbL3VM7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2015 16:12:59 -0500
+	with ESMTP id S1752118AbbL3VSJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2015 16:18:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, lkp@intel.com, mm-commits@vger.kernel.org
+To: sudipm.mukherjee@gmail.com, fengguang.wu@intel.com, sudip@vectorindia.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix pmd_devmap compile error
+     Subject: m32r: fix m32104ut_defconfig build fail
 has been added to the -mm tree.  Its filename is
-     mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5-fix.patch
+     m32r-fix-m32104ut_defconfig-build-fail.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/m32r-fix-m32104ut_defconfig-build-fail.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/m32r-fix-m32104ut_defconfig-build-fail.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,92 +38,46 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: fix pmd_devmap compile error
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: m32r: fix m32104ut_defconfig build fail
 
-The kbuild robot reports the following with an i386 randconfig:
+The build of m32104ut_defconfig for m32r arch was failing for long long
+time with the error:
+ERROR: "memory_start" [fs/udf/udf.ko] undefined!
+ERROR: "memory_end" [fs/udf/udf.ko] undefined!
+ERROR: "memory_end" [drivers/scsi/sg.ko] undefined!
+ERROR: "memory_start" [drivers/scsi/sg.ko] undefined!
+ERROR: "memory_end" [drivers/i2c/i2c-dev.ko] undefined!
+ERROR: "memory_start" [drivers/i2c/i2c-dev.ko] undefined!
 
-In file included from arch/x86/include/asm/atomic.h:4:0,
-	from include/linux/atomic.h:4,
-	from include/linux/crypto.h:20,
-	from arch/x86/kernel/asm-offsets.c:8:
-include/linux/huge_mm.h: In function 'pmd_trans_huge_lock':
->>	include/linux/huge_mm.h:128:30: error: implicit declaration of function 'pmd_devmap' [-Werror=implicit-function-declaration]
-	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd))
-                                    ^
+As done in other architectures export the symbols to fix the error.
 
-Fix by moving the fallback definition of pmd_devmap() earlier in mm.h,
-before it include huge_mm.h.
-
-Reported-by: kbuild test robot <lkp@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ arch/m32r/kernel/setup.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/mm.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5-fix include/linux/mm.h
---- a/include/linux/mm.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5-fix
-+++ a/include/linux/mm.h
-@@ -336,6 +336,13 @@ struct inode;
- #include <linux/page-flags.h>
- #include <linux/huge_mm.h>
+diff -puN arch/m32r/kernel/setup.c~m32r-fix-m32104ut_defconfig-build-fail arch/m32r/kernel/setup.c
+--- a/arch/m32r/kernel/setup.c~m32r-fix-m32104ut_defconfig-build-fail
++++ a/arch/m32r/kernel/setup.c
+@@ -81,7 +81,10 @@ static struct resource code_resource = {
+ };
  
-+#if !defined(__HAVE_ARCH_PTE_DEVMAP) || !defined(CONFIG_TRANSPARENT_HUGEPAGE)
-+static inline int pmd_devmap(pmd_t pmd)
-+{
-+	return 0;
-+}
-+#endif
+ unsigned long memory_start;
++EXPORT_SYMBOL(memory_start);
 +
- /*
-  * Methods to modify the page usage count.
-  *
-@@ -1459,13 +1466,6 @@ static inline int __pud_alloc(struct mm_
- int __pud_alloc(struct mm_struct *mm, pgd_t *pgd, unsigned long address);
- #endif
+ unsigned long memory_end;
++EXPORT_SYMBOL(memory_end);
  
--#if !defined(__HAVE_ARCH_PTE_DEVMAP) || !defined(CONFIG_TRANSPARENT_HUGEPAGE)
--static inline int pmd_devmap(pmd_t pmd)
--{
--	return 0;
--}
--#endif
--
- #if defined(__PAGETABLE_PMD_FOLDED) || !defined(CONFIG_MMU)
- static inline int __pmd_alloc(struct mm_struct *mm, pud_t *pud,
- 						unsigned long address)
+ void __init setup_arch(char **);
+ int get_cpuinfo(char *);
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
 
-pmem-dax-clean-up-clear_pmem.patch
-dax-increase-granularity-of-dax_clear_blocks-operations.patch
-dax-guarantee-page-aligned-results-from-bdev_direct_access.patch
-dax-fix-lifetime-of-in-kernel-dax-mappings-with-dax_map_atomic.patch
-dax-fix-lifetime-of-in-kernel-dax-mappings-with-dax_map_atomic-v3.patch
-um-kill-pfn_t.patch
-kvm-rename-pfn_t-to-kvm_pfn_t.patch
-mm-dax-pmem-introduce-pfn_t.patch
-mm-skip-memory-block-registration-for-zone_device.patch
-mm-introduce-find_dev_pagemap.patch
-x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate.patch
-libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory.patch
-avr32-convert-to-asm-generic-memory_modelh.patch
-hugetlb-fix-compile-error-on-tile.patch
-frv-fix-compiler-warning-from-definition-of-__pmd.patch
-x86-mm-introduce-_page_devmap.patch
-mm-dax-gpu-convert-vm_insert_mixed-to-pfn_t.patch
-mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t.patch
-libnvdimm-pmem-move-request_queue-allocation-earlier-in-probe.patch
-mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup.patch
-mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd.patch
-mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5.patch
-mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5-fix.patch
-mm-x86-get_user_pages-for-dax-mappings.patch
-mm-x86-get_user_pages-for-dax-mappings-v5.patch
-dax-provide-diagnostics-for-pmd-mapping-failures.patch
-dax-re-enable-dax-pmd-mappings.patch
-a.patch
+m32r-fix-m32104ut_defconfig-build-fail.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch
 
