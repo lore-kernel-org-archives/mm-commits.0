@@ -1,126 +1,60 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-fix-bug-when-calculate-new-backup-super.patch
- removed from -mm tree
-Date: Wed, 30 Dec 2015 12:40:09 -0800
-Message-ID: <56844129.VEVJ2L0GQ7tlxXe2%akpm@linux-foundation.org>
+Subject: [merged] m32r-fix-build-failure.patch removed from -mm tree
+Date: Wed, 30 Dec 2015 12:40:17 -0800
+Message-ID: <56844131.9k5EAQs1jjg17qAx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35167 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35178 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754483AbbL3UkK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2015 15:40:10 -0500
+	with ESMTP id S1755033AbbL3UkR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2015 15:40:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jiangyiwen@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, stable@vger.kernel.org, xuejiufei@huawei.com, mm-commits@vger.kernel.org
+To: sudipm.mukherjee@gmail.com, sudip@vectorindia.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix BUG when calculate new backup super
+     Subject: m32r: fix build failure
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-bug-when-calculate-new-backup-super.patch
+     m32r-fix-build-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: fix BUG when calculate new backup super
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: m32r: fix build failure
 
-When resizing, it firstly extends the last gd.  Once it should backup
-super in the gd, it calculates new backup super and update the
-corresponding value.  But it currently doesn't consider the situation that
-the backup super is already done.  And in this case, it still sets the bit
-in gd bitmap and then decrease from bg_free_bits_count, which leads to a
-corrupted gd and trigger the BUG in ocfs2_block_group_set_bits:
-BUG_ON(le16_to_cpu(bg->bg_free_bits_count) < num_bits); So check whether
-the backup super is done and then do the updates.
+m32r allmodconfig is failing with:
+In file included from ../include/linux/kvm_para.h:4:0,
+                 from ../kernel/watchdog.c:26:
+../include/uapi/linux/kvm_para.h:30:26: fatal error: asm/kvm_para.h: No such file or directory
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Jiufei Xue <xuejiufei@huawei.com>
-Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: <stable@vger.kernel.org>
+kvm_para.h was not included in the build.
+
+Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/resize.c |   15 ++++++++++++---
- 1 file changed, 12 insertions(+), 3 deletions(-)
+ arch/m32r/include/asm/Kbuild |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/ocfs2/resize.c~ocfs2-fix-bug-when-calculate-new-backup-super fs/ocfs2/resize.c
---- a/fs/ocfs2/resize.c~ocfs2-fix-bug-when-calculate-new-backup-super
-+++ a/fs/ocfs2/resize.c
-@@ -54,11 +54,12 @@
- static u16 ocfs2_calc_new_backup_super(struct inode *inode,
- 				       struct ocfs2_group_desc *gd,
- 				       u16 cl_cpg,
-+				       u16 old_bg_clusters,
- 				       int set)
- {
- 	int i;
- 	u16 backups = 0;
--	u32 cluster;
-+	u32 cluster, lgd_cluster;
- 	u64 blkno, gd_blkno, lgd_blkno = le64_to_cpu(gd->bg_blkno);
- 
- 	for (i = 0; i < OCFS2_MAX_BACKUP_SUPERBLOCKS; i++) {
-@@ -71,6 +72,12 @@ static u16 ocfs2_calc_new_backup_super(s
- 		else if (gd_blkno > lgd_blkno)
- 			break;
- 
-+		/* check if already done backup super */
-+		lgd_cluster = ocfs2_blocks_to_clusters(inode->i_sb, lgd_blkno);
-+		lgd_cluster += old_bg_clusters;
-+		if (lgd_cluster >= cluster)
-+			continue;
-+
- 		if (set)
- 			ocfs2_set_bit(cluster % cl_cpg,
- 				      (unsigned long *)gd->bg_bitmap);
-@@ -99,6 +106,7 @@ static int ocfs2_update_last_group_and_i
- 	u16 chain, num_bits, backups = 0;
- 	u16 cl_bpc = le16_to_cpu(cl->cl_bpc);
- 	u16 cl_cpg = le16_to_cpu(cl->cl_cpg);
-+	u16 old_bg_clusters;
- 
- 	trace_ocfs2_update_last_group_and_inode(new_clusters,
- 						first_new_cluster);
-@@ -112,6 +120,7 @@ static int ocfs2_update_last_group_and_i
- 
- 	group = (struct ocfs2_group_desc *)group_bh->b_data;
- 
-+	old_bg_clusters = le16_to_cpu(group->bg_bits) / cl_bpc;
- 	/* update the group first. */
- 	num_bits = new_clusters * cl_bpc;
- 	le16_add_cpu(&group->bg_bits, num_bits);
-@@ -125,7 +134,7 @@ static int ocfs2_update_last_group_and_i
- 				     OCFS2_FEATURE_COMPAT_BACKUP_SB)) {
- 		backups = ocfs2_calc_new_backup_super(bm_inode,
- 						     group,
--						     cl_cpg, 1);
-+						     cl_cpg, old_bg_clusters, 1);
- 		le16_add_cpu(&group->bg_free_bits_count, -1 * backups);
- 	}
- 
-@@ -163,7 +172,7 @@ out_rollback:
- 	if (ret < 0) {
- 		ocfs2_calc_new_backup_super(bm_inode,
- 					    group,
--					    cl_cpg, 0);
-+					    cl_cpg, old_bg_clusters, 0);
- 		le16_add_cpu(&group->bg_free_bits_count, backups);
- 		le16_add_cpu(&group->bg_bits, -1 * num_bits);
- 		le16_add_cpu(&group->bg_free_bits_count, -1 * num_bits);
+diff -puN arch/m32r/include/asm/Kbuild~m32r-fix-build-failure arch/m32r/include/asm/Kbuild
+--- a/arch/m32r/include/asm/Kbuild~m32r-fix-build-failure
++++ a/arch/m32r/include/asm/Kbuild
+@@ -3,6 +3,7 @@ generic-y += clkdev.h
+ generic-y += cputime.h
+ generic-y += exec.h
+ generic-y += irq_work.h
++generic-y += kvm_para.h
+ generic-y += mcs_spinlock.h
+ generic-y += mm-arch-hooks.h
+ generic-y += module.h
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
 
-ocfs2-clean-up-redundant-null-check-before-iput.patch
-ocfs2-access-orphan-dinode-before-delete-entry-in-ocfs2_orphan_del.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery-v2.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery-v3.patch
-ocfs2-dlm-fix-bug-in-dlm_move_lockres_to_recovery_list.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch
 
