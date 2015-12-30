@@ -1,203 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim.patch
- removed from -mm tree
-Date: Wed, 30 Dec 2015 12:40:12 -0800
-Message-ID: <5684412c.cElI0BFkCi4gMaZj%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-fix-flock-panic-issue.patch removed from -mm tree
+Date: Wed, 30 Dec 2015 12:40:21 -0800
+Message-ID: <56844135.29wzVeBqJWLP4tYm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35170 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35188 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754483AbbL3UkN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2015 15:40:13 -0500
+	with ESMTP id S1755094AbbL3UkW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2015 15:40:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: fix possible memcg leak due to interrupted reclaim
+     Subject: ocfs2: fix flock panic issue
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim.patch
+     ocfs2-fix-flock-panic-issue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: memcontrol: fix possible memcg leak due to interrupted reclaim
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: fix flock panic issue
 
-Memory cgroup reclaim can be interrupted with mem_cgroup_iter_break() once
-enough pages have been reclaimed, in which case, in contrast to a full
-round-trip over a cgroup sub-tree, the current position stored in
-mem_cgroup_reclaim_iter of the target cgroup does not get invalidated and
-so is left holding the reference to the last scanned cgroup.  If the
-target cgroup does not get scanned again (we might have just reclaimed the
-last page or all processes might exit and free their memory voluntary), we
-will leak it, because there is nobody to put the reference held by the
-iterator.
+Commit 4f6563677ae8 ("Move locks API users to locks_lock_inode_wait()")
+move flock/posix lock indentify code to locks_lock_inode_wait(), but
+missed to set fl_flags to FL_FLOCK which caused the following kernel panic
+on 4.4.0_rc5.
 
-The problem is easy to reproduce by running the following command sequence
-in a loop:
+[19343.650448] kernel BUG at fs/locks.c:1895!
+[19343.650448] invalid opcode: 0000 [#1] SMP
+[19343.650448] Modules linked in: ocfs2(O) ocfs2_dlmfs(O) ocfs2_stack_o2cb(O) ocfs2_dlm(O) ocfs2_nodemanager(O) ocfs2_stackglue(O) iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi xen_kbdfront xen_netfront xen_fbfront xen_blkfront
+[19343.650448] CPU: 0 PID: 20268 Comm: flock_unit_test Tainted: G           O    4.4.0-rc5-next-20151217 #1
+[19343.650448] Hardware name: Xen HVM domU, BIOS 4.3.1OVM 05/14/2014
+[19343.650448] task: ffff88007b3672c0 ti: ffff880028b58000 task.ti: ffff880028b58000
+[19343.650448] RIP: 0010:[<ffffffff811def7e>]  [<ffffffff811def7e>] locks_lock_inode_wait+0x2e/0x160
+[19343.650448] RSP: 0018:ffff880028b5bce8  EFLAGS: 00010293
+[19343.650448] RAX: 0000000000000000 RBX: ffff880028b5bdb8 RCX: 0000000000000000
+[19343.650448] RDX: 0000000000000007 RSI: ffff880028b5bdb8 RDI: ffff88006842bb08
+[19343.650448] RBP: ffff880028b5bd98 R08: ffff88007d21b930 R09: ffff880076a005b0
+[19343.650448] R10: ffff88007a0e9360 R11: ffff880028b5be78 R12: ffff880040b45408
+[19343.650448] R13: ffff880079cbf000 R14: ffff88006842bb08 R15: 0000000000000001
+[19343.650448] FS:  00007f17572c7700(0000) GS:ffff88007d200000(0000) knlGS:0000000000000000
+[19343.650448] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[19343.650448] CR2: 00007f17572d7000 CR3: 000000007b2cf000 CR4: 00000000000406f0
+[19343.650448] Stack:
+[19343.650448]  ffff880028a70a38 ffffffff0000005a ffff880028a70800 000000000000005a
+[19343.650448]  ffff880028b5bda8 0000000100000001 000000000000005a ffff880028a70a30
+[19343.650448]  0000000000000292 0000000000000001 0000000000000001 0000000000000292
+[19343.650448] Call Trace:
+[19343.650448]  [<ffffffff810a15ee>] ? __wake_up+0x4e/0x70
+[19343.650448]  [<ffffffff810a1180>] ? bit_waitqueue+0x90/0x90
+[19343.650448]  [<ffffffffa010ee01>] ocfs2_do_flock+0x91/0x160 [ocfs2]
+[19343.650448]  [<ffffffffa010ef46>] ocfs2_flock+0x76/0xd0 [ocfs2]
+[19343.650448]  [<ffffffff811df1bf>] SyS_flock+0x10f/0x1a0
+[19343.650448]  [<ffffffff8191b6ae>] entry_SYSCALL_64_fastpath+0x12/0x71
+[19343.650448] Code: e5 41 57 41 56 49 89 fe 41 55 41 54 53 48 89 f3 48 81 ec 88 00 00 00 8b 46 40 83 e0 03 83 f8 01 0f 84 ad 00 00 00 83 f8 02 74 04 <0f> 0b eb fe 4c 8d ad 60 ff ff ff 4c 8d 7b 58 e8 0e 8e 73 00 4d
+[19343.650448] RIP  [<ffffffff811def7e>] locks_lock_inode_wait+0x2e/0x160
+[19343.650448]  RSP <ffff880028b5bce8>
+[19343.819187] ---[ end trace dfca74ec9b5b274c ]---
 
-    mkdir /sys/fs/cgroup/memory/test
-    echo 100M > /sys/fs/cgroup/memory/test/memory.limit_in_bytes
-    echo $$ > /sys/fs/cgroup/memory/test/cgroup.procs
-    memhog 150M
-    echo $$ > /sys/fs/cgroup/memory/cgroup.procs
-    rmdir test
-
-The cgroups generated by it will never get freed.
-
-This patch fixes this issue by making mem_cgroup_iter avoid taking
-reference to the current position.  In order not to hit use-after-free bug
-while running reclaim in parallel with cgroup deletion, we make use of
-->css_released cgroup callback to clear references to the dying cgroup in
-all reclaim iterators that might refer to it.  This callback is called
-right before scheduling rcu work which will free css, so if we access
-iter->position from rcu read section, we might be sure it won't go away
-under us.
-
-[hannes@cmpxchg.org: clean up css ref handling]
-Fixes: 5ac8fb31ad2e ("mm: memcontrol: convert reclaim iterator to simple css refcounting")
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@kernel.org>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: <stable@vger.kernel.org>	[3.19+]
+Fixes: 4f6563677ae8 ("Move locks API users to locks_lock_inode_wait()")
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   60 +++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 46 insertions(+), 14 deletions(-)
+ fs/ocfs2/locks.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim
-+++ a/mm/memcontrol.c
-@@ -903,14 +903,20 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 		if (prev && reclaim->generation != iter->generation)
- 			goto out_unlock;
- 
--		do {
-+		while (1) {
- 			pos = READ_ONCE(iter->position);
-+			if (!pos || css_tryget(&pos->css))
-+				break;
- 			/*
--			 * A racing update may change the position and
--			 * put the last reference, hence css_tryget(),
--			 * or retry to see the updated position.
-+			 * css reference reached zero, so iter->position will
-+			 * be cleared by ->css_released. However, we should not
-+			 * rely on this happening soon, because ->css_released
-+			 * is called from a work queue, and by busy-waiting we
-+			 * might block it. So we clear iter->position right
-+			 * away.
- 			 */
--		} while (pos && !css_tryget(&pos->css));
-+			(void)cmpxchg(&iter->position, pos, NULL);
-+		}
- 	}
- 
- 	if (pos)
-@@ -956,17 +962,13 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 	}
- 
- 	if (reclaim) {
--		if (cmpxchg(&iter->position, pos, memcg) == pos) {
--			if (memcg)
--				css_get(&memcg->css);
--			if (pos)
--				css_put(&pos->css);
--		}
--
- 		/*
--		 * pairs with css_tryget when dereferencing iter->position
--		 * above.
-+		 * The position could have already been updated by a competing
-+		 * thread, so check that the value hasn't changed since we read
-+		 * it to avoid reclaiming from the same cgroup twice.
+diff -puN fs/ocfs2/locks.c~ocfs2-fix-flock-panic-issue fs/ocfs2/locks.c
+--- a/fs/ocfs2/locks.c~ocfs2-fix-flock-panic-issue
++++ a/fs/ocfs2/locks.c
+@@ -67,7 +67,10 @@ static int ocfs2_do_flock(struct file *f
  		 */
-+		(void)cmpxchg(&iter->position, pos, memcg);
-+
- 		if (pos)
- 			css_put(&pos->css);
  
-@@ -999,6 +1001,28 @@ void mem_cgroup_iter_break(struct mem_cg
- 		css_put(&prev->css);
- }
+ 		locks_lock_file_wait(file,
+-				     &(struct file_lock){.fl_type = F_UNLCK});
++				&(struct file_lock) {
++					.fl_type = F_UNLCK,
++					.fl_flags = FL_FLOCK
++				});
  
-+static void invalidate_reclaim_iterators(struct mem_cgroup *dead_memcg)
-+{
-+	struct mem_cgroup *memcg = dead_memcg;
-+	struct mem_cgroup_reclaim_iter *iter;
-+	struct mem_cgroup_per_zone *mz;
-+	int nid, zid;
-+	int i;
-+
-+	while ((memcg = parent_mem_cgroup(memcg))) {
-+		for_each_node(nid) {
-+			for (zid = 0; zid < MAX_NR_ZONES; zid++) {
-+				mz = &memcg->nodeinfo[nid]->zoneinfo[zid];
-+				for (i = 0; i <= DEF_PRIORITY; i++) {
-+					iter = &mz->iter[i];
-+					cmpxchg(&iter->position,
-+						dead_memcg, NULL);
-+				}
-+			}
-+		}
-+	}
-+}
-+
- /*
-  * Iteration constructs for visiting all cgroups (under a tree).  If
-  * loops are exited prematurely (break), mem_cgroup_iter_break() must
-@@ -4324,6 +4348,13 @@ static void mem_cgroup_css_offline(struc
- 	wb_memcg_offline(memcg);
- }
- 
-+static void mem_cgroup_css_released(struct cgroup_subsys_state *css)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
-+
-+	invalidate_reclaim_iterators(memcg);
-+}
-+
- static void mem_cgroup_css_free(struct cgroup_subsys_state *css)
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
-@@ -5185,6 +5216,7 @@ struct cgroup_subsys memory_cgrp_subsys
- 	.css_alloc = mem_cgroup_css_alloc,
- 	.css_online = mem_cgroup_css_online,
- 	.css_offline = mem_cgroup_css_offline,
-+	.css_released = mem_cgroup_css_released,
- 	.css_free = mem_cgroup_css_free,
- 	.css_reset = mem_cgroup_css_reset,
- 	.can_attach = mem_cgroup_can_attach,
+ 		ocfs2_file_unlock(file);
+ 	}
 _
 
-Patches currently in -mm which might be from vdavydov@virtuozzo.com are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
-revert-kernfs-do-not-account-ino_ida-allocations-to-memcg.patch
-revert-gfp-add-__gfp_noaccount.patch
-memcg-only-account-kmem-allocations-marked-as-__gfp_account.patch
-slab-add-slab_account-flag.patch
-vmalloc-allow-to-account-vmalloc-to-memcg.patch
-account-certain-kmem-allocations-to-memcg.patch
-vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small.patch
-vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2.patch
-memcg-do-not-allow-to-disable-tcp-accounting-after-limit-is-set.patch
-mm-add-page_check_address_transhuge-helper.patch
-mm-add-page_check_address_transhuge-helper-fix.patch
-mm-memcontrol-allow-to-disable-kmem-accounting-for-cgroup2.patch
-net-drop-tcp_memcontrolc.patch
-mm-memcontrol-charge-swap-to-cgroup2.patch
-mm-vmscan-pass-memcg-to-get_scan_count.patch
-mm-memcontrol-replace-mem_cgroup_lruvec_online-with-mem_cgroup_online.patch
-swaph-move-memcg-related-stuff-to-the-end-of-the-file.patch
-mm-vmscan-do-not-scan-anon-pages-if-memcg-swap-limit-is-hit.patch
-mm-free-swap-cache-aggressively-if-memcg-swap-is-full.patch
-documentation-cgroup-add-memoryswapcurrentmax-description.patch
+o2hb-increase-unsteady-iterations.patch
 
