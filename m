@@ -1,140 +1,110 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmstat-fix-overflow-in-mod_zone_page_state.patch
+Subject: [merged]
+ drivers-memory-check-for-missing-sections-in-test_pages_in_a_zone.patch
  removed from -mm tree
-Date: Wed, 30 Dec 2015 12:40:30 -0800
-Message-ID: <5684413e.FQhiaio+l3yUyoSP%akpm@linux-foundation.org>
+Date: Wed, 30 Dec 2015 12:40:24 -0800
+Message-ID: <56844138.+ntvKFCUfKEYP2FC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35209 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35194 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755122AbbL3Ukb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2015 15:40:31 -0500
+	with ESMTP id S1755122AbbL3UkZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2015 15:40:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, cl@linux.com, mm-commits@vger.kernel.org
+To: abanman@sgi.com, athorlton@sgi.com, greg@kroah.com, rja@sgi.com, sjennings@variantweb.net, stable@vger.kernel.org, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmstat: fix overflow in mod_zone_page_state()
+     Subject: mm/memory_hotplug.c: check for missing sections in test_pages_in_a_zone()
 has been removed from the -mm tree.  Its filename was
-     mm-vmstat-fix-overflow-in-mod_zone_page_state.patch
+     drivers-memory-check-for-missing-sections-in-test_pages_in_a_zone.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: mm/vmstat: fix overflow in mod_zone_page_state()
+From: Andrew Banman <abanman@sgi.com>
+Subject: mm/memory_hotplug.c: check for missing sections in test_pages_in_a_zone()
 
-mod_zone_page_state() takes a "delta" integer argument.  delta contains
-the number of pages that should be added or subtracted from a struct
-zone's vm_stat field.
+test_pages_in_a_zone() does not account for the possibility of missing
+sections in the given pfn range.  pfn_valid_within always returns 1 when
+CONFIG_HOLES_IN_ZONE is not set, allowing invalid pfns from missing
+sections to pass the test, leading to a kernel oops.
 
-If a zone is larger than 8TB this will cause overflows.  E.g.  for a zone
-with a size slightly larger than 8TB the line
+Wrap an additional pfn loop with PAGES_PER_SECTION granularity to check
+for missing sections before proceeding into the zone-check code.
 
-	mod_zone_page_state(zone, NR_ALLOC_BATCH, zone->managed_pages);
+This also prevents a crash from offlining memory devices with missing
+sections.  Despite this, it may be a good idea to keep the related patch
+'[PATCH 3/3] drivers: memory: prohibit offlining of memory blocks with
+missing sections' because missing sections in a memory block may lead to
+other problems not covered by the scope of this fix.
 
-in mm/page_alloc.c:free_area_init_core() will result in a negative result
-for the NR_ALLOC_BATCH entry within the zone's vm_stat, since 8TB contain
-0x8xxxxxxx pages which will be sign extended to a negative value.
-
-Fix this by changing the delta argument to long type.
-
-This could fix an early boot problem seen on s390, where we have a 9TB
-system with only one node.  ZONE_DMA contains 2GB and ZONE_NORMAL the
-rest.  The system is trying to allocate a GFP_DMA page but ZONE_DMA is
-completely empty, so it tries to reclaim pages in an endless loop.
-
-This was seen on a heavily patched 3.10 kernel.  One possible explaination
-seem to be the overflows caused by mod_zone_page_state().  Unfortunately I
-did not have the chance to verify that this patch actually fixes the
-problem, since I don't have access to the system right now.  However the
-overflow problem does exist anyway.
-
-Given the description that a system with slightly less than 8TB does work,
-this seems to be a candidate for the observed problem.
-
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Christoph Lameter <cl@linux.com>
+Signed-off-by: Andrew Banman <abanman@sgi.com>
+Acked-by: Alex Thorlton <athorlton@sgi.com>
+Cc: Russ Anderson <rja@sgi.com>
+Cc: Alex Thorlton <athorlton@sgi.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Seth Jennings <sjennings@variantweb.net>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmstat.h |    6 +++---
- mm/vmstat.c            |   10 +++++-----
- 2 files changed, 8 insertions(+), 8 deletions(-)
+ mm/memory_hotplug.c |   31 +++++++++++++++++++------------
+ 1 file changed, 19 insertions(+), 12 deletions(-)
 
-diff -puN include/linux/vmstat.h~mm-vmstat-fix-overflow-in-mod_zone_page_state include/linux/vmstat.h
---- a/include/linux/vmstat.h~mm-vmstat-fix-overflow-in-mod_zone_page_state
-+++ a/include/linux/vmstat.h
-@@ -176,11 +176,11 @@ extern void zone_statistics(struct zone
- #define sub_zone_page_state(__z, __i, __d) mod_zone_page_state(__z, __i, -(__d))
- 
- #ifdef CONFIG_SMP
--void __mod_zone_page_state(struct zone *, enum zone_stat_item item, int);
-+void __mod_zone_page_state(struct zone *, enum zone_stat_item item, long);
- void __inc_zone_page_state(struct page *, enum zone_stat_item);
- void __dec_zone_page_state(struct page *, enum zone_stat_item);
- 
--void mod_zone_page_state(struct zone *, enum zone_stat_item, int);
-+void mod_zone_page_state(struct zone *, enum zone_stat_item, long);
- void inc_zone_page_state(struct page *, enum zone_stat_item);
- void dec_zone_page_state(struct page *, enum zone_stat_item);
- 
-@@ -205,7 +205,7 @@ void set_pgdat_percpu_threshold(pg_data_
-  * The functions directly modify the zone and global counters.
+diff -puN mm/memory_hotplug.c~drivers-memory-check-for-missing-sections-in-test_pages_in_a_zone mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~drivers-memory-check-for-missing-sections-in-test_pages_in_a_zone
++++ a/mm/memory_hotplug.c
+@@ -1375,23 +1375,30 @@ int is_mem_section_removable(unsigned lo
   */
- static inline void __mod_zone_page_state(struct zone *zone,
--			enum zone_stat_item item, int delta)
-+			enum zone_stat_item item, long delta)
+ int test_pages_in_a_zone(unsigned long start_pfn, unsigned long end_pfn)
  {
- 	zone_page_state_add(delta, zone, item);
+-	unsigned long pfn;
++	unsigned long pfn, sec_end_pfn;
+ 	struct zone *zone = NULL;
+ 	struct page *page;
+ 	int i;
+-	for (pfn = start_pfn;
++	for (pfn = start_pfn, sec_end_pfn = SECTION_ALIGN_UP(start_pfn);
+ 	     pfn < end_pfn;
+-	     pfn += MAX_ORDER_NR_PAGES) {
+-		i = 0;
+-		/* This is just a CONFIG_HOLES_IN_ZONE check.*/
+-		while ((i < MAX_ORDER_NR_PAGES) && !pfn_valid_within(pfn + i))
+-			i++;
+-		if (i == MAX_ORDER_NR_PAGES)
++	     pfn = sec_end_pfn + 1, sec_end_pfn += PAGES_PER_SECTION) {
++		/* Make sure the memory section is present first */
++		if (!present_section_nr(pfn_to_section_nr(pfn)))
+ 			continue;
+-		page = pfn_to_page(pfn + i);
+-		if (zone && page_zone(page) != zone)
+-			return 0;
+-		zone = page_zone(page);
++		for (; pfn < sec_end_pfn && pfn < end_pfn;
++		     pfn += MAX_ORDER_NR_PAGES) {
++			i = 0;
++			/* This is just a CONFIG_HOLES_IN_ZONE check.*/
++			while ((i < MAX_ORDER_NR_PAGES) &&
++				!pfn_valid_within(pfn + i))
++				i++;
++			if (i == MAX_ORDER_NR_PAGES)
++				continue;
++			page = pfn_to_page(pfn + i);
++			if (zone && page_zone(page) != zone)
++				return 0;
++			zone = page_zone(page);
++		}
+ 	}
+ 	return 1;
  }
-diff -puN mm/vmstat.c~mm-vmstat-fix-overflow-in-mod_zone_page_state mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstat-fix-overflow-in-mod_zone_page_state
-+++ a/mm/vmstat.c
-@@ -219,7 +219,7 @@ void set_pgdat_percpu_threshold(pg_data_
-  * particular counter cannot be updated from interrupt context.
-  */
- void __mod_zone_page_state(struct zone *zone, enum zone_stat_item item,
--				int delta)
-+			   long delta)
- {
- 	struct per_cpu_pageset __percpu *pcp = zone->pageset;
- 	s8 __percpu *p = pcp->vm_stat_diff + item;
-@@ -318,8 +318,8 @@ EXPORT_SYMBOL(__dec_zone_page_state);
-  *     1       Overstepping half of threshold
-  *     -1      Overstepping minus half of threshold
- */
--static inline void mod_state(struct zone *zone,
--       enum zone_stat_item item, int delta, int overstep_mode)
-+static inline void mod_state(struct zone *zone, enum zone_stat_item item,
-+			     long delta, int overstep_mode)
- {
- 	struct per_cpu_pageset __percpu *pcp = zone->pageset;
- 	s8 __percpu *p = pcp->vm_stat_diff + item;
-@@ -357,7 +357,7 @@ static inline void mod_state(struct zone
- }
- 
- void mod_zone_page_state(struct zone *zone, enum zone_stat_item item,
--					int delta)
-+			 long delta)
- {
- 	mod_state(zone, item, delta, 0);
- }
-@@ -384,7 +384,7 @@ EXPORT_SYMBOL(dec_zone_page_state);
-  * Use interrupt disable to serialize counter updates
-  */
- void mod_zone_page_state(struct zone *zone, enum zone_stat_item item,
--					int delta)
-+			 long delta)
- {
- 	unsigned long flags;
- 
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from abanman@sgi.com are
 
 
