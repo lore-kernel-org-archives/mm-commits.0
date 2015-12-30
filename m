@@ -1,93 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-2.patch removed from -mm tree
-Date: Tue, 29 Dec 2015 14:03:34 -0800
-Message-ID: <56830336.jaV5f8pVwAdvroNW%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ ocfs2-export-ocfs2_kset-for-online-file-check-fix.patch removed from -mm
+ tree
+Date: Tue, 29 Dec 2015 22:18:57 -0800
+Message-ID: <56837751.dFAVVfikEHo/Ii+e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59695 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42051 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752980AbbL2WDf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Dec 2015 17:03:35 -0500
+	with ESMTP id S1750814AbbL3GS6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2015 01:18:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: fix possible memcg leak due to interrupted reclaim fix
+     Subject: ocfs2-export-ocfs2_kset-for-online-file-check-fix
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-2.patch
+     ocfs2-export-ocfs2_kset-for-online-file-check-fix.patch
 
-This patch was dropped because it was folded into mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim.patch
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: fix possible memcg leak due to interrupted reclaim fix
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ocfs2-export-ocfs2_kset-for-online-file-check-fix
 
-When we handled multiple css references in mem_cgroup_iter() it got a
-little confusing which puts belong to which gets. Now that we only ref
-the position css it's obvious, and a multi-line comment to explain it
-gets in the way of reading an already long function.
+remove unneeded EXPORT_SYMBOL_GPL(ocfs2_kset)
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Gang He <ghe@suse.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    4 ----
- 1 file changed, 4 deletions(-)
+ fs/ocfs2/stackglue.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-2 mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim-fix-2
-+++ a/mm/memcontrol.c
-@@ -969,10 +969,6 @@ struct mem_cgroup *mem_cgroup_iter(struc
- 		 */
- 		(void)cmpxchg(&iter->position, pos, memcg);
+diff -puN fs/ocfs2/stackglue.c~ocfs2-export-ocfs2_kset-for-online-file-check-fix fs/ocfs2/stackglue.c
+--- a/fs/ocfs2/stackglue.c~ocfs2-export-ocfs2_kset-for-online-file-check-fix
++++ a/fs/ocfs2/stackglue.c
+@@ -630,7 +630,6 @@ static struct attribute_group ocfs2_attr
+ };
  
--		/*
--		 * pairs with css_tryget when dereferencing iter->position
--		 * above.
--		 */
- 		if (pos)
- 			css_put(&pos->css);
+ struct kset *ocfs2_kset;
+-EXPORT_SYMBOL_GPL(ocfs2_kset);
  
+ static void ocfs2_sysfs_exit(void)
+ {
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-memcontrol-fix-possible-memcg-leak-due-to-interrupted-reclaim.patch
-mm-page_alloc-generalize-the-dirty-balance-reserve.patch
-proc-meminfo-estimate-available-memory-more-conservatively.patch
-mm-memcontrol-export-root_mem_cgroup.patch
-net-tcp_memcontrol-properly-detect-ancestor-socket-pressure.patch
-net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation.patch
-net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
-net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets.patch
-net-tcp_memcontrol-simplify-the-per-memcg-limit-access.patch
-net-tcp_memcontrol-sanitize-tcp-memory-accounting-callbacks.patch
-net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter.patch
-net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter-fix.patch
-mm-memcontrol-generalize-the-socket-accounting-jump-label.patch
-mm-memcontrol-do-not-account-memoryswap-on-unified-hierarchy.patch
-mm-memcontrol-move-socket-code-for-unified-hierarchy-accounting.patch
-mm-memcontrol-account-socket-memory-in-unified-hierarchy-memory-controller.patch
-mm-memcontrol-hook-up-vmpressure-to-socket-pressure.patch
-mm-memcontrol-switch-to-the-updated-jump-label-api.patch
-mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem.patch
-mm-memcontrol-remove-double-kmem-page_counter-init.patch
-mm-memcontrol-give-the-kmem-states-more-descriptive-names.patch
-mm-memcontrol-group-kmem-init-and-exit-functions-together.patch
-mm-memcontrol-separate-kmem-code-from-legacy-tcp-accounting-code.patch
-mm-memcontrol-move-kmem-accounting-code-to-config_memcg.patch
-mm-memcontrol-move-kmem-accounting-code-to-config_memcg-v2.patch
-mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix.patch
-mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller.patch
-mm-memcontrol-introduce-config_memcg_legacy_kmem.patch
-mm-memcontrol-reign-in-the-config-space-madness.patch
-mm-memcontrol-flatten-struct-cg_proto.patch
-mm-memcontrol-clean-up-alloc-online-offline-free-functions.patch
-mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+arch-x86-xen-suspendc-include-xen-xenh.patch
+ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
+mm.patch
+account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
+mm-zonelist-enumerate-zonelists-array-index-fix.patch
+mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
+arm64-mm-support-arch_mmap_rnd_bits-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+mm-printk-introduce-new-format-string-for-flags-fix-2.patch
+mm-support-madvisemadv_free-fix-2-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+mm-oom-introduce-oom-reaper-fix-fix.patch
+mm-oom-introduce-oom-reaper-fix-fix-2.patch
+mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
+mm-oom-introduce-oom-reaper-fix-3.patch
+mm-oom-introduce-oom-reaper-fix-4-fix.patch
+mm-oom-introduce-oom-reaper-fix-5-fix.patch
+kernel-stop_machinec-remove-config_smp-dependencies.patch
+kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
+lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
+lib-test_printfc-test-dentry-printing-fix.patch
+printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
+printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix-fix.patch
+printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+include-linux-propertyh-fix-build-issues-with-gcc-444.patch
+fs-overlayfs-superc-needs-pagemaph.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+net-drop-tcp_memcontrolc-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
