@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + m32r-fix-m32104ut_defconfig-build-fail.patch added to -mm tree
-Date: Wed, 30 Dec 2015 13:18:08 -0800
-Message-ID: <56844a10.xUGve+wkl7n6sTS8%akpm@linux-foundation.org>
+Subject: + ocfs2-dlm-remove-redundant-code.patch added to -mm tree
+Date: Wed, 30 Dec 2015 13:31:05 -0800
+Message-ID: <56844d19.cTxko56VkfZTBe0L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38143 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39203 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752118AbbL3VSJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2015 16:18:09 -0500
+	with ESMTP id S1753466AbbL3VbG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2015 16:31:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, fengguang.wu@intel.com, sudip@vectorindia.org, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m32r: fix m32104ut_defconfig build fail
+     Subject: ocfs2: dlm: remove redundant code
 has been added to the -mm tree.  Its filename is
-     m32r-fix-m32104ut_defconfig-build-fail.patch
+     ocfs2-dlm-remove-redundant-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/m32r-fix-m32104ut_defconfig-build-fail.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-remove-redundant-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/m32r-fix-m32104ut_defconfig-build-fail.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-remove-redundant-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,46 +38,42 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: m32r: fix m32104ut_defconfig build fail
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: dlm: remove redundant code
 
-The build of m32104ut_defconfig for m32r arch was failing for long long
-time with the error:
-ERROR: "memory_start" [fs/udf/udf.ko] undefined!
-ERROR: "memory_end" [fs/udf/udf.ko] undefined!
-ERROR: "memory_end" [drivers/scsi/sg.ko] undefined!
-ERROR: "memory_start" [drivers/scsi/sg.ko] undefined!
-ERROR: "memory_end" [drivers/i2c/i2c-dev.ko] undefined!
-ERROR: "memory_start" [drivers/i2c/i2c-dev.ko] undefined!
+Found this when do patch review, remove to make it clear and save
+a little cpu time.
 
-As done in other architectures export the symbols to fix the error.
-
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/setup.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/ocfs2/dlm/dlmrecovery.c |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-diff -puN arch/m32r/kernel/setup.c~m32r-fix-m32104ut_defconfig-build-fail arch/m32r/kernel/setup.c
---- a/arch/m32r/kernel/setup.c~m32r-fix-m32104ut_defconfig-build-fail
-+++ a/arch/m32r/kernel/setup.c
-@@ -81,7 +81,10 @@ static struct resource code_resource = {
- };
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-remove-redundant-code fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-remove-redundant-code
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -2457,11 +2457,7 @@ static void __dlm_hb_node_down(struct dl
+ 	 * perhaps later we can genericize this for other waiters. */
+ 	wake_up(&dlm->migration_wq);
  
- unsigned long memory_start;
-+EXPORT_SYMBOL(memory_start);
-+
- unsigned long memory_end;
-+EXPORT_SYMBOL(memory_end);
+-	if (test_bit(idx, dlm->recovery_map))
+-		mlog(0, "domain %s, node %u already added "
+-		     "to recovery map!\n", dlm->name, idx);
+-	else
+-		set_bit(idx, dlm->recovery_map);
++	set_bit(idx, dlm->recovery_map);
+ }
  
- void __init setup_arch(char **);
- int get_cpuinfo(char *);
+ void dlm_hb_node_down_cb(struct o2nm_node *node, int idx, void *data)
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
-m32r-fix-m32104ut_defconfig-build-fail.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch
+o2hb-increase-unsteady-iterations.patch
+ocfs2-dlm-remove-redundant-code.patch
 
