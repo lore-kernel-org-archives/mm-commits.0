@@ -1,60 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m32r-fix-build-failure.patch removed from -mm tree
-Date: Wed, 30 Dec 2015 12:40:17 -0800
-Message-ID: <56844131.9k5EAQs1jjg17qAx%akpm@linux-foundation.org>
+Subject: [merged] arch-x86-xen-suspendc-include-xen-xenh.patch removed
+ from -mm tree
+Date: Wed, 30 Dec 2015 12:40:15 -0800
+Message-ID: <5684412f.vq7jCSw61II+AmmG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35178 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35174 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755033AbbL3UkR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2015 15:40:17 -0500
+	with ESMTP id S1755014AbbL3UkQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Dec 2015 15:40:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, sudip@vectorindia.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, boris.ostrovsky@oracle.com, david.vrabel@citrix.com, fengguang.wu@intel.com, konrad.wilk@oracle.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m32r: fix build failure
+     Subject: arch/x86/xen/suspend.c: include xen/xen.h
 has been removed from the -mm tree.  Its filename was
-     m32r-fix-build-failure.patch
+     arch-x86-xen-suspendc-include-xen-xenh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: m32r: fix build failure
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arch/x86/xen/suspend.c: include xen/xen.h
 
-m32r allmodconfig is failing with:
-In file included from ../include/linux/kvm_para.h:4:0,
-                 from ../kernel/watchdog.c:26:
-../include/uapi/linux/kvm_para.h:30:26: fatal error: asm/kvm_para.h: No such file or directory
+arch/x86/xen/suspend.c: In function 'xen_arch_pre_suspend':
+arch/x86/xen/suspend.c:70:9: error: implicit declaration of function 'xen_pv_domain' [-Werror=implicit-function-declaration]
+        if (xen_pv_domain())
 
-kvm_para.h was not included in the build.
+            ^
 
-Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/include/asm/Kbuild |    1 +
+ arch/x86/xen/suspend.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN arch/m32r/include/asm/Kbuild~m32r-fix-build-failure arch/m32r/include/asm/Kbuild
---- a/arch/m32r/include/asm/Kbuild~m32r-fix-build-failure
-+++ a/arch/m32r/include/asm/Kbuild
-@@ -3,6 +3,7 @@ generic-y += clkdev.h
- generic-y += cputime.h
- generic-y += exec.h
- generic-y += irq_work.h
-+generic-y += kvm_para.h
- generic-y += mcs_spinlock.h
- generic-y += mm-arch-hooks.h
- generic-y += module.h
+diff -puN arch/x86/xen/suspend.c~arch-x86-xen-suspendc-include-xen-xenh arch/x86/xen/suspend.c
+--- a/arch/x86/xen/suspend.c~arch-x86-xen-suspendc-include-xen-xenh
++++ a/arch/x86/xen/suspend.c
+@@ -1,6 +1,7 @@
+ #include <linux/types.h>
+ #include <linux/tick.h>
+ 
++#include <xen/xen.h>
+ #include <xen/interface/xen.h>
+ #include <xen/grant_table.h>
+ #include <xen/events.h>
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
+mm.patch
+account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
+mm-zonelist-enumerate-zonelists-array-index-fix.patch
+mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
+arm64-mm-support-arch_mmap_rnd_bits-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+mm-printk-introduce-new-format-string-for-flags-fix-2.patch
+mm-support-madvisemadv_free-fix-2-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+mm-oom-introduce-oom-reaper-fix-fix.patch
+mm-oom-introduce-oom-reaper-fix-fix-2.patch
+mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
+mm-oom-introduce-oom-reaper-fix-3.patch
+mm-oom-introduce-oom-reaper-fix-4-fix.patch
+mm-oom-introduce-oom-reaper-fix-5-fix.patch
+kernel-stop_machinec-remove-config_smp-dependencies.patch
+kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
+lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
+lib-test_printfc-test-dentry-printing-fix.patch
+printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
+printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix-fix.patch
+printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+include-linux-propertyh-fix-build-issues-with-gcc-444.patch
+fs-overlayfs-superc-needs-pagemaph.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+net-drop-tcp_memcontrolc-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
