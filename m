@@ -1,161 +1,362 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- include-linux-propertyh-fix-build-issues-with-gcc-444.patch removed from
- -mm tree
-Date: Mon, 04 Jan 2016 11:06:22 -0800
-Message-ID: <568ac2ae.i3+DtTNz3BwTJl4q%akpm@linux-foundation.org>
+Subject: [merged] iio-core-introduce-iio-software-triggers.patch removed
+ from -mm tree
+Date: Mon, 04 Jan 2016 11:06:28 -0800
+Message-ID: <568ac2b4.vMEtiBKWuouBLzQx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39108 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39130 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751858AbcADTGY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2016 14:06:24 -0500
+	with ESMTP id S1751858AbcADTGa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2016 14:06:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, heikki.krogerus@linux.intel.com, kevin@scrye.com, mika.westerberg@linux.intel.com, rafael.j.wysocki@intel.com, mm-commits@vger.kernel.org
+To: daniel.baluta@intel.com, adriana.reus@intel.com, cristina.opriceana@gmail.com, hch@lst.de, jlbec@evilplan.org, knaack.h@gmx.de, lars@metafoo.de, matt.ranostay@intel.com, octavian.purdila@intel.com, pebolle@tiscali.nl, pmeerw@pmeerw.net, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/property.h: fix build issues with gcc-4.4.4
+     Subject: iio: core: introduce IIO software triggers
 has been removed from the -mm tree.  Its filename was
-     include-linux-propertyh-fix-build-issues-with-gcc-444.patch
+     iio-core-introduce-iio-software-triggers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/property.h: fix build issues with gcc-4.4.4
+From: Daniel Baluta <daniel.baluta@intel.com>
+Subject: iio: core: introduce IIO software triggers
 
-gcc-4.4.4 has problems with initialization of anonymous unions:
+A software trigger associates an IIO device trigger with a software
+interrupt source (e.g: timer, sysfs).  This patch adds the generic
+infrastructure for handling software triggers.
 
-drivers/mfd/intel-lpss-acpi.c:30: error: unknown field 'value' specified in initializer
+Software interrupts sources are kept in a iio_trigger_types_list and
+registered separately when the associated kernel module is loaded.
 
-work around this by crafting the initializers in a manner which the
-compiler can handle.
+Software triggers can be created directly from drivers or from user space
+via configfs interface.
 
-Cc: Kevin Fenzi <kevin@scrye.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+To sum up, this dynamically creates "triggers" group to be found under
+/config/iio/triggers and offers the possibility of dynamically creating
+trigger types groups.  The first supported trigger type is "hrtimer" found
+under /config/iio/triggers/hrtimer.
+
+Signed-off-by: Daniel Baluta <daniel.baluta@intel.com>
+Tested-by: Matt Ranostay <matt.ranostay@intel.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Lars-Peter Clausen <lars@metafoo.de>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Hartmut Knaack <knaack.h@gmx.de>
+Cc: Octavian Purdila <octavian.purdila@intel.com>
+Cc: Paul Bolle <pebolle@tiscali.nl>
+Cc: Adriana Reus <adriana.reus@intel.com>
+Cc: Cristina Opriceana <cristina.opriceana@gmail.com>
+Cc: Peter Meerwald <pmeerw@pmeerw.net>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/property.h |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
+ drivers/iio/Kconfig                   |    8 +
+ drivers/iio/Makefile                  |    1 
+ drivers/iio/industrialio-sw-trigger.c |  183 ++++++++++++++++++++++++
+ include/linux/iio/sw_trigger.h        |   71 +++++++++
+ 4 files changed, 263 insertions(+)
 
-diff -puN include/linux/property.h~include-linux-propertyh-fix-build-issues-with-gcc-444 include/linux/property.h
---- a/include/linux/property.h~include-linux-propertyh-fix-build-issues-with-gcc-444
-+++ a/include/linux/property.h
-@@ -175,12 +175,19 @@ struct property_entry {
- 	};
- };
+diff -puN drivers/iio/Kconfig~iio-core-introduce-iio-software-triggers drivers/iio/Kconfig
+--- a/drivers/iio/Kconfig~iio-core-introduce-iio-software-triggers
++++ a/drivers/iio/Kconfig
+@@ -46,6 +46,14 @@ config IIO_CONSUMERS_PER_TRIGGER
+ 	This value controls the maximum number of consumers that a
+ 	given trigger may handle. Default is 2.
  
++config IIO_SW_TRIGGER
++	tristate "Enable software triggers support"
++	select IIO_CONFIGFS
++	help
++	 Provides IIO core support for software triggers. A software
++	 trigger can be created via configfs or directly by a driver
++	 using the API provided.
++
+ config IIO_TRIGGERED_EVENT
+ 	tristate
+ 	select IIO_TRIGGER
+diff -puN drivers/iio/Makefile~iio-core-introduce-iio-software-triggers drivers/iio/Makefile
+--- a/drivers/iio/Makefile~iio-core-introduce-iio-software-triggers
++++ a/drivers/iio/Makefile
+@@ -8,6 +8,7 @@ industrialio-$(CONFIG_IIO_BUFFER) += ind
+ industrialio-$(CONFIG_IIO_TRIGGER) += industrialio-trigger.o
+ 
+ obj-$(CONFIG_IIO_CONFIGFS) += industrialio-configfs.o
++obj-$(CONFIG_IIO_SW_TRIGGER) += industrialio-sw-trigger.o
+ obj-$(CONFIG_IIO_TRIGGERED_EVENT) += industrialio-triggered-event.o
+ 
+ obj-y += accel/
+diff -puN /dev/null drivers/iio/industrialio-sw-trigger.c
+--- /dev/null
++++ a/drivers/iio/industrialio-sw-trigger.c
+@@ -0,0 +1,183 @@
 +/*
-+ * Note: the below four initializers for the anonymous union are carefully
-+ * crafted to avoid gcc-4.4.4's problems with initialization of anon unions
-+ * and structs.
++ * The Industrial I/O core, software trigger functions
++ *
++ * Copyright (c) 2015 Intel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
 + */
 +
- #define PROPERTY_ENTRY_INTEGER_ARRAY(_name_, _type_, _val_)	\
- {								\
- 	.name = _name_,						\
- 	.length = ARRAY_SIZE(_val_) * sizeof(_type_),		\
- 	.is_array = true,					\
--	.pointer._type_##_data = _val_,				\
-+	.is_string = false,					\
-+	{ .pointer = { _type_##_data = _val_ } },		\
- }
- 
- #define PROPERTY_ENTRY_U8_ARRAY(_name_, _val_)			\
-@@ -198,14 +205,15 @@ struct property_entry {
- 	.length = ARRAY_SIZE(_val_) * sizeof(const char *),	\
- 	.is_array = true,					\
- 	.is_string = true,					\
--	.pointer.str = _val_,					\
-+	{ .pointer = { .str = _val_ } },			\
- }
- 
- #define PROPERTY_ENTRY_INTEGER(_name_, _type_, _val_)	\
- {							\
- 	.name = _name_,					\
- 	.length = sizeof(_type_),			\
--	.value._type_##_data = _val_,			\
-+	.is_string = false,				\
-+	{ .value = { ._type_##_data = _val_ } },	\
- }
- 
- #define PROPERTY_ENTRY_U8(_name_, _val_)		\
-@@ -222,7 +230,7 @@ struct property_entry {
- 	.name = _name_,					\
- 	.length = sizeof(_val_),			\
- 	.is_string = true,				\
--	.value.str = _val_,				\
-+	{ .value = {.str = _val_} },			\
- }
- 
- #define PROPERTY_ENTRY_BOOL(_name_)		\
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/kmod.h>
++#include <linux/list.h>
++#include <linux/slab.h>
++
++#include <linux/iio/sw_trigger.h>
++#include <linux/configfs.h>
++
++static struct config_group *iio_triggers_group;
++static struct config_item_type iio_trigger_type_group_type;
++
++static struct config_item_type iio_triggers_group_type = {
++	.ct_owner = THIS_MODULE,
++};
++
++static LIST_HEAD(iio_trigger_types_list);
++static DEFINE_MUTEX(iio_trigger_types_lock);
++
++static
++struct iio_sw_trigger_type *__iio_find_sw_trigger_type(const char *name,
++						       unsigned len)
++{
++	struct iio_sw_trigger_type *t = NULL, *iter;
++
++	list_for_each_entry(iter, &iio_trigger_types_list, list)
++		if (!strcmp(iter->name, name)) {
++			t = iter;
++			break;
++		}
++
++	return t;
++}
++
++int iio_register_sw_trigger_type(struct iio_sw_trigger_type *t)
++{
++	struct iio_sw_trigger_type *iter;
++	int ret = 0;
++
++	mutex_lock(&iio_trigger_types_lock);
++	iter = __iio_find_sw_trigger_type(t->name, strlen(t->name));
++	if (iter)
++		ret = -EBUSY;
++	else
++		list_add_tail(&t->list, &iio_trigger_types_list);
++	mutex_unlock(&iio_trigger_types_lock);
++
++	if (ret)
++		return ret;
++
++	t->group = configfs_register_default_group(iio_triggers_group, t->name,
++						&iio_trigger_type_group_type);
++	if (IS_ERR(t->group))
++		ret = PTR_ERR(t->group);
++
++	return ret;
++}
++EXPORT_SYMBOL(iio_register_sw_trigger_type);
++
++void iio_unregister_sw_trigger_type(struct iio_sw_trigger_type *t)
++{
++	struct iio_sw_trigger_type *iter;
++
++	mutex_lock(&iio_trigger_types_lock);
++	iter = __iio_find_sw_trigger_type(t->name, strlen(t->name));
++	if (iter)
++		list_del(&t->list);
++	mutex_unlock(&iio_trigger_types_lock);
++
++	configfs_unregister_default_group(t->group);
++}
++EXPORT_SYMBOL(iio_unregister_sw_trigger_type);
++
++static
++struct iio_sw_trigger_type *iio_get_sw_trigger_type(const char *name)
++{
++	struct iio_sw_trigger_type *t;
++
++	mutex_lock(&iio_trigger_types_lock);
++	t = __iio_find_sw_trigger_type(name, strlen(name));
++	if (t && !try_module_get(t->owner))
++		t = NULL;
++	mutex_unlock(&iio_trigger_types_lock);
++
++	return t;
++}
++
++struct iio_sw_trigger *iio_sw_trigger_create(const char *type, const char *name)
++{
++	struct iio_sw_trigger *t;
++	struct iio_sw_trigger_type *tt;
++
++	tt = iio_get_sw_trigger_type(type);
++	if (!tt) {
++		pr_err("Invalid trigger type: %s\n", type);
++		return ERR_PTR(-EINVAL);
++	}
++	t = tt->ops->probe(name);
++	if (IS_ERR(t))
++		goto out_module_put;
++
++	t->trigger_type = tt;
++
++	return t;
++out_module_put:
++	module_put(tt->owner);
++	return t;
++}
++EXPORT_SYMBOL(iio_sw_trigger_create);
++
++void iio_sw_trigger_destroy(struct iio_sw_trigger *t)
++{
++	struct iio_sw_trigger_type *tt = t->trigger_type;
++
++	tt->ops->remove(t);
++	module_put(tt->owner);
++}
++EXPORT_SYMBOL(iio_sw_trigger_destroy);
++
++static struct config_group *trigger_make_group(struct config_group *group,
++					       const char *name)
++{
++	struct iio_sw_trigger *t;
++
++	t = iio_sw_trigger_create(group->cg_item.ci_name, name);
++	if (IS_ERR(t))
++		return ERR_CAST(t);
++
++	config_item_set_name(&t->group.cg_item, "%s", name);
++
++	return &t->group;
++}
++
++static void trigger_drop_group(struct config_group *group,
++			       struct config_item *item)
++{
++	struct iio_sw_trigger *t = to_iio_sw_trigger(item);
++
++	iio_sw_trigger_destroy(t);
++	config_item_put(item);
++}
++
++static struct configfs_group_operations trigger_ops = {
++	.make_group	= &trigger_make_group,
++	.drop_item	= &trigger_drop_group,
++};
++
++static struct config_item_type iio_trigger_type_group_type = {
++	.ct_group_ops = &trigger_ops,
++	.ct_owner       = THIS_MODULE,
++};
++
++static int __init iio_sw_trigger_init(void)
++{
++	iio_triggers_group =
++		configfs_register_default_group(&iio_configfs_subsys.su_group,
++						"triggers",
++						&iio_triggers_group_type);
++	if (IS_ERR(iio_triggers_group))
++		return PTR_ERR(iio_triggers_group);
++	return 0;
++}
++module_init(iio_sw_trigger_init);
++
++static void __exit iio_sw_trigger_exit(void)
++{
++	configfs_unregister_default_group(iio_triggers_group);
++}
++module_exit(iio_sw_trigger_exit);
++
++MODULE_AUTHOR("Daniel Baluta <daniel.baluta@intel.com>");
++MODULE_DESCRIPTION("Industrial I/O software triggers support");
++MODULE_LICENSE("GPL v2");
+diff -puN /dev/null include/linux/iio/sw_trigger.h
+--- /dev/null
++++ a/include/linux/iio/sw_trigger.h
+@@ -0,0 +1,71 @@
++/*
++ * Industrial I/O software trigger interface
++ *
++ * Copyright (c) 2015 Intel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License version 2 as published by
++ * the Free Software Foundation.
++ */
++
++#ifndef __IIO_SW_TRIGGER
++#define __IIO_SW_TRIGGER
++
++#include <linux/module.h>
++#include <linux/device.h>
++#include <linux/iio/iio.h>
++#include <linux/configfs.h>
++
++#define module_iio_sw_trigger_driver(__iio_sw_trigger_type) \
++	module_driver(__iio_sw_trigger_type, iio_register_sw_trigger_type, \
++		      iio_unregister_sw_trigger_type)
++
++extern struct configfs_subsystem iio_configfs_subsys;
++struct iio_sw_trigger_ops;
++
++struct iio_sw_trigger_type {
++	const char *name;
++	struct module *owner;
++	const struct iio_sw_trigger_ops *ops;
++	struct list_head list;
++	struct config_group *group;
++};
++
++struct iio_sw_trigger {
++	struct iio_trigger *trigger;
++	struct iio_sw_trigger_type *trigger_type;
++	struct config_group group;
++};
++
++struct iio_sw_trigger_ops {
++	struct iio_sw_trigger* (*probe)(const char *);
++	int (*remove)(struct iio_sw_trigger *);
++};
++
++static inline
++struct iio_sw_trigger *to_iio_sw_trigger(struct config_item *item)
++{
++	return container_of(to_config_group(item), struct iio_sw_trigger,
++			    group);
++}
++
++int iio_register_sw_trigger_type(struct iio_sw_trigger_type *tt);
++void iio_unregister_sw_trigger_type(struct iio_sw_trigger_type *tt);
++
++struct iio_sw_trigger *iio_sw_trigger_create(const char *, const char *);
++void iio_sw_trigger_destroy(struct iio_sw_trigger *);
++
++int iio_sw_trigger_type_configfs_register(struct iio_sw_trigger_type *tt);
++void iio_sw_trigger_type_configfs_unregister(struct iio_sw_trigger_type *tt);
++
++static inline
++void iio_swt_group_init_type_name(struct iio_sw_trigger *t,
++				  const char *name,
++				  struct config_item_type *type)
++{
++#ifdef CONFIG_CONFIGFS_FS
++	config_group_init_type_name(&t->group, name, type);
++#endif
++}
++
++#endif /* __IIO_SW_TRIGGER */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from daniel.baluta@intel.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-arm64-mm-support-arch_mmap_rnd_bits-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-mm-introduce-kernelcore=mirror-option-fix.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-printk-introduce-new-format-string-for-flags-fix-2.patch
-mm-support-madvisemadv_free-fix-2-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom-introduce-oom-reaper-fix-fix.patch
-mm-oom-introduce-oom-reaper-fix-fix-2.patch
-mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
-mm-oom-introduce-oom-reaper-fix-3.patch
-mm-oom-introduce-oom-reaper-fix-4-fix.patch
-mm-oom-introduce-oom-reaper-fix-5-fix.patch
-kernel-stop_machinec-remove-config_smp-dependencies.patch
-kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
-lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
-lib-test_printfc-test-dentry-printing-fix.patch
-printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
-printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix-fix.patch
-printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
-linux-next-rejects.patch
-fs-overlayfs-superc-needs-pagemaph.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-net-drop-tcp_memcontrolc-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
 
