@@ -1,20 +1,20 @@
 From: akpm@linux-foundation.org
 Subject: +
  x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate-fix.patch added to -mm tree
-Date: Mon, 04 Jan 2016 11:44:02 -0800
-Message-ID: <568acb82.0uVFSx+h2vgD9sR/%akpm@linux-foundation.org>
+Date: Mon, 04 Jan 2016 11:44:18 -0800
+Message-ID: <568acb92.vU84D108zRgEDM8W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41815 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41824 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751523AbcADToD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2016 14:44:03 -0500
+	with ESMTP id S1751912AbcADToT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2016 14:44:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, dan.j.williams@intel.com, sudip@vectorindia.org, mm-commits@vger.kernel.org
+To: sudipm.mukherjee@gmail.com, dan.j.williams@intel.com, geert@linux-m68k.org, sudip@vectorindia.org, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -52,6 +52,7 @@ to copy these macros into page_mm.h.
 Fixes: 0a3c3bf11240 ("x86, mm: introduce vmem_altmap to augment vmemmap_populate()")
 Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
 Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
