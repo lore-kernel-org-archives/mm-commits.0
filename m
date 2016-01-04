@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + arm64-fix-add-kasan-bug.patch added to -mm tree
-Date: Mon, 04 Jan 2016 13:13:04 -0800
-Message-ID: <568ae060.2mZGCjJIc812V2Ul%akpm@linux-foundation.org>
+Subject: + ocfs2-add-feature-document-for-online-file-check.patch added to -mm tree
+Date: Mon, 04 Jan 2016 13:14:13 -0800
+Message-ID: <568ae0a5.94G2ZDcMNMOfjS1e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51121 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51149 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751523AbcADVNF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2016 16:13:05 -0500
+	with ESMTP id S1751908AbcADVOO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2016 16:14:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhongjiang@huawei.com, catalin.marinas@arm.com, long.wanglong@huawei.com, qiuxishi@huawei.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
+To: ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64: fix add kasan bug
+     Subject: ocfs2: add feature document for online file check
 has been added to the -mm tree.  Its filename is
-     arm64-fix-add-kasan-bug.patch
+     ocfs2-add-feature-document-for-online-file-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arm64-fix-add-kasan-bug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-feature-document-for-online-file-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arm64-fix-add-kasan-bug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-feature-document-for-online-file-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,57 +38,138 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: zhong jiang <zhongjiang@huawei.com>
-Subject: arm64: fix add kasan bug
+From: Gang He <ghe@suse.com>
+Subject: ocfs2: add feature document for online file check
 
-In general, each process have 16kb stack space to use, but stack need
-extra space to store red_zone when kasan enable.  the patch fix above
-question.
+This document will describe OCFS2 online file check feature.  OCFS2 is
+often used in high-availaibility systems.  However, OCFS2 usually converts
+the filesystem to read-only when encounters an error.  This may not be
+necessary, since turning the filesystem read-only would affect other
+running processes as well, decreasing availability.
 
-Signed-off-by: zhong jiang <zhongjiang@huawei.com>
-Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Wang Long <long.wanglong@huawei.com>
+Then, a mount option (errors=continue) is introduced, which would return
+the -EIO errno to the calling process and terminate furhter processing so
+that the filesystem is not corrupted further.  The filesystem is not
+converted to read-only, and the problematic file's inode number is
+reported in the kernel log.  The user can try to check/fix this file via
+online filecheck feature.
+
+Signed-off-by: Gang He <ghe@suse.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/include/asm/thread_info.h |   15 +++++++++++++--
- 1 file changed, 13 insertions(+), 2 deletions(-)
+ Documentation/filesystems/ocfs2-online-filecheck.txt |   94 ++++++++++
+ 1 file changed, 94 insertions(+)
 
-diff -puN arch/arm64/include/asm/thread_info.h~arm64-fix-add-kasan-bug arch/arm64/include/asm/thread_info.h
---- a/arch/arm64/include/asm/thread_info.h~arm64-fix-add-kasan-bug
-+++ a/arch/arm64/include/asm/thread_info.h
-@@ -23,13 +23,24 @@
- 
- #include <linux/compiler.h>
- 
-+#ifdef CONFIG_KASAN
-+#define KASAN_STACK_ORDER 1
-+#else
-+#define KASAN_STACK_ORDER 0
-+#endif
+diff -puN /dev/null Documentation/filesystems/ocfs2-online-filecheck.txt
+--- /dev/null
++++ a/Documentation/filesystems/ocfs2-online-filecheck.txt
+@@ -0,0 +1,94 @@
++		    OCFS2 online file check
++		    -----------------------
 +
- #ifdef CONFIG_ARM64_4K_PAGES
--#define THREAD_SIZE_ORDER	2
-+#define THREAD_SIZE_ORDER	(2 + KASAN_STACK_ORDER)
- #elif defined(CONFIG_ARM64_16K_PAGES)
--#define THREAD_SIZE_ORDER	0
-+#define THREAD_SIZE_ORDER	(0 + KASAN_STACK_ORDER)
- #endif
- 
-+#ifdef CONFIG_KASAN
-+#define THREAD_SIZE		32768
-+#else
- #define THREAD_SIZE		16384
-+#endif
++This document will describe OCFS2 online file check feature.
 +
- #define THREAD_START_SP		(THREAD_SIZE - 16)
- 
- #ifndef __ASSEMBLY__
++Introduction
++============
++OCFS2 is often used in high-availaibility systems. However, OCFS2 usually
++converts the filesystem to read-only when encounters an error. This may not be
++necessary, since turning the filesystem read-only would affect other running
++processes as well, decreasing availability.
++Then, a mount option (errors=continue) is introduced, which would return the
++-EIO errno to the calling process and terminate furhter processing so that the
++filesystem is not corrupted further. The filesystem is not converted to
++read-only, and the problematic file's inode number is reported in the kernel
++log. The user can try to check/fix this file via online filecheck feature.
++
++Scope
++=====
++This effort is to check/fix small issues which may hinder day-to-day operations
++of a cluster filesystem by turning the filesystem read-only. The scope of
++checking/fixing is at the file level, initially for regular files and eventually
++to all files (including system files) of the filesystem.
++
++In case of directory to file links is incorrect, the directory inode is
++reported as erroneous.
++
++This feature is not suited for extravagant checks which involve dependency of
++other components of the filesystem, such as but not limited to, checking if the
++bits for file blocks in the allocation has been set. In case of such an error,
++the offline fsck should/would be recommended.
++
++Finally, such an operation/feature should not be automated lest the filesystem
++may end up with more damage than before the repair attempt. So, this has to
++be performed using user interaction and consent.
++
++User interface
++==============
++When there are errors in the OCFS2 filesystem, they are usually accompanied
++by the inode number which caused the error. This inode number would be the
++input to check/fix the file.
++
++There is a sysfs directory for each OCFS2 file system mounting:
++
++  /sys/fs/ocfs2/<devname>/filecheck
++
++Here, <devname> indicates the name of OCFS2 volumn device which has been already
++mounted. The file above would accept inode numbers. This could be used to
++communicate with kernel space, tell which file(inode number) will be checked or
++fixed. Currently, three operations are supported, which includes checking
++inode, fixing inode and setting the size of result record history.
++
++1. If you want to know what error exactly happened to <inode> before fixing, do
++
++  # echo "<inode>" > /sys/fs/ocfs2/<devname>/filecheck/check
++  # cat /sys/fs/ocfs2/<devname>/filecheck/check
++
++The output is like this:
++  INO		DONE	ERROR
++39502		1	GENERATION
++
++<INO> lists the inode numbers.
++<DONE> indicates whether the operation has been finished.
++<ERROR> says what kind of errors was found. For the detailed error numbers,
++please refer to the file linux/fs/ocfs2/filecheck.h.
++
++2. If you determine to fix this inode, do
++
++  # echo "<inode>" > /sys/fs/ocfs2/<devname>/filecheck/fix
++  # cat /sys/fs/ocfs2/<devname>/filecheck/fix
++
++The output is like this:
++  INO		DONE	ERROR
++39502		1	SUCCESS
++
++This time, the <ERROR> column indicates whether this fix is successful or not.
++
++3. The record cache is used to store the history of check/fix results. It's
++defalut size is 10, and can be adjust between the range of 10 ~ 100. You can
++adjust the size like this:
++
++  # echo "<size>" > /sys/fs/ocfs2/<devname>/filecheck/set
++
++Fixing stuff
++============
++On receivng the inode, the filesystem would read the inode and the
++file metadata. In case of errors, the filesystem would fix the errors
++and report the problems it fixed in the kernel log. As a precautionary measure,
++the inode must first be checked for errors before performing a final fix.
++
++The inode and the result history will be maintained temporarily in a
++small linked list buffer which would contain the last (N) inodes
++fixed/checked, the detailed errors which were fixed/checked are printed in the
++kernel log.
 _
 
-Patches currently in -mm which might be from zhongjiang@huawei.com are
+Patches currently in -mm which might be from ghe@suse.com are
 
-arm64-fix-add-kasan-bug.patch
+ocfs2-export-ocfs2_kset-for-online-file-check.patch
+ocfs2-sysfile-interfaces-for-online-file-check.patch
+ocfs2-create-remove-sysfile-for-online-file-check.patch
+ocfs2-check-fix-inode-block-for-online-file-check.patch
+ocfs2-add-feature-document-for-online-file-check.patch
 
