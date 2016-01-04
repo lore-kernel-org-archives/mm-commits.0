@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-add-feature-document-for-online-file-check.patch added to -mm tree
-Date: Mon, 04 Jan 2016 13:14:13 -0800
-Message-ID: <568ae0a5.94G2ZDcMNMOfjS1e%akpm@linux-foundation.org>
+Subject: + dma-debug-switch-check-from-_text-to-_stext.patch added to -mm
+ tree
+Date: Mon, 04 Jan 2016 13:33:22 -0800
+Message-ID: <568ae522.iITOE8AkpfsfgXnA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51149 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53109 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751908AbcADVOO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2016 16:14:14 -0500
+	with ESMTP id S1751913AbcADVdX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2016 16:33:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: labbott@fedoraproject.org, arnd@arndb.de, keescook@chromium.org, linux@arm.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: add feature document for online file check
+     Subject: dma-debug: switch check from _text to _stext
 has been added to the -mm tree.  Its filename is
-     ocfs2-add-feature-document-for-online-file-check.patch
+     dma-debug-switch-check-from-_text-to-_stext.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-add-feature-document-for-online-file-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dma-debug-switch-check-from-_text-to-_stext.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-add-feature-document-for-online-file-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dma-debug-switch-check-from-_text-to-_stext.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,138 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gang He <ghe@suse.com>
-Subject: ocfs2: add feature document for online file check
+From: Laura Abbott <labbott@fedoraproject.org>
+Subject: dma-debug: switch check from _text to _stext
 
-This document will describe OCFS2 online file check feature.  OCFS2 is
-often used in high-availaibility systems.  However, OCFS2 usually converts
-the filesystem to read-only when encounters an error.  This may not be
-necessary, since turning the filesystem read-only would affect other
-running processes as well, decreasing availability.
+In include/asm-generic/sections.h:
 
-Then, a mount option (errors=continue) is introduced, which would return
-the -EIO errno to the calling process and terminate furhter processing so
-that the filesystem is not corrupted further.  The filesystem is not
-converted to read-only, and the problematic file's inode number is
-reported in the kernel log.  The user can try to check/fix this file via
-online filecheck feature.
+/*
+ * Usage guidelines:
+ * _text, _data: architecture specific, don't use them in
+ * arch-independent code
+ * [_stext, _etext]: contains .text.* sections, may also contain
+ * .rodata.*
+ *                   and/or .init.* sections
 
-Signed-off-by: Gang He <ghe@suse.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+_text is not guaranteed across architectures.  Architectures such as ARM
+may reuse parts which are not actually text and erroneously trigger a bug.
+Switch to using _stext which is guaranteed to contain text sections.
+
+Came out of https://lkml.kernel.org/g/<567B1176.4000106@redhat.com>
+
+Signed-off-by: Laura Abbott <labbott@fedoraproject.org>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/ocfs2-online-filecheck.txt |   94 ++++++++++
- 1 file changed, 94 insertions(+)
+ lib/dma-debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN /dev/null Documentation/filesystems/ocfs2-online-filecheck.txt
---- /dev/null
-+++ a/Documentation/filesystems/ocfs2-online-filecheck.txt
-@@ -0,0 +1,94 @@
-+		    OCFS2 online file check
-+		    -----------------------
-+
-+This document will describe OCFS2 online file check feature.
-+
-+Introduction
-+============
-+OCFS2 is often used in high-availaibility systems. However, OCFS2 usually
-+converts the filesystem to read-only when encounters an error. This may not be
-+necessary, since turning the filesystem read-only would affect other running
-+processes as well, decreasing availability.
-+Then, a mount option (errors=continue) is introduced, which would return the
-+-EIO errno to the calling process and terminate furhter processing so that the
-+filesystem is not corrupted further. The filesystem is not converted to
-+read-only, and the problematic file's inode number is reported in the kernel
-+log. The user can try to check/fix this file via online filecheck feature.
-+
-+Scope
-+=====
-+This effort is to check/fix small issues which may hinder day-to-day operations
-+of a cluster filesystem by turning the filesystem read-only. The scope of
-+checking/fixing is at the file level, initially for regular files and eventually
-+to all files (including system files) of the filesystem.
-+
-+In case of directory to file links is incorrect, the directory inode is
-+reported as erroneous.
-+
-+This feature is not suited for extravagant checks which involve dependency of
-+other components of the filesystem, such as but not limited to, checking if the
-+bits for file blocks in the allocation has been set. In case of such an error,
-+the offline fsck should/would be recommended.
-+
-+Finally, such an operation/feature should not be automated lest the filesystem
-+may end up with more damage than before the repair attempt. So, this has to
-+be performed using user interaction and consent.
-+
-+User interface
-+==============
-+When there are errors in the OCFS2 filesystem, they are usually accompanied
-+by the inode number which caused the error. This inode number would be the
-+input to check/fix the file.
-+
-+There is a sysfs directory for each OCFS2 file system mounting:
-+
-+  /sys/fs/ocfs2/<devname>/filecheck
-+
-+Here, <devname> indicates the name of OCFS2 volumn device which has been already
-+mounted. The file above would accept inode numbers. This could be used to
-+communicate with kernel space, tell which file(inode number) will be checked or
-+fixed. Currently, three operations are supported, which includes checking
-+inode, fixing inode and setting the size of result record history.
-+
-+1. If you want to know what error exactly happened to <inode> before fixing, do
-+
-+  # echo "<inode>" > /sys/fs/ocfs2/<devname>/filecheck/check
-+  # cat /sys/fs/ocfs2/<devname>/filecheck/check
-+
-+The output is like this:
-+  INO		DONE	ERROR
-+39502		1	GENERATION
-+
-+<INO> lists the inode numbers.
-+<DONE> indicates whether the operation has been finished.
-+<ERROR> says what kind of errors was found. For the detailed error numbers,
-+please refer to the file linux/fs/ocfs2/filecheck.h.
-+
-+2. If you determine to fix this inode, do
-+
-+  # echo "<inode>" > /sys/fs/ocfs2/<devname>/filecheck/fix
-+  # cat /sys/fs/ocfs2/<devname>/filecheck/fix
-+
-+The output is like this:
-+  INO		DONE	ERROR
-+39502		1	SUCCESS
-+
-+This time, the <ERROR> column indicates whether this fix is successful or not.
-+
-+3. The record cache is used to store the history of check/fix results. It's
-+defalut size is 10, and can be adjust between the range of 10 ~ 100. You can
-+adjust the size like this:
-+
-+  # echo "<size>" > /sys/fs/ocfs2/<devname>/filecheck/set
-+
-+Fixing stuff
-+============
-+On receivng the inode, the filesystem would read the inode and the
-+file metadata. In case of errors, the filesystem would fix the errors
-+and report the problems it fixed in the kernel log. As a precautionary measure,
-+the inode must first be checked for errors before performing a final fix.
-+
-+The inode and the result history will be maintained temporarily in a
-+small linked list buffer which would contain the last (N) inodes
-+fixed/checked, the detailed errors which were fixed/checked are printed in the
-+kernel log.
+diff -puN lib/dma-debug.c~dma-debug-switch-check-from-_text-to-_stext lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-switch-check-from-_text-to-_stext
++++ a/lib/dma-debug.c
+@@ -1181,7 +1181,7 @@ static inline bool overlap(void *addr, u
+ 
+ static void check_for_illegal_area(struct device *dev, void *addr, unsigned long len)
+ {
+-	if (overlap(addr, len, _text, _etext) ||
++	if (overlap(addr, len, _stext, _etext) ||
+ 	    overlap(addr, len, __start_rodata, __end_rodata))
+ 		err_printk(dev, NULL, "DMA-API: device driver maps memory from kernel text or rodata [addr=%p] [len=%lu]\n", addr, len);
+ }
 _
 
-Patches currently in -mm which might be from ghe@suse.com are
+Patches currently in -mm which might be from labbott@fedoraproject.org are
 
-ocfs2-export-ocfs2_kset-for-online-file-check.patch
-ocfs2-sysfile-interfaces-for-online-file-check.patch
-ocfs2-create-remove-sysfile-for-online-file-check.patch
-ocfs2-check-fix-inode-block-for-online-file-check.patch
-ocfs2-add-feature-document-for-online-file-check.patch
+dma-debug-switch-check-from-_text-to-_stext.patch
 
