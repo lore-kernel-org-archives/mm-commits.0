@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + sched-check-tgid-in-is_global_init.patch added to -mm tree
-Date: Mon, 04 Jan 2016 14:43:41 -0800
-Message-ID: <568af59d.lkdr78Dxi23SE7fT%akpm__18094.2931947813$1451947442$gmane$org@linux-foundation.org>
+Subject: + mm-introduce-kernelcore=mirror-option-fix-2.patch added to -mm
+ tree
+Date: Mon, 04 Jan 2016 14:55:07 -0800
+Message-ID: <568af84b.MmaLLQzJIQPkvUws%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59000 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59945 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752313AbcADWnm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2016 17:43:42 -0500
+	with ESMTP id S1752055AbcADWzI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2016 17:55:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky@gmail.com, oleg@redhat.com, rgb@redhat.com, serge.hallyn@canonical.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: arnd@arndb.de, izumi.taku@jp.fujitsu.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sched: check tgid in is_global_init
+     Subject: mm: avoid unused variables in memmap_init_zone
 has been added to the -mm tree.  Its filename is
-     sched-check-tgid-in-is_global_init.patch
+     mm-introduce-kernelcore=mirror-option-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sched-check-tgid-in-is_global_init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-introduce-kernelcore%3Dmirror-option-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sched-check-tgid-in-is_global_init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-introduce-kernelcore%3Dmirror-option-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,65 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Subject: sched: check tgid in is_global_init
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: avoid unused variables in memmap_init_zone
 
-Global init can have sub-threads, so ->pid check is not reliable enough
-for is_global_init(), we need to check tgid instead.  This has been
-spotted by Oleg and a fix was proposed by Richard a long time ago (see the
-link below).
+A quick fix on mm/page_alloc.c introduced a harmless warning:
 
-Oleg wrote:
-:Because is_global_init() is only true for the main thread of /sbin/init.
-:
-:Just look at oom_unkillable_task(). It tries to not kill init. But, say,
-:select_bad_process() can happily find a sub-thread of is_global_init()
-:and still kill it.
+mm/page_alloc.c: In function 'memmap_init_zone':
+mm/page_alloc.c:4617:44: warning: unused variable 'tmp' [-Wunused-variable]
+mm/page_alloc.c:4617:26: warning: unused variable 'r' [-Wunused-variable]
 
-I recently hit the problem in question; re-sending the patch (to the best
-of my knowledge it has never been submitted) with updated function
-comment.  Credit goes to Oleg and Richard.
+This uses another #ifdef to avoid declaring the two variables when the
+code is not built.
 
-Link: https://www.redhat.com/archives/linux-audit/2013-December/msg00086.html
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Reported-by: Oleg Nesterov <oleg@redhat.com>
-Suggested-by: Richard Guy Briggs <rgb@redhat.com>
-Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: Tony Luck <tony.luck@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ mm/page_alloc.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/linux/sched.h~sched-check-tgid-in-is_global_init include/linux/sched.h
---- a/include/linux/sched.h~sched-check-tgid-in-is_global_init
-+++ a/include/linux/sched.h
-@@ -2013,7 +2013,8 @@ static inline int pid_alive(const struct
- }
+diff -puN mm/page_alloc.c~mm-introduce-kernelcore=mirror-option-fix-2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-introduce-kernelcore=mirror-option-fix-2
++++ a/mm/page_alloc.c
+@@ -4465,7 +4465,9 @@ void __meminit memmap_init_zone(unsigned
+ 	unsigned long pfn;
+ 	struct zone *z;
+ 	unsigned long nr_initialised = 0;
++#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
+ 	struct memblock_region *r = NULL, *tmp;
++#endif
  
- /**
-- * is_global_init - check if a task structure is init
-+ * is_global_init - check if a task structure is init. Since init
-+ * is free to have sub-threads we need to check tgid.
-  * @tsk: Task structure to be checked.
-  *
-  * Check if a task structure is the first user space task the kernel created.
-@@ -2022,7 +2023,7 @@ static inline int pid_alive(const struct
-  */
- static inline int is_global_init(struct task_struct *tsk)
- {
--	return tsk->pid == 1;
-+	return task_tgid_nr(tsk) == 1;
- }
- 
- extern struct pid *cad_pid;
+ 	if (highest_memmap_pfn < end_pfn - 1)
+ 		highest_memmap_pfn = end_pfn - 1;
 _
 
-Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-zram-zcomp-use-gfp_noio-to-allocate-streams.patch
-zram-zcomp-do-not-zero-out-zcomp-private-pages.patch
-printk-change-recursion_bug-type-to-bool.patch
-sched-check-tgid-in-is_global_init.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix-2.patch
+mm-introduce-kernelcore=mirror-option-fix-2.patch
+arm-thp-remove-infrastructure-for-handling-splitting-pmds-fix.patch
+mm-printk-introduce-new-format-string-for-flags-fix.patch
+printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix.patch
+memstick-use-sector_div-instead-of-do_div.patch
+mm-memcontrol-introduce-config_memcg_legacy_kmem-fix.patch
+mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix-2.patch
 
