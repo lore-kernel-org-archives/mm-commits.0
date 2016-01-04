@@ -1,168 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Mon, 04 Jan 2016 11:04:05 -0800
-Message-ID: <568ac225.QMsGg1GTo6nylyYm%akpm@linux-foundation.org>
+Subject: [merged]
+ include-linux-propertyh-fix-build-issues-with-gcc-444.patch removed from
+ -mm tree
+Date: Mon, 04 Jan 2016 11:06:22 -0800
+Message-ID: <568ac2ae.i3+DtTNz3BwTJl4q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38793 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39108 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751408AbcADTEH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2016 14:04:07 -0500
+	with ESMTP id S1751858AbcADTGY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Jan 2016 14:06:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andriy.shevchenko@linux.intel.com, heikki.krogerus@linux.intel.com, kevin@scrye.com, mika.westerberg@linux.intel.com, rafael.j.wysocki@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: include/linux/property.h: fix build issues with gcc-4.4.4
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     include-linux-propertyh-fix-build-issues-with-gcc-444.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+Subject: include/linux/property.h: fix build issues with gcc-4.4.4
 
+gcc-4.4.4 has problems with initialization of anonymous unions:
+
+drivers/mfd/intel-lpss-acpi.c:30: error: unknown field 'value' specified in initializer
+
+work around this by crafting the initializers in a manner which the
+compiler can handle.
+
+Cc: Kevin Fenzi <kevin@scrye.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/i915/intel_display.c |    5 -
- drivers/nvme/host/pci.c              |   95 -------------------------
- 2 files changed, 100 deletions(-)
+ include/linux/property.h |   16 ++++++++++++----
+ 1 file changed, 12 insertions(+), 4 deletions(-)
 
-diff -puN drivers/gpu/drm/i915/intel_display.c~linux-next-git-rejects drivers/gpu/drm/i915/intel_display.c
---- a/drivers/gpu/drm/i915/intel_display.c~linux-next-git-rejects
-+++ a/drivers/gpu/drm/i915/intel_display.c
-@@ -14141,12 +14141,7 @@ intel_commit_cursor_plane(struct drm_pla
+diff -puN include/linux/property.h~include-linux-propertyh-fix-build-issues-with-gcc-444 include/linux/property.h
+--- a/include/linux/property.h~include-linux-propertyh-fix-build-issues-with-gcc-444
++++ a/include/linux/property.h
+@@ -175,12 +175,19 @@ struct property_entry {
+ 	};
+ };
  
- 	intel_crtc->cursor_addr = addr;
- 
--<<<<<<< HEAD
--	if (crtc->state->active)
--		intel_crtc_update_cursor(crtc, state->visible);
--=======
- 	intel_crtc_update_cursor(crtc, state->visible);
-->>>>>>> linux-next/akpm-base
++/*
++ * Note: the below four initializers for the anonymous union are carefully
++ * crafted to avoid gcc-4.4.4's problems with initialization of anon unions
++ * and structs.
++ */
++
+ #define PROPERTY_ENTRY_INTEGER_ARRAY(_name_, _type_, _val_)	\
+ {								\
+ 	.name = _name_,						\
+ 	.length = ARRAY_SIZE(_val_) * sizeof(_type_),		\
+ 	.is_array = true,					\
+-	.pointer._type_##_data = _val_,				\
++	.is_string = false,					\
++	{ .pointer = { _type_##_data = _val_ } },		\
  }
  
- static struct drm_plane *intel_cursor_plane_create(struct drm_device *dev,
-diff -puN drivers/nvme/host/pci.c~linux-next-git-rejects drivers/nvme/host/pci.c
---- a/drivers/nvme/host/pci.c~linux-next-git-rejects
-+++ a/drivers/nvme/host/pci.c
-@@ -1569,81 +1569,6 @@ static int nvme_setup_io_queues(struct n
- 	return result;
+ #define PROPERTY_ENTRY_U8_ARRAY(_name_, _val_)			\
+@@ -198,14 +205,15 @@ struct property_entry {
+ 	.length = ARRAY_SIZE(_val_) * sizeof(const char *),	\
+ 	.is_array = true,					\
+ 	.is_string = true,					\
+-	.pointer.str = _val_,					\
++	{ .pointer = { .str = _val_ } },			\
  }
  
--<<<<<<< HEAD
--static int ns_cmp(void *priv, struct list_head *a, struct list_head *b)
--{
--	struct nvme_ns *nsa = container_of(a, struct nvme_ns, list);
--	struct nvme_ns *nsb = container_of(b, struct nvme_ns, list);
--
--	return nsa->ns_id - nsb->ns_id;
--}
--
--static struct nvme_ns *nvme_find_ns(struct nvme_dev *dev, unsigned nsid)
--{
--	struct nvme_ns *ns;
--
--	list_for_each_entry(ns, &dev->namespaces, list) {
--		if (ns->ns_id == nsid)
--			return ns;
--		if (ns->ns_id > nsid)
--			break;
--	}
--	return NULL;
--}
--
--static inline bool nvme_io_incapable(struct nvme_dev *dev)
--{
--	return (!dev->bar || readl(&dev->bar->csts) & NVME_CSTS_CFS ||
--							dev->online_queues < 2);
--}
--
--static void nvme_ns_remove(struct nvme_ns *ns)
--{
--	bool kill = nvme_io_incapable(ns->dev) && !blk_queue_dying(ns->queue);
--
--	if (kill) {
--		blk_set_queue_dying(ns->queue);
--
--		/*
--		 * The controller was shutdown first if we got here through
--		 * device removal. The shutdown may requeue outstanding
--		 * requests. These need to be aborted immediately so
--		 * del_gendisk doesn't block indefinitely for their completion.
--		 */
--		blk_mq_abort_requeue_list(ns->queue);
--	}
--	if (ns->disk->flags & GENHD_FL_UP)
--		del_gendisk(ns->disk);
--	if (kill || !blk_queue_dying(ns->queue)) {
--		blk_mq_abort_requeue_list(ns->queue);
--		blk_cleanup_queue(ns->queue);
--	}
--	list_del_init(&ns->list);
--	kref_put(&ns->kref, nvme_free_ns);
--}
--
--static void nvme_scan_namespaces(struct nvme_dev *dev, unsigned nn)
--{
--	struct nvme_ns *ns, *next;
--	unsigned i;
--
--	for (i = 1; i <= nn; i++) {
--		ns = nvme_find_ns(dev, i);
--		if (ns) {
--			if (revalidate_disk(ns->disk))
--				nvme_ns_remove(ns);
--		} else
--			nvme_alloc_ns(dev, i);
--	}
--	list_for_each_entry_safe(ns, next, &dev->namespaces, list) {
--		if (ns->ns_id > nn)
--			nvme_ns_remove(ns);
--	}
--	list_sort(NULL, &dev->namespaces, ns_cmp);
--}
--
--=======
-->>>>>>> linux-next/akpm-base
- static void nvme_set_irq_hints(struct nvme_dev *dev)
- {
- 	struct nvme_queue *nvmeq;
-@@ -2044,27 +1969,7 @@ static void nvme_dev_shutdown(struct nvm
- 
- 	for (i = dev->queue_count - 1; i >= 0; i--)
- 		nvme_clear_queue(dev->queues[i]);
--<<<<<<< HEAD
--}
--
--static void nvme_dev_remove(struct nvme_dev *dev)
--{
--	struct nvme_ns *ns, *next;
--
--	if (nvme_io_incapable(dev)) {
--		/*
--		 * If the device is not capable of IO (surprise hot-removal,
--		 * for example), we need to quiesce prior to deleting the
--		 * namespaces. This will end outstanding requests and prevent
--		 * attempts to sync dirty data.
--		 */
--		nvme_dev_shutdown(dev);
--	}
--	list_for_each_entry_safe(ns, next, &dev->namespaces, list)
--		nvme_ns_remove(ns);
--=======
- 	mutex_unlock(&dev->shutdown_lock);
-->>>>>>> linux-next/akpm-base
+ #define PROPERTY_ENTRY_INTEGER(_name_, _type_, _val_)	\
+ {							\
+ 	.name = _name_,					\
+ 	.length = sizeof(_type_),			\
+-	.value._type_##_data = _val_,			\
++	.is_string = false,				\
++	{ .value = { ._type_##_data = _val_ } },	\
  }
  
- static int nvme_setup_prp_pools(struct nvme_dev *dev)
+ #define PROPERTY_ENTRY_U8(_name_, _val_)		\
+@@ -222,7 +230,7 @@ struct property_entry {
+ 	.name = _name_,					\
+ 	.length = sizeof(_val_),			\
+ 	.is_string = true,				\
+-	.value.str = _val_,				\
++	{ .value = {.str = _val_} },			\
+ }
+ 
+ #define PROPERTY_ENTRY_BOOL(_name_)		\
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -215,7 +150,6 @@ ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
 ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
 ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
 linux-next-rejects.patch
-include-linux-propertyh-fix-build-issues-with-gcc-444.patch
 fs-overlayfs-superc-needs-pagemaph.patch
 fs-adfs-adfsh-tidy-up-comments.patch
 net-drop-tcp_memcontrolc-fix.patch
