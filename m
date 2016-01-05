@@ -1,126 +1,209 @@
 From: akpm@linux-foundation.org
-Subject: [failures] mm-introduce-kernelcore=mirror-option-fix.patch
- removed from -mm tree
-Date: Tue, 05 Jan 2016 12:59:33 -0800
-Message-ID: <568c2eb5.8/DIaFJKW2H3BWjr%akpm@linux-foundation.org>
+Subject: [failures]
+ mm-calculate-zone_start_pfn-at-zone_spanned_pages_in_node.patch removed
+ from -mm tree
+Date: Tue, 05 Jan 2016 12:59:25 -0800
+Message-ID: <568c2ead.sEXAOL+ezndVq9oA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34786 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34768 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754152AbcAEU7d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jan 2016 15:59:33 -0500
+	with ESMTP id S1754541AbcAEU70 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jan 2016 15:59:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, izumi.taku@jp.fujitsu.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: izumi.taku@jp.fujitsu.com, dave.hansen@intel.com, kamezawa.hiroyu@jp.fujitsu.com, matt@codeblueprint.co.uk, mel@csn.ul.ie, qiuxishi@huawei.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-introduce-kernelcore=mirror-option-fix
+     Subject: mm/page_alloc.c: calculate zone_start_pfn at zone_spanned_pages_in_node()
 has been removed from the -mm tree.  Its filename was
-     mm-introduce-kernelcore=mirror-option-fix.patch
+     mm-calculate-zone_start_pfn-at-zone_spanned_pages_in_node.patch
 
 This patch was dropped because it had testing failures
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: a
+From: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Subject: mm/page_alloc.c: calculate zone_start_pfn at zone_spanned_pages_in_node()
 
-fix build with CONFIG_HAVE_MEMBLOCK_NODE_MAP=n
+Xeon E7 v3 based systems supports Address Range Mirroring and UEFI BIOS
+complied with UEFI spec 2.5 can notify which ranges are mirrored
+(reliable) via EFI memory map.  Now Linux kernel utilize its information
+and allocates boot time memory from reliable region.  
 
-Cc: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Tony Luck <tony.luck@intel.com>
+My requirement is:
+  - allocate kernel memory from mirrored region 
+  - allocate user memory from non-mirrored region
+
+In order to meet my requirement, ZONE_MOVABLE is useful.  By arranging
+non-mirrored range into ZONE_MOVABLE, mirrored memory is used for kernel
+allocations.
+
+My idea is to extend existing "kernelcore" option and introduces
+kernelcore=mirror option.  By specifying "mirror" instead of specifying
+the amount of memory, non-mirrored region will be arranged into
+ZONE_MOVABLE.  
+
+Earlier discussions are at: 
+ https://lkml.org/lkml/2015/10/9/24
+ https://lkml.org/lkml/2015/10/15/9
+ https://lkml.org/lkml/2015/11/27/18
+
+For example, suppose 2-nodes system with the following memory
+ range: 
+  node 0 [mem 0x0000000000001000-0x000000109fffffff] 
+  node 1 [mem 0x00000010a0000000-0x000000209fffffff]
+
+and the following ranges are marked as reliable (mirrored):
+  [0x0000000000000000-0x0000000100000000] 
+  [0x0000000100000000-0x0000000180000000] 
+  [0x0000000800000000-0x0000000880000000] 
+  [0x00000010a0000000-0x0000001120000000]
+  [0x00000017a0000000-0x0000001820000000] 
+
+If you specify kernelcore=mirror, ZONE_NORMAL and ZONE_MOVABLE
+are arranged like bellow:
+
+ - node 0:
+  ZONE_NORMAL : [0x0000000100000000-0x00000010a0000000]
+  ZONE_MOVABLE: [0x0000000180000000-0x00000010a0000000]
+ - node 1: 
+  ZONE_NORMAL : [0x00000010a0000000-0x00000020a0000000]
+  ZONE_MOVABLE: [0x0000001120000000-0x00000020a0000000] 
+
+In overlapped range, pages to be ZONE_MOVABLE in ZONE_NORMAL are treated
+as absent pages, and vice versa.
+
+
+This patch (of 2):
+
+Currently each zone's zone_start_pfn is calculated at
+free_area_init_core().  However zone's range is fixed at the time when
+invoking zone_spanned_pages_in_node().
+
+This patch changes each zone->zone_start_pfn is calculated at
+zone_spanned_pages_in_node().
+
+Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Tested-by: Tony Luck <tony.luck@intel.com>
+Acked-by: Tony Luck <tony.luck@intel.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Mel Gorman <mel@csn.ul.ie>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Kamezawa Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/page_alloc.c |   30 +++++++++++++++++++-----------
+ 1 file changed, 19 insertions(+), 11 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-introduce-kernelcore=mirror-option-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-introduce-kernelcore=mirror-option-fix
+diff -puN mm/page_alloc.c~mm-calculate-zone_start_pfn-at-zone_spanned_pages_in_node mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-calculate-zone_start_pfn-at-zone_spanned_pages_in_node
 +++ a/mm/page_alloc.c
-@@ -4486,6 +4486,7 @@ void __meminit memmap_init_zone(unsigned
- 						&nr_initialised))
- 				break;
- 
-+#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
- 			/*
- 			 * if not mirrored_kernelcore and ZONE_MOVABLE exists,
- 			 * range from zone_movable_pfn[nid] to end of each node
-@@ -4495,7 +4496,6 @@ void __meminit memmap_init_zone(unsigned
- 				if (zone == ZONE_NORMAL &&
- 				    pfn >= zone_movable_pfn[nid])
- 					continue;
+@@ -4920,31 +4920,31 @@ static unsigned long __meminit zone_span
+ 					unsigned long zone_type,
+ 					unsigned long node_start_pfn,
+ 					unsigned long node_end_pfn,
++					unsigned long *zone_start_pfn,
++					unsigned long *zone_end_pfn,
+ 					unsigned long *ignored)
+ {
+-	unsigned long zone_start_pfn, zone_end_pfn;
 -
- 			/*
- 			 * check given memblock attribute by firmware which
- 			 * can affect kernel memory layout.
-@@ -4517,6 +4517,7 @@ void __meminit memmap_init_zone(unsigned
- 					continue;
- 				}
- 			}
-+#endif
- 		}
+ 	/* When hotadd a new node from cpu_up(), the node should be empty */
+ 	if (!node_start_pfn && !node_end_pfn)
+ 		return 0;
  
- 		/*
+ 	/* Get the start and end of the zone */
+-	zone_start_pfn = arch_zone_lowest_possible_pfn[zone_type];
+-	zone_end_pfn = arch_zone_highest_possible_pfn[zone_type];
++	*zone_start_pfn = arch_zone_lowest_possible_pfn[zone_type];
++	*zone_end_pfn = arch_zone_highest_possible_pfn[zone_type];
+ 	adjust_zone_range_for_zone_movable(nid, zone_type,
+ 				node_start_pfn, node_end_pfn,
+-				&zone_start_pfn, &zone_end_pfn);
++				zone_start_pfn, zone_end_pfn);
+ 
+ 	/* Check that this node has pages within the zone's required range */
+-	if (zone_end_pfn < node_start_pfn || zone_start_pfn > node_end_pfn)
++	if (*zone_end_pfn < node_start_pfn || *zone_start_pfn > node_end_pfn)
+ 		return 0;
+ 
+ 	/* Move the zone boundaries inside the node if necessary */
+-	zone_end_pfn = min(zone_end_pfn, node_end_pfn);
+-	zone_start_pfn = max(zone_start_pfn, node_start_pfn);
++	*zone_end_pfn = min(*zone_end_pfn, node_end_pfn);
++	*zone_start_pfn = max(*zone_start_pfn, node_start_pfn);
+ 
+ 	/* Return the spanned pages */
+-	return zone_end_pfn - zone_start_pfn;
++	return *zone_end_pfn - *zone_start_pfn;
+ }
+ 
+ /*
+@@ -5009,6 +5009,8 @@ static inline unsigned long __meminit zo
+ 					unsigned long zone_type,
+ 					unsigned long node_start_pfn,
+ 					unsigned long node_end_pfn,
++					unsigned long *zone_start_pfn,
++					unsigned long *zone_end_pfn,
+ 					unsigned long *zones_size)
+ {
+ 	return zones_size[zone_type];
+@@ -5039,15 +5041,22 @@ static void __meminit calculate_node_tot
+ 
+ 	for (i = 0; i < MAX_NR_ZONES; i++) {
+ 		struct zone *zone = pgdat->node_zones + i;
++		unsigned long zone_start_pfn, zone_end_pfn;
+ 		unsigned long size, real_size;
+ 
+ 		size = zone_spanned_pages_in_node(pgdat->node_id, i,
+ 						  node_start_pfn,
+ 						  node_end_pfn,
++						  &zone_start_pfn,
++						  &zone_end_pfn,
+ 						  zones_size);
+ 		real_size = size - zone_absent_pages_in_node(pgdat->node_id, i,
+ 						  node_start_pfn, node_end_pfn,
+ 						  zholes_size);
++		if (size)
++			zone->zone_start_pfn = zone_start_pfn;
++		else
++			zone->zone_start_pfn = 0;
+ 		zone->spanned_pages = size;
+ 		zone->present_pages = real_size;
+ 
+@@ -5168,7 +5177,6 @@ static void __paginginit free_area_init_
+ {
+ 	enum zone_type j;
+ 	int nid = pgdat->node_id;
+-	unsigned long zone_start_pfn = pgdat->node_start_pfn;
+ 	int ret;
+ 
+ 	pgdat_resize_init(pgdat);
+@@ -5184,6 +5192,7 @@ static void __paginginit free_area_init_
+ 	for (j = 0; j < MAX_NR_ZONES; j++) {
+ 		struct zone *zone = pgdat->node_zones + j;
+ 		unsigned long size, realsize, freesize, memmap_pages;
++		unsigned long zone_start_pfn = zone->zone_start_pfn;
+ 
+ 		size = zone->spanned_pages;
+ 		realsize = freesize = zone->present_pages;
+@@ -5252,7 +5261,6 @@ static void __paginginit free_area_init_
+ 		ret = init_currently_empty_zone(zone, zone_start_pfn, size);
+ 		BUG_ON(ret);
+ 		memmap_init(size, nid, j, zone_start_pfn);
+-		zone_start_pfn += size;
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from izumi.taku@jp.fujitsu.com are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-arm64-mm-support-arch_mmap_rnd_bits-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-mm-printk-introduce-new-format-string-for-flags-fix-2.patch
-mm-support-madvisemadv_free-fix-2-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom-introduce-oom-reaper-fix-fix.patch
-mm-oom-introduce-oom-reaper-fix-fix-2.patch
-mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
-mm-oom-introduce-oom-reaper-fix-3.patch
-mm-oom-introduce-oom-reaper-fix-4-fix.patch
-mm-oom-introduce-oom-reaper-fix-5-fix.patch
-kernel-stop_machinec-remove-config_smp-dependencies.patch
-kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
-lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
-lib-test_printfc-test-dentry-printing-fix.patch
-printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
-printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix-fix.patch
-printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
-linux-next-rejects.patch
-fs-overlayfs-superc-needs-pagemaph.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-net-drop-tcp_memcontrolc-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-introduce-kernelcore=mirror-option.patch
 
