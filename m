@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + memblock-fix-section-mismatch.patch added to -mm tree
-Date: Tue, 05 Jan 2016 14:20:46 -0800
-Message-ID: <568c41be.MXNPQq0xcRaB40wz%akpm@linux-foundation.org>
+Subject: +
+ mm-page_isolation-do-some-cleanup-in-undo_isolate_page_range.patch added to -mm tree
+Date: Tue, 05 Jan 2016 14:23:07 -0800
+Message-ID: <568c424b.SHujBXaKskU3KhtO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40853 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40885 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751768AbcAEWUr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jan 2016 17:20:47 -0500
+	with ESMTP id S1751711AbcAEWXI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Jan 2016 17:23:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: wangxq10@lzu.edu.cn, n-horiguchi@ah.jp.nec.com, wang_xiaoq@126.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memblock: fix section mismatch
+     Subject: mm/page_isolation: do some cleanup in "undo_isolate_page_range"
 has been added to the -mm tree.  Its filename is
-     memblock-fix-section-mismatch.patch
+     mm-page_isolation-do-some-cleanup-in-undo_isolate_page_range.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memblock-fix-section-mismatch.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_isolation-do-some-cleanup-in-undo_isolate_page_range.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memblock-fix-section-mismatch.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_isolation-do-some-cleanup-in-undo_isolate_page_range.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,148 +39,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: memblock: fix section mismatch
+From: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
+Subject: mm/page_isolation: do some cleanup in "undo_isolate_page_range"
 
-allmodconfig produces following warning for me:
+Use "IS_ALIGNED" to judge the alignment, rather than directly judging.
 
-  WARNING: vmlinux.o(.text.unlikely+0x10314): Section mismatch in reference from the function movable_node_is_enabled() to the variable .meminit.data:movable_node_enabled
-  The function movable_node_is_enabled() references
-  the variable __meminitdata movable_node_enabled.
-  This is often because movable_node_is_enabled lacks a __meminitdata
-  annotation or the annotation of movable_node_enabled is wrong.
-
-Let's mark the function with __meminit. It fixes the warning.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Wang Xiaoqiang <wang_xiaoq@126.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+ mm/page_isolation.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memblock.h~memblock-fix-section-mismatch include/linux/memblock.h
---- a/include/linux/memblock.h~memblock-fix-section-mismatch
-+++ a/include/linux/memblock.h
-@@ -60,6 +60,14 @@ extern int memblock_debug;
- extern bool movable_node_enabled;
- #endif /* CONFIG_MOVABLE_NODE */
- 
-+#ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
-+#define __init_memblock __meminit
-+#define __initdata_memblock __meminitdata
-+#else
-+#define __init_memblock
-+#define __initdata_memblock
-+#endif
-+
- #define memblock_dbg(fmt, ...) \
- 	if (memblock_debug) printk(KERN_INFO pr_fmt(fmt), ##__VA_ARGS__)
- 
-@@ -164,7 +172,7 @@ static inline bool memblock_is_hotplugga
- 	return m->flags & MEMBLOCK_HOTPLUG;
- }
- 
--static inline bool movable_node_is_enabled(void)
-+static inline bool __init_memblock movable_node_is_enabled(void)
+diff -puN mm/page_isolation.c~mm-page_isolation-do-some-cleanup-in-undo_isolate_page_range mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-page_isolation-do-some-cleanup-in-undo_isolate_page_range
++++ a/mm/page_isolation.c
+@@ -196,8 +196,10 @@ int undo_isolate_page_range(unsigned lon
  {
- 	return movable_node_enabled;
- }
-@@ -397,14 +405,6 @@ static inline unsigned long memblock_reg
- 	for (idx = 0; idx < memblock_type->cnt;				\
- 	     idx++,rgn = &memblock_type->regions[idx])
- 
--#ifdef CONFIG_ARCH_DISCARD_MEMBLOCK
--#define __init_memblock __meminit
--#define __initdata_memblock __meminitdata
--#else
--#define __init_memblock
--#define __initdata_memblock
--#endif
--
- #ifdef CONFIG_MEMTEST
- extern void early_memtest(phys_addr_t start, phys_addr_t end);
- #else
+ 	unsigned long pfn;
+ 	struct page *page;
+-	BUG_ON((start_pfn) & (pageblock_nr_pages - 1));
+-	BUG_ON((end_pfn) & (pageblock_nr_pages - 1));
++
++	BUG_ON(!IS_ALIGNED(start_pfn, pageblock_nr_pages));
++	BUG_ON(!IS_ALIGNED(end_pfn, pageblock_nr_pages));
++
+ 	for (pfn = start_pfn;
+ 	     pfn < end_pfn;
+ 	     pfn += pageblock_nr_pages) {
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from wangxq10@lzu.edu.cn are
 
-mm-make-sure-isolate_lru_page-is-never-called-for-tail-page.patch
-mm-make-optimistic-check-for-swapin-readahead-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-move-code-around.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-fix.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-3.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-at-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-page-flags-drop-__testclearpage-helpers.patch
-mm-proc-adjust-pss-calculation.patch
-rmap-add-argument-to-charge-compound-page.patch
-memcg-adjust-to-support-new-thp-refcounting.patch
-mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault.patch
-mm-adjust-foll_split-for-new-refcounting.patch
-mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
-thp-mlock-do-not-allow-huge-pages-in-mlocked-area.patch
-khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes.patch
-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
-mm-vmstats-new-thp-splitting-event.patch
-mm-temporally-mark-thp-broken.patch
-thp-drop-all-split_huge_page-related-code.patch
-mm-drop-tail-page-refcounting.patch
-futex-thp-remove-special-case-for-thp-in-get_futex_key.patch
-ksm-prepare-to-new-thp-semantics.patch
-mm-thp-remove-compound_lock.patch
-arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-arm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mips-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-powerpc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-s390-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-sparc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-tile-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-x86-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-2.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
-mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
-mm-numa-skip-pte-mapped-thp-on-numa-fault.patch
-thp-implement-split_huge_pmd.patch
-thp-add-option-to-setup-migration-entries-during-pmd-split.patch
-thp-mm-split_huge_page-caller-need-to-lock-page.patch
-thp-reintroduce-split_huge_page.patch
-thp-reintroduce-split_huge_page-fix-3.patch
-thp-reintroduce-split_huge_page-fix-4.patch
-migrate_pages-try-to-split-pages-on-qeueuing.patch
-thp-introduce-deferred_split_huge_page.patch
-thp-introduce-deferred_split_huge_page-fix.patch
-mm-re-enable-thp.patch
-thp-update-documentation.patch
-thp-allow-mlocked-thp-again.patch
-thp-allow-mlocked-thp-again-fix.patch
-thp-allow-mlocked-thp-again-fix-2.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch
-thp-add-debugfs-handle-to-split-all-huge-pages.patch
-thp-increase-split_huge_page-success-rate.patch
-mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch
-memblock-fix-section-mismatch.patch
-mm-oom-introduce-oom-reaper-fix-6.patch
+mm-page_isolation-do-some-cleanup-in-undo_isolate_page_range.patch
 
