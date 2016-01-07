@@ -1,99 +1,75 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-use-kobj_to_dev.patch added to -mm tree
-Date: Thu, 07 Jan 2016 15:40:50 -0800
-Message-ID: <568ef782.5c6tJ6w2xWKF3DrY%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-debug-fix-wrongly-filtered-flags-in-dump_vma-fix.patch removed from -mm
+ tree
+Date: Thu, 07 Jan 2016 15:48:53 -0800
+Message-ID: <568ef965.6HBSY+wwNMIFQrtk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34310 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34678 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753817AbcAGXkv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2016 18:40:51 -0500
+	with ESMTP id S1753619AbcAGXsy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2016 18:48:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geliangtang@163.com, Alexandre.Bounine@idt.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: use kobj_to_dev()
-has been added to the -mm tree.  Its filename is
-     rapidio-use-kobj_to_dev.patch
+     Subject: mm-debug-fix-wrongly-filtered-flags-in-dump_vma-fix
+has been removed from the -mm tree.  Its filename was
+     mm-debug-fix-wrongly-filtered-flags-in-dump_vma-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-use-kobj_to_dev.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-use-kobj_to_dev.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into mm-debug-fix-wrongly-filtered-flags-in-dump_vma.patch
 
 ------------------------------------------------------
-From: Geliang Tang <geliangtang@163.com>
-Subject: rapidio: use kobj_to_dev()
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm-debug-fix-wrongly-filtered-flags-in-dump_vma-fix
 
-Use kobj_to_dev() instead of open-coding it.
+Don't print opening parenthesis twice.
 
-Signed-off-by: Geliang Tang <geliangtang@163.com>
-Acked-by: "Bounine, Alexandre" <Alexandre.Bounine@idt.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-sysfs.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/rapidio/rio-sysfs.c~rapidio-use-kobj_to_dev drivers/rapidio/rio-sysfs.c
---- a/drivers/rapidio/rio-sysfs.c~rapidio-use-kobj_to_dev
-+++ a/drivers/rapidio/rio-sysfs.c
-@@ -125,8 +125,7 @@ rio_read_config(struct file *filp, struc
- 		struct bin_attribute *bin_attr,
- 		char *buf, loff_t off, size_t count)
- {
--	struct rio_dev *dev =
--	    to_rio_dev(container_of(kobj, struct device, kobj));
-+	struct rio_dev *dev = to_rio_dev(kobj_to_dev(kobj));
- 	unsigned int size = 0x100;
- 	loff_t init_off = off;
- 	u8 *data = (u8 *) buf;
-@@ -197,8 +196,7 @@ rio_write_config(struct file *filp, stru
- 		 struct bin_attribute *bin_attr,
- 		 char *buf, loff_t off, size_t count)
- {
--	struct rio_dev *dev =
--	    to_rio_dev(container_of(kobj, struct device, kobj));
-+	struct rio_dev *dev = to_rio_dev(kobj_to_dev(kobj));
- 	unsigned int size = count;
- 	loff_t init_off = off;
- 	u8 *data = (u8 *) buf;
+diff -puN mm/debug.c~mm-debug-fix-wrongly-filtered-flags-in-dump_vma-fix mm/debug.c
+--- a/mm/debug.c~mm-debug-fix-wrongly-filtered-flags-in-dump_vma-fix
++++ a/mm/debug.c
+@@ -240,7 +240,7 @@ void dump_mm(const struct mm_struct *mm)
+ 		""		/* This is here to not have a comma! */
+ 		);
+ 
+-	pr_emerg("def_flags: %#lx(", mm->def_flags);
++	pr_emerg("def_flags: %#lx", mm->def_flags);
+ 	dump_flag_names(mm->def_flags, vmaflags_names,
+ 					ARRAY_SIZE(vmaflags_names));
+ }
 _
 
-Patches currently in -mm which might be from geliangtang@163.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-fsnotify-use-list_next_entry-in-fsnotify_unmount_inodes.patch
-mm-slab-use-list_first_entry_or_null.patch
-mm-slab-use-list_for_each_entry-in-cache_flusharray.patch
-mm-slabc-add-a-helper-function-get_first_slab.patch
-mm-vmalloc-use-list_nextfirst_entry.patch
-mm-thp-use-list_first_entry_or_null.patch
-mm-page_allocc-use-list_firstlast_entry-instead-of-list_entry.patch
-mm-page_allocc-use-list_for_each_entry-in-mark_free_pages.patch
-mm-swapfilec-use-list_nextfirst_entry.patch
-mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page.patch
-mm-ksmc-use-list_for_each_entry_safe.patch
-mm-swapfilec-use-list_for_each_entry_safe-in-free_swap_count_continuations.patch
-mm-move-lru_to_page-to-mm_inlineh.patch
-mm-zbud-use-list_last_entry-instead-of-list_tail_entry.patch
-hfs-use-list_for_each_entry-in-hfs_cat_delete.patch
-kexec-use-list_for_each_entry_safe-in-kimage_free_page_list.patch
-rapidio-use-kobj_to_dev.patch
-dma-mapping-use-offset_in_page-macro.patch
+mm-documentation-clarify-proc-pid-status-vmswap-limitations-for-shmem.patch
+mm-proc-account-for-shmem-swap-in-proc-pid-smaps.patch
+mm-proc-reduce-cost-of-proc-pid-smaps-for-shmem-mappings.patch
+mm-proc-reduce-cost-of-proc-pid-smaps-for-unpopulated-shmem-mappings.patch
+mm-debug-fix-wrongly-filtered-flags-in-dump_vma.patch
+mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock.patch
+mm-page_owner-convert-page_owner_inited-to-static-key.patch
+mm-page_owner-copy-page-owner-info-during-migration.patch
+mm-page_owner-track-and-print-last-migrate-reason.patch
+mm-page_owner-track-and-print-last-migrate-reason-fix.patch
+mm-debug-introduce-dump_gfpflag_names-for-symbolic-printing-of-gfp_flags.patch
+mm-page_owner-dump-page-owner-info-from-dump_page.patch
+mm-page_owner-dump-page-owner-info-from-dump_page-fix.patch
+mm-page_alloc-print-symbolic-gfp_flags-on-allocation-failure.patch
+mm-oom-print-symbolic-gfp_flags-in-oom-warning.patch
+mm-printk-introduce-new-format-string-for-flags.patch
+mm-page_owner-provide-symbolic-page-flags-and-gfp_flags.patch
+mm-debug-move-bad-flags-printing-to-bad_page.patch
 
