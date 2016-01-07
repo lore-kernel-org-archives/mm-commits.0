@@ -1,74 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-debug-fix-wrongly-filtered-flags-in-dump_vma.patch removed from -mm tree
-Date: Thu, 07 Jan 2016 15:49:56 -0800
-Message-ID: <568ef9a4.x5OOQwF6WR+k/lkl%akpm@linux-foundation.org>
+ mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock.patch
+ removed from -mm tree
+Date: Thu, 07 Jan 2016 15:49:59 -0800
+Message-ID: <568ef9a7.aO44pktRSo6wJXft%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34871 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34880 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753109AbcAGXt5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2016 18:49:57 -0500
+	with ESMTP id S1753109AbcAGXuA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2016 18:50:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, debug: fix wrongly filtered flags in dump_vma()
+     Subject: mm, page_owner: print symbolic migratetype of both page and pageblock
 has been removed from the -mm tree.  Its filename was
-     mm-debug-fix-wrongly-filtered-flags-in-dump_vma.patch
+     mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, debug: fix wrongly filtered flags in dump_vma()
+Subject: mm, page_owner: print symbolic migratetype of both page and pageblock
 
-This is the second version of patchset which originally aimed to improve the
-page_owner functionality.
+The information in /sys/kernel/debug/page_owner includes the migratetype
+of the pageblock the page belongs to.  This is also checked against the
+page's migratetype (as declared by gfp_flags during its allocation), and
+the page is reported as Fallback if its migratetype differs from the
+pageblock's one.
 
-For page_owner, the main changes are
+This is somewhat misleading because in fact fallback allocation is not the
+only reason why these two can differ.  It also doesn't direcly provide the
+page's migratetype, although it's possible to derive that from the
+gfp_flags.
 
-o Use static key to further reduce overhead when compiled in but not enabled.
-o Improve output wrt. page and pageblock migratetypes
-o Transfer the info on page migrations and track last migration reason.
-o Dump the info as part of dump_page() to hopefully help debugging.
+It's arguably better to print both page and pageblock's migratetype and
+leave the interpretation to the consumer than to suggest fallback
+allocation as the only possible reason.  While at it, we can print the
+migratetypes as string the same way as /proc/pagetypeinfo does, as some of
+the numeric values depend on kernel configuration.  For that, this patch
+moves the migratetype_names array from #ifdef CONFIG_PROC_FS part of
+mm/vmstat.c to mm/page_alloc.c and exports it.
 
-For the last point, Kirill requested a human readable printing of gfp_mask
-and migratetype after v1.  At that point it probably makes a lot of sense
-to do the same for page alloc failure and OOM warnings.  The flags have
-been undergoing revisions recently, and we might be getting reports from
-various kernel versions that differ.  The ./scripts/gfp-translate tool
-needs to be pointed at the corresponding sources to be accurate.  The
-downside is potentially breaking scripts that grep these warnings, but
-it's not a first change done there over the years.
+Example page_owner entry after the patch:
 
-Note I'm not entirely happy about the dump_gfpflag_names() implementation,
-due to usage of pr_cont() unreliable on SMP (and I've seen spurious
-newlines in dmesg output, while being correct on serial console or
-/var/log/messages).  It also doesn't allow plugging the gfp_mask
-translation into /sys/kernel/debug/page_owner where it also could make
-sense.  Maybe a new *printf formatting flag?  Too specialized maybe?  Or
-just prepare the string in a buffer on stack with strscpy?
-
-
-This patch (of 9):
-
-The dump_vma() function uses dump_flags() for printing the flags as
-symbolic names.  That function however does a page-flags specific
-filtering of bits higher than NR_PAGEFLAGS in order to remove the zone id
-part.  For dump_vma() this results in removing several VM_* flags from the
-symbolic translation.
-
-Fix this by refactoring dump_flags() to dump_flag_names(), which only
-prints the symbolic names in parentheses.  Printing the raw flag value
-with a prefix, and any filtering is left to the caller.  In addition to
-fixing the bug, this allows better flexibility, which will be useful to
-print gfp_flags by a later patch.
+Page allocated via order 0, mask 0x2420848
+PFN 512 type Reclaimable Block 1 type Reclaimable Flags   R  LA
+ [<ffffffff81164e8a>] __alloc_pages_nodemask+0x15a/0xa30
+ [<ffffffff811ab808>] alloc_pages_current+0x88/0x120
+ [<ffffffff8115bc36>] __page_cache_alloc+0xe6/0x120
+ [<ffffffff8115c226>] pagecache_get_page+0x56/0x200
+ [<ffffffff81205892>] __getblk_slow+0xd2/0x2b0
+ [<ffffffff81205ab0>] __getblk_gfp+0x40/0x50
+ [<ffffffff81206ad7>] __breadahead+0x17/0x50
+ [<ffffffffa0437b27>] __ext4_get_inode_loc+0x397/0x3e0 [ext4]
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
@@ -80,105 +71,82 @@ Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug.c |   32 ++++++++++++++++++++------------
- 1 file changed, 20 insertions(+), 12 deletions(-)
+ include/linux/mmzone.h |    3 +++
+ mm/page_alloc.c        |   13 +++++++++++++
+ mm/page_owner.c        |    6 +++---
+ mm/vmstat.c            |   13 -------------
+ 4 files changed, 19 insertions(+), 16 deletions(-)
 
-diff -puN mm/debug.c~mm-debug-fix-wrongly-filtered-flags-in-dump_vma mm/debug.c
---- a/mm/debug.c~mm-debug-fix-wrongly-filtered-flags-in-dump_vma
-+++ a/mm/debug.c
-@@ -46,17 +46,14 @@ static const struct trace_print_flags pa
+diff -puN include/linux/mmzone.h~mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock
++++ a/include/linux/mmzone.h
+@@ -63,6 +63,9 @@ enum {
+ 	MIGRATE_TYPES
+ };
+ 
++/* In mm/page_alloc.c; keep in sync also with show_migration_types() there */
++extern char * const migratetype_names[MIGRATE_TYPES];
++
+ #ifdef CONFIG_CMA
+ #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
+ #else
+diff -puN mm/page_alloc.c~mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock
++++ a/mm/page_alloc.c
+@@ -222,6 +222,19 @@ static char * const zone_names[MAX_NR_ZO
  #endif
  };
  
--static void dump_flags(unsigned long flags,
-+static void dump_flag_names(unsigned long flags,
- 			const struct trace_print_flags *names, int count)
- {
- 	const char *delim = "";
- 	unsigned long mask;
- 	int i;
- 
--	pr_emerg("flags: %#lx(", flags);
--
--	/* remove zone id */
--	flags &= (1UL << NR_PAGEFLAGS) - 1;
-+	pr_cont("(");
- 
- 	for (i = 0; i < count && flags; i++) {
- 
-@@ -79,6 +76,8 @@ static void dump_flags(unsigned long fla
- void dump_page_badflags(struct page *page, const char *reason,
- 		unsigned long badflags)
- {
-+	unsigned long printflags = page->flags;
++char * const migratetype_names[MIGRATE_TYPES] = {
++	"Unmovable",
++	"Movable",
++	"Reclaimable",
++	"HighAtomic",
++#ifdef CONFIG_CMA
++	"CMA",
++#endif
++#ifdef CONFIG_MEMORY_ISOLATION
++	"Isolate",
++#endif
++};
 +
- 	pr_emerg("page:%p count:%d mapcount:%d mapping:%p index:%#lx",
- 		  page, atomic_read(&page->_count), page_mapcount(page),
- 		  page->mapping, page->index);
-@@ -86,13 +85,19 @@ void dump_page_badflags(struct page *pag
- 		pr_cont(" compound_mapcount: %d", compound_mapcount(page));
- 	pr_cont("\n");
- 	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS);
--	dump_flags(page->flags, pageflag_names, ARRAY_SIZE(pageflag_names));
-+
-+	pr_emerg("flags: %#lx", printflags);
-+	/* remove zone id */
-+	printflags &= (1UL << NR_PAGEFLAGS) - 1;
-+	dump_flag_names(printflags, pageflag_names, ARRAY_SIZE(pageflag_names));
-+
- 	if (reason)
- 		pr_alert("page dumped because: %s\n", reason);
- 	if (page->flags & badflags) {
--		pr_alert("bad because of flags:\n");
--		dump_flags(page->flags & badflags,
--				pageflag_names, ARRAY_SIZE(pageflag_names));
-+		printflags = page->flags & badflags;
-+		pr_alert("bad because of flags: %#lx:", printflags);
-+		dump_flag_names(printflags, pageflag_names,
-+						ARRAY_SIZE(pageflag_names));
- 	}
- #ifdef CONFIG_MEMCG
- 	if (page->mem_cgroup)
-@@ -162,7 +167,9 @@ void dump_vma(const struct vm_area_struc
- 		(unsigned long)pgprot_val(vma->vm_page_prot),
- 		vma->anon_vma, vma->vm_ops, vma->vm_pgoff,
- 		vma->vm_file, vma->vm_private_data);
--	dump_flags(vma->vm_flags, vmaflags_names, ARRAY_SIZE(vmaflags_names));
-+	pr_emerg("flags: %#lx", vma->vm_flags);
-+	dump_flag_names(vma->vm_flags, vmaflags_names,
-+						ARRAY_SIZE(vmaflags_names));
- }
- EXPORT_SYMBOL(dump_vma);
+ compound_page_dtor * const compound_page_dtors[] = {
+ 	NULL,
+ 	free_compound_page,
+diff -puN mm/page_owner.c~mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock
++++ a/mm/page_owner.c
+@@ -110,11 +110,11 @@ print_page_owner(char __user *buf, size_
+ 	pageblock_mt = get_pfnblock_migratetype(page, pfn);
+ 	page_mt  = gfpflags_to_migratetype(page_ext->gfp_mask);
+ 	ret += snprintf(kbuf + ret, count - ret,
+-			"PFN %lu Block %lu type %d %s Flags %s%s%s%s%s%s%s%s%s%s%s%s\n",
++			"PFN %lu type %s Block %lu type %s Flags %s%s%s%s%s%s%s%s%s%s%s%s\n",
+ 			pfn,
++			migratetype_names[page_mt],
+ 			pfn >> pageblock_order,
+-			pageblock_mt,
+-			pageblock_mt != page_mt ? "Fallback" : "        ",
++			migratetype_names[pageblock_mt],
+ 			PageLocked(page)	? "K" : " ",
+ 			PageError(page)		? "E" : " ",
+ 			PageReferenced(page)	? "R" : " ",
+diff -puN mm/vmstat.c~mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock mm/vmstat.c
+--- a/mm/vmstat.c~mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock
++++ a/mm/vmstat.c
+@@ -923,19 +923,6 @@ static void walk_zones_in_node(struct se
+ #endif
  
-@@ -233,8 +240,9 @@ void dump_mm(const struct mm_struct *mm)
- 		""		/* This is here to not have a comma! */
- 		);
- 
--		dump_flags(mm->def_flags, vmaflags_names,
--				ARRAY_SIZE(vmaflags_names));
-+	pr_emerg("def_flags: %#lx", mm->def_flags);
-+	dump_flag_names(mm->def_flags, vmaflags_names,
-+					ARRAY_SIZE(vmaflags_names));
- }
- 
- #endif		/* CONFIG_DEBUG_VM */
-_
-
-Patches currently in -mm which might be from vbabka@suse.cz are
-
-mm-documentation-clarify-proc-pid-status-vmswap-limitations-for-shmem.patch
-mm-proc-account-for-shmem-swap-in-proc-pid-smaps.patch
-mm-proc-reduce-cost-of-proc-pid-smaps-for-shmem-mappings.patch
-mm-proc-reduce-cost-of-proc-pid-smaps-for-unpopulated-shmem-mappings.patch
-mm-page_owner-print-symbolic-migratetype-of-both-page-and-pageblock.patch
-mm-page_owner-convert-page_owner_inited-to-static-key.patch
-mm-page_owner-copy-page-owner-info-during-migration.patch
-mm-page_owner-track-and-print-last-migrate-reason.patch
-mm-debug-introduce-dump_gfpflag_names-for-symbolic-printing-of-gfp_flags.patch
-mm-page_owner-dump-page-owner-info-from-dump_page.patch
-mm-page_alloc-print-symbolic-gfp_flags-on-allocation-failure.patch
-mm-oom-print-symbolic-gfp_flags-in-oom-warning.patch
-mm-printk-introduce-new-format-string-for-flags.patch
-mm-page_owner-provide-symbolic-page-flags-and-gfp_flags.patch
-mm-debug-move-bad-flags-printing-to-bad_page.patch
-
+ #ifdef CONFIG_PROC_FS
+-static char * const migratetype_names[MIGRATE_TYPES] = {
+-	"Unmovable",
+-	"Movable",
+-	"Reclaimable",
+-	"HighAtomic",
+-#ifdef CONFIG_CMA
+-	"CMA",
+-#endif
+-#ifdef CONFIG_MEMORY_ISOLATION
+-	"Isolate",
+-#endif
+-};
