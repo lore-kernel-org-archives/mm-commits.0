@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- memory-hotplug-fix-kernel-warning-during-memory-hotplug-on-ppc64.patch
- added to -mm tree
-Date: Thu, 07 Jan 2016 14:46:30 -0800
-Message-ID: <568eeac6.iFwX5NthfZphBK8m%akpm@linux-foundation.org>
+Subject: + dax-fix-null-pointer-dereference-in-__dax_dbg.patch added to
+ -mm tree
+Date: Thu, 07 Jan 2016 14:58:22 -0800
+Message-ID: <568eed8e.W4EbzDGNqJodb9r4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58950 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59569 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752073AbcAGWqb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2016 17:46:31 -0500
+	with ESMTP id S1752189AbcAGW6Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2016 17:58:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jallen@linux.vnet.ibm.com, dave.hansen@intel.com, gregkh@linuxfoundation.org, mpe@ellerman.id.au, nfont@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, adilger.kernel@dilger.ca, bfields@fieldses.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@fromorbit.com, hpa@zytor.com, jack@suse.com, jlayton@poochiereds.net, matthew.r.wilcox@intel.com, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/base/memory.c: fix kernel warning during memory hotplug on ppc64
+     Subject: dax: fix NULL pointer dereference in __dax_dbg()
 has been added to the -mm tree.  Its filename is
-     memory-hotplug-fix-kernel-warning-during-memory-hotplug-on-ppc64.patch
+     dax-fix-null-pointer-dereference-in-__dax_dbg.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-fix-kernel-warning-during-memory-hotplug-on-ppc64.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-fix-null-pointer-dereference-in-__dax_dbg.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-fix-kernel-warning-during-memory-hotplug-on-ppc64.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-fix-null-pointer-dereference-in-__dax_dbg.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,94 +39,72 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: John Allen <jallen@linux.vnet.ibm.com>
-Subject: drivers/base/memory.c: fix kernel warning during memory hotplug on ppc64
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: dax: fix NULL pointer dereference in __dax_dbg()
 
-Fix a bug where a kernel warning is triggered when performing a memory
-hotplug on ppc64.  This warning may also occur on any architecture that
-uses the memory_probe_store interface.
+__dax_dbg() currently assumes that bh->b_bdev is non-NULL, passing it into
+bdevname() where is is dereferenced.  This assumption isn't always true -
+when called for reads of holes, ext4_dax_mmap_get_block() returns a buffer
+head where bh->b_bdev is never set.  I hit this BUG while testing the DAX
+PMD fault path.
 
-WARNING: at drivers/base/memory.c:200
-CPU: 9 PID: 13042 Comm: systemd-udevd Not tainted 4.4.0-rc4-00113-g0bd0f1e-dirty #7
-NIP [c00000000055e034] pages_correctly_reserved+0x134/0x1b0
-LR [c00000000055e7f8] memory_subsys_online+0x68/0x140
-Call Trace:
-[c0000000fa9e7b50] [c0000000fa9e7b90] 0xc0000000fa9e7b90 (unreliable)
-[c0000000fa9e7bb0] [c00000000055e7f8] memory_subsys_online+0x68/0x140
-[c0000000fa9e7bf0] [c000000000540064] device_online+0xb4/0x120
-[c0000000fa9e7c30] [c00000000055e6c0] store_mem_state+0xb0/0x180
-[c0000000fa9e7c70] [c00000000053c5e4] dev_attr_store+0x34/0x60
-[c0000000fa9e7c90] [c0000000002db0a4] sysfs_kf_write+0x64/0xa0
-[c0000000fa9e7cb0] [c0000000002da0cc] kernfs_fop_write+0x17c/0x1e0
-[c0000000fa9e7d00] [c0000000002481b0] __vfs_write+0x40/0x160
-[c0000000fa9e7d90] [c000000000248ce8] vfs_write+0xb8/0x200
-[c0000000fa9e7de0] [c000000000249b40] SyS_write+0x60/0x110
-[c0000000fa9e7e30] [c000000000009260] system_call+0x38/0xd0
+Instead, verify that we have a valid bh->b_bdev, else just say "unknown"
+for the block device.
 
-The warning is triggered because there is a udev rule that automatically
-tries to online memory after it has been added.  The udev rule varies from
-distro to distro, but will generally look something like:
-
-SUBSYSTEM=="memory", ACTION=="add", ATTR{state}=="offline", ATTR{state}="online"
-
-On any architecture that uses memory_probe_store to reserve memory, the
-udev rule will be triggered after the first section of the block is
-reserved and will subsequently attempt to online the entire block,
-interrupting the memory reservation process and causing the warning.  This
-patch modifies memory_probe_store to add a block of memory with a single
-call to add_memory as opposed to looping through and adding each section
-individually.  A single call to add_memory is protected by the mem_hotplug
-mutex which will prevent the udev rule from onlining memory until the
-reservation of the entire block is complete.
-
-Signed-off-by: John Allen <jallen@linux.vnet.ibm.com>
-Cc: Nathan Fontenot <nfont@linux.vnet.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jan Kara <jack@suse.com>
+Cc: Jeff Layton <jlayton@poochiereds.net>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |   16 ++++++----------
- 1 file changed, 6 insertions(+), 10 deletions(-)
+ fs/dax.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN drivers/base/memory.c~memory-hotplug-fix-kernel-warning-during-memory-hotplug-on-ppc64 drivers/base/memory.c
---- a/drivers/base/memory.c~memory-hotplug-fix-kernel-warning-during-memory-hotplug-on-ppc64
-+++ a/drivers/base/memory.c
-@@ -450,8 +450,7 @@ memory_probe_store(struct device *dev, s
- 		   const char *buf, size_t count)
+diff -puN fs/dax.c~dax-fix-null-pointer-dereference-in-__dax_dbg fs/dax.c
+--- a/fs/dax.c~dax-fix-null-pointer-dereference-in-__dax_dbg
++++ a/fs/dax.c
+@@ -563,7 +563,12 @@ static void __dax_dbg(struct buffer_head
  {
- 	u64 phys_addr;
--	int nid;
--	int i, ret;
-+	int nid, ret;
- 	unsigned long pages_per_block = PAGES_PER_SECTION * sections_per_block;
- 
- 	ret = kstrtoull(buf, 0, &phys_addr);
-@@ -461,15 +460,12 @@ memory_probe_store(struct device *dev, s
- 	if (phys_addr & ((pages_per_block << PAGE_SHIFT) - 1))
- 		return -EINVAL;
- 
--	for (i = 0; i < sections_per_block; i++) {
--		nid = memory_add_physaddr_to_nid(phys_addr);
--		ret = add_memory(nid, phys_addr,
--				 PAGES_PER_SECTION << PAGE_SHIFT);
--		if (ret)
--			goto out;
-+	nid = memory_add_physaddr_to_nid(phys_addr);
-+	ret = add_memory(nid, phys_addr,
-+			 MIN_MEMORY_BLOCK_SIZE * sections_per_block);
- 
--		phys_addr += MIN_MEMORY_BLOCK_SIZE;
--	}
-+	if (ret)
-+		goto out;
- 
- 	ret = count;
- out:
+ 	if (bh) {
+ 		char bname[BDEVNAME_SIZE];
+-		bdevname(bh->b_bdev, bname);
++
++		if (bh->b_bdev)
++			bdevname(bh->b_bdev, bname);
++		else
++			snprintf(bname, BDEVNAME_SIZE, "unknown");
++
+ 		pr_debug("%s: %s addr: %lx dev %s state %lx start %lld "
+ 			"length %zd fallback: %s\n", fn, current->comm,
+ 			address, bname, bh->b_state, (u64)bh->b_blocknr,
 _
 
-Patches currently in -mm which might be from jallen@linux.vnet.ibm.com are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
-memory-hotplug-fix-kernel-warning-during-memory-hotplug-on-ppc64.patch
+mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable.patch
+dax-fix-null-pointer-dereference-in-__dax_dbg.patch
+dax-fix-conversion-of-holes-to-pmds.patch
+pmem-add-wb_cache_pmem-to-the-pmem-api.patch
+pmem-add-wb_cache_pmem-to-the-pmem-api-v6.patch
+dax-support-dirty-dax-entries-in-radix-tree.patch
+dax-support-dirty-dax-entries-in-radix-tree-v6.patch
+mm-add-find_get_entries_tag.patch
+dax-add-support-for-fsync-sync.patch
+dax-add-support-for-fsync-sync-v6.patch
+dax-add-support-for-fsync-msync-v7.patch
+ext2-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
 
