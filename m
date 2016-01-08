@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page.patch added to -mm tree
-Date: Fri, 08 Jan 2016 14:07:34 -0800
-Message-ID: <56903326.Yk1CRwQo0BAyIAff%akpm@linux-foundation.org>
+Subject: + logfs-fix-logfs-build-errors-and-dependencies.patch added to
+ -mm tree
+Date: Fri, 08 Jan 2016 14:08:23 -0800
+Message-ID: <56903357.anCglowIi2j8mth6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45062 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45078 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754723AbcAHWHf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2016 17:07:35 -0500
+	with ESMTP id S1754508AbcAHWIY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2016 17:08:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, axboe@kernel.dk, hannes@cmpxchg.org, mhocko@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: rdunlap@infradead.org, joern@logfs.org, prasadjoshi.linux@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroup, memcg, writeback: drop spurious rcu locking around mem_cgroup_css_from_page()
+     Subject: logfs: fix logfs build errors and dependencies
 has been added to the -mm tree.  Its filename is
-     cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page.patch
+     logfs-fix-logfs-build-errors-and-dependencies.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/logfs-fix-logfs-build-errors-and-dependencies.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/logfs-fix-logfs-build-errors-and-dependencies.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,45 +39,44 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: cgroup, memcg, writeback: drop spurious rcu locking around mem_cgroup_css_from_page()
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: logfs: fix logfs build errors and dependencies
 
-In earlier versions, mem_cgroup_css_from_page() could return non-root css
-on a legacy hierarchy which can go away and required rcu locking; however,
-the eventual version simply returns the root cgroup if memcg is on a
-legacy hierarchy and thus doesn't need rcu locking around or in it. 
-Remove spurious rcu lockings.
+Fix build errors that happen when CONFIG_LOGFS=y and CONFIG_MTD=m:
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+fs/built-in.o: In function `logfs_mount':
+super.c:(.text+0x92a6f): undefined reference to `logfs_get_sb_mtd'
+fs/built-in.o: In function `logfs_get_sb_bdev':
+(.text+0x93530): undefined reference to `logfs_get_sb_mtd'
+
+This change allows CONFIG_BLOCK and CONFIG_MTD to be disabled, but if
+either of them is enabled, CONFIG_LOGFS is limited (restricted) by the
+setting of the former symbol(s).
+
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Prasad Joshi <prasadjoshi.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    2 --
- mm/memcontrol.c   |    3 ---
- 2 files changed, 5 deletions(-)
+ fs/logfs/Kconfig |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/fs-writeback.c~cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page fs/fs-writeback.c
---- a/fs/fs-writeback.c~cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page
-+++ a/fs/fs-writeback.c
-@@ -677,9 +677,7 @@ void wbc_account_io(struct writeback_con
- 	if (!wbc->wb)
- 		return;
- 
--	rcu_read_lock();
- 	id = mem_cgroup_css_from_page(page)->id;
--	rcu_read_unlock();
- 
- 	if (id == wbc->wb_id) {
- 		wbc->wb_bytes += bytes;
-diff -puN mm/memcontrol.c~cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page mm/memcontrol.c
---- a/mm/memcontrol.c~cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page
-+++ a/mm/memcontrol.c
-@@ -382,14 +382,11 @@ struct cgroup_subsys_state *mem_cgroup_c
- {
- 	struct mem_cgroup *memcg;
- 
--	rcu_read_lock();
+diff -puN fs/logfs/Kconfig~logfs-fix-logfs-build-errors-and-dependencies fs/logfs/Kconfig
+--- a/fs/logfs/Kconfig~logfs-fix-logfs-build-errors-and-dependencies
++++ a/fs/logfs/Kconfig
+@@ -1,6 +1,7 @@
+ config LOGFS
+ 	tristate "LogFS file system"
+-	depends on (MTD || BLOCK)
++	depends on BLOCK || BLOCK=n
++	depends on MTD || MTD=n
+ 	select ZLIB_INFLATE
+ 	select ZLIB_DEFLATE
+ 	select CRC32
+_
+
+Patches currently in -mm which might be from rdunlap@infradead.org are
+
+logfs-fix-logfs-build-errors-and-dependencies.patch
+
