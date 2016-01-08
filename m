@@ -1,85 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- dax-fix-null-pointer-dereference-in-__dax_dbg.patch removed from -mm tree
-Date: Fri, 08 Jan 2016 12:41:51 -0800
-Message-ID: <56901f0f.7edOrX7kT9hYcres%akpm@linux-foundation.org>
+Subject: + dax-fix-null-pointer-dereference-in-__dax_dbg.patch added to
+ -mm tree
+Date: Fri, 08 Jan 2016 12:48:54 -0800
+Message-ID: <569020b6.jzf70umzQvmxQbW5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39858 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40258 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753732AbcAHUlx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2016 15:41:53 -0500
+	with ESMTP id S1752221AbcAHUsz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2016 15:48:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, adilger.kernel@dilger.ca, bfields@fieldses.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@fromorbit.com, hpa@zytor.com, jack@suse.com, jlayton@poochiereds.net, matthew.r.wilcox@intel.com, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, jack@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: dax: fix NULL pointer dereference in __dax_dbg()
-has been removed from the -mm tree.  Its filename was
+has been added to the -mm tree.  Its filename is
      dax-fix-null-pointer-dereference-in-__dax_dbg.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-fix-null-pointer-dereference-in-__dax_dbg.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-fix-null-pointer-dereference-in-__dax_dbg.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
 Subject: dax: fix NULL pointer dereference in __dax_dbg()
 
-__dax_dbg() currently assumes that bh->b_bdev is non-NULL, passing it into
-bdevname() where is is dereferenced.  This assumption isn't always true -
-when called for reads of holes, ext4_dax_mmap_get_block() returns a buffer
-head where bh->b_bdev is never set.  I hit this BUG while testing the DAX
-PMD fault path.
+In __dax_pmd_fault() we currently assume that get_block() will always set
+bh.b_bdev and we unconditionally dereference it in __dax_dbg().  This
+assumption isn't always true - when called for reads of holes
+ext4_dax_mmap_get_block() returns a buffer head where bh->b_bdev is never
+set.  I hit this BUG while testing the DAX PMD fault path.
 
-Instead, verify that we have a valid bh->b_bdev, else just say "unknown"
-for the block device.
+Instead, initialize bh.b_bdev before passing bh into get_block().  It is
+possible that the filesystem's get_block() will update bh.b_bdev, and this
+is fine - we just want to initialize bh.b_bdev to something reasonable so
+that the calls to __dax_dbg() work and print something useful.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ingo Molnar <mingo@redhat.com>
+Reported-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Jan Kara <jack@suse.com>
-Cc: Jeff Layton <jlayton@poochiereds.net>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |    7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ fs/dax.c |    1 +
+ 1 file changed, 1 insertion(+)
 
 diff -puN fs/dax.c~dax-fix-null-pointer-dereference-in-__dax_dbg fs/dax.c
 --- a/fs/dax.c~dax-fix-null-pointer-dereference-in-__dax_dbg
 +++ a/fs/dax.c
-@@ -563,7 +563,12 @@ static void __dax_dbg(struct buffer_head
- {
- 	if (bh) {
- 		char bname[BDEVNAME_SIZE];
--		bdevname(bh->b_bdev, bname);
-+
-+		if (bh->b_bdev)
-+			bdevname(bh->b_bdev, bname);
-+		else
-+			snprintf(bname, BDEVNAME_SIZE, "unknown");
-+
- 		pr_debug("%s: %s addr: %lx dev %s state %lx start %lld "
- 			"length %zd fallback: %s\n", fn, current->comm,
- 			address, bname, bh->b_state, (u64)bh->b_blocknr,
+@@ -624,6 +624,7 @@ int __dax_pmd_fault(struct vm_area_struc
+ 	}
+ 
+ 	memset(&bh, 0, sizeof(bh));
++	bh.b_bdev = inode->i_sb->s_bdev;
+ 	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
+ 
+ 	bh.b_size = PMD_SIZE;
 _
 
 Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
 mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable.patch
+dax-fix-null-pointer-dereference-in-__dax_dbg.patch
 dax-fix-conversion-of-holes-to-pmds.patch
 pmem-add-wb_cache_pmem-to-the-pmem-api.patch
 pmem-add-wb_cache_pmem-to-the-pmem-api-v6.patch
@@ -89,6 +88,7 @@ mm-add-find_get_entries_tag.patch
 dax-add-support-for-fsync-sync.patch
 dax-add-support-for-fsync-sync-v6.patch
 dax-add-support-for-fsync-msync-v7.patch
+dax-add-support-for-fsync-msync-v8.patch
 ext2-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
 ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
 xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
