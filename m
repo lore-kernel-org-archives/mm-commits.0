@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + dax-fix-null-pointer-dereference-in-__dax_dbg.patch added to
- -mm tree
-Date: Fri, 08 Jan 2016 12:48:54 -0800
-Message-ID: <569020b6.jzf70umzQvmxQbW5%akpm@linux-foundation.org>
+Subject: + dax-add-support-for-fsync-msync-v8.patch added to -mm tree
+Date: Fri, 08 Jan 2016 12:48:59 -0800
+Message-ID: <569020bb.0iSTG5i1rbXD+OiE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40258 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40262 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752221AbcAHUsz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2016 15:48:55 -0500
+	with ESMTP id S1752221AbcAHUtA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2016 15:49:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, jack@suse.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, jack@suse.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: fix NULL pointer dereference in __dax_dbg()
+     Subject: dax-add-support-for-fsync-msync-v8
 has been added to the -mm tree.  Its filename is
-     dax-fix-null-pointer-dereference-in-__dax_dbg.patch
+     dax-add-support-for-fsync-msync-v8.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-fix-null-pointer-dereference-in-__dax_dbg.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-add-support-for-fsync-msync-v8.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-fix-null-pointer-dereference-in-__dax_dbg.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-add-support-for-fsync-msync-v8.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,39 +39,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: fix NULL pointer dereference in __dax_dbg()
+Subject: dax-add-support-for-fsync-msync-v8
 
-In __dax_pmd_fault() we currently assume that get_block() will always set
-bh.b_bdev and we unconditionally dereference it in __dax_dbg().  This
-assumption isn't always true - when called for reads of holes
-ext4_dax_mmap_get_block() returns a buffer head where bh->b_bdev is never
-set.  I hit this BUG while testing the DAX PMD fault path.
-
-Instead, initialize bh.b_bdev before passing bh into get_block().  It is
-possible that the filesystem's get_block() will update bh.b_bdev, and this
-is fine - we just want to initialize bh.b_bdev to something reasonable so
-that the calls to __dax_dbg() work and print something useful.
+2) Add a check to dax_radix_entry() so that we WARN_ON_ONCE() and exit
+gracefully if we find a page cache entry still in the radix tree when
+trying to insert a DAX entry.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Dan Williams <dan.j.williams@intel.com>
 Cc: Jan Kara <jack@suse.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |    1 +
- 1 file changed, 1 insertion(+)
+ fs/dax.c |   11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-diff -puN fs/dax.c~dax-fix-null-pointer-dereference-in-__dax_dbg fs/dax.c
---- a/fs/dax.c~dax-fix-null-pointer-dereference-in-__dax_dbg
+diff -puN fs/dax.c~dax-add-support-for-fsync-msync-v8 fs/dax.c
+--- a/fs/dax.c~dax-add-support-for-fsync-msync-v8
 +++ a/fs/dax.c
-@@ -624,6 +624,7 @@ int __dax_pmd_fault(struct vm_area_struc
- 	}
+@@ -331,7 +331,7 @@ static int dax_radix_entry(struct addres
+ 		sector_t sector, bool pmd_entry, bool dirty)
+ {
+ 	struct radix_tree_root *page_tree = &mapping->page_tree;
+-	int error = 0;
++	int type, error = 0;
+ 	void *entry;
  
- 	memset(&bh, 0, sizeof(bh));
-+	bh.b_bdev = inode->i_sb->s_bdev;
- 	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
+ 	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+@@ -340,7 +340,14 @@ static int dax_radix_entry(struct addres
+ 	entry = radix_tree_lookup(page_tree, index);
  
- 	bh.b_size = PMD_SIZE;
+ 	if (entry) {
+-		if (!pmd_entry || RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
++		type = RADIX_DAX_TYPE(entry);
++		if (WARN_ON_ONCE(type != RADIX_DAX_PTE &&
++					type != RADIX_DAX_PMD)) {
++			error = -EIO;
++			goto unlock;
++		}
++
++		if (!pmd_entry || type == RADIX_DAX_PMD)
+ 			goto dirty;
+ 		radix_tree_delete(&mapping->page_tree, index);
+ 		mapping->nrexceptional--;
 _
 
 Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
