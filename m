@@ -1,135 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- virtio_balloon-fix-race-between-migration-and-ballooning.patch removed from -mm tree
-Date: Fri, 08 Jan 2016 11:20:39 -0800
-Message-ID: <56900c07.mcsRpL1hNUBW9Rus%akpm@linux-foundation.org>
+Subject: + mm-soft-offline-exit-with-failure-for-non-anonymous-thp.patch
+ added to -mm tree
+Date: Fri, 08 Jan 2016 12:25:27 -0800
+Message-ID: <56901b37.FGqKf468NvEkH9Bn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34778 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38911 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751322AbcAHTUk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2016 14:20:40 -0500
+	with ESMTP id S1752578AbcAHUZ2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2016 15:25:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, aquini@redhat.com, koct9i@gmail.com, mst@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: virtio_balloon: fix race between migration and ballooning
-has been removed from the -mm tree.  Its filename was
-     virtio_balloon-fix-race-between-migration-and-ballooning.patch
+     Subject: mm: soft-offline: exit with failure for non anonymous thp
+has been added to the -mm tree.  Its filename is
+     mm-soft-offline-exit-with-failure-for-non-anonymous-thp.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-soft-offline-exit-with-failure-for-non-anonymous-thp.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-soft-offline-exit-with-failure-for-non-anonymous-thp.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: virtio_balloon: fix race between migration and ballooning
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: soft-offline: exit with failure for non anonymous thp
 
-In balloon_page_dequeue, pages_lock should cover the loop (ie,
-list_for_each_entry_safe).  Otherwise, the cursor page could be isolated
-by compaction and then list_del by isolation could poison the
-page->lru.{prev,next} so the loop finally could access wrong address like
-this.  This patch fixes the bug.
+Currently memory_failure() doesn't handle non anonymous thp case, because
+we can hardly expect the error handling to be successful, and it can just
+hit some corner case which results in BUG_ON or something severe like
+that.  This is also a case for soft offline code, so let's make it in the
+same way.
 
-general protection fault: 0000 [#1] SMP
-Dumping ftrace buffer:
-   (ftrace buffer empty)
-Modules linked in:
-CPU: 2 PID: 82 Comm: vballoon Not tainted 4.4.0-rc5-mm1-access_bit+ #1906
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-task: ffff8800a7ff0000 ti: ffff8800a7fec000 task.ti: ffff8800a7fec000
-RIP: 0010:[<ffffffff8115e754>]  [<ffffffff8115e754>] balloon_page_dequeue+0x54/0x130
-RSP: 0018:ffff8800a7fefdc0  EFLAGS: 00010246
-RAX: ffff88013fff9a70 RBX: ffffea000056fe00 RCX: 0000000000002b7d
-RDX: ffff88013fff9a70 RSI: ffffea000056fe00 RDI: ffff88013fff9a68
-RBP: ffff8800a7fefde8 R08: ffffea000056fda0 R09: 0000000000000000
-R10: ffff8800a7fefd90 R11: 0000000000000001 R12: dead0000000000e0
-R13: ffffea000056fe20 R14: ffff880138809070 R15: ffff880138809060
-FS:  0000000000000000(0000) GS:ffff88013fc40000(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 00007f229c10e000 CR3: 00000000b8b53000 CR4: 00000000000006a0
-Stack:
- 0000000000000100 ffff880138809088 ffff880138809000 ffff880138809060
- 0000000000000046 ffff8800a7fefe28 ffffffff812c86d3 ffff880138809020
- ffff880138809000 fffffffffff91900 0000000000000100 ffff880138809060
-Call Trace:
- [<ffffffff812c86d3>] leak_balloon+0x93/0x1a0
- [<ffffffff812c8bc7>] balloon+0x217/0x2a0
- [<ffffffff8143739e>] ? __schedule+0x31e/0x8b0
- [<ffffffff81078160>] ? abort_exclusive_wait+0xb0/0xb0
- [<ffffffff812c89b0>] ? update_balloon_stats+0xf0/0xf0
- [<ffffffff8105b6e9>] kthread+0xc9/0xe0
- [<ffffffff8105b620>] ? kthread_park+0x60/0x60
- [<ffffffff8143b4af>] ret_from_fork+0x3f/0x70
- [<ffffffff8105b620>] ? kthread_park+0x60/0x60
-Code: 8d 60 e0 0f 84 af 00 00 00 48 8b 43 20 a8 01 75 3b 48 89 d8 f0 0f ba 28 00 72 10 48 8b 03 f6 c4 08 75 2f 48 89 df e8 8c 83 f9 ff <49> 8b 44 24 20 4d 8d 6c 24 20 48 83 e8 20 4d 39 f5 74 7a 4c 89
-RIP  [<ffffffff8115e754>] balloon_page_dequeue+0x54/0x130
- RSP <ffff8800a7fefdc0>
----[ end trace 43cf28060d708d5f ]---
-Kernel panic - not syncing: Fatal exception
-Dumping ftrace buffer:
-   (ftrace buffer empty)
-Kernel Offset: disabled
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Rafael Aquini <aquini@redhat.com>
-Cc: "Michael S. Tsirkin" <mst@redhat.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/balloon_compaction.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/memory-failure.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN mm/balloon_compaction.c~virtio_balloon-fix-race-between-migration-and-ballooning mm/balloon_compaction.c
---- a/mm/balloon_compaction.c~virtio_balloon-fix-race-between-migration-and-ballooning
-+++ a/mm/balloon_compaction.c
-@@ -61,6 +61,7 @@ struct page *balloon_page_dequeue(struct
- 	bool dequeued_page;
- 
- 	dequeued_page = false;
-+	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
- 	list_for_each_entry_safe(page, tmp, &b_dev_info->pages, lru) {
- 		/*
- 		 * Block others from accessing the 'page' while we get around
-@@ -75,15 +76,14 @@ struct page *balloon_page_dequeue(struct
- 				continue;
- 			}
- #endif
--			spin_lock_irqsave(&b_dev_info->pages_lock, flags);
- 			balloon_page_delete(page);
- 			__count_vm_event(BALLOON_DEFLATE);
--			spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
- 			unlock_page(page);
- 			dequeued_page = true;
- 			break;
- 		}
+diff -puN mm/memory-failure.c~mm-soft-offline-exit-with-failure-for-non-anonymous-thp mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-soft-offline-exit-with-failure-for-non-anonymous-thp
++++ a/mm/memory-failure.c
+@@ -1751,9 +1751,11 @@ int soft_offline_page(struct page *page,
+ 		return -EBUSY;
  	}
-+	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
- 
- 	if (!dequeued_page) {
- 		/*
+ 	if (!PageHuge(page) && PageTransHuge(hpage)) {
+-		if (PageAnon(hpage) && unlikely(split_huge_page(hpage))) {
+-			pr_info("soft offline: %#lx: failed to split THP\n",
+-				pfn);
++		if (!PageAnon(hpage) || unlikely(split_huge_page(hpage))) {
++			if (!PageAnon(hpage))
++				pr_info("soft offline: %#lx: non anonymous thp\n", pfn);
++			else
++				pr_info("soft offline: %#lx: thp split failed\n", pfn);
+ 			if (flags & MF_COUNT_INCREASED)
+ 				put_hwpoison_page(page);
+ 			return -EBUSY;
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-zram-pass-gfp-from-zcomp-frontend-to-backend.patch
-mm-support-madvisemadv_free.patch
-mm-support-madvisemadv_free-fix.patch
-mm-support-madvisemadv_free-fix-2.patch
-mm-define-madv_free-for-some-arches.patch
-mm-free-swp_entry-in-madvise_free.patch
-mm-move-lazily-freed-pages-to-inactive-list.patch
-mm-mark-stable-page-dirty-in-ksm.patch
-x86-add-pmd_-for-thp.patch
-sparc-add-pmd_-for-thp.patch
-powerpc-add-pmd_-for-thp.patch
-arm-add-pmd_mkclean-for-thp.patch
-arm64-add-pmd_mkclean-for-thp.patch
-mm-dont-split-thp-page-when-syscall-is-called.patch
-virtio_balloon-fix-race-by-fill-and-leak.patch
+mm-zonelist-enumerate-zonelists-array-index-fix-fix.patch
+mm-zonelist-enumerate-zonelists-array-index-fix-fix-fix.patch
+mm-page_isolation-use-micro-to-judge-the-alignment.patch
+mm-soft-offline-exit-with-failure-for-non-anonymous-thp.patch
+rmap-add-argument-to-charge-compound-page-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting.patch
 
