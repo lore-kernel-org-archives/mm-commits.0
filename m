@@ -1,184 +1,146 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-printk-introduce-new-format-string-for-flags-fix-2.patch removed from
- -mm tree
-Date: Thu, 07 Jan 2016 16:27:18 -0800
-Message-ID: <568f0266.PrJvh4fW9lyG0jbi%akpm@linux-foundation.org>
+ mm-debug-move-bad-flags-printing-to-bad_page.patch removed from -mm tree
+Date: Thu, 07 Jan 2016 16:27:23 -0800
+Message-ID: <568f026b.yNl7slVAq1fww3c3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37303 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37316 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753199AbcAHA1T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2016 19:27:19 -0500
+	with ESMTP id S1753199AbcAHA1Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2016 19:27:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, broonie@kernel.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, linux@rasmusvillemoes.dk, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, sasha.levin@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-printk-introduce-new-format-string-for-flags-fix-2
+     Subject: mm, debug: move bad flags printing to bad_page()
 has been removed from the -mm tree.  Its filename was
-     mm-printk-introduce-new-format-string-for-flags-fix-2.patch
+     mm-debug-move-bad-flags-printing-to-bad_page.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-printk-introduce-new-format-string-for-flags-fix-2
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, debug: move bad flags printing to bad_page()
 
-move declaration of trace_print_flags arrays into mm/internal.h
+Since bad_page() is the only user of the badflags parameter of
+dump_page_badflags(), we can move the code to bad_page() and simplify a
+bit.
 
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+The dump_page_badflags() function is renamed to __dump_page() and can
+still be called separately from dump_page() for temporary debug prints
+where page_owner info is not desired.
+
+The only user-visible change is that page->mem_cgroup is printed before
+the bad flags.
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmdebug.h |    6 ------
- lib/vsprintf.c          |    3 ++-
- mm/debug.c              |    2 ++
- mm/internal.h           |    7 +++++++
- 4 files changed, 11 insertions(+), 7 deletions(-)
+ include/linux/mmdebug.h |    3 +--
+ mm/debug.c              |   14 +++-----------
+ mm/page_alloc.c         |   10 +++++++---
+ 3 files changed, 11 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/mmdebug.h~mm-printk-introduce-new-format-string-for-flags-fix-2 include/linux/mmdebug.h
---- a/include/linux/mmdebug.h~mm-printk-introduce-new-format-string-for-flags-fix-2
+diff -puN include/linux/mmdebug.h~mm-debug-move-bad-flags-printing-to-bad_page include/linux/mmdebug.h
+--- a/include/linux/mmdebug.h~mm-debug-move-bad-flags-printing-to-bad_page
 +++ a/include/linux/mmdebug.h
-@@ -3,17 +3,11 @@
- 
- #include <linux/bug.h>
- #include <linux/stringify.h>
--#include <linux/types.h>
--#include <linux/tracepoint.h>
- 
- struct page;
- struct vm_area_struct;
+@@ -9,8 +9,7 @@ struct vm_area_struct;
  struct mm_struct;
  
--extern const struct trace_print_flags pageflag_names[];
--extern const struct trace_print_flags vmaflag_names[];
--extern const struct trace_print_flags gfpflag_names[];
--
  extern void dump_page(struct page *page, const char *reason);
- extern void dump_page_badflags(struct page *page, const char *reason,
- 			       unsigned long badflags);
-diff -puN lib/vsprintf.c~mm-printk-introduce-new-format-string-for-flags-fix-2 lib/vsprintf.c
---- a/lib/vsprintf.c~mm-printk-introduce-new-format-string-for-flags-fix-2
-+++ a/lib/vsprintf.c
-@@ -31,7 +31,8 @@
- #include <linux/dcache.h>
- #include <linux/cred.h>
- #include <net/addrconf.h>
--#include <linux/mmdebug.h>
-+
-+#include "../mm/internal.h"	/* For the trace_print_flags arrays */
+-extern void dump_page_badflags(struct page *page, const char *reason,
+-			       unsigned long badflags);
++extern void __dump_page(struct page *page, const char *reason);
+ void dump_vma(const struct vm_area_struct *vma);
+ void dump_mm(const struct mm_struct *mm);
  
- #include <asm/page.h>		/* for PAGE_SIZE */
- #include <asm/sections.h>	/* for dereference_function_descriptor() */
-diff -puN mm/debug.c~mm-printk-introduce-new-format-string-for-flags-fix-2 mm/debug.c
---- a/mm/debug.c~mm-printk-introduce-new-format-string-for-flags-fix-2
+diff -puN mm/debug.c~mm-debug-move-bad-flags-printing-to-bad_page mm/debug.c
+--- a/mm/debug.c~mm-debug-move-bad-flags-printing-to-bad_page
 +++ a/mm/debug.c
-@@ -10,6 +10,8 @@
- #include <linux/trace_events.h>
- #include <linux/memcontrol.h>
+@@ -111,25 +111,17 @@ const struct trace_print_flags gfpflag_n
+ 	{0, NULL},
+ };
  
-+#include "internal.h"
-+
- static const struct trace_print_flags pageflag_names[] = {
- 	{1UL << PG_locked,		"locked"	},
- 	{1UL << PG_error,		"error"		},
-diff -puN mm/internal.h~mm-printk-introduce-new-format-string-for-flags-fix-2 mm/internal.h
---- a/mm/internal.h~mm-printk-introduce-new-format-string-for-flags-fix-2
-+++ a/mm/internal.h
-@@ -11,9 +11,11 @@
- #ifndef __MM_INTERNAL_H
- #define __MM_INTERNAL_H
+-void dump_page_badflags(struct page *page, const char *reason,
+-		unsigned long badflags)
++void __dump_page(struct page *page, const char *reason)
+ {
+-	unsigned long printflags = page->flags;
+-
+ 	pr_emerg("page:%p count:%d mapcount:%d mapping:%p index:%#lx\n",
+ 		  page, atomic_read(&page->_count), page_mapcount(page),
+ 		  page->mapping, page->index);
+ 	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS + 1);
  
-+#include <linux/types.h>
- #include <linux/fs.h>
- #include <linux/mm.h>
- #include <linux/pagemap.h>
-+#include <linux/tracepoint.h>
+-	pr_emerg("flags: %#lx(%pgp)\n", printflags, &printflags);
++	pr_emerg("flags: %#lx(%pgp)\n", page->flags, &page->flags);
  
- /*
-  * The set of flags that only affect watermark checking and reclaim
-@@ -444,4 +446,9 @@ static inline void try_to_unmap_flush_di
+ 	if (reason)
+ 		pr_alert("page dumped because: %s\n", reason);
+-	if (page->flags & badflags) {
+-		printflags = page->flags & badflags;
+-		pr_alert("bad because of flags: %#lx(%pgp)\n", printflags,
+-								&printflags);
+-	}
+ #ifdef CONFIG_MEMCG
+ 	if (page->mem_cgroup)
+ 		pr_alert("page->mem_cgroup:%p\n", page->mem_cgroup);
+@@ -138,7 +130,7 @@ void dump_page_badflags(struct page *pag
+ 
+ void dump_page(struct page *page, const char *reason)
+ {
+-	dump_page_badflags(page, reason, 0);
++	__dump_page(page, reason);
+ 	dump_page_owner(page);
  }
+ EXPORT_SYMBOL(dump_page);
+diff -puN mm/page_alloc.c~mm-debug-move-bad-flags-printing-to-bad_page mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-debug-move-bad-flags-printing-to-bad_page
++++ a/mm/page_alloc.c
+@@ -428,7 +428,7 @@ static void bad_page(struct page *page,
+ 			goto out;
+ 		}
+ 		if (nr_unshown) {
+-			printk(KERN_ALERT
++			pr_alert(
+ 			      "BUG: Bad page state: %lu messages suppressed\n",
+ 				nr_unshown);
+ 			nr_unshown = 0;
+@@ -438,9 +438,13 @@ static void bad_page(struct page *page,
+ 	if (nr_shown++ == 0)
+ 		resume = jiffies + 60 * HZ;
  
- #endif /* CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH */
-+
-+extern const struct trace_print_flags pageflag_names[];
-+extern const struct trace_print_flags vmaflag_names[];
-+extern const struct trace_print_flags gfpflag_names[];
-+
- #endif	/* __MM_INTERNAL_H */
+-	printk(KERN_ALERT "BUG: Bad page state in process %s  pfn:%05lx\n",
++	pr_alert("BUG: Bad page state in process %s  pfn:%05lx\n",
+ 		current->comm, page_to_pfn(page));
+-	dump_page_badflags(page, reason, bad_flags);
++	__dump_page(page, reason);
++	bad_flags &= page->flags;
++	if (bad_flags)
++		pr_alert("bad because of flags: %#lx(%pgp)\n",
++						bad_flags, &bad_flags);
+ 	dump_page_owner(page);
+ 
+ 	print_modules();
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-arm64-mm-support-arch_mmap_rnd_bits-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-thp-add-debugfs-handle-to-split-all-huge-pages-fix.patch
-mm-support-madvisemadv_free-fix-2-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom-introduce-oom-reaper-fix-fix.patch
-mm-oom-introduce-oom-reaper-fix-fix-2.patch
-mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
-mm-oom-introduce-oom-reaper-fix-3.patch
-mm-oom-introduce-oom-reaper-fix-4-fix.patch
-mm-oom-introduce-oom-reaper-fix-5-fix.patch
-kernel-stop_machinec-remove-config_smp-dependencies.patch
-kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
-lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
-lib-test_printfc-test-dentry-printing-fix.patch
-printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
-printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix-fix.patch
-printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
-fs-coredump-prevent-core-path-components-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-fs-overlayfs-superc-needs-pagemaph.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-net-drop-tcp_memcontrolc-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-documentation-clarify-proc-pid-status-vmswap-limitations-for-shmem.patch
+mm-proc-account-for-shmem-swap-in-proc-pid-smaps.patch
+mm-proc-reduce-cost-of-proc-pid-smaps-for-shmem-mappings.patch
+mm-proc-reduce-cost-of-proc-pid-smaps-for-unpopulated-shmem-mappings.patch
 
