@@ -1,20 +1,20 @@
 From: akpm@linux-foundation.org
 Subject: + vmstat-allocate-vmstat_wq-before-it-is-used.patch added to -mm
  tree
-Date: Fri, 08 Jan 2016 12:51:06 -0800
-Message-ID: <5690213a.wMF4zA7hypo0DGrp%akpm@linux-foundation.org>
+Date: Fri, 08 Jan 2016 12:52:27 -0800
+Message-ID: <5690218b.xzy31JWxu+QudhDU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40504 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40526 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752221AbcAHUvH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2016 15:51:07 -0500
+	with ESMTP id S1756449AbcAHUw1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2016 15:52:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@kernel.org, mhocko@suse.com, ying.huang@linux.intel.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, penguin-kernel@i-love.sakura.ne.jp, ying.huang@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -39,9 +39,8 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@kernel.org>
+From: Michal Hocko <mhocko@suse.com>
 Subject: vmstat: allocate vmstat_wq before it is used
-
 
 kernel test robot has reported the following crash:
 [    3.870718] BUG: unable to handle kernel NULL pointer dereferenceNULL pointer dereference at 00000100
@@ -74,26 +73,15 @@ kernel test robot has reported the following crash:
 [    3.909601]  [<c107b710>] ? __kthread_parkme+0x80/0x80
 
 The reason is that start_shepherd_timer schedules the shepherd work item
-which uses vmstat_wq (vmstat_shepherd) before setup_vmstat allocates
-that workqueue so if the further initialization takes more than HZ
-we might end up scheduling on a NULL vmstat_wq. This is really unlikely
-but not impossible.
+which uses vmstat_wq (vmstat_shepherd) before setup_vmstat allocates that
+workqueue so if the further initialization takes more than HZ we might end
+up scheduling on a NULL vmstat_wq.  This is really unlikely but not
+impossible.
 
 Fixes: 373ccbe59270 ("mm, vmstat: allow WQ concurrency to discover memory reclaim doesn't make any progress")
-Reported-by: kernel test robot <ying.huang@linux.intel.com>
 Signed-off-by: Michal Hocko <mhocko@suse.com>
----
-Hi Linus,
-I am not marking this for stable because I hope we can sneak it into 4.4.
-The patch is trivial and obvious. I am sorry about the breakage. If you prefer
-to postpone it to 4.5-rc1 because this is not really that critical and shouldn't
-happen most of the time then I will repost with stable tag added.
-
-Thanks!
-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-index 4ebc17d948cb..c54fd2924f25 100644
+Reported-by: kernel test robot <ying.huang@linux.intel.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
@@ -121,11 +109,17 @@ diff -puN mm/vmstat.c~vmstat-allocate-vmstat_wq-before-it-is-used mm/vmstat.c
  	proc_create("buddyinfo", S_IRUGO, NULL, &fragmentation_file_operations);
 _
 
-Patches currently in -mm which might be from mhocko@kernel.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
 vmstat-allocate-vmstat_wq-before-it-is-used.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5-fix.patch
-mm-oom-introduce-oom-reaper-fix.patch
-mm-oom-introduce-oom-reaper-fix-4.patch
-mm-oom-introduce-oom-reaper-fix-5.patch
+mm-get-rid-of-__alloc_pages_high_priority.patch
+mm-do-not-loop-over-alloc_no_watermarks-without-triggering-reclaim.patch
+mm-vmscan-consider-isolated-pages-in-zone_reclaimable_pages.patch
+mm-allow-gfp_iofs-for-page_cache_read-page-cache-allocation.patch
+mm-oom-give-__gfp_nofail-allocations-access-to-memory-reserves.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5.patch
+mm-oom-rework-oom-detection.patch
+mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
+mm-oom-introduce-oom-reaper.patch
 
