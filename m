@@ -1,131 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Fri, 08 Jan 2016 11:19:24 -0800
-Message-ID: <56900bbc.LzTCHOfCCopOY6DU%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ virtio_balloon-fix-race-between-migration-and-ballooning.patch removed from -mm tree
+Date: Fri, 08 Jan 2016 11:20:39 -0800
+Message-ID: <56900c07.mcsRpL1hNUBW9Rus%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34772 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34778 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751322AbcAHTTZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2016 14:19:25 -0500
+	with ESMTP id S1751322AbcAHTUk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2016 14:20:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, aquini@redhat.com, koct9i@gmail.com, mst@redhat.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: virtio_balloon: fix race between migration and ballooning
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     virtio_balloon-fix-race-between-migration-and-ballooning.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Minchan Kim <minchan@kernel.org>
+Subject: virtio_balloon: fix race between migration and ballooning
 
+In balloon_page_dequeue, pages_lock should cover the loop (ie,
+list_for_each_entry_safe).  Otherwise, the cursor page could be isolated
+by compaction and then list_del by isolation could poison the
+page->lru.{prev,next} so the loop finally could access wrong address like
+this.  This patch fixes the bug.
+
+general protection fault: 0000 [#1] SMP
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Modules linked in:
+CPU: 2 PID: 82 Comm: vballoon Not tainted 4.4.0-rc5-mm1-access_bit+ #1906
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+task: ffff8800a7ff0000 ti: ffff8800a7fec000 task.ti: ffff8800a7fec000
+RIP: 0010:[<ffffffff8115e754>]  [<ffffffff8115e754>] balloon_page_dequeue+0x54/0x130
+RSP: 0018:ffff8800a7fefdc0  EFLAGS: 00010246
+RAX: ffff88013fff9a70 RBX: ffffea000056fe00 RCX: 0000000000002b7d
+RDX: ffff88013fff9a70 RSI: ffffea000056fe00 RDI: ffff88013fff9a68
+RBP: ffff8800a7fefde8 R08: ffffea000056fda0 R09: 0000000000000000
+R10: ffff8800a7fefd90 R11: 0000000000000001 R12: dead0000000000e0
+R13: ffffea000056fe20 R14: ffff880138809070 R15: ffff880138809060
+FS:  0000000000000000(0000) GS:ffff88013fc40000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+CR2: 00007f229c10e000 CR3: 00000000b8b53000 CR4: 00000000000006a0
+Stack:
+ 0000000000000100 ffff880138809088 ffff880138809000 ffff880138809060
+ 0000000000000046 ffff8800a7fefe28 ffffffff812c86d3 ffff880138809020
+ ffff880138809000 fffffffffff91900 0000000000000100 ffff880138809060
+Call Trace:
+ [<ffffffff812c86d3>] leak_balloon+0x93/0x1a0
+ [<ffffffff812c8bc7>] balloon+0x217/0x2a0
+ [<ffffffff8143739e>] ? __schedule+0x31e/0x8b0
+ [<ffffffff81078160>] ? abort_exclusive_wait+0xb0/0xb0
+ [<ffffffff812c89b0>] ? update_balloon_stats+0xf0/0xf0
+ [<ffffffff8105b6e9>] kthread+0xc9/0xe0
+ [<ffffffff8105b620>] ? kthread_park+0x60/0x60
+ [<ffffffff8143b4af>] ret_from_fork+0x3f/0x70
+ [<ffffffff8105b620>] ? kthread_park+0x60/0x60
+Code: 8d 60 e0 0f 84 af 00 00 00 48 8b 43 20 a8 01 75 3b 48 89 d8 f0 0f ba 28 00 72 10 48 8b 03 f6 c4 08 75 2f 48 89 df e8 8c 83 f9 ff <49> 8b 44 24 20 4d 8d 6c 24 20 48 83 e8 20 4d 39 f5 74 7a 4c 89
+RIP  [<ffffffff8115e754>] balloon_page_dequeue+0x54/0x130
+ RSP <ffff8800a7fefdc0>
+---[ end trace 43cf28060d708d5f ]---
+Kernel panic - not syncing: Fatal exception
+Dumping ftrace buffer:
+   (ftrace buffer empty)
+Kernel Offset: disabled
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Rafael Aquini <aquini@redhat.com>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/mtd/mtdcore.c |   18 ------------------
- 1 file changed, 18 deletions(-)
+ mm/balloon_compaction.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/mtd/mtdcore.c~linux-next-git-rejects drivers/mtd/mtdcore.c
---- a/drivers/mtd/mtdcore.c~linux-next-git-rejects
-+++ a/drivers/mtd/mtdcore.c
-@@ -597,23 +597,6 @@ int mtd_device_parse_register(struct mtd
- {
- 	struct mtd_partitions parsed;
- 	int ret;
--<<<<<<< HEAD
--	struct mtd_partition *real_parts = NULL;
--
--	mtd_set_dev_defaults(mtd);
--
--	ret = parse_mtd_partitions(mtd, types, &real_parts, parser_data);
--	if (ret <= 0 && nr_parts && parts) {
--		real_parts = kmemdup(parts, sizeof(*parts) * nr_parts,
--				     GFP_KERNEL);
--		if (!real_parts)
--			ret = -ENOMEM;
--		else
--			ret = nr_parts;
--	}
--	/* Didn't come up with either parsed OR fallback partitions */
--	if (ret < 0) {
--=======
+diff -puN mm/balloon_compaction.c~virtio_balloon-fix-race-between-migration-and-ballooning mm/balloon_compaction.c
+--- a/mm/balloon_compaction.c~virtio_balloon-fix-race-between-migration-and-ballooning
++++ a/mm/balloon_compaction.c
+@@ -61,6 +61,7 @@ struct page *balloon_page_dequeue(struct
+ 	bool dequeued_page;
  
- 	mtd_set_dev_defaults(mtd);
+ 	dequeued_page = false;
++	spin_lock_irqsave(&b_dev_info->pages_lock, flags);
+ 	list_for_each_entry_safe(page, tmp, &b_dev_info->pages, lru) {
+ 		/*
+ 		 * Block others from accessing the 'page' while we get around
+@@ -75,15 +76,14 @@ struct page *balloon_page_dequeue(struct
+ 				continue;
+ 			}
+ #endif
+-			spin_lock_irqsave(&b_dev_info->pages_lock, flags);
+ 			balloon_page_delete(page);
+ 			__count_vm_event(BALLOON_DEFLATE);
+-			spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
+ 			unlock_page(page);
+ 			dequeued_page = true;
+ 			break;
+ 		}
+ 	}
++	spin_unlock_irqrestore(&b_dev_info->pages_lock, flags);
  
-@@ -628,7 +611,6 @@ int mtd_device_parse_register(struct mtd
- 		};
- 	} else if (ret < 0) {
- 		/* Didn't come up with parsed OR fallback partitions */
-->>>>>>> linux-next/akpm-base
- 		pr_info("mtd: failed to find partitions; one or more parsers reports errors (%d)\n",
- 			ret);
- 		/* Don't abort on errors; we can still use unpartitioned MTD */
+ 	if (!dequeued_page) {
+ 		/*
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mm.patch
-account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
-include-define-__phys_to_pfn-as-phys_pfn-fix.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-arm64-mm-support-arch_mmap_rnd_bits-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-thp-add-debugfs-handle-to-split-all-huge-pages-fix.patch
-mm-support-madvisemadv_free-fix-2-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom-introduce-oom-reaper-fix-fix.patch
-mm-oom-introduce-oom-reaper-fix-fix-2.patch
-mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
-mm-oom-introduce-oom-reaper-fix-3.patch
-mm-oom-introduce-oom-reaper-fix-4-fix.patch
-mm-oom-introduce-oom-reaper-fix-5-fix.patch
-kernel-stop_machinec-remove-config_smp-dependencies.patch
-kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
-lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
-lib-test_printfc-test-dentry-printing-fix.patch
-printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
-printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix-fix.patch
-printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
-fs-coredump-prevent-core-path-components-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
-linux-next-rejects.patch
-fs-overlayfs-superc-needs-pagemaph.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-net-drop-tcp_memcontrolc-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+zram-pass-gfp-from-zcomp-frontend-to-backend.patch
+mm-support-madvisemadv_free.patch
+mm-support-madvisemadv_free-fix.patch
+mm-support-madvisemadv_free-fix-2.patch
+mm-define-madv_free-for-some-arches.patch
+mm-free-swp_entry-in-madvise_free.patch
+mm-move-lazily-freed-pages-to-inactive-list.patch
+mm-mark-stable-page-dirty-in-ksm.patch
+x86-add-pmd_-for-thp.patch
+sparc-add-pmd_-for-thp.patch
+powerpc-add-pmd_-for-thp.patch
+arm-add-pmd_mkclean-for-thp.patch
+arm64-add-pmd_mkclean-for-thp.patch
+mm-dont-split-thp-page-when-syscall-is-called.patch
+virtio_balloon-fix-race-by-fill-and-leak.patch
 
