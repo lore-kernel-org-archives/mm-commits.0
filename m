@@ -1,253 +1,184 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-printk-introduce-new-format-string-for-flags.patch removed from -mm tree
-Date: Thu, 07 Jan 2016 16:27:13 -0800
-Message-ID: <568f0261.DjBGBA2JfUAvAwhl%akpm@linux-foundation.org>
+ mm-printk-introduce-new-format-string-for-flags-fix-2.patch removed from
+ -mm tree
+Date: Thu, 07 Jan 2016 16:27:18 -0800
+Message-ID: <568f0266.PrJvh4fW9lyG0jbi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37290 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37303 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753199AbcAHA1O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2016 19:27:14 -0500
+	with ESMTP id S1753199AbcAHA1T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2016 19:27:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, james.hogan@imgtec.com, kirill.shutemov@linux.intel.com, linux@rasmusvillemoes.dk, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, broonie@kernel.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, linux@rasmusvillemoes.dk, mgorman@suse.de, mhocko@suse.cz, minchan@kernel.org, sasha.levin@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, printk: introduce new format string for flags
+     Subject: mm-printk-introduce-new-format-string-for-flags-fix-2
 has been removed from the -mm tree.  Its filename was
-     mm-printk-introduce-new-format-string-for-flags.patch
+     mm-printk-introduce-new-format-string-for-flags-fix-2.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, printk: introduce new format string for flags
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-printk-introduce-new-format-string-for-flags-fix-2
 
-In mm we use several kinds of flags bitfields that are sometimes printed
-for debugging purposes, or exported to userspace via sysfs.  To make them
-easier to interpret independently on kernel version and config, we want to
-dump also the symbolic flag names.  So far this has been done with
-repeated calls to pr_cont(), which is unreliable on SMP, and not usable
-for e.g.  sysfs export.
+move declaration of trace_print_flags arrays into mm/internal.h
 
-To get a more reliable and universal solution, this patch extends printk()
-format string for pointers to handle the page flags (%pgp), gfp_flags
-(%pgg) and vma flags (%pgv).  Existing users of dump_flag_names() are
-converted and simplified.
-
-It would be possible to pass flags by value instead of pointer, but the %p
-format string for pointers already has extensions for various kernel
-structures, so it's a good fit, and the extra indirection in a
-non-critical path is negligible.
-
-[linux@rasmusvillemoes.dk: lots of good implementation suggestions]
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sasha Levin <sasha.levin@oracle.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@suse.cz>
-Tested-by: James Hogan <james.hogan@imgtec.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mark Brown <broonie@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/printk-formats.txt |   14 +++++
- include/linux/mmdebug.h          |    6 ++
- include/linux/tracepoint.h       |   10 +++
- lib/vsprintf.c                   |   75 +++++++++++++++++++++++++++++
- 4 files changed, 105 insertions(+)
+ include/linux/mmdebug.h |    6 ------
+ lib/vsprintf.c          |    3 ++-
+ mm/debug.c              |    2 ++
+ mm/internal.h           |    7 +++++++
+ 4 files changed, 11 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/printk-formats.txt~mm-printk-introduce-new-format-string-for-flags Documentation/printk-formats.txt
---- a/Documentation/printk-formats.txt~mm-printk-introduce-new-format-string-for-flags
-+++ a/Documentation/printk-formats.txt
-@@ -292,6 +292,20 @@ bitmap and its derivatives such as cpuma
- 
- 	Passed by reference.
- 
-+Flags bitfields such as page flags, gfp_flags:
-+
-+	%pgp	referenced|uptodate|lru|active|private
-+	%pgg	GFP_USER|GFP_DMA32|GFP_NOWARN
-+	%pgv	read|exec|mayread|maywrite|mayexec|denywrite
-+
-+	For printing flags bitfields as a collection of symbolic constants that
-+	would construct the value. The type of flags is given by the third
-+	character. Currently supported are [p]age flags, [g]fp_flags and
-+	[v]ma_flags. The flag names and print order depends on the particular
-+	type.
-+
-+	Passed by reference.
-+
- Network device features:
- 
- 	%pNF	0x000000000000c000
-diff -puN include/linux/mmdebug.h~mm-printk-introduce-new-format-string-for-flags include/linux/mmdebug.h
---- a/include/linux/mmdebug.h~mm-printk-introduce-new-format-string-for-flags
+diff -puN include/linux/mmdebug.h~mm-printk-introduce-new-format-string-for-flags-fix-2 include/linux/mmdebug.h
+--- a/include/linux/mmdebug.h~mm-printk-introduce-new-format-string-for-flags-fix-2
 +++ a/include/linux/mmdebug.h
-@@ -3,11 +3,17 @@
+@@ -3,17 +3,11 @@
  
  #include <linux/bug.h>
  #include <linux/stringify.h>
-+#include <linux/types.h>
-+#include <linux/tracepoint.h>
+-#include <linux/types.h>
+-#include <linux/tracepoint.h>
  
  struct page;
  struct vm_area_struct;
  struct mm_struct;
  
+-extern const struct trace_print_flags pageflag_names[];
+-extern const struct trace_print_flags vmaflag_names[];
+-extern const struct trace_print_flags gfpflag_names[];
+-
+ extern void dump_page(struct page *page, const char *reason);
+ extern void dump_page_badflags(struct page *page, const char *reason,
+ 			       unsigned long badflags);
+diff -puN lib/vsprintf.c~mm-printk-introduce-new-format-string-for-flags-fix-2 lib/vsprintf.c
+--- a/lib/vsprintf.c~mm-printk-introduce-new-format-string-for-flags-fix-2
++++ a/lib/vsprintf.c
+@@ -31,7 +31,8 @@
+ #include <linux/dcache.h>
+ #include <linux/cred.h>
+ #include <net/addrconf.h>
+-#include <linux/mmdebug.h>
++
++#include "../mm/internal.h"	/* For the trace_print_flags arrays */
+ 
+ #include <asm/page.h>		/* for PAGE_SIZE */
+ #include <asm/sections.h>	/* for dereference_function_descriptor() */
+diff -puN mm/debug.c~mm-printk-introduce-new-format-string-for-flags-fix-2 mm/debug.c
+--- a/mm/debug.c~mm-printk-introduce-new-format-string-for-flags-fix-2
++++ a/mm/debug.c
+@@ -10,6 +10,8 @@
+ #include <linux/trace_events.h>
+ #include <linux/memcontrol.h>
+ 
++#include "internal.h"
++
+ static const struct trace_print_flags pageflag_names[] = {
+ 	{1UL << PG_locked,		"locked"	},
+ 	{1UL << PG_error,		"error"		},
+diff -puN mm/internal.h~mm-printk-introduce-new-format-string-for-flags-fix-2 mm/internal.h
+--- a/mm/internal.h~mm-printk-introduce-new-format-string-for-flags-fix-2
++++ a/mm/internal.h
+@@ -11,9 +11,11 @@
+ #ifndef __MM_INTERNAL_H
+ #define __MM_INTERNAL_H
+ 
++#include <linux/types.h>
+ #include <linux/fs.h>
+ #include <linux/mm.h>
+ #include <linux/pagemap.h>
++#include <linux/tracepoint.h>
+ 
+ /*
+  * The set of flags that only affect watermark checking and reclaim
+@@ -444,4 +446,9 @@ static inline void try_to_unmap_flush_di
+ }
+ 
+ #endif /* CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH */
++
 +extern const struct trace_print_flags pageflag_names[];
 +extern const struct trace_print_flags vmaflag_names[];
 +extern const struct trace_print_flags gfpflag_names[];
 +
- extern void dump_page(struct page *page, const char *reason);
- extern void dump_page_badflags(struct page *page, const char *reason,
- 			       unsigned long badflags);
-diff -puN include/linux/trace_events.h~mm-printk-introduce-new-format-string-for-flags include/linux/trace_events.h
-diff -puN include/linux/tracepoint.h~mm-printk-introduce-new-format-string-for-flags include/linux/tracepoint.h
---- a/include/linux/tracepoint.h~mm-printk-introduce-new-format-string-for-flags
-+++ a/include/linux/tracepoint.h
-@@ -29,6 +29,16 @@ struct trace_enum_map {
- 	unsigned long		enum_value;
- };
- 
-+struct trace_print_flags {
-+	unsigned long		mask;
-+	const char		*name;
-+};
-+
-+struct trace_print_flags_u64 {
-+	unsigned long long	mask;
-+	const char		*name;
-+};
-+
- #define TRACEPOINT_DEFAULT_PRIO	10
- 
- extern int
-diff -puN lib/vsprintf.c~mm-printk-introduce-new-format-string-for-flags lib/vsprintf.c
---- a/lib/vsprintf.c~mm-printk-introduce-new-format-string-for-flags
-+++ a/lib/vsprintf.c
-@@ -31,6 +31,7 @@
- #include <linux/dcache.h>
- #include <linux/cred.h>
- #include <net/addrconf.h>
-+#include <linux/mmdebug.h>
- 
- #include <asm/page.h>		/* for PAGE_SIZE */
- #include <asm/sections.h>	/* for dereference_function_descriptor() */
-@@ -1384,6 +1385,73 @@ char *clock(char *buf, char *end, struct
- 	}
- }
- 
-+static
-+char *format_flags(char *buf, char *end, unsigned long flags,
-+					const struct trace_print_flags *names)
-+{
-+	unsigned long mask;
-+	const struct printf_spec strspec = {
-+		.field_width = -1,
-+		.precision = -1,
-+	};
-+	const struct printf_spec numspec = {
-+		.flags = SPECIAL|SMALL,
-+		.field_width = -1,
-+		.precision = -1,
-+		.base = 16,
-+	};
-+
-+	for ( ; flags && (names->mask || names->name); names++) {
-+		mask = names->mask;
-+		if ((flags & mask) != mask)
-+			continue;
-+
-+		buf = string(buf, end, names->name, strspec);
-+
-+		flags &= ~mask;
-+		if (flags) {
-+			if (buf < end)
-+				*buf = '|';
-+			buf++;
-+		}
-+	}
-+
-+	if (flags)
-+		buf = number(buf, end, flags, numspec);
-+
-+	return buf;
-+}
-+
-+static noinline_for_stack
-+char *flags_string(char *buf, char *end, void *flags_ptr,
-+			struct printf_spec spec, const char *fmt)
-+{
-+	unsigned long flags;
-+	const struct trace_print_flags *names;
-+
-+	switch (fmt[1]) {
-+	case 'p':
-+		flags = *(unsigned long *)flags_ptr;
-+		/* Remove zone id */
-+		flags &= (1UL << NR_PAGEFLAGS) - 1;
-+		names = pageflag_names;
-+		break;
-+	case 'v':
-+		flags = *(unsigned long *)flags_ptr;
-+		names = vmaflag_names;
-+		break;
-+	case 'g':
-+		flags = *(gfp_t *)flags_ptr;
-+		names = gfpflag_names;
-+		break;
-+	default:
-+		WARN_ONCE(1, "Unsupported flags modifier: %c\n", fmt[1]);
-+		return buf;
-+	}
-+
-+	return format_flags(buf, end, flags, names);
-+}
-+
- int kptr_restrict __read_mostly;
- 
- /*
-@@ -1471,6 +1539,11 @@ int kptr_restrict __read_mostly;
-  * - 'Cn' For a clock, it prints the name (Common Clock Framework) or address
-  *        (legacy clock framework) of the clock
-  * - 'Cr' For a clock, it prints the current rate of the clock
-+ * - 'g' For flags to be printed as a collection of symbolic strings that would
-+ *       construct the specific value. Supported flags given by option:
-+ *       p page flags (see struct page) given as pointer to unsigned long
-+ *       g gfp flags (GFP_* and __GFP_*) given as pointer to gfp_t
-+ *       v vma flags (VM_*) given as pointer to unsigned long
-  *
-  * ** Please update also Documentation/printk-formats.txt when making changes **
-  *
-@@ -1619,6 +1692,8 @@ char *pointer(const char *fmt, char *buf
- 		return dentry_name(buf, end,
- 				   ((const struct file *)ptr)->f_path.dentry,
- 				   spec, fmt);
-+	case 'g':
-+		return flags_string(buf, end, ptr, spec, fmt);
- 	}
- 	spec.flags |= SMALL;
- 	if (spec.field_width == -1) {
-diff -puN mm/debug.c~mm-printk-introduce-new-format-string-for-flags mm/debug.c
-diff -puN mm/oom_kill.c~mm-printk-introduce-new-format-string-for-flags mm/oom_kill.c
-diff -puN mm/page_alloc.c~mm-printk-introduce-new-format-string-for-flags mm/page_alloc.c
-diff -puN mm/page_owner.c~mm-printk-introduce-new-format-string-for-flags mm/page_owner.c
+ #endif	/* __MM_INTERNAL_H */
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-documentation-clarify-proc-pid-status-vmswap-limitations-for-shmem.patch
-mm-proc-account-for-shmem-swap-in-proc-pid-smaps.patch
-mm-proc-reduce-cost-of-proc-pid-smaps-for-shmem-mappings.patch
-mm-proc-reduce-cost-of-proc-pid-smaps-for-unpopulated-shmem-mappings.patch
-mm-page_owner-provide-symbolic-page-flags-and-gfp_flags.patch
-mm-debug-move-bad-flags-printing-to-bad_page.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
+mm.patch
+account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
+mm-zonelist-enumerate-zonelists-array-index-fix.patch
+mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
+arm64-mm-support-arch_mmap_rnd_bits-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+thp-add-debugfs-handle-to-split-all-huge-pages-fix.patch
+mm-support-madvisemadv_free-fix-2-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+mm-oom-introduce-oom-reaper-fix-fix.patch
+mm-oom-introduce-oom-reaper-fix-fix-2.patch
+mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
+mm-oom-introduce-oom-reaper-fix-3.patch
+mm-oom-introduce-oom-reaper-fix-4-fix.patch
+mm-oom-introduce-oom-reaper-fix-5-fix.patch
+kernel-stop_machinec-remove-config_smp-dependencies.patch
+kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
+lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
+lib-test_printfc-test-dentry-printing-fix.patch
+printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
+printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix-fix.patch
+printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
+fs-coredump-prevent-core-path-components-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+fs-overlayfs-superc-needs-pagemaph.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+net-drop-tcp_memcontrolc-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
