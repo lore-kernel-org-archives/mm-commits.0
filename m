@@ -1,17 +1,18 @@
 From: akpm@linux-foundation.org
-Subject: + mm-soft-offline-exit-with-failure-for-non-anonymous-thp.patch
- added to -mm tree
-Date: Fri, 08 Jan 2016 12:25:27 -0800
-Message-ID: <56901b37.FGqKf468NvEkH9Bn%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-soft-offline-exit-with-failure-for-non-anonymous-thp.patch removed from
+ -mm tree
+Date: Fri, 08 Jan 2016 12:33:28 -0800
+Message-ID: <56901d18.RI1lqGupso+RDYo4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38911 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39277 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752578AbcAHUZ2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2016 15:25:28 -0500
+	with ESMTP id S1755741AbcAHUd3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2016 15:33:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, mm-commits@vger.kernel.org
@@ -19,24 +20,10 @@ To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, mm-commits@vger.kernel.org
 
 The patch titled
      Subject: mm: soft-offline: exit with failure for non anonymous thp
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      mm-soft-offline-exit-with-failure-for-non-anonymous-thp.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-soft-offline-exit-with-failure-for-non-anonymous-thp.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-soft-offline-exit-with-failure-for-non-anonymous-thp.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
@@ -53,27 +40,9 @@ Cc: Andi Kleen <andi@firstfloor.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory-failure.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ 0 files changed
 
 diff -puN mm/memory-failure.c~mm-soft-offline-exit-with-failure-for-non-anonymous-thp mm/memory-failure.c
---- a/mm/memory-failure.c~mm-soft-offline-exit-with-failure-for-non-anonymous-thp
-+++ a/mm/memory-failure.c
-@@ -1751,9 +1751,11 @@ int soft_offline_page(struct page *page,
- 		return -EBUSY;
- 	}
- 	if (!PageHuge(page) && PageTransHuge(hpage)) {
--		if (PageAnon(hpage) && unlikely(split_huge_page(hpage))) {
--			pr_info("soft offline: %#lx: failed to split THP\n",
--				pfn);
-+		if (!PageAnon(hpage) || unlikely(split_huge_page(hpage))) {
-+			if (!PageAnon(hpage))
-+				pr_info("soft offline: %#lx: non anonymous thp\n", pfn);
-+			else
-+				pr_info("soft offline: %#lx: thp split failed\n", pfn);
- 			if (flags & MF_COUNT_INCREASED)
- 				put_hwpoison_page(page);
- 			return -EBUSY;
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
@@ -81,7 +50,6 @@ Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 mm-zonelist-enumerate-zonelists-array-index-fix-fix.patch
 mm-zonelist-enumerate-zonelists-array-index-fix-fix-fix.patch
 mm-page_isolation-use-micro-to-judge-the-alignment.patch
-mm-soft-offline-exit-with-failure-for-non-anonymous-thp.patch
 rmap-add-argument-to-charge-compound-page-fix.patch
 mm-hwpoison-adjust-for-new-thp-refcounting.patch
 
