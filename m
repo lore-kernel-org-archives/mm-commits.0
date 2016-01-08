@@ -1,85 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-fix-mic-maintainers-entry.patch added to -mm tree
-Date: Thu, 07 Jan 2016 17:07:27 -0800
-Message-ID: <568f0bcf./cdAnkoC3WhE8A3Z%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Fri, 08 Jan 2016 11:19:24 -0800
+Message-ID: <56900bbc.LzTCHOfCCopOY6DU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40773 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34772 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752682AbcAHBH2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 7 Jan 2016 20:07:28 -0500
+	with ESMTP id S1751322AbcAHTTZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2016 14:19:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, gregkh@linuxfoundation.org, joe@perches.com, sudeep.dutt@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: fix MIC maintainers entry
-has been added to the -mm tree.  Its filename is
-     maintainers-fix-mic-maintainers-entry.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-fix-mic-maintainers-entry.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-fix-mic-maintainers-entry.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: MAINTAINERS: fix MIC maintainers entry
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-There were some missing colons so we stop parsing the MIC maintainers
-entry early.  It means that:
-
-    ./scripts/get_maintainer.pl -f drivers/misc/mic/card/mic_virtio.c
-
-doesn't work.
-
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Sudeep Dutt <sudeep.dutt@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/mtd/mtdcore.c |   18 ------------------
+ 1 file changed, 18 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-fix-mic-maintainers-entry MAINTAINERS
---- a/MAINTAINERS~maintainers-fix-mic-maintainers-entry
-+++ a/MAINTAINERS
-@@ -5749,11 +5749,11 @@ F:	include/linux/mic_bus.h
- F:	include/linux/scif.h
- F:	include/uapi/linux/mic_common.h
- F: 	include/uapi/linux/mic_ioctl.h
--F	include/uapi/linux/scif_ioctl.h
-+F:	include/uapi/linux/scif_ioctl.h
- F:	drivers/misc/mic/
- F:	drivers/dma/mic_x100_dma.c
- F:	drivers/dma/mic_x100_dma.h
--F	Documentation/mic/
-+F:	Documentation/mic/
+diff -puN drivers/mtd/mtdcore.c~linux-next-git-rejects drivers/mtd/mtdcore.c
+--- a/drivers/mtd/mtdcore.c~linux-next-git-rejects
++++ a/drivers/mtd/mtdcore.c
+@@ -597,23 +597,6 @@ int mtd_device_parse_register(struct mtd
+ {
+ 	struct mtd_partitions parsed;
+ 	int ret;
+-<<<<<<< HEAD
+-	struct mtd_partition *real_parts = NULL;
+-
+-	mtd_set_dev_defaults(mtd);
+-
+-	ret = parse_mtd_partitions(mtd, types, &real_parts, parser_data);
+-	if (ret <= 0 && nr_parts && parts) {
+-		real_parts = kmemdup(parts, sizeof(*parts) * nr_parts,
+-				     GFP_KERNEL);
+-		if (!real_parts)
+-			ret = -ENOMEM;
+-		else
+-			ret = nr_parts;
+-	}
+-	/* Didn't come up with either parsed OR fallback partitions */
+-	if (ret < 0) {
+-=======
  
- INTEL PMC/P-Unit IPC DRIVER
- M:	Zha Qipeng<qipeng.zha@intel.com>
+ 	mtd_set_dev_defaults(mtd);
+ 
+@@ -628,7 +611,6 @@ int mtd_device_parse_register(struct mtd
+ 		};
+ 	} else if (ret < 0) {
+ 		/* Didn't come up with parsed OR fallback partitions */
+->>>>>>> linux-next/akpm-base
+ 		pr_info("mtd: failed to find partitions; one or more parsers reports errors (%d)\n",
+ 			ret);
+ 		/* Don't abort on errors; we can still use unpartitioned MTD */
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-add-tracepoint-for-scanning-pages-fix.patch
-c6x-convert-to-dma_map_ops-fix.patch
-maintainers-fix-mic-maintainers-entry.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
+mm.patch
+account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
+mm-zonelist-enumerate-zonelists-array-index-fix.patch
+mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
+arm64-mm-support-arch_mmap_rnd_bits-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+thp-add-debugfs-handle-to-split-all-huge-pages-fix.patch
+mm-support-madvisemadv_free-fix-2-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+mm-oom-introduce-oom-reaper-fix-fix.patch
+mm-oom-introduce-oom-reaper-fix-fix-2.patch
+mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
+mm-oom-introduce-oom-reaper-fix-3.patch
+mm-oom-introduce-oom-reaper-fix-4-fix.patch
+mm-oom-introduce-oom-reaper-fix-5-fix.patch
+kernel-stop_machinec-remove-config_smp-dependencies.patch
+kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
+lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
+lib-test_printfc-test-dentry-printing-fix.patch
+printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
+printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix-fix.patch
+printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
+fs-coredump-prevent-core-path-components-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+linux-next-rejects.patch
+fs-overlayfs-superc-needs-pagemaph.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+net-drop-tcp_memcontrolc-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
