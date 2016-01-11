@@ -1,126 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlbfs-fix-bugs-in-hugetlb_vmtruncate_list.patch added to -mm tree
-Date: Fri, 08 Jan 2016 16:16:29 -0800
-Message-ID: <5690515d.MYsYs8BubzktdpPA%akpm@linux-foundation.org>
+Subject: [merged] fs-affs-replace-time_t-with-time64_t.patch removed from
+ -mm tree
+Date: Mon, 11 Jan 2016 13:21:28 -0800
+Message-ID: <56941cd8.pqSJtesFSU+rz3hn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52621 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47930 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750875AbcAIAQa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 8 Jan 2016 19:16:30 -0500
+	with ESMTP id S933101AbcAKVV2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 16:21:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, dave.hansen@linux.intel.com, dave@stgolabs.net, hillf.zj@alibaba-inc.com, hughd@google.com, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: chao.deng@linaro.org, arnd@arndb.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/hugetlbfs/inode.c: fix bugs in hugetlb_vmtruncate_list()
-has been added to the -mm tree.  Its filename is
-     mm-hugetlbfs-fix-bugs-in-hugetlb_vmtruncate_list.patch
+     Subject: fs/affs: replace time_t with time64_t
+has been removed from the -mm tree.  Its filename was
+     fs-affs-replace-time_t-with-time64_t.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbfs-fix-bugs-in-hugetlb_vmtruncate_list.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbfs-fix-bugs-in-hugetlb_vmtruncate_list.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: fs/hugetlbfs/inode.c: fix bugs in hugetlb_vmtruncate_list()
+From: DengChao <chao.deng@linaro.org>
+Subject: fs/affs: replace time_t with time64_t
 
-Hillf Danton noticed bugs in the hugetlb_vmtruncate_list routine.  The
-argument end is of type pgoff_t.  It was being converted to a vaddr offset
-and passed to unmap_hugepage_range.  However, end was also being used as
-an argument to the vma_interval_tree_foreach controlling loop.  In
-addition, the conversion of end to vaddr offset was incorrect.
+The affs code uses time_t and get_seconds().  This will cause problems
+on 32-bit architectures in 2038 when time_t overflows.  This patch
+replaces them with time64_t and ktime_get_real_seconds().
 
-hugetlb_vmtruncate_list is called as part of a file truncate or fallocate
-hole punch operation.
-
-When truncating a hugetlbfs file, this bug could prevent some pages from
-being unmapped.  This is possible if there are multiple vmas mapping the
-file, and there is a sufficiently sized hole between the mappings.  The
-size of the hole between two vmas (A,B) must be such that the starting
-virtual address of B is greater than (ending virtual address of A <<
-PAGE_SHIFT).  In this case, the pages in B would not be unmapped.  If
-pages are not properly unmapped during truncate, the following BUG is hit:
-
-	kernel BUG at fs/hugetlbfs/inode.c:428!
-
-In the fallocate hole punch case, this bug could prevent pages from being
-unmapped as in the truncate case.  However, for hole punch the result is
-that unmapped pages will not be removed during the operation.  For hole
-punch, it is also possible that more pages than desired will be unmapped. 
-This unnecessary unmapping will cause page faults to reestablish the
-mappings on subsequent page access.
-
-Fixes: 1bfad99ab (" hugetlbfs: hugetlb_vmtruncate_list() needs to take a range")Reported-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: <stable@vger.kernel.org>	[4.3]
+Signed-off-by: DengChao <chao.deng@linaro.org>
+Reviewed-by: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ fs/affs/affs.h     |    2 +-
+ fs/affs/amigaffs.c |   13 +++++++------
+ fs/affs/super.c    |    2 +-
+ 3 files changed, 9 insertions(+), 8 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-bugs-in-hugetlb_vmtruncate_list fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-bugs-in-hugetlb_vmtruncate_list
-+++ a/fs/hugetlbfs/inode.c
-@@ -463,6 +463,7 @@ hugetlb_vmdelete_list(struct rb_root *ro
- 	 */
- 	vma_interval_tree_foreach(vma, root, start, end ? end : ULONG_MAX) {
- 		unsigned long v_offset;
-+		unsigned long v_end;
+diff -puN fs/affs/affs.h~fs-affs-replace-time_t-with-time64_t fs/affs/affs.h
+--- a/fs/affs/affs.h~fs-affs-replace-time_t-with-time64_t
++++ a/fs/affs/affs.h
+@@ -138,7 +138,7 @@ extern int	affs_remove_hash(struct inode
+ extern int	affs_remove_header(struct dentry *dentry);
+ extern u32	affs_checksum_block(struct super_block *sb, struct buffer_head *bh);
+ extern void	affs_fix_checksum(struct super_block *sb, struct buffer_head *bh);
+-extern void	secs_to_datestamp(time_t secs, struct affs_date *ds);
++extern void	secs_to_datestamp(time64_t secs, struct affs_date *ds);
+ extern umode_t	prot_to_mode(u32 prot);
+ extern void	mode_to_prot(struct inode *inode);
+ __printf(3, 4)
+diff -puN fs/affs/amigaffs.c~fs-affs-replace-time_t-with-time64_t fs/affs/amigaffs.c
+--- a/fs/affs/amigaffs.c~fs-affs-replace-time_t-with-time64_t
++++ a/fs/affs/amigaffs.c
+@@ -8,6 +8,7 @@
+  *  Please send bug reports to: hjw@zvw.de
+  */
  
- 		/*
- 		 * Can the expression below overflow on 32-bit arches?
-@@ -475,15 +476,17 @@ hugetlb_vmdelete_list(struct rb_root *ro
- 		else
- 			v_offset = 0;
++#include <linux/math64.h>
+ #include "affs.h"
  
--		if (end) {
--			end = ((end - start) << PAGE_SHIFT) +
--			       vma->vm_start + v_offset;
--			if (end > vma->vm_end)
--				end = vma->vm_end;
--		} else
--			end = vma->vm_end;
-+		if (!end)
-+			v_end = vma->vm_end;
-+		else {
-+			v_end = ((end - vma->vm_pgoff) << PAGE_SHIFT)
-+							+ vma->vm_start;
-+			if (v_end > vma->vm_end)
-+				v_end = vma->vm_end;
-+		}
- 
--		unmap_hugepage_range(vma, vma->vm_start + v_offset, end, NULL);
-+		unmap_hugepage_range(vma, vma->vm_start + v_offset, v_end,
-+									NULL);
- 	}
+ /*
+@@ -366,22 +367,22 @@ affs_fix_checksum(struct super_block *sb
  }
  
-diff -puN /dev/null /dev/null
+ void
+-secs_to_datestamp(time_t secs, struct affs_date *ds)
++secs_to_datestamp(time64_t secs, struct affs_date *ds)
+ {
+ 	u32	 days;
+ 	u32	 minute;
++	s32	 rem;
+ 
+ 	secs -= sys_tz.tz_minuteswest * 60 + ((8 * 365 + 2) * 24 * 60 * 60);
+ 	if (secs < 0)
+ 		secs = 0;
+-	days    = secs / 86400;
+-	secs   -= days * 86400;
+-	minute  = secs / 60;
+-	secs   -= minute * 60;
++	days    = div_s64_rem(secs, 86400, &rem);
++	minute  = rem / 60;
++	rem    -= minute * 60;
+ 
+ 	ds->days = cpu_to_be32(days);
+ 	ds->mins = cpu_to_be32(minute);
+-	ds->ticks = cpu_to_be32(secs * 50);
++	ds->ticks = cpu_to_be32(rem * 50);
+ }
+ 
+ umode_t
+diff -puN fs/affs/super.c~fs-affs-replace-time_t-with-time64_t fs/affs/super.c
+--- a/fs/affs/super.c~fs-affs-replace-time_t-with-time64_t
++++ a/fs/affs/super.c
+@@ -32,7 +32,7 @@ affs_commit_super(struct super_block *sb
+ 	struct affs_root_tail *tail = AFFS_ROOT_TAIL(sb, bh);
+ 
+ 	lock_buffer(bh);
+-	secs_to_datestamp(get_seconds(), &tail->disk_change);
++	secs_to_datestamp(ktime_get_real_seconds(), &tail->disk_change);
+ 	affs_fix_checksum(sb, bh);
+ 	unlock_buffer(bh);
+ 
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from chao.deng@linaro.org are
 
-mm-hugetlbfs-fix-bugs-in-hugetlb_vmtruncate_list.patch
 
