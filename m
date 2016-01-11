@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + oom-reaper-handle-anonymous-mlocked-pages.patch added to -mm
- tree
-Date: Mon, 11 Jan 2016 14:56:54 -0800
-Message-ID: <56943336.3whxquvtYIFpBL7X%akpm@linux-foundation.org>
+Subject: +
+ oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch added to -mm tree
+Date: Mon, 11 Jan 2016 14:57:51 -0800
+Message-ID: <5694336f.jn4uMJvkJsL35W90%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52495 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52530 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933349AbcAKW4z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 17:56:55 -0500
+	with ESMTP id S1759347AbcAKW5w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 17:57:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, andrea@kernel.org, hughd@google.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, andrea@kernel.org, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom reaper: handle anonymous mlocked pages
+     Subject: oom: clear TIF_MEMDIE after oom_reaper managed to unmap the address space
 has been added to the -mm tree.  Its filename is
-     oom-reaper-handle-anonymous-mlocked-pages.patch
+     oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/oom-reaper-handle-anonymous-mlocked-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/oom-reaper-handle-anonymous-mlocked-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,22 +40,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: oom reaper: handle anonymous mlocked pages
+Subject: oom: clear TIF_MEMDIE after oom_reaper managed to unmap the address space
 
-__oom_reap_vmas current skips over all mlocked vmas because they need a
-special treatment before they are unmapped.  This is primarily done for
-simplicity.  There is no reason to skip over them and reduce the amount of
-reclaimed memory.  This is safe from the semantic point of view because
-try_to_unmap_one during rmap walk would keep tell the reclaim to cull the
-page back and mlock it again.
+When oom_reaper manages to unmap all the eligible vmas there shouldn't be
+much of the freable memory held by the oom victim left anymore so it makes
+sense to clear the TIF_MEMDIE flag for the victim and allow the OOM killer
+to select another task if necessary.
 
-munlock_vma_pages_all is also safe to be called from the oom reaper
-context because it doesn't sit on any locks but mmap_sem (for read).
+The lack of TIF_MEMDIE also means that the victim cannot access memory
+reserves anymore but that shouldn't be a problem because it would get the
+access again if it needs to allocate and hits the OOM killer again due to
+the fatal_signal_pending resp.  PF_EXITING check.  We can safely hide the
+task from the OOM killer because it is clearly not a good candidate
+anymore as everyhing reclaimable has been torn down already.
 
+This patch will allow to cap the time an OOM victim can keep TIF_MEMDIE
+and thus hold off further global OOM killer actions granted the oom reaper
+is able to take mmap_sem for the associated mm struct.  This is not
+guaranteed now but further steps should make sure that mmap_sem for write
+should be blocked killable which will help to reduce such a lock
+contention.  This is not done by this patch.
+
+Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
+Suggested-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Michal Hocko <mhocko@suse.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -65,40 +75,193 @@ Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ include/linux/oom.h |    2 -
+ kernel/exit.c       |    2 -
+ mm/oom_kill.c       |   72 +++++++++++++++++++++++++++---------------
+ 3 files changed, 49 insertions(+), 27 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-reaper-handle-anonymous-mlocked-pages mm/oom_kill.c
---- a/mm/oom_kill.c~oom-reaper-handle-anonymous-mlocked-pages
-+++ a/mm/oom_kill.c
-@@ -445,13 +445,6 @@ static bool __oom_reap_vmas(struct mm_st
- 			continue;
+diff -puN include/linux/oom.h~oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space include/linux/oom.h
+--- a/include/linux/oom.h~oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space
++++ a/include/linux/oom.h
+@@ -91,7 +91,7 @@ extern enum oom_scan_t oom_scan_process_
  
- 		/*
--		 * mlocked VMAs require explicit munlocking before unmap.
--		 * Let's keep it simple here and skip such VMAs.
--		 */
--		if (vma->vm_flags & VM_LOCKED)
--			continue;
--
--		/*
- 		 * Only anonymous pages have a good chance to be dropped
- 		 * without additional steps which we cannot afford as we
- 		 * are OOM already.
-@@ -461,9 +454,12 @@ static bool __oom_reap_vmas(struct mm_st
- 		 * we do not want to block exit_mmap by keeping mm ref
- 		 * count elevated without a good reason.
- 		 */
--		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED))
-+		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED)) {
-+			if (vma->vm_flags & VM_LOCKED)
-+				munlock_vma_pages_all(vma);
- 			unmap_page_range(&tlb, vma, vma->vm_start, vma->vm_end,
- 					 &details);
-+		}
+ extern bool out_of_memory(struct oom_control *oc);
+ 
+-extern void exit_oom_victim(void);
++extern void exit_oom_victim(struct task_struct *tsk);
+ 
+ extern int register_oom_notifier(struct notifier_block *nb);
+ extern int unregister_oom_notifier(struct notifier_block *nb);
+diff -puN kernel/exit.c~oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space kernel/exit.c
+--- a/kernel/exit.c~oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space
++++ a/kernel/exit.c
+@@ -436,7 +436,7 @@ static void exit_mm(struct task_struct *
+ 	mm_update_next_owner(mm);
+ 	mmput(mm);
+ 	if (test_thread_flag(TIF_MEMDIE))
+-		exit_oom_victim();
++		exit_oom_victim(tsk);
+ }
+ 
+ static struct task_struct *find_alive_thread(struct task_struct *p)
+diff -puN mm/oom_kill.c~oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space
++++ a/mm/oom_kill.c
+@@ -419,20 +419,36 @@ bool oom_killer_disabled __read_mostly;
+  * victim (if that is possible) to help the OOM killer to move on.
+  */
+ static struct task_struct *oom_reaper_th;
+-static struct mm_struct *mm_to_reap;
++static struct task_struct *task_to_reap;
+ static DECLARE_WAIT_QUEUE_HEAD(oom_reaper_wait);
+ 
+-static bool __oom_reap_vmas(struct mm_struct *mm)
++static bool __oom_reap_task(struct task_struct *tsk)
+ {
+ 	struct mmu_gather tlb;
+ 	struct vm_area_struct *vma;
++	struct mm_struct *mm;
++	struct task_struct *p;
+ 	struct zap_details details = {.check_swap_entries = true,
+ 				      .ignore_dirty = true};
+ 	bool ret = true;
+ 
+-	/* We might have raced with exit path */
+-	if (!atomic_inc_not_zero(&mm->mm_users))
++	/*
++	 * Make sure we find the associated mm_struct even when the particular
++	 * thread has already terminated and cleared its mm.
++	 * We might have race with exit path so consider our work done if there
++	 * is no mm.
++	 */
++	p = find_lock_task_mm(tsk);
++	if (!p)
++		return true;
++
++	mm = p->mm;
++	if (!atomic_inc_not_zero(&mm->mm_users)) {
++		task_unlock(p);
+ 		return true;
++	}
++
++	task_unlock(p);
+ 
+ 	if (!down_read_trylock(&mm->mmap_sem)) {
+ 		ret = false;
+@@ -463,60 +479,66 @@ static bool __oom_reap_vmas(struct mm_st
  	}
  	tlb_finish_mmu(&tlb, 0, -1);
  	up_read(&mm->mmap_sem);
++
++	/*
++	 * Clear TIF_MEMDIE because the task shouldn't be sitting on a
++	 * reasonably reclaimable memory anymore. OOM killer can continue
++	 * by selecting other victim if unmapping hasn't led to any
++	 * improvements. This also means that selecting this task doesn't
++	 * make any sense.
++	 */
++	tsk->signal->oom_score_adj = OOM_SCORE_ADJ_MIN;
++	exit_oom_victim(tsk);
+ out:
+ 	mmput(mm);
+ 	return ret;
+ }
+ 
+-static void oom_reap_vmas(struct mm_struct *mm)
++static void oom_reap_task(struct task_struct *tsk)
+ {
+ 	int attempts = 0;
+ 
+ 	/* Retry the down_read_trylock(mmap_sem) a few times */
+-	while (attempts++ < 10 && !__oom_reap_vmas(mm))
++	while (attempts++ < 10 && !__oom_reap_task(tsk))
+ 		schedule_timeout_idle(HZ/10);
+ 
+ 	/* Drop a reference taken by wake_oom_reaper */
+-	mmdrop(mm);
++	put_task_struct(tsk);
+ }
+ 
+ static int oom_reaper(void *unused)
+ {
+ 	while (true) {
+-		struct mm_struct *mm;
++		struct task_struct *tsk;
+ 
+ 		wait_event_freezable(oom_reaper_wait,
+-				     (mm = READ_ONCE(mm_to_reap)));
+-		oom_reap_vmas(mm);
+-		WRITE_ONCE(mm_to_reap, NULL);
++				     (tsk = READ_ONCE(task_to_reap)));
++		oom_reap_task(tsk);
++		WRITE_ONCE(task_to_reap, NULL);
+ 	}
+ 
+ 	return 0;
+ }
+ 
+-static void wake_oom_reaper(struct mm_struct *mm)
++static void wake_oom_reaper(struct task_struct *tsk)
+ {
+-	struct mm_struct *old_mm;
++	struct task_struct *old_tsk;
+ 
+ 	if (!oom_reaper_th)
+ 		return;
+ 
+-	/*
+-	 * Pin the given mm. Use mm_count instead of mm_users because
+-	 * we do not want to delay the address space tear down.
+-	 */
+-	atomic_inc(&mm->mm_count);
++	get_task_struct(tsk);
+ 
+ 	/*
+ 	 * Make sure that only a single mm is ever queued for the reaper
+ 	 * because multiple are not necessary and the operation might be
+ 	 * disruptive so better reduce it to the bare minimum.
+ 	 */
+-	old_mm = cmpxchg(&mm_to_reap, NULL, mm);
+-	if (!old_mm)
++	old_tsk = cmpxchg(&task_to_reap, NULL, tsk);
++	if (!old_tsk)
+ 		wake_up(&oom_reaper_wait);
+ 	else
+-		mmdrop(mm);
++		put_task_struct(tsk);
+ }
+ 
+ static int __init oom_init(void)
+@@ -539,7 +561,7 @@ static int __init oom_init(void)
+ }
+ subsys_initcall(oom_init)
+ #else
+-static void wake_oom_reaper(struct mm_struct *mm)
++static void wake_oom_reaper(struct task_struct *mm)
+ {
+ }
+ #endif
+@@ -570,9 +592,9 @@ void mark_oom_victim(struct task_struct
+ /**
+  * exit_oom_victim - note the exit of an OOM victim
+  */
+-void exit_oom_victim(void)
++void exit_oom_victim(struct task_struct *tsk)
+ {
+-	clear_thread_flag(TIF_MEMDIE);
++	clear_tsk_thread_flag(tsk, TIF_MEMDIE);
+ 
+ 	if (!atomic_dec_return(&oom_victims))
+ 		wake_up_all(&oom_victims_wait);
+@@ -761,7 +783,7 @@ void oom_kill_process(struct oom_control
+ 	rcu_read_unlock();
+ 
+ 	if (can_oom_reap)
+-		wake_oom_reaper(mm);
++		wake_oom_reaper(victim);
+ 
+ 	mmdrop(mm);
+ 	put_task_struct(victim);
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
@@ -115,4 +278,5 @@ mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
 mm-oom-introduce-oom-reaper.patch
 mm-oom-introduce-oom-reaper-v4.patch
 oom-reaper-handle-anonymous-mlocked-pages.patch
+oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
 
