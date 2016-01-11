@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff.patch
- added to -mm tree
-Date: Mon, 11 Jan 2016 14:15:46 -0800
-Message-ID: <56942992.wNCAuE08OKAAuoG+%akpm@linux-foundation.org>
+Subject: + mm-make-swapoff-more-robust-against-soft-dirty.patch added to
+ -mm tree
+Date: Mon, 11 Jan 2016 14:17:31 -0800
+Message-ID: <569429fb.xuM8bdVGh4bHuQRn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50753 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50797 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759928AbcAKWPr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 17:15:47 -0500
+	with ESMTP id S1751717AbcAKWRc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 17:17:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, aneesh.kumar@linux.vnet.ibm.com, gorcunov@openvz.org, ldufour@linux.vnet.ibm.com, mpe@ellerman.id.au, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/mm: fix _PAGE_SWP_SOFT_DIRTY breaking swapoff
+     Subject: mm: make swapoff more robust against soft dirty
 has been added to the -mm tree.  Its filename is
-     powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff.patch
+     mm-make-swapoff-more-robust-against-soft-dirty.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-swapoff-more-robust-against-soft-dirty.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-swapoff-more-robust-against-soft-dirty.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,84 +40,83 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: powerpc/mm: fix _PAGE_SWP_SOFT_DIRTY breaking swapoff
+Subject: mm: make swapoff more robust against soft dirty
 
-Swapoff after swapping hangs on the G5, when CONFIG_CHECKPOINT_RESTORE=y
-but CONFIG_MEM_SOFT_DIRTY is not set.  That's because the non-zero
-_PAGE_SWP_SOFT_DIRTY bit, added by CONFIG_HAVE_ARCH_SOFT_DIRTY=y, is not
-discounted when CONFIG_MEM_SOFT_DIRTY is not set: so swap ptes cannot be
-recognized.
+Both s390 and powerpc have hit the issue of swapoff hanging, when
+CONFIG_HAVE_ARCH_SOFT_DIRTY and CONFIG_MEM_SOFT_DIRTY ifdefs were not
+quite as x86_64 had them.  I think it would be much clearer if
+HAVE_ARCH_SOFT_DIRTY was just a Kconfig option set by architectures to
+determine whether the MEM_SOFT_DIRTY option should be offered, and the
+actual code depend upon CONFIG_MEM_SOFT_DIRTY alone.
 
-(I suspect that the peculiar dependence of HAVE_ARCH_SOFT_DIRTY on
-CHECKPOINT_RESTORE in arch/powerpc/Kconfig comes from an incomplete
-attempt to solve this problem.)
+But won't embark on that change myself: instead make swapoff more robust,
+by using pte_swp_clear_soft_dirty() on each pte it encounters, without an
+explicit #ifdef CONFIG_MEM_SOFT_DIRTY.  That being a no-op, whether the
+bit in question is defined as 0 or the asm-generic fallback is used,
+unless soft dirty is fully turned on.
 
-It's true that the relationship between CONFIG_HAVE_ARCH_SOFT_DIRTY and
-and CONFIG_MEM_SOFT_DIRTY is too confusing, and it's true that swapoff
-should be made more robust; but nevertheless, fix up the powerpc ifdefs as
-x86_64 and s390 (which met the same problem) have them, defining the bits
-as 0 if CONFIG_MEM_SOFT_DIRTY is not set.
+Why "maybe" in maybe_same_pte()?  Rename it pte_same_as_swp().
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Acked-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Laurent Dufour <ldufour@linux.vnet.ibm.com>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/hash.h    |    5 +++++
- arch/powerpc/include/asm/book3s/64/pgtable.h |    9 ++++++---
- 2 files changed, 11 insertions(+), 3 deletions(-)
+ mm/swapfile.c |   18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
 
-diff -puN arch/powerpc/include/asm/book3s/64/hash.h~powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff arch/powerpc/include/asm/book3s/64/hash.h
---- a/arch/powerpc/include/asm/book3s/64/hash.h~powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff
-+++ a/arch/powerpc/include/asm/book3s/64/hash.h
-@@ -33,7 +33,12 @@
- #define _PAGE_F_GIX_SHIFT	12
- #define _PAGE_F_SECOND		0x08000 /* Whether to use secondary hash or not */
- #define _PAGE_SPECIAL		0x10000 /* software: special page */
-+
-+#ifdef CONFIG_MEM_SOFT_DIRTY
- #define _PAGE_SOFT_DIRTY	0x20000 /* software: software dirty tracking */
-+#else
-+#define _PAGE_SOFT_DIRTY	0x00000
-+#endif
+diff -puN mm/swapfile.c~mm-make-swapoff-more-robust-against-soft-dirty mm/swapfile.c
+--- a/mm/swapfile.c~mm-make-swapoff-more-robust-against-soft-dirty
++++ a/mm/swapfile.c
+@@ -1111,19 +1111,9 @@ unsigned int count_swap_pages(int type,
+ }
+ #endif /* CONFIG_HIBERNATION */
+ 
+-static inline int maybe_same_pte(pte_t pte, pte_t swp_pte)
++static inline int pte_same_as_swp(pte_t pte, pte_t swp_pte)
+ {
+-#ifdef CONFIG_MEM_SOFT_DIRTY
+-	/*
+-	 * When pte keeps soft dirty bit the pte generated
+-	 * from swap entry does not has it, still it's same
+-	 * pte from logical point of view.
+-	 */
+-	pte_t swp_pte_dirty = pte_swp_mksoft_dirty(swp_pte);
+-	return pte_same(pte, swp_pte) || pte_same(pte, swp_pte_dirty);
+-#else
+-	return pte_same(pte, swp_pte);
+-#endif
++	return pte_same(pte_swp_clear_soft_dirty(pte), swp_pte);
+ }
  
  /*
-  * We need to differentiate between explicit huge page and THP huge
-diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff arch/powerpc/include/asm/book3s/64/pgtable.h
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -162,8 +162,13 @@ static inline void pgd_set(pgd_t *pgdp,
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val((pte)) })
- #define __swp_entry_to_pte(x)		__pte((x).val)
+@@ -1152,7 +1142,7 @@ static int unuse_pte(struct vm_area_stru
+ 	}
  
--#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
-+#ifdef CONFIG_MEM_SOFT_DIRTY
- #define _PAGE_SWP_SOFT_DIRTY   (1UL << (SWP_TYPE_BITS + _PAGE_BIT_SWAP_TYPE))
-+#else
-+#define _PAGE_SWP_SOFT_DIRTY	0UL
-+#endif /* CONFIG_MEM_SOFT_DIRTY */
-+
-+#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
- static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
- {
- 	return __pte(pte_val(pte) | _PAGE_SWP_SOFT_DIRTY);
-@@ -176,8 +181,6 @@ static inline pte_t pte_swp_clear_soft_d
- {
- 	return __pte(pte_val(pte) & ~_PAGE_SWP_SOFT_DIRTY);
- }
--#else
--#define _PAGE_SWP_SOFT_DIRTY	0
- #endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
- 
- void pgtable_cache_add(unsigned shift, void (*ctor)(void *));
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+-	if (unlikely(!maybe_same_pte(*pte, swp_entry_to_pte(entry)))) {
++	if (unlikely(!pte_same_as_swp(*pte, swp_entry_to_pte(entry)))) {
+ 		mem_cgroup_cancel_charge(page, memcg, false);
+ 		ret = 0;
+ 		goto out;
+@@ -1210,7 +1200,7 @@ static int unuse_pte_range(struct vm_are
+ 		 * swapoff spends a _lot_ of time in this loop!
+ 		 * Test inline before going to call unuse_pte.
+ 		 */
+-		if (unlikely(maybe_same_pte(*pte, swp_pte))) {
++		if (unlikely(pte_same_as_swp(*pte, swp_pte))) {
+ 			pte_unmap(pte);
+ 			ret = unuse_pte(vma, pmd, addr, entry, page);
+ 			if (ret)
 _
 
 Patches currently in -mm which might be from hughd@google.com are
 
 mm-memcontrol-hook-up-vmpressure-to-socket-pressure-fix.patch
+mm-make-swapoff-more-robust-against-soft-dirty.patch
 powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff.patch
 
