@@ -1,58 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-oom-introduce-oom-reaper-fix-4-fix.patch
+Subject: [folded-merged] mm-oom-introduce-oom-reaper-fix-5-fix.patch
  removed from -mm tree
-Date: Mon, 11 Jan 2016 14:47:49 -0800
-Message-ID: <56943115.neVIn5HLl6HTGj8k%akpm@linux-foundation.org>
+Date: Mon, 11 Jan 2016 14:47:55 -0800
+Message-ID: <5694311b.gAOa1e0qEPvXxqDK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52052 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52056 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758708AbcAKWru (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 17:47:50 -0500
+	with ESMTP id S1759741AbcAKWr4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 17:47:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-oom-introduce-oom-reaper-fix-4-fix
+     Subject: mm-oom-introduce-oom-reaper-fix-5-fix
 has been removed from the -mm tree.  Its filename was
-     mm-oom-introduce-oom-reaper-fix-4-fix.patch
+     mm-oom-introduce-oom-reaper-fix-5-fix.patch
 
 This patch was dropped because it was folded into mm-oom-introduce-oom-reaper.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-oom-introduce-oom-reaper-fix-4-fix
+Subject: mm-oom-introduce-oom-reaper-fix-5-fix
 
-use schedule_timeout_idle()
+Commit "mm, oom: introduce oom reaper" forgot to initialize the two new
+fields of struct zap_details in unmap_mapping_range().  This caused using
+stack garbage on the call to unmap_mapping_range_tree().
 
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
 Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~mm-oom-introduce-oom-reaper-fix-4-fix mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-introduce-oom-reaper-fix-4-fix
-+++ a/mm/oom_kill.c
-@@ -471,10 +471,8 @@ static void oom_reap_vmas(struct mm_stru
- 	int attempts = 0;
+diff -puN mm/memory.c~mm-oom-introduce-oom-reaper-fix-5-fix mm/memory.c
+--- a/mm/memory.c~mm-oom-introduce-oom-reaper-fix-5-fix
++++ a/mm/memory.c
+@@ -2415,7 +2415,7 @@ static inline void unmap_mapping_range_t
+ void unmap_mapping_range(struct address_space *mapping,
+ 		loff_t const holebegin, loff_t const holelen, int even_cows)
+ {
+-	struct zap_details details;
++	struct zap_details details = { };
+ 	pgoff_t hba = holebegin >> PAGE_SHIFT;
+ 	pgoff_t hlen = (holelen + PAGE_SIZE - 1) >> PAGE_SHIFT;
  
- 	/* Retry the down_read_trylock(mmap_sem) a few times */
--	while (attempts++ < 10 && !__oom_reap_vmas(mm)) {
--		__set_task_state(current, TASK_IDLE);
--		schedule_timeout(HZ/10);
--	}
-+	while (attempts++ < 10 && !__oom_reap_vmas(mm))
-+		schedule_timeout_idle(HZ/10);
- 
- 	/* Drop a reference taken by wake_oom_reaper */
- 	mmdrop(mm);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -86,7 +85,6 @@ mm-oom-rework-oom-detection-checkpatch-fixes.patch
 mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
 sched-add-schedule_timeout_idle.patch
 mm-oom-introduce-oom-reaper.patch
-mm-oom-introduce-oom-reaper-fix-5-fix.patch
 mm-mlockc-change-can_do_mlock-return-value-type-to-boolean-fix.patch
 mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
 mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
