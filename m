@@ -1,53 +1,152 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-oom-introduce-oom-reaper-fix-fix-2.patch
- removed from -mm tree
-Date: Mon, 11 Jan 2016 14:47:39 -0800
-Message-ID: <5694310b.MWsX3KFv/l6Hmooj%akpm@linux-foundation.org>
+Subject: [folded-merged] mm-oom-introduce-oom-reaper-fix-3.patch removed
+ from -mm tree
+Date: Mon, 11 Jan 2016 14:47:44 -0800
+Message-ID: <56943110.sTe6uxtsACmlP52W%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52029 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52042 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758909AbcAKWrk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 17:47:40 -0500
+	with ESMTP id S1758708AbcAKWrp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 17:47:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andrea@kernel.org, hughd@google.com, mgorman@suse.de, mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-oom-introduce-oom-reaper-fix-fix-2
+     Subject: mm-oom-introduce-oom-reaper-fix-3
 has been removed from the -mm tree.  Its filename was
-     mm-oom-introduce-oom-reaper-fix-fix-2.patch
+     mm-oom-introduce-oom-reaper-fix-3.patch
 
 This patch was dropped because it was folded into mm-oom-introduce-oom-reaper.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-oom-introduce-oom-reaper-fix-fix-2
+Subject: mm-oom-introduce-oom-reaper-fix-3
 
-include delay.h for msleep_interruptible()
+fix CONFIG_MMU=n build
 
-Cc: Michal Hocko <mhocko@kernel.org>
+slub.c:(.text+0x4184): undefined reference to `tlb_gather_mmu'
+slub.c:(.text+0x41bc): undefined reference to `unmap_page_range'
+slub.c:(.text+0x41d8): undefined reference to `tlb_finish_mmu'
+
+Cc: Andrea Argangeli <andrea@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/oom_kill.c |   50 +++++++++++++++++++++++++++---------------------
+ 1 file changed, 29 insertions(+), 21 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-introduce-oom-reaper-fix-fix-2 mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-introduce-oom-reaper-fix-fix-2
+diff -puN mm/oom_kill.c~mm-oom-introduce-oom-reaper-fix-3 mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-introduce-oom-reaper-fix-3
 +++ a/mm/oom_kill.c
-@@ -32,6 +32,7 @@
- #include <linux/mempolicy.h>
- #include <linux/security.h>
- #include <linux/ptrace.h>
-+#include <linux/delay.h>
- #include <linux/freezer.h>
- #include <linux/ftrace.h>
- #include <linux/ratelimit.h>
+@@ -414,6 +414,7 @@ static DECLARE_WAIT_QUEUE_HEAD(oom_victi
+ 
+ bool oom_killer_disabled __read_mostly;
+ 
++#ifdef CONFIG_MMU
+ /*
+  * OOM Reaper kernel thread which tries to reap the memory used by the OOM
+  * victim (if that is possible) to help the OOM killer to move on.
+@@ -516,6 +517,27 @@ static void wake_oom_reaper(struct mm_st
+ 		mmdrop(mm);
+ }
+ 
++static int __init oom_init(void)
++{
++	oom_reaper_th = kthread_run(oom_reaper, NULL, "oom_reaper");
++	if (IS_ERR(oom_reaper_th)) {
++		pr_err("Unable to start OOM reaper %ld. Continuing regardless\n",
++				PTR_ERR(oom_reaper_th));
++		oom_reaper_th = NULL;
++	} else {
++		struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
++
++		/*
++		 * Make sure our oom reaper thread will get scheduled when
++		 * ASAP and that it won't get preempted by malicious userspace.
++		 */
++		sched_setscheduler(oom_reaper_th, SCHED_FIFO, &param);
++	}
++	return 0;
++}
++module_init(oom_init)
++#endif
++
+ /**
+  * mark_oom_victim - mark the given task as OOM victim
+  * @tsk: task to mark
+@@ -625,7 +647,9 @@ void oom_kill_process(struct oom_control
+ 	unsigned int victim_points = 0;
+ 	static DEFINE_RATELIMIT_STATE(oom_rs, DEFAULT_RATELIMIT_INTERVAL,
+ 					      DEFAULT_RATELIMIT_BURST);
++#ifdef CONFIG_MMU
+ 	bool can_oom_reap = true;
++#endif
+ 
+ 	/*
+ 	 * If the task is already exiting, don't alarm the sysadmin or kill
+@@ -718,6 +742,7 @@ void oom_kill_process(struct oom_control
+ 			continue;
+ 		if (is_global_init(p))
+ 			continue;
++#ifdef CONFIG_MMU
+ 		if (unlikely(p->flags & PF_KTHREAD) ||
+ 		    p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
+ 			/*
+@@ -728,13 +753,16 @@ void oom_kill_process(struct oom_control
+ 			can_oom_reap = false;
+ 			continue;
+ 		}
+-
++#endif
+ 		do_send_sig_info(SIGKILL, SEND_SIG_FORCED, p, true);
+ 	}
+ 	rcu_read_unlock();
+ 
++#ifdef CONFIG_MMU
+ 	if (can_oom_reap)
+ 		wake_oom_reaper(mm);
++#endif
++
+ 	mmdrop(mm);
+ 	put_task_struct(victim);
+ }
+@@ -886,23 +914,3 @@ void pagefault_out_of_memory(void)
+ 
+ 	mutex_unlock(&oom_lock);
+ }
+-
+-static int __init oom_init(void)
+-{
+-	oom_reaper_th = kthread_run(oom_reaper, NULL, "oom_reaper");
+-	if (IS_ERR(oom_reaper_th)) {
+-		pr_err("Unable to start OOM reaper %ld. Continuing regardless\n",
+-				PTR_ERR(oom_reaper_th));
+-		oom_reaper_th = NULL;
+-	} else {
+-		struct sched_param param = { .sched_priority = MAX_RT_PRIO-1 };
+-
+-		/*
+-		 * Make sure our oom reaper thread will get scheduled when
+-		 * ASAP and that it won't get preempted by malicious userspace.
+-		 */
+-		sched_setscheduler(oom_reaper_th, SCHED_FIFO, &param);
+-	}
+-	return 0;
+-}
+-module_init(oom_init)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -81,8 +180,6 @@ mm-oom-rework-oom-detection-checkpatch-fixes.patch
 mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
 sched-add-schedule_timeout_idle.patch
 mm-oom-introduce-oom-reaper.patch
-mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
-mm-oom-introduce-oom-reaper-fix-3.patch
 mm-oom-introduce-oom-reaper-fix-4-fix.patch
 mm-oom-introduce-oom-reaper-fix-5-fix.patch
 mm-mlockc-change-can_do_mlock-return-value-type-to-boolean-fix.patch
