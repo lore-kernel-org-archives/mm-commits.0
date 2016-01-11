@@ -1,52 +1,121 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-oom-introduce-oom-reaper-fix-fix.patch removed from -mm tree
-Date: Mon, 11 Jan 2016 14:47:37 -0800
-Message-ID: <56943109.4vWcmIZ11O+W2wf4%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-oom-introduce-oom-reaper-checkpatch-fixes.patch removed from -mm tree
+Date: Mon, 11 Jan 2016 14:47:41 -0800
+Message-ID: <5694310d.SO7VRR5LoD7gm3Li%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52027 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52036 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752518AbcAKWri (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 17:47:38 -0500
+	with ESMTP id S1758708AbcAKWrm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 17:47:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mgorman@suse.de, mhocko@kernel.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-oom-introduce-oom-reaper-fix-fix
+     Subject: mm-oom-introduce-oom-reaper-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-oom-introduce-oom-reaper-fix-fix.patch
+     mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
 
 This patch was dropped because it was folded into mm-oom-introduce-oom-reaper.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-oom-introduce-oom-reaper-fix-fix
+Subject: mm-oom-introduce-oom-reaper-checkpatch-fixes
 
-document the msleep
+Cc: Mel Gorman <mgorman@suse.de>
 
+WARNING: line over 80 characters
+#124: FILE: mm/memory.c:1107:
++					/* oom_reaper cannot tear down dirty pages */
+
+WARNING: line over 80 characters
+#125: FILE: mm/memory.c:1108:
++					if (unlikely(details && details->ignore_dirty))
+
+WARNING: line over 80 characters
+#245: FILE: mm/oom_kill.c:483:
++		wait_event_freezable(oom_reaper_wait, (mm = READ_ONCE(mm_to_reap)));
+
+WARNING: Missing a blank line after declarations
+#245: FILE: mm/oom_kill.c:483:
++		struct mm_struct *mm;
++		wait_event_freezable(oom_reaper_wait, (mm = READ_ONCE(mm_to_reap)));
+
+WARNING: line over 80 characters
+#301: FILE: mm/oom_kill.c:721:
++			 * We cannot use oom_reaper for the mm shared by this process
+
+WARNING: line over 80 characters
+#302: FILE: mm/oom_kill.c:722:
++			 * because it wouldn't get killed and so the memory might be
+
+total: 0 errors, 6 warnings, 228 lines checked
+
+./patches/mm-oom-introduce-oom-reaper.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Mel Gorman <mgorman@suse.de>
 Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/memory.c   |    5 ++++-
+ mm/oom_kill.c |   10 ++++++----
+ 2 files changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN mm/oom_kill.c~mm-oom-introduce-oom-reaper-fix-fix mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom-introduce-oom-reaper-fix-fix
+diff -puN mm/memory.c~mm-oom-introduce-oom-reaper-checkpatch-fixes mm/memory.c
+--- a/mm/memory.c~mm-oom-introduce-oom-reaper-checkpatch-fixes
++++ a/mm/memory.c
+@@ -1105,7 +1105,10 @@ again:
+ 
+ 			if (!PageAnon(page)) {
+ 				if (pte_dirty(ptent)) {
+-					/* oom_reaper cannot tear down dirty pages */
++					/*
++					 * oom_reaper cannot tear down dirty
++					 * pages
++					 */
+ 					if (unlikely(details && details->ignore_dirty))
+ 						continue;
+ 					force_flush = 1;
+diff -puN mm/oom_kill.c~mm-oom-introduce-oom-reaper-checkpatch-fixes mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-introduce-oom-reaper-checkpatch-fixes
 +++ a/mm/oom_kill.c
-@@ -468,6 +468,7 @@ static void oom_reap_vmas(struct mm_stru
+@@ -481,7 +481,9 @@ static int oom_reaper(void *unused)
  {
- 	int attempts = 0;
- 
-+	/* Retry the down_read_trylock(mmap_sem) a few times */
- 	while (attempts++ < 10 && !__oom_reap_vmas(mm))
- 		msleep_interruptible(100);
- 
+ 	while (true) {
+ 		struct mm_struct *mm;
+-		wait_event_freezable(oom_reaper_wait, (mm = READ_ONCE(mm_to_reap)));
++
++		wait_event_freezable(oom_reaper_wait,
++				     (mm = READ_ONCE(mm_to_reap)));
+ 		oom_reap_vmas(mm);
+ 		WRITE_ONCE(mm_to_reap, NULL);
+ 	}
+@@ -719,9 +721,9 @@ void oom_kill_process(struct oom_control
+ 		if (unlikely(p->flags & PF_KTHREAD) ||
+ 		    p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
+ 			/*
+-			 * We cannot use oom_reaper for the mm shared by this process
+-			 * because it wouldn't get killed and so the memory might be
+-			 * still used.
++			 * We cannot use oom_reaper for the mm shared by this
++			 * process because it wouldn't get killed and so the
++			 * memory might be still used.
+ 			 */
+ 			can_oom_reap = false;
+ 			continue;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -80,8 +149,6 @@ mm-oom-rework-oom-detection-checkpatch-fixes.patch
 mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
 sched-add-schedule_timeout_idle.patch
 mm-oom-introduce-oom-reaper.patch
-mm-oom-introduce-oom-reaper-fix-fix-2.patch
-mm-oom-introduce-oom-reaper-checkpatch-fixes.patch
 mm-oom-introduce-oom-reaper-fix-3.patch
 mm-oom-introduce-oom-reaper-fix-4-fix.patch
 mm-oom-introduce-oom-reaper-fix-5-fix.patch
