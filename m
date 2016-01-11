@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate-fix.patch added to -mm tree
-Date: Mon, 11 Jan 2016 14:02:53 -0800
-Message-ID: <5694268d.pMqv4MPL2hZHETzh%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-hook-up-vmpressure-to-socket-pressure-fix.patch
+ added to -mm tree
+Date: Mon, 11 Jan 2016 14:07:34 -0800
+Message-ID: <569427a6.ijYqiy3sNZAci2DG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50217 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50400 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752064AbcAKWCy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 17:02:54 -0500
+	with ESMTP id S1761203AbcAKWHf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 17:07:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, dan.j.williams@intel.com, geert@linux-m68k.org, linux@roeck-us.net, sudip@vectorindia.org, mm-commits@vger.kernel.org
+To: hughd@google.com, davem@davemloft.net, hannes@cmpxchg.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m68k: provide __phys_to_pfn() and __pfn_to_phys()
+     Subject: memcg: avoid vmpressure oops when memcg disabled
 has been added to the -mm tree.  Its filename is
-     x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate-fix.patch
+     mm-memcontrol-hook-up-vmpressure-to-socket-pressure-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-hook-up-vmpressure-to-socket-pressure-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-hook-up-vmpressure-to-socket-pressure-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,46 +39,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: m68k: provide __phys_to_pfn() and __pfn_to_phys()
+From: Hugh Dickins <hughd@google.com>
+Subject: memcg: avoid vmpressure oops when memcg disabled
 
-The defconfig build of m68k was failing with the error: implicit
-declaration of function '__pfn_to_phys'
+A CONFIG_MEMCG=y kernel booted with "cgroup_disable=memory" crashes on a
+NULL memcg (but non-NULL root_mem_cgroup) when vmpressure kicks in. 
+Here's the patch I use to avoid that, but you might prefer a test on
+mem_cgroup_disabled() somewhere.
 
-Other architectures have added <asm/memory.h>, but if we do so here then
-we will also get redeclaration of some other functions.  So it is better
-to copy these macros into page.h.
-
-[geert: apply to page.h instead of page_mm.h to cover nommu, reword]
-Fixes: 0a3c3bf11240 ("x86, mm: introduce vmem_altmap to augment vmemmap_populate()")
-Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reported-by: Guenter Roeck <linux@roeck-us.net> (m68knommu)
-Cc: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/page.h |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/vmpressure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m68k/include/asm/page.h~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate-fix arch/m68k/include/asm/page.h
---- a/arch/m68k/include/asm/page.h~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate-fix
-+++ a/arch/m68k/include/asm/page.h
-@@ -48,6 +48,9 @@ extern unsigned long _ramend;
- #include <asm/page_no.h>
- #endif
+diff -puN mm/vmpressure.c~mm-memcontrol-hook-up-vmpressure-to-socket-pressure-fix mm/vmpressure.c
+--- a/mm/vmpressure.c~mm-memcontrol-hook-up-vmpressure-to-socket-pressure-fix
++++ a/mm/vmpressure.c
+@@ -260,7 +260,7 @@ void vmpressure(gfp_t gfp, struct mem_cg
+ 		enum vmpressure_levels level;
  
-+#define __phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
-+#define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
-+
- #define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
- 				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
+ 		/* For now, no users for root-level efficiency */
+-		if (memcg == root_mem_cgroup)
++		if (!memcg || memcg == root_mem_cgroup)
+ 			return;
  
+ 		spin_lock(&vmpr->sr_lock);
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-m32r-fix-m32104ut_defconfig-build-fail.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch
-x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate-fix.patch
+mm-memcontrol-hook-up-vmpressure-to-socket-pressure-fix.patch
 
