@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory-fix.patch
- added to -mm tree
-Date: Mon, 11 Jan 2016 14:19:45 -0800
-Message-ID: <56942a81.+1kv73AVCF36/etO%akpm@linux-foundation.org>
+ mm-hugetlbfs-unmap-pages-if-page-fault-raced-with-hole-punch.patch added to -mm tree
+Date: Mon, 11 Jan 2016 14:35:52 -0800
+Message-ID: <56942e48.0h2nGWyjKoBjaAyT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50957 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51644 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751717AbcAKWTq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 17:19:46 -0500
+	with ESMTP id S1760825AbcAKWfx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 17:35:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@roeck-us.net, dan.j.williams@intel.com, david@fromorbit.com, dhowells@redhat.com, hch@lst.de, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, dave.hansen@linux.intel.com, dave@stgolabs.net, hillf.zj@alibaba-inc.com, hughd@google.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mn10300: Declare __pfn_to_phys() to fix build error
+     Subject: mm/hugetlbfs: unmap pages if page fault raced with hole punch
 has been added to the -mm tree.  Its filename is
-     libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory-fix.patch
+     mm-hugetlbfs-unmap-pages-if-page-fault-raced-with-hole-punch.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbfs-unmap-pages-if-page-fault-raced-with-hole-punch.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbfs-unmap-pages-if-page-fault-raced-with-hole-punch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,43 +39,139 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: mn10300: Declare __pfn_to_phys() to fix build error
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlbfs: unmap pages if page fault raced with hole punch
 
-__pfn_to_phys() was introduced with commit 8b79eb6f5b53e ("libnvdimm, pfn,
-pmem: allocate memmap array in persistent memory") but not declared for
-mn10300. This results in the following build error.
+Page faults can race with fallocate hole punch.  If a page fault happens
+between the unmap and remove operations, the page is not removed and
+remains within the hole.  This is not the desired behavior.  The race is
+difficult to detect in user level code as even in the non-race case, a
+page within the hole could be faulted back in before fallocate returns. 
+If userfaultfd is expanded to support hugetlbfs in the future, this race
+will be easier to observe.
 
-mm/page_alloc.c: In function 'memmap_init_zone':
-mm/page_alloc.c:4610:9: error: implicit declaration of function '__pfn_to_phys'
+If this race is detected and a page is mapped, the remove operation
+(remove_inode_hugepages) will unmap the page before removing.  The unmap
+within remove_inode_hugepages occurs with the hugetlb_fault_mutex held so
+that no other faults will be processed until the page is removed.
 
-Fixes: 8b79eb6f5b53e ("libnvdimm, pfn, pmem: allocate memmap array in persistent memory")
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: David Howells <dhowells@redhat.com>
+The (unmodified) routine hugetlb_vmdelete_list was moved ahead of
+remove_inode_hugepages to satisfy the new reference.
+
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mn10300/include/asm/page.h |    1 +
- 1 file changed, 1 insertion(+)
+ fs/hugetlbfs/inode.c |   70 ++++++++++++++++++++++-------------------
+ 1 file changed, 38 insertions(+), 32 deletions(-)
 
-diff -puN arch/mn10300/include/asm/page.h~libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory-fix arch/mn10300/include/asm/page.h
---- a/arch/mn10300/include/asm/page.h~libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory-fix
-+++ a/arch/mn10300/include/asm/page.h
-@@ -107,6 +107,7 @@ static inline int get_order(unsigned lon
- #define pfn_to_kaddr(pfn)	__va((pfn) << PAGE_SHIFT)
- #define pfn_to_page(pfn)	(mem_map + ((pfn) - __pfn_disp))
- #define page_to_pfn(page)	((unsigned long)((page) - mem_map) + __pfn_disp)
-+#define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
+diff -puN fs/hugetlbfs/inode.c~mm-hugetlbfs-unmap-pages-if-page-fault-raced-with-hole-punch fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-unmap-pages-if-page-fault-raced-with-hole-punch
++++ a/fs/hugetlbfs/inode.c
+@@ -324,11 +324,10 @@ static void remove_huge_page(struct page
+ 	delete_from_page_cache(page);
+ }
  
- #define pfn_valid(pfn)					\
- ({							\
+-
+ /*
+  * remove_inode_hugepages handles two distinct cases: truncation and hole
+  * punch.  There are subtle differences in operation for each case.
+-
++ *
+  * truncation is indicated by end of range being LLONG_MAX
+  *	In this case, we first scan the range and release found pages.
+  *	After releasing pages, hugetlb_unreserve_pages cleans up region/reserv
+@@ -379,6 +378,7 @@ static void remove_inode_hugepages(struc
+ 
+ 		for (i = 0; i < pagevec_count(&pvec); ++i) {
+ 			struct page *page = pvec.pages[i];
++			bool rsv_on_error;
+ 			u32 hash;
+ 
+ 			/*
+@@ -395,37 +395,43 @@ static void remove_inode_hugepages(struc
+ 							mapping, next, 0);
+ 			mutex_lock(&hugetlb_fault_mutex_table[hash]);
+ 
+-			lock_page(page);
+-			if (likely(!page_mapped(page))) {
+-				bool rsv_on_error = !PagePrivate(page);
+-				/*
+-				 * We must free the huge page and remove
+-				 * from page cache (remove_huge_page) BEFORE
+-				 * removing the region/reserve map
+-				 * (hugetlb_unreserve_pages).  In rare out
+-				 * of memory conditions, removal of the
+-				 * region/reserve map could fail.  Before
+-				 * free'ing the page, note PagePrivate which
+-				 * is used in case of error.
+-				 */
+-				remove_huge_page(page);
+-				freed++;
+-				if (!truncate_op) {
+-					if (unlikely(hugetlb_unreserve_pages(
+-							inode, next,
+-							next + 1, 1)))
+-						hugetlb_fix_reserve_counts(
+-							inode, rsv_on_error);
+-				}
+-			} else {
+-				/*
+-				 * If page is mapped, it was faulted in after
+-				 * being unmapped.  It indicates a race between
+-				 * hole punch and page fault.  Do nothing in
+-				 * this case.  Getting here in a truncate
+-				 * operation is a bug.
+-				 */
++			/*
++			 * If page is mapped, it was faulted in after being
++			 * unmapped in caller.  Unmap (again) now after taking
++			 * the fault mutex.  The mutex will prevent faults
++			 * until we finish removing the page.
++			 *
++			 * This race can only happen in the hole punch case.
++			 * Getting here in a truncate operation is a bug.
++			 */
++			if (unlikely(page_mapped(page))) {
+ 				BUG_ON(truncate_op);
++
++				i_mmap_lock_write(mapping);
++				hugetlb_vmdelete_list(&mapping->i_mmap,
++					next * pages_per_huge_page(h),
++					(next + 1) * pages_per_huge_page(h));
++				i_mmap_unlock_write(mapping);
++			}
++
++			lock_page(page);
++			/*
++			 * We must free the huge page and remove from page
++			 * cache (remove_huge_page) BEFORE removing the
++			 * region/reserve map (hugetlb_unreserve_pages).  In
++			 * rare out of memory conditions, removal of the
++			 * region/reserve map could fail.  Before free'ing
++			 * the page, note PagePrivate which is used in case
++			 * of error.
++			 */
++			rsv_on_error = !PagePrivate(page);
++			remove_huge_page(page);
++			freed++;
++			if (!truncate_op) {
++				if (unlikely(hugetlb_unreserve_pages(inode,
++							next, next + 1, 1)))
++					hugetlb_fix_reserve_counts(inode,
++								rsv_on_error);
+ 			}
+ 
+ 			unlock_page(page);
 _
 
-Patches currently in -mm which might be from linux@roeck-us.net are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory-fix.patch
+mm-hugetlbfs-fix-bugs-in-hugetlb_vmtruncate_list.patch
+mm-hugetlbfs-unmap-pages-if-page-fault-raced-with-hole-punch.patch
 
