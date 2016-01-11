@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch added to -mm tree
-Date: Mon, 11 Jan 2016 14:57:51 -0800
-Message-ID: <5694336f.jn4uMJvkJsL35W90%akpm@linux-foundation.org>
+ oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix.patch added to -mm tree
+Date: Mon, 11 Jan 2016 14:59:07 -0800
+Message-ID: <569433bb.diO0RgkTdhop9gmH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52530 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52591 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759347AbcAKW5w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 17:57:52 -0500
+	with ESMTP id S1754090AbcAKW7I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 17:59:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, andrea@kernel.org, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, andrea@kernel.org, hughd@google.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom: clear TIF_MEMDIE after oom_reaper managed to unmap the address space
+     Subject: oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix
 has been added to the -mm tree.  Its filename is
-     oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
+     oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,31 +39,22 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: oom: clear TIF_MEMDIE after oom_reaper managed to unmap the address space
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix
 
-When oom_reaper manages to unmap all the eligible vmas there shouldn't be
-much of the freable memory held by the oom victim left anymore so it makes
-sense to clear the TIF_MEMDIE flag for the victim and allow the OOM killer
-to select another task if necessary.
+When the OOM killer scans tasks and encounters a PF_EXITING one, it
+force-selects that one regardless of the score. Is there a possibility
+that the task might hang after it has set PF_EXITING? In that case the
+OOM killer should be able to move on to the next task.
 
-The lack of TIF_MEMDIE also means that the victim cannot access memory
-reserves anymore but that shouldn't be a problem because it would get the
-access again if it needs to allocate and hits the OOM killer again due to
-the fatal_signal_pending resp.  PF_EXITING check.  We can safely hide the
-task from the OOM killer because it is clearly not a good candidate
-anymore as everyhing reclaimable has been torn down already.
+Frankly, I don't even know why we check for exiting tasks in the OOM
+killer. We've tried direct reclaim at least 15 times by the time we
+decide the system is OOM, there was plenty of time to exit and free
+memory; and a task might exit voluntarily right after we issue a kill.
+This is testing pure noise.
 
-This patch will allow to cap the time an OOM victim can keep TIF_MEMDIE
-and thus hold off further global OOM killer actions granted the oom reaper
-is able to take mmap_sem for the associated mm struct.  This is not
-guaranteed now but further steps should make sure that mmap_sem for write
-should be blocked killable which will help to reduce such a lock
-contention.  This is not done by this patch.
-
-Suggested-by: Johannes Weiner <hannes@cmpxchg.org>
-Suggested-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Michal Hocko <mhocko@suse.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: David Rientjes <rientjes@google.com>
@@ -75,208 +66,56 @@ Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h |    2 -
- kernel/exit.c       |    2 -
- mm/oom_kill.c       |   72 +++++++++++++++++++++++++++---------------
- 3 files changed, 49 insertions(+), 27 deletions(-)
+ mm/oom_kill.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN include/linux/oom.h~oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space include/linux/oom.h
---- a/include/linux/oom.h~oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space
-+++ a/include/linux/oom.h
-@@ -91,7 +91,7 @@ extern enum oom_scan_t oom_scan_process_
- 
- extern bool out_of_memory(struct oom_control *oc);
- 
--extern void exit_oom_victim(void);
-+extern void exit_oom_victim(struct task_struct *tsk);
- 
- extern int register_oom_notifier(struct notifier_block *nb);
- extern int unregister_oom_notifier(struct notifier_block *nb);
-diff -puN kernel/exit.c~oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space kernel/exit.c
---- a/kernel/exit.c~oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space
-+++ a/kernel/exit.c
-@@ -436,7 +436,7 @@ static void exit_mm(struct task_struct *
- 	mm_update_next_owner(mm);
- 	mmput(mm);
- 	if (test_thread_flag(TIF_MEMDIE))
--		exit_oom_victim();
-+		exit_oom_victim(tsk);
- }
- 
- static struct task_struct *find_alive_thread(struct task_struct *p)
-diff -puN mm/oom_kill.c~oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space mm/oom_kill.c
---- a/mm/oom_kill.c~oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space
+diff -puN mm/oom_kill.c~oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix
 +++ a/mm/oom_kill.c
-@@ -419,20 +419,36 @@ bool oom_killer_disabled __read_mostly;
-  * victim (if that is possible) to help the OOM killer to move on.
-  */
- static struct task_struct *oom_reaper_th;
--static struct mm_struct *mm_to_reap;
-+static struct task_struct *task_to_reap;
- static DECLARE_WAIT_QUEUE_HEAD(oom_reaper_wait);
+@@ -292,9 +292,6 @@ enum oom_scan_t oom_scan_process_thread(
+ 	if (oom_task_origin(task))
+ 		return OOM_SCAN_SELECT;
  
--static bool __oom_reap_vmas(struct mm_struct *mm)
-+static bool __oom_reap_task(struct task_struct *tsk)
- {
- 	struct mmu_gather tlb;
- 	struct vm_area_struct *vma;
-+	struct mm_struct *mm;
-+	struct task_struct *p;
- 	struct zap_details details = {.check_swap_entries = true,
- 				      .ignore_dirty = true};
- 	bool ret = true;
- 
--	/* We might have raced with exit path */
--	if (!atomic_inc_not_zero(&mm->mm_users))
-+	/*
-+	 * Make sure we find the associated mm_struct even when the particular
-+	 * thread has already terminated and cleared its mm.
-+	 * We might have race with exit path so consider our work done if there
-+	 * is no mm.
-+	 */
-+	p = find_lock_task_mm(tsk);
-+	if (!p)
-+		return true;
-+
-+	mm = p->mm;
-+	if (!atomic_inc_not_zero(&mm->mm_users)) {
-+		task_unlock(p);
- 		return true;
-+	}
-+
-+	task_unlock(p);
- 
- 	if (!down_read_trylock(&mm->mmap_sem)) {
- 		ret = false;
-@@ -463,60 +479,66 @@ static bool __oom_reap_vmas(struct mm_st
- 	}
- 	tlb_finish_mmu(&tlb, 0, -1);
- 	up_read(&mm->mmap_sem);
-+
-+	/*
-+	 * Clear TIF_MEMDIE because the task shouldn't be sitting on a
-+	 * reasonably reclaimable memory anymore. OOM killer can continue
-+	 * by selecting other victim if unmapping hasn't led to any
-+	 * improvements. This also means that selecting this task doesn't
-+	 * make any sense.
-+	 */
-+	tsk->signal->oom_score_adj = OOM_SCORE_ADJ_MIN;
-+	exit_oom_victim(tsk);
- out:
- 	mmput(mm);
- 	return ret;
+-	if (task_will_free_mem(task) && !is_sysrq_oom(oc))
+-		return OOM_SCAN_ABORT;
+-
+ 	return OOM_SCAN_OK;
  }
  
--static void oom_reap_vmas(struct mm_struct *mm)
-+static void oom_reap_task(struct task_struct *tsk)
- {
- 	int attempts = 0;
- 
- 	/* Retry the down_read_trylock(mmap_sem) a few times */
--	while (attempts++ < 10 && !__oom_reap_vmas(mm))
-+	while (attempts++ < 10 && !__oom_reap_task(tsk))
- 		schedule_timeout_idle(HZ/10);
- 
- 	/* Drop a reference taken by wake_oom_reaper */
--	mmdrop(mm);
-+	put_task_struct(tsk);
- }
- 
- static int oom_reaper(void *unused)
- {
- 	while (true) {
--		struct mm_struct *mm;
-+		struct task_struct *tsk;
- 
- 		wait_event_freezable(oom_reaper_wait,
--				     (mm = READ_ONCE(mm_to_reap)));
--		oom_reap_vmas(mm);
--		WRITE_ONCE(mm_to_reap, NULL);
-+				     (tsk = READ_ONCE(task_to_reap)));
-+		oom_reap_task(tsk);
-+		WRITE_ONCE(task_to_reap, NULL);
- 	}
- 
- 	return 0;
- }
- 
--static void wake_oom_reaper(struct mm_struct *mm)
-+static void wake_oom_reaper(struct task_struct *tsk)
- {
--	struct mm_struct *old_mm;
-+	struct task_struct *old_tsk;
- 
- 	if (!oom_reaper_th)
- 		return;
- 
--	/*
--	 * Pin the given mm. Use mm_count instead of mm_users because
--	 * we do not want to delay the address space tear down.
--	 */
--	atomic_inc(&mm->mm_count);
-+	get_task_struct(tsk);
- 
- 	/*
- 	 * Make sure that only a single mm is ever queued for the reaper
- 	 * because multiple are not necessary and the operation might be
- 	 * disruptive so better reduce it to the bare minimum.
- 	 */
--	old_mm = cmpxchg(&mm_to_reap, NULL, mm);
--	if (!old_mm)
-+	old_tsk = cmpxchg(&task_to_reap, NULL, tsk);
-+	if (!old_tsk)
- 		wake_up(&oom_reaper_wait);
- 	else
--		mmdrop(mm);
-+		put_task_struct(tsk);
- }
- 
- static int __init oom_init(void)
-@@ -539,7 +561,7 @@ static int __init oom_init(void)
- }
- subsys_initcall(oom_init)
- #else
--static void wake_oom_reaper(struct mm_struct *mm)
-+static void wake_oom_reaper(struct task_struct *mm)
- {
- }
- #endif
-@@ -570,9 +592,9 @@ void mark_oom_victim(struct task_struct
- /**
-  * exit_oom_victim - note the exit of an OOM victim
-  */
--void exit_oom_victim(void)
-+void exit_oom_victim(struct task_struct *tsk)
- {
--	clear_thread_flag(TIF_MEMDIE);
-+	clear_tsk_thread_flag(tsk, TIF_MEMDIE);
- 
- 	if (!atomic_dec_return(&oom_victims))
- 		wake_up_all(&oom_victims_wait);
-@@ -761,7 +783,7 @@ void oom_kill_process(struct oom_control
- 	rcu_read_unlock();
- 
- 	if (can_oom_reap)
--		wake_oom_reaper(mm);
-+		wake_oom_reaper(victim);
- 
- 	mmdrop(mm);
- 	put_task_struct(victim);
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-get-rid-of-__alloc_pages_high_priority.patch
-mm-do-not-loop-over-alloc_no_watermarks-without-triggering-reclaim.patch
-mm-vmscan-consider-isolated-pages-in-zone_reclaimable_pages.patch
-mm-allow-gfp_iofs-for-page_cache_read-page-cache-allocation.patch
-mm-oom-give-__gfp_nofail-allocations-access-to-memory-reserves.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-5.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
-mm-oom-introduce-oom-reaper.patch
-mm-oom-introduce-oom-reaper-v4.patch
-oom-reaper-handle-anonymous-mlocked-pages.patch
-oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
+mm-page_alloc-generalize-the-dirty-balance-reserve.patch
+proc-meminfo-estimate-available-memory-more-conservatively.patch
+mm-memcontrol-export-root_mem_cgroup.patch
+net-tcp_memcontrol-properly-detect-ancestor-socket-pressure.patch
+net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation.patch
+net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
+net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets.patch
+net-tcp_memcontrol-simplify-the-per-memcg-limit-access.patch
+net-tcp_memcontrol-sanitize-tcp-memory-accounting-callbacks.patch
+net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter.patch
+net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter-fix.patch
+mm-memcontrol-generalize-the-socket-accounting-jump-label.patch
+mm-memcontrol-do-not-account-memoryswap-on-unified-hierarchy.patch
+mm-memcontrol-move-socket-code-for-unified-hierarchy-accounting.patch
+mm-memcontrol-account-socket-memory-in-unified-hierarchy-memory-controller.patch
+mm-memcontrol-hook-up-vmpressure-to-socket-pressure.patch
+mm-memcontrol-switch-to-the-updated-jump-label-api.patch
+oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix.patch
+mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem.patch
+mm-memcontrol-remove-double-kmem-page_counter-init.patch
+mm-memcontrol-give-the-kmem-states-more-descriptive-names.patch
+mm-memcontrol-group-kmem-init-and-exit-functions-together.patch
+mm-memcontrol-separate-kmem-code-from-legacy-tcp-accounting-code.patch
+mm-memcontrol-move-kmem-accounting-code-to-config_memcg.patch
+mm-memcontrol-move-kmem-accounting-code-to-config_memcg-v2.patch
+mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix.patch
+mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller.patch
+mm-memcontrol-introduce-config_memcg_legacy_kmem.patch
+mm-memcontrol-reign-in-the-config-space-madness.patch
+mm-memcontrol-flatten-struct-cg_proto.patch
+mm-memcontrol-clean-up-alloc-online-offline-free-functions.patch
+mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix.patch
 
