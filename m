@@ -1,201 +1,261 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- mmoom-exclude-tif_memdie-processes-from-candidates.patch removed from -mm
+Subject: + mm-fix-locking-order-in-mm_take_all_locks.patch added to -mm
  tree
-Date: Mon, 11 Jan 2016 13:31:53 -0800
-Message-ID: <56941f49.UlBOIij4IEEIj2TY%akpm@linux-foundation.org>
+Date: Mon, 11 Jan 2016 13:35:26 -0800
+Message-ID: <5694201e.HmphEAl4VlAMbgf4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48596 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48792 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932993AbcAKVby (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 16:31:54 -0500
+	with ESMTP id S1758236AbcAKVf1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 16:35:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@i-love.sakura.ne.jp, mgorman@suse.de, mhocko@kernel.org, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, dvyukov@google.com, mhocko@suse.cz, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,oom: exclude TIF_MEMDIE processes from candidates.
-has been removed from the -mm tree.  Its filename was
-     mmoom-exclude-tif_memdie-processes-from-candidates.patch
+     Subject: mm: fix locking order in mm_take_all_locks()
+has been added to the -mm tree.  Its filename is
+     mm-fix-locking-order-in-mm_take_all_locks.patch
 
-This patch was dropped because it was withdrawn
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-locking-order-in-mm_take_all_locks.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-locking-order-in-mm_take_all_locks.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Subject: mm,oom: exclude TIF_MEMDIE processes from candidates.
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: fix locking order in mm_take_all_locks()
 
-The OOM reaper kernel thread can reclaim OOM victim's memory before the
-victim terminates.  But since oom_kill_process() tries to kill children of
-the memory hog process first, the OOM reaper can not reclaim enough memory
-for terminating the victim if the victim is consuming little memory.  The
-result is OOM livelock as usual, for timeout based next OOM victim
-selection is not implemented.
+Dmitry Vyukov has reported[1] possible deadlock (triggered by his
+syzkaller fuzzer):
 
-While SysRq-f (manual invocation of the OOM killer) can wake up the OOM
-killer, the OOM killer chooses the same OOM victim which already has
-TIF_MEMDIE.  This is effectively disabling SysRq-f.
+ Possible unsafe locking scenario:
 
-This patch excludes TIF_MEMDIE processes from candidates so that the
-memory hog process itself will be killed when all children of the memory
-hog process got stuck with TIF_MEMDIE pending.
+       CPU0                    CPU1
+       ----                    ----
+  lock(&hugetlbfs_i_mmap_rwsem_key);
+                               lock(&mapping->i_mmap_rwsem);
+                               lock(&hugetlbfs_i_mmap_rwsem_key);
+  lock(&mapping->i_mmap_rwsem);
 
-[  120.078776] oom-write invoked oom-killer: order=0, oom_score_adj=0, gfp_mask=0x24280ca(GFP_HIGHUSER_MOVABLE|GFP_ZERO)
-[  120.088610] oom-write cpuset=/ mems_allowed=0
-[  120.095558] CPU: 0 PID: 9546 Comm: oom-write Not tainted 4.4.0-rc6-next-20151223 #260
-(...snipped...)
-[  120.194148] [ pid ]   uid  tgid total_vm      rss nr_ptes nr_pmds swapents oom_score_adj name
-(...snipped...)
-[  120.260191] [ 9546]  1000  9546   541716   453473     896       6        0             0 oom-write
-[  120.262166] [ 9547]  1000  9547       40        1       3       2        0             0 write
-[  120.264071] [ 9548]  1000  9548       40        1       3       2        0             0 write
-[  120.265939] [ 9549]  1000  9549       40        1       4       2        0             0 write
-[  120.267794] [ 9550]  1000  9550       40        1       3       2        0             0 write
-[  120.269654] [ 9551]  1000  9551       40        1       3       2        0             0 write
-[  120.271447] [ 9552]  1000  9552       40        1       3       2        0             0 write
-[  120.273220] [ 9553]  1000  9553       40        1       3       2        0             0 write
-[  120.274975] [ 9554]  1000  9554       40        1       3       2        0             0 write
-[  120.276745] [ 9555]  1000  9555       40        1       3       2        0             0 write
-[  120.278516] [ 9556]  1000  9556       40        1       3       2        0             0 write
-[  120.280227] Out of memory: Kill process 9546 (oom-write) score 892 or sacrifice child
-[  120.282010] Killed process 9549 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
-(...snipped...)
-[  122.506001] systemd-journal invoked oom-killer: order=0, oom_score_adj=0, gfp_mask=0x24201ca(GFP_HIGHUSER_MOVABLE|GFP_COLD)
-[  122.515041] systemd-journal cpuset=/ mems_allowed=0
-(...snipped...)
-[  122.697515] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
-[  122.699492] [ 9551]  1000  9551       40        1       3       2        0             0 write
-[  122.701399] [ 9552]  1000  9552       40        1       3       2        0             0 write
-[  122.703282] [ 9553]  1000  9553       40        1       3       2        0             0 write
-[  122.705188] [ 9554]  1000  9554       40        1       3       2        0             0 write
-[  122.707017] [ 9555]  1000  9555       40        1       3       2        0             0 write
-[  122.708842] [ 9556]  1000  9556       40        1       3       2        0             0 write
-[  122.710675] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
-[  122.712475] Killed process 9551 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
-[  139.606508] sysrq: SysRq : Manual OOM execution
-[  139.612371] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
-[  139.620210] kworker/0:2 cpuset=/ mems_allowed=0
-(...snipped...)
-[  139.795759] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
-[  139.797649] [ 9551]  1000  9551       40        0       3       2        0             0 write
-[  139.799526] [ 9552]  1000  9552       40        1       3       2        0             0 write
-[  139.801368] [ 9553]  1000  9553       40        1       3       2        0             0 write
-[  139.803249] [ 9554]  1000  9554       40        1       3       2        0             0 write
-[  139.805020] [ 9555]  1000  9555       40        1       3       2        0             0 write
-[  139.806799] [ 9556]  1000  9556       40        1       3       2        0             0 write
-[  139.808524] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
-[  139.810216] Killed process 9552 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
-(...snipped...)
-[  142.571815] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
-[  142.573840] [ 9551]  1000  9551       40        0       3       2        0             0 write
-[  142.575754] [ 9552]  1000  9552       40        0       3       2        0             0 write
-[  142.577633] [ 9553]  1000  9553       40        1       3       2        0             0 write
-[  142.579433] [ 9554]  1000  9554       40        1       3       2        0             0 write
-[  142.581250] [ 9555]  1000  9555       40        1       3       2        0             0 write
-[  142.583003] [ 9556]  1000  9556       40        1       3       2        0             0 write
-[  142.585055] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
-[  142.586796] Killed process 9553 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
-[  143.599058] sysrq: SysRq : Manual OOM execution
-[  143.604300] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
-(...snipped...)
-[  143.783739] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
-[  143.785691] [ 9551]  1000  9551       40        0       3       2        0             0 write
-[  143.787532] [ 9552]  1000  9552       40        0       3       2        0             0 write
-[  143.789377] [ 9553]  1000  9553       40        0       3       2        0             0 write
-[  143.791172] [ 9554]  1000  9554       40        1       3       2        0             0 write
-[  143.792985] [ 9555]  1000  9555       40        1       3       2        0             0 write
-[  143.794730] [ 9556]  1000  9556       40        1       3       2        0             0 write
-[  143.796723] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
-[  143.798338] Killed process 9554 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
-[  144.374525] sysrq: SysRq : Manual OOM execution
-[  144.379779] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
-(...snipped...)
-[  144.560718] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
-[  144.562657] [ 9551]  1000  9551       40        0       3       2        0             0 write
-[  144.564560] [ 9552]  1000  9552       40        0       3       2        0             0 write
-[  144.566369] [ 9553]  1000  9553       40        0       3       2        0             0 write
-[  144.568246] [ 9554]  1000  9554       40        0       3       2        0             0 write
-[  144.570001] [ 9555]  1000  9555       40        1       3       2        0             0 write
-[  144.571794] [ 9556]  1000  9556       40        1       3       2        0             0 write
-[  144.573502] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
-[  144.575119] Killed process 9555 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
-[  145.158485] sysrq: SysRq : Manual OOM execution
-[  145.163600] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
-(...snipped...)
-[  145.346059] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
-[  145.348012] [ 9551]  1000  9551       40        0       3       2        0             0 write
-[  145.349954] [ 9552]  1000  9552       40        0       3       2        0             0 write
-[  145.351817] [ 9553]  1000  9553       40        0       3       2        0             0 write
-[  145.353701] [ 9554]  1000  9554       40        0       3       2        0             0 write
-[  145.355568] [ 9555]  1000  9555       40        0       3       2        0             0 write
-[  145.357319] [ 9556]  1000  9556       40        1       3       2        0             0 write
-[  145.359114] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
-[  145.360733] Killed process 9556 (write) total-vm:160kB, anon-rss:4kB, file-rss:0kB, shmem-rss:0kB
-[  169.158408] sysrq: SysRq : Manual OOM execution
-[  169.163612] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
-(...snipped...)
-[  169.343115] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
-[  169.345053] [ 9551]  1000  9551       40        0       3       2        0             0 write
-[  169.346884] [ 9552]  1000  9552       40        0       3       2        0             0 write
-[  169.348965] [ 9553]  1000  9553       40        0       3       2        0             0 write
-[  169.350893] [ 9554]  1000  9554       40        0       3       2        0             0 write
-[  169.352713] [ 9555]  1000  9555       40        0       3       2        0             0 write
-[  169.354551] [ 9556]  1000  9556       40        0       3       2        0             0 write
-[  169.356450] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
-[  169.358105] Killed process 9551 (write) total-vm:160kB, anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
-[  178.950315] sysrq: SysRq : Manual OOM execution
-[  178.955560] kworker/0:2 invoked oom-killer: order=-1, oom_score_adj=0, gfp_mask=0x24000c0(GFP_KERNEL)
-(...snipped...)
-[  179.140752] [ 9546]  1000  9546   541716   458687     906       6        0             0 oom-write
-[  179.142653] [ 9551]  1000  9551       40        0       3       2        0             0 write
-[  179.144997] [ 9552]  1000  9552       40        0       3       2        0             0 write
-[  179.146849] [ 9553]  1000  9553       40        0       3       2        0             0 write
-[  179.148654] [ 9554]  1000  9554       40        0       3       2        0             0 write
-[  179.150411] [ 9555]  1000  9555       40        0       3       2        0             0 write
-[  179.152291] [ 9556]  1000  9556       40        0       3       2        0             0 write
-[  179.154002] Out of memory: Kill process 9546 (oom-write) score 902 or sacrifice child
-[  179.155666] Killed process 9551 (write) total-vm:160kB, anon-rss:0kB, file-rss:0kB, shmem-rss:0kB
+Both traces points to mm_take_all_locks() as a source of the problem.  It
+doesn't take care about ordering or hugetlbfs_i_mmap_rwsem_key (aka
+mapping->i_mmap_rwsem for hugetlb mapping) vs.  i_mmap_rwsem.
 
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
+huge_pmd_share() does memory allocation under hugetlbfs_i_mmap_rwsem_key
+and allocator can take i_mmap_rwsem if it hit reclaim.  So we need to take
+i_mmap_rwsem from all hugetlb VMAs before taking i_mmap_rwsem from rest of
+VMAs.
+
+The patch also documents locking order for hugetlbfs_i_mmap_rwsem_key.
+
+[1] http://lkml.kernel.org/r/CACT4Y+Zu95tBs-0EvdiAKzUOsb4tczRRfCRTpLr4bg_OP9HuVg@mail.gmail.com
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ fs/hugetlbfs/inode.c |    2 +-
+ mm/mmap.c            |   25 ++++++++++++++++++++-----
+ mm/rmap.c            |   31 ++++++++++++++++---------------
+ 3 files changed, 37 insertions(+), 21 deletions(-)
 
-diff -puN mm/oom_kill.c~mmoom-exclude-tif_memdie-processes-from-candidates mm/oom_kill.c
---- a/mm/oom_kill.c~mmoom-exclude-tif_memdie-processes-from-candidates
-+++ a/mm/oom_kill.c
-@@ -111,6 +111,18 @@ struct task_struct *find_lock_task_mm(st
- 
- 	rcu_read_lock();
- 
-+	/*
-+	 * Treat the whole process p as unkillable when one of subthreads has
-+	 * TIF_MEMDIE pending. Otherwise, we may end up setting TIF_MEMDIE on
-+	 * the same victim forever (e.g. making SysRq-f unusable).
-+	 */
-+	for_each_thread(p, t) {
-+		if (likely(!test_tsk_thread_flag(t, TIF_MEMDIE)))
-+			continue;
-+		t = NULL;
-+		goto found;
+diff -puN fs/hugetlbfs/inode.c~mm-fix-locking-order-in-mm_take_all_locks fs/hugetlbfs/inode.c
+--- a/fs/hugetlbfs/inode.c~mm-fix-locking-order-in-mm_take_all_locks
++++ a/fs/hugetlbfs/inode.c
+@@ -711,7 +711,7 @@ static struct inode *hugetlbfs_get_root(
+ /*
+  * Hugetlbfs is not reclaimable; therefore its i_mmap_rwsem will never
+  * be taken from reclaim -- unlike regular filesystems. This needs an
+- * annotation because huge_pmd_share() does an allocation under
++ * annotation because huge_pmd_share() does an allocation under hugetlb's
+  * i_mmap_rwsem.
+  */
+ static struct lock_class_key hugetlbfs_i_mmap_rwsem_key;
+diff -puN mm/mmap.c~mm-fix-locking-order-in-mm_take_all_locks mm/mmap.c
+--- a/mm/mmap.c~mm-fix-locking-order-in-mm_take_all_locks
++++ a/mm/mmap.c
+@@ -3184,10 +3184,16 @@ static void vm_lock_mapping(struct mm_st
+  * mapping->flags avoid to take the same lock twice, if more than one
+  * vma in this mm is backed by the same anon_vma or address_space.
+  *
+- * We can take all the locks in random order because the VM code
+- * taking i_mmap_rwsem or anon_vma->rwsem outside the mmap_sem never
+- * takes more than one of them in a row. Secondly we're protected
+- * against a concurrent mm_take_all_locks() by the mm_all_locks_mutex.
++ * We take locks in following order, accordingly to comment at beginning
++ * of mm/rmap.c:
++ *   - all hugetlbfs_i_mmap_rwsem_key locks (aka mapping->i_mmap_rwsem for
++ *     hugetlb mapping);
++ *   - all i_mmap_rwsem locks;
++ *   - all anon_vma->rwseml
++ *
++ * We can take all locks within these types randomly because the VM code
++ * doesn't nest them and we protected from parallel mm_take_all_locks() by
++ * mm_all_locks_mutex.
+  *
+  * mm_take_all_locks() and mm_drop_all_locks are expensive operations
+  * that may have to take thousand of locks.
+@@ -3206,7 +3212,16 @@ int mm_take_all_locks(struct mm_struct *
+ 	for (vma = mm->mmap; vma; vma = vma->vm_next) {
+ 		if (signal_pending(current))
+ 			goto out_unlock;
+-		if (vma->vm_file && vma->vm_file->f_mapping)
++		if (vma->vm_file && vma->vm_file->f_mapping &&
++				is_vm_hugetlb_page(vma))
++			vm_lock_mapping(mm, vma->vm_file->f_mapping);
 +	}
 +
- 	for_each_thread(p, t) {
- 		task_lock(t);
- 		if (likely(t->mm))
++	for (vma = mm->mmap; vma; vma = vma->vm_next) {
++		if (signal_pending(current))
++			goto out_unlock;
++		if (vma->vm_file && vma->vm_file->f_mapping &&
++				!is_vm_hugetlb_page(vma))
+ 			vm_lock_mapping(mm, vma->vm_file->f_mapping);
+ 	}
+ 
+diff -puN mm/rmap.c~mm-fix-locking-order-in-mm_take_all_locks mm/rmap.c
+--- a/mm/rmap.c~mm-fix-locking-order-in-mm_take_all_locks
++++ a/mm/rmap.c
+@@ -23,21 +23,22 @@
+  * inode->i_mutex	(while writing or truncating, not reading or faulting)
+  *   mm->mmap_sem
+  *     page->flags PG_locked (lock_page)
+- *       mapping->i_mmap_rwsem
+- *         anon_vma->rwsem
+- *           mm->page_table_lock or pte_lock
+- *             zone->lru_lock (in mark_page_accessed, isolate_lru_page)
+- *             swap_lock (in swap_duplicate, swap_info_get)
+- *               mmlist_lock (in mmput, drain_mmlist and others)
+- *               mapping->private_lock (in __set_page_dirty_buffers)
+- *                 mem_cgroup_{begin,end}_page_stat (memcg->move_lock)
+- *                   mapping->tree_lock (widely used)
+- *               inode->i_lock (in set_page_dirty's __mark_inode_dirty)
+- *               bdi.wb->list_lock (in set_page_dirty's __mark_inode_dirty)
+- *                 sb_lock (within inode_lock in fs/fs-writeback.c)
+- *                 mapping->tree_lock (widely used, in set_page_dirty,
+- *                           in arch-dependent flush_dcache_mmap_lock,
+- *                           within bdi.wb->list_lock in __sync_single_inode)
++ *       hugetlbfs_i_mmap_rwsem_key (in huge_pmd_share)
++ *         mapping->i_mmap_rwsem
++ *           anon_vma->rwsem
++ *             mm->page_table_lock or pte_lock
++ *               zone->lru_lock (in mark_page_accessed, isolate_lru_page)
++ *               swap_lock (in swap_duplicate, swap_info_get)
++ *                 mmlist_lock (in mmput, drain_mmlist and others)
++ *                 mapping->private_lock (in __set_page_dirty_buffers)
++ *                   mem_cgroup_{begin,end}_page_stat (memcg->move_lock)
++ *                     mapping->tree_lock (widely used)
++ *                 inode->i_lock (in set_page_dirty's __mark_inode_dirty)
++ *                 bdi.wb->list_lock (in set_page_dirty's __mark_inode_dirty)
++ *                   sb_lock (within inode_lock in fs/fs-writeback.c)
++ *                   mapping->tree_lock (widely used, in set_page_dirty,
++ *                             in arch-dependent flush_dcache_mmap_lock,
++ *                             within bdi.wb->list_lock in __sync_single_inode)
+  *
+  * anon_vma->rwsem,mapping->i_mutex      (memory_failure, collect_procs_anon)
+  *   ->tasklist_lock
 _
 
-Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-tree-wide-use-kvfree-than-conditional-kfree-vfree.patch
+mm-make-sure-isolate_lru_page-is-never-called-for-tail-page.patch
+mm-make-optimistic-check-for-swapin-readahead-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+page-flags-trivial-cleanup-for-pagetrans-helpers.patch
+page-flags-move-code-around.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-fix.patch
+page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-3.patch
+page-flags-define-pg_locked-behavior-on-compound-pages.patch
+page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
+page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
+page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
+page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
+page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
+page-flags-define-pg_uncached-behavior-on-compound-pages.patch
+page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
+page-flags-look-at-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+mm-sanitize-page-mapping-for-tail-pages.patch
+page-flags-drop-__testclearpage-helpers.patch
+mm-proc-adjust-pss-calculation.patch
+rmap-add-argument-to-charge-compound-page.patch
+memcg-adjust-to-support-new-thp-refcounting.patch
+mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault.patch
+mm-adjust-foll_split-for-new-refcounting.patch
+mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
+thp-mlock-do-not-allow-huge-pages-in-mlocked-area.patch
+khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes.patch
+thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
+mm-vmstats-new-thp-splitting-event.patch
+mm-temporally-mark-thp-broken.patch
+thp-drop-all-split_huge_page-related-code.patch
+mm-drop-tail-page-refcounting.patch
+futex-thp-remove-special-case-for-thp-in-get_futex_key.patch
+ksm-prepare-to-new-thp-semantics.patch
+mm-thp-remove-compound_lock.patch
+arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+arm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+mips-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+powerpc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+s390-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+sparc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+tile-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+x86-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+mm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-2.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
+mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
+mm-numa-skip-pte-mapped-thp-on-numa-fault.patch
+thp-implement-split_huge_pmd.patch
+thp-add-option-to-setup-migration-entries-during-pmd-split.patch
+thp-mm-split_huge_page-caller-need-to-lock-page.patch
+thp-reintroduce-split_huge_page.patch
+thp-reintroduce-split_huge_page-fix-3.patch
+thp-reintroduce-split_huge_page-fix-4.patch
+migrate_pages-try-to-split-pages-on-qeueuing.patch
+thp-introduce-deferred_split_huge_page.patch
+thp-introduce-deferred_split_huge_page-fix.patch
+mm-re-enable-thp.patch
+thp-update-documentation.patch
+thp-allow-mlocked-thp-again.patch
+thp-allow-mlocked-thp-again-fix.patch
+thp-allow-mlocked-thp-again-fix-2.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch
+thp-add-debugfs-handle-to-split-all-huge-pages.patch
+thp-increase-split_huge_page-success-rate.patch
+mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch
+memblock-fix-section-mismatch.patch
+mm-oom-introduce-oom-reaper-fix-6.patch
+mm-fix-locking-order-in-mm_take_all_locks.patch
 
