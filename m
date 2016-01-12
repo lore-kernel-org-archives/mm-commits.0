@@ -1,45 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-get_maintainerpl-handle-file-names-beginning-with.patch added to -mm tree
-Date: Mon, 11 Jan 2016 20:31:22 -0800
-Message-ID: <5694819a.Lby70r+9jEPmZT0B%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ get_maintainer-handle-file-names-beginning-with.patch removed from -mm tree
+Date: Mon, 11 Jan 2016 20:31:12 -0800
+Message-ID: <56948190.S7vBaREMDzzqopc6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40225 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40217 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761579AbcALEbX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 23:31:23 -0500
+	with ESMTP id S1761543AbcALEbO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 11 Jan 2016 23:31:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, dan.carpenter@oracle.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/get_maintainer.pl: handle file names beginning with ./
-has been added to the -mm tree.  Its filename is
-     scripts-get_maintainerpl-handle-file-names-beginning-with.patch
+     Subject: get_maintainer: handle file names beginning with ./
+has been removed from the -mm tree.  Its filename was
+     get_maintainer-handle-file-names-beginning-with.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-get_maintainerpl-handle-file-names-beginning-with.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-get_maintainerpl-handle-file-names-beginning-with.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: scripts/get_maintainer.pl: handle file names beginning with ./
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: get_maintainer: handle file names beginning with ./
 
 The problem is that get_maintainer.pl doesn't work if you have a ./
 prefix on the filename.  For example, if you type:
@@ -49,41 +36,31 @@ prefix on the filename.  For example, if you type:
 then the current code only includes LKML and people from the git log, it
 doesn't include Greg or the linux-usb list.
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/get_maintainer.pl |    4 ++++
- 1 file changed, 4 insertions(+)
+ scripts/get_maintainer.pl |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN scripts/get_maintainer.pl~scripts-get_maintainerpl-handle-file-names-beginning-with scripts/get_maintainer.pl
---- a/scripts/get_maintainer.pl~scripts-get_maintainerpl-handle-file-names-beginning-with
+diff -puN scripts/get_maintainer.pl~get_maintainer-handle-file-names-beginning-with scripts/get_maintainer.pl
+--- a/scripts/get_maintainer.pl~get_maintainer-handle-file-names-beginning-with
 +++ a/scripts/get_maintainer.pl
-@@ -16,7 +16,9 @@ my $P = $0;
- my $V = '0.26';
+@@ -605,6 +605,8 @@ sub get_maintainers {
  
- use Getopt::Long qw(:config no_auto_abbrev);
-+use Cwd;
+     foreach my $file (@files) {
  
-+my $cur_path = fastgetcwd() . '/';
- my $lk_path = "./";
- my $email = 1;
- my $email_usename = 1;
-@@ -429,6 +431,8 @@ foreach my $file (@ARGV) {
- 	}
-     }
-     if ($from_filename) {
-+	$file =~ s/^\Q${cur_path}\E//;	#strip any absolute path
-+	$file =~ s/^\Q${lk_path}\E//;	#or the path to the lk tree
- 	push(@files, $file);
- 	if ($file ne "MAINTAINERS" && -f $file && ($keywords || $file_emails)) {
- 	    open(my $f, '<', $file)
++	$file =~ s/^\.\///;
++
+ 	my %hash;
+ 	my $tvi = find_first_section();
+ 	while ($tvi < @typevalue) {
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-scripts-get_maintainerpl-handle-file-names-beginning-with.patch
-checkpatch-warn-when-casting-constants-to-c90-int-or-longer-types.patch
-checkpatch-improve-macros-with-flow-control-test.patch
+mm-add-tracepoint-for-scanning-pages-fix.patch
+c6x-convert-to-dma_map_ops-fix.patch
+maintainers-fix-mic-maintainers-entry.patch
 
