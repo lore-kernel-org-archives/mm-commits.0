@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + proc-read-mms-argenv_startend-with-mmap-semaphore-taken.patch
- added to -mm tree
-Date: Tue, 12 Jan 2016 14:35:00 -0800
-Message-ID: <56957f94.1Ssu9rll07RomnOk%akpm@linux-foundation.org>
+Subject: + prctl-take-mmap-sem-for-writing-to-protect-against-others.patch added to -mm tree
+Date: Tue, 12 Jan 2016 14:34:58 -0800
+Message-ID: <56957f92.Ky0hGp6HD5FlChUu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39056 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39047 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753666AbcALWfB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jan 2016 17:35:01 -0500
+	with ESMTP id S1753666AbcALWe7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jan 2016 17:34:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mguzik@redhat.com, adobriyan@gmail.com, anshuman.linux@gmail.com, gorcunov@openvz.org, jarod@redhat.com, jstancek@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: mguzik@redhat.com, adobriyan@gmail.com, anshuman.linux@gmail.com, gorcunov@openvz.org, jarod@redhat.com, jstancek@redhat.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc read mm's {arg,env}_{start,end} with mmap semaphore taken.
+     Subject: prctl: take mmap sem for writing to protect against others
 has been added to the -mm tree.  Its filename is
-     proc-read-mms-argenv_startend-with-mmap-semaphore-taken.patch
+     prctl-take-mmap-sem-for-writing-to-protect-against-others.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-read-mms-argenv_startend-with-mmap-semaphore-taken.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/prctl-take-mmap-sem-for-writing-to-protect-against-others.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-read-mms-argenv_startend-with-mmap-semaphore-taken.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/prctl-take-mmap-sem-for-writing-to-protect-against-others.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +39,74 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mateusz Guzik <mguzik@redhat.com>
-Subject: proc read mm's {arg,env}_{start,end} with mmap semaphore taken.
+Subject: prctl: take mmap sem for writing to protect against others
 
-Only functions doing more than one read are modified. Consumeres
-happened to deal with possibly changing data, but it does not seem
-like a good thing to rely on.
+An unprivileged user can trigger an oops on a kernel with
+CONFIG_CHECKPOINT_RESTORE.
+
+proc_pid_cmdline_read takes mmap_sem for reading and obtains args + env
+start/end values. These get sanity checked as follows:
+        BUG_ON(arg_start > arg_end);
+        BUG_ON(env_start > env_end);
+
+These can be changed by prctl_set_mm. Turns out also takes the semaphore for
+reading, effectively rendering it useless. This results in:
+
+[   50.530255] kernel BUG at fs/proc/base.c:240!
+[   50.543351] invalid opcode: 0000 [#1] SMP 
+[   50.556389] Modules linked in: virtio_net
+[   50.569320] CPU: 0 PID: 925 Comm: a.out Not tainted 4.4.0-rc8-next-20160105dupa+ #71
+[   50.594875] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+[   50.607972] task: ffff880077a68000 ti: ffff8800784d0000 task.ti: ffff8800784d0000
+[   50.633486] RIP: 0010:[<ffffffff812c5b70>]  [<ffffffff812c5b70>] proc_pid_cmdline_read+0x520/0x530
+[   50.659469] RSP: 0018:ffff8800784d3db8  EFLAGS: 00010206
+[   50.672420] RAX: ffff880077c5b6b0 RBX: ffff8800784d3f18 RCX: 0000000000000000
+[   50.697771] RDX: 0000000000000002 RSI: 00007f78e8857000 RDI: 0000000000000246
+[   50.723783] RBP: ffff8800784d3e40 R08: 0000000000000008 R09: 0000000000000001
+[   50.749176] R10: 0000000000000000 R11: 0000000000000001 R12: 0000000000000050
+[   50.775319] R13: 00007f78e8857800 R14: ffff88006fcef000 R15: ffff880077c5b600
+[   50.800986] FS:  00007f78e884a740(0000) GS:ffff88007b200000(0000) knlGS:0000000000000000
+[   50.826426] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[   50.839435] CR2: 00007f78e8361770 CR3: 00000000790a5000 CR4: 00000000000006f0
+[   50.865024] Stack:
+[   50.877583]  ffffffff81d69c95 ffff8800784d3de8 0000000000000246 ffffffff81d69c95
+[   50.903400]  0000000000000104 ffff880077c5b6b0 00007f78e8857000 00007fffffffe6df
+[   50.929364]  00007fffffffe6d7 00007ffd519b6d60 ffff88006fc68038 000000005934de93
+[   50.954794] Call Trace:
+[   50.967405]  [<ffffffff81247027>] __vfs_read+0x37/0x100
+[   50.980353]  [<ffffffff8142bfa6>] ? security_file_permission+0xa6/0xc0
+[   50.993623]  [<ffffffff812475e2>] ? rw_verify_area+0x52/0xe0
+[   51.007089]  [<ffffffff812476f2>] vfs_read+0x82/0x130
+[   51.020528]  [<ffffffff812487e8>] SyS_read+0x58/0xd0
+[   51.033914]  [<ffffffff81a0a132>] entry_SYSCALL_64_fastpath+0x12/0x76
+[   51.046976] Code: 4c 8b 7d a8 eb e9 48 8b 9d 78 ff ff ff 4c 8b 7d 90 48 8b 03 48 39 45 a8 0f 87 f0 fe ff ff e9 d1 fe ff ff 4c 8b 7d 90 eb c6 0f 0b <0f> 0b 0f 0b 66 66 66 2e 0f 1f 84 00 00 00 00 00 0f 1f 44 00 00 
+[   51.087392] RIP  [<ffffffff812c5b70>] proc_pid_cmdline_read+0x520/0x530
+[   51.100659]  RSP <ffff8800784d3db8>
+[   51.113353] ---[ end trace 97882617ae9c6818 ]---
+
+Turns out there are instances where the code just reads aformentioned
+values without locking whatsoever - namely environ_read and get_cmdline.
+
+Interestingly these functions look quite resilient against bogus values,
+but I don't believe this should be relied upon.
+
+The first patch gets rid of the oops bug by grabbing mmap_sem for writing.
+
+The second patch is optional and puts locking around aformentioned
+consumers for safety.  Consumers of other fields don't seem to benefit
+from similar treatment and are left untouched.
+
+
+This patch (of 2):
+
+The code was taking the semaphore for reading, which does not protect
+against readers nor concurrent modifications.
+
+The problem could cause a sanity checks to fail in procfs's cmdline
+reader, resulting in an OOPS.
+
+Note that some functions perform an unlocked read of various mm fields,
+but they seem to be fine despite possible modificaton.
 
 Signed-off-by: Mateusz Guzik <mguzik@redhat.com>
 Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
@@ -53,97 +115,65 @@ Cc: Jarod Wilson <jarod@redhat.com>
 Cc: Jan Stancek <jstancek@redhat.com>
 Cc: Al Viro <viro@zeniv.linux.org.uk>
 Cc: Anshuman Khandual <anshuman.linux@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   13 ++++++++++---
- mm/util.c      |   16 ++++++++++++----
- 2 files changed, 22 insertions(+), 7 deletions(-)
+ kernel/sys.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
-diff -puN fs/proc/base.c~proc-read-mms-argenv_startend-with-mmap-semaphore-taken fs/proc/base.c
---- a/fs/proc/base.c~proc-read-mms-argenv_startend-with-mmap-semaphore-taken
-+++ a/fs/proc/base.c
-@@ -953,6 +953,7 @@ static ssize_t environ_read(struct file
- 	unsigned long src = *ppos;
- 	int ret = 0;
- 	struct mm_struct *mm = file->private_data;
-+	unsigned long env_start, env_end;
+diff -puN kernel/sys.c~prctl-take-mmap-sem-for-writing-to-protect-against-others kernel/sys.c
+--- a/kernel/sys.c~prctl-take-mmap-sem-for-writing-to-protect-against-others
++++ a/kernel/sys.c
+@@ -1853,11 +1853,13 @@ static int prctl_set_mm_map(int opt, con
+ 		user_auxv[AT_VECTOR_SIZE - 1] = AT_NULL;
+ 	}
  
- 	if (!mm)
- 		return 0;
-@@ -964,19 +965,25 @@ static ssize_t environ_read(struct file
- 	ret = 0;
- 	if (!atomic_inc_not_zero(&mm->mm_users))
- 		goto free;
+-	if (prctl_map.exe_fd != (u32)-1)
++	if (prctl_map.exe_fd != (u32)-1) {
+ 		error = prctl_set_mm_exe_file(mm, prctl_map.exe_fd);
+-	down_read(&mm->mmap_sem);
+-	if (error)
+-		goto out;
++		if (error)
++			return error;
++	}
 +
-+	down_read(&mm->mmap_sem);
-+	env_start = mm->env_start;
-+	env_end = mm->env_end;
-+	up_read(&mm->mmap_sem);
-+
- 	while (count > 0) {
- 		size_t this_len, max_len;
- 		int retval;
- 
--		if (src >= (mm->env_end - mm->env_start))
-+		if (src >= (env_end - env_start))
- 			break;
- 
--		this_len = mm->env_end - (mm->env_start + src);
-+		this_len = env_end - (env_start + src);
- 
- 		max_len = min_t(size_t, PAGE_SIZE, count);
- 		this_len = min(max_len, this_len);
- 
--		retval = access_remote_vm(mm, (mm->env_start + src),
-+		retval = access_remote_vm(mm, (env_start + src),
- 			page, this_len, 0);
- 
- 		if (retval <= 0) {
-diff -puN mm/util.c~proc-read-mms-argenv_startend-with-mmap-semaphore-taken mm/util.c
---- a/mm/util.c~proc-read-mms-argenv_startend-with-mmap-semaphore-taken
-+++ a/mm/util.c
-@@ -475,17 +475,25 @@ int get_cmdline(struct task_struct *task
- 	int res = 0;
- 	unsigned int len;
- 	struct mm_struct *mm = get_task_mm(task);
-+	unsigned long arg_start, arg_end, env_start, env_end;
- 	if (!mm)
- 		goto out;
- 	if (!mm->arg_end)
- 		goto out_mm;	/* Shh! No looking before we're done */
- 
--	len = mm->arg_end - mm->arg_start;
-+	down_read(&mm->mmap_sem);
-+	arg_start = mm->arg_start;
-+	arg_end = mm->arg_end;
-+	env_start = mm->env_start;
-+	env_end = mm->env_end;
-+	up_read(&mm->mmap_sem);
-+
-+	len = arg_end - arg_start;
- 
- 	if (len > buflen)
- 		len = buflen;
- 
--	res = access_process_vm(task, mm->arg_start, buffer, len, 0);
-+	res = access_process_vm(task, arg_start, buffer, len, 0);
++	down_write(&mm->mmap_sem);
  
  	/*
- 	 * If the nul at the end of args has been overwritten, then
-@@ -496,10 +504,10 @@ int get_cmdline(struct task_struct *task
- 		if (len < res) {
- 			res = len;
- 		} else {
--			len = mm->env_end - mm->env_start;
-+			len = env_end - env_start;
- 			if (len > buflen - res)
- 				len = buflen - res;
--			res += access_process_vm(task, mm->env_start,
-+			res += access_process_vm(task, env_start,
- 						 buffer+res, len, 0);
- 			res = strnlen(buffer, res);
- 		}
+ 	 * We don't validate if these members are pointing to
+@@ -1894,10 +1896,8 @@ static int prctl_set_mm_map(int opt, con
+ 	if (prctl_map.auxv_size)
+ 		memcpy(mm->saved_auxv, user_auxv, sizeof(user_auxv));
+ 
+-	error = 0;
+-out:
+-	up_read(&mm->mmap_sem);
+-	return error;
++	up_write(&mm->mmap_sem);
++	return 0;
+ }
+ #endif /* CONFIG_CHECKPOINT_RESTORE */
+ 
+@@ -1963,7 +1963,7 @@ static int prctl_set_mm(int opt, unsigne
+ 
+ 	error = -EINVAL;
+ 
+-	down_read(&mm->mmap_sem);
++	down_write(&mm->mmap_sem);
+ 	vma = find_vma(mm, addr);
+ 
+ 	prctl_map.start_code	= mm->start_code;
+@@ -2056,7 +2056,7 @@ static int prctl_set_mm(int opt, unsigne
+ 
+ 	error = 0;
+ out:
+-	up_read(&mm->mmap_sem);
++	up_write(&mm->mmap_sem);
+ 	return error;
+ }
+ 
 _
 
 Patches currently in -mm which might be from mguzik@redhat.com are
