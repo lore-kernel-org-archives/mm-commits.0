@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-oom_killc-dont-skip-pf_exiting-tasks-when-searching-for-a-victim.patch
+ mm-soft-offline-check-return-value-in-second-__get_any_page-call.patch
  added to -mm tree
-Date: Tue, 12 Jan 2016 13:25:20 -0800
-Message-ID: <56956f40.G6t/WcHKY0Tf6XKS%akpm@linux-foundation.org>
+Date: Tue, 12 Jan 2016 14:08:57 -0800
+Message-ID: <56957979.xRAU8OULiiwsTKwE%akpm__49674.2700030611$1452636554$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36726 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750863AbcALVZV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jan 2016 16:25:21 -0500
+	with ESMTP id S1751224AbcALWI6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jan 2016 17:08:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, andrea@kernel.org, hughd@google.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, stable@vger.kernel.org, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/oom_kill.c: don't skip PF_EXITING tasks when searching for a victim
+     Subject: mm: soft-offline: check return value in second __get_any_page() call
 has been added to the -mm tree.  Its filename is
-     mm-oom_killc-dont-skip-pf_exiting-tasks-when-searching-for-a-victim.patch
+     mm-soft-offline-check-return-value-in-second-__get_any_page-call.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_killc-dont-skip-pf_exiting-tasks-when-searching-for-a-victim.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-soft-offline-check-return-value-in-second-__get_any_page-call.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_killc-dont-skip-pf_exiting-tasks-when-searching-for-a-victim.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-soft-offline-check-return-value-in-second-__get_any_page-call.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,84 +40,100 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm/oom_kill.c: don't skip PF_EXITING tasks when searching for a victim
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: soft-offline: check return value in second __get_any_page() call
 
-When the OOM killer scans tasks and encounters a PF_EXITING one, it
-force-selects that one regardless of the score.  Is there a possibility
-that the task might hang after it has set PF_EXITING?  In that case the
-OOM killer should be able to move on to the next task.
+I saw the following BUG_ON triggered in a testcase where a process calls
+madvise(MADV_SOFT_OFFLINE) on thps, along with a background process that
+calls migratepages command repeatedly (doing ping-pong among different
+NUMA nodes) for the first process:
 
-Frankly, I don't even know why we check for exiting tasks in the OOM
-killer.  We've tried direct reclaim at least 15 times by the time we
-decide the system is OOM, there was plenty of time to exit and free
-memory; and a task might exit voluntarily right after we issue a kill. 
-This is testing pure noise.
+  [   52.556731] Soft offlining page 0x60000 at 0x700000600000
+  [   52.592620] __get_any_page: 0x60000 free buddy page
+  [   52.593451] page:ffffea0001800000 count:0 mapcount:-127 mapping:          (null) index:0x1
+  [   52.594767] flags: 0x1fffc0000000000()
+  [   52.595402] page dumped because: VM_BUG_ON_PAGE(atomic_read(&page->_count) == 0)
+  [   52.596602] ------------[ cut here ]------------
+  [   52.597339] kernel BUG at /src/linux-dev/include/linux/mm.h:342!
+  [   52.598284] invalid opcode: 0000 [#1] SMP DEBUG_PAGEALLOC
+  [   52.599193] Modules linked in: cfg80211 rfkill crc32c_intel serio_raw virtio_balloon i2c_piix4 virtio_blk virtio_net ata_generic pata_acpi
+  [   52.600579] CPU: 3 PID: 3035 Comm: test_alloc_gene Tainted: G           O    4.4.0-rc8-v4.4-rc8-160107-1501-00000-rc8+ #74
+  [   52.600579] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+  [   52.600579] task: ffff88007c63d5c0 ti: ffff88007c210000 task.ti: ffff88007c210000
+  [   52.600579] RIP: 0010:[<ffffffff8118998c>]  [<ffffffff8118998c>] put_page+0x5c/0x60
+  [   52.600579] RSP: 0018:ffff88007c213e00  EFLAGS: 00010246
+  [   52.600579] RAX: 0000000000000044 RBX: ffffea0001800000 RCX: 0000000000000000
+  [   52.600579] RDX: ffff88011f50f570 RSI: 0000000000000000 RDI: ffff88011f50cc18
+  [   52.600579] RBP: ffff88007c213e08 R08: 000000000000000a R09: 000000000000149c
+  [   52.600579] R10: ffff8800dac927f8 R11: 000000000000149c R12: ffffea0001800000
+  [   52.600579] R13: 0000000000060000 R14: ffffea0001800000 R15: 0000000000000065
+  [   52.600579] FS:  00007feb79d7d740(0000) GS:ffff88011f500000(0000) knlGS:0000000000000000
+  [   52.600579] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+  [   52.600579] CR2: 00007f3032cd2000 CR3: 00000000da6c4000 CR4: 00000000000006e0
+  [   52.600579] Stack:
+  [   52.600579]  ffffea0001800000 ffff88007c213e28 ffffffff811eb2ee ffffea0001800000
+  [   52.600579]  00000000fffffffb ffff88007c213e70 ffffffff811eccd1 0000000000000018
+  [   52.600579]  ffff88007c213e50 0000700000600000 0000700000601000 0000160000000000
+  [   52.600579] Call Trace:
+  [   52.600579]  [<ffffffff811eb2ee>] put_hwpoison_page+0x4e/0x80
+  [   52.600579]  [<ffffffff811eccd1>] soft_offline_page+0x501/0x520
+  [   52.600579]  [<ffffffff811bd18c>] SyS_madvise+0x6bc/0x6f0
+  [   52.600579]  [<ffffffff8104d0ac>] ? fpu__restore_sig+0xcc/0x320
+  [   52.600579]  [<ffffffff810a0003>] ? do_sigaction+0x73/0x1b0
+  [   52.600579]  [<ffffffff8109ceb2>] ? __set_task_blocked+0x32/0x70
+  [   52.600579]  [<ffffffff81652757>] entry_SYSCALL_64_fastpath+0x12/0x6a
+  [   52.600579] Code: 8b fc ff ff 5b 5d c3 48 89 df e8 b0 fa ff ff 48 89 df 31 f6 e8 c6 7d ff ff 5b 5d c3 48 c7 c6 08 54 a2 81 48 89 df e8 a4 c5 01 00 <0f> 0b 66 90 66 66 66 66 90 55 48 89 e5 41 55 41 54 53 48 8b 47
+  [   52.600579] RIP  [<ffffffff8118998c>] put_page+0x5c/0x60
+  [   52.600579]  RSP <ffff88007c213e00>
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Andrea Argangeli <andrea@kernel.org>
-Cc: Rik van Riel <riel@redhat.com>
+The root cause resides in get_any_page() which retries to get a refcount
+of the page to be soft-offlined.  This function calls put_hwpoison_page(),
+expecting that the target page is putback to LRU list.  But it can be also
+freed to buddy.  So the second check need to care about such case.
+
+Fixes: af8fae7c0886 ("mm/memory-failure.c: clean up soft_offline_page()")
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Steve Capper <steve.capper@linaro.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: <stable@vger.kernel.org>	[3.9+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    3 ---
- 1 file changed, 3 deletions(-)
+ mm/memory-failure.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~mm-oom_killc-dont-skip-pf_exiting-tasks-when-searching-for-a-victim mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_killc-dont-skip-pf_exiting-tasks-when-searching-for-a-victim
-+++ a/mm/oom_kill.c
-@@ -292,9 +292,6 @@ enum oom_scan_t oom_scan_process_thread(
- 	if (oom_task_origin(task))
- 		return OOM_SCAN_SELECT;
- 
--	if (task_will_free_mem(task) && !is_sysrq_oom(oc))
--		return OOM_SCAN_ABORT;
--
- 	return OOM_SCAN_OK;
- }
- 
+diff -puN mm/memory-failure.c~mm-soft-offline-check-return-value-in-second-__get_any_page-call mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-soft-offline-check-return-value-in-second-__get_any_page-call
++++ a/mm/memory-failure.c
+@@ -1575,7 +1575,7 @@ static int get_any_page(struct page *pag
+ 		 * Did it turn free?
+ 		 */
+ 		ret = __get_any_page(page, pfn, 0);
+-		if (!PageLRU(page)) {
++		if (ret == 1 && !PageLRU(page)) {
+ 			/* Drop page reference which is from __get_any_page() */
+ 			put_hwpoison_page(page);
+ 			pr_info("soft_offline: %#lx: unknown non LRU page type %lx\n",
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-mm-page_alloc-generalize-the-dirty-balance-reserve.patch
-proc-meminfo-estimate-available-memory-more-conservatively.patch
-mm-memcontrol-export-root_mem_cgroup.patch
-net-tcp_memcontrol-properly-detect-ancestor-socket-pressure.patch
-net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation.patch
-net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
-net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets.patch
-net-tcp_memcontrol-simplify-the-per-memcg-limit-access.patch
-net-tcp_memcontrol-sanitize-tcp-memory-accounting-callbacks.patch
-net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter.patch
-net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter-fix.patch
-mm-memcontrol-generalize-the-socket-accounting-jump-label.patch
-mm-memcontrol-do-not-account-memoryswap-on-unified-hierarchy.patch
-mm-memcontrol-move-socket-code-for-unified-hierarchy-accounting.patch
-mm-memcontrol-account-socket-memory-in-unified-hierarchy-memory-controller.patch
-mm-memcontrol-hook-up-vmpressure-to-socket-pressure.patch
-mm-memcontrol-switch-to-the-updated-jump-label-api.patch
-mm-oom_killc-dont-skip-pf_exiting-tasks-when-searching-for-a-victim.patch
-mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem.patch
-mm-memcontrol-remove-double-kmem-page_counter-init.patch
-mm-memcontrol-give-the-kmem-states-more-descriptive-names.patch
-mm-memcontrol-group-kmem-init-and-exit-functions-together.patch
-mm-memcontrol-separate-kmem-code-from-legacy-tcp-accounting-code.patch
-mm-memcontrol-move-kmem-accounting-code-to-config_memcg.patch
-mm-memcontrol-move-kmem-accounting-code-to-config_memcg-v2.patch
-mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix.patch
-mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller.patch
-mm-memcontrol-introduce-config_memcg_legacy_kmem.patch
-mm-memcontrol-reign-in-the-config-space-madness.patch
-mm-memcontrol-flatten-struct-cg_proto.patch
-mm-memcontrol-clean-up-alloc-online-offline-free-functions.patch
-mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix.patch
+mm-zonelist-enumerate-zonelists-array-index-fix-fix.patch
+mm-zonelist-enumerate-zonelists-array-index-fix-fix-fix.patch
+mm-page_isolation-use-micro-to-judge-the-alignment.patch
+rmap-add-argument-to-charge-compound-page-fix.patch
+mm-soft-offline-check-return-value-in-second-__get_any_page-call.patch
+mm-hwpoison-adjust-for-new-thp-refcounting.patch
 
