@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + migrate_pages-try-to-split-pages-on-queuing-fix.patch added to
- -mm tree
-Date: Tue, 12 Jan 2016 15:16:32 -0800
-Message-ID: <56958950.rO6hCnO2JnDLbi5l%akpm@linux-foundation.org>
+Subject: + mm-soft-offline-clean-up-soft_offline_page.patch added to -mm
+ tree
+Date: Tue, 12 Jan 2016 15:19:16 -0800
+Message-ID: <569589f4.kqvhu9qo72QN5QT8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41055 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41185 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752672AbcALXQd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jan 2016 18:16:33 -0500
+	with ESMTP id S1752404AbcALXTR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 12 Jan 2016 18:19:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, andi@firstfloor.org, kirill@shutemov.name, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy: add missed spin_unlock in queue_pages_pte_range
+     Subject: mm: soft-offline: clean up soft_offline_page()
 has been added to the -mm tree.  Its filename is
-     migrate_pages-try-to-split-pages-on-queuing-fix.patch
+     mm-soft-offline-clean-up-soft_offline_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/migrate_pages-try-to-split-pages-on-queuing-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-soft-offline-clean-up-soft_offline_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/migrate_pages-try-to-split-pages-on-queuing-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-soft-offline-clean-up-soft_offline_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,115 +39,133 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mempolicy: add missed spin_unlock in queue_pages_pte_range
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: soft-offline: clean up soft_offline_page()
 
-We forgot to unlock ptl in case when huge pmd dissappered under us.
+soft_offline_page() has some deeply indented code, that's the sign of
+demand for cleanup.  So let's do this.  No functionality change.
 
-This patch can be folded into
-  "migrate_pages: try to split pages on queuing"
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/memory-failure.c |   78 +++++++++++++++++++++++++-----------------
+ 1 file changed, 47 insertions(+), 31 deletions(-)
 
-diff -puN mm/mempolicy.c~migrate_pages-try-to-split-pages-on-queuing-fix mm/mempolicy.c
---- a/mm/mempolicy.c~migrate_pages-try-to-split-pages-on-queuing-fix
-+++ a/mm/mempolicy.c
-@@ -510,6 +510,8 @@ static int queue_pages_pte_range(pmd_t *
- 				if (ret)
- 					return 0;
- 			}
-+		} else {
-+			spin_unlock(ptl);
- 		}
- 	}
+diff -puN mm/memory-failure.c~mm-soft-offline-clean-up-soft_offline_page mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-soft-offline-clean-up-soft_offline_page
++++ a/mm/memory-failure.c
+@@ -1684,6 +1684,49 @@ static int __soft_offline_page(struct pa
+ 	return ret;
+ }
  
++static int soft_offline_in_use_page(struct page *page, int flags)
++{
++	int ret;
++	struct page *hpage = compound_head(page);
++
++	if (!PageHuge(page) && PageTransHuge(hpage)) {
++		lock_page(hpage);
++		ret = split_huge_page(hpage);
++		unlock_page(hpage);
++		if (unlikely(ret || PageTransCompound(page) ||
++			     !PageAnon(page))) {
++			pr_info("soft offline: %#lx: failed to split THP\n",
++				page_to_pfn(page));
++			if (flags & MF_COUNT_INCREASED)
++				put_hwpoison_page(hpage);
++			return -EBUSY;
++		}
++		get_hwpoison_page(page);
++		put_hwpoison_page(hpage);
++	}
++
++	if (PageHuge(page))
++		ret = soft_offline_huge_page(page, flags);
++	else
++		ret = __soft_offline_page(page, flags);
++
++	return ret;
++}
++
++static void soft_offline_free_page(struct page *page)
++{
++	if (PageHuge(page)) {
++		struct page *hpage = compound_head(page);
++
++		set_page_hwpoison_huge_page(hpage);
++		if (!dequeue_hwpoisoned_huge_page(hpage))
++			num_poisoned_pages_add(1 << compound_order(hpage));
++	} else {
++		if (!TestSetPageHWPoison(page))
++			num_poisoned_pages_inc();
++	}
++}
++
+ /**
+  * soft_offline_page - Soft offline a page.
+  * @page: page to offline
+@@ -1710,7 +1753,6 @@ int soft_offline_page(struct page *page,
+ {
+ 	int ret;
+ 	unsigned long pfn = page_to_pfn(page);
+-	struct page *hpage = compound_head(page);
+ 
+ 	if (PageHWPoison(page)) {
+ 		pr_info("soft offline: %#lx page already poisoned\n", pfn);
+@@ -1723,36 +1765,10 @@ int soft_offline_page(struct page *page,
+ 	ret = get_any_page(page, pfn, flags);
+ 	put_online_mems();
+ 
+-	if (ret > 0) { /* for in-use pages */
+-		if (!PageHuge(page) && PageTransHuge(hpage)) {
+-			lock_page(hpage);
+-			ret = split_huge_page(hpage);
+-			unlock_page(hpage);
+-			if (unlikely(ret || PageTransCompound(page) ||
+-					!PageAnon(page))) {
+-				pr_info("soft offline: %#lx: failed to split THP\n",
+-					pfn);
+-				if (flags & MF_COUNT_INCREASED)
+-					put_hwpoison_page(hpage);
+-				return -EBUSY;
+-			}
+-			get_hwpoison_page(page);
+-			put_hwpoison_page(hpage);
+-		}
++	if (ret > 0)
++		ret = soft_offline_in_use_page(page, flags);
++	else if (ret == 0)
++		soft_offline_free_page(page);
+ 
+-		if (PageHuge(page))
+-			ret = soft_offline_huge_page(page, flags);
+-		else
+-			ret = __soft_offline_page(page, flags);
+-	} else if (ret == 0) { /* for free pages */
+-		if (PageHuge(page)) {
+-			set_page_hwpoison_huge_page(hpage);
+-			if (!dequeue_hwpoisoned_huge_page(hpage))
+-				num_poisoned_pages_add(1 << compound_order(hpage));
+-		} else {
+-			if (!TestSetPageHWPoison(page))
+-				num_poisoned_pages_inc();
+-		}
+-	}
+ 	return ret;
+ }
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-mm-make-sure-isolate_lru_page-is-never-called-for-tail-page.patch
-mm-make-optimistic-check-for-swapin-readahead-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-move-code-around.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-fix.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-3.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-at-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-page-flags-drop-__testclearpage-helpers.patch
-mm-proc-adjust-pss-calculation.patch
-rmap-add-argument-to-charge-compound-page.patch
-memcg-adjust-to-support-new-thp-refcounting.patch
-mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault.patch
-mm-adjust-foll_split-for-new-refcounting.patch
-mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
-thp-mlock-do-not-allow-huge-pages-in-mlocked-area.patch
-khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes.patch
-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
-mm-vmstats-new-thp-splitting-event.patch
-mm-temporally-mark-thp-broken.patch
-thp-drop-all-split_huge_page-related-code.patch
-mm-drop-tail-page-refcounting.patch
-futex-thp-remove-special-case-for-thp-in-get_futex_key.patch
-ksm-prepare-to-new-thp-semantics.patch
-mm-thp-remove-compound_lock.patch
-arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-arm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mips-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-powerpc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-s390-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-sparc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-tile-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-x86-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-2.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
-mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
-mm-numa-skip-pte-mapped-thp-on-numa-fault.patch
-thp-implement-split_huge_pmd.patch
-thp-add-option-to-setup-migration-entries-during-pmd-split.patch
-thp-mm-split_huge_page-caller-need-to-lock-page.patch
-thp-reintroduce-split_huge_page.patch
-thp-reintroduce-split_huge_page-fix-3.patch
-thp-reintroduce-split_huge_page-fix-4.patch
-migrate_pages-try-to-split-pages-on-qeueuing.patch
-migrate_pages-try-to-split-pages-on-queuing-fix.patch
-thp-introduce-deferred_split_huge_page.patch
-thp-introduce-deferred_split_huge_page-fix.patch
-mm-re-enable-thp.patch
-thp-update-documentation.patch
-thp-allow-mlocked-thp-again.patch
-thp-allow-mlocked-thp-again-fix.patch
-thp-allow-mlocked-thp-again-fix-2.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch
-thp-add-debugfs-handle-to-split-all-huge-pages.patch
-thp-increase-split_huge_page-success-rate.patch
-mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch
-memblock-fix-section-mismatch.patch
-mm-fix-locking-order-in-mm_take_all_locks.patch
+mm-zonelist-enumerate-zonelists-array-index-fix-fix.patch
+mm-zonelist-enumerate-zonelists-array-index-fix-fix-fix.patch
+mm-page_isolation-use-micro-to-judge-the-alignment.patch
+rmap-add-argument-to-charge-compound-page-fix.patch
+mm-soft-offline-check-return-value-in-second-__get_any_page-call.patch
+mm-hwpoison-adjust-for-new-thp-refcounting.patch
+mm-soft-offline-clean-up-soft_offline_page.patch
+mm-soft-offline-exit-with-failure-for-non-anonymous-thp.patch
 
