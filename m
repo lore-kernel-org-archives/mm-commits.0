@@ -1,109 +1,131 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff.patch removed from -mm tree
-Date: Wed, 13 Jan 2016 14:50:04 -0800
-Message-ID: <5696d49c.cncTqmAN6Rktous+%akpm@linux-foundation.org>
+Subject: + mm-vmalloc-remove-vm_vpages-fix.patch added to -mm tree
+Date: Wed, 13 Jan 2016 15:36:52 -0800
+Message-ID: <5696df94.Qfi3yAdkw2xe2Bxe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55556 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58123 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754059AbcAMWuF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jan 2016 17:50:05 -0500
+	with ESMTP id S1753192AbcAMXgx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jan 2016 18:36:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, aneesh.kumar@linux.vnet.ibm.com, gorcunov@openvz.org, ldufour@linux.vnet.ibm.com, mpe@ellerman.id.au, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/mm: fix _PAGE_SWP_SOFT_DIRTY breaking swapoff
-has been removed from the -mm tree.  Its filename was
-     powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff.patch
+     Subject: mm-vmalloc-remove-vm_vpages-fix
+has been added to the -mm tree.  Its filename is
+     mm-vmalloc-remove-vm_vpages-fix.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-remove-vm_vpages-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-remove-vm_vpages-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: powerpc/mm: fix _PAGE_SWP_SOFT_DIRTY breaking swapoff
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-vmalloc-remove-vm_vpages-fix
 
-Swapoff after swapping hangs on the G5, when CONFIG_CHECKPOINT_RESTORE=y
-but CONFIG_MEM_SOFT_DIRTY is not set.  That's because the non-zero
-_PAGE_SWP_SOFT_DIRTY bit, added by CONFIG_HAVE_ARCH_SOFT_DIRTY=y, is not
-discounted when CONFIG_MEM_SOFT_DIRTY is not set: so swap ptes cannot be
-recognized.
+remove VM_VPAGES reference via kvfree()
 
-(I suspect that the peculiar dependence of HAVE_ARCH_SOFT_DIRTY on
-CHECKPOINT_RESTORE in arch/powerpc/Kconfig comes from an incomplete
-attempt to solve this problem.)
-
-It's true that the relationship between CONFIG_HAVE_ARCH_SOFT_DIRTY and
-and CONFIG_MEM_SOFT_DIRTY is too confusing, and it's true that swapoff
-should be made more robust; but nevertheless, fix up the powerpc ifdefs as
-x86_64 and s390 (which met the same problem) have them, defining the bits
-as 0 if CONFIG_MEM_SOFT_DIRTY is not set.
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Reviewed-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Acked-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/book3s/64/hash.h    |    5 +++++
- arch/powerpc/include/asm/book3s/64/pgtable.h |    9 ++++++---
- 2 files changed, 11 insertions(+), 3 deletions(-)
+ mm/vmalloc.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN arch/powerpc/include/asm/book3s/64/hash.h~powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff arch/powerpc/include/asm/book3s/64/hash.h
---- a/arch/powerpc/include/asm/book3s/64/hash.h~powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff
-+++ a/arch/powerpc/include/asm/book3s/64/hash.h
-@@ -33,7 +33,12 @@
- #define _PAGE_F_GIX_SHIFT	12
- #define _PAGE_F_SECOND		0x08000 /* Whether to use secondary hash or not */
- #define _PAGE_SPECIAL		0x10000 /* software: special page */
-+
-+#ifdef CONFIG_MEM_SOFT_DIRTY
- #define _PAGE_SOFT_DIRTY	0x20000 /* software: software dirty tracking */
-+#else
-+#define _PAGE_SOFT_DIRTY	0x00000
-+#endif
+diff -puN mm/vmalloc.c~mm-vmalloc-remove-vm_vpages-fix mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-remove-vm_vpages-fix
++++ a/mm/vmalloc.c
+@@ -1479,10 +1479,7 @@ static void __vunmap(const void *addr, i
+ 			__free_kmem_pages(page, 0);
+ 		}
  
- /*
-  * We need to differentiate between explicit huge page and THP huge
-diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff arch/powerpc/include/asm/book3s/64/pgtable.h
---- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff
-+++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
-@@ -162,8 +162,13 @@ static inline void pgd_set(pgd_t *pgdp,
- #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val((pte)) })
- #define __swp_entry_to_pte(x)		__pte((x).val)
+-		if (area->flags & VM_VPAGES)
+-			vfree(area->pages);
+-		else
+-			kfree(area->pages);
++		kvfree(area->pages);
+ 	}
  
--#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
-+#ifdef CONFIG_MEM_SOFT_DIRTY
- #define _PAGE_SWP_SOFT_DIRTY   (1UL << (SWP_TYPE_BITS + _PAGE_BIT_SWAP_TYPE))
-+#else
-+#define _PAGE_SWP_SOFT_DIRTY	0UL
-+#endif /* CONFIG_MEM_SOFT_DIRTY */
-+
-+#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
- static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
- {
- 	return __pte(pte_val(pte) | _PAGE_SWP_SOFT_DIRTY);
-@@ -176,8 +181,6 @@ static inline pte_t pte_swp_clear_soft_d
- {
- 	return __pte(pte_val(pte) & ~_PAGE_SWP_SOFT_DIRTY);
- }
--#else
--#define _PAGE_SWP_SOFT_DIRTY	0
- #endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
- 
- void pgtable_cache_add(unsigned shift, void (*ctor)(void *));
+ 	kfree(area);
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-memcontrol-hook-up-vmpressure-to-socket-pressure-fix.patch
-mm-make-swapoff-more-robust-against-soft-dirty.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount-checkpatch-fixes.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
+mm.patch
+account-certain-kmem-allocations-to-memcg-checkpatch-fixes.patch
+include-define-__phys_to_pfn-as-phys_pfn-fix.patch
+mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
+mm-zonelist-enumerate-zonelists-array-index-fix.patch
+mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
+mm-vmalloc-remove-vm_vpages-fix.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
+arm64-mm-support-arch_mmap_rnd_bits-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+thp-add-debugfs-handle-to-split-all-huge-pages-fix.patch
+mm-support-madvisemadv_free-fix-2-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+mm-mlockc-change-can_do_mlock-return-value-type-to-boolean-fix.patch
+mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
+mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
+mm-hugetlbfs-unmap-pages-if-page-fault-raced-with-hole-punch-fix.patch
+mm-soft-offline-exit-with-failure-for-non-anonymous-thp-fix.patch
+kernel-stop_machinec-remove-config_smp-dependencies.patch
+kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
+lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
+lib-test_printfc-test-dentry-printing-fix.patch
+printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
+printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix-fix.patch
+printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
+fs-coredump-prevent-core-path-components-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+fs-overlayfs-superc-needs-pagemaph.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+net-drop-tcp_memcontrolc-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
