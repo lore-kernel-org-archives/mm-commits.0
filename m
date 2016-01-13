@@ -1,16 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + logfs-clarify-mtd-dependency.patch added to -mm tree
-Date: Wed, 13 Jan 2016 12:37:15 -0800
-Message-ID: <5696b57b.7Qy93xoPnAa7kIIU%akpm@linux-foundation.org>
+Subject: [folded-merged] logfs-clarify-mtd-dependency.patch removed from
+ -mm tree
+Date: Wed, 13 Jan 2016 12:37:24 -0800
+Message-ID: <5696b584.xtQF+k0ayX+SUyEI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49625 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49635 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752824AbcAMUhQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jan 2016 15:37:16 -0500
+	with ESMTP id S1754435AbcAMUhZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jan 2016 15:37:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: arnd@arndb.de, joern@logfs.org, mmarek@suse.cz, peter.chen@freescale.com, prasadjoshi.linux@gmail.com, rdunlap@infradead.org, mm-commits@vger.kernel.org
@@ -18,24 +19,10 @@ To: arnd@arndb.de, joern@logfs.org, mmarek@suse.cz, peter.chen@freescale.com, pr
 
 The patch titled
      Subject: logfs: clarify MTD dependency
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      logfs-clarify-mtd-dependency.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/logfs-clarify-mtd-dependency.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/logfs-clarify-mtd-dependency.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into logfs-fix-logfs-build-errors-and-dependencies.patch
 
 ------------------------------------------------------
 From: Arnd Bergmann <arnd@arndb.de>
@@ -89,7 +76,7 @@ _
 
 Patches currently in -mm which might be from arnd@arndb.de are
 
-logfs-clarify-mtd-dependency.patch
+logfs-fix-logfs-build-errors-and-dependencies.patch
 include-define-__phys_to_pfn-as-phys_pfn-fix-2.patch
 arm-thp-remove-infrastructure-for-handling-splitting-pmds-fix.patch
 printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix.patch
