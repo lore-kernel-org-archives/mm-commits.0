@@ -1,70 +1,109 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate-fix.patch removed
- from -mm tree
-Date: Wed, 13 Jan 2016 14:50:02 -0800
-Message-ID: <5696d49a.SmYCZ/Fzh/KxbD/+%akpm@linux-foundation.org>
+ powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff.patch removed from -mm tree
+Date: Wed, 13 Jan 2016 14:50:04 -0800
+Message-ID: <5696d49c.cncTqmAN6Rktous+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55548 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55556 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754373AbcAMWuD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jan 2016 17:50:03 -0500
+	with ESMTP id S1754059AbcAMWuF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jan 2016 17:50:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, dan.j.williams@intel.com, geert@linux-m68k.org, linux@roeck-us.net, sudip@vectorindia.org, mm-commits@vger.kernel.org
+To: hughd@google.com, aneesh.kumar@linux.vnet.ibm.com, gorcunov@openvz.org, ldufour@linux.vnet.ibm.com, mpe@ellerman.id.au, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m68k: provide __phys_to_pfn() and __pfn_to_phys()
+     Subject: powerpc/mm: fix _PAGE_SWP_SOFT_DIRTY breaking swapoff
 has been removed from the -mm tree.  Its filename was
-     x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate-fix.patch
+     powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: m68k: provide __phys_to_pfn() and __pfn_to_phys()
+From: Hugh Dickins <hughd@google.com>
+Subject: powerpc/mm: fix _PAGE_SWP_SOFT_DIRTY breaking swapoff
 
-The defconfig build of m68k was failing with the error: implicit
-declaration of function '__pfn_to_phys'
+Swapoff after swapping hangs on the G5, when CONFIG_CHECKPOINT_RESTORE=y
+but CONFIG_MEM_SOFT_DIRTY is not set.  That's because the non-zero
+_PAGE_SWP_SOFT_DIRTY bit, added by CONFIG_HAVE_ARCH_SOFT_DIRTY=y, is not
+discounted when CONFIG_MEM_SOFT_DIRTY is not set: so swap ptes cannot be
+recognized.
 
-Other architectures have added <asm/memory.h>, but if we do so here then
-we will also get redeclaration of some other functions.  So it is better
-to copy these macros into page.h.
+(I suspect that the peculiar dependence of HAVE_ARCH_SOFT_DIRTY on
+CHECKPOINT_RESTORE in arch/powerpc/Kconfig comes from an incomplete
+attempt to solve this problem.)
 
-[geert: apply to page.h instead of page_mm.h to cover nommu, reword]
-Fixes: 0a3c3bf11240 ("x86, mm: introduce vmem_altmap to augment vmemmap_populate()")
-Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
-Reported-by: Guenter Roeck <linux@roeck-us.net> (m68knommu)
-Cc: Dan Williams <dan.j.williams@intel.com>
+It's true that the relationship between CONFIG_HAVE_ARCH_SOFT_DIRTY and
+and CONFIG_MEM_SOFT_DIRTY is too confusing, and it's true that swapoff
+should be made more robust; but nevertheless, fix up the powerpc ifdefs as
+x86_64 and s390 (which met the same problem) have them, defining the bits
+as 0 if CONFIG_MEM_SOFT_DIRTY is not set.
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Acked-by: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m68k/include/asm/page.h |    3 +++
- 1 file changed, 3 insertions(+)
+ arch/powerpc/include/asm/book3s/64/hash.h    |    5 +++++
+ arch/powerpc/include/asm/book3s/64/pgtable.h |    9 ++++++---
+ 2 files changed, 11 insertions(+), 3 deletions(-)
 
-diff -puN arch/m68k/include/asm/page.h~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate-fix arch/m68k/include/asm/page.h
---- a/arch/m68k/include/asm/page.h~x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate-fix
-+++ a/arch/m68k/include/asm/page.h
-@@ -48,6 +48,9 @@ extern unsigned long _ramend;
- #include <asm/page_no.h>
- #endif
- 
-+#define __phys_to_pfn(paddr)	((unsigned long)((paddr) >> PAGE_SHIFT))
-+#define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
+diff -puN arch/powerpc/include/asm/book3s/64/hash.h~powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff arch/powerpc/include/asm/book3s/64/hash.h
+--- a/arch/powerpc/include/asm/book3s/64/hash.h~powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff
++++ a/arch/powerpc/include/asm/book3s/64/hash.h
+@@ -33,7 +33,12 @@
+ #define _PAGE_F_GIX_SHIFT	12
+ #define _PAGE_F_SECOND		0x08000 /* Whether to use secondary hash or not */
+ #define _PAGE_SPECIAL		0x10000 /* software: special page */
 +
- #define VM_DATA_DEFAULT_FLAGS	(VM_READ | VM_WRITE | VM_EXEC | \
- 				 VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC)
++#ifdef CONFIG_MEM_SOFT_DIRTY
+ #define _PAGE_SOFT_DIRTY	0x20000 /* software: software dirty tracking */
++#else
++#define _PAGE_SOFT_DIRTY	0x00000
++#endif
  
+ /*
+  * We need to differentiate between explicit huge page and THP huge
+diff -puN arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff arch/powerpc/include/asm/book3s/64/pgtable.h
+--- a/arch/powerpc/include/asm/book3s/64/pgtable.h~powerpc-mm-fix-_page_swp_soft_dirty-breaking-swapoff
++++ a/arch/powerpc/include/asm/book3s/64/pgtable.h
+@@ -162,8 +162,13 @@ static inline void pgd_set(pgd_t *pgdp,
+ #define __pte_to_swp_entry(pte)		((swp_entry_t) { pte_val((pte)) })
+ #define __swp_entry_to_pte(x)		__pte((x).val)
+ 
+-#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
++#ifdef CONFIG_MEM_SOFT_DIRTY
+ #define _PAGE_SWP_SOFT_DIRTY   (1UL << (SWP_TYPE_BITS + _PAGE_BIT_SWAP_TYPE))
++#else
++#define _PAGE_SWP_SOFT_DIRTY	0UL
++#endif /* CONFIG_MEM_SOFT_DIRTY */
++
++#ifdef CONFIG_HAVE_ARCH_SOFT_DIRTY
+ static inline pte_t pte_swp_mksoft_dirty(pte_t pte)
+ {
+ 	return __pte(pte_val(pte) | _PAGE_SWP_SOFT_DIRTY);
+@@ -176,8 +181,6 @@ static inline pte_t pte_swp_clear_soft_d
+ {
+ 	return __pte(pte_val(pte) & ~_PAGE_SWP_SOFT_DIRTY);
+ }
+-#else
+-#define _PAGE_SWP_SOFT_DIRTY	0
+ #endif /* CONFIG_HAVE_ARCH_SOFT_DIRTY */
+ 
+ void pgtable_cache_add(unsigned shift, void (*ctor)(void *));
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-m32r-fix-m32104ut_defconfig-build-fail.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch
+mm-memcontrol-hook-up-vmpressure-to-socket-pressure-fix.patch
+mm-make-swapoff-more-robust-against-soft-dirty.patch
 
