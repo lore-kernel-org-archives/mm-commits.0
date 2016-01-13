@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + thp-fix-split_huge_page-after-mremap-of-thp.patch added to -mm
- tree
-Date: Wed, 13 Jan 2016 12:57:28 -0800
-Message-ID: <5696ba38.yBS9gQVlUlWEA2IU%akpm@linux-foundation.org>
+Subject: +
+ mm-memcontrol-do-not-uncharge-old-page-in-page-cache-replacement.patch
+ added to -mm tree
+Date: Wed, 13 Jan 2016 14:40:03 -0800
+Message-ID: <5696d243.ChmiHGB1OQVXjKOY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50694 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55190 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755077AbcAMU53 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jan 2016 15:57:29 -0500
+	with ESMTP id S1754006AbcAMWkF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jan 2016 17:40:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: fix split_huge_page() after mremap() of THP
+     Subject: mm: memcontrol: do not uncharge old page in page cache replacement
 has been added to the -mm tree.  Its filename is
-     thp-fix-split_huge_page-after-mremap-of-thp.patch
+     mm-memcontrol-do-not-uncharge-old-page-in-page-cache-replacement.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-fix-split_huge_page-after-mremap-of-thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-do-not-uncharge-old-page-in-page-cache-replacement.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-fix-split_huge_page-after-mremap-of-thp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-do-not-uncharge-old-page-in-page-cache-replacement.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,308 +40,116 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: fix split_huge_page() after mremap() of THP
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: do not uncharge old page in page cache replacement
 
-Sasha Levin has reported KASAN out-of-bounds bug[1].  It points to "if
-(!is_swap_pte(pte[i]))" in unfreeze_page_vma() as a problematic access.
+Changing page->mem_cgroup of a live page is tricky and fragile.  In
+particular, the memcg writeback code relies on that mapping being stable
+and users of mem_cgroup_replace_page() not overlapping with dirtyable
+inodes.
 
-The cause is that split_huge_page() doesn't handle THP correctly if it's
-not allingned to PMD boundary.  It can happen after mremap().
+Page cache replacement doesn't have to do that, though.  Instead of being
+clever and transfering the charge from the old page to the new,
+force-charge the new page and leave the old page alone.  A temporary
+overcharge won't matter in practice, and the old page is going to be freed
+shortly after this anyway.  And this is not performance critical.
 
-Test-case (not always triggers the bug):
-
-	#define _GNU_SOURCE
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include <sys/mman.h>
-
-	#define MB (1024UL*1024)
-	#define SIZE (2*MB)
-	#define BASE ((void *)0x400000000000)
-
-	int main()
-	{
-		char *p;
-
-		p = mmap(BASE, SIZE, PROT_READ | PROT_WRITE,
-				MAP_FIXED | MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE,
-				-1, 0);
-		if (p == MAP_FAILED)
-			perror("mmap"), exit(1);
-		p = mremap(BASE, SIZE, SIZE, MREMAP_FIXED | MREMAP_MAYMOVE,
-				BASE + SIZE + 8192);
-		if (p == MAP_FAILED)
-			perror("mremap"), exit(1);
-		system("echo 1 > /sys/kernel/debug/split_huge_pages");
-		return 0;
-	}
-
-The patch fixes freeze and unfreeze paths to handle page table boundary
-crossing.
-
-It also makes mapcount vs. count check in split_huge_page_to_list()
-stricter:
- - after freeze we don't expect any subpage mapped as we remove them
-   from rmap when setting up migration entries;
- - count must be 1, meaning only caller has reference to the page;
-
-[1] https://gist.github.com/sashalevin/c67fbea55e7c0576972a
-
-Signed-off-by: Kirill A.  Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   72 +++++++++++++++++++++++++++++++--------------
- 1 file changed, 51 insertions(+), 21 deletions(-)
+ mm/memcontrol.c |   26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-fix-split_huge_page-after-mremap-of-thp mm/huge_memory.c
---- a/mm/huge_memory.c~thp-fix-split_huge_page-after-mremap-of-thp
-+++ a/mm/huge_memory.c
-@@ -3065,6 +3065,7 @@ void vma_adjust_trans_huge(struct vm_are
- static void freeze_page_vma(struct vm_area_struct *vma, struct page *page,
- 		unsigned long address)
+diff -puN mm/memcontrol.c~mm-memcontrol-do-not-uncharge-old-page-in-page-cache-replacement mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-do-not-uncharge-old-page-in-page-cache-replacement
++++ a/mm/memcontrol.c
+@@ -366,13 +366,6 @@ mem_cgroup_zone_zoneinfo(struct mem_cgro
+  *
+  * If memcg is bound to a traditional hierarchy, the css of root_mem_cgroup
+  * is returned.
+- *
+- * XXX: The above description of behavior on the default hierarchy isn't
+- * strictly true yet as replace_page_cache_page() can modify the
+- * association before @page is released even on the default hierarchy;
+- * however, the current and planned usages don't mix the the two functions
+- * and replace_page_cache_page() will soon be updated to make the invariant
+- * actually true.
+  */
+ struct cgroup_subsys_state *mem_cgroup_css_from_page(struct page *page)
  {
-+	unsigned long haddr = address & HPAGE_PMD_MASK;
- 	spinlock_t *ptl;
- 	pgd_t *pgd;
- 	pud_t *pud;
-@@ -3086,34 +3087,48 @@ static void freeze_page_vma(struct vm_ar
- 	}
- 	if (pmd_trans_huge(*pmd)) {
- 		if (page == pmd_page(*pmd))
--			__split_huge_pmd_locked(vma, pmd, address, true);
-+			__split_huge_pmd_locked(vma, pmd, haddr, true);
- 		spin_unlock(ptl);
+@@ -5463,7 +5456,8 @@ void mem_cgroup_uncharge_list(struct lis
+ void mem_cgroup_replace_page(struct page *oldpage, struct page *newpage)
+ {
+ 	struct mem_cgroup *memcg;
+-	int isolated;
++	unsigned int nr_pages;
++	bool compound;
+ 
+ 	VM_BUG_ON_PAGE(!PageLocked(oldpage), oldpage);
+ 	VM_BUG_ON_PAGE(!PageLocked(newpage), newpage);
+@@ -5483,11 +5477,21 @@ void mem_cgroup_replace_page(struct page
+ 	if (!memcg)
  		return;
- 	}
- 	spin_unlock(ptl);
  
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, address, &ptl);
--	for (i = 0; i < HPAGE_PMD_NR; i++, address += PAGE_SIZE, page++) {
-+	for (i = 0; i < HPAGE_PMD_NR;
-+			i++, address += PAGE_SIZE, page++, pte++) {
- 		pte_t entry, swp_pte;
- 		swp_entry_t swp_entry;
- 
--		if (!pte_present(pte[i]))
-+		/*
-+		 * We've just crossed page table boundary: need to map next one.
-+		 * It can happen if THP was mremaped to non PMD-aligned address.
-+		 */
-+		if (unlikely(address == haddr + HPAGE_PMD_SIZE)) {
-+			pte_unmap_unlock(pte - 1, ptl);
-+			pmd = mm_find_pmd(vma->vm_mm, address);
-+			if (!pmd)
-+				return;
-+			pte = pte_offset_map_lock(vma->vm_mm, pmd,
-+					address, &ptl);
-+		}
+-	lock_page_lru(oldpage, &isolated);
+-	oldpage->mem_cgroup = NULL;
+-	unlock_page_lru(oldpage, isolated);
++	/* Force-charge the new page. The old one will be freed soon */
++	compound = PageTransHuge(newpage);
++	nr_pages = compound ? hpage_nr_pages(newpage) : 1;
 +
-+		if (!pte_present(*pte))
- 			continue;
--		if (page_to_pfn(page) != pte_pfn(pte[i]))
-+		if (page_to_pfn(page) != pte_pfn(*pte))
- 			continue;
- 		flush_cache_page(vma, address, page_to_pfn(page));
--		entry = ptep_clear_flush(vma, address, pte + i);
-+		entry = ptep_clear_flush(vma, address, pte);
- 		if (pte_dirty(entry))
- 			SetPageDirty(page);
- 		swp_entry = make_migration_entry(page, pte_write(entry));
- 		swp_pte = swp_entry_to_pte(swp_entry);
- 		if (pte_soft_dirty(entry))
- 			swp_pte = pte_swp_mksoft_dirty(swp_pte);
--		set_pte_at(vma->vm_mm, address, pte + i, swp_pte);
-+		set_pte_at(vma->vm_mm, address, pte, swp_pte);
- 		page_remove_rmap(page, false);
- 		put_page(page);
- 	}
--	pte_unmap_unlock(pte, ptl);
-+	pte_unmap_unlock(pte - 1, ptl);
++	page_counter_charge(&memcg->memory, nr_pages);
++	if (do_memsw_account())
++		page_counter_charge(&memcg->memsw, nr_pages);
++	css_get_many(&memcg->css, nr_pages);
+ 
+ 	commit_charge(newpage, memcg, true);
++
++	local_irq_disable();
++	mem_cgroup_charge_statistics(memcg, newpage, compound, nr_pages);
++	memcg_check_events(memcg, newpage);
++	local_irq_enable();
  }
  
- static void freeze_page(struct anon_vma *anon_vma, struct page *page)
-@@ -3125,14 +3140,13 @@ static void freeze_page(struct anon_vma
- 
- 	anon_vma_interval_tree_foreach(avc, &anon_vma->rb_root, pgoff,
- 			pgoff + HPAGE_PMD_NR - 1) {
--		unsigned long haddr;
-+		unsigned long address = __vma_address(page, avc->vma);
- 
--		haddr = __vma_address(page, avc->vma) & HPAGE_PMD_MASK;
- 		mmu_notifier_invalidate_range_start(avc->vma->vm_mm,
--				haddr, haddr + HPAGE_PMD_SIZE);
--		freeze_page_vma(avc->vma, page, haddr);
-+				address, address + HPAGE_PMD_SIZE);
-+		freeze_page_vma(avc->vma, page, address);
- 		mmu_notifier_invalidate_range_end(avc->vma->vm_mm,
--				haddr, haddr + HPAGE_PMD_SIZE);
-+				address, address + HPAGE_PMD_SIZE);
- 	}
- }
- 
-@@ -3143,17 +3157,33 @@ static void unfreeze_page_vma(struct vm_
- 	pmd_t *pmd;
- 	pte_t *pte, entry;
- 	swp_entry_t swp_entry;
-+	unsigned long haddr = address & HPAGE_PMD_MASK;
- 	int i;
- 
- 	pmd = mm_find_pmd(vma->vm_mm, address);
- 	if (!pmd)
- 		return;
-+
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, address, &ptl);
--	for (i = 0; i < HPAGE_PMD_NR; i++, address += PAGE_SIZE, page++) {
--		if (!is_swap_pte(pte[i]))
-+	for (i = 0; i < HPAGE_PMD_NR;
-+			i++, address += PAGE_SIZE, page++, pte++) {
-+		/*
-+		 * We've just crossed page table boundary: need to map next one.
-+		 * It can happen if THP was mremaped to non-PMD aligned address.
-+		 */
-+		if (unlikely(address == haddr + HPAGE_PMD_SIZE)) {
-+			pte_unmap_unlock(pte - 1, ptl);
-+			pmd = mm_find_pmd(vma->vm_mm, address);
-+			if (!pmd)
-+				return;
-+			pte = pte_offset_map_lock(vma->vm_mm, pmd,
-+					address, &ptl);
-+		}
-+
-+		if (!is_swap_pte(*pte))
- 			continue;
- 
--		swp_entry = pte_to_swp_entry(pte[i]);
-+		swp_entry = pte_to_swp_entry(*pte);
- 		if (!is_migration_entry(swp_entry))
- 			continue;
- 		if (migration_entry_to_page(swp_entry) != page)
-@@ -3169,12 +3199,12 @@ static void unfreeze_page_vma(struct vm_
- 			entry = maybe_mkwrite(entry, vma);
- 
- 		flush_dcache_page(page);
--		set_pte_at(vma->vm_mm, address, pte + i, entry);
-+		set_pte_at(vma->vm_mm, address, pte, entry);
- 
- 		/* No need to invalidate - it was non-present before */
--		update_mmu_cache(vma, address, pte + i);
-+		update_mmu_cache(vma, address, pte);
- 	}
--	pte_unmap_unlock(pte, ptl);
-+	pte_unmap_unlock(pte - 1, ptl);
- }
- 
- static void unfreeze_page(struct anon_vma *anon_vma, struct page *page)
-@@ -3380,7 +3410,7 @@ int split_huge_page_to_list(struct page
- 	spin_lock(&split_queue_lock);
- 	count = page_count(head);
- 	mapcount = total_mapcount(head);
--	if (mapcount == count - 1) {
-+	if (!mapcount && count == 1) {
- 		if (!list_empty(page_deferred_list(head))) {
- 			split_queue_len--;
- 			list_del(page_deferred_list(head));
-@@ -3388,13 +3418,13 @@ int split_huge_page_to_list(struct page
- 		spin_unlock(&split_queue_lock);
- 		__split_huge_page(page, list);
- 		ret = 0;
--	} else if (IS_ENABLED(CONFIG_DEBUG_VM) && mapcount > count - 1) {
-+	} else if (IS_ENABLED(CONFIG_DEBUG_VM) && mapcount) {
- 		spin_unlock(&split_queue_lock);
- 		pr_alert("total_mapcount: %u, page_count(): %u\n",
- 				mapcount, count);
- 		if (PageTail(page))
- 			dump_page(head, NULL);
--		dump_page(page, "total_mapcount(head) > page_count(head) - 1");
-+		dump_page(page, "total_mapcount(head) > 0");
- 		BUG();
- 	} else {
- 		spin_unlock(&split_queue_lock);
+ DEFINE_STATIC_KEY_FALSE(memcg_sockets_enabled_key);
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-make-sure-isolate_lru_page-is-never-called-for-tail-page.patch
-mm-make-optimistic-check-for-swapin-readahead-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-move-code-around.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-fix.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages-fix-3.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-at-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-page-flags-drop-__testclearpage-helpers.patch
-mm-proc-adjust-pss-calculation.patch
-rmap-add-argument-to-charge-compound-page.patch
-memcg-adjust-to-support-new-thp-refcounting.patch
-mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault.patch
-mm-adjust-foll_split-for-new-refcounting.patch
-mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
-thp-mlock-do-not-allow-huge-pages-in-mlocked-area.patch
-khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes.patch
-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
-mm-vmstats-new-thp-splitting-event.patch
-mm-temporally-mark-thp-broken.patch
-thp-drop-all-split_huge_page-related-code.patch
-mm-drop-tail-page-refcounting.patch
-futex-thp-remove-special-case-for-thp-in-get_futex_key.patch
-ksm-prepare-to-new-thp-semantics.patch
-mm-thp-remove-compound_lock.patch
-arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-arm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mips-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-powerpc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-s390-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-sparc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-tile-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-x86-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-2.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
-mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
-mm-numa-skip-pte-mapped-thp-on-numa-fault.patch
-thp-implement-split_huge_pmd.patch
-thp-add-option-to-setup-migration-entries-during-pmd-split.patch
-thp-mm-split_huge_page-caller-need-to-lock-page.patch
-thp-reintroduce-split_huge_page.patch
-thp-reintroduce-split_huge_page-fix-3.patch
-thp-reintroduce-split_huge_page-fix-4.patch
-migrate_pages-try-to-split-pages-on-qeueuing.patch
-migrate_pages-try-to-split-pages-on-queuing-fix.patch
-thp-introduce-deferred_split_huge_page.patch
-thp-introduce-deferred_split_huge_page-fix.patch
-mm-re-enable-thp.patch
-thp-update-documentation.patch
-thp-allow-mlocked-thp-again.patch
-thp-allow-mlocked-thp-again-fix.patch
-thp-allow-mlocked-thp-again-fix-2.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch
-thp-add-debugfs-handle-to-split-all-huge-pages.patch
-thp-increase-split_huge_page-success-rate.patch
-thp-fix-split_huge_page-after-mremap-of-thp.patch
-mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch
-memblock-fix-section-mismatch.patch
-mm-fix-locking-order-in-mm_take_all_locks.patch
+mm-page_alloc-generalize-the-dirty-balance-reserve.patch
+proc-meminfo-estimate-available-memory-more-conservatively.patch
+mm-memcontrol-export-root_mem_cgroup.patch
+net-tcp_memcontrol-properly-detect-ancestor-socket-pressure.patch
+net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation.patch
+net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
+net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets.patch
+net-tcp_memcontrol-simplify-the-per-memcg-limit-access.patch
+net-tcp_memcontrol-sanitize-tcp-memory-accounting-callbacks.patch
+net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter.patch
+net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter-fix.patch
+mm-memcontrol-generalize-the-socket-accounting-jump-label.patch
+mm-memcontrol-do-not-account-memoryswap-on-unified-hierarchy.patch
+mm-memcontrol-move-socket-code-for-unified-hierarchy-accounting.patch
+mm-memcontrol-account-socket-memory-in-unified-hierarchy-memory-controller.patch
+mm-memcontrol-hook-up-vmpressure-to-socket-pressure.patch
+mm-memcontrol-switch-to-the-updated-jump-label-api.patch
+mm-oom_killc-dont-skip-pf_exiting-tasks-when-searching-for-a-victim.patch
+mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem.patch
+mm-memcontrol-remove-double-kmem-page_counter-init.patch
+mm-memcontrol-give-the-kmem-states-more-descriptive-names.patch
+mm-memcontrol-group-kmem-init-and-exit-functions-together.patch
+mm-memcontrol-separate-kmem-code-from-legacy-tcp-accounting-code.patch
+mm-memcontrol-move-kmem-accounting-code-to-config_memcg.patch
+mm-memcontrol-move-kmem-accounting-code-to-config_memcg-v2.patch
+mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix.patch
+mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller.patch
+mm-memcontrol-introduce-config_memcg_legacy_kmem.patch
+mm-memcontrol-reign-in-the-config-space-madness.patch
+mm-memcontrol-flatten-struct-cg_proto.patch
+mm-memcontrol-clean-up-alloc-online-offline-free-functions.patch
+mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix.patch
+mm-memcontrol-do-not-uncharge-old-page-in-page-cache-replacement.patch
 
