@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller.patch
- added to -mm tree
-Date: Wed, 13 Jan 2016 14:49:49 -0800
-Message-ID: <5696d48d.zEXB7NvSDEpkXS1S%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-add-sock-to-cgroup2-memorystat.patch added to -mm tree
+Date: Wed, 13 Jan 2016 14:49:51 -0800
+Message-ID: <5696d48f.5WLWsnoIfYhAnXim%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55535 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55539 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754366AbcAMWtu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jan 2016 17:49:50 -0500
+	with ESMTP id S1754373AbcAMWtw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 13 Jan 2016 17:49:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, mhocko@suse.cz, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: basic memory statistics in cgroup2 memory controller
+     Subject: mm: memcontrol: add "sock" to cgroup2 memory.stat
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller.patch
+     mm-memcontrol-add-sock-to-cgroup2-memorystat.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-add-sock-to-cgroup2-memorystat.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-add-sock-to-cgroup2-memorystat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,10 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: basic memory statistics in cgroup2 memory controller
+Subject: mm: memcontrol: add "sock" to cgroup2 memory.stat
 
-Provide a cgroup2 memory.stat that provides statistics on LRU memory
-and fault event counters. More consumers and breakdowns will follow.
+Provide statistics on how much of a cgroup's memory footprint is made up
+of socket buffers from network connections owned by the group.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
@@ -53,90 +51,62 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   57 ++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 57 insertions(+)
+ include/linux/memcontrol.h |    5 ++++-
+ mm/memcontrol.c            |    6 ++++++
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller
-+++ a/mm/memcontrol.c
-@@ -2767,6 +2767,18 @@ static unsigned long tree_stat(struct me
- 	return val;
- }
- 
-+static unsigned long tree_events(struct mem_cgroup *memcg,
-+				 enum mem_cgroup_events_index idx)
-+{
-+	struct mem_cgroup *iter;
-+	unsigned long val = 0;
-+
-+	for_each_mem_cgroup_tree(iter, memcg)
-+		val += mem_cgroup_read_events(iter, idx);
-+
-+	return val;
-+}
-+
- static unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
- {
- 	unsigned long val;
-@@ -5095,6 +5107,46 @@ static int memory_events_show(struct seq
- 	return 0;
- }
- 
-+static int memory_stat_show(struct seq_file *m, void *v)
-+{
-+	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
-+	int i;
-+
-+	/* Memory consumer totals */
-+
-+	seq_printf(m, "anon %lu\n",
-+		   tree_stat(memcg, MEM_CGROUP_STAT_RSS) * PAGE_SIZE);
-+	seq_printf(m, "file %lu\n",
-+		   tree_stat(memcg, MEM_CGROUP_STAT_CACHE) * PAGE_SIZE);
-+
-+	/* Per-consumer breakdowns */
-+
-+	for (i = 0; i < NR_LRU_LISTS; i++) {
-+		struct mem_cgroup *mi;
-+		unsigned long val = 0;
-+
-+		for_each_mem_cgroup_tree(mi, memcg)
-+			val += mem_cgroup_nr_lru_pages(mi, BIT(i)) * PAGE_SIZE;
-+		seq_printf(m, "%s %lu\n", mem_cgroup_lru_names[i], val);
-+	}
-+
-+	seq_printf(m, "file_mapped %lu\n",
-+		   tree_stat(memcg, MEM_CGROUP_STAT_FILE_MAPPED) * PAGE_SIZE);
-+	seq_printf(m, "file_dirty %lu\n",
-+		   tree_stat(memcg, MEM_CGROUP_STAT_DIRTY) * PAGE_SIZE);
-+	seq_printf(m, "file_writeback %lu\n",
-+		   tree_stat(memcg, MEM_CGROUP_STAT_WRITEBACK) * PAGE_SIZE);
-+
-+	/* Memory management events */
-+
-+	seq_printf(m, "pgfault %lu\n",
-+		   tree_events(memcg, MEM_CGROUP_EVENTS_PGFAULT));
-+	seq_printf(m, "pgmajfault %lu\n",
-+		   tree_events(memcg, MEM_CGROUP_EVENTS_PGMAJFAULT));
-+
-+	return 0;
-+}
-+
- static struct cftype memory_files[] = {
- 	{
- 		.name = "current",
-@@ -5125,6 +5177,11 @@ static struct cftype memory_files[] = {
- 		.file_offset = offsetof(struct mem_cgroup, events_file),
- 		.seq_show = memory_events_show,
- 	},
-+	{
-+		.name = "stat",
-+		.flags = CFTYPE_NOT_ON_ROOT,
-+		.seq_show = memory_stat_show,
-+	},
- 	{ }	/* terminate */
+diff -puN include/linux/memcontrol.h~mm-memcontrol-add-sock-to-cgroup2-memorystat include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-add-sock-to-cgroup2-memorystat
++++ a/include/linux/memcontrol.h
+@@ -50,6 +50,9 @@ enum mem_cgroup_stat_index {
+ 	MEM_CGROUP_STAT_WRITEBACK,	/* # of pages under writeback */
+ 	MEM_CGROUP_STAT_SWAP,		/* # of pages, swapped out */
+ 	MEM_CGROUP_STAT_NSTATS,
++	/* default hierarchy stats */
++	MEMCG_SOCK,
++	MEMCG_NR_STAT,
  };
  
+ struct mem_cgroup_reclaim_cookie {
+@@ -87,7 +90,7 @@ enum mem_cgroup_events_target {
+ 
+ #ifdef CONFIG_MEMCG
+ struct mem_cgroup_stat_cpu {
+-	long count[MEM_CGROUP_STAT_NSTATS];
++	long count[MEMCG_NR_STAT];
+ 	unsigned long events[MEMCG_NR_EVENTS];
+ 	unsigned long nr_page_events;
+ 	unsigned long targets[MEM_CGROUP_NTARGETS];
+diff -puN mm/memcontrol.c~mm-memcontrol-add-sock-to-cgroup2-memorystat mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-add-sock-to-cgroup2-memorystat
++++ a/mm/memcontrol.c
+@@ -5118,6 +5118,8 @@ static int memory_stat_show(struct seq_f
+ 		   tree_stat(memcg, MEM_CGROUP_STAT_RSS) * PAGE_SIZE);
+ 	seq_printf(m, "file %lu\n",
+ 		   tree_stat(memcg, MEM_CGROUP_STAT_CACHE) * PAGE_SIZE);
++	seq_printf(m, "sock %lu\n",
++		   tree_stat(memcg, MEMCG_SOCK) * PAGE_SIZE);
+ 
+ 	/* Per-consumer breakdowns */
+ 
+@@ -5619,6 +5621,8 @@ bool mem_cgroup_charge_skmem(struct mem_
+ 	if (in_softirq())
+ 		gfp_mask = GFP_NOWAIT;
+ 
++	this_cpu_add(memcg->stat->count[MEMCG_SOCK], nr_pages);
++
+ 	if (try_charge(memcg, gfp_mask, nr_pages) == 0)
+ 		return true;
+ 
+@@ -5638,6 +5642,8 @@ void mem_cgroup_uncharge_skmem(struct me
+ 		return;
+ 	}
+ 
++	this_cpu_sub(memcg->stat->count[MEMCG_SOCK], nr_pages);
++
+ 	page_counter_uncharge(&memcg->memory, nr_pages);
+ 	css_put_many(&memcg->css, nr_pages);
+ }
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
