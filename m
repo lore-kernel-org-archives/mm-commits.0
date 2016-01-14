@@ -1,104 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] thp-introduce-deferred_split_huge_page-fix.patch
- removed from -mm tree
-Date: Thu, 14 Jan 2016 14:42:10 -0800
-Message-ID: <56982442.utOWBK/o3lG/8zXq%akpm@linux-foundation.org>
+Subject: [folded-merged] thp-allow-mlocked-thp-again-fix.patch removed
+ from -mm tree
+Date: Thu, 14 Jan 2016 14:42:39 -0800
+Message-ID: <5698245f.KOMLcGjq7XkfIkSp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46268 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46297 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755144AbcANWmL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:42:11 -0500
+	with ESMTP id S1754116AbcANWmk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:42:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, minchan@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: fix split_huge_page vs. deferred_split_scan race
+     Subject: mm: stop __munlock_pagevec_fill() if THP encountered
 has been removed from the -mm tree.  Its filename was
-     thp-introduce-deferred_split_huge_page-fix.patch
+     thp-allow-mlocked-thp-again-fix.patch
 
-This patch was dropped because it was folded into thp-introduce-deferred_split_huge_page.patch
+This patch was dropped because it was folded into thp-allow-mlocked-thp-again.patch
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: fix split_huge_page vs. deferred_split_scan race
+Subject: mm: stop __munlock_pagevec_fill() if THP encountered
 
-Minchan[1] and Sasha[2] had reported crash in split_huge_page_to_list()
-called from deferred_split_scan() due VM_BUG_ON_PAGE(!PageLocked(page)).
+THP is properly handled in munlock_vma_pages_range().
 
-This can happen because race between deferred_split_scan() and
-split_huge_page(). The result of the race is that the page can be split
-under deferred_split_scan().
-
-The patch prevents this by taking split_queue_lock in
-split_huge_page_to_list() when we check if the page can be split.
-If the page is suitable for splitting, we remove page from splitting
-queue under the same lock, before splitting starts.
-
-[1] http://lkml.kernel.org/g/20151117073539.GB32578@bbox
-[2] http://lkml.kernel.org/g/565C5F2D.5060003@oracle.com
+It fixes crashes like this:
+ http://lkml.kernel.org/r/565C5C38.3040705@oracle.com
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Minchan Kim <minchan@kernel.org>
-Tested-by: Minchan Kim <minchan@kernel.org>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Tested-by: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ mm/mlock.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/huge_memory.c~thp-introduce-deferred_split_huge_page-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-introduce-deferred_split_huge_page-fix
-+++ a/mm/huge_memory.c
-@@ -3217,13 +3217,6 @@ static void __split_huge_page(struct pag
- 	spin_lock_irq(&zone->lru_lock);
- 	lruvec = mem_cgroup_page_lruvec(head, zone);
+diff -puN mm/mlock.c~thp-allow-mlocked-thp-again-fix mm/mlock.c
+--- a/mm/mlock.c~thp-allow-mlocked-thp-again-fix
++++ a/mm/mlock.c
+@@ -393,6 +393,13 @@ static unsigned long __munlock_pagevec_f
+ 		if (!page || page_zone_id(page) != zoneid)
+ 			break;
  
--	spin_lock(&split_queue_lock);
--	if (!list_empty(page_deferred_list(head))) {
--		split_queue_len--;
--		list_del(page_deferred_list(head));
--	}
--	spin_unlock(&split_queue_lock);
--
- 	/* complete memcg works before add pages to LRU */
- 	mem_cgroup_split_huge_fixup(head);
- 
-@@ -3311,12 +3304,20 @@ int split_huge_page_to_list(struct page
- 	freeze_page(anon_vma, head);
- 	VM_BUG_ON_PAGE(compound_mapcount(head), head);
- 
-+	/* Prevent deferred_split_scan() touching ->_count */
-+	spin_lock(&split_queue_lock);
- 	count = page_count(head);
- 	mapcount = total_mapcount(head);
- 	if (mapcount == count - 1) {
-+		if (!list_empty(page_deferred_list(head))) {
-+			split_queue_len--;
-+			list_del(page_deferred_list(head));
-+		}
-+		spin_unlock(&split_queue_lock);
- 		__split_huge_page(page, list);
- 		ret = 0;
- 	} else if (IS_ENABLED(CONFIG_DEBUG_VM) && mapcount > count - 1) {
-+		spin_unlock(&split_queue_lock);
- 		pr_alert("total_mapcount: %u, page_count(): %u\n",
- 				mapcount, count);
- 		if (PageTail(page))
-@@ -3324,6 +3325,7 @@ int split_huge_page_to_list(struct page
- 		dump_page(page, "total_mapcount(head) > page_count(head) - 1");
- 		BUG();
- 	} else {
-+		spin_unlock(&split_queue_lock);
- 		unfreeze_page(anon_vma, head);
- 		ret = -EBUSY;
- 	}
++		/*
++		 * Do not use pagevec for PTE-mapped THP,
++		 * munlock_vma_pages_range() will handle them.
++		 */
++		if (PageTransCompound(page))
++			break;
++
+ 		get_page(page);
+ 		/*
+ 		 * Increase the address that will be returned *before* the
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -158,7 +117,6 @@ thp-introduce-deferred_split_huge_page.patch
 mm-re-enable-thp.patch
 thp-update-documentation.patch
 thp-allow-mlocked-thp-again.patch
-thp-allow-mlocked-thp-again-fix.patch
 thp-allow-mlocked-thp-again-fix-2.patch
 mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
 mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
