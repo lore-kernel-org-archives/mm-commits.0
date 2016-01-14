@@ -1,73 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch removed
+Subject: [folded-merged] mm-vmalloc-remove-vm_vpages-fix.patch removed
  from -mm tree
-Date: Thu, 14 Jan 2016 14:22:55 -0800
-Message-ID: <56981fbf.6R8ZOuzBR/c+J0bL%akpm@linux-foundation.org>
+Date: Thu, 14 Jan 2016 14:23:25 -0800
+Message-ID: <56981fdd.QtFA8rbuNmRCIOdm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44326 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44359 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750999AbcANWW4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:22:56 -0500
+	with ESMTP id S1752476AbcANWX0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:23:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes
+     Subject: mm-vmalloc-remove-vm_vpages-fix
 has been removed from the -mm tree.  Its filename was
-     mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
+     mm-vmalloc-remove-vm_vpages-fix.patch
 
-This patch was dropped because it was folded into mm-get-rid-of-__alloc_pages_high_priority.patch
+This patch was dropped because it was folded into mm-vmalloc-remove-vm_vpages.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes
+Subject: mm-vmalloc-remove-vm_vpages-fix
 
-WARNING: line over 80 characters
-#66: FILE: mm/page_alloc.c:3025:
-+							ALLOC_NO_WATERMARKS, ac);
+remove VM_VPAGES reference via kvfree()
 
-total: 0 errors, 1 warnings, 50 lines checked
-
-./patches/mm-get-rid-of-__alloc_pages_high_priority.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Michal Hocko <mhocko@suse.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes mm/page_alloc.c
---- a/mm/page_alloc.c~mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes
-+++ a/mm/page_alloc.c
-@@ -3022,7 +3022,7 @@ retry:
- 		ac->zonelist = node_zonelist(numa_node_id(), gfp_mask);
- 		do {
- 			page = get_page_from_freelist(gfp_mask, order,
--							ALLOC_NO_WATERMARKS, ac);
-+						      ALLOC_NO_WATERMARKS, ac);
- 			if (page)
- 				goto got_pg;
+diff -puN mm/vmalloc.c~mm-vmalloc-remove-vm_vpages-fix mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-remove-vm_vpages-fix
++++ a/mm/vmalloc.c
+@@ -1479,10 +1479,7 @@ static void __vunmap(const void *addr, i
+ 			__free_kmem_pages(page, 0);
+ 		}
  
+-		if (area->flags & VM_VPAGES)
+-			vfree(area->pages);
+-		else
+-			kfree(area->pages);
++		kvfree(area->pages);
+ 	}
+ 
+ 	kfree(area);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mm-get-rid-of-__alloc_pages_high_priority.patch
-mm-vmalloc-remove-vm_vpages-fix.patch
+mm-vmalloc-remove-vm_vpages.patch
 fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
 arm64-mm-support-arch_mmap_rnd_bits-fix.patch
 page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
