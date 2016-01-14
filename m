@@ -1,82 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] x86-mm-support-arch_mmap_rnd_bits-v7.patch
- removed from -mm tree
-Date: Thu, 14 Jan 2016 14:28:37 -0800
-Message-ID: <56982115.rgpRKxdaaGGIREbT%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter-fix.patch removed from -mm tree
+Date: Thu, 14 Jan 2016 14:29:13 -0800
+Message-ID: <56982139.ykXSZBBcpSrZfczt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45058 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45075 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752392AbcANW2i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:28:38 -0500
+	with ESMTP id S1751996AbcANW3O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:29:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dcashman@google.com, dcashman@android.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-mm-support-arch_mmap_rnd_bits-v7.txt
+     Subject: net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter
 has been removed from the -mm tree.  Its filename was
-     x86-mm-support-arch_mmap_rnd_bits-v7.patch
+     net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter-fix.patch
 
-This patch was dropped because it was folded into x86-mm-support-arch_mmap_rnd_bits.patch
+This patch was dropped because it was folded into net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter.patch
 
 ------------------------------------------------------
-From: Daniel Cashman <dcashman@google.com>
-Subject: x86-mm-support-arch_mmap_rnd_bits-v7.txt
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter
 
-x86: mm: support ARCH_MMAP_RND_BITS.
+Fixlet for the same-named patch currently in mmots. The forward decl
+is no longer necessary when the socket directly points to the memcg.
 
-Signed-off-by: Daniel Cashman <dcashman@android.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig   |    4 ++--
- arch/x86/mm/mmap.c |    6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ include/net/sock.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN arch/x86/Kconfig~x86-mm-support-arch_mmap_rnd_bits-v7 arch/x86/Kconfig
---- a/arch/x86/Kconfig~x86-mm-support-arch_mmap_rnd_bits-v7
-+++ a/arch/x86/Kconfig
-@@ -186,8 +186,8 @@ config MMU
- 	def_bool y
+diff -puN include/net/sock.h~net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter-fix include/net/sock.h
+--- a/include/net/sock.h~net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter-fix
++++ a/include/net/sock.h
+@@ -229,7 +229,6 @@ struct sock_common {
+ 	/* public: */
+ };
  
- config ARCH_MMAP_RND_BITS_MIN
--       default 28 if 64BIT
--       default 8
-+	default 28 if 64BIT
-+	default 8
- 
- config ARCH_MMAP_RND_BITS_MAX
- 	default 32 if 64BIT
-diff -puN arch/x86/mm/mmap.c~x86-mm-support-arch_mmap_rnd_bits-v7 arch/x86/mm/mmap.c
---- a/arch/x86/mm/mmap.c~x86-mm-support-arch_mmap_rnd_bits-v7
-+++ a/arch/x86/mm/mmap.c
-@@ -71,12 +71,12 @@ unsigned long arch_mmap_rnd(void)
- 
- 	if (mmap_is_ia32())
- #ifdef CONFIG_COMPAT
--		rnd = (unsigned long)get_random_int() % (1 << mmap_rnd_compat_bits);
-+		rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_compat_bits) - 1);
- #else
--		rnd = (unsigned long)get_random_int() % (1 << mmap_rnd_bits);
-+		rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_bits) - 1);
- #endif
- 	else
--		rnd = (unsigned long)get_random_int() % (1 << mmap_rnd_bits);
-+		rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_bits) - 1);
- 
- 	return rnd << PAGE_SHIFT;
- }
+-struct cg_proto;
+ /**
+   *	struct sock - network layer representation of sockets
+   *	@__sk_common: shared layout with inet_timewait_sock
 _
 
-Patches currently in -mm which might be from dcashman@google.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-mmap-add-new-proc-tunable-for-mmap_base-aslr.patch
-arm-mm-support-arch_mmap_rnd_bits.patch
-arm64-mm-support-arch_mmap_rnd_bits.patch
-x86-mm-support-arch_mmap_rnd_bits.patch
+mm-page_alloc-generalize-the-dirty-balance-reserve.patch
+proc-meminfo-estimate-available-memory-more-conservatively.patch
+mm-memcontrol-export-root_mem_cgroup.patch
+net-tcp_memcontrol-properly-detect-ancestor-socket-pressure.patch
+net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation.patch
+net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
+net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets.patch
+net-tcp_memcontrol-simplify-the-per-memcg-limit-access.patch
+net-tcp_memcontrol-sanitize-tcp-memory-accounting-callbacks.patch
+net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter.patch
+mm-memcontrol-generalize-the-socket-accounting-jump-label.patch
+mm-memcontrol-do-not-account-memoryswap-on-unified-hierarchy.patch
+mm-memcontrol-move-socket-code-for-unified-hierarchy-accounting.patch
+mm-memcontrol-account-socket-memory-in-unified-hierarchy-memory-controller.patch
+mm-memcontrol-hook-up-vmpressure-to-socket-pressure.patch
+mm-memcontrol-switch-to-the-updated-jump-label-api.patch
 
