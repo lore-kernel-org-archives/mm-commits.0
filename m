@@ -1,94 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] arm64-mm-support-arch_mmap_rnd_bits-v6.patch
+Subject: [folded-merged] arm64-mm-support-arch_mmap_rnd_bits-fix.patch
  removed from -mm tree
-Date: Thu, 14 Jan 2016 14:24:42 -0800
-Message-ID: <5698202a.4gRDREC97ihe1vq7%akpm@linux-foundation.org>
+Date: Thu, 14 Jan 2016 14:24:40 -0800
+Message-ID: <56982028.da4/sh43D1dt5Ym+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44453 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44450 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754487AbcANWYn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:24:43 -0500
+	with ESMTP id S1754487AbcANWYl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:24:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dcashman@google.com, dcashman@android.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, catalin.marinas@arm.com, dcashman@google.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64-mm-support-arch_mmap_rnd_bits-v6
+     Subject: arm64-mm-support-arch_mmap_rnd_bits-fix
 has been removed from the -mm tree.  Its filename was
-     arm64-mm-support-arch_mmap_rnd_bits-v6.patch
+     arm64-mm-support-arch_mmap_rnd_bits-fix.patch
 
 This patch was dropped because it was folded into arm64-mm-support-arch_mmap_rnd_bits.patch
 
 ------------------------------------------------------
-From: Daniel Cashman <dcashman@google.com>
-Subject: arm64-mm-support-arch_mmap_rnd_bits-v6
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arm64-mm-support-arch_mmap_rnd_bits-fix
 
-arm64: arch_mmap_rnd() uses STACK_RND_MASK to generate the
-random offset for the mmap base address.  This value represents a
-compromise between increased ASLR effectiveness and avoiding
-address-space fragmentation. Replace it with a Kconfig option, which
-is sensibly bounded, so that platform developers may choose where to
-place this compromise. Keep default values as new minimums.
-
-Signed-off-by: Daniel Cashman <dcashman@android.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Daniel Cashman <dcashman@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/Kconfig |   14 ++++++++------
- 1 file changed, 8 insertions(+), 6 deletions(-)
+ arch/arm64/mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/arm64/Kconfig~arm64-mm-support-arch_mmap_rnd_bits-v6 arch/arm64/Kconfig
---- a/arch/arm64/Kconfig~arm64-mm-support-arch_mmap_rnd_bits-v6
-+++ a/arch/arm64/Kconfig
-@@ -51,8 +51,8 @@ config ARM64
- 	select HAVE_ARCH_JUMP_LABEL
- 	select HAVE_ARCH_KASAN if SPARSEMEM_VMEMMAP && !(ARM64_16K_PAGES && ARM64_VA_BITS_48)
- 	select HAVE_ARCH_KGDB
--	select HAVE_ARCH_MMAP_RND_BITS if MMU
--	select HAVE_ARCH_MMAP_RND_COMPAT_BITS if MMU && COMPAT
-+	select HAVE_ARCH_MMAP_RND_BITS
-+	select HAVE_ARCH_MMAP_RND_COMPAT_BITS if COMPAT
- 	select HAVE_ARCH_SECCOMP_FILTER
- 	select HAVE_ARCH_TRACEHOOK
- 	select HAVE_BPF_JIT
-@@ -109,10 +109,12 @@ config MMU
- 	def_bool y
+diff -puN arch/arm64/mm/mmap.c~arm64-mm-support-arch_mmap_rnd_bits-fix arch/arm64/mm/mmap.c
+--- a/arch/arm64/mm/mmap.c~arm64-mm-support-arch_mmap_rnd_bits-fix
++++ a/arch/arm64/mm/mmap.c
+@@ -51,7 +51,7 @@ unsigned long arch_mmap_rnd(void)
+ {
+ 	unsigned long rnd;
  
- config ARCH_MMAP_RND_BITS_MIN
--       default 15 if ARM64_64K_PAGES
--       default 17 if ARM64_16K_PAGES
--       default 19
-+       default 14 if ARM64_64K_PAGES
-+       default 16 if ARM64_16K_PAGES
-+       default 18
- 
-+# max bits determined by the following formula:
-+#  VA_BITS - PAGE_SHIFT - 3
- config ARCH_MMAP_RND_BITS_MAX
-        default 19 if ARM64_VA_BITS=36
-        default 20 if ARM64_64K_PAGES && ARM64_VA_BITS=39
-@@ -127,7 +129,7 @@ config ARCH_MMAP_RND_BITS_MAX
-        default 33 if ARM64_VA_BITS=48
-        default 15 if ARM64_64K_PAGES
-        default 17 if ARM64_16K_PAGES
--       default 19
-+       default 18
- 
- config ARCH_MMAP_RND_COMPAT_BITS_MIN
-        default 7 if ARM64_64K_PAGES
+-ifdef CONFIG_COMPAT
++#ifdef CONFIG_COMPAT
+ 	if (test_thread_flag(TIF_32BIT))
+ 		rnd = (unsigned long)get_random_int() % (1 << mmap_rnd_compat_bits);
+ 	else
 _
 
-Patches currently in -mm which might be from dcashman@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-mmap-add-new-proc-tunable-for-mmap_base-aslr.patch
-arm-mm-support-arch_mmap_rnd_bits.patch
+include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
 arm64-mm-support-arch_mmap_rnd_bits.patch
-arm64-mm-support-arch_mmap_rnd_bits-v7.patch
-x86-mm-support-arch_mmap_rnd_bits.patch
-x86-mm-support-arch_mmap_rnd_bits-v7.patch
+page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
+mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
+mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+thp-reintroduce-split_huge_page-fix.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
+thp-add-debugfs-handle-to-split-all-huge-pages-fix.patch
 
