@@ -1,65 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] arm64-mm-support-arch_mmap_rnd_bits-fix.patch
+Subject: [folded-merged]
+ vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2.patch
  removed from -mm tree
-Date: Thu, 14 Jan 2016 14:24:40 -0800
-Message-ID: <56982028.da4/sh43D1dt5Ym+%akpm@linux-foundation.org>
+Date: Thu, 14 Jan 2016 14:23:54 -0800
+Message-ID: <56981ffa.JYW6sQ5N/wyDFdri%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44450 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44370 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754487AbcANWYl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:24:41 -0500
+	with ESMTP id S1755834AbcANWXz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:23:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, catalin.marinas@arm.com, dcashman@google.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mgorman@techsingularity.net, mhocko@suse.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm64-mm-support-arch_mmap_rnd_bits-fix
+     Subject: vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2
 has been removed from the -mm tree.  Its filename was
-     arm64-mm-support-arch_mmap_rnd_bits-fix.patch
+     vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2.patch
 
-This patch was dropped because it was folded into arm64-mm-support-arch_mmap_rnd_bits.patch
+This patch was dropped because it was folded into vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arm64-mm-support-arch_mmap_rnd_bits-fix
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2
 
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Daniel Cashman <dcashman@google.com>
+Changes in v2:
+ - remove unnecessary > 0 (Johannes)
+ - elaborate on the comment (Andrew)
+
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm64/mm/mmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmscan.c |   11 ++++++++---
+ 1 file changed, 8 insertions(+), 3 deletions(-)
 
-diff -puN arch/arm64/mm/mmap.c~arm64-mm-support-arch_mmap_rnd_bits-fix arch/arm64/mm/mmap.c
---- a/arch/arm64/mm/mmap.c~arm64-mm-support-arch_mmap_rnd_bits-fix
-+++ a/arch/arm64/mm/mmap.c
-@@ -51,7 +51,7 @@ unsigned long arch_mmap_rnd(void)
- {
- 	unsigned long rnd;
+diff -puN mm/vmscan.c~vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2 mm/vmscan.c
+--- a/mm/vmscan.c~vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small-v2
++++ a/mm/vmscan.c
+@@ -2043,11 +2043,16 @@ static void get_scan_count(struct lruvec
+ 	}
  
--ifdef CONFIG_COMPAT
-+#ifdef CONFIG_COMPAT
- 	if (test_thread_flag(TIF_32BIT))
- 		rnd = (unsigned long)get_random_int() % (1 << mmap_rnd_compat_bits);
- 	else
+ 	/*
+-	 * There is enough inactive page cache, do not reclaim
+-	 * anything from the anonymous working set right now.
++	 * If there is enough inactive page cache, i.e. if the size of the
++	 * inactive list is greater than that of the active list *and* the
++	 * inactive list actually has some pages to scan on this priority, we
++	 * do not reclaim anything from the anonymous working set right now.
++	 * Without the second condition we could end up never scanning an
++	 * lruvec even if it has plenty of old anonymous pages unless the
++	 * system is under heavy pressure.
+ 	 */
+ 	if (!inactive_file_is_low(lruvec) &&
+-	    get_lru_size(lruvec, LRU_INACTIVE_FILE) >> sc->priority > 0) {
++	    get_lru_size(lruvec, LRU_INACTIVE_FILE) >> sc->priority) {
+ 		scan_balance = SCAN_FILE;
+ 		goto out;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vdavydov@virtuozzo.com are
 
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-arm64-mm-support-arch_mmap_rnd_bits.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-thp-reintroduce-split_huge_page-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-thp-add-debugfs-handle-to-split-all-huge-pages-fix.patch
+revert-kernfs-do-not-account-ino_ida-allocations-to-memcg.patch
+revert-gfp-add-__gfp_noaccount.patch
+memcg-only-account-kmem-allocations-marked-as-__gfp_account.patch
+slab-add-slab_account-flag.patch
+vmalloc-allow-to-account-vmalloc-to-memcg.patch
+account-certain-kmem-allocations-to-memcg.patch
+vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small.patch
+memcg-do-not-allow-to-disable-tcp-accounting-after-limit-is-set.patch
+mm-add-page_check_address_transhuge-helper.patch
+mm-add-page_check_address_transhuge-helper-fix.patch
 
