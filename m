@@ -1,133 +1,100 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch removed
- from -mm tree
-Date: Thu, 14 Jan 2016 14:32:35 -0800
-Message-ID: <56982203.NqbYwcgUXWCqNDiW%akpm@linux-foundation.org>
+ rmap-add-argument-to-charge-compound-page-fix.patch removed from -mm tree
+Date: Thu, 14 Jan 2016 14:33:12 -0800
+Message-ID: <56982228.U4uNvHn9ztyaffr1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45247 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45289 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754077AbcANWcf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:32:35 -0500
+	with ESMTP id S1752347AbcANWdN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:33:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, hillf.zj@alibaba-inc.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, kirill.shutemov@linux.intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: clear PG_reserved before setting PG_head on gigantic pages
+     Subject: mm: fix mapcount mismatch in hugepage migration
 has been removed from the -mm tree.  Its filename was
-     page-flags-define-pg_reserved-behavior-on-compound-pages-fix.patch
+     rmap-add-argument-to-charge-compound-page-fix.patch
 
-This patch was dropped because it was folded into page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+This patch was dropped because it was folded into rmap-add-argument-to-charge-compound-page.patch
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: hugetlb: clear PG_reserved before setting PG_head on gigantic pages
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm: fix mapcount mismatch in hugepage migration
 
-PF_NO_COMPOUND for PG_reserved assumes we don't use PG_reserved for
-compound pages.  And we generally don't.  But during allocation of
-gigantic pages we set PG_head before clearing PG_reserved and
-__ClearPageReserved() steps on the VM_BUG_ON_PAGE().
+try_to_unmap_one() should be able to handle hugetlb, but page_remove_rmap()
+in that function takes false as a compound flag, which breaks hugepage migration
+with the following message.
 
-The fix is trivial: set PG_head after PG_reserved.
+  Soft offlining page 0x1d4a00 at 0x7ff634a00000
+  soft offline: 0x1d4a00: migration failed 1, type 60000000000401c
+  BUG: Bad page state in process sysctl  pfn:1d4a00
+  page:ffffea0007528000 count:0 mapcount:0 mapping:          (null) index:0x0 compound_mapcount: 10
+  flags: 0x600000000004008(uptodate|head)
+  page dumped because: nonzero mapcount
+  Modules linked in: cfg80211 rfkill crc32c_intel virtio_balloon serio_raw i2c_piix4 virtio_blk virtio_net ata_generic pata_acpi
+  CPU: 3 PID: 11882 Comm: sysctl Tainted: G        W       4.3.0-mmotm-2015-11-10-15-53-151112-1812-00015-53+ #240
+  Hardware name: Bochs Bochs, BIOS Bochs 01/01/2011
+   ffffffff81a1a124 ffff8800da047bd0 ffffffff81340adf ffffea0007528000
+   ffff8800da047bf8 ffffffff8116e206 0000000000000009 ffffffff81f72538
+   ffffea0007528000 ffff8800da047c48 ffffffff8116e6d6 0000020000000000
+  Call Trace:
+   [<ffffffff81340adf>] dump_stack+0x44/0x55
+   [<ffffffff8116e206>] bad_page+0xc6/0x110
+   [<ffffffff8116e6d6>] free_pages_prepare+0x486/0x500
+   [<ffffffff81170f9a>] __free_pages_ok+0x1a/0xb0
+   [<ffffffff81171af1>] __free_pages+0x21/0x40
+   [<ffffffff811b5d79>] update_and_free_page+0xa9/0x230
+   [<ffffffff811b6641>] free_pool_huge_page+0xc1/0xe0
+   [<ffffffff811b6d02>] set_max_huge_pages+0x382/0x4d0
+   [<ffffffff811b7002>] hugetlb_sysctl_handler_common+0xa2/0xd0
+   [<ffffffff811b823e>] hugetlb_sysctl_handler+0x1e/0x20
+   [<ffffffff812535fe>] proc_sys_call_handler+0xae/0xc0
+   [<ffffffff81253624>] proc_sys_write+0x14/0x20
+   [<ffffffff811e8758>] __vfs_write+0x28/0xe0
+   [<ffffffff810d1864>] ? percpu_down_read+0x14/0x60
+   [<ffffffff811e8d29>] vfs_write+0xa9/0x190
+   [<ffffffff811e9646>] SyS_write+0x46/0xb0
+   [<ffffffff8163d797>] entry_SYSCALL_64_fastpath+0x12/0x6a
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+This patch simply fixes this by giving the compound flag via PageHuge.
+
+
+Fixes: "rmap: add argument to charge compound page".
+
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
+ mm/rmap.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~page-flags-define-pg_reserved-behavior-on-compound-pages-fix mm/hugetlb.c
---- a/mm/hugetlb.c~page-flags-define-pg_reserved-behavior-on-compound-pages-fix
-+++ a/mm/hugetlb.c
-@@ -1267,8 +1267,8 @@ static void prep_compound_gigantic_page(
+diff -puN mm/rmap.c~rmap-add-argument-to-charge-compound-page-fix mm/rmap.c
+--- a/mm/rmap.c~rmap-add-argument-to-charge-compound-page-fix
++++ a/mm/rmap.c
+@@ -1430,7 +1430,7 @@ static int try_to_unmap_one(struct page
+ 	} else
+ 		dec_mm_counter(mm, mm_counter_file(page));
  
- 	/* we rely on prep_new_huge_page to set the destructor */
- 	set_compound_order(page, order);
--	__SetPageHead(page);
- 	__ClearPageReserved(page);
-+	__SetPageHead(page);
- 	for (i = 1; i < nr_pages; i++, p = mem_map_next(p, page, i)) {
- 		/*
- 		 * For gigantic hugepages allocated through bootmem at
+-	page_remove_rmap(page, false);
++	page_remove_rmap(page, PageHuge(page));
+ 	page_cache_release(page);
+ 
+ out_unmap:
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-mm-make-sure-isolate_lru_page-is-never-called-for-tail-page.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-move-code-around.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-at-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-page-flags-drop-__testclearpage-helpers.patch
-mm-proc-adjust-pss-calculation.patch
+mm-page_isolation-use-micro-to-judge-the-alignment.patch
 rmap-add-argument-to-charge-compound-page.patch
-memcg-adjust-to-support-new-thp-refcounting.patch
-mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault.patch
-mm-adjust-foll_split-for-new-refcounting.patch
-mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
-thp-mlock-do-not-allow-huge-pages-in-mlocked-area.patch
-khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes.patch
-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
-mm-vmstats-new-thp-splitting-event.patch
-mm-temporally-mark-thp-broken.patch
-thp-drop-all-split_huge_page-related-code.patch
-mm-drop-tail-page-refcounting.patch
-futex-thp-remove-special-case-for-thp-in-get_futex_key.patch
-ksm-prepare-to-new-thp-semantics.patch
-mm-thp-remove-compound_lock.patch
-arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-arm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mips-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-powerpc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-s390-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-sparc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-tile-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-x86-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-2.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix-3.patch
-mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
-mm-numa-skip-pte-mapped-thp-on-numa-fault.patch
-thp-implement-split_huge_pmd.patch
-thp-add-option-to-setup-migration-entries-during-pmd-split.patch
-thp-mm-split_huge_page-caller-need-to-lock-page.patch
-thp-reintroduce-split_huge_page.patch
-thp-reintroduce-split_huge_page-fix-3.patch
-thp-reintroduce-split_huge_page-fix-4.patch
-migrate_pages-try-to-split-pages-on-qeueuing.patch
-migrate_pages-try-to-split-pages-on-queuing-fix.patch
-thp-introduce-deferred_split_huge_page.patch
-thp-introduce-deferred_split_huge_page-fix.patch
-mm-re-enable-thp.patch
-thp-update-documentation.patch
-thp-allow-mlocked-thp-again.patch
-thp-allow-mlocked-thp-again-fix.patch
-thp-allow-mlocked-thp-again-fix-2.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch
-thp-add-debugfs-handle-to-split-all-huge-pages.patch
-thp-increase-split_huge_page-success-rate.patch
+mm-soft-offline-check-return-value-in-second-__get_any_page-call.patch
+mm-hwpoison-adjust-for-new-thp-refcounting.patch
 
