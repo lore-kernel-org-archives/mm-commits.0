@@ -1,68 +1,101 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix.patch removed from -mm tree
-Date: Thu, 14 Jan 2016 14:29:32 -0800
-Message-ID: <5698214c.YomjlxE5YWZscK6Y%akpm@linux-foundation.org>
+ memory-hotplug-dont-bug-in-register_memory_resource-v2.patch removed from
+ -mm tree
+Date: Thu, 14 Jan 2016 14:30:29 -0800
+Message-ID: <56982185.HnUd0tLKq4BbyNKy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45146 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45189 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751996AbcANW3d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:29:33 -0500
+	with ESMTP id S1755042AbcANWaa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:30:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, hannes@cmpxchg.org, mhocko@suse.cz, penguin-kernel@i-love.sakura.ne.jp, mm-commits@vger.kernel.org
+To: vkuznets@redhat.com, dan.j.williams@intel.com, david.vrabel@citrix.com, imammedo@redhat.com, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, rientjes@google.com, shengyong1@huawei.com, tangchen@cn.fujitsu.com, zhugh.fnst@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix
+     Subject: memory-hotplug-dont-bug-in-register_memory_resource-v2
 has been removed from the -mm tree.  Its filename was
-     vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix.patch
+     memory-hotplug-dont-bug-in-register_memory_resource-v2.patch
 
-This patch was dropped because it was folded into vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle.patch
+This patch was dropped because it was folded into memory-hotplug-dont-bug-in-register_memory_resource.patch
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@linux.com>
-Subject: vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix
+From: Vitaly Kuznetsov <vkuznets@redhat.com>
+Subject: memory-hotplug-dont-bug-in-register_memory_resource-v2
 
-Hmmm... We got a race condition since quiet_vmstat touches cpu_stat_off
-which may not be allocated early in the bootup sequence. Causes oopses on
-boot.
+Changes since v1:
+- Use ERR_PTR/PTR_ERR/IS_ERR() [David Rientjes]
 
-Subject: vmstat: quieting vmstat requires a running system
-
-Do not do anything unless the system is actually running. Otherwise
-we may crash on bootup.
-
-Signed-off-by: Christoph Lameter <cl@linux.com>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Sheng Yong <shengyong1@huawei.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/memory_hotplug.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN mm/vmstat.c~vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix mm/vmstat.c
---- a/mm/vmstat.c~vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix
-+++ a/mm/vmstat.c
-@@ -1426,6 +1426,9 @@ static void vmstat_update(struct work_st
-  */
- void quiet_vmstat(void)
+diff -puN mm/memory_hotplug.c~memory-hotplug-dont-bug-in-register_memory_resource-v2 mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-dont-bug-in-register_memory_resource-v2
++++ a/mm/memory_hotplug.c
+@@ -127,13 +127,12 @@ void mem_hotplug_done(void)
+ }
+ 
+ /* add this memory to iomem resource */
+-static int register_memory_resource(u64 start, u64 size,
+-				    struct resource **resource)
++static struct resource *register_memory_resource(u64 start, u64 size)
  {
-+	if (system_state != SYSTEM_RUNNING)
-+		return;
-+
- 	do {
- 		if (!cpumask_test_and_set_cpu(smp_processor_id(), cpu_stat_off))
- 			cancel_delayed_work(this_cpu_ptr(&vmstat_work));
+ 	struct resource *res;
+ 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+ 	if (!res)
+-		return -ENOMEM;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	res->name = "System RAM";
+ 	res->start = start;
+@@ -142,10 +141,9 @@ static int register_memory_resource(u64
+ 	if (request_resource(&iomem_resource, res) < 0) {
+ 		pr_debug("System RAM resource %pR cannot be added\n", res);
+ 		kfree(res);
+-		return -EEXIST;
++		return ERR_PTR(-EEXIST);
+ 	}
+-	*resource = res;
+-	return 0;
++	return res;
+ }
+ 
+ static void release_memory_resource(struct resource *res)
+@@ -1314,9 +1312,9 @@ int __ref add_memory(int nid, u64 start,
+ 	struct resource *res;
+ 	int ret;
+ 
+-	ret = register_memory_resource(start, size, &res);
+-	if (ret)
+-		return ret;
++	res = register_memory_resource(start, size);
++	if (IS_ERR(res))
++		return PTR_ERR(res);
+ 
+ 	ret = add_memory_resource(nid, res);
+ 	if (ret < 0)
 _
 
-Patches currently in -mm which might be from cl@linux.com are
+Patches currently in -mm which might be from vkuznets@redhat.com are
 
-vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle.patch
+memory-hotplug-dont-bug-in-register_memory_resource.patch
 
