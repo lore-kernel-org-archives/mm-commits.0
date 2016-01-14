@@ -1,101 +1,59 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch removed from -mm tree
-Date: Thu, 14 Jan 2016 14:43:21 -0800
-Message-ID: <56982489.0Pi0IdePshC2IVQG%akpm@linux-foundation.org>
+ mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch removed from -mm tree
+Date: Thu, 14 Jan 2016 14:43:24 -0800
+Message-ID: <5698248c.64pEqdDf/18wCBfE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46343 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46349 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756419AbcANWnW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:43:22 -0500
+	with ESMTP id S1756430AbcANWnZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:43:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: uninline slowpath of page_mapcount()
+     Subject: mm: fix __page_mapcount()
 has been removed from the -mm tree.  Its filename was
-     mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
+     mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch
 
 This patch was dropped because it was folded into mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: uninline slowpath of page_mapcount()
+Subject: mm: fix __page_mapcount()
 
-Let's move page_mapcount() part for compound page into mm/util.c.
+I made mistake in uninlining patch: we need to read _mapcount of the
+page which caller pointed us to, not head page.
 
-make allyesconfig:
-
-  text	   data	    bss	    dec	    hex	filename
-188515051	153360535	85458720	427334306	19789aa2	vmlinux.o.before
-188512917	153356439	85458720	427328076	1978824c	vmlinux.o.after
+It's fixlet for
+ "mm: uninline slowpath of page_mapcount()"
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   14 +++++---------
- mm/util.c          |   14 ++++++++++++++
- 2 files changed, 19 insertions(+), 9 deletions(-)
+ mm/util.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix include/linux/mm.h
---- a/include/linux/mm.h~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix
-+++ a/include/linux/mm.h
-@@ -433,19 +433,15 @@ static inline void page_mapcount_reset(s
- 	atomic_set(&(page)->_mapcount, -1);
- }
- 
-+int __page_mapcount(struct page *page);
-+
- static inline int page_mapcount(struct page *page)
- {
--	int ret;
- 	VM_BUG_ON_PAGE(PageSlab(page), page);
- 
--	ret = atomic_read(&page->_mapcount) + 1;
--	if (PageCompound(page)) {
--		page = compound_head(page);
--		ret += atomic_read(compound_mapcount_ptr(page)) + 1;
--		if (PageDoubleMap(page))
--			ret--;
--	}
--	return ret;
-+	if (unlikely(PageCompound(page)))
-+		return __page_mapcount(page);
-+	return atomic_read(&page->_mapcount) + 1;
- }
- 
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
-diff -puN mm/util.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix mm/util.c
---- a/mm/util.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix
+diff -puN mm/util.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix mm/util.c
+--- a/mm/util.c~mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix
 +++ a/mm/util.c
-@@ -407,6 +407,20 @@ struct address_space *page_mapping(struc
- 	return mapping;
- }
+@@ -412,8 +412,8 @@ int __page_mapcount(struct page *page)
+ {
+ 	int ret;
  
-+/* Slow path of page_mapcount() for compound pages */
-+int __page_mapcount(struct page *page)
-+{
-+	int ret;
-+
+-	page = compound_head(page);
+ 	ret = atomic_read(&page->_mapcount) + 1;
 +	page = compound_head(page);
-+	ret = atomic_read(&page->_mapcount) + 1;
-+	ret += atomic_read(compound_mapcount_ptr(page)) + 1;
-+	if (PageDoubleMap(page))
-+		ret--;
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(__page_mapcount);
-+
- int overcommit_ratio_handler(struct ctl_table *table, int write,
- 			     void __user *buffer, size_t *lenp,
- 			     loff_t *ppos)
+ 	ret += atomic_read(compound_mapcount_ptr(page)) + 1;
+ 	if (PageDoubleMap(page))
+ 		ret--;
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -156,7 +114,6 @@ mm-re-enable-thp.patch
 thp-update-documentation.patch
 thp-allow-mlocked-thp-again.patch
 mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch
 thp-add-debugfs-handle-to-split-all-huge-pages.patch
 thp-increase-split_huge_page-success-rate.patch
 
