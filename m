@@ -1,63 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] thp-allow-mlocked-thp-again-fix.patch removed
+Subject: [folded-merged] thp-allow-mlocked-thp-again-fix-2.patch removed
  from -mm tree
-Date: Thu, 14 Jan 2016 14:42:39 -0800
-Message-ID: <5698245f.KOMLcGjq7XkfIkSp%akpm@linux-foundation.org>
+Date: Thu, 14 Jan 2016 14:42:42 -0800
+Message-ID: <56982462.1aRrKIHLRE0F0kNx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46297 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46301 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754116AbcANWmk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:42:40 -0500
+	with ESMTP id S1754116AbcANWmn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:42:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: stop __munlock_pagevec_fill() if THP encountered
+     Subject: mm, thp: clear PG_mlocked when last mapping gone
 has been removed from the -mm tree.  Its filename was
-     thp-allow-mlocked-thp-again-fix.patch
+     thp-allow-mlocked-thp-again-fix-2.patch
 
 This patch was dropped because it was folded into thp-allow-mlocked-thp-again.patch
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: stop __munlock_pagevec_fill() if THP encountered
+Subject: mm, thp: clear PG_mlocked when last mapping gone
 
-THP is properly handled in munlock_vma_pages_range().
+I missed clear_page_mlock() in page_remove_anon_compound_rmap().
+It usually shouldn't cause any problems since we munlock pages
+explicitly, but in conjunction with missed munlock in __oom_reap_vmas()
+it causes problems:
+ http://lkml.kernel.org/r/5661FBB6.6050307@oracle.com
 
-It fixes crashes like this:
- http://lkml.kernel.org/r/565C5C38.3040705@oracle.com
+Let's put it in place an mirror behaviour for small pages.
+
+NOTE: I'm not entirely sure why we ever need clear_page_mlock() in
+page_remove_rmap() codepath. It looks redundant to me as we munlock
+pages anyway. But this is out of scope of the patch.
+
+The patch can be folded into
+ "thp: allow mlocked THP again"
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
 Tested-by: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+ mm/rmap.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN mm/mlock.c~thp-allow-mlocked-thp-again-fix mm/mlock.c
---- a/mm/mlock.c~thp-allow-mlocked-thp-again-fix
-+++ a/mm/mlock.c
-@@ -393,6 +393,13 @@ static unsigned long __munlock_pagevec_f
- 		if (!page || page_zone_id(page) != zoneid)
- 			break;
+diff -puN mm/rmap.c~thp-allow-mlocked-thp-again-fix-2 mm/rmap.c
+--- a/mm/rmap.c~thp-allow-mlocked-thp-again-fix-2
++++ a/mm/rmap.c
+@@ -1282,6 +1282,9 @@ static void page_remove_anon_compound_rm
+ 		nr = HPAGE_PMD_NR;
+ 	}
  
-+		/*
-+		 * Do not use pagevec for PTE-mapped THP,
-+		 * munlock_vma_pages_range() will handle them.
-+		 */
-+		if (PageTransCompound(page))
-+			break;
++	if (unlikely(PageMlocked(page)))
++		clear_page_mlock(page);
 +
- 		get_page(page);
- 		/*
- 		 * Increase the address that will be returned *before* the
+ 	if (nr) {
+ 		__mod_zone_page_state(page_zone(page), NR_ANON_PAGES, -nr);
+ 		deferred_split_huge_page(page);
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
@@ -117,7 +124,6 @@ thp-introduce-deferred_split_huge_page.patch
 mm-re-enable-thp.patch
 thp-update-documentation.patch
 thp-allow-mlocked-thp-again.patch
-thp-allow-mlocked-thp-again-fix-2.patch
 mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
 mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix.patch
 mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix-fix-fix.patch
