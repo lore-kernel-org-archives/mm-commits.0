@@ -1,73 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter-fix.patch removed from -mm tree
-Date: Thu, 14 Jan 2016 14:29:13 -0800
-Message-ID: <56982139.ykXSZBBcpSrZfczt%akpm@linux-foundation.org>
+ vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix.patch removed from -mm tree
+Date: Thu, 14 Jan 2016 14:29:32 -0800
+Message-ID: <5698214c.YomjlxE5YWZscK6Y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45075 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45146 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751996AbcANW3O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:29:14 -0500
+	with ESMTP id S1751996AbcANW3d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:29:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, davem@davemloft.net, mm-commits@vger.kernel.org
+To: cl@linux.com, hannes@cmpxchg.org, mhocko@suse.cz, penguin-kernel@i-love.sakura.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter
+     Subject: vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix
 has been removed from the -mm tree.  Its filename was
-     net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter-fix.patch
+     vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix.patch
 
-This patch was dropped because it was folded into net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter.patch
+This patch was dropped because it was folded into vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle.patch
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter
+From: Christoph Lameter <cl@linux.com>
+Subject: vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix
 
-Fixlet for the same-named patch currently in mmots. The forward decl
-is no longer necessary when the socket directly points to the memcg.
+Hmmm... We got a race condition since quiet_vmstat touches cpu_stat_off
+which may not be allocated early in the bootup sequence. Causes oopses on
+boot.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David S. Miller <davem@davemloft.net>
+Subject: vmstat: quieting vmstat requires a running system
+
+Do not do anything unless the system is actually running. Otherwise
+we may crash on bootup.
+
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/net/sock.h |    1 -
- 1 file changed, 1 deletion(-)
+ mm/vmstat.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/net/sock.h~net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter-fix include/net/sock.h
---- a/include/net/sock.h~net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter-fix
-+++ a/include/net/sock.h
-@@ -229,7 +229,6 @@ struct sock_common {
- 	/* public: */
- };
- 
--struct cg_proto;
- /**
-   *	struct sock - network layer representation of sockets
-   *	@__sk_common: shared layout with inet_timewait_sock
+diff -puN mm/vmstat.c~vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle-fix
++++ a/mm/vmstat.c
+@@ -1426,6 +1426,9 @@ static void vmstat_update(struct work_st
+  */
+ void quiet_vmstat(void)
+ {
++	if (system_state != SYSTEM_RUNNING)
++		return;
++
+ 	do {
+ 		if (!cpumask_test_and_set_cpu(smp_processor_id(), cpu_stat_off))
+ 			cancel_delayed_work(this_cpu_ptr(&vmstat_work));
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from cl@linux.com are
 
-mm-page_alloc-generalize-the-dirty-balance-reserve.patch
-proc-meminfo-estimate-available-memory-more-conservatively.patch
-mm-memcontrol-export-root_mem_cgroup.patch
-net-tcp_memcontrol-properly-detect-ancestor-socket-pressure.patch
-net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation.patch
-net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
-net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets.patch
-net-tcp_memcontrol-simplify-the-per-memcg-limit-access.patch
-net-tcp_memcontrol-sanitize-tcp-memory-accounting-callbacks.patch
-net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter.patch
-mm-memcontrol-generalize-the-socket-accounting-jump-label.patch
-mm-memcontrol-do-not-account-memoryswap-on-unified-hierarchy.patch
-mm-memcontrol-move-socket-code-for-unified-hierarchy-accounting.patch
-mm-memcontrol-account-socket-memory-in-unified-hierarchy-memory-controller.patch
-mm-memcontrol-hook-up-vmpressure-to-socket-pressure.patch
-mm-memcontrol-switch-to-the-updated-jump-label-api.patch
+vmstat-make-vmstat_updater-deferrable-again-and-shut-down-on-idle.patch
 
