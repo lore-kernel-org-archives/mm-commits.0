@@ -1,93 +1,74 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch removed
+ mm-cma-always-check-which-page-cause-allocation-failure-v2.patch removed
  from -mm tree
-Date: Thu, 14 Jan 2016 14:20:15 -0800
-Message-ID: <56981f1f.sLngfCuflDcWOtPs%akpm@linux-foundation.org>
+Date: Thu, 14 Jan 2016 14:20:52 -0800
+Message-ID: <56981f44.6GXBt8FA5tYTSTyj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44130 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44158 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753907AbcANWUQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:20:16 -0500
+	with ESMTP id S1753350AbcANWUy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:20:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aneesh.kumar@linux.vnet.ibm.com, mgorman@suse.de, n-horiguchi@ah.jp.nec.com, nyc@holomorphy.com, nzimmer@sgi.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: js1304@gmail.com, iamjoonsoo.kim@lge.com, mina86@mina86.com, minchan@kernel.org, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2
+     Subject: mm/cma: always check which page cause allocation failure
 has been removed from the -mm tree.  Its filename was
-     mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2.patch
+     mm-cma-always-check-which-page-cause-allocation-failure-v2.patch
 
-This patch was dropped because it was folded into mempolicy-convert-the-shared_policy-lock-to-a-rwlock.patch
+This patch was dropped because it was folded into mm-cma-always-check-which-page-cause-allocation-failure.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2
+From: Joonsoo Kim <js1304@gmail.com>
+Subject: mm/cma: always check which page cause allocation failure
 
-tidy up code comments
-
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Michal Nazarewicz <mina86@mina86.com>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Nadia Yvette Chambers <nyc@holomorphy.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Nathan Zimmer <nzimmer@sgi.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   12 ++++++++----
- 1 file changed, 8 insertions(+), 4 deletions(-)
+ mm/page_alloc.c |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN mm/mempolicy.c~mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2 mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-convert-the-shared_policy-lock-to-a-rwlock-fix-2
-+++ a/mm/mempolicy.c
-@@ -2146,8 +2146,10 @@ bool __mpol_equal(struct mempolicy *a, s
-  * for any accesses to the tree.
-  */
+diff -puN mm/page_alloc.c~mm-cma-always-check-which-page-cause-allocation-failure-v2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-cma-always-check-which-page-cause-allocation-failure-v2
++++ a/mm/page_alloc.c
+@@ -6763,6 +6763,19 @@ int alloc_contig_range(unsigned long sta
+ 		outer_start &= ~0UL << order;
+ 	}
  
--/* lookup first element intersecting start-end */
--/* Caller holds sp->lock */
-+/*
-+ * lookup first element intersecting start-end.  Caller holds sp->lock for
-+ * reading or for writing
-+ */
- static struct sp_node *
- sp_lookup(struct shared_policy *sp, unsigned long start, unsigned long end)
- {
-@@ -2178,8 +2180,10 @@ sp_lookup(struct shared_policy *sp, unsi
- 	return rb_entry(n, struct sp_node, nd);
- }
- 
--/* Insert a new shared policy into the list. */
--/* Caller holds the write of sp->lock */
-+/*
-+ * Insert a new shared policy into the list.  Caller holds sp->lock for
-+ * writing.
-+ */
- static void sp_insert(struct shared_policy *sp, struct sp_node *new)
- {
- 	struct rb_node **p = &sp->root.rb_node;
++	if (outer_start != start) {
++		order = page_order(pfn_to_page(outer_start));
++
++		/*
++		 * outer_start page could be small order buddy page and
++		 * it doesn't include start page. Adjust outer_start
++		 * in this case to report failed page properly
++		 * on tracepoint in test_pages_isolated()
++		 */
++		if (outer_start + (1UL << order) <= start)
++			outer_start = start;
++	}
++
+ 	/* Make sure the range is really isolated. */
+ 	if (test_pages_isolated(outer_start, end, false)) {
+ 		pr_info("%s: [%lx, %lx) PFNs busy\n",
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from js1304@gmail.com are
 
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mempolicy-convert-the-shared_policy-lock-to-a-rwlock.patch
-mm-zonelist-enumerate-zonelists-array-index-checkpatch-fixes.patch
-mm-zonelist-enumerate-zonelists-array-index-fix.patch
-mm-get-rid-of-__alloc_pages_high_priority-checkpatch-fixes.patch
-mm-vmalloc-remove-vm_vpages-fix.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-arm64-mm-support-arch_mmap_rnd_bits-fix.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-thp-reintroduce-split_huge_page-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-thp-add-debugfs-handle-to-split-all-huge-pages-fix.patch
+mm-page_isolation-return-last-tested-pfn-rather-than-failure-indicator.patch
+mm-page_isolation-add-new-tracepoint-test_pages_isolated.patch
+mm-cma-always-check-which-page-cause-allocation-failure.patch
+mm-compaction-__compact_pgdat-code-cleanuup.patch
 
