@@ -1,62 +1,57 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch removed from -mm tree
-Date: Thu, 14 Jan 2016 14:40:40 -0800
-Message-ID: <569823e8.dyuc81ZtoTK3oU0f%akpm@linux-foundation.org>
+Subject: [folded-merged] thp-reintroduce-split_huge_page-fix-2.patch
+ removed from -mm tree
+Date: Thu, 14 Jan 2016 14:41:16 -0800
+Message-ID: <5698240c.9BXNa/ofzHu9jVcp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46212 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46245 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755986AbcANWkl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:40:41 -0500
+	with ESMTP id S1753816AbcANWlR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:41:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: kirill@shutemov.name, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hwpoison-adjust-for-new-thp-refcounting-fix
+     Subject: thp-reintroduce-split_huge_page-fix-2
 has been removed from the -mm tree.  Its filename was
-     mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
+     thp-reintroduce-split_huge_page-fix-2.patch
 
-This patch was dropped because it was folded into mm-hwpoison-adjust-for-new-thp-refcounting.patch
+This patch was dropped because it was folded into thp-reintroduce-split_huge_page.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-hwpoison-adjust-for-new-thp-refcounting-fix
+From: "Kirill A. Shutemov" <kirill@shutemov.name>
+Subject: thp-reintroduce-split_huge_page-fix-2
 
-remove unneeeeded #define, per Kirill
-
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 -
- 1 file changed, 1 deletion(-)
+ mm/huge_memory.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/mm.h~mm-hwpoison-adjust-for-new-thp-refcounting-fix include/linux/mm.h
---- a/include/linux/mm.h~mm-hwpoison-adjust-for-new-thp-refcounting-fix
-+++ a/include/linux/mm.h
-@@ -2218,7 +2218,6 @@ extern void memory_failure_queue(unsigne
- extern int unpoison_memory(unsigned long pfn);
- extern int get_hwpoison_page(struct page *page);
- #define put_hwpoison_page(page)	put_page(page)
--extern void put_hwpoison_page(struct page *page);
- extern int sysctl_memory_failure_early_kill;
- extern int sysctl_memory_failure_recovery;
- extern void shake_page(struct page *p, int access);
+diff -puN mm/huge_memory.c~thp-reintroduce-split_huge_page-fix-2 mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-reintroduce-split_huge_page-fix-2
++++ a/mm/huge_memory.c
+@@ -3036,6 +3036,7 @@ static void unfreeze_page_vma(struct vm_
+ 			continue;
+ 
+ 		entry = pte_mkold(mk_pte(page, vma->vm_page_prot));
++		entry = pte_mkdirty(entry);
+ 		if (is_write_migration_entry(swp_entry))
+ 			entry = maybe_mkwrite(entry, vma);
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill@shutemov.name are
 
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-mm-hwpoison-adjust-for-new-thp-refcounting.patch
-thp-reintroduce-split_huge_page-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-thp-add-debugfs-handle-to-split-all-huge-pages-fix.patch
+thp-reintroduce-split_huge_page.patch
+mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-fix.patch
+thp-increase-split_huge_page-success-rate-fix.patch
+mm-add-page_check_address_transhuge-helper-fix-fix.patch
 
