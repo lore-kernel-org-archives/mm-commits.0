@@ -1,71 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-vmalloc-remove-vm_vpages-fix.patch removed
- from -mm tree
-Date: Thu, 14 Jan 2016 14:23:25 -0800
-Message-ID: <56981fdd.QtFA8rbuNmRCIOdm%akpm@linux-foundation.org>
+Subject: [folded-merged] arm-mm-support-arch_mmap_rnd_bits-v7.patch
+ removed from -mm tree
+Date: Thu, 14 Jan 2016 14:24:15 -0800
+Message-ID: <5698200f.i/kfl9h6ngMKw6ip%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44359 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44377 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752476AbcANWX0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:23:26 -0500
+	with ESMTP id S1755179AbcANWYQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:24:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, penguin-kernel@i-love.sakura.ne.jp, rientjes@google.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: dcashman@google.com, dcashman@android.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmalloc-remove-vm_vpages-fix
+     Subject: arm: mm: support ARCH_MMAP_RND_BITS
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-remove-vm_vpages-fix.patch
+     arm-mm-support-arch_mmap_rnd_bits-v7.patch
 
-This patch was dropped because it was folded into mm-vmalloc-remove-vm_vpages.patch
+This patch was dropped because it was folded into arm-mm-support-arch_mmap_rnd_bits.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmalloc-remove-vm_vpages-fix
+From: Daniel Cashman <dcashman@google.com>
+Subject: arm: mm: support ARCH_MMAP_RND_BITS
 
-remove VM_VPAGES reference via kvfree()
+changed random bit-grabbing to explicit '&' rather than '%'
 
-Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Signed-off-by: Daniel Cashman <dcashman@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ arch/arm/mm/mmap.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-remove-vm_vpages-fix mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-remove-vm_vpages-fix
-+++ a/mm/vmalloc.c
-@@ -1479,10 +1479,7 @@ static void __vunmap(const void *addr, i
- 			__free_kmem_pages(page, 0);
- 		}
+diff -puN arch/arm/mm/mmap.c~arm-mm-support-arch_mmap_rnd_bits-v7 arch/arm/mm/mmap.c
+--- a/arch/arm/mm/mmap.c~arm-mm-support-arch_mmap_rnd_bits-v7
++++ a/arch/arm/mm/mmap.c
+@@ -173,7 +173,7 @@ unsigned long arch_mmap_rnd(void)
+ {
+ 	unsigned long rnd;
  
--		if (area->flags & VM_VPAGES)
--			vfree(area->pages);
--		else
--			kfree(area->pages);
-+		kvfree(area->pages);
- 	}
+-	rnd = (unsigned long)get_random_int() % (1 << mmap_rnd_bits);
++	rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_bits) - 1);
  
- 	kfree(area);
+ 	return rnd << PAGE_SHIFT;
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dcashman@google.com are
 
-include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
-mm-vmalloc-remove-vm_vpages.patch
-fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
-arm64-mm-support-arch_mmap_rnd_bits-fix.patch
-page-flags-define-pg_locked-behavior-on-compound-pages-fix.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps-fix.patch
-mm-hwpoison-adjust-for-new-thp-refcounting-fix.patch
-thp-reintroduce-split_huge_page-fix.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting-checkpatch-fixes.patch
-thp-add-debugfs-handle-to-split-all-huge-pages-fix.patch
+mm-mmap-add-new-proc-tunable-for-mmap_base-aslr.patch
+arm-mm-support-arch_mmap_rnd_bits.patch
+arm64-mm-support-arch_mmap_rnd_bits.patch
+arm64-mm-support-arch_mmap_rnd_bits-v6.patch
+arm64-mm-support-arch_mmap_rnd_bits-v7.patch
+x86-mm-support-arch_mmap_rnd_bits.patch
+x86-mm-support-arch_mmap_rnd_bits-v7.patch
 
