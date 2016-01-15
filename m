@@ -1,90 +1,103 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmalloc-remove-vm_vpages.patch removed from -mm tree
-Date: Fri, 15 Jan 2016 14:33:24 -0800
-Message-ID: <569973b4.GsiL5c6Ay3U5BmXM%akpm@linux-foundation.org>
+Subject: [merged]
+ fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch removed
+ from -mm tree
+Date: Fri, 15 Jan 2016 14:33:30 -0800
+Message-ID: <569973ba.lQfbcYf/aEi/mKX2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59366 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59378 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750917AbcAOWdY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:33:24 -0500
+	with ESMTP id S1751076AbcAOWda (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:33:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rientjes@google.com, penguin-kernel@i-love.sakura.ne.jp, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, axboe@fb.com, dan.j.williams@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmalloc: remove VM_VPAGES
+     Subject: fs/block_dev.c:bdev_write_page(): use blk_queue_enter(..., GFP_NOIO)
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-remove-vm_vpages.patch
+     fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: David Rientjes <rientjes@google.com>
-Subject: mm, vmalloc: remove VM_VPAGES
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: fs/block_dev.c:bdev_write_page(): use blk_queue_enter(..., GFP_NOIO)
 
-VM_VPAGES is unnecessary, it's easier to check is_vmalloc_addr() when
-reading /proc/vmallocinfo.
+bdev_write_page() is used by swapout and by writepage where we cannot use
+__GFP_FS or __GFP_IO.  So it is misleading to mention GFP_KERNEL here.
 
-[akpm@linux-foundation.org: remove VM_VPAGES reference via kvfree()]
-Signed-off-by: David Rientjes <rientjes@google.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+blk_queue_enter() only actually looks at __GFP_DIRECT_RECLAIM, so no bugs
+were harmed in the making of this patch.
+
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jens Axboe <axboe@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/vmalloc.h |    1 -
- mm/vmalloc.c            |    8 ++------
- 2 files changed, 2 insertions(+), 7 deletions(-)
+ fs/block_dev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/vmalloc.h~mm-vmalloc-remove-vm_vpages include/linux/vmalloc.h
---- a/include/linux/vmalloc.h~mm-vmalloc-remove-vm_vpages
-+++ a/include/linux/vmalloc.h
-@@ -14,7 +14,6 @@ struct vm_area_struct;		/* vma defining
- #define VM_ALLOC		0x00000002	/* vmalloc() */
- #define VM_MAP			0x00000004	/* vmap()ed pages */
- #define VM_USERMAP		0x00000008	/* suitable for remap_vmalloc_range */
--#define VM_VPAGES		0x00000010	/* buffer for pages was vmalloc'ed */
- #define VM_UNINITIALIZED	0x00000020	/* vm_struct is not fully initialized */
- #define VM_NO_GUARD		0x00000040      /* don't add guard page */
- #define VM_KASAN		0x00000080      /* has allocated kasan shadow memory */
-diff -puN mm/vmalloc.c~mm-vmalloc-remove-vm_vpages mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-remove-vm_vpages
-+++ a/mm/vmalloc.c
-@@ -1479,10 +1479,7 @@ static void __vunmap(const void *addr, i
- 			__free_kmem_pages(page, 0);
- 		}
+diff -puN fs/block_dev.c~fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio fs/block_dev.c
+--- a/fs/block_dev.c~fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio
++++ a/fs/block_dev.c
+@@ -437,7 +437,7 @@ int bdev_write_page(struct block_device
  
--		if (area->flags & VM_VPAGES)
--			vfree(area->pages);
--		else
--			kfree(area->pages);
-+		kvfree(area->pages);
- 	}
+ 	if (!ops->rw_page || bdev_get_integrity(bdev))
+ 		return -EOPNOTSUPP;
+-	result = blk_queue_enter(bdev->bd_queue, GFP_KERNEL);
++	result = blk_queue_enter(bdev->bd_queue, GFP_NOIO);
+ 	if (result)
+ 		return result;
  
- 	kfree(area);
-@@ -1592,7 +1589,6 @@ static void *__vmalloc_area_node(struct
- 	if (array_size > PAGE_SIZE) {
- 		pages = __vmalloc_node(array_size, 1, nested_gfp|__GFP_HIGHMEM,
- 				PAGE_KERNEL, node, area->caller);
--		area->flags |= VM_VPAGES;
- 	} else {
- 		pages = kmalloc_node(array_size, nested_gfp, node);
- 	}
-@@ -2650,7 +2646,7 @@ static int s_show(struct seq_file *m, vo
- 	if (v->flags & VM_USERMAP)
- 		seq_puts(m, " user");
- 
--	if (v->flags & VM_VPAGES)
-+	if (is_vmalloc_addr(v->pages))
- 		seq_puts(m, " vpages");
- 
- 	show_numa_info(m, v);
 _
 
-Patches currently in -mm which might be from rientjes@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+zram-dont-call-idr_remove-from-zram_remove-fix.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+mm.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+mm-support-madvisemadv_free-fix-2-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+mm-mlockc-change-can_do_mlock-return-value-type-to-boolean-fix.patch
+mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
+mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
+mm-hugetlbfs-unmap-pages-if-page-fault-raced-with-hole-punch-fix.patch
+mm-soft-offline-exit-with-failure-for-non-anonymous-thp-fix.patch
+kernel-stop_machinec-remove-config_smp-dependencies.patch
+kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
+lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
+lib-test_printfc-test-dentry-printing-fix.patch
+printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
+printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix-fix.patch
+printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
+fs-coredump-prevent-core-path-components-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+linux-next-rejects.patch
+fs-overlayfs-superc-needs-pagemaph.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+net-drop-tcp_memcontrolc-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
