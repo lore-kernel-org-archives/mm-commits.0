@@ -1,85 +1,53 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-change-trace_mm_vmscan_writepage-proto-type.patch
- removed from -mm tree
-Date: Fri, 15 Jan 2016 14:32:32 -0800
-Message-ID: <56997380.D0sS3f7H9ovh1D+K%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-mmapc-remove-redundant-local-variables-for-may_expand_vm.patch removed
+ from -mm tree
+Date: Fri, 15 Jan 2016 14:32:30 -0800
+Message-ID: <5699737e.rVY36e4+7K4U1V/z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59145 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59143 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755061AbcAOWcc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:32:32 -0500
+	with ESMTP id S1755059AbcAOWca (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:32:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yalin.wang2010@gmail.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: gang.chen.5i5j@gmail.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmscan.c: change trace_mm_vmscan_writepage() proto type
+     Subject: mm/mmap.c: remove redundant local variables for may_expand_vm()
 has been removed from the -mm tree.  Its filename was
-     mm-change-trace_mm_vmscan_writepage-proto-type.patch
+     mm-mmapc-remove-redundant-local-variables-for-may_expand_vm.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: yalin wang <yalin.wang2010@gmail.com>
-Subject: mm/vmscan.c: change trace_mm_vmscan_writepage() proto type
+From: Chen Gang <gang.chen.5i5j@gmail.com>
+Subject: mm/mmap.c: remove redundant local variables for may_expand_vm()
 
-Move trace_reclaim_flags() into trace function, so that we don't need
-caculate these flags if the trace is disabled.
+Simplify may_expand_vm().
 
-Signed-off-by: yalin wang <yalin.wang2010@gmail.com>
-Reviewed-by: Steven Rostedt <rostedt@goodmis.org>
+[akpm@linux-foundation.org: further simplification, per Naoya Horiguchi]
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/vmscan.h |    7 +++----
- mm/vmscan.c                   |    2 +-
- 2 files changed, 4 insertions(+), 5 deletions(-)
+ mm/mmap.c |    9 +--------
+ 1 file changed, 1 insertion(+), 8 deletions(-)
 
-diff -puN include/trace/events/vmscan.h~mm-change-trace_mm_vmscan_writepage-proto-type include/trace/events/vmscan.h
---- a/include/trace/events/vmscan.h~mm-change-trace_mm_vmscan_writepage-proto-type
-+++ a/include/trace/events/vmscan.h
-@@ -330,10 +330,9 @@ DEFINE_EVENT(mm_vmscan_lru_isolate_templ
- 
- TRACE_EVENT(mm_vmscan_writepage,
- 
--	TP_PROTO(struct page *page,
--		int reclaim_flags),
-+	TP_PROTO(struct page *page),
- 
--	TP_ARGS(page, reclaim_flags),
-+	TP_ARGS(page),
- 
- 	TP_STRUCT__entry(
- 		__field(unsigned long, pfn)
-@@ -342,7 +341,7 @@ TRACE_EVENT(mm_vmscan_writepage,
- 
- 	TP_fast_assign(
- 		__entry->pfn = page_to_pfn(page);
--		__entry->reclaim_flags = reclaim_flags;
-+		__entry->reclaim_flags = trace_reclaim_flags(page);
- 	),
- 
- 	TP_printk("page=%p pfn=%lu flags=%s",
-diff -puN mm/vmscan.c~mm-change-trace_mm_vmscan_writepage-proto-type mm/vmscan.c
---- a/mm/vmscan.c~mm-change-trace_mm_vmscan_writepage-proto-type
-+++ a/mm/vmscan.c
-@@ -594,7 +594,7 @@ static pageout_t pageout(struct page *pa
- 			/* synchronous write or broken a_ops? */
- 			ClearPageReclaim(page);
- 		}
--		trace_mm_vmscan_writepage(page, trace_reclaim_flags(page));
-+		trace_mm_vmscan_writepage(page);
- 		inc_zone_page_state(page, NR_VMSCAN_WRITE);
- 		return PAGE_SUCCESS;
- 	}
-_
-
-Patches currently in -mm which might be from yalin.wang2010@gmail.com are
-
-mm-fix-kernel-crash-in-khugepaged-thread.patch
-
+diff -puN mm/mmap.c~mm-mmapc-remove-redundant-local-variables-for-may_expand_vm mm/mmap.c
+--- a/mm/mmap.c~mm-mmapc-remove-redundant-local-variables-for-may_expand_vm
++++ a/mm/mmap.c
+@@ -2988,14 +2988,7 @@ out:
+  */
+ int may_expand_vm(struct mm_struct *mm, unsigned long npages)
+ {
+-	unsigned long cur = mm->total_vm;	/* pages */
+-	unsigned long lim;
+-
+-	lim = rlimit(RLIMIT_AS) >> PAGE_SHIFT;
