@@ -1,76 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-memory-clean-up-section-counting.patch removed
+Subject: [merged]
+ mm-page_alloc-remove-unnecessary-parameter-from-__rmqueue.patch removed
  from -mm tree
-Date: Fri, 15 Jan 2016 14:33:58 -0800
-Message-ID: <569973d6.t8adjaJ82mvc+J3e%akpm@linux-foundation.org>
+Date: Fri, 15 Jan 2016 14:34:03 -0800
+Message-ID: <569973db.MQkeoYbxnOgxaJUM%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59517 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59531 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753053AbcAOWd7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:33:59 -0500
+	with ESMTP id S1753053AbcAOWeD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:34:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sjennings@variantweb.net, abanman@sgi.com, daniel@numascale.com, greg@kroah.com, rja@sgi.com, yinghai@kernel.org, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/base/memory.c: clean up section counting
+     Subject: mm/page_alloc.c: remove unnecessary parameter from __rmqueue
 has been removed from the -mm tree.  Its filename was
-     drivers-memory-clean-up-section-counting.patch
+     mm-page_alloc-remove-unnecessary-parameter-from-__rmqueue.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Seth Jennings <sjennings@variantweb.net>
-Subject: drivers/base/memory.c: clean up section counting
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm/page_alloc.c: remove unnecessary parameter from __rmqueue
 
-Right now, section_count is calculated in add_memory_block().  However,
-init_memory_block() increments section_count as well, which, at first,
-seems like it would lead to an off-by-one error.  There is no harm done
-because add_memory_block() immediately overwrites the mem->section_count,
-but it is messy.
+Commit 0aaa29a56e4f ("mm, page_alloc: reserve pageblocks for high-order
+atomic allocations on demand") added an unnecessary and unused parameter
+to __rmqueue.  It was a parameter that was used in an earlier version of
+the patch and then left behind.  This patch cleans it up.
 
-This commit moves the increment out of the common init_memory_block()
-(called by both add_memory_block() and register_new_memory()) and adds it
-to register_new_memory().
-
-Signed-off-by: Seth Jennings <sjennings@variantweb.net>
-Cc: Andrew Banman <abanman@sgi.com>
-Cc: Daniel J Blueman <daniel@numascale.com>
-Cc: Yinghai Lu <yinghai@kernel.org>
-Cc: Greg KH <greg@kroah.com>
-Cc: Russ Anderson <rja@sgi.com>
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page_alloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN drivers/base/memory.c~drivers-memory-clean-up-section-counting drivers/base/memory.c
---- a/drivers/base/memory.c~drivers-memory-clean-up-section-counting
-+++ a/drivers/base/memory.c
-@@ -618,7 +618,6 @@ static int init_memory_block(struct memo
- 			base_memory_block_id(scn_nr) * sections_per_block;
- 	mem->end_section_nr = mem->start_section_nr + sections_per_block - 1;
- 	mem->state = state;
--	mem->section_count++;
- 	start_pfn = section_nr_to_pfn(mem->start_section_nr);
- 	mem->phys_device = arch_get_memory_phys_device(start_pfn);
+diff -puN mm/page_alloc.c~mm-page_alloc-remove-unnecessary-parameter-from-__rmqueue mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-remove-unnecessary-parameter-from-__rmqueue
++++ a/mm/page_alloc.c
+@@ -1781,7 +1781,7 @@ __rmqueue_fallback(struct zone *zone, un
+  * Call me with the zone->lock already held.
+  */
+ static struct page *__rmqueue(struct zone *zone, unsigned int order,
+-				int migratetype, gfp_t gfp_flags)
++				int migratetype)
+ {
+ 	struct page *page;
  
-@@ -672,6 +671,7 @@ int register_new_memory(int nid, struct
- 		ret = init_memory_block(&mem, section, MEM_OFFLINE);
- 		if (ret)
- 			goto out;
-+		mem->section_count++;
- 	}
+@@ -1811,7 +1811,7 @@ static int rmqueue_bulk(struct zone *zon
  
- 	if (mem->section_count == sections_per_block)
+ 	spin_lock(&zone->lock);
+ 	for (i = 0; i < count; ++i) {
+-		struct page *page = __rmqueue(zone, order, migratetype, 0);
++		struct page *page = __rmqueue(zone, order, migratetype);
+ 		if (unlikely(page == NULL))
+ 			break;
+ 
+@@ -2234,7 +2234,7 @@ struct page *buffered_rmqueue(struct zon
+ 				trace_mm_page_alloc_zone_locked(page, order, migratetype);
+ 		}
+ 		if (!page)
+-			page = __rmqueue(zone, order, migratetype, gfp_flags);
++			page = __rmqueue(zone, order, migratetype);
+ 		spin_unlock(&zone->lock);
+ 		if (!page)
+ 			goto failed;
 _
 
-Patches currently in -mm which might be from sjennings@variantweb.net are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
 
