@@ -1,120 +1,72 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_allocc-use-list_firstlast_entry-instead-of-list_entry.patch removed from -mm tree
-Date: Fri, 15 Jan 2016 14:34:05 -0800
-Message-ID: <569973dd.aabHakvKauAPUoIa%akpm@linux-foundation.org>
+ drivers-memory-rename-remove_memory_block-to-remove_memory_section.patch
+ removed from -mm tree
+Date: Fri, 15 Jan 2016 14:34:01 -0800
+Message-ID: <569973d9.RTKsVGY+knMNRM0B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59534 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59526 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753053AbcAOWeG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:34:06 -0500
+	with ESMTP id S1753053AbcAOWeC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:34:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geliangtang@163.com, mgorman@techsingularity.net, mhocko@suse.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: sjennings@variantweb.net, abanman@sgi.com, daniel@numascale.com, greg@kroah.com, rja@sgi.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: use list_{first,last}_entry instead of list_entry
+     Subject: drivers/base/memory.c: rename remove_memory_block() to remove_memory_section()
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-use-list_firstlast_entry-instead-of-list_entry.patch
+     drivers-memory-rename-remove_memory_block-to-remove_memory_section.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geliang Tang <geliangtang@163.com>
-Subject: mm/page_alloc.c: use list_{first,last}_entry instead of list_entry
+From: Seth Jennings <sjennings@variantweb.net>
+Subject: drivers/base/memory.c: rename remove_memory_block() to remove_memory_section()
 
-To make the intention clearer, use list_{first,last}_entry instead of
-list_entry.
+The function removes a section, not a block.  Rename to reflect actual
+functionality.
 
-Signed-off-by: Geliang Tang <geliangtang@163.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Seth Jennings <sjennings@variantweb.net>
+Cc: Andrew Banman <abanman@sgi.com>
+Cc: Daniel J Blueman <daniel@numascale.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Russ Anderson <rja@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   23 +++++++++++------------
- 1 file changed, 11 insertions(+), 12 deletions(-)
+ drivers/base/memory.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-use-list_firstlast_entry-instead-of-list_entry mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-use-list_firstlast_entry-instead-of-list_entry
-+++ a/mm/page_alloc.c
-@@ -805,7 +805,7 @@ static void free_pcppages_bulk(struct zo
- 		do {
- 			int mt;	/* migratetype of the to-be-freed page */
+diff -puN drivers/base/memory.c~drivers-memory-rename-remove_memory_block-to-remove_memory_section drivers/base/memory.c
+--- a/drivers/base/memory.c~drivers-memory-rename-remove_memory_block-to-remove_memory_section
++++ a/drivers/base/memory.c
+@@ -692,7 +692,7 @@ unregister_memory(struct memory_block *m
+ 	device_unregister(&memory->dev);
+ }
  
--			page = list_entry(list->prev, struct page, lru);
-+			page = list_last_entry(list, struct page, lru);
- 			/* must delete as __free_one_page list manipulates */
- 			list_del(&page->lru);
+-static int remove_memory_block(unsigned long node_id,
++static int remove_memory_section(unsigned long node_id,
+ 			       struct mem_section *section, int phys_device)
+ {
+ 	struct memory_block *mem;
+@@ -716,7 +716,7 @@ int unregister_memory_section(struct mem
+ 	if (!present_section(section))
+ 		return -EINVAL;
  
-@@ -1410,11 +1410,10 @@ struct page *__rmqueue_smallest(struct z
- 	/* Find a page of the appropriate size in the preferred list */
- 	for (current_order = order; current_order < MAX_ORDER; ++current_order) {
- 		area = &(zone->free_area[current_order]);
--		if (list_empty(&area->free_list[migratetype]))
--			continue;
--
--		page = list_entry(area->free_list[migratetype].next,
-+		page = list_first_entry_or_null(&area->free_list[migratetype],
- 							struct page, lru);
-+		if (!page)
-+			continue;
- 		list_del(&page->lru);
- 		rmv_page_order(page);
- 		area->nr_free--;
-@@ -1693,12 +1692,12 @@ static void unreserve_highatomic_pageblo
- 		for (order = 0; order < MAX_ORDER; order++) {
- 			struct free_area *area = &(zone->free_area[order]);
+-	return remove_memory_block(0, section, 0);
++	return remove_memory_section(0, section, 0);
+ }
+ #endif /* CONFIG_MEMORY_HOTREMOVE */
  
--			if (list_empty(&area->free_list[MIGRATE_HIGHATOMIC]))
-+			page = list_first_entry_or_null(
-+					&area->free_list[MIGRATE_HIGHATOMIC],
-+					struct page, lru);
-+			if (!page)
- 				continue;
- 
--			page = list_entry(area->free_list[MIGRATE_HIGHATOMIC].next,
--						struct page, lru);
--
- 			/*
- 			 * It should never happen but changes to locking could
- 			 * inadvertently allow a per-cpu drain to add pages
-@@ -1746,7 +1745,7 @@ __rmqueue_fallback(struct zone *zone, un
- 		if (fallback_mt == -1)
- 			continue;
- 
--		page = list_entry(area->free_list[fallback_mt].next,
-+		page = list_first_entry(&area->free_list[fallback_mt],
- 						struct page, lru);
- 		if (can_steal)
- 			steal_suitable_fallback(zone, page, start_migratetype);
-@@ -2205,9 +2204,9 @@ struct page *buffered_rmqueue(struct zon
- 		}
- 
- 		if (cold)
--			page = list_entry(list->prev, struct page, lru);
-+			page = list_last_entry(list, struct page, lru);
- 		else
--			page = list_entry(list->next, struct page, lru);
-+			page = list_first_entry(list, struct page, lru);
- 
- 		list_del(&page->lru);
- 		pcp->count--;
 _
 
-Patches currently in -mm which might be from geliangtang@163.com are
+Patches currently in -mm which might be from sjennings@variantweb.net are
 
-mm-swapfilec-use-list_for_each_entry_safe-in-free_swap_count_continuations.patch
-mm-move-lru_to_page-to-mm_inlineh.patch
-mm-zbud-use-list_last_entry-instead-of-list_tail_entry.patch
-hfs-use-list_for_each_entry-in-hfs_cat_delete.patch
-kexec-use-list_for_each_entry_safe-in-kimage_free_page_list.patch
-rapidio-use-kobj_to_dev.patch
-dma-mapping-use-offset_in_page-macro.patch
 
