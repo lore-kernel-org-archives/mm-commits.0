@@ -1,109 +1,104 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-dlm-fix-a-race-between-purge-and-migratio.patch
- removed from -mm tree
-Date: Fri, 15 Jan 2016 14:31:33 -0800
-Message-ID: <56997345.UjV28O8aM38BkEu+%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-dlm-wait-until-dlm_lock_res_setref_inprog-is-cleared-in-dlm_deref_lockres_worker.patch removed from -mm tree
+Date: Fri, 15 Jan 2016 14:31:37 -0800
+Message-ID: <56997349.7tt90UT8j+mjA0Uc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58998 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59008 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752319AbcAOWbe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:34 -0500
+	with ESMTP id S1752670AbcAOWbi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xuejiufei@huawei.com, jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: fix a race between purge and migration
+     Subject: ocfs2/dlm: wait until DLM_LOCK_RES_SETREF_INPROG is cleared in dlm_deref_lockres_worker
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-fix-a-race-between-purge-and-migratio.patch
+     ocfs2-dlm-wait-until-dlm_lock_res_setref_inprog-is-cleared-in-dlm_deref_lockres_worker.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2/dlm: fix a race between purge and migration
+From: jiangyiwen <jiangyiwen@huawei.com>
+Subject: ocfs2/dlm: wait until DLM_LOCK_RES_SETREF_INPROG is cleared in dlm_deref_lockres_worker
 
-We found a race between purge and migration when doing code review.  Node
-A put lockres to purgelist before receiving the migrate message from node
-B which is the master.  Node A call dlm_mig_lockres_handler to handle this
-message.
+commit f3f854648de6 ("ocfs2_dlm: Ensure correct ordering of set/clear
+refmap bit on lockres") still exists a race which can't ensure the
+ordering is exactly correct.
 
-dlm_mig_lockres_handler
-  dlm_lookup_lockres
-  >>>>>> race window, dlm_run_purge_list may run and send
-         deref message to master, waiting the response
-  spin_lock(&res->spinlock);
-  res->state |= DLM_LOCK_RES_MIGRATING;
-  spin_unlock(&res->spinlock);
-  dlm_mig_lockres_handler returns
+Node1               Node2                    Node3
+umount, migrate
+lockres to Node2
+                    migrate finished,
+                    send migrate request
+                    to Node3
+                                              received migrate request,
+                                              create a migration_mle,
+                                              respond to Node2.
+                    set DLM_LOCK_RES_SETREF_INPROG
+                    and send assert master to
+                    Node3
+                                              delete migration_mle in
+                                              assert_master_handler,
+                                              Node3 umount without response
+                                              dlm_thread purge
+                                              this lockres, send drop
+                                              deref message to Node2
+                    found the flag of
+                    DLM_LOCK_RES_SETREF_INPROG
+                    is set, dispatch
+                    dlm_deref_lockres_worker to
+                    clear refmap, but in function of
+                    dlm_deref_lockres_worker,
+                    only if node in refmap it wait
+                    DLM_LOCK_RES_SETREF_INPROG
+                    to be cleared. So worker is
+                    done successfully
 
-  >>>>>> dlm_thread receives the response from master for the deref
-  message and triggers the BUG because the lockres has the state
-  DLM_LOCK_RES_MIGRATING with the following message:
+                                              purge lockres, send
+                                              assert master response
+                                              to Node1, and finish umount
+                    set Node3 in refmap, and it
+                    won't be cleared forever, thus
+                    lead to umount hung
 
-dlm_purge_lockres:209 ERROR: 6633EB681FA7474A9C280A4E1A836F0F: res
-M0000000000000000030c0300000000 in use after deref
+so wait until DLM_LOCK_RES_SETREF_INPROG is cleared in
+dlm_deref_lockres_worker.
 
-Signed-off-by: Jiufei Xue <xuejiufei@huawei.com>
+Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
 Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmrecovery.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmmaster.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-a-race-between-purge-and-migratio fs/ocfs2/dlm/dlmrecovery.c
---- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-a-race-between-purge-and-migratio
-+++ a/fs/ocfs2/dlm/dlmrecovery.c
-@@ -1373,6 +1373,7 @@ int dlm_mig_lockres_handler(struct o2net
- 	char *buf = NULL;
- 	struct dlm_work_item *item = NULL;
- 	struct dlm_lock_resource *res = NULL;
-+	unsigned int hash;
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-wait-until-dlm_lock_res_setref_inprog-is-cleared-in-dlm_deref_lockres_worker fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-wait-until-dlm_lock_res_setref_inprog-is-cleared-in-dlm_deref_lockres_worker
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -2388,8 +2388,8 @@ static void dlm_deref_lockres_worker(str
  
- 	if (!dlm_grab(dlm))
- 		return -EINVAL;
-@@ -1400,7 +1401,10 @@ int dlm_mig_lockres_handler(struct o2net
- 	/* lookup the lock to see if we have a secondary queue for this
- 	 * already...  just add the locks in and this will have its owner
- 	 * and RECOVERY flag changed when it completes. */
--	res = dlm_lookup_lockres(dlm, mres->lockname, mres->lockname_len);
-+	hash = dlm_lockid_hash(mres->lockname, mres->lockname_len);
-+	spin_lock(&dlm->spinlock);
-+	res = __dlm_lookup_lockres(dlm, mres->lockname, mres->lockname_len,
-+			hash);
- 	if (res) {
- 	 	/* this will get a ref on res */
- 		/* mark it as recovering/migrating and hash it */
-@@ -1421,13 +1425,16 @@ int dlm_mig_lockres_handler(struct o2net
- 				     mres->lockname_len, mres->lockname);
- 				ret = -EFAULT;
- 				spin_unlock(&res->spinlock);
-+				spin_unlock(&dlm->spinlock);
- 				dlm_lockres_put(res);
- 				goto leave;
- 			}
- 			res->state |= DLM_LOCK_RES_MIGRATING;
- 		}
- 		spin_unlock(&res->spinlock);
-+		spin_unlock(&dlm->spinlock);
- 	} else {
-+		spin_unlock(&dlm->spinlock);
- 		/* need to allocate, just like if it was
- 		 * mastered here normally  */
- 		res = dlm_new_lockres(dlm, mres->lockname, mres->lockname_len);
+ 	spin_lock(&res->spinlock);
+ 	BUG_ON(res->state & DLM_LOCK_RES_DROPPING_REF);
++	__dlm_wait_on_lockres_flags(res, DLM_LOCK_RES_SETREF_INPROG);
+ 	if (test_bit(node, res->refmap)) {
+-		__dlm_wait_on_lockres_flags(res, DLM_LOCK_RES_SETREF_INPROG);
+ 		dlm_lockres_clear_refmap_bit(dlm, res, node);
+ 		cleared = 1;
+ 	}
 _
 
-Patches currently in -mm which might be from xuejiufei@huawei.com are
+Patches currently in -mm which might be from jiangyiwen@huawei.com are
 
-ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
-extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
+ocfs2-avoid-occurring-deadlock-by-changing-ocfs2_wq-from-global-to-local.patch
+ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups.patch
 
