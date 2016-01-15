@@ -1,122 +1,71 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-dlm-ignore-cleaning-the-migration-mle-that-is-inuse.patch removed
- from -mm tree
-Date: Fri, 15 Jan 2016 14:31:49 -0800
-Message-ID: <56997355.1FpfuDWDMgkRb9c2%akpm@linux-foundation.org>
+ ocfs2-dlm-do-not-insert-a-new-mle-when-another-process-is-already-migrating.patch removed from -mm tree
+Date: Fri, 15 Jan 2016 14:31:51 -0800
+Message-ID: <56997357.pPhSL3GbjgrULqa8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59029 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59035 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752670AbcAOWbu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:50 -0500
+	with ESMTP id S1752670AbcAOWbw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xuejiufei@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: ignore cleaning the migration mle that is inuse
+     Subject: ocfs2/dlm: do not insert a new mle when another process is already migrating
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-ignore-cleaning-the-migration-mle-that-is-inuse.patch
+     ocfs2-dlm-do-not-insert-a-new-mle-when-another-process-is-already-migrating.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: xuejiufei <xuejiufei@huawei.com>
-Subject: ocfs2/dlm: ignore cleaning the migration mle that is inuse
+Subject: ocfs2/dlm: do not insert a new mle when another process is already migrating
 
-We have found that migration source will trigger a BUG that the
-refcount of mle is already zero before put when the target is
-down during migration. The situation is as follows:
-
-dlm_migrate_lockres
-  dlm_add_migration_mle
-  dlm_mark_lockres_migrating
-  dlm_get_mle_inuse
-  <<<<<< Now the refcount of the mle is 2.
-  dlm_send_one_lockres and wait for the target to become the
-  new master.
-  <<<<<< o2hb detect the target down and clean the migration
-  mle. Now the refcount is 1.
-
-dlm_migrate_lockres woken, and put the mle twice when found
-the target goes down which trigger the BUG with the following
-message:
-"ERROR: bad mle: ".
+When two processes are migrating the same lockres, dlm_add_migration_mle()
+return -EEXIST, but insert a new mle in hash list.  dlm_migrate_lockres()
+will detach the old mle and free the new one which is already in hash
+list, that will destroy the list.
 
 Signed-off-by: Jiufei Xue <xuejiufei@huawei.com>
 Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: <stable@vger.kernel.org>
+Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmmaster.c |   26 +++++++++++++++-----------
- 1 file changed, 15 insertions(+), 11 deletions(-)
+ fs/ocfs2/dlm/dlmmaster.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-ignore-cleaning-the-migration-mle-that-is-inuse fs/ocfs2/dlm/dlmmaster.c
---- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-ignore-cleaning-the-migration-mle-that-is-inuse
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-do-not-insert-a-new-mle-when-another-process-is-already-migrating fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-do-not-insert-a-new-mle-when-another-process-is-already-migrating
 +++ a/fs/ocfs2/dlm/dlmmaster.c
-@@ -2519,6 +2519,11 @@ static int dlm_migrate_lockres(struct dl
- 	spin_lock(&dlm->master_lock);
- 	ret = dlm_add_migration_mle(dlm, res, mle, &oldmle, name,
- 				    namelen, target, dlm->node_num);
-+	/* get an extra reference on the mle.
-+	 * otherwise the assert_master from the new
-+	 * master will destroy this.
-+	 */
-+	dlm_get_mle_inuse(mle);
- 	spin_unlock(&dlm->master_lock);
- 	spin_unlock(&dlm->spinlock);
+@@ -2549,7 +2549,7 @@ static int dlm_migrate_lockres(struct dl
+ 	}
  
-@@ -2554,6 +2559,7 @@ fail:
- 		if (mle_added) {
- 			dlm_mle_detach_hb_events(dlm, mle);
- 			dlm_put_mle(mle);
-+			dlm_put_mle_inuse(mle);
- 		} else if (mle) {
- 			kmem_cache_free(dlm_mle_cache, mle);
- 			mle = NULL;
-@@ -2571,17 +2577,6 @@ fail:
- 	 * ensure that all assert_master work is flushed. */
- 	flush_workqueue(dlm->dlm_worker);
- 
--	/* get an extra reference on the mle.
--	 * otherwise the assert_master from the new
--	 * master will destroy this.
--	 * also, make sure that all callers of dlm_get_mle
--	 * take both dlm->spinlock and dlm->master_lock */
--	spin_lock(&dlm->spinlock);
--	spin_lock(&dlm->master_lock);
--	dlm_get_mle_inuse(mle);
--	spin_unlock(&dlm->master_lock);
--	spin_unlock(&dlm->spinlock);
--
- 	/* notify new node and send all lock state */
- 	/* call send_one_lockres with migration flag.
- 	 * this serves as notice to the target node that a
-@@ -3312,6 +3307,15 @@ top:
- 			    mle->new_master != dead_node)
- 				continue;
- 
-+			if (mle->new_master == dead_node && mle->inuse) {
-+				mlog(ML_NOTICE, "%s: target %u died during "
-+						"migration from %u, the MLE is "
-+						"still keep used, ignore it!\n",
-+						dlm->name, dead_node,
-+						mle->master);
-+				continue;
-+			}
-+
- 			/* If we have reached this point, this mle needs to be
- 			 * removed from the list and freed. */
- 			dlm_clean_migration_mle(dlm, mle);
+ fail:
+-	if (oldmle) {
++	if (ret != -EEXIST && oldmle) {
+ 		/* master is known, detach if not already detached */
+ 		dlm_mle_detach_hb_events(dlm, oldmle);
+ 		dlm_put_mle(oldmle);
+@@ -3136,7 +3136,8 @@ static int dlm_add_migration_mle(struct
+ 				mlog(0, "tried to migrate %.*s, but some "
+ 				     "process beat me to it\n",
+ 				     namelen, name);
+-				ret = -EEXIST;
++				spin_unlock(&tmp->spinlock);
++				return -EEXIST;
+ 			} else {
+ 				/* bad.  2 NODES are trying to migrate! */
+ 				mlog(ML_ERROR, "migration error  mle: "
 _
 
 Patches currently in -mm which might be from xuejiufei@huawei.com are
