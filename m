@@ -1,62 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-dlm-cleanup-redunant-lksb-flags-in-dlmcommonh.patch removed from -mm
- tree
-Date: Fri, 15 Jan 2016 14:31:58 -0800
-Message-ID: <5699735e.MkSMg7gH7FQi4CC/%akpm@linux-foundation.org>
+Subject: [merged] mm-change-trace_mm_vmscan_writepage-proto-type.patch
+ removed from -mm tree
+Date: Fri, 15 Jan 2016 14:32:32 -0800
+Message-ID: <56997380.D0sS3f7H9ovh1D+K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59050 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59145 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754491AbcAOWb7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:59 -0500
+	with ESMTP id S1755061AbcAOWcc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:32:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.de, xuejiufei@huawei.com, mm-commits@vger.kernel.org
+To: yalin.wang2010@gmail.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: cleanup redunant lksb flags in dlmcommon.h
+     Subject: mm/vmscan.c: change trace_mm_vmscan_writepage() proto type
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-cleanup-redunant-lksb-flags-in-dlmcommonh.patch
+     mm-change-trace_mm_vmscan_writepage-proto-type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2/dlm: cleanup redunant lksb flags in dlmcommon.h
+From: yalin wang <yalin.wang2010@gmail.com>
+Subject: mm/vmscan.c: change trace_mm_vmscan_writepage() proto type
 
-lksb flags are defined both in dlmapi.h and dlmcommon.h. So clean them
-up from dlmcommon.h.
+Move trace_reclaim_flags() into trace function, so that we don't need
+caculate these flags if the trace is disabled.
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Reviewed-by: Jiufei Xue <xuejiufei@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Signed-off-by: yalin wang <yalin.wang2010@gmail.com>
+Reviewed-by: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmcommon.h |   11 -----------
- 1 file changed, 11 deletions(-)
+ include/trace/events/vmscan.h |    7 +++----
+ mm/vmscan.c                   |    2 +-
+ 2 files changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-cleanup-redunant-lksb-flags-in-dlmcommonh fs/ocfs2/dlm/dlmcommon.h
---- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-cleanup-redunant-lksb-flags-in-dlmcommonh
-+++ a/fs/ocfs2/dlm/dlmcommon.h
-@@ -376,17 +376,6 @@ struct dlm_lock
- 		 lksb_kernel_allocated:1;
- };
+diff -puN include/trace/events/vmscan.h~mm-change-trace_mm_vmscan_writepage-proto-type include/trace/events/vmscan.h
+--- a/include/trace/events/vmscan.h~mm-change-trace_mm_vmscan_writepage-proto-type
++++ a/include/trace/events/vmscan.h
+@@ -330,10 +330,9 @@ DEFINE_EVENT(mm_vmscan_lru_isolate_templ
  
--
--#define DLM_LKSB_UNUSED1           0x01
--#define DLM_LKSB_PUT_LVB           0x02
--#define DLM_LKSB_GET_LVB           0x04
--#define DLM_LKSB_UNUSED2           0x08
--#define DLM_LKSB_UNUSED3           0x10
--#define DLM_LKSB_UNUSED4           0x20
--#define DLM_LKSB_UNUSED5           0x40
--#define DLM_LKSB_UNUSED6           0x80
--
+ TRACE_EVENT(mm_vmscan_writepage,
+ 
+-	TP_PROTO(struct page *page,
+-		int reclaim_flags),
++	TP_PROTO(struct page *page),
+ 
+-	TP_ARGS(page, reclaim_flags),
++	TP_ARGS(page),
+ 
+ 	TP_STRUCT__entry(
+ 		__field(unsigned long, pfn)
+@@ -342,7 +341,7 @@ TRACE_EVENT(mm_vmscan_writepage,
+ 
+ 	TP_fast_assign(
+ 		__entry->pfn = page_to_pfn(page);
+-		__entry->reclaim_flags = reclaim_flags;
++		__entry->reclaim_flags = trace_reclaim_flags(page);
+ 	),
+ 
+ 	TP_printk("page=%p pfn=%lu flags=%s",
+diff -puN mm/vmscan.c~mm-change-trace_mm_vmscan_writepage-proto-type mm/vmscan.c
+--- a/mm/vmscan.c~mm-change-trace_mm_vmscan_writepage-proto-type
++++ a/mm/vmscan.c
+@@ -594,7 +594,7 @@ static pageout_t pageout(struct page *pa
+ 			/* synchronous write or broken a_ops? */
+ 			ClearPageReclaim(page);
+ 		}
+-		trace_mm_vmscan_writepage(page, trace_reclaim_flags(page));
++		trace_mm_vmscan_writepage(page);
+ 		inc_zone_page_state(page, NR_VMSCAN_WRITE);
+ 		return PAGE_SUCCESS;
+ 	}
+_
+
+Patches currently in -mm which might be from yalin.wang2010@gmail.com are
+
+mm-fix-kernel-crash-in-khugepaged-thread.patch
+
