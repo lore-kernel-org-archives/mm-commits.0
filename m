@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zram-dont-call-idr_remove-from-zram_remove.patch added to -mm
- tree
-Date: Thu, 14 Jan 2016 16:44:57 -0800
-Message-ID: <56984109.gw+jmrUj94/XUBsQ%akpm@linux-foundation.org>
+Subject: + zram-dont-call-idr_remove-from-zram_remove-fix.patch added to
+ -mm tree
+Date: Thu, 14 Jan 2016 16:45:47 -0800
+Message-ID: <5698413b.38zkuvyejdo2J6tN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53194 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53212 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754845AbcAOAo6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 19:44:58 -0500
+	with ESMTP id S1756938AbcAOAps (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 19:45:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jmarchan@redhat.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, jmarchan@redhat.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: don't call idr_remove() from zram_remove()
+     Subject: zram-dont-call-idr_remove-from-zram_remove-fix
 has been added to the -mm tree.  Its filename is
-     zram-dont-call-idr_remove-from-zram_remove.patch
+     zram-dont-call-idr_remove-from-zram_remove-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-dont-call-idr_remove-from-zram_remove.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-dont-call-idr_remove-from-zram_remove-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-dont-call-idr_remove-from-zram_remove.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-dont-call-idr_remove-from-zram_remove-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,56 +39,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Jerome Marchand" <jmarchan@redhat.com>
-Subject: zram: don't call idr_remove() from zram_remove()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: zram-dont-call-idr_remove-from-zram_remove-fix
 
-The use of idr_remove() is forbidden in the callback functions of
-idr_for_each().  It is therefore unsafe to call idr_remove in
-zram_remove().
+fix coding stype, per Sergey
 
-This patch moves the call to idr_remove() from zram_remove() to
-hot_remove_store().  In the detroy_devices() path, idrs are removed by
-idr_destroy().  This solves an use-after-free detected by KASan.
-
-Signed-off-by: Jerome Marchand <jmarchan@redhat.com>
-Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>	[4.2+]
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/block/zram/zram_drv.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-dont-call-idr_remove-from-zram_remove drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-dont-call-idr_remove-from-zram_remove
+diff -puN drivers/block/zram/zram_drv.c~zram-dont-call-idr_remove-from-zram_remove-fix drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-dont-call-idr_remove-from-zram_remove-fix
 +++ a/drivers/block/zram/zram_drv.c
-@@ -1325,7 +1325,6 @@ static int zram_remove(struct zram *zram
- 
- 	pr_info("Removed device: %s\n", zram->disk->disk_name);
- 
--	idr_remove(&zram_index_idr, zram->disk->first_minor);
- 	blk_cleanup_queue(zram->disk->queue);
- 	del_gendisk(zram->disk);
- 	put_disk(zram->disk);
-@@ -1367,9 +1366,10 @@ static ssize_t hot_remove_store(struct c
- 	mutex_lock(&zram_index_mutex);
- 
- 	zram = idr_find(&zram_index_idr, dev_id);
--	if (zram)
-+	if (zram) {
+@@ -1369,8 +1369,9 @@ static ssize_t hot_remove_store(struct c
+ 	if (zram) {
  		ret = zram_remove(zram);
--	else
-+		idr_remove(&zram_index_idr, dev_id);
-+	} else
+ 		idr_remove(&zram_index_idr, dev_id);
+-	} else
++	} else {
  		ret = -ENODEV;
++	}
  
  	mutex_unlock(&zram_index_mutex);
+ 	return ret ? ret : count;
 _
 
-Patches currently in -mm which might be from jmarchan@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-shmem-add-internal-shmem-resident-memory-accounting.patch
-mm-procfs-breakdown-rss-for-anon-shmem-and-file-in-proc-pid-status.patch
-zram-dont-call-idr_remove-from-zram_remove.patch
+include-linux-dcacheh-remove-semicolons-from-hash_len_declare.patch
+fs-block_devc-bdev_write_page-use-blk_queue_enter-gfp_noio.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+zram-dont-call-idr_remove-from-zram_remove-fix.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+mm.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+mm-support-madvisemadv_free-fix-2-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+mm-mlockc-change-can_do_mlock-return-value-type-to-boolean-fix.patch
+mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
+mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
+mm-hugetlbfs-unmap-pages-if-page-fault-raced-with-hole-punch-fix.patch
+mm-soft-offline-exit-with-failure-for-non-anonymous-thp-fix.patch
+kernel-stop_machinec-remove-config_smp-dependencies.patch
+kernel-stop_machinec-remove-config_smp-dependencies-fix.patch
+lib-vsprintfc-expand-field_width-to-24-bits-fix.patch
+lib-test_printfc-test-dentry-printing-fix.patch
+printk-help-pr_debug-and-pr_devel-to-optimize-out-arguments-fix.patch
+printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix-fix.patch
+printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
+fs-coredump-prevent-core-path-components-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+linux-next-rejects.patch
+fs-overlayfs-superc-needs-pagemaph.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+net-drop-tcp_memcontrolc-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
