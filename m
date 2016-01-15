@@ -1,70 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m32r-fix-m32104ut_defconfig-build-fail.patch removed
- from -mm tree
-Date: Fri, 15 Jan 2016 14:31:09 -0800
-Message-ID: <5699732d.Zf2PVMQPpZ8q690K%akpm__41231.329952325$1452897092$gmane$org@linux-foundation.org>
+Subject: [merged] dma-debug-switch-check-from-_text-to-_stext.patch
+ removed from -mm tree
+Date: Fri, 15 Jan 2016 14:31:12 -0800
+Message-ID: <56997330.6zZo6FSlLNrIamxe%akpm__13264.7338127301$1452897092$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58944 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58946 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751586AbcAOWbK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:10 -0500
+	with ESMTP id S1751586AbcAOWbN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, fengguang.wu@intel.com, stable@vger.kernel.org, sudip@vectorindia.org, mm-commits@vger.kernel.org
+To: labbott@fedoraproject.org, arnd@arndb.de, keescook@chromium.org, linux@arm.linux.org.uk, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m32r: fix m32104ut_defconfig build fail
+     Subject: dma-debug: switch check from _text to _stext
 has been removed from the -mm tree.  Its filename was
-     m32r-fix-m32104ut_defconfig-build-fail.patch
+     dma-debug-switch-check-from-_text-to-_stext.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: m32r: fix m32104ut_defconfig build fail
+From: Laura Abbott <labbott@fedoraproject.org>
+Subject: dma-debug: switch check from _text to _stext
 
-The build of m32104ut_defconfig for m32r arch was failing for long long
-time with the error:
-ERROR: "memory_start" [fs/udf/udf.ko] undefined!
-ERROR: "memory_end" [fs/udf/udf.ko] undefined!
-ERROR: "memory_end" [drivers/scsi/sg.ko] undefined!
-ERROR: "memory_start" [drivers/scsi/sg.ko] undefined!
-ERROR: "memory_end" [drivers/i2c/i2c-dev.ko] undefined!
-ERROR: "memory_start" [drivers/i2c/i2c-dev.ko] undefined!
+In include/asm-generic/sections.h:
 
-As done in other architectures export the symbols to fix the error.
+/*
+ * Usage guidelines:
+ * _text, _data: architecture specific, don't use them in
+ * arch-independent code
+ * [_stext, _etext]: contains .text.* sections, may also contain
+ * .rodata.*
+ *                   and/or .init.* sections
 
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
-Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+_text is not guaranteed across architectures.  Architectures such as ARM
+may reuse parts which are not actually text and erroneously trigger a bug.
+Switch to using _stext which is guaranteed to contain text sections.
+
+Came out of https://lkml.kernel.org/g/<567B1176.4000106@redhat.com>
+
+Signed-off-by: Laura Abbott <labbott@fedoraproject.org>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/kernel/setup.c |    3 +++
- 1 file changed, 3 insertions(+)
+ lib/dma-debug.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/m32r/kernel/setup.c~m32r-fix-m32104ut_defconfig-build-fail arch/m32r/kernel/setup.c
---- a/arch/m32r/kernel/setup.c~m32r-fix-m32104ut_defconfig-build-fail
-+++ a/arch/m32r/kernel/setup.c
-@@ -81,7 +81,10 @@ static struct resource code_resource = {
- };
+diff -puN lib/dma-debug.c~dma-debug-switch-check-from-_text-to-_stext lib/dma-debug.c
+--- a/lib/dma-debug.c~dma-debug-switch-check-from-_text-to-_stext
++++ a/lib/dma-debug.c
+@@ -1181,7 +1181,7 @@ static inline bool overlap(void *addr, u
  
- unsigned long memory_start;
-+EXPORT_SYMBOL(memory_start);
-+
- unsigned long memory_end;
-+EXPORT_SYMBOL(memory_end);
- 
- void __init setup_arch(char **);
- int get_cpuinfo(char *);
+ static void check_for_illegal_area(struct device *dev, void *addr, unsigned long len)
+ {
+-	if (overlap(addr, len, _text, _etext) ||
++	if (overlap(addr, len, _stext, _etext) ||
+ 	    overlap(addr, len, __start_rodata, __end_rodata))
+ 		err_printk(dev, NULL, "DMA-API: device driver maps memory from kernel text or rodata [addr=%p] [len=%lu]\n", addr, len);
+ }
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from labbott@fedoraproject.org are
 
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch
 
