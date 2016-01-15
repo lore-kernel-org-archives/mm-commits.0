@@ -1,71 +1,153 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-bloat-o-meter-fix-python3-syntax-error.patch
+Subject: [merged]
+ fsnotify-destroy-marks-with-call_srcu-instead-of-dedicated-thread.patch
  removed from -mm tree
-Date: Fri, 15 Jan 2016 14:31:14 -0800
-Message-ID: <56997332.xa0PKHyytLZqZcya%akpm@linux-foundation.org>
+Date: Fri, 15 Jan 2016 14:31:18 -0800
+Message-ID: <56997336.YWprnqu0El7cEKEw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58951 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58961 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752291AbcAOWbP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:15 -0500
+	with ESMTP id S1752291AbcAOWbT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sergey.senozhatsky.work@gmail.com, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: jlayton@poochiereds.net, eparis@parisplace.org, jack@suse.com, jeff.layton@primarydata.com, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/bloat-o-meter: fix python3 syntax error
+     Subject: fsnotify: destroy marks with call_srcu instead of dedicated thread
 has been removed from the -mm tree.  Its filename was
-     scripts-bloat-o-meter-fix-python3-syntax-error.patch
+     fsnotify-destroy-marks-with-call_srcu-instead-of-dedicated-thread.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Subject: scripts/bloat-o-meter: fix python3 syntax error
+From: Jeff Layton <jlayton@poochiereds.net>
+Subject: fsnotify: destroy marks with call_srcu instead of dedicated thread
 
-In Python3+ print is a function so the old syntax is not correct anymore:
+At the time that this code was originally written, call_srcu didn't exist,
+so this thread was required to ensure that we waited for that SRCU grace
+period to settle before finally freeing the object.
 
-:$ ./scripts/bloat-o-meter vmlinux.o vmlinux.o.old
-:  File "./scripts/bloat-o-meter", line 61
-:    print "add/remove: %s/%s grow/shrink: %s/%s up/down: %s/%s (%s)" % \
-:                                                                   ^
-:SyntaxError: invalid syntax
+It does exist now however and we can much more efficiently use call_srcu
+to handle this.  That also allows us to potentially use srcu_barrier to
+ensure that they are all of the callbacks have run before proceeding.  In
+order to conserve space, we union the rcu_head with the g_list.
 
-Fix by calling print as a function.
+This will be necessary for nfsd which will allocate marks from a dedicated
+slabcache.  We have to be able to ensure that all of the objects are
+destroyed before destroying the cache.  That's fairly
 
-Tested on python 2.7.11, 3.5.1
-
-Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Jeff Layton <jeff.layton@primarydata.com>
+Cc: Eric Paris <eparis@parisplace.org>
+Reviewed-by: Jan Kara <jack@suse.com>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/bloat-o-meter |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ fs/notify/mark.c                 |   66 ++++++-----------------------
+ include/linux/fsnotify_backend.h |    5 +-
+ 2 files changed, 18 insertions(+), 53 deletions(-)
 
-diff -puN scripts/bloat-o-meter~scripts-bloat-o-meter-fix-python3-syntax-error scripts/bloat-o-meter
---- a/scripts/bloat-o-meter~scripts-bloat-o-meter-fix-python3-syntax-error
-+++ a/scripts/bloat-o-meter
-@@ -58,8 +58,8 @@ for name in common:
- delta.sort()
- delta.reverse()
+diff -puN fs/notify/mark.c~fsnotify-destroy-marks-with-call_srcu-instead-of-dedicated-thread fs/notify/mark.c
+--- a/fs/notify/mark.c~fsnotify-destroy-marks-with-call_srcu-instead-of-dedicated-thread
++++ a/fs/notify/mark.c
+@@ -92,9 +92,6 @@
+ #include "fsnotify.h"
  
--print "add/remove: %s/%s grow/shrink: %s/%s up/down: %s/%s (%s)" % \
--      (add, remove, grow, shrink, up, -down, up-down)
--print "%-40s %7s %7s %+7s" % ("function", "old", "new", "delta")
-+print("add/remove: %s/%s grow/shrink: %s/%s up/down: %s/%s (%s)" % \
-+      (add, remove, grow, shrink, up, -down, up-down))
-+print("%-40s %7s %7s %+7s" % ("function", "old", "new", "delta"))
- for d, n in delta:
--    if d: print "%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d)
-+    if d: print("%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d))
-_
-
-Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
-
-
+ struct srcu_struct fsnotify_mark_srcu;
+-static DEFINE_SPINLOCK(destroy_lock);
+-static LIST_HEAD(destroy_list);
+-static DECLARE_WAIT_QUEUE_HEAD(destroy_waitq);
+ 
+ void fsnotify_get_mark(struct fsnotify_mark *mark)
+ {
+@@ -168,10 +165,19 @@ void fsnotify_detach_mark(struct fsnotif
+ 	atomic_dec(&group->num_marks);
+ }
+ 
++static void
++fsnotify_mark_free_rcu(struct rcu_head *rcu)
++{
++	struct fsnotify_mark	*mark;
++
++	mark = container_of(rcu, struct fsnotify_mark, g_rcu);
++	fsnotify_put_mark(mark);
++}
++
+ /*
+- * Free fsnotify mark. The freeing is actually happening from a kthread which
+- * first waits for srcu period end. Caller must have a reference to the mark
+- * or be protected by fsnotify_mark_srcu.
++ * Free fsnotify mark. The freeing is actually happening from a call_srcu
++ * callback. Caller must have a reference to the mark or be protected by
++ * fsnotify_mark_srcu.
+  */
+ void fsnotify_free_mark(struct fsnotify_mark *mark)
+ {
+@@ -186,10 +192,7 @@ void fsnotify_free_mark(struct fsnotify_
+ 	mark->flags &= ~FSNOTIFY_MARK_FLAG_ALIVE;
+ 	spin_unlock(&mark->lock);
+ 
+-	spin_lock(&destroy_lock);
+-	list_add(&mark->g_list, &destroy_list);
+-	spin_unlock(&destroy_lock);
+-	wake_up(&destroy_waitq);
++	call_srcu(&fsnotify_mark_srcu, &mark->g_rcu, fsnotify_mark_free_rcu);
+ 
+ 	/*
+ 	 * Some groups like to know that marks are being freed.  This is a
+@@ -385,11 +388,7 @@ err:
+ 
+ 	spin_unlock(&mark->lock);
+ 
+-	spin_lock(&destroy_lock);
+-	list_add(&mark->g_list, &destroy_list);
+-	spin_unlock(&destroy_lock);
+-	wake_up(&destroy_waitq);
+-
++	call_srcu(&fsnotify_mark_srcu, &mark->g_rcu, fsnotify_mark_free_rcu);
+ 	return ret;
+ }
+ 
+@@ -492,40 +491,3 @@ void fsnotify_init_mark(struct fsnotify_
+ 	atomic_set(&mark->refcnt, 1);
+ 	mark->free_mark = free_mark;
+ }
+-
+-static int fsnotify_mark_destroy(void *ignored)
+-{
+-	struct fsnotify_mark *mark, *next;
+-	struct list_head private_destroy_list;
+-
+-	for (;;) {
+-		spin_lock(&destroy_lock);
+-		/* exchange the list head */
+-		list_replace_init(&destroy_list, &private_destroy_list);
+-		spin_unlock(&destroy_lock);
+-
+-		synchronize_srcu(&fsnotify_mark_srcu);
+-
+-		list_for_each_entry_safe(mark, next, &private_destroy_list, g_list) {
+-			list_del_init(&mark->g_list);
+-			fsnotify_put_mark(mark);
+-		}
+-
+-		wait_event_interruptible(destroy_waitq, !list_empty(&destroy_list));
+-	}
+-
+-	return 0;
+-}
+-
+-static int __init fsnotify_mark_init(void)
+-{
+-	struct task_struct *thread;
+-
+-	thread = kthread_run(fsnotify_mark_destroy, NULL,
+-			     "fsnotify_mark");
+-	if (IS_ERR(thread))
+-		panic("unable to start fsnotify mark destruction thread.");
