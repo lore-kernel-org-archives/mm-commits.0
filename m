@@ -1,40 +1,45 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
+ net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation.patch
  removed from -mm tree
-Date: Fri, 15 Jan 2016 14:34:30 -0800
-Message-ID: <569973f6.XWctBAG4RdwAldfT%akpm@linux-foundation.org>
+Date: Fri, 15 Jan 2016 14:34:28 -0800
+Message-ID: <569973f4.zGuiFeWqMqc8Txvk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59723 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59659 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753053AbcAOWec (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:34:32 -0500
+	with ESMTP id S1753053AbcAOWe3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:34:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hannes@cmpxchg.org, davem@davemloft.net, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: net: tcp_memcontrol: protect all tcp_memcontrol calls by jump-label
+     Subject: net: tcp_memcontrol: remove bogus hierarchy pressure propagation
 has been removed from the -mm tree.  Its filename was
-     net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
+     net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: net: tcp_memcontrol: protect all tcp_memcontrol calls by jump-label
+Subject: net: tcp_memcontrol: remove bogus hierarchy pressure propagation
 
-Move the jump-label from sock_update_memcg() and sock_release_memcg() to
-the callsite, and so eliminate those function calls when socket accounting
-is not enabled.
+When a cgroup currently breaches its socket memory limit, it enters memory
+pressure mode for itself and its *ancestors*.  This throttles transmission
+in unrelated sibling and cousin subtrees that have nothing to do with the
+breached limit.
 
-This also eliminates the need for dummy functions because the calls will
-be optimized away if the Kconfig options are not enabled.
+On the contrary, breaching a limit should make that group and its
+*children* enter memory pressure mode.  But this happens already, albeit
+lazily: if an ancestor limit is breached, siblings will enter memory
+pressure on their own once the next packet arrives for them.
+
+So no additional hierarchy code is needed. Remove the bogus stuff.
 
 Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
 Acked-by: David S. Miller <davem@davemloft.net>
@@ -42,165 +47,45 @@ Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    9 -----
- mm/memcontrol.c            |   62 +++++++++++++++--------------------
- net/core/sock.c            |    9 +----
- net/ipv4/tcp.c             |    3 +
- net/ipv4/tcp_ipv4.c        |    4 +-
- 5 files changed, 35 insertions(+), 52 deletions(-)
+ include/net/sock.h |   19 ++++---------------
+ 1 file changed, 4 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/memcontrol.h~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label
-+++ a/include/linux/memcontrol.h
-@@ -694,17 +694,8 @@ static inline void mem_cgroup_wb_stats(s
- #endif	/* CONFIG_CGROUP_WRITEBACK */
+diff -puN include/net/sock.h~net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation include/net/sock.h
+--- a/include/net/sock.h~net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation
++++ a/include/net/sock.h
+@@ -1155,14 +1155,8 @@ static inline void sk_leave_memory_press
+ 	if (*memory_pressure)
+ 		*memory_pressure = 0;
  
- struct sock;
--#if defined(CONFIG_INET) && defined(CONFIG_MEMCG_KMEM)
- void sock_update_memcg(struct sock *sk);
- void sock_release_memcg(struct sock *sk);
--#else
--static inline void sock_update_memcg(struct sock *sk)
--{
--}
--static inline void sock_release_memcg(struct sock *sk)
--{
--}
--#endif /* CONFIG_INET && CONFIG_MEMCG_KMEM */
- 
- #ifdef CONFIG_MEMCG_KMEM
- extern struct static_key memcg_kmem_enabled_key;
-diff -puN mm/memcontrol.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label mm/memcontrol.c
---- a/mm/memcontrol.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label
-+++ a/mm/memcontrol.c
-@@ -293,46 +293,40 @@ static inline struct mem_cgroup *mem_cgr
- 
- void sock_update_memcg(struct sock *sk)
- {
--	if (mem_cgroup_sockets_enabled) {
--		struct mem_cgroup *memcg;
--		struct cg_proto *cg_proto;
--
--		BUG_ON(!sk->sk_prot->proto_cgroup);
--
--		/* Socket cloning can throw us here with sk_cgrp already
--		 * filled. It won't however, necessarily happen from
--		 * process context. So the test for root memcg given
--		 * the current task's memcg won't help us in this case.
--		 *
--		 * Respecting the original socket's memcg is a better
--		 * decision in this case.
--		 */
--		if (sk->sk_cgrp) {
--			BUG_ON(mem_cgroup_is_root(sk->sk_cgrp->memcg));
--			css_get(&sk->sk_cgrp->memcg->css);
--			return;
--		}
--
--		rcu_read_lock();
--		memcg = mem_cgroup_from_task(current);
--		cg_proto = sk->sk_prot->proto_cgroup(memcg);
--		if (cg_proto && cg_proto->active &&
--		    css_tryget_online(&memcg->css)) {
--			sk->sk_cgrp = cg_proto;
--		}
--		rcu_read_unlock();
-+	struct mem_cgroup *memcg;
-+	struct cg_proto *cg_proto;
-+
-+	BUG_ON(!sk->sk_prot->proto_cgroup);
-+
-+	/* Socket cloning can throw us here with sk_cgrp already
-+	 * filled. It won't however, necessarily happen from
-+	 * process context. So the test for root memcg given
-+	 * the current task's memcg won't help us in this case.
-+	 *
-+	 * Respecting the original socket's memcg is a better
-+	 * decision in this case.
-+	 */
-+	if (sk->sk_cgrp) {
-+		BUG_ON(mem_cgroup_is_root(sk->sk_cgrp->memcg));
-+		css_get(&sk->sk_cgrp->memcg->css);
-+		return;
- 	}
-+
-+	rcu_read_lock();
-+	memcg = mem_cgroup_from_task(current);
-+	cg_proto = sk->sk_prot->proto_cgroup(memcg);
-+	if (cg_proto && cg_proto->active &&
-+	    css_tryget_online(&memcg->css)) {
-+		sk->sk_cgrp = cg_proto;
-+	}
-+	rcu_read_unlock();
- }
- EXPORT_SYMBOL(sock_update_memcg);
- 
- void sock_release_memcg(struct sock *sk)
- {
 -	if (mem_cgroup_sockets_enabled && sk->sk_cgrp) {
--		struct mem_cgroup *memcg;
--		WARN_ON(!sk->sk_cgrp->memcg);
--		memcg = sk->sk_cgrp->memcg;
--		css_put(&sk->sk_cgrp->memcg->css);
--	}
-+	WARN_ON(!sk->sk_cgrp->memcg);
-+	css_put(&sk->sk_cgrp->memcg->css);
- }
- 
- struct cg_proto *tcp_proto_cgroup(struct mem_cgroup *memcg)
-diff -puN net/core/sock.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label net/core/sock.c
---- a/net/core/sock.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label
-+++ a/net/core/sock.c
-@@ -1507,12 +1507,6 @@ void sk_free(struct sock *sk)
- }
- EXPORT_SYMBOL(sk_free);
- 
--static void sk_update_clone(const struct sock *sk, struct sock *newsk)
--{
--	if (mem_cgroup_sockets_enabled && sk->sk_cgrp)
--		sock_update_memcg(newsk);
--}
+-		struct cg_proto *cg_proto = sk->sk_cgrp;
+-		struct proto *prot = sk->sk_prot;
 -
- /**
-  *	sk_clone_lock - clone a socket, and lock its clone
-  *	@sk: the socket to clone
-@@ -1607,7 +1601,8 @@ struct sock *sk_clone_lock(const struct
- 		sk_set_socket(newsk, NULL);
- 		newsk->sk_wq = NULL;
- 
--		sk_update_clone(sk, newsk);
-+		if (mem_cgroup_sockets_enabled && sk->sk_cgrp)
-+			sock_update_memcg(newsk);
- 
- 		if (newsk->sk_prot->sockets_allocated)
- 			sk_sockets_allocated_inc(newsk);
-diff -puN net/ipv4/tcp.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label net/ipv4/tcp.c
---- a/net/ipv4/tcp.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label
-+++ a/net/ipv4/tcp.c
-@@ -422,7 +422,8 @@ void tcp_init_sock(struct sock *sk)
- 	sk->sk_rcvbuf = sysctl_tcp_rmem[1];
- 
- 	local_bh_disable();
--	sock_update_memcg(sk);
-+	if (mem_cgroup_sockets_enabled)
-+		sock_update_memcg(sk);
- 	sk_sockets_allocated_inc(sk);
- 	local_bh_enable();
- }
-diff -puN net/ipv4/tcp_ipv4.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label net/ipv4/tcp_ipv4.c
---- a/net/ipv4/tcp_ipv4.c~net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label
-+++ a/net/ipv4/tcp_ipv4.c
-@@ -1818,7 +1818,9 @@ void tcp_v4_destroy_sock(struct sock *sk
- 	tcp_saved_syn_free(tp);
- 
- 	sk_sockets_allocated_dec(sk);
--	sock_release_memcg(sk);
-+
+-		for (; cg_proto; cg_proto = parent_cg_proto(prot, cg_proto))
+-			cg_proto->memory_pressure = 0;
+-	}
+-
 +	if (mem_cgroup_sockets_enabled && sk->sk_cgrp)
-+		sock_release_memcg(sk);
++		sk->sk_cgrp->memory_pressure = 0;
  }
- EXPORT_SYMBOL(tcp_v4_destroy_sock);
  
+ static inline void sk_enter_memory_pressure(struct sock *sk)
+@@ -1170,13 +1164,8 @@ static inline void sk_enter_memory_press
+ 	if (!sk->sk_prot->enter_memory_pressure)
+ 		return;
+ 
+-	if (mem_cgroup_sockets_enabled && sk->sk_cgrp) {
+-		struct cg_proto *cg_proto = sk->sk_cgrp;
+-		struct proto *prot = sk->sk_prot;
+-
+-		for (; cg_proto; cg_proto = parent_cg_proto(prot, cg_proto))
+-			cg_proto->memory_pressure = 1;
+-	}
++	if (mem_cgroup_sockets_enabled && sk->sk_cgrp)
++		sk->sk_cgrp->memory_pressure = 1;
+ 
+ 	sk->sk_prot->enter_memory_pressure(sk);
+ }
 _
 
 Patches currently in -mm which might be from hannes@cmpxchg.org are
