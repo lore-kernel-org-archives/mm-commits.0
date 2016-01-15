@@ -1,89 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- modpost-dont-add-a-trailing-wildcard-for-of-module-aliases.patch removed
- from -mm tree
-Date: Fri, 15 Jan 2016 14:31:20 -0800
-Message-ID: <56997338.1jGczId4vl8+RJ5n%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-return-non-zero-st_blocks-for-inline-data.patch
+ removed from -mm tree
+Date: Fri, 15 Jan 2016 14:31:29 -0800
+Message-ID: <56997341.Zw4Y9wyNaZEIi8ce%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58967 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58991 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752291AbcAOWbV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:21 -0500
+	with ESMTP id S1753742AbcAOWba (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: javier@osg.samsung.com, computersforpeace@gmail.com, rusty@rustcorp.com.au, sjoerd.simons@collabora.co.uk, mm-commits@vger.kernel.org
+To: john.haxby@oracle.com, ghe@suse.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: modpost: don't add a trailing wildcard for OF module aliases
+     Subject: ocfs2: return non-zero st_blocks for inline data
 has been removed from the -mm tree.  Its filename was
-     modpost-dont-add-a-trailing-wildcard-for-of-module-aliases.patch
+     ocfs2-return-non-zero-st_blocks-for-inline-data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: modpost: don't add a trailing wildcard for OF module aliases
+From: John Haxby <john.haxby@oracle.com>
+Subject: ocfs2: return non-zero st_blocks for inline data
 
-Commit ac551828993ee ("modpost: i2c aliases need no trailing wildcard")
-removed the wildcard at the end of the I2C module aliases because I2C
-devices have no IDs so the aliases are just arbitrary device names.
+Some versions of tar assume that files with st_blocks == 0 do not contain
+any data and will skip reading them entirely.  See also commit
+9206c561554c ("ext4: return non-zero st_blocks for inline data").
 
-This is also true for OF modaliases since a compatible string is used to
-define a specific IP hardware block.  So the modalias should match a
-specific compatible string and not attempt to match a compatible string
-whose name matches the beginning of another one.
-
-For example, the following driver module:
-
-$ modinfo cros_ec_keyb | grep alias
-alias:          platform:cros-ec-keyb
-alias:          of:N*T*Cgoogle,cros-ec-keyb*
-
-will be tried to be loaded for an alias of:N*T*Cgoogle,cros-ec-keyb-v2 but
-there could be a different driver that supports the device for that
-compatible string so it's better to remove the trailing wildcard for OF.
-
-Also, remove the word "always" from the add_wildcard() function comment
-since that was carried from the time where a wildcard was always added at
-the end of the module alias for all the devices.
-
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
-Suggested-by: Brian Norris <computersforpeace@gmail.com>
-Reviewed-by: Sjoerd Simons <sjoerd.simons@collabora.co.uk>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: John Haxby <john.haxby@oracle.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Acked-by: Gang He <ghe@suse.com>
+Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/mod/file2alias.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ fs/ocfs2/file.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-diff -puN scripts/mod/file2alias.c~modpost-dont-add-a-trailing-wildcard-for-of-module-aliases scripts/mod/file2alias.c
---- a/scripts/mod/file2alias.c~modpost-dont-add-a-trailing-wildcard-for-of-module-aliases
-+++ a/scripts/mod/file2alias.c
-@@ -125,7 +125,7 @@ do {
-                 sprintf(str + strlen(str), "*");                \
- } while(0)
+diff -puN fs/ocfs2/file.c~ocfs2-return-non-zero-st_blocks-for-inline-data fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-return-non-zero-st_blocks-for-inline-data
++++ a/fs/ocfs2/file.c
+@@ -1302,6 +1302,14 @@ int ocfs2_getattr(struct vfsmount *mnt,
+ 	}
  
--/* Always end in a wildcard, for future extension */
-+/* End in a wildcard, for future extension */
- static inline void add_wildcard(char *str)
- {
- 	int len = strlen(str);
-@@ -704,7 +704,6 @@ static int do_of_entry (const char *file
- 		if (isspace (*tmp))
- 			*tmp = '_';
+ 	generic_fillattr(inode, stat);
++	/*
++	 * If there is inline data in the inode, the inode will normally not
++	 * have data blocks allocated (it may have an external xattr block).
++	 * Report at least one sector for such files, so tools like tar, rsync,
++	 * others don't incorrectly think the file is completely sparse.
++	 */
++	if (unlikely(OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL))
++		stat->blocks += (stat->size + 511)>>9;
  
--	add_wildcard(alias);
- 	return 1;
- }
- ADD_TO_DEVTABLE("of", of_device_id, do_of_entry);
+ 	/* We set the blksize from the cluster size for performance */
+ 	stat->blksize = osb->s_clustersize;
 _
 
-Patches currently in -mm which might be from javier@osg.samsung.com are
+Patches currently in -mm which might be from john.haxby@oracle.com are
 
 
