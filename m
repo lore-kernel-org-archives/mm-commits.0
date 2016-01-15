@@ -1,76 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged] logfs-fix-logfs-build-errors-and-dependencies.patch
- removed from -mm tree
-Date: Fri, 15 Jan 2016 14:31:23 -0800
-Message-ID: <5699733b.S8lgjwnbEIViVkNB%akpm@linux-foundation.org>
+Subject: [merged]
+ fsnotify-use-list_next_entry-in-fsnotify_unmount_inodes.patch removed from
+ -mm tree
+Date: Fri, 15 Jan 2016 14:31:16 -0800
+Message-ID: <56997334.jgvx5siCP+Bz26et%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58974 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58954 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752590AbcAOWbY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:24 -0500
+	with ESMTP id S1752291AbcAOWbQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, joern@logfs.org, mmarek@suse.cz, peter.chen@freescale.com, prasadjoshi.linux@gmail.com, rdunlap@infradead.org, mm-commits@vger.kernel.org
+To: geliangtang@163.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: logfs: fix logfs build errors and dependencies
+     Subject: fs/notify/inode_mark.c: use list_next_entry in fsnotify_unmount_inodes
 has been removed from the -mm tree.  Its filename was
-     logfs-fix-logfs-build-errors-and-dependencies.patch
+     fsnotify-use-list_next_entry-in-fsnotify_unmount_inodes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: logfs: fix logfs build errors and dependencies
+From: Geliang Tang <geliangtang@163.com>
+Subject: fs/notify/inode_mark.c: use list_next_entry in fsnotify_unmount_inodes
 
-Fix build errors that happen when CONFIG_LOGFS=y and CONFIG_MTD=m:
+To make the intention clearer, use list_next_entry instead of list_entry.
 
-fs/built-in.o: In function `logfs_mount':
-super.c:(.text+0x92a6f): undefined reference to `logfs_get_sb_mtd'
-fs/built-in.o: In function `logfs_get_sb_bdev':
-(.text+0x93530): undefined reference to `logfs_get_sb_mtd'
-
-This patch avoids the error by changing the dependencies of
-logfs in a way that we can no longer configure logfs as built-in
-when the MTD core is a loadable module, while leaving the
-dependency to require at least one of MTD or BLOCK to be
-enabled.
-
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Peter Chen <peter.chen@freescale.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Joern Engel <joern@logfs.org>
-Cc: Prasad Joshi <prasadjoshi.linux@gmail.com>
+Signed-off-by: Geliang Tang <geliangtang@163.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/logfs/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/notify/inode_mark.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN fs/logfs/Kconfig~logfs-fix-logfs-build-errors-and-dependencies fs/logfs/Kconfig
---- a/fs/logfs/Kconfig~logfs-fix-logfs-build-errors-and-dependencies
-+++ a/fs/logfs/Kconfig
-@@ -1,6 +1,6 @@
- config LOGFS
- 	tristate "LogFS file system"
--	depends on (MTD || BLOCK)
-+	depends on MTD || (!MTD && BLOCK)
- 	select ZLIB_INFLATE
- 	select ZLIB_DEFLATE
- 	select CRC32
+diff -puN fs/notify/inode_mark.c~fsnotify-use-list_next_entry-in-fsnotify_unmount_inodes fs/notify/inode_mark.c
+--- a/fs/notify/inode_mark.c~fsnotify-use-list_next_entry-in-fsnotify_unmount_inodes
++++ a/fs/notify/inode_mark.c
+@@ -199,8 +199,7 @@ void fsnotify_unmount_inodes(struct supe
+ 				break;
+ 			}
+ 			spin_unlock(&next_i->i_lock);
+-			next_i = list_entry(next_i->i_sb_list.next,
+-						struct inode, i_sb_list);
++			next_i = list_next_entry(next_i, i_sb_list);
+ 		}
+ 
+ 		/*
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from geliangtang@163.com are
 
-printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix.patch
-memstick-use-sector_div-instead-of-do_div.patch
-mm-memcontrol-introduce-config_memcg_legacy_kmem-fix.patch
-mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix-2.patch
+mm-swapfilec-use-list_for_each_entry_safe-in-free_swap_count_continuations.patch
+mm-move-lru_to_page-to-mm_inlineh.patch
+mm-zbud-use-list_last_entry-instead-of-list_tail_entry.patch
+hfs-use-list_for_each_entry-in-hfs_cat_delete.patch
+kexec-use-list_for_each_entry_safe-in-kimage_free_page_list.patch
+rapidio-use-kobj_to_dev.patch
+dma-mapping-use-offset_in_page-macro.patch
 
