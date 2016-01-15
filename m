@@ -1,99 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-optimize-bad-declarations-and-redundant-assignment.patch removed from -mm tree
-Date: Fri, 15 Jan 2016 14:31:26 -0800
-Message-ID: <5699733e.x73IzDASQYKWbzjK%akpm@linux-foundation.org>
+Subject: [merged] m32r-fix-m32104ut_defconfig-build-fail.patch removed
+ from -mm tree
+Date: Fri, 15 Jan 2016 14:31:09 -0800
+Message-ID: <5699732d.Zf2PVMQPpZ8q690K%akpm__41231.329952325$1452897092$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58983 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58944 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753725AbcAOWb1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:27 -0500
+	with ESMTP id S1751586AbcAOWbK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: norton.zhu@huawei.com, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: sudipm.mukherjee@gmail.com, fengguang.wu@intel.com, stable@vger.kernel.org, sudip@vectorindia.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: optimize bad declarations and redundant assignment
+     Subject: m32r: fix m32104ut_defconfig build fail
 has been removed from the -mm tree.  Its filename was
-     ocfs2-optimize-bad-declarations-and-redundant-assignment.patch
+     m32r-fix-m32104ut_defconfig-build-fail.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Norton.Zhu" <norton.zhu@huawei.com>
-Subject: ocfs2: optimize bad declarations and redundant assignment
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: m32r: fix m32104ut_defconfig build fail
 
-In ocfs2_parse_options,
+The build of m32104ut_defconfig for m32r arch was failing for long long
+time with the error:
+ERROR: "memory_start" [fs/udf/udf.ko] undefined!
+ERROR: "memory_end" [fs/udf/udf.ko] undefined!
+ERROR: "memory_end" [drivers/scsi/sg.ko] undefined!
+ERROR: "memory_start" [drivers/scsi/sg.ko] undefined!
+ERROR: "memory_end" [drivers/i2c/i2c-dev.ko] undefined!
+ERROR: "memory_start" [drivers/i2c/i2c-dev.ko] undefined!
 
-a) it's better to declare variables(small size) outside of while loop;
+As done in other architectures export the symbols to fix the error.
 
-b) 'option' will be set by match_int, 'option = 0;' makes no sense, if
-   match_int failed, it just goto bail and return.
-
-Signed-off-by: Norton.Zhu <norton.zhu@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Gang He <ghe@suse.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Acked-by: Joel Becker <jlbec@evilplan.org>
+Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ arch/m32r/kernel/setup.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/ocfs2/super.c~ocfs2-optimize-bad-declarations-and-redundant-assignment fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-optimize-bad-declarations-and-redundant-assignment
-+++ a/fs/ocfs2/super.c
-@@ -1280,6 +1280,8 @@ static int ocfs2_parse_options(struct su
- 	int status, user_stack = 0;
- 	char *p;
- 	u32 tmp;
-+	int token, option;
-+	substring_t args[MAX_OPT_ARGS];
+diff -puN arch/m32r/kernel/setup.c~m32r-fix-m32104ut_defconfig-build-fail arch/m32r/kernel/setup.c
+--- a/arch/m32r/kernel/setup.c~m32r-fix-m32104ut_defconfig-build-fail
++++ a/arch/m32r/kernel/setup.c
+@@ -81,7 +81,10 @@ static struct resource code_resource = {
+ };
  
- 	trace_ocfs2_parse_options(is_remount, options ? options : "(none)");
+ unsigned long memory_start;
++EXPORT_SYMBOL(memory_start);
++
+ unsigned long memory_end;
++EXPORT_SYMBOL(memory_end);
  
-@@ -1298,9 +1300,6 @@ static int ocfs2_parse_options(struct su
- 	}
- 
- 	while ((p = strsep(&options, ",")) != NULL) {
--		int token, option;
--		substring_t args[MAX_OPT_ARGS];
--
- 		if (!*p)
- 			continue;
- 
-@@ -1367,7 +1366,6 @@ static int ocfs2_parse_options(struct su
- 				mopt->atime_quantum = option;
- 			break;
- 		case Opt_slot:
--			option = 0;
- 			if (match_int(&args[0], &option)) {
- 				status = 0;
- 				goto bail;
-@@ -1376,7 +1374,6 @@ static int ocfs2_parse_options(struct su
- 				mopt->slot = (s16)option;
- 			break;
- 		case Opt_commit:
--			option = 0;
- 			if (match_int(&args[0], &option)) {
- 				status = 0;
- 				goto bail;
-@@ -1388,7 +1385,6 @@ static int ocfs2_parse_options(struct su
- 			mopt->commit_interval = HZ * option;
- 			break;
- 		case Opt_localalloc:
--			option = 0;
- 			if (match_int(&args[0], &option)) {
- 				status = 0;
- 				goto bail;
+ void __init setup_arch(char **);
+ int get_cpuinfo(char *);
 _
 
-Patches currently in -mm which might be from norton.zhu@huawei.com are
+Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
 
+arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-4.patch
 
