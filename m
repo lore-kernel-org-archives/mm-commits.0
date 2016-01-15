@@ -1,73 +1,33 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- revert-kernfs-do-not-account-ino_ida-allocations-to-memcg.patch removed
+ memcg-only-account-kmem-allocations-marked-as-__gfp_account.patch removed
  from -mm tree
-Date: Fri, 15 Jan 2016 14:32:10 -0800
-Message-ID: <5699736a.c+2UUT1mI6TSZSnE%akpm@linux-foundation.org>
+Date: Fri, 15 Jan 2016 14:32:16 -0800
+Message-ID: <56997370.4EEhoazZAuW4vzhU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59080 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59096 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754892AbcAOWcL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:32:11 -0500
+	with ESMTP id S1753374AbcAOWcR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:32:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, cl@linux.com, gthelen@google.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, penberg@kernel.org, rientjes@google.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, cl@linux.com, gthelen@google.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@suse.com, penberg@kernel.org, rientjes@google.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Revert "kernfs: do not account ino_ida allocations to memcg"
+     Subject: memcg: only account kmem allocations marked as __GFP_ACCOUNT
 has been removed from the -mm tree.  Its filename was
-     revert-kernfs-do-not-account-ino_ida-allocations-to-memcg.patch
+     memcg-only-account-kmem-allocations-marked-as-__gfp_account.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: Revert "kernfs: do not account ino_ida allocations to memcg"
-
-Currently, all kmem allocations (namely every kmem_cache_alloc, kmalloc,
-alloc_kmem_pages call) are accounted to memory cgroup automatically. 
-Callers have to explicitly opt out if they don't want/need accounting for
-some reason.  Such a design decision leads to several problems:
-
- - kmalloc users are highly sensitive to failures, many of them
-   implicitly rely on the fact that kmalloc never fails, while memcg
-   makes failures quite plausible.
-
- - A lot of objects are shared among different containers by design.
-   Accounting such objects to one of containers is just unfair.
-   Moreover, it might lead to pinning a dead memcg along with its kmem
-   caches, which aren't tiny, which might result in noticeable increase
-   in memory consumption for no apparent reason in the long run.
-
- - There are tons of short-lived objects. Accounting them to memcg will
-   only result in slight noise and won't change the overall picture, but
-   we still have to pay accounting overhead.
-
-For more info, see
-
- - http://lkml.kernel.org/r/20151105144002.GB15111%40dhcp22.suse.cz
- - http://lkml.kernel.org/r/20151106090555.GK29259@esperanza
-
-Therefore this patchset switches to the white list policy.  Now kmalloc
-users have to explicitly opt in by passing __GFP_ACCOUNT flag.
-
-Currently, the list of accounted objects is quite limited and only
-includes those allocations that (1) are known to be easily triggered from
-userspace and (2) can fail gracefully (for the full list see patch no.  6)
-and it still misses many object types.  However, accounting only those
-objects should be a satisfactory approximation of the behavior we used to
-have for most sane workloads.
-
-
-This patch (of 6):
-
-Revert 499611ed451508a42d1d7d ("kernfs: do not account ino_ida allocations
-to memcg").
+Subject: memcg: only account kmem allocations marked as __GFP_ACCOUNT
 
 Black-list kmem accounting policy (aka __GFP_NOACCOUNT) turned out to be
 fragile and difficult to maintain, because there seem to be many more
@@ -76,13 +36,15 @@ Besides, false accounting an allocation might result in much worse
 consequences than not accounting at all, namely increased memory
 consumption due to pinned dead kmem caches.
 
-So it was decided to switch to the white-list policy.  This patch reverts
-bits introducing the black-list policy.  The white-list policy will be
-introduced later in the series.
+So this patch switches kmem accounting to the white-policy: now only those
+kmem allocations that are marked as __GFP_ACCOUNT are accounted to memcg. 
+Currently, no kmem allocations are marked like this.  The following
+patches will mark several kmem allocations that are known to be easily
+triggered from userspace and therefore should be accounted to memcg.
 
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Tejun Heo <tj@kernel.org>
 Cc: Greg Thelen <gthelen@google.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -92,28 +54,81 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/kernfs/dir.c |    9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ include/linux/gfp.h        |    9 +++++++++
+ include/linux/memcontrol.h |    2 ++
+ mm/page_alloc.c            |    3 ++-
+ 3 files changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN fs/kernfs/dir.c~revert-kernfs-do-not-account-ino_ida-allocations-to-memcg fs/kernfs/dir.c
---- a/fs/kernfs/dir.c~revert-kernfs-do-not-account-ino_ida-allocations-to-memcg
-+++ a/fs/kernfs/dir.c
-@@ -541,14 +541,7 @@ static struct kernfs_node *__kernfs_new_
- 	if (!kn)
- 		goto err_out1;
+diff -puN include/linux/gfp.h~memcg-only-account-kmem-allocations-marked-as-__gfp_account include/linux/gfp.h
+--- a/include/linux/gfp.h~memcg-only-account-kmem-allocations-marked-as-__gfp_account
++++ a/include/linux/gfp.h
+@@ -30,6 +30,7 @@ struct vm_area_struct;
+ #define ___GFP_HARDWALL		0x20000u
+ #define ___GFP_THISNODE		0x40000u
+ #define ___GFP_ATOMIC		0x80000u
++#define ___GFP_ACCOUNT		0x100000u
+ #define ___GFP_NOTRACK		0x200000u
+ #define ___GFP_DIRECT_RECLAIM	0x400000u
+ #define ___GFP_OTHER_NODE	0x800000u
+@@ -72,11 +73,15 @@ struct vm_area_struct;
+  *
+  * __GFP_THISNODE forces the allocation to be satisified from the requested
+  *   node with no fallbacks or placement policy enforcements.
++ *
++ * __GFP_ACCOUNT causes the allocation to be accounted to kmemcg (only relevant
++ *   to kmem allocations).
+  */
+ #define __GFP_RECLAIMABLE ((__force gfp_t)___GFP_RECLAIMABLE)
+ #define __GFP_WRITE	((__force gfp_t)___GFP_WRITE)
+ #define __GFP_HARDWALL   ((__force gfp_t)___GFP_HARDWALL)
+ #define __GFP_THISNODE	((__force gfp_t)___GFP_THISNODE)
++#define __GFP_ACCOUNT	((__force gfp_t)___GFP_ACCOUNT)
  
--	/*
--	 * If the ino of the sysfs entry created for a kmem cache gets
--	 * allocated from an ida layer, which is accounted to the memcg that
--	 * owns the cache, the memcg will get pinned forever. So do not account
--	 * ino ida allocations.
--	 */
--	ret = ida_simple_get(&root->ino_ida, 1, 0,
--			     GFP_KERNEL | __GFP_NOACCOUNT);
-+	ret = ida_simple_get(&root->ino_ida, 1, 0, GFP_KERNEL);
- 	if (ret < 0)
- 		goto err_out2;
- 	kn->ino = ret;
+ /*
+  * Watermark modifiers -- controls access to emergency reserves
+@@ -195,6 +200,9 @@ struct vm_area_struct;
+  * GFP_KERNEL is typical for kernel-internal allocations. The caller requires
+  *   ZONE_NORMAL or a lower zone for direct access but can direct reclaim.
+  *
++ * GFP_KERNEL_ACCOUNT is the same as GFP_KERNEL, except the allocation is
++ *   accounted to kmemcg.
++ *
+  * GFP_NOWAIT is for kernel allocations that should not stall for direct
+  *   reclaim, start physical IO or use any filesystem callback.
+  *
+@@ -234,6 +242,7 @@ struct vm_area_struct;
+  */
+ #define GFP_ATOMIC	(__GFP_HIGH|__GFP_ATOMIC|__GFP_KSWAPD_RECLAIM)
+ #define GFP_KERNEL	(__GFP_RECLAIM | __GFP_IO | __GFP_FS)
++#define GFP_KERNEL_ACCOUNT (GFP_KERNEL | __GFP_ACCOUNT)
+ #define GFP_NOWAIT	(__GFP_KSWAPD_RECLAIM)
+ #define GFP_NOIO	(__GFP_RECLAIM)
+ #define GFP_NOFS	(__GFP_RECLAIM | __GFP_IO)
+diff -puN include/linux/memcontrol.h~memcg-only-account-kmem-allocations-marked-as-__gfp_account include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~memcg-only-account-kmem-allocations-marked-as-__gfp_account
++++ a/include/linux/memcontrol.h
+@@ -773,6 +773,8 @@ static inline bool __memcg_kmem_bypass(g
+ {
+ 	if (!memcg_kmem_enabled())
+ 		return true;
++	if (!(gfp & __GFP_ACCOUNT))
++		return true;
+ 	if (in_interrupt() || (!current->mm) || (current->flags & PF_KTHREAD))
+ 		return true;
+ 	return false;
+diff -puN mm/page_alloc.c~memcg-only-account-kmem-allocations-marked-as-__gfp_account mm/page_alloc.c
+--- a/mm/page_alloc.c~memcg-only-account-kmem-allocations-marked-as-__gfp_account
++++ a/mm/page_alloc.c
+@@ -3402,7 +3402,8 @@ EXPORT_SYMBOL(__free_page_frag);
+ 
+ /*
+  * alloc_kmem_pages charges newly allocated pages to the kmem resource counter
+- * of the current memory cgroup.
++ * of the current memory cgroup if __GFP_ACCOUNT is set, other than that it is
++ * equivalent to alloc_pages.
+  *
+  * It should be used when the caller would like to use kmalloc, but since the
+  * allocation is large, it has to fall back to the page allocator.
 _
 
 Patches currently in -mm which might be from vdavydov@virtuozzo.com are
