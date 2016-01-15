@@ -1,102 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page.patch
- removed from -mm tree
-Date: Fri, 15 Jan 2016 14:34:20 -0800
-Message-ID: <569973ec.6pIq3caVy+CTW8Qz%akpm@linux-foundation.org>
+Subject: [merged] mm-swapfilec-use-list_nextfirst_entry.patch removed from -mm tree
+Date: Fri, 15 Jan 2016 14:34:16 -0800
+Message-ID: <569973e8.YfLMiQC7NknAs31b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59570 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59559 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753053AbcAOWeU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:34:20 -0500
+	with ESMTP id S1753053AbcAOWeR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:34:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geliangtang@163.com, mm-commits@vger.kernel.org
+To: geliangtang@163.com, hughd@google.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/readahead.c, mm/vmscan.c: use lru_to_page instead of list_to_page
+     Subject: mm/swapfile.c: use list_{next,first}_entry
 has been removed from the -mm tree.  Its filename was
-     mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page.patch
+     mm-swapfilec-use-list_nextfirst_entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Geliang Tang <geliangtang@163.com>
-Subject: mm/readahead.c, mm/vmscan.c: use lru_to_page instead of list_to_page
+Subject: mm/swapfile.c: use list_{next,first}_entry
 
-list_to_page() in readahead.c is the same as lru_to_page() in vmscan.c. 
-So I move lru_to_page to internal.h and drop list_to_page().
+To make the intention clearer, use list_{next,first}_entry instead of
+list_entry().
 
 Signed-off-by: Geliang Tang <geliangtang@163.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/internal.h  |    2 ++
- mm/readahead.c |    8 +++-----
- mm/vmscan.c    |    2 --
- 3 files changed, 5 insertions(+), 7 deletions(-)
+ mm/swapfile.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
-diff -puN mm/internal.h~mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page mm/internal.h
---- a/mm/internal.h~mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page
-+++ a/mm/internal.h
-@@ -119,6 +119,8 @@ extern int isolate_lru_page(struct page
- extern void putback_lru_page(struct page *page);
- extern bool zone_reclaimable(struct zone *zone);
+diff -puN mm/swapfile.c~mm-swapfilec-use-list_nextfirst_entry mm/swapfile.c
+--- a/mm/swapfile.c~mm-swapfilec-use-list_nextfirst_entry
++++ a/mm/swapfile.c
+@@ -165,8 +165,6 @@ static void discard_swap_cluster(struct
+ 	int found_extent = 0;
  
-+#define lru_to_page(_head) (list_entry((_head)->prev, struct page, lru))
-+
- /*
-  * in mm/rmap.c:
-  */
-diff -puN mm/readahead.c~mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page mm/readahead.c
---- a/mm/readahead.c~mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page
-+++ a/mm/readahead.c
-@@ -32,8 +32,6 @@ file_ra_state_init(struct file_ra_state
- }
- EXPORT_SYMBOL_GPL(file_ra_state_init);
- 
--#define list_to_page(head) (list_entry((head)->prev, struct page, lru))
+ 	while (nr_pages) {
+-		struct list_head *lh;
 -
- /*
-  * see if a page needs releasing upon read_cache_pages() failure
-  * - the caller of read_cache_pages() may have set PG_private or PG_fscache
-@@ -64,7 +62,7 @@ static void read_cache_pages_invalidate_
- 	struct page *victim;
+ 		if (se->start_page <= start_page &&
+ 		    start_page < se->start_page + se->nr_pages) {
+ 			pgoff_t offset = start_page - se->start_page;
+@@ -188,8 +186,7 @@ static void discard_swap_cluster(struct
+ 				break;
+ 		}
  
- 	while (!list_empty(pages)) {
--		victim = list_to_page(pages);
-+		victim = lru_to_page(pages);
- 		list_del(&victim->lru);
- 		read_cache_pages_invalidate_page(mapping, victim);
+-		lh = se->list.next;
+-		se = list_entry(lh, struct swap_extent, list);
++		se = list_next_entry(se, list);
  	}
-@@ -87,7 +85,7 @@ int read_cache_pages(struct address_spac
- 	int ret = 0;
+ }
  
- 	while (!list_empty(pages)) {
--		page = list_to_page(pages);
-+		page = lru_to_page(pages);
- 		list_del(&page->lru);
- 		if (add_to_page_cache_lru(page, mapping, page->index,
- 				mapping_gfp_constraint(mapping, GFP_KERNEL))) {
-@@ -125,7 +123,7 @@ static int read_pages(struct address_spa
+@@ -903,7 +900,7 @@ int swp_swapcount(swp_entry_t entry)
+ 	VM_BUG_ON(page_private(page) != SWP_CONTINUED);
+ 
+ 	do {
+-		page = list_entry(page->lru.next, struct page, lru);
++		page = list_next_entry(page, lru);
+ 		map = kmap_atomic(page);
+ 		tmp_count = map[offset];
+ 		kunmap_atomic(map);
+@@ -1633,14 +1630,11 @@ static sector_t map_swap_entry(swp_entry
+ 	se = start_se;
+ 
+ 	for ( ; ; ) {
+-		struct list_head *lh;
+-
+ 		if (se->start_page <= offset &&
+ 				offset < (se->start_page + se->nr_pages)) {
+ 			return se->start_block + (offset - se->start_page);
+ 		}
+-		lh = se->list.next;
+-		se = list_entry(lh, struct swap_extent, list);
++		se = list_next_entry(se, list);
+ 		sis->curr_swap_extent = se;
+ 		BUG_ON(se == start_se);		/* It *must* be present */
  	}
+@@ -1664,7 +1658,7 @@ static void destroy_swap_extents(struct
+ 	while (!list_empty(&sis->first_swap_extent.list)) {
+ 		struct swap_extent *se;
  
- 	for (page_idx = 0; page_idx < nr_pages; page_idx++) {
--		struct page *page = list_to_page(pages);
-+		struct page *page = lru_to_page(pages);
- 		list_del(&page->lru);
- 		if (!add_to_page_cache_lru(page, mapping, page->index,
- 				mapping_gfp_constraint(mapping, GFP_KERNEL))) {
-diff -puN mm/vmscan.c~mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page mm/vmscan.c
---- a/mm/vmscan.c~mm-readaheadc-mm-vmscanc-use-lru_to_page-instead-of-list_to_page
-+++ a/mm/vmscan.c
-@@ -106,8 +106,6 @@ struct scan_control {
- 	unsigned long nr_reclaimed;
- };
- 
--#define lru_to_page(_head) (list_entry((_head)->prev, struct page, lru))
+-		se = list_entry(sis->first_swap_extent.list.next,
++		se = list_first_entry(&sis->first_swap_extent.list,
+ 				struct swap_extent, list);
+ 		list_del(&se->list);
+ 		kfree(se);
+_
+
+Patches currently in -mm which might be from geliangtang@163.com are
+
+mm-swapfilec-use-list_for_each_entry_safe-in-free_swap_count_continuations.patch
+mm-move-lru_to_page-to-mm_inlineh.patch
+mm-zbud-use-list_last_entry-instead-of-list_tail_entry.patch
+hfs-use-list_for_each_entry-in-hfs_cat_delete.patch
+kexec-use-list_for_each_entry_safe-in-kimage_free_page_list.patch
+rapidio-use-kobj_to_dev.patch
+dma-mapping-use-offset_in_page-macro.patch
+
