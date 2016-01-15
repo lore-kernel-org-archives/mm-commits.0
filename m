@@ -1,98 +1,126 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount.patch removed
+ ocfs2-dlm-ignore-cleaning-the-migration-mle-that-is-inuse.patch removed
  from -mm tree
-Date: Fri, 15 Jan 2016 14:31:44 -0800
-Message-ID: <56997350.yGtCgYzY7ODKkcua%akpm@linux-foundation.org>
+Date: Fri, 15 Jan 2016 14:31:49 -0800
+Message-ID: <56997355.1FpfuDWDMgkRb9c2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59023 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59029 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752670AbcAOWbp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:45 -0500
+	with ESMTP id S1752670AbcAOWbu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix slot overwritten if storage link down during mount
+     Subject: ocfs2/dlm: ignore cleaning the migration mle that is inuse
 has been removed from the -mm tree.  Its filename was
-     ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount.patch
+     ocfs2-dlm-ignore-cleaning-the-migration-mle-that-is-inuse.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: jiangyiwen <jiangyiwen@huawei.com>
-Subject: ocfs2: fix slot overwritten if storage link down during mount
+From: xuejiufei <xuejiufei@huawei.com>
+Subject: ocfs2/dlm: ignore cleaning the migration mle that is inuse
 
-The following case will lead to slot overwritten.
+We have found that migration source will trigger a BUG that the
+refcount of mle is already zero before put when the target is
+down during migration. The situation is as follows:
 
-N1                               N2
-mount ocfs2 volume, find and
-allocate slot 0, then set
-osb->slot_num to 0, begin to
-write slot info to disk
-                                 mount ocfs2 volume, wait for super lock
-write block fail because of
-storage link down, unlock
-super lock
-                                 got super lock and also allocate slot 0
-                                 then unlock super lock
+dlm_migrate_lockres
+  dlm_add_migration_mle
+  dlm_mark_lockres_migrating
+  dlm_get_mle_inuse
+  <<<<<< Now the refcount of the mle is 2.
+  dlm_send_one_lockres and wait for the target to become the
+  new master.
+  <<<<<< o2hb detect the target down and clean the migration
+  mle. Now the refcount is 1.
 
-mount fail and then dismount,
-since osb->slot_num is 0, try to
-put invalid slot to disk. And it
-will succeed if storage link
-restores.
-                                 N2 slot info is now overwritten
+dlm_migrate_lockres woken, and put the mle twice when found
+the target goes down which trigger the BUG with the following
+message:
+"ERROR: bad mle: ".
 
-Once another node say N3 mount, it will find and allocate slot 0 again,
-which will lead to mount hung because journal has already been locked by
-N2.  so when write slot info failed, invalidate slot in advance to avoid
-overwrite slot.
-
-[akpm@linux-foundation.org: coding-style fixes]
-Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Signed-off-by: Jiufei Xue <xuejiufei@huawei.com>
 Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/slot_map.c |   11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmmaster.c |   26 +++++++++++++++-----------
+ 1 file changed, 15 insertions(+), 11 deletions(-)
 
-diff -puN fs/ocfs2/slot_map.c~ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount fs/ocfs2/slot_map.c
---- a/fs/ocfs2/slot_map.c~ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount
-+++ a/fs/ocfs2/slot_map.c
-@@ -502,8 +502,17 @@ int ocfs2_find_slot(struct ocfs2_super *
- 	trace_ocfs2_find_slot(osb->slot_num);
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-ignore-cleaning-the-migration-mle-that-is-inuse fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-ignore-cleaning-the-migration-mle-that-is-inuse
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -2519,6 +2519,11 @@ static int dlm_migrate_lockres(struct dl
+ 	spin_lock(&dlm->master_lock);
+ 	ret = dlm_add_migration_mle(dlm, res, mle, &oldmle, name,
+ 				    namelen, target, dlm->node_num);
++	/* get an extra reference on the mle.
++	 * otherwise the assert_master from the new
++	 * master will destroy this.
++	 */
++	dlm_get_mle_inuse(mle);
+ 	spin_unlock(&dlm->master_lock);
+ 	spin_unlock(&dlm->spinlock);
  
- 	status = ocfs2_update_disk_slot(osb, si, osb->slot_num);
--	if (status < 0)
-+	if (status < 0) {
- 		mlog_errno(status);
-+		/*
-+		 * if write block failed, invalidate slot to avoid overwrite
-+		 * slot during dismount in case another node rightly has mounted
-+		 */
-+		spin_lock(&osb->osb_lock);
-+		ocfs2_invalidate_slot(si, osb->slot_num);
-+		osb->slot_num = OCFS2_INVALID_SLOT;
-+		spin_unlock(&osb->osb_lock);
-+	}
+@@ -2554,6 +2559,7 @@ fail:
+ 		if (mle_added) {
+ 			dlm_mle_detach_hb_events(dlm, mle);
+ 			dlm_put_mle(mle);
++			dlm_put_mle_inuse(mle);
+ 		} else if (mle) {
+ 			kmem_cache_free(dlm_mle_cache, mle);
+ 			mle = NULL;
+@@ -2571,17 +2577,6 @@ fail:
+ 	 * ensure that all assert_master work is flushed. */
+ 	flush_workqueue(dlm->dlm_worker);
  
- bail:
- 	return status;
+-	/* get an extra reference on the mle.
+-	 * otherwise the assert_master from the new
+-	 * master will destroy this.
+-	 * also, make sure that all callers of dlm_get_mle
+-	 * take both dlm->spinlock and dlm->master_lock */
+-	spin_lock(&dlm->spinlock);
+-	spin_lock(&dlm->master_lock);
+-	dlm_get_mle_inuse(mle);
+-	spin_unlock(&dlm->master_lock);
+-	spin_unlock(&dlm->spinlock);
+-
+ 	/* notify new node and send all lock state */
+ 	/* call send_one_lockres with migration flag.
+ 	 * this serves as notice to the target node that a
+@@ -3312,6 +3307,15 @@ top:
+ 			    mle->new_master != dead_node)
+ 				continue;
+ 
++			if (mle->new_master == dead_node && mle->inuse) {
++				mlog(ML_NOTICE, "%s: target %u died during "
++						"migration from %u, the MLE is "
++						"still keep used, ignore it!\n",
++						dlm->name, dead_node,
++						mle->master);
++				continue;
++			}
++
+ 			/* If we have reached this point, this mle needs to be
+ 			 * removed from the list and freed. */
+ 			dlm_clean_migration_mle(dlm, mle);
 _
 
-Patches currently in -mm which might be from jiangyiwen@huawei.com are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
-ocfs2-avoid-occurring-deadlock-by-changing-ocfs2_wq-from-global-to-local.patch
-ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups.patch
+ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
+extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
 
