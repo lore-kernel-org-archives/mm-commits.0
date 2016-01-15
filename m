@@ -1,74 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-do-not-lock-unlock-inode-dlm-lock.patch removed
+Subject: [merged]
+ ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount.patch removed
  from -mm tree
-Date: Fri, 15 Jan 2016 14:31:47 -0800
-Message-ID: <56997353.GDi7UX0HZsVM+Ooi%akpm@linux-foundation.org>
+Date: Fri, 15 Jan 2016 14:31:44 -0800
+Message-ID: <56997350.yGtCgYzY7ODKkcua%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59028 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59023 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752670AbcAOWbs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:48 -0500
+	with ESMTP id S1752670AbcAOWbp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rgoldwyn@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: do not lock/unlock() inode DLM lock
+     Subject: ocfs2: fix slot overwritten if storage link down during mount
 has been removed from the -mm tree.  Its filename was
-     ocfs2-do-not-lock-unlock-inode-dlm-lock.patch
+     ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Goldwyn Rodrigues <rgoldwyn@suse.com>
-Subject: ocfs2: do not lock/unlock() inode DLM lock
+From: jiangyiwen <jiangyiwen@huawei.com>
+Subject: ocfs2: fix slot overwritten if storage link down during mount
 
-DLM does not cache locks.  So, blocking lock and unlock will only make the
-performance worse where contention over the locks is high.
+The following case will lead to slot overwritten.
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn@suse.com>
+N1                               N2
+mount ocfs2 volume, find and
+allocate slot 0, then set
+osb->slot_num to 0, begin to
+write slot info to disk
+                                 mount ocfs2 volume, wait for super lock
+write block fail because of
+storage link down, unlock
+super lock
+                                 got super lock and also allocate slot 0
+                                 then unlock super lock
+
+mount fail and then dismount,
+since osb->slot_num is 0, try to
+put invalid slot to disk. And it
+will succeed if storage link
+restores.
+                                 N2 slot info is now overwritten
+
+Once another node say N3 mount, it will find and allocate slot 0 again,
+which will lead to mount hung because journal has already been locked by
+N2.  so when write slot info failed, invalidate slot in advance to avoid
+overwrite slot.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
-Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlmglue.c |    8 --------
- 1 file changed, 8 deletions(-)
+ fs/ocfs2/slot_map.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/dlmglue.c~ocfs2-do-not-lock-unlock-inode-dlm-lock fs/ocfs2/dlmglue.c
---- a/fs/ocfs2/dlmglue.c~ocfs2-do-not-lock-unlock-inode-dlm-lock
-+++ a/fs/ocfs2/dlmglue.c
-@@ -2432,12 +2432,6 @@ bail:
-  * done this we have to return AOP_TRUNCATED_PAGE so the aop method
-  * that called us can bubble that back up into the VFS who will then
-  * immediately retry the aop call.
-- *
-- * We do a blocking lock and immediate unlock before returning, though, so that
-- * the lock has a great chance of being cached on this node by the time the VFS
-- * calls back to retry the aop.    This has a potential to livelock as nodes
-- * ping locks back and forth, but that's a risk we're willing to take to avoid
-- * the lock inversion simply.
-  */
- int ocfs2_inode_lock_with_page(struct inode *inode,
- 			      struct buffer_head **ret_bh,
-@@ -2449,8 +2443,6 @@ int ocfs2_inode_lock_with_page(struct in
- 	ret = ocfs2_inode_lock_full(inode, ret_bh, ex, OCFS2_LOCK_NONBLOCK);
- 	if (ret == -EAGAIN) {
- 		unlock_page(page);
--		if (ocfs2_inode_lock(inode, ret_bh, ex) == 0)
--			ocfs2_inode_unlock(inode, ex);
- 		ret = AOP_TRUNCATED_PAGE;
- 	}
+diff -puN fs/ocfs2/slot_map.c~ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount fs/ocfs2/slot_map.c
+--- a/fs/ocfs2/slot_map.c~ocfs2-fix-slot-overwritten-if-storage-link-down-during-mount
++++ a/fs/ocfs2/slot_map.c
+@@ -502,8 +502,17 @@ int ocfs2_find_slot(struct ocfs2_super *
+ 	trace_ocfs2_find_slot(osb->slot_num);
  
+ 	status = ocfs2_update_disk_slot(osb, si, osb->slot_num);
+-	if (status < 0)
++	if (status < 0) {
+ 		mlog_errno(status);
++		/*
++		 * if write block failed, invalidate slot to avoid overwrite
++		 * slot during dismount in case another node rightly has mounted
++		 */
++		spin_lock(&osb->osb_lock);
++		ocfs2_invalidate_slot(si, osb->slot_num);
++		osb->slot_num = OCFS2_INVALID_SLOT;
++		spin_unlock(&osb->osb_lock);
++	}
+ 
+ bail:
+ 	return status;
 _
 
-Patches currently in -mm which might be from rgoldwyn@suse.com are
+Patches currently in -mm which might be from jiangyiwen@huawei.com are
 
+ocfs2-avoid-occurring-deadlock-by-changing-ocfs2_wq-from-global-to-local.patch
+ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups.patch
 
