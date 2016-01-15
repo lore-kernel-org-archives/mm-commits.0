@@ -1,153 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fsnotify-destroy-marks-with-call_srcu-instead-of-dedicated-thread.patch
+Subject: [merged] logfs-fix-logfs-build-errors-and-dependencies.patch
  removed from -mm tree
-Date: Fri, 15 Jan 2016 14:31:18 -0800
-Message-ID: <56997336.YWprnqu0El7cEKEw%akpm@linux-foundation.org>
+Date: Fri, 15 Jan 2016 14:31:23 -0800
+Message-ID: <5699733b.S8lgjwnbEIViVkNB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58961 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58974 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752291AbcAOWbT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:19 -0500
+	with ESMTP id S1752590AbcAOWbY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jlayton@poochiereds.net, eparis@parisplace.org, jack@suse.com, jeff.layton@primarydata.com, paulmck@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, joern@logfs.org, mmarek@suse.cz, peter.chen@freescale.com, prasadjoshi.linux@gmail.com, rdunlap@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsnotify: destroy marks with call_srcu instead of dedicated thread
+     Subject: logfs: fix logfs build errors and dependencies
 has been removed from the -mm tree.  Its filename was
-     fsnotify-destroy-marks-with-call_srcu-instead-of-dedicated-thread.patch
+     logfs-fix-logfs-build-errors-and-dependencies.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jeff Layton <jlayton@poochiereds.net>
-Subject: fsnotify: destroy marks with call_srcu instead of dedicated thread
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: logfs: fix logfs build errors and dependencies
 
-At the time that this code was originally written, call_srcu didn't exist,
-so this thread was required to ensure that we waited for that SRCU grace
-period to settle before finally freeing the object.
+Fix build errors that happen when CONFIG_LOGFS=y and CONFIG_MTD=m:
 
-It does exist now however and we can much more efficiently use call_srcu
-to handle this.  That also allows us to potentially use srcu_barrier to
-ensure that they are all of the callbacks have run before proceeding.  In
-order to conserve space, we union the rcu_head with the g_list.
+fs/built-in.o: In function `logfs_mount':
+super.c:(.text+0x92a6f): undefined reference to `logfs_get_sb_mtd'
+fs/built-in.o: In function `logfs_get_sb_bdev':
+(.text+0x93530): undefined reference to `logfs_get_sb_mtd'
 
-This will be necessary for nfsd which will allocate marks from a dedicated
-slabcache.  We have to be able to ensure that all of the objects are
-destroyed before destroying the cache.  That's fairly
+This patch avoids the error by changing the dependencies of
+logfs in a way that we can no longer configure logfs as built-in
+when the MTD core is a loadable module, while leaving the
+dependency to require at least one of MTD or BLOCK to be
+enabled.
 
-Signed-off-by: Jeff Layton <jeff.layton@primarydata.com>
-Cc: Eric Paris <eparis@parisplace.org>
-Reviewed-by: Jan Kara <jack@suse.com>
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Peter Chen <peter.chen@freescale.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>
+Cc: Joern Engel <joern@logfs.org>
+Cc: Prasad Joshi <prasadjoshi.linux@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/mark.c                 |   66 ++++++-----------------------
- include/linux/fsnotify_backend.h |    5 +-
- 2 files changed, 18 insertions(+), 53 deletions(-)
+ fs/logfs/Kconfig |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/notify/mark.c~fsnotify-destroy-marks-with-call_srcu-instead-of-dedicated-thread fs/notify/mark.c
---- a/fs/notify/mark.c~fsnotify-destroy-marks-with-call_srcu-instead-of-dedicated-thread
-+++ a/fs/notify/mark.c
-@@ -92,9 +92,6 @@
- #include "fsnotify.h"
- 
- struct srcu_struct fsnotify_mark_srcu;
--static DEFINE_SPINLOCK(destroy_lock);
--static LIST_HEAD(destroy_list);
--static DECLARE_WAIT_QUEUE_HEAD(destroy_waitq);
- 
- void fsnotify_get_mark(struct fsnotify_mark *mark)
- {
-@@ -168,10 +165,19 @@ void fsnotify_detach_mark(struct fsnotif
- 	atomic_dec(&group->num_marks);
- }
- 
-+static void
-+fsnotify_mark_free_rcu(struct rcu_head *rcu)
-+{
-+	struct fsnotify_mark	*mark;
-+
-+	mark = container_of(rcu, struct fsnotify_mark, g_rcu);
-+	fsnotify_put_mark(mark);
-+}
-+
- /*
-- * Free fsnotify mark. The freeing is actually happening from a kthread which
-- * first waits for srcu period end. Caller must have a reference to the mark
-- * or be protected by fsnotify_mark_srcu.
-+ * Free fsnotify mark. The freeing is actually happening from a call_srcu
-+ * callback. Caller must have a reference to the mark or be protected by
-+ * fsnotify_mark_srcu.
-  */
- void fsnotify_free_mark(struct fsnotify_mark *mark)
- {
-@@ -186,10 +192,7 @@ void fsnotify_free_mark(struct fsnotify_
- 	mark->flags &= ~FSNOTIFY_MARK_FLAG_ALIVE;
- 	spin_unlock(&mark->lock);
- 
--	spin_lock(&destroy_lock);
--	list_add(&mark->g_list, &destroy_list);
--	spin_unlock(&destroy_lock);
--	wake_up(&destroy_waitq);
-+	call_srcu(&fsnotify_mark_srcu, &mark->g_rcu, fsnotify_mark_free_rcu);
- 
- 	/*
- 	 * Some groups like to know that marks are being freed.  This is a
-@@ -385,11 +388,7 @@ err:
- 
- 	spin_unlock(&mark->lock);
- 
--	spin_lock(&destroy_lock);
--	list_add(&mark->g_list, &destroy_list);
--	spin_unlock(&destroy_lock);
--	wake_up(&destroy_waitq);
--
-+	call_srcu(&fsnotify_mark_srcu, &mark->g_rcu, fsnotify_mark_free_rcu);
- 	return ret;
- }
- 
-@@ -492,40 +491,3 @@ void fsnotify_init_mark(struct fsnotify_
- 	atomic_set(&mark->refcnt, 1);
- 	mark->free_mark = free_mark;
- }
--
--static int fsnotify_mark_destroy(void *ignored)
--{
--	struct fsnotify_mark *mark, *next;
--	struct list_head private_destroy_list;
--
--	for (;;) {
--		spin_lock(&destroy_lock);
--		/* exchange the list head */
--		list_replace_init(&destroy_list, &private_destroy_list);
--		spin_unlock(&destroy_lock);
--
--		synchronize_srcu(&fsnotify_mark_srcu);
--
--		list_for_each_entry_safe(mark, next, &private_destroy_list, g_list) {
--			list_del_init(&mark->g_list);
--			fsnotify_put_mark(mark);
--		}
--
--		wait_event_interruptible(destroy_waitq, !list_empty(&destroy_list));
--	}
--
--	return 0;
--}
--
--static int __init fsnotify_mark_init(void)
--{
--	struct task_struct *thread;
--
--	thread = kthread_run(fsnotify_mark_destroy, NULL,
--			     "fsnotify_mark");
--	if (IS_ERR(thread))
--		panic("unable to start fsnotify mark destruction thread.");
+diff -puN fs/logfs/Kconfig~logfs-fix-logfs-build-errors-and-dependencies fs/logfs/Kconfig
+--- a/fs/logfs/Kconfig~logfs-fix-logfs-build-errors-and-dependencies
++++ a/fs/logfs/Kconfig
+@@ -1,6 +1,6 @@
+ config LOGFS
+ 	tristate "LogFS file system"
+-	depends on (MTD || BLOCK)
++	depends on MTD || (!MTD && BLOCK)
+ 	select ZLIB_INFLATE
+ 	select ZLIB_DEFLATE
+ 	select CRC32
+_
+
+Patches currently in -mm which might be from arnd@arndb.de are
+
+printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix.patch
+memstick-use-sector_div-instead-of-do_div.patch
+mm-memcontrol-introduce-config_memcg_legacy_kmem-fix.patch
+mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix-2.patch
+
