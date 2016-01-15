@@ -1,99 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- mm-add-page_check_address_transhuge-helper-fix.patch removed from -mm tree
-Date: Thu, 14 Jan 2016 14:44:35 -0800
-Message-ID: <569824d3.YcDfvtoCurzrRa9G%akpm@linux-foundation.org>
+Subject: + zram-dont-call-idr_remove-from-zram_remove.patch added to -mm
+ tree
+Date: Thu, 14 Jan 2016 16:44:57 -0800
+Message-ID: <56984109.gw+jmrUj94/XUBsQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46430 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53194 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754229AbcANWog (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 17:44:36 -0500
+	with ESMTP id S1754845AbcAOAo6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 14 Jan 2016 19:44:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, kirill@shutemov.name, sergey.senozhatsky.work@gmail.com, mm-commits@vger.kernel.org
+To: jmarchan@redhat.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-add-page_check_address_transhuge-helper-fix
-has been removed from the -mm tree.  Its filename was
-     mm-add-page_check_address_transhuge-helper-fix.patch
+     Subject: zram: don't call idr_remove() from zram_remove()
+has been added to the -mm tree.  Its filename is
+     zram-dont-call-idr_remove-from-zram_remove.patch
 
-This patch was dropped because it was folded into mm-add-page_check_address_transhuge-helper.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/zram-dont-call-idr_remove-from-zram_remove.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/zram-dont-call-idr_remove-from-zram_remove.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm-add-page_check_address_transhuge-helper-fix
+From: "Jerome Marchand" <jmarchan@redhat.com>
+Subject: zram: don't call idr_remove() from zram_remove()
 
-mm/built-in.o: In function `page_referenced_one':
-rmap.c:(.text+0x32070): undefined reference to `pmdp_clear_flush_young'
+The use of idr_remove() is forbidden in the callback functions of
+idr_for_each().  It is therefore unsafe to call idr_remove in
+zram_remove().
 
-Tested-by: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+This patch moves the call to idr_remove() from zram_remove() to
+hot_remove_store().  In the detroy_devices() path, idrs are removed by
+idr_destroy().  This solves an use-after-free detected by KASan.
+
+Signed-off-by: Jerome Marchand <jmarchan@redhat.com>
+Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>	[4.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   11 +++++++++++
- mm/rmap.c            |    2 ++
- 2 files changed, 13 insertions(+)
+ drivers/block/zram/zram_drv.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-add-page_check_address_transhuge-helper-fix include/linux/rmap.h
---- a/include/linux/rmap.h~mm-add-page_check_address_transhuge-helper-fix
-+++ a/include/linux/rmap.h
-@@ -219,9 +219,20 @@ static inline pte_t *page_check_address(
-  * Used by idle page tracking to check if a page was referenced via page
-  * tables.
-  */
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- bool page_check_address_transhuge(struct page *page, struct mm_struct *mm,
- 				  unsigned long address, pmd_t **pmdp,
- 				  pte_t **ptep, spinlock_t **ptlp);
-+#else
-+static inline bool page_check_address_transhuge(struct page *page,
-+				struct mm_struct *mm, unsigned long address,
-+				pmd_t **pmdp, pte_t **ptep, spinlock_t **ptlp)
-+{
-+	*ptep = page_check_address(page, mm, address, ptlp, 0);
-+	*pmdp = NULL;
-+	return !!*ptep;
-+}
-+#endif
+diff -puN drivers/block/zram/zram_drv.c~zram-dont-call-idr_remove-from-zram_remove drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-dont-call-idr_remove-from-zram_remove
++++ a/drivers/block/zram/zram_drv.c
+@@ -1325,7 +1325,6 @@ static int zram_remove(struct zram *zram
  
- /*
-  * Used by swapoff to help locate where page is expected in vma.
-diff -puN mm/rmap.c~mm-add-page_check_address_transhuge-helper-fix mm/rmap.c
---- a/mm/rmap.c~mm-add-page_check_address_transhuge-helper-fix
-+++ a/mm/rmap.c
-@@ -798,6 +798,7 @@ int page_mapped_in_vma(struct page *page
- 	return 1;
- }
+ 	pr_info("Removed device: %s\n", zram->disk->disk_name);
  
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- /*
-  * Check that @page is mapped at @address into @mm. In contrast to
-  * page_check_address(), this function can handle transparent huge pages.
-@@ -885,6 +886,7 @@ found:
- 	*ptlp = ptl;
- 	return true;
- }
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
+-	idr_remove(&zram_index_idr, zram->disk->first_minor);
+ 	blk_cleanup_queue(zram->disk->queue);
+ 	del_gendisk(zram->disk);
+ 	put_disk(zram->disk);
+@@ -1367,9 +1366,10 @@ static ssize_t hot_remove_store(struct c
+ 	mutex_lock(&zram_index_mutex);
  
- struct page_referenced_arg {
- 	int mapcount;
+ 	zram = idr_find(&zram_index_idr, dev_id);
+-	if (zram)
++	if (zram) {
+ 		ret = zram_remove(zram);
+-	else
++		idr_remove(&zram_index_idr, dev_id);
++	} else
+ 		ret = -ENODEV;
+ 
+ 	mutex_unlock(&zram_index_mutex);
 _
 
-Patches currently in -mm which might be from vdavydov@virtuozzo.com are
+Patches currently in -mm which might be from jmarchan@redhat.com are
 
-revert-kernfs-do-not-account-ino_ida-allocations-to-memcg.patch
-revert-gfp-add-__gfp_noaccount.patch
-memcg-only-account-kmem-allocations-marked-as-__gfp_account.patch
-slab-add-slab_account-flag.patch
-vmalloc-allow-to-account-vmalloc-to-memcg.patch
-account-certain-kmem-allocations-to-memcg.patch
-vmscan-do-not-force-scan-file-lru-if-its-absolute-size-is-small.patch
-memcg-do-not-allow-to-disable-tcp-accounting-after-limit-is-set.patch
-mm-add-page_check_address_transhuge-helper.patch
+mm-shmem-add-internal-shmem-resident-memory-accounting.patch
+mm-procfs-breakdown-rss-for-anon-shmem-and-file-in-proc-pid-status.patch
+zram-dont-call-idr_remove-from-zram_remove.patch
 
