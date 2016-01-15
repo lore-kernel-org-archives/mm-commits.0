@@ -1,94 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- proc-meminfo-estimate-available-memory-more-conservatively.patch removed
+Subject: [merged] drivers-memory-clean-up-section-counting.patch removed
  from -mm tree
-Date: Fri, 15 Jan 2016 14:33:56 -0800
-Message-ID: <569973d4.qhHS1HKdleU6S1tI%akpm@linux-foundation.org>
+Date: Fri, 15 Jan 2016 14:33:58 -0800
+Message-ID: <569973d6.t8adjaJ82mvc+J3e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59512 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59517 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753053AbcAOWd5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:33:57 -0500
+	with ESMTP id S1753053AbcAOWd7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:33:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.com, riel@redhat.com, mm-commits@vger.kernel.org
+To: sjennings@variantweb.net, abanman@sgi.com, daniel@numascale.com, greg@kroah.com, rja@sgi.com, yinghai@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: meminfo: estimate available memory more conservatively
+     Subject: drivers/base/memory.c: clean up section counting
 has been removed from the -mm tree.  Its filename was
-     proc-meminfo-estimate-available-memory-more-conservatively.patch
+     drivers-memory-clean-up-section-counting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: proc: meminfo: estimate available memory more conservatively
+From: Seth Jennings <sjennings@variantweb.net>
+Subject: drivers/base/memory.c: clean up section counting
 
-The MemAvailable item in /proc/meminfo is to give users a hint of how much
-memory is allocatable without causing swapping, so it excludes the zones'
-low watermarks as unavailable to userspace.
+Right now, section_count is calculated in add_memory_block().  However,
+init_memory_block() increments section_count as well, which, at first,
+seems like it would lead to an off-by-one error.  There is no harm done
+because add_memory_block() immediately overwrites the mem->section_count,
+but it is messy.
 
-However, for a userspace allocation, kswapd will actually reclaim until
-the free pages hit a combination of the high watermark and the page
-allocator's lowmem protection that keeps a certain amount of DMA and DMA32
-memory from userspace as well.
+This commit moves the increment out of the common init_memory_block()
+(called by both add_memory_block() and register_new_memory()) and adds it
+to register_new_memory().
 
-Subtract the full amount we know to be unavailable to userspace from the
-number of free pages when calculating MemAvailable.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Seth Jennings <sjennings@variantweb.net>
+Cc: Andrew Banman <abanman@sgi.com>
+Cc: Daniel J Blueman <daniel@numascale.com>
+Cc: Yinghai Lu <yinghai@kernel.org>
+Cc: Greg KH <greg@kroah.com>
+Cc: Russ Anderson <rja@sgi.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+ drivers/base/memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/meminfo.c~proc-meminfo-estimate-available-memory-more-conservatively fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~proc-meminfo-estimate-available-memory-more-conservatively
-+++ a/fs/proc/meminfo.c
-@@ -57,11 +57,8 @@ static int meminfo_proc_show(struct seq_
- 	/*
- 	 * Estimate the amount of memory available for userspace allocations,
- 	 * without causing swapping.
--	 *
--	 * Free memory cannot be taken below the low watermark, before the
--	 * system starts swapping.
- 	 */
--	available = i.freeram - wmark_low;
-+	available = i.freeram - totalreserve_pages;
+diff -puN drivers/base/memory.c~drivers-memory-clean-up-section-counting drivers/base/memory.c
+--- a/drivers/base/memory.c~drivers-memory-clean-up-section-counting
++++ a/drivers/base/memory.c
+@@ -618,7 +618,6 @@ static int init_memory_block(struct memo
+ 			base_memory_block_id(scn_nr) * sections_per_block;
+ 	mem->end_section_nr = mem->start_section_nr + sections_per_block - 1;
+ 	mem->state = state;
+-	mem->section_count++;
+ 	start_pfn = section_nr_to_pfn(mem->start_section_nr);
+ 	mem->phys_device = arch_get_memory_phys_device(start_pfn);
  
- 	/*
- 	 * Not all the page cache can be freed, otherwise the system will
+@@ -672,6 +671,7 @@ int register_new_memory(int nid, struct
+ 		ret = init_memory_block(&mem, section, MEM_OFFLINE);
+ 		if (ret)
+ 			goto out;
++		mem->section_count++;
+ 	}
+ 
+ 	if (mem->section_count == sections_per_block)
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from sjennings@variantweb.net are
 
-mm-memcontrol-switch-to-the-updated-jump-label-api.patch
-mm-oom_killc-dont-skip-pf_exiting-tasks-when-searching-for-a-victim.patch
-mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem.patch
-mm-memcontrol-remove-double-kmem-page_counter-init.patch
-mm-memcontrol-give-the-kmem-states-more-descriptive-names.patch
-mm-memcontrol-group-kmem-init-and-exit-functions-together.patch
-mm-memcontrol-separate-kmem-code-from-legacy-tcp-accounting-code.patch
-mm-memcontrol-move-kmem-accounting-code-to-config_memcg.patch
-mm-memcontrol-move-kmem-accounting-code-to-config_memcg-v2.patch
-mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix.patch
-mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller.patch
-mm-memcontrol-introduce-config_memcg_legacy_kmem.patch
-mm-memcontrol-reign-in-the-config-space-madness.patch
-mm-memcontrol-flatten-struct-cg_proto.patch
-mm-memcontrol-clean-up-alloc-online-offline-free-functions.patch
-mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix.patch
-mm-memcontrol-do-not-uncharge-old-page-in-page-cache-replacement.patch
-mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller.patch
-mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller-fix.patch
-mm-memcontrol-add-sock-to-cgroup2-memorystat.patch
 
