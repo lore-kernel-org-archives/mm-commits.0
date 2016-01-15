@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + thp-reintroduce-split_huge_page-fix.patch added to -mm tree
-Date: Fri, 15 Jan 2016 12:29:19 -0800
-Message-ID: <5699569f.xTvm9yGhcRSaTyX5%akpm@linux-foundation.org>
+Subject: +
+ mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller-fix.patch added to -mm tree
+Date: Fri, 15 Jan 2016 12:37:54 -0800
+Message-ID: <569958a2.NpD/jKiOqUXlU38F%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52409 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52803 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755371AbcAOU3U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 15:29:20 -0500
+	with ESMTP id S1751796AbcAOUhz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 15:37:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: fix other mremap corner case handling in split_huge_page
+     Subject: mm: memcontrol: basic memory statistics in cgroup2 memory controller fix
 has been added to the -mm tree.  Its filename is
-     thp-reintroduce-split_huge_page-fix.patch
+     mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-reintroduce-split_huge_page-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-reintroduce-split_huge_page-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,186 +39,234 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: fix other mremap corner case handling in split_huge_page
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: basic memory statistics in cgroup2 memory controller fix
 
-Syzkaller was able to trigger other corner case of splitting mremap()ed
-transparent huge page:
+Fixlet addressing akpm's feedback:
 
-	huge_memory: total_mapcount: 2, page_count(): 3
-	page:ffffea0005e90000 count:3 mapcount:0 mapping:ffff88007b1177a1 index:0x400000000 compound_mapcount: 0
-	flags: 0x2ffff000044079(locked|uptodate|dirty|lru|active|head|swapbacked)
-	page dumped because: total_mapcount(head) > 0
-	page->mem_cgroup:ffff88017b825be0
-	------------[ cut here ]------------
-	kernel BUG at /home/kas/linux/next/mm/huge_memory.c:3478!
+- Fix overflowing byte counters on 32-bit. Just like in the existing
+  interface files, bytes must be printed as u64 to work with highmem.
 
-The testcase to trigger the bug:
+- Add documentation in cgroup.txt that explains the memory.stat file
+  and its format.
 
-	#define _GNU_SOURCE
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include <unistd.h>
-	#include <sys/mman.h>
+- Rethink item ordering to accomodate potential future additions. The
+  ordering now follows both 1) from big picture to detail and 2) from
+  stats that reflect on userspace behavior towards stats that reflect
+  on kernel heuristics. Both are gradients, and item-by-item ordering
+  will still require judgement calls (and some bike shed painting).
 
-	#define MB (1024UL*1024)
-	#define SIZE (2*MB)
-	#define BASE ((void *)0x400000000000)
+Changelog addendum to the original patch:
 
-	int main()
-	{
-		char *p;
+The output of this file looks as follows:
 
-		p = mmap(BASE, SIZE, PROT_READ | PROT_WRITE,
-				MAP_FIXED | MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE,
-				-1, 0);
-		if (p == MAP_FAILED)
-			perror("mmap"), exit(1);
-		p = mremap(BASE + 8192, 8192, 8192, MREMAP_FIXED | MREMAP_MAYMOVE,
-				BASE + 2 * SIZE);
-		if (p == MAP_FAILED)
-			perror("mremap"), exit(1);
-		system("mount -t debugfs none /sys/kernel/debug");
-		system("echo 1 > /sys/kernel/debug/split_huge_pages");
-		return 0;
-	}
+$ cat memory.stat
+anon 167936
+file 87302144
+file_mapped 0
+file_dirty 0
+file_writeback 0
+inactive_anon 0
+active_anon 155648
+inactive_file 87298048
+active_file 4096
+unevictable 0
+pgfault 636
+pgmajfault 0
 
-Basically, in freeze/unfreeze_page() we should skip all pages which cannot
-belong to the VMA before looking to the relevant page table.  Otherwise we
-will request page table bases on head page's virtual address which may not
-exist, like in test case above and we will miss PTEs.
+The list consists of two sections: statistics reflecting the current
+state of the memory management subsystem, and statistics reflecting
+past events. The items themselves are sorted such that generic big
+picture items come before specific details, and items related to
+userspace activity come before items related to kernel heuristics.
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Tested-by: Sasha Levin <sasha.levin@oracle.com>
+All memory counters are in bytes to eliminate all ambiguity with
+variable page sizes.
+
+There will be more items and statistics added in the future, but this
+is a good initial set to get a minimum of insight into how a cgroup is
+using memory, and the items chosen for now are likely to remain valid
+even with significant changes to the memory management implementation.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   24 ++++++++++++++++++++----
- 1 file changed, 20 insertions(+), 4 deletions(-)
+ Documentation/cgroup-v2.txt |   56 ++++++++++++++++++++++++++++++++++
+ mm/memcontrol.c             |   47 +++++++++++++++++-----------
+ 2 files changed, 85 insertions(+), 18 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-reintroduce-split_huge_page-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-reintroduce-split_huge_page-fix
-+++ a/mm/huge_memory.c
-@@ -2899,7 +2899,15 @@ static void freeze_page_vma(struct vm_ar
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
--	int i;
-+	int i, nr = HPAGE_PMD_NR;
+diff -puN Documentation/cgroup-v2.txt~mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller-fix Documentation/cgroup-v2.txt
+--- a/Documentation/cgroup-v2.txt~mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller-fix
++++ a/Documentation/cgroup-v2.txt
+@@ -819,6 +819,62 @@ PAGE_SIZE multiple when read back.
+ 		the cgroup.  This may not exactly match the number of
+ 		processes killed but should generally be close.
+ 
++  memory.stat
 +
-+	/* Skip pages which doesn't belong to the VMA */
-+	if (address < vma->vm_start) {
-+		int off = (vma->vm_start - address) >> PAGE_SHIFT;
-+		page += off;
-+		nr -= off;
-+		address = vma->vm_start;
-+	}
- 
- 	pgd = pgd_offset(vma->vm_mm, address);
- 	if (!pgd_present(*pgd))
-@@ -2922,7 +2930,7 @@ static void freeze_page_vma(struct vm_ar
- 	spin_unlock(ptl);
- 
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, address, &ptl);
--	for (i = 0; i < HPAGE_PMD_NR; i++, address += PAGE_SIZE, page++) {
-+	for (i = 0; i < nr; i++, address += PAGE_SIZE, page++) {
- 		pte_t entry, swp_pte;
- 		swp_entry_t swp_entry;
- 
-@@ -2970,13 +2978,21 @@ static void unfreeze_page_vma(struct vm_
- 	pmd_t *pmd;
- 	pte_t *pte, entry;
- 	swp_entry_t swp_entry;
--	int i;
-+	int i, nr = HPAGE_PMD_NR;
++	A read-only flat-keyed file which exists on non-root cgroups.
 +
-+	/* Skip pages which doesn't belong to the VMA */
-+	if (address < vma->vm_start) {
-+		int off = (vma->vm_start - address) >> PAGE_SHIFT;
-+		page += off;
-+		nr -= off;
-+		address = vma->vm_start;
-+	}
++	This breaks down the cgroup's memory footprint into different
++	types of memory, type-specific details, and other information
++	on the state and past events of the memory management system.
++
++	All memory amounts are in bytes.
++
++	The entries are ordered to be human readable, and new entries
++	can show up in the middle. Don't rely on items remaining in a
++	fixed position; use the keys to look up specific values!
++
++	  anon
++
++		Amount of memory used in anonymous mappings such as
++		brk(), sbrk(), and mmap(MAP_ANONYMOUS)
++
++	  file
++
++		Amount of memory used to cache filesystem data,
++		including tmpfs and shared memory.
++
++	  file_mapped
++
++		Amount of cached filesystem data mapped with mmap()
++
++	  file_dirty
++
++		Amount of cached filesystem data that was modified but
++		not yet written back to disk
++
++	  file_writeback
++
++		Amount of cached filesystem data that was modified and
++		is currently being written back to disk
++
++	  inactive_anon
++	  active_anon
++	  inactive_file
++	  active_file
++	  unevictable
++
++		Amount of memory, swap-backed and filesystem-backed,
++		on the internal memory management lists used by the
++		page reclaim algorithm
++
++	  pgfault
++
++		Total number of page faults incurred
++
++	  pgmajfault
++
++		Number of major page faults incurred
++
+   memory.swap.current
  
- 	pmd = mm_find_pmd(vma->vm_mm, address);
- 	if (!pmd)
- 		return;
- 	pte = pte_offset_map_lock(vma->vm_mm, pmd, address, &ptl);
--	for (i = 0; i < HPAGE_PMD_NR; i++, address += PAGE_SIZE, page++) {
-+	for (i = 0; i < nr; i++, address += PAGE_SIZE, page++) {
- 		if (!is_swap_pte(pte[i]))
- 			continue;
+ 	A read-only single value file which exists on non-root
+diff -puN mm/memcontrol.c~mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller-fix mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller-fix
++++ a/mm/memcontrol.c
+@@ -5112,32 +5112,43 @@ static int memory_stat_show(struct seq_f
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
+ 	int i;
  
+-	/* Memory consumer totals */
+-
+-	seq_printf(m, "anon %lu\n",
+-		   tree_stat(memcg, MEM_CGROUP_STAT_RSS) * PAGE_SIZE);
+-	seq_printf(m, "file %lu\n",
+-		   tree_stat(memcg, MEM_CGROUP_STAT_CACHE) * PAGE_SIZE);
+-
+-	/* Per-consumer breakdowns */
++	/*
++	 * Provide statistics on the state of the memory subsystem as
++	 * well as cumulative event counters that show past behavior.
++	 *
++	 * This list is ordered following a combination of these gradients:
++	 * 1) generic big picture -> specifics and details
++	 * 2) reflecting userspace activity -> reflecting kernel heuristics
++	 *
++	 * Current memory state:
++	 */
++
++	seq_printf(m, "anon %llu\n",
++		   (u64)tree_stat(memcg, MEM_CGROUP_STAT_RSS) * PAGE_SIZE);
++	seq_printf(m, "file %llu\n",
++		   (u64)tree_stat(memcg, MEM_CGROUP_STAT_CACHE) * PAGE_SIZE);
++
++	seq_printf(m, "file_mapped %llu\n",
++		   (u64)tree_stat(memcg, MEM_CGROUP_STAT_FILE_MAPPED) *
++		   PAGE_SIZE);
++	seq_printf(m, "file_dirty %llu\n",
++		   (u64)tree_stat(memcg, MEM_CGROUP_STAT_DIRTY) *
++		   PAGE_SIZE);
++	seq_printf(m, "file_writeback %llu\n",
++		   (u64)tree_stat(memcg, MEM_CGROUP_STAT_WRITEBACK) *
++		   PAGE_SIZE);
+ 
+ 	for (i = 0; i < NR_LRU_LISTS; i++) {
+ 		struct mem_cgroup *mi;
+ 		unsigned long val = 0;
+ 
+ 		for_each_mem_cgroup_tree(mi, memcg)
+-			val += mem_cgroup_nr_lru_pages(mi, BIT(i)) * PAGE_SIZE;
+-		seq_printf(m, "%s %lu\n", mem_cgroup_lru_names[i], val);
++			val += mem_cgroup_nr_lru_pages(mi, BIT(i));
++		seq_printf(m, "%s %llu\n",
++			   mem_cgroup_lru_names[i], (u64)val * PAGE_SIZE);
+ 	}
+ 
+-	seq_printf(m, "file_mapped %lu\n",
+-		   tree_stat(memcg, MEM_CGROUP_STAT_FILE_MAPPED) * PAGE_SIZE);
+-	seq_printf(m, "file_dirty %lu\n",
+-		   tree_stat(memcg, MEM_CGROUP_STAT_DIRTY) * PAGE_SIZE);
+-	seq_printf(m, "file_writeback %lu\n",
+-		   tree_stat(memcg, MEM_CGROUP_STAT_WRITEBACK) * PAGE_SIZE);
+-
+-	/* Memory management events */
++	/* Accumulated memory events */
+ 
+ 	seq_printf(m, "pgfault %lu\n",
+ 		   tree_events(memcg, MEM_CGROUP_EVENTS_PGFAULT));
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-mm-make-sure-isolate_lru_page-is-never-called-for-tail-page.patch
-page-flags-trivial-cleanup-for-pagetrans-helpers.patch
-page-flags-move-code-around.patch
-page-flags-introduce-page-flags-policies-wrt-compound-pages.patch
-page-flags-define-pg_locked-behavior-on-compound-pages.patch
-page-flags-define-behavior-of-fs-io-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-lru-related-flags-on-compound-pages.patch
-page-flags-define-behavior-slb-related-flags-on-compound-pages.patch
-page-flags-define-behavior-of-xen-related-flags-on-compound-pages.patch
-page-flags-define-pg_reserved-behavior-on-compound-pages.patch
-page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
-page-flags-define-pg_swapcache-behavior-on-compound-pages.patch
-page-flags-define-pg_mlocked-behavior-on-compound-pages.patch
-page-flags-define-pg_uncached-behavior-on-compound-pages.patch
-page-flags-define-pg_uptodate-behavior-on-compound-pages.patch
-page-flags-look-at-head-page-if-the-flag-is-encoded-in-page-mapping.patch
-mm-sanitize-page-mapping-for-tail-pages.patch
-page-flags-drop-__testclearpage-helpers.patch
-mm-proc-adjust-pss-calculation.patch
-rmap-add-argument-to-charge-compound-page.patch
-memcg-adjust-to-support-new-thp-refcounting.patch
-mm-thp-adjust-conditions-when-we-can-reuse-the-page-on-wp-fault.patch
-mm-adjust-foll_split-for-new-refcounting.patch
-mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
-thp-mlock-do-not-allow-huge-pages-in-mlocked-area.patch
-khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes.patch
-thp-rename-split_huge_page_pmd-to-split_huge_pmd.patch
-mm-vmstats-new-thp-splitting-event.patch
-mm-temporally-mark-thp-broken.patch
-thp-drop-all-split_huge_page-related-code.patch
-mm-drop-tail-page-refcounting.patch
-futex-thp-remove-special-case-for-thp-in-get_futex_key.patch
-ksm-prepare-to-new-thp-semantics.patch
-mm-thp-remove-compound_lock.patch
-arm64-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-arm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mips-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-powerpc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-s390-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-sparc-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-tile-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-x86-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mm-thp-remove-infrastructure-for-handling-splitting-pmds.patch
-mm-rework-mapcount-accounting-to-enable-4k-mapping-of-thps.patch
-mm-differentiate-page_mapped-from-page_mapcount-for-compound-pages.patch
-mm-numa-skip-pte-mapped-thp-on-numa-fault.patch
-thp-implement-split_huge_pmd.patch
-thp-add-option-to-setup-migration-entries-during-pmd-split.patch
-thp-mm-split_huge_page-caller-need-to-lock-page.patch
-thp-reintroduce-split_huge_page.patch
-thp-reintroduce-split_huge_page-fix.patch
-migrate_pages-try-to-split-pages-on-qeueuing.patch
-thp-introduce-deferred_split_huge_page.patch
-mm-re-enable-thp.patch
-thp-update-documentation.patch
-thp-allow-mlocked-thp-again.patch
-mm-prepare-page_referenced-and-page_idle-to-new-thp-refcounting.patch
-thp-add-debugfs-handle-to-split-all-huge-pages.patch
-thp-increase-split_huge_page-success-rate.patch
-mm-make-optimistic-check-for-swapin-readahead-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
-thp-fix-split_huge_page-after-mremap-of-thp.patch
-mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-fix.patch
-memblock-fix-section-mismatch.patch
-mm-fix-locking-order-in-mm_take_all_locks.patch
+mm-page_alloc-generalize-the-dirty-balance-reserve.patch
+proc-meminfo-estimate-available-memory-more-conservatively.patch
+mm-memcontrol-export-root_mem_cgroup.patch
+net-tcp_memcontrol-properly-detect-ancestor-socket-pressure.patch
+net-tcp_memcontrol-remove-bogus-hierarchy-pressure-propagation.patch
+net-tcp_memcontrol-protect-all-tcp_memcontrol-calls-by-jump-label.patch
+net-tcp_memcontrol-remove-dead-per-memcg-count-of-allocated-sockets.patch
+net-tcp_memcontrol-simplify-the-per-memcg-limit-access.patch
+net-tcp_memcontrol-sanitize-tcp-memory-accounting-callbacks.patch
+net-tcp_memcontrol-simplify-linkage-between-socket-and-page-counter.patch
+mm-memcontrol-generalize-the-socket-accounting-jump-label.patch
+mm-memcontrol-do-not-account-memoryswap-on-unified-hierarchy.patch
+mm-memcontrol-move-socket-code-for-unified-hierarchy-accounting.patch
+mm-memcontrol-account-socket-memory-in-unified-hierarchy-memory-controller.patch
+mm-memcontrol-hook-up-vmpressure-to-socket-pressure.patch
+mm-memcontrol-switch-to-the-updated-jump-label-api.patch
+mm-oom_killc-dont-skip-pf_exiting-tasks-when-searching-for-a-victim.patch
+mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem.patch
+mm-memcontrol-remove-double-kmem-page_counter-init.patch
+mm-memcontrol-give-the-kmem-states-more-descriptive-names.patch
+mm-memcontrol-group-kmem-init-and-exit-functions-together.patch
+mm-memcontrol-separate-kmem-code-from-legacy-tcp-accounting-code.patch
+mm-memcontrol-move-kmem-accounting-code-to-config_memcg.patch
+mm-memcontrol-move-kmem-accounting-code-to-config_memcg-v2.patch
+mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix.patch
+mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller.patch
+mm-memcontrol-introduce-config_memcg_legacy_kmem.patch
+mm-memcontrol-reign-in-the-config-space-madness.patch
+mm-memcontrol-flatten-struct-cg_proto.patch
+mm-memcontrol-clean-up-alloc-online-offline-free-functions.patch
+mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix.patch
+mm-memcontrol-do-not-uncharge-old-page-in-page-cache-replacement.patch
+mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller.patch
+mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller-fix.patch
+mm-memcontrol-add-sock-to-cgroup2-memorystat.patch
 
