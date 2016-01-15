@@ -1,116 +1,172 @@
 From: akpm@linux-foundation.org
-Subject: [merged] arm-mm-support-arch_mmap_rnd_bits.patch removed from -mm tree
-Date: Fri, 15 Jan 2016 14:33:40 -0800
-Message-ID: <569973c4.FOz/1icq044rfHXn%akpm@linux-foundation.org>
+Subject: [merged] mm-page_alloc-generalize-the-dirty-balance-reserve.patch removed from -mm tree
+Date: Fri, 15 Jan 2016 14:33:54 -0800
+Message-ID: <569973d2.DBQ25gpdoQMnsMgQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59436 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59508 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751076AbcAOWdm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:33:42 -0500
+	with ESMTP id S1753053AbcAOWdz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:33:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dcashman@google.com, aarcange@redhat.com, arnd@arndb.de, benh@kernel.crashing.org, bp@suse.de, catalin.marinas@arm.com, corbet@lwn.net, dzickus@redhat.com, ebiederm@xmission.com, hecmargi@upv.es, heiko.carstens@de.ibm.com, hpa@zytor.com, jeffv@google.com, jpoimboe@redhat.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, linux@arm.linux.org.uk, mgorman@suse.de, mingo@kernel.org, n-horiguchi@ah.jp.nec.com, nnk@google.com, ralf@linux-mips.org, rientjes@google.com, salyzyn@android.com, schwidefsky@de.ibm.com, tglx@linutronix.de, will.deacon@arm.com, xypron.glpk@gmx.de, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mgorman@suse.de, mhocko@suse.com, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arm: mm: support ARCH_MMAP_RND_BITS
+     Subject: mm: page_alloc: generalize the dirty balance reserve
 has been removed from the -mm tree.  Its filename was
-     arm-mm-support-arch_mmap_rnd_bits.patch
+     mm-page_alloc-generalize-the-dirty-balance-reserve.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Daniel Cashman <dcashman@google.com>
-Subject: arm: mm: support ARCH_MMAP_RND_BITS
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: page_alloc: generalize the dirty balance reserve
 
-arm: arch_mmap_rnd() uses a hard-code value of 8 to generate the random
-offset for the mmap base address.  This value represents a compromise
-between increased ASLR effectiveness and avoiding address-space
-fragmentation.  Replace it with a Kconfig option, which is sensibly
-bounded, so that platform developers may choose where to place this
-compromise.  Keep 8 as the minimum acceptable value.
+The dirty balance reserve that dirty throttling has to consider is merely
+memory not available to userspace allocations.  There is nothing
+writeback-specific about it.  Generalize the name so that it's reusable
+outside of that context.
 
-[arnd@arndb.de: ARM: avoid ARCH_MMAP_RND_BITS for NOMMU]
-Signed-off-by: Daniel Cashman <dcashman@google.com>
-Cc: Russell King <linux@arm.linux.org.uk>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Don Zickus <dzickus@redhat.com>
-Cc: Eric W. Biederman <ebiederm@xmission.com>
-Cc: Heinrich Schuchardt <xypron.glpk@gmx.de>
-Cc: Josh Poimboeuf <jpoimboe@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mark Salyzyn <salyzyn@android.com>
-Cc: Jeff Vander Stoep <jeffv@google.com>
-Cc: Nick Kralevich <nnk@google.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Hector Marco-Gisbert <hecmargi@upv.es>
-Cc: Borislav Petkov <bp@suse.de>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/arm/Kconfig   |    9 +++++++++
- arch/arm/mm/mmap.c |    3 +--
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ include/linux/mmzone.h |    6 +++---
+ include/linux/swap.h   |    1 -
+ mm/page-writeback.c    |   14 ++++++++++++--
+ mm/page_alloc.c        |   21 +++------------------
+ 4 files changed, 18 insertions(+), 24 deletions(-)
 
-diff -puN arch/arm/Kconfig~arm-mm-support-arch_mmap_rnd_bits arch/arm/Kconfig
---- a/arch/arm/Kconfig~arm-mm-support-arch_mmap_rnd_bits
-+++ a/arch/arm/Kconfig
-@@ -37,6 +37,7 @@ config ARM
- 	select HAVE_ARCH_BITREVERSE if (CPU_32v7M || CPU_32v7) && !CPU_32v6
- 	select HAVE_ARCH_JUMP_LABEL if !XIP_KERNEL && !CPU_ENDIAN_BE32 && MMU
- 	select HAVE_ARCH_KGDB if !CPU_ENDIAN_BE32 && MMU
-+	select HAVE_ARCH_MMAP_RND_BITS if MMU
- 	select HAVE_ARCH_SECCOMP_FILTER if (AEABI && !OABI_COMPAT)
- 	select HAVE_ARCH_TRACEHOOK
- 	select HAVE_ARM_SMCCC if CPU_V7
-@@ -311,6 +312,14 @@ config MMU
- 	  Select if you want MMU-based virtualised addressing space
- 	  support by paged memory management. If unsure, say 'Y'.
+diff -puN include/linux/mmzone.h~mm-page_alloc-generalize-the-dirty-balance-reserve include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_alloc-generalize-the-dirty-balance-reserve
++++ a/include/linux/mmzone.h
+@@ -356,10 +356,10 @@ struct zone {
+ 	struct per_cpu_pageset __percpu *pageset;
  
-+config ARCH_MMAP_RND_BITS_MIN
-+	default 8
+ 	/*
+-	 * This is a per-zone reserve of pages that should not be
+-	 * considered dirtyable memory.
++	 * This is a per-zone reserve of pages that are not available
++	 * to userspace allocations.
+ 	 */
+-	unsigned long		dirty_balance_reserve;
++	unsigned long		totalreserve_pages;
+ 
+ #ifndef CONFIG_SPARSEMEM
+ 	/*
+diff -puN include/linux/swap.h~mm-page_alloc-generalize-the-dirty-balance-reserve include/linux/swap.h
+--- a/include/linux/swap.h~mm-page_alloc-generalize-the-dirty-balance-reserve
++++ a/include/linux/swap.h
+@@ -287,7 +287,6 @@ static inline void workingset_node_shado
+ /* linux/mm/page_alloc.c */
+ extern unsigned long totalram_pages;
+ extern unsigned long totalreserve_pages;
+-extern unsigned long dirty_balance_reserve;
+ extern unsigned long nr_free_buffer_pages(void);
+ extern unsigned long nr_free_pagecache_pages(void);
+ 
+diff -puN mm/page-writeback.c~mm-page_alloc-generalize-the-dirty-balance-reserve mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-page_alloc-generalize-the-dirty-balance-reserve
++++ a/mm/page-writeback.c
+@@ -278,7 +278,12 @@ static unsigned long zone_dirtyable_memo
+ 	unsigned long nr_pages;
+ 
+ 	nr_pages = zone_page_state(zone, NR_FREE_PAGES);
+-	nr_pages -= min(nr_pages, zone->dirty_balance_reserve);
++	/*
++	 * Pages reserved for the kernel should not be considered
++	 * dirtyable, to prevent a situation where reclaim has to
++	 * clean pages in order to balance the zones.
++	 */
++	nr_pages -= min(nr_pages, zone->totalreserve_pages);
+ 
+ 	nr_pages += zone_page_state(zone, NR_INACTIVE_FILE);
+ 	nr_pages += zone_page_state(zone, NR_ACTIVE_FILE);
+@@ -332,7 +337,12 @@ static unsigned long global_dirtyable_me
+ 	unsigned long x;
+ 
+ 	x = global_page_state(NR_FREE_PAGES);
+-	x -= min(x, dirty_balance_reserve);
++	/*
++	 * Pages reserved for the kernel should not be considered
++	 * dirtyable, to prevent a situation where reclaim has to
++	 * clean pages in order to balance the zones.
++	 */
++	x -= min(x, totalreserve_pages);
+ 
+ 	x += global_page_state(NR_INACTIVE_FILE);
+ 	x += global_page_state(NR_ACTIVE_FILE);
+diff -puN mm/page_alloc.c~mm-page_alloc-generalize-the-dirty-balance-reserve mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-generalize-the-dirty-balance-reserve
++++ a/mm/page_alloc.c
+@@ -114,13 +114,6 @@ static DEFINE_SPINLOCK(managed_page_coun
+ unsigned long totalram_pages __read_mostly;
+ unsigned long totalreserve_pages __read_mostly;
+ unsigned long totalcma_pages __read_mostly;
+-/*
+- * When calculating the number of globally allowed dirty pages, there
+- * is a certain number of per-zone reserves that should not be
+- * considered dirtyable memory.  This is the sum of those reserves
+- * over all existing zones that contribute dirtyable memory.
+- */
+-unsigned long dirty_balance_reserve __read_mostly;
+ 
+ int percpu_pagelist_fraction;
+ gfp_t gfp_allowed_mask __read_mostly = GFP_BOOT_MASK;
+@@ -5942,20 +5935,12 @@ static void calculate_totalreserve_pages
+ 
+ 			if (max > zone->managed_pages)
+ 				max = zone->managed_pages;
 +
-+config ARCH_MMAP_RND_BITS_MAX
-+	default 14 if PAGE_OFFSET=0x40000000
-+	default 15 if PAGE_OFFSET=0x80000000
-+	default 16
++			zone->totalreserve_pages = max;
 +
- #
- # The "ARM system type" choice list is ordered alphabetically by option
- # text.  Please add new entries in the option alphabetic order.
-diff -puN arch/arm/mm/mmap.c~arm-mm-support-arch_mmap_rnd_bits arch/arm/mm/mmap.c
---- a/arch/arm/mm/mmap.c~arm-mm-support-arch_mmap_rnd_bits
-+++ a/arch/arm/mm/mmap.c
-@@ -173,8 +173,7 @@ unsigned long arch_mmap_rnd(void)
- {
- 	unsigned long rnd;
- 
--	/* 8 bits of randomness in 20 address space bits */
--	rnd = (unsigned long)get_random_int() % (1 << 8);
-+	rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_bits) - 1);
- 
- 	return rnd << PAGE_SHIFT;
+ 			reserve_pages += max;
+-			/*
+-			 * Lowmem reserves are not available to
+-			 * GFP_HIGHUSER page cache allocations and
+-			 * kswapd tries to balance zones to their high
+-			 * watermark.  As a result, neither should be
+-			 * regarded as dirtyable memory, to prevent a
+-			 * situation where reclaim has to clean pages
+-			 * in order to balance the zones.
+-			 */
+-			zone->dirty_balance_reserve = max;
+ 		}
+ 	}
+-	dirty_balance_reserve = reserve_pages;
+ 	totalreserve_pages = reserve_pages;
  }
+ 
 _
 
-Patches currently in -mm which might be from dcashman@google.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
+mm-memcontrol-switch-to-the-updated-jump-label-api.patch
+mm-oom_killc-dont-skip-pf_exiting-tasks-when-searching-for-a-victim.patch
+mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem.patch
+mm-memcontrol-remove-double-kmem-page_counter-init.patch
+mm-memcontrol-give-the-kmem-states-more-descriptive-names.patch
+mm-memcontrol-group-kmem-init-and-exit-functions-together.patch
+mm-memcontrol-separate-kmem-code-from-legacy-tcp-accounting-code.patch
+mm-memcontrol-move-kmem-accounting-code-to-config_memcg.patch
+mm-memcontrol-move-kmem-accounting-code-to-config_memcg-v2.patch
+mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix.patch
+mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller.patch
+mm-memcontrol-introduce-config_memcg_legacy_kmem.patch
+mm-memcontrol-reign-in-the-config-space-madness.patch
+mm-memcontrol-flatten-struct-cg_proto.patch
+mm-memcontrol-clean-up-alloc-online-offline-free-functions.patch
+mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix.patch
+mm-memcontrol-do-not-uncharge-old-page-in-page-cache-replacement.patch
+mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller.patch
+mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller-fix.patch
+mm-memcontrol-add-sock-to-cgroup2-memorystat.patch
 
