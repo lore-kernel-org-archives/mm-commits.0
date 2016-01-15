@@ -1,200 +1,88 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mempolicy-convert-the-shared_policy-lock-to-a-rwlock.patch removed from -mm tree
-Date: Fri, 15 Jan 2016 14:32:36 -0800
-Message-ID: <56997384.vw1UhQBf3p7DXHzD%akpm@linux-foundation.org>
+Subject: [merged] vmalloc-allow-to-account-vmalloc-to-memcg.patch removed
+ from -mm tree
+Date: Fri, 15 Jan 2016 14:32:22 -0800
+Message-ID: <56997376.9A7iF9UWi+NS0XnH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59164 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59118 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755113AbcAOWch (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:32:37 -0500
+	with ESMTP id S1754917AbcAOWcX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:32:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: nzimmer@sgi.com, aneesh.kumar@linux.vnet.ibm.com, mgorman@suse.de, n-horiguchi@ah.jp.nec.com, nyc@holomorphy.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, cl@linux.com, gthelen@google.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, mhocko@kernel.org, penberg@kernel.org, rientjes@google.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mempolicy.c: convert the shared_policy lock to a rwlock
+     Subject: vmalloc: allow to account vmalloc to memcg
 has been removed from the -mm tree.  Its filename was
-     mempolicy-convert-the-shared_policy-lock-to-a-rwlock.patch
+     vmalloc-allow-to-account-vmalloc-to-memcg.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Nathan Zimmer <nzimmer@sgi.com>
-Subject: mm/mempolicy.c: convert the shared_policy lock to a rwlock
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: vmalloc: allow to account vmalloc to memcg
 
-When running the SPECint_rate gcc on some very large boxes it was noticed
-that the system was spending lots of time in mpol_shared_policy_lookup(). 
-The gamess benchmark can also show it and is what I mostly used to chase
-down the issue since the setup for that I found to be easier.
+Make vmalloc family functions allocate vmalloc area pages with
+alloc_kmem_pages so that if __GFP_ACCOUNT is set they will be accounted to
+memcg.  This is needed, at least, to account alloc_fdmem allocations.
 
-To be clear the binaries were on tmpfs because of disk I/O requirements. 
-We then used text replication to avoid icache misses and having all the
-copies banging on the memory where the instruction code resides.  This
-results in us hitting a bottleneck in mpol_shared_policy_lookup() since
-lookup is serialised by the shared_policy lock.
-
-I have only reproduced this on very large (3k+ cores) boxes.  The problem
-starts showing up at just a few hundred ranks getting worse until it
-threatens to livelock once it gets large enough.  For example on the
-gamess benchmark at 128 ranks this area consumes only ~1% of time, at 512
-ranks it consumes nearly 13%, and at 2k ranks it is over 90%.
-
-To alleviate the contention in this area I converted the spinlock to an
-rwlock.  This allows a large number of lookups to happen simultaneously. 
-The results were quite good reducing this consumtion at max ranks to
-around 2%.
-
-[akpm@linux-foundation.org: tidy up code comments]
-Signed-off-by: Nathan Zimmer <nzimmer@sgi.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Nadia Yvette Chambers <nyc@holomorphy.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Greg Thelen <gthelen@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c      |    2 +-
- include/linux/mempolicy.h |    2 +-
- mm/mempolicy.c            |   30 +++++++++++++++++-------------
- 3 files changed, 19 insertions(+), 15 deletions(-)
+ mm/vmalloc.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~mempolicy-convert-the-shared_policy-lock-to-a-rwlock fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mempolicy-convert-the-shared_policy-lock-to-a-rwlock
-+++ a/fs/hugetlbfs/inode.c
-@@ -738,7 +738,7 @@ static struct inode *hugetlbfs_get_inode
- 		/*
- 		 * The policy is initialized here even if we are creating a
- 		 * private inode because initialization simply creates an
--		 * an empty rb tree and calls spin_lock_init(), later when we
-+		 * an empty rb tree and calls rwlock_init(), later when we
- 		 * call mpol_free_shared_policy() it will just return because
- 		 * the rb tree will still be empty.
- 		 */
-diff -puN include/linux/mempolicy.h~mempolicy-convert-the-shared_policy-lock-to-a-rwlock include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~mempolicy-convert-the-shared_policy-lock-to-a-rwlock
-+++ a/include/linux/mempolicy.h
-@@ -122,7 +122,7 @@ struct sp_node {
+diff -puN mm/vmalloc.c~vmalloc-allow-to-account-vmalloc-to-memcg mm/vmalloc.c
+--- a/mm/vmalloc.c~vmalloc-allow-to-account-vmalloc-to-memcg
++++ a/mm/vmalloc.c
+@@ -1477,7 +1477,7 @@ static void __vunmap(const void *addr, i
+ 			struct page *page = area->pages[i];
  
- struct shared_policy {
- 	struct rb_root root;
--	spinlock_t lock;
-+	rwlock_t lock;
- };
+ 			BUG_ON(!page);
+-			__free_page(page);
++			__free_kmem_pages(page, 0);
+ 		}
  
- int vma_dup_policy(struct vm_area_struct *src, struct vm_area_struct *dst);
-diff -puN mm/mempolicy.c~mempolicy-convert-the-shared_policy-lock-to-a-rwlock mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-convert-the-shared_policy-lock-to-a-rwlock
-+++ a/mm/mempolicy.c
-@@ -2142,12 +2142,14 @@ bool __mpol_equal(struct mempolicy *a, s
-  *
-  * Remember policies even when nobody has shared memory mapped.
-  * The policies are kept in Red-Black tree linked from the inode.
-- * They are protected by the sp->lock spinlock, which should be held
-+ * They are protected by the sp->lock rwlock, which should be held
-  * for any accesses to the tree.
-  */
+ 		if (area->flags & VM_VPAGES)
+@@ -1608,9 +1608,9 @@ static void *__vmalloc_area_node(struct
+ 		struct page *page;
  
--/* lookup first element intersecting start-end */
--/* Caller holds sp->lock */
-+/*
-+ * lookup first element intersecting start-end.  Caller holds sp->lock for
-+ * reading or for writing
-+ */
- static struct sp_node *
- sp_lookup(struct shared_policy *sp, unsigned long start, unsigned long end)
- {
-@@ -2178,8 +2180,10 @@ sp_lookup(struct shared_policy *sp, unsi
- 	return rb_entry(n, struct sp_node, nd);
- }
+ 		if (node == NUMA_NO_NODE)
+-			page = alloc_page(alloc_mask);
++			page = alloc_kmem_pages(alloc_mask, order);
+ 		else
+-			page = alloc_pages_node(node, alloc_mask, order);
++			page = alloc_kmem_pages_node(node, alloc_mask, order);
  
--/* Insert a new shared policy into the list. */
--/* Caller holds sp->lock */
-+/*
-+ * Insert a new shared policy into the list.  Caller holds sp->lock for
-+ * writing.
-+ */
- static void sp_insert(struct shared_policy *sp, struct sp_node *new)
- {
- 	struct rb_node **p = &sp->root.rb_node;
-@@ -2211,13 +2215,13 @@ mpol_shared_policy_lookup(struct shared_
- 
- 	if (!sp->root.rb_node)
- 		return NULL;
--	spin_lock(&sp->lock);
-+	read_lock(&sp->lock);
- 	sn = sp_lookup(sp, idx, idx+1);
- 	if (sn) {
- 		mpol_get(sn->policy);
- 		pol = sn->policy;
- 	}
--	spin_unlock(&sp->lock);
-+	read_unlock(&sp->lock);
- 	return pol;
- }
- 
-@@ -2360,7 +2364,7 @@ static int shared_policy_replace(struct
- 	int ret = 0;
- 
- restart:
--	spin_lock(&sp->lock);
-+	write_lock(&sp->lock);
- 	n = sp_lookup(sp, start, end);
- 	/* Take care of old policies in the same range. */
- 	while (n && n->start < end) {
-@@ -2393,7 +2397,7 @@ restart:
- 	}
- 	if (new)
- 		sp_insert(sp, new);
--	spin_unlock(&sp->lock);
-+	write_unlock(&sp->lock);
- 	ret = 0;
- 
- err_out:
-@@ -2405,7 +2409,7 @@ err_out:
- 	return ret;
- 
- alloc_new:
--	spin_unlock(&sp->lock);
-+	write_unlock(&sp->lock);
- 	ret = -ENOMEM;
- 	n_new = kmem_cache_alloc(sn_cache, GFP_KERNEL);
- 	if (!n_new)
-@@ -2431,7 +2435,7 @@ void mpol_shared_policy_init(struct shar
- 	int ret;
- 
- 	sp->root = RB_ROOT;		/* empty tree == default mempolicy */
--	spin_lock_init(&sp->lock);
-+	rwlock_init(&sp->lock);
- 
- 	if (mpol) {
- 		struct vm_area_struct pvma;
-@@ -2497,14 +2501,14 @@ void mpol_free_shared_policy(struct shar
- 
- 	if (!p->root.rb_node)
- 		return;
--	spin_lock(&p->lock);
-+	write_lock(&p->lock);
- 	next = rb_first(&p->root);
- 	while (next) {
- 		n = rb_entry(next, struct sp_node, nd);
- 		next = rb_next(&n->nd);
- 		sp_delete(p, n);
- 	}
--	spin_unlock(&p->lock);
-+	write_unlock(&p->lock);
- }
- 
- #ifdef CONFIG_NUMA_BALANCING
+ 		if (unlikely(!page)) {
+ 			/* Successfully allocated i pages, free them in __vunmap() */
 _
 
-Patches currently in -mm which might be from nzimmer@sgi.com are
+Patches currently in -mm which might be from vdavydov@virtuozzo.com are
 
+mm-add-page_check_address_transhuge-helper.patch
+mm-memcontrol-allow-to-disable-kmem-accounting-for-cgroup2.patch
+net-drop-tcp_memcontrolc.patch
+mm-memcontrol-charge-swap-to-cgroup2.patch
+mm-vmscan-pass-memcg-to-get_scan_count.patch
+mm-memcontrol-replace-mem_cgroup_lruvec_online-with-mem_cgroup_online.patch
+swaph-move-memcg-related-stuff-to-the-end-of-the-file.patch
+mm-vmscan-do-not-scan-anon-pages-if-memcg-swap-limit-is-hit.patch
+mm-free-swap-cache-aggressively-if-memcg-swap-is-full.patch
+documentation-cgroup-add-memoryswapcurrentmax-description.patch
 
