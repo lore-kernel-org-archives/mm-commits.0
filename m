@@ -1,416 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memcontrol-hook-up-vmpressure-to-socket-pressure.patch removed from -mm
- tree
-Date: Fri, 15 Jan 2016 14:34:48 -0800
-Message-ID: <56997408.cejOiMXxWx2d5cn/%akpm@linux-foundation.org>
+Subject: [nacked] arm64-fix-add-kasan-bug.patch removed from -mm tree
+Date: Fri, 15 Jan 2016 14:37:04 -0800
+Message-ID: <56997490.OCNl5VVoy2kJ4Ih8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59943 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59999 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755478AbcAOWet (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:34:49 -0500
+	with ESMTP id S1750959AbcAOWhF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:37:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, davem@davemloft.net, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: zhongjiang@huawei.com, catalin.marinas@arm.com, long.wanglong@huawei.com, qiuxishi@huawei.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: hook up vmpressure to socket pressure
+     Subject: arm64: fix add kasan bug
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-hook-up-vmpressure-to-socket-pressure.patch
+     arm64-fix-add-kasan-bug.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was nacked
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: hook up vmpressure to socket pressure
+From: zhong jiang <zhongjiang@huawei.com>
+Subject: arm64: fix add kasan bug
 
-Let the networking stack know when a memcg is under reclaim pressure so
-that it can clamp its transmit windows accordingly.
+In general, each process have 16kb stack space to use, but stack need
+extra space to store red_zone when kasan enable.  the patch fix above
+question.
 
-Whenever the reclaim efficiency of a cgroup's LRU lists drops low enough
-for a MEDIUM or HIGH vmpressure event to occur, assert a pressure state in
-the socket and tcp memory code that tells it to curb consumption growth
-from sockets associated with said control group.
-
-Traditionally, vmpressure reports for the entire subtree of a memcg under
-pressure, which drops useful information on the individual groups
-reclaimed.  However, it's too late to change the userinterface, so add a
-second reporting mode that reports on the level of reclaim instead of at
-the level of pressure, and use that report for sockets.
-
-vmpressure events are naturally edge triggered, so for hysteresis assert
-socket pressure for a second to allow for subsequent vmpressure events to
-occur before letting the socket code return to normal.
-
-This will likely need finetuning for a wider variety of workloads, but for
-now stick to the vmpressure presets and keep hysteresis simple.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: David S. Miller <davem@davemloft.net>
-Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Signed-off-by: zhong jiang <zhongjiang@huawei.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Wang Long <long.wanglong@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   32 ++++++++++++--
- include/linux/vmpressure.h |    7 ++-
- mm/memcontrol.c            |   17 +------
- mm/vmpressure.c            |   78 ++++++++++++++++++++++++++---------
- mm/vmscan.c                |   10 ++++
- 5 files changed, 104 insertions(+), 40 deletions(-)
+ arch/arm64/include/asm/thread_info.h |   15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcontrol-hook-up-vmpressure-to-socket-pressure include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcontrol-hook-up-vmpressure-to-socket-pressure
-+++ a/include/linux/memcontrol.h
-@@ -249,6 +249,10 @@ struct mem_cgroup {
- 	struct wb_domain cgwb_domain;
- #endif
+diff -puN arch/arm64/include/asm/thread_info.h~arm64-fix-add-kasan-bug arch/arm64/include/asm/thread_info.h
+--- a/arch/arm64/include/asm/thread_info.h~arm64-fix-add-kasan-bug
++++ a/arch/arm64/include/asm/thread_info.h
+@@ -23,13 +23,24 @@
  
-+#ifdef CONFIG_INET
-+	unsigned long		socket_pressure;
+ #include <linux/compiler.h>
+ 
++#ifdef CONFIG_KASAN
++#define KASAN_STACK_ORDER 1
++#else
++#define KASAN_STACK_ORDER 0
 +#endif
 +
- 	/* List of events which userspace want to receive */
- 	struct list_head event_list;
- 	spinlock_t event_list_lock;
-@@ -290,18 +294,34 @@ struct lruvec *mem_cgroup_page_lruvec(st
- 
- bool task_in_mem_cgroup(struct task_struct *task, struct mem_cgroup *memcg);
- struct mem_cgroup *mem_cgroup_from_task(struct task_struct *p);
--struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *memcg);
- 
- static inline
- struct mem_cgroup *mem_cgroup_from_css(struct cgroup_subsys_state *css){
- 	return css ? container_of(css, struct mem_cgroup, css) : NULL;
- }
- 
-+#define mem_cgroup_from_counter(counter, member)	\
-+	container_of(counter, struct mem_cgroup, member)
-+
- struct mem_cgroup *mem_cgroup_iter(struct mem_cgroup *,
- 				   struct mem_cgroup *,
- 				   struct mem_cgroup_reclaim_cookie *);
- void mem_cgroup_iter_break(struct mem_cgroup *, struct mem_cgroup *);
- 
-+/**
-+ * parent_mem_cgroup - find the accounting parent of a memcg
-+ * @memcg: memcg whose parent to find
-+ *
-+ * Returns the parent memcg, or NULL if this is the root or the memory
-+ * controller is in legacy no-hierarchy mode.
-+ */
-+static inline struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *memcg)
-+{
-+	if (!memcg->memory.parent)
-+		return NULL;
-+	return mem_cgroup_from_counter(memcg->memory.parent, memory);
-+}
-+
- static inline bool mem_cgroup_is_descendant(struct mem_cgroup *memcg,
- 			      struct mem_cgroup *root)
- {
-@@ -689,10 +709,14 @@ extern struct static_key memcg_sockets_e
- static inline bool mem_cgroup_under_socket_pressure(struct mem_cgroup *memcg)
- {
- #ifdef CONFIG_MEMCG_KMEM
--	return memcg->tcp_mem.memory_pressure;
--#else
--	return false;
-+	if (memcg->tcp_mem.memory_pressure)
-+		return true;
+ #ifdef CONFIG_ARM64_4K_PAGES
+-#define THREAD_SIZE_ORDER	2
++#define THREAD_SIZE_ORDER	(2 + KASAN_STACK_ORDER)
+ #elif defined(CONFIG_ARM64_16K_PAGES)
+-#define THREAD_SIZE_ORDER	0
++#define THREAD_SIZE_ORDER	(0 + KASAN_STACK_ORDER)
  #endif
-+	do {
-+		if (time_before(jiffies, memcg->socket_pressure))
-+			return true;
-+	} while ((memcg = parent_mem_cgroup(memcg)));
-+	return false;
- }
- #else
- #define mem_cgroup_sockets_enabled 0
-diff -puN include/linux/vmpressure.h~mm-memcontrol-hook-up-vmpressure-to-socket-pressure include/linux/vmpressure.h
---- a/include/linux/vmpressure.h~mm-memcontrol-hook-up-vmpressure-to-socket-pressure
-+++ a/include/linux/vmpressure.h
-@@ -12,6 +12,9 @@
- struct vmpressure {
- 	unsigned long scanned;
- 	unsigned long reclaimed;
-+
-+	unsigned long tree_scanned;
-+	unsigned long tree_reclaimed;
- 	/* The lock is used to keep the scanned/reclaimed above in sync. */
- 	struct spinlock sr_lock;
  
-@@ -26,7 +29,7 @@ struct vmpressure {
- struct mem_cgroup;
- 
- #ifdef CONFIG_MEMCG
--extern void vmpressure(gfp_t gfp, struct mem_cgroup *memcg,
-+extern void vmpressure(gfp_t gfp, struct mem_cgroup *memcg, bool tree,
- 		       unsigned long scanned, unsigned long reclaimed);
- extern void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg, int prio);
- 
-@@ -40,7 +43,7 @@ extern int vmpressure_register_event(str
- extern void vmpressure_unregister_event(struct mem_cgroup *memcg,
- 					struct eventfd_ctx *eventfd);
- #else
--static inline void vmpressure(gfp_t gfp, struct mem_cgroup *memcg,
-+static inline void vmpressure(gfp_t gfp, struct mem_cgroup *memcg, bool tree,
- 			      unsigned long scanned, unsigned long reclaimed) {}
- static inline void vmpressure_prio(gfp_t gfp, struct mem_cgroup *memcg,
- 				   int prio) {}
-diff -puN mm/memcontrol.c~mm-memcontrol-hook-up-vmpressure-to-socket-pressure mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-hook-up-vmpressure-to-socket-pressure
-+++ a/mm/memcontrol.c
-@@ -1113,9 +1113,6 @@ bool task_in_mem_cgroup(struct task_stru
- 	return ret;
- }
- 
--#define mem_cgroup_from_counter(counter, member)	\
--	container_of(counter, struct mem_cgroup, member)
--
- /**
-  * mem_cgroup_margin - calculate chargeable space of a memory cgroup
-  * @memcg: the memory cgroup
-@@ -4183,17 +4180,6 @@ static void __mem_cgroup_free(struct mem
- 	kfree(memcg);
- }
- 
--/*
-- * Returns the parent mem_cgroup in memcgroup hierarchy with hierarchy enabled.
-- */
--struct mem_cgroup *parent_mem_cgroup(struct mem_cgroup *memcg)
--{
--	if (!memcg->memory.parent)
--		return NULL;
--	return mem_cgroup_from_counter(memcg->memory.parent, memory);
--}
--EXPORT_SYMBOL(parent_mem_cgroup);
--
- static struct cgroup_subsys_state * __ref
- mem_cgroup_css_alloc(struct cgroup_subsys_state *parent_css)
- {
-@@ -4234,6 +4220,9 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- #ifdef CONFIG_CGROUP_WRITEBACK
- 	INIT_LIST_HEAD(&memcg->cgwb_list);
- #endif
-+#ifdef CONFIG_INET
-+	memcg->socket_pressure = jiffies;
++#ifdef CONFIG_KASAN
++#define THREAD_SIZE		32768
++#else
+ #define THREAD_SIZE		16384
 +#endif
- 	return &memcg->css;
- 
- free_out:
-diff -puN mm/vmpressure.c~mm-memcontrol-hook-up-vmpressure-to-socket-pressure mm/vmpressure.c
---- a/mm/vmpressure.c~mm-memcontrol-hook-up-vmpressure-to-socket-pressure
-+++ a/mm/vmpressure.c
-@@ -137,14 +137,11 @@ struct vmpressure_event {
- };
- 
- static bool vmpressure_event(struct vmpressure *vmpr,
--			     unsigned long scanned, unsigned long reclaimed)
-+			     enum vmpressure_levels level)
- {
- 	struct vmpressure_event *ev;
--	enum vmpressure_levels level;
- 	bool signalled = false;
- 
--	level = vmpressure_calc_level(scanned, reclaimed);
--
- 	mutex_lock(&vmpr->events_lock);
- 
- 	list_for_each_entry(ev, &vmpr->events, node) {
-@@ -164,6 +161,7 @@ static void vmpressure_work_fn(struct wo
- 	struct vmpressure *vmpr = work_to_vmpressure(work);
- 	unsigned long scanned;
- 	unsigned long reclaimed;
-+	enum vmpressure_levels level;
- 
- 	spin_lock(&vmpr->sr_lock);
- 	/*
-@@ -174,19 +172,21 @@ static void vmpressure_work_fn(struct wo
- 	 * here. No need for any locks here since we don't care if
- 	 * vmpr->reclaimed is in sync.
- 	 */
--	scanned = vmpr->scanned;
-+	scanned = vmpr->tree_scanned;
- 	if (!scanned) {
- 		spin_unlock(&vmpr->sr_lock);
- 		return;
- 	}
- 
--	reclaimed = vmpr->reclaimed;
--	vmpr->scanned = 0;
--	vmpr->reclaimed = 0;
-+	reclaimed = vmpr->tree_reclaimed;
-+	vmpr->tree_scanned = 0;
-+	vmpr->tree_reclaimed = 0;
- 	spin_unlock(&vmpr->sr_lock);
- 
-+	level = vmpressure_calc_level(scanned, reclaimed);
 +
- 	do {
--		if (vmpressure_event(vmpr, scanned, reclaimed))
-+		if (vmpressure_event(vmpr, level))
- 			break;
- 		/*
- 		 * If not handled, propagate the event upward into the
-@@ -199,6 +199,7 @@ static void vmpressure_work_fn(struct wo
-  * vmpressure() - Account memory pressure through scanned/reclaimed ratio
-  * @gfp:	reclaimer's gfp mask
-  * @memcg:	cgroup memory controller handle
-+ * @tree:	legacy subtree mode
-  * @scanned:	number of pages scanned
-  * @reclaimed:	number of pages reclaimed
-  *
-@@ -206,9 +207,16 @@ static void vmpressure_work_fn(struct wo
-  * "instantaneous" memory pressure (scanned/reclaimed ratio). The raw
-  * pressure index is then further refined and averaged over time.
-  *
-+ * If @tree is set, vmpressure is in traditional userspace reporting
-+ * mode: @memcg is considered the pressure root and userspace is
-+ * notified of the entire subtree's reclaim efficiency.
-+ *
-+ * If @tree is not set, reclaim efficiency is recorded for @memcg, and
-+ * only in-kernel users are notified.
-+ *
-  * This function does not return any value.
-  */
--void vmpressure(gfp_t gfp, struct mem_cgroup *memcg,
-+void vmpressure(gfp_t gfp, struct mem_cgroup *memcg, bool tree,
- 		unsigned long scanned, unsigned long reclaimed)
- {
- 	struct vmpressure *vmpr = memcg_to_vmpressure(memcg);
-@@ -238,15 +246,47 @@ void vmpressure(gfp_t gfp, struct mem_cg
- 	if (!scanned)
- 		return;
+ #define THREAD_START_SP		(THREAD_SIZE - 16)
  
--	spin_lock(&vmpr->sr_lock);
--	vmpr->scanned += scanned;
--	vmpr->reclaimed += reclaimed;
--	scanned = vmpr->scanned;
--	spin_unlock(&vmpr->sr_lock);
-+	if (tree) {
-+		spin_lock(&vmpr->sr_lock);
-+		vmpr->tree_scanned += scanned;
-+		vmpr->tree_reclaimed += reclaimed;
-+		scanned = vmpr->scanned;
-+		spin_unlock(&vmpr->sr_lock);
- 
--	if (scanned < vmpressure_win)
--		return;
--	schedule_work(&vmpr->work);
-+		if (scanned < vmpressure_win)
-+			return;
-+		schedule_work(&vmpr->work);
-+	} else {
-+		enum vmpressure_levels level;
-+
-+		/* For now, no users for root-level efficiency */
-+		if (memcg == root_mem_cgroup)
-+			return;
-+
-+		spin_lock(&vmpr->sr_lock);
-+		scanned = vmpr->scanned += scanned;
-+		reclaimed = vmpr->reclaimed += reclaimed;
-+		if (scanned < vmpressure_win) {
-+			spin_unlock(&vmpr->sr_lock);
-+			return;
-+		}
-+		vmpr->scanned = vmpr->reclaimed = 0;
-+		spin_unlock(&vmpr->sr_lock);
-+
-+		level = vmpressure_calc_level(scanned, reclaimed);
-+
-+		if (level > VMPRESSURE_LOW) {
-+			/*
-+			 * Let the socket buffer allocator know that
-+			 * we are having trouble reclaiming LRU pages.
-+			 *
-+			 * For hysteresis keep the pressure state
-+			 * asserted for a second in which subsequent
-+			 * pressure events can occur.
-+			 */
-+			memcg->socket_pressure = jiffies + HZ;
-+		}
-+	}
- }
- 
- /**
-@@ -276,7 +316,7 @@ void vmpressure_prio(gfp_t gfp, struct m
- 	 * to the vmpressure() basically means that we signal 'critical'
- 	 * level.
- 	 */
--	vmpressure(gfp, memcg, vmpressure_win, 0);
-+	vmpressure(gfp, memcg, true, vmpressure_win, 0);
- }
- 
- /**
-diff -puN mm/vmscan.c~mm-memcontrol-hook-up-vmpressure-to-socket-pressure mm/vmscan.c
---- a/mm/vmscan.c~mm-memcontrol-hook-up-vmpressure-to-socket-pressure
-+++ a/mm/vmscan.c
-@@ -2396,6 +2396,7 @@ static bool shrink_zone(struct zone *zon
- 		memcg = mem_cgroup_iter(root, NULL, &reclaim);
- 		do {
- 			unsigned long lru_pages;
-+			unsigned long reclaimed;
- 			unsigned long scanned;
- 			struct lruvec *lruvec;
- 			int swappiness;
-@@ -2408,6 +2409,7 @@ static bool shrink_zone(struct zone *zon
- 
- 			lruvec = mem_cgroup_zone_lruvec(zone, memcg);
- 			swappiness = mem_cgroup_swappiness(memcg);
-+			reclaimed = sc->nr_reclaimed;
- 			scanned = sc->nr_scanned;
- 
- 			shrink_lruvec(lruvec, swappiness, sc, &lru_pages);
-@@ -2418,6 +2420,11 @@ static bool shrink_zone(struct zone *zon
- 					    memcg, sc->nr_scanned - scanned,
- 					    lru_pages);
- 
-+			/* Record the group's reclaim efficiency */
-+			vmpressure(sc->gfp_mask, memcg, false,
-+				   sc->nr_scanned - scanned,
-+				   sc->nr_reclaimed - reclaimed);
-+
- 			/*
- 			 * Direct reclaim and kswapd have to scan all memory
- 			 * cgroups to fulfill the overall scan target for the
-@@ -2449,7 +2456,8 @@ static bool shrink_zone(struct zone *zon
- 			reclaim_state->reclaimed_slab = 0;
- 		}
- 
--		vmpressure(sc->gfp_mask, sc->target_mem_cgroup,
-+		/* Record the subtree's reclaim efficiency */
-+		vmpressure(sc->gfp_mask, sc->target_mem_cgroup, true,
- 			   sc->nr_scanned - nr_scanned,
- 			   sc->nr_reclaimed - nr_reclaimed);
- 
+ #ifndef __ASSEMBLY__
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from zhongjiang@huawei.com are
 
-mm-memcontrol-switch-to-the-updated-jump-label-api.patch
-mm-oom_killc-dont-skip-pf_exiting-tasks-when-searching-for-a-victim.patch
-mm-memcontrol-drop-unused-css-argument-in-memcg_init_kmem.patch
-mm-memcontrol-remove-double-kmem-page_counter-init.patch
-mm-memcontrol-give-the-kmem-states-more-descriptive-names.patch
-mm-memcontrol-group-kmem-init-and-exit-functions-together.patch
-mm-memcontrol-separate-kmem-code-from-legacy-tcp-accounting-code.patch
-mm-memcontrol-move-kmem-accounting-code-to-config_memcg.patch
-mm-memcontrol-move-kmem-accounting-code-to-config_memcg-v2.patch
-mm-memcontrol-move-kmem-accounting-code-to-config_memcg-fix.patch
-mm-memcontrol-account-kmem-consumers-in-cgroup2-memory-controller.patch
-mm-memcontrol-introduce-config_memcg_legacy_kmem.patch
-mm-memcontrol-reign-in-the-config-space-madness.patch
-mm-memcontrol-flatten-struct-cg_proto.patch
-mm-memcontrol-clean-up-alloc-online-offline-free-functions.patch
-mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix.patch
-mm-memcontrol-do-not-uncharge-old-page-in-page-cache-replacement.patch
-mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller.patch
-mm-memcontrol-basic-memory-statistics-in-cgroup2-memory-controller-fix.patch
-mm-memcontrol-add-sock-to-cgroup2-memorystat.patch
 
