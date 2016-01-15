@@ -1,86 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: + credits-add-credit-information-for-martin-kepplinger.patch
- added to -mm tree
-Date: Fri, 15 Jan 2016 13:17:02 -0800
-Message-ID: <569961ce.jnVGHMN29YT3bDUV%akpm@linux-foundation.org>
+Subject: [merged] scripts-bloat-o-meter-fix-python3-syntax-error.patch
+ removed from -mm tree
+Date: Fri, 15 Jan 2016 14:31:14 -0800
+Message-ID: <56997332.xa0PKHyytLZqZcya%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54739 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58951 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750897AbcAOVRC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 16:17:02 -0500
+	with ESMTP id S1752291AbcAOWbP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: martink@posteo.de, mm-commits@vger.kernel.org
+To: sergey.senozhatsky.work@gmail.com, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ./CREDITS: add credit information for Martin Kepplinger
-has been added to the -mm tree.  Its filename is
-     credits-add-credit-information-for-martin-kepplinger.patch
+     Subject: scripts/bloat-o-meter: fix python3 syntax error
+has been removed from the -mm tree.  Its filename was
+     scripts-bloat-o-meter-fix-python3-syntax-error.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/credits-add-credit-informa=
-tion-for-martin-kepplinger.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/credits-add-credit-informa=
-tion-for-martin-kepplinger.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Martin Kepplinger <martink@posteo.de>
-Subject: ./CREDITS: add credit information for Martin Kepplinger
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: scripts/bloat-o-meter: fix python3 syntax error
 
-Signed-off-by: Martin Kepplinger <martink@posteo.de>
+In Python3+ print is a function so the old syntax is not correct anymore:
+
+:$ ./scripts/bloat-o-meter vmlinux.o vmlinux.o.old
+:  File "./scripts/bloat-o-meter", line 61
+:    print "add/remove: %s/%s grow/shrink: %s/%s up/down: %s/%s (%s)" % \
+:                                                                   ^
+:SyntaxError: invalid syntax
+
+Fix by calling print as a function.
+
+Tested on python 2.7.11, 3.5.1
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- CREDITS |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ scripts/bloat-o-meter |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN CREDITS~credits-add-credit-information-for-martin-kepplinger =
-CREDITS
---- a/CREDITS~credits-add-credit-information-for-martin-kepplinger
-+++ a/CREDITS
-@@ -1855,6 +1855,16 @@ S: Korte Heul 95
- S: 1403 ND  BUSSUM
- S: The Netherlands
-=20
-+N: Martin Kepplinger
-+E: martink@posteo.de
-+E: martin.kepplinger@theobroma-systems.com
-+W: http://www.martinkepplinger.com
-+D: mma8452 accelerators iio driver
-+D: Kernel cleanups
-+S: Garnisonstra=C3=9Fe 26
-+S: 4020 Linz
-+S: Austria
-+
- N: Karl Keyte
- E: karl@koft.com
- D: Disk usage statistics and modifications to line printer driver
+diff -puN scripts/bloat-o-meter~scripts-bloat-o-meter-fix-python3-syntax-error scripts/bloat-o-meter
+--- a/scripts/bloat-o-meter~scripts-bloat-o-meter-fix-python3-syntax-error
++++ a/scripts/bloat-o-meter
+@@ -58,8 +58,8 @@ for name in common:
+ delta.sort()
+ delta.reverse()
+ 
+-print "add/remove: %s/%s grow/shrink: %s/%s up/down: %s/%s (%s)" % \
+-      (add, remove, grow, shrink, up, -down, up-down)
+-print "%-40s %7s %7s %+7s" % ("function", "old", "new", "delta")
++print("add/remove: %s/%s grow/shrink: %s/%s up/down: %s/%s (%s)" % \
++      (add, remove, grow, shrink, up, -down, up-down))
++print("%-40s %7s %7s %+7s" % ("function", "old", "new", "delta"))
+ for d, n in delta:
+-    if d: print "%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d)
++    if d: print("%-40s %7s %7s %+7d" % (n, old.get(n,"-"), new.get(n,"-"), d))
 _
 
-Patches currently in -mm which might be from martink@posteo.de are
+Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
 
-credits-add-credit-information-for-martin-kepplinger.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
