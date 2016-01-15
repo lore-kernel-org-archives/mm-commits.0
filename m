@@ -1,191 +1,100 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-clean-up-redundant-null-check-before-iput.patch
- removed from -mm tree
-Date: Fri, 15 Jan 2016 14:31:40 -0800
-Message-ID: <5699734c.0YmAXs255AdIrdJo%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-dlm-return-appropriate-value-when-dlm_grab-returns-null.patch removed from -mm tree
+Date: Fri, 15 Jan 2016 14:31:42 -0800
+Message-ID: <5699734e.CJEx8gpyve84BklZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59010 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59017 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752670AbcAOWbl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:41 -0500
+	with ESMTP id S1752670AbcAOWbn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:31:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: clean up redundant NULL check before iput
+     Subject: ocfs2/dlm: return appropriate value when dlm_grab() returns NULL
 has been removed from the -mm tree.  Its filename was
-     ocfs2-clean-up-redundant-null-check-before-iput.patch
+     ocfs2-dlm-return-appropriate-value-when-dlm_grab-returns-null.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2: clean up redundant NULL check before iput
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2/dlm: return appropriate value when dlm_grab() returns NULL
 
-Since iput will take care the NULL check itself, NULL check before
-calling it is redundant. So clean them up.
+dlm_grab() may return NULL when the node is doing unmount.  When doing
+code review, we found that some dlm handlers may return error to caller
+when dlm_grab() returns NULL and make caller BUG or other problems.  Here
+is an example:
 
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Node 1                                 Node 2
+receives migration message
+from node 3, and send
+migrate request to others
+                                     start unmounting
+
+                                     receives migrate request
+                                     from node 1 and call
+                                     dlm_migrate_request_handler()
+
+                                     unmount thread unregisters
+                                     domain handlers and removes
+                                     dlm_context from dlm_domains
+
+                                     dlm_migrate_request_handlers()
+                                     returns -EINVAL to node 1
+Exit migration neither clearing the
+migration state nor sending
+assert master message to node 3 which
+cause node 3 hung.
+
+Signed-off-by: Jiufei Xue <xuejiufei@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: Yiwen Jiang <jiangyiwen@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c      |    3 +--
- fs/ocfs2/ioctl.c      |    4 +---
- fs/ocfs2/journal.c    |   10 +++-------
- fs/ocfs2/localalloc.c |   10 +++-------
- fs/ocfs2/namei.c      |    3 +--
- fs/ocfs2/slot_map.c   |    3 +--
- fs/ocfs2/super.c      |    3 +--
- 7 files changed, 11 insertions(+), 25 deletions(-)
+ fs/ocfs2/dlm/dlmmaster.c |    2 +-
+ fs/ocfs2/dlm/dlmunlock.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-clean-up-redundant-null-check-before-iput fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-clean-up-redundant-null-check-before-iput
-+++ a/fs/ocfs2/alloc.c
-@@ -6174,8 +6174,7 @@ int ocfs2_begin_truncate_log_recovery(st
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-return-appropriate-value-when-dlm_grab-returns-null fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-dlm-return-appropriate-value-when-dlm_grab-returns-null
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -3050,7 +3050,7 @@ int dlm_migrate_request_handler(struct o
+ 	int ret = 0;
+ 
+ 	if (!dlm_grab(dlm))
+-		return -EINVAL;
++		return 0;
+ 
+ 	name = migrate->name;
+ 	namelen = migrate->namelen;
+diff -puN fs/ocfs2/dlm/dlmunlock.c~ocfs2-dlm-return-appropriate-value-when-dlm_grab-returns-null fs/ocfs2/dlm/dlmunlock.c
+--- a/fs/ocfs2/dlm/dlmunlock.c~ocfs2-dlm-return-appropriate-value-when-dlm_grab-returns-null
++++ a/fs/ocfs2/dlm/dlmunlock.c
+@@ -421,7 +421,7 @@ int dlm_unlock_lock_handler(struct o2net
  	}
  
- bail:
--	if (tl_inode)
--		iput(tl_inode);
-+	iput(tl_inode);
- 	brelse(tl_bh);
+ 	if (!dlm_grab(dlm))
+-		return DLM_REJECTED;
++		return DLM_FORWARD;
  
- 	if (status < 0) {
-diff -puN fs/ocfs2/ioctl.c~ocfs2-clean-up-redundant-null-check-before-iput fs/ocfs2/ioctl.c
---- a/fs/ocfs2/ioctl.c~ocfs2-clean-up-redundant-null-check-before-iput
-+++ a/fs/ocfs2/ioctl.c
-@@ -606,9 +606,7 @@ bail:
- 	if (gb_inode)
- 		mutex_unlock(&gb_inode->i_mutex);
- 
--	if (gb_inode)
--		iput(gb_inode);
--
-+	iput(gb_inode);
- 	brelse(bh);
- 
- 	return status;
-diff -puN fs/ocfs2/journal.c~ocfs2-clean-up-redundant-null-check-before-iput fs/ocfs2/journal.c
---- a/fs/ocfs2/journal.c~ocfs2-clean-up-redundant-null-check-before-iput
-+++ a/fs/ocfs2/journal.c
-@@ -1042,8 +1042,7 @@ void ocfs2_journal_shutdown(struct ocfs2
- 
- //	up_write(&journal->j_trans_barrier);
- done:
--	if (inode)
--		iput(inode);
-+	iput(inode);
- }
- 
- static void ocfs2_clear_journal_error(struct super_block *sb,
-@@ -1687,9 +1686,7 @@ done:
- 	if (got_lock)
- 		ocfs2_inode_unlock(inode, 1);
- 
--	if (inode)
--		iput(inode);
--
-+	iput(inode);
- 	brelse(bh);
- 
- 	return status;
-@@ -1796,8 +1793,7 @@ static int ocfs2_trylock_journal(struct
- 
- 	ocfs2_inode_unlock(inode, 1);
- bail:
--	if (inode)
--		iput(inode);
-+	iput(inode);
- 
- 	return status;
- }
-diff -puN fs/ocfs2/localalloc.c~ocfs2-clean-up-redundant-null-check-before-iput fs/ocfs2/localalloc.c
---- a/fs/ocfs2/localalloc.c~ocfs2-clean-up-redundant-null-check-before-iput
-+++ a/fs/ocfs2/localalloc.c
-@@ -358,8 +358,7 @@ int ocfs2_load_local_alloc(struct ocfs2_
- bail:
- 	if (status < 0)
- 		brelse(alloc_bh);
--	if (inode)
--		iput(inode);
-+	iput(inode);
- 
- 	trace_ocfs2_load_local_alloc(osb->local_alloc_bits);
- 
-@@ -473,8 +472,7 @@ out_mutex:
- 	iput(main_bm_inode);
- 
- out:
--	if (local_alloc_inode)
--		iput(local_alloc_inode);
-+	iput(local_alloc_inode);
- 
- 	kfree(alloc_copy);
- }
-@@ -1327,9 +1325,7 @@ bail:
- 
- 	brelse(main_bm_bh);
- 
--	if (main_bm_inode)
--		iput(main_bm_inode);
--
-+	iput(main_bm_inode);
- 	kfree(alloc_copy);
- 
- 	if (ac)
-diff -puN fs/ocfs2/namei.c~ocfs2-clean-up-redundant-null-check-before-iput fs/ocfs2/namei.c
---- a/fs/ocfs2/namei.c~ocfs2-clean-up-redundant-null-check-before-iput
-+++ a/fs/ocfs2/namei.c
-@@ -1683,8 +1683,7 @@ bail:
- 	if (new_inode)
- 		sync_mapping_buffers(old_inode->i_mapping);
- 
--	if (new_inode)
--		iput(new_inode);
-+	iput(new_inode);
- 
- 	ocfs2_free_dir_lookup_result(&target_lookup_res);
- 	ocfs2_free_dir_lookup_result(&old_entry_lookup);
-diff -puN fs/ocfs2/slot_map.c~ocfs2-clean-up-redundant-null-check-before-iput fs/ocfs2/slot_map.c
---- a/fs/ocfs2/slot_map.c~ocfs2-clean-up-redundant-null-check-before-iput
-+++ a/fs/ocfs2/slot_map.c
-@@ -322,8 +322,7 @@ static void __ocfs2_free_slot_info(struc
- 	if (si == NULL)
- 		return;
- 
--	if (si->si_inode)
--		iput(si->si_inode);
-+	iput(si->si_inode);
- 	if (si->si_bh) {
- 		for (i = 0; i < si->si_blocks; i++) {
- 			if (si->si_bh[i]) {
-diff -puN fs/ocfs2/super.c~ocfs2-clean-up-redundant-null-check-before-iput fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-clean-up-redundant-null-check-before-iput
-+++ a/fs/ocfs2/super.c
-@@ -1722,8 +1722,7 @@ static int ocfs2_statfs(struct dentry *d
- 	ocfs2_inode_unlock(inode, 0);
- 	status = 0;
- bail:
--	if (inode)
--		iput(inode);
-+	iput(inode);
- 
- 	if (status)
- 		mlog_errno(status);
+ 	mlog_bug_on_msg(!dlm_domain_fully_joined(dlm),
+ 			"Domain %s not fully joined!\n", dlm->name);
 _
 
-Patches currently in -mm which might be from joseph.qi@huawei.com are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
-ocfs2-dlm-fix-race-between-convert-and-recovery.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery-v2.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery-v3.patch
-ocfs2-dlm-fix-bug-in-dlm_move_lockres_to_recovery_list.patch
+ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
+extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
 
