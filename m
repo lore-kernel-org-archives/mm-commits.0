@@ -1,87 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-vmalloc-use-list_nextfirst_entry.patch removed from
- -mm tree
-Date: Fri, 15 Jan 2016 14:33:02 -0800
-Message-ID: <5699739e.gihh/PdNSudOYvIa%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-documentation-clarify-proc-pid-status-vmswap-limitations-for-shmem.patch removed from -mm tree
+Date: Fri, 15 Jan 2016 14:33:06 -0800
+Message-ID: <569973a2.i7HVGP+roupFLMAn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59299 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59309 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754689AbcAOWdC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:33:02 -0500
+	with ESMTP id S1754689AbcAOWdH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 17:33:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geliangtang@163.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, hughd@google.com, jmarchan@redhat.com, khlebnikov@yandex-team.ru, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc.c: use list_{next,first}_entry
+     Subject: mm, documentation: clarify /proc/pid/status VmSwap limitations for shmem
 has been removed from the -mm tree.  Its filename was
-     mm-vmalloc-use-list_nextfirst_entry.patch
+     mm-documentation-clarify-proc-pid-status-vmswap-limitations-for-shmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geliang Tang <geliangtang@163.com>
-Subject: mm/vmalloc.c: use list_{next,first}_entry
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, documentation: clarify /proc/pid/status VmSwap limitations for shmem
 
-To make the intention clearer, use list_{next,first}_entry instead of
-list_entry.
+This series is based on Jerome Marchand's [1] so let me quote the first
+paragraph from there:
 
-Signed-off-by: Geliang Tang <geliangtang@163.com>
+There are several shortcomings with the accounting of shared memory (sysV
+shm, shared anonymous mapping, mapping to a tmpfs file).  The values in
+/proc/<pid>/status and statm don't allow to distinguish between shmem
+memory and a shared mapping to a regular file, even though their
+implications on memory usage are quite different: at reclaim, file mapping
+can be dropped or written back on disk while shmem needs a place in swap. 
+As for shmem pages that are swapped-out or in swap cache, they aren't
+accounted at all.
+
+The original motivation for myself is that a customer found (IMHO
+rightfully) confusing that e.g.  top output for process swap usage is
+unreliable with respect to swapped out shmem pages, which are not
+accounted for.
+
+The fundamental difference between private anonymous and shmem pages is
+that the latter has PTE's converted to pte_none, and not swapents.  As
+such, they are not accounted to the number of swapents visible e.g.  in
+/proc/pid/status VmSwap row.  It might be theoretically possible to use
+swapents when swapping out shmem (without extra cost, as one has to change
+all mappers anyway), and on swap in only convert the swapent for the
+faulting process, leaving swapents in other processes until they also
+fault (so again no extra cost).  But I don't know how many assumptions
+this would break, and it would be too disruptive change for a relatively
+small benefit.
+
+Instead, my approach is to document the limitation of VmSwap, and provide
+means to determine the swap usage for shmem areas for those who are
+interested and willing to pay the price, using /proc/pid/smaps.  Because
+outside of ipcs, I don't think it's possible to currently to determine the
+usage at all.  The previous patchset [1] did introduce new shmem-specific
+fields into smaps output, and functions to determine the values.  I take a
+simpler approach, noting that smaps output already has a "Swap: X kB"
+line, where currently X == 0 always for shmem areas.  I think we can just
+consider this a bug and provide the proper value by consulting the radix
+tree, as e.g.  mincore_page() does.  In the patch changelog I explain why
+this is also not perfect (and cannot be without swapents), but still
+arguably much better than showing a 0.
+
+The last two patches are adapted from Jerome's patchset and provide a
+VmRSS breakdown to RssAnon, RssFile and RssShm in /proc/pid/status.  Hugh
+noted that this is a welcome addition, and I agree that it might help e.g.
+ debugging process memory usage at albeit non-zero, but still rather low
+cost of extra per-mm counter and some page flag checks.
+
+[1] http://lwn.net/Articles/611966/
+
+
+
+This patch (of 6):
+
+The documentation for /proc/pid/status does not mention that the value of
+VmSwap counts only swapped out anonymous private pages, and not swapped
+out pages of the underlying shmem objects (for shmem mappings).  This is
+not obvious, so document this limitation.
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Jerome Marchand <jmarchan@redhat.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ Documentation/filesystems/proc.txt |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-use-list_nextfirst_entry mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-use-list_nextfirst_entry
-+++ a/mm/vmalloc.c
-@@ -441,8 +441,7 @@ nocache:
- 		if (list_is_last(&first->list, &vmap_area_list))
- 			goto found;
- 
--		first = list_entry(first->list.next,
--				struct vmap_area, list);
-+		first = list_next_entry(first, list);
- 	}
- 
- found:
-@@ -2559,10 +2558,10 @@ static void *s_start(struct seq_file *m,
- 	struct vmap_area *va;
- 
- 	spin_lock(&vmap_area_lock);
--	va = list_entry((&vmap_area_list)->next, typeof(*va), list);
-+	va = list_first_entry(&vmap_area_list, typeof(*va), list);
- 	while (n > 0 && &va->list != &vmap_area_list) {
- 		n--;
--		va = list_entry(va->list.next, typeof(*va), list);
-+		va = list_next_entry(va, list);
- 	}
- 	if (!n && &va->list != &vmap_area_list)
- 		return va;
-@@ -2576,7 +2575,7 @@ static void *s_next(struct seq_file *m,
- 	struct vmap_area *va = p, *next;
- 
- 	++*pos;
--	next = list_entry(va->list.next, typeof(*va), list);
-+	next = list_next_entry(va, list);
- 	if (&next->list != &vmap_area_list)
- 		return next;
- 
+diff -puN Documentation/filesystems/proc.txt~mm-documentation-clarify-proc-pid-status-vmswap-limitations-for-shmem Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~mm-documentation-clarify-proc-pid-status-vmswap-limitations-for-shmem
++++ a/Documentation/filesystems/proc.txt
+@@ -238,7 +238,8 @@ Table 1-2: Contents of the status files
+  VmLib                       size of shared library code
+  VmPTE                       size of page table entries
+  VmPMD                       size of second level page tables
+- VmSwap                      size of swap usage (the number of referred swapents)
++ VmSwap                      amount of swap used by anonymous private data
++                             (shmem swap usage is not included)
+  HugetlbPages                size of hugetlb memory portions
+  Threads                     number of threads
+  SigQ                        number of signals queued/max. number for queue
 _
 
-Patches currently in -mm which might be from geliangtang@163.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-swapfilec-use-list_for_each_entry_safe-in-free_swap_count_continuations.patch
-mm-move-lru_to_page-to-mm_inlineh.patch
-mm-zbud-use-list_last_entry-instead-of-list_tail_entry.patch
-hfs-use-list_for_each_entry-in-hfs_cat_delete.patch
-kexec-use-list_for_each_entry_safe-in-kimage_free_page_list.patch
-rapidio-use-kobj_to_dev.patch
-dma-mapping-use-offset_in_page-macro.patch
 
