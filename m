@@ -1,64 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- zram-dont-call-idr_remove-from-zram_remove-fix.patch removed from -mm tree
-Date: Fri, 15 Jan 2016 16:25:31 -0800
-Message-ID: <56998dfb.ui1AxG4Py4uC4yLX%akpm@linux-foundation.org>
+Subject: [folded-merged] mm-support-madvisemadv_free-fix-2-fix.patch
+ removed from -mm tree
+Date: Fri, 15 Jan 2016 16:25:58 -0800
+Message-ID: <56998e16.iIIuGVRHKQez9ush%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37260 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37306 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757304AbcAPAZc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 19:25:32 -0500
+	with ESMTP id S1030229AbcAPAZ7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 19:25:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jmarchan@redhat.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram-dont-call-idr_remove-from-zram_remove-fix
+     Subject: mm-support-madvisemadv_free-fix-2-fix
 has been removed from the -mm tree.  Its filename was
-     zram-dont-call-idr_remove-from-zram_remove-fix.patch
+     mm-support-madvisemadv_free-fix-2-fix.patch
 
-This patch was dropped because it was folded into zram-dont-call-idr_remove-from-zram_remove.patch
+This patch was dropped because it was folded into mm-support-madvisemadv_free.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: zram-dont-call-idr_remove-from-zram_remove-fix
+Subject: mm-support-madvisemadv_free-fix-2-fix
 
-fix coding stype, per Sergey
+small cleanups
 
-Cc: Jerome Marchand <jmarchan@redhat.com>
 Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ mm/rmap.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-dont-call-idr_remove-from-zram_remove-fix drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-dont-call-idr_remove-from-zram_remove-fix
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1369,8 +1369,9 @@ static ssize_t hot_remove_store(struct c
- 	if (zram) {
- 		ret = zram_remove(zram);
- 		idr_remove(&zram_index_idr, dev_id);
--	} else
-+	} else {
- 		ret = -ENODEV;
-+	}
+diff -puN mm/rmap.c~mm-support-madvisemadv_free-fix-2-fix mm/rmap.c
+--- a/mm/rmap.c~mm-support-madvisemadv_free-fix-2-fix
++++ a/mm/rmap.c
+@@ -1608,7 +1608,7 @@ int try_to_unmap(struct page *page, enum
  
- 	mutex_unlock(&zram_index_mutex);
- 	return ret ? ret : count;
+ 	struct rmap_walk_control rwc = {
+ 		.rmap_one = try_to_unmap_one,
+-		.arg = (void *)&rp,
++		.arg = &rp,
+ 		.done = page_not_mapped,
+ 		.anon_lock = page_lock_anon_vma_read,
+ 	};
+@@ -1654,7 +1654,6 @@ int try_to_unmap(struct page *page, enum
+ int try_to_munlock(struct page *page)
+ {
+ 	int ret;
+-
+ 	struct rmap_private rp = {
+ 		.flags = TTU_MUNLOCK,
+ 		.lazyfreed = 0,
+@@ -1662,7 +1661,7 @@ int try_to_munlock(struct page *page)
+ 
+ 	struct rmap_walk_control rwc = {
+ 		.rmap_one = try_to_unmap_one,
+-		.arg = (void *)&rp,
++		.arg = &rp,
+ 		.done = page_not_mapped,
+ 		.anon_lock = page_lock_anon_vma_read,
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-zram-dont-call-idr_remove-from-zram_remove.patch
-mm-support-madvisemadv_free-fix-2-fix.patch
+mm-support-madvisemadv_free.patch
 arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
 arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
 arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
