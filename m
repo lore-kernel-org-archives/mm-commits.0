@@ -1,58 +1,57 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch removed from -mm tree
-Date: Fri, 15 Jan 2016 16:26:50 -0800
-Message-ID: <56998e4a.fQ0zlmpI0X0mMb1h%akpm@linux-foundation.org>
+ arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch removed from -mm tree
+Date: Fri, 15 Jan 2016 16:26:53 -0800
+Message-ID: <56998e4d.xc8FF727LUE1ct4D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37365 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37374 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757309AbcAPA0v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 19:26:51 -0500
+	with ESMTP id S1757309AbcAPA0y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 19:26:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, fengguang.wu@intel.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2
+     Subject: arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3
 has been removed from the -mm tree.  Its filename was
-     arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
+     arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
 
 This patch was dropped because it was folded into mm-define-madv_free-for-some-arches.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2
+Subject: arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3
 
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: kbuild test robot <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/include/uapi/asm/mman.h |    1 -
+ arch/alpha/include/uapi/asm/mman.h |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN arch/xtensa/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2 arch/xtensa/include/uapi/asm/mman.h
---- a/arch/xtensa/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2
-+++ a/arch/xtensa/include/uapi/asm/mman.h
-@@ -86,7 +86,6 @@
- #define MADV_SEQUENTIAL	2		/* expect sequential page references */
+diff -puN arch/alpha/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3 arch/alpha/include/uapi/asm/mman.h
+--- a/arch/alpha/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3
++++ a/arch/alpha/include/uapi/asm/mman.h
+@@ -47,7 +47,6 @@
  #define MADV_WILLNEED	3		/* will need these pages */
- #define MADV_DONTNEED	4		/* don't need these pages */
--#define MADV_FREE	5		/* free pages only if memory pressure */
+ #define	MADV_SPACEAVAIL	5		/* ensure resources are available */
+ #define MADV_DONTNEED	6		/* don't need these pages */
+-#define MADV_FREE	7		/* free pages only if memory pressure */
  
- /* common parameters: try to keep these consistent across architectures */
+ /* common/generic parameters */
  #define MADV_FREE	8		/* free pages only if memory pressure */
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-define-madv_free-for-some-arches.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
 mm-mlockc-change-can_do_mlock-return-value-type-to-boolean-fix.patch
 mm-hugetlbfs-unmap-pages-if-page-fault-raced-with-hole-punch-fix.patch
 mm-soft-offline-exit-with-failure-for-non-anonymous-thp-fix.patch
