@@ -1,90 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- dax-fix-lifetime-of-in-kernel-dax-mappings-with-dax_map_atomic-v3.patch
+ libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory-fix.patch
  removed from -mm tree
-Date: Fri, 15 Jan 2016 16:30:45 -0800
-Message-ID: <56998f35.E0ZKnVHWw/DBtEI2%akpm@linux-foundation.org>
+Date: Fri, 15 Jan 2016 16:31:04 -0800
+Message-ID: <56998f48.twKDGsDh9FfKrqXB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37784 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37818 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757043AbcAPAap (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 19:30:45 -0500
+	with ESMTP id S1756690AbcAPAbF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 19:31:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, axboe@fb.com, david@fromorbit.com, jack@suse.com, jmoyer@redhat.com, ross.zwisler@linux.intel.com, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: linux@roeck-us.net, dan.j.williams@intel.com, david@fromorbit.com, dhowells@redhat.com, hch@lst.de, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax-fix-lifetime-of-in-kernel-dax-mappings-with-dax_map_atomic-v3
+     Subject: mn10300: Declare __pfn_to_phys() to fix build error
 has been removed from the -mm tree.  Its filename was
-     dax-fix-lifetime-of-in-kernel-dax-mappings-with-dax_map_atomic-v3.patch
+     libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory-fix.patch
 
-This patch was dropped because it was folded into dax-fix-lifetime-of-in-kernel-dax-mappings-with-dax_map_atomic.patch
+This patch was dropped because it was folded into libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory.patch
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: dax-fix-lifetime-of-in-kernel-dax-mappings-with-dax_map_atomic-v3
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: mn10300: Declare __pfn_to_phys() to fix build error
 
-Rebase on latest -next to pick up new definition of blk_queue_enter.
+__pfn_to_phys() was introduced with commit 8b79eb6f5b53e ("libnvdimm, pfn,
+pmem: allocate memmap array in persistent memory") but not declared for
+mn10300. This results in the following build error.
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-Cc: Jan Kara <jack@suse.com>
-Cc: Jens Axboe <axboe@fb.com>
+mm/page_alloc.c: In function 'memmap_init_zone':
+mm/page_alloc.c:4610:9: error: implicit declaration of function '__pfn_to_phys'
+
+Fixes: 8b79eb6f5b53e ("libnvdimm, pfn, pmem: allocate memmap array in persistent memory")
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/mn10300/include/asm/page.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN fs/dax.c~dax-fix-lifetime-of-in-kernel-dax-mappings-with-dax_map_atomic-v3 fs/dax.c
---- a/fs/dax.c~dax-fix-lifetime-of-in-kernel-dax-mappings-with-dax_map_atomic-v3
-+++ a/fs/dax.c
-@@ -36,7 +36,7 @@ static long dax_map_atomic(struct block_
- 	long rc = -EIO;
+diff -puN arch/mn10300/include/asm/page.h~libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory-fix arch/mn10300/include/asm/page.h
+--- a/arch/mn10300/include/asm/page.h~libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory-fix
++++ a/arch/mn10300/include/asm/page.h
+@@ -107,6 +107,7 @@ static inline int get_order(unsigned lon
+ #define pfn_to_kaddr(pfn)	__va((pfn) << PAGE_SHIFT)
+ #define pfn_to_page(pfn)	(mem_map + ((pfn) - __pfn_disp))
+ #define page_to_pfn(page)	((unsigned long)((page) - mem_map) + __pfn_disp)
++#define __pfn_to_phys(pfn)	PFN_PHYS(pfn)
  
- 	dax->addr = (void __pmem *) ERR_PTR(-EIO);
--	if (blk_queue_enter(q, GFP_NOWAIT) != 0)
-+	if (blk_queue_enter(q, true) != 0)
- 		return rc;
- 
- 	rc = bdev_direct_access(bdev, dax);
+ #define pfn_valid(pfn)					\
+ ({							\
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from linux@roeck-us.net are
 
-pmem-dax-clean-up-clear_pmem.patch
-dax-increase-granularity-of-dax_clear_blocks-operations.patch
-dax-guarantee-page-aligned-results-from-bdev_direct_access.patch
-dax-fix-lifetime-of-in-kernel-dax-mappings-with-dax_map_atomic.patch
-um-kill-pfn_t.patch
-kvm-rename-pfn_t-to-kvm_pfn_t.patch
-mm-dax-pmem-introduce-pfn_t.patch
-mm-skip-memory-block-registration-for-zone_device.patch
-mm-introduce-find_dev_pagemap.patch
-x86-mm-introduce-vmem_altmap-to-augment-vmemmap_populate.patch
 libnvdimm-pfn-pmem-allocate-memmap-array-in-persistent-memory.patch
-avr32-convert-to-asm-generic-memory_modelh.patch
-hugetlb-fix-compile-error-on-tile.patch
-frv-fix-compiler-warning-from-definition-of-__pmd.patch
-x86-mm-introduce-_page_devmap.patch
-mm-dax-gpu-convert-vm_insert_mixed-to-pfn_t.patch
-mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t.patch
-libnvdimm-pmem-move-request_queue-allocation-earlier-in-probe.patch
-mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup.patch
-mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup-fix.patch
-mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd.patch
-mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5.patch
-mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5-fix.patch
-mm-x86-get_user_pages-for-dax-mappings.patch
-mm-x86-get_user_pages-for-dax-mappings-v5.patch
-dax-provide-diagnostics-for-pmd-mapping-failures.patch
-dax-re-enable-dax-pmd-mappings.patch
 
