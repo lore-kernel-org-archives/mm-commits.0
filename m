@@ -1,46 +1,46 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch removed from -mm tree
-Date: Fri, 15 Jan 2016 16:30:18 -0800
-Message-ID: <56998f1a.EOZKJEoE0isEKqri%akpm@linux-foundation.org>
+ arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch removed from -mm tree
+Date: Fri, 15 Jan 2016 16:30:21 -0800
+Message-ID: <56998f1d.6g9p81w49xf/HQ/+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37725 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37733 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756685AbcAPAaT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 19:30:19 -0500
+	with ESMTP id S1756685AbcAPAaW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 19:30:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, fengguang.wu@intel.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix
+     Subject: arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2
 has been removed from the -mm tree.  Its filename was
-     arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix.patch
+     arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
 
 This patch was dropped because it was folded into arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix
+Subject: arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2
 
 Cc: Minchan Kim <minchan@kernel.org>
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
+Cc: kbuild test robot <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/include/uapi/asm/mman.h |    1 -
+ arch/xtensa/include/uapi/asm/mman.h |    1 -
  1 file changed, 1 deletion(-)
 
-diff -puN arch/mips/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix arch/mips/include/uapi/asm/mman.h
---- a/arch/mips/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix
-+++ a/arch/mips/include/uapi/asm/mman.h
-@@ -73,7 +73,6 @@
- #define MADV_SEQUENTIAL 2		/* expect sequential page references */
+diff -puN arch/xtensa/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2 arch/xtensa/include/uapi/asm/mman.h
+--- a/arch/xtensa/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2
++++ a/arch/xtensa/include/uapi/asm/mman.h
+@@ -86,7 +86,6 @@
+ #define MADV_SEQUENTIAL	2		/* expect sequential page references */
  #define MADV_WILLNEED	3		/* will need these pages */
  #define MADV_DONTNEED	4		/* don't need these pages */
 -#define MADV_FREE	5		/* free pages only if memory pressure */
@@ -53,7 +53,6 @@ Patches currently in -mm which might be from akpm@linux-foundation.org are
 
 mm-define-madv_free-for-some-arches.patch
 arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures.patch
-arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2.patch
 arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures-fix-fix-2-fix-3.patch
 mm-mlockc-change-can_do_mlock-return-value-type-to-boolean-fix.patch
 mm-hugetlbfs-unmap-pages-if-page-fault-raced-with-hole-punch-fix.patch
