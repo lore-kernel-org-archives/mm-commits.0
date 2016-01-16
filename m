@@ -1,61 +1,87 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5.patch removed from -mm tree
-Date: Fri, 15 Jan 2016 16:32:47 -0800
-Message-ID: <56998faf.Z0/GA6g9+fttlm3q%akpm@linux-foundation.org>
+ mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5-fix.patch removed from -mm
+ tree
+Date: Fri, 15 Jan 2016 16:32:50 -0800
+Message-ID: <56998fb2.mGu/SIJEoeFwk3Ge%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37931 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37936 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161011AbcAPAcs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 19:32:48 -0500
+	with ESMTP id S1161011AbcAPAcv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 15 Jan 2016 19:32:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, aarcange@redhat.com, dave@sr71.net, kirill.shutemov@linux.intel.com, mgorman@suse.de, peterz@infradead.org, sasha.levin@oracle.com, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, lkp@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, dax: dax-pmd vs thp-pmd vs hugetlbfs-pmd v5
+     Subject: mm: fix pmd_devmap compile error
 has been removed from the -mm tree.  Its filename was
-     mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5.patch
+     mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5-fix.patch
 
 This patch was dropped because it was folded into mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd.patch
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm, dax: dax-pmd vs thp-pmd vs hugetlbfs-pmd v5
+Subject: mm: fix pmd_devmap compile error
 
-Add a missing pmd_devmap() check to pmd_trans_huge_lock() (Willy)
+The kbuild robot reports the following with an i386 randconfig:
 
+In file included from arch/x86/include/asm/atomic.h:4:0,
+	from include/linux/atomic.h:4,
+	from include/linux/crypto.h:20,
+	from arch/x86/kernel/asm-offsets.c:8:
+include/linux/huge_mm.h: In function 'pmd_trans_huge_lock':
+>>	include/linux/huge_mm.h:128:30: error: implicit declaration of function 'pmd_devmap' [-Werror=implicit-function-declaration]
+	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd))
+                                    ^
+
+Fix by moving the fallback definition of pmd_devmap() earlier in mm.h,
+before it include huge_mm.h.
+
+Reported-by: kbuild test robot <lkp@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Cc: Dave Hansen <dave@sr71.net>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/mm.h |   14 +++++++-------
+ 1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/huge_mm.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5 include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5
-+++ a/include/linux/huge_mm.h
-@@ -125,7 +125,7 @@ static inline bool pmd_trans_huge_lock(p
- 		spinlock_t **ptl)
- {
- 	VM_BUG_ON_VMA(!rwsem_is_locked(&vma->vm_mm->mmap_sem), vma);
--	if (pmd_trans_huge(*pmd))
-+	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd))
- 		return __pmd_trans_huge_lock(pmd, vma, ptl);
- 	else
- 		return false;
+diff -puN include/linux/mm.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5-fix include/linux/mm.h
+--- a/include/linux/mm.h~mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5-fix
++++ a/include/linux/mm.h
+@@ -329,6 +329,13 @@ struct inode;
+ #define page_private(page)		((page)->private)
+ #define set_page_private(page, v)	((page)->private = (v))
+ 
++#if !defined(__HAVE_ARCH_PTE_DEVMAP) || !defined(CONFIG_TRANSPARENT_HUGEPAGE)
++static inline int pmd_devmap(pmd_t pmd)
++{
++	return 0;
++}
++#endif
++
+ /*
+  * FIXME: take this include out, include page-flags.h in
+  * files which need it (119 of them)
+@@ -1459,13 +1466,6 @@ static inline int __pud_alloc(struct mm_
+ int __pud_alloc(struct mm_struct *mm, pgd_t *pgd, unsigned long address);
+ #endif
+ 
+-#if !defined(__HAVE_ARCH_PTE_DEVMAP) || !defined(CONFIG_TRANSPARENT_HUGEPAGE)
+-static inline int pmd_devmap(pmd_t pmd)
+-{
+-	return 0;
+-}
+-#endif
+-
+ #if defined(__PAGETABLE_PMD_FOLDED) || !defined(CONFIG_MMU)
+ static inline int __pmd_alloc(struct mm_struct *mm, pud_t *pud,
+ 						unsigned long address)
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
@@ -80,7 +106,6 @@ mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t.patch
 libnvdimm-pmem-move-request_queue-allocation-earlier-in-probe.patch
 mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup.patch
 mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd.patch
-mm-dax-dax-pmd-vs-thp-pmd-vs-hugetlbfs-pmd-v5-fix.patch
 mm-x86-get_user_pages-for-dax-mappings.patch
 mm-x86-get_user_pages-for-dax-mappings-v5.patch
 dax-provide-diagnostics-for-pmd-mapping-failures.patch
