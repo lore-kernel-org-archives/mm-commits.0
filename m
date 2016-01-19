@@ -1,82 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-kasprintfc-add-sanity-check-to-kvasprintf.patch
- removed from -mm tree
-Date: Tue, 19 Jan 2016 12:15:06 -0800
-Message-ID: <569e994a.BaLsf3f+GKXgezvU%akpm@linux-foundation.org>
+Subject: [merged] lib-test_printfc-dont-bug.patch removed from -mm tree
+Date: Tue, 19 Jan 2016 12:15:08 -0800
+Message-ID: <569e994c.XFqd+fXTeh+kLUFc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44604 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44611 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933139AbcASUPH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:15:07 -0500
+	with ESMTP id S933191AbcASUPJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:15:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, andriy.shevchenko@linux.intel.com, joe@perches.com, keescook@chromium.org, mingo@kernel.org, mlombard@redhat.com, tj@kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/kasprintf.c: add sanity check to kvasprintf
+     Subject: lib/test_printf.c: don't BUG
 has been removed from the -mm tree.  Its filename was
-     lib-kasprintfc-add-sanity-check-to-kvasprintf.patch
+     lib-test_printfc-dont-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/kasprintf.c: add sanity check to kvasprintf
+Subject: lib/test_printf.c: don't BUG
 
-kasprintf relies on being able to replay the formatting and getting
-the same result (in particular, the same length). This will almost
-always work, but it is possible that the object pointed to by a %s or
-%p argument changed under us (so we might get truncated output). Add a
-somewhat paranoid sanity check and let's see if it ever triggers.
+BUG is a completely unnecessarily big hammer, and we're more likely to
+get the internal bug reported if we just pr_err() and ensure the test
+suite fails.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Kees Cook <keescook@chromium.org>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Joe Perches <joe@perches.com>
-Cc: Kees Cook <keescook@chromium.org>
 Cc: Maurizio Lombardi <mlombard@redhat.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/kasprintf.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ lib/test_printf.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN lib/kasprintf.c~lib-kasprintfc-add-sanity-check-to-kvasprintf lib/kasprintf.c
---- a/lib/kasprintf.c~lib-kasprintfc-add-sanity-check-to-kvasprintf
-+++ a/lib/kasprintf.c
-@@ -13,19 +13,21 @@
- /* Simplified asprintf. */
- char *kvasprintf(gfp_t gfp, const char *fmt, va_list ap)
- {
--	unsigned int len;
-+	unsigned int first, second;
+diff -puN lib/test_printf.c~lib-test_printfc-dont-bug lib/test_printf.c
+--- a/lib/test_printf.c~lib-test_printfc-dont-bug
++++ a/lib/test_printf.c
+@@ -91,7 +91,12 @@ __test(const char *expect, int elen, con
+ 	int rand;
  	char *p;
- 	va_list aq;
  
- 	va_copy(aq, ap);
--	len = vsnprintf(NULL, 0, fmt, aq);
-+	first = vsnprintf(NULL, 0, fmt, aq);
- 	va_end(aq);
+-	BUG_ON(elen >= BUF_SIZE);
++	if (elen >= BUF_SIZE) {
++		pr_err("error in test suite: expected output length %d too long. Format was '%s'.\n",
++		       elen, fmt);
++		failed_tests++;
++		return;
++	}
  
--	p = kmalloc_track_caller(len+1, gfp);
-+	p = kmalloc_track_caller(first+1, gfp);
- 	if (!p)
- 		return NULL;
+ 	va_start(ap, fmt);
  
--	vsnprintf(p, len+1, fmt, ap);
-+	second = vsnprintf(p, first+1, fmt, ap);
-+	WARN(first != second, "different return values (%u and %u) from vsnprintf(\"%s\", ...)",
-+	     first, second, fmt);
- 
- 	return p;
- }
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
