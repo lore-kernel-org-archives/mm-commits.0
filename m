@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-avoid-uninitialized-variable-in-tracepoint.patch added to
- -mm tree
-Date: Tue, 19 Jan 2016 14:38:17 -0800
-Message-ID: <569ebad9.o/fU6zROatGyMZB2%akpm@linux-foundation.org>
+Subject: + libcrc32c-fix-build-warning.patch added to -mm tree
+Date: Tue, 19 Jan 2016 14:40:55 -0800
+Message-ID: <569ebb77.jz5wycMxwVmXX0Ms%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52471 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52594 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932702AbcASWiS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 17:38:18 -0500
+	with ESMTP id S932702AbcASWk4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 17:40:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, ebru.akagunduz@gmail.com, kirill.shutemov@linux.intel.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: jdelvare@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: avoid uninitialized variable in tracepoint
+     Subject: lib/libcrc32c.c: fix build warning
 has been added to the -mm tree.  Its filename is
-     mm-avoid-uninitialized-variable-in-tracepoint.patch
+     libcrc32c-fix-build-warning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-avoid-uninitialized-variable-in-tracepoint.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/libcrc32c-fix-build-warning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-avoid-uninitialized-variable-in-tracepoint.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/libcrc32c-fix-build-warning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,50 +38,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: mm: avoid uninitialized variable in tracepoint
+From: Jean Delvare <jdelvare@suse.de>
+Subject: lib/libcrc32c.c: fix build warning
 
-A newly added tracepoint in the hugepage code uses a variable in the error
-handling that is not initialized at that point:
+Fix the following build warning:
 
-include/trace/events/huge_memory.h:81:230: error: 'isolated' may be used uninitialized in this function [-Werror=maybe-uninitialized]
+lib/libcrc32c.c:42:5: warning: no previous prototype for "crc32c" [-Wmissing-prototypes]
+ u32 crc32c(u32 crc, const void *address, unsigned int length)
+     ^
 
-The result is relatively harmless, as the trace data will in rare cases
-contain incorrect data.
-
-This works around the problem by adding an explicit initialization.
-
-Fixes: 7d2eba0557c1 ("mm: add tracepoint for scanning pages")
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Reviewed-by: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Jean Delvare <jdelvare@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/libcrc32c.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/huge_memory.c~mm-avoid-uninitialized-variable-in-tracepoint mm/huge_memory.c
---- a/mm/huge_memory.c~mm-avoid-uninitialized-variable-in-tracepoint
-+++ a/mm/huge_memory.c
-@@ -2324,7 +2324,7 @@ static void collapse_huge_page(struct mm
- 	pgtable_t pgtable;
- 	struct page *new_page;
- 	spinlock_t *pmd_ptl, *pte_ptl;
--	int isolated, result = 0;
-+	int isolated = 0, result = 0;
- 	unsigned long hstart, hend;
- 	struct mem_cgroup *memcg;
- 	unsigned long mmun_start;	/* For mmu_notifiers */
+diff -puN lib/libcrc32c.c~libcrc32c-fix-build-warning lib/libcrc32c.c
+--- a/lib/libcrc32c.c~libcrc32c-fix-build-warning
++++ a/lib/libcrc32c.c
+@@ -36,6 +36,7 @@
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/crc32c.h>
+ 
+ static struct crypto_shash *tfm;
+ 
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from jdelvare@suse.de are
 
-mm-avoid-uninitialized-variable-in-tracepoint.patch
-printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix.patch
-memstick-use-sector_div-instead-of-do_div.patch
-mm-memcontrol-introduce-config_memcg_legacy_kmem-fix.patch
-mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix-2.patch
+libcrc32c-fix-build-warning.patch
 
