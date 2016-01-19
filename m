@@ -1,58 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] errh-add-missing-unlikely-to-is_err_or_null.patch
- removed from -mm tree
-Date: Tue, 19 Jan 2016 12:14:42 -0800
-Message-ID: <569e9932.18UdzkH7dYPaUTCJ%akpm@linux-foundation.org>
+Subject: [merged] uselib-default-depending-if-libc5-was-used.patch removed from -mm tree
+Date: Tue, 19 Jan 2016 12:14:44 -0800
+Message-ID: <569e9934.Ys2eGAa+kniGEZzm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44522 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44524 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933182AbcASUOm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:42 -0500
+	with ESMTP id S933139AbcASUOo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: viresh.kumar@linaro.org, mm-commits@vger.kernel.org
+To: riku.voipio@linaro.org, geert@linux-m68k.org, josh@joshtriplett.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: err.h: add (missing) unlikely() to IS_ERR_OR_NULL()
+     Subject: uselib: default depending if libc5 was used
 has been removed from the -mm tree.  Its filename was
-     errh-add-missing-unlikely-to-is_err_or_null.patch
+     uselib-default-depending-if-libc5-was-used.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: err.h: add (missing) unlikely() to IS_ERR_OR_NULL()
+From: Riku Voipio <riku.voipio@linaro.org>
+Subject: uselib: default depending if libc5 was used
 
-IS_ERR_VALUE() already contains it and so we need to add this only to the
-!ptr check.  That will allow users of IS_ERR_OR_NULL(), to not add this
-compiler flag.
+uselib hasn't been used since libc5; glibc does not use it.
+Deprecate uselib a bit more, by making the default y only
+if libc5 was widely used on the plaform.
 
-Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+This makes arm64 kernel built with defconfig slightly smaller
+
+bloat-o-meter:
+add/remove: 0/3 grow/shrink: 0/2 up/down: 0/-1390 (-1390)
+function                                     old     new   delta
+kernel_config_data                         18164   18162      -2
+uselib_flags                                  20       -     -20
+padzero                                      216     192     -24
+sys_uselib                                   380       -    -380
+load_elf_library                             964       -    -964
+
+Signed-off-by: Riku Voipio <riku.voipio@linaro.org>
+Reviewed-by: Josh Triplett <josh@joshtriplett.org>
+Acked-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/err.h |    2 +-
+ init/Kconfig |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/err.h~errh-add-missing-unlikely-to-is_err_or_null include/linux/err.h
---- a/include/linux/err.h~errh-add-missing-unlikely-to-is_err_or_null
-+++ a/include/linux/err.h
-@@ -37,7 +37,7 @@ static inline bool __must_check IS_ERR(_
+diff -puN init/Kconfig~uselib-default-depending-if-libc5-was-used init/Kconfig
+--- a/init/Kconfig~uselib-default-depending-if-libc5-was-used
++++ a/init/Kconfig
+@@ -285,7 +285,7 @@ config FHANDLE
  
- static inline bool __must_check IS_ERR_OR_NULL(__force const void *ptr)
- {
--	return !ptr || IS_ERR_VALUE((unsigned long)ptr);
-+	return unlikely(!ptr) || IS_ERR_VALUE((unsigned long)ptr);
- }
- 
- /**
+ config USELIB
+ 	bool "uselib syscall"
+-	default y
++	def_bool ALPHA || M68K || SPARC || X86_32 || IA32_EMULATION
+ 	help
+ 	  This option enables the uselib syscall, a system call used in the
+ 	  dynamic linker from libc5 and earlier.  glibc does not use this
 _
 
-Patches currently in -mm which might be from viresh.kumar@linaro.org are
+Patches currently in -mm which might be from riku.voipio@linaro.org are
 
 
