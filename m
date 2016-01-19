@@ -1,96 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kernel-stop_machinec-remove-config_smp-dependencies.patch removed from -mm
- tree
-Date: Tue, 19 Jan 2016 12:14:46 -0800
-Message-ID: <569e9936.SDoe+1Qfo0FBnpgT%akpm@linux-foundation.org>
+Subject: [merged] asm-sections-add-helpers-to-check-for-section-data.patch removed from -mm tree
+Date: Tue, 19 Jan 2016 12:14:48 -0800
+Message-ID: <569e9938.No1VwlII9JEf3fkA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44529 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44534 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933139AbcASUOr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:47 -0500
+	with ESMTP id S933139AbcASUOt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, chris@chris-wilson.co.uk, mingo@kernel.org, valentinrothberg@gmail.com, mm-commits@vger.kernel.org
+To: treding@nvidia.com, arnd@arndb.de, gregkh@linuxfoundation.org, joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/stop_machine.c: remove CONFIG_SMP dependencies
+     Subject: asm/sections: add helpers to check for section data
 has been removed from the -mm tree.  Its filename was
-     kernel-stop_machinec-remove-config_smp-dependencies.patch
+     asm-sections-add-helpers-to-check-for-section-data.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel/stop_machine.c: remove CONFIG_SMP dependencies
+From: Thierry Reding <treding@nvidia.com>
+Subject: asm/sections: add helpers to check for section data
 
-stop_machine.o is only built if CONFIG_SMP=y, so this ifdef always
-evaluates to true.
+Add a helper to check if an object (given an address and a size) is part
+of a section (given beginning and end addresses).  For convenience, also
+provide a helper that performs this check for __init data using the
+__init_begin and __init_end limits.
 
-[akpm@linux-foundation.org: remove now-unneeded ifdef]
-Reported-by: Valentin Rothberg <valentinrothberg@gmail.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/stop_machine.c |    4 ----
- 1 file changed, 4 deletions(-)
+ include/asm-generic/sections.h |   65 +++++++++++++++++++++++++++++++
+ 1 file changed, 65 insertions(+)
 
-diff -puN kernel/stop_machine.c~kernel-stop_machinec-remove-config_smp-dependencies kernel/stop_machine.c
---- a/kernel/stop_machine.c~kernel-stop_machinec-remove-config_smp-dependencies
-+++ a/kernel/stop_machine.c
-@@ -529,8 +529,6 @@ static int __init cpu_stop_init(void)
- }
- early_initcall(cpu_stop_init);
+diff -puN include/asm-generic/sections.h~asm-sections-add-helpers-to-check-for-section-data include/asm-generic/sections.h
+--- a/include/asm-generic/sections.h~asm-sections-add-helpers-to-check-for-section-data
++++ a/include/asm-generic/sections.h
+@@ -4,6 +4,7 @@
+ /* References to section boundaries */
  
--#if defined(CONFIG_SMP) || defined(CONFIG_HOTPLUG_CPU)
--
- static int __stop_machine(cpu_stop_fn_t fn, void *data, const struct cpumask *cpus)
- {
- 	struct multi_stop_data msdata = {
-@@ -628,5 +626,3 @@ int stop_machine_from_inactive_cpu(cpu_s
- 	mutex_unlock(&stop_cpus_mutex);
- 	return ret ?: done.ret;
+ #include <linux/compiler.h>
++#include <linux/types.h>
+ 
+ /*
+  * Usage guidelines:
+@@ -63,4 +64,68 @@ static inline int arch_is_kernel_data(un
  }
--
--#endif	/* CONFIG_SMP || CONFIG_HOTPLUG_CPU */
+ #endif
+ 
++/**
++ * memory_contains - checks if an object is contained within a memory region
++ * @begin: virtual address of the beginning of the memory region
++ * @end: virtual address of the end of the memory region
++ * @virt: virtual address of the memory object
++ * @size: size of the memory object
++ *
++ * Returns: true if the object specified by @virt and @size is entirely
++ * contained within the memory region defined by @begin and @end, false
++ * otherwise.
++ */
++static inline bool memory_contains(void *begin, void *end, void *virt,
++				   size_t size)
++{
++	return virt >= begin && virt + size <= end;
++}
++
++/**
++ * memory_intersects - checks if the region occupied by an object intersects
++ *                     with another memory region
++ * @begin: virtual address of the beginning of the memory regien
++ * @end: virtual address of the end of the memory region
++ * @virt: virtual address of the memory object
++ * @size: size of the memory object
++ *
++ * Returns: true if an object's memory region, specified by @virt and @size,
++ * intersects with the region specified by @begin and @end, false otherwise.
++ */
++static inline bool memory_intersects(void *begin, void *end, void *virt,
++				     size_t size)
++{
++	void *vend = virt + size;
++
++	return (virt >= begin && virt < end) || (vend >= begin && vend < end);
++}
++
++/**
++ * init_section_contains - checks if an object is contained within the init
++ *                         section
++ * @virt: virtual address of the memory object
++ * @size: size of the memory object
++ *
++ * Returns: true if the object specified by @virt and @size is entirely
++ * contained within the init section, false otherwise.
++ */
++static inline bool init_section_contains(void *virt, size_t size)
++{
++	return memory_contains(__init_begin, __init_end, virt, size);
++}
++
++/**
++ * init_section_intersects - checks if the region occupied by an object
++ *                           intersects with the init section
++ * @virt: virtual address of the memory object
++ * @size: size of the memory object
++ *
++ * Returns: true if an object's memory region, specified by @virt and @size,
++ * intersects with the init section, false otherwise.
++ */
++static inline bool init_section_intersects(void *virt, size_t size)
++{
++	return memory_intersects(__init_begin, __init_end, virt, size);
++}
++
+ #endif /* _ASM_GENERIC_SECTIONS_H_ */
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from treding@nvidia.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-mm.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-sched-add-schedule_timeout_idle.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix-fix.patch
-printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
-fs-coredump-prevent-core-path-components-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
-linux-next-rejects.patch
-fs-overlayfs-superc-needs-pagemaph.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-net-drop-tcp_memcontrolc-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
 
