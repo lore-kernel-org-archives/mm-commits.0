@@ -1,38 +1,35 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch removed
- from -mm tree
-Date: Tue, 19 Jan 2016 12:01:00 -0800
-Message-ID: <569e95fc.KvbKf0MMAfWFmCyn%akpm@linux-foundation.org>
+ page-flags-define-pg_uncached-behavior-on-compound-pages.patch removed from -mm tree
+Date: Tue, 19 Jan 2016 12:01:06 -0800
+Message-ID: <569e9602.XN0nJowvgtNceYNL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42535 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933016AbcASUBC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:01:02 -0500
+	with ESMTP id S932930AbcASUBH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:01:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jglisse@redhat.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-flags: define PG_swapbacked behavior on compound pag=
-es
+     Subject: page-flags: define PG_uncached behavior on compound pages
 has been removed from the -mm tree.  Its filename was
-     page-flags-define-pg_swapbacked-behavior-on-compound-pages.patch
+     page-flags-define-pg_uncached-behavior-on-compound-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsyst=
 em tree
 
 ------------------------------------------------------
 =46rom: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: page-flags: define PG_swapbacked behavior on compound pages
+Subject: page-flags: define PG_uncached behavior on compound pages
 
-PG_swapbacked is used for transparent huge pages. For head pages only.
-Let's use PF_NO_TAIL policy.
+So far, only IA64 uses PG_uncached and only on non-compound pages.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -52,28 +49,23 @@ Cc: J=E9r=F4me Glisse <jglisse@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ include/linux/page-flags.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/page-flags.h~page-flags-define-pg_swapbacked-be=
-havior-on-compound-pages include/linux/page-flags.h
---- a/include/linux/page-flags.h~page-flags-define-pg_swapbacked-behavi=
-or-on-compound-pages
+diff -puN include/linux/page-flags.h~page-flags-define-pg_uncached-beha=
+vior-on-compound-pages include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-define-pg_uncached-behavior=
+-on-compound-pages
 +++ a/include/linux/page-flags.h
-@@ -278,9 +278,9 @@ PAGEFLAG(Foreign, foreign, PF_NO_COMPOUN
+@@ -338,7 +338,7 @@ PAGEFLAG_FALSE(Mlocked) __CLEARPAGEFLAG_
+ #endif
 =20
- PAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
- 	__CLEARPAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
--PAGEFLAG(SwapBacked, swapbacked, PF_ANY)
--	__CLEARPAGEFLAG(SwapBacked, swapbacked, PF_ANY)
--	__SETPAGEFLAG(SwapBacked, swapbacked, PF_ANY)
-+PAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
-+	__CLEARPAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
-+	__SETPAGEFLAG(SwapBacked, swapbacked, PF_NO_TAIL)
-=20
- /*
-  * Private page markings that may be used by the filesystem that owns =
-the page
+ #ifdef CONFIG_ARCH_USES_PG_UNCACHED
+-PAGEFLAG(Uncached, uncached, PF_ANY)
++PAGEFLAG(Uncached, uncached, PF_NO_COMPOUND)
+ #else
+ PAGEFLAG_FALSE(Uncached)
+ #endif
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.inte=
