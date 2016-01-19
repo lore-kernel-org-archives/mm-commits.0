@@ -1,96 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable.patch
- removed from -mm tree
-Date: Tue, 19 Jan 2016 12:13:14 -0800
-Message-ID: <569e98da.gzW/Rja5oKFg/2hS%akpm@linux-foundation.org>
+Subject: [merged] dax-split-pmd-map-when-fallback-on-cow.patch removed
+ from -mm tree
+Date: Tue, 19 Jan 2016 12:13:16 -0800
+Message-ID: <569e98dc.7ODtknQtomAkwcoo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44267 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44281 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932930AbcASUNP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:13:15 -0500
+	with ESMTP id S932930AbcASUNR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:13:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, jmoyer@redhat.com, toshi.kani@hpe.com, mm-commits@vger.kernel.org
+To: toshi.kani@hpe.com, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, dax: fix livelock, allow dax pmd mappings to become writeable
+     Subject: dax: Split pmd map when fallback on COW
 has been removed from the -mm tree.  Its filename was
-     mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable.patch
+     dax-split-pmd-map-when-fallback-on-cow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: mm, dax: fix livelock, allow dax pmd mappings to become writeable
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: dax: Split pmd map when fallback on COW
 
-Prior to this change DAX PMD mappings that were made read-only were never
-able to be made writable again.  This is because the code in
-insert_pfn_pmd() that calls pmd_mkdirty() and pmd_mkwrite() would skip
-these calls if the PMD already existed in the page table.
+An infinite loop of PMD faults was observed when attempted to mlock() a
+private read-only PMD mmap'd range of a DAX file.
 
-Instead, if we are doing a write always mark the PMD entry as dirty and
-writeable.  Without this code we can get into a condition where we mark
-the PMD as read-only, and then on a subsequent write fault we get into an
-infinite loop of PMD faults where we try unsuccessfully to make the PMD
-writeable.
+__dax_pmd_fault() simply returns with VM_FAULT_FALLBACK when falling back
+to PTE on COW.  However, __handle_mm_fault() returns without falling back
+to handle_pte_fault() because a PMD map is present in this case.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Change __dax_pmd_fault() to split the PMD map, if present, before
+returning with VM_FAULT_FALLBACK.
+
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Jeff Moyer <jmoyer@redhat.com>
-Reported-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   14 ++++++--------
- 1 file changed, 6 insertions(+), 8 deletions(-)
+ fs/dax.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable mm/huge_memory.c
---- a/mm/huge_memory.c~mm-dax-fix-livelock-allow-dax-pmd-mappings-to-become-writeable
-+++ a/mm/huge_memory.c
-@@ -938,15 +938,13 @@ static void insert_pfn_pmd(struct vm_are
- 	spinlock_t *ptl;
+diff -puN fs/dax.c~dax-split-pmd-map-when-fallback-on-cow fs/dax.c
+--- a/fs/dax.c~dax-split-pmd-map-when-fallback-on-cow
++++ a/fs/dax.c
+@@ -578,8 +578,10 @@ int __dax_pmd_fault(struct vm_area_struc
+ 		return VM_FAULT_FALLBACK;
  
- 	ptl = pmd_lock(mm, pmd);
--	if (pmd_none(*pmd)) {
--		entry = pmd_mkhuge(pfn_pmd(pfn, prot));
--		if (write) {
--			entry = pmd_mkyoung(pmd_mkdirty(entry));
--			entry = maybe_pmd_mkwrite(entry, vma);
--		}
--		set_pmd_at(mm, addr, pmd, entry);
--		update_mmu_cache_pmd(vma, addr, pmd);
-+	entry = pmd_mkhuge(pfn_pmd(pfn, prot));
-+	if (write) {
-+		entry = pmd_mkyoung(pmd_mkdirty(entry));
-+		entry = maybe_pmd_mkwrite(entry, vma);
- 	}
-+	set_pmd_at(mm, addr, pmd, entry);
-+	update_mmu_cache_pmd(vma, addr, pmd);
- 	spin_unlock(ptl);
- }
- 
+ 	/* Fall back to PTEs if we're going to COW */
+-	if (write && !(vma->vm_flags & VM_SHARED))
++	if (write && !(vma->vm_flags & VM_SHARED)) {
++		split_huge_pmd(vma, pmd, address);
+ 		return VM_FAULT_FALLBACK;
++	}
+ 	/* If the PMD would extend outside the VMA */
+ 	if (pmd_addr < vma->vm_start)
+ 		return VM_FAULT_FALLBACK;
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from toshi.kani@hpe.com are
 
-dax-fix-null-pointer-dereference-in-__dax_dbg.patch
-dax-fix-conversion-of-holes-to-pmds.patch
-pmem-add-wb_cache_pmem-to-the-pmem-api.patch
-pmem-add-wb_cache_pmem-to-the-pmem-api-v6.patch
-dax-support-dirty-dax-entries-in-radix-tree.patch
-dax-support-dirty-dax-entries-in-radix-tree-v6.patch
-mm-add-find_get_entries_tag.patch
-dax-add-support-for-fsync-sync.patch
-dax-add-support-for-fsync-sync-v6.patch
-dax-add-support-for-fsync-msync-v7.patch
-dax-add-support-for-fsync-msync-v8.patch
-ext2-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
-ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
-xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
 
