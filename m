@@ -1,64 +1,209 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-statc-drop-the-last-new_valid_dev-check.patch removed from -mm tree
-Date: Tue, 19 Jan 2016 12:14:35 -0800
-Message-ID: <569e992b.qqw18gPdQNG/5TAK%akpm@linux-foundation.org>
+Subject: [merged] kconfig-remove-have_latencytop_support.patch removed
+ from -mm tree
+Date: Tue, 19 Jan 2016 12:14:39 -0800
+Message-ID: <569e992f.rSEZHQGKhX406L8H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44506 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44512 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933139AbcASUOf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:35 -0500
+	with ESMTP id S933139AbcASUOk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: baiyaowei@cmss.chinamobile.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: will.deacon@arm.com, davem@davemloft.net, deller@gmx.de, gxt@mprc.pku.edu.cn, heiko.carstens@de.ibm.com, james.hogan@imgtec.com, linux@arm.linux.org.uk, mingo@redhat.com, monstr@monstr.eu, mpe@ellerman.id.au, vgupta@synopsys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/stat.c: drop the last new_valid_dev check
+     Subject: Kconfig: remove HAVE_LATENCYTOP_SUPPORT
 has been removed from the -mm tree.  Its filename was
-     fs-statc-drop-the-last-new_valid_dev-check.patch
+     kconfig-remove-have_latencytop_support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Subject: fs/stat.c: drop the last new_valid_dev check
+From: Will Deacon <will.deacon@arm.com>
+Subject: Kconfig: remove HAVE_LATENCYTOP_SUPPORT
 
-New_valid_dev() always returns true, so that's unnecessary to perform
-new_valid_dev() checks in some filesystems.  Most checks of
-new_valid_dev() have been removed so let's drop this last one and then we
-can remove new_valid_dev() from the source code.
+As illustrated by a3afe70b83fd ("[S390] latencytop s390 support."),
+HAVE_LATENCYTOP_SUPPORT is defined by an architecture to advertise an
+implementation of save_stack_trace_tsk.
 
-No functional change.
+However, as of 9212ddb5eada ("stacktrace: provide save_stack_trace_tsk()
+weak alias") a dummy implementation is provided if STACKTRACE=y.  Given
+that LATENCYTOP already depends on STACKTRACE_SUPPORT and selects
+STACKTRACE, we can remove HAVE_LATENCYTOP_SUPPORT altogether.
 
-Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Will Deacon <will.deacon@arm.com>
+Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Helge Deller <deller@gmx.de>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: Ingo Molnar <mingo@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/stat.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arc/Kconfig        |    3 ---
+ arch/arm/Kconfig        |    5 -----
+ arch/metag/Kconfig      |    3 ---
+ arch/microblaze/Kconfig |    3 ---
+ arch/parisc/Kconfig     |    3 ---
+ arch/powerpc/Kconfig    |    3 ---
+ arch/s390/Kconfig       |    3 ---
+ arch/sh/Kconfig         |    3 ---
+ arch/sparc/Kconfig      |    4 ----
+ arch/unicore32/Kconfig  |    3 ---
+ arch/x86/Kconfig        |    3 ---
+ lib/Kconfig.debug       |    1 -
+ 12 files changed, 37 deletions(-)
 
-diff -puN fs/stat.c~fs-statc-drop-the-last-new_valid_dev-check fs/stat.c
---- a/fs/stat.c~fs-statc-drop-the-last-new_valid_dev-check
-+++ a/fs/stat.c
-@@ -219,7 +219,7 @@ SYSCALL_DEFINE2(fstat, unsigned int, fd,
- #  define choose_32_64(a,b) b
- #endif
+diff -puN arch/arc/Kconfig~kconfig-remove-have_latencytop_support arch/arc/Kconfig
+--- a/arch/arc/Kconfig~kconfig-remove-have_latencytop_support
++++ a/arch/arc/Kconfig
+@@ -73,9 +73,6 @@ config STACKTRACE_SUPPORT
+ 	def_bool y
+ 	select STACKTRACE
  
--#define valid_dev(x)  choose_32_64(old_valid_dev,new_valid_dev)(x)
-+#define valid_dev(x)  choose_32_64(old_valid_dev(x),true)
- #define encode_dev(x) choose_32_64(old_encode_dev,new_encode_dev)(x)
+-config HAVE_LATENCYTOP_SUPPORT
+-	def_bool y
+-
+ config HAVE_ARCH_TRANSPARENT_HUGEPAGE
+ 	def_bool y
+ 	depends on ARC_MMU_V4
+diff -puN arch/arm/Kconfig~kconfig-remove-have_latencytop_support arch/arm/Kconfig
+--- a/arch/arm/Kconfig~kconfig-remove-have_latencytop_support
++++ a/arch/arm/Kconfig
+@@ -168,11 +168,6 @@ config STACKTRACE_SUPPORT
+ 	bool
+ 	default y
  
- #ifndef INIT_STRUCT_STAT_PADDING
-_
-
-Patches currently in -mm which might be from baiyaowei@cmss.chinamobile.com are
-
-init-mainc-obsolete_checksetup-can-be-boolean.patch
-init-do_mounts-initrd_load-can-be-boolean.patch
-ipc-shm-is_file_shm_hugepages-can-be-boolean.patch
-
+-config HAVE_LATENCYTOP_SUPPORT
+-	bool
+-	depends on !SMP
+-	default y
+-
+ config LOCKDEP_SUPPORT
+ 	bool
+ 	default y
+diff -puN arch/metag/Kconfig~kconfig-remove-have_latencytop_support arch/metag/Kconfig
+--- a/arch/metag/Kconfig~kconfig-remove-have_latencytop_support
++++ a/arch/metag/Kconfig
+@@ -36,9 +36,6 @@ config STACKTRACE_SUPPORT
+ config LOCKDEP_SUPPORT
+ 	def_bool y
+ 
+-config HAVE_LATENCYTOP_SUPPORT
+-	def_bool y
+-
+ config RWSEM_GENERIC_SPINLOCK
+ 	def_bool y
+ 
+diff -puN arch/microblaze/Kconfig~kconfig-remove-have_latencytop_support arch/microblaze/Kconfig
+--- a/arch/microblaze/Kconfig~kconfig-remove-have_latencytop_support
++++ a/arch/microblaze/Kconfig
+@@ -67,9 +67,6 @@ config STACKTRACE_SUPPORT
+ config LOCKDEP_SUPPORT
+ 	def_bool y
+ 
+-config HAVE_LATENCYTOP_SUPPORT
+-	def_bool y
+-
+ source "init/Kconfig"
+ 
+ source "kernel/Kconfig.freezer"
+diff -puN arch/parisc/Kconfig~kconfig-remove-have_latencytop_support arch/parisc/Kconfig
+--- a/arch/parisc/Kconfig~kconfig-remove-have_latencytop_support
++++ a/arch/parisc/Kconfig
+@@ -79,9 +79,6 @@ config TIME_LOW_RES
+ 	depends on SMP
+ 	default y
+ 
+-config HAVE_LATENCYTOP_SUPPORT
+-        def_bool y
+-
+ # unless you want to implement ACPI on PA-RISC ... ;-)
+ config PM
+ 	bool
+diff -puN arch/powerpc/Kconfig~kconfig-remove-have_latencytop_support arch/powerpc/Kconfig
+--- a/arch/powerpc/Kconfig~kconfig-remove-have_latencytop_support
++++ a/arch/powerpc/Kconfig
+@@ -47,9 +47,6 @@ config STACKTRACE_SUPPORT
+ 	bool
+ 	default y
+ 
+-config HAVE_LATENCYTOP_SUPPORT
+-	def_bool y
+-
+ config TRACE_IRQFLAGS_SUPPORT
+ 	bool
+ 	default y
+diff -puN arch/s390/Kconfig~kconfig-remove-have_latencytop_support arch/s390/Kconfig
+--- a/arch/s390/Kconfig~kconfig-remove-have_latencytop_support
++++ a/arch/s390/Kconfig
+@@ -10,9 +10,6 @@ config LOCKDEP_SUPPORT
+ config STACKTRACE_SUPPORT
+ 	def_bool y
+ 
+-config HAVE_LATENCYTOP_SUPPORT
+-	def_bool y
+-
+ config RWSEM_GENERIC_SPINLOCK
+ 	bool
+ 
+diff -puN arch/sh/Kconfig~kconfig-remove-have_latencytop_support arch/sh/Kconfig
+--- a/arch/sh/Kconfig~kconfig-remove-have_latencytop_support
++++ a/arch/sh/Kconfig
+@@ -130,9 +130,6 @@ config STACKTRACE_SUPPORT
+ config LOCKDEP_SUPPORT
+ 	def_bool y
+ 
+-config HAVE_LATENCYTOP_SUPPORT
+-	def_bool y
+-
+ config ARCH_HAS_ILOG2_U32
+ 	def_bool n
+ 
+diff -puN arch/sparc/Kconfig~kconfig-remove-have_latencytop_support arch/sparc/Kconfig
+--- a/arch/sparc/Kconfig~kconfig-remove-have_latencytop_support
++++ a/arch/sparc/Kconfig
+@@ -101,10 +101,6 @@ config LOCKDEP_SUPPORT
+ 	bool
+ 	default y if SPARC64
+ 
+-config HAVE_LATENCYTOP_SUPPORT
+-	bool
+-	default y if SPARC64
+-
+ config ARCH_HIBERNATION_POSSIBLE
+ 	def_bool y if SPARC64
+ 
+diff -puN arch/unicore32/Kconfig~kconfig-remove-have_latencytop_support arch/unicore32/Kconfig
+--- a/arch/unicore32/Kconfig~kconfig-remove-have_latencytop_support
++++ a/arch/unicore32/Kconfig
+@@ -34,9 +34,6 @@ config NO_IOPORT_MAP
+ config STACKTRACE_SUPPORT
+ 	def_bool y
+ 
+-config HAVE_LATENCYTOP_SUPPORT
+-	def_bool y
+-
+ config LOCKDEP_SUPPORT
+ 	def_bool y
+ 
+diff -puN arch/x86/Kconfig~kconfig-remove-have_latencytop_support arch/x86/Kconfig
+--- a/arch/x86/Kconfig~kconfig-remove-have_latencytop_support
++++ a/arch/x86/Kconfig
+@@ -180,9 +180,6 @@ config LOCKDEP_SUPPORT
+ config STACKTRACE_SUPPORT
+ 	def_bool y
+ 
+-config HAVE_LATENCYTOP_SUPPORT
+-	def_bool y
