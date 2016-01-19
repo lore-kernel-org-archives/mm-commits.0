@@ -1,235 +1,354 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t.patch removed from -mm tree
-Date: Tue, 19 Jan 2016 12:13:42 -0800
-Message-ID: <569e98f6.xsZtn/twmv5aFLBr%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup.patch removed from -mm tree
+Date: Tue, 19 Jan 2016 12:13:46 -0800
+Message-ID: <569e98fa.w3Gc0LJ+cIPaQ8u+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44356 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44366 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933143AbcASUNn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:13:43 -0500
+	with ESMTP id S933143AbcASUNr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:13:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, dave@sr71.net, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, dave@sr71.net, logang@deltatee.com, ross.zwisler@linux.intel.com, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, dax: convert vmf_insert_pfn_pmd() to pfn_t
+     Subject: mm, dax, pmem: introduce {get|put}_dev_pagemap() for dax-gup
 has been removed from the -mm tree.  Its filename was
-     mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t.patch
+     mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm, dax: convert vmf_insert_pfn_pmd() to pfn_t
+Subject: mm, dax, pmem: introduce {get|put}_dev_pagemap() for dax-gup
 
-Similar to the conversion of vm_insert_mixed() use pfn_t in the
-vmf_insert_pfn_pmd() to tag the resulting pte with _PAGE_DEVICE when the
-pfn is backed by a devm_memremap_pages() mapping.
+get_dev_page() enables paths like get_user_pages() to pin a dynamically
+mapped pfn-range (devm_memremap_pages()) while the resulting struct page
+objects are in use.  Unlike get_page() it may fail if the device is, or is
+in the process of being, disabled.  While the initial lookup of the range
+may be an expensive list walk, the result is cached to speed up subsequent
+lookups which are likely to be in the same mapped range.
+
+devm_memremap_pages() now requires a reference counter to be specified at
+init time.  For pmem this means moving request_queue allocation into
+pmem_alloc() so the existing queue usage counter can track "device pages".
+
+ZONE_DEVICE pages always have an elevated count and will never be on an
+lru reclaim list.  That space in 'struct page' can be redirected for other
+uses, but for safety introduce a poison value that will always trip
+__list_add() to assert.  This allows half of the struct list_head storage
+to be reclaimed with some assurance to back up the assumption that the
+page count never goes to zero and a list_add() is never attempted.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Tested-by: Logan Gunthorpe <logang@deltatee.com>
 Cc: Dave Hansen <dave@sr71.net>
 Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h |    5 +++++
- arch/x86/mm/pat.c              |    5 +++--
- fs/dax.c                       |    2 +-
- include/asm-generic/pgtable.h  |    6 ++++--
- include/linux/huge_mm.h        |    2 +-
- include/linux/pfn_t.h          |    8 ++++++++
- mm/huge_memory.c               |   11 +++++++----
- mm/memory.c                    |    2 +-
- 8 files changed, 30 insertions(+), 11 deletions(-)
+ drivers/nvdimm/pmem.c    |    6 ++--
+ include/linux/list.h     |   11 +++++++
+ include/linux/memremap.h |   49 ++++++++++++++++++++++++++++++++--
+ include/linux/mm_types.h |    5 +++
+ kernel/memremap.c        |   53 ++++++++++++++++++++++++++++++++++---
+ lib/list_debug.c         |    9 ++++++
+ 6 files changed, 125 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/include/asm/pgtable.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -286,6 +286,11 @@ static inline pmd_t pmd_mkdirty(pmd_t pm
- 	return pmd_set_flags(pmd, _PAGE_DIRTY | _PAGE_SOFT_DIRTY);
- }
+diff -puN drivers/nvdimm/pmem.c~mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup drivers/nvdimm/pmem.c
+--- a/drivers/nvdimm/pmem.c~mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup
++++ a/drivers/nvdimm/pmem.c
+@@ -184,7 +184,7 @@ static struct pmem_device *pmem_alloc(st
+ 	pmem->pfn_flags = PFN_DEV;
+ 	if (pmem_should_map_pages(dev)) {
+ 		pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, res,
+-				NULL);
++				&q->q_usage_counter, NULL);
+ 		pmem->pfn_flags |= PFN_MAP;
+ 	} else
+ 		pmem->virt_addr = (void __pmem *) devm_memremap(dev,
+@@ -365,6 +365,7 @@ static int nvdimm_namespace_attach_pfn(s
+ 	struct vmem_altmap *altmap;
+ 	struct nd_pfn_sb *pfn_sb;
+ 	struct pmem_device *pmem;
++	struct request_queue *q;
+ 	phys_addr_t offset;
+ 	int rc;
+ 	struct vmem_altmap __altmap = {
+@@ -406,9 +407,10 @@ static int nvdimm_namespace_attach_pfn(s
  
-+static inline pmd_t pmd_mkdevmap(pmd_t pmd)
-+{
-+	return pmd_set_flags(pmd, _PAGE_DEVMAP);
-+}
-+
- static inline pmd_t pmd_mkhuge(pmd_t pmd)
- {
- 	return pmd_set_flags(pmd, _PAGE_PSE);
-diff -puN arch/x86/mm/pat.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t arch/x86/mm/pat.c
---- a/arch/x86/mm/pat.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
-+++ a/arch/x86/mm/pat.c
-@@ -12,6 +12,7 @@
- #include <linux/debugfs.h>
- #include <linux/kernel.h>
- #include <linux/module.h>
-+#include <linux/pfn_t.h>
- #include <linux/slab.h>
- #include <linux/mm.h>
- #include <linux/fs.h>
-@@ -949,7 +950,7 @@ int track_pfn_remap(struct vm_area_struc
- }
- 
- int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
--		     unsigned long pfn)
-+		     pfn_t pfn)
- {
- 	enum page_cache_mode pcm;
- 
-@@ -957,7 +958,7 @@ int track_pfn_insert(struct vm_area_stru
- 		return 0;
- 
- 	/* Set prot based on lookup */
--	pcm = lookup_memtype((resource_size_t)pfn << PAGE_SHIFT);
-+	pcm = lookup_memtype(pfn_t_to_phys(pfn));
- 	*prot = __pgprot((pgprot_val(vma->vm_page_prot) & (~_PAGE_CACHE_MASK)) |
- 			 cachemode2protval(pcm));
- 
-diff -puN fs/dax.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t fs/dax.c
---- a/fs/dax.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
-+++ a/fs/dax.c
-@@ -693,7 +693,7 @@ int __dax_pmd_fault(struct vm_area_struc
- 		dax_unmap_atomic(bdev, &dax);
- 
- 		result |= vmf_insert_pfn_pmd(vma, address, pmd,
--				pfn_t_to_pfn(dax.pfn), write);
-+				dax.pfn, write);
- 	}
- 
-  out:
-diff -puN include/asm-generic/pgtable.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
-+++ a/include/asm-generic/pgtable.h
-@@ -1,6 +1,8 @@
- #ifndef _ASM_GENERIC_PGTABLE_H
- #define _ASM_GENERIC_PGTABLE_H
- 
-+#include <linux/pfn.h>
-+
- #ifndef __ASSEMBLY__
- #ifdef CONFIG_MMU
- 
-@@ -549,7 +551,7 @@ static inline int track_pfn_remap(struct
-  * by vm_insert_pfn().
-  */
- static inline int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
--				   unsigned long pfn)
-+				   pfn_t pfn)
- {
- 	return 0;
- }
-@@ -584,7 +586,7 @@ extern int track_pfn_remap(struct vm_are
- 			   unsigned long pfn, unsigned long addr,
- 			   unsigned long size);
- extern int track_pfn_insert(struct vm_area_struct *vma, pgprot_t *prot,
--			    unsigned long pfn);
-+			    pfn_t pfn);
- extern int track_pfn_copy(struct vm_area_struct *vma);
- extern void untrack_pfn(struct vm_area_struct *vma, unsigned long pfn,
- 			unsigned long size);
-diff -puN include/linux/huge_mm.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
-+++ a/include/linux/huge_mm.h
-@@ -37,7 +37,7 @@ extern int change_huge_pmd(struct vm_are
- 			unsigned long addr, pgprot_t newprot,
- 			int prot_numa);
- int vmf_insert_pfn_pmd(struct vm_area_struct *, unsigned long addr, pmd_t *,
--			unsigned long pfn, bool write);
-+			pfn_t pfn, bool write);
- 
- enum transparent_hugepage_flag {
- 	TRANSPARENT_HUGEPAGE_FLAG,
-diff -puN include/linux/pfn_t.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t include/linux/pfn_t.h
---- a/include/linux/pfn_t.h~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
-+++ a/include/linux/pfn_t.h
-@@ -77,6 +77,13 @@ static inline pte_t pfn_t_pte(pfn_t pfn,
- }
+ 	/* establish pfn range for lookup, and switch to direct map */
+ 	pmem = dev_get_drvdata(dev);
++	q = pmem->pmem_queue;
+ 	devm_memunmap(dev, (void __force *) pmem->virt_addr);
+ 	pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, &nsio->res,
+-			altmap);
++			&q->q_usage_counter, altmap);
+ 	pmem->pfn_flags |= PFN_MAP;
+ 	if (IS_ERR(pmem->virt_addr)) {
+ 		rc = PTR_ERR(pmem->virt_addr);
+diff -puN include/linux/list.h~mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup include/linux/list.h
+--- a/include/linux/list.h~mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup
++++ a/include/linux/list.h
+@@ -113,6 +113,17 @@ extern void __list_del_entry(struct list
+ extern void list_del(struct list_head *entry);
  #endif
  
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+static inline pmd_t pfn_t_pmd(pfn_t pfn, pgprot_t pgprot)
-+{
-+	return pfn_pmd(pfn_t_to_pfn(pfn), pgprot);
-+}
++#ifdef CONFIG_DEBUG_LIST
++/*
++ * See devm_memremap_pages() which wants DEBUG_LIST=y to assert if one
++ * of the pages it allocates is ever passed to list_add()
++ */
++extern void list_force_poison(struct list_head *entry);
++#else
++/* fallback to the less strict LIST_POISON* definitions */
++#define list_force_poison list_del
 +#endif
 +
- #ifdef __HAVE_ARCH_PTE_DEVMAP
- static inline bool pfn_t_devmap(pfn_t pfn)
- {
-@@ -90,5 +97,6 @@ static inline bool pfn_t_devmap(pfn_t pf
- 	return false;
- }
- pte_t pte_mkdevmap(pte_t pte);
-+pmd_t pmd_mkdevmap(pmd_t pmd);
- #endif
- #endif /* _LINUX_PFN_T_H_ */
-diff -puN mm/huge_memory.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t mm/huge_memory.c
---- a/mm/huge_memory.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
-+++ a/mm/huge_memory.c
-@@ -21,6 +21,7 @@
- #include <linux/kthread.h>
- #include <linux/khugepaged.h>
- #include <linux/freezer.h>
-+#include <linux/pfn_t.h>
- #include <linux/mman.h>
- #include <linux/pagemap.h>
- #include <linux/debugfs.h>
-@@ -931,14 +932,16 @@ int do_huge_pmd_anonymous_page(struct mm
- }
+ /**
+  * list_replace - replace old entry by new one
+  * @old : the element to be replaced
+diff -puN include/linux/memremap.h~mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup include/linux/memremap.h
+--- a/include/linux/memremap.h~mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup
++++ a/include/linux/memremap.h
+@@ -1,6 +1,8 @@
+ #ifndef _LINUX_MEMREMAP_H_
+ #define _LINUX_MEMREMAP_H_
+ #include <linux/mm.h>
++#include <linux/ioport.h>
++#include <linux/percpu-refcount.h>
  
- static void insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
--		pmd_t *pmd, unsigned long pfn, pgprot_t prot, bool write)
-+		pmd_t *pmd, pfn_t pfn, pgprot_t prot, bool write)
- {
- 	struct mm_struct *mm = vma->vm_mm;
- 	pmd_t entry;
- 	spinlock_t *ptl;
+ struct resource;
+ struct device;
+@@ -36,21 +38,25 @@ static inline struct vmem_altmap *to_vme
+ /**
+  * struct dev_pagemap - metadata for ZONE_DEVICE mappings
+  * @altmap: pre-allocated/reserved memory for vmemmap allocations
++ * @res: physical address range covered by @ref
++ * @ref: reference count that pins the devm_memremap_pages() mapping
+  * @dev: host device of the mapping for debug
+  */
+ struct dev_pagemap {
+ 	struct vmem_altmap *altmap;
+ 	const struct resource *res;
++	struct percpu_ref *ref;
+ 	struct device *dev;
+ };
  
- 	ptl = pmd_lock(mm, pmd);
--	entry = pmd_mkhuge(pfn_pmd(pfn, prot));
-+	entry = pmd_mkhuge(pfn_t_pmd(pfn, prot));
-+	if (pfn_t_devmap(pfn))
-+		entry = pmd_mkdevmap(entry);
- 	if (write) {
- 		entry = pmd_mkyoung(pmd_mkdirty(entry));
- 		entry = maybe_pmd_mkwrite(entry, vma);
-@@ -949,7 +952,7 @@ static void insert_pfn_pmd(struct vm_are
- }
- 
- int vmf_insert_pfn_pmd(struct vm_area_struct *vma, unsigned long addr,
--			pmd_t *pmd, unsigned long pfn, bool write)
-+			pmd_t *pmd, pfn_t pfn, bool write)
+ #ifdef CONFIG_ZONE_DEVICE
+ void *devm_memremap_pages(struct device *dev, struct resource *res,
+-		struct vmem_altmap *altmap);
++		struct percpu_ref *ref, struct vmem_altmap *altmap);
+ struct dev_pagemap *find_dev_pagemap(resource_size_t phys);
+ #else
+ static inline void *devm_memremap_pages(struct device *dev,
+-		struct resource *res, struct vmem_altmap *altmap)
++		struct resource *res, struct percpu_ref *ref,
++		struct vmem_altmap *altmap)
  {
- 	pgprot_t pgprot = vma->vm_page_prot;
  	/*
-@@ -961,7 +964,7 @@ int vmf_insert_pfn_pmd(struct vm_area_st
- 	BUG_ON((vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP)) ==
- 						(VM_PFNMAP|VM_MIXEDMAP));
- 	BUG_ON((vma->vm_flags & VM_PFNMAP) && is_cow_mapping(vma->vm_flags));
--	BUG_ON((vma->vm_flags & VM_MIXEDMAP) && pfn_valid(pfn));
-+	BUG_ON(!pfn_t_devmap(pfn));
+ 	 * Fail attempts to call devm_memremap_pages() without
+@@ -66,4 +72,43 @@ static inline struct dev_pagemap *find_d
+ 	return NULL;
+ }
+ #endif
++
++/**
++ * get_dev_pagemap() - take a new live reference on the dev_pagemap for @pfn
++ * @pfn: page frame number to lookup page_map
++ * @pgmap: optional known pgmap that already has a reference
++ *
++ * @pgmap allows the overhead of a lookup to be bypassed when @pfn lands in the
++ * same mapping.
++ */
++static inline struct dev_pagemap *get_dev_pagemap(unsigned long pfn,
++		struct dev_pagemap *pgmap)
++{
++	const struct resource *res = pgmap ? pgmap->res : NULL;
++	resource_size_t phys = PFN_PHYS(pfn);
++
++	/*
++	 * In the cached case we're already holding a live reference so
++	 * we can simply do a blind increment
++	 */
++	if (res && phys >= res->start && phys <= res->end) {
++		percpu_ref_get(pgmap->ref);
++		return pgmap;
++	}
++
++	/* fall back to slow path lookup */
++	rcu_read_lock();
++	pgmap = find_dev_pagemap(phys);
++	if (pgmap && !percpu_ref_tryget_live(pgmap->ref))
++		pgmap = NULL;
++	rcu_read_unlock();
++
++	return pgmap;
++}
++
++static inline void put_dev_pagemap(struct dev_pagemap *pgmap)
++{
++	if (pgmap)
++		percpu_ref_put(pgmap->ref);
++}
+ #endif /* _LINUX_MEMREMAP_H_ */
+diff -puN include/linux/mm_types.h~mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup
++++ a/include/linux/mm_types.h
+@@ -116,6 +116,11 @@ struct page {
+ 					 * Can be used as a generic list
+ 					 * by the page owner.
+ 					 */
++		struct dev_pagemap *pgmap; /* ZONE_DEVICE pages are never on an
++					    * lru or handled by a slab
++					    * allocator, this points to the
++					    * hosting device page map.
++					    */
+ 		struct {		/* slub per cpu partial pages */
+ 			struct page *next;	/* Next partial slab */
+ #ifdef CONFIG_64BIT
+diff -puN kernel/memremap.c~mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup kernel/memremap.c
+--- a/kernel/memremap.c~mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup
++++ a/kernel/memremap.c
+@@ -179,6 +179,29 @@ static void pgmap_radix_release(struct r
+ 	mutex_unlock(&pgmap_lock);
+ }
  
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return VM_FAULT_SIGBUS;
-diff -puN mm/memory.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t mm/memory.c
---- a/mm/memory.c~mm-dax-convert-vmf_insert_pfn_pmd-to-pfn_t
-+++ a/mm/memory.c
-@@ -1567,7 +1567,7 @@ int vm_insert_pfn(struct vm_area_struct
++static unsigned long pfn_first(struct page_map *page_map)
++{
++	struct dev_pagemap *pgmap = &page_map->pgmap;
++	const struct resource *res = &page_map->res;
++	struct vmem_altmap *altmap = pgmap->altmap;
++	unsigned long pfn;
++
++	pfn = res->start >> PAGE_SHIFT;
++	if (altmap)
++		pfn += vmem_altmap_offset(altmap);
++	return pfn;
++}
++
++static unsigned long pfn_end(struct page_map *page_map)
++{
++	const struct resource *res = &page_map->res;
++
++	return (res->start + resource_size(res)) >> PAGE_SHIFT;
++}
++
++#define for_each_device_pfn(pfn, map) \
++	for (pfn = pfn_first(map); pfn < pfn_end(map); pfn++)
++
+ static void devm_memremap_pages_release(struct device *dev, void *data)
+ {
+ 	struct page_map *page_map = data;
+@@ -186,6 +209,11 @@ static void devm_memremap_pages_release(
+ 	resource_size_t align_start, align_size;
+ 	struct dev_pagemap *pgmap = &page_map->pgmap;
  
- 	if (addr < vma->vm_start || addr >= vma->vm_end)
- 		return -EFAULT;
--	if (track_pfn_insert(vma, &pgprot, pfn))
-+	if (track_pfn_insert(vma, &pgprot, __pfn_to_pfn_t(pfn, PFN_DEV)))
- 		return -EINVAL;
++	if (percpu_ref_tryget_live(pgmap->ref)) {
++		dev_WARN(dev, "%s: page mapping is still live!\n", __func__);
++		percpu_ref_put(pgmap->ref);
++	}
++
+ 	pgmap_radix_release(res);
  
- 	ret = insert_pfn(vma, addr, __pfn_to_pfn_t(pfn, PFN_DEV), pgprot);
+ 	/* pages are dead and unused, undo the arch mapping */
+@@ -211,20 +239,26 @@ struct dev_pagemap *find_dev_pagemap(res
+  * devm_memremap_pages - remap and provide memmap backing for the given resource
+  * @dev: hosting device for @res
+  * @res: "host memory" address range
++ * @ref: a live per-cpu reference count
+  * @altmap: optional descriptor for allocating the memmap from @res
+  *
+- * Note, the expectation is that @res is a host memory range that could
+- * feasibly be treated as a "System RAM" range, i.e. not a device mmio
+- * range, but this is not enforced.
++ * Notes:
++ * 1/ @ref must be 'live' on entry and 'dead' before devm_memunmap_pages() time
++ *    (or devm release event).
++ *
++ * 2/ @res is expected to be a host memory range that could feasibly be
++ *    treated as a "System RAM" range, i.e. not a device mmio range, but
++ *    this is not enforced.
+  */
+ void *devm_memremap_pages(struct device *dev, struct resource *res,
+-		struct vmem_altmap *altmap)
++		struct percpu_ref *ref, struct vmem_altmap *altmap)
+ {
+ 	int is_ram = region_intersects(res->start, resource_size(res),
+ 			"System RAM");
+ 	resource_size_t key, align_start, align_size;
+ 	struct dev_pagemap *pgmap;
+ 	struct page_map *page_map;
++	unsigned long pfn;
+ 	int error, nid;
+ 
+ 	if (is_ram == REGION_MIXED) {
+@@ -242,6 +276,9 @@ void *devm_memremap_pages(struct device
+ 		return ERR_PTR(-ENXIO);
+ 	}
+ 
++	if (!ref)
++		return ERR_PTR(-EINVAL);
++
+ 	page_map = devres_alloc_node(devm_memremap_pages_release,
+ 			sizeof(*page_map), GFP_KERNEL, dev_to_node(dev));
+ 	if (!page_map)
+@@ -255,6 +292,7 @@ void *devm_memremap_pages(struct device
+ 		memcpy(&page_map->altmap, altmap, sizeof(*altmap));
+ 		pgmap->altmap = &page_map->altmap;
+ 	}
++	pgmap->ref = ref;
+ 	pgmap->res = &page_map->res;
+ 
+ 	mutex_lock(&pgmap_lock);
+@@ -292,6 +330,13 @@ void *devm_memremap_pages(struct device
+ 	if (error)
+ 		goto err_add_memory;
+ 
++	for_each_device_pfn(pfn, page_map) {
++		struct page *page = pfn_to_page(pfn);
++
++		/* ZONE_DEVICE pages must never appear on a slab lru */
++		list_force_poison(&page->lru);
++		page->pgmap = pgmap;
++	}
+ 	devres_add(dev, page_map);
+ 	return __va(res->start);
+ 
+diff -puN lib/list_debug.c~mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup lib/list_debug.c
+--- a/lib/list_debug.c~mm-dax-pmem-introduce-getput_dev_pagemap-for-dax-gup
++++ a/lib/list_debug.c
+@@ -12,6 +12,13 @@
+ #include <linux/kernel.h>
+ #include <linux/rculist.h>
+ 
++static struct list_head force_poison;
++void list_force_poison(struct list_head *entry)
++{
++	entry->next = &force_poison;
++	entry->prev = &force_poison;
++}
++
+ /*
+  * Insert a new entry between two known consecutive entries.
+  *
+@@ -23,6 +30,8 @@ void __list_add(struct list_head *new,
+ 			      struct list_head *prev,
+ 			      struct list_head *next)
+ {
++	WARN(new->next == &force_poison || new->prev == &force_poison,
++		"list_add attempted on force-poisoned entry\n");
+ 	WARN(next->prev != prev,
+ 		"list_add corruption. next->prev should be "
+ 		"prev (%p), but was %p. (next=%p).\n",
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
