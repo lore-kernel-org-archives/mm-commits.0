@@ -1,36 +1,44 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- page-flags-define-pg_reserved-behavior-on-compound-pages.patch removed from -mm tree
-Date: Tue, 19 Jan 2016 12:00:58 -0800
-Message-ID: <569e95fa.RXAGBokcfOW9S5ZS%akpm@linux-foundation.org>
+ page-flags-look-at-head-page-if-the-flag-is-encoded-in-page-mapping.patch
+ removed from -mm tree
+Date: Tue, 19 Jan 2016 12:01:10 -0800
+Message-ID: <569e9606.BgJrAYRVOu/VkSh6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42490 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42560 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932666AbcASUA7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:00:59 -0500
+	with ESMTP id S933022AbcASUBL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:01:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hillf.zj@alibaba-inc.com, hughd@google.com, jglisse@redhat.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jglisse@redhat.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: page-flags: define PG_reserved behavior on compound pages
+     Subject: page-flags: look at head page if the flag is encoded in p=
+age->mapping
 has been removed from the -mm tree.  Its filename was
-     page-flags-define-pg_reserved-behavior-on-compound-pages.patch
+     page-flags-look-at-head-page-if-the-flag-is-encoded-in-page-mappin=
+g.patch
 
 This patch was dropped because it was merged into mainline or a subsyst=
 em tree
 
 ------------------------------------------------------
 =46rom: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: page-flags: define PG_reserved behavior on compound pages
+Subject: page-flags: look at head page if the flag is encoded in page->=
+mapping
 
-As far as I can see there's no users of PG_reserved on compound pages.
-Let's use PF_NO_COMPOUND here.
+PageAnon() and PageKsm() look at lower bits of page->mapping to check i=
+f
+the page is Anon or KSM.  page->mapping can be overloaded in tail pages=
+=2E
+
+Let's always look at head page to avoid false-positives.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -47,45 +55,42 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@suse.cz>
 Cc: Jerome Marchand <jmarchan@redhat.com>
 Cc: J=E9r=F4me Glisse <jglisse@redhat.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page-flags.h |    3 ++-
- mm/hugetlb.c               |    2 +-
- 2 files changed, 3 insertions(+), 2 deletions(-)
+ include/linux/page-flags.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/page-flags.h~page-flags-define-pg_reserved-beha=
-vior-on-compound-pages include/linux/page-flags.h
---- a/include/linux/page-flags.h~page-flags-define-pg_reserved-behavior=
--on-compound-pages
+diff -puN include/linux/page-flags.h~page-flags-look-at-head-page-if-th=
+e-flag-is-encoded-in-page-mapping include/linux/page-flags.h
+--- a/include/linux/page-flags.h~page-flags-look-at-head-page-if-the-fl=
+ag-is-encoded-in-page-mapping
 +++ a/include/linux/page-flags.h
-@@ -276,7 +276,8 @@ PAGEFLAG(Pinned, pinned, PF_NO_COMPOUND)
- PAGEFLAG(SavePinned, savepinned, PF_NO_COMPOUND);
- PAGEFLAG(Foreign, foreign, PF_NO_COMPOUND);
+@@ -176,7 +176,7 @@ static inline int PageCompound(struct pa
+ #define PF_NO_TAIL(page, enforce) ({					\
+ 		VM_BUG_ON_PGFLAGS(enforce && PageTail(page), page);	\
+ 		compound_head(page);})
+-#define PF_NO_COMPOUND(page, enforce) ({					\
++#define PF_NO_COMPOUND(page, enforce) ({				\
+ 		VM_BUG_ON_PGFLAGS(enforce && PageCompound(page), page);	\
+ 		page;})
 =20
--PAGEFLAG(Reserved, reserved, PF_ANY) __CLEARPAGEFLAG(Reserved, reserve=
-d, PF_ANY)
-+PAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
-+	__CLEARPAGEFLAG(Reserved, reserved, PF_NO_COMPOUND)
- PAGEFLAG(SwapBacked, swapbacked, PF_ANY)
- 	__CLEARPAGEFLAG(SwapBacked, swapbacked, PF_ANY)
- 	__SETPAGEFLAG(SwapBacked, swapbacked, PF_ANY)
-diff -puN mm/hugetlb.c~page-flags-define-pg_reserved-behavior-on-compou=
-nd-pages mm/hugetlb.c
---- a/mm/hugetlb.c~page-flags-define-pg_reserved-behavior-on-compound-p=
-ages
-+++ a/mm/hugetlb.c
-@@ -1267,8 +1267,8 @@ static void prep_compound_gigantic_page(
+@@ -381,6 +381,7 @@ PAGEFLAG(Idle, idle, PF_ANY)
 =20
- 	/* we rely on prep_new_huge_page to set the destructor */
- 	set_compound_order(page, order);
--	__SetPageHead(page);
- 	__ClearPageReserved(page);
-+	__SetPageHead(page);
- 	for (i =3D 1; i < nr_pages; i++, p =3D mem_map_next(p, page, i)) {
- 		/*
- 		 * For gigantic hugepages allocated through bootmem at
+ static inline int PageAnon(struct page *page)
+ {
++	page =3D compound_head(page);
+ 	return ((unsigned long)page->mapping & PAGE_MAPPING_ANON) !=3D 0;
+ }
+=20
+@@ -393,6 +394,7 @@ static inline int PageAnon(struct page *
+  */
+ static inline int PageKsm(struct page *page)
+ {
++	page =3D compound_head(page);
+ 	return ((unsigned long)page->mapping & PAGE_MAPPING_FLAGS) =3D=3D
+ 				(PAGE_MAPPING_ANON | PAGE_MAPPING_KSM);
+ }
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.inte=
