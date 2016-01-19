@@ -1,69 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page.patch removed from -mm tree
-Date: Tue, 19 Jan 2016 12:14:05 -0800
-Message-ID: <569e990d.idi6Xmia3G3VyS1L%akpm@linux-foundation.org>
+Subject: [merged] mm-page_alloc-remove-unused-struct-zone-z-variable.patch removed from -mm tree
+Date: Tue, 19 Jan 2016 12:14:11 -0800
+Message-ID: <569e9913.IUXCepln2XMqusyv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44421 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44434 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933139AbcASUOF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:05 -0500
+	with ESMTP id S933139AbcASUOL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: tj@kernel.org, axboe@kernel.dk, hannes@cmpxchg.org, mhocko@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: kuleshovmail@gmail.com, kirill.shutemov@linux.intel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cgroup, memcg, writeback: drop spurious rcu locking around mem_cgroup_css_from_page()
+     Subject: mm/page_alloc.c: remove unused struct zone *z variable
 has been removed from the -mm tree.  Its filename was
-     cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page.patch
+     mm-page_alloc-remove-unused-struct-zone-z-variable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tejun Heo <tj@kernel.org>
-Subject: cgroup, memcg, writeback: drop spurious rcu locking around mem_cgroup_css_from_page()
+From: Alexander Kuleshov <kuleshovmail@gmail.com>
+Subject: mm/page_alloc.c: remove unused struct zone *z variable
 
-In earlier versions, mem_cgroup_css_from_page() could return non-root css
-on a legacy hierarchy which can go away and required rcu locking; however,
-the eventual version simply returns the root cgroup if memcg is on a
-legacy hierarchy and thus doesn't need rcu locking around or in it. 
-Remove spurious rcu lockings.
+Remove unused struct zone *z variable which appeared in 86051ca5eaf5 ("mm:
+fix usemap initialization").
 
-Signed-off-by: Tejun Heo <tj@kernel.org>
-Reported-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Jens Axboe <axboe@kernel.dk>
+Signed-off-by: Alexander Kuleshov <kuleshovmail@gmail.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fs-writeback.c |    2 --
- mm/memcontrol.c   |    3 ---
- 2 files changed, 5 deletions(-)
+ mm/page_alloc.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/fs-writeback.c~cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page fs/fs-writeback.c
---- a/fs/fs-writeback.c~cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page
-+++ a/fs/fs-writeback.c
-@@ -677,9 +677,7 @@ void wbc_account_io(struct writeback_con
- 	if (!wbc->wb)
- 		return;
+diff -puN mm/page_alloc.c~mm-page_alloc-remove-unused-struct-zone-z-variable mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-remove-unused-struct-zone-z-variable
++++ a/mm/page_alloc.c
+@@ -4490,7 +4490,6 @@ void __meminit memmap_init_zone(unsigned
+ 	unsigned long end_pfn = start_pfn + size;
+ 	pg_data_t *pgdat = NODE_DATA(nid);
+ 	unsigned long pfn;
+-	struct zone *z;
+ 	unsigned long nr_initialised = 0;
  
--	rcu_read_lock();
- 	id = mem_cgroup_css_from_page(page)->id;
--	rcu_read_unlock();
+ 	if (highest_memmap_pfn < end_pfn - 1)
+@@ -4503,7 +4502,6 @@ void __meminit memmap_init_zone(unsigned
+ 	if (altmap && start_pfn == altmap->base_pfn)
+ 		start_pfn += altmap->reserve;
  
- 	if (id == wbc->wb_id) {
- 		wbc->wb_bytes += bytes;
-diff -puN mm/memcontrol.c~cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page mm/memcontrol.c
---- a/mm/memcontrol.c~cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page
-+++ a/mm/memcontrol.c
-@@ -382,14 +382,11 @@ struct cgroup_subsys_state *mem_cgroup_c
- {
- 	struct mem_cgroup *memcg;
- 
--	rcu_read_lock();
+-	z = &pgdat->node_zones[zone];
+ 	for (pfn = start_pfn; pfn < end_pfn; pfn++) {
+ 		/*
+ 		 * There can be holes in boot-time mem_map[]s
+_
+
+Patches currently in -mm which might be from kuleshovmail@gmail.com are
+
+
