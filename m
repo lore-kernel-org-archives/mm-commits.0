@@ -1,364 +1,79 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-page_check_address_transhuge-helper.patch removed from -mm tree
-Date: Tue, 19 Jan 2016 12:12:18 -0800
-Message-ID: <569e98a2.83SQXVzumk4hkrBv%akpm@linux-foundation.org>
+Subject: [merged] zram-dont-call-idr_remove-from-zram_remove.patch removed from -mm tree
+Date: Tue, 19 Jan 2016 12:12:20 -0800
+Message-ID: <569e98a4./jN2UsmRSqRlG/Hw%akpm__21428.4302587204$1453234351$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43810 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43812 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932354AbcASUMS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:12:18 -0500
+	with ESMTP id S932354AbcASUMU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:12:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: jmarchan@redhat.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add page_check_address_transhuge() helper
+     Subject: zram: don't call idr_remove() from zram_remove()
 has been removed from the -mm tree.  Its filename was
-     mm-add-page_check_address_transhuge-helper.patch
+     zram-dont-call-idr_remove-from-zram_remove.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: add page_check_address_transhuge() helper
+From: "Jerome Marchand" <jmarchan@redhat.com>
+Subject: zram: don't call idr_remove() from zram_remove()
 
-page_referenced_one() and page_idle_clear_pte_refs_one() duplicate the
-code for looking up pte of a (possibly transhuge) page.  Move this code to
-a new helper function, page_check_address_transhuge(), and make the above
-mentioned functions use it.
+The use of idr_remove() is forbidden in the callback functions of
+idr_for_each().  It is therefore unsafe to call idr_remove in
+zram_remove().
 
-This is just a cleanup, no functional changes are intended.
+This patch moves the call to idr_remove() from zram_remove() to
+hot_remove_store().  In the detroy_devices() path, idrs are removed by
+idr_destroy().  This solves an use-after-free detected by KASan.
 
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Reviewed-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+[akpm@linux-foundation.org: fix coding stype, per Sergey]
+Signed-off-by: Jerome Marchand <jmarchan@redhat.com>
+Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: <stable@vger.kernel.org>	[4.2+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   19 ++++++
- mm/page_idle.c       |   63 +++-------------------
- mm/rmap.c            |  115 +++++++++++++++++++++++++----------------
- 3 files changed, 99 insertions(+), 98 deletions(-)
+ drivers/block/zram/zram_drv.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-add-page_check_address_transhuge-helper include/linux/rmap.h
---- a/include/linux/rmap.h~mm-add-page_check_address_transhuge-helper
-+++ a/include/linux/rmap.h
-@@ -216,6 +216,25 @@ static inline pte_t *page_check_address(
- }
+diff -puN drivers/block/zram/zram_drv.c~zram-dont-call-idr_remove-from-zram_remove drivers/block/zram/zram_drv.c
+--- a/drivers/block/zram/zram_drv.c~zram-dont-call-idr_remove-from-zram_remove
++++ a/drivers/block/zram/zram_drv.c
+@@ -1325,7 +1325,6 @@ static int zram_remove(struct zram *zram
  
- /*
-+ * Used by idle page tracking to check if a page was referenced via page
-+ * tables.
-+ */
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+bool page_check_address_transhuge(struct page *page, struct mm_struct *mm,
-+				  unsigned long address, pmd_t **pmdp,
-+				  pte_t **ptep, spinlock_t **ptlp);
-+#else
-+static inline bool page_check_address_transhuge(struct page *page,
-+				struct mm_struct *mm, unsigned long address,
-+				pmd_t **pmdp, pte_t **ptep, spinlock_t **ptlp)
-+{
-+	*ptep = page_check_address(page, mm, address, ptlp, 0);
-+	*pmdp = NULL;
-+	return !!*ptep;
-+}
-+#endif
-+
-+/*
-  * Used by swapoff to help locate where page is expected in vma.
-  */
- unsigned long page_address_in_vma(struct page *, struct vm_area_struct *);
-diff -puN mm/page_idle.c~mm-add-page_check_address_transhuge-helper mm/page_idle.c
---- a/mm/page_idle.c~mm-add-page_check_address_transhuge-helper
-+++ a/mm/page_idle.c
-@@ -55,71 +55,26 @@ static int page_idle_clear_pte_refs_one(
- 					unsigned long addr, void *arg)
- {
- 	struct mm_struct *mm = vma->vm_mm;
--	spinlock_t *ptl;
--	pgd_t *pgd;
--	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
-+	spinlock_t *ptl;
- 	bool referenced = false;
+ 	pr_info("Removed device: %s\n", zram->disk->disk_name);
  
--	pgd = pgd_offset(mm, addr);
--	if (!pgd_present(*pgd))
--		return SWAP_AGAIN;
--	pud = pud_offset(pgd, addr);
--	if (!pud_present(*pud))
-+	if (!page_check_address_transhuge(page, mm, addr, &pmd, &pte, &ptl))
- 		return SWAP_AGAIN;
--	pmd = pmd_offset(pud, addr);
--
--	if (pmd_trans_huge(*pmd)) {
--		ptl = pmd_lock(mm, pmd);
--		if (!pmd_present(*pmd))
--			goto unlock_pmd;
--		if (unlikely(!pmd_trans_huge(*pmd))) {
--			spin_unlock(ptl);
--			goto map_pte;
--		}
--
--		if (pmd_page(*pmd) != page)
--			goto unlock_pmd;
+-	idr_remove(&zram_index_idr, zram->disk->first_minor);
+ 	blk_cleanup_queue(zram->disk->queue);
+ 	del_gendisk(zram->disk);
+ 	put_disk(zram->disk);
+@@ -1367,10 +1366,12 @@ static ssize_t hot_remove_store(struct c
+ 	mutex_lock(&zram_index_mutex);
  
-+	if (pte) {
-+		referenced = ptep_clear_young_notify(vma, addr, pte);
-+		pte_unmap(pte);
-+	} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
- 		referenced = pmdp_clear_young_notify(vma, addr, pmd);
--		spin_unlock(ptl);
--		goto found;
--unlock_pmd:
--		spin_unlock(ptl);
--		return SWAP_AGAIN;
- 	} else {
--		pmd_t pmde = *pmd;
--
--		barrier();
--		if (!pmd_present(pmde) || pmd_trans_huge(pmde))
--			return SWAP_AGAIN;
--
--	}
--map_pte:
--	pte = pte_offset_map(pmd, addr);
--	if (!pte_present(*pte)) {
--		pte_unmap(pte);
--		return SWAP_AGAIN;
-+		/* unexpected pmd-mapped page? */
-+		WARN_ON_ONCE(1);
- 	}
- 
--	ptl = pte_lockptr(mm, pmd);
--	spin_lock(ptl);
--
--	if (!pte_present(*pte)) {
--		pte_unmap_unlock(pte, ptl);
--		return SWAP_AGAIN;
--	}
--
--	/* THP can be referenced by any subpage */
--	if (pte_pfn(*pte) - page_to_pfn(page) >= hpage_nr_pages(page)) {
--		pte_unmap_unlock(pte, ptl);
--		return SWAP_AGAIN;
--	}
-+	spin_unlock(ptl);
- 
--	referenced = ptep_clear_young_notify(vma, addr, pte);
--	pte_unmap_unlock(pte, ptl);
--found:
- 	if (referenced) {
- 		clear_page_idle(page);
- 		/*
-diff -puN mm/rmap.c~mm-add-page_check_address_transhuge-helper mm/rmap.c
---- a/mm/rmap.c~mm-add-page_check_address_transhuge-helper
-+++ a/mm/rmap.c
-@@ -798,48 +798,44 @@ int page_mapped_in_vma(struct page *page
- 	return 1;
- }
- 
--struct page_referenced_arg {
--	int mapcount;
--	int referenced;
--	unsigned long vm_flags;
--	struct mem_cgroup *memcg;
--};
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- /*
-- * arg: page_referenced_arg will be passed
-+ * Check that @page is mapped at @address into @mm. In contrast to
-+ * page_check_address(), this function can handle transparent huge pages.
-+ *
-+ * On success returns true with pte mapped and locked. For PMD-mapped
-+ * transparent huge pages *@ptep is set to NULL.
-  */
--static int page_referenced_one(struct page *page, struct vm_area_struct *vma,
--			unsigned long address, void *arg)
-+bool page_check_address_transhuge(struct page *page, struct mm_struct *mm,
-+				  unsigned long address, pmd_t **pmdp,
-+				  pte_t **ptep, spinlock_t **ptlp)
- {
--	struct mm_struct *mm = vma->vm_mm;
--	spinlock_t *ptl;
--	int referenced = 0;
--	struct page_referenced_arg *pra = arg;
- 	pgd_t *pgd;
- 	pud_t *pud;
- 	pmd_t *pmd;
- 	pte_t *pte;
-+	spinlock_t *ptl;
- 
- 	if (unlikely(PageHuge(page))) {
- 		/* when pud is not present, pte will be NULL */
- 		pte = huge_pte_offset(mm, address);
- 		if (!pte)
--			return SWAP_AGAIN;
-+			return false;
- 
- 		ptl = huge_pte_lockptr(page_hstate(page), mm, pte);
-+		pmd = NULL;
- 		goto check_pte;
- 	}
- 
- 	pgd = pgd_offset(mm, address);
- 	if (!pgd_present(*pgd))
--		return SWAP_AGAIN;
-+		return false;
- 	pud = pud_offset(pgd, address);
- 	if (!pud_present(*pud))
--		return SWAP_AGAIN;
-+		return false;
- 	pmd = pmd_offset(pud, address);
- 
- 	if (pmd_trans_huge(*pmd)) {
--		int ret = SWAP_AGAIN;
--
- 		ptl = pmd_lock(mm, pmd);
- 		if (!pmd_present(*pmd))
- 			goto unlock_pmd;
-@@ -851,31 +847,23 @@ static int page_referenced_one(struct pa
- 		if (pmd_page(*pmd) != page)
- 			goto unlock_pmd;
- 
--		if (vma->vm_flags & VM_LOCKED) {
--			pra->vm_flags |= VM_LOCKED;
--			ret = SWAP_FAIL; /* To break the loop */
--			goto unlock_pmd;
--		}
--
--		if (pmdp_clear_flush_young_notify(vma, address, pmd))
--			referenced++;
--		spin_unlock(ptl);
-+		pte = NULL;
- 		goto found;
- unlock_pmd:
- 		spin_unlock(ptl);
--		return ret;
-+		return false;
- 	} else {
- 		pmd_t pmde = *pmd;
- 
- 		barrier();
- 		if (!pmd_present(pmde) || pmd_trans_huge(pmde))
--			return SWAP_AGAIN;
-+			return false;
- 	}
- map_pte:
- 	pte = pte_offset_map(pmd, address);
- 	if (!pte_present(*pte)) {
- 		pte_unmap(pte);
--		return SWAP_AGAIN;
-+		return false;
- 	}
- 
- 	ptl = pte_lockptr(mm, pmd);
-@@ -884,35 +872,74 @@ check_pte:
- 
- 	if (!pte_present(*pte)) {
- 		pte_unmap_unlock(pte, ptl);
--		return SWAP_AGAIN;
-+		return false;
- 	}
- 
- 	/* THP can be referenced by any subpage */
- 	if (pte_pfn(*pte) - page_to_pfn(page) >= hpage_nr_pages(page)) {
- 		pte_unmap_unlock(pte, ptl);
--		return SWAP_AGAIN;
-+		return false;
- 	}
-+found:
-+	*ptep = pte;
-+	*pmdp = pmd;
-+	*ptlp = ptl;
-+	return true;
-+}
-+#endif /* CONFIG_TRANSPARENT_HUGEPAGE */
-+
-+struct page_referenced_arg {
-+	int mapcount;
-+	int referenced;
-+	unsigned long vm_flags;
-+	struct mem_cgroup *memcg;
-+};
-+/*
-+ * arg: page_referenced_arg will be passed
-+ */
-+static int page_referenced_one(struct page *page, struct vm_area_struct *vma,
-+			unsigned long address, void *arg)
-+{
-+	struct mm_struct *mm = vma->vm_mm;
-+	struct page_referenced_arg *pra = arg;
-+	pmd_t *pmd;
-+	pte_t *pte;
-+	spinlock_t *ptl;
-+	int referenced = 0;
-+
-+	if (!page_check_address_transhuge(page, mm, address, &pmd, &pte, &ptl))
-+		return SWAP_AGAIN;
- 
- 	if (vma->vm_flags & VM_LOCKED) {
--		pte_unmap_unlock(pte, ptl);
-+		if (pte)
-+			pte_unmap(pte);
-+		spin_unlock(ptl);
- 		pra->vm_flags |= VM_LOCKED;
- 		return SWAP_FAIL; /* To break the loop */
- 	}
- 
--	if (ptep_clear_flush_young_notify(vma, address, pte)) {
--		/*
--		 * Don't treat a reference through a sequentially read
--		 * mapping as such.  If the page has been used in
--		 * another mapping, we will catch it; if this other
--		 * mapping is already gone, the unmap path will have
--		 * set PG_referenced or activated the page.
--		 */
--		if (likely(!(vma->vm_flags & VM_SEQ_READ)))
-+	if (pte) {
-+		if (ptep_clear_flush_young_notify(vma, address, pte)) {
-+			/*
-+			 * Don't treat a reference through a sequentially read
-+			 * mapping as such.  If the page has been used in
-+			 * another mapping, we will catch it; if this other
-+			 * mapping is already gone, the unmap path will have
-+			 * set PG_referenced or activated the page.
-+			 */
-+			if (likely(!(vma->vm_flags & VM_SEQ_READ)))
-+				referenced++;
-+		}
-+		pte_unmap(pte);
-+	} else if (IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE)) {
-+		if (pmdp_clear_flush_young_notify(vma, address, pmd))
- 			referenced++;
+ 	zram = idr_find(&zram_index_idr, dev_id);
+-	if (zram)
++	if (zram) {
+ 		ret = zram_remove(zram);
+-	else
++		idr_remove(&zram_index_idr, dev_id);
 +	} else {
-+		/* unexpected pmd-mapped page? */
-+		WARN_ON_ONCE(1);
- 	}
--	pte_unmap_unlock(pte, ptl);
-+	spin_unlock(ptl);
+ 		ret = -ENODEV;
++	}
  
--found:
- 	if (referenced)
- 		clear_page_idle(page);
- 	if (test_and_clear_page_young(page))
+ 	mutex_unlock(&zram_index_mutex);
+ 	return ret ? ret : count;
 _
 
-Patches currently in -mm which might be from vdavydov@virtuozzo.com are
+Patches currently in -mm which might be from jmarchan@redhat.com are
 
-mm-memcontrol-allow-to-disable-kmem-accounting-for-cgroup2.patch
-net-drop-tcp_memcontrolc.patch
-mm-memcontrol-charge-swap-to-cgroup2.patch
-mm-vmscan-pass-memcg-to-get_scan_count.patch
-mm-memcontrol-replace-mem_cgroup_lruvec_online-with-mem_cgroup_online.patch
-swaph-move-memcg-related-stuff-to-the-end-of-the-file.patch
-mm-vmscan-do-not-scan-anon-pages-if-memcg-swap-limit-is-hit.patch
-mm-free-swap-cache-aggressively-if-memcg-swap-is-full.patch
-documentation-cgroup-add-memoryswapcurrentmax-description.patch
 
