@@ -1,75 +1,89 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- documentation-describe-the-shared-memory-usage-accounting.patch removed
- from -mm tree
-Date: Tue, 19 Jan 2016 12:00:09 -0800
-Message-ID: <569e95c9.sFcNEW0b2SsMHO8H%akpm@linux-foundation.org>
+ memory-hotplug-dont-bug-in-register_memory_resource.patch removed from -mm
+ tree
+Date: Tue, 19 Jan 2016 12:00:06 -0800
+Message-ID: <569e95c6.fAF2yIO4qS4JttMs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42289 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42281 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755652AbcASUAK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:00:10 -0500
+	with ESMTP id S1755652AbcASUAH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:00:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rfreire@redhat.com, hughd@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vkuznets@redhat.com, dan.j.williams@intel.com, david.vrabel@citrix.com, imammedo@redhat.com, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, rientjes@google.com, shengyong1@huawei.com, tangchen@cn.fujitsu.com, zhugh.fnst@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/filesystems: describe the shared memory usage/accounting
+     Subject: memory-hotplug: don't BUG() in register_memory_resource()
 has been removed from the -mm tree.  Its filename was
-     documentation-describe-the-shared-memory-usage-accounting.patch
+     memory-hotplug-dont-bug-in-register_memory_resource.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rodrigo Freire <rfreire@redhat.com>
-Subject: Documentation/filesystems: describe the shared memory usage/accounting
+From: Vitaly Kuznetsov <vkuznets@redhat.com>
+Subject: memory-hotplug: don't BUG() in register_memory_resource()
 
-The Shared Memory accounting support is present in Kernel since commit
-4b02108ac1b3 ("mm: oom analysis: add shmem vmstat") and in userland
-free(1) since 2014.  This patch updates the Documentation to reflect this
-change.
+Out of memory condition is not a bug and while we can't add new memory in
+such case crashing the system seems wrong.  Propagating the return value
+from register_memory_resource() requires interface change.
 
-Signed-off-by: Rodrigo Freire <rfreire@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+Reviewed-by: Igor Mammedov <imammedo@redhat.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Sheng Yong <shengyong1@huawei.com>
+Cc: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt  |    2 ++
- Documentation/filesystems/tmpfs.txt |    8 ++++----
- 2 files changed, 6 insertions(+), 4 deletions(-)
+ mm/memory_hotplug.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~documentation-describe-the-shared-memory-usage-accounting Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~documentation-describe-the-shared-memory-usage-accounting
-+++ a/Documentation/filesystems/proc.txt
-@@ -855,6 +855,7 @@ Dirty:             968 kB
- Writeback:           0 kB
- AnonPages:      861800 kB
- Mapped:         280372 kB
-+Shmem:             644 kB
- Slab:           284364 kB
- SReclaimable:   159856 kB
- SUnreclaim:     124508 kB
-@@ -911,6 +912,7 @@ MemAvailable: An estimate of how much me
-    AnonPages: Non-file backed pages mapped into userspace page tables
- AnonHugePages: Non-file backed huge pages mapped into userspace page tables
-       Mapped: files which have been mmaped, such as libraries
-+       Shmem: Total memory used by shared memory (shmem) and tmpfs
-         Slab: in-kernel data structures cache
- SReclaimable: Part of Slab, that might be reclaimed, such as caches
-   SUnreclaim: Part of Slab, that cannot be reclaimed on memory pressure
-diff -puN Documentation/filesystems/tmpfs.txt~documentation-describe-the-shared-memory-usage-accounting Documentation/filesystems/tmpfs.txt
---- a/Documentation/filesystems/tmpfs.txt~documentation-describe-the-shared-memory-usage-accounting
-+++ a/Documentation/filesystems/tmpfs.txt
-@@ -17,10 +17,10 @@ RAM, where you have to create an ordinar
- cannot swap and you do not have the possibility to resize them. 
+diff -puN mm/memory_hotplug.c~memory-hotplug-dont-bug-in-register_memory_resource mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-dont-bug-in-register_memory_resource
++++ a/mm/memory_hotplug.c
+@@ -131,7 +131,8 @@ static struct resource *register_memory_
+ {
+ 	struct resource *res;
+ 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+-	BUG_ON(!res);
++	if (!res)
++		return ERR_PTR(-ENOMEM);
  
- Since tmpfs lives completely in the page cache and on swap, all tmpfs
--pages currently in memory will show up as cached. It will not show up
--as shared or something like that. Further on you can check the actual
--RAM+swap use of a tmpfs instance with df(1) and du(1).
+ 	res->name = "System RAM";
+ 	res->start = start;
+@@ -140,7 +141,7 @@ static struct resource *register_memory_
+ 	if (request_resource(&iomem_resource, res) < 0) {
+ 		pr_debug("System RAM resource %pR cannot be added\n", res);
+ 		kfree(res);
+-		res = NULL;
++		return ERR_PTR(-EEXIST);
+ 	}
+ 	return res;
+ }
+@@ -1312,8 +1313,8 @@ int __ref add_memory(int nid, u64 start,
+ 	int ret;
+ 
+ 	res = register_memory_resource(start, size);
+-	if (!res)
+-		return -EEXIST;
++	if (IS_ERR(res))
++		return PTR_ERR(res);
+ 
+ 	ret = add_memory_resource(nid, res);
+ 	if (ret < 0)
+_
+
+Patches currently in -mm which might be from vkuznets@redhat.com are
+
+
