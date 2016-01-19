@@ -1,684 +1,202 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-support-madvisemadv_free.patch removed from -mm tree
-Date: Tue, 19 Jan 2016 12:12:23 -0800
-Message-ID: <569e98a7.xrTDVhT40bGrXm+d%akpm@linux-foundation.org>
+Subject: [merged] mm-move-lazily-freed-pages-to-inactive-list.patch
+ removed from -mm tree
+Date: Tue, 19 Jan 2016 12:12:38 -0800
+Message-ID: <569e98b6.Cuf47t7xG2qwi/9n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43828 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43954 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932354AbcASUMZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:12:25 -0500
+	with ESMTP id S932354AbcASUMj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:12:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, aarcange@redhat.com, arnd@arndb.de, benh@kernel.crashing.org, catalin.marinas@arm.com, chris@zankel.net, danielmicay@gmail.com, darrick.wong@oracle.com, davem@davemloft.net, deller@gmx.de, fengguang.wu@intel.com, gang.chen.5i5j@gmail.com, hannes@cmpxchg.org, hughd@google.com, ink@jurassic.park.msu.ru, jcmvbkbc@gmail.com, je@fb.com, jejb@parisc-linux.org, kirill@shutemov.name, kosaki.motohiro@jp.fujitsu.com, luto@amacapital.net, mattst88@gmail.com, mgorman@suse.de, mhocko@suse.com, mika.penttila@nextfour.com, mtk.manpages@gmail.com, ralf@linux-mips.org, riel@redhat.com, rmk@arm.linux.org.uk, roland@kernel.org, rth@twiddle.net, shli@kernel.org, will.deacon@arm.com, yalin.wang2010@gmail.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, aarcange@redhat.com, arnd@arndb.de, benh@kernel.crashing.org, catalin.marinas@arm.com, chris@zankel.net, danielmicay@gmail.com, darrick.wong@oracle.com, davem@davemloft.net, deller@gmx.de, fengguang.wu@intel.com, gang.chen.5i5j@gmail.com, hannes@cmpxchg.org, hughd@google.com, ink@jurassic.park.msu.ru, jcmvbkbc@gmail.com, je@fb.com, jejb@parisc-linux.org, kirill@shutemov.name, kosaki.motohiro@jp.fujitsu.com, luto@amacapital.net, mattst88@gmail.com, mgorman@suse.de, mhocko@suse.cz, mika.penttila@nextfour.com, mtk.manpages@gmail.com, ralf@linux-mips.org, riel@redhat.com, rmk@arm.linux.org.uk, roland@kernel.org, rth@twiddle.net, shli@kernel.org, will.deacon@arm.com, yalin.wang2010@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: support madvise(MADV_FREE)
+     Subject: mm: move lazily freed pages to inactive list
 has been removed from the -mm tree.  Its filename was
-     mm-support-madvisemadv_free.patch
+     mm-move-lazily-freed-pages-to-inactive-list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: support madvise(MADV_FREE)
+Subject: mm: move lazily freed pages to inactive list
 
-Linux doesn't have an ability to free pages lazy while other OS already
-have been supported that named by madvise(MADV_FREE).
+MADV_FREE is a hint that it's okay to discard pages if there is memory
+pressure and we use reclaimers(ie, kswapd and direct reclaim) to free them
+so there is no value keeping them in the active anonymous LRU so this
+patch moves them to inactive LRU list's head.
 
-The gain is clear that kernel can discard freed pages rather than swapping
-out or OOM if memory pressure happens.
+This means that MADV_FREE-ed pages which were living on the inactive list
+are reclaimed first because they are more likely to be cold rather than
+recently active pages.
 
-Without memory pressure, freed pages would be reused by userspace without
-another additional overhead(ex, page fault + allocation + zeroing).
+An arguable issue for the approach would be whether we should put the page
+to the head or tail of the inactive list.  I chose head because the kernel
+cannot make sure it's really cold or warm for every MADV_FREE usecase but
+at least we know it's not *hot*, so landing of inactive head would be a
+comprimise for various usecases.
 
-Jason Evans said:
+This fixes suboptimal behavior of MADV_FREE when pages living on the
+active list will sit there for a long time even under memory pressure
+while the inactive list is reclaimed heavily.  This basically breaks the
+whole purpose of using MADV_FREE to help the system to free memory which
+is might not be used.
 
-: Facebook has been using MAP_UNINITIALIZED
-: (https://lkml.org/lkml/2012/1/18/308) in some of its applications for
-: several years, but there are operational costs to maintaining this
-: out-of-tree in our kernel and in jemalloc, and we are anxious to retire it
-: in favor of MADV_FREE.  When we first enabled MAP_UNINITIALIZED it
-: increased throughput for much of our workload by ~5%, and although the
-: benefit has decreased using newer hardware and kernels, there is still
-: enough benefit that we cannot reasonably retire it without a replacement.
-:
-: Aside from Facebook operations, there are numerous broadly used
-: applications that would benefit from MADV_FREE.  The ones that immediately
-: come to mind are redis, varnish, and MariaDB.  I don't have much insight
-: into Android internals and development process, but I would hope to see
-: MADV_FREE support eventually end up there as well to benefit applications
-: linked with the integrated jemalloc.
-:
-: jemalloc will use MADV_FREE once it becomes available in the Linux kernel.
-: In fact, jemalloc already uses MADV_FREE or equivalent everywhere it's
-: available: *BSD, OS X, Windows, and Solaris -- every platform except Linux
-: (and AIX, but I'm not sure it even compiles on AIX).  The lack of
-: MADV_FREE on Linux forced me down a long series of increasingly
-: sophisticated heuristics for madvise() volume reduction, and even so this
-: remains a common performance issue for people using jemalloc on Linux.
-: Please integrate MADV_FREE; many people will benefit substantially.
-
-How it works:
-
-When madvise syscall is called, VM clears dirty bit of ptes of the range.
-If memory pressure happens, VM checks dirty bit of page table and if it
-found still "clean", it means it's a "lazyfree pages" so VM could discard
-the page instead of swapping out.  Once there was store operation for the
-page before VM peek a page to reclaim, dirty bit is set so VM can swap out
-the page instead of discarding.
-
-One thing we should notice is that basically, MADV_FREE relies on dirty bit
-in page table entry to decide whether VM allows to discard the page or not.
-IOW, if page table entry includes marked dirty bit, VM shouldn't discard
-the page.
-
-However, as a example, if swap-in by read fault happens, page table entry
-doesn't have dirty bit so MADV_FREE could discard the page wrongly.
-
-For avoiding the problem, MADV_FREE did more checks with PageDirty
-and PageSwapCache. It worked out because swapped-in page lives on
-swap cache and since it is evicted from the swap cache, the page has
-PG_dirty flag. So both page flags check effectively prevent
-wrong discarding by MADV_FREE.
-
-However, a problem in above logic is that swapped-in page has
-PG_dirty still after they are removed from swap cache so VM cannot
-consider the page as freeable any more even if madvise_free is
-called in future.
-
-Look at below example for detail.
-
-    ptr = malloc();
-    memset(ptr);
-    ..
-    ..
-    .. heavy memory pressure so all of pages are swapped out
-    ..
-    ..
-    var = *ptr; -> a page swapped-in and could be removed from
-                   swapcache. Then, page table doesn't mark
-                   dirty bit and page descriptor includes PG_dirty
-    ..
-    ..
-    madvise_free(ptr); -> It doesn't clear PG_dirty of the page.
-    ..
-    ..
-    ..
-    .. heavy memory pressure again.
-    .. In this time, VM cannot discard the page because the page
-    .. has *PG_dirty*
-
-To solve the problem, this patch clears PG_dirty if only the page is owned
-exclusively by current process when madvise is called because PG_dirty
-represents ptes's dirtiness in several processes so we could clear it only
-if we own it exclusively.
-
-Firstly, heavy users would be general allocators(ex, jemalloc, tcmalloc
-and hope glibc supports it) and jemalloc/tcmalloc already have supported
-the feature for other OS(ex, FreeBSD)
-
-barrios@blaptop:~/benchmark/ebizzy$ lscpu
-Architecture:          x86_64
-CPU op-mode(s):        32-bit, 64-bit
-Byte Order:            Little Endian
-CPU(s):                12
-On-line CPU(s) list:   0-11
-Thread(s) per core:    1
-Core(s) per socket:    1
-Socket(s):             12
-NUMA node(s):          1
-Vendor ID:             GenuineIntel
-CPU family:            6
-Model:                 2
-Stepping:              3
-CPU MHz:               3200.185
-BogoMIPS:              6400.53
-Virtualization:        VT-x
-Hypervisor vendor:     KVM
-Virtualization type:   full
-L1d cache:             32K
-L1i cache:             32K
-L2 cache:              4096K
-NUMA node0 CPU(s):     0-11
-ebizzy benchmark(./ebizzy -S 10 -n 512)
-
-Higher avg is better.
-
- vanilla-jemalloc		MADV_free-jemalloc
-
-1 thread
-records: 10			    records: 10
-avg:	2961.90			    avg:   12069.70
-std:	  71.96(2.43%)		    std:     186.68(1.55%)
-max:	3070.00			    max:   12385.00
-min:	2796.00			    min:   11746.00
-
-2 thread
-records: 10			    records: 10
-avg:	5020.00			    avg:   17827.00
-std:	 264.87(5.28%)		    std:     358.52(2.01%)
-max:	5244.00			    max:   18760.00
-min:	4251.00			    min:   17382.00
-
-4 thread
-records: 10			    records: 10
-avg:	8988.80			    avg:   27930.80
-std:	1175.33(13.08%)		    std:    3317.33(11.88%)
-max:	9508.00			    max:   30879.00
-min:	5477.00			    min:   21024.00
-
-8 thread
-records: 10			    records: 10
-avg:   13036.50			    avg:   33739.40
-std:	 170.67(1.31%)		    std:    5146.22(15.25%)
-max:   13371.00			    max:   40572.00
-min:   12785.00			    min:   24088.00
-
-16 thread
-records: 10			    records: 10
-avg:   11092.40			    avg:   31424.20
-std:	 710.60(6.41%)		    std:    3763.89(11.98%)
-max:   12446.00			    max:   36635.00
-min:	9949.00			    min:   25669.00
-
-32 thread
-records: 10			    records: 10
-avg:   11067.00			    avg:   34495.80
-std:	 971.06(8.77%)		    std:    2721.36(7.89%)
-max:   12010.00			    max:   38598.00
-min:	9002.00			    min:   30636.00
-
-In summary, MADV_FREE is about much faster than MADV_DONTNEED.
-
-This patch (of 12):
-
-Add core MADV_FREE implementation.
-
-[akpm@linux-foundation.org: small cleanups]
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
 Acked-by: Hugh Dickins <hughd@google.com>
-Cc: Mika Penttil <mika.penttila@nextfour.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Acked-by: Michal Hocko <mhocko@suse.cz>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Rik van Riel <riel@redhat.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Jason Evans <je@fb.com>
-Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Shaohua Li <shli@kernel.org>
-Cc: <yalin.wang2010@gmail.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: "Shaohua Li" <shli@kernel.org>
+Cc: <yalin.wang2010@gmail.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Chen Gang <gang.chen.5i5j@gmail.com>
 Cc: Chris Zankel <chris@zankel.net>
+Cc: Daniel Micay <danielmicay@gmail.com>
 Cc: Darrick J. Wong <darrick.wong@oracle.com>
 Cc: David S. Miller <davem@davemloft.net>
 Cc: Helge Deller <deller@gmx.de>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Jason Evans <je@fb.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
 Cc: Matt Turner <mattst88@gmail.com>
 Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Mika Penttil <mika.penttila@nextfour.com>
 Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Richard Henderson <rth@twiddle.net>
 Cc: Roland Dreier <roland@kernel.org>
 Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Shaohua Li <shli@kernel.org>
 Cc: Will Deacon <will.deacon@arm.com>
 Cc: Wu Fengguang <fengguang.wu@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h                   |    2 
- include/linux/vm_event_item.h          |    1 
- include/uapi/asm-generic/mman-common.h |    1 
- mm/madvise.c                           |  170 +++++++++++++++++++++++
- mm/rmap.c                              |   36 ++++
- mm/swap_state.c                        |    5 
- mm/vmscan.c                            |   14 +
- mm/vmstat.c                            |    1 
- 8 files changed, 221 insertions(+), 9 deletions(-)
+ include/linux/swap.h |    1 
+ mm/madvise.c         |    2 +
+ mm/swap.c            |   44 +++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 47 insertions(+)
 
-diff -puN include/linux/rmap.h~mm-support-madvisemadv_free include/linux/rmap.h
---- a/include/linux/rmap.h~mm-support-madvisemadv_free
-+++ a/include/linux/rmap.h
-@@ -85,6 +85,7 @@ enum ttu_flags {
- 	TTU_UNMAP = 1,			/* unmap mode */
- 	TTU_MIGRATION = 2,		/* migration mode */
- 	TTU_MUNLOCK = 4,		/* munlock mode */
-+	TTU_LZFREE = 8,			/* lazy free mode */
+diff -puN include/linux/swap.h~mm-move-lazily-freed-pages-to-inactive-list include/linux/swap.h
+--- a/include/linux/swap.h~mm-move-lazily-freed-pages-to-inactive-list
++++ a/include/linux/swap.h
+@@ -307,6 +307,7 @@ extern void lru_add_drain_cpu(int cpu);
+ extern void lru_add_drain_all(void);
+ extern void rotate_reclaimable_page(struct page *page);
+ extern void deactivate_file_page(struct page *page);
++extern void deactivate_page(struct page *page);
+ extern void swap_setup(void);
  
- 	TTU_IGNORE_MLOCK = (1 << 8),	/* ignore mlock */
- 	TTU_IGNORE_ACCESS = (1 << 9),	/* don't age */
-@@ -311,5 +312,6 @@ static inline int page_mkclean(struct pa
- #define SWAP_AGAIN	1
- #define SWAP_FAIL	2
- #define SWAP_MLOCK	3
-+#define SWAP_LZFREE	4
- 
- #endif	/* _LINUX_RMAP_H */
-diff -puN include/linux/vm_event_item.h~mm-support-madvisemadv_free include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-support-madvisemadv_free
-+++ a/include/linux/vm_event_item.h
-@@ -25,6 +25,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		FOR_ALL_ZONES(PGALLOC),
- 		PGFREE, PGACTIVATE, PGDEACTIVATE,
- 		PGFAULT, PGMAJFAULT,
-+		PGLAZYFREED,
- 		FOR_ALL_ZONES(PGREFILL),
- 		FOR_ALL_ZONES(PGSTEAL_KSWAPD),
- 		FOR_ALL_ZONES(PGSTEAL_DIRECT),
-diff -puN include/uapi/asm-generic/mman-common.h~mm-support-madvisemadv_free include/uapi/asm-generic/mman-common.h
---- a/include/uapi/asm-generic/mman-common.h~mm-support-madvisemadv_free
-+++ a/include/uapi/asm-generic/mman-common.h
-@@ -39,6 +39,7 @@
- #define MADV_SEQUENTIAL	2		/* expect sequential page references */
- #define MADV_WILLNEED	3		/* will need these pages */
- #define MADV_DONTNEED	4		/* don't need these pages */
-+#define MADV_FREE	5		/* free pages only if memory pressure */
- 
- /* common parameters: try to keep these consistent across architectures */
- #define MADV_REMOVE	9		/* remove these pages & resources */
-diff -puN mm/madvise.c~mm-support-madvisemadv_free mm/madvise.c
---- a/mm/madvise.c~mm-support-madvisemadv_free
+ extern void add_page_to_unevictable_list(struct page *page);
+diff -puN mm/madvise.c~mm-move-lazily-freed-pages-to-inactive-list mm/madvise.c
+--- a/mm/madvise.c~mm-move-lazily-freed-pages-to-inactive-list
 +++ a/mm/madvise.c
-@@ -20,6 +20,9 @@
- #include <linux/backing-dev.h>
- #include <linux/swap.h>
- #include <linux/swapops.h>
-+#include <linux/mmu_notifier.h>
-+
-+#include <asm/tlb.h>
- 
- /*
-  * Any behaviour which results in changes to the vma->vm_flags needs to
-@@ -32,6 +35,7 @@ static int madvise_need_mmap_write(int b
- 	case MADV_REMOVE:
- 	case MADV_WILLNEED:
- 	case MADV_DONTNEED:
-+	case MADV_FREE:
- 		return 0;
- 	default:
- 		/* be safe, default to 1. list exceptions explicitly */
-@@ -256,6 +260,163 @@ static long madvise_willneed(struct vm_a
- 	return 0;
- }
- 
-+static int madvise_free_pte_range(pmd_t *pmd, unsigned long addr,
-+				unsigned long end, struct mm_walk *walk)
-+
-+{
-+	struct mmu_gather *tlb = walk->private;
-+	struct mm_struct *mm = tlb->mm;
-+	struct vm_area_struct *vma = walk->vma;
-+	spinlock_t *ptl;
-+	pte_t *orig_pte, *pte, ptent;
-+	struct page *page;
-+
-+	split_huge_pmd(vma, pmd, addr);
-+	if (pmd_trans_unstable(pmd))
-+		return 0;
-+
-+	orig_pte = pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
-+	arch_enter_lazy_mmu_mode();
-+	for (; addr != end; pte++, addr += PAGE_SIZE) {
-+		ptent = *pte;
-+
-+		if (!pte_present(ptent))
-+			continue;
-+
-+		page = vm_normal_page(vma, addr, ptent);
-+		if (!page)
-+			continue;
-+
-+		/*
-+		 * If pmd isn't transhuge but the page is THP and
-+		 * is owned by only this process, split it and
-+		 * deactivate all pages.
-+		 */
-+		if (PageTransCompound(page)) {
-+			if (page_mapcount(page) != 1)
-+				goto out;
-+			get_page(page);
-+			if (!trylock_page(page)) {
-+				put_page(page);
-+				goto out;
-+			}
-+			pte_unmap_unlock(orig_pte, ptl);
-+			if (split_huge_page(page)) {
-+				unlock_page(page);
-+				put_page(page);
-+				pte_offset_map_lock(mm, pmd, addr, &ptl);
-+				goto out;
-+			}
-+			put_page(page);
-+			unlock_page(page);
-+			pte = pte_offset_map_lock(mm, pmd, addr, &ptl);
-+			pte--;
-+			addr -= PAGE_SIZE;
-+			continue;
-+		}
-+
-+		VM_BUG_ON_PAGE(PageTransCompound(page), page);
-+
-+		if (PageSwapCache(page) || PageDirty(page)) {
-+			if (!trylock_page(page))
-+				continue;
-+			/*
-+			 * If page is shared with others, we couldn't clear
-+			 * PG_dirty of the page.
-+			 */
-+			if (page_mapcount(page) != 1) {
-+				unlock_page(page);
-+				continue;
-+			}
-+
-+			if (PageSwapCache(page) && !try_to_free_swap(page)) {
-+				unlock_page(page);
-+				continue;
-+			}
-+
-+			ClearPageDirty(page);
-+			unlock_page(page);
-+		}
-+
-+		if (pte_young(ptent) || pte_dirty(ptent)) {
-+			/*
-+			 * Some of architecture(ex, PPC) don't update TLB
-+			 * with set_pte_at and tlb_remove_tlb_entry so for
-+			 * the portability, remap the pte with old|clean
-+			 * after pte clearing.
-+			 */
-+			ptent = ptep_get_and_clear_full(mm, addr, pte,
-+							tlb->fullmm);
-+
-+			ptent = pte_mkold(ptent);
-+			ptent = pte_mkclean(ptent);
-+			set_pte_at(mm, addr, pte, ptent);
-+			tlb_remove_tlb_entry(tlb, pte, addr);
-+		}
-+	}
-+out:
-+	arch_leave_lazy_mmu_mode();
-+	pte_unmap_unlock(orig_pte, ptl);
-+	cond_resched();
-+	return 0;
-+}
-+
-+static void madvise_free_page_range(struct mmu_gather *tlb,
-+			     struct vm_area_struct *vma,
-+			     unsigned long addr, unsigned long end)
-+{
-+	struct mm_walk free_walk = {
-+		.pmd_entry = madvise_free_pte_range,
-+		.mm = vma->vm_mm,
-+		.private = tlb,
-+	};
-+
-+	tlb_start_vma(tlb, vma);
-+	walk_page_range(addr, end, &free_walk);
-+	tlb_end_vma(tlb, vma);
-+}
-+
-+static int madvise_free_single_vma(struct vm_area_struct *vma,
-+			unsigned long start_addr, unsigned long end_addr)
-+{
-+	unsigned long start, end;
-+	struct mm_struct *mm = vma->vm_mm;
-+	struct mmu_gather tlb;
-+
-+	if (vma->vm_flags & (VM_LOCKED|VM_HUGETLB|VM_PFNMAP))
-+		return -EINVAL;
-+
-+	/* MADV_FREE works for only anon vma at the moment */
-+	if (!vma_is_anonymous(vma))
-+		return -EINVAL;
-+
-+	start = max(vma->vm_start, start_addr);
-+	if (start >= vma->vm_end)
-+		return -EINVAL;
-+	end = min(vma->vm_end, end_addr);
-+	if (end <= vma->vm_start)
-+		return -EINVAL;
-+
-+	lru_add_drain();
-+	tlb_gather_mmu(&tlb, mm, start, end);
-+	update_hiwater_rss(mm);
-+
-+	mmu_notifier_invalidate_range_start(mm, start, end);
-+	madvise_free_page_range(&tlb, vma, start, end);
-+	mmu_notifier_invalidate_range_end(mm, start, end);
-+	tlb_finish_mmu(&tlb, start, end);
-+
-+	return 0;
-+}
-+
-+static long madvise_free(struct vm_area_struct *vma,
-+			     struct vm_area_struct **prev,
-+			     unsigned long start, unsigned long end)
-+{
-+	*prev = vma;
-+	return madvise_free_single_vma(vma, start, end);
-+}
-+
- /*
-  * Application no longer needs these pages.  If the pages are dirty,
-  * it's OK to just throw them away.  The app will be more careful about
-@@ -379,6 +540,14 @@ madvise_vma(struct vm_area_struct *vma,
- 		return madvise_remove(vma, prev, start, end);
- 	case MADV_WILLNEED:
- 		return madvise_willneed(vma, prev, start, end);
-+	case MADV_FREE:
-+		/*
-+		 * XXX: In this implementation, MADV_FREE works like
-+		 * MADV_DONTNEED on swapless system or full swap.
-+		 */
-+		if (get_nr_swap_pages() > 0)
-+			return madvise_free(vma, prev, start, end);
-+		/* passthrough */
- 	case MADV_DONTNEED:
- 		return madvise_dontneed(vma, prev, start, end);
- 	default:
-@@ -398,6 +567,7 @@ madvise_behavior_valid(int behavior)
- 	case MADV_REMOVE:
- 	case MADV_WILLNEED:
- 	case MADV_DONTNEED:
-+	case MADV_FREE:
- #ifdef CONFIG_KSM
- 	case MADV_MERGEABLE:
- 	case MADV_UNMERGEABLE:
-diff -puN mm/rmap.c~mm-support-madvisemadv_free mm/rmap.c
---- a/mm/rmap.c~mm-support-madvisemadv_free
-+++ a/mm/rmap.c
-@@ -1411,6 +1411,11 @@ void page_remove_rmap(struct page *page,
- 	 */
- }
- 
-+struct rmap_private {
-+	enum ttu_flags flags;
-+	int lazyfreed;
-+};
-+
- /*
-  * @arg: enum ttu_flags will be passed to this argument
-  */
-@@ -1422,7 +1427,8 @@ static int try_to_unmap_one(struct page
- 	pte_t pteval;
- 	spinlock_t *ptl;
- 	int ret = SWAP_AGAIN;
--	enum ttu_flags flags = (enum ttu_flags)arg;
-+	struct rmap_private *rp = arg;
-+	enum ttu_flags flags = rp->flags;
- 
- 	/* munlock has nothing to gain from examining un-locked vmas */
- 	if ((flags & TTU_MUNLOCK) && !(vma->vm_flags & VM_LOCKED))
-@@ -1514,6 +1520,14 @@ static int try_to_unmap_one(struct page
- 		 * See handle_pte_fault() ...
- 		 */
- 		VM_BUG_ON_PAGE(!PageSwapCache(page), page);
-+
-+		if (!PageDirty(page) && (flags & TTU_LZFREE)) {
-+			/* It's a freeable page by MADV_FREE */
-+			dec_mm_counter(mm, MM_ANONPAGES);
-+			rp->lazyfreed++;
-+			goto discard;
-+		}
-+
- 		if (swap_duplicate(entry) < 0) {
- 			set_pte_at(mm, address, pte, pteval);
- 			ret = SWAP_FAIL;
-@@ -1534,6 +1548,7 @@ static int try_to_unmap_one(struct page
- 	} else
- 		dec_mm_counter(mm, mm_counter_file(page));
- 
-+discard:
- 	page_remove_rmap(page, PageHuge(page));
- 	page_cache_release(page);
- 
-@@ -1586,9 +1601,14 @@ static int page_not_mapped(struct page *
- int try_to_unmap(struct page *page, enum ttu_flags flags)
- {
- 	int ret;
-+	struct rmap_private rp = {
-+		.flags = flags,
-+		.lazyfreed = 0,
-+	};
-+
- 	struct rmap_walk_control rwc = {
- 		.rmap_one = try_to_unmap_one,
--		.arg = (void *)flags,
-+		.arg = &rp,
- 		.done = page_not_mapped,
- 		.anon_lock = page_lock_anon_vma_read,
- 	};
-@@ -1608,8 +1628,11 @@ int try_to_unmap(struct page *page, enum
- 
- 	ret = rmap_walk(page, &rwc);
- 
--	if (ret != SWAP_MLOCK && !page_mapped(page))
-+	if (ret != SWAP_MLOCK && !page_mapped(page)) {
- 		ret = SWAP_SUCCESS;
-+		if (rp.lazyfreed && !PageDirty(page))
-+			ret = SWAP_LZFREE;
-+	}
- 	return ret;
- }
- 
-@@ -1631,9 +1654,14 @@ int try_to_unmap(struct page *page, enum
- int try_to_munlock(struct page *page)
- {
- 	int ret;
-+	struct rmap_private rp = {
-+		.flags = TTU_MUNLOCK,
-+		.lazyfreed = 0,
-+	};
-+
- 	struct rmap_walk_control rwc = {
- 		.rmap_one = try_to_unmap_one,
--		.arg = (void *)TTU_MUNLOCK,
-+		.arg = &rp,
- 		.done = page_not_mapped,
- 		.anon_lock = page_lock_anon_vma_read,
- 
-diff -puN mm/swap_state.c~mm-support-madvisemadv_free mm/swap_state.c
---- a/mm/swap_state.c~mm-support-madvisemadv_free
-+++ a/mm/swap_state.c
-@@ -185,13 +185,12 @@ int add_to_swap(struct page *page, struc
- 	 * deadlock in the swap out path.
- 	 */
- 	/*
--	 * Add it to the swap cache and mark it dirty
-+	 * Add it to the swap cache.
- 	 */
- 	err = add_to_swap_cache(page, entry,
- 			__GFP_HIGH|__GFP_NOMEMALLOC|__GFP_NOWARN);
- 
--	if (!err) {	/* Success */
--		SetPageDirty(page);
-+	if (!err) {
- 		return 1;
- 	} else {	/* -ENOMEM radix-tree allocation failure */
- 		/*
-diff -puN mm/vmscan.c~mm-support-madvisemadv_free mm/vmscan.c
---- a/mm/vmscan.c~mm-support-madvisemadv_free
-+++ a/mm/vmscan.c
-@@ -906,6 +906,8 @@ static unsigned long shrink_page_list(st
- 		int may_enter_fs;
- 		enum page_references references = PAGEREF_RECLAIM_CLEAN;
- 		bool dirty, writeback;
-+		bool lazyfree = false;
-+		int ret = SWAP_SUCCESS;
- 
- 		cond_resched();
- 
-@@ -1049,6 +1051,7 @@ static unsigned long shrink_page_list(st
- 				goto keep_locked;
- 			if (!add_to_swap(page, page_list))
- 				goto activate_locked;
-+			lazyfree = true;
- 			may_enter_fs = 1;
- 
- 			/* Adding to swap updated mapping */
-@@ -1060,14 +1063,17 @@ static unsigned long shrink_page_list(st
- 		 * processes. Try to unmap it here.
- 		 */
- 		if (page_mapped(page) && mapping) {
--			switch (try_to_unmap(page,
--					ttu_flags|TTU_BATCH_FLUSH)) {
-+			switch (ret = try_to_unmap(page, lazyfree ?
-+				(ttu_flags | TTU_BATCH_FLUSH | TTU_LZFREE) :
-+				(ttu_flags | TTU_BATCH_FLUSH))) {
- 			case SWAP_FAIL:
- 				goto activate_locked;
- 			case SWAP_AGAIN:
- 				goto keep_locked;
- 			case SWAP_MLOCK:
- 				goto cull_mlocked;
-+			case SWAP_LZFREE:
-+				goto lazyfree;
- 			case SWAP_SUCCESS:
- 				; /* try to free the page below */
- 			}
-@@ -1174,6 +1180,7 @@ static unsigned long shrink_page_list(st
- 			}
+@@ -368,6 +368,8 @@ static int madvise_free_pte_range(pmd_t
+ 			ptent = pte_mkold(ptent);
+ 			ptent = pte_mkclean(ptent);
+ 			set_pte_at(mm, addr, pte, ptent);
++			if (PageActive(page))
++				deactivate_page(page);
+ 			tlb_remove_tlb_entry(tlb, pte, addr);
  		}
+ 	}
+diff -puN mm/swap.c~mm-move-lazily-freed-pages-to-inactive-list mm/swap.c
+--- a/mm/swap.c~mm-move-lazily-freed-pages-to-inactive-list
++++ a/mm/swap.c
+@@ -45,6 +45,7 @@ int page_cluster;
+ static DEFINE_PER_CPU(struct pagevec, lru_add_pvec);
+ static DEFINE_PER_CPU(struct pagevec, lru_rotate_pvecs);
+ static DEFINE_PER_CPU(struct pagevec, lru_deactivate_file_pvecs);
++static DEFINE_PER_CPU(struct pagevec, lru_deactivate_pvecs);
  
-+lazyfree:
- 		if (!mapping || !__remove_mapping(mapping, page, true))
- 			goto keep_locked;
+ /*
+  * This path almost never happens for VM activity - pages are normally
+@@ -554,6 +555,24 @@ static void lru_deactivate_file_fn(struc
+ 	update_page_reclaim_stat(lruvec, file, 0);
+ }
  
-@@ -1186,6 +1193,9 @@ static unsigned long shrink_page_list(st
- 		 */
- 		__ClearPageLocked(page);
- free_it:
-+		if (ret == SWAP_LZFREE)
-+			count_vm_event(PGLAZYFREED);
 +
- 		nr_reclaimed++;
++static void lru_deactivate_fn(struct page *page, struct lruvec *lruvec,
++			    void *arg)
++{
++	if (PageLRU(page) && PageActive(page) && !PageUnevictable(page)) {
++		int file = page_is_file_cache(page);
++		int lru = page_lru_base_type(page);
++
++		del_page_from_lru_list(page, lruvec, lru + LRU_ACTIVE);
++		ClearPageActive(page);
++		ClearPageReferenced(page);
++		add_page_to_lru_list(page, lruvec, lru);
++
++		__count_vm_event(PGDEACTIVATE);
++		update_page_reclaim_stat(lruvec, file, 0);
++	}
++}
++
+ /*
+  * Drain pages out of the cpu's pagevecs.
+  * Either "cpu" is the current CPU, and preemption has already been
+@@ -580,6 +599,10 @@ void lru_add_drain_cpu(int cpu)
+ 	if (pagevec_count(pvec))
+ 		pagevec_lru_move_fn(pvec, lru_deactivate_file_fn, NULL);
  
- 		/*
-diff -puN mm/vmstat.c~mm-support-madvisemadv_free mm/vmstat.c
---- a/mm/vmstat.c~mm-support-madvisemadv_free
-+++ a/mm/vmstat.c
-@@ -783,6 +783,7 @@ const char * const vmstat_text[] = {
++	pvec = &per_cpu(lru_deactivate_pvecs, cpu);
++	if (pagevec_count(pvec))
++		pagevec_lru_move_fn(pvec, lru_deactivate_fn, NULL);
++
+ 	activate_page_drain(cpu);
+ }
  
- 	"pgfault",
- 	"pgmajfault",
-+	"pglazyfreed",
+@@ -609,6 +632,26 @@ void deactivate_file_page(struct page *p
+ 	}
+ }
  
- 	TEXTS_FOR_ZONES("pgrefill")
- 	TEXTS_FOR_ZONES("pgsteal_kswapd")
++/**
++ * deactivate_page - deactivate a page
++ * @page: page to deactivate
++ *
++ * deactivate_page() moves @page to the inactive list if @page was on the active
++ * list and was not an unevictable page.  This is done to accelerate the reclaim
++ * of @page.
++ */
++void deactivate_page(struct page *page)
++{
++	if (PageLRU(page) && PageActive(page) && !PageUnevictable(page)) {
++		struct pagevec *pvec = &get_cpu_var(lru_deactivate_pvecs);
++
++		page_cache_get(page);
++		if (!pagevec_add(pvec, page))
++			pagevec_lru_move_fn(pvec, lru_deactivate_fn, NULL);
++		put_cpu_var(lru_deactivate_pvecs);
++	}
++}
++
+ void lru_add_drain(void)
+ {
+ 	lru_add_drain_cpu(get_cpu());
+@@ -638,6 +681,7 @@ void lru_add_drain_all(void)
+ 		if (pagevec_count(&per_cpu(lru_add_pvec, cpu)) ||
+ 		    pagevec_count(&per_cpu(lru_rotate_pvecs, cpu)) ||
+ 		    pagevec_count(&per_cpu(lru_deactivate_file_pvecs, cpu)) ||
++		    pagevec_count(&per_cpu(lru_deactivate_pvecs, cpu)) ||
+ 		    need_activate_page_drain(cpu)) {
+ 			INIT_WORK(work, lru_add_drain_per_cpu);
+ 			schedule_work_on(cpu, work);
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
