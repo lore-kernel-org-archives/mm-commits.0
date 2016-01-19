@@ -1,111 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-hugetlbfs-fix-bugs-in-hugetlb_vmtruncate_list.patch
+Subject: [merged] mm-make-swapoff-more-robust-against-soft-dirty.patch
  removed from -mm tree
-Date: Tue, 19 Jan 2016 12:14:20 -0800
-Message-ID: <569e991c.WUygDQVPI9U0wQG5%akpm@linux-foundation.org>
+Date: Tue, 19 Jan 2016 12:14:18 -0800
+Message-ID: <569e991a./6POXdh5ito+IfXq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44463 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44455 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933139AbcASUOV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:21 -0500
+	with ESMTP id S933139AbcASUOT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mike.kravetz@oracle.com, dave.hansen@linux.intel.com, dave@stgolabs.net, hillf.zj@alibaba-inc.com, hughd@google.com, n-horiguchi@ah.jp.nec.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: hughd@google.com, aneesh.kumar@linux.vnet.ibm.com, gorcunov@openvz.org, ldufour@linux.vnet.ibm.com, mpe@ellerman.id.au, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/hugetlbfs/inode.c: fix bugs in hugetlb_vmtruncate_list()
+     Subject: mm: make swapoff more robust against soft dirty
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlbfs-fix-bugs-in-hugetlb_vmtruncate_list.patch
+     mm-make-swapoff-more-robust-against-soft-dirty.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mike Kravetz <mike.kravetz@oracle.com>
-Subject: fs/hugetlbfs/inode.c: fix bugs in hugetlb_vmtruncate_list()
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: make swapoff more robust against soft dirty
 
-Hillf Danton noticed bugs in the hugetlb_vmtruncate_list routine.  The
-argument end is of type pgoff_t.  It was being converted to a vaddr offset
-and passed to unmap_hugepage_range.  However, end was also being used as
-an argument to the vma_interval_tree_foreach controlling loop.  In
-addition, the conversion of end to vaddr offset was incorrect.
+Both s390 and powerpc have hit the issue of swapoff hanging, when
+CONFIG_HAVE_ARCH_SOFT_DIRTY and CONFIG_MEM_SOFT_DIRTY ifdefs were not
+quite as x86_64 had them.  I think it would be much clearer if
+HAVE_ARCH_SOFT_DIRTY was just a Kconfig option set by architectures to
+determine whether the MEM_SOFT_DIRTY option should be offered, and the
+actual code depend upon CONFIG_MEM_SOFT_DIRTY alone.
 
-hugetlb_vmtruncate_list is called as part of a file truncate or fallocate
-hole punch operation.
+But won't embark on that change myself: instead make swapoff more robust,
+by using pte_swp_clear_soft_dirty() on each pte it encounters, without an
+explicit #ifdef CONFIG_MEM_SOFT_DIRTY.  That being a no-op, whether the
+bit in question is defined as 0 or the asm-generic fallback is used,
+unless soft dirty is fully turned on.
 
-When truncating a hugetlbfs file, this bug could prevent some pages from
-being unmapped.  This is possible if there are multiple vmas mapping the
-file, and there is a sufficiently sized hole between the mappings.  The
-size of the hole between two vmas (A,B) must be such that the starting
-virtual address of B is greater than (ending virtual address of A <<
-PAGE_SHIFT).  In this case, the pages in B would not be unmapped.  If
-pages are not properly unmapped during truncate, the following BUG is hit:
+Why "maybe" in maybe_same_pte()?  Rename it pte_same_as_swp().
 
-	kernel BUG at fs/hugetlbfs/inode.c:428!
-
-In the fallocate hole punch case, this bug could prevent pages from being
-unmapped as in the truncate case.  However, for hole punch the result is
-that unmapped pages will not be removed during the operation.  For hole
-punch, it is also possible that more pages than desired will be unmapped. 
-This unnecessary unmapping will cause page faults to reestablish the
-mappings on subsequent page access.
-
-Fixes: 1bfad99ab (" hugetlbfs: hugetlb_vmtruncate_list() needs to take a range")Reported-by: Hillf Danton <hillf.zj@alibaba-inc.com>
-Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: <stable@vger.kernel.org>	[4.3]
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
+Cc: Laurent Dufour <ldufour@linux.vnet.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hugetlbfs/inode.c |   19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+ mm/swapfile.c |   18 ++++--------------
+ 1 file changed, 4 insertions(+), 14 deletions(-)
 
-diff -puN fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-bugs-in-hugetlb_vmtruncate_list fs/hugetlbfs/inode.c
---- a/fs/hugetlbfs/inode.c~mm-hugetlbfs-fix-bugs-in-hugetlb_vmtruncate_list
-+++ a/fs/hugetlbfs/inode.c
-@@ -463,6 +463,7 @@ hugetlb_vmdelete_list(struct rb_root *ro
- 	 */
- 	vma_interval_tree_foreach(vma, root, start, end ? end : ULONG_MAX) {
- 		unsigned long v_offset;
-+		unsigned long v_end;
+diff -puN mm/swapfile.c~mm-make-swapoff-more-robust-against-soft-dirty mm/swapfile.c
+--- a/mm/swapfile.c~mm-make-swapoff-more-robust-against-soft-dirty
++++ a/mm/swapfile.c
+@@ -1111,19 +1111,9 @@ unsigned int count_swap_pages(int type,
+ }
+ #endif /* CONFIG_HIBERNATION */
  
- 		/*
- 		 * Can the expression below overflow on 32-bit arches?
-@@ -475,15 +476,17 @@ hugetlb_vmdelete_list(struct rb_root *ro
- 		else
- 			v_offset = 0;
- 
--		if (end) {
--			end = ((end - start) << PAGE_SHIFT) +
--			       vma->vm_start + v_offset;
--			if (end > vma->vm_end)
--				end = vma->vm_end;
--		} else
--			end = vma->vm_end;
-+		if (!end)
-+			v_end = vma->vm_end;
-+		else {
-+			v_end = ((end - vma->vm_pgoff) << PAGE_SHIFT)
-+							+ vma->vm_start;
-+			if (v_end > vma->vm_end)
-+				v_end = vma->vm_end;
-+		}
- 
--		unmap_hugepage_range(vma, vma->vm_start + v_offset, end, NULL);
-+		unmap_hugepage_range(vma, vma->vm_start + v_offset, v_end,
-+									NULL);
- 	}
+-static inline int maybe_same_pte(pte_t pte, pte_t swp_pte)
++static inline int pte_same_as_swp(pte_t pte, pte_t swp_pte)
+ {
+-#ifdef CONFIG_MEM_SOFT_DIRTY
+-	/*
+-	 * When pte keeps soft dirty bit the pte generated
+-	 * from swap entry does not has it, still it's same
+-	 * pte from logical point of view.
+-	 */
+-	pte_t swp_pte_dirty = pte_swp_mksoft_dirty(swp_pte);
+-	return pte_same(pte, swp_pte) || pte_same(pte, swp_pte_dirty);
+-#else
+-	return pte_same(pte, swp_pte);
+-#endif
++	return pte_same(pte_swp_clear_soft_dirty(pte), swp_pte);
  }
  
+ /*
+@@ -1152,7 +1142,7 @@ static int unuse_pte(struct vm_area_stru
+ 	}
+ 
+ 	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+-	if (unlikely(!maybe_same_pte(*pte, swp_entry_to_pte(entry)))) {
++	if (unlikely(!pte_same_as_swp(*pte, swp_entry_to_pte(entry)))) {
+ 		mem_cgroup_cancel_charge(page, memcg, false);
+ 		ret = 0;
+ 		goto out;
+@@ -1210,7 +1200,7 @@ static int unuse_pte_range(struct vm_are
+ 		 * swapoff spends a _lot_ of time in this loop!
+ 		 * Test inline before going to call unuse_pte.
+ 		 */
+-		if (unlikely(maybe_same_pte(*pte, swp_pte))) {
++		if (unlikely(pte_same_as_swp(*pte, swp_pte))) {
+ 			pte_unmap(pte);
+ 			ret = unuse_pte(vma, pmd, addr, entry, page);
+ 			if (ret)
 _
 
-Patches currently in -mm which might be from mike.kravetz@oracle.com are
+Patches currently in -mm which might be from hughd@google.com are
 
 
