@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mlocked-pages-statistics-shows-bogus-value.patch added to -mm
- tree
-Date: Tue, 19 Jan 2016 14:22:36 -0800
-Message-ID: <569eb72c.bAZKO+Tn8+kCkaeK%akpm@linux-foundation.org>
+Subject: + mm-avoid-uninitialized-variable-in-tracepoint.patch added to
+ -mm tree
+Date: Tue, 19 Jan 2016 14:38:17 -0800
+Message-ID: <569ebad9.o/fU6zROatGyMZB2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51720 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52471 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932702AbcASWWh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 17:22:37 -0500
+	with ESMTP id S932702AbcASWiS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 17:38:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, stable@vger.kernel.org, walken@google.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, ebru.akagunduz@gmail.com, kirill.shutemov@linux.intel.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix mlock accouting
+     Subject: mm: avoid uninitialized variable in tracepoint
 has been added to the -mm tree.  Its filename is
-     mlocked-pages-statistics-shows-bogus-value.patch
+     mm-avoid-uninitialized-variable-in-tracepoint.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mlocked-pages-statistics-shows-bogus-value.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-avoid-uninitialized-variable-in-tracepoint.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mlocked-pages-statistics-shows-bogus-value.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-avoid-uninitialized-variable-in-tracepoint.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,84 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: fix mlock accouting
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm: avoid uninitialized variable in tracepoint
 
-Tetsuo Handa reported underflow of NR_MLOCK on munlock.
+A newly added tracepoint in the hugepage code uses a variable in the error
+handling that is not initialized at that point:
 
-Testcase:
-	#include <stdio.h>
-	#include <stdlib.h>
-	#include <sys/mman.h>
+include/trace/events/huge_memory.h:81:230: error: 'isolated' may be used uninitialized in this function [-Werror=maybe-uninitialized]
 
-	#define BASE ((void *)0x400000000000)
-	#define SIZE (1UL << 21)
+The result is relatively harmless, as the trace data will in rare cases
+contain incorrect data.
 
-	int main(int argc, char *argv[])
-	{
-		void *addr;
+This works around the problem by adding an explicit initialization.
 
-		system("grep Mlocked /proc/meminfo");
-		addr = mmap(BASE, SIZE, PROT_READ | PROT_WRITE,
-				MAP_ANONYMOUS | MAP_PRIVATE | MAP_LOCKED | MAP_FIXED,
-				-1, 0);
-		if (addr == MAP_FAILED)
-			printf("mmap() failed\n"), exit(1);
-		munmap(addr, SIZE);
-		system("grep Mlocked /proc/meminfo");
-		return 0;
-	}
-
-It happens on munlock_vma_page() due to unfortunate choice of nr_pages
-data type:
-
-	__mod_zone_page_state(zone, NR_MLOCK, -nr_pages);
-
-For unsigned int nr_pages, implicitly casted to long in
-__mod_zone_page_state(), it becomes something around UINT_MAX.
-
-munlock_vma_page() usually called for THP as small pages go though
-pagevec.
-
-Let's make nr_pages signed int.
-
-Similar fixes in 6cdb18ad98a4 ("mm/vmstat: fix overflow in
-mod_zone_page_state()") used `long' type, but `int' here is OK for a count
-of the number of sub-pages in a huge page.
-
-Fixes: ff6a6da60b89 ("mm: accelerate munlock() treatment of THP pages")
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Tested-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Michel Lespinasse <walken@google.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: <stable@vger.kernel.org>  [4.4+]
+Fixes: 7d2eba0557c1 ("mm: add tracepoint for scanning pages")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Reviewed-by: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mlock.c |    2 +-
+ mm/huge_memory.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/mlock.c~mlocked-pages-statistics-shows-bogus-value mm/mlock.c
---- a/mm/mlock.c~mlocked-pages-statistics-shows-bogus-value
-+++ a/mm/mlock.c
-@@ -175,7 +175,7 @@ static void __munlock_isolation_failed(s
-  */
- unsigned int munlock_vma_page(struct page *page)
- {
--	unsigned int nr_pages;
-+	int nr_pages;
- 	struct zone *zone = page_zone(page);
- 
- 	/* For try_to_munlock() and to serialize with page migration */
+diff -puN mm/huge_memory.c~mm-avoid-uninitialized-variable-in-tracepoint mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-avoid-uninitialized-variable-in-tracepoint
++++ a/mm/huge_memory.c
+@@ -2324,7 +2324,7 @@ static void collapse_huge_page(struct mm
+ 	pgtable_t pgtable;
+ 	struct page *new_page;
+ 	spinlock_t *pmd_ptl, *pte_ptl;
+-	int isolated, result = 0;
++	int isolated = 0, result = 0;
+ 	unsigned long hstart, hend;
+ 	struct mem_cgroup *memcg;
+ 	unsigned long mmun_start;	/* For mmu_notifiers */
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-thp-change-pmd_trans_huge_lock-interface-to-return-ptl.patch
-mlocked-pages-statistics-shows-bogus-value.patch
-mm-make-optimistic-check-for-swapin-readahead-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+mm-avoid-uninitialized-variable-in-tracepoint.patch
+printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix.patch
+memstick-use-sector_div-instead-of-do_div.patch
+mm-memcontrol-introduce-config_memcg_legacy_kmem-fix.patch
+mm-memcontrol-clean-up-alloc-online-offline-free-functions-fix-2.patch
 
