@@ -1,41 +1,42 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-vsprintfc-help-gcc-make-number-smaller.patch removed from -mm tree
-Date: Tue, 19 Jan 2016 12:15:02 -0800
-Message-ID: <569e9946.q+7z8gBX4MKxCDzs%akpm@linux-foundation.org>
+Subject: [merged] lib-kasprintfc-add-sanity-check-to-kvasprintf.patch
+ removed from -mm tree
+Date: Tue, 19 Jan 2016 12:15:06 -0800
+Message-ID: <569e994a.BaLsf3f+GKXgezvU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44585 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44604 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933139AbcASUPD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:15:03 -0500
+	with ESMTP id S933139AbcASUPH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:15:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, andy.shevchenko@gmail.com, joe@perches.com, keescook@chromium.org, mingo@kernel.org, mlombard@redhat.com, tj@kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, andriy.shevchenko@linux.intel.com, joe@perches.com, keescook@chromium.org, mingo@kernel.org, mlombard@redhat.com, tj@kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: help gcc make number() smaller
+     Subject: lib/kasprintf.c: add sanity check to kvasprintf
 has been removed from the -mm tree.  Its filename was
-     lib-vsprintfc-help-gcc-make-number-smaller.patch
+     lib-kasprintfc-add-sanity-check-to-kvasprintf.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: help gcc make number() smaller
+Subject: lib/kasprintf.c: add sanity check to kvasprintf
 
-One consequence of the reorganization of struct printf_spec to make
-field_width 24 bits was that number() gained about 180 bytes. Since
-spec is never passed to other functions, we can help gcc make number()
-lose most of that extra weight by using local variables for the field
-width and precision.
+kasprintf relies on being able to replay the formatting and getting
+the same result (in particular, the same length). This will almost
+always work, but it is possible that the object pointed to by a %s or
+%p argument changed under us (so we might get truncated output). Add a
+somewhat paranoid sanity check and let's see if it ever triggers.
 
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Joe Perches <joe@perches.com>
 Cc: Kees Cook <keescook@chromium.org>
@@ -44,90 +45,38 @@ Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   26 ++++++++++++++------------
- 1 file changed, 14 insertions(+), 12 deletions(-)
+ lib/kasprintf.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-help-gcc-make-number-smaller lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-help-gcc-make-number-smaller
-+++ a/lib/vsprintf.c
-@@ -401,6 +401,8 @@ char *number(char *buf, char *end, unsig
- 	int need_pfx = ((spec.flags & SPECIAL) && spec.base != 10);
- 	int i;
- 	bool is_zero = num == 0LL;
-+	int field_width = spec.field_width;
-+	int precision = spec.precision;
+diff -puN lib/kasprintf.c~lib-kasprintfc-add-sanity-check-to-kvasprintf lib/kasprintf.c
+--- a/lib/kasprintf.c~lib-kasprintfc-add-sanity-check-to-kvasprintf
++++ a/lib/kasprintf.c
+@@ -13,19 +13,21 @@
+ /* Simplified asprintf. */
+ char *kvasprintf(gfp_t gfp, const char *fmt, va_list ap)
+ {
+-	unsigned int len;
++	unsigned int first, second;
+ 	char *p;
+ 	va_list aq;
  
- 	BUILD_BUG_ON(sizeof(struct printf_spec) != 8);
+ 	va_copy(aq, ap);
+-	len = vsnprintf(NULL, 0, fmt, aq);
++	first = vsnprintf(NULL, 0, fmt, aq);
+ 	va_end(aq);
  
-@@ -414,20 +416,20 @@ char *number(char *buf, char *end, unsig
- 		if ((signed long long)num < 0) {
- 			sign = '-';
- 			num = -(signed long long)num;
--			spec.field_width--;
-+			field_width--;
- 		} else if (spec.flags & PLUS) {
- 			sign = '+';
--			spec.field_width--;
-+			field_width--;
- 		} else if (spec.flags & SPACE) {
- 			sign = ' ';
--			spec.field_width--;
-+			field_width--;
- 		}
- 	}
- 	if (need_pfx) {
- 		if (spec.base == 16)
--			spec.field_width -= 2;
-+			field_width -= 2;
- 		else if (!is_zero)
--			spec.field_width--;
-+			field_width--;
- 	}
+-	p = kmalloc_track_caller(len+1, gfp);
++	p = kmalloc_track_caller(first+1, gfp);
+ 	if (!p)
+ 		return NULL;
  
- 	/* generate full string in tmp[], in reverse order */
-@@ -449,12 +451,12 @@ char *number(char *buf, char *end, unsig
- 	}
+-	vsnprintf(p, len+1, fmt, ap);
++	second = vsnprintf(p, first+1, fmt, ap);
++	WARN(first != second, "different return values (%u and %u) from vsnprintf(\"%s\", ...)",
++	     first, second, fmt);
  
- 	/* printing 100 using %2d gives "100", not "00" */
--	if (i > spec.precision)
--		spec.precision = i;
-+	if (i > precision)
-+		precision = i;
- 	/* leading space padding */
--	spec.field_width -= spec.precision;
-+	field_width -= precision;
- 	if (!(spec.flags & (ZEROPAD | LEFT))) {
--		while (--spec.field_width >= 0) {
-+		while (--field_width >= 0) {
- 			if (buf < end)
- 				*buf = ' ';
- 			++buf;
-@@ -483,14 +485,14 @@ char *number(char *buf, char *end, unsig
- 	if (!(spec.flags & LEFT)) {
- 		char c = ' ' + (spec.flags & ZEROPAD);
- 		BUILD_BUG_ON(' ' + ZEROPAD != '0');
--		while (--spec.field_width >= 0) {
-+		while (--field_width >= 0) {
- 			if (buf < end)
- 				*buf = c;
- 			++buf;
- 		}
- 	}
- 	/* hmm even more zero padding? */
--	while (i <= --spec.precision) {
-+	while (i <= --precision) {
- 		if (buf < end)
- 			*buf = '0';
- 		++buf;
-@@ -502,7 +504,7 @@ char *number(char *buf, char *end, unsig
- 		++buf;
- 	}
- 	/* trailing space padding */
--	while (--spec.field_width >= 0) {
-+	while (--field_width >= 0) {
- 		if (buf < end)
- 			*buf = ' ';
- 		++buf;
+ 	return p;
+ }
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
