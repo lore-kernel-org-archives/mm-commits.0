@@ -1,61 +1,111 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hugetlb-fix-compile-error-on-tile.patch removed from -mm tree
-Date: Tue, 19 Jan 2016 12:13:34 -0800
-Message-ID: <569e98ee.TkRY+MyKPb2kA3YU%akpm@linux-foundation.org>
+Subject: [merged]
+ libnvdimm-pmem-move-request_queue-allocation-earlier-in-probe.patch removed from -mm tree
+Date: Tue, 19 Jan 2016 12:13:44 -0800
+Message-ID: <569e98f8.ENaJuzoSwie0DniO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44337 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44360 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933103AbcASUNf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:13:35 -0500
+	with ESMTP id S933143AbcASUNp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:13:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, dhowells@redhat.com, liviu.dudau@arm.com, lorenzo.pieralisi@arm.com, sudeep.holla@arm.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: hugetlb: fix compile error on tile
+     Subject: libnvdimm, pmem: move request_queue allocation earlier in probe
 has been removed from the -mm tree.  Its filename was
-     hugetlb-fix-compile-error-on-tile.patch
+     libnvdimm-pmem-move-request_queue-allocation-earlier-in-probe.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: hugetlb: fix compile error on tile
+Subject: libnvdimm, pmem: move request_queue allocation earlier in probe
 
-Inlude asm/pgtable.h to get the definition for pud_t to fix:
-
-include/linux/hugetlb.h:203:29: error: unknown type name 'pud_t'
+Before the dynamically allocated struct pages from devm_memremap_pages()
+can be put to use outside the driver, we need a mechanism to track whether
+they are still in use at teardown.  Towards that goal reorder the
+initialization sequence to allow the 'q_usage_counter' from the
+request_queue to be used by the devm_memremap_pages() implementation (in
+subsequent patches).
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Liviu Dudau <liviu.dudau@arm.com>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: David Howells <dhowells@redhat.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/nvdimm/pmem.c |   33 ++++++++++++++++++++-------------
+ 1 file changed, 20 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/hugetlb.h~hugetlb-fix-compile-error-on-tile include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~hugetlb-fix-compile-error-on-tile
-+++ a/include/linux/hugetlb.h
-@@ -8,6 +8,7 @@
- #include <linux/cgroup.h>
- #include <linux/list.h>
- #include <linux/kref.h>
-+#include <asm/pgtable.h>
+diff -puN drivers/nvdimm/pmem.c~libnvdimm-pmem-move-request_queue-allocation-earlier-in-probe drivers/nvdimm/pmem.c
+--- a/drivers/nvdimm/pmem.c~libnvdimm-pmem-move-request_queue-allocation-earlier-in-probe
++++ a/drivers/nvdimm/pmem.c
+@@ -159,6 +159,7 @@ static struct pmem_device *pmem_alloc(st
+ 		struct resource *res, int id)
+ {
+ 	struct pmem_device *pmem;
++	struct request_queue *q;
  
- struct ctl_table;
- struct user_struct;
-_
-
-Patches currently in -mm which might be from dan.j.williams@intel.com are
-
-dax-add-support-for-fsync-sync-v6-fix.patch
-
+ 	pmem = devm_kzalloc(dev, sizeof(*pmem), GFP_KERNEL);
+ 	if (!pmem)
+@@ -176,6 +177,10 @@ static struct pmem_device *pmem_alloc(st
+ 		return ERR_PTR(-EBUSY);
+ 	}
+ 
++	q = blk_alloc_queue_node(GFP_KERNEL, dev_to_node(dev));
++	if (!q)
++		return ERR_PTR(-ENOMEM);
++
+ 	pmem->pfn_flags = PFN_DEV;
+ 	if (pmem_should_map_pages(dev)) {
+ 		pmem->virt_addr = (void __pmem *) devm_memremap_pages(dev, res,
+@@ -186,9 +191,12 @@ static struct pmem_device *pmem_alloc(st
+ 				pmem->phys_addr, pmem->size,
+ 				ARCH_MEMREMAP_PMEM);
+ 
+-	if (IS_ERR(pmem->virt_addr))
++	if (IS_ERR(pmem->virt_addr)) {
++		blk_cleanup_queue(q);
+ 		return (void __force *) pmem->virt_addr;
++	}
+ 
++	pmem->pmem_queue = q;
+ 	return pmem;
+ }
+ 
+@@ -208,10 +216,6 @@ static int pmem_attach_disk(struct devic
+ 	int nid = dev_to_node(dev);
+ 	struct gendisk *disk;
+ 
+-	pmem->pmem_queue = blk_alloc_queue_node(GFP_KERNEL, nid);
+-	if (!pmem->pmem_queue)
+-		return -ENOMEM;
+-
+ 	blk_queue_make_request(pmem->pmem_queue, pmem_make_request);
+ 	blk_queue_physical_block_size(pmem->pmem_queue, PAGE_SIZE);
+ 	blk_queue_max_hw_sectors(pmem->pmem_queue, UINT_MAX);
+@@ -446,19 +450,22 @@ static int nd_pmem_probe(struct device *
+ 		return -ENOMEM;
+ 	nvdimm_namespace_add_poison(ndns, &pmem->bb, 0);
+ 
+-	if (is_nd_btt(dev))
++	if (is_nd_btt(dev)) {
++		/* btt allocates its own request_queue */
++		blk_cleanup_queue(pmem->pmem_queue);
++		pmem->pmem_queue = NULL;
+ 		return nvdimm_namespace_attach_btt(ndns);
++	}
+ 
+ 	if (is_nd_pfn(dev))
+ 		return nvdimm_namespace_attach_pfn(ndns);
+ 
+-	if (nd_btt_probe(ndns, pmem) == 0) {
+-		/* we'll come back as btt-pmem */
+-		return -ENXIO;
+-	}
