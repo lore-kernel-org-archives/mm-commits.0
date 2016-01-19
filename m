@@ -1,76 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memblock-fix-ordering-of-flags-argument-in-comments.patch removed from
- -mm tree
-Date: Tue, 19 Jan 2016 12:00:13 -0800
-Message-ID: <569e95cd.7eTZ8It/sDoj4yCd%akpm@linux-foundation.org>
+Subject: [merged] mm-page_isolation-use-micro-to-judge-the-alignment.patch removed from -mm tree
+Date: Tue, 19 Jan 2016 12:00:20 -0800
+Message-ID: <569e95d4.+RZv880ndjfTvqSO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42295 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42313 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756018AbcASUAN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:00:13 -0500
+	with ESMTP id S1757110AbcASUAU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:00:20 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: f.fainelli@gmail.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, wangxq10@lzu.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/memblock.h: fix ordering of 'flags' argument in comments
+     Subject: mm/page_isolation: use macro to judge the alignment
 has been removed from the -mm tree.  Its filename was
-     mm-memblock-fix-ordering-of-flags-argument-in-comments.patch
+     mm-page_isolation-use-micro-to-judge-the-alignment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Florian Fainelli <f.fainelli@gmail.com>
-Subject: include/linux/memblock.h: fix ordering of 'flags' argument in comments
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: mm/page_isolation: use macro to judge the alignment
 
-for_each_free_mem_range() and for_each_free_mem_range_reverse() both
-accept a 'flags' argument, the comment surrounding the macro placed the
-'flags' documentation at the very end, while 'flags' is in fact the 3rd
-argument to the macro, so let's preserve natural ordering here.
-
-Fixes: fc6daaf931518 ("mm/memblock: add extra "flags" to memblock to allow selection of memory based on attribute")
-Signed-off-by: Florian Fainelli <f.fainelli@gmail.com>
+Signed-off-by: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
+Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memblock.h |    4 ++--
+ mm/page_isolation.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/memblock.h~mm-memblock-fix-ordering-of-flags-argument-in-comments include/linux/memblock.h
---- a/include/linux/memblock.h~mm-memblock-fix-ordering-of-flags-argument-in-comments
-+++ a/include/linux/memblock.h
-@@ -216,10 +216,10 @@ void __next_mem_pfn_range(int *idx, int
-  * for_each_free_mem_range - iterate through free memblock areas
-  * @i: u64 used as loop variable
-  * @nid: node selector, %NUMA_NO_NODE for all nodes
-+ * @flags: pick from blocks based on memory attributes
-  * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-  * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-  * @p_nid: ptr to int for nid of the range, can be %NULL
-- * @flags: pick from blocks based on memory attributes
-  *
-  * Walks over free (memory && !reserved) areas of memblock.  Available as
-  * soon as memblock is initialized.
-@@ -232,10 +232,10 @@ void __next_mem_pfn_range(int *idx, int
-  * for_each_free_mem_range_reverse - rev-iterate through free memblock areas
-  * @i: u64 used as loop variable
-  * @nid: node selector, %NUMA_NO_NODE for all nodes
-+ * @flags: pick from blocks based on memory attributes
-  * @p_start: ptr to phys_addr_t for start address of the range, can be %NULL
-  * @p_end: ptr to phys_addr_t for end address of the range, can be %NULL
-  * @p_nid: ptr to int for nid of the range, can be %NULL
-- * @flags: pick from blocks based on memory attributes
-  *
-  * Walks over free (memory && !reserved) areas of memblock in reverse
-  * order.  Available as soon as memblock is initialized.
+diff -puN mm/page_isolation.c~mm-page_isolation-use-micro-to-judge-the-alignment mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-page_isolation-use-micro-to-judge-the-alignment
++++ a/mm/page_isolation.c
+@@ -165,8 +165,8 @@ int start_isolate_page_range(unsigned lo
+ 	unsigned long undo_pfn;
+ 	struct page *page;
+ 
+-	BUG_ON((start_pfn) & (pageblock_nr_pages - 1));
+-	BUG_ON((end_pfn) & (pageblock_nr_pages - 1));
++	BUG_ON(!IS_ALIGNED(start_pfn, pageblock_nr_pages));
++	BUG_ON(!IS_ALIGNED(end_pfn, pageblock_nr_pages));
+ 
+ 	for (pfn = start_pfn;
+ 	     pfn < end_pfn;
 _
 
-Patches currently in -mm which might be from f.fainelli@gmail.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
+mm-soft-offline-clean-up-soft_offline_page.patch
+mm-soft-offline-exit-with-failure-for-non-anonymous-thp.patch
 
