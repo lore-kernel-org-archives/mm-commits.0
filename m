@@ -1,62 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_isolation-do-some-cleanup-in-undo_isolate_page_range.patch removed
- from -mm tree
-Date: Tue, 19 Jan 2016 12:14:03 -0800
-Message-ID: <569e990b.ItNX+wq3/ftuNfiA%akpm@linux-foundation.org>
+ cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page.patch removed from -mm tree
+Date: Tue, 19 Jan 2016 12:14:05 -0800
+Message-ID: <569e990d.idi6Xmia3G3VyS1L%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44417 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44421 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933143AbcASUOD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:03 -0500
+	with ESMTP id S933139AbcASUOF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wangxq10@lzu.edu.cn, n-horiguchi@ah.jp.nec.com, wang_xiaoq@126.com, mm-commits@vger.kernel.org
+To: tj@kernel.org, axboe@kernel.dk, hannes@cmpxchg.org, mhocko@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_isolation: do some cleanup in "undo_isolate_page_range"
+     Subject: cgroup, memcg, writeback: drop spurious rcu locking around mem_cgroup_css_from_page()
 has been removed from the -mm tree.  Its filename was
-     mm-page_isolation-do-some-cleanup-in-undo_isolate_page_range.patch
+     cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
-Subject: mm/page_isolation: do some cleanup in "undo_isolate_page_range"
+From: Tejun Heo <tj@kernel.org>
+Subject: cgroup, memcg, writeback: drop spurious rcu locking around mem_cgroup_css_from_page()
 
-Use "IS_ALIGNED" to judge the alignment, rather than directly judging.
+In earlier versions, mem_cgroup_css_from_page() could return non-root css
+on a legacy hierarchy which can go away and required rcu locking; however,
+the eventual version simply returns the root cgroup if memcg is on a
+legacy hierarchy and thus doesn't need rcu locking around or in it. 
+Remove spurious rcu lockings.
 
-Signed-off-by: Wang Xiaoqiang <wang_xiaoq@126.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Reported-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/fs-writeback.c |    2 --
+ mm/memcontrol.c   |    3 ---
+ 2 files changed, 5 deletions(-)
 
-diff -puN mm/page_isolation.c~mm-page_isolation-do-some-cleanup-in-undo_isolate_page_range mm/page_isolation.c
---- a/mm/page_isolation.c~mm-page_isolation-do-some-cleanup-in-undo_isolate_page_range
-+++ a/mm/page_isolation.c
-@@ -196,8 +196,10 @@ int undo_isolate_page_range(unsigned lon
+diff -puN fs/fs-writeback.c~cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page fs/fs-writeback.c
+--- a/fs/fs-writeback.c~cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page
++++ a/fs/fs-writeback.c
+@@ -677,9 +677,7 @@ void wbc_account_io(struct writeback_con
+ 	if (!wbc->wb)
+ 		return;
+ 
+-	rcu_read_lock();
+ 	id = mem_cgroup_css_from_page(page)->id;
+-	rcu_read_unlock();
+ 
+ 	if (id == wbc->wb_id) {
+ 		wbc->wb_bytes += bytes;
+diff -puN mm/memcontrol.c~cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page mm/memcontrol.c
+--- a/mm/memcontrol.c~cgroup-memcg-writeback-drop-spurious-rcu-locking-around-mem_cgroup_css_from_page
++++ a/mm/memcontrol.c
+@@ -382,14 +382,11 @@ struct cgroup_subsys_state *mem_cgroup_c
  {
- 	unsigned long pfn;
- 	struct page *page;
--	BUG_ON((start_pfn) & (pageblock_nr_pages - 1));
--	BUG_ON((end_pfn) & (pageblock_nr_pages - 1));
-+
-+	BUG_ON(!IS_ALIGNED(start_pfn, pageblock_nr_pages));
-+	BUG_ON(!IS_ALIGNED(end_pfn, pageblock_nr_pages));
-+
- 	for (pfn = start_pfn;
- 	     pfn < end_pfn;
- 	     pfn += pageblock_nr_pages) {
-_
-
-Patches currently in -mm which might be from wangxq10@lzu.edu.cn are
-
-
+ 	struct mem_cgroup *memcg;
+ 
+-	rcu_read_lock();
