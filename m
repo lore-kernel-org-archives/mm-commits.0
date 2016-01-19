@@ -1,44 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes.patch removed from
- -mm tree
-Date: Tue, 19 Jan 2016 12:01:38 -0800
-Message-ID: <569e9622.Cb5WEubK3Pv3xIL5%akpm@linux-foundation.org>
+Subject: [merged] thp-mlock-do-not-allow-huge-pages-in-mlocked-area.patch
+ removed from -mm tree
+Date: Tue, 19 Jan 2016 12:01:35 -0800
+Message-ID: <569e961f./GSDI/Ms5SxL21Y6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42675 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932956AbcASUBj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:01:39 -0500
+	with ESMTP id S932956AbcASUBg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:01:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: khugepaged: ignore pmd tables with THP mapped with ptes
+     Subject: thp, mlock: do not allow huge pages in mlocked area
 has been removed from the -mm tree.  Its filename was
-     khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes.patch
+     thp-mlock-do-not-allow-huge-pages-in-mlocked-area.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: khugepaged: ignore pmd tables with THP mapped with ptes
+Subject: thp, mlock: do not allow huge pages in mlocked area
 
-Prepare khugepaged to see compound pages mapped with pte.  For now we
-won't collapse the pmd table with such pte.
+With new refcounting THP can belong to several VMAs.  This makes tricky to
+track THP pages, when they partially mlocked.  It can lead to leaking
+mlocked pages to non-VM_LOCKED vmas and other problems.
 
-khugepaged is subject for future rework wrt new refcounting.
+With this patch we will split all pages on mlock and avoid
+fault-in/collapse new THP in VM_LOCKED vmas.
+
+I've tried alternative approach: do not mark THP pages mlocked and keep
+them on normal LRUs.  This way vmscan could try to split huge pages on
+memory pressure and free up subpages which doesn't belong to VM_LOCKED
+vmas.  But this is user-visible change: we screw up Mlocked accouting
+reported in meminfo, so I had to leave this approach aside.
+
+We can bring something better later, but this should be good enough for
+now.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Tested-by: Sasha Levin <sasha.levin@oracle.com>
 Tested-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Acked-by: Jerome Marchand <jmarchan@redhat.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
@@ -53,54 +63,122 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/huge_memory.h |    1 +
- mm/huge_memory.c                   |    9 ++++++++-
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ mm/gup.c         |    3 +-
+ mm/huge_memory.c |    5 +++-
+ mm/memory.c      |    3 +-
+ mm/mlock.c       |   51 ++++++++++++++++-----------------------------
+ 4 files changed, 27 insertions(+), 35 deletions(-)
 
-diff -puN include/trace/events/huge_memory.h~khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes include/trace/events/huge_memory.h
---- a/include/trace/events/huge_memory.h~khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes
-+++ a/include/trace/events/huge_memory.h
-@@ -22,6 +22,7 @@
- 	EM( SCAN_PAGE_LRU,		"page_not_in_lru")		\
- 	EM( SCAN_PAGE_LOCK,		"page_locked")			\
- 	EM( SCAN_PAGE_ANON,		"page_not_anon")		\
-+	EM( SCAN_PAGE_COMPOUND,		"page_compound")		\
- 	EM( SCAN_ANY_PROCESS,		"no_process_for_page")		\
- 	EM( SCAN_VMA_NULL,		"vma_null")			\
- 	EM( SCAN_VMA_CHECK,		"vma_check_failed")		\
-diff -puN mm/huge_memory.c~khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes mm/huge_memory.c
---- a/mm/huge_memory.c~khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes
+diff -puN mm/gup.c~thp-mlock-do-not-allow-huge-pages-in-mlocked-area mm/gup.c
+--- a/mm/gup.c~thp-mlock-do-not-allow-huge-pages-in-mlocked-area
++++ a/mm/gup.c
+@@ -927,7 +927,8 @@ long populate_vma_page_range(struct vm_a
+ 	gup_flags = FOLL_TOUCH | FOLL_POPULATE | FOLL_MLOCK;
+ 	if (vma->vm_flags & VM_LOCKONFAULT)
+ 		gup_flags &= ~FOLL_POPULATE;
+-
++	if (vma->vm_flags & VM_LOCKED)
++		gup_flags |= FOLL_SPLIT;
+ 	/*
+ 	 * We want to touch writable mappings with a write fault in order
+ 	 * to break COW, except for shared mappings because these don't COW
+diff -puN mm/huge_memory.c~thp-mlock-do-not-allow-huge-pages-in-mlocked-area mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-mlock-do-not-allow-huge-pages-in-mlocked-area
 +++ a/mm/huge_memory.c
-@@ -45,6 +45,7 @@ enum scan_result {
- 	SCAN_PAGE_LRU,
- 	SCAN_PAGE_LOCK,
- 	SCAN_PAGE_ANON,
-+	SCAN_PAGE_COMPOUND,
- 	SCAN_ANY_PROCESS,
- 	SCAN_VMA_NULL,
- 	SCAN_VMA_CHECK,
-@@ -2770,6 +2771,13 @@ static int khugepaged_scan_pmd(struct mm
- 			result = SCAN_PAGE_NULL;
- 			goto out_unmap;
- 		}
-+
-+		/* TODO: teach khugepaged to collapse THP mapped with pte */
-+		if (PageCompound(page)) {
-+			result = SCAN_PAGE_COMPOUND;
-+			goto out_unmap;
-+		}
-+
+@@ -842,6 +842,8 @@ int do_huge_pmd_anonymous_page(struct mm
+ 
+ 	if (haddr < vma->vm_start || haddr + HPAGE_PMD_SIZE > vma->vm_end)
+ 		return VM_FAULT_FALLBACK;
++	if (vma->vm_flags & VM_LOCKED)
++		return VM_FAULT_FALLBACK;
+ 	if (unlikely(anon_vma_prepare(vma)))
+ 		return VM_FAULT_OOM;
+ 	if (unlikely(khugepaged_enter(vma, vma->vm_flags)))
+@@ -2555,7 +2557,8 @@ static bool hugepage_vma_check(struct vm
+ 	if ((!(vma->vm_flags & VM_HUGEPAGE) && !khugepaged_always()) ||
+ 	    (vma->vm_flags & VM_NOHUGEPAGE))
+ 		return false;
+-
++	if (vma->vm_flags & VM_LOCKED)
++		return false;
+ 	if (!vma->anon_vma || vma->vm_ops)
+ 		return false;
+ 	if (is_vma_temporary_stack(vma))
+diff -puN mm/memory.c~thp-mlock-do-not-allow-huge-pages-in-mlocked-area mm/memory.c
+--- a/mm/memory.c~thp-mlock-do-not-allow-huge-pages-in-mlocked-area
++++ a/mm/memory.c
+@@ -2166,7 +2166,8 @@ static int wp_page_copy(struct mm_struct
+ 
+ 	pte_unmap_unlock(page_table, ptl);
+ 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
+-	if (old_page) {
++	/* THP pages are never mlocked */
++	if (old_page && !PageTransCompound(old_page)) {
  		/*
- 		 * Record which node the original page is from and save this
- 		 * information to khugepaged_node_load[].
-@@ -2782,7 +2790,6 @@ static int khugepaged_scan_pmd(struct mm
- 			goto out_unmap;
+ 		 * Don't let another task, with possibly unlocked vma,
+ 		 * keep the mlocked page.
+diff -puN mm/mlock.c~thp-mlock-do-not-allow-huge-pages-in-mlocked-area mm/mlock.c
+--- a/mm/mlock.c~thp-mlock-do-not-allow-huge-pages-in-mlocked-area
++++ a/mm/mlock.c
+@@ -443,39 +443,26 @@ void munlock_vma_pages_range(struct vm_a
+ 		page = follow_page_mask(vma, start, FOLL_GET | FOLL_DUMP,
+ 				&page_mask);
+ 
+-		if (page && !IS_ERR(page)) {
+-			if (PageTransHuge(page)) {
+-				lock_page(page);
+-				/*
+-				 * Any THP page found by follow_page_mask() may
+-				 * have gotten split before reaching
+-				 * munlock_vma_page(), so we need to recompute
+-				 * the page_mask here.
+-				 */
+-				page_mask = munlock_vma_page(page);
+-				unlock_page(page);
+-				put_page(page); /* follow_page_mask() */
+-			} else {
+-				/*
+-				 * Non-huge pages are handled in batches via
+-				 * pagevec. The pin from follow_page_mask()
+-				 * prevents them from collapsing by THP.
+-				 */
+-				pagevec_add(&pvec, page);
+-				zone = page_zone(page);
+-				zoneid = page_zone_id(page);
++		if (page && !IS_ERR(page) && !PageTransCompound(page)) {
++			/*
++			 * Non-huge pages are handled in batches via
++			 * pagevec. The pin from follow_page_mask()
++			 * prevents them from collapsing by THP.
++			 */
++			pagevec_add(&pvec, page);
++			zone = page_zone(page);
++			zoneid = page_zone_id(page);
+ 
+-				/*
+-				 * Try to fill the rest of pagevec using fast
+-				 * pte walk. This will also update start to
+-				 * the next page to process. Then munlock the
+-				 * pagevec.
+-				 */
+-				start = __munlock_pagevec_fill(&pvec, vma,
+-						zoneid, start, end);
+-				__munlock_pagevec(&pvec, zone);
+-				goto next;
+-			}
++			/*
++			 * Try to fill the rest of pagevec using fast
++			 * pte walk. This will also update start to
++			 * the next page to process. Then munlock the
++			 * pagevec.
++			 */
++			start = __munlock_pagevec_fill(&pvec, vma,
++					zoneid, start, end);
++			__munlock_pagevec(&pvec, zone);
++			goto next;
  		}
- 		khugepaged_node_load[node]++;
--		VM_BUG_ON_PAGE(PageCompound(page), page);
- 		if (!PageLRU(page)) {
- 			result = SCAN_SCAN_ABORT;
- 			goto out_unmap;
+ 		/* It's a bug to munlock in the middle of a THP page */
+ 		VM_BUG_ON((start >> PAGE_SHIFT) & page_mask);
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
