@@ -1,172 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- include-kernelh-change-abs-macro-so-it-uses-consistent-return-type.patch
- removed from -mm tree
-Date: Tue, 19 Jan 2016 12:14:33 -0800
-Message-ID: <569e9929.jacAlkxCn0n9FYYH%akpm@linux-foundation.org>
+Subject: [merged] fs-statc-drop-the-last-new_valid_dev-check.patch removed from -mm tree
+Date: Tue, 19 Jan 2016 12:14:35 -0800
+Message-ID: <569e992b.qqw18gPdQNG/5TAK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44496 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44506 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933140AbcASUOe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:34 -0500
+	with ESMTP id S933139AbcASUOf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mina86@mina86.com, nico@linaro.org, srinivas.pandruvada@linux.intel.com, wey-yi.w.guy@intel.com, mm-commits@vger.kernel.org
+To: baiyaowei@cmss.chinamobile.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/kernel.h: change abs() macro so it uses consistent return type
+     Subject: fs/stat.c: drop the last new_valid_dev check
 has been removed from the -mm tree.  Its filename was
-     include-kernelh-change-abs-macro-so-it-uses-consistent-return-type.patch
+     fs-statc-drop-the-last-new_valid_dev-check.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Nazarewicz <mina86@mina86.com>
-Subject: include/linux/kernel.h: change abs() macro so it uses consistent return type
+From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Subject: fs/stat.c: drop the last new_valid_dev check
 
-Rewrite abs() so that its return type does not depend on the architecture
-and no unexpected type conversion happen inside of it.  The only
-conversion is from unsigned to signed type.  char is left as a return type
-but treated as a signed type regradless of it's actual signedness.
+New_valid_dev() always returns true, so that's unnecessary to perform
+new_valid_dev() checks in some filesystems.  Most checks of
+new_valid_dev() have been removed so let's drop this last one and then we
+can remove new_valid_dev() from the source code.
 
-With the old version, int arguments were promoted to long and depending on
-architecture a long argument might result in s64 or long return type
-(which may or may not be the same).
+No functional change.
 
-This came after some back and forth with Nicolas.  The current macro has
-different return type (for the same input type) depending on architecture
-which might be midly iritating.
-
-An alternative version would promote to int like so:
-
-	#define abs(x)	__abs_choose_expr(x, long long,			\
-			__abs_choose_expr(x, long,			\
-			__builtin_choose_expr(				\
-				sizeof(x) <= sizeof(int),		\
-				({ int __x = (x); __x<0?-__x:__x; }),	\
-				((void)0))))
-
-I have no preference but imagine Linus might.  :] Nicolas argument against
-is that promoting to int causes iconsistent behaviour:
-
-	int main(void) {
-		unsigned short a = 0, b = 1, c = a - b;
-		unsigned short d = abs(a - b);
-		unsigned short e = abs(c);
-		printf("%u %u\n", d, e);  // prints: 1 65535
-	}
-
-Then again, no sane person expects consistent behaviour from C integer
-arithmetic.  ;)
-
-Note:
-
-__builtin_types_compatible_p(unsigned char, char) is always false, and
-__builtin_types_compatible_p(signed char, char) is also always false.
-
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Reviewed-by: Nicolas Pitre <nico@linaro.org>
-Cc: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Cc: Wey-Yi Guy <wey-yi.w.guy@intel.com>
+Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/iio/industrialio-core.c                |    9 +--
- drivers/net/wireless/intel/iwlwifi/dvm/calib.c |    2 
- include/linux/kernel.h                         |   36 +++++++--------
- 3 files changed, 23 insertions(+), 24 deletions(-)
+ fs/stat.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/iio/industrialio-core.c~include-kernelh-change-abs-macro-so-it-uses-consistent-return-type drivers/iio/industrialio-core.c
---- a/drivers/iio/industrialio-core.c~include-kernelh-change-abs-macro-so-it-uses-consistent-return-type
-+++ a/drivers/iio/industrialio-core.c
-@@ -433,16 +433,15 @@ ssize_t iio_format_value(char *buf, unsi
- 		scale_db = true;
- 	case IIO_VAL_INT_PLUS_MICRO:
- 		if (vals[1] < 0)
--			return sprintf(buf, "-%ld.%06u%s\n", abs(vals[0]),
--					-vals[1],
--				scale_db ? " dB" : "");
-+			return sprintf(buf, "-%d.%06u%s\n", abs(vals[0]),
-+				       -vals[1], scale_db ? " dB" : "");
- 		else
- 			return sprintf(buf, "%d.%06u%s\n", vals[0], vals[1],
- 				scale_db ? " dB" : "");
- 	case IIO_VAL_INT_PLUS_NANO:
- 		if (vals[1] < 0)
--			return sprintf(buf, "-%ld.%09u\n", abs(vals[0]),
--					-vals[1]);
-+			return sprintf(buf, "-%d.%09u\n", abs(vals[0]),
-+				       -vals[1]);
- 		else
- 			return sprintf(buf, "%d.%09u\n", vals[0], vals[1]);
- 	case IIO_VAL_FRACTIONAL:
-diff -puN drivers/net/wireless/intel/iwlwifi/dvm/calib.c~include-kernelh-change-abs-macro-so-it-uses-consistent-return-type drivers/net/wireless/intel/iwlwifi/dvm/calib.c
---- a/drivers/net/wireless/intel/iwlwifi/dvm/calib.c~include-kernelh-change-abs-macro-so-it-uses-consistent-return-type
-+++ a/drivers/net/wireless/intel/iwlwifi/dvm/calib.c
-@@ -901,7 +901,7 @@ static void iwlagn_gain_computation(stru
- 		/* bound gain by 2 bits value max, 3rd bit is sign */
- 		data->delta_gain_code[i] =
- 			min(abs(delta_g),
--			(long) CHAIN_NOISE_MAX_DELTA_GAIN_CODE);
-+			(s32) CHAIN_NOISE_MAX_DELTA_GAIN_CODE);
+diff -puN fs/stat.c~fs-statc-drop-the-last-new_valid_dev-check fs/stat.c
+--- a/fs/stat.c~fs-statc-drop-the-last-new_valid_dev-check
++++ a/fs/stat.c
+@@ -219,7 +219,7 @@ SYSCALL_DEFINE2(fstat, unsigned int, fd,
+ #  define choose_32_64(a,b) b
+ #endif
  
- 		if (delta_g < 0)
- 			/*
-diff -puN include/linux/kernel.h~include-kernelh-change-abs-macro-so-it-uses-consistent-return-type include/linux/kernel.h
---- a/include/linux/kernel.h~include-kernelh-change-abs-macro-so-it-uses-consistent-return-type
-+++ a/include/linux/kernel.h
-@@ -202,26 +202,26 @@ extern int _cond_resched(void);
+-#define valid_dev(x)  choose_32_64(old_valid_dev,new_valid_dev)(x)
++#define valid_dev(x)  choose_32_64(old_valid_dev(x),true)
+ #define encode_dev(x) choose_32_64(old_encode_dev,new_encode_dev)(x)
  
- /**
-  * abs - return absolute value of an argument
-- * @x: the value.  If it is unsigned type, it is converted to signed type first
-- *   (s64, long or int depending on its size).
-+ * @x: the value.  If it is unsigned type, it is converted to signed type first.
-+ *     char is treated as if it was signed (regardless of whether it really is)
-+ *     but the macro's return type is preserved as char.
-  *
-- * Return: an absolute value of x.  If x is 64-bit, macro's return type is s64,
-- *   otherwise it is signed long.
-+ * Return: an absolute value of x.
-  */
--#define abs(x) __builtin_choose_expr(sizeof(x) == sizeof(s64), ({	\
--		s64 __x = (x);						\
--		(__x < 0) ? -__x : __x;					\
--	}), ({								\
--		long ret;						\
--		if (sizeof(x) == sizeof(long)) {			\
--			long __x = (x);					\
--			ret = (__x < 0) ? -__x : __x;			\
--		} else {						\
--			int __x = (x);					\
--			ret = (__x < 0) ? -__x : __x;			\
--		}							\
--		ret;							\
--	}))
-+#define abs(x)	__abs_choose_expr(x, long long,				\
-+		__abs_choose_expr(x, long,				\
-+		__abs_choose_expr(x, int,				\
-+		__abs_choose_expr(x, short,				\
-+		__abs_choose_expr(x, char,				\
-+		__builtin_choose_expr(					\
-+			__builtin_types_compatible_p(typeof(x), char),	\
-+			(char)({ signed char __x = (x); __x<0?-__x:__x; }), \
-+			((void)0)))))))
-+
-+#define __abs_choose_expr(x, type, other) __builtin_choose_expr(	\
-+	__builtin_types_compatible_p(typeof(x),   signed type) ||	\
-+	__builtin_types_compatible_p(typeof(x), unsigned type),		\
-+	({ signed type __x = (x); __x < 0 ? -__x : __x; }), other)
- 
- /**
-  * reciprocal_scale - "scale" a value into range [0, ep_ro)
+ #ifndef INIT_STRUCT_STAT_PADDING
 _
 
-Patches currently in -mm which might be from mina86@mina86.com are
+Patches currently in -mm which might be from baiyaowei@cmss.chinamobile.com are
 
+init-mainc-obsolete_checksetup-can-be-boolean.patch
+init-do_mounts-initrd_load-can-be-boolean.patch
+ipc-shm-is_file_shm_hugepages-can-be-boolean.patch
 
