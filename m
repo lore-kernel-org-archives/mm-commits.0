@@ -1,79 +1,136 @@
 From: akpm@linux-foundation.org
-Subject: [merged] zram-dont-call-idr_remove-from-zram_remove.patch removed from -mm tree
-Date: Tue, 19 Jan 2016 12:12:20 -0800
-Message-ID: <569e98a4./jN2UsmRSqRlG/Hw%akpm__21428.4302587204$1453234351$gmane$org@linux-foundation.org>
+Subject: [merged] mm-define-madv_free-for-some-arches.patch removed from
+ -mm tree
+Date: Tue, 19 Jan 2016 12:12:27 -0800
+Message-ID: <569e98ab.RjidiDRjPllofpnF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43812 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43865 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932354AbcASUMU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:12:20 -0500
+	with ESMTP id S932354AbcASUM2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:12:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jmarchan@redhat.com, minchan@kernel.org, sergey.senozhatsky@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: minchan@kernel.org, aarcange@redhat.com, arnd@arndb.de, benh@kernel.crashing.org, catalin.marinas@arm.com, chris@zankel.net, danielmicay@gmail.com, darrick.wong@oracle.com, davem@davemloft.net, deller@gmx.de, fengguang.wu@intel.com, gang.chen.5i5j@gmail.com, hannes@cmpxchg.org, hughd@google.com, ink@jurassic.park.msu.ru, jcmvbkbc@gmail.com, je@fb.com, jejb@parisc-linux.org, kirill@shutemov.name, kosaki.motohiro@jp.fujitsu.com, luto@amacapital.net, mattst88@gmail.com, mgorman@suse.de, mhocko@suse.com, mika.penttila@nextfour.com, mtk.manpages@gmail.com, ralf@linux-mips.org, riel@redhat.com, rmk@arm.linux.org.uk, roland@kernel.org, rth@twiddle.net, shli@kernel.org, will.deacon@arm.com, yalin.wang2010@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: don't call idr_remove() from zram_remove()
+     Subject: mm: define MADV_FREE for some arches
 has been removed from the -mm tree.  Its filename was
-     zram-dont-call-idr_remove-from-zram_remove.patch
+     mm-define-madv_free-for-some-arches.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Jerome Marchand" <jmarchan@redhat.com>
-Subject: zram: don't call idr_remove() from zram_remove()
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: define MADV_FREE for some arches
 
-The use of idr_remove() is forbidden in the callback functions of
-idr_for_each().  It is therefore unsafe to call idr_remove in
-zram_remove().
+Most architectures use asm-generic, but alpha, mips, parisc, xtensa
+need their own definitions.
 
-This patch moves the call to idr_remove() from zram_remove() to
-hot_remove_store().  In the detroy_devices() path, idrs are removed by
-idr_destroy().  This solves an use-after-free detected by KASan.
+This patch defines MADV_FREE for them so it should fix build break
+for their architectures.
 
-[akpm@linux-foundation.org: fix coding stype, per Sergey]
-Signed-off-by: Jerome Marchand <jmarchan@redhat.com>
-Acked-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: <stable@vger.kernel.org>	[4.2+]
+Maybe, I should split and feed pieces to arch maintainers but
+included here for mmotm convenience.
+
+[gang.chen.5i5j@gmail.com: let MADV_FREE have same value for all architectures]
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: <yalin.wang2010@gmail.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Chen Gang <gang.chen.5i5j@gmail.com>
+Cc: Daniel Micay <danielmicay@gmail.com>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Jason Evans <je@fb.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: Kirill A. Shutemov <kirill@shutemov.name>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Mika Penttil <mika.penttila@nextfour.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Russell King <rmk@arm.linux.org.uk>
+Cc: Shaohua Li <shli@kernel.org>
+Cc: Will Deacon <will.deacon@arm.com>
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
+Acked-by: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/block/zram/zram_drv.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/alpha/include/uapi/asm/mman.h  |    1 +
+ arch/mips/include/uapi/asm/mman.h   |    1 +
+ arch/parisc/include/uapi/asm/mman.h |    1 +
+ arch/xtensa/include/uapi/asm/mman.h |    1 +
+ 4 files changed, 4 insertions(+)
 
-diff -puN drivers/block/zram/zram_drv.c~zram-dont-call-idr_remove-from-zram_remove drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c~zram-dont-call-idr_remove-from-zram_remove
-+++ a/drivers/block/zram/zram_drv.c
-@@ -1325,7 +1325,6 @@ static int zram_remove(struct zram *zram
+diff -puN arch/alpha/include/uapi/asm/mman.h~mm-define-madv_free-for-some-arches arch/alpha/include/uapi/asm/mman.h
+--- a/arch/alpha/include/uapi/asm/mman.h~mm-define-madv_free-for-some-arches
++++ a/arch/alpha/include/uapi/asm/mman.h
+@@ -47,6 +47,7 @@
+ #define MADV_WILLNEED	3		/* will need these pages */
+ #define	MADV_SPACEAVAIL	5		/* ensure resources are available */
+ #define MADV_DONTNEED	6		/* don't need these pages */
++#define MADV_FREE	7		/* free pages only if memory pressure */
  
- 	pr_info("Removed device: %s\n", zram->disk->disk_name);
+ /* common/generic parameters */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+diff -puN arch/mips/include/uapi/asm/mman.h~mm-define-madv_free-for-some-arches arch/mips/include/uapi/asm/mman.h
+--- a/arch/mips/include/uapi/asm/mman.h~mm-define-madv_free-for-some-arches
++++ a/arch/mips/include/uapi/asm/mman.h
+@@ -73,6 +73,7 @@
+ #define MADV_SEQUENTIAL 2		/* expect sequential page references */
+ #define MADV_WILLNEED	3		/* will need these pages */
+ #define MADV_DONTNEED	4		/* don't need these pages */
++#define MADV_FREE	5		/* free pages only if memory pressure */
  
--	idr_remove(&zram_index_idr, zram->disk->first_minor);
- 	blk_cleanup_queue(zram->disk->queue);
- 	del_gendisk(zram->disk);
- 	put_disk(zram->disk);
-@@ -1367,10 +1366,12 @@ static ssize_t hot_remove_store(struct c
- 	mutex_lock(&zram_index_mutex);
+ /* common parameters: try to keep these consistent across architectures */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+diff -puN arch/parisc/include/uapi/asm/mman.h~mm-define-madv_free-for-some-arches arch/parisc/include/uapi/asm/mman.h
+--- a/arch/parisc/include/uapi/asm/mman.h~mm-define-madv_free-for-some-arches
++++ a/arch/parisc/include/uapi/asm/mman.h
+@@ -43,6 +43,7 @@
+ #define MADV_SPACEAVAIL 5               /* insure that resources are reserved */
+ #define MADV_VPS_PURGE  6               /* Purge pages from VM page cache */
+ #define MADV_VPS_INHERIT 7              /* Inherit parents page size */
++#define MADV_FREE	8		/* free pages only if memory pressure */
  
- 	zram = idr_find(&zram_index_idr, dev_id);
--	if (zram)
-+	if (zram) {
- 		ret = zram_remove(zram);
--	else
-+		idr_remove(&zram_index_idr, dev_id);
-+	} else {
- 		ret = -ENODEV;
-+	}
+ /* common/generic parameters */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+diff -puN arch/xtensa/include/uapi/asm/mman.h~mm-define-madv_free-for-some-arches arch/xtensa/include/uapi/asm/mman.h
+--- a/arch/xtensa/include/uapi/asm/mman.h~mm-define-madv_free-for-some-arches
++++ a/arch/xtensa/include/uapi/asm/mman.h
+@@ -86,6 +86,7 @@
+ #define MADV_SEQUENTIAL	2		/* expect sequential page references */
+ #define MADV_WILLNEED	3		/* will need these pages */
+ #define MADV_DONTNEED	4		/* don't need these pages */
++#define MADV_FREE	5		/* free pages only if memory pressure */
  
- 	mutex_unlock(&zram_index_mutex);
- 	return ret ? ret : count;
+ /* common parameters: try to keep these consistent across architectures */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
 _
 
-Patches currently in -mm which might be from jmarchan@redhat.com are
+Patches currently in -mm which might be from minchan@kernel.org are
 
 
