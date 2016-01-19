@@ -1,113 +1,96 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- printk-only-unregister-boot-consoles-when-necessary.patch removed from -mm
+ kernel-stop_machinec-remove-config_smp-dependencies.patch removed from -mm
  tree
-Date: Tue, 19 Jan 2016 12:14:50 -0800
-Message-ID: <569e993a.LXiioE+aHhB0cI4V%akpm@linux-foundation.org>
+Date: Tue, 19 Jan 2016 12:14:46 -0800
+Message-ID: <569e9936.SDoe+1Qfo0FBnpgT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44541 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44529 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933139AbcASUOv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:51 -0500
+	with ESMTP id S933139AbcASUOr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: treding@nvidia.com, arnd@arndb.de, gregkh@linuxfoundation.org, joe@perches.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, chris@chris-wilson.co.uk, mingo@kernel.org, valentinrothberg@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: only unregister boot consoles when necessary
+     Subject: kernel/stop_machine.c: remove CONFIG_SMP dependencies
 has been removed from the -mm tree.  Its filename was
-     printk-only-unregister-boot-consoles-when-necessary.patch
+     kernel-stop_machinec-remove-config_smp-dependencies.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Thierry Reding <treding@nvidia.com>
-Subject: printk: only unregister boot consoles when necessary
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/stop_machine.c: remove CONFIG_SMP dependencies
 
-Boot consoles are typically replaced by proper consoles during the boot
-process.  This can be problematic if the boot console data is part of the
-init section that is reclaimed late during boot.  If the proper console
-does not register before this point in time, the boot console will need to
-be removed (so that the freed memory is not accessed), leaving the system
-without output for some time.
+stop_machine.o is only built if CONFIG_SMP=y, so this ifdef always
+evaluates to true.
 
-There are various reasons why the proper console may not register early
-enough, such as deferred probe or the driver being a loadable module.  If
-that happens, there is some amount of time where no console messages are
-visible to the user, which in turn can mean that they won't see crashes or
-other potentially useful information.
-
-To avoid this situation, only remove the boot console when it resides in
-the init section.  Code exists to replace the boot console by the proper
-console when it is registered, keeping a seamless transition between the
-boot and proper consoles.
-
-Signed-off-by: Thierry Reding <treding@nvidia.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Joe Perches <joe@perches.com>
+[akpm@linux-foundation.org: remove now-unneeded ifdef]
+Reported-by: Valentin Rothberg <valentinrothberg@gmail.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   26 +++++++++++++++++++++++++-
- 1 file changed, 25 insertions(+), 1 deletion(-)
+ kernel/stop_machine.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-only-unregister-boot-consoles-when-necessary kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-only-unregister-boot-consoles-when-necessary
-+++ a/kernel/printk/printk.c
-@@ -48,6 +48,7 @@
- #include <linux/uio.h>
- 
- #include <asm/uaccess.h>
-+#include <asm-generic/sections.h>
- 
- #define CREATE_TRACE_POINTS
- #include <trace/events/printk.h>
-@@ -2658,13 +2659,36 @@ int unregister_console(struct console *c
+diff -puN kernel/stop_machine.c~kernel-stop_machinec-remove-config_smp-dependencies kernel/stop_machine.c
+--- a/kernel/stop_machine.c~kernel-stop_machinec-remove-config_smp-dependencies
++++ a/kernel/stop_machine.c
+@@ -529,8 +529,6 @@ static int __init cpu_stop_init(void)
  }
- EXPORT_SYMBOL(unregister_console);
+ early_initcall(cpu_stop_init);
  
-+/*
-+ * Some boot consoles access data that is in the init section and which will
-+ * be discarded after the initcalls have been run. To make sure that no code
-+ * will access this data, unregister the boot consoles in a late initcall.
-+ *
-+ * If for some reason, such as deferred probe or the driver being a loadable
-+ * module, the real console hasn't registered yet at this point, there will
-+ * be a brief interval in which no messages are logged to the console, which
-+ * makes it difficult to diagnose problems that occur during this time.
-+ *
-+ * To mitigate this problem somewhat, only unregister consoles whose memory
-+ * intersects with the init section. Note that code exists elsewhere to get
-+ * rid of the boot console as soon as the proper console shows up, so there
-+ * won't be side-effects from postponing the removal.
-+ */
- static int __init printk_late_init(void)
+-#if defined(CONFIG_SMP) || defined(CONFIG_HOTPLUG_CPU)
+-
+ static int __stop_machine(cpu_stop_fn_t fn, void *data, const struct cpumask *cpus)
  {
- 	struct console *con;
- 
- 	for_each_console(con) {
- 		if (!keep_bootcon && con->flags & CON_BOOT) {
--			unregister_console(con);
-+			/*
-+			 * Make sure to unregister boot consoles whose data
-+			 * resides in the init section before the init section
-+			 * is discarded. Boot consoles whose data will stick
-+			 * around will automatically be unregistered when the
-+			 * proper console replaces them.
-+			 */
-+			if (init_section_intersects(con, sizeof(*con)))
-+				unregister_console(con);
- 		}
- 	}
- 	hotcpu_notifier(console_cpu_notify, 0);
+ 	struct multi_stop_data msdata = {
+@@ -628,5 +626,3 @@ int stop_machine_from_inactive_cpu(cpu_s
+ 	mutex_unlock(&stop_cpus_mutex);
+ 	return ret ?: done.ret;
+ }
+-
+-#endif	/* CONFIG_SMP || CONFIG_HOTPLUG_CPU */
 _
 
-Patches currently in -mm which might be from treding@nvidia.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+mm.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
+mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
+printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix-fix.patch
+printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
+fs-coredump-prevent-core-path-components-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+linux-next-rejects.patch
+fs-overlayfs-superc-needs-pagemaph.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+net-drop-tcp_memcontrolc-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
