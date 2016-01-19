@@ -1,89 +1,51 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- memory-hotplug-dont-bug-in-register_memory_resource.patch removed from -mm
- tree
-Date: Tue, 19 Jan 2016 12:00:06 -0800
-Message-ID: <569e95c6.fAF2yIO4qS4JttMs%akpm@linux-foundation.org>
+ mm-proc-pid-clear_refs-no-need-to-clear-vm_softdirty-in-clear_soft_dirty_pmd.patch removed from -mm tree
+Date: Tue, 19 Jan 2016 11:59:59 -0800
+Message-ID: <569e95bf.YUsDtRT25m2htKdk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42281 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42263 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755652AbcASUAH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:00:07 -0500
+	with ESMTP id S1755652AbcAST77 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 14:59:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vkuznets@redhat.com, dan.j.williams@intel.com, david.vrabel@citrix.com, imammedo@redhat.com, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, rientjes@google.com, shengyong1@huawei.com, tangchen@cn.fujitsu.com, zhugh.fnst@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: oleg@redhat.com, gorcunov@openvz.org, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug: don't BUG() in register_memory_resource()
+     Subject: mm: /proc/pid/clear_refs: no need to clear VM_SOFTDIRTY in clear_soft_dirty_pmd()
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-dont-bug-in-register_memory_resource.patch
+     mm-proc-pid-clear_refs-no-need-to-clear-vm_softdirty-in-clear_soft_dirty_pmd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vitaly Kuznetsov <vkuznets@redhat.com>
-Subject: memory-hotplug: don't BUG() in register_memory_resource()
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: mm: /proc/pid/clear_refs: no need to clear VM_SOFTDIRTY in clear_soft_dirty_pmd()
 
-Out of memory condition is not a bug and while we can't add new memory in
-such case crashing the system seems wrong.  Propagating the return value
-from register_memory_resource() requires interface change.
+clear_soft_dirty_pmd() is called by clear_refs_write(CLEAR_REFS_SOFT_DIRTY),
+VM_SOFTDIRTY was already cleared before walk_page_range().
 
-Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
-Reviewed-by: Igor Mammedov <imammedo@redhat.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Sheng Yong <shengyong1@huawei.com>
-Cc: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Vrabel <david.vrabel@citrix.com>
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ fs/proc/task_mmu.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN mm/memory_hotplug.c~memory-hotplug-dont-bug-in-register_memory_resource mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-dont-bug-in-register_memory_resource
-+++ a/mm/memory_hotplug.c
-@@ -131,7 +131,8 @@ static struct resource *register_memory_
- {
- 	struct resource *res;
- 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
--	BUG_ON(!res);
-+	if (!res)
-+		return ERR_PTR(-ENOMEM);
+diff -puN fs/proc/task_mmu.c~mm-proc-pid-clear_refs-no-need-to-clear-vm_softdirty-in-clear_soft_dirty_pmd fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-proc-pid-clear_refs-no-need-to-clear-vm_softdirty-in-clear_soft_dirty_pmd
++++ a/fs/proc/task_mmu.c
+@@ -881,9 +881,6 @@ static inline void clear_soft_dirty_pmd(
+ 	pmd = pmd_wrprotect(pmd);
+ 	pmd = pmd_clear_soft_dirty(pmd);
  
- 	res->name = "System RAM";
- 	res->start = start;
-@@ -140,7 +141,7 @@ static struct resource *register_memory_
- 	if (request_resource(&iomem_resource, res) < 0) {
- 		pr_debug("System RAM resource %pR cannot be added\n", res);
- 		kfree(res);
--		res = NULL;
-+		return ERR_PTR(-EEXIST);
- 	}
- 	return res;
- }
-@@ -1312,8 +1313,8 @@ int __ref add_memory(int nid, u64 start,
- 	int ret;
- 
- 	res = register_memory_resource(start, size);
--	if (!res)
--		return -EEXIST;
-+	if (IS_ERR(res))
-+		return PTR_ERR(res);
- 
- 	ret = add_memory_resource(nid, res);
- 	if (ret < 0)
-_
-
-Patches currently in -mm which might be from vkuznets@redhat.com are
-
-
+-	if (vma->vm_flags & VM_SOFTDIRTY)
+-		vma->vm_flags &= ~VM_SOFTDIRTY;
