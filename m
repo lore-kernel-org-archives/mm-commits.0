@@ -1,53 +1,55 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-define-madv_free-for-some-arches.patch removed from
- -mm tree
-Date: Tue, 19 Jan 2016 12:12:27 -0800
-Message-ID: <569e98ab.RjidiDRjPllofpnF%akpm@linux-foundation.org>
+Subject: [merged]
+ arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures.patch removed from -mm tree
+Date: Tue, 19 Jan 2016 12:12:30 -0800
+Message-ID: <569e98ae.fRZ9gcU7dMNoLtS9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43865 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43893 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932354AbcASUM2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:12:28 -0500
+	with ESMTP id S932354AbcASUMc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:12:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, aarcange@redhat.com, arnd@arndb.de, benh@kernel.crashing.org, catalin.marinas@arm.com, chris@zankel.net, danielmicay@gmail.com, darrick.wong@oracle.com, davem@davemloft.net, deller@gmx.de, fengguang.wu@intel.com, gang.chen.5i5j@gmail.com, hannes@cmpxchg.org, hughd@google.com, ink@jurassic.park.msu.ru, jcmvbkbc@gmail.com, je@fb.com, jejb@parisc-linux.org, kirill@shutemov.name, kosaki.motohiro@jp.fujitsu.com, luto@amacapital.net, mattst88@gmail.com, mgorman@suse.de, mhocko@suse.com, mika.penttila@nextfour.com, mtk.manpages@gmail.com, ralf@linux-mips.org, riel@redhat.com, rmk@arm.linux.org.uk, roland@kernel.org, rth@twiddle.net, shli@kernel.org, will.deacon@arm.com, yalin.wang2010@gmail.com, mm-commits@vger.kernel.org
+To: gang.chen.5i5j@gmail.com, aarcange@redhat.com, arnd@arndb.de, benh@kernel.crashing.org, catalin.marinas@arm.com, chris@zankel.net, danielmicay@gmail.com, darrick.wong@oracle.com, davem@davemloft.net, deller@gmx.de, fengguang.wu@intel.com, hannes@cmpxchg.org, hughd@google.com, ink@jurassic.park.msu.ru, jcmvbkbc@gmail.com, je@fb.com, jejb@parisc-linux.org, kirill@shutemov.name, kosaki.motohiro@jp.fujitsu.com, luto@amacapital.net, mattst88@gmail.com, mgorman@suse.de, mhocko@suse.com, mika.penttila@nextfour.com, minchan@kernel.org, mtk.manpages@gmail.com, ralf@linux-mips.org, riel@redhat.com, rmk@arm.linux.org.uk, roland@kernel.org, rth@twiddle.net, shli@kernel.org, sudip@vectorindia.org, will.deacon@arm.com, yalin.wang2010@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: define MADV_FREE for some arches
+     Subject: arch/*/include/uapi/asm/mman.h: : let MADV_FREE have same value for all architectures
 has been removed from the -mm tree.  Its filename was
-     mm-define-madv_free-for-some-arches.patch
+     arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm: define MADV_FREE for some arches
+From: Chen Gang <gang.chen.5i5j@gmail.com>
+Subject: arch/*/include/uapi/asm/mman.h: : let MADV_FREE have same value for all architectures
 
-Most architectures use asm-generic, but alpha, mips, parisc, xtensa
-need their own definitions.
+For uapi, need try to let all macros have same value, and MADV_FREE is
+added into main branch recently, so need redefine MADV_FREE for it.
 
-This patch defines MADV_FREE for them so it should fix build break
-for their architectures.
+At present, '8' can be shared with all architectures, so redefine it to
+'8'.
 
-Maybe, I should split and feed pieces to arch maintainers but
-included here for mmotm convenience.
-
-[gang.chen.5i5j@gmail.com: let MADV_FREE have same value for all architectures]
+[sudipm.mukherjee@gmail.com: correct uniform value of MADV_FREE]
+Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Max Filippov <jcmvbkbc@gmail.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Richard Henderson <rth@twiddle.net>
 Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: Matt Turner <mattst88@gmail.com>
 Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
 Cc: Helge Deller <deller@gmx.de>
-Cc: Ralf Baechle <ralf@linux-mips.org>
 Cc: Chris Zankel <chris@zankel.net>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Roland Dreier <roland@kernel.org>
+Cc: Darrick J. Wong <darrick.wong@oracle.com>
+Cc: David S. Miller <davem@davemloft.net>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: Shaohua Li <shli@kernel.org>
 Cc: <yalin.wang2010@gmail.com>
@@ -56,81 +58,91 @@ Cc: Andy Lutomirski <luto@amacapital.net>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chen Gang <gang.chen.5i5j@gmail.com>
 Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Hugh Dickins <hughd@google.com>
 Cc: Jason Evans <je@fb.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
 Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Matt Turner <mattst88@gmail.com>
 Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
 Cc: Michal Hocko <mhocko@suse.com>
 Cc: Mika Penttil <mika.penttila@nextfour.com>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: Roland Dreier <roland@kernel.org>
 Cc: Russell King <rmk@arm.linux.org.uk>
 Cc: Shaohua Li <shli@kernel.org>
 Cc: Will Deacon <will.deacon@arm.com>
-Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
-Acked-by: Hugh Dickins <hughd@google.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/alpha/include/uapi/asm/mman.h  |    1 +
- arch/mips/include/uapi/asm/mman.h   |    1 +
- arch/parisc/include/uapi/asm/mman.h |    1 +
- arch/xtensa/include/uapi/asm/mman.h |    1 +
- 4 files changed, 4 insertions(+)
+ arch/alpha/include/uapi/asm/mman.h     |    1 +
+ arch/mips/include/uapi/asm/mman.h      |    1 +
+ arch/parisc/include/uapi/asm/mman.h    |    1 +
+ arch/xtensa/include/uapi/asm/mman.h    |    1 +
+ include/uapi/asm-generic/mman-common.h |    2 +-
+ 5 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN arch/alpha/include/uapi/asm/mman.h~mm-define-madv_free-for-some-arches arch/alpha/include/uapi/asm/mman.h
---- a/arch/alpha/include/uapi/asm/mman.h~mm-define-madv_free-for-some-arches
+diff -puN arch/alpha/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures arch/alpha/include/uapi/asm/mman.h
+--- a/arch/alpha/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures
 +++ a/arch/alpha/include/uapi/asm/mman.h
-@@ -47,6 +47,7 @@
- #define MADV_WILLNEED	3		/* will need these pages */
- #define	MADV_SPACEAVAIL	5		/* ensure resources are available */
- #define MADV_DONTNEED	6		/* don't need these pages */
-+#define MADV_FREE	7		/* free pages only if memory pressure */
+@@ -50,6 +50,7 @@
+ #define MADV_FREE	7		/* free pages only if memory pressure */
  
  /* common/generic parameters */
++#define MADV_FREE	8		/* free pages only if memory pressure */
  #define MADV_REMOVE	9		/* remove these pages & resources */
-diff -puN arch/mips/include/uapi/asm/mman.h~mm-define-madv_free-for-some-arches arch/mips/include/uapi/asm/mman.h
---- a/arch/mips/include/uapi/asm/mman.h~mm-define-madv_free-for-some-arches
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+diff -puN arch/mips/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures arch/mips/include/uapi/asm/mman.h
+--- a/arch/mips/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures
 +++ a/arch/mips/include/uapi/asm/mman.h
-@@ -73,6 +73,7 @@
- #define MADV_SEQUENTIAL 2		/* expect sequential page references */
- #define MADV_WILLNEED	3		/* will need these pages */
- #define MADV_DONTNEED	4		/* don't need these pages */
-+#define MADV_FREE	5		/* free pages only if memory pressure */
+@@ -76,6 +76,7 @@
+ #define MADV_FREE	5		/* free pages only if memory pressure */
  
  /* common parameters: try to keep these consistent across architectures */
- #define MADV_REMOVE	9		/* remove these pages & resources */
-diff -puN arch/parisc/include/uapi/asm/mman.h~mm-define-madv_free-for-some-arches arch/parisc/include/uapi/asm/mman.h
---- a/arch/parisc/include/uapi/asm/mman.h~mm-define-madv_free-for-some-arches
-+++ a/arch/parisc/include/uapi/asm/mman.h
-@@ -43,6 +43,7 @@
- #define MADV_SPACEAVAIL 5               /* insure that resources are reserved */
- #define MADV_VPS_PURGE  6               /* Purge pages from VM page cache */
- #define MADV_VPS_INHERIT 7              /* Inherit parents page size */
 +#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+diff -puN arch/parisc/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures arch/parisc/include/uapi/asm/mman.h
+--- a/arch/parisc/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures
++++ a/arch/parisc/include/uapi/asm/mman.h
+@@ -46,6 +46,7 @@
+ #define MADV_FREE	8		/* free pages only if memory pressure */
  
  /* common/generic parameters */
++#define MADV_FREE	8		/* free pages only if memory pressure */
  #define MADV_REMOVE	9		/* remove these pages & resources */
-diff -puN arch/xtensa/include/uapi/asm/mman.h~mm-define-madv_free-for-some-arches arch/xtensa/include/uapi/asm/mman.h
---- a/arch/xtensa/include/uapi/asm/mman.h~mm-define-madv_free-for-some-arches
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+diff -puN arch/xtensa/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures arch/xtensa/include/uapi/asm/mman.h
+--- a/arch/xtensa/include/uapi/asm/mman.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures
 +++ a/arch/xtensa/include/uapi/asm/mman.h
-@@ -86,6 +86,7 @@
+@@ -89,6 +89,7 @@
+ #define MADV_FREE	5		/* free pages only if memory pressure */
+ 
+ /* common parameters: try to keep these consistent across architectures */
++#define MADV_FREE	8		/* free pages only if memory pressure */
+ #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
+diff -puN include/uapi/asm-generic/mman-common.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures include/uapi/asm-generic/mman-common.h
+--- a/include/uapi/asm-generic/mman-common.h~arch-uapi-asm-mmanh-let-madv_free-have-same-value-for-all-architectures
++++ a/include/uapi/asm-generic/mman-common.h
+@@ -39,9 +39,9 @@
  #define MADV_SEQUENTIAL	2		/* expect sequential page references */
  #define MADV_WILLNEED	3		/* will need these pages */
  #define MADV_DONTNEED	4		/* don't need these pages */
-+#define MADV_FREE	5		/* free pages only if memory pressure */
+-#define MADV_FREE	5		/* free pages only if memory pressure */
  
  /* common parameters: try to keep these consistent across architectures */
++#define MADV_FREE	8		/* free pages only if memory pressure */
  #define MADV_REMOVE	9		/* remove these pages & resources */
+ #define MADV_DONTFORK	10		/* don't inherit across fork */
+ #define MADV_DOFORK	11		/* do inherit across fork */
 _
 
-Patches currently in -mm which might be from minchan@kernel.org are
+Patches currently in -mm which might be from gang.chen.5i5j@gmail.com are
 
 
