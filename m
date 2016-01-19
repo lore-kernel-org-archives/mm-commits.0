@@ -1,44 +1,38 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
- removed from -mm tree
-Date: Tue, 19 Jan 2016 12:01:32 -0800
-Message-ID: <569e961c.ramVMiw07FdTnGEL%akpm@linux-foundation.org>
+ khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes.patch removed from
+ -mm tree
+Date: Tue, 19 Jan 2016 12:01:38 -0800
+Message-ID: <569e9622.Cb5WEubK3Pv3xIL5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42661 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42688 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932956AbcASUBd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:01:33 -0500
+	with ESMTP id S932956AbcASUBj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:01:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, cl@linux.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, steve.capper@linaro.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: handle PTE-mapped tail pages in gerneric fast gup implementaiton
+     Subject: khugepaged: ignore pmd tables with THP mapped with ptes
 has been removed from the -mm tree.  Its filename was
-     mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton.patch
+     khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: handle PTE-mapped tail pages in gerneric fast gup implementaiton
+Subject: khugepaged: ignore pmd tables with THP mapped with ptes
 
-With new refcounting we are going to see THP tail pages mapped with PTE. 
-Generic fast GUP rely on page_cache_get_speculative() to obtain reference
-on page.  page_cache_get_speculative() always fails on tail pages, because
-->_count on tail pages is always zero.
+Prepare khugepaged to see compound pages mapped with pte.  For now we
+won't collapse the pmd table with such pte.
 
-Let's handle tail pages in gup_pte_range().
-
-New split_huge_page() will rely on migration entries to freeze page's
-counts.  Recheck PTE value after page_cache_get_speculative() on head page
-should be enough to serialize against split.
+khugepaged is subject for future rework wrt new refcounting.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Tested-by: Sasha Levin <sasha.levin@oracle.com>
@@ -59,41 +53,54 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/gup.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/trace/events/huge_memory.h |    1 +
+ mm/huge_memory.c                   |    9 ++++++++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN mm/gup.c~mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton mm/gup.c
---- a/mm/gup.c~mm-handle-pte-mapped-tail-pages-in-gerneric-fast-gup-implementaiton
-+++ a/mm/gup.c
-@@ -1097,7 +1097,7 @@ static int gup_pte_range(pmd_t pmd, unsi
- 		 * for an example see gup_get_pte in arch/x86/mm/gup.c
- 		 */
- 		pte_t pte = READ_ONCE(*ptep);
--		struct page *page;
-+		struct page *head, *page;
- 
- 		/*
- 		 * Similar to the PMD case below, NUMA hinting must take slow
-@@ -1109,15 +1109,17 @@ static int gup_pte_range(pmd_t pmd, unsi
- 
- 		VM_BUG_ON(!pfn_valid(pte_pfn(pte)));
- 		page = pte_page(pte);
-+		head = compound_head(page);
- 
--		if (!page_cache_get_speculative(page))
-+		if (!page_cache_get_speculative(head))
- 			goto pte_unmap;
- 
- 		if (unlikely(pte_val(pte) != pte_val(*ptep))) {
--			put_page(page);
-+			put_page(head);
- 			goto pte_unmap;
+diff -puN include/trace/events/huge_memory.h~khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes include/trace/events/huge_memory.h
+--- a/include/trace/events/huge_memory.h~khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes
++++ a/include/trace/events/huge_memory.h
+@@ -22,6 +22,7 @@
+ 	EM( SCAN_PAGE_LRU,		"page_not_in_lru")		\
+ 	EM( SCAN_PAGE_LOCK,		"page_locked")			\
+ 	EM( SCAN_PAGE_ANON,		"page_not_anon")		\
++	EM( SCAN_PAGE_COMPOUND,		"page_compound")		\
+ 	EM( SCAN_ANY_PROCESS,		"no_process_for_page")		\
+ 	EM( SCAN_VMA_NULL,		"vma_null")			\
+ 	EM( SCAN_VMA_CHECK,		"vma_check_failed")		\
+diff -puN mm/huge_memory.c~khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes mm/huge_memory.c
+--- a/mm/huge_memory.c~khugepaged-ignore-pmd-tables-with-thp-mapped-with-ptes
++++ a/mm/huge_memory.c
+@@ -45,6 +45,7 @@ enum scan_result {
+ 	SCAN_PAGE_LRU,
+ 	SCAN_PAGE_LOCK,
+ 	SCAN_PAGE_ANON,
++	SCAN_PAGE_COMPOUND,
+ 	SCAN_ANY_PROCESS,
+ 	SCAN_VMA_NULL,
+ 	SCAN_VMA_CHECK,
+@@ -2770,6 +2771,13 @@ static int khugepaged_scan_pmd(struct mm
+ 			result = SCAN_PAGE_NULL;
+ 			goto out_unmap;
  		}
- 
-+		VM_BUG_ON_PAGE(compound_head(page) != head, page);
- 		pages[*nr] = page;
- 		(*nr)++;
- 
++
++		/* TODO: teach khugepaged to collapse THP mapped with pte */
++		if (PageCompound(page)) {
++			result = SCAN_PAGE_COMPOUND;
++			goto out_unmap;
++		}
++
+ 		/*
+ 		 * Record which node the original page is from and save this
+ 		 * information to khugepaged_node_load[].
+@@ -2782,7 +2790,6 @@ static int khugepaged_scan_pmd(struct mm
+ 			goto out_unmap;
+ 		}
+ 		khugepaged_node_load[node]++;
+-		VM_BUG_ON_PAGE(PageCompound(page), page);
+ 		if (!PageLRU(page)) {
+ 			result = SCAN_SCAN_ABORT;
+ 			goto out_unmap;
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
