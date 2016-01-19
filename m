@@ -1,129 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch
+Subject: [merged] lib-test_printfc-check-for-out-of-bound-writes.patch
  removed from -mm tree
-Date: Tue, 19 Jan 2016 12:15:04 -0800
-Message-ID: <569e9948.XHQ/8nUfnWUuD5Ic%akpm@linux-foundation.org>
+Date: Tue, 19 Jan 2016 12:15:10 -0800
+Message-ID: <569e994e.DyTVPH2EZd1GQZNS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44594 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44619 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933139AbcASUPF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:15:05 -0500
+	with ESMTP id S933195AbcASUPL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:15:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, andriy.shevchenko@linux.intel.com, joe@perches.com, keescook@chromium.org, mingo@kernel.org, mlombard@redhat.com, tj@kernel.org, viro@ZenIV.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/vsprintf.c: warn about too large precisions and field widths
+     Subject: lib/test_printf.c: check for out-of-bound writes
 has been removed from the -mm tree.  Its filename was
-     lib-vsprintfc-warn-about-too-large-precisions-and-field-widths.patch
+     lib-test_printfc-check-for-out-of-bound-writes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: lib/vsprintf.c: warn about too large precisions and field widths
+Subject: lib/test_printf.c: check for out-of-bound writes
 
-The field width is overloaded to pass some extra information for
-some %p extensions (e.g. #bits for %pb). But we might silently
-truncate the passed value when we stash it in struct printf_spec (see
-e.g. "lib/vsprintf.c: expand field_width to 24 bits").  Hopefully 23
-value bits should now be enough for everybody, but if not, let's make
-some noise.
-
-Do the same for the precision. In both cases, clamping seems more
-sensible than truncating. While, according to POSIX, "A negative
-precision is taken as if the precision were omitted.", the kernel's
-printf has always treated that case as if the precision was 0, so we
-use that as lower bound. For the field width, the smallest
-representable value is actually -(1<<23), but a negative field width
-means 'set the LEFT flag and use the absolute value', so we want the
-absolute value to fit.
+Add a few padding bytes on either side of the test buffer, and check
+that these (and the part of the buffer not used) are untouched by
+vsnprintf.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Kees Cook <keescook@chromium.org>
 Cc: Al Viro <viro@ZenIV.linux.org.uk>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Ingo Molnar <mingo@kernel.org>
 Cc: Joe Perches <joe@perches.com>
-Cc: Kees Cook <keescook@chromium.org>
 Cc: Maurizio Lombardi <mlombard@redhat.com>
 Cc: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |   28 ++++++++++++++++++++++++----
- 1 file changed, 24 insertions(+), 4 deletions(-)
+ lib/test_printf.c |   24 +++++++++++++++++++-----
+ 1 file changed, 19 insertions(+), 5 deletions(-)
 
-diff -puN lib/vsprintf.c~lib-vsprintfc-warn-about-too-large-precisions-and-field-widths lib/vsprintf.c
---- a/lib/vsprintf.c~lib-vsprintfc-warn-about-too-large-precisions-and-field-widths
-+++ a/lib/vsprintf.c
-@@ -389,6 +389,8 @@ struct printf_spec {
- 	unsigned int	base:8;		/* number base, 8, 10 or 16 only */
- 	signed int	precision:16;	/* # of digits/chars */
- } __packed;
-+#define FIELD_WIDTH_MAX ((1 << 23) - 1)
-+#define PRECISION_MAX ((1 << 15) - 1)
+diff -puN lib/test_printf.c~lib-test_printfc-check-for-out-of-bound-writes lib/test_printf.c
+--- a/lib/test_printf.c~lib-test_printfc-check-for-out-of-bound-writes
++++ a/lib/test_printf.c
+@@ -16,6 +16,7 @@
+ #include <linux/in.h>
  
- static noinline_for_stack
- char *number(char *buf, char *end, unsigned long long num,
-@@ -1845,6 +1847,24 @@ qualifier:
- 	return ++fmt - start;
- }
+ #define BUF_SIZE 256
++#define PAD_SIZE 16
+ #define FILL_CHAR '$'
  
-+static void
-+set_field_width(struct printf_spec *spec, int width)
-+{
-+	spec->field_width = width;
-+	if (WARN_ONCE(spec->field_width != width, "field width %d too large", width)) {
-+		spec->field_width = clamp(width, -FIELD_WIDTH_MAX, FIELD_WIDTH_MAX);
+ #define PTR1 ((void*)0x01234567)
+@@ -39,6 +40,7 @@
+ static unsigned total_tests __initdata;
+ static unsigned failed_tests __initdata;
+ static char *test_buffer __initdata;
++static char *alloced_buffer __initdata;
+ 
+ static int __printf(4, 0) __init
+ do_test(int bufsize, const char *expect, int elen,
+@@ -49,7 +51,7 @@ do_test(int bufsize, const char *expect,
+ 
+ 	total_tests++;
+ 
+-	memset(test_buffer, FILL_CHAR, BUF_SIZE);
++	memset(alloced_buffer, FILL_CHAR, BUF_SIZE + 2*PAD_SIZE);
+ 	va_copy(aq, ap);
+ 	ret = vsnprintf(test_buffer, bufsize, fmt, aq);
+ 	va_end(aq);
+@@ -60,8 +62,13 @@ do_test(int bufsize, const char *expect,
+ 		return 1;
+ 	}
+ 
++	if (memchr_inv(alloced_buffer, FILL_CHAR, PAD_SIZE)) {
++		pr_warn("vsnprintf(buf, %d, \"%s\", ...) wrote before buffer\n", bufsize, fmt);
++		return 1;
 +	}
-+}
 +
-+static void
-+set_precision(struct printf_spec *spec, int prec)
-+{
-+	spec->precision = prec;
-+	if (WARN_ONCE(spec->precision != prec, "precision %d too large", prec)) {
-+		spec->precision = clamp(prec, 0, PRECISION_MAX);
+ 	if (!bufsize) {
+-		if (memchr_inv(test_buffer, FILL_CHAR, BUF_SIZE)) {
++		if (memchr_inv(test_buffer, FILL_CHAR, BUF_SIZE + PAD_SIZE)) {
+ 			pr_warn("vsnprintf(buf, 0, \"%s\", ...) wrote to buffer\n",
+ 				fmt);
+ 			return 1;
+@@ -76,6 +83,12 @@ do_test(int bufsize, const char *expect,
+ 		return 1;
+ 	}
+ 
++	if (memchr_inv(test_buffer + written + 1, FILL_CHAR, BUF_SIZE + PAD_SIZE - (written + 1))) {
++		pr_warn("vsnprintf(buf, %d, \"%s\", ...) wrote beyond the nul-terminator\n",
++			bufsize, fmt);
++		return 1;
 +	}
-+}
 +
- /**
-  * vsnprintf - Format a string and place it in a buffer
-  * @buf: The buffer to place the result into
-@@ -1912,11 +1932,11 @@ int vsnprintf(char *buf, size_t size, co
- 		}
+ 	if (memcmp(test_buffer, expect, written)) {
+ 		pr_warn("vsnprintf(buf, %d, \"%s\", ...) wrote '%s', expected '%.*s'\n",
+ 			bufsize, fmt, test_buffer, written, expect);
+@@ -342,16 +355,17 @@ test_pointer(void)
+ static int __init
+ test_printf_init(void)
+ {
+-	test_buffer = kmalloc(BUF_SIZE, GFP_KERNEL);
+-	if (!test_buffer)
++	alloced_buffer = kmalloc(BUF_SIZE + 2*PAD_SIZE, GFP_KERNEL);
++	if (!alloced_buffer)
+ 		return -ENOMEM;
++	test_buffer = alloced_buffer + PAD_SIZE;
  
- 		case FORMAT_TYPE_WIDTH:
--			spec.field_width = va_arg(args, int);
-+			set_field_width(&spec, va_arg(args, int));
- 			break;
+ 	test_basic();
+ 	test_number();
+ 	test_string();
+ 	test_pointer();
  
- 		case FORMAT_TYPE_PRECISION:
--			spec.precision = va_arg(args, int);
-+			set_precision(&spec, va_arg(args, int));
- 			break;
+-	kfree(test_buffer);
++	kfree(alloced_buffer);
  
- 		case FORMAT_TYPE_CHAR: {
-@@ -2356,11 +2376,11 @@ int bstr_printf(char *buf, size_t size,
- 		}
- 
- 		case FORMAT_TYPE_WIDTH:
--			spec.field_width = get_arg(int);
-+			set_field_width(&spec, get_arg(int));
- 			break;
- 
- 		case FORMAT_TYPE_PRECISION:
--			spec.precision = get_arg(int);
-+			set_precision(&spec, get_arg(int));
- 			break;
- 
- 		case FORMAT_TYPE_CHAR: {
+ 	if (failed_tests == 0)
+ 		pr_info("all %u tests passed\n", total_tests);
 _
 
 Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
