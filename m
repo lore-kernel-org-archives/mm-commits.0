@@ -1,275 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-dont-split-thp-page-when-syscall-is-called.patch
- removed from -mm tree
-Date: Tue, 19 Jan 2016 12:12:58 -0800
-Message-ID: <569e98ca./7/OjNjlvrMGaWnk%akpm@linux-foundation.org>
+Subject: [merged] pmem-dax-clean-up-clear_pmem.patch removed from -mm tree
+Date: Tue, 19 Jan 2016 12:13:04 -0800
+Message-ID: <569e98d0.I6/9S4eHq6wO8ZS5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44221 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44234 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932354AbcASUNA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:13:00 -0500
+	with ESMTP id S933122AbcASUNF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:13:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, aarcange@redhat.com, arnd@arndb.de, benh@kernel.crashing.org, catalin.marinas@arm.com, chris@zankel.net, danielmicay@gmail.com, darrick.wong@oracle.com, davem@davemloft.net, deller@gmx.de, fengguang.wu@intel.com, gang.chen.5i5j@gmail.com, hannes@cmpxchg.org, hughd@google.com, ink@jurassic.park.msu.ru, jcmvbkbc@gmail.com, je@fb.com, jejb@parisc-linux.org, kirill@shutemov.name, kosaki.motohiro@jp.fujitsu.com, luto@amacapital.net, mattst88@gmail.com, mgorman@suse.de, mhocko@suse.com, mika.penttila@nextfour.com, mtk.manpages@gmail.com, ralf@linux-mips.org, riel@redhat.com, rmk@arm.linux.org.uk, roland@kernel.org, rth@twiddle.net, shli@kernel.org, will.deacon@arm.com, yalin.wang2010@gmail.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, aarcange@redhat.com, airlied@linux.ie, axboe@fb.com, christoffer.dall@linaro.org, dave.hansen@linux.intel.com, david@fromorbit.com, hch@lst.de, hpa@zytor.com, jack@suse.com, jdike@addtoit.com, jmoyer@redhat.com, kirill.shutemov@linux.intel.com, logang@deltatee.com, mgorman@suse.de, mingo@redhat.com, pbonzini@redhat.com, peterz@infradead.org, richard@nod.at, ross.zwisler@linux.intel.com, tglx@linutronix.de, toshi.kani@hpe.com, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/huge_memory.c: don't split THP page when MADV_FREE syscall is called
+     Subject: pmem, dax: clean up clear_pmem()
 has been removed from the -mm tree.  Its filename was
-     mm-dont-split-thp-page-when-syscall-is-called.patch
+     pmem-dax-clean-up-clear_pmem.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: mm/huge_memory.c: don't split THP page when MADV_FREE syscall is called
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: pmem, dax: clean up clear_pmem()
 
-We don't need to split THP page when MADV_FREE syscall is called if
-[start, len] is aligned with THP size.  The split could be done when VM
-decide to free it in reclaim path if memory pressure is heavy.  With that,
-we could avoid unnecessary THP split.
+To date, we have implemented two I/O usage models for persistent memory,
+PMEM (a persistent "ram disk") and DAX (mmap persistent memory into
+userspace).  This series adds a third, DAX-GUP, that allows DAX mappings
+to be the target of direct-i/o.  It allows userspace to coordinate
+DMA/RDMA from/to persistent memory.
 
-For the feature, this patch changes pte dirtness marking logic of THP. 
-Now, it marks every ptes of pages dirty unconditionally in splitting,
-which makes MADV_FREE void.  So, instead, this patch propagates pmd
-dirtiness to all pages via PG_dirty and restores pte dirtiness from
-PG_dirty.  With this, if pmd is clean(ie, MADV_FREEed) when split
-happens(e,g, shrink_page_list), all of pages are clean too so we could
-discard them.
+The implementation leverages the ZONE_DEVICE mm-zone that went into
+4.3-rc1 (also discussed at kernel summit) to flag pages that are owned and
+dynamically mapped by a device driver.  The pmem driver, after mapping a
+persistent memory range into the system memmap via devm_memremap_pages(),
+arranges for DAX to distinguish pfn-only versus page-backed pmem-pfns via
+flags in the new pfn_t type.
 
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Kirill A. Shutemov <kirill@shutemov.name>
-Cc: Hugh Dickins <hughd@google.com>
+The DAX code, upon seeing a PFN_DEV+PFN_MAP flagged pfn, flags the
+resulting pte(s) inserted into the process page tables with a new
+_PAGE_DEVMAP flag.  Later, when get_user_pages() is walking ptes it keys
+off _PAGE_DEVMAP to pin the device hosting the page range active. 
+Finally, get_page() and put_page() are modified to take references against
+the device driver established page mapping.
+
+Finally, this need for "struct page" for persistent memory requires memory
+capacity to store the memmap array.  Given the memmap array for a large
+pool of persistent may exhaust available DRAM introduce a mechanism to
+allocate the memmap from persistent memory.  The new "struct vmem_altmap
+*" parameter to devm_memremap_pages() enables arch_add_memory() to use
+reserved pmem capacity rather than the page allocator.
+
+
+
+This patch (of 25):
+
+Both __dax_pmd_fault, and clear_pmem() were taking special steps to clear
+memory a page at a time to take advantage of non-temporal clear_page()
+implementations.  However, x86_64 does not use non-temporal instructions
+for clear_page(), and arch_clear_pmem() was always incurring the cost of
+__arch_wb_cache_pmem().
+
+Clean up the assumption that doing clear_pmem() a page at a time is more
+performant.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Dave Hansen <dave.hansen@linux.intel.com>
+Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: <yalin.wang2010@gmail.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Chen Gang <gang.chen.5i5j@gmail.com>
-Cc: Chris Zankel <chris@zankel.net>
-Cc: Daniel Micay <danielmicay@gmail.com>
-Cc: Darrick J. Wong <darrick.wong@oracle.com>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
-Cc: Jason Evans <je@fb.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
-Cc: Matt Turner <mattst88@gmail.com>
-Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Christoffer Dall <christoffer.dall@linaro.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jan Kara <jack@suse.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Logan Gunthorpe <logang@deltatee.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Mika Penttil <mika.penttila@nextfour.com>
-Cc: Ralf Baechle <ralf@linux-mips.org>
-Cc: Richard Henderson <rth@twiddle.net>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Roland Dreier <roland@kernel.org>
-Cc: Russell King <rmk@arm.linux.org.uk>
-Cc: Shaohua Li <shli@kernel.org>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Toshi Kani <toshi.kani@hpe.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    3 +
- mm/huge_memory.c        |   87 +++++++++++++++++++++++++++++++++++---
- mm/madvise.c            |    8 +++
- 3 files changed, 92 insertions(+), 6 deletions(-)
+ arch/x86/include/asm/pmem.h |    7 +------
+ fs/dax.c                    |    4 +---
+ 2 files changed, 2 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/huge_mm.h~mm-dont-split-thp-page-when-syscall-is-called include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~mm-dont-split-thp-page-when-syscall-is-called
-+++ a/include/linux/huge_mm.h
-@@ -19,6 +19,9 @@ extern struct page *follow_trans_huge_pm
- 					  unsigned long addr,
- 					  pmd_t *pmd,
- 					  unsigned int flags);
-+extern int madvise_free_huge_pmd(struct mmu_gather *tlb,
-+			struct vm_area_struct *vma,
-+			pmd_t *pmd, unsigned long addr, unsigned long next);
- extern int zap_huge_pmd(struct mmu_gather *tlb,
- 			struct vm_area_struct *vma,
- 			pmd_t *pmd, unsigned long addr);
-diff -puN mm/huge_memory.c~mm-dont-split-thp-page-when-syscall-is-called mm/huge_memory.c
---- a/mm/huge_memory.c~mm-dont-split-thp-page-when-syscall-is-called
-+++ a/mm/huge_memory.c
-@@ -1501,6 +1501,77 @@ out:
- 	return 0;
- }
- 
-+int madvise_free_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
-+		pmd_t *pmd, unsigned long addr, unsigned long next)
-+
-+{
-+	spinlock_t *ptl;
-+	pmd_t orig_pmd;
-+	struct page *page;
-+	struct mm_struct *mm = tlb->mm;
-+	int ret = 0;
-+
-+	if (!pmd_trans_huge_lock(pmd, vma, &ptl))
-+		goto out;
-+
-+	orig_pmd = *pmd;
-+	if (is_huge_zero_pmd(orig_pmd)) {
-+		ret = 1;
-+		goto out;
-+	}
-+
-+	page = pmd_page(orig_pmd);
-+	/*
-+	 * If other processes are mapping this page, we couldn't discard
-+	 * the page unless they all do MADV_FREE so let's skip the page.
-+	 */
-+	if (page_mapcount(page) != 1)
-+		goto out;
-+
-+	if (!trylock_page(page))
-+		goto out;
-+
-+	/*
-+	 * If user want to discard part-pages of THP, split it so MADV_FREE
-+	 * will deactivate only them.
-+	 */
-+	if (next - addr != HPAGE_PMD_SIZE) {
-+		get_page(page);
-+		spin_unlock(ptl);
-+		if (split_huge_page(page)) {
-+			put_page(page);
-+			unlock_page(page);
-+			goto out_unlocked;
-+		}
-+		put_page(page);
-+		unlock_page(page);
-+		ret = 1;
-+		goto out_unlocked;
-+	}
-+
-+	if (PageDirty(page))
-+		ClearPageDirty(page);
-+	unlock_page(page);
-+
-+	if (PageActive(page))
-+		deactivate_page(page);
-+
-+	if (pmd_young(orig_pmd) || pmd_dirty(orig_pmd)) {
-+		orig_pmd = pmdp_huge_get_and_clear_full(tlb->mm, addr, pmd,
-+			tlb->fullmm);
-+		orig_pmd = pmd_mkold(orig_pmd);
-+		orig_pmd = pmd_mkclean(orig_pmd);
-+
-+		set_pmd_at(mm, addr, pmd, orig_pmd);
-+		tlb_remove_pmd_tlb_entry(tlb, pmd, addr);
-+	}
-+	ret = 1;
-+out:
-+	spin_unlock(ptl);
-+out_unlocked:
-+	return ret;
-+}
-+
- int zap_huge_pmd(struct mmu_gather *tlb, struct vm_area_struct *vma,
- 		 pmd_t *pmd, unsigned long addr)
+diff -puN arch/x86/include/asm/pmem.h~pmem-dax-clean-up-clear_pmem arch/x86/include/asm/pmem.h
+--- a/arch/x86/include/asm/pmem.h~pmem-dax-clean-up-clear_pmem
++++ a/arch/x86/include/asm/pmem.h
+@@ -132,12 +132,7 @@ static inline void arch_clear_pmem(void
  {
-@@ -2710,7 +2781,7 @@ static void __split_huge_pmd_locked(stru
- 	struct page *page;
- 	pgtable_t pgtable;
- 	pmd_t _pmd;
--	bool young, write;
-+	bool young, write, dirty;
- 	int i;
+ 	void *vaddr = (void __force *)addr;
  
- 	VM_BUG_ON(haddr & ~HPAGE_PMD_MASK);
-@@ -2734,6 +2805,7 @@ static void __split_huge_pmd_locked(stru
- 	atomic_add(HPAGE_PMD_NR - 1, &page->_count);
- 	write = pmd_write(*pmd);
- 	young = pmd_young(*pmd);
-+	dirty = pmd_dirty(*pmd);
- 
- 	pgtable = pgtable_trans_huge_withdraw(mm, pmd);
- 	pmd_populate(mm, &_pmd, pgtable);
-@@ -2751,12 +2823,14 @@ static void __split_huge_pmd_locked(stru
- 			entry = swp_entry_to_pte(swp_entry);
- 		} else {
- 			entry = mk_pte(page + i, vma->vm_page_prot);
--			entry = maybe_mkwrite(pte_mkdirty(entry), vma);
-+			entry = maybe_mkwrite(entry, vma);
- 			if (!write)
- 				entry = pte_wrprotect(entry);
- 			if (!young)
- 				entry = pte_mkold(entry);
- 		}
-+		if (dirty)
-+			SetPageDirty(page + i);
- 		pte = pte_offset_map(&_pmd, haddr);
- 		BUG_ON(!pte_none(*pte));
- 		set_pte_at(mm, haddr, pte, entry);
-@@ -2962,6 +3036,8 @@ static void freeze_page_vma(struct vm_ar
- 			continue;
- 		flush_cache_page(vma, address, page_to_pfn(page));
- 		entry = ptep_clear_flush(vma, address, pte + i);
-+		if (pte_dirty(entry))
-+			SetPageDirty(page);
- 		swp_entry = make_migration_entry(page, pte_write(entry));
- 		swp_pte = swp_entry_to_pte(swp_entry);
- 		if (pte_soft_dirty(entry))
-@@ -3028,7 +3104,8 @@ static void unfreeze_page_vma(struct vm_
- 		page_add_anon_rmap(page, vma, address, false);
- 
- 		entry = pte_mkold(mk_pte(page, vma->vm_page_prot));
--		entry = pte_mkdirty(entry);
-+		if (PageDirty(page))
-+			entry = pte_mkdirty(entry);
- 		if (is_write_migration_entry(swp_entry))
- 			entry = maybe_mkwrite(entry, vma);
- 
-@@ -3089,8 +3166,8 @@ static int __split_huge_page_tail(struct
- 			 (1L << PG_uptodate) |
- 			 (1L << PG_active) |
- 			 (1L << PG_locked) |
--			 (1L << PG_unevictable)));
--	page_tail->flags |= (1L << PG_dirty);
-+			 (1L << PG_unevictable) |
-+			 (1L << PG_dirty)));
- 
- 	/*
- 	 * After clearing PageTail the gup refcount can be released.
-diff -puN mm/madvise.c~mm-dont-split-thp-page-when-syscall-is-called mm/madvise.c
---- a/mm/madvise.c~mm-dont-split-thp-page-when-syscall-is-called
-+++ a/mm/madvise.c
-@@ -271,8 +271,13 @@ static int madvise_free_pte_range(pmd_t
- 	pte_t *orig_pte, *pte, ptent;
- 	struct page *page;
- 	int nr_swap = 0;
-+	unsigned long next;
-+
-+	next = pmd_addr_end(addr, end);
-+	if (pmd_trans_huge(*pmd))
-+		if (madvise_free_huge_pmd(tlb, vma, pmd, addr, next))
-+			goto next;
- 
--	split_huge_pmd(vma, pmd, addr);
- 	if (pmd_trans_unstable(pmd))
- 		return 0;
- 
-@@ -383,6 +388,7 @@ out:
- 	arch_leave_lazy_mmu_mode();
- 	pte_unmap_unlock(orig_pte, ptl);
- 	cond_resched();
-+next:
- 	return 0;
- }
- 
-_
-
-Patches currently in -mm which might be from minchan@kernel.org are
-
-
+-	/* TODO: implement the zeroing via non-temporal writes */
+-	if (size == PAGE_SIZE && ((unsigned long)vaddr & ~PAGE_MASK) == 0)
+-		clear_page(vaddr);
+-	else
+-		memset(vaddr, 0, size);
