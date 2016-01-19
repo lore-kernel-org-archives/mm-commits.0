@@ -1,82 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-mlockc-change-can_do_mlock-return-value-type-to-boolean.patch removed
- from -mm tree
-Date: Tue, 19 Jan 2016 12:14:09 -0800
-Message-ID: <569e9911.sMwXsEY/TjIsSq5h%akpm@linux-foundation.org>
+ mm-mempolicy-skip-non-migratable-vmas-when-setting-mpol_mf_lazy.patch
+ removed from -mm tree
+Date: Tue, 19 Jan 2016 12:14:13 -0800
+Message-ID: <569e9915.3+Xk3C96lP8AgMxx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44432 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44446 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933139AbcASUOJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:09 -0500
+	with ESMTP id S933139AbcASUOO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 15:14:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: wangxq10@lzu.edu.cn, mm-commits@vger.kernel.org
+To: liangchen.linux@gmail.com, andi@firstfloor.org, gavin.guo@canonical.com, mgorman@suse.de, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mlock.c: change can_do_mlock return value type to boolean
+     Subject: mm: mempolicy: skip non-migratable VMAs when setting MPOL_MF_LAZY
 has been removed from the -mm tree.  Its filename was
-     mm-mlockc-change-can_do_mlock-return-value-type-to-boolean.patch
+     mm-mempolicy-skip-non-migratable-vmas-when-setting-mpol_mf_lazy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
-Subject: mm/mlock.c: change can_do_mlock return value type to boolean
+From: Liang Chen <liangchen.linux@gmail.com>
+Subject: mm: mempolicy: skip non-migratable VMAs when setting MPOL_MF_LAZY
 
-Since can_do_mlock only return 1 or 0, so make it boolean.
+MPOL_MF_LAZY is not visible from userspace since a720094ded8c ("mm:
+mempolicy: Hide MPOL_NOOP and MPOL_MF_LAZY from userspace for now"), but
+it should still skip non-migratable VMAs such as VM_IO, VM_PFNMAP, and
+VM_HUGETLB VMAs, and avoid useless overhead of minor faults.
 
-No functional change.
-
-[akpm@linux-foundation.org: update declaration in mm.h]
-Signed-off-by: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
+Signed-off-by: Liang Chen <liangchen.linux@gmail.com>
+Signed-off-by: Gavin Guo <gavin.guo@canonical.com>
+Acked-by: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 +-
- mm/mlock.c         |    8 ++++----
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ mm/mempolicy.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-mlockc-change-can_do_mlock-return-value-type-to-boolean include/linux/mm.h
---- a/include/linux/mm.h~mm-mlockc-change-can_do_mlock-return-value-type-to-boolean
-+++ a/include/linux/mm.h
-@@ -1100,7 +1100,7 @@ static inline bool shmem_mapping(struct
- }
- #endif
+diff -puN mm/mempolicy.c~mm-mempolicy-skip-non-migratable-vmas-when-setting-mpol_mf_lazy mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-skip-non-migratable-vmas-when-setting-mpol_mf_lazy
++++ a/mm/mempolicy.c
+@@ -644,7 +644,8 @@ static int queue_pages_test_walk(unsigne
  
--extern int can_do_mlock(void);
-+extern bool can_do_mlock(void);
- extern int user_shm_lock(size_t, struct user_struct *);
- extern void user_shm_unlock(size_t, struct user_struct *);
- 
-diff -puN mm/mlock.c~mm-mlockc-change-can_do_mlock-return-value-type-to-boolean mm/mlock.c
---- a/mm/mlock.c~mm-mlockc-change-can_do_mlock-return-value-type-to-boolean
-+++ a/mm/mlock.c
-@@ -24,13 +24,13 @@
- 
- #include "internal.h"
- 
--int can_do_mlock(void)
-+bool can_do_mlock(void)
- {
- 	if (rlimit(RLIMIT_MEMLOCK) != 0)
--		return 1;
-+		return true;
- 	if (capable(CAP_IPC_LOCK))
--		return 1;
--	return 0;
-+		return true;
-+	return false;
- }
- EXPORT_SYMBOL(can_do_mlock);
- 
+ 	if (flags & MPOL_MF_LAZY) {
+ 		/* Similar to task_numa_work, skip inaccessible VMAs */
+-		if (vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE))
++		if (vma_migratable(vma) &&
++			vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE))
+ 			change_prot_numa(vma, start, endvma);
+ 		return 1;
+ 	}
 _
 
-Patches currently in -mm which might be from wangxq10@lzu.edu.cn are
+Patches currently in -mm which might be from liangchen.linux@gmail.com are
 
 
