@@ -1,93 +1,74 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2.patch removed from -mm tree
-Date: Wed, 20 Jan 2016 13:11:14 -0800
-Message-ID: <569ff7f2.Ekf7R9JifOponO+8%akpm@linux-foundation.org>
+ dma-mapping-always-provide-the-dma_map_ops-based-implementation-fix.patch
+ removed from -mm tree
+Date: Wed, 20 Jan 2016 13:41:55 -0800
+Message-ID: <569fff23.XOKEDQKCVcsTiZN1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38972 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754445AbcATVLP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 16:11:15 -0500
+	with ESMTP id S1751034AbcATVl5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 16:41:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: pmladek@suse.com, mm-commits@vger.kernel.org
+To: valentinrothberg@gmail.com, borntraeger@de.ibm.com, hch@lst.de, jroedel@suse.de, sebott@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk/nmi: Remove the questionable CONFIG_NEED_PRINTK_NMI
+     Subject: HAVE_DMA_ATTRS: remove leftovers in Kconfig
 has been removed from the -mm tree.  Its filename was
-     printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2.patch
+     dma-mapping-always-provide-the-dma_map_ops-based-implementation-fix.patch
 
-This patch was dropped because it was folded into printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable.patch
+This patch was dropped because it was folded into dma-mapping-always-provide-the-dma_map_ops-based-implementation.patch
 
 ------------------------------------------------------
-From: Petr Mladek <pmladek@suse.com>
-Subject: printk/nmi: Remove the questionable CONFIG_NEED_PRINTK_NMI
+From: Valentin Rothberg <valentinrothberg@gmail.com>
+Subject: HAVE_DMA_ATTRS: remove leftovers in Kconfig
 
-The flag NEED_PRINTK_NMI was added because of Arm.  It used the NMI safe
-backtrace implementation on all Arm systems.  But it did not have a real
-NMI handling on CPU_V7M.
+The Kconfig option HAVE_DMA_ATTRS has been removed by
+commit f6f306eeb7ea ("dma-mapping: always provide the dma_map_ops based
+implementation").  Remove leftover references on this option.
 
-It seems that it causes more confusion than good.  Let's use HAVE_NMI on
-all arm systems and get rid of the problematic flag.
-
-Signed-off-by: Petr Mladek <pmladek@suse.com>
+Signed-off-by: Valentin Rothberg <valentinrothberg@gmail.com>
+Reviewed-by: Christoph Hellwig <hch@lst.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/Kconfig     |    3 ---
- arch/arm/Kconfig |    3 +--
- init/Kconfig     |    2 +-
- 3 files changed, 2 insertions(+), 6 deletions(-)
+ arch/s390/Kconfig           |    1 -
+ drivers/gpu/drm/vc4/Kconfig |    2 +-
+ 2 files changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/Kconfig~printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2 arch/Kconfig
---- a/arch/Kconfig~printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2
-+++ a/arch/Kconfig
-@@ -190,9 +190,6 @@ config HAVE_KPROBES_ON_FTRACE
- config HAVE_NMI
- 	bool
+diff -puN arch/s390/Kconfig~dma-mapping-always-provide-the-dma_map_ops-based-implementation-fix arch/s390/Kconfig
+--- a/arch/s390/Kconfig~dma-mapping-always-provide-the-dma_map_ops-based-implementation-fix
++++ a/arch/s390/Kconfig
+@@ -579,7 +579,6 @@ config QDIO
  
--config NEED_PRINTK_NMI
--	bool
--
- config HAVE_NMI_WATCHDOG
- 	depends on HAVE_NMI
- 	bool
-diff -puN arch/arm/Kconfig~printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2 arch/arm/Kconfig
---- a/arch/arm/Kconfig~printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2
-+++ a/arch/arm/Kconfig
-@@ -67,8 +67,7 @@ config ARM
- 	select HAVE_KRETPROBES if (HAVE_KPROBES)
- 	select HAVE_MEMBLOCK
- 	select HAVE_MOD_ARCH_SPECIFIC
--	select HAVE_NMI if (!CPU_V7M)
--	select NEED_PRINTK_NMI if (CPU_V7M)
-+	select HAVE_NMI
- 	select HAVE_OPROFILE if (HAVE_PERF_EVENTS)
- 	select HAVE_OPTPROBES if !THUMB2_KERNEL
- 	select HAVE_PERF_EVENTS
-diff -puN init/Kconfig~printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2 init/Kconfig
---- a/init/Kconfig~printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable-fix-2
-+++ a/init/Kconfig
-@@ -1468,7 +1468,7 @@ config PRINTK
- config PRINTK_NMI
- 	def_bool y
- 	depends on PRINTK
--	depends on HAVE_NMI || NEED_PRINTK_NMI
-+	depends on HAVE_NMI
- 
- config BUG
- 	bool "BUG() support" if EXPERT
+ menuconfig PCI
+ 	bool "PCI support"
+-	select HAVE_DMA_ATTRS
+ 	select PCI_MSI
+ 	select IOMMU_SUPPORT
+ 	help
+diff -puN drivers/gpu/drm/vc4/Kconfig~dma-mapping-always-provide-the-dma_map_ops-based-implementation-fix drivers/gpu/drm/vc4/Kconfig
+--- a/drivers/gpu/drm/vc4/Kconfig~dma-mapping-always-provide-the-dma_map_ops-based-implementation-fix
++++ a/drivers/gpu/drm/vc4/Kconfig
+@@ -1,7 +1,7 @@
+ config DRM_VC4
+ 	tristate "Broadcom VC4 Graphics"
+ 	depends on ARCH_BCM2835 || COMPILE_TEST
+-	depends on DRM && HAVE_DMA_ATTRS
++	depends on DRM
+ 	select DRM_KMS_HELPER
+ 	select DRM_KMS_CMA_HELPER
+ 	select DRM_GEM_CMA_HELPER
 _
 
-Patches currently in -mm which might be from pmladek@suse.com are
+Patches currently in -mm which might be from valentinrothberg@gmail.com are
 
-printk-nmi-generic-solution-for-safe-printk-in-nmi.patch
-printk-nmi-use-irq-work-only-when-ready.patch
-printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context.patch
-printk-nmi-increase-the-size-of-nmi-buffer-and-make-it-configurable.patch
+powerpc-enable-ubsan-support-fix.patch
+dma-mapping-always-provide-the-dma_map_ops-based-implementation.patch
 
