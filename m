@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + numa-fix-proc-pid-numa_maps-on-s390-fix.patch added to -mm tree
-Date: Wed, 20 Jan 2016 12:29:14 -0800
-Message-ID: <569fee1a.UC9NlhkhmlulonGq%akpm@linux-foundation.org>
+Subject: +
+ include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch added to -mm tree
+Date: Wed, 20 Jan 2016 12:34:20 -0800
+Message-ID: <569fef4c.MHEXWTkGQ2uNNYVR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35938 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36207 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753974AbcATU3P (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 15:29:15 -0500
+	with ESMTP id S1753129AbcATUeV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 15:34:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, gerald.schaefer@de.ibm.com, holzheu@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aarcange@redhat.com, kirill@shutemov.name, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: numa-fix-proc-pid-numa_maps-on-s390-fix
+     Subject: include/linux/huge_mm.h: pmd_trans_huge_lock() returns a spinlock_t *
 has been added to the -mm tree.  Its filename is
-     numa-fix-proc-pid-numa_maps-on-s390-fix.patch
+     include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/numa-fix-proc-pid-numa_maps-on-s390-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/numa-fix-proc-pid-numa_maps-on-s390-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,39 +40,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: numa-fix-proc-pid-numa_maps-on-s390-fix
+Subject: include/linux/huge_mm.h: pmd_trans_huge_lock() returns a spinlock_t *
 
-huge_ptep_get() doesn't exist when CONFIG_HUGETLB_PAGE=n.  But this whole
-code cblock does nothing when CONFIG_TRANSPARENT_HUGEPAGE=n, so use that
-to fix the build error.
+Not "false".
 
-Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |    2 ++
- 1 file changed, 2 insertions(+)
+ include/linux/huge_mm.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/task_mmu.c~numa-fix-proc-pid-numa_maps-on-s390-fix fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~numa-fix-proc-pid-numa_maps-on-s390-fix
-+++ a/fs/proc/task_mmu.c
-@@ -1523,6 +1523,7 @@ static int gather_pte_stats(pmd_t *pmd,
- 	pte_t *pte;
- 
- 	ptl = pmd_trans_huge_lock(pmd, vma);
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	if (ptl) {
- 		pte_t huge_pte = huge_ptep_get((pte_t *)pmd);
- 		struct page *page;
-@@ -1534,6 +1535,7 @@ static int gather_pte_stats(pmd_t *pmd,
- 		spin_unlock(ptl);
- 		return 0;
- 	}
-+#endif
- 
- 	if (pmd_trans_unstable(pmd))
- 		return 0;
+diff -puN include/linux/huge_mm.h~include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t
++++ a/include/linux/huge_mm.h
+@@ -130,7 +130,7 @@ static inline spinlock_t *pmd_trans_huge
+ 	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd))
+ 		return __pmd_trans_huge_lock(pmd, vma);
+ 	else
+-		return false;
++		return NULL;
+ }
+ static inline int hpage_nr_pages(struct page *page)
+ {
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +96,7 @@ fs-adfs-adfsh-tidy-up-comments.patch
 net-drop-tcp_memcontrolc-fix.patch
 mm-memcontrol-reign-in-the-config-space-madness-fix.patch
 mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
+include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
