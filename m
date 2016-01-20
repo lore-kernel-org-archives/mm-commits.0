@@ -1,66 +1,48 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- fs-coredump-prevent-core-path-components-fix.patch removed from -mm tree
-Date: Wed, 20 Jan 2016 14:35:35 -0800
-Message-ID: <56a00bb7.v5GLVvjRymlkUH7A%akpm@linux-foundation.org>
+ ubsan-run-time-undefined-behavior-sanity-checker-fix.patch removed from -mm tree
+Date: Wed, 20 Jan 2016 14:36:05 -0800
+Message-ID: <56a00bd5.Vpllmlu0FvtHgWTF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42007 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42027 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753387AbcATWfg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 17:35:36 -0500
+	with ESMTP id S1752918AbcATWgG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 17:36:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jann@thejh.net, keescook@chromium.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, lkp@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs-coredump-prevent-core-path-components-fix
+     Subject: ubsan-run-time-undefined-behavior-sanity-checker-fix
 has been removed from the -mm tree.  Its filename was
-     fs-coredump-prevent-core-path-components-fix.patch
+     ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
 
-This patch was dropped because it was folded into fs-coredump-prevent-core-path-components.patch
+This patch was dropped because it was folded into ubsan-run-time-undefined-behavior-sanity-checker.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: fs-coredump-prevent-core-path-components-fix
+Subject: ubsan-run-time-undefined-behavior-sanity-checker-fix
 
-tweak code comment
+fix unused local warning
 
-Cc: Jann Horn <jann@thejh.net>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Reported-by: kbuild test robot <lkp@intel.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/ubsan.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/coredump.c~fs-coredump-prevent-core-path-components-fix fs/coredump.c
---- a/fs/coredump.c~fs-coredump-prevent-core-path-components-fix
-+++ a/fs/coredump.c
-@@ -121,7 +121,7 @@ int cn_esc_printf(struct core_name *cn,
- 	if (ret == 0) {
- 		/*
- 		 * Ensure that this coredump name component can't cause the
--		 * resulting corefile path to contain a ".." or "." component.
-+		 * resulting corefile path to consist of a ".." or ".".
- 		 */
- 		if ((cn->used - cur == 1 && cn->corename[cur] == '.') ||
- 				(cn->used - cur == 2 && cn->corename[cur] == '.'
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-fs-coredump-prevent-core-path-components.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
-fs-overlayfs-superc-needs-pagemaph.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-net-drop-tcp_memcontrolc-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
-
+diff -puN lib/ubsan.c~ubsan-run-time-undefined-behavior-sanity-checker-fix lib/ubsan.c
+--- a/lib/ubsan.c~ubsan-run-time-undefined-behavior-sanity-checker-fix
++++ a/lib/ubsan.c
+@@ -118,11 +118,11 @@ static u_max get_unsigned_val(struct typ
+ static void val_to_string(char *str, size_t size, struct type_descriptor *type,
+ 	unsigned long value)
+ {
+-	u_max val = get_unsigned_val(type, value);
