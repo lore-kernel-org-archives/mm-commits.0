@@ -1,42 +1,29 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-fix-migrate_zspage-zs_free-race-condition.patch added
- to -mm tree
-Date: Tue, 19 Jan 2016 16:48:32 -0800
-Message-ID: <569ed960.5Ko767R2SNzI3HHH%akpm__40840.3029585772$1453250936$gmane$org@linux-foundation.org>
+Subject: [alternative-merged]
+ zsmalloc-fix-migrate_zspage-zs_free-race-condition.patch removed from -mm
+ tree
+Date: Tue, 19 Jan 2016 16:46:01 -0800
+Message-ID: <569ed8c9.bYaIKTnxwqNIU6oY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58957 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58829 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933644AbcATAsd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 19:48:33 -0500
+	with ESMTP id S933005AbcATAqC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 19:46:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: junil0814.lee@lge.com, minchan@kernel.org, sergey.senozhatsky.work@gmail.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: junil0814.lee@lge.com, minchan@kernel.org, sergey.senozhatsky.work@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
      Subject: zsmalloc: fix migrate_zspage-zs_free race condition
-has been added to the -mm tree.  Its filename is
+has been removed from the -mm tree.  Its filename was
      zsmalloc-fix-migrate_zspage-zs_free-race-condition.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-fix-migrate_zspage-zs_free-race-condition.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-fix-migrate_zspage-zs_free-race-condition.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
 From: Junil Lee <junil0814.lee@lge.com>
@@ -46,6 +33,7 @@ record_obj() in migrate_zspage() does not preserve handle's
 HANDLE_PIN_BIT, set by find_aloced_obj()->trypin_tag(), and implicitly
 (accidentally) un-pins the handle, while migrate_zspage() still performs
 an explicit unpin_tag() on the that handle.
+
 This additional explicit unpin_tag() introduces a race condition with
 zs_free(), which can pin that handle by this time, so the handle becomes
 un-pinned.
@@ -84,54 +72,49 @@ The race condition may result in a NULL pointer dereference:
 		[<ffffffc000087e44>] do_signal+0x98/0x4b8
 		[<ffffffc00008843c>] do_notify_resume+0x14/0x5c
 
-This patch keeps the lock bit in migration path and update
-value atomically.
+Fix the race by removing explicit unpin_tag() from migrate_zspage().
 
 Signed-off-by: Junil Lee <junil0814.lee@lge.com>
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: <stable@vger.kernel.org>	[4.1+]
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ mm/zsmalloc.c |   17 ++++++++++++++++-
+ 1 file changed, 16 insertions(+), 1 deletion(-)
 
 diff -puN mm/zsmalloc.c~zsmalloc-fix-migrate_zspage-zs_free-race-condition mm/zsmalloc.c
 --- a/mm/zsmalloc.c~zsmalloc-fix-migrate_zspage-zs_free-race-condition
 +++ a/mm/zsmalloc.c
-@@ -309,7 +309,12 @@ static void free_handle(struct zs_pool *
+@@ -307,9 +307,24 @@ static void free_handle(struct zs_pool *
+ 	kmem_cache_free(pool->handle_cachep, (void *)handle);
+ }
  
++
++/*
++ * record_obj updates handle's value to free_obj and it shouldn't
++ * invalidate lock bit(ie, HANDLE_PIN_BIT) of handle, otherwise
++ * it breaks synchronization using pin_tag(e,g, zs_free) so let's
++ * keep the lock bit.
++ */
  static void record_obj(unsigned long handle, unsigned long obj)
  {
 -	*(unsigned long *)handle = obj;
++	int locked = (*(unsigned long *)handle) & (1 << HANDLE_PIN_BIT);
++	unsigned long val = obj | locked;
++
 +	/*
-+	 * lsb of @obj represents handle lock while other bits
-+	 * represent object value the handle is pointing so
-+	 * updating shouldn't do store tearing.
++	 * WRITE_ONCE could prevent store tearing like below
++	 * *(unsigned long *)handle = free_obj
++	 * *(unsigned long *)handle |= locked;
 +	 */
-+	WRITE_ONCE(*(unsigned long *)handle, obj);
++	WRITE_ONCE(*(unsigned long *)handle, val);
  }
  
  /* zpool driver */
-@@ -1635,6 +1640,13 @@ static int migrate_zspage(struct zs_pool
- 		free_obj = obj_malloc(d_page, class, handle);
- 		zs_object_copy(free_obj, used_obj, class);
- 		index++;
-+		/*
-+		 * record_obj updates handle's value to free_obj and it will
-+		 * invalidate lock bit(ie, HANDLE_PIN_BIT) of handle, which
-+		 * breaks synchronization using pin_tag(e,g, zs_free) so
-+		 * let's keep the lock bit.
-+		 */
-+		free_obj |= BIT(HANDLE_PIN_BIT);
- 		record_obj(handle, free_obj);
- 		unpin_tag(handle);
- 		obj_free(pool, class, used_obj);
 _
 
 Patches currently in -mm which might be from junil0814.lee@lge.com are
 
-zsmalloc-fix-migrate_zspage-zs_free-race-condition.patch
 
