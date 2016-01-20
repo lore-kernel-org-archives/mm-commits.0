@@ -1,68 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- um-fix-build-error-and-kconfig-for-i386.patch removed from -mm tree
-Date: Wed, 20 Jan 2016 13:46:30 -0800
-Message-ID: <56a00036./prfqpFiKKlLjAOf%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
+ removed from -mm tree
+Date: Wed, 20 Jan 2016 14:34:33 -0800
+Message-ID: <56a00b79.51sRMOI9AWBCSZUq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39267 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41985 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758422AbcATVqb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 16:46:31 -0500
+	with ESMTP id S1755285AbcATWee (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 17:34:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mic@digikod.net, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: um: fix build error and kconfig for i386
+     Subject: ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix
 has been removed from the -mm tree.  Its filename was
-     um-fix-build-error-and-kconfig-for-i386.patch
+     ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was folded into ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task.patch
 
 ------------------------------------------------------
-=46rom: Micka=EBl Sala=FCn <mic@digikod.net>
-Subject: um: fix build error and kconfig for i386
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix
 
-=46ix build error by selecting COREDUMP when X86_32 is selected:
+teeny cleanup
 
-arch/x86/um/built-in.o: In function `elf_core_write_extra_phdrs':
-(.text+0x3e62): undefined reference to `dump_emit'
-arch/x86/um/built-in.o: In function `elf_core_write_extra_data':
-(.text+0x3eef): undefined reference to `dump_emit'
-
-=46ixes: 5d2acfc7b974 ("kconfig: make allnoconfig disable options behin=
-d EMBEDDED and EXPERT")
-Signed-off-by: Micka=EBl Sala=FCn <mic@digikod.net>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/um/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/exit.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN arch/x86/um/Kconfig~um-fix-build-error-and-kconfig-for-i386 a=
-rch/x86/um/Kconfig
---- a/arch/x86/um/Kconfig~um-fix-build-error-and-kconfig-for-i386
-+++ a/arch/x86/um/Kconfig
-@@ -26,6 +26,7 @@ config X86_32
- 	select CLONE_BACKWARDS
- 	select OLD_SIGSUSPEND3
- 	select OLD_SIGACTION
-+	select COREDUMP
-=20
- config X86_64
- 	def_bool 64BIT
+diff -puN kernel/exit.c~ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix kernel/exit.c
+--- a/kernel/exit.c~ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix
++++ a/kernel/exit.c
+@@ -1120,8 +1120,7 @@ static int wait_task_zombie(struct wait_
+ static int *task_stopped_code(struct task_struct *p, bool ptrace)
+ {
+ 	if (ptrace) {
+-		if (task_is_traced(p) &&
+-		    !(p->jobctl & JOBCTL_LISTENING))
++		if (task_is_traced(p) && !(p->jobctl & JOBCTL_LISTENING))
+ 			return &p->exit_code;
+ 	} else {
+ 		if (p->signal->flags & SIGNAL_STOP_STOPPED)
 _
 
-Patches currently in -mm which might be from mic@digikod.net are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task.patch
+ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
+fs-coredump-prevent-core-path-components-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
+ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
+fs-overlayfs-superc-needs-pagemaph.patch
+fs-adfs-adfsh-tidy-up-comments.patch
+net-drop-tcp_memcontrolc-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix.patch
+mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
