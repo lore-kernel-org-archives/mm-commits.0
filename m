@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch added to -mm tree
-Date: Wed, 20 Jan 2016 12:34:20 -0800
-Message-ID: <569fef4c.MHEXWTkGQ2uNNYVR%akpm@linux-foundation.org>
+ ratelimit-fix-bug-in-time-interval-by-resetting-right-begin-time.patch
+ added to -mm tree
+Date: Wed, 20 Jan 2016 12:57:09 -0800
+Message-ID: <569ff4a5.uL9ZSOs3bzHs1nnt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36207 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37160 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753129AbcATUeV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 15:34:21 -0500
+	with ESMTP id S1753161AbcATU5K (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 15:57:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, kirill@shutemov.name, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: jaewon31.kim@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/huge_mm.h: pmd_trans_huge_lock() returns a spinlock_t *
+     Subject: ratelimit: fix bug in time interval by resetting right begin time
 has been added to the -mm tree.  Its filename is
-     include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
+     ratelimit-fix-bug-in-time-interval-by-resetting-right-begin-time.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ratelimit-fix-bug-in-time-interval-by-resetting-right-begin-time.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ratelimit-fix-bug-in-time-interval-by-resetting-right-begin-time.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,65 +40,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/huge_mm.h: pmd_trans_huge_lock() returns a spinlock_t *
+From: Jaewon Kim <jaewon31.kim@gmail.com>
+Subject: ratelimit: fix bug in time interval by resetting right begin time
 
-Not "false".
+rs->begin in ratelimit is set in two cases.
+1) when rs->begin was not initialized
+2) when rs->interval was passed
+For the case 2), current ratelimit sets the begin to 0. This incurrs improper
+suppression. The begin value will be set in the next ratelimit call by 1).
+Then the time interval check will be always false, and rs->printed will not be
+initialized. Although enough time passed, ratelimit may return 0 if rs->printed
+is not less than rs->burst. To reset interval properly, begin should be jiffies
+rather than 0.
 
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+For an example code below,
+	static DEFINE_RATELIMIT_STATE(mylimit, 1, 1);
+	for (i = 1; i <= 10; i++) {
+		if (__ratelimit(&mylimit))
+			printk("ratelimit test count %d\n", i);
+		msleep(3000);
+	}
+test result in the current code shows suppression even there is 3 seconds sleep.
+[  78.391148] ratelimit test count 1
+[  81.295988] ratelimit test count 2
+[  87.315981] ratelimit test count 4
+[  93.336267] ratelimit test count 6
+[  99.356031] ratelimit test count 8
+[ 105.376367] ratelimit test count 10
+
+Signed-off-by: Jaewon Kim <jaewon31.kim@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 +-
+ lib/ratelimit.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/huge_mm.h~include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t
-+++ a/include/linux/huge_mm.h
-@@ -130,7 +130,7 @@ static inline spinlock_t *pmd_trans_huge
- 	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd))
- 		return __pmd_trans_huge_lock(pmd, vma);
- 	else
--		return false;
-+		return NULL;
- }
- static inline int hpage_nr_pages(struct page *page)
- {
+diff -puN lib/ratelimit.c~ratelimit-fix-bug-in-time-interval-by-resetting-right-begin-time lib/ratelimit.c
+--- a/lib/ratelimit.c~ratelimit-fix-bug-in-time-interval-by-resetting-right-begin-time
++++ a/lib/ratelimit.c
+@@ -49,7 +49,7 @@ int ___ratelimit(struct ratelimit_state
+ 		if (rs->missed)
+ 			printk(KERN_WARNING "%s: %d callbacks suppressed\n",
+ 				func, rs->missed);
+-		rs->begin   = 0;
++		rs->begin   = jiffies;
+ 		rs->printed = 0;
+ 		rs->missed  = 0;
+ 	}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jaewon31.kim@gmail.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-numa-fix-proc-pid-numa_maps-on-s390-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-mm.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-sched-add-schedule_timeout_idle.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-printk-nmi-generic-solution-for-safe-printk-in-nmi-v4-fix-fix.patch
-printk-nmi-warn-when-some-message-has-been-lost-in-nmi-context-fix.patch
-ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task-fix.patch
-ptrace-use-fsuid-fsgid-effective-creds-for-fs-access-checks-fix.patch
-fs-coredump-prevent-core-path-components-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix.patch
-ubsan-run-time-undefined-behavior-sanity-checker-fix-3.patch
-linux-next-rejects.patch
-fs-overlayfs-superc-needs-pagemaph.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-fs-adfs-adfsh-tidy-up-comments.patch
-net-drop-tcp_memcontrolc-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix.patch
-mm-memcontrol-reign-in-the-config-space-madness-fix-fix.patch
-include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+ratelimit-fix-bug-in-time-interval-by-resetting-right-begin-time.patch
 
