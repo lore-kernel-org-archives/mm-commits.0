@@ -1,120 +1,73 @@
 From: akpm@linux-foundation.org
 Subject: [alternative-merged]
- zsmalloc-fix-migrate_zspage-zs_free-race-condition.patch removed from -mm
+ mm-make-optimistic-check-for-swapin-readahead-fix.patch removed from -mm
  tree
-Date: Tue, 19 Jan 2016 16:46:01 -0800
-Message-ID: <569ed8c9.bYaIKTnxwqNIU6oY%akpm@linux-foundation.org>
+Date: Tue, 19 Jan 2016 21:21:05 -0800
+Message-ID: <569f1941.f/qInHlUQWRXVY2e%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58829 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43922 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933005AbcATAqC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 19:46:02 -0500
+	with ESMTP id S1750709AbcATFVH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 00:21:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: junil0814.lee@lge.com, minchan@kernel.org, sergey.senozhatsky.work@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, ebru.akagunduz@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: fix migrate_zspage-zs_free race condition
+     Subject: khugepaged: avoid usage of uninitialized variable 'isolated'
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-fix-migrate_zspage-zs_free-race-condition.patch
+     mm-make-optimistic-check-for-swapin-readahead-fix.patch
 
 This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Junil Lee <junil0814.lee@lge.com>
-Subject: zsmalloc: fix migrate_zspage-zs_free race condition
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: khugepaged: avoid usage of uninitialized variable 'isolated'
 
-record_obj() in migrate_zspage() does not preserve handle's
-HANDLE_PIN_BIT, set by find_aloced_obj()->trypin_tag(), and implicitly
-(accidentally) un-pins the handle, while migrate_zspage() still performs
-an explicit unpin_tag() on the that handle.
+In file included from include/trace/events/huge_memory.h:7:0,
+                 from mm/huge_memory.c:62:
+include/linux/tracepoint.h:141:5: warning: `isolated' may be used uninitialized in this function [-Wmaybe-uninitialized]
+     ((void(*)(proto))(it_func))(args); \
+     ^
+mm/huge_memory.c:2327:6: note: `isolated' was declared here
+  int isolated, result = 0;
 
-This additional explicit unpin_tag() introduces a race condition with
-zs_free(), which can pin that handle by this time, so the handle becomes
-un-pinned.
+We make use of isolated in error path before it get initialized.
 
-Schematically, it goes like this:
-
-CPU0					CPU1
-migrate_zspage
-  find_alloced_obj
-    trypin_tag
-      set HANDLE_PIN_BIT			zs_free()
-						  pin_tag()
-  obj_malloc() -- new object, no tag
-  record_obj() -- remove HANDLE_PIN_BIT	    set HANDLE_PIN_BIT
-  unpin_tag()  -- remove zs_free's HANDLE_PIN_BIT
-
-The race condition may result in a NULL pointer dereference:
-	Unable to handle kernel NULL pointer dereference at virtual address 00000000
-	CPU: 0 PID: 19001 Comm: CookieMonsterCl Tainted:
-	PC is at get_zspage_mapping+0x0/0x24
-	LR is at obj_free.isra.22+0x64/0x128
-	Call trace:
-		[<ffffffc0001a3aa8>] get_zspage_mapping+0x0/0x24
-		[<ffffffc0001a4918>] zs_free+0x88/0x114
-		[<ffffffc00053ae54>] zram_free_page+0x64/0xcc
-		[<ffffffc00053af4c>] zram_slot_free_notify+0x90/0x108
-		[<ffffffc000196638>] swap_entry_free+0x278/0x294
-		[<ffffffc000199008>] free_swap_and_cache+0x38/0x11c
-		[<ffffffc0001837ac>] unmap_single_vma+0x480/0x5c8
-		[<ffffffc000184350>] unmap_vmas+0x44/0x60
-		[<ffffffc00018a53c>] exit_mmap+0x50/0x110
-		[<ffffffc00009e408>] mmput+0x58/0xe0
-		[<ffffffc0000a2854>] do_exit+0x320/0x8dc
-		[<ffffffc0000a3cb4>] do_group_exit+0x44/0xa8
-		[<ffffffc0000ae1bc>] get_signal+0x538/0x580
-		[<ffffffc000087e44>] do_signal+0x98/0x4b8
-		[<ffffffc00008843c>] do_notify_resume+0x14/0x5c
-
-Fix the race by removing explicit unpin_tag() from migrate_zspage().
-
-Signed-off-by: Junil Lee <junil0814.lee@lge.com>
-Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   17 ++++++++++++++++-
- 1 file changed, 16 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-fix-migrate_zspage-zs_free-race-condition mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-fix-migrate_zspage-zs_free-race-condition
-+++ a/mm/zsmalloc.c
-@@ -307,9 +307,24 @@ static void free_handle(struct zs_pool *
- 	kmem_cache_free(pool->handle_cachep, (void *)handle);
- }
- 
-+
-+/*
-+ * record_obj updates handle's value to free_obj and it shouldn't
-+ * invalidate lock bit(ie, HANDLE_PIN_BIT) of handle, otherwise
-+ * it breaks synchronization using pin_tag(e,g, zs_free) so let's
-+ * keep the lock bit.
-+ */
- static void record_obj(unsigned long handle, unsigned long obj)
- {
--	*(unsigned long *)handle = obj;
-+	int locked = (*(unsigned long *)handle) & (1 << HANDLE_PIN_BIT);
-+	unsigned long val = obj | locked;
-+
-+	/*
-+	 * WRITE_ONCE could prevent store tearing like below
-+	 * *(unsigned long *)handle = free_obj
-+	 * *(unsigned long *)handle |= locked;
-+	 */
-+	WRITE_ONCE(*(unsigned long *)handle, val);
- }
- 
- /* zpool driver */
+diff -puN mm/huge_memory.c~mm-make-optimistic-check-for-swapin-readahead-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~mm-make-optimistic-check-for-swapin-readahead-fix
++++ a/mm/huge_memory.c
+@@ -2351,7 +2351,7 @@ static void collapse_huge_page(struct mm
+ 	pgtable_t pgtable;
+ 	struct page *new_page;
+ 	spinlock_t *pmd_ptl, *pte_ptl;
+-	int isolated, result = 0;
++	int isolated = 0, result = 0;
+ 	unsigned long hstart, hend;
+ 	struct mem_cgroup *memcg;
+ 	unsigned long mmun_start;	/* For mmu_notifiers */
 _
 
-Patches currently in -mm which might be from junil0814.lee@lge.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
+mm-softirq-safe-softirq-unsafe-lock-order-detected-in-split_huge_page_to_list.patch
+mm-proc-add-workaround-for-old-compilers.patch
+thp-change-pmd_trans_huge_lock-interface-to-return-ptl.patch
+mlocked-pages-statistics-shows-bogus-value.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
 
