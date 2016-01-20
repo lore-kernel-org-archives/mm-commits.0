@@ -1,59 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] maintainers-add-git-url-for-rockchip.patch
- removed from -mm tree
-Date: Wed, 20 Jan 2016 14:44:03 -0800
-Message-ID: <56a00db3.zwqCAw4sg1Zu6m9Z%akpm@linux-foundation.org>
+Subject: [folded-merged] maintainers-add-git-url-for-arm64.patch removed
+ from -mm tree
+Date: Wed, 20 Jan 2016 14:44:06 -0800
+Message-ID: <56a00db6.omRGbucUYGYhvP8u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43082 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43085 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753045AbcATWoE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 17:44:04 -0500
+	with ESMTP id S1753045AbcATWoH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 17:44:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, heiko@sntech.de, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, catalin.marinas@arm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add git URL for Rockchip
+     Subject: MAINTAINERS: add git URL for ARM64
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-git-url-for-rockchip.patch
+     maintainers-add-git-url-for-arm64.patch
 
 This patch was dropped because it was folded into maintainers-add-git-url-for-apm-driver.patch
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: add git URL for Rockchip
+Subject: MAINTAINERS: add git URL for ARM64
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Heiko Stuebner <heiko@sntech.de>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN MAINTAINERS~maintainers-add-git-url-for-rockchip MAINTAINERS
---- a/MAINTAINERS~maintainers-add-git-url-for-rockchip
+diff -puN MAINTAINERS~maintainers-add-git-url-for-arm64 MAINTAINERS
+--- a/MAINTAINERS~maintainers-add-git-url-for-arm64
 +++ a/MAINTAINERS
-@@ -1472,6 +1472,7 @@ ARM/Rockchip SoC support
- M:	Heiko Stuebner <heiko@sntech.de>
+@@ -1805,6 +1805,7 @@ ARM64 PORT (AARCH64 ARCHITECTURE)
+ M:	Catalin Marinas <catalin.marinas@arm.com>
+ M:	Will Deacon <will.deacon@arm.com>
  L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
- L:	linux-rockchip@lists.infradead.org
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/mmind/linux-rockchip.git
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/arm64/linux.git
  S:	Maintained
- F:	arch/arm/boot/dts/rk3*
- F:	arch/arm/mach-rockchip/
+ F:	arch/arm64/
+ F:	Documentation/arm64/
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 iio-core-introduce-iio-software-triggers-fix.patch
 maintainers-add-git-url-for-apm-driver.patch
-maintainers-add-git-url-for-arm64.patch
 maintainers-add-git-url-for-ath6kl.patch
 maintainers-add-git-url-for-backlight.patch
 maintainers-add-git-url-for-chrome.patch
