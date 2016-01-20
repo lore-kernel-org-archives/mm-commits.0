@@ -1,60 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] maintainers-add-git-url-for-s390.patch removed
- from -mm tree
-Date: Wed, 20 Jan 2016 14:46:27 -0800
-Message-ID: <56a00e43.dJKHgDU+1M5rqkY3%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ maintainers-fix-tree-format-for-samsung-thermal.patch removed from -mm tree
+Date: Wed, 20 Jan 2016 14:46:30 -0800
+Message-ID: <56a00e46.esSYhqnD844Bgm0X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43191 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43194 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753370AbcATWq2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 17:46:28 -0500
+	with ESMTP id S1753370AbcATWqb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 17:46:31 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, heiko.carstens@de.ibm.com, schwidefsky@de.ibm.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, l.majewski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: add git URL for s390
+     Subject: MAINTAINERS: fix tree format for SAMSUNG thermal
 has been removed from the -mm tree.  Its filename was
-     maintainers-add-git-url-for-s390.patch
+     maintainers-fix-tree-format-for-samsung-thermal.patch
 
 This patch was dropped because it was folded into maintainers-add-git-url-for-apm-driver.patch
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: add git URL for s390
+Subject: MAINTAINERS: fix tree format for SAMSUNG thermal
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Lukasz Majewski <l.majewski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ MAINTAINERS |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-add-git-url-for-s390 MAINTAINERS
---- a/MAINTAINERS~maintainers-add-git-url-for-s390
+diff -puN MAINTAINERS~maintainers-fix-tree-format-for-samsung-thermal MAINTAINERS
+--- a/MAINTAINERS~maintainers-fix-tree-format-for-samsung-thermal
 +++ a/MAINTAINERS
-@@ -9278,6 +9278,7 @@ M:	Martin Schwidefsky <schwidefsky@de.ib
- M:	Heiko Carstens <heiko.carstens@de.ibm.com>
- L:	linux-s390@vger.kernel.org
- W:	http://www.ibm.com/developerworks/linux/linux390/
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/s390/linux.git
+@@ -9471,7 +9471,7 @@ M:	Lukasz Majewski <l.majewski@samsung.c
+ L:	linux-pm@vger.kernel.org
+ L:	linux-samsung-soc@vger.kernel.org
  S:	Supported
- F:	arch/s390/
- F:	drivers/s390/
+-T:	https://github.com/lmajewski/linux-samsung-thermal.git
++T:	git https://github.com/lmajewski/linux-samsung-thermal.git
+ F:	drivers/thermal/samsung/
+ 
+ SAMSUNG USB2 PHY DRIVER
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 iio-core-introduce-iio-software-triggers-fix.patch
 maintainers-add-git-url-for-apm-driver.patch
-maintainers-fix-tree-format-for-samsung-thermal.patch
 maintainers-add-git-url-for-md.patch
 maintainers-add-git-url-for-squashfs.patch
 maintainers-add-git-url-for-swiotlb.patch
