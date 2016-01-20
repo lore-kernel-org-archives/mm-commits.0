@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + misc-ibmasm-fix-build-errors.patch added to -mm tree
-Date: Tue, 19 Jan 2016 15:36:08 -0800
-Message-ID: <569ec868.CEuOb3Xi7oZn7jsO%akpm@linux-foundation.org>
+Subject: + zsmalloc-fix-migrate_zspage-zs_free-race-condition.patch added
+ to -mm tree
+Date: Tue, 19 Jan 2016 16:48:32 -0800
+Message-ID: <569ed960.5Ko767R2SNzI3HHH%akpm__40840.3029585772$1453250936$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55499 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58957 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757492AbcASXgJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 18:36:09 -0500
+	with ESMTP id S933644AbcATAsd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 19 Jan 2016 19:48:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@infradead.org, masbock@us.ibm.com, vernux@us.ibm.com, mm-commits@vger.kernel.org
+To: junil0814.lee@lge.com, minchan@kernel.org, sergey.senozhatsky.work@gmail.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: misc: ibmasm: fix build errors
+     Subject: zsmalloc: fix migrate_zspage-zs_free race condition
 has been added to the -mm tree.  Its filename is
-     misc-ibmasm-fix-build-errors.patch
+     zsmalloc-fix-migrate_zspage-zs_free-race-condition.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/misc-ibmasm-fix-build-errors.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-fix-migrate_zspage-zs_free-race-condition.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/misc-ibmasm-fix-build-errors.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-fix-migrate_zspage-zs_free-race-condition.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,41 +39,99 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: misc: ibmasm: fix build errors
+From: Junil Lee <junil0814.lee@lge.com>
+Subject: zsmalloc: fix migrate_zspage-zs_free race condition
 
-Fix build when CONFIG_SERIAL_8250=m and CONFIG_IBM_ASM=y.
+record_obj() in migrate_zspage() does not preserve handle's
+HANDLE_PIN_BIT, set by find_aloced_obj()->trypin_tag(), and implicitly
+(accidentally) un-pins the handle, while migrate_zspage() still performs
+an explicit unpin_tag() on the that handle.
+This additional explicit unpin_tag() introduces a race condition with
+zs_free(), which can pin that handle by this time, so the handle becomes
+un-pinned.
 
-Fixes these build errors:
+Schematically, it goes like this:
 
-drivers/built-in.o: In function `ibmasm_remove_one':
-module.c:(.text+0xf6874): undefined reference to `ibmasm_unregister_uart'
-drivers/built-in.o: In function `ibmasm_init_one':
-module.c:(.text+0xf6c37): undefined reference to `ibmasm_register_uart'
+CPU0					CPU1
+migrate_zspage
+  find_alloced_obj
+    trypin_tag
+      set HANDLE_PIN_BIT			zs_free()
+						  pin_tag()
+  obj_malloc() -- new object, no tag
+  record_obj() -- remove HANDLE_PIN_BIT	    set HANDLE_PIN_BIT
+  unpin_tag()  -- remove zs_free's HANDLE_PIN_BIT
 
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Max Asbock <masbock@us.ibm.com>
-Cc: Vernon Mauery <vernux@us.ibm.com>
+The race condition may result in a NULL pointer dereference:
+	Unable to handle kernel NULL pointer dereference at virtual address 00000000
+	CPU: 0 PID: 19001 Comm: CookieMonsterCl Tainted:
+	PC is at get_zspage_mapping+0x0/0x24
+	LR is at obj_free.isra.22+0x64/0x128
+	Call trace:
+		[<ffffffc0001a3aa8>] get_zspage_mapping+0x0/0x24
+		[<ffffffc0001a4918>] zs_free+0x88/0x114
+		[<ffffffc00053ae54>] zram_free_page+0x64/0xcc
+		[<ffffffc00053af4c>] zram_slot_free_notify+0x90/0x108
+		[<ffffffc000196638>] swap_entry_free+0x278/0x294
+		[<ffffffc000199008>] free_swap_and_cache+0x38/0x11c
+		[<ffffffc0001837ac>] unmap_single_vma+0x480/0x5c8
+		[<ffffffc000184350>] unmap_vmas+0x44/0x60
+		[<ffffffc00018a53c>] exit_mmap+0x50/0x110
+		[<ffffffc00009e408>] mmput+0x58/0xe0
+		[<ffffffc0000a2854>] do_exit+0x320/0x8dc
+		[<ffffffc0000a3cb4>] do_group_exit+0x44/0xa8
+		[<ffffffc0000ae1bc>] get_signal+0x538/0x580
+		[<ffffffc000087e44>] do_signal+0x98/0x4b8
+		[<ffffffc00008843c>] do_notify_resume+0x14/0x5c
+
+This patch keeps the lock bit in migration path and update
+value atomically.
+
+Signed-off-by: Junil Lee <junil0814.lee@lge.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: <stable@vger.kernel.org>	[4.1+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/misc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/zsmalloc.c |   14 +++++++++++++-
+ 1 file changed, 13 insertions(+), 1 deletion(-)
 
-diff -puN drivers/misc/Kconfig~misc-ibmasm-fix-build-errors drivers/misc/Kconfig
---- a/drivers/misc/Kconfig~misc-ibmasm-fix-build-errors
-+++ a/drivers/misc/Kconfig
-@@ -95,6 +95,7 @@ config DUMMY_IRQ
- config IBM_ASM
- 	tristate "Device driver for IBM RSA service processor"
- 	depends on X86 && PCI && INPUT
-+	depends on SERIAL_8250 || SERIAL_8250=n
- 	---help---
- 	  This option enables device driver support for in-band access to the
- 	  IBM RSA (Condor) service processor in eServer xSeries systems.
+diff -puN mm/zsmalloc.c~zsmalloc-fix-migrate_zspage-zs_free-race-condition mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-fix-migrate_zspage-zs_free-race-condition
++++ a/mm/zsmalloc.c
+@@ -309,7 +309,12 @@ static void free_handle(struct zs_pool *
+ 
+ static void record_obj(unsigned long handle, unsigned long obj)
+ {
+-	*(unsigned long *)handle = obj;
++	/*
++	 * lsb of @obj represents handle lock while other bits
++	 * represent object value the handle is pointing so
++	 * updating shouldn't do store tearing.
++	 */
++	WRITE_ONCE(*(unsigned long *)handle, obj);
+ }
+ 
+ /* zpool driver */
+@@ -1635,6 +1640,13 @@ static int migrate_zspage(struct zs_pool
+ 		free_obj = obj_malloc(d_page, class, handle);
+ 		zs_object_copy(free_obj, used_obj, class);
+ 		index++;
++		/*
++		 * record_obj updates handle's value to free_obj and it will
++		 * invalidate lock bit(ie, HANDLE_PIN_BIT) of handle, which
++		 * breaks synchronization using pin_tag(e,g, zs_free) so
++		 * let's keep the lock bit.
++		 */
++		free_obj |= BIT(HANDLE_PIN_BIT);
+ 		record_obj(handle, free_obj);
+ 		unpin_tag(handle);
+ 		obj_free(pool, class, used_obj);
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from junil0814.lee@lge.com are
 
-misc-ibmasm-fix-build-errors.patch
+zsmalloc-fix-migrate_zspage-zs_free-race-condition.patch
 
