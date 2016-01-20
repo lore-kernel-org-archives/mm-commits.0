@@ -1,63 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] maintainers-update-git-url-for-pstore.patch
+Subject: [folded-merged] maintainers-update-git-url-for-ath10k.patch
  removed from -mm tree
-Date: Wed, 20 Jan 2016 14:45:06 -0800
-Message-ID: <56a00df2.V14UHiDE7D8qFytm%akpm@linux-foundation.org>
+Date: Wed, 20 Jan 2016 14:45:09 -0800
+Message-ID: <56a00df5.fkrzDpPctnMSrRNP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43161 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43166 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758479AbcATWpH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 17:45:07 -0500
+	with ESMTP id S1758520AbcATWpK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 17:45:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: fengguang.wu@intel.com, anton@enomsg.org, ccross@android.com, keescook@chromium.org, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: fengguang.wu@intel.com, kvalo@qca.qualcomm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: update git URL for pstore
+     Subject: MAINTAINERS: update git URL for ath10k
 has been removed from the -mm tree.  Its filename was
-     maintainers-update-git-url-for-pstore.patch
+     maintainers-update-git-url-for-ath10k.patch
 
 This patch was dropped because it was folded into maintainers-add-git-url-for-apm-driver.patch
 
 ------------------------------------------------------
 From: Fengguang Wu <fengguang.wu@intel.com>
-Subject: MAINTAINERS: update git URL for pstore
+Subject: MAINTAINERS: update git URL for ath10k
 
 Signed-off-by: Fengguang Wu <fengguang.wu@intel.com>
-Cc: Anton Vorontsov <anton@enomsg.org>
-Cc: Colin Cross <ccross@android.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Tony Luck <tony.luck@intel.com>
+Acked-by: Kalle Valo <kvalo@qca.qualcomm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-update-git-url-for-pstore MAINTAINERS
---- a/MAINTAINERS~maintainers-update-git-url-for-pstore
+diff -puN MAINTAINERS~maintainers-update-git-url-for-ath10k MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-git-url-for-ath10k
 +++ a/MAINTAINERS
-@@ -8709,7 +8709,7 @@ M:	Colin Cross <ccross@android.com>
- M:	Kees Cook <keescook@chromium.org>
- M:	Tony Luck <tony.luck@intel.com>
- S:	Maintained
--T:	git git://git.infradead.org/users/cbou/linux-pstore.git
-+T:	git git://git.kernel.org/pub/scm/linux/kernel/git/aegl/linux.git
- F:	fs/pstore/
- F:	include/linux/pstore*
- F:	drivers/firmware/efi/efi-pstore.c
+@@ -8918,7 +8918,7 @@ QUALCOMM ATHEROS ATH10K WIRELESS DRIVER
+ M:	Kalle Valo <kvalo@qca.qualcomm.com>
+ L:	ath10k@lists.infradead.org
+ W:	http://wireless.kernel.org/en/users/Drivers/ath10k
+-T:	git git://github.com/kvalo/ath.git
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kvalo/ath.git
+ S:	Supported
+ F:	drivers/net/wireless/ath/ath10k/
+ 
 _
 
 Patches currently in -mm which might be from fengguang.wu@intel.com are
 
 iio-core-introduce-iio-software-triggers-fix.patch
 maintainers-add-git-url-for-apm-driver.patch
-maintainers-update-git-url-for-ath10k.patch
 maintainers-add-git-url-for-hexagon.patch
 maintainers-add-git-url-for-reset.patch
 maintainers-add-git-url-for-s390.patch
