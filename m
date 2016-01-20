@@ -1,72 +1,199 @@
 From: akpm@linux-foundation.org
-Subject: + reiserfs-fix-dereference-of-err_ptr.patch added to -mm tree
-Date: Wed, 20 Jan 2016 12:57:49 -0800
-Message-ID: <569ff4cd.bsYafFQ6UzDjrgUT%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ printk-nmi-generic-solution-for-safe-printk-in-nmi-v4.patch removed from
+ -mm tree
+Date: Wed, 20 Jan 2016 13:09:31 -0800
+Message-ID: <569ff78b.3tXi82k90aFgUDQc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37248 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37605 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752534AbcATU5t (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 15:57:49 -0500
+	with ESMTP id S1750781AbcATVJc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 16:09:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, sudip@vectorindia.org, mm-commits@vger.kernel.org
+To: pmladek@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: reiserfs: fix dereference of ERR_PTR
-has been added to the -mm tree.  Its filename is
-     reiserfs-fix-dereference-of-err_ptr.patch
+     Subject: printk-nmi-generic-solution-for-safe-printk-in-nmi-v4
+has been removed from the -mm tree.  Its filename was
+     printk-nmi-generic-solution-for-safe-printk-in-nmi-v4.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/reiserfs-fix-dereference-of-err_ptr.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/reiserfs-fix-dereference-of-err_ptr.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into printk-nmi-generic-solution-for-safe-printk-in-nmi.patch
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: reiserfs: fix dereference of ERR_PTR
+From: Petr Mladek <pmladek@suse.com>
+Subject: printk-nmi-generic-solution-for-safe-printk-in-nmi-v4
 
-reiserfs_iget() returns either NULL or error code in ERR_PTR.  And we were
-only checking for NULL, so in case of some other error we will try to
-dereference the ERR_PTR(-errno) thinking it to be a valid pointer.
+rename from kernel/printk/printk.h
+rename to kernel/printk/internal.h
 
-Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+Signed-off-by: Petr Mladek <pmladek@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/reiserfs/super.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/printk/internal.h |   44 +++++++++++++++++++++++++++++++++++++
+ kernel/printk/nmi.c      |   14 +++++++----
+ kernel/printk/printk.c   |    2 -
+ kernel/printk/printk.h   |   44 -------------------------------------
+ 4 files changed, 54 insertions(+), 50 deletions(-)
 
-diff -puN fs/reiserfs/super.c~reiserfs-fix-dereference-of-err_ptr fs/reiserfs/super.c
---- a/fs/reiserfs/super.c~reiserfs-fix-dereference-of-err_ptr
-+++ a/fs/reiserfs/super.c
-@@ -288,7 +288,7 @@ static int finish_unfinished(struct supe
- 		pathrelse(&path);
+diff -puN /dev/null kernel/printk/internal.h
+--- /dev/null
++++ a/kernel/printk/internal.h
+@@ -0,0 +1,44 @@
++/*
++ * internal.h - printk internal definitions
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version 2
++ * of the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, see <http://www.gnu.org/licenses/>.
++ */
++#include <linux/percpu.h>
++
++typedef __printf(1, 0) int (*printk_func_t)(const char *fmt, va_list args);
++
++int __printf(1, 0) vprintk_default(const char *fmt, va_list args);
++
++#ifdef CONFIG_PRINTK_NMI
++
++/*
++ * printk() could not take logbuf_lock in NMI context. Instead,
++ * it temporary stores the strings into a per-CPU buffer.
++ * The alternative implementation is chosen transparently
++ * via per-CPU variable.
++ */
++DECLARE_PER_CPU(printk_func_t, printk_func);
++static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
++{
++	return this_cpu_read(printk_func)(fmt, args);
++}
++
++#else /* CONFIG_PRINTK_NMI */
++
++static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
++{
++	return vprintk_default(fmt, args);
++}
++
++#endif /* CONFIG_PRINTK_NMI */
+diff -puN kernel/printk/nmi.c~printk-nmi-generic-solution-for-safe-printk-in-nmi-v4 kernel/printk/nmi.c
+--- a/kernel/printk/nmi.c~printk-nmi-generic-solution-for-safe-printk-in-nmi-v4
++++ a/kernel/printk/nmi.c
+@@ -22,7 +22,7 @@
+ #include <linux/irq_work.h>
+ #include <linux/printk.h>
  
- 		inode = reiserfs_iget(s, &obj_key);
--		if (!inode) {
-+		if (IS_ERR_OR_NULL(inode)) {
- 			/*
- 			 * the unlink almost completed, it just did not
- 			 * manage to remove "save" link and release objectid
-_
-
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
-
-reiserfs-fix-dereference-of-err_ptr.patch
-
+-#include "printk.h"
++#include "internal.h"
+ 
+ /*
+  * printk() could not take logbuf_lock in NMI context. Instead,
+@@ -57,12 +57,13 @@ static DEFINE_PER_CPU(struct nmi_seq_buf
+ static int vprintk_nmi(const char *fmt, va_list args)
+ {
+ 	struct nmi_seq_buf *s = this_cpu_ptr(&nmi_print_seq);
+-	int add = 0, len;
++	int add = 0;
++	size_t len;
+ 
+ again:
+ 	len = atomic_read(&s->len);
+ 
+-	if (len >=  sizeof(s->buffer))
++	if (len >= sizeof(s->buffer))
+ 		return 0;
+ 
+ 	/*
+@@ -109,7 +110,8 @@ static void __printk_nmi_flush(struct ir
+ 	static raw_spinlock_t read_lock =
+ 		__RAW_SPIN_LOCK_INITIALIZER(read_lock);
+ 	struct nmi_seq_buf *s = container_of(work, struct nmi_seq_buf, work);
+-	int len, size, i, last_i;
++	size_t len, size;
++	int i, last_i;
+ 
+ 	/*
+ 	 * The lock has two functions. First, one reader has to flush all
+@@ -129,7 +131,9 @@ more:
+ 	 * the buffer an unexpected way. If we printed something then
+ 	 * @len must only increase.
+ 	 */
+-	WARN_ON(i && i >= len);
++	if (i && i >= len)
++		pr_err("printk_nmi_flush: internal error: i=%d >= len=%lu\n",
++		       i, len);
+ 
+ 	if (!len)
+ 		goto out; /* Someone else has already flushed the buffer. */
+diff -puN kernel/printk/printk.c~printk-nmi-generic-solution-for-safe-printk-in-nmi-v4 kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-nmi-generic-solution-for-safe-printk-in-nmi-v4
++++ a/kernel/printk/printk.c
+@@ -55,7 +55,7 @@
+ 
+ #include "console_cmdline.h"
+ #include "braille.h"
+-#include "printk.h"
++#include "internal.h"
+ 
+ int console_printk[4] = {
+ 	CONSOLE_LOGLEVEL_DEFAULT,	/* console_loglevel */
+diff -puN kernel/printk/printk.h~printk-nmi-generic-solution-for-safe-printk-in-nmi-v4 /dev/null
+--- a/kernel/printk/printk.h
++++ /dev/null
+@@ -1,44 +0,0 @@
+-/*
+- * printk.h - printk internal definitions
+- *
+- * This program is free software; you can redistribute it and/or
+- * modify it under the terms of the GNU General Public License
+- * as published by the Free Software Foundation; either version 2
+- * of the License, or (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, see <http://www.gnu.org/licenses/>.
+- */
+-#include <linux/percpu.h>
+-
+-typedef __printf(1, 0) int (*printk_func_t)(const char *fmt, va_list args);
+-
+-int __printf(1, 0) vprintk_default(const char *fmt, va_list args);
+-
+-#ifdef CONFIG_PRINTK_NMI
+-
+-/*
+- * printk() could not take logbuf_lock in NMI context. Instead,
+- * it temporary stores the strings into a per-CPU buffer.
+- * The alternative implementation is chosen transparently
+- * via per-CPU variable.
+- */
+-DECLARE_PER_CPU(printk_func_t, printk_func);
+-static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
+-{
+-	return this_cpu_read(printk_func)(fmt, args);
+-}
+-
+-#else /* CONFIG_PRINTK_NMI */
+-
+-static inline __printf(1, 0) int vprintk_func(const char *fmt, va_list args)
+-{
+-	return vprintk_default(fmt, args);
+-}
