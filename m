@@ -1,61 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] powerpc-enable-ubsan-support-fix.patch removed
- from -mm tree
-Date: Wed, 20 Jan 2016 14:37:12 -0800
-Message-ID: <56a00c18.2oWHnbn8VBkr8FAA%akpm@linux-foundation.org>
+Subject: [folded-merged] arc-convert-to-dma_map_ops-fix.patch removed from -mm tree
+Date: Wed, 20 Jan 2016 14:37:44 -0800
+Message-ID: <56a00c38.MU6rkccLR4gZAMT/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42067 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42077 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753387AbcATWhN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 17:37:13 -0500
+	with ESMTP id S1752516AbcATWhp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 20 Jan 2016 17:37:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: valentinrothberg@gmail.com, aryabinin@virtuozzo.com, benh@kernel.crashing.org, mm-commits@vger.kernel.org
+To: hch@lst.de, borntraeger@de.ibm.com, jroedel@suse.de, linux@roeck-us.net, sebott@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/powerpc/Kconfig: fix typo in select statement
+     Subject: arc: dma mapping fixes
 has been removed from the -mm tree.  Its filename was
-     powerpc-enable-ubsan-support-fix.patch
+     arc-convert-to-dma_map_ops-fix.patch
 
-This patch was dropped because it was folded into powerpc-enable-ubsan-support.patch
+This patch was dropped because it was folded into arc-convert-to-dma_map_ops.patch
 
 ------------------------------------------------------
-From: Valentin Rothberg <valentinrothberg@gmail.com>
-Subject: arch/powerpc/Kconfig: fix typo in select statement
+From: Christoph Hellwig <hch@lst.de>
+Subject: arc: dma mapping fixes
 
-The 'I' in sanitize was missing:
-s/ARCH_HAS_UBSAN_SANTIZE_ALL/ARCH_HAS_UBSAN_SANITIZE_ALL/
-
-Fixes: 257e4ee82dbd ("powerpc: enable UBSAN support")
-Signed-off-by: Valentin Rothberg <valentinrothberg@gmail.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Reported-by: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arc/mm/dma.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/Kconfig~powerpc-enable-ubsan-support-fix arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~powerpc-enable-ubsan-support-fix
-+++ a/arch/powerpc/Kconfig
-@@ -159,7 +159,7 @@ config PPC
- 	select ARCH_HAS_DMA_SET_COHERENT_MASK
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select HAVE_ARCH_SECCOMP_FILTER
--	select ARCH_HAS_UBSAN_SANTIZE_ALL
-+	select ARCH_HAS_UBSAN_SANITIZE_ALL
+diff -puN arch/arc/mm/dma.c~arc-convert-to-dma_map_ops-fix arch/arc/mm/dma.c
+--- a/arch/arc/mm/dma.c~arc-convert-to-dma_map_ops-fix
++++ a/arch/arc/mm/dma.c
+@@ -46,7 +46,7 @@ static void *arc_dma_alloc(struct device
+ 	 *   (vs. always going to memory - thus are faster)
+ 	 */
+ 	if ((is_isa_arcv2() && ioc_exists) ||
+-	    dma_get_attr(DMA_ATTR_NON_CONSISTENT, attrs)
++	    dma_get_attr(DMA_ATTR_NON_CONSISTENT, attrs))
+ 		return paddr;
  
- config GENERIC_CSUM
- 	def_bool CPU_LITTLE_ENDIAN
+ 	/* This is kernel Virtual address (0x7000_0000 based) */
+@@ -74,7 +74,7 @@ static void arc_dma_free(struct device *
+ {
+ 	if (!(is_isa_arcv2() && ioc_exists) ||
+ 	    dma_get_attr(DMA_ATTR_NON_CONSISTENT, attrs))
+-		iounmap((void __force __iomem *)kvaddr);
++		iounmap((void __force __iomem *)vaddr);
+ 
+ 	free_pages_exact((void *)dma_handle, size);
+ }
+@@ -135,7 +135,7 @@ static void arc_dma_sync_single_for_devi
+ 	_dma_cache_sync(dma_handle, size, DMA_TO_DEVICE);
+ }
+ 
+-static void arm_dma_sync_sg_for_cpu(struct device *dev,
++static void arc_dma_sync_sg_for_cpu(struct device *dev,
+ 		struct scatterlist *sglist, int nelems,
+ 		enum dma_data_direction dir)
+ {
+@@ -171,7 +171,7 @@ struct dma_map_ops arc_dma_ops = {
+ 	.sync_single_for_device	= arc_dma_sync_single_for_device,
+ 	.sync_single_for_cpu	= arc_dma_sync_single_for_cpu,
+ 	.sync_sg_for_cpu	= arc_dma_sync_sg_for_cpu,
+-	.sync_sg_for_dev	= arc_dma_sync_sg_for_device,
++	.sync_sg_for_device	= arc_dma_sync_sg_for_device,
+ 	.dma_supported		= arc_dma_supported,
+ };
+ EXPORT_SYMBOL(arc_dma_ops);
 _
 
-Patches currently in -mm which might be from valentinrothberg@gmail.com are
+Patches currently in -mm which might be from hch@lst.de are
 
-powerpc-enable-ubsan-support.patch
+dma-mapping-make-the-generic-coherent-dma-mmap-implementation-optional.patch
+arc-convert-to-dma_map_ops.patch
+avr32-convert-to-dma_map_ops.patch
+blackfin-convert-to-dma_map_ops.patch
+c6x-convert-to-dma_map_ops.patch
+c6x-convert-to-dma_map_ops-fix-2.patch
+cris-convert-to-dma_map_ops.patch
+nios2-convert-to-dma_map_ops.patch
+nios2-convert-to-dma_map_ops-fix.patch
+frv-convert-to-dma_map_ops.patch
+parisc-convert-to-dma_map_ops.patch
+mn10300-convert-to-dma_map_ops.patch
+m68k-convert-to-dma_map_ops.patch
+metag-convert-to-dma_map_ops.patch
+sparc-use-generic-dma_set_mask.patch
+tile-uninline-dma_set_mask.patch
+dma-mapping-always-provide-the-dma_map_ops-based-implementation.patch
+dma-mapping-remove-asm-generic-dma-coherenth.patch
 
