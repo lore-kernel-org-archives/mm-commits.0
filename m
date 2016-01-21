@@ -1,70 +1,127 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-clz_tabc-put-in-lib-y-rather-than-obj-y.patch
- removed from -mm tree
-Date: Thu, 21 Jan 2016 14:59:12 -0800
-Message-ID: <56a162c0.+XojRbsReHfXHbYC%akpm@linux-foundation.org>
+Subject: [merged] test_hexdump-print-statistics-at-the-end.patch removed
+ from -mm tree
+Date: Thu, 21 Jan 2016 14:59:07 -0800
+Message-ID: <56a162bb.yfjenpwTFpWSMXDk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33863 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33859 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751269AbcAUW7M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:59:12 -0500
+	with ESMTP id S1752017AbcAUW7I (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:59:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cmetcalf@ezchip.com, davem@davemloft.net, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/clz_tab.c: put in lib-y rather than obj-y
+     Subject: test_hexdump: print statistics at the end
 has been removed from the -mm tree.  Its filename was
-     lib-clz_tabc-put-in-lib-y-rather-than-obj-y.patch
+     test_hexdump-print-statistics-at-the-end.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chris Metcalf <cmetcalf@ezchip.com>
-Subject: lib/clz_tab.c: put in lib-y rather than obj-y
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: test_hexdump: print statistics at the end
 
-The clz table (__clz_tab) in lib/clz_tab.c is also provided as part of
-libgcc.a, and many architectures link against libgcc.  To allow the linker
-to avoid a multiple-definition link failure, clz_tab.o has to be in
-lib/lib.a rather than lib/builtin.o.  The specific issue is that libgcc.a
-comes before lib/builtin.o on vmlinux.o's link command line, so its _clz.o
-is pulled to satisfy __clz_tab, and then when the remainder of
-lib/builtin.o is pulled in to satisfy all the other dependencies, the
-__clz_tab symbols conflict.  By putting clz_tab.o in lib.a, the linker can
-simply avoid pulling it into vmlinux.o when this situation arises.
+Like others test are doing print the gathered statistics after test module
+is finished.  Return from the module based on the result.
 
-The definitions of __clz_tab are the same in libgcc.a and in the kernel;
-arguably we could also simply rename the kernel version, but it's unlikely
-the libgcc version will ever change to become incompatible, so just using
-it seems reasonably safe.
-
-Signed-off-by: Chris Metcalf <cmetcalf@ezchip.com>
-Acked-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Makefile |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ lib/test_hexdump.c |   26 +++++++++++++++++++++++---
+ 1 file changed, 23 insertions(+), 3 deletions(-)
 
-diff -puN lib/Makefile~lib-clz_tabc-put-in-lib-y-rather-than-obj-y lib/Makefile
---- a/lib/Makefile~lib-clz_tabc-put-in-lib-y-rather-than-obj-y
-+++ a/lib/Makefile
-@@ -154,7 +154,7 @@ obj-$(CONFIG_GLOB) += glob.o
- obj-$(CONFIG_MPILIB) += mpi/
- obj-$(CONFIG_SIGNATURE) += digsig.o
+diff -puN lib/test_hexdump.c~test_hexdump-print-statistics-at-the-end lib/test_hexdump.c
+--- a/lib/test_hexdump.c~test_hexdump-print-statistics-at-the-end
++++ a/lib/test_hexdump.c
+@@ -44,6 +44,9 @@ static const char * const test_data_8_le
  
--obj-$(CONFIG_CLZ_TAB) += clz_tab.o
-+lib-$(CONFIG_CLZ_TAB) += clz_tab.o
+ #define FILL_CHAR	'#'
  
- obj-$(CONFIG_DDR) += jedec_ddr_data.o
++static unsigned total_tests __initdata;
++static unsigned failed_tests __initdata;
++
+ static void __init test_hexdump_prepare_test(size_t len, int rowsize,
+ 					     int groupsize, char *test,
+ 					     size_t testlen, bool ascii)
+@@ -107,6 +110,8 @@ static void __init test_hexdump(size_t l
+ 	char test[TEST_HEXDUMP_BUF_SIZE];
+ 	char real[TEST_HEXDUMP_BUF_SIZE];
  
++	total_tests++;
++
+ 	memset(real, FILL_CHAR, sizeof(real));
+ 	hex_dump_to_buffer(data_b, len, rowsize, groupsize, real, sizeof(real),
+ 			   ascii);
+@@ -119,6 +124,7 @@ static void __init test_hexdump(size_t l
+ 		pr_err("Len: %zu row: %d group: %d\n", len, rowsize, groupsize);
+ 		pr_err("Result: '%s'\n", real);
+ 		pr_err("Expect: '%s'\n", test);
++		failed_tests++;
+ 	}
+ }
+ 
+@@ -143,6 +149,8 @@ static void __init test_hexdump_overflow
+ 	int ae, he, e, f, r;
+ 	bool a;
+ 
++	total_tests++;
++
+ 	memset(buf, FILL_CHAR, sizeof(buf));
+ 
+ 	r = hex_dump_to_buffer(data_b, len, rs, gs, buf, buflen, ascii);
+@@ -175,6 +183,7 @@ static void __init test_hexdump_overflow
+ 			len, buflen, strnlen(buf, sizeof(buf)));
+ 		pr_err("Result: %d '%s'\n", r, buf);
+ 		pr_err("Expect: %d '%s'\n", e, test);
++		failed_tests++;
+ 	}
+ }
+ 
+@@ -196,8 +205,6 @@ static int __init test_hexdump_init(void
+ 	unsigned int i;
+ 	int rowsize;
+ 
+-	pr_info("Running tests...\n");
+-
+ 	rowsize = (get_random_int() % 2 + 1) * 16;
+ 	for (i = 0; i < 16; i++)
+ 		test_hexdump_set(rowsize, false);
+@@ -212,7 +219,20 @@ static int __init test_hexdump_init(void
+ 	for (i = 0; i <= TEST_HEXDUMP_BUF_SIZE; i++)
+ 		test_hexdump_overflow_set(i, true);
+ 
+-	return -EINVAL;
++	if (failed_tests == 0)
++		pr_info("all %u tests passed\n", total_tests);
++	else
++		pr_err("failed %u out of %u tests\n", failed_tests, total_tests);
++
++	return failed_tests ? -EINVAL : 0;
+ }
+ module_init(test_hexdump_init);
++
++static void __exit test_hexdump_exit(void)
++{
++	/* do nothing */
++}
++module_exit(test_hexdump_exit);
++
++MODULE_AUTHOR("Andy Shevchenko <andriy.shevchenko@linux.intel.com>");
+ MODULE_LICENSE("Dual BSD/GPL");
 _
 
-Patches currently in -mm which might be from cmetcalf@ezchip.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
+lib-string_helpers-export-string_units_210-for-others.patch
+lib-string_helpers-fix-indentation-in-few-places.patch
+x86-efi-use-proper-units-in-efi_find_mirror.patch
 
