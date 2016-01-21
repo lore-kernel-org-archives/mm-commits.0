@@ -1,87 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- firmware-bcm47xx_nvram-use-__ioread32_copy-instead-of-open-coding.patch
- removed from -mm tree
-Date: Thu, 21 Jan 2016 14:58:50 -0800
-Message-ID: <56a162aa.becltmbZmbiLXjRy%akpm@linux-foundation.org>
+Subject: [merged] mm-proc-add-workaround-for-old-compilers.patch removed
+ from -mm tree
+Date: Thu, 21 Jan 2016 14:58:28 -0800
+Message-ID: <56a16294.wf7eZoqpjj4XrQz8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33823 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33767 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752303AbcAUW6v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:58:51 -0500
+	with ESMTP id S1752532AbcAUW63 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:58:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sboyd@codeaurora.org, bjorn.andersson@sonymobile.com, dhowells@redhat.com, hauke@hauke-m.de, paul@pwsan.com, zajec5@gmail.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, geert@linux-m68k.org, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/firmware/broadcom/bcm47xx_nvram.c: use __ioread32_copy() instead of open-coding
+     Subject: fs/proc/task_mmu.c: add workaround for old compilers
 has been removed from the -mm tree.  Its filename was
-     firmware-bcm47xx_nvram-use-__ioread32_copy-instead-of-open-coding.patch
+     mm-proc-add-workaround-for-old-compilers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: drivers/firmware/broadcom/bcm47xx_nvram.c: use __ioread32_copy() instead of open-coding
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: fs/proc/task_mmu.c: add workaround for old compilers
 
-Now that we have a generic library function for this, replace the
-open-coded instance.
+For THP=n, HPAGE_PMD_NR in smaps_account() expands to BUILD_BUG().  That's
+fine since this codepath is eliminated by modern compilers.
 
-Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Hauke Mehrtens <hauke@hauke-m.de>
-Cc: <zajec5@gmail.com>
-Cc: Paul Walmsley <paul@pwsan.com>
-Cc: Bjorn Andersson <bjorn.andersson@sonymobile.com>
-Cc: David Howells <dhowells@redhat.com>
+But older compilers have not that efficient dead code elimination.  It
+causes problem at least with gcc 4.1.2 on m68k:
+
+   fs/built-in.o: In function `smaps_account':
+   task_mmu.c:(.text+0x4f8fa): undefined reference to `__compiletime_assert_471'
+
+Let's replace HPAGE_PMD_NR with 1 << compound_order(page).
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Geert Uytterhoeven <geert@linux-m68k.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/broadcom/bcm47xx_nvram.c |   11 +++--------
- 1 file changed, 3 insertions(+), 8 deletions(-)
+ fs/proc/task_mmu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/firmware/broadcom/bcm47xx_nvram.c~firmware-bcm47xx_nvram-use-__ioread32_copy-instead-of-open-coding drivers/firmware/broadcom/bcm47xx_nvram.c
---- a/drivers/firmware/broadcom/bcm47xx_nvram.c~firmware-bcm47xx_nvram-use-__ioread32_copy-instead-of-open-coding
-+++ a/drivers/firmware/broadcom/bcm47xx_nvram.c
-@@ -56,9 +56,7 @@ static u32 find_nvram_size(void __iomem
- static int nvram_find_and_copy(void __iomem *iobase, u32 lim)
+diff -puN fs/proc/task_mmu.c~mm-proc-add-workaround-for-old-compilers fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~mm-proc-add-workaround-for-old-compilers
++++ a/fs/proc/task_mmu.c
+@@ -468,7 +468,7 @@ struct mem_size_stats {
+ static void smaps_account(struct mem_size_stats *mss, struct page *page,
+ 		bool compound, bool young, bool dirty)
  {
- 	struct nvram_header __iomem *header;
--	int i;
- 	u32 off;
--	u32 *src, *dst;
- 	u32 size;
+-	int i, nr = compound ? HPAGE_PMD_NR : 1;
++	int i, nr = compound ? 1 << compound_order(page) : 1;
+ 	unsigned long size = nr * PAGE_SIZE;
  
- 	if (nvram_len) {
-@@ -95,10 +93,7 @@ static int nvram_find_and_copy(void __io
- 	return -ENXIO;
- 
- found:
--	src = (u32 *)header;
--	dst = (u32 *)nvram_buf;
--	for (i = 0; i < sizeof(struct nvram_header); i += 4)
--		*dst++ = __raw_readl(src++);
-+	__ioread32_copy(nvram_buf, header, sizeof(*header) / 4);
- 	header = (struct nvram_header *)nvram_buf;
- 	nvram_len = header->len;
- 	if (nvram_len > size) {
-@@ -111,8 +106,8 @@ found:
- 		nvram_len = NVRAM_SPACE - 1;
- 	}
- 	/* proceed reading data after header */
--	for (; i < nvram_len; i += 4)
--		*dst++ = readl(src++);
-+	__ioread32_copy(nvram_buf + sizeof(*header), header + 1,
-+			DIV_ROUND_UP(nvram_len, 4));
- 	nvram_buf[NVRAM_SPACE - 1] = '\0';
- 
- 	return 0;
+ 	if (PageAnon(page))
 _
 
-Patches currently in -mm which might be from sboyd@codeaurora.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
+thp-change-pmd_trans_huge_lock-interface-to-return-ptl.patch
+mlocked-pages-statistics-shows-bogus-value.patch
+thp-make-split_queue-per-node.patch
+thp-change-deferred_split_count-to-return-number-of-thp-in-queue.patch
+thp-limit-number-of-object-to-scan-on-deferred_split_scan.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
 
