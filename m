@@ -1,68 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] hfs-use-list_for_each_entry-in-hfs_cat_delete.patch
- removed from -mm tree
-Date: Thu, 21 Jan 2016 14:59:26 -0800
-Message-ID: <56a162ce.WhcniIk9WgUD1Cd2%akpm@linux-foundation.org>
+Subject: [merged]
+ test_hexdump-test-all-possible-group-sizes-for-overflow.patch removed from
+ -mm tree
+Date: Thu, 21 Jan 2016 14:59:05 -0800
+Message-ID: <56a162b9.14epvXcHEBtJO1i6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33897 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33855 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752460AbcAUW71 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:59:27 -0500
+	with ESMTP id S1752472AbcAUW7G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:59:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geliangtang@163.com, slava@dubeyko.com, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/hfs/catalog.c: use list_for_each_entry in hfs_cat_delete
+     Subject: test_hexdump: test all possible group sizes for overflow
 has been removed from the -mm tree.  Its filename was
-     hfs-use-list_for_each_entry-in-hfs_cat_delete.patch
+     test_hexdump-test-all-possible-group-sizes-for-overflow.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geliang Tang <geliangtang@163.com>
-Subject: fs/hfs/catalog.c: use list_for_each_entry in hfs_cat_delete
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: test_hexdump: test all possible group sizes for overflow
 
-Use list_for_each_entry() instead of list_for_each() to simplify the code.
+Currently the only one combination is tested for overflow, i.e.  rowsize =
+16, groupsize = 1, len = 1.  Do various test to go through all possible
+branches.
 
-Signed-off-by: Geliang Tang <geliangtang@163.com>
-Reviewed-by: Vyacheslav Dubeyko <slava@dubeyko.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/hfs/catalog.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ lib/test_hexdump.c |   21 ++++++++++++++++++---
+ 1 file changed, 18 insertions(+), 3 deletions(-)
 
-diff -puN fs/hfs/catalog.c~hfs-use-list_for_each_entry-in-hfs_cat_delete fs/hfs/catalog.c
---- a/fs/hfs/catalog.c~hfs-use-list_for_each_entry-in-hfs_cat_delete
-+++ a/fs/hfs/catalog.c
-@@ -214,7 +214,7 @@ int hfs_cat_delete(u32 cnid, struct inod
+diff -puN lib/test_hexdump.c~test_hexdump-test-all-possible-group-sizes-for-overflow lib/test_hexdump.c
+--- a/lib/test_hexdump.c~test_hexdump-test-all-possible-group-sizes-for-overflow
++++ a/lib/test_hexdump.c
+@@ -133,7 +133,9 @@ static void __init test_hexdump_set(int
+ 	test_hexdump(len, rowsize, 1, ascii);
+ }
+ 
+-static void __init test_hexdump_overflow(size_t buflen, bool ascii)
++static void __init test_hexdump_overflow(size_t buflen, size_t len,
++					 int rowsize, int groupsize,
++					 bool ascii)
  {
- 	struct super_block *sb;
- 	struct hfs_find_data fd;
--	struct list_head *pos;
-+	struct hfs_readdir_data *rd;
- 	int res, type;
- 
- 	hfs_dbg(CAT_MOD, "delete_cat: %s,%u\n", str ? str->name : NULL, cnid);
-@@ -240,9 +240,7 @@ int hfs_cat_delete(u32 cnid, struct inod
- 		}
+ 	char test[TEST_HEXDUMP_BUF_SIZE];
+ 	char buf[TEST_HEXDUMP_BUF_SIZE];
+@@ -176,6 +178,19 @@ static void __init test_hexdump_overflow
  	}
+ }
  
--	list_for_each(pos, &HFS_I(dir)->open_dir_list) {
--		struct hfs_readdir_data *rd =
--			list_entry(pos, struct hfs_readdir_data, list);
-+	list_for_each_entry(rd, &HFS_I(dir)->open_dir_list, list) {
- 		if (fd.tree->keycmp(fd.search_key, (void *)&rd->key) < 0)
- 			rd->file->f_pos--;
- 	}
++static void __init test_hexdump_overflow_set(size_t buflen, bool ascii)
++{
++	unsigned int i = 0;
++	int rs = (get_random_int() % 2 + 1) * 16;
++
++	do {
++		int gs = 1 << i;
++		size_t len = get_random_int() % rs + gs;
++
++		test_hexdump_overflow(buflen, rounddown(len, gs), rs, gs, ascii);
++	} while (i++ < 3);
++}
++
+ static int __init test_hexdump_init(void)
+ {
+ 	unsigned int i;
+@@ -192,10 +207,10 @@ static int __init test_hexdump_init(void
+ 		test_hexdump_set(rowsize, true);
+ 
+ 	for (i = 0; i <= TEST_HEXDUMP_BUF_SIZE; i++)
+-		test_hexdump_overflow(i, false);
++		test_hexdump_overflow_set(i, false);
+ 
+ 	for (i = 0; i <= TEST_HEXDUMP_BUF_SIZE; i++)
+-		test_hexdump_overflow(i, true);
++		test_hexdump_overflow_set(i, true);
+ 
+ 	return -EINVAL;
+ }
 _
 
-Patches currently in -mm which might be from geliangtang@163.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
+lib-string_helpers-export-string_units_210-for-others.patch
+lib-string_helpers-fix-indentation-in-few-places.patch
+x86-efi-use-proper-units-in-efi_find_mirror.patch
 
