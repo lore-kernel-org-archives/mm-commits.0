@@ -1,124 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] powerpc-enable-ubsan-support.patch removed from -mm tree
-Date: Thu, 21 Jan 2016 15:28:23 -0800
-Message-ID: <56a16997.aviAZ8KYgRm2NlQC%akpm@linux-foundation.org>
+Subject: [merged] lz4-fix-wrong-compress-buffer-size-for-64-bits.patch
+ removed from -mm tree
+Date: Thu, 21 Jan 2016 15:28:31 -0800
+Message-ID: <56a1699f.apfy0+RgoRENso4O%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35980 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36061 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751003AbcAUX21 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:28:27 -0500
+	with ESMTP id S1751003AbcAUX2d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:28:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dja@axtens.net, andrew.donnellan@au1.ibm.com, aryabinin@virtuozzo.com, benh@kernel.crashing.org, mpe@ellerman.id.au, valentinrothberg@gmail.com, mm-commits@vger.kernel.org
+To: bongkyu.kim@lge.com, chanho.min@lge.com, kyungsik.lee@lge.com, yann.collet.73@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: enable UBSAN support
+     Subject: lz4: fix wrong compress buffer size for 64-bits
 has been removed from the -mm tree.  Its filename was
-     powerpc-enable-ubsan-support.patch
+     lz4-fix-wrong-compress-buffer-size-for-64-bits.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Daniel Axtens <dja@axtens.net>
-Subject: powerpc: enable UBSAN support
+From: Bongkyu Kim <bongkyu.kim@lge.com>
+Subject: lz4: fix wrong compress buffer size for 64-bits
 
-This hooks up UBSAN support for PowerPC.
+The current lz4 compress buffer is 16kb on 32-bits, 32kb on 64-bits
+system.  But, lz4 needs only 16kb on both.  On 64-bits, this causes wasted
+cpu cycles for additional memset during every compression.
 
-So far it's found some interesting cases where we don't properly sanitise
-input to shifts, including one in our futex handling.  Nothing critical,
-but interesting and worth fixing.
+In case of lz4hc,
+the current buffer size is (256kb + 8) on 32-bits, (512kb + 16) on 64-bits.
+But, lz4hc needs only (256kb + 2 * pointer) on both.
 
-[valentinrothberg@gmail.com: arch/powerpc/Kconfig: fix typo in select statement]
-Signed-off-by: Daniel Axtens <dja@axtens.net>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Tested-by: Andrew Donnellan <andrew.donnellan@au1.ibm.com>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>
-Signed-off-by: Valentin Rothberg <valentinrothberg@gmail.com>
+This patch fixes these wrong compress buffer sizes for 64-bits.
+
+Signed-off-by: Bongkyu Kim <bongkyu.kim@lge.com>
+Cc: Chanho Min <chanho.min@lge.com>
+Cc: Yann Collet <yann.collet.73@gmail.com>
+Cc: Kyungsik Lee <kyungsik.lee@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig                |    1 +
- arch/powerpc/kernel/Makefile        |    8 +++++++-
- arch/powerpc/kernel/vdso32/Makefile |    1 +
- arch/powerpc/kernel/vdso64/Makefile |    1 +
- arch/powerpc/xmon/Makefile          |    1 +
- 5 files changed, 11 insertions(+), 1 deletion(-)
+ include/linux/lz4.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/Kconfig~powerpc-enable-ubsan-support arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~powerpc-enable-ubsan-support
-+++ a/arch/powerpc/Kconfig
-@@ -158,6 +158,7 @@ config PPC
- 	select ARCH_HAS_DMA_SET_COHERENT_MASK
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select HAVE_ARCH_SECCOMP_FILTER
-+	select ARCH_HAS_UBSAN_SANITIZE_ALL
+diff -puN include/linux/lz4.h~lz4-fix-wrong-compress-buffer-size-for-64-bits include/linux/lz4.h
+--- a/include/linux/lz4.h~lz4-fix-wrong-compress-buffer-size-for-64-bits
++++ a/include/linux/lz4.h
+@@ -9,8 +9,8 @@
+  * it under the terms of the GNU General Public License version 2 as
+  * published by the Free Software Foundation.
+  */
+-#define LZ4_MEM_COMPRESS	(4096 * sizeof(unsigned char *))
+-#define LZ4HC_MEM_COMPRESS	(65538 * sizeof(unsigned char *))
++#define LZ4_MEM_COMPRESS	(16384)
++#define LZ4HC_MEM_COMPRESS	(262144 + (2 * sizeof(unsigned char *)))
  
- config GENERIC_CSUM
- 	def_bool CPU_LITTLE_ENDIAN
-diff -puN arch/powerpc/kernel/Makefile~powerpc-enable-ubsan-support arch/powerpc/kernel/Makefile
---- a/arch/powerpc/kernel/Makefile~powerpc-enable-ubsan-support
-+++ a/arch/powerpc/kernel/Makefile
-@@ -136,12 +136,18 @@ endif
- obj-$(CONFIG_EPAPR_PARAVIRT)	+= epapr_paravirt.o epapr_hcalls.o
- obj-$(CONFIG_KVM_GUEST)		+= kvm.o kvm_emul.o
- 
--# Disable GCOV in odd or sensitive code
-+# Disable GCOV & sanitizers in odd or sensitive code
- GCOV_PROFILE_prom_init.o := n
-+UBSAN_SANITIZE_prom_init.o := n
- GCOV_PROFILE_ftrace.o := n
-+UBSAN_SANITIZE_ftrace.o := n
- GCOV_PROFILE_machine_kexec_64.o := n
-+UBSAN_SANITIZE_machine_kexec_64.o := n
- GCOV_PROFILE_machine_kexec_32.o := n
-+UBSAN_SANITIZE_machine_kexec_32.o := n
- GCOV_PROFILE_kprobes.o := n
-+UBSAN_SANITIZE_kprobes.o := n
-+UBSAN_SANITIZE_vdso.o := n
- 
- extra-$(CONFIG_PPC_FPU)		+= fpu.o
- extra-$(CONFIG_ALTIVEC)		+= vector.o
-diff -puN arch/powerpc/kernel/vdso32/Makefile~powerpc-enable-ubsan-support arch/powerpc/kernel/vdso32/Makefile
---- a/arch/powerpc/kernel/vdso32/Makefile~powerpc-enable-ubsan-support
-+++ a/arch/powerpc/kernel/vdso32/Makefile
-@@ -15,6 +15,7 @@ targets := $(obj-vdso32) vdso32.so vdso3
- obj-vdso32 := $(addprefix $(obj)/, $(obj-vdso32))
- 
- GCOV_PROFILE := n
-+UBSAN_SANITIZE := n
- 
- ccflags-y := -shared -fno-common -fno-builtin
- ccflags-y += -nostdlib -Wl,-soname=linux-vdso32.so.1 \
-diff -puN arch/powerpc/kernel/vdso64/Makefile~powerpc-enable-ubsan-support arch/powerpc/kernel/vdso64/Makefile
---- a/arch/powerpc/kernel/vdso64/Makefile~powerpc-enable-ubsan-support
-+++ a/arch/powerpc/kernel/vdso64/Makefile
-@@ -8,6 +8,7 @@ targets := $(obj-vdso64) vdso64.so vdso6
- obj-vdso64 := $(addprefix $(obj)/, $(obj-vdso64))
- 
- GCOV_PROFILE := n
-+UBSAN_SANITIZE := n
- 
- ccflags-y := -shared -fno-common -fno-builtin
- ccflags-y += -nostdlib -Wl,-soname=linux-vdso64.so.1 \
-diff -puN arch/powerpc/xmon/Makefile~powerpc-enable-ubsan-support arch/powerpc/xmon/Makefile
---- a/arch/powerpc/xmon/Makefile~powerpc-enable-ubsan-support
-+++ a/arch/powerpc/xmon/Makefile
-@@ -3,6 +3,7 @@
- subdir-ccflags-$(CONFIG_PPC_WERROR) := -Werror
- 
- GCOV_PROFILE := n
-+UBSAN_SANITIZE := n
- 
- ccflags-$(CONFIG_PPC64) := $(NO_MINIMAL_TOC)
- 
+ /*
+  * lz4_compressbound()
 _
 
-Patches currently in -mm which might be from dja@axtens.net are
+Patches currently in -mm which might be from bongkyu.kim@lge.com are
 
 
