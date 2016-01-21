@@ -1,220 +1,96 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcontrol-group-kmem-init-and-exit-functions-together.patch removed
+ mm-memcontrol-allow-to-disable-kmem-accounting-for-cgroup2.patch removed
  from -mm tree
-Date: Thu, 21 Jan 2016 15:29:30 -0800
-Message-ID: <56a169da.4HP0GQL7+NAztiGC%akpm@linux-foundation.org>
+Date: Thu, 21 Jan 2016 15:29:38 -0800
+Message-ID: <56a169e2.HxkhMS47rsw8ygir%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36348 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36371 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751112AbcAUX3b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:29:31 -0500
+	with ESMTP id S1751112AbcAUX3i (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:29:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@suse.com, tj@kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: group kmem init and exit functions together
+     Subject: mm: memcontrol: allow to disable kmem accounting for cgroup2
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-group-kmem-init-and-exit-functions-together.patch
+     mm-memcontrol-allow-to-disable-kmem-accounting-for-cgroup2.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: group kmem init and exit functions together
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: mm: memcontrol: allow to disable kmem accounting for cgroup2
 
-Put all the related code to setup and teardown the kmem accounting state
-into the same location.  No functional change intended.
+Kmem accounting might incur overhead that some users can't put up with. 
+Besides, the implementation is still considered unstable.  So let's
+provide a way to disable it for those users who aren't happy with it.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Tejun Heo <tj@kernel.org>
-Acked-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+To disable kmem accounting for cgroup2, pass cgroup.memory=nokmem at
+boot time.
+
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |  157 ++++++++++++++++++++++------------------------
- 1 file changed, 76 insertions(+), 81 deletions(-)
+ Documentation/kernel-parameters.txt |    1 +
+ mm/memcontrol.c                     |    9 +++++++--
+ 2 files changed, 8 insertions(+), 2 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-group-kmem-init-and-exit-functions-together mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-group-kmem-init-and-exit-functions-together
+diff -puN Documentation/kernel-parameters.txt~mm-memcontrol-allow-to-disable-kmem-accounting-for-cgroup2 Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~mm-memcontrol-allow-to-disable-kmem-accounting-for-cgroup2
++++ a/Documentation/kernel-parameters.txt
+@@ -611,6 +611,7 @@ bytes respectively. Such letter suffixes
+ 	cgroup.memory=	[KNL] Pass options to the cgroup memory controller.
+ 			Format: <string>
+ 			nosocket -- Disable socket memory accounting.
++			nokmem -- Disable kernel memory accounting.
+ 
+ 	checkreqprot	[SELINUX] Set initial checkreqprot flag value.
+ 			Format: { "0" | "1" }
+diff -puN mm/memcontrol.c~mm-memcontrol-allow-to-disable-kmem-accounting-for-cgroup2 mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-allow-to-disable-kmem-accounting-for-cgroup2
 +++ a/mm/memcontrol.c
-@@ -2945,12 +2945,88 @@ static int memcg_propagate_kmem(struct m
+@@ -83,6 +83,9 @@ struct mem_cgroup *root_mem_cgroup __rea
+ /* Socket memory accounting disabled? */
+ static bool cgroup_memory_nosocket;
+ 
++/* Kernel memory accounting disabled? */
++static bool cgroup_memory_nokmem;
++
+ /* Whether the swap controller is active */
+ #ifdef CONFIG_MEMCG_SWAP
+ int do_swap_account __read_mostly;
+@@ -2925,8 +2928,8 @@ static int memcg_propagate_kmem(struct m
+ 	 * onlined after this point, because it has at least one child
+ 	 * already.
+ 	 */
+-	if (cgroup_subsys_on_dfl(memory_cgrp_subsys) ||
+-	    memcg_kmem_online(parent))
++	if (memcg_kmem_online(parent) ||
++	    (cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_nokmem))
+ 		ret = memcg_online_kmem(memcg);
  	mutex_unlock(&memcg_limit_mutex);
  	return ret;
- }
-+
-+static int memcg_init_kmem(struct mem_cgroup *memcg)
-+{
-+	int ret;
-+
-+	ret = memcg_propagate_kmem(memcg);
-+	if (ret)
-+		return ret;
-+
-+	return tcp_init_cgroup(memcg);
-+}
-+
-+static void memcg_offline_kmem(struct mem_cgroup *memcg)
-+{
-+	struct cgroup_subsys_state *css;
-+	struct mem_cgroup *parent, *child;
-+	int kmemcg_id;
-+
-+	if (memcg->kmem_state != KMEM_ONLINE)
-+		return;
-+	/*
-+	 * Clear the online state before clearing memcg_caches array
-+	 * entries. The slab_mutex in memcg_deactivate_kmem_caches()
-+	 * guarantees that no cache will be created for this cgroup
-+	 * after we are done (see memcg_create_kmem_cache()).
-+	 */
-+	memcg->kmem_state = KMEM_ALLOCATED;
-+
-+	memcg_deactivate_kmem_caches(memcg);
-+
-+	kmemcg_id = memcg->kmemcg_id;
-+	BUG_ON(kmemcg_id < 0);
-+
-+	parent = parent_mem_cgroup(memcg);
-+	if (!parent)
-+		parent = root_mem_cgroup;
-+
-+	/*
-+	 * Change kmemcg_id of this cgroup and all its descendants to the
-+	 * parent's id, and then move all entries from this cgroup's list_lrus
-+	 * to ones of the parent. After we have finished, all list_lrus
-+	 * corresponding to this cgroup are guaranteed to remain empty. The
-+	 * ordering is imposed by list_lru_node->lock taken by
-+	 * memcg_drain_all_list_lrus().
-+	 */
-+	css_for_each_descendant_pre(css, &memcg->css) {
-+		child = mem_cgroup_from_css(css);
-+		BUG_ON(child->kmemcg_id != kmemcg_id);
-+		child->kmemcg_id = parent->kmemcg_id;
-+		if (!memcg->use_hierarchy)
-+			break;
-+	}
-+	memcg_drain_all_list_lrus(kmemcg_id, parent->kmemcg_id);
-+
-+	memcg_free_cache_id(kmemcg_id);
-+}
-+
-+static void memcg_free_kmem(struct mem_cgroup *memcg)
-+{
-+	if (memcg->kmem_state == KMEM_ALLOCATED) {
-+		memcg_destroy_kmem_caches(memcg);
-+		static_branch_dec(&memcg_kmem_enabled_key);
-+		WARN_ON(page_counter_read(&memcg->kmem));
-+	}
-+	tcp_destroy_cgroup(memcg);
-+}
- #else
- static int memcg_update_kmem_limit(struct mem_cgroup *memcg,
- 				   unsigned long limit)
- {
- 	return -EINVAL;
- }
-+static int memcg_init_kmem(struct mem_cgroup *memcg)
-+{
-+	return 0;
-+}
-+static void memcg_offline_kmem(struct mem_cgroup *memcg)
-+{
-+}
-+static void memcg_free_kmem(struct mem_cgroup *memcg)
-+{
-+}
- #endif /* CONFIG_MEMCG_KMEM */
- 
- /*
-@@ -3577,87 +3653,6 @@ static int mem_cgroup_oom_control_write(
+@@ -5638,6 +5641,8 @@ static int __init cgroup_memory(char *s)
+ 			continue;
+ 		if (!strcmp(token, "nosocket"))
+ 			cgroup_memory_nosocket = true;
++		if (!strcmp(token, "nokmem"))
++			cgroup_memory_nokmem = true;
+ 	}
  	return 0;
  }
- 
--#ifdef CONFIG_MEMCG_KMEM
--static int memcg_init_kmem(struct mem_cgroup *memcg)
--{
--	int ret;
--
--	ret = memcg_propagate_kmem(memcg);
--	if (ret)
--		return ret;
--
--	return tcp_init_cgroup(memcg);
--}
--
--static void memcg_offline_kmem(struct mem_cgroup *memcg)
--{
--	struct cgroup_subsys_state *css;
--	struct mem_cgroup *parent, *child;
--	int kmemcg_id;
--
--	if (memcg->kmem_state != KMEM_ONLINE)
--		return;
--	/*
--	 * Clear the online state before clearing memcg_caches array
--	 * entries. The slab_mutex in memcg_deactivate_kmem_caches()
--	 * guarantees that no cache will be created for this cgroup
--	 * after we are done (see memcg_create_kmem_cache()).
--	 */
--	memcg->kmem_state = KMEM_ALLOCATED;
--
--	memcg_deactivate_kmem_caches(memcg);
--
--	kmemcg_id = memcg->kmemcg_id;
--	BUG_ON(kmemcg_id < 0);
--
--	parent = parent_mem_cgroup(memcg);
--	if (!parent)
--		parent = root_mem_cgroup;
--
--	/*
--	 * Change kmemcg_id of this cgroup and all its descendants to the
--	 * parent's id, and then move all entries from this cgroup's list_lrus
--	 * to ones of the parent. After we have finished, all list_lrus
--	 * corresponding to this cgroup are guaranteed to remain empty. The
--	 * ordering is imposed by list_lru_node->lock taken by
--	 * memcg_drain_all_list_lrus().
--	 */
--	css_for_each_descendant_pre(css, &memcg->css) {
--		child = mem_cgroup_from_css(css);
--		BUG_ON(child->kmemcg_id != kmemcg_id);
--		child->kmemcg_id = parent->kmemcg_id;
--		if (!memcg->use_hierarchy)
--			break;
--	}
--	memcg_drain_all_list_lrus(kmemcg_id, parent->kmemcg_id);
--
--	memcg_free_cache_id(kmemcg_id);
--}
--
--static void memcg_free_kmem(struct mem_cgroup *memcg)
--{
--	if (memcg->kmem_state == KMEM_ALLOCATED) {
--		memcg_destroy_kmem_caches(memcg);
--		static_branch_dec(&memcg_kmem_enabled_key);
--		WARN_ON(page_counter_read(&memcg->kmem));
--	}
--	tcp_destroy_cgroup(memcg);
--}
--#else
--static int memcg_init_kmem(struct mem_cgroup *memcg, struct cgroup_subsys *ss)
--{
--	return 0;
--}
--
--static void memcg_offline_kmem(struct mem_cgroup *memcg)
--{
--}
--
--static void memcg_free_kmem(struct mem_cgroup *memcg)
--{
--}
--#endif
+_
+
+Patches currently in -mm which might be from vdavydov@virtuozzo.com are
+
+
