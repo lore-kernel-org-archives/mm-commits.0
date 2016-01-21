@@ -1,100 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- security-let-security-modules-use-ptrace_mode_-with-bitmasks.patch removed
- from -mm tree
-Date: Thu, 21 Jan 2016 14:59:51 -0800
-Message-ID: <56a162e7.+FTCwuYpnxGnlHmk%akpm@linux-foundation.org>
+ ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task.patch
+ removed from -mm tree
+Date: Thu, 21 Jan 2016 14:59:48 -0800
+Message-ID: <56a162e4.4IlL2UOgbIzyj/59%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33940 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33931 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751994AbcAUW7w (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:59:52 -0500
+	with ESMTP id S1752746AbcAUW7t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:59:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jann@thejh.net, andriy.shevchenko@linux.intel.com, casey@schaufler-ca.com, ebiederm@xmission.com, james.l.morris@oracle.com, keescook@chromium.org, luto@kernel.org, mingo@redhat.com, oleg@redhat.com, serge.hallyn@ubuntu.com, viro@zeniv.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
+To: oleg@redhat.com, aryabinin@virtuozzo.com, jan.kratochvil@redhat.com, palves@redhat.com, roland@hack.frob.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: security: let security modules use PTRACE_MODE_* with bitmasks
+     Subject: ptrace: task_stopped_code(ptrace => true) can't see TASK_STOPPED task
 has been removed from the -mm tree.  Its filename was
-     security-let-security-modules-use-ptrace_mode_-with-bitmasks.patch
+     ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jann Horn <jann@thejh.net>
-Subject: security: let security modules use PTRACE_MODE_* with bitmasks
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: ptrace: task_stopped_code(ptrace => true) can't see TASK_STOPPED task
 
-It looks like smack and yama weren't aware that the ptrace mode
-can have flags ORed into it - PTRACE_MODE_NOAUDIT until now, but
-only for /proc/$pid/stat, and with the PTRACE_MODE_*CREDS patch,
-all modes have flags ORed into them.
+task_stopped_code()->task_is_stopped_or_traced() doesn't look right, the
+traced task must never be TASK_STOPPED.
 
-Signed-off-by: Jann Horn <jann@thejh.net>
-Acked-by: Kees Cook <keescook@chromium.org>
-Acked-by: Casey Schaufler <casey@schaufler-ca.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: James Morris <james.l.morris@oracle.com>
-Cc: "Serge E. Hallyn" <serge.hallyn@ubuntu.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Willy Tarreau <w@1wt.eu>
+We can not add WARN_ON(task_is_stopped(p)), but this is only because
+do_wait() can race with PTRACE_ATTACH from another thread.
+
+[akpm@linux-foundation.org: teeny cleanup]
+Signed-off-by: Oleg Nesterov <oleg@redhat.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Roland McGrath <roland@hack.frob.com>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Pedro Alves <palves@redhat.com>
+Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- security/smack/smack_lsm.c |    8 +++-----
- security/yama/yama_lsm.c   |    4 ++--
- 2 files changed, 5 insertions(+), 7 deletions(-)
+ kernel/exit.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN security/smack/smack_lsm.c~security-let-security-modules-use-ptrace_mode_-with-bitmasks security/smack/smack_lsm.c
---- a/security/smack/smack_lsm.c~security-let-security-modules-use-ptrace_mode_-with-bitmasks
-+++ a/security/smack/smack_lsm.c
-@@ -398,12 +398,10 @@ static int smk_copy_relabel(struct list_
-  */
- static inline unsigned int smk_ptrace_mode(unsigned int mode)
+diff -puN kernel/exit.c~ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task kernel/exit.c
+--- a/kernel/exit.c~ptrace-task_stopped_codeptrace-=-true-cant-see-task_stopped-task
++++ a/kernel/exit.c
+@@ -1120,8 +1120,7 @@ static int wait_task_zombie(struct wait_
+ static int *task_stopped_code(struct task_struct *p, bool ptrace)
  {
--	switch (mode) {
--	case PTRACE_MODE_READ:
--		return MAY_READ;
--	case PTRACE_MODE_ATTACH:
-+	if (mode & PTRACE_MODE_ATTACH)
- 		return MAY_READWRITE;
--	}
-+	if (mode & PTRACE_MODE_READ)
-+		return MAY_READ;
- 
- 	return 0;
- }
-diff -puN security/yama/yama_lsm.c~security-let-security-modules-use-ptrace_mode_-with-bitmasks security/yama/yama_lsm.c
---- a/security/yama/yama_lsm.c~security-let-security-modules-use-ptrace_mode_-with-bitmasks
-+++ a/security/yama/yama_lsm.c
-@@ -281,7 +281,7 @@ static int yama_ptrace_access_check(stru
- 	int rc = 0;
- 
- 	/* require ptrace target be a child of ptracer on attach */
--	if (mode == PTRACE_MODE_ATTACH) {
-+	if (mode & PTRACE_MODE_ATTACH) {
- 		switch (ptrace_scope) {
- 		case YAMA_SCOPE_DISABLED:
- 			/* No additional restrictions. */
-@@ -307,7 +307,7 @@ static int yama_ptrace_access_check(stru
- 		}
- 	}
- 
--	if (rc) {
-+	if (rc && (mode & PTRACE_MODE_NOAUDIT) == 0) {
- 		printk_ratelimited(KERN_NOTICE
- 			"ptrace of pid %d was attempted by: %s (pid %d)\n",
- 			child->pid, current->comm, current->pid);
+ 	if (ptrace) {
+-		if (task_is_stopped_or_traced(p) &&
+-		    !(p->jobctl & JOBCTL_LISTENING))
++		if (task_is_traced(p) && !(p->jobctl & JOBCTL_LISTENING))
+ 			return &p->exit_code;
+ 	} else {
+ 		if (p->signal->flags & SIGNAL_STOP_STOPPED)
 _
 
-Patches currently in -mm which might be from jann@thejh.net are
+Patches currently in -mm which might be from oleg@redhat.com are
 
 
