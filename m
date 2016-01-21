@@ -1,217 +1,126 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dma-mapping-remove-asm-generic-dma-coherenth.patch
- removed from -mm tree
-Date: Thu, 21 Jan 2016 15:29:16 -0800
-Message-ID: <56a169cc.ht/Q78NAswqCTdAd%akpm@linux-foundation.org>
+Subject: [merged] tile-uninline-dma_set_mask.patch removed from -mm tree
+Date: Thu, 21 Jan 2016 15:29:11 -0800
+Message-ID: <56a169c7.F+CGjslfaO7JreGC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36320 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36281 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751705AbcAUX3S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:29:18 -0500
+	with ESMTP id S1751668AbcAUX3L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:29:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hch@lst.de, a-jacquiot@ti.com, borntraeger@de.ibm.com, cmetcalf@ezchip.com, davem@davemloft.net, deller@gmx.de, dhowells@redhat.com, egtvedt@samfundet.no, geert@linux-m68k.org, hskinnemoen@gmail.com, james.hogan@imgtec.com, jesper.nilsson@axis.com, jroedel@suse.de, lftan@altera.com, msalter@redhat.com, realmz6@gmail.com, sebott@linux.vnet.ibm.com, starvik@axis.com, vgupta@synopsys.com, yasutake.koichi@jp.panasonic.com, mm-commits@vger.kernel.org
+To: hch@lst.de, borntraeger@de.ibm.com, cmetcalf@ezchip.com, jroedel@suse.de, sebott@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-mapping: remove <asm-generic/dma-coherent.h>
+     Subject: tile: uninline dma_set_mask
 has been removed from the -mm tree.  Its filename was
-     dma-mapping-remove-asm-generic-dma-coherenth.patch
+     tile-uninline-dma_set_mask.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Christoph Hellwig <hch@lst.de>
-Subject: dma-mapping: remove <asm-generic/dma-coherent.h>
+Subject: tile: uninline dma_set_mask
 
-This wasn't an asm-generic header to start with, and can be merged into
-dma-mapping.h trivially.
+We'll soon merge <asm-generic/dma-mapping-common.h> into <linux/dma-mapping.h>
+and the reference to dma_capable in the tile dma_set_mask would create a
+circular dependency.  Fix this by moving the implementation out of line.
 
 Signed-off-by: Christoph Hellwig <hch@lst.de>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
 Cc: Chris Metcalf <cmetcalf@ezchip.com>
-Cc: David Howells <dhowells@redhat.com>
-Cc: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
-Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
-Cc: Helge Deller <deller@gmx.de>
-Cc: James Hogan <james.hogan@imgtec.com>
-Cc: Jesper Nilsson <jesper.nilsson@axis.com>
-Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
-Cc: Ley Foon Tan <lftan@altera.com>
-Cc: Mark Salter <msalter@redhat.com>
-Cc: Mikael Starvik <starvik@axis.com>
-Cc: Steven Miao <realmz6@gmail.com>
-Cc: Vineet Gupta <vgupta@synopsys.com>
 Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Joerg Roedel <jroedel@suse.de>
 Cc: Sebastian Ott <sebott@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/xtensa/include/asm/dma-mapping.h |    2 -
- drivers/base/dma-mapping.c            |    3 --
- include/asm-generic/dma-coherent.h    |   32 ----------------------
- include/linux/dma-mapping.h           |   34 +++++++++++++++++++-----
- 4 files changed, 29 insertions(+), 42 deletions(-)
+ arch/tile/include/asm/dma-mapping.h |   29 --------------------------
+ arch/tile/kernel/pci-dma.c          |   29 ++++++++++++++++++++++++++
+ 2 files changed, 30 insertions(+), 28 deletions(-)
 
-diff -puN arch/xtensa/include/asm/dma-mapping.h~dma-mapping-remove-asm-generic-dma-coherenth arch/xtensa/include/asm/dma-mapping.h
---- a/arch/xtensa/include/asm/dma-mapping.h~dma-mapping-remove-asm-generic-dma-coherenth
-+++ a/arch/xtensa/include/asm/dma-mapping.h
-@@ -13,8 +13,6 @@
- #include <asm/cache.h>
- #include <asm/io.h>
+diff -puN arch/tile/include/asm/dma-mapping.h~tile-uninline-dma_set_mask arch/tile/include/asm/dma-mapping.h
+--- a/arch/tile/include/asm/dma-mapping.h~tile-uninline-dma_set_mask
++++ a/arch/tile/include/asm/dma-mapping.h
+@@ -76,34 +76,7 @@ static inline bool dma_capable(struct de
  
--#include <asm-generic/dma-coherent.h>
+ #include <asm-generic/dma-mapping-common.h>
+ 
+-static inline int
+-dma_set_mask(struct device *dev, u64 mask)
+-{
+-	struct dma_map_ops *dma_ops = get_dma_ops(dev);
 -
- #include <linux/mm.h>
- #include <linux/scatterlist.h>
- 
-diff -puN drivers/base/dma-mapping.c~dma-mapping-remove-asm-generic-dma-coherenth drivers/base/dma-mapping.c
---- a/drivers/base/dma-mapping.c~dma-mapping-remove-asm-generic-dma-coherenth
-+++ a/drivers/base/dma-mapping.c
-@@ -12,7 +12,6 @@
- #include <linux/gfp.h>
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
--#include <asm-generic/dma-coherent.h>
+-	/*
+-	 * For PCI devices with 64-bit DMA addressing capability, promote
+-	 * the dma_ops to hybrid, with the consistent memory DMA space limited
+-	 * to 32-bit. For 32-bit capable devices, limit the streaming DMA
+-	 * address range to max_direct_dma_addr.
+-	 */
+-	if (dma_ops == gx_pci_dma_map_ops ||
+-	    dma_ops == gx_hybrid_pci_dma_map_ops ||
+-	    dma_ops == gx_legacy_pci_dma_map_ops) {
+-		if (mask == DMA_BIT_MASK(64) &&
+-		    dma_ops == gx_legacy_pci_dma_map_ops)
+-			set_dma_ops(dev, gx_hybrid_pci_dma_map_ops);
+-		else if (mask > dev->archdata.max_direct_dma_addr)
+-			mask = dev->archdata.max_direct_dma_addr;
+-	}
+-
+-	if (!dev->dma_mask || !dma_supported(dev, mask))
+-		return -EIO;
+-
+-	*dev->dma_mask = mask;
+-
+-	return 0;
+-}
++int dma_set_mask(struct device *dev, u64 mask);
  
  /*
-  * Managed DMA API
-@@ -167,7 +166,7 @@ void dmam_free_noncoherent(struct device
- }
- EXPORT_SYMBOL(dmam_free_noncoherent);
+  * dma_alloc_noncoherent() is #defined to return coherent memory,
+diff -puN arch/tile/kernel/pci-dma.c~tile-uninline-dma_set_mask arch/tile/kernel/pci-dma.c
+--- a/arch/tile/kernel/pci-dma.c~tile-uninline-dma_set_mask
++++ a/arch/tile/kernel/pci-dma.c
+@@ -583,6 +583,35 @@ struct dma_map_ops *gx_hybrid_pci_dma_ma
+ EXPORT_SYMBOL(gx_legacy_pci_dma_map_ops);
+ EXPORT_SYMBOL(gx_hybrid_pci_dma_map_ops);
  
--#ifdef ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY
-+#ifdef CONFIG_HAVE_GENERIC_DMA_COHERENT
- 
- static void dmam_coherent_decl_release(struct device *dev, void *res)
- {
-diff -puN include/asm-generic/dma-coherent.h~dma-mapping-remove-asm-generic-dma-coherenth /dev/null
---- a/include/asm-generic/dma-coherent.h
-+++ /dev/null
-@@ -1,32 +0,0 @@
--#ifndef DMA_COHERENT_H
--#define DMA_COHERENT_H
--
--#ifdef CONFIG_HAVE_GENERIC_DMA_COHERENT
--/*
-- * These three functions are only for dma allocator.
-- * Don't use them in device drivers.
-- */
--int dma_alloc_from_coherent(struct device *dev, ssize_t size,
--				       dma_addr_t *dma_handle, void **ret);
--int dma_release_from_coherent(struct device *dev, int order, void *vaddr);
--
--int dma_mmap_from_coherent(struct device *dev, struct vm_area_struct *vma,
--			    void *cpu_addr, size_t size, int *ret);
--/*
-- * Standard interface
-- */
--#define ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY
--int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
--				dma_addr_t device_addr, size_t size, int flags);
--
--void dma_release_declared_memory(struct device *dev);
--
--void *dma_mark_declared_memory_occupied(struct device *dev,
--					dma_addr_t device_addr, size_t size);
--#else
--#define dma_alloc_from_coherent(dev, size, handle, ret) (0)
--#define dma_release_from_coherent(dev, order, vaddr) (0)
--#define dma_mmap_from_coherent(dev, vma, vaddr, order, ret) (0)
--#endif
--
--#endif
-diff -puN include/linux/dma-mapping.h~dma-mapping-remove-asm-generic-dma-coherenth include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~dma-mapping-remove-asm-generic-dma-coherenth
-+++ a/include/linux/dma-mapping.h
-@@ -11,7 +11,6 @@
- #include <linux/scatterlist.h>
- #include <linux/kmemcheck.h>
- #include <linux/bug.h>
--#include <asm-generic/dma-coherent.h>
- 
- /*
-  * A dma_addr_t can hold any valid DMA or bus address for the platform.
-@@ -87,6 +86,23 @@ static inline int is_device_dma_capable(
- 	return dev->dma_mask != NULL && *dev->dma_mask != DMA_MASK_NONE;
- }
- 
-+#ifdef CONFIG_HAVE_GENERIC_DMA_COHERENT
-+/*
-+ * These three functions are only for dma allocator.
-+ * Don't use them in device drivers.
-+ */
-+int dma_alloc_from_coherent(struct device *dev, ssize_t size,
-+				       dma_addr_t *dma_handle, void **ret);
-+int dma_release_from_coherent(struct device *dev, int order, void *vaddr);
++int dma_set_mask(struct device *dev, u64 mask)
++{
++	struct dma_map_ops *dma_ops = get_dma_ops(dev);
 +
-+int dma_mmap_from_coherent(struct device *dev, struct vm_area_struct *vma,
-+			    void *cpu_addr, size_t size, int *ret);
-+#else
-+#define dma_alloc_from_coherent(dev, size, handle, ret) (0)
-+#define dma_release_from_coherent(dev, order, vaddr) (0)
-+#define dma_mmap_from_coherent(dev, vma, vaddr, order, ret) (0)
-+#endif /* CONFIG_HAVE_GENERIC_DMA_COHERENT */
++	/*
++	 * For PCI devices with 64-bit DMA addressing capability, promote
++	 * the dma_ops to hybrid, with the consistent memory DMA space limited
++	 * to 32-bit. For 32-bit capable devices, limit the streaming DMA
++	 * address range to max_direct_dma_addr.
++	 */
++	if (dma_ops == gx_pci_dma_map_ops ||
++	    dma_ops == gx_hybrid_pci_dma_map_ops ||
++	    dma_ops == gx_legacy_pci_dma_map_ops) {
++		if (mask == DMA_BIT_MASK(64) &&
++		    dma_ops == gx_legacy_pci_dma_map_ops)
++			set_dma_ops(dev, gx_hybrid_pci_dma_map_ops);
++		else if (mask > dev->archdata.max_direct_dma_addr)
++			mask = dev->archdata.max_direct_dma_addr;
++	}
 +
- #ifdef CONFIG_HAS_DMA
- #include <asm/dma-mapping.h>
- #else
-@@ -568,7 +584,13 @@ static inline int dma_get_cache_alignmen
- #define DMA_MEMORY_INCLUDES_CHILDREN	0x04
- #define DMA_MEMORY_EXCLUSIVE		0x08
- 
--#ifndef ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY
-+#ifdef CONFIG_HAVE_GENERIC_DMA_COHERENT
-+int dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
-+				dma_addr_t device_addr, size_t size, int flags);
-+void dma_release_declared_memory(struct device *dev);
-+void *dma_mark_declared_memory_occupied(struct device *dev,
-+					dma_addr_t device_addr, size_t size);
-+#else
- static inline int
- dma_declare_coherent_memory(struct device *dev, phys_addr_t phys_addr,
- 			    dma_addr_t device_addr, size_t size, int flags)
-@@ -587,7 +609,7 @@ dma_mark_declared_memory_occupied(struct
++	if (!dev->dma_mask || !dma_supported(dev, mask))
++		return -EIO;
++
++	*dev->dma_mask = mask;
++
++	return 0;
++}
++EXPORT_SYMBOL(dma_set_mask);
++
+ #ifdef CONFIG_ARCH_HAS_DMA_SET_COHERENT_MASK
+ int dma_set_coherent_mask(struct device *dev, u64 mask)
  {
- 	return ERR_PTR(-EBUSY);
- }
--#endif
-+#endif /* CONFIG_HAVE_GENERIC_DMA_COHERENT */
- 
- /*
-  * Managed DMA API
-@@ -600,13 +622,13 @@ extern void *dmam_alloc_noncoherent(stru
- 				    dma_addr_t *dma_handle, gfp_t gfp);
- extern void dmam_free_noncoherent(struct device *dev, size_t size, void *vaddr,
- 				  dma_addr_t dma_handle);
--#ifdef ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY
-+#ifdef CONFIG_HAVE_GENERIC_DMA_COHERENT
- extern int dmam_declare_coherent_memory(struct device *dev,
- 					phys_addr_t phys_addr,
- 					dma_addr_t device_addr, size_t size,
- 					int flags);
- extern void dmam_release_declared_memory(struct device *dev);
--#else /* ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY */
-+#else /* CONFIG_HAVE_GENERIC_DMA_COHERENT */
- static inline int dmam_declare_coherent_memory(struct device *dev,
- 				phys_addr_t phys_addr, dma_addr_t device_addr,
- 				size_t size, gfp_t gfp)
-@@ -617,7 +639,7 @@ static inline int dmam_declare_coherent_
- static inline void dmam_release_declared_memory(struct device *dev)
- {
- }
--#endif /* ARCH_HAS_DMA_DECLARE_COHERENT_MEMORY */
-+#endif /* CONFIG_HAVE_GENERIC_DMA_COHERENT */
- 
- static inline void *dma_alloc_writecombine(struct device *dev, size_t size,
- 					   dma_addr_t *dma_addr, gfp_t gfp)
 _
 
 Patches currently in -mm which might be from hch@lst.de are
