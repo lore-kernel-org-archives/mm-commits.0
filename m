@@ -1,89 +1,169 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fat-add-simple-validation-for-directory-inode.patch
- removed from -mm tree
-Date: Thu, 21 Jan 2016 14:59:30 -0800
-Message-ID: <56a162d2.pyC1nJ11w55gsghE%akpm@linux-foundation.org>
+Subject: [merged] epoll-add-epollexclusive-flag.patch removed from -mm
+ tree
+Date: Thu, 21 Jan 2016 14:59:20 -0800
+Message-ID: <56a162c8.m94pGUCliDMap4ZB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33909 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33881 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751774AbcAUW7b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:59:31 -0500
+	with ESMTP id S1752644AbcAUW7V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:59:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hirofumi@mail.parknet.co.jp, vegard.nossum@oracle.com, mm-commits@vger.kernel.org
+To: jbaron@akamai.com, corbet@lwn.net, hagen@jauu.net, luto@amacapital.net, m@silodev.com, mingo@kernel.org, mtk.manpages@gmail.com, normalperson@yhbt.net, peterz@infradead.org, viro@ftp.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: add simple validation for directory inode
+     Subject: epoll: add EPOLLEXCLUSIVE flag
 has been removed from the -mm tree.  Its filename was
-     fat-add-simple-validation-for-directory-inode.patch
+     epoll-add-epollexclusive-flag.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Subject: fat: add simple validation for directory inode
+From: Jason Baron <jbaron@akamai.com>
+Subject: epoll: add EPOLLEXCLUSIVE flag
 
-This detects simple corruption cases of directory, and tries to avoid
-further damage to user data.
+Currently, epoll file descriptors or epfds (the fd returned from
+epoll_create[1]()) that are added to a shared wakeup source are always
+added in a non-exclusive manner.  This means that when we have multiple
+epfds attached to a shared fd source they are all woken up.  This creates
+thundering herd type behavior.
 
-And performance impact of this validation should be very low, or not
-measurable.
+Introduce a new 'EPOLLEXCLUSIVE' flag that can be passed as part of the
+'event' argument during an epoll_ctl() EPOLL_CTL_ADD operation.  This new
+flag allows for exclusive wakeups when there are multiple epfds attached
+to a shared fd event source.
 
-Signed-off-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
-Reported-by: Vegard Nossum <vegard.nossum@oracle.com>
-Tested-by: Vegard Nossum <vegard.nossum@oracle.com>
+The implementation walks the list of exclusive waiters, and queues an
+event to each epfd, until it finds the first waiter that has threads
+blocked on it via epoll_wait().  The idea is to search for threads which
+are idle and ready to process the wakeup events.  Thus, we queue an event
+to at least 1 epfd, but may still potentially queue an event to all epfds
+that are attached to the shared fd source.
+
+Performance testing was done by Madars Vitolins using a modified version
+of Enduro/X.  The use of the 'EPOLLEXCLUSIVE' flag reduce the length of
+this particular workload from 860s down to 24s.
+
+Sample epoll_clt text:
+
+EPOLLEXCLUSIVE
+
+  Sets an exclusive wakeup mode for the epfd file descriptor that is
+  being attached to the target file descriptor, fd.  Thus, when an event
+  occurs and multiple epfd file descriptors are attached to the same
+  target file using EPOLLEXCLUSIVE, one or more epfds will receive an
+  event with epoll_wait(2).  The default in this scenario (when
+  EPOLLEXCLUSIVE is not set) is for all epfds to receive an event. 
+  EPOLLEXCLUSIVE may only be specified with the op EPOLL_CTL_ADD.  
+
+Signed-off-by: Jason Baron <jbaron@akamai.com>
+Tested-by: Madars Vitolins <m@silodev.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Al Viro <viro@ftp.linux.org.uk>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Eric Wong <normalperson@yhbt.net>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Hagen Paul Pfeifer <hagen@jauu.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/fat/inode.c |   22 ++++++++++++++++++++++
- 1 file changed, 22 insertions(+)
+ fs/eventpoll.c                 |   24 +++++++++++++++++++++---
+ include/uapi/linux/eventpoll.h |    3 +++
+ 2 files changed, 24 insertions(+), 3 deletions(-)
 
-diff -puN fs/fat/inode.c~fat-add-simple-validation-for-directory-inode fs/fat/inode.c
---- a/fs/fat/inode.c~fat-add-simple-validation-for-directory-inode
-+++ a/fs/fat/inode.c
-@@ -449,6 +449,24 @@ static int fat_calc_dir_size(struct inod
- 	return 0;
+diff -puN fs/eventpoll.c~epoll-add-epollexclusive-flag fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-add-epollexclusive-flag
++++ a/fs/eventpoll.c
+@@ -92,7 +92,7 @@
+  */
+ 
+ /* Epoll private bits inside the event mask */
+-#define EP_PRIVATE_BITS (EPOLLWAKEUP | EPOLLONESHOT | EPOLLET)
++#define EP_PRIVATE_BITS (EPOLLWAKEUP | EPOLLONESHOT | EPOLLET | EPOLLEXCLUSIVE)
+ 
+ /* Maximum number of nesting allowed inside epoll sets */
+ #define EP_MAX_NESTS 4
+@@ -1002,6 +1002,7 @@ static int ep_poll_callback(wait_queue_t
+ 	unsigned long flags;
+ 	struct epitem *epi = ep_item_from_wait(wait);
+ 	struct eventpoll *ep = epi->ep;
++	int ewake = 0;
+ 
+ 	if ((unsigned long)key & POLLFREE) {
+ 		ep_pwq_from_wait(wait)->whead = NULL;
+@@ -1066,8 +1067,10 @@ static int ep_poll_callback(wait_queue_t
+ 	 * Wake up ( if active ) both the eventpoll wait list and the ->poll()
+ 	 * wait list.
+ 	 */
+-	if (waitqueue_active(&ep->wq))
++	if (waitqueue_active(&ep->wq)) {
++		ewake = 1;
+ 		wake_up_locked(&ep->wq);
++	}
+ 	if (waitqueue_active(&ep->poll_wait))
+ 		pwake++;
+ 
+@@ -1078,6 +1081,9 @@ out_unlock:
+ 	if (pwake)
+ 		ep_poll_safewake(&ep->poll_wait);
+ 
++	if (epi->event.events & EPOLLEXCLUSIVE)
++		return ewake;
++
+ 	return 1;
  }
  
-+static int fat_validate_dir(struct inode *dir)
-+{
-+	struct super_block *sb = dir->i_sb;
-+
-+	if (dir->i_nlink < 2) {
-+		/* Directory should have "."/".." entries at least. */
-+		fat_fs_error(sb, "corrupted directory (invalid entries)");
-+		return -EIO;
-+	}
-+	if (MSDOS_I(dir)->i_start == 0 ||
-+	    MSDOS_I(dir)->i_start == MSDOS_SB(sb)->root_cluster) {
-+		/* Directory should point valid cluster. */
-+		fat_fs_error(sb, "corrupted directory (invalid i_start)");
-+		return -EIO;
-+	}
-+	return 0;
-+}
-+
- /* doesn't deal with root inode */
- int fat_fill_inode(struct inode *inode, struct msdos_dir_entry *de)
- {
-@@ -475,6 +493,10 @@ int fat_fill_inode(struct inode *inode,
- 		MSDOS_I(inode)->mmu_private = inode->i_size;
+@@ -1095,7 +1101,10 @@ static void ep_ptable_queue_proc(struct
+ 		init_waitqueue_func_entry(&pwq->wait, ep_poll_callback);
+ 		pwq->whead = whead;
+ 		pwq->base = epi;
+-		add_wait_queue(whead, &pwq->wait);
++		if (epi->event.events & EPOLLEXCLUSIVE)
++			add_wait_queue_exclusive(whead, &pwq->wait);
++		else
++			add_wait_queue(whead, &pwq->wait);
+ 		list_add_tail(&pwq->llink, &epi->pwqlist);
+ 		epi->nwait++;
+ 	} else {
+@@ -1862,6 +1871,15 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
+ 		goto error_tgt_fput;
  
- 		set_nlink(inode, fat_subdirs(inode));
+ 	/*
++	 * epoll adds to the wakeup queue at EPOLL_CTL_ADD time only,
++	 * so EPOLLEXCLUSIVE is not allowed for a EPOLL_CTL_MOD operation.
++	 * Also, we do not currently supported nested exclusive wakeups.
++	 */
++	if ((epds.events & EPOLLEXCLUSIVE) && (op == EPOLL_CTL_MOD ||
++		(op == EPOLL_CTL_ADD && is_file_epoll(tf.file))))
++		goto error_tgt_fput;
 +
-+		error = fat_validate_dir(inode);
-+		if (error < 0)
-+			return error;
- 	} else { /* not a directory */
- 		inode->i_generation |= 1;
- 		inode->i_mode = fat_make_mode(sbi, de->attr,
++	/*
+ 	 * At this point it is safe to assume that the "private_data" contains
+ 	 * our own data structure.
+ 	 */
+diff -puN include/uapi/linux/eventpoll.h~epoll-add-epollexclusive-flag include/uapi/linux/eventpoll.h
+--- a/include/uapi/linux/eventpoll.h~epoll-add-epollexclusive-flag
++++ a/include/uapi/linux/eventpoll.h
+@@ -26,6 +26,9 @@
+ #define EPOLL_CTL_DEL 2
+ #define EPOLL_CTL_MOD 3
+ 
++/* Set exclusive wakeup mode for the target file descriptor */
++#define EPOLLEXCLUSIVE (1 << 28)
++
+ /*
+  * Request the handling of system wakeup events so as to prevent system suspends
+  * from happening while those events are being processed.
 _
 
-Patches currently in -mm which might be from hirofumi@mail.parknet.co.jp are
+Patches currently in -mm which might be from jbaron@akamai.com are
 
 
