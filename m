@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + dax-add-support-for-fsync-sync-v8-fix-4.patch added to -mm tree
-Date: Thu, 21 Jan 2016 12:46:06 -0800
-Message-ID: <56a1438e.Sh+hT/AckQX1k2o7%akpm@linux-foundation.org>
+Subject: + dax-never-rely-on-bhb_dev-being-set-by-get_block.patch added to -mm tree
+Date: Thu, 21 Jan 2016 12:46:09 -0800
+Message-ID: <56a14391.dxwDYCHc/AUo/RNo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57429 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57432 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236AbcAUUqH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 15:46:07 -0500
+	with ESMTP id S1751208AbcAUUqK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 15:46:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ross.zwisler@linux.intel.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: fix clearing of holes in __dax_pmd_fault()
+     Subject: dax: never rely on bh.b_dev being set by get_block()
 has been added to the -mm tree.  Its filename is
-     dax-add-support-for-fsync-sync-v8-fix-4.patch
+     dax-never-rely-on-bhb_dev-being-set-by-get_block.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-add-support-for-fsync-sync-v8-fix-4.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-never-rely-on-bhb_dev-being-set-by-get_block.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-add-support-for-fsync-sync-v8-fix-4.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-never-rely-on-bhb_dev-being-set-by-get_block.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,91 +39,55 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: fix clearing of holes in __dax_pmd_fault()
+Subject: dax: never rely on bh.b_dev being set by get_block()
 
-When the user reads from a DAX hole via a mmap we service page faults using
-zero-filled page cache pages.  These zero pages are also placed into the
-address_space radix tree.  When we get our first write for that space, we
-can allocate a PMD page worth of DAX storage to replace that hole.
+Previously in DAX we assumed that calls to get_block() would set bh.b_bdev,
+and we would then use that value even in error cases for debugging.  This
+caused a NULL pointer dereference in __dax_dbg() which was fixed by a
+previous commit, but that commit only changed the one place where we were
+hitting an error.
 
-When this happens we need to unmap the zero pages and remove them from the
-radix tree.  Prior to this patch we were unmapping *all* storage in our
-PMD's range, which is incorrect because it removed DAX entries as well on
-non-allocating page faults.
-
-Instead, keep track of when get_block() actually gives us storage so that
-we can be sure to only remove zero pages that were covering holes.
+Instead, update dax.c so that we always initialize bh.b_bdev as best we can
+based on the information that DAX has.  get_block() may or may not update
+to a new value, but this at least lets us get something helpful from
+bh.b_bdev for error messages and not have to worry about whether it was set
+by get_block() or not.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Reported-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   32 ++++++++++++++++++++++----------
- 1 file changed, 22 insertions(+), 10 deletions(-)
+ fs/dax.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN fs/dax.c~dax-add-support-for-fsync-sync-v8-fix-4 fs/dax.c
---- a/fs/dax.c~dax-add-support-for-fsync-sync-v8-fix-4
+diff -puN fs/dax.c~dax-never-rely-on-bhb_dev-being-set-by-get_block fs/dax.c
+--- a/fs/dax.c~dax-never-rely-on-bhb_dev-being-set-by-get_block
 +++ a/fs/dax.c
-@@ -788,9 +788,9 @@ int __dax_pmd_fault(struct vm_area_struc
- 	bool write = flags & FAULT_FLAG_WRITE;
- 	struct block_device *bdev;
- 	pgoff_t size, pgoff;
--	loff_t lstart, lend;
- 	sector_t block;
- 	int error, result = 0;
-+	bool alloc = false;
+@@ -246,6 +246,7 @@ ssize_t dax_do_io(struct kiocb *iocb, st
+ 	loff_t end = pos + iov_iter_count(iter);
  
- 	/* dax pmd mappings require pfn_t_devmap() */
- 	if (!IS_ENABLED(CONFIG_FS_DAX_PMD))
-@@ -828,10 +828,17 @@ int __dax_pmd_fault(struct vm_area_struc
- 	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
+ 	memset(&bh, 0, sizeof(bh));
++	bh.b_bdev = inode->i_sb->s_bdev;
  
- 	bh.b_size = PMD_SIZE;
--	if (get_block(inode, block, &bh, write) != 0)
-+
-+	if (get_block(inode, block, &bh, 0) != 0)
- 		return VM_FAULT_SIGBUS;
-+
-+	if (!buffer_mapped(&bh) && write) {
-+		if (get_block(inode, block, &bh, 1) != 0)
-+			return VM_FAULT_SIGBUS;
-+		alloc = true;
-+	}
-+
- 	bdev = bh.b_bdev;
--	i_mmap_lock_read(mapping);
+ 	if ((flags & DIO_LOCKING) && iov_iter_rw(iter) == READ) {
+ 		struct address_space *mapping = inode->i_mapping;
+@@ -606,6 +607,7 @@ int __dax_fault(struct vm_area_struct *v
  
- 	/*
- 	 * If the filesystem isn't willing to tell us the length of a hole,
-@@ -840,15 +847,20 @@ int __dax_pmd_fault(struct vm_area_struc
- 	 */
- 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE) {
- 		dax_pmd_dbg(&bh, address, "allocated block too small");
--		goto fallback;
-+		return VM_FAULT_FALLBACK;
-+	}
-+
-+	/*
-+	 * If we allocated new storage, make sure no process has any
-+	 * zero pages covering this hole
-+	 */
-+	if (alloc) {
-+		loff_t lstart = pgoff << PAGE_SHIFT;
-+		loff_t lend = lstart + PMD_SIZE - 1; /* inclusive */
-+
-+		truncate_pagecache_range(inode, lstart, lend);
- 	}
+ 	memset(&bh, 0, sizeof(bh));
+ 	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
++	bh.b_bdev = inode->i_sb->s_bdev;
+ 	bh.b_size = PAGE_SIZE;
  
--	/* make sure no process has any zero pages covering this hole */
--	lstart = pgoff << PAGE_SHIFT;
--	lend = lstart + PMD_SIZE - 1; /* inclusive */
--	i_mmap_unlock_read(mapping);
--	unmap_mapping_range(mapping, lstart, PMD_SIZE, 0);
--	truncate_inode_pages_range(mapping, lstart, lend);
- 	i_mmap_lock_read(mapping);
+  repeat:
+@@ -1077,6 +1079,7 @@ int dax_zero_page_range(struct inode *in
+ 	BUG_ON((offset + length) > PAGE_CACHE_SIZE);
  
- 	/*
+ 	memset(&bh, 0, sizeof(bh));
++	bh.b_bdev = inode->i_sb->s_bdev;
+ 	bh.b_size = PAGE_CACHE_SIZE;
+ 	err = get_block(inode, index, &bh, 0);
+ 	if (err < 0)
 _
 
 Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
