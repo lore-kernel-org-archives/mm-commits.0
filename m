@@ -1,125 +1,215 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header.patch removed from -mm tree
-Date: Thu, 21 Jan 2016 15:00:01 -0800
-Message-ID: <56a162f1.9Q9vFz9YRT7/QOTL%akpm@linux-foundation.org>
+ kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file.patch removed from -mm tree
+Date: Thu, 21 Jan 2016 15:00:17 -0800
+Message-ID: <56a16301.XT3kzs6rMyaVN0Mo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33975 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34012 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751747AbcAUXAC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:00:02 -0500
+	with ESMTP id S1752146AbcAUXAS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:00:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, gregkh@linuxfoundation.org, mpe@ellerman.id.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: xlpang@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/fadump: rename cpu_online_mask member of struct fadump_crash_info_header
+     Subject: kexec: move some memembers and definitions within the scope of CONFIG_KEXEC_FILE
 has been removed from the -mm tree.  Its filename was
-     powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header.patch
+     kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: powerpc/fadump: rename cpu_online_mask member of struct fadump_crash_info_header
+From: Xunlei Pang <xlpang@redhat.com>
+Subject: kexec: move some memembers and definitions within the scope of CONFIG_KEXEC_FILE
 
-The four cpumasks cpu_{possible,online,present,active}_bits are exposed
-readonly via the corresponding const variables cpu_xyz_mask.  But they are
-also accessible for arbitrary writing via the exposed functions
-set_cpu_xyz.  There's quite a bit of code throughout the kernel which
-iterates over or otherwise accesses these bitmaps, and having the access
-go via the cpu_xyz_mask variables is nowadays [1] simply a useless
-indirection.
+Move the stuff currently only used by the kexec file code within
+CONFIG_KEXEC_FILE (and CONFIG_KEXEC_VERIFY_SIG).
 
-It may be that any problem in CS can be solved by an extra level of
-indirection, but that doesn't mean every extra indirection solves a
-problem.  In this case, it even necessitates some minor ugliness (see
-4/6).
+Also move internal "struct kexec_sha_region" and "struct kexec_buf" into
+"kexec_internal.h".
 
-Patch 1/6 is new in v2, and fixes a build failure on ppc by renaming a
-struct member, to avoid problems when the identifier cpu_online_mask
-becomes a macro later in the series.  The next four patches eliminate the
-cpu_xyz_mask variables by simply exposing the actual bitmaps, after
-renaming them to discourage direct access - that still happens through
-cpu_xyz_mask, which are now simply macros with the same type and value as
-they used to have.
-
-After that, there's no longer any reason to have the setter functions be
-out-of-line: The boolean parameter is almost always a literal true or
-false, so by making them static inlines they will usually compile to one
-or two instructions.
-
-For a defconfig build on x86_64, bloat-o-meter says we save ~3000 bytes. 
-We also save a little stack (stackdelta says 127 functions have a 16 byte
-smaller stack frame, while two grow by that amount).  Mostly because, when
-iterating over the mask, gcc typically loads the value of cpu_xyz_mask
-into a callee-saved register and from there into %rdi before each
-find_next_bit call - now it can just load the appropriate immediate
-address into %rdi before each call.
-
-[1] See Rusty's kind explanation
-http://thread.gmane.org/gmane.linux.kernel/2047078/focus=2047722 for
-some historic context.
-
-
-This patch (of 6):
-
-As preparation for eliminating the indirect access to the various global
-cpu_*_bits bitmaps via the pointer variables cpu_*_mask, rename the
-cpu_online_mask member of struct fadump_crash_info_header to simply
-online_mask, thus allowing cpu_online_mask to become a macro.
-
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Signed-off-by: Xunlei Pang <xlpang@redhat.com>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Dave Young <dyoung@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/include/asm/fadump.h |    2 +-
- arch/powerpc/kernel/fadump.c      |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ arch/x86/kernel/machine_kexec_64.c |    2 
+ include/linux/kexec.h              |   62 ++++++++++-----------------
+ kernel/kexec_file.c                |    2 
+ kernel/kexec_internal.h            |   21 +++++++++
+ 4 files changed, 50 insertions(+), 37 deletions(-)
 
-diff -puN arch/powerpc/include/asm/fadump.h~powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header arch/powerpc/include/asm/fadump.h
---- a/arch/powerpc/include/asm/fadump.h~powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header
-+++ a/arch/powerpc/include/asm/fadump.h
-@@ -191,7 +191,7 @@ struct fadump_crash_info_header {
- 	u64		elfcorehdr_addr;
- 	u32		crashing_cpu;
- 	struct pt_regs	regs;
--	struct cpumask	cpu_online_mask;
-+	struct cpumask	online_mask;
+diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file arch/x86/kernel/machine_kexec_64.c
+--- a/arch/x86/kernel/machine_kexec_64.c~kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file
++++ a/arch/x86/kernel/machine_kexec_64.c
+@@ -385,6 +385,7 @@ int arch_kimage_file_post_load_cleanup(s
+ 	return image->fops->cleanup(image->image_loader_data);
+ }
+ 
++#ifdef CONFIG_KEXEC_VERIFY_SIG
+ int arch_kexec_kernel_verify_sig(struct kimage *image, void *kernel,
+ 				 unsigned long kernel_len)
+ {
+@@ -395,6 +396,7 @@ int arch_kexec_kernel_verify_sig(struct
+ 
+ 	return image->fops->verify_sig(kernel, kernel_len);
+ }
++#endif
+ 
+ /*
+  * Apply purgatory relocations.
+diff -puN include/linux/kexec.h~kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file include/linux/kexec.h
+--- a/include/linux/kexec.h~kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file
++++ a/include/linux/kexec.h
+@@ -109,11 +109,7 @@ struct compat_kexec_segment {
+ };
+ #endif
+ 
+-struct kexec_sha_region {
+-	unsigned long start;
+-	unsigned long len;
+-};
+-
++#ifdef CONFIG_KEXEC_FILE
+ struct purgatory_info {
+ 	/* Pointer to elf header of read only purgatory */
+ 	Elf_Ehdr *ehdr;
+@@ -130,6 +126,28 @@ struct purgatory_info {
+ 	unsigned long purgatory_load_addr;
  };
  
- /* Crash memory ranges */
-diff -puN arch/powerpc/kernel/fadump.c~powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header arch/powerpc/kernel/fadump.c
---- a/arch/powerpc/kernel/fadump.c~powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header
-+++ a/arch/powerpc/kernel/fadump.c
-@@ -415,7 +415,7 @@ void crash_fadump(struct pt_regs *regs,
- 	else
- 		ppc_save_regs(&fdh->regs);
++typedef int (kexec_probe_t)(const char *kernel_buf, unsigned long kernel_size);
++typedef void *(kexec_load_t)(struct kimage *image, char *kernel_buf,
++			     unsigned long kernel_len, char *initrd,
++			     unsigned long initrd_len, char *cmdline,
++			     unsigned long cmdline_len);
++typedef int (kexec_cleanup_t)(void *loader_data);
++
++#ifdef CONFIG_KEXEC_VERIFY_SIG
++typedef int (kexec_verify_sig_t)(const char *kernel_buf,
++				 unsigned long kernel_len);
++#endif
++
++struct kexec_file_ops {
++	kexec_probe_t *probe;
++	kexec_load_t *load;
++	kexec_cleanup_t *cleanup;
++#ifdef CONFIG_KEXEC_VERIFY_SIG
++	kexec_verify_sig_t *verify_sig;
++#endif
++};
++#endif
++
+ struct kimage {
+ 	kimage_entry_t head;
+ 	kimage_entry_t *entry;
+@@ -161,6 +179,7 @@ struct kimage {
+ 	struct kimage_arch arch;
+ #endif
  
--	fdh->cpu_online_mask = *cpu_online_mask;
-+	fdh->online_mask = *cpu_online_mask;
++#ifdef CONFIG_KEXEC_FILE
+ 	/* Additional fields for file based kexec syscall */
+ 	void *kernel_buf;
+ 	unsigned long kernel_buf_len;
+@@ -179,38 +198,7 @@ struct kimage {
  
- 	/* Call ibm,os-term rtas call to trigger firmware assisted dump */
- 	rtas_os_term((char *)str);
-@@ -646,7 +646,7 @@ static int __init fadump_build_cpu_notes
- 		}
- 		/* Lower 4 bytes of reg_value contains logical cpu id */
- 		cpu = be64_to_cpu(reg_entry->reg_value) & FADUMP_CPU_ID_MASK;
--		if (fdh && !cpumask_test_cpu(cpu, &fdh->cpu_online_mask)) {
-+		if (fdh && !cpumask_test_cpu(cpu, &fdh->online_mask)) {
- 			SKIP_TO_NEXT_CPU(reg_entry);
- 			continue;
- 		}
+ 	/* Information for loading purgatory */
+ 	struct purgatory_info purgatory_info;
+-};
+-
+-/*
+- * Keeps track of buffer parameters as provided by caller for requesting
+- * memory placement of buffer.
+- */
+-struct kexec_buf {
+-	struct kimage *image;
+-	char *buffer;
+-	unsigned long bufsz;
+-	unsigned long mem;
+-	unsigned long memsz;
+-	unsigned long buf_align;
+-	unsigned long buf_min;
+-	unsigned long buf_max;
+-	bool top_down;		/* allocate from top of memory hole */
+-};
+-
+-typedef int (kexec_probe_t)(const char *kernel_buf, unsigned long kernel_size);
+-typedef void *(kexec_load_t)(struct kimage *image, char *kernel_buf,
+-			     unsigned long kernel_len, char *initrd,
+-			     unsigned long initrd_len, char *cmdline,
+-			     unsigned long cmdline_len);
+-typedef int (kexec_cleanup_t)(void *loader_data);
+-typedef int (kexec_verify_sig_t)(const char *kernel_buf,
+-				 unsigned long kernel_len);
+-
+-struct kexec_file_ops {
+-	kexec_probe_t *probe;
+-	kexec_load_t *load;
+-	kexec_cleanup_t *cleanup;
+-	kexec_verify_sig_t *verify_sig;
++#endif
+ };
+ 
+ /* kexec interface functions */
+diff -puN kernel/kexec_file.c~kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file kernel/kexec_file.c
+--- a/kernel/kexec_file.c~kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file
++++ a/kernel/kexec_file.c
+@@ -109,11 +109,13 @@ int __weak arch_kimage_file_post_load_cl
+ 	return -EINVAL;
+ }
+ 
++#ifdef CONFIG_KEXEC_VERIFY_SIG
+ int __weak arch_kexec_kernel_verify_sig(struct kimage *image, void *buf,
+ 					unsigned long buf_len)
+ {
+ 	return -EKEYREJECTED;
+ }
++#endif
+ 
+ /* Apply relocations of type RELA */
+ int __weak
+diff -puN kernel/kexec_internal.h~kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file kernel/kexec_internal.h
+--- a/kernel/kexec_internal.h~kexec-move-some-memembers-and-definitions-within-the-scope-of-config_kexec_file
++++ a/kernel/kexec_internal.h
+@@ -15,6 +15,27 @@ int kimage_is_destination_range(struct k
+ extern struct mutex kexec_mutex;
+ 
+ #ifdef CONFIG_KEXEC_FILE
++struct kexec_sha_region {
++	unsigned long start;
++	unsigned long len;
++};
++
++/*
++ * Keeps track of buffer parameters as provided by caller for requesting
++ * memory placement of buffer.
++ */
++struct kexec_buf {
++	struct kimage *image;
++	char *buffer;
++	unsigned long bufsz;
++	unsigned long mem;
++	unsigned long memsz;
++	unsigned long buf_align;
++	unsigned long buf_min;
++	unsigned long buf_max;
++	bool top_down;		/* allocate from top of memory hole */
++};
++
+ void kimage_file_post_load_cleanup(struct kimage *image);
+ #else /* CONFIG_KEXEC_FILE */
+ static inline void kimage_file_post_load_cleanup(struct kimage *image) { }
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from xlpang@redhat.com are
 
+kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory.patch
+kexec-provide-arch_kexec_protectunprotect_crashkres.patch
 
