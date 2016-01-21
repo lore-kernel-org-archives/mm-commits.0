@@ -1,138 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- proc-read-mms-argenv_startend-with-mmap-semaphore-taken.patch removed from
- -mm tree
-Date: Thu, 21 Jan 2016 15:28:28 -0800
-Message-ID: <56a1699c.ssk1W3RvCv+3w88v%akpm@linux-foundation.org>
+Subject: [merged] ipc-shm-is_file_shm_hugepages-can-be-boolean.patch
+ removed from -mm tree
+Date: Thu, 21 Jan 2016 15:28:33 -0800
+Message-ID: <56a169a1.ctw3oRfRju3woKry%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36040 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36082 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751003AbcAUX2b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:28:31 -0500
+	with ESMTP id S1751003AbcAUX2e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:28:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mguzik@redhat.com, adobriyan@gmail.com, anshuman.linux@gmail.com, gorcunov@openvz.org, jarod@redhat.com, jstancek@redhat.com, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: baiyaowei@cmss.chinamobile.com, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc read mm's {arg,env}_{start,end} with mmap semaphore taken.
+     Subject: ipc/shm.c: is_file_shm_hugepages() can be boolean
 has been removed from the -mm tree.  Its filename was
-     proc-read-mms-argenv_startend-with-mmap-semaphore-taken.patch
+     ipc-shm-is_file_shm_hugepages-can-be-boolean.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mateusz Guzik <mguzik@redhat.com>
-Subject: proc read mm's {arg,env}_{start,end} with mmap semaphore taken.
+From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Subject: ipc/shm.c: is_file_shm_hugepages() can be boolean
 
-Only functions doing more than one read are modified. Consumeres
-happened to deal with possibly changing data, but it does not seem
-like a good thing to rely on.
+Make is_file_shm_hugepages() return bool to improve readability due to
+this particular function only using either one or zero as its return
+value.
 
-Signed-off-by: Mateusz Guzik <mguzik@redhat.com>
-Acked-by: Cyrill Gorcunov <gorcunov@openvz.org>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Cc: Jarod Wilson <jarod@redhat.com>
-Cc: Jan Stancek <jstancek@redhat.com>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Anshuman Khandual <anshuman.linux@gmail.com>
+No functional change.
+
+Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   13 ++++++++++---
- mm/util.c      |   16 ++++++++++++----
- 2 files changed, 22 insertions(+), 7 deletions(-)
+ include/linux/shm.h |    6 +++---
+ ipc/shm.c           |    2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN fs/proc/base.c~proc-read-mms-argenv_startend-with-mmap-semaphore-taken fs/proc/base.c
---- a/fs/proc/base.c~proc-read-mms-argenv_startend-with-mmap-semaphore-taken
-+++ a/fs/proc/base.c
-@@ -953,6 +953,7 @@ static ssize_t environ_read(struct file
- 	unsigned long src = *ppos;
- 	int ret = 0;
- 	struct mm_struct *mm = file->private_data;
-+	unsigned long env_start, env_end;
+diff -puN include/linux/shm.h~ipc-shm-is_file_shm_hugepages-can-be-boolean include/linux/shm.h
+--- a/include/linux/shm.h~ipc-shm-is_file_shm_hugepages-can-be-boolean
++++ a/include/linux/shm.h
+@@ -52,7 +52,7 @@ struct sysv_shm {
  
- 	if (!mm)
- 		return 0;
-@@ -964,19 +965,25 @@ static ssize_t environ_read(struct file
- 	ret = 0;
- 	if (!atomic_inc_not_zero(&mm->mm_users))
- 		goto free;
-+
-+	down_read(&mm->mmap_sem);
-+	env_start = mm->env_start;
-+	env_end = mm->env_end;
-+	up_read(&mm->mmap_sem);
-+
- 	while (count > 0) {
- 		size_t this_len, max_len;
- 		int retval;
+ long do_shmat(int shmid, char __user *shmaddr, int shmflg, unsigned long *addr,
+ 	      unsigned long shmlba);
+-int is_file_shm_hugepages(struct file *file);
++bool is_file_shm_hugepages(struct file *file);
+ void exit_shm(struct task_struct *task);
+ #define shm_init_task(task) INIT_LIST_HEAD(&(task)->sysvshm.shm_clist)
+ #else
+@@ -66,9 +66,9 @@ static inline long do_shmat(int shmid, c
+ {
+ 	return -ENOSYS;
+ }
+-static inline int is_file_shm_hugepages(struct file *file)
++static inline bool is_file_shm_hugepages(struct file *file)
+ {
+-	return 0;
++	return false;
+ }
+ static inline void exit_shm(struct task_struct *task)
+ {
+diff -puN ipc/shm.c~ipc-shm-is_file_shm_hugepages-can-be-boolean ipc/shm.c
+--- a/ipc/shm.c~ipc-shm-is_file_shm_hugepages-can-be-boolean
++++ a/ipc/shm.c
+@@ -459,7 +459,7 @@ static const struct file_operations shm_
+ 	.fallocate	= shm_fallocate,
+ };
  
--		if (src >= (mm->env_end - mm->env_start))
-+		if (src >= (env_end - env_start))
- 			break;
- 
--		this_len = mm->env_end - (mm->env_start + src);
-+		this_len = env_end - (env_start + src);
- 
- 		max_len = min_t(size_t, PAGE_SIZE, count);
- 		this_len = min(max_len, this_len);
- 
--		retval = access_remote_vm(mm, (mm->env_start + src),
-+		retval = access_remote_vm(mm, (env_start + src),
- 			page, this_len, 0);
- 
- 		if (retval <= 0) {
-diff -puN mm/util.c~proc-read-mms-argenv_startend-with-mmap-semaphore-taken mm/util.c
---- a/mm/util.c~proc-read-mms-argenv_startend-with-mmap-semaphore-taken
-+++ a/mm/util.c
-@@ -476,17 +476,25 @@ int get_cmdline(struct task_struct *task
- 	int res = 0;
- 	unsigned int len;
- 	struct mm_struct *mm = get_task_mm(task);
-+	unsigned long arg_start, arg_end, env_start, env_end;
- 	if (!mm)
- 		goto out;
- 	if (!mm->arg_end)
- 		goto out_mm;	/* Shh! No looking before we're done */
- 
--	len = mm->arg_end - mm->arg_start;
-+	down_read(&mm->mmap_sem);
-+	arg_start = mm->arg_start;
-+	arg_end = mm->arg_end;
-+	env_start = mm->env_start;
-+	env_end = mm->env_end;
-+	up_read(&mm->mmap_sem);
-+
-+	len = arg_end - arg_start;
- 
- 	if (len > buflen)
- 		len = buflen;
- 
--	res = access_process_vm(task, mm->arg_start, buffer, len, 0);
-+	res = access_process_vm(task, arg_start, buffer, len, 0);
- 
- 	/*
- 	 * If the nul at the end of args has been overwritten, then
-@@ -497,10 +505,10 @@ int get_cmdline(struct task_struct *task
- 		if (len < res) {
- 			res = len;
- 		} else {
--			len = mm->env_end - mm->env_start;
-+			len = env_end - env_start;
- 			if (len > buflen - res)
- 				len = buflen - res;
--			res += access_process_vm(task, mm->env_start,
-+			res += access_process_vm(task, env_start,
- 						 buffer+res, len, 0);
- 			res = strnlen(buffer, res);
- 		}
+-int is_file_shm_hugepages(struct file *file)
++bool is_file_shm_hugepages(struct file *file)
+ {
+ 	return file->f_op == &shm_file_operations_huge;
+ }
 _
 
-Patches currently in -mm which might be from mguzik@redhat.com are
+Patches currently in -mm which might be from baiyaowei@cmss.chinamobile.com are
 
 
