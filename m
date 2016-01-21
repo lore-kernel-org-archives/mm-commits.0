@@ -1,99 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-cpuc-eliminate-cpu__mask.patch removed from -mm
- tree
-Date: Thu, 21 Jan 2016 15:00:09 -0800
-Message-ID: <56a162f9.A151iNkJORSlRjtf%akpm@linux-foundation.org>
+Subject: [merged]
+ kexec-set-kexec_type_crash-before-sanity_check_segment_list.patch removed
+ from -mm tree
+Date: Thu, 21 Jan 2016 15:00:13 -0800
+Message-ID: <56a162fd.iU2ssK7IlHYOIdbz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33997 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34006 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146AbcAUXAK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:00:10 -0500
+	with ESMTP id S1752146AbcAUXAO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:00:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, gregkh@linuxfoundation.org, mpe@ellerman.id.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: xlpang@redhat.com, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/cpu.c: eliminate cpu_*_mask
+     Subject: kexec: set KEXEC_TYPE_CRASH before sanity_check_segment_list()
 has been removed from the -mm tree.  Its filename was
-     kernel-cpuc-eliminate-cpu__mask.patch
+     kexec-set-kexec_type_crash-before-sanity_check_segment_list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: kernel/cpu.c: eliminate cpu_*_mask
+From: Xunlei Pang <xlpang@redhat.com>
+Subject: kexec: set KEXEC_TYPE_CRASH before sanity_check_segment_list()
 
-Replace the variables cpu_possible_mask, cpu_online_mask, cpu_present_mask
-and cpu_active_mask with macros expanding to expressions of the same type
-and value, eliminating some indirection.
+sanity_check_segment_list() checks KEXEC_TYPE_CRASH flag to ensure all the
+segments of the loaded crash kernel are within the kernel crash resource
+limits, so set the flag beforehand.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Signed-off-by: Xunlei Pang <xlpang@redhat.com>
+Acked-by: Dave Young <dyoung@redhat.com>
+Cc: Eric Biederman <ebiederm@xmission.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Acked-by: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpumask.h |    8 ++++----
- kernel/cpu.c            |    8 --------
- 2 files changed, 4 insertions(+), 12 deletions(-)
+ kernel/kexec.c |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/cpumask.h~kernel-cpuc-eliminate-cpu__mask include/linux/cpumask.h
---- a/include/linux/cpumask.h~kernel-cpuc-eliminate-cpu__mask
-+++ a/include/linux/cpumask.h
-@@ -85,14 +85,14 @@ extern int nr_cpu_ids;
-  *    only one CPU.
-  */
+diff -puN kernel/kexec.c~kexec-set-kexec_type_crash-before-sanity_check_segment_list kernel/kexec.c
+--- a/kernel/kexec.c~kexec-set-kexec_type_crash-before-sanity_check_segment_list
++++ a/kernel/kexec.c
+@@ -63,16 +63,16 @@ static int kimage_alloc_init(struct kima
+ 	if (ret)
+ 		goto out_free_image;
  
--extern const struct cpumask *const cpu_possible_mask;
--extern const struct cpumask *const cpu_online_mask;
--extern const struct cpumask *const cpu_present_mask;
--extern const struct cpumask *const cpu_active_mask;
- extern struct cpumask __cpu_possible_mask;
- extern struct cpumask __cpu_online_mask;
- extern struct cpumask __cpu_present_mask;
- extern struct cpumask __cpu_active_mask;
-+#define cpu_possible_mask ((const struct cpumask *)&__cpu_possible_mask)
-+#define cpu_online_mask   ((const struct cpumask *)&__cpu_online_mask)
-+#define cpu_present_mask  ((const struct cpumask *)&__cpu_present_mask)
-+#define cpu_active_mask   ((const struct cpumask *)&__cpu_active_mask)
- 
- #if NR_CPUS > 1
- #define num_online_cpus()	cpumask_weight(cpu_online_mask)
-diff -puN kernel/cpu.c~kernel-cpuc-eliminate-cpu__mask kernel/cpu.c
---- a/kernel/cpu.c~kernel-cpuc-eliminate-cpu__mask
-+++ a/kernel/cpu.c
-@@ -765,23 +765,15 @@ struct cpumask __cpu_possible_mask __rea
- struct cpumask __cpu_possible_mask __read_mostly;
- #endif
- EXPORT_SYMBOL(__cpu_possible_mask);
--const struct cpumask *const cpu_possible_mask = &__cpu_possible_mask;
--EXPORT_SYMBOL(cpu_possible_mask);
- 
- struct cpumask __cpu_online_mask __read_mostly;
- EXPORT_SYMBOL(__cpu_online_mask);
--const struct cpumask *const cpu_online_mask = &__cpu_online_mask;
--EXPORT_SYMBOL(cpu_online_mask);
- 
- struct cpumask __cpu_present_mask __read_mostly;
- EXPORT_SYMBOL(__cpu_present_mask);
--const struct cpumask *const cpu_present_mask = &__cpu_present_mask;
--EXPORT_SYMBOL(cpu_present_mask);
- 
- struct cpumask __cpu_active_mask __read_mostly;
- EXPORT_SYMBOL(__cpu_active_mask);
--const struct cpumask *const cpu_active_mask = &__cpu_active_mask;
--EXPORT_SYMBOL(cpu_active_mask);
- 
- void set_cpu_possible(unsigned int cpu, bool possible)
- {
-_
-
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
-
-
+-	ret = sanity_check_segment_list(image);
+-	if (ret)
+-		goto out_free_image;
