@@ -1,94 +1,148 @@
 From: akpm@linux-foundation.org
-Subject: [merged] fs-coredump-prevent-core-path-components.patch removed
- from -mm tree
-Date: Thu, 21 Jan 2016 14:59:57 -0800
-Message-ID: <56a162ed.EnS/6J94/bRljikc%akpm@linux-foundation.org>
+Subject: [merged]
+ kernel-cpuc-change-type-of-cpu_possible_bits-and-friends.patch removed from -mm tree
+Date: Thu, 21 Jan 2016 15:00:03 -0800
+Message-ID: <56a162f3.W6UJnp7/vOLgFBlN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33970 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33982 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752164AbcAUW76 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:59:58 -0500
+	with ESMTP id S1751736AbcAUXAD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:00:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jann@thejh.net, keescook@chromium.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, gregkh@linuxfoundation.org, mpe@ellerman.id.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs/coredump: prevent "" / "." / ".." core path components
+     Subject: kernel/cpu.c: change type of cpu_possible_bits and friends
 has been removed from the -mm tree.  Its filename was
-     fs-coredump-prevent-core-path-components.patch
+     kernel-cpuc-change-type-of-cpu_possible_bits-and-friends.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jann Horn <jann@thejh.net>
-Subject: fs/coredump: prevent "" / "." / ".." core path components
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: kernel/cpu.c: change type of cpu_possible_bits and friends
 
-Let %h and %e print empty values as "!", "." as "!" and
-".." as "!.".
+Change cpu_possible_bits and friends (online, present, active) from being
+bitmaps that happen to have the right size to actually being struct
+cpumasks.  Also rename them to __cpu_xyz_mask.  This is mostly a small
+cleanup in preparation for exporting them and, eventually, eliminating the
+extra indirection through the cpu_xyz_mask variables.
 
-This prevents hostnames and comm values that are empty or consist of one
-or two dots from changing the directory level at which the corefile will
-be stored.
-
-Consider the case where someone decides to sort coredumps by hostname
-with a core pattern like "/cores/%h/core.%e.%p.%t" or so.  In this
-case, hostnames "" and "." would cause the coredump to land directly in
-/cores, which is not what the intent behind the core pattern is, and
-".." would cause the coredump to land in /.
-
-Yeah, there probably aren't many people who do that, but I still don't
-want this edgecase to be kind of broken.
-
-It seems very unlikely that this caused security issues anywhere, so I'm
-not requesting a stable backport.
-
-[akpm@linux-foundation.org: tweak code comment]
-Signed-off-by: Jann Horn <jann@thejh.net>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/coredump.c |   20 ++++++++++++++++++++
- 1 file changed, 20 insertions(+)
+ kernel/cpu.c |   44 ++++++++++++++++++++++----------------------
+ 1 file changed, 22 insertions(+), 22 deletions(-)
 
-diff -puN fs/coredump.c~fs-coredump-prevent-core-path-components fs/coredump.c
---- a/fs/coredump.c~fs-coredump-prevent-core-path-components
-+++ a/fs/coredump.c
-@@ -118,6 +118,26 @@ int cn_esc_printf(struct core_name *cn,
- 	ret = cn_vprintf(cn, fmt, arg);
- 	va_end(arg);
+diff -puN kernel/cpu.c~kernel-cpuc-change-type-of-cpu_possible_bits-and-friends kernel/cpu.c
+--- a/kernel/cpu.c~kernel-cpuc-change-type-of-cpu_possible_bits-and-friends
++++ a/kernel/cpu.c
+@@ -759,71 +759,71 @@ const DECLARE_BITMAP(cpu_all_bits, NR_CP
+ EXPORT_SYMBOL(cpu_all_bits);
  
-+	if (ret == 0) {
-+		/*
-+		 * Ensure that this coredump name component can't cause the
-+		 * resulting corefile path to consist of a ".." or ".".
-+		 */
-+		if ((cn->used - cur == 1 && cn->corename[cur] == '.') ||
-+				(cn->used - cur == 2 && cn->corename[cur] == '.'
-+				&& cn->corename[cur+1] == '.'))
-+			cn->corename[cur] = '!';
-+
-+		/*
-+		 * Empty names are fishy and could be used to create a "//" in a
-+		 * corefile name, causing the coredump to happen one directory
-+		 * level too high. Enforce that all components of the core
-+		 * pattern are at least one character long.
-+		 */
-+		if (cn->used == cur)
-+			ret = cn_printf(cn, "!");
-+	}
-+
- 	for (; cur < cn->used; ++cur) {
- 		if (cn->corename[cur] == '/')
- 			cn->corename[cur] = '!';
+ #ifdef CONFIG_INIT_ALL_POSSIBLE
+-static DECLARE_BITMAP(cpu_possible_bits, CONFIG_NR_CPUS) __read_mostly
+-	= CPU_BITS_ALL;
++static struct cpumask __cpu_possible_mask __read_mostly
++	= {CPU_BITS_ALL};
+ #else
+-static DECLARE_BITMAP(cpu_possible_bits, CONFIG_NR_CPUS) __read_mostly;
++static struct cpumask __cpu_possible_mask __read_mostly;
+ #endif
+-const struct cpumask *const cpu_possible_mask = to_cpumask(cpu_possible_bits);
++const struct cpumask *const cpu_possible_mask = &__cpu_possible_mask;
+ EXPORT_SYMBOL(cpu_possible_mask);
+ 
+-static DECLARE_BITMAP(cpu_online_bits, CONFIG_NR_CPUS) __read_mostly;
+-const struct cpumask *const cpu_online_mask = to_cpumask(cpu_online_bits);
++static struct cpumask __cpu_online_mask __read_mostly;
++const struct cpumask *const cpu_online_mask = &__cpu_online_mask;
+ EXPORT_SYMBOL(cpu_online_mask);
+ 
+-static DECLARE_BITMAP(cpu_present_bits, CONFIG_NR_CPUS) __read_mostly;
+-const struct cpumask *const cpu_present_mask = to_cpumask(cpu_present_bits);
++static struct cpumask __cpu_present_mask __read_mostly;
++const struct cpumask *const cpu_present_mask = &__cpu_present_mask;
+ EXPORT_SYMBOL(cpu_present_mask);
+ 
+-static DECLARE_BITMAP(cpu_active_bits, CONFIG_NR_CPUS) __read_mostly;
+-const struct cpumask *const cpu_active_mask = to_cpumask(cpu_active_bits);
++static struct cpumask __cpu_active_mask __read_mostly;
++const struct cpumask *const cpu_active_mask = &__cpu_active_mask;
+ EXPORT_SYMBOL(cpu_active_mask);
+ 
+ void set_cpu_possible(unsigned int cpu, bool possible)
+ {
+ 	if (possible)
+-		cpumask_set_cpu(cpu, to_cpumask(cpu_possible_bits));
++		cpumask_set_cpu(cpu, &__cpu_possible_mask);
+ 	else
+-		cpumask_clear_cpu(cpu, to_cpumask(cpu_possible_bits));
++		cpumask_clear_cpu(cpu, &__cpu_possible_mask);
+ }
+ 
+ void set_cpu_present(unsigned int cpu, bool present)
+ {
+ 	if (present)
+-		cpumask_set_cpu(cpu, to_cpumask(cpu_present_bits));
++		cpumask_set_cpu(cpu, &__cpu_present_mask);
+ 	else
+-		cpumask_clear_cpu(cpu, to_cpumask(cpu_present_bits));
++		cpumask_clear_cpu(cpu, &__cpu_present_mask);
+ }
+ 
+ void set_cpu_online(unsigned int cpu, bool online)
+ {
+ 	if (online) {
+-		cpumask_set_cpu(cpu, to_cpumask(cpu_online_bits));
+-		cpumask_set_cpu(cpu, to_cpumask(cpu_active_bits));
++		cpumask_set_cpu(cpu, &__cpu_online_mask);
++		cpumask_set_cpu(cpu, &__cpu_active_mask);
+ 	} else {
+-		cpumask_clear_cpu(cpu, to_cpumask(cpu_online_bits));
++		cpumask_clear_cpu(cpu, &__cpu_online_mask);
+ 	}
+ }
+ 
+ void set_cpu_active(unsigned int cpu, bool active)
+ {
+ 	if (active)
+-		cpumask_set_cpu(cpu, to_cpumask(cpu_active_bits));
++		cpumask_set_cpu(cpu, &__cpu_active_mask);
+ 	else
+-		cpumask_clear_cpu(cpu, to_cpumask(cpu_active_bits));
++		cpumask_clear_cpu(cpu, &__cpu_active_mask);
+ }
+ 
+ void init_cpu_present(const struct cpumask *src)
+ {
+-	cpumask_copy(to_cpumask(cpu_present_bits), src);
++	cpumask_copy(&__cpu_present_mask, src);
+ }
+ 
+ void init_cpu_possible(const struct cpumask *src)
+ {
+-	cpumask_copy(to_cpumask(cpu_possible_bits), src);
++	cpumask_copy(&__cpu_possible_mask, src);
+ }
+ 
+ void init_cpu_online(const struct cpumask *src)
+ {
+-	cpumask_copy(to_cpumask(cpu_online_bits), src);
++	cpumask_copy(&__cpu_online_mask, src);
+ }
 _
 
-Patches currently in -mm which might be from jann@thejh.net are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
 
