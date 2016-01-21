@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + thp-limit-number-of-object-to-scan-on-deferred_split_scan.patch added to -mm tree
-Date: Thu, 21 Jan 2016 13:21:00 -0800
-Message-ID: <56a14bbc.S8tK8MigoQ6aP1Sp%akpm@linux-foundation.org>
+Subject: +
+ thp-change-deferred_split_count-to-return-number-of-thp-in-queue.patch
+ added to -mm tree
+Date: Thu, 21 Jan 2016 13:20:58 -0800
+Message-ID: <56a14bba.qcKlylEF4jf5QX29%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58558 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58547 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751299AbcAUVVB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 16:21:01 -0500
+	with ESMTP id S1751299AbcAUVU7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 16:20:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, sasha.levin@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: limit number of object to scan on deferred_split_scan()
+     Subject: thp: change deferred_split_count() to return number of THP in queue
 has been added to the -mm tree.  Its filename is
-     thp-limit-number-of-object-to-scan-on-deferred_split_scan.patch
+     thp-change-deferred_split_count-to-return-number-of-thp-in-queue.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/thp-limit-number-of-object-to-scan-on-deferred_split_scan.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-change-deferred_split_count-to-return-number-of-thp-in-queue.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/thp-limit-number-of-object-to-scan-on-deferred_split_scan.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-change-deferred_split_count-to-return-number-of-thp-in-queue.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,16 +41,19 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: limit number of object to scan on deferred_split_scan()
+Subject: thp: change deferred_split_count() to return number of THP in queue
 
-If we have a lot of pages in queue to be split, deferred_split_scan()
-can spend unreasonable amount of time under spinlock with disabled
-interrupts.
+I've got meaning of shrinker::count_objects() wrong: it should return
+number of potentially freeable objects, which is not necessary correlate
+with freeable memory.
 
-Let's cap number of pages to split on scan by sc->nr_to_scan.
+Returning 256 per THP in queue is not reasonable:
+shrinker::scan_objects() never called with nr_to_scan > 128 in my setup.
+
+Let's return 1 per THP and correct scan_object accordingly.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -62,36 +67,35 @@ Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   10 ++++++----
- 1 file changed, 6 insertions(+), 4 deletions(-)
+ mm/huge_memory.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-limit-number-of-object-to-scan-on-deferred_split_scan mm/huge_memory.c
---- a/mm/huge_memory.c~thp-limit-number-of-object-to-scan-on-deferred_split_scan
+diff -puN mm/huge_memory.c~thp-change-deferred_split_count-to-return-number-of-thp-in-queue mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-change-deferred_split_count-to-return-number-of-thp-in-queue
 +++ a/mm/huge_memory.c
-@@ -3478,17 +3478,19 @@ static unsigned long deferred_split_scan
- 	int split = 0;
+@@ -3465,12 +3465,7 @@ static unsigned long deferred_split_coun
+ 		struct shrink_control *sc)
+ {
+ 	struct pglist_data *pgdata = NODE_DATA(sc->nid);
+-	/*
+-	 * Split a page from split_queue will free up at least one page,
+-	 * at most HPAGE_PMD_NR - 1. We don't track exact number.
+-	 * Let's use HPAGE_PMD_NR / 2 as ballpark.
+-	 */
+-	return ACCESS_ONCE(pgdata->split_queue_len) * HPAGE_PMD_NR / 2;
++	return ACCESS_ONCE(pgdata->split_queue_len);
+ }
  
- 	spin_lock_irqsave(&pgdata->split_queue_lock, flags);
--	list_splice_init(&pgdata->split_queue, &list);
--
- 	/* Take pin on all head pages to avoid freeing them under us */
- 	list_for_each_safe(pos, next, &list) {
- 		page = list_entry((void *)pos, struct page, mapping);
- 		page = compound_head(page);
--		/* race with put_compound_page() */
--		if (!get_page_unless_zero(page)) {
-+		if (get_page_unless_zero(page)) {
-+			list_move(page_deferred_list(page), &list);
-+		} else {
-+			/* We lost race with put_compound_page() */
- 			list_del_init(page_deferred_list(page));
- 			pgdata->split_queue_len--;
- 		}
-+		if (!--sc->nr_to_scan)
-+			break;
- 	}
+ static unsigned long deferred_split_scan(struct shrinker *shrink,
+@@ -3511,7 +3506,7 @@ static unsigned long deferred_split_scan
+ 	list_splice_tail(&list, &pgdata->split_queue);
  	spin_unlock_irqrestore(&pgdata->split_queue_lock, flags);
  
+-	return split * HPAGE_PMD_NR / 2;
++	return split;
+ }
+ 
+ static struct shrinker deferred_split_shrinker = {
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
