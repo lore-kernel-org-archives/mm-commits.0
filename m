@@ -1,64 +1,65 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dma-mapping-use-offset_in_page-macro.patch removed from
- -mm tree
-Date: Thu, 21 Jan 2016 15:29:19 -0800
-Message-ID: <56a169cf.np+eeI7uimeE5RPe%akpm@linux-foundation.org>
+Subject: [merged] memstick-use-sector_div-instead-of-do_div.patch removed
+ from -mm tree
+Date: Thu, 21 Jan 2016 15:29:22 -0800
+Message-ID: <56a169d2.V4in5crQc1zLwUIw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36324 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36328 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751698AbcAUX3U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:29:20 -0500
+	with ESMTP id S1751698AbcAUX3W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:29:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geliangtang@163.com, borntraeger@de.ibm.com, jroedel@suse.de, sebott@linux.vnet.ibm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, maximlevitsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dma-mapping: use offset_in_page macro
+     Subject: memstick: use sector_div instead of do_div
 has been removed from the -mm tree.  Its filename was
-     dma-mapping-use-offset_in_page-macro.patch
+     memstick-use-sector_div-instead-of-do_div.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geliang Tang <geliangtang@163.com>
-Subject: dma-mapping: use offset_in_page macro
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: memstick: use sector_div instead of do_div
 
-Use offset_in_page macro instead of (addr & ~PAGE_MASK).
+do_div is the wrong way to divide a sector_t, as it is less efficient when
+sector_t is 32-bit wide.  With the upcoming do_div optimizations, the
+kernel starts warning about this:
 
-Signed-off-by: Geliang Tang <geliangtang@163.com>
-Acked-by: Will Deacon <will.deacon@arm.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Joerg Roedel <jroedel@suse.de>
-Cc: Sebastian Ott <sebott@linux.vnet.ibm.com>
+drivers/memstick/core/ms_block.c: In function 'msb_io_work':
+include/asm-generic/div64.h:207:28: warning: comparison of distinct pointer types lacks a cast
+
+This changes the code to use sector_div instead, which always produces
+optimal code.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dma-mapping.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/memstick/core/ms_block.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/dma-mapping.h~dma-mapping-use-offset_in_page-macro include/linux/dma-mapping.h
---- a/include/linux/dma-mapping.h~dma-mapping-use-offset_in_page-macro
-+++ a/include/linux/dma-mapping.h
-@@ -129,10 +129,10 @@ static inline dma_addr_t dma_map_single_
- 	kmemcheck_mark_initialized(ptr, size);
- 	BUG_ON(!valid_dma_direction(dir));
- 	addr = ops->map_page(dev, virt_to_page(ptr),
--			     (unsigned long)ptr & ~PAGE_MASK, size,
-+			     offset_in_page(ptr), size,
- 			     dir, attrs);
- 	debug_dma_map_page(dev, virt_to_page(ptr),
--			   (unsigned long)ptr & ~PAGE_MASK, size,
-+			   offset_in_page(ptr), size,
- 			   dir, addr, true);
- 	return addr;
- }
+diff -puN drivers/memstick/core/ms_block.c~memstick-use-sector_div-instead-of-do_div drivers/memstick/core/ms_block.c
+--- a/drivers/memstick/core/ms_block.c~memstick-use-sector_div-instead-of-do_div
++++ a/drivers/memstick/core/ms_block.c
+@@ -1909,7 +1909,7 @@ static void msb_io_work(struct work_stru
+ 		lba = blk_rq_pos(msb->req);
+ 
+ 		sector_div(lba, msb->page_size / 512);
+-		page = do_div(lba, msb->pages_in_block);
++		page = sector_div(lba, msb->pages_in_block);
+ 
+ 		if (rq_data_dir(msb->req) == READ)
+ 			error = msb_do_read_request(msb, lba, page, sg,
 _
 
-Patches currently in -mm which might be from geliangtang@163.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
 
