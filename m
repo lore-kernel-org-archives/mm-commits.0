@@ -1,142 +1,56 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-cpuc-make-set_cpu_-static-inlines.patch removed
+Subject: [merged]
+ kexec-use-list_for_each_entry_safe-in-kimage_free_page_list.patch removed
  from -mm tree
-Date: Thu, 21 Jan 2016 15:00:11 -0800
-Message-ID: <56a162fb.1bTGZDEtnPmQi0qd%akpm@linux-foundation.org>
+Date: Thu, 21 Jan 2016 15:00:15 -0800
+Message-ID: <56a162ff.Y1j2Zk7r8yZJ8bOr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34004 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34010 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752612AbcAUXAM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:00:12 -0500
+	with ESMTP id S1751709AbcAUXAQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:00:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, gregkh@linuxfoundation.org, mpe@ellerman.id.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: geliangtang@163.com, bhe@redhat.com, dyoung@redhat.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/cpu.c: make set_cpu_* static inlines
+     Subject: kernel/kexec_core.c: use list_for_each_entry_safe in kimage_free_page_list
 has been removed from the -mm tree.  Its filename was
-     kernel-cpuc-make-set_cpu_-static-inlines.patch
+     kexec-use-list_for_each_entry_safe-in-kimage_free_page_list.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: kernel/cpu.c: make set_cpu_* static inlines
+From: Geliang Tang <geliangtang@163.com>
+Subject: kernel/kexec_core.c: use list_for_each_entry_safe in kimage_free_page_list
 
-Almost all callers of the set_cpu_* functions pass an explicit true or
-false.  Making them static inline thus replaces the function calls with a
-simple set_bit/clear_bit, saving some .text.
+Use list_for_each_entry_safe() instead of list_for_each_safe() to
+simplify the code.
 
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Signed-off-by: Geliang Tang <geliangtang@163.com>
+Cc: Dave Young <dyoung@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
+Acked-by: Baoquan He <bhe@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpumask.h |   43 ++++++++++++++++++++++++++++++++++----
- kernel/cpu.c            |   34 ------------------------------
- 2 files changed, 39 insertions(+), 38 deletions(-)
+ kernel/kexec_core.c |    7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/cpumask.h~kernel-cpuc-make-set_cpu_-static-inlines include/linux/cpumask.h
---- a/include/linux/cpumask.h~kernel-cpuc-make-set_cpu_-static-inlines
-+++ a/include/linux/cpumask.h
-@@ -720,14 +720,49 @@ extern const DECLARE_BITMAP(cpu_all_bits
- #define for_each_present_cpu(cpu)  for_each_cpu((cpu), cpu_present_mask)
+diff -puN kernel/kexec_core.c~kexec-use-list_for_each_entry_safe-in-kimage_free_page_list kernel/kexec_core.c
+--- a/kernel/kexec_core.c~kexec-use-list_for_each_entry_safe-in-kimage_free_page_list
++++ a/kernel/kexec_core.c
+@@ -310,12 +310,9 @@ static void kimage_free_pages(struct pag
  
- /* Wrappers for arch boot code to manipulate normally-constant masks */
--void set_cpu_possible(unsigned int cpu, bool possible);
--void set_cpu_present(unsigned int cpu, bool present);
--void set_cpu_online(unsigned int cpu, bool online);
--void set_cpu_active(unsigned int cpu, bool active);
- void init_cpu_present(const struct cpumask *src);
- void init_cpu_possible(const struct cpumask *src);
- void init_cpu_online(const struct cpumask *src);
+ void kimage_free_page_list(struct list_head *list)
+ {
+-	struct list_head *pos, *next;
++	struct page *page, *next;
  
-+static inline void
-+set_cpu_possible(unsigned int cpu, bool possible)
-+{
-+	if (possible)
-+		cpumask_set_cpu(cpu, &__cpu_possible_mask);
-+	else
-+		cpumask_clear_cpu(cpu, &__cpu_possible_mask);
-+}
-+
-+static inline void
-+set_cpu_present(unsigned int cpu, bool present)
-+{
-+	if (present)
-+		cpumask_set_cpu(cpu, &__cpu_present_mask);
-+	else
-+		cpumask_clear_cpu(cpu, &__cpu_present_mask);
-+}
-+
-+static inline void
-+set_cpu_online(unsigned int cpu, bool online)
-+{
-+	if (online) {
-+		cpumask_set_cpu(cpu, &__cpu_online_mask);
-+		cpumask_set_cpu(cpu, &__cpu_active_mask);
-+	} else {
-+		cpumask_clear_cpu(cpu, &__cpu_online_mask);
-+	}
-+}
-+
-+static inline void
-+set_cpu_active(unsigned int cpu, bool active)
-+{
-+	if (active)
-+		cpumask_set_cpu(cpu, &__cpu_active_mask);
-+	else
-+		cpumask_clear_cpu(cpu, &__cpu_active_mask);
-+}
-+
-+
- /**
-  * to_cpumask - convert an NR_CPUS bitmap to a struct cpumask *
-  * @bitmap: the bitmap
-diff -puN kernel/cpu.c~kernel-cpuc-make-set_cpu_-static-inlines kernel/cpu.c
---- a/kernel/cpu.c~kernel-cpuc-make-set_cpu_-static-inlines
-+++ a/kernel/cpu.c
-@@ -775,40 +775,6 @@ EXPORT_SYMBOL(__cpu_present_mask);
- struct cpumask __cpu_active_mask __read_mostly;
- EXPORT_SYMBOL(__cpu_active_mask);
- 
--void set_cpu_possible(unsigned int cpu, bool possible)
--{
--	if (possible)
--		cpumask_set_cpu(cpu, &__cpu_possible_mask);
--	else
--		cpumask_clear_cpu(cpu, &__cpu_possible_mask);
--}
--
--void set_cpu_present(unsigned int cpu, bool present)
--{
--	if (present)
--		cpumask_set_cpu(cpu, &__cpu_present_mask);
--	else
--		cpumask_clear_cpu(cpu, &__cpu_present_mask);
--}
--
--void set_cpu_online(unsigned int cpu, bool online)
--{
--	if (online) {
--		cpumask_set_cpu(cpu, &__cpu_online_mask);
--		cpumask_set_cpu(cpu, &__cpu_active_mask);
--	} else {
--		cpumask_clear_cpu(cpu, &__cpu_online_mask);
--	}
--}
--
--void set_cpu_active(unsigned int cpu, bool active)
--{
--	if (active)
--		cpumask_set_cpu(cpu, &__cpu_active_mask);
--	else
--		cpumask_clear_cpu(cpu, &__cpu_active_mask);
--}
+-	list_for_each_safe(pos, next, list) {
+-		struct page *page;
