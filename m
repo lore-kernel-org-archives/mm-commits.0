@@ -1,66 +1,100 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch removed from -mm tree
-Date: Thu, 21 Jan 2016 14:59:37 -0800
-Message-ID: <56a162d9.peL+wm2hbN4wy8d6%akpm@linux-foundation.org>
+ security-let-security-modules-use-ptrace_mode_-with-bitmasks.patch removed
+ from -mm tree
+Date: Thu, 21 Jan 2016 14:59:51 -0800
+Message-ID: <56a162e7.+FTCwuYpnxGnlHmk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33922 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33940 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752610AbcAUW7i (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:59:38 -0500
+	with ESMTP id S1751994AbcAUW7w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:59:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: namjae.jeon@samsung.com, a.sahrawat@samsung.com, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: jann@thejh.net, andriy.shevchenko@linux.intel.com, casey@schaufler-ca.com, ebiederm@xmission.com, james.l.morris@oracle.com, keescook@chromium.org, luto@kernel.org, mingo@redhat.com, oleg@redhat.com, serge.hallyn@ubuntu.com, viro@zeniv.linux.org.uk, w@1wt.eu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation/filesystems/vfat.txt: update the limitation for fat fallocate
+     Subject: security: let security modules use PTRACE_MODE_* with bitmasks
 has been removed from the -mm tree.  Its filename was
-     documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate.patch
+     security-let-security-modules-use-ptrace_mode_-with-bitmasks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Namjae Jeon <namjae.jeon@samsung.com>
-Subject: Documentation/filesystems/vfat.txt: update the limitation for fat fallocate
+From: Jann Horn <jann@thejh.net>
+Subject: security: let security modules use PTRACE_MODE_* with bitmasks
 
-Update the limitation for fat fallocate.
+It looks like smack and yama weren't aware that the ptrace mode
+can have flags ORed into it - PTRACE_MODE_NOAUDIT until now, but
+only for /proc/$pid/stat, and with the PTRACE_MODE_*CREDS patch,
+all modes have flags ORed into them.
 
-Signed-off-by: Namjae Jeon <namjae.jeon@samsung.com>
-Signed-off-by: Amit Sahrawat <a.sahrawat@samsung.com>
-Cc: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Signed-off-by: Jann Horn <jann@thejh.net>
+Acked-by: Kees Cook <keescook@chromium.org>
+Acked-by: Casey Schaufler <casey@schaufler-ca.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: James Morris <james.l.morris@oracle.com>
+Cc: "Serge E. Hallyn" <serge.hallyn@ubuntu.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Willy Tarreau <w@1wt.eu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfat.txt |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ security/smack/smack_lsm.c |    8 +++-----
+ security/yama/yama_lsm.c   |    4 ++--
+ 2 files changed, 5 insertions(+), 7 deletions(-)
 
-diff -puN Documentation/filesystems/vfat.txt~documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate Documentation/filesystems/vfat.txt
---- a/Documentation/filesystems/vfat.txt~documentation-filesystems-vfattxt-update-the-limitation-for-fat-fallocate
-+++ a/Documentation/filesystems/vfat.txt
-@@ -180,6 +180,16 @@ dos1xfloppy  -- If set, use a fallback d
+diff -puN security/smack/smack_lsm.c~security-let-security-modules-use-ptrace_mode_-with-bitmasks security/smack/smack_lsm.c
+--- a/security/smack/smack_lsm.c~security-let-security-modules-use-ptrace_mode_-with-bitmasks
++++ a/security/smack/smack_lsm.c
+@@ -398,12 +398,10 @@ static int smk_copy_relabel(struct list_
+  */
+ static inline unsigned int smk_ptrace_mode(unsigned int mode)
+ {
+-	switch (mode) {
+-	case PTRACE_MODE_READ:
+-		return MAY_READ;
+-	case PTRACE_MODE_ATTACH:
++	if (mode & PTRACE_MODE_ATTACH)
+ 		return MAY_READWRITE;
+-	}
++	if (mode & PTRACE_MODE_READ)
++		return MAY_READ;
  
- <bool>: 0,1,yes,no,true,false
+ 	return 0;
+ }
+diff -puN security/yama/yama_lsm.c~security-let-security-modules-use-ptrace_mode_-with-bitmasks security/yama/yama_lsm.c
+--- a/security/yama/yama_lsm.c~security-let-security-modules-use-ptrace_mode_-with-bitmasks
++++ a/security/yama/yama_lsm.c
+@@ -281,7 +281,7 @@ static int yama_ptrace_access_check(stru
+ 	int rc = 0;
  
-+LIMITATION
-+---------------------------------------------------------------------
-+* The fallocated region of file is discarded at umount/evict time
-+  when using fallocate with FALLOC_FL_KEEP_SIZE.
-+  So, User should assume that fallocated region can be discarded at
-+  last close if there is memory pressure resulting in eviction of
-+  the inode from the memory. As a result, for any dependency on
-+  the fallocated region, user should make sure to recheck fallocate
-+  after reopening the file.
-+
- TODO
- ----------------------------------------------------------------------
- * Need to get rid of the raw scanning stuff.  Instead, always use
+ 	/* require ptrace target be a child of ptracer on attach */
+-	if (mode == PTRACE_MODE_ATTACH) {
++	if (mode & PTRACE_MODE_ATTACH) {
+ 		switch (ptrace_scope) {
+ 		case YAMA_SCOPE_DISABLED:
+ 			/* No additional restrictions. */
+@@ -307,7 +307,7 @@ static int yama_ptrace_access_check(stru
+ 		}
+ 	}
+ 
+-	if (rc) {
++	if (rc && (mode & PTRACE_MODE_NOAUDIT) == 0) {
+ 		printk_ratelimited(KERN_NOTICE
+ 			"ptrace of pid %d was attempted by: %s (pid %d)\n",
+ 			child->pid, current->comm, current->pid);
 _
 
-Patches currently in -mm which might be from namjae.jeon@samsung.com are
+Patches currently in -mm which might be from jann@thejh.net are
 
 
