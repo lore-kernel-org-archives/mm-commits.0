@@ -1,56 +1,125 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kexec-set-kexec_type_crash-before-sanity_check_segment_list.patch removed
- from -mm tree
-Date: Thu, 21 Jan 2016 15:00:13 -0800
-Message-ID: <56a162fd.iU2ssK7IlHYOIdbz%akpm@linux-foundation.org>
+ powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header.patch removed from -mm tree
+Date: Thu, 21 Jan 2016 15:00:01 -0800
+Message-ID: <56a162f1.9Q9vFz9YRT7/QOTL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34006 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33975 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146AbcAUXAO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:00:14 -0500
+	with ESMTP id S1751747AbcAUXAC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:00:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xlpang@redhat.com, bhe@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, gregkh@linuxfoundation.org, mpe@ellerman.id.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: set KEXEC_TYPE_CRASH before sanity_check_segment_list()
+     Subject: powerpc/fadump: rename cpu_online_mask member of struct fadump_crash_info_header
 has been removed from the -mm tree.  Its filename was
-     kexec-set-kexec_type_crash-before-sanity_check_segment_list.patch
+     powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xunlei Pang <xlpang@redhat.com>
-Subject: kexec: set KEXEC_TYPE_CRASH before sanity_check_segment_list()
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: powerpc/fadump: rename cpu_online_mask member of struct fadump_crash_info_header
 
-sanity_check_segment_list() checks KEXEC_TYPE_CRASH flag to ensure all the
-segments of the loaded crash kernel are within the kernel crash resource
-limits, so set the flag beforehand.
+The four cpumasks cpu_{possible,online,present,active}_bits are exposed
+readonly via the corresponding const variables cpu_xyz_mask.  But they are
+also accessible for arbitrary writing via the exposed functions
+set_cpu_xyz.  There's quite a bit of code throughout the kernel which
+iterates over or otherwise accesses these bitmaps, and having the access
+go via the cpu_xyz_mask variables is nowadays [1] simply a useless
+indirection.
 
-Signed-off-by: Xunlei Pang <xlpang@redhat.com>
-Acked-by: Dave Young <dyoung@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Acked-by: Baoquan He <bhe@redhat.com>
+It may be that any problem in CS can be solved by an extra level of
+indirection, but that doesn't mean every extra indirection solves a
+problem.  In this case, it even necessitates some minor ugliness (see
+4/6).
+
+Patch 1/6 is new in v2, and fixes a build failure on ppc by renaming a
+struct member, to avoid problems when the identifier cpu_online_mask
+becomes a macro later in the series.  The next four patches eliminate the
+cpu_xyz_mask variables by simply exposing the actual bitmaps, after
+renaming them to discourage direct access - that still happens through
+cpu_xyz_mask, which are now simply macros with the same type and value as
+they used to have.
+
+After that, there's no longer any reason to have the setter functions be
+out-of-line: The boolean parameter is almost always a literal true or
+false, so by making them static inlines they will usually compile to one
+or two instructions.
+
+For a defconfig build on x86_64, bloat-o-meter says we save ~3000 bytes. 
+We also save a little stack (stackdelta says 127 functions have a 16 byte
+smaller stack frame, while two grow by that amount).  Mostly because, when
+iterating over the mask, gcc typically loads the value of cpu_xyz_mask
+into a callee-saved register and from there into %rdi before each
+find_next_bit call - now it can just load the appropriate immediate
+address into %rdi before each call.
+
+[1] See Rusty's kind explanation
+http://thread.gmane.org/gmane.linux.kernel/2047078/focus=2047722 for
+some historic context.
+
+
+This patch (of 6):
+
+As preparation for eliminating the indirect access to the various global
+cpu_*_bits bitmaps via the pointer variables cpu_*_mask, rename the
+cpu_online_mask member of struct fadump_crash_info_header to simply
+online_mask, thus allowing cpu_online_mask to become a macro.
+
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ arch/powerpc/include/asm/fadump.h |    2 +-
+ arch/powerpc/kernel/fadump.c      |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN kernel/kexec.c~kexec-set-kexec_type_crash-before-sanity_check_segment_list kernel/kexec.c
---- a/kernel/kexec.c~kexec-set-kexec_type_crash-before-sanity_check_segment_list
-+++ a/kernel/kexec.c
-@@ -63,16 +63,16 @@ static int kimage_alloc_init(struct kima
- 	if (ret)
- 		goto out_free_image;
+diff -puN arch/powerpc/include/asm/fadump.h~powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header arch/powerpc/include/asm/fadump.h
+--- a/arch/powerpc/include/asm/fadump.h~powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header
++++ a/arch/powerpc/include/asm/fadump.h
+@@ -191,7 +191,7 @@ struct fadump_crash_info_header {
+ 	u64		elfcorehdr_addr;
+ 	u32		crashing_cpu;
+ 	struct pt_regs	regs;
+-	struct cpumask	cpu_online_mask;
++	struct cpumask	online_mask;
+ };
  
--	ret = sanity_check_segment_list(image);
--	if (ret)
--		goto out_free_image;
+ /* Crash memory ranges */
+diff -puN arch/powerpc/kernel/fadump.c~powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header arch/powerpc/kernel/fadump.c
+--- a/arch/powerpc/kernel/fadump.c~powerpc-fadump-rename-cpu_online_mask-member-of-struct-fadump_crash_info_header
++++ a/arch/powerpc/kernel/fadump.c
+@@ -415,7 +415,7 @@ void crash_fadump(struct pt_regs *regs,
+ 	else
+ 		ppc_save_regs(&fdh->regs);
+ 
+-	fdh->cpu_online_mask = *cpu_online_mask;
++	fdh->online_mask = *cpu_online_mask;
+ 
+ 	/* Call ibm,os-term rtas call to trigger firmware assisted dump */
+ 	rtas_os_term((char *)str);
+@@ -646,7 +646,7 @@ static int __init fadump_build_cpu_notes
+ 		}
+ 		/* Lower 4 bytes of reg_value contains logical cpu id */
+ 		cpu = be64_to_cpu(reg_entry->reg_value) & FADUMP_CPU_ID_MASK;
+-		if (fdh && !cpumask_test_cpu(cpu, &fdh->cpu_online_mask)) {
++		if (fdh && !cpumask_test_cpu(cpu, &fdh->online_mask)) {
+ 			SKIP_TO_NEXT_CPU(reg_entry);
+ 			continue;
+ 		}
+_
+
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+
+
