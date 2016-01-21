@@ -1,83 +1,142 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-base-cpuc-use-__cpu__mask-directly.patch removed from -mm tree
-Date: Thu, 21 Jan 2016 15:00:07 -0800
-Message-ID: <56a162f7.VYQegEN0LHbObt01%akpm@linux-foundation.org>
+Subject: [merged] kernel-cpuc-make-set_cpu_-static-inlines.patch removed
+ from -mm tree
+Date: Thu, 21 Jan 2016 15:00:11 -0800
+Message-ID: <56a162fb.1bTGZDEtnPmQi0qd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33992 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34004 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752220AbcAUXAI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:00:08 -0500
+	with ESMTP id S1752612AbcAUXAM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:00:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: linux@rasmusvillemoes.dk, gregkh@linuxfoundation.org, mpe@ellerman.id.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/base/cpu.c: use __cpu_*_mask directly
+     Subject: kernel/cpu.c: make set_cpu_* static inlines
 has been removed from the -mm tree.  Its filename was
-     drivers-base-cpuc-use-__cpu__mask-directly.patch
+     kernel-cpuc-make-set_cpu_-static-inlines.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: drivers/base/cpu.c: use __cpu_*_mask directly
+Subject: kernel/cpu.c: make set_cpu_* static inlines
 
-The only user of the lvalue-ness of the cpu_*_mask variables is in
-drivers/base/cpu.c, and that is mostly a work-around for the fact that not
-even const variables can be used in static initialization.  Now that the
-underlying struct cpumasks are exposed we can take their address.
+Almost all callers of the set_cpu_* functions pass an explicit true or
+false.  Making them static inline thus replaces the function calls with a
+simple set_bit/clear_bit, saving some .text.
 
 Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Acked-by: Rusty Russell <rusty@rustcorp.com.au>
-Acked-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/base/cpu.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/cpumask.h |   43 ++++++++++++++++++++++++++++++++++----
+ kernel/cpu.c            |   34 ------------------------------
+ 2 files changed, 39 insertions(+), 38 deletions(-)
 
-diff -puN drivers/base/cpu.c~drivers-base-cpuc-use-__cpu__mask-directly drivers/base/cpu.c
---- a/drivers/base/cpu.c~drivers-base-cpuc-use-__cpu__mask-directly
-+++ a/drivers/base/cpu.c
-@@ -200,7 +200,7 @@ static const struct attribute_group *hot
+diff -puN include/linux/cpumask.h~kernel-cpuc-make-set_cpu_-static-inlines include/linux/cpumask.h
+--- a/include/linux/cpumask.h~kernel-cpuc-make-set_cpu_-static-inlines
++++ a/include/linux/cpumask.h
+@@ -720,14 +720,49 @@ extern const DECLARE_BITMAP(cpu_all_bits
+ #define for_each_present_cpu(cpu)  for_each_cpu((cpu), cpu_present_mask)
  
- struct cpu_attr {
- 	struct device_attribute attr;
--	const struct cpumask *const * const map;
-+	const struct cpumask *const map;
- };
+ /* Wrappers for arch boot code to manipulate normally-constant masks */
+-void set_cpu_possible(unsigned int cpu, bool possible);
+-void set_cpu_present(unsigned int cpu, bool present);
+-void set_cpu_online(unsigned int cpu, bool online);
+-void set_cpu_active(unsigned int cpu, bool active);
+ void init_cpu_present(const struct cpumask *src);
+ void init_cpu_possible(const struct cpumask *src);
+ void init_cpu_online(const struct cpumask *src);
  
- static ssize_t show_cpus_attr(struct device *dev,
-@@ -209,7 +209,7 @@ static ssize_t show_cpus_attr(struct dev
- {
- 	struct cpu_attr *ca = container_of(attr, struct cpu_attr, attr);
++static inline void
++set_cpu_possible(unsigned int cpu, bool possible)
++{
++	if (possible)
++		cpumask_set_cpu(cpu, &__cpu_possible_mask);
++	else
++		cpumask_clear_cpu(cpu, &__cpu_possible_mask);
++}
++
++static inline void
++set_cpu_present(unsigned int cpu, bool present)
++{
++	if (present)
++		cpumask_set_cpu(cpu, &__cpu_present_mask);
++	else
++		cpumask_clear_cpu(cpu, &__cpu_present_mask);
++}
++
++static inline void
++set_cpu_online(unsigned int cpu, bool online)
++{
++	if (online) {
++		cpumask_set_cpu(cpu, &__cpu_online_mask);
++		cpumask_set_cpu(cpu, &__cpu_active_mask);
++	} else {
++		cpumask_clear_cpu(cpu, &__cpu_online_mask);
++	}
++}
++
++static inline void
++set_cpu_active(unsigned int cpu, bool active)
++{
++	if (active)
++		cpumask_set_cpu(cpu, &__cpu_active_mask);
++	else
++		cpumask_clear_cpu(cpu, &__cpu_active_mask);
++}
++
++
+ /**
+  * to_cpumask - convert an NR_CPUS bitmap to a struct cpumask *
+  * @bitmap: the bitmap
+diff -puN kernel/cpu.c~kernel-cpuc-make-set_cpu_-static-inlines kernel/cpu.c
+--- a/kernel/cpu.c~kernel-cpuc-make-set_cpu_-static-inlines
++++ a/kernel/cpu.c
+@@ -775,40 +775,6 @@ EXPORT_SYMBOL(__cpu_present_mask);
+ struct cpumask __cpu_active_mask __read_mostly;
+ EXPORT_SYMBOL(__cpu_active_mask);
  
--	return cpumap_print_to_pagebuf(true, buf, *ca->map);
-+	return cpumap_print_to_pagebuf(true, buf, ca->map);
- }
- 
- #define _CPU_ATTR(name, map) \
-@@ -217,9 +217,9 @@ static ssize_t show_cpus_attr(struct dev
- 
- /* Keep in sync with cpu_subsys_attrs */
- static struct cpu_attr cpu_attrs[] = {
--	_CPU_ATTR(online, &cpu_online_mask),
--	_CPU_ATTR(possible, &cpu_possible_mask),
--	_CPU_ATTR(present, &cpu_present_mask),
-+	_CPU_ATTR(online, &__cpu_online_mask),
-+	_CPU_ATTR(possible, &__cpu_possible_mask),
-+	_CPU_ATTR(present, &__cpu_present_mask),
- };
- 
- /*
-_
-
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
-
-
+-void set_cpu_possible(unsigned int cpu, bool possible)
+-{
+-	if (possible)
+-		cpumask_set_cpu(cpu, &__cpu_possible_mask);
+-	else
+-		cpumask_clear_cpu(cpu, &__cpu_possible_mask);
+-}
+-
+-void set_cpu_present(unsigned int cpu, bool present)
+-{
+-	if (present)
+-		cpumask_set_cpu(cpu, &__cpu_present_mask);
+-	else
+-		cpumask_clear_cpu(cpu, &__cpu_present_mask);
+-}
+-
+-void set_cpu_online(unsigned int cpu, bool online)
+-{
+-	if (online) {
+-		cpumask_set_cpu(cpu, &__cpu_online_mask);
+-		cpumask_set_cpu(cpu, &__cpu_active_mask);
+-	} else {
+-		cpumask_clear_cpu(cpu, &__cpu_online_mask);
+-	}
+-}
+-
+-void set_cpu_active(unsigned int cpu, bool active)
+-{
+-	if (active)
+-		cpumask_set_cpu(cpu, &__cpu_active_mask);
+-	else
+-		cpumask_clear_cpu(cpu, &__cpu_active_mask);
+-}
