@@ -1,91 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-iomap_copy-add-__ioread32_copy.patch removed from
- -mm tree
-Date: Thu, 21 Jan 2016 14:58:46 -0800
-Message-ID: <56a162a6.tqasBC+Akux/etOM%akpm@linux-foundation.org>
+Subject: [merged]
+ firmware-bcm47xx_nvram-use-__ioread32_copy-instead-of-open-coding.patch
+ removed from -mm tree
+Date: Thu, 21 Jan 2016 14:58:50 -0800
+Message-ID: <56a162aa.becltmbZmbiLXjRy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33809 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33823 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752303AbcAUW6r (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:58:47 -0500
+	with ESMTP id S1752303AbcAUW6v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:58:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: sboyd@codeaurora.org, bjorn.andersson@sonymobile.com, dhowells@redhat.com, hauke@hauke-m.de, paul@pwsan.com, zajec5@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/iomap_copy.c: add __ioread32_copy()
+     Subject: drivers/firmware/broadcom/bcm47xx_nvram.c: use __ioread32_copy() instead of open-coding
 has been removed from the -mm tree.  Its filename was
-     lib-iomap_copy-add-__ioread32_copy.patch
+     firmware-bcm47xx_nvram-use-__ioread32_copy-instead-of-open-coding.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: lib/iomap_copy.c: add __ioread32_copy()
+Subject: drivers/firmware/broadcom/bcm47xx_nvram.c: use __ioread32_copy() instead of open-coding
 
-Some drivers need to read data out of iomem areas 32-bits at a
-time. Add an API to do this.
+Now that we have a generic library function for this, replace the
+open-coded instance.
 
 Signed-off-by: Stephen Boyd <sboyd@codeaurora.org>
-Cc: Bjorn Andersson <bjorn.andersson@sonymobile.com>
-Cc: <zajec5@gmail.com>
-Cc: David Howells <dhowells@redhat.com>
 Cc: Hauke Mehrtens <hauke@hauke-m.de>
+Cc: <zajec5@gmail.com>
 Cc: Paul Walmsley <paul@pwsan.com>
+Cc: Bjorn Andersson <bjorn.andersson@sonymobile.com>
+Cc: David Howells <dhowells@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/io.h |    1 +
- lib/iomap_copy.c   |   21 +++++++++++++++++++++
- 2 files changed, 22 insertions(+)
+ drivers/firmware/broadcom/bcm47xx_nvram.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/io.h~lib-iomap_copy-add-__ioread32_copy include/linux/io.h
---- a/include/linux/io.h~lib-iomap_copy-add-__ioread32_copy
-+++ a/include/linux/io.h
-@@ -29,6 +29,7 @@ struct device;
- struct resource;
+diff -puN drivers/firmware/broadcom/bcm47xx_nvram.c~firmware-bcm47xx_nvram-use-__ioread32_copy-instead-of-open-coding drivers/firmware/broadcom/bcm47xx_nvram.c
+--- a/drivers/firmware/broadcom/bcm47xx_nvram.c~firmware-bcm47xx_nvram-use-__ioread32_copy-instead-of-open-coding
++++ a/drivers/firmware/broadcom/bcm47xx_nvram.c
+@@ -56,9 +56,7 @@ static u32 find_nvram_size(void __iomem
+ static int nvram_find_and_copy(void __iomem *iobase, u32 lim)
+ {
+ 	struct nvram_header __iomem *header;
+-	int i;
+ 	u32 off;
+-	u32 *src, *dst;
+ 	u32 size;
  
- __visible void __iowrite32_copy(void __iomem *to, const void *from, size_t count);
-+void __ioread32_copy(void *to, const void __iomem *from, size_t count);
- void __iowrite64_copy(void __iomem *to, const void *from, size_t count);
+ 	if (nvram_len) {
+@@ -95,10 +93,7 @@ static int nvram_find_and_copy(void __io
+ 	return -ENXIO;
  
- #ifdef CONFIG_MMU
-diff -puN lib/iomap_copy.c~lib-iomap_copy-add-__ioread32_copy lib/iomap_copy.c
---- a/lib/iomap_copy.c~lib-iomap_copy-add-__ioread32_copy
-+++ a/lib/iomap_copy.c
-@@ -42,6 +42,27 @@ void __attribute__((weak)) __iowrite32_c
- EXPORT_SYMBOL_GPL(__iowrite32_copy);
+ found:
+-	src = (u32 *)header;
+-	dst = (u32 *)nvram_buf;
+-	for (i = 0; i < sizeof(struct nvram_header); i += 4)
+-		*dst++ = __raw_readl(src++);
++	__ioread32_copy(nvram_buf, header, sizeof(*header) / 4);
+ 	header = (struct nvram_header *)nvram_buf;
+ 	nvram_len = header->len;
+ 	if (nvram_len > size) {
+@@ -111,8 +106,8 @@ found:
+ 		nvram_len = NVRAM_SPACE - 1;
+ 	}
+ 	/* proceed reading data after header */
+-	for (; i < nvram_len; i += 4)
+-		*dst++ = readl(src++);
++	__ioread32_copy(nvram_buf + sizeof(*header), header + 1,
++			DIV_ROUND_UP(nvram_len, 4));
+ 	nvram_buf[NVRAM_SPACE - 1] = '\0';
  
- /**
-+ * __ioread32_copy - copy data from MMIO space, in 32-bit units
-+ * @to: destination (must be 32-bit aligned)
-+ * @from: source, in MMIO space (must be 32-bit aligned)
-+ * @count: number of 32-bit quantities to copy
-+ *
-+ * Copy data from MMIO space to kernel space, in units of 32 bits at a
-+ * time.  Order of access is not guaranteed, nor is a memory barrier
-+ * performed afterwards.
-+ */
-+void __ioread32_copy(void *to, const void __iomem *from, size_t count)
-+{
-+	u32 *dst = to;
-+	const u32 __iomem *src = from;
-+	const u32 __iomem *end = src + count;
-+
-+	while (src < end)
-+		*dst++ = __raw_readl(src++);
-+}
-+EXPORT_SYMBOL_GPL(__ioread32_copy);
-+
-+/**
-  * __iowrite64_copy - copy data to MMIO space, in 64-bit or 32-bit units
-  * @to: destination, in MMIO space (must be 64-bit aligned)
-  * @from: source (must be 64-bit aligned)
+ 	return 0;
 _
 
 Patches currently in -mm which might be from sboyd@codeaurora.org are
