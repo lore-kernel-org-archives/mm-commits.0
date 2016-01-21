@@ -1,98 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- test_hexdump-test-all-possible-group-sizes-for-overflow.patch removed from
- -mm tree
-Date: Thu, 21 Jan 2016 14:59:05 -0800
-Message-ID: <56a162b9.14epvXcHEBtJO1i6%akpm@linux-foundation.org>
+Subject: [merged] fat-allow-time_offset-to-be-upto-24-hours.patch removed
+ from -mm tree
+Date: Thu, 21 Jan 2016 14:59:28 -0800
+Message-ID: <56a162d0.AHLNRb4iJGQiFCSj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33855 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33906 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752472AbcAUW7G (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:59:06 -0500
+	with ESMTP id S1752537AbcAUW73 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:59:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: jack@suse.cz, hirofumi@mail.parknet.co.jp, list0570@paradise.net.nz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: test_hexdump: test all possible group sizes for overflow
+     Subject: fat: allow time_offset to be up to 24 hours
 has been removed from the -mm tree.  Its filename was
-     test_hexdump-test-all-possible-group-sizes-for-overflow.patch
+     fat-allow-time_offset-to-be-upto-24-hours.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: test_hexdump: test all possible group sizes for overflow
+From: Jan Kara <jack@suse.cz>
+Subject: fat: allow time_offset to be up to 24 hours
 
-Currently the only one combination is tested for overflow, i.e.  rowsize =
-16, groupsize = 1, len = 1.  Do various test to go through all possible
-branches.
+Currently we limit values of time_offset mount option to be between -12
+and 12 hours.  However e.g.  zone GMT+12 can have a DST correction on top
+which makes the total time difference 13 hours.  Update the checks in
+mount option parsing to allow offset of upto 24 hours to allow for unusual
+cases.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Reported-by: Volker Kuhlmann <list0570@paradise.net.nz>
+Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hexdump.c |   21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
+ fs/fat/inode.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN lib/test_hexdump.c~test_hexdump-test-all-possible-group-sizes-for-overflow lib/test_hexdump.c
---- a/lib/test_hexdump.c~test_hexdump-test-all-possible-group-sizes-for-overflow
-+++ a/lib/test_hexdump.c
-@@ -133,7 +133,9 @@ static void __init test_hexdump_set(int
- 	test_hexdump(len, rowsize, 1, ascii);
- }
- 
--static void __init test_hexdump_overflow(size_t buflen, bool ascii)
-+static void __init test_hexdump_overflow(size_t buflen, size_t len,
-+					 int rowsize, int groupsize,
-+					 bool ascii)
- {
- 	char test[TEST_HEXDUMP_BUF_SIZE];
- 	char buf[TEST_HEXDUMP_BUF_SIZE];
-@@ -176,6 +178,19 @@ static void __init test_hexdump_overflow
- 	}
- }
- 
-+static void __init test_hexdump_overflow_set(size_t buflen, bool ascii)
-+{
-+	unsigned int i = 0;
-+	int rs = (get_random_int() % 2 + 1) * 16;
-+
-+	do {
-+		int gs = 1 << i;
-+		size_t len = get_random_int() % rs + gs;
-+
-+		test_hexdump_overflow(buflen, rounddown(len, gs), rs, gs, ascii);
-+	} while (i++ < 3);
-+}
-+
- static int __init test_hexdump_init(void)
- {
- 	unsigned int i;
-@@ -192,10 +207,10 @@ static int __init test_hexdump_init(void
- 		test_hexdump_set(rowsize, true);
- 
- 	for (i = 0; i <= TEST_HEXDUMP_BUF_SIZE; i++)
--		test_hexdump_overflow(i, false);
-+		test_hexdump_overflow_set(i, false);
- 
- 	for (i = 0; i <= TEST_HEXDUMP_BUF_SIZE; i++)
--		test_hexdump_overflow(i, true);
-+		test_hexdump_overflow_set(i, true);
- 
- 	return -EINVAL;
- }
+diff -puN fs/fat/inode.c~fat-allow-time_offset-to-be-upto-24-hours fs/fat/inode.c
+--- a/fs/fat/inode.c~fat-allow-time_offset-to-be-upto-24-hours
++++ a/fs/fat/inode.c
+@@ -1146,7 +1146,12 @@ static int parse_options(struct super_bl
+ 		case Opt_time_offset:
+ 			if (match_int(&args[0], &option))
+ 				return -EINVAL;
+-			if (option < -12 * 60 || option > 12 * 60)
++			/*
++			 * GMT+-12 zones may have DST corrections so at least
++			 * 13 hours difference is needed. Make the limit 24
++			 * just in case someone invents something unusual.
++			 */
++			if (option < -24 * 60 || option > 24 * 60)
+ 				return -EINVAL;
+ 			opts->tz_set = 1;
+ 			opts->time_offset = option;
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from jack@suse.cz are
 
-lib-string_helpers-export-string_units_210-for-others.patch
-lib-string_helpers-fix-indentation-in-few-places.patch
-x86-efi-use-proper-units-in-efi_find_mirror.patch
 
