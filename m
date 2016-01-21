@@ -1,92 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kernel-printk-specify-alignment-for-struct-printk_log.patch removed from
- -mm tree
-Date: Thu, 21 Jan 2016 15:28:15 -0800
-Message-ID: <56a1698f.keHO/SoNsbZ05RLw%akpm@linux-foundation.org>
+Subject: [merged] rbtree-use-read_once-in-rb_empty_root.patch removed from -mm tree
+Date: Thu, 21 Jan 2016 15:28:11 -0800
+Message-ID: <56a1698b.8nB0MhPtT/2a6yNu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35827 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35817 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751003AbcAUX2Q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:28:16 -0500
+	with ESMTP id S1751003AbcAUX2M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 18:28:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, corbet@lwn.net, dvyukov@google.com, hpa@zytor.com, kcc@google.com, koct9i@gmail.com, linux@rasmusvillemoes.dk, mingo@redhat.com, mmarek@suse.cz, peterz@infradead.org, rdunlap@infradead.org, sasha.levin@oracle.com, tglx@linutronix.de, y.gribov@samsung.com, mm-commits@vger.kernel.org
+To: dave@stgolabs.net, dbueso@suse.de, peterz@infradead.org, rusty@rustcorp.com.au, walken@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel: printk: specify alignment for struct printk_log
+     Subject: rbtree: use READ_ONCE in RB_EMPTY_ROOT
 has been removed from the -mm tree.  Its filename was
-     kernel-printk-specify-alignment-for-struct-printk_log.patch
+     rbtree-use-read_once-in-rb_empty_root.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: kernel: printk: specify alignment for struct printk_log
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: rbtree: use READ_ONCE in RB_EMPTY_ROOT
 
-On architectures that have support for efficient unaligned access struct
-printk_log has 4-byte alignment.  Specify alignment attribute in type
-declaration.
+With d72da4a4d97 ("rbtree: Make lockless searches non-fatal") our rbtrees
+provide weak guarantees that allows us to do lockless (and very
+speculative) reads of the tree.  Such readers cannot see partial stores on
+nodes, ie left/right as well as root.  As such, similar to the WRITE_ONCE
+semantics when doing rotations, use READ_ONCE when checking the root node
+in RB_EMPTY_ROOT.
 
-The whole point of this patch is to fix deadlock which happening when
-UBSAN detects unaligned access in printk() thus UBSAN recursively calls
-printk() with logbuf_lock held by top printk() call.
-
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Yury Gribov <y.gribov@samsung.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Kostya Serebryany <kcc@google.com>
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Michel Lespinasse <walken@google.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ include/linux/rbtree.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/printk/printk.c~kernel-printk-specify-alignment-for-struct-printk_log kernel/printk/printk.c
---- a/kernel/printk/printk.c~kernel-printk-specify-alignment-for-struct-printk_log
-+++ a/kernel/printk/printk.c
-@@ -233,7 +233,11 @@ struct printk_log {
- 	u8 facility;		/* syslog facility */
- 	u8 flags:5;		/* internal record flags */
- 	u8 level:3;		/* syslog level */
--};
-+}
-+#ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
-+__packed __aligned(4)
-+#endif
-+;
+diff -puN include/linux/rbtree.h~rbtree-use-read_once-in-rb_empty_root include/linux/rbtree.h
+--- a/include/linux/rbtree.h~rbtree-use-read_once-in-rb_empty_root
++++ a/include/linux/rbtree.h
+@@ -50,7 +50,7 @@ struct rb_root {
+ #define RB_ROOT	(struct rb_root) { NULL, }
+ #define	rb_entry(ptr, type, member) container_of(ptr, type, member)
  
- /*
-  * The logbuf_lock protects kmsg buffer, indices, counters.  This can be taken
-@@ -274,11 +278,7 @@ static u32 clear_idx;
- #define LOG_FACILITY(v)		((v) >> 3 & 0xff)
+-#define RB_EMPTY_ROOT(root)  ((root)->rb_node == NULL)
++#define RB_EMPTY_ROOT(root)  (READ_ONCE((root)->rb_node) == NULL)
  
- /* record buffer */
--#if defined(CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS)
--#define LOG_ALIGN 4
--#else
- #define LOG_ALIGN __alignof__(struct printk_log)
--#endif
- #define __LOG_BUF_LEN (1 << CONFIG_LOG_BUF_SHIFT)
- static char __log_buf[__LOG_BUF_LEN] __aligned(LOG_ALIGN);
- static char *log_buf = __log_buf;
+ /* 'empty' nodes are nodes that are known not to be inserted in an rbtree */
+ #define RB_EMPTY_NODE(node)  \
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from dave@stgolabs.net are
 
 
