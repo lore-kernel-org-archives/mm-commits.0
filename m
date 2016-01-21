@@ -1,84 +1,89 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- checkpatch-fix-a-number-of-complex_macro-false-positives.patch removed from -mm tree
-Date: Thu, 21 Jan 2016 14:59:18 -0800
-Message-ID: <56a162c6.sSJJAqiws2aLqeHa%akpm@linux-foundation.org>
+Subject: [merged] init-do_mounts-initrd_load-can-be-boolean.patch removed
+ from -mm tree
+Date: Thu, 21 Jan 2016 14:59:24 -0800
+Message-ID: <56a162cc.wMh8CWB2f2qHa4PP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33872 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33896 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752472AbcAUW7S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:59:18 -0500
+	with ESMTP id S1751774AbcAUW7Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:59:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vz@mleia.com, apw@canonical.com, joe@perches.com, mm-commits@vger.kernel.org
+To: baiyaowei@cmss.chinamobile.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: fix a number of COMPLEX_MACRO false positives
+     Subject: init/do_mounts: initrd_load() can be boolean
 has been removed from the -mm tree.  Its filename was
-     checkpatch-fix-a-number-of-complex_macro-false-positives.patch
+     init-do_mounts-initrd_load-can-be-boolean.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vladimir Zapolskiy <vz@mleia.com>
-Subject: checkpatch: fix a number of COMPLEX_MACRO false positives
+From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Subject: init/do_mounts: initrd_load() can be boolean
 
-A simple search over the kernel souce displays a number of correctly
-defined multiline macro, which generally are used as an array element
-initializer:
+Make initrd_load() return bool due to this particular function only using
+either one or zero as its return value.
 
-% find ../linux -type f | xargs grep -B1 -H '^[:space]*\[.*\\$'
+No functional change.
 
-However checkpatch.pl unexpectedly complains about all these macro
-definitions:
-
-% ./scripts/checkpatch.pl --types COMPLEX_MACRO -f include/linux/perf/arm_pmu.h
-
-ERROR: Macros with complex values should be enclosed in parentheses
-+#define PERF_MAP_ALL_UNSUPPORTED					\
-+	 [0 ... PERF_COUNT_HW_MAX - 1] = HW_OP_UNSUPPORTED
-
-The change intends to fix this type of false positives by flattening
-only array members and skipping array element designators.
-
-Signed-off-by: Vladimir Zapolskiy <vz@mleia.com>
-Acked-by: Joe Perches <joe@perches.com>
-Cc: Andy Whitcroft <apw@canonical.com>
+Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ init/do_mounts.h        |    4 ++--
+ init/do_mounts_initrd.c |    6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-a-number-of-complex_macro-false-positives scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-a-number-of-complex_macro-false-positives
-+++ a/scripts/checkpatch.pl
-@@ -4550,7 +4550,7 @@ sub process {
- 			# Flatten any parentheses and braces
- 			while ($dstat =~ s/\([^\(\)]*\)/1/ ||
- 			       $dstat =~ s/\{[^\{\}]*\}/1/ ||
--			       $dstat =~ s/\[[^\[\]]*\]/1/)
-+			       $dstat =~ s/.\[[^\[\]]*\]/1/)
- 			{
- 			}
+diff -puN init/do_mounts.h~init-do_mounts-initrd_load-can-be-boolean init/do_mounts.h
+--- a/init/do_mounts.h~init-do_mounts-initrd_load-can-be-boolean
++++ a/init/do_mounts.h
+@@ -57,11 +57,11 @@ static inline int rd_load_image(char *fr
  
-@@ -4570,7 +4570,8 @@ sub process {
- 				union|
- 				struct|
- 				\.$Ident\s*=\s*|
--				^\"|\"$
-+				^\"|\"$|
-+				^\[
- 			}x;
- 			#print "REST<$rest> dstat<$dstat> ctx<$ctx>\n";
- 			if ($dstat ne '' &&
+ #ifdef CONFIG_BLK_DEV_INITRD
+ 
+-int __init initrd_load(void);
++bool __init initrd_load(void);
+ 
+ #else
+ 
+-static inline int initrd_load(void) { return 0; }
++static inline bool initrd_load(void) { return false; }
+ 
+ #endif
+ 
+diff -puN init/do_mounts_initrd.c~init-do_mounts-initrd_load-can-be-boolean init/do_mounts_initrd.c
+--- a/init/do_mounts_initrd.c~init-do_mounts-initrd_load-can-be-boolean
++++ a/init/do_mounts_initrd.c
+@@ -116,7 +116,7 @@ static void __init handle_initrd(void)
+ 	}
+ }
+ 
+-int __init initrd_load(void)
++bool __init initrd_load(void)
+ {
+ 	if (mount_initrd) {
+ 		create_dev("/dev/ram", Root_RAM0);
+@@ -129,9 +129,9 @@ int __init initrd_load(void)
+ 		if (rd_load_image("/initrd.image") && ROOT_DEV != Root_RAM0) {
+ 			sys_unlink("/initrd.image");
+ 			handle_initrd();
+-			return 1;
++			return true;
+ 		}
+ 	}
+ 	sys_unlink("/initrd.image");
+-	return 0;
++	return false;
+ }
 _
 
-Patches currently in -mm which might be from vz@mleia.com are
+Patches currently in -mm which might be from baiyaowei@cmss.chinamobile.com are
 
 
