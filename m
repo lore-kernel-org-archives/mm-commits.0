@@ -1,106 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- test_hexdump-introduce-test_hexdump_prepare_test-helper.patch removed from
- -mm tree
-Date: Thu, 21 Jan 2016 14:58:54 -0800
-Message-ID: <56a162ae.wbJcC7nnvB+gjV2g%akpm@linux-foundation.org>
+Subject: [merged] lib-clz_tabc-put-in-lib-y-rather-than-obj-y.patch
+ removed from -mm tree
+Date: Thu, 21 Jan 2016 14:59:12 -0800
+Message-ID: <56a162c0.+XojRbsReHfXHbYC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33831 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33863 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752757AbcAUW6z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:58:55 -0500
+	with ESMTP id S1751269AbcAUW7M (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 17:59:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
+To: cmetcalf@ezchip.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: test_hexdump: introduce test_hexdump_prepare_test() helper
+     Subject: lib/clz_tab.c: put in lib-y rather than obj-y
 has been removed from the -mm tree.  Its filename was
-     test_hexdump-introduce-test_hexdump_prepare_test-helper.patch
+     lib-clz_tabc-put-in-lib-y-rather-than-obj-y.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: test_hexdump: introduce test_hexdump_prepare_test() helper
+From: Chris Metcalf <cmetcalf@ezchip.com>
+Subject: lib/clz_tab.c: put in lib-y rather than obj-y
 
-The function prepares the expected result in the provided buffer.
+The clz table (__clz_tab) in lib/clz_tab.c is also provided as part of
+libgcc.a, and many architectures link against libgcc.  To allow the linker
+to avoid a multiple-definition link failure, clz_tab.o has to be in
+lib/lib.a rather than lib/builtin.o.  The specific issue is that libgcc.a
+comes before lib/builtin.o on vmlinux.o's link command line, so its _clz.o
+is pulled to satisfy __clz_tab, and then when the remainder of
+lib/builtin.o is pulled in to satisfy all the other dependencies, the
+__clz_tab symbols conflict.  By putting clz_tab.o in lib.a, the linker can
+simply avoid pulling it into vmlinux.o when this situation arises.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Acked-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+The definitions of __clz_tab are the same in libgcc.a and in the kernel;
+arguably we could also simply rename the kernel version, but it's unlikely
+the libgcc version will ever change to become incompatible, so just using
+it seems reasonably safe.
+
+Signed-off-by: Chris Metcalf <cmetcalf@ezchip.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/test_hexdump.c |   26 +++++++++++++++++++-------
- 1 file changed, 19 insertions(+), 7 deletions(-)
+ lib/Makefile |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/test_hexdump.c~test_hexdump-introduce-test_hexdump_prepare_test-helper lib/test_hexdump.c
---- a/lib/test_hexdump.c~test_hexdump-introduce-test_hexdump_prepare_test-helper
-+++ a/lib/test_hexdump.c
-@@ -42,19 +42,16 @@ static const char * const test_data_8_le
- 	"e9ac0f9cad319ca6", "0cafb1439919d14c",
- };
+diff -puN lib/Makefile~lib-clz_tabc-put-in-lib-y-rather-than-obj-y lib/Makefile
+--- a/lib/Makefile~lib-clz_tabc-put-in-lib-y-rather-than-obj-y
++++ a/lib/Makefile
+@@ -154,7 +154,7 @@ obj-$(CONFIG_GLOB) += glob.o
+ obj-$(CONFIG_MPILIB) += mpi/
+ obj-$(CONFIG_SIGNATURE) += digsig.o
  
--static void __init test_hexdump(size_t len, int rowsize, int groupsize,
--				bool ascii)
-+static void __init test_hexdump_prepare_test(size_t len, int rowsize,
-+					     int groupsize, char *test,
-+					     size_t testlen, bool ascii)
- {
--	char test[32 * 3 + 2 + 32 + 1];
--	char real[32 * 3 + 2 + 32 + 1];
- 	char *p;
- 	const char * const *result;
- 	size_t l = len;
- 	int gs = groupsize, rs = rowsize;
- 	unsigned int i;
+-obj-$(CONFIG_CLZ_TAB) += clz_tab.o
++lib-$(CONFIG_CLZ_TAB) += clz_tab.o
  
--	hex_dump_to_buffer(data_b, l, rs, gs, real, sizeof(real), ascii);
--
- 	if (rs != 16 && rs != 32)
- 		rs = 16;
+ obj-$(CONFIG_DDR) += jedec_ddr_data.o
  
-@@ -73,7 +70,7 @@ static void __init test_hexdump(size_t l
- 	else
- 		result = test_data_1_le;
- 
--	memset(test, ' ', sizeof(test));
-+	memset(test, ' ', testlen);
- 
- 	/* hex dump */
- 	p = test;
-@@ -95,6 +92,21 @@ static void __init test_hexdump(size_t l
- 	}
- 
- 	*p = '\0';
-+}
-+
-+#define TEST_HEXDUMP_BUF_SIZE		(32 * 3 + 2 + 32 + 1)
-+
-+static void __init test_hexdump(size_t len, int rowsize, int groupsize,
-+				bool ascii)
-+{
-+	char test[TEST_HEXDUMP_BUF_SIZE];
-+	char real[TEST_HEXDUMP_BUF_SIZE];
-+
-+	hex_dump_to_buffer(data_b, len, rowsize, groupsize, real, sizeof(real),
-+			   ascii);
-+
-+	test_hexdump_prepare_test(len, rowsize, groupsize, test, sizeof(test),
-+				  ascii);
- 
- 	if (strcmp(test, real)) {
- 		pr_err("Len: %zu row: %d group: %d\n", len, rowsize, groupsize);
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from cmetcalf@ezchip.com are
 
-lib-string_helpers-export-string_units_210-for-others.patch
-lib-string_helpers-fix-indentation-in-few-places.patch
-x86-efi-use-proper-units-in-efi_find_mirror.patch
 
