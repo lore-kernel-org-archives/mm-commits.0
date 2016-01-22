@@ -1,99 +1,118 @@
 From: akpm@linux-foundation.org
-Subject: + vmstat-remove-bug_on-from-vmstat_update.patch added to -mm tree
-Date: Fri, 22 Jan 2016 13:39:07 -0800
-Message-ID: <56a2a17b.CSFwefamu/of5/Ia%akpm@linux-foundation.org>
+Subject: [to-be-updated] dax-add-support-for-fsync-msync-v8-fix-2.patch
+ removed from -mm tree
+Date: Fri, 22 Jan 2016 13:51:14 -0800
+Message-ID: <56a2a452.ZpzMTxCsxzsJAg2y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50451 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51338 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755650AbcAVVjI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jan 2016 16:39:08 -0500
+	with ESMTP id S1751431AbcAVVvP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jan 2016 16:51:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, mhocko@suse.com, sasha.levin@oracle.com, shiraz.linux.kernel@gmail.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vmstat: remove BUG_ON from vmstat_update
-has been added to the -mm tree.  Its filename is
-     vmstat-remove-bug_on-from-vmstat_update.patch
+     Subject: dax: improve documentation for fsync/msync
+has been removed from the -mm tree.  Its filename was
+     dax-add-support-for-fsync-msync-v8-fix-2.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vmstat-remove-bug_on-from-vmstat_update.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vmstat-remove-bug_on-from-vmstat_update.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@linux.com>
-Subject: vmstat: remove BUG_ON from vmstat_update
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: dax: improve documentation for fsync/msync
 
-If we detect that there is nothing to do just set the flag and do not
-check if it was already set before.  Races really do not matter.  If the
-flag is set by any code then the shepherd will start dealing with the
-situation and reenable the vmstat workers when necessary again.
+Several of the subtleties and assumptions of the DAX fsync/msync
+implementation are not immediately obvious, so document them with comments.
 
-Since 0eb77e988032 ("vmstat: make vmstat_updater deferrable again and shut
-down on idle") quiet_vmstat might update cpu_stat_off and mark a
-particular cpu to be handled by vmstat_shepherd.  This might trigger a
-VM_BUG_ON in vmstat_update because the work item might have been sleeping
-during the idle period and see the cpu_stat_off updated after the wake up.
-The VM_BUG_ON is therefore misleading and no more appropriate.  Moreover
-it doesn't really suite any protection from real bugs because
-vmstat_shepherd will simply reschedule the vmstat_work anytime it sees a
-particular cpu set or vmstat_update would do the same from the worker
-context directly.  Even when the two would race the result wouldn't be
-incorrect as the counters update is fully idempotent.
-
-Fixes: 0eb77e988032 ("vmstat: make vmstat_updater deferrable again and shut down on idle")
-Signed-off-by: Christoph Lameter <cl@linux.com>
-Reported-by: Sasha Levin <sasha.levin@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Shiraz Hashim <shiraz.linux.kernel@gmail.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reported-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   12 +-----------
- 1 file changed, 1 insertion(+), 11 deletions(-)
+ fs/dax.c |   30 ++++++++++++++++++++++++++++++
+ 1 file changed, 30 insertions(+)
 
-diff -puN mm/vmstat.c~vmstat-remove-bug_on-from-vmstat_update mm/vmstat.c
---- a/mm/vmstat.c~vmstat-remove-bug_on-from-vmstat_update
-+++ a/mm/vmstat.c
-@@ -1408,17 +1408,7 @@ static void vmstat_update(struct work_st
- 		 * Defer the checking for differentials to the
- 		 * shepherd thread on a different processor.
- 		 */
--		int r;
--		/*
--		 * Shepherd work thread does not race since it never
--		 * changes the bit if its zero but the cpu
--		 * online / off line code may race if
--		 * worker threads are still allowed during
--		 * shutdown / startup.
--		 */
--		r = cpumask_test_and_set_cpu(smp_processor_id(),
--			cpu_stat_off);
--		VM_BUG_ON(r);
-+		cpumask_set_cpu(smp_processor_id(), cpu_stat_off);
- 	}
- }
+diff -puN fs/dax.c~dax-add-support-for-fsync-msync-v8-fix-2 fs/dax.c
+--- a/fs/dax.c~dax-add-support-for-fsync-msync-v8-fix-2
++++ a/fs/dax.c
+@@ -349,6 +349,13 @@ static int dax_radix_entry(struct addres
  
+ 		if (!pmd_entry || type == RADIX_DAX_PMD)
+ 			goto dirty;
++
++		/*
++		 * We only insert dirty PMD entries into the radix tree.  This
++		 * means we don't need to worry about removing a dirty PTE
++		 * entry and inserting a clean PMD entry, thus reducing the
++		 * range we would flush with a follow-up fsync/msync call.
++		 */
+ 		radix_tree_delete(&mapping->page_tree, index);
+ 		mapping->nrexceptional--;
+ 	}
+@@ -910,6 +917,21 @@ int __dax_pmd_fault(struct vm_area_struc
+ 		}
+ 		dax_unmap_atomic(bdev, &dax);
+ 
++		/*
++		 * For PTE faults we insert a radix tree entry for reads, and
++		 * leave it clean.  Then on the first write we dirty the radix
++		 * tree entry via the dax_pnf_mkwrite() path.  This sequence
++		 * allows the dax_pfn_mkwrite() call to be simpler and avoid a
++		 * call into get_block() to translate the pgoff to a sector in
++		 * order to be able to create a new radix tree entry.
++		 *
++		 * The PMD path doesn't have an equivalent to
++		 * dax_pfn_mkwrite(), though, so for a read followed by a
++		 * write we traverse all the way through __dax_pmd_fault()
++		 * twice.  This means we can just skip inserting a radix tree
++		 * entry completely on the initial read and just wait until
++		 * the write to insert a dirty entry.
++		 */
+ 		if (write) {
+ 			error = dax_radix_entry(mapping, pgoff, dax.sector,
+ 					true, true);
+@@ -983,6 +1005,14 @@ int dax_pfn_mkwrite(struct vm_area_struc
+ {
+ 	struct file *file = vma->vm_file;
+ 
++	/*
++	 * We pass NO_SECTOR to dax_radix_entry() because we expect that a
++	 * RADIX_DAX_PTE entry already exists in the radix tree from a
++	 * previous call to __dax_fault().  We just want to look up that PTE
++	 * entry using vmf->pgoff and make sure the dirty tag is set.  This
++	 * saves us from having to make a call to get_block() here to look
++	 * up the sector.
++	 */
+ 	dax_radix_entry(file->f_mapping, vmf->pgoff, NO_SECTOR, false, true);
+ 	return VM_FAULT_NOPAGE;
+ }
 _
 
-Patches currently in -mm which might be from cl@linux.com are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
-vmstat-remove-bug_on-from-vmstat_update.patch
+dax-fix-null-pointer-dereference-in-__dax_dbg.patch
+dax-fix-conversion-of-holes-to-pmds.patch
+pmem-add-wb_cache_pmem-to-the-pmem-api.patch
+pmem-add-wb_cache_pmem-to-the-pmem-api-v6.patch
+dax-support-dirty-dax-entries-in-radix-tree.patch
+dax-support-dirty-dax-entries-in-radix-tree-v6.patch
+mm-add-find_get_entries_tag.patch
+dax-add-support-for-fsync-sync.patch
+dax-add-support-for-fsync-sync-v6.patch
+dax-add-support-for-fsync-msync-v7.patch
+dax-add-support-for-fsync-msync-v8.patch
+dax-add-support-for-fsync-msync-v8-fix.patch
+dax-add-support-for-fsync-msync-v8-fix-3.patch
+dax-add-support-for-fsync-sync-v8-fix-4.patch
+ext2-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
+dax-never-rely-on-bhb_dev-being-set-by-get_block.patch
 
