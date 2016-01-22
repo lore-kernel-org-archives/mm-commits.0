@@ -1,127 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
-Date: Thu, 21 Jan 2016 17:17:52 -0800
-Message-ID: <56a18340.Dxof/I1b/fJuPCdH%akpm@linux-foundation.org>
+Subject: [to-be-updated] numa-fix-proc-pid-numa_maps-on-s390-fix.patch
+ removed from -mm tree
+Date: Fri, 22 Jan 2016 12:00:29 -0800
+Message-ID: <56a28a5d.7PIxcXvsbNlJOTrI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43574 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41629 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751084AbcAVBRx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 21 Jan 2016 20:17:53 -0500
+	with ESMTP id S1751668AbcAVUA3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jan 2016 15:00:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dan.j.williams@intel.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, gerald.schaefer@de.ibm.com, holzheu@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
+     Subject: numa-fix-proc-pid-numa_maps-on-s390-fix
 has been removed from the -mm tree.  Its filename was
-     linux-next-rejects.patch
+     numa-fix-proc-pid-numa_maps-on-s390-fix.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: mm, dax: convert vmf_insert_pfn_pmd() to pfn_t fix
+Subject: numa-fix-proc-pid-numa_maps-on-s390-fix
 
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Dan Williams <dan.j.williams@intel.com>
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the akpm-current tree with the powerpc tree
+huge_ptep_get() doesn't exist when CONFIG_HUGETLB_PAGE=n.  But this whole
+code cblock does nothing when CONFIG_TRANSPARENT_HUGEPAGE=n, so use that
+to fix the build error.
 
-Hi Andrew,
-
-Today's linux-next merge of the akpm-current tree got a conflict in:
-
-  arch/powerpc/include/asm/pgtable.h
-
-between commit:
-
-  ee4889c7bc2a ("powerpc/mm: Don't have generic headers introduce functions touching pte bits")
-
-from the powerpc tree and commit:
-
-  e0e8474c0d55 ("mm, dax, gpu: convert vm_insert_mixed to pfn_t")
-
-from the akpm-current tree.
-
-I fixed it up (the code being changed was moved from this file - I added
-the fix up patch below) and can carry the fix as necessary (no action
-is required).
-
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Fri, 18 Dec 2015 16:30:47 +1100
-Subject: [PATCH] mm, dax, gpu: merge fix for convert vm_insert_mixed to pfn_t
-
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
----
-
-index 38b33dcfcc9d..3ed3303c1295 100644
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the akpm-current tree with the powerpc tree
-
-Hi Andrew,
-
-Today's linux-next merge of the akpm-current tree got a conflict in:
-
-  arch/powerpc/include/asm/pgtable.h
-
-between commit:
-
-  ee4889c7bc2a ("powerpc/mm: Don't have generic headers introduce functions touching pte bits")
-
-from the powerpc tree and commit:
-
-  e0e8474c0d55 ("mm, dax, gpu: convert vm_insert_mixed to pfn_t")
-
-from the akpm-current tree.
-
-I fixed it up (the code being changed was moved from this file - I added
-the fix up patch below) and can carry the fix as necessary (no action
-is required).
-
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Date: Fri, 18 Dec 2015 16:30:47 +1100
-Subject: [PATCH] mm, dax, gpu: merge fix for convert vm_insert_mixed to pfn_t
-
-Signed-off-by: Stephen Rothwell <sfr@canb.auug.org.au>
----
-
-index 38b33dcfcc9d..3ed3303c1295 100644
+Cc: Gerald Schaefer <gerald.schaefer@de.ibm.com>
+Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile               |    1 +
- net/mac80211/debugfs.c |    1 +
- 2 files changed, 2 insertions(+)
+ fs/proc/task_mmu.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN Makefile~linux-next-rejects Makefile
---- a/Makefile~linux-next-rejects
-+++ a/Makefile
-@@ -800,6 +800,7 @@ endif
+diff -puN fs/proc/task_mmu.c~numa-fix-proc-pid-numa_maps-on-s390-fix fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~numa-fix-proc-pid-numa_maps-on-s390-fix
++++ a/fs/proc/task_mmu.c
+@@ -1523,6 +1523,7 @@ static int gather_pte_stats(pmd_t *pmd,
+ 	pte_t *pte;
  
- include scripts/Makefile.kasan
- include scripts/Makefile.extrawarn
-+include scripts/Makefile.lto
- include scripts/Makefile.ubsan
+ 	ptl = pmd_trans_huge_lock(pmd, vma);
++#ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ 	if (ptl) {
+ 		pte_t huge_pte = huge_ptep_get((pte_t *)pmd);
+ 		struct page *page;
+@@ -1534,6 +1535,7 @@ static int gather_pte_stats(pmd_t *pmd,
+ 		spin_unlock(ptl);
+ 		return 0;
+ 	}
++#endif
  
- # Add any arch overrides and user supplied CPPFLAGS, AFLAGS and CFLAGS as the
-diff -puN net/mac80211/debugfs.c~linux-next-rejects net/mac80211/debugfs.c
---- a/net/mac80211/debugfs.c~linux-next-rejects
-+++ a/net/mac80211/debugfs.c
-@@ -126,6 +126,7 @@ static const char *hw_flag_names[] = {
- 	FLAG(SUPPORTS_AMSDU_IN_AMPDU),
- 	FLAG(BEACON_TX_STATUS),
- 	FLAG(NEEDS_UNIQUE_STA_ADDR),
-+	FLAG(SUPPORTS_REORDERING_BUFFER),
- #undef FLAG
- };
- 
+ 	if (pmd_trans_unstable(pmd))
+ 		return 0;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -130,7 +67,6 @@ i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-gpu-drm-i915-intel_spritec-fix-build.patch
 drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-numa-fix-proc-pid-numa_maps-on-s390-fix.patch
 ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
 mm.patch
 fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
