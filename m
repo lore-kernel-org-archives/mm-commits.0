@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + phys_to_pfn_t-use-phys_addr_t.patch added to -mm tree
-Date: Fri, 22 Jan 2016 12:39:11 -0800
-Message-ID: <56a2936f.TVDaLgugbgy93sGK%akpm@linux-foundation.org>
+Subject: + ocfs2-cluster-fix-memory-leak-in-o2hb_region_release.patch
+ added to -mm tree
+Date: Fri, 22 Jan 2016 13:05:40 -0800
+Message-ID: <56a299a4.MCzR6N2DKAAjNEX/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44667 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47121 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754521AbcAVUjM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jan 2016 15:39:12 -0500
+	with ESMTP id S1752108AbcAVVFl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jan 2016 16:05:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.de, xuejiufei@huawei.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     From: Dan Williams <dan.j.williams@intel.com>
+     Subject: ocfs2/cluster: fix memory leak in o2hb_region_release
 has been added to the -mm tree.  Its filename is
-     phys_to_pfn_t-use-phys_addr_t.patch
+     ocfs2-cluster-fix-memory-leak-in-o2hb_region_release.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/phys_to_pfn_t-use-phys_addr_t.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-cluster-fix-memory-leak-in-o2hb_region_release.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/phys_to_pfn_t-use-phys_addr_t.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-cluster-fix-memory-leak-in-o2hb_region_release.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,73 +39,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: phys_to_pfn_t: use phys_addr_t
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2/cluster: fix memory leak in o2hb_region_release
 
-A dma_addr_t is potentially smaller than a phys_addr_t on some archs. 
-Don't truncate the address when doing the pfn conversion.
+o2hb_region_release currently doesn't free o2hb_debug_buf
+hr_db_elapsed_time and hr_db_pinned malloced in o2hb_debug_create.  Also
+we should call debugfs_remove before freeing its data, to prevent the risk
+accessing debugfs rightly after its data has been freed.
 
-[willy@linux.intel.com: fix pfn_t_to_phys as well]
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reviewed-by: Jiufei Xue <xuejiufei@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pfn_t.h             |    4 ++--
- kernel/memremap.c                 |    2 +-
- tools/testing/nvdimm/test/iomap.c |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/pfn_t.h~phys_to_pfn_t-use-phys_addr_t include/linux/pfn_t.h
---- a/include/linux/pfn_t.h~phys_to_pfn_t-use-phys_addr_t
-+++ a/include/linux/pfn_t.h
-@@ -29,7 +29,7 @@ static inline pfn_t pfn_to_pfn_t(unsigne
- 	return __pfn_to_pfn_t(pfn, 0);
- }
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-cluster-fix-memory-leak-in-o2hb_region_release fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-cluster-fix-memory-leak-in-o2hb_region_release
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -1254,15 +1254,15 @@ static const struct file_operations o2hb
  
--extern pfn_t phys_to_pfn_t(dma_addr_t addr, unsigned long flags);
-+extern pfn_t phys_to_pfn_t(phys_addr_t addr, unsigned long flags);
- 
- static inline bool pfn_t_has_page(pfn_t pfn)
+ void o2hb_exit(void)
  {
-@@ -48,7 +48,7 @@ static inline struct page *pfn_t_to_page
- 	return NULL;
+-	kfree(o2hb_db_livenodes);
+-	kfree(o2hb_db_liveregions);
+-	kfree(o2hb_db_quorumregions);
+-	kfree(o2hb_db_failedregions);
+ 	debugfs_remove(o2hb_debug_failedregions);
+ 	debugfs_remove(o2hb_debug_quorumregions);
+ 	debugfs_remove(o2hb_debug_liveregions);
+ 	debugfs_remove(o2hb_debug_livenodes);
+ 	debugfs_remove(o2hb_debug_dir);
++	kfree(o2hb_db_livenodes);
++	kfree(o2hb_db_liveregions);
++	kfree(o2hb_db_quorumregions);
++	kfree(o2hb_db_failedregions);
  }
  
--static inline dma_addr_t pfn_t_to_phys(pfn_t pfn)
-+static inline phys_addr_t pfn_t_to_phys(pfn_t pfn)
- {
- 	return PFN_PHYS(pfn_t_to_pfn(pfn));
- }
-diff -puN kernel/memremap.c~phys_to_pfn_t-use-phys_addr_t kernel/memremap.c
---- a/kernel/memremap.c~phys_to_pfn_t-use-phys_addr_t
-+++ a/kernel/memremap.c
-@@ -150,7 +150,7 @@ void devm_memunmap(struct device *dev, v
- }
- EXPORT_SYMBOL(devm_memunmap);
+ static struct dentry *o2hb_debug_create(const char *name, struct dentry *dir,
+@@ -1438,13 +1438,15 @@ static void o2hb_region_release(struct c
  
--pfn_t phys_to_pfn_t(dma_addr_t addr, unsigned long flags)
-+pfn_t phys_to_pfn_t(phys_addr_t addr, unsigned long flags)
- {
- 	return __pfn_to_pfn_t(addr >> PAGE_SHIFT, flags);
- }
-diff -puN tools/testing/nvdimm/test/iomap.c~phys_to_pfn_t-use-phys_addr_t tools/testing/nvdimm/test/iomap.c
---- a/tools/testing/nvdimm/test/iomap.c~phys_to_pfn_t-use-phys_addr_t
-+++ a/tools/testing/nvdimm/test/iomap.c
-@@ -113,7 +113,7 @@ void *__wrap_devm_memremap_pages(struct
- }
- EXPORT_SYMBOL(__wrap_devm_memremap_pages);
+ 	kfree(reg->hr_slots);
  
--pfn_t __wrap_phys_to_pfn_t(dma_addr_t addr, unsigned long flags)
-+pfn_t __wrap_phys_to_pfn_t(phys_addr_t addr, unsigned long flags)
- {
- 	struct nfit_test_resource *nfit_res = get_nfit_res(addr);
+-	kfree(reg->hr_db_regnum);
+-	kfree(reg->hr_db_livenodes);
+ 	debugfs_remove(reg->hr_debug_livenodes);
+ 	debugfs_remove(reg->hr_debug_regnum);
+ 	debugfs_remove(reg->hr_debug_elapsed_time);
+ 	debugfs_remove(reg->hr_debug_pinned);
+ 	debugfs_remove(reg->hr_debug_dir);
++	kfree(reg->hr_db_livenodes);
++	kfree(reg->hr_db_regnum);
++	kfree(reg->hr_debug_elapsed_time);
++	kfree(reg->hr_debug_pinned);
  
+ 	spin_lock(&o2hb_live_lock);
+ 	list_del(&reg->hr_all_item);
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-phys_to_pfn_t-use-phys_addr_t.patch
-dax-add-support-for-fsync-sync-v6-fix.patch
+ocfs2-cluster-fix-memory-leak-in-o2hb_region_release.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery-v2.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery-v3.patch
+ocfs2-dlm-fix-bug-in-dlm_move_lockres_to_recovery_list.patch
 
