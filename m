@@ -1,140 +1,116 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] dax-add-support-for-fsync-msync-v8-fix-3-v2.patch removed from -mm tree
-Date: Fri, 22 Jan 2016 14:58:09 -0800
-Message-ID: <56a2b401.PDsqt2/0iAyo+lrp%akpm@linux-foundation.org>
+Subject: [folded-merged] dax-add-support-for-fsync-sync-v8-fix-4.patch
+ removed from -mm tree
+Date: Fri, 22 Jan 2016 14:58:12 -0800
+Message-ID: <56a2b404.5q27hP1fDoImASMh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56986 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56989 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753876AbcAVW6J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jan 2016 17:58:09 -0500
+	with ESMTP id S1753876AbcAVW6N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jan 2016 17:58:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ross.zwisler@linux.intel.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: fix PMD handling for fsync/msync
+     Subject: dax: fix clearing of holes in __dax_pmd_fault()
 has been removed from the -mm tree.  Its filename was
-     dax-add-support-for-fsync-msync-v8-fix-3-v2.patch
+     dax-add-support-for-fsync-sync-v8-fix-4.patch
 
 This patch was dropped because it was folded into dax-add-support-for-fsync-sync.patch
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: fix PMD handling for fsync/msync
+Subject: dax: fix clearing of holes in __dax_pmd_fault()
 
-Fix the way that DAX PMD radix tree entries are handled.  With this patch
-we now check to see if a PMD entry exists in the radix tree on write, even
-if we are just trying to insert a PTE.  If it exists, we dirty that
-instead of inserting our own PTE entry.
+When the user reads from a DAX hole via a mmap we service page faults using
+zero-filled page cache pages.  These zero pages are also placed into the
+address_space radix tree.  When we get our first write for that space, we
+can allocate a PMD page worth of DAX storage to replace that hole.
 
-Fix a bug in the PMD path in dax_writeback_mapping_range() where we were
-previously passing a loff_t into radix_tree_lookup instead of a pgoff_t.
+When this happens we need to unmap the zero pages and remove them from the
+radix tree.  Prior to this patch we were unmapping *all* storage in our
+PMD's range, which is incorrect because it removed DAX entries as well on
+non-allocating page faults.
 
-Account for the fact that multiple fsync/msync operations may be happening
-at the same time and don't flush entries that are beyond end_index.
+Instead, keep track of when get_block() actually gives us storage so that
+we can be sure to only remove zero pages that were covering holes.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Reported-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   37 ++++++++++++++++++++++++++-----------
- 1 file changed, 26 insertions(+), 11 deletions(-)
+ fs/dax.c |   32 ++++++++++++++++++++++----------
+ 1 file changed, 22 insertions(+), 10 deletions(-)
 
-diff -puN fs/dax.c~dax-add-support-for-fsync-msync-v8-fix-3-v2 fs/dax.c
---- a/fs/dax.c~dax-add-support-for-fsync-msync-v8-fix-3-v2
+diff -puN fs/dax.c~dax-add-support-for-fsync-sync-v8-fix-4 fs/dax.c
+--- a/fs/dax.c~dax-add-support-for-fsync-sync-v8-fix-4
 +++ a/fs/dax.c
-@@ -326,11 +326,13 @@ static int copy_user_bh(struct page *to,
- }
+@@ -788,9 +788,9 @@ int __dax_pmd_fault(struct vm_area_struc
+ 	bool write = flags & FAULT_FLAG_WRITE;
+ 	struct block_device *bdev;
+ 	pgoff_t size, pgoff;
+-	loff_t lstart, lend;
+ 	sector_t block;
+ 	int error, result = 0;
++	bool alloc = false;
  
- #define NO_SECTOR -1
-+#define DAX_PMD_INDEX(page_index) (page_index & (PMD_MASK >> PAGE_CACHE_SHIFT))
+ 	/* dax pmd mappings require pfn_t_devmap() */
+ 	if (!IS_ENABLED(CONFIG_FS_DAX_PMD))
+@@ -828,10 +828,17 @@ int __dax_pmd_fault(struct vm_area_struc
+ 	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
  
- static int dax_radix_entry(struct address_space *mapping, pgoff_t index,
- 		sector_t sector, bool pmd_entry, bool dirty)
- {
- 	struct radix_tree_root *page_tree = &mapping->page_tree;
-+	pgoff_t pmd_index = DAX_PMD_INDEX(index);
- 	int type, error = 0;
- 	void *entry;
- 
-@@ -338,8 +340,14 @@ static int dax_radix_entry(struct addres
- 	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
- 
- 	spin_lock_irq(&mapping->tree_lock);
--	entry = radix_tree_lookup(page_tree, index);
- 
-+	entry = radix_tree_lookup(page_tree, pmd_index);
-+	if (entry && RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD) {
-+		index = pmd_index;
-+		goto dirty;
+ 	bh.b_size = PMD_SIZE;
+-	if (get_block(inode, block, &bh, write) != 0)
++
++	if (get_block(inode, block, &bh, 0) != 0)
+ 		return VM_FAULT_SIGBUS;
++
++	if (!buffer_mapped(&bh) && write) {
++		if (get_block(inode, block, &bh, 1) != 0)
++			return VM_FAULT_SIGBUS;
++		alloc = true;
 +	}
 +
-+	entry = radix_tree_lookup(page_tree, index);
- 	if (entry) {
- 		type = RADIX_DAX_TYPE(entry);
- 		if (WARN_ON_ONCE(type != RADIX_DAX_PTE &&
-@@ -460,31 +468,33 @@ int dax_writeback_mapping_range(struct a
- {
- 	struct inode *inode = mapping->host;
- 	struct block_device *bdev = inode->i_sb->s_bdev;
-+	pgoff_t start_index, end_index, pmd_index;
- 	pgoff_t indices[PAGEVEC_SIZE];
--	pgoff_t start_page, end_page;
- 	struct pagevec pvec;
--	void *entry;
-+	bool done = false;
- 	int i, ret = 0;
-+	void *entry;
+ 	bdev = bh.b_bdev;
+-	i_mmap_lock_read(mapping);
  
- 	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
- 		return -EIO;
- 
-+	start_index = start >> PAGE_CACHE_SHIFT;
-+	end_index = end >> PAGE_CACHE_SHIFT;
-+	pmd_index = DAX_PMD_INDEX(start_index);
+ 	/*
+ 	 * If the filesystem isn't willing to tell us the length of a hole,
+@@ -840,15 +847,20 @@ int __dax_pmd_fault(struct vm_area_struc
+ 	 */
+ 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE) {
+ 		dax_pmd_dbg(&bh, address, "allocated block too small");
+-		goto fallback;
++		return VM_FAULT_FALLBACK;
++	}
 +
- 	rcu_read_lock();
--	entry = radix_tree_lookup(&mapping->page_tree, start & PMD_MASK);
-+	entry = radix_tree_lookup(&mapping->page_tree, pmd_index);
- 	rcu_read_unlock();
- 
- 	/* see if the start of our range is covered by a PMD entry */
- 	if (entry && RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
--		start &= PMD_MASK;
-+		start_index = pmd_index;
- 
--	start_page = start >> PAGE_CACHE_SHIFT;
--	end_page = end >> PAGE_CACHE_SHIFT;
--
--	tag_pages_for_writeback(mapping, start_page, end_page);
-+	tag_pages_for_writeback(mapping, start_index, end_index);
- 
- 	pagevec_init(&pvec, 0);
--	while (1) {
--		pvec.nr = find_get_entries_tag(mapping, start_page,
-+	while (!done) {
-+		pvec.nr = find_get_entries_tag(mapping, start_index,
- 				PAGECACHE_TAG_TOWRITE, PAGEVEC_SIZE,
- 				pvec.pages, indices);
- 
-@@ -492,6 +502,11 @@ int dax_writeback_mapping_range(struct a
- 			break;
- 
- 		for (i = 0; i < pvec.nr; i++) {
-+			if (indices[i] > end_index) {
-+				done = true;
-+				break;
-+			}
++	/*
++	 * If we allocated new storage, make sure no process has any
++	 * zero pages covering this hole
++	 */
++	if (alloc) {
++		loff_t lstart = pgoff << PAGE_SHIFT;
++		loff_t lend = lstart + PMD_SIZE - 1; /* inclusive */
 +
- 			ret = dax_writeback_one(bdev, mapping, indices[i],
- 					pvec.pages[i]);
- 			if (ret < 0)
++		truncate_pagecache_range(inode, lstart, lend);
+ 	}
+ 
+-	/* make sure no process has any zero pages covering this hole */
+-	lstart = pgoff << PAGE_SHIFT;
+-	lend = lstart + PMD_SIZE - 1; /* inclusive */
+-	i_mmap_unlock_read(mapping);
+-	unmap_mapping_range(mapping, lstart, PMD_SIZE, 0);
+-	truncate_inode_pages_range(mapping, lstart, lend);
+ 	i_mmap_lock_read(mapping);
+ 
+ 	/*
 _
 
 Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
@@ -145,7 +121,6 @@ pmem-add-wb_cache_pmem-to-the-pmem-api.patch
 dax-support-dirty-dax-entries-in-radix-tree.patch
 mm-add-find_get_entries_tag.patch
 dax-add-support-for-fsync-sync.patch
-dax-add-support-for-fsync-sync-v8-fix-4.patch
 ext2-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
 ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
 xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
