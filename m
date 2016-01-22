@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] dax-add-support-for-fsync-msync-v8-fix-3.patch
- removed from -mm tree
-Date: Fri, 22 Jan 2016 13:54:31 -0800
-Message-ID: <56a2a517.N6Fb//0cWTLmUY8v%akpm@linux-foundation.org>
+Subject: + dax-add-support-for-fsync-msync-v8-fix-3-v2.patch added to -mm
+ tree
+Date: Fri, 22 Jan 2016 13:55:07 -0800
+Message-ID: <56a2a53b.8+MPfvz7DAjyfXKH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51643 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51703 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754724AbcAVVyc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jan 2016 16:54:32 -0500
+	with ESMTP id S1754957AbcAVVzI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jan 2016 16:55:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ross.zwisler@linux.intel.com, jack@suse.cz, mm-commits@vger.kernel.org
@@ -19,10 +19,24 @@ To: ross.zwisler@linux.intel.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 The patch titled
      Subject: dax: fix PMD handling for fsync/msync
-has been removed from the -mm tree.  Its filename was
-     dax-add-support-for-fsync-msync-v8-fix-3.patch
+has been added to the -mm tree.  Its filename is
+     dax-add-support-for-fsync-msync-v8-fix-3-v2.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-add-support-for-fsync-msync-v8-fix-3-v2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-add-support-for-fsync-msync-v8-fix-3-v2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
@@ -44,11 +58,11 @@ Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   39 +++++++++++++++++++++++++++------------
- 1 file changed, 27 insertions(+), 12 deletions(-)
+ fs/dax.c |   37 ++++++++++++++++++++++++++-----------
+ 1 file changed, 26 insertions(+), 11 deletions(-)
 
-diff -puN fs/dax.c~dax-add-support-for-fsync-msync-v8-fix-3 fs/dax.c
---- a/fs/dax.c~dax-add-support-for-fsync-msync-v8-fix-3
+diff -puN fs/dax.c~dax-add-support-for-fsync-msync-v8-fix-3-v2 fs/dax.c
+--- a/fs/dax.c~dax-add-support-for-fsync-msync-v8-fix-3-v2
 +++ a/fs/dax.c
 @@ -326,11 +326,13 @@ static int copy_user_bh(struct page *to,
  }
@@ -71,7 +85,7 @@ diff -puN fs/dax.c~dax-add-support-for-fsync-msync-v8-fix-3 fs/dax.c
 -	entry = radix_tree_lookup(page_tree, index);
  
 +	entry = radix_tree_lookup(page_tree, pmd_index);
-+	if (RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD) {
++	if (entry && RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD) {
 +		index = pmd_index;
 +		goto dirty;
 +	}
@@ -106,9 +120,8 @@ diff -puN fs/dax.c~dax-add-support-for-fsync-msync-v8-fix-3 fs/dax.c
  	rcu_read_unlock();
  
  	/* see if the start of our range is covered by a PMD entry */
--	if (entry && RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
+ 	if (entry && RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
 -		start &= PMD_MASK;
-+	if (RADIX_DAX_TYPE(entry) == RADIX_DAX_PMD)
 +		start_index = pmd_index;
  
 -	start_page = start >> PAGE_CACHE_SHIFT;
@@ -154,6 +167,7 @@ dax-add-support-for-fsync-msync-v7.patch
 dax-add-support-for-fsync-msync-v8.patch
 dax-add-support-for-fsync-msync-v8-fix.patch
 dax-add-support-for-fsync-msync-v8-fix-2-v2.patch
+dax-add-support-for-fsync-msync-v8-fix-3-v2.patch
 dax-add-support-for-fsync-sync-v8-fix-4.patch
 ext2-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
 ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
