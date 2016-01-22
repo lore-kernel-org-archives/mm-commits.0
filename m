@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- maintainers-return-arch-sh-to-maintained-state-with-new-maintainers.patch
- added to -mm tree
-Date: Fri, 22 Jan 2016 13:09:01 -0800
-Message-ID: <56a29a6d.2OEVMswchW1U2TXf%akpm__18717.3876133331$1453496961$gmane$org@linux-foundation.org>
+Subject: + vmstat-remove-bug_on-from-vmstat_update.patch added to -mm tree
+Date: Fri, 22 Jan 2016 13:39:07 -0800
+Message-ID: <56a2a17b.CSFwefamu/of5/Ia%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47489 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50451 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754442AbcAVVJC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jan 2016 16:09:02 -0500
+	with ESMTP id S1755650AbcAVVjI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jan 2016 16:39:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dalias@libc.org, geert+renesas@glider.be, horms+renesas@verge.net.au, jeff@uClinux.org, peterz@infradead.org, rob@landley.net, stable@vger.kernel.org, ysato@users.sourceforge.jp, mm-commits@vger.kernel.org
+To: cl@linux.com, mhocko@suse.com, sasha.levin@oracle.com, shiraz.linux.kernel@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: return arch/sh to maintained state, with new maintainers
+     Subject: vmstat: remove BUG_ON from vmstat_update
 has been added to the -mm tree.  Its filename is
-     maintainers-return-arch-sh-to-maintained-state-with-new-maintainers.patch
+     vmstat-remove-bug_on-from-vmstat_update.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-return-arch-sh-to-maintained-state-with-new-maintainers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/vmstat-remove-bug_on-from-vmstat_update.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-return-arch-sh-to-maintained-state-with-new-maintainers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/vmstat-remove-bug_on-from-vmstat_update.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,45 +38,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rich Felker <dalias@libc.org>
-Subject: MAINTAINERS: return arch/sh to maintained state, with new maintainers
+From: Christoph Lameter <cl@linux.com>
+Subject: vmstat: remove BUG_ON from vmstat_update
 
-Add Yoshinori Sato and Rich Felker as maintainers for arch/sh
-(SUPERH).
+If we detect that there is nothing to do just set the flag and do not
+check if it was already set before.  Races really do not matter.  If the
+flag is set by any code then the shepherd will start dealing with the
+situation and reenable the vmstat workers when necessary again.
 
-Signed-off-by: Rich Felker <dalias@libc.org>
-Signed-off-by: Yoshinori Sato <ysato@users.sourceforge.jp>
-Acked-by: D. Jeff Dionne <jeff@uClinux.org>
-Acked-by: Rob Landley <rob@landley.net>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Acked-by: Simon Horman <horms+renesas@verge.net.au>
-Acked-by: Geert Uytterhoeven <geert+renesas@glider.be>
-Cc: <stable@vger.kernel.org>
+Since 0eb77e988032 ("vmstat: make vmstat_updater deferrable again and shut
+down on idle") quiet_vmstat might update cpu_stat_off and mark a
+particular cpu to be handled by vmstat_shepherd.  This might trigger a
+VM_BUG_ON in vmstat_update because the work item might have been sleeping
+during the idle period and see the cpu_stat_off updated after the wake up.
+The VM_BUG_ON is therefore misleading and no more appropriate.  Moreover
+it doesn't really suite any protection from real bugs because
+vmstat_shepherd will simply reschedule the vmstat_work anytime it sees a
+particular cpu set or vmstat_update would do the same from the worker
+context directly.  Even when the two would race the result wouldn't be
+incorrect as the counters update is fully idempotent.
+
+Fixes: 0eb77e988032 ("vmstat: make vmstat_updater deferrable again and shut down on idle")
+Signed-off-by: Christoph Lameter <cl@linux.com>
+Reported-by: Sasha Levin <sasha.levin@oracle.com>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Shiraz Hashim <shiraz.linux.kernel@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/vmstat.c |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-return-arch-sh-to-maintained-state-with-new-maintainers MAINTAINERS
---- a/MAINTAINERS~maintainers-return-arch-sh-to-maintained-state-with-new-maintainers
-+++ a/MAINTAINERS
-@@ -10454,9 +10454,11 @@ S:	Maintained
- F:	drivers/net/ethernet/dlink/sundance.c
+diff -puN mm/vmstat.c~vmstat-remove-bug_on-from-vmstat_update mm/vmstat.c
+--- a/mm/vmstat.c~vmstat-remove-bug_on-from-vmstat_update
++++ a/mm/vmstat.c
+@@ -1408,17 +1408,7 @@ static void vmstat_update(struct work_st
+ 		 * Defer the checking for differentials to the
+ 		 * shepherd thread on a different processor.
+ 		 */
+-		int r;
+-		/*
+-		 * Shepherd work thread does not race since it never
+-		 * changes the bit if its zero but the cpu
+-		 * online / off line code may race if
+-		 * worker threads are still allowed during
+-		 * shutdown / startup.
+-		 */
+-		r = cpumask_test_and_set_cpu(smp_processor_id(),
+-			cpu_stat_off);
+-		VM_BUG_ON(r);
++		cpumask_set_cpu(smp_processor_id(), cpu_stat_off);
+ 	}
+ }
  
- SUPERH
-+M:	Yoshinori Sato <ysato@users.sourceforge.jp>
-+M:	Rich Felker <dalias@libc.org>
- L:	linux-sh@vger.kernel.org
- Q:	http://patchwork.kernel.org/project/linux-sh/list/
--S:	Orphan
-+S:	Maintained
- F:	Documentation/sh/
- F:	arch/sh/
- F:	drivers/sh/
 _
 
-Patches currently in -mm which might be from dalias@libc.org are
+Patches currently in -mm which might be from cl@linux.com are
 
-maintainers-return-arch-sh-to-maintained-state-with-new-maintainers.patch
+vmstat-remove-bug_on-from-vmstat_update.patch
 
