@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] dax-add-support-for-fsync-msync-v8-fix-2.patch
- removed from -mm tree
-Date: Fri, 22 Jan 2016 13:51:14 -0800
-Message-ID: <56a2a452.ZpzMTxCsxzsJAg2y%akpm@linux-foundation.org>
+Subject: + dax-add-support-for-fsync-msync-v8-fix-2-v2.patch added to -mm
+ tree
+Date: Fri, 22 Jan 2016 13:51:52 -0800
+Message-ID: <56a2a478.8XK8mTsklo34fD6k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51338 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51357 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751431AbcAVVvP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jan 2016 16:51:15 -0500
+	with ESMTP id S1753020AbcAVVvw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jan 2016 16:51:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ross.zwisler@linux.intel.com, jack@suse.cz, mm-commits@vger.kernel.org
@@ -19,10 +19,24 @@ To: ross.zwisler@linux.intel.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 The patch titled
      Subject: dax: improve documentation for fsync/msync
-has been removed from the -mm tree.  Its filename was
-     dax-add-support-for-fsync-msync-v8-fix-2.patch
+has been added to the -mm tree.  Its filename is
+     dax-add-support-for-fsync-msync-v8-fix-2-v2.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-add-support-for-fsync-msync-v8-fix-2-v2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-add-support-for-fsync-msync-v8-fix-2-v2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
@@ -33,16 +47,25 @@ implementation are not immediately obvious, so document them with comments.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Reported-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+ fs/dax.c |   31 +++++++++++++++++++++++++++++++
+ 1 file changed, 31 insertions(+)
 
-diff -puN fs/dax.c~dax-add-support-for-fsync-msync-v8-fix-2 fs/dax.c
---- a/fs/dax.c~dax-add-support-for-fsync-msync-v8-fix-2
+diff -puN fs/dax.c~dax-add-support-for-fsync-msync-v8-fix-2-v2 fs/dax.c
+--- a/fs/dax.c~dax-add-support-for-fsync-msync-v8-fix-2-v2
 +++ a/fs/dax.c
-@@ -349,6 +349,13 @@ static int dax_radix_entry(struct addres
+@@ -334,6 +334,7 @@ static int dax_radix_entry(struct addres
+ 	int type, error = 0;
+ 	void *entry;
+ 
++	WARN_ON_ONCE(pmd_entry && !dirty);
+ 	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+ 
+ 	spin_lock_irq(&mapping->tree_lock);
+@@ -349,6 +350,13 @@ static int dax_radix_entry(struct addres
  
  		if (!pmd_entry || type == RADIX_DAX_PMD)
  			goto dirty;
@@ -56,14 +79,14 @@ diff -puN fs/dax.c~dax-add-support-for-fsync-msync-v8-fix-2 fs/dax.c
  		radix_tree_delete(&mapping->page_tree, index);
  		mapping->nrexceptional--;
  	}
-@@ -910,6 +917,21 @@ int __dax_pmd_fault(struct vm_area_struc
+@@ -910,6 +918,21 @@ int __dax_pmd_fault(struct vm_area_struc
  		}
  		dax_unmap_atomic(bdev, &dax);
  
 +		/*
 +		 * For PTE faults we insert a radix tree entry for reads, and
 +		 * leave it clean.  Then on the first write we dirty the radix
-+		 * tree entry via the dax_pnf_mkwrite() path.  This sequence
++		 * tree entry via the dax_pfn_mkwrite() path.  This sequence
 +		 * allows the dax_pfn_mkwrite() call to be simpler and avoid a
 +		 * call into get_block() to translate the pgoff to a sector in
 +		 * order to be able to create a new radix tree entry.
@@ -78,7 +101,7 @@ diff -puN fs/dax.c~dax-add-support-for-fsync-msync-v8-fix-2 fs/dax.c
  		if (write) {
  			error = dax_radix_entry(mapping, pgoff, dax.sector,
  					true, true);
-@@ -983,6 +1005,14 @@ int dax_pfn_mkwrite(struct vm_area_struc
+@@ -983,6 +1006,14 @@ int dax_pfn_mkwrite(struct vm_area_struc
  {
  	struct file *file = vma->vm_file;
  
@@ -109,6 +132,7 @@ dax-add-support-for-fsync-sync-v6.patch
 dax-add-support-for-fsync-msync-v7.patch
 dax-add-support-for-fsync-msync-v8.patch
 dax-add-support-for-fsync-msync-v8-fix.patch
+dax-add-support-for-fsync-msync-v8-fix-2-v2.patch
 dax-add-support-for-fsync-msync-v8-fix-3.patch
 dax-add-support-for-fsync-sync-v8-fix-4.patch
 ext2-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
