@@ -1,128 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] dax-add-support-for-fsync-sync-v8-fix-4.patch
- removed from -mm tree
-Date: Fri, 22 Jan 2016 14:58:12 -0800
-Message-ID: <56a2b404.5q27hP1fDoImASMh%akpm@linux-foundation.org>
+Subject: +
+ kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-fix.patch added to -mm tree
+Date: Fri, 22 Jan 2016 16:00:39 -0800
+Message-ID: <56a2c2a7.M9Nrf7VTctKzTGFj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56989 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33213 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753876AbcAVW6N (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jan 2016 17:58:13 -0500
+	with ESMTP id S1755767AbcAWAAl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 22 Jan 2016 19:00:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, jack@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, heiko.carstens@de.ibm.com, hpa@zytor.com, keescook@chromium.org, mingo@kernel.org, mmarek@suse.cz, mpe@ellerman.id.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: fix clearing of holes in __dax_pmd_fault()
-has been removed from the -mm tree.  Its filename was
-     dax-add-support-for-fsync-sync-v8-fix-4.patch
+     Subject: kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-fix
+has been added to the -mm tree.  Its filename is
+     kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-fix.patch
 
-This patch was dropped because it was folded into dax-add-support-for-fsync-sync.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: fix clearing of holes in __dax_pmd_fault()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-fix
 
-When the user reads from a DAX hole via a mmap we service page faults using
-zero-filled page cache pages.  These zero pages are also placed into the
-address_space radix tree.  When we get our first write for that space, we
-can allocate a PMD page worth of DAX storage to replace that hole.
+ULLONG_MAX doesn't work with ancient glibc-headers-2.5-3 - ust use -1ULL
 
-When this happens we need to unmap the zero pages and remove them from the
-radix tree.  Prior to this patch we were unmapping *all* storage in our
-PMD's range, which is incorrect because it removed DAX entries as well on
-non-allocating page faults.
-
-Instead, keep track of when get_block() actually gives us storage so that
-we can be sure to only remove zero pages that were covering holes.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Jan Kara <jack@suse.cz>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kees Cook <keescook@chromium.org> # x86_64
+Cc: Michael Ellerman <mpe@ellerman.id.au> # powerpc
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   32 ++++++++++++++++++++++----------
- 1 file changed, 22 insertions(+), 10 deletions(-)
+ scripts/kallsyms.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/dax.c~dax-add-support-for-fsync-sync-v8-fix-4 fs/dax.c
---- a/fs/dax.c~dax-add-support-for-fsync-sync-v8-fix-4
-+++ a/fs/dax.c
-@@ -788,9 +788,9 @@ int __dax_pmd_fault(struct vm_area_struc
- 	bool write = flags & FAULT_FLAG_WRITE;
- 	struct block_device *bdev;
- 	pgoff_t size, pgoff;
--	loff_t lstart, lend;
- 	sector_t block;
- 	int error, result = 0;
-+	bool alloc = false;
- 
- 	/* dax pmd mappings require pfn_t_devmap() */
- 	if (!IS_ENABLED(CONFIG_FS_DAX_PMD))
-@@ -828,10 +828,17 @@ int __dax_pmd_fault(struct vm_area_struc
- 	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
- 
- 	bh.b_size = PMD_SIZE;
--	if (get_block(inode, block, &bh, write) != 0)
-+
-+	if (get_block(inode, block, &bh, 0) != 0)
- 		return VM_FAULT_SIGBUS;
-+
-+	if (!buffer_mapped(&bh) && write) {
-+		if (get_block(inode, block, &bh, 1) != 0)
-+			return VM_FAULT_SIGBUS;
-+		alloc = true;
-+	}
-+
- 	bdev = bh.b_bdev;
--	i_mmap_lock_read(mapping);
- 
- 	/*
- 	 * If the filesystem isn't willing to tell us the length of a hole,
-@@ -840,15 +847,20 @@ int __dax_pmd_fault(struct vm_area_struc
- 	 */
- 	if (!buffer_size_valid(&bh) || bh.b_size < PMD_SIZE) {
- 		dax_pmd_dbg(&bh, address, "allocated block too small");
--		goto fallback;
-+		return VM_FAULT_FALLBACK;
-+	}
-+
-+	/*
-+	 * If we allocated new storage, make sure no process has any
-+	 * zero pages covering this hole
-+	 */
-+	if (alloc) {
-+		loff_t lstart = pgoff << PAGE_SHIFT;
-+		loff_t lend = lstart + PMD_SIZE - 1; /* inclusive */
-+
-+		truncate_pagecache_range(inode, lstart, lend);
- 	}
- 
--	/* make sure no process has any zero pages covering this hole */
--	lstart = pgoff << PAGE_SHIFT;
--	lend = lstart + PMD_SIZE - 1; /* inclusive */
--	i_mmap_unlock_read(mapping);
--	unmap_mapping_range(mapping, lstart, PMD_SIZE, 0);
--	truncate_inode_pages_range(mapping, lstart, lend);
- 	i_mmap_lock_read(mapping);
- 
- 	/*
+diff -puN scripts/kallsyms.c~kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-fix scripts/kallsyms.c
+--- a/scripts/kallsyms.c~kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-fix
++++ a/scripts/kallsyms.c
+@@ -741,7 +741,7 @@ static void record_relative_base(void)
+ 		 */
+ 		relative_base = kernel_start_addr;
+ 	} else {
+-		relative_base = ULLONG_MAX;
++		relative_base = -1ULL;
+ 		for (i = 0; i < table_cnt; i++)
+ 			if (!symbol_absolute(&table[i]) &&
+ 			    table[i].addr < relative_base)
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-dax-fix-null-pointer-dereference-in-__dax_dbg.patch
-dax-fix-conversion-of-holes-to-pmds.patch
-pmem-add-wb_cache_pmem-to-the-pmem-api.patch
-dax-support-dirty-dax-entries-in-radix-tree.patch
-mm-add-find_get_entries_tag.patch
-dax-add-support-for-fsync-sync.patch
-ext2-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
-ext4-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
-xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
-dax-never-rely-on-bhb_dev-being-set-by-get_block.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-fix.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+mm.patch
+fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
+mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
+mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
