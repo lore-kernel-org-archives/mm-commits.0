@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch added to -mm tree
-Date: Mon, 25 Jan 2016 14:44:58 -0800
-Message-ID: <56a6a56a.c/ng2m6U8k51cvYb%akpm@linux-foundation.org>
+Subject: + numa-fix-proc-pid-numa_maps-for-hugetlbfs-on-s390.patch added
+ to -mm tree
+Date: Mon, 25 Jan 2016 14:50:37 -0800
+Message-ID: <56a6a6bd.GGHCGdFra33rip5f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37854 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38223 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932764AbcAYWo7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 17:44:59 -0500
+	with ESMTP id S933024AbcAYWui (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 17:50:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, labbott@fedoraproject.org, mm-commits@vger.kernel.org
+To: holzheu@linux.vnet.ibm.com, gerald.schaefer@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes
+     Subject: numa: fix /proc/<pid>/numa_maps for hugetlbfs on s390
 has been added to the -mm tree.  Its filename is
-     mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
+     numa-fix-proc-pid-numa_maps-for-hugetlbfs-on-s390.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/numa-fix-proc-pid-numa_maps-for-hugetlbfs-on-s390.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/numa-fix-proc-pid-numa_maps-for-hugetlbfs-on-s390.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,64 +39,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes
+From: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Subject: numa: fix /proc/<pid>/numa_maps for hugetlbfs on s390
 
-WARNING: 'occuring' may be misspelled - perhaps 'occurring'?
-#57: FILE: mm/Kconfig.debug:74:
-+	   zeros. This makes it harder to detect when errors are occuring
+When working with hugetlbfs ptes (which are actually pmds) is not valid to
+directly use pte functions like pte_present() because the hardware bit
+layout of pmds and ptes can be different.  This is the case on s390. 
+Therefore we have to convert the hugetlbfs ptes first into a valid pte
+encoding with huge_ptep_get().
 
-total: 0 errors, 1 warnings, 47 lines checked
+Currently the /proc/<pid>/numa_maps code uses hugetlbfs ptes without
+huge_ptep_get().  On s390 this leads to the following two problems:
 
-./patches/mm-page_poisoningc-allow-for-zero-poisoning.patch has style problems, please review.
+1) The pte_present() function returns false (instead of true) for
+   PROT_NONE hugetlb ptes. Therefore PROT_NONE vmas are missing
+   completely in the "numa_maps" output.
 
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+2) The pte_dirty() function always returns false for all hugetlb ptes.
+   Therefore these pages are reported as "mapped=xxx" instead of
+   "dirty=xxx".
 
-Please run checkpatch prior to sending patches
+Therefore use huge_ptep_get() to correctly convert the hugetlb ptes.
 
-Cc: Laura Abbott <labbott@fedoraproject.org>
+Signed-off-by: Michael Holzheu <holzheu@linux.vnet.ibm.com>
+Reviewed-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig.debug |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/proc/task_mmu.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN mm/Kconfig.debug~mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes mm/Kconfig.debug
---- a/mm/Kconfig.debug~mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes
-+++ a/mm/Kconfig.debug
-@@ -71,7 +71,7 @@ config PAGE_POISONING_ZERO
- 	depends on PAGE_POISONING
- 	---help---
- 	   Instead of using the existing poison value, fill the pages with
--	   zeros. This makes it harder to detect when errors are occuring
-+	   zeros. This makes it harder to detect when errors are occurring
- 	   due to sanitization but the zeroing at free means that it is
- 	   no longer necessary to write zeros when GFP_ZERO is used on
- 	   allocation.
+diff -puN fs/proc/task_mmu.c~numa-fix-proc-pid-numa_maps-for-hugetlbfs-on-s390 fs/proc/task_mmu.c
+--- a/fs/proc/task_mmu.c~numa-fix-proc-pid-numa_maps-for-hugetlbfs-on-s390
++++ a/fs/proc/task_mmu.c
+@@ -1552,18 +1552,19 @@ static int gather_pte_stats(pmd_t *pmd,
+ static int gather_hugetlb_stats(pte_t *pte, unsigned long hmask,
+ 		unsigned long addr, unsigned long end, struct mm_walk *walk)
+ {
++	pte_t huge_pte = huge_ptep_get(pte);
+ 	struct numa_maps *md;
+ 	struct page *page;
+ 
+-	if (!pte_present(*pte))
++	if (!pte_present(huge_pte))
+ 		return 0;
+ 
+-	page = pte_page(*pte);
++	page = pte_page(huge_pte);
+ 	if (!page)
+ 		return 0;
+ 
+ 	md = walk->private;
+-	gather_stats(page, md, pte_dirty(*pte), 1);
++	gather_stats(page, md, pte_dirty(huge_pte), 1);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from holzheu@linux.vnet.ibm.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-mm.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-sched-add-schedule_timeout_idle.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+numa-fix-proc-pid-numa_maps-for-hugetlbfs-on-s390.patch
 
