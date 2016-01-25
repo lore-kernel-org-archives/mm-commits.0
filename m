@@ -1,151 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-add-find_get_entries_tag.patch removed from -mm tree
-Date: Mon, 25 Jan 2016 10:58:41 -0800
-Message-ID: <56a67061./onyuyLFY5AC94kU%akpm@linux-foundation.org>
+Subject: [merged] dax-never-rely-on-bhb_dev-being-set-by-get_block.patch
+ removed from -mm tree
+Date: Mon, 25 Jan 2016 10:58:56 -0800
+Message-ID: <56a67070.vS+aI/0CbYa9xX+y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48143 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48201 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757310AbcAYS6m (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 13:58:42 -0500
+	with ESMTP id S932983AbcAYS64 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 13:58:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, adilger.kernel@dilger.ca, bfields@fieldses.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@fromorbit.com, hpa@zytor.com, jack@suse.cz, jlayton@poochiereds.net, matthew.r.wilcox@intel.com, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add find_get_entries_tag()
+     Subject: dax: never rely on bh.b_dev being set by get_block()
 has been removed from the -mm tree.  Its filename was
-     mm-add-find_get_entries_tag.patch
+     dax-never-rely-on-bhb_dev-being-set-by-get_block.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: mm: add find_get_entries_tag()
+Subject: dax: never rely on bh.b_dev being set by get_block()
 
-Add find_get_entries_tag() to the family of functions that include
-find_get_entries(), find_get_pages() and find_get_pages_tag().  This is
-needed for DAX dirty page handling because we need a list of both page
-offsets and radix tree entries ('indices' and 'entries' in this function)
-that are marked with the PAGECACHE_TAG_TOWRITE tag.
+Previously in DAX we assumed that calls to get_block() would set bh.b_bdev,
+and we would then use that value even in error cases for debugging.  This
+caused a NULL pointer dereference in __dax_dbg() which was fixed by a
+previous commit, but that commit only changed the one place where we were
+hitting an error.
+
+Instead, update dax.c so that we always initialize bh.b_bdev as best we can
+based on the information that DAX has.  get_block() may or may not update
+to a new value, but this at least lets us get something helpful from
+bh.b_bdev for error messages and not have to worry about whether it was set
+by get_block() or not.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reported-by: Jan Kara <jack@suse.cz>
 Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "J. Bruce Fields" <bfields@fieldses.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Jeff Layton <jlayton@poochiereds.net>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pagemap.h |    3 +
- mm/filemap.c            |   68 ++++++++++++++++++++++++++++++++++++++
- 2 files changed, 71 insertions(+)
+ fs/dax.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-diff -puN include/linux/pagemap.h~mm-add-find_get_entries_tag include/linux/pagemap.h
---- a/include/linux/pagemap.h~mm-add-find_get_entries_tag
-+++ a/include/linux/pagemap.h
-@@ -361,6 +361,9 @@ unsigned find_get_pages_contig(struct ad
- 			       unsigned int nr_pages, struct page **pages);
- unsigned find_get_pages_tag(struct address_space *mapping, pgoff_t *index,
- 			int tag, unsigned int nr_pages, struct page **pages);
-+unsigned find_get_entries_tag(struct address_space *mapping, pgoff_t start,
-+			int tag, unsigned int nr_entries,
-+			struct page **entries, pgoff_t *indices);
+diff -puN fs/dax.c~dax-never-rely-on-bhb_dev-being-set-by-get_block fs/dax.c
+--- a/fs/dax.c~dax-never-rely-on-bhb_dev-being-set-by-get_block
++++ a/fs/dax.c
+@@ -246,6 +246,7 @@ ssize_t dax_do_io(struct kiocb *iocb, st
+ 	loff_t end = pos + iov_iter_count(iter);
  
- struct page *grab_cache_page_write_begin(struct address_space *mapping,
- 			pgoff_t index, unsigned flags);
-diff -puN mm/filemap.c~mm-add-find_get_entries_tag mm/filemap.c
---- a/mm/filemap.c~mm-add-find_get_entries_tag
-+++ a/mm/filemap.c
-@@ -1499,6 +1499,74 @@ repeat:
- }
- EXPORT_SYMBOL(find_get_pages_tag);
+ 	memset(&bh, 0, sizeof(bh));
++	bh.b_bdev = inode->i_sb->s_bdev;
  
-+/**
-+ * find_get_entries_tag - find and return entries that match @tag
-+ * @mapping:	the address_space to search
-+ * @start:	the starting page cache index
-+ * @tag:	the tag index
-+ * @nr_entries:	the maximum number of entries
-+ * @entries:	where the resulting entries are placed
-+ * @indices:	the cache indices corresponding to the entries in @entries
-+ *
-+ * Like find_get_entries, except we only return entries which are tagged with
-+ * @tag.
-+ */
-+unsigned find_get_entries_tag(struct address_space *mapping, pgoff_t start,
-+			int tag, unsigned int nr_entries,
-+			struct page **entries, pgoff_t *indices)
-+{
-+	void **slot;
-+	unsigned int ret = 0;
-+	struct radix_tree_iter iter;
-+
-+	if (!nr_entries)
-+		return 0;
-+
-+	rcu_read_lock();
-+restart:
-+	radix_tree_for_each_tagged(slot, &mapping->page_tree,
-+				   &iter, start, tag) {
-+		struct page *page;
-+repeat:
-+		page = radix_tree_deref_slot(slot);
-+		if (unlikely(!page))
-+			continue;
-+		if (radix_tree_exception(page)) {
-+			if (radix_tree_deref_retry(page)) {
-+				/*
-+				 * Transient condition which can only trigger
-+				 * when entry at index 0 moves out of or back
-+				 * to root: none yet gotten, safe to restart.
-+				 */
-+				goto restart;
-+			}
-+
-+			/*
-+			 * A shadow entry of a recently evicted page, a swap
-+			 * entry from shmem/tmpfs or a DAX entry.  Return it
-+			 * without attempting to raise page count.
-+			 */
-+			goto export;
-+		}
-+		if (!page_cache_get_speculative(page))
-+			goto repeat;
-+
-+		/* Has the page moved? */
-+		if (unlikely(page != *slot)) {
-+			page_cache_release(page);
-+			goto repeat;
-+		}
-+export:
-+		indices[ret] = iter.index;
-+		entries[ret] = page;
-+		if (++ret == nr_entries)
-+			break;
-+	}
-+	rcu_read_unlock();
-+	return ret;
-+}
-+EXPORT_SYMBOL(find_get_entries_tag);
-+
- /*
-  * CD/DVDs are error prone. When a medium error occurs, the driver may fail
-  * a _large_ part of the i/o request. Imagine the worst scenario:
+ 	if ((flags & DIO_LOCKING) && iov_iter_rw(iter) == READ) {
+ 		struct address_space *mapping = inode->i_mapping;
+@@ -607,6 +608,7 @@ int __dax_fault(struct vm_area_struct *v
+ 
+ 	memset(&bh, 0, sizeof(bh));
+ 	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
++	bh.b_bdev = inode->i_sb->s_bdev;
+ 	bh.b_size = PAGE_SIZE;
+ 
+  repeat:
+@@ -1078,6 +1080,7 @@ int dax_zero_page_range(struct inode *in
+ 	BUG_ON((offset + length) > PAGE_CACHE_SIZE);
+ 
+ 	memset(&bh, 0, sizeof(bh));
++	bh.b_bdev = inode->i_sb->s_bdev;
+ 	bh.b_size = PAGE_CACHE_SIZE;
+ 	err = get_block(inode, index, &bh, 0);
+ 	if (err < 0)
 _
 
 Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
