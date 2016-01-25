@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch added
- to -mm tree
-Date: Mon, 25 Jan 2016 14:44:56 -0800
-Message-ID: <56a6a568.Q5Z1LgSuOj6f7QBb%akpm@linux-foundation.org>
+ mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch added to -mm tree
+Date: Mon, 25 Jan 2016 14:44:58 -0800
+Message-ID: <56a6a56a.c/ng2m6U8k51cvYb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37851 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37854 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932764AbcAYWo5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 17:44:57 -0500
+	with ESMTP id S932764AbcAYWo7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 17:44:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, labbott@fedoraproject.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix
+     Subject: mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
+     mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,9 +40,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix
+Subject: mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes
 
-fix Kconfig spello
+WARNING: 'occuring' may be misspelled - perhaps 'occurring'?
+#57: FILE: mm/Kconfig.debug:74:
++	   zeros. This makes it harder to detect when errors are occuring
+
+total: 0 errors, 1 warnings, 47 lines checked
+
+./patches/mm-page_poisoningc-allow-for-zero-poisoning.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
 
 Cc: Laura Abbott <labbott@fedoraproject.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
@@ -52,18 +62,18 @@ Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
  mm/Kconfig.debug |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/Kconfig.debug~mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix mm/Kconfig.debug
---- a/mm/Kconfig.debug~mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix
+diff -puN mm/Kconfig.debug~mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes mm/Kconfig.debug
+--- a/mm/Kconfig.debug~mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes
 +++ a/mm/Kconfig.debug
-@@ -43,7 +43,7 @@ config DEBUG_PAGEALLOC_ENABLE_DEFAULT
- 	  If unsure say no.
- 
- config PAGE_POISONING
--	bool "Poisson pages after freeing"
-+	bool "Poison pages after freeing"
- 	select PAGE_EXTENSION
- 	select PAGE_POISONING_NO_SANITY if HIBERNATION
+@@ -71,7 +71,7 @@ config PAGE_POISONING_ZERO
+ 	depends on PAGE_POISONING
  	---help---
+ 	   Instead of using the existing poison value, fill the pages with
+-	   zeros. This makes it harder to detect when errors are occuring
++	   zeros. This makes it harder to detect when errors are occurring
+ 	   due to sanitization but the zeroing at free means that it is
+ 	   no longer necessary to write zeros when GFP_ZERO is used on
+ 	   allocation.
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
