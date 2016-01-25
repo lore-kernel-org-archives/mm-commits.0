@@ -1,94 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: + ubsan-fix-tree-wide-wmaybe-uninitialized-false-positives.patch
- added to -mm tree
-Date: Mon, 25 Jan 2016 13:35:03 -0800
-Message-ID: <56a69507.VKmWuhAq2IAhayCC%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-fix.patch removed from -mm tree
+Date: Mon, 25 Jan 2016 13:42:59 -0800
+Message-ID: <56a696e3.LD4dnE/BJJie6XrP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60813 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33204 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757877AbcAYVfE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 16:35:04 -0500
+	with ESMTP id S1758071AbcAYVnA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 16:43:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, heiko.carstens@de.ibm.com, hpa@zytor.com, keescook@chromium.org, mingo@kernel.org, mmarek@suse.cz, mpe@ellerman.id.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ubsan: fix tree-wide -Wmaybe-uninitialized false positives
-has been added to the -mm tree.  Its filename is
-     ubsan-fix-tree-wide-wmaybe-uninitialized-false-positives.patch
+     Subject: kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-fix
+has been removed from the -mm tree.  Its filename was
+     kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ubsan-fix-tree-wide-wmaybe-uninitialized-false-positives.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ubsan-fix-tree-wide-wmaybe-uninitialized-false-positives.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table.patch
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: ubsan: fix tree-wide -Wmaybe-uninitialized false positives
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-fix
 
--fsanitize=* options makes GCC less smart than usual and increase number
-of 'maybe-uninitialized' false-positives. So this patch does two things:
- * Add -Wno-maybe-uninitialized to CFLAGS_UBSAN which will disable all
-   such warnings for instrumented files.
- * Remove CONFIG_UBSAN_SANITIZE_ALL from all[yes|mod]config builds. So
-   the all[yes|mod]config build goes without -fsanitize=* and still with
-   -Wmaybe-uninitialized.
+ULLONG_MAX doesn't work with ancient glibc-headers-2.5-3 - just use -1ULL
 
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+Cc: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kees Cook <keescook@chromium.org> # x86_64
+Cc: Michael Ellerman <mpe@ellerman.id.au> # powerpc
+Cc: Michal Marek <mmarek@suse.cz>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.ubsan      |    5 +++++
- scripts/Makefile.ubsan |    4 ++++
- 2 files changed, 9 insertions(+)
+ scripts/kallsyms.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/Kconfig.ubsan~ubsan-fix-tree-wide-wmaybe-uninitialized-false-positives lib/Kconfig.ubsan
---- a/lib/Kconfig.ubsan~ubsan-fix-tree-wide-wmaybe-uninitialized-false-positives
-+++ a/lib/Kconfig.ubsan
-@@ -13,6 +13,11 @@ config UBSAN_SANITIZE_ALL
- 	bool "Enable instrumentation for the entire kernel"
- 	depends on UBSAN
- 	depends on ARCH_HAS_UBSAN_SANITIZE_ALL
-+
-+	# We build with -Wno-maybe-uninitilzed, but we still want to
-+	# use -Wmaybe-uninitilized in allmodconfig builds.
-+	# So dependsy bellow used to disable this option in allmodconfig
-+	depends on !COMPILE_TEST
- 	default y
- 	help
- 	  This option activates instrumentation for the entire kernel.
-diff -puN scripts/Makefile.ubsan~ubsan-fix-tree-wide-wmaybe-uninitialized-false-positives scripts/Makefile.ubsan
---- a/scripts/Makefile.ubsan~ubsan-fix-tree-wide-wmaybe-uninitialized-false-positives
-+++ a/scripts/Makefile.ubsan
-@@ -14,4 +14,8 @@ ifdef CONFIG_UBSAN
- ifdef CONFIG_UBSAN_ALIGNMENT
-       CFLAGS_UBSAN += $(call cc-option, -fsanitize=alignment)
- endif
-+
-+      # -fsanitize=* options makes GCC less smart than usual and
-+      # increase number of 'maybe-uninitialized false-positives
-+      CFLAGS_UBSAN += $(call cc-option, -Wno-maybe-uninitialized)
- endif
+diff -puN scripts/kallsyms.c~kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-fix scripts/kallsyms.c
+--- a/scripts/kallsyms.c~kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-fix
++++ a/scripts/kallsyms.c
+@@ -741,7 +741,7 @@ static void record_relative_base(void)
+ 		 */
+ 		relative_base = kernel_start_addr;
+ 	} else {
+-		relative_base = ULLONG_MAX;
++		relative_base = -1ULL;
+ 		for (i = 0; i < table_cnt; i++)
+ 			if (!symbol_absolute(&table[i]) &&
+ 			    table[i].addr < relative_base)
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ubsan-fix-tree-wide-wmaybe-uninitialized-false-positives.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+mm.patch
+fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
+mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
+mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
