@@ -1,81 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dax-never-rely-on-bhb_dev-being-set-by-get_block.patch
+Subject: [merged] xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
  removed from -mm tree
-Date: Mon, 25 Jan 2016 10:58:56 -0800
-Message-ID: <56a67070.vS+aI/0CbYa9xX+y%akpm@linux-foundation.org>
+Date: Mon, 25 Jan 2016 10:58:53 -0800
+Message-ID: <56a6706d.+sqYEz7+o7NdF0tY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48201 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48194 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932983AbcAYS64 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 13:58:56 -0500
+	with ESMTP id S932983AbcAYS6y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 13:58:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, jack@suse.cz, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, adilger.kernel@dilger.ca, bfields@fieldses.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@fromorbit.com, hpa@zytor.com, jack@suse.com, jlayton@poochiereds.net, matthew.r.wilcox@intel.com, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: never rely on bh.b_dev being set by get_block()
+     Subject: xfs: call dax_pfn_mkwrite() for DAX fsync/msync
 has been removed from the -mm tree.  Its filename was
-     dax-never-rely-on-bhb_dev-being-set-by-get_block.patch
+     xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: never rely on bh.b_dev being set by get_block()
+Subject: xfs: call dax_pfn_mkwrite() for DAX fsync/msync
 
-Previously in DAX we assumed that calls to get_block() would set bh.b_bdev,
-and we would then use that value even in error cases for debugging.  This
-caused a NULL pointer dereference in __dax_dbg() which was fixed by a
-previous commit, but that commit only changed the one place where we were
-hitting an error.
-
-Instead, update dax.c so that we always initialize bh.b_bdev as best we can
-based on the information that DAX has.  get_block() may or may not update
-to a new value, but this at least lets us get something helpful from
-bh.b_bdev for error messages and not have to worry about whether it was set
-by get_block() or not.
+To properly support the new DAX fsync/msync infrastructure filesystems
+need to call dax_pfn_mkwrite() so that DAX can track when user pages are
+dirtied.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "J. Bruce Fields" <bfields@fieldses.org>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jan Kara <jack@suse.com>
+Cc: Jeff Layton <jlayton@poochiereds.net>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |    3 +++
- 1 file changed, 3 insertions(+)
+ fs/xfs/xfs_file.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/dax.c~dax-never-rely-on-bhb_dev-being-set-by-get_block fs/dax.c
---- a/fs/dax.c~dax-never-rely-on-bhb_dev-being-set-by-get_block
-+++ a/fs/dax.c
-@@ -246,6 +246,7 @@ ssize_t dax_do_io(struct kiocb *iocb, st
- 	loff_t end = pos + iov_iter_count(iter);
- 
- 	memset(&bh, 0, sizeof(bh));
-+	bh.b_bdev = inode->i_sb->s_bdev;
- 
- 	if ((flags & DIO_LOCKING) && iov_iter_rw(iter) == READ) {
- 		struct address_space *mapping = inode->i_mapping;
-@@ -607,6 +608,7 @@ int __dax_fault(struct vm_area_struct *v
- 
- 	memset(&bh, 0, sizeof(bh));
- 	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
-+	bh.b_bdev = inode->i_sb->s_bdev;
- 	bh.b_size = PAGE_SIZE;
- 
-  repeat:
-@@ -1078,6 +1080,7 @@ int dax_zero_page_range(struct inode *in
- 	BUG_ON((offset + length) > PAGE_CACHE_SIZE);
- 
- 	memset(&bh, 0, sizeof(bh));
-+	bh.b_bdev = inode->i_sb->s_bdev;
- 	bh.b_size = PAGE_CACHE_SIZE;
- 	err = get_block(inode, index, &bh, 0);
- 	if (err < 0)
+diff -puN fs/xfs/xfs_file.c~xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync fs/xfs/xfs_file.c
+--- a/fs/xfs/xfs_file.c~xfs-call-dax_pfn_mkwrite-for-dax-fsync-msync
++++ a/fs/xfs/xfs_file.c
+@@ -1610,9 +1610,8 @@ xfs_filemap_pmd_fault(
+ /*
+  * pfn_mkwrite was originally inteneded to ensure we capture time stamp
+  * updates on write faults. In reality, it's need to serialise against
+- * truncate similar to page_mkwrite. Hence we open-code dax_pfn_mkwrite()
+- * here and cycle the XFS_MMAPLOCK_SHARED to ensure we serialise the fault
+- * barrier in place.
++ * truncate similar to page_mkwrite. Hence we cycle the XFS_MMAPLOCK_SHARED
++ * to ensure we serialise the fault barrier in place.
+  */
+ static int
+ xfs_filemap_pfn_mkwrite(
+@@ -1635,6 +1634,8 @@ xfs_filemap_pfn_mkwrite(
+ 	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 	if (vmf->pgoff >= size)
+ 		ret = VM_FAULT_SIGBUS;
++	else if (IS_DAX(inode))
++		ret = dax_pfn_mkwrite(vma, vmf);
+ 	xfs_iunlock(ip, XFS_MMAPLOCK_SHARED);
+ 	sb_end_pagefault(inode->i_sb);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
