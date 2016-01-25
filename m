@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + dynamic_debug-add-jump-label-support.patch added to -mm tree
-Date: Mon, 25 Jan 2016 14:17:22 -0800
-Message-ID: <56a69ef2.alXFs51/2PdFdCoh%akpm@linux-foundation.org>
+Subject: + mm-page_poisoningc-allow-for-zero-poisoning.patch added to -mm
+ tree
+Date: Mon, 25 Jan 2016 14:40:22 -0800
+Message-ID: <56a6a456.hikO9OW42h+4kqXY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35771 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37553 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754830AbcAYWRX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 17:17:23 -0500
+	with ESMTP id S932319AbcAYWkX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 17:40:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbaron@akamai.com, benh@kernel.crashing.org, joe@perches.com, mpe@ellerman.id.au, paulus@samba.org, peterz@infradead.org, mm-commits@vger.kernel.org
+To: labbott@fedoraproject.org, dave.hansen@intel.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, mhocko@suse.com, minipli@googlemail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dynamic_debug: add jump label support
+     Subject: mm/page_poisoning.c: allow for zero poisoning
 has been added to the -mm tree.  Its filename is
-     dynamic_debug-add-jump-label-support.patch
+     mm-page_poisoningc-allow-for-zero-poisoning.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dynamic_debug-add-jump-label-support.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_poisoningc-allow-for-zero-poisoning.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dynamic_debug-add-jump-label-support.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_poisoningc-allow-for-zero-poisoning.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,165 +39,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jason Baron <jbaron@akamai.com>
-Subject: dynamic_debug: add jump label support
+From: Laura Abbott <labbott@fedoraproject.org>
+Subject: mm/page_poisoning.c: allow for zero poisoning
 
-Although dynamic debug is often only used for debug builds, sometimes its
-enabled for production builds as well. Minimize its impact by using jump
-labels. This reduces the text section by 6000+ bytes in the kernel image
-below. It does increae data, but this should only be referenced when
-changing the direction of the branches, and hence usually not in cache.
+By default, page poisoning uses a poison value (0xaa) on free.  If this is
+changed to 0, the page is not only sanitized but zeroing on alloc with
+__GFP_ZERO can be skipped as well.  The tradeoff is that detecting
+corruption from the poisoning is harder to detect.  This feature also
+cannot be used with hibernation since pages are not guaranteed to be
+zeroed after hibernation.
 
-    text     data     bss      dec    hex filename
-10369421  2033336  917504 13320261 cb4045 vmlinux.pre
-10363054  2103736  917504 13384294 cc3a66 vmlinux.post
+Credit to Mathias Krause and grsecurity for original work
 
-Signed-off-by: Jason Baron <jbaron@akamai.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
+Signed-off-by: Laura Abbott <labbott@fedoraproject.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Mathias Krause <minipli@googlemail.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/dynamic_debug.h |   54 ++++++++++++++++++++++++++++----
- lib/dynamic_debug.c           |    7 ++++
- 2 files changed, 55 insertions(+), 6 deletions(-)
+ include/linux/poison.h |    4 ++++
+ mm/Kconfig.debug       |   13 +++++++++++++
+ mm/page_alloc.c        |    8 +++++++-
+ 3 files changed, 24 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/dynamic_debug.h~dynamic_debug-add-jump-label-support include/linux/dynamic_debug.h
---- a/include/linux/dynamic_debug.h~dynamic_debug-add-jump-label-support
-+++ a/include/linux/dynamic_debug.h
-@@ -1,6 +1,8 @@
- #ifndef _DYNAMIC_DEBUG_H
- #define _DYNAMIC_DEBUG_H
+diff -puN include/linux/poison.h~mm-page_poisoningc-allow-for-zero-poisoning include/linux/poison.h
+--- a/include/linux/poison.h~mm-page_poisoningc-allow-for-zero-poisoning
++++ a/include/linux/poison.h
+@@ -30,7 +30,11 @@
+ #define TIMER_ENTRY_STATIC	((void *) 0x300 + POISON_POINTER_DELTA)
  
-+#include <linux/jump_label_branch.h>
-+
- /*
-  * An instance of this structure is created in a special
-  * ELF section at every dynamic debug callsite.  At runtime,
-@@ -33,6 +35,12 @@ struct _ddebug {
- #define _DPRINTK_FLAGS_DEFAULT 0
- #endif
- 	unsigned int flags:8;
-+#ifdef HAVE_JUMP_LABEL
-+	union {
-+		struct static_key_true dd_key_true;
-+		struct static_key_false dd_key_false;
-+	} key;
-+#endif
- } __attribute__((aligned(8)));
- 
- 
-@@ -60,7 +68,7 @@ void __dynamic_netdev_dbg(struct _ddebug
- 			  const struct net_device *dev,
- 			  const char *fmt, ...);
- 
--#define DEFINE_DYNAMIC_DEBUG_METADATA(name, fmt)		\
-+#define DEFINE_DYNAMIC_DEBUG_METADATA_KEY(name, fmt, key, init)	\
- 	static struct _ddebug  __aligned(8)			\
- 	__attribute__((section("__verbose"))) name = {		\
- 		.modname = KBUILD_MODNAME,			\
-@@ -68,13 +76,47 @@ void __dynamic_netdev_dbg(struct _ddebug
- 		.filename = __FILE__,				\
- 		.format = (fmt),				\
- 		.lineno = __LINE__,				\
--		.flags =  _DPRINTK_FLAGS_DEFAULT,		\
-+		.flags = _DPRINTK_FLAGS_DEFAULT,		\
-+		dd_key_init(key, init)				\
- 	}
- 
-+#ifdef HAVE_JUMP_LABEL
-+
-+#define dd_key_init(key, init) key = (init)
-+
-+#ifdef DEBUG
-+#define DEFINE_DYNAMIC_DEBUG_METADATA(name, fmt) \
-+	DEFINE_DYNAMIC_DEBUG_METADATA_KEY(name, fmt, .key.dd_key_true, \
-+					  (STATIC_KEY_TRUE_INIT))
-+
-+#define DDEBUG_BRANCH(descriptor) \
-+	static_branch_likely(&descriptor.key.dd_key_true)
+ /********** mm/debug-pagealloc.c **********/
++#ifdef CONFIG_PAGE_POISONING_ZERO
++#define PAGE_POISON 0x00
 +#else
-+#define DEFINE_DYNAMIC_DEBUG_METADATA(name, fmt) \
-+	DEFINE_DYNAMIC_DEBUG_METADATA_KEY(name, fmt, .key.dd_key_false, \
-+					  (STATIC_KEY_FALSE_INIT))
-+
-+#define DDEBUG_BRANCH(descriptor) \
-+	static_branch_unlikely(&descriptor.key.dd_key_false)
+ #define PAGE_POISON 0xaa
 +#endif
+ 
+ /********** mm/page_alloc.c ************/
+ 
+diff -puN mm/Kconfig.debug~mm-page_poisoningc-allow-for-zero-poisoning mm/Kconfig.debug
+--- a/mm/Kconfig.debug~mm-page_poisoningc-allow-for-zero-poisoning
++++ a/mm/Kconfig.debug
+@@ -64,3 +64,16 @@ config PAGE_POISONING_NO_SANITY
+ 
+ 	   If you are only interested in sanitization, say Y. Otherwise
+ 	   say N.
 +
-+#else
++config PAGE_POISONING_ZERO
++	bool "Use zero for poisoning instead of random data"
++	depends on !HIBERNATION
++	depends on PAGE_POISONING
++	---help---
++	   Instead of using the existing poison value, fill the pages with
++	   zeros. This makes it harder to detect when errors are occuring
++	   due to sanitization but the zeroing at free means that it is
++	   no longer necessary to write zeros when GFP_ZERO is used on
++	   allocation.
 +
-+#define dd_key_init(key, init)
++	   If unsure, say N
+diff -puN mm/page_alloc.c~mm-page_poisoningc-allow-for-zero-poisoning mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_poisoningc-allow-for-zero-poisoning
++++ a/mm/page_alloc.c
+@@ -1387,6 +1387,12 @@ static inline int check_new_page(struct
+ 	return 0;
+ }
+ 
++static inline bool should_zero(void)
++{
++	return !IS_ENABLED(CONFIG_PAGE_POISONING_ZERO) ||
++		!page_poisoning_enabled();
++}
 +
-+#define DEFINE_DYNAMIC_DEBUG_METADATA(name, fmt) \
-+	DEFINE_DYNAMIC_DEBUG_METADATA_KEY(name, fmt, .key.dd_key_false, \
-+					  (STATIC_KEY_FALSE_INIT))
-+
-+#define DDEBUG_BRANCH(descriptor) \
-+	unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT)
-+
-+#endif
-+
- #define dynamic_pr_debug(fmt, ...)				\
- do {								\
- 	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);		\
--	if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT))	\
-+	if (DDEBUG_BRANCH(descriptor))				\
- 		__dynamic_pr_debug(&descriptor, pr_fmt(fmt),	\
- 				   ##__VA_ARGS__);		\
- } while (0)
-@@ -82,7 +124,7 @@ do {								\
- #define dynamic_dev_dbg(dev, fmt, ...)				\
- do {								\
- 	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);		\
--	if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT))	\
-+	if (DDEBUG_BRANCH(descriptor))				\
- 		__dynamic_dev_dbg(&descriptor, dev, fmt,	\
- 				  ##__VA_ARGS__);		\
- } while (0)
-@@ -90,7 +132,7 @@ do {								\
- #define dynamic_netdev_dbg(dev, fmt, ...)			\
- do {								\
- 	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor, fmt);		\
--	if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT))	\
-+	if (DDEBUG_BRANCH(descriptor))				\
- 		__dynamic_netdev_dbg(&descriptor, dev, fmt,	\
- 				     ##__VA_ARGS__);		\
- } while (0)
-@@ -100,7 +142,7 @@ do {								\
- do {								\
- 	DEFINE_DYNAMIC_DEBUG_METADATA(descriptor,		\
- 		__builtin_constant_p(prefix_str) ? prefix_str : "hexdump");\
--	if (unlikely(descriptor.flags & _DPRINTK_FLAGS_PRINT))	\
-+	if (DDEBUG_BRANCH(descriptor))				\
- 		print_hex_dump(KERN_DEBUG, prefix_str,		\
- 			       prefix_type, rowsize, groupsize,	\
- 			       buf, len, ascii);		\
-diff -puN lib/dynamic_debug.c~dynamic_debug-add-jump-label-support lib/dynamic_debug.c
---- a/lib/dynamic_debug.c~dynamic_debug-add-jump-label-support
-+++ a/lib/dynamic_debug.c
-@@ -188,6 +188,13 @@ static int ddebug_change(const struct dd
- 			newflags = (dp->flags & mask) | flags;
- 			if (newflags == dp->flags)
- 				continue;
-+#ifdef HAVE_JUMP_LABEL
-+			if (dp->flags & _DPRINTK_FLAGS_PRINT) {
-+				if (!(flags & _DPRINTK_FLAGS_PRINT))
-+					static_branch_disable(&dp->key.dd_key_true);
-+			} else if (flags & _DPRINTK_FLAGS_PRINT)
-+				static_branch_enable(&dp->key.dd_key_true);
-+#endif
- 			dp->flags = newflags;
- 			vpr_info("changed %s:%d [%s]%s =%s\n",
- 				 trim_prefix(dp->filename), dp->lineno,
+ static int prep_new_page(struct page *page, unsigned int order, gfp_t gfp_flags,
+ 								int alloc_flags)
+ {
+@@ -1406,7 +1412,7 @@ static int prep_new_page(struct page *pa
+ 	kernel_map_pages(page, 1 << order, 1);
+ 	kasan_alloc_pages(page, order);
+ 
+-	if (gfp_flags & __GFP_ZERO)
++	if (should_zero() && gfp_flags & __GFP_ZERO)
+ 		for (i = 0; i < (1 << order); i++)
+ 			clear_highpage(page + i);
+ 
 _
 
-Patches currently in -mm which might be from jbaron@akamai.com are
+Patches currently in -mm which might be from labbott@fedoraproject.org are
 
-jump_label-create-jump_label_branchh.patch
-powerpc-add-explicit-include-asm-asm-compath-for-jump-label.patch
-dynamic_debug-add-jump-label-support.patch
+mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc.patch
+mm-page_poisonc-enable-page_poisoning-as-a-separate-option.patch
+mm-page_poisoningc-allow-for-zero-poisoning.patch
 
