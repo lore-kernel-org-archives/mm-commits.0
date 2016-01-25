@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + x86-kallsyms-disable-absolute-percpu-symbols-on-smp.patch added to -mm tree
-Date: Mon, 25 Jan 2016 13:45:41 -0800
-Message-ID: <56a69785.AOfmDPfWh3LPuCaD%akpm@linux-foundation.org>
+Subject: + mm-page-writeback-fix-dirty_ratelimit-calculation.patch added
+ to -mm tree
+Date: Mon, 25 Jan 2016 13:48:28 -0800
+Message-ID: <56a6982c.QlQUM77RxV+iv6br%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33326 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33581 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750972AbcAYVpm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 16:45:42 -0500
+	with ESMTP id S1750972AbcAYVs3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 16:48:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, heiko.carstens@de.ibm.com, hpa@zytor.com, keescook@chromium.org, linux@roeck-us.net, mingo@kernel.org, mmarek@suse.cz, mpe@ellerman.id.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: aryabinin@virtuozzo.com, andy.shevchenko@gmail.com, fengguang.wu@intel.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: kallsyms: disable absolute percpu symbols on !SMP
+     Subject: mm/page-writeback: fix dirty_ratelimit calculation
 has been added to the -mm tree.  Its filename is
-     x86-kallsyms-disable-absolute-percpu-symbols-on-smp.patch
+     mm-page-writeback-fix-dirty_ratelimit-calculation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-kallsyms-disable-absolute-percpu-symbols-on-smp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page-writeback-fix-dirty_ratelimit-calculation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-kallsyms-disable-absolute-percpu-symbols-on-smp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page-writeback-fix-dirty_ratelimit-calculation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,50 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: x86: kallsyms: disable absolute percpu symbols on !SMP
+From: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Subject: mm/page-writeback: fix dirty_ratelimit calculation
 
-scripts/kallsyms.c has a special --absolute-percpu command line option
-which deals with the zero based per cpu offsets that are used when
-building for SMP on x86_64.  This means that the option should only be
-passed in that case, so add a check for CONFIG_SMP.  Otherwise, per cpu
-variables are recorded as absolute quantities, (which they are not under
-!CONFIG_SMP) and they are not relocated under CONFIG_RELOCATABLE=y.
+Calculation of dirty_ratelimit sometimes is not correct.
+E.g. initial values of dirty_ratelimit == INIT_BW and step == 0,
+lead to the following result:
 
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au> # powerpc
-Cc: Kees Cook <keescook@chromium.org> # x86_64
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Arnd Bergmann <arnd@arndb.de>
+   UBSAN: Undefined behaviour in ../mm/page-writeback.c:1286:7
+   shift exponent 25600 is too large for 64-bit type 'long unsigned int'
+
+The fix is straightforward - make step 0 if the shift exponent is too big.
+
+Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Wu Fengguang <fengguang.wu@intel.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/link-vmlinux.sh |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/page-writeback.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN scripts/link-vmlinux.sh~x86-kallsyms-disable-absolute-percpu-symbols-on-smp scripts/link-vmlinux.sh
---- a/scripts/link-vmlinux.sh~x86-kallsyms-disable-absolute-percpu-symbols-on-smp
-+++ a/scripts/link-vmlinux.sh
-@@ -86,7 +86,7 @@ kallsyms()
- 		kallsymopt="${kallsymopt} --page-offset=$CONFIG_PAGE_OFFSET"
- 	fi
+diff -puN mm/page-writeback.c~mm-page-writeback-fix-dirty_ratelimit-calculation mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-page-writeback-fix-dirty_ratelimit-calculation
++++ a/mm/page-writeback.c
+@@ -1169,6 +1169,7 @@ static void wb_update_dirty_ratelimit(st
+ 	unsigned long balanced_dirty_ratelimit;
+ 	unsigned long step;
+ 	unsigned long x;
++	unsigned long shift;
  
--	if [ -n "${CONFIG_X86_64}" ]; then
-+	if [ -n "${CONFIG_X86_64}" ] && [ -n "${CONFIG_SMP}" ]; then
- 		kallsymopt="${kallsymopt} --absolute-percpu"
- 	fi
+ 	/*
+ 	 * The dirty rate will match the writeout rate in long term, except
+@@ -1293,11 +1294,11 @@ static void wb_update_dirty_ratelimit(st
+ 	 * rate itself is constantly fluctuating. So decrease the track speed
+ 	 * when it gets close to the target. Helps eliminate pointless tremors.
+ 	 */
+-	step >>= dirty_ratelimit / (2 * step + 1);
+-	/*
+-	 * Limit the tracking speed to avoid overshooting.
+-	 */
+-	step = (step + 7) / 8;
++	shift = dirty_ratelimit / (2 * step + 1);
++	if (shift < BITS_PER_LONG)
++		step = DIV_ROUND_UP(step >> shift, 8);
++	else
++		step = 0;
  
+ 	if (dirty_ratelimit < balanced_dirty_ratelimit)
+ 		dirty_ratelimit += step;
 _
 
-Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
+Patches currently in -mm which might be from aryabinin@virtuozzo.com are
 
-x86-kallsyms-disable-absolute-percpu-symbols-on-smp.patch
-kallsyms-dont-overload-absolute-symbol-type-for-percpu-symbols.patch
-kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table.patch
+mm-page-writeback-fix-dirty_ratelimit-calculation.patch
+ubsan-fix-tree-wide-wmaybe-uninitialized-false-positives.patch
 
