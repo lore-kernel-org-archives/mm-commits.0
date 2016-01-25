@@ -1,59 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dax-fix-conversion-of-holes-to-pmds.patch removed from
- -mm tree
-Date: Mon, 25 Jan 2016 10:58:32 -0800
-Message-ID: <56a67058./f52t4pFzvp2ly6t%akpm@linux-foundation.org>
+Subject: [merged] pmem-add-wb_cache_pmem-to-the-pmem-api.patch removed
+ from -mm tree
+Date: Mon, 25 Jan 2016 10:58:35 -0800
+Message-ID: <56a6705b.vA2i7z2HcTXbbsk0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48095 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48111 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932978AbcAYS6d (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 13:58:33 -0500
+	with ESMTP id S1757063AbcAYS6g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 13:58:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, adilger.kernel@dilger.ca, bfields@fieldses.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@fromorbit.com, hpa@zytor.com, jack@suse.cz, jlayton@poochiereds.net, matthew.r.wilcox@intel.com, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, adilger.kernel@dilger.ca, bfields@fieldses.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@fromorbit.com, hpa@zytor.com, jack@suse.com, jlayton@poochiereds.net, matthew.r.wilcox@intel.com, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: fix conversion of holes to PMDs
+     Subject: pmem: add wb_cache_pmem() to the PMEM API
 has been removed from the -mm tree.  Its filename was
-     dax-fix-conversion-of-holes-to-pmds.patch
+     pmem-add-wb_cache_pmem-to-the-pmem-api.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: fix conversion of holes to PMDs
+Subject: pmem: add wb_cache_pmem() to the PMEM API
 
-When we get a DAX PMD fault for a write it is possible that there could be
-some number of 4k zero pages already present for the same range that were
-inserted to service reads from a hole.  These 4k zero pages need to be
-unmapped from the VMAs and removed from the struct address_space radix
-tree before the real DAX PMD entry can be inserted.
+__arch_wb_cache_pmem() was already an internal implementation detail of
+the x86 PMEM API, but this functionality needs to be exported as part of
+the general PMEM API to handle the fsync/msync case for DAX mmaps.
 
-For PTE faults this same use case also exists and is handled by a
-combination of unmap_mapping_range() to unmap the VMAs and
-delete_from_page_cache() to remove the page from the address_space radix
-tree.
-
-For PMD faults we do have a call to unmap_mapping_range() (protected by a
-buffer_new() check), but nothing clears out the radix tree entry.  The
-buffer_new() check is also incorrect as the current ext4 and XFS
-filesystem code will never return a buffer_head with BH_New set, even when
-allocating new blocks over a hole.  Instead the filesystem will zero the
-blocks manually and return a buffer_head with only BH_Mapped set.
-
-Fix this situation by removing the buffer_new() check and adding a call to
-truncate_inode_pages_range() to clear out the radix tree entries before we
-insert the DAX PMD.
+One thing worth noting is that we really do want this to be part of the
+PMEM API as opposed to a stand-alone function like clflush_cache_range()
+because of ordering restrictions.  By having wb_cache_pmem() as part of
+the PMEM API we can leave it unordered, call it multiple times to write
+back large amounts of memory, and then order the multiple calls with a
+single wmb_pmem().
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Dan Williams <dan.j.williams@intel.com>
-Tested-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
 Cc: "J. Bruce Fields" <bfields@fieldses.org>
 Cc: "Theodore Ts'o" <tytso@mit.edu>
@@ -61,61 +47,106 @@ Cc: Alexander Viro <viro@zeniv.linux.org.uk>
 Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Jan Kara <jack@suse.com>
 Cc: Jeff Layton <jlayton@poochiereds.net>
 Cc: Matthew Wilcox <willy@linux.intel.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+ arch/x86/include/asm/pmem.h |   11 ++++++-----
+ include/linux/pmem.h        |   22 +++++++++++++++++++++-
+ 2 files changed, 27 insertions(+), 6 deletions(-)
 
-diff -puN fs/dax.c~dax-fix-conversion-of-holes-to-pmds fs/dax.c
---- a/fs/dax.c~dax-fix-conversion-of-holes-to-pmds
-+++ a/fs/dax.c
-@@ -589,6 +589,7 @@ int __dax_pmd_fault(struct vm_area_struc
- 	bool write = flags & FAULT_FLAG_WRITE;
- 	struct block_device *bdev;
- 	pgoff_t size, pgoff;
-+	loff_t lstart, lend;
- 	sector_t block;
- 	int result = 0;
+diff -puN arch/x86/include/asm/pmem.h~pmem-add-wb_cache_pmem-to-the-pmem-api arch/x86/include/asm/pmem.h
+--- a/arch/x86/include/asm/pmem.h~pmem-add-wb_cache_pmem-to-the-pmem-api
++++ a/arch/x86/include/asm/pmem.h
+@@ -67,18 +67,19 @@ static inline void arch_wmb_pmem(void)
+ }
  
-@@ -643,15 +644,13 @@ int __dax_pmd_fault(struct vm_area_struc
- 		goto fallback;
- 	}
+ /**
+- * __arch_wb_cache_pmem - write back a cache range with CLWB
++ * arch_wb_cache_pmem - write back a cache range with CLWB
+  * @vaddr:	virtual start address
+  * @size:	number of bytes to write back
+  *
+  * Write back a cache range using the CLWB (cache line write back)
+  * instruction.  This function requires explicit ordering with an
+- * arch_wmb_pmem() call.  This API is internal to the x86 PMEM implementation.
++ * arch_wmb_pmem() call.
+  */
+-static inline void __arch_wb_cache_pmem(void *vaddr, size_t size)
++static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
+ {
+ 	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
+ 	unsigned long clflush_mask = x86_clflush_size - 1;
++	void *vaddr = (void __force *)addr;
+ 	void *vend = vaddr + size;
+ 	void *p;
  
--	/*
--	 * If we allocated new storage, make sure no process has any
--	 * zero pages covering this hole
--	 */
--	if (buffer_new(&bh)) {
--		i_mmap_unlock_read(mapping);
--		unmap_mapping_range(mapping, pgoff << PAGE_SHIFT, PMD_SIZE, 0);
--		i_mmap_lock_read(mapping);
--	}
-+	/* make sure no process has any zero pages covering this hole */
-+	lstart = pgoff << PAGE_SHIFT;
-+	lend = lstart + PMD_SIZE - 1; /* inclusive */
-+	i_mmap_unlock_read(mapping);
-+	unmap_mapping_range(mapping, lstart, PMD_SIZE, 0);
-+	truncate_inode_pages_range(mapping, lstart, lend);
-+	i_mmap_lock_read(mapping);
+@@ -115,7 +116,7 @@ static inline size_t arch_copy_from_iter
+ 	len = copy_from_iter_nocache(vaddr, bytes, i);
  
- 	/*
- 	 * If a truncate happened while we were allocating blocks, we may
-@@ -665,7 +664,8 @@ int __dax_pmd_fault(struct vm_area_struc
- 		goto out;
- 	}
- 	if ((pgoff | PG_PMD_COLOUR) >= size) {
--		dax_pmd_dbg(&bh, address, "pgoff unaligned");
-+		dax_pmd_dbg(&bh, address,
-+				"offset + huge page size > file size");
- 		goto fallback;
- 	}
+ 	if (__iter_needs_pmem_wb(i))
+-		__arch_wb_cache_pmem(vaddr, bytes);
++		arch_wb_cache_pmem(addr, bytes);
  
+ 	return len;
+ }
+@@ -133,7 +134,7 @@ static inline void arch_clear_pmem(void
+ 	void *vaddr = (void __force *)addr;
+ 
+ 	memset(vaddr, 0, size);
+-	__arch_wb_cache_pmem(vaddr, size);
++	arch_wb_cache_pmem(addr, size);
+ }
+ 
+ static inline bool __arch_has_wmb_pmem(void)
+diff -puN include/linux/pmem.h~pmem-add-wb_cache_pmem-to-the-pmem-api include/linux/pmem.h
+--- a/include/linux/pmem.h~pmem-add-wb_cache_pmem-to-the-pmem-api
++++ a/include/linux/pmem.h
+@@ -53,12 +53,18 @@ static inline void arch_clear_pmem(void
+ {
+ 	BUG();
+ }
++
++static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
++{
++	BUG();
++}
+ #endif
+ 
+ /*
+  * Architectures that define ARCH_HAS_PMEM_API must provide
+  * implementations for arch_memcpy_to_pmem(), arch_wmb_pmem(),
+- * arch_copy_from_iter_pmem(), arch_clear_pmem() and arch_has_wmb_pmem().
++ * arch_copy_from_iter_pmem(), arch_clear_pmem(), arch_wb_cache_pmem()
++ * and arch_has_wmb_pmem().
+  */
+ static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
+ {
+@@ -178,4 +184,18 @@ static inline void clear_pmem(void __pme
+ 	else
+ 		default_clear_pmem(addr, size);
+ }
++
++/**
++ * wb_cache_pmem - write back processor cache for PMEM memory range
++ * @addr:	virtual start address
++ * @size:	number of bytes to write back
++ *
++ * Write back the processor cache range starting at 'addr' for 'size' bytes.
++ * This function requires explicit ordering with a wmb_pmem() call.
++ */
++static inline void wb_cache_pmem(void __pmem *addr, size_t size)
++{
++	if (arch_has_pmem_api())
++		arch_wb_cache_pmem(addr, size);
++}
+ #endif /* __PMEM_H__ */
 _
 
 Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
