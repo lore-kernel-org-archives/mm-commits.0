@@ -1,43 +1,54 @@
 From: akpm@linux-foundation.org
-Subject: [merged] pmem-add-wb_cache_pmem-to-the-pmem-api.patch removed
- from -mm tree
-Date: Mon, 25 Jan 2016 10:58:35 -0800
-Message-ID: <56a6705b.vA2i7z2HcTXbbsk0%akpm@linux-foundation.org>
+Subject: [merged] dax-support-dirty-dax-entries-in-radix-tree.patch
+ removed from -mm tree
+Date: Mon, 25 Jan 2016 10:58:38 -0800
+Message-ID: <56a6705e.Vk0UpYBlEWhwEzH4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48111 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48126 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757063AbcAYS6g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 13:58:36 -0500
+	with ESMTP id S1757354AbcAYS6j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 25 Jan 2016 13:58:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, adilger.kernel@dilger.ca, bfields@fieldses.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@fromorbit.com, hpa@zytor.com, jack@suse.com, jlayton@poochiereds.net, matthew.r.wilcox@intel.com, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, adilger.kernel@dilger.ca, bfields@fieldses.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, david@fromorbit.com, hpa@zytor.com, hughd@google.com, jack@suse.com, jlayton@poochiereds.net, matthew.r.wilcox@intel.com, mingo@redhat.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: pmem: add wb_cache_pmem() to the PMEM API
+     Subject: dax: support dirty DAX entries in radix tree
 has been removed from the -mm tree.  Its filename was
-     pmem-add-wb_cache_pmem-to-the-pmem-api.patch
+     dax-support-dirty-dax-entries-in-radix-tree.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: pmem: add wb_cache_pmem() to the PMEM API
+Subject: dax: support dirty DAX entries in radix tree
 
-__arch_wb_cache_pmem() was already an internal implementation detail of
-the x86 PMEM API, but this functionality needs to be exported as part of
-the general PMEM API to handle the fsync/msync case for DAX mmaps.
+Add support for tracking dirty DAX entries in the struct address_space
+radix tree.  This tree is already used for dirty page writeback, and it
+already supports the use of exceptional (non struct page*) entries.
 
-One thing worth noting is that we really do want this to be part of the
-PMEM API as opposed to a stand-alone function like clflush_cache_range()
-because of ordering restrictions.  By having wb_cache_pmem() as part of
-the PMEM API we can leave it unordered, call it multiple times to write
-back large amounts of memory, and then order the multiple calls with a
-single wmb_pmem().
+In order to properly track dirty DAX pages we will insert new exceptional
+entries into the radix tree that represent dirty DAX PTE or PMD pages. 
+These exceptional entries will also contain the writeback addresses for
+the PTE or PMD faults that we can use at fsync/msync time.
+
+There are currently two types of exceptional entries (shmem and shadow)
+that can be placed into the radix tree, and this adds a third.  We rely on
+the fact that only one type of exceptional entry can be found in a given
+radix tree based on its usage.  This happens for free with DAX vs shmem
+but we explicitly prevent shadow entries from being added to radix trees
+for DAX mappings.
+
+The only shadow entries that would be generated for DAX radix trees would
+be to track zero page mappings that were created for holes.  These pages
+would receive minimal benefit from having shadow entries, and the choice
+to have only one type of exceptional entry in a given radix tree makes the
+logic simpler both in clear_exceptional_entry() and in the rest of DAX.
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: "H. Peter Anvin" <hpa@zytor.com>
@@ -54,99 +65,295 @@ Cc: Thomas Gleixner <tglx@linutronix.de>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pmem.h |   11 ++++++-----
- include/linux/pmem.h        |   22 +++++++++++++++++++++-
- 2 files changed, 27 insertions(+), 6 deletions(-)
+ fs/block_dev.c             |    2 -
+ fs/inode.c                 |    2 -
+ include/linux/dax.h        |    5 ++
+ include/linux/fs.h         |    3 +
+ include/linux/radix-tree.h |    9 ++++
+ mm/filemap.c               |   17 +++++---
+ mm/truncate.c              |   69 +++++++++++++++++++----------------
+ mm/vmscan.c                |    9 ++++
+ mm/workingset.c            |    4 +-
+ 9 files changed, 78 insertions(+), 42 deletions(-)
 
-diff -puN arch/x86/include/asm/pmem.h~pmem-add-wb_cache_pmem-to-the-pmem-api arch/x86/include/asm/pmem.h
---- a/arch/x86/include/asm/pmem.h~pmem-add-wb_cache_pmem-to-the-pmem-api
-+++ a/arch/x86/include/asm/pmem.h
-@@ -67,18 +67,19 @@ static inline void arch_wmb_pmem(void)
- }
- 
- /**
-- * __arch_wb_cache_pmem - write back a cache range with CLWB
-+ * arch_wb_cache_pmem - write back a cache range with CLWB
-  * @vaddr:	virtual start address
-  * @size:	number of bytes to write back
-  *
-  * Write back a cache range using the CLWB (cache line write back)
-  * instruction.  This function requires explicit ordering with an
-- * arch_wmb_pmem() call.  This API is internal to the x86 PMEM implementation.
-+ * arch_wmb_pmem() call.
-  */
--static inline void __arch_wb_cache_pmem(void *vaddr, size_t size)
-+static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
+diff -puN fs/block_dev.c~dax-support-dirty-dax-entries-in-radix-tree fs/block_dev.c
+--- a/fs/block_dev.c~dax-support-dirty-dax-entries-in-radix-tree
++++ a/fs/block_dev.c
+@@ -75,7 +75,7 @@ void kill_bdev(struct block_device *bdev
  {
- 	u16 x86_clflush_size = boot_cpu_data.x86_clflush_size;
- 	unsigned long clflush_mask = x86_clflush_size - 1;
-+	void *vaddr = (void __force *)addr;
- 	void *vend = vaddr + size;
- 	void *p;
+ 	struct address_space *mapping = bdev->bd_inode->i_mapping;
  
-@@ -115,7 +116,7 @@ static inline size_t arch_copy_from_iter
- 	len = copy_from_iter_nocache(vaddr, bytes, i);
+-	if (mapping->nrpages == 0 && mapping->nrshadows == 0)
++	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
+ 		return;
  
- 	if (__iter_needs_pmem_wb(i))
--		__arch_wb_cache_pmem(vaddr, bytes);
-+		arch_wb_cache_pmem(addr, bytes);
- 
- 	return len;
- }
-@@ -133,7 +134,7 @@ static inline void arch_clear_pmem(void
- 	void *vaddr = (void __force *)addr;
- 
- 	memset(vaddr, 0, size);
--	__arch_wb_cache_pmem(vaddr, size);
-+	arch_wb_cache_pmem(addr, size);
- }
- 
- static inline bool __arch_has_wmb_pmem(void)
-diff -puN include/linux/pmem.h~pmem-add-wb_cache_pmem-to-the-pmem-api include/linux/pmem.h
---- a/include/linux/pmem.h~pmem-add-wb_cache_pmem-to-the-pmem-api
-+++ a/include/linux/pmem.h
-@@ -53,12 +53,18 @@ static inline void arch_clear_pmem(void
+ 	invalidate_bh_lrus();
+diff -puN fs/inode.c~dax-support-dirty-dax-entries-in-radix-tree fs/inode.c
+--- a/fs/inode.c~dax-support-dirty-dax-entries-in-radix-tree
++++ a/fs/inode.c
+@@ -495,7 +495,7 @@ void clear_inode(struct inode *inode)
+ 	 */
+ 	spin_lock_irq(&inode->i_data.tree_lock);
+ 	BUG_ON(inode->i_data.nrpages);
+-	BUG_ON(inode->i_data.nrshadows);
++	BUG_ON(inode->i_data.nrexceptional);
+ 	spin_unlock_irq(&inode->i_data.tree_lock);
+ 	BUG_ON(!list_empty(&inode->i_data.private_list));
+ 	BUG_ON(!(inode->i_state & I_FREEING));
+diff -puN include/linux/dax.h~dax-support-dirty-dax-entries-in-radix-tree include/linux/dax.h
+--- a/include/linux/dax.h~dax-support-dirty-dax-entries-in-radix-tree
++++ a/include/linux/dax.h
+@@ -36,4 +36,9 @@ static inline bool vma_is_dax(struct vm_
  {
- 	BUG();
+ 	return vma->vm_file && IS_DAX(vma->vm_file->f_mapping->host);
  }
 +
-+static inline void arch_wb_cache_pmem(void __pmem *addr, size_t size)
++static inline bool dax_mapping(struct address_space *mapping)
 +{
-+	BUG();
++	return mapping->host && IS_DAX(mapping->host);
 +}
  #endif
+diff -puN include/linux/fs.h~dax-support-dirty-dax-entries-in-radix-tree include/linux/fs.h
+--- a/include/linux/fs.h~dax-support-dirty-dax-entries-in-radix-tree
++++ a/include/linux/fs.h
+@@ -433,7 +433,8 @@ struct address_space {
+ 	struct rw_semaphore	i_mmap_rwsem;	/* protect tree, count, list */
+ 	/* Protected by tree_lock together with the radix tree */
+ 	unsigned long		nrpages;	/* number of total pages */
+-	unsigned long		nrshadows;	/* number of shadow entries */
++	/* number of shadow or DAX exceptional entries */
++	unsigned long		nrexceptional;
+ 	pgoff_t			writeback_index;/* writeback starts here */
+ 	const struct address_space_operations *a_ops;	/* methods */
+ 	unsigned long		flags;		/* error bits/gfp mask */
+diff -puN include/linux/radix-tree.h~dax-support-dirty-dax-entries-in-radix-tree include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~dax-support-dirty-dax-entries-in-radix-tree
++++ a/include/linux/radix-tree.h
+@@ -51,6 +51,15 @@
+ #define RADIX_TREE_EXCEPTIONAL_ENTRY	2
+ #define RADIX_TREE_EXCEPTIONAL_SHIFT	2
  
- /*
-  * Architectures that define ARCH_HAS_PMEM_API must provide
-  * implementations for arch_memcpy_to_pmem(), arch_wmb_pmem(),
-- * arch_copy_from_iter_pmem(), arch_clear_pmem() and arch_has_wmb_pmem().
-+ * arch_copy_from_iter_pmem(), arch_clear_pmem(), arch_wb_cache_pmem()
-+ * and arch_has_wmb_pmem().
-  */
- static inline void memcpy_from_pmem(void *dst, void __pmem const *src, size_t size)
- {
-@@ -178,4 +184,18 @@ static inline void clear_pmem(void __pme
- 	else
- 		default_clear_pmem(addr, size);
- }
++#define RADIX_DAX_MASK	0xf
++#define RADIX_DAX_SHIFT	4
++#define RADIX_DAX_PTE  (0x4 | RADIX_TREE_EXCEPTIONAL_ENTRY)
++#define RADIX_DAX_PMD  (0x8 | RADIX_TREE_EXCEPTIONAL_ENTRY)
++#define RADIX_DAX_TYPE(entry) ((unsigned long)entry & RADIX_DAX_MASK)
++#define RADIX_DAX_SECTOR(entry) (((unsigned long)entry >> RADIX_DAX_SHIFT))
++#define RADIX_DAX_ENTRY(sector, pmd) ((void *)((unsigned long)sector << \
++		RADIX_DAX_SHIFT | (pmd ? RADIX_DAX_PMD : RADIX_DAX_PTE)))
 +
-+/**
-+ * wb_cache_pmem - write back processor cache for PMEM memory range
-+ * @addr:	virtual start address
-+ * @size:	number of bytes to write back
-+ *
-+ * Write back the processor cache range starting at 'addr' for 'size' bytes.
-+ * This function requires explicit ordering with a wmb_pmem() call.
-+ */
-+static inline void wb_cache_pmem(void __pmem *addr, size_t size)
-+{
-+	if (arch_has_pmem_api())
-+		arch_wb_cache_pmem(addr, size);
-+}
- #endif /* __PMEM_H__ */
+ static inline int radix_tree_is_indirect_ptr(void *ptr)
+ {
+ 	return (int)((unsigned long)ptr & RADIX_TREE_INDIRECT_PTR);
+diff -puN mm/filemap.c~dax-support-dirty-dax-entries-in-radix-tree mm/filemap.c
+--- a/mm/filemap.c~dax-support-dirty-dax-entries-in-radix-tree
++++ a/mm/filemap.c
+@@ -11,6 +11,7 @@
+  */
+ #include <linux/export.h>
+ #include <linux/compiler.h>
++#include <linux/dax.h>
+ #include <linux/fs.h>
+ #include <linux/uaccess.h>
+ #include <linux/capability.h>
+@@ -123,9 +124,9 @@ static void page_cache_tree_delete(struc
+ 	__radix_tree_lookup(&mapping->page_tree, page->index, &node, &slot);
+ 
+ 	if (shadow) {
+-		mapping->nrshadows++;
++		mapping->nrexceptional++;
+ 		/*
+-		 * Make sure the nrshadows update is committed before
++		 * Make sure the nrexceptional update is committed before
+ 		 * the nrpages update so that final truncate racing
+ 		 * with reclaim does not see both counters 0 at the
+ 		 * same time and miss a shadow entry.
+@@ -579,9 +580,13 @@ static int page_cache_tree_insert(struct
+ 		p = radix_tree_deref_slot_protected(slot, &mapping->tree_lock);
+ 		if (!radix_tree_exceptional_entry(p))
+ 			return -EEXIST;
++
++		if (WARN_ON(dax_mapping(mapping)))
++			return -EINVAL;
++
+ 		if (shadowp)
+ 			*shadowp = p;
+-		mapping->nrshadows--;
++		mapping->nrexceptional--;
+ 		if (node)
+ 			workingset_node_shadows_dec(node);
+ 	}
+@@ -1245,9 +1250,9 @@ repeat:
+ 			if (radix_tree_deref_retry(page))
+ 				goto restart;
+ 			/*
+-			 * A shadow entry of a recently evicted page,
+-			 * or a swap entry from shmem/tmpfs.  Return
+-			 * it without attempting to raise page count.
++			 * A shadow entry of a recently evicted page, a swap
++			 * entry from shmem/tmpfs or a DAX entry.  Return it
++			 * without attempting to raise page count.
+ 			 */
+ 			goto export;
+ 		}
+diff -puN mm/truncate.c~dax-support-dirty-dax-entries-in-radix-tree mm/truncate.c
+--- a/mm/truncate.c~dax-support-dirty-dax-entries-in-radix-tree
++++ a/mm/truncate.c
+@@ -9,6 +9,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/backing-dev.h>
++#include <linux/dax.h>
+ #include <linux/gfp.h>
+ #include <linux/mm.h>
+ #include <linux/swap.h>
+@@ -34,31 +35,39 @@ static void clear_exceptional_entry(stru
+ 		return;
+ 
+ 	spin_lock_irq(&mapping->tree_lock);
+-	/*
+-	 * Regular page slots are stabilized by the page lock even
+-	 * without the tree itself locked.  These unlocked entries
+-	 * need verification under the tree lock.
+-	 */
+-	if (!__radix_tree_lookup(&mapping->page_tree, index, &node, &slot))
+-		goto unlock;
+-	if (*slot != entry)
+-		goto unlock;
+-	radix_tree_replace_slot(slot, NULL);
+-	mapping->nrshadows--;
+-	if (!node)
+-		goto unlock;
+-	workingset_node_shadows_dec(node);
+-	/*
+-	 * Don't track node without shadow entries.
+-	 *
+-	 * Avoid acquiring the list_lru lock if already untracked.
+-	 * The list_empty() test is safe as node->private_list is
+-	 * protected by mapping->tree_lock.
+-	 */
+-	if (!workingset_node_shadows(node) &&
+-	    !list_empty(&node->private_list))
+-		list_lru_del(&workingset_shadow_nodes, &node->private_list);
+-	__radix_tree_delete_node(&mapping->page_tree, node);
++
++	if (dax_mapping(mapping)) {
++		if (radix_tree_delete_item(&mapping->page_tree, index, entry))
++			mapping->nrexceptional--;
++	} else {
++		/*
++		 * Regular page slots are stabilized by the page lock even
++		 * without the tree itself locked.  These unlocked entries
++		 * need verification under the tree lock.
++		 */
++		if (!__radix_tree_lookup(&mapping->page_tree, index, &node,
++					&slot))
++			goto unlock;
++		if (*slot != entry)
++			goto unlock;
++		radix_tree_replace_slot(slot, NULL);
++		mapping->nrexceptional--;
++		if (!node)
++			goto unlock;
++		workingset_node_shadows_dec(node);
++		/*
++		 * Don't track node without shadow entries.
++		 *
++		 * Avoid acquiring the list_lru lock if already untracked.
++		 * The list_empty() test is safe as node->private_list is
++		 * protected by mapping->tree_lock.
++		 */
++		if (!workingset_node_shadows(node) &&
++		    !list_empty(&node->private_list))
++			list_lru_del(&workingset_shadow_nodes,
++					&node->private_list);
++		__radix_tree_delete_node(&mapping->page_tree, node);
++	}
+ unlock:
+ 	spin_unlock_irq(&mapping->tree_lock);
+ }
+@@ -228,7 +237,7 @@ void truncate_inode_pages_range(struct a
+ 	int		i;
+ 
+ 	cleancache_invalidate_inode(mapping);
+-	if (mapping->nrpages == 0 && mapping->nrshadows == 0)
++	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
+ 		return;
+ 
+ 	/* Offsets within partial pages */
+@@ -402,7 +411,7 @@ EXPORT_SYMBOL(truncate_inode_pages);
+  */
+ void truncate_inode_pages_final(struct address_space *mapping)
+ {
+-	unsigned long nrshadows;
++	unsigned long nrexceptional;
+ 	unsigned long nrpages;
+ 
+ 	/*
+@@ -416,14 +425,14 @@ void truncate_inode_pages_final(struct a
+ 
+ 	/*
+ 	 * When reclaim installs eviction entries, it increases
+-	 * nrshadows first, then decreases nrpages.  Make sure we see
++	 * nrexceptional first, then decreases nrpages.  Make sure we see
+ 	 * this in the right order or we might miss an entry.
+ 	 */
+ 	nrpages = mapping->nrpages;
+ 	smp_rmb();
+-	nrshadows = mapping->nrshadows;
++	nrexceptional = mapping->nrexceptional;
+ 
+-	if (nrpages || nrshadows) {
++	if (nrpages || nrexceptional) {
+ 		/*
+ 		 * As truncation uses a lockless tree lookup, cycle
+ 		 * the tree lock to make sure any ongoing tree
+diff -puN mm/vmscan.c~dax-support-dirty-dax-entries-in-radix-tree mm/vmscan.c
+--- a/mm/vmscan.c~dax-support-dirty-dax-entries-in-radix-tree
++++ a/mm/vmscan.c
+@@ -46,6 +46,7 @@
+ #include <linux/oom.h>
+ #include <linux/prefetch.h>
+ #include <linux/printk.h>
++#include <linux/dax.h>
+ 
+ #include <asm/tlbflush.h>
+ #include <asm/div64.h>
+@@ -671,9 +672,15 @@ static int __remove_mapping(struct addre
+ 		 * inode reclaim needs to empty out the radix tree or
+ 		 * the nodes are lost.  Don't plant shadows behind its
+ 		 * back.
++		 *
++		 * We also don't store shadows for DAX mappings because the
++		 * only page cache pages found in these are zero pages
++		 * covering holes, and because we don't want to mix DAX
++		 * exceptional entries and shadow exceptional entries in the
++		 * same page_tree.
+ 		 */
+ 		if (reclaimed && page_is_file_cache(page) &&
+-		    !mapping_exiting(mapping))
++		    !mapping_exiting(mapping) && !dax_mapping(mapping))
+ 			shadow = workingset_eviction(mapping, page);
+ 		__delete_from_page_cache(page, shadow, memcg);
+ 		spin_unlock_irqrestore(&mapping->tree_lock, flags);
+diff -puN mm/workingset.c~dax-support-dirty-dax-entries-in-radix-tree mm/workingset.c
+--- a/mm/workingset.c~dax-support-dirty-dax-entries-in-radix-tree
++++ a/mm/workingset.c
+@@ -351,8 +351,8 @@ static enum lru_status shadow_lru_isolat
+ 			node->slots[i] = NULL;
+ 			BUG_ON(node->count < (1U << RADIX_TREE_COUNT_SHIFT));
+ 			node->count -= 1U << RADIX_TREE_COUNT_SHIFT;
+-			BUG_ON(!mapping->nrshadows);
+-			mapping->nrshadows--;
++			BUG_ON(!mapping->nrexceptional);
++			mapping->nrexceptional--;
+ 		}
+ 	}
+ 	BUG_ON(node->count);
 _
 
 Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
