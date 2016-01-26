@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-filemap-avoid-unnecessary-calls-to-lock_page-when-waiting-for-io-to-complete-during-a-read.patch added to -mm tree
-Date: Tue, 26 Jan 2016 12:28:20 -0800
-Message-ID: <56a7d6e4.qVWghEvo5BNNV+t8%akpm@linux-foundation.org>
+Subject: + mm-filemap-remove-redundant-code-in-do_read_cache_page.patch
+ added to -mm tree
+Date: Tue, 26 Jan 2016 12:28:25 -0800
+Message-ID: <56a7d6e9.oiBU6DF+pFCrPhRT%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47861 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47865 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751260AbcAZU2V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 15:28:21 -0500
+	with ESMTP id S1751260AbcAZU20 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 15:28:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mgorman@techsingularity.net, hughd@google.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: filemap: avoid unnecessary calls to lock_page when waiting for IO to complete during a read
+     Subject: mm: filemap: remove redundant code in do_read_cache_page
 has been added to the -mm tree.  Its filename is
-     mm-filemap-avoid-unnecessary-calls-to-lock_page-when-waiting-for-io-to-complete-during-a-read.patch
+     mm-filemap-remove-redundant-code-in-do_read_cache_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-avoid-unnecessary-calls-to-lock_page-when-waiting-for-io-to-complete-during-a-read.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-filemap-remove-redundant-code-in-do_read_cache_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-avoid-unnecessary-calls-to-lock_page-when-waiting-for-io-to-complete-during-a-read.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-filemap-remove-redundant-code-in-do_read_cache_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,46 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: filemap: avoid unnecessary calls to lock_page when waiting for IO to complete during a read
+Subject: mm: filemap: remove redundant code in do_read_cache_page
 
-In the generic read paths the kernel looks up a page in the page cache and
-if it's up to date, it is used.  If not, the page lock is acquired to wait
-for IO to complete and then check the page.  If multiple processes are
-waiting on IO, they all serialise against the lock and duplicate the
-checks.  This is unnecessary.
-
-The page lock in itself does not give any guarantees to the callers about
-the page state as it can be immediately truncated or reclaimed after the
-page is unlocked.  It's sufficient to wait_on_page_locked and then
-continue if the page is up to date on wakeup.
-
-It is possible that a truncated but up-to-date page is returned but the
-reference taken during read prevents it disappearing underneath the caller
-and the data is still valid if PageUptodate.
-
-The overall impact is small as even if processes serialise on the lock,
-the lock section is tiny once the IO is complete.  Profiles indicated that
-unlock_page and friends are generally a tiny portion of a read-intensive
-workload.  An artificial test was created that had instances of dd access
-a cache-cold file on an ext4 filesystem and measure how long the read
-took.
-
-paralleldd
-                                    4.4.0                 4.4.0
-                                  vanilla             avoidlock
-Amean    Elapsd-1          5.28 (  0.00%)        5.15 (  2.50%)
-Amean    Elapsd-4          5.29 (  0.00%)        5.17 (  2.12%)
-Amean    Elapsd-7          5.28 (  0.00%)        5.18 (  1.78%)
-Amean    Elapsd-12         5.20 (  0.00%)        5.33 ( -2.50%)
-Amean    Elapsd-21         5.14 (  0.00%)        5.21 ( -1.41%)
-Amean    Elapsd-30         5.30 (  0.00%)        5.12 (  3.38%)
-Amean    Elapsd-48         5.78 (  0.00%)        5.42 (  6.21%)
-Amean    Elapsd-79         6.78 (  0.00%)        6.62 (  2.46%)
-Amean    Elapsd-110        9.09 (  0.00%)        8.99 (  1.15%)
-Amean    Elapsd-128       10.60 (  0.00%)       10.43 (  1.66%)
-
-The impact is small but intuitively, it makes sense to avoid unnecessary
-calls to lock_page.
+do_read_cache_page and __read_cache_page duplicate page filler code when
+filling the page for the first time.  This patch simply removes the
+duplicate logic.
 
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Reviewed-by: Jan Kara <jack@suse.cz>
@@ -87,81 +52,86 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   49 +++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
+ mm/filemap.c |   43 ++++++++++++-------------------------------
+ 1 file changed, 12 insertions(+), 31 deletions(-)
 
-diff -puN mm/filemap.c~mm-filemap-avoid-unnecessary-calls-to-lock_page-when-waiting-for-io-to-complete-during-a-read mm/filemap.c
---- a/mm/filemap.c~mm-filemap-avoid-unnecessary-calls-to-lock_page-when-waiting-for-io-to-complete-during-a-read
+diff -puN mm/filemap.c~mm-filemap-remove-redundant-code-in-do_read_cache_page mm/filemap.c
+--- a/mm/filemap.c~mm-filemap-remove-redundant-code-in-do_read_cache_page
 +++ a/mm/filemap.c
-@@ -1649,6 +1649,15 @@ find_page:
- 					index, last_index - index);
+@@ -2283,7 +2283,7 @@ static struct page *wait_on_page_read(st
+ 	return page;
+ }
+ 
+-static struct page *__read_cache_page(struct address_space *mapping,
++static struct page *do_read_cache_page(struct address_space *mapping,
+ 				pgoff_t index,
+ 				int (*filler)(void *, struct page *),
+ 				void *data,
+@@ -2305,31 +2305,19 @@ repeat:
+ 			/* Presumably ENOMEM for radix tree node */
+ 			return ERR_PTR(err);
  		}
- 		if (!PageUptodate(page)) {
-+			/*
-+			 * See comment in do_read_cache_page on why
-+			 * wait_on_page_locked is used to avoid unnecessarily
-+			 * serialisations and why it's safe.
-+			 */
-+			wait_on_page_locked_killable(page);
-+			if (PageUptodate(page))
-+				goto page_ok;
 +
- 			if (inode->i_blkbits == PAGE_CACHE_SHIFT ||
- 					!mapping->a_ops->is_partially_uptodate)
- 				goto page_not_up_to_date;
-@@ -2321,12 +2330,52 @@ filler:
++filler:
+ 		err = filler(data, page);
+ 		if (err < 0) {
+ 			page_cache_release(page);
+-			page = ERR_PTR(err);
+-		} else {
+-			page = wait_on_page_read(page);
++			return ERR_PTR(err);
+ 		}
+-	}
+-	return page;
+-}
+-
+-static struct page *do_read_cache_page(struct address_space *mapping,
+-				pgoff_t index,
+-				int (*filler)(void *, struct page *),
+-				void *data,
+-				gfp_t gfp)
+ 
+-{
+-	struct page *page;
+-	int err;
+-
+-retry:
+-	page = __read_cache_page(mapping, index, filler, data, gfp);
+-	if (IS_ERR(page))
+-		return page;
++		page = wait_on_page_read(page);
++		if (IS_ERR(page))
++			return page;
++		goto out;
++	}
  	if (PageUptodate(page))
  		goto out;
  
-+	/*
-+	 * Page is not up to date and may be locked due one of the following
-+	 * case a: Page is being filled and the page lock is held
-+	 * case b: Read/write error clearing the page uptodate status
-+	 * case c: Truncation in progress (page locked)
-+	 * case d: Reclaim in progress
-+	 *
-+	 * Case a, the page will be up to date when the page is unlocked.
-+	 *    There is no need to serialise on the page lock here as the page
-+	 *    is pinned so the lock gives no additional protection. Even if the
-+	 *    the page is truncated, the data is still valid if PageUptodate as
-+	 *    it's a race vs truncate race.
-+	 * Case b, the page will not be up to date
-+	 * Case c, the page may be truncated but in itself, the data may still
-+	 *    be valid after IO completes as it's a read vs truncate race. The
-+	 *    operation must restart if the page is not uptodate on unlock but
-+	 *    otherwise serialising on page lock to stabilise the mapping gives
-+	 *    no additional guarantees to the caller as the page lock is
-+	 *    released before return.
-+	 * Case d, similar to truncation. If reclaim holds the page lock, it
-+	 *    will be a race with remove_mapping that determines if the mapping
-+	 *    is valid on unlock but otherwise the data is valid and there is
-+	 *    no need to serialise with page lock.
-+	 *
-+	 * As the page lock gives no additional guarantee, we optimistically
-+	 * wait on the page to be unlocked and check if it's up to date and
-+	 * use the page if it is. Otherwise, the page lock is required to
-+	 * distinguish between the different cases. The motivation is that we
-+	 * avoid spurious serialisations and wakeups when multiple processes
-+	 * wait on the same page for IO to complete.
-+	 */
-+	wait_on_page_locked(page);
-+	if (PageUptodate(page))
-+		goto out;
-+
-+	/* Distinguish between all the cases under the safety of the lock */
- 	lock_page(page);
-+
-+	/* Case c or d, restart the operation */
+@@ -2337,21 +2325,14 @@ retry:
  	if (!page->mapping) {
  		unlock_page(page);
  		page_cache_release(page);
- 		goto repeat;
+-		goto retry;
++		goto repeat;
  	}
-+
-+	/* Someone else locked and filled the page in a very small window */
  	if (PageUptodate(page)) {
  		unlock_page(page);
  		goto out;
+ 	}
+-	err = filler(data, page);
+-	if (err < 0) {
+-		page_cache_release(page);
+-		return ERR_PTR(err);
+-	} else {
+-		page = wait_on_page_read(page);
+-		if (IS_ERR(page))
+-			return page;
+-	}
++	goto filler;
++
+ out:
+ 	mark_page_accessed(page);
+ 	return page;
 _
 
 Patches currently in -mm which might be from mgorman@techsingularity.net are
