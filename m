@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + radix_tree-loop-based-on-shift-count-not-height.patch added to
+Subject: +
+ radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers.patch added to
  -mm tree
-Date: Tue, 26 Jan 2016 15:31:13 -0800
-Message-ID: <56a801c1.EiGAaaVowl4Mt1lx%akpm@linux-foundation.org>
+Date: Tue, 26 Jan 2016 15:31:11 -0800
+Message-ID: <56a801bf.D6bpnL32vHSDQTo4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36247 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36243 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751709AbcAZXbO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 18:31:14 -0500
+	with ESMTP id S1751079AbcAZXbM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 18:31:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: willy@linux.intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix_tree: loop based on shift count, not height
+     Subject: radix_tree: tag all internal tree nodes as indirect pointers
 has been added to the -mm tree.  Its filename is
-     radix_tree-loop-based-on-shift-count-not-height.patch
+     radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix_tree-loop-based-on-shift-count-not-height.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix_tree-loop-based-on-shift-count-not-height.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +41,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix_tree: loop based on shift count, not height
+Subject: radix_tree: tag all internal tree nodes as indirect pointers
 
-When we introduce entries that can cover multiple indices, we will need to
-stop in __radix_tree_create based on the shift, not the height.  Split out
-for ease of bisect.
+Set the 'indirect_ptr' bit on all the pointers to internal nodes, not just
+on the root node.  This enables the following patches to support
+multi-order entries in the radix tree.  This patch is split out for ease
+of bisection.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
@@ -55,38 +57,152 @@ Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ lib/radix-tree.c                |   24 ++++++++++++++++++------
+ tools/testing/radix-tree/test.c |    5 +++--
+ 2 files changed, 21 insertions(+), 8 deletions(-)
 
-diff -puN lib/radix-tree.c~radix_tree-loop-based-on-shift-count-not-height lib/radix-tree.c
---- a/lib/radix-tree.c~radix_tree-loop-based-on-shift-count-not-height
+diff -puN lib/radix-tree.c~radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers lib/radix-tree.c
+--- a/lib/radix-tree.c~radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers
 +++ a/lib/radix-tree.c
-@@ -407,10 +407,10 @@ int __radix_tree_create(struct radix_tre
- 	slot = indirect_to_ptr(root->rnode);
- 
- 	height = root->height;
--	shift = (height-1) * RADIX_TREE_MAP_SHIFT;
-+	shift = height * RADIX_TREE_MAP_SHIFT;
- 
- 	offset = 0;			/* uninitialised var warning */
--	while (height > 0) {
-+	while (shift > 0) {
- 		if (slot == NULL) {
- 			/* Have to add a child node.  */
- 			slot = radix_tree_node_alloc(root);
-@@ -429,11 +429,11 @@ int __radix_tree_create(struct radix_tre
+@@ -360,9 +360,10 @@ static int radix_tree_extend(struct radi
+ 		node->count = 1;
+ 		node->parent = NULL;
+ 		slot = root->rnode;
+-		if (newheight > 1) {
++		if (radix_tree_is_indirect_ptr(slot) && newheight > 1) {
+ 			slot = indirect_to_ptr(slot);
+ 			slot->parent = node;
++			slot = ptr_to_indirect(slot);
+ 		}
+ 		node->slots[0] = slot;
+ 		node = ptr_to_indirect(node);
+@@ -418,17 +419,20 @@ int __radix_tree_create(struct radix_tre
+ 			slot->path = height;
+ 			slot->parent = node;
+ 			if (node) {
+-				rcu_assign_pointer(node->slots[offset], slot);
++				rcu_assign_pointer(node->slots[offset],
++							ptr_to_indirect(slot));
+ 				node->count++;
+ 				slot->path |= offset << RADIX_TREE_HEIGHT_SHIFT;
+ 			} else
+-				rcu_assign_pointer(root->rnode, ptr_to_indirect(slot));
++				rcu_assign_pointer(root->rnode,
++							ptr_to_indirect(slot));
  		}
  
  		/* Go a level down */
-+		shift -= RADIX_TREE_MAP_SHIFT;
  		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
  		node = slot;
  		slot = node->slots[offset];
- 		slot = indirect_to_ptr(slot);
--		shift -= RADIX_TREE_MAP_SHIFT;
++		slot = indirect_to_ptr(slot);
+ 		shift -= RADIX_TREE_MAP_SHIFT;
  		height--;
  	}
+@@ -526,6 +530,7 @@ void *__radix_tree_lookup(struct radix_t
+ 		node = rcu_dereference_raw(*slot);
+ 		if (node == NULL)
+ 			return NULL;
++		node = indirect_to_ptr(node);
  
+ 		shift -= RADIX_TREE_MAP_SHIFT;
+ 		height--;
+@@ -612,6 +617,7 @@ void *radix_tree_tag_set(struct radix_tr
+ 			tag_set(slot, tag, offset);
+ 		slot = slot->slots[offset];
+ 		BUG_ON(slot == NULL);
++		slot = indirect_to_ptr(slot);
+ 		shift -= RADIX_TREE_MAP_SHIFT;
+ 		height--;
+ 	}
+@@ -651,11 +657,12 @@ void *radix_tree_tag_clear(struct radix_
+ 		goto out;
+ 
+ 	shift = height * RADIX_TREE_MAP_SHIFT;
+-	slot = indirect_to_ptr(root->rnode);
++	slot = root->rnode;
+ 
+ 	while (shift) {
+ 		if (slot == NULL)
+ 			goto out;
++		slot = indirect_to_ptr(slot);
+ 
+ 		shift -= RADIX_TREE_MAP_SHIFT;
+ 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
+@@ -731,6 +738,7 @@ int radix_tree_tag_get(struct radix_tree
+ 
+ 		if (node == NULL)
+ 			return 0;
++		node = indirect_to_ptr(node);
+ 
+ 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
+ 		if (!tag_get(node, tag, offset))
+@@ -831,6 +839,7 @@ restart:
+ 		node = rcu_dereference_raw(node->slots[offset]);
+ 		if (node == NULL)
+ 			goto restart;
++		node = indirect_to_ptr(node);
+ 		shift -= RADIX_TREE_MAP_SHIFT;
+ 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
+ 	}
+@@ -932,6 +941,7 @@ unsigned long radix_tree_range_tag_if_ta
+ 			shift -= RADIX_TREE_MAP_SHIFT;
+ 			node = slot;
+ 			slot = slot->slots[offset];
++			slot = indirect_to_ptr(slot);
+ 			continue;
+ 		}
+ 
+@@ -1181,6 +1191,7 @@ static unsigned long __locate(struct rad
+ 		slot = rcu_dereference_raw(slot->slots[i]);
+ 		if (slot == NULL)
+ 			goto out;
++		slot = indirect_to_ptr(slot);
+ 	}
+ 
+ 	/* Bottom level: check items */
+@@ -1264,7 +1275,8 @@ static inline void radix_tree_shrink(str
+ 		 */
+ 		if (to_free->count != 1)
+ 			break;
+-		if (!to_free->slots[0])
++		slot = to_free->slots[0];
++		if (!slot)
+ 			break;
+ 
+ 		/*
+@@ -1274,8 +1286,8 @@ static inline void radix_tree_shrink(str
+ 		 * (to_free->slots[0]), it will be safe to dereference the new
+ 		 * one (root->rnode) as far as dependent read barriers go.
+ 		 */
+-		slot = to_free->slots[0];
+ 		if (root->height > 1) {
++			slot = indirect_to_ptr(slot);
+ 			slot->parent = NULL;
+ 			slot = ptr_to_indirect(slot);
+ 		}
+diff -puN tools/testing/radix-tree/test.c~radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers tools/testing/radix-tree/test.c
+--- a/tools/testing/radix-tree/test.c~radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers
++++ a/tools/testing/radix-tree/test.c
+@@ -142,6 +142,8 @@ static int verify_node(struct radix_tree
+ 	int i;
+ 	int j;
+ 
++	slot = indirect_to_ptr(slot);
++
+ 	/* Verify consistency at this level */
+ 	for (i = 0; i < RADIX_TREE_TAG_LONGS; i++) {
+ 		if (slot->tags[tag][i]) {
+@@ -184,8 +186,7 @@ void verify_tag_consistency(struct radix
+ {
+ 	if (!root->height)
+ 		return;
+-	verify_node(indirect_to_ptr(root->rnode),
+-			tag, root->height, !!root_tag_get(root, tag));
++	verify_node(root->rnode, tag, root->height, !!root_tag_get(root, tag));
+ }
+ 
+ void item_kill_tree(struct radix_tree_root *root)
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
