@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + radix_tree-add-support-for-multi-order-entries.patch added to
- -mm tree
-Date: Tue, 26 Jan 2016 15:31:15 -0800
-Message-ID: <56a801c3.m+2H5MtiGS1IZjMO%akpm@linux-foundation.org>
+Subject: + mm-memory-failurec-remove-the-useless-undefs.patch added to -mm tree
+Date: Tue, 26 Jan 2016 15:45:43 -0800
+Message-ID: <56a80527.ArLOgVUDXwLO97z6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36251 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37567 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751952AbcAZXbQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 18:31:16 -0500
+	with ESMTP id S1753156AbcAZXpn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 18:45:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@linux.intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: wangxq10@lzu.edu.cn, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix_tree: add support for multi-order entries
+     Subject: mm/memory-failure.c: remove useless "undef"s
 has been added to the -mm tree.  Its filename is
-     radix_tree-add-support-for-multi-order-entries.patch
+     mm-memory-failurec-remove-the-useless-undefs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix_tree-add-support-for-multi-order-entries.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory-failurec-remove-the-useless-undefs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix_tree-add-support-for-multi-order-entries.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory-failurec-remove-the-useless-undefs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,372 +38,34 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix_tree: add support for multi-order entries
+From: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
+Subject: mm/memory-failure.c: remove useless "undef"s
 
-With huge pages, it is convenient to have the radix tree be able to return
-an entry that covers multiple indices.  Previous attempts to deal with the
-problem have involved inserting N duplicate entries, which is a waste of
-memory and leads to problems trying to handle aliased tags, or probing the
-tree multiple times to find alternative entries which might cover the
-requested index.
+Remove the useless #undef, since the corresponding #define has already
+been removed.
 
-This approach inserts one canonical entry into the tree for a given range
-of indices, and may also insert other entries in order to ensure that
-lookups find the canonical entry.
-
-This solution only tolerates inserting powers of two that are greater than
-the fanout of the tree.  If we wish to expand the radix tree's abilities
-to support large-ish pages that is less than the fanout at the penultimate
-level of the tree, then we would need to add one more step in lookup to
-ensure that any sibling nodes in the final level of the tree are
-dereferenced and we return the canonical entry that they reference.
-
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |   11 ++-
- lib/radix-tree.c           |  109 ++++++++++++++++++++++++++---------
- mm/filemap.c               |    2 
- 3 files changed, 93 insertions(+), 29 deletions(-)
+ mm/memory-failure.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix_tree-add-support-for-multi-order-entries include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix_tree-add-support-for-multi-order-entries
-+++ a/include/linux/radix-tree.h
-@@ -271,8 +271,15 @@ static inline void radix_tree_replace_sl
- }
+diff -puN mm/memory-failure.c~mm-memory-failurec-remove-the-useless-undefs mm/memory-failure.c
+--- a/mm/memory-failure.c~mm-memory-failurec-remove-the-useless-undefs
++++ a/mm/memory-failure.c
+@@ -826,8 +826,6 @@ static struct page_state {
+ #undef lru
+ #undef swapbacked
+ #undef head
+-#undef tail
+-#undef compound
+ #undef slab
+ #undef reserved
  
- int __radix_tree_create(struct radix_tree_root *root, unsigned long index,
--			struct radix_tree_node **nodep, void ***slotp);
--int radix_tree_insert(struct radix_tree_root *, unsigned long, void *);
-+			unsigned order, struct radix_tree_node **nodep,
-+			void ***slotp);
-+int __radix_tree_insert(struct radix_tree_root *, unsigned long index,
-+			unsigned order, void *);
-+static inline int radix_tree_insert(struct radix_tree_root *root,
-+			unsigned long index, void *entry)
-+{
-+	return __radix_tree_insert(root, index, 0, entry);
-+}
- void *__radix_tree_lookup(struct radix_tree_root *root, unsigned long index,
- 			  struct radix_tree_node **nodep, void ***slotp);
- void *radix_tree_lookup(struct radix_tree_root *, unsigned long);
-diff -puN lib/radix-tree.c~radix_tree-add-support-for-multi-order-entries lib/radix-tree.c
---- a/lib/radix-tree.c~radix_tree-add-support-for-multi-order-entries
-+++ a/lib/radix-tree.c
-@@ -324,7 +324,8 @@ static inline unsigned long radix_tree_m
- /*
-  *	Extend a radix tree so it can store key @index.
-  */
--static int radix_tree_extend(struct radix_tree_root *root, unsigned long index)
-+static int radix_tree_extend(struct radix_tree_root *root,
-+				unsigned long index, unsigned order)
- {
- 	struct radix_tree_node *node;
- 	struct radix_tree_node *slot;
-@@ -336,7 +337,7 @@ static int radix_tree_extend(struct radi
- 	while (index > radix_tree_maxindex(height))
- 		height++;
- 
--	if (root->rnode == NULL) {
-+	if ((root->rnode == NULL) && (order == 0)) {
- 		root->height = height;
- 		goto out;
- 	}
-@@ -378,6 +379,7 @@ out:
-  *	__radix_tree_create	-	create a slot in a radix tree
-  *	@root:		radix tree root
-  *	@index:		index key
-+ *	@order:		index occupies 2^order aligned slots
-  *	@nodep:		returns node
-  *	@slotp:		returns slot
-  *
-@@ -391,26 +393,29 @@ out:
-  *	Returns -ENOMEM, or 0 for success.
-  */
- int __radix_tree_create(struct radix_tree_root *root, unsigned long index,
--			struct radix_tree_node **nodep, void ***slotp)
-+			unsigned order, struct radix_tree_node **nodep,
-+			void ***slotp)
- {
- 	struct radix_tree_node *node = NULL, *slot;
- 	unsigned int height, shift, offset;
- 	int error;
- 
-+	BUG_ON((0 < order) && (order < RADIX_TREE_MAP_SHIFT));
-+
- 	/* Make sure the tree is high enough.  */
- 	if (index > radix_tree_maxindex(root->height)) {
--		error = radix_tree_extend(root, index);
-+		error = radix_tree_extend(root, index, order);
- 		if (error)
- 			return error;
- 	}
- 
--	slot = indirect_to_ptr(root->rnode);
-+	slot = root->rnode;
- 
- 	height = root->height;
- 	shift = height * RADIX_TREE_MAP_SHIFT;
- 
- 	offset = 0;			/* uninitialised var warning */
--	while (shift > 0) {
-+	while (shift > order) {
- 		if (slot == NULL) {
- 			/* Have to add a child node.  */
- 			slot = radix_tree_node_alloc(root);
-@@ -426,15 +431,31 @@ int __radix_tree_create(struct radix_tre
- 			} else
- 				rcu_assign_pointer(root->rnode,
- 							ptr_to_indirect(slot));
--		}
-+		} else if (!radix_tree_is_indirect_ptr(slot))
-+			break;
- 
- 		/* Go a level down */
-+		height--;
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
--		node = slot;
-+		node = indirect_to_ptr(slot);
- 		slot = node->slots[offset];
--		slot = indirect_to_ptr(slot);
--		height--;
-+	}
-+
-+	/* Insert pointers to the canonical entry */
-+	if ((shift - order) > 0) {
-+		int i, n = 1 << (shift - order);
-+		offset = offset & ~(n - 1);
-+		slot = ptr_to_indirect(&node->slots[offset]);
-+		for (i = 0; i < n; i++) {
-+			if (node->slots[offset + i])
-+				return -EEXIST;
-+		}
-+
-+		for (i = 1; i < n; i++) {
-+			rcu_assign_pointer(node->slots[offset + i], slot);
-+			node->count++;
-+		}
- 	}
- 
- 	if (nodep)
-@@ -445,15 +466,16 @@ int __radix_tree_create(struct radix_tre
- }
- 
- /**
-- *	radix_tree_insert    -    insert into a radix tree
-+ *	__radix_tree_insert    -    insert into a radix tree
-  *	@root:		radix tree root
-  *	@index:		index key
-+ *	@order:		key covers the 2^order indices around index
-  *	@item:		item to insert
-  *
-  *	Insert an item into the radix tree at position @index.
-  */
--int radix_tree_insert(struct radix_tree_root *root,
--			unsigned long index, void *item)
-+int __radix_tree_insert(struct radix_tree_root *root, unsigned long index,
-+			unsigned order, void *item)
- {
- 	struct radix_tree_node *node;
- 	void **slot;
-@@ -461,7 +483,7 @@ int radix_tree_insert(struct radix_tree_
- 
- 	BUG_ON(radix_tree_is_indirect_ptr(item));
- 
--	error = __radix_tree_create(root, index, &node, &slot);
-+	error = __radix_tree_create(root, index, order, &node, &slot);
- 	if (error)
- 		return error;
- 	if (*slot != NULL)
-@@ -479,7 +501,7 @@ int radix_tree_insert(struct radix_tree_
- 
- 	return 0;
- }
--EXPORT_SYMBOL(radix_tree_insert);
-+EXPORT_SYMBOL(__radix_tree_insert);
- 
- /**
-  *	__radix_tree_lookup	-	lookup an item in a radix tree
-@@ -530,6 +552,8 @@ void *__radix_tree_lookup(struct radix_t
- 		node = rcu_dereference_raw(*slot);
- 		if (node == NULL)
- 			return NULL;
-+		if (!radix_tree_is_indirect_ptr(node))
-+			break;
- 		node = indirect_to_ptr(node);
- 
- 		shift -= RADIX_TREE_MAP_SHIFT;
-@@ -617,6 +641,8 @@ void *radix_tree_tag_set(struct radix_tr
- 			tag_set(slot, tag, offset);
- 		slot = slot->slots[offset];
- 		BUG_ON(slot == NULL);
-+		if (!radix_tree_is_indirect_ptr(slot))
-+			break;
- 		slot = indirect_to_ptr(slot);
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		height--;
-@@ -662,6 +688,8 @@ void *radix_tree_tag_clear(struct radix_
- 	while (shift) {
- 		if (slot == NULL)
- 			goto out;
-+		if (!radix_tree_is_indirect_ptr(slot))
-+			break;
- 		slot = indirect_to_ptr(slot);
- 
- 		shift -= RADIX_TREE_MAP_SHIFT;
-@@ -746,6 +774,8 @@ int radix_tree_tag_get(struct radix_tree
- 		if (height == 1)
- 			return 1;
- 		node = rcu_dereference_raw(node->slots[offset]);
-+		if (!radix_tree_is_indirect_ptr(node))
-+			return 1;
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		height--;
- 	}
-@@ -806,6 +836,7 @@ restart:
- 
- 	node = rnode;
- 	while (1) {
-+		struct radix_tree_node *slot;
- 		if ((flags & RADIX_TREE_ITER_TAGGED) ?
- 				!test_bit(offset, node->tags[tag]) :
- 				!node->slots[offset]) {
-@@ -836,10 +867,12 @@ restart:
- 		if (!shift)
- 			break;
- 
--		node = rcu_dereference_raw(node->slots[offset]);
--		if (node == NULL)
-+		slot = rcu_dereference_raw(node->slots[offset]);
-+		if (slot == NULL)
- 			goto restart;
--		node = indirect_to_ptr(node);
-+		if (!radix_tree_is_indirect_ptr(slot))
-+			break;
-+		node = indirect_to_ptr(slot);
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
- 	}
-@@ -937,16 +970,20 @@ unsigned long radix_tree_range_tag_if_ta
- 		if (!tag_get(slot, iftag, offset))
- 			goto next;
- 		if (shift) {
--			/* Go down one level */
--			shift -= RADIX_TREE_MAP_SHIFT;
- 			node = slot;
- 			slot = slot->slots[offset];
--			slot = indirect_to_ptr(slot);
--			continue;
-+			if (radix_tree_is_indirect_ptr(slot)) {
-+				slot = indirect_to_ptr(slot);
-+				shift -= RADIX_TREE_MAP_SHIFT;
-+				continue;
-+			} else {
-+				slot = node;
-+				node = node->parent;
-+			}
- 		}
- 
- 		/* tag the leaf */
--		tagged++;
-+		tagged += 1 << shift;
- 		tag_set(slot, settag, offset);
- 
- 		/* walk back up the path tagging interior nodes */
-@@ -1187,11 +1224,20 @@ static unsigned long __locate(struct rad
- 				goto out;
- 		}
- 
--		shift -= RADIX_TREE_MAP_SHIFT;
- 		slot = rcu_dereference_raw(slot->slots[i]);
- 		if (slot == NULL)
- 			goto out;
-+		if (!radix_tree_is_indirect_ptr(slot)) {
-+			if (slot == item) {
-+				*found_index = index + i;
-+				index = 0;
-+			} else {
-+				index += shift;
-+			}
-+			goto out;
-+		}
- 		slot = indirect_to_ptr(slot);
-+		shift -= RADIX_TREE_MAP_SHIFT;
- 	}
- 
- 	/* Bottom level: check items */
-@@ -1271,7 +1317,8 @@ static inline void radix_tree_shrink(str
- 
- 		/*
- 		 * The candidate node has more than one child, or its child
--		 * is not at the leftmost slot, we cannot shrink.
-+		 * is not at the leftmost slot, or it is a multiorder entry,
-+		 * we cannot shrink.
- 		 */
- 		if (to_free->count != 1)
- 			break;
-@@ -1287,6 +1334,9 @@ static inline void radix_tree_shrink(str
- 		 * one (root->rnode) as far as dependent read barriers go.
- 		 */
- 		if (root->height > 1) {
-+			if (!radix_tree_is_indirect_ptr(slot))
-+				break;
-+
- 			slot = indirect_to_ptr(slot);
- 			slot->parent = NULL;
- 			slot = ptr_to_indirect(slot);
-@@ -1385,7 +1435,7 @@ void *radix_tree_delete_item(struct radi
- 			     unsigned long index, void *item)
- {
- 	struct radix_tree_node *node;
--	unsigned int offset;
-+	unsigned int offset, i;
- 	void **slot;
- 	void *entry;
- 	int tag;
-@@ -1414,6 +1464,13 @@ void *radix_tree_delete_item(struct radi
- 			radix_tree_tag_clear(root, index, tag);
- 	}
- 
-+	/* Delete any sibling slots pointing to this slot */
-+	for (i = 1; offset + i < RADIX_TREE_MAP_SIZE; i++) {
-+		if (node->slots[offset + i] != ptr_to_indirect(slot))
-+			break;
-+		node->slots[offset + i] = NULL;
-+		node->count--;
-+	}
- 	node->slots[offset] = NULL;
- 	node->count--;
- 
-diff -puN mm/filemap.c~radix_tree-add-support-for-multi-order-entries mm/filemap.c
---- a/mm/filemap.c~radix_tree-add-support-for-multi-order-entries
-+++ a/mm/filemap.c
-@@ -576,7 +576,7 @@ static int page_cache_tree_insert(struct
- 	void **slot;
- 	int error;
- 
--	error = __radix_tree_create(&mapping->page_tree, page->index,
-+	error = __radix_tree_create(&mapping->page_tree, page->index, 0,
- 				    &node, &slot);
- 	if (error)
- 		return error;
 _
 
-Patches currently in -mm which might be from willy@linux.intel.com are
+Patches currently in -mm which might be from wangxq10@lzu.edu.cn are
 
-radix-tree-add-an-explicit-include-of-bitopsh.patch
-radix-tree-test-harness.patch
-radix-tree-cleanups.patch
-radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers.patch
-radix_tree-loop-based-on-shift-count-not-height.patch
-radix_tree-add-support-for-multi-order-entries.patch
-radix_tree-add-radix_tree_dump.patch
+mm-memory-failurec-remove-the-useless-undefs.patch
 
