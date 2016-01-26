@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-tracing-make-show_gfp_flags-up-to-date.patch added to -mm
- tree
-Date: Tue, 26 Jan 2016 13:03:59 -0800
-Message-ID: <56a7df3f.qCFGTCBFJdWSN3Zi%akpm@linux-foundation.org>
+Subject: + mm-page_owner-convert-page_owner_inited-to-static-key.patch
+ added to -mm tree
+Date: Tue, 26 Jan 2016 13:04:16 -0800
+Message-ID: <56a7df50.PoR6HB3sLTBASNAX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50851 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50947 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751918AbcAZVEA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 16:04:00 -0500
+	with ESMTP id S1752373AbcAZVER (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 16:04:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, acme@kernel.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, linux@rasmusvillemoes.dk, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, mingo@redhat.com, peterz@infradead.org, rostedt@goodmis.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, tracing: make show_gfp_flags() up to date
+     Subject: mm, page_owner: convert page_owner_inited to static key
 has been added to the -mm tree.  Its filename is
-     mm-tracing-make-show_gfp_flags-up-to-date.patch
+     mm-page_owner-convert-page_owner_inited-to-static-key.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-tracing-make-show_gfp_flags-up-to-date.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-convert-page_owner_inited-to-static-key.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-tracing-make-show_gfp_flags-up-to-date.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-convert-page_owner_inited-to-static-key.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,32 +40,15 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, tracing: make show_gfp_flags() up to date
+Subject: mm, page_owner: convert page_owner_inited to static key
 
-The show_gfp_flags() macro provides human-friendly printing of gfp flags
-in tracepoints.  However, it is somewhat out of date and missing several
-flags.  This patches fills in the missing flags, and distinguishes
-properly between GFP_ATOMIC and __GFP_ATOMIC which were both translated to
-"GFP_ATOMIC".  More generally, all __GFP_X flags which were previously
-printed as GFP_X, are now printed as __GFP_X, since ommiting the
-underscores results in output that doesn't actually match the source code,
-and can only lead to confusion.  Where both variants are defined equal
-(e.g.  _DMA and _DMA32), the variant without underscores are preferred.
-
-Also add a note in gfp.h so hopefully future changes will be synced
-better.
-
-__GFP_MOVABLE is defined twice in include/linux/gfp.h with different
-comments.  Leave just the newer one, which was intended to replace the old
-one.
+CONFIG_PAGE_OWNER attempts to impose negligible runtime overhead when
+enabled during compilation, but not actually enabled during runtime by
+boot param page_owner=on.  This overhead can be further reduced using the
+static key mechanism, which this patch does.
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Reviewed-by: Michal Hocko <mhocko@suse.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Sasha Levin <sasha.levin@oracle.com>
@@ -74,101 +57,136 @@ Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h             |    6 ++-
- include/trace/events/gfpflags.h |   53 +++++++++++++++++-------------
- 2 files changed, 36 insertions(+), 23 deletions(-)
+ Documentation/vm/page_owner.txt |    9 +++++----
+ include/linux/page_owner.h      |   22 ++++++++++------------
+ mm/page_owner.c                 |    9 +++++----
+ mm/vmstat.c                     |    2 +-
+ 4 files changed, 21 insertions(+), 21 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-tracing-make-show_gfp_flags-up-to-date include/linux/gfp.h
---- a/include/linux/gfp.h~mm-tracing-make-show_gfp_flags-up-to-date
-+++ a/include/linux/gfp.h
-@@ -9,6 +9,11 @@
+diff -puN Documentation/vm/page_owner.txt~mm-page_owner-convert-page_owner_inited-to-static-key Documentation/vm/page_owner.txt
+--- a/Documentation/vm/page_owner.txt~mm-page_owner-convert-page_owner_inited-to-static-key
++++ a/Documentation/vm/page_owner.txt
+@@ -28,10 +28,11 @@ with page owner and page owner is disabl
+ boot option, runtime overhead is marginal. If disabled in runtime, it
+ doesn't require memory to store owner information, so there is no runtime
+ memory overhead. And, page owner inserts just two unlikely branches into
+-the page allocator hotpath and if it returns false then allocation is
+-done like as the kernel without page owner. These two unlikely branches
+-would not affect to allocation performance. Following is the kernel's
+-code size change due to this facility.
++the page allocator hotpath and if not enabled, then allocation is done
++like as the kernel without page owner. These two unlikely branches should
++not affect to allocation performance, especially if the static keys jump
++label patching functionality is available. Following is the kernel's code
++size change due to this facility.
  
- struct vm_area_struct;
+ - Without page owner
+    text    data     bss     dec     hex filename
+diff -puN include/linux/page_owner.h~mm-page_owner-convert-page_owner_inited-to-static-key include/linux/page_owner.h
+--- a/include/linux/page_owner.h~mm-page_owner-convert-page_owner_inited-to-static-key
++++ a/include/linux/page_owner.h
+@@ -1,8 +1,10 @@
+ #ifndef __LINUX_PAGE_OWNER_H
+ #define __LINUX_PAGE_OWNER_H
  
-+/*
-+ * In case of changes, please don't forget to update
-+ * include/trace/events/gfpflags.h
-+ */
++#include <linux/jump_label.h>
 +
- /* Plain integer GFP bitmasks. Do not use this directly. */
- #define ___GFP_DMA		0x01u
- #define ___GFP_HIGHMEM		0x02u
-@@ -48,7 +53,6 @@ struct vm_area_struct;
- #define __GFP_DMA	((__force gfp_t)___GFP_DMA)
- #define __GFP_HIGHMEM	((__force gfp_t)___GFP_HIGHMEM)
- #define __GFP_DMA32	((__force gfp_t)___GFP_DMA32)
--#define __GFP_MOVABLE	((__force gfp_t)___GFP_MOVABLE)  /* Page is movable */
- #define __GFP_MOVABLE	((__force gfp_t)___GFP_MOVABLE)  /* ZONE_MOVABLE allowed */
- #define GFP_ZONEMASK	(__GFP_DMA|__GFP_HIGHMEM|__GFP_DMA32|__GFP_MOVABLE)
+ #ifdef CONFIG_PAGE_OWNER
+-extern bool page_owner_inited;
++extern struct static_key_false page_owner_inited;
+ extern struct page_ext_operations page_owner_ops;
  
-diff -puN include/trace/events/gfpflags.h~mm-tracing-make-show_gfp_flags-up-to-date include/trace/events/gfpflags.h
---- a/include/trace/events/gfpflags.h~mm-tracing-make-show_gfp_flags-up-to-date
-+++ a/include/trace/events/gfpflags.h
-@@ -11,33 +11,42 @@
- #define show_gfp_flags(flags)						\
- 	(flags) ? __print_flags(flags, "|",				\
- 	{(unsigned long)GFP_TRANSHUGE,		"GFP_TRANSHUGE"},	\
--	{(unsigned long)GFP_HIGHUSER_MOVABLE,	"GFP_HIGHUSER_MOVABLE"}, \
-+	{(unsigned long)GFP_HIGHUSER_MOVABLE,	"GFP_HIGHUSER_MOVABLE"},\
- 	{(unsigned long)GFP_HIGHUSER,		"GFP_HIGHUSER"},	\
- 	{(unsigned long)GFP_USER,		"GFP_USER"},		\
- 	{(unsigned long)GFP_TEMPORARY,		"GFP_TEMPORARY"},	\
-+	{(unsigned long)GFP_KERNEL_ACCOUNT,	"GFP_KERNEL_ACCOUNT"},	\
- 	{(unsigned long)GFP_KERNEL,		"GFP_KERNEL"},		\
- 	{(unsigned long)GFP_NOFS,		"GFP_NOFS"},		\
- 	{(unsigned long)GFP_ATOMIC,		"GFP_ATOMIC"},		\
- 	{(unsigned long)GFP_NOIO,		"GFP_NOIO"},		\
--	{(unsigned long)__GFP_HIGH,		"GFP_HIGH"},		\
--	{(unsigned long)__GFP_ATOMIC,		"GFP_ATOMIC"},		\
--	{(unsigned long)__GFP_IO,		"GFP_IO"},		\
--	{(unsigned long)__GFP_COLD,		"GFP_COLD"},		\
--	{(unsigned long)__GFP_NOWARN,		"GFP_NOWARN"},		\
--	{(unsigned long)__GFP_REPEAT,		"GFP_REPEAT"},		\
--	{(unsigned long)__GFP_NOFAIL,		"GFP_NOFAIL"},		\
--	{(unsigned long)__GFP_NORETRY,		"GFP_NORETRY"},		\
--	{(unsigned long)__GFP_COMP,		"GFP_COMP"},		\
--	{(unsigned long)__GFP_ZERO,		"GFP_ZERO"},		\
--	{(unsigned long)__GFP_NOMEMALLOC,	"GFP_NOMEMALLOC"},	\
--	{(unsigned long)__GFP_MEMALLOC,		"GFP_MEMALLOC"},	\
--	{(unsigned long)__GFP_HARDWALL,		"GFP_HARDWALL"},	\
--	{(unsigned long)__GFP_THISNODE,		"GFP_THISNODE"},	\
--	{(unsigned long)__GFP_RECLAIMABLE,	"GFP_RECLAIMABLE"},	\
--	{(unsigned long)__GFP_MOVABLE,		"GFP_MOVABLE"},		\
--	{(unsigned long)__GFP_NOTRACK,		"GFP_NOTRACK"},		\
--	{(unsigned long)__GFP_DIRECT_RECLAIM,	"GFP_DIRECT_RECLAIM"},	\
--	{(unsigned long)__GFP_KSWAPD_RECLAIM,	"GFP_KSWAPD_RECLAIM"},	\
--	{(unsigned long)__GFP_OTHER_NODE,	"GFP_OTHER_NODE"}	\
--	) : "GFP_NOWAIT"
-+	{(unsigned long)GFP_NOWAIT,		"GFP_NOWAIT"},		\
-+	{(unsigned long)GFP_DMA,		"GFP_DMA"},		\
-+	{(unsigned long)__GFP_HIGHMEM,		"__GFP_HIGHMEM"},	\
-+	{(unsigned long)GFP_DMA32,		"GFP_DMA32"},		\
-+	{(unsigned long)__GFP_HIGH,		"__GFP_HIGH"},		\
-+	{(unsigned long)__GFP_ATOMIC,		"__GFP_ATOMIC"},	\
-+	{(unsigned long)__GFP_IO,		"__GFP_IO"},		\
-+	{(unsigned long)__GFP_FS,		"__GFP_FS"},		\
-+	{(unsigned long)__GFP_COLD,		"__GFP_COLD"},		\
-+	{(unsigned long)__GFP_NOWARN,		"__GFP_NOWARN"},	\
-+	{(unsigned long)__GFP_REPEAT,		"__GFP_REPEAT"},	\
-+	{(unsigned long)__GFP_NOFAIL,		"__GFP_NOFAIL"},	\
-+	{(unsigned long)__GFP_NORETRY,		"__GFP_NORETRY"},	\
-+	{(unsigned long)__GFP_COMP,		"__GFP_COMP"},		\
-+	{(unsigned long)__GFP_ZERO,		"__GFP_ZERO"},		\
-+	{(unsigned long)__GFP_NOMEMALLOC,	"__GFP_NOMEMALLOC"},	\
-+	{(unsigned long)__GFP_MEMALLOC,		"__GFP_MEMALLOC"},	\
-+	{(unsigned long)__GFP_HARDWALL,		"__GFP_HARDWALL"},	\
-+	{(unsigned long)__GFP_THISNODE,		"__GFP_THISNODE"},	\
-+	{(unsigned long)__GFP_RECLAIMABLE,	"__GFP_RECLAIMABLE"},	\
-+	{(unsigned long)__GFP_MOVABLE,		"__GFP_MOVABLE"},	\
-+	{(unsigned long)__GFP_ACCOUNT,		"__GFP_ACCOUNT"},	\
-+	{(unsigned long)__GFP_NOTRACK,		"__GFP_NOTRACK"},	\
-+	{(unsigned long)__GFP_WRITE,		"__GFP_WRITE"},		\
-+	{(unsigned long)__GFP_RECLAIM,		"__GFP_RECLAIM"},	\
-+	{(unsigned long)__GFP_DIRECT_RECLAIM,	"__GFP_DIRECT_RECLAIM"},\
-+	{(unsigned long)__GFP_KSWAPD_RECLAIM,	"__GFP_KSWAPD_RECLAIM"},\
-+	{(unsigned long)__GFP_OTHER_NODE,	"__GFP_OTHER_NODE"}	\
-+	) : "none"
+ extern void __reset_page_owner(struct page *page, unsigned int order);
+@@ -12,27 +14,23 @@ extern gfp_t __get_page_owner_gfp(struct
  
+ static inline void reset_page_owner(struct page *page, unsigned int order)
+ {
+-	if (likely(!page_owner_inited))
+-		return;
+-
+-	__reset_page_owner(page, order);
++	if (static_branch_unlikely(&page_owner_inited))
++		__reset_page_owner(page, order);
+ }
+ 
+ static inline void set_page_owner(struct page *page,
+ 			unsigned int order, gfp_t gfp_mask)
+ {
+-	if (likely(!page_owner_inited))
+-		return;
+-
+-	__set_page_owner(page, order, gfp_mask);
++	if (static_branch_unlikely(&page_owner_inited))
++		__set_page_owner(page, order, gfp_mask);
+ }
+ 
+ static inline gfp_t get_page_owner_gfp(struct page *page)
+ {
+-	if (likely(!page_owner_inited))
++	if (static_branch_unlikely(&page_owner_inited))
++		return __get_page_owner_gfp(page);
++	else
+ 		return 0;
+-
+-	return __get_page_owner_gfp(page);
+ }
+ #else
+ static inline void reset_page_owner(struct page *page, unsigned int order)
+diff -puN mm/page_owner.c~mm-page_owner-convert-page_owner_inited-to-static-key mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-convert-page_owner_inited-to-static-key
++++ a/mm/page_owner.c
+@@ -5,10 +5,11 @@
+ #include <linux/bootmem.h>
+ #include <linux/stacktrace.h>
+ #include <linux/page_owner.h>
++#include <linux/jump_label.h>
+ #include "internal.h"
+ 
+ static bool page_owner_disabled = true;
+-bool page_owner_inited __read_mostly;
++DEFINE_STATIC_KEY_FALSE(page_owner_inited);
+ 
+ static void init_early_allocated_pages(void);
+ 
+@@ -37,7 +38,7 @@ static void init_page_owner(void)
+ 	if (page_owner_disabled)
+ 		return;
+ 
+-	page_owner_inited = true;
++	static_branch_enable(&page_owner_inited);
+ 	init_early_allocated_pages();
+ }
+ 
+@@ -147,7 +148,7 @@ read_page_owner(struct file *file, char
+ 	struct page *page;
+ 	struct page_ext *page_ext;
+ 
+-	if (!page_owner_inited)
++	if (!static_branch_unlikely(&page_owner_inited))
+ 		return -EINVAL;
+ 
+ 	page = NULL;
+@@ -295,7 +296,7 @@ static int __init pageowner_init(void)
+ {
+ 	struct dentry *dentry;
+ 
+-	if (!page_owner_inited) {
++	if (!static_branch_unlikely(&page_owner_inited)) {
+ 		pr_info("page_owner is disabled\n");
+ 		return 0;
+ 	}
+diff -puN mm/vmstat.c~mm-page_owner-convert-page_owner_inited-to-static-key mm/vmstat.c
+--- a/mm/vmstat.c~mm-page_owner-convert-page_owner_inited-to-static-key
++++ a/mm/vmstat.c
+@@ -1120,7 +1120,7 @@ static void pagetypeinfo_showmixedcount(
+ #ifdef CONFIG_PAGE_OWNER
+ 	int mtype;
+ 
+-	if (!page_owner_inited)
++	if (!static_branch_unlikely(&page_owner_inited))
+ 		return;
+ 
+ 	drain_all_pages(NULL);
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
