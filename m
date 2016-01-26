@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- net-xfrm_user-use-in_compat_syscall-to-deny-compat-syscalls.patch added to
- -mm tree
-Date: Tue, 26 Jan 2016 14:33:52 -0800
-Message-ID: <56a7f450.AgoU8FViJle6BZdM%akpm@linux-foundation.org>
+Subject: + amdkfd-use-in_compat_syscall-to-check-open-caller-type.patch
+ added to -mm tree
+Date: Tue, 26 Jan 2016 14:33:58 -0800
+Message-ID: <56a7f456.ITc1k/yOTlJMK+cP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60288 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60299 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752548AbcAZWdx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:53 -0500
+	with ESMTP id S1752820AbcAZWd7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luto@kernel.org, davem@davemloft.net, herbert@gondor.apana.org.au, steffen.klassert@secunet.com, mm-commits@vger.kernel.org
+To: luto@kernel.org, airlied@linux.ie, oded.gabbay@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: net/xfrm_user: Use in_compat_syscall to deny compat syscalls
+     Subject: drivers/gpu/drm/amd/amdkfd: use in_compat_syscall to check open() caller type
 has been added to the -mm tree.  Its filename is
-     net-xfrm_user-use-in_compat_syscall-to-deny-compat-syscalls.patch
+     amdkfd-use-in_compat_syscall-to-check-open-caller-type.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/net-xfrm_user-use-in_compat_syscall-to-deny-compat-syscalls.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/amdkfd-use-in_compat_syscall-to-check-open-caller-type.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/net-xfrm_user-use-in_compat_syscall-to-deny-compat-syscalls.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/amdkfd-use-in_compat_syscall-to-check-open-caller-type.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,32 +40,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Lutomirski <luto@kernel.org>
-Subject: net/xfrm_user: Use in_compat_syscall to deny compat syscalls
+Subject: drivers/gpu/drm/amd/amdkfd: use in_compat_syscall to check open() caller type
 
-The code wants to prevent compat code from receiving messages.  Use
-in_compat_syscall for this.
+amdkfd wants to know syscall type, not task type.  Check directly.
+
+Unfortunately, amdkfd is making nasty assumptions that a process' bitness
+is a well-defined constant thing.  This isn't the case on x86.  I don't
+know how much this matters, but this patch has no effect on generated code
+on x86, so amdkfd is equally broken with and without this patch.
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Cc: Steffen Klassert <steffen.klassert@secunet.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Oded Gabbay <oded.gabbay@gmail.com>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/xfrm/xfrm_user.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/amd/amdkfd/kfd_chardev.c |    2 +-
+ drivers/gpu/drm/amd/amdkfd/kfd_process.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN net/xfrm/xfrm_user.c~net-xfrm_user-use-in_compat_syscall-to-deny-compat-syscalls net/xfrm/xfrm_user.c
---- a/net/xfrm/xfrm_user.c~net-xfrm_user-use-in_compat_syscall-to-deny-compat-syscalls
-+++ a/net/xfrm/xfrm_user.c
-@@ -2449,7 +2449,7 @@ static int xfrm_user_rcv_msg(struct sk_b
- 	int type, err;
+diff -puN drivers/gpu/drm/amd/amdkfd/kfd_chardev.c~amdkfd-use-in_compat_syscall-to-check-open-caller-type drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c~amdkfd-use-in_compat_syscall-to-check-open-caller-type
++++ a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
+@@ -107,7 +107,7 @@ static int kfd_open(struct inode *inode,
+ 	if (iminor(inode) != 0)
+ 		return -ENODEV;
  
- #ifdef CONFIG_COMPAT
--	if (is_compat_task())
-+	if (in_compat_syscall())
- 		return -ENOTSUPP;
- #endif
+-	is_32bit_user_mode = is_compat_task();
++	is_32bit_user_mode = in_compat_syscall();
+ 
+ 	if (is_32bit_user_mode == true) {
+ 		dev_warn(kfd_device,
+diff -puN drivers/gpu/drm/amd/amdkfd/kfd_process.c~amdkfd-use-in_compat_syscall-to-check-open-caller-type drivers/gpu/drm/amd/amdkfd/kfd_process.c
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_process.c~amdkfd-use-in_compat_syscall-to-check-open-caller-type
++++ a/drivers/gpu/drm/amd/amdkfd/kfd_process.c
+@@ -311,7 +311,7 @@ static struct kfd_process *create_proces
+ 		goto err_process_pqm_init;
+ 
+ 	/* init process apertures*/
+-	process->is_32bit_user_mode = is_compat_task();
++	process->is_32bit_user_mode = in_compat_syscall();
+ 	if (kfd_init_apertures(process) != 0)
+ 		goto err_init_apretures;
  
 _
 
