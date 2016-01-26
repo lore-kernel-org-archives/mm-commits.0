@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch added to -mm tree
-Date: Tue, 26 Jan 2016 14:33:36 -0800
-Message-ID: <56a7f440.nXp0jTi4PUctSw8C%akpm@linux-foundation.org>
+ seccomp-check-in_compat_syscall-not-is_compat_task-in-strict-mode.patch
+ added to -mm tree
+Date: Tue, 26 Jan 2016 14:33:40 -0800
+Message-ID: <56a7f444.m37qq4uVj95x3kYS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60132 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60140 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751886AbcAZWdh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:37 -0500
+	with ESMTP id S1751886AbcAZWdl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, luto@kernel.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: luto@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix
+     Subject: seccomp: check in_compat_syscall, not is_compat_task, in strict mode
 has been added to the -mm tree.  Its filename is
-     sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
+     seccomp-check-in_compat_syscall-not-is_compat_task-in-strict-mode.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/seccomp-check-in_compat_syscall-not-is_compat_task-in-strict-mode.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/seccomp-check-in_compat_syscall-not-is_compat_task-in-strict-mode.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,56 +40,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix
+From: Andy Lutomirski <luto@kernel.org>
+Subject: seccomp: check in_compat_syscall, not is_compat_task, in strict mode
 
-add comment, per Sam
+Seccomp wants to know the syscall bitness, not the caller task bitness,
+when it selects the syscall whitelist.
 
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+As far as I know, this makes no difference on any architecture, so it's
+not a security problem.  (It generates identical code everywhere except
+sparc, and, on sparc, the syscall numbering is the same for both ABIs.)
+
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/compat.h |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/seccomp.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/sparc/include/asm/compat.h~sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix arch/sparc/include/asm/compat.h
---- a/arch/sparc/include/asm/compat.h~sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix
-+++ a/arch/sparc/include/asm/compat.h
-@@ -309,6 +309,7 @@ static inline int is_compat_task(void)
+diff -puN kernel/seccomp.c~seccomp-check-in_compat_syscall-not-is_compat_task-in-strict-mode kernel/seccomp.c
+--- a/kernel/seccomp.c~seccomp-check-in_compat_syscall-not-is_compat_task-in-strict-mode
++++ a/kernel/seccomp.c
+@@ -395,7 +395,7 @@ seccomp_prepare_user_filter(const char _
+ 	struct seccomp_filter *filter = ERR_PTR(-EFAULT);
  
- static inline bool in_compat_syscall(void)
+ #ifdef CONFIG_COMPAT
+-	if (is_compat_task()) {
++	if (in_compat_syscall()) {
+ 		struct compat_sock_fprog fprog32;
+ 		if (copy_from_user(&fprog32, user_filter, sizeof(fprog32)))
+ 			goto out;
+@@ -529,7 +529,7 @@ static void __secure_computing_strict(in
  {
-+	/* Check if this is LINUX_32BIT_SYSCALL_TRAP */
- 	return pt_regs_trap_type(current_pt_regs()) == 0x110;
- }
- #define in_compat_syscall in_compat_syscall
+ 	int *syscall_whitelist = mode1_syscalls;
+ #ifdef CONFIG_COMPAT
+-	if (is_compat_task())
++	if (in_compat_syscall())
+ 		syscall_whitelist = mode1_syscalls_32;
+ #endif
+ 	do {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from luto@kernel.org are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-mm.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-sched-add-schedule_timeout_idle.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation.patch
+sparc-syscall-fix-syscall_get_arch.patch
+seccomp-check-in_compat_syscall-not-is_compat_task-in-strict-mode.patch
+ptrace-in-peek_siginfo-check-syscall-bitness-not-task-bitness.patch
+auditsc-for-seccomp-events-log-syscall-compat-state-using-in_compat_syscall.patch
+staging-lustre-switch-from-is_compat_task-to-in_compat_syscall.patch
+ext4-in-ext4_dir_llseek-check-syscall-bitness-directly.patch
+net-sctp-use-in_compat_syscall-for-sctp_getsockopt_connectx3.patch
+net-xfrm_user-use-in_compat_syscall-to-deny-compat-syscalls.patch
+firewire-use-in_compat_syscall-to-check-ioctl-compatness.patch
+efivars-use-in_compat_syscall-to-check-for-compat-callers.patch
+amdkfd-use-in_compat_syscall-to-check-open-caller-type.patch
+input-redefine-input_compat_test-as-in_compat_syscall.patch
+uhid-check-write-bitness-using-in_compat_syscall.patch
+x86-compat-remove-is_compat_task.patch
 
