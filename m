@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- sparc-compat-provide-an-accurate-in_compat_syscall-implementation.patch
- added to -mm tree
-Date: Tue, 26 Jan 2016 14:33:34 -0800
-Message-ID: <56a7f43e.PcXI0RC/IkroHqt3%akpm@linux-foundation.org>
+Subject: + sparc-syscall-fix-syscall_get_arch.patch added to -mm tree
+Date: Tue, 26 Jan 2016 14:33:38 -0800
+Message-ID: <56a7f442.vqItrSJvNyQ/vfqe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60129 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60137 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751886AbcAZWdf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:35 -0500
+	with ESMTP id S1751886AbcAZWdj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: luto@kernel.org, davem@davemloft.net, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc/compat: rrovide an accurate in_compat_syscall implementation
+     Subject: sparc/syscall: fix syscall_get_arch
 has been added to the -mm tree.  Its filename is
-     sparc-compat-provide-an-accurate-in_compat_syscall-implementation.patch
+     sparc-syscall-fix-syscall_get_arch.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sparc-compat-provide-an-accurate-in_compat_syscall-implementation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sparc-syscall-fix-syscall_get_arch.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sparc-compat-provide-an-accurate-in_compat_syscall-implementation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sparc-syscall-fix-syscall_get_arch.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,43 +39,49 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Lutomirski <luto@kernel.org>
-Subject: sparc/compat: rrovide an accurate in_compat_syscall implementation
+Subject: sparc/syscall: fix syscall_get_arch
 
-On sparc64 compat-enabled kernels, any task can make 32-bit and 64-bit
-syscalls.  is_compat_task returns true in 32-bit tasks, which does not
-necessarily imply that the current syscall is 32-bit.
+Sparc's syscall_get_arch was buggy: it returned the task arch, not the
+syscall arch.  This could confuse seccomp and audit.
 
-Provide an in_compat_syscall implementation that checks whether the
-current syscall is compat.
-
-As far as I know, sparc is the only architecture on which is_compat_task
-checks the compat status of the task and on which the compat status of a
-syscall can differ from the compat status of the task.  On x86,
-is_compat_task checks the syscall type, not the task type.
+I don't think this is as bad for seccomp as it looks: sparc's 32-bit and
+64-bit syscalls are numbered the same.
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Acked-by: David S. Miller <davem@davemloft.net>
+Cc: David S. Miller <davem@davemloft.net>
 Cc: Sam Ravnborg <sam@ravnborg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/compat.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/sparc/include/asm/syscall.h |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN arch/sparc/include/asm/compat.h~sparc-compat-provide-an-accurate-in_compat_syscall-implementation arch/sparc/include/asm/compat.h
---- a/arch/sparc/include/asm/compat.h~sparc-compat-provide-an-accurate-in_compat_syscall-implementation
-+++ a/arch/sparc/include/asm/compat.h
-@@ -307,4 +307,10 @@ static inline int is_compat_task(void)
- 	return test_thread_flag(TIF_32BIT);
+diff -puN arch/sparc/include/asm/syscall.h~sparc-syscall-fix-syscall_get_arch arch/sparc/include/asm/syscall.h
+--- a/arch/sparc/include/asm/syscall.h~sparc-syscall-fix-syscall_get_arch
++++ a/arch/sparc/include/asm/syscall.h
+@@ -3,6 +3,7 @@
+ 
+ #include <uapi/linux/audit.h>
+ #include <linux/kernel.h>
++#include <linux/compat.h>
+ #include <linux/sched.h>
+ #include <asm/ptrace.h>
+ #include <asm/thread_info.h>
+@@ -128,7 +129,13 @@ static inline void syscall_set_arguments
+ 
+ static inline int syscall_get_arch(void)
+ {
+-	return is_32bit_task() ? AUDIT_ARCH_SPARC : AUDIT_ARCH_SPARC64;
++#if defined(CONFIG_SPARC64) && defined(CONFIG_COMPAT)
++	return in_compat_syscall() ? AUDIT_ARCH_SPARC : AUDIT_ARCH_SPARC64;
++#elif defined(CONFIG_SPARC64)
++	return AUDIT_ARCH_SPARC64;
++#else
++	return AUDIT_ARCH_SPARC;
++#endif
  }
  
-+static inline bool in_compat_syscall(void)
-+{
-+	return pt_regs_trap_type(current_pt_regs()) == 0x110;
-+}
-+#define in_compat_syscall in_compat_syscall
-+
- #endif /* _ASM_SPARC64_COMPAT_H */
+ #endif /* __ASM_SPARC_SYSCALL_H */
 _
 
 Patches currently in -mm which might be from luto@kernel.org are
