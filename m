@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ptrace-in-peek_siginfo-check-syscall-bitness-not-task-bitness.patch added
- to -mm tree
-Date: Tue, 26 Jan 2016 14:33:42 -0800
-Message-ID: <56a7f446.sOCIiDPtix2KdnHc%akpm@linux-foundation.org>
+Subject: + firewire-use-in_compat_syscall-to-check-ioctl-compatness.patch
+ added to -mm tree
+Date: Tue, 26 Jan 2016 14:33:54 -0800
+Message-ID: <56a7f452.LkG7TzfA0GWSmyTI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60147 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60291 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751886AbcAZWdn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:43 -0500
+	with ESMTP id S1752779AbcAZWdz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:55 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luto@kernel.org, oleg@redhat.com, mm-commits@vger.kernel.org
+To: luto@kernel.org, clemens@ladisch.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ptrace: in PEEK_SIGINFO, check syscall bitness, not task bitness
+     Subject: firewire: Use in_compat_syscall to check ioctl compatness
 has been added to the -mm tree.  Its filename is
-     ptrace-in-peek_siginfo-check-syscall-bitness-not-task-bitness.patch
+     firewire-use-in_compat_syscall-to-check-ioctl-compatness.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ptrace-in-peek_siginfo-check-syscall-bitness-not-task-bitness.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/firewire-use-in_compat_syscall-to-check-ioctl-compatness.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ptrace-in-peek_siginfo-check-syscall-bitness-not-task-bitness.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/firewire-use-in_compat_syscall-to-check-ioctl-compatness.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,34 +40,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Lutomirski <luto@kernel.org>
-Subject: ptrace: in PEEK_SIGINFO, check syscall bitness, not task bitness
+Subject: firewire: Use in_compat_syscall to check ioctl compatness
 
-Users of the 32-bit ptrace() ABI expect the full 32-bit ABI.  siginfo
-translation should check ptrace() ABI, not caller task ABI.
-
-This is an ABI change on SPARC.  Let's hope that no one relied on the old
-buggy ABI.
+Firewire was using is_compat_task to check whether it was in a
+compat ioctl or a non-compat ioctl.  Use is_compat_syscall instead
+so it works properly on all architectures.
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Clemens Ladisch <clemens@ladisch.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/ptrace.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/firewire/core-cdev.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/ptrace.c~ptrace-in-peek_siginfo-check-syscall-bitness-not-task-bitness kernel/ptrace.c
---- a/kernel/ptrace.c~ptrace-in-peek_siginfo-check-syscall-bitness-not-task-bitness
-+++ a/kernel/ptrace.c
-@@ -681,7 +681,7 @@ static int ptrace_peek_siginfo(struct ta
- 			break;
- 
+diff -puN drivers/firewire/core-cdev.c~firewire-use-in_compat_syscall-to-check-ioctl-compatness drivers/firewire/core-cdev.c
+--- a/drivers/firewire/core-cdev.c~firewire-use-in_compat_syscall-to-check-ioctl-compatness
++++ a/drivers/firewire/core-cdev.c
+@@ -221,7 +221,7 @@ struct inbound_phy_packet_event {
  #ifdef CONFIG_COMPAT
--		if (unlikely(is_compat_task())) {
-+		if (unlikely(in_compat_syscall())) {
- 			compat_siginfo_t __user *uinfo = compat_ptr(data);
+ static void __user *u64_to_uptr(u64 value)
+ {
+-	if (is_compat_task())
++	if (in_compat_syscall())
+ 		return compat_ptr(value);
+ 	else
+ 		return (void __user *)(unsigned long)value;
+@@ -229,7 +229,7 @@ static void __user *u64_to_uptr(u64 valu
  
- 			if (copy_siginfo_to_user32(uinfo, &info) ||
+ static u64 uptr_to_u64(void __user *ptr)
+ {
+-	if (is_compat_task())
++	if (in_compat_syscall())
+ 		return ptr_to_compat(ptr);
+ 	else
+ 		return (u64)(unsigned long)ptr;
 _
 
 Patches currently in -mm which might be from luto@kernel.org are
