@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + efivars-use-in_compat_syscall-to-check-for-compat-callers.patch added to -mm tree
-Date: Tue, 26 Jan 2016 14:33:56 -0800
-Message-ID: <56a7f454.DIXCZYL7x0R3TOT6%akpm@linux-foundation.org>
+Subject: + ext4-in-ext4_dir_llseek-check-syscall-bitness-directly.patch
+ added to -mm tree
+Date: Tue, 26 Jan 2016 14:33:48 -0800
+Message-ID: <56a7f44c.Z1QxP1yhSjH3In4l%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60296 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60276 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752799AbcAZWd5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:57 -0500
+	with ESMTP id S1752697AbcAZWdt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luto@kernel.org, matt@codeblueprint.co.uk, mm-commits@vger.kernel.org
+To: luto@kernel.org, adilger.kernel@dilger.ca, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/firmware/efi/efivars.c: use in_compat_syscall() to check for compat callers
+     Subject: ext4: In ext4_dir_llseek, check syscall bitness directly
 has been added to the -mm tree.  Its filename is
-     efivars-use-in_compat_syscall-to-check-for-compat-callers.patch
+     ext4-in-ext4_dir_llseek-check-syscall-bitness-directly.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/efivars-use-in_compat_syscall-to-check-for-compat-callers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ext4-in-ext4_dir_llseek-check-syscall-bitness-directly.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/efivars-use-in_compat_syscall-to-check-for-compat-callers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ext4-in-ext4_dir_llseek-check-syscall-bitness-directly.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,32 +40,33 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Lutomirski <luto@kernel.org>
-Subject: drivers/firmware/efi/efivars.c: use in_compat_syscall() to check for compat callers
+Subject: ext4: In ext4_dir_llseek, check syscall bitness directly
 
-This should make no difference on any architecture, as x86's historical
-is_compat_task behavior really did check whether the calling syscall was a
-compat syscall.  x86's is_compat_task is going away, though.
+ext4 treats directory offsets differently for 32-bit and 64-bit
+callers.  Check the caller type using in_compat_syscall, not
+is_compat_task.  This changes behavior on SPARC slightly.
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Cc: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firmware/efi/efivars.c |    2 +-
+ fs/ext4/dir.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/firmware/efi/efivars.c~efivars-use-in_compat_syscall-to-check-for-compat-callers drivers/firmware/efi/efivars.c
---- a/drivers/firmware/efi/efivars.c~efivars-use-in_compat_syscall-to-check-for-compat-callers
-+++ a/drivers/firmware/efi/efivars.c
-@@ -231,7 +231,7 @@ sanity_check(struct efi_variable *var, e
- 
- static inline bool is_compat(void)
+diff -puN fs/ext4/dir.c~ext4-in-ext4_dir_llseek-check-syscall-bitness-directly fs/ext4/dir.c
+--- a/fs/ext4/dir.c~ext4-in-ext4_dir_llseek-check-syscall-bitness-directly
++++ a/fs/ext4/dir.c
+@@ -276,7 +276,7 @@ errout:
+ static inline int is_32bit_api(void)
  {
--	if (IS_ENABLED(CONFIG_COMPAT) && is_compat_task())
-+	if (IS_ENABLED(CONFIG_COMPAT) && in_compat_syscall())
- 		return true;
- 
- 	return false;
+ #ifdef CONFIG_COMPAT
+-	return is_compat_task();
++	return in_compat_syscall();
+ #else
+ 	return (BITS_PER_LONG == 32);
+ #endif
 _
 
 Patches currently in -mm which might be from luto@kernel.org are
