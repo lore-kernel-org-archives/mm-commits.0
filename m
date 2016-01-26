@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-printk-introduce-new-format-string-for-flags.patch added to
- -mm tree
-Date: Tue, 26 Jan 2016 13:04:05 -0800
-Message-ID: <56a7df45.UbTVhI2Jk8xS1Lp3%akpm@linux-foundation.org>
+Subject: +
+ mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
+ added to -mm tree
+Date: Tue, 26 Jan 2016 13:04:14 -0800
+Message-ID: <56a7df4e.j3T+aKmZfTPA3WnR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50890 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50935 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753287AbcAZVEH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 16:04:07 -0500
+	with ESMTP id S1751332AbcAZVEP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 16:04:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, acme@kernel.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, linux@rasmusvillemoes.dk, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, mingo@redhat.com, peterz@infradead.org, rostedt@goodmis.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, printk: introduce new format string for flags
+     Subject: mm, page_owner: print migratetype of page and pageblock, symbolic flags
 has been added to the -mm tree.  Its filename is
-     mm-printk-introduce-new-format-string-for-flags.patch
+     mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-printk-introduce-new-format-string-for-flags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-printk-introduce-new-format-string-for-flags.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,33 +41,46 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, printk: introduce new format string for flags
+Subject: mm, page_owner: print migratetype of page and pageblock, symbolic flags
 
-In mm we use several kinds of flags bitfields that are sometimes printed
-for debugging purposes, or exported to userspace via sysfs.  To make them
-easier to interpret independently on kernel version and config, we want to
-dump also the symbolic flag names.  So far this has been done with
-repeated calls to pr_cont(), which is unreliable on SMP, and not usable
-for e.g.  sysfs export.
+The information in /sys/kernel/debug/page_owner includes the migratetype
+of the pageblock the page belongs to.  This is also checked against the
+page's migratetype (as declared by gfp_flags during its allocation), and
+the page is reported as Fallback if its migratetype differs from the
+pageblock's one.  t This is somewhat misleading because in fact fallback
+allocation is not the only reason why these two can differ.  It also
+doesn't direcly provide the page's migratetype, although it's possible to
+derive that from the gfp_flags.
 
-To get a more reliable and universal solution, this patch extends printk()
-format string for pointers to handle the page flags (%pGp), gfp_flags
-(%pGg) and vma flags (%pGv).  Existing users of dump_flag_names() are
-converted and simplified.
+It's arguably better to print both page and pageblock's migratetype and
+leave the interpretation to the consumer than to suggest fallback
+allocation as the only possible reason.  While at it, we can print the
+migratetypes as string the same way as /proc/pagetypeinfo does, as some of
+the numeric values depend on kernel configuration.  For that, this patch
+moves the migratetype_names array from #ifdef CONFIG_PROC_FS part of
+mm/vmstat.c to mm/page_alloc.c and exports it.
 
-It would be possible to pass flags by value instead of pointer, but the %p
-format string for pointers already has extensions for various kernel
-structures, so it's a good fit, and the extra indirection in a
-non-critical path is negligible.
+With the new format strings for flags, we can now also provide symbolic
+page and gfp flags in the /sys/kernel/debug/page_owner file.  This
+replaces the positional printing of page flags as single letters, which
+might have looked nicer, but was limited to a subset of flags, and
+required the user to remember the letters.
 
-[linux@rasmusvillemoes.dk: lots of good implementation suggestions]
+Example page_owner entry after the patch:
+
+Page allocated via order 0, mask 0x24213ca(GFP_HIGHUSER_MOVABLE|__GFP_COLD|__GFP_NOWARN|__GFP_NORETRY)
+PFN 520 type Movable Block 1 type Movable Flags 0xfffff8001006c(referenced|uptodate|lru|active|mappedtodisk)
+ [<ffffffff811682c4>] __alloc_pages_nodemask+0x134/0x230
+ [<ffffffff811b4058>] alloc_pages_current+0x88/0x120
+ [<ffffffff8115e386>] __page_cache_alloc+0xe6/0x120
+ [<ffffffff8116ba6c>] __do_page_cache_readahead+0xdc/0x240
+ [<ffffffff8116bd05>] ondemand_readahead+0x135/0x260
+ [<ffffffff8116bfb1>] page_cache_sync_readahead+0x31/0x50
+ [<ffffffff81160523>] generic_file_read_iter+0x453/0x760
+ [<ffffffff811e0d57>] __vfs_read+0xa7/0xd0
+
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Sasha Levin <sasha.levin@oracle.com>
@@ -75,361 +89,107 @@ Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/printk-formats.txt |   18 ++++++
- include/linux/mmdebug.h          |    6 ++
- lib/test_printf.c                |   53 ++++++++++++++++++++
- lib/vsprintf.c                   |   75 +++++++++++++++++++++++++++++
- mm/debug.c                       |   34 +++++++------
- mm/internal.h                    |    6 ++
- 6 files changed, 178 insertions(+), 14 deletions(-)
+ include/linux/mmzone.h |    3 +++
+ mm/page_alloc.c        |   13 +++++++++++++
+ mm/page_owner.c        |   24 +++++++-----------------
+ mm/vmstat.c            |   13 -------------
+ 4 files changed, 23 insertions(+), 30 deletions(-)
 
-diff -puN Documentation/printk-formats.txt~mm-printk-introduce-new-format-string-for-flags Documentation/printk-formats.txt
---- a/Documentation/printk-formats.txt~mm-printk-introduce-new-format-string-for-flags
-+++ a/Documentation/printk-formats.txt
-@@ -298,6 +298,24 @@ bitmap and its derivatives such as cpuma
+diff -puN include/linux/mmzone.h~mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags
++++ a/include/linux/mmzone.h
+@@ -63,6 +63,9 @@ enum {
+ 	MIGRATE_TYPES
+ };
  
- 	Passed by reference.
- 
-+Flags bitfields such as page flags, gfp_flags:
++/* In mm/page_alloc.c; keep in sync also with show_migration_types() there */
++extern char * const migratetype_names[MIGRATE_TYPES];
 +
-+	%pGp	referenced|uptodate|lru|active|private
-+	%pGg	GFP_USER|GFP_DMA32|GFP_NOWARN
-+	%pGv	read|exec|mayread|maywrite|mayexec|denywrite
-+
-+	For printing flags bitfields as a collection of symbolic constants that
-+	would construct the value. The type of flags is given by the third
-+	character. Currently supported are [p]age flags, [v]ma_flags (both
-+	expect unsigned long *) and [g]fp_flags (expects gfp_t *). The flag
-+	names and print order depends on the particular	type.
-+
-+	Note that this format should not be used directly in TP_printk() part
-+	of a tracepoint. Instead, use the show_*_flags() functions from
-+	<trace/events/mmflags.h>.
-+
-+	Passed by reference.
-+
- Network device features:
- 
- 	%pNF	0x000000000000c000
-diff -puN include/linux/mmdebug.h~mm-printk-introduce-new-format-string-for-flags include/linux/mmdebug.h
---- a/include/linux/mmdebug.h~mm-printk-introduce-new-format-string-for-flags
-+++ a/include/linux/mmdebug.h
-@@ -3,11 +3,17 @@
- 
- #include <linux/bug.h>
- #include <linux/stringify.h>
-+#include <linux/types.h>
-+#include <linux/tracepoint.h>
- 
- struct page;
- struct vm_area_struct;
- struct mm_struct;
- 
-+extern const struct trace_print_flags pageflag_names[];
-+extern const struct trace_print_flags vmaflag_names[];
-+extern const struct trace_print_flags gfpflag_names[];
-+
- extern void dump_page(struct page *page, const char *reason);
- extern void dump_page_badflags(struct page *page, const char *reason,
- 			       unsigned long badflags);
-diff -puN lib/test_printf.c~mm-printk-introduce-new-format-string-for-flags lib/test_printf.c
---- a/lib/test_printf.c~mm-printk-introduce-new-format-string-for-flags
-+++ a/lib/test_printf.c
-@@ -17,6 +17,9 @@
- #include <linux/socket.h>
- #include <linux/in.h>
- 
-+#include <linux/gfp.h>
-+#include <linux/mm.h>
-+
- #define BUF_SIZE 256
- #define PAD_SIZE 16
- #define FILL_CHAR '$'
-@@ -411,6 +414,55 @@ netdev_features(void)
- }
- 
- static void __init
-+flags(void)
-+{
-+	unsigned long flags;
-+	gfp_t gfp;
-+	char *cmp_buffer;
-+
-+	flags = 0;
-+	test("", "%pGp", &flags);
-+
-+	/* Page flags should filter the zone id */
-+	flags = 1UL << NR_PAGEFLAGS;
-+	test("", "%pGp", &flags);
-+
-+	flags |= 1UL << PG_uptodate | 1UL << PG_dirty | 1UL << PG_lru
-+		| 1UL << PG_active | 1UL << PG_swapbacked;
-+	test("uptodate|dirty|lru|active|swapbacked", "%pGp", &flags);
-+
-+
-+	flags = VM_READ | VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC
-+			| VM_DENYWRITE;
-+	test("read|exec|mayread|maywrite|mayexec|denywrite", "%pGv", &flags);
-+
-+	gfp = GFP_TRANSHUGE;
-+	test("GFP_TRANSHUGE", "%pGg", &gfp);
-+
-+	gfp = GFP_ATOMIC|__GFP_DMA;
-+	test("GFP_ATOMIC|GFP_DMA", "%pGg", &gfp);
-+
-+	gfp = __GFP_ATOMIC;
-+	test("__GFP_ATOMIC", "%pGg", &gfp);
-+
-+	cmp_buffer = kmalloc(BUF_SIZE, GFP_KERNEL);
-+	if (!cmp_buffer)
-+		return;
-+
-+	/* Any flags not translated by the table should remain numeric */
-+	gfp = ~__GFP_BITS_MASK;
-+	snprintf(cmp_buffer, BUF_SIZE, "%#lx", (unsigned long) gfp);
-+	test(cmp_buffer, "%pGg", &gfp);
-+
-+	snprintf(cmp_buffer, BUF_SIZE, "__GFP_ATOMIC|%#lx",
-+							(unsigned long) gfp);
-+	gfp |= __GFP_ATOMIC;
-+	test(cmp_buffer, "%pGg", &gfp);
-+
-+	kfree(cmp_buffer);
-+}
-+
-+static void __init
- test_pointer(void)
- {
- 	plain();
-@@ -428,6 +480,7 @@ test_pointer(void)
- 	struct_clk();
- 	bitmap();
- 	netdev_features();
-+	flags();
- }
- 
- static int __init
-diff -puN lib/vsprintf.c~mm-printk-introduce-new-format-string-for-flags lib/vsprintf.c
---- a/lib/vsprintf.c~mm-printk-introduce-new-format-string-for-flags
-+++ a/lib/vsprintf.c
-@@ -35,6 +35,8 @@
- #include <linux/blkdev.h>
+ #ifdef CONFIG_CMA
+ #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
+ #else
+diff -puN mm/page_alloc.c~mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags
++++ a/mm/page_alloc.c
+@@ -223,6 +223,19 @@ static char * const zone_names[MAX_NR_ZO
  #endif
+ };
  
-+#include "../mm/internal.h"	/* For the trace_print_flags arrays */
-+
- #include <asm/page.h>		/* for PAGE_SIZE */
- #include <asm/sections.h>	/* for dereference_function_descriptor() */
- #include <asm/byteorder.h>	/* cpu_to_le16 */
-@@ -1407,6 +1409,72 @@ char *clock(char *buf, char *end, struct
- 	}
- }
- 
-+static
-+char *format_flags(char *buf, char *end, unsigned long flags,
-+					const struct trace_print_flags *names)
-+{
-+	unsigned long mask;
-+	const struct printf_spec strspec = {
-+		.field_width = -1,
-+		.precision = -1,
-+	};
-+	const struct printf_spec numspec = {
-+		.flags = SPECIAL|SMALL,
-+		.field_width = -1,
-+		.precision = -1,
-+		.base = 16,
-+	};
-+
-+	for ( ; flags && names->name; names++) {
-+		mask = names->mask;
-+		if ((flags & mask) != mask)
-+			continue;
-+
-+		buf = string(buf, end, names->name, strspec);
-+
-+		flags &= ~mask;
-+		if (flags) {
-+			if (buf < end)
-+				*buf = '|';
-+			buf++;
-+		}
-+	}
-+
-+	if (flags)
-+		buf = number(buf, end, flags, numspec);
-+
-+	return buf;
-+}
-+
-+static noinline_for_stack
-+char *flags_string(char *buf, char *end, void *flags_ptr, const char *fmt)
-+{
-+	unsigned long flags;
-+	const struct trace_print_flags *names;
-+
-+	switch (fmt[1]) {
-+	case 'p':
-+		flags = *(unsigned long *)flags_ptr;
-+		/* Remove zone id */
-+		flags &= (1UL << NR_PAGEFLAGS) - 1;
-+		names = pageflag_names;
-+		break;
-+	case 'v':
-+		flags = *(unsigned long *)flags_ptr;
-+		names = vmaflag_names;
-+		break;
-+	case 'g':
-+		flags = *(gfp_t *)flags_ptr;
-+		names = gfpflag_names;
-+		break;
-+	default:
-+		WARN_ONCE(1, "Unsupported flags modifier: %c\n", fmt[1]);
-+		return buf;
-+	}
-+
-+	return format_flags(buf, end, flags, names);
-+}
-+
- int kptr_restrict __read_mostly;
- 
- /*
-@@ -1495,6 +1563,11 @@ int kptr_restrict __read_mostly;
-  * - 'Cn' For a clock, it prints the name (Common Clock Framework) or address
-  *        (legacy clock framework) of the clock
-  * - 'Cr' For a clock, it prints the current rate of the clock
-+ * - 'G' For flags to be printed as a collection of symbolic strings that would
-+ *       construct the specific value. Supported flags given by option:
-+ *       p page flags (see struct page) given as pointer to unsigned long
-+ *       g gfp flags (GFP_* and __GFP_*) given as pointer to gfp_t
-+ *       v vma flags (VM_*) given as pointer to unsigned long
-  *
-  * ** Please update also Documentation/printk-formats.txt when making changes **
-  *
-@@ -1648,6 +1721,8 @@ char *pointer(const char *fmt, char *buf
- 		return bdev_name(buf, end, ptr, spec, fmt);
- #endif
- 
-+	case 'G':
-+		return flags_string(buf, end, ptr, fmt);
- 	}
- 	spec.flags |= SMALL;
- 	if (spec.field_width == -1) {
-diff -puN mm/debug.c~mm-printk-introduce-new-format-string-for-flags mm/debug.c
---- a/mm/debug.c~mm-printk-introduce-new-format-string-for-flags
-+++ a/mm/debug.c
-@@ -11,12 +11,21 @@
- #include <linux/memcontrol.h>
- #include <trace/events/mmflags.h>
- 
--static const struct trace_print_flags pageflag_names[] = {
--	__def_pageflag_names
-+#include "internal.h"
-+
-+const struct trace_print_flags pageflag_names[] = {
-+	__def_pageflag_names,
-+	{0, NULL}
++char * const migratetype_names[MIGRATE_TYPES] = {
++	"Unmovable",
++	"Movable",
++	"Reclaimable",
++	"HighAtomic",
++#ifdef CONFIG_CMA
++	"CMA",
++#endif
++#ifdef CONFIG_MEMORY_ISOLATION
++	"Isolate",
++#endif
 +};
 +
-+const struct trace_print_flags gfpflag_names[] = {
-+	__def_gfpflag_names,
-+	{0, NULL}
- };
+ compound_page_dtor * const compound_page_dtors[] = {
+ 	NULL,
+ 	free_compound_page,
+diff -puN mm/page_owner.c~mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags
++++ a/mm/page_owner.c
+@@ -100,8 +100,9 @@ print_page_owner(char __user *buf, size_
+ 		return -ENOMEM;
  
--static const struct trace_print_flags gfpflag_names[] = {
--	__def_gfpflag_names
-+const struct trace_print_flags vmaflag_names[] = {
-+	__def_vmaflag_names,
-+	{0, NULL}
- };
+ 	ret = snprintf(kbuf, count,
+-			"Page allocated via order %u, mask 0x%x\n",
+-			page_ext->order, page_ext->gfp_mask);
++			"Page allocated via order %u, mask %#x(%pGg)\n",
++			page_ext->order, page_ext->gfp_mask,
++			&page_ext->gfp_mask);
  
- static void dump_flags(unsigned long flags,
-@@ -58,14 +67,15 @@ void dump_page_badflags(struct page *pag
- 	if (PageCompound(page))
- 		pr_cont(" compound_mapcount: %d", compound_mapcount(page));
- 	pr_cont("\n");
--	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS);
--	dump_flags(page->flags, pageflag_names, ARRAY_SIZE(pageflag_names));
-+	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS + 1);
-+	dump_flags(page->flags, pageflag_names,
-+					ARRAY_SIZE(pageflag_names) - 1);
- 	if (reason)
- 		pr_alert("page dumped because: %s\n", reason);
- 	if (page->flags & badflags) {
- 		pr_alert("bad because of flags:\n");
--		dump_flags(page->flags & badflags,
--				pageflag_names, ARRAY_SIZE(pageflag_names));
-+		dump_flags(page->flags & badflags, pageflag_names,
-+					ARRAY_SIZE(pageflag_names) - 1);
- 	}
- #ifdef CONFIG_MEMCG
- 	if (page->mem_cgroup)
-@@ -81,10 +91,6 @@ EXPORT_SYMBOL(dump_page);
+ 	if (ret >= count)
+ 		goto err;
+@@ -110,23 +111,12 @@ print_page_owner(char __user *buf, size_
+ 	pageblock_mt = get_pfnblock_migratetype(page, pfn);
+ 	page_mt  = gfpflags_to_migratetype(page_ext->gfp_mask);
+ 	ret += snprintf(kbuf + ret, count - ret,
+-			"PFN %lu Block %lu type %d %s Flags %s%s%s%s%s%s%s%s%s%s%s%s\n",
++			"PFN %lu type %s Block %lu type %s Flags %#lx(%pGp)\n",
+ 			pfn,
++			migratetype_names[page_mt],
+ 			pfn >> pageblock_order,
+-			pageblock_mt,
+-			pageblock_mt != page_mt ? "Fallback" : "        ",
+-			PageLocked(page)	? "K" : " ",
+-			PageError(page)		? "E" : " ",
+-			PageReferenced(page)	? "R" : " ",
+-			PageUptodate(page)	? "U" : " ",
+-			PageDirty(page)		? "D" : " ",
+-			PageLRU(page)		? "L" : " ",
+-			PageActive(page)	? "A" : " ",
+-			PageSlab(page)		? "S" : " ",
+-			PageWriteback(page)	? "W" : " ",
+-			PageCompound(page)	? "C" : " ",
+-			PageSwapCache(page)	? "B" : " ",
+-			PageMappedToDisk(page)	? "M" : " ");
++			migratetype_names[pageblock_mt],
++			page->flags, &page->flags);
  
- #ifdef CONFIG_DEBUG_VM
+ 	if (ret >= count)
+ 		goto err;
+diff -puN mm/vmstat.c~mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags mm/vmstat.c
+--- a/mm/vmstat.c~mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags
++++ a/mm/vmstat.c
+@@ -924,19 +924,6 @@ static void walk_zones_in_node(struct se
+ #endif
  
--static const struct trace_print_flags vmaflag_names[] = {
--	__def_vmaflag_names
+ #ifdef CONFIG_PROC_FS
+-static char * const migratetype_names[MIGRATE_TYPES] = {
+-	"Unmovable",
+-	"Movable",
+-	"Reclaimable",
+-	"HighAtomic",
+-#ifdef CONFIG_CMA
+-	"CMA",
+-#endif
+-#ifdef CONFIG_MEMORY_ISOLATION
+-	"Isolate",
+-#endif
 -};
--
- void dump_vma(const struct vm_area_struct *vma)
- {
- 	pr_emerg("vma %p start %p end %p\n"
-@@ -96,7 +102,7 @@ void dump_vma(const struct vm_area_struc
- 		(unsigned long)pgprot_val(vma->vm_page_prot),
- 		vma->anon_vma, vma->vm_ops, vma->vm_pgoff,
- 		vma->vm_file, vma->vm_private_data);
--	dump_flags(vma->vm_flags, vmaflag_names, ARRAY_SIZE(vmaflag_names));
-+	dump_flags(vma->vm_flags, vmaflag_names, ARRAY_SIZE(vmaflag_names) - 1);
- }
- EXPORT_SYMBOL(dump_vma);
- 
-@@ -168,7 +174,7 @@ void dump_mm(const struct mm_struct *mm)
- 		);
- 
- 		dump_flags(mm->def_flags, vmaflag_names,
--				ARRAY_SIZE(vmaflag_names));
-+				ARRAY_SIZE(vmaflag_names) - 1);
- }
- 
- #endif		/* CONFIG_DEBUG_VM */
-diff -puN mm/internal.h~mm-printk-introduce-new-format-string-for-flags mm/internal.h
---- a/mm/internal.h~mm-printk-introduce-new-format-string-for-flags
-+++ a/mm/internal.h
-@@ -14,6 +14,7 @@
- #include <linux/fs.h>
- #include <linux/mm.h>
- #include <linux/pagemap.h>
-+#include <linux/tracepoint-defs.h>
- 
- /*
-  * The set of flags that only affect watermark checking and reclaim
-@@ -435,4 +436,9 @@ static inline void try_to_unmap_flush_di
- }
- 
- #endif /* CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH */
-+
-+extern const struct trace_print_flags pageflag_names[];
-+extern const struct trace_print_flags vmaflag_names[];
-+extern const struct trace_print_flags gfpflag_names[];
-+
- #endif	/* __MM_INTERNAL_H */
-_
-
-Patches currently in -mm which might be from vbabka@suse.cz are
-
-tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
-mm-tracing-make-show_gfp_flags-up-to-date.patch
-tools-perf-make-gfp_compact_table-up-to-date.patch
-mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk.patch
-mm-printk-introduce-new-format-string-for-flags.patch
-mm-debug-replace-dump_flags-with-the-new-printk-formats.patch
-mm-page_alloc-print-symbolic-gfp_flags-on-allocation-failure.patch
-mm-oom-print-symbolic-gfp_flags-in-oom-warning.patch
-mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
-mm-page_owner-convert-page_owner_inited-to-static-key.patch
-mm-page_owner-copy-page-owner-info-during-migration.patch
-mm-page_owner-track-and-print-last-migrate-reason.patch
-mm-page_owner-dump-page-owner-info-from-dump_page.patch
-mm-debug-move-bad-flags-printing-to-bad_page.patch
-
