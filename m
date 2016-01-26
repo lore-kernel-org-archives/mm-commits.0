@@ -1,24 +1,24 @@
 From: akpm@linux-foundation.org
 Subject: +
  mm-filemap-avoid-unnecessary-calls-to-lock_page-when-waiting-for-io-to-complete-during-a-read.patch added to -mm tree
-Date: Tue, 26 Jan 2016 12:27:50 -0800
-Message-ID: <56a7d6c6.jKfijciKgKteDFzt%akpm@linux-foundation.org>
+Date: Tue, 26 Jan 2016 12:28:20 -0800
+Message-ID: <56a7d6e4.qVWghEvo5BNNV+t8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47838 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47861 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752006AbcAZU1v (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 15:27:51 -0500
+	with ESMTP id S1751260AbcAZU2V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 15:28:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, jack@suse.cz, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, hughd@google.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: filemap: Avoid unnecessary calls to lock_page when waiting for IO to complete during a read
+     Subject: mm: filemap: avoid unnecessary calls to lock_page when waiting for IO to complete during a read
 has been added to the -mm tree.  Its filename is
      mm-filemap-avoid-unnecessary-calls-to-lock_page-when-waiting-for-io-to-complete-during-a-read.patch
 
@@ -40,28 +40,29 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: filemap: Avoid unnecessary calls to lock_page when waiting for IO to complete during a read
+Subject: mm: filemap: avoid unnecessary calls to lock_page when waiting for IO to complete during a read
 
-In the generic read paths the kernel looks up a page in the page cache
-and if it's up to date, it is used. If not, the page lock is acquired to
-wait for IO to complete and then check the page.  If multiple processes
-are waiting on IO, they all serialise against the lock and duplicate the
-checks. This is unnecessary.
+In the generic read paths the kernel looks up a page in the page cache and
+if it's up to date, it is used.  If not, the page lock is acquired to wait
+for IO to complete and then check the page.  If multiple processes are
+waiting on IO, they all serialise against the lock and duplicate the
+checks.  This is unnecessary.
 
 The page lock in itself does not give any guarantees to the callers about
 the page state as it can be immediately truncated or reclaimed after the
-page is unlocked. It's sufficient to wait_on_page_locked and then continue
-if the page is up to date on wakeup.
+page is unlocked.  It's sufficient to wait_on_page_locked and then
+continue if the page is up to date on wakeup.
 
 It is possible that a truncated but up-to-date page is returned but the
 reference taken during read prevents it disappearing underneath the caller
 and the data is still valid if PageUptodate.
 
 The overall impact is small as even if processes serialise on the lock,
-the lock section is tiny once the IO is complete. Profiles indicated that
+the lock section is tiny once the IO is complete.  Profiles indicated that
 unlock_page and friends are generally a tiny portion of a read-intensive
 workload.  An artificial test was created that had instances of dd access
-a cache-cold file on an ext4 filesystem and measure how long the read took.
+a cache-cold file on an ext4 filesystem and measure how long the read
+took.
 
 paralleldd
                                     4.4.0                 4.4.0
@@ -82,10 +83,7 @@ calls to lock_page.
 
 Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
 Reviewed-by: Jan Kara <jack@suse.cz>
----
- 1 file changed, 49 insertions(+)
-
-index aa38593d0cd5..6a3c030b0c8d 100644
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
