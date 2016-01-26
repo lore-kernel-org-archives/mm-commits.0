@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + documentation-cgroup-v2-add-memorystat-sock-description.patch
+Subject: +
+ compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall.patch
  added to -mm tree
-Date: Tue, 26 Jan 2016 13:31:08 -0800
-Message-ID: <56a7e59c.b6M9lDmf90G3cp3k%akpm@linux-foundation.org>
+Date: Tue, 26 Jan 2016 14:33:30 -0800
+Message-ID: <56a7f43a.PW3p/NpTg9FM3ckY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54016 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60114 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751336AbcAZVbJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 16:31:09 -0500
+	with ESMTP id S1751886AbcAZWdc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: luto@kernel.org, adilger.kernel@dilger.ca, airlied@linux.ie, clemens@ladisch.de, davem@davemloft.net, dh.herrmann@googlemail.com, dmitry.torokhov@gmail.com, eparis@redhat.com, herbert@gondor.apana.org.au, hpa@zytor.com, jikos@kernel.org, matt@codeblueprint.co.uk, mingo@elte.hu, nhorman@tuxdriver.com, oded.gabbay@gmail.com, oleg.drokin@intel.com, oleg@redhat.com, paul@paul-moore.com, sam@ravnborg.org, steffen.klassert@secunet.com, tglx@linutronix.de, tytso@mit.edu, vyasevich@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Documentation: cgroup-v2: add memory.stat::sock description
+     Subject: compat: add in_compat_syscall to ask whether we're in a compat syscall
 has been added to the -mm tree.  Its filename is
-     documentation-cgroup-v2-add-memorystat-sock-description.patch
+     compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/documentation-cgroup-v2-add-memorystat-sock-description.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/documentation-cgroup-v2-add-memorystat-sock-description.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,38 +40,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: Documentation: cgroup-v2: add memory.stat::sock description
+From: Andy Lutomirski <luto@kernel.org>
+Subject: compat: add in_compat_syscall to ask whether we're in a compat syscall
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Michal Hocko <mhocko@suse.cz>
+A lot of code currently abuses is_compat_task to determine this.
+
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: David Airlie <airlied@linux.ie>
+Cc: David Herrmann <dh.herrmann@googlemail.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Jiri Kosina <jikos@kernel.org>
+Cc: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: Oded Gabbay <oded.gabbay@gmail.com>
+Cc: Oleg Drokin <oleg.drokin@intel.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Paul Moore <paul@paul-moore.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlad Yasevich <vyasevich@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroup-v2.txt |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/compat.h |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN Documentation/cgroup-v2.txt~documentation-cgroup-v2-add-memorystat-sock-description Documentation/cgroup-v2.txt
---- a/Documentation/cgroup-v2.txt~documentation-cgroup-v2-add-memorystat-sock-description
-+++ a/Documentation/cgroup-v2.txt
-@@ -843,6 +843,10 @@ PAGE_SIZE multiple when read back.
- 		Amount of memory used to cache filesystem data,
- 		including tmpfs and shared memory.
+diff -puN include/linux/compat.h~compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall include/linux/compat.h
+--- a/include/linux/compat.h~compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall
++++ a/include/linux/compat.h
+@@ -5,6 +5,8 @@
+  * syscall compatibility layer.
+  */
  
-+	  sock
++#include <linux/types.h>
 +
-+		Amount of memory used in network transmission buffers
-+
- 	  file_mapped
+ #ifdef CONFIG_COMPAT
  
- 		Amount of cached filesystem data mapped with mmap()
+ #include <linux/stat.h>
+@@ -713,9 +715,22 @@ asmlinkage long compat_sys_sched_rr_get_
+ 
+ asmlinkage long compat_sys_fanotify_mark(int, unsigned int, __u32, __u32,
+ 					    int, const char __user *);
++
++/*
++ * For most but not all architectures, "am I in a compat syscall?" and
++ * "am I a compat task?" are the same question.  For architectures on which
++ * they aren't the same question, arch code can override in_compat_syscall.
++ */
++
++#ifndef in_compat_syscall
++static inline bool in_compat_syscall(void) { return is_compat_task(); }
++#endif
++
+ #else
+ 
+ #define is_compat_task() (0)
++static inline bool in_compat_syscall(void) { return false; }
+ 
+ #endif /* CONFIG_COMPAT */
++
+ #endif /* _LINUX_COMPAT_H */
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from luto@kernel.org are
 
-proc-revert-proc-pid-maps-annotation.patch
-mm-memcontrol-drop-superfluous-entry-in-the-per-memcg-stats-array.patch
-documentation-cgroup-v2-add-memorystat-sock-description.patch
-mm-oom_killc-dont-skip-pf_exiting-tasks-when-searching-for-a-victim.patch
+compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation.patch
+sparc-syscall-fix-syscall_get_arch.patch
+seccomp-check-in_compat_syscall-not-is_compat_task-in-strict-mode.patch
+ptrace-in-peek_siginfo-check-syscall-bitness-not-task-bitness.patch
+auditsc-for-seccomp-events-log-syscall-compat-state-using-in_compat_syscall.patch
+staging-lustre-switch-from-is_compat_task-to-in_compat_syscall.patch
+ext4-in-ext4_dir_llseek-check-syscall-bitness-directly.patch
+net-sctp-use-in_compat_syscall-for-sctp_getsockopt_connectx3.patch
+net-xfrm_user-use-in_compat_syscall-to-deny-compat-syscalls.patch
+firewire-use-in_compat_syscall-to-check-ioctl-compatness.patch
+efivars-use-in_compat_syscall-to-check-for-compat-callers.patch
+amdkfd-use-in_compat_syscall-to-check-open-caller-type.patch
+input-redefine-input_compat_test-as-in_compat_syscall.patch
+uhid-check-write-bitness-using-in_compat_syscall.patch
+x86-compat-remove-is_compat_task.patch
 
