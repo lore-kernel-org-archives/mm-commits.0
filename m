@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall.patch
+ sparc-compat-provide-an-accurate-in_compat_syscall-implementation.patch
  added to -mm tree
-Date: Tue, 26 Jan 2016 14:33:30 -0800
-Message-ID: <56a7f43a.PW3p/NpTg9FM3ckY%akpm@linux-foundation.org>
+Date: Tue, 26 Jan 2016 14:33:34 -0800
+Message-ID: <56a7f43e.PcXI0RC/IkroHqt3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60114 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60129 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751886AbcAZWdc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:32 -0500
+	with ESMTP id S1751886AbcAZWdf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luto@kernel.org, adilger.kernel@dilger.ca, airlied@linux.ie, clemens@ladisch.de, davem@davemloft.net, dh.herrmann@googlemail.com, dmitry.torokhov@gmail.com, eparis@redhat.com, herbert@gondor.apana.org.au, hpa@zytor.com, jikos@kernel.org, matt@codeblueprint.co.uk, mingo@elte.hu, nhorman@tuxdriver.com, oded.gabbay@gmail.com, oleg.drokin@intel.com, oleg@redhat.com, paul@paul-moore.com, sam@ravnborg.org, steffen.klassert@secunet.com, tglx@linutronix.de, tytso@mit.edu, vyasevich@gmail.com, mm-commits@vger.kernel.org
+To: luto@kernel.org, davem@davemloft.net, sam@ravnborg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: compat: add in_compat_syscall to ask whether we're in a compat syscall
+     Subject: sparc/compat: rrovide an accurate in_compat_syscall implementation
 has been added to the -mm tree.  Its filename is
-     compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall.patch
+     sparc-compat-provide-an-accurate-in_compat_syscall-implementation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sparc-compat-provide-an-accurate-in_compat_syscall-implementation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sparc-compat-provide-an-accurate-in_compat_syscall-implementation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,75 +41,43 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Lutomirski <luto@kernel.org>
-Subject: compat: add in_compat_syscall to ask whether we're in a compat syscall
+Subject: sparc/compat: rrovide an accurate in_compat_syscall implementation
 
-A lot of code currently abuses is_compat_task to determine this.
+On sparc64 compat-enabled kernels, any task can make 32-bit and 64-bit
+syscalls.  is_compat_task returns true in 32-bit tasks, which does not
+necessarily imply that the current syscall is 32-bit.
+
+Provide an in_compat_syscall implementation that checks whether the
+current syscall is compat.
+
+As far as I know, sparc is the only architecture on which is_compat_task
+checks the compat status of the task and on which the compat status of a
+syscall can differ from the compat status of the task.  On x86,
+is_compat_task checks the syscall type, not the task type.
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
-Cc: Clemens Ladisch <clemens@ladisch.de>
-Cc: David Airlie <airlied@linux.ie>
-Cc: David Herrmann <dh.herrmann@googlemail.com>
-Cc: David Miller <davem@davemloft.net>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: Herbert Xu <herbert@gondor.apana.org.au>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Jiri Kosina <jikos@kernel.org>
-Cc: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: Neil Horman <nhorman@tuxdriver.com>
-Cc: Oded Gabbay <oded.gabbay@gmail.com>
-Cc: Oleg Drokin <oleg.drokin@intel.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Paul Moore <paul@paul-moore.com>
+Acked-by: David S. Miller <davem@davemloft.net>
 Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Steffen Klassert <steffen.klassert@secunet.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Vlad Yasevich <vyasevich@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compat.h |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+ arch/sparc/include/asm/compat.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN include/linux/compat.h~compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall include/linux/compat.h
---- a/include/linux/compat.h~compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall
-+++ a/include/linux/compat.h
-@@ -5,6 +5,8 @@
-  * syscall compatibility layer.
-  */
+diff -puN arch/sparc/include/asm/compat.h~sparc-compat-provide-an-accurate-in_compat_syscall-implementation arch/sparc/include/asm/compat.h
+--- a/arch/sparc/include/asm/compat.h~sparc-compat-provide-an-accurate-in_compat_syscall-implementation
++++ a/arch/sparc/include/asm/compat.h
+@@ -307,4 +307,10 @@ static inline int is_compat_task(void)
+ 	return test_thread_flag(TIF_32BIT);
+ }
  
-+#include <linux/types.h>
++static inline bool in_compat_syscall(void)
++{
++	return pt_regs_trap_type(current_pt_regs()) == 0x110;
++}
++#define in_compat_syscall in_compat_syscall
 +
- #ifdef CONFIG_COMPAT
- 
- #include <linux/stat.h>
-@@ -713,9 +715,22 @@ asmlinkage long compat_sys_sched_rr_get_
- 
- asmlinkage long compat_sys_fanotify_mark(int, unsigned int, __u32, __u32,
- 					    int, const char __user *);
-+
-+/*
-+ * For most but not all architectures, "am I in a compat syscall?" and
-+ * "am I a compat task?" are the same question.  For architectures on which
-+ * they aren't the same question, arch code can override in_compat_syscall.
-+ */
-+
-+#ifndef in_compat_syscall
-+static inline bool in_compat_syscall(void) { return is_compat_task(); }
-+#endif
-+
- #else
- 
- #define is_compat_task() (0)
-+static inline bool in_compat_syscall(void) { return false; }
- 
- #endif /* CONFIG_COMPAT */
-+
- #endif /* _LINUX_COMPAT_H */
+ #endif /* _ASM_SPARC64_COMPAT_H */
 _
 
 Patches currently in -mm which might be from luto@kernel.org are
