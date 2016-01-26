@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-scsi-sgc-mark-vma-as-vm_io-to-prevent-migration.patch
- added to -mm tree
-Date: Tue, 26 Jan 2016 12:48:31 -0800
-Message-ID: <56a7db9f.usilnOHw1ZVCEhQC%akpm@linux-foundation.org>
+Subject: +
+ mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk.patch added to -mm tree
+Date: Tue, 26 Jan 2016 13:04:03 -0800
+Message-ID: <56a7df43.780kyCfi8K5gVP0w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49376 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50876 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751764AbcAZUsd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 15:48:33 -0500
+	with ESMTP id S1751183AbcAZVEE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 16:04:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, James.Bottomley@HansenPartnership.com, dgilbert@interlog.com, dvyukov@google.com, glider@google.com, hughd@google.com, kcc@google.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, sasha.levin@oracle.com, shashim@codeaurora.org, syzkaller@googlegroups.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, acme@kernel.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, linux@rasmusvillemoes.dk, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, mingo@redhat.com, peterz@infradead.org, rostedt@goodmis.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/scsi/sg.c: mark VMA as VM_IO to prevent migration
+     Subject: mm, tracing: unify mm flags handling in tracepoints and printk
 has been added to the -mm tree.  Its filename is
-     drivers-scsi-sgc-mark-vma-as-vm_io-to-prevent-migration.patch
+     mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-scsi-sgc-mark-vma-as-vm_io-to-prevent-migration.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-scsi-sgc-mark-vma-as-vm_io-to-prevent-migration.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,76 +39,503 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: drivers/scsi/sg.c: mark VMA as VM_IO to prevent migration
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, tracing: unify mm flags handling in tracepoints and printk
 
-Reduced testcase:
+In tracepoints, it's possible to print gfp flags in a human-friendly
+format through a macro show_gfp_flags(), which defines a translation array
+and passes is to __print_flags().  Since the following patch will
+introduce support for gfp flags printing in printk(), it would be nice to
+reuse the array.  This is not straightforward, since __print_flags() can't
+simply reference an array defined in a .c file such as mm/debug.c - it has
+to be a macro to allow the macro magic to communicate the format to
+userspace tools such as trace-cmd.
 
-	#include <fcntl.h>
-	#include <unistd.h>
-	#include <sys/mman.h>
-	#include <numaif.h>
+The solution is to create a macro __def_gfpflag_names which is used both
+in show_gfp_flags(), and to define the gfpflag_names[] array in
+mm/debug.c.
 
-	#define SIZE 0x2000
+On the other hand, mm/debug.c also defines translation tables for page
+flags and vma flags, and desire was expressed (but not implemented in this
+series) to use these also from tracepoints.  Thus, this patch also renames
+the events/gfpflags.h file to events/mmflags.h and moves the table
+definitions there, using the same macro approach as for gfpflags.  This
+allows translating all three kinds of mm-specific flags both in
+tracepoints and printk.
 
-	int main()
-	{
-		int fd;
-		void *p;
-
-		fd = open("/dev/sg0", O_RDWR);
-		p = mmap(NULL, SIZE, PROT_EXEC, MAP_PRIVATE | MAP_LOCKED, fd, 0);
-		mbind(p, SIZE, 0, NULL, 0, MPOL_MF_MOVE);
-		return 0;
-	}
-
-We shouldn't try to migrate pages in sg VMA as we don't have a way to
-update Sg_scatter_hold::pages accordingly from mm core.
-
-Let's mark the VMA as VM_IO to indicate to mm core that the VMA is
-migratable.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Doug Gilbert <dgilbert@interlog.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Shiraz Hashim <shashim@codeaurora.org>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Reviewed-by: Michal Hocko <mhocko@suse.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: syzkaller <syzkaller@googlegroups.com>
-Cc: Kostya Serebryany <kcc@google.com>
-Cc: Alexander Potapenko <glider@google.com>
-Cc: James Bottomley <James.Bottomley@HansenPartnership.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/scsi/sg.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/gfp.h                |    2 
+ include/trace/events/btrfs.h       |    2 
+ include/trace/events/compaction.h  |    2 
+ include/trace/events/gfpflags.h    |   52 --------
+ include/trace/events/huge_memory.h |    2 
+ include/trace/events/kmem.h        |    2 
+ include/trace/events/mmflags.h     |  165 +++++++++++++++++++++++++++
+ include/trace/events/vmscan.h      |    2 
+ mm/debug.c                         |   88 +-------------
+ tools/perf/builtin-kmem.c          |    2 
+ 10 files changed, 182 insertions(+), 137 deletions(-)
 
-diff -puN drivers/scsi/sg.c~drivers-scsi-sgc-mark-vma-as-vm_io-to-prevent-migration drivers/scsi/sg.c
---- a/drivers/scsi/sg.c~drivers-scsi-sgc-mark-vma-as-vm_io-to-prevent-migration
-+++ a/drivers/scsi/sg.c
-@@ -1261,7 +1261,7 @@ sg_mmap(struct file *filp, struct vm_are
- 	}
+diff -puN include/linux/gfp.h~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk
++++ a/include/linux/gfp.h
+@@ -11,7 +11,7 @@ struct vm_area_struct;
  
- 	sfp->mmap_called = 1;
--	vma->vm_flags |= VM_DONTEXPAND | VM_DONTDUMP;
-+	vma->vm_flags |= VM_IO | VM_DONTEXPAND | VM_DONTDUMP;
- 	vma->vm_private_data = sfp;
- 	vma->vm_ops = &sg_mmap_vm_ops;
- 	return 0;
+ /*
+  * In case of changes, please don't forget to update
+- * include/trace/events/gfpflags.h and tools/perf/builtin-kmem.c
++ * include/trace/events/mmflags.h and tools/perf/builtin-kmem.c
+  */
+ 
+ /* Plain integer GFP bitmasks. Do not use this directly. */
+diff -puN include/trace/events/btrfs.h~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk include/trace/events/btrfs.h
+--- a/include/trace/events/btrfs.h~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk
++++ a/include/trace/events/btrfs.h
+@@ -6,7 +6,7 @@
+ 
+ #include <linux/writeback.h>
+ #include <linux/tracepoint.h>
+-#include <trace/events/gfpflags.h>
++#include <trace/events/mmflags.h>
+ 
+ struct btrfs_root;
+ struct btrfs_fs_info;
+diff -puN include/trace/events/compaction.h~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk include/trace/events/compaction.h
+--- a/include/trace/events/compaction.h~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk
++++ a/include/trace/events/compaction.h
+@@ -7,7 +7,7 @@
+ #include <linux/types.h>
+ #include <linux/list.h>
+ #include <linux/tracepoint.h>
+-#include <trace/events/gfpflags.h>
++#include <trace/events/mmflags.h>
+ 
+ #define COMPACTION_STATUS					\
+ 	EM( COMPACT_DEFERRED,		"deferred")		\
+diff -puN include/trace/events/gfpflags.h~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk /dev/null
+--- a/include/trace/events/gfpflags.h
++++ /dev/null
+@@ -1,52 +0,0 @@
+-/*
+- * The order of these masks is important. Matching masks will be seen
+- * first and the left over flags will end up showing by themselves.
+- *
+- * For example, if we have GFP_KERNEL before GFP_USER we wil get:
+- *
+- *  GFP_KERNEL|GFP_HARDWALL
+- *
+- * Thus most bits set go first.
+- */
+-#define show_gfp_flags(flags)						\
+-	(flags) ? __print_flags(flags, "|",				\
+-	{(unsigned long)GFP_TRANSHUGE,		"GFP_TRANSHUGE"},	\
+-	{(unsigned long)GFP_HIGHUSER_MOVABLE,	"GFP_HIGHUSER_MOVABLE"},\
+-	{(unsigned long)GFP_HIGHUSER,		"GFP_HIGHUSER"},	\
+-	{(unsigned long)GFP_USER,		"GFP_USER"},		\
+-	{(unsigned long)GFP_TEMPORARY,		"GFP_TEMPORARY"},	\
+-	{(unsigned long)GFP_KERNEL_ACCOUNT,	"GFP_KERNEL_ACCOUNT"},	\
+-	{(unsigned long)GFP_KERNEL,		"GFP_KERNEL"},		\
+-	{(unsigned long)GFP_NOFS,		"GFP_NOFS"},		\
+-	{(unsigned long)GFP_ATOMIC,		"GFP_ATOMIC"},		\
+-	{(unsigned long)GFP_NOIO,		"GFP_NOIO"},		\
+-	{(unsigned long)GFP_NOWAIT,		"GFP_NOWAIT"},		\
+-	{(unsigned long)GFP_DMA,		"GFP_DMA"},		\
+-	{(unsigned long)__GFP_HIGHMEM,		"__GFP_HIGHMEM"},	\
+-	{(unsigned long)GFP_DMA32,		"GFP_DMA32"},		\
+-	{(unsigned long)__GFP_HIGH,		"__GFP_HIGH"},		\
+-	{(unsigned long)__GFP_ATOMIC,		"__GFP_ATOMIC"},	\
+-	{(unsigned long)__GFP_IO,		"__GFP_IO"},		\
+-	{(unsigned long)__GFP_FS,		"__GFP_FS"},		\
+-	{(unsigned long)__GFP_COLD,		"__GFP_COLD"},		\
+-	{(unsigned long)__GFP_NOWARN,		"__GFP_NOWARN"},	\
+-	{(unsigned long)__GFP_REPEAT,		"__GFP_REPEAT"},	\
+-	{(unsigned long)__GFP_NOFAIL,		"__GFP_NOFAIL"},	\
+-	{(unsigned long)__GFP_NORETRY,		"__GFP_NORETRY"},	\
+-	{(unsigned long)__GFP_COMP,		"__GFP_COMP"},		\
+-	{(unsigned long)__GFP_ZERO,		"__GFP_ZERO"},		\
+-	{(unsigned long)__GFP_NOMEMALLOC,	"__GFP_NOMEMALLOC"},	\
+-	{(unsigned long)__GFP_MEMALLOC,		"__GFP_MEMALLOC"},	\
+-	{(unsigned long)__GFP_HARDWALL,		"__GFP_HARDWALL"},	\
+-	{(unsigned long)__GFP_THISNODE,		"__GFP_THISNODE"},	\
+-	{(unsigned long)__GFP_RECLAIMABLE,	"__GFP_RECLAIMABLE"},	\
+-	{(unsigned long)__GFP_MOVABLE,		"__GFP_MOVABLE"},	\
+-	{(unsigned long)__GFP_ACCOUNT,		"__GFP_ACCOUNT"},	\
+-	{(unsigned long)__GFP_NOTRACK,		"__GFP_NOTRACK"},	\
+-	{(unsigned long)__GFP_WRITE,		"__GFP_WRITE"},		\
+-	{(unsigned long)__GFP_RECLAIM,		"__GFP_RECLAIM"},	\
+-	{(unsigned long)__GFP_DIRECT_RECLAIM,	"__GFP_DIRECT_RECLAIM"},\
+-	{(unsigned long)__GFP_KSWAPD_RECLAIM,	"__GFP_KSWAPD_RECLAIM"},\
+-	{(unsigned long)__GFP_OTHER_NODE,	"__GFP_OTHER_NODE"}	\
+-	) : "none"
+-
+diff -puN include/trace/events/huge_memory.h~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk include/trace/events/huge_memory.h
+--- a/include/trace/events/huge_memory.h~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk
++++ a/include/trace/events/huge_memory.h
+@@ -6,8 +6,6 @@
+ 
+ #include  <linux/tracepoint.h>
+ 
+-#include <trace/events/gfpflags.h>
+-
+ #define SCAN_STATUS							\
+ 	EM( SCAN_FAIL,			"failed")			\
+ 	EM( SCAN_SUCCEED,		"succeeded")			\
+diff -puN include/trace/events/kmem.h~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk include/trace/events/kmem.h
+--- a/include/trace/events/kmem.h~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk
++++ a/include/trace/events/kmem.h
+@@ -6,7 +6,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/tracepoint.h>
+-#include <trace/events/gfpflags.h>
++#include <trace/events/mmflags.h>
+ 
+ DECLARE_EVENT_CLASS(kmem_alloc,
+ 
+diff -puN /dev/null include/trace/events/mmflags.h
+--- /dev/null
++++ a/include/trace/events/mmflags.h
+@@ -0,0 +1,165 @@
++/*
++ * The order of these masks is important. Matching masks will be seen
++ * first and the left over flags will end up showing by themselves.
++ *
++ * For example, if we have GFP_KERNEL before GFP_USER we wil get:
++ *
++ *  GFP_KERNEL|GFP_HARDWALL
++ *
++ * Thus most bits set go first.
++ */
++
++#define __def_gfpflag_names						\
++	{(unsigned long)GFP_TRANSHUGE,		"GFP_TRANSHUGE"},	\
++	{(unsigned long)GFP_HIGHUSER_MOVABLE,	"GFP_HIGHUSER_MOVABLE"},\
++	{(unsigned long)GFP_HIGHUSER,		"GFP_HIGHUSER"},	\
++	{(unsigned long)GFP_USER,		"GFP_USER"},		\
++	{(unsigned long)GFP_TEMPORARY,		"GFP_TEMPORARY"},	\
++	{(unsigned long)GFP_KERNEL_ACCOUNT,	"GFP_KERNEL_ACCOUNT"},	\
++	{(unsigned long)GFP_KERNEL,		"GFP_KERNEL"},		\
++	{(unsigned long)GFP_NOFS,		"GFP_NOFS"},		\
++	{(unsigned long)GFP_ATOMIC,		"GFP_ATOMIC"},		\
++	{(unsigned long)GFP_NOIO,		"GFP_NOIO"},		\
++	{(unsigned long)GFP_NOWAIT,		"GFP_NOWAIT"},		\
++	{(unsigned long)GFP_DMA,		"GFP_DMA"},		\
++	{(unsigned long)__GFP_HIGHMEM,		"__GFP_HIGHMEM"},	\
++	{(unsigned long)GFP_DMA32,		"GFP_DMA32"},		\
++	{(unsigned long)__GFP_HIGH,		"__GFP_HIGH"},		\
++	{(unsigned long)__GFP_ATOMIC,		"__GFP_ATOMIC"},	\
++	{(unsigned long)__GFP_IO,		"__GFP_IO"},		\
++	{(unsigned long)__GFP_FS,		"__GFP_FS"},		\
++	{(unsigned long)__GFP_COLD,		"__GFP_COLD"},		\
++	{(unsigned long)__GFP_NOWARN,		"__GFP_NOWARN"},	\
++	{(unsigned long)__GFP_REPEAT,		"__GFP_REPEAT"},	\
++	{(unsigned long)__GFP_NOFAIL,		"__GFP_NOFAIL"},	\
++	{(unsigned long)__GFP_NORETRY,		"__GFP_NORETRY"},	\
++	{(unsigned long)__GFP_COMP,		"__GFP_COMP"},		\
++	{(unsigned long)__GFP_ZERO,		"__GFP_ZERO"},		\
++	{(unsigned long)__GFP_NOMEMALLOC,	"__GFP_NOMEMALLOC"},	\
++	{(unsigned long)__GFP_MEMALLOC,		"__GFP_MEMALLOC"},	\
++	{(unsigned long)__GFP_HARDWALL,		"__GFP_HARDWALL"},	\
++	{(unsigned long)__GFP_THISNODE,		"__GFP_THISNODE"},	\
++	{(unsigned long)__GFP_RECLAIMABLE,	"__GFP_RECLAIMABLE"},	\
++	{(unsigned long)__GFP_MOVABLE,		"__GFP_MOVABLE"},	\
++	{(unsigned long)__GFP_ACCOUNT,		"__GFP_ACCOUNT"},	\
++	{(unsigned long)__GFP_NOTRACK,		"__GFP_NOTRACK"},	\
++	{(unsigned long)__GFP_WRITE,		"__GFP_WRITE"},		\
++	{(unsigned long)__GFP_RECLAIM,		"__GFP_RECLAIM"},	\
++	{(unsigned long)__GFP_DIRECT_RECLAIM,	"__GFP_DIRECT_RECLAIM"},\
++	{(unsigned long)__GFP_KSWAPD_RECLAIM,	"__GFP_KSWAPD_RECLAIM"},\
++	{(unsigned long)__GFP_OTHER_NODE,	"__GFP_OTHER_NODE"}	\
++
++#define show_gfp_flags(flags)						\
++	(flags) ? __print_flags(flags, "|",				\
++	__def_gfpflag_names						\
++	) : "none"
++
++#ifdef CONFIG_MMU
++#define IF_HAVE_PG_MLOCK(flag,string) ,{1UL << flag, string}
++#else
++#define IF_HAVE_PG_MLOCK(flag,string)
++#endif
++
++#ifdef CONFIG_ARCH_USES_PG_UNCACHED
++#define IF_HAVE_PG_UNCACHED(flag,string) ,{1UL << flag, string}
++#else
++#define IF_HAVE_PG_UNCACHED(flag,string)
++#endif
++
++#ifdef CONFIG_MEMORY_FAILURE
++#define IF_HAVE_PG_HWPOISON(flag,string) ,{1UL << flag, string}
++#else
++#define IF_HAVE_PG_HWPOISON(flag,string)
++#endif
++
++#if defined(CONFIG_IDLE_PAGE_TRACKING) && defined(CONFIG_64BIT)
++#define IF_HAVE_PG_IDLE(flag,string) ,{1UL << flag, string}
++#else
++#define IF_HAVE_PG_IDLE(flag,string)
++#endif
++
++#define __def_pageflag_names						\
++	{1UL << PG_locked,		"locked"	},		\
++	{1UL << PG_error,		"error"		},		\
++	{1UL << PG_referenced,		"referenced"	},		\
++	{1UL << PG_uptodate,		"uptodate"	},		\
++	{1UL << PG_dirty,		"dirty"		},		\
++	{1UL << PG_lru,			"lru"		},		\
++	{1UL << PG_active,		"active"	},		\
++	{1UL << PG_slab,		"slab"		},		\
++	{1UL << PG_owner_priv_1,	"owner_priv_1"	},		\
++	{1UL << PG_arch_1,		"arch_1"	},		\
++	{1UL << PG_reserved,		"reserved"	},		\
++	{1UL << PG_private,		"private"	},		\
++	{1UL << PG_private_2,		"private_2"	},		\
++	{1UL << PG_writeback,		"writeback"	},		\
++	{1UL << PG_head,		"head"		},		\
++	{1UL << PG_swapcache,		"swapcache"	},		\
++	{1UL << PG_mappedtodisk,	"mappedtodisk"	},		\
++	{1UL << PG_reclaim,		"reclaim"	},		\
++	{1UL << PG_swapbacked,		"swapbacked"	},		\
++	{1UL << PG_unevictable,		"unevictable"	}		\
++IF_HAVE_PG_MLOCK(PG_mlocked,		"mlocked"	)		\
++IF_HAVE_PG_UNCACHED(PG_uncached,	"uncached"	)		\
++IF_HAVE_PG_HWPOISON(PG_hwpoison,	"hwpoison"	)		\
++IF_HAVE_PG_IDLE(PG_young,		"young"		)		\
++IF_HAVE_PG_IDLE(PG_idle,		"idle"		)
++
++#define show_page_flags(flags)						\
++	(flags) ? __print_flags(flags, "|",				\
++	__def_pageflag_names						\
++	) : "none"
++
++#if defined(CONFIG_X86)
++#define __VM_ARCH_SPECIFIC {VM_PAT,     "pat"           }
++#elif defined(CONFIG_PPC)
++#define __VM_ARCH_SPECIFIC {VM_SAO,     "sao"           }
++#elif defined(CONFIG_PARISC) || defined(CONFIG_METAG) || defined(CONFIG_IA64)
++#define __VM_ARCH_SPECIFIC {VM_GROWSUP,	"growsup"	}
++#elif !defined(CONFIG_MMU)
++#define __VM_ARCH_SPECIFIC {VM_MAPPED_COPY,"mappedcopy"	}
++#else
++#define __VM_ARCH_SPECIFIC {VM_ARCH_1,	"arch_1"	}
++#endif
++
++#ifdef CONFIG_MEM_SOFT_DIRTY
++#define IF_HAVE_VM_SOFTDIRTY(flag,name) {flag, name },
++#else
++#define IF_HAVE_VM_SOFTDIRTY(flag,name)
++#endif
++
++#define __def_vmaflag_names						\
++	{VM_READ,			"read"		},		\
++	{VM_WRITE,			"write"		},		\
++	{VM_EXEC,			"exec"		},		\
++	{VM_SHARED,			"shared"	},		\
++	{VM_MAYREAD,			"mayread"	},		\
++	{VM_MAYWRITE,			"maywrite"	},		\
++	{VM_MAYEXEC,			"mayexec"	},		\
++	{VM_MAYSHARE,			"mayshare"	},		\
++	{VM_GROWSDOWN,			"growsdown"	},		\
++	{VM_PFNMAP,			"pfnmap"	},		\
++	{VM_DENYWRITE,			"denywrite"	},		\
++	{VM_LOCKONFAULT,		"lockonfault"	},		\
++	{VM_LOCKED,			"locked"	},		\
++	{VM_IO,				"io"		},		\
++	{VM_SEQ_READ,			"seqread"	},		\
++	{VM_RAND_READ,			"randread"	},		\
++	{VM_DONTCOPY,			"dontcopy"	},		\
++	{VM_DONTEXPAND,			"dontexpand"	},		\
++	{VM_ACCOUNT,			"account"	},		\
++	{VM_NORESERVE,			"noreserve"	},		\
++	{VM_HUGETLB,			"hugetlb"	},		\
++	__VM_ARCH_SPECIFIC				,		\
++	{VM_DONTDUMP,			"dontdump"	},		\
++IF_HAVE_VM_SOFTDIRTY(VM_SOFTDIRTY,	"softdirty"	)		\
++	{VM_MIXEDMAP,			"mixedmap"	},		\
++	{VM_HUGEPAGE,			"hugepage"	},		\
++	{VM_NOHUGEPAGE,			"nohugepage"	},		\
++	{VM_MERGEABLE,			"mergeable"	}		\
++
++#define show_vma_flags(flags)						\
++	(flags) ? __print_flags(flags, "|",				\
++	__def_vmaflag_names						\
++	) : "none"
++
+diff -puN include/trace/events/vmscan.h~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk include/trace/events/vmscan.h
+--- a/include/trace/events/vmscan.h~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk
++++ a/include/trace/events/vmscan.h
+@@ -8,7 +8,7 @@
+ #include <linux/tracepoint.h>
+ #include <linux/mm.h>
+ #include <linux/memcontrol.h>
+-#include <trace/events/gfpflags.h>
++#include <trace/events/mmflags.h>
+ 
+ #define RECLAIM_WB_ANON		0x0001u
+ #define RECLAIM_WB_FILE		0x0002u
+diff -puN mm/debug.c~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk mm/debug.c
+--- a/mm/debug.c~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk
++++ a/mm/debug.c
+@@ -9,41 +9,14 @@
+ #include <linux/mm.h>
+ #include <linux/trace_events.h>
+ #include <linux/memcontrol.h>
++#include <trace/events/mmflags.h>
+ 
+ static const struct trace_print_flags pageflag_names[] = {
+-	{1UL << PG_locked,		"locked"	},
+-	{1UL << PG_error,		"error"		},
+-	{1UL << PG_referenced,		"referenced"	},
+-	{1UL << PG_uptodate,		"uptodate"	},
+-	{1UL << PG_dirty,		"dirty"		},
+-	{1UL << PG_lru,			"lru"		},
+-	{1UL << PG_active,		"active"	},
+-	{1UL << PG_slab,		"slab"		},
+-	{1UL << PG_owner_priv_1,	"owner_priv_1"	},
+-	{1UL << PG_arch_1,		"arch_1"	},
+-	{1UL << PG_reserved,		"reserved"	},
+-	{1UL << PG_private,		"private"	},
+-	{1UL << PG_private_2,		"private_2"	},
+-	{1UL << PG_writeback,		"writeback"	},
+-	{1UL << PG_head,		"head"		},
+-	{1UL << PG_swapcache,		"swapcache"	},
+-	{1UL << PG_mappedtodisk,	"mappedtodisk"	},
+-	{1UL << PG_reclaim,		"reclaim"	},
+-	{1UL << PG_swapbacked,		"swapbacked"	},
+-	{1UL << PG_unevictable,		"unevictable"	},
+-#ifdef CONFIG_MMU
+-	{1UL << PG_mlocked,		"mlocked"	},
+-#endif
+-#ifdef CONFIG_ARCH_USES_PG_UNCACHED
+-	{1UL << PG_uncached,		"uncached"	},
+-#endif
+-#ifdef CONFIG_MEMORY_FAILURE
+-	{1UL << PG_hwpoison,		"hwpoison"	},
+-#endif
+-#if defined(CONFIG_IDLE_PAGE_TRACKING) && defined(CONFIG_64BIT)
+-	{1UL << PG_young,		"young"		},
+-	{1UL << PG_idle,		"idle"		},
+-#endif
++	__def_pageflag_names
++};
++
++static const struct trace_print_flags gfpflag_names[] = {
++	__def_gfpflag_names
+ };
+ 
+ static void dump_flags(unsigned long flags,
+@@ -108,47 +81,8 @@ EXPORT_SYMBOL(dump_page);
+ 
+ #ifdef CONFIG_DEBUG_VM
+ 
+-static const struct trace_print_flags vmaflags_names[] = {
+-	{VM_READ,			"read"		},
+-	{VM_WRITE,			"write"		},
+-	{VM_EXEC,			"exec"		},
+-	{VM_SHARED,			"shared"	},
+-	{VM_MAYREAD,			"mayread"	},
+-	{VM_MAYWRITE,			"maywrite"	},
+-	{VM_MAYEXEC,			"mayexec"	},
+-	{VM_MAYSHARE,			"mayshare"	},
+-	{VM_GROWSDOWN,			"growsdown"	},
+-	{VM_PFNMAP,			"pfnmap"	},
+-	{VM_DENYWRITE,			"denywrite"	},
+-	{VM_LOCKONFAULT,		"lockonfault"	},
+-	{VM_LOCKED,			"locked"	},
+-	{VM_IO,				"io"		},
+-	{VM_SEQ_READ,			"seqread"	},
+-	{VM_RAND_READ,			"randread"	},
+-	{VM_DONTCOPY,			"dontcopy"	},
+-	{VM_DONTEXPAND,			"dontexpand"	},
+-	{VM_ACCOUNT,			"account"	},
+-	{VM_NORESERVE,			"noreserve"	},
+-	{VM_HUGETLB,			"hugetlb"	},
+-#if defined(CONFIG_X86)
+-	{VM_PAT,			"pat"		},
+-#elif defined(CONFIG_PPC)
+-	{VM_SAO,			"sao"		},
+-#elif defined(CONFIG_PARISC) || defined(CONFIG_METAG) || defined(CONFIG_IA64)
+-	{VM_GROWSUP,			"growsup"	},
+-#elif !defined(CONFIG_MMU)
+-	{VM_MAPPED_COPY,		"mappedcopy"	},
+-#else
+-	{VM_ARCH_1,			"arch_1"	},
+-#endif
+-	{VM_DONTDUMP,			"dontdump"	},
+-#ifdef CONFIG_MEM_SOFT_DIRTY
+-	{VM_SOFTDIRTY,			"softdirty"	},
+-#endif
+-	{VM_MIXEDMAP,			"mixedmap"	},
+-	{VM_HUGEPAGE,			"hugepage"	},
+-	{VM_NOHUGEPAGE,			"nohugepage"	},
+-	{VM_MERGEABLE,			"mergeable"	},
++static const struct trace_print_flags vmaflag_names[] = {
++	__def_vmaflag_names
+ };
+ 
+ void dump_vma(const struct vm_area_struct *vma)
+@@ -162,7 +96,7 @@ void dump_vma(const struct vm_area_struc
+ 		(unsigned long)pgprot_val(vma->vm_page_prot),
+ 		vma->anon_vma, vma->vm_ops, vma->vm_pgoff,
+ 		vma->vm_file, vma->vm_private_data);
+-	dump_flags(vma->vm_flags, vmaflags_names, ARRAY_SIZE(vmaflags_names));
++	dump_flags(vma->vm_flags, vmaflag_names, ARRAY_SIZE(vmaflag_names));
+ }
+ EXPORT_SYMBOL(dump_vma);
+ 
+@@ -233,8 +167,8 @@ void dump_mm(const struct mm_struct *mm)
+ 		""		/* This is here to not have a comma! */
+ 		);
+ 
+-		dump_flags(mm->def_flags, vmaflags_names,
+-				ARRAY_SIZE(vmaflags_names));
++		dump_flags(mm->def_flags, vmaflag_names,
++				ARRAY_SIZE(vmaflag_names));
+ }
+ 
+ #endif		/* CONFIG_DEBUG_VM */
+diff -puN tools/perf/builtin-kmem.c~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk tools/perf/builtin-kmem.c
+--- a/tools/perf/builtin-kmem.c~mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk
++++ a/tools/perf/builtin-kmem.c
+@@ -602,7 +602,7 @@ static int gfpcmp(const void *a, const v
+ 	return fa->flags - fb->flags;
+ }
+ 
+-/* see include/trace/events/gfpflags.h */
++/* see include/trace/events/mmflags.h */
+ static const struct {
+ 	const char *original;
+ 	const char *compact;
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-thp-make-split_queue-per-node.patch
-thp-change-deferred_split_count-to-return-number-of-thp-in-queue.patch
-thp-change-deferred_split_count-to-return-number-of-thp-in-queue-fix.patch
-thp-limit-number-of-object-to-scan-on-deferred_split_scan.patch
-drivers-scsi-sgc-mark-vma-as-vm_io-to-prevent-migration.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
+mm-tracing-make-show_gfp_flags-up-to-date.patch
+tools-perf-make-gfp_compact_table-up-to-date.patch
+mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk.patch
+mm-printk-introduce-new-format-string-for-flags.patch
+mm-debug-replace-dump_flags-with-the-new-printk-formats.patch
+mm-page_alloc-print-symbolic-gfp_flags-on-allocation-failure.patch
+mm-oom-print-symbolic-gfp_flags-in-oom-warning.patch
+mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
+mm-page_owner-convert-page_owner_inited-to-static-key.patch
+mm-page_owner-copy-page-owner-info-during-migration.patch
+mm-page_owner-track-and-print-last-migrate-reason.patch
+mm-page_owner-dump-page-owner-info-from-dump_page.patch
+mm-debug-move-bad-flags-printing-to-bad_page.patch
 
