@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + amdkfd-use-in_compat_syscall-to-check-open-caller-type.patch
- added to -mm tree
-Date: Tue, 26 Jan 2016 14:33:58 -0800
-Message-ID: <56a7f456.ITc1k/yOTlJMK+cP%akpm@linux-foundation.org>
+Subject: + efivars-use-in_compat_syscall-to-check-for-compat-callers.patch added to -mm tree
+Date: Tue, 26 Jan 2016 14:33:56 -0800
+Message-ID: <56a7f454.DIXCZYL7x0R3TOT6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60299 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60296 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752820AbcAZWd7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:59 -0500
+	with ESMTP id S1752799AbcAZWd5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luto@kernel.org, airlied@linux.ie, oded.gabbay@gmail.com, mm-commits@vger.kernel.org
+To: luto@kernel.org, matt@codeblueprint.co.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/gpu/drm/amd/amdkfd: use in_compat_syscall to check open() caller type
+     Subject: drivers/firmware/efi/efivars.c: use in_compat_syscall() to check for compat callers
 has been added to the -mm tree.  Its filename is
-     amdkfd-use-in_compat_syscall-to-check-open-caller-type.patch
+     efivars-use-in_compat_syscall-to-check-for-compat-callers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/amdkfd-use-in_compat_syscall-to-check-open-caller-type.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/efivars-use-in_compat_syscall-to-check-for-compat-callers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/amdkfd-use-in_compat_syscall-to-check-open-caller-type.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/efivars-use-in_compat_syscall-to-check-for-compat-callers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,49 +39,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Lutomirski <luto@kernel.org>
-Subject: drivers/gpu/drm/amd/amdkfd: use in_compat_syscall to check open() caller type
+Subject: drivers/firmware/efi/efivars.c: use in_compat_syscall() to check for compat callers
 
-amdkfd wants to know syscall type, not task type.  Check directly.
-
-Unfortunately, amdkfd is making nasty assumptions that a process' bitness
-is a well-defined constant thing.  This isn't the case on x86.  I don't
-know how much this matters, but this patch has no effect on generated code
-on x86, so amdkfd is equally broken with and without this patch.
+This should make no difference on any architecture, as x86's historical
+is_compat_task behavior really did check whether the calling syscall was a
+compat syscall.  x86's is_compat_task is going away, though.
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Cc: Oded Gabbay <oded.gabbay@gmail.com>
-Cc: David Airlie <airlied@linux.ie>
+Cc: Matt Fleming <matt@codeblueprint.co.uk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/amd/amdkfd/kfd_chardev.c |    2 +-
- drivers/gpu/drm/amd/amdkfd/kfd_process.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/firmware/efi/efivars.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/gpu/drm/amd/amdkfd/kfd_chardev.c~amdkfd-use-in_compat_syscall-to-check-open-caller-type drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
---- a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c~amdkfd-use-in_compat_syscall-to-check-open-caller-type
-+++ a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
-@@ -107,7 +107,7 @@ static int kfd_open(struct inode *inode,
- 	if (iminor(inode) != 0)
- 		return -ENODEV;
+diff -puN drivers/firmware/efi/efivars.c~efivars-use-in_compat_syscall-to-check-for-compat-callers drivers/firmware/efi/efivars.c
+--- a/drivers/firmware/efi/efivars.c~efivars-use-in_compat_syscall-to-check-for-compat-callers
++++ a/drivers/firmware/efi/efivars.c
+@@ -231,7 +231,7 @@ sanity_check(struct efi_variable *var, e
  
--	is_32bit_user_mode = is_compat_task();
-+	is_32bit_user_mode = in_compat_syscall();
+ static inline bool is_compat(void)
+ {
+-	if (IS_ENABLED(CONFIG_COMPAT) && is_compat_task())
++	if (IS_ENABLED(CONFIG_COMPAT) && in_compat_syscall())
+ 		return true;
  
- 	if (is_32bit_user_mode == true) {
- 		dev_warn(kfd_device,
-diff -puN drivers/gpu/drm/amd/amdkfd/kfd_process.c~amdkfd-use-in_compat_syscall-to-check-open-caller-type drivers/gpu/drm/amd/amdkfd/kfd_process.c
---- a/drivers/gpu/drm/amd/amdkfd/kfd_process.c~amdkfd-use-in_compat_syscall-to-check-open-caller-type
-+++ a/drivers/gpu/drm/amd/amdkfd/kfd_process.c
-@@ -311,7 +311,7 @@ static struct kfd_process *create_proces
- 		goto err_process_pqm_init;
- 
- 	/* init process apertures*/
--	process->is_32bit_user_mode = is_compat_task();
-+	process->is_32bit_user_mode = in_compat_syscall();
- 	if (kfd_init_apertures(process) != 0)
- 		goto err_init_apretures;
- 
+ 	return false;
 _
 
 Patches currently in -mm which might be from luto@kernel.org are
