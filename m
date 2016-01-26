@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- staging-lustre-switch-from-is_compat_task-to-in_compat_syscall.patch added
- to -mm tree
-Date: Tue, 26 Jan 2016 14:33:46 -0800
-Message-ID: <56a7f44a.q4hVvMXavKy0kCPk%akpm@linux-foundation.org>
+ net-sctp-use-in_compat_syscall-for-sctp_getsockopt_connectx3.patch added to -mm tree
+Date: Tue, 26 Jan 2016 14:33:50 -0800
+Message-ID: <56a7f44e.nPRTHI3IgulmkLnm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60251 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60282 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752597AbcAZWdr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:47 -0500
+	with ESMTP id S1752548AbcAZWdv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luto@kernel.org, adilger.kernel@dilger.ca, oleg.drokin@intel.com, mm-commits@vger.kernel.org
+To: luto@kernel.org, davem@davemloft.net, nhorman@tuxdriver.com, vyasevich@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: staging/lustre: switch from is_compat_task to in_compat_syscall
+     Subject: net/sctp: Use in_compat_syscall for sctp_getsockopt_connectx3
 has been added to the -mm tree.  Its filename is
-     staging-lustre-switch-from-is_compat_task-to-in_compat_syscall.patch
+     net-sctp-use-in_compat_syscall-for-sctp_getsockopt_connectx3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/staging-lustre-switch-from-is_compat_task-to-in_compat_syscall.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/net-sctp-use-in_compat_syscall-for-sctp_getsockopt_connectx3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/staging-lustre-switch-from-is_compat_task-to-in_compat_syscall.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/net-sctp-use-in_compat_syscall-for-sctp_getsockopt_connectx3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,32 +40,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Lutomirski <luto@kernel.org>
-Subject: staging/lustre: switch from is_compat_task to in_compat_syscall
+Subject: net/sctp: Use in_compat_syscall for sctp_getsockopt_connectx3
 
-AFAICT, lustre is trying to determine syscall bitness.  Use the new
-accessor.
+SCTP unfortunately has a different ABI for SCTP_SOCKOPT_CONNECTX3
+for 32-bit and 64-bit callers.  Use in_compat_syscall to correctly
+distinguish them on all architectures.
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Cc: Oleg Drokin <oleg.drokin@intel.com>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Vlad Yasevich <vyasevich@gmail.com>
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/staging/lustre/lustre/llite/llite_internal.h |    2 +-
+ net/sctp/socket.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN drivers/staging/lustre/lustre/llite/llite_internal.h~staging-lustre-switch-from-is_compat_task-to-in_compat_syscall drivers/staging/lustre/lustre/llite/llite_internal.h
---- a/drivers/staging/lustre/lustre/llite/llite_internal.h~staging-lustre-switch-from-is_compat_task-to-in_compat_syscall
-+++ a/drivers/staging/lustre/lustre/llite/llite_internal.h
-@@ -647,7 +647,7 @@ static inline int ll_need_32bit_api(stru
- #if BITS_PER_LONG == 32
- 	return 1;
- #elif defined(CONFIG_COMPAT)
--	return unlikely(is_compat_task() || (sbi->ll_flags & LL_SBI_32BIT_API));
-+	return unlikely(in_compat_syscall() || (sbi->ll_flags & LL_SBI_32BIT_API));
- #else
- 	return unlikely(sbi->ll_flags & LL_SBI_32BIT_API);
- #endif
+diff -puN net/sctp/socket.c~net-sctp-use-in_compat_syscall-for-sctp_getsockopt_connectx3 net/sctp/socket.c
+--- a/net/sctp/socket.c~net-sctp-use-in_compat_syscall-for-sctp_getsockopt_connectx3
++++ a/net/sctp/socket.c
+@@ -1389,7 +1389,7 @@ static int sctp_getsockopt_connectx3(str
+ 	int err = 0;
+ 
+ #ifdef CONFIG_COMPAT
+-	if (is_compat_task()) {
++	if (in_compat_syscall()) {
+ 		struct compat_sctp_getaddrs_old param32;
+ 
+ 		if (len < sizeof(param32))
 _
 
 Patches currently in -mm which might be from luto@kernel.org are
