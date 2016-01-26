@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
- added to -mm tree
-Date: Tue, 26 Jan 2016 13:03:57 -0800
-Message-ID: <56a7df3d.5+2kodWka770Ggzk%akpm@linux-foundation.org>
+Subject: + mm-page_owner-dump-page-owner-info-from-dump_page.patch added
+ to -mm tree
+Date: Tue, 26 Jan 2016 13:04:22 -0800
+Message-ID: <56a7df56.2Momp6Sf7XiwYCdu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50829 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50973 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751613AbcAZVD6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 16:03:58 -0500
+	with ESMTP id S1752373AbcAZVEX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 16:04:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, acme@kernel.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, linux@rasmusvillemoes.dk, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, mingo@redhat.com, peterz@infradead.org, rostedt@goodmis.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tracepoints: move trace_print_flags definitions to tracepoint-defs.h
+     Subject: mm, page_owner: dump page owner info from dump_page()
 has been added to the -mm tree.  Its filename is
-     tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
+     mm-page_owner-dump-page-owner-info-from-dump_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-dump-page-owner-info-from-dump_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-dump-page-owner-info-from-dump_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,81 +40,146 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: tracepoints: move trace_print_flags definitions to tracepoint-defs.h
+Subject: mm, page_owner: dump page owner info from dump_page()
 
-The following patch will need to declare array of struct trace_print_flags
-in a header.  To prevent this header from pulling in all of RCU through
-trace_events.h, move the struct trace_print_flags{_64} definitions to the
-new lightweight tracepoint-defs.h header.
+The page_owner mechanism is useful for dealing with memory leaks.  By
+reading /sys/kernel/debug/page_owner one can determine the stack traces
+leading to allocations of all pages, and find e.g.  a buggy driver.
+
+This information might be also potentially useful for debugging, such as
+the VM_BUG_ON_PAGE() calls to dump_page().  So let's print the stored info
+from dump_page().
+
+Example output:
+
+page:ffffea000292f1c0 count:1 mapcount:0 mapping:ffff8800b2f6cc18 index:0x91d
+flags: 0x1fffff8001002c(referenced|uptodate|lru|mappedtodisk)
+page dumped because: VM_BUG_ON_PAGE(1)
+page->mem_cgroup:ffff8801392c5000
+page allocated via order 0, migratetype Movable, gfp_mask 0x24213ca(GFP_HIGHUSER_MOVABLE|__GFP_COLD|__GFP_NOWARN|__GFP_NORETRY)
+ [<ffffffff811682c4>] __alloc_pages_nodemask+0x134/0x230
+ [<ffffffff811b40c8>] alloc_pages_current+0x88/0x120
+ [<ffffffff8115e386>] __page_cache_alloc+0xe6/0x120
+ [<ffffffff8116ba6c>] __do_page_cache_readahead+0xdc/0x240
+ [<ffffffff8116bd05>] ondemand_readahead+0x135/0x260
+ [<ffffffff8116be9c>] page_cache_async_readahead+0x6c/0x70
+ [<ffffffff811604c2>] generic_file_read_iter+0x3f2/0x760
+ [<ffffffff811e0dc7>] __vfs_read+0xa7/0xd0
+page has been migrated, last migrate reason: compaction
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Michal Hocko <mhocko@suse.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Minchan Kim <minchan@kernel.org>
 Cc: Sasha Levin <sasha.levin@oracle.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/trace_events.h    |   10 ----------
- include/linux/tracepoint-defs.h |   14 ++++++++++++--
- 2 files changed, 12 insertions(+), 12 deletions(-)
+ include/linux/page_owner.h |    9 +++++++++
+ mm/debug.c                 |    2 ++
+ mm/page_alloc.c            |    1 +
+ mm/page_owner.c            |   25 +++++++++++++++++++++++++
+ 4 files changed, 37 insertions(+)
 
-diff -puN include/linux/trace_events.h~tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh include/linux/trace_events.h
---- a/include/linux/trace_events.h~tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh
-+++ a/include/linux/trace_events.h
-@@ -15,16 +15,6 @@ struct tracer;
- struct dentry;
- struct bpf_prog;
+diff -puN include/linux/page_owner.h~mm-page_owner-dump-page-owner-info-from-dump_page include/linux/page_owner.h
+--- a/include/linux/page_owner.h~mm-page_owner-dump-page-owner-info-from-dump_page
++++ a/include/linux/page_owner.h
+@@ -13,6 +13,7 @@ extern void __set_page_owner(struct page
+ extern gfp_t __get_page_owner_gfp(struct page *page);
+ extern void __copy_page_owner(struct page *oldpage, struct page *newpage);
+ extern void __set_page_owner_migrate_reason(struct page *page, int reason);
++extern void __dump_page_owner(struct page *page);
  
--struct trace_print_flags {
--	unsigned long		mask;
--	const char		*name;
--};
--
--struct trace_print_flags_u64 {
--	unsigned long long	mask;
--	const char		*name;
--};
--
- const char *trace_print_flags_seq(struct trace_seq *p, const char *delim,
- 				  unsigned long flags,
- 				  const struct trace_print_flags *flag_array);
-diff -puN include/linux/tracepoint-defs.h~tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh include/linux/tracepoint-defs.h
---- a/include/linux/tracepoint-defs.h~tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh
-+++ a/include/linux/tracepoint-defs.h
-@@ -3,13 +3,23 @@
+ static inline void reset_page_owner(struct page *page, unsigned int order)
+ {
+@@ -44,6 +45,11 @@ static inline void set_page_owner_migrat
+ 	if (static_branch_unlikely(&page_owner_inited))
+ 		__set_page_owner_migrate_reason(page, reason);
+ }
++static inline void dump_page_owner(struct page *page)
++{
++	if (static_branch_unlikely(&page_owner_inited))
++		__dump_page_owner(page);
++}
+ #else
+ static inline void reset_page_owner(struct page *page, unsigned int order)
+ {
+@@ -62,5 +68,8 @@ static inline void copy_page_owner(struc
+ static inline void set_page_owner_migrate_reason(struct page *page, int reason)
+ {
+ }
++static inline void dump_page_owner(struct page *page)
++{
++}
+ #endif /* CONFIG_PAGE_OWNER */
+ #endif /* __LINUX_PAGE_OWNER_H */
+diff -puN mm/debug.c~mm-page_owner-dump-page-owner-info-from-dump_page mm/debug.c
+--- a/mm/debug.c~mm-page_owner-dump-page-owner-info-from-dump_page
++++ a/mm/debug.c
+@@ -11,6 +11,7 @@
+ #include <linux/memcontrol.h>
+ #include <trace/events/mmflags.h>
+ #include <linux/migrate.h>
++#include <linux/page_owner.h>
  
- /*
-  * File can be included directly by headers who only want to access
-- * tracepoint->key to guard out of line trace calls. Otherwise
-- * linux/tracepoint.h should be used.
-+ * tracepoint->key to guard out of line trace calls, or the definition of
-+ * trace_print_flags{_u64}. Otherwise linux/tracepoint.h should be used.
-  */
+ #include "internal.h"
  
- #include <linux/atomic.h>
- #include <linux/static_key.h>
+@@ -67,6 +68,7 @@ void dump_page_badflags(struct page *pag
+ void dump_page(struct page *page, const char *reason)
+ {
+ 	dump_page_badflags(page, reason, 0);
++	dump_page_owner(page);
+ }
+ EXPORT_SYMBOL(dump_page);
  
-+struct trace_print_flags {
-+	unsigned long		mask;
-+	const char		*name;
-+};
+diff -puN mm/page_alloc.c~mm-page_owner-dump-page-owner-info-from-dump_page mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_owner-dump-page-owner-info-from-dump_page
++++ a/mm/page_alloc.c
+@@ -443,6 +443,7 @@ static void bad_page(struct page *page,
+ 	printk(KERN_ALERT "BUG: Bad page state in process %s  pfn:%05lx\n",
+ 		current->comm, page_to_pfn(page));
+ 	dump_page_badflags(page, reason, bad_flags);
++	dump_page_owner(page);
+ 
+ 	print_modules();
+ 	dump_stack();
+diff -puN mm/page_owner.c~mm-page_owner-dump-page-owner-info-from-dump_page mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-dump-page-owner-info-from-dump_page
++++ a/mm/page_owner.c
+@@ -183,6 +183,31 @@ err:
+ 	return -ENOMEM;
+ }
+ 
++void __dump_page_owner(struct page *page)
++{
++	struct page_ext *page_ext = lookup_page_ext(page);
++	struct stack_trace trace = {
++		.nr_entries = page_ext->nr_entries,
++		.entries = &page_ext->trace_entries[0],
++	};
++	gfp_t gfp_mask = page_ext->gfp_mask;
++	int mt = gfpflags_to_migratetype(gfp_mask);
 +
-+struct trace_print_flags_u64 {
-+	unsigned long long	mask;
-+	const char		*name;
-+};
++	if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags)) {
++		pr_alert("page_owner info is not active (free page?)\n");
++		return;
++	}
 +
- struct tracepoint_func {
- 	void *func;
- 	void *data;
++	pr_alert("page allocated via order %u, migratetype %s, "
++			"gfp_mask %#x(%pGg)\n", page_ext->order,
++			migratetype_names[mt], gfp_mask, &gfp_mask);
++	print_stack_trace(&trace, 0);
++
++	if (page_ext->last_migrate_reason != -1)
++		pr_alert("page has been migrated, last migrate reason: %s\n",
++			migrate_reason_names[page_ext->last_migrate_reason]);
++}
++
+ static ssize_t
+ read_page_owner(struct file *file, char __user *buf, size_t count, loff_t *ppos)
+ {
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
