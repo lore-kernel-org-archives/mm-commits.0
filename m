@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + firewire-use-in_compat_syscall-to-check-ioctl-compatness.patch
- added to -mm tree
-Date: Tue, 26 Jan 2016 14:33:54 -0800
-Message-ID: <56a7f452.LkG7TzfA0GWSmyTI%akpm@linux-foundation.org>
+Subject: +
+ auditsc-for-seccomp-events-log-syscall-compat-state-using-in_compat_syscall.patch added to -mm tree
+Date: Tue, 26 Jan 2016 14:33:44 -0800
+Message-ID: <56a7f448.pmlxjhs6swhMZp3j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60291 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60217 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752779AbcAZWdz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:55 -0500
+	with ESMTP id S1752566AbcAZWdp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 17:33:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luto@kernel.org, clemens@ladisch.de, mm-commits@vger.kernel.org
+To: luto@kernel.org, eparis@redhat.com, paul@paul-moore.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: firewire: Use in_compat_syscall to check ioctl compatness
+     Subject: auditsc: for seccomp events, log syscall compat state using in_compat_syscall
 has been added to the -mm tree.  Its filename is
-     firewire-use-in_compat_syscall-to-check-ioctl-compatness.patch
+     auditsc-for-seccomp-events-log-syscall-compat-state-using-in_compat_syscall.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/firewire-use-in_compat_syscall-to-check-ioctl-compatness.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/auditsc-for-seccomp-events-log-syscall-compat-state-using-in_compat_syscall.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/firewire-use-in_compat_syscall-to-check-ioctl-compatness.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/auditsc-for-seccomp-events-log-syscall-compat-state-using-in_compat_syscall.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,41 +40,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Lutomirski <luto@kernel.org>
-Subject: firewire: Use in_compat_syscall to check ioctl compatness
+Subject: auditsc: for seccomp events, log syscall compat state using in_compat_syscall
 
-Firewire was using is_compat_task to check whether it was in a
-compat ioctl or a non-compat ioctl.  Use is_compat_syscall instead
-so it works properly on all architectures.
+Except on SPARC, this is what the code always did.  SPARC compat
+seccomp was buggy, although the impact of the bug was limited
+because SPARC 32-bit and 64-bit syscall numbers are the same.
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: Paul Moore <paul@paul-moore.com>
+Cc: Eric Paris <eparis@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/firewire/core-cdev.c |    4 ++--
+ kernel/auditsc.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/firewire/core-cdev.c~firewire-use-in_compat_syscall-to-check-ioctl-compatness drivers/firewire/core-cdev.c
---- a/drivers/firewire/core-cdev.c~firewire-use-in_compat_syscall-to-check-ioctl-compatness
-+++ a/drivers/firewire/core-cdev.c
-@@ -221,7 +221,7 @@ struct inbound_phy_packet_event {
- #ifdef CONFIG_COMPAT
- static void __user *u64_to_uptr(u64 value)
- {
--	if (is_compat_task())
-+	if (in_compat_syscall())
- 		return compat_ptr(value);
- 	else
- 		return (void __user *)(unsigned long)value;
-@@ -229,7 +229,7 @@ static void __user *u64_to_uptr(u64 valu
+diff -puN kernel/auditsc.c~auditsc-for-seccomp-events-log-syscall-compat-state-using-in_compat_syscall kernel/auditsc.c
+--- a/kernel/auditsc.c~auditsc-for-seccomp-events-log-syscall-compat-state-using-in_compat_syscall
++++ a/kernel/auditsc.c
+@@ -2412,8 +2412,8 @@ void __audit_seccomp(unsigned long sysca
+ 		return;
+ 	audit_log_task(ab);
+ 	audit_log_format(ab, " sig=%ld arch=%x syscall=%ld compat=%d ip=0x%lx code=0x%x",
+-			 signr, syscall_get_arch(), syscall, is_compat_task(),
+-			 KSTK_EIP(current), code);
++			 signr, syscall_get_arch(), syscall,
++			 in_compat_syscall(), KSTK_EIP(current), code);
+ 	audit_log_end(ab);
+ }
  
- static u64 uptr_to_u64(void __user *ptr)
- {
--	if (is_compat_task())
-+	if (in_compat_syscall())
- 		return ptr_to_compat(ptr);
- 	else
- 		return (u64)(unsigned long)ptr;
 _
 
 Patches currently in -mm which might be from luto@kernel.org are
