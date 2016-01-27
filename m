@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes.patch
- added to -mm tree
-Date: Wed, 27 Jan 2016 12:30:13 -0800
-Message-ID: <56a928d5.i+VjVe91+okoLUJ6%akpm@linux-foundation.org>
+Subject: + arm-arch-arm-include-asm-pageh-needs-personalityh.patch added
+ to -mm tree
+Date: Wed, 27 Jan 2016 13:32:45 -0800
+Message-ID: <56a9377d.yjDoBpvonW/dGJ2T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35213 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40062 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934135AbcA0UaO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 15:30:14 -0500
+	with ESMTP id S965818AbcA0Vcr (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 16:32:47 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, koct9i@gmail.com, linux@arm.linux.org.uk, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes
+     Subject: arm: arch/arm/include/asm/page.h needs personality.h
 has been added to the -mm tree.  Its filename is
-     x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes.patch
+     arm-arch-arm-include-asm-pageh-needs-personalityh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/arm-arch-arm-include-asm-pageh-needs-personalityh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/arm-arch-arm-include-asm-pageh-needs-personalityh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,79 +40,34 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes
+Subject: arm: arch/arm/include/asm/page.h needs personality.h
 
-ERROR: space prohibited before that ',' (ctx:WxW)
-#201: FILE: arch/x86/include/asm/pgtable.h:820:
-+				     pud_t *pudp , pud_t pud)
- 				                 ^
+VM_DATA_DEFAULT_FLAGS uses READ_IMPLIES_EXEC, so page.h should include
+personality.h to provide this.
 
-WARNING: line over 80 characters
-#230: FILE: arch/x86/include/asm/pgtable.h:932:
-+static inline pud_t pudp_huge_get_and_clear(struct mm_struct *mm, unsigned long addr,
+This is needed for "mm: warn about VmData over RLIMIT_DATA".
 
-WARNING: Block comments use * on subsequent lines
-#263: FILE: arch/x86/include/asm/pgtable_64.h:115:
-+	/* native_local_pudp_get_and_clear,
-+	   but duplicated because of cyclic dependency */
-
-WARNING: Block comments use a trailing */ on a separate line
-#263: FILE: arch/x86/include/asm/pgtable_64.h:115:
-+	   but duplicated because of cyclic dependency */
-
-WARNING: Missing a blank line after declarations
-#265: FILE: arch/x86/include/asm/pgtable_64.h:117:
-+	pud_t ret = *pudp;
-+	native_pud_clear(pudp);
-
-total: 1 errors, 4 warnings, 265 lines checked
-
-./patches/x86-add-support-for-pud-sized-transparent-hugepages.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/include/asm/pgtable.h    |    2 +-
- arch/x86/include/asm/pgtable_64.h |    6 ++++--
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ arch/arm/include/asm/page.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/x86/include/asm/pgtable.h~x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes arch/x86/include/asm/pgtable.h
---- a/arch/x86/include/asm/pgtable.h~x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes
-+++ a/arch/x86/include/asm/pgtable.h
-@@ -817,7 +817,7 @@ static inline void native_set_pmd_at(str
- }
+diff -puN arch/arm/include/asm/page.h~arm-arch-arm-include-asm-pageh-needs-personalityh arch/arm/include/asm/page.h
+--- a/arch/arm/include/asm/page.h~arm-arch-arm-include-asm-pageh-needs-personalityh
++++ a/arch/arm/include/asm/page.h
+@@ -10,6 +10,8 @@
+ #ifndef _ASMARM_PAGE_H
+ #define _ASMARM_PAGE_H
  
- static inline void native_set_pud_at(struct mm_struct *mm, unsigned long addr,
--				     pud_t *pudp , pud_t pud)
-+				     pud_t *pudp, pud_t pud)
- {
- 	native_set_pud(pudp, pud);
- }
-diff -puN arch/x86/include/asm/pgtable_64.h~x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes arch/x86/include/asm/pgtable_64.h
---- a/arch/x86/include/asm/pgtable_64.h~x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes
-+++ a/arch/x86/include/asm/pgtable_64.h
-@@ -111,8 +111,10 @@ static inline pud_t native_pudp_get_and_
- #ifdef CONFIG_SMP
- 	return native_make_pud(xchg(&pudp->pud, 0));
- #else
--	/* native_local_pudp_get_and_clear,
--	   but duplicated because of cyclic dependency */
-+	/*
-+	 * native_local_pudp_get_and_clear, but duplicated because of cyclic
-+	 * dependency
-+	 */
- 	pud_t ret = *pudp;
- 	native_pud_clear(pudp);
- 	return ret;
++#include <linux/personality.h>	/* For READ_IMPLIES_EXEC */
++
+ /* PAGE_SHIFT determines the page size */
+ #define PAGE_SHIFT		12
+ #define PAGE_SIZE		(_AC(1,UL) << PAGE_SHIFT)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -122,6 +76,7 @@ i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-gpu-drm-i915-intel_spritec-fix-build.patch
 drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
 mm-warn-about-vmdata-over-rlimit_data-fix.patch
 ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
 ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
@@ -133,7 +88,6 @@ mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fi
 mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
 mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
 mm-madvise-update-comment-on-sys_madvise-fix.patch
-x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes.patch
 ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
 zram-export-the-number-of-available-comp-streams-fix.patch
 mm-oom-rework-oom-detection-checkpatch-fixes.patch
