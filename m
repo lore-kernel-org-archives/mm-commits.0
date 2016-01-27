@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-dlm-fix-a-typo-in-dlmcommonh.patch added to -mm tree
-Date: Tue, 26 Jan 2016 19:45:31 -0800
-Message-ID: <56a83d5b.XwiG/wYG/kYB4TND%akpm@linux-foundation.org>
+Subject: + mm-slab-move-slub-alloc-hooks-to-common-mm-slabh.patch added to -mm tree
+Date: Tue, 26 Jan 2016 20:40:03 -0800
+Message-ID: <56a84a23.6MKUE+BzY0b1uzaV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56897 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60765 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750952AbcA0Dpd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 22:45:33 -0500
+	with ESMTP id S1752303AbcA0EkE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 23:40:04 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joseph.qi@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2/dlm: fix a typo in dlmcommon.h
+     Subject: mm/slab: move SLUB alloc hooks to common mm/slab.h
 has been added to the -mm tree.  Its filename is
-     ocfs2-dlm-fix-a-typo-in-dlmcommonh.patch
+     mm-slab-move-slub-alloc-hooks-to-common-mm-slabh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-fix-a-typo-in-dlmcommonh.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-move-slub-alloc-hooks-to-common-mm-slabh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-fix-a-typo-in-dlmcommonh.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-move-slub-alloc-hooks-to-common-mm-slabh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,55 +38,169 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2/dlm: fix a typo in dlmcommon.h
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: mm/slab: move SLUB alloc hooks to common mm/slab.h
 
-Refer to cluster/tcp.h, NET_MAX_PAYLOAD_BYTES is a typo for
-O2NET_MAX_PAYLOAD_BYTES.
+First step towards sharing alloc_hook's between SLUB and SLAB allocators. 
+Move the SLUB allocators *_alloc_hook to the common mm/slab.h for internal
+slab definitions.
 
-Since currently DLM_MIG_LOCKRES_RESERVED is not actually used, it won't
-cause any problem.  But we'd better correct it for further use.
-
-Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmcommon.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/slab.h |   62 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ mm/slub.c |   54 ---------------------------------------------
+ 2 files changed, 62 insertions(+), 54 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-fix-a-typo-in-dlmcommonh fs/ocfs2/dlm/dlmcommon.h
---- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-fix-a-typo-in-dlmcommonh
-+++ a/fs/ocfs2/dlm/dlmcommon.h
-@@ -546,7 +546,7 @@ struct dlm_master_requery
-  * };
-  *
-  * from ../cluster/tcp.h
-- *    NET_MAX_PAYLOAD_BYTES  (4096 - sizeof(net_msg))
-+ *    O2NET_MAX_PAYLOAD_BYTES  (4096 - sizeof(net_msg))
-  *    (roughly 4080 bytes)
-  * and sizeof(dlm_migratable_lockres) = 112 bytes
-  * and sizeof(dlm_migratable_lock) = 16 bytes
-@@ -587,7 +587,7 @@ struct dlm_migratable_lockres
+diff -puN mm/slab.h~mm-slab-move-slub-alloc-hooks-to-common-mm-slabh mm/slab.h
+--- a/mm/slab.h~mm-slab-move-slub-alloc-hooks-to-common-mm-slabh
++++ a/mm/slab.h
+@@ -38,6 +38,10 @@ struct kmem_cache {
+ #endif
  
- /* from above, 128 bytes
-  * for some undetermined future use */
--#define DLM_MIG_LOCKRES_RESERVED   (NET_MAX_PAYLOAD_BYTES - \
-+#define DLM_MIG_LOCKRES_RESERVED   (O2NET_MAX_PAYLOAD_BYTES - \
- 				    DLM_MIG_LOCKRES_MAX_LEN)
+ #include <linux/memcontrol.h>
++#include <linux/fault-inject.h>
++#include <linux/kmemcheck.h>
++#include <linux/kasan.h>
++#include <linux/kmemleak.h>
  
- struct dlm_create_lock
-_
-
-Patches currently in -mm which might be from joseph.qi@huawei.com are
-
-ocfs2-cluster-fix-memory-leak-in-o2hb_region_release.patch
-ocfs2-dlm-fix-a-typo-in-dlmcommonh.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery-v2.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery-v3.patch
-ocfs2-dlm-fix-bug-in-dlm_move_lockres_to_recovery_list.patch
-
+ /*
+  * State of the slab allocator.
+@@ -320,6 +324,64 @@ static inline struct kmem_cache *cache_f
+ 	return s;
+ }
+ 
++static inline size_t slab_ksize(const struct kmem_cache *s)
++{
++#ifndef CONFIG_SLUB
++	return s->object_size;
++
++#else /* CONFIG_SLUB */
++# ifdef CONFIG_SLUB_DEBUG
++	/*
++	 * Debugging requires use of the padding between object
++	 * and whatever may come after it.
++	 */
++	if (s->flags & (SLAB_RED_ZONE | SLAB_POISON))
++		return s->object_size;
++# endif
++	/*
++	 * If we have the need to store the freelist pointer
++	 * back there or track user information then we can
++	 * only use the space before that information.
++	 */
++	if (s->flags & (SLAB_DESTROY_BY_RCU | SLAB_STORE_USER))
++		return s->inuse;
++	/*
++	 * Else we can use all the padding etc for the allocation
++	 */
++	return s->size;
++#endif
++}
++
++static inline struct kmem_cache *slab_pre_alloc_hook(struct kmem_cache *s,
++						     gfp_t flags)
++{
++	flags &= gfp_allowed_mask;
++	lockdep_trace_alloc(flags);
++	might_sleep_if(gfpflags_allow_blocking(flags));
++
++	if (should_failslab(s->object_size, flags, s->flags))
++		return NULL;
++
++	return memcg_kmem_get_cache(s, flags);
++}
++
++static inline void slab_post_alloc_hook(struct kmem_cache *s, gfp_t flags,
++					size_t size, void **p)
++{
++	size_t i;
++
++	flags &= gfp_allowed_mask;
++	for (i = 0; i < size; i++) {
++		void *object = p[i];
++
++		kmemcheck_slab_alloc(s, flags, object, slab_ksize(s));
++		kmemleak_alloc_recursive(object, s->object_size, 1,
++					 s->flags, flags);
++		kasan_slab_alloc(s, object);
++	}
++	memcg_kmem_put_cache(s);
++}
++
+ #ifndef CONFIG_SLOB
+ /*
+  * The slab lists for all objects.
+diff -puN mm/slub.c~mm-slab-move-slub-alloc-hooks-to-common-mm-slabh mm/slub.c
+--- a/mm/slub.c~mm-slab-move-slub-alloc-hooks-to-common-mm-slabh
++++ a/mm/slub.c
+@@ -284,30 +284,6 @@ static inline int slab_index(void *p, st
+ 	return (p - addr) / s->size;
+ }
+ 
+-static inline size_t slab_ksize(const struct kmem_cache *s)
+-{
+-#ifdef CONFIG_SLUB_DEBUG
+-	/*
+-	 * Debugging requires use of the padding between object
+-	 * and whatever may come after it.
+-	 */
+-	if (s->flags & (SLAB_RED_ZONE | SLAB_POISON))
+-		return s->object_size;
+-
+-#endif
+-	/*
+-	 * If we have the need to store the freelist pointer
+-	 * back there or track user information then we can
+-	 * only use the space before that information.
+-	 */
+-	if (s->flags & (SLAB_DESTROY_BY_RCU | SLAB_STORE_USER))
+-		return s->inuse;
+-	/*
+-	 * Else we can use all the padding etc for the allocation
+-	 */
+-	return s->size;
+-}
+-
+ static inline int order_objects(int order, unsigned long size, int reserved)
+ {
+ 	return ((PAGE_SIZE << order) - reserved) / size;
+@@ -1281,36 +1257,6 @@ static inline void kfree_hook(const void
+ 	kasan_kfree_large(x);
+ }
+ 
+-static inline struct kmem_cache *slab_pre_alloc_hook(struct kmem_cache *s,
+-						     gfp_t flags)
+-{
+-	flags &= gfp_allowed_mask;
+-	lockdep_trace_alloc(flags);
+-	might_sleep_if(gfpflags_allow_blocking(flags));
+-
+-	if (should_failslab(s->object_size, flags, s->flags))
+-		return NULL;
+-
+-	return memcg_kmem_get_cache(s, flags);
+-}
+-
+-static inline void slab_post_alloc_hook(struct kmem_cache *s, gfp_t flags,
+-					size_t size, void **p)
+-{
+-	size_t i;
+-
+-	flags &= gfp_allowed_mask;
+-	for (i = 0; i < size; i++) {
+-		void *object = p[i];
+-
+-		kmemcheck_slab_alloc(s, flags, object, slab_ksize(s));
+-		kmemleak_alloc_recursive(object, s->object_size, 1,
+-					 s->flags, flags);
+-		kasan_slab_alloc(s, object);
+-	}
+-	memcg_kmem_put_cache(s);
+-}
