@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + xen_balloon-support-memory-auto-onlining-policy.patch added to
- -mm tree
-Date: Wed, 27 Jan 2016 10:58:01 -0800
-Message-ID: <56a91339.oYZ/jlA9YRXx9MND%akpm@linux-foundation.org>
+Subject: +
+ memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory.patch added to -mm tree
+Date: Wed, 27 Jan 2016 10:57:58 -0800
+Message-ID: <56a91336.A25TTYZy8lakW/4d%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54235 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54217 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934798AbcA0S6D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 13:58:03 -0500
+	with ESMTP id S934207AbcA0S6A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 13:58:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vkuznets@redhat.com, boris.ostrovsky@oracle.com, corbet@lwn.net, dan.j.williams@intel.com, daniel.kiper@oracle.com, david.vrabel@citrix.com, gregkh@linuxfoundation.org, imammedo@redhat.com, kay@vrfy.org, konrad.wilk@oracle.com, kys@microsoft.com, mgorman@techsingularity.net, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, rientjes@google.com, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xen_balloon: support memory auto onlining policy
+     Subject: memory-hotplug: add automatic onlining policy for the newly added memory
 has been added to the -mm tree.  Its filename is
-     xen_balloon-support-memory-auto-onlining-policy.patch
+     memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/xen_balloon-support-memory-auto-onlining-policy.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/xen_balloon-support-memory-auto-onlining-policy.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,21 +40,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vitaly Kuznetsov <vkuznets@redhat.com>
-Subject: xen_balloon: support memory auto onlining policy
+Subject: memory-hotplug: add automatic onlining policy for the newly added memory
 
-Add support for the newly added kernel memory auto onlining policy to Xen
-ballon driver.
+Currently, all newly added memory blocks remain in 'offline' state unless
+someone onlines them, some linux distributions carry special udev rules
+like:
+
+SUBSYSTEM=="memory", ACTION=="add", ATTR{state}=="offline", ATTR{state}="online"
+
+to make this happen automatically.  This is not a great solution for
+virtual machines where memory hotplug is being used to address high memory
+pressure situations as such onlining is slow and a userspace process doing
+this (udev) has a chance of being killed by the OOM killer as it will
+probably require to allocate some memory.
+
+Introduce default policy for the newly added memory blocks in
+/sys/devices/system/memory/auto_online_blocks file with two possible
+values: "offline" which preserves the current behavior and "online" which
+causes all newly added memory blocks to go online as soon as they're
+added.  The default is "offline".
 
 Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
-Suggested-by: Daniel Kiper <daniel.kiper@oracle.com>
 Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
-Acked-by: David Vrabel <david.vrabel@citrix.com>
 Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Cc: Daniel Kiper <daniel.kiper@oracle.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: David Rientjes <rientjes@google.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Cc: Xishi Qiu <qiuxishi@huawei.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
@@ -66,73 +80,201 @@ Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/Kconfig   |   23 +++++++++++++++--------
- drivers/xen/balloon.c |   11 ++++++++++-
- 2 files changed, 25 insertions(+), 9 deletions(-)
+ Documentation/memory-hotplug.txt |   23 +++++++++++++++++--
+ drivers/base/memory.c            |   34 ++++++++++++++++++++++++++++-
+ drivers/xen/balloon.c            |    2 -
+ include/linux/memory.h           |    3 ++
+ include/linux/memory_hotplug.h   |    4 ++-
+ mm/memory_hotplug.c              |   17 ++++++++++++--
+ 6 files changed, 75 insertions(+), 8 deletions(-)
 
-diff -puN drivers/xen/Kconfig~xen_balloon-support-memory-auto-onlining-policy drivers/xen/Kconfig
---- a/drivers/xen/Kconfig~xen_balloon-support-memory-auto-onlining-policy
-+++ a/drivers/xen/Kconfig
-@@ -37,23 +37,30 @@ config XEN_BALLOON_MEMORY_HOTPLUG
+diff -puN Documentation/memory-hotplug.txt~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory Documentation/memory-hotplug.txt
+--- a/Documentation/memory-hotplug.txt~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory
++++ a/Documentation/memory-hotplug.txt
+@@ -256,10 +256,27 @@ If the memory block is offline, you'll r
  
- 	  Memory could be hotplugged in following steps:
+ 5.2. How to online memory
+ ------------
+-Even if the memory is hot-added, it is not at ready-to-use state.
+-For using newly added memory, you have to "online" the memory block.
++When the memory is hot-added, the kernel decides whether or not to "online"
++it according to the policy which can be read from "auto_online_blocks" file:
  
--	    1) dom0: xl mem-max <domU> <maxmem>
-+	    1) target domain: ensure that memory auto online policy is in
-+	       effect by checking /sys/devices/system/memory/auto_online_blocks
-+	       file (should be 'online').
+-For onlining, you have to write "online" to the memory block's state file as:
++% cat /sys/devices/system/memory/auto_online_blocks
 +
-+	    2) control domain: xl mem-max <target-domain> <maxmem>
- 	       where <maxmem> is >= requested memory size,
++The default is "offline" which means the newly added memory is not in a
++ready-to-use state and you have to "online" the newly added memory blocks
++manually. Automatic onlining can be requested by writing "online" to
++"auto_online_blocks" file:
++
++% echo online > /sys/devices/system/memory/auto_online_blocks
++
++This sets a global policy and impacts all memory blocks that will subsequently
++be hotplugged. Currently offline blocks keep their state. It is possible, under
++certain circumstances, that some memory blocks will be added but will fail to
++online. User space tools can check their "state" files
++(/sys/devices/system/memory/memoryXXX/state) and try to online them manually.
++
++If the automatic onlining wasn't requested, failed, or some memory block was
++offlined it is possible to change the individual block's state by writing to the
++"state" file:
  
--	    2) dom0: xl mem-set <domU> <memory>
-+	    3) control domain: xl mem-set <target-domain> <memory>
- 	       where <memory> is requested memory size; alternatively memory
- 	       could be added by writing proper value to
- 	       /sys/devices/system/xen_memory/xen_memory0/target or
--	       /sys/devices/system/xen_memory/xen_memory0/target_kb on dumU,
-+	       /sys/devices/system/xen_memory/xen_memory0/target_kb on the
-+	       target domain.
+ % echo online > /sys/devices/system/memory/memoryXXX/state
  
--	    3) domU: for i in /sys/devices/system/memory/memory*/state; do \
--	               [ "`cat "$i"`" = offline ] && echo online > "$i"; done
-+	  Alternatively, if memory auto onlining was not requested at step 1
-+	  the newly added memory can be manually onlined in the target domain
-+	  by doing the following:
+diff -puN drivers/base/memory.c~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory drivers/base/memory.c
+--- a/drivers/base/memory.c~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory
++++ a/drivers/base/memory.c
+@@ -251,7 +251,7 @@ memory_block_action(unsigned long phys_i
+ 	return ret;
+ }
  
--	  Memory could be onlined automatically on domU by adding following line to udev rules:
-+		for i in /sys/devices/system/memory/memory*/state; do \
-+		  [ "`cat "$i"`" = offline ] && echo online > "$i"; done
+-static int memory_block_change_state(struct memory_block *mem,
++int memory_block_change_state(struct memory_block *mem,
+ 		unsigned long to_state, unsigned long from_state_req)
+ {
+ 	int ret = 0;
+@@ -439,6 +439,37 @@ print_block_size(struct device *dev, str
+ static DEVICE_ATTR(block_size_bytes, 0444, print_block_size, NULL);
  
--	  SUBSYSTEM=="memory", ACTION=="add", RUN+="/bin/sh -c '[ -f /sys$devpath/state ] && echo online > /sys$devpath/state'"
-+	  or by adding the following line to udev rules:
+ /*
++ * Memory auto online policy.
++ */
++
++static ssize_t
++show_auto_online_blocks(struct device *dev, struct device_attribute *attr,
++			char *buf)
++{
++	if (memhp_auto_online)
++		return sprintf(buf, "online\n");
++	else
++		return sprintf(buf, "offline\n");
++}
++
++static ssize_t
++store_auto_online_blocks(struct device *dev, struct device_attribute *attr,
++			 const char *buf, size_t count)
++{
++	if (sysfs_streq(buf, "online"))
++		memhp_auto_online = true;
++	else if (sysfs_streq(buf, "offline"))
++		memhp_auto_online = false;
++	else
++		return -EINVAL;
++
++	return count;
++}
++
++static DEVICE_ATTR(auto_online_blocks, 0644, show_auto_online_blocks,
++		   store_auto_online_blocks);
++
++/*
+  * Some architectures will have custom drivers to do this, and
+  * will not need to do it from userspace.  The fake hot-add code
+  * as well as ppc64 will do all of their discovery in userspace
+@@ -746,6 +777,7 @@ static struct attribute *memory_root_att
+ #endif
  
--	  In that case step 3 should be omitted.
-+	  SUBSYSTEM=="memory", ACTION=="add", RUN+="/bin/sh -c '[ -f /sys$devpath/state ] && echo online > /sys$devpath/state'"
+ 	&dev_attr_block_size_bytes.attr,
++	&dev_attr_auto_online_blocks.attr,
+ 	NULL
+ };
  
- config XEN_BALLOON_MEMORY_HOTPLUG_LIMIT
- 	int "Hotplugged memory limit (in GiB) for a PV guest"
-diff -puN drivers/xen/balloon.c~xen_balloon-support-memory-auto-onlining-policy drivers/xen/balloon.c
---- a/drivers/xen/balloon.c~xen_balloon-support-memory-auto-onlining-policy
+diff -puN drivers/xen/balloon.c~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory drivers/xen/balloon.c
+--- a/drivers/xen/balloon.c~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory
 +++ a/drivers/xen/balloon.c
-@@ -338,7 +338,16 @@ static enum bp_state reserve_additional_
+@@ -338,7 +338,7 @@ static enum bp_state reserve_additional_
  	}
  #endif
  
--	rc = add_memory_resource(nid, resource, false);
-+	/*
-+	 * add_memory_resource() will call online_pages() which in its turn
-+	 * will call xen_online_page() callback causing deadlock if we don't
-+	 * release balloon_mutex here. Unlocking here is safe because the
-+	 * callers drop the mutex before trying again.
-+	 */
-+	mutex_unlock(&balloon_mutex);
-+	rc = add_memory_resource(nid, resource, memhp_auto_online);
-+	mutex_lock(&balloon_mutex);
-+
+-	rc = add_memory_resource(nid, resource);
++	rc = add_memory_resource(nid, resource, false);
  	if (rc) {
  		pr_warn("Cannot add additional memory (%i)\n", rc);
  		goto err;
+diff -puN include/linux/memory.h~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory include/linux/memory.h
+--- a/include/linux/memory.h~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory
++++ a/include/linux/memory.h
+@@ -109,6 +109,9 @@ extern void unregister_memory_notifier(s
+ extern int register_memory_isolate_notifier(struct notifier_block *nb);
+ extern void unregister_memory_isolate_notifier(struct notifier_block *nb);
+ extern int register_new_memory(int, struct mem_section *);
++extern int memory_block_change_state(struct memory_block *mem,
++				     unsigned long to_state,
++				     unsigned long from_state_req);
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ extern int unregister_memory_section(struct mem_section *);
+ #endif
+diff -puN include/linux/memory_hotplug.h~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory
++++ a/include/linux/memory_hotplug.h
+@@ -99,6 +99,8 @@ extern void __online_page_free(struct pa
+ 
+ extern int try_online_node(int nid);
+ 
++extern bool memhp_auto_online;
++
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ extern bool is_pageblock_removable_nolock(struct page *page);
+ extern int arch_remove_memory(u64 start, u64 size);
+@@ -267,7 +269,7 @@ static inline void remove_memory(int nid
+ extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
+ 		void *arg, int (*func)(struct memory_block *, void *));
+ extern int add_memory(int nid, u64 start, u64 size);
+-extern int add_memory_resource(int nid, struct resource *resource);
++extern int add_memory_resource(int nid, struct resource *resource, bool online);
+ extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
+ 		bool for_device);
+ extern int arch_add_memory(int nid, u64 start, u64 size, bool for_device);
+diff -puN mm/memory_hotplug.c~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory
++++ a/mm/memory_hotplug.c
+@@ -77,6 +77,9 @@ static struct {
+ #define memhp_lock_acquire()      lock_map_acquire(&mem_hotplug.dep_map)
+ #define memhp_lock_release()      lock_map_release(&mem_hotplug.dep_map)
+ 
++bool memhp_auto_online;
++EXPORT_SYMBOL_GPL(memhp_auto_online);
++
+ void get_online_mems(void)
+ {
+ 	might_sleep();
+@@ -1261,8 +1264,13 @@ int zone_for_memory(int nid, u64 start,
+ 	return zone_default;
+ }
+ 
++static int online_memory_block(struct memory_block *mem, void *arg)
++{
++	return memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE);
++}
++
+ /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
+-int __ref add_memory_resource(int nid, struct resource *res)
++int __ref add_memory_resource(int nid, struct resource *res, bool online)
+ {
+ 	u64 start, size;
+ 	pg_data_t *pgdat = NULL;
+@@ -1322,6 +1330,11 @@ int __ref add_memory_resource(int nid, s
+ 	/* create new memmap entry */
+ 	firmware_map_add_hotplug(start, start + size, "System RAM");
+ 
++	/* online pages if requested */
++	if (online)
++		walk_memory_range(PFN_DOWN(start), PFN_UP(start + size - 1),
++				  NULL, online_memory_block);
++
+ 	goto out;
+ 
+ error:
+@@ -1345,7 +1358,7 @@ int __ref add_memory(int nid, u64 start,
+ 	if (IS_ERR(res))
+ 		return PTR_ERR(res);
+ 
+-	ret = add_memory_resource(nid, res);
++	ret = add_memory_resource(nid, res, memhp_auto_online);
+ 	if (ret < 0)
+ 		release_memory_resource(res);
+ 	return ret;
 _
 
 Patches currently in -mm which might be from vkuznets@redhat.com are
