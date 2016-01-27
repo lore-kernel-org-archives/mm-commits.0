@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + vmpressure-fix-subtree-pressure-detection.patch added to -mm
- tree
-Date: Wed, 27 Jan 2016 10:37:49 -0800
-Message-ID: <56a90e7d.i6UHBncl+O1hZLPT%akpm@linux-foundation.org>
+Subject: + xen_balloon-support-memory-auto-onlining-policy.patch added to
+ -mm tree
+Date: Wed, 27 Jan 2016 10:58:01 -0800
+Message-ID: <56a91339.oYZ/jlA9YRXx9MND%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52445 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54235 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964862AbcA0Shu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 13:37:50 -0500
+	with ESMTP id S934798AbcA0S6D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 13:58:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
+To: vkuznets@redhat.com, boris.ostrovsky@oracle.com, corbet@lwn.net, dan.j.williams@intel.com, daniel.kiper@oracle.com, david.vrabel@citrix.com, gregkh@linuxfoundation.org, imammedo@redhat.com, kay@vrfy.org, konrad.wilk@oracle.com, kys@microsoft.com, mgorman@techsingularity.net, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, rientjes@google.com, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmpressure.c: fix subtree pressure detection
+     Subject: xen_balloon: support memory auto onlining policy
 has been added to the -mm tree.  Its filename is
-     vmpressure-fix-subtree-pressure-detection.patch
+     xen_balloon-support-memory-auto-onlining-policy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/vmpressure-fix-subtree-pressure-detection.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/xen_balloon-support-memory-auto-onlining-policy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/vmpressure-fix-subtree-pressure-detection.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/xen_balloon-support-memory-auto-onlining-policy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +39,105 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm/vmpressure.c: fix subtree pressure detection
+From: Vitaly Kuznetsov <vkuznets@redhat.com>
+Subject: xen_balloon: support memory auto onlining policy
 
-When vmpressure is called for the entire subtree under pressure we
-mistakenly use vmpressure->scanned instead of vmpressure->tree_scanned
-when checking if vmpressure work is to be scheduled.  This results in
-suppressing all vmpressure events in the legacy cgroup hierarchy.  Fix it.
+Add support for the newly added kernel memory auto onlining policy to Xen
+ballon driver.
 
-Fixes: 8e8ae645249b ("mm: memcontrol: hook up vmpressure to socket pressure")
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@kernel.org>
+Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+Suggested-by: Daniel Kiper <daniel.kiper@oracle.com>
+Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
+Acked-by: David Vrabel <david.vrabel@citrix.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Daniel Kiper <daniel.kiper@oracle.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
+Cc: Kay Sievers <kay@vrfy.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmpressure.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/xen/Kconfig   |   23 +++++++++++++++--------
+ drivers/xen/balloon.c |   11 ++++++++++-
+ 2 files changed, 25 insertions(+), 9 deletions(-)
 
-diff -puN mm/vmpressure.c~vmpressure-fix-subtree-pressure-detection mm/vmpressure.c
---- a/mm/vmpressure.c~vmpressure-fix-subtree-pressure-detection
-+++ a/mm/vmpressure.c
-@@ -248,9 +248,8 @@ void vmpressure(gfp_t gfp, struct mem_cg
+diff -puN drivers/xen/Kconfig~xen_balloon-support-memory-auto-onlining-policy drivers/xen/Kconfig
+--- a/drivers/xen/Kconfig~xen_balloon-support-memory-auto-onlining-policy
++++ a/drivers/xen/Kconfig
+@@ -37,23 +37,30 @@ config XEN_BALLOON_MEMORY_HOTPLUG
  
- 	if (tree) {
- 		spin_lock(&vmpr->sr_lock);
--		vmpr->tree_scanned += scanned;
-+		scanned = vmpr->tree_scanned += scanned;
- 		vmpr->tree_reclaimed += reclaimed;
--		scanned = vmpr->scanned;
- 		spin_unlock(&vmpr->sr_lock);
+ 	  Memory could be hotplugged in following steps:
  
- 		if (scanned < vmpressure_win)
+-	    1) dom0: xl mem-max <domU> <maxmem>
++	    1) target domain: ensure that memory auto online policy is in
++	       effect by checking /sys/devices/system/memory/auto_online_blocks
++	       file (should be 'online').
++
++	    2) control domain: xl mem-max <target-domain> <maxmem>
+ 	       where <maxmem> is >= requested memory size,
+ 
+-	    2) dom0: xl mem-set <domU> <memory>
++	    3) control domain: xl mem-set <target-domain> <memory>
+ 	       where <memory> is requested memory size; alternatively memory
+ 	       could be added by writing proper value to
+ 	       /sys/devices/system/xen_memory/xen_memory0/target or
+-	       /sys/devices/system/xen_memory/xen_memory0/target_kb on dumU,
++	       /sys/devices/system/xen_memory/xen_memory0/target_kb on the
++	       target domain.
+ 
+-	    3) domU: for i in /sys/devices/system/memory/memory*/state; do \
+-	               [ "`cat "$i"`" = offline ] && echo online > "$i"; done
++	  Alternatively, if memory auto onlining was not requested at step 1
++	  the newly added memory can be manually onlined in the target domain
++	  by doing the following:
+ 
+-	  Memory could be onlined automatically on domU by adding following line to udev rules:
++		for i in /sys/devices/system/memory/memory*/state; do \
++		  [ "`cat "$i"`" = offline ] && echo online > "$i"; done
+ 
+-	  SUBSYSTEM=="memory", ACTION=="add", RUN+="/bin/sh -c '[ -f /sys$devpath/state ] && echo online > /sys$devpath/state'"
++	  or by adding the following line to udev rules:
+ 
+-	  In that case step 3 should be omitted.
++	  SUBSYSTEM=="memory", ACTION=="add", RUN+="/bin/sh -c '[ -f /sys$devpath/state ] && echo online > /sys$devpath/state'"
+ 
+ config XEN_BALLOON_MEMORY_HOTPLUG_LIMIT
+ 	int "Hotplugged memory limit (in GiB) for a PV guest"
+diff -puN drivers/xen/balloon.c~xen_balloon-support-memory-auto-onlining-policy drivers/xen/balloon.c
+--- a/drivers/xen/balloon.c~xen_balloon-support-memory-auto-onlining-policy
++++ a/drivers/xen/balloon.c
+@@ -338,7 +338,16 @@ static enum bp_state reserve_additional_
+ 	}
+ #endif
+ 
+-	rc = add_memory_resource(nid, resource, false);
++	/*
++	 * add_memory_resource() will call online_pages() which in its turn
++	 * will call xen_online_page() callback causing deadlock if we don't
++	 * release balloon_mutex here. Unlocking here is safe because the
++	 * callers drop the mutex before trying again.
++	 */
++	mutex_unlock(&balloon_mutex);
++	rc = add_memory_resource(nid, resource, memhp_auto_online);
++	mutex_lock(&balloon_mutex);
++
+ 	if (rc) {
+ 		pr_warn("Cannot add additional memory (%i)\n", rc);
+ 		goto err;
 _
 
-Patches currently in -mm which might be from vdavydov@virtuozzo.com are
+Patches currently in -mm which might be from vkuznets@redhat.com are
 
-vmpressure-fix-subtree-pressure-detection.patch
+lib-test-string_helpersc-fix-and-improve-string_get_size-tests.patch
+memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory.patch
+xen_balloon-support-memory-auto-onlining-policy.patch
 
