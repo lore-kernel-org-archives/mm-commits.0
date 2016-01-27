@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory.patch added to -mm tree
-Date: Tue, 26 Jan 2016 19:41:55 -0800
-Message-ID: <56a83c83.BR+3ejmMK/v9LY7C%akpm@linux-foundation.org>
+Subject: + kexec-provide-arch_kexec_protectunprotect_crashkres-v4.patch
+ added to -mm tree
+Date: Tue, 26 Jan 2016 19:41:58 -0800
+Message-ID: <56a83c86.ehE8avqM2BJCc33s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56576 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56585 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750952AbcA0Dl4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 22:41:56 -0500
+	with ESMTP id S1751346AbcA0Dl7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 22:41:59 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: xlpang@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, mhuang@redhat.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: Introduce a protection mechanism for the crashkernel reserved memory
+     Subject: kexec-provide-arch_kexec_protectunprotect_crashkres-v4
 has been added to the -mm tree.  Its filename is
-     kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory.patch
+     kexec-provide-arch_kexec_protectunprotect_crashkres-v4.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kexec-provide-arch_kexec_protectunprotect_crashkres-v4.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-provide-arch_kexec_protectunprotect_crashkres-v4.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,120 +40,68 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Xunlei Pang <xlpang@redhat.com>
-Subject: kexec: Introduce a protection mechanism for the crashkernel reserved memory
+Subject: kexec-provide-arch_kexec_protectunprotect_crashkres-v4
 
-For the cases that some kernel (module) path stamps the crash reserved
-memory(already mapped by the kernel) where has been loaded the second
-kernel data, the kdump kernel will probably fail to boot when panic
-happens (or even not happens) leaving the culprit at large, this is
-unacceptable.
-
-The patch introduces a mechanism for detecting such cases:
-
-1) After each crash kexec loading, it simply marks the reserved memory
-   regions readonly since we no longer access it after that.  When someone
-   stamps the region, the first kernel will panic and trigger the kdump. 
-   The weak arch_kexec_protect_crashkres() is introduced to do the actual
-   protection.
-
-2) To allow multiple loading, once 1) was done we also need to remark
-   the reserved memory to readwrite each time a system call related to
-   kdump is made.  The weak arch_kexec_unprotect_crashkres() is introduced
-   to do the actual protection.
-
-The architecture can make its specific implementation by overriding
-arch_kexec_protect_crashkres() and arch_kexec_unprotect_crashkres().
+v3->v4:
+Add some comments according to Minfei's suggestion.
 
 Signed-off-by: Xunlei Pang <xlpang@redhat.com>
 Cc: Eric Biederman <ebiederm@xmission.com>
 Cc: Dave Young <dyoung@redhat.com>
+Cc: Minfei Huang <mhuang@redhat.com>
+Cc: Vivek Goyal <vgoyal@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kexec.h |    2 ++
- kernel/kexec.c        |    9 ++++++++-
- kernel/kexec_core.c   |    6 ++++++
- kernel/kexec_file.c   |    8 +++++++-
- 4 files changed, 23 insertions(+), 2 deletions(-)
+ arch/x86/kernel/machine_kexec_64.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/kexec.h~kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory include/linux/kexec.h
---- a/include/linux/kexec.h~kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory
-+++ a/include/linux/kexec.h
-@@ -317,6 +317,8 @@ int __weak arch_kexec_apply_relocations_
- 					Elf_Shdr *sechdrs, unsigned int relsec);
- int __weak arch_kexec_apply_relocations(const Elf_Ehdr *ehdr, Elf_Shdr *sechdrs,
- 					unsigned int relsec);
-+void arch_kexec_protect_crashkres(void);
-+void arch_kexec_unprotect_crashkres(void);
+diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-provide-arch_kexec_protectunprotect_crashkres-v4 arch/x86/kernel/machine_kexec_64.c
+--- a/arch/x86/kernel/machine_kexec_64.c~kexec-provide-arch_kexec_protectunprotect_crashkres-v4
++++ a/arch/x86/kernel/machine_kexec_64.c
+@@ -539,18 +539,21 @@ overflow:
+ }
+ #endif /* CONFIG_KEXEC_FILE */
  
- #else /* !CONFIG_KEXEC_CORE */
- struct pt_regs;
-diff -puN kernel/kexec.c~kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory kernel/kexec.c
---- a/kernel/kexec.c~kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory
-+++ a/kernel/kexec.c
-@@ -167,8 +167,12 @@ SYSCALL_DEFINE4(kexec_load, unsigned lon
- 		return -EBUSY;
+-#ifdef CONFIG_KEXEC_CORE
+ static int
+ kexec_mark_range(unsigned long start, unsigned long end, bool protect)
+ {
+ 	struct page *page;
+ 	unsigned int nr_pages;
  
- 	dest_image = &kexec_image;
--	if (flags & KEXEC_ON_CRASH)
-+	if (flags & KEXEC_ON_CRASH) {
- 		dest_image = &kexec_crash_image;
-+		if (kexec_crash_image)
-+			arch_kexec_unprotect_crashkres();
-+	}
-+
- 	if (nr_segments > 0) {
- 		unsigned long i;
+-	if (!start || !end || start >= end)
++	/*
++	 * For physical range: [start, end]. We must skip the unassigned
++	 * crashk resource with zero-valued "end" member.
++	 */
++	if (!end || start > end)
+ 		return 0;
  
-@@ -211,6 +215,9 @@ SYSCALL_DEFINE4(kexec_load, unsigned lon
- 	image = xchg(dest_image, image);
+ 	page = pfn_to_page(start >> PAGE_SHIFT);
+-	nr_pages = (end + 1 - start) >> PAGE_SHIFT;
++	nr_pages = (end >> PAGE_SHIFT) - (start >> PAGE_SHIFT) + 1;
+ 	if (protect)
+ 		return set_pages_ro(page, nr_pages);
+ 	else
+@@ -566,9 +569,9 @@ static void kexec_mark_crashkres(bool pr
+ 	/* Don't touch the control code page used in crash_kexec().*/
+ 	control = PFN_PHYS(page_to_pfn(kexec_crash_image->control_code_page));
+ 	/* Control code page is located in the 2nd page. */
+-	control = control + PAGE_SIZE;
+-	kexec_mark_range(crashk_res.start, control - 1, protect);
+-	kexec_mark_range(control + PAGE_SIZE, crashk_res.end, protect);
++	kexec_mark_range(crashk_res.start, control + PAGE_SIZE - 1, protect);
++	control += KEXEC_CONTROL_PAGE_SIZE;
++	kexec_mark_range(control, crashk_res.end, protect);
+ }
  
- out:
-+	if ((flags & KEXEC_ON_CRASH) && kexec_crash_image)
-+		arch_kexec_protect_crashkres();
-+
- 	mutex_unlock(&kexec_mutex);
- 	kimage_free(image);
- 
-diff -puN kernel/kexec_core.c~kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory kernel/kexec_core.c
---- a/kernel/kexec_core.c~kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory
-+++ a/kernel/kexec_core.c
-@@ -1557,3 +1557,9 @@ void __weak crash_map_reserved_pages(voi
- 
- void __weak crash_unmap_reserved_pages(void)
- {}
-+
-+void __weak arch_kexec_protect_crashkres(void)
-+{}
-+
-+void __weak arch_kexec_unprotect_crashkres(void)
-+{}
-diff -puN kernel/kexec_file.c~kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory kernel/kexec_file.c
---- a/kernel/kexec_file.c~kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory
-+++ a/kernel/kexec_file.c
-@@ -329,8 +329,11 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
- 		return -EBUSY;
- 
- 	dest_image = &kexec_image;
--	if (flags & KEXEC_FILE_ON_CRASH)
-+	if (flags & KEXEC_FILE_ON_CRASH) {
- 		dest_image = &kexec_crash_image;
-+		if (kexec_crash_image)
-+			arch_kexec_unprotect_crashkres();
-+	}
- 
- 	if (flags & KEXEC_FILE_UNLOAD)
- 		goto exchange;
-@@ -379,6 +382,9 @@ SYSCALL_DEFINE5(kexec_file_load, int, ke
- exchange:
- 	image = xchg(dest_image, image);
- out:
-+	if ((flags & KEXEC_ON_CRASH) && kexec_crash_image)
-+		arch_kexec_protect_crashkres();
-+
- 	mutex_unlock(&kexec_mutex);
- 	kimage_free(image);
- 	return ret;
+ void arch_kexec_protect_crashkres(void)
+@@ -580,4 +583,3 @@ void arch_kexec_unprotect_crashkres(void
+ {
+ 	kexec_mark_crashkres(false);
+ }
+-#endif
 _
 
 Patches currently in -mm which might be from xlpang@redhat.com are
