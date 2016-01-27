@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-provide-arch_kexec_protectunprotect_crashkres.patch added to -mm tree
-Date: Tue, 26 Jan 2016 19:41:57 -0800
-Message-ID: <56a83c85.Hu7FtiOxKRhMhVU0%akpm@linux-foundation.org>
+Subject: + ocfs2-dlm-fix-a-typo-in-dlmcommonh.patch added to -mm tree
+Date: Tue, 26 Jan 2016 19:45:31 -0800
+Message-ID: <56a83d5b.XwiG/wYG/kYB4TND%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56582 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56897 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751162AbcA0Dl6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 22:41:58 -0500
+	with ESMTP id S1750952AbcA0Dpd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 22:45:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xlpang@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, mhuang@redhat.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: provide arch_kexec_protect(unprotect)_crashkres()
+     Subject: ocfs2/dlm: fix a typo in dlmcommon.h
 has been added to the -mm tree.  Its filename is
-     kexec-provide-arch_kexec_protectunprotect_crashkres.patch
+     ocfs2-dlm-fix-a-typo-in-dlmcommonh.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-provide-arch_kexec_protectunprotect_crashkres.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-dlm-fix-a-typo-in-dlmcommonh.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-provide-arch_kexec_protectunprotect_crashkres.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-dlm-fix-a-typo-in-dlmcommonh.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,77 +38,55 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Xunlei Pang <xlpang@redhat.com>
-Subject: kexec: provide arch_kexec_protect(unprotect)_crashkres()
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2/dlm: fix a typo in dlmcommon.h
 
-Implement the protection method for the crash kernel memory reservation
-for the 64-bit x86 kdump.
+Refer to cluster/tcp.h, NET_MAX_PAYLOAD_BYTES is a typo for
+O2NET_MAX_PAYLOAD_BYTES.
 
-Signed-off-by: Xunlei Pang <xlpang@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Dave Young <dyoung@redhat.com>
+Since currently DLM_MIG_LOCKRES_RESERVED is not actually used, it won't
+cause any problem.  But we'd better correct it for further use.
+
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/machine_kexec_64.c |   43 +++++++++++++++++++++++++++
- 1 file changed, 43 insertions(+)
+ fs/ocfs2/dlm/dlmcommon.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-provide-arch_kexec_protectunprotect_crashkres arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~kexec-provide-arch_kexec_protectunprotect_crashkres
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -538,3 +538,46 @@ overflow:
- 	return -ENOEXEC;
- }
- #endif /* CONFIG_KEXEC_FILE */
-+
-+#ifdef CONFIG_KEXEC_CORE
-+static int
-+kexec_mark_range(unsigned long start, unsigned long end, bool protect)
-+{
-+	struct page *page;
-+	unsigned int nr_pages;
-+
-+	if (!start || !end || start >= end)
-+		return 0;
-+
-+	page = pfn_to_page(start >> PAGE_SHIFT);
-+	nr_pages = (end + 1 - start) >> PAGE_SHIFT;
-+	if (protect)
-+		return set_pages_ro(page, nr_pages);
-+	else
-+		return set_pages_rw(page, nr_pages);
-+}
-+
-+static void kexec_mark_crashkres(bool protect)
-+{
-+	unsigned long control;
-+
-+	kexec_mark_range(crashk_low_res.start, crashk_low_res.end, protect);
-+
-+	/* Don't touch the control code page used in crash_kexec().*/
-+	control = PFN_PHYS(page_to_pfn(kexec_crash_image->control_code_page));
-+	/* Control code page is located in the 2nd page. */
-+	control = control + PAGE_SIZE;
-+	kexec_mark_range(crashk_res.start, control - 1, protect);
-+	kexec_mark_range(control + PAGE_SIZE, crashk_res.end, protect);
-+}
-+
-+void arch_kexec_protect_crashkres(void)
-+{
-+	kexec_mark_crashkres(true);
-+}
-+
-+void arch_kexec_unprotect_crashkres(void)
-+{
-+	kexec_mark_crashkres(false);
-+}
-+#endif
+diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-fix-a-typo-in-dlmcommonh fs/ocfs2/dlm/dlmcommon.h
+--- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-fix-a-typo-in-dlmcommonh
++++ a/fs/ocfs2/dlm/dlmcommon.h
+@@ -546,7 +546,7 @@ struct dlm_master_requery
+  * };
+  *
+  * from ../cluster/tcp.h
+- *    NET_MAX_PAYLOAD_BYTES  (4096 - sizeof(net_msg))
++ *    O2NET_MAX_PAYLOAD_BYTES  (4096 - sizeof(net_msg))
+  *    (roughly 4080 bytes)
+  * and sizeof(dlm_migratable_lockres) = 112 bytes
+  * and sizeof(dlm_migratable_lock) = 16 bytes
+@@ -587,7 +587,7 @@ struct dlm_migratable_lockres
+ 
+ /* from above, 128 bytes
+  * for some undetermined future use */
+-#define DLM_MIG_LOCKRES_RESERVED   (NET_MAX_PAYLOAD_BYTES - \
++#define DLM_MIG_LOCKRES_RESERVED   (O2NET_MAX_PAYLOAD_BYTES - \
+ 				    DLM_MIG_LOCKRES_MAX_LEN)
+ 
+ struct dlm_create_lock
 _
 
-Patches currently in -mm which might be from xlpang@redhat.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory.patch
-kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory-v4.patch
-kexec-provide-arch_kexec_protectunprotect_crashkres.patch
-kexec-provide-arch_kexec_protectunprotect_crashkres-v4.patch
+ocfs2-cluster-fix-memory-leak-in-o2hb_region_release.patch
+ocfs2-dlm-fix-a-typo-in-dlmcommonh.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery-v2.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery-v3.patch
+ocfs2-dlm-fix-bug-in-dlm_move_lockres_to_recovery_list.patch
 
