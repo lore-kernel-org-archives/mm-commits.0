@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- lib-spinlock_debugc-prevent-an-infinite-recursive-cycle-in-spin_dump.patch
- added to -mm tree
-Date: Tue, 26 Jan 2016 16:12:52 -0800
-Message-ID: <56a80b84.OHhjyfz52dk/E3qw%akpm@linux-foundation.org>
+Subject: + add-compile-time-check-for-__arch_si_preamble_size.patch added
+ to -mm tree
+Date: Tue, 26 Jan 2016 16:26:31 -0800
+Message-ID: <56a80eb7.P4Cl0QEi6BW6JkVm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39579 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40490 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751523AbcA0AMx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 19:12:53 -0500
+	with ESMTP id S1751208AbcA0A0c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 19:26:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: byungchul.park@lge.com, akinobu.mita@gmail.com, jack@suse.cz, mingo@kernel.org, mm-commits@vger.kernel.org
+To: deller@gmx.de, mpe@ellerman.id.au, oleg@redhat.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/spinlock_debug.c: prevent an infinite recursive cycle in spin_dump()
+     Subject: kernel/signal.c: add compile-time check for __ARCH_SI_PREAMBLE_SIZE
 has been added to the -mm tree.  Its filename is
-     lib-spinlock_debugc-prevent-an-infinite-recursive-cycle-in-spin_dump.patch
+     add-compile-time-check-for-__arch_si_preamble_size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-spinlock_debugc-prevent-an-infinite-recursive-cycle-in-spin_dump.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/add-compile-time-check-for-__arch_si_preamble_size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-spinlock_debugc-prevent-an-infinite-recursive-cycle-in-spin_dump.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/add-compile-time-check-for-__arch_si_preamble_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,73 +39,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Byungchul Park <byungchul.park@lge.com>
-Subject: lib/spinlock_debug.c: prevent an infinite recursive cycle in spin_dump()
+From: Helge Deller <deller@gmx.de>
+Subject: kernel/signal.c: add compile-time check for __ARCH_SI_PREAMBLE_SIZE
 
-There is an infinite recursive cycle when using CONFIG_DEBUG_SPINLOCK, in
-spin_dump().  Backtrace prints printk() -> console_trylock() ->
-do_raw_spin_lock() -> spin_bug() -> spin_dump() -> printk()... 
-infinitely.
+The value of __ARCH_SI_PREAMBLE_SIZE defines the size (including padding)
+of the part of the struct siginfo that is before the union, and it is then
+used to calculate the needed padding (SI_PAD_SIZE) to make the size of
+struct siginfo equal to 128 (SI_MAX_SIZE) bytes.
 
-If the spin_bug() is called from a function like printk() which is trying
-to obtain the console lock, we should prevent the debug spinlock code from
-calling printk() again in that context.
+Depending on the target architecture and word width it equals to either 3
+or 4 times sizeof int.
 
-Signed-off-by: Byungchul Park <byungchul.park@lge.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Jan Kara <jack@suse.cz>
+Since the very beginning we had __ARCH_SI_PREAMBLE_SIZE wrong on the
+parisc architecture for the 64bit kernel build.  It's even more
+frustrating, because it can easily be checked at compile time if the value
+was defined correctly.
+
+This patch adds such a check for the correctness of
+__ARCH_SI_PREAMBLE_SIZE in the hope that it will prevent existing and
+future architectures from running into the same problem.
+
+I refrained from replacing __ARCH_SI_PREAMBLE_SIZE by offsetof() in
+copy_siginfo() in include/asm-generic/siginfo.h, because a) it doesn't
+make any difference and b) it's used in the Documentation/kmemcheck.txt
+example.
+
+I ran this patch through the 0-DAY kernel test infrastructure and only the
+parisc architecture triggered as expected.  That means that this patch
+should be OK for all major architectures.
+
+Signed-off-by: Helge Deller <deller@gmx.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/locking/spinlock_debug.c |   11 +++++++++++
- kernel/printk/printk.c          |    5 +++++
- 2 files changed, 16 insertions(+)
+ kernel/signal.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN kernel/locking/spinlock_debug.c~lib-spinlock_debugc-prevent-an-infinite-recursive-cycle-in-spin_dump kernel/locking/spinlock_debug.c
---- a/kernel/locking/spinlock_debug.c~lib-spinlock_debugc-prevent-an-infinite-recursive-cycle-in-spin_dump
-+++ a/kernel/locking/spinlock_debug.c
-@@ -67,11 +67,22 @@ static void spin_dump(raw_spinlock_t *lo
- 	dump_stack();
- }
+diff -puN kernel/signal.c~add-compile-time-check-for-__arch_si_preamble_size kernel/signal.c
+--- a/kernel/signal.c~add-compile-time-check-for-__arch_si_preamble_size
++++ a/kernel/signal.c
+@@ -3581,6 +3581,10 @@ __weak const char *arch_vma_name(struct
  
-+extern int is_console_lock(raw_spinlock_t *lock);
-+
- static void spin_bug(raw_spinlock_t *lock, const char *msg)
+ void __init signals_init(void)
  {
- 	if (!debug_locks_off())
- 		return;
- 
-+	/*
-+	 * If this function is called from a function like printk()
-+	 * which is trying to obtain the console lock, then we should
-+	 * not call printk() any more. Or it will cause an infinite
-+	 * recursive cycle!
-+	 */
-+	if (unlikely(is_console_lock(lock)))
-+		return;
++	/* If this check fails, the __ARCH_SI_PREAMBLE_SIZE value is wrong! */
++	BUILD_BUG_ON(__ARCH_SI_PREAMBLE_SIZE
++		!= offsetof(struct siginfo, _sifields._pad));
 +
- 	spin_dump(lock, msg);
+ 	sigqueue_cachep = KMEM_CACHE(sigqueue, SLAB_PANIC);
  }
  
-diff -puN kernel/printk/printk.c~lib-spinlock_debugc-prevent-an-infinite-recursive-cycle-in-spin_dump kernel/printk/printk.c
---- a/kernel/printk/printk.c~lib-spinlock_debugc-prevent-an-infinite-recursive-cycle-in-spin_dump
-+++ a/kernel/printk/printk.c
-@@ -120,6 +120,11 @@ static int __down_trylock_console_sem(un
- 	up(&console_sem);\
- } while (0)
- 
-+int is_console_lock(raw_spinlock_t *lock)
-+{
-+	return &console_sem.lock == lock;
-+}
-+
- /*
-  * This is used for debugging the mess that is the VT code by
-  * keeping track if we have the console semaphore held. It's
 _
 
-Patches currently in -mm which might be from byungchul.park@lge.com are
+Patches currently in -mm which might be from deller@gmx.de are
 
-lib-spinlock_debugc-prevent-an-infinite-recursive-cycle-in-spin_dump.patch
+add-compile-time-check-for-__arch_si_preamble_size.patch
 
