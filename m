@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slab-introduce-new-slab-management-type-objfreelist_slab.patch added to
- -mm tree
-Date: Tue, 26 Jan 2016 21:30:35 -0800
-Message-ID: <56a855fb.sP+Nh9nAtHNBZ9fu%akpm@linux-foundation.org>
+Subject: + mm-slab-alternative-implementation-for-debug_slab_leak.patch
+ added to -mm tree
+Date: Tue, 26 Jan 2016 21:30:24 -0800
+Message-ID: <56a855f0.RtAJjF3SfotGGeKR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36873 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36819 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753491AbcA0Fag (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 00:30:36 -0500
+	with ESMTP id S1753413AbcA0Fa0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 00:30:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: js1304@gmail.com, brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: introduce new slab management type, OBJFREELIST_SLAB
+     Subject: mm/slab: alternative implementation for DEBUG_SLAB_LEAK
 has been added to the -mm tree.  Its filename is
-     mm-slab-introduce-new-slab-management-type-objfreelist_slab.patch
+     mm-slab-alternative-implementation-for-debug_slab_leak.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-introduce-new-slab-management-type-objfreelist_slab.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-alternative-implementation-for-debug_slab_leak.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-introduce-new-slab-management-type-objfreelist_slab.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-alternative-implementation-for-debug_slab_leak.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,88 +40,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm/slab: introduce new slab management type, OBJFREELIST_SLAB
+Subject: mm/slab: alternative implementation for DEBUG_SLAB_LEAK
 
-SLAB needs a array to manage freed objects in a slab.  It is only used if
-some objects are freed so we can use free object itself as this array. 
-This requires additional branch in somewhat critical lock path to check if
-it is first freed object or not but that's all we need.  Benefits is that
-we can save extra memory usage and reduce some computational overhead by
-allocating a management array when new slab is created.
+DEBUG_SLAB_LEAK is a debug option.  It's current implementation requires
+status buffer so we need more memory to use it.  And, it cause kmem_cache
+initialization step more complex.
 
-Code change is rather complex than what we can expect from the idea, in
-order to handle debugging feature efficiently.  If you want to see core
-idea only, please remove '#if DEBUG' block in the patch.
+To remove this extra memory usage and to simplify initialization step,
+this patch implement this feature with another way.
 
-Although this idea can apply to all caches whose size is larger than
-management array size, it isn't applied to caches which have a
-constructor.  If such cache's object is used for management array,
-constructor should be called for it before that object is returned to
-user.  I guess that overhead overwhelm benefit in that case so this idea
-doesn't applied to them at least now.
+When user requests to get slab object owner information, it marks that
+getting information is started.  And then, all free objects in caches are
+flushed to corresponding slab page.  Now, we can distinguish all freed
+object so we can know all allocated objects, too.  After collecting slab
+object owner information on allocated objects, mark is checked that there
+is no free during the processing.  If true, we can be sure that our
+information is correct so information is returned to user.
 
-For summary, from now on, slab management type is determined by
-following logic.
+Although this way is rather complex, it has two important benefits
+mentioned above.  So, I think it is worth changing.
 
-1) if management array size is smaller than object size and no ctor, it
-   becomes OBJFREELIST_SLAB.
+There is one drawback that it takes more time to get slab object owner
+information but it is just a debug option so it doesn't matter at all.
 
-2) if management array size is smaller than leftover, it becomes
-   NORMAL_SLAB which uses leftover as a array.
-
-3) if OFF_SLAB help to save memory than way 4), it becomes OFF_SLAB. 
-   It allocate a management array from the other cache so memory waste
-   happens.
-
-4) others become NORMAL_SLAB.  It uses dedicated internal memory in a
-   slab as a management array so it causes memory waste.
-
-In my system, without enabling CONFIG_DEBUG_SLAB, Almost caches become
-OBJFREELIST_SLAB and NORMAL_SLAB (using leftover) which doesn't waste
-memory.  Following is the result of number of caches with specific slab
-management type.
-
-TOTAL = OBJFREELIST + NORMAL(leftover) + NORMAL + OFF
-
-/Before/
-126 = 0 + 60 + 25 + 41
-
-/After/
-126 = 97 + 12 + 15 + 2
-
-Result shows that number of caches that doesn't waste memory increase
-from 60 to 109.
-
-I did some benchmarking and it looks that benefit are more than loss.
-
-Kmalloc: Repeatedly allocate then free test
-
-/Before/
-[    0.286809] 1. Kmalloc: Repeatedly allocate then free test
-[    1.143674] 100000 times kmalloc(32) -> 116 cycles kfree -> 78 cycles
-[    1.441726] 100000 times kmalloc(64) -> 121 cycles kfree -> 80 cycles
-[    1.815734] 100000 times kmalloc(128) -> 168 cycles kfree -> 85 cycles
-[    2.380709] 100000 times kmalloc(256) -> 287 cycles kfree -> 95 cycles
-[    3.101153] 100000 times kmalloc(512) -> 370 cycles kfree -> 117 cycles
-[    3.942432] 100000 times kmalloc(1024) -> 413 cycles kfree -> 156 cycles
-[    5.227396] 100000 times kmalloc(2048) -> 622 cycles kfree -> 248 cycles
-[    7.519793] 100000 times kmalloc(4096) -> 1102 cycles kfree -> 452 cycles
-
-/After/
-[    1.205313] 100000 times kmalloc(32) -> 117 cycles kfree -> 78 cycles
-[    1.510526] 100000 times kmalloc(64) -> 124 cycles kfree -> 81 cycles
-[    1.827382] 100000 times kmalloc(128) -> 130 cycles kfree -> 84 cycles
-[    2.226073] 100000 times kmalloc(256) -> 177 cycles kfree -> 92 cycles
-[    2.814747] 100000 times kmalloc(512) -> 286 cycles kfree -> 112 cycles
-[    3.532952] 100000 times kmalloc(1024) -> 344 cycles kfree -> 141 cycles
-[    4.608777] 100000 times kmalloc(2048) -> 519 cycles kfree -> 210 cycles
-[    6.350105] 100000 times kmalloc(4096) -> 789 cycles kfree -> 391 cycles
-
-In fact, I tested another idea implementing OBJFREELIST_SLAB with
-extendable linked array through another freed object.  It can remove
-memory waste completely but it causes more computational overhead in
-critical lock path and it seems that overhead outweigh benefit.  So, this
-patch doesn't include it.
+To help review, this patch implements new way only.  Following patch will
+remove useless code.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -133,218 +75,164 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   94 +++++++++++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 86 insertions(+), 8 deletions(-)
+ include/linux/slab_def.h |    3 +
+ mm/slab.c                |   85 +++++++++++++++++++++++++++----------
+ 2 files changed, 66 insertions(+), 22 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-introduce-new-slab-management-type-objfreelist_slab mm/slab.c
---- a/mm/slab.c~mm-slab-introduce-new-slab-management-type-objfreelist_slab
+diff -puN include/linux/slab_def.h~mm-slab-alternative-implementation-for-debug_slab_leak include/linux/slab_def.h
+--- a/include/linux/slab_def.h~mm-slab-alternative-implementation-for-debug_slab_leak
++++ a/include/linux/slab_def.h
+@@ -60,6 +60,9 @@ struct kmem_cache {
+ 	atomic_t allocmiss;
+ 	atomic_t freehit;
+ 	atomic_t freemiss;
++#ifdef CONFIG_DEBUG_SLAB_LEAK
++	atomic_t store_user_clean;
++#endif
+ 
+ 	/*
+ 	 * If debugging is enabled, then the allocator can add additional
+diff -puN mm/slab.c~mm-slab-alternative-implementation-for-debug_slab_leak mm/slab.c
+--- a/mm/slab.c~mm-slab-alternative-implementation-for-debug_slab_leak
 +++ a/mm/slab.c
-@@ -270,7 +270,9 @@ static void kmem_cache_node_init(struct 
- 	MAKE_LIST((cachep), (&(ptr)->slabs_free), slabs_free, nodeid);	\
- 	} while (0)
+@@ -396,20 +396,25 @@ static void set_obj_status(struct page *
+ 	status[idx] = val;
+ }
  
-+#define CFLGS_OBJFREELIST_SLAB	(0x40000000UL)
- #define CFLGS_OFF_SLAB		(0x80000000UL)
-+#define	OBJFREELIST_SLAB(x)	((x)->flags & CFLGS_OBJFREELIST_SLAB)
- #define	OFF_SLAB(x)	((x)->flags & CFLGS_OFF_SLAB)
+-static inline unsigned int get_obj_status(struct page *page, int idx)
++static inline bool is_store_user_clean(struct kmem_cache *cachep)
+ {
+-	int freelist_size;
+-	char *status;
+-	struct kmem_cache *cachep = page->slab_cache;
++	return atomic_read(&cachep->store_user_clean) == 1;
++}
  
- #define BATCHREFILL_LIMIT	16
-@@ -480,7 +482,7 @@ static void cache_estimate(unsigned long
- 	 * the slabs are all pages aligned, the objects will be at the
- 	 * correct alignment when allocated.
- 	 */
--	if (flags & CFLGS_OFF_SLAB) {
-+	if (flags & (CFLGS_OBJFREELIST_SLAB | CFLGS_OFF_SLAB)) {
- 		*num = slab_size / buffer_size;
- 		*left_over = slab_size % buffer_size;
- 	} else {
-@@ -1801,6 +1803,12 @@ static void slab_destroy_debugcheck(stru
+-	freelist_size = cachep->num * sizeof(freelist_idx_t);
+-	status = (char *)page->freelist + freelist_size;
++static inline void set_store_user_clean(struct kmem_cache *cachep)
++{
++	atomic_set(&cachep->store_user_clean, 1);
++}
+ 
+-	return status[idx];
++static inline void set_store_user_dirty(struct kmem_cache *cachep)
++{
++	if (is_store_user_clean(cachep))
++		atomic_set(&cachep->store_user_clean, 0);
+ }
+ 
+ #else
+ static inline void set_obj_status(struct page *page, int idx, int val) {}
++static inline void set_store_user_dirty(struct kmem_cache *cachep) {}
+ 
+ #endif
+ 
+@@ -2550,6 +2555,11 @@ static void *slab_get_obj(struct kmem_ca
+ 	objp = index_to_obj(cachep, page, get_free_obj(page, page->active));
+ 	page->active++;
+ 
++#if DEBUG
++	if (cachep->flags & SLAB_STORE_USER)
++		set_store_user_dirty(cachep);
++#endif
++
+ 	return objp;
+ }
+ 
+@@ -2725,8 +2735,10 @@ static void *cache_free_debugcheck(struc
+ 		*dbg_redzone1(cachep, objp) = RED_INACTIVE;
+ 		*dbg_redzone2(cachep, objp) = RED_INACTIVE;
+ 	}
+-	if (cachep->flags & SLAB_STORE_USER)
++	if (cachep->flags & SLAB_STORE_USER) {
++		set_store_user_dirty(cachep);
+ 		*dbg_userword(cachep, objp) = (void *)caller;
++	}
+ 
+ 	objnr = obj_to_index(cachep, page, objp);
+ 
+@@ -4117,15 +4129,34 @@ static void handle_slab(unsigned long *n
  						struct page *page)
  {
- 	int i;
-+
-+	if (OBJFREELIST_SLAB(cachep) && cachep->flags & SLAB_POISON) {
-+		poison_obj(cachep, page->freelist - obj_offset(cachep),
-+			POISON_FREE);
-+	}
-+
- 	for (i = 0; i < cachep->num; i++) {
- 		void *objp = index_to_obj(cachep, page, i);
+ 	void *p;
+-	int i;
++	int i, j;
++	unsigned long v;
  
-@@ -2030,6 +2038,29 @@ __kmem_cache_alias(const char *name, siz
- 	return cachep;
- }
- 
-+static bool set_objfreelist_slab_cache(struct kmem_cache *cachep,
-+			size_t size, unsigned long flags)
-+{
-+	size_t left;
+ 	if (n[0] == n[1])
+ 		return;
+ 	for (i = 0, p = page->s_mem; i < c->num; i++, p += c->size) {
+-		if (get_obj_status(page, i) != OBJECT_ACTIVE)
++		bool active = true;
 +
-+	cachep->num = 0;
-+
-+	if (cachep->ctor)
-+		return false;
-+
-+	left = calculate_slab_order(cachep, size,
-+			flags | CFLGS_OBJFREELIST_SLAB);
-+	if (!cachep->num)
-+		return false;
-+
-+	if (cachep->num * sizeof(freelist_idx_t) > cachep->object_size)
-+		return false;
-+
-+	cachep->colour = left / cachep->colour_off;
-+
-+	return true;
-+}
-+
- static bool set_off_slab_cache(struct kmem_cache *cachep,
- 			size_t size, unsigned long flags)
- {
-@@ -2218,6 +2249,11 @@ __kmem_cache_create (struct kmem_cache *
- 	}
- #endif
- 
-+	if (set_objfreelist_slab_cache(cachep, size, flags)) {
-+		flags |= CFLGS_OBJFREELIST_SLAB;
-+		goto done;
-+	}
-+
- 	if (set_off_slab_cache(cachep, size, flags)) {
- 		flags |= CFLGS_OFF_SLAB;
- 		goto done;
-@@ -2435,7 +2471,9 @@ static void *alloc_slabmgmt(struct kmem_
- 	page->s_mem = addr + colour_off;
- 	page->active = 0;
- 
--	if (OFF_SLAB(cachep)) {
-+	if (OBJFREELIST_SLAB(cachep))
-+		freelist = NULL;
-+	else if (OFF_SLAB(cachep)) {
- 		/* Slab management obj is off-slab. */
- 		freelist = kmem_cache_alloc_node(cachep->freelist_cache,
- 					      local_flags, nodeid);
-@@ -2508,6 +2546,11 @@ static void cache_init_objs(struct kmem_
- 
- 	cache_init_objs_debug(cachep, page);
- 
-+	if (OBJFREELIST_SLAB(cachep)) {
-+		page->freelist = index_to_obj(cachep, page, cachep->num - 1) +
-+						obj_offset(cachep);
-+	}
-+
- 	for (i = 0; i < cachep->num; i++) {
- 		/* constructor could break poison info */
- 		if (DEBUG == 0 && cachep->ctor)
-@@ -2559,6 +2602,9 @@ static void slab_put_obj(struct kmem_cac
- 	}
- #endif
- 	page->active--;
-+	if (!page->freelist)
-+		page->freelist = objp + obj_offset(cachep);
-+
- 	set_free_obj(page, page->active, objnr);
- }
- 
-@@ -2633,7 +2679,7 @@ static int cache_grow(struct kmem_cache 
- 	/* Get slab management. */
- 	freelist = alloc_slabmgmt(cachep, page, offset,
- 			local_flags & ~GFP_CONSTRAINT_MASK, nodeid);
--	if (!freelist)
-+	if (OFF_SLAB(cachep) && !freelist)
- 		goto opps1;
- 
- 	slab_map_pages(cachep, page, freelist);
-@@ -2736,14 +2782,42 @@ static void *cache_free_debugcheck(struc
- #define cache_free_debugcheck(x,objp,z) (objp)
- #endif
- 
-+static inline void fixup_objfreelist_debug(struct kmem_cache *cachep,
-+						void **list)
-+{
-+#if DEBUG
-+	void *next = *list;
-+	void *objp;
-+
-+	while (next) {
-+		objp = next - obj_offset(cachep);
-+		next = *(void **)next;
-+		poison_obj(cachep, objp, POISON_FREE);
-+	}
-+#endif
-+}
-+
- static inline void fixup_slab_list(struct kmem_cache *cachep,
--				struct kmem_cache_node *n, struct page *page)
-+				struct kmem_cache_node *n, struct page *page,
-+				void **list)
- {
- 	/* move slabp to correct slabp list: */
- 	list_del(&page->lru);
--	if (page->active == cachep->num)
-+	if (page->active == cachep->num) {
- 		list_add(&page->lru, &n->slabs_full);
--	else
-+		if (OBJFREELIST_SLAB(cachep)) {
-+#if DEBUG
-+			/* Poisoning will be done without holding the lock */
-+			if (cachep->flags & SLAB_POISON) {
-+				void **objp = page->freelist;
-+
-+				*objp = *list;
-+				*list = objp;
++		for (j = page->active; j < c->num; j++) {
++			if (get_free_obj(page, j) == i) {
++				active = false;
++				break;
 +			}
-+#endif
-+			page->freelist = NULL;
 +		}
-+	} else
- 		list_add(&page->lru, &n->slabs_partial);
- }
++
++		if (!active)
++			continue;
++
++		/*
++		 * probe_kernel_read() is used for DEBUG_PAGEALLOC. page table
++		 * mapping is established when actual object allocation and
++		 * we could mistakenly access the unmapped object in the cpu
++		 * cache.
++		 */
++		if (probe_kernel_read(&v, dbg_userword(c, p), sizeof(v)))
+ 			continue;
  
-@@ -2769,6 +2843,7 @@ static void *cache_alloc_refill(struct k
- 	struct kmem_cache_node *n;
- 	struct array_cache *ac;
- 	int node;
-+	void *list = NULL;
- 
- 	check_irq_off();
- 	node = numa_mem_id();
-@@ -2820,13 +2895,14 @@ retry:
- 			ac_put_obj(cachep, ac, slab_get_obj(cachep, page));
- 		}
- 
--		fixup_slab_list(cachep, n, page);
-+		fixup_slab_list(cachep, n, page, &list);
+-		if (!add_caller(n, (unsigned long)*dbg_userword(c, p)))
++		if (!add_caller(n, v))
+ 			return;
  	}
+ }
+@@ -4161,21 +4192,31 @@ static int leaks_show(struct seq_file *m
+ 	if (!(cachep->flags & SLAB_RED_ZONE))
+ 		return 0;
  
- must_grow:
- 	n->free_objects -= ac->avail;
- alloc_done:
- 	spin_unlock(&n->list_lock);
-+	fixup_objfreelist_debug(cachep, &list);
+-	/* OK, we can do it */
++	/*
++	 * Set store_user_clean and start to grab stored user information
++	 * for all objects on this cache. If some alloc/free requests comes
++	 * during the processing, information would be wrong so restart
++	 * whole processing.
++	 */
++	do {
++		set_store_user_clean(cachep);
++		drain_cpu_caches(cachep);
  
- 	if (unlikely(!ac->avail)) {
- 		int x;
-@@ -3063,6 +3139,7 @@ static void *____cache_alloc_node(struct
- 	struct page *page;
- 	struct kmem_cache_node *n;
- 	void *obj;
-+	void *list = NULL;
- 	int x;
+-	x[1] = 0;
++		x[1] = 0;
  
- 	VM_BUG_ON(nodeid < 0 || nodeid >= MAX_NUMNODES);
-@@ -3087,9 +3164,10 @@ retry:
- 	obj = slab_get_obj(cachep, page);
- 	n->free_objects--;
+-	for_each_kmem_cache_node(cachep, node, n) {
++		for_each_kmem_cache_node(cachep, node, n) {
  
--	fixup_slab_list(cachep, n, page);
-+	fixup_slab_list(cachep, n, page, &list);
+-		check_irq_on();
+-		spin_lock_irq(&n->list_lock);
++			check_irq_on();
++			spin_lock_irq(&n->list_lock);
++
++			list_for_each_entry(page, &n->slabs_full, lru)
++				handle_slab(x, cachep, page);
++			list_for_each_entry(page, &n->slabs_partial, lru)
++				handle_slab(x, cachep, page);
++			spin_unlock_irq(&n->list_lock);
++		}
++	} while (!is_store_user_clean(cachep));
  
- 	spin_unlock(&n->list_lock);
-+	fixup_objfreelist_debug(cachep, &list);
- 	goto done;
- 
- must_grow:
+-		list_for_each_entry(page, &n->slabs_full, lru)
+-			handle_slab(x, cachep, page);
+-		list_for_each_entry(page, &n->slabs_partial, lru)
+-			handle_slab(x, cachep, page);
+-		spin_unlock_irq(&n->list_lock);
+-	}
+ 	name = cachep->name;
+ 	if (x[0] == x[1]) {
+ 		/* Increase the buffer size */
 _
 
 Patches currently in -mm which might be from js1304@gmail.com are
