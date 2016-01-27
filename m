@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + s390-extable-use-generic-search-and-sort-routines.patch added
- to -mm tree
-Date: Wed, 27 Jan 2016 11:32:12 -0800
-Message-ID: <56a91b3c.0TICOtqRBG1fcsor%akpm@linux-foundation.org>
+Subject: + x86-extable-use-generic-search-and-sort-routines.patch added to -mm tree
+Date: Wed, 27 Jan 2016 11:32:14 -0800
+Message-ID: <56a91b3e.dCaHuzW7JO62bWlc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57694 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57698 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934525AbcA0TcN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 14:32:13 -0500
+	with ESMTP id S934074AbcA0TcP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 14:32:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ard.biesheuvel@linaro.org, heiko.carstens@de.ibm.com, mm-commits@vger.kernel.org
+To: ard.biesheuvel@linaro.org, hpa@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390/extable: use generic search and sort routines
+     Subject: x86/extable: use generic search and sort routines
 has been added to the -mm tree.  Its filename is
-     s390-extable-use-generic-search-and-sort-routines.patch
+     x86-extable-use-generic-search-and-sort-routines.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/s390-extable-use-generic-search-and-sort-routines.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-extable-use-generic-search-and-sort-routines.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/s390-extable-use-generic-search-and-sort-routines.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-extable-use-generic-search-and-sort-routines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,64 +39,60 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: s390/extable: use generic search and sort routines
+Subject: x86/extable: use generic search and sort routines
 
 Replace the arch specific versions of search_extable() and sort_extable()
 with calls to the generic ones, which now support relative exception
 tables as well.
 
 Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Acked-by: H. Peter Anvin <hpa@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/include/asm/uaccess.h |    8 --
- arch/s390/mm/Makefile           |    2 
- arch/s390/mm/extable.c          |   85 ------------------------------
- 3 files changed, 2 insertions(+), 93 deletions(-)
+ arch/x86/include/asm/uaccess.h |    5 -
+ arch/x86/mm/extable.c          |  106 -------------------------------
+ 2 files changed, 4 insertions(+), 107 deletions(-)
 
-diff -puN arch/s390/include/asm/uaccess.h~s390-extable-use-generic-search-and-sort-routines arch/s390/include/asm/uaccess.h
---- a/arch/s390/include/asm/uaccess.h~s390-extable-use-generic-search-and-sort-routines
-+++ a/arch/s390/include/asm/uaccess.h
-@@ -79,18 +79,12 @@ struct exception_table_entry
+diff -puN arch/x86/include/asm/uaccess.h~x86-extable-use-generic-search-and-sort-routines arch/x86/include/asm/uaccess.h
+--- a/arch/x86/include/asm/uaccess.h~x86-extable-use-generic-search-and-sort-routines
++++ a/arch/x86/include/asm/uaccess.h
+@@ -106,9 +106,8 @@ static inline bool __chk_range_not_ok(un
+ struct exception_table_entry {
  	int insn, fixup;
  };
+-/* This is not the generic standard exception_table_entry format */
+-#define ARCH_HAS_SORT_EXTABLE
+-#define ARCH_HAS_SEARCH_EXTABLE
++
++#define ARCH_HAS_RELATIVE_EXTABLE
  
--static inline unsigned long extable_insn(const struct exception_table_entry *x)
+ extern int fixup_exception(struct pt_regs *regs);
+ extern int early_fixup_exception(unsigned long *ip);
+diff -puN arch/x86/mm/extable.c~x86-extable-use-generic-search-and-sort-routines arch/x86/mm/extable.c
+--- a/arch/x86/mm/extable.c~x86-extable-use-generic-search-and-sort-routines
++++ a/arch/x86/mm/extable.c
+@@ -1,14 +1,9 @@
++
+ #include <linux/module.h>
+-#include <linux/spinlock.h>
+-#include <linux/sort.h>
++
+ #include <asm/uaccess.h>
+ 
+ static inline unsigned long
+-ex_insn_addr(const struct exception_table_entry *x)
 -{
 -	return (unsigned long)&x->insn + x->insn;
 -}
--
- static inline unsigned long extable_fixup(const struct exception_table_entry *x)
+-static inline unsigned long
+ ex_fixup_addr(const struct exception_table_entry *x)
  {
  	return (unsigned long)&x->fixup + x->fixup;
+@@ -70,100 +65,3 @@ int __init early_fixup_exception(unsigne
+ 
+ 	return 0;
  }
- 
--#define ARCH_HAS_SORT_EXTABLE
--#define ARCH_HAS_SEARCH_EXTABLE
-+#define ARCH_HAS_RELATIVE_EXTABLE
- 
- /**
-  * __copy_from_user: - Copy a block of data from user space, with less checking.
-diff -puN arch/s390/mm/Makefile~s390-extable-use-generic-search-and-sort-routines arch/s390/mm/Makefile
---- a/arch/s390/mm/Makefile~s390-extable-use-generic-search-and-sort-routines
-+++ a/arch/s390/mm/Makefile
-@@ -3,7 +3,7 @@
- #
- 
- obj-y		:= init.o fault.o extmem.o mmap.o vmem.o pgtable.o maccess.o
--obj-y		+= page-states.o gup.o extable.o pageattr.o mem_detect.o
-+obj-y		+= page-states.o gup.o pageattr.o mem_detect.o
- 
- obj-$(CONFIG_CMM)		+= cmm.o
- obj-$(CONFIG_HUGETLB_PAGE)	+= hugetlbpage.o
-diff -puN arch/s390/mm/extable.c~s390-extable-use-generic-search-and-sort-routines /dev/null
---- a/arch/s390/mm/extable.c
-+++ /dev/null
-@@ -1,85 +0,0 @@
--#include <linux/module.h>
--#include <linux/sort.h>
--#include <asm/uaccess.h>
 -
 -/*
 - * Search one exception table for an entry corresponding to the
@@ -111,20 +106,20 @@ diff -puN arch/s390/mm/extable.c~s390-extable-use-generic-search-and-sort-routin
 -	       const struct exception_table_entry *last,
 -	       unsigned long value)
 -{
--	const struct exception_table_entry *mid;
--	unsigned long addr;
--
 -	while (first <= last) {
+-		const struct exception_table_entry *mid;
+-		unsigned long addr;
+-
 -		mid = ((last - first) >> 1) + first;
--		addr = extable_insn(mid);
+-		addr = ex_insn_addr(mid);
 -		if (addr < value)
 -			first = mid + 1;
 -		else if (addr > value)
 -			last = mid - 1;
 -		else
 -			return mid;
--	}
--	return NULL;
+-        }
+-        return NULL;
 -}
 -
 -/*
@@ -138,7 +133,13 @@ diff -puN arch/s390/mm/extable.c~s390-extable-use-generic-search-and-sort-routin
 -{
 -	const struct exception_table_entry *x = a, *y = b;
 -
--	/* This compare is only valid after normalization. */
+-	/*
+-	 * This value will always end up fittin in an int, because on
+-	 * both i386 and x86-64 the kernel symbol-reachable address
+-	 * space is < 2 GiB.
+-	 *
+-	 * This compare is only valid after normalization.
+-	 */
 -	return x->insn - y->insn;
 -}
 -
@@ -148,16 +149,25 @@ diff -puN arch/s390/mm/extable.c~s390-extable-use-generic-search-and-sort-routin
 -	struct exception_table_entry *p;
 -	int i;
 -
--	/* Normalize entries to being relative to the start of the section */
--	for (p = start, i = 0; p < finish; p++, i += 8) {
+-	/* Convert all entries to being relative to the start of the section */
+-	i = 0;
+-	for (p = start; p < finish; p++) {
 -		p->insn += i;
--		p->fixup += i + 4;
+-		i += 4;
+-		p->fixup += i;
+-		i += 4;
 -	}
--	sort(start, finish - start, sizeof(*start), cmp_ex, NULL);
+-
+-	sort(start, finish - start, sizeof(struct exception_table_entry),
+-	     cmp_ex, NULL);
+-
 -	/* Denormalize all entries */
--	for (p = start, i = 0; p < finish; p++, i += 8) {
+-	i = 0;
+-	for (p = start; p < finish; p++) {
 -		p->insn -= i;
--		p->fixup -= i + 4;
+-		i += 4;
+-		p->fixup -= i;
+-		i += 4;
 -	}
 -}
 -
@@ -168,15 +178,15 @@ diff -puN arch/s390/mm/extable.c~s390-extable-use-generic-search-and-sort-routin
 - */
 -void trim_init_extable(struct module *m)
 -{
--	/* Trim the beginning */
+-	/*trim the beginning*/
 -	while (m->num_exentries &&
--	       within_module_init(extable_insn(&m->extable[0]), m)) {
+-	       within_module_init(ex_insn_addr(&m->extable[0]), m)) {
 -		m->extable++;
 -		m->num_exentries--;
 -	}
--	/* Trim the end */
+-	/*trim the end*/
 -	while (m->num_exentries &&
--	       within_module_init(extable_insn(&m->extable[m->num_exentries-1]), m))
+-	       within_module_init(ex_insn_addr(&m->extable[m->num_exentries-1]), m))
 -		m->num_exentries--;
 -}
 -#endif /* CONFIG_MODULES */
