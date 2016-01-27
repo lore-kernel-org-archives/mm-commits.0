@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + x86-query-dynamic-debug_pagealloc-setting.patch added to -mm
- tree
-Date: Wed, 27 Jan 2016 11:52:22 -0800
-Message-ID: <56a91ff6.Pt1pVMq3VRZox/r6%akpm@linux-foundation.org>
+Subject: +
+ mm-provide-debug_pagealloc_enabled-without-config_debug_pagealloc.patch
+ added to -mm tree
+Date: Wed, 27 Jan 2016 11:52:20 -0800
+Message-ID: <56a91ff4.uEMpQtta8hqiF9eL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60068 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60062 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935199AbcA0TwX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 14:52:23 -0500
+	with ESMTP id S935185AbcA0TwV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 14:52:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: borntraeger@de.ibm.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: borntraeger@de.ibm.com, rientjes@google.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: query dynamic DEBUG_PAGEALLOC setting
+     Subject: mm: provide debug_pagealloc_enabled() without CONFIG_DEBUG_PAGEALLOC
 has been added to the -mm tree.  Its filename is
-     x86-query-dynamic-debug_pagealloc-setting.patch
+     mm-provide-debug_pagealloc_enabled-without-config_debug_pagealloc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-query-dynamic-debug_pagealloc-setting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-provide-debug_pagealloc_enabled-without-config_debug_pagealloc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-query-dynamic-debug_pagealloc-setting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-provide-debug_pagealloc_enabled-without-config_debug_pagealloc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,103 +41,44 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christian Borntraeger <borntraeger@de.ibm.com>
-Subject: x86: query dynamic DEBUG_PAGEALLOC setting
+Subject: mm: provide debug_pagealloc_enabled() without CONFIG_DEBUG_PAGEALLOC
 
-We can use debug_pagealloc_enabled() to check if we can map the identity
-mapping with 2MB pages.  We can also add the state into the dump_stack
-output.
-
-The patch does not touch the code for the 1GB pages, which ignored
-CONFIG_DEBUG_PAGEALLOC.  Do we need to fence this as well?
+We can provide debug_pagealloc_enabled() also if CONFIG_DEBUG_PAGEALLOC
+is not set. It will return false in that case.
 
 Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/dumpstack.c |    5 ++---
- arch/x86/mm/init.c          |    7 ++++---
- arch/x86/mm/pageattr.c      |   14 ++++----------
- 3 files changed, 10 insertions(+), 16 deletions(-)
+ include/linux/mm.h |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/kernel/dumpstack.c~x86-query-dynamic-debug_pagealloc-setting arch/x86/kernel/dumpstack.c
---- a/arch/x86/kernel/dumpstack.c~x86-query-dynamic-debug_pagealloc-setting
-+++ a/arch/x86/kernel/dumpstack.c
-@@ -265,9 +265,8 @@ int __die(const char *str, struct pt_reg
- #ifdef CONFIG_SMP
- 	printk("SMP ");
- #endif
--#ifdef CONFIG_DEBUG_PAGEALLOC
--	printk("DEBUG_PAGEALLOC ");
--#endif
-+	if (debug_pagealloc_enabled())
-+		printk("DEBUG_PAGEALLOC ");
- #ifdef CONFIG_KASAN
- 	printk("KASAN");
- #endif
-diff -puN arch/x86/mm/init.c~x86-query-dynamic-debug_pagealloc-setting arch/x86/mm/init.c
---- a/arch/x86/mm/init.c~x86-query-dynamic-debug_pagealloc-setting
-+++ a/arch/x86/mm/init.c
-@@ -150,13 +150,14 @@ static int page_size_mask;
- 
- static void __init probe_page_size_mask(void)
- {
--#if !defined(CONFIG_DEBUG_PAGEALLOC) && !defined(CONFIG_KMEMCHECK)
-+#if !defined(CONFIG_KMEMCHECK)
- 	/*
--	 * For CONFIG_DEBUG_PAGEALLOC, identity mapping will use small pages.
-+	 * For CONFIG_KMEMCHECK or pagealloc debugging, identity mapping will
-+	 * use small pages.
- 	 * This will simplify cpa(), which otherwise needs to support splitting
- 	 * large pages into small in interrupt context, etc.
- 	 */
--	if (cpu_has_pse)
-+	if (cpu_has_pse && !debug_pagealloc_enabled())
- 		page_size_mask |= 1 << PG_LEVEL_2M;
- #endif
- 
-diff -puN arch/x86/mm/pageattr.c~x86-query-dynamic-debug_pagealloc-setting arch/x86/mm/pageattr.c
---- a/arch/x86/mm/pageattr.c~x86-query-dynamic-debug_pagealloc-setting
-+++ a/arch/x86/mm/pageattr.c
-@@ -106,12 +106,6 @@ static inline unsigned long highmap_end_
- 
- #endif
- 
--#ifdef CONFIG_DEBUG_PAGEALLOC
--# define debug_pagealloc 1
+diff -puN include/linux/mm.h~mm-provide-debug_pagealloc_enabled-without-config_debug_pagealloc include/linux/mm.h
+--- a/include/linux/mm.h~mm-provide-debug_pagealloc_enabled-without-config_debug_pagealloc
++++ a/include/linux/mm.h
+@@ -2206,13 +2206,18 @@ kernel_map_pages(struct page *page, int
+ #ifdef CONFIG_HIBERNATION
+ extern bool kernel_page_present(struct page *page);
+ #endif /* CONFIG_HIBERNATION */
 -#else
--# define debug_pagealloc 0
++#else  /* CONFIG_DEBUG_PAGEALLOC */
++static inline bool debug_pagealloc_enabled(void)
++{
++	return false;
++}
++
+ static inline void
+ kernel_map_pages(struct page *page, int numpages, int enable) {}
+ #ifdef CONFIG_HIBERNATION
+ static inline bool kernel_page_present(struct page *page) { return true; }
+ #endif /* CONFIG_HIBERNATION */
 -#endif
--
- static inline int
- within(unsigned long addr, unsigned long start, unsigned long end)
- {
-@@ -708,10 +702,10 @@ static int split_large_page(struct cpa_d
- {
- 	struct page *base;
++#endif /* CONFIG_DEBUG_PAGEALLOC */
  
--	if (!debug_pagealloc)
-+	if (!debug_pagealloc_enabled())
- 		spin_unlock(&cpa_lock);
- 	base = alloc_pages(GFP_KERNEL | __GFP_NOTRACK, 0);
--	if (!debug_pagealloc)
-+	if (!debug_pagealloc_enabled())
- 		spin_lock(&cpa_lock);
- 	if (!base)
- 		return -ENOMEM;
-@@ -1331,10 +1325,10 @@ static int __change_page_attr_set_clr(st
- 		if (cpa->flags & (CPA_ARRAY | CPA_PAGES_ARRAY))
- 			cpa->numpages = 1;
- 
--		if (!debug_pagealloc)
-+		if (!debug_pagealloc_enabled())
- 			spin_lock(&cpa_lock);
- 		ret = __change_page_attr(cpa, checkalias);
--		if (!debug_pagealloc)
-+		if (!debug_pagealloc_enabled())
- 			spin_unlock(&cpa_lock);
- 		if (ret)
- 			return ret;
+ #ifdef __HAVE_ARCH_GATE_AREA
+ extern struct vm_area_struct *get_gate_vma(struct mm_struct *mm);
 _
 
 Patches currently in -mm which might be from borntraeger@de.ibm.com are
