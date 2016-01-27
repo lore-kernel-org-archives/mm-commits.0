@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-fix-race-in-gang-lookup.patch added to -mm tree
-Date: Wed, 27 Jan 2016 13:33:51 -0800
-Message-ID: <56a937bf.a2TnIT0G2gYqhq5q%akpm@linux-foundation.org>
+Subject: +
+ hwspinlock-fix-race-between-radix-tree-insertion-and-lookup.patch added to
+ -mm tree
+Date: Wed, 27 Jan 2016 13:34:55 -0800
+Message-ID: <56a937ff.TWVZgO1Z+GQf1j9n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40353 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40401 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965938AbcA0Vdw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 16:33:52 -0500
+	with ESMTP id S934563AbcA0Ve4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 16:34:56 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: willy@linux.intel.com, hughd@google.com, khlebnikov@openvz.org, ohad@wizery.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: fix race in gang lookup
+     Subject: drivers/hwspinlock: fix race between radix tree insertion and lookup
 has been added to the -mm tree.  Its filename is
-     radix-tree-fix-race-in-gang-lookup.patch
+     hwspinlock-fix-race-between-radix-tree-insertion-and-lookup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-fix-race-in-gang-lookup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hwspinlock-fix-race-between-radix-tree-insertion-and-lookup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-fix-race-in-gang-lookup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hwspinlock-fix-race-between-radix-tree-insertion-and-lookup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,20 +41,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix-tree: fix race in gang lookup
+Subject: drivers/hwspinlock: fix race between radix tree insertion and lookup
 
-If the indirect_ptr bit is set on a slot, that indicates we need to redo
-the lookup.  Introduce a new function radix_tree_iter_retry() which forces
-the loop to retry the lookup by setting 'slot' to NULL and turning the
-iterator back to point at the problematic entry.
+of_hwspin_lock_get_id() is protected by the RCU lock, which means that
+insertions can occur simultaneously with the lookup.  If the radix tree
+transitions from a height of 0, we can see a slot with the indirect_ptr
+bit set, which will cause us to at least read random memory, and could
+cause other havoc.
 
-This is a pretty rare problem to hit at the moment; the lookup has to race
-with a grow of the radix tree from a height of 0.  The consequences of
-hitting this race are that gang lookup could return a pointer to a
-radix_tree_node instead of a pointer to whatever the user had inserted in
-the tree.
+Fix this by using the newly introduced radix_tree_iter_retry().
 
-Fixes: cebbd29e1c2f ("radix-tree: rewrite gang lookup using iterator")
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Ohad Ben-Cohen <ohad@wizery.com>
@@ -61,69 +59,23 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |   16 ++++++++++++++++
- lib/radix-tree.c           |   12 ++++++++++--
- 2 files changed, 26 insertions(+), 2 deletions(-)
+ drivers/hwspinlock/hwspinlock_core.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN include/linux/radix-tree.h~radix-tree-fix-race-in-gang-lookup include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-tree-fix-race-in-gang-lookup
-+++ a/include/linux/radix-tree.h
-@@ -379,6 +379,22 @@ void **radix_tree_next_chunk(struct radi
- 			     struct radix_tree_iter *iter, unsigned flags);
- 
- /**
-+ * radix_tree_iter_retry - retry this chunk of the iteration
-+ * @iter:	iterator state
-+ *
-+ * If we iterate over a tree protected only by the RCU lock, a race
-+ * against deletion or creation may result in seeing a slot for which
-+ * radix_tree_deref_retry() returns true.  If so, call this function
-+ * and continue the iteration.
-+ */
-+static inline __must_check
-+void **radix_tree_iter_retry(struct radix_tree_iter *iter)
-+{
-+	iter->next_index = iter->index;
-+	return NULL;
-+}
-+
-+/**
-  * radix_tree_chunk_size - get current chunk size
-  *
-  * @iter:	pointer to radix tree iterator
-diff -puN lib/radix-tree.c~radix-tree-fix-race-in-gang-lookup lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-fix-race-in-gang-lookup
-+++ a/lib/radix-tree.c
-@@ -1019,9 +1019,13 @@ radix_tree_gang_lookup(struct radix_tree
- 		return 0;
- 
- 	radix_tree_for_each_slot(slot, root, &iter, first_index) {
--		results[ret] = indirect_to_ptr(rcu_dereference_raw(*slot));
-+		results[ret] = rcu_dereference_raw(*slot);
- 		if (!results[ret])
+diff -puN drivers/hwspinlock/hwspinlock_core.c~hwspinlock-fix-race-between-radix-tree-insertion-and-lookup drivers/hwspinlock/hwspinlock_core.c
+--- a/drivers/hwspinlock/hwspinlock_core.c~hwspinlock-fix-race-between-radix-tree-insertion-and-lookup
++++ a/drivers/hwspinlock/hwspinlock_core.c
+@@ -313,6 +313,10 @@ int of_hwspin_lock_get_id(struct device_
+ 		hwlock = radix_tree_deref_slot(slot);
+ 		if (unlikely(!hwlock))
  			continue;
-+		if (radix_tree_is_indirect_ptr(results[ret])) {
++		if (radix_tree_is_indirect_ptr(hwlock)) {
 +			slot = radix_tree_iter_retry(&iter);
 +			continue;
 +		}
- 		if (++ret == max_items)
- 			break;
- 	}
-@@ -1098,9 +1102,13 @@ radix_tree_gang_lookup_tag(struct radix_
- 		return 0;
  
- 	radix_tree_for_each_tagged(slot, root, &iter, first_index, tag) {
--		results[ret] = indirect_to_ptr(rcu_dereference_raw(*slot));
-+		results[ret] = rcu_dereference_raw(*slot);
- 		if (!results[ret])
- 			continue;
-+		if (radix_tree_is_indirect_ptr(results[ret])) {
-+			slot = radix_tree_iter_retry(&iter);
-+			continue;
-+		}
- 		if (++ret == max_items)
- 			break;
- 	}
+ 		if (hwlock->bank->dev->of_node == args.np) {
+ 			ret = 0;
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
