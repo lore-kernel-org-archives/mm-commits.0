@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmscan-do-not-clear-shrinker_numa_aware-if-nr_node_ids-==-1.patch added
+Subject: + alpha-extable-use-generic-search-and-sort-routines.patch added
  to -mm tree
-Date: Wed, 27 Jan 2016 11:01:07 -0800
-Message-ID: <56a913f3.Rhngmq5Ms5Dpulyj%akpm@linux-foundation.org>
+Date: Wed, 27 Jan 2016 11:32:10 -0800
+Message-ID: <56a91b3a.uiRkO8BSQP0x0IY6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54325 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57692 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933703AbcA0TBI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 14:01:08 -0500
+	with ESMTP id S934137AbcA0TcL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 14:32:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: ard.biesheuvel@linaro.org, rth@twiddle.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: do not clear SHRINKER_NUMA_AWARE if nr_node_ids == 1
+     Subject: alpha/extable: use generic search and sort routines
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-do-not-clear-shrinker_numa_aware-if-nr_node_ids-==-1.patch
+     alpha-extable-use-generic-search-and-sort-routines.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-do-not-clear-shrinker_numa_aware-if-nr_node_ids-%3D%3D-1.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/alpha-extable-use-generic-search-and-sort-routines.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-do-not-clear-shrinker_numa_aware-if-nr_node_ids-%3D%3D-1.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/alpha-extable-use-generic-search-and-sort-routines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,37 +39,143 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: vmscan: do not clear SHRINKER_NUMA_AWARE if nr_node_ids == 1
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: alpha/extable: use generic search and sort routines
 
-Currently, on shrinker registration we clear SHRINKER_NUMA_AWARE if
-there's the only NUMA node present.  The comment states that this will
-allow us to save some small loop time later.  It used to be true when this
-code was added (see commit 1d3d4437eae1b ("vmscan: per-node deferred
-work")), but since commit 6b4f7799c6a57 ("mm: vmscan: invoke slab
-shrinkers from shrink_zone()") it doesn't make any difference.  Anyway,
-running on non-NUMA machine shouldn't make a shrinker NUMA unaware, so zap
-this hunk.
+Replace the arch specific versions of search_extable() and sort_extable()
+with calls to the generic ones, which now support relative exception
+tables as well.
 
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Acked-by: Richard Henderson <rth@twiddle.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    8 --------
- 1 file changed, 8 deletions(-)
+ arch/alpha/include/asm/uaccess.h |   10 ++-
+ arch/alpha/mm/Makefile           |    2 
+ arch/alpha/mm/extable.c          |   92 -----------------------------
+ 3 files changed, 9 insertions(+), 95 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-do-not-clear-shrinker_numa_aware-if-nr_node_ids-==-1 mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-do-not-clear-shrinker_numa_aware-if-nr_node_ids-==-1
-+++ a/mm/vmscan.c
-@@ -228,14 +228,6 @@ int register_shrinker(struct shrinker *s
- {
- 	size_t size = sizeof(*shrinker->nr_deferred);
+diff -puN arch/alpha/include/asm/uaccess.h~alpha-extable-use-generic-search-and-sort-routines arch/alpha/include/asm/uaccess.h
+--- a/arch/alpha/include/asm/uaccess.h~alpha-extable-use-generic-search-and-sort-routines
++++ a/arch/alpha/include/asm/uaccess.h
+@@ -483,7 +483,13 @@ struct exception_table_entry
+ 	(pc) + (_fixup)->fixup.bits.nextinsn;			\
+ })
  
--	/*
--	 * If we only have one possible node in the system anyway, save
--	 * ourselves the trouble and disable NUMA aware behavior. This way we
--	 * will save memory and some small loop time later.
--	 */
--	if (nr_node_ids == 1)
--		shrinker->flags &= ~SHRINKER_NUMA_AWARE;
+-#define ARCH_HAS_SORT_EXTABLE
+-#define ARCH_HAS_SEARCH_EXTABLE
++#define ARCH_HAS_RELATIVE_EXTABLE
++
++#define swap_ex_entry_fixup(a, b, tmp, delta)			\
++	do {							\
++		(a)->fixup.unit = (b)->fixup.unit;		\
++		(b)->fixup.unit = (tmp).fixup.unit;		\
++	} while (0)
++
+ 
+ #endif /* __ALPHA_UACCESS_H */
+diff -puN arch/alpha/mm/Makefile~alpha-extable-use-generic-search-and-sort-routines arch/alpha/mm/Makefile
+--- a/arch/alpha/mm/Makefile~alpha-extable-use-generic-search-and-sort-routines
++++ a/arch/alpha/mm/Makefile
+@@ -4,6 +4,6 @@
+ 
+ ccflags-y := -Werror
+ 
+-obj-y	:= init.o fault.o extable.o
++obj-y	:= init.o fault.o
+ 
+ obj-$(CONFIG_DISCONTIGMEM) += numa.o
+diff -puN arch/alpha/mm/extable.c~alpha-extable-use-generic-search-and-sort-routines /dev/null
+--- a/arch/alpha/mm/extable.c
++++ /dev/null
+@@ -1,92 +0,0 @@
+-/*
+- * linux/arch/alpha/mm/extable.c
+- */
+-
+-#include <linux/module.h>
+-#include <linux/sort.h>
+-#include <asm/uaccess.h>
+-
+-static inline unsigned long ex_to_addr(const struct exception_table_entry *x)
+-{
+-	return (unsigned long)&x->insn + x->insn;
+-}
+-
+-static void swap_ex(void *a, void *b, int size)
+-{
+-	struct exception_table_entry *ex_a = a, *ex_b = b;
+-	unsigned long addr_a = ex_to_addr(ex_a), addr_b = ex_to_addr(ex_b);
+-	unsigned int t = ex_a->fixup.unit;
+-
+-	ex_a->fixup.unit = ex_b->fixup.unit;
+-	ex_b->fixup.unit = t;
+-	ex_a->insn = (int)(addr_b - (unsigned long)&ex_a->insn);
+-	ex_b->insn = (int)(addr_a - (unsigned long)&ex_b->insn);
+-}
+-
+-/*
+- * The exception table needs to be sorted so that the binary
+- * search that we use to find entries in it works properly.
+- * This is used both for the kernel exception table and for
+- * the exception tables of modules that get loaded.
+- */
+-static int cmp_ex(const void *a, const void *b)
+-{
+-	const struct exception_table_entry *x = a, *y = b;
+-
+-	/* avoid overflow */
+-	if (ex_to_addr(x) > ex_to_addr(y))
+-		return 1;
+-	if (ex_to_addr(x) < ex_to_addr(y))
+-		return -1;
+-	return 0;
+-}
+-
+-void sort_extable(struct exception_table_entry *start,
+-		  struct exception_table_entry *finish)
+-{
+-	sort(start, finish - start, sizeof(struct exception_table_entry),
+-	     cmp_ex, swap_ex);
+-}
+-
+-#ifdef CONFIG_MODULES
+-/*
+- * Any entry referring to the module init will be at the beginning or
+- * the end.
+- */
+-void trim_init_extable(struct module *m)
+-{
+-	/*trim the beginning*/
+-	while (m->num_exentries &&
+-	       within_module_init(ex_to_addr(&m->extable[0]), m)) {
+-		m->extable++;
+-		m->num_exentries--;
+-	}
+-	/*trim the end*/
+-	while (m->num_exentries &&
+-	       within_module_init(ex_to_addr(&m->extable[m->num_exentries-1]),
+-				  m))
+-		m->num_exentries--;
+-}
+-#endif /* CONFIG_MODULES */
+-
+-const struct exception_table_entry *
+-search_extable(const struct exception_table_entry *first,
+-	       const struct exception_table_entry *last,
+-	       unsigned long value)
+-{
+-        while (first <= last) {
+-		const struct exception_table_entry *mid;
+-		unsigned long mid_value;
+-
+-		mid = (last - first) / 2 + first;
+-		mid_value = ex_to_addr(mid);
+-                if (mid_value == value)
+-                        return mid;
+-                else if (mid_value < value)
+-                        first = mid+1;
+-                else
+-                        last = mid-1;
+-        }
