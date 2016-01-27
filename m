@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- slub-cleanup-code-for-kmem-cgroup-support-to-kmem_cache_free_bulk.patch
+ slab-avoid-running-debug-slab-code-with-irqs-disabled-for-alloc_bulk.patch
  added to -mm tree
-Date: Tue, 26 Jan 2016 19:29:05 -0800
-Message-ID: <56a83981.nm+/PyztQRg0letw%akpm@linux-foundation.org>
+Date: Tue, 26 Jan 2016 19:29:13 -0800
+Message-ID: <56a83989.3lqFepR7H+rJCZYW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55742 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55796 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750785AbcA0D3H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 22:29:07 -0500
+	with ESMTP id S1751477AbcA0D3O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 22:29:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: cleanup code for kmem cgroup support to kmem_cache_free_bulk
+     Subject: slab: avoid running debug SLAB code with IRQs disabled for alloc_bulk
 has been added to the -mm tree.  Its filename is
-     slub-cleanup-code-for-kmem-cgroup-support-to-kmem_cache_free_bulk.patch
+     slab-avoid-running-debug-slab-code-with-irqs-disabled-for-alloc_bulk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-cleanup-code-for-kmem-cgroup-support-to-kmem_cache_free_bulk.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-avoid-running-debug-slab-code-with-irqs-disabled-for-alloc_bulk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-cleanup-code-for-kmem-cgroup-support-to-kmem_cache_free_bulk.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slab-avoid-running-debug-slab-code-with-irqs-disabled-for-alloc_bulk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,27 +41,13 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: slub: cleanup code for kmem cgroup support to kmem_cache_free_bulk
+Subject: slab: avoid running debug SLAB code with IRQs disabled for alloc_bulk
 
-This change is primarily an attempt to make it easier to realize the
-optimizations the compiler performs in-case CONFIG_MEMCG_KMEM is not
-enabled.
+Move the call to cache_alloc_debugcheck_after() outside the IRQ disabled
+section in kmem_cache_alloc_bulk().
 
-Performance wise, even when CONFIG_MEMCG_KMEM is compiled in, the overhead
-is zero.  This is because, as long as no process have enabled kmem cgroups
-accounting, the assignment is replaced by asm-NOP operations.  This is
-possible because memcg_kmem_enabled() uses a static_key_false() construct.
+When CONFIG_DEBUG_SLAB is disabled the compiler should remove this code.
 
-It also helps readability as it avoid accessing the p[] array like: p[size
-- 1] which "expose" that the array is processed backwards inside helper
-function build_detached_freelist().
-
-Lastly this also makes the code more robust, in error case like passing
-NULL pointers in the array.  Which were previously handled before commit
-033745189b1b ("slub: add missing kmem cgroup support to
-kmem_cache_free_bulk").
-
-Fixes: 033745189b1b ("slub: add missing kmem cgroup support to kmem_cache_free_bulk")
 Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
@@ -71,82 +57,55 @@ Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ mm/slab.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN mm/slub.c~slub-cleanup-code-for-kmem-cgroup-support-to-kmem_cache_free_bulk mm/slub.c
---- a/mm/slub.c~slub-cleanup-code-for-kmem-cgroup-support-to-kmem_cache_free_bulk
-+++ a/mm/slub.c
-@@ -2821,6 +2821,7 @@ struct detached_freelist {
- 	void *tail;
- 	void *freelist;
- 	int cnt;
-+	struct kmem_cache *s;
- };
- 
- /*
-@@ -2835,8 +2836,9 @@ struct detached_freelist {
-  * synchronization primitive.  Look ahead in the array is limited due
-  * to performance reasons.
-  */
--static int build_detached_freelist(struct kmem_cache *s, size_t size,
--				   void **p, struct detached_freelist *df)
-+static inline
-+int build_detached_freelist(struct kmem_cache *s, size_t size,
-+			    void **p, struct detached_freelist *df)
- {
- 	size_t first_skipped_index = 0;
- 	int lookahead = 3;
-@@ -2852,8 +2854,11 @@ static int build_detached_freelist(struc
- 	if (!object)
- 		return 0;
- 
-+	/* Support for memcg, compiler can optimize this out */
-+	df->s = cache_from_obj(s, object);
-+
- 	/* Start new detached freelist */
--	set_freepointer(s, object, NULL);
-+	set_freepointer(df->s, object, NULL);
- 	df->page = virt_to_head_page(object);
- 	df->tail = object;
- 	df->freelist = object;
-@@ -2868,7 +2873,7 @@ static int build_detached_freelist(struc
- 		/* df->page is always set at this point */
- 		if (df->page == virt_to_head_page(object)) {
- 			/* Opportunity build freelist */
--			set_freepointer(s, object, df->freelist);
-+			set_freepointer(df->s, object, df->freelist);
- 			df->freelist = object;
- 			df->cnt++;
- 			p[size] = NULL; /* mark object processed */
-@@ -2887,25 +2892,20 @@ static int build_detached_freelist(struc
- 	return first_skipped_index;
- }
- 
--
- /* Note that interrupts must be enabled when calling this function. */
--void kmem_cache_free_bulk(struct kmem_cache *orig_s, size_t size, void **p)
-+void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p)
- {
- 	if (WARN_ON(!size))
- 		return;
- 
- 	do {
- 		struct detached_freelist df;
--		struct kmem_cache *s;
--
--		/* Support for memcg */
--		s = cache_from_obj(orig_s, p[size - 1]);
- 
- 		size = build_detached_freelist(s, size, p, &df);
- 		if (unlikely(!df.page))
- 			continue;
- 
--		slab_free(s, df.page, df.freelist, df.tail, df.cnt, _RET_IP_);
-+		slab_free(df.s, df.page, df.freelist, df.tail, df.cnt,_RET_IP_);
- 	} while (likely(size));
+diff -puN mm/slab.c~slab-avoid-running-debug-slab-code-with-irqs-disabled-for-alloc_bulk mm/slab.c
+--- a/mm/slab.c~slab-avoid-running-debug-slab-code-with-irqs-disabled-for-alloc_bulk
++++ a/mm/slab.c
+@@ -3389,6 +3389,16 @@ void kmem_cache_free_bulk(struct kmem_ca
  }
  EXPORT_SYMBOL(kmem_cache_free_bulk);
+ 
++static __always_inline void
++cache_alloc_debugcheck_after_bulk(struct kmem_cache *s, gfp_t flags,
++				  size_t size, void **p, unsigned long caller)
++{
++	size_t i;
++
++	for (i = 0; i < size; i++)
++		p[i] = cache_alloc_debugcheck_after(s, flags, p[i], caller);
++}
++
+ int kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
+ 			  void **p)
+ {
+@@ -3404,15 +3414,14 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 	for (i = 0; i < size; i++) {
+ 		void *objp = __do_cache_alloc(s, flags);
+ 
+-		/* this call could be done outside IRQ disabled section */
+-		objp = cache_alloc_debugcheck_after(s, flags, objp, _RET_IP_);
+-
+ 		if (unlikely(!objp))
+ 			goto error;
+ 		p[i] = objp;
+ 	}
+ 	local_irq_enable();
+ 
++	cache_alloc_debugcheck_after_bulk(s, flags, size, p, _RET_IP_);
++
+ 	/* Clear memory outside IRQ disabled section */
+ 	if (unlikely(flags & __GFP_ZERO))
+ 		for (i = 0; i < size; i++)
+@@ -3423,6 +3432,7 @@ int kmem_cache_alloc_bulk(struct kmem_ca
+ 	return size;
+ error:
+ 	local_irq_enable();
++	cache_alloc_debugcheck_after_bulk(s, flags, i, p, _RET_IP_);
+ 	slab_post_alloc_hook(s, flags, i, p);
+ 	__kmem_cache_free_bulk(s, i, p);
+ 	return 0;
 _
 
 Patches currently in -mm which might be from brouer@redhat.com are
