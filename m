@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-provide-debug_pagealloc_enabled-without-config_debug_pagealloc.patch
- added to -mm tree
-Date: Wed, 27 Jan 2016 11:52:20 -0800
-Message-ID: <56a91ff4.uEMpQtta8hqiF9eL%akpm@linux-foundation.org>
+Subject: + s390-query-dynamic-debug_pagealloc-setting.patch added to -mm
+ tree
+Date: Wed, 27 Jan 2016 11:52:24 -0800
+Message-ID: <56a91ff8.efIRJYhzN75qYCeG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60062 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60069 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935185AbcA0TwV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 14:52:21 -0500
+	with ESMTP id S935199AbcA0TwZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 14:52:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: borntraeger@de.ibm.com, rientjes@google.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: provide debug_pagealloc_enabled() without CONFIG_DEBUG_PAGEALLOC
+     Subject: s390: query dynamic DEBUG_PAGEALLOC setting
 has been added to the -mm tree.  Its filename is
-     mm-provide-debug_pagealloc_enabled-without-config_debug_pagealloc.patch
+     s390-query-dynamic-debug_pagealloc-setting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-provide-debug_pagealloc_enabled-without-config_debug_pagealloc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/s390-query-dynamic-debug_pagealloc-setting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-provide-debug_pagealloc_enabled-without-config_debug_pagealloc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/s390-query-dynamic-debug_pagealloc-setting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,44 +40,86 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Christian Borntraeger <borntraeger@de.ibm.com>
-Subject: mm: provide debug_pagealloc_enabled() without CONFIG_DEBUG_PAGEALLOC
+Subject: s390: query dynamic DEBUG_PAGEALLOC setting
 
-We can provide debug_pagealloc_enabled() also if CONFIG_DEBUG_PAGEALLOC
-is not set. It will return false in that case.
+We can use debug_pagealloc_enabled() to check if we can map the identity
+mapping with 1MB/2GB pages as well as to print the current setting in
+dump_stack.
 
 Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+Reviewed-by: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ arch/s390/kernel/dumpstack.c |    6 +++---
+ arch/s390/mm/vmem.c          |   10 ++++------
+ 2 files changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/mm.h~mm-provide-debug_pagealloc_enabled-without-config_debug_pagealloc include/linux/mm.h
---- a/include/linux/mm.h~mm-provide-debug_pagealloc_enabled-without-config_debug_pagealloc
-+++ a/include/linux/mm.h
-@@ -2206,13 +2206,18 @@ kernel_map_pages(struct page *page, int
- #ifdef CONFIG_HIBERNATION
- extern bool kernel_page_present(struct page *page);
- #endif /* CONFIG_HIBERNATION */
--#else
-+#else  /* CONFIG_DEBUG_PAGEALLOC */
-+static inline bool debug_pagealloc_enabled(void)
-+{
-+	return false;
-+}
-+
- static inline void
- kernel_map_pages(struct page *page, int numpages, int enable) {}
- #ifdef CONFIG_HIBERNATION
- static inline bool kernel_page_present(struct page *page) { return true; }
- #endif /* CONFIG_HIBERNATION */
+diff -puN arch/s390/kernel/dumpstack.c~s390-query-dynamic-debug_pagealloc-setting arch/s390/kernel/dumpstack.c
+--- a/arch/s390/kernel/dumpstack.c~s390-query-dynamic-debug_pagealloc-setting
++++ a/arch/s390/kernel/dumpstack.c
+@@ -11,6 +11,7 @@
+ #include <linux/export.h>
+ #include <linux/kdebug.h>
+ #include <linux/ptrace.h>
++#include <linux/mm.h>
+ #include <linux/module.h>
+ #include <linux/sched.h>
+ #include <asm/processor.h>
+@@ -185,9 +186,8 @@ void die(struct pt_regs *regs, const cha
+ #ifdef CONFIG_SMP
+ 	printk("SMP ");
+ #endif
+-#ifdef CONFIG_DEBUG_PAGEALLOC
+-	printk("DEBUG_PAGEALLOC");
 -#endif
-+#endif /* CONFIG_DEBUG_PAGEALLOC */
- 
- #ifdef __HAVE_ARCH_GATE_AREA
- extern struct vm_area_struct *get_gate_vma(struct mm_struct *mm);
++	if (debug_pagealloc_enabled())
++		printk("DEBUG_PAGEALLOC");
+ 	printk("\n");
+ 	notify_die(DIE_OOPS, str, regs, 0, regs->int_code & 0xffff, SIGSEGV);
+ 	print_modules();
+diff -puN arch/s390/mm/vmem.c~s390-query-dynamic-debug_pagealloc-setting arch/s390/mm/vmem.c
+--- a/arch/s390/mm/vmem.c~s390-query-dynamic-debug_pagealloc-setting
++++ a/arch/s390/mm/vmem.c
+@@ -94,16 +94,15 @@ static int vmem_add_mem(unsigned long st
+ 			pgd_populate(&init_mm, pg_dir, pu_dir);
+ 		}
+ 		pu_dir = pud_offset(pg_dir, address);
+-#ifndef CONFIG_DEBUG_PAGEALLOC
+ 		if (MACHINE_HAS_EDAT2 && pud_none(*pu_dir) && address &&
+-		    !(address & ~PUD_MASK) && (address + PUD_SIZE <= end)) {
++		    !(address & ~PUD_MASK) && (address + PUD_SIZE <= end) &&
++		     !debug_pagealloc_enabled()) {
+ 			pud_val(*pu_dir) = __pa(address) |
+ 				_REGION_ENTRY_TYPE_R3 | _REGION3_ENTRY_LARGE |
+ 				(ro ? _REGION_ENTRY_PROTECT : 0);
+ 			address += PUD_SIZE;
+ 			continue;
+ 		}
+-#endif
+ 		if (pud_none(*pu_dir)) {
+ 			pm_dir = vmem_pmd_alloc();
+ 			if (!pm_dir)
+@@ -111,9 +110,9 @@ static int vmem_add_mem(unsigned long st
+ 			pud_populate(&init_mm, pu_dir, pm_dir);
+ 		}
+ 		pm_dir = pmd_offset(pu_dir, address);
+-#ifndef CONFIG_DEBUG_PAGEALLOC
+ 		if (MACHINE_HAS_EDAT1 && pmd_none(*pm_dir) && address &&
+-		    !(address & ~PMD_MASK) && (address + PMD_SIZE <= end)) {
++		    !(address & ~PMD_MASK) && (address + PMD_SIZE <= end) &&
++		    !debug_pagealloc_enabled()) {
+ 			pmd_val(*pm_dir) = __pa(address) |
+ 				_SEGMENT_ENTRY | _SEGMENT_ENTRY_LARGE |
+ 				_SEGMENT_ENTRY_YOUNG |
+@@ -121,7 +120,6 @@ static int vmem_add_mem(unsigned long st
+ 			address += PMD_SIZE;
+ 			continue;
+ 		}
+-#endif
+ 		if (pmd_none(*pm_dir)) {
+ 			pt_dir = vmem_pte_alloc(address);
+ 			if (!pt_dir)
 _
 
 Patches currently in -mm which might be from borntraeger@de.ibm.com are
