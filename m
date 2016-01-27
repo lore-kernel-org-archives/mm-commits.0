@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fault-inject-take-over-bootstrap-kmem_cache-check.patch
+Subject: +
+ slub-cleanup-code-for-kmem-cgroup-support-to-kmem_cache_free_bulk.patch
  added to -mm tree
-Date: Tue, 26 Jan 2016 19:29:07 -0800
-Message-ID: <56a83983.dy2kliPcrc7pEY5j%akpm@linux-foundation.org>
+Date: Tue, 26 Jan 2016 19:29:05 -0800
+Message-ID: <56a83981.nm+/PyztQRg0letw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55759 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55742 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751376AbcA0D3I (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 22:29:08 -0500
+	with ESMTP id S1750785AbcA0D3H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 22:29:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fault-inject take over bootstrap kmem_cache check
+     Subject: slub: cleanup code for kmem cgroup support to kmem_cache_free_bulk
 has been added to the -mm tree.  Its filename is
-     mm-fault-inject-take-over-bootstrap-kmem_cache-check.patch
+     slub-cleanup-code-for-kmem-cgroup-support-to-kmem_cache_free_bulk.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fault-inject-take-over-bootstrap-kmem_cache-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-cleanup-code-for-kmem-cgroup-support-to-kmem_cache_free_bulk.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fault-inject-take-over-bootstrap-kmem_cache-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-cleanup-code-for-kmem-cgroup-support-to-kmem_cache_free_bulk.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,130 +41,112 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: mm: fault-inject take over bootstrap kmem_cache check
+Subject: slub: cleanup code for kmem cgroup support to kmem_cache_free_bulk
 
-Remove the SLAB specific function slab_should_failslab(), by moving
-the check against fault-injection for the bootstrap slab, into the
-shared function should_failslab() (used by both SLAB and SLUB).
+This change is primarily an attempt to make it easier to realize the
+optimizations the compiler performs in-case CONFIG_MEMCG_KMEM is not
+enabled.
 
-This is a step towards sharing alloc_hook's between SLUB and SLAB.
+Performance wise, even when CONFIG_MEMCG_KMEM is compiled in, the overhead
+is zero.  This is because, as long as no process have enabled kmem cgroups
+accounting, the assignment is replaced by asm-NOP operations.  This is
+possible because memcg_kmem_enabled() uses a static_key_false() construct.
 
-This bootstrap slab "kmem_cache" is used for allocating struct
-kmem_cache objects to the allocator itself.
+It also helps readability as it avoid accessing the p[] array like: p[size
+- 1] which "expose" that the array is processed backwards inside helper
+function build_detached_freelist().
 
+Lastly this also makes the code more robust, in error case like passing
+NULL pointers in the array.  Which were previously handled before commit
+033745189b1b ("slub: add missing kmem cgroup support to
+kmem_cache_free_bulk").
+
+Fixes: 033745189b1b ("slub: add missing kmem cgroup support to kmem_cache_free_bulk")
 Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
----
-
-index 3159a7dba034..9f4956d8601c 100644
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fault-inject.h |    5 ++---
- mm/failslab.c                |   11 ++++++++---
- mm/slab.c                    |   12 ++----------
- mm/slab.h                    |    2 +-
- 4 files changed, 13 insertions(+), 17 deletions(-)
+ mm/slub.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/fault-inject.h~mm-fault-inject-take-over-bootstrap-kmem_cache-check include/linux/fault-inject.h
---- a/include/linux/fault-inject.h~mm-fault-inject-take-over-bootstrap-kmem_cache-check
-+++ a/include/linux/fault-inject.h
-@@ -62,10 +62,9 @@ static inline struct dentry *fault_creat
- #endif /* CONFIG_FAULT_INJECTION */
- 
- #ifdef CONFIG_FAILSLAB
--extern bool should_failslab(size_t size, gfp_t gfpflags, unsigned long flags);
-+extern bool should_failslab(struct kmem_cache *s, gfp_t gfpflags);
- #else
--static inline bool should_failslab(size_t size, gfp_t gfpflags,
--				unsigned long flags)
-+static inline bool should_failslab(struct kmem_cache *s, gfp_t gfpflags)
- {
- 	return false;
- }
-diff -puN mm/failslab.c~mm-fault-inject-take-over-bootstrap-kmem_cache-check mm/failslab.c
---- a/mm/failslab.c~mm-fault-inject-take-over-bootstrap-kmem_cache-check
-+++ a/mm/failslab.c
-@@ -1,5 +1,6 @@
- #include <linux/fault-inject.h>
- #include <linux/slab.h>
-+#include "slab.h"
- 
- static struct {
- 	struct fault_attr attr;
-@@ -11,18 +12,22 @@ static struct {
- 	.cache_filter = false,
+diff -puN mm/slub.c~slub-cleanup-code-for-kmem-cgroup-support-to-kmem_cache_free_bulk mm/slub.c
+--- a/mm/slub.c~slub-cleanup-code-for-kmem-cgroup-support-to-kmem_cache_free_bulk
++++ a/mm/slub.c
+@@ -2821,6 +2821,7 @@ struct detached_freelist {
+ 	void *tail;
+ 	void *freelist;
+ 	int cnt;
++	struct kmem_cache *s;
  };
  
--bool should_failslab(size_t size, gfp_t gfpflags, unsigned long cache_flags)
-+bool should_failslab(struct kmem_cache *s, gfp_t gfpflags)
+ /*
+@@ -2835,8 +2836,9 @@ struct detached_freelist {
+  * synchronization primitive.  Look ahead in the array is limited due
+  * to performance reasons.
+  */
+-static int build_detached_freelist(struct kmem_cache *s, size_t size,
+-				   void **p, struct detached_freelist *df)
++static inline
++int build_detached_freelist(struct kmem_cache *s, size_t size,
++			    void **p, struct detached_freelist *df)
  {
-+	/* No fault-injection for bootstrap cache */
-+	if (unlikely(s == kmem_cache))
-+		return false;
+ 	size_t first_skipped_index = 0;
+ 	int lookahead = 3;
+@@ -2852,8 +2854,11 @@ static int build_detached_freelist(struc
+ 	if (!object)
+ 		return 0;
+ 
++	/* Support for memcg, compiler can optimize this out */
++	df->s = cache_from_obj(s, object);
 +
- 	if (gfpflags & __GFP_NOFAIL)
- 		return false;
- 
- 	if (failslab.ignore_gfp_reclaim && (gfpflags & __GFP_RECLAIM))
- 		return false;
- 
--	if (failslab.cache_filter && !(cache_flags & SLAB_FAILSLAB))
-+	if (failslab.cache_filter && !(s->flags & SLAB_FAILSLAB))
- 		return false;
- 
--	return should_fail(&failslab.attr, size);
-+	return should_fail(&failslab.attr, s->object_size);
+ 	/* Start new detached freelist */
+-	set_freepointer(s, object, NULL);
++	set_freepointer(df->s, object, NULL);
+ 	df->page = virt_to_head_page(object);
+ 	df->tail = object;
+ 	df->freelist = object;
+@@ -2868,7 +2873,7 @@ static int build_detached_freelist(struc
+ 		/* df->page is always set at this point */
+ 		if (df->page == virt_to_head_page(object)) {
+ 			/* Opportunity build freelist */
+-			set_freepointer(s, object, df->freelist);
++			set_freepointer(df->s, object, df->freelist);
+ 			df->freelist = object;
+ 			df->cnt++;
+ 			p[size] = NULL; /* mark object processed */
+@@ -2887,25 +2892,20 @@ static int build_detached_freelist(struc
+ 	return first_skipped_index;
  }
  
- static int __init setup_failslab(char *str)
-diff -puN mm/slab.c~mm-fault-inject-take-over-bootstrap-kmem_cache-check mm/slab.c
---- a/mm/slab.c~mm-fault-inject-take-over-bootstrap-kmem_cache-check
-+++ a/mm/slab.c
-@@ -2926,14 +2926,6 @@ static void *cache_alloc_debugcheck_afte
- #define cache_alloc_debugcheck_after(a,b,objp,d) (objp)
- #endif
- 
--static bool slab_should_failslab(struct kmem_cache *cachep, gfp_t flags)
--{
--	if (unlikely(cachep == kmem_cache))
--		return false;
 -
--	return should_failslab(cachep->object_size, flags, cachep->flags);
--}
--
- static inline void *____cache_alloc(struct kmem_cache *cachep, gfp_t flags)
+ /* Note that interrupts must be enabled when calling this function. */
+-void kmem_cache_free_bulk(struct kmem_cache *orig_s, size_t size, void **p)
++void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p)
  {
- 	void *objp;
-@@ -3155,7 +3147,7 @@ slab_alloc_node(struct kmem_cache *cache
+ 	if (WARN_ON(!size))
+ 		return;
  
- 	lockdep_trace_alloc(flags);
+ 	do {
+ 		struct detached_freelist df;
+-		struct kmem_cache *s;
+-
+-		/* Support for memcg */
+-		s = cache_from_obj(orig_s, p[size - 1]);
  
--	if (slab_should_failslab(cachep, flags))
-+	if (should_failslab(cachep, flags))
- 		return NULL;
+ 		size = build_detached_freelist(s, size, p, &df);
+ 		if (unlikely(!df.page))
+ 			continue;
  
- 	cachep = memcg_kmem_get_cache(cachep, flags);
-@@ -3243,7 +3235,7 @@ slab_alloc(struct kmem_cache *cachep, gf
- 
- 	lockdep_trace_alloc(flags);
- 
--	if (slab_should_failslab(cachep, flags))
-+	if (should_failslab(cachep, flags))
- 		return NULL;
- 
- 	cachep = memcg_kmem_get_cache(cachep, flags);
-diff -puN mm/slab.h~mm-fault-inject-take-over-bootstrap-kmem_cache-check mm/slab.h
---- a/mm/slab.h~mm-fault-inject-take-over-bootstrap-kmem_cache-check
-+++ a/mm/slab.h
-@@ -359,7 +359,7 @@ static inline struct kmem_cache *slab_pr
- 	lockdep_trace_alloc(flags);
- 	might_sleep_if(gfpflags_allow_blocking(flags));
- 
--	if (should_failslab(s->object_size, flags, s->flags))
-+	if (should_failslab(s, flags))
- 		return NULL;
- 
- 	return memcg_kmem_get_cache(s, flags);
+-		slab_free(s, df.page, df.freelist, df.tail, df.cnt, _RET_IP_);
++		slab_free(df.s, df.page, df.freelist, df.tail, df.cnt,_RET_IP_);
+ 	} while (likely(size));
+ }
+ EXPORT_SYMBOL(kmem_cache_free_bulk);
 _
 
 Patches currently in -mm which might be from brouer@redhat.com are
