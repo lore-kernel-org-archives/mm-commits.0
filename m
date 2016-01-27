@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- procfs-add-support-for-puds-to-smaps-clear_refs-and-pagemap.patch added to
- -mm tree
-Date: Wed, 27 Jan 2016 12:27:02 -0800
-Message-ID: <56a92816.O0Rj+sQzKzvXLsRr%akpm@linux-foundation.org>
+Subject: + dax-support-for-transparent-pud-pages.patch added to -mm tree
+Date: Wed, 27 Jan 2016 12:27:06 -0800
+Message-ID: <56a9281a.DA0CBf5iDa5dbOY2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34903 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34925 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967521AbcA0U1D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 15:27:03 -0500
+	with ESMTP id S965602AbcA0U1H (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 15:27:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: willy@linux.intel.com, darrick.wong@oracle.com, david@fromorbit.com, hpa@zytor.com, kirill.shutemov@linux.intel.com, mingming.cao@oracle.com, mingo@elte.hu, rientjes@google.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs: add support for PUDs to smaps, clear_refs and pagemap
+     Subject: dax: support for transparent PUD pages
 has been added to the -mm tree.  Its filename is
-     procfs-add-support-for-puds-to-smaps-clear_refs-and-pagemap.patch
+     dax-support-for-transparent-pud-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/procfs-add-support-for-puds-to-smaps-clear_refs-and-pagemap.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-support-for-transparent-pud-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/procfs-add-support-for-puds-to-smaps-clear_refs-and-pagemap.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-support-for-transparent-pud-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,11 +39,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: procfs: add support for PUDs to smaps, clear_refs and pagemap
+Subject: dax: support for transparent PUD pages
 
-Because there's no 'struct page' for DAX THPs, a lot of this code is
-simpler than the PMD code it mimics.  Extra code would need to be added to
-support PUDs of anonymous or page-cache THPs.
+The DAX support for transparent huge PUD pages
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
@@ -59,170 +55,201 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |  109 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 109 insertions(+)
+ fs/dax.c |  175 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 175 insertions(+)
 
-diff -puN fs/proc/task_mmu.c~procfs-add-support-for-puds-to-smaps-clear_refs-and-pagemap fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~procfs-add-support-for-puds-to-smaps-clear_refs-and-pagemap
-+++ a/fs/proc/task_mmu.c
-@@ -586,6 +586,33 @@ static void smaps_pmd_entry(pmd_t *pmd,
+diff -puN fs/dax.c~dax-support-for-transparent-pud-pages fs/dax.c
+--- a/fs/dax.c~dax-support-for-transparent-pud-pages
++++ a/fs/dax.c
+@@ -959,6 +959,178 @@ static int dax_pmd_fault(struct vm_area_
  }
- #endif
+ #endif /* !CONFIG_TRANSPARENT_HUGEPAGE */
  
-+static int smaps_pud_range(pud_t *pud, unsigned long addr, unsigned long end,
-+		struct mm_walk *walk)
-+{
 +#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+	struct vm_area_struct *vma = walk->vma;
-+	struct mem_size_stats *mss = walk->private;
++/*
++ * The 'colour' (ie low bits) within a PUD of a page offset.  This comes up
++ * more often than one might expect in the below function.
++ */
++#define PG_PUD_COLOUR	((PUD_SIZE >> PAGE_SHIFT) - 1)
 +
-+	if (is_huge_zero_pud(*pud))
-+		return 0;
++#define dax_pud_dbg(bh, address, reason)	__dax_dbg(bh, address, reason, "dax_pud")
 +
-+	mss->resident += HPAGE_PUD_SIZE;
-+	if (vma->vm_flags & VM_SHARED) {
-+		if (pud_dirty(*pud))
-+			mss->shared_dirty += HPAGE_PUD_SIZE;
-+		else
-+			mss->shared_clean += HPAGE_PUD_SIZE;
-+	} else {
-+		if (pud_dirty(*pud))
-+			mss->private_dirty += HPAGE_PUD_SIZE;
-+		else
-+			mss->private_clean += HPAGE_PUD_SIZE;
++static int dax_pud_fault(struct vm_area_struct *vma, unsigned long address,
++		pud_t *pud, unsigned int flags, get_block_t get_block,
++		dax_iodone_t complete_unwritten)
++{
++	struct file *file = vma->vm_file;
++	struct address_space *mapping = file->f_mapping;
++	struct inode *inode = mapping->host;
++	struct buffer_head bh;
++	unsigned blkbits = inode->i_blkbits;
++	unsigned long pud_addr = address & PUD_MASK;
++	bool write = flags & FAULT_FLAG_WRITE;
++	struct block_device *bdev = NULL;
++	pgoff_t size, pgoff;
++	sector_t block;
++	int result = 0;
++
++	/* dax pud mappings require pfn_t_devmap() */
++	if (!IS_ENABLED(CONFIG_FS_DAX_PMD))
++		return VM_FAULT_FALLBACK;
++
++	/* Fall back to PTEs if we're going to COW */
++	if (write && !(vma->vm_flags & VM_SHARED)) {
++		split_huge_pud(vma, pud, address);
++		dax_pud_dbg(NULL, address, "cow write");
++		return VM_FAULT_FALLBACK;
 +	}
-+#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-+
-+	return 0;
-+}
-+
- static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			   struct mm_walk *walk)
- {
-@@ -707,6 +734,7 @@ static int show_smap(struct seq_file *m,
- 	struct vm_area_struct *vma = v;
- 	struct mem_size_stats mss;
- 	struct mm_walk smaps_walk = {
-+		.pud_entry = smaps_pud_range,
- 		.pmd_entry = smaps_pte_range,
- #ifdef CONFIG_HUGETLB_PAGE
- 		.hugetlb_entry = smaps_hugetlb_range,
-@@ -889,13 +917,50 @@ static inline void clear_soft_dirty_pmd(
- 
- 	set_pmd_at(vma->vm_mm, addr, pmdp, pmd);
- }
-+static inline void clear_soft_dirty_pud(struct vm_area_struct *vma,
-+		unsigned long addr, pud_t *pudp)
-+{
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+	pud_t pud = pudp_huge_get_and_clear(vma->vm_mm, addr, pudp);
-+
-+	pud = pud_wrprotect(pud);
-+	pud = pud_clear_soft_dirty(pud);
-+
-+	if (vma->vm_flags & VM_SOFTDIRTY)
-+		vma->vm_flags &= ~VM_SOFTDIRTY;
-+
-+	set_pud_at(vma->vm_mm, addr, pudp, pud);
-+#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-+}
- #else
- static inline void clear_soft_dirty_pmd(struct vm_area_struct *vma,
- 		unsigned long addr, pmd_t *pmdp)
- {
- }
-+static inline void clear_soft_dirty_pud(struct vm_area_struct *vma,
-+		unsigned long addr, pud_t *pudp)
-+{
-+}
- #endif
- 
-+static int clear_refs_pud_range(pud_t *pud, unsigned long addr,
-+				unsigned long end, struct mm_walk *walk)
-+{
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+	struct clear_refs_private *cp = walk->private;
-+	struct vm_area_struct *vma = walk->vma;
-+
-+	if (cp->type == CLEAR_REFS_SOFT_DIRTY) {
-+		clear_soft_dirty_pud(vma, addr, pud);
-+	} else {
-+		/* Clear accessed and referenced bits. */
-+		pudp_test_and_clear_young(vma, addr, pud);
++	/* If the PUD would extend outside the VMA */
++	if (pud_addr < vma->vm_start) {
++		dax_pud_dbg(NULL, address, "vma start unaligned");
++		return VM_FAULT_FALLBACK;
 +	}
-+#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
++	if ((pud_addr + PUD_SIZE) > vma->vm_end) {
++		dax_pud_dbg(NULL, address, "vma end unaligned");
++		return VM_FAULT_FALLBACK;
++	}
 +
-+	return 0;
-+}
++	pgoff = linear_page_index(vma, pud_addr);
++	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
++	if (pgoff >= size)
++		return VM_FAULT_SIGBUS;
++	/* If the PUD would cover blocks out of the file */
++	if ((pgoff | PG_PUD_COLOUR) >= size) {
++		dax_pud_dbg(NULL, address,
++				"offset + huge page size > file size");
++		return VM_FAULT_FALLBACK;
++	}
 +
- static int clear_refs_pte_range(pmd_t *pmd, unsigned long addr,
- 				unsigned long end, struct mm_walk *walk)
- {
-@@ -1006,6 +1071,7 @@ static ssize_t clear_refs_write(struct f
- 			.type = type,
- 		};
- 		struct mm_walk clear_refs_walk = {
-+			.pud_entry = clear_refs_pud_range,
- 			.pmd_entry = clear_refs_pte_range,
- 			.test_walk = clear_refs_test_walk,
- 			.mm = mm,
-@@ -1170,6 +1236,48 @@ static pagemap_entry_t pte_to_pagemap_en
- 	return make_pme(frame, flags);
- }
- 
-+static int pagemap_pud_range(pud_t *pudp, unsigned long addr, unsigned long end,
-+			     struct mm_walk *walk)
-+{
-+	int err = 0;
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+	struct vm_area_struct *vma = walk->vma;
-+	struct pagemapread *pm = walk->private;
-+	u64 flags = 0, frame = 0;
-+	pud_t pud = *pudp;
++	memset(&bh, 0, sizeof(bh));
++	block = (sector_t)pgoff << (PAGE_SHIFT - blkbits);
 +
-+	if ((vma->vm_flags & VM_SOFTDIRTY) || pud_soft_dirty(pud))
-+		flags |= PM_SOFT_DIRTY;
++	bh.b_size = PUD_SIZE;
++	if (get_block(inode, block, &bh, write) != 0)
++		return VM_FAULT_SIGBUS;
++	bdev = bh.b_bdev;
++	i_mmap_lock_read(mapping);
 +
 +	/*
-+	 * Currently pud for thp is always present because thp
-+	 * can not be swapped-out, migrated, or HWPOISONed
-+	 * (split in such cases instead.)
-+	 * This if-check is just to prepare for future implementation.
++	 * If the filesystem isn't willing to tell us the length of a hole,
++	 * just fall back to PTEs.  Calling get_block 512 times in a loop
++	 * would be silly.
 +	 */
-+	if (pud_present(pud)) {
-+		flags |= PM_PRESENT;
-+		if (!(vma->vm_flags & VM_SHARED))
-+			flags |= PM_MMAP_EXCLUSIVE;
-+
-+		if (pm->show_pfn)
-+			frame = pud_pfn(pud) +
-+					((addr & ~PUD_MASK) >> PAGE_SHIFT);
-+
-+		for (; addr != end; addr += PAGE_SIZE) {
-+			pagemap_entry_t pme = make_pme(frame, flags);
-+
-+			err = add_to_pagemap(addr, &pme, pm);
-+			if (err)
-+				break;
-+			if (pm->show_pfn && (flags & PM_PRESENT))
-+				frame++;
-+		}
++	if (!buffer_size_valid(&bh) || bh.b_size < PUD_SIZE) {
++		dax_pud_dbg(&bh, address, "allocated block too small");
++		goto fallback;
 +	}
-+#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-+	return err;
-+}
 +
- static int pagemap_pmd_range(pmd_t *pmdp, unsigned long addr, unsigned long end,
- 			     struct mm_walk *walk)
- {
-@@ -1349,6 +1457,7 @@ static ssize_t pagemap_read(struct file
- 	if (!pm.buffer)
- 		goto out_mm;
- 
-+	pagemap_walk.pud_entry = pagemap_pud_range;
- 	pagemap_walk.pmd_entry = pagemap_pmd_range;
- 	pagemap_walk.pte_hole = pagemap_pte_hole;
- #ifdef CONFIG_HUGETLB_PAGE
++	/*
++	 * If we allocated new storage, make sure no process has any
++	 * zero pages covering this hole
++	 */
++	if (buffer_new(&bh)) {
++		i_mmap_unlock_read(mapping);
++		unmap_mapping_range(mapping, pgoff << PAGE_SHIFT, PUD_SIZE, 0);
++		i_mmap_lock_read(mapping);
++	}
++
++	/*
++	 * If a truncate happened while we were allocating blocks, we may
++	 * leave blocks allocated to the file that are beyond EOF.  We can't
++	 * take i_mutex here, so just leave them hanging; they'll be freed
++	 * when the file is deleted.
++	 */
++	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
++	if (pgoff >= size) {
++		result = VM_FAULT_SIGBUS;
++		goto out;
++	}
++	if ((pgoff | PG_PUD_COLOUR) >= size) {
++		dax_pud_dbg(&bh, address, "pgoff unaligned");
++		goto fallback;
++	}
++
++	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
++		dax_pud_dbg(&bh, address, "no zero page");
++		goto fallback;
++	} else {
++		struct blk_dax_ctl dax = {
++			.sector = to_sector(&bh, inode),
++			.size = PUD_SIZE,
++		};
++		long length = dax_map_atomic(bdev, &dax);
++
++		if (length < 0) {
++			result = VM_FAULT_SIGBUS;
++			goto out;
++		}
++		if (length < PUD_SIZE) {
++			dax_pud_dbg(&bh, address, "dax-length too small");
++			dax_unmap_atomic(bdev, &dax);
++			goto fallback;
++		}
++		if (pfn_t_to_pfn(dax.pfn) & PG_PUD_COLOUR) {
++			dax_pud_dbg(&bh, address, "pfn unaligned");
++			dax_unmap_atomic(bdev, &dax);
++			goto fallback;
++		}
++
++		if (!pfn_t_devmap(dax.pfn)) {
++			dax_unmap_atomic(bdev, &dax);
++			dax_pud_dbg(&bh, address, "pfn not in memmap");
++			goto fallback;
++		}
++
++		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
++			clear_pmem(dax.addr, PUD_SIZE);
++			wmb_pmem();
++			count_vm_event(PGMAJFAULT);
++			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
++			result |= VM_FAULT_MAJOR;
++		}
++		dax_unmap_atomic(bdev, &dax);
++
++		dev_dbg(part_to_dev(bdev->bd_part),
++				"%s: %s addr: %lx pfn: %lx sect: %llx\n",
++				__func__, current->comm, address,
++				pfn_t_to_pfn(dax.pfn),
++				(unsigned long long) dax.sector);
++		result |= vmf_insert_pfn_pud(vma, address, pud,
++				dax.pfn, write);
++	}
++
++ out:
++	i_mmap_unlock_read(mapping);
++
++	if (buffer_unwritten(&bh))
++		complete_unwritten(&bh, !(result & VM_FAULT_ERROR));
++
++	return result;
++
++ fallback:
++	count_vm_event(THP_FAULT_FALLBACK);
++	result = VM_FAULT_FALLBACK;
++	goto out;
++}
++#else /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
++static int dax_pud_fault(struct vm_area_struct *vma, unsigned long address,
++		pud_t *pud, unsigned int flags, get_block_t get_block,
++		dax_iodone_t complete_unwritten)
++{
++	return VM_FAULT_FALLBACK;
++}
++#endif /* !CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
++
+ /**
+  * dax_fault - handle a page fault on a DAX file
+  * @vma: The virtual memory area where the fault occurred
+@@ -985,6 +1157,9 @@ int dax_fault(struct vm_area_struct *vma
+ 	case FAULT_FLAG_SIZE_PMD:
+ 		return dax_pmd_fault(vma, address, vmf->pmd, vmf->flags,
+ 						get_block, iodone);
++	case FAULT_FLAG_SIZE_PUD:
++		return dax_pud_fault(vma, address, vmf->pud, vmf->flags,
++						get_block, iodone);
+ 	default:
+ 		return VM_FAULT_FALLBACK;
+ 	}
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
