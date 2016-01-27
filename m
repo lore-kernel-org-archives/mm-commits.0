@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-madvise-update-comment-on-sys_madvise.patch added to -mm
- tree
-Date: Wed, 27 Jan 2016 12:11:56 -0800
-Message-ID: <56a9248c.bNphC8e7k1T1oRrh%akpm@linux-foundation.org>
+Subject: + mm-convert-an-open-coded-vm_bug_on_vma.patch added to -mm tree
+Date: Wed, 27 Jan 2016 12:26:53 -0800
+Message-ID: <56a9280d.WxE8XCnOAq8z7upy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33319 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34868 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966785AbcA0UL5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 15:11:57 -0500
+	with ESMTP id S965602AbcA0U0y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 15:26:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, gong.chen@linux.intel.com, jbaron@redhat.com, kirill@shutemov.name, mhocko@suse.com, minchan@kernel.org, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, darrick.wong@oracle.com, david@fromorbit.com, hpa@zytor.com, kirill.shutemov@linux.intel.com, mingming.cao@oracle.com, mingo@elte.hu, rientjes@google.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/madvise: update comment on sys_madvise()
+     Subject: mm/memory.c: convert an open-coded VM_BUG_ON_VMA
 has been added to the -mm tree.  Its filename is
-     mm-madvise-update-comment-on-sys_madvise.patch
+     mm-convert-an-open-coded-vm_bug_on_vma.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-madvise-update-comment-on-sys_madvise.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-convert-an-open-coded-vm_bug_on_vma.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-madvise-update-comment-on-sys_madvise.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-convert-an-open-coded-vm_bug_on_vma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,58 +38,84 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: mm/madvise: update comment on sys_madvise()
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: mm/memory.c: convert an open-coded VM_BUG_ON_VMA
 
-Some new MADV_* advices are not documented in sys_madvise() comment.
-So let's update it.
+We have customer demand to use 1GB pages to map DAX files.  Unlike the 2MB
+page support, the Linux MM does not currently support PUD pages, so I have
+attempted to add support for the necessary pieces for DAX huge PUD pages.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Jason Baron <jbaron@redhat.com>
-Cc: Chen Gong <gong.chen@linux.intel.com>
+Filesystems still need work to allocate 1GB pages.  With ext4, I can only
+get 16MB of contiguous space, although it is aligned.  With XFS, I can get
+80MB less than 1GB, and it's not aligned.  The XFS problem may be due to
+the small amount of RAM in my test machine.
+
+I'd like to thank Dave Chinner & Kirill Shutemov for their reviews of v1. 
+The conversion of pmd_fault & pud_fault to huge_fault is thanks to Dave's
+poking, and Kirill spotted a couple of problems in the MM code.  Version 2
+of the patch set is about 200 lines smaller (1016 insertions, 23 deletions
+in v1).
+
+I've done some light testing using a program to mmap a block device with
+DAX enabled, calling mincore() and examining /proc/smaps and
+/proc/pagemap.
+
+
+This patch (of 8):
+
+Spotted during PUD support review.
+
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Reported-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: "Darrick J. Wong" <darrick.wong@oracle.com>
+Cc: mingming cao <mingming.cao@oracle.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+ mm/memory.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN mm/madvise.c~mm-madvise-update-comment-on-sys_madvise mm/madvise.c
---- a/mm/madvise.c~mm-madvise-update-comment-on-sys_madvise
-+++ a/mm/madvise.c
-@@ -639,14 +639,26 @@ madvise_behavior_valid(int behavior)
-  *		some pages ahead.
-  *  MADV_DONTNEED - the application is finished with the given range,
-  *		so the kernel can free resources associated with it.
-+ *  MADV_FREE - the application marks pages in the given range as lasyfree,
-+ *		where actual purges are postponed until memory pressure happens.
-  *  MADV_REMOVE - the application wants to free up the given range of
-  *		pages and associated backing store.
-  *  MADV_DONTFORK - omit this area from child's address space when forking:
-  *		typically, to avoid COWing pages pinned by get_user_pages().
-  *  MADV_DOFORK - cancel MADV_DONTFORK: no longer omit this area when forking.
-+ *  MADV_HWPOISON - trigger memory error handler as if the given memory range
-+ *		were corrupted by unrecoverable hardware memory failure.
-+ *  MADV_SOFT_OFFLINE - try to soft-offline the given range of memory.
-  *  MADV_MERGEABLE - the application recommends that KSM try to merge pages in
-  *		this area with pages of identical content from other such areas.
-  *  MADV_UNMERGEABLE- cancel MADV_MERGEABLE: no longer merge pages with others.
-+ *  MADV_HUGEPAGE - the application wants to allocate transparent hugepages to
-+ *		load the content of the given memory range.
-+ *  MADV_NOHUGEPAGE - cancel MADV_HUGEPAGE: no longer allocate transparent
-+ *		hugepages.
-+ *  MADV_DONTDUMP - the application wants to prevent pages in the given range
-+ *		from being included in its core dump.
-+ *  MADV_DODUMP - cancel MADV_DONTDUMP: no longer exclude from core dump.
-  *
-  * return values:
-  *  zero    - success
+diff -puN mm/memory.c~mm-convert-an-open-coded-vm_bug_on_vma mm/memory.c
+--- a/mm/memory.c~mm-convert-an-open-coded-vm_bug_on_vma
++++ a/mm/memory.c
+@@ -1179,15 +1179,7 @@ static inline unsigned long zap_pmd_rang
+ 		next = pmd_addr_end(addr, end);
+ 		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
+ 			if (next - addr != HPAGE_PMD_SIZE) {
+-#ifdef CONFIG_DEBUG_VM
+-				if (!rwsem_is_locked(&tlb->mm->mmap_sem)) {
+-					pr_err("%s: mmap_sem is unlocked! addr=0x%lx end=0x%lx vma->vm_start=0x%lx vma->vm_end=0x%lx\n",
+-						__func__, addr, end,
+-						vma->vm_start,
+-						vma->vm_end);
+-					BUG();
+-				}
+-#endif
++				VM_BUG_ON_VMA(!rwsem_is_locked(&tlb->mm->mmap_sem), vma);
+ 				split_huge_pmd(vma, pmd, addr);
+ 			} else if (zap_huge_pmd(tlb, vma, pmd, addr))
+ 				goto next;
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from willy@linux.intel.com are
 
-mm-madvise-pass-return-code-of-memory_failure-to-userspace.patch
-mm-madvise-update-comment-on-sys_madvise.patch
+mm-convert-an-open-coded-vm_bug_on_vma.patch
+mmfsdax-change-pmd_fault-to-huge_fault.patch
+mm-add-support-for-pud-sized-transparent-hugepages.patch
+mincore-add-support-for-puds.patch
+procfs-add-support-for-puds-to-smaps-clear_refs-and-pagemap.patch
+x86-add-support-for-pud-sized-transparent-hugepages.patch
+dax-support-for-transparent-pud-pages.patch
+ext4-support-for-pud-sized-transparent-huge-pages.patch
+radix-tree-add-an-explicit-include-of-bitopsh.patch
+radix-tree-test-harness.patch
+radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers.patch
+radix_tree-loop-based-on-shift-count-not-height.patch
+radix_tree-add-support-for-multi-order-entries.patch
+radix_tree-add-radix_tree_dump.patch
 
