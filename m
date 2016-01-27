@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- slab-use-slab_post_alloc_hook-in-slab-allocator-shared-with-slub.patch
- added to -mm tree
-Date: Tue, 26 Jan 2016 19:29:11 -0800
-Message-ID: <56a83987.oaF0jYMFKBPBbJTz%akpm@linux-foundation.org>
+Subject: + slab-implement-bulk-alloc-in-slab-allocator.patch added to -mm
+ tree
+Date: Tue, 26 Jan 2016 19:29:12 -0800
+Message-ID: <56a83988.nCaD4giQBlT1vvet%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55781 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55788 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751433AbcA0D3M (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 22:29:12 -0500
+	with ESMTP id S1751448AbcA0D3N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 26 Jan 2016 22:29:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: use slab_post_alloc_hook in SLAB allocator shared with SLUB
+     Subject: slab: implement bulk alloc in SLAB allocator
 has been added to the -mm tree.  Its filename is
-     slab-use-slab_post_alloc_hook-in-slab-allocator-shared-with-slub.patch
+     slab-implement-bulk-alloc-in-slab-allocator.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slab-use-slab_post_alloc_hook-in-slab-allocator-shared-with-slub.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slab-implement-bulk-alloc-in-slab-allocator.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slab-use-slab_post_alloc_hook-in-slab-allocator-shared-with-slub.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slab-implement-bulk-alloc-in-slab-allocator.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,19 +40,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: slab: use slab_post_alloc_hook in SLAB allocator shared with SLUB
+Subject: slab: implement bulk alloc in SLAB allocator
 
-Reviewers notice that the order in slab_post_alloc_hook() of
-kmemcheck_slab_alloc() and kmemleak_alloc_recursive() gets swapped
-compared to slab.c / SLAB allocator.
+This patch implements the alloc side of bulk API for the SLAB allocator.
 
-Also notice memset now occurs before calling kmemcheck_slab_alloc()
-and kmemleak_alloc_recursive().
-
-I assume this reordering of kmemcheck, kmemleak and memset is okay because
-this is the order they are used by the SLUB allocator.
-
-This patch completes the sharing of alloc_hook's between SLUB and SLAB.
+Further optimization are still possible by changing the call to
+__do_cache_alloc() into something that can return multiple objects.  This
+optimization is left for later, given end results already show in the area
+of 80% speedup.
 
 Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -64,52 +58,56 @@ Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   22 ++++++----------------
- 1 file changed, 6 insertions(+), 16 deletions(-)
+ mm/slab.c |   37 +++++++++++++++++++++++++++++++++++--
+ 1 file changed, 35 insertions(+), 2 deletions(-)
 
-diff -puN mm/slab.c~slab-use-slab_post_alloc_hook-in-slab-allocator-shared-with-slub mm/slab.c
---- a/mm/slab.c~slab-use-slab_post_alloc_hook-in-slab-allocator-shared-with-slub
+diff -puN mm/slab.c~slab-implement-bulk-alloc-in-slab-allocator mm/slab.c
+--- a/mm/slab.c~slab-implement-bulk-alloc-in-slab-allocator
 +++ a/mm/slab.c
-@@ -3175,16 +3175,11 @@ slab_alloc_node(struct kmem_cache *cache
-   out:
- 	local_irq_restore(save_flags);
- 	ptr = cache_alloc_debugcheck_after(cachep, flags, ptr, caller);
--	kmemleak_alloc_recursive(ptr, cachep->object_size, 1, cachep->flags,
--				 flags);
+@@ -3390,9 +3390,42 @@ void kmem_cache_free_bulk(struct kmem_ca
+ EXPORT_SYMBOL(kmem_cache_free_bulk);
  
--	if (likely(ptr)) {
--		kmemcheck_slab_alloc(cachep, flags, ptr, cachep->object_size);
--		if (unlikely(flags & __GFP_ZERO))
--			memset(ptr, 0, cachep->object_size);
--	}
-+	if (unlikely(flags & __GFP_ZERO) && ptr)
-+		memset(ptr, 0, cachep->object_size);
- 
--	memcg_kmem_put_cache(cachep);
-+	slab_post_alloc_hook(cachep, flags, 1, &ptr);
- 	return ptr;
+ int kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
+-								void **p)
++			  void **p)
+ {
+-	return __kmem_cache_alloc_bulk(s, flags, size, p);
++	size_t i;
++
++	s = slab_pre_alloc_hook(s, flags);
++	if (!s)
++		return 0;
++
++	cache_alloc_debugcheck_before(s, flags);
++
++	local_irq_disable();
++	for (i = 0; i < size; i++) {
++		void *objp = __do_cache_alloc(s, flags);
++
++		/* this call could be done outside IRQ disabled section */
++		objp = cache_alloc_debugcheck_after(s, flags, objp, _RET_IP_);
++
++		if (unlikely(!objp))
++			goto error;
++		p[i] = objp;
++	}
++	local_irq_enable();
++
++	/* Clear memory outside IRQ disabled section */
++	if (unlikely(flags & __GFP_ZERO))
++		for (i = 0; i < size; i++)
++			memset(p[i], 0, s->object_size);
++
++	slab_post_alloc_hook(s, flags, size, p);
++	/* FIXME: Trace call missing. Christoph would like a bulk variant */
++	return size;
++error:
++	local_irq_enable();
++	slab_post_alloc_hook(s, flags, i, p);
++	__kmem_cache_free_bulk(s, i, p);
++	return 0;
  }
- 
-@@ -3235,17 +3230,12 @@ slab_alloc(struct kmem_cache *cachep, gf
- 	objp = __do_cache_alloc(cachep, flags);
- 	local_irq_restore(save_flags);
- 	objp = cache_alloc_debugcheck_after(cachep, flags, objp, caller);
--	kmemleak_alloc_recursive(objp, cachep->object_size, 1, cachep->flags,
--				 flags);
- 	prefetchw(objp);
- 
--	if (likely(objp)) {
--		kmemcheck_slab_alloc(cachep, flags, objp, cachep->object_size);
--		if (unlikely(flags & __GFP_ZERO))
--			memset(objp, 0, cachep->object_size);
--	}
-+	if (unlikely(flags & __GFP_ZERO) && objp)
-+		memset(objp, 0, cachep->object_size);
- 
--	memcg_kmem_put_cache(cachep);
-+	slab_post_alloc_hook(cachep, flags, 1, &objp);
- 	return objp;
- }
+ EXPORT_SYMBOL(kmem_cache_alloc_bulk);
  
 _
 
