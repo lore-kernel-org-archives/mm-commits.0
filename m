@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-slab-activate-debug_pagealloc-in-slab-when-it-is-actually-enabled.patch
- added to -mm tree
-Date: Tue, 26 Jan 2016 21:30:20 -0800
-Message-ID: <56a855ec.7LtvThl9NCFsMe6S%akpm@linux-foundation.org>
+Subject: + mm-slab-fix-stale-code-comment.patch added to -mm tree
+Date: Tue, 26 Jan 2016 21:30:15 -0800
+Message-ID: <56a855e7.FhSlWbxhJVdy/K66%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36797 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36776 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753397AbcA0FaV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 00:30:21 -0500
+	with ESMTP id S1752522AbcA0FaR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 00:30:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: js1304@gmail.com, brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: activate debug_pagealloc in SLAB when it is actually enabled
+     Subject: mm/slab: fix stale code comment
 has been added to the -mm tree.  Its filename is
-     mm-slab-activate-debug_pagealloc-in-slab-when-it-is-actually-enabled.patch
+     mm-slab-fix-stale-code-comment.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-activate-debug_pagealloc-in-slab-when-it-is-actually-enabled.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-fix-stale-code-comment.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-activate-debug_pagealloc-in-slab-when-it-is-actually-enabled.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-fix-stale-code-comment.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,7 +39,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm/slab: activate debug_pagealloc in SLAB when it is actually enabled
+Subject: mm/slab: fix stale code comment
+
+This patchset implements new freed object management way, that is,
+OBJFREELIST_SLAB.  Purpose of it is to reduce memory overhead in SLAB.
+
+SLAB needs a array to manage freed objects in a slab.  If there is
+leftover after objects are packed into a slab, we can use it as a
+management array, and, in this case, there is no memory waste.  But, in
+the other cases, we need to allocate extra memory for a management array
+or utilize dedicated internal memory in a slab for it.  Both cases causes
+memory waste so it's not good.
+
+With this patchset, freed object itself can be used for a management
+array.  So, memory waste could be reduced.  Detailed idea and numbers are
+described in last patch's commit description.  Please refer it.
+
+In fact, I tested another idea implementing OBJFREELIST_SLAB with
+extendable linked array through another freed object.  It can remove
+memory waste completely but it causes more computational overhead in
+critical lock path and it seems that overhead outweigh benefit.  So, this
+patchset doesn't include it.  I will attach prototype just for a
+reference.
+
+
+
+This patch (of 16):
+
+We use freelist_idx_t type for free object management whose size would be
+smaller than size of unsigned int.  Fix it.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -52,62 +78,21 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~mm-slab-activate-debug_pagealloc-in-slab-when-it-is-actually-enabled mm/slab.c
---- a/mm/slab.c~mm-slab-activate-debug_pagealloc-in-slab-when-it-is-actually-enabled
+diff -puN mm/slab.c~mm-slab-fix-stale-code-comment mm/slab.c
+--- a/mm/slab.c~mm-slab-fix-stale-code-comment
 +++ a/mm/slab.c
-@@ -1838,7 +1838,8 @@ static void slab_destroy_debugcheck(stru
- 
- 		if (cachep->flags & SLAB_POISON) {
- #ifdef CONFIG_DEBUG_PAGEALLOC
--			if (cachep->size % PAGE_SIZE == 0 &&
-+			if (debug_pagealloc_enabled() &&
-+				cachep->size % PAGE_SIZE == 0 &&
- 					OFF_SLAB(cachep))
- 				kernel_map_pages(virt_to_page(objp),
- 					cachep->size / PAGE_SIZE, 1);
-@@ -2176,7 +2177,8 @@ __kmem_cache_create (struct kmem_cache *
- 	 * to check size >= 256. It guarantees that all necessary small
- 	 * sized slab is initialized in current slab initialization sequence.
- 	 */
--	if (!slab_early_init && size >= kmalloc_size(INDEX_NODE) &&
-+	if (debug_pagealloc_enabled() &&
-+		!slab_early_init && size >= kmalloc_size(INDEX_NODE) &&
- 		size >= 256 && cachep->object_size > cache_line_size() &&
- 		ALIGN(size, cachep->align) < PAGE_SIZE) {
- 		cachep->obj_offset += PAGE_SIZE - ALIGN(size, cachep->align);
-@@ -2232,7 +2234,8 @@ __kmem_cache_create (struct kmem_cache *
- 		 * poisoning, then it's going to smash the contents of
- 		 * the redzone and userword anyhow, so switch them off.
- 		 */
--		if (size % PAGE_SIZE == 0 && flags & SLAB_POISON)
-+		if (debug_pagealloc_enabled() &&
-+			size % PAGE_SIZE == 0 && flags & SLAB_POISON)
- 			flags &= ~(SLAB_RED_ZONE | SLAB_STORE_USER);
- #endif
- 	}
-@@ -2716,7 +2719,8 @@ static void *cache_free_debugcheck(struc
- 	set_obj_status(page, objnr, OBJECT_FREE);
- 	if (cachep->flags & SLAB_POISON) {
- #ifdef CONFIG_DEBUG_PAGEALLOC
--		if ((cachep->size % PAGE_SIZE)==0 && OFF_SLAB(cachep)) {
-+		if (debug_pagealloc_enabled() &&
-+			(cachep->size % PAGE_SIZE) == 0 && OFF_SLAB(cachep)) {
- 			store_stackinfo(cachep, objp, caller);
- 			kernel_map_pages(virt_to_page(objp),
- 					 cachep->size / PAGE_SIZE, 0);
-@@ -2861,7 +2865,8 @@ static void *cache_alloc_debugcheck_afte
- 		return objp;
- 	if (cachep->flags & SLAB_POISON) {
- #ifdef CONFIG_DEBUG_PAGEALLOC
--		if ((cachep->size % PAGE_SIZE) == 0 && OFF_SLAB(cachep))
-+		if (debug_pagealloc_enabled() &&
-+			(cachep->size % PAGE_SIZE) == 0 && OFF_SLAB(cachep))
- 			kernel_map_pages(virt_to_page(objp),
- 					 cachep->size / PAGE_SIZE, 1);
- 		else
+@@ -537,7 +537,7 @@ static void cache_estimate(unsigned long
+ 	 * on it. For the latter case, the memory allocated for a
+ 	 * slab is used for:
+ 	 *
+-	 * - One unsigned int for each object
++	 * - One freelist_idx_t for each object
+ 	 * - Padding to respect alignment of @align
+ 	 * - @buffer_size bytes for each object
+ 	 *
 _
 
 Patches currently in -mm which might be from js1304@gmail.com are
