@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + radix-treeshmem-introduce-radix_tree_iter_next.patch added to
- -mm tree
-Date: Wed, 27 Jan 2016 13:37:49 -0800
-Message-ID: <56a938ad.O8xOptx9rM4fmjEo%akpm@linux-foundation.org>
+Subject: + mm-use-radix_tree_iter_retry.patch added to -mm tree
+Date: Wed, 27 Jan 2016 13:37:47 -0800
+Message-ID: <56a938ab.VB0ZtpJyCElEplua%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40688 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40551 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S968361AbcA0Vhu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 16:37:50 -0500
+	with ESMTP id S968305AbcA0Vhs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 16:37:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: willy@linux.intel.com, hughd@google.com, khlebnikov@openvz.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree,shmem: introduce radix_tree_iter_next()
+     Subject: mm: use radix_tree_iter_retry()
 has been added to the -mm tree.  Its filename is
-     radix-treeshmem-introduce-radix_tree_iter_next.patch
+     mm-use-radix_tree_iter_retry.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-treeshmem-introduce-radix_tree_iter_next.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-radix_tree_iter_retry.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-treeshmem-introduce-radix_tree_iter_next.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-radix_tree_iter_retry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +39,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix-tree,shmem: introduce radix_tree_iter_next()
+Subject: mm: use radix_tree_iter_retry()
 
-shmem likes to occasionally drop the lock, schedule, then reacqire the
-lock and continue with the iteration from the last place it left off. 
-This is currently done with a pretty ugly goto.  Introduce
-radix_tree_iter_next() and use it throughout shmem.c.
+Instead of a 'goto restart', we can now use radix_tree_iter_retry() to
+restart from our current position.  This will make a difference when there
+are more ways to happen across an indirect pointer.  And it eliminates
+some confusing gotos.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -53,92 +52,185 @@ Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |   15 +++++++++++++++
- mm/shmem.c                 |   12 +++---------
- 2 files changed, 18 insertions(+), 9 deletions(-)
+ mm/filemap.c |   53 +++++++++++++++----------------------------------
+ mm/shmem.c   |   18 +++++++++++-----
+ 2 files changed, 29 insertions(+), 42 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix-treeshmem-introduce-radix_tree_iter_next include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-treeshmem-introduce-radix_tree_iter_next
-+++ a/include/linux/radix-tree.h
-@@ -403,6 +403,21 @@ void **radix_tree_iter_retry(struct radi
- }
- 
- /**
-+ * radix_tree_iter_next - resume iterating when the chunk may be invalid
-+ * @iter:	iterator state
-+ *
-+ * If the iterator needs to release then reacquire a lock, the chunk may
-+ * have been invalidated by an insertion or deletion.  Call this function
-+ * to continue the iteration from the next index.
-+ */
-+static inline __must_check
-+void **radix_tree_iter_next(struct radix_tree_iter *iter)
-+{
-+	iter->next_index = iter->index + 1;
-+	return NULL;
-+}
-+
-+/**
-  * radix_tree_chunk_size - get current chunk size
-  *
-  * @iter:	pointer to radix tree iterator
-diff -puN mm/shmem.c~radix-treeshmem-introduce-radix_tree_iter_next mm/shmem.c
---- a/mm/shmem.c~radix-treeshmem-introduce-radix_tree_iter_next
-+++ a/mm/shmem.c
-@@ -376,7 +376,6 @@ unsigned long shmem_partial_swap_usage(s
+diff -puN mm/filemap.c~mm-use-radix_tree_iter_retry mm/filemap.c
+--- a/mm/filemap.c~mm-use-radix_tree_iter_retry
++++ a/mm/filemap.c
+@@ -1245,7 +1245,6 @@ unsigned find_get_entries(struct address
+ 		return 0;
  
  	rcu_read_lock();
- 
 -restart:
  	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
- 		if (iter.index >= end)
- 			break;
-@@ -398,8 +397,7 @@ restart:
+ 		struct page *page;
+ repeat:
+@@ -1253,8 +1252,10 @@ repeat:
+ 		if (unlikely(!page))
+ 			continue;
+ 		if (radix_tree_exception(page)) {
+-			if (radix_tree_deref_retry(page))
+-				goto restart;
++			if (radix_tree_deref_retry(page)) {
++				slot = radix_tree_iter_retry(&iter);
++				continue;
++			}
+ 			/*
+ 			 * A shadow entry of a recently evicted page, a swap
+ 			 * entry from shmem/tmpfs or a DAX entry.  Return it
+@@ -1307,7 +1308,6 @@ unsigned find_get_pages(struct address_s
+ 		return 0;
  
- 		if (need_resched()) {
- 			cond_resched_rcu();
--			start = iter.index + 1;
--			goto restart;
-+			slot = radix_tree_iter_next(&iter);
- 		}
- 	}
- 
-@@ -1949,7 +1947,6 @@ static void shmem_tag_pins(struct addres
- 	start = 0;
  	rcu_read_lock();
- 
 -restart:
+ 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
+ 		struct page *page;
+ repeat:
+@@ -1317,13 +1317,8 @@ repeat:
+ 
+ 		if (radix_tree_exception(page)) {
+ 			if (radix_tree_deref_retry(page)) {
+-				/*
+-				 * Transient condition which can only trigger
+-				 * when entry at index 0 moves out of or back
+-				 * to root: none yet gotten, safe to restart.
+-				 */
+-				WARN_ON(iter.index);
+-				goto restart;
++				slot = radix_tree_iter_retry(&iter);
++				continue;
+ 			}
+ 			/*
+ 			 * A shadow entry of a recently evicted page,
+@@ -1374,7 +1369,6 @@ unsigned find_get_pages_contig(struct ad
+ 		return 0;
+ 
+ 	rcu_read_lock();
+-restart:
+ 	radix_tree_for_each_contig(slot, &mapping->page_tree, &iter, index) {
+ 		struct page *page;
+ repeat:
+@@ -1385,12 +1379,8 @@ repeat:
+ 
+ 		if (radix_tree_exception(page)) {
+ 			if (radix_tree_deref_retry(page)) {
+-				/*
+-				 * Transient condition which can only trigger
+-				 * when entry at index 0 moves out of or back
+-				 * to root: none yet gotten, safe to restart.
+-				 */
+-				goto restart;
++				slot = radix_tree_iter_retry(&iter);
++				continue;
+ 			}
+ 			/*
+ 			 * A shadow entry of a recently evicted page,
+@@ -1450,7 +1440,6 @@ unsigned find_get_pages_tag(struct addre
+ 		return 0;
+ 
+ 	rcu_read_lock();
+-restart:
+ 	radix_tree_for_each_tagged(slot, &mapping->page_tree,
+ 				   &iter, *index, tag) {
+ 		struct page *page;
+@@ -1461,12 +1450,8 @@ repeat:
+ 
+ 		if (radix_tree_exception(page)) {
+ 			if (radix_tree_deref_retry(page)) {
+-				/*
+-				 * Transient condition which can only trigger
+-				 * when entry at index 0 moves out of or back
+-				 * to root: none yet gotten, safe to restart.
+-				 */
+-				goto restart;
++				slot = radix_tree_iter_retry(&iter);
++				continue;
+ 			}
+ 			/*
+ 			 * A shadow entry of a recently evicted page.
+@@ -1529,7 +1514,6 @@ unsigned find_get_entries_tag(struct add
+ 		return 0;
+ 
+ 	rcu_read_lock();
+-restart:
+ 	radix_tree_for_each_tagged(slot, &mapping->page_tree,
+ 				   &iter, start, tag) {
+ 		struct page *page;
+@@ -1539,12 +1523,8 @@ repeat:
+ 			continue;
+ 		if (radix_tree_exception(page)) {
+ 			if (radix_tree_deref_retry(page)) {
+-				/*
+-				 * Transient condition which can only trigger
+-				 * when entry at index 0 moves out of or back
+-				 * to root: none yet gotten, safe to restart.
+-				 */
+-				goto restart;
++				slot = radix_tree_iter_retry(&iter);
++				continue;
+ 			}
+ 
+ 			/*
+@@ -2160,10 +2140,11 @@ repeat:
+ 		if (unlikely(!page))
+ 			goto next;
+ 		if (radix_tree_exception(page)) {
+-			if (radix_tree_deref_retry(page))
+-				break;
+-			else
+-				goto next;
++			if (radix_tree_deref_retry(page)) {
++				slot = radix_tree_iter_retry(&iter);
++				continue;
++			}
++			goto next;
+ 		}
+ 
+ 		if (!page_cache_get_speculative(page))
+diff -puN mm/shmem.c~mm-use-radix_tree_iter_retry mm/shmem.c
+--- a/mm/shmem.c~mm-use-radix_tree_iter_retry
++++ a/mm/shmem.c
+@@ -388,8 +388,10 @@ restart:
+ 		 * don't need to reset the counter, nor do we risk infinite
+ 		 * restarts.
+ 		 */
+-		if (radix_tree_deref_retry(page))
+-			goto restart;
++		if (radix_tree_deref_retry(page)) {
++			slot = radix_tree_iter_retry(&iter);
++			continue;
++		}
+ 
+ 		if (radix_tree_exceptional_entry(page))
+ 			swapped++;
+@@ -1951,8 +1953,10 @@ restart:
  	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
  		page = radix_tree_deref_slot(slot);
  		if (!page || radix_tree_exception(page)) {
-@@ -1966,8 +1963,7 @@ restart:
- 
- 		if (need_resched()) {
- 			cond_resched_rcu();
--			start = iter.index + 1;
--			goto restart;
-+			slot = radix_tree_iter_next(&iter);
- 		}
- 	}
- 	rcu_read_unlock();
-@@ -2004,7 +2000,6 @@ static int shmem_wait_for_pins(struct ad
- 
- 		start = 0;
- 		rcu_read_lock();
--restart:
- 		radix_tree_for_each_tagged(slot, &mapping->page_tree, &iter,
- 					   start, SHMEM_TAG_PINNED) {
- 
-@@ -2038,8 +2033,7 @@ restart:
- continue_resched:
- 			if (need_resched()) {
- 				cond_resched_rcu();
--				start = iter.index + 1;
+-			if (radix_tree_deref_retry(page))
 -				goto restart;
-+				slot = radix_tree_iter_next(&iter);
++			if (radix_tree_deref_retry(page)) {
++				slot = radix_tree_iter_retry(&iter);
++				continue;
++			}
+ 		} else if (page_count(page) - page_mapcount(page) > 1) {
+ 			spin_lock_irq(&mapping->tree_lock);
+ 			radix_tree_tag_set(&mapping->page_tree, iter.index,
+@@ -2006,8 +2010,10 @@ restart:
+ 
+ 			page = radix_tree_deref_slot(slot);
+ 			if (radix_tree_exception(page)) {
+-				if (radix_tree_deref_retry(page))
+-					goto restart;
++				if (radix_tree_deref_retry(page)) {
++					slot = radix_tree_iter_retry(&iter);
++					continue;
++				}
+ 
+ 				page = NULL;
  			}
- 		}
- 		rcu_read_unlock();
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
