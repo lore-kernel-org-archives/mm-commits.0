@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + s390-query-dynamic-debug_pagealloc-setting.patch added to -mm
- tree
-Date: Wed, 27 Jan 2016 11:52:24 -0800
-Message-ID: <56a91ff8.efIRJYhzN75qYCeG%akpm@linux-foundation.org>
+Subject: + mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs-v2.patch added to -mm tree
+Date: Wed, 27 Jan 2016 11:58:48 -0800
+Message-ID: <56a92178.Gu4UMAekWYVPfzTl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60069 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:60755 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935199AbcA0TwZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 14:52:25 -0500
+	with ESMTP id S935833AbcA0T6t (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 14:58:49 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, mm-commits@vger.kernel.org
+To: kwapulinski.piotr@gmail.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: s390: query dynamic DEBUG_PAGEALLOC setting
+     Subject: mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs-v2
 has been added to the -mm tree.  Its filename is
-     s390-query-dynamic-debug_pagealloc-setting.patch
+     mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/s390-query-dynamic-debug_pagealloc-setting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/s390-query-dynamic-debug_pagealloc-setting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,94 +38,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christian Borntraeger <borntraeger@de.ibm.com>
-Subject: s390: query dynamic DEBUG_PAGEALLOC setting
+From: Piotr Kwapulinski <kwapulinski.piotr@gmail.com>
+Subject: mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs-v2
 
-We can use debug_pagealloc_enabled() to check if we can map the identity
-mapping with 1MB/2GB pages as well as to print the current setting in
-dump_stack.
+The difference between v1 is that the prot variable is reset to
+ reqprot for each loop iteration (thanks to Konstantin Khlebnikov for
+pointing this out).
+rier means "(current->personality & [R]EAD_[I]MPLIES_[E]XEC) &&
+(prot & PROT_[R]EAD)".
 
-Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Reviewed-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Piotr Kwapulinski <kwapulinski.piotr@gmail.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/s390/kernel/dumpstack.c |    6 +++---
- arch/s390/mm/vmem.c          |   10 ++++------
- 2 files changed, 7 insertions(+), 9 deletions(-)
+ mm/mprotect.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/s390/kernel/dumpstack.c~s390-query-dynamic-debug_pagealloc-setting arch/s390/kernel/dumpstack.c
---- a/arch/s390/kernel/dumpstack.c~s390-query-dynamic-debug_pagealloc-setting
-+++ a/arch/s390/kernel/dumpstack.c
-@@ -11,6 +11,7 @@
- #include <linux/export.h>
- #include <linux/kdebug.h>
- #include <linux/ptrace.h>
-+#include <linux/mm.h>
- #include <linux/module.h>
- #include <linux/sched.h>
- #include <asm/processor.h>
-@@ -185,9 +186,8 @@ void die(struct pt_regs *regs, const cha
- #ifdef CONFIG_SMP
- 	printk("SMP ");
- #endif
--#ifdef CONFIG_DEBUG_PAGEALLOC
--	printk("DEBUG_PAGEALLOC");
--#endif
-+	if (debug_pagealloc_enabled())
-+		printk("DEBUG_PAGEALLOC");
- 	printk("\n");
- 	notify_die(DIE_OOPS, str, regs, 0, regs->int_code & 0xffff, SIGSEGV);
- 	print_modules();
-diff -puN arch/s390/mm/vmem.c~s390-query-dynamic-debug_pagealloc-setting arch/s390/mm/vmem.c
---- a/arch/s390/mm/vmem.c~s390-query-dynamic-debug_pagealloc-setting
-+++ a/arch/s390/mm/vmem.c
-@@ -94,16 +94,15 @@ static int vmem_add_mem(unsigned long st
- 			pgd_populate(&init_mm, pg_dir, pu_dir);
+diff -puN mm/mprotect.c~mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs-v2 mm/mprotect.c
+--- a/mm/mprotect.c~mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs-v2
++++ a/mm/mprotect.c
+@@ -442,6 +442,7 @@ SYSCALL_DEFINE3(mprotect, unsigned long,
+ 			error = -ENOMEM;
+ 			goto out;
  		}
- 		pu_dir = pud_offset(pg_dir, address);
--#ifndef CONFIG_DEBUG_PAGEALLOC
- 		if (MACHINE_HAS_EDAT2 && pud_none(*pu_dir) && address &&
--		    !(address & ~PUD_MASK) && (address + PUD_SIZE <= end)) {
-+		    !(address & ~PUD_MASK) && (address + PUD_SIZE <= end) &&
-+		     !debug_pagealloc_enabled()) {
- 			pud_val(*pu_dir) = __pa(address) |
- 				_REGION_ENTRY_TYPE_R3 | _REGION3_ENTRY_LARGE |
- 				(ro ? _REGION_ENTRY_PROTECT : 0);
- 			address += PUD_SIZE;
- 			continue;
- 		}
--#endif
- 		if (pud_none(*pu_dir)) {
- 			pm_dir = vmem_pmd_alloc();
- 			if (!pm_dir)
-@@ -111,9 +110,9 @@ static int vmem_add_mem(unsigned long st
- 			pud_populate(&init_mm, pu_dir, pm_dir);
- 		}
- 		pm_dir = pmd_offset(pu_dir, address);
--#ifndef CONFIG_DEBUG_PAGEALLOC
- 		if (MACHINE_HAS_EDAT1 && pmd_none(*pm_dir) && address &&
--		    !(address & ~PMD_MASK) && (address + PMD_SIZE <= end)) {
-+		    !(address & ~PMD_MASK) && (address + PMD_SIZE <= end) &&
-+		    !debug_pagealloc_enabled()) {
- 			pmd_val(*pm_dir) = __pa(address) |
- 				_SEGMENT_ENTRY | _SEGMENT_ENTRY_LARGE |
- 				_SEGMENT_ENTRY_YOUNG |
-@@ -121,7 +120,6 @@ static int vmem_add_mem(unsigned long st
- 			address += PMD_SIZE;
- 			continue;
- 		}
--#endif
- 		if (pmd_none(*pm_dir)) {
- 			pt_dir = vmem_pte_alloc(address);
- 			if (!pt_dir)
++		prot = reqprot;
+ 	}
+ out:
+ 	up_write(&current->mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from borntraeger@de.ibm.com are
+Patches currently in -mm which might be from kwapulinski.piotr@gmail.com are
 
-mm-debug_pagealloc-ask-users-for-default-setting-of-debug_pagealloc.patch
-mm-debug_pagealloc-ask-users-for-default-setting-of-debug_pagealloc-v3.patch
-mm-provide-debug_pagealloc_enabled-without-config_debug_pagealloc.patch
-x86-query-dynamic-debug_pagealloc-setting.patch
-s390-query-dynamic-debug_pagealloc-setting.patch
+mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs.patch
+mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs-v2.patch
 
