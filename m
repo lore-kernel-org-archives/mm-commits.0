@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-remove-object-status-buffer-for-debug_slab_leak.patch
+Subject: +
+ mm-slab-make-criteria-for-off-slab-determination-robust-and-simple.patch
  added to -mm tree
-Date: Tue, 26 Jan 2016 21:30:26 -0800
-Message-ID: <56a855f2.3twfySalYOpIGhll%akpm@linux-foundation.org>
+Date: Tue, 26 Jan 2016 21:30:32 -0800
+Message-ID: <56a855f8.aq/Us8d57l68nMjs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36825 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36857 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191AbcA0Fa1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 00:30:27 -0500
+	with ESMTP id S1753477AbcA0Fad (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 00:30:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: js1304@gmail.com, brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: remove object status buffer for DEBUG_SLAB_LEAK
+     Subject: mm/slab: make criteria for off slab determination robust and simple
 has been added to the -mm tree.  Its filename is
-     mm-slab-remove-object-status-buffer-for-debug_slab_leak.patch
+     mm-slab-make-criteria-for-off-slab-determination-robust-and-simple.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-remove-object-status-buffer-for-debug_slab_leak.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-make-criteria-for-off-slab-determination-robust-and-simple.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-remove-object-status-buffer-for-debug_slab_leak.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-make-criteria-for-off-slab-determination-robust-and-simple.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,9 +41,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm/slab: remove object status buffer for DEBUG_SLAB_LEAK
+Subject: mm/slab: make criteria for off slab determination robust and simple
 
-Now, we don't use object status buffer in any setup. Remove it.
+To become an off slab, there are some constraints to avoid bootstrapping
+problem and recursive call.  This can be avoided differently by simply
+checking that corresponding kmalloc cache is ready and it's not a off
+slab.  It would be more robust because static size checking can be
+affected by cache size change or architecture type but dynamic checking
+isn't.
+
+One check 'freelist_cache->size > cachep->size / 2' is added to check
+benefit of choosing off slab, because, now, there is no size constraint
+which ensures enough advantage when selecting off slab.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -53,125 +63,103 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   34 ++--------------------------------
- 1 file changed, 2 insertions(+), 32 deletions(-)
+ mm/slab.c |   45 +++++++++++++++++----------------------------
+ 1 file changed, 17 insertions(+), 28 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-remove-object-status-buffer-for-debug_slab_leak mm/slab.c
---- a/mm/slab.c~mm-slab-remove-object-status-buffer-for-debug_slab_leak
+diff -puN mm/slab.c~mm-slab-make-criteria-for-off-slab-determination-robust-and-simple mm/slab.c
+--- a/mm/slab.c~mm-slab-make-criteria-for-off-slab-determination-robust-and-simple
 +++ a/mm/slab.c
-@@ -380,22 +380,8 @@ static void **dbg_userword(struct kmem_c
+@@ -272,7 +272,6 @@ static void kmem_cache_node_init(struct 
  
- #endif
+ #define CFLGS_OFF_SLAB		(0x80000000UL)
+ #define	OFF_SLAB(x)	((x)->flags & CFLGS_OFF_SLAB)
+-#define OFF_SLAB_MIN_SIZE (max_t(size_t, PAGE_SIZE >> 5, KMALLOC_MIN_SIZE + 1))
  
--#define OBJECT_FREE (0)
--#define OBJECT_ACTIVE (1)
--
- #ifdef CONFIG_DEBUG_SLAB_LEAK
- 
--static void set_obj_status(struct page *page, int idx, int val)
--{
--	int freelist_size;
--	char *status;
--	struct kmem_cache *cachep = page->slab_cache;
--
--	freelist_size = cachep->num * sizeof(freelist_idx_t);
--	status = (char *)page->freelist + freelist_size;
--	status[idx] = val;
--}
--
- static inline bool is_store_user_clean(struct kmem_cache *cachep)
+ #define BATCHREFILL_LIMIT	16
+ /*
+@@ -1880,7 +1879,6 @@ static void slabs_destroy(struct kmem_ca
+ static size_t calculate_slab_order(struct kmem_cache *cachep,
+ 				size_t size, unsigned long flags)
  {
- 	return atomic_read(&cachep->store_user_clean) == 1;
-@@ -413,7 +399,6 @@ static inline void set_store_user_dirty(
- }
+-	unsigned long offslab_limit;
+ 	size_t left_over = 0;
+ 	int gfporder;
  
- #else
--static inline void set_obj_status(struct page *page, int idx, int val) {}
- static inline void set_store_user_dirty(struct kmem_cache *cachep) {}
- 
- #endif
-@@ -476,9 +461,6 @@ static size_t calculate_freelist_size(in
- 	size_t freelist_size;
- 
- 	freelist_size = nr_objs * sizeof(freelist_idx_t);
--	if (IS_ENABLED(CONFIG_DEBUG_SLAB_LEAK))
--		freelist_size += nr_objs * sizeof(char);
--
- 	if (align)
- 		freelist_size = ALIGN(freelist_size, align);
- 
-@@ -491,10 +473,7 @@ static int calculate_nr_objs(size_t slab
- 	int nr_objs;
- 	size_t remained_size;
- 	size_t freelist_size;
--	int extra_space = 0;
- 
--	if (IS_ENABLED(CONFIG_DEBUG_SLAB_LEAK))
--		extra_space = sizeof(char);
- 	/*
- 	 * Ignore padding for the initial guess. The padding
- 	 * is at most @align-1 bytes, and @buffer_size is at
-@@ -503,7 +482,7 @@ static int calculate_nr_objs(size_t slab
- 	 * into the memory allocation when taking the padding
- 	 * into account.
- 	 */
--	nr_objs = slab_size / (buffer_size + idx_size + extra_space);
-+	nr_objs = slab_size / (buffer_size + idx_size);
- 
- 	/*
- 	 * This calculated number will be either the right
-@@ -1961,16 +1940,13 @@ static size_t calculate_slab_order(struc
+@@ -1897,16 +1895,24 @@ static size_t calculate_slab_order(struc
  			break;
  
  		if (flags & CFLGS_OFF_SLAB) {
--			size_t freelist_size_per_obj = sizeof(freelist_idx_t);
++			struct kmem_cache *freelist_cache;
++			size_t freelist_size;
++
++			freelist_size = num * sizeof(freelist_idx_t);
++			freelist_cache = kmalloc_slab(freelist_size, 0u);
++			if (!freelist_cache)
++				continue;
++
  			/*
- 			 * Max number of objs-per-slab for caches which
- 			 * use off-slab slabs. Needed to avoid a possible
- 			 * looping condition in cache_grow().
+-			 * Max number of objs-per-slab for caches which
+-			 * use off-slab slabs. Needed to avoid a possible
+-			 * looping condition in cache_grow().
++			 * Needed to avoid possible looping condition
++			 * in cache_grow()
  			 */
--			if (IS_ENABLED(CONFIG_DEBUG_SLAB_LEAK))
--				freelist_size_per_obj += sizeof(char);
- 			offslab_limit = size;
--			offslab_limit /= freelist_size_per_obj;
-+			offslab_limit /= sizeof(freelist_idx_t);
+-			offslab_limit = size;
+-			offslab_limit /= sizeof(freelist_idx_t);
++			if (OFF_SLAB(freelist_cache))
++				continue;
  
-  			if (num > offslab_limit)
- 				break;
-@@ -2533,7 +2509,6 @@ static void cache_init_objs(struct kmem_
- 		if (cachep->ctor)
- 			cachep->ctor(objp);
- #endif
--		set_obj_status(page, i, OBJECT_FREE);
- 		set_free_obj(page, i, i);
- 	}
- }
-@@ -2745,7 +2720,6 @@ static void *cache_free_debugcheck(struc
- 	BUG_ON(objnr >= cachep->num);
- 	BUG_ON(objp != index_to_obj(cachep, page, objnr));
+- 			if (num > offslab_limit)
+-				break;
++			/* check if off slab has enough benefit */
++			if (freelist_cache->size > cachep->size / 2)
++				continue;
+ 		}
  
--	set_obj_status(page, objnr, OBJECT_FREE);
- 	if (cachep->flags & SLAB_POISON) {
- 		poison_obj(cachep, objp, POISON_FREE);
- 		slab_kernel_map(cachep, objp, 0, caller);
-@@ -2878,8 +2852,6 @@ static inline void cache_alloc_debugchec
- static void *cache_alloc_debugcheck_after(struct kmem_cache *cachep,
- 				gfp_t flags, void *objp, unsigned long caller)
- {
--	struct page *page;
+ 		/* Found something acceptable - save it away */
+@@ -2032,17 +2038,9 @@ static bool set_off_slab_cache(struct km
+ 	cachep->num = 0;
+ 
+ 	/*
+-	 * Determine if the slab management is 'on' or 'off' slab.
+-	 * (bootstrapping cannot cope with offslab caches so don't do
+-	 * it too early on. Always use on-slab management when
+-	 * SLAB_NOLEAKTRACE to avoid recursive calls into kmemleak)
++	 * Always use on-slab management when SLAB_NOLEAKTRACE
++	 * to avoid recursive calls into kmemleak.
+ 	 */
+-	if (size < OFF_SLAB_MIN_SIZE)
+-		return false;
 -
- 	if (!objp)
- 		return objp;
- 	if (cachep->flags & SLAB_POISON) {
-@@ -2904,8 +2876,6 @@ static void *cache_alloc_debugcheck_afte
- 		*dbg_redzone2(cachep, objp) = RED_ACTIVE;
+-	if (slab_early_init)
+-		return false;
+-
+ 	if (flags & SLAB_NOLEAKTRACE)
+ 		return false;
+ 
+@@ -2206,7 +2204,6 @@ __kmem_cache_create (struct kmem_cache *
+ 	 * sized slab is initialized in current slab initialization sequence.
+ 	 */
+ 	if (debug_pagealloc_enabled() && (flags & SLAB_POISON) &&
+-		!slab_early_init && size >= kmalloc_size(INDEX_NODE) &&
+ 		size >= 256 && cachep->object_size > cache_line_size()) {
+ 		if (size < PAGE_SIZE || size % PAGE_SIZE == 0) {
+ 			size_t tmp_size = ALIGN(size, PAGE_SIZE);
+@@ -2255,14 +2252,6 @@ done:
+ 	if (OFF_SLAB(cachep)) {
+ 		cachep->freelist_cache =
+ 			kmalloc_slab(cachep->freelist_size, 0u);
+-		/*
+-		 * This is a possibility for one of the kmalloc_{dma,}_caches.
+-		 * But since we go off slab only for object size greater than
+-		 * OFF_SLAB_MIN_SIZE, and kmalloc_{dma,}_caches get created
+-		 * in ascending order,this should not happen at all.
+-		 * But leave a BUG_ON for some lucky dude.
+-		 */
+-		BUG_ON(ZERO_OR_NULL_PTR(cachep->freelist_cache));
  	}
  
--	page = virt_to_head_page(objp);
--	set_obj_status(page, obj_to_index(cachep, page, objp), OBJECT_ACTIVE);
- 	objp += obj_offset(cachep);
- 	if (cachep->ctor && cachep->flags & SLAB_POISON)
- 		cachep->ctor(objp);
+ 	err = setup_cpu_cache(cachep, gfp);
 _
 
 Patches currently in -mm which might be from js1304@gmail.com are
