@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-fix-stale-code-comment.patch added to -mm tree
-Date: Tue, 26 Jan 2016 21:30:15 -0800
-Message-ID: <56a855e7.FhSlWbxhJVdy/K66%akpm@linux-foundation.org>
+Subject: +
+ mm-slab-factor-out-debugging-initialization-in-cache_init_objs.patch added
+ to -mm tree
+Date: Tue, 26 Jan 2016 21:30:34 -0800
+Message-ID: <56a855fa.IxKoGhHqPwqZCM8u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36776 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36870 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752522AbcA0FaR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 00:30:17 -0500
+	with ESMTP id S1753480AbcA0Faf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 27 Jan 2016 00:30:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: js1304@gmail.com, brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: fix stale code comment
+     Subject: mm/slab: factor out debugging initialization in cache_init_objs()
 has been added to the -mm tree.  Its filename is
-     mm-slab-fix-stale-code-comment.patch
+     mm-slab-factor-out-debugging-initialization-in-cache_init_objs.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-fix-stale-code-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-factor-out-debugging-initialization-in-cache_init_objs.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-fix-stale-code-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-factor-out-debugging-initialization-in-cache_init_objs.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,35 +41,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm/slab: fix stale code comment
+Subject: mm/slab: factor out debugging initialization in cache_init_objs()
 
-This patchset implements new freed object management way, that is,
-OBJFREELIST_SLAB.  Purpose of it is to reduce memory overhead in SLAB.
-
-SLAB needs a array to manage freed objects in a slab.  If there is
-leftover after objects are packed into a slab, we can use it as a
-management array, and, in this case, there is no memory waste.  But, in
-the other cases, we need to allocate extra memory for a management array
-or utilize dedicated internal memory in a slab for it.  Both cases causes
-memory waste so it's not good.
-
-With this patchset, freed object itself can be used for a management
-array.  So, memory waste could be reduced.  Detailed idea and numbers are
-described in last patch's commit description.  Please refer it.
-
-In fact, I tested another idea implementing OBJFREELIST_SLAB with
-extendable linked array through another freed object.  It can remove
-memory waste completely but it causes more computational overhead in
-critical lock path and it seems that overhead outweigh benefit.  So, this
-patchset doesn't include it.  I will attach prototype just for a
-reference.
-
-
-
-This patch (of 16):
-
-We use freelist_idx_t type for free object management whose size would be
-smaller than size of unsigned int.  Fix it.
+cache_init_objs() will be changed in following patch and current form
+doesn't fit well for that change.  So, before doing it, this patch
+separates debugging initialization.  This would cause two loop iteration
+when debugging is enabled, but, this overhead seems too light than debug
+feature itself so effect may not be visible.  This patch will greatly
+simplify changes in cache_init_objs() in following patch.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -78,21 +59,56 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/slab.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-fix-stale-code-comment mm/slab.c
---- a/mm/slab.c~mm-slab-fix-stale-code-comment
+diff -puN mm/slab.c~mm-slab-factor-out-debugging-initialization-in-cache_init_objs mm/slab.c
+--- a/mm/slab.c~mm-slab-factor-out-debugging-initialization-in-cache_init_objs
 +++ a/mm/slab.c
-@@ -537,7 +537,7 @@ static void cache_estimate(unsigned long
- 	 * on it. For the latter case, the memory allocated for a
- 	 * slab is used for:
- 	 *
--	 * - One unsigned int for each object
-+	 * - One freelist_idx_t for each object
- 	 * - Padding to respect alignment of @align
- 	 * - @buffer_size bytes for each object
- 	 *
+@@ -2461,14 +2461,14 @@ static inline void set_free_obj(struct p
+ 	((freelist_idx_t *)(page->freelist))[idx] = val;
+ }
+ 
+-static void cache_init_objs(struct kmem_cache *cachep,
+-			    struct page *page)
++static void cache_init_objs_debug(struct kmem_cache *cachep, struct page *page)
+ {
++#if DEBUG
+ 	int i;
+ 
+ 	for (i = 0; i < cachep->num; i++) {
+ 		void *objp = index_to_obj(cachep, page, i);
+-#if DEBUG
++
+ 		if (cachep->flags & SLAB_STORE_USER)
+ 			*dbg_userword(cachep, objp) = NULL;
+ 
+@@ -2497,10 +2497,22 @@ static void cache_init_objs(struct kmem_
+ 			poison_obj(cachep, objp, POISON_FREE);
+ 			slab_kernel_map(cachep, objp, 0, 0);
+ 		}
+-#else
+-		if (cachep->ctor)
+-			cachep->ctor(objp);
++	}
+ #endif
++}
++
++static void cache_init_objs(struct kmem_cache *cachep,
++			    struct page *page)
++{
++	int i;
++
++	cache_init_objs_debug(cachep, page);
++
++	for (i = 0; i < cachep->num; i++) {
++		/* constructor could break poison info */
++		if (DEBUG == 0 && cachep->ctor)
++			cachep->ctor(index_to_obj(cachep, page, i));
++
+ 		set_free_obj(page, i, i);
+ 	}
+ }
 _
 
 Patches currently in -mm which might be from js1304@gmail.com are
