@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-fix-bogus-vm_bug_on_page-in-isolate_lru_page.patch added to
- -mm tree
-Date: Mon, 01 Feb 2016 13:23:20 -0800
-Message-ID: <56afccc8.57UBNR5Wg+LjjaE3%akpm@linux-foundation.org>
+Subject: + mempolicy-do-not-try-to-queue-pages-from-vma_migratable.patch
+ added to -mm tree
+Date: Mon, 01 Feb 2016 13:23:22 -0800
+Message-ID: <56afccca.6nHpdZpyLcFWJt1z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40306 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40314 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751722AbcBAVXV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2016 16:23:21 -0500
+	with ESMTP id S1751722AbcBAVXX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2016 16:23:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: kirill.shutemov@linux.intel.com, dvyukov@google.com, hannes@cmpxchg.org, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix bogus VM_BUG_ON_PAGE() in isolate_lru_page()
+     Subject: mempolicy: do not try to queue pages from !vma_migratable()
 has been added to the -mm tree.  Its filename is
-     mm-fix-bogus-vm_bug_on_page-in-isolate_lru_page.patch
+     mempolicy-do-not-try-to-queue-pages-from-vma_migratable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-bogus-vm_bug_on_page-in-isolate_lru_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mempolicy-do-not-try-to-queue-pages-from-vma_migratable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-bogus-vm_bug_on_page-in-isolate_lru_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mempolicy-do-not-try-to-queue-pages-from-vma_migratable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,45 +40,22 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: fix bogus VM_BUG_ON_PAGE() in isolate_lru_page()
+Subject: mempolicy: do not try to queue pages from !vma_migratable()
 
-We don't care if there's a tail pages which is not on LRU. We are not
-going to isolate them anyway.
+Maybe I miss some point, but I don't see a reason why we try to queue
+pages from non migratable VMAs.
 
-Testcase:
+The only case when we can queue pages from such VMA is MPOL_MF_STRICT plus
+MPOL_MF_MOVE or MPOL_MF_MOVE_ALL for VMA which has pages on LRU, but gfp
+mask is not sutable for migaration (see mapping_gfp_mask() check in
+vma_migratable()).  That's looks like a bug to me.
 
-	#include <fcntl.h>
-	#include <unistd.h>
-	#include <stdio.h>
-	#include <sys/mman.h>
-	#include <numaif.h>
-
-	#define SIZE 0x2000
-
-	int foo;
-
-	int main()
-	{
-		int fd;
-		char *p;
-		unsigned long mask = 2;
-
-		fd = open("/dev/sg0", O_RDWR);
-		p = mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
-		/* Faultin pages */
-		foo = p[0] + p[0x1000];
-		mbind(p, SIZE, MPOL_BIND, &mask, 4, MPOL_MF_MOVE | MPOL_MF_STRICT);
-		return 0;
-	}
-
-MPOL_MF_STRICT makes queue_pages_test_walk() ignore !vma_megratable()
-and we try to queue such pages for migration. It's good question why we
-ignore !vma_megratable() for MPOL_MF_STRICT, but it's subject for a
-separate patch.
+Let's filter out non-migratable vma at start of queue_pages_test_walk()
+and go to queue_pages_pte_range() only if MPOL_MF_MOVE or MPOL_MF_MOVE_ALL
+flag is set.
 
 Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Fixes: bb5b8589767a ("mm: make sure isolate_lru_page() is never called for tail page"
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
@@ -87,21 +64,51 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/mempolicy.c |   14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
 
-diff -puN mm/vmscan.c~mm-fix-bogus-vm_bug_on_page-in-isolate_lru_page mm/vmscan.c
---- a/mm/vmscan.c~mm-fix-bogus-vm_bug_on_page-in-isolate_lru_page
-+++ a/mm/vmscan.c
-@@ -1443,7 +1443,7 @@ int isolate_lru_page(struct page *page)
- 	int ret = -EBUSY;
+diff -puN mm/mempolicy.c~mempolicy-do-not-try-to-queue-pages-from-vma_migratable mm/mempolicy.c
+--- a/mm/mempolicy.c~mempolicy-do-not-try-to-queue-pages-from-vma_migratable
++++ a/mm/mempolicy.c
+@@ -548,8 +548,7 @@ retry:
+ 			goto retry;
+ 		}
  
- 	VM_BUG_ON_PAGE(!page_count(page), page);
--	VM_BUG_ON_PAGE(PageTail(page), page);
-+	VM_BUG_ON_PAGE(PageLRU(page) && PageTail(page), page);
+-		if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL))
+-			migrate_page_add(page, qp->pagelist, flags);
++		migrate_page_add(page, qp->pagelist, flags);
+ 	}
+ 	pte_unmap_unlock(pte - 1, ptl);
+ 	cond_resched();
+@@ -625,7 +624,7 @@ static int queue_pages_test_walk(unsigne
+ 	unsigned long endvma = vma->vm_end;
+ 	unsigned long flags = qp->flags;
  
- 	if (PageLRU(page)) {
- 		struct zone *zone = page_zone(page);
+-	if (vma->vm_flags & VM_PFNMAP)
++	if (!vma_migratable(vma))
+ 		return 1;
+ 
+ 	if (endvma > end)
+@@ -644,16 +643,13 @@ static int queue_pages_test_walk(unsigne
+ 
+ 	if (flags & MPOL_MF_LAZY) {
+ 		/* Similar to task_numa_work, skip inaccessible VMAs */
+-		if (vma_migratable(vma) &&
+-			vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE))
++		if (vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE))
+ 			change_prot_numa(vma, start, endvma);
+ 		return 1;
+ 	}
+ 
+-	if ((flags & MPOL_MF_STRICT) ||
+-	    ((flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)) &&
+-	     vma_migratable(vma)))
+-		/* queue pages from current vma */
++	/* queue pages from current vma */
++	if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL))
+ 		return 0;
+ 	return 1;
+ }
 _
 
 Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
