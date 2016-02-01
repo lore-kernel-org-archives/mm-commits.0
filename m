@@ -1,31 +1,33 @@
 From: akpm@linux-foundation.org
-Subject: +
- sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch added to -mm tree
-Date: Mon, 01 Feb 2016 14:48:01 -0800
-Message-ID: <56afe0a1.NfP+UmP2KYE+JnDQ%akpm@linux-foundation.org>
+Subject: + fs-block-force-direct-i-o-for-dax-enabled-block-devices.patch
+ added to -mm tree
+Date: Mon, 01 Feb 2016 14:53:48 -0800
+Message-ID: <56afe1fc.3NhBUAfCJu9i69F3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47631 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48502 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753923AbcBAWsC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2016 17:48:02 -0500
+	with ESMTP id S1754489AbcBAWxu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2016 17:53:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, davem@davemloft.net, luto@kernel.org, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, dvyukov@google.com, jack@suse.cz, kirill@shutemov.name, ross.zwisler@linux.intel.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix
+     Subject: fs, block: force direct-I/O for dax-enabled block devices
 has been added to the -mm tree.  Its filename is
-     sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
+     fs-block-force-direct-i-o-for-dax-enabled-block-devices.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-block-force-direct-i-o-=
+for-dax-enabled-block-devices.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-block-force-direct-i-o-=
+for-dax-enabled-block-devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -33,72 +35,117 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+*** Remember to use Documentation/SubmitChecklist when testing your cod=
+e ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix
+=46rom: Dan Williams <dan.j.williams@intel.com>
+Subject: fs, block: force direct-I/O for dax-enabled block devices
 
-update comment, per Andy
+Similar to the file I/O path, re-direct all I/O to the DAX path for I/O=
+ to
+a block-device special file.=A0=A0Both regular files and device special=
+ files
+can use the common filp->f_mapping->host lookup to determing is DAX is
+enabled.
 
-Cc: Andy Lutomirski <luto@kernel.org>
-Cc: David S. Miller <davem@davemloft.net>
-Cc: Sam Ravnborg <sam@ravnborg.org>
+Otherwise, we confuse the DAX code that does not expect to find live
+data in the page cache:
+
+=A0=A0=A0=A0------------[ cut here ]------------
+=A0=A0=A0=A0WARNING: CPU: 0 PID: 7676 at mm/filemap.c:217
+=A0=A0=A0=A0__delete_from_page_cache+0x9f6/0xb60()
+=A0=A0=A0=A0Modules linked in:
+=A0=A0=A0=A0CPU: 0 PID: 7676 Comm: a.out Not tainted 4.4.0+ #276
+=A0=A0=A0=A0Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS=
+ Bochs 01/01/2011
+=A0=A0=A0=A0=A000000000ffffffff ffff88006d3f7738 ffffffff82999e2d 00000=
+00000000000
+=A0=A0=A0=A0=A0ffff8800620a0000 ffffffff86473d20 ffff88006d3f7778 fffff=
+fff81352089
+=A0=A0=A0=A0=A0ffffffff81658d36 ffffffff86473d20 00000000000000d9 ffffe=
+a0000009d60
+=A0=A0=A0=A0Call Trace:
+=A0=A0=A0=A0=A0[<=A0=A0=A0=A0=A0inline=A0=A0=A0=A0=A0>] __dump_stack li=
+b/dump_stack.c:15
+=A0=A0=A0=A0=A0[<ffffffff82999e2d>] dump_stack+0x6f/0xa2 lib/dump_stack=
+=2Ec:50
+=A0=A0=A0=A0=A0[<ffffffff81352089>] warn_slowpath_common+0xd9/0x140 ker=
+nel/panic.c:482
+=A0=A0=A0=A0=A0[<ffffffff813522b9>] warn_slowpath_null+0x29/0x30 kernel=
+/panic.c:515
+=A0=A0=A0=A0=A0[<ffffffff81658d36>] __delete_from_page_cache+0x9f6/0xb6=
+0 mm/filemap.c:217
+=A0=A0=A0=A0=A0[<ffffffff81658fb2>] delete_from_page_cache+0x112/0x200 =
+mm/filemap.c:244
+=A0=A0=A0=A0=A0[<ffffffff818af369>] __dax_fault+0x859/0x1800 fs/dax.c:4=
+87
+=A0=A0=A0=A0=A0[<ffffffff8186f4f6>] blkdev_dax_fault+0x26/0x30 fs/block=
+_dev.c:1730
+=A0=A0=A0=A0=A0[<=A0=A0=A0=A0=A0inline=A0=A0=A0=A0=A0>] wp_pfn_shared m=
+m/memory.c:2208
+=A0=A0=A0=A0=A0[<ffffffff816e9145>] do_wp_page+0xc85/0x14f0 mm/memory.c=
+:2307
+=A0=A0=A0=A0=A0[<=A0=A0=A0=A0=A0inline=A0=A0=A0=A0=A0>] handle_pte_faul=
+t mm/memory.c:3323
+=A0=A0=A0=A0=A0[<=A0=A0=A0=A0=A0inline=A0=A0=A0=A0=A0>] __handle_mm_fau=
+lt mm/memory.c:3417
+=A0=A0=A0=A0=A0[<ffffffff816ecec3>] handle_mm_fault+0x2483/0x4640 mm/me=
+mory.c:3446
+=A0=A0=A0=A0=A0[<ffffffff8127eff6>] __do_page_fault+0x376/0x960 arch/x8=
+6/mm/fault.c:1238
+=A0=A0=A0=A0=A0[<ffffffff8127f738>] trace_do_page_fault+0xe8/0x420 arch=
+/x86/mm/fault.c:1331
+=A0=A0=A0=A0=A0[<ffffffff812705c4>] do_async_page_fault+0x14/0xd0 arch/=
+x86/kernel/kvm.c:264
+=A0=A0=A0=A0=A0[<ffffffff86338f78>] async_page_fault+0x28/0x30 arch/x86=
+/entry/entry_64.S:986
+=A0=A0=A0=A0=A0[<ffffffff86336c36>] entry_SYSCALL_64_fastpath+0x16/0x7a
+=A0=A0=A0=A0arch/x86/entry/entry_64.S:185
+=A0=A0=A0=A0---[ end trace dae21e0f85f1f98c ]---
+
+=46ixes: 5a023cdba50c ("block: enable dax for raw block devices")
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Reported-by: Kirill A. Shutemov <kirill@shutemov.name>
+Suggested-by: Jan Kara <jack@suse.cz>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Suggested-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/compat.h |    2 +-
+ include/linux/fs.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN arch/sparc/include/asm/compat.h~sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix arch/sparc/include/asm/compat.h
---- a/arch/sparc/include/asm/compat.h~sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix
-+++ a/arch/sparc/include/asm/compat.h
-@@ -309,7 +309,7 @@ static inline int is_compat_task(void)
- 
- static inline bool in_compat_syscall(void)
+diff -puN include/linux/fs.h~fs-block-force-direct-i-o-for-dax-enabled-=
+block-devices include/linux/fs.h
+--- a/include/linux/fs.h~fs-block-force-direct-i-o-for-dax-enabled-bloc=
+k-devices
++++ a/include/linux/fs.h
+@@ -2907,7 +2907,7 @@ extern void replace_mount_options(struct
+=20
+ static inline bool io_is_direct(struct file *filp)
  {
--	/* Check if this is LINUX_32BIT_SYSCALL_TRAP */
-+	/* Vector 0x110 is LINUX_32BIT_SYSCALL_TRAP */
- 	return pt_regs_trap_type(current_pt_regs()) == 0x110;
+-	return (filp->f_flags & O_DIRECT) || IS_DAX(file_inode(filp));
++	return (filp->f_flags & O_DIRECT) || IS_DAX(filp->f_mapping->host);
  }
- #define in_compat_syscall in_compat_syscall
+=20
+ static inline int iocb_flags(struct file *file)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from dan.j.williams@intel.com a=
+re
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh-fix.patch
-mm-warn-about-vmdata-over-rlimit_data-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
-mm.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-sched-add-schedule_timeout_idle.patch
-btrfs-use-radix_tree_iter_retry-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+phys_to_pfn_t-use-phys_addr_t.patch
+mm-fix-pfn_t-to-page-conversion-in-vm_insert_mixed.patch
+fs-block-force-direct-i-o-for-dax-enabled-block-devices.patch
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
