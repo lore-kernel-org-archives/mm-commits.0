@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-simplify-lock_page_memcg-fix.patch added to -mm tree
-Date: Tue, 02 Feb 2016 15:42:56 -0800
-Message-ID: <56b13f00.iy3KcDDatXfA+L8T%akpm@linux-foundation.org>
+Subject: + x86-add-support-for-pud-sized-transparent-hugepages-fix.patch
+ added to -mm tree
+Date: Tue, 02 Feb 2016 15:48:25 -0800
+Message-ID: <56b14049.t8rQxxeYmkPVsqI3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38660 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39270 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754862AbcBBXm5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 18:42:57 -0500
+	with ESMTP id S1755061AbcBBXs0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 18:48:26 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dan.j.williams@intel.com, jack@suse.cz, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-simplify-lock_page_memcg-fix
+     Subject: x86-add-support-for-pud-sized-transparent-hugepages-fix
 has been added to the -mm tree.  Its filename is
-     mm-simplify-lock_page_memcg-fix.patch
+     x86-add-support-for-pud-sized-transparent-hugepages-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-simplify-lock_page_memcg-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-add-support-for-pud-sized-transparent-hugepages-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-simplify-lock_page_memcg-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-add-support-for-pud-sized-transparent-hugepages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,38 +40,48 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-simplify-lock_page_memcg-fix
+Subject: x86-add-support-for-pud-sized-transparent-hugepages-fix
 
-In file included from include/linux/swap.h:8,
-                 from include/linux/suspend.h:4,
-                 from arch/x86/kernel/asm-offsets.c:12:
-include/linux/memcontrol.h: In function 'lock_page_memcg':
-include/linux/memcontrol.h:666: warning: 'return' with a value, in function returning void
-In file included from include/linux/swap.h:8,
-                 from mm/mlock.c:11:
-include/linux/memcontrol.h: In function 'lock_page_memcg':
-include/linux/memcontrol.h:666: warning: 'return' with a value, in function returning void
+x86_64 allnoconfig:
 
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+mm/memory.c: In function 'copy_pud_range':
+mm/memory.c:986: error: implicit declaration of function 'pud_trans_huge'
+
+might be wrong/hacky
+
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |    1 -
- 1 file changed, 1 deletion(-)
+ arch/x86/include/asm/pgtable.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff -puN include/linux/memcontrol.h~mm-simplify-lock_page_memcg-fix include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-simplify-lock_page_memcg-fix
-+++ a/include/linux/memcontrol.h
-@@ -663,7 +663,6 @@ mem_cgroup_print_oom_info(struct mem_cgr
- 
- static inline void lock_page_memcg(struct page *page)
+diff -puN arch/x86/include/asm/pgtable.h~x86-add-support-for-pud-sized-transparent-hugepages-fix arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~x86-add-support-for-pud-sized-transparent-hugepages-fix
++++ a/arch/x86/include/asm/pgtable.h
+@@ -200,9 +200,18 @@ static inline int pud_trans_huge(pud_t p
  {
--	return NULL;
+ 	return (pud_val(pud) & (_PAGE_PSE|_PAGE_DEVMAP)) == _PAGE_PSE;
  }
++#define pud_trans_huge pud_trans_huge
+ #endif
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
- static inline void unlock_page_memcg(struct page *page)
++#ifndef pud_trans_huge
++static inline int pud_trans_huge(pud_t pud)
++{
++	return 0;
++}
++#define pud_trans_huge pud_trans_huge
++#endif
++
+ static inline pte_t pte_set_flags(pte_t pte, pteval_t set)
+ {
+ 	pteval_t v = native_pte_val(pte);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -95,6 +106,7 @@ mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
 mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
 mm-madvise-update-comment-on-sys_madvise-fix.patch
 mm-simplify-lock_page_memcg-fix.patch
+x86-add-support-for-pud-sized-transparent-hugepages-fix.patch
 x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes.patch
 ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
 zram-export-the-number-of-available-comp-streams-fix.patch
