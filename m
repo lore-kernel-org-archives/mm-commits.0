@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + dax-remove-unnecessary-rechecking-of-i_size.patch added to -mm
- tree
-Date: Tue, 02 Feb 2016 14:57:39 -0800
-Message-ID: <56b13463.sJWqb7zAbETyeV0G%akpm@linux-foundation.org>
+Subject: + dax-factor-dax_insert_pmd_mapping-out-of-dax_pmd_fault.patch
+ added to -mm tree
+Date: Tue, 02 Feb 2016 14:57:45 -0800
+Message-ID: <56b13469.f31rAsXqVE5HEK21%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34090 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34102 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754545AbcBBW5k (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 17:57:40 -0500
+	with ESMTP id S1754519AbcBBW5q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 17:57:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: matthew.r.wilcox@intel.com, dan.j.williams@intel.com, kirill@shutemov.name, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: remove unnecessary rechecking of i_size
+     Subject: dax: factor dax_insert_pmd_mapping out of dax_pmd_fault
 has been added to the -mm tree.  Its filename is
-     dax-remove-unnecessary-rechecking-of-i_size.patch
+     dax-factor-dax_insert_pmd_mapping-out-of-dax_pmd_fault.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-remove-unnecessary-rechecking-of-i_size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-factor-dax_insert_pmd_mapping-out-of-dax_pmd_fault.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-remove-unnecessary-rechecking-of-i_size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-factor-dax_insert_pmd_mapping-out-of-dax_pmd_fault.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,18 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: dax: remove unnecessary rechecking of i_size
+Subject: dax: factor dax_insert_pmd_mapping out of dax_pmd_fault
 
-When i_mmap_lock (or the page lock) was the only protection against
-truncate, we checked i_size at the beginning of the fault handler, then
-rechecked it after acquiring the lock.  Since the fliesystems now exclude
-truncate from racing with the fault handler, we no longer need to recheck
-i_size.  We do, of course, still need to check i_size at the entry to the
-fault handler.
-
-Also remove the now-unnecessary acquisitions of i_mmap_lock.  One of the
-acquisitions is still needed, so put a big fat comment beside it to
-prevent the well-intentioned from removing it.
+These two functios are still large, but they're no longer quite so
+ludicrously large
 
 Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
@@ -60,174 +52,187 @@ Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   98 +++++------------------------------------------------
- 1 file changed, 10 insertions(+), 88 deletions(-)
+ fs/dax.c |  153 +++++++++++++++++++++++++++--------------------------
+ 1 file changed, 80 insertions(+), 73 deletions(-)
 
-diff -puN fs/dax.c~dax-remove-unnecessary-rechecking-of-i_size fs/dax.c
---- a/fs/dax.c~dax-remove-unnecessary-rechecking-of-i_size
+diff -puN fs/dax.c~dax-factor-dax_insert_pmd_mapping-out-of-dax_pmd_fault fs/dax.c
+--- a/fs/dax.c~dax-factor-dax_insert_pmd_mapping-out-of-dax_pmd_fault
 +++ a/fs/dax.c
-@@ -308,21 +308,11 @@ EXPORT_SYMBOL_GPL(dax_do_io);
- static int dax_load_hole(struct address_space *mapping, struct page *page,
- 							struct vm_fault *vmf)
+@@ -717,6 +717,83 @@ static void __dax_dbg(struct buffer_head
+ 
+ #define dax_pmd_dbg(bh, address, reason)	__dax_dbg(bh, address, reason, "dax_pmd")
+ 
++static int dax_insert_pmd_mapping(struct inode *inode, struct buffer_head *bh,
++			struct vm_area_struct *vma, struct vm_fault *vmf)
++{
++	int major = 0;
++	struct blk_dax_ctl dax = {
++		.sector = to_sector(bh, inode),
++		.size = PMD_SIZE,
++	};
++	struct block_device *bdev = bh->b_bdev;
++	bool write = vmf->flags & FAULT_FLAG_WRITE;
++	unsigned long address = (unsigned long)vmf->virtual_address;
++	long length = dax_map_atomic(bdev, &dax);
++
++	if (length < 0)
++		return VM_FAULT_SIGBUS;
++	if (length < PMD_SIZE) {
++		dax_pmd_dbg(bh, address, "dax-length too small");
++		goto unmap;
++	}
++
++	if (pfn_t_to_pfn(dax.pfn) & PG_PMD_COLOUR) {
++		dax_pmd_dbg(bh, address, "pfn unaligned");
++		goto unmap;
++	}
++
++	if (!pfn_t_devmap(dax.pfn)) {
++		dax_pmd_dbg(bh, address, "pfn not in memmap");
++		goto unmap;
++	}
++
++	if (buffer_unwritten(bh) || buffer_new(bh)) {
++		clear_pmem(dax.addr, PMD_SIZE);
++		wmb_pmem();
++		count_vm_event(PGMAJFAULT);
++		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
++		major = VM_FAULT_MAJOR;
++	}
++	dax_unmap_atomic(bdev, &dax);
++
++	/*
++	 * For PTE faults we insert a radix tree entry for reads, and leave
++	 * it clean.  Then on the first write we dirty the radix tree entry
++	 * via the dax_pfn_mkwrite() path.  This sequence allows the
++	 * dax_pfn_mkwrite() call to be simpler and avoid a call into
++	 * get_block() to translate the pgoff to a sector in order to be able
++	 * to create a new radix tree entry.
++	 *
++	 * The PMD path doesn't have an equivalent to dax_pfn_mkwrite(),
++	 * though, so for a read followed by a write we traverse all the way
++	 * through dax_pmd_fault() twice.  This means we can just skip
++	 * inserting a radix tree entry completely on the initial read and
++	 * just wait until the write to insert a dirty entry.
++	 */
++	if (write) {
++		int error = dax_radix_entry(vma->vm_file->f_mapping, vmf->pgoff,
++						dax.sector, true, true);
++		if (error) {
++			dax_pmd_dbg(bh, address,
++					"PMD radix insertion failed");
++			goto fallback;
++		}
++	}
++
++	dev_dbg(part_to_dev(bdev->bd_part),
++			"%s: %s addr: %lx pfn: %lx sect: %llx\n",
++			__func__, current->comm, address,
++			pfn_t_to_pfn(dax.pfn),
++			(unsigned long long) dax.sector);
++	return major | vmf_insert_pfn_pmd(vma, address, vmf->pmd,
++						dax.pfn, write);
++ unmap:
++	dax_unmap_atomic(bdev, &dax);
++ fallback:
++	count_vm_event(THP_FAULT_FALLBACK);
++	return VM_FAULT_FALLBACK;
++}
++
+ static int dax_pmd_fault(struct vm_area_struct *vma, struct vm_fault *vmf,
+ 		get_block_t get_block, dax_iodone_t complete_unwritten)
  {
--	unsigned long size;
--	struct inode *inode = mapping->host;
- 	if (!page)
- 		page = find_or_create_page(mapping, vmf->pgoff,
- 						vmf->gfp_mask | __GFP_ZERO);
- 	if (!page)
- 		return VM_FAULT_OOM;
--	/* Recheck i_size under page lock to avoid truncate race */
--	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	if (vmf->pgoff >= size) {
--		unlock_page(page);
--		page_cache_release(page);
--		return VM_FAULT_SIGBUS;
--	}
--
- 	vmf->page = page;
- 	return VM_FAULT_LOCKED;
- }
-@@ -549,24 +539,8 @@ static int dax_insert_mapping(struct ino
- 		.sector = to_sector(bh, inode),
- 		.size = bh->b_size,
- 	};
--	pgoff_t size;
- 	int error;
+@@ -728,10 +805,9 @@ static int dax_pmd_fault(struct vm_area_
+ 	unsigned long address = (unsigned long)vmf->virtual_address;
+ 	unsigned long pmd_addr = address & PMD_MASK;
+ 	bool write = vmf->flags & FAULT_FLAG_WRITE;
+-	struct block_device *bdev;
+ 	pgoff_t size;
+ 	sector_t block;
+-	int error, result = 0;
++	int result;
+ 	bool alloc = false;
  
--	i_mmap_lock_read(mapping);
--
--	/*
--	 * Check truncate didn't happen while we were allocating a block.
--	 * If it did, this block may or may not be still allocated to the
--	 * file.  We can't tell the filesystem to free it because we can't
--	 * take i_mutex here.  In the worst case, the file still has blocks
--	 * allocated past the end of the file.
--	 */
--	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	if (unlikely(vmf->pgoff >= size)) {
--		error = -EIO;
--		goto out;
--	}
--
- 	if (dax_map_atomic(bdev, &dax) < 0) {
- 		error = PTR_ERR(dax.addr);
- 		goto out;
-@@ -586,8 +560,6 @@ static int dax_insert_mapping(struct ino
- 	error = vm_insert_mixed(vma, vaddr, dax.pfn);
- 
-  out:
--	i_mmap_unlock_read(mapping);
--
- 	return error;
- }
- 
-@@ -627,15 +599,6 @@ static int dax_pte_fault(struct vm_area_
- 			page_cache_release(page);
- 			goto repeat;
- 		}
--		size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--		if (unlikely(vmf->pgoff >= size)) {
--			/*
--			 * We have a struct page covering a hole in the file
--			 * from a read fault and we've raced with a truncate
--			 */
--			error = -EIO;
--			goto unlock_page;
--		}
+ 	/* dax pmd mappings require pfn_t_devmap() */
+@@ -779,8 +855,6 @@ static int dax_pmd_fault(struct vm_area_
+ 		alloc = true;
  	}
  
- 	error = get_block(inode, block, &bh, 0);
-@@ -668,17 +631,17 @@ static int dax_pte_fault(struct vm_area_
- 		if (error)
- 			goto unlock_page;
- 		vmf->page = page;
--		if (!page) {
-+
-+		/*
-+		 * A truncate must remove COWs of pages that are removed
-+		 * from the file.  If we have a struct page, the normal
-+		 * page lock mechanism prevents truncate from missing the
-+		 * COWed page.  If not, the i_mmap_lock can provide the
-+		 * same guarantee.  It is dropped by the caller after the
-+		 * page is safely in the page tables.
-+		 */
-+		if (!page)
- 			i_mmap_lock_read(mapping);
--			/* Check we didn't race with truncate */
--			size = (i_size_read(inode) + PAGE_SIZE - 1) >>
--								PAGE_SHIFT;
--			if (vmf->pgoff >= size) {
--				i_mmap_unlock_read(mapping);
--				error = -EIO;
--				goto out;
+-	bdev = bh.b_bdev;
+-
+ 	/*
+ 	 * If the filesystem isn't willing to tell us the length of a hole,
+ 	 * just fall back to PTEs.  Calling get_block 512 times in a loop
+@@ -819,7 +893,7 @@ static int dax_pmd_fault(struct vm_area_
+ 			goto fallback;
+ 		}
+ 
+-		dev_dbg(part_to_dev(bdev->bd_part),
++		dev_dbg(part_to_dev(bh.b_bdev->bd_part),
+ 				"%s: %s addr: %lx pfn: <zero> sect: %llx\n",
+ 				__func__, current->comm, address,
+ 				(unsigned long long) to_sector(&bh, inode));
+@@ -830,74 +904,7 @@ static int dax_pmd_fault(struct vm_area_
+ 		result = VM_FAULT_NOPAGE;
+ 		spin_unlock(ptl);
+ 	} else {
+-		struct blk_dax_ctl dax = {
+-			.sector = to_sector(&bh, inode),
+-			.size = PMD_SIZE,
+-		};
+-		long length = dax_map_atomic(bdev, &dax);
+-
+-		if (length < 0) {
+-			result = VM_FAULT_SIGBUS;
+-			goto out;
+-		}
+-		if (length < PMD_SIZE) {
+-			dax_pmd_dbg(&bh, address, "dax-length too small");
+-			dax_unmap_atomic(bdev, &dax);
+-			goto fallback;
+-		}
+-		if (pfn_t_to_pfn(dax.pfn) & PG_PMD_COLOUR) {
+-			dax_pmd_dbg(&bh, address, "pfn unaligned");
+-			dax_unmap_atomic(bdev, &dax);
+-			goto fallback;
+-		}
+-
+-		if (!pfn_t_devmap(dax.pfn)) {
+-			dax_unmap_atomic(bdev, &dax);
+-			dax_pmd_dbg(&bh, address, "pfn not in memmap");
+-			goto fallback;
+-		}
+-
+-		if (buffer_unwritten(&bh) || buffer_new(&bh)) {
+-			clear_pmem(dax.addr, PMD_SIZE);
+-			wmb_pmem();
+-			count_vm_event(PGMAJFAULT);
+-			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+-			result |= VM_FAULT_MAJOR;
+-		}
+-		dax_unmap_atomic(bdev, &dax);
+-
+-		/*
+-		 * For PTE faults we insert a radix tree entry for reads, and
+-		 * leave it clean.  Then on the first write we dirty the radix
+-		 * tree entry via the dax_pfn_mkwrite() path.  This sequence
+-		 * allows the dax_pfn_mkwrite() call to be simpler and avoid a
+-		 * call into get_block() to translate the pgoff to a sector in
+-		 * order to be able to create a new radix tree entry.
+-		 *
+-		 * The PMD path doesn't have an equivalent to
+-		 * dax_pfn_mkwrite(), though, so for a read followed by a
+-		 * write we traverse all the way through dax_pmd_fault()
+-		 * twice.  This means we can just skip inserting a radix tree
+-		 * entry completely on the initial read and just wait until
+-		 * the write to insert a dirty entry.
+-		 */
+-		if (write) {
+-			error = dax_radix_entry(mapping, vmf->pgoff,
+-						dax.sector, true, true);
+-			if (error) {
+-				dax_pmd_dbg(&bh, address,
+-						"PMD radix insertion failed");
+-				goto fallback;
 -			}
 -		}
- 		return VM_FAULT_LOCKED;
- 	}
- 
-@@ -840,25 +803,6 @@ static int dax_pmd_fault(struct vm_area_
- 		truncate_pagecache_range(inode, lstart, lend);
- 	}
- 
--	i_mmap_lock_read(mapping);
--
--	/*
--	 * If a truncate happened while we were allocating blocks, we may
--	 * leave blocks allocated to the file that are beyond EOF.  We can't
--	 * take i_mutex here, so just leave them hanging; they'll be freed
--	 * when the file is deleted.
--	 */
--	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	if (pgoff >= size) {
--		result = VM_FAULT_SIGBUS;
--		goto out;
--	}
--	if ((pgoff | PG_PMD_COLOUR) >= size) {
--		dax_pmd_dbg(&bh, address,
--				"offset + huge page size > file size");
--		goto fallback;
--	}
--
- 	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
- 		spinlock_t *ptl;
- 		pmd_t entry, *pmd = vmf->pmd;
-@@ -958,8 +902,6 @@ static int dax_pmd_fault(struct vm_area_
- 	}
- 
-  out:
--	i_mmap_unlock_read(mapping);
--
- 	if (buffer_unwritten(&bh))
- 		complete_unwritten(&bh, !(result & VM_FAULT_ERROR));
- 
-@@ -1073,24 +1015,6 @@ static int dax_pud_fault(struct vm_area_
- 		truncate_pagecache_range(inode, lstart, lend);
- 	}
- 
--	i_mmap_lock_read(mapping);
--
--	/*
--	 * If a truncate happened while we were allocating blocks, we may
--	 * leave blocks allocated to the file that are beyond EOF.  We can't
--	 * take i_mutex here, so just leave them hanging; they'll be freed
--	 * when the file is deleted.
--	 */
--	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
--	if (pgoff >= size) {
--		result = VM_FAULT_SIGBUS;
--		goto out;
--	}
--	if ((pgoff | PG_PUD_COLOUR) >= size) {
--		dax_pud_dbg(&bh, address, "page extends outside VMA");
--		goto fallback;
--	}
--
- 	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
- 		dax_pud_dbg(&bh, address, "no zero page");
- 		goto fallback;
-@@ -1141,8 +1065,6 @@ static int dax_pud_fault(struct vm_area_
- 	}
- 
-  out:
--	i_mmap_unlock_read(mapping);
