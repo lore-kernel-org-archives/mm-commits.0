@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + errh-allow-is_err_value-to-handle-properly-more-types.patch
- added to -mm tree
-Date: Mon, 01 Feb 2016 22:21:42 -0800
-Message-ID: <56b04af6.3AHBvRSwOUmW9tmw%akpm@linux-foundation.org>
+Subject: + mm-vmstat-make-quiet_vmstat-lighter.patch added to -mm tree
+Date: Mon, 01 Feb 2016 22:26:43 -0800
+Message-ID: <56b04c23.cdYvKAaWDKTur8uL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57554 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57935 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753340AbcBBGVn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 01:21:43 -0500
+	with ESMTP id S1751164AbcBBG0o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 01:26:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.hajda@samsung.com, b.zolnierkie@samsung.com, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, cl@linux.com, umgwanakikbuti@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: err.h: allow IS_ERR_VALUE to handle properly more types
+     Subject: mm, vmstat: make quiet_vmstat lighter
 has been added to the -mm tree.  Its filename is
-     errh-allow-is_err_value-to-handle-properly-more-types.patch
+     mm-vmstat-make-quiet_vmstat-lighter.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/errh-allow-is_err_value-to-handle-properly-more-types.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-make-quiet_vmstat-lighter.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/errh-allow-is_err_value-to-handle-properly-more-types.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-make-quiet_vmstat-lighter.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,95 +38,176 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrzej Hajda <a.hajda@samsung.com>
-Subject: err.h: allow IS_ERR_VALUE to handle properly more types
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, vmstat: make quiet_vmstat lighter
 
-Current implementation of IS_ERR_VALUE works correctly only with
-following types:
+Mike has reported a considerable overhead of refresh_cpu_vm_stats from the
+idle entry during pipe test:
 
-- unsigned long,
+    12.89%  [kernel]       [k] refresh_cpu_vm_stats.isra.12
+     4.75%  [kernel]       [k] __schedule
+     4.70%  [kernel]       [k] mutex_unlock
+     3.14%  [kernel]       [k] __switch_to
 
-- short, int, long.
+This is caused by 0eb77e988032 ("vmstat: make vmstat_updater deferrable
+again and shut down on idle") which has placed quiet_vmstat into
+cpu_idle_loop.  The main reason here seems to be that the idle entry has
+to get over all zones and perform atomic operations for each vmstat entry
+even though there might be no per cpu diffs.  This is a pointless overhead
+for _each_ idle entry.
 
-Other types are handled incorrectly either on 32-bit either on 64-bit
-either on both architectures.
+Make sure that quiet_vmstat is as light as possible.
 
-The patch fixes it by comparing argument with MAX_ERRNO casted to
-argument's type for unsigned types and comparing with zero for signed
-types.  As a result all integer types bigger than char are handled
-properly.
+First of all it doesn't make any sense to do any local sync if the current
+cpu is already set in oncpu_stat_off because vmstat_update puts itself
+there only if there is nothing to do.
 
-I have analyzed usage of IS_ERR_VALUE using coccinelle and in about 35
-cases it is used incorrectly, ie it can hide errors depending of 32/64 bit
-architecture.  Instead of fixing usage I propose to enhance the macro to
-cover more types.
+Then we can check need_update which should be a cheap way to check for
+potential per-cpu diffs and only then do refresh_cpu_vm_stats.
 
-And just for the record: the macro is used 101 times with signed
-variables, I am not sure if it should be preferred over simple comparison
-"ret < 0", but the new version can do it as well.
+The original patch also did cancel_delayed_work which we are not doing
+here.  There are two reasons for that.  Firstly cancel_delayed_work from
+idle context will blow up on RT kernels (reported by Mike):
 
-And below list of detected potential errors:
-drivers/char/mem.c:698:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(( unsigned long long ) offset)
-drivers/media/platform/soc_camera/atmel-isi.c:1089:21-22: WARNING: incorrect argument type in IS_ERR_VALUE(irq)
-drivers/net/ethernet/freescale/fs_enet/mac-scc.c:149:36-37: WARNING: incorrect argument type in IS_ERR_VALUE(fep -> ring_mem_addr)
-drivers/net/ethernet/freescale/ucc_geth.c:2237:48-49: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_bd_ring_offset [ j ])
-drivers/net/ethernet/freescale/ucc_geth.c:2314:48-49: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_bd_ring_offset [ j ])
-drivers/net/ethernet/freescale/ucc_geth.c:2524:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_glbl_pram_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2544:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> thread_dat_tx_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2571:46-47: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> send_q_mem_reg_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2612:42-43: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> scheduler_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2659:54-55: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_fw_statistics_pram_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2696:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_glbl_pram_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2715:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> thread_dat_rx_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2736:54-55: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_fw_statistics_pram_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2756:53-54: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_irq_coalescing_tbl_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2822:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_bd_qs_tbl_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2908:47-48: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> exf_glbl_param_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:292:36-37: WARNING: incorrect argument type in IS_ERR_VALUE(init_enet_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:3042:39-40: WARNING: incorrect argument type in IS_ERR_VALUE(init_enet_pram_offset)
-drivers/soc/fsl/qe/ucc_fast.c:271:60-61: WARNING: incorrect argument type in IS_ERR_VALUE(uccf -> ucc_fast_tx_virtual_fifo_base_offset)
-drivers/soc/fsl/qe/ucc_fast.c:284:60-61: WARNING: incorrect argument type in IS_ERR_VALUE(uccf -> ucc_fast_rx_virtual_fifo_base_offset)
-drivers/soc/fsl/qe/ucc_slow.c:186:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> us_pram_offset)
-drivers/soc/fsl/qe/ucc_slow.c:213:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> rx_base_offset)
-drivers/soc/fsl/qe/ucc_slow.c:224:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> tx_base_offset)
-drivers/tty/serial/clps711x.c:471:29-30: WARNING: incorrect argument type in IS_ERR_VALUE(s -> port . irq)
-drivers/tty/serial/digicolor-usart.c:485:30-31: WARNING: incorrect argument type in IS_ERR_VALUE(dp -> port . irq)
-drivers/usb/gadget/udc/fsl_qe_udc.c:2369:26-27: WARNING: incorrect argument type in IS_ERR_VALUE(tmp_addr)
-drivers/video/fbdev/exynos/exynos_mipi_dsi.c:406:27-28: WARNING: incorrect argument type in IS_ERR_VALUE(dsim -> irq)
-net/ipv4/netfilter/arp_tables.c:1427:39-40: WARNING: incorrect argument type in IS_ERR_VALUE(iter1 -> counters . pcnt)
-net/ipv4/netfilter/arp_tables.c:530:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
-net/ipv4/netfilter/ip_tables.c:1614:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
-net/ipv4/netfilter/ip_tables.c:674:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
-net/ipv6/netfilter/ip6_tables.c:1624:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
-net/ipv6/netfilter/ip6_tables.c:687:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
-drivers/net/ethernet/freescale/fs_enet/mac-fcc.c:110:35-36: WARNING: unknown argument type in IS_ERR_VALUE(fpi -> dpram_offset)
+[    2.279582] CPU: 1 PID: 0 Comm: swapper/1 Not tainted 4.5.0-rt3 #7
+[    2.280444] Hardware name: MEDION MS-7848/MS-7848, BIOS M7848W08.20C 09/23/2013
+[    2.281316]  ffff88040b00d640 ffff88040b01fe10 ffffffff812d20e2 0000000000000000
+[    2.282202]  ffff88040b01fe30 ffffffff81081095 ffff88041ec4cee0 ffff88041ec501e0
+[    2.283073]  ffff88040b01fe48 ffffffff815ff910 ffff88041ec4cee0 ffff88040b01fe88
+[    2.283941] Call Trace:
+[    2.284797]  [<ffffffff812d20e2>] dump_stack+0x49/0x67
+[    2.285658]  [<ffffffff81081095>] ___might_sleep+0xf5/0x180
+[    2.286521]  [<ffffffff815ff910>] rt_spin_lock+0x20/0x50
+[    2.287382]  [<ffffffff81075919>] try_to_grab_pending+0x69/0x240
+[    2.288239]  [<ffffffff81075b16>] cancel_delayed_work+0x26/0xe0
+[    2.289094]  [<ffffffff8115ec05>] quiet_vmstat+0x75/0xa0
+[    2.289949]  [<ffffffff8109ab38>] cpu_idle_loop+0x38/0x3e0
+[    2.290800]  [<ffffffff8109aef3>] cpu_startup_entry+0x13/0x20
+[    2.291647]  [<ffffffff81036164>] start_secondary+0x114/0x140
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+And secondly, even on !RT kernels it might add some non trivial overhead
+which is not necessary.  Even if the vmstat worker wakes up and preempts
+idle then it will be most likely a single shot noop because the stats were
+already synced and so it would end up on the oncpu_stat_off anyway.  We
+just need to teach both vmstat_shepherd and vmstat_update to stop
+scheduling the worker if there is nothing to do.
+
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Mike Galbraith <umgwanakikbuti@gmail.com>
+Acked-by: Christoph Lameter <cl@linux.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/err.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/vmstat.c |   64 ++++++++++++++++++++++++++++++++++----------------
+ 1 file changed, 44 insertions(+), 20 deletions(-)
 
-diff -puN include/linux/err.h~errh-allow-is_err_value-to-handle-properly-more-types include/linux/err.h
---- a/include/linux/err.h~errh-allow-is_err_value-to-handle-properly-more-types
-+++ a/include/linux/err.h
-@@ -18,7 +18,9 @@
+diff -puN mm/vmstat.c~mm-vmstat-make-quiet_vmstat-lighter mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstat-make-quiet_vmstat-lighter
++++ a/mm/vmstat.c
+@@ -1396,10 +1396,15 @@ static void vmstat_update(struct work_st
+ 		 * Counters were updated so we expect more updates
+ 		 * to occur in the future. Keep on running the
+ 		 * update worker thread.
++		 * If we were marked on cpu_stat_off clear the flag
++		 * so that vmstat_shepherd doesn't schedule us again.
+ 		 */
+-		queue_delayed_work_on(smp_processor_id(), vmstat_wq,
+-			this_cpu_ptr(&vmstat_work),
+-			round_jiffies_relative(sysctl_stat_interval));
++		if (!cpumask_test_and_clear_cpu(smp_processor_id(),
++						cpu_stat_off)) {
++			queue_delayed_work_on(smp_processor_id(), vmstat_wq,
++				this_cpu_ptr(&vmstat_work),
++				round_jiffies_relative(sysctl_stat_interval));
++		}
+ 	} else {
+ 		/*
+ 		 * We did not update any counters so the app may be in
+@@ -1417,18 +1422,6 @@ static void vmstat_update(struct work_st
+  * until the diffs stay at zero. The function is used by NOHZ and can only be
+  * invoked when tick processing is not active.
+  */
+-void quiet_vmstat(void)
+-{
+-	if (system_state != SYSTEM_RUNNING)
+-		return;
+-
+-	do {
+-		if (!cpumask_test_and_set_cpu(smp_processor_id(), cpu_stat_off))
+-			cancel_delayed_work(this_cpu_ptr(&vmstat_work));
+-
+-	} while (refresh_cpu_vm_stats(false));
+-}
+-
+ /*
+  * Check if the diffs for a certain cpu indicate that
+  * an update is needed.
+@@ -1452,6 +1445,30 @@ static bool need_update(int cpu)
+ 	return false;
+ }
  
- #ifndef __ASSEMBLY__
++void quiet_vmstat(void)
++{
++	if (system_state != SYSTEM_RUNNING)
++		return;
++
++	/*
++	 * If we are already in hands of the shepherd then there
++	 * is nothing for us to do here.
++	 */
++	if (cpumask_test_and_set_cpu(smp_processor_id(), cpu_stat_off))
++		return;
++
++	if (!need_update(smp_processor_id()))
++		return;
++
++	/*
++	 * Just refresh counters and do not care about the pending delayed
++	 * vmstat_update. It doesn't fire that often to matter and canceling
++	 * it would be too expensive from this path.
++	 * vmstat_shepherd will take care about that for us.
++	 */
++	refresh_cpu_vm_stats(false);
++}
++
  
--#define IS_ERR_VALUE(x) unlikely((x) >= (unsigned long)-MAX_ERRNO)
-+#define IS_ERR_VALUE(x) ((typeof(x))(-1) <= 0 \
-+				? unlikely((x) < 0) \
-+				: unlikely((x) >= (typeof(x))-MAX_ERRNO))
+ /*
+  * Shepherd worker thread that checks the
+@@ -1470,11 +1487,18 @@ static void vmstat_shepherd(struct work_
+ 	get_online_cpus();
+ 	/* Check processors whose vmstat worker threads have been disabled */
+ 	for_each_cpu(cpu, cpu_stat_off)
+-		if (need_update(cpu) &&
+-			cpumask_test_and_clear_cpu(cpu, cpu_stat_off))
+-
+-			queue_delayed_work_on(cpu, vmstat_wq,
+-				&per_cpu(vmstat_work, cpu), 0);
++		if (need_update(cpu)) {
++			if (cpumask_test_and_clear_cpu(cpu, cpu_stat_off))
++				queue_delayed_work_on(cpu, vmstat_wq,
++					&per_cpu(vmstat_work, cpu), 0);
++		} else {
++			/*
++			 * Cancel the work if quiet_vmstat has put this
++			 * cpu on cpu_stat_off because the work item might
++			 * be still scheduled
++			 */
++			cancel_delayed_work(this_cpu_ptr(&vmstat_work));
++		}
  
- static inline void * __must_check ERR_PTR(long error)
- {
+ 	put_online_cpus();
+ 
 _
 
-Patches currently in -mm which might be from a.hajda@samsung.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-errh-allow-is_err_value-to-handle-properly-more-types.patch
+mm-vmstat-make-quiet_vmstat-lighter.patch
+vmstat-make-vmstat_update-deferrable.patch
+mm-oom-rework-oom-detection.patch
+mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
+mm-oom-introduce-oom-reaper.patch
+mm-oom-introduce-oom-reaper-v4.patch
+oom-reaper-handle-anonymous-mlocked-pages.patch
+oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
 
