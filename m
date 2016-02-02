@@ -1,57 +1,76 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
- removed from -mm tree
-Date: Tue, 02 Feb 2016 15:39:49 -0800
-Message-ID: <56b13e45.B/XurjjO2mgcX0U5%akpm@linux-foundation.org>
+Subject: + mm-simplify-lock_page_memcg-fix.patch added to -mm tree
+Date: Tue, 02 Feb 2016 15:42:56 -0800
+Message-ID: <56b13f00.iy3KcDDatXfA+L8T%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38500 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38660 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754817AbcBBXju (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 18:39:50 -0500
+	with ESMTP id S1754862AbcBBXm5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 18:42:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aarcange@redhat.com, kirill@shutemov.name, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/huge_mm.h: pmd_trans_huge_lock() returns a spinlock_t *
-has been removed from the -mm tree.  Its filename was
-     include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
+     Subject: mm-simplify-lock_page_memcg-fix
+has been added to the -mm tree.  Its filename is
+     mm-simplify-lock_page_memcg-fix.patch
 
-This patch was dropped because an alternative patch was merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-simplify-lock_page_memcg-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-simplify-lock_page_memcg-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/huge_mm.h: pmd_trans_huge_lock() returns a spinlock_t *
+Subject: mm-simplify-lock_page_memcg-fix
 
-Not "false".
+In file included from include/linux/swap.h:8,
+                 from include/linux/suspend.h:4,
+                 from arch/x86/kernel/asm-offsets.c:12:
+include/linux/memcontrol.h: In function 'lock_page_memcg':
+include/linux/memcontrol.h:666: warning: 'return' with a value, in function returning void
+In file included from include/linux/swap.h:8,
+                 from mm/mlock.c:11:
+include/linux/memcontrol.h: In function 'lock_page_memcg':
+include/linux/memcontrol.h:666: warning: 'return' with a value, in function returning void
 
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/memcontrol.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/huge_mm.h~include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t
-+++ a/include/linux/huge_mm.h
-@@ -130,7 +130,7 @@ static inline spinlock_t *pmd_trans_huge
- 	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd))
- 		return __pmd_trans_huge_lock(pmd, vma);
- 	else
--		return false;
-+		return NULL;
- }
- static inline int hpage_nr_pages(struct page *page)
+diff -puN include/linux/memcontrol.h~mm-simplify-lock_page_memcg-fix include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-simplify-lock_page_memcg-fix
++++ a/include/linux/memcontrol.h
+@@ -663,7 +663,6 @@ mem_cgroup_print_oom_info(struct mem_cgr
+ 
+ static inline void lock_page_memcg(struct page *page)
  {
+-	return NULL;
+ }
+ 
+ static inline void unlock_page_memcg(struct page *page)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -75,6 +94,7 @@ mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fi
 mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
 mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
 mm-madvise-update-comment-on-sys_madvise-fix.patch
+mm-simplify-lock_page_memcg-fix.patch
 x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes.patch
 ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
 zram-export-the-number-of-available-comp-streams-fix.patch
