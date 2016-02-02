@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + power-charger_manager-convert-to-use-match_string-helper.patch
- added to -mm tree
-Date: Mon, 01 Feb 2016 22:10:33 -0800
-Message-ID: <56b04859.lo8iUtVzmFGZi5aq%akpm@linux-foundation.org>
+Subject: + usb-common-convert-to-use-match_string-helper.patch added to
+ -mm tree
+Date: Mon, 01 Feb 2016 22:10:37 -0800
+Message-ID: <56b0485d.l3h8dNCEOQd9LTl6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56740 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56756 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002AbcBBGKe (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 01:10:34 -0500
+	with ESMTP id S1752645AbcBBGKi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 01:10:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, dbaryshkov@gmail.com, dwmw2@infradead.org, sre@kernel.org, mm-commits@vger.kernel.org
+To: heikki.krogerus@linux.intel.com, andriy.shevchenko@linux.intel.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: power: charger_manager: convert to use match_string() helper
+     Subject: usb: common: convert to use match_string() helper
 has been added to the -mm tree.  Its filename is
-     power-charger_manager-convert-to-use-match_string-helper.patch
+     usb-common-convert-to-use-match_string-helper.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/power-charger_manager-convert-to-use-match_string-helper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/usb-common-convert-to-use-match_string-helper.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/power-charger_manager-convert-to-use-match_string-helper.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/usb-common-convert-to-use-match_string-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,80 +39,50 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: power: charger_manager: convert to use match_string() helper
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: usb: common: convert to use match_string() helper
 
-The new helper returns index of the mathing string in an array. We would use it
-here.
+The new helper returns index of the mathing string in an array.  We would
+use it here.
 
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Sebastian Reichel <sre@kernel.org>
-Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/charger-manager.c |   27 ++++-----------------------
- 1 file changed, 4 insertions(+), 23 deletions(-)
+ drivers/usb/common/common.c |   22 ++++++++--------------
+ 1 file changed, 8 insertions(+), 14 deletions(-)
 
-diff -puN drivers/power/charger-manager.c~power-charger_manager-convert-to-use-match_string-helper drivers/power/charger-manager.c
---- a/drivers/power/charger-manager.c~power-charger_manager-convert-to-use-match_string-helper
-+++ a/drivers/power/charger-manager.c
-@@ -2020,27 +2020,6 @@ static void __exit charger_manager_clean
- module_exit(charger_manager_cleanup);
- 
- /**
-- * find_power_supply - find the associated power_supply of charger
-- * @cm: the Charger Manager representing the battery
-- * @psy: pointer to instance of charger's power_supply
-- */
--static bool find_power_supply(struct charger_manager *cm,
--			struct power_supply *psy)
--{
+diff -puN drivers/usb/common/common.c~usb-common-convert-to-use-match_string-helper drivers/usb/common/common.c
+--- a/drivers/usb/common/common.c~usb-common-convert-to-use-match_string-helper
++++ a/drivers/usb/common/common.c
+@@ -64,18 +64,15 @@ EXPORT_SYMBOL_GPL(usb_speed_string);
+ enum usb_device_speed usb_get_maximum_speed(struct device *dev)
+ {
+ 	const char *maximum_speed;
+-	int err;
 -	int i;
--	bool found = false;
--
--	for (i = 0; cm->desc->psy_charger_stat[i]; i++) {
--		if (!strcmp(psy->desc->name, cm->desc->psy_charger_stat[i])) {
--			found = true;
--			break;
--		}
--	}
--
--	return found;
--}
--
--/**
-  * cm_notify_event - charger driver notify Charger Manager of charger event
-  * @psy: pointer to instance of charger's power_supply
-  * @type: type of charger event
-@@ -2057,9 +2036,11 @@ void cm_notify_event(struct power_supply
++	int ret;
  
- 	mutex_lock(&cm_list_mtx);
- 	list_for_each_entry(cm, &cm_list, entry) {
--		found_power_supply = find_power_supply(cm, psy);
--		if (found_power_supply)
-+		if (match_string(cm->desc->psy_charger_stat, -1,
-+				 psy->desc->name) >= 0) {
-+			found_power_supply = true;
- 			break;
-+		}
- 	}
- 	mutex_unlock(&cm_list_mtx);
+-	err = device_property_read_string(dev, "maximum-speed", &maximum_speed);
+-	if (err < 0)
++	ret = device_property_read_string(dev, "maximum-speed", &maximum_speed);
++	if (ret < 0)
+ 		return USB_SPEED_UNKNOWN;
  
-_
-
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
-
-lib-string-introduce-match_string-helper.patch
-device-property-convert-to-use-match_string-helper.patch
-pinctrl-convert-to-use-match_string-helper.patch
-drm-edid-convert-to-use-match_string-helper.patch
-power-charger_manager-convert-to-use-match_string-helper.patch
-power-ab8500-convert-to-use-match_string-helper.patch
-ata-hpt366-convert-to-use-match_string-helper.patch
-ide-hpt366-convert-to-use-match_string-helper.patch
-lib-string_helpers-export-string_units_210-for-others.patch
-lib-string_helpers-fix-indentation-in-few-places.patch
-x86-efi-use-proper-units-in-efi_find_mirror.patch
-
+-	for (i = 0; i < ARRAY_SIZE(speed_names); i++)
+-		if (strcmp(maximum_speed, speed_names[i]) == 0)
+-			return i;
++	ret = match_string(speed_names, ARRAY_SIZE(speed_names), maximum_speed);
+ 
+-	return USB_SPEED_UNKNOWN;
++	return (ret < 0) ? USB_SPEED_UNKNOWN : ret;
+ }
+ EXPORT_SYMBOL_GPL(usb_get_maximum_speed);
+ 
+@@ -109,13 +106,10 @@ static const char *const usb_dr_modes[] 
+ 
+ static enum usb_dr_mode usb_get_dr_mode_from_string(const char *str)
+ {
+-	int i;
