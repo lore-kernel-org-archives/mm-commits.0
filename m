@@ -1,93 +1,102 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmstat-fix-wrong-wq-sleep-when-memory-reclaim-doesnt-make-any-progress.patch added to -mm tree
-Date: Mon, 01 Feb 2016 22:37:35 -0800
-Message-ID: <56b04eaf.WGrTCIPbv3bq1X/4%akpm__12080.700757406$1454395075$gmane$org@linux-foundation.org>
+Subject: [folded-merged]
+ arm-arch-arm-include-asm-pageh-needs-personalityh-fix.patch removed from
+ -mm tree
+Date: Tue, 02 Feb 2016 11:38:31 -0800
+Message-ID: <56b105b7.TH8sAUOaechX/R0Z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58667 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45819 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752052AbcBBGhh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 01:37:37 -0500
+	with ESMTP id S1753179AbcBBTid (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 14:38:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@i-love.sakura.ne.jp, arekm@maven.pl, clameter@sgi.com, js1304@gmail.com, jstancek@redhat.com, mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, stable@vger.kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, koct9i@gmail.com, linux@arm.linux.org.uk, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmstat: fix wrong WQ sleep when memory reclaim doesn't make any progress
-has been added to the -mm tree.  Its filename is
-     mm-vmstat-fix-wrong-wq-sleep-when-memory-reclaim-doesnt-make-any-progress.patch
+     Subject: arm-arch-arm-include-asm-pageh-needs-personalityh-fix
+has been removed from the -mm tree.  Its filename was
+     arm-arch-arm-include-asm-pageh-needs-personalityh-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-fix-wrong-wq-sleep-when-memory-reclaim-doesnt-make-any-progress.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-fix-wrong-wq-sleep-when-memory-reclaim-doesnt-make-any-progress.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into arm-arch-arm-include-asm-pageh-needs-personalityh.patch
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Subject: mm, vmstat: fix wrong WQ sleep when memory reclaim doesn't make any progress
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: arm-arch-arm-include-asm-pageh-needs-personalityh-fix
 
-Jan Stancek has reported that system occasionally hanging after "oom01"
-testcase from LTP triggers OOM.  Guessing from a result that there is a
-kworker thread doing memory allocation and the values between "Node 0
-Normal free:" and "Node 0 Normal:" differs when hanging, vmstat is not
-up-to-date for some reason.
+assembler not impressed being fed personality.h
 
-According to commit 373ccbe59270 ("mm, vmstat: allow WQ concurrency to
-discover memory reclaim doesn't make any progress"), it meant to force the
-kworker thread to take a short sleep, but it by error used
-schedule_timeout(1).  We missed that schedule_timeout() in state
-TASK_RUNNING doesn't do anything.
-
-Fix it by using schedule_timeout_uninterruptible(1) which forces the
-kworker thread to take a short sleep in order to make sure that vmstat is
-up-to-date.
-
-Fixes: 373ccbe59270 ("mm, vmstat: allow WQ concurrency to discover memory reclaim doesn't make any progress")
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Reported-by: Jan Stancek <jstancek@redhat.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Cristopher Lameter <clameter@sgi.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Arkadiusz Miskiewicz <arekm@maven.pl>
-Cc: <stable@vger.kernel.org>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Will Deacon <will.deacon@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/arm/include/asm/page.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN mm/backing-dev.c~mm-vmstat-fix-wrong-wq-sleep-when-memory-reclaim-doesnt-make-any-progress mm/backing-dev.c
---- a/mm/backing-dev.c~mm-vmstat-fix-wrong-wq-sleep-when-memory-reclaim-doesnt-make-any-progress
-+++ a/mm/backing-dev.c
-@@ -989,7 +989,7 @@ long wait_iff_congested(struct zone *zon
- 		 * here rather than calling cond_resched().
- 		 */
- 		if (current->flags & PF_WQ_WORKER)
--			schedule_timeout(1);
-+			schedule_timeout_uninterruptible(1);
- 		else
- 			cond_resched();
+diff -puN arch/arm/include/asm/page.h~arm-arch-arm-include-asm-pageh-needs-personalityh-fix arch/arm/include/asm/page.h
+--- a/arch/arm/include/asm/page.h~arm-arch-arm-include-asm-pageh-needs-personalityh-fix
++++ a/arch/arm/include/asm/page.h
+@@ -10,8 +10,6 @@
+ #ifndef _ASMARM_PAGE_H
+ #define _ASMARM_PAGE_H
  
+-#include <linux/personality.h>	/* For READ_IMPLIES_EXEC */
+-
+ /* PAGE_SHIFT determines the page size */
+ #define PAGE_SHIFT		12
+ #define PAGE_SIZE		(_AC(1,UL) << PAGE_SHIFT)
+@@ -19,6 +17,8 @@
+ 
+ #ifndef __ASSEMBLY__
+ 
++#include <linux/personality.h>	/* For READ_IMPLIES_EXEC */
++
+ #ifndef CONFIG_MMU
+ 
+ #include <asm/page-nommu.h>
 _
 
-Patches currently in -mm which might be from penguin-kernel@i-love.sakura.ne.jp are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-vmstat-fix-wrong-wq-sleep-when-memory-reclaim-doesnt-make-any-progress.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm-warn-about-vmdata-over-rlimit_data-fix.patch
+ocfs2-code-clean-up-for-direct-io-fix.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
+mm.patch
+mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
+fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
+mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
+mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
+mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
+mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
+mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
+mm-madvise-update-comment-on-sys_madvise-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+zram-export-the-number-of-available-comp-streams-fix.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+btrfs-use-radix_tree_iter_retry-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
+dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
+linux-next-rejects.patch
+linux-next-git-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
