@@ -1,133 +1,216 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fs-block-force-direct-i-o-for-dax-enabled-block-devices.patch removed from
- -mm tree
-Date: Tue, 02 Feb 2016 12:28:35 -0800
-Message-ID: <56b11173.ujoYGnSshlA42XAS%akpm@linux-foundation.org>
+Subject: +
+ kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand.patch
+ added to -mm tree
+Date: Tue, 02 Feb 2016 13:18:37 -0800
+Message-ID: <56b11d2d.vVw1kB2la7Y+70xF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50329 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:54589 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757201AbcBBU2g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 15:28:36 -0500
+	with ESMTP id S964891AbcBBVSi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 16:18:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, dvyukov@google.com, jack@suse.cz, kirill@shutemov.name, ross.zwisler@linux.intel.com, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, krinkin.m.u@gmail.com, mingo@elte.hu, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fs, block: force direct-I/O for dax-enabled block devices
-has been removed from the -mm tree.  Its filename was
-     fs-block-force-direct-i-o-for-dax-enabled-block-devices.patch
+     Subject: kernel/locking/lockdep.c: make lockdep initialize itself on demand
+has been added to the -mm tree.  Its filename is
+     kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Dan Williams <dan.j.williams@intel.com>
-Subject: fs, block: force direct-I/O for dax-enabled block devices
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/locking/lockdep.c: make lockdep initialize itself on demand
 
-Similar to the file I/O path, re-direct all I/O to the DAX path for I/O=
- to
-a block-device special file.=A0=A0Both regular files and device special=
- files
-can use the common filp->f_mapping->host lookup to determing is DAX is
-enabled.
+Mike said:
 
-Otherwise, we confuse the DAX code that does not expect to find live
-data in the page cache:
+: CONFIG_UBSAN_ALIGNMENT breaks x86-64 kernel with lockdep enabled, i.  e
+: kernel with CONFIG_UBSAN_ALIGNMENT fails to load without even any error
+: message.
+: 
+: The problem is that ubsan callbacks use spinlocks and might be called
+: before lockdep is initialized.  Particularly this line in the
+: reserve_ebda_region function causes problem:
+: 
+: lowmem = *(unsigned short *)__va(BIOS_LOWMEM_KILOBYTES);
+: 
+: If i put lockdep_init() before reserve_ebda_region call in
+: x86_64_start_reservations kernel loads well.
 
-=A0=A0=A0=A0------------[ cut here ]------------
-=A0=A0=A0=A0WARNING: CPU: 0 PID: 7676 at mm/filemap.c:217
-=A0=A0=A0=A0__delete_from_page_cache+0x9f6/0xb60()
-=A0=A0=A0=A0Modules linked in:
-=A0=A0=A0=A0CPU: 0 PID: 7676 Comm: a.out Not tainted 4.4.0+ #276
-=A0=A0=A0=A0Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS=
- Bochs 01/01/2011
-=A0=A0=A0=A0=A000000000ffffffff ffff88006d3f7738 ffffffff82999e2d 00000=
-00000000000
-=A0=A0=A0=A0=A0ffff8800620a0000 ffffffff86473d20 ffff88006d3f7778 fffff=
-fff81352089
-=A0=A0=A0=A0=A0ffffffff81658d36 ffffffff86473d20 00000000000000d9 ffffe=
-a0000009d60
-=A0=A0=A0=A0Call Trace:
-=A0=A0=A0=A0=A0[<=A0=A0=A0=A0=A0inline=A0=A0=A0=A0=A0>] __dump_stack li=
-b/dump_stack.c:15
-=A0=A0=A0=A0=A0[<ffffffff82999e2d>] dump_stack+0x6f/0xa2 lib/dump_stack=
-=2Ec:50
-=A0=A0=A0=A0=A0[<ffffffff81352089>] warn_slowpath_common+0xd9/0x140 ker=
-nel/panic.c:482
-=A0=A0=A0=A0=A0[<ffffffff813522b9>] warn_slowpath_null+0x29/0x30 kernel=
-/panic.c:515
-=A0=A0=A0=A0=A0[<ffffffff81658d36>] __delete_from_page_cache+0x9f6/0xb6=
-0 mm/filemap.c:217
-=A0=A0=A0=A0=A0[<ffffffff81658fb2>] delete_from_page_cache+0x112/0x200 =
-mm/filemap.c:244
-=A0=A0=A0=A0=A0[<ffffffff818af369>] __dax_fault+0x859/0x1800 fs/dax.c:4=
-87
-=A0=A0=A0=A0=A0[<ffffffff8186f4f6>] blkdev_dax_fault+0x26/0x30 fs/block=
-_dev.c:1730
-=A0=A0=A0=A0=A0[<=A0=A0=A0=A0=A0inline=A0=A0=A0=A0=A0>] wp_pfn_shared m=
-m/memory.c:2208
-=A0=A0=A0=A0=A0[<ffffffff816e9145>] do_wp_page+0xc85/0x14f0 mm/memory.c=
-:2307
-=A0=A0=A0=A0=A0[<=A0=A0=A0=A0=A0inline=A0=A0=A0=A0=A0>] handle_pte_faul=
-t mm/memory.c:3323
-=A0=A0=A0=A0=A0[<=A0=A0=A0=A0=A0inline=A0=A0=A0=A0=A0>] __handle_mm_fau=
-lt mm/memory.c:3417
-=A0=A0=A0=A0=A0[<ffffffff816ecec3>] handle_mm_fault+0x2483/0x4640 mm/me=
-mory.c:3446
-=A0=A0=A0=A0=A0[<ffffffff8127eff6>] __do_page_fault+0x376/0x960 arch/x8=
-6/mm/fault.c:1238
-=A0=A0=A0=A0=A0[<ffffffff8127f738>] trace_do_page_fault+0xe8/0x420 arch=
-/x86/mm/fault.c:1331
-=A0=A0=A0=A0=A0[<ffffffff812705c4>] do_async_page_fault+0x14/0xd0 arch/=
-x86/kernel/kvm.c:264
-=A0=A0=A0=A0=A0[<ffffffff86338f78>] async_page_fault+0x28/0x30 arch/x86=
-/entry/entry_64.S:986
-=A0=A0=A0=A0=A0[<ffffffff86336c36>] entry_SYSCALL_64_fastpath+0x16/0x7a
-=A0=A0=A0=A0arch/x86/entry/entry_64.S:185
-=A0=A0=A0=A0---[ end trace dae21e0f85f1f98c ]---
+Fix this ordering issue permanently: change lockdep so that it ensures
+that the hash tables are initialized when they are about to be used.
 
-=46ixes: 5a023cdba50c ("block: enable dax for raw block devices")
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Reported-by: Kirill A. Shutemov <kirill@shutemov.name>
-Suggested-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Suggested-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+The overhead will be pretty small: a test-n-branch in places where lockdep
+is about to do a lot of work anyway.
+
+Possibly lockdep_initialized should be made __read_mostly.
+
+A better fix would be to simply initialize these (32768 entry) arrays of
+empty list_heads at compile time, but I don't think there's a way of
+teaching gcc to do this.
+
+We could write a little script which, at compile time, emits a file
+containing
+
+	[0] = LIST_HEAD_INIT(__chainhash_table[0]),
+	[1] = LIST_HEAD_INIT(__chainhash_table[1]),
+	...
+	[32767] = LIST_HEAD_INIT(__chainhash_table[32767]),
+
+and then #include this file into lockdep.c.  Sounds like a lot of fuss.
+
+Reported-by: Mike Krinkin <krinkin.m.u@gmail.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/fs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/locking/lockdep.c |   35 ++++++++++++++++++++++++++---------
+ 1 file changed, 26 insertions(+), 9 deletions(-)
 
-diff -puN include/linux/fs.h~fs-block-force-direct-i-o-for-dax-enabled-=
-block-devices include/linux/fs.h
---- a/include/linux/fs.h~fs-block-force-direct-i-o-for-dax-enabled-bloc=
-k-devices
-+++ a/include/linux/fs.h
-@@ -2907,7 +2907,7 @@ extern void replace_mount_options(struct
-=20
- static inline bool io_is_direct(struct file *filp)
- {
--	return (filp->f_flags & O_DIRECT) || IS_DAX(file_inode(filp));
-+	return (filp->f_flags & O_DIRECT) || IS_DAX(filp->f_mapping->host);
+diff -puN kernel/locking/lockdep.c~kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand kernel/locking/lockdep.c
+--- a/kernel/locking/lockdep.c~kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand
++++ a/kernel/locking/lockdep.c
+@@ -290,9 +290,20 @@ LIST_HEAD(all_lock_classes);
+ #define CLASSHASH_BITS		(MAX_LOCKDEP_KEYS_BITS - 1)
+ #define CLASSHASH_SIZE		(1UL << CLASSHASH_BITS)
+ #define __classhashfn(key)	hash_long((unsigned long)key, CLASSHASH_BITS)
+-#define classhashentry(key)	(classhash_table + __classhashfn((key)))
+ 
+-static struct list_head classhash_table[CLASSHASH_SIZE];
++static struct list_head __classhash_table[CLASSHASH_SIZE];
++
++static inline struct list_head *get_classhash_table(void)
++{
++	if (unlikely(!lockdep_initialized))
++		lockdep_init();
++	return __classhash_table;
++}
++
++static inline struct list_head *classhashentry(struct lockdep_subclass_key *key)
++{
++	return get_classhash_table() + __classhashfn(key);
++}
+ 
+ /*
+  * We put the lock dependency chains into a hash-table as well, to cache
+@@ -301,9 +312,15 @@ static struct list_head classhash_table[
+ #define CHAINHASH_BITS		(MAX_LOCKDEP_CHAINS_BITS-1)
+ #define CHAINHASH_SIZE		(1UL << CHAINHASH_BITS)
+ #define __chainhashfn(chain)	hash_long(chain, CHAINHASH_BITS)
+-#define chainhashentry(chain)	(chainhash_table + __chainhashfn((chain)))
+ 
+-static struct list_head chainhash_table[CHAINHASH_SIZE];
++static struct list_head __chainhash_table[CHAINHASH_SIZE];
++
++static struct list_head *chainhashentry(unsigned long chain)
++{
++	if (unlikely(!lockdep_initialized))
++		lockdep_init();
++	return __chainhash_table + __chainhashfn(chain);
++}
+ 
+ /*
+  * The hash key of the lock dependency chains is a hash itself too:
+@@ -3875,7 +3892,7 @@ void lockdep_reset(void)
+ 	nr_process_chains = 0;
+ 	debug_locks = 1;
+ 	for (i = 0; i < CHAINHASH_SIZE; i++)
+-		INIT_LIST_HEAD(chainhash_table + i);
++		INIT_LIST_HEAD(__chainhash_table + i);
+ 	raw_local_irq_restore(flags);
  }
-=20
- static inline int iocb_flags(struct file *file)
+ 
+@@ -3929,7 +3946,7 @@ void lockdep_free_key_range(void *start,
+ 	 * Unhash all classes that were created by this module:
+ 	 */
+ 	for (i = 0; i < CLASSHASH_SIZE; i++) {
+-		head = classhash_table + i;
++		head = get_classhash_table() + i;
+ 		if (list_empty(head))
+ 			continue;
+ 		list_for_each_entry_rcu(class, head, hash_entry) {
+@@ -3986,7 +4003,7 @@ void lockdep_reset_lock(struct lockdep_m
+ 	 */
+ 	locked = graph_lock();
+ 	for (i = 0; i < CLASSHASH_SIZE; i++) {
+-		head = classhash_table + i;
++		head = get_classhash_table() + i;
+ 		if (list_empty(head))
+ 			continue;
+ 		list_for_each_entry_rcu(class, head, hash_entry) {
+@@ -4027,10 +4044,10 @@ void lockdep_init(void)
+ 		return;
+ 
+ 	for (i = 0; i < CLASSHASH_SIZE; i++)
+-		INIT_LIST_HEAD(classhash_table + i);
++		INIT_LIST_HEAD(__classhash_table + i);
+ 
+ 	for (i = 0; i < CHAINHASH_SIZE; i++)
+-		INIT_LIST_HEAD(chainhash_table + i);
++		INIT_LIST_HEAD(__chainhash_table + i);
+ 
+ 	lockdep_initialized = 1;
+ }
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com a=
-re
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm-warn-about-vmdata-over-rlimit_data-fix.patch
+ocfs2-code-clean-up-for-direct-io-fix.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
+kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand.patch
+mm.patch
+mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
+fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
+mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
+mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
+mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
+mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
+mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
+mm-madvise-update-comment-on-sys_madvise-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+zram-export-the-number-of-available-comp-streams-fix.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+btrfs-use-radix_tree_iter_retry-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
+dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
+linux-next-git-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand-fix.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
