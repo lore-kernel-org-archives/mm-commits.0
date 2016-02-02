@@ -1,84 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmstat-make-quiet_vmstat-lighter-fix.patch added to -mm tree
-Date: Tue, 02 Feb 2016 13:42:31 -0800
-Message-ID: <56b122c7.2vTPZt9W0jUUHqNv%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ mm-fix-bogus-vm_bug_on_page-in-isolate_lru_page.patch removed from -mm tree
+Date: Tue, 02 Feb 2016 14:25:31 -0800
+Message-ID: <56b12cdb.eLjERNn0Pn0NCcug%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56307 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59973 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751837AbcBBVmc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 16:42:32 -0500
+	with ESMTP id S1752906AbcBBWZc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 17:25:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgalbraith@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, dvyukov@google.com, hannes@cmpxchg.org, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmstat: cancel pending work of the cpu_stat_off CPU
-has been added to the -mm tree.  Its filename is
-     mm-vmstat-make-quiet_vmstat-lighter-fix.patch
+     Subject: mm: fix bogus VM_BUG_ON_PAGE() in isolate_lru_page()
+has been removed from the -mm tree.  Its filename was
+     mm-fix-bogus-vm_bug_on_page-in-isolate_lru_page.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-make-quiet_vmstat-lighter-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-make-quiet_vmstat-lighter-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Mike Galbraith <mgalbraith@suse.de>
-Subject: mm, vmstat: cancel pending work of the cpu_stat_off CPU
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: fix bogus VM_BUG_ON_PAGE() in isolate_lru_page()
 
-Cancel pending work of the cpu_stat_off CPU.
+We don't care if there's a tail pages which is not on LRU. We are not
+going to isolate them anyway.
 
-Signed-off-by: Mike Galbraith <mgalbraith@suse.de>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Testcase:
+
+	#include <fcntl.h>
+	#include <unistd.h>
+	#include <stdio.h>
+	#include <sys/mman.h>
+	#include <numaif.h>
+
+	#define SIZE 0x2000
+
+	int foo;
+
+	int main()
+	{
+		int fd;
+		char *p;
+		unsigned long mask = 2;
+
+		fd = open("/dev/sg0", O_RDWR);
+		p = mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+		/* Faultin pages */
+		foo = p[0] + p[0x1000];
+		mbind(p, SIZE, MPOL_BIND, &mask, 4, MPOL_MF_MOVE | MPOL_MF_STRICT);
+		return 0;
+	}
+
+MPOL_MF_STRICT makes queue_pages_test_walk() ignore !vma_megratable()
+and we try to queue such pages for migration. It's good question why we
+ignore !vma_megratable() for MPOL_MF_STRICT, but it's subject for a
+separate patch.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Fixes: bb5b8589767a ("mm: make sure isolate_lru_page() is never called for tail page")
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ mm/vmscan.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/vmstat.c~mm-vmstat-make-quiet_vmstat-lighter-fix mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstat-make-quiet_vmstat-lighter-fix
-+++ a/mm/vmstat.c
-@@ -1486,25 +1486,25 @@ static void vmstat_shepherd(struct work_
+diff -puN mm/vmscan.c~mm-fix-bogus-vm_bug_on_page-in-isolate_lru_page mm/vmscan.c
+--- a/mm/vmscan.c~mm-fix-bogus-vm_bug_on_page-in-isolate_lru_page
++++ a/mm/vmscan.c
+@@ -1443,7 +1443,7 @@ int isolate_lru_page(struct page *page)
+ 	int ret = -EBUSY;
  
- 	get_online_cpus();
- 	/* Check processors whose vmstat worker threads have been disabled */
--	for_each_cpu(cpu, cpu_stat_off)
-+	for_each_cpu(cpu, cpu_stat_off) {
-+		struct delayed_work *dw = &per_cpu(vmstat_work, cpu);
-+
- 		if (need_update(cpu)) {
- 			if (cpumask_test_and_clear_cpu(cpu, cpu_stat_off))
--				queue_delayed_work_on(cpu, vmstat_wq,
--					&per_cpu(vmstat_work, cpu), 0);
-+				queue_delayed_work_on(cpu, vmstat_wq, dw, 0);
- 		} else {
- 			/*
- 			 * Cancel the work if quiet_vmstat has put this
- 			 * cpu on cpu_stat_off because the work item might
- 			 * be still scheduled
- 			 */
--			cancel_delayed_work(this_cpu_ptr(&vmstat_work));
-+			cancel_delayed_work(dw);
- 		}
--
-+	}
- 	put_online_cpus();
+ 	VM_BUG_ON_PAGE(!page_count(page), page);
+-	VM_BUG_ON_PAGE(PageTail(page), page);
++	VM_BUG_ON_PAGE(PageLRU(page) && PageTail(page), page);
  
- 	schedule_delayed_work(&shepherd,
- 		round_jiffies_relative(sysctl_stat_interval));
+ 	if (PageLRU(page)) {
+ 		struct zone *zone = page_zone(page);
+_
+
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+
+thp-make-split_queue-per-node.patch
+thp-change-deferred_split_count-to-return-number-of-thp-in-queue.patch
+thp-change-deferred_split_count-to-return-number-of-thp-in-queue-fix.patch
+thp-limit-number-of-object-to-scan-on-deferred_split_scan.patch
+drivers-scsi-sgc-mark-vma-as-vm_io-to-prevent-migration.patch
+mempolicy-do-not-try-to-queue-pages-from-vma_migratable.patch
+ipc-shm-handle-removed-segments-gracefully-in-shm_mmap.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+
