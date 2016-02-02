@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + drm-edid-convert-to-use-match_string-helper.patch added to -mm
- tree
-Date: Mon, 01 Feb 2016 22:10:32 -0800
-Message-ID: <56b04858.vqDNAVzqeZQlIQEp%akpm@linux-foundation.org>
+Subject: + power-charger_manager-convert-to-use-match_string-helper.patch
+ added to -mm tree
+Date: Mon, 01 Feb 2016 22:10:33 -0800
+Message-ID: <56b04859.lo8iUtVzmFGZi5aq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56734 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56740 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752156AbcBBGKd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 01:10:33 -0500
+	with ESMTP id S1751002AbcBBGKe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 01:10:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, airlied@linux.ie, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, dbaryshkov@gmail.com, dwmw2@infradead.org, sre@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drm/edid: convert to use match_string() helper
+     Subject: power: charger_manager: convert to use match_string() helper
 has been added to the -mm tree.  Its filename is
-     drm-edid-convert-to-use-match_string-helper.patch
+     power-charger_manager-convert-to-use-match_string-helper.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drm-edid-convert-to-use-match_string-helper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/power-charger_manager-convert-to-use-match_string-helper.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drm-edid-convert-to-use-match_string-helper.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/power-charger_manager-convert-to-use-match_string-helper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,52 +40,65 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: drm/edid: convert to use match_string() helper
+Subject: power: charger_manager: convert to use match_string() helper
 
-The new helper returns index of the mathing string in an array.  We would
-use it here.
+The new helper returns index of the mathing string in an array. We would use it
+here.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: David Airlie <airlied@linux.ie>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/gpu/drm/drm_edid_load.c |   17 ++++++-----------
- 1 file changed, 6 insertions(+), 11 deletions(-)
+ drivers/power/charger-manager.c |   27 ++++-----------------------
+ 1 file changed, 4 insertions(+), 23 deletions(-)
 
-diff -puN drivers/gpu/drm/drm_edid_load.c~drm-edid-convert-to-use-match_string-helper drivers/gpu/drm/drm_edid_load.c
---- a/drivers/gpu/drm/drm_edid_load.c~drm-edid-convert-to-use-match_string-helper
-+++ a/drivers/gpu/drm/drm_edid_load.c
-@@ -170,16 +170,11 @@ static void *edid_load(struct drm_connec
- 	int i, valid_extensions = 0;
- 	bool print_bad_edid = !connector->bad_edid_counter || (drm_debug & DRM_UT_KMS);
+diff -puN drivers/power/charger-manager.c~power-charger_manager-convert-to-use-match_string-helper drivers/power/charger-manager.c
+--- a/drivers/power/charger-manager.c~power-charger_manager-convert-to-use-match_string-helper
++++ a/drivers/power/charger-manager.c
+@@ -2020,27 +2020,6 @@ static void __exit charger_manager_clean
+ module_exit(charger_manager_cleanup);
  
--	builtin = 0;
--	for (i = 0; i < GENERIC_EDIDS; i++) {
--		if (strcmp(name, generic_edid_name[i]) == 0) {
--			fwdata = generic_edid[i];
--			fwsize = sizeof(generic_edid[i]);
--			builtin = 1;
+ /**
+- * find_power_supply - find the associated power_supply of charger
+- * @cm: the Charger Manager representing the battery
+- * @psy: pointer to instance of charger's power_supply
+- */
+-static bool find_power_supply(struct charger_manager *cm,
+-			struct power_supply *psy)
+-{
+-	int i;
+-	bool found = false;
+-
+-	for (i = 0; cm->desc->psy_charger_stat[i]; i++) {
+-		if (!strcmp(psy->desc->name, cm->desc->psy_charger_stat[i])) {
+-			found = true;
 -			break;
 -		}
 -	}
--	if (!builtin) {
-+	builtin = match_string(generic_edid_name, GENERIC_EDIDS, name);
-+	if (builtin >= 0) {
-+		fwdata = generic_edid[builtin];
-+		fwsize = sizeof(generic_edid[builtin]);
-+	} else {
- 		struct platform_device *pdev;
- 		int err;
+-
+-	return found;
+-}
+-
+-/**
+  * cm_notify_event - charger driver notify Charger Manager of charger event
+  * @psy: pointer to instance of charger's power_supply
+  * @type: type of charger event
+@@ -2057,9 +2036,11 @@ void cm_notify_event(struct power_supply
  
-@@ -252,7 +247,7 @@ static void *edid_load(struct drm_connec
+ 	mutex_lock(&cm_list_mtx);
+ 	list_for_each_entry(cm, &cm_list, entry) {
+-		found_power_supply = find_power_supply(cm, psy);
+-		if (found_power_supply)
++		if (match_string(cm->desc->psy_charger_stat, -1,
++				 psy->desc->name) >= 0) {
++			found_power_supply = true;
+ 			break;
++		}
  	}
- 
- 	DRM_INFO("Got %s EDID base block and %d extension%s from "
--	    "\"%s\" for connector \"%s\"\n", builtin ? "built-in" :
-+	    "\"%s\" for connector \"%s\"\n", (builtin >= 0) ? "built-in" :
- 	    "external", valid_extensions, valid_extensions == 1 ? "" : "s",
- 	    name, connector_name);
+ 	mutex_unlock(&cm_list_mtx);
  
 _
 
