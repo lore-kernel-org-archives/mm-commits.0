@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-kconfig-correct-description-of-deferred_struct_page_init.patch added to
- -mm tree
-Date: Mon, 01 Feb 2016 22:13:28 -0800
-Message-ID: <56b04908.tZbOMkVAimbSFs1w%akpm@linux-foundation.org>
+Subject: + errh-allow-is_err_value-to-handle-properly-more-types.patch
+ added to -mm tree
+Date: Mon, 01 Feb 2016 22:21:42 -0800
+Message-ID: <56b04af6.3AHBvRSwOUmW9tmw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57088 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57554 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751011AbcBBGN3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 01:13:29 -0500
+	with ESMTP id S1753340AbcBBGVn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 01:21:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, mgorman@techsingularity.net, mm-commits@vger.kernel.org
+To: a.hajda@samsung.com, b.zolnierkie@samsung.com, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/Kconfig: correct description of DEFERRED_STRUCT_PAGE_INIT
+     Subject: err.h: allow IS_ERR_VALUE to handle properly more types
 has been added to the -mm tree.  Its filename is
-     mm-kconfig-correct-description-of-deferred_struct_page_init.patch
+     errh-allow-is_err_value-to-handle-properly-more-types.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kconfig-correct-description-of-deferred_struct_page_init.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/errh-allow-is_err_value-to-handle-properly-more-types.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kconfig-correct-description-of-deferred_struct_page_init.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/errh-allow-is_err_value-to-handle-properly-more-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,67 +39,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm/Kconfig: correct description of DEFERRED_STRUCT_PAGE_INIT
+From: Andrzej Hajda <a.hajda@samsung.com>
+Subject: err.h: allow IS_ERR_VALUE to handle properly more types
 
-The description mentions kswapd threads, while the deferred struct page
-initialization is actually done by one-off "pgdatinitX" threads.  Fix the
-description so that potentially users are not confused about pgdatinit
-threads using CPU after boot instead of kswapd.
+Current implementation of IS_ERR_VALUE works correctly only with
+following types:
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@techsingularity.net>
+- unsigned long,
+
+- short, int, long.
+
+Other types are handled incorrectly either on 32-bit either on 64-bit
+either on both architectures.
+
+The patch fixes it by comparing argument with MAX_ERRNO casted to
+argument's type for unsigned types and comparing with zero for signed
+types.  As a result all integer types bigger than char are handled
+properly.
+
+I have analyzed usage of IS_ERR_VALUE using coccinelle and in about 35
+cases it is used incorrectly, ie it can hide errors depending of 32/64 bit
+architecture.  Instead of fixing usage I propose to enhance the macro to
+cover more types.
+
+And just for the record: the macro is used 101 times with signed
+variables, I am not sure if it should be preferred over simple comparison
+"ret < 0", but the new version can do it as well.
+
+And below list of detected potential errors:
+drivers/char/mem.c:698:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(( unsigned long long ) offset)
+drivers/media/platform/soc_camera/atmel-isi.c:1089:21-22: WARNING: incorrect argument type in IS_ERR_VALUE(irq)
+drivers/net/ethernet/freescale/fs_enet/mac-scc.c:149:36-37: WARNING: incorrect argument type in IS_ERR_VALUE(fep -> ring_mem_addr)
+drivers/net/ethernet/freescale/ucc_geth.c:2237:48-49: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_bd_ring_offset [ j ])
+drivers/net/ethernet/freescale/ucc_geth.c:2314:48-49: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_bd_ring_offset [ j ])
+drivers/net/ethernet/freescale/ucc_geth.c:2524:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_glbl_pram_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2544:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> thread_dat_tx_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2571:46-47: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> send_q_mem_reg_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2612:42-43: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> scheduler_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2659:54-55: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_fw_statistics_pram_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2696:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_glbl_pram_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2715:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> thread_dat_rx_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2736:54-55: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_fw_statistics_pram_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2756:53-54: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_irq_coalescing_tbl_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2822:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_bd_qs_tbl_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2908:47-48: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> exf_glbl_param_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:292:36-37: WARNING: incorrect argument type in IS_ERR_VALUE(init_enet_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:3042:39-40: WARNING: incorrect argument type in IS_ERR_VALUE(init_enet_pram_offset)
+drivers/soc/fsl/qe/ucc_fast.c:271:60-61: WARNING: incorrect argument type in IS_ERR_VALUE(uccf -> ucc_fast_tx_virtual_fifo_base_offset)
+drivers/soc/fsl/qe/ucc_fast.c:284:60-61: WARNING: incorrect argument type in IS_ERR_VALUE(uccf -> ucc_fast_rx_virtual_fifo_base_offset)
+drivers/soc/fsl/qe/ucc_slow.c:186:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> us_pram_offset)
+drivers/soc/fsl/qe/ucc_slow.c:213:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> rx_base_offset)
+drivers/soc/fsl/qe/ucc_slow.c:224:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> tx_base_offset)
+drivers/tty/serial/clps711x.c:471:29-30: WARNING: incorrect argument type in IS_ERR_VALUE(s -> port . irq)
+drivers/tty/serial/digicolor-usart.c:485:30-31: WARNING: incorrect argument type in IS_ERR_VALUE(dp -> port . irq)
+drivers/usb/gadget/udc/fsl_qe_udc.c:2369:26-27: WARNING: incorrect argument type in IS_ERR_VALUE(tmp_addr)
+drivers/video/fbdev/exynos/exynos_mipi_dsi.c:406:27-28: WARNING: incorrect argument type in IS_ERR_VALUE(dsim -> irq)
+net/ipv4/netfilter/arp_tables.c:1427:39-40: WARNING: incorrect argument type in IS_ERR_VALUE(iter1 -> counters . pcnt)
+net/ipv4/netfilter/arp_tables.c:530:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
+net/ipv4/netfilter/ip_tables.c:1614:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
+net/ipv4/netfilter/ip_tables.c:674:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
+net/ipv6/netfilter/ip6_tables.c:1624:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
+net/ipv6/netfilter/ip6_tables.c:687:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
+drivers/net/ethernet/freescale/fs_enet/mac-fcc.c:110:35-36: WARNING: unknown argument type in IS_ERR_VALUE(fpi -> dpram_offset)
+
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ include/linux/err.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/Kconfig~mm-kconfig-correct-description-of-deferred_struct_page_init mm/Kconfig
---- a/mm/Kconfig~mm-kconfig-correct-description-of-deferred_struct_page_init
-+++ a/mm/Kconfig
-@@ -624,7 +624,7 @@ config ARCH_SUPPORTS_DEFERRED_STRUCT_PAG
- 	bool
+diff -puN include/linux/err.h~errh-allow-is_err_value-to-handle-properly-more-types include/linux/err.h
+--- a/include/linux/err.h~errh-allow-is_err_value-to-handle-properly-more-types
++++ a/include/linux/err.h
+@@ -18,7 +18,9 @@
  
- config DEFERRED_STRUCT_PAGE_INIT
--	bool "Defer initialisation of struct pages to kswapd"
-+	bool "Defer initialisation of struct pages to kthreads"
- 	default n
- 	depends on ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
- 	depends on MEMORY_HOTPLUG
-@@ -633,9 +633,10 @@ config DEFERRED_STRUCT_PAGE_INIT
- 	  single thread. On very large machines this can take a considerable
- 	  amount of time. If this option is set, large machines will bring up
- 	  a subset of memmap at boot and then initialise the rest in parallel
--	  when kswapd starts. This has a potential performance impact on
--	  processes running early in the lifetime of the systemm until kswapd
--	  finishes the initialisation.
-+	  by starting one-off "pgdatinitX" kernel thread for each node X. This
-+	  has a potential performance impact on processes running early in the
-+	  lifetime of the system until these kthreads finish the
-+	  initialisation.
+ #ifndef __ASSEMBLY__
  
- config IDLE_PAGE_TRACKING
- 	bool "Enable idle page tracking"
+-#define IS_ERR_VALUE(x) unlikely((x) >= (unsigned long)-MAX_ERRNO)
++#define IS_ERR_VALUE(x) ((typeof(x))(-1) <= 0 \
++				? unlikely((x) < 0) \
++				: unlikely((x) >= (typeof(x))-MAX_ERRNO))
+ 
+ static inline void * __must_check ERR_PTR(long error)
+ {
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from a.hajda@samsung.com are
 
-mm-kconfig-correct-description-of-deferred_struct_page_init.patch
-tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
-mm-tracing-make-show_gfp_flags-up-to-date.patch
-tools-perf-make-gfp_compact_table-up-to-date.patch
-mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk.patch
-mm-printk-introduce-new-format-string-for-flags.patch
-mm-printk-introduce-new-format-string-for-flags-fix.patch
-mm-debug-replace-dump_flags-with-the-new-printk-formats.patch
-mm-page_alloc-print-symbolic-gfp_flags-on-allocation-failure.patch
-mm-oom-print-symbolic-gfp_flags-in-oom-warning.patch
-mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
-mm-page_owner-convert-page_owner_inited-to-static-key.patch
-mm-page_owner-copy-page-owner-info-during-migration.patch
-mm-page_owner-track-and-print-last-migrate-reason.patch
-mm-page_owner-dump-page-owner-info-from-dump_page.patch
-mm-debug-move-bad-flags-printing-to-bad_page.patch
-mm-use-radix_tree_iter_retry-fix.patch
+errh-allow-is_err_value-to-handle-properly-more-types.patch
 
