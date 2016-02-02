@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand.patch
+ mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show.patch
  added to -mm tree
-Date: Tue, 02 Feb 2016 13:18:37 -0800
-Message-ID: <56b11d2d.vVw1kB2la7Y+70xF%akpm@linux-foundation.org>
+Date: Tue, 02 Feb 2016 13:38:12 -0800
+Message-ID: <56b121c4.qjH4RZzQQpOsIVyd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54589 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56203 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964891AbcBBVSi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 16:18:38 -0500
+	with ESMTP id S1752125AbcBBViN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 16:38:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, krinkin.m.u@gmail.com, mingo@elte.hu, peterz@infradead.org, mm-commits@vger.kernel.org
+To: dsafonov@virtuozzo.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/locking/lockdep.c: make lockdep initialize itself on demand
+     Subject: mm/slab: fix race with dereferencing NULL ptr in alloc_calls_show
 has been added to the -mm tree.  Its filename is
-     kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand.patch
+     mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,177 +40,126 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel/locking/lockdep.c: make lockdep initialize itself on demand
+From: Dmitry Safonov <dsafonov@virtuozzo.com>
+Subject: mm/slab: fix race with dereferencing NULL ptr in alloc_calls_show
 
-Mike said:
+memcg_destroy_kmem_caches shutdowns in the first place kmem_caches under
+slab_mutex which involves freeing NUMA node structures for kmem_cache and
+only then under release_caches removes corresponding sysfs files for these
+caches.  Which may lead to dereferencing NULL ptr on read.  Lets remove
+sysfs files right there.
 
-: CONFIG_UBSAN_ALIGNMENT breaks x86-64 kernel with lockdep enabled, i.  e
-: kernel with CONFIG_UBSAN_ALIGNMENT fails to load without even any error
-: message.
-: 
-: The problem is that ubsan callbacks use spinlocks and might be called
-: before lockdep is initialized.  Particularly this line in the
-: reserve_ebda_region function causes problem:
-: 
-: lowmem = *(unsigned short *)__va(BIOS_LOWMEM_KILOBYTES);
-: 
-: If i put lockdep_init() before reserve_ebda_region call in
-: x86_64_start_reservations kernel loads well.
+Fixes the following panic:
+[43963.463055] BUG: unable to handle kernel
+[43963.463090] NULL pointer dereference at 0000000000000020
+[43963.463146] IP: [<ffffffff811c6959>] list_locations+0x169/0x4e0
+[43963.463185] PGD 257304067 PUD 438456067 PMD 0
+[43963.463220] Oops: 0000 [#1] SMP
+[43963.463850] CPU: 3 PID: 973074 Comm: cat ve: 0 Not tainted 3.10.0-229.7.2.ovz.9.30-00007-japdoll-dirty #2 9.30
+[43963.463913] Hardware name: DEPO Computers To Be Filled By O.E.M./H67DE3, BIOS L1.60c 07/14/2011
+[43963.463976] task: ffff88042a5dc5b0 ti: ffff88037f8d8000 task.ti: ffff88037f8d8000
+[43963.464036] RIP: 0010:[<ffffffff811c6959>]  [<ffffffff811c6959>] list_locations+0x169/0x4e0
+[43963.464725] Call Trace:
+[43963.464756]  [<ffffffff811c6d1d>] alloc_calls_show+0x1d/0x30
+[43963.464793]  [<ffffffff811c15ab>] slab_attr_show+0x1b/0x30
+[43963.464829]  [<ffffffff8125d27a>] sysfs_read_file+0x9a/0x1a0
+[43963.464865]  [<ffffffff811e3c6c>] vfs_read+0x9c/0x170
+[43963.464900]  [<ffffffff811e4798>] SyS_read+0x58/0xb0
+[43963.464936]  [<ffffffff81612d49>] system_call_fastpath+0x16/0x1b
+[43963.464970] Code: 5e 07 12 00 b9 00 04 00 00 3d 00 04 00 00 0f 4f c1 3d 00 04 00 00 89 45 b0 0f 84 c3 00 00 00 48 63 45 b0 49 8b 9c c4 f8 00 00 00 <48> 8b 43 20 48 85 c0 74 b6 48 89 df e8 46 37 44 00 48 8b 53 10
+[43963.465119] RIP  [<ffffffff811c6959>] list_locations+0x169/0x4e0
+[43963.465155]  RSP <ffff88037f8dbe28>
+[43963.465185] CR2: 0000000000000020
 
-Fix this ordering issue permanently: change lockdep so that it ensures
-that the hash tables are initialized when they are about to be used.
-
-The overhead will be pretty small: a test-n-branch in places where lockdep
-is about to do a lot of work anyway.
-
-Possibly lockdep_initialized should be made __read_mostly.
-
-A better fix would be to simply initialize these (32768 entry) arrays of
-empty list_heads at compile time, but I don't think there's a way of
-teaching gcc to do this.
-
-We could write a little script which, at compile time, emits a file
-containing
-
-	[0] = LIST_HEAD_INIT(__chainhash_table[0]),
-	[1] = LIST_HEAD_INIT(__chainhash_table[1]),
-	...
-	[32767] = LIST_HEAD_INIT(__chainhash_table[32767]),
-
-and then #include this file into lockdep.c.  Sounds like a lot of fuss.
-
-Reported-by: Mike Krinkin <krinkin.m.u@gmail.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Dmitry Safonov <dsafonov@virtuozzo.com>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/locking/lockdep.c |   35 ++++++++++++++++++++++++++---------
- 1 file changed, 26 insertions(+), 9 deletions(-)
+ include/linux/slub_def.h |   10 ----------
+ mm/slab.h                |    8 ++++++++
+ mm/slab_common.c         |   10 ++++------
+ mm/slub.c                |    6 ------
+ 4 files changed, 12 insertions(+), 22 deletions(-)
 
-diff -puN kernel/locking/lockdep.c~kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand kernel/locking/lockdep.c
---- a/kernel/locking/lockdep.c~kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand
-+++ a/kernel/locking/lockdep.c
-@@ -290,9 +290,20 @@ LIST_HEAD(all_lock_classes);
- #define CLASSHASH_BITS		(MAX_LOCKDEP_KEYS_BITS - 1)
- #define CLASSHASH_SIZE		(1UL << CLASSHASH_BITS)
- #define __classhashfn(key)	hash_long((unsigned long)key, CLASSHASH_BITS)
--#define classhashentry(key)	(classhash_table + __classhashfn((key)))
+diff -puN include/linux/slub_def.h~mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show include/linux/slub_def.h
+--- a/include/linux/slub_def.h~mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show
++++ a/include/linux/slub_def.h
+@@ -101,16 +101,6 @@ struct kmem_cache {
+ 	struct kmem_cache_node *node[MAX_NUMNODES];
+ };
  
--static struct list_head classhash_table[CLASSHASH_SIZE];
-+static struct list_head __classhash_table[CLASSHASH_SIZE];
-+
-+static inline struct list_head *get_classhash_table(void)
+-#ifdef CONFIG_SYSFS
+-#define SLAB_SUPPORTS_SYSFS
+-void sysfs_slab_remove(struct kmem_cache *);
+-#else
+-static inline void sysfs_slab_remove(struct kmem_cache *s)
+-{
+-}
+-#endif
+-
+-
+ /**
+  * virt_to_obj - returns address of the beginning of object.
+  * @s: object's kmem_cache
+diff -puN mm/slab.h~mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show mm/slab.h
+--- a/mm/slab.h~mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show
++++ a/mm/slab.h
+@@ -367,6 +367,14 @@ static inline struct kmem_cache_node *ge
+ 
+ #endif
+ 
++#if defined(CONFIG_SLUB) && defined(CONFIG_SYSFS)
++void sysfs_slab_remove(struct kmem_cache *);
++#else
++static inline void sysfs_slab_remove(struct kmem_cache *s)
 +{
-+	if (unlikely(!lockdep_initialized))
-+		lockdep_init();
-+	return __classhash_table;
 +}
++#endif
 +
-+static inline struct list_head *classhashentry(struct lockdep_subclass_key *key)
-+{
-+	return get_classhash_table() + __classhashfn(key);
-+}
+ void *slab_start(struct seq_file *m, loff_t *pos);
+ void *slab_next(struct seq_file *m, void *p, loff_t *pos);
+ void slab_stop(struct seq_file *m, void *p);
+diff -puN mm/slab_common.c~mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show
++++ a/mm/slab_common.c
+@@ -468,13 +468,8 @@ static void release_caches(struct list_h
+ 	if (need_rcu_barrier)
+ 		rcu_barrier();
  
- /*
-  * We put the lock dependency chains into a hash-table as well, to cache
-@@ -301,9 +312,15 @@ static struct list_head classhash_table[
- #define CHAINHASH_BITS		(MAX_LOCKDEP_CHAINS_BITS-1)
- #define CHAINHASH_SIZE		(1UL << CHAINHASH_BITS)
- #define __chainhashfn(chain)	hash_long(chain, CHAINHASH_BITS)
--#define chainhashentry(chain)	(chainhash_table + __chainhashfn((chain)))
- 
--static struct list_head chainhash_table[CHAINHASH_SIZE];
-+static struct list_head __chainhash_table[CHAINHASH_SIZE];
-+
-+static struct list_head *chainhashentry(unsigned long chain)
-+{
-+	if (unlikely(!lockdep_initialized))
-+		lockdep_init();
-+	return __chainhash_table + __chainhashfn(chain);
-+}
- 
- /*
-  * The hash key of the lock dependency chains is a hash itself too:
-@@ -3875,7 +3892,7 @@ void lockdep_reset(void)
- 	nr_process_chains = 0;
- 	debug_locks = 1;
- 	for (i = 0; i < CHAINHASH_SIZE; i++)
--		INIT_LIST_HEAD(chainhash_table + i);
-+		INIT_LIST_HEAD(__chainhash_table + i);
- 	raw_local_irq_restore(flags);
+-	list_for_each_entry_safe(s, s2, release, list) {
+-#ifdef SLAB_SUPPORTS_SYSFS
+-		sysfs_slab_remove(s);
+-#else
++	list_for_each_entry_safe(s, s2, release, list)
+ 		slab_kmem_cache_release(s);
+-#endif
+-	}
  }
  
-@@ -3929,7 +3946,7 @@ void lockdep_free_key_range(void *start,
- 	 * Unhash all classes that were created by this module:
- 	 */
- 	for (i = 0; i < CLASSHASH_SIZE; i++) {
--		head = classhash_table + i;
-+		head = get_classhash_table() + i;
- 		if (list_empty(head))
+ #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
+@@ -614,6 +609,9 @@ void memcg_destroy_kmem_caches(struct me
+ 	list_for_each_entry_safe(s, s2, &slab_caches, list) {
+ 		if (is_root_cache(s) || s->memcg_params.memcg != memcg)
  			continue;
- 		list_for_each_entry_rcu(class, head, hash_entry) {
-@@ -3986,7 +4003,7 @@ void lockdep_reset_lock(struct lockdep_m
- 	 */
- 	locked = graph_lock();
- 	for (i = 0; i < CLASSHASH_SIZE; i++) {
--		head = classhash_table + i;
-+		head = get_classhash_table() + i;
- 		if (list_empty(head))
- 			continue;
- 		list_for_each_entry_rcu(class, head, hash_entry) {
-@@ -4027,10 +4044,10 @@ void lockdep_init(void)
- 		return;
- 
- 	for (i = 0; i < CLASSHASH_SIZE; i++)
--		INIT_LIST_HEAD(classhash_table + i);
-+		INIT_LIST_HEAD(__classhash_table + i);
- 
- 	for (i = 0; i < CHAINHASH_SIZE; i++)
--		INIT_LIST_HEAD(chainhash_table + i);
-+		INIT_LIST_HEAD(__chainhash_table + i);
- 
- 	lockdep_initialized = 1;
++
++		sysfs_slab_remove(s);
++
+ 		/*
+ 		 * The cgroup is about to be freed and therefore has no charges
+ 		 * left. Hence, all its caches must be empty by now.
+diff -puN mm/slub.c~mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show mm/slub.c
+--- a/mm/slub.c~mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show
++++ a/mm/slub.c
+@@ -5296,11 +5296,6 @@ static void memcg_propagate_slab_attrs(s
+ #endif
  }
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm-warn-about-vmdata-over-rlimit_data-fix.patch
-ocfs2-code-clean-up-for-direct-io-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
-kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand.patch
-mm.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-sched-add-schedule_timeout_idle.patch
-btrfs-use-radix_tree_iter_retry-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand-fix.patch
-
+ 
+-static void kmem_cache_release(struct kobject *k)
+-{
+-	slab_kmem_cache_release(to_slab(k));
+-}
