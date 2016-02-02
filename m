@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- procfs-add-support-for-puds-to-smaps-clear_refs-and-pagemap.patch added to
- -mm tree
-Date: Tue, 02 Feb 2016 14:53:51 -0800
-Message-ID: <56b1337f.XkZEHvuYf3tuWiVQ%akpm@linux-foundation.org>
+ x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes.patch
+ added to -mm tree
+Date: Tue, 02 Feb 2016 14:53:53 -0800
+Message-ID: <56b13381.v0wS03ZQEKxwivVW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33934 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33946 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752541AbcBBWxw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 17:53:52 -0500
+	with ESMTP id S1751186AbcBBWxy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 17:53:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@linux.intel.com, dan.j.williams@intel.com, jack@suse.cz, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, hpa@zytor.com, mingo@elte.hu, tglx@linutronix.de, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: procfs: add support for PUDs to smaps, clear_refs and pagemap
+     Subject: x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     procfs-add-support-for-puds-to-smaps-clear_refs-and-pagemap.patch
+     x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/procfs-add-support-for-puds-to-smaps-clear_refs-and-pagemap.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/procfs-add-support-for-puds-to-smaps-clear_refs-and-pagemap.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,205 +40,117 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: procfs: add support for PUDs to smaps, clear_refs and pagemap
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes
 
-Because there's no 'struct page' for DAX THPs, a lot of this code is
-simpler than the PMD code it mimics.  Extra code would need to be added to
-support PUDs of anonymous or page-cache THPs.
+ERROR: space prohibited before that ',' (ctx:WxW)
+#201: FILE: arch/x86/include/asm/pgtable.h:820:
++				     pud_t *pudp , pud_t pud)
+ 				                 ^
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Jan Kara <jack@suse.cz>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+WARNING: line over 80 characters
+#230: FILE: arch/x86/include/asm/pgtable.h:932:
++static inline pud_t pudp_huge_get_and_clear(struct mm_struct *mm, unsigned long addr,
+
+WARNING: Block comments use * on subsequent lines
+#263: FILE: arch/x86/include/asm/pgtable_64.h:115:
++	/* native_local_pudp_get_and_clear,
++	   but duplicated because of cyclic dependency */
+
+WARNING: Block comments use a trailing */ on a separate line
+#263: FILE: arch/x86/include/asm/pgtable_64.h:115:
++	   but duplicated because of cyclic dependency */
+
+WARNING: Missing a blank line after declarations
+#265: FILE: arch/x86/include/asm/pgtable_64.h:117:
++	pud_t ret = *pudp;
++	native_pud_clear(pudp);
+
+total: 1 errors, 4 warnings, 265 lines checked
+
+./patches/x86-add-support-for-pud-sized-transparent-hugepages.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |  109 +++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 109 insertions(+)
+ arch/x86/include/asm/pgtable.h    |    2 +-
+ arch/x86/include/asm/pgtable_64.h |    6 ++++--
+ 2 files changed, 5 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~procfs-add-support-for-puds-to-smaps-clear_refs-and-pagemap fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~procfs-add-support-for-puds-to-smaps-clear_refs-and-pagemap
-+++ a/fs/proc/task_mmu.c
-@@ -586,6 +586,33 @@ static void smaps_pmd_entry(pmd_t *pmd,
+diff -puN arch/x86/include/asm/pgtable.h~x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes
++++ a/arch/x86/include/asm/pgtable.h
+@@ -857,7 +857,7 @@ static inline void native_set_pmd_at(str
  }
- #endif
  
-+static int smaps_pud_range(pud_t *pud, unsigned long addr, unsigned long end,
-+		struct mm_walk *walk)
-+{
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+	struct vm_area_struct *vma = walk->vma;
-+	struct mem_size_stats *mss = walk->private;
-+
-+	if (is_huge_zero_pud(*pud))
-+		return 0;
-+
-+	mss->resident += HPAGE_PUD_SIZE;
-+	if (vma->vm_flags & VM_SHARED) {
-+		if (pud_dirty(*pud))
-+			mss->shared_dirty += HPAGE_PUD_SIZE;
-+		else
-+			mss->shared_clean += HPAGE_PUD_SIZE;
-+	} else {
-+		if (pud_dirty(*pud))
-+			mss->private_dirty += HPAGE_PUD_SIZE;
-+		else
-+			mss->private_clean += HPAGE_PUD_SIZE;
-+	}
-+#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-+
-+	return 0;
-+}
-+
- static int smaps_pte_range(pmd_t *pmd, unsigned long addr, unsigned long end,
- 			   struct mm_walk *walk)
+ static inline void native_set_pud_at(struct mm_struct *mm, unsigned long addr,
+-				     pud_t *pudp , pud_t pud)
++				     pud_t *pudp, pud_t pud)
  {
-@@ -707,6 +734,7 @@ static int show_smap(struct seq_file *m,
- 	struct vm_area_struct *vma = v;
- 	struct mem_size_stats mss;
- 	struct mm_walk smaps_walk = {
-+		.pud_entry = smaps_pud_range,
- 		.pmd_entry = smaps_pte_range,
- #ifdef CONFIG_HUGETLB_PAGE
- 		.hugetlb_entry = smaps_hugetlb_range,
-@@ -889,13 +917,50 @@ static inline void clear_soft_dirty_pmd(
- 
- 	set_pmd_at(vma->vm_mm, addr, pmdp, pmd);
+ 	native_set_pud(pudp, pud);
  }
-+static inline void clear_soft_dirty_pud(struct vm_area_struct *vma,
-+		unsigned long addr, pud_t *pudp)
-+{
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+	pud_t pud = pudp_huge_get_and_clear(vma->vm_mm, addr, pudp);
-+
-+	pud = pud_wrprotect(pud);
-+	pud = pud_clear_soft_dirty(pud);
-+
-+	if (vma->vm_flags & VM_SOFTDIRTY)
-+		vma->vm_flags &= ~VM_SOFTDIRTY;
-+
-+	set_pud_at(vma->vm_mm, addr, pudp, pud);
-+#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-+}
+diff -puN arch/x86/include/asm/pgtable_64.h~x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes arch/x86/include/asm/pgtable_64.h
+--- a/arch/x86/include/asm/pgtable_64.h~x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes
++++ a/arch/x86/include/asm/pgtable_64.h
+@@ -111,8 +111,10 @@ static inline pud_t native_pudp_get_and_
+ #ifdef CONFIG_SMP
+ 	return native_make_pud(xchg(&pudp->pud, 0));
  #else
- static inline void clear_soft_dirty_pmd(struct vm_area_struct *vma,
- 		unsigned long addr, pmd_t *pmdp)
- {
- }
-+static inline void clear_soft_dirty_pud(struct vm_area_struct *vma,
-+		unsigned long addr, pud_t *pudp)
-+{
-+}
- #endif
- 
-+static int clear_refs_pud_range(pud_t *pud, unsigned long addr,
-+				unsigned long end, struct mm_walk *walk)
-+{
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+	struct clear_refs_private *cp = walk->private;
-+	struct vm_area_struct *vma = walk->vma;
-+
-+	if (cp->type == CLEAR_REFS_SOFT_DIRTY) {
-+		clear_soft_dirty_pud(vma, addr, pud);
-+	} else {
-+		/* Clear accessed and referenced bits. */
-+		pudp_test_and_clear_young(vma, addr, pud);
-+	}
-+#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-+
-+	return 0;
-+}
-+
- static int clear_refs_pte_range(pmd_t *pmd, unsigned long addr,
- 				unsigned long end, struct mm_walk *walk)
- {
-@@ -1006,6 +1071,7 @@ static ssize_t clear_refs_write(struct f
- 			.type = type,
- 		};
- 		struct mm_walk clear_refs_walk = {
-+			.pud_entry = clear_refs_pud_range,
- 			.pmd_entry = clear_refs_pte_range,
- 			.test_walk = clear_refs_test_walk,
- 			.mm = mm,
-@@ -1170,6 +1236,48 @@ static pagemap_entry_t pte_to_pagemap_en
- 	return make_pme(frame, flags);
- }
- 
-+static int pagemap_pud_range(pud_t *pudp, unsigned long addr, unsigned long end,
-+			     struct mm_walk *walk)
-+{
-+	int err = 0;
-+#ifdef CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD
-+	struct vm_area_struct *vma = walk->vma;
-+	struct pagemapread *pm = walk->private;
-+	u64 flags = 0, frame = 0;
-+	pud_t pud = *pudp;
-+
-+	if ((vma->vm_flags & VM_SOFTDIRTY) || pud_soft_dirty(pud))
-+		flags |= PM_SOFT_DIRTY;
-+
+-	/* native_local_pudp_get_and_clear,
+-	   but duplicated because of cyclic dependency */
 +	/*
-+	 * Currently pud for thp is always present because thp
-+	 * can not be swapped-out, migrated, or HWPOISONed
-+	 * (split in such cases instead.)
-+	 * This if-check is just to prepare for future implementation.
++	 * native_local_pudp_get_and_clear, but duplicated because of cyclic
++	 * dependency
 +	 */
-+	if (pud_present(pud)) {
-+		flags |= PM_PRESENT;
-+		if (!(vma->vm_flags & VM_SHARED))
-+			flags |= PM_MMAP_EXCLUSIVE;
-+
-+		if (pm->show_pfn)
-+			frame = pud_pfn(pud) +
-+					((addr & ~PUD_MASK) >> PAGE_SHIFT);
-+
-+		for (; addr != end; addr += PAGE_SIZE) {
-+			pagemap_entry_t pme = make_pme(frame, flags);
-+
-+			err = add_to_pagemap(addr, &pme, pm);
-+			if (err)
-+				break;
-+			if (pm->show_pfn && (flags & PM_PRESENT))
-+				frame++;
-+		}
-+	}
-+#endif /* CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE_PUD */
-+	return err;
-+}
-+
- static int pagemap_pmd_range(pmd_t *pmdp, unsigned long addr, unsigned long end,
- 			     struct mm_walk *walk)
- {
-@@ -1349,6 +1457,7 @@ static ssize_t pagemap_read(struct file
- 	if (!pm.buffer)
- 		goto out_mm;
- 
-+	pagemap_walk.pud_entry = pagemap_pud_range;
- 	pagemap_walk.pmd_entry = pagemap_pmd_range;
- 	pagemap_walk.pte_hole = pagemap_pte_hole;
- #ifdef CONFIG_HUGETLB_PAGE
+ 	pud_t ret = *pudp;
+ 	native_pud_clear(pudp);
+ 	return ret;
 _
 
-Patches currently in -mm which might be from willy@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-radix-tree-fix-race-in-gang-lookup.patch
-hwspinlock-fix-race-between-radix-tree-insertion-and-lookup.patch
-mm-convert-an-open-coded-vm_bug_on_vma.patch
-mmfsdax-change-pmd_fault-to-huge_fault.patch
-mm-add-support-for-pud-sized-transparent-hugepages.patch
-procfs-add-support-for-puds-to-smaps-clear_refs-and-pagemap.patch
-x86-add-support-for-pud-sized-transparent-hugepages.patch
-dax-support-for-transparent-pud-pages.patch
-ext4-support-for-pud-sized-transparent-huge-pages.patch
-radix-tree-add-an-explicit-include-of-bitopsh.patch
-radix-tree-test-harness.patch
-radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers.patch
-radix_tree-loop-based-on-shift-count-not-height.patch
-radix_tree-add-support-for-multi-order-entries.patch
-radix_tree-add-radix_tree_dump.patch
-btrfs-use-radix_tree_iter_retry.patch
-mm-use-radix_tree_iter_retry.patch
-radix-treeshmem-introduce-radix_tree_iter_next.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm-warn-about-vmdata-over-rlimit_data-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-code-clean-up-for-direct-io-fix.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
+kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand.patch
+mm.patch
+mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
+fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
+mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
+mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
+mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
+mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
+mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
+mm-madvise-update-comment-on-sys_madvise-fix.patch
+x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+zram-export-the-number-of-available-comp-streams-fix.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+btrfs-use-radix_tree_iter_retry-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
+dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
+linux-next-git-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
