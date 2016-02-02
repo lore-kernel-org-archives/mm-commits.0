@@ -1,93 +1,72 @@
 From: akpm@linux-foundation.org
-Subject: [merged] phys_to_pfn_t-use-phys_addr_t.patch removed from -mm
- tree
-Date: Tue, 02 Feb 2016 12:28:30 -0800
-Message-ID: <56b1116e.WWPG9HwtLLQ47Chz%akpm@linux-foundation.org>
+Subject: [merged] mm-fix-pfn_t-to-page-conversion-in-vm_insert_mixed.patch removed from -mm tree
+Date: Tue, 02 Feb 2016 12:28:33 -0800
+Message-ID: <56b11171.BO7CAoBK8mhIV8nj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50315 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50322 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757201AbcBBU2b (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 15:28:31 -0500
+	with ESMTP id S1757201AbcBBU2e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 15:28:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, airlied@linux.ie, dave@sr71.net, runaway@candw.ms, tomi.valkeinen@ti.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: phys_to_pfn_t: use phys_addr_t
+     Subject: mm: fix pfn_t to page conversion in vm_insert_mixed
 has been removed from the -mm tree.  Its filename was
-     phys_to_pfn_t-use-phys_addr_t.patch
+     mm-fix-pfn_t-to-page-conversion-in-vm_insert_mixed.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: phys_to_pfn_t: use phys_addr_t
+Subject: mm: fix pfn_t to page conversion in vm_insert_mixed
 
-A dma_addr_t is potentially smaller than a phys_addr_t on some archs. 
-Don't truncate the address when doing the pfn conversion.
+pfn_t_to_page() honors the flags in the pfn_t value to determine if a pfn
+is backed by a page.  However, vm_insert_mixed() was originally written to
+use pfn_valid() to make this determination.  To restore the old/correct
+behavior, ignore the pfn_t flags in the !pfn_t_devmap() case and fallback
+to trusting pfn_valid().
 
-[willy@linux.intel.com: fix pfn_t_to_phys as well]
+Fixes: 01c8f1c44b83 ("mm, dax, gpu: convert vm_insert_mixed to pfn_t")
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Reported-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reported-by: Julian Margetson <runaway@candw.ms>
+Reported-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Tested-by: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Dave Hansen <dave@sr71.net>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pfn_t.h             |    4 ++--
- kernel/memremap.c                 |    2 +-
- tools/testing/nvdimm/test/iomap.c |    2 +-
- 3 files changed, 4 insertions(+), 4 deletions(-)
+ mm/memory.c |    9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/pfn_t.h~phys_to_pfn_t-use-phys_addr_t include/linux/pfn_t.h
---- a/include/linux/pfn_t.h~phys_to_pfn_t-use-phys_addr_t
-+++ a/include/linux/pfn_t.h
-@@ -29,7 +29,7 @@ static inline pfn_t pfn_to_pfn_t(unsigne
- 	return __pfn_to_pfn_t(pfn, 0);
- }
+diff -puN mm/memory.c~mm-fix-pfn_t-to-page-conversion-in-vm_insert_mixed mm/memory.c
+--- a/mm/memory.c~mm-fix-pfn_t-to-page-conversion-in-vm_insert_mixed
++++ a/mm/memory.c
+@@ -1591,10 +1591,15 @@ int vm_insert_mixed(struct vm_area_struc
+ 	 * than insert_pfn).  If a zero_pfn were inserted into a VM_MIXEDMAP
+ 	 * without pte special, it would there be refcounted as a normal page.
+ 	 */
+-	if (!HAVE_PTE_SPECIAL && pfn_t_valid(pfn)) {
++	if (!HAVE_PTE_SPECIAL && !pfn_t_devmap(pfn) && pfn_t_valid(pfn)) {
+ 		struct page *page;
  
--extern pfn_t phys_to_pfn_t(dma_addr_t addr, unsigned long flags);
-+extern pfn_t phys_to_pfn_t(phys_addr_t addr, unsigned long flags);
- 
- static inline bool pfn_t_has_page(pfn_t pfn)
- {
-@@ -48,7 +48,7 @@ static inline struct page *pfn_t_to_page
- 	return NULL;
- }
- 
--static inline dma_addr_t pfn_t_to_phys(pfn_t pfn)
-+static inline phys_addr_t pfn_t_to_phys(pfn_t pfn)
- {
- 	return PFN_PHYS(pfn_t_to_pfn(pfn));
- }
-diff -puN kernel/memremap.c~phys_to_pfn_t-use-phys_addr_t kernel/memremap.c
---- a/kernel/memremap.c~phys_to_pfn_t-use-phys_addr_t
-+++ a/kernel/memremap.c
-@@ -150,7 +150,7 @@ void devm_memunmap(struct device *dev, v
- }
- EXPORT_SYMBOL(devm_memunmap);
- 
--pfn_t phys_to_pfn_t(dma_addr_t addr, unsigned long flags)
-+pfn_t phys_to_pfn_t(phys_addr_t addr, unsigned long flags)
- {
- 	return __pfn_to_pfn_t(addr >> PAGE_SHIFT, flags);
- }
-diff -puN tools/testing/nvdimm/test/iomap.c~phys_to_pfn_t-use-phys_addr_t tools/testing/nvdimm/test/iomap.c
---- a/tools/testing/nvdimm/test/iomap.c~phys_to_pfn_t-use-phys_addr_t
-+++ a/tools/testing/nvdimm/test/iomap.c
-@@ -113,7 +113,7 @@ void *__wrap_devm_memremap_pages(struct
- }
- EXPORT_SYMBOL(__wrap_devm_memremap_pages);
- 
--pfn_t __wrap_phys_to_pfn_t(dma_addr_t addr, unsigned long flags)
-+pfn_t __wrap_phys_to_pfn_t(phys_addr_t addr, unsigned long flags)
- {
- 	struct nfit_test_resource *nfit_res = get_nfit_res(addr);
- 
+-		page = pfn_t_to_page(pfn);
++		/*
++		 * At this point we are committed to insert_page()
++		 * regardless of whether the caller specified flags that
++		 * result in pfn_t_has_page() == false.
++		 */
++		page = pfn_to_page(pfn_t_to_pfn(pfn));
+ 		return insert_page(vma, addr, page, vma->vm_page_prot);
+ 	}
+ 	return insert_pfn(vma, addr, pfn, vma->vm_page_prot);
 _
 
 Patches currently in -mm which might be from dan.j.williams@intel.com are
