@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Mon, 01 Feb 2016 16:55:36 -0800
-Message-ID: <56affe88.BqTKri2jhM7XEtVv%akpm@linux-foundation.org>
+Subject: + dump_stack-avoid-potential-deadlocks.patch added to -mm tree
+Date: Mon, 01 Feb 2016 19:14:32 -0800
+Message-ID: <56b01f18.Rs9t17cssBD0Lr9X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59279 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43172 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750973AbcBBAzg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2016 19:55:36 -0500
+	with ESMTP id S1752273AbcBBDOd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 1 Feb 2016 22:14:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: edumazet@google.com, athorlton@sgi.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: dump_stack: avoid potential deadlocks
 has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     dump_stack-avoid-potential-deadlocks.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dump_stack-avoid-potential-deadlocks.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dump_stack-avoid-potential-deadlocks.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,186 +38,132 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Eric Dumazet <edumazet@google.com>
+Subject: dump_stack: avoid potential deadlocks
 
+Some servers experienced fatal deadlocks because of a combination of bugs,
+leading to multiple cpus calling dump_stack().
+
+The checksumming bug was fixed in commit 34ae6a1aa054 ("ipv6: update
+skb->csum when CE mark is propagated").
+
+The second problem is a faulty locking in dump_stack()
+
+CPU1 runs in process context and calls dump_stack(), grabs dump_lock.
+
+   CPU2 receives a TCP packet under softirq, grabs socket spinlock, and
+   call dump_stack() from netdev_rx_csum_fault().
+
+   dump_stack() spins on atomic_cmpxchg(&dump_lock, -1, 2), since
+   dump_lock is owned by CPU1
+
+While dumping its stack, CPU1 is interrupted by a softirq, and happens
+to process a packet for the TCP socket locked by CPU2.
+
+CPU1 spins forever in spin_lock() : deadlock
+
+Stack trace on CPU1 looked like :
+
+[306295.402231] NMI backtrace for cpu 1
+[306295.402238] RIP: 0010:[<ffffffffa9804e95>]  [<ffffffffa9804e95>] _raw_spin_lock+0x25/0x30
+...
+[306295.402255] Stack:
+[306295.402256]  ffff88407f023cb0 ffffffffa99cbdc3 ffff88407f023ca0 ffff88012f496bb0
+[306295.402266]  ffffffffaa4dc1f0 ffff8820d94f0dc0 000000000000000a ffffffffaa4b4280
+[306295.402275]  ffff88407f023ce0 ffffffffa98a21d0 ffff88407f023cc0 ffff88407f023ca0
+[306295.402284] Call Trace:
+[306295.402286]  <IRQ>
+[306295.402288]
+[306295.402291]  [<ffffffffa99cbdc3>] tcp_v6_rcv+0x243/0x620
+[306295.402304]  [<ffffffffa99c38af>] ip6_input_finish+0x11f/0x330
+[306295.402309]  [<ffffffffa99c3b38>] ip6_input+0x38/0x40
+[306295.402313]  [<ffffffffa99c3b7c>] ip6_rcv_finish+0x3c/0x90
+[306295.402318]  [<ffffffffa99c3e79>] ipv6_rcv+0x2a9/0x500
+[306295.402323]  [<ffffffffa989a1a1>] process_backlog+0x461/0xaa0
+[306295.402332]  [<ffffffffa9899a57>] net_rx_action+0x147/0x430
+[306295.402337]  [<ffffffffa980cca7>] __do_softirq+0x167/0x2d0
+[306295.402341]  [<ffffffffa9d912dc>] call_softirq+0x1c/0x30
+[306295.402345]  [<ffffffffa980687f>] do_softirq+0x3f/0x80
+[306295.402350]  [<ffffffffa980cf7e>] irq_exit+0x6e/0xc0
+[306295.402355]  [<ffffffffa980a5b5>] smp_call_function_single_interrupt+0x35/0x40
+[306295.402360]  [<ffffffffa9d90bfa>] call_function_single_interrupt+0x6a/0x70
+[306295.402361]  <EOI>
+[306295.402364]
+[306295.402376]  [<ffffffffa9a3fa32>] printk+0x4d/0x4f
+[306295.402390]  [<ffffffffa99e1726>] printk_address+0x31/0x33
+[306295.402395]  [<ffffffffa99e175b>] print_trace_address+0x33/0x3c
+[306295.402408]  [<ffffffffa99e165b>] print_context_stack+0x7f/0x119
+[306295.402412]  [<ffffffffa99e07f1>] dump_trace+0x26b/0x28e
+[306295.402417]  [<ffffffffa99e17b3>] show_trace_log_lvl+0x4f/0x5c
+[306295.402421]  [<ffffffffa99e0a14>] show_stack_log_lvl+0x104/0x113
+[306295.402425]  [<ffffffffa99e1819>] show_stack+0x42/0x44
+[306295.402429]  [<ffffffffa9ba350a>] dump_stack+0x46/0x58
+[306295.402434]  [<ffffffffa9d0957d>] netdev_rx_csum_fault+0x38/0x3c
+[306295.402439]  [<ffffffffa9988e0e>] __skb_checksum_complete_head+0x6e/0x80
+[306295.402444]  [<ffffffffa9988e31>] __skb_checksum_complete+0x11/0x20
+[306295.402449]  [<ffffffffa98acf65>] tcp_rcv_established+0x2bd5/0x2fd0
+[306295.402468]  [<ffffffffa99cb69c>] tcp_v6_do_rcv+0x13c/0x620
+[306295.402477]  [<ffffffffa9984be5>] sk_backlog_rcv+0x15/0x30
+[306295.402482]  [<ffffffffa98931e2>] release_sock+0xd2/0x150
+[306295.402486]  [<ffffffffa98a51b1>] tcp_recvmsg+0x1c1/0xfc0
+[306295.402491]  [<ffffffffa98b637d>] inet_recvmsg+0x7d/0x90
+[306295.402495]  [<ffffffffa9891fcf>] sock_recvmsg+0xaf/0xe0
+[306295.402505]  [<ffffffffa9892611>] ___sys_recvmsg+0x111/0x3b0
+[306295.402528]  [<ffffffffa9892f5c>] SyS_recvmsg+0x5c/0xb0
+[306295.402532]  [<ffffffffa9d8fba2>] system_call_fastpath+0x16/0x1b
+
+Fixes: b58d977432c8 ("dump_stack: serialize the output from dump_stack()")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Alex Thorlton <athorlton@sgi.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/tty/tty_io.c    |   60 --------------------------------------
- drivers/tty/tty_mutex.c |    4 --
- include/linux/tty.h     |    8 -----
- 3 files changed, 72 deletions(-)
+ lib/dump_stack.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN drivers/tty/tty_io.c~linux-next-git-rejects drivers/tty/tty_io.c
---- a/drivers/tty/tty_io.c~linux-next-git-rejects
-+++ a/drivers/tty/tty_io.c
-@@ -2110,59 +2110,14 @@ retry_open:
- 		return -ENOMEM;
+diff -puN lib/dump_stack.c~dump_stack-avoid-potential-deadlocks lib/dump_stack.c
+--- a/lib/dump_stack.c~dump_stack-avoid-potential-deadlocks
++++ a/lib/dump_stack.c
+@@ -25,6 +25,7 @@ static atomic_t dump_lock = ATOMIC_INIT(
  
- 	tty = tty_open_current_tty(device, filp);
--<<<<<<< HEAD
--	if (!tty) {
--		mutex_lock(&tty_mutex);
--		driver = tty_lookup_driver(device, filp, &noctty, &index);
--		if (IS_ERR(driver)) {
--			retval = PTR_ERR(driver);
--			goto err_unlock;
--		}
--
--		/* check whether we're reopening an existing tty */
--		tty = tty_driver_lookup_tty(driver, inode, index);
--		if (IS_ERR(tty)) {
--			retval = PTR_ERR(tty);
--			goto err_unlock;
--		}
--
--		if (tty) {
--			mutex_unlock(&tty_mutex);
--			retval = tty_lock_interruptible(tty);
--			if (retval) {
--				if (retval == -EINTR)
--					retval = -ERESTARTSYS;
--				goto err_unref;
--			}
--			/* safe to drop the kref from tty_driver_lookup_tty() */
--			tty_kref_put(tty);
--			retval = tty_reopen(tty);
--			if (retval < 0) {
--				tty_unlock(tty);
--				tty = ERR_PTR(retval);
--			}
--		} else { /* Returns with the tty_lock held for now */
--			tty = tty_init_dev(driver, index);
--			mutex_unlock(&tty_mutex);
--		}
--
--		tty_driver_kref_put(driver);
--	}
--=======
- 	if (!tty)
- 		tty = tty_open_by_driver(device, inode, filp);
-->>>>>>> linux-next/akpm-base
- 
- 	if (IS_ERR(tty)) {
- 		tty_free_file(filp);
- 		retval = PTR_ERR(tty);
- 		if (retval != -EAGAIN || signal_pending(current))
--<<<<<<< HEAD
--			goto err_file;
--		tty_free_file(filp);
--=======
- 			return retval;
-->>>>>>> linux-next/akpm-base
- 		schedule();
- 		goto retry_open;
- 	}
-@@ -2233,18 +2188,6 @@ retry_open:
- 	read_unlock(&tasklist_lock);
- 	tty_unlock(tty);
- 	return 0;
--<<<<<<< HEAD
--err_unlock:
--	mutex_unlock(&tty_mutex);
--err_unref:
--	/* after locks to avoid deadlock */
--	if (!IS_ERR_OR_NULL(driver))
--		tty_driver_kref_put(driver);
--err_file:
--	tty_free_file(filp);
--	return retval;
--=======
-->>>>>>> linux-next/akpm-base
- }
- 
- 
-@@ -2749,11 +2692,8 @@ static int tiocgetd(struct tty_struct *t
- 	int ret;
- 
- 	ld = tty_ldisc_ref_wait(tty);
--<<<<<<< HEAD
--=======
- 	if (!ld)
- 		return -EIO;
-->>>>>>> linux-next/akpm-base
- 	ret = put_user(ld->ops->num, p);
- 	tty_ldisc_deref(ld);
- 	return ret;
-diff -puN drivers/tty/tty_mutex.c~linux-next-git-rejects drivers/tty/tty_mutex.c
---- a/drivers/tty/tty_mutex.c~linux-next-git-rejects
-+++ a/drivers/tty/tty_mutex.c
-@@ -27,11 +27,7 @@ int tty_lock_interruptible(struct tty_st
- 	return mutex_lock_interruptible(&tty->legacy_mutex);
- }
- 
--<<<<<<< HEAD
--void __lockfunc tty_unlock(struct tty_struct *tty)
--=======
- void tty_unlock(struct tty_struct *tty)
-->>>>>>> linux-next/akpm-base
+ asmlinkage __visible void dump_stack(void)
  {
- 	if (WARN(tty->magic != TTY_MAGIC, "U Bad %p\n", tty))
- 		return;
-diff -puN include/linux/tty.h~linux-next-git-rejects include/linux/tty.h
---- a/include/linux/tty.h~linux-next-git-rejects
-+++ a/include/linux/tty.h
-@@ -622,19 +622,11 @@ extern long vt_compat_ioctl(struct tty_s
++	unsigned long flags;
+ 	int was_locked;
+ 	int old;
+ 	int cpu;
+@@ -33,9 +34,8 @@ asmlinkage __visible void dump_stack(voi
+ 	 * Permit this cpu to perform nested stack dumps while serialising
+ 	 * against other CPUs
+ 	 */
+-	preempt_disable();
+-
+ retry:
++	local_irq_save(flags);
+ 	cpu = smp_processor_id();
+ 	old = atomic_cmpxchg(&dump_lock, -1, cpu);
+ 	if (old == -1) {
+@@ -43,6 +43,7 @@ retry:
+ 	} else if (old == cpu) {
+ 		was_locked = 1;
+ 	} else {
++		local_irq_restore(flags);
+ 		cpu_relax();
+ 		goto retry;
+ 	}
+@@ -52,7 +53,7 @@ retry:
+ 	if (!was_locked)
+ 		atomic_set(&dump_lock, -1);
  
- /* tty_mutex.c */
- /* functions for preparation of BKL removal */
--<<<<<<< HEAD
--extern void __lockfunc tty_lock(struct tty_struct *tty);
--extern int  tty_lock_interruptible(struct tty_struct *tty);
--extern void __lockfunc tty_unlock(struct tty_struct *tty);
--extern void __lockfunc tty_lock_slave(struct tty_struct *tty);
--extern void __lockfunc tty_unlock_slave(struct tty_struct *tty);
--=======
- extern void tty_lock(struct tty_struct *tty);
- extern int  tty_lock_interruptible(struct tty_struct *tty);
- extern void tty_unlock(struct tty_struct *tty);
- extern void tty_lock_slave(struct tty_struct *tty);
- extern void tty_unlock_slave(struct tty_struct *tty);
-->>>>>>> linux-next/akpm-base
- extern void tty_set_lock_subclass(struct tty_struct *tty);
- 
- #ifdef CONFIG_PROC_FS
+-	preempt_enable();
++	local_irq_restore(flags);
+ }
+ #else
+ asmlinkage __visible void dump_stack(void)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from edumazet@google.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh-fix.patch
-mm-warn-about-vmdata-over-rlimit_data-fix.patch
-ocfs2-code-clean-up-for-direct-io-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
-mm.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-sched-add-schedule_timeout_idle.patch
-btrfs-use-radix_tree_iter_retry-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-linux-next-rejects.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-include-linux-huge_mmh-pmd_trans_huge_lock-returns-a-spinlock_t.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+dump_stack-avoid-potential-deadlocks.patch
 
