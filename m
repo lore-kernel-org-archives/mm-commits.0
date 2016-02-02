@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + dax-use-page_cache_size-where-appropriate.patch added to -mm
+Subject: + dax-remove-unnecessary-rechecking-of-i_size.patch added to -mm
  tree
-Date: Tue, 02 Feb 2016 14:57:43 -0800
-Message-ID: <56b13467.lZUPeLWK/bfQYxVm%akpm@linux-foundation.org>
+Date: Tue, 02 Feb 2016 14:57:39 -0800
+Message-ID: <56b13463.sJWqb7zAbETyeV0G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34098 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34090 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754545AbcBBW5o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 17:57:44 -0500
+	with ESMTP id S1754545AbcBBW5k (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 17:57:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: matthew.r.wilcox@intel.com, dan.j.williams@intel.com, kirill@shutemov.name, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: use PAGE_CACHE_SIZE where appropriate
+     Subject: dax: remove unnecessary rechecking of i_size
 has been added to the -mm tree.  Its filename is
-     dax-use-page_cache_size-where-appropriate.patch
+     dax-remove-unnecessary-rechecking-of-i_size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-use-page_cache_size-where-appropriate.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/dax-remove-unnecessary-rechecking-of-i_size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-use-page_cache_size-where-appropriate.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/dax-remove-unnecessary-rechecking-of-i_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,17 +40,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Subject: dax: use PAGE_CACHE_SIZE where appropriate
+Subject: dax: remove unnecessary rechecking of i_size
 
-We were a little sloppy about using PAGE_SIZE instead of PAGE_CACHE_SIZE. 
-The important thing to remember is that the VM is gicing us a pgoff_t and
-asking us to populate that.  If PAGE_CACHE_SIZE were larger than
-PAGE_SIZE, then we would not successfully fill in the PTEs for faults that
-occurred in the upper portions of PAGE_CACHE_SIZE.
+When i_mmap_lock (or the page lock) was the only protection against
+truncate, we checked i_size at the beginning of the fault handler, then
+rechecked it after acquiring the lock.  Since the fliesystems now exclude
+truncate from racing with the fault handler, we no longer need to recheck
+i_size.  We do, of course, still need to check i_size at the entry to the
+fault handler.
 
-Of course, we actually only fill in one PTE, so this still doesn't solve
-the problem.  I have my doubts we will ever increase PAGE_CACHE_SIZE now
-that we have map_pages.
+Also remove the now-unnecessary acquisitions of i_mmap_lock.  One of the
+acquisitions is still needed, so put a big fat comment beside it to
+prevent the well-intentioned from removing it.
 
 Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
 Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
@@ -59,139 +60,174 @@ Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |   28 ++++++++++++++--------------
- 1 file changed, 14 insertions(+), 14 deletions(-)
+ fs/dax.c |   98 +++++------------------------------------------------
+ 1 file changed, 10 insertions(+), 88 deletions(-)
 
-diff -puN fs/dax.c~dax-use-page_cache_size-where-appropriate fs/dax.c
---- a/fs/dax.c~dax-use-page_cache_size-where-appropriate
+diff -puN fs/dax.c~dax-remove-unnecessary-rechecking-of-i_size fs/dax.c
+--- a/fs/dax.c~dax-remove-unnecessary-rechecking-of-i_size
 +++ a/fs/dax.c
-@@ -578,14 +578,14 @@ static int dax_pte_fault(struct vm_area_
- 	int error;
- 	int major = 0;
- 
+@@ -308,21 +308,11 @@ EXPORT_SYMBOL_GPL(dax_do_io);
+ static int dax_load_hole(struct address_space *mapping, struct page *page,
+ 							struct vm_fault *vmf)
+ {
+-	unsigned long size;
+-	struct inode *inode = mapping->host;
+ 	if (!page)
+ 		page = find_or_create_page(mapping, vmf->pgoff,
+ 						vmf->gfp_mask | __GFP_ZERO);
+ 	if (!page)
+ 		return VM_FAULT_OOM;
+-	/* Recheck i_size under page lock to avoid truncate race */
 -	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
-+	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		return VM_FAULT_SIGBUS;
+-	if (vmf->pgoff >= size) {
+-		unlock_page(page);
+-		page_cache_release(page);
+-		return VM_FAULT_SIGBUS;
+-	}
+-
+ 	vmf->page = page;
+ 	return VM_FAULT_LOCKED;
+ }
+@@ -549,24 +539,8 @@ static int dax_insert_mapping(struct ino
+ 		.sector = to_sector(bh, inode),
+ 		.size = bh->b_size,
+ 	};
+-	pgoff_t size;
+ 	int error;
  
- 	memset(&bh, 0, sizeof(bh));
--	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
-+	block = (sector_t)vmf->pgoff << (PAGE_CACHE_SHIFT - blkbits);
- 	bh.b_bdev = inode->i_sb->s_bdev;
--	bh.b_size = PAGE_SIZE;
-+	bh.b_size = PAGE_CACHE_SIZE;
+-	i_mmap_lock_read(mapping);
+-
+-	/*
+-	 * Check truncate didn't happen while we were allocating a block.
+-	 * If it did, this block may or may not be still allocated to the
+-	 * file.  We can't tell the filesystem to free it because we can't
+-	 * take i_mutex here.  In the worst case, the file still has blocks
+-	 * allocated past the end of the file.
+-	 */
+-	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+-	if (unlikely(vmf->pgoff >= size)) {
+-		error = -EIO;
+-		goto out;
+-	}
+-
+ 	if (dax_map_atomic(bdev, &dax) < 0) {
+ 		error = PTR_ERR(dax.addr);
+ 		goto out;
+@@ -586,8 +560,6 @@ static int dax_insert_mapping(struct ino
+ 	error = vm_insert_mixed(vma, vaddr, dax.pfn);
  
-  repeat:
- 	page = find_get_page(mapping, vmf->pgoff);
-@@ -602,7 +602,7 @@ static int dax_pte_fault(struct vm_area_
+  out:
+-	i_mmap_unlock_read(mapping);
+-
+ 	return error;
+ }
+ 
+@@ -627,15 +599,6 @@ static int dax_pte_fault(struct vm_area_
+ 			page_cache_release(page);
+ 			goto repeat;
+ 		}
+-		size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+-		if (unlikely(vmf->pgoff >= size)) {
+-			/*
+-			 * We have a struct page covering a hole in the file
+-			 * from a read fault and we've raced with a truncate
+-			 */
+-			error = -EIO;
+-			goto unlock_page;
+-		}
  	}
  
  	error = get_block(inode, block, &bh, 0);
--	if (!error && (bh.b_size < PAGE_SIZE))
-+	if (!error && (bh.b_size < PAGE_CACHE_SIZE))
- 		error = -EIO;		/* fs corruption? */
- 	if (error)
- 		goto unlock_page;
-@@ -613,7 +613,7 @@ static int dax_pte_fault(struct vm_area_
- 			count_vm_event(PGMAJFAULT);
- 			mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
- 			major = VM_FAULT_MAJOR;
--			if (!error && (bh.b_size < PAGE_SIZE))
-+			if (!error && (bh.b_size < PAGE_CACHE_SIZE))
- 				error = -EIO;
- 			if (error)
- 				goto unlock_page;
-@@ -650,7 +650,7 @@ static int dax_pte_fault(struct vm_area_
- 		page = find_lock_page(mapping, vmf->pgoff);
- 
- 	if (page) {
--		unmap_mapping_range(mapping, vmf->pgoff << PAGE_SHIFT,
-+		unmap_mapping_range(mapping, vmf->pgoff << PAGE_CACHE_SHIFT,
- 							PAGE_CACHE_SIZE, 0);
- 		delete_from_page_cache(page);
- 		unlock_page(page);
-@@ -697,7 +697,7 @@ static int dax_pte_fault(struct vm_area_
-  * The 'colour' (ie low bits) within a PMD of a page offset.  This comes up
-  * more often than one might expect in the below function.
-  */
--#define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_SHIFT) - 1)
-+#define PG_PMD_COLOUR	((PMD_SIZE >> PAGE_CACHE_SHIFT) - 1)
- 
- static void __dax_dbg(struct buffer_head *bh, unsigned long address,
- 		const char *reason, const char *fn)
-@@ -754,7 +754,7 @@ static int dax_pmd_fault(struct vm_area_
- 		return VM_FAULT_FALLBACK;
+@@ -668,17 +631,17 @@ static int dax_pte_fault(struct vm_area_
+ 		if (error)
+ 			goto unlock_page;
+ 		vmf->page = page;
+-		if (!page) {
++
++		/*
++		 * A truncate must remove COWs of pages that are removed
++		 * from the file.  If we have a struct page, the normal
++		 * page lock mechanism prevents truncate from missing the
++		 * COWed page.  If not, the i_mmap_lock can provide the
++		 * same guarantee.  It is dropped by the caller after the
++		 * page is safely in the page tables.
++		 */
++		if (!page)
+ 			i_mmap_lock_read(mapping);
+-			/* Check we didn't race with truncate */
+-			size = (i_size_read(inode) + PAGE_SIZE - 1) >>
+-								PAGE_SHIFT;
+-			if (vmf->pgoff >= size) {
+-				i_mmap_unlock_read(mapping);
+-				error = -EIO;
+-				goto out;
+-			}
+-		}
+ 		return VM_FAULT_LOCKED;
  	}
  
--	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
-+	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		return VM_FAULT_SIGBUS;
- 	/* If the PMD would cover blocks out of the file */
-@@ -766,7 +766,7 @@ static int dax_pmd_fault(struct vm_area_
- 
- 	memset(&bh, 0, sizeof(bh));
- 	bh.b_bdev = inode->i_sb->s_bdev;
--	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
-+	block = (sector_t)vmf->pgoff << (PAGE_CACHE_SHIFT - blkbits);
- 
- 	bh.b_size = PMD_SIZE;
- 
-@@ -796,7 +796,7 @@ static int dax_pmd_fault(struct vm_area_
- 	 * zero pages covering this hole
- 	 */
- 	if (alloc) {
--		loff_t lstart = vmf->pgoff << PAGE_SHIFT;
-+		loff_t lstart = vmf->pgoff << PAGE_CACHE_SHIFT;
- 		loff_t lend = lstart + PMD_SIZE - 1; /* inclusive */
- 
+@@ -840,25 +803,6 @@ static int dax_pmd_fault(struct vm_area_
  		truncate_pagecache_range(inode, lstart, lend);
-@@ -924,7 +924,7 @@ static int dax_pmd_fault(struct vm_area_
-  * The 'colour' (ie low bits) within a PUD of a page offset.  This comes up
-  * more often than one might expect in the below function.
-  */
--#define PG_PUD_COLOUR	((PUD_SIZE >> PAGE_SHIFT) - 1)
-+#define PG_PUD_COLOUR	((PUD_SIZE >> PAGE_CACHE_SHIFT) - 1)
- 
- #define dax_pud_dbg(bh, address, reason)	__dax_dbg(bh, address, reason, "dax_pud")
- 
-@@ -965,7 +965,7 @@ static int dax_pud_fault(struct vm_area_
- 		return VM_FAULT_FALLBACK;
  	}
  
+-	i_mmap_lock_read(mapping);
+-
+-	/*
+-	 * If a truncate happened while we were allocating blocks, we may
+-	 * leave blocks allocated to the file that are beyond EOF.  We can't
+-	 * take i_mutex here, so just leave them hanging; they'll be freed
+-	 * when the file is deleted.
+-	 */
 -	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
-+	size = (i_size_read(inode) + PAGE_CACHE_SIZE - 1) >> PAGE_CACHE_SHIFT;
- 	if (vmf->pgoff >= size)
- 		return VM_FAULT_SIGBUS;
- 	/* If the PUD would cover blocks out of the file */
-@@ -977,7 +977,7 @@ static int dax_pud_fault(struct vm_area_
+-	if (pgoff >= size) {
+-		result = VM_FAULT_SIGBUS;
+-		goto out;
+-	}
+-	if ((pgoff | PG_PMD_COLOUR) >= size) {
+-		dax_pmd_dbg(&bh, address,
+-				"offset + huge page size > file size");
+-		goto fallback;
+-	}
+-
+ 	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
+ 		spinlock_t *ptl;
+ 		pmd_t entry, *pmd = vmf->pmd;
+@@ -958,8 +902,6 @@ static int dax_pmd_fault(struct vm_area_
+ 	}
  
- 	memset(&bh, 0, sizeof(bh));
- 	bh.b_bdev = inode->i_sb->s_bdev;
--	block = (sector_t)vmf->pgoff << (PAGE_SHIFT - blkbits);
-+	block = (sector_t)vmf->pgoff << (PAGE_CACHE_SHIFT - blkbits);
+  out:
+-	i_mmap_unlock_read(mapping);
+-
+ 	if (buffer_unwritten(&bh))
+ 		complete_unwritten(&bh, !(result & VM_FAULT_ERROR));
  
- 	bh.b_size = PUD_SIZE;
- 
-@@ -1007,7 +1007,7 @@ static int dax_pud_fault(struct vm_area_
- 	 * zero pages covering this hole
- 	 */
- 	if (alloc) {
--		loff_t lstart = vmf->pgoff << PAGE_SHIFT;
-+		loff_t lstart = vmf->pgoff << PAGE_CACHE_SHIFT;
- 		loff_t lend = lstart + PUD_SIZE - 1; /* inclusive */
- 
+@@ -1073,24 +1015,6 @@ static int dax_pud_fault(struct vm_area_
  		truncate_pagecache_range(inode, lstart, lend);
-_
-
-Patches currently in -mm which might be from matthew.r.wilcox@intel.com are
-
-mm-fix-memory-leak-in-copy_huge_pmd.patch
-mm-use-linear_page_index-in-do_fault.patch
-dax-use-vmf-gfp_mask.patch
-dax-remove-unnecessary-rechecking-of-i_size.patch
-dax-use-vmf-pgoff-in-fault-handlers.patch
-dax-use-page_cache_size-where-appropriate.patch
-dax-factor-dax_insert_pmd_mapping-out-of-dax_pmd_fault.patch
-dax-factor-dax_insert_pud_mapping-out-of-dax_pud_fault.patch
-
+ 	}
+ 
+-	i_mmap_lock_read(mapping);
+-
+-	/*
+-	 * If a truncate happened while we were allocating blocks, we may
+-	 * leave blocks allocated to the file that are beyond EOF.  We can't
+-	 * take i_mutex here, so just leave them hanging; they'll be freed
+-	 * when the file is deleted.
+-	 */
+-	size = (i_size_read(inode) + PAGE_SIZE - 1) >> PAGE_SHIFT;
+-	if (pgoff >= size) {
+-		result = VM_FAULT_SIGBUS;
+-		goto out;
+-	}
+-	if ((pgoff | PG_PUD_COLOUR) >= size) {
+-		dax_pud_dbg(&bh, address, "page extends outside VMA");
+-		goto fallback;
+-	}
+-
+ 	if (!write && !buffer_mapped(&bh) && buffer_uptodate(&bh)) {
+ 		dax_pud_dbg(&bh, address, "no zero page");
+ 		goto fallback;
+@@ -1141,8 +1065,6 @@ static int dax_pud_fault(struct vm_area_
+ 	}
+ 
+  out:
+-	i_mmap_unlock_read(mapping);
