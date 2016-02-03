@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + errh-allow-is_err_value-to-handle-properly-more-types.patch
- added to -mm tree
-Date: Wed, 03 Feb 2016 14:57:45 -0800
-Message-ID: <56b285e9.d8ITU0+XCvkvyuSQ%akpm@linux-foundation.org>
+Subject: + thp-cleanup-split_huge_page.patch added to -mm tree
+Date: Wed, 03 Feb 2016 15:02:28 -0800
+Message-ID: <56b28704.SyOQFTI+VHZ9LdaL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47406 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47733 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755442AbcBCW5q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2016 17:57:46 -0500
+	with ESMTP id S1755862AbcBCXC3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2016 18:02:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: a.hajda@samsung.com, b.zolnierkie@samsung.com, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: err.h: allow IS_ERR_VALUE to handle properly more types
+     Subject: thp: cleanup split_huge_page()
 has been added to the -mm tree.  Its filename is
-     errh-allow-is_err_value-to-handle-properly-more-types.patch
+     thp-cleanup-split_huge_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/errh-allow-is_err_value-to-handle-properly-more-types.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-cleanup-split_huge_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/errh-allow-is_err_value-to-handle-properly-more-types.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-cleanup-split_huge_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,95 +38,98 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrzej Hajda <a.hajda@samsung.com>
-Subject: err.h: allow IS_ERR_VALUE to handle properly more types
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp: cleanup split_huge_page()
 
-Current implementation of IS_ERR_VALUE works correctly only with following
-types:
+After one of bugfixes to freeze_page(), we don't have freezed pages in
+rmap, therefore mapcount of all subpages of freezed THP is zero.  And we
+have assert for that.
 
-- unsigned long,
+Let's drop code which deal with non-zero mapcount of subpages.
 
-- short, int, long.
-
-Other types are handled incorrectly either on 32-bit either on 64-bit
-either on both architectures.
-
-The patch fixes it by comparing argument with MAX_ERRNO casted to
-argument's type for unsigned types and comparing with zero for signed
-types.  As a result all integer types bigger than char are handled
-properly.
-
-I have analyzed usage of IS_ERR_VALUE using coccinelle and in about 35
-cases it is used incorrectly, ie it can hide errors depending of 32/64 bit
-architecture.  Instead of fixing usage I propose to enhance the macro to
-cover more types.
-
-And just for the record: the macro is used 101 times with signed
-variables, I am not sure if it should be preferred over simple comparison
-"ret < 0", but the new version can do it as well.
-
-And below list of detected potential errors:
-drivers/char/mem.c:698:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(( unsigned long long ) offset)
-drivers/media/platform/soc_camera/atmel-isi.c:1089:21-22: WARNING: incorrect argument type in IS_ERR_VALUE(irq)
-drivers/net/ethernet/freescale/fs_enet/mac-scc.c:149:36-37: WARNING: incorrect argument type in IS_ERR_VALUE(fep -> ring_mem_addr)
-drivers/net/ethernet/freescale/ucc_geth.c:2237:48-49: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_bd_ring_offset [ j ])
-drivers/net/ethernet/freescale/ucc_geth.c:2314:48-49: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_bd_ring_offset [ j ])
-drivers/net/ethernet/freescale/ucc_geth.c:2524:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_glbl_pram_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2544:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> thread_dat_tx_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2571:46-47: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> send_q_mem_reg_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2612:42-43: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> scheduler_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2659:54-55: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_fw_statistics_pram_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2696:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_glbl_pram_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2715:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> thread_dat_rx_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2736:54-55: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_fw_statistics_pram_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2756:53-54: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_irq_coalescing_tbl_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2822:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_bd_qs_tbl_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:2908:47-48: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> exf_glbl_param_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:292:36-37: WARNING: incorrect argument type in IS_ERR_VALUE(init_enet_offset)
-drivers/net/ethernet/freescale/ucc_geth.c:3042:39-40: WARNING: incorrect argument type in IS_ERR_VALUE(init_enet_pram_offset)
-drivers/soc/fsl/qe/ucc_fast.c:271:60-61: WARNING: incorrect argument type in IS_ERR_VALUE(uccf -> ucc_fast_tx_virtual_fifo_base_offset)
-drivers/soc/fsl/qe/ucc_fast.c:284:60-61: WARNING: incorrect argument type in IS_ERR_VALUE(uccf -> ucc_fast_rx_virtual_fifo_base_offset)
-drivers/soc/fsl/qe/ucc_slow.c:186:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> us_pram_offset)
-drivers/soc/fsl/qe/ucc_slow.c:213:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> rx_base_offset)
-drivers/soc/fsl/qe/ucc_slow.c:224:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> tx_base_offset)
-drivers/tty/serial/clps711x.c:471:29-30: WARNING: incorrect argument type in IS_ERR_VALUE(s -> port . irq)
-drivers/tty/serial/digicolor-usart.c:485:30-31: WARNING: incorrect argument type in IS_ERR_VALUE(dp -> port . irq)
-drivers/usb/gadget/udc/fsl_qe_udc.c:2369:26-27: WARNING: incorrect argument type in IS_ERR_VALUE(tmp_addr)
-drivers/video/fbdev/exynos/exynos_mipi_dsi.c:406:27-28: WARNING: incorrect argument type in IS_ERR_VALUE(dsim -> irq)
-net/ipv4/netfilter/arp_tables.c:1427:39-40: WARNING: incorrect argument type in IS_ERR_VALUE(iter1 -> counters . pcnt)
-net/ipv4/netfilter/arp_tables.c:530:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
-net/ipv4/netfilter/ip_tables.c:1614:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
-net/ipv4/netfilter/ip_tables.c:674:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
-net/ipv6/netfilter/ip6_tables.c:1624:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
-net/ipv6/netfilter/ip6_tables.c:687:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
-drivers/net/ethernet/freescale/fs_enet/mac-fcc.c:110:35-36: WARNING: unknown argument type in IS_ERR_VALUE(fpi -> dpram_offset)
-
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/err.h |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/huge_memory.c |   20 +++++++-------------
+ 1 file changed, 7 insertions(+), 13 deletions(-)
 
-diff -puN include/linux/err.h~errh-allow-is_err_value-to-handle-properly-more-types include/linux/err.h
---- a/include/linux/err.h~errh-allow-is_err_value-to-handle-properly-more-types
-+++ a/include/linux/err.h
-@@ -18,7 +18,9 @@
+diff -puN mm/huge_memory.c~thp-cleanup-split_huge_page mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-cleanup-split_huge_page
++++ a/mm/huge_memory.c
+@@ -3217,28 +3217,26 @@ static void unfreeze_page(struct anon_vm
+ 	}
+ }
  
- #ifndef __ASSEMBLY__
- 
--#define IS_ERR_VALUE(x) unlikely((x) >= (unsigned long)-MAX_ERRNO)
-+#define IS_ERR_VALUE(x) ((typeof(x))(-1) <= 0 \
-+				? unlikely((x) <= -1) \
-+				: unlikely((x) >= (typeof(x))-MAX_ERRNO))
- 
- static inline void * __must_check ERR_PTR(long error)
+-static int __split_huge_page_tail(struct page *head, int tail,
++static void __split_huge_page_tail(struct page *head, int tail,
+ 		struct lruvec *lruvec, struct list_head *list)
  {
+-	int mapcount;
+ 	struct page *page_tail = head + tail;
+ 
+-	mapcount = atomic_read(&page_tail->_mapcount) + 1;
++	VM_BUG_ON_PAGE(atomic_read(&page_tail->_mapcount) != -1, page_tail);
+ 	VM_BUG_ON_PAGE(atomic_read(&page_tail->_count) != 0, page_tail);
+ 
+ 	/*
+ 	 * tail_page->_count is zero and not changing from under us. But
+ 	 * get_page_unless_zero() may be running from under us on the
+-	 * tail_page. If we used atomic_set() below instead of atomic_add(), we
++	 * tail_page. If we used atomic_set() below instead of atomic_inc(), we
+ 	 * would then run atomic_set() concurrently with
+ 	 * get_page_unless_zero(), and atomic_set() is implemented in C not
+ 	 * using locked ops. spin_unlock on x86 sometime uses locked ops
+ 	 * because of PPro errata 66, 92, so unless somebody can guarantee
+ 	 * atomic_set() here would be safe on all archs (and not only on x86),
+-	 * it's safer to use atomic_add().
++	 * it's safer to use atomic_inc().
+ 	 */
+-	atomic_add(mapcount + 1, &page_tail->_count);
+-
++	atomic_inc(&page_tail->_count);
+ 
+ 	page_tail->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
+ 	page_tail->flags |= (head->flags &
+@@ -3272,8 +3270,6 @@ static int __split_huge_page_tail(struct
+ 	page_tail->index = head->index + tail;
+ 	page_cpupid_xchg_last(page_tail, page_cpupid_last(head));
+ 	lru_add_page_tail(head, page_tail, lruvec, list);
+-
+-	return mapcount;
+ }
+ 
+ static void __split_huge_page(struct page *page, struct list_head *list)
+@@ -3281,7 +3277,7 @@ static void __split_huge_page(struct pag
+ 	struct page *head = compound_head(page);
+ 	struct zone *zone = page_zone(head);
+ 	struct lruvec *lruvec;
+-	int i, tail_mapcount;
++	int i;
+ 
+ 	/* prevent PageLRU to go away from under us, and freeze lru stats */
+ 	spin_lock_irq(&zone->lru_lock);
+@@ -3290,10 +3286,8 @@ static void __split_huge_page(struct pag
+ 	/* complete memcg works before add pages to LRU */
+ 	mem_cgroup_split_huge_fixup(head);
+ 
+-	tail_mapcount = 0;
+ 	for (i = HPAGE_PMD_NR - 1; i >= 1; i--)
+-		tail_mapcount += __split_huge_page_tail(head, i, lruvec, list);
+-	atomic_sub(tail_mapcount, &head->_count);
++		__split_huge_page_tail(head, i, lruvec, list);
+ 
+ 	ClearPageCompound(head);
+ 	spin_unlock_irq(&zone->lru_lock);
 _
 
-Patches currently in -mm which might be from a.hajda@samsung.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-errh-allow-is_err_value-to-handle-properly-more-types.patch
+mempolicy-do-not-try-to-queue-pages-from-vma_migratable.patch
+mm-downgrade-vm_bug-in-isolate_lru_page-to-warning.patch
+ipc-shm-handle-removed-segments-gracefully-in-shm_mmap.patch
+thp-cleanup-split_huge_page.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
 
