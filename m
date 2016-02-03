@@ -1,233 +1,151 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write.patch added to
- -mm tree
-Date: Tue, 02 Feb 2016 19:49:19 -0800
-Message-ID: <56b178bf.QcxwYVk6Vov5z555%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show.patch
+ removed from -mm tree
+Date: Tue, 02 Feb 2016 19:50:33 -0800
+Message-ID: <56b17909.zHupt/hiqKC9EXUy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59846 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59896 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933037AbcBCDtV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 22:49:21 -0500
+	with ESMTP id S1755282AbcBCDue (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 22:50:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: koct9i@gmail.com, aarcange@redhat.com, dvyukov@google.com, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: dsafonov@virtuozzo.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: replace vma_lock_anon_vma with anon_vma_lock_read/write
-has been added to the -mm tree.  Its filename is
-     mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write.patch
+     Subject: mm/slab: fix race with dereferencing NULL ptr in alloc_calls_show
+has been removed from the -mm tree.  Its filename was
+     mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: mm: replace vma_lock_anon_vma with anon_vma_lock_read/write
+From: Dmitry Safonov <dsafonov@virtuozzo.com>
+Subject: mm/slab: fix race with dereferencing NULL ptr in alloc_calls_show
 
-Sequence vma_lock_anon_vma() - vma_unlock_anon_vma() isn't safe if
-anon_vma appeared between lock and unlock.  We have to check anon_vma
-first or call anon_vma_prepare() to be sure that it's here.  There are
-only few users of these legacy helpers.  Let's get rid of them.
+memcg_destroy_kmem_caches shutdowns in the first place kmem_caches under
+slab_mutex which involves freeing NUMA node structures for kmem_cache and
+only then under release_caches removes corresponding sysfs files for these
+caches.  Which may lead to dereferencing NULL ptr on read.  Lets remove
+sysfs files right there.
 
-This patch fixes anon_vma lock imbalance in validate_mm().  Write lock
-isn't required here, read lock is enough.
+Fixes the following panic:
+[43963.463055] BUG: unable to handle kernel
+[43963.463090] NULL pointer dereference at 0000000000000020
+[43963.463146] IP: [<ffffffff811c6959>] list_locations+0x169/0x4e0
+[43963.463185] PGD 257304067 PUD 438456067 PMD 0
+[43963.463220] Oops: 0000 [#1] SMP
+[43963.463850] CPU: 3 PID: 973074 Comm: cat ve: 0 Not tainted 3.10.0-229.7.2.ovz.9.30-00007-japdoll-dirty #2 9.30
+[43963.463913] Hardware name: DEPO Computers To Be Filled By O.E.M./H67DE3, BIOS L1.60c 07/14/2011
+[43963.463976] task: ffff88042a5dc5b0 ti: ffff88037f8d8000 task.ti: ffff88037f8d8000
+[43963.464036] RIP: 0010:[<ffffffff811c6959>]  [<ffffffff811c6959>] list_locations+0x169/0x4e0
+[43963.464725] Call Trace:
+[43963.464756]  [<ffffffff811c6d1d>] alloc_calls_show+0x1d/0x30
+[43963.464793]  [<ffffffff811c15ab>] slab_attr_show+0x1b/0x30
+[43963.464829]  [<ffffffff8125d27a>] sysfs_read_file+0x9a/0x1a0
+[43963.464865]  [<ffffffff811e3c6c>] vfs_read+0x9c/0x170
+[43963.464900]  [<ffffffff811e4798>] SyS_read+0x58/0xb0
+[43963.464936]  [<ffffffff81612d49>] system_call_fastpath+0x16/0x1b
+[43963.464970] Code: 5e 07 12 00 b9 00 04 00 00 3d 00 04 00 00 0f 4f c1 3d 00 04 00 00 89 45 b0 0f 84 c3 00 00 00 48 63 45 b0 49 8b 9c c4 f8 00 00 00 <48> 8b 43 20 48 85 c0 74 b6 48 89 df e8 46 37 44 00 48 8b 53 10
+[43963.465119] RIP  [<ffffffff811c6959>] list_locations+0x169/0x4e0
+[43963.465155]  RSP <ffff88037f8dbe28>
+[43963.465185] CR2: 0000000000000020
 
-And reorders expand_downwards/expand_upwards: security_mmap_addr() and
-wrapping-around check don't have to be under anon vma lock.
-
-Link: https://lkml.kernel.org/r/CACT4Y+Y908EjM2z=706dv4rV6dWtxTLK9nFg9_7DhRMLppBo2g@mail.gmail.com
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Dmitry Safonov <dsafonov@virtuozzo.com>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   14 ----------
- mm/mmap.c            |   55 ++++++++++++++++++-----------------------
- 2 files changed, 25 insertions(+), 44 deletions(-)
+ include/linux/slub_def.h |   10 ----------
+ mm/slab.h                |    8 ++++++++
+ mm/slab_common.c         |   10 ++++------
+ mm/slub.c                |    6 ------
+ 4 files changed, 12 insertions(+), 22 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write include/linux/rmap.h
---- a/include/linux/rmap.h~mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write
-+++ a/include/linux/rmap.h
-@@ -109,20 +109,6 @@ static inline void put_anon_vma(struct a
- 		__put_anon_vma(anon_vma);
+diff -puN include/linux/slub_def.h~mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show include/linux/slub_def.h
+--- a/include/linux/slub_def.h~mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show
++++ a/include/linux/slub_def.h
+@@ -101,16 +101,6 @@ struct kmem_cache {
+ 	struct kmem_cache_node *node[MAX_NUMNODES];
+ };
+ 
+-#ifdef CONFIG_SYSFS
+-#define SLAB_SUPPORTS_SYSFS
+-void sysfs_slab_remove(struct kmem_cache *);
+-#else
+-static inline void sysfs_slab_remove(struct kmem_cache *s)
+-{
+-}
+-#endif
+-
+-
+ /**
+  * virt_to_obj - returns address of the beginning of object.
+  * @s: object's kmem_cache
+diff -puN mm/slab.h~mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show mm/slab.h
+--- a/mm/slab.h~mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show
++++ a/mm/slab.h
+@@ -367,6 +367,14 @@ static inline struct kmem_cache_node *ge
+ 
+ #endif
+ 
++#if defined(CONFIG_SLUB) && defined(CONFIG_SYSFS)
++void sysfs_slab_remove(struct kmem_cache *);
++#else
++static inline void sysfs_slab_remove(struct kmem_cache *s)
++{
++}
++#endif
++
+ void *slab_start(struct seq_file *m, loff_t *pos);
+ void *slab_next(struct seq_file *m, void *p, loff_t *pos);
+ void slab_stop(struct seq_file *m, void *p);
+diff -puN mm/slab_common.c~mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show
++++ a/mm/slab_common.c
+@@ -468,13 +468,8 @@ static void release_caches(struct list_h
+ 	if (need_rcu_barrier)
+ 		rcu_barrier();
+ 
+-	list_for_each_entry_safe(s, s2, release, list) {
+-#ifdef SLAB_SUPPORTS_SYSFS
+-		sysfs_slab_remove(s);
+-#else
++	list_for_each_entry_safe(s, s2, release, list)
+ 		slab_kmem_cache_release(s);
+-#endif
+-	}
  }
  
--static inline void vma_lock_anon_vma(struct vm_area_struct *vma)
--{
--	struct anon_vma *anon_vma = vma->anon_vma;
--	if (anon_vma)
--		down_write(&anon_vma->root->rwsem);
--}
--
--static inline void vma_unlock_anon_vma(struct vm_area_struct *vma)
--{
--	struct anon_vma *anon_vma = vma->anon_vma;
--	if (anon_vma)
--		up_write(&anon_vma->root->rwsem);
--}
--
- static inline void anon_vma_lock_write(struct anon_vma *anon_vma)
- {
- 	down_write(&anon_vma->root->rwsem);
-diff -puN mm/mmap.c~mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write mm/mmap.c
---- a/mm/mmap.c~mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write
-+++ a/mm/mmap.c
-@@ -459,12 +459,16 @@ static void validate_mm(struct mm_struct
- 	struct vm_area_struct *vma = mm->mmap;
- 
- 	while (vma) {
-+		struct anon_vma *anon_vma = vma->anon_vma;
- 		struct anon_vma_chain *avc;
- 
--		vma_lock_anon_vma(vma);
--		list_for_each_entry(avc, &vma->anon_vma_chain, same_vma)
--			anon_vma_interval_tree_verify(avc);
--		vma_unlock_anon_vma(vma);
-+		if (anon_vma) {
-+			anon_vma_lock_read(anon_vma);
-+			list_for_each_entry(avc, &vma->anon_vma_chain, same_vma)
-+				anon_vma_interval_tree_verify(avc);
-+			anon_vma_unlock_read(anon_vma);
-+		}
+ #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
+@@ -614,6 +609,9 @@ void memcg_destroy_kmem_caches(struct me
+ 	list_for_each_entry_safe(s, s2, &slab_caches, list) {
+ 		if (is_root_cache(s) || s->memcg_params.memcg != memcg)
+ 			continue;
 +
- 		highest_address = vma->vm_end;
- 		vma = vma->vm_next;
- 		i++;
-@@ -2145,32 +2149,27 @@ static int acct_stack_growth(struct vm_a
- int expand_upwards(struct vm_area_struct *vma, unsigned long address)
- {
- 	struct mm_struct *mm = vma->vm_mm;
--	int error;
-+	int error = 0;
- 
- 	if (!(vma->vm_flags & VM_GROWSUP))
- 		return -EFAULT;
- 
--	/*
--	 * We must make sure the anon_vma is allocated
--	 * so that the anon_vma locking is not a noop.
--	 */
-+	/* Guard against wrapping around to address 0. */
-+	if (address < PAGE_ALIGN(address+4))
-+		address = PAGE_ALIGN(address+4);
-+	else
-+		return -ENOMEM;
++		sysfs_slab_remove(s);
 +
-+	/* We must make sure the anon_vma is allocated. */
- 	if (unlikely(anon_vma_prepare(vma)))
- 		return -ENOMEM;
--	vma_lock_anon_vma(vma);
+ 		/*
+ 		 * The cgroup is about to be freed and therefore has no charges
+ 		 * left. Hence, all its caches must be empty by now.
+diff -puN mm/slub.c~mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show mm/slub.c
+--- a/mm/slub.c~mm-slab-fix-race-with-dereferencing-null-ptr-in-alloc_calls_show
++++ a/mm/slub.c
+@@ -5296,11 +5296,6 @@ static void memcg_propagate_slab_attrs(s
+ #endif
+ }
  
- 	/*
- 	 * vma->vm_start/vm_end cannot change under us because the caller
- 	 * is required to hold the mmap_sem in read mode.  We need the
- 	 * anon_vma lock to serialize against concurrent expand_stacks.
--	 * Also guard against wrapping around to address 0.
- 	 */
--	if (address < PAGE_ALIGN(address+4))
--		address = PAGE_ALIGN(address+4);
--	else {
--		vma_unlock_anon_vma(vma);
--		return -ENOMEM;
--	}
--	error = 0;
-+	anon_vma_lock_write(vma->anon_vma);
- 
- 	/* Somebody else might have raced and expanded it already */
- 	if (address > vma->vm_end) {
-@@ -2188,7 +2187,7 @@ int expand_upwards(struct vm_area_struct
- 				 * updates, but we only hold a shared mmap_sem
- 				 * lock here, so we need to protect against
- 				 * concurrent vma expansions.
--				 * vma_lock_anon_vma() doesn't help here, as
-+				 * anon_vma_lock_write() doesn't help here, as
- 				 * we don't guarantee that all growable vmas
- 				 * in a mm share the same root anon vma.
- 				 * So, we reuse mm->page_table_lock to guard
-@@ -2211,7 +2210,7 @@ int expand_upwards(struct vm_area_struct
- 			}
- 		}
- 	}
--	vma_unlock_anon_vma(vma);
-+	anon_vma_unlock_write(vma->anon_vma);
- 	khugepaged_enter_vma_merge(vma, vma->vm_flags);
- 	validate_mm(mm);
- 	return error;
-@@ -2227,25 +2226,21 @@ int expand_downwards(struct vm_area_stru
- 	struct mm_struct *mm = vma->vm_mm;
- 	int error;
- 
--	/*
--	 * We must make sure the anon_vma is allocated
--	 * so that the anon_vma locking is not a noop.
--	 */
--	if (unlikely(anon_vma_prepare(vma)))
--		return -ENOMEM;
--
- 	address &= PAGE_MASK;
- 	error = security_mmap_addr(address);
- 	if (error)
- 		return error;
- 
--	vma_lock_anon_vma(vma);
-+	/* We must make sure the anon_vma is allocated. */
-+	if (unlikely(anon_vma_prepare(vma)))
-+		return -ENOMEM;
- 
- 	/*
- 	 * vma->vm_start/vm_end cannot change under us because the caller
- 	 * is required to hold the mmap_sem in read mode.  We need the
- 	 * anon_vma lock to serialize against concurrent expand_stacks.
- 	 */
-+	anon_vma_lock_write(vma->anon_vma);
- 
- 	/* Somebody else might have raced and expanded it already */
- 	if (address < vma->vm_start) {
-@@ -2263,7 +2258,7 @@ int expand_downwards(struct vm_area_stru
- 				 * updates, but we only hold a shared mmap_sem
- 				 * lock here, so we need to protect against
- 				 * concurrent vma expansions.
--				 * vma_lock_anon_vma() doesn't help here, as
-+				 * anon_vma_lock_write() doesn't help here, as
- 				 * we don't guarantee that all growable vmas
- 				 * in a mm share the same root anon vma.
- 				 * So, we reuse mm->page_table_lock to guard
-@@ -2284,7 +2279,7 @@ int expand_downwards(struct vm_area_stru
- 			}
- 		}
- 	}
--	vma_unlock_anon_vma(vma);
-+	anon_vma_unlock_write(vma->anon_vma);
- 	khugepaged_enter_vma_merge(vma, vma->vm_flags);
- 	validate_mm(mm);
- 	return error;
-_
-
-Patches currently in -mm which might be from koct9i@gmail.com are
-
-mm-warn-about-vmdata-over-rlimit_data.patch
-mm-polish-virtual-memory-accounting.patch
-mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write.patch
-
+-static void kmem_cache_release(struct kobject *k)
+-{
+-	slab_kmem_cache_release(to_slab(k));
+-}
