@@ -1,42 +1,45 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- hwspinlock-fix-race-between-radix-tree-insertion-and-lookup.patch removed
- from -mm tree
-Date: Wed, 03 Feb 2016 13:53:30 -0800
-Message-ID: <56b276da.qV+wZthLEjLEavB4%akpm__3545.57818868688$1454536422$gmane$org@linux-foundation.org>
+Subject: [merged] radix-tree-fix-race-in-gang-lookup.patch removed from
+ -mm tree
+Date: Wed, 03 Feb 2016 13:53:28 -0800
+Message-ID: <56b276d8.9YYsz5gMD1RGr/88%akpm__20264.8424231031$1454536422$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42279 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42274 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965157AbcBCVxb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2016 16:53:31 -0500
+	with ESMTP id S965157AbcBCVx3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2016 16:53:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: willy@linux.intel.com, hughd@google.com, khlebnikov@openvz.org, ohad@wizery.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/hwspinlock: fix race between radix tree insertion and lookup
+     Subject: radix-tree: fix race in gang lookup
 has been removed from the -mm tree.  Its filename was
-     hwspinlock-fix-race-between-radix-tree-insertion-and-lookup.patch
+     radix-tree-fix-race-in-gang-lookup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: drivers/hwspinlock: fix race between radix tree insertion and lookup
+Subject: radix-tree: fix race in gang lookup
 
-of_hwspin_lock_get_id() is protected by the RCU lock, which means that
-insertions can occur simultaneously with the lookup.  If the radix tree
-transitions from a height of 0, we can see a slot with the indirect_ptr
-bit set, which will cause us to at least read random memory, and could
-cause other havoc.
+If the indirect_ptr bit is set on a slot, that indicates we need to redo
+the lookup.  Introduce a new function radix_tree_iter_retry() which forces
+the loop to retry the lookup by setting 'slot' to NULL and turning the
+iterator back to point at the problematic entry.
 
-Fix this by using the newly introduced radix_tree_iter_retry().
+This is a pretty rare problem to hit at the moment; the lookup has to race
+with a grow of the radix tree from a height of 0.  The consequences of
+hitting this race are that gang lookup could return a pointer to a
+radix_tree_node instead of a pointer to whatever the user had inserted in
+the tree.
 
+Fixes: cebbd29e1c2f ("radix-tree: rewrite gang lookup using iterator")
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
 Cc: Hugh Dickins <hughd@google.com>
 Cc: Ohad Ben-Cohen <ohad@wizery.com>
@@ -45,23 +48,69 @@ Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/hwspinlock/hwspinlock_core.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/linux/radix-tree.h |   16 ++++++++++++++++
+ lib/radix-tree.c           |   12 ++++++++++--
+ 2 files changed, 26 insertions(+), 2 deletions(-)
 
-diff -puN drivers/hwspinlock/hwspinlock_core.c~hwspinlock-fix-race-between-radix-tree-insertion-and-lookup drivers/hwspinlock/hwspinlock_core.c
---- a/drivers/hwspinlock/hwspinlock_core.c~hwspinlock-fix-race-between-radix-tree-insertion-and-lookup
-+++ a/drivers/hwspinlock/hwspinlock_core.c
-@@ -313,6 +313,10 @@ int of_hwspin_lock_get_id(struct device_
- 		hwlock = radix_tree_deref_slot(slot);
- 		if (unlikely(!hwlock))
+diff -puN include/linux/radix-tree.h~radix-tree-fix-race-in-gang-lookup include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-fix-race-in-gang-lookup
++++ a/include/linux/radix-tree.h
+@@ -379,6 +379,22 @@ void **radix_tree_next_chunk(struct radi
+ 			     struct radix_tree_iter *iter, unsigned flags);
+ 
+ /**
++ * radix_tree_iter_retry - retry this chunk of the iteration
++ * @iter:	iterator state
++ *
++ * If we iterate over a tree protected only by the RCU lock, a race
++ * against deletion or creation may result in seeing a slot for which
++ * radix_tree_deref_retry() returns true.  If so, call this function
++ * and continue the iteration.
++ */
++static inline __must_check
++void **radix_tree_iter_retry(struct radix_tree_iter *iter)
++{
++	iter->next_index = iter->index;
++	return NULL;
++}
++
++/**
+  * radix_tree_chunk_size - get current chunk size
+  *
+  * @iter:	pointer to radix tree iterator
+diff -puN lib/radix-tree.c~radix-tree-fix-race-in-gang-lookup lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-fix-race-in-gang-lookup
++++ a/lib/radix-tree.c
+@@ -1019,9 +1019,13 @@ radix_tree_gang_lookup(struct radix_tree
+ 		return 0;
+ 
+ 	radix_tree_for_each_slot(slot, root, &iter, first_index) {
+-		results[ret] = indirect_to_ptr(rcu_dereference_raw(*slot));
++		results[ret] = rcu_dereference_raw(*slot);
+ 		if (!results[ret])
  			continue;
-+		if (radix_tree_is_indirect_ptr(hwlock)) {
++		if (radix_tree_is_indirect_ptr(results[ret])) {
 +			slot = radix_tree_iter_retry(&iter);
 +			continue;
 +		}
+ 		if (++ret == max_items)
+ 			break;
+ 	}
+@@ -1098,9 +1102,13 @@ radix_tree_gang_lookup_tag(struct radix_
+ 		return 0;
  
- 		if (hwlock->bank->dev->of_node == args.np) {
- 			ret = 0;
+ 	radix_tree_for_each_tagged(slot, root, &iter, first_index, tag) {
+-		results[ret] = indirect_to_ptr(rcu_dereference_raw(*slot));
++		results[ret] = rcu_dereference_raw(*slot);
+ 		if (!results[ret])
+ 			continue;
++		if (radix_tree_is_indirect_ptr(results[ret])) {
++			slot = radix_tree_iter_retry(&iter);
++			continue;
++		}
+ 		if (++ret == max_items)
+ 			break;
+ 	}
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
