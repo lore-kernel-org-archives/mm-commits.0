@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix-2.patch added to
- -mm tree
-Date: Wed, 03 Feb 2016 13:06:08 -0800
-Message-ID: <56b26bc0.2ws/pmStoCd6p94G%akpm@linux-foundation.org>
+Subject: + mm-workingset-per-cgroup-cache-thrash-detection-fix.patch added to -mm tree
+Date: Wed, 03 Feb 2016 13:25:08 -0800
+Message-ID: <56b27034.dgzj6IiGuufnkVIp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38040 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39384 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752157AbcBCVGJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2016 16:06:09 -0500
+	with ESMTP id S1753212AbcBCVZJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2016 16:25:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, gthelen@google.com, hannes@cmpxchg.org, hughd@google.com, mhocko@suse.cz, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix-2
+     Subject: mm-workingset-per-cgroup-cache-thrash-detection-fix
 has been added to the -mm tree.  Its filename is
-     mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix-2.patch
+     mm-workingset-per-cgroup-cache-thrash-detection-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-workingset-per-cgroup-cache-thrash-detection-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-workingset-per-cgroup-cache-thrash-detection-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,142 +38,38 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix-2
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: mm-workingset-per-cgroup-cache-thrash-detection-fix
 
-It must be safe to move these calls outside tree_lock:
+Do not return from workingset_activation() with locked rcu and page.
 
-Will hopefully fix the lockdep splat:
-
-[ 3587.997451] =================================
-[ 3587.997453] [ INFO: inconsistent lock state ]
-[ 3587.997456] 4.5.0-rc2-next-20160203-dbg-00007-g37a0a9d-dirty #377 Not tainted
-[ 3587.997457] ---------------------------------
-[ 3587.997459] inconsistent {IN-SOFTIRQ-W} -> {SOFTIRQ-ON-W} usage.
-[ 3587.997462] cc1plus/22766 [HC0[0]:SC0[0]:HE1:SE1] takes:
-[ 3587.997464]  (&(&mapping->tree_lock)->rlock){+.?...}, at: [<ffffffff8113aaee>] migrate_page_move_mapping+0xbd/0x33f
-[ 3587.997474] {IN-SOFTIRQ-W} state was registered at:
-[ 3587.997476]   [<ffffffff81082515>] __lock_acquire+0x973/0x18fc
-[ 3587.997481]   [<ffffffff81083c77>] lock_acquire+0x10d/0x1a8
-[ 3587.997484]   [<ffffffff813c3486>] _raw_spin_lock_irqsave+0x3d/0x51
-[ 3587.997489]   [<ffffffff81100552>] test_clear_page_writeback+0x75/0x1b4
-[ 3587.997493]   [<ffffffff810f53cb>] end_page_writeback+0x29/0x4a
-[ 3587.997497]   [<ffffffff8117ffd5>] end_buffer_async_write+0xfb/0x176
-[ 3587.997501]   [<ffffffff8117fb53>] end_bio_bh_io_sync+0x2c/0x37
-[ 3587.997503]   [<ffffffff811d0a43>] bio_endio+0x53/0x5b
-[ 3587.997508]   [<ffffffff811d8548>] blk_update_request+0x1fb/0x34d
-[ 3587.997512]   [<ffffffffa00ed512>] scsi_end_request+0x31/0x182 [scsi_mod]
-[ 3587.997522]   [<ffffffffa00eec2d>] scsi_io_completion+0x186/0x46e [scsi_mod]
-[ 3587.997530]   [<ffffffffa00e7aa2>] scsi_finish_command+0xd4/0xdd [scsi_mod]
-[ 3587.997537]   [<ffffffffa00ee51c>] scsi_softirq_done+0xe0/0xe7 [scsi_mod]
-[ 3587.997544]   [<ffffffff811df3ef>] blk_done_softirq+0x84/0x8b
-[ 3587.997548]   [<ffffffff8104625c>] __do_softirq+0x196/0x3f5
-[ 3587.997552]   [<ffffffff810466aa>] irq_exit+0x40/0x94
-[ 3587.997554]   [<ffffffff813c6041>] do_IRQ+0x101/0x119
-[ 3587.997558]   [<ffffffff813c4689>] ret_from_intr+0x0/0x19
-[ 3587.997561]   [<ffffffff812d9906>] cpuidle_enter+0x17/0x19
-[ 3587.997565]   [<ffffffff8107c32a>] call_cpuidle+0x3e/0x40
-[ 3587.997569]   [<ffffffff8107c65b>] cpu_startup_entry+0x242/0x35e
-[ 3587.997572]   [<ffffffff813bd4fa>] rest_init+0x131/0x137
-[ 3587.997575]   [<ffffffff816d4ec1>] start_kernel+0x3dd/0x3ea
-[ 3587.997579]   [<ffffffff816d42f1>] x86_64_start_reservations+0x2a/0x2c
-[ 3587.997582]   [<ffffffff816d445d>] x86_64_start_kernel+0x16a/0x178
-[ 3587.997586] irq event stamp: 191930
-[ 3587.997587] hardirqs last  enabled at (191929): [<ffffffff810fb0da>] free_hot_cold_page+0x166/0x179
-[ 3587.997591] hardirqs last disabled at (191930): [<ffffffff813c34ad>] _raw_spin_lock_irq+0x13/0x47
-[ 3587.997594] softirqs last  enabled at (191758): [<ffffffff810463a5>] __do_softirq+0x2df/0x3f5
-[ 3587.997597] softirqs last disabled at (191741): [<ffffffff810466aa>] irq_exit+0x40/0x94
-[ 3587.997600] 
-               other info that might help us debug this:
-[ 3587.997602]  Possible unsafe locking scenario:
-
-[ 3587.997604]        CPU0
-[ 3587.997605]        ----
-[ 3587.997607]   lock(&(&mapping->tree_lock)->rlock);
-[ 3587.997610]   <Interrupt>
-[ 3587.997611]     lock(&(&mapping->tree_lock)->rlock);
-[ 3587.997614] 
-                *** DEADLOCK ***
-
-[ 3587.997617] 2 locks held by cc1plus/22766:
-[ 3587.997618]  #0:  (&mm->mmap_sem){++++++}, at: [<ffffffff81036ee0>] __do_page_fault+0x140/0x35a
-[ 3587.997626]  #1:  (&(&mapping->tree_lock)->rlock){+.?...}, at: [<ffffffff8113aaee>] migrate_page_move_mapping+0xbd/0x33f
-[ 3587.997633] 
-               stack backtrace:
-[ 3587.997636] CPU: 7 PID: 22766 Comm: cc1plus Not tainted 4.5.0-rc2-next-20160203-dbg-00007-g37a0a9d-dirty #377
-[ 3587.997638]  0000000000000000 ffff88010f73f818 ffffffff811f1b02 ffffffff81f35160
-[ 3587.997643]  ffff88013813e900 ffff88010f73f850 ffffffff810f3000 0000000000000006
-[ 3587.997647]  ffff88013813f058 ffff88013813e900 ffffffff8107f99d 0000000000000006
-[ 3587.997651] Call Trace:
-[ 3587.997656]  [<ffffffff811f1b02>] dump_stack+0x67/0x90
-[ 3587.997660]  [<ffffffff810f3000>] print_usage_bug.part.24+0x259/0x268
-[ 3587.997663]  [<ffffffff8107f99d>] ? check_usage_forwards+0x11c/0x11c
-[ 3587.997666]  [<ffffffff81080579>] mark_lock+0x381/0x567
-[ 3587.997670]  [<ffffffff810807bd>] mark_held_locks+0x5e/0x74
-[ 3587.997673]  [<ffffffff813c363f>] ? _raw_spin_unlock_irq+0x2c/0x4a
-[ 3587.997676]  [<ffffffff8108093f>] trace_hardirqs_on_caller+0x16c/0x188
-[ 3587.997679]  [<ffffffff81080968>] trace_hardirqs_on+0xd/0xf
-[ 3587.997682]  [<ffffffff813c363f>] _raw_spin_unlock_irq+0x2c/0x4a
-[ 3587.997686]  [<ffffffff81148bef>] unlock_page_lru+0x11f/0x12a
-[ 3587.997689]  [<ffffffff8114a90f>] mem_cgroup_migrate+0x196/0x1d9
-[ 3587.997692]  [<ffffffff8113abf3>] migrate_page_move_mapping+0x1c2/0x33f
-[ 3587.997696]  [<ffffffff8113b669>] buffer_migrate_page+0x47/0x102
-[ 3587.997699]  [<ffffffff8113b4e4>] move_to_new_page+0x56/0x194
-[ 3587.997702]  [<ffffffff8113bb6b>] migrate_pages+0x447/0x978
-[ 3587.997705]  [<ffffffff811171f0>] ? isolate_freepages_block+0x353/0x353
-[ 3587.997708]  [<ffffffff81115cd6>] ? pageblock_pfn_to_page+0xbf/0xbf
-[ 3587.997711]  [<ffffffff81118834>] compact_zone+0x690/0x92e
-[ 3587.997714]  [<ffffffff81118b40>] compact_zone_order+0x6e/0x8a
-[ 3587.997717]  [<ffffffff81118dc3>] try_to_compact_pages+0x151/0x28f
-[ 3587.997720]  [<ffffffff81118dc3>] ? try_to_compact_pages+0x151/0x28f
-[ 3587.997723]  [<ffffffff8108111a>] ? __lock_is_held+0x3c/0x57
-[ 3587.997726]  [<ffffffff810fc471>] __alloc_pages_direct_compact+0x3e/0xeb
-[ 3587.997729]  [<ffffffff810fc965>] __alloc_pages_nodemask+0x447/0xb8b
-[ 3587.997732]  [<ffffffff81120a18>] ? handle_mm_fault+0x8b4/0x16bf
-[ 3587.997737]  [<ffffffff8106409f>] ? __might_sleep+0x75/0x7c
-[ 3587.997740]  [<ffffffff81140704>] do_huge_pmd_anonymous_page+0x1d1/0x3fc
-[ 3587.997744]  [<ffffffff811202ae>] ? handle_mm_fault+0x14a/0x16bf
-[ 3587.997747]  [<ffffffff81120623>] handle_mm_fault+0x4bf/0x16bf
-[ 3587.997750]  [<ffffffff8108111a>] ? __lock_is_held+0x3c/0x57
-[ 3587.997754]  [<ffffffff81036f7f>] __do_page_fault+0x1df/0x35a
-[ 3587.997757]  [<ffffffff8103712c>] do_page_fault+0xc/0xe
-[ 3587.997760]  [<ffffffff813c5892>] page_fault+0x22/0x30
-
-Reported-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Greg Thelen <gthelen@google.com>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+ mm/workingset.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix-2 mm/migrate.c
---- a/mm/migrate.c~mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix-2
-+++ a/mm/migrate.c
-@@ -379,8 +379,6 @@ int migrate_page_move_mapping(struct add
- 	if (PageSwapBacked(page))
- 		SetPageSwapBacked(newpage);
- 
--	mem_cgroup_migrate(page, newpage);
--
- 	get_page(newpage);	/* add cache reference */
- 	if (PageSwapCache(page)) {
- 		SetPageSwapCache(newpage);
-@@ -430,6 +428,8 @@ int migrate_page_move_mapping(struct add
- 	}
- 	local_irq_enable();
- 
-+	mem_cgroup_migrate(page, newpage);
-+
- 	return MIGRATEPAGE_SUCCESS;
+diff -puN mm/workingset.c~mm-workingset-per-cgroup-cache-thrash-detection-fix mm/workingset.c
+--- a/mm/workingset.c~mm-workingset-per-cgroup-cache-thrash-detection-fix
++++ a/mm/workingset.c
+@@ -317,9 +317,10 @@ void workingset_activation(struct page *
+ 	 * root_mem_cgroup even for !CONFIG_MEMCG.
+ 	 */
+ 	if (!mem_cgroup_disabled() && !memcg)
+-		return;
++		goto out;
+ 	lruvec = mem_cgroup_zone_lruvec(page_zone(page), memcg);
+ 	atomic_long_inc(&lruvec->inactive_age);
++out:
+ 	unlock_page_memcg(memcg);
  }
  
-@@ -463,8 +463,6 @@ int migrate_huge_page_move_mapping(struc
- 	newpage->index = page->index;
- 	newpage->mapping = page->mapping;
- 
--	mem_cgroup_migrate(page, newpage);
+_
+
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
+
+mm-workingset-per-cgroup-cache-thrash-detection-fix.patch
+zram-export-the-number-of-available-comp-streams.patch
+
