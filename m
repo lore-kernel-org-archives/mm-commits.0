@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + oom-reaper-handle-mlocked-pages.patch added to -mm tree
-Date: Wed, 03 Feb 2016 15:19:44 -0800
-Message-ID: <56b28b10.0vMtgFgTEddvyBe9%akpm@linux-foundation.org>
+Subject: + mm-oom-introduce-oom-reaper.patch added to -mm tree
+Date: Wed, 03 Feb 2016 15:19:41 -0800
+Message-ID: <56b28b0d.tSu6QdiZoF6HyiGo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49268 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49263 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932934AbcBCXTp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2016 18:19:45 -0500
+	with ESMTP id S932326AbcBCXTm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2016 18:19:42 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, andrea@kernel.org, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, andrea@kernel.org, hughd@google.com, mgorman@suse.de, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom reaper: handle mlocked pages
+     Subject: mm, oom: introduce oom reaper
 has been added to the -mm tree.  Its filename is
-     oom-reaper-handle-mlocked-pages.patch
+     mm-oom-introduce-oom-reaper.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/oom-reaper-handle-mlocked-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom-introduce-oom-reaper.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/oom-reaper-handle-mlocked-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom-introduce-oom-reaper.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,64 +39,349 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: oom reaper: handle mlocked pages
+Subject: mm, oom: introduce oom reaper
 
-__oom_reap_vmas current skips over all mlocked vmas because they need a
-special treatment before they are unmapped.  This is primarily done for
-simplicity.  There is no reason to skip over them and reduce the amount of
-reclaimed memory.  This is safe from the semantic point of view because
-try_to_unmap_one during rmap walk would keep tell the reclaim to cull the
-page back and mlock it again.
+This patch (of 5):
 
-munlock_vma_pages_all is also safe to be called from the oom reaper
-context because it doesn't sit on any locks but mmap_sem (for read).
+This is based on the idea from Mel Gorman discussed during LSFMM 2015 and
+independently brought up by Oleg Nesterov.
+
+The OOM killer currently allows to kill only a single task in a good hope
+that the task will terminate in a reasonable time and frees up its memory.
+Such a task (oom victim) will get an access to memory reserves via
+mark_oom_victim to allow a forward progress should there be a need for
+additional memory during exit path.
+
+It has been shown (e.g.  by Tetsuo Handa) that it is not that hard to
+construct workloads which break the core assumption mentioned above and
+the OOM victim might take unbounded amount of time to exit because it
+might be blocked in the uninterruptible state waiting for an event (e.g. 
+lock) which is blocked by another task looping in the page allocator.
+
+This patch reduces the probability of such a lockup by introducing a
+specialized kernel thread (oom_reaper) which tries to reclaim additional
+memory by preemptively reaping the anonymous or swapped out memory owned
+by the oom victim under an assumption that such a memory won't be needed
+when its owner is killed and kicked from the userspace anyway.  There is
+one notable exception to this, though, if the OOM victim was in the
+process of coredumping the result would be incomplete.  This is considered
+a reasonable constrain because the overall system health is more important
+than debugability of a particular application.
+
+A kernel thread has been chosen because we need a reliable way of
+invocation so workqueue context is not appropriate because all the workers
+might be busy (e.g.  allocating memory).  Kswapd which sounds like another
+good fit is not appropriate as well because it might get blocked on locks
+during reclaim as well.
+
+oom_reaper has to take mmap_sem on the target task for reading so the
+solution is not 100% because the semaphore might be held or blocked for
+write but the probability is reduced considerably wrt.  basically any lock
+blocking forward progress as described above.  In order to prevent from
+blocking on the lock without any forward progress we are using only a
+trylock and retry 10 times with a short sleep in between.  Users of
+mmap_sem which need it for write should be carefully reviewed to use
+_killable waiting as much as possible and reduce allocations requests done
+with the lock held to absolute minimum to reduce the risk even further.
+
+The API between oom killer and oom reaper is quite trivial. 
+wake_oom_reaper updates mm_to_reap with cmpxchg to guarantee only NULL->mm
+transition and oom_reaper clear this atomically once it is done with the
+work.  This means that only a single mm_struct can be reaped at the time. 
+As the operation is potentially disruptive we are trying to limit it to
+the ncessary minimum and the reaper blocks any updates while it operates
+on an mm.  mm_struct is pinned by mm_count to allow parallel exit_mmap and
+a race is detected by atomic_inc_not_zero(mm_users).
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Andrea Argangeli <andrea@kernel.org>
+Suggested-by: Oleg Nesterov <oleg@redhat.com>
+Suggested-by: Mel Gorman <mgorman@suse.de>
+Acked-by: Mel Gorman <mgorman@suse.de>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Argangeli <andrea@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ include/linux/mm.h |    2 
+ mm/internal.h      |    5 +
+ mm/memory.c        |   17 ++--
+ mm/oom_kill.c      |  151 +++++++++++++++++++++++++++++++++++++++++--
+ 4 files changed, 162 insertions(+), 13 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-reaper-handle-mlocked-pages mm/oom_kill.c
---- a/mm/oom_kill.c~oom-reaper-handle-mlocked-pages
-+++ a/mm/oom_kill.c
-@@ -446,13 +446,6 @@ static bool __oom_reap_vmas(struct mm_st
+diff -puN include/linux/mm.h~mm-oom-introduce-oom-reaper include/linux/mm.h
+--- a/include/linux/mm.h~mm-oom-introduce-oom-reaper
++++ a/include/linux/mm.h
+@@ -1104,6 +1104,8 @@ struct zap_details {
+ 	struct address_space *check_mapping;	/* Check page->mapping if set */
+ 	pgoff_t	first_index;			/* Lowest page->index to unmap */
+ 	pgoff_t last_index;			/* Highest page->index to unmap */
++	bool ignore_dirty;			/* Ignore dirty pages */
++	bool check_swap_entries;		/* Check also swap entries */
+ };
+ 
+ struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
+diff -puN mm/internal.h~mm-oom-introduce-oom-reaper mm/internal.h
+--- a/mm/internal.h~mm-oom-introduce-oom-reaper
++++ a/mm/internal.h
+@@ -38,6 +38,11 @@
+ void free_pgtables(struct mmu_gather *tlb, struct vm_area_struct *start_vma,
+ 		unsigned long floor, unsigned long ceiling);
+ 
++void unmap_page_range(struct mmu_gather *tlb,
++			     struct vm_area_struct *vma,
++			     unsigned long addr, unsigned long end,
++			     struct zap_details *details);
++
+ static inline void set_page_count(struct page *page, int v)
+ {
+ 	atomic_set(&page->_count, v);
+diff -puN mm/memory.c~mm-oom-introduce-oom-reaper mm/memory.c
+--- a/mm/memory.c~mm-oom-introduce-oom-reaper
++++ a/mm/memory.c
+@@ -1105,6 +1105,12 @@ again:
+ 
+ 			if (!PageAnon(page)) {
+ 				if (pte_dirty(ptent)) {
++					/*
++					 * oom_reaper cannot tear down dirty
++					 * pages
++					 */
++					if (unlikely(details && details->ignore_dirty))
++						continue;
+ 					force_flush = 1;
+ 					set_page_dirty(page);
+ 				}
+@@ -1123,8 +1129,8 @@ again:
+ 			}
+ 			continue;
+ 		}
+-		/* If details->check_mapping, we leave swap entries. */
+-		if (unlikely(details))
++		/* only check swap_entries if explicitly asked for in details */
++		if (unlikely(details && !details->check_swap_entries))
  			continue;
  
- 		/*
--		 * mlocked VMAs require explicit munlocking before unmap.
--		 * Let's keep it simple here and skip such VMAs.
--		 */
--		if (vma->vm_flags & VM_LOCKED)
--			continue;
+ 		entry = pte_to_swp_entry(ptent);
+@@ -1229,7 +1235,7 @@ static inline unsigned long zap_pud_rang
+ 	return addr;
+ }
+ 
+-static void unmap_page_range(struct mmu_gather *tlb,
++void unmap_page_range(struct mmu_gather *tlb,
+ 			     struct vm_area_struct *vma,
+ 			     unsigned long addr, unsigned long end,
+ 			     struct zap_details *details)
+@@ -1237,9 +1243,6 @@ static void unmap_page_range(struct mmu_
+ 	pgd_t *pgd;
+ 	unsigned long next;
+ 
+-	if (details && !details->check_mapping)
+-		details = NULL;
 -
--		/*
- 		 * Only anonymous pages have a good chance to be dropped
- 		 * without additional steps which we cannot afford as we
- 		 * are OOM already.
-@@ -462,9 +455,12 @@ static bool __oom_reap_vmas(struct mm_st
- 		 * we do not want to block exit_mmap by keeping mm ref
- 		 * count elevated without a good reason.
- 		 */
--		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED))
-+		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED)) {
-+			if (vma->vm_flags & VM_LOCKED)
-+				munlock_vma_pages_all(vma);
- 			unmap_page_range(&tlb, vma, vma->vm_start, vma->vm_end,
- 					 &details);
+ 	BUG_ON(addr >= end);
+ 	tlb_start_vma(tlb, vma);
+ 	pgd = pgd_offset(vma->vm_mm, addr);
+@@ -2414,7 +2417,7 @@ static inline void unmap_mapping_range_t
+ void unmap_mapping_range(struct address_space *mapping,
+ 		loff_t const holebegin, loff_t const holelen, int even_cows)
+ {
+-	struct zap_details details;
++	struct zap_details details = { };
+ 	pgoff_t hba = holebegin >> PAGE_SHIFT;
+ 	pgoff_t hlen = (holelen + PAGE_SIZE - 1) >> PAGE_SHIFT;
+ 
+diff -puN mm/oom_kill.c~mm-oom-introduce-oom-reaper mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom-introduce-oom-reaper
++++ a/mm/oom_kill.c
+@@ -35,6 +35,11 @@
+ #include <linux/freezer.h>
+ #include <linux/ftrace.h>
+ #include <linux/ratelimit.h>
++#include <linux/kthread.h>
++#include <linux/init.h>
++
++#include <asm/tlb.h>
++#include "internal.h"
+ 
+ #define CREATE_TRACE_POINTS
+ #include <trace/events/oom.h>
+@@ -409,6 +414,133 @@ static DECLARE_WAIT_QUEUE_HEAD(oom_victi
+ 
+ bool oom_killer_disabled __read_mostly;
+ 
++#ifdef CONFIG_MMU
++/*
++ * OOM Reaper kernel thread which tries to reap the memory used by the OOM
++ * victim (if that is possible) to help the OOM killer to move on.
++ */
++static struct task_struct *oom_reaper_th;
++static struct mm_struct *mm_to_reap;
++static DECLARE_WAIT_QUEUE_HEAD(oom_reaper_wait);
++
++static bool __oom_reap_vmas(struct mm_struct *mm)
++{
++	struct mmu_gather tlb;
++	struct vm_area_struct *vma;
++	struct zap_details details = {.check_swap_entries = true,
++				      .ignore_dirty = true};
++	bool ret = true;
++
++	/* We might have raced with exit path */
++	if (!atomic_inc_not_zero(&mm->mm_users))
++		return true;
++
++	if (!down_read_trylock(&mm->mmap_sem)) {
++		ret = false;
++		goto out;
++	}
++
++	tlb_gather_mmu(&tlb, mm, 0, -1);
++	for (vma = mm->mmap ; vma; vma = vma->vm_next) {
++		if (is_vm_hugetlb_page(vma))
++			continue;
++
++		/*
++		 * mlocked VMAs require explicit munlocking before unmap.
++		 * Let's keep it simple here and skip such VMAs.
++		 */
++		if (vma->vm_flags & VM_LOCKED)
++			continue;
++
++		/*
++		 * Only anonymous pages have a good chance to be dropped
++		 * without additional steps which we cannot afford as we
++		 * are OOM already.
++		 *
++		 * We do not even care about fs backed pages because all
++		 * which are reclaimable have already been reclaimed and
++		 * we do not want to block exit_mmap by keeping mm ref
++		 * count elevated without a good reason.
++		 */
++		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED))
++			unmap_page_range(&tlb, vma, vma->vm_start, vma->vm_end,
++					 &details);
++	}
++	tlb_finish_mmu(&tlb, 0, -1);
++	up_read(&mm->mmap_sem);
++out:
++	mmput(mm);
++	return ret;
++}
++
++static void oom_reap_vmas(struct mm_struct *mm)
++{
++	int attempts = 0;
++
++	/* Retry the down_read_trylock(mmap_sem) a few times */
++	while (attempts++ < 10 && !__oom_reap_vmas(mm))
++		schedule_timeout_idle(HZ/10);
++
++	/* Drop a reference taken by wake_oom_reaper */
++	mmdrop(mm);
++}
++
++static int oom_reaper(void *unused)
++{
++	while (true) {
++		struct mm_struct *mm;
++
++		wait_event_freezable(oom_reaper_wait,
++				     (mm = READ_ONCE(mm_to_reap)));
++		oom_reap_vmas(mm);
++		WRITE_ONCE(mm_to_reap, NULL);
++	}
++
++	return 0;
++}
++
++static void wake_oom_reaper(struct mm_struct *mm)
++{
++	struct mm_struct *old_mm;
++
++	if (!oom_reaper_th)
++		return;
++
++	/*
++	 * Pin the given mm. Use mm_count instead of mm_users because
++	 * we do not want to delay the address space tear down.
++	 */
++	atomic_inc(&mm->mm_count);
++
++	/*
++	 * Make sure that only a single mm is ever queued for the reaper
++	 * because multiple are not necessary and the operation might be
++	 * disruptive so better reduce it to the bare minimum.
++	 */
++	old_mm = cmpxchg(&mm_to_reap, NULL, mm);
++	if (!old_mm)
++		wake_up(&oom_reaper_wait);
++	else
++		mmdrop(mm);
++}
++
++static int __init oom_init(void)
++{
++	oom_reaper_th = kthread_run(oom_reaper, NULL, "oom_reaper");
++	if (IS_ERR(oom_reaper_th)) {
++		pr_err("Unable to start OOM reaper %ld. Continuing regardless\n",
++				PTR_ERR(oom_reaper_th));
++		oom_reaper_th = NULL;
++	}
++	return 0;
++}
++subsys_initcall(oom_init)
++#else
++static void wake_oom_reaper(struct mm_struct *mm)
++{
++}
++#endif
++
+ /**
+  * mark_oom_victim - mark the given task as OOM victim
+  * @tsk: task to mark
+@@ -518,6 +650,7 @@ void oom_kill_process(struct oom_control
+ 	unsigned int victim_points = 0;
+ 	static DEFINE_RATELIMIT_STATE(oom_rs, DEFAULT_RATELIMIT_INTERVAL,
+ 					      DEFAULT_RATELIMIT_BURST);
++	bool can_oom_reap = true;
+ 
+ 	/*
+ 	 * If the task is already exiting, don't alarm the sysadmin or kill
+@@ -608,17 +741,23 @@ void oom_kill_process(struct oom_control
+ 			continue;
+ 		if (same_thread_group(p, victim))
+ 			continue;
+-		if (unlikely(p->flags & PF_KTHREAD))
+-			continue;
+-		if (is_global_init(p))
+-			continue;
+-		if (p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN)
++		if (unlikely(p->flags & PF_KTHREAD) || is_global_init(p) ||
++		    p->signal->oom_score_adj == OOM_SCORE_ADJ_MIN) {
++			/*
++			 * We cannot use oom_reaper for the mm shared by this
++			 * process because it wouldn't get killed and so the
++			 * memory might be still used.
++			 */
++			can_oom_reap = false;
+ 			continue;
+-
 +		}
+ 		do_send_sig_info(SIGKILL, SEND_SIG_FORCED, p, true);
  	}
- 	tlb_finish_mmu(&tlb, 0, -1);
- 	up_read(&mm->mmap_sem);
+ 	rcu_read_unlock();
+ 
++	if (can_oom_reap)
++		wake_oom_reaper(mm);
++
+ 	mmdrop(mm);
+ 	put_task_struct(victim);
+ }
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
