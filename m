@@ -1,113 +1,99 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] sched-add-schedule_timeout_idle.patch removed
- from -mm tree
-Date: Wed, 03 Feb 2016 15:12:45 -0800
-Message-ID: <56b2896d.ckhSL3SmZ2zBjg0Y%akpm@linux-foundation.org>
+Subject: [to-be-updated] oom-reaper-handle-anonymous-mlocked-pages.patch
+ removed from -mm tree
+Date: Wed, 03 Feb 2016 15:12:52 -0800
+Message-ID: <56b28974.UU9T22QtyE++mhHS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48608 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48627 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751600AbcBCXMq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2016 18:12:46 -0500
+	with ESMTP id S1755912AbcBCXMx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2016 18:12:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mhocko@suse.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: mhocko@suse.com, andrea@kernel.org, hughd@google.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sched: add schedule_timeout_idle()
+     Subject: oom reaper: handle anonymous mlocked pages
 has been removed from the -mm tree.  Its filename was
-     sched-add-schedule_timeout_idle.patch
+     oom-reaper-handle-anonymous-mlocked-pages.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sched: add schedule_timeout_idle()
+From: Michal Hocko <mhocko@suse.com>
+Subject: oom reaper: handle anonymous mlocked pages
 
-This will be needed in the patch "mm, oom: introduce oom reaper".
+__oom_reap_vmas current skips over all mlocked vmas because they need a
+special treatment before they are unmapped.  This is primarily done for
+simplicity.  There is no reason to skip over them and reduce the amount of
+reclaimed memory.  This is safe from the semantic point of view because
+try_to_unmap_one during rmap walk would keep tell the reclaim to cull the
+page back and mlock it again.
 
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+munlock_vma_pages_all is also safe to be called from the oom reaper
+context because it doesn't sit on any locks but mmap_sem (for read).
+
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Andrea Argangeli <andrea@kernel.org>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    1 +
- kernel/time/timer.c   |   11 +++++++++++
- 2 files changed, 12 insertions(+)
+ mm/oom_kill.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/sched.h~sched-add-schedule_timeout_idle include/linux/sched.h
---- a/include/linux/sched.h~sched-add-schedule_timeout_idle
-+++ a/include/linux/sched.h
-@@ -427,6 +427,7 @@ extern signed long schedule_timeout(sign
- extern signed long schedule_timeout_interruptible(signed long timeout);
- extern signed long schedule_timeout_killable(signed long timeout);
- extern signed long schedule_timeout_uninterruptible(signed long timeout);
-+extern signed long schedule_timeout_idle(signed long timeout);
- asmlinkage void schedule(void);
- extern void schedule_preempt_disabled(void);
+diff -puN mm/oom_kill.c~oom-reaper-handle-anonymous-mlocked-pages mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-reaper-handle-anonymous-mlocked-pages
++++ a/mm/oom_kill.c
+@@ -446,13 +446,6 @@ static bool __oom_reap_vmas(struct mm_st
+ 			continue;
  
-diff -puN kernel/time/timer.c~sched-add-schedule_timeout_idle kernel/time/timer.c
---- a/kernel/time/timer.c~sched-add-schedule_timeout_idle
-+++ a/kernel/time/timer.c
-@@ -1566,6 +1566,17 @@ signed long __sched schedule_timeout_uni
- }
- EXPORT_SYMBOL(schedule_timeout_uninterruptible);
- 
-+/*
-+ * Like schedule_timeout_uninterruptible(), except this task will not contribute
-+ * to load average.
-+ */
-+signed long __sched schedule_timeout_idle(signed long timeout)
-+{
-+	__set_current_state(TASK_IDLE);
-+	return schedule_timeout(timeout);
-+}
-+EXPORT_SYMBOL(schedule_timeout_idle);
-+
- #ifdef CONFIG_HOTPLUG_CPU
- static void migrate_timer_list(struct tvec_base *new_base, struct hlist_head *head)
- {
+ 		/*
+-		 * mlocked VMAs require explicit munlocking before unmap.
+-		 * Let's keep it simple here and skip such VMAs.
+-		 */
+-		if (vma->vm_flags & VM_LOCKED)
+-			continue;
+-
+-		/*
+ 		 * Only anonymous pages have a good chance to be dropped
+ 		 * without additional steps which we cannot afford as we
+ 		 * are OOM already.
+@@ -462,9 +455,12 @@ static bool __oom_reap_vmas(struct mm_st
+ 		 * we do not want to block exit_mmap by keeping mm ref
+ 		 * count elevated without a good reason.
+ 		 */
+-		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED))
++		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED)) {
++			if (vma->vm_flags & VM_LOCKED)
++				munlock_vma_pages_all(vma);
+ 			unmap_page_range(&tlb, vma, vma->vm_start, vma->vm_end,
+ 					 &details);
++		}
+ 	}
+ 	tlb_finish_mmu(&tlb, 0, -1);
+ 	up_read(&mm->mmap_sem);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-code-clean-up-for-direct-io-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists.patch
-mm.patch
-mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
-mm-simplify-lock_page_memcg-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-btrfs-use-radix_tree_iter_retry-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-vmstat-make-quiet_vmstat-lighter.patch
+vmstat-make-vmstat_update-deferrable.patch
+mm-vmscan-make-zone_reclaimable_pages-more-precise.patch
+mm-oom-rework-oom-detection.patch
+mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
+oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
 
