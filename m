@@ -1,86 +1,96 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- thp-change-deferred_split_count-to-return-number-of-thp-in-queue-fix.patch
+Subject: [folded-merged] mm-warn-about-vmdata-over-rlimit_data-fix.patch
  removed from -mm tree
-Date: Tue, 02 Feb 2016 16:54:53 -0800
-Message-ID: <56b14fdd.wJXBLwNjcvzR66I9%akpm@linux-foundation.org>
+Date: Tue, 02 Feb 2016 16:55:15 -0800
+Message-ID: <56b14ff3.LZnh6luWrBpqT+zk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45241 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45263 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752906AbcBCAyy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 19:54:54 -0500
+	with ESMTP id S1752743AbcBCAzQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 19:55:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, dave.hansen@intel.com, hannes@cmpxchg.org, hughd@google.com, jmarchan@redhat.com, mgorman@suse.de, mhocko@suse.cz, riel@redhat.com, sasha.levin@oracle.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, koct9i@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: deferred_split_scan(): stop shrinker if the queue is empty
+     Subject: mm-warn-about-vmdata-over-rlimit_data-fix
 has been removed from the -mm tree.  Its filename was
-     thp-change-deferred_split_count-to-return-number-of-thp-in-queue-fix.patch
+     mm-warn-about-vmdata-over-rlimit_data-fix.patch
 
-This patch was dropped because it was folded into thp-change-deferred_split_count-to-return-number-of-thp-in-queue.patch
+This patch was dropped because it was folded into mm-warn-about-vmdata-over-rlimit_data.patch
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: deferred_split_scan(): stop shrinker if the queue is empty
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-warn-about-vmdata-over-rlimit_data-fix
 
-If pages on queue were freed under us, deferred_split_scan() would
-return zero. It makes caller keep calling deferred_split_scan() without
-any result.
+tweak kernel-parameters.txt text
 
-Let's return SHRINK_STOP in this situation.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Suggested-by: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Jerome Marchand <jmarchan@redhat.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ Documentation/kernel-parameters.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~thp-change-deferred_split_count-to-return-number-of-thp-in-queue-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-change-deferred_split_count-to-return-number-of-thp-in-queue-fix
-+++ a/mm/huge_memory.c
-@@ -3506,6 +3506,12 @@ static unsigned long deferred_split_scan
- 	list_splice_tail(&list, &pgdata->split_queue);
- 	spin_unlock_irqrestore(&pgdata->split_queue_lock, flags);
+diff -puN Documentation/kernel-parameters.txt~mm-warn-about-vmdata-over-rlimit_data-fix Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~mm-warn-about-vmdata-over-rlimit_data-fix
++++ a/Documentation/kernel-parameters.txt
+@@ -1498,7 +1498,7 @@ bytes respectively. Such letter suffixes
  
-+	/*
-+	 * Stop shrinker if we didn't split any page, but the queue is empty.
-+	 * This can happen if pages were freed under us.
-+	 */
-+	if (!split && list_empty(&pgdata->split_queue))
-+		return SHRINK_STOP;
- 	return split;
- }
+ 	ignore_rlimit_data
+ 			Ignore RLIMIT_DATA setting for data mappings,
+-			print warning at first misuse. Could be changed by
++			print warning at first misuse.  Can be changed via
+ 			/sys/module/kernel/parameters/ignore_rlimit_data.
  
+ 	ihash_entries=	[KNL]
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-thp-make-split_queue-per-node.patch
-thp-change-deferred_split_count-to-return-number-of-thp-in-queue.patch
-thp-limit-number-of-object-to-scan-on-deferred_split_scan.patch
-drivers-scsi-sgc-mark-vma-as-vm_io-to-prevent-migration.patch
-mempolicy-do-not-try-to-queue-pages-from-vma_migratable.patch
-mm-downgrade-vm_bug-in-isolate_lru_page-to-warning.patch
-ipc-shm-handle-removed-segments-gracefully-in-shm_mmap.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+mm-warn-about-vmdata-over-rlimit_data.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-code-clean-up-for-direct-io-fix.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
+kernel-locking-lockdepc-make-lockdep-initialize-itself-on-demand.patch
+mm.patch
+mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
+fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
+mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
+mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
+mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
+mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
+mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
+mm-madvise-update-comment-on-sys_madvise-fix.patch
+mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
+mm-simplify-lock_page_memcg-fix.patch
+mmfsdax-change-pmd_fault-to-huge_fault-fix.patch
+mm-add-support-for-pud-sized-transparent-hugepages-fix.patch
+mm-add-support-for-pud-sized-transparent-hugepages-fix-2.patch
+x86-add-support-for-pud-sized-transparent-hugepages-fix.patch
+x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+zram-export-the-number-of-available-comp-streams-fix.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sched-add-schedule_timeout_idle.patch
+btrfs-use-radix_tree_iter_retry-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
+dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
+linux-next-git-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
