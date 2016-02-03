@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages.patch
+Subject: + errh-allow-is_err_value-to-handle-properly-more-types.patch
  added to -mm tree
-Date: Wed, 03 Feb 2016 13:57:53 -0800
-Message-ID: <56b277e1.rqMP7o3Z0N3O2BL7%akpm@linux-foundation.org>
+Date: Wed, 03 Feb 2016 14:57:45 -0800
+Message-ID: <56b285e9.d8ITU0+XCvkvyuSQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42493 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47406 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964815AbcBCV5y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2016 16:57:54 -0500
+	with ESMTP id S1755442AbcBCW5q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2016 17:57:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, dave@stgolabs.net, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, isimatu.yasuaki@jp.fujitsu.com, kirill.shutemov@linux.intel.com, lcapitulino@redhat.com, mgorman@techsingularity.net, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: a.hajda@samsung.com, b.zolnierkie@samsung.com, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, hugetlb: don't require CMA for runtime gigantic pages
+     Subject: err.h: allow IS_ERR_VALUE to handle properly more types
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages.patch
+     errh-allow-is_err_value-to-handle-properly-more-types.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/errh-allow-is_err_value-to-handle-properly-more-types.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/errh-allow-is_err_value-to-handle-properly-more-types.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,108 +39,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, hugetlb: don't require CMA for runtime gigantic pages
+From: Andrzej Hajda <a.hajda@samsung.com>
+Subject: err.h: allow IS_ERR_VALUE to handle properly more types
 
-Commit 944d9fec8d7a ("hugetlb: add support for gigantic page allocation at
-runtime") has added the runtime gigantic page allocation via
-alloc_contig_range(), making this support available only when CONFIG_CMA
-is enabled.  Because it doesn't depend on MIGRATE_CMA pageblocks and the
-associated infrastructure, it is possible with few simple adjustments to
-require only CONFIG_MEMORY_ISOLATION instead of full CONFIG_CMA.
+Current implementation of IS_ERR_VALUE works correctly only with following
+types:
 
-After this patch, alloc_contig_range() and related functions are available
-and used for gigantic pages with just CONFIG_MEMORY_ISOLATION enabled. 
-Note CONFIG_CMA selects CONFIG_MEMORY_ISOLATION.  This allows supporting
-runtime gigantic pages without the CMA-specific checks in page allocator
-fastpaths.
+- unsigned long,
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Luiz Capitulino <lcapitulino@redhat.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
-Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Davidlohr Bueso <dave@stgolabs.net>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
+- short, int, long.
+
+Other types are handled incorrectly either on 32-bit either on 64-bit
+either on both architectures.
+
+The patch fixes it by comparing argument with MAX_ERRNO casted to
+argument's type for unsigned types and comparing with zero for signed
+types.  As a result all integer types bigger than char are handled
+properly.
+
+I have analyzed usage of IS_ERR_VALUE using coccinelle and in about 35
+cases it is used incorrectly, ie it can hide errors depending of 32/64 bit
+architecture.  Instead of fixing usage I propose to enhance the macro to
+cover more types.
+
+And just for the record: the macro is used 101 times with signed
+variables, I am not sure if it should be preferred over simple comparison
+"ret < 0", but the new version can do it as well.
+
+And below list of detected potential errors:
+drivers/char/mem.c:698:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(( unsigned long long ) offset)
+drivers/media/platform/soc_camera/atmel-isi.c:1089:21-22: WARNING: incorrect argument type in IS_ERR_VALUE(irq)
+drivers/net/ethernet/freescale/fs_enet/mac-scc.c:149:36-37: WARNING: incorrect argument type in IS_ERR_VALUE(fep -> ring_mem_addr)
+drivers/net/ethernet/freescale/ucc_geth.c:2237:48-49: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_bd_ring_offset [ j ])
+drivers/net/ethernet/freescale/ucc_geth.c:2314:48-49: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_bd_ring_offset [ j ])
+drivers/net/ethernet/freescale/ucc_geth.c:2524:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_glbl_pram_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2544:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> thread_dat_tx_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2571:46-47: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> send_q_mem_reg_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2612:42-43: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> scheduler_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2659:54-55: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_fw_statistics_pram_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2696:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_glbl_pram_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2715:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> thread_dat_rx_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2736:54-55: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_fw_statistics_pram_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2756:53-54: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_irq_coalescing_tbl_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2822:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_bd_qs_tbl_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2908:47-48: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> exf_glbl_param_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:292:36-37: WARNING: incorrect argument type in IS_ERR_VALUE(init_enet_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:3042:39-40: WARNING: incorrect argument type in IS_ERR_VALUE(init_enet_pram_offset)
+drivers/soc/fsl/qe/ucc_fast.c:271:60-61: WARNING: incorrect argument type in IS_ERR_VALUE(uccf -> ucc_fast_tx_virtual_fifo_base_offset)
+drivers/soc/fsl/qe/ucc_fast.c:284:60-61: WARNING: incorrect argument type in IS_ERR_VALUE(uccf -> ucc_fast_rx_virtual_fifo_base_offset)
+drivers/soc/fsl/qe/ucc_slow.c:186:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> us_pram_offset)
+drivers/soc/fsl/qe/ucc_slow.c:213:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> rx_base_offset)
+drivers/soc/fsl/qe/ucc_slow.c:224:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> tx_base_offset)
+drivers/tty/serial/clps711x.c:471:29-30: WARNING: incorrect argument type in IS_ERR_VALUE(s -> port . irq)
+drivers/tty/serial/digicolor-usart.c:485:30-31: WARNING: incorrect argument type in IS_ERR_VALUE(dp -> port . irq)
+drivers/usb/gadget/udc/fsl_qe_udc.c:2369:26-27: WARNING: incorrect argument type in IS_ERR_VALUE(tmp_addr)
+drivers/video/fbdev/exynos/exynos_mipi_dsi.c:406:27-28: WARNING: incorrect argument type in IS_ERR_VALUE(dsim -> irq)
+net/ipv4/netfilter/arp_tables.c:1427:39-40: WARNING: incorrect argument type in IS_ERR_VALUE(iter1 -> counters . pcnt)
+net/ipv4/netfilter/arp_tables.c:530:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
+net/ipv4/netfilter/ip_tables.c:1614:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
+net/ipv4/netfilter/ip_tables.c:674:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
+net/ipv6/netfilter/ip6_tables.c:1624:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
+net/ipv6/netfilter/ip6_tables.c:687:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
+drivers/net/ethernet/freescale/fs_enet/mac-fcc.c:110:35-36: WARNING: unknown argument type in IS_ERR_VALUE(fpi -> dpram_offset)
+
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    6 +++---
- mm/hugetlb.c        |    2 +-
- mm/page_alloc.c     |    2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+ include/linux/err.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/gfp.h~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages include/linux/gfp.h
---- a/include/linux/gfp.h~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages
-+++ a/include/linux/gfp.h
-@@ -547,16 +547,16 @@ static inline bool pm_suspended_storage(
- }
- #endif /* CONFIG_PM_SLEEP */
+diff -puN include/linux/err.h~errh-allow-is_err_value-to-handle-properly-more-types include/linux/err.h
+--- a/include/linux/err.h~errh-allow-is_err_value-to-handle-properly-more-types
++++ a/include/linux/err.h
+@@ -18,7 +18,9 @@
  
--#ifdef CONFIG_CMA
--
-+#ifdef CONFIG_MEMORY_ISOLATION
- /* The below functions must be run on a range from a single zone. */
- extern int alloc_contig_range(unsigned long start, unsigned long end,
- 			      unsigned migratetype);
- extern void free_contig_range(unsigned long pfn, unsigned nr_pages);
-+#endif
+ #ifndef __ASSEMBLY__
  
-+#ifdef CONFIG_CMA
- /* CMA stuff */
- extern void init_cma_reserved_pageblock(struct page *page);
--
- #endif
+-#define IS_ERR_VALUE(x) unlikely((x) >= (unsigned long)-MAX_ERRNO)
++#define IS_ERR_VALUE(x) ((typeof(x))(-1) <= 0 \
++				? unlikely((x) <= -1) \
++				: unlikely((x) >= (typeof(x))-MAX_ERRNO))
  
- #endif /* __LINUX_GFP_H */
-diff -puN mm/hugetlb.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages
-+++ a/mm/hugetlb.c
-@@ -1001,7 +1001,7 @@ static int hstate_next_node_to_free(stru
- 		((node = hstate_next_node_to_free(hs, mask)) || 1);	\
- 		nr_nodes--)
- 
--#if defined(CONFIG_CMA) && defined(CONFIG_X86_64)
-+#if defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_X86_64)
- static void destroy_compound_gigantic_page(struct page *page,
- 					unsigned int order)
- {
-diff -puN mm/page_alloc.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages
-+++ a/mm/page_alloc.c
-@@ -6620,7 +6620,7 @@ bool is_pageblock_removable_nolock(struc
- 	return !has_unmovable_pages(zone, page, 0, true);
- }
- 
--#ifdef CONFIG_CMA
-+#ifdef CONFIG_MEMORY_ISOLATION
- 
- static unsigned long pfn_max_align_down(unsigned long pfn)
+ static inline void * __must_check ERR_PTR(long error)
  {
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from a.hajda@samsung.com are
 
-mm-kconfig-correct-description-of-deferred_struct_page_init.patch
-mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages.patch
-tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
-mm-tracing-make-show_gfp_flags-up-to-date.patch
-tools-perf-make-gfp_compact_table-up-to-date.patch
-mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk.patch
-mm-printk-introduce-new-format-string-for-flags.patch
-mm-printk-introduce-new-format-string-for-flags-fix.patch
-mm-debug-replace-dump_flags-with-the-new-printk-formats.patch
-mm-page_alloc-print-symbolic-gfp_flags-on-allocation-failure.patch
-mm-oom-print-symbolic-gfp_flags-in-oom-warning.patch
-mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
-mm-page_owner-convert-page_owner_inited-to-static-key.patch
-mm-page_owner-copy-page-owner-info-during-migration.patch
-mm-page_owner-track-and-print-last-migrate-reason.patch
-mm-page_owner-dump-page-owner-info-from-dump_page.patch
-mm-debug-move-bad-flags-printing-to-bad_page.patch
-mm-use-radix_tree_iter_retry-fix.patch
+errh-allow-is_err_value-to-handle-properly-more-types.patch
 
