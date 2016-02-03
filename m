@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mmfsdax-change-pmd_fault-to-huge_fault-fix.patch added to -mm
- tree
-Date: Tue, 02 Feb 2016 16:10:04 -0800
-Message-ID: <56b1455c.UVQx8vhqcuUyvRBk%akpm@linux-foundation.org>
+Subject: + mm-add-support-for-pud-sized-transparent-hugepages-fix.patch
+ added to -mm tree
+Date: Tue, 02 Feb 2016 16:12:04 -0800
+Message-ID: <56b145d4.CWu6BQ2UBP6gohIa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41341 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41388 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755186AbcBCAKF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 19:10:05 -0500
+	with ESMTP id S1753598AbcBCAMF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 2 Feb 2016 19:12:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, dan.j.williams@intel.com, jack@suse.cz, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmfsdax-change-pmd_fault-to-huge_fault-fix
+     Subject: mm-add-support-for-pud-sized-transparent-hugepages-fix
 has been added to the -mm tree.  Its filename is
-     mmfsdax-change-pmd_fault-to-huge_fault-fix.patch
+     mm-add-support-for-pud-sized-transparent-hugepages-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmfsdax-change-pmd_fault-to-huge_fault-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-support-for-pud-sized-transparent-hugepages-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmfsdax-change-pmd_fault-to-huge_fault-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-support-for-pud-sized-transparent-hugepages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,9 +40,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mmfsdax-change-pmd_fault-to-huge_fault-fix
+Subject: mm-add-support-for-pud-sized-transparent-hugepages-fix
 
-work around old gcc union init bug
+include/linux/huge_mm.h: In function 'pud_trans_huge_lock':
+include/linux/huge_mm.h:175: error: implicit declaration of function 'pud_devmap'
+
+breaks bisectability
 
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Jan Kara <jack@suse.cz>
@@ -52,32 +55,24 @@ Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ arch/x86/include/asm/pgtable.h |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff -puN mm/memory.c~mmfsdax-change-pmd_fault-to-huge_fault-fix mm/memory.c
---- a/mm/memory.c~mmfsdax-change-pmd_fault-to-huge_fault-fix
-+++ a/mm/memory.c
-@@ -3248,7 +3248,8 @@ static int create_huge_pmd(struct mm_str
- 		.gfp_mask = __get_fault_gfp_mask(vma),
- 		.pgoff = linear_page_index(vma, address & HPAGE_PMD_MASK),
- 		.virtual_address = (void __user *)address,
--		.pmd = pmd,
-+		.max_pgoff = 0,		/* work around gcc union init bug */
-+		{ .pmd = pmd },
- 	};
+diff -puN arch/x86/include/asm/pgtable.h~mm-add-support-for-pud-sized-transparent-hugepages-fix arch/x86/include/asm/pgtable.h
+--- a/arch/x86/include/asm/pgtable.h~mm-add-support-for-pud-sized-transparent-hugepages-fix
++++ a/arch/x86/include/asm/pgtable.h
+@@ -177,6 +177,11 @@ static inline int pmd_devmap(pmd_t pmd)
+ {
+ 	return !!(pmd_val(pmd) & _PAGE_DEVMAP);
+ }
++
++static inline int pud_devmap(pud_t pud)
++{
++	return !!(pud_val(pud) & _PAGE_DEVMAP);
++}
+ #endif
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE */
  
- 	if (vma_is_anonymous(vma))
-@@ -3269,7 +3270,8 @@ static int wp_huge_pmd(struct mm_struct
- 		.gfp_mask = __get_fault_gfp_mask(vma),
- 		.pgoff = linear_page_index(vma, address & HPAGE_PMD_MASK),
- 		.virtual_address = (void __user *)address,
--		.pmd = pmd,
-+		.max_pgoff = 0,		/* work around gcc union init bug */
-+		{ .pmd = pmd },
- 	};
- 
- 	if (vma_is_anonymous(vma))
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -103,6 +98,7 @@ mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
 mm-madvise-update-comment-on-sys_madvise-fix.patch
 mm-simplify-lock_page_memcg-fix.patch
 mmfsdax-change-pmd_fault-to-huge_fault-fix.patch
+mm-add-support-for-pud-sized-transparent-hugepages-fix.patch
 x86-add-support-for-pud-sized-transparent-hugepages-fix.patch
 x86-add-support-for-pud-sized-transparent-hugepages-fix-2.patch
 x86-add-support-for-pud-sized-transparent-hugepages-checkpatch-fixes.patch
