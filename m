@@ -1,64 +1,71 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-fix-missing-reference-of-mm.patch removed from -mm
- tree
-Date: Wed, 03 Feb 2016 13:53:12 -0800
-Message-ID: <56b276c8.RbwzEkdP7R0SCvZ9%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-memcontrol-drop-superfluous-entry-in-the-per-memcg-stats-array.patch
+ removed from -mm tree
+Date: Wed, 03 Feb 2016 13:53:17 -0800
+Message-ID: <56b276cd.6ikRSpICurrVDHmr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42235 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42250 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933165AbcBCVxN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2016 16:53:13 -0500
+	with ESMTP id S965157AbcBCVxS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2016 16:53:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, hannes@cmpxchg.org, sudip@vectorindia.org, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: fix missing reference of mm
+     Subject: mm: memcontrol: drop superfluous entry in the per-memcg stats array
 has been removed from the -mm tree.  Its filename was
-     proc-fix-missing-reference-of-mm.patch
+     mm-memcontrol-drop-superfluous-entry-in-the-per-memcg-stats-array.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: proc: fix missing reference of mm
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: drop superfluous entry in the per-memcg stats array
 
-The defconfig build of blackfin was failing with the error:
-fs/proc/task_nommu.c: In function 'is_stack':
-fs/proc/task_nommu.c:132:28: error: 'mm' undeclared (first use in this function)
+MEM_CGROUP_STAT_NSTATS is just a delimiter for cgroup1 statistics, not an
+actual array entry.  Reuse it for the first cgroup2 stat entry, like in
+the event array.
 
-While reverting /proc/<pid>/maps [stack:TID] annotation a reference to
-mm was missed.
-
-Fixes: e87d4fd02f40 ("proc: revert /proc/<pid>/maps [stack:TID] annotation")
-Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Fixes: b2807f07f4f8 ("mm: memcontrol: add "sock" to cgroup2 memory.stat")
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_nommu.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/memcontrol.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/task_nommu.c~proc-fix-missing-reference-of-mm fs/proc/task_nommu.c
---- a/fs/proc/task_nommu.c~proc-fix-missing-reference-of-mm
-+++ a/fs/proc/task_nommu.c
-@@ -126,6 +126,7 @@ unsigned long task_statm(struct mm_struc
- static int is_stack(struct proc_maps_private *priv,
- 		    struct vm_area_struct *vma, int is_pid)
- {
-+	struct mm_struct *mm = vma->vm_mm;
- 	int stack = 0;
+diff -puN include/linux/memcontrol.h~mm-memcontrol-drop-superfluous-entry-in-the-per-memcg-stats-array include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-drop-superfluous-entry-in-the-per-memcg-stats-array
++++ a/include/linux/memcontrol.h
+@@ -51,7 +51,7 @@ enum mem_cgroup_stat_index {
+ 	MEM_CGROUP_STAT_SWAP,		/* # of pages, swapped out */
+ 	MEM_CGROUP_STAT_NSTATS,
+ 	/* default hierarchy stats */
+-	MEMCG_SOCK,
++	MEMCG_SOCK = MEM_CGROUP_STAT_NSTATS,
+ 	MEMCG_NR_STAT,
+ };
  
- 	if (is_pid) {
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
-m32r-fix-build-failure-due-to-smp-and-mmu.patch
-m32r-mm-fix-build-warning.patch
+mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding.patch
+mm-workingset-define-radix-entry-eviction-mask.patch
+mm-workingset-separate-shadow-unpacking-and-refault-calculation.patch
+mm-workingset-eviction-buckets-for-bigmem-lowbit-machines.patch
+mm-workingset-per-cgroup-cache-thrash-detection.patch
+mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages.patch
+mm-simplify-lock_page_memcg.patch
+mm-remove-unnecessary-uses-of-lock_page_memcg.patch
+mm-oom_killc-dont-skip-pf_exiting-tasks-when-searching-for-a-victim.patch
 
