@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-link-vmlinuxsh-force-error-on-kallsyms-failure.patch
+Subject: + mm-slab-shutdown-caches-only-after-releasing-sysfs-file.patch
  added to -mm tree
-Date: Thu, 04 Feb 2016 13:54:33 -0800
-Message-ID: <56b3c899.XejUD5txJbXjlWgc%akpm@linux-foundation.org>
+Date: Thu, 04 Feb 2016 13:56:36 -0800
+Message-ID: <56b3c914.gWJKNafygAwlm5dn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57461 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57697 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752121AbcBDVye (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 16:54:34 -0500
+	with ESMTP id S1750936AbcBDV4h (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 16:56:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ard.biesheuvel@linaro.org, arnd@arndb.de, mmarek@suse.cz, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: dsafonov@virtuozzo.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/link-vmlinux.sh: force error on kallsyms failure
+     Subject: mm/sl[au]b: shutdown caches only after releasing sysfs file
 has been added to the -mm tree.  Its filename is
-     scripts-link-vmlinuxsh-force-error-on-kallsyms-failure.patch
+     mm-slab-shutdown-caches-only-after-releasing-sysfs-file.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-link-vmlinuxsh-force-error-on-kallsyms-failure.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-shutdown-caches-only-after-releasing-sysfs-file.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-link-vmlinuxsh-force-error-on-kallsyms-failure.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-shutdown-caches-only-after-releasing-sysfs-file.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,57 +39,358 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: scripts/link-vmlinux.sh: force error on kallsyms failure
+From: Dmitry Safonov <dsafonov@virtuozzo.com>
+Subject: mm/sl[au]b: shutdown caches only after releasing sysfs file
 
-Since the output of the invocation of scripts/kallsyms is piped directly
-into the assembler, error messages it emits are visible on stderr, but a
-non-zero return code is ignored, and the build simply proceeds in that
-case.  However, the resulting kernel is most likely broken, and will crash
-at boot.  So capture the return code of scripts/kallsyms explicitly (in a
-POSIX shell compatible manner), and abort the script if it is non-zero.
+As shutdown cache will uninitialize kmem_cache state, it shouldn't be done
+till the last reference to sysfs file object is dropped.  In the other
+case it will result in race with dereferencing garbage.
 
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Michal Marek <mmarek@suse.cz>
+Fixes the following panic:
+[43963.463055] BUG: unable to handle kernel
+[43963.463090] NULL pointer dereference at 0000000000000020
+[43963.463146] IP: [<ffffffff811c6959>] list_locations+0x169/0x4e0
+[43963.463185] PGD 257304067 PUD 438456067 PMD 0
+[43963.463220] Oops: 0000 [#1] SMP
+[43963.463850] CPU: 3 PID: 973074 Comm: cat ve: 0 Not tainted 3.10.0-229.7.2.ovz.9.30-00007-japdoll-dirty #2 9.30
+[43963.463913] Hardware name: DEPO Computers To Be Filled By O.E.M./H67DE3, BIOS L1.60c 07/14/2011
+[43963.463976] task: ffff88042a5dc5b0 ti: ffff88037f8d8000 task.ti: ffff88037f8d8000
+[43963.464036] RIP: 0010:[<ffffffff811c6959>]  [<ffffffff811c6959>] list_locations+0x169/0x4e0
+[43963.464725] Call Trace:
+[43963.464756]  [<ffffffff811c6d1d>] alloc_calls_show+0x1d/0x30
+[43963.464793]  [<ffffffff811c15ab>] slab_attr_show+0x1b/0x30
+[43963.464829]  [<ffffffff8125d27a>] sysfs_read_file+0x9a/0x1a0
+[43963.464865]  [<ffffffff811e3c6c>] vfs_read+0x9c/0x170
+[43963.464900]  [<ffffffff811e4798>] SyS_read+0x58/0xb0
+[43963.464936]  [<ffffffff81612d49>] system_call_fastpath+0x16/0x1b
+[43963.464970] Code: 5e 07 12 00 b9 00 04 00 00 3d 00 04 00 00 0f 4f c1 3d 00 04 00 00 89 45 b0 0f 84 c3 00 00 00 48 63 45 b0 49 8b 9c c4 f8 00 00 00 <48> 8b 43 20 48 85 c0 74 b6 48 89 df e8 46 37 44 00 48 8b 53 10
+[43963.465119] RIP  [<ffffffff811c6959>] list_locations+0x169/0x4e0
+[43963.465155]  RSP <ffff88037f8dbe28>
+[43963.465185] CR2: 0000000000000020
+
+So, I reworked destroy code path to delete sysfs file and on release of
+kobject shutdown and remove kmem_cache.
+
+Signed-off-by: Dmitry Safonov <dsafonov@virtuozzo.com>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/link-vmlinux.sh |    9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+ include/linux/slub_def.h |    5 -
+ mm/slab.h                |    2 
+ mm/slab_common.c         |  141 +++++++++++++++++--------------------
+ mm/slub.c                |   22 +++++
+ 4 files changed, 89 insertions(+), 81 deletions(-)
 
-diff -puN scripts/link-vmlinux.sh~scripts-link-vmlinuxsh-force-error-on-kallsyms-failure scripts/link-vmlinux.sh
---- a/scripts/link-vmlinux.sh~scripts-link-vmlinuxsh-force-error-on-kallsyms-failure
-+++ a/scripts/link-vmlinux.sh
-@@ -97,9 +97,12 @@ kallsyms()
- 	local aflags="${KBUILD_AFLAGS} ${KBUILD_AFLAGS_KERNEL}               \
- 		      ${NOSTDINC_FLAGS} ${LINUXINCLUDE} ${KBUILD_CPPFLAGS}"
+diff -puN include/linux/slub_def.h~mm-slab-shutdown-caches-only-after-releasing-sysfs-file include/linux/slub_def.h
+--- a/include/linux/slub_def.h~mm-slab-shutdown-caches-only-after-releasing-sysfs-file
++++ a/include/linux/slub_def.h
+@@ -103,9 +103,10 @@ struct kmem_cache {
  
--	${NM} -n ${1} | \
--		scripts/kallsyms ${kallsymopt} | \
--		${CC} ${aflags} -c -o ${2} -x assembler-with-cpp -
-+	# capture the return code of scripts/kallsyms in $RC
-+	local RC=`(${NM} -n ${1} | \
-+		(scripts/kallsyms ${kallsymopt}; echo $? 1>&3) | \
-+		${CC} ${aflags} -c -o ${2} -x assembler-with-cpp -) 3>&1`
-+
-+	[ $RC -eq 0 ]
+ #ifdef CONFIG_SYSFS
+ #define SLAB_SUPPORTS_SYSFS
+-void sysfs_slab_remove(struct kmem_cache *);
++int sysfs_slab_remove(struct kmem_cache *);
++void sysfs_slab_remove_cancel(struct kmem_cache *s);
+ #else
+-static inline void sysfs_slab_remove(struct kmem_cache *s)
++void sysfs_slab_remove_cancel(struct kmem_cache *s)
+ {
+ }
+ #endif
+diff -puN mm/slab.h~mm-slab-shutdown-caches-only-after-releasing-sysfs-file mm/slab.h
+--- a/mm/slab.h~mm-slab-shutdown-caches-only-after-releasing-sysfs-file
++++ a/mm/slab.h
+@@ -141,7 +141,7 @@ static inline unsigned long kmem_cache_f
+ 
+ int __kmem_cache_shutdown(struct kmem_cache *);
+ int __kmem_cache_shrink(struct kmem_cache *, bool);
+-void slab_kmem_cache_release(struct kmem_cache *);
++int slab_kmem_cache_release(struct kmem_cache *);
+ 
+ struct seq_file;
+ struct file;
+diff -puN mm/slab_common.c~mm-slab-shutdown-caches-only-after-releasing-sysfs-file mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-shutdown-caches-only-after-releasing-sysfs-file
++++ a/mm/slab_common.c
+@@ -448,33 +448,58 @@ out_unlock:
+ }
+ EXPORT_SYMBOL(kmem_cache_create);
+ 
+-static int shutdown_cache(struct kmem_cache *s,
++static void prepare_caches_release(struct kmem_cache *s,
+ 		struct list_head *release, bool *need_rcu_barrier)
+ {
+-	if (__kmem_cache_shutdown(s) != 0)
+-		return -EBUSY;
+-
+ 	if (s->flags & SLAB_DESTROY_BY_RCU)
+ 		*need_rcu_barrier = true;
+ 
+ 	list_move(&s->list, release);
+-	return 0;
  }
  
- # Create map file with all symbols from ${1}
+-static void release_caches(struct list_head *release, bool need_rcu_barrier)
++#ifdef SLAB_SUPPORTS_SYSFS
++#define release_one_cache sysfs_slab_remove
++#else
++#define release_one_cache slab_kmem_cache_release
++#endif
++
++static int release_caches_type(struct list_head *release, bool children)
+ {
+ 	struct kmem_cache *s, *s2;
++	int ret = 0;
+ 
++	list_for_each_entry_safe(s, s2, release, list) {
++		if (is_root_cache(s) == children)
++			continue;
++
++		ret += release_one_cache(s);
++	}
++	return ret;
++}
++
++static void release_caches(struct list_head *release, bool need_rcu_barrier)
++{
+ 	if (need_rcu_barrier)
+ 		rcu_barrier();
+ 
+-	list_for_each_entry_safe(s, s2, release, list) {
+-#ifdef SLAB_SUPPORTS_SYSFS
+-		sysfs_slab_remove(s);
+-#else
+-		slab_kmem_cache_release(s);
+-#endif
+-	}
++	/* remove children in the first place, remove root on success */
++	if (!release_caches_type(release, true))
++		release_caches_type(release, false);
++}
++
++static void release_cache_cancel(struct kmem_cache *s)
++{
++	sysfs_slab_remove_cancel(s);
++
++	get_online_cpus();
++	get_online_mems();
++	mutex_lock(&slab_mutex);
++
++	list_move(&s->list, &slab_caches);
++
++	mutex_unlock(&slab_mutex);
++	put_online_mems();
++	put_online_cpus();
+ }
+ 
+ #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
+@@ -589,16 +614,14 @@ void memcg_deactivate_kmem_caches(struct
+ 	put_online_cpus();
+ }
+ 
+-static int __shutdown_memcg_cache(struct kmem_cache *s,
++static void prepare_memcg_empty_caches(struct kmem_cache *s,
+ 		struct list_head *release, bool *need_rcu_barrier)
+ {
+ 	BUG_ON(is_root_cache(s));
+ 
+-	if (shutdown_cache(s, release, need_rcu_barrier))
+-		return -EBUSY;
++	prepare_caches_release(s, release, need_rcu_barrier);
+ 
+-	list_del(&s->memcg_params.list);
+-	return 0;
++	list_del_init(&s->memcg_params.list);
+ }
+ 
+ void memcg_destroy_kmem_caches(struct mem_cgroup *memcg)
+@@ -614,11 +637,12 @@ void memcg_destroy_kmem_caches(struct me
+ 	list_for_each_entry_safe(s, s2, &slab_caches, list) {
+ 		if (is_root_cache(s) || s->memcg_params.memcg != memcg)
+ 			continue;
++
+ 		/*
+ 		 * The cgroup is about to be freed and therefore has no charges
+ 		 * left. Hence, all its caches must be empty by now.
+ 		 */
+-		BUG_ON(__shutdown_memcg_cache(s, &release, &need_rcu_barrier));
++		prepare_memcg_empty_caches(s, &release, &need_rcu_barrier);
+ 	}
+ 	mutex_unlock(&slab_mutex);
+ 
+@@ -628,81 +652,53 @@ void memcg_destroy_kmem_caches(struct me
+ 	release_caches(&release, need_rcu_barrier);
+ }
+ 
+-static int shutdown_memcg_caches(struct kmem_cache *s,
++static void prepare_memcg_filled_caches(struct kmem_cache *s,
+ 		struct list_head *release, bool *need_rcu_barrier)
+ {
+ 	struct memcg_cache_array *arr;
+ 	struct kmem_cache *c, *c2;
+-	LIST_HEAD(busy);
+-	int i;
+ 
+ 	BUG_ON(!is_root_cache(s));
+ 
+-	/*
+-	 * First, shutdown active caches, i.e. caches that belong to online
+-	 * memory cgroups.
+-	 */
+ 	arr = rcu_dereference_protected(s->memcg_params.memcg_caches,
+ 					lockdep_is_held(&slab_mutex));
+-	for_each_memcg_cache_index(i) {
+-		c = arr->entries[i];
+-		if (!c)
+-			continue;
+-		if (__shutdown_memcg_cache(c, release, need_rcu_barrier))
+-			/*
+-			 * The cache still has objects. Move it to a temporary
+-			 * list so as not to try to destroy it for a second
+-			 * time while iterating over inactive caches below.
+-			 */
+-			list_move(&c->memcg_params.list, &busy);
+-		else
+-			/*
+-			 * The cache is empty and will be destroyed soon. Clear
+-			 * the pointer to it in the memcg_caches array so that
+-			 * it will never be accessed even if the root cache
+-			 * stays alive.
+-			 */
+-			arr->entries[i] = NULL;
+-	}
+ 
+-	/*
+-	 * Second, shutdown all caches left from memory cgroups that are now
+-	 * offline.
+-	 */
++	/* move children caches to release list */
+ 	list_for_each_entry_safe(c, c2, &s->memcg_params.list,
+ 				 memcg_params.list)
+-		__shutdown_memcg_cache(c, release, need_rcu_barrier);
++		prepare_caches_release(c, release, need_rcu_barrier);
+ 
+-	list_splice(&busy, &s->memcg_params.list);
+-
+-	/*
+-	 * A cache being destroyed must be empty. In particular, this means
+-	 * that all per memcg caches attached to it must be empty too.
+-	 */
+-	if (!list_empty(&s->memcg_params.list))
+-		return -EBUSY;
+-	return 0;
++	/* root cache to the same place */
++	prepare_caches_release(s, release, need_rcu_barrier);
+ }
++
+ #else
+-static inline int shutdown_memcg_caches(struct kmem_cache *s,
+-		struct list_head *release, bool *need_rcu_barrier)
+-{
+-	return 0;
+-}
++#define prepare_memcg_filled_caches prepare_caches_release
+ #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
+ 
+-void slab_kmem_cache_release(struct kmem_cache *s)
++int slab_kmem_cache_release(struct kmem_cache *s)
+ {
++	if (__kmem_cache_shutdown(s)) {
++		WARN(1, "release slub cache %s failed: it still has objects\n",
++			s->name);
++		release_cache_cancel(s);
++		return 1;
++	}
++
++#ifdef CONFIG_MEMCG
++	list_del(&s->memcg_params.list);
++#endif
++
+ 	destroy_memcg_params(s);
+ 	kfree_const(s->name);
+ 	kmem_cache_free(kmem_cache, s);
++	return 0;
+ }
+ 
+ void kmem_cache_destroy(struct kmem_cache *s)
+ {
+ 	LIST_HEAD(release);
+ 	bool need_rcu_barrier = false;
+-	int err;
+ 
+ 	if (unlikely(!s))
+ 		return;
+@@ -716,15 +712,8 @@ void kmem_cache_destroy(struct kmem_cach
+ 	if (s->refcount)
+ 		goto out_unlock;
+ 
+-	err = shutdown_memcg_caches(s, &release, &need_rcu_barrier);
+-	if (!err)
+-		err = shutdown_cache(s, &release, &need_rcu_barrier);
+-
+-	if (err) {
+-		pr_err("kmem_cache_destroy %s: "
+-		       "Slab cache still has objects\n", s->name);
+-		dump_stack();
+-	}
++	prepare_memcg_filled_caches(s, &release, &need_rcu_barrier);
++
+ out_unlock:
+ 	mutex_unlock(&slab_mutex);
+ 
+diff -puN mm/slub.c~mm-slab-shutdown-caches-only-after-releasing-sysfs-file mm/slub.c
+--- a/mm/slub.c~mm-slab-shutdown-caches-only-after-releasing-sysfs-file
++++ a/mm/slub.c
+@@ -5429,14 +5429,14 @@ out_del_kobj:
+ 	goto out;
+ }
+ 
+-void sysfs_slab_remove(struct kmem_cache *s)
++int sysfs_slab_remove(struct kmem_cache *s)
+ {
+ 	if (slab_state < FULL)
+ 		/*
+ 		 * Sysfs has not been setup yet so no need to remove the
+ 		 * cache from sysfs.
+ 		 */
+-		return;
++		return 0;
+ 
+ #ifdef CONFIG_MEMCG
+ 	kset_unregister(s->memcg_kset);
+@@ -5444,6 +5444,24 @@ void sysfs_slab_remove(struct kmem_cache
+ 	kobject_uevent(&s->kobj, KOBJ_REMOVE);
+ 	kobject_del(&s->kobj);
+ 	kobject_put(&s->kobj);
++	return 0;
++}
++
++void sysfs_slab_remove_cancel(struct kmem_cache *s)
++{
++	int ret;
++
++	if (slab_state < FULL)
++		return;
++
++	/* tricky */
++	kobject_get(&s->kobj);
++	ret = kobject_add(&s->kobj, NULL, "%s", s->name);
++	kobject_uevent(&s->kobj, KOBJ_ADD);
++
++#ifdef CONFIG_MEMCG
++	s->memcg_kset = kset_create_and_add("cgroup", NULL, &s->kobj);
++#endif
+ }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
+Patches currently in -mm which might be from dsafonov@virtuozzo.com are
 
-extable-add-support-for-relative-extables-to-search-and-sort-routines.patch
-alpha-extable-use-generic-search-and-sort-routines.patch
-s390-extable-use-generic-search-and-sort-routines.patch
-x86-extable-use-generic-search-and-sort-routines.patch
-ia64-extable-use-generic-search-and-sort-routines.patch
-arm64-switch-to-relative-exception-tables.patch
-x86-kallsyms-disable-absolute-percpu-symbols-on-smp.patch
-kallsyms-dont-overload-absolute-symbol-type-for-percpu-symbols.patch
-kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table.patch
-scripts-link-vmlinuxsh-force-error-on-kallsyms-failure.patch
+mm-slab-shutdown-caches-only-after-releasing-sysfs-file.patch
 
