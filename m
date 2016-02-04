@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch added
- to -mm tree
-Date: Thu, 04 Feb 2016 15:47:37 -0800
-Message-ID: <56b3e319./ibMxoQxWZ76cflw%akpm@linux-foundation.org>
+Subject: + proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix.patch added to -mm tree
+Date: Thu, 04 Feb 2016 15:47:35 -0800
+Message-ID: <56b3e317.9bRG2DLO6stbbcQ1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38398 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38394 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932668AbcBDXri (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:47:38 -0500
+	with ESMTP id S932668AbcBDXrg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:47:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, n-horiguchi@ah.jp.nec.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix
+     Subject: proc: kpageflags: do not report buddy and balloon pages as mapped
 has been added to the -mm tree.  Its filename is
-     proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
+     proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,73 +38,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: proc: kpageflags: do not report buddy and balloon pages as mapped
 
-update comment, per Naoya
+PageBuddy and PageBalloon are not usual page flags - they are identified
+by a special negative (so as not to confuse with mapped pages) value of
+page->_mapcount.  Since /proc/kpageflags uses page_mapcount helper to
+check if a page is mapped, it reports pages of these kinds as being
+mapped, which is confusing.  Fix that by replacing page_mapcount with
+page_mapped.
 
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  fs/proc/page.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN fs/proc/page.c~proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix fs/proc/page.c
---- a/fs/proc/page.c~proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix
+diff -puN fs/proc/page.c~proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix fs/proc/page.c
+--- a/fs/proc/page.c~proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix
 +++ a/fs/proc/page.c
-@@ -103,7 +103,7 @@ u64 stable_page_flags(struct page *page)
- 	 * pseudo flags for the well known (anonymous) memory mapped pages
- 	 *
+@@ -105,7 +105,7 @@ u64 stable_page_flags(struct page *page)
  	 * Note that page->_mapcount is overloaded in SLOB/SLUB/SLQB, so the
--	 * simple test in page_mapcount() is not enough.
-+	 * simple test in page_mapped() is not enough.
+ 	 * simple test in page_mapcount() is not enough.
  	 */
- 	if (!PageSlab(page) && page_mapped(page))
+-	if (!PageSlab(page) && page_mapcount(page))
++	if (!PageSlab(page) && page_mapped(page))
  		u |= 1 << KPF_MMAP;
+ 	if (PageAnon(page))
+ 		u |= 1 << KPF_ANON;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vdavydov@virtuozzo.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-code-clean-up-for-direct-io-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
-mm.patch
-mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
-mm-simplify-lock_page_memcg-fix.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom_reaper-report-success-failure-fix.patch
-proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
-mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
-mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-btrfs-use-radix_tree_iter_retry-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-kernel-add-kcov-code-coverage-fix.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-vmscan-do-not-clear-shrinker_numa_aware-if-nr_node_ids-==-1.patch
+mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix-2.patch
+mm-memcontrol-do-not-bypass-slab-charge-if-memcg-is-offline.patch
+mm-memcontrol-make-tree_statevents-fetch-all-stats.patch
+mm-memcontrol-report-slab-usage-in-cgroup2-memorystat.patch
+mm-memcontrol-report-kernel-stack-usage-in-cgroup2-memorystat.patch
+proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix.patch
 
