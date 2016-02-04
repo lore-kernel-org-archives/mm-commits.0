@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + drivers-char-random-add-get_random_long.patch added to -mm tree
-Date: Thu, 04 Feb 2016 15:20:16 -0800
-Message-ID: <56b3dcb0.CfqKpt929nGNifar%akpm@linux-foundation.org>
+Subject: + use-get_random_long.patch added to -mm tree
+Date: Thu, 04 Feb 2016 15:20:21 -0800
+Message-ID: <56b3dcb5.aFUJZe48/U7lsE/p%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35859 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35891 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752989AbcBDXUS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:20:18 -0500
+	with ESMTP id S1752989AbcBDXUX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:20:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dcashman@android.com, arnd@arndb.de, benh@kernel.crashing.org, catalin.marinas@arm.com, davem@davemloft.net, gregkh@linuxfoundation.org, hpa@zytor.com, jeffv@google.com, keescook@chromium.org, mingo@redhat.com, mpe@ellerman.id.au, nnk@google.com, paulus@samba.org, ralf@linux-mips.org, salyzyn@android.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers: char: random: add get_random_long()
+     Subject: mm: ASLR: use get_random_long()
 has been added to the -mm tree.  Its filename is
-     drivers-char-random-add-get_random_long.patch
+     use-get_random_long.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/drivers-char-random-add-get_random_long.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/use-get_random_long.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-char-random-add-get_random_long.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/use-get_random_long.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,32 +39,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Daniel Cashman <dcashman@android.com>
-Subject: drivers: char: random: add get_random_long()
+Subject: mm: ASLR: use get_random_long()
 
-d07e22597d1d355 ("mm: mmap: add new /proc tunable for mmap_base ASLR")
-added the ability to choose from a range of values to use for entropy
-count in generating the random offset to the mmap_base address.  The
-maximum value on this range was set to 32 bits for 64-bit x86 systems, but
-this value could be increased further, requiring more than the 32 bits of
-randomness provided by get_random_int(), as is already possible for arm64.
-Add a new function: get_random_long() which more naturally fits with the
-mmap usage of get_random_int() but operates exactly the same as
-get_random_int().
-
-Also, fix the shifting constant in mmap_rnd() to be an unsigned long so
-that values greater than 31 bits generate an appropriate mask without
-overflow.  This is especially important on x86, as its shift instruction
-uses a 5-bit mask for the shift operand, which meant that any value for
-mmap_rnd_bits over 31 acts as a no-op and effectively disables mmap_base
-randomization.
-
-Finally, replace calls to get_random_int() with get_random_long() where
-appropriate.
-
-
-This patch (of 2):
-
-Add get_random_long().
+Replace calls to get_random_int() followed by a cast to (unsigned long)
+with calls to get_random_long().  Also address shifting bug which, in case
+of x86 removed entropy mask for mmap_rnd_bits values > 31 bits.
 
 Signed-off-by: Daniel Cashman <dcashman@android.com>
 Acked-by: Kees Cook <keescook@chromium.org>
@@ -88,53 +67,138 @@ Cc: Mark Salyzyn <salyzyn@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/random.c  |   22 ++++++++++++++++++++++
- include/linux/random.h |    1 +
- 2 files changed, 23 insertions(+)
+ arch/arm/mm/mmap.c               |    2 +-
+ arch/arm64/mm/mmap.c             |    4 ++--
+ arch/mips/mm/mmap.c              |    4 ++--
+ arch/powerpc/kernel/process.c    |    4 ++--
+ arch/powerpc/mm/mmap.c           |    4 ++--
+ arch/sparc/kernel/sys_sparc_64.c |    2 +-
+ arch/x86/mm/mmap.c               |    6 +++---
+ fs/binfmt_elf.c                  |    2 +-
+ 8 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN drivers/char/random.c~drivers-char-random-add-get_random_long drivers/char/random.c
---- a/drivers/char/random.c~drivers-char-random-add-get_random_long
-+++ a/drivers/char/random.c
-@@ -1819,6 +1819,28 @@ unsigned int get_random_int(void)
- EXPORT_SYMBOL(get_random_int);
+diff -puN arch/arm/mm/mmap.c~use-get_random_long arch/arm/mm/mmap.c
+--- a/arch/arm/mm/mmap.c~use-get_random_long
++++ a/arch/arm/mm/mmap.c
+@@ -173,7 +173,7 @@ unsigned long arch_mmap_rnd(void)
+ {
+ 	unsigned long rnd;
  
- /*
-+ * Same as get_random_int(), but returns unsigned long.
-+ */
-+unsigned long get_random_long(void)
-+{
-+	__u32 *hash;
-+	unsigned long ret;
-+
-+	if (arch_get_random_long(&ret))
-+		return ret;
-+
-+	hash = get_cpu_var(get_random_int_hash);
-+
-+	hash[0] += current->pid + jiffies + random_get_entropy();
-+	md5_transform(hash, random_int_secret);
-+	ret = *(unsigned long *)hash;
-+	put_cpu_var(get_random_int_hash);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(get_random_long);
-+
-+/*
-  * randomize_range() returns a start address such that
-  *
-  *    [...... <range> .....]
-diff -puN include/linux/random.h~drivers-char-random-add-get_random_long include/linux/random.h
---- a/include/linux/random.h~drivers-char-random-add-get_random_long
-+++ a/include/linux/random.h
-@@ -34,6 +34,7 @@ extern const struct file_operations rand
+-	rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_bits) - 1);
++	rnd = get_random_long() & ((1UL << mmap_rnd_bits) - 1);
+ 
+ 	return rnd << PAGE_SHIFT;
+ }
+diff -puN arch/arm64/mm/mmap.c~use-get_random_long arch/arm64/mm/mmap.c
+--- a/arch/arm64/mm/mmap.c~use-get_random_long
++++ a/arch/arm64/mm/mmap.c
+@@ -53,10 +53,10 @@ unsigned long arch_mmap_rnd(void)
+ 
+ #ifdef CONFIG_COMPAT
+ 	if (test_thread_flag(TIF_32BIT))
+-		rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_compat_bits) - 1);
++		rnd = get_random_long() & ((1UL << mmap_rnd_compat_bits) - 1);
+ 	else
  #endif
+-		rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_bits) - 1);
++		rnd = get_random_long() & ((1UL << mmap_rnd_bits) - 1);
+ 	return rnd << PAGE_SHIFT;
+ }
  
- unsigned int get_random_int(void);
-+unsigned long get_random_long(void);
- unsigned long randomize_range(unsigned long start, unsigned long end, unsigned long len);
+diff -puN arch/mips/mm/mmap.c~use-get_random_long arch/mips/mm/mmap.c
+--- a/arch/mips/mm/mmap.c~use-get_random_long
++++ a/arch/mips/mm/mmap.c
+@@ -146,7 +146,7 @@ unsigned long arch_mmap_rnd(void)
+ {
+ 	unsigned long rnd;
  
- u32 prandom_u32(void);
+-	rnd = (unsigned long)get_random_int();
++	rnd = get_random_long();
+ 	rnd <<= PAGE_SHIFT;
+ 	if (TASK_IS_32BIT_ADDR)
+ 		rnd &= 0xfffffful;
+@@ -174,7 +174,7 @@ void arch_pick_mmap_layout(struct mm_str
+ 
+ static inline unsigned long brk_rnd(void)
+ {
+-	unsigned long rnd = get_random_int();
++	unsigned long rnd = get_random_long();
+ 
+ 	rnd = rnd << PAGE_SHIFT;
+ 	/* 8MB for 32bit, 256MB for 64bit */
+diff -puN arch/powerpc/kernel/process.c~use-get_random_long arch/powerpc/kernel/process.c
+--- a/arch/powerpc/kernel/process.c~use-get_random_long
++++ a/arch/powerpc/kernel/process.c
+@@ -1768,9 +1768,9 @@ static inline unsigned long brk_rnd(void
+ 
+ 	/* 8MB for 32bit, 1GB for 64bit */
+ 	if (is_32bit_task())
+-		rnd = (long)(get_random_int() % (1<<(23-PAGE_SHIFT)));
++		rnd = (get_random_long() % (1UL<<(23-PAGE_SHIFT)));
+ 	else
+-		rnd = (long)(get_random_int() % (1<<(30-PAGE_SHIFT)));
++		rnd = (get_random_long() % (1UL<<(30-PAGE_SHIFT)));
+ 
+ 	return rnd << PAGE_SHIFT;
+ }
+diff -puN arch/powerpc/mm/mmap.c~use-get_random_long arch/powerpc/mm/mmap.c
+--- a/arch/powerpc/mm/mmap.c~use-get_random_long
++++ a/arch/powerpc/mm/mmap.c
+@@ -59,9 +59,9 @@ unsigned long arch_mmap_rnd(void)
+ 
+ 	/* 8MB for 32bit, 1GB for 64bit */
+ 	if (is_32bit_task())
+-		rnd = (unsigned long)get_random_int() % (1<<(23-PAGE_SHIFT));
++		rnd = get_random_long() % (1<<(23-PAGE_SHIFT));
+ 	else
+-		rnd = (unsigned long)get_random_int() % (1<<(30-PAGE_SHIFT));
++		rnd = get_random_long() % (1UL<<(30-PAGE_SHIFT));
+ 
+ 	return rnd << PAGE_SHIFT;
+ }
+diff -puN arch/sparc/kernel/sys_sparc_64.c~use-get_random_long arch/sparc/kernel/sys_sparc_64.c
+--- a/arch/sparc/kernel/sys_sparc_64.c~use-get_random_long
++++ a/arch/sparc/kernel/sys_sparc_64.c
+@@ -264,7 +264,7 @@ static unsigned long mmap_rnd(void)
+ 	unsigned long rnd = 0UL;
+ 
+ 	if (current->flags & PF_RANDOMIZE) {
+-		unsigned long val = get_random_int();
++		unsigned long val = get_random_long();
+ 		if (test_thread_flag(TIF_32BIT))
+ 			rnd = (val % (1UL << (23UL-PAGE_SHIFT)));
+ 		else
+diff -puN arch/x86/mm/mmap.c~use-get_random_long arch/x86/mm/mmap.c
+--- a/arch/x86/mm/mmap.c~use-get_random_long
++++ a/arch/x86/mm/mmap.c
+@@ -71,12 +71,12 @@ unsigned long arch_mmap_rnd(void)
+ 
+ 	if (mmap_is_ia32())
+ #ifdef CONFIG_COMPAT
+-		rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_compat_bits) - 1);
++		rnd = get_random_long() & ((1UL << mmap_rnd_compat_bits) - 1);
+ #else
+-		rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_bits) - 1);
++		rnd = get_random_long() & ((1UL << mmap_rnd_bits) - 1);
+ #endif
+ 	else
+-		rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_bits) - 1);
++		rnd = get_random_long() & ((1UL << mmap_rnd_bits) - 1);
+ 
+ 	return rnd << PAGE_SHIFT;
+ }
+diff -puN fs/binfmt_elf.c~use-get_random_long fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~use-get_random_long
++++ a/fs/binfmt_elf.c
+@@ -653,7 +653,7 @@ static unsigned long randomize_stack_top
+ 
+ 	if ((current->flags & PF_RANDOMIZE) &&
+ 		!(current->personality & ADDR_NO_RANDOMIZE)) {
+-		random_variable = (unsigned long) get_random_int();
++		random_variable = get_random_long();
+ 		random_variable &= STACK_RND_MASK;
+ 		random_variable <<= PAGE_SHIFT;
+ 	}
 _
 
 Patches currently in -mm which might be from dcashman@android.com are
