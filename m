@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix.patch added to -mm tree
-Date: Thu, 04 Feb 2016 10:51:45 -0800
-Message-ID: <56b39dc1.N+41A3V6/MXwC5eK%akpm@linux-foundation.org>
+Subject: + thp-get-deferred_split_scan-work-again.patch added to -mm tree
+Date: Thu, 04 Feb 2016 11:03:42 -0800
+Message-ID: <56b3a08e.sqy0il6xwHuFHkT3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40538 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41607 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932771AbcBDSvq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 13:51:46 -0500
+	with ESMTP id S933928AbcBDTDn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 14:03:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, dan.carpenter@oracle.com, krinkin.m.u@gmail.com, mingo@elte.hu, peterz@infradead.org, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix
+     Subject: thp: make deferred_split_scan() work again
 has been added to the -mm tree.  Its filename is
-     kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix.patch
+     thp-get-deferred_split_scan-work-again.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-get-deferred_split_scan-work-again.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-get-deferred_split_scan-work-again.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,82 +38,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp: make deferred_split_scan() work again
 
-`head' is never NULL here
+We need to iterate over split_queue, not local empty list to get anything
+split from the shrinker.
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Mike Krinkin <krinkin.m.u@gmail.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Fixes: e3ae19535c66 ("thp: limit number of object to scan on deferred_split_scan()")
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/locking/lockdep.c |    4 ----
- 1 file changed, 4 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/locking/lockdep.c~kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix kernel/locking/lockdep.c
---- a/kernel/locking/lockdep.c~kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix
-+++ a/kernel/locking/lockdep.c
-@@ -3930,8 +3930,6 @@ void lockdep_free_key_range(void *start,
- 	 */
- 	for (i = 0; i < CLASSHASH_SIZE; i++) {
- 		head = classhash_table + i;
--		if (!head)
--			continue;
- 		hlist_for_each_entry_rcu(class, head, hash_entry) {
- 			if (within(class->key, start, size))
- 				zap_class(class);
-@@ -3987,8 +3985,6 @@ void lockdep_reset_lock(struct lockdep_m
- 	locked = graph_lock();
- 	for (i = 0; i < CLASSHASH_SIZE; i++) {
- 		head = classhash_table + i;
--		if (!head)
--			continue;
- 		hlist_for_each_entry_rcu(class, head, hash_entry) {
- 			int match = 0;
+diff -puN mm/huge_memory.c~thp-get-deferred_split_scan-work-again mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-get-deferred_split_scan-work-again
++++ a/mm/huge_memory.c
+@@ -3482,7 +3482,7 @@ static unsigned long deferred_split_scan
  
+ 	spin_lock_irqsave(&pgdata->split_queue_lock, flags);
+ 	/* Take pin on all head pages to avoid freeing them under us */
+-	list_for_each_safe(pos, next, &list) {
++	list_for_each_safe(pos, next, &pgdata->split_queue) {
+ 		page = list_entry((void *)pos, struct page, mapping);
+ 		page = compound_head(page);
+ 		if (get_page_unless_zero(page)) {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-code-clean-up-for-direct-io-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix.patch
-mm.patch
-mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
-mm-simplify-lock_page_memcg-fix.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom_reaper-report-success-failure-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-btrfs-use-radix_tree_iter_retry-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-linux-next-git-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mempolicy-do-not-try-to-queue-pages-from-vma_migratable.patch
+mm-downgrade-vm_bug-in-isolate_lru_page-to-warning.patch
+thp-get-deferred_split_scan-work-again.patch
+ipc-shm-handle-removed-segments-gracefully-in-shm_mmap.patch
+thp-cleanup-split_huge_page.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
 
