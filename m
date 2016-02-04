@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages.patch
- added to -mm tree
-Date: Thu, 04 Feb 2016 15:26:27 -0800
-Message-ID: <56b3de23.t2QCxhpadUecaLeL%akpm@linux-foundation.org>
+Subject: + tools-vm-page-typesc-support-swap-entry.patch added to -mm tree
+Date: Thu, 04 Feb 2016 15:26:31 -0800
+Message-ID: <56b3de27.O78d57RyCCm8SllQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36511 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36519 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754564AbcBDX02 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:26:28 -0500
+	with ESMTP id S1757025AbcBDX0c (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:26:32 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, koct9i@gmail.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, koct9i@gmail.com, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: /proc/kpageflags: return KPF_BUDDY for "tail" buddy pages
+     Subject: tools/vm/page-types.c: support swap entry
 has been added to the -mm tree.  Its filename is
-     proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages.patch
+     tools-vm-page-typesc-support-swap-entry.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page-typesc-support-swap-entry.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page-typesc-support-swap-entry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,89 +39,102 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: /proc/kpageflags: return KPF_BUDDY for "tail" buddy pages
+Subject: tools/vm/page-types.c: support swap entry
 
-Currently /proc/kpageflags returns nothing for "tail" buddy pages, which
-is inconvenient when grasping how free pages are distributed.  This patch
-sets KPF_BUDDY for such pages.
-
-With this patch:
-
-  $ grep MemFree /proc/meminfo ; tools/vm/page-types -b buddy
-  MemFree:         3134992 kB
-               flags      page-count       MB  symbolic-flags                     long-symbolic-flags
-  0x0000000000000400          779272     3044  __________B_______________________________ buddy
-  0x0000000000000c00            4385       17  __________BM______________________________ buddy,mmap
-               total          783657     3061
-
-783657 pages is 3134628 kB (roughly consistent with the global counter,)
-so it's OK.
+/proc/pid/pagemap (pte_to_pagemap_entry() internally) already reports
+about swap entry, so let's make the in-kernel utility aware of it.
 
 Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c             |    2 ++
- include/linux/page-flags.h |    2 ++
- mm/internal.h              |    3 ---
- mm/page_alloc.c            |    2 --
- 4 files changed, 4 insertions(+), 5 deletions(-)
+ tools/vm/page-types.c |   30 +++++++++++++++++++++++++++++-
+ 1 file changed, 29 insertions(+), 1 deletion(-)
 
-diff -puN fs/proc/page.c~proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages fs/proc/page.c
---- a/fs/proc/page.c~proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages
-+++ a/fs/proc/page.c
-@@ -148,6 +148,8 @@ u64 stable_page_flags(struct page *page)
- 	 */
- 	if (PageBuddy(page))
- 		u |= 1 << KPF_BUDDY;
-+	else if (page_count(page) == 0 && is_free_buddy_page(page))
-+		u |= 1 << KPF_BUDDY;
+diff -puN tools/vm/page-types.c~tools-vm-page-typesc-support-swap-entry tools/vm/page-types.c
+--- a/tools/vm/page-types.c~tools-vm-page-typesc-support-swap-entry
++++ a/tools/vm/page-types.c
+@@ -61,6 +61,8 @@
+ #define PM_PFRAME_BITS		55
+ #define PM_PFRAME_MASK		((1LL << PM_PFRAME_BITS) - 1)
+ #define PM_PFRAME(x)		((x) & PM_PFRAME_MASK)
++#define MAX_SWAPFILES_SHIFT	5
++#define PM_SWAP_OFFSET(x)	(((x) & PM_PFRAME_MASK) >> MAX_SWAPFILES_SHIFT)
+ #define PM_SOFT_DIRTY		(1ULL << 55)
+ #define PM_MMAP_EXCLUSIVE	(1ULL << 56)
+ #define PM_FILE			(1ULL << 61)
+@@ -92,7 +94,8 @@
+ #define KPF_SLOB_FREE		49
+ #define KPF_SLUB_FROZEN		50
+ #define KPF_SLUB_DEBUG		51
+-#define KPF_FILE		62
++#define KPF_FILE		61
++#define KPF_SWAP		62
+ #define KPF_MMAP_EXCLUSIVE	63
  
- 	if (PageBalloon(page))
- 		u |= 1 << KPF_BALLOON;
-diff -puN include/linux/page-flags.h~proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages include/linux/page-flags.h
---- a/include/linux/page-flags.h~proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages
-+++ a/include/linux/page-flags.h
-@@ -593,6 +593,8 @@ static inline void __ClearPageBuddy(stru
- 	atomic_set(&page->_mapcount, -1);
+ #define KPF_ALL_BITS		((uint64_t)~0ULL)
+@@ -146,6 +149,7 @@ static const char * const page_flag_name
+ 	[KPF_SLUB_DEBUG]	= "E:slub_debug",
+ 
+ 	[KPF_FILE]		= "F:file",
++	[KPF_SWAP]		= "w:swap",
+ 	[KPF_MMAP_EXCLUSIVE]	= "1:mmap_exclusive",
+ };
+ 
+@@ -297,6 +301,10 @@ static unsigned long pagemap_pfn(uint64_
+ 	return pfn;
  }
  
-+extern bool is_free_buddy_page(struct page *page);
++static unsigned long pagemap_swap_offset(uint64_t val)
++{
++	return val & PM_SWAP ? PM_SWAP_OFFSET(val) : 0;
++}
+ 
+ /*
+  * page flag names
+@@ -452,6 +460,8 @@ static uint64_t expand_overloaded_flags(
+ 		flags |= BIT(SOFTDIRTY);
+ 	if (pme & PM_FILE)
+ 		flags |= BIT(FILE);
++	if (pme & PM_SWAP)
++		flags |= BIT(SWAP);
+ 	if (pme & PM_MMAP_EXCLUSIVE)
+ 		flags |= BIT(MMAP_EXCLUSIVE);
+ 
+@@ -613,6 +623,22 @@ static void walk_pfn(unsigned long voffs
+ 	}
+ }
+ 
++static void walk_swap(unsigned long voffset, uint64_t pme)
++{
++	uint64_t flags = kpageflags_flags(0, pme);
 +
- #define PAGE_BALLOON_MAPCOUNT_VALUE (-256)
- 
- static inline int PageBalloon(struct page *page)
-diff -puN mm/internal.h~proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages mm/internal.h
---- a/mm/internal.h~proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages
-+++ a/mm/internal.h
-@@ -153,9 +153,6 @@ extern int __isolate_free_page(struct pa
- extern void __free_pages_bootmem(struct page *page, unsigned long pfn,
- 					unsigned int order);
- extern void prep_compound_page(struct page *page, unsigned int order);
--#ifdef CONFIG_MEMORY_FAILURE
--extern bool is_free_buddy_page(struct page *page);
--#endif
- extern int user_min_free_kbytes;
- 
- #if defined CONFIG_COMPACTION || defined CONFIG_CMA
-diff -puN mm/page_alloc.c~proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages mm/page_alloc.c
---- a/mm/page_alloc.c~proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages
-+++ a/mm/page_alloc.c
-@@ -7150,7 +7150,6 @@ __offline_isolated_pages(unsigned long s
- }
- #endif
- 
--#ifdef CONFIG_MEMORY_FAILURE
- bool is_free_buddy_page(struct page *page)
++	if (!bit_mask_ok(flags))
++		return;
++
++	if (opt_list == 1)
++		show_page_range(voffset, pagemap_swap_offset(pme), 1, flags);
++	else if (opt_list == 2)
++		show_page(voffset, pagemap_swap_offset(pme), flags);
++
++	nr_pages[hash_slot(flags)]++;
++	total_pages++;
++}
++
+ #define PAGEMAP_BATCH	(64 << 10)
+ static void walk_vma(unsigned long index, unsigned long count)
  {
- 	struct zone *zone = page_zone(page);
-@@ -7169,4 +7168,3 @@ bool is_free_buddy_page(struct page *pag
+@@ -632,6 +658,8 @@ static void walk_vma(unsigned long index
+ 			pfn = pagemap_pfn(buf[i]);
+ 			if (pfn)
+ 				walk_pfn(index + i, pfn, 1, buf[i]);
++			if (buf[i] & PM_SWAP)
++				walk_swap(index + i, buf[i]);
+ 		}
  
- 	return order < MAX_ORDER;
- }
--#endif
+ 		index += pages;
 _
 
 Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
