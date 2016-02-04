@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
- added to -mm tree
-Date: Thu, 04 Feb 2016 15:43:23 -0800
-Message-ID: <56b3e21b.7w7BkBC/cgPRmo6y%akpm@linux-foundation.org>
+Subject: + mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch added
+ to -mm tree
+Date: Thu, 04 Feb 2016 15:43:27 -0800
+Message-ID: <56b3e21f.BHyLBBbV3yNDVF1y%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37958 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37976 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757265AbcBDXnY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:43:24 -0500
+	with ESMTP id S933374AbcBDXn2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:43:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, benh@kernel.crashing.org, borntraeger@de.ibm.com, cl@linux.com, cmetcalf@ezchip.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, tiwai@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix
+     Subject: mm-slub-query-dynamic-debug_pagealloc-setting-fix
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
+     mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,9 +40,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix
+Subject: mm-slub-query-dynamic-debug_pagealloc-setting-fix
 
-update comment, per David.  Adjust comment to use 80 cols
+clean up code, per Christian
 
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
@@ -55,38 +55,28 @@ Cc: Takashi Iwai <tiwai@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ mm/slub.c |    9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix
-+++ a/mm/vmalloc.c
-@@ -531,17 +531,16 @@ static void unmap_vmap_area(struct vmap_
- static void vmap_debug_free_range(unsigned long start, unsigned long end)
+diff -puN mm/slub.c~mm-slub-query-dynamic-debug_pagealloc-setting-fix mm/slub.c
+--- a/mm/slub.c~mm-slub-query-dynamic-debug_pagealloc-setting-fix
++++ a/mm/slub.c
+@@ -250,12 +250,9 @@ static inline void *get_freepointer_safe
  {
- 	/*
--	 * Unmap page tables and force a TLB flush immediately if
--	 * CONFIG_DEBUG_PAGEALLOC is set. This catches use after free
--	 * bugs similarly to those in linear kernel virtual address
--	 * space after a page has been freed.
-+	 * Unmap page tables and force a TLB flush immediately if pagealloc
-+	 * debugging is enabled.  This catches use after free bugs similarly to
-+	 * those in linear kernel virtual address space after a page has been
-+	 * freed.
- 	 *
--	 * All the lazy freeing logic is still retained, in order to
--	 * minimise intrusiveness of this debugging feature.
-+	 * All the lazy freeing logic is still retained, in order to minimise
-+	 * intrusiveness of this debugging feature.
- 	 *
--	 * This is going to be *slow* (linear kernel virtual address
--	 * debugging doesn't do a broadcast TLB flush so it is a lot
--	 * faster).
-+	 * This is going to be *slow* (linear kernel virtual address debugging
-+	 * doesn't do a broadcast TLB flush so it is a lot faster).
- 	 */
- 	if (debug_pagealloc_enabled()) {
- 		vunmap_page_range(start, end);
+ 	void *p;
+ 
+-	if (debug_pagealloc_enabled()) {
+-		probe_kernel_read(&p,
+-			(void **)(object + s->offset), sizeof(p));
+-	} else
+-		p = get_freepointer(s, object);
+-
++	if (!debug_pagealloc_enabled())
++		return get_freepointer(s, object);
++	probe_kernel_read(&p, (void **)(object + s->offset), sizeof(p));
+ 	return p;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
