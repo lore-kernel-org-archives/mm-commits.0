@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-add-kcov-code-coverage-fix.patch added to -mm tree
-Date: Thu, 04 Feb 2016 14:31:50 -0800
-Message-ID: <56b3d156.rCVR3bRkBKwa8ho9%akpm@linux-foundation.org>
+Subject: + epoll-restrict-epollexclusive-to-pollin-and-pollout.patch added to -mm tree
+Date: Thu, 04 Feb 2016 15:00:21 -0800
+Message-ID: <56b3d805.jSjI5mtP0tiKFsLh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60446 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34220 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757906AbcBDWbv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 17:31:51 -0500
+	with ESMTP id S1752059AbcBDXAW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:00:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dvyukov@google.com, keescook@chromium.org, mm-commits@vger.kernel.org
+To: jbaron@akamai.com, corbet@lwn.net, hagen@jauu.net, luto@amacapital.net, m@silodev.com, mingo@kernel.org, mtk.manpages@gmail.com, normalperson@yhbt.net, peterz@infradead.org, viro@ftp.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-add-kcov-code-coverage-fix
+     Subject: epoll: restrict EPOLLEXCLUSIVE to POLLIN and POLLOUT
 has been added to the -mm tree.  Its filename is
-     kernel-add-kcov-code-coverage-fix.patch
+     epoll-restrict-epollexclusive-to-pollin-and-pollout.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-add-kcov-code-coverage-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/epoll-restrict-epollexclusive-to-pollin-and-pollout.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-add-kcov-code-coverage-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/epoll-restrict-epollexclusive-to-pollin-and-pollout.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,116 +38,152 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-add-kcov-code-coverage-fix
+From: Jason Baron <jbaron@akamai.com>
+Subject: epoll: restrict EPOLLEXCLUSIVE to POLLIN and POLLOUT
 
-make task_struct.kcov_mode have type `enum kcov_mode'.
+In the current implementation of the EPOLLEXCLUSIVE flag (added for 4.5-rc1),
+if epoll waiters create different POLL* sets and register them as exclusive
+against the same target fd, the current implementation will stop waking any
+further waiters once it finds the first idle waiter. This means that waiters
+could miss wakeups in certain cases.
 
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Kees Cook <keescook@chromium.org>
+For example, when we wake up a pipe for reading we do:
+wake_up_interruptible_sync_poll(&pipe->wait, POLLIN | POLLRDNORM);
+So if one epoll set or epfd is added to pipe p with POLLIN and a second set
+epfd2 is added to pipe p with POLLRDNORM, only epfd may receive the wakeup
+since the current implementation will stop after it finds any intersection
+of events with a waiter that is blocked in epoll_wait().
+
+We could potentially address this by requiring all epoll waiters that are
+added to p be required to pass the same set of POLL* events. IE the first
+EPOLL_CTL_ADD that passes EPOLLEXCLUSIVE establishes the set POLL* flags to
+be used by any other epfds that are added as EPOLLEXCLUSIVE. However, I think
+it might be somewhat confusing interface as we would have to reference count
+the number of users for that set, and so userspace would have to keep track
+of that count, or we would need a more involved interface. It also adds some
+shared state that we'd have store somewhere. I don't think anybody will want
+to bloat __wait_queue_head for this.
+
+I think what we could do instead, is to simply restrict EPOLLEXCLUSIVE such
+that it can only be specified with EPOLLIN and/or EPOLLOUT. So that way if
+the wakeup includes 'POLLIN' and not 'POLLOUT', we can stop once we hit the
+first idle waiter that specifies the EPOLLIN bit, since any remaining waiters
+that only have 'POLLOUT' set wouldn't need to be woken. Likewise, we can do
+the same thing if 'POLLOUT' is in the wakeup bit set and not 'POLLIN'. If both
+'POLLOUT' and 'POLLIN' are set in the wake bit set (there is at least one
+example of this I saw in fs/pipe.c), then we just wake the entire exclusive
+list. Having both 'POLLOUT' and 'POLLIN' both set should not be on any
+performance critical path, so I think that's ok (in fs/pipe.c its in
+pipe_release()). We also continue to include EPOLLERR and EPOLLHUP by default
+in any exclusive set. Thus, the user can specify EPOLLERR and/or EPOLLHUP but
+is not required to do so.
+
+Since epoll waiters may be interested in other events as well besides EPOLLIN,
+EPOLLOUT, EPOLLERR and EPOLLHUP, these can still be added by doing a 'dup' call
+on the target fd and adding that as one normally would with EPOLL_CTL_ADD. Since
+I think that the POLLIN and POLLOUT events are what we are interest in balancing,
+I think that the 'dup' thing could perhaps be added to only one of the waiter
+threads. However, I think that EPOLLIN, EPOLLOUT, EPOLLERR and EPOLLHUP should
+be sufficient for the majority of use-cases.
+
+Since EPOLLEXCLUSIVE is intended to be used with a target fd shared among
+multiple epfds, where between 1 and n of the epfds may receive an event, it
+does not satisfy the semantics of EPOLLONESHOT where only 1 epfd would get an
+event. Thus, it is not allowed to be specified in conjunction with
+EPOLLEXCLUSIVE.
+
+EPOLL_CTL_MOD is also not allowed if the fd was previously added as
+EPOLLEXCLUSIVE. It seems with the limited number of flags to not be as
+interesting, but this could be relaxed at some further point.
+
+Signed-off-by: Jason Baron <jbaron@akamai.com>
+Tested-by: Madars Vitolins <m@silodev.com>
+Cc: Michael Kerrisk <mtk.manpages@gmail.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Al Viro <viro@ftp.linux.org.uk>
+Cc: Eric Wong <normalperson@yhbt.net>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Hagen Paul Pfeifer <hagen@jauu.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kcov.h  |    8 ++++++++
- include/linux/sched.h |    3 ++-
- kernel/kcov.c         |    8 --------
- 3 files changed, 10 insertions(+), 9 deletions(-)
+ fs/eventpoll.c |   38 ++++++++++++++++++++++++++++++++------
+ 1 file changed, 32 insertions(+), 6 deletions(-)
 
-diff -puN include/linux/kcov.h~kernel-add-kcov-code-coverage-fix include/linux/kcov.h
---- a/include/linux/kcov.h~kernel-add-kcov-code-coverage-fix
-+++ a/include/linux/kcov.h
-@@ -10,6 +10,14 @@ struct task_struct;
- void kcov_task_init(struct task_struct *t);
- void kcov_task_exit(struct task_struct *t);
+diff -puN fs/eventpoll.c~epoll-restrict-epollexclusive-to-pollin-and-pollout fs/eventpoll.c
+--- a/fs/eventpoll.c~epoll-restrict-epollexclusive-to-pollin-and-pollout
++++ a/fs/eventpoll.c
+@@ -94,6 +94,11 @@
+ /* Epoll private bits inside the event mask */
+ #define EP_PRIVATE_BITS (EPOLLWAKEUP | EPOLLONESHOT | EPOLLET | EPOLLEXCLUSIVE)
  
-+enum kcov_mode {
-+	/*
-+	 * Tracing coverage collection mode.
-+	 * Covered PCs are collected in a per-task buffer.
-+	 */
-+	KCOV_MODE_TRACE = 1,
-+};
++#define EPOLLINOUT_BITS (POLLIN | POLLOUT)
 +
- #else
++#define EPOLLEXCLUSIVE_OK_BITS (EPOLLINOUT_BITS | POLLERR | POLLHUP | \
++				EPOLLWAKEUP | EPOLLET | EPOLLEXCLUSIVE)
++
+ /* Maximum number of nesting allowed inside epoll sets */
+ #define EP_MAX_NESTS 4
  
- static inline void kcov_task_init(struct task_struct *t) {}
-diff -puN include/linux/sched.h~kernel-add-kcov-code-coverage-fix include/linux/sched.h
---- a/include/linux/sched.h~kernel-add-kcov-code-coverage-fix
-+++ a/include/linux/sched.h
-@@ -51,6 +51,7 @@ struct sched_param {
- #include <linux/resource.h>
- #include <linux/timer.h>
- #include <linux/hrtimer.h>
-+#include <linux/kcov.h>
- #include <linux/task_io_accounting.h>
- #include <linux/latencytop.h>
- #include <linux/cred.h>
-@@ -1814,7 +1815,7 @@ struct task_struct {
- #endif /* CONFIG_TRACING */
- #ifdef CONFIG_KCOV
- 	/* Coverage collection mode enabled for this task (0 if disabled). */
--	int		kcov_mode;
-+	enum kcov_mode kcov_mode;
- 	/* Size of the kcov_area. */
- 	unsigned	kcov_size;
- 	/* Buffer for coverage collection. */
-diff -puN kernel/kcov.c~kernel-add-kcov-code-coverage-fix kernel/kcov.c
---- a/kernel/kcov.c~kernel-add-kcov-code-coverage-fix
-+++ a/kernel/kcov.c
-@@ -13,14 +13,6 @@
- #include <linux/uaccess.h>
- #include <linux/kcov.h>
+@@ -1068,7 +1073,22 @@ static int ep_poll_callback(wait_queue_t
+ 	 * wait list.
+ 	 */
+ 	if (waitqueue_active(&ep->wq)) {
+-		ewake = 1;
++		if ((epi->event.events & EPOLLEXCLUSIVE) &&
++					!((unsigned long)key & POLLFREE)) {
++			switch ((unsigned long)key & EPOLLINOUT_BITS) {
++			case POLLIN:
++				if (epi->event.events & POLLIN)
++					ewake = 1;
++				break;
++			case POLLOUT:
++				if (epi->event.events & POLLOUT)
++					ewake = 1;
++				break;
++			case 0:
++				ewake = 1;
++				break;
++			}
++		}
+ 		wake_up_locked(&ep->wq);
+ 	}
+ 	if (waitqueue_active(&ep->poll_wait))
+@@ -1875,9 +1895,13 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
+ 	 * so EPOLLEXCLUSIVE is not allowed for a EPOLL_CTL_MOD operation.
+ 	 * Also, we do not currently supported nested exclusive wakeups.
+ 	 */
+-	if ((epds.events & EPOLLEXCLUSIVE) && (op == EPOLL_CTL_MOD ||
+-		(op == EPOLL_CTL_ADD && is_file_epoll(tf.file))))
+-		goto error_tgt_fput;
++	if (epds.events & EPOLLEXCLUSIVE) {
++		if (op == EPOLL_CTL_MOD)
++			goto error_tgt_fput;
++		if (op == EPOLL_CTL_ADD && (is_file_epoll(tf.file) ||
++				(epds.events & ~EPOLLEXCLUSIVE_OK_BITS)))
++			goto error_tgt_fput;
++	}
  
--enum kcov_mode {
--	/*
--	 * Tracing coverage collection mode.
--	 * Covered PCs are collected in a per-task buffer.
--	 */
--	KCOV_MODE_TRACE = 1,
--};
--
- /*
-  * kcov descriptor (one per opened debugfs file).
-  * State transitions of the descriptor:
+ 	/*
+ 	 * At this point it is safe to assume that the "private_data" contains
+@@ -1950,8 +1974,10 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
+ 		break;
+ 	case EPOLL_CTL_MOD:
+ 		if (epi) {
+-			epds.events |= POLLERR | POLLHUP;
+-			error = ep_modify(ep, epi, &epds);
++			if (!(epi->event.events & EPOLLEXCLUSIVE)) {
++				epds.events |= POLLERR | POLLHUP;
++				error = ep_modify(ep, epi, &epds);
++			}
+ 		} else
+ 			error = -ENOENT;
+ 		break;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jbaron@akamai.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-code-clean-up-for-direct-io-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
-mm.patch
-mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
-mm-simplify-lock_page_memcg-fix.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom_reaper-report-success-failure-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-btrfs-use-radix_tree_iter_retry-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-kernel-add-kcov-code-coverage-fix.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+epoll-restrict-epollexclusive-to-pollin-and-pollout.patch
 
