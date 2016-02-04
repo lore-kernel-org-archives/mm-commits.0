@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + dax-dirty-inode-only-if-required.patch added to -mm tree
-Date: Thu, 04 Feb 2016 11:06:06 -0800
-Message-ID: <56b3a11e.DeQIYyGf6OhE5IhF%akpm@linux-foundation.org>
+Subject: + maintainers-trim-the-file-triggers-for-abi-api.patch added to
+ -mm tree
+Date: Thu, 04 Feb 2016 11:20:07 -0800
+Message-ID: <56b3a467.nYr9vSm6wqw7sFbW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41914 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42832 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932949AbcBDTGH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 14:06:07 -0500
+	with ESMTP id S965613AbcBDTUI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 14:20:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dmonakhov@openvz.org, jack@suse.cz, matthew.r.wilcox@intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: mtk.manpages@gmail.com, josh@joshtriplett.org, mtk.man-pages@gmail.com, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: dirty inode only if required
+     Subject: MAINTAINERS: trim the file triggers for ABI/API
 has been added to the -mm tree.  Its filename is
-     dax-dirty-inode-only-if-required.patch
+     maintainers-trim-the-file-triggers-for-abi-api.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/dax-dirty-inode-only-if-required.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-trim-the-file-triggers-for-abi-api.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/dax-dirty-inode-only-if-required.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-trim-the-file-triggers-for-abi-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,35 +39,43 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dmitry Monakhov <dmonakhov@openvz.org>
-Subject: dax: dirty inode only if required
+From: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
+Subject: MAINTAINERS: trim the file triggers for ABI/API
 
-Signed-off-by: Dmitry Monakhov <dmonakhov@openvz.org>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Commit ea8f8fc8631 ("MAINTAINERS: add linux-api for review of API/ABI
+changes") added file triggers for various paths that likely indicated
+API/ABI changes.  However, catching all changes in Documentation/ABI/ and
+include/uapi/ produces a large volume of mail to linux-api, rather than
+only API/ABI changes.  Drop those two entries, but leave
+include/linux/syscalls.h and kernel/sys_ni.c to catch syscall-related
+changes.
+
+[josh@joshtriplett.org: redid changelog]
+Signed-off-by: Michael Kerrisk <mtk.man-pages@gmail.com>
+Acked-by: Shuah khan <shuahkh@osg.samsung.com>
+Cc: Josh Triplett <josh@joshtriplett.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ MAINTAINERS |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN fs/dax.c~dax-dirty-inode-only-if-required fs/dax.c
---- a/fs/dax.c~dax-dirty-inode-only-if-required
-+++ a/fs/dax.c
-@@ -358,7 +358,8 @@ static int dax_radix_entry(struct addres
- 	void *entry;
+diff -puN MAINTAINERS~maintainers-trim-the-file-triggers-for-abi-api MAINTAINERS
+--- a/MAINTAINERS~maintainers-trim-the-file-triggers-for-abi-api
++++ a/MAINTAINERS
+@@ -223,9 +223,7 @@ F:	drivers/scsi/aacraid/
  
- 	WARN_ON_ONCE(pmd_entry && !dirty);
--	__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
-+	if (dirty)
-+		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+ ABI/API
+ L:	linux-api@vger.kernel.org
+-F:	Documentation/ABI/
+ F:	include/linux/syscalls.h
+-F:	include/uapi/
+ F:	kernel/sys_ni.c
  
- 	spin_lock_irq(&mapping->tree_lock);
- 
+ ABIT UGURU 1,2 HARDWARE MONITOR DRIVER
 _
 
-Patches currently in -mm which might be from dmonakhov@openvz.org are
+Patches currently in -mm which might be from mtk.manpages@gmail.com are
 
-dax-dirty-inode-only-if-required.patch
+maintainers-trim-the-file-triggers-for-abi-api.patch
 
