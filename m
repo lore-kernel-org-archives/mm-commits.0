@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memcontrol-do-not-bypass-slab-charge-if-memcg-is-offline.patch added to
- -mm tree
-Date: Thu, 04 Feb 2016 15:07:43 -0800
-Message-ID: <56b3d9bf.qlLtBD1Ov7nQ/ZNv%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-make-tree_statevents-fetch-all-stats.patch added
+ to -mm tree
+Date: Thu, 04 Feb 2016 15:07:45 -0800
+Message-ID: <56b3d9c1.XWkdn9laoMCmqEwf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34878 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34883 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751890AbcBDXHo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:07:44 -0500
+	with ESMTP id S1752199AbcBDXHq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:07:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: do not bypass slab charge if memcg is offline
+     Subject: mm: memcontrol: make tree_{stat,events} fetch all stats
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-do-not-bypass-slab-charge-if-memcg-is-offline.patch
+     mm-memcontrol-make-tree_statevents-fetch-all-stats.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-do-not-bypass-slab-charge-if-memcg-is-offline.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-make-tree_statevents-fetch-all-stats.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-do-not-bypass-slab-charge-if-memcg-is-offline.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-make-tree_statevents-fetch-all-stats.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,63 +40,136 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: memcontrol: do not bypass slab charge if memcg is offline
+Subject: mm: memcontrol: make tree_{stat,events} fetch all stats
 
-Slab pages are charged in two steps.  First, an appropriate per memcg
-cache is selected (see memcg_kmem_get_cache) basing on the current
-context, then the new slab page is charged to the memory cgroup which the
-selected cache was created for (see memcg_charge_slab ->
-__memcg_kmem_charge_memcg).  It is OK to bypass kmemcg charge at step 1,
-but if step 1 succeeded and we successfully allocated a new slab page,
-step 2 must be performed, otherwise we would get a per memcg kmem cache
-which contains a slab that does not hold a reference to the memory cgroup
-owning the cache.  Since per memcg kmem caches are destroyed on memcg css
-free, this could result in freeing a cache while there are still active
-objects in it.
-
-However, currently we will bypass slab page charge if the memory cgroup
-owning the cache is offline (see __memcg_kmem_charge_memcg).  This is very
-unlikely to occur in practice, because for this to happen a process must
-be migrated to a different cgroup and the old cgroup must be removed while
-the process is in kmalloc somewhere between steps 1 and 2 (e.g.  trying to
-allocate a new page).  Nevertheless, it's still better to eliminate such a
-possibility.
+Currently, tree_{stat,events} helpers can only get one stat index at a
+time, so when there are a lot of stats to be reported one has to call it
+over and over again (see memory_stat_show).  This is neither effective,
+nor does it look good.  Instead, let's make these helpers take a snapshot
+of all available counters.
 
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ mm/memcontrol.c |   57 +++++++++++++++++++++++++---------------------
+ 1 file changed, 31 insertions(+), 26 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-do-not-bypass-slab-charge-if-memcg-is-offline mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-do-not-bypass-slab-charge-if-memcg-is-offline
+diff -puN mm/memcontrol.c~mm-memcontrol-make-tree_statevents-fetch-all-stats mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-make-tree_statevents-fetch-all-stats
 +++ a/mm/memcontrol.c
-@@ -2325,9 +2325,6 @@ int __memcg_kmem_charge_memcg(struct pag
- 	struct page_counter *counter;
- 	int ret;
+@@ -2717,39 +2717,42 @@ static int mem_cgroup_hierarchy_write(st
+ 	return retval;
+ }
  
--	if (!memcg_kmem_online(memcg))
--		return 0;
--
- 	ret = try_charge(memcg, gfp, nr_pages);
- 	if (ret)
- 		return ret;
-@@ -2346,10 +2343,11 @@ int __memcg_kmem_charge_memcg(struct pag
- int __memcg_kmem_charge(struct page *page, gfp_t gfp, int order)
+-static unsigned long tree_stat(struct mem_cgroup *memcg,
+-			       enum mem_cgroup_stat_index idx)
++static void tree_stat(struct mem_cgroup *memcg, unsigned long *stat)
  {
- 	struct mem_cgroup *memcg;
--	int ret;
-+	int ret = 0;
+ 	struct mem_cgroup *iter;
+-	unsigned long val = 0;
++	int i;
  
- 	memcg = get_mem_cgroup_from_mm(current->mm);
--	ret = __memcg_kmem_charge_memcg(page, gfp, order, memcg);
-+	if (memcg_kmem_online(memcg))
-+		ret = __memcg_kmem_charge_memcg(page, gfp, order, memcg);
- 	css_put(&memcg->css);
- 	return ret;
+-	for_each_mem_cgroup_tree(iter, memcg)
+-		val += mem_cgroup_read_stat(iter, idx);
++	memset(stat, 0, sizeof(*stat) * MEMCG_NR_STAT);
+ 
+-	return val;
++	for_each_mem_cgroup_tree(iter, memcg) {
++		for (i = 0; i < MEMCG_NR_STAT; i++)
++			stat[i] += mem_cgroup_read_stat(iter, i);
++	}
+ }
+ 
+-static unsigned long tree_events(struct mem_cgroup *memcg,
+-				 enum mem_cgroup_events_index idx)
++static void tree_events(struct mem_cgroup *memcg, unsigned long *events)
+ {
+ 	struct mem_cgroup *iter;
+-	unsigned long val = 0;
++	int i;
+ 
+-	for_each_mem_cgroup_tree(iter, memcg)
+-		val += mem_cgroup_read_events(iter, idx);
++	memset(events, 0, sizeof(*events) * MEMCG_NR_EVENTS);
+ 
+-	return val;
++	for_each_mem_cgroup_tree(iter, memcg) {
++		for (i = 0; i < MEMCG_NR_EVENTS; i++)
++			events[i] += mem_cgroup_read_events(iter, i);
++	}
+ }
+ 
+ static unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
+ {
++	unsigned long stat[MEMCG_NR_STAT];
+ 	unsigned long val;
+ 
+ 	if (mem_cgroup_is_root(memcg)) {
+-		val = tree_stat(memcg, MEM_CGROUP_STAT_CACHE);
+-		val += tree_stat(memcg, MEM_CGROUP_STAT_RSS);
++		tree_stat(memcg, stat);
++		val = stat[MEM_CGROUP_STAT_CACHE] + stat[MEM_CGROUP_STAT_RSS];
+ 		if (swap)
+-			val += tree_stat(memcg, MEM_CGROUP_STAT_SWAP);
++			val += stat[MEM_CGROUP_STAT_SWAP];
+ 	} else {
+ 		if (!swap)
+ 			val = page_counter_read(&memcg->memory);
+@@ -5075,6 +5078,8 @@ static int memory_events_show(struct seq
+ static int memory_stat_show(struct seq_file *m, void *v)
+ {
+ 	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
++	unsigned long stat[MEMCG_NR_STAT];
++	unsigned long events[MEMCG_NR_EVENTS];
+ 	int i;
+ 
+ 	/*
+@@ -5088,22 +5093,22 @@ static int memory_stat_show(struct seq_f
+ 	 * Current memory state:
+ 	 */
+ 
++	tree_stat(memcg, stat);
++	tree_events(memcg, events);
++
+ 	seq_printf(m, "anon %llu\n",
+-		   (u64)tree_stat(memcg, MEM_CGROUP_STAT_RSS) * PAGE_SIZE);
++		   (u64)stat[MEM_CGROUP_STAT_RSS] * PAGE_SIZE);
+ 	seq_printf(m, "file %llu\n",
+-		   (u64)tree_stat(memcg, MEM_CGROUP_STAT_CACHE) * PAGE_SIZE);
++		   (u64)stat[MEM_CGROUP_STAT_CACHE] * PAGE_SIZE);
+ 	seq_printf(m, "sock %llu\n",
+-		   (u64)tree_stat(memcg, MEMCG_SOCK) * PAGE_SIZE);
++		   (u64)stat[MEMCG_SOCK] * PAGE_SIZE);
+ 
+ 	seq_printf(m, "file_mapped %llu\n",
+-		   (u64)tree_stat(memcg, MEM_CGROUP_STAT_FILE_MAPPED) *
+-		   PAGE_SIZE);
++		   (u64)stat[MEM_CGROUP_STAT_FILE_MAPPED] * PAGE_SIZE);
+ 	seq_printf(m, "file_dirty %llu\n",
+-		   (u64)tree_stat(memcg, MEM_CGROUP_STAT_DIRTY) *
+-		   PAGE_SIZE);
++		   (u64)stat[MEM_CGROUP_STAT_DIRTY] * PAGE_SIZE);
+ 	seq_printf(m, "file_writeback %llu\n",
+-		   (u64)tree_stat(memcg, MEM_CGROUP_STAT_WRITEBACK) *
+-		   PAGE_SIZE);
++		   (u64)stat[MEM_CGROUP_STAT_WRITEBACK] * PAGE_SIZE);
+ 
+ 	for (i = 0; i < NR_LRU_LISTS; i++) {
+ 		struct mem_cgroup *mi;
+@@ -5118,9 +5123,9 @@ static int memory_stat_show(struct seq_f
+ 	/* Accumulated memory events */
+ 
+ 	seq_printf(m, "pgfault %lu\n",
+-		   tree_events(memcg, MEM_CGROUP_EVENTS_PGFAULT));
++		   events[MEM_CGROUP_EVENTS_PGFAULT]);
+ 	seq_printf(m, "pgmajfault %lu\n",
+-		   tree_events(memcg, MEM_CGROUP_EVENTS_PGMAJFAULT));
++		   events[MEM_CGROUP_EVENTS_PGMAJFAULT]);
+ 
+ 	return 0;
  }
 _
 
