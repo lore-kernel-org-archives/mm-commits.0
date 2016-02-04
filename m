@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2.patch added to -mm tree
-Date: Thu, 04 Feb 2016 12:36:51 -0800
-Message-ID: <56b3b663.HaVjqex2BQW51czS%akpm@linux-foundation.org>
+Subject: + radix-tree-fix-oops-after-radix_tree_iter_retry.patch added to
+ -mm tree
+Date: Thu, 04 Feb 2016 12:38:09 -0800
+Message-ID: <56b3b6b1.sCyg9xU1hkPxxzgG%akpm__21307.8050445349$1454618315$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51593 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51639 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751411AbcBDUgw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 15:36:52 -0500
+	with ESMTP id S932861AbcBDUiK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 15:38:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, js1304@gmail.com, mhocko@kernel.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: koct9i@gmail.com, hughd@google.com, ohad@wizery.com, stable@vger.kernel.org, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2
+     Subject: radix-tree: fix oops after radix_tree_iter_retry
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2.patch
+     radix-tree-fix-oops-after-radix_tree_iter_retry.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-fix-oops-after-radix_tree_iter_retry.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-fix-oops-after-radix_tree_iter_retry.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,80 +39,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: radix-tree: fix oops after radix_tree_iter_retry
 
-fix !CONFIG_COMPACTION && CONFIG_MEMORY_ISOLATION=y build
+Helper radix_tree_iter_retry() resets next_index to the current index.  In
+following radix_tree_next_slot current chunk size becomes zero.  This
+isn't checked and it tries to dereference null pointer in slot.
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@kernel.org>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Tagged iterator is fine because retry happens only at slot 0 where tag
+bitmask in iter->tags is filled with single bit.
+
+Fixes: 46437f9a554f ("radix-tree: fix race in gang lookup")
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 +-
- mm/hugetlb.c        |    2 +-
- mm/page_alloc.c     |    2 +-
- 3 files changed, 3 insertions(+), 3 deletions(-)
+ include/linux/radix-tree.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/gfp.h~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2 include/linux/gfp.h
---- a/include/linux/gfp.h~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2
-+++ a/include/linux/gfp.h
-@@ -547,7 +547,7 @@ static inline bool pm_suspended_storage(
- }
- #endif /* CONFIG_PM_SLEEP */
- 
--#ifdef CONFIG_MEMORY_ISOLATION
-+#if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
- /* The below functions must be run on a range from a single zone. */
- extern int alloc_contig_range(unsigned long start, unsigned long end,
- 			      unsigned migratetype);
-diff -puN mm/hugetlb.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2 mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2
-+++ a/mm/hugetlb.c
-@@ -1001,7 +1001,7 @@ static int hstate_next_node_to_free(stru
- 		((node = hstate_next_node_to_free(hs, mask)) || 1);	\
- 		nr_nodes--)
- 
--#if defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_X86_64)
-+#if defined(CONFIG_X86_64) && ((defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA))
- static void destroy_compound_gigantic_page(struct page *page,
- 					unsigned int order)
+diff -puN include/linux/radix-tree.h~radix-tree-fix-oops-after-radix_tree_iter_retry include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-fix-oops-after-radix_tree_iter_retry
++++ a/include/linux/radix-tree.h
+@@ -400,7 +400,7 @@ void **radix_tree_iter_retry(struct radi
+  * @iter:	pointer to radix tree iterator
+  * Returns:	current chunk size
+  */
+-static __always_inline unsigned
++static __always_inline long
+ radix_tree_chunk_size(struct radix_tree_iter *iter)
  {
-diff -puN mm/page_alloc.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2 mm/page_alloc.c
---- a/mm/page_alloc.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2
-+++ a/mm/page_alloc.c
-@@ -6620,7 +6620,7 @@ bool is_pageblock_removable_nolock(struc
- 	return !has_unmovable_pages(zone, page, 0, true);
- }
+ 	return iter->next_index - iter->index;
+@@ -434,9 +434,9 @@ radix_tree_next_slot(void **slot, struct
+ 			return slot + offset + 1;
+ 		}
+ 	} else {
+-		unsigned size = radix_tree_chunk_size(iter) - 1;
++		long size = radix_tree_chunk_size(iter);
  
--#ifdef CONFIG_MEMORY_ISOLATION
-+#if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
- 
- static unsigned long pfn_max_align_down(unsigned long pfn)
- {
+-		while (size--) {
++		while (--size > 0) {
+ 			slot++;
+ 			iter->index++;
+ 			if (likely(*slot))
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from koct9i@gmail.com are
 
-mm-kconfig-correct-description-of-deferred_struct_page_init.patch
-mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages.patch
-mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2.patch
-tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
-mm-tracing-make-show_gfp_flags-up-to-date.patch
-tools-perf-make-gfp_compact_table-up-to-date.patch
-mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk.patch
-mm-printk-introduce-new-format-string-for-flags.patch
-mm-printk-introduce-new-format-string-for-flags-fix.patch
-mm-debug-replace-dump_flags-with-the-new-printk-formats.patch
-mm-page_alloc-print-symbolic-gfp_flags-on-allocation-failure.patch
-mm-oom-print-symbolic-gfp_flags-in-oom-warning.patch
-mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
-mm-page_owner-convert-page_owner_inited-to-static-key.patch
-mm-page_owner-copy-page-owner-info-during-migration.patch
-mm-page_owner-track-and-print-last-migrate-reason.patch
-mm-page_owner-dump-page-owner-info-from-dump_page.patch
-mm-debug-move-bad-flags-printing-to-bad_page.patch
-mm-use-radix_tree_iter_retry-fix.patch
+mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write.patch
+radix-tree-fix-oops-after-radix_tree_iter_retry.patch
 
