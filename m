@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-make-tree_statevents-fetch-all-stats.patch added
- to -mm tree
-Date: Thu, 04 Feb 2016 15:07:45 -0800
-Message-ID: <56b3d9c1.XWkdn9laoMCmqEwf%akpm@linux-foundation.org>
+Subject: + mm-memcontrol-report-slab-usage-in-cgroup2-memorystat.patch
+ added to -mm tree
+Date: Thu, 04 Feb 2016 15:07:47 -0800
+Message-ID: <56b3d9c3.Z4qbcuBJBkBb2cD3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34883 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34893 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752199AbcBDXHq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:07:46 -0500
+	with ESMTP id S1752308AbcBDXHs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:07:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: make tree_{stat,events} fetch all stats
+     Subject: mm: memcontrol: report slab usage in cgroup2 memory.stat
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-make-tree_statevents-fetch-all-stats.patch
+     mm-memcontrol-report-slab-usage-in-cgroup2-memorystat.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-make-tree_statevents-fetch-all-stats.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-report-slab-usage-in-cgroup2-memorystat.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-make-tree_statevents-fetch-all-stats.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-report-slab-usage-in-cgroup2-memorystat.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,137 +40,217 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: memcontrol: make tree_{stat,events} fetch all stats
+Subject: mm: memcontrol: report slab usage in cgroup2 memory.stat
 
-Currently, tree_{stat,events} helpers can only get one stat index at a
-time, so when there are a lot of stats to be reported one has to call it
-over and over again (see memory_stat_show).  This is neither effective,
-nor does it look good.  Instead, let's make these helpers take a snapshot
-of all available counters.
+Show how much memory is used for storing reclaimable and unreclaimable
+in-kernel data structures allocated from slab caches.
 
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   57 +++++++++++++++++++++++++---------------------
- 1 file changed, 31 insertions(+), 26 deletions(-)
+ Documentation/cgroup-v2.txt |   15 +++++++++++++++
+ include/linux/memcontrol.h  |   21 +++++++++++++++++++++
+ mm/memcontrol.c             |    8 ++++++++
+ mm/slab.c                   |    8 +++++---
+ mm/slab.h                   |   30 ++++++++++++++++++++++++++++--
+ mm/slub.c                   |    3 ++-
+ 6 files changed, 79 insertions(+), 6 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-make-tree_statevents-fetch-all-stats mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-make-tree_statevents-fetch-all-stats
-+++ a/mm/memcontrol.c
-@@ -2717,39 +2717,42 @@ static int mem_cgroup_hierarchy_write(st
- 	return retval;
- }
+diff -puN Documentation/cgroup-v2.txt~mm-memcontrol-report-slab-usage-in-cgroup2-memorystat Documentation/cgroup-v2.txt
+--- a/Documentation/cgroup-v2.txt~mm-memcontrol-report-slab-usage-in-cgroup2-memorystat
++++ a/Documentation/cgroup-v2.txt
+@@ -843,6 +843,11 @@ PAGE_SIZE multiple when read back.
+ 		Amount of memory used to cache filesystem data,
+ 		including tmpfs and shared memory.
  
--static unsigned long tree_stat(struct mem_cgroup *memcg,
--			       enum mem_cgroup_stat_index idx)
-+static void tree_stat(struct mem_cgroup *memcg, unsigned long *stat)
- {
- 	struct mem_cgroup *iter;
--	unsigned long val = 0;
-+	int i;
- 
--	for_each_mem_cgroup_tree(iter, memcg)
--		val += mem_cgroup_read_stat(iter, idx);
-+	memset(stat, 0, sizeof(*stat) * MEMCG_NR_STAT);
- 
--	return val;
-+	for_each_mem_cgroup_tree(iter, memcg) {
-+		for (i = 0; i < MEMCG_NR_STAT; i++)
-+			stat[i] += mem_cgroup_read_stat(iter, i);
-+	}
- }
- 
--static unsigned long tree_events(struct mem_cgroup *memcg,
--				 enum mem_cgroup_events_index idx)
-+static void tree_events(struct mem_cgroup *memcg, unsigned long *events)
- {
- 	struct mem_cgroup *iter;
--	unsigned long val = 0;
-+	int i;
- 
--	for_each_mem_cgroup_tree(iter, memcg)
--		val += mem_cgroup_read_events(iter, idx);
-+	memset(events, 0, sizeof(*events) * MEMCG_NR_EVENTS);
- 
--	return val;
-+	for_each_mem_cgroup_tree(iter, memcg) {
-+		for (i = 0; i < MEMCG_NR_EVENTS; i++)
-+			events[i] += mem_cgroup_read_events(iter, i);
-+	}
- }
- 
- static unsigned long mem_cgroup_usage(struct mem_cgroup *memcg, bool swap)
- {
-+	unsigned long stat[MEMCG_NR_STAT];
- 	unsigned long val;
- 
- 	if (mem_cgroup_is_root(memcg)) {
--		val = tree_stat(memcg, MEM_CGROUP_STAT_CACHE);
--		val += tree_stat(memcg, MEM_CGROUP_STAT_RSS);
-+		tree_stat(memcg, stat);
-+		val = stat[MEM_CGROUP_STAT_CACHE] + stat[MEM_CGROUP_STAT_RSS];
- 		if (swap)
--			val += tree_stat(memcg, MEM_CGROUP_STAT_SWAP);
-+			val += stat[MEM_CGROUP_STAT_SWAP];
- 	} else {
- 		if (!swap)
- 			val = page_counter_read(&memcg->memory);
-@@ -5075,6 +5078,8 @@ static int memory_events_show(struct seq
- static int memory_stat_show(struct seq_file *m, void *v)
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(seq_css(m));
-+	unsigned long stat[MEMCG_NR_STAT];
-+	unsigned long events[MEMCG_NR_EVENTS];
- 	int i;
- 
- 	/*
-@@ -5088,22 +5093,22 @@ static int memory_stat_show(struct seq_f
- 	 * Current memory state:
- 	 */
- 
-+	tree_stat(memcg, stat);
-+	tree_events(memcg, events);
++	  slab
 +
- 	seq_printf(m, "anon %llu\n",
--		   (u64)tree_stat(memcg, MEM_CGROUP_STAT_RSS) * PAGE_SIZE);
-+		   (u64)stat[MEM_CGROUP_STAT_RSS] * PAGE_SIZE);
++		Amount of memory used for storing in-kernel data
++		structures.
++
+ 	  sock
+ 
+ 		Amount of memory used in network transmission buffers
+@@ -871,6 +876,16 @@ PAGE_SIZE multiple when read back.
+ 		on the internal memory management lists used by the
+ 		page reclaim algorithm
+ 
++	  slab_reclaimable
++
++		Part of "slab" that might be reclaimed, such as
++		dentries and inodes.
++
++	  slab_unreclaimable
++
++		Part of "slab" that cannot be reclaimed on memory
++		pressure.
++
+ 	  pgfault
+ 
+ 		Total number of page faults incurred
+diff -puN include/linux/memcontrol.h~mm-memcontrol-report-slab-usage-in-cgroup2-memorystat include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-report-slab-usage-in-cgroup2-memorystat
++++ a/include/linux/memcontrol.h
+@@ -53,6 +53,8 @@ enum mem_cgroup_stat_index {
+ 	MEM_CGROUP_STAT_NSTATS,
+ 	/* default hierarchy stats */
+ 	MEMCG_SOCK = MEM_CGROUP_STAT_NSTATS,
++	MEMCG_SLAB_RECLAIMABLE,
++	MEMCG_SLAB_UNRECLAIMABLE,
+ 	MEMCG_NR_STAT,
+ };
+ 
+@@ -883,6 +885,20 @@ static __always_inline void memcg_kmem_p
+ 	if (memcg_kmem_enabled())
+ 		__memcg_kmem_put_cache(cachep);
+ }
++
++/**
++ * memcg_kmem_update_page_stat - update kmem page state statistics
++ * @page: the page
++ * @idx: page state item to account
++ * @val: number of pages (positive or negative)
++ */
++static inline void memcg_kmem_update_page_stat(struct page *page,
++				enum mem_cgroup_stat_index idx, int val)
++{
++	if (memcg_kmem_enabled() && page->mem_cgroup)
++		this_cpu_add(page->mem_cgroup->stat->count[idx], val);
++}
++
+ #else
+ #define for_each_memcg_cache_index(_idx)	\
+ 	for (; NULL; )
+@@ -928,6 +944,11 @@ memcg_kmem_get_cache(struct kmem_cache *
+ static inline void memcg_kmem_put_cache(struct kmem_cache *cachep)
+ {
+ }
++
++static inline void memcg_kmem_update_page_stat(struct page *page,
++				enum mem_cgroup_stat_index idx, int val)
++{
++}
+ #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
+ 
+ #endif /* _LINUX_MEMCONTROL_H */
+diff -puN mm/memcontrol.c~mm-memcontrol-report-slab-usage-in-cgroup2-memorystat mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-report-slab-usage-in-cgroup2-memorystat
++++ a/mm/memcontrol.c
+@@ -5100,6 +5100,9 @@ static int memory_stat_show(struct seq_f
+ 		   (u64)stat[MEM_CGROUP_STAT_RSS] * PAGE_SIZE);
  	seq_printf(m, "file %llu\n",
--		   (u64)tree_stat(memcg, MEM_CGROUP_STAT_CACHE) * PAGE_SIZE);
-+		   (u64)stat[MEM_CGROUP_STAT_CACHE] * PAGE_SIZE);
+ 		   (u64)stat[MEM_CGROUP_STAT_CACHE] * PAGE_SIZE);
++	seq_printf(m, "slab %llu\n",
++		   (u64)(stat[MEMCG_SLAB_RECLAIMABLE] +
++			 stat[MEMCG_SLAB_UNRECLAIMABLE]) * PAGE_SIZE);
  	seq_printf(m, "sock %llu\n",
--		   (u64)tree_stat(memcg, MEMCG_SOCK) * PAGE_SIZE);
-+		   (u64)stat[MEMCG_SOCK] * PAGE_SIZE);
+ 		   (u64)stat[MEMCG_SOCK] * PAGE_SIZE);
  
- 	seq_printf(m, "file_mapped %llu\n",
--		   (u64)tree_stat(memcg, MEM_CGROUP_STAT_FILE_MAPPED) *
--		   PAGE_SIZE);
-+		   (u64)stat[MEM_CGROUP_STAT_FILE_MAPPED] * PAGE_SIZE);
- 	seq_printf(m, "file_dirty %llu\n",
--		   (u64)tree_stat(memcg, MEM_CGROUP_STAT_DIRTY) *
--		   PAGE_SIZE);
-+		   (u64)stat[MEM_CGROUP_STAT_DIRTY] * PAGE_SIZE);
- 	seq_printf(m, "file_writeback %llu\n",
--		   (u64)tree_stat(memcg, MEM_CGROUP_STAT_WRITEBACK) *
--		   PAGE_SIZE);
-+		   (u64)stat[MEM_CGROUP_STAT_WRITEBACK] * PAGE_SIZE);
+@@ -5120,6 +5123,11 @@ static int memory_stat_show(struct seq_f
+ 			   mem_cgroup_lru_names[i], (u64)val * PAGE_SIZE);
+ 	}
  
- 	for (i = 0; i < NR_LRU_LISTS; i++) {
- 		struct mem_cgroup *mi;
-@@ -5118,9 +5123,9 @@ static int memory_stat_show(struct seq_f
++	seq_printf(m, "slab_reclaimable %llu\n",
++		   (u64)stat[MEMCG_SLAB_RECLAIMABLE] * PAGE_SIZE);
++	seq_printf(m, "slab_unreclaimable %llu\n",
++		   (u64)stat[MEMCG_SLAB_UNRECLAIMABLE] * PAGE_SIZE);
++
  	/* Accumulated memory events */
  
  	seq_printf(m, "pgfault %lu\n",
--		   tree_events(memcg, MEM_CGROUP_EVENTS_PGFAULT));
-+		   events[MEM_CGROUP_EVENTS_PGFAULT]);
- 	seq_printf(m, "pgmajfault %lu\n",
--		   tree_events(memcg, MEM_CGROUP_EVENTS_PGMAJFAULT));
-+		   events[MEM_CGROUP_EVENTS_PGMAJFAULT]);
+diff -puN mm/slab.c~mm-memcontrol-report-slab-usage-in-cgroup2-memorystat mm/slab.c
+--- a/mm/slab.c~mm-memcontrol-report-slab-usage-in-cgroup2-memorystat
++++ a/mm/slab.c
+@@ -1569,9 +1569,10 @@ static struct page *kmem_getpages(struct
+  */
+ static void kmem_freepages(struct kmem_cache *cachep, struct page *page)
+ {
+-	const unsigned long nr_freed = (1 << cachep->gfporder);
++	int order = cachep->gfporder;
++	unsigned long nr_freed = (1 << order);
  
+-	kmemcheck_free_shadow(page, cachep->gfporder);
++	kmemcheck_free_shadow(page, order);
+ 
+ 	if (cachep->flags & SLAB_RECLAIM_ACCOUNT)
+ 		sub_zone_page_state(page_zone(page),
+@@ -1588,7 +1589,8 @@ static void kmem_freepages(struct kmem_c
+ 
+ 	if (current->reclaim_state)
+ 		current->reclaim_state->reclaimed_slab += nr_freed;
+-	__free_kmem_pages(page, cachep->gfporder);
++	memcg_uncharge_slab(page, order, cachep);
++	__free_pages(page, order);
+ }
+ 
+ static void kmem_rcu_free(struct rcu_head *head)
+diff -puN mm/slab.h~mm-memcontrol-report-slab-usage-in-cgroup2-memorystat mm/slab.h
+--- a/mm/slab.h~mm-memcontrol-report-slab-usage-in-cgroup2-memorystat
++++ a/mm/slab.h
+@@ -245,12 +245,33 @@ static __always_inline int memcg_charge_
+ 					     gfp_t gfp, int order,
+ 					     struct kmem_cache *s)
+ {
++	int ret;
++
+ 	if (!memcg_kmem_enabled())
+ 		return 0;
+ 	if (is_root_cache(s))
+ 		return 0;
+-	return __memcg_kmem_charge_memcg(page, gfp, order,
+-					 s->memcg_params.memcg);
++
++	ret = __memcg_kmem_charge_memcg(page, gfp, order,
++					s->memcg_params.memcg);
++	if (ret)
++		return ret;
++
++	memcg_kmem_update_page_stat(page,
++			(s->flags & SLAB_RECLAIM_ACCOUNT) ?
++			MEMCG_SLAB_RECLAIMABLE : MEMCG_SLAB_UNRECLAIMABLE,
++			1 << order);
++	return 0;
++}
++
++static __always_inline void memcg_uncharge_slab(struct page *page, int order,
++						struct kmem_cache *s)
++{
++	memcg_kmem_update_page_stat(page,
++			(s->flags & SLAB_RECLAIM_ACCOUNT) ?
++			MEMCG_SLAB_RECLAIMABLE : MEMCG_SLAB_UNRECLAIMABLE,
++			-(1 << order));
++	memcg_kmem_uncharge(page, order);
+ }
+ 
+ extern void slab_init_memcg_params(struct kmem_cache *);
+@@ -293,6 +314,11 @@ static inline int memcg_charge_slab(stru
  	return 0;
  }
+ 
++static inline void memcg_uncharge_slab(struct page *page, int order,
++				       struct kmem_cache *s)
++{
++}
++
+ static inline void slab_init_memcg_params(struct kmem_cache *s)
+ {
+ }
+diff -puN mm/slub.c~mm-memcontrol-report-slab-usage-in-cgroup2-memorystat mm/slub.c
+--- a/mm/slub.c~mm-memcontrol-report-slab-usage-in-cgroup2-memorystat
++++ a/mm/slub.c
+@@ -1474,7 +1474,8 @@ static void __free_slab(struct kmem_cach
+ 	page_mapcount_reset(page);
+ 	if (current->reclaim_state)
+ 		current->reclaim_state->reclaimed_slab += pages;
+-	__free_kmem_pages(page, order);
++	memcg_uncharge_slab(page, order, s);
++	__free_pages(page, order);
+ }
+ 
+ #define need_reserve_slab_rcu						\
 _
 
 Patches currently in -mm which might be from vdavydov@virtuozzo.com are
