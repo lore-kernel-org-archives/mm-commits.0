@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + sched-add-schedule_timeout_idle.patch added to -mm tree
-Date: Wed, 03 Feb 2016 15:21:13 -0800
-Message-ID: <56b28b69.DprrrNlWEqV9RNKO%akpm@linux-foundation.org>
+Subject: + mm-oom_reaper-report-success-failure-fix.patch added to -mm
+ tree
+Date: Wed, 03 Feb 2016 16:04:22 -0800
+Message-ID: <56b29586.oUD2vbaPXcQEa+x9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49364 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53292 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932441AbcBCXVO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2016 18:21:14 -0500
+	with ESMTP id S932465AbcBDAEY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 3 Feb 2016 19:04:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mhocko@suse.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, andrea@kernel.org, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, mhocko@suse.com, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sched: add schedule_timeout_idle()
+     Subject: mm-oom_reaper-report-success-failure-fix
 has been added to the -mm tree.  Its filename is
-     sched-add-schedule_timeout_idle.patch
+     mm-oom_reaper-report-success-failure-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sched-add-schedule_timeout_idle.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_reaper-report-success-failure-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sched-add-schedule_timeout_idle.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_reaper-report-success-failure-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,52 +40,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sched: add schedule_timeout_idle()
+Subject: mm-oom_reaper-report-success-failure-fix
 
-This will be needed in the patch "mm, oom: introduce oom reaper".
+fix CONFIG_MMU=n build:
 
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
+mm/oom_kill.c: In function 'oom_kill_process':
+mm/oom_kill.c:753: error: implicit declaration of function 'K'
+mm/oom_kill.c:753: warning: format '%lu' expects type 'long unsigned int', but argument 4 has type 'int'
+mm/oom_kill.c:753: warning: format '%lu' expects type 'long unsigned int', but argument 5 has type 'int'
+mm/oom_kill.c:753: warning: format '%lu' expects type 'long unsigned int', but argument 6 has type 'int'
+mm/oom_kill.c:753: warning: format '%lu' expects type 'long unsigned int', but argument 7 has type 'int'
+
+Cc: Andrea Argangeli <andrea@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    1 +
- kernel/time/timer.c   |   11 +++++++++++
- 2 files changed, 12 insertions(+)
+ mm/oom_kill.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/sched.h~sched-add-schedule_timeout_idle include/linux/sched.h
---- a/include/linux/sched.h~sched-add-schedule_timeout_idle
-+++ a/include/linux/sched.h
-@@ -427,6 +427,7 @@ extern signed long schedule_timeout(sign
- extern signed long schedule_timeout_interruptible(signed long timeout);
- extern signed long schedule_timeout_killable(signed long timeout);
- extern signed long schedule_timeout_uninterruptible(signed long timeout);
-+extern signed long schedule_timeout_idle(signed long timeout);
- asmlinkage void schedule(void);
- extern void schedule_preempt_disabled(void);
+diff -puN mm/oom_kill.c~mm-oom_reaper-report-success-failure-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_reaper-report-success-failure-fix
++++ a/mm/oom_kill.c
+@@ -414,6 +414,8 @@ static DECLARE_WAIT_QUEUE_HEAD(oom_victi
  
-diff -puN kernel/time/timer.c~sched-add-schedule_timeout_idle kernel/time/timer.c
---- a/kernel/time/timer.c~sched-add-schedule_timeout_idle
-+++ a/kernel/time/timer.c
-@@ -1566,6 +1566,17 @@ signed long __sched schedule_timeout_uni
- }
- EXPORT_SYMBOL(schedule_timeout_uninterruptible);
+ bool oom_killer_disabled __read_mostly;
  
-+/*
-+ * Like schedule_timeout_uninterruptible(), except this task will not contribute
-+ * to load average.
-+ */
-+signed long __sched schedule_timeout_idle(signed long timeout)
-+{
-+	__set_current_state(TASK_IDLE);
-+	return schedule_timeout(timeout);
-+}
-+EXPORT_SYMBOL(schedule_timeout_idle);
++#define K(x) ((x) << (PAGE_SHIFT-10))
 +
- #ifdef CONFIG_HOTPLUG_CPU
- static void migrate_timer_list(struct tvec_base *new_base, struct hlist_head *head)
+ #ifdef CONFIG_MMU
+ /*
+  * OOM Reaper kernel thread which tries to reap the memory used by the OOM
+@@ -423,7 +425,6 @@ static struct task_struct *oom_reaper_th
+ static struct task_struct *task_to_reap;
+ static DECLARE_WAIT_QUEUE_HEAD(oom_reaper_wait);
+ 
+-#define K(x) ((x) << (PAGE_SHIFT-10))
+ static bool __oom_reap_task(struct task_struct *tsk)
  {
+ 	struct mmu_gather tlb;
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -111,6 +112,7 @@ mm-madvise-update-comment-on-sys_madvise-fix.patch
 mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
 mm-simplify-lock_page_memcg-fix.patch
 sched-add-schedule_timeout_idle.patch
+mm-oom_reaper-report-success-failure-fix.patch
 ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
 zram-export-the-number-of-available-comp-streams-fix.patch
 mm-oom-rework-oom-detection-checkpatch-fixes.patch
