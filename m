@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-query-dynamic-debug_pagealloc-setting.patch added to
- -mm tree
-Date: Thu, 04 Feb 2016 15:43:31 -0800
-Message-ID: <56b3e223.3xz0BERaKiCgwmWH%akpm@linux-foundation.org>
+Subject: + mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch added to -mm tree
+Date: Thu, 04 Feb 2016 15:43:21 -0800
+Message-ID: <56b3e219.5XaKE8JFyGsnVGGf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37997 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37946 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933374AbcBDXnc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:43:32 -0500
+	with ESMTP id S933343AbcBDXnW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:43:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: js1304@gmail.com, benh@kernel.crashing.org, borntraeger@de.ibm.com, cl@linux.com, cmetcalf@ezchip.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, tiwai@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: query dynamic DEBUG_PAGEALLOC setting
+     Subject: mm/vmalloc: query dynamic DEBUG_PAGEALLOC setting
 has been added to the -mm tree.  Its filename is
-     powerpc-query-dynamic-debug_pagealloc-setting.patch
+     mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-query-dynamic-debug_pagealloc-setting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-query-dynamic-debug_pagealloc-setting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,122 +39,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <js1304@gmail.com>
-Subject: powerpc: query dynamic DEBUG_PAGEALLOC setting
+Subject: mm/vmalloc: query dynamic DEBUG_PAGEALLOC setting
+
+As CONFIG_DEBUG_PAGEALLOC can be enabled/disabled via kernel parameters we
+can optimize some cases by checking the enablement state.
+
+This is follow-up work for Christian's Optimize CONFIG_DEBUG_PAGEALLOC:
+https://lkml.org/lkml/2016/1/27/194
+
+Remaining work is to make sparc to be aware of this but it looks not easy
+for me so I skip that in this series.
+
+
+This patch (of 5):
 
 We can disable debug_pagealloc processing even if the code is complied
-with CONFIG_DEBUG_PAGEALLOC.  This patch changes the code to query whether
-it is enabled or not in runtime.
+with CONFIG_DEBUG_PAGEALLOC. This patch changes the code to query
+whether it is enabled or not in runtime.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Christian Borntraeger <borntraeger@de.ibm.com>
 Acked-by: David Rientjes <rientjes@google.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Takashi Iwai <tiwai@suse.com>
 Cc: Chris Metcalf <cmetcalf@ezchip.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Takashi Iwai <tiwai@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/traps.c     |    5 +--
- arch/powerpc/mm/hash_utils_64.c |   40 +++++++++++++++---------------
- arch/powerpc/mm/init_32.c       |    8 +++---
- 3 files changed, 26 insertions(+), 27 deletions(-)
+ mm/vmalloc.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/kernel/traps.c~powerpc-query-dynamic-debug_pagealloc-setting arch/powerpc/kernel/traps.c
---- a/arch/powerpc/kernel/traps.c~powerpc-query-dynamic-debug_pagealloc-setting
-+++ a/arch/powerpc/kernel/traps.c
-@@ -203,9 +203,8 @@ static int __kprobes __die(const char *s
- #ifdef CONFIG_SMP
- 	printk("SMP NR_CPUS=%d ", NR_CPUS);
- #endif
+diff -puN mm/vmalloc.c~mm-vmalloc-query-dynamic-debug_pagealloc-setting mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-query-dynamic-debug_pagealloc-setting
++++ a/mm/vmalloc.c
+@@ -543,10 +543,10 @@ static void vmap_debug_free_range(unsign
+ 	 * debugging doesn't do a broadcast TLB flush so it is a lot
+ 	 * faster).
+ 	 */
 -#ifdef CONFIG_DEBUG_PAGEALLOC
--	printk("DEBUG_PAGEALLOC ");
--#endif
-+	if (debug_pagealloc_enabled())
-+		printk("DEBUG_PAGEALLOC ");
- #ifdef CONFIG_NUMA
- 	printk("NUMA ");
- #endif
-diff -puN arch/powerpc/mm/hash_utils_64.c~powerpc-query-dynamic-debug_pagealloc-setting arch/powerpc/mm/hash_utils_64.c
---- a/arch/powerpc/mm/hash_utils_64.c~powerpc-query-dynamic-debug_pagealloc-setting
-+++ a/arch/powerpc/mm/hash_utils_64.c
-@@ -255,10 +255,10 @@ int htab_bolt_mapping(unsigned long vsta
- 
- 		if (ret < 0)
- 			break;
--#ifdef CONFIG_DEBUG_PAGEALLOC
--		if ((paddr >> PAGE_SHIFT) < linear_map_hash_count)
-+
-+		if (debug_pagealloc_enabled() &&
-+			(paddr >> PAGE_SHIFT) < linear_map_hash_count)
- 			linear_map_hash_slots[paddr >> PAGE_SHIFT] = ret | 0x80;
--#endif /* CONFIG_DEBUG_PAGEALLOC */
- 	}
- 	return ret < 0 ? ret : 0;
- }
-@@ -512,17 +512,17 @@ static void __init htab_init_page_sizes(
- 	if (mmu_has_feature(MMU_FTR_16M_PAGE))
- 		memcpy(mmu_psize_defs, mmu_psize_defaults_gp,
- 		       sizeof(mmu_psize_defaults_gp));
-- found:
--#ifndef CONFIG_DEBUG_PAGEALLOC
--	/*
--	 * Pick a size for the linear mapping. Currently, we only support
--	 * 16M, 1M and 4K which is the default
--	 */
--	if (mmu_psize_defs[MMU_PAGE_16M].shift)
--		mmu_linear_psize = MMU_PAGE_16M;
--	else if (mmu_psize_defs[MMU_PAGE_1M].shift)
--		mmu_linear_psize = MMU_PAGE_1M;
--#endif /* CONFIG_DEBUG_PAGEALLOC */
-+found:
-+	if (!debug_pagealloc_enabled()) {
-+		/*
-+		 * Pick a size for the linear mapping. Currently, we only
-+		 * support 16M, 1M and 4K which is the default
-+		 */
-+		if (mmu_psize_defs[MMU_PAGE_16M].shift)
-+			mmu_linear_psize = MMU_PAGE_16M;
-+		else if (mmu_psize_defs[MMU_PAGE_1M].shift)
-+			mmu_linear_psize = MMU_PAGE_1M;
-+	}
- 
- #ifdef CONFIG_PPC_64K_PAGES
- 	/*
-@@ -720,12 +720,12 @@ static void __init htab_initialize(void)
- 
- 	prot = pgprot_val(PAGE_KERNEL);
- 
--#ifdef CONFIG_DEBUG_PAGEALLOC
--	linear_map_hash_count = memblock_end_of_DRAM() >> PAGE_SHIFT;
--	linear_map_hash_slots = __va(memblock_alloc_base(linear_map_hash_count,
--						    1, ppc64_rma_size));
--	memset(linear_map_hash_slots, 0, linear_map_hash_count);
--#endif /* CONFIG_DEBUG_PAGEALLOC */
-+	if (debug_pagealloc_enabled()) {
-+		linear_map_hash_count = memblock_end_of_DRAM() >> PAGE_SHIFT;
-+		linear_map_hash_slots = __va(memblock_alloc_base(
-+				linear_map_hash_count, 1, ppc64_rma_size));
-+		memset(linear_map_hash_slots, 0, linear_map_hash_count);
-+	}
- 
- 	/* On U3 based machines, we need to reserve the DART area and
- 	 * _NOT_ map it to avoid cache paradoxes as it's remapped non
-diff -puN arch/powerpc/mm/init_32.c~powerpc-query-dynamic-debug_pagealloc-setting arch/powerpc/mm/init_32.c
---- a/arch/powerpc/mm/init_32.c~powerpc-query-dynamic-debug_pagealloc-setting
-+++ a/arch/powerpc/mm/init_32.c
-@@ -112,10 +112,10 @@ void __init MMU_setup(void)
- 	if (strstr(boot_command_line, "noltlbs")) {
- 		__map_without_ltlbs = 1;
- 	}
--#ifdef CONFIG_DEBUG_PAGEALLOC
--	__map_without_bats = 1;
--	__map_without_ltlbs = 1;
+-	vunmap_page_range(start, end);
+-	flush_tlb_kernel_range(start, end);
 -#endif
 +	if (debug_pagealloc_enabled()) {
-+		__map_without_bats = 1;
-+		__map_without_ltlbs = 1;
++		vunmap_page_range(start, end);
++		flush_tlb_kernel_range(start, end);
 +	}
  }
  
