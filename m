@@ -1,90 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Thu, 04 Feb 2016 12:27:54 -0800
-Message-ID: <56b3b44a.+0pjMUPLcZfPArW8%akpm@linux-foundation.org>
+Subject: + mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2.patch added to -mm tree
+Date: Thu, 04 Feb 2016 12:36:51 -0800
+Message-ID: <56b3b663.HaVjqex2BQW51czS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50702 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51593 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932861AbcBDU1z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 15:27:55 -0500
+	with ESMTP id S1751411AbcBDUgw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 15:36:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, js1304@gmail.com, mhocko@kernel.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     Subject: mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2
+has been added to the -mm tree.  Its filename is
+     mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2
 
+fix !CONFIG_COMPACTION && CONFIG_MEMORY_ISOLATION=y build
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    3 ---
- 1 file changed, 3 deletions(-)
+ include/linux/gfp.h |    2 +-
+ mm/hugetlb.c        |    2 +-
+ mm/page_alloc.c     |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~linux-next-git-rejects MAINTAINERS
---- a/MAINTAINERS~linux-next-git-rejects
-+++ a/MAINTAINERS
-@@ -1441,10 +1441,7 @@ F:	arch/arm/boot/dts/qcom-*.dts
- F:	arch/arm/boot/dts/qcom-*.dtsi
- F:	arch/arm/mach-qcom/
- F:	arch/arm64/boot/dts/qcom/*
--<<<<<<< HEAD
--=======
- F:	drivers/i2c/busses/i2c-qup.c
-->>>>>>> linux-next/akpm-base
- F:	drivers/soc/qcom/
- F:	drivers/spi/spi-qup.c
- F:	drivers/tty/serial/msm_serial.h
+diff -puN include/linux/gfp.h~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2 include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2
++++ a/include/linux/gfp.h
+@@ -547,7 +547,7 @@ static inline bool pm_suspended_storage(
+ }
+ #endif /* CONFIG_PM_SLEEP */
+ 
+-#ifdef CONFIG_MEMORY_ISOLATION
++#if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
+ /* The below functions must be run on a range from a single zone. */
+ extern int alloc_contig_range(unsigned long start, unsigned long end,
+ 			      unsigned migratetype);
+diff -puN mm/hugetlb.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2 mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2
++++ a/mm/hugetlb.c
+@@ -1001,7 +1001,7 @@ static int hstate_next_node_to_free(stru
+ 		((node = hstate_next_node_to_free(hs, mask)) || 1);	\
+ 		nr_nodes--)
+ 
+-#if defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_X86_64)
++#if defined(CONFIG_X86_64) && ((defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA))
+ static void destroy_compound_gigantic_page(struct page *page,
+ 					unsigned int order)
+ {
+diff -puN mm/page_alloc.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2
++++ a/mm/page_alloc.c
+@@ -6620,7 +6620,7 @@ bool is_pageblock_removable_nolock(struc
+ 	return !has_unmovable_pages(zone, page, 0, true);
+ }
+ 
+-#ifdef CONFIG_MEMORY_ISOLATION
++#if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
+ 
+ static unsigned long pfn_max_align_down(unsigned long pfn)
+ {
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-code-clean-up-for-direct-io-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
-mm.patch
-mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
-mm-simplify-lock_page_memcg-fix.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom_reaper-report-success-failure-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-btrfs-use-radix_tree_iter_retry-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-kconfig-correct-description-of-deferred_struct_page_init.patch
+mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages.patch
+mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2.patch
+tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
+mm-tracing-make-show_gfp_flags-up-to-date.patch
+tools-perf-make-gfp_compact_table-up-to-date.patch
+mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk.patch
+mm-printk-introduce-new-format-string-for-flags.patch
+mm-printk-introduce-new-format-string-for-flags-fix.patch
+mm-debug-replace-dump_flags-with-the-new-printk-formats.patch
+mm-page_alloc-print-symbolic-gfp_flags-on-allocation-failure.patch
+mm-oom-print-symbolic-gfp_flags-in-oom-warning.patch
+mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
+mm-page_owner-convert-page_owner_inited-to-static-key.patch
+mm-page_owner-copy-page-owner-info-during-migration.patch
+mm-page_owner-track-and-print-last-migrate-reason.patch
+mm-page_owner-dump-page-owner-info-from-dump_page.patch
+mm-debug-move-bad-flags-printing-to-bad_page.patch
+mm-use-radix_tree_iter_retry-fix.patch
 
