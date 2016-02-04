@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch added to -mm tree
-Date: Thu, 04 Feb 2016 15:43:21 -0800
-Message-ID: <56b3e219.5XaKE8JFyGsnVGGf%akpm@linux-foundation.org>
+Subject: + sound-query-dynamic-debug_pagealloc-setting.patch added to -mm
+ tree
+Date: Thu, 04 Feb 2016 15:43:29 -0800
+Message-ID: <56b3e221.zQaGDGpzHCHOa3KI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37946 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37982 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933343AbcBDXnW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:43:22 -0500
+	with ESMTP id S933375AbcBDXna (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 18:43:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: js1304@gmail.com, benh@kernel.crashing.org, borntraeger@de.ibm.com, cl@linux.com, cmetcalf@ezchip.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, tiwai@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: query dynamic DEBUG_PAGEALLOC setting
+     Subject: sound: query dynamic DEBUG_PAGEALLOC setting
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch
+     sound-query-dynamic-debug_pagealloc-setting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sound-query-dynamic-debug_pagealloc-setting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sound-query-dynamic-debug_pagealloc-setting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,56 +40,53 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm/vmalloc: query dynamic DEBUG_PAGEALLOC setting
-
-As CONFIG_DEBUG_PAGEALLOC can be enabled/disabled via kernel parameters we
-can optimize some cases by checking the enablement state.
-
-This is follow-up work for Christian's Optimize CONFIG_DEBUG_PAGEALLOC:
-https://lkml.org/lkml/2016/1/27/194
-
-Remaining work is to make sparc to be aware of this but it looks not easy
-for me so I skip that in this series.
-
-
-This patch (of 5):
+Subject: sound: query dynamic DEBUG_PAGEALLOC setting
 
 We can disable debug_pagealloc processing even if the code is complied
 with CONFIG_DEBUG_PAGEALLOC. This patch changes the code to query
 whether it is enabled or not in runtime.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reviewed-by: Christian Borntraeger <borntraeger@de.ibm.com>
 Acked-by: David Rientjes <rientjes@google.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Takashi Iwai <tiwai@suse.com>
 Cc: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Takashi Iwai <tiwai@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ sound/drivers/pcsp/pcsp.c |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-query-dynamic-debug_pagealloc-setting mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-query-dynamic-debug_pagealloc-setting
-+++ a/mm/vmalloc.c
-@@ -543,10 +543,10 @@ static void vmap_debug_free_range(unsign
- 	 * debugging doesn't do a broadcast TLB flush so it is a lot
- 	 * faster).
- 	 */
+diff -puN sound/drivers/pcsp/pcsp.c~sound-query-dynamic-debug_pagealloc-setting sound/drivers/pcsp/pcsp.c
+--- a/sound/drivers/pcsp/pcsp.c~sound-query-dynamic-debug_pagealloc-setting
++++ a/sound/drivers/pcsp/pcsp.c
+@@ -14,6 +14,7 @@
+ #include <linux/input.h>
+ #include <linux/delay.h>
+ #include <linux/bitops.h>
++#include <linux/mm.h>
+ #include "pcsp_input.h"
+ #include "pcsp.h"
+ 
+@@ -148,11 +149,11 @@ static int alsa_card_pcsp_init(struct de
+ 		return err;
+ 	}
+ 
 -#ifdef CONFIG_DEBUG_PAGEALLOC
--	vunmap_page_range(start, end);
--	flush_tlb_kernel_range(start, end);
+ 	/* Well, CONFIG_DEBUG_PAGEALLOC makes the sound horrible. Lets alert */
+-	printk(KERN_WARNING "PCSP: CONFIG_DEBUG_PAGEALLOC is enabled, "
+-	       "which may make the sound noisy.\n");
 -#endif
 +	if (debug_pagealloc_enabled()) {
-+		vunmap_page_range(start, end);
-+		flush_tlb_kernel_range(start, end);
++		printk(KERN_WARNING "PCSP: CONFIG_DEBUG_PAGEALLOC is enabled, "
++		       "which may make the sound noisy.\n");
 +	}
- }
  
- /*
+ 	return 0;
+ }
 _
 
 Patches currently in -mm which might be from js1304@gmail.com are
