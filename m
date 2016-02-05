@@ -1,175 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] lib-move-strtobool-to-kstrtobool.patch removed
- from -mm tree
-Date: Fri, 05 Feb 2016 15:00:01 -0800
-Message-ID: <56b52971.buFde52NG5sdcS1z%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ lib-update-single-char-callers-of-strtobool-fix.patch removed from -mm tree
+Date: Fri, 05 Feb 2016 15:00:07 -0800
+Message-ID: <56b52977.UthxXjHJEllwFOZa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35547 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35565 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752955AbcBEXAD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2016 18:00:03 -0500
+	with ESMTP id S1752996AbcBEXAH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2016 18:00:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, akarwar@marvell.com, andy.shevchenko@gmail.com, benh@kernel.crashing.org, heiko.carstens@de.ibm.com, hpa@zytor.com, kvalo@codeaurora.org, linux@rasmusvillemoes.dk, mingo@elte.hu, mpe@ellerman.id.au, nishants@marvell.com, sfrench@samba.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: keescook@chromium.org, andy.shevchenko@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: move strtobool to kstrtobool
+     Subject: lib-update-single-char-callers-of-strtobool fix
 has been removed from the -mm tree.  Its filename was
-     lib-move-strtobool-to-kstrtobool.patch
+     lib-update-single-char-callers-of-strtobool-fix.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Kees Cook <keescook@chromium.org>
-Subject: lib: move strtobool to kstrtobool
+Subject: lib-update-single-char-callers-of-strtobool fix
 
-Create the kstrtobool_from_user() helper and move strtobool() logic into
-the new kstrtobool() (matching all the other kstrto* functions).  Provides
-an inline wrapper for existing strtobool() callers.
+Drop needless buffer usage.
 
 Signed-off-by: Kees Cook <keescook@chromium.org>
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Amitkumar Karwar <akarwar@marvell.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Kalle Valo <kvalo@codeaurora.org>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Nishant Sarmukadam <nishants@marvell.com>
-Cc: Steve French <sfrench@samba.org>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Suggested-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kernel.h |    3 +++
- include/linux/string.h |    6 +++++-
- lib/kstrtox.c          |   35 +++++++++++++++++++++++++++++++++++
- lib/string.c           |   29 -----------------------------
- 4 files changed, 43 insertions(+), 30 deletions(-)
+ fs/cifs/cifs_debug.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/kernel.h~lib-move-strtobool-to-kstrtobool include/linux/kernel.h
---- a/include/linux/kernel.h~lib-move-strtobool-to-kstrtobool
-+++ a/include/linux/kernel.h
-@@ -357,6 +357,7 @@ int __must_check kstrtou16(const char *s
- int __must_check kstrtos16(const char *s, unsigned int base, s16 *res);
- int __must_check kstrtou8(const char *s, unsigned int base, u8 *res);
- int __must_check kstrtos8(const char *s, unsigned int base, s8 *res);
-+int __must_check kstrtobool(const char *s, unsigned int base, bool *res);
+diff -puN fs/cifs/cifs_debug.c~lib-update-single-char-callers-of-strtobool-fix fs/cifs/cifs_debug.c
+--- a/fs/cifs/cifs_debug.c~lib-update-single-char-callers-of-strtobool-fix
++++ a/fs/cifs/cifs_debug.c
+@@ -596,7 +596,6 @@ static ssize_t cifs_security_flags_proc_
+ 	int rc;
+ 	unsigned int flags;
+ 	char flags_string[12];
+-	char c[2] = { '\0' };
+ 	bool bv;
  
- int __must_check kstrtoull_from_user(const char __user *s, size_t count, unsigned int base, unsigned long long *res);
- int __must_check kstrtoll_from_user(const char __user *s, size_t count, unsigned int base, long long *res);
-@@ -368,6 +369,8 @@ int __must_check kstrtou16_from_user(con
- int __must_check kstrtos16_from_user(const char __user *s, size_t count, unsigned int base, s16 *res);
- int __must_check kstrtou8_from_user(const char __user *s, size_t count, unsigned int base, u8 *res);
- int __must_check kstrtos8_from_user(const char __user *s, size_t count, unsigned int base, s8 *res);
-+int __must_check kstrtobool_from_user(const char __user *s, size_t count,
-+				      unsigned int base, bool *res);
+ 	if ((count < 1) || (count > 11))
+@@ -609,11 +608,10 @@ static ssize_t cifs_security_flags_proc_
  
- static inline int __must_check kstrtou64_from_user(const char __user *s, size_t count, unsigned int base, u64 *res)
- {
-diff -puN include/linux/string.h~lib-move-strtobool-to-kstrtobool include/linux/string.h
---- a/include/linux/string.h~lib-move-strtobool-to-kstrtobool
-+++ a/include/linux/string.h
-@@ -128,7 +128,11 @@ extern char **argv_split(gfp_t gfp, cons
- extern void argv_free(char **argv);
- 
- extern bool sysfs_streq(const char *s1, const char *s2);
--extern int strtobool(const char *s, bool *res);
-+extern int kstrtobool(const char *s, unsigned int base, bool *res);
-+static inline int strtobool(const char *s, bool *res)
-+{
-+	return kstrtobool(s, 0, res);
-+}
- 
- int match_string(const char * const *array, size_t n, const char *string);
- 
-diff -puN lib/kstrtox.c~lib-move-strtobool-to-kstrtobool lib/kstrtox.c
---- a/lib/kstrtox.c~lib-move-strtobool-to-kstrtobool
-+++ a/lib/kstrtox.c
-@@ -321,6 +321,40 @@ int kstrtos8(const char *s, unsigned int
- }
- EXPORT_SYMBOL(kstrtos8);
- 
-+/**
-+ * kstrtobool - convert common user inputs into boolean values
-+ * @s: input string
-+ * @base: ignored
-+ * @res: result
-+ *
-+ * This routine returns 0 iff the first character is one of 'Yy1Nn0'.
-+ * Otherwise it will return -EINVAL.  Value pointed to by res is
-+ * updated upon finding a match.
-+ */
-+int kstrtobool(const char *s, unsigned int base, bool *res)
-+{
-+	if (!s)
-+		return -EINVAL;
-+
-+	switch (s[0]) {
-+	case 'y':
-+	case 'Y':
-+	case '1':
-+		*res = true;
-+		return 0;
-+	case 'n':
-+	case 'N':
-+	case '0':
-+		*res = false;
-+		return 0;
-+	default:
-+		break;
-+	}
-+
-+	return -EINVAL;
-+}
-+EXPORT_SYMBOL(kstrtobool);
-+
- #define kstrto_from_user(f, g, type)					\
- int f(const char __user *s, size_t count, unsigned int base, type *res)	\
- {									\
-@@ -345,3 +379,4 @@ kstrto_from_user(kstrtou16_from_user,	ks
- kstrto_from_user(kstrtos16_from_user,	kstrtos16,	s16);
- kstrto_from_user(kstrtou8_from_user,	kstrtou8,	u8);
- kstrto_from_user(kstrtos8_from_user,	kstrtos8,	s8);
-+kstrto_from_user(kstrtobool_from_user,	kstrtobool,	bool);
-diff -puN lib/string.c~lib-move-strtobool-to-kstrtobool lib/string.c
---- a/lib/string.c~lib-move-strtobool-to-kstrtobool
-+++ a/lib/string.c
-@@ -656,35 +656,6 @@ int match_string(const char * const *arr
- }
- EXPORT_SYMBOL(match_string);
- 
--/**
-- * strtobool - convert common user inputs into boolean values
-- * @s: input string
-- * @res: result
-- *
-- * This routine returns 0 iff the first character is one of 'Yy1Nn0'.
-- * Otherwise it will return -EINVAL.  Value pointed to by res is
-- * updated upon finding a match.
-- */
--int strtobool(const char *s, bool *res)
--{
--	switch (s[0]) {
--	case 'y':
--	case 'Y':
--	case '1':
--		*res = true;
--		break;
--	case 'n':
--	case 'N':
--	case '0':
--		*res = false;
--		break;
--	default:
--		return -EINVAL;
--	}
--	return 0;
--}
--EXPORT_SYMBOL(strtobool);
+ 	if (count < 3) {
+ 		/* single char or single char followed by null */
+-		c[0] = flags_string[0];
+-		if (strtobool(c, &bv) == 0) {
++		if (strtobool(flags_string, &bv) == 0) {
+ 			global_secflags = bv ? CIFSSEC_MAX : CIFSSEC_DEF;
+ 			return count;
+-		} else if (!isdigit(c[0])) {
++		} else if (!isdigit(flags_string[0])) {
+ 			cifs_dbg(VFS, "Invalid SecurityFlags: %s\n",
+ 					flags_string);
+ 			return -EINVAL;
+_
+
+Patches currently in -mm which might be from keescook@chromium.org are
+
+lib-add-on-off-support-to-kstrtobool.patch
+lib-add-on-off-support-to-kstrtobool-fix.patch
+param-convert-some-on-off-users-to-strtobool.patch
+
