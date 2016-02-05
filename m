@@ -1,37 +1,51 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated]
- mm-slab-shutdown-caches-only-after-releasing-sysfs-file.patch removed from
- -mm tree
-Date: Fri, 05 Feb 2016 11:52:11 -0800
-Message-ID: <56b4fd6b.WrCxuPQzruVCNCvu%akpm@linux-foundation.org>
+Subject: + mm-slab-free-kmem_cache_node-after-destroy-sysfs-file.patch
+ added to -mm tree
+Date: Fri, 05 Feb 2016 14:01:10 -0800
+Message-ID: <56b51ba6.C/B2Vdg806ogD2+v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60993 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57921 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581AbcBETwM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2016 14:52:12 -0500
+	with ESMTP id S1751201AbcBEWBL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2016 17:01:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: dsafonov@virtuozzo.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/sl[au]b: shutdown caches only after releasing sysfs file
-has been removed from the -mm tree.  Its filename was
-     mm-slab-shutdown-caches-only-after-releasing-sysfs-file.patch
+     Subject: mm: slab: free kmem_cache_node after destroy sysfs file
+has been added to the -mm tree.  Its filename is
+     mm-slab-free-kmem_cache_node-after-destroy-sysfs-file.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-free-kmem_cache_node-after-destroy-sysfs-file.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-free-kmem_cache_node-after-destroy-sysfs-file.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
 From: Dmitry Safonov <dsafonov@virtuozzo.com>
-Subject: mm/sl[au]b: shutdown caches only after releasing sysfs file
+Subject: mm: slab: free kmem_cache_node after destroy sysfs file
 
-As shutdown cache will uninitialize kmem_cache state, it shouldn't be done
-till the last reference to sysfs file object is dropped.  In the other
-case it will result in race with dereferencing garbage.
+WHen slub_debug is enabled, alloc_calls_show() will try to track location
+and user of slab objects on each online node.  kmem_cache_node structure
+and cpu_cache/cpu_slub shouldn't be freed till there is the last reference
+to sysfs file.
 
 Fixes the following panic:
 [43963.463055] BUG: unable to handle kernel
@@ -55,12 +69,11 @@ Fixes the following panic:
 [43963.465155]  RSP <ffff88037f8dbe28>
 [43963.465185] CR2: 0000000000000020
 
-So, I reworked destroy code path to delete sysfs file and on release of
-kobject shutdown and remove kmem_cache.
+Separated nodes structures and per-cpu freeing into __kmem_cache_release
+and use it at kmem_cache_release.
 
-[akpm@linux-foundation.org: fix build]
 Signed-off-by: Dmitry Safonov <dsafonov@virtuozzo.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Suggested-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Cc: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
@@ -68,316 +81,154 @@ Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/slub_def.h |    5 -
- mm/slab.h                |    2 
- mm/slab_common.c         |  141 +++++++++++++++++--------------------
- mm/slub.c                |   22 +++++
- 4 files changed, 89 insertions(+), 81 deletions(-)
+ mm/slab.c        |   11 ++++++++---
+ mm/slab.h        |    1 +
+ mm/slab_common.c |    1 +
+ mm/slob.c        |    4 ++++
+ mm/slub.c        |   26 +++++++++++---------------
+ 5 files changed, 25 insertions(+), 18 deletions(-)
 
-diff -puN include/linux/slub_def.h~mm-slab-shutdown-caches-only-after-releasing-sysfs-file include/linux/slub_def.h
---- a/include/linux/slub_def.h~mm-slab-shutdown-caches-only-after-releasing-sysfs-file
-+++ a/include/linux/slub_def.h
-@@ -103,9 +103,10 @@ struct kmem_cache {
+diff -puN mm/slab.c~mm-slab-free-kmem_cache_node-after-destroy-sysfs-file mm/slab.c
+--- a/mm/slab.c~mm-slab-free-kmem_cache_node-after-destroy-sysfs-file
++++ a/mm/slab.c
+@@ -2302,13 +2302,19 @@ int __kmem_cache_shrink(struct kmem_cach
  
- #ifdef CONFIG_SYSFS
- #define SLAB_SUPPORTS_SYSFS
--void sysfs_slab_remove(struct kmem_cache *);
-+int sysfs_slab_remove(struct kmem_cache *);
-+void sysfs_slab_remove_cancel(struct kmem_cache *s);
- #else
--static inline void sysfs_slab_remove(struct kmem_cache *s)
-+static inline void sysfs_slab_remove_cancel(struct kmem_cache *s)
+ int __kmem_cache_shutdown(struct kmem_cache *cachep)
  {
- }
- #endif
-diff -puN mm/slab.h~mm-slab-shutdown-caches-only-after-releasing-sysfs-file mm/slab.h
---- a/mm/slab.h~mm-slab-shutdown-caches-only-after-releasing-sysfs-file
-+++ a/mm/slab.h
-@@ -141,7 +141,7 @@ static inline unsigned long kmem_cache_f
- 
- int __kmem_cache_shutdown(struct kmem_cache *);
- int __kmem_cache_shrink(struct kmem_cache *, bool);
--void slab_kmem_cache_release(struct kmem_cache *);
-+int slab_kmem_cache_release(struct kmem_cache *);
- 
- struct seq_file;
- struct file;
-diff -puN mm/slab_common.c~mm-slab-shutdown-caches-only-after-releasing-sysfs-file mm/slab_common.c
---- a/mm/slab_common.c~mm-slab-shutdown-caches-only-after-releasing-sysfs-file
-+++ a/mm/slab_common.c
-@@ -448,33 +448,58 @@ out_unlock:
- }
- EXPORT_SYMBOL(kmem_cache_create);
- 
--static int shutdown_cache(struct kmem_cache *s,
-+static void prepare_caches_release(struct kmem_cache *s,
- 		struct list_head *release, bool *need_rcu_barrier)
- {
--	if (__kmem_cache_shutdown(s) != 0)
--		return -EBUSY;
--
- 	if (s->flags & SLAB_DESTROY_BY_RCU)
- 		*need_rcu_barrier = true;
- 
- 	list_move(&s->list, release);
--	return 0;
- }
- 
--static void release_caches(struct list_head *release, bool need_rcu_barrier)
-+#ifdef SLAB_SUPPORTS_SYSFS
-+#define release_one_cache sysfs_slab_remove
-+#else
-+#define release_one_cache slab_kmem_cache_release
-+#endif
-+
-+static int release_caches_type(struct list_head *release, bool children)
- {
- 	struct kmem_cache *s, *s2;
-+	int ret = 0;
- 
-+	list_for_each_entry_safe(s, s2, release, list) {
-+		if (is_root_cache(s) == children)
-+			continue;
-+
-+		ret += release_one_cache(s);
-+	}
-+	return ret;
-+}
-+
-+static void release_caches(struct list_head *release, bool need_rcu_barrier)
-+{
- 	if (need_rcu_barrier)
- 		rcu_barrier();
- 
--	list_for_each_entry_safe(s, s2, release, list) {
--#ifdef SLAB_SUPPORTS_SYSFS
--		sysfs_slab_remove(s);
--#else
--		slab_kmem_cache_release(s);
--#endif
--	}
-+	/* remove children in the first place, remove root on success */
-+	if (!release_caches_type(release, true))
-+		release_caches_type(release, false);
-+}
-+
-+static void release_cache_cancel(struct kmem_cache *s)
-+{
-+	sysfs_slab_remove_cancel(s);
-+
-+	get_online_cpus();
-+	get_online_mems();
-+	mutex_lock(&slab_mutex);
-+
-+	list_move(&s->list, &slab_caches);
-+
-+	mutex_unlock(&slab_mutex);
-+	put_online_mems();
-+	put_online_cpus();
- }
- 
- #if defined(CONFIG_MEMCG) && !defined(CONFIG_SLOB)
-@@ -589,16 +614,14 @@ void memcg_deactivate_kmem_caches(struct
- 	put_online_cpus();
- }
- 
--static int __shutdown_memcg_cache(struct kmem_cache *s,
-+static void prepare_memcg_empty_caches(struct kmem_cache *s,
- 		struct list_head *release, bool *need_rcu_barrier)
- {
- 	BUG_ON(is_root_cache(s));
- 
--	if (shutdown_cache(s, release, need_rcu_barrier))
--		return -EBUSY;
-+	prepare_caches_release(s, release, need_rcu_barrier);
- 
--	list_del(&s->memcg_params.list);
--	return 0;
-+	list_del_init(&s->memcg_params.list);
- }
- 
- void memcg_destroy_kmem_caches(struct mem_cgroup *memcg)
-@@ -614,11 +637,12 @@ void memcg_destroy_kmem_caches(struct me
- 	list_for_each_entry_safe(s, s2, &slab_caches, list) {
- 		if (is_root_cache(s) || s->memcg_params.memcg != memcg)
- 			continue;
-+
- 		/*
- 		 * The cgroup is about to be freed and therefore has no charges
- 		 * left. Hence, all its caches must be empty by now.
- 		 */
--		BUG_ON(__shutdown_memcg_cache(s, &release, &need_rcu_barrier));
-+		prepare_memcg_empty_caches(s, &release, &need_rcu_barrier);
- 	}
- 	mutex_unlock(&slab_mutex);
- 
-@@ -628,81 +652,53 @@ void memcg_destroy_kmem_caches(struct me
- 	release_caches(&release, need_rcu_barrier);
- }
- 
--static int shutdown_memcg_caches(struct kmem_cache *s,
-+static void prepare_memcg_filled_caches(struct kmem_cache *s,
- 		struct list_head *release, bool *need_rcu_barrier)
- {
- 	struct memcg_cache_array *arr;
- 	struct kmem_cache *c, *c2;
--	LIST_HEAD(busy);
 -	int i;
+-	struct kmem_cache_node *n;
+ 	int rc = __kmem_cache_shrink(cachep, false);
  
- 	BUG_ON(!is_root_cache(s));
+ 	if (rc)
+ 		return rc;
  
--	/*
--	 * First, shutdown active caches, i.e. caches that belong to online
--	 * memory cgroups.
--	 */
- 	arr = rcu_dereference_protected(s->memcg_params.memcg_caches,
- 					lockdep_is_held(&slab_mutex));
--	for_each_memcg_cache_index(i) {
--		c = arr->entries[i];
--		if (!c)
--			continue;
--		if (__shutdown_memcg_cache(c, release, need_rcu_barrier))
--			/*
--			 * The cache still has objects. Move it to a temporary
--			 * list so as not to try to destroy it for a second
--			 * time while iterating over inactive caches below.
--			 */
--			list_move(&c->memcg_params.list, &busy);
--		else
--			/*
--			 * The cache is empty and will be destroyed soon. Clear
--			 * the pointer to it in the memcg_caches array so that
--			 * it will never be accessed even if the root cache
--			 * stays alive.
--			 */
--			arr->entries[i] = NULL;
--	}
- 
--	/*
--	 * Second, shutdown all caches left from memory cgroups that are now
--	 * offline.
--	 */
-+	/* move children caches to release list */
- 	list_for_each_entry_safe(c, c2, &s->memcg_params.list,
- 				 memcg_params.list)
--		__shutdown_memcg_cache(c, release, need_rcu_barrier);
-+		prepare_caches_release(c, release, need_rcu_barrier);
- 
--	list_splice(&busy, &s->memcg_params.list);
--
--	/*
--	 * A cache being destroyed must be empty. In particular, this means
--	 * that all per memcg caches attached to it must be empty too.
--	 */
--	if (!list_empty(&s->memcg_params.list))
--		return -EBUSY;
--	return 0;
-+	/* root cache to the same place */
-+	prepare_caches_release(s, release, need_rcu_barrier);
- }
-+
- #else
--static inline int shutdown_memcg_caches(struct kmem_cache *s,
--		struct list_head *release, bool *need_rcu_barrier)
--{
--	return 0;
--}
-+#define prepare_memcg_filled_caches prepare_caches_release
- #endif /* CONFIG_MEMCG && !CONFIG_SLOB */
- 
--void slab_kmem_cache_release(struct kmem_cache *s)
-+int slab_kmem_cache_release(struct kmem_cache *s)
- {
-+	if (__kmem_cache_shutdown(s)) {
-+		WARN(1, "release slub cache %s failed: it still has objects\n",
-+			s->name);
-+		release_cache_cancel(s);
-+		return 1;
-+	}
-+
-+#ifdef CONFIG_MEMCG
-+	list_del(&s->memcg_params.list);
-+#endif
-+
- 	destroy_memcg_params(s);
- 	kfree_const(s->name);
- 	kmem_cache_free(kmem_cache, s);
-+	return 0;
- }
- 
- void kmem_cache_destroy(struct kmem_cache *s)
- {
- 	LIST_HEAD(release);
- 	bool need_rcu_barrier = false;
--	int err;
- 
- 	if (unlikely(!s))
- 		return;
-@@ -716,15 +712,8 @@ void kmem_cache_destroy(struct kmem_cach
- 	if (s->refcount)
- 		goto out_unlock;
- 
--	err = shutdown_memcg_caches(s, &release, &need_rcu_barrier);
--	if (!err)
--		err = shutdown_cache(s, &release, &need_rcu_barrier);
--
--	if (err) {
--		pr_err("kmem_cache_destroy %s: "
--		       "Slab cache still has objects\n", s->name);
--		dump_stack();
--	}
-+	prepare_memcg_filled_caches(s, &release, &need_rcu_barrier);
-+
- out_unlock:
- 	mutex_unlock(&slab_mutex);
- 
-diff -puN mm/slub.c~mm-slab-shutdown-caches-only-after-releasing-sysfs-file mm/slub.c
---- a/mm/slub.c~mm-slab-shutdown-caches-only-after-releasing-sysfs-file
-+++ a/mm/slub.c
-@@ -5429,14 +5429,14 @@ out_del_kobj:
- 	goto out;
- }
- 
--void sysfs_slab_remove(struct kmem_cache *s)
-+int sysfs_slab_remove(struct kmem_cache *s)
- {
- 	if (slab_state < FULL)
- 		/*
- 		 * Sysfs has not been setup yet so no need to remove the
- 		 * cache from sysfs.
- 		 */
--		return;
-+		return 0;
- 
- #ifdef CONFIG_MEMCG
- 	kset_unregister(s->memcg_kset);
-@@ -5444,6 +5444,24 @@ void sysfs_slab_remove(struct kmem_cache
- 	kobject_uevent(&s->kobj, KOBJ_REMOVE);
- 	kobject_del(&s->kobj);
- 	kobject_put(&s->kobj);
 +	return 0;
 +}
 +
-+void sysfs_slab_remove_cancel(struct kmem_cache *s)
++void __kmem_cache_release(struct kmem_cache *cachep)
 +{
-+	int ret;
++	int i;
++	struct kmem_cache_node *n;
 +
-+	if (slab_state < FULL)
-+		return;
-+
-+	/* tricky */
-+	kobject_get(&s->kobj);
-+	ret = kobject_add(&s->kobj, NULL, "%s", s->name);
-+	kobject_uevent(&s->kobj, KOBJ_ADD);
-+
-+#ifdef CONFIG_MEMCG
-+	s->memcg_kset = kset_create_and_add("cgroup", NULL, &s->kobj);
-+#endif
+ 	free_percpu(cachep->cpu_cache);
+ 
+ 	/* NUMA: free the node structures */
+@@ -2318,7 +2324,6 @@ int __kmem_cache_shutdown(struct kmem_ca
+ 		kfree(n);
+ 		cachep->node[i] = NULL;
+ 	}
+-	return 0;
  }
  
  /*
-_
-
-Patches currently in -mm which might be from dsafonov@virtuozzo.com are
-
-
+diff -puN mm/slab.h~mm-slab-free-kmem_cache_node-after-destroy-sysfs-file mm/slab.h
+--- a/mm/slab.h~mm-slab-free-kmem_cache_node-after-destroy-sysfs-file
++++ a/mm/slab.h
+@@ -144,6 +144,7 @@ static inline unsigned long kmem_cache_f
+ #define CACHE_CREATE_MASK (SLAB_CORE_FLAGS | SLAB_DEBUG_FLAGS | SLAB_CACHE_FLAGS)
+ 
+ int __kmem_cache_shutdown(struct kmem_cache *);
++void __kmem_cache_release(struct kmem_cache *);
+ int __kmem_cache_shrink(struct kmem_cache *, bool);
+ void slab_kmem_cache_release(struct kmem_cache *);
+ 
+diff -puN mm/slab_common.c~mm-slab-free-kmem_cache_node-after-destroy-sysfs-file mm/slab_common.c
+--- a/mm/slab_common.c~mm-slab-free-kmem_cache_node-after-destroy-sysfs-file
++++ a/mm/slab_common.c
+@@ -697,6 +697,7 @@ static inline int shutdown_memcg_caches(
+ 
+ void slab_kmem_cache_release(struct kmem_cache *s)
+ {
++	__kmem_cache_release(s);
+ 	destroy_memcg_params(s);
+ 	kfree_const(s->name);
+ 	kmem_cache_free(kmem_cache, s);
+diff -puN mm/slob.c~mm-slab-free-kmem_cache_node-after-destroy-sysfs-file mm/slob.c
+--- a/mm/slob.c~mm-slab-free-kmem_cache_node-after-destroy-sysfs-file
++++ a/mm/slob.c
+@@ -630,6 +630,10 @@ int __kmem_cache_shutdown(struct kmem_ca
+ 	return 0;
+ }
+ 
++void __kmem_cache_release(struct kmem_cache *c)
++{
++}
++
+ int __kmem_cache_shrink(struct kmem_cache *d, bool deactivate)
+ {
+ 	return 0;
+diff -puN mm/slub.c~mm-slab-free-kmem_cache_node-after-destroy-sysfs-file mm/slub.c
+--- a/mm/slub.c~mm-slab-free-kmem_cache_node-after-destroy-sysfs-file
++++ a/mm/slub.c
+@@ -3183,11 +3183,12 @@ static void early_kmem_cache_node_alloc(
+ 	__add_partial(n, page, DEACTIVATE_TO_HEAD);
+ }
+ 
+-static void free_kmem_cache_nodes(struct kmem_cache *s)
++void __kmem_cache_release(struct kmem_cache *s)
+ {
+ 	int node;
+ 	struct kmem_cache_node *n;
+ 
++	free_percpu(s->cpu_slab);
+ 	for_each_kmem_cache_node(s, node, n) {
+ 		kmem_cache_free(kmem_cache_node, n);
+ 		s->node[node] = NULL;
+@@ -3209,7 +3210,7 @@ static int init_kmem_cache_nodes(struct
+ 						GFP_KERNEL, node);
+ 
+ 		if (!n) {
+-			free_kmem_cache_nodes(s);
++			__kmem_cache_release(s);
+ 			return 0;
+ 		}
+ 
+@@ -3425,7 +3426,7 @@ static int kmem_cache_open(struct kmem_c
+ 	if (alloc_kmem_cache_cpus(s))
+ 		return 0;
+ 
+-	free_kmem_cache_nodes(s);
++	__kmem_cache_release(s);
+ error:
+ 	if (flags & SLAB_PANIC)
+ 		panic("Cannot create slab %s size=%lu realsize=%u "
+@@ -3465,7 +3466,7 @@ static void list_slab_objects(struct kme
+ 
+ /*
+  * Attempt to free all partial slabs on a node.
+- * This is called from kmem_cache_close(). We must be the last thread
++ * This is called from __kmem_cache_shutdown(). We must be the last thread
+  * using the cache and therefore we do not need to lock anymore.
+  */
+ static void free_partial(struct kmem_cache *s, struct kmem_cache_node *n)
+@@ -3478,7 +3479,7 @@ static void free_partial(struct kmem_cac
+ 			discard_slab(s, page);
+ 		} else {
+ 			list_slab_objects(s, page,
+-			"Objects remaining in %s on kmem_cache_close()");
++			"Objects remaining in %s on __kmem_cache_shutdown()");
+ 		}
+ 	}
+ }
+@@ -3486,7 +3487,7 @@ static void free_partial(struct kmem_cac
+ /*
+  * Release all resources used by a slab cache.
+  */
+-static inline int kmem_cache_close(struct kmem_cache *s)
++int __kmem_cache_shutdown(struct kmem_cache *s)
+ {
+ 	int node;
+ 	struct kmem_cache_node *n;
+@@ -3498,16 +3499,9 @@ static inline int kmem_cache_close(struc
+ 		if (n->nr_partial || slabs_node(s, node))
+ 			return 1;
+ 	}
+-	free_percpu(s->cpu_slab);
+-	free_kmem_cache_nodes(s);
+ 	return 0;
+ }
+ 
+-int __kmem_cache_shutdown(struct kmem_cache *s)
+-{
+-	return kmem_cache_close(s);
+-}
