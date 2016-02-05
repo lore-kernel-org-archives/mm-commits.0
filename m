@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-add-kcov-code-coverage-fix-2.patch added to -mm tree
-Date: Thu, 04 Feb 2016 16:14:54 -0800
-Message-ID: <56b3e97e.ETBgJHhghTgFeSTM%akpm@linux-foundation.org>
+Subject: + sound-query-dynamic-debug_pagealloc-setting-fix.patch added to
+ -mm tree
+Date: Thu, 04 Feb 2016 16:33:34 -0800
+Message-ID: <56b3edde.Mskp8VDOWXdMAVQY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40328 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42339 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933261AbcBEAOz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 19:14:55 -0500
+	with ESMTP id S1750731AbcBEAdg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 19:33:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dvyukov@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, borntraeger@de.ibm.com, cl@linux.com, cmetcalf@ezchip.com, iamjoonsoo.kim@lge.com, js1304@gmail.com, penberg@kernel.org, rientjes@google.com, tiwai@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-add-kcov-code-coverage-fix-2
+     Subject: sound-query-dynamic-debug_pagealloc-setting-fix
 has been added to the -mm tree.  Its filename is
-     kernel-add-kcov-code-coverage-fix-2.patch
+     sound-query-dynamic-debug_pagealloc-setting-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-add-kcov-code-coverage-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sound-query-dynamic-debug_pagealloc-setting-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-add-kcov-code-coverage-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sound-query-dynamic-debug_pagealloc-setting-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,28 +40,36 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-add-kcov-code-coverage-fix-2
+Subject: sound-query-dynamic-debug_pagealloc-setting-fix
 
-unbreak allmodconfig
+export _debug_pagealloc_enabled to modules
 
-Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Takashi Iwai <tiwai@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Makefile |    1 +
+ mm/page_alloc.c |    1 +
  1 file changed, 1 insertion(+)
 
-diff -puN Makefile~kernel-add-kcov-code-coverage-fix-2 Makefile
---- a/Makefile~kernel-add-kcov-code-coverage-fix-2
-+++ a/Makefile
-@@ -678,6 +678,7 @@ ifdef CONFIG_KCOV
-   ifeq ($(call cc-option, $(CFLAGS_KCOV)),)
-     $(warning Cannot use CONFIG_KCOV: \
-              -fsanitize-coverage=trace-pc is not supported by compiler)
-+    CFLAGS_KCOV =
-   endif
- endif
+diff -puN mm/page_alloc.c~sound-query-dynamic-debug_pagealloc-setting-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~sound-query-dynamic-debug_pagealloc-setting-fix
++++ a/mm/page_alloc.c
+@@ -498,6 +498,7 @@ void prep_compound_page(struct page *pag
+ unsigned int _debug_guardpage_minorder;
+ bool _debug_pagealloc_enabled __read_mostly
+ 			= IS_ENABLED(CONFIG_DEBUG_PAGEALLOC_ENABLE_DEFAULT);
++EXPORT_SYMBOL(_debug_pagealloc_enabled);
+ bool _debug_guardpage_enabled __read_mostly;
  
+ static int __init early_debug_pagealloc(char *buf)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -92,6 +101,7 @@ mm-oom_reaper-report-success-failure-fix.patch
 proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
 mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
 mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
+sound-query-dynamic-debug_pagealloc-setting-fix.patch
 ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
 zram-export-the-number-of-available-comp-streams-fix.patch
 mm-oom-rework-oom-detection-checkpatch-fixes.patch
