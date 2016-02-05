@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + sound-query-dynamic-debug_pagealloc-setting-fix.patch added to
- -mm tree
-Date: Thu, 04 Feb 2016 16:33:34 -0800
-Message-ID: <56b3edde.Mskp8VDOWXdMAVQY%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch added to -mm tree
+Date: Thu, 04 Feb 2016 16:49:37 -0800
+Message-ID: <56b3f1a1.FSHfNOqBcpN+udFU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42339 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43404 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750731AbcBEAdg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 19:33:36 -0500
+	with ESMTP id S1751323AbcBEAti (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 4 Feb 2016 19:49:38 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, borntraeger@de.ibm.com, cl@linux.com, cmetcalf@ezchip.com, iamjoonsoo.kim@lge.com, js1304@gmail.com, penberg@kernel.org, rientjes@google.com, tiwai@suse.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aaron.lu@intel.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sound-query-dynamic-debug_pagealloc-setting-fix
+     
 has been added to the -mm tree.  Its filename is
-     sound-query-dynamic-debug_pagealloc-setting-fix.patch
+     mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sound-query-dynamic-debug_pagealloc-setting-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sound-query-dynamic-debug_pagealloc-setting-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,36 +40,142 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: sound-query-dynamic-debug_pagealloc-setting-fix
 
-export _debug_pagealloc_enabled to modules
+Move CONFIG_MEMORY_HOTPLUG code into memory_hotplug.c, fix
+CONFIG_MEMORY_HOTPLUG=n build.
 
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Chris Metcalf <cmetcalf@ezchip.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Aaron Lu <aaron.lu@intel.com>
+Cc: Aaron Lu <aaron.lu@intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/memory_hotplug.h |   12 +++++++++++-
+ include/linux/mmzone.h         |    2 ++
+ mm/memory_hotplug.c            |   27 +++++++++++++++++++++++++++
+ mm/page_alloc.c                |   27 ---------------------------
+ 4 files changed, 40 insertions(+), 28 deletions(-)
 
-diff -puN mm/page_alloc.c~sound-query-dynamic-debug_pagealloc-setting-fix mm/page_alloc.c
---- a/mm/page_alloc.c~sound-query-dynamic-debug_pagealloc-setting-fix
-+++ a/mm/page_alloc.c
-@@ -498,6 +498,7 @@ void prep_compound_page(struct page *pag
- unsigned int _debug_guardpage_minorder;
- bool _debug_pagealloc_enabled __read_mostly
- 			= IS_ENABLED(CONFIG_DEBUG_PAGEALLOC_ENABLE_DEFAULT);
-+EXPORT_SYMBOL(_debug_pagealloc_enabled);
- bool _debug_guardpage_enabled __read_mostly;
+diff -puN include/linux/memory_hotplug.h~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix include/linux/memory_hotplug.h
+--- a/include/linux/memory_hotplug.h~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
++++ a/include/linux/memory_hotplug.h
+@@ -200,7 +200,10 @@ void mem_hotplug_done(void);
  
- static int __init early_debug_pagealloc(char *buf)
+ extern void set_zone_contiguous(struct zone *zone);
+ extern void clear_zone_contiguous(struct zone *zone);
+-
++static inline bool zone_contiguous(struct zone *zone)
++{
++	return zone->contiguous;
++}
+ #else /* ! CONFIG_MEMORY_HOTPLUG */
+ /*
+  * Stub functions for when hotplug is off
+@@ -243,6 +246,13 @@ static inline void put_online_mems(void)
+ static inline void mem_hotplug_begin(void) {}
+ static inline void mem_hotplug_done(void) {}
+ 
++static inline void set_zone_contiguous(struct zone *zone) {}
++static inline void clear_zone_contiguous(struct zone *zone) {}
++static inline bool zone_contiguous(struct zone *zone)
++{
++	return false;
++}
++
+ #endif /* ! CONFIG_MEMORY_HOTPLUG */
+ 
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+diff -puN include/linux/mmzone.h~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
++++ a/include/linux/mmzone.h
+@@ -522,7 +522,9 @@ struct zone {
+ 	bool			compact_blockskip_flush;
+ #endif
+ 
++#ifdef CONFIG_MEMORY_HOTPLUG
+ 	bool			contiguous;
++#endif
+ 
+ 	ZONE_PADDING(_pad3_)
+ 	/* Zone statistics */
+diff -puN mm/memory_hotplug.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
++++ a/mm/memory_hotplug.c
+@@ -130,6 +130,33 @@ void mem_hotplug_done(void)
+ 	memhp_lock_release();
+ }
+ 
++void set_zone_contiguous(struct zone *zone)
++{
++	unsigned long block_start_pfn = zone->zone_start_pfn;
++	unsigned long block_end_pfn;
++	unsigned long pfn;
++
++	block_end_pfn = ALIGN(block_start_pfn + 1, pageblock_nr_pages);
++	for (; block_start_pfn < zone_end_pfn(zone);
++		block_start_pfn = block_end_pfn,
++		block_end_pfn += pageblock_nr_pages) {
++
++		block_end_pfn = min(block_end_pfn, zone_end_pfn(zone));
++
++		if (!__pageblock_pfn_to_page(block_start_pfn,
++					block_end_pfn, zone))
++			return;
++	}
++
++	/* We confirm that there is no hole */
++	zone->contiguous = true;
++}
++
++void clear_zone_contiguous(struct zone *zone)
++{
++	zone->contiguous = false;
++}
++
+ /* add this memory to iomem resource */
+ static struct resource *register_memory_resource(u64 start, u64 size)
+ {
+diff -puN mm/page_alloc.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
++++ a/mm/page_alloc.c
+@@ -1347,33 +1347,6 @@ struct page *__pageblock_pfn_to_page(uns
+ 	return start_page;
+ }
+ 
+-void set_zone_contiguous(struct zone *zone)
+-{
+-	unsigned long block_start_pfn = zone->zone_start_pfn;
+-	unsigned long block_end_pfn;
+-	unsigned long pfn;
+-
+-	block_end_pfn = ALIGN(block_start_pfn + 1, pageblock_nr_pages);
+-	for (; block_start_pfn < zone_end_pfn(zone);
+-		block_start_pfn = block_end_pfn,
+-		block_end_pfn += pageblock_nr_pages) {
+-
+-		block_end_pfn = min(block_end_pfn, zone_end_pfn(zone));
+-
+-		if (!__pageblock_pfn_to_page(block_start_pfn,
+-					block_end_pfn, zone))
+-			return;
+-	}
+-
+-	/* We confirm that there is no hole */
+-	zone->contiguous = true;
+-}
+-
+-void clear_zone_contiguous(struct zone *zone)
+-{
+-	zone->contiguous = false;
+-}
+-
+ #ifdef CONFIG_CMA
+ /* Free whole pageblock and set its migration type to MIGRATE_CMA. */
+ void __init init_cma_reserved_pageblock(struct page *page)
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -98,6 +204,7 @@ mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
 mm-simplify-lock_page_memcg-fix.patch
 sched-add-schedule_timeout_idle.patch
 mm-oom_reaper-report-success-failure-fix.patch
+mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
 proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
 mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
 mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
