@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-link-vmlinuxsh-force-error-on-kallsyms-failure.patch
- added to -mm tree
-Date: Fri, 05 Feb 2016 11:31:28 -0800
-Message-ID: <56b4f890.UICXgpjKtap1a6bh%akpm@linux-foundation.org>
+Subject: +
+ mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-fix2.patch added to
+ -mm tree
+Date: Fri, 05 Feb 2016 11:40:09 -0800
+Message-ID: <56b4fa99.LGN48imLlA+g7LjD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59368 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59928 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754252AbcBETb3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2016 14:31:29 -0500
+	with ESMTP id S1754830AbcBETkK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2016 14:40:10 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ard.biesheuvel@linaro.org, arnd@arndb.de, linux@roeck-us.net, mmarek@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, kirill@shutemov.name, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/link-vmlinux.sh: force error on kallsyms failure
+     Subject: mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-fix2
 has been added to the -mm tree.  Its filename is
-     scripts-link-vmlinuxsh-force-error-on-kallsyms-failure.patch
+     mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-fix2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-link-vmlinuxsh-force-error-on-kallsyms-failure.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-fix2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-link-vmlinuxsh-force-error-on-kallsyms-failure.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-fix2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,57 +40,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: scripts/link-vmlinux.sh: force error on kallsyms failure
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-fix2
 
-Since the output of the invocation of scripts/kallsyms is piped directly
-into the assembler, error messages it emits are visible on stderr, but a
-non-zero return code is ignored, and the build simply proceeds in that
-case.  However, the resulting kernel is most likely broken, and will crash
-at boot.
+Update also arch-specific code as Kirill pointed out.
 
-So instead, capture the output of kallsyms in a separate .S file, and pass
-that to the assembler in a separate step.
-
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Guenter Roeck <linux@roeck-us.net>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Michal Marek <mmarek@suse.cz>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/link-vmlinux.sh |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ arch/x86/mm/hugetlbpage.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN scripts/link-vmlinux.sh~scripts-link-vmlinuxsh-force-error-on-kallsyms-failure scripts/link-vmlinux.sh
---- a/scripts/link-vmlinux.sh~scripts-link-vmlinuxsh-force-error-on-kallsyms-failure
-+++ a/scripts/link-vmlinux.sh
-@@ -97,9 +97,10 @@ kallsyms()
- 	local aflags="${KBUILD_AFLAGS} ${KBUILD_AFLAGS_KERNEL}               \
- 		      ${NOSTDINC_FLAGS} ${LINUXINCLUDE} ${KBUILD_CPPFLAGS}"
- 
--	${NM} -n ${1} | \
--		scripts/kallsyms ${kallsymopt} | \
--		${CC} ${aflags} -c -o ${2} -x assembler-with-cpp -
-+	local afile="`basename ${2} .o`.S"
-+
-+	${NM} -n ${1} | scripts/kallsyms ${kallsymopt} > ${afile}
-+	${CC} ${aflags} -c -o ${2} ${afile}
+diff -puN arch/x86/mm/hugetlbpage.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-fix2 arch/x86/mm/hugetlbpage.c
+--- a/arch/x86/mm/hugetlbpage.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-fix2
++++ a/arch/x86/mm/hugetlbpage.c
+@@ -173,10 +173,10 @@ static __init int setup_hugepagesz(char
  }
+ __setup("hugepagesz=", setup_hugepagesz);
  
- # Create map file with all symbols from ${1}
+-#ifdef CONFIG_CMA
++#if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
+ static __init int gigantic_pages_init(void)
+ {
+-	/* With CMA we can allocate gigantic pages at runtime */
++	/* With compaction or CMA we can allocate gigantic pages at runtime */
+ 	if (cpu_has_gbpages && !size_to_hstate(1UL << PUD_SHIFT))
+ 		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
+ 	return 0;
 _
 
-Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-extable-add-support-for-relative-extables-to-search-and-sort-routines.patch
-alpha-extable-use-generic-search-and-sort-routines.patch
-s390-extable-use-generic-search-and-sort-routines.patch
-x86-extable-use-generic-search-and-sort-routines.patch
-ia64-extable-use-generic-search-and-sort-routines.patch
-arm64-switch-to-relative-exception-tables.patch
-x86-kallsyms-disable-absolute-percpu-symbols-on-smp.patch
-kallsyms-dont-overload-absolute-symbol-type-for-percpu-symbols.patch
-kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table.patch
-scripts-link-vmlinuxsh-force-error-on-kallsyms-failure.patch
+mm-kconfig-correct-description-of-deferred_struct_page_init.patch
+mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages.patch
+mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2.patch
+mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-fix2.patch
+tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
+mm-tracing-make-show_gfp_flags-up-to-date.patch
+tools-perf-make-gfp_compact_table-up-to-date.patch
+mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk.patch
+mm-printk-introduce-new-format-string-for-flags.patch
+mm-printk-introduce-new-format-string-for-flags-fix.patch
+mm-debug-replace-dump_flags-with-the-new-printk-formats.patch
+mm-page_alloc-print-symbolic-gfp_flags-on-allocation-failure.patch
+mm-oom-print-symbolic-gfp_flags-in-oom-warning.patch
+mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
+mm-page_owner-convert-page_owner_inited-to-static-key.patch
+mm-page_owner-copy-page-owner-info-during-migration.patch
+mm-page_owner-track-and-print-last-migrate-reason.patch
+mm-page_owner-dump-page-owner-info-from-dump_page.patch
+mm-debug-move-bad-flags-printing-to-bad_page.patch
+mm-use-radix_tree_iter_retry-fix.patch
 
