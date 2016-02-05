@@ -1,71 +1,105 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-vmstat-make-quiet_vmstat-lighter-fix.patch
- removed from -mm tree
-Date: Fri, 05 Feb 2016 15:32:07 -0800
-Message-ID: <56b530f7.FsDEmS1xgDJZwH5V%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2.patch removed
+ from -mm tree
+Date: Fri, 05 Feb 2016 15:32:43 -0800
+Message-ID: <56b5311b.1AgvQ3OlYDfTst8U%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39289 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39338 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750866AbcBEXcI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2016 18:32:08 -0500
+	with ESMTP id S1750943AbcBEXco (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2016 18:32:44 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgalbraith@suse.de, mhocko@suse.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mhocko@kernel.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, vmstat: cancel pending work of the cpu_stat_off CPU
+     Subject: mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2
 has been removed from the -mm tree.  Its filename was
-     mm-vmstat-make-quiet_vmstat-lighter-fix.patch
+     mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2.patch
 
-This patch was dropped because it was folded into mm-vmstat-make-quiet_vmstat-lighter.patch
+This patch was dropped because it was folded into mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages.patch
 
 ------------------------------------------------------
-From: Mike Galbraith <mgalbraith@suse.de>
-Subject: mm, vmstat: cancel pending work of the cpu_stat_off CPU
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2
 
-Cancel pending work of the cpu_stat_off CPU.
+fix !CONFIG_COMPACTION && CONFIG_MEMORY_ISOLATION=y build
 
-Signed-off-by: Mike Galbraith <mgalbraith@suse.de>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@kernel.org>
+Cc: Joonsoo Kim <js1304@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmstat.c |   12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+ include/linux/gfp.h |    2 +-
+ mm/hugetlb.c        |    2 +-
+ mm/page_alloc.c     |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/vmstat.c~mm-vmstat-make-quiet_vmstat-lighter-fix mm/vmstat.c
---- a/mm/vmstat.c~mm-vmstat-make-quiet_vmstat-lighter-fix
-+++ a/mm/vmstat.c
-@@ -1486,25 +1486,25 @@ static void vmstat_shepherd(struct work_
+diff -puN include/linux/gfp.h~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2 include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2
++++ a/include/linux/gfp.h
+@@ -547,7 +547,7 @@ static inline bool pm_suspended_storage(
+ }
+ #endif /* CONFIG_PM_SLEEP */
  
- 	get_online_cpus();
- 	/* Check processors whose vmstat worker threads have been disabled */
--	for_each_cpu(cpu, cpu_stat_off)
-+	for_each_cpu(cpu, cpu_stat_off) {
-+		struct delayed_work *dw = &per_cpu(vmstat_work, cpu);
-+
- 		if (need_update(cpu)) {
- 			if (cpumask_test_and_clear_cpu(cpu, cpu_stat_off))
--				queue_delayed_work_on(cpu, vmstat_wq,
--					&per_cpu(vmstat_work, cpu), 0);
-+				queue_delayed_work_on(cpu, vmstat_wq, dw, 0);
- 		} else {
- 			/*
- 			 * Cancel the work if quiet_vmstat has put this
- 			 * cpu on cpu_stat_off because the work item might
- 			 * be still scheduled
- 			 */
--			cancel_delayed_work(this_cpu_ptr(&vmstat_work));
-+			cancel_delayed_work(dw);
- 		}
--
-+	}
- 	put_online_cpus();
+-#ifdef CONFIG_MEMORY_ISOLATION
++#if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
+ /* The below functions must be run on a range from a single zone. */
+ extern int alloc_contig_range(unsigned long start, unsigned long end,
+ 			      unsigned migratetype);
+diff -puN mm/hugetlb.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2 mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2
++++ a/mm/hugetlb.c
+@@ -1001,7 +1001,7 @@ static int hstate_next_node_to_free(stru
+ 		((node = hstate_next_node_to_free(hs, mask)) || 1);	\
+ 		nr_nodes--)
  
- 	schedule_delayed_work(&shepherd,
- 		round_jiffies_relative(sysctl_stat_interval));
+-#if defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_X86_64)
++#if defined(CONFIG_X86_64) && ((defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA))
+ static void destroy_compound_gigantic_page(struct page *page,
+ 					unsigned int order)
+ {
+diff -puN mm/page_alloc.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-v2
++++ a/mm/page_alloc.c
+@@ -6620,7 +6620,7 @@ bool is_pageblock_removable_nolock(struc
+ 	return !has_unmovable_pages(zone, page, 0, true);
+ }
+ 
+-#ifdef CONFIG_MEMORY_ISOLATION
++#if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
+ 
+ static unsigned long pfn_max_align_down(unsigned long pfn)
+ {
+_
+
+Patches currently in -mm which might be from vbabka@suse.cz are
+
+mm-kconfig-correct-description-of-deferred_struct_page_init.patch
+mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages.patch
+mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages-fix2.patch
+tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
+mm-tracing-make-show_gfp_flags-up-to-date.patch
+tools-perf-make-gfp_compact_table-up-to-date.patch
+mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk.patch
+mm-printk-introduce-new-format-string-for-flags.patch
+mm-printk-introduce-new-format-string-for-flags-fix.patch
+mm-debug-replace-dump_flags-with-the-new-printk-formats.patch
+mm-page_alloc-print-symbolic-gfp_flags-on-allocation-failure.patch
+mm-oom-print-symbolic-gfp_flags-in-oom-warning.patch
+mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
+mm-page_owner-convert-page_owner_inited-to-static-key.patch
+mm-page_owner-copy-page-owner-info-during-migration.patch
+mm-page_owner-track-and-print-last-migrate-reason.patch
+mm-page_owner-dump-page-owner-info-from-dump_page.patch
+mm-debug-move-bad-flags-printing-to-bad_page.patch
+mm-use-radix_tree_iter_retry-fix.patch
+
