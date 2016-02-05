@@ -1,201 +1,175 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-tests-add-regression3-test.patch added to -mm tree
-Date: Fri, 05 Feb 2016 14:20:46 -0800
-Message-ID: <56b5203e.MjSYceuZDUTc5+BG%akpm@linux-foundation.org>
+Subject: [to-be-updated] lib-move-strtobool-to-kstrtobool.patch removed
+ from -mm tree
+Date: Fri, 05 Feb 2016 15:00:01 -0800
+Message-ID: <56b52971.buFde52NG5sdcS1z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60382 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35547 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752062AbcBEWUq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2016 17:20:46 -0500
+	with ESMTP id S1752955AbcBEXAD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2016 18:00:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: koct9i@gmail.com, matthew.r.wilcox@intel.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, akarwar@marvell.com, andy.shevchenko@gmail.com, benh@kernel.crashing.org, heiko.carstens@de.ibm.com, hpa@zytor.com, kvalo@codeaurora.org, linux@rasmusvillemoes.dk, mingo@elte.hu, mpe@ellerman.id.au, nishants@marvell.com, sfrench@samba.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree tests: add regression3 test
-has been added to the -mm tree.  Its filename is
-     radix-tree-tests-add-regression3-test.patch
+     Subject: lib: move strtobool to kstrtobool
+has been removed from the -mm tree.  Its filename was
+     lib-move-strtobool-to-kstrtobool.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-tests-add-regression3-test.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-tests-add-regression3-test.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: radix-tree tests: add regression3 test
+From: Kees Cook <keescook@chromium.org>
+Subject: lib: move strtobool to kstrtobool
 
-After calling radix_tree_iter_retry(), 'slot' will be set to NULL.  This
-can cause radix_tree_next_slot() to dereference the NULL pointer.  Add
-Konstantin Khlebnikov's test to the regression framework.
+Create the kstrtobool_from_user() helper and move strtobool() logic into
+the new kstrtobool() (matching all the other kstrto* functions).  Provides
+an inline wrapper for existing strtobool() callers.
 
-Signed-off-by: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Reported-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Amitkumar Karwar <akarwar@marvell.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Kalle Valo <kvalo@codeaurora.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nishant Sarmukadam <nishants@marvell.com>
+Cc: Steve French <sfrench@samba.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/testing/radix-tree/Makefile       |    2 
- tools/testing/radix-tree/linux/kernel.h |    1 
- tools/testing/radix-tree/main.c         |    1 
- tools/testing/radix-tree/regression.h   |    1 
- tools/testing/radix-tree/regression3.c  |   86 ++++++++++++++++++++++
- 5 files changed, 90 insertions(+), 1 deletion(-)
+ include/linux/kernel.h |    3 +++
+ include/linux/string.h |    6 +++++-
+ lib/kstrtox.c          |   35 +++++++++++++++++++++++++++++++++++
+ lib/string.c           |   29 -----------------------------
+ 4 files changed, 43 insertions(+), 30 deletions(-)
 
-diff -puN tools/testing/radix-tree/Makefile~radix-tree-tests-add-regression3-test tools/testing/radix-tree/Makefile
---- a/tools/testing/radix-tree/Makefile~radix-tree-tests-add-regression3-test
-+++ a/tools/testing/radix-tree/Makefile
-@@ -3,7 +3,7 @@ CFLAGS += -I. -g -Wall -D_LGPL_SOURCE
- LDFLAGS += -lpthread -lurcu
- TARGETS = main
- OFILES = main.o radix-tree.o linux.o test.o tag_check.o find_next_bit.o \
--	 regression1.o regression2.o
-+	 regression1.o regression2.o regression3.o
+diff -puN include/linux/kernel.h~lib-move-strtobool-to-kstrtobool include/linux/kernel.h
+--- a/include/linux/kernel.h~lib-move-strtobool-to-kstrtobool
++++ a/include/linux/kernel.h
+@@ -357,6 +357,7 @@ int __must_check kstrtou16(const char *s
+ int __must_check kstrtos16(const char *s, unsigned int base, s16 *res);
+ int __must_check kstrtou8(const char *s, unsigned int base, u8 *res);
+ int __must_check kstrtos8(const char *s, unsigned int base, s8 *res);
++int __must_check kstrtobool(const char *s, unsigned int base, bool *res);
  
- targets: $(TARGETS)
+ int __must_check kstrtoull_from_user(const char __user *s, size_t count, unsigned int base, unsigned long long *res);
+ int __must_check kstrtoll_from_user(const char __user *s, size_t count, unsigned int base, long long *res);
+@@ -368,6 +369,8 @@ int __must_check kstrtou16_from_user(con
+ int __must_check kstrtos16_from_user(const char __user *s, size_t count, unsigned int base, s16 *res);
+ int __must_check kstrtou8_from_user(const char __user *s, size_t count, unsigned int base, u8 *res);
+ int __must_check kstrtos8_from_user(const char __user *s, size_t count, unsigned int base, s8 *res);
++int __must_check kstrtobool_from_user(const char __user *s, size_t count,
++				      unsigned int base, bool *res);
  
-diff -puN tools/testing/radix-tree/linux/kernel.h~radix-tree-tests-add-regression3-test tools/testing/radix-tree/linux/kernel.h
---- a/tools/testing/radix-tree/linux/kernel.h~radix-tree-tests-add-regression3-test
-+++ a/tools/testing/radix-tree/linux/kernel.h
-@@ -13,6 +13,7 @@
+ static inline int __must_check kstrtou64_from_user(const char __user *s, size_t count, unsigned int base, u64 *res)
+ {
+diff -puN include/linux/string.h~lib-move-strtobool-to-kstrtobool include/linux/string.h
+--- a/include/linux/string.h~lib-move-strtobool-to-kstrtobool
++++ a/include/linux/string.h
+@@ -128,7 +128,11 @@ extern char **argv_split(gfp_t gfp, cons
+ extern void argv_free(char **argv);
  
- #define BUG_ON(expr)	assert(!(expr))
- #define __init
-+#define __must_check
- #define panic(expr)
- #define printk printf
- #define __force
-diff -puN tools/testing/radix-tree/main.c~radix-tree-tests-add-regression3-test tools/testing/radix-tree/main.c
---- a/tools/testing/radix-tree/main.c~radix-tree-tests-add-regression3-test
-+++ a/tools/testing/radix-tree/main.c
-@@ -261,6 +261,7 @@ int main(void)
- 
- 	regression1_test();
- 	regression2_test();
-+	regression3_test();
- 	single_thread_tests();
- 
- 	sleep(1);
-diff -puN tools/testing/radix-tree/regression.h~radix-tree-tests-add-regression3-test tools/testing/radix-tree/regression.h
---- a/tools/testing/radix-tree/regression.h~radix-tree-tests-add-regression3-test
-+++ a/tools/testing/radix-tree/regression.h
-@@ -3,5 +3,6 @@
- 
- void regression1_test(void);
- void regression2_test(void);
-+void regression3_test(void);
- 
- #endif
-diff -puN /dev/null tools/testing/radix-tree/regression3.c
---- /dev/null
-+++ a/tools/testing/radix-tree/regression3.c
-@@ -0,0 +1,86 @@
-+/*
-+ * Regression3
-+ * Description:
-+ * Helper radix_tree_iter_retry resets next_index to the current index.
-+ * In following radix_tree_next_slot current chunk size becomes zero.
-+ * This isn't checked and it tries to dereference null pointer in slot.
-+ *
-+ * Running:
-+ * This test should run to completion immediately. The above bug would
-+ * cause it to segfault.
-+ *
-+ * Upstream commit:
-+ * Not yet
-+ */
-+#include <linux/kernel.h>
-+#include <linux/gfp.h>
-+#include <linux/slab.h>
-+#include <linux/radix-tree.h>
-+#include <stdlib.h>
-+#include <stdio.h>
-+
-+#include "regression.h"
-+
-+void regression3_test(void)
+ extern bool sysfs_streq(const char *s1, const char *s2);
+-extern int strtobool(const char *s, bool *res);
++extern int kstrtobool(const char *s, unsigned int base, bool *res);
++static inline int strtobool(const char *s, bool *res)
 +{
-+	RADIX_TREE(root, GFP_KERNEL);
-+	void *ptr = (void *)4ul;
-+	struct radix_tree_iter iter;
-+	void **slot;
-+	bool first;
-+
-+	printf("running regression test 3 (should take milliseconds)\n");
-+
-+	radix_tree_insert(&root, 0, ptr);
-+	radix_tree_tag_set(&root, 0, 0);
-+
-+	first = true;
-+	radix_tree_for_each_tagged(slot, &root, &iter, 0, 0) {
-+//		printk("tagged %ld %p\n", iter.index, *slot);
-+		if (first) {
-+			radix_tree_insert(&root, 1, ptr);
-+			radix_tree_tag_set(&root, 1, 0);
-+			first = false;
-+		}
-+		if (radix_tree_deref_retry(*slot)) {
-+//			printk("retry %ld\n", iter.index);
-+			slot = radix_tree_iter_retry(&iter);
-+			continue;
-+		}
-+	}
-+	radix_tree_delete(&root, 1);
-+
-+	first = true;
-+	radix_tree_for_each_slot(slot, &root, &iter, 0) {
-+//		printk("slot %ld %p\n", iter.index, *slot);
-+		if (first) {
-+			radix_tree_insert(&root, 1, ptr);
-+			first = false;
-+		}
-+		if (radix_tree_deref_retry(*slot)) {
-+//			printk("retry %ld\n", iter.index);
-+			slot = radix_tree_iter_retry(&iter);
-+			continue;
-+		}
-+	}
-+	radix_tree_delete(&root, 1);
-+
-+	first = true;
-+	radix_tree_for_each_contig(slot, &root, &iter, 0) {
-+//		printk("contig %ld %p\n", iter.index, *slot);
-+		if (first) {
-+			radix_tree_insert(&root, 1, ptr);
-+			first = false;
-+		}
-+		if (radix_tree_deref_retry(*slot)) {
-+//			printk("retry %ld\n", iter.index);
-+			slot = radix_tree_iter_retry(&iter);
-+			continue;
-+		}
-+	}
-+
-+	radix_tree_delete(&root, 0);
-+	radix_tree_delete(&root, 1);
-+
-+	printf("regression test 3 passed\n");
++	return kstrtobool(s, 0, res);
 +}
-_
-
-Patches currently in -mm which might be from koct9i@gmail.com are
-
-mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write.patch
-radix-tree-fix-oops-after-radix_tree_iter_retry.patch
-radix-tree-tests-add-regression3-test.patch
-
+ 
+ int match_string(const char * const *array, size_t n, const char *string);
+ 
+diff -puN lib/kstrtox.c~lib-move-strtobool-to-kstrtobool lib/kstrtox.c
+--- a/lib/kstrtox.c~lib-move-strtobool-to-kstrtobool
++++ a/lib/kstrtox.c
+@@ -321,6 +321,40 @@ int kstrtos8(const char *s, unsigned int
+ }
+ EXPORT_SYMBOL(kstrtos8);
+ 
++/**
++ * kstrtobool - convert common user inputs into boolean values
++ * @s: input string
++ * @base: ignored
++ * @res: result
++ *
++ * This routine returns 0 iff the first character is one of 'Yy1Nn0'.
++ * Otherwise it will return -EINVAL.  Value pointed to by res is
++ * updated upon finding a match.
++ */
++int kstrtobool(const char *s, unsigned int base, bool *res)
++{
++	if (!s)
++		return -EINVAL;
++
++	switch (s[0]) {
++	case 'y':
++	case 'Y':
++	case '1':
++		*res = true;
++		return 0;
++	case 'n':
++	case 'N':
++	case '0':
++		*res = false;
++		return 0;
++	default:
++		break;
++	}
++
++	return -EINVAL;
++}
++EXPORT_SYMBOL(kstrtobool);
++
+ #define kstrto_from_user(f, g, type)					\
+ int f(const char __user *s, size_t count, unsigned int base, type *res)	\
+ {									\
+@@ -345,3 +379,4 @@ kstrto_from_user(kstrtou16_from_user,	ks
+ kstrto_from_user(kstrtos16_from_user,	kstrtos16,	s16);
+ kstrto_from_user(kstrtou8_from_user,	kstrtou8,	u8);
+ kstrto_from_user(kstrtos8_from_user,	kstrtos8,	s8);
++kstrto_from_user(kstrtobool_from_user,	kstrtobool,	bool);
+diff -puN lib/string.c~lib-move-strtobool-to-kstrtobool lib/string.c
+--- a/lib/string.c~lib-move-strtobool-to-kstrtobool
++++ a/lib/string.c
+@@ -656,35 +656,6 @@ int match_string(const char * const *arr
+ }
+ EXPORT_SYMBOL(match_string);
+ 
+-/**
+- * strtobool - convert common user inputs into boolean values
+- * @s: input string
+- * @res: result
+- *
+- * This routine returns 0 iff the first character is one of 'Yy1Nn0'.
+- * Otherwise it will return -EINVAL.  Value pointed to by res is
+- * updated upon finding a match.
+- */
+-int strtobool(const char *s, bool *res)
+-{
+-	switch (s[0]) {
+-	case 'y':
+-	case 'Y':
+-	case '1':
+-		*res = true;
+-		break;
+-	case 'n':
+-	case 'N':
+-	case '0':
+-		*res = false;
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-	return 0;
+-}
+-EXPORT_SYMBOL(strtobool);
