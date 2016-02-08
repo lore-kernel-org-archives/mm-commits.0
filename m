@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-core-mport-removal-support.patch added to -mm tree
-Date: Mon, 08 Feb 2016 13:22:20 -0800
-Message-ID: <56b9070c.v7iOuY5a/cFTnOyi%akpm@linux-foundation.org>
+Subject: + rapidio-add-query_mport-operation.patch added to -mm tree
+Date: Mon, 08 Feb 2016 13:22:06 -0800
+Message-ID: <56b906fe.ZqEeOZzzL5206mY5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35803 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35762 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755142AbcBHVWV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:21 -0500
+	with ESMTP id S1754682AbcBHVWH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: add core mport removal support
+     Subject: rapidio: add query_mport operation
 has been added to the -mm tree.  Its filename is
-     rapidio-add-core-mport-removal-support.patch
+     rapidio-add-query_mport-operation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-add-core-mport-removal-support.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-add-query_mport-operation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-add-core-mport-removal-support.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-add-query_mport-operation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,15 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: add core mport removal support
+Subject: rapidio: add query_mport operation
 
-Add common mport removal support functions into the RapidIO subsystem core.
-
-Changes to the existing mport registration process have been made to avoid
-race conditions with active subsystem interfaces immediately after mport
-device registration: part of initialization code from rio_register_mport()
-have been moved into separate function rio_mport_initialize() to allow to
-perform mport registration as the final step of setup process.
+Add mport query operation to report master port RapidIO capabilities and
+run time configuration to upper level drivers.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -56,238 +51,137 @@ Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c |   98 ++++++++++++++++++++++++++++++++--------
- drivers/rapidio/rio.h |    2 
- include/linux/rio.h   |   18 +++++++
- 3 files changed, 98 insertions(+), 20 deletions(-)
+ drivers/rapidio/rio.c    |   17 ++++++++++++
+ include/linux/rio.h      |   49 +++++++++++++++++++++++++++++++++++++
+ include/linux/rio_regs.h |    3 ++
+ 3 files changed, 69 insertions(+)
 
-diff -puN drivers/rapidio/rio.c~rapidio-add-core-mport-removal-support drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-add-core-mport-removal-support
+diff -puN drivers/rapidio/rio.c~rapidio-add-query_mport-operation drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-add-query_mport-operation
 +++ a/drivers/rapidio/rio.c
-@@ -149,6 +149,7 @@ int rio_add_device(struct rio_dev *rdev)
- {
- 	int err;
+@@ -68,6 +68,23 @@ u16 rio_local_get_device_id(struct rio_m
+ }
  
-+	atomic_set(&rdev->state, RIO_DEVICE_RUNNING);
- 	err = device_register(&rdev->dev);
- 	if (err)
- 		return err;
-@@ -172,13 +173,15 @@ EXPORT_SYMBOL_GPL(rio_add_device);
- /*
-  * rio_del_device - removes a RIO device from the device model
+ /**
++ * rio_query_mport - Query mport device attributes
++ * @port: mport device to query
++ * @mport_attr: mport attributes data structure
++ *
++ * Returns attributes of specified mport through the
++ * pointer to attributes data structure.
++ */
++int rio_query_mport(struct rio_mport *port,
++		    struct rio_mport_attr *mport_attr)
++{
++	if (!port->ops->query_mport)
++		return -ENODATA;
++	return port->ops->query_mport(port, mport_attr);
++}
++EXPORT_SYMBOL(rio_query_mport);
++
++/**
+  * rio_add_device- Adds a RIO device to the device model
   * @rdev: RIO device
-+ * @state: device state to set during removal process
   *
-  * Removes the RIO device to the kernel device list and subsystem's device list.
-  * Clears sysfs entries for the removed device.
-  */
--void rio_del_device(struct rio_dev *rdev)
-+void rio_del_device(struct rio_dev *rdev, enum rio_device_state state)
- {
- 	pr_debug("RIO: %s: removing %s\n", __func__, rio_name(rdev));
-+	atomic_set(&rdev->state, state);
- 	spin_lock(&rio_global_list_lock);
- 	list_del(&rdev->global_list);
- 	if (rdev->net) {
-@@ -2010,32 +2013,28 @@ static int rio_get_hdid(int index)
- 	return hdid[index];
- }
- 
--int rio_register_mport(struct rio_mport *port)
-+int rio_mport_initialize(struct rio_mport *mport)
- {
--	struct rio_scan_node *scan = NULL;
--	int res = 0;
--
- 	if (next_portid >= RIO_MAX_MPORTS) {
- 		pr_err("RIO: reached specified max number of mports\n");
--		return 1;
-+		return -ENODEV;
- 	}
- 
--	port->id = next_portid++;
--	port->host_deviceid = rio_get_hdid(port->id);
--	port->nscan = NULL;
-+	atomic_set(&mport->state, RIO_DEVICE_INITIALIZING);
-+	mport->id = next_portid++;
-+	mport->host_deviceid = rio_get_hdid(mport->id);
-+	mport->nscan = NULL;
- 
--	dev_set_name(&port->dev, "rapidio%d", port->id);
--	port->dev.class = &rio_mport_class;
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(rio_mport_initialize);
- 
--	res = device_register(&port->dev);
--	if (res)
--		dev_err(&port->dev, "RIO: mport%d registration failed ERR=%d\n",
--			port->id, res);
--	else
--		dev_dbg(&port->dev, "RIO: mport%d registered\n", port->id);
-+int rio_register_mport(struct rio_mport *port)
-+{
-+	struct rio_scan_node *scan = NULL;
-+	int res = 0;
- 
- 	mutex_lock(&rio_mport_list_lock);
--	list_add_tail(&port->node, &rio_mports);
- 
- 	/*
- 	 * Check if there are any registered enumeration/discovery operations
-@@ -2049,12 +2048,73 @@ int rio_register_mport(struct rio_mport
- 				break;
- 		}
- 	}
-+
-+	list_add_tail(&port->node, &rio_mports);
- 	mutex_unlock(&rio_mport_list_lock);
- 
-+	dev_set_name(&port->dev, "rapidio%d", port->id);
-+	port->dev.class = &rio_mport_class;
-+	atomic_set(&port->state, RIO_DEVICE_RUNNING);
-+
-+	res = device_register(&port->dev);
-+	if (res)
-+		dev_err(&port->dev, "RIO: mport%d registration failed ERR=%d\n",
-+			port->id, res);
-+	else
-+		dev_dbg(&port->dev, "RIO: registered mport%d\n", port->id);
-+
-+	return res;
-+}
-+EXPORT_SYMBOL_GPL(rio_register_mport);
-+
-+static int rio_mport_cleanup_callback(struct device *dev, void *data)
-+{
-+	struct rio_dev *rdev = to_rio_dev(dev);
-+
-+	if (dev->bus == &rio_bus_type)
-+		rio_del_device(rdev, RIO_DEVICE_SHUTDOWN);
-+	return 0;
-+}
-+
-+static int rio_net_remove_children(struct rio_net *net)
-+{
-+	/*
-+	 * Unregister all RapidIO devices residing on this net (this will
-+	 * invoke notification of registered subsystem interfaces as well).
-+	 */
-+	device_for_each_child(&net->dev, NULL, rio_mport_cleanup_callback);
-+	return 0;
-+}
-+
-+int rio_unregister_mport(struct rio_mport *port)
-+{
- 	pr_debug("RIO: %s %s id=%d\n", __func__, port->name, port->id);
-+
-+	/* Transition mport to the SHUTDOWN state */
-+	if (atomic_cmpxchg(&port->state,
-+			   RIO_DEVICE_RUNNING,
-+			   RIO_DEVICE_SHUTDOWN) != RIO_DEVICE_RUNNING) {
-+		pr_err("RIO: %s unexpected state transition for mport %s\n",
-+			__func__, port->name);
-+	}
-+
-+	if (port->net && port->net->hport == port) {
-+		rio_net_remove_children(port->net);
-+		rio_free_net(port->net);
-+	}
-+
-+	/*
-+	 * Unregister all RapidIO devices attached to this mport (this will
-+	 * invoke notification of registered subsystem interfaces as well).
-+	 */
-+	mutex_lock(&rio_mport_list_lock);
-+	list_del(&port->node);
-+	mutex_unlock(&rio_mport_list_lock);
-+	device_unregister(&port->dev);
-+
- 	return 0;
- }
--EXPORT_SYMBOL_GPL(rio_register_mport);
-+EXPORT_SYMBOL_GPL(rio_unregister_mport);
- 
- EXPORT_SYMBOL_GPL(rio_local_get_device_id);
- EXPORT_SYMBOL_GPL(rio_get_device);
-diff -puN drivers/rapidio/rio.h~rapidio-add-core-mport-removal-support drivers/rapidio/rio.h
---- a/drivers/rapidio/rio.h~rapidio-add-core-mport-removal-support
-+++ a/drivers/rapidio/rio.h
-@@ -43,7 +43,7 @@ extern struct rio_net *rio_alloc_net(str
- extern int rio_add_net(struct rio_net *net);
- extern void rio_free_net(struct rio_net *net);
- extern int rio_add_device(struct rio_dev *rdev);
--extern void rio_del_device(struct rio_dev *rdev);
-+extern void rio_del_device(struct rio_dev *rdev, enum rio_device_state state);
- extern int rio_enable_rx_tx_port(struct rio_mport *port, int local, u16 destid,
- 				 u8 hopcount, u8 port_num);
- extern int rio_register_scan(int mport_id, struct rio_scan *scan_ops);
-diff -puN include/linux/rio.h~rapidio-add-core-mport-removal-support include/linux/rio.h
---- a/include/linux/rio.h~rapidio-add-core-mport-removal-support
+diff -puN include/linux/rio.h~rapidio-add-query_mport-operation include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-add-query_mport-operation
 +++ a/include/linux/rio.h
-@@ -137,6 +137,13 @@ struct rio_switch_ops {
- 	int (*em_handle) (struct rio_dev *dev, u8 swport);
+@@ -314,6 +314,50 @@ struct rio_net {
+ 	struct rio_id_table destid_table;  /* destID allocation table */
  };
  
-+enum rio_device_state {
-+	RIO_DEVICE_INITIALIZING,
-+	RIO_DEVICE_RUNNING,
-+	RIO_DEVICE_GONE,
-+	RIO_DEVICE_SHUTDOWN,
++enum rio_link_speed {
++	RIO_LINK_DOWN = 0, /* SRIO Link not initialized */
++	RIO_LINK_125 = 1, /* 1.25 GBaud  */
++	RIO_LINK_250 = 2, /* 2.5 GBaud   */
++	RIO_LINK_312 = 3, /* 3.125 GBaud */
++	RIO_LINK_500 = 4, /* 5.0 GBaud   */
++	RIO_LINK_625 = 5  /* 6.25 GBaud  */
 +};
 +
- /**
-  * struct rio_dev - RIO device info
-  * @global_list: Node in list of all RIO devices
-@@ -165,6 +172,7 @@ struct rio_switch_ops {
-  * @destid: Network destination ID (or associated destid for switch)
-  * @hopcount: Hopcount to this device
-  * @prev: Previous RIO device connected to the current one
-+ * @state: device state
-  * @rswitch: struct rio_switch (if valid for this device)
-  */
- struct rio_dev {
-@@ -194,6 +202,7 @@ struct rio_dev {
- 	u16 destid;
- 	u8 hopcount;
- 	struct rio_dev *prev;
-+	atomic_t state;
- 	struct rio_switch rswitch[0];	/* RIO switch info */
- };
- 
-@@ -255,6 +264,7 @@ enum rio_phy_type {
-  * @priv: Master port private data
-  * @dma: DMA device associated with mport
-  * @nscan: RapidIO network enumeration/discovery operations
-+ * @state: mport device state
-  */
- struct rio_mport {
- 	struct list_head dbells;	/* list of doorbell events */
-@@ -283,8 +293,14 @@ struct rio_mport {
- 	struct dma_device	dma;
- #endif
- 	struct rio_scan *nscan;
-+	atomic_t state;
- };
- 
-+static inline int rio_mport_is_running(struct rio_mport *mport)
-+{
-+	return atomic_read(&mport->state) == RIO_DEVICE_RUNNING;
-+}
++enum rio_link_width {
++	RIO_LINK_1X  = 0,
++	RIO_LINK_1XR = 1,
++	RIO_LINK_2X  = 3,
++	RIO_LINK_4X  = 2,
++	RIO_LINK_8X  = 4,
++	RIO_LINK_16X = 5
++};
 +
- /*
-  * Enumeration/discovery control flags
++enum rio_mport_flags {
++	RIO_MPORT_DMA	 = (1 << 0), /* supports DMA data transfers */
++	RIO_MPORT_DMA_SG = (1 << 1), /* DMA supports HW SG mode */
++	RIO_MPORT_IBSG	 = (1 << 2), /* inbound mapping supports SG */
++};
++
++/**
++ * struct rio_mport_attr - RIO mport device attributes
++ * @flags: mport device capability flags
++ * @link_speed: SRIO link speed value (as defined by RapidIO specification)
++ * @link_width:	SRIO link width value (as defined by RapidIO specification)
++ * @dma_max_sge: number of SG list entries that can be handled by DMA channel(s)
++ * @dma_max_size: max number of bytes in single DMA transfer (SG entry)
++ * @dma_align: alignment shift for DMA operations (as for other DMA operations)
++ */
++struct rio_mport_attr {
++	int flags;
++	int link_speed;
++	int link_width;
++
++	/* DMA capability info: valid only if RIO_MPORT_DMA flag is set */
++	int dma_max_sge;
++	int dma_max_size;
++	int dma_align;
++};
++
+ /* Low-level architecture-dependent routines */
+ 
+ /**
+@@ -333,6 +377,7 @@ struct rio_net {
+  * @get_inb_message: Callback to get a message from an inbound mailbox queue.
+  * @map_inb: Callback to map RapidIO address region into local memory space.
+  * @unmap_inb: Callback to unmap RapidIO address region mapped with map_inb().
++ * @query_mport: Callback to query mport device attributes.
   */
-@@ -524,7 +540,9 @@ struct rio_scan_node {
+ struct rio_ops {
+ 	int (*lcread) (struct rio_mport *mport, int index, u32 offset, int len,
+@@ -358,6 +403,8 @@ struct rio_ops {
+ 	int (*map_inb)(struct rio_mport *mport, dma_addr_t lstart,
+ 			u64 rstart, u32 size, u32 flags);
+ 	void (*unmap_inb)(struct rio_mport *mport, dma_addr_t lstart);
++	int (*query_mport)(struct rio_mport *mport,
++			   struct rio_mport_attr *attr);
  };
  
- /* Architecture and hardware-specific functions */
-+extern int rio_mport_initialize(struct rio_mport *);
- extern int rio_register_mport(struct rio_mport *);
-+extern int rio_unregister_mport(struct rio_mport *);
- extern int rio_open_inb_mbox(struct rio_mport *, void *, int, int);
+ #define RIO_RESOURCE_MEM	0x00000100
+@@ -481,5 +528,7 @@ extern int rio_open_inb_mbox(struct rio_
  extern void rio_close_inb_mbox(struct rio_mport *, int);
  extern int rio_open_outb_mbox(struct rio_mport *, void *, int, int);
+ extern void rio_close_outb_mbox(struct rio_mport *, int);
++extern int rio_query_mport(struct rio_mport *port,
++			   struct rio_mport_attr *mport_attr);
+ 
+ #endif				/* LINUX_RIO_H */
+diff -puN include/linux/rio_regs.h~rapidio-add-query_mport-operation include/linux/rio_regs.h
+--- a/include/linux/rio_regs.h~rapidio-add-query_mport-operation
++++ a/include/linux/rio_regs.h
+@@ -238,6 +238,8 @@
+ #define  RIO_PORT_N_ACK_INBOUND		0x3f000000
+ #define  RIO_PORT_N_ACK_OUTSTAND	0x00003f00
+ #define  RIO_PORT_N_ACK_OUTBOUND	0x0000003f
++#define RIO_PORT_N_CTL2_CSR(x)		(0x0054 + x*0x20)
++#define  RIO_PORT_N_CTL2_SEL_BAUD	0xf0000000
+ #define RIO_PORT_N_ERR_STS_CSR(x)	(0x0058 + x*0x20)
+ #define  RIO_PORT_N_ERR_STS_PW_OUT_ES	0x00010000 /* Output Error-stopped */
+ #define  RIO_PORT_N_ERR_STS_PW_INP_ES	0x00000100 /* Input Error-stopped */
+@@ -249,6 +251,7 @@
+ #define  RIO_PORT_N_CTL_PWIDTH		0xc0000000
+ #define  RIO_PORT_N_CTL_PWIDTH_1	0x00000000
+ #define  RIO_PORT_N_CTL_PWIDTH_4	0x40000000
++#define  RIO_PORT_N_CTL_IPW		0x38000000 /* Initialized Port Width */
+ #define  RIO_PORT_N_CTL_P_TYP_SER	0x00000001
+ #define  RIO_PORT_N_CTL_LOCKOUT		0x00000002
+ #define  RIO_PORT_N_CTL_EN_RX_SER	0x00200000
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
