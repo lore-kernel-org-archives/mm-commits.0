@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-global-inbound-port-write-interfaces-fix.patch
- added to -mm tree
-Date: Mon, 08 Feb 2016 13:22:38 -0800
-Message-ID: <56b9071e.NuA206INvE+iU+/A%akpm@linux-foundation.org>
+Subject: + rapidio-rionet-add-mport-removal-handling.patch added to -mm
+ tree
+Date: Mon, 08 Feb 2016 13:22:28 -0800
+Message-ID: <56b90714.YK3XnTFyk8ld41CQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35861 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35829 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756358AbcBHVWj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:39 -0500
+	with ESMTP id S1756326AbcBHVW3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a-jacquiot@ti.com, alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio-add-global-inbound-port-write-interfaces-fix
+     Subject: rapidio/rionet: add mport removal handling
 has been added to the -mm tree.  Its filename is
-     rapidio-add-global-inbound-port-write-interfaces-fix.patch
+     rapidio-rionet-add-mport-removal-handling.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-add-global-inbound-port-write-interfaces-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-rionet-add-mport-removal-handling.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-add-global-inbound-port-write-interfaces-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-rionet-add-mport-removal-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,80 +39,157 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rapidio-add-global-inbound-port-write-interfaces-fix
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: rapidio/rionet: add mport removal handling
 
-s/list_for_each_entry/list_for_each_entry_safe/ in rio_del_mport_pw_handler()
+Add handling of a local mport device removal.
 
-Cc: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
-Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
+RIONET driver registers itself as class interface that supports only
+removal notification, 'add_device' callback is not provided because RIONET
+network device can be initialized only after enumeration is completed and
+the existing method (using remote peer addition) satisfies this condition.
+
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: linux-kernel@vger.kernel.org
+Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
+Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/net/rionet.c |   70 +++++++++++++++++++++++++----------------
+ 1 file changed, 44 insertions(+), 26 deletions(-)
 
-diff -puN drivers/rapidio/rio.c~rapidio-add-global-inbound-port-write-interfaces-fix drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-add-global-inbound-port-write-interfaces-fix
-+++ a/drivers/rapidio/rio.c
-@@ -576,7 +576,7 @@ int rio_del_mport_pw_handler(struct rio_
- 	struct rio_pwrite *pwrite;
+diff -puN drivers/net/rionet.c~rapidio-rionet-add-mport-removal-handling drivers/net/rionet.c
+--- a/drivers/net/rionet.c~rapidio-rionet-add-mport-removal-handling
++++ a/drivers/net/rionet.c
+@@ -676,6 +676,34 @@ static int rionet_shutdown(struct notifi
+ 	return NOTIFY_DONE;
+ }
  
- 	mutex_lock(&mport->lock);
--	list_for_each_entry(pwrite, &mport->pwrites, node) {
-+	list_for_each_entry_safe(pwrite, &mport->pwrites, node) {
- 		if (pwrite->pwcback == pwcback && pwrite->context == context) {
- 			list_del(&pwrite->node);
- 			kfree(pwrite);
++static void rionet_remove_mport(struct device *dev,
++				struct class_interface *class_intf)
++{
++	struct rio_mport *mport = to_rio_mport(dev);
++	struct net_device *ndev;
++	int id = mport->id;
++
++	pr_debug("%s %s\n", __func__, mport->name);
++
++	WARN(nets[id].nact, "%s called when connected to %d peers\n",
++	     __func__, nets[id].nact);
++	WARN(!nets[id].ndev, "%s called for mport without NDEV\n",
++	     __func__);
++
++	if (nets[id].ndev) {
++		ndev = nets[id].ndev;
++		netif_stop_queue(ndev);
++		unregister_netdev(ndev);
++
++		free_pages((unsigned long)nets[id].active,
++			   get_order(sizeof(void *) *
++			   RIO_MAX_ROUTE_ENTRIES(mport->sys_size)));
++		nets[id].active = NULL;
++		free_netdev(ndev);
++		nets[id].ndev = NULL;
++	}
++}
++
+ #ifdef MODULE
+ static struct rio_device_id rionet_id_table[] = {
+ 	{RIO_DEVICE(RIO_ANY_ID, RIO_ANY_ID)},
+@@ -696,6 +724,13 @@ static struct notifier_block rionet_noti
+ 	.notifier_call = rionet_shutdown,
+ };
+ 
++/* the rio_mport_interface is used to handle local mport devices */
++static struct class_interface rio_mport_interface __refdata = {
++	.class = &rio_mport_class,
++	.add_dev = NULL,
++	.remove_dev = rionet_remove_mport,
++};
++
+ static int __init rionet_init(void)
+ {
+ 	int ret;
+@@ -706,39 +741,22 @@ static int __init rionet_init(void)
+ 		       DRV_NAME, ret);
+ 		return ret;
+ 	}
++
++	ret = class_interface_register(&rio_mport_interface);
++	if (ret) {
++		pr_err("%s: class_interface_register error: %d\n",
++		       DRV_NAME, ret);
++		return ret;
++	}
++
+ 	return subsys_interface_register(&rionet_interface);
+ }
+ 
+ static void __exit rionet_exit(void)
+ {
+-	struct rionet_private *rnet;
+-	struct net_device *ndev;
+-	struct rionet_peer *peer, *tmp;
+-	int i;
+-
+-	for (i = 0; i < RIONET_MAX_NETS; i++) {
+-		if (nets[i].ndev != NULL) {
+-			ndev = nets[i].ndev;
+-			rnet = netdev_priv(ndev);
+-			unregister_netdev(ndev);
+-
+-			list_for_each_entry_safe(peer,
+-						 tmp, &nets[i].peers, node) {
+-				list_del(&peer->node);
+-				kfree(peer);
+-			}
+-
+-			free_pages((unsigned long)nets[i].active,
+-				 get_order(sizeof(void *) *
+-				 RIO_MAX_ROUTE_ENTRIES(rnet->mport->sys_size)));
+-			nets[i].active = NULL;
+-
+-			free_netdev(ndev);
+-		}
+-	}
+-
+ 	unregister_reboot_notifier(&rionet_notifier);
+ 	subsys_interface_unregister(&rionet_interface);
++	class_interface_unregister(&rio_mport_interface);
+ }
+ 
+ late_initcall(rionet_init);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-code-clean-up-for-direct-io-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
-mm.patch
-mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
-mm-simplify-lock_page_memcg-fix.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom_reaper-report-success-failure-fix.patch
-mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
-proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
-mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
-mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
-sound-query-dynamic-debug_pagealloc-setting-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-btrfs-use-radix_tree_iter_retry-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
-rapidio-add-global-inbound-port-write-interfaces-fix.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-kernel-add-kcov-code-coverage-fix.patch
-kernel-add-kcov-code-coverage-fix-2.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+rapidio-tsi721-fix-hardcoded-mrrs-setting.patch
+rapidio-tsi721-add-check-for-overlapped-ib-window-mappings.patch
+rapidio-tsi721-add-option-to-configure-direct-mapping-of-ib-window.patch
+rapidio-tsi721_dma-fix-pending-transaction-queue-handling.patch
+rapidio-add-query_mport-operation.patch
+rapidio-tsi721-add-query_mport-callback.patch
+rapidio-add-shutdown-notification-for-rapidio-devices.patch
+rapidio-tsi721-add-shutdown-notification-callback.patch
+rapidio-rionet-add-shutdown-event-handling.patch
+rapidio-rework-common-rio-device-add-delete-routines.patch
+rapidio-move-net-allocation-into-core-code.patch
+rapidio-add-core-mport-removal-support.patch
+rapidio-tsi721-add-hw-specific-mport-removal.patch
+powerpc-fsl_rio-changes-to-mport-registration.patch
+rapidio-rionet-add-locking-into-add-remove-device.patch
+rapidio-rionet-add-mport-removal-handling.patch
+rapidio-add-lock-protection-for-doorbell-list.patch
+rapidio-move-rio_local_set_device_id-function-to-the-common-core.patch
+rapidio-move-rio_pw_enable-into-core-code.patch
+rapidio-add-global-inbound-port-write-interfaces.patch
+rapidio-tsi721-fix-locking-in-ob_msg-processing.patch
+rapidio-add-outbound-window-support.patch
+rapidio-tsi721-add-outbound-windows-mapping-support.patch
+rapidio-tsi721-add-filtered-debug-output.patch
+rapidio-tsi721_dma-update-error-reporting-from-prep_sg-callback.patch
+rapidio-tsi721_dma-fix-synchronization-issues.patch
+rapidio-tsi721_dma-fix-hardware-error-handling.patch
+rapidio-add-mport-char-device-driver.patch
 
