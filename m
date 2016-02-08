@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-tsi721-add-shutdown-notification-callback.patch added
- to -mm tree
-Date: Mon, 08 Feb 2016 13:22:12 -0800
-Message-ID: <56b90704.HhBwF2hFf2+BzEse%akpm@linux-foundation.org>
+Subject: + rapidio-rionet-add-shutdown-event-handling.patch added to -mm
+ tree
+Date: Mon, 08 Feb 2016 13:22:14 -0800
+Message-ID: <56b90706.PgnDOSOv3zlUkgvL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35778 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35784 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756267AbcBHVWN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:13 -0500
+	with ESMTP id S1756279AbcBHVWP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/tsi721: add shutdown notification callback
+     Subject: rapidio/rionet: add shutdown event handling
 has been added to the -mm tree.  Its filename is
-     rapidio-tsi721-add-shutdown-notification-callback.patch
+     rapidio-rionet-add-shutdown-event-handling.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-tsi721-add-shutdown-notification-callback.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-rionet-add-shutdown-event-handling.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-tsi721-add-shutdown-notification-callback.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-rionet-add-shutdown-event-handling.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,9 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/tsi721: add shutdown notification callback
+Subject: rapidio/rionet: add shutdown event handling
 
-Add device driver specific shutdown notification callback.
+Add shutdown notification handler which terminates active connections with
+remote RapidIO nodes.  This prevents remote nodes from sending packets to
+the powered off node and eliminates hardware error events on remote nodes.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -51,103 +53,80 @@ Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.c     |   15 ++++++++++++
- drivers/rapidio/devices/tsi721.h     |    3 ++
- drivers/rapidio/devices/tsi721_dma.c |   30 +++++++++++++++++++++++++
- 3 files changed, 48 insertions(+)
+ drivers/net/rionet.c |   38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-add-shutdown-notification-callback drivers/rapidio/devices/tsi721.c
---- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-add-shutdown-notification-callback
-+++ a/drivers/rapidio/devices/tsi721.c
-@@ -2638,6 +2638,8 @@ static int tsi721_probe(struct pci_dev *
- 	if (err)
- 		goto err_free_consistent;
+diff -puN drivers/net/rionet.c~rapidio-rionet-add-shutdown-event-handling drivers/net/rionet.c
+--- a/drivers/net/rionet.c~rapidio-rionet-add-shutdown-event-handling
++++ a/drivers/net/rionet.c
+@@ -24,6 +24,7 @@
+ #include <linux/skbuff.h>
+ #include <linux/crc32.h>
+ #include <linux/ethtool.h>
++#include <linux/reboot.h>
  
-+	pci_set_drvdata(pdev, priv);
-+
- 	return 0;
- 
- err_free_consistent:
-@@ -2660,6 +2662,18 @@ err_exit:
- 	return err;
+ #define DRV_NAME        "rionet"
+ #define DRV_VERSION     "0.3"
+@@ -599,6 +600,30 @@ out:
+ 	return rc;
  }
  
-+static void tsi721_shutdown(struct pci_dev *pdev)
++static int rionet_shutdown(struct notifier_block *nb, unsigned long code,
++			   void *unused)
 +{
-+	struct tsi721_device *priv = pci_get_drvdata(pdev);
-+
-+	dev_dbg(&pdev->dev, "RIO: %s\n", __func__);
-+
-+	tsi721_disable_ints(priv);
-+	tsi721_dma_stop_all(priv);
-+	pci_clear_master(pdev);
-+	pci_disable_device(pdev);
-+}
-+
- static const struct pci_device_id tsi721_pci_tbl[] = {
- 	{ PCI_DEVICE(PCI_VENDOR_ID_IDT, PCI_DEVICE_ID_TSI721) },
- 	{ 0, }	/* terminate list */
-@@ -2671,6 +2685,7 @@ static struct pci_driver tsi721_driver =
- 	.name		= "tsi721",
- 	.id_table	= tsi721_pci_tbl,
- 	.probe		= tsi721_probe,
-+	.shutdown	= tsi721_shutdown,
- };
- 
- static int __init tsi721_init(void)
-diff -puN drivers/rapidio/devices/tsi721.h~rapidio-tsi721-add-shutdown-notification-callback drivers/rapidio/devices/tsi721.h
---- a/drivers/rapidio/devices/tsi721.h~rapidio-tsi721-add-shutdown-notification-callback
-+++ a/drivers/rapidio/devices/tsi721.h
-@@ -866,6 +866,9 @@ struct tsi721_device {
- #ifdef CONFIG_RAPIDIO_DMA_ENGINE
- extern void tsi721_bdma_handler(struct tsi721_bdma_chan *bdma_chan);
- extern int tsi721_register_dma(struct tsi721_device *priv);
-+extern void tsi721_dma_stop_all(struct tsi721_device *priv);
-+#else
-+#define tsi721_dma_stop_all(priv) do {} while (0)
- #endif
- 
- #endif
-diff -puN drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721-add-shutdown-notification-callback drivers/rapidio/devices/tsi721_dma.c
---- a/drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721-add-shutdown-notification-callback
-+++ a/drivers/rapidio/devices/tsi721_dma.c
-@@ -852,6 +852,36 @@ static int tsi721_terminate_all(struct d
- 	return 0;
- }
- 
-+static void tsi721_dma_stop(struct tsi721_bdma_chan *bdma_chan)
-+{
-+	if (!bdma_chan->active)
-+		return;
-+	spin_lock_bh(&bdma_chan->lock);
-+	if (!tsi721_dma_is_idle(bdma_chan)) {
-+		int timeout = 100000;
-+
-+		/* stop the transfer in progress */
-+		iowrite32(TSI721_DMAC_CTL_SUSP,
-+			  bdma_chan->regs + TSI721_DMAC_CTL);
-+
-+		/* Wait until DMA channel stops */
-+		while (!tsi721_dma_is_idle(bdma_chan) && --timeout)
-+			udelay(1);
-+	}
-+
-+	spin_unlock_bh(&bdma_chan->lock);
-+}
-+
-+void tsi721_dma_stop_all(struct tsi721_device *priv)
-+{
++	struct rionet_peer *peer, *tmp;
 +	int i;
 +
-+	for (i = 0; i < TSI721_DMA_MAXCH; i++) {
-+		if (i != TSI721_DMACH_MAINT)
-+			tsi721_dma_stop(&priv->bdma[i]);
++	pr_debug("%s: %s\n", DRV_NAME, __func__);
++
++	for (i = 0; i < RIONET_MAX_NETS; i++) {
++		if (!nets[i].ndev)
++			continue;
++
++		list_for_each_entry_safe(peer, tmp, &nets[i].peers, node) {
++			if (nets[i].active[peer->rdev->destid]) {
++				rio_send_doorbell(peer->rdev,
++						  RIONET_DOORBELL_LEAVE);
++				nets[i].active[peer->rdev->destid] = NULL;
++			}
++		}
 +	}
++
++	return NOTIFY_DONE;
 +}
 +
- int tsi721_register_dma(struct tsi721_device *priv)
+ #ifdef MODULE
+ static struct rio_device_id rionet_id_table[] = {
+ 	{RIO_DEVICE(RIO_ANY_ID, RIO_ANY_ID)},
+@@ -615,8 +640,20 @@ static struct subsys_interface rionet_in
+ 	.remove_dev	= rionet_remove_dev,
+ };
+ 
++static struct notifier_block rionet_notifier = {
++	.notifier_call = rionet_shutdown,
++};
++
+ static int __init rionet_init(void)
  {
- 	int i;
++	int ret;
++
++	ret = register_reboot_notifier(&rionet_notifier);
++	if (ret) {
++		pr_err("%s: failed to register reboot notifier (err=%d)\n",
++		       DRV_NAME, ret);
++		return ret;
++	}
+ 	return subsys_interface_register(&rionet_interface);
+ }
+ 
+@@ -648,6 +685,7 @@ static void __exit rionet_exit(void)
+ 		}
+ 	}
+ 
++	unregister_reboot_notifier(&rionet_notifier);
+ 	subsys_interface_unregister(&rionet_interface);
+ }
+ 
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
