@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + param-convert-some-on-off-users-to-strtobool-fix.patch added to -mm tree
-Date: Fri, 05 Feb 2016 17:58:01 -0800
-Message-ID: <56b55329.rPMSfrk7qc1pQvxg%akpm@linux-foundation.org>
+Subject: + lib-string-introduce-match_string-helper-fix.patch added to -mm tree
+Date: Mon, 08 Feb 2016 12:17:21 -0800
+Message-ID: <56b8f7d1.8FjO1mfQYLBNMe+A%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52910 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57960 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750737AbcBFB6C (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 5 Feb 2016 20:58:02 -0500
+	with ESMTP id S1750781AbcBHURW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 15:17:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: param-convert-some-on-off-users-to-strtobool fix
+     Subject: lib-string-introduce-match_string-helper fix
 has been added to the -mm tree.  Its filename is
-     param-convert-some-on-off-users-to-strtobool-fix.patch
+     lib-string-introduce-match_string-helper-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/param-convert-some-on-off-users-to-strtobool-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-string-introduce-match_string-helper-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/param-convert-some-on-off-users-to-strtobool-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-string-introduce-match_string-helper-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,25 +38,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: param-convert-some-on-off-users-to-strtobool fix
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib-string-introduce-match_string-helper fix
 
-This converts a missed __setup return (and silences the build warning it
-was causing).
+Fix return code to be -EINVAL instead of -ENODATA.
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/rtasd.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ lib/string.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/kernel/rtasd.c~param-convert-some-on-off-users-to-strtobool-fix arch/powerpc/kernel/rtasd.c
---- a/arch/powerpc/kernel/rtasd.c~param-convert-some-on-off-users-to-strtobool-fix
-+++ a/arch/powerpc/kernel/rtasd.c
-@@ -592,8 +592,6 @@ __setup("surveillance=", surveillance_se
- 
- static int __init rtasmsgs_setup(char *str)
+diff -puN lib/string.c~lib-string-introduce-match_string-helper-fix lib/string.c
+--- a/lib/string.c~lib-string-introduce-match_string-helper-fix
++++ a/lib/string.c
+@@ -637,7 +637,7 @@ EXPORT_SYMBOL(sysfs_streq);
+  * @string:	string to match with
+  *
+  * Return:
+- * index of a @string in the @array if matches, or %-ENODATA otherwise.
++ * index of a @string in the @array if matches, or %-EINVAL otherwise.
+  */
+ int match_string(const char * const *array, size_t n, const char *string)
  {
--	kstrtobool(str, &full_rtas_msgs);
+@@ -652,7 +652,7 @@ int match_string(const char * const *arr
+ 			return index;
+ 	}
+ 
+-	return -ENODATA;
++	return -EINVAL;
+ }
+ EXPORT_SYMBOL(match_string);
+ 
+_
+
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+
+lib-string-introduce-match_string-helper.patch
+lib-string-introduce-match_string-helper-fix.patch
+device-property-convert-to-use-match_string-helper.patch
+pinctrl-convert-to-use-match_string-helper.patch
+drm-edid-convert-to-use-match_string-helper.patch
+power-charger_manager-convert-to-use-match_string-helper.patch
+power-ab8500-convert-to-use-match_string-helper.patch
+ata-hpt366-convert-to-use-match_string-helper.patch
+ide-hpt366-convert-to-use-match_string-helper.patch
+lib-string_helpers-export-string_units_210-for-others.patch
+lib-string_helpers-fix-indentation-in-few-places.patch
+x86-efi-use-proper-units-in-efi_find_mirror.patch
+
