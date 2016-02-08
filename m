@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-introduce-kcompactd.patch added to -mm tree
-Date: Mon, 08 Feb 2016 15:02:10 -0800
-Message-ID: <56b91e72.4gK2ZHdPMLCNt2gF%akpm@linux-foundation.org>
+Subject: +
+ mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd.patch added to -mm tree
+Date: Mon, 08 Feb 2016 15:02:16 -0800
+Message-ID: <56b91e78.oiuSO/dsAuJOtI3B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45397 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:45427 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755455AbcBHXCL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 18:02:11 -0500
+	with ESMTP id S1757048AbcBHXCR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 18:02:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, aarcange@redhat.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: introduce kcompactd
+     Subject: mm, kswapd: replace kswapd compaction with waking up kcompactd
 has been added to the -mm tree.  Its filename is
-     mm-compaction-introduce-kcompactd.patch
+     mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-introduce-kcompactd.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-introduce-kcompactd.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,75 +40,233 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: introduce kcompactd
+Subject: mm, kswapd: replace kswapd compaction with waking up kcompactd
 
-Memory compaction can be currently performed in several contexts:
+Similarly to direct reclaim/compaction, kswapd attempts to combine reclaim
+and compaction to attempt making memory allocation of given order
+available.  The details differ from direct reclaim e.g.  in having high
+watermark as a goal.  The code involved in kswapd's reclaim/compaction
+decisions has evolved to be quite complex.  Testing reveals that it
+doesn't actually work in at least one scenario, and closer inspection
+suggests that it could be greatly simplified without compromising on the
+goal (make high-order page available) or efficiency (don't reclaim too
+much).  The simplification relieas of doing all compaction in kcompactd,
+which is simply woken up when high watermarks are reached by kswapd's
+reclaim.
 
-- kswapd balancing a zone after a high-order allocation failure
-- direct compaction to satisfy a high-order allocation, including THP page
-  fault attemps
-- khugepaged trying to collapse a hugepage
-- manually from /proc
+The scenario where kswapd compaction doesn't work was found with mmtests
+test stress-highalloc configured to attempt order-9 allocations without
+direct reclaim, just waking up kswapd.  There was no compaction attempt
+from kswapd during the whole test.  Some added instrumentation shows what
+happens:
 
-The purpose of compaction is two-fold.  The obvious purpose is to satisfy
-a (pending or future) high-order allocation, and is easy to evaluate.  The
-other purpose is to keep overal memory fragmentation low and help the
-anti-fragmentation mechanism.  The success wrt the latter purpose is more
+- balance_pgdat() sets end_zone to Normal, as it's not balanced
+- reclaim is attempted on DMA zone, which sets nr_attempted to 99, but it
+  cannot reclaim anything, so sc.nr_reclaimed is 0
+- for zones DMA32 and Normal, kswapd_shrink_zone uses testorder=0, so it
+  merely checks if high watermarks were reached for base pages. This is true,
+  so no reclaim is attempted. For DMA, testorder=0 wasn't used, as
+  compaction_suitable() returned COMPACT_SKIPPED
+- even though the pgdat_needs_compaction flag wasn't set to false, no
+  compaction happens due to the condition sc.nr_reclaimed > nr_attempted
+  being false (as 0 < 99)
+- priority-- due to nr_reclaimed being 0, repeat until priority reaches 0
+  pgdat_balanced() is false as only the small zone DMA appears balanced
+  (curiously in that check, watermark appears OK and compaction_suitable()
+  returns COMPACT_PARTIAL, because a lower classzone_idx is used there)
 
-The current situation wrt the purposes has a few drawbacks:
+Now, even if it was decided that reclaim shouldn't be attempted on the DMA
+zone, the scenario would be the same, as (sc.nr_reclaimed=0 >
+nr_attempted=0) is also false.  The condition really should use >= as the
+comment suggests.  Then there is a mismatch in the check for setting
+pgdat_needs_compaction to false using low watermark, while the rest uses
+high watermark, and who knows what other subtlety.  Hopefully this
+demonstrates that this is unsustainable.
 
-- compaction is invoked only when a high-order page or hugepage is not
-  available (or manually). This might be too late for the purposes of keeping
-  memory fragmentation low.
-- direct compaction increases latency of allocations. Again, it would be
-  better if compaction was performed asynchronously to keep fragmentation low,
-  before the allocation itself comes.
-- (a special case of the previous) the cost of compaction during THP page
-  faults can easily offset the benefits of THP.
-- kswapd compaction appears to be complex, fragile and not working in some
-  scenarios. It could also end up compacting for a high-order allocation
-  request when it should be reclaiming memory for a later order-0 request.
+Luckily we can simplify this a lot.  The reclaim/compaction decisions make
+sense for direct reclaim scenario, but in kswapd, our primary goal is to
+reach high watermark in order-0 pages.  Afterwards we can attempt
+compaction just once.  Unlike direct reclaim, we don't reclaim extra pages
+(over the high watermark), the current code already disallows it for good
+reasons.
 
-To improve the situation, we should be able to benefit from an equivalent
-of kswapd, but for compaction - i.e.  a background thread which responds
-to fragmentation and the need for high-order allocations (including
-hugepages) somewhat proactively.
+After this patch, we simply wake up kcompactd to process the pgdat, after
+we have either succeeded or failed to reach the high watermarks in kswapd,
+which goes to sleep.  We pass kswapd's order and classzone_idx, so
+kcompactd can apply the same criteria to determine which zones are worth
+compacting.  Note that we use the classzone_idx from wakeup_kswapd(), not
+balanced_classzone_idx which can include higher zones that kswapd tried to
+balance too, but didn't consider them in pgdat_balanced().
 
-One possibility is to extend the responsibilities of kswapd, which could
-however complicate its design too much.  It should be better to let kswapd
-handle reclaim, as order-0 allocations are often more critical than
-high-order ones.
+Since kswapd now cannot create high-order pages itself, we need to adjust
+how it determines the zones to be balanced.  The key element here is
+adding a "highorder" parameter to zone_balanced, which, when set to false,
+makes it consider only order-0 watermark instead of the desired higher
+order (this was done previously by kswapd_shrink_zone(), but not
+elsewhere).  This false is passed for example in pgdat_balanced(). 
+Importantly, wakeup_kswapd() uses true to make sure kswapd and thus
+kcompactd are woken up for a high-order allocation failure.
 
-Another possibility is to extend khugepaged, but this kthread is a single
-instance and tied to THP configs.
+For testing, I used stress-highalloc configured to do order-9 allocations
+with GFP_NOWAIT|__GFP_HIGH|__GFP_COMP, so they relied just on
+kswapd/kcompactd reclaim/compaction (the interfering kernel builds in
+phases 1 and 2 work as usual):
 
-This patch goes with the option of a new set of per-node kthreads called
-kcompactd, and lays the foundations, without introducing any new tunables.
-The lifecycle mimics kswapd kthreads, including the memory hotplug hooks.
+stress-highalloc
+                              4.5-rc1               4.5-rc1
+                               3-test                4-test
+Success 1 Min          1.00 (  0.00%)        3.00 (-200.00%)
+Success 1 Mean         1.40 (  0.00%)        4.00 (-185.71%)
+Success 1 Max          2.00 (  0.00%)        6.00 (-200.00%)
+Success 2 Min          1.00 (  0.00%)        3.00 (-200.00%)
+Success 2 Mean         1.80 (  0.00%)        4.20 (-133.33%)
+Success 2 Max          3.00 (  0.00%)        6.00 (-100.00%)
+Success 3 Min         34.00 (  0.00%)       63.00 (-85.29%)
+Success 3 Mean        41.80 (  0.00%)       64.60 (-54.55%)
+Success 3 Max         53.00 (  0.00%)       67.00 (-26.42%)
 
-For compaction, kcompactd uses the standard compaction_suitable() and
-ompact_finished() criteria and the deferred compaction functionality. 
-Unlike direct compaction, it uses only sync compaction, as there's no
-allocation latency to minimize.
+             4.5-rc1     4.5-rc1
+              3-test      4-test
+User         3166.67     3088.82
+System       1153.37     1142.01
+Elapsed      1768.53     1780.91
 
-This patch doesn't yet add a call to wakeup_kcompactd.  The kswapd
-compact/reclaim loop for high-order pages will be replaced by waking up
-kcompactd in the next patch with the description of what's wrong with the
-old approach.
+                                  4.5-rc1     4.5-rc1
+                                   3-test      4-test
+Minor Faults                    106940795   106582816
+Major Faults                          829         813
+Swap Ins                              482         311
+Swap Outs                            6278        5598
+Allocation stalls                     128         184
+DMA allocs                            145          32
+DMA32 allocs                     74646161    74843238
+Normal allocs                    26090955    25886668
+Movable allocs                          0           0
+Direct pages scanned                32938       31429
+Kswapd pages scanned              2183166     2185293
+Kswapd pages reclaimed            2152359     2134389
+Direct pages reclaimed              32735       31234
+Kswapd efficiency                     98%         97%
+Kswapd velocity                  1243.877    1228.666
+Direct efficiency                     99%         99%
+Direct velocity                    18.767      17.671
+Percentage direct scans                1%          1%
+Zone normal velocity              299.981     291.409
+Zone dma32 velocity               962.522     954.928
+Zone dma velocity                   0.142       0.000
+Page writes by reclaim           6278.800    5598.600
+Page writes file                        0           0
+Page writes anon                     6278        5598
+Page reclaim immediate                 93          96
+Sector Reads                      4357114     4307161
+Sector Writes                    11053628    11053091
+Page rescued immediate                  0           0
+Slabs scanned                     1592829     1555770
+Direct inode steals                  1557        2025
+Kswapd inode steals                 46056       45418
+Kswapd skipped wait                     0           0
+THP fault alloc                       579         614
+THP collapse alloc                    304         324
+THP splits                              0           0
+THP fault fallback                    793         730
+THP collapse fail                      11          14
+Compaction stalls                    1013         959
+Compaction success                     92          69
+Compaction failures                   920         890
+Page migrate success               238457      662054
+Page migrate failure                23021       32846
+Compaction pages isolated          504695     1370326
+Compaction migrate scanned         661390     7025772
+Compaction free scanned          13476658    73302642
+Compaction cost                       262         762
 
-Waking up of the kcompactd threads is also tied to kswapd activity and follows
-these rules:
-- we don't want to affect any fastpaths, so wake up kcompactd only from the
-  slowpath, as it's done for kswapd
-- if kswapd is doing reclaim, it's more important than compaction, so don't
-  invoke kcompactd until kswapd goes to sleep
-- the target order used for kswapd is passed to kcompactd
+After this patch we see improvements in allocation success rate
+(especially for phase 3) along with increased compaction activity.  The
+compaction stalls (direct compaction) in the interfering kernel builds
+(probably THP's) also decreased somewhat to kcompactd activity, yet THP
+alloc successes improved a bit.
 
-Future possible future uses for kcompactd include the ability to wake up
-kcompactd on demand in special situations, such as when hugepages are not
-available (currently not done due to __GFP_NO_KSWAPD) or when a
-fragmentation event (i.e.  __rmqueue_fallback()) occurs.  It's also
-possible to perform periodic compaction with kcompactd.
+We can also configure stress-highalloc to perform both direct
+reclaim/compaction and wakeup kswapd/kcompactd, by using
+GFP_KERNEL|__GFP_HIGH|__GFP_COMP:
+
+stress-highalloc
+                              4.5-rc1               4.5-rc1
+                              3-test2               4-test2
+Success 1 Min          4.00 (  0.00%)        6.00 (-50.00%)
+Success 1 Mean         8.00 (  0.00%)        8.40 ( -5.00%)
+Success 1 Max         12.00 (  0.00%)       13.00 ( -8.33%)
+Success 2 Min          4.00 (  0.00%)        6.00 (-50.00%)
+Success 2 Mean         8.20 (  0.00%)        8.60 ( -4.88%)
+Success 2 Max         13.00 (  0.00%)       12.00 (  7.69%)
+Success 3 Min         75.00 (  0.00%)       75.00 (  0.00%)
+Success 3 Mean        75.60 (  0.00%)       75.60 (  0.00%)
+Success 3 Max         77.00 (  0.00%)       76.00 (  1.30%)
+
+             4.5-rc1     4.5-rc1
+             3-test2     4-test2
+User         3344.73     3258.62
+System       1194.24     1177.92
+Elapsed      1838.04     1837.02
+
+                                  4.5-rc1     4.5-rc1
+                                  3-test2     4-test2
+Minor Faults                    111269736   109392253
+Major Faults                          806         755
+Swap Ins                              671         155
+Swap Outs                            5390        5790
+Allocation stalls                    4610        4562
+DMA allocs                            250          34
+DMA32 allocs                     78091501    76901680
+Normal allocs                    27004414    26587089
+Movable allocs                          0           0
+Direct pages scanned               125146      108854
+Kswapd pages scanned              2119757     2131589
+Kswapd pages reclaimed            2073183     2090937
+Direct pages reclaimed             124909      108699
+Kswapd efficiency                     97%         98%
+Kswapd velocity                  1161.027    1160.870
+Direct efficiency                     99%         99%
+Direct velocity                    68.545      59.283
+Percentage direct scans                5%          4%
+Zone normal velocity              296.678     294.389
+Zone dma32 velocity               932.841     925.764
+Zone dma velocity                   0.053       0.000
+Page writes by reclaim           5392.000    5790.600
+Page writes file                        1           0
+Page writes anon                     5390        5790
+Page reclaim immediate                104         218
+Sector Reads                      4350232     4376989
+Sector Writes                    11126496    11102113
+Page rescued immediate                  0           0
+Slabs scanned                     1705294     1692486
+Direct inode steals                  8700       16266
+Kswapd inode steals                 36352       28364
+Kswapd skipped wait                     0           0
+THP fault alloc                       599         567
+THP collapse alloc                    323         326
+THP splits                              0           0
+THP fault fallback                    806         805
+THP collapse fail                      17          18
+Compaction stalls                    2457        2070
+Compaction success                    906         527
+Compaction failures                  1551        1543
+Page migrate success              2031423     2423657
+Page migrate failure                32845       28790
+Compaction pages isolated         4129761     4916017
+Compaction migrate scanned       11996712    19370264
+Compaction free scanned         214970969   360662356
+Compaction cost                      2271        2745
+
+Here, this patch doesn't change the success rate as direct compaction
+already tries what it can.  There's however significant reduction in
+direct compaction stalls, made entirely of the successful stalls.  This
+means the offload to kcompactd is working as expected, and direct
+compaction is reduced either due to detecting contention, or compaction
+deferred by kcompactd.  In the previous version of this patchset there was
+some apparent reduction of success rate, but the changes in this version
+(such as using sync compaction only), new baseline kernel, and/or
+averaging results from 5 executions (my bet), made this go away.
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -121,435 +280,339 @@ Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h        |   16 ++
- include/linux/mmzone.h            |    6 
- include/linux/vm_event_item.h     |    1 
- include/trace/events/compaction.h |   55 +++++++
- mm/compaction.c                   |  220 ++++++++++++++++++++++++++++
- mm/memory_hotplug.c               |    9 -
- mm/page_alloc.c                   |    3 
- mm/vmstat.c                       |    1 
- 8 files changed, 309 insertions(+), 2 deletions(-)
+ mm/vmscan.c |  148 ++++++++++++++++----------------------------------
+ 1 file changed, 49 insertions(+), 99 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-introduce-kcompactd include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-introduce-kcompactd
-+++ a/include/linux/compaction.h
-@@ -52,6 +52,10 @@ extern void compaction_defer_reset(struc
- 				bool alloc_success);
- extern bool compaction_restarting(struct zone *zone, int order);
- 
-+extern int kcompactd_run(int nid);
-+extern void kcompactd_stop(int nid);
-+extern void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx);
-+
- #else
- static inline unsigned long try_to_compact_pages(gfp_t gfp_mask,
- 			unsigned int order, int alloc_flags,
-@@ -84,6 +88,18 @@ static inline bool compaction_deferred(s
- 	return true;
+diff -puN mm/vmscan.c~mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd mm/vmscan.c
+--- a/mm/vmscan.c~mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd
++++ a/mm/vmscan.c
+@@ -2968,18 +2968,23 @@ static void age_active_anon(struct zone
+ 	} while (memcg);
  }
  
-+static int kcompactd_run(int nid)
-+{
-+	return 0;
-+}
-+static void kcompactd_stop(int nid)
-+{
-+}
-+
-+static void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx)
-+{
-+}
-+
- #endif /* CONFIG_COMPACTION */
+-static bool zone_balanced(struct zone *zone, int order,
+-			  unsigned long balance_gap, int classzone_idx)
++static bool zone_balanced(struct zone *zone, int order, bool highorder,
++			unsigned long balance_gap, int classzone_idx)
+ {
+-	if (!zone_watermark_ok_safe(zone, order, high_wmark_pages(zone) +
+-				    balance_gap, classzone_idx))
+-		return false;
++	unsigned long mark = high_wmark_pages(zone) + balance_gap;
  
- #if defined(CONFIG_COMPACTION) && defined(CONFIG_SYSFS) && defined(CONFIG_NUMA)
-diff -puN include/linux/mmzone.h~mm-compaction-introduce-kcompactd include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-compaction-introduce-kcompactd
-+++ a/include/linux/mmzone.h
-@@ -670,6 +670,12 @@ typedef struct pglist_data {
- 					   mem_hotplug_begin/end() */
- 	int kswapd_max_order;
- 	enum zone_type classzone_idx;
-+#ifdef CONFIG_COMPACTION
-+	int kcompactd_max_order;
-+	enum zone_type kcompactd_classzone_idx;
-+	wait_queue_head_t kcompactd_wait;
-+	struct task_struct *kcompactd;
-+#endif
- #ifdef CONFIG_NUMA_BALANCING
- 	/* Lock serializing the migrate rate limiting window */
- 	spinlock_t numabalancing_migrate_lock;
-diff -puN include/linux/vm_event_item.h~mm-compaction-introduce-kcompactd include/linux/vm_event_item.h
---- a/include/linux/vm_event_item.h~mm-compaction-introduce-kcompactd
-+++ a/include/linux/vm_event_item.h
-@@ -53,6 +53,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
- 		COMPACTMIGRATE_SCANNED, COMPACTFREE_SCANNED,
- 		COMPACTISOLATED,
- 		COMPACTSTALL, COMPACTFAIL, COMPACTSUCCESS,
-+		KCOMPACTD_WAKE,
- #endif
- #ifdef CONFIG_HUGETLB_PAGE
- 		HTLB_BUDDY_PGALLOC, HTLB_BUDDY_PGALLOC_FAIL,
-diff -puN include/trace/events/compaction.h~mm-compaction-introduce-kcompactd include/trace/events/compaction.h
---- a/include/trace/events/compaction.h~mm-compaction-introduce-kcompactd
-+++ a/include/trace/events/compaction.h
-@@ -350,6 +350,61 @@ DEFINE_EVENT(mm_compaction_defer_templat
- );
- #endif
+-	if (IS_ENABLED(CONFIG_COMPACTION) && order && compaction_suitable(zone,
+-				order, 0, classzone_idx) == COMPACT_SKIPPED)
+-		return false;
++	/*
++	 * When checking from pgdat_balanced(), kswapd should stop and sleep
++	 * when it reaches the high order-0 watermark and let kcompactd take
++	 * over. Other callers such as wakeup_kswapd() want to determine the
++	 * true high-order watermark.
++	 */
++	if (IS_ENABLED(CONFIG_COMPACTION) && !highorder) {
++		mark += (1UL << order);
++		order = 0;
++	}
  
-+TRACE_EVENT(mm_compaction_kcompactd_sleep,
-+
-+	TP_PROTO(int nid),
-+
-+	TP_ARGS(nid),
-+
-+	TP_STRUCT__entry(
-+		__field(int, nid)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->nid = nid;
-+	),
-+
-+	TP_printk("nid=%d", __entry->nid)
-+);
-+
-+DECLARE_EVENT_CLASS(kcompactd_wake_template,
-+
-+	TP_PROTO(int nid, int order, enum zone_type classzone_idx),
-+
-+	TP_ARGS(nid, order, classzone_idx),
-+
-+	TP_STRUCT__entry(
-+		__field(int, nid)
-+		__field(int, order)
-+		__field(enum zone_type, classzone_idx)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->nid = nid;
-+		__entry->order = order;
-+		__entry->classzone_idx = classzone_idx;
-+	),
-+
-+	TP_printk("nid=%d order=%d classzone_idx=%-8s",
-+		__entry->nid,
-+		__entry->order,
-+		__print_symbolic(__entry->classzone_idx, ZONE_TYPE))
-+);
-+
-+DEFINE_EVENT(kcompactd_wake_template, mm_compaction_wakeup_kcompactd,
-+
-+	TP_PROTO(int nid, int order, enum zone_type classzone_idx),
-+
-+	TP_ARGS(nid, order, classzone_idx)
-+);
-+
-+DEFINE_EVENT(kcompactd_wake_template, mm_compaction_kcompactd_wake,
-+
-+	TP_PROTO(int nid, int order, enum zone_type classzone_idx),
-+
-+	TP_ARGS(nid, order, classzone_idx)
-+);
-+
- #endif /* _TRACE_COMPACTION_H */
- 
- /* This part must be outside protection */
-diff -puN mm/compaction.c~mm-compaction-introduce-kcompactd mm/compaction.c
---- a/mm/compaction.c~mm-compaction-introduce-kcompactd
-+++ a/mm/compaction.c
-@@ -17,6 +17,9 @@
- #include <linux/balloon_compaction.h>
- #include <linux/page-isolation.h>
- #include <linux/kasan.h>
-+#include <linux/kthread.h>
-+#include <linux/freezer.h>
-+#include <linux/module.h>
- #include "internal.h"
- 
- #ifdef CONFIG_COMPACTION
-@@ -1736,4 +1739,221 @@ void compaction_unregister_node(struct n
+-	return true;
++	return zone_watermark_ok_safe(zone, order, mark, classzone_idx);
  }
- #endif /* CONFIG_SYSFS && CONFIG_NUMA */
  
-+static inline bool kcompactd_work_requested(pg_data_t *pgdat)
-+{
-+	return pgdat->kcompactd_max_order > 0;
-+}
+ /*
+@@ -3029,7 +3034,7 @@ static bool pgdat_balanced(pg_data_t *pg
+ 			continue;
+ 		}
+ 
+-		if (zone_balanced(zone, order, 0, i))
++		if (zone_balanced(zone, order, false, 0, i))
+ 			balanced_pages += zone->managed_pages;
+ 		else if (!order)
+ 			return false;
+@@ -3083,8 +3088,7 @@ static bool prepare_kswapd_sleep(pg_data
+  */
+ static bool kswapd_shrink_zone(struct zone *zone,
+ 			       int classzone_idx,
+-			       struct scan_control *sc,
+-			       unsigned long *nr_attempted)
++			       struct scan_control *sc)
+ {
+ 	int testorder = sc->order;
+ 	unsigned long balance_gap;
+@@ -3094,17 +3098,6 @@ static bool kswapd_shrink_zone(struct zo
+ 	sc->nr_to_reclaim = max(SWAP_CLUSTER_MAX, high_wmark_pages(zone));
+ 
+ 	/*
+-	 * Kswapd reclaims only single pages with compaction enabled. Trying
+-	 * too hard to reclaim until contiguous free pages have become
+-	 * available can hurt performance by evicting too much useful data
+-	 * from memory. Do not reclaim more than needed for compaction.
+-	 */
+-	if (IS_ENABLED(CONFIG_COMPACTION) && sc->order &&
+-			compaction_suitable(zone, sc->order, 0, classzone_idx)
+-							!= COMPACT_SKIPPED)
+-		testorder = 0;
+-
+-	/*
+ 	 * We put equal pressure on every zone, unless one zone has way too
+ 	 * many pages free already. The "too many pages" is defined as the
+ 	 * high wmark plus a "gap" where the gap is either the low
+@@ -3118,15 +3111,12 @@ static bool kswapd_shrink_zone(struct zo
+ 	 * reclaim is necessary
+ 	 */
+ 	lowmem_pressure = (buffer_heads_over_limit && is_highmem(zone));
+-	if (!lowmem_pressure && zone_balanced(zone, testorder,
++	if (!lowmem_pressure && zone_balanced(zone, testorder, false,
+ 						balance_gap, classzone_idx))
+ 		return true;
+ 
+ 	shrink_zone(zone, sc, zone_idx(zone) == classzone_idx);
+ 
+-	/* Account for the number of pages attempted to reclaim */
+-	*nr_attempted += sc->nr_to_reclaim;
+-
+ 	clear_bit(ZONE_WRITEBACK, &zone->flags);
+ 
+ 	/*
+@@ -3136,7 +3126,7 @@ static bool kswapd_shrink_zone(struct zo
+ 	 * waits.
+ 	 */
+ 	if (zone_reclaimable(zone) &&
+-	    zone_balanced(zone, testorder, 0, classzone_idx)) {
++	    zone_balanced(zone, testorder, false, 0, classzone_idx)) {
+ 		clear_bit(ZONE_CONGESTED, &zone->flags);
+ 		clear_bit(ZONE_DIRTY, &zone->flags);
+ 	}
+@@ -3148,7 +3138,7 @@ static bool kswapd_shrink_zone(struct zo
+  * For kswapd, balance_pgdat() will work across all this node's zones until
+  * they are all at high_wmark_pages(zone).
+  *
+- * Returns the final order kswapd was reclaiming at
++ * Returns the highest zone idx kswapd was reclaiming at
+  *
+  * There is special handling here for zones which are full of pinned pages.
+  * This can happen if the pages are all mlocked, or if they are all used by
+@@ -3165,8 +3155,7 @@ static bool kswapd_shrink_zone(struct zo
+  * interoperates with the page allocator fallback scheme to ensure that aging
+  * of pages is balanced across the zones.
+  */
+-static unsigned long balance_pgdat(pg_data_t *pgdat, int order,
+-							int *classzone_idx)
++static int balance_pgdat(pg_data_t *pgdat, int order, int classzone_idx)
+ {
+ 	int i;
+ 	int end_zone = 0;	/* Inclusive.  0 = ZONE_DMA */
+@@ -3183,9 +3172,7 @@ static unsigned long balance_pgdat(pg_da
+ 	count_vm_event(PAGEOUTRUN);
+ 
+ 	do {
+-		unsigned long nr_attempted = 0;
+ 		bool raise_priority = true;
+-		bool pgdat_needs_compaction = (order > 0);
+ 
+ 		sc.nr_reclaimed = 0;
+ 
+@@ -3220,7 +3207,7 @@ static unsigned long balance_pgdat(pg_da
+ 				break;
+ 			}
+ 
+-			if (!zone_balanced(zone, order, 0, 0)) {
++			if (!zone_balanced(zone, order, true, 0, 0)) {
+ 				end_zone = i;
+ 				break;
+ 			} else {
+@@ -3236,24 +3223,6 @@ static unsigned long balance_pgdat(pg_da
+ 		if (i < 0)
+ 			goto out;
+ 
+-		for (i = 0; i <= end_zone; i++) {
+-			struct zone *zone = pgdat->node_zones + i;
+-
+-			if (!populated_zone(zone))
+-				continue;
+-
+-			/*
+-			 * If any zone is currently balanced then kswapd will
+-			 * not call compaction as it is expected that the
+-			 * necessary pages are already available.
+-			 */
+-			if (pgdat_needs_compaction &&
+-					zone_watermark_ok(zone, order,
+-						low_wmark_pages(zone),
+-						*classzone_idx, 0))
+-				pgdat_needs_compaction = false;
+-		}
+-
+ 		/*
+ 		 * If we're getting trouble reclaiming, start doing writepage
+ 		 * even in laptop mode.
+@@ -3297,8 +3266,7 @@ static unsigned long balance_pgdat(pg_da
+ 			 * that that high watermark would be met at 100%
+ 			 * efficiency.
+ 			 */
+-			if (kswapd_shrink_zone(zone, end_zone,
+-					       &sc, &nr_attempted))
++			if (kswapd_shrink_zone(zone, end_zone, &sc))
+ 				raise_priority = false;
+ 		}
+ 
+@@ -3311,49 +3279,29 @@ static unsigned long balance_pgdat(pg_da
+ 				pfmemalloc_watermark_ok(pgdat))
+ 			wake_up_all(&pgdat->pfmemalloc_wait);
+ 
+-		/*
+-		 * Fragmentation may mean that the system cannot be rebalanced
+-		 * for high-order allocations in all zones. If twice the
+-		 * allocation size has been reclaimed and the zones are still
+-		 * not balanced then recheck the watermarks at order-0 to
+-		 * prevent kswapd reclaiming excessively. Assume that a
+-		 * process requested a high-order can direct reclaim/compact.
+-		 */
+-		if (order && sc.nr_reclaimed >= 2UL << order)
+-			order = sc.order = 0;
+-
+ 		/* Check if kswapd should be suspending */
+ 		if (try_to_freeze() || kthread_should_stop())
+ 			break;
+ 
+ 		/*
+-		 * Compact if necessary and kswapd is reclaiming at least the
+-		 * high watermark number of pages as requsted
+-		 */
+-		if (pgdat_needs_compaction && sc.nr_reclaimed > nr_attempted)
+-			compact_pgdat(pgdat, order);
+-
+-		/*
+ 		 * Raise priority if scanning rate is too low or there was no
+ 		 * progress in reclaiming pages
+ 		 */
+ 		if (raise_priority || !sc.nr_reclaimed)
+ 			sc.priority--;
+ 	} while (sc.priority >= 1 &&
+-		 !pgdat_balanced(pgdat, order, *classzone_idx));
++			!pgdat_balanced(pgdat, order, classzone_idx));
+ 
+ out:
+ 	/*
+-	 * Return the order we were reclaiming at so prepare_kswapd_sleep()
+-	 * makes a decision on the order we were last reclaiming at. However,
+-	 * if another caller entered the allocator slow path while kswapd
+-	 * was awake, order will remain at the higher level
++	 * Return the highest zone idx we were reclaiming at so
++	 * prepare_kswapd_sleep() makes the same decisions as here.
+ 	 */
+-	*classzone_idx = end_zone;
+-	return order;
++	return end_zone;
+ }
+ 
+-static void kswapd_try_to_sleep(pg_data_t *pgdat, int order, int classzone_idx)
++static void kswapd_try_to_sleep(pg_data_t *pgdat, int order,
++				int classzone_idx, int balanced_classzone_idx)
+ {
+ 	long remaining = 0;
+ 	DEFINE_WAIT(wait);
+@@ -3364,7 +3312,8 @@ static void kswapd_try_to_sleep(pg_data_
+ 	prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
+ 
+ 	/* Try to sleep for a short interval */
+-	if (prepare_kswapd_sleep(pgdat, order, remaining, classzone_idx)) {
++	if (prepare_kswapd_sleep(pgdat, order, remaining,
++						balanced_classzone_idx)) {
+ 		remaining = schedule_timeout(HZ/10);
+ 		finish_wait(&pgdat->kswapd_wait, &wait);
+ 		prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
+@@ -3374,7 +3323,8 @@ static void kswapd_try_to_sleep(pg_data_
+ 	 * After a short sleep, check if it was a premature sleep. If not, then
+ 	 * go fully to sleep until explicitly woken up.
+ 	 */
+-	if (prepare_kswapd_sleep(pgdat, order, remaining, classzone_idx)) {
++	if (prepare_kswapd_sleep(pgdat, order, remaining,
++						balanced_classzone_idx)) {
+ 		trace_mm_vmscan_kswapd_sleep(pgdat->node_id);
+ 
+ 		/*
+@@ -3395,6 +3345,12 @@ static void kswapd_try_to_sleep(pg_data_
+ 		 */
+ 		reset_isolation_suitable(pgdat);
+ 
++		/*
++		 * We have freed the memory, now we should compact it to make
++		 * allocation of the requested order possible.
++		 */
++		wakeup_kcompactd(pgdat, order, classzone_idx);
 +
-+static bool kcompactd_node_suitable(pg_data_t *pgdat)
-+{
-+	int zoneid;
-+	struct zone *zone;
-+	enum zone_type classzone_idx = pgdat->kcompactd_classzone_idx;
-+
-+	for (zoneid = 0; zoneid < classzone_idx; zoneid++) {
-+		zone = &pgdat->node_zones[zoneid];
-+
-+		if (!populated_zone(zone))
-+			continue;
-+
-+		if (compaction_suitable(zone, pgdat->kcompactd_max_order, 0,
-+					classzone_idx) == COMPACT_CONTINUE)
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
-+static void kcompactd_do_work(pg_data_t *pgdat)
-+{
-+	/*
-+	 * With no special task, compact all zones so that a page of requested
-+	 * order is allocatable.
-+	 */
-+	int zoneid;
-+	struct zone *zone;
-+	struct compact_control cc = {
-+		.order = pgdat->kcompactd_max_order,
-+		.classzone_idx = pgdat->kcompactd_classzone_idx,
-+		.mode = MIGRATE_SYNC_LIGHT,
-+		.ignore_skip_hint = true,
-+
-+	};
-+	bool success = false;
-+
-+	trace_mm_compaction_kcompactd_wake(pgdat->node_id, cc.order,
-+							cc.classzone_idx);
-+	count_vm_event(KCOMPACTD_WAKE);
-+
-+	for (zoneid = 0; zoneid < cc.classzone_idx; zoneid++) {
-+		int status;
-+
-+		zone = &pgdat->node_zones[zoneid];
-+		if (!populated_zone(zone))
-+			continue;
-+
-+		if (compaction_deferred(zone, cc.order))
-+			continue;
-+
-+		if (compaction_suitable(zone, cc.order, 0, zoneid) !=
-+							COMPACT_CONTINUE)
-+			continue;
-+
-+		cc.nr_freepages = 0;
-+		cc.nr_migratepages = 0;
-+		cc.zone = zone;
-+		INIT_LIST_HEAD(&cc.freepages);
-+		INIT_LIST_HEAD(&cc.migratepages);
-+
-+		status = compact_zone(zone, &cc);
-+
-+		if (zone_watermark_ok(zone, cc.order, low_wmark_pages(zone),
-+						cc.classzone_idx, 0)) {
-+			success = true;
-+			compaction_defer_reset(zone, cc.order, false);
-+		} else if (cc.mode != MIGRATE_ASYNC &&
-+						status == COMPACT_COMPLETE) {
-+			defer_compaction(zone, cc.order);
-+		}
-+
-+		VM_BUG_ON(!list_empty(&cc.freepages));
-+		VM_BUG_ON(!list_empty(&cc.migratepages));
-+	}
-+
-+	/*
-+	 * Regardless of success, we are done until woken up next. But remember
-+	 * the requested order/classzone_idx in case it was higher/tighter than
-+	 * our current ones
-+	 */
-+	if (pgdat->kcompactd_max_order <= cc.order)
-+		pgdat->kcompactd_max_order = 0;
-+	if (pgdat->classzone_idx >= cc.classzone_idx)
+ 		if (!kthread_should_stop())
+ 			schedule();
+ 
+@@ -3424,7 +3380,6 @@ static void kswapd_try_to_sleep(pg_data_
+ static int kswapd(void *p)
+ {
+ 	unsigned long order, new_order;
+-	unsigned balanced_order;
+ 	int classzone_idx, new_classzone_idx;
+ 	int balanced_classzone_idx;
+ 	pg_data_t *pgdat = (pg_data_t*)p;
+@@ -3457,23 +3412,19 @@ static int kswapd(void *p)
+ 	set_freezable();
+ 
+ 	order = new_order = 0;
+-	balanced_order = 0;
+ 	classzone_idx = new_classzone_idx = pgdat->nr_zones - 1;
+ 	balanced_classzone_idx = classzone_idx;
+ 	for ( ; ; ) {
+ 		bool ret;
+ 
+ 		/*
+-		 * If the last balance_pgdat was unsuccessful it's unlikely a
+-		 * new request of a similar or harder type will succeed soon
+-		 * so consider going to sleep on the basis we reclaimed at
+-		 */
+-		if (balanced_order == new_order) {
+-			new_order = pgdat->kswapd_max_order;
+-			new_classzone_idx = pgdat->classzone_idx;
+-			pgdat->kswapd_max_order =  0;
+-			pgdat->classzone_idx = pgdat->nr_zones - 1;
+-		}
++		 * While we were reclaiming, there might have been another
++		 * wakeup, so check the values.
++		 */
++		new_order = pgdat->kswapd_max_order;
++		new_classzone_idx = pgdat->classzone_idx;
++		pgdat->kswapd_max_order =  0;
 +		pgdat->classzone_idx = pgdat->nr_zones - 1;
-+}
-+
-+void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx)
-+{
-+	if (!order)
-+		return;
-+
-+	if (pgdat->kcompactd_max_order < order)
-+		pgdat->kcompactd_max_order = order;
-+
-+	if (pgdat->kcompactd_classzone_idx > classzone_idx)
-+		pgdat->kcompactd_classzone_idx = classzone_idx;
-+
-+	if (!waitqueue_active(&pgdat->kcompactd_wait))
-+		return;
-+
-+	if (!kcompactd_node_suitable(pgdat))
-+		return;
-+
-+	trace_mm_compaction_wakeup_kcompactd(pgdat->node_id, order,
-+							classzone_idx);
-+	wake_up_interruptible(&pgdat->kcompactd_wait);
-+}
-+
-+/*
-+ * The background compaction daemon, started as a kernel thread
-+ * from the init process.
-+ */
-+static int kcompactd(void *p)
-+{
-+	pg_data_t *pgdat = (pg_data_t*)p;
-+	struct task_struct *tsk = current;
-+
-+	const struct cpumask *cpumask = cpumask_of_node(pgdat->node_id);
-+
-+	if (!cpumask_empty(cpumask))
-+		set_cpus_allowed_ptr(tsk, cpumask);
-+
-+	set_freezable();
-+
-+	pgdat->kcompactd_max_order = 0;
-+	pgdat->kcompactd_classzone_idx = pgdat->nr_zones - 1;
-+
-+	while (!kthread_should_stop()) {
-+		trace_mm_compaction_kcompactd_sleep(pgdat->node_id);
-+		wait_event_freezable(pgdat->kcompactd_wait,
-+				kcompactd_work_requested(pgdat));
-+
-+		kcompactd_do_work(pgdat);
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * This kcompactd start function will be called by init and node-hot-add.
-+ * On node-hot-add, kcompactd will moved to proper cpus if cpus are hot-added.
-+ */
-+int kcompactd_run(int nid)
-+{
-+	pg_data_t *pgdat = NODE_DATA(nid);
-+	int ret = 0;
-+
-+	if (pgdat->kcompactd)
-+		return 0;
-+
-+	pgdat->kcompactd = kthread_run(kcompactd, pgdat, "kcompactd%d", nid);
-+	if (IS_ERR(pgdat->kcompactd)) {
-+		pr_err("Failed to start kcompactd on node %d\n", nid);
-+		ret = PTR_ERR(pgdat->kcompactd);
-+		pgdat->kcompactd = NULL;
-+	}
-+	return ret;
-+}
-+
-+/*
-+ * Called by memory hotplug when all memory in a node is offlined. Caller must
-+ * hold mem_hotplug_begin/end().
-+ */
-+void kcompactd_stop(int nid)
-+{
-+	struct task_struct *kcompactd = NODE_DATA(nid)->kcompactd;
-+
-+	if (kcompactd) {
-+		kthread_stop(kcompactd);
-+		NODE_DATA(nid)->kcompactd = NULL;
-+	}
-+}
-+
-+/*
-+ * It's optimal to keep kcompactd on the same CPUs as their memory, but
-+ * not required for correctness. So if the last cpu in a node goes
-+ * away, we get changed to run anywhere: as the first one comes back,
-+ * restore their cpu bindings.
-+ */
-+static int cpu_callback(struct notifier_block *nfb, unsigned long action,
-+			void *hcpu)
-+{
-+	int nid;
-+
-+	if (action == CPU_ONLINE || action == CPU_ONLINE_FROZEN) {
-+		for_each_node_state(nid, N_MEMORY) {
-+			pg_data_t *pgdat = NODE_DATA(nid);
-+			const struct cpumask *mask;
-+
-+			mask = cpumask_of_node(pgdat->node_id);
-+
-+			if (cpumask_any_and(cpu_online_mask, mask) < nr_cpu_ids)
-+				/* One of our CPUs online: restore mask */
-+				set_cpus_allowed_ptr(pgdat->kcompactd, mask);
-+		}
-+	}
-+	return NOTIFY_OK;
-+}
-+
-+static int __init kcompactd_init(void)
-+{
-+	int nid;
-+
-+	for_each_node_state(nid, N_MEMORY)
-+		kcompactd_run(nid);
-+	hotcpu_notifier(cpu_callback, 0);
-+	return 0;
-+}
-+
-+module_init(kcompactd_init)
-+
- #endif /* CONFIG_COMPACTION */
-diff -puN mm/memory_hotplug.c~mm-compaction-introduce-kcompactd mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-compaction-introduce-kcompactd
-+++ a/mm/memory_hotplug.c
-@@ -33,6 +33,7 @@
- #include <linux/hugetlb.h>
- #include <linux/memblock.h>
- #include <linux/bootmem.h>
-+#include <linux/compaction.h>
  
- #include <asm/tlbflush.h>
+ 		if (order < new_order || classzone_idx > new_classzone_idx) {
+ 			/*
+@@ -3483,7 +3434,7 @@ static int kswapd(void *p)
+ 			order = new_order;
+ 			classzone_idx = new_classzone_idx;
+ 		} else {
+-			kswapd_try_to_sleep(pgdat, balanced_order,
++			kswapd_try_to_sleep(pgdat, order, classzone_idx,
+ 						balanced_classzone_idx);
+ 			order = pgdat->kswapd_max_order;
+ 			classzone_idx = pgdat->classzone_idx;
+@@ -3503,9 +3454,8 @@ static int kswapd(void *p)
+ 		 */
+ 		if (!ret) {
+ 			trace_mm_vmscan_kswapd_wake(pgdat->node_id, order);
+-			balanced_classzone_idx = classzone_idx;
+-			balanced_order = balance_pgdat(pgdat, order,
+-						&balanced_classzone_idx);
++			balanced_classzone_idx = balance_pgdat(pgdat, order,
++								classzone_idx);
+ 		}
+ 	}
  
-@@ -1132,8 +1133,10 @@ int __ref online_pages(unsigned long pfn
+@@ -3535,7 +3485,7 @@ void wakeup_kswapd(struct zone *zone, in
+ 	}
+ 	if (!waitqueue_active(&pgdat->kswapd_wait))
+ 		return;
+-	if (zone_balanced(zone, order, 0, 0))
++	if (zone_balanced(zone, order, true, 0, 0))
+ 		return;
  
- 	init_per_zone_wmark_min();
- 
--	if (onlined_pages)
-+	if (onlined_pages) {
- 		kswapd_run(zone_to_nid(zone));
-+		kcompactd_run(nid);
-+	}
- 
- 	vm_total_pages = nr_free_pagecache_pages();
- 
-@@ -1907,8 +1910,10 @@ repeat:
- 		zone_pcp_update(zone);
- 
- 	node_states_clear_node(node, &arg);
--	if (arg.status_change_nid >= 0)
-+	if (arg.status_change_nid >= 0) {
- 		kswapd_stop(node);
-+		kcompactd_stop(node);
-+	}
- 
- 	vm_total_pages = nr_free_pagecache_pages();
- 	writeback_set_ratelimit();
-diff -puN mm/page_alloc.c~mm-compaction-introduce-kcompactd mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-introduce-kcompactd
-+++ a/mm/page_alloc.c
-@@ -5376,6 +5376,9 @@ static void __paginginit free_area_init_
- #endif
- 	init_waitqueue_head(&pgdat->kswapd_wait);
- 	init_waitqueue_head(&pgdat->pfmemalloc_wait);
-+#ifdef CONFIG_COMPACTION
-+	init_waitqueue_head(&pgdat->kcompactd_wait);
-+#endif
- 	pgdat_page_ext_init(pgdat);
- 
- 	for (j = 0; j < MAX_NR_ZONES; j++) {
-diff -puN mm/vmstat.c~mm-compaction-introduce-kcompactd mm/vmstat.c
---- a/mm/vmstat.c~mm-compaction-introduce-kcompactd
-+++ a/mm/vmstat.c
-@@ -826,6 +826,7 @@ const char * const vmstat_text[] = {
- 	"compact_stall",
- 	"compact_fail",
- 	"compact_success",
-+	"compact_kcompatd_wake",
- #endif
- 
- #ifdef CONFIG_HUGETLB_PAGE
+ 	trace_mm_vmscan_wakeup_kswapd(pgdat->node_id, zone_idx(zone), order);
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
