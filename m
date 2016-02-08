@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-global-inbound-port-write-interfaces.patch added to -mm tree
-Date: Mon, 08 Feb 2016 13:22:36 -0800
-Message-ID: <56b9071c.KOxc0QyzvH1ZHDnU%akpm@linux-foundation.org>
+Subject: + rapidio-tsi721-add-outbound-windows-mapping-support.patch added to -mm tree
+Date: Mon, 08 Feb 2016 13:22:44 -0800
+Message-ID: <56b90724.Iqy2WhEm6xKiJ6cE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35854 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35878 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756358AbcBHVWh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:37 -0500
+	with ESMTP id S1756380AbcBHVWp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: add global inbound port write interfaces
+     Subject: rapidio/tsi721: add outbound windows mapping support
 has been added to the -mm tree.  Its filename is
-     rapidio-add-global-inbound-port-write-interfaces.patch
+     rapidio-tsi721-add-outbound-windows-mapping-support.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-add-global-inbound-port-write-interfaces.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-tsi721-add-outbound-windows-mapping-support.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-add-global-inbound-port-write-interfaces.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-tsi721-add-outbound-windows-mapping-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,16 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: add global inbound port write interfaces
+Subject: rapidio/tsi721: add outbound windows mapping support
 
-Add new Port Write handler registration interfaces that attach PW handlers
-to local mport device objects.  This is different from old interface that
-attaches PW callback to individual RapidIO device.  The new interfaces are
-intended for use for common event handling (e.g.  hot-plug notifications)
-while the old interface is available for individual device drivers.
-
-This patch is based on patch proposed by Andre van Herk but preserves
-existing per-device interface and adds lock protection for list handling.
+Add device-specific callback functions to support outbound windows mapping
+and release.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -57,307 +51,306 @@ Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.c |   24 ----
- drivers/rapidio/rio.c            |  142 ++++++++++++++++++++++++-----
- include/linux/rio.h              |    2 
- include/linux/rio_drv.h          |    9 +
- 4 files changed, 132 insertions(+), 45 deletions(-)
+ drivers/rapidio/devices/tsi721.c |  222 ++++++++++++++++++++++++++++-
+ drivers/rapidio/devices/tsi721.h |   20 ++
+ 2 files changed, 235 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rapidio/devices/tsi721.c~rapidio-add-global-inbound-port-write-interfaces drivers/rapidio/devices/tsi721.c
---- a/drivers/rapidio/devices/tsi721.c~rapidio-add-global-inbound-port-write-interfaces
+diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-add-outbound-windows-mapping-support drivers/rapidio/devices/tsi721.c
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-add-outbound-windows-mapping-support
 +++ a/drivers/rapidio/devices/tsi721.c
-@@ -36,8 +36,6 @@
- 
- #include "tsi721.h"
- 
--#define DEBUG_PW	/* Inbound Port-Write debugging */
--
- static void tsi721_omsg_handler(struct tsi721_device *priv, int ch);
- static void tsi721_imsg_handler(struct tsi721_device *priv, int ch);
- 
-@@ -282,30 +280,15 @@ static void tsi721_pw_dpc(struct work_st
- {
- 	struct tsi721_device *priv = container_of(work, struct tsi721_device,
- 						    pw_work);
--	u32 msg_buffer[RIO_PW_MSG_SIZE/sizeof(u32)]; /* Use full size PW message
--							buffer for RIO layer */
-+	union rio_pw_msg pwmsg;
- 
- 	/*
- 	 * Process port-write messages
- 	 */
--	while (kfifo_out_spinlocked(&priv->pw_fifo, (unsigned char *)msg_buffer,
-+	while (kfifo_out_spinlocked(&priv->pw_fifo, (unsigned char *)&pwmsg,
- 			 TSI721_RIO_PW_MSG_SIZE, &priv->pw_fifo_lock)) {
--		/* Process one message */
--#ifdef DEBUG_PW
--		{
--		u32 i;
--		pr_debug("%s : Port-Write Message:", __func__);
--		for (i = 0; i < RIO_PW_MSG_SIZE/sizeof(u32); ) {
--			pr_debug("0x%02x: %08x %08x %08x %08x", i*4,
--				msg_buffer[i], msg_buffer[i + 1],
--				msg_buffer[i + 2], msg_buffer[i + 3]);
--			i += 4;
--		}
--		pr_debug("\n");
--		}
--#endif
- 		/* Pass the port-write message to RIO core for processing */
--		rio_inb_pwrite_handler((union rio_pw_msg *)msg_buffer);
-+		rio_inb_pwrite_handler(&priv->mport, &pwmsg);
- 	}
+@@ -841,6 +841,169 @@ static void tsi721_free_irq(struct tsi72
+ 	free_irq(priv->pdev->irq, (void *)priv);
  }
  
-@@ -2702,6 +2685,7 @@ static void tsi721_remove(struct pci_dev
- 
- 	tsi721_disable_ints(priv);
- 	tsi721_free_irq(priv);
-+	flush_scheduled_work();
- 	rio_unregister_mport(&priv->mport);
- 
- 	tsi721_unregister_dma(priv);
-diff -puN drivers/rapidio/rio.c~rapidio-add-global-inbound-port-write-interfaces drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-add-global-inbound-port-write-interfaces
-+++ a/drivers/rapidio/rio.c
-@@ -30,6 +30,20 @@
- 
- #include "rio.h"
- 
-+/*
-+ * struct rio_pwrite - RIO portwrite event
-+ * @node:    Node in list of doorbell events
-+ * @pwcback: Doorbell event callback
-+ * @context: Handler specific context to pass on event
-+ */
-+struct rio_pwrite {
-+	struct list_head node;
-+
-+	int (*pwcback)(struct rio_mport *mport, void *context,
-+		       union rio_pw_msg *msg, int step);
-+	void *context;
-+};
-+
- MODULE_DESCRIPTION("RapidIO Subsystem Core");
- MODULE_AUTHOR("Matt Porter <mporter@kernel.crashing.org>");
- MODULE_AUTHOR("Alexandre Bounine <alexandre.bounine@idt.com>");
-@@ -514,7 +528,71 @@ int rio_release_outb_dbell(struct rio_de
- }
- 
- /**
-- * rio_request_inb_pwrite - request inbound port-write message service
-+ * rio_add_mport_pw_handler - add port-write message handler into the list
-+ *                            of mport specific pw handlers
-+ * @mport:   RIO master port to bind the portwrite callback
-+ * @context: Handler specific context to pass on event
-+ * @pwcback: Callback to execute when portwrite is received
-+ *
-+ * Returns 0 if the request has been satisfied.
-+ */
-+int rio_add_mport_pw_handler(struct rio_mport *mport, void *context,
-+			     int (*pwcback)(struct rio_mport *mport,
-+			     void *context, union rio_pw_msg *msg, int step))
++static int
++tsi721_obw_alloc(struct tsi721_device *priv, struct tsi721_obw_bar *pbar,
++		 u32 size, int *win_id)
 +{
-+	int rc = 0;
-+	struct rio_pwrite *pwrite;
++	u64 win_base;
++	u64 bar_base;
++	u64 bar_end;
++	u32 align;
++	struct tsi721_ob_win *win;
++	struct tsi721_ob_win *new_win = NULL;
++	int new_win_idx = -1;
++	int i = 0;
 +
-+	pwrite = kzalloc(sizeof(struct rio_pwrite), GFP_KERNEL);
-+	if (!pwrite) {
-+		rc = -ENOMEM;
-+		goto out;
++	bar_base = pbar->base;
++	bar_end =  bar_base + pbar->size;
++	win_base = bar_base;
++	align = size/TSI721_PC2SR_ZONES;
++
++	while (i < TSI721_IBWIN_NUM) {
++		for (i = 0; i < TSI721_IBWIN_NUM; i++) {
++			if (!priv->ob_win[i].active) {
++				if (new_win == NULL) {
++					new_win = &priv->ob_win[i];
++					new_win_idx = i;
++				}
++				continue;
++			}
++
++			/*
++			 * If this window belongs to the current BAR check it
++			 * for overlap
++			 */
++			win = &priv->ob_win[i];
++
++			if (win->base >= bar_base && win->base < bar_end) {
++				if (win_base < (win->base + win->size) &&
++						(win_base + size) > win->base) {
++					/* Overlap detected */
++					win_base = win->base + win->size;
++					win_base = ALIGN(win_base, align);
++					break;
++				}
++			}
++		}
 +	}
 +
-+	pwrite->pwcback = pwcback;
-+	pwrite->context = context;
-+	mutex_lock(&mport->lock);
-+	list_add_tail(&pwrite->node, &mport->pwrites);
-+	mutex_unlock(&mport->lock);
-+out:
-+	return rc;
++	if (win_base + size > bar_end)
++		return -ENOMEM;
++
++	if (!new_win) {
++		dev_err(&priv->pdev->dev, "ERR: OBW count tracking failed\n");
++		return -EIO;
++	}
++
++	new_win->active = true;
++	new_win->base = win_base;
++	new_win->size = size;
++	new_win->pbar = pbar;
++	priv->obwin_cnt--;
++	pbar->free -= size;
++	*win_id = new_win_idx;
++	return 0;
 +}
-+EXPORT_SYMBOL_GPL(rio_add_mport_pw_handler);
 +
-+/**
-+ * rio_del_mport_pw_handler - remove port-write message handler from the list
-+ *                            of mport specific pw handlers
-+ * @mport:   RIO master port to bind the portwrite callback
-+ * @context: Registered handler specific context to pass on event
-+ * @pwcback: Registered callback function
-+ *
-+ * Returns 0 if the request has been satisfied.
-+ */
-+int rio_del_mport_pw_handler(struct rio_mport *mport, void *context,
-+			     int (*pwcback)(struct rio_mport *mport,
-+			     void *context, union rio_pw_msg *msg, int step))
++static int tsi721_map_outb_win(struct rio_mport *mport, u16 destid, u64 rstart,
++			u32 size, u32 flags, dma_addr_t *laddr)
 +{
-+	int rc = -EINVAL;
-+	struct rio_pwrite *pwrite;
++	struct tsi721_device *priv = mport->priv;
++	int i;
++	struct tsi721_obw_bar *pbar;
++	struct tsi721_ob_win *ob_win;
++	int obw = -1;
++	u32 rval;
++	u64 rio_addr;
++	u32 zsize;
++	int ret = -ENOMEM;
 +
-+	mutex_lock(&mport->lock);
-+	list_for_each_entry(pwrite, &mport->pwrites, node) {
-+		if (pwrite->pwcback == pwcback && pwrite->context == context) {
-+			list_del(&pwrite->node);
-+			kfree(pwrite);
-+			rc = 0;
++	if (!is_power_of_2(size) || (size < 0x8000) || (rstart & (size - 1)))
++		return -EINVAL;
++
++	if (priv->obwin_cnt == 0)
++		return -EBUSY;
++
++	for (i = 0; i < 2; i++) {
++		if (priv->p2r_bar[i].free >= size) {
++			pbar = &priv->p2r_bar[i];
++			ret = tsi721_obw_alloc(priv, pbar, size, &obw);
++			if (!ret)
++				break;
++		}
++	}
++
++	if (ret)
++		return ret;
++
++	WARN_ON(obw == -1);
++	ob_win = &priv->ob_win[obw];
++	ob_win->destid = destid;
++	ob_win->rstart = rstart;
++
++	/*
++	 * Configure Outbound Window
++	 */
++
++	zsize = size/TSI721_PC2SR_ZONES;
++	rio_addr = rstart;
++
++	/*
++	 * Program Address Translation Zones:
++	 *  This implementation uses all 8 zones associated wit window.
++	 */
++	for (i = 0; i < TSI721_PC2SR_ZONES; i++) {
++
++		while (ioread32(priv->regs + TSI721_ZONE_SEL) &
++			TSI721_ZONE_SEL_GO) {
++			udelay(1);
++		}
++
++		rval = (u32)(rio_addr & TSI721_LUT_DATA0_ADD) |
++			TSI721_LUT_DATA0_NREAD | TSI721_LUT_DATA0_NWR;
++		iowrite32(rval, priv->regs + TSI721_LUT_DATA0);
++		rval = (u32)(rio_addr >> 32);
++		iowrite32(rval, priv->regs + TSI721_LUT_DATA1);
++		rval = destid;
++		iowrite32(rval, priv->regs + TSI721_LUT_DATA2);
++
++		rval = TSI721_ZONE_SEL_GO | (obw << 3) | i;
++		iowrite32(rval, priv->regs + TSI721_ZONE_SEL);
++
++		rio_addr += zsize;
++	}
++
++	iowrite32(TSI721_OBWIN_SIZE(size) << 8,
++		  priv->regs + TSI721_OBWINSZ(obw));
++	iowrite32((u32)(ob_win->base >> 32), priv->regs + TSI721_OBWINUB(obw));
++	iowrite32((u32)(ob_win->base & TSI721_OBWINLB_BA) | TSI721_OBWINLB_WEN,
++		  priv->regs + TSI721_OBWINLB(obw));
++
++	*laddr = ob_win->base;
++	return 0;
++}
++
++static void tsi721_unmap_outb_win(struct rio_mport *mport,
++				  u16 destid, u64 rstart)
++{
++	struct tsi721_device *priv = mport->priv;
++	struct tsi721_ob_win *ob_win;
++	int i;
++
++	for (i = 0; i < TSI721_OBWIN_NUM; i++) {
++		ob_win = &priv->ob_win[i];
++
++		if (ob_win->active &&
++		    ob_win->destid == destid && ob_win->rstart == rstart) {
++			ob_win->active = false;
++			iowrite32(0, priv->regs + TSI721_OBWINLB(i));
++			ob_win->pbar->free += ob_win->size;
++			priv->obwin_cnt++;
 +			break;
 +		}
 +	}
-+	mutex_unlock(&mport->lock);
-+
-+	return rc;
 +}
-+EXPORT_SYMBOL_GPL(rio_del_mport_pw_handler);
 +
-+/**
-+ * rio_request_inb_pwrite - request inbound port-write message service for
-+ *                          specific RapidIO device
-  * @rdev: RIO device to which register inbound port-write callback routine
-  * @pwcback: Callback routine to execute when port-write is received
-  *
-@@ -539,6 +617,7 @@ EXPORT_SYMBOL_GPL(rio_request_inb_pwrite
- 
  /**
-  * rio_release_inb_pwrite - release inbound port-write message service
-+ *                          associated with specific RapidIO device
-  * @rdev: RIO device which registered for inbound port-write callback
-  *
-  * Removes callback from the rio_dev structure. Returns 0 if the request
-@@ -1002,52 +1081,66 @@ rd_err:
- }
- 
- /**
-- * rio_inb_pwrite_handler - process inbound port-write message
-+ * rio_inb_pwrite_handler - inbound port-write message handler
-+ * @mport:  mport device associated with port-write
-  * @pw_msg: pointer to inbound port-write message
-  *
-  * Processes an inbound port-write message. Returns 0 if the request
-  * has been satisfied.
+  * tsi721_init_pc2sr_mapping - initializes outbound (PCIe->SRIO)
+  * translation regions.
+@@ -850,11 +1013,41 @@ static void tsi721_free_irq(struct tsi72
   */
--int rio_inb_pwrite_handler(union rio_pw_msg *pw_msg)
-+int rio_inb_pwrite_handler(struct rio_mport *mport, union rio_pw_msg *pw_msg)
+ static void tsi721_init_pc2sr_mapping(struct tsi721_device *priv)
  {
- 	struct rio_dev *rdev;
- 	u32 err_status, em_perrdet, em_ltlerrdet;
- 	int rc, portnum;
--
--	rdev = rio_get_comptag((pw_msg->em.comptag & RIO_CTAG_UDEVID), NULL);
--	if (rdev == NULL) {
--		/* Device removed or enumeration error */
--		pr_debug("RIO: %s No matching device for CTag 0x%08x\n",
--			__func__, pw_msg->em.comptag);
--		return -EIO;
--	}
--
--	pr_debug("RIO: Port-Write message from %s\n", rio_name(rdev));
-+	struct rio_pwrite *pwrite;
+-	int i;
++	int i, z;
++	u32 rval;
  
- #ifdef DEBUG_PW
- 	{
--	u32 i;
--	for (i = 0; i < RIO_PW_MSG_SIZE/sizeof(u32);) {
-+		u32 i;
+ 	/* Disable all PC2SR translation windows */
+ 	for (i = 0; i < TSI721_OBWIN_NUM; i++)
+ 		iowrite32(0, priv->regs + TSI721_OBWINLB(i));
 +
-+		pr_debug("%s: PW to mport_%d:\n", __func__, mport->id);
-+		for (i = 0; i < RIO_PW_MSG_SIZE / sizeof(u32); i = i + 4) {
- 			pr_debug("0x%02x: %08x %08x %08x %08x\n",
--				 i*4, pw_msg->raw[i], pw_msg->raw[i + 1],
--				 pw_msg->raw[i + 2], pw_msg->raw[i + 3]);
--			i += 4;
--	}
-+				i * 4, pw_msg->raw[i], pw_msg->raw[i + 1],
-+				pw_msg->raw[i + 2], pw_msg->raw[i + 3]);
++	/* Initialize zone lookup tables to avoid ECC errors on reads */
++	iowrite32(0, priv->regs + TSI721_LUT_DATA0);
++	iowrite32(0, priv->regs + TSI721_LUT_DATA1);
++	iowrite32(0, priv->regs + TSI721_LUT_DATA2);
++
++	for (i = 0; i < TSI721_OBWIN_NUM; i++) {
++		for (z = 0; z < TSI721_PC2SR_ZONES; z++) {
++			while (ioread32(priv->regs + TSI721_ZONE_SEL) &
++				TSI721_ZONE_SEL_GO) {
++				udelay(1);
++			}
++			rval = TSI721_ZONE_SEL_GO | (i << 3) | z;
++			iowrite32(rval, priv->regs + TSI721_ZONE_SEL);
 +		}
- 	}
- #endif
- 
--	/* Call an external service function (if such is registered
--	 * for this device). This may be the service for endpoints that send
--	 * device-specific port-write messages. End-point messages expected
--	 * to be handled completely by EP specific device driver.
-+	rdev = rio_get_comptag((pw_msg->em.comptag & RIO_CTAG_UDEVID), NULL);
-+	if (rdev) {
-+		pr_debug("RIO: Port-Write message from %s\n", rio_name(rdev));
-+	} else {
-+		pr_debug("RIO: %s No matching device for CTag 0x%08x\n",
-+			__func__, pw_msg->em.comptag);
 +	}
 +
-+	/* Call a device-specific handler (if it is registered for the device).
-+	 * This may be the service for endpoints that send device-specific
-+	 * port-write messages. End-point messages expected to be handled
-+	 * completely by EP specific device driver.
- 	 * For switches rc==0 signals that no standard processing required.
++	if (priv->p2r_bar[0].size == 0 && priv->p2r_bar[1].size == 0) {
++		priv->obwin_cnt = 0;
++		return;
++	}
++
++	priv->p2r_bar[0].free = priv->p2r_bar[0].size;
++	priv->p2r_bar[1].free = priv->p2r_bar[1].size;
++
++	for (i = 0; i < TSI721_OBWIN_NUM; i++)
++		priv->ob_win[i].active = false;
++
++	priv->obwin_cnt = TSI721_OBWIN_NUM;
+ }
+ 
+ /**
+@@ -2418,6 +2611,8 @@ static struct rio_ops tsi721_rio_ops = {
+ 	.unmap_inb		= tsi721_rio_unmap_inb_mem,
+ 	.pwenable		= tsi721_pw_enable,
+ 	.query_mport		= tsi721_query_mport,
++	.map_outb		= tsi721_map_outb_win,
++	.unmap_outb		= tsi721_unmap_outb_win,
+ };
+ 
+ static void tsi721_mport_release(struct device *dev)
+@@ -2573,14 +2768,27 @@ static int tsi721_probe(struct pci_dev *
+ 	 * It may be a good idea to keep them disabled using HW configuration
+ 	 * to save PCI memory space.
  	 */
--	if (rdev->pwcback != NULL) {
-+	if (rdev && rdev->pwcback) {
- 		rc = rdev->pwcback(rdev, pw_msg, 0);
- 		if (rc == 0)
- 			return 0;
+-	if ((pci_resource_flags(pdev, BAR_2) & IORESOURCE_MEM) &&
+-	    (pci_resource_flags(pdev, BAR_2) & IORESOURCE_MEM_64)) {
+-		dev_info(&pdev->dev, "Outbound BAR2 is not used but enabled.\n");
++
++	priv->p2r_bar[0].size = priv->p2r_bar[1].size = 0;
++
++	if (pci_resource_flags(pdev, BAR_2) & IORESOURCE_MEM_64) {
++		if (pci_resource_flags(pdev, BAR_2) & IORESOURCE_PREFETCH)
++			dev_info(&pdev->dev,
++				 "Prefetchable OBW BAR2 will not be used\n");
++		else {
++			priv->p2r_bar[0].base = pci_resource_start(pdev, BAR_2);
++			priv->p2r_bar[0].size = pci_resource_len(pdev, BAR_2);
++		}
  	}
  
-+	mutex_lock(&mport->lock);
-+	list_for_each_entry(pwrite, &mport->pwrites, node)
-+		pwrite->pwcback(mport, pwrite->context, pw_msg, 0);
-+	mutex_unlock(&mport->lock);
-+
-+	if (!rdev)
-+		return 0;
-+
-+	/*
-+	 * FIXME: The code below stays as it was before for now until we decide
-+	 * how to do default PW handling in combination with per-mport callbacks
-+	 */
-+
- 	portnum = pw_msg->em.is_port & 0xFF;
+-	if ((pci_resource_flags(pdev, BAR_4) & IORESOURCE_MEM) &&
+-	    (pci_resource_flags(pdev, BAR_4) & IORESOURCE_MEM_64)) {
+-		dev_info(&pdev->dev, "Outbound BAR4 is not used but enabled.\n");
++	if (pci_resource_flags(pdev, BAR_4) & IORESOURCE_MEM_64) {
++		if (pci_resource_flags(pdev, BAR_4) & IORESOURCE_PREFETCH)
++			dev_info(&pdev->dev,
++				 "Prefetchable OBW BAR4 will not be used\n");
++		else {
++			priv->p2r_bar[1].base = pci_resource_start(pdev, BAR_4);
++			priv->p2r_bar[1].size = pci_resource_len(pdev, BAR_4);
++		}
+ 	}
  
- 	/* Check if device and route to it are functional:
-@@ -2060,6 +2153,7 @@ int rio_mport_initialize(struct rio_mpor
- 	mport->nscan = NULL;
- 	mutex_init(&mport->lock);
- 	mport->pwe_refcnt = 0;
-+	INIT_LIST_HEAD(&mport->pwrites);
+ 	err = pci_request_regions(pdev, DRV_NAME);
+diff -puN drivers/rapidio/devices/tsi721.h~rapidio-tsi721-add-outbound-windows-mapping-support drivers/rapidio/devices/tsi721.h
+--- a/drivers/rapidio/devices/tsi721.h~rapidio-tsi721-add-outbound-windows-mapping-support
++++ a/drivers/rapidio/devices/tsi721.h
+@@ -822,6 +822,21 @@ struct tsi721_ib_win {
+ 	struct list_head mappings;
+ };
  
- 	return 0;
- }
-diff -puN include/linux/rio.h~rapidio-add-global-inbound-port-write-interfaces include/linux/rio.h
---- a/include/linux/rio.h~rapidio-add-global-inbound-port-write-interfaces
-+++ a/include/linux/rio.h
-@@ -245,6 +245,7 @@ enum rio_phy_type {
- /**
-  * struct rio_mport - RIO master port info
-  * @dbells: List of doorbell events
-+ * @pwrites: List of portwrite events
-  * @node: Node in global list of master ports
-  * @nnode: Node in network list of master ports
-  * @net: RIO net this mport is attached to
-@@ -270,6 +271,7 @@ enum rio_phy_type {
-  */
- struct rio_mport {
- 	struct list_head dbells;	/* list of doorbell events */
-+	struct list_head pwrites;	/* list of portwrite events */
- 	struct list_head node;	/* node in global list of ports */
- 	struct list_head nnode;	/* node in net list of ports */
- 	struct rio_net *net;	/* RIO net this mport is attached to */
-diff -puN include/linux/rio_drv.h~rapidio-add-global-inbound-port-write-interfaces include/linux/rio_drv.h
---- a/include/linux/rio_drv.h~rapidio-add-global-inbound-port-write-interfaces
-+++ a/include/linux/rio_drv.h
-@@ -374,7 +374,14 @@ extern void rio_unmap_inb_region(struct
- extern int rio_request_inb_pwrite(struct rio_dev *,
- 			int (*)(struct rio_dev *, union rio_pw_msg*, int));
- extern int rio_release_inb_pwrite(struct rio_dev *);
--extern int rio_inb_pwrite_handler(union rio_pw_msg *pw_msg);
-+extern int rio_add_mport_pw_handler(struct rio_mport *mport, void *dev_id,
-+			int (*pwcback)(struct rio_mport *mport, void *dev_id,
-+			union rio_pw_msg *msg, int step));
-+extern int rio_del_mport_pw_handler(struct rio_mport *mport, void *dev_id,
-+			int (*pwcback)(struct rio_mport *mport, void *dev_id,
-+			union rio_pw_msg *msg, int step));
-+extern int rio_inb_pwrite_handler(struct rio_mport *mport,
-+				  union rio_pw_msg *pw_msg);
- extern void rio_pw_enable(struct rio_mport *mport, int enable);
++struct tsi721_obw_bar {
++	u64		base;
++	u64		size;
++	u64		free;
++};
++
++struct tsi721_ob_win {
++	u64		base;
++	u32		size;
++	u16		destid;
++	u64		rstart;
++	bool		active;
++	struct tsi721_obw_bar *pbar;
++};
++
+ struct tsi721_device {
+ 	struct pci_dev	*pdev;
+ 	struct rio_mport mport;
+@@ -861,6 +876,11 @@ struct tsi721_device {
+ 	/* Inbound Mapping Windows */
+ 	struct tsi721_ib_win ib_win[TSI721_IBWIN_NUM];
+ 	int		ibwin_cnt;
++
++	/* Outbound Mapping Windows */
++	struct tsi721_obw_bar p2r_bar[2];
++	struct tsi721_ob_win  ob_win[TSI721_OBWIN_NUM];
++	int		obwin_cnt;
+ };
  
- /* LDM support */
+ #ifdef CONFIG_RAPIDIO_DMA_ENGINE
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
