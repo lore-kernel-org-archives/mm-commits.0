@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-query_mport-operation.patch added to -mm tree
-Date: Mon, 08 Feb 2016 13:22:06 -0800
-Message-ID: <56b906fe.ZqEeOZzzL5206mY5%akpm@linux-foundation.org>
+Subject: + powerpc-fsl_rio-changes-to-mport-registration.patch added to
+ -mm tree
+Date: Mon, 08 Feb 2016 13:22:24 -0800
+Message-ID: <56b90710.qMpy5zZnYzBuB6ZP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35762 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35818 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754682AbcBHVWH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:07 -0500
+	with ESMTP id S1756320AbcBHVWZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:25 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, benh@kernel.crashing.org, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: add query_mport operation
+     Subject: powerpc/fsl_rio: changes to mport registration
 has been added to the -mm tree.  Its filename is
-     rapidio-add-query_mport-operation.patch
+     powerpc-fsl_rio-changes-to-mport-registration.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-add-query_mport-operation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-fsl_rio-changes-to-mport-registration.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-add-query_mport-operation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-fsl_rio-changes-to-mport-registration.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,149 +40,64 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: add query_mport operation
+Subject: powerpc/fsl_rio: changes to mport registration
 
-Add mport query operation to report master port RapidIO capabilities and
-run time configuration to upper level drivers.
+Change mport object initialization/registration sequence to match reworked
+version of rio_register_mport() in the core code.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
 Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c    |   17 ++++++++++++
- include/linux/rio.h      |   49 +++++++++++++++++++++++++++++++++++++
- include/linux/rio_regs.h |    3 ++
- 3 files changed, 69 insertions(+)
+ arch/powerpc/sysdev/fsl_rio.c |   18 ++++++++++++------
+ 1 file changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rapidio/rio.c~rapidio-add-query_mport-operation drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-add-query_mport-operation
-+++ a/drivers/rapidio/rio.c
-@@ -68,6 +68,23 @@ u16 rio_local_get_device_id(struct rio_m
- }
+diff -puN arch/powerpc/sysdev/fsl_rio.c~powerpc-fsl_rio-changes-to-mport-registration arch/powerpc/sysdev/fsl_rio.c
+--- a/arch/powerpc/sysdev/fsl_rio.c~powerpc-fsl_rio-changes-to-mport-registration
++++ a/arch/powerpc/sysdev/fsl_rio.c
+@@ -606,6 +606,12 @@ int fsl_rio_setup(struct platform_device
+ 		if (!port)
+ 			continue;
  
- /**
-+ * rio_query_mport - Query mport device attributes
-+ * @port: mport device to query
-+ * @mport_attr: mport attributes data structure
-+ *
-+ * Returns attributes of specified mport through the
-+ * pointer to attributes data structure.
-+ */
-+int rio_query_mport(struct rio_mport *port,
-+		    struct rio_mport_attr *mport_attr)
-+{
-+	if (!port->ops->query_mport)
-+		return -ENODATA;
-+	return port->ops->query_mport(port, mport_attr);
-+}
-+EXPORT_SYMBOL(rio_query_mport);
++		rc = rio_mport_initialize(port);
++		if (rc) {
++			kfree(port);
++			continue;
++		}
 +
-+/**
-  * rio_add_device- Adds a RIO device to the device model
-  * @rdev: RIO device
-  *
-diff -puN include/linux/rio.h~rapidio-add-query_mport-operation include/linux/rio.h
---- a/include/linux/rio.h~rapidio-add-query_mport-operation
-+++ a/include/linux/rio.h
-@@ -314,6 +314,50 @@ struct rio_net {
- 	struct rio_id_table destid_table;  /* destID allocation table */
- };
+ 		i = *port_index - 1;
+ 		port->index = (unsigned char)i;
  
-+enum rio_link_speed {
-+	RIO_LINK_DOWN = 0, /* SRIO Link not initialized */
-+	RIO_LINK_125 = 1, /* 1.25 GBaud  */
-+	RIO_LINK_250 = 2, /* 2.5 GBaud   */
-+	RIO_LINK_312 = 3, /* 3.125 GBaud */
-+	RIO_LINK_500 = 4, /* 5.0 GBaud   */
-+	RIO_LINK_625 = 5  /* 6.25 GBaud  */
-+};
-+
-+enum rio_link_width {
-+	RIO_LINK_1X  = 0,
-+	RIO_LINK_1XR = 1,
-+	RIO_LINK_2X  = 3,
-+	RIO_LINK_4X  = 2,
-+	RIO_LINK_8X  = 4,
-+	RIO_LINK_16X = 5
-+};
-+
-+enum rio_mport_flags {
-+	RIO_MPORT_DMA	 = (1 << 0), /* supports DMA data transfers */
-+	RIO_MPORT_DMA_SG = (1 << 1), /* DMA supports HW SG mode */
-+	RIO_MPORT_IBSG	 = (1 << 2), /* inbound mapping supports SG */
-+};
-+
-+/**
-+ * struct rio_mport_attr - RIO mport device attributes
-+ * @flags: mport device capability flags
-+ * @link_speed: SRIO link speed value (as defined by RapidIO specification)
-+ * @link_width:	SRIO link width value (as defined by RapidIO specification)
-+ * @dma_max_sge: number of SG list entries that can be handled by DMA channel(s)
-+ * @dma_max_size: max number of bytes in single DMA transfer (SG entry)
-+ * @dma_align: alignment shift for DMA operations (as for other DMA operations)
-+ */
-+struct rio_mport_attr {
-+	int flags;
-+	int link_speed;
-+	int link_width;
-+
-+	/* DMA capability info: valid only if RIO_MPORT_DMA flag is set */
-+	int dma_max_sge;
-+	int dma_max_size;
-+	int dma_align;
-+};
-+
- /* Low-level architecture-dependent routines */
+@@ -682,12 +688,6 @@ int fsl_rio_setup(struct platform_device
+ 		dev_info(&dev->dev, "RapidIO Common Transport System size: %d\n",
+ 				port->sys_size ? 65536 : 256);
  
- /**
-@@ -333,6 +377,7 @@ struct rio_net {
-  * @get_inb_message: Callback to get a message from an inbound mailbox queue.
-  * @map_inb: Callback to map RapidIO address region into local memory space.
-  * @unmap_inb: Callback to unmap RapidIO address region mapped with map_inb().
-+ * @query_mport: Callback to query mport device attributes.
-  */
- struct rio_ops {
- 	int (*lcread) (struct rio_mport *mport, int index, u32 offset, int len,
-@@ -358,6 +403,8 @@ struct rio_ops {
- 	int (*map_inb)(struct rio_mport *mport, dma_addr_t lstart,
- 			u64 rstart, u32 size, u32 flags);
- 	void (*unmap_inb)(struct rio_mport *mport, dma_addr_t lstart);
-+	int (*query_mport)(struct rio_mport *mport,
-+			   struct rio_mport_attr *attr);
- };
+-		if (rio_register_mport(port)) {
+-			release_resource(&port->iores);
+-			kfree(priv);
+-			kfree(port);
+-			continue;
+-		}
+ 		if (port->host_deviceid >= 0)
+ 			out_be32(priv->regs_win + RIO_GCCSR, RIO_PORT_GEN_HOST |
+ 				RIO_PORT_GEN_MASTER | RIO_PORT_GEN_DISCOVERED);
+@@ -727,6 +727,12 @@ int fsl_rio_setup(struct platform_device
  
- #define RIO_RESOURCE_MEM	0x00000100
-@@ -481,5 +528,7 @@ extern int rio_open_inb_mbox(struct rio_
- extern void rio_close_inb_mbox(struct rio_mport *, int);
- extern int rio_open_outb_mbox(struct rio_mport *, void *, int, int);
- extern void rio_close_outb_mbox(struct rio_mport *, int);
-+extern int rio_query_mport(struct rio_mport *port,
-+			   struct rio_mport_attr *mport_attr);
+ 		dbell->mport[i] = port;
  
- #endif				/* LINUX_RIO_H */
-diff -puN include/linux/rio_regs.h~rapidio-add-query_mport-operation include/linux/rio_regs.h
---- a/include/linux/rio_regs.h~rapidio-add-query_mport-operation
-+++ a/include/linux/rio_regs.h
-@@ -238,6 +238,8 @@
- #define  RIO_PORT_N_ACK_INBOUND		0x3f000000
- #define  RIO_PORT_N_ACK_OUTSTAND	0x00003f00
- #define  RIO_PORT_N_ACK_OUTBOUND	0x0000003f
-+#define RIO_PORT_N_CTL2_CSR(x)		(0x0054 + x*0x20)
-+#define  RIO_PORT_N_CTL2_SEL_BAUD	0xf0000000
- #define RIO_PORT_N_ERR_STS_CSR(x)	(0x0058 + x*0x20)
- #define  RIO_PORT_N_ERR_STS_PW_OUT_ES	0x00010000 /* Output Error-stopped */
- #define  RIO_PORT_N_ERR_STS_PW_INP_ES	0x00000100 /* Input Error-stopped */
-@@ -249,6 +251,7 @@
- #define  RIO_PORT_N_CTL_PWIDTH		0xc0000000
- #define  RIO_PORT_N_CTL_PWIDTH_1	0x00000000
- #define  RIO_PORT_N_CTL_PWIDTH_4	0x40000000
-+#define  RIO_PORT_N_CTL_IPW		0x38000000 /* Initialized Port Width */
- #define  RIO_PORT_N_CTL_P_TYP_SER	0x00000001
- #define  RIO_PORT_N_CTL_LOCKOUT		0x00000002
- #define  RIO_PORT_N_CTL_EN_RX_SER	0x00200000
++		if (rio_register_mport(port)) {
++			release_resource(&port->iores);
++			kfree(priv);
++			kfree(port);
++			continue;
++		}
+ 		active_ports++;
+ 	}
+ 
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
