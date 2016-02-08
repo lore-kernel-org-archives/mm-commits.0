@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-rionet-add-shutdown-event-handling.patch added to -mm
- tree
-Date: Mon, 08 Feb 2016 13:22:14 -0800
-Message-ID: <56b90706.PgnDOSOv3zlUkgvL%akpm@linux-foundation.org>
+Subject: + rapidio-tsi721-add-query_mport-callback.patch added to -mm tree
+Date: Mon, 08 Feb 2016 13:22:08 -0800
+Message-ID: <56b90700.PT4poJEfdj2b+rlt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35784 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35766 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756279AbcBHVWP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:15 -0500
+	with ESMTP id S1754682AbcBHVWJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:09 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/rionet: add shutdown event handling
+     Subject: rapidio/tsi721: add query_mport callback
 has been added to the -mm tree.  Its filename is
-     rapidio-rionet-add-shutdown-event-handling.patch
+     rapidio-tsi721-add-query_mport-callback.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-rionet-add-shutdown-event-handling.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-tsi721-add-query_mport-callback.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-rionet-add-shutdown-event-handling.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-tsi721-add-query_mport-callback.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +39,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/rionet: add shutdown event handling
+Subject: rapidio/tsi721: add query_mport callback
 
-Add shutdown notification handler which terminates active connections with
-remote RapidIO nodes.  This prevents remote nodes from sending packets to
-the powered off node and eliminates hardware error events on remote nodes.
+Add device-specific implementation of query_mport callback function.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -53,80 +50,60 @@ Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/rionet.c |   38 ++++++++++++++++++++++++++++++++++++++
- 1 file changed, 38 insertions(+)
+ drivers/rapidio/devices/tsi721.c |   34 +++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
-diff -puN drivers/net/rionet.c~rapidio-rionet-add-shutdown-event-handling drivers/net/rionet.c
---- a/drivers/net/rionet.c~rapidio-rionet-add-shutdown-event-handling
-+++ a/drivers/net/rionet.c
-@@ -24,6 +24,7 @@
- #include <linux/skbuff.h>
- #include <linux/crc32.h>
- #include <linux/ethtool.h>
-+#include <linux/reboot.h>
- 
- #define DRV_NAME        "rionet"
- #define DRV_VERSION     "0.3"
-@@ -599,6 +600,30 @@ out:
- 	return rc;
+diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-add-query_mport-callback drivers/rapidio/devices/tsi721.c
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-add-query_mport-callback
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -2288,6 +2288,39 @@ static int tsi721_messages_init(struct t
  }
  
-+static int rionet_shutdown(struct notifier_block *nb, unsigned long code,
-+			   void *unused)
+ /**
++ * tsi721_query_mport - Fetch inbound message from the Tsi721 MSG Queue
++ * @mport: Master port implementing the Inbound Messaging Engine
++ * @mbox: Inbound mailbox number
++ *
++ * Returns pointer to the message on success or NULL on failure.
++ */
++static int tsi721_query_mport(struct rio_mport *mport,
++			      struct rio_mport_attr *attr)
 +{
-+	struct rionet_peer *peer, *tmp;
-+	int i;
++	struct tsi721_device *priv = mport->priv;
++	u32 rval;
 +
-+	pr_debug("%s: %s\n", DRV_NAME, __func__);
++	rval = ioread32(priv->regs + (0x100 + RIO_PORT_N_ERR_STS_CSR(0)));
++	if (rval & RIO_PORT_N_ERR_STS_PORT_OK) {
++		rval = ioread32(priv->regs + (0x100 + RIO_PORT_N_CTL2_CSR(0)));
++		attr->link_speed = (rval & RIO_PORT_N_CTL2_SEL_BAUD) >> 28;
++		rval = ioread32(priv->regs + (0x100 + RIO_PORT_N_CTL_CSR(0)));
++		attr->link_width = (rval & RIO_PORT_N_CTL_IPW) >> 27;
++	} else
++		attr->link_speed = RIO_LINK_DOWN;
 +
-+	for (i = 0; i < RIONET_MAX_NETS; i++) {
-+		if (!nets[i].ndev)
-+			continue;
-+
-+		list_for_each_entry_safe(peer, tmp, &nets[i].peers, node) {
-+			if (nets[i].active[peer->rdev->destid]) {
-+				rio_send_doorbell(peer->rdev,
-+						  RIONET_DOORBELL_LEAVE);
-+				nets[i].active[peer->rdev->destid] = NULL;
-+			}
-+		}
-+	}
-+
-+	return NOTIFY_DONE;
++#ifdef CONFIG_RAPIDIO_DMA_ENGINE
++	attr->flags = RIO_MPORT_DMA | RIO_MPORT_DMA_SG;
++	attr->dma_max_sge = 0;
++	attr->dma_max_size = TSI721_BDMA_MAX_BCOUNT;
++	attr->dma_align = 0;
++#else
++	attr->flags = 0;
++#endif
++	return 0;
 +}
 +
- #ifdef MODULE
- static struct rio_device_id rionet_id_table[] = {
- 	{RIO_DEVICE(RIO_ANY_ID, RIO_ANY_ID)},
-@@ -615,8 +640,20 @@ static struct subsys_interface rionet_in
- 	.remove_dev	= rionet_remove_dev,
- };
++/**
+  * tsi721_disable_ints - disables all device interrupts
+  * @priv: pointer to tsi721 private data
+  */
+@@ -2372,6 +2405,7 @@ static int tsi721_setup_mport(struct tsi
+ 	ops->get_inb_message = tsi721_get_inb_message;
+ 	ops->map_inb = tsi721_rio_map_inb_mem;
+ 	ops->unmap_inb = tsi721_rio_unmap_inb_mem;
++	ops->query_mport = tsi721_query_mport;
  
-+static struct notifier_block rionet_notifier = {
-+	.notifier_call = rionet_shutdown,
-+};
-+
- static int __init rionet_init(void)
- {
-+	int ret;
-+
-+	ret = register_reboot_notifier(&rionet_notifier);
-+	if (ret) {
-+		pr_err("%s: failed to register reboot notifier (err=%d)\n",
-+		       DRV_NAME, ret);
-+		return ret;
-+	}
- 	return subsys_interface_register(&rionet_interface);
- }
- 
-@@ -648,6 +685,7 @@ static void __exit rionet_exit(void)
- 		}
- 	}
- 
-+	unregister_reboot_notifier(&rionet_notifier);
- 	subsys_interface_unregister(&rionet_interface);
- }
- 
+ 	mport = kzalloc(sizeof(struct rio_mport), GFP_KERNEL);
+ 	if (!mport) {
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
