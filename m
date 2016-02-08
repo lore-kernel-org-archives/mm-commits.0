@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-move-net-allocation-into-core-code.patch added to -mm
- tree
-Date: Mon, 08 Feb 2016 13:22:18 -0800
-Message-ID: <56b9070a.ErxM+FM6BOXgwKj9%akpm@linux-foundation.org>
+Subject: + rapidio-add-shutdown-notification-for-rapidio-devices.patch
+ added to -mm tree
+Date: Mon, 08 Feb 2016 13:22:10 -0800
+Message-ID: <56b90702.bStdpDE/79tSwu58%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35796 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35781 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753800AbcBHVWT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:19 -0500
+	with ESMTP id S1756275AbcBHVWN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:13 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: move net allocation into core code
+     Subject: rapidio: add shutdown notification for RapidIO devices
 has been added to the -mm tree.  Its filename is
-     rapidio-move-net-allocation-into-core-code.patch
+     rapidio-add-shutdown-notification-for-rapidio-devices.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-move-net-allocation-into-core-code.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-add-shutdown-notification-for-rapidio-devices.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-move-net-allocation-into-core-code.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-add-shutdown-notification-for-rapidio-devices.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,14 +40,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: move net allocation into core code
+Subject: rapidio: add shutdown notification for RapidIO devices
 
-Make net allocation/release routines available to all components of RapidIO
-subsystem by moving code from rio-scan enumerator.
-Make destination ID allocation method private to existing enumerator
-because other enumeration methods can use their own algorithm.
-Setup net device object as a parent of all RapidIO devices residing in it
-and register net as a child of active mport device.
+Add bus-specific callback to stop RapidIO devices during a system shutdown.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -56,345 +51,58 @@ Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-scan.c |   98 ++++++++++++++++++++++-------------
- drivers/rapidio/rio.c      |   53 ++++++++++++++++++
- drivers/rapidio/rio.h      |    3 +
- include/linux/rio.h        |   17 ++----
- 4 files changed, 127 insertions(+), 44 deletions(-)
+ drivers/rapidio/rio-driver.c |   12 ++++++++++++
+ include/linux/rio.h          |    2 ++
+ 2 files changed, 14 insertions(+)
 
-diff -puN drivers/rapidio/rio-scan.c~rapidio-move-net-allocation-into-core-code drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~rapidio-move-net-allocation-into-core-code
-+++ a/drivers/rapidio/rio-scan.c
-@@ -39,6 +39,13 @@
- 
- static void rio_init_em(struct rio_dev *rdev);
- 
-+struct rio_id_table {
-+	u16 start;	/* logical minimal id */
-+	u32 max;	/* max number of IDs in table */
-+	spinlock_t lock;
-+	unsigned long table[0];
-+};
-+
- static int next_destid = 0;
- static int next_comptag = 1;
- 
-@@ -62,7 +69,7 @@ static int rio_mport_phys_table[] = {
- static u16 rio_destid_alloc(struct rio_net *net)
- {
- 	int destid;
--	struct rio_id_table *idtab = &net->destid_table;
-+	struct rio_id_table *idtab = (struct rio_id_table *)net->enum_data;
- 
- 	spin_lock(&idtab->lock);
- 	destid = find_first_zero_bit(idtab->table, idtab->max);
-@@ -88,7 +95,7 @@ static u16 rio_destid_alloc(struct rio_n
- static int rio_destid_reserve(struct rio_net *net, u16 destid)
- {
- 	int oldbit;
--	struct rio_id_table *idtab = &net->destid_table;
-+	struct rio_id_table *idtab = (struct rio_id_table *)net->enum_data;
- 
- 	destid -= idtab->start;
- 	spin_lock(&idtab->lock);
-@@ -106,7 +113,7 @@ static int rio_destid_reserve(struct rio
-  */
- static void rio_destid_free(struct rio_net *net, u16 destid)
- {
--	struct rio_id_table *idtab = &net->destid_table;
-+	struct rio_id_table *idtab = (struct rio_id_table *)net->enum_data;
- 
- 	destid -= idtab->start;
- 	spin_lock(&idtab->lock);
-@@ -121,7 +128,7 @@ static void rio_destid_free(struct rio_n
- static u16 rio_destid_first(struct rio_net *net)
- {
- 	int destid;
--	struct rio_id_table *idtab = &net->destid_table;
-+	struct rio_id_table *idtab = (struct rio_id_table *)net->enum_data;
- 
- 	spin_lock(&idtab->lock);
- 	destid = find_first_bit(idtab->table, idtab->max);
-@@ -141,7 +148,7 @@ static u16 rio_destid_first(struct rio_n
- static u16 rio_destid_next(struct rio_net *net, u16 from)
- {
- 	int destid;
--	struct rio_id_table *idtab = &net->destid_table;
-+	struct rio_id_table *idtab = (struct rio_id_table *)net->enum_data;
- 
- 	spin_lock(&idtab->lock);
- 	destid = find_next_bit(idtab->table, idtab->max, from);
-@@ -458,7 +465,7 @@ static struct rio_dev *rio_setup_device(
- 			     rdev->comp_tag & RIO_CTAG_UDEVID);
- 	}
- 
--	rdev->dev.parent = &port->dev;
-+	rdev->dev.parent = &net->dev;
- 	rio_attach_device(rdev);
- 	rdev->dev.release = rio_release_dev;
- 	rdev->dma_mask = DMA_BIT_MASK(32);
-@@ -855,50 +862,71 @@ static int rio_mport_is_active(struct ri
- 	return result & RIO_PORT_N_ERR_STS_PORT_OK;
+diff -puN drivers/rapidio/rio-driver.c~rapidio-add-shutdown-notification-for-rapidio-devices drivers/rapidio/rio-driver.c
+--- a/drivers/rapidio/rio-driver.c~rapidio-add-shutdown-notification-for-rapidio-devices
++++ a/drivers/rapidio/rio-driver.c
+@@ -131,6 +131,17 @@ static int rio_device_remove(struct devi
+ 	return 0;
  }
  
--/**
-- * rio_alloc_net- Allocate and configure a new RIO network
-- * @port: Master port associated with the RIO network
-+static void rio_scan_release_net(struct rio_net *net)
++static void rio_device_shutdown(struct device *dev)
 +{
-+	pr_debug("RIO-SCAN: %s: net_%d\n", __func__, net->id);
-+	kfree(net->enum_data);
++	struct rio_dev *rdev = to_rio_dev(dev);
++	struct rio_driver *rdrv = rdev->driver;
++
++	dev_dbg(dev, "RIO: %s\n", __func__);
++
++	if (rdrv && rdrv->shutdown)
++		rdrv->shutdown(rdev);
 +}
 +
-+static void rio_scan_release_dev(struct device *dev)
-+{
-+	struct rio_net *net;
-+
-+	net = to_rio_net(dev);
-+	pr_debug("RIO-SCAN: %s: net_%d\n", __func__, net->id);
-+	kfree(net);
-+}
-+
-+/*
-+ * rio_scan_alloc_net - Allocate and configure a new RIO network
-+ * @mport: Master port associated with the RIO network
-  * @do_enum: Enumeration/Discovery mode flag
-  * @start: logical minimal start id for new net
-  *
-- * Allocates a RIO network structure, initializes per-network
-- * list heads, and adds the associated master port to the
-- * network list of associated master ports. Returns a
-- * RIO network pointer on success or %NULL on failure.
-+ * Allocates a new RIO network structure and initializes enumerator-specific
-+ * part of it (if required).
-+ * Returns a RIO network pointer on success or %NULL on failure.
-  */
--static struct rio_net *rio_alloc_net(struct rio_mport *port,
--					       int do_enum, u16 start)
-+static struct rio_net *rio_scan_alloc_net(struct rio_mport *mport,
-+					  int do_enum, u16 start)
- {
- 	struct rio_net *net;
- 
--	net = kzalloc(sizeof(struct rio_net), GFP_KERNEL);
-+	net = rio_alloc_net(mport);
-+
- 	if (net && do_enum) {
--		net->destid_table.table = kcalloc(
--			BITS_TO_LONGS(RIO_MAX_ROUTE_ENTRIES(port->sys_size)),
--			sizeof(long),
--			GFP_KERNEL);
-+		struct rio_id_table *idtab;
-+		size_t size;
- 
--		if (net->destid_table.table == NULL) {
-+		size = sizeof(struct rio_id_table) +
-+				BITS_TO_LONGS(
-+					RIO_MAX_ROUTE_ENTRIES(mport->sys_size)
-+					) * sizeof(long);
-+
-+		idtab = kzalloc(size, GFP_KERNEL);
-+
-+		if (idtab == NULL) {
- 			pr_err("RIO: failed to allocate destID table\n");
--			kfree(net);
-+			rio_free_net(net);
- 			net = NULL;
- 		} else {
--			net->destid_table.start = start;
--			net->destid_table.max =
--					RIO_MAX_ROUTE_ENTRIES(port->sys_size);
--			spin_lock_init(&net->destid_table.lock);
-+			net->enum_data = idtab;
-+			net->release = rio_scan_release_net;
-+			idtab->start = start;
-+			idtab->max = RIO_MAX_ROUTE_ENTRIES(mport->sys_size);
-+			spin_lock_init(&idtab->lock);
- 		}
- 	}
- 
- 	if (net) {
--		INIT_LIST_HEAD(&net->node);
--		INIT_LIST_HEAD(&net->devices);
--		INIT_LIST_HEAD(&net->switches);
--		INIT_LIST_HEAD(&net->mports);
--		list_add_tail(&port->nnode, &net->mports);
--		net->hport = port;
--		net->id = port->id;
-+		net->id = mport->id;
-+		net->hport = mport;
-+		dev_set_name(&net->dev, "rnet_%d", net->id);
-+		net->dev.parent = &mport->dev;
-+		net->dev.release = rio_scan_release_dev;
-+		rio_add_net(net);
- 	}
-+
- 	return net;
- }
- 
-@@ -1007,7 +1035,7 @@ static int rio_enum_mport(struct rio_mpo
- 
- 	/* If master port has an active link, allocate net and enum peers */
- 	if (rio_mport_is_active(mport)) {
--		net = rio_alloc_net(mport, 1, 0);
-+		net = rio_scan_alloc_net(mport, 1, 0);
- 		if (!net) {
- 			printk(KERN_ERR "RIO: failed to allocate new net\n");
- 			rc = -ENOMEM;
-@@ -1124,7 +1152,7 @@ static int rio_disc_mport(struct rio_mpo
- enum_done:
- 		pr_debug("RIO: ... enumeration done\n");
- 
--		net = rio_alloc_net(mport, 0, 0);
-+		net = rio_scan_alloc_net(mport, 0, 0);
- 		if (!net) {
- 			printk(KERN_ERR "RIO: Failed to allocate new net\n");
- 			goto bail;
-diff -puN drivers/rapidio/rio.c~rapidio-move-net-allocation-into-core-code drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-move-net-allocation-into-core-code
-+++ a/drivers/rapidio/rio.c
-@@ -42,6 +42,7 @@ MODULE_PARM_DESC(hdid,
- 	"Destination ID assignment to local RapidIO controllers");
- 
- static LIST_HEAD(rio_devices);
-+static LIST_HEAD(rio_nets);
- static DEFINE_SPINLOCK(rio_global_list_lock);
- 
- static LIST_HEAD(rio_mports);
-@@ -85,6 +86,58 @@ int rio_query_mport(struct rio_mport *po
- EXPORT_SYMBOL(rio_query_mport);
- 
  /**
-+ * rio_alloc_net- Allocate and initialize a new RIO network data structure
-+ * @mport: Master port associated with the RIO network
-+ *
-+ * Allocates a RIO network structure, initializes per-network
-+ * list heads, and adds the associated master port to the
-+ * network list of associated master ports. Returns a
-+ * RIO network pointer on success or %NULL on failure.
-+ */
-+struct rio_net *rio_alloc_net(struct rio_mport *mport)
-+{
-+	struct rio_net *net;
-+
-+	net = kzalloc(sizeof(struct rio_net), GFP_KERNEL);
-+	if (net) {
-+		INIT_LIST_HEAD(&net->node);
-+		INIT_LIST_HEAD(&net->devices);
-+		INIT_LIST_HEAD(&net->switches);
-+		INIT_LIST_HEAD(&net->mports);
-+		mport->net = net;
-+	}
-+	return net;
-+}
-+EXPORT_SYMBOL_GPL(rio_alloc_net);
-+
-+int rio_add_net(struct rio_net *net)
-+{
-+	int err;
-+
-+	err = device_register(&net->dev);
-+	if (err)
-+		return err;
-+	spin_lock(&rio_global_list_lock);
-+	list_add_tail(&net->node, &rio_nets);
-+	spin_unlock(&rio_global_list_lock);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(rio_add_net);
-+
-+void rio_free_net(struct rio_net *net)
-+{
-+	spin_lock(&rio_global_list_lock);
-+	if (!list_empty(&net->node))
-+		list_del(&net->node);
-+	spin_unlock(&rio_global_list_lock);
-+	if (net->release)
-+		net->release(net);
-+	device_unregister(&net->dev);
-+}
-+EXPORT_SYMBOL_GPL(rio_free_net);
-+
-+/**
-  * rio_add_device- Adds a RIO device to the device model
-  * @rdev: RIO device
-  *
-diff -puN drivers/rapidio/rio.h~rapidio-move-net-allocation-into-core-code drivers/rapidio/rio.h
---- a/drivers/rapidio/rio.h~rapidio-move-net-allocation-into-core-code
-+++ a/drivers/rapidio/rio.h
-@@ -39,6 +39,9 @@ extern int rio_route_get_entry(struct ri
- extern int rio_route_clr_table(struct rio_dev *rdev, u16 table, int lock);
- extern int rio_set_port_lockout(struct rio_dev *rdev, u32 pnum, int lock);
- extern struct rio_dev *rio_get_comptag(u32 comp_tag, struct rio_dev *from);
-+extern struct rio_net *rio_alloc_net(struct rio_mport *mport);
-+extern int rio_add_net(struct rio_net *net);
-+extern void rio_free_net(struct rio_net *net);
- extern int rio_add_device(struct rio_dev *rdev);
- extern void rio_del_device(struct rio_dev *rdev);
- extern int rio_enable_rx_tx_port(struct rio_mport *port, int local, u16 destid,
-diff -puN include/linux/rio.h~rapidio-move-net-allocation-into-core-code include/linux/rio.h
---- a/include/linux/rio.h~rapidio-move-net-allocation-into-core-code
-+++ a/include/linux/rio.h
-@@ -202,6 +202,7 @@ struct rio_dev {
- #define	to_rio_dev(n) container_of(n, struct rio_dev, dev)
- #define sw_to_rio_dev(n) container_of(n, struct rio_dev, rswitch[0])
- #define	to_rio_mport(n) container_of(n, struct rio_mport, dev)
-+#define	to_rio_net(n) container_of(n, struct rio_net, dev)
- 
- /**
-  * struct rio_msg - RIO message event
-@@ -237,6 +238,7 @@ enum rio_phy_type {
-  * @dbells: List of doorbell events
-  * @node: Node in global list of master ports
-  * @nnode: Node in network list of master ports
-+ * @net: RIO net this mport is attached to
-  * @iores: I/O mem resource that this master port interface owns
-  * @riores: RIO resources that this master port interfaces owns
-  * @inb_msg: RIO inbound message event descriptors
-@@ -258,6 +260,7 @@ struct rio_mport {
- 	struct list_head dbells;	/* list of doorbell events */
- 	struct list_head node;	/* node in global list of ports */
- 	struct list_head nnode;	/* node in net list of ports */
-+	struct rio_net *net;	/* RIO net this mport is attached to */
- 	struct resource iores;
- 	struct resource riores[RIO_MAX_MPORT_RESOURCES];
- 	struct rio_msg inb_msg[RIO_MAX_MBOX];
-@@ -287,13 +290,6 @@ struct rio_mport {
-  */
- #define RIO_SCAN_ENUM_NO_WAIT	0x00000001 /* Do not wait for enum completed */
- 
--struct rio_id_table {
--	u16 start;	/* logical minimal id */
--	u32 max;	/* max number of IDs in table */
--	spinlock_t lock;
--	unsigned long *table;
--};
--
- /**
-  * struct rio_net - RIO network info
-  * @node: Node in global list of RIO networks
-@@ -302,7 +298,8 @@ struct rio_id_table {
-  * @mports: List of master ports accessing this network
-  * @hport: Default port for accessing this network
-  * @id: RIO network ID
-- * @destid_table: destID allocation table
-+ * @enum_data: private data specific to a network enumerator
-+ * @release: enumerator-specific release callback
-  */
- struct rio_net {
- 	struct list_head node;	/* node in list of networks */
-@@ -311,7 +308,9 @@ struct rio_net {
- 	struct list_head mports;	/* list of ports accessing net */
- 	struct rio_mport *hport;	/* primary port for accessing net */
- 	unsigned char id;	/* RIO network ID */
--	struct rio_id_table destid_table;  /* destID allocation table */
-+	struct device dev;
-+	void *enum_data;	/* private data for enumerator of the network */
-+	void (*release)(struct rio_net *net);
+  *  rio_register_driver - register a new RIO driver
+  *  @rdrv: the RIO driver structure to register
+@@ -229,6 +240,7 @@ struct bus_type rio_bus_type = {
+ 	.bus_groups = rio_bus_groups,
+ 	.probe = rio_device_probe,
+ 	.remove = rio_device_remove,
++	.shutdown = rio_device_shutdown,
+ 	.uevent	= rio_uevent,
  };
  
- enum rio_link_speed {
+diff -puN include/linux/rio.h~rapidio-add-shutdown-notification-for-rapidio-devices include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-add-shutdown-notification-for-rapidio-devices
++++ a/include/linux/rio.h
+@@ -423,6 +423,7 @@ struct rio_ops {
+  * @id_table: RIO device ids to be associated with this driver
+  * @probe: RIO device inserted
+  * @remove: RIO device removed
++ * @shutdown: shutdown notification callback
+  * @suspend: RIO device suspended
+  * @resume: RIO device awakened
+  * @enable_wake: RIO device enable wake event
+@@ -437,6 +438,7 @@ struct rio_driver {
+ 	const struct rio_device_id *id_table;
+ 	int (*probe) (struct rio_dev * dev, const struct rio_device_id * id);
+ 	void (*remove) (struct rio_dev * dev);
++	void (*shutdown)(struct rio_dev *dev);
+ 	int (*suspend) (struct rio_dev * dev, u32 state);
+ 	int (*resume) (struct rio_dev * dev);
+ 	int (*enable_wake) (struct rio_dev * dev, u32 state, int enable);
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
