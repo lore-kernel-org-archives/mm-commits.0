@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-tsi721-add-outbound-windows-mapping-support.patch added to -mm tree
-Date: Mon, 08 Feb 2016 13:22:44 -0800
-Message-ID: <56b90724.Iqy2WhEm6xKiJ6cE%akpm@linux-foundation.org>
+Subject: + rapidio-tsi721-fix-locking-in-ob_msg-processing.patch added to
+ -mm tree
+Date: Mon, 08 Feb 2016 13:22:40 -0800
+Message-ID: <56b90720.4rHYvAy1EDOduqvu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35878 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35866 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756380AbcBHVWp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:45 -0500
+	with ESMTP id S1756364AbcBHVWl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/tsi721: add outbound windows mapping support
+     Subject: rapidio/tsi721: fix locking in OB_MSG processing
 has been added to the -mm tree.  Its filename is
-     rapidio-tsi721-add-outbound-windows-mapping-support.patch
+     rapidio-tsi721-fix-locking-in-ob_msg-processing.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-tsi721-add-outbound-windows-mapping-support.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-tsi721-fix-locking-in-ob_msg-processing.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-tsi721-add-outbound-windows-mapping-support.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-tsi721-fix-locking-in-ob_msg-processing.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,10 +40,16 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/tsi721: add outbound windows mapping support
+Subject: rapidio/tsi721: fix locking in OB_MSG processing
 
-Add device-specific callback functions to support outbound windows mapping
-and release.
+- Add spinlock protection into outbound message queuing routine.
+
+- Change outbound message interrupt handler to avoid deadlock when
+  calling registered callback routine.
+
+- Allow infinite retries for outbound messages to avoid retry threshold
+  error signaling in systems with nodes that have slow message receive
+  queue processing.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -51,306 +58,132 @@ Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.c |  222 ++++++++++++++++++++++++++++-
- drivers/rapidio/devices/tsi721.h |   20 ++
- 2 files changed, 235 insertions(+), 7 deletions(-)
+ drivers/rapidio/devices/tsi721.c |   42 ++++++++++++++++++++---------
+ 1 file changed, 30 insertions(+), 12 deletions(-)
 
-diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-add-outbound-windows-mapping-support drivers/rapidio/devices/tsi721.c
---- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-add-outbound-windows-mapping-support
+diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-locking-in-ob_msg-processing drivers/rapidio/devices/tsi721.c
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-locking-in-ob_msg-processing
 +++ a/drivers/rapidio/devices/tsi721.c
-@@ -841,6 +841,169 @@ static void tsi721_free_irq(struct tsi72
- 	free_irq(priv->pdev->irq, (void *)priv);
+@@ -1453,11 +1453,14 @@ tsi721_add_outb_message(struct rio_mport
+ 	struct tsi721_device *priv = mport->priv;
+ 	struct tsi721_omsg_desc *desc;
+ 	u32 tx_slot;
++	unsigned long flags;
+ 
+ 	if (!priv->omsg_init[mbox] ||
+ 	    len > TSI721_MSG_MAX_SIZE || len < 8)
+ 		return -EINVAL;
+ 
++	spin_lock_irqsave(&priv->omsg_ring[mbox].lock, flags);
++
+ 	tx_slot = priv->omsg_ring[mbox].tx_slot;
+ 
+ 	/* Copy copy message into transfer buffer */
+@@ -1469,9 +1472,11 @@ tsi721_add_outb_message(struct rio_mport
+ 	/* Build descriptor associated with buffer */
+ 	desc = priv->omsg_ring[mbox].omd_base;
+ 	desc[tx_slot].type_id = cpu_to_le32((DTYPE4 << 29) | rdev->destid);
++#ifdef TSI721_OMSG_DESC_INT
++	/* Request IOF_DONE interrupt generation for each N-th frame in queue */
+ 	if (tx_slot % 4 == 0)
+ 		desc[tx_slot].type_id |= cpu_to_le32(TSI721_OMD_IOF);
+-
++#endif
+ 	desc[tx_slot].msg_info =
+ 		cpu_to_le32((mport->sys_size << 26) | (mbox << 22) |
+ 			    (0xe << 12) | (len & 0xff8));
+@@ -1497,6 +1502,8 @@ tsi721_add_outb_message(struct rio_mport
+ 		priv->regs + TSI721_OBDMAC_DWRCNT(mbox));
+ 	ioread32(priv->regs + TSI721_OBDMAC_DWRCNT(mbox));
+ 
++	spin_unlock_irqrestore(&priv->omsg_ring[mbox].lock, flags);
++
+ 	return 0;
  }
  
-+static int
-+tsi721_obw_alloc(struct tsi721_device *priv, struct tsi721_obw_bar *pbar,
-+		 u32 size, int *win_id)
-+{
-+	u64 win_base;
-+	u64 bar_base;
-+	u64 bar_end;
-+	u32 align;
-+	struct tsi721_ob_win *win;
-+	struct tsi721_ob_win *new_win = NULL;
-+	int new_win_idx = -1;
-+	int i = 0;
-+
-+	bar_base = pbar->base;
-+	bar_end =  bar_base + pbar->size;
-+	win_base = bar_base;
-+	align = size/TSI721_PC2SR_ZONES;
-+
-+	while (i < TSI721_IBWIN_NUM) {
-+		for (i = 0; i < TSI721_IBWIN_NUM; i++) {
-+			if (!priv->ob_win[i].active) {
-+				if (new_win == NULL) {
-+					new_win = &priv->ob_win[i];
-+					new_win_idx = i;
-+				}
-+				continue;
-+			}
-+
-+			/*
-+			 * If this window belongs to the current BAR check it
-+			 * for overlap
-+			 */
-+			win = &priv->ob_win[i];
-+
-+			if (win->base >= bar_base && win->base < bar_end) {
-+				if (win_base < (win->base + win->size) &&
-+						(win_base + size) > win->base) {
-+					/* Overlap detected */
-+					win_base = win->base + win->size;
-+					win_base = ALIGN(win_base, align);
-+					break;
-+				}
-+			}
-+		}
-+	}
-+
-+	if (win_base + size > bar_end)
-+		return -ENOMEM;
-+
-+	if (!new_win) {
-+		dev_err(&priv->pdev->dev, "ERR: OBW count tracking failed\n");
-+		return -EIO;
-+	}
-+
-+	new_win->active = true;
-+	new_win->base = win_base;
-+	new_win->size = size;
-+	new_win->pbar = pbar;
-+	priv->obwin_cnt--;
-+	pbar->free -= size;
-+	*win_id = new_win_idx;
-+	return 0;
-+}
-+
-+static int tsi721_map_outb_win(struct rio_mport *mport, u16 destid, u64 rstart,
-+			u32 size, u32 flags, dma_addr_t *laddr)
-+{
-+	struct tsi721_device *priv = mport->priv;
-+	int i;
-+	struct tsi721_obw_bar *pbar;
-+	struct tsi721_ob_win *ob_win;
-+	int obw = -1;
-+	u32 rval;
-+	u64 rio_addr;
-+	u32 zsize;
-+	int ret = -ENOMEM;
-+
-+	if (!is_power_of_2(size) || (size < 0x8000) || (rstart & (size - 1)))
-+		return -EINVAL;
-+
-+	if (priv->obwin_cnt == 0)
-+		return -EBUSY;
-+
-+	for (i = 0; i < 2; i++) {
-+		if (priv->p2r_bar[i].free >= size) {
-+			pbar = &priv->p2r_bar[i];
-+			ret = tsi721_obw_alloc(priv, pbar, size, &obw);
-+			if (!ret)
-+				break;
-+		}
-+	}
-+
-+	if (ret)
-+		return ret;
-+
-+	WARN_ON(obw == -1);
-+	ob_win = &priv->ob_win[obw];
-+	ob_win->destid = destid;
-+	ob_win->rstart = rstart;
-+
-+	/*
-+	 * Configure Outbound Window
-+	 */
-+
-+	zsize = size/TSI721_PC2SR_ZONES;
-+	rio_addr = rstart;
-+
-+	/*
-+	 * Program Address Translation Zones:
-+	 *  This implementation uses all 8 zones associated wit window.
-+	 */
-+	for (i = 0; i < TSI721_PC2SR_ZONES; i++) {
-+
-+		while (ioread32(priv->regs + TSI721_ZONE_SEL) &
-+			TSI721_ZONE_SEL_GO) {
-+			udelay(1);
-+		}
-+
-+		rval = (u32)(rio_addr & TSI721_LUT_DATA0_ADD) |
-+			TSI721_LUT_DATA0_NREAD | TSI721_LUT_DATA0_NWR;
-+		iowrite32(rval, priv->regs + TSI721_LUT_DATA0);
-+		rval = (u32)(rio_addr >> 32);
-+		iowrite32(rval, priv->regs + TSI721_LUT_DATA1);
-+		rval = destid;
-+		iowrite32(rval, priv->regs + TSI721_LUT_DATA2);
-+
-+		rval = TSI721_ZONE_SEL_GO | (obw << 3) | i;
-+		iowrite32(rval, priv->regs + TSI721_ZONE_SEL);
-+
-+		rio_addr += zsize;
-+	}
-+
-+	iowrite32(TSI721_OBWIN_SIZE(size) << 8,
-+		  priv->regs + TSI721_OBWINSZ(obw));
-+	iowrite32((u32)(ob_win->base >> 32), priv->regs + TSI721_OBWINUB(obw));
-+	iowrite32((u32)(ob_win->base & TSI721_OBWINLB_BA) | TSI721_OBWINLB_WEN,
-+		  priv->regs + TSI721_OBWINLB(obw));
-+
-+	*laddr = ob_win->base;
-+	return 0;
-+}
-+
-+static void tsi721_unmap_outb_win(struct rio_mport *mport,
-+				  u16 destid, u64 rstart)
-+{
-+	struct tsi721_device *priv = mport->priv;
-+	struct tsi721_ob_win *ob_win;
-+	int i;
-+
-+	for (i = 0; i < TSI721_OBWIN_NUM; i++) {
-+		ob_win = &priv->ob_win[i];
-+
-+		if (ob_win->active &&
-+		    ob_win->destid == destid && ob_win->rstart == rstart) {
-+			ob_win->active = false;
-+			iowrite32(0, priv->regs + TSI721_OBWINLB(i));
-+			ob_win->pbar->free += ob_win->size;
-+			priv->obwin_cnt++;
-+			break;
-+		}
-+	}
-+}
-+
- /**
-  * tsi721_init_pc2sr_mapping - initializes outbound (PCIe->SRIO)
-  * translation regions.
-@@ -850,11 +1013,41 @@ static void tsi721_free_irq(struct tsi72
-  */
- static void tsi721_init_pc2sr_mapping(struct tsi721_device *priv)
+@@ -1511,6 +1518,9 @@ static void tsi721_omsg_handler(struct t
  {
--	int i;
-+	int i, z;
-+	u32 rval;
+ 	u32 omsg_int;
+ 	struct rio_mport *mport = &priv->mport;
++	void *dev_id = NULL;
++	u32 tx_slot = 0xffffffff;
++	int do_callback = 0;
  
- 	/* Disable all PC2SR translation windows */
- 	for (i = 0; i < TSI721_OBWIN_NUM; i++)
- 		iowrite32(0, priv->regs + TSI721_OBWINLB(i));
+ 	spin_lock(&priv->omsg_ring[ch].lock);
+ 
+@@ -1524,7 +1534,6 @@ static void tsi721_omsg_handler(struct t
+ 		u32 srd_ptr;
+ 		u64 *sts_ptr, last_ptr = 0, prev_ptr = 0;
+ 		int i, j;
+-		u32 tx_slot;
+ 
+ 		/*
+ 		 * Find last successfully processed descriptor
+@@ -1574,14 +1583,19 @@ static void tsi721_omsg_handler(struct t
+ 				goto no_sts_update;
+ 		}
+ 
++		if (tx_slot >= priv->omsg_ring[ch].size)
++			dev_dbg(&priv->pdev->dev,
++				  "OB_MSG tx_slot=%x > size=%x",
++				  tx_slot, priv->omsg_ring[ch].size);
++		WARN_ON(tx_slot >= priv->omsg_ring[ch].size);
 +
-+	/* Initialize zone lookup tables to avoid ECC errors on reads */
-+	iowrite32(0, priv->regs + TSI721_LUT_DATA0);
-+	iowrite32(0, priv->regs + TSI721_LUT_DATA1);
-+	iowrite32(0, priv->regs + TSI721_LUT_DATA2);
+ 		/* Move slot index to the next message to be sent */
+ 		++tx_slot;
+ 		if (tx_slot == priv->omsg_ring[ch].size)
+ 			tx_slot = 0;
+-		BUG_ON(tx_slot >= priv->omsg_ring[ch].size);
+-		mport->outb_msg[ch].mcback(mport,
+-				priv->omsg_ring[ch].dev_id, ch,
+-				tx_slot);
 +
-+	for (i = 0; i < TSI721_OBWIN_NUM; i++) {
-+		for (z = 0; z < TSI721_PC2SR_ZONES; z++) {
-+			while (ioread32(priv->regs + TSI721_ZONE_SEL) &
-+				TSI721_ZONE_SEL_GO) {
-+				udelay(1);
-+			}
-+			rval = TSI721_ZONE_SEL_GO | (i << 3) | z;
-+			iowrite32(rval, priv->regs + TSI721_ZONE_SEL);
-+		}
-+	}
++		dev_id = priv->omsg_ring[ch].dev_id;
++		do_callback = 1;
+ 	}
+ 
+ no_sts_update:
+@@ -1597,15 +1611,15 @@ no_sts_update:
+ 
+ 		iowrite32(TSI721_OBDMAC_INT_ERROR,
+ 				priv->regs + TSI721_OBDMAC_INT(ch));
+-		iowrite32(TSI721_OBDMAC_CTL_INIT,
++		iowrite32(TSI721_OBDMAC_CTL_RETRY_THR | TSI721_OBDMAC_CTL_INIT,
+ 				priv->regs + TSI721_OBDMAC_CTL(ch));
+ 		ioread32(priv->regs + TSI721_OBDMAC_CTL(ch));
+ 
+ 		/* Inform upper level to clear all pending tx slots */
+-		if (mport->outb_msg[ch].mcback)
+-			mport->outb_msg[ch].mcback(mport,
+-					priv->omsg_ring[ch].dev_id, ch,
+-					priv->omsg_ring[ch].tx_slot);
++		dev_id = priv->omsg_ring[ch].dev_id;
++		tx_slot = priv->omsg_ring[ch].tx_slot;
++		do_callback = 1;
 +
-+	if (priv->p2r_bar[0].size == 0 && priv->p2r_bar[1].size == 0) {
-+		priv->obwin_cnt = 0;
-+		return;
-+	}
+ 		/* Synch tx_slot tracking */
+ 		iowrite32(priv->omsg_ring[ch].tx_slot,
+ 			priv->regs + TSI721_OBDMAC_DRDCNT(ch));
+@@ -1627,6 +1641,9 @@ no_sts_update:
+ 	}
+ 
+ 	spin_unlock(&priv->omsg_ring[ch].lock);
 +
-+	priv->p2r_bar[0].free = priv->p2r_bar[0].size;
-+	priv->p2r_bar[1].free = priv->p2r_bar[1].size;
-+
-+	for (i = 0; i < TSI721_OBWIN_NUM; i++)
-+		priv->ob_win[i].active = false;
-+
-+	priv->obwin_cnt = TSI721_OBWIN_NUM;
++	if (mport->outb_msg[ch].mcback && do_callback)
++		mport->outb_msg[ch].mcback(mport, dev_id, ch, tx_slot);
  }
  
  /**
-@@ -2418,6 +2611,8 @@ static struct rio_ops tsi721_rio_ops = {
- 	.unmap_inb		= tsi721_rio_unmap_inb_mem,
- 	.pwenable		= tsi721_pw_enable,
- 	.query_mport		= tsi721_query_mport,
-+	.map_outb		= tsi721_map_outb_win,
-+	.unmap_outb		= tsi721_unmap_outb_win,
- };
+@@ -1768,7 +1785,8 @@ static int tsi721_open_outb_mbox(struct
+ 	mb();
  
- static void tsi721_mport_release(struct device *dev)
-@@ -2573,14 +2768,27 @@ static int tsi721_probe(struct pci_dev *
- 	 * It may be a good idea to keep them disabled using HW configuration
- 	 * to save PCI memory space.
- 	 */
--	if ((pci_resource_flags(pdev, BAR_2) & IORESOURCE_MEM) &&
--	    (pci_resource_flags(pdev, BAR_2) & IORESOURCE_MEM_64)) {
--		dev_info(&pdev->dev, "Outbound BAR2 is not used but enabled.\n");
-+
-+	priv->p2r_bar[0].size = priv->p2r_bar[1].size = 0;
-+
-+	if (pci_resource_flags(pdev, BAR_2) & IORESOURCE_MEM_64) {
-+		if (pci_resource_flags(pdev, BAR_2) & IORESOURCE_PREFETCH)
-+			dev_info(&pdev->dev,
-+				 "Prefetchable OBW BAR2 will not be used\n");
-+		else {
-+			priv->p2r_bar[0].base = pci_resource_start(pdev, BAR_2);
-+			priv->p2r_bar[0].size = pci_resource_len(pdev, BAR_2);
-+		}
- 	}
+ 	/* Initialize Outbound Message engine */
+-	iowrite32(TSI721_OBDMAC_CTL_INIT, priv->regs + TSI721_OBDMAC_CTL(mbox));
++	iowrite32(TSI721_OBDMAC_CTL_RETRY_THR | TSI721_OBDMAC_CTL_INIT,
++		  priv->regs + TSI721_OBDMAC_CTL(mbox));
+ 	ioread32(priv->regs + TSI721_OBDMAC_DWRCNT(mbox));
+ 	udelay(10);
  
--	if ((pci_resource_flags(pdev, BAR_4) & IORESOURCE_MEM) &&
--	    (pci_resource_flags(pdev, BAR_4) & IORESOURCE_MEM_64)) {
--		dev_info(&pdev->dev, "Outbound BAR4 is not used but enabled.\n");
-+	if (pci_resource_flags(pdev, BAR_4) & IORESOURCE_MEM_64) {
-+		if (pci_resource_flags(pdev, BAR_4) & IORESOURCE_PREFETCH)
-+			dev_info(&pdev->dev,
-+				 "Prefetchable OBW BAR4 will not be used\n");
-+		else {
-+			priv->p2r_bar[1].base = pci_resource_start(pdev, BAR_4);
-+			priv->p2r_bar[1].size = pci_resource_len(pdev, BAR_4);
-+		}
- 	}
- 
- 	err = pci_request_regions(pdev, DRV_NAME);
-diff -puN drivers/rapidio/devices/tsi721.h~rapidio-tsi721-add-outbound-windows-mapping-support drivers/rapidio/devices/tsi721.h
---- a/drivers/rapidio/devices/tsi721.h~rapidio-tsi721-add-outbound-windows-mapping-support
-+++ a/drivers/rapidio/devices/tsi721.h
-@@ -822,6 +822,21 @@ struct tsi721_ib_win {
- 	struct list_head mappings;
- };
- 
-+struct tsi721_obw_bar {
-+	u64		base;
-+	u64		size;
-+	u64		free;
-+};
-+
-+struct tsi721_ob_win {
-+	u64		base;
-+	u32		size;
-+	u16		destid;
-+	u64		rstart;
-+	bool		active;
-+	struct tsi721_obw_bar *pbar;
-+};
-+
- struct tsi721_device {
- 	struct pci_dev	*pdev;
- 	struct rio_mport mport;
-@@ -861,6 +876,11 @@ struct tsi721_device {
- 	/* Inbound Mapping Windows */
- 	struct tsi721_ib_win ib_win[TSI721_IBWIN_NUM];
- 	int		ibwin_cnt;
-+
-+	/* Outbound Mapping Windows */
-+	struct tsi721_obw_bar p2r_bar[2];
-+	struct tsi721_ob_win  ob_win[TSI721_OBWIN_NUM];
-+	int		obwin_cnt;
- };
- 
- #ifdef CONFIG_RAPIDIO_DMA_ENGINE
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
