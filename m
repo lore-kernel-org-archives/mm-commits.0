@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-tsi721-fix-locking-in-ob_msg-processing.patch added to
- -mm tree
-Date: Mon, 08 Feb 2016 13:22:40 -0800
-Message-ID: <56b90720.4rHYvAy1EDOduqvu%akpm@linux-foundation.org>
+Subject: + rapidio-move-rio_pw_enable-into-core-code.patch added to -mm
+ tree
+Date: Mon, 08 Feb 2016 13:22:34 -0800
+Message-ID: <56b9071a.B3kx0RT5N1bl6kYp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35866 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35850 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756364AbcBHVWl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:41 -0500
+	with ESMTP id S1756354AbcBHVWf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:35 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/tsi721: fix locking in OB_MSG processing
+     Subject: rapidio: move rio_pw_enable into core code
 has been added to the -mm tree.  Its filename is
-     rapidio-tsi721-fix-locking-in-ob_msg-processing.patch
+     rapidio-move-rio_pw_enable-into-core-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-tsi721-fix-locking-in-ob_msg-processing.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-move-rio_pw_enable-into-core-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-tsi721-fix-locking-in-ob_msg-processing.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-move-rio_pw_enable-into-core-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,16 +40,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/tsi721: fix locking in OB_MSG processing
+Subject: rapidio: move rio_pw_enable into core code
 
-- Add spinlock protection into outbound message queuing routine.
-
-- Change outbound message interrupt handler to avoid deadlock when
-  calling registered callback routine.
-
-- Allow infinite retries for outbound messages to avoid retry threshold
-  error signaling in systems with nodes that have slow message receive
-  queue processing.
+Make rio_pw_enable() routine available to other RapidIO drivers.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -58,132 +51,99 @@ Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.c |   42 ++++++++++++++++++++---------
- 1 file changed, 30 insertions(+), 12 deletions(-)
+ drivers/rapidio/rio-scan.c |   11 -----------
+ drivers/rapidio/rio.c      |   19 +++++++++++++++++++
+ include/linux/rio.h        |    2 ++
+ include/linux/rio_drv.h    |    1 +
+ 4 files changed, 22 insertions(+), 11 deletions(-)
 
-diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-locking-in-ob_msg-processing drivers/rapidio/devices/tsi721.c
---- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-fix-locking-in-ob_msg-processing
-+++ a/drivers/rapidio/devices/tsi721.c
-@@ -1453,11 +1453,14 @@ tsi721_add_outb_message(struct rio_mport
- 	struct tsi721_device *priv = mport->priv;
- 	struct tsi721_omsg_desc *desc;
- 	u32 tx_slot;
-+	unsigned long flags;
- 
- 	if (!priv->omsg_init[mbox] ||
- 	    len > TSI721_MSG_MAX_SIZE || len < 8)
- 		return -EINVAL;
- 
-+	spin_lock_irqsave(&priv->omsg_ring[mbox].lock, flags);
-+
- 	tx_slot = priv->omsg_ring[mbox].tx_slot;
- 
- 	/* Copy copy message into transfer buffer */
-@@ -1469,9 +1472,11 @@ tsi721_add_outb_message(struct rio_mport
- 	/* Build descriptor associated with buffer */
- 	desc = priv->omsg_ring[mbox].omd_base;
- 	desc[tx_slot].type_id = cpu_to_le32((DTYPE4 << 29) | rdev->destid);
-+#ifdef TSI721_OMSG_DESC_INT
-+	/* Request IOF_DONE interrupt generation for each N-th frame in queue */
- 	if (tx_slot % 4 == 0)
- 		desc[tx_slot].type_id |= cpu_to_le32(TSI721_OMD_IOF);
--
-+#endif
- 	desc[tx_slot].msg_info =
- 		cpu_to_le32((mport->sys_size << 26) | (mbox << 22) |
- 			    (0xe << 12) | (len & 0xff8));
-@@ -1497,6 +1502,8 @@ tsi721_add_outb_message(struct rio_mport
- 		priv->regs + TSI721_OBDMAC_DWRCNT(mbox));
- 	ioread32(priv->regs + TSI721_OBDMAC_DWRCNT(mbox));
- 
-+	spin_unlock_irqrestore(&priv->omsg_ring[mbox].lock, flags);
-+
- 	return 0;
- }
- 
-@@ -1511,6 +1518,9 @@ static void tsi721_omsg_handler(struct t
- {
- 	u32 omsg_int;
- 	struct rio_mport *mport = &priv->mport;
-+	void *dev_id = NULL;
-+	u32 tx_slot = 0xffffffff;
-+	int do_callback = 0;
- 
- 	spin_lock(&priv->omsg_ring[ch].lock);
- 
-@@ -1524,7 +1534,6 @@ static void tsi721_omsg_handler(struct t
- 		u32 srd_ptr;
- 		u64 *sts_ptr, last_ptr = 0, prev_ptr = 0;
- 		int i, j;
--		u32 tx_slot;
- 
- 		/*
- 		 * Find last successfully processed descriptor
-@@ -1574,14 +1583,19 @@ static void tsi721_omsg_handler(struct t
- 				goto no_sts_update;
- 		}
- 
-+		if (tx_slot >= priv->omsg_ring[ch].size)
-+			dev_dbg(&priv->pdev->dev,
-+				  "OB_MSG tx_slot=%x > size=%x",
-+				  tx_slot, priv->omsg_ring[ch].size);
-+		WARN_ON(tx_slot >= priv->omsg_ring[ch].size);
-+
- 		/* Move slot index to the next message to be sent */
- 		++tx_slot;
- 		if (tx_slot == priv->omsg_ring[ch].size)
- 			tx_slot = 0;
--		BUG_ON(tx_slot >= priv->omsg_ring[ch].size);
--		mport->outb_msg[ch].mcback(mport,
--				priv->omsg_ring[ch].dev_id, ch,
--				tx_slot);
-+
-+		dev_id = priv->omsg_ring[ch].dev_id;
-+		do_callback = 1;
- 	}
- 
- no_sts_update:
-@@ -1597,15 +1611,15 @@ no_sts_update:
- 
- 		iowrite32(TSI721_OBDMAC_INT_ERROR,
- 				priv->regs + TSI721_OBDMAC_INT(ch));
--		iowrite32(TSI721_OBDMAC_CTL_INIT,
-+		iowrite32(TSI721_OBDMAC_CTL_RETRY_THR | TSI721_OBDMAC_CTL_INIT,
- 				priv->regs + TSI721_OBDMAC_CTL(ch));
- 		ioread32(priv->regs + TSI721_OBDMAC_CTL(ch));
- 
- 		/* Inform upper level to clear all pending tx slots */
--		if (mport->outb_msg[ch].mcback)
--			mport->outb_msg[ch].mcback(mport,
--					priv->omsg_ring[ch].dev_id, ch,
--					priv->omsg_ring[ch].tx_slot);
-+		dev_id = priv->omsg_ring[ch].dev_id;
-+		tx_slot = priv->omsg_ring[ch].tx_slot;
-+		do_callback = 1;
-+
- 		/* Synch tx_slot tracking */
- 		iowrite32(priv->omsg_ring[ch].tx_slot,
- 			priv->regs + TSI721_OBDMAC_DRDCNT(ch));
-@@ -1627,6 +1641,9 @@ no_sts_update:
- 	}
- 
- 	spin_unlock(&priv->omsg_ring[ch].lock);
-+
-+	if (mport->outb_msg[ch].mcback && do_callback)
-+		mport->outb_msg[ch].mcback(mport, dev_id, ch, tx_slot);
+diff -puN drivers/rapidio/rio-scan.c~rapidio-move-rio_pw_enable-into-core-code drivers/rapidio/rio-scan.c
+--- a/drivers/rapidio/rio-scan.c~rapidio-move-rio_pw_enable-into-core-code
++++ a/drivers/rapidio/rio-scan.c
+@@ -974,17 +974,6 @@ static void rio_init_em(struct rio_dev *
  }
  
  /**
-@@ -1768,7 +1785,8 @@ static int tsi721_open_outb_mbox(struct
- 	mb();
+- * rio_pw_enable - Enables/disables port-write handling by a master port
+- * @port: Master port associated with port-write handling
+- * @enable:  1=enable,  0=disable
+- */
+-static void rio_pw_enable(struct rio_mport *port, int enable)
+-{
+-	if (port->ops->pwenable)
+-		port->ops->pwenable(port, enable);
+-}
+-
+-/**
+  * rio_enum_mport- Start enumeration through a master port
+  * @mport: Master port to send transactions
+  * @flags: Enumeration control flags
+diff -puN drivers/rapidio/rio.c~rapidio-move-rio_pw_enable-into-core-code drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-move-rio_pw_enable-into-core-code
++++ a/drivers/rapidio/rio.c
+@@ -560,6 +560,24 @@ int rio_release_inb_pwrite(struct rio_de
+ EXPORT_SYMBOL_GPL(rio_release_inb_pwrite);
  
- 	/* Initialize Outbound Message engine */
--	iowrite32(TSI721_OBDMAC_CTL_INIT, priv->regs + TSI721_OBDMAC_CTL(mbox));
-+	iowrite32(TSI721_OBDMAC_CTL_RETRY_THR | TSI721_OBDMAC_CTL_INIT,
-+		  priv->regs + TSI721_OBDMAC_CTL(mbox));
- 	ioread32(priv->regs + TSI721_OBDMAC_DWRCNT(mbox));
- 	udelay(10);
+ /**
++ * rio_pw_enable - Enables/disables port-write handling by a master port
++ * @port: Master port associated with port-write handling
++ * @enable:  1=enable,  0=disable
++ */
++void rio_pw_enable(struct rio_mport *mport, int enable)
++{
++	if (mport->ops->pwenable) {
++		mutex_lock(&mport->lock);
++
++		if ((enable && ++mport->pwe_refcnt == 1) ||
++		    (!enable && mport->pwe_refcnt && --mport->pwe_refcnt == 0))
++			mport->ops->pwenable(mport, enable);
++		mutex_unlock(&mport->lock);
++	}
++}
++EXPORT_SYMBOL_GPL(rio_pw_enable);
++
++/**
+  * rio_map_inb_region -- Map inbound memory region.
+  * @mport: Master port.
+  * @local: physical address of memory region to be mapped
+@@ -2041,6 +2059,7 @@ int rio_mport_initialize(struct rio_mpor
+ 	mport->host_deviceid = rio_get_hdid(mport->id);
+ 	mport->nscan = NULL;
+ 	mutex_init(&mport->lock);
++	mport->pwe_refcnt = 0;
  
+ 	return 0;
+ }
+diff -puN include/linux/rio.h~rapidio-move-rio_pw_enable-into-core-code include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-move-rio_pw_enable-into-core-code
++++ a/include/linux/rio.h
+@@ -266,6 +266,7 @@ enum rio_phy_type {
+  * @dma: DMA device associated with mport
+  * @nscan: RapidIO network enumeration/discovery operations
+  * @state: mport device state
++ * @pwe_refcnt: port-write enable ref counter to track enable/disable requests
+  */
+ struct rio_mport {
+ 	struct list_head dbells;	/* list of doorbell events */
+@@ -296,6 +297,7 @@ struct rio_mport {
+ #endif
+ 	struct rio_scan *nscan;
+ 	atomic_t state;
++	unsigned int pwe_refcnt;
+ };
+ 
+ static inline int rio_mport_is_running(struct rio_mport *mport)
+diff -puN include/linux/rio_drv.h~rapidio-move-rio_pw_enable-into-core-code include/linux/rio_drv.h
+--- a/include/linux/rio_drv.h~rapidio-move-rio_pw_enable-into-core-code
++++ a/include/linux/rio_drv.h
+@@ -375,6 +375,7 @@ extern int rio_request_inb_pwrite(struct
+ 			int (*)(struct rio_dev *, union rio_pw_msg*, int));
+ extern int rio_release_inb_pwrite(struct rio_dev *);
+ extern int rio_inb_pwrite_handler(union rio_pw_msg *pw_msg);
++extern void rio_pw_enable(struct rio_mport *mport, int enable);
+ 
+ /* LDM support */
+ int rio_register_driver(struct rio_driver *);
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
