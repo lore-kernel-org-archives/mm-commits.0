@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-rionet-add-locking-into-add-remove-device.patch added
- to -mm tree
-Date: Mon, 08 Feb 2016 13:22:26 -0800
-Message-ID: <56b90712.IcUNFkth8Z8MWC0u%akpm@linux-foundation.org>
+Subject: + rapidio-rework-common-rio-device-add-delete-routines.patch
+ added to -mm tree
+Date: Mon, 08 Feb 2016 13:22:16 -0800
+Message-ID: <56b90708.ozVkLE1PAYfxu3F4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35825 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35789 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756320AbcBHVW1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:27 -0500
+	with ESMTP id S1756282AbcBHVWR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:17 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/rionet: add locking into add/remove device
+     Subject: rapidio: rework common RIO device add/delete routines
 has been added to the -mm tree.  Its filename is
-     rapidio-rionet-add-locking-into-add-remove-device.patch
+     rapidio-rework-common-rio-device-add-delete-routines.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-rionet-add-locking-into-add-remove-device.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-rework-common-rio-device-add-delete-routines.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-rionet-add-locking-into-add-remove-device.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-rework-common-rio-device-add-delete-routines.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +40,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/rionet: add locking into add/remove device
+Subject: rapidio: rework common RIO device add/delete routines
 
-Add spinlock protection when handling list of connected peers and ability
-to handle new peer device addition after the RIONET device was open.
-Before his update RIONET was sending JOIN requests only when it have been
-opened, peer devices added later have been missing from this process.
+This patch moves per-net device list handling from rio-scan to common
+RapidIO core and adds a matching device deletion routine. This makes
+device object creation/removal available to other implementations of
+enumeration/discovery process.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -54,333 +54,137 @@ Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/rionet.c |  152 +++++++++++++++++++++++++++--------------
- 1 file changed, 102 insertions(+), 50 deletions(-)
+ drivers/rapidio/rio-scan.c |   13 ++-----------
+ drivers/rapidio/rio.c      |   33 ++++++++++++++++++++++++++++++++-
+ drivers/rapidio/rio.h      |    2 ++
+ 3 files changed, 36 insertions(+), 12 deletions(-)
 
-diff -puN drivers/net/rionet.c~rapidio-rionet-add-locking-into-add-remove-device drivers/net/rionet.c
---- a/drivers/net/rionet.c~rapidio-rionet-add-locking-into-add-remove-device
-+++ a/drivers/net/rionet.c
-@@ -63,6 +63,7 @@ struct rionet_private {
- 	spinlock_t lock;
- 	spinlock_t tx_lock;
- 	u32 msg_enable;
-+	bool open;
- };
+diff -puN drivers/rapidio/rio-scan.c~rapidio-rework-common-rio-device-add-delete-routines drivers/rapidio/rio-scan.c
+--- a/drivers/rapidio/rio-scan.c~rapidio-rework-common-rio-device-add-delete-routines
++++ a/drivers/rapidio/rio-scan.c
+@@ -449,9 +449,6 @@ static struct rio_dev *rio_setup_device(
  
- struct rionet_peer {
-@@ -74,6 +75,7 @@ struct rionet_peer {
- struct rionet_net {
- 	struct net_device *ndev;
- 	struct list_head peers;
-+	spinlock_t lock;	/* net info access lock */
- 	struct rio_dev **active;
- 	int nact;	/* number of active peers */
- };
-@@ -235,26 +237,32 @@ static void rionet_dbell_event(struct ri
- 	struct net_device *ndev = dev_id;
- 	struct rionet_private *rnet = netdev_priv(ndev);
- 	struct rionet_peer *peer;
-+	unsigned char netid = rnet->mport->id;
- 
- 	if (netif_msg_intr(rnet))
- 		printk(KERN_INFO "%s: doorbell sid %4.4x tid %4.4x info %4.4x",
- 		       DRV_NAME, sid, tid, info);
- 	if (info == RIONET_DOORBELL_JOIN) {
--		if (!nets[rnet->mport->id].active[sid]) {
--			list_for_each_entry(peer,
--					   &nets[rnet->mport->id].peers, node) {
-+		if (!nets[netid].active[sid]) {
-+			spin_lock(&nets[netid].lock);
-+			list_for_each_entry(peer, &nets[netid].peers, node) {
- 				if (peer->rdev->destid == sid) {
--					nets[rnet->mport->id].active[sid] =
--								peer->rdev;
--					nets[rnet->mport->id].nact++;
-+					nets[netid].active[sid] = peer->rdev;
-+					nets[netid].nact++;
- 				}
- 			}
-+			spin_unlock(&nets[netid].lock);
-+
- 			rio_mport_send_doorbell(mport, sid,
- 						RIONET_DOORBELL_JOIN);
- 		}
- 	} else if (info == RIONET_DOORBELL_LEAVE) {
--		nets[rnet->mport->id].active[sid] = NULL;
--		nets[rnet->mport->id].nact--;
-+		spin_lock(&nets[netid].lock);
-+		if (nets[netid].active[sid]) {
-+			nets[netid].active[sid] = NULL;
-+			nets[netid].nact--;
-+		}
-+		spin_unlock(&nets[netid].lock);
+ 		if (do_enum)
+ 			rio_route_clr_table(rdev, RIO_GLOBAL_TABLE, 0);
+-
+-		list_add_tail(&rswitch->node, &net->switches);
+-
  	} else {
- 		if (netif_msg_intr(rnet))
- 			printk(KERN_WARNING "%s: unhandled doorbell\n",
-@@ -308,8 +316,10 @@ static void rionet_outb_msg_event(struct
- static int rionet_open(struct net_device *ndev)
- {
- 	int i, rc = 0;
--	struct rionet_peer *peer, *tmp;
-+	struct rionet_peer *peer;
- 	struct rionet_private *rnet = netdev_priv(ndev);
-+	unsigned char netid = rnet->mport->id;
-+	unsigned long flags;
+ 		if (do_enum)
+ 			/*Enable Input Output Port (transmitter reviever)*/
+@@ -463,11 +460,7 @@ static struct rio_dev *rio_setup_device(
  
- 	if (netif_msg_ifup(rnet))
- 		printk(KERN_INFO "%s: open\n", DRV_NAME);
-@@ -348,20 +358,13 @@ static int rionet_open(struct net_device
- 	netif_carrier_on(ndev);
- 	netif_start_queue(ndev);
- 
--	list_for_each_entry_safe(peer, tmp,
--				 &nets[rnet->mport->id].peers, node) {
--		if (!(peer->res = rio_request_outb_dbell(peer->rdev,
--							 RIONET_DOORBELL_JOIN,
--							 RIONET_DOORBELL_LEAVE)))
--		{
--			printk(KERN_ERR "%s: error requesting doorbells\n",
--			       DRV_NAME);
--			continue;
--		}
+ 	rdev->dev.parent = &port->dev;
+ 	rio_attach_device(rdev);
 -
-+	spin_lock_irqsave(&nets[netid].lock, flags);
-+	list_for_each_entry(peer, &nets[netid].peers, node) {
- 		/* Send a join message */
- 		rio_send_doorbell(peer->rdev, RIONET_DOORBELL_JOIN);
- 	}
-+	spin_unlock_irqrestore(&nets[netid].lock, flags);
-+	rnet->open = true;
+-	device_initialize(&rdev->dev);
+ 	rdev->dev.release = rio_release_dev;
+-	rio_dev_get(rdev);
+-
+ 	rdev->dma_mask = DMA_BIT_MASK(32);
+ 	rdev->dev.dma_mask = &rdev->dma_mask;
+ 	rdev->dev.coherent_dma_mask = DMA_BIT_MASK(32);
+@@ -480,6 +473,8 @@ static struct rio_dev *rio_setup_device(
+ 	if (ret)
+ 		goto cleanup;
  
-       out:
- 	return rc;
-@@ -370,7 +373,9 @@ static int rionet_open(struct net_device
- static int rionet_close(struct net_device *ndev)
- {
- 	struct rionet_private *rnet = netdev_priv(ndev);
--	struct rionet_peer *peer, *tmp;
-+	struct rionet_peer *peer;
-+	unsigned char netid = rnet->mport->id;
-+	unsigned long flags;
- 	int i;
- 
- 	if (netif_msg_ifup(rnet))
-@@ -378,18 +383,21 @@ static int rionet_close(struct net_devic
- 
- 	netif_stop_queue(ndev);
- 	netif_carrier_off(ndev);
-+	rnet->open = false;
- 
- 	for (i = 0; i < RIONET_RX_RING_SIZE; i++)
- 		kfree_skb(rnet->rx_skb[i]);
- 
--	list_for_each_entry_safe(peer, tmp,
--				 &nets[rnet->mport->id].peers, node) {
--		if (nets[rnet->mport->id].active[peer->rdev->destid]) {
-+	spin_lock_irqsave(&nets[netid].lock, flags);
-+	list_for_each_entry(peer, &nets[netid].peers, node) {
-+		if (nets[netid].active[peer->rdev->destid]) {
- 			rio_send_doorbell(peer->rdev, RIONET_DOORBELL_LEAVE);
--			nets[rnet->mport->id].active[peer->rdev->destid] = NULL;
-+			nets[netid].active[peer->rdev->destid] = NULL;
- 		}
--		rio_release_outb_dbell(peer->rdev, peer->res);
-+		if (peer->res)
-+			rio_release_outb_dbell(peer->rdev, peer->res);
- 	}
-+	spin_unlock_irqrestore(&nets[netid].lock, flags);
- 
- 	rio_release_inb_dbell(rnet->mport, RIONET_DOORBELL_JOIN,
- 			      RIONET_DOORBELL_LEAVE);
-@@ -403,22 +411,38 @@ static void rionet_remove_dev(struct dev
- {
- 	struct rio_dev *rdev = to_rio_dev(dev);
- 	unsigned char netid = rdev->net->hport->id;
--	struct rionet_peer *peer, *tmp;
-+	struct rionet_peer *peer;
-+	int state, found = 0;
-+	unsigned long flags;
- 
--	if (dev_rionet_capable(rdev)) {
--		list_for_each_entry_safe(peer, tmp, &nets[netid].peers, node) {
--			if (peer->rdev == rdev) {
--				if (nets[netid].active[rdev->destid]) {
--					nets[netid].active[rdev->destid] = NULL;
--					nets[netid].nact--;
--				}
-+	if (!dev_rionet_capable(rdev))
-+		return;
- 
--				list_del(&peer->node);
--				kfree(peer);
--				break;
-+	spin_lock_irqsave(&nets[netid].lock, flags);
-+	list_for_each_entry(peer, &nets[netid].peers, node) {
-+		if (peer->rdev == rdev) {
-+			list_del(&peer->node);
-+			if (nets[netid].active[rdev->destid]) {
-+				state = atomic_read(&rdev->state);
-+				if (state != RIO_DEVICE_GONE &&
-+				    state != RIO_DEVICE_INITIALIZING) {
-+					rio_send_doorbell(rdev,
-+							RIONET_DOORBELL_LEAVE);
-+				}
-+				nets[netid].active[rdev->destid] = NULL;
-+				nets[netid].nact--;
- 			}
-+			found = 1;
-+			break;
- 		}
- 	}
-+	spin_unlock_irqrestore(&nets[netid].lock, flags);
++	rio_dev_get(rdev);
 +
-+	if (found) {
-+		if (peer->res)
-+			rio_release_outb_dbell(rdev, peer->res);
-+		kfree(peer);
+ 	return rdev;
+ 
+ cleanup:
+@@ -621,8 +616,6 @@ static int rio_enum_peer(struct rio_net
+ 	rdev = rio_setup_device(net, port, RIO_ANY_DESTID(port->sys_size),
+ 					hopcount, 1);
+ 	if (rdev) {
+-		/* Add device to the global and bus/net specific list. */
+-		list_add_tail(&rdev->net_list, &net->devices);
+ 		rdev->prev = prev;
+ 		if (prev && rio_is_switch(prev))
+ 			prev->rswitch->nextdev[prev_port] = rdev;
+@@ -778,8 +771,6 @@ rio_disc_peer(struct rio_net *net, struc
+ 
+ 	/* Setup new RIO device */
+ 	if ((rdev = rio_setup_device(net, port, destid, hopcount, 0))) {
+-		/* Add device to the global and bus/net specific list. */
+-		list_add_tail(&rdev->net_list, &net->devices);
+ 		rdev->prev = prev;
+ 		if (prev && rio_is_switch(prev))
+ 			prev->rswitch->nextdev[prev_port] = rdev;
+diff -puN drivers/rapidio/rio.c~rapidio-rework-common-rio-device-add-delete-routines drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-rework-common-rio-device-add-delete-routines
++++ a/drivers/rapidio/rio.c
+@@ -96,12 +96,18 @@ int rio_add_device(struct rio_dev *rdev)
+ {
+ 	int err;
+ 
+-	err = device_add(&rdev->dev);
++	err = device_register(&rdev->dev);
+ 	if (err)
+ 		return err;
+ 
+ 	spin_lock(&rio_global_list_lock);
+ 	list_add_tail(&rdev->global_list, &rio_devices);
++	if (rdev->net) {
++		list_add_tail(&rdev->net_list, &rdev->net->devices);
++		if (rdev->pef & RIO_PEF_SWITCH)
++			list_add_tail(&rdev->rswitch->node,
++				      &rdev->net->switches);
 +	}
+ 	spin_unlock(&rio_global_list_lock);
+ 
+ 	rio_create_sysfs_dev_files(rdev);
+@@ -110,6 +116,31 @@ int rio_add_device(struct rio_dev *rdev)
  }
+ EXPORT_SYMBOL_GPL(rio_add_device);
  
- static void rionet_get_drvinfo(struct net_device *ndev,
-@@ -492,6 +516,7 @@ static int rionet_setup_netdev(struct ri
- 	/* Set up private area */
- 	rnet = netdev_priv(ndev);
- 	rnet->mport = mport;
-+	rnet->open = false;
- 
- 	/* Set the default MAC address */
- 	device_id = rio_local_get_device_id(mport);
-@@ -514,8 +539,11 @@ static int rionet_setup_netdev(struct ri
- 	rnet->msg_enable = RIONET_DEFAULT_MSGLEVEL;
- 
- 	rc = register_netdev(ndev);
--	if (rc != 0)
-+	if (rc != 0) {
-+		free_pages((unsigned long)nets[mport->id].active,
-+			   get_order(rionet_active_bytes));
- 		goto out;
-+	}
- 
- 	printk(KERN_INFO "%s: %s %s Version %s, MAC %pM, %s\n",
- 	       ndev->name,
-@@ -529,8 +557,6 @@ static int rionet_setup_netdev(struct ri
- 	return rc;
- }
- 
--static unsigned long net_table[RIONET_MAX_NETS/sizeof(unsigned long) + 1];
--
- static int rionet_add_dev(struct device *dev, struct subsys_interface *sif)
- {
- 	int rc = -ENODEV;
-@@ -539,19 +565,16 @@ static int rionet_add_dev(struct device
- 	struct net_device *ndev = NULL;
- 	struct rio_dev *rdev = to_rio_dev(dev);
- 	unsigned char netid = rdev->net->hport->id;
--	int oldnet;
- 
- 	if (netid >= RIONET_MAX_NETS)
- 		return rc;
- 
--	oldnet = test_and_set_bit(netid, net_table);
--
- 	/*
- 	 * If first time through this net, make sure local device is rionet
- 	 * capable and setup netdev (this step will be skipped in later probes
- 	 * on the same net).
- 	 */
--	if (!oldnet) {
-+	if (!nets[netid].ndev) {
- 		rio_local_read_config_32(rdev->net->hport, RIO_SRC_OPS_CAR,
- 					 &lsrc_ops);
- 		rio_local_read_config_32(rdev->net->hport, RIO_DST_OPS_CAR,
-@@ -569,30 +592,56 @@ static int rionet_add_dev(struct device
- 			rc = -ENOMEM;
- 			goto out;
- 		}
--		nets[netid].ndev = ndev;
-+
- 		rc = rionet_setup_netdev(rdev->net->hport, ndev);
- 		if (rc) {
- 			printk(KERN_ERR "%s: failed to setup netdev (rc=%d)\n",
- 			       DRV_NAME, rc);
-+			free_netdev(ndev);
- 			goto out;
- 		}
- 
- 		INIT_LIST_HEAD(&nets[netid].peers);
-+		spin_lock_init(&nets[netid].lock);
- 		nets[netid].nact = 0;
--	} else if (nets[netid].ndev == NULL)
--		goto out;
-+		nets[netid].ndev = ndev;
-+	}
- 
- 	/*
- 	 * If the remote device has mailbox/doorbell capabilities,
- 	 * add it to the peer list.
- 	 */
- 	if (dev_rionet_capable(rdev)) {
--		if (!(peer = kmalloc(sizeof(struct rionet_peer), GFP_KERNEL))) {
-+		struct rionet_private *rnet;
-+		unsigned long flags;
-+
-+		rnet = netdev_priv(nets[netid].ndev);
-+
-+		peer = kzalloc(sizeof(*peer), GFP_KERNEL);
-+		if (!peer) {
- 			rc = -ENOMEM;
- 			goto out;
- 		}
- 		peer->rdev = rdev;
-+		peer->res = rio_request_outb_dbell(peer->rdev,
-+						RIONET_DOORBELL_JOIN,
-+						RIONET_DOORBELL_LEAVE);
-+		if (!peer->res) {
-+			pr_err("%s: error requesting doorbells\n", DRV_NAME);
-+			kfree(peer);
-+			rc = -ENOMEM;
-+			goto out;
++/*
++ * rio_del_device - removes a RIO device from the device model
++ * @rdev: RIO device
++ *
++ * Removes the RIO device to the kernel device list and subsystem's device list.
++ * Clears sysfs entries for the removed device.
++ */
++void rio_del_device(struct rio_dev *rdev)
++{
++	pr_debug("RIO: %s: removing %s\n", __func__, rio_name(rdev));
++	spin_lock(&rio_global_list_lock);
++	list_del(&rdev->global_list);
++	if (rdev->net) {
++		list_del(&rdev->net_list);
++		if (rdev->pef & RIO_PEF_SWITCH) {
++			list_del(&rdev->rswitch->node);
++			kfree(rdev->rswitch->route_table);
 +		}
++	}
++	spin_unlock(&rio_global_list_lock);
++	rio_remove_sysfs_dev_files(rdev);
++	device_unregister(&rdev->dev);
++}
++EXPORT_SYMBOL_GPL(rio_del_device);
 +
-+		spin_lock_irqsave(&nets[netid].lock, flags);
- 		list_add_tail(&peer->node, &nets[netid].peers);
-+		spin_unlock_irqrestore(&nets[netid].lock, flags);
-+		pr_debug("%s: %s add peer %s\n",
-+			 DRV_NAME, __func__, rio_name(rdev));
-+
-+		/* If netdev is already opened, send join request to new peer */
-+		if (rnet->open)
-+			rio_send_doorbell(peer->rdev, RIONET_DOORBELL_JOIN);
- 	}
- 
- 	return 0;
-@@ -603,7 +652,8 @@ out:
- static int rionet_shutdown(struct notifier_block *nb, unsigned long code,
- 			   void *unused)
- {
--	struct rionet_peer *peer, *tmp;
-+	struct rionet_peer *peer;
-+	unsigned long flags;
- 	int i;
- 
- 	pr_debug("%s: %s\n", DRV_NAME, __func__);
-@@ -612,13 +662,15 @@ static int rionet_shutdown(struct notifi
- 		if (!nets[i].ndev)
- 			continue;
- 
--		list_for_each_entry_safe(peer, tmp, &nets[i].peers, node) {
-+		spin_lock_irqsave(&nets[i].lock, flags);
-+		list_for_each_entry(peer, &nets[i].peers, node) {
- 			if (nets[i].active[peer->rdev->destid]) {
- 				rio_send_doorbell(peer->rdev,
- 						  RIONET_DOORBELL_LEAVE);
- 				nets[i].active[peer->rdev->destid] = NULL;
- 			}
- 		}
-+		spin_unlock_irqrestore(&nets[i].lock, flags);
- 	}
- 
- 	return NOTIFY_DONE;
+ /**
+  * rio_request_inb_mbox - request inbound mailbox service
+  * @mport: RIO master port from which to allocate the mailbox resource
+diff -puN drivers/rapidio/rio.h~rapidio-rework-common-rio-device-add-delete-routines drivers/rapidio/rio.h
+--- a/drivers/rapidio/rio.h~rapidio-rework-common-rio-device-add-delete-routines
++++ a/drivers/rapidio/rio.h
+@@ -28,6 +28,7 @@ extern u32 rio_mport_get_efb(struct rio_
+ extern int rio_mport_chk_dev_access(struct rio_mport *mport, u16 destid,
+ 				    u8 hopcount);
+ extern int rio_create_sysfs_dev_files(struct rio_dev *rdev);
++extern void rio_remove_sysfs_dev_files(struct rio_dev *rdev);
+ extern int rio_lock_device(struct rio_mport *port, u16 destid,
+ 			u8 hopcount, int wait_ms);
+ extern int rio_unlock_device(struct rio_mport *port, u16 destid, u8 hopcount);
+@@ -39,6 +40,7 @@ extern int rio_route_clr_table(struct ri
+ extern int rio_set_port_lockout(struct rio_dev *rdev, u32 pnum, int lock);
+ extern struct rio_dev *rio_get_comptag(u32 comp_tag, struct rio_dev *from);
+ extern int rio_add_device(struct rio_dev *rdev);
++extern void rio_del_device(struct rio_dev *rdev);
+ extern int rio_enable_rx_tx_port(struct rio_mport *port, int local, u16 destid,
+ 				 u8 hopcount, u8 port_num);
+ extern int rio_register_scan(int mport_id, struct rio_scan *scan_ops);
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
