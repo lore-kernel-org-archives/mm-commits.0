@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-move-rio_pw_enable-into-core-code.patch added to -mm
- tree
-Date: Mon, 08 Feb 2016 13:22:34 -0800
-Message-ID: <56b9071a.B3kx0RT5N1bl6kYp%akpm@linux-foundation.org>
+Subject: + rapidio-add-outbound-window-support.patch added to -mm tree
+Date: Mon, 08 Feb 2016 13:22:42 -0800
+Message-ID: <56b90722.9YYJPeozM5AG7dCw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35850 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35871 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756354AbcBHVWf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:35 -0500
+	with ESMTP id S1756377AbcBHVWn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 16:22:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, leoli@freescale.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: move rio_pw_enable into core code
+     Subject: rapidio: add outbound window support
 has been added to the -mm tree.  Its filename is
-     rapidio-move-rio_pw_enable-into-core-code.patch
+     rapidio-add-outbound-window-support.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-move-rio_pw_enable-into-core-code.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-add-outbound-window-support.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-move-rio_pw_enable-into-core-code.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-add-outbound-window-support.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,110 +39,125 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: move rio_pw_enable into core code
+Subject: rapidio: add outbound window support
 
-Make rio_pw_enable() routine available to other RapidIO drivers.
+Add RapidIO controller (mport) outbound window configuration operations.
+  This patch is a part of the original patch submitted by Li Yang
+  (https://lists.ozlabs.org/pipermail/linuxppc-dev/2009-April/071210.html).
+  For some reason the original part was not applied to mainline code
+  tree.  The inbound window mapping part has been applied later during
+  tsi721 mport driver submission.  Now goes the second part with
+  corresponding HW support.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Li Yang <leoli@freescale.com>
 Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
 Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-scan.c |   11 -----------
- drivers/rapidio/rio.c      |   19 +++++++++++++++++++
- include/linux/rio.h        |    2 ++
- include/linux/rio_drv.h    |    1 +
- 4 files changed, 22 insertions(+), 11 deletions(-)
+ drivers/rapidio/rio.c   |   50 ++++++++++++++++++++++++++++++++++++++
+ include/linux/rio.h     |    5 +++
+ include/linux/rio_drv.h |    4 +++
+ 3 files changed, 59 insertions(+)
 
-diff -puN drivers/rapidio/rio-scan.c~rapidio-move-rio_pw_enable-into-core-code drivers/rapidio/rio-scan.c
---- a/drivers/rapidio/rio-scan.c~rapidio-move-rio_pw_enable-into-core-code
-+++ a/drivers/rapidio/rio-scan.c
-@@ -974,17 +974,6 @@ static void rio_init_em(struct rio_dev *
- }
- 
- /**
-- * rio_pw_enable - Enables/disables port-write handling by a master port
-- * @port: Master port associated with port-write handling
-- * @enable:  1=enable,  0=disable
-- */
--static void rio_pw_enable(struct rio_mport *port, int enable)
--{
--	if (port->ops->pwenable)
--		port->ops->pwenable(port, enable);
--}
--
--/**
-  * rio_enum_mport- Start enumeration through a master port
-  * @mport: Master port to send transactions
-  * @flags: Enumeration control flags
-diff -puN drivers/rapidio/rio.c~rapidio-move-rio_pw_enable-into-core-code drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-move-rio_pw_enable-into-core-code
+diff -puN drivers/rapidio/rio.c~rapidio-add-outbound-window-support drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-add-outbound-window-support
 +++ a/drivers/rapidio/rio.c
-@@ -560,6 +560,24 @@ int rio_release_inb_pwrite(struct rio_de
- EXPORT_SYMBOL_GPL(rio_release_inb_pwrite);
+@@ -700,6 +700,56 @@ void rio_unmap_inb_region(struct rio_mpo
+ EXPORT_SYMBOL_GPL(rio_unmap_inb_region);
  
  /**
-+ * rio_pw_enable - Enables/disables port-write handling by a master port
-+ * @port: Master port associated with port-write handling
-+ * @enable:  1=enable,  0=disable
++ * rio_map_outb_region -- Map outbound memory region.
++ * @mport: Master port.
++ * @destid: destination id window points to
++ * @rbase: RIO base address window translates to
++ * @size: Size of the memory region
++ * @rflags: Flags for mapping.
++ * @local: physical address of memory region mapped
++ *
++ * Return: 0 -- Success.
++ *
++ * This function will create the mapping from RIO space to local memory.
 + */
-+void rio_pw_enable(struct rio_mport *mport, int enable)
++int rio_map_outb_region(struct rio_mport *mport, u16 destid, u64 rbase,
++			u32 size, u32 rflags, dma_addr_t *local)
 +{
-+	if (mport->ops->pwenable) {
-+		mutex_lock(&mport->lock);
++	int rc = 0;
++	unsigned long flags;
 +
-+		if ((enable && ++mport->pwe_refcnt == 1) ||
-+		    (!enable && mport->pwe_refcnt && --mport->pwe_refcnt == 0))
-+			mport->ops->pwenable(mport, enable);
-+		mutex_unlock(&mport->lock);
-+	}
++	if (!mport->ops->map_outb)
++		return -ENODEV;
++
++	spin_lock_irqsave(&rio_mmap_lock, flags);
++	rc = mport->ops->map_outb(mport, destid, rbase, size,
++		rflags, local);
++	spin_unlock_irqrestore(&rio_mmap_lock, flags);
++
++	return rc;
 +}
-+EXPORT_SYMBOL_GPL(rio_pw_enable);
++EXPORT_SYMBOL_GPL(rio_map_outb_region);
 +
 +/**
-  * rio_map_inb_region -- Map inbound memory region.
-  * @mport: Master port.
-  * @local: physical address of memory region to be mapped
-@@ -2041,6 +2059,7 @@ int rio_mport_initialize(struct rio_mpor
- 	mport->host_deviceid = rio_get_hdid(mport->id);
- 	mport->nscan = NULL;
- 	mutex_init(&mport->lock);
-+	mport->pwe_refcnt = 0;
- 
- 	return 0;
- }
-diff -puN include/linux/rio.h~rapidio-move-rio_pw_enable-into-core-code include/linux/rio.h
---- a/include/linux/rio.h~rapidio-move-rio_pw_enable-into-core-code
++ * rio_unmap_inb_region -- Unmap the inbound memory region
++ * @mport: Master port
++ * @destid: destination id mapping points to
++ * @rstart: RIO base address window translates to
++ */
++void rio_unmap_outb_region(struct rio_mport *mport, u16 destid, u64 rstart)
++{
++	unsigned long flags;
++
++	if (!mport->ops->unmap_outb)
++		return;
++
++	spin_lock_irqsave(&rio_mmap_lock, flags);
++	mport->ops->unmap_outb(mport, destid, rstart);
++	spin_unlock_irqrestore(&rio_mmap_lock, flags);
++}
++EXPORT_SYMBOL_GPL(rio_unmap_outb_region);
++
++/**
+  * rio_mport_get_physefb - Helper function that returns register offset
+  *                      for Physical Layer Extended Features Block.
+  * @port: Master port to issue transaction
+diff -puN include/linux/rio.h~rapidio-add-outbound-window-support include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-add-outbound-window-support
 +++ a/include/linux/rio.h
-@@ -266,6 +266,7 @@ enum rio_phy_type {
-  * @dma: DMA device associated with mport
-  * @nscan: RapidIO network enumeration/discovery operations
-  * @state: mport device state
-+ * @pwe_refcnt: port-write enable ref counter to track enable/disable requests
+@@ -399,6 +399,8 @@ struct rio_mport_attr {
+  * @map_inb: Callback to map RapidIO address region into local memory space.
+  * @unmap_inb: Callback to unmap RapidIO address region mapped with map_inb().
+  * @query_mport: Callback to query mport device attributes.
++ * @map_outb: Callback to map outbound address region into local memory space.
++ * @unmap_outb: Callback to unmap outbound RapidIO address region.
   */
- struct rio_mport {
- 	struct list_head dbells;	/* list of doorbell events */
-@@ -296,6 +297,7 @@ struct rio_mport {
- #endif
- 	struct rio_scan *nscan;
- 	atomic_t state;
-+	unsigned int pwe_refcnt;
+ struct rio_ops {
+ 	int (*lcread) (struct rio_mport *mport, int index, u32 offset, int len,
+@@ -426,6 +428,9 @@ struct rio_ops {
+ 	void (*unmap_inb)(struct rio_mport *mport, dma_addr_t lstart);
+ 	int (*query_mport)(struct rio_mport *mport,
+ 			   struct rio_mport_attr *attr);
++	int (*map_outb)(struct rio_mport *mport, u16 destid, u64 rstart,
++			u32 size, u32 flags, dma_addr_t *laddr);
++	void (*unmap_outb)(struct rio_mport *mport, u16 destid, u64 rstart);
  };
  
- static inline int rio_mport_is_running(struct rio_mport *mport)
-diff -puN include/linux/rio_drv.h~rapidio-move-rio_pw_enable-into-core-code include/linux/rio_drv.h
---- a/include/linux/rio_drv.h~rapidio-move-rio_pw_enable-into-core-code
+ #define RIO_RESOURCE_MEM	0x00000100
+diff -puN include/linux/rio_drv.h~rapidio-add-outbound-window-support include/linux/rio_drv.h
+--- a/include/linux/rio_drv.h~rapidio-add-outbound-window-support
 +++ a/include/linux/rio_drv.h
-@@ -375,6 +375,7 @@ extern int rio_request_inb_pwrite(struct
- 			int (*)(struct rio_dev *, union rio_pw_msg*, int));
- extern int rio_release_inb_pwrite(struct rio_dev *);
- extern int rio_inb_pwrite_handler(union rio_pw_msg *pw_msg);
-+extern void rio_pw_enable(struct rio_mport *mport, int enable);
+@@ -369,6 +369,10 @@ void rio_release_region(struct rio_dev *
+ extern int rio_map_inb_region(struct rio_mport *mport, dma_addr_t local,
+ 			u64 rbase, u32 size, u32 rflags);
+ extern void rio_unmap_inb_region(struct rio_mport *mport, dma_addr_t lstart);
++extern int rio_map_outb_region(struct rio_mport *mport, u16 destid, u64 rbase,
++			u32 size, u32 rflags, dma_addr_t *local);
++extern void rio_unmap_outb_region(struct rio_mport *mport,
++				  u16 destid, u64 rstart);
  
- /* LDM support */
- int rio_register_driver(struct rio_driver *);
+ /* Port-Write management */
+ extern int rio_request_inb_pwrite(struct rio_dev *,
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
