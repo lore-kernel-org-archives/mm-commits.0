@@ -1,17 +1,17 @@
 From: akpm@linux-foundation.org
 Subject: + rapidio-add-mport-char-device-driver-fix.patch added to -mm
  tree
-Date: Tue, 09 Feb 2016 14:40:26 -0800
-Message-ID: <56ba6ada.v9/1zwyJpz2oqJJs%akpm@linux-foundation.org>
+Date: Tue, 09 Feb 2016 14:41:51 -0800
+Message-ID: <56ba6b2f.1ikPE/zvQ3fAJdks%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59384 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59457 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755534AbcBIWk2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 17:40:28 -0500
+	with ESMTP id S1755534AbcBIWlw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 17:41:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, a-jacquiot@ti.com, alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
@@ -55,8 +55,8 @@ Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/rio_mport_cdev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/rapidio/devices/rio_mport_cdev.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff -puN drivers/rapidio/devices/rio_mport_cdev.c~rapidio-add-mport-char-device-driver-fix drivers/rapidio/devices/rio_mport_cdev.c
 --- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-add-mport-char-device-driver-fix
@@ -70,6 +70,15 @@ diff -puN drivers/rapidio/devices/rio_mport_cdev.c~rapidio-add-mport-char-device
  	kref_get(&map->ref);
  }
  
+@@ -2228,7 +2228,7 @@ static void mport_mm_close(struct vm_are
+ {
+ 	struct rio_mport_mapping *map = vma->vm_private_data;
+ 
+-rmcd_debug(MMAP, "0x%llx", map->phys_addr);
++rmcd_debug(MMAP, "0x%pad", &map->phys_addr);
+ 	mutex_lock(&map->md->buf_mutex);
+ 	kref_put(&map->ref, mport_release_mapping);
+ 	mutex_unlock(&map->md->buf_mutex);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
