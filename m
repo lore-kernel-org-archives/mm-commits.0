@@ -1,77 +1,135 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] x86-efi-use-proper-units-in-efi_find_mirror.patch
- removed from -mm tree
-Date: Tue, 09 Feb 2016 10:48:58 -0800
-Message-ID: <56ba349a.fV7p3R/0wALVdOLq%akpm@linux-foundation.org>
+Subject: +
+ tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering-fix.patch
+ added to -mm tree
+Date: Tue, 09 Feb 2016 11:55:52 -0800
+Message-ID: <56ba4448.9689j2iVEunpS3Ai%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35872 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41994 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756209AbcBISs7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 13:48:59 -0500
+	with ESMTP id S1754624AbcBITzx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 14:55:53 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, elliott@hpe.com, hpa@zytor.com, linux@rasmusvillemoes.dk, matt@codeblueprint.co.uk, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, koct9i@gmail.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/efi: use proper units in efi_find_mirror()
-has been removed from the -mm tree.  Its filename was
-     x86-efi-use-proper-units-in-efi_find_mirror.patch
+     Subject: Re: tools/vm/page-types.c: add memory cgroup dumping and filtering
+has been added to the -mm tree.  Its filename is
+     tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering-fix.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering-fix.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering-fix.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: x86/efi: use proper units in efi_find_mirror()
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: Re: tools/vm/page-types.c: add memory cgroup dumping and filtering
 
-Like in efi_print_mmap() use the proper units when printing sizes.
+On Sat, Feb 06, 2016 at 01:06:29PM +0300, Konstantin Khlebnikov wrote:
+...
+>  static int		opt_list;	/* list pages (in ranges) */
+>  static int		opt_no_summary;	/* don't show summary */
+>  static pid_t		opt_pid;	/* process to walk */
+> -const char *		opt_file;
+> +const char *		opt_file;	/* file or directory path */
+> +static int64_t		opt_cgroup = -1;/* cgroup inode */
 
-Currently it's hardcoded to 'MiB', though it might be changed to adaptive
-efi_size_format() in the future.
+ino should be a positive number, so we could use uint64_t here. Of
+course, ino=0 could be used for filtering pages not charged to any
+cgroup (as it is in this patch), but I doubt this would be useful.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Robert Elliott <elliott@hpe.com>
+Also, this patch conflicts with the recent change by Naoya introducing
+support of dumping swap entries - https://lkml.org/lkml/2016/2/4/50
+
+I attached a fixlet that addresses these two issues. What do you think
+about it?
+
+Other than that the patch looks good to me,
+
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/platform/efi/efi.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ tools/vm/page-types.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN arch/x86/platform/efi/efi.c~x86-efi-use-proper-units-in-efi_find_mirror arch/x86/platform/efi/efi.c
---- a/arch/x86/platform/efi/efi.c~x86-efi-use-proper-units-in-efi_find_mirror
-+++ a/arch/x86/platform/efi/efi.c
-@@ -144,8 +144,8 @@ void __init efi_find_mirror(void)
+diff -puN tools/vm/page-types.c~tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering-fix tools/vm/page-types.c
+--- a/tools/vm/page-types.c~tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering-fix
++++ a/tools/vm/page-types.c
+@@ -170,7 +170,7 @@ static int		opt_list;	/* list pages (in
+ static int		opt_no_summary;	/* don't show summary */
+ static pid_t		opt_pid;	/* process to walk */
+ const char *		opt_file;	/* file or directory path */
+-static int64_t		opt_cgroup = -1;/* cgroup inode */
++static uint64_t		opt_cgroup;	/* cgroup inode */
+ static int		opt_list_cgroup;/* list page cgroup */
+ 
+ #define MAX_ADDR_RANGES	1024
+@@ -604,7 +604,7 @@ static void add_page(unsigned long voffs
+ 	if (!bit_mask_ok(flags))
+ 		return;
+ 
+-	if (opt_cgroup >= 0 && cgroup != (uint64_t)opt_cgroup)
++	if (opt_cgroup && cgroup != (uint64_t)opt_cgroup)
+ 		return;
+ 
+ 	if (opt_hwpoison)
+@@ -659,10 +659,13 @@ static void walk_swap(unsigned long voff
+ 	if (!bit_mask_ok(flags))
+ 		return;
+ 
++	if (opt_cgroup)
++		return;
++
+ 	if (opt_list == 1)
+-		show_page_range(voffset, pagemap_swap_offset(pme), 1, flags);
++		show_page_range(voffset, pagemap_swap_offset(pme), 1, flags, 0);
+ 	else if (opt_list == 2)
+-		show_page(voffset, pagemap_swap_offset(pme), flags);
++		show_page(voffset, pagemap_swap_offset(pme), flags, 0);
+ 
+ 	nr_pages[hash_slot(flags)]++;
+ 	total_pages++;
+@@ -1240,7 +1243,7 @@ int main(int argc, char *argv[])
  		}
  	}
- 	if (mirror_size)
--		pr_info("Memory: %lldM/%lldM mirrored memory\n",
--			mirror_size>>20, total_size>>20);
-+		pr_info("Memory: %lld MiB/%lld MiB mirrored memory\n",
-+			mirror_size >> 20, total_size >> 20);
- }
  
- /*
+-	if (opt_cgroup >= 0 || opt_list_cgroup)
++	if (opt_cgroup || opt_list_cgroup)
+ 		kpagecgroup_fd = checked_open(PROC_KPAGECGROUP, O_RDONLY);
+ 
+ 	if (opt_list && opt_pid)
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from vdavydov@virtuozzo.com are
 
-lib-string-introduce-match_string-helper.patch
-lib-string-introduce-match_string-helper-fix.patch
-device-property-convert-to-use-match_string-helper.patch
-device-property-convert-to-use-match_string-helper-fix.patch
-pinctrl-convert-to-use-match_string-helper.patch
-drm-edid-convert-to-use-match_string-helper.patch
-power-charger_manager-convert-to-use-match_string-helper.patch
-power-ab8500-convert-to-use-match_string-helper.patch
-ata-hpt366-convert-to-use-match_string-helper.patch
-ide-hpt366-convert-to-use-match_string-helper.patch
+mm-vmscan-do-not-clear-shrinker_numa_aware-if-nr_node_ids-==-1.patch
+mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix-2.patch
+mm-memcontrol-do-not-bypass-slab-charge-if-memcg-is-offline.patch
+mm-memcontrol-make-tree_statevents-fetch-all-stats.patch
+mm-memcontrol-make-tree_statevents-fetch-all-stats-fix.patch
+mm-memcontrol-report-slab-usage-in-cgroup2-memorystat.patch
+mm-memcontrol-report-kernel-stack-usage-in-cgroup2-memorystat.patch
+mm-memcontrol-report-kernel-stack-usage-in-cgroup2-memorystat-v2.patch
+proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix.patch
+tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering-fix.patch
 
