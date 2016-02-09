@@ -1,307 +1,120 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Tue, 09 Feb 2016 10:47:33 -0800
-Message-ID: <56ba3445.UZdsOJkWkWbSIwD1%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ x86-efi-print-size-and-base-in-binary-units-in-efi_print_memmap.patch
+ removed from -mm tree
+Date: Tue, 09 Feb 2016 10:48:15 -0800
+Message-ID: <56ba346f.h0eDm8oBJqiu19yZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35570 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35800 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932228AbcBISrd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 13:47:33 -0500
+	with ESMTP id S1753801AbcBISsQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 13:48:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: elliott@hpe.com, andriy.shevchenko@linux.intel.com, hpa@zytor.com, linux@rasmusvillemoes.dk, matt@codeblueprint.co.uk, mingo@redhat.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: x86/efi: print size and base in binary units in efi_print_memmap
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     x86-efi-print-size-and-base-in-binary-units-in-efi_print_memmap.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Robert Elliott <elliott@hpe.com>
+Subject: x86/efi: print size and base in binary units in efi_print_memmap
 
+Print the base in the best-fit B, KiB, MiB, etc. units rather than
+always MiB. This avoids rounding, which can be misleading.
+
+Use proper IEC binary units (KiB, MiB, etc.) rather than misuse SI
+decimal units (KB, MB, etc.).
+
+old:
+    efi: mem61: [Persistent Memory  |   |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000880000000-0x0000000c7fffffff) (16384MB)
+
+new:
+    efi: mem61: [Persistent Memory  |   |  |  |  |  |  |   |WB|WT|WC|UC] range=[0x0000000880000000-0x0000000c7fffffff] (16 GiB)
+
+Signed-off-by: Robert Elliott <elliott@hpe.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/boot/dts/brcm/bcm6328.dtsi |    4 -
- arch/mips/boot/dts/brcm/bcm7125.dtsi |    4 -
- arch/mips/boot/dts/brcm/bcm7346.dtsi |    4 -
- arch/mips/boot/dts/brcm/bcm7358.dtsi |    4 -
- arch/mips/boot/dts/brcm/bcm7360.dtsi |    4 -
- arch/mips/boot/dts/brcm/bcm7362.dtsi |    4 -
- arch/mips/boot/dts/brcm/bcm7420.dtsi |    4 -
- arch/mips/boot/dts/brcm/bcm7425.dtsi |    4 -
- arch/mips/boot/dts/brcm/bcm7435.dtsi |    4 -
- drivers/base/regmap/regmap-mmio.c    |   58 -------------------------
- 10 files changed, 94 deletions(-)
+ arch/x86/platform/efi/efi.c |   23 ++++++++++++++++-------
+ 1 file changed, 16 insertions(+), 7 deletions(-)
 
-diff -puN arch/mips/boot/dts/brcm/bcm6328.dtsi~linux-next-git-rejects arch/mips/boot/dts/brcm/bcm6328.dtsi
---- a/arch/mips/boot/dts/brcm/bcm6328.dtsi~linux-next-git-rejects
-+++ a/arch/mips/boot/dts/brcm/bcm6328.dtsi
-@@ -74,11 +74,7 @@
- 		timer: timer@10000040 {
- 			compatible = "syscon";
- 			reg = <0x10000040 0x2c>;
--<<<<<<< HEAD
--			little-endian;
--=======
- 			native-endian;
-->>>>>>> linux-next/akpm-base
- 		};
+diff -puN arch/x86/platform/efi/efi.c~x86-efi-print-size-and-base-in-binary-units-in-efi_print_memmap arch/x86/platform/efi/efi.c
+--- a/arch/x86/platform/efi/efi.c~x86-efi-print-size-and-base-in-binary-units-in-efi_print_memmap
++++ a/arch/x86/platform/efi/efi.c
+@@ -35,10 +35,12 @@
+ #include <linux/efi.h>
+ #include <linux/efi-bgrt.h>
+ #include <linux/export.h>
++#include <linux/bitops.h>
+ #include <linux/bootmem.h>
+ #include <linux/slab.h>
+ #include <linux/memblock.h>
+ #include <linux/spinlock.h>
++#include <linux/string_helpers.h>
+ #include <linux/uaccess.h>
+ #include <linux/time.h>
+ #include <linux/io.h>
+@@ -117,6 +119,14 @@ void efi_get_time(struct timespec *now)
+ 	now->tv_nsec = 0;
+ }
  
- 		reboot {
-diff -puN arch/mips/boot/dts/brcm/bcm7125.dtsi~linux-next-git-rejects arch/mips/boot/dts/brcm/bcm7125.dtsi
---- a/arch/mips/boot/dts/brcm/bcm7125.dtsi~linux-next-git-rejects
-+++ a/arch/mips/boot/dts/brcm/bcm7125.dtsi
-@@ -98,11 +98,7 @@
- 		sun_top_ctrl: syscon@404000 {
- 			compatible = "brcm,bcm7125-sun-top-ctrl", "syscon";
- 			reg = <0x404000 0x60c>;
--<<<<<<< HEAD
--			little-endian;
--=======
- 			native-endian;
-->>>>>>> linux-next/akpm-base
- 		};
++static char * __init efi_size_format(char *buf, size_t size, u64 bytes)
++{
++	unsigned long i = bytes ? __ffs64(bytes) / 10 : 0;
++
++	snprintf(buf, size, "%llu %s", bytes >> (i * 10), string_units_2[i]);
++	return buf;
++}
++
+ void __init efi_find_mirror(void)
+ {
+ 	void *p;
+@@ -225,21 +235,20 @@ int __init efi_memblock_x86_reserve_rang
+ void __init efi_print_memmap(void)
+ {
+ #ifdef EFI_DEBUG
+-	efi_memory_desc_t *md;
+ 	void *p;
+ 	int i;
  
- 		reboot {
-diff -puN arch/mips/boot/dts/brcm/bcm7346.dtsi~linux-next-git-rejects arch/mips/boot/dts/brcm/bcm7346.dtsi
---- a/arch/mips/boot/dts/brcm/bcm7346.dtsi~linux-next-git-rejects
-+++ a/arch/mips/boot/dts/brcm/bcm7346.dtsi
-@@ -118,11 +118,7 @@
- 		sun_top_ctrl: syscon@404000 {
- 			compatible = "brcm,bcm7346-sun-top-ctrl", "syscon";
- 			reg = <0x404000 0x51c>;
--<<<<<<< HEAD
--			little-endian;
--=======
- 			native-endian;
-->>>>>>> linux-next/akpm-base
- 		};
+ 	for (p = memmap.map, i = 0;
+ 	     p < memmap.map_end;
+ 	     p += memmap.desc_size, i++) {
+-		char buf[64];
++		efi_memory_desc_t *md = p;
++		u64 size = md->num_pages << EFI_PAGE_SHIFT;
++		char buf[64], buf3[32];
  
- 		reboot {
-diff -puN arch/mips/boot/dts/brcm/bcm7358.dtsi~linux-next-git-rejects arch/mips/boot/dts/brcm/bcm7358.dtsi
---- a/arch/mips/boot/dts/brcm/bcm7358.dtsi~linux-next-git-rejects
-+++ a/arch/mips/boot/dts/brcm/bcm7358.dtsi
-@@ -112,11 +112,7 @@
- 		sun_top_ctrl: syscon@404000 {
- 			compatible = "brcm,bcm7358-sun-top-ctrl", "syscon";
- 			reg = <0x404000 0x51c>;
--<<<<<<< HEAD
--			little-endian;
--=======
- 			native-endian;
-->>>>>>> linux-next/akpm-base
- 		};
- 
- 		reboot {
-diff -puN arch/mips/boot/dts/brcm/bcm7360.dtsi~linux-next-git-rejects arch/mips/boot/dts/brcm/bcm7360.dtsi
---- a/arch/mips/boot/dts/brcm/bcm7360.dtsi~linux-next-git-rejects
-+++ a/arch/mips/boot/dts/brcm/bcm7360.dtsi
-@@ -112,11 +112,7 @@
- 		sun_top_ctrl: syscon@404000 {
- 			compatible = "brcm,bcm7360-sun-top-ctrl", "syscon";
- 			reg = <0x404000 0x51c>;
--<<<<<<< HEAD
--			little-endian;
--=======
- 			native-endian;
-->>>>>>> linux-next/akpm-base
- 		};
- 
- 		reboot {
-diff -puN arch/mips/boot/dts/brcm/bcm7362.dtsi~linux-next-git-rejects arch/mips/boot/dts/brcm/bcm7362.dtsi
---- a/arch/mips/boot/dts/brcm/bcm7362.dtsi~linux-next-git-rejects
-+++ a/arch/mips/boot/dts/brcm/bcm7362.dtsi
-@@ -118,11 +118,7 @@
- 		sun_top_ctrl: syscon@404000 {
- 			compatible = "brcm,bcm7362-sun-top-ctrl", "syscon";
- 			reg = <0x404000 0x51c>;
--<<<<<<< HEAD
--			little-endian;
--=======
- 			native-endian;
-->>>>>>> linux-next/akpm-base
- 		};
- 
- 		reboot {
-diff -puN arch/mips/boot/dts/brcm/bcm7420.dtsi~linux-next-git-rejects arch/mips/boot/dts/brcm/bcm7420.dtsi
---- a/arch/mips/boot/dts/brcm/bcm7420.dtsi~linux-next-git-rejects
-+++ a/arch/mips/boot/dts/brcm/bcm7420.dtsi
-@@ -99,11 +99,7 @@
- 		sun_top_ctrl: syscon@404000 {
- 			compatible = "brcm,bcm7420-sun-top-ctrl", "syscon";
- 			reg = <0x404000 0x60c>;
--<<<<<<< HEAD
--			little-endian;
--=======
- 			native-endian;
-->>>>>>> linux-next/akpm-base
- 		};
- 
- 		reboot {
-diff -puN arch/mips/boot/dts/brcm/bcm7425.dtsi~linux-next-git-rejects arch/mips/boot/dts/brcm/bcm7425.dtsi
---- a/arch/mips/boot/dts/brcm/bcm7425.dtsi~linux-next-git-rejects
-+++ a/arch/mips/boot/dts/brcm/bcm7425.dtsi
-@@ -100,11 +100,7 @@
- 		sun_top_ctrl: syscon@404000 {
- 			compatible = "brcm,bcm7425-sun-top-ctrl", "syscon";
- 			reg = <0x404000 0x51c>;
--<<<<<<< HEAD
--			little-endian;
--=======
- 			native-endian;
-->>>>>>> linux-next/akpm-base
- 		};
- 
- 		reboot {
-diff -puN arch/mips/boot/dts/brcm/bcm7435.dtsi~linux-next-git-rejects arch/mips/boot/dts/brcm/bcm7435.dtsi
---- a/arch/mips/boot/dts/brcm/bcm7435.dtsi~linux-next-git-rejects
-+++ a/arch/mips/boot/dts/brcm/bcm7435.dtsi
-@@ -114,11 +114,7 @@
- 		sun_top_ctrl: syscon@404000 {
- 			compatible = "brcm,bcm7425-sun-top-ctrl", "syscon";
- 			reg = <0x404000 0x51c>;
--<<<<<<< HEAD
--			little-endian;
--=======
- 			native-endian;
-->>>>>>> linux-next/akpm-base
- 		};
- 
- 		reboot {
-diff -puN drivers/base/regmap/regmap-mmio.c~linux-next-git-rejects drivers/base/regmap/regmap-mmio.c
---- a/drivers/base/regmap/regmap-mmio.c~linux-next-git-rejects
-+++ a/drivers/base/regmap/regmap-mmio.c
-@@ -131,36 +131,7 @@ static int regmap_mmio_write(void *conte
- 			return ret;
+-		md = p;
+-		pr_info("mem%02u: %s range=[0x%016llx-0x%016llx) (%lluMB)\n",
++		pr_info("mem%02u: %s range=[0x%016llx-0x%016llx] (%s)\n",
+ 			i, efi_md_typeattr_format(buf, sizeof(buf), md),
+-			md->phys_addr,
+-			md->phys_addr + (md->num_pages << EFI_PAGE_SHIFT),
+-			(md->num_pages >> (20 - EFI_PAGE_SHIFT)));
++			md->phys_addr, md->phys_addr + size,
++			efi_size_format(buf3, sizeof(buf3), size));
  	}
- 
--<<<<<<< HEAD
--	offset = regmap_mmio_get_offset(reg, reg_size);
--
--	while (val_size) {
--		switch (ctx->val_bytes) {
--		case 1:
--			writeb(*(u8 *)val, ctx->regs + offset);
--			break;
--		case 2:
--			writew(*(u16 *)val, ctx->regs + offset);
--			break;
--		case 4:
--			writel(*(u32 *)val, ctx->regs + offset);
--			break;
--#ifdef CONFIG_64BIT
--		case 8:
--			writeq(*(u64 *)val, ctx->regs + offset);
--			break;
--#endif
--		default:
--			/* Should be caught by regmap_mmio_check_config */
--			BUG();
--		}
--		val_size -= ctx->val_bytes;
--		val += ctx->val_bytes;
--		offset += ctx->val_bytes;
--	}
--=======
- 	ctx->reg_write(ctx, reg, val);
-->>>>>>> linux-next/akpm-base
- 
- 	if (!IS_ERR(ctx->clk))
- 		clk_disable(ctx->clk);
-@@ -217,36 +188,7 @@ static int regmap_mmio_read(void *contex
- 			return ret;
- 	}
- 
--<<<<<<< HEAD
--	offset = regmap_mmio_get_offset(reg, reg_size);
--
--	while (val_size) {
--		switch (ctx->val_bytes) {
--		case 1:
--			*(u8 *)val = readb(ctx->regs + offset);
--			break;
--		case 2:
--			*(u16 *)val = readw(ctx->regs + offset);
--			break;
--		case 4:
--			*(u32 *)val = readl(ctx->regs + offset);
--			break;
--#ifdef CONFIG_64BIT
--		case 8:
--			*(u64 *)val = readq(ctx->regs + offset);
--			break;
--#endif
--		default:
--			/* Should be caught by regmap_mmio_check_config */
--			BUG();
--		}
--		val_size -= ctx->val_bytes;
--		val += ctx->val_bytes;
--		offset += ctx->val_bytes;
--	}
--=======
- 	*val = ctx->reg_read(ctx, reg);
-->>>>>>> linux-next/akpm-base
- 
- 	if (!IS_ERR(ctx->clk))
- 		clk_disable(ctx->clk);
+ #endif  /*  EFI_DEBUG  */
+ }
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from elliott@hpe.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-code-clean-up-for-direct-io-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
-mm.patch
-mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
-mm-simplify-lock_page_memcg-fix.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom_reaper-report-success-failure-fix.patch
-mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
-proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
-mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
-mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
-sound-query-dynamic-debug_pagealloc-setting-fix.patch
-mm-config_nr_zones_extended-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-btrfs-use-radix_tree_iter_retry-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
-rapidio-add-global-inbound-port-write-interfaces-fix.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-kernel-add-kcov-code-coverage-fix.patch
-kernel-add-kcov-code-coverage-fix-2.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
 
