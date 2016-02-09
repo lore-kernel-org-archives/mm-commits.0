@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3.patch added to -mm tree
-Date: Tue, 09 Feb 2016 12:53:07 -0800
-Message-ID: <56ba51b3.6nPgEJ03wHXddn56%akpm@linux-foundation.org>
+ mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy.patch added to -mm tree
+Date: Tue, 09 Feb 2016 13:18:05 -0800
+Message-ID: <56ba578d.aJ69OhruQ2zGJGSH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46617 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49044 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932641AbcBIUxI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 15:53:08 -0500
+	with ESMTP id S1754378AbcBIVSG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 16:18:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: js1304@gmail.com, aaron.lu@intel.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3
+     Subject: mm: memcontrol: enable kmem accounting for all cgroups in the legacy hierarchy
 has been added to the -mm tree.  Its filename is
-     mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3.patch
+     mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,175 +39,168 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: mm: memcontrol: enable kmem accounting for all cgroups in the legacy hierarchy
 
-v3
-o remove pfn_valid_within() check for all pages in the pageblock
-because pageblock_pfn_to_page() is only called with pageblock aligned pfn.
+Workingset code was recently made memcg aware, but shadow node shrinker is
+still global.  As a result, one small cgroup can consume all memory
+available for shadow nodes, possibly hurting other cgroups by reclaiming
+their shadow nodes, even though reclaim distances stored in its shadow
+nodes have no effect.  To avoid this, we need to make shadow node shrinker
+memcg aware.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reported-by: Aaron Lu <aaron.lu@intel.com>
-Tested-by: Aaron Lu <aaron.lu@intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+The actual work is done in patch 6 of the series.  Patches 1 and 2 prepare
+memcg/shrinker infrastructure for the change.  Patch 3 is just a
+collateral cleanup.  Patch 4 makes radix_tree_node accounted, which is
+necessary for making shadow node shrinker memcg aware.  Patch 5 reduces
+shadow nodes overhead in case workload mostly uses anonymous pages.
+
+
+
+This patch:
+
+Currently, in the legacy hierarchy kmem accounting is off for all cgroups
+by default and must be enabled explicitly by writing something to
+memory.kmem.limit_in_bytes.  Since we don't support reclaim on hitting
+kmem limit, nor do we have any plans to implement it, this is likely to be
+-1, just to enable kmem accounting and limit kernel memory consumption by
+the memory.limit_in_bytes along with user memory.
+
+This user API was introduced when the implementation of kmem accounting
+lacked slab shrinker support and hence was useless in practice.  Things
+have changed since then - slab shrinkers were made memcg aware, the
+accounting overhead seems to be negligible, and a failure to charge a kmem
+allocation should not have critical consequences, because we only account
+those kernel objects that should be safe to fail.  That's why kmem
+accounting is enabled by default for all cgroups in the default hierarchy,
+which will eventually replace the legacy one.
+
+The ability to enable kmem accounting for some cgroups while keeping it
+disabled for others is getting difficult to maintain.  E.g.  to make
+shadow node shrinker memcg aware (see mm/workingset.c), we need to know
+the relationship between the number of shadow nodes allocated for a cgroup
+and the size of its lru list.  If kmem accounting is enabled for all
+cgroups there is no problem, but what should we do if kmem accounting is
+enabled only for half of cgroups?  We've no other choice but use global
+lru stats while scanning root cgroup's shadow nodes, but that would be
+wrong if kmem accounting was enabled for all cgroups (which is the case if
+the unified hierarchy is used), in which case we should use lru stats of
+the root cgroup's lruvec.
+
+That being said, let's enable kmem accounting for all memory cgroups by
+default.  If one finds it unstable or too costly, it can always be
+disabled system-wide by passing cgroup.memory=nokmem to the kernel at boot
+time.
+
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |  139 ++++++++++++++++++++++------------------------
- 1 file changed, 69 insertions(+), 70 deletions(-)
+ mm/memcontrol.c |   41 +++++------------------------------------
+ 1 file changed, 5 insertions(+), 36 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3 mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3
-+++ a/mm/page_alloc.c
-@@ -1128,6 +1128,75 @@ void __init __free_pages_bootmem(struct
- 	return __free_pages_boot_core(page, pfn, order);
+diff -puN mm/memcontrol.c~mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy
++++ a/mm/memcontrol.c
+@@ -2824,6 +2824,9 @@ static int memcg_online_kmem(struct mem_
+ {
+ 	int memcg_id;
+ 
++	if (cgroup_memory_nokmem)
++		return 0;
++
+ 	BUG_ON(memcg->kmemcg_id >= 0);
+ 	BUG_ON(memcg->kmem_state);
+ 
+@@ -2844,24 +2847,6 @@ static int memcg_online_kmem(struct mem_
+ 	return 0;
  }
  
-+/*
-+ * Check that the whole (or subset of) a pageblock given by the interval of
-+ * [start_pfn, end_pfn) is valid and within the same zone, before scanning it
-+ * with the migration of free compaction scanner. The scanners then need to
-+ * use only pfn_valid_within() check for arches that allow holes within
-+ * pageblocks.
-+ *
-+ * Return struct page pointer of start_pfn, or NULL if checks were not passed.
-+ *
-+ * It's possible on some configurations to have a setup like node0 node1 node0
-+ * i.e. it's possible that all pages within a zones range of pages do not
-+ * belong to a single zone. We assume that a border between node0 and node1
-+ * can occur within a single pageblock, but not a node0 node1 node0
-+ * interleaving within a single pageblock. It is therefore sufficient to check
-+ * the first and last page of a pageblock and avoid checking each individual
-+ * page in a pageblock.
-+ */
-+struct page *__pageblock_pfn_to_page(unsigned long start_pfn,
-+				     unsigned long end_pfn, struct zone *zone)
-+{
-+	struct page *start_page;
-+	struct page *end_page;
-+
-+	/* end_pfn is one past the range we are checking */
-+	end_pfn--;
-+
-+	if (!pfn_valid(start_pfn) || !pfn_valid(end_pfn))
-+		return NULL;
-+
-+	start_page = pfn_to_page(start_pfn);
-+
-+	if (page_zone(start_page) != zone)
-+		return NULL;
-+
-+	end_page = pfn_to_page(end_pfn);
-+
-+	/* This gives a shorter code than deriving page_zone(end_page) */
-+	if (page_zone_id(start_page) != page_zone_id(end_page))
-+		return NULL;
-+
-+	return start_page;
-+}
-+
-+void set_zone_contiguous(struct zone *zone)
-+{
-+	unsigned long block_start_pfn = zone->zone_start_pfn;
-+	unsigned long block_end_pfn;
-+
-+	block_end_pfn = ALIGN(block_start_pfn + 1, pageblock_nr_pages);
-+	for (; block_start_pfn < zone_end_pfn(zone);
-+			block_start_pfn = block_end_pfn,
-+			 block_end_pfn += pageblock_nr_pages) {
-+
-+		block_end_pfn = min(block_end_pfn, zone_end_pfn(zone));
-+
-+		if (!__pageblock_pfn_to_page(block_start_pfn,
-+					     block_end_pfn, zone))
-+			return;
-+	}
-+
-+	/* We confirm that there is no hole */
-+	zone->contiguous = true;
-+}
-+
-+void clear_zone_contiguous(struct zone *zone)
-+{
-+	zone->contiguous = false;
-+}
-+
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- static void __init deferred_free_range(struct page *page,
- 					unsigned long pfn, int nr_pages)
-@@ -1304,76 +1373,6 @@ void __init page_alloc_init_late(void)
- 		set_zone_contiguous(zone);
- }
- 
--/*
-- * Check that the whole (or subset of) a pageblock given by the interval of
-- * [start_pfn, end_pfn) is valid and within the same zone, before scanning it
-- * with the migration of free compaction scanner. The scanners then need to
-- * use only pfn_valid_within() check for arches that allow holes within
-- * pageblocks.
-- *
-- * Return struct page pointer of start_pfn, or NULL if checks were not passed.
-- *
-- * It's possible on some configurations to have a setup like node0 node1 node0
-- * i.e. it's possible that all pages within a zones range of pages do not
-- * belong to a single zone. We assume that a border between node0 and node1
-- * can occur within a single pageblock, but not a node0 node1 node0
-- * interleaving within a single pageblock. It is therefore sufficient to check
-- * the first and last page of a pageblock and avoid checking each individual
-- * page in a pageblock.
-- */
--struct page *__pageblock_pfn_to_page(unsigned long start_pfn,
--				unsigned long end_pfn, struct zone *zone)
+-static int memcg_propagate_kmem(struct mem_cgroup *parent,
+-				struct mem_cgroup *memcg)
 -{
--	struct page *start_page;
--	struct page *end_page;
+-	int ret = 0;
 -
--	/* end_pfn is one past the range we are checking */
--	end_pfn--;
--
--	if (!pfn_valid(start_pfn) || !pfn_valid(end_pfn))
--		return NULL;
--
--	start_page = pfn_to_page(start_pfn);
--
--	if (page_zone(start_page) != zone)
--		return NULL;
--
--	end_page = pfn_to_page(end_pfn);
--
--	/* This gives a shorter code than deriving page_zone(end_page) */
--	if (page_zone_id(start_page) != page_zone_id(end_page))
--		return NULL;
--
--	return start_page;
+-	mutex_lock(&memcg_limit_mutex);
+-	/*
+-	 * If the parent cgroup is not kmem-online now, it cannot be
+-	 * onlined after this point, because it has at least one child
+-	 * already.
+-	 */
+-	if (memcg_kmem_online(parent) ||
+-	    (cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_nokmem))
+-		ret = memcg_online_kmem(memcg);
+-	mutex_unlock(&memcg_limit_mutex);
+-	return ret;
 -}
 -
--void set_zone_contiguous(struct zone *zone)
+ static void memcg_offline_kmem(struct mem_cgroup *memcg)
+ {
+ 	struct cgroup_subsys_state *css;
+@@ -2920,10 +2905,6 @@ static void memcg_free_kmem(struct mem_c
+ 	}
+ }
+ #else
+-static int memcg_propagate_kmem(struct mem_cgroup *parent, struct mem_cgroup *memcg)
 -{
--	unsigned long block_start_pfn = zone->zone_start_pfn;
--	unsigned long block_end_pfn;
--	unsigned long pfn;
--
--	block_end_pfn = ALIGN(block_start_pfn + 1, pageblock_nr_pages);
--	for (; block_start_pfn < zone_end_pfn(zone);
--		block_start_pfn = block_end_pfn,
--		block_end_pfn += pageblock_nr_pages) {
--
--		block_end_pfn = min(block_end_pfn, zone_end_pfn(zone));
--
--		if (!__pageblock_pfn_to_page(block_start_pfn,
--					block_end_pfn, zone))
--			return;
+-	return 0;
+-}
+ static int memcg_online_kmem(struct mem_cgroup *memcg)
+ {
+ 	return 0;
+@@ -2939,22 +2920,10 @@ static void memcg_free_kmem(struct mem_c
+ static int memcg_update_kmem_limit(struct mem_cgroup *memcg,
+ 				   unsigned long limit)
+ {
+-	int ret = 0;
++	int ret;
+ 
+ 	mutex_lock(&memcg_limit_mutex);
+-	/* Top-level cgroup doesn't propagate from root */
+-	if (!memcg_kmem_online(memcg)) {
+-		if (cgroup_is_populated(memcg->css.cgroup) ||
+-		    (memcg->use_hierarchy && memcg_has_children(memcg)))
+-			ret = -EBUSY;
+-		if (ret)
+-			goto out;
+-		ret = memcg_online_kmem(memcg);
+-		if (ret)
+-			goto out;
 -	}
--
--	/* We confirm that there is no hole */
--	zone->contiguous = true;
--}
--
--void clear_zone_contiguous(struct zone *zone)
--{
--	zone->contiguous = false;
--}
+ 	ret = page_counter_limit(&memcg->kmem, limit);
+-out:
+ 	mutex_unlock(&memcg_limit_mutex);
+ 	return ret;
+ }
+@@ -4205,7 +4174,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 		return &memcg->css;
+ 	}
+ 
+-	error = memcg_propagate_kmem(parent, memcg);
++	error = memcg_online_kmem(memcg);
+ 	if (error)
+ 		goto fail;
+ 
+_
+
+Patches currently in -mm which might be from vdavydov@virtuozzo.com are
+
+mm-vmscan-do-not-clear-shrinker_numa_aware-if-nr_node_ids-==-1.patch
+mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix-2.patch
+mm-memcontrol-do-not-bypass-slab-charge-if-memcg-is-offline.patch
+mm-memcontrol-make-tree_statevents-fetch-all-stats.patch
+mm-memcontrol-make-tree_statevents-fetch-all-stats-fix.patch
+mm-memcontrol-report-slab-usage-in-cgroup2-memorystat.patch
+mm-memcontrol-report-kernel-stack-usage-in-cgroup2-memorystat.patch
+mm-memcontrol-report-kernel-stack-usage-in-cgroup2-memorystat-v2.patch
+proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix.patch
+tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering-fix.patch
+mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy.patch
+mm-vmscan-pass-root_mem_cgroup-instead-of-null-to-memcg-aware-shrinker.patch
+mm-memcontrol-zap-memcg_kmem_online-helper.patch
+radix-tree-account-radix_tree_node-to-memory-cgroup.patch
+mm-workingset-size-shadow-nodes-lru-basing-on-file-cache-size.patch
+mm-workingset-make-shadow-node-shrinker-memcg-aware.patch
+
