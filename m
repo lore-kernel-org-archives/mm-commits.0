@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering-fix.patch
- added to -mm tree
-Date: Tue, 09 Feb 2016 11:55:52 -0800
-Message-ID: <56ba4448.9689j2iVEunpS3Ai%akpm@linux-foundation.org>
+Subject: + mm-compaction-introduce-kcompactd-fix.patch added to -mm tree
+Date: Tue, 09 Feb 2016 12:12:42 -0800
+Message-ID: <56ba483a.C90j6uvUF5koPt/D%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41994 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43192 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754624AbcBITzx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 14:55:53 -0500
+	with ESMTP id S932259AbcBIUMn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 15:12:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, koct9i@gmail.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Re: tools/vm/page-types.c: add memory cgroup dumping and filtering
+     Subject: mm, compaction: fix build errors with kcompactd
 has been added to the -mm tree.  Its filename is
-     tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering-fix.patch
+     mm-compaction-introduce-kcompactd-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-introduce-kcompactd-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-introduce-kcompactd-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,96 +38,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: Re: tools/vm/page-types.c: add memory cgroup dumping and filtering
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm, compaction: fix build errors with kcompactd
 
-On Sat, Feb 06, 2016 at 01:06:29PM +0300, Konstantin Khlebnikov wrote:
-...
->  static int		opt_list;	/* list pages (in ranges) */
->  static int		opt_no_summary;	/* don't show summary */
->  static pid_t		opt_pid;	/* process to walk */
-> -const char *		opt_file;
-> +const char *		opt_file;	/* file or directory path */
-> +static int64_t		opt_cgroup = -1;/* cgroup inode */
+The newly added kcompactd code introduces multiple build errors:
 
-ino should be a positive number, so we could use uint64_t here. Of
-course, ino=0 could be used for filtering pages not charged to any
-cgroup (as it is in this patch), but I doubt this would be useful.
+include/linux/compaction.h:91:12: error: 'kcompactd_run' defined but not used [-Werror=unused-function]
+mm/compaction.c:1953:2: error: implicit declaration of function 'hotcpu_notifier' [-Werror=implicit-function-declaration]
 
-Also, this patch conflicts with the recent change by Naoya introducing
-support of dumping swap entries - https://lkml.org/lkml/2016/2/4/50
+This marks the new empty wrapper functions as 'inline' to avoid unused-function warnings,
+and includes linux/cpu.h to get the hotcpu_notifier declaration.
 
-I attached a fixlet that addresses these two issues. What do you think
-about it?
-
-Other than that the patch looks good to me,
-
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Fixes: 8364acdfa45a ("mm, compaction: introduce kcompactd")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page-types.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ include/linux/compaction.h |    6 +++---
+ mm/compaction.c            |    1 +
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN tools/vm/page-types.c~tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering-fix tools/vm/page-types.c
---- a/tools/vm/page-types.c~tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering-fix
-+++ a/tools/vm/page-types.c
-@@ -170,7 +170,7 @@ static int		opt_list;	/* list pages (in
- static int		opt_no_summary;	/* don't show summary */
- static pid_t		opt_pid;	/* process to walk */
- const char *		opt_file;	/* file or directory path */
--static int64_t		opt_cgroup = -1;/* cgroup inode */
-+static uint64_t		opt_cgroup;	/* cgroup inode */
- static int		opt_list_cgroup;/* list page cgroup */
+diff -puN include/linux/compaction.h~mm-compaction-introduce-kcompactd-fix include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-introduce-kcompactd-fix
++++ a/include/linux/compaction.h
+@@ -88,15 +88,15 @@ static inline bool compaction_deferred(s
+ 	return true;
+ }
  
- #define MAX_ADDR_RANGES	1024
-@@ -604,7 +604,7 @@ static void add_page(unsigned long voffs
- 	if (!bit_mask_ok(flags))
- 		return;
+-static int kcompactd_run(int nid)
++static inline int kcompactd_run(int nid)
+ {
+ 	return 0;
+ }
+-static void kcompactd_stop(int nid)
++static inline void kcompactd_stop(int nid)
+ {
+ }
  
--	if (opt_cgroup >= 0 && cgroup != (uint64_t)opt_cgroup)
-+	if (opt_cgroup && cgroup != (uint64_t)opt_cgroup)
- 		return;
+-static void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx)
++static inline void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx)
+ {
+ }
  
- 	if (opt_hwpoison)
-@@ -659,10 +659,13 @@ static void walk_swap(unsigned long voff
- 	if (!bit_mask_ok(flags))
- 		return;
- 
-+	if (opt_cgroup)
-+		return;
-+
- 	if (opt_list == 1)
--		show_page_range(voffset, pagemap_swap_offset(pme), 1, flags);
-+		show_page_range(voffset, pagemap_swap_offset(pme), 1, flags, 0);
- 	else if (opt_list == 2)
--		show_page(voffset, pagemap_swap_offset(pme), flags);
-+		show_page(voffset, pagemap_swap_offset(pme), flags, 0);
- 
- 	nr_pages[hash_slot(flags)]++;
- 	total_pages++;
-@@ -1240,7 +1243,7 @@ int main(int argc, char *argv[])
- 		}
- 	}
- 
--	if (opt_cgroup >= 0 || opt_list_cgroup)
-+	if (opt_cgroup || opt_list_cgroup)
- 		kpagecgroup_fd = checked_open(PROC_KPAGECGROUP, O_RDONLY);
- 
- 	if (opt_list && opt_pid)
+diff -puN mm/compaction.c~mm-compaction-introduce-kcompactd-fix mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-introduce-kcompactd-fix
++++ a/mm/compaction.c
+@@ -7,6 +7,7 @@
+  *
+  * Copyright IBM Corp. 2007-2010 Mel Gorman <mel@csn.ul.ie>
+  */
++#include <linux/cpu.h>
+ #include <linux/swap.h>
+ #include <linux/migrate.h>
+ #include <linux/compaction.h>
 _
 
-Patches currently in -mm which might be from vdavydov@virtuozzo.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-vmscan-do-not-clear-shrinker_numa_aware-if-nr_node_ids-==-1.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix-2.patch
-mm-memcontrol-do-not-bypass-slab-charge-if-memcg-is-offline.patch
-mm-memcontrol-make-tree_statevents-fetch-all-stats.patch
-mm-memcontrol-make-tree_statevents-fetch-all-stats-fix.patch
-mm-memcontrol-report-slab-usage-in-cgroup2-memorystat.patch
-mm-memcontrol-report-kernel-stack-usage-in-cgroup2-memorystat.patch
-mm-memcontrol-report-kernel-stack-usage-in-cgroup2-memorystat-v2.patch
-proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix.patch
-tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering-fix.patch
+mm-compaction-introduce-kcompactd-fix.patch
+profile-hide-unused-functions-when-config_proc_fs.patch
 
