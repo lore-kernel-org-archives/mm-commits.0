@@ -1,58 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [withdrawn]
- rapidio-add-global-inbound-port-write-interfaces-fix.patch removed from -mm tree
-Date: Tue, 09 Feb 2016 12:13:29 -0800
-Message-ID: <56ba4869.K5UqWcSj3+CS/Bm7%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix.patch removed
+ from -mm tree
+Date: Tue, 09 Feb 2016 12:14:10 -0800
+Message-ID: <56ba4892.CTHrVDkcBzdE3Wl6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43494 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43513 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932209AbcBIUNa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 15:13:30 -0500
+	with ESMTP id S932353AbcBIUOL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 15:14:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, a-jacquiot@ti.com, alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, dan.carpenter@oracle.com, krinkin.m.u@gmail.com, mingo@elte.hu, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio-add-global-inbound-port-write-interfaces-fix
+     Subject: kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix
 has been removed from the -mm tree.  Its filename was
-     rapidio-add-global-inbound-port-write-interfaces-fix.patch
+     kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix.patch
 
-This patch was dropped because it was withdrawn
+This patch was dropped because it was folded into kernel-locking-lockdepc-convert-hash-tables-to-hlists.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: rapidio-add-global-inbound-port-write-interfaces-fix
+Subject: kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix
 
-s/list_for_each_entry/list_for_each_entry_safe/ in rio_del_mport_pw_handler()
+`head' is never NULL here
 
-Cc: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
-Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: linux-kernel@vger.kernel.org
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Mike Krinkin <krinkin.m.u@gmail.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/locking/lockdep.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN drivers/rapidio/rio.c~rapidio-add-global-inbound-port-write-interfaces-fix drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-add-global-inbound-port-write-interfaces-fix
-+++ a/drivers/rapidio/rio.c
-@@ -576,7 +576,7 @@ int rio_del_mport_pw_handler(struct rio_
- 	struct rio_pwrite *pwrite;
+diff -puN kernel/locking/lockdep.c~kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix kernel/locking/lockdep.c
+--- a/kernel/locking/lockdep.c~kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix
++++ a/kernel/locking/lockdep.c
+@@ -3930,8 +3930,6 @@ void lockdep_free_key_range(void *start,
+ 	 */
+ 	for (i = 0; i < CLASSHASH_SIZE; i++) {
+ 		head = classhash_table + i;
+-		if (!head)
+-			continue;
+ 		hlist_for_each_entry_rcu(class, head, hash_entry) {
+ 			if (within(class->key, start, size))
+ 				zap_class(class);
+@@ -3987,8 +3985,6 @@ void lockdep_reset_lock(struct lockdep_m
+ 	locked = graph_lock();
+ 	for (i = 0; i < CLASSHASH_SIZE; i++) {
+ 		head = classhash_table + i;
+-		if (!head)
+-			continue;
+ 		hlist_for_each_entry_rcu(class, head, hash_entry) {
+ 			int match = 0;
  
- 	mutex_lock(&mport->lock);
--	list_for_each_entry(pwrite, &mport->pwrites, node) {
-+	list_for_each_entry_safe(pwrite, &mport->pwrites, node) {
- 		if (pwrite->pwcback == pwcback && pwrite->context == context) {
- 			list_del(&pwrite->node);
- 			kfree(pwrite);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -63,7 +73,6 @@ drivers-gpu-drm-i915-intel_spritec-fix-build.patch
 drivers-gpu-drm-i915-intel_tvc-fix-build.patch
 vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes.patch
 kernel-locking-lockdepc-convert-hash-tables-to-hlists.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists-fix.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
 ocfs2-code-clean-up-for-direct-io-fix.patch
 ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
