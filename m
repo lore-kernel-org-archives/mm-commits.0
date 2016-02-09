@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-zap-memcg_kmem_online-helper.patch added to -mm
- tree
-Date: Tue, 09 Feb 2016 13:18:09 -0800
-Message-ID: <56ba5791.MJS9jWS7bAga2xyu%akpm@linux-foundation.org>
+Subject: + radix-tree-account-radix_tree_node-to-memory-cgroup.patch added to -mm tree
+Date: Tue, 09 Feb 2016 13:18:11 -0800
+Message-ID: <56ba5793.daFboSRN9BzwjMm5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49140 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49143 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755077AbcBIVSK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 16:18:10 -0500
+	with ESMTP id S1755077AbcBIVSM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 16:18:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: zap memcg_kmem_online helper
+     Subject: radix-tree: account radix_tree_node to memory cgroup
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-zap-memcg_kmem_online-helper.patch
+     radix-tree-account-radix_tree_node-to-memory-cgroup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-zap-memcg_kmem_online-helper.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-account-radix_tree_node-to-memory-cgroup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-zap-memcg_kmem_online-helper.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-account-radix_tree_node-to-memory-cgroup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,23 +39,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: memcontrol: zap memcg_kmem_online helper
+Subject: radix-tree: account radix_tree_node to memory cgroup
 
-As kmem accounting is now either enabled for all cgroups or disabled
-system-wide, there's no point in having memcg_kmem_online() helper -
-instead one can use memcg_kmem_enabled() and mem_cgroup_online(), as
-shrink_slab() now does.
+Allocation of radix_tree_node objects can be easily triggered from
+userspace, so we should account them to memory cgroup.  Besides, we need
+them accounted for making shadow node shrinker per memcg (see
+mm/workingset.c).
 
-There are only two places left where this helper is used -
-__memcg_kmem_charge() and memcg_create_kmem_cache().  The former can only
-be called if memcg_kmem_enabled() returned true.  Since the cgroup it
-operates on is online, mem_cgroup_is_root() check will be enough.
+A tricky thing about accounting radix_tree_node objects is that they are
+mostly allocated through radix_tree_preload(), so we can't just set
+SLAB_ACCOUNT for radix_tree_node_cachep - that would likely result in a
+lot of unrelated cgroups using objects from each other's caches.
 
-memcg_create_kmem_cache() can't use mem_cgroup_online() helper instead of
-memcg_kmem_online(), because it relies on the fact that in
-memcg_offline_kmem() memcg->kmem_state is changed before
-memcg_deactivate_kmem_caches() is called, but there we can just open-code
-the check.
+One way to overcome this would be making radix tree preloads per memcg,
+but that would probably look cumbersome and overcomplicated.
+
+Instead, we make radix_tree_node_alloc() first try to allocate from the
+cache with __GFP_ACCOUNT, no matter if the caller has preloaded or not,
+and only if it fails fall back on using per cpu preloads.  This should
+make most allocations accounted.
 
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -64,62 +65,43 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   10 ----------
- mm/memcontrol.c            |    2 +-
- mm/slab_common.c           |    2 +-
- 3 files changed, 2 insertions(+), 12 deletions(-)
+ lib/radix-tree.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcontrol-zap-memcg_kmem_online-helper include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcontrol-zap-memcg_kmem_online-helper
-+++ a/include/linux/memcontrol.h
-@@ -795,11 +795,6 @@ static inline bool memcg_kmem_enabled(vo
- 	return static_branch_unlikely(&memcg_kmem_enabled_key);
- }
+diff -puN lib/radix-tree.c~radix-tree-account-radix_tree_node-to-memory-cgroup lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-account-radix_tree_node-to-memory-cgroup
++++ a/lib/radix-tree.c
+@@ -192,6 +192,15 @@ radix_tree_node_alloc(struct radix_tree_
+ 		struct radix_tree_preload *rtp;
  
--static inline bool memcg_kmem_online(struct mem_cgroup *memcg)
--{
--	return memcg->kmem_state == KMEM_ONLINE;
--}
+ 		/*
++		 * Even if the caller has preloaded, try to allocate from the
++		 * cache first for the new node to get accounted.
++		 */
++		ret = kmem_cache_alloc(radix_tree_node_cachep,
++				       gfp_mask | __GFP_ACCOUNT | __GFP_NOWARN);
++		if (ret)
++			goto out;
++
++		/*
+ 		 * Provided the caller has preloaded here, we will always
+ 		 * succeed in getting a node here (and never reach
+ 		 * kmem_cache_alloc)
+@@ -208,10 +217,11 @@ radix_tree_node_alloc(struct radix_tree_
+ 		 * for debugging.
+ 		 */
+ 		kmemleak_update_trace(ret);
++		goto out;
+ 	}
+-	if (ret == NULL)
+-		ret = kmem_cache_alloc(radix_tree_node_cachep, gfp_mask);
 -
- /*
-  * In general, we'll do everything in our power to not incur in any overhead
-  * for non-memcg users for the kmem functions. Not even a function call, if we
-@@ -908,11 +903,6 @@ static inline bool memcg_kmem_enabled(vo
- {
- 	return false;
- }
--
--static inline bool memcg_kmem_online(struct mem_cgroup *memcg)
--{
--	return false;
--}
- 
- static inline int memcg_kmem_charge(struct page *page, gfp_t gfp, int order)
- {
-diff -puN mm/memcontrol.c~mm-memcontrol-zap-memcg_kmem_online-helper mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-zap-memcg_kmem_online-helper
-+++ a/mm/memcontrol.c
-@@ -2346,7 +2346,7 @@ int __memcg_kmem_charge(struct page *pag
- 	int ret = 0;
- 
- 	memcg = get_mem_cgroup_from_mm(current->mm);
--	if (memcg_kmem_online(memcg))
-+	if (!mem_cgroup_is_root(memcg))
- 		ret = __memcg_kmem_charge_memcg(page, gfp, order, memcg);
- 	css_put(&memcg->css);
++	ret = kmem_cache_alloc(radix_tree_node_cachep,
++			       gfp_mask | __GFP_ACCOUNT);
++out:
+ 	BUG_ON(radix_tree_is_indirect_ptr(ret));
  	return ret;
-diff -puN mm/slab_common.c~mm-memcontrol-zap-memcg_kmem_online-helper mm/slab_common.c
---- a/mm/slab_common.c~mm-memcontrol-zap-memcg_kmem_online-helper
-+++ a/mm/slab_common.c
-@@ -510,7 +510,7 @@ void memcg_create_kmem_cache(struct mem_
- 	 * The memory cgroup could have been offlined while the cache
- 	 * creation work was pending.
- 	 */
--	if (!memcg_kmem_online(memcg))
-+	if (memcg->kmem_state != KMEM_ONLINE)
- 		goto out_unlock;
- 
- 	idx = memcg_cache_id(memcg);
+ }
 _
 
 Patches currently in -mm which might be from vdavydov@virtuozzo.com are
