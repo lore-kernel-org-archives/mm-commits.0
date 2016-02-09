@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + bufferhead-force-inlining-of-buffer-head-flag-operations.patch
- added to -mm tree
-Date: Mon, 08 Feb 2016 16:23:53 -0800
-Message-ID: <56b93199.2CQDT/bMW5QBBCp/%akpm@linux-foundation.org>
+Subject: +
+ block-partition-add-partition-specific-uevent-callbacks-for-partition-info.patch added to -mm tree
+Date: Mon, 08 Feb 2016 16:27:38 -0800
+Message-ID: <56b9327a.El3gQ0feG5HWyu0B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53176 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53457 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932312AbcBIAXy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 19:23:54 -0500
+	with ESMTP id S932372AbcBIA1j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 8 Feb 2016 19:27:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvlasenk@redhat.com, mingo@kernel.org, peterz@infradead.org, rientjes@google.com, tgraf@suug.ch, mm-commits@vger.kernel.org
+To: san@google.com, axboe@kernel.dk, dima@android.com, harald@redhat.com, jmoyer@redhat.com, john.stultz@linaro.org, kay@vrfy.org, keescook@chromium.org, kernel-team@android.com, romlem@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bufferhead: Force inlining of buffer head flag operations
+     Subject: block: partition: add partition specific uevent callbacks for partition info
 has been added to the -mm tree.  Its filename is
-     bufferhead-force-inlining-of-buffer-head-flag-operations.patch
+     block-partition-add-partition-specific-uevent-callbacks-for-partition-info.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bufferhead-force-inlining-of-buffer-head-flag-operations.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/block-partition-add-partition-specific-uevent-callbacks-for-partition-info.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bufferhead-force-inlining-of-buffer-head-flag-operations.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/block-partition-add-partition-specific-uevent-callbacks-for-partition-info.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,99 +39,73 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Denys Vlasenko <dvlasenk@redhat.com>
-Subject: bufferhead: Force inlining of buffer head flag operations
+From: San Mehat <san@google.com>
+Subject: block: partition: add partition specific uevent callbacks for partition info
 
-With both gcc 4.7.2 and 4.9.2, sometimes gcc mysteriously doesn't inline
-very small functions we expect to be inlined. See
-    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66122
+This patch has been carried in the Android tree for quite some time and is
+one of the few patches required to get a mainline kernel up and running
+with an exsiting Android userspace.  So I wanted to submit it for review
+and consideration if it should be merged.
 
-With this .config:
-http://busybox.net/~vda/kernel_config_OPTIMIZE_INLINING_and_Os,
-set_buffer_foo(), clear_buffer_foo() and similar functions get deinlined
-about 60 times. Examples of disassembly:
+For partitions, add new uevent parameters 'PARTN' which specifies the
+partitions index in the table, and 'PARTNAME', which specifies PARTNAME
+specifices the partition name of a partition device.
 
-<set_buffer_mapped> (14 copies, 43 calls):
-       55                      push   %rbp
-       48 89 e5                mov    %rsp,%rbp
-       f0 80 0f 20             lock orb $0x20,(%rdi)
-       5d                      pop    %rbp
-       c3                      retq
-<buffer_mapped> (3 copies, 34 calls):
-       48 8b 07                mov    (%rdi),%rax
-       55                      push   %rbp
-       48 89 e5                mov    %rsp,%rbp
-       48 c1 e8 05             shr    $0x5,%rax
-       83 e0 01                and    $0x1,%eax
-       5d                      pop    %rbp
-       c3                      retq
-<set_buffer_new> (5 copies, 13 calls):
-       55                      push   %rbp
-       48 89 e5                mov    %rsp,%rbp
-       f0 80 0f 40             lock orb $0x40,(%rdi)
-       5d                      pop    %rbp
-       c3                      retq
+Android's userspace uses this for creating device node links from the
+partition name and number: ie:
+	/dev/block/platform/soc/by-name/system
+or
+	/dev/block/platform/soc/by-num/p1
 
-This patch fixes this via s/inline/__always_inline/.
-This decreases vmlinux by about 3 kbytes.
+One can see its usage here:
+https://android.googlesource.com/platform/system/core/+/master/init/devices.cpp#355
+and
+https://android.googlesource.com/platform/system/core/+/master/init/devices.cpp#494
 
-    text	    data	     bss	      dec	    hex	filename
-88200439	19905208	36421632	144527279	89d4faf	vmlinux2
-88197239	19905240	36421632	144524111	89d434f	vmlinux
-
-Signed-off-by: Denys Vlasenko <dvlasenk@redhat.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Thomas Graf <tgraf@suug.ch>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: David Rientjes <rientjes@google.com>
+[john.stultz@linaro.org: dropped NPARTS and reworded commit message for context]
+Signed-off-by: Dima Zavin <dima@android.com>
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Rom Lemarchand <romlem@google.com>
+Cc: Android Kernel Team <kernel-team@android.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: <harald@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kay Sievers <kay@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/buffer_head.h |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ block/partition-generic.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN include/linux/buffer_head.h~bufferhead-force-inlining-of-buffer-head-flag-operations include/linux/buffer_head.h
---- a/include/linux/buffer_head.h~bufferhead-force-inlining-of-buffer-head-flag-operations
-+++ a/include/linux/buffer_head.h
-@@ -82,15 +82,15 @@ struct buffer_head {
-  * and buffer_foo() functions.
-  */
- #define BUFFER_FNS(bit, name)						\
--static inline void set_buffer_##name(struct buffer_head *bh)		\
-+static __always_inline void set_buffer_##name(struct buffer_head *bh)	\
- {									\
- 	set_bit(BH_##bit, &(bh)->b_state);				\
- }									\
--static inline void clear_buffer_##name(struct buffer_head *bh)		\
-+static __always_inline void clear_buffer_##name(struct buffer_head *bh)	\
- {									\
- 	clear_bit(BH_##bit, &(bh)->b_state);				\
- }									\
--static inline int buffer_##name(const struct buffer_head *bh)		\
-+static __always_inline int buffer_##name(const struct buffer_head *bh)	\
- {									\
- 	return test_bit(BH_##bit, &(bh)->b_state);			\
+diff -puN block/partition-generic.c~block-partition-add-partition-specific-uevent-callbacks-for-partition-info block/partition-generic.c
+--- a/block/partition-generic.c~block-partition-add-partition-specific-uevent-callbacks-for-partition-info
++++ a/block/partition-generic.c
+@@ -217,10 +217,21 @@ static void part_release(struct device *
+ 	kfree(p);
  }
-@@ -99,11 +99,11 @@ static inline int buffer_##name(const st
-  * test_set_buffer_foo() and test_clear_buffer_foo()
-  */
- #define TAS_BUFFER_FNS(bit, name)					\
--static inline int test_set_buffer_##name(struct buffer_head *bh)	\
-+static __always_inline int test_set_buffer_##name(struct buffer_head *bh) \
- {									\
- 	return test_and_set_bit(BH_##bit, &(bh)->b_state);		\
- }									\
--static inline int test_clear_buffer_##name(struct buffer_head *bh)	\
-+static __always_inline int test_clear_buffer_##name(struct buffer_head *bh) \
- {									\
- 	return test_and_clear_bit(BH_##bit, &(bh)->b_state);		\
- }									\
+ 
++static int part_uevent(struct device *dev, struct kobj_uevent_env *env)
++{
++	struct hd_struct *part = dev_to_part(dev);
++
++	add_uevent_var(env, "PARTN=%u", part->partno);
++	if (part->info && part->info->volname[0])
++		add_uevent_var(env, "PARTNAME=%s", part->info->volname);
++	return 0;
++}
++
+ struct device_type part_type = {
+ 	.name		= "partition",
+ 	.groups		= part_attr_groups,
+ 	.release	= part_release,
++	.uevent		= part_uevent,
+ };
+ 
+ static void delete_partition_rcu_cb(struct rcu_head *head)
 _
 
-Patches currently in -mm which might be from dvlasenk@redhat.com are
+Patches currently in -mm which might be from san@google.com are
 
-bufferhead-force-inlining-of-buffer-head-flag-operations.patch
-asm-generic-force-inlining-of-some-atomic_long-operations.patch
-force-inlining-of-some-byteswap-operations.patch
-force-inlining-of-unaligned-byteswap-operations.patch
+block-partition-add-partition-specific-uevent-callbacks-for-partition-info.patch
 
