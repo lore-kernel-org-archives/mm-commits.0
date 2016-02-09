@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-vmscan-pass-root_mem_cgroup-instead-of-null-to-memcg-aware-shrinker.patch added to -mm tree
-Date: Tue, 09 Feb 2016 13:18:07 -0800
-Message-ID: <56ba578f.n2QhHYgCV4WojQqL%akpm@linux-foundation.org>
+Subject: + mm-workingset-make-shadow-node-shrinker-memcg-aware.patch added to -mm tree
+Date: Tue, 09 Feb 2016 13:18:15 -0800
+Message-ID: <56ba5797.iQ93u+n4LYW2dFok%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49128 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49161 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754378AbcBIVSI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 16:18:08 -0500
+	with ESMTP id S1755142AbcBIVSQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 16:18:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: pass root_mem_cgroup instead of NULL to memcg aware shrinker
+     Subject: mm: workingset: make shadow node shrinker memcg aware
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-pass-root_mem_cgroup-instead-of-null-to-memcg-aware-shrinker.patch
+     mm-workingset-make-shadow-node-shrinker-memcg-aware.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-pass-root_mem_cgroup-instead-of-null-to-memcg-aware-shrinker.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-workingset-make-shadow-node-shrinker-memcg-aware.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-pass-root_mem_cgroup-instead-of-null-to-memcg-aware-shrinker.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-workingset-make-shadow-node-shrinker-memcg-aware.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,60 +39,95 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: vmscan: pass root_mem_cgroup instead of NULL to memcg aware shrinker
+Subject: mm: workingset: make shadow node shrinker memcg aware
 
-It's just convenient to implement a memcg aware shrinker when you know
-that shrink_control->memcg != NULL unless memcg_kmem_enabled() returns
-false.
+Workingset code was recently made memcg aware, but shadow node shrinker is
+still global.  As a result, one small cgroup can consume all memory
+available for shadow nodes, possibly hurting other cgroups by reclaiming
+their shadow nodes, even though reclaim distances stored in its shadow
+nodes have no effect.  To avoid this, we need to make shadow node shrinker
+memcg aware.
 
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
+ include/linux/memcontrol.h |   10 ++++++++++
+ mm/memcontrol.c            |    5 ++---
+ mm/workingset.c            |   10 +++++++---
+ 3 files changed, 19 insertions(+), 6 deletions(-)
 
-diff -puN mm/vmscan.c~mm-vmscan-pass-root_mem_cgroup-instead-of-null-to-memcg-aware-shrinker mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-pass-root_mem_cgroup-instead-of-null-to-memcg-aware-shrinker
-+++ a/mm/vmscan.c
-@@ -382,9 +382,8 @@ static unsigned long do_shrink_slab(stru
-  *
-  * @memcg specifies the memory cgroup to target. If it is not NULL,
-  * only shrinkers with SHRINKER_MEMCG_AWARE set will be called to scan
-- * objects from the memory cgroup specified. Otherwise all shrinkers
-- * are called, and memcg aware shrinkers are supposed to scan the
-- * global list then.
-+ * objects from the memory cgroup specified. Otherwise, only unaware
-+ * shrinkers are called.
-  *
-  * @nr_scanned and @nr_eligible form a ratio that indicate how much of
-  * the available objects should be scanned.  Page reclaim for example
-@@ -404,7 +403,7 @@ static unsigned long shrink_slab(gfp_t g
- 	struct shrinker *shrinker;
- 	unsigned long freed = 0;
+diff -puN include/linux/memcontrol.h~mm-workingset-make-shadow-node-shrinker-memcg-aware include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-workingset-make-shadow-node-shrinker-memcg-aware
++++ a/include/linux/memcontrol.h
+@@ -403,6 +403,9 @@ int mem_cgroup_select_victim_node(struct
+ void mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
+ 		int nr_pages);
  
--	if (memcg && !memcg_kmem_online(memcg))
-+	if (memcg && (!memcg_kmem_enabled() || !mem_cgroup_online(memcg)))
- 		return 0;
++unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
++					   int nid, unsigned int lru_mask);
++
+ static inline
+ unsigned long mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
+ {
+@@ -661,6 +664,13 @@ mem_cgroup_update_lru_size(struct lruvec
+ {
+ }
  
- 	if (nr_scanned == 0)
-@@ -428,7 +427,13 @@ static unsigned long shrink_slab(gfp_t g
- 			.memcg = memcg,
- 		};
++static inline unsigned long
++mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
++			     int nid, unsigned int lru_mask)
++{
++	return 0;
++}
++
+ static inline void
+ mem_cgroup_print_oom_info(struct mem_cgroup *memcg, struct task_struct *p)
+ {
+diff -puN mm/memcontrol.c~mm-workingset-make-shadow-node-shrinker-memcg-aware mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-workingset-make-shadow-node-shrinker-memcg-aware
++++ a/mm/memcontrol.c
+@@ -638,9 +638,8 @@ static void mem_cgroup_charge_statistics
+ 	__this_cpu_add(memcg->stat->nr_page_events, nr_pages);
+ }
  
--		if (memcg && !(shrinker->flags & SHRINKER_MEMCG_AWARE))
-+		/*
-+		 * If kernel memory accounting is disabled, we ignore
-+		 * SHRINKER_MEMCG_AWARE flag and call all shrinkers
-+		 * passing NULL for memcg.
-+		 */
-+		if (memcg_kmem_enabled() &&
-+		    !!memcg != !!(shrinker->flags & SHRINKER_MEMCG_AWARE))
- 			continue;
+-static unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
+-						  int nid,
+-						  unsigned int lru_mask)
++unsigned long mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
++					   int nid, unsigned int lru_mask)
+ {
+ 	unsigned long nr = 0;
+ 	int zid;
+diff -puN mm/workingset.c~mm-workingset-make-shadow-node-shrinker-memcg-aware mm/workingset.c
+--- a/mm/workingset.c~mm-workingset-make-shadow-node-shrinker-memcg-aware
++++ a/mm/workingset.c
+@@ -349,8 +349,12 @@ static unsigned long count_shadow_nodes(
+ 	shadow_nodes = list_lru_shrink_count(&workingset_shadow_nodes, sc);
+ 	local_irq_enable();
  
- 		if (!(shrinker->flags & SHRINKER_NUMA_AWARE))
+-	pages = node_page_state(sc->nid, NR_ACTIVE_FILE) +
+-		node_page_state(sc->nid, NR_INACTIVE_FILE);
++	if (memcg_kmem_enabled())
++		pages = mem_cgroup_node_nr_lru_pages(sc->memcg, sc->nid,
++						     LRU_ALL_FILE);
++	else
++		pages = node_page_state(sc->nid, NR_ACTIVE_FILE) +
++			node_page_state(sc->nid, NR_INACTIVE_FILE);
+ 
+ 	/*
+ 	 * Active cache pages are limited to 50% of memory, and shadow
+@@ -460,7 +464,7 @@ static struct shrinker workingset_shadow
+ 	.count_objects = count_shadow_nodes,
+ 	.scan_objects = scan_shadow_nodes,
+ 	.seeks = DEFAULT_SEEKS,
+-	.flags = SHRINKER_NUMA_AWARE,
++	.flags = SHRINKER_NUMA_AWARE | SHRINKER_MEMCG_AWARE,
+ };
+ 
+ /*
 _
 
 Patches currently in -mm which might be from vdavydov@virtuozzo.com are
