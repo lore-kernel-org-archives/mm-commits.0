@@ -1,122 +1,128 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete]
- mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch removed from -mm tree
-Date: Tue, 09 Feb 2016 12:53:13 -0800
-Message-ID: <56ba51b9.5UiawPhTOpYDz8aH%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3.patch added to -mm tree
+Date: Tue, 09 Feb 2016 12:53:07 -0800
+Message-ID: <56ba51b3.6nPgEJ03wHXddn56%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46634 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46617 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932641AbcBIUxO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 15:53:14 -0500
+	with ESMTP id S932641AbcBIUxI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 15:53:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: js1304@gmail.com, aaron.lu@intel.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
-has been removed from the -mm tree.  Its filename was
-     mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
+     Subject: mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3
+has been added to the -mm tree.  Its filename is
+     mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3.patch
 
-This patch was dropped because it is obsolete
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
+From: Joonsoo Kim <js1304@gmail.com>
+Subject: mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3
 
-Resurrect this - I need to get an mmotm out the door
+v3
+o remove pfn_valid_within() check for all pages in the pageblock
+because pageblock_pfn_to_page() is only called with pageblock aligned pfn.
 
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reported-by: Aaron Lu <aaron.lu@intel.com>
+Tested-by: Aaron Lu <aaron.lu@intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memory_hotplug.h |   12 +++++++++++-
- include/linux/mmzone.h         |    2 ++
- mm/internal.h                  |    2 +-
- mm/memory_hotplug.c            |   27 +++++++++++++++++++++++++++
- mm/page_alloc.c                |   27 ---------------------------
- 5 files changed, 41 insertions(+), 29 deletions(-)
+ mm/page_alloc.c |  139 ++++++++++++++++++++++------------------------
+ 1 file changed, 69 insertions(+), 70 deletions(-)
 
-diff -puN include/linux/memory_hotplug.h~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
-+++ a/include/linux/memory_hotplug.h
-@@ -200,7 +200,10 @@ void mem_hotplug_done(void);
- 
- extern void set_zone_contiguous(struct zone *zone);
- extern void clear_zone_contiguous(struct zone *zone);
--
-+static inline bool zone_contiguous(struct zone *zone)
-+{
-+	return zone->contiguous;
-+}
- #else /* ! CONFIG_MEMORY_HOTPLUG */
- /*
-  * Stub functions for when hotplug is off
-@@ -243,6 +246,13 @@ static inline void put_online_mems(void)
- static inline void mem_hotplug_begin(void) {}
- static inline void mem_hotplug_done(void) {}
- 
-+static inline void set_zone_contiguous(struct zone *zone) {}
-+static inline void clear_zone_contiguous(struct zone *zone) {}
-+static inline bool zone_contiguous(struct zone *zone)
-+{
-+	return false;
-+}
-+
- #endif /* ! CONFIG_MEMORY_HOTPLUG */
- 
- #ifdef CONFIG_MEMORY_HOTREMOVE
-diff -puN include/linux/mmzone.h~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix include/linux/mmzone.h
---- a/include/linux/mmzone.h~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
-+++ a/include/linux/mmzone.h
-@@ -522,7 +522,9 @@ struct zone {
- 	bool			compact_blockskip_flush;
- #endif
- 
-+#ifdef CONFIG_MEMORY_HOTPLUG
- 	bool			contiguous;
-+#endif
- 
- 	ZONE_PADDING(_pad3_)
- 	/* Zone statistics */
-diff -puN mm/internal.h~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix mm/internal.h
---- a/mm/internal.h~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
-+++ a/mm/internal.h
-@@ -143,7 +143,7 @@ extern struct page *__pageblock_pfn_to_p
- static inline struct page *pageblock_pfn_to_page(unsigned long start_pfn,
- 				unsigned long end_pfn, struct zone *zone)
- {
--	if (zone->contiguous)
-+	if (zone_contiguous(zone))
- 		return pfn_to_page(start_pfn);
- 
- 	return __pageblock_pfn_to_page(start_pfn, end_pfn, zone);
-diff -puN mm/memory_hotplug.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
-+++ a/mm/memory_hotplug.c
-@@ -130,6 +130,33 @@ void mem_hotplug_done(void)
- 	memhp_lock_release();
+diff -puN mm/page_alloc.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3 mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3
++++ a/mm/page_alloc.c
+@@ -1128,6 +1128,75 @@ void __init __free_pages_bootmem(struct
+ 	return __free_pages_boot_core(page, pfn, order);
  }
  
++/*
++ * Check that the whole (or subset of) a pageblock given by the interval of
++ * [start_pfn, end_pfn) is valid and within the same zone, before scanning it
++ * with the migration of free compaction scanner. The scanners then need to
++ * use only pfn_valid_within() check for arches that allow holes within
++ * pageblocks.
++ *
++ * Return struct page pointer of start_pfn, or NULL if checks were not passed.
++ *
++ * It's possible on some configurations to have a setup like node0 node1 node0
++ * i.e. it's possible that all pages within a zones range of pages do not
++ * belong to a single zone. We assume that a border between node0 and node1
++ * can occur within a single pageblock, but not a node0 node1 node0
++ * interleaving within a single pageblock. It is therefore sufficient to check
++ * the first and last page of a pageblock and avoid checking each individual
++ * page in a pageblock.
++ */
++struct page *__pageblock_pfn_to_page(unsigned long start_pfn,
++				     unsigned long end_pfn, struct zone *zone)
++{
++	struct page *start_page;
++	struct page *end_page;
++
++	/* end_pfn is one past the range we are checking */
++	end_pfn--;
++
++	if (!pfn_valid(start_pfn) || !pfn_valid(end_pfn))
++		return NULL;
++
++	start_page = pfn_to_page(start_pfn);
++
++	if (page_zone(start_page) != zone)
++		return NULL;
++
++	end_page = pfn_to_page(end_pfn);
++
++	/* This gives a shorter code than deriving page_zone(end_page) */
++	if (page_zone_id(start_page) != page_zone_id(end_page))
++		return NULL;
++
++	return start_page;
++}
++
 +void set_zone_contiguous(struct zone *zone)
 +{
 +	unsigned long block_start_pfn = zone->zone_start_pfn;
 +	unsigned long block_end_pfn;
-+	unsigned long pfn;
 +
 +	block_end_pfn = ALIGN(block_start_pfn + 1, pageblock_nr_pages);
 +	for (; block_start_pfn < zone_end_pfn(zone);
-+		block_start_pfn = block_end_pfn,
-+		block_end_pfn += pageblock_nr_pages) {
++			block_start_pfn = block_end_pfn,
++			 block_end_pfn += pageblock_nr_pages) {
 +
 +		block_end_pfn = min(block_end_pfn, zone_end_pfn(zone));
 +
 +		if (!__pageblock_pfn_to_page(block_start_pfn,
-+					block_end_pfn, zone))
++					     block_end_pfn, zone))
 +			return;
 +	}
 +
@@ -129,16 +135,56 @@ diff -puN mm/memory_hotplug.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-
 +	zone->contiguous = false;
 +}
 +
- /* add this memory to iomem resource */
- static struct resource *register_memory_resource(u64 start, u64 size)
- {
-diff -puN mm/page_alloc.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
-+++ a/mm/page_alloc.c
-@@ -1347,33 +1347,6 @@ struct page *__pageblock_pfn_to_page(uns
- 	return start_page;
+ #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
+ static void __init deferred_free_range(struct page *page,
+ 					unsigned long pfn, int nr_pages)
+@@ -1304,76 +1373,6 @@ void __init page_alloc_init_late(void)
+ 		set_zone_contiguous(zone);
  }
  
+-/*
+- * Check that the whole (or subset of) a pageblock given by the interval of
+- * [start_pfn, end_pfn) is valid and within the same zone, before scanning it
+- * with the migration of free compaction scanner. The scanners then need to
+- * use only pfn_valid_within() check for arches that allow holes within
+- * pageblocks.
+- *
+- * Return struct page pointer of start_pfn, or NULL if checks were not passed.
+- *
+- * It's possible on some configurations to have a setup like node0 node1 node0
+- * i.e. it's possible that all pages within a zones range of pages do not
+- * belong to a single zone. We assume that a border between node0 and node1
+- * can occur within a single pageblock, but not a node0 node1 node0
+- * interleaving within a single pageblock. It is therefore sufficient to check
+- * the first and last page of a pageblock and avoid checking each individual
+- * page in a pageblock.
+- */
+-struct page *__pageblock_pfn_to_page(unsigned long start_pfn,
+-				unsigned long end_pfn, struct zone *zone)
+-{
+-	struct page *start_page;
+-	struct page *end_page;
+-
+-	/* end_pfn is one past the range we are checking */
+-	end_pfn--;
+-
+-	if (!pfn_valid(start_pfn) || !pfn_valid(end_pfn))
+-		return NULL;
+-
+-	start_page = pfn_to_page(start_pfn);
+-
+-	if (page_zone(start_page) != zone)
+-		return NULL;
+-
+-	end_page = pfn_to_page(end_pfn);
+-
+-	/* This gives a shorter code than deriving page_zone(end_page) */
+-	if (page_zone_id(start_page) != page_zone_id(end_page))
+-		return NULL;
+-
+-	return start_page;
+-}
+-
 -void set_zone_contiguous(struct zone *zone)
 -{
 -	unsigned long block_start_pfn = zone->zone_start_pfn;
@@ -165,55 +211,3 @@ diff -puN mm/page_alloc.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone
 -{
 -	zone->contiguous = false;
 -}
--
- #ifdef CONFIG_CMA
- /* Free whole pageblock and set its migration type to MIGRATE_CMA. */
- void __init init_cma_reserved_pageblock(struct page *page)
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-code-clean-up-for-direct-io-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
-mm.patch
-mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
-mm-simplify-lock_page_memcg-fix.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom_reaper-report-success-failure-fix.patch
-proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
-mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
-mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
-sound-query-dynamic-debug_pagealloc-setting-fix.patch
-mm-config_nr_zones_extended-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-btrfs-use-radix_tree_iter_retry-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-kernel-add-kcov-code-coverage-fix.patch
-kernel-add-kcov-code-coverage-fix-2.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-
