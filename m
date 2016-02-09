@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + kernel-memremapc-add-new-arg-to-dev_warn.patch added to -mm
+Subject: + rapidio-add-mport-char-device-driver-fix.patch added to -mm
  tree
-Date: Tue, 09 Feb 2016 13:58:45 -0800
-Message-ID: <56ba6115.cPugSGTjjlKomWLB%akpm@linux-foundation.org>
+Date: Tue, 09 Feb 2016 14:40:26 -0800
+Message-ID: <56ba6ada.v9/1zwyJpz2oqJJs%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54256 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59384 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932532AbcBIV6q (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 16:58:46 -0500
+	with ESMTP id S1755534AbcBIWk2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 17:40:28 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, balbi@ti.com, gregkh@linuxfoundation.org, jkosina@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a-jacquiot@ti.com, alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/memremap.c: add new arg to dev_WARN
+     Subject: rapidio-add-mport-char-device-driver-fix
 has been added to the -mm tree.  Its filename is
-     kernel-memremapc-add-new-arg-to-dev_warn.patch
+     rapidio-add-mport-char-device-driver-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kernel-memremapc-add-new-arg-to-dev_warn.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-add-mport-char-device-driver-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kernel-memremapc-add-new-arg-to-dev_warn.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-add-mport-char-device-driver-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,30 +40,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel/memremap.c: add new arg to dev_WARN
+Subject: rapidio-add-mport-char-device-driver-fix
 
-Fixes: ee49ac85bc24b946 ("treewide: let dev_WARN() accept a condition")
-Cc: Felipe Balbi <balbi@ti.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Jiri Kosina <jkosina@suse.cz>
+fix printk warning on i386:
+
+drivers/rapidio/devices/rio_mport_cdev.c: In function 'mport_mm_open':
+include/linux/dynamic_debug.h:64:16: warning: format '%llx' expects argument of type 'long long unsigned int', but argument 4 has type 'dma_addr_t' [-Wformat=]
+
+Cc: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
+Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
+Cc: Barry Wood <barry.wood@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/memremap.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/rapidio/devices/rio_mport_cdev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN kernel/memremap.c~kernel-memremapc-add-new-arg-to-dev_warn kernel/memremap.c
---- a/kernel/memremap.c~kernel-memremapc-add-new-arg-to-dev_warn
-+++ a/kernel/memremap.c
-@@ -227,7 +227,8 @@ static void devm_memremap_pages_release(
- 	struct dev_pagemap *pgmap = &page_map->pgmap;
+diff -puN drivers/rapidio/devices/rio_mport_cdev.c~rapidio-add-mport-char-device-driver-fix drivers/rapidio/devices/rio_mport_cdev.c
+--- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-add-mport-char-device-driver-fix
++++ a/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -2220,7 +2220,7 @@ static void mport_mm_open(struct vm_area
+ {
+ 	struct rio_mport_mapping *map = vma->vm_private_data;
  
- 	if (percpu_ref_tryget_live(pgmap->ref)) {
--		dev_WARN(dev, "%s: page mapping is still live!\n", __func__);
-+		dev_WARN(dev, true, "%s: page mapping is still live!\n",
-+			 __func__);
- 		percpu_ref_put(pgmap->ref);
- 	}
+-rmcd_debug(MMAP, "0x%llx", map->phys_addr);
++rmcd_debug(MMAP, "0x%pad", &map->phys_addr);
+ 	kref_get(&map->ref);
+ }
  
 _
 
@@ -105,12 +110,13 @@ mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.
 btrfs-use-radix_tree_iter_retry-fix.patch
 sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
 sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
+rapidio-add-mport-char-device-driver-fix.patch
 dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
 kernel-add-kcov-code-coverage-fix.patch
 kernel-add-kcov-code-coverage-fix-2.patch
+kernel-memremapc-add-new-arg-to-dev_warn.patch
 drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
-kernel-memremapc-add-new-arg-to-dev_warn.patch
 
