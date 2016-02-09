@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy.patch added to -mm tree
-Date: Tue, 09 Feb 2016 13:18:05 -0800
-Message-ID: <56ba578d.aJ69OhruQ2zGJGSH%akpm@linux-foundation.org>
+ mm-vmscan-pass-root_mem_cgroup-instead-of-null-to-memcg-aware-shrinker.patch added to -mm tree
+Date: Tue, 09 Feb 2016 13:18:07 -0800
+Message-ID: <56ba578f.n2QhHYgCV4WojQqL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49044 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49128 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754378AbcBIVSG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 16:18:06 -0500
+	with ESMTP id S1754378AbcBIVSI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 16:18:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: enable kmem accounting for all cgroups in the legacy hierarchy
+     Subject: mm: vmscan: pass root_mem_cgroup instead of NULL to memcg aware shrinker
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy.patch
+     mm-vmscan-pass-root_mem_cgroup-instead-of-null-to-memcg-aware-shrinker.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-pass-root_mem_cgroup-instead-of-null-to-memcg-aware-shrinker.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-pass-root_mem_cgroup-instead-of-null-to-memcg-aware-shrinker.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,57 +40,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: memcontrol: enable kmem accounting for all cgroups in the legacy hierarchy
+Subject: mm: vmscan: pass root_mem_cgroup instead of NULL to memcg aware shrinker
 
-Workingset code was recently made memcg aware, but shadow node shrinker is
-still global.  As a result, one small cgroup can consume all memory
-available for shadow nodes, possibly hurting other cgroups by reclaiming
-their shadow nodes, even though reclaim distances stored in its shadow
-nodes have no effect.  To avoid this, we need to make shadow node shrinker
-memcg aware.
-
-The actual work is done in patch 6 of the series.  Patches 1 and 2 prepare
-memcg/shrinker infrastructure for the change.  Patch 3 is just a
-collateral cleanup.  Patch 4 makes radix_tree_node accounted, which is
-necessary for making shadow node shrinker memcg aware.  Patch 5 reduces
-shadow nodes overhead in case workload mostly uses anonymous pages.
-
-
-
-This patch:
-
-Currently, in the legacy hierarchy kmem accounting is off for all cgroups
-by default and must be enabled explicitly by writing something to
-memory.kmem.limit_in_bytes.  Since we don't support reclaim on hitting
-kmem limit, nor do we have any plans to implement it, this is likely to be
--1, just to enable kmem accounting and limit kernel memory consumption by
-the memory.limit_in_bytes along with user memory.
-
-This user API was introduced when the implementation of kmem accounting
-lacked slab shrinker support and hence was useless in practice.  Things
-have changed since then - slab shrinkers were made memcg aware, the
-accounting overhead seems to be negligible, and a failure to charge a kmem
-allocation should not have critical consequences, because we only account
-those kernel objects that should be safe to fail.  That's why kmem
-accounting is enabled by default for all cgroups in the default hierarchy,
-which will eventually replace the legacy one.
-
-The ability to enable kmem accounting for some cgroups while keeping it
-disabled for others is getting difficult to maintain.  E.g.  to make
-shadow node shrinker memcg aware (see mm/workingset.c), we need to know
-the relationship between the number of shadow nodes allocated for a cgroup
-and the size of its lru list.  If kmem accounting is enabled for all
-cgroups there is no problem, but what should we do if kmem accounting is
-enabled only for half of cgroups?  We've no other choice but use global
-lru stats while scanning root cgroup's shadow nodes, but that would be
-wrong if kmem accounting was enabled for all cgroups (which is the case if
-the unified hierarchy is used), in which case we should use lru stats of
-the root cgroup's lruvec.
-
-That being said, let's enable kmem accounting for all memory cgroups by
-default.  If one finds it unstable or too costly, it can always be
-disabled system-wide by passing cgroup.memory=nokmem to the kernel at boot
-time.
+It's just convenient to implement a memcg aware shrinker when you know
+that shrink_control->memcg != NULL unless memcg_kmem_enabled() returns
+false.
 
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -98,91 +52,48 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |   41 +++++------------------------------------
- 1 file changed, 5 insertions(+), 36 deletions(-)
+ mm/vmscan.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy
-+++ a/mm/memcontrol.c
-@@ -2824,6 +2824,9 @@ static int memcg_online_kmem(struct mem_
- {
- 	int memcg_id;
+diff -puN mm/vmscan.c~mm-vmscan-pass-root_mem_cgroup-instead-of-null-to-memcg-aware-shrinker mm/vmscan.c
+--- a/mm/vmscan.c~mm-vmscan-pass-root_mem_cgroup-instead-of-null-to-memcg-aware-shrinker
++++ a/mm/vmscan.c
+@@ -382,9 +382,8 @@ static unsigned long do_shrink_slab(stru
+  *
+  * @memcg specifies the memory cgroup to target. If it is not NULL,
+  * only shrinkers with SHRINKER_MEMCG_AWARE set will be called to scan
+- * objects from the memory cgroup specified. Otherwise all shrinkers
+- * are called, and memcg aware shrinkers are supposed to scan the
+- * global list then.
++ * objects from the memory cgroup specified. Otherwise, only unaware
++ * shrinkers are called.
+  *
+  * @nr_scanned and @nr_eligible form a ratio that indicate how much of
+  * the available objects should be scanned.  Page reclaim for example
+@@ -404,7 +403,7 @@ static unsigned long shrink_slab(gfp_t g
+ 	struct shrinker *shrinker;
+ 	unsigned long freed = 0;
  
-+	if (cgroup_memory_nokmem)
-+		return 0;
-+
- 	BUG_ON(memcg->kmemcg_id >= 0);
- 	BUG_ON(memcg->kmem_state);
+-	if (memcg && !memcg_kmem_online(memcg))
++	if (memcg && (!memcg_kmem_enabled() || !mem_cgroup_online(memcg)))
+ 		return 0;
  
-@@ -2844,24 +2847,6 @@ static int memcg_online_kmem(struct mem_
- 	return 0;
- }
+ 	if (nr_scanned == 0)
+@@ -428,7 +427,13 @@ static unsigned long shrink_slab(gfp_t g
+ 			.memcg = memcg,
+ 		};
  
--static int memcg_propagate_kmem(struct mem_cgroup *parent,
--				struct mem_cgroup *memcg)
--{
--	int ret = 0;
--
--	mutex_lock(&memcg_limit_mutex);
--	/*
--	 * If the parent cgroup is not kmem-online now, it cannot be
--	 * onlined after this point, because it has at least one child
--	 * already.
--	 */
--	if (memcg_kmem_online(parent) ||
--	    (cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_nokmem))
--		ret = memcg_online_kmem(memcg);
--	mutex_unlock(&memcg_limit_mutex);
--	return ret;
--}
--
- static void memcg_offline_kmem(struct mem_cgroup *memcg)
- {
- 	struct cgroup_subsys_state *css;
-@@ -2920,10 +2905,6 @@ static void memcg_free_kmem(struct mem_c
- 	}
- }
- #else
--static int memcg_propagate_kmem(struct mem_cgroup *parent, struct mem_cgroup *memcg)
--{
--	return 0;
--}
- static int memcg_online_kmem(struct mem_cgroup *memcg)
- {
- 	return 0;
-@@ -2939,22 +2920,10 @@ static void memcg_free_kmem(struct mem_c
- static int memcg_update_kmem_limit(struct mem_cgroup *memcg,
- 				   unsigned long limit)
- {
--	int ret = 0;
-+	int ret;
+-		if (memcg && !(shrinker->flags & SHRINKER_MEMCG_AWARE))
++		/*
++		 * If kernel memory accounting is disabled, we ignore
++		 * SHRINKER_MEMCG_AWARE flag and call all shrinkers
++		 * passing NULL for memcg.
++		 */
++		if (memcg_kmem_enabled() &&
++		    !!memcg != !!(shrinker->flags & SHRINKER_MEMCG_AWARE))
+ 			continue;
  
- 	mutex_lock(&memcg_limit_mutex);
--	/* Top-level cgroup doesn't propagate from root */
--	if (!memcg_kmem_online(memcg)) {
--		if (cgroup_is_populated(memcg->css.cgroup) ||
--		    (memcg->use_hierarchy && memcg_has_children(memcg)))
--			ret = -EBUSY;
--		if (ret)
--			goto out;
--		ret = memcg_online_kmem(memcg);
--		if (ret)
--			goto out;
--	}
- 	ret = page_counter_limit(&memcg->kmem, limit);
--out:
- 	mutex_unlock(&memcg_limit_mutex);
- 	return ret;
- }
-@@ -4205,7 +4174,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
- 		return &memcg->css;
- 	}
- 
--	error = memcg_propagate_kmem(parent, memcg);
-+	error = memcg_online_kmem(memcg);
- 	if (error)
- 		goto fail;
- 
+ 		if (!(shrinker->flags & SHRINKER_NUMA_AWARE))
 _
 
 Patches currently in -mm which might be from vdavydov@virtuozzo.com are
