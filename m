@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + radix-tree-account-radix_tree_node-to-memory-cgroup.patch added to -mm tree
-Date: Tue, 09 Feb 2016 13:18:11 -0800
-Message-ID: <56ba5793.daFboSRN9BzwjMm5%akpm@linux-foundation.org>
+Subject: +
+ mm-workingset-size-shadow-nodes-lru-basing-on-file-cache-size.patch added
+ to -mm tree
+Date: Tue, 09 Feb 2016 13:18:13 -0800
+Message-ID: <56ba5795.DIx9ImnKhwoG036h%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49143 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49152 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755077AbcBIVSM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 16:18:12 -0500
+	with ESMTP id S1755142AbcBIVSO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 9 Feb 2016 16:18:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: account radix_tree_node to memory cgroup
+     Subject: mm: workingset: size shadow nodes lru basing on file cache size
 has been added to the -mm tree.  Its filename is
-     radix-tree-account-radix_tree_node-to-memory-cgroup.patch
+     mm-workingset-size-shadow-nodes-lru-basing-on-file-cache-size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/radix-tree-account-radix_tree_node-to-memory-cgroup.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-workingset-size-shadow-nodes-lru-basing-on-file-cache-size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/radix-tree-account-radix_tree_node-to-memory-cgroup.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-workingset-size-shadow-nodes-lru-basing-on-file-cache-size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,69 +41,52 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: radix-tree: account radix_tree_node to memory cgroup
+Subject: mm: workingset: size shadow nodes lru basing on file cache size
 
-Allocation of radix_tree_node objects can be easily triggered from
-userspace, so we should account them to memory cgroup.  Besides, we need
-them accounted for making shadow node shrinker per memcg (see
-mm/workingset.c).
+A page is activated on refault if the refault distance stored in the
+corresponding shadow entry is less than the number of active file pages. 
+Since active file pages can't occupy more than half memory, we assume that
+the maximal effective refault distance can't be greater than half the
+number of present pages and size the shadow nodes lru list appropriately. 
+Generally speaking, this assumption is correct, but it can result in
+wasting a considerable chunk of memory on stale shadow nodes in case the
+portion of file pages is small, e.g.  if a workload mostly uses anonymous
+memory.
 
-A tricky thing about accounting radix_tree_node objects is that they are
-mostly allocated through radix_tree_preload(), so we can't just set
-SLAB_ACCOUNT for radix_tree_node_cachep - that would likely result in a
-lot of unrelated cgroups using objects from each other's caches.
+To sort this out, we need to compute the size of shadow nodes lru basing
+not on the maximal possible, but the current size of file cache.  We could
+take the size of active file lru for the maximal refault distance, but
+active lru is pretty unstable - it can shrink dramatically at runtime
+possibly disrupting workingset detection logic.
 
-One way to overcome this would be making radix tree preloads per memcg,
-but that would probably look cumbersome and overcomplicated.
-
-Instead, we make radix_tree_node_alloc() first try to allocate from the
-cache with __GFP_ACCOUNT, no matter if the caller has preloaded or not,
-and only if it fails fall back on using per cpu preloads.  This should
-make most allocations accounted.
+Instead we assume that the maximal refault distance equals half the total
+number of file cache pages.  This will protect us against active file lru
+size fluctuations while still being correct, because size of active lru is
+normally maintained lower than size of inactive lru.
 
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c |   16 +++++++++++++---
- 1 file changed, 13 insertions(+), 3 deletions(-)
+ mm/workingset.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN lib/radix-tree.c~radix-tree-account-radix_tree_node-to-memory-cgroup lib/radix-tree.c
---- a/lib/radix-tree.c~radix-tree-account-radix_tree_node-to-memory-cgroup
-+++ a/lib/radix-tree.c
-@@ -192,6 +192,15 @@ radix_tree_node_alloc(struct radix_tree_
- 		struct radix_tree_preload *rtp;
+diff -puN mm/workingset.c~mm-workingset-size-shadow-nodes-lru-basing-on-file-cache-size mm/workingset.c
+--- a/mm/workingset.c~mm-workingset-size-shadow-nodes-lru-basing-on-file-cache-size
++++ a/mm/workingset.c
+@@ -349,7 +349,9 @@ static unsigned long count_shadow_nodes(
+ 	shadow_nodes = list_lru_shrink_count(&workingset_shadow_nodes, sc);
+ 	local_irq_enable();
  
- 		/*
-+		 * Even if the caller has preloaded, try to allocate from the
-+		 * cache first for the new node to get accounted.
-+		 */
-+		ret = kmem_cache_alloc(radix_tree_node_cachep,
-+				       gfp_mask | __GFP_ACCOUNT | __GFP_NOWARN);
-+		if (ret)
-+			goto out;
+-	pages = node_present_pages(sc->nid);
++	pages = node_page_state(sc->nid, NR_ACTIVE_FILE) +
++		node_page_state(sc->nid, NR_INACTIVE_FILE);
 +
-+		/*
- 		 * Provided the caller has preloaded here, we will always
- 		 * succeed in getting a node here (and never reach
- 		 * kmem_cache_alloc)
-@@ -208,10 +217,11 @@ radix_tree_node_alloc(struct radix_tree_
- 		 * for debugging.
- 		 */
- 		kmemleak_update_trace(ret);
-+		goto out;
- 	}
--	if (ret == NULL)
--		ret = kmem_cache_alloc(radix_tree_node_cachep, gfp_mask);
--
-+	ret = kmem_cache_alloc(radix_tree_node_cachep,
-+			       gfp_mask | __GFP_ACCOUNT);
-+out:
- 	BUG_ON(radix_tree_is_indirect_ptr(ret));
- 	return ret;
- }
+ 	/*
+ 	 * Active cache pages are limited to 50% of memory, and shadow
+ 	 * entries that represent a refault distance bigger than that
 _
 
 Patches currently in -mm which might be from vdavydov@virtuozzo.com are
