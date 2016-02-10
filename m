@@ -1,80 +1,155 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-fix-pfn_mkwrite-dax-fault-handler.patch removed
- from -mm tree
-Date: Wed, 10 Feb 2016 11:35:22 -0800
-Message-ID: <56bb90fa.VrjX77RVMSoDTt8I%akpm@linux-foundation.org>
+Subject: [merged] dump_stack-avoid-potential-deadlocks.patch removed from
+ -mm tree
+Date: Wed, 10 Feb 2016 11:35:28 -0800
+Message-ID: <56bb9100.56Np7J/9HvnZ/A1q%akpm__43216.4519945674$1455132933$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42476 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42490 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753542AbcBJTfX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 14:35:23 -0500
+	with ESMTP id S1753364AbcBJTf3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 14:35:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, david@fromorbit.com, jack@suse.cz, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: edumazet@google.com, athorlton@sgi.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block: fix pfn_mkwrite() DAX fault handler
+     Subject: dump_stack: avoid potential deadlocks
 has been removed from the -mm tree.  Its filename was
-     block-fix-pfn_mkwrite-dax-fault-handler.patch
+     dump_stack-avoid-potential-deadlocks.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: block: fix pfn_mkwrite() DAX fault handler
+From: Eric Dumazet <edumazet@google.com>
+Subject: dump_stack: avoid potential deadlocks
 
-Previously the pfn_mkwrite() fault handler for raw block devices called
-bldev_dax_fault() -> __dax_fault() to do a full DAX page fault.  Really
-what the pfn_mkwrite() fault handler needs to do is call dax_pfn_mkwrite()
-to make sure that the radix tree entry for the given PTE is marked as
-dirty so that a follow-up fsync or msync call will flush it durably to
-media.
+Some servers experienced fatal deadlocks because of a combination of bugs,
+leading to multiple cpus calling dump_stack().
 
-Fixes: 5a023cdba50c ("block: enable dax for raw block devices")
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Alexander Viro <viro@zeniv.linux.org.uk>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Matthew Wilcox <willy@linux.intel.com>
+The checksumming bug was fixed in commit 34ae6a1aa054 ("ipv6: update
+skb->csum when CE mark is propagated").
+
+The second problem is a faulty locking in dump_stack()
+
+CPU1 runs in process context and calls dump_stack(), grabs dump_lock.
+
+   CPU2 receives a TCP packet under softirq, grabs socket spinlock, and
+   call dump_stack() from netdev_rx_csum_fault().
+
+   dump_stack() spins on atomic_cmpxchg(&dump_lock, -1, 2), since
+   dump_lock is owned by CPU1
+
+While dumping its stack, CPU1 is interrupted by a softirq, and happens
+to process a packet for the TCP socket locked by CPU2.
+
+CPU1 spins forever in spin_lock() : deadlock
+
+Stack trace on CPU1 looked like :
+
+[306295.402231] NMI backtrace for cpu 1
+[306295.402238] RIP: 0010:[<ffffffffa9804e95>]  [<ffffffffa9804e95>] _raw_spin_lock+0x25/0x30
+...
+[306295.402255] Stack:
+[306295.402256]  ffff88407f023cb0 ffffffffa99cbdc3 ffff88407f023ca0 ffff88012f496bb0
+[306295.402266]  ffffffffaa4dc1f0 ffff8820d94f0dc0 000000000000000a ffffffffaa4b4280
+[306295.402275]  ffff88407f023ce0 ffffffffa98a21d0 ffff88407f023cc0 ffff88407f023ca0
+[306295.402284] Call Trace:
+[306295.402286]  <IRQ>
+[306295.402288]
+[306295.402291]  [<ffffffffa99cbdc3>] tcp_v6_rcv+0x243/0x620
+[306295.402304]  [<ffffffffa99c38af>] ip6_input_finish+0x11f/0x330
+[306295.402309]  [<ffffffffa99c3b38>] ip6_input+0x38/0x40
+[306295.402313]  [<ffffffffa99c3b7c>] ip6_rcv_finish+0x3c/0x90
+[306295.402318]  [<ffffffffa99c3e79>] ipv6_rcv+0x2a9/0x500
+[306295.402323]  [<ffffffffa989a1a1>] process_backlog+0x461/0xaa0
+[306295.402332]  [<ffffffffa9899a57>] net_rx_action+0x147/0x430
+[306295.402337]  [<ffffffffa980cca7>] __do_softirq+0x167/0x2d0
+[306295.402341]  [<ffffffffa9d912dc>] call_softirq+0x1c/0x30
+[306295.402345]  [<ffffffffa980687f>] do_softirq+0x3f/0x80
+[306295.402350]  [<ffffffffa980cf7e>] irq_exit+0x6e/0xc0
+[306295.402355]  [<ffffffffa980a5b5>] smp_call_function_single_interrupt+0x35/0x40
+[306295.402360]  [<ffffffffa9d90bfa>] call_function_single_interrupt+0x6a/0x70
+[306295.402361]  <EOI>
+[306295.402364]
+[306295.402376]  [<ffffffffa9a3fa32>] printk+0x4d/0x4f
+[306295.402390]  [<ffffffffa99e1726>] printk_address+0x31/0x33
+[306295.402395]  [<ffffffffa99e175b>] print_trace_address+0x33/0x3c
+[306295.402408]  [<ffffffffa99e165b>] print_context_stack+0x7f/0x119
+[306295.402412]  [<ffffffffa99e07f1>] dump_trace+0x26b/0x28e
+[306295.402417]  [<ffffffffa99e17b3>] show_trace_log_lvl+0x4f/0x5c
+[306295.402421]  [<ffffffffa99e0a14>] show_stack_log_lvl+0x104/0x113
+[306295.402425]  [<ffffffffa99e1819>] show_stack+0x42/0x44
+[306295.402429]  [<ffffffffa9ba350a>] dump_stack+0x46/0x58
+[306295.402434]  [<ffffffffa9d0957d>] netdev_rx_csum_fault+0x38/0x3c
+[306295.402439]  [<ffffffffa9988e0e>] __skb_checksum_complete_head+0x6e/0x80
+[306295.402444]  [<ffffffffa9988e31>] __skb_checksum_complete+0x11/0x20
+[306295.402449]  [<ffffffffa98acf65>] tcp_rcv_established+0x2bd5/0x2fd0
+[306295.402468]  [<ffffffffa99cb69c>] tcp_v6_do_rcv+0x13c/0x620
+[306295.402477]  [<ffffffffa9984be5>] sk_backlog_rcv+0x15/0x30
+[306295.402482]  [<ffffffffa98931e2>] release_sock+0xd2/0x150
+[306295.402486]  [<ffffffffa98a51b1>] tcp_recvmsg+0x1c1/0xfc0
+[306295.402491]  [<ffffffffa98b637d>] inet_recvmsg+0x7d/0x90
+[306295.402495]  [<ffffffffa9891fcf>] sock_recvmsg+0xaf/0xe0
+[306295.402505]  [<ffffffffa9892611>] ___sys_recvmsg+0x111/0x3b0
+[306295.402528]  [<ffffffffa9892f5c>] SyS_recvmsg+0x5c/0xb0
+[306295.402532]  [<ffffffffa9d8fba2>] system_call_fastpath+0x16/0x1b
+
+Fixes: b58d977432c8 ("dump_stack: serialize the output from dump_stack()")
+Signed-off-by: Eric Dumazet <edumazet@google.com>
+Cc: Alex Thorlton <athorlton@sgi.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/block_dev.c |    8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
+ lib/dump_stack.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/block_dev.c~block-fix-pfn_mkwrite-dax-fault-handler fs/block_dev.c
---- a/fs/block_dev.c~block-fix-pfn_mkwrite-dax-fault-handler
-+++ a/fs/block_dev.c
-@@ -1730,6 +1730,12 @@ static int blkdev_dax_fault(struct vm_ar
- 	return __dax_fault(vma, vmf, blkdev_get_block, NULL);
- }
+diff -puN lib/dump_stack.c~dump_stack-avoid-potential-deadlocks lib/dump_stack.c
+--- a/lib/dump_stack.c~dump_stack-avoid-potential-deadlocks
++++ a/lib/dump_stack.c
+@@ -25,6 +25,7 @@ static atomic_t dump_lock = ATOMIC_INIT(
  
-+static int blkdev_dax_pfn_mkwrite(struct vm_area_struct *vma,
-+		struct vm_fault *vmf)
-+{
-+	return dax_pfn_mkwrite(vma, vmf);
-+}
-+
- static int blkdev_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
- 		pmd_t *pmd, unsigned int flags)
+ asmlinkage __visible void dump_stack(void)
  {
-@@ -1739,7 +1745,7 @@ static int blkdev_dax_pmd_fault(struct v
- static const struct vm_operations_struct blkdev_dax_vm_ops = {
- 	.fault		= blkdev_dax_fault,
- 	.pmd_fault	= blkdev_dax_pmd_fault,
--	.pfn_mkwrite	= blkdev_dax_fault,
-+	.pfn_mkwrite	= blkdev_dax_pfn_mkwrite,
- };
++	unsigned long flags;
+ 	int was_locked;
+ 	int old;
+ 	int cpu;
+@@ -33,9 +34,8 @@ asmlinkage __visible void dump_stack(voi
+ 	 * Permit this cpu to perform nested stack dumps while serialising
+ 	 * against other CPUs
+ 	 */
+-	preempt_disable();
+-
+ retry:
++	local_irq_save(flags);
+ 	cpu = smp_processor_id();
+ 	old = atomic_cmpxchg(&dump_lock, -1, cpu);
+ 	if (old == -1) {
+@@ -43,6 +43,7 @@ retry:
+ 	} else if (old == cpu) {
+ 		was_locked = 1;
+ 	} else {
++		local_irq_restore(flags);
+ 		cpu_relax();
+ 		goto retry;
+ 	}
+@@ -52,7 +53,7 @@ retry:
+ 	if (!was_locked)
+ 		atomic_set(&dump_lock, -1);
  
- static const struct vm_operations_struct blkdev_default_vm_ops = {
+-	preempt_enable();
++	local_irq_restore(flags);
+ }
+ #else
+ asmlinkage __visible void dump_stack(void)
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from edumazet@google.com are
 
 
