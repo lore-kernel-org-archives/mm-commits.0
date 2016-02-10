@@ -1,176 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- epoll-restrict-epollexclusive-to-pollin-and-pollout.patch removed from -mm
- tree
-Date: Wed, 10 Feb 2016 11:36:10 -0800
-Message-ID: <56bb912a.OtIvYIX+DJs7oPzW%akpm@linux-foundation.org>
+ scripts-link-vmlinuxsh-force-error-on-kallsyms-failure.patch removed from
+ -mm tree
+Date: Wed, 10 Feb 2016 11:36:13 -0800
+Message-ID: <56bb912d./hZyUImi2L3Pxkm/%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42601 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42617 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753571AbcBJTgL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 14:36:11 -0500
+	with ESMTP id S1753501AbcBJTgO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 14:36:14 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jbaron@akamai.com, corbet@lwn.net, hagen@jauu.net, luto@amacapital.net, m@silodev.com, mingo@kernel.org, mtk.manpages@gmail.com, normalperson@yhbt.net, peterz@infradead.org, viro@ftp.linux.org.uk, mm-commits@vger.kernel.org
+To: ard.biesheuvel@linaro.org, arnd@arndb.de, linux@roeck-us.net, mmarek@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: epoll: restrict EPOLLEXCLUSIVE to POLLIN and POLLOUT
+     Subject: scripts/link-vmlinux.sh: force error on kallsyms failure
 has been removed from the -mm tree.  Its filename was
-     epoll-restrict-epollexclusive-to-pollin-and-pollout.patch
+     scripts-link-vmlinuxsh-force-error-on-kallsyms-failure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jason Baron <jbaron@akamai.com>
-Subject: epoll: restrict EPOLLEXCLUSIVE to POLLIN and POLLOUT
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: scripts/link-vmlinux.sh: force error on kallsyms failure
 
-In the current implementation of the EPOLLEXCLUSIVE flag (added for 4.5-rc1),
-if epoll waiters create different POLL* sets and register them as exclusive
-against the same target fd, the current implementation will stop waking any
-further waiters once it finds the first idle waiter. This means that waiters
-could miss wakeups in certain cases.
+Since the output of the invocation of scripts/kallsyms is piped directly
+into the assembler, error messages it emits are visible on stderr, but a
+non-zero return code is ignored, and the build simply proceeds in that
+case.  However, the resulting kernel is most likely broken, and will crash
+at boot.
 
-For example, when we wake up a pipe for reading we do:
-wake_up_interruptible_sync_poll(&pipe->wait, POLLIN | POLLRDNORM);
-So if one epoll set or epfd is added to pipe p with POLLIN and a second set
-epfd2 is added to pipe p with POLLRDNORM, only epfd may receive the wakeup
-since the current implementation will stop after it finds any intersection
-of events with a waiter that is blocked in epoll_wait().
+So instead, capture the output of kallsyms in a separate .S file, and pass
+that to the assembler in a separate step.
 
-We could potentially address this by requiring all epoll waiters that are
-added to p be required to pass the same set of POLL* events. IE the first
-EPOLL_CTL_ADD that passes EPOLLEXCLUSIVE establishes the set POLL* flags to
-be used by any other epfds that are added as EPOLLEXCLUSIVE. However, I think
-it might be somewhat confusing interface as we would have to reference count
-the number of users for that set, and so userspace would have to keep track
-of that count, or we would need a more involved interface. It also adds some
-shared state that we'd have store somewhere. I don't think anybody will want
-to bloat __wait_queue_head for this.
-
-I think what we could do instead, is to simply restrict EPOLLEXCLUSIVE such
-that it can only be specified with EPOLLIN and/or EPOLLOUT. So that way if
-the wakeup includes 'POLLIN' and not 'POLLOUT', we can stop once we hit the
-first idle waiter that specifies the EPOLLIN bit, since any remaining waiters
-that only have 'POLLOUT' set wouldn't need to be woken. Likewise, we can do
-the same thing if 'POLLOUT' is in the wakeup bit set and not 'POLLIN'. If both
-'POLLOUT' and 'POLLIN' are set in the wake bit set (there is at least one
-example of this I saw in fs/pipe.c), then we just wake the entire exclusive
-list. Having both 'POLLOUT' and 'POLLIN' both set should not be on any
-performance critical path, so I think that's ok (in fs/pipe.c its in
-pipe_release()). We also continue to include EPOLLERR and EPOLLHUP by default
-in any exclusive set. Thus, the user can specify EPOLLERR and/or EPOLLHUP but
-is not required to do so.
-
-Since epoll waiters may be interested in other events as well besides EPOLLIN,
-EPOLLOUT, EPOLLERR and EPOLLHUP, these can still be added by doing a 'dup' call
-on the target fd and adding that as one normally would with EPOLL_CTL_ADD. Since
-I think that the POLLIN and POLLOUT events are what we are interest in balancing,
-I think that the 'dup' thing could perhaps be added to only one of the waiter
-threads. However, I think that EPOLLIN, EPOLLOUT, EPOLLERR and EPOLLHUP should
-be sufficient for the majority of use-cases.
-
-Since EPOLLEXCLUSIVE is intended to be used with a target fd shared among
-multiple epfds, where between 1 and n of the epfds may receive an event, it
-does not satisfy the semantics of EPOLLONESHOT where only 1 epfd would get an
-event. Thus, it is not allowed to be specified in conjunction with
-EPOLLEXCLUSIVE.
-
-EPOLL_CTL_MOD is also not allowed if the fd was previously added as
-EPOLLEXCLUSIVE. It seems with the limited number of flags to not be as
-interesting, but this could be relaxed at some further point.
-
-Signed-off-by: Jason Baron <jbaron@akamai.com>
-Tested-by: Madars Vitolins <m@silodev.com>
-Cc: Michael Kerrisk <mtk.manpages@gmail.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Al Viro <viro@ftp.linux.org.uk>
-Cc: Eric Wong <normalperson@yhbt.net>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Hagen Paul Pfeifer <hagen@jauu.net>
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Guenter Roeck <linux@roeck-us.net>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Michal Marek <mmarek@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c |   38 ++++++++++++++++++++++++++++++++------
- 1 file changed, 32 insertions(+), 6 deletions(-)
+ scripts/link-vmlinux.sh |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/eventpoll.c~epoll-restrict-epollexclusive-to-pollin-and-pollout fs/eventpoll.c
---- a/fs/eventpoll.c~epoll-restrict-epollexclusive-to-pollin-and-pollout
-+++ a/fs/eventpoll.c
-@@ -94,6 +94,11 @@
- /* Epoll private bits inside the event mask */
- #define EP_PRIVATE_BITS (EPOLLWAKEUP | EPOLLONESHOT | EPOLLET | EPOLLEXCLUSIVE)
+diff -puN scripts/link-vmlinux.sh~scripts-link-vmlinuxsh-force-error-on-kallsyms-failure scripts/link-vmlinux.sh
+--- a/scripts/link-vmlinux.sh~scripts-link-vmlinuxsh-force-error-on-kallsyms-failure
++++ a/scripts/link-vmlinux.sh
+@@ -97,9 +97,10 @@ kallsyms()
+ 	local aflags="${KBUILD_AFLAGS} ${KBUILD_AFLAGS_KERNEL}               \
+ 		      ${NOSTDINC_FLAGS} ${LINUXINCLUDE} ${KBUILD_CPPFLAGS}"
  
-+#define EPOLLINOUT_BITS (POLLIN | POLLOUT)
+-	${NM} -n ${1} | \
+-		scripts/kallsyms ${kallsymopt} | \
+-		${CC} ${aflags} -c -o ${2} -x assembler-with-cpp -
++	local afile="`basename ${2} .o`.S"
 +
-+#define EPOLLEXCLUSIVE_OK_BITS (EPOLLINOUT_BITS | POLLERR | POLLHUP | \
-+				EPOLLWAKEUP | EPOLLET | EPOLLEXCLUSIVE)
-+
- /* Maximum number of nesting allowed inside epoll sets */
- #define EP_MAX_NESTS 4
++	${NM} -n ${1} | scripts/kallsyms ${kallsymopt} > ${afile}
++	${CC} ${aflags} -c -o ${2} ${afile}
+ }
  
-@@ -1068,7 +1073,22 @@ static int ep_poll_callback(wait_queue_t
- 	 * wait list.
- 	 */
- 	if (waitqueue_active(&ep->wq)) {
--		ewake = 1;
-+		if ((epi->event.events & EPOLLEXCLUSIVE) &&
-+					!((unsigned long)key & POLLFREE)) {
-+			switch ((unsigned long)key & EPOLLINOUT_BITS) {
-+			case POLLIN:
-+				if (epi->event.events & POLLIN)
-+					ewake = 1;
-+				break;
-+			case POLLOUT:
-+				if (epi->event.events & POLLOUT)
-+					ewake = 1;
-+				break;
-+			case 0:
-+				ewake = 1;
-+				break;
-+			}
-+		}
- 		wake_up_locked(&ep->wq);
- 	}
- 	if (waitqueue_active(&ep->poll_wait))
-@@ -1875,9 +1895,13 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 	 * so EPOLLEXCLUSIVE is not allowed for a EPOLL_CTL_MOD operation.
- 	 * Also, we do not currently supported nested exclusive wakeups.
- 	 */
--	if ((epds.events & EPOLLEXCLUSIVE) && (op == EPOLL_CTL_MOD ||
--		(op == EPOLL_CTL_ADD && is_file_epoll(tf.file))))
--		goto error_tgt_fput;
-+	if (epds.events & EPOLLEXCLUSIVE) {
-+		if (op == EPOLL_CTL_MOD)
-+			goto error_tgt_fput;
-+		if (op == EPOLL_CTL_ADD && (is_file_epoll(tf.file) ||
-+				(epds.events & ~EPOLLEXCLUSIVE_OK_BITS)))
-+			goto error_tgt_fput;
-+	}
- 
- 	/*
- 	 * At this point it is safe to assume that the "private_data" contains
-@@ -1950,8 +1974,10 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, in
- 		break;
- 	case EPOLL_CTL_MOD:
- 		if (epi) {
--			epds.events |= POLLERR | POLLHUP;
--			error = ep_modify(ep, epi, &epds);
-+			if (!(epi->event.events & EPOLLEXCLUSIVE)) {
-+				epds.events |= POLLERR | POLLHUP;
-+				error = ep_modify(ep, epi, &epds);
-+			}
- 		} else
- 			error = -ENOENT;
- 		break;
+ # Create map file with all symbols from ${1}
 _
 
-Patches currently in -mm which might be from jbaron@akamai.com are
+Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
 
+extable-add-support-for-relative-extables-to-search-and-sort-routines.patch
+alpha-extable-use-generic-search-and-sort-routines.patch
+s390-extable-use-generic-search-and-sort-routines.patch
+x86-extable-use-generic-search-and-sort-routines.patch
+ia64-extable-use-generic-search-and-sort-routines.patch
+arm64-switch-to-relative-exception-tables.patch
+x86-kallsyms-disable-absolute-percpu-symbols-on-smp.patch
+x86-kallsyms-disable-absolute-percpu-symbols-on-smp-v5.patch
+kallsyms-dont-overload-absolute-symbol-type-for-percpu-symbols.patch
+kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table.patch
+kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-v5.patch
 
