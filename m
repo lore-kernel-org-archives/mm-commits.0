@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- arch-x86-kconfig-config_x86_uv-should-depend-on-config_efi.patch added to
- -mm tree
-Date: Wed, 10 Feb 2016 12:13:43 -0800
-Message-ID: <56bb99f7.gH6o1nOdVneUALE7%akpm@linux-foundation.org>
+Subject: + mmthp-khugepaged-call-pte-flush-at-the-time-of-collapse.patch
+ added to -mm tree
+Date: Wed, 10 Feb 2016 12:23:04 -0800
+Message-ID: <56bb9c28.LTI9KCIqcyu5pp2B%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45686 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46261 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753553AbcBJUNo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 15:13:44 -0500
+	with ESMTP id S1753650AbcBJUXF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 15:23:05 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, fengguang.wu@intel.com, hpa@zytor.com, matt@codeblueprint.co.uk, mingo@elte.hu, mm-commits@vger.kernel.org
+To: Vineet.Gupta1@synopsys.com, aarcange@redhat.com, aneesh.kumar@linux.vnet.ibm.com, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, vgupta@synopsys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: arch/x86/Kconfig: CONFIG_X86_UV should depend on CONFIG_EFI
+     Subject: mm,thp: khugepaged: call pte flush at the time of collapse
 has been added to the -mm tree.  Its filename is
-     arch-x86-kconfig-config_x86_uv-should-depend-on-config_efi.patch
+     mmthp-khugepaged-call-pte-flush-at-the-time-of-collapse.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/arch-x86-kconfig-config_x86_uv-should-depend-on-config_efi.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mmthp-khugepaged-call-pte-flush-at-the-time-of-collapse.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/arch-x86-kconfig-config_x86_uv-should-depend-on-config_efi.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mmthp-khugepaged-call-pte-flush-at-the-time-of-collapse.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,82 +39,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: arch/x86/Kconfig: CONFIG_X86_UV should depend on CONFIG_EFI
+From: Vineet Gupta <Vineet.Gupta1@synopsys.com>
+Subject: mm,thp: khugepaged: call pte flush at the time of collapse
 
-arch/x86/built-in.o: In function `uv_bios_call':
-(.text+0xeba00): undefined reference to `efi_call'
+This showed up on ARC when running LMBench bw_mem tests as
+Overlapping TLB Machine Check Exception triggered due to STLB entry
+(2M pages) overlapping some NTLB entry (regular 8K page).
 
-Reported-by: kbuild test robot <fengguang.wu@intel.com>
-Suggested-by: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Matt Fleming <matt@codeblueprint.co.uk>
+bw_mem 2m touches a large chunk of vaddr creating NTLB entries.
+In the interim khugepaged kicks in, collapsing the contiguous ptes into
+a single pmd. pmdp_collapse_flush()->flush_pmd_tlb_range() is called to
+flush out NTLB entries for the ptes. This for ARC (by design) can only
+shootdown STLB entries (for pmd). The stray NTLB entries cause the overlap
+with the subsequent STLB entry for collapsed page.
+So make pmdp_collapse_flush() call pte flush interface not pmd flush.
+
+Note that originally all thp flush call sites in generic code called
+flush_tlb_range() leaving it to architecture to implement the flush for
+pte and/or pmd. Commit 12ebc1581ad11454 changed this by calling a new
+opt-in API flush_pmd_tlb_range() which made the semantics more explicit
+but failed to distinguish the pte vs pmd flush in generic code, which is
+what this patch fixes.
+
+Note that ARC can fixed w/o touching the generic pmdp_collapse_flush()
+by defining a ARC version, but that defeats the purpose of generic
+version, plus sementically this is the right thing to do.
+
+Fixes STAR 9000961194: LMBench on AXS103 triggering duplicate TLB
+exceptions with super pages
+
+Fixes: 12ebc1581ad11454 ("mm,thp: introduce flush_pmd_tlb_range")
+Signed-off-by: Vineet Gupta <vgupta@synopsys.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: <stable@vger.kernel.org>	[4.4]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ mm/pgtable-generic.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN arch/x86/Kconfig~arch-x86-kconfig-config_x86_uv-should-depend-on-config_efi arch/x86/Kconfig
---- a/arch/x86/Kconfig~arch-x86-kconfig-config_x86_uv-should-depend-on-config_efi
-+++ a/arch/x86/Kconfig
-@@ -477,6 +477,7 @@ config X86_UV
- 	depends on X86_64
- 	depends on X86_EXTENDED_PLATFORM
- 	depends on NUMA
-+	depends on EFI
- 	depends on X86_X2APIC
- 	depends on PCI
- 	---help---
+diff -puN mm/pgtable-generic.c~mmthp-khugepaged-call-pte-flush-at-the-time-of-collapse mm/pgtable-generic.c
+--- a/mm/pgtable-generic.c~mmthp-khugepaged-call-pte-flush-at-the-time-of-collapse
++++ a/mm/pgtable-generic.c
+@@ -195,7 +195,9 @@ pmd_t pmdp_collapse_flush(struct vm_area
+ 	VM_BUG_ON(address & ~HPAGE_PMD_MASK);
+ 	VM_BUG_ON(pmd_trans_huge(*pmdp));
+ 	pmd = pmdp_huge_get_and_clear(vma->vm_mm, address, pmdp);
+-	flush_pmd_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
++
++	/* collapse entails shooting down ptes not pmd */
++	flush_tlb_range(vma, address, address + HPAGE_PMD_SIZE);
+ 	return pmd;
+ }
+ #endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from Vineet.Gupta1@synopsys.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists.patch
-arch-x86-kconfig-config_x86_uv-should-depend-on-config_efi.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-code-clean-up-for-direct-io-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
-mm.patch
-mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
-mm-simplify-lock_page_memcg-fix.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom_reaper-report-success-failure-fix.patch
-mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
-proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
-mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
-mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
-sound-query-dynamic-debug_pagealloc-setting-fix.patch
-mm-config_nr_zones_extended-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-btrfs-use-radix_tree_iter_retry-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
-rapidio-add-mport-char-device-driver-fix.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-kernel-add-kcov-code-coverage-fix.patch
-kernel-add-kcov-code-coverage-fix-2.patch
-kernel-memremapc-add-new-arg-to-dev_warn.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mmthp-khugepaged-call-pte-flush-at-the-time-of-collapse.patch
 
