@@ -1,155 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dump_stack-avoid-potential-deadlocks.patch removed from
- -mm tree
-Date: Wed, 10 Feb 2016 11:35:28 -0800
-Message-ID: <56bb9100.56Np7J/9HvnZ/A1q%akpm__43216.4519945674$1455132933$gmane$org@linux-foundation.org>
+Subject: [merged] mm-validate_mm-browse_rb-smp-race-condition.patch
+ removed from -mm tree
+Date: Wed, 10 Feb 2016 11:35:26 -0800
+Message-ID: <56bb90fe.yw17LEjhHSUma41Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42490 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42487 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753364AbcBJTf3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 14:35:29 -0500
+	with ESMTP id S1753509AbcBJTf1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 14:35:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: edumazet@google.com, athorlton@sgi.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: aarcange@redhat.com, dvyukov@google.com, koct9i@gmail.com, oleg@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dump_stack: avoid potential deadlocks
+     Subject: mm: validate_mm browse_rb SMP race condition
 has been removed from the -mm tree.  Its filename was
-     dump_stack-avoid-potential-deadlocks.patch
+     mm-validate_mm-browse_rb-smp-race-condition.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Eric Dumazet <edumazet@google.com>
-Subject: dump_stack: avoid potential deadlocks
+From: Andrea Arcangeli <aarcange@redhat.com>
+Subject: mm: validate_mm browse_rb SMP race condition
 
-Some servers experienced fatal deadlocks because of a combination of bugs,
-leading to multiple cpus calling dump_stack().
+The mmap_sem for reading in validate_mm called from expand_stack is not
+enough to prevent the argumented rbtree rb_subtree_gap information to
+change from under us because expand_stack may be running from other
+threads concurrently which will hold the mmap_sem for reading too.
 
-The checksumming bug was fixed in commit 34ae6a1aa054 ("ipv6: update
-skb->csum when CE mark is propagated").
+The argumented rbtree is updated with vma_gap_update under the
+page_table_lock so use it in browse_rb() too to avoid false positives.
 
-The second problem is a faulty locking in dump_stack()
-
-CPU1 runs in process context and calls dump_stack(), grabs dump_lock.
-
-   CPU2 receives a TCP packet under softirq, grabs socket spinlock, and
-   call dump_stack() from netdev_rx_csum_fault().
-
-   dump_stack() spins on atomic_cmpxchg(&dump_lock, -1, 2), since
-   dump_lock is owned by CPU1
-
-While dumping its stack, CPU1 is interrupted by a softirq, and happens
-to process a packet for the TCP socket locked by CPU2.
-
-CPU1 spins forever in spin_lock() : deadlock
-
-Stack trace on CPU1 looked like :
-
-[306295.402231] NMI backtrace for cpu 1
-[306295.402238] RIP: 0010:[<ffffffffa9804e95>]  [<ffffffffa9804e95>] _raw_spin_lock+0x25/0x30
-...
-[306295.402255] Stack:
-[306295.402256]  ffff88407f023cb0 ffffffffa99cbdc3 ffff88407f023ca0 ffff88012f496bb0
-[306295.402266]  ffffffffaa4dc1f0 ffff8820d94f0dc0 000000000000000a ffffffffaa4b4280
-[306295.402275]  ffff88407f023ce0 ffffffffa98a21d0 ffff88407f023cc0 ffff88407f023ca0
-[306295.402284] Call Trace:
-[306295.402286]  <IRQ>
-[306295.402288]
-[306295.402291]  [<ffffffffa99cbdc3>] tcp_v6_rcv+0x243/0x620
-[306295.402304]  [<ffffffffa99c38af>] ip6_input_finish+0x11f/0x330
-[306295.402309]  [<ffffffffa99c3b38>] ip6_input+0x38/0x40
-[306295.402313]  [<ffffffffa99c3b7c>] ip6_rcv_finish+0x3c/0x90
-[306295.402318]  [<ffffffffa99c3e79>] ipv6_rcv+0x2a9/0x500
-[306295.402323]  [<ffffffffa989a1a1>] process_backlog+0x461/0xaa0
-[306295.402332]  [<ffffffffa9899a57>] net_rx_action+0x147/0x430
-[306295.402337]  [<ffffffffa980cca7>] __do_softirq+0x167/0x2d0
-[306295.402341]  [<ffffffffa9d912dc>] call_softirq+0x1c/0x30
-[306295.402345]  [<ffffffffa980687f>] do_softirq+0x3f/0x80
-[306295.402350]  [<ffffffffa980cf7e>] irq_exit+0x6e/0xc0
-[306295.402355]  [<ffffffffa980a5b5>] smp_call_function_single_interrupt+0x35/0x40
-[306295.402360]  [<ffffffffa9d90bfa>] call_function_single_interrupt+0x6a/0x70
-[306295.402361]  <EOI>
-[306295.402364]
-[306295.402376]  [<ffffffffa9a3fa32>] printk+0x4d/0x4f
-[306295.402390]  [<ffffffffa99e1726>] printk_address+0x31/0x33
-[306295.402395]  [<ffffffffa99e175b>] print_trace_address+0x33/0x3c
-[306295.402408]  [<ffffffffa99e165b>] print_context_stack+0x7f/0x119
-[306295.402412]  [<ffffffffa99e07f1>] dump_trace+0x26b/0x28e
-[306295.402417]  [<ffffffffa99e17b3>] show_trace_log_lvl+0x4f/0x5c
-[306295.402421]  [<ffffffffa99e0a14>] show_stack_log_lvl+0x104/0x113
-[306295.402425]  [<ffffffffa99e1819>] show_stack+0x42/0x44
-[306295.402429]  [<ffffffffa9ba350a>] dump_stack+0x46/0x58
-[306295.402434]  [<ffffffffa9d0957d>] netdev_rx_csum_fault+0x38/0x3c
-[306295.402439]  [<ffffffffa9988e0e>] __skb_checksum_complete_head+0x6e/0x80
-[306295.402444]  [<ffffffffa9988e31>] __skb_checksum_complete+0x11/0x20
-[306295.402449]  [<ffffffffa98acf65>] tcp_rcv_established+0x2bd5/0x2fd0
-[306295.402468]  [<ffffffffa99cb69c>] tcp_v6_do_rcv+0x13c/0x620
-[306295.402477]  [<ffffffffa9984be5>] sk_backlog_rcv+0x15/0x30
-[306295.402482]  [<ffffffffa98931e2>] release_sock+0xd2/0x150
-[306295.402486]  [<ffffffffa98a51b1>] tcp_recvmsg+0x1c1/0xfc0
-[306295.402491]  [<ffffffffa98b637d>] inet_recvmsg+0x7d/0x90
-[306295.402495]  [<ffffffffa9891fcf>] sock_recvmsg+0xaf/0xe0
-[306295.402505]  [<ffffffffa9892611>] ___sys_recvmsg+0x111/0x3b0
-[306295.402528]  [<ffffffffa9892f5c>] SyS_recvmsg+0x5c/0xb0
-[306295.402532]  [<ffffffffa9d8fba2>] system_call_fastpath+0x16/0x1b
-
-Fixes: b58d977432c8 ("dump_stack: serialize the output from dump_stack()")
-Signed-off-by: Eric Dumazet <edumazet@google.com>
-Cc: Alex Thorlton <athorlton@sgi.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Andrea Arcangeli <aarcange@redhat.com>
+Reported-by: Dmitry Vyukov <dvyukov@google.com>
+Tested-by: Dmitry Vyukov <dvyukov@google.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/dump_stack.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ mm/mmap.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff -puN lib/dump_stack.c~dump_stack-avoid-potential-deadlocks lib/dump_stack.c
---- a/lib/dump_stack.c~dump_stack-avoid-potential-deadlocks
-+++ a/lib/dump_stack.c
-@@ -25,6 +25,7 @@ static atomic_t dump_lock = ATOMIC_INIT(
- 
- asmlinkage __visible void dump_stack(void)
- {
-+	unsigned long flags;
- 	int was_locked;
- 	int old;
- 	int cpu;
-@@ -33,9 +34,8 @@ asmlinkage __visible void dump_stack(voi
- 	 * Permit this cpu to perform nested stack dumps while serialising
- 	 * against other CPUs
- 	 */
--	preempt_disable();
--
- retry:
-+	local_irq_save(flags);
- 	cpu = smp_processor_id();
- 	old = atomic_cmpxchg(&dump_lock, -1, cpu);
- 	if (old == -1) {
-@@ -43,6 +43,7 @@ retry:
- 	} else if (old == cpu) {
- 		was_locked = 1;
- 	} else {
-+		local_irq_restore(flags);
- 		cpu_relax();
- 		goto retry;
- 	}
-@@ -52,7 +53,7 @@ retry:
- 	if (!was_locked)
- 		atomic_set(&dump_lock, -1);
- 
--	preempt_enable();
-+	local_irq_restore(flags);
+diff -puN mm/mmap.c~mm-validate_mm-browse_rb-smp-race-condition mm/mmap.c
+--- a/mm/mmap.c~mm-validate_mm-browse_rb-smp-race-condition
++++ a/mm/mmap.c
+@@ -390,8 +390,9 @@ static long vma_compute_subtree_gap(stru
  }
- #else
- asmlinkage __visible void dump_stack(void)
+ 
+ #ifdef CONFIG_DEBUG_VM_RB
+-static int browse_rb(struct rb_root *root)
++static int browse_rb(struct mm_struct *mm)
+ {
++	struct rb_root *root = &mm->mm_rb;
+ 	int i = 0, j, bug = 0;
+ 	struct rb_node *nd, *pn = NULL;
+ 	unsigned long prev = 0, pend = 0;
+@@ -414,12 +415,14 @@ static int browse_rb(struct rb_root *roo
+ 				  vma->vm_start, vma->vm_end);
+ 			bug = 1;
+ 		}
++		spin_lock(&mm->page_table_lock);
+ 		if (vma->rb_subtree_gap != vma_compute_subtree_gap(vma)) {
+ 			pr_emerg("free gap %lx, correct %lx\n",
+ 			       vma->rb_subtree_gap,
+ 			       vma_compute_subtree_gap(vma));
+ 			bug = 1;
+ 		}
++		spin_unlock(&mm->page_table_lock);
+ 		i++;
+ 		pn = nd;
+ 		prev = vma->vm_start;
+@@ -475,7 +478,7 @@ static void validate_mm(struct mm_struct
+ 			  mm->highest_vm_end, highest_address);
+ 		bug = 1;
+ 	}
+-	i = browse_rb(&mm->mm_rb);
++	i = browse_rb(mm);
+ 	if (i != mm->map_count) {
+ 		if (i != -1)
+ 			pr_emerg("map_count %d rb %d\n", mm->map_count, i);
 _
 
-Patches currently in -mm which might be from edumazet@google.com are
+Patches currently in -mm which might be from aarcange@redhat.com are
 
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-3.patch
 
