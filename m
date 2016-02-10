@@ -1,74 +1,67 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m32r-fix-build-failure-due-to-smp-and-mmu.patch removed
- from -mm tree
-Date: Wed, 10 Feb 2016 11:35:24 -0800
-Message-ID: <56bb90fc.JjTmm7ZI1qPfBXWj%akpm@linux-foundation.org>
+Subject: [merged] signals-work-around-random-wakeups-in-sigsuspend.patch
+ removed from -mm tree
+Date: Wed, 10 Feb 2016 11:35:20 -0800
+Message-ID: <56bb90f8.LsoUsYQcka8f6kF0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42480 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42464 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753509AbcBJTfY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 14:35:24 -0500
+	with ESMTP id S1753440AbcBJTfV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 14:35:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, sudip@vectorindia.org, mm-commits@vger.kernel.org
+To: sasha.levin@oracle.com, dvyukov@google.com, oleg@redhat.com, peterz@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m32r: fix build failure due to SMP and MMU
+     Subject: signals: avoid random wakeups in sigsuspend()
 has been removed from the -mm tree.  Its filename was
-     m32r-fix-build-failure-due-to-smp-and-mmu.patch
+     signals-work-around-random-wakeups-in-sigsuspend.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: m32r: fix build failure due to SMP and MMU
+From: Sasha Levin <sasha.levin@oracle.com>
+Subject: signals: avoid random wakeups in sigsuspend()
 
-One of the randconfig build failed with the error:
+A random wakeup can get us out of sigsuspend() without TIF_SIGPENDING
+being set.
 
-arch/m32r/kernel/smp.c: In function 'smp_flush_tlb_mm':
-arch/m32r/kernel/smp.c:283:20: error: subscripted value is neither array nor pointer nor vector
-  mmc = &mm->context[cpu_id];
-                    ^
-arch/m32r/kernel/smp.c: In function 'smp_flush_tlb_page':
-arch/m32r/kernel/smp.c:353:20: error: subscripted value is neither array nor pointer nor vector
-  mmc = &mm->context[cpu_id];
-                    ^
-arch/m32r/kernel/smp.c: In function 'smp_invalidate_interrupt':
-arch/m32r/kernel/smp.c:479:41: error: subscripted value is neither array nor pointer nor vector
-  unsigned long *mmc = &flush_mm->context[cpu_id];
+Avoid that by making sure we were signaled, like sys_pause() does.
 
-It turned out that CONFIG_SMP was defined but CONFIG_MMU was not defined. 
-But arch/m32r/include/asm/mmu.h only defines mm_context_t as an array when
-both CONFIG_SMP and CONFIG_MMU are defined.  And arch/m32r/kernel/smp.c is
-always using context as an array.  So without MMU SMP can not work.
-
-Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
+Acked-by: Oleg Nesterov <oleg@redhat.com>
+Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/signal.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/m32r/Kconfig~m32r-fix-build-failure-due-to-smp-and-mmu arch/m32r/Kconfig
---- a/arch/m32r/Kconfig~m32r-fix-build-failure-due-to-smp-and-mmu
-+++ a/arch/m32r/Kconfig
-@@ -276,6 +276,7 @@ source "kernel/Kconfig.preempt"
+diff -puN kernel/signal.c~signals-work-around-random-wakeups-in-sigsuspend kernel/signal.c
+--- a/kernel/signal.c~signals-work-around-random-wakeups-in-sigsuspend
++++ a/kernel/signal.c
+@@ -3508,8 +3508,10 @@ static int sigsuspend(sigset_t *set)
+ 	current->saved_sigmask = current->blocked;
+ 	set_current_blocked(set);
  
- config SMP
- 	bool "Symmetric multi-processing support"
-+	depends on MMU
- 	---help---
- 	  This enables support for systems with more than one CPU. If you have
- 	  a system with only one CPU, say N. If you have a system with more
+-	__set_current_state(TASK_INTERRUPTIBLE);
+-	schedule();
++	while (!signal_pending(current)) {
++		__set_current_state(TASK_INTERRUPTIBLE);
++		schedule();
++	}
+ 	set_restore_sigmask();
+ 	return -ERESTARTNOHAND;
+ }
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from sasha.levin@oracle.com are
 
-m32r-mm-fix-build-warning.patch
-blackfin-define-dummy-pgprot_writecombine-for-mmu.patch
 
