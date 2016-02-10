@@ -1,218 +1,153 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write.patch removed
- from -mm tree
-Date: Wed, 10 Feb 2016 11:35:59 -0800
-Message-ID: <56bb911f.UvFf/NKIvzQEDnOH%akpm@linux-foundation.org>
+ mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages.patch removed from
+ -mm tree
+Date: Wed, 10 Feb 2016 11:35:50 -0800
+Message-ID: <56bb9116.L3kqe62N+LuRo32j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42580 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42558 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753386AbcBJTgA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 14:36:00 -0500
+	with ESMTP id S1752787AbcBJTfv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 14:35:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: koct9i@gmail.com, aarcange@redhat.com, dvyukov@google.com, kirill.shutemov@linux.intel.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, dave@stgolabs.net, hillf.zj@alibaba-inc.com, iamjoonsoo.kim@lge.com, isimatu.yasuaki@jp.fujitsu.com, kirill.shutemov@linux.intel.com, lcapitulino@redhat.com, mgorman@techsingularity.net, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, zhangyanfei@cn.fujitsu.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: replace vma_lock_anon_vma with anon_vma_lock_read/write
+     Subject: mm, hugetlb: don't require CMA for runtime gigantic pages
 has been removed from the -mm tree.  Its filename was
-     mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write.patch
+     mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: mm: replace vma_lock_anon_vma with anon_vma_lock_read/write
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, hugetlb: don't require CMA for runtime gigantic pages
 
-Sequence vma_lock_anon_vma() - vma_unlock_anon_vma() isn't safe if
-anon_vma appeared between lock and unlock.  We have to check anon_vma
-first or call anon_vma_prepare() to be sure that it's here.  There are
-only few users of these legacy helpers.  Let's get rid of them.
+Commit 944d9fec8d7a ("hugetlb: add support for gigantic page allocation at
+runtime") has added the runtime gigantic page allocation via
+alloc_contig_range(), making this support available only when CONFIG_CMA
+is enabled.  Because it doesn't depend on MIGRATE_CMA pageblocks and the
+associated infrastructure, it is possible with few simple adjustments to
+require only CONFIG_MEMORY_ISOLATION instead of full CONFIG_CMA.
 
-This patch fixes anon_vma lock imbalance in validate_mm().  Write lock
-isn't required here, read lock is enough.
+After this patch, alloc_contig_range() and related functions are available
+and used for gigantic pages with just CONFIG_MEMORY_ISOLATION enabled. 
+Note CONFIG_CMA selects CONFIG_MEMORY_ISOLATION.  This allows supporting
+runtime gigantic pages without the CMA-specific checks in page allocator
+fastpaths.
 
-And reorders expand_downwards/expand_upwards: security_mmap_addr() and
-wrapping-around check don't have to be under anon vma lock.
-
-Link: https://lkml.kernel.org/r/CACT4Y+Y908EjM2z=706dv4rV6dWtxTLK9nFg9_7DhRMLppBo2g@mail.gmail.com
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Luiz Capitulino <lcapitulino@redhat.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Zhang Yanfei <zhangyanfei@cn.fujitsu.com>
+Cc: Yasuaki Ishimatsu <isimatu.yasuaki@jp.fujitsu.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Davidlohr Bueso <dave@stgolabs.net>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |   14 ----------
- mm/mmap.c            |   55 ++++++++++++++++++-----------------------
- 2 files changed, 25 insertions(+), 44 deletions(-)
+ arch/x86/mm/hugetlbpage.c |    4 ++--
+ include/linux/gfp.h       |    6 +++---
+ mm/hugetlb.c              |    2 +-
+ mm/page_alloc.c           |    2 +-
+ 4 files changed, 7 insertions(+), 7 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write include/linux/rmap.h
---- a/include/linux/rmap.h~mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write
-+++ a/include/linux/rmap.h
-@@ -109,20 +109,6 @@ static inline void put_anon_vma(struct a
- 		__put_anon_vma(anon_vma);
+diff -puN arch/x86/mm/hugetlbpage.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages arch/x86/mm/hugetlbpage.c
+--- a/arch/x86/mm/hugetlbpage.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages
++++ a/arch/x86/mm/hugetlbpage.c
+@@ -173,10 +173,10 @@ static __init int setup_hugepagesz(char
+ }
+ __setup("hugepagesz=", setup_hugepagesz);
+ 
+-#ifdef CONFIG_CMA
++#if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
+ static __init int gigantic_pages_init(void)
+ {
+-	/* With CMA we can allocate gigantic pages at runtime */
++	/* With compaction or CMA we can allocate gigantic pages at runtime */
+ 	if (cpu_has_gbpages && !size_to_hstate(1UL << PUD_SHIFT))
+ 		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
+ 	return 0;
+diff -puN include/linux/gfp.h~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages include/linux/gfp.h
+--- a/include/linux/gfp.h~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages
++++ a/include/linux/gfp.h
+@@ -547,16 +547,16 @@ static inline bool pm_suspended_storage(
+ }
+ #endif /* CONFIG_PM_SLEEP */
+ 
+-#ifdef CONFIG_CMA
+-
++#if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
+ /* The below functions must be run on a range from a single zone. */
+ extern int alloc_contig_range(unsigned long start, unsigned long end,
+ 			      unsigned migratetype);
+ extern void free_contig_range(unsigned long pfn, unsigned nr_pages);
++#endif
+ 
++#ifdef CONFIG_CMA
+ /* CMA stuff */
+ extern void init_cma_reserved_pageblock(struct page *page);
+-
+ #endif
+ 
+ #endif /* __LINUX_GFP_H */
+diff -puN mm/hugetlb.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages
++++ a/mm/hugetlb.c
+@@ -1001,7 +1001,7 @@ static int hstate_next_node_to_free(stru
+ 		((node = hstate_next_node_to_free(hs, mask)) || 1);	\
+ 		nr_nodes--)
+ 
+-#if defined(CONFIG_CMA) && defined(CONFIG_X86_64)
++#if defined(CONFIG_X86_64) && ((defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA))
+ static void destroy_compound_gigantic_page(struct page *page,
+ 					unsigned int order)
+ {
+diff -puN mm/page_alloc.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-hugetlb-dont-require-cma-for-runtime-gigantic-pages
++++ a/mm/page_alloc.c
+@@ -6620,7 +6620,7 @@ bool is_pageblock_removable_nolock(struc
+ 	return !has_unmovable_pages(zone, page, 0, true);
  }
  
--static inline void vma_lock_anon_vma(struct vm_area_struct *vma)
--{
--	struct anon_vma *anon_vma = vma->anon_vma;
--	if (anon_vma)
--		down_write(&anon_vma->root->rwsem);
--}
--
--static inline void vma_unlock_anon_vma(struct vm_area_struct *vma)
--{
--	struct anon_vma *anon_vma = vma->anon_vma;
--	if (anon_vma)
--		up_write(&anon_vma->root->rwsem);
--}
--
- static inline void anon_vma_lock_write(struct anon_vma *anon_vma)
+-#ifdef CONFIG_CMA
++#if (defined(CONFIG_MEMORY_ISOLATION) && defined(CONFIG_COMPACTION)) || defined(CONFIG_CMA)
+ 
+ static unsigned long pfn_max_align_down(unsigned long pfn)
  {
- 	down_write(&anon_vma->root->rwsem);
-diff -puN mm/mmap.c~mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write mm/mmap.c
---- a/mm/mmap.c~mm-replace-vma_lock_anon_vma-with-anon_vma_lock_read-write
-+++ a/mm/mmap.c
-@@ -459,12 +459,16 @@ static void validate_mm(struct mm_struct
- 	struct vm_area_struct *vma = mm->mmap;
- 
- 	while (vma) {
-+		struct anon_vma *anon_vma = vma->anon_vma;
- 		struct anon_vma_chain *avc;
- 
--		vma_lock_anon_vma(vma);
--		list_for_each_entry(avc, &vma->anon_vma_chain, same_vma)
--			anon_vma_interval_tree_verify(avc);
--		vma_unlock_anon_vma(vma);
-+		if (anon_vma) {
-+			anon_vma_lock_read(anon_vma);
-+			list_for_each_entry(avc, &vma->anon_vma_chain, same_vma)
-+				anon_vma_interval_tree_verify(avc);
-+			anon_vma_unlock_read(anon_vma);
-+		}
-+
- 		highest_address = vma->vm_end;
- 		vma = vma->vm_next;
- 		i++;
-@@ -2145,32 +2149,27 @@ static int acct_stack_growth(struct vm_a
- int expand_upwards(struct vm_area_struct *vma, unsigned long address)
- {
- 	struct mm_struct *mm = vma->vm_mm;
--	int error;
-+	int error = 0;
- 
- 	if (!(vma->vm_flags & VM_GROWSUP))
- 		return -EFAULT;
- 
--	/*
--	 * We must make sure the anon_vma is allocated
--	 * so that the anon_vma locking is not a noop.
--	 */
-+	/* Guard against wrapping around to address 0. */
-+	if (address < PAGE_ALIGN(address+4))
-+		address = PAGE_ALIGN(address+4);
-+	else
-+		return -ENOMEM;
-+
-+	/* We must make sure the anon_vma is allocated. */
- 	if (unlikely(anon_vma_prepare(vma)))
- 		return -ENOMEM;
--	vma_lock_anon_vma(vma);
- 
- 	/*
- 	 * vma->vm_start/vm_end cannot change under us because the caller
- 	 * is required to hold the mmap_sem in read mode.  We need the
- 	 * anon_vma lock to serialize against concurrent expand_stacks.
--	 * Also guard against wrapping around to address 0.
- 	 */
--	if (address < PAGE_ALIGN(address+4))
--		address = PAGE_ALIGN(address+4);
--	else {
--		vma_unlock_anon_vma(vma);
--		return -ENOMEM;
--	}
--	error = 0;
-+	anon_vma_lock_write(vma->anon_vma);
- 
- 	/* Somebody else might have raced and expanded it already */
- 	if (address > vma->vm_end) {
-@@ -2188,7 +2187,7 @@ int expand_upwards(struct vm_area_struct
- 				 * updates, but we only hold a shared mmap_sem
- 				 * lock here, so we need to protect against
- 				 * concurrent vma expansions.
--				 * vma_lock_anon_vma() doesn't help here, as
-+				 * anon_vma_lock_write() doesn't help here, as
- 				 * we don't guarantee that all growable vmas
- 				 * in a mm share the same root anon vma.
- 				 * So, we reuse mm->page_table_lock to guard
-@@ -2211,7 +2210,7 @@ int expand_upwards(struct vm_area_struct
- 			}
- 		}
- 	}
--	vma_unlock_anon_vma(vma);
-+	anon_vma_unlock_write(vma->anon_vma);
- 	khugepaged_enter_vma_merge(vma, vma->vm_flags);
- 	validate_mm(mm);
- 	return error;
-@@ -2227,25 +2226,21 @@ int expand_downwards(struct vm_area_stru
- 	struct mm_struct *mm = vma->vm_mm;
- 	int error;
- 
--	/*
--	 * We must make sure the anon_vma is allocated
--	 * so that the anon_vma locking is not a noop.
--	 */
--	if (unlikely(anon_vma_prepare(vma)))
--		return -ENOMEM;
--
- 	address &= PAGE_MASK;
- 	error = security_mmap_addr(address);
- 	if (error)
- 		return error;
- 
--	vma_lock_anon_vma(vma);
-+	/* We must make sure the anon_vma is allocated. */
-+	if (unlikely(anon_vma_prepare(vma)))
-+		return -ENOMEM;
- 
- 	/*
- 	 * vma->vm_start/vm_end cannot change under us because the caller
- 	 * is required to hold the mmap_sem in read mode.  We need the
- 	 * anon_vma lock to serialize against concurrent expand_stacks.
- 	 */
-+	anon_vma_lock_write(vma->anon_vma);
- 
- 	/* Somebody else might have raced and expanded it already */
- 	if (address < vma->vm_start) {
-@@ -2263,7 +2258,7 @@ int expand_downwards(struct vm_area_stru
- 				 * updates, but we only hold a shared mmap_sem
- 				 * lock here, so we need to protect against
- 				 * concurrent vma expansions.
--				 * vma_lock_anon_vma() doesn't help here, as
-+				 * anon_vma_lock_write() doesn't help here, as
- 				 * we don't guarantee that all growable vmas
- 				 * in a mm share the same root anon vma.
- 				 * So, we reuse mm->page_table_lock to guard
-@@ -2284,7 +2279,7 @@ int expand_downwards(struct vm_area_stru
- 			}
- 		}
- 	}
--	vma_unlock_anon_vma(vma);
-+	anon_vma_unlock_write(vma->anon_vma);
- 	khugepaged_enter_vma_merge(vma, vma->vm_flags);
- 	validate_mm(mm);
- 	return error;
 _
 
-Patches currently in -mm which might be from koct9i@gmail.com are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering.patch
-radix-tree-tests-add-regression3-test.patch
+tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
+mm-tracing-make-show_gfp_flags-up-to-date.patch
+tools-perf-make-gfp_compact_table-up-to-date.patch
+mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk.patch
+mm-printk-introduce-new-format-string-for-flags.patch
+mm-printk-introduce-new-format-string-for-flags-fix.patch
+mm-debug-replace-dump_flags-with-the-new-printk-formats.patch
+mm-page_alloc-print-symbolic-gfp_flags-on-allocation-failure.patch
+mm-oom-print-symbolic-gfp_flags-in-oom-warning.patch
+mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
+mm-page_owner-convert-page_owner_inited-to-static-key.patch
+mm-page_owner-copy-page-owner-info-during-migration.patch
+mm-page_owner-track-and-print-last-migrate-reason.patch
+mm-page_owner-dump-page-owner-info-from-dump_page.patch
+mm-debug-move-bad-flags-printing-to-bad_page.patch
+mm-kswapd-remove-bogus-check-of-balance_classzone_idx.patch
+mm-compaction-introduce-kcompactd.patch
+mm-memory-hotplug-small-cleanup-in-online_pages.patch
+mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd.patch
+mm-compaction-adapt-isolation_suitable-flushing-to-kcompactd.patch
+mm-use-radix_tree_iter_retry-fix.patch
 
