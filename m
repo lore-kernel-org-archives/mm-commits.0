@@ -1,136 +1,86 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mempolicy-do-not-try-to-queue-pages-from-vma_migratable.patch removed from
+ mm-hugetlb-fix-gigantic-page-initialization-allocation.patch removed from
  -mm tree
-Date: Wed, 10 Feb 2016 11:35:41 -0800
-Message-ID: <56bb910d.dhhJmsUR7nxxF7mK%akpm@linux-foundation.org>
+Date: Wed, 10 Feb 2016 11:35:47 -0800
+Message-ID: <56bb9113.1WO+NPKVDbjaLUYN%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42530 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42544 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753647AbcBJTfm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 14:35:42 -0500
+	with ESMTP id S1752787AbcBJTfs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 14:35:48 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, dvyukov@google.com, hannes@cmpxchg.org, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, aneesh.kumar@linux.vnet.ibm.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, mhocko@suse.cz, n-horiguchi@ah.jp.nec.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mempolicy: do not try to queue pages from !vma_migratable()
+     Subject: mm/hugetlb: fix gigantic page initialization/allocation
 has been removed from the -mm tree.  Its filename was
-     mempolicy-do-not-try-to-queue-pages-from-vma_migratable.patch
+     mm-hugetlb-fix-gigantic-page-initialization-allocation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mempolicy: do not try to queue pages from !vma_migratable()
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlb: fix gigantic page initialization/allocation
 
-Maybe I miss some point, but I don't see a reason why we try to queue
-pages from non migratable VMAs.
+Attempting to preallocate 1G gigantic huge pages at boot time with
+"hugepagesz=1G hugepages=1" on the kernel command line will prevent
+booting with the following:
 
-This testcase steps on VM_BUG_ON_PAGE() in isolate_lru_page():
+kernel BUG at mm/hugetlb.c:1218!
 
-	#include <fcntl.h>
-	#include <unistd.h>
-	#include <stdio.h>
-	#include <sys/mman.h>
-	#include <numaif.h>
+When mapcount accounting was reworked, the setting of
+compound_mapcount_ptr in prep_compound_gigantic_page was overlooked.  As a
+result, the validation of mapcount in free_huge_page fails.
 
-	#define SIZE 0x2000
+The "BUG_ON" checks in free_huge_page were also changed to "VM_BUG_ON_PAGE"
+to assist with debugging.
 
-	int foo;
-
-	int main()
-	{
-		int fd;
-		char *p;
-		unsigned long mask = 2;
-
-		fd = open("/dev/sg0", O_RDWR);
-		p = mmap(NULL, SIZE, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
-		/* Faultin pages */
-		foo = p[0] + p[0x1000];
-		mbind(p, SIZE, MPOL_BIND, &mask, 4, MPOL_MF_MOVE | MPOL_MF_STRICT);
-		return 0;
-	}
-
-The only case when we can queue pages from such VMA is MPOL_MF_STRICT plus
-MPOL_MF_MOVE or MPOL_MF_MOVE_ALL for VMA which has pages on LRU, but gfp
-mask is not sutable for migaration (see mapping_gfp_mask() check in
-vma_migratable()).  That's looks like a bug to me.
-
-Let's filter out non-migratable vma at start of queue_pages_test_walk()
-and go to queue_pages_pte_range() only if MPOL_MF_MOVE or MPOL_MF_MOVE_ALL
-flag is set.
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Fixes: 53f9263baba69 ("mm: rework mapcount accounting to enable 4k mapping of THPs")
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Tested-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Jerome Marchand <jmarchan@redhat.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |   14 +++++---------
- 1 file changed, 5 insertions(+), 9 deletions(-)
+ mm/hugetlb.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN mm/mempolicy.c~mempolicy-do-not-try-to-queue-pages-from-vma_migratable mm/mempolicy.c
---- a/mm/mempolicy.c~mempolicy-do-not-try-to-queue-pages-from-vma_migratable
-+++ a/mm/mempolicy.c
-@@ -548,8 +548,7 @@ retry:
- 			goto retry;
- 		}
+diff -puN mm/hugetlb.c~mm-hugetlb-fix-gigantic-page-initialization-allocation mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-fix-gigantic-page-initialization-allocation
++++ a/mm/hugetlb.c
+@@ -1214,8 +1214,8 @@ void free_huge_page(struct page *page)
  
--		if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL))
--			migrate_page_add(page, qp->pagelist, flags);
-+		migrate_page_add(page, qp->pagelist, flags);
+ 	set_page_private(page, 0);
+ 	page->mapping = NULL;
+-	BUG_ON(page_count(page));
+-	BUG_ON(page_mapcount(page));
++	VM_BUG_ON_PAGE(page_count(page), page);
++	VM_BUG_ON_PAGE(page_mapcount(page), page);
+ 	restore_reserve = PagePrivate(page);
+ 	ClearPagePrivate(page);
+ 
+@@ -1286,6 +1286,7 @@ static void prep_compound_gigantic_page(
+ 		set_page_count(p, 0);
+ 		set_compound_head(p, page);
  	}
- 	pte_unmap_unlock(pte - 1, ptl);
- 	cond_resched();
-@@ -625,7 +624,7 @@ static int queue_pages_test_walk(unsigne
- 	unsigned long endvma = vma->vm_end;
- 	unsigned long flags = qp->flags;
- 
--	if (vma->vm_flags & VM_PFNMAP)
-+	if (!vma_migratable(vma))
- 		return 1;
- 
- 	if (endvma > end)
-@@ -644,16 +643,13 @@ static int queue_pages_test_walk(unsigne
- 
- 	if (flags & MPOL_MF_LAZY) {
- 		/* Similar to task_numa_work, skip inaccessible VMAs */
--		if (vma_migratable(vma) &&
--			vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE))
-+		if (vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE))
- 			change_prot_numa(vma, start, endvma);
- 		return 1;
- 	}
- 
--	if ((flags & MPOL_MF_STRICT) ||
--	    ((flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL)) &&
--	     vma_migratable(vma)))
--		/* queue pages from current vma */
-+	/* queue pages from current vma */
-+	if (flags & (MPOL_MF_MOVE | MPOL_MF_MOVE_ALL))
- 		return 0;
- 	return 1;
++	atomic_set(compound_mapcount_ptr(page), -1);
  }
+ 
+ /*
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-mm-dax-check-for-pmd_none-after-split_huge_pmd.patch
-ipc-shm-handle-removed-segments-gracefully-in-shm_mmap.patch
-thp-cleanup-split_huge_page.patch
-thp-vmstats-count-deferred-split-events.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
 
