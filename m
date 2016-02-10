@@ -1,66 +1,81 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-trim-the-file-triggers-for-abi-api.patch
+Subject: [merged] radix-tree-fix-oops-after-radix_tree_iter_retry.patch
  removed from -mm tree
-Date: Wed, 10 Feb 2016 11:36:05 -0800
-Message-ID: <56bb9125.6t3J75/ANCeI7+2m%akpm@linux-foundation.org>
+Date: Wed, 10 Feb 2016 11:36:07 -0800
+Message-ID: <56bb9127.jHmYj1XNnN7yA0bK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42591 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42596 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753386AbcBJTgG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 14:36:06 -0500
+	with ESMTP id S1753386AbcBJTgI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 14:36:08 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mtk.manpages@gmail.com, josh@joshtriplett.org, mtk.man-pages@gmail.com, shuahkh@osg.samsung.com, mm-commits@vger.kernel.org
+To: koct9i@gmail.com, hughd@google.com, jmmahler@gmail.com, ohad@wizery.com, stable@vger.kernel.org, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: trim the file triggers for ABI/API
+     Subject: radix-tree: fix oops after radix_tree_iter_retry
 has been removed from the -mm tree.  Its filename was
-     maintainers-trim-the-file-triggers-for-abi-api.patch
+     radix-tree-fix-oops-after-radix_tree_iter_retry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
-Subject: MAINTAINERS: trim the file triggers for ABI/API
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: radix-tree: fix oops after radix_tree_iter_retry
 
-Commit ea8f8fc8631 ("MAINTAINERS: add linux-api for review of API/ABI
-changes") added file triggers for various paths that likely indicated
-API/ABI changes.  However, catching all changes in Documentation/ABI/ and
-include/uapi/ produces a large volume of mail to linux-api, rather than
-only API/ABI changes.  Drop those two entries, but leave
-include/linux/syscalls.h and kernel/sys_ni.c to catch syscall-related
-changes.
+Helper radix_tree_iter_retry() resets next_index to the current index.  In
+following radix_tree_next_slot current chunk size becomes zero.  This
+isn't checked and it tries to dereference null pointer in slot.
 
-[josh@joshtriplett.org: redid changelog]
-Signed-off-by: Michael Kerrisk <mtk.man-pages@gmail.com>
-Acked-by: Shuah khan <shuahkh@osg.samsung.com>
-Cc: Josh Triplett <josh@joshtriplett.org>
+Tagged iterator is fine because retry happens only at slot 0 where tag
+bitmask in iter->tags is filled with single bit.
+
+Fixes: 46437f9a554f ("radix-tree: fix race in gang lookup")
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>
+Cc: Jeremiah Mahler <jmmahler@gmail.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/radix-tree.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-trim-the-file-triggers-for-abi-api MAINTAINERS
---- a/MAINTAINERS~maintainers-trim-the-file-triggers-for-abi-api
-+++ a/MAINTAINERS
-@@ -223,9 +223,7 @@ F:	drivers/scsi/aacraid/
+diff -puN include/linux/radix-tree.h~radix-tree-fix-oops-after-radix_tree_iter_retry include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-tree-fix-oops-after-radix_tree_iter_retry
++++ a/include/linux/radix-tree.h
+@@ -400,7 +400,7 @@ void **radix_tree_iter_retry(struct radi
+  * @iter:	pointer to radix tree iterator
+  * Returns:	current chunk size
+  */
+-static __always_inline unsigned
++static __always_inline long
+ radix_tree_chunk_size(struct radix_tree_iter *iter)
+ {
+ 	return iter->next_index - iter->index;
+@@ -434,9 +434,9 @@ radix_tree_next_slot(void **slot, struct
+ 			return slot + offset + 1;
+ 		}
+ 	} else {
+-		unsigned size = radix_tree_chunk_size(iter) - 1;
++		long size = radix_tree_chunk_size(iter);
  
- ABI/API
- L:	linux-api@vger.kernel.org
--F:	Documentation/ABI/
- F:	include/linux/syscalls.h
--F:	include/uapi/
- F:	kernel/sys_ni.c
- 
- ABIT UGURU 1,2 HARDWARE MONITOR DRIVER
+-		while (size--) {
++		while (--size > 0) {
+ 			slot++;
+ 			iter->index++;
+ 			if (likely(*slot))
 _
 
-Patches currently in -mm which might be from mtk.manpages@gmail.com are
+Patches currently in -mm which might be from koct9i@gmail.com are
 
+tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering.patch
+radix-tree-tests-add-regression3-test.patch
 
