@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-move-net-allocation-into-core-code-fix.patch added to
+Subject: + rapidio-move-rio_pw_enable-into-core-code-fix.patch added to
  -mm tree
-Date: Wed, 10 Feb 2016 10:50:10 -0800
-Message-ID: <56bb8662.UwoQlewGSEZ2izya%akpm@linux-foundation.org>
+Date: Wed, 10 Feb 2016 10:50:17 -0800
+Message-ID: <56bb8669.icKifT2/mmCBl2Ur%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38954 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38968 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753111AbcBJSuM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 13:50:12 -0500
+	with ESMTP id S1753111AbcBJSuS (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 13:50:18 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: move net allocation into core code fix
+     Subject: rapidio: move rio_pw_enable into core code fix
 has been added to the -mm tree.  Its filename is
-     rapidio-move-net-allocation-into-core-code-fix.patch
+     rapidio-move-rio_pw_enable-into-core-code-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-move-net-allocation-into-core-code-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-move-rio_pw_enable-into-core-code-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-move-net-allocation-into-core-code-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-move-rio_pw_enable-into-core-code-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,10 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: move net allocation into core code fix
+Subject: rapidio: move rio_pw_enable into core code fix
 
 Fix documentation warning for patch:
-	rapidio: move net allocation into core code
+	rapidio: move rio_pw_enable into core code
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -52,20 +52,21 @@ Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rio.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rapidio/rio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/rio.h~rapidio-move-net-allocation-into-core-code-fix include/linux/rio.h
---- a/include/linux/rio.h~rapidio-move-net-allocation-into-core-code-fix
-+++ a/include/linux/rio.h
-@@ -298,6 +298,7 @@ struct rio_mport {
-  * @mports: List of master ports accessing this network
-  * @hport: Default port for accessing this network
-  * @id: RIO network ID
-+ * @dev: Device object
-  * @enum_data: private data specific to a network enumerator
-  * @release: enumerator-specific release callback
+diff -puN drivers/rapidio/rio.c~rapidio-move-rio_pw_enable-into-core-code-fix drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-move-rio_pw_enable-into-core-code-fix
++++ a/drivers/rapidio/rio.c
+@@ -561,7 +561,7 @@ EXPORT_SYMBOL_GPL(rio_release_inb_pwrite
+ 
+ /**
+  * rio_pw_enable - Enables/disables port-write handling by a master port
+- * @port: Master port associated with port-write handling
++ * @mport: Master port associated with port-write handling
+  * @enable:  1=enable,  0=disable
   */
+ void rio_pw_enable(struct rio_mport *mport, int enable)
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
