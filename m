@@ -1,67 +1,80 @@
 From: akpm@linux-foundation.org
-Subject: [merged] signals-work-around-random-wakeups-in-sigsuspend.patch
- removed from -mm tree
-Date: Wed, 10 Feb 2016 11:35:20 -0800
-Message-ID: <56bb90f8.LsoUsYQcka8f6kF0%akpm@linux-foundation.org>
+Subject: [merged] block-fix-pfn_mkwrite-dax-fault-handler.patch removed
+ from -mm tree
+Date: Wed, 10 Feb 2016 11:35:22 -0800
+Message-ID: <56bb90fa.VrjX77RVMSoDTt8I%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42464 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42476 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753440AbcBJTfV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 14:35:21 -0500
+	with ESMTP id S1753542AbcBJTfX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 10 Feb 2016 14:35:23 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sasha.levin@oracle.com, dvyukov@google.com, oleg@redhat.com, peterz@infradead.org, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, david@fromorbit.com, jack@suse.cz, viro@zeniv.linux.org.uk, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: signals: avoid random wakeups in sigsuspend()
+     Subject: block: fix pfn_mkwrite() DAX fault handler
 has been removed from the -mm tree.  Its filename was
-     signals-work-around-random-wakeups-in-sigsuspend.patch
+     block-fix-pfn_mkwrite-dax-fault-handler.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sasha Levin <sasha.levin@oracle.com>
-Subject: signals: avoid random wakeups in sigsuspend()
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: block: fix pfn_mkwrite() DAX fault handler
 
-A random wakeup can get us out of sigsuspend() without TIF_SIGPENDING
-being set.
+Previously the pfn_mkwrite() fault handler for raw block devices called
+bldev_dax_fault() -> __dax_fault() to do a full DAX page fault.  Really
+what the pfn_mkwrite() fault handler needs to do is call dax_pfn_mkwrite()
+to make sure that the radix tree entry for the given PTE is marked as
+dirty so that a follow-up fsync or msync call will flush it durably to
+media.
 
-Avoid that by making sure we were signaled, like sys_pause() does.
-
-Signed-off-by: Sasha Levin <sasha.levin@oracle.com>
-Acked-by: Oleg Nesterov <oleg@redhat.com>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
+Fixes: 5a023cdba50c ("block: enable dax for raw block devices")
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Alexander Viro <viro@zeniv.linux.org.uk>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/signal.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ fs/block_dev.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN kernel/signal.c~signals-work-around-random-wakeups-in-sigsuspend kernel/signal.c
---- a/kernel/signal.c~signals-work-around-random-wakeups-in-sigsuspend
-+++ a/kernel/signal.c
-@@ -3508,8 +3508,10 @@ static int sigsuspend(sigset_t *set)
- 	current->saved_sigmask = current->blocked;
- 	set_current_blocked(set);
- 
--	__set_current_state(TASK_INTERRUPTIBLE);
--	schedule();
-+	while (!signal_pending(current)) {
-+		__set_current_state(TASK_INTERRUPTIBLE);
-+		schedule();
-+	}
- 	set_restore_sigmask();
- 	return -ERESTARTNOHAND;
+diff -puN fs/block_dev.c~block-fix-pfn_mkwrite-dax-fault-handler fs/block_dev.c
+--- a/fs/block_dev.c~block-fix-pfn_mkwrite-dax-fault-handler
++++ a/fs/block_dev.c
+@@ -1730,6 +1730,12 @@ static int blkdev_dax_fault(struct vm_ar
+ 	return __dax_fault(vma, vmf, blkdev_get_block, NULL);
  }
+ 
++static int blkdev_dax_pfn_mkwrite(struct vm_area_struct *vma,
++		struct vm_fault *vmf)
++{
++	return dax_pfn_mkwrite(vma, vmf);
++}
++
+ static int blkdev_dax_pmd_fault(struct vm_area_struct *vma, unsigned long addr,
+ 		pmd_t *pmd, unsigned int flags)
+ {
+@@ -1739,7 +1745,7 @@ static int blkdev_dax_pmd_fault(struct v
+ static const struct vm_operations_struct blkdev_dax_vm_ops = {
+ 	.fault		= blkdev_dax_fault,
+ 	.pmd_fault	= blkdev_dax_pmd_fault,
+-	.pfn_mkwrite	= blkdev_dax_fault,
++	.pfn_mkwrite	= blkdev_dax_pfn_mkwrite,
+ };
+ 
+ static const struct vm_operations_struct blkdev_default_vm_ops = {
 _
 
-Patches currently in -mm which might be from sasha.levin@oracle.com are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
 
