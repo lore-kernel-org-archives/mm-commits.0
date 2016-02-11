@@ -1,127 +1,119 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-git-rejects.patch added to -mm tree
-Date: Thu, 11 Feb 2016 12:38:09 -0800
-Message-ID: <56bcf131.t7DxR6ioO6wb9755%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ errh-allow-is_err_value-to-handle-properly-more-types.patch removed from
+ -mm tree
+Date: Thu, 11 Feb 2016 13:18:00 -0800
+Message-ID: <56bcfa88.E9MN9TWSUvP8twuW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:60347 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:35239 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750969AbcBKUiK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Feb 2016 15:38:10 -0500
+	with ESMTP id S1751279AbcBKVSC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Feb 2016 16:18:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: a.hajda@samsung.com, b.zolnierkie@samsung.com, m.szyprowski@samsung.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-git-rejects.patch
+     Subject: err.h: allow IS_ERR_VALUE to handle properly more types
+has been removed from the -mm tree.  Its filename was
+     errh-allow-is_err_value-to-handle-properly-more-types.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-git-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-git-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Andrzej Hajda <a.hajda@samsung.com>
+Subject: err.h: allow IS_ERR_VALUE to handle properly more types
 
+Current implementation of IS_ERR_VALUE works correctly only with following
+types:
+
+- unsigned long,
+
+- short, int, long.
+
+Other types are handled incorrectly either on 32-bit either on 64-bit
+either on both architectures.
+
+The patch fixes it by comparing argument with MAX_ERRNO casted to
+argument's type for unsigned types and comparing with zero for signed
+types.  As a result all integer types bigger than char are handled
+properly.
+
+I have analyzed usage of IS_ERR_VALUE using coccinelle and in about 35
+cases it is used incorrectly, ie it can hide errors depending of 32/64 bit
+architecture.  Instead of fixing usage I propose to enhance the macro to
+cover more types.
+
+And just for the record: the macro is used 101 times with signed
+variables, I am not sure if it should be preferred over simple comparison
+"ret < 0", but the new version can do it as well.
+
+And below list of detected potential errors:
+drivers/char/mem.c:698:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(( unsigned long long ) offset)
+drivers/media/platform/soc_camera/atmel-isi.c:1089:21-22: WARNING: incorrect argument type in IS_ERR_VALUE(irq)
+drivers/net/ethernet/freescale/fs_enet/mac-scc.c:149:36-37: WARNING: incorrect argument type in IS_ERR_VALUE(fep -> ring_mem_addr)
+drivers/net/ethernet/freescale/ucc_geth.c:2237:48-49: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_bd_ring_offset [ j ])
+drivers/net/ethernet/freescale/ucc_geth.c:2314:48-49: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_bd_ring_offset [ j ])
+drivers/net/ethernet/freescale/ucc_geth.c:2524:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_glbl_pram_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2544:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> thread_dat_tx_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2571:46-47: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> send_q_mem_reg_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2612:42-43: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> scheduler_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2659:54-55: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> tx_fw_statistics_pram_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2696:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_glbl_pram_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2715:45-46: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> thread_dat_rx_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2736:54-55: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_fw_statistics_pram_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2756:53-54: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_irq_coalescing_tbl_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2822:44-45: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> rx_bd_qs_tbl_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:2908:47-48: WARNING: incorrect argument type in IS_ERR_VALUE(ugeth -> exf_glbl_param_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:292:36-37: WARNING: incorrect argument type in IS_ERR_VALUE(init_enet_offset)
+drivers/net/ethernet/freescale/ucc_geth.c:3042:39-40: WARNING: incorrect argument type in IS_ERR_VALUE(init_enet_pram_offset)
+drivers/soc/fsl/qe/ucc_fast.c:271:60-61: WARNING: incorrect argument type in IS_ERR_VALUE(uccf -> ucc_fast_tx_virtual_fifo_base_offset)
+drivers/soc/fsl/qe/ucc_fast.c:284:60-61: WARNING: incorrect argument type in IS_ERR_VALUE(uccf -> ucc_fast_rx_virtual_fifo_base_offset)
+drivers/soc/fsl/qe/ucc_slow.c:186:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> us_pram_offset)
+drivers/soc/fsl/qe/ucc_slow.c:213:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> rx_base_offset)
+drivers/soc/fsl/qe/ucc_slow.c:224:38-39: WARNING: incorrect argument type in IS_ERR_VALUE(uccs -> tx_base_offset)
+drivers/tty/serial/clps711x.c:471:29-30: WARNING: incorrect argument type in IS_ERR_VALUE(s -> port . irq)
+drivers/tty/serial/digicolor-usart.c:485:30-31: WARNING: incorrect argument type in IS_ERR_VALUE(dp -> port . irq)
+drivers/usb/gadget/udc/fsl_qe_udc.c:2369:26-27: WARNING: incorrect argument type in IS_ERR_VALUE(tmp_addr)
+drivers/video/fbdev/exynos/exynos_mipi_dsi.c:406:27-28: WARNING: incorrect argument type in IS_ERR_VALUE(dsim -> irq)
+net/ipv4/netfilter/arp_tables.c:1427:39-40: WARNING: incorrect argument type in IS_ERR_VALUE(iter1 -> counters . pcnt)
+net/ipv4/netfilter/arp_tables.c:530:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
+net/ipv4/netfilter/ip_tables.c:1614:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
+net/ipv4/netfilter/ip_tables.c:674:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
+net/ipv6/netfilter/ip6_tables.c:1624:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
+net/ipv6/netfilter/ip6_tables.c:687:34-35: WARNING: incorrect argument type in IS_ERR_VALUE(e -> counters . pcnt)
+drivers/net/ethernet/freescale/fs_enet/mac-fcc.c:110:35-36: WARNING: unknown argument type in IS_ERR_VALUE(fpi -> dpram_offset)
+
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/vxlan.c |   14 --------------
- 1 file changed, 14 deletions(-)
+ include/linux/err.h |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN drivers/net/vxlan.c~linux-next-git-rejects drivers/net/vxlan.c
---- a/drivers/net/vxlan.c~linux-next-git-rejects
-+++ a/drivers/net/vxlan.c
-@@ -2322,20 +2322,6 @@ static int __vxlan_change_mtu(struct net
- }
+diff -puN include/linux/err.h~errh-allow-is_err_value-to-handle-properly-more-types include/linux/err.h
+--- a/include/linux/err.h~errh-allow-is_err_value-to-handle-properly-more-types
++++ a/include/linux/err.h
+@@ -18,7 +18,9 @@
  
- static int vxlan_change_mtu(struct net_device *dev, int new_mtu)
--<<<<<<< HEAD
--{
--	struct vxlan_dev *vxlan = netdev_priv(dev);
--	struct vxlan_rdst *dst = &vxlan->default_dst;
--	struct net_device *lowerdev = __dev_get_by_index(vxlan->net,
--							 dst->remote_ifindex);
--	return __vxlan_change_mtu(dev, lowerdev, dst, new_mtu, true);
--}
--
--static int egress_ipv4_tun_info(struct net_device *dev, struct sk_buff *skb,
--				struct ip_tunnel_info *info,
--				__be16 sport, __be16 dport)
--=======
-->>>>>>> linux-next/akpm-base
+ #ifndef __ASSEMBLY__
+ 
+-#define IS_ERR_VALUE(x) unlikely((x) >= (unsigned long)-MAX_ERRNO)
++#define IS_ERR_VALUE(x) ((typeof(x))(-1) <= 0 \
++				? unlikely((x) <= -1) \
++				: unlikely((x) >= (typeof(x))-MAX_ERRNO))
+ 
+ static inline void * __must_check ERR_PTR(long error)
  {
- 	struct vxlan_dev *vxlan = netdev_priv(dev);
- 	struct vxlan_rdst *dst = &vxlan->default_dst;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from a.hajda@samsung.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes.patch
-mmthp-fix-spellos-in-describing-__have_arch_flush_pmd_tlb_range-checkpatch-fixes.patch
-kernel-locking-lockdepc-convert-hash-tables-to-hlists.patch
-arch-x86-kconfig-config_x86_uv-should-depend-on-config_efi.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-code-clean-up-for-direct-io-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
-mm.patch
-mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
-mm-simplify-lock_page_memcg-fix.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom_reaper-report-success-failure-fix.patch
-mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
-proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
-mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
-mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
-sound-query-dynamic-debug_pagealloc-setting-fix.patch
-mm-config_nr_zones_extended-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-btrfs-use-radix_tree_iter_retry-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
-rapidio-add-mport-char-device-driver-fix.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-kernel-add-kcov-code-coverage-fix.patch
-kernel-add-kcov-code-coverage-fix-2.patch
-kernel-memremapc-add-new-arg-to-dev_warn.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
-linux-next-git-rejects.patch
 
