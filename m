@@ -1,20 +1,20 @@
 From: akpm@linux-foundation.org
 Subject: + rapidio-add-global-inbound-port-write-interfaces-fix.patch
  added to -mm tree
-Date: Fri, 12 Feb 2016 12:01:56 -0800
-Message-ID: <56be3a34.YSJdfJiniKVfwwjF%akpm@linux-foundation.org>
+Date: Fri, 12 Feb 2016 12:03:29 -0800
+Message-ID: <56be3a91.j38N3/uxlACpYBlS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43388 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43707 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750852AbcBLUB5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Feb 2016 15:01:57 -0500
+	with ESMTP id S1750852AbcBLUDa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Feb 2016 15:03:30 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, benh@kernel.crashing.org, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, benh@kernel.crashing.org, mporter@kernel.crashing.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
@@ -47,11 +47,14 @@ Platform-specific update following changes in port-write handler interface.
 This is a follow-up patch for
     [PATCH 22/30] rapidio: add global inbound port write interfaces
 
+Fixes powerpc build with RapidIO enabled.
+
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
 Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
