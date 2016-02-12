@@ -1,188 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-query-dynamic-debug_pagealloc-setting.patch added to
- -mm tree
-Date: Thu, 11 Feb 2016 14:33:04 -0800
-Message-ID: <56bd0c20.2VFf056IfeW7t4jp%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 11 Feb 2016 16:08:49 -0800
+Message-ID: <56bd2291.f1YtHuTGImcFsVXQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41438 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50028 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750752AbcBKWdF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Feb 2016 17:33:05 -0500
+	with ESMTP id S1750817AbcBLAIv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Feb 2016 19:08:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, benh@kernel.crashing.org, borntraeger@de.ibm.com, cl@linux.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, Jason@zx2c4.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc: query dynamic DEBUG_PAGEALLOC setting
-has been added to the -mm tree.  Its filename is
-     powerpc-query-dynamic-debug_pagealloc-setting.patch
+     Subject: vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes
+has been removed from the -mm tree.  Its filename was
+     vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-query-dynamic-debug_pagealloc-setting.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-query-dynamic-debug_pagealloc-setting.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into vsprintf-kptr_restrict-is-okay-in-irq-when-2.patch
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: powerpc: query dynamic DEBUG_PAGEALLOC setting
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes
 
-We can disable debug_pagealloc processing even if the code is compiled
-with CONFIG_DEBUG_PAGEALLOC.  This patch changes the code to query whether
-it is enabled or not in runtime.
+WARNING: line over 80 characters
+#46: FILE: lib/vsprintf.c:1674:
++			 * kptr_restrict==1 cannot be used in IRQ context because
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Christoph Lameter <cl@linux.com>
+total: 0 errors, 1 warnings, 43 lines checked
+
+./patches/vsprintf-kptr_restrict-is-okay-in-irq-when-2.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Jason A. Donenfeld <Jason@zx2c4.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/kernel/traps.c     |    5 +---
- arch/powerpc/mm/hash_utils_64.c |   36 ++++++++++++++++--------------
- arch/powerpc/mm/init_32.c       |    8 +++---
- 3 files changed, 26 insertions(+), 23 deletions(-)
+ lib/vsprintf.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN arch/powerpc/kernel/traps.c~powerpc-query-dynamic-debug_pagealloc-setting arch/powerpc/kernel/traps.c
---- a/arch/powerpc/kernel/traps.c~powerpc-query-dynamic-debug_pagealloc-setting
-+++ a/arch/powerpc/kernel/traps.c
-@@ -203,9 +203,8 @@ static int __kprobes __die(const char *s
- #ifdef CONFIG_SMP
- 	printk("SMP NR_CPUS=%d ", NR_CPUS);
- #endif
--#ifdef CONFIG_DEBUG_PAGEALLOC
--	printk("DEBUG_PAGEALLOC ");
--#endif
-+	if (debug_pagealloc_enabled())
-+		printk("DEBUG_PAGEALLOC ");
- #ifdef CONFIG_NUMA
- 	printk("NUMA ");
- #endif
-diff -puN arch/powerpc/mm/hash_utils_64.c~powerpc-query-dynamic-debug_pagealloc-setting arch/powerpc/mm/hash_utils_64.c
---- a/arch/powerpc/mm/hash_utils_64.c~powerpc-query-dynamic-debug_pagealloc-setting
-+++ a/arch/powerpc/mm/hash_utils_64.c
-@@ -255,8 +255,10 @@ int htab_bolt_mapping(unsigned long vsta
+diff -puN lib/vsprintf.c~vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes lib/vsprintf.c
+--- a/lib/vsprintf.c~vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes
++++ a/lib/vsprintf.c
+@@ -1598,8 +1598,8 @@ char *pointer(const char *fmt, char *buf
+ 			const struct cred *cred;
  
- 		if (ret < 0)
- 			break;
-+
- #ifdef CONFIG_DEBUG_PAGEALLOC
--		if ((paddr >> PAGE_SHIFT) < linear_map_hash_count)
-+		if (debug_pagealloc_enabled() &&
-+			(paddr >> PAGE_SHIFT) < linear_map_hash_count)
- 			linear_map_hash_slots[paddr >> PAGE_SHIFT] = ret | 0x80;
- #endif /* CONFIG_DEBUG_PAGEALLOC */
- 	}
-@@ -512,17 +514,17 @@ static void __init htab_init_page_sizes(
- 	if (mmu_has_feature(MMU_FTR_16M_PAGE))
- 		memcpy(mmu_psize_defs, mmu_psize_defaults_gp,
- 		       sizeof(mmu_psize_defaults_gp));
-- found:
--#ifndef CONFIG_DEBUG_PAGEALLOC
--	/*
--	 * Pick a size for the linear mapping. Currently, we only support
--	 * 16M, 1M and 4K which is the default
--	 */
--	if (mmu_psize_defs[MMU_PAGE_16M].shift)
--		mmu_linear_psize = MMU_PAGE_16M;
--	else if (mmu_psize_defs[MMU_PAGE_1M].shift)
--		mmu_linear_psize = MMU_PAGE_1M;
--#endif /* CONFIG_DEBUG_PAGEALLOC */
-+found:
-+	if (!debug_pagealloc_enabled()) {
-+		/*
-+		 * Pick a size for the linear mapping. Currently, we only
-+		 * support 16M, 1M and 4K which is the default
-+		 */
-+		if (mmu_psize_defs[MMU_PAGE_16M].shift)
-+			mmu_linear_psize = MMU_PAGE_16M;
-+		else if (mmu_psize_defs[MMU_PAGE_1M].shift)
-+			mmu_linear_psize = MMU_PAGE_1M;
-+	}
- 
- #ifdef CONFIG_PPC_64K_PAGES
- 	/*
-@@ -721,10 +723,12 @@ static void __init htab_initialize(void)
- 	prot = pgprot_val(PAGE_KERNEL);
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
--	linear_map_hash_count = memblock_end_of_DRAM() >> PAGE_SHIFT;
--	linear_map_hash_slots = __va(memblock_alloc_base(linear_map_hash_count,
--						    1, ppc64_rma_size));
--	memset(linear_map_hash_slots, 0, linear_map_hash_count);
-+	if (debug_pagealloc_enabled()) {
-+		linear_map_hash_count = memblock_end_of_DRAM() >> PAGE_SHIFT;
-+		linear_map_hash_slots = __va(memblock_alloc_base(
-+				linear_map_hash_count, 1, ppc64_rma_size));
-+		memset(linear_map_hash_slots, 0, linear_map_hash_count);
-+	}
- #endif /* CONFIG_DEBUG_PAGEALLOC */
- 
- 	/* On U3 based machines, we need to reserve the DART area and
-diff -puN arch/powerpc/mm/init_32.c~powerpc-query-dynamic-debug_pagealloc-setting arch/powerpc/mm/init_32.c
---- a/arch/powerpc/mm/init_32.c~powerpc-query-dynamic-debug_pagealloc-setting
-+++ a/arch/powerpc/mm/init_32.c
-@@ -112,10 +112,10 @@ void __init MMU_setup(void)
- 	if (strstr(boot_command_line, "noltlbs")) {
- 		__map_without_ltlbs = 1;
- 	}
--#ifdef CONFIG_DEBUG_PAGEALLOC
--	__map_without_bats = 1;
--	__map_without_ltlbs = 1;
--#endif
-+	if (debug_pagealloc_enabled()) {
-+		__map_without_bats = 1;
-+		__map_without_ltlbs = 1;
-+	}
- }
- 
- /*
+ 			/*
+-			 * kptr_restrict==1 cannot be used in IRQ context because
+-			 * its test for CAP_SYSLOG would be meaningless.
++			 * kptr_restrict==1 cannot be used in IRQ context
++			 * because its test for CAP_SYSLOG would be meaningless.
+ 			 */
+ 			if (in_irq() || in_serving_softirq() || in_nmi()) {
+ 				if (spec.field_width == -1)
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-slab-fix-stale-code-comment.patch
-mm-slab-remove-useless-structure-define.patch
-mm-slab-remove-the-checks-for-slab-implementation-bug.patch
-mm-slab-activate-debug_pagealloc-in-slab-when-it-is-actually-enabled.patch
-mm-slab-use-more-appropriate-condition-check-for-debug_pagealloc.patch
-mm-slab-clean-up-debug_pagealloc-processing-code.patch
-mm-slab-alternative-implementation-for-debug_slab_leak.patch
-mm-slab-remove-object-status-buffer-for-debug_slab_leak.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page.patch
-mm-slab-align-cache-size-first-before-determination-of-off_slab-candidate.patch
-mm-slab-clean-up-cache-type-determination.patch
-mm-slab-do-not-change-cache-size-if-debug-pagealloc-isnt-possible.patch
-mm-slab-make-criteria-for-off-slab-determination-robust-and-simple.patch
-mm-slab-factor-out-slab-list-fixup-code.patch
-mm-slab-factor-out-debugging-initialization-in-cache_init_objs.patch
-mm-slab-introduce-new-slab-management-type-objfreelist_slab.patch
-mm-slab-introduce-new-slab-management-type-objfreelist_slab-fix.patch
-mm-slab-re-implement-pfmemalloc-support.patch
-mm-slub-support-left-red-zone.patch
-mm-compaction-fix-invalid-free_pfn-and-compact_cached_free_pfn.patch
-mm-compaction-pass-only-pageblock-aligned-range-to-pageblock_pfn_to_page.patch
-mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous.patch
-mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch
-mm-slub-query-dynamic-debug_pagealloc-setting.patch
-mm-slub-query-dynamic-debug_pagealloc-setting-v2.patch
-sound-query-dynamic-debug_pagealloc-setting.patch
-powerpc-query-dynamic-debug_pagealloc-setting.patch
-tile-query-dynamic-debug_pagealloc-setting.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+vsprintf-kptr_restrict-is-okay-in-irq-when-2.patch
+mmthp-fix-spellos-in-describing-__have_arch_flush_pmd_tlb_range-checkpatch-fixes.patch
+kernel-locking-lockdepc-convert-hash-tables-to-hlists.patch
+arch-x86-kconfig-config_x86_uv-should-depend-on-config_efi.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-code-clean-up-for-direct-io-fix.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
+mm.patch
+mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
+mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
+fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
+mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
+mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
+mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
+mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
+mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
+mm-madvise-update-comment-on-sys_madvise-fix.patch
+mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
+mm-simplify-lock_page_memcg-fix.patch
+sched-add-schedule_timeout_idle.patch
+mm-oom_reaper-report-success-failure-fix.patch
+mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
+proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
+mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
+mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
+sound-query-dynamic-debug_pagealloc-setting-fix.patch
+mm-config_nr_zones_extended-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+zram-export-the-number-of-available-comp-streams-fix.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+btrfs-use-radix_tree_iter_retry-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
+rapidio-add-mport-char-device-driver-fix.patch
+dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
+kernel-add-kcov-code-coverage-fix.patch
+kernel-add-kcov-code-coverage-fix-2.patch
+linux-next-git-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
