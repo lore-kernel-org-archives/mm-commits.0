@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-tracing-refresh-__def_vmaflag_names-fix.patch added to -mm
+Subject: + rapidio-add-mport-char-device-driver-fix-2.patch added to -mm
  tree
-Date: Fri, 12 Feb 2016 11:38:18 -0800
-Message-ID: <56be34aa.HZUGFukU0XvOnDXG%akpm@linux-foundation.org>
+Date: Fri, 12 Feb 2016 11:39:56 -0800
+Message-ID: <56be350c.iEJ+iqouCP8FM3mD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41523 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41599 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750707AbcBLTiT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Feb 2016 14:38:19 -0500
+	with ESMTP id S1750784AbcBLTj5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Feb 2016 14:39:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: dan.carpenter@oracle.com, alexandre.bounine@idt.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-tracing-refresh-__def_vmaflag_names-fix
+     Subject: rapidio: mport_cdev: fix some error codes
 has been added to the -mm tree.  Its filename is
-     mm-tracing-refresh-__def_vmaflag_names-fix.patch
+     rapidio-add-mport-char-device-driver-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-tracing-refresh-__def_vmaflag_names-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-add-mport-char-device-driver-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-tracing-refresh-__def_vmaflag_names-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-add-mport-char-device-driver-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,54 +39,54 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-tracing-refresh-__def_vmaflag_names-fix
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: rapidio: mport_cdev: fix some error codes
 
-Add a note above vmaflag definitions to update the names when changing.
+copy_to_user() returns the number of bytes not copied but we want to
+return an error code.
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Fixes: a45bfc36bf0d ('rapidio: add mport char device driver')
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/rapidio/devices/rio_mport_cdev.c |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/mm.h~mm-tracing-refresh-__def_vmaflag_names-fix include/linux/mm.h
---- a/include/linux/mm.h~mm-tracing-refresh-__def_vmaflag_names-fix
-+++ a/include/linux/mm.h
-@@ -143,6 +143,7 @@ extern unsigned int kobjsize(const void
- 
- /*
-  * vm_flags in vm_area_struct, see mm_types.h.
-+ * When changing, update also include/trace/events/mmflags.h
-  */
- #define VM_NONE		0x00000000
- 
+diff -puN drivers/rapidio/devices/rio_mport_cdev.c~rapidio-add-mport-char-device-driver-fix-2 drivers/rapidio/devices/rio_mport_cdev.c
+--- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-add-mport-char-device-driver-fix-2
++++ a/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -2140,9 +2140,10 @@ static long mport_cdev_ioctl(struct file
+ 		return maint_port_idx_get(data, (void __user *)arg);
+ 	case RIO_MPORT_GET_PROPERTIES:
+ 		md->properties.hdid = md->mport->host_deviceid;
+-		err = copy_to_user((void __user *)arg, &(data->md->properties),
+-				   sizeof(data->md->properties));
+-		break;
++		if (copy_to_user((void __user *)arg, &(data->md->properties),
++				 sizeof(data->md->properties)))
++			return -EFAULT;
++		return 0;
+ 	case RIO_ENABLE_DOORBELL_RANGE:
+ 		return rio_mport_add_db_filter(data, (void __user *)arg);
+ 	case RIO_DISABLE_DOORBELL_RANGE:
+@@ -2155,8 +2156,10 @@ static long mport_cdev_ioctl(struct file
+ 		data->event_mask = arg;
+ 		return 0;
+ 	case RIO_GET_EVENT_MASK:
+-		return copy_to_user((void __user *)arg, &data->event_mask,
+-				    sizeof(data->event_mask));
++		if (copy_to_user((void __user *)arg, &data->event_mask,
++				    sizeof(data->event_mask)))
++			return -EFAULT;
++		return 0;
+ 	case RIO_MAP_OUTBOUND:
+ 		return rio_mport_obw_map(filp, (void __user *)arg);
+ 	case RIO_MAP_INBOUND:
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from dan.carpenter@oracle.com are
 
-tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
-mm-tracing-make-show_gfp_flags-up-to-date.patch
-tools-perf-make-gfp_compact_table-up-to-date.patch
-mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk.patch
-mm-printk-introduce-new-format-string-for-flags.patch
-mm-printk-introduce-new-format-string-for-flags-fix.patch
-mm-debug-replace-dump_flags-with-the-new-printk-formats.patch
-mm-page_alloc-print-symbolic-gfp_flags-on-allocation-failure.patch
-mm-oom-print-symbolic-gfp_flags-in-oom-warning.patch
-mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
-mm-page_owner-convert-page_owner_inited-to-static-key.patch
-mm-page_owner-copy-page-owner-info-during-migration.patch
-mm-page_owner-track-and-print-last-migrate-reason.patch
-mm-page_owner-dump-page-owner-info-from-dump_page.patch
-mm-debug-move-bad-flags-printing-to-bad_page.patch
-mm-kswapd-remove-bogus-check-of-balance_classzone_idx.patch
-mm-compaction-introduce-kcompactd.patch
-mm-memory-hotplug-small-cleanup-in-online_pages.patch
-mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd.patch
-mm-compaction-adapt-isolation_suitable-flushing-to-kcompactd.patch
-mm-tracing-refresh-__def_vmaflag_names-fix.patch
-mm-use-radix_tree_iter_retry-fix.patch
+rapidio-add-mport-char-device-driver-fix-2.patch
 
