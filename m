@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-global-inbound-port-write-interfaces-fix.patch
- added to -mm tree
-Date: Fri, 12 Feb 2016 12:03:29 -0800
-Message-ID: <56be3a91.j38N3/uxlACpYBlS%akpm@linux-foundation.org>
+Subject: + mm-slab-re-implement-pfmemalloc-support-v2.patch added to -mm
+ tree
+Date: Fri, 12 Feb 2016 13:26:51 -0800
+Message-ID: <56be4e1b.8Dyjaor/ISvp0w/i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43707 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51661 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750852AbcBLUDa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Feb 2016 15:03:30 -0500
+	with ESMTP id S1750857AbcBLV0w (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Feb 2016 16:26:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, benh@kernel.crashing.org, mporter@kernel.crashing.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, cl@linux.com, mgorman@techsingularity.net, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/fsl_rio: update for port-write interface change
+     Subject: mm-slab-re-implement-pfmemalloc-support-v2
 has been added to the -mm tree.  Its filename is
-     rapidio-add-global-inbound-port-write-interfaces-fix.patch
+     mm-slab-re-implement-pfmemalloc-support-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-add-global-inbound-port-write-interfaces-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-re-implement-pfmemalloc-support-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-add-global-inbound-port-write-interfaces-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-re-implement-pfmemalloc-support-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,130 +39,115 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: powerpc/fsl_rio: update for port-write interface change
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm-slab-re-implement-pfmemalloc-support-v2
 
-Platform-specific update following changes in port-write handler interface.
+v2)
+o remove racy check whether there is free object or not in kmem_cache_node
+o fix leak case
 
-This is a follow-up patch for
-    [PATCH 22/30] rapidio: add global inbound port write interfaces
-
-Fixes powerpc build with RapidIO enabled.
-
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
-Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |    1 +
- arch/powerpc/sysdev/fsl_rio.h |    1 +
- arch/powerpc/sysdev/fsl_rmu.c |   16 ++++++++++------
- 3 files changed, 12 insertions(+), 6 deletions(-)
+ mm/slab.c |   29 +++++++++++++----------------
+ 1 file changed, 13 insertions(+), 16 deletions(-)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-add-global-inbound-port-write-interfaces-fix arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-add-global-inbound-port-write-interfaces-fix
-+++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -726,6 +726,7 @@ int fsl_rio_setup(struct platform_device
- 		fsl_rio_inbound_mem_init(priv);
- 
- 		dbell->mport[i] = port;
-+		pw->mport[i] = port;
- 
- 		if (rio_register_mport(port)) {
- 			release_resource(&port->iores);
-diff -puN arch/powerpc/sysdev/fsl_rio.h~rapidio-add-global-inbound-port-write-interfaces-fix arch/powerpc/sysdev/fsl_rio.h
---- a/arch/powerpc/sysdev/fsl_rio.h~rapidio-add-global-inbound-port-write-interfaces-fix
-+++ a/arch/powerpc/sysdev/fsl_rio.h
-@@ -97,6 +97,7 @@ struct fsl_rio_dbell {
- };
- 
- struct fsl_rio_pw {
-+	struct rio_mport *mport[MAX_PORT_NUM];
- 	struct device *dev;
- 	struct rio_pw_regs __iomem *pw_regs;
- 	struct rio_port_write_msg port_write_msg;
-diff -puN arch/powerpc/sysdev/fsl_rmu.c~rapidio-add-global-inbound-port-write-interfaces-fix arch/powerpc/sysdev/fsl_rmu.c
---- a/arch/powerpc/sysdev/fsl_rmu.c~rapidio-add-global-inbound-port-write-interfaces-fix
-+++ a/arch/powerpc/sysdev/fsl_rmu.c
-@@ -481,14 +481,14 @@ pw_done:
- static void fsl_pw_dpc(struct work_struct *work)
- {
- 	struct fsl_rio_pw *pw = container_of(work, struct fsl_rio_pw, pw_work);
--	u32 msg_buffer[RIO_PW_MSG_SIZE/sizeof(u32)];
-+	union rio_pw_msg msg_buffer;
-+	int i;
- 
- 	/*
- 	 * Process port-write messages
- 	 */
--	while (kfifo_out_spinlocked(&pw->pw_fifo, (unsigned char *)msg_buffer,
-+	while (kfifo_out_spinlocked(&pw->pw_fifo, (unsigned char *)&msg_buffer,
- 			 RIO_PW_MSG_SIZE, &pw->pw_fifo_lock)) {
--		/* Process one message */
- #ifdef DEBUG_PW
- 		{
- 		u32 i;
-@@ -496,15 +496,19 @@ static void fsl_pw_dpc(struct work_struc
- 		for (i = 0; i < RIO_PW_MSG_SIZE/sizeof(u32); i++) {
- 			if ((i%4) == 0)
- 				pr_debug("\n0x%02x: 0x%08x", i*4,
--					 msg_buffer[i]);
-+					 msg_buffer.raw[i]);
- 			else
--				pr_debug(" 0x%08x", msg_buffer[i]);
-+				pr_debug(" 0x%08x", msg_buffer.raw[i]);
- 		}
- 		pr_debug("\n");
- 		}
- #endif
- 		/* Pass the port-write message to RIO core for processing */
--		rio_inb_pwrite_handler((union rio_pw_msg *)msg_buffer);
-+		for (i = 0; i < MAX_PORT_NUM; i++) {
-+			if (pw->mport[i])
-+				rio_inb_pwrite_handler(pw->mport[i],
-+						       &msg_buffer);
-+		}
- 	}
+diff -puN mm/slab.c~mm-slab-re-implement-pfmemalloc-support-v2 mm/slab.c
+--- a/mm/slab.c~mm-slab-re-implement-pfmemalloc-support-v2
++++ a/mm/slab.c
+@@ -594,23 +594,20 @@ static struct array_cache *alloc_arrayca
  }
  
+ static noinline void cache_free_pfmemalloc(struct kmem_cache *cachep,
+-					void *objp)
++					struct page *page, void *objp)
+ {
+-	struct page *page = virt_to_head_page(objp);
+ 	struct kmem_cache_node *n;
+ 	int page_node;
+ 	LIST_HEAD(list);
+ 
+-	if (unlikely(PageSlabPfmemalloc(page))) {
+-		page_node = page_to_nid(page);
+-		n = get_node(cachep, page_node);
++	page_node = page_to_nid(page);
++	n = get_node(cachep, page_node);
+ 
+-		spin_lock(&n->list_lock);
+-		free_block(cachep, &objp, 1, page_node, &list);
+-		spin_unlock(&n->list_lock);
++	spin_lock(&n->list_lock);
++	free_block(cachep, &objp, 1, page_node, &list);
++	spin_unlock(&n->list_lock);
+ 
+-		slabs_destroy(cachep, &list);
+-	}
++	slabs_destroy(cachep, &list);
+ }
+ 
+ /*
+@@ -2762,10 +2759,6 @@ static noinline void *cache_alloc_pfmema
+ 	if (!gfp_pfmemalloc_allowed(flags))
+ 		return NULL;
+ 
+-	/* Racy check if there is free objects */
+-	if (!n->free_objects)
+-		return NULL;
+-
+ 	spin_lock(&n->list_lock);
+ 	page = get_first_slab(n, true);
+ 	if (!page) {
+@@ -3354,8 +3347,12 @@ static inline void __cache_free(struct k
+ 	}
+ 
+ 	if (sk_memalloc_socks()) {
+-		cache_free_pfmemalloc(cachep, objp);
+-		return;
++		struct page *page = virt_to_head_page(objp);
++
++		if (unlikely(PageSlabPfmemalloc(page))) {
++			cache_free_pfmemalloc(cachep, page, objp);
++			return;
++		}
+ 	}
+ 
+ 	ac->entry[ac->avail++] = objp;
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-rapidio-tsi721-fix-hardcoded-mrrs-setting.patch
-rapidio-tsi721-add-check-for-overlapped-ib-window-mappings.patch
-rapidio-tsi721-add-option-to-configure-direct-mapping-of-ib-window.patch
-rapidio-tsi721_dma-fix-pending-transaction-queue-handling.patch
-rapidio-add-query_mport-operation.patch
-rapidio-tsi721-add-query_mport-callback.patch
-rapidio-add-shutdown-notification-for-rapidio-devices.patch
-rapidio-tsi721-add-shutdown-notification-callback.patch
-rapidio-rionet-add-shutdown-event-handling.patch
-rapidio-rework-common-rio-device-add-delete-routines.patch
-rapidio-move-net-allocation-into-core-code.patch
-rapidio-move-net-allocation-into-core-code-fix.patch
-rapidio-add-core-mport-removal-support.patch
-rapidio-tsi721-add-hw-specific-mport-removal.patch
-powerpc-fsl_rio-changes-to-mport-registration.patch
-rapidio-rionet-add-locking-into-add-remove-device.patch
-rapidio-rionet-add-mport-removal-handling.patch
-rapidio-add-lock-protection-for-doorbell-list.patch
-rapidio-add-lock-protection-for-doorbell-list-fix.patch
-rapidio-move-rio_local_set_device_id-function-to-the-common-core.patch
-rapidio-move-rio_pw_enable-into-core-code.patch
-rapidio-move-rio_pw_enable-into-core-code-fix.patch
-rapidio-add-global-inbound-port-write-interfaces.patch
-rapidio-add-global-inbound-port-write-interfaces-fix.patch
-rapidio-tsi721-fix-locking-in-ob_msg-processing.patch
-rapidio-add-outbound-window-support.patch
-rapidio-tsi721-add-outbound-windows-mapping-support.patch
-rapidio-tsi721-add-filtered-debug-output.patch
-rapidio-tsi721_dma-update-error-reporting-from-prep_sg-callback.patch
-rapidio-tsi721_dma-fix-synchronization-issues.patch
-rapidio-tsi721_dma-fix-hardware-error-handling.patch
-rapidio-add-mport-char-device-driver.patch
+mm-slab-fix-stale-code-comment.patch
+mm-slab-remove-useless-structure-define.patch
+mm-slab-remove-the-checks-for-slab-implementation-bug.patch
+mm-slab-activate-debug_pagealloc-in-slab-when-it-is-actually-enabled.patch
+mm-slab-use-more-appropriate-condition-check-for-debug_pagealloc.patch
+mm-slab-clean-up-debug_pagealloc-processing-code.patch
+mm-slab-alternative-implementation-for-debug_slab_leak.patch
+mm-slab-remove-object-status-buffer-for-debug_slab_leak.patch
+mm-slab-put-the-freelist-at-the-end-of-slab-page.patch
+mm-slab-align-cache-size-first-before-determination-of-off_slab-candidate.patch
+mm-slab-clean-up-cache-type-determination.patch
+mm-slab-do-not-change-cache-size-if-debug-pagealloc-isnt-possible.patch
+mm-slab-make-criteria-for-off-slab-determination-robust-and-simple.patch
+mm-slab-factor-out-slab-list-fixup-code.patch
+mm-slab-factor-out-debugging-initialization-in-cache_init_objs.patch
+mm-slab-introduce-new-slab-management-type-objfreelist_slab.patch
+mm-slab-introduce-new-slab-management-type-objfreelist_slab-fix.patch
+mm-slab-re-implement-pfmemalloc-support.patch
+mm-slab-re-implement-pfmemalloc-support-v2.patch
+mm-slub-support-left-red-zone.patch
+mm-compaction-fix-invalid-free_pfn-and-compact_cached_free_pfn.patch
+mm-compaction-pass-only-pageblock-aligned-range-to-pageblock_pfn_to_page.patch
+mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous.patch
+mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch
+mm-slub-query-dynamic-debug_pagealloc-setting.patch
+mm-slub-query-dynamic-debug_pagealloc-setting-v2.patch
+sound-query-dynamic-debug_pagealloc-setting.patch
+powerpc-query-dynamic-debug_pagealloc-setting.patch
+tile-query-dynamic-debug_pagealloc-setting.patch
 
