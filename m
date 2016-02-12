@@ -1,67 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes.patch removed from -mm tree
-Date: Thu, 11 Feb 2016 16:08:49 -0800
-Message-ID: <56bd2291.f1YtHuTGImcFsVXQ%akpm@linux-foundation.org>
+ mmthp-fix-spellos-in-describing-__have_arch_flush_pmd_tlb_range-checkpatch-fixes.patch removed from -mm tree
+Date: Thu, 11 Feb 2016 16:09:20 -0800
+Message-ID: <56bd22b0.KOCIJZfCrlSyzyGE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50028 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50044 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750817AbcBLAIv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Feb 2016 19:08:51 -0500
+	with ESMTP id S1750817AbcBLAJV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 11 Feb 2016 19:09:21 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, Jason@zx2c4.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, vgupta@synopsys.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes
+     Subject: mmthp-fix-spellos-in-describing-__have_arch_flush_pmd_tlb_range-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes.patch
+     mmthp-fix-spellos-in-describing-__have_arch_flush_pmd_tlb_range-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into vsprintf-kptr_restrict-is-okay-in-irq-when-2.patch
+This patch was dropped because it was folded into mmthp-fix-spellos-in-describing-__have_arch_flush_pmd_tlb_range.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes
+Subject: mmthp-fix-spellos-in-describing-__have_arch_flush_pmd_tlb_range-checkpatch-fixes
 
-WARNING: line over 80 characters
-#46: FILE: lib/vsprintf.c:1674:
-+			 * kptr_restrict==1 cannot be used in IRQ context because
+WARNING: 'threshhold' may be misspelled - perhaps 'threshold'?
+#22: FILE: mm/pgtable-generic.c:93:
++ * entire TLB if flush span is greater than a threshhold, which will
 
-total: 0 errors, 1 warnings, 43 lines checked
+total: 0 errors, 1 warnings, 11 lines checked
 
-./patches/vsprintf-kptr_restrict-is-okay-in-irq-when-2.patch has style problems, please review.
+./patches/mmthp-fix-spellos-in-describing-__have_arch_flush_pmd_tlb_range.patch has style problems, please review.
 
 NOTE: If any of the errors are false positives, please report
       them to the maintainer, see CHECKPATCH in MAINTAINERS.
 
 Please run checkpatch prior to sending patches
 
-Cc: Jason A. Donenfeld <Jason@zx2c4.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/vsprintf.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ mm/pgtable-generic.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/vsprintf.c~vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes lib/vsprintf.c
---- a/lib/vsprintf.c~vsprintf-kptr_restrict-is-okay-in-irq-when-2-checkpatch-fixes
-+++ a/lib/vsprintf.c
-@@ -1598,8 +1598,8 @@ char *pointer(const char *fmt, char *buf
- 			const struct cred *cred;
- 
- 			/*
--			 * kptr_restrict==1 cannot be used in IRQ context because
--			 * its test for CAP_SYSLOG would be meaningless.
-+			 * kptr_restrict==1 cannot be used in IRQ context
-+			 * because its test for CAP_SYSLOG would be meaningless.
- 			 */
- 			if (in_irq() || in_serving_softirq() || in_nmi()) {
- 				if (spec.field_width == -1)
+diff -puN mm/pgtable-generic.c~mmthp-fix-spellos-in-describing-__have_arch_flush_pmd_tlb_range-checkpatch-fixes mm/pgtable-generic.c
+--- a/mm/pgtable-generic.c~mmthp-fix-spellos-in-describing-__have_arch_flush_pmd_tlb_range-checkpatch-fixes
++++ a/mm/pgtable-generic.c
+@@ -90,7 +90,7 @@ pte_t ptep_clear_flush(struct vm_area_st
+  * ARCHes with special requirements for evicting THP backing TLB entries can
+  * implement this. Otherwise also, it can help optimize normal TLB flush in
+  * THP regime. stock flush_tlb_range() typically has optimization to nuke the
+- * entire TLB if flush span is greater than a threshhold, which will
++ * entire TLB if flush span is greater than a threshold, which will
+  * likely be true for a single huge page. Thus a single thp flush will
+  * invalidate the entire TLB which is not desirable.
+  * e.g. see arch/arc: flush_pmd_tlb_range
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -70,8 +68,7 @@ i-need-old-gcc.patch
 arch-alpha-kernel-systblss-remove-debug-check.patch
 drivers-gpu-drm-i915-intel_spritec-fix-build.patch
 drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-vsprintf-kptr_restrict-is-okay-in-irq-when-2.patch
-mmthp-fix-spellos-in-describing-__have_arch_flush_pmd_tlb_range-checkpatch-fixes.patch
+mmthp-fix-spellos-in-describing-__have_arch_flush_pmd_tlb_range.patch
 kernel-locking-lockdepc-convert-hash-tables-to-hlists.patch
 arch-x86-kconfig-config_x86_uv-should-depend-on-config_efi.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
