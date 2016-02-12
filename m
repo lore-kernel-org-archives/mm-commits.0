@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + rapidio-add-mport-char-device-driver-fix-2.patch added to -mm
- tree
-Date: Fri, 12 Feb 2016 11:39:56 -0800
-Message-ID: <56be350c.iEJ+iqouCP8FM3mD%akpm@linux-foundation.org>
+Subject: + rapidio-add-global-inbound-port-write-interfaces-fix.patch
+ added to -mm tree
+Date: Fri, 12 Feb 2016 12:01:56 -0800
+Message-ID: <56be3a34.YSJdfJiniKVfwwjF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41599 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:43388 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750784AbcBLTj5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Feb 2016 14:39:57 -0500
+	with ESMTP id S1750852AbcBLUB5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 12 Feb 2016 15:01:57 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.carpenter@oracle.com, alexandre.bounine@idt.com, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, benh@kernel.crashing.org, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: mport_cdev: fix some error codes
+     Subject: powerpc/fsl_rio: update for port-write interface change
 has been added to the -mm tree.  Its filename is
-     rapidio-add-mport-char-device-driver-fix-2.patch
+     rapidio-add-global-inbound-port-write-interfaces-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-add-mport-char-device-driver-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/rapidio-add-global-inbound-port-write-interfaces-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-add-mport-char-device-driver-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/rapidio-add-global-inbound-port-write-interfaces-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,54 +39,127 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: rapidio: mport_cdev: fix some error codes
+From: Alexandre Bounine <alexandre.bounine@idt.com>
+Subject: powerpc/fsl_rio: update for port-write interface change
 
-copy_to_user() returns the number of bytes not copied but we want to
-return an error code.
+Platform-specific update following changes in port-write handler interface.
 
-Fixes: a45bfc36bf0d ('rapidio: add mport char device driver')
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-Acked-by: Alexandre Bounine <alexandre.bounine@idt.com>
+This is a follow-up patch for
+    [PATCH 22/30] rapidio: add global inbound port write interfaces
+
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
+Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/rio_mport_cdev.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ arch/powerpc/sysdev/fsl_rio.c |    1 +
+ arch/powerpc/sysdev/fsl_rio.h |    1 +
+ arch/powerpc/sysdev/fsl_rmu.c |   16 ++++++++++------
+ 3 files changed, 12 insertions(+), 6 deletions(-)
 
-diff -puN drivers/rapidio/devices/rio_mport_cdev.c~rapidio-add-mport-char-device-driver-fix-2 drivers/rapidio/devices/rio_mport_cdev.c
---- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-add-mport-char-device-driver-fix-2
-+++ a/drivers/rapidio/devices/rio_mport_cdev.c
-@@ -2140,9 +2140,10 @@ static long mport_cdev_ioctl(struct file
- 		return maint_port_idx_get(data, (void __user *)arg);
- 	case RIO_MPORT_GET_PROPERTIES:
- 		md->properties.hdid = md->mport->host_deviceid;
--		err = copy_to_user((void __user *)arg, &(data->md->properties),
--				   sizeof(data->md->properties));
--		break;
-+		if (copy_to_user((void __user *)arg, &(data->md->properties),
-+				 sizeof(data->md->properties)))
-+			return -EFAULT;
-+		return 0;
- 	case RIO_ENABLE_DOORBELL_RANGE:
- 		return rio_mport_add_db_filter(data, (void __user *)arg);
- 	case RIO_DISABLE_DOORBELL_RANGE:
-@@ -2155,8 +2156,10 @@ static long mport_cdev_ioctl(struct file
- 		data->event_mask = arg;
- 		return 0;
- 	case RIO_GET_EVENT_MASK:
--		return copy_to_user((void __user *)arg, &data->event_mask,
--				    sizeof(data->event_mask));
-+		if (copy_to_user((void __user *)arg, &data->event_mask,
-+				    sizeof(data->event_mask)))
-+			return -EFAULT;
-+		return 0;
- 	case RIO_MAP_OUTBOUND:
- 		return rio_mport_obw_map(filp, (void __user *)arg);
- 	case RIO_MAP_INBOUND:
+diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-add-global-inbound-port-write-interfaces-fix arch/powerpc/sysdev/fsl_rio.c
+--- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-add-global-inbound-port-write-interfaces-fix
++++ a/arch/powerpc/sysdev/fsl_rio.c
+@@ -726,6 +726,7 @@ int fsl_rio_setup(struct platform_device
+ 		fsl_rio_inbound_mem_init(priv);
+ 
+ 		dbell->mport[i] = port;
++		pw->mport[i] = port;
+ 
+ 		if (rio_register_mport(port)) {
+ 			release_resource(&port->iores);
+diff -puN arch/powerpc/sysdev/fsl_rio.h~rapidio-add-global-inbound-port-write-interfaces-fix arch/powerpc/sysdev/fsl_rio.h
+--- a/arch/powerpc/sysdev/fsl_rio.h~rapidio-add-global-inbound-port-write-interfaces-fix
++++ a/arch/powerpc/sysdev/fsl_rio.h
+@@ -97,6 +97,7 @@ struct fsl_rio_dbell {
+ };
+ 
+ struct fsl_rio_pw {
++	struct rio_mport *mport[MAX_PORT_NUM];
+ 	struct device *dev;
+ 	struct rio_pw_regs __iomem *pw_regs;
+ 	struct rio_port_write_msg port_write_msg;
+diff -puN arch/powerpc/sysdev/fsl_rmu.c~rapidio-add-global-inbound-port-write-interfaces-fix arch/powerpc/sysdev/fsl_rmu.c
+--- a/arch/powerpc/sysdev/fsl_rmu.c~rapidio-add-global-inbound-port-write-interfaces-fix
++++ a/arch/powerpc/sysdev/fsl_rmu.c
+@@ -481,14 +481,14 @@ pw_done:
+ static void fsl_pw_dpc(struct work_struct *work)
+ {
+ 	struct fsl_rio_pw *pw = container_of(work, struct fsl_rio_pw, pw_work);
+-	u32 msg_buffer[RIO_PW_MSG_SIZE/sizeof(u32)];
++	union rio_pw_msg msg_buffer;
++	int i;
+ 
+ 	/*
+ 	 * Process port-write messages
+ 	 */
+-	while (kfifo_out_spinlocked(&pw->pw_fifo, (unsigned char *)msg_buffer,
++	while (kfifo_out_spinlocked(&pw->pw_fifo, (unsigned char *)&msg_buffer,
+ 			 RIO_PW_MSG_SIZE, &pw->pw_fifo_lock)) {
+-		/* Process one message */
+ #ifdef DEBUG_PW
+ 		{
+ 		u32 i;
+@@ -496,15 +496,19 @@ static void fsl_pw_dpc(struct work_struc
+ 		for (i = 0; i < RIO_PW_MSG_SIZE/sizeof(u32); i++) {
+ 			if ((i%4) == 0)
+ 				pr_debug("\n0x%02x: 0x%08x", i*4,
+-					 msg_buffer[i]);
++					 msg_buffer.raw[i]);
+ 			else
+-				pr_debug(" 0x%08x", msg_buffer[i]);
++				pr_debug(" 0x%08x", msg_buffer.raw[i]);
+ 		}
+ 		pr_debug("\n");
+ 		}
+ #endif
+ 		/* Pass the port-write message to RIO core for processing */
+-		rio_inb_pwrite_handler((union rio_pw_msg *)msg_buffer);
++		for (i = 0; i < MAX_PORT_NUM; i++) {
++			if (pw->mport[i])
++				rio_inb_pwrite_handler(pw->mport[i],
++						       &msg_buffer);
++		}
+ 	}
+ }
+ 
 _
 
-Patches currently in -mm which might be from dan.carpenter@oracle.com are
+Patches currently in -mm which might be from alexandre.bounine@idt.com are
 
-rapidio-add-mport-char-device-driver-fix-2.patch
+rapidio-tsi721-fix-hardcoded-mrrs-setting.patch
+rapidio-tsi721-add-check-for-overlapped-ib-window-mappings.patch
+rapidio-tsi721-add-option-to-configure-direct-mapping-of-ib-window.patch
+rapidio-tsi721_dma-fix-pending-transaction-queue-handling.patch
+rapidio-add-query_mport-operation.patch
+rapidio-tsi721-add-query_mport-callback.patch
+rapidio-add-shutdown-notification-for-rapidio-devices.patch
+rapidio-tsi721-add-shutdown-notification-callback.patch
+rapidio-rionet-add-shutdown-event-handling.patch
+rapidio-rework-common-rio-device-add-delete-routines.patch
+rapidio-move-net-allocation-into-core-code.patch
+rapidio-move-net-allocation-into-core-code-fix.patch
+rapidio-add-core-mport-removal-support.patch
+rapidio-tsi721-add-hw-specific-mport-removal.patch
+powerpc-fsl_rio-changes-to-mport-registration.patch
+rapidio-rionet-add-locking-into-add-remove-device.patch
+rapidio-rionet-add-mport-removal-handling.patch
+rapidio-add-lock-protection-for-doorbell-list.patch
+rapidio-add-lock-protection-for-doorbell-list-fix.patch
+rapidio-move-rio_local_set_device_id-function-to-the-common-core.patch
+rapidio-move-rio_pw_enable-into-core-code.patch
+rapidio-move-rio_pw_enable-into-core-code-fix.patch
+rapidio-add-global-inbound-port-write-interfaces.patch
+rapidio-add-global-inbound-port-write-interfaces-fix.patch
+rapidio-tsi721-fix-locking-in-ob_msg-processing.patch
+rapidio-add-outbound-window-support.patch
+rapidio-tsi721-add-outbound-windows-mapping-support.patch
+rapidio-tsi721-add-filtered-debug-output.patch
+rapidio-tsi721_dma-update-error-reporting-from-prep_sg-callback.patch
+rapidio-tsi721_dma-fix-synchronization-issues.patch
+rapidio-tsi721_dma-fix-hardware-error-handling.patch
+rapidio-add-mport-char-device-driver.patch
 
