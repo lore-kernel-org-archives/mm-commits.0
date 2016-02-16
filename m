@@ -1,68 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ubsan-cosmetic-fix-to-kconfig-text.patch removed from
+Subject: [merged] mm-fix-filemapc-kernel-doc-warning.patch removed from
  -mm tree
-Date: Tue, 16 Feb 2016 10:48:56 -0800
-Message-ID: <56c36f18.fGEn5cBjDhgI00hQ%akpm@linux-foundation.org>
+Date: Tue, 16 Feb 2016 10:48:58 -0800
+Message-ID: <56c36f1a.o6bLZ2hHUk5XcVOR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55120 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55123 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932210AbcBPSs4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Feb 2016 13:48:56 -0500
+	with ESMTP id S932210AbcBPSs6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Feb 2016 13:48:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yang.shi@linaro.org, aryabinin@virtuozzo.com, mm-commits@vger.kernel.org
+To: rdunlap@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ubsan: cosmetic fix to Kconfig text
+     Subject: mm: fix filemap.c kernel doc warning
 has been removed from the -mm tree.  Its filename was
-     ubsan-cosmetic-fix-to-kconfig-text.patch
+     mm-fix-filemapc-kernel-doc-warning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linaro.org>
-Subject: ubsan: cosmetic fix to Kconfig text
+From: Randy Dunlap <rdunlap@infradead.org>
+Subject: mm: fix filemap.c kernel doc warning
 
-When enabling UBSAN_SANITIZE_ALL, the kernel image size gets increased
-significantly (~3x).  So, it sounds better to have some note in Kconfig.
+Add missing kernel-doc notation for function parameter 'gfp_mask' to
+fix kernel-doc warning.
 
-And, fixed a typo.
+..//mm/filemap.c:1898: warning: No description found for parameter 'gfp_mask'
 
-Signed-off-by: Yang Shi <yang.shi@linaro.org>
-Acked-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.ubsan |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+ mm/filemap.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/Kconfig.ubsan~ubsan-cosmetic-fix-to-kconfig-text lib/Kconfig.ubsan
---- a/lib/Kconfig.ubsan~ubsan-cosmetic-fix-to-kconfig-text
-+++ a/lib/Kconfig.ubsan
-@@ -18,6 +18,8 @@ config UBSAN_SANITIZE_ALL
- 	  This option activates instrumentation for the entire kernel.
- 	  If you don't enable this option, you have to explicitly specify
- 	  UBSAN_SANITIZE := y for the files/directories you want to check for UB.
-+	  Enabling this option will get kernel image size increased
-+	  significantly.
- 
- config UBSAN_ALIGNMENT
- 	bool "Enable checking of pointers alignment"
-@@ -25,5 +27,5 @@ config UBSAN_ALIGNMENT
- 	default y if !HAVE_EFFICIENT_UNALIGNED_ACCESS
- 	help
- 	  This option enables detection of unaligned memory accesses.
--	  Enabling this option on architectures that support unalligned
-+	  Enabling this option on architectures that support unaligned
- 	  accesses may produce a lot of false positives.
+diff -puN mm/filemap.c~mm-fix-filemapc-kernel-doc-warning mm/filemap.c
+--- a/mm/filemap.c~mm-fix-filemapc-kernel-doc-warning
++++ a/mm/filemap.c
+@@ -1890,6 +1890,7 @@ EXPORT_SYMBOL(generic_file_read_iter);
+  * page_cache_read - adds requested page to the page cache if not already there
+  * @file:	file to read
+  * @offset:	page index
++ * @gfp_mask:	memory allocation flags
+  *
+  * This adds the requested page to the page cache if it isn't already there,
+  * and schedules an I/O to read in its contents from disk.
 _
 
-Patches currently in -mm which might be from yang.shi@linaro.org are
+Patches currently in -mm which might be from rdunlap@infradead.org are
 
-mm-kconfig-remove-redundant-arch-depend-for-memory-hotplug.patch
 
