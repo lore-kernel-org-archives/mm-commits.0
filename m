@@ -1,313 +1,311 @@
 From: akpm@linux-foundation.org
-Subject: [merged] kernel-lockdep-eliminate-lockdep_init.patch removed from -mm tree
-Date: Tue, 16 Feb 2016 10:49:16 -0800
-Message-ID: <56c36f2c.IWb+Xug6WHVvkyno%akpm@linux-foundation.org>
+Subject: [merged]
+ kernel-locking-lockdepc-convert-hash-tables-to-hlists.patch removed from
+ -mm tree
+Date: Tue, 16 Feb 2016 10:49:10 -0800
+Message-ID: <56c36f26.tzNLn9hg3mUIV+un%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55180 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55164 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932948AbcBPStR (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Feb 2016 13:49:17 -0500
+	with ESMTP id S932986AbcBPStL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Feb 2016 13:49:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, krinkin.m.u@gmail.com, mingo@elte.hu, mpe@ellerman.id.au, peterz@infradead.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aryabinin@virtuozzo.com, krinkin.m.u@gmail.com, mingo@elte.hu, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/lockdep: eliminate lockdep_init()
+     Subject: kernel/locking/lockdep.c: convert hash tables to hlists
 has been removed from the -mm tree.  Its filename was
-     kernel-lockdep-eliminate-lockdep_init.patch
+     kernel-locking-lockdepc-convert-hash-tables-to-hlists.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: kernel/lockdep: eliminate lockdep_init()
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: kernel/locking/lockdep.c: convert hash tables to hlists
 
-Lockdep is initialized at compile time now.  Get rid of lockdep_init().
+Mike said:
 
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
+: CONFIG_UBSAN_ALIGNMENT breaks x86-64 kernel with lockdep enabled, i.  e
+: kernel with CONFIG_UBSAN_ALIGNMENT fails to load without even any error
+: message.
+: 
+: The problem is that ubsan callbacks use spinlocks and might be called
+: before lockdep is initialized.  Particularly this line in the
+: reserve_ebda_region function causes problem:
+: 
+: lowmem = *(unsigned short *)__va(BIOS_LOWMEM_KILOBYTES);
+: 
+: If i put lockdep_init() before reserve_ebda_region call in
+: x86_64_start_reservations kernel loads well.
+
+Fix this ordering issue permanently: change lockdep so that it uses hlists
+for the hash tables.  Unlike a list_head, an hlist_head is in its
+initialized state when it is all-zeroes, so lockdep is ready for operation
+immediately upon boot - lockdep_init() need not have run.
+
+The patch will also save some memory.
+
+lockdep_init() and lockdep_initialized can be done away with now - a 4.6
+patch has been prepared to do this.
+
+Reported-by: Mike Krinkin <krinkin.m.u@gmail.com>
+Suggested-by: Mike Krinkin <krinkin.m.u@gmail.com>
+Cc: Andrey Ryabinin <aryabinin@virtuozzo.com>
 Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Mike Krinkin <krinkin.m.u@gmail.com>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/c6x/kernel/setup.c                       |    2 
- arch/microblaze/kernel/setup.c                |    2 
- arch/powerpc/kernel/setup_32.c                |    2 
- arch/powerpc/kernel/setup_64.c                |    3 
- arch/s390/kernel/early.c                      |    1 
- arch/sparc/kernel/head_64.S                   |    8 --
- arch/x86/lguest/boot.c                        |    6 -
- include/linux/lockdep.h                       |    2 
- init/main.c                                   |    5 -
- kernel/locking/lockdep.c                      |   59 ----------------
- tools/lib/lockdep/common.c                    |    5 -
- tools/lib/lockdep/include/liblockdep/common.h |    1 
- tools/lib/lockdep/preload.c                   |    2 
- 13 files changed, 98 deletions(-)
+ include/linux/lockdep.h  |    4 +--
+ kernel/locking/lockdep.c |   42 ++++++++++++++++---------------------
+ 2 files changed, 21 insertions(+), 25 deletions(-)
 
-diff -puN arch/c6x/kernel/setup.c~kernel-lockdep-eliminate-lockdep_init arch/c6x/kernel/setup.c
---- a/arch/c6x/kernel/setup.c~kernel-lockdep-eliminate-lockdep_init
-+++ a/arch/c6x/kernel/setup.c
-@@ -281,8 +281,6 @@ notrace void __init machine_init(unsigne
- 	 */
- 	set_ist(_vectors_start);
- 
--	lockdep_init();
--
- 	/*
- 	 * dtb is passed in from bootloader.
- 	 * fdt is linked in blob.
-diff -puN arch/microblaze/kernel/setup.c~kernel-lockdep-eliminate-lockdep_init arch/microblaze/kernel/setup.c
---- a/arch/microblaze/kernel/setup.c~kernel-lockdep-eliminate-lockdep_init
-+++ a/arch/microblaze/kernel/setup.c
-@@ -130,8 +130,6 @@ void __init machine_early_init(const cha
- 	memset(__bss_start, 0, __bss_stop-__bss_start);
- 	memset(_ssbss, 0, _esbss-_ssbss);
- 
--	lockdep_init();
--
- /* initialize device tree for usage in early_printk */
- 	early_init_devtree(_fdt_start);
- 
-diff -puN arch/powerpc/kernel/setup_32.c~kernel-lockdep-eliminate-lockdep_init arch/powerpc/kernel/setup_32.c
---- a/arch/powerpc/kernel/setup_32.c~kernel-lockdep-eliminate-lockdep_init
-+++ a/arch/powerpc/kernel/setup_32.c
-@@ -114,8 +114,6 @@ extern unsigned int memset_nocache_branc
- 
- notrace void __init machine_init(u64 dt_ptr)
- {
--	lockdep_init();
--
- 	/* Enable early debugging if any specified (see udbg.h) */
- 	udbg_early_init();
- 
-diff -puN arch/powerpc/kernel/setup_64.c~kernel-lockdep-eliminate-lockdep_init arch/powerpc/kernel/setup_64.c
---- a/arch/powerpc/kernel/setup_64.c~kernel-lockdep-eliminate-lockdep_init
-+++ a/arch/powerpc/kernel/setup_64.c
-@@ -255,9 +255,6 @@ void __init early_setup(unsigned long dt
- 	setup_paca(&boot_paca);
- 	fixup_boot_paca();
- 
--	/* Initialize lockdep early or else spinlocks will blow */
--	lockdep_init();
--
- 	/* -------- printk is now safe to use ------- */
- 
- 	/* Enable early debugging if any specified (see udbg.h) */
-diff -puN arch/s390/kernel/early.c~kernel-lockdep-eliminate-lockdep_init arch/s390/kernel/early.c
---- a/arch/s390/kernel/early.c~kernel-lockdep-eliminate-lockdep_init
-+++ a/arch/s390/kernel/early.c
-@@ -448,7 +448,6 @@ void __init startup_init(void)
- 	rescue_initrd();
- 	clear_bss_section();
- 	init_kernel_storage_key();
--	lockdep_init();
- 	lockdep_off();
- 	setup_lowcore_early();
- 	setup_facility_list();
-diff -puN arch/sparc/kernel/head_64.S~kernel-lockdep-eliminate-lockdep_init arch/sparc/kernel/head_64.S
---- a/arch/sparc/kernel/head_64.S~kernel-lockdep-eliminate-lockdep_init
-+++ a/arch/sparc/kernel/head_64.S
-@@ -696,14 +696,6 @@ tlb_fixup_done:
- 	call	__bzero
- 	 sub	%o1, %o0, %o1
- 
--#ifdef CONFIG_LOCKDEP
--	/* We have this call this super early, as even prom_init can grab
--	 * spinlocks and thus call into the lockdep code.
--	 */
--	call	lockdep_init
--	 nop
--#endif
--
- 	call	prom_init
- 	 mov	%l7, %o0			! OpenPROM cif handler
- 
-diff -puN arch/x86/lguest/boot.c~kernel-lockdep-eliminate-lockdep_init arch/x86/lguest/boot.c
---- a/arch/x86/lguest/boot.c~kernel-lockdep-eliminate-lockdep_init
-+++ a/arch/x86/lguest/boot.c
-@@ -1520,12 +1520,6 @@ __init void lguest_init(void)
- 	 */
- 	reserve_top_address(lguest_data.reserve_mem);
- 
--	/*
--	 * If we don't initialize the lock dependency checker now, it crashes
--	 * atomic_notifier_chain_register, then paravirt_disable_iospace.
--	 */
--	lockdep_init();
--
- 	/* Hook in our special panic hypercall code. */
- 	atomic_notifier_chain_register(&panic_notifier_list, &paniced);
- 
-diff -puN include/linux/lockdep.h~kernel-lockdep-eliminate-lockdep_init include/linux/lockdep.h
---- a/include/linux/lockdep.h~kernel-lockdep-eliminate-lockdep_init
+diff -puN include/linux/lockdep.h~kernel-locking-lockdepc-convert-hash-tables-to-hlists include/linux/lockdep.h
+--- a/include/linux/lockdep.h~kernel-locking-lockdepc-convert-hash-tables-to-hlists
 +++ a/include/linux/lockdep.h
-@@ -261,7 +261,6 @@ struct held_lock {
- /*
-  * Initialization, self-test and debugging-output methods:
-  */
--extern void lockdep_init(void);
- extern void lockdep_info(void);
- extern void lockdep_reset(void);
- extern void lockdep_reset_lock(struct lockdep_map *lock);
-@@ -392,7 +391,6 @@ static inline void lockdep_on(void)
- # define lockdep_set_current_reclaim_state(g)	do { } while (0)
- # define lockdep_clear_current_reclaim_state()	do { } while (0)
- # define lockdep_trace_alloc(g)			do { } while (0)
--# define lockdep_init()				do { } while (0)
- # define lockdep_info()				do { } while (0)
- # define lockdep_init_map(lock, name, key, sub) \
- 		do { (void)(name); (void)(key); } while (0)
-diff -puN init/main.c~kernel-lockdep-eliminate-lockdep_init init/main.c
---- a/init/main.c~kernel-lockdep-eliminate-lockdep_init
-+++ a/init/main.c
-@@ -499,11 +499,6 @@ asmlinkage __visible void __init start_k
- 	char *command_line;
- 	char *after_dashes;
+@@ -66,7 +66,7 @@ struct lock_class {
+ 	/*
+ 	 * class-hash:
+ 	 */
+-	struct list_head		hash_entry;
++	struct hlist_node		hash_entry;
  
--	/*
--	 * Need to run as early as possible, to initialize the
--	 * lockdep hash:
--	 */
--	lockdep_init();
- 	set_task_stack_end_magic(&init_task);
- 	smp_setup_processor_id();
- 	debug_objects_early_init();
-diff -puN kernel/locking/lockdep.c~kernel-lockdep-eliminate-lockdep_init kernel/locking/lockdep.c
---- a/kernel/locking/lockdep.c~kernel-lockdep-eliminate-lockdep_init
+ 	/*
+ 	 * global list of all lock-classes:
+@@ -199,7 +199,7 @@ struct lock_chain {
+ 	u8				irq_context;
+ 	u8				depth;
+ 	u16				base;
+-	struct list_head		entry;
++	struct hlist_node		entry;
+ 	u64				chain_key;
+ };
+ 
+diff -puN kernel/locking/lockdep.c~kernel-locking-lockdepc-convert-hash-tables-to-hlists kernel/locking/lockdep.c
+--- a/kernel/locking/lockdep.c~kernel-locking-lockdepc-convert-hash-tables-to-hlists
 +++ a/kernel/locking/lockdep.c
-@@ -123,8 +123,6 @@ static inline int debug_locks_off_graph_
- 	return ret;
- }
+@@ -292,7 +292,7 @@ LIST_HEAD(all_lock_classes);
+ #define __classhashfn(key)	hash_long((unsigned long)key, CLASSHASH_BITS)
+ #define classhashentry(key)	(classhash_table + __classhashfn((key)))
  
--static int lockdep_initialized;
--
- unsigned long nr_list_entries;
- static struct lock_list list_entries[MAX_LOCKDEP_ENTRIES];
+-static struct list_head classhash_table[CLASSHASH_SIZE];
++static struct hlist_head classhash_table[CLASSHASH_SIZE];
  
-@@ -434,19 +432,6 @@ unsigned int max_lockdep_depth;
- 
- #ifdef CONFIG_DEBUG_LOCKDEP
  /*
-- * We cannot printk in early bootup code. Not even early_printk()
-- * might work. So we mark any initialization errors and printk
-- * about it later on, in lockdep_info().
-- */
--static int lockdep_init_error;
--static const char *lock_init_error;
--static unsigned long lockdep_init_trace_data[20];
--static struct stack_trace lockdep_init_trace = {
--	.max_entries = ARRAY_SIZE(lockdep_init_trace_data),
--	.entries = lockdep_init_trace_data,
--};
--
--/*
-  * Various lockdep statistics:
-  */
- DEFINE_PER_CPU(struct lockdep_stats, lockdep_stats);
-@@ -669,20 +654,6 @@ look_up_lock_class(struct lockdep_map *l
- 	struct hlist_head *hash_head;
+  * We put the lock dependency chains into a hash-table as well, to cache
+@@ -303,7 +303,7 @@ static struct list_head classhash_table[
+ #define __chainhashfn(chain)	hash_long(chain, CHAINHASH_BITS)
+ #define chainhashentry(chain)	(chainhash_table + __chainhashfn((chain)))
+ 
+-static struct list_head chainhash_table[CHAINHASH_SIZE];
++static struct hlist_head chainhash_table[CHAINHASH_SIZE];
+ 
+ /*
+  * The hash key of the lock dependency chains is a hash itself too:
+@@ -666,7 +666,7 @@ static inline struct lock_class *
+ look_up_lock_class(struct lockdep_map *lock, unsigned int subclass)
+ {
+ 	struct lockdep_subclass_key *key;
+-	struct list_head *hash_head;
++	struct hlist_head *hash_head;
  	struct lock_class *class;
  
--#ifdef CONFIG_DEBUG_LOCKDEP
--	/*
--	 * If the architecture calls into lockdep before initializing
--	 * the hashes then we'll warn about it later. (we cannot printk
--	 * right now)
--	 */
--	if (unlikely(!lockdep_initialized)) {
--		lockdep_init();
--		lockdep_init_error = 1;
--		lock_init_error = lock->name;
--		save_stack_trace(&lockdep_init_trace);
--	}
--#endif
--
- 	if (unlikely(subclass >= MAX_LOCKDEP_SUBCLASSES)) {
- 		debug_locks_off();
- 		printk(KERN_ERR
-@@ -4009,28 +3980,6 @@ out_restore:
+ #ifdef CONFIG_DEBUG_LOCKDEP
+@@ -719,7 +719,7 @@ look_up_lock_class(struct lockdep_map *l
+ 	if (DEBUG_LOCKS_WARN_ON(!irqs_disabled()))
+ 		return NULL;
+ 
+-	list_for_each_entry_rcu(class, hash_head, hash_entry) {
++	hlist_for_each_entry_rcu(class, hash_head, hash_entry) {
+ 		if (class->key == key) {
+ 			/*
+ 			 * Huh! same key, different name? Did someone trample
+@@ -742,7 +742,7 @@ static inline struct lock_class *
+ register_lock_class(struct lockdep_map *lock, unsigned int subclass, int force)
+ {
+ 	struct lockdep_subclass_key *key;
+-	struct list_head *hash_head;
++	struct hlist_head *hash_head;
+ 	struct lock_class *class;
+ 
+ 	DEBUG_LOCKS_WARN_ON(!irqs_disabled());
+@@ -774,7 +774,7 @@ register_lock_class(struct lockdep_map *
+ 	 * We have to do the hash-walk again, to avoid races
+ 	 * with another CPU:
+ 	 */
+-	list_for_each_entry_rcu(class, hash_head, hash_entry) {
++	hlist_for_each_entry_rcu(class, hash_head, hash_entry) {
+ 		if (class->key == key)
+ 			goto out_unlock_set;
+ 	}
+@@ -805,7 +805,7 @@ register_lock_class(struct lockdep_map *
+ 	 * We use RCU's safe list-add method to make
+ 	 * parallel walking of the hash-list safe:
+ 	 */
+-	list_add_tail_rcu(&class->hash_entry, hash_head);
++	hlist_add_head_rcu(&class->hash_entry, hash_head);
+ 	/*
+ 	 * Add it to the global list of classes:
+ 	 */
+@@ -2017,7 +2017,7 @@ static inline int lookup_chain_cache(str
+ 				     u64 chain_key)
+ {
+ 	struct lock_class *class = hlock_class(hlock);
+-	struct list_head *hash_head = chainhashentry(chain_key);
++	struct hlist_head *hash_head = chainhashentry(chain_key);
+ 	struct lock_chain *chain;
+ 	struct held_lock *hlock_curr;
+ 	int i, j;
+@@ -2033,7 +2033,7 @@ static inline int lookup_chain_cache(str
+ 	 * We can walk it lock-free, because entries only get added
+ 	 * to the hash:
+ 	 */
+-	list_for_each_entry_rcu(chain, hash_head, entry) {
++	hlist_for_each_entry_rcu(chain, hash_head, entry) {
+ 		if (chain->chain_key == chain_key) {
+ cache_hit:
+ 			debug_atomic_inc(chain_lookup_hits);
+@@ -2057,7 +2057,7 @@ cache_hit:
+ 	/*
+ 	 * We have to walk the chain again locked - to avoid duplicates:
+ 	 */
+-	list_for_each_entry(chain, hash_head, entry) {
++	hlist_for_each_entry(chain, hash_head, entry) {
+ 		if (chain->chain_key == chain_key) {
+ 			graph_unlock();
+ 			goto cache_hit;
+@@ -2091,7 +2091,7 @@ cache_hit:
+ 		}
+ 		chain_hlocks[chain->base + j] = class - lock_classes;
+ 	}
+-	list_add_tail_rcu(&chain->entry, hash_head);
++	hlist_add_head_rcu(&chain->entry, hash_head);
+ 	debug_atomic_inc(chain_lookup_misses);
+ 	inc_chains();
+ 
+@@ -3875,7 +3875,7 @@ void lockdep_reset(void)
+ 	nr_process_chains = 0;
+ 	debug_locks = 1;
+ 	for (i = 0; i < CHAINHASH_SIZE; i++)
+-		INIT_LIST_HEAD(chainhash_table + i);
++		INIT_HLIST_HEAD(chainhash_table + i);
  	raw_local_irq_restore(flags);
  }
  
--void lockdep_init(void)
--{
--	int i;
--
--	/*
--	 * Some architectures have their own start_kernel()
--	 * code which calls lockdep_init(), while we also
--	 * call lockdep_init() from the start_kernel() itself,
--	 * and we want to initialize the hashes only once:
--	 */
--	if (lockdep_initialized)
--		return;
--
--	for (i = 0; i < CLASSHASH_SIZE; i++)
--		INIT_HLIST_HEAD(classhash_table + i);
--
--	for (i = 0; i < CHAINHASH_SIZE; i++)
--		INIT_HLIST_HEAD(chainhash_table + i);
--
--	lockdep_initialized = 1;
--}
--
- void __init lockdep_info(void)
- {
- 	printk("Lock dependency validator: Copyright (c) 2006 Red Hat, Inc., Ingo Molnar\n");
-@@ -4057,14 +4006,6 @@ void __init lockdep_info(void)
+@@ -3894,7 +3894,7 @@ static void zap_class(struct lock_class
+ 	/*
+ 	 * Unhash the class and remove it from the all_lock_classes list:
+ 	 */
+-	list_del_rcu(&class->hash_entry);
++	hlist_del_rcu(&class->hash_entry);
+ 	list_del_rcu(&class->lock_entry);
  
- 	printk(" per task-struct memory footprint: %lu bytes\n",
- 		sizeof(struct held_lock) * MAX_LOCK_DEPTH);
--
--#ifdef CONFIG_DEBUG_LOCKDEP
--	if (lockdep_init_error) {
--		printk("WARNING: lockdep init error: lock '%s' was acquired before lockdep_init().\n", lock_init_error);
--		printk("Call stack leading to lockdep invocation was:\n");
--		print_stack_trace(&lockdep_init_trace, 0);
--	}
--#endif
+ 	RCU_INIT_POINTER(class->key, NULL);
+@@ -3917,7 +3917,7 @@ static inline int within(const void *add
+ void lockdep_free_key_range(void *start, unsigned long size)
+ {
+ 	struct lock_class *class;
+-	struct list_head *head;
++	struct hlist_head *head;
+ 	unsigned long flags;
+ 	int i;
+ 	int locked;
+@@ -3930,9 +3930,7 @@ void lockdep_free_key_range(void *start,
+ 	 */
+ 	for (i = 0; i < CLASSHASH_SIZE; i++) {
+ 		head = classhash_table + i;
+-		if (list_empty(head))
+-			continue;
+-		list_for_each_entry_rcu(class, head, hash_entry) {
++		hlist_for_each_entry_rcu(class, head, hash_entry) {
+ 			if (within(class->key, start, size))
+ 				zap_class(class);
+ 			else if (within(class->name, start, size))
+@@ -3962,7 +3960,7 @@ void lockdep_free_key_range(void *start,
+ void lockdep_reset_lock(struct lockdep_map *lock)
+ {
+ 	struct lock_class *class;
+-	struct list_head *head;
++	struct hlist_head *head;
+ 	unsigned long flags;
+ 	int i, j;
+ 	int locked;
+@@ -3987,9 +3985,7 @@ void lockdep_reset_lock(struct lockdep_m
+ 	locked = graph_lock();
+ 	for (i = 0; i < CLASSHASH_SIZE; i++) {
+ 		head = classhash_table + i;
+-		if (list_empty(head))
+-			continue;
+-		list_for_each_entry_rcu(class, head, hash_entry) {
++		hlist_for_each_entry_rcu(class, head, hash_entry) {
+ 			int match = 0;
+ 
+ 			for (j = 0; j < NR_LOCKDEP_CACHING_CLASSES; j++)
+@@ -4027,10 +4023,10 @@ void lockdep_init(void)
+ 		return;
+ 
+ 	for (i = 0; i < CLASSHASH_SIZE; i++)
+-		INIT_LIST_HEAD(classhash_table + i);
++		INIT_HLIST_HEAD(classhash_table + i);
+ 
+ 	for (i = 0; i < CHAINHASH_SIZE; i++)
+-		INIT_LIST_HEAD(chainhash_table + i);
++		INIT_HLIST_HEAD(chainhash_table + i);
+ 
+ 	lockdep_initialized = 1;
  }
- 
- static void
-diff -puN tools/lib/lockdep/common.c~kernel-lockdep-eliminate-lockdep_init tools/lib/lockdep/common.c
---- a/tools/lib/lockdep/common.c~kernel-lockdep-eliminate-lockdep_init
-+++ a/tools/lib/lockdep/common.c
-@@ -11,11 +11,6 @@ static __thread struct task_struct curre
- bool debug_locks = true;
- bool debug_locks_silent;
- 
--__attribute__((constructor)) static void liblockdep_init(void)
--{
--	lockdep_init();
--}
--
- __attribute__((destructor)) static void liblockdep_exit(void)
- {
- 	debug_check_no_locks_held();
-diff -puN tools/lib/lockdep/include/liblockdep/common.h~kernel-lockdep-eliminate-lockdep_init tools/lib/lockdep/include/liblockdep/common.h
---- a/tools/lib/lockdep/include/liblockdep/common.h~kernel-lockdep-eliminate-lockdep_init
-+++ a/tools/lib/lockdep/include/liblockdep/common.h
-@@ -44,7 +44,6 @@ void lock_acquire(struct lockdep_map *lo
- void lock_release(struct lockdep_map *lock, int nested,
- 			unsigned long ip);
- extern void debug_check_no_locks_freed(const void *from, unsigned long len);
--extern void lockdep_init(void);
- 
- #define STATIC_LOCKDEP_MAP_INIT(_name, _key) \
- 	{ .name = (_name), .key = (void *)(_key), }
-diff -puN tools/lib/lockdep/preload.c~kernel-lockdep-eliminate-lockdep_init tools/lib/lockdep/preload.c
---- a/tools/lib/lockdep/preload.c~kernel-lockdep-eliminate-lockdep_init
-+++ a/tools/lib/lockdep/preload.c
-@@ -439,7 +439,5 @@ __attribute__((constructor)) static void
- 	ll_pthread_rwlock_unlock = dlsym(RTLD_NEXT, "pthread_rwlock_unlock");
- #endif
- 
--	lockdep_init();
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-code-clean-up-for-direct-io-fix.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
+mm.patch
+mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
+mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
+fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
+mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
+mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
+mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
+mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
+mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
+mm-madvise-update-comment-on-sys_madvise-fix.patch
+mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
+mm-simplify-lock_page_memcg-fix.patch
+sched-add-schedule_timeout_idle.patch
+mm-oom_reaper-report-success-failure-fix.patch
+mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
+proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
+mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
+mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
+sound-query-dynamic-debug_pagealloc-setting-fix.patch
+mm-config_nr_zones_extended-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+zram-export-the-number-of-available-comp-streams-fix.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+btrfs-use-radix_tree_iter_retry-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
+rapidio-add-mport-char-device-driver-fix.patch
+dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
+kernel-add-kcov-code-coverage-fix.patch
+kernel-add-kcov-code-coverage-fix-2.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+
