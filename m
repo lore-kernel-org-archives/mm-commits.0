@@ -1,58 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-filemapc-kernel-doc-warning.patch removed from
- -mm tree
-Date: Tue, 16 Feb 2016 10:48:58 -0800
-Message-ID: <56c36f1a.o6bLZ2hHUk5XcVOR%akpm@linux-foundation.org>
+Subject: [merged] mm-backing-devc-fix-error-path-in-wb_init.patch removed
+ from -mm tree
+Date: Tue, 16 Feb 2016 10:49:04 -0800
+Message-ID: <56c36f20.vm4XdxDJz4medjwz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55123 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55145 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932210AbcBPSs6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Feb 2016 13:48:58 -0500
+	with ESMTP id S932613AbcBPStG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Feb 2016 13:49:06 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rdunlap@infradead.org, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, hannes@cmpxchg.org, mhocko@suse.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix filemap.c kernel doc warning
+     Subject: mm/backing-dev.c: fix error path in wb_init()
 has been removed from the -mm tree.  Its filename was
-     mm-fix-filemapc-kernel-doc-warning.patch
+     mm-backing-devc-fix-error-path-in-wb_init.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: mm: fix filemap.c kernel doc warning
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: mm/backing-dev.c: fix error path in wb_init()
 
-Add missing kernel-doc notation for function parameter 'gfp_mask' to
-fix kernel-doc warning.
+We need to use post-decrement to get percpu_counter_destroy() called on
+&wb->stat[0].  Moreover, the pre-decremebt would cause infinite
+out-of-bounds accesses if the setup code failed at i==0.
 
-..//mm/filemap.c:1898: warning: No description found for parameter 'gfp_mask'
-
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/backing-dev.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/filemap.c~mm-fix-filemapc-kernel-doc-warning mm/filemap.c
---- a/mm/filemap.c~mm-fix-filemapc-kernel-doc-warning
-+++ a/mm/filemap.c
-@@ -1890,6 +1890,7 @@ EXPORT_SYMBOL(generic_file_read_iter);
-  * page_cache_read - adds requested page to the page cache if not already there
-  * @file:	file to read
-  * @offset:	page index
-+ * @gfp_mask:	memory allocation flags
-  *
-  * This adds the requested page to the page cache if it isn't already there,
-  * and schedules an I/O to read in its contents from disk.
+diff -puN mm/backing-dev.c~mm-backing-devc-fix-error-path-in-wb_init mm/backing-dev.c
+--- a/mm/backing-dev.c~mm-backing-devc-fix-error-path-in-wb_init
++++ a/mm/backing-dev.c
+@@ -328,7 +328,7 @@ static int wb_init(struct bdi_writeback
+ 	return 0;
+ 
+ out_destroy_stat:
+-	while (--i)
++	while (i--)
+ 		percpu_counter_destroy(&wb->stat[i]);
+ 	fprop_local_destroy_percpu(&wb->completions);
+ out_put_cong:
 _
 
-Patches currently in -mm which might be from rdunlap@infradead.org are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
 
