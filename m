@@ -1,76 +1,59 @@
 From: akpm@linux-foundation.org
-Subject: + linux-next-rejects.patch added to -mm tree
-Date: Tue, 16 Feb 2016 10:48:10 -0800
-Message-ID: <56c36eea.UqkrTmubd/YjAzBq%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Tue, 16 Feb 2016 10:48:40 -0800
+Message-ID: <56c36f08.IqLHMOBdPeXGqBnw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:54899 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55111 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752214AbcBPSsL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Feb 2016 13:48:11 -0500
+	with ESMTP id S932210AbcBPSsl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Feb 2016 13:48:41 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-rejects
-has been added to the -mm tree.  Its filename is
-     linux-next-rejects.patch
+     Subject: linux-next-git-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-git-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-rejects
+Subject: linux-next-git-rejects
 
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/Kconfig |    1 +
- fs/ocfs2/aops.c   |    2 ++
- 2 files changed, 3 insertions(+)
+ sound/soc/intel/skylake/skl-topology.c |    3 ---
+ 1 file changed, 3 deletions(-)
 
-diff -puN arch/mips/Kconfig~linux-next-rejects arch/mips/Kconfig
---- a/arch/mips/Kconfig~linux-next-rejects
-+++ a/arch/mips/Kconfig
-@@ -52,6 +52,7 @@ config MIPS
- 	select MODULES_USE_ELF_REL if MODULES
- 	select MODULES_USE_ELF_RELA if MODULES && 64BIT
- 	select CLONE_BACKWARDS
-+	select HANDLE_DOMAIN_IRQ
- 	select HAVE_DEBUG_STACKOVERFLOW
- 	select HAVE_CC_STACKPROTECTOR
- 	select CPU_PM if CPU_IDLE
-diff -puN fs/ocfs2/aops.c~linux-next-rejects fs/ocfs2/aops.c
---- a/fs/ocfs2/aops.c~linux-next-rejects
-+++ a/fs/ocfs2/aops.c
-@@ -2420,6 +2420,8 @@ static int ocfs2_dio_end_io(struct kiocb
+diff -puN drivers/net/vxlan.c~linux-next-git-rejects drivers/net/vxlan.c
+diff -puN sound/soc/intel/skylake/skl-topology.c~linux-next-git-rejects sound/soc/intel/skylake/skl-topology.c
+--- a/sound/soc/intel/skylake/skl-topology.c~linux-next-git-rejects
++++ a/sound/soc/intel/skylake/skl-topology.c
+@@ -603,8 +603,6 @@ static int skl_tplg_mixer_dapm_pre_pmu_e
+ 	skl_tplg_alloc_pipe_mem(skl, mconfig);
+ 	skl_tplg_alloc_pipe_mcps(skl, mconfig);
  
- 	level = ocfs2_iocb_rw_locked_level(iocb);
- 	ocfs2_rw_unlock(inode, level);
-+
-+	return 0;
+-<<<<<<< HEAD
+-=======
+ 	return 0;
  }
  
- static ssize_t ocfs2_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
+@@ -665,7 +663,6 @@ static int skl_tplg_set_module_bind_para
+ 		}
+ 	}
+ 
+->>>>>>> linux-next/akpm-base
+ 	return 0;
+ }
+ 
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -114,10 +97,9 @@ rapidio-add-mport-char-device-driver-fix.patch
 dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
 kernel-add-kcov-code-coverage-fix.patch
 kernel-add-kcov-code-coverage-fix-2.patch
-linux-next-git-rejects.patch
+linux-next-rejects.patch
 drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
-linux-next-rejects.patch
 
