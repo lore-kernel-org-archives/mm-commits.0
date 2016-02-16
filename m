@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + oom-make-oom_reaper-freezable.patch added to -mm tree
-Date: Tue, 16 Feb 2016 12:38:49 -0800
-Message-ID: <56c388d9.BByHQTV1iyNpJ3An%akpm@linux-foundation.org>
+Subject: + mm-fix-regression-in-remap_file_pages-emulation.patch added to
+ -mm tree
+Date: Tue, 16 Feb 2016 12:58:32 -0800
+Message-ID: <56c38d78.2vdcE6eljWbW/Tl5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38009 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40466 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932079AbcBPUiv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Feb 2016 15:38:51 -0500
+	with ESMTP id S932079AbcBPU6d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Feb 2016 15:58:33 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hughd@google.com, mgorman@techsingularity.net, oleg@redhat.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, notasas@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom: make oom_reaper freezable
+     Subject: mm: fix regression in remap_file_pages() emulation
 has been added to the -mm tree.  Its filename is
-     oom-make-oom_reaper-freezable.patch
+     mm-fix-regression-in-remap_file_pages-emulation.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/oom-make-oom_reaper-freezable.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-fix-regression-in-remap_file_pages-emulation.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/oom-make-oom_reaper-freezable.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-fix-regression-in-remap_file_pages-emulation.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,81 +39,139 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: oom: make oom_reaper freezable
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: fix regression in remap_file_pages() emulation
 
-After "oom: clear TIF_MEMDIE after oom_reaper managed to unmap the address
-space" oom_reaper will call exit_oom_victim on the target task after it is
-done.  This might however race with the PM freezer:
+Grazvydas Ignotas has reported a regression in remap_file_pages()
+emulation.
 
-CPU0				CPU1				CPU2
-freeze_processes
-  try_to_freeze_tasks
-  				# Allocation request
-				out_of_memory
-  oom_killer_disable
-				  wake_oom_reaper(P1)
-				  				__oom_reap_task
-								  exit_oom_victim(P1)
-    wait_event(oom_victims==0)
-[...]
-    				do_exit(P1)
-				  perform IO/interfere with the freezer
+Testcase:
+	#define _GNU_SOURCE
+	#include <assert.h>
+	#include <stdlib.h>
+	#include <stdio.h>
+	#include <sys/mman.h>
 
-which breaks the oom_killer_disable semantic.  We no longer have a
-guarantee that the oom victim won't interfere with the freezer because it
-might be anywhere on the way to do_exit while the freezer thinks the task
-has already terminated.  It might trigger IO or touch devices which are
-frozen already.
+	#define SIZE    (4096 * 3)
 
-In order to close this race, make the oom_reaper thread freezable. This
-will work because
-	a) already running oom_reaper will block freezer to enter the
-	   quiescent state
-	b) wake_oom_reaper will not wake up the reaper after it has been
-	   frozen
-	c) the only way to call exit_oom_victim after try_to_freeze_tasks
-	   is from the oom victim's context when we know the further
-	   interference shouldn't be possible
+	int main(int argc, char **argv)
+	{
+		unsigned long *p;
+		long i;
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+		p = mmap(NULL, SIZE, PROT_READ | PROT_WRITE,
+				MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+		if (p == MAP_FAILED) {
+			perror("mmap");
+			return -1;
+		}
+
+		for (i = 0; i < SIZE / 4096; i++)
+			p[i * 4096 / sizeof(*p)] = i;
+
+		if (remap_file_pages(p, 4096, 0, 1, 0)) {
+			perror("remap_file_pages");
+			return -1;
+		}
+
+		if (remap_file_pages(p, 4096 * 2, 0, 1, 0)) {
+			perror("remap_file_pages");
+			return -1;
+		}
+
+		assert(p[0] == 1);
+
+		munmap(p, SIZE);
+
+		return 0;
+	}
+
+The second remap_file_pages() fails with -EINVAL.
+
+The reason is that remap_file_pages() emulation assumes that the target
+vma covers whole area we want to over map.  That assumption is broken by
+first remap_file_pages() call: it split the area into two vma.
+
+The solution is to check next adjacent vmas, if they map the same file
+with the same flags.
+
+Fixes: c8d78c1823f4 ("mm: replace remap_file_pages() syscall with emulation")
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Grazvydas Ignotas <notasas@gmail.com>
+Tested-by: Grazvydas Ignotas <notasas@gmail.com>
+Cc: <stable@vger.kernel.org>	[4.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    2 ++
- 1 file changed, 2 insertions(+)
+ mm/mmap.c |   34 +++++++++++++++++++++++++++++-----
+ 1 file changed, 29 insertions(+), 5 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-make-oom_reaper-freezable mm/oom_kill.c
---- a/mm/oom_kill.c~oom-make-oom_reaper-freezable
-+++ a/mm/oom_kill.c
-@@ -525,6 +525,8 @@ static void oom_reap_task(struct task_st
+diff -puN mm/mmap.c~mm-fix-regression-in-remap_file_pages-emulation mm/mmap.c
+--- a/mm/mmap.c~mm-fix-regression-in-remap_file_pages-emulation
++++ a/mm/mmap.c
+@@ -2664,12 +2664,29 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 	if (!vma || !(vma->vm_flags & VM_SHARED))
+ 		goto out;
  
- static int oom_reaper(void *unused)
- {
-+	set_freezable();
+-	if (start < vma->vm_start || start + size > vma->vm_end)
++	if (start < vma->vm_start)
+ 		goto out;
+ 
+-	if (pgoff == linear_page_index(vma, start)) {
+-		ret = 0;
+-		goto out;
++	if (start + size > vma->vm_end) {
++		struct vm_area_struct *next;
 +
- 	while (true) {
- 		struct task_struct *tsk = NULL;
++		for (next = vma->vm_next; next; next = next->vm_next) {
++			/* hole between vmas ? */
++			if (next->vm_start != next->vm_prev->vm_end)
++				goto out;
++
++			if (next->vm_file != vma->vm_file)
++				goto out;
++
++			if (next->vm_flags != vma->vm_flags)
++				goto out;
++
++			if (start + size <= next->vm_end)
++				break;
++		}
++
++		if (!next)
++			goto out;
+ 	}
  
+ 	prot |= vma->vm_flags & VM_READ ? PROT_READ : 0;
+@@ -2679,9 +2696,16 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 	flags &= MAP_NONBLOCK;
+ 	flags |= MAP_SHARED | MAP_FIXED | MAP_POPULATE;
+ 	if (vma->vm_flags & VM_LOCKED) {
++		struct vm_area_struct *tmp;
+ 		flags |= MAP_LOCKED;
++
+ 		/* drop PG_Mlocked flag for over-mapped range */
+-		munlock_vma_pages_range(vma, start, start + size);
++		for (tmp = vma; tmp->vm_start >= start + size;
++				tmp = tmp->vm_next) {
++			munlock_vma_pages_range(tmp,
++					max(tmp->vm_start, start),
++					min(tmp->vm_end, start + size));
++		}
+ 	}
+ 
+ 	file = get_file(vma->vm_file);
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-vmscan-make-zone_reclaimable_pages-more-precise.patch
-mm-oom-introduce-oom-reaper.patch
-oom-reaper-handle-mlocked-pages.patch
-oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
-mm-oom_reaper-report-success-failure.patch
-mm-oom_reaper-report-success-failure-fix-2.patch
-mm-oom_reaper-implement-oom-victims-queuing.patch
-oom-make-oom_reaper-freezable.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
+thp-dax-do-not-try-to-withdraw-pgtable-from-non-anon-vma.patch
+mm-fix-regression-in-remap_file_pages-emulation.patch
+ipc-shm-handle-removed-segments-gracefully-in-shm_mmap.patch
+thp-cleanup-split_huge_page.patch
+thp-vmstats-count-deferred-split-events.patch
+mm-tracing-refresh-__def_vmaflag_names.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
 
