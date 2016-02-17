@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-a-new-vector-based-madvise-syscall-fix.patch added to
- -mm tree
-Date: Tue, 16 Feb 2016 16:08:14 -0800
-Message-ID: <56c3b9ee.bqCtBi67m7FXYkKn%akpm@linux-foundation.org>
+Subject: + mm-add-a-new-vector-based-madvise-syscall.patch added to -mm
+ tree
+Date: Tue, 16 Feb 2016 16:08:12 -0800
+Message-ID: <56c3b9ec.wbkszG1ynRAC8nHX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58894 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58871 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933243AbcBQAIP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Feb 2016 19:08:15 -0500
+	with ESMTP id S933243AbcBQAIQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Feb 2016 19:08:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, shli@fb.com, mm-commits@vger.kernel.org
+To: shli@fb.com, aarcange@redhat.com, andi@firstfloor.org, arnd@arndb.de, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-add-a-new-vector-based-madvise-syscall-fix
+     Subject: mm: add a new vector based madvise syscall
 has been added to the -mm tree.  Its filename is
-     mm-add-a-new-vector-based-madvise-syscall-fix.patch
+     mm-add-a-new-vector-based-madvise-syscall.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-a-new-vector-based-madvise-syscall-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-a-new-vector-based-madvise-syscall.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-a-new-vector-based-madvise-syscall-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-a-new-vector-based-madvise-syscall.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,78 +39,483 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-add-a-new-vector-based-madvise-syscall-fix
+From: Shaohua Li <shli@fb.com>
+Subject: mm: add a new vector based madvise syscall
 
-remove an unneeded ifdef
+In jemalloc, a free(3) doesn't immediately free the memory to OS even the
+memory is page aligned/size, and hope the memory can be reused soon. 
+Later the virtual address becomes fragmented, and more and more free
+memory are aggregated.  If the free memory size is large, jemalloc uses
+madvise(DONT_NEED) to actually free the memory back to OS.
 
-Cc: Shaohua Li <shli@fb.com>
+The madvise has significantly overhead paritcularly because of TLB flush. 
+jemalloc does madvise for several virtual address space ranges one time. 
+Instead of calling madvise for each of the ranges, we introduce a new
+syscall to purge memory for several ranges one time.  In this way, we can
+merge several TLB flush for the ranges to one big TLB flush.  This also
+reduce mmap_sem locking and kernel/userspace switching.
+
+I'm running a simple memory allocation benchmark. 32 threads do random
+malloc/free/realloc. Corresponding jemalloc patch to utilize this API is
+attached.
+
+Without patch:
+real    0m18.923s
+user    1m11.819s
+sys     7m44.626s
+
+each cpu gets around 3000K/s TLB flush interrupt.  Perf shows TLB flush is
+hotest functions.  mmap_sem read locking (because of page fault) is also
+heavy.
+
+with patch:
+real    0m15.026s
+user    0m48.548s
+sys     6m41.153s
+
+each cpu gets around 140k/s TLB flush interrupt.  TLB flush isn't hot at
+all.  mmap_sem read locking (still because of page fault) becomes the sole
+hot spot.
+
+Another test malloc a bunch of memory in 48 threads, then all threads free
+the memory.  I measure the time of the memory free.
+
+Without patch: 34.332s
+With patch:    17.429s
+
+MADV_FREE does the same TLB flush as MADV_DONTNEED, this also applies to
+MADV_FREE.  Other madvise type can have small benefits too, like reduce
+syscalls/mmap_sem locking.
+
+Signed-off-by: Shaohua Li <shli@fb.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andi Kleen <andi@firstfloor.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/madvise.c |    2 --
- 1 file changed, 2 deletions(-)
+ arch/x86/entry/syscalls/syscall_32.tbl |    1 
+ arch/x86/entry/syscalls/syscall_64.tbl |    2 
+ include/linux/compat.h                 |    3 
+ include/linux/syscalls.h               |    3 
+ include/uapi/asm-generic/unistd.h      |    4 
+ kernel/sys_ni.c                        |    2 
+ mm/madvise.c                           |  281 +++++++++++++++++++----
+ 7 files changed, 251 insertions(+), 45 deletions(-)
 
-diff -puN mm/madvise.c~mm-add-a-new-vector-based-madvise-syscall-fix mm/madvise.c
---- a/mm/madvise.c~mm-add-a-new-vector-based-madvise-syscall-fix
+diff -puN arch/x86/entry/syscalls/syscall_32.tbl~mm-add-a-new-vector-based-madvise-syscall arch/x86/entry/syscalls/syscall_32.tbl
+--- a/arch/x86/entry/syscalls/syscall_32.tbl~mm-add-a-new-vector-based-madvise-syscall
++++ a/arch/x86/entry/syscalls/syscall_32.tbl
+@@ -384,3 +384,4 @@
+ 375	i386	membarrier		sys_membarrier
+ 376	i386	mlock2			sys_mlock2
+ 377	i386	copy_file_range		sys_copy_file_range
++378	i386	madvisev		sys_madvisev			compat_sys_madvisev
+diff -puN arch/x86/entry/syscalls/syscall_64.tbl~mm-add-a-new-vector-based-madvise-syscall arch/x86/entry/syscalls/syscall_64.tbl
+--- a/arch/x86/entry/syscalls/syscall_64.tbl~mm-add-a-new-vector-based-madvise-syscall
++++ a/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -333,6 +333,7 @@
+ 324	common	membarrier		sys_membarrier
+ 325	common	mlock2			sys_mlock2
+ 326	common	copy_file_range		sys_copy_file_range
++327	64	madvisev		sys_madvisev
+ 
+ #
+ # x32-specific system call numbers start at 512 to avoid cache impact
+@@ -372,3 +373,4 @@
+ 543	x32	io_setup		compat_sys_io_setup
+ 544	x32	io_submit		compat_sys_io_submit
+ 545	x32	execveat		stub_x32_execveat
++546	x32	madvisev		compat_sys_madvisev
+diff -puN include/linux/compat.h~mm-add-a-new-vector-based-madvise-syscall include/linux/compat.h
+--- a/include/linux/compat.h~mm-add-a-new-vector-based-madvise-syscall
++++ a/include/linux/compat.h
+@@ -689,6 +689,9 @@ asmlinkage long compat_sys_sendfile64(in
+ asmlinkage long compat_sys_sigaltstack(const compat_stack_t __user *uss_ptr,
+ 				       compat_stack_t __user *uoss_ptr);
+ 
++asmlinkage long compat_sys_madvisev(const struct compat_iovec __user *uvector,
++		compat_ulong_t nr_segs, compat_int_t behavior);
++
+ #ifdef __ARCH_WANT_SYS_SIGPENDING
+ asmlinkage long compat_sys_sigpending(compat_old_sigset_t __user *set);
+ #endif
+diff -puN include/linux/syscalls.h~mm-add-a-new-vector-based-madvise-syscall include/linux/syscalls.h
+--- a/include/linux/syscalls.h~mm-add-a-new-vector-based-madvise-syscall
++++ a/include/linux/syscalls.h
+@@ -892,4 +892,7 @@ asmlinkage long sys_copy_file_range(int
+ 
+ asmlinkage long sys_mlock2(unsigned long start, size_t len, int flags);
+ 
++asmlinkage long sys_madvisev(const struct iovec __user *uvector,
++		unsigned long nr_segs, int behavior);
++
+ #endif
+diff -puN include/uapi/asm-generic/unistd.h~mm-add-a-new-vector-based-madvise-syscall include/uapi/asm-generic/unistd.h
+--- a/include/uapi/asm-generic/unistd.h~mm-add-a-new-vector-based-madvise-syscall
++++ a/include/uapi/asm-generic/unistd.h
+@@ -717,9 +717,11 @@ __SYSCALL(__NR_membarrier, sys_membarrie
+ __SYSCALL(__NR_mlock2, sys_mlock2)
+ #define __NR_copy_file_range 285
+ __SYSCALL(__NR_copy_file_range, sys_copy_file_range)
++#define __NR_madvisev 286
++__SC_COMP(__NR_madvisev, sys_madvisev, compat_sys_madvisev)
+ 
+ #undef __NR_syscalls
+-#define __NR_syscalls 286
++#define __NR_syscalls 287
+ 
+ /*
+  * All syscalls below here should go away really,
+diff -puN kernel/sys_ni.c~mm-add-a-new-vector-based-madvise-syscall kernel/sys_ni.c
+--- a/kernel/sys_ni.c~mm-add-a-new-vector-based-madvise-syscall
++++ a/kernel/sys_ni.c
+@@ -198,6 +198,8 @@ cond_syscall(sys_munlockall);
+ cond_syscall(sys_mlock2);
+ cond_syscall(sys_mincore);
+ cond_syscall(sys_madvise);
++cond_syscall(sys_madvisev);
++cond_syscall(compat_sys_madvisev);
+ cond_syscall(sys_mremap);
+ cond_syscall(sys_remap_file_pages);
+ cond_syscall(compat_sys_move_pages);
+diff -puN mm/madvise.c~mm-add-a-new-vector-based-madvise-syscall mm/madvise.c
+--- a/mm/madvise.c~mm-add-a-new-vector-based-madvise-syscall
 +++ a/mm/madvise.c
-@@ -22,9 +22,7 @@
+@@ -21,7 +21,10 @@
+ #include <linux/swap.h>
  #include <linux/swapops.h>
  #include <linux/mmu_notifier.h>
- #include <linux/uio.h>
--#ifdef CONFIG_COMPAT
- #include <linux/compat.h>
--#endif
+-
++#include <linux/uio.h>
++#ifdef CONFIG_COMPAT
++#include <linux/compat.h>
++#endif
  #include <asm/tlb.h>
  
  /*
+@@ -565,7 +568,8 @@ static int madvise_hwpoison(int bhv, uns
+ 
+ static long
+ madvise_vma(struct vm_area_struct *vma, struct vm_area_struct **prev,
+-		unsigned long start, unsigned long end, int behavior)
++		unsigned long start, unsigned long end, int behavior,
++		void *data)
+ {
+ 	switch (behavior) {
+ 	case MADV_REMOVE:
+@@ -617,6 +621,62 @@ madvise_behavior_valid(int behavior)
+ 	}
+ }
+ 
++typedef long (*madvise_iterate_fn)(struct vm_area_struct *vma,
++	struct vm_area_struct **prev, unsigned long start,
++	unsigned long end, int behavior, void *data);
++static int madvise_iterate_vma(unsigned long start, unsigned long end,
++	int *unmapped_error, int behavior, madvise_iterate_fn fn, void *data)
++{
++	struct vm_area_struct *vma, *prev;
++	unsigned long tmp;
++	int error = 0;
++
++	/*
++	 * If the interval [start,end) covers some unmapped address
++	 * ranges, just ignore them, but return -ENOMEM at the end.
++	 * - different from the way of handling in mlock etc.
++	 */
++	vma = find_vma_prev(current->mm, start, &prev);
++	if (vma && start > vma->vm_start)
++		prev = vma;
++
++	for (;;) {
++		/* Still start < end. */
++		error = -ENOMEM;
++		if (!vma)
++			break;
++
++		/* Here start < (end|vma->vm_end). */
++		if (start < vma->vm_start) {
++			*unmapped_error = -ENOMEM;
++			start = vma->vm_start;
++			if (start >= end)
++				break;
++		}
++
++		/* Here vma->vm_start <= start < (end|vma->vm_end) */
++		tmp = vma->vm_end;
++		if (end < tmp)
++			tmp = end;
++
++		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
++		error = fn(vma, &prev, start, tmp, behavior, data);
++		if (error)
++			break;
++		start = tmp;
++		if (prev && start < prev->vm_end)
++			start = prev->vm_end;
++		if (start >= end)
++			break;
++		if (prev)
++			vma = prev->vm_next;
++		else	/* madvise_remove dropped mmap_sem */
++			vma = find_vma(current->mm, start);
++	}
++
++	return error;
++}
++
+ /*
+  * The madvise(2) system call.
+  *
+@@ -675,8 +735,7 @@ madvise_behavior_valid(int behavior)
+  */
+ SYSCALL_DEFINE3(madvise, unsigned long, start, size_t, len_in, int, behavior)
+ {
+-	unsigned long end, tmp;
+-	struct vm_area_struct *vma, *prev;
++	unsigned long end;
+ 	int unmapped_error = 0;
+ 	int error = -EINVAL;
+ 	int write;
+@@ -712,56 +771,190 @@ SYSCALL_DEFINE3(madvise, unsigned long,
+ 	else
+ 		down_read(&current->mm->mmap_sem);
+ 
+-	/*
+-	 * If the interval [start,end) covers some unmapped address
+-	 * ranges, just ignore them, but return -ENOMEM at the end.
+-	 * - different from the way of handling in mlock etc.
+-	 */
+-	vma = find_vma_prev(current->mm, start, &prev);
+-	if (vma && start > vma->vm_start)
+-		prev = vma;
+-
+ 	blk_start_plug(&plug);
+-	for (;;) {
+-		/* Still start < end. */
+-		error = -ENOMEM;
+-		if (!vma)
+-			goto out;
+ 
+-		/* Here start < (end|vma->vm_end). */
+-		if (start < vma->vm_start) {
+-			unmapped_error = -ENOMEM;
+-			start = vma->vm_start;
+-			if (start >= end)
+-				goto out;
++	error = madvise_iterate_vma(start, end, &unmapped_error,
++			behavior, madvise_vma, NULL);
++	if (error == 0 && unmapped_error != 0)
++		error = unmapped_error;
++
++	blk_finish_plug(&plug);
++	if (write)
++		up_write(&current->mm->mmap_sem);
++	else
++		up_read(&current->mm->mmap_sem);
++
++	return error;
++}
++
++static long
++madvisev_vma(struct vm_area_struct *vma, struct vm_area_struct **prev,
++		unsigned long start, unsigned long end, int behavior,
++		void *data)
++{
++	struct mmu_gather *tlb = data;
++	*prev = vma;
++	if (vma->vm_flags & (VM_LOCKED|VM_HUGETLB|VM_PFNMAP))
++		return -EINVAL;
++
++	switch (behavior) {
++	case MADV_FREE:
++		/*
++		 * XXX: In this implementation, MADV_FREE works like
++		 * MADV_DONTNEED on swapless system or full swap.
++		 */
++		if (get_nr_swap_pages() > 0) {
++			/* MADV_FREE works for only anon vma at the moment */
++			if (!vma_is_anonymous(vma))
++				return -EINVAL;
++			madvise_free_page_range(tlb, vma, start, end);
++			break;
+ 		}
++		/* passthrough */
++	case MADV_DONTNEED:
++		unmap_vmas(tlb, vma, start, end);
++		break;
++	}
++	return 0;
++}
+ 
+-		/* Here vma->vm_start <= start < (end|vma->vm_end) */
+-		tmp = vma->vm_end;
+-		if (end < tmp)
+-			tmp = end;
++static int do_madvisev(struct iovec *iov, unsigned long nr_segs, int behavior)
++{
++	unsigned long start, end = 0;
++	int unmapped_error = 0;
++	size_t len;
++	struct mmu_gather tlb;
++	int error = 0;
++	int i;
++	int write;
++	struct blk_plug plug;
+ 
+-		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
+-		error = madvise_vma(vma, &prev, start, tmp, behavior);
+-		if (error)
+-			goto out;
+-		start = tmp;
+-		if (prev && start < prev->vm_end)
+-			start = prev->vm_end;
+-		error = unmapped_error;
+-		if (start >= end)
+-			goto out;
+-		if (prev)
+-			vma = prev->vm_next;
+-		else	/* madvise_remove dropped mmap_sem */
+-			vma = find_vma(current->mm, start);
++#ifdef CONFIG_MEMORY_FAILURE
++	if (behavior == MADV_HWPOISON || behavior == MADV_SOFT_OFFLINE) {
++		for (i = 0; i < nr_segs; i++) {
++			start = (unsigned long)iov[i].iov_base;
++			len = iov[i].iov_len;
++			error = madvise_hwpoison(behavior, start, start + len);
++			if (error)
++				return error;
++		}
++		return 0;
+ 	}
+-out:
+-	blk_finish_plug(&plug);
++#endif
++
++	if (!madvise_behavior_valid(behavior))
++		return -EINVAL;
++
++	for (i = 0; i < nr_segs; i++) {
++		start = (unsigned long)iov[i].iov_base;
++		/* Make sure iovs don't overlap and sorted */
++		if (start & ~PAGE_MASK || start < end)
++			return -EINVAL;
++		len = ((iov[i].iov_len + ~PAGE_MASK) & PAGE_MASK);
++
++		/*
++		 * Check to see whether len was rounded up from small -ve to
++		 * zero
++		 */
++		if (iov[i].iov_len && !len)
++			return -EINVAL;
++
++		end = start + len;
++
++		/*
++		 * end == start returns error (different against madvise).
++		 * return 0 is improper as there are other iovs
++		 */
++		if (end <= start)
++			return -EINVAL;
++
++		iov[i].iov_len = len;
++	}
++
++	write = madvise_need_mmap_write(behavior);
++	if (write)
++		down_write(&current->mm->mmap_sem);
++	else
++		down_read(&current->mm->mmap_sem);
++
++	if (behavior == MADV_DONTNEED || behavior == MADV_FREE) {
++		lru_add_drain();
++		tlb_gather_mmu(&tlb, current->mm,
++			(unsigned long)iov[0].iov_base, end);
++		update_hiwater_rss(current->mm);
++		for (i = 0; i < nr_segs; i++) {
++			start = (unsigned long)iov[i].iov_base;
++			len = iov[i].iov_len;
++
++			error = madvise_iterate_vma(start, start + len,
++				&unmapped_error, behavior, madvisev_vma, &tlb);
++			if (error)
++				break;
++		}
++		tlb_finish_mmu(&tlb, (unsigned long)iov[0].iov_base, end);
++	} else {
++		blk_start_plug(&plug);
++		for (i = 0; i < nr_segs; i++) {
++			start = (unsigned long)iov[i].iov_base;
++			len = iov[i].iov_len;
++
++			error = madvise_iterate_vma(start, start + len,
++				&unmapped_error, behavior, madvise_vma, NULL);
++			if (error)
++				break;
++		}
++		blk_finish_plug(&plug);
++	}
++	if (error == 0 && unmapped_error != 0)
++		error = unmapped_error;
++
+ 	if (write)
+ 		up_write(&current->mm->mmap_sem);
+ 	else
+ 		up_read(&current->mm->mmap_sem);
++	return error;
++}
++
++/*
++ * The vector madvise(). Like madvise except running for a vector of virtual
++ * address ranges
++ */
++SYSCALL_DEFINE3(madvisev, const struct iovec __user *, uvector,
++	unsigned long, nr_segs, int, behavior)
++{
++	struct iovec iovstack[UIO_FASTIOV];
++	struct iovec *iov = NULL;
++	int error;
++
++	error = rw_copy_check_uvector(CHECK_IOVEC_ONLY, uvector, nr_segs,
++			UIO_FASTIOV, iovstack, &iov);
++	if (error <= 0)
++		return error;
++
++	error = do_madvisev(iov, nr_segs, behavior);
+ 
++	if (iov != iovstack)
++		kfree(iov);
+ 	return error;
+ }
++
++#ifdef CONFIG_COMPAT
++COMPAT_SYSCALL_DEFINE3(madvisev, const struct compat_iovec __user *, uvector,
++	compat_ulong_t, nr_segs, compat_int_t, behavior)
++{
++	struct iovec iovstack[UIO_FASTIOV];
++	struct iovec *iov = NULL;
++	int error;
++
++	error = compat_rw_copy_check_uvector(CHECK_IOVEC_ONLY, uvector, nr_segs,
++			UIO_FASTIOV, iovstack, &iov);
++	if (error <= 0)
++		return error;
++
++	error = do_madvisev(iov, nr_segs, behavior);
++
++	if (iov != iovstack)
++		kfree(iov);
++	return error;
++}
++#endif
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from shli@fb.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-code-clean-up-for-direct-io-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
-mm.patch
-mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
-mm-simplify-lock_page_memcg-fix.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom_reaper-report-success-failure-fix.patch
-mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
-proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
-mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
-mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
-sound-query-dynamic-debug_pagealloc-setting-fix.patch
-mm-config_nr_zones_extended-fix.patch
-mm-add-a-new-vector-based-madvise-syscall-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-btrfs-use-radix_tree_iter_retry-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
-rapidio-add-mport-char-device-driver-fix.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-kernel-add-kcov-code-coverage-fix.patch
-kernel-add-kcov-code-coverage-fix-2.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mm-add-a-new-vector-based-madvise-syscall.patch
 
