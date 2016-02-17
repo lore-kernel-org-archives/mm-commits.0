@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + slub-relax-cmpxchg-consistency-restrictions.patch added to -mm
- tree
-Date: Wed, 17 Feb 2016 12:05:06 -0800
-Message-ID: <56c4d272.TKHEta6BlH3FV+Xz%akpm@linux-foundation.org>
+Subject: + slub-drop-lock-at-the-end-of-free_debug_processing-fix.patch
+ added to -mm tree
+Date: Wed, 17 Feb 2016 12:12:10 -0800
+Message-ID: <56c4d41a.+xBBIdo+Ygb0LstK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48773 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49619 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965265AbcBQUFH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Feb 2016 15:05:07 -0500
+	with ESMTP id S1161661AbcBQUML (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Feb 2016 15:12:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: labbott@fedoraproject.org, cl@linux.com, js1304@gmail.com, keescook@chromium.org, minipli@googlemail.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, cl@linux.com, js1304@gmail.com, keescook@chromium.org, labbott@fedoraproject.org, minipli@googlemail.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: relax CMPXCHG consistency restrictions
+     Subject: slub-drop-lock-at-the-end-of-free_debug_processing-fix
 has been added to the -mm tree.  Its filename is
-     slub-relax-cmpxchg-consistency-restrictions.patch
+     slub-drop-lock-at-the-end-of-free_debug_processing-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/slub-relax-cmpxchg-consistency-restrictions.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/slub-drop-lock-at-the-end-of-free_debug_processing-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/slub-relax-cmpxchg-consistency-restrictions.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/slub-drop-lock-at-the-end-of-free_debug_processing-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,83 +39,95 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Laura Abbott <labbott@fedoraproject.org>
-Subject: slub: relax CMPXCHG consistency restrictions
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: slub-drop-lock-at-the-end-of-free_debug_processing-fix
 
-When debug options are enabled, cmpxchg on the page is disabled.  This is
-because the page must be locked to ensure there are no false positives
-when performing consistency checks.  Some debug options such as poisoning
-and red zoning only act on the object itself.  There is no need to protect
-other CPUs from modification on only the object.  Allow cmpxchg to happen
-with poisoning and red zoning are set on a slab.
+fix build
 
-Credit to Mathias Krause for the original work which inspired this series
+mm/slub.c: In function 'free_debug_processing':
+mm/slub.c:1211:46: warning: return makes integer from pointer without a cast [enabled by default]
+  unsigned long addr, unsigned long *flags) { return NULL; }
+                                              ^
+mm/slub.c: In function '__slab_free':
+mm/slub.c:2589:6: error: too few arguments to function 'free_debug_processing'
+      !free_debug_processing(s, page, head, tail, cnt, addr))
+      ^
+mm/slub.c:1208:19: note: declared here
+ static inline int free_debug_processing(
 
-Signed-off-by: Laura Abbott <labbott@fedoraproject.org>
-Acked-by: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Christoph Lameter <cl@linux.com>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <js1304@gmail.com>
 Cc: Kees Cook <keescook@chromium.org>
+Cc: Laura Abbott <labbott@fedoraproject.org>
 Cc: Mathias Krause <minipli@googlemail.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ mm/slub.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slub.c~slub-relax-cmpxchg-consistency-restrictions mm/slub.c
---- a/mm/slub.c~slub-relax-cmpxchg-consistency-restrictions
+diff -puN mm/slub.c~slub-drop-lock-at-the-end-of-free_debug_processing-fix mm/slub.c
+--- a/mm/slub.c~slub-drop-lock-at-the-end-of-free_debug_processing-fix
 +++ a/mm/slub.c
-@@ -164,6 +164,14 @@ static inline bool kmem_cache_has_cpu_pa
- 				SLAB_POISON | SLAB_STORE_USER)
+@@ -1208,7 +1208,7 @@ static inline int alloc_debug_processing
+ static inline int free_debug_processing(
+ 	struct kmem_cache *s, struct page *page,
+ 	void *head, void *tail, int bulk_cnt,
+-	unsigned long addr, unsigned long *flags) { return NULL; }
++	unsigned long addr) { return 0; }
  
- /*
-+ * These debug flags cannot use CMPXCHG because there might be consistency
-+ * issues when checking or reading debug information
-+ */
-+#define SLAB_NO_CMPXCHG (SLAB_CONSISTENCY_CHECKS | SLAB_STORE_USER | \
-+				SLAB_TRACE)
-+
-+
-+/*
-  * Debugging flags that require metadata to be stored in the slab.  These get
-  * disabled when slub_debug=O is used and a cache's min order increases with
-  * metadata.
-@@ -3338,7 +3346,7 @@ static int kmem_cache_open(struct kmem_c
- 
- #if defined(CONFIG_HAVE_CMPXCHG_DOUBLE) && \
-     defined(CONFIG_HAVE_ALIGNED_STRUCT_PAGE)
--	if (system_has_cmpxchg_double() && (s->flags & SLAB_DEBUG_FLAGS) == 0)
-+	if (system_has_cmpxchg_double() && (s->flags & SLAB_NO_CMPXCHG) == 0)
- 		/* Enable fast mode */
- 		s->flags |= __CMPXCHG_DOUBLE;
- #endif
-@@ -4846,7 +4854,6 @@ static ssize_t red_zone_store(struct kme
- 
- 	s->flags &= ~SLAB_RED_ZONE;
- 	if (buf[0] == '1') {
--		s->flags &= ~__CMPXCHG_DOUBLE;
- 		s->flags |= SLAB_RED_ZONE;
- 	}
- 	calculate_sizes(s, -1);
-@@ -4867,7 +4874,6 @@ static ssize_t poison_store(struct kmem_
- 
- 	s->flags &= ~SLAB_POISON;
- 	if (buf[0] == '1') {
--		s->flags &= ~__CMPXCHG_DOUBLE;
- 		s->flags |= SLAB_POISON;
- 	}
- 	calculate_sizes(s, -1);
+ static inline int slab_pad_check(struct kmem_cache *s, struct page *page)
+ 			{ return 1; }
 _
 
-Patches currently in -mm which might be from labbott@fedoraproject.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-slub-drop-lock-at-the-end-of-free_debug_processing.patch
-slub-fix-clean-free_debug_processing-return-paths.patch
-slub-convert-slab_debug_free-to-slab_consistency_checks.patch
-slub-relax-cmpxchg-consistency-restrictions.patch
-mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option.patch
-mm-page_poisoningc-allow-for-zero-poisoning.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-code-clean-up-for-direct-io-fix.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
+mm.patch
+mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
+mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
+slub-drop-lock-at-the-end-of-free_debug_processing-fix.patch
+fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
+mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
+mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
+mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
+mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
+mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
+mm-madvise-update-comment-on-sys_madvise-fix.patch
+mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
+mm-simplify-lock_page_memcg-fix.patch
+sched-add-schedule_timeout_idle.patch
+mm-oom_reaper-report-success-failure-fix.patch
+mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
+proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
+mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
+mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
+sound-query-dynamic-debug_pagealloc-setting-fix.patch
+mm-config_nr_zones_extended-fix.patch
+mm-add-a-new-vector-based-madvise-syscall-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+zram-export-the-number-of-available-comp-streams-fix.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+btrfs-use-radix_tree_iter_retry-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
+rapidio-add-mport-char-device-driver-fix.patch
+dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
+kernel-add-kcov-code-coverage-fix.patch
+kernel-add-kcov-code-coverage-fix-2.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
