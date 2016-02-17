@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-add-a-new-vector-based-madvise-syscall.patch added to -mm
- tree
-Date: Tue, 16 Feb 2016 16:08:12 -0800
-Message-ID: <56c3b9ec.wbkszG1ynRAC8nHX%akpm@linux-foundation.org>
+Subject: + mm-hugetlb-fix-incorrect-proc-nr_hugepages-value.patch added to -mm tree
+Date: Tue, 16 Feb 2016 16:10:44 -0800
+Message-ID: <56c3ba84.9nJbK7RucvomPnpJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58871 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59124 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933243AbcBQAIQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Feb 2016 19:08:16 -0500
+	with ESMTP id S933392AbcBQAKp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 16 Feb 2016 19:10:45 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shli@fb.com, aarcange@redhat.com, andi@firstfloor.org, arnd@arndb.de, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: vaishali.thakkar@oracle.com, dave.hansen@linux.intel.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add a new vector based madvise syscall
+     Subject: mm/hugetlb.c: fix incorrect proc nr_hugepages value
 has been added to the -mm tree.  Its filename is
-     mm-add-a-new-vector-based-madvise-syscall.patch
+     mm-hugetlb-fix-incorrect-proc-nr_hugepages-value.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-a-new-vector-based-madvise-syscall.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-fix-incorrect-proc-nr_hugepages-value.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-a-new-vector-based-madvise-syscall.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-fix-incorrect-proc-nr_hugepages-value.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,483 +38,75 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shaohua Li <shli@fb.com>
-Subject: mm: add a new vector based madvise syscall
+From: Vaishali Thakkar <vaishali.thakkar@oracle.com>
+Subject: mm/hugetlb.c: fix incorrect proc nr_hugepages value
 
-In jemalloc, a free(3) doesn't immediately free the memory to OS even the
-memory is page aligned/size, and hope the memory can be reused soon. 
-Later the virtual address becomes fragmented, and more and more free
-memory are aggregated.  If the free memory size is large, jemalloc uses
-madvise(DONT_NEED) to actually free the memory back to OS.
+Currently incorrect default hugepage pool size is reported by proc
+nr_hugepages when number of pages for the default huge page size is
+specified twice.
 
-The madvise has significantly overhead paritcularly because of TLB flush. 
-jemalloc does madvise for several virtual address space ranges one time. 
-Instead of calling madvise for each of the ranges, we introduce a new
-syscall to purge memory for several ranges one time.  In this way, we can
-merge several TLB flush for the ranges to one big TLB flush.  This also
-reduce mmap_sem locking and kernel/userspace switching.
+When multiple huge page sizes are supported, /proc/sys/vm/nr_hugepages
+indicates the current number of pre-allocated huge pages of the default
+size.  Basically /proc/sys/vm/nr_hugepages displays default_hstate->
+max_huge_pages and after boot time pre-allocation, max_huge_pages should
+equal the number of pre-allocated pages (nr_hugepages).
 
-I'm running a simple memory allocation benchmark. 32 threads do random
-malloc/free/realloc. Corresponding jemalloc patch to utilize this API is
-attached.
+Test case:
 
-Without patch:
-real    0m18.923s
-user    1m11.819s
-sys     7m44.626s
+Note that this is specific to x86 architecture.
 
-each cpu gets around 3000K/s TLB flush interrupt.  Perf shows TLB flush is
-hotest functions.  mmap_sem read locking (because of page fault) is also
-heavy.
+Boot the kernel with command line option 'default_hugepagesz=1G
+hugepages=X hugepagesz=2M hugepages=Y hugepagesz=1G hugepages=Z'.  After
+boot, 'cat /proc/sys/vm/nr_hugepages' and 'sysctl -a | grep hugepages'
+returns the value X.  However, dmesg output shows that Z huge pages were
+pre-allocated.
 
-with patch:
-real    0m15.026s
-user    0m48.548s
-sys     6m41.153s
+So, the root cause of the problem here is that the global variable
+default_hstate_max_huge_pages is set if a default huge page size is
+specified (directly or indirectly) on the command line.  After the command
+line processing in hugetlb_init, if default_hstate_max_huge_pages is set,
+the value is assigned to default_hstae.max_huge_pages.  However,
+default_hstate.max_huge_pages may have already been set based on the
+number of pre-allocated huge pages of default_hstate size.
 
-each cpu gets around 140k/s TLB flush interrupt.  TLB flush isn't hot at
-all.  mmap_sem read locking (still because of page fault) becomes the sole
-hot spot.
+The solution to this problem is if hstate->max_huge_pages is already set
+then it should not set as a result of global max_huge_pages value. 
+Basically if the value of the variable hugepages is set multiple times on
+a command line for a specific supported hugepagesize then proc layer
+should consider the last specified value.
 
-Another test malloc a bunch of memory in 48 threads, then all threads free
-the memory.  I measure the time of the memory free.
-
-Without patch: 34.332s
-With patch:    17.429s
-
-MADV_FREE does the same TLB flush as MADV_DONTNEED, this also applies to
-MADV_FREE.  Other madvise type can have small benefits too, like reduce
-syscalls/mmap_sem locking.
-
-Signed-off-by: Shaohua Li <shli@fb.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Vaishali Thakkar <vaishali.thakkar@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/entry/syscalls/syscall_32.tbl |    1 
- arch/x86/entry/syscalls/syscall_64.tbl |    2 
- include/linux/compat.h                 |    3 
- include/linux/syscalls.h               |    3 
- include/uapi/asm-generic/unistd.h      |    4 
- kernel/sys_ni.c                        |    2 
- mm/madvise.c                           |  281 +++++++++++++++++++----
- 7 files changed, 251 insertions(+), 45 deletions(-)
+ mm/hugetlb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN arch/x86/entry/syscalls/syscall_32.tbl~mm-add-a-new-vector-based-madvise-syscall arch/x86/entry/syscalls/syscall_32.tbl
---- a/arch/x86/entry/syscalls/syscall_32.tbl~mm-add-a-new-vector-based-madvise-syscall
-+++ a/arch/x86/entry/syscalls/syscall_32.tbl
-@@ -384,3 +384,4 @@
- 375	i386	membarrier		sys_membarrier
- 376	i386	mlock2			sys_mlock2
- 377	i386	copy_file_range		sys_copy_file_range
-+378	i386	madvisev		sys_madvisev			compat_sys_madvisev
-diff -puN arch/x86/entry/syscalls/syscall_64.tbl~mm-add-a-new-vector-based-madvise-syscall arch/x86/entry/syscalls/syscall_64.tbl
---- a/arch/x86/entry/syscalls/syscall_64.tbl~mm-add-a-new-vector-based-madvise-syscall
-+++ a/arch/x86/entry/syscalls/syscall_64.tbl
-@@ -333,6 +333,7 @@
- 324	common	membarrier		sys_membarrier
- 325	common	mlock2			sys_mlock2
- 326	common	copy_file_range		sys_copy_file_range
-+327	64	madvisev		sys_madvisev
- 
- #
- # x32-specific system call numbers start at 512 to avoid cache impact
-@@ -372,3 +373,4 @@
- 543	x32	io_setup		compat_sys_io_setup
- 544	x32	io_submit		compat_sys_io_submit
- 545	x32	execveat		stub_x32_execveat
-+546	x32	madvisev		compat_sys_madvisev
-diff -puN include/linux/compat.h~mm-add-a-new-vector-based-madvise-syscall include/linux/compat.h
---- a/include/linux/compat.h~mm-add-a-new-vector-based-madvise-syscall
-+++ a/include/linux/compat.h
-@@ -689,6 +689,9 @@ asmlinkage long compat_sys_sendfile64(in
- asmlinkage long compat_sys_sigaltstack(const compat_stack_t __user *uss_ptr,
- 				       compat_stack_t __user *uoss_ptr);
- 
-+asmlinkage long compat_sys_madvisev(const struct compat_iovec __user *uvector,
-+		compat_ulong_t nr_segs, compat_int_t behavior);
-+
- #ifdef __ARCH_WANT_SYS_SIGPENDING
- asmlinkage long compat_sys_sigpending(compat_old_sigset_t __user *set);
- #endif
-diff -puN include/linux/syscalls.h~mm-add-a-new-vector-based-madvise-syscall include/linux/syscalls.h
---- a/include/linux/syscalls.h~mm-add-a-new-vector-based-madvise-syscall
-+++ a/include/linux/syscalls.h
-@@ -892,4 +892,7 @@ asmlinkage long sys_copy_file_range(int
- 
- asmlinkage long sys_mlock2(unsigned long start, size_t len, int flags);
- 
-+asmlinkage long sys_madvisev(const struct iovec __user *uvector,
-+		unsigned long nr_segs, int behavior);
-+
- #endif
-diff -puN include/uapi/asm-generic/unistd.h~mm-add-a-new-vector-based-madvise-syscall include/uapi/asm-generic/unistd.h
---- a/include/uapi/asm-generic/unistd.h~mm-add-a-new-vector-based-madvise-syscall
-+++ a/include/uapi/asm-generic/unistd.h
-@@ -717,9 +717,11 @@ __SYSCALL(__NR_membarrier, sys_membarrie
- __SYSCALL(__NR_mlock2, sys_mlock2)
- #define __NR_copy_file_range 285
- __SYSCALL(__NR_copy_file_range, sys_copy_file_range)
-+#define __NR_madvisev 286
-+__SC_COMP(__NR_madvisev, sys_madvisev, compat_sys_madvisev)
- 
- #undef __NR_syscalls
--#define __NR_syscalls 286
-+#define __NR_syscalls 287
- 
- /*
-  * All syscalls below here should go away really,
-diff -puN kernel/sys_ni.c~mm-add-a-new-vector-based-madvise-syscall kernel/sys_ni.c
---- a/kernel/sys_ni.c~mm-add-a-new-vector-based-madvise-syscall
-+++ a/kernel/sys_ni.c
-@@ -198,6 +198,8 @@ cond_syscall(sys_munlockall);
- cond_syscall(sys_mlock2);
- cond_syscall(sys_mincore);
- cond_syscall(sys_madvise);
-+cond_syscall(sys_madvisev);
-+cond_syscall(compat_sys_madvisev);
- cond_syscall(sys_mremap);
- cond_syscall(sys_remap_file_pages);
- cond_syscall(compat_sys_move_pages);
-diff -puN mm/madvise.c~mm-add-a-new-vector-based-madvise-syscall mm/madvise.c
---- a/mm/madvise.c~mm-add-a-new-vector-based-madvise-syscall
-+++ a/mm/madvise.c
-@@ -21,7 +21,10 @@
- #include <linux/swap.h>
- #include <linux/swapops.h>
- #include <linux/mmu_notifier.h>
--
-+#include <linux/uio.h>
-+#ifdef CONFIG_COMPAT
-+#include <linux/compat.h>
-+#endif
- #include <asm/tlb.h>
- 
- /*
-@@ -565,7 +568,8 @@ static int madvise_hwpoison(int bhv, uns
- 
- static long
- madvise_vma(struct vm_area_struct *vma, struct vm_area_struct **prev,
--		unsigned long start, unsigned long end, int behavior)
-+		unsigned long start, unsigned long end, int behavior,
-+		void *data)
- {
- 	switch (behavior) {
- 	case MADV_REMOVE:
-@@ -617,6 +621,62 @@ madvise_behavior_valid(int behavior)
+diff -puN mm/hugetlb.c~mm-hugetlb-fix-incorrect-proc-nr_hugepages-value mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-fix-incorrect-proc-nr_hugepages-value
++++ a/mm/hugetlb.c
+@@ -2630,8 +2630,10 @@ static int __init hugetlb_init(void)
+ 			hugetlb_add_hstate(HUGETLB_PAGE_ORDER);
  	}
- }
- 
-+typedef long (*madvise_iterate_fn)(struct vm_area_struct *vma,
-+	struct vm_area_struct **prev, unsigned long start,
-+	unsigned long end, int behavior, void *data);
-+static int madvise_iterate_vma(unsigned long start, unsigned long end,
-+	int *unmapped_error, int behavior, madvise_iterate_fn fn, void *data)
-+{
-+	struct vm_area_struct *vma, *prev;
-+	unsigned long tmp;
-+	int error = 0;
-+
-+	/*
-+	 * If the interval [start,end) covers some unmapped address
-+	 * ranges, just ignore them, but return -ENOMEM at the end.
-+	 * - different from the way of handling in mlock etc.
-+	 */
-+	vma = find_vma_prev(current->mm, start, &prev);
-+	if (vma && start > vma->vm_start)
-+		prev = vma;
-+
-+	for (;;) {
-+		/* Still start < end. */
-+		error = -ENOMEM;
-+		if (!vma)
-+			break;
-+
-+		/* Here start < (end|vma->vm_end). */
-+		if (start < vma->vm_start) {
-+			*unmapped_error = -ENOMEM;
-+			start = vma->vm_start;
-+			if (start >= end)
-+				break;
-+		}
-+
-+		/* Here vma->vm_start <= start < (end|vma->vm_end) */
-+		tmp = vma->vm_end;
-+		if (end < tmp)
-+			tmp = end;
-+
-+		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
-+		error = fn(vma, &prev, start, tmp, behavior, data);
-+		if (error)
-+			break;
-+		start = tmp;
-+		if (prev && start < prev->vm_end)
-+			start = prev->vm_end;
-+		if (start >= end)
-+			break;
-+		if (prev)
-+			vma = prev->vm_next;
-+		else	/* madvise_remove dropped mmap_sem */
-+			vma = find_vma(current->mm, start);
+ 	default_hstate_idx = hstate_index(size_to_hstate(default_hstate_size));
+-	if (default_hstate_max_huge_pages)
+-		default_hstate.max_huge_pages = default_hstate_max_huge_pages;
++	if (default_hstate_max_huge_pages) {
++		if (!default_hstate.max_huge_pages)
++			default_hstate.max_huge_pages = default_hstate_max_huge_pages;
 +	}
-+
-+	return error;
-+}
-+
- /*
-  * The madvise(2) system call.
-  *
-@@ -675,8 +735,7 @@ madvise_behavior_valid(int behavior)
-  */
- SYSCALL_DEFINE3(madvise, unsigned long, start, size_t, len_in, int, behavior)
- {
--	unsigned long end, tmp;
--	struct vm_area_struct *vma, *prev;
-+	unsigned long end;
- 	int unmapped_error = 0;
- 	int error = -EINVAL;
- 	int write;
-@@ -712,56 +771,190 @@ SYSCALL_DEFINE3(madvise, unsigned long,
- 	else
- 		down_read(&current->mm->mmap_sem);
  
--	/*
--	 * If the interval [start,end) covers some unmapped address
--	 * ranges, just ignore them, but return -ENOMEM at the end.
--	 * - different from the way of handling in mlock etc.
--	 */
--	vma = find_vma_prev(current->mm, start, &prev);
--	if (vma && start > vma->vm_start)
--		prev = vma;
--
- 	blk_start_plug(&plug);
--	for (;;) {
--		/* Still start < end. */
--		error = -ENOMEM;
--		if (!vma)
--			goto out;
- 
--		/* Here start < (end|vma->vm_end). */
--		if (start < vma->vm_start) {
--			unmapped_error = -ENOMEM;
--			start = vma->vm_start;
--			if (start >= end)
--				goto out;
-+	error = madvise_iterate_vma(start, end, &unmapped_error,
-+			behavior, madvise_vma, NULL);
-+	if (error == 0 && unmapped_error != 0)
-+		error = unmapped_error;
-+
-+	blk_finish_plug(&plug);
-+	if (write)
-+		up_write(&current->mm->mmap_sem);
-+	else
-+		up_read(&current->mm->mmap_sem);
-+
-+	return error;
-+}
-+
-+static long
-+madvisev_vma(struct vm_area_struct *vma, struct vm_area_struct **prev,
-+		unsigned long start, unsigned long end, int behavior,
-+		void *data)
-+{
-+	struct mmu_gather *tlb = data;
-+	*prev = vma;
-+	if (vma->vm_flags & (VM_LOCKED|VM_HUGETLB|VM_PFNMAP))
-+		return -EINVAL;
-+
-+	switch (behavior) {
-+	case MADV_FREE:
-+		/*
-+		 * XXX: In this implementation, MADV_FREE works like
-+		 * MADV_DONTNEED on swapless system or full swap.
-+		 */
-+		if (get_nr_swap_pages() > 0) {
-+			/* MADV_FREE works for only anon vma at the moment */
-+			if (!vma_is_anonymous(vma))
-+				return -EINVAL;
-+			madvise_free_page_range(tlb, vma, start, end);
-+			break;
- 		}
-+		/* passthrough */
-+	case MADV_DONTNEED:
-+		unmap_vmas(tlb, vma, start, end);
-+		break;
-+	}
-+	return 0;
-+}
- 
--		/* Here vma->vm_start <= start < (end|vma->vm_end) */
--		tmp = vma->vm_end;
--		if (end < tmp)
--			tmp = end;
-+static int do_madvisev(struct iovec *iov, unsigned long nr_segs, int behavior)
-+{
-+	unsigned long start, end = 0;
-+	int unmapped_error = 0;
-+	size_t len;
-+	struct mmu_gather tlb;
-+	int error = 0;
-+	int i;
-+	int write;
-+	struct blk_plug plug;
- 
--		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
--		error = madvise_vma(vma, &prev, start, tmp, behavior);
--		if (error)
--			goto out;
--		start = tmp;
--		if (prev && start < prev->vm_end)
--			start = prev->vm_end;
--		error = unmapped_error;
--		if (start >= end)
--			goto out;
--		if (prev)
--			vma = prev->vm_next;
--		else	/* madvise_remove dropped mmap_sem */
--			vma = find_vma(current->mm, start);
-+#ifdef CONFIG_MEMORY_FAILURE
-+	if (behavior == MADV_HWPOISON || behavior == MADV_SOFT_OFFLINE) {
-+		for (i = 0; i < nr_segs; i++) {
-+			start = (unsigned long)iov[i].iov_base;
-+			len = iov[i].iov_len;
-+			error = madvise_hwpoison(behavior, start, start + len);
-+			if (error)
-+				return error;
-+		}
-+		return 0;
- 	}
--out:
--	blk_finish_plug(&plug);
-+#endif
-+
-+	if (!madvise_behavior_valid(behavior))
-+		return -EINVAL;
-+
-+	for (i = 0; i < nr_segs; i++) {
-+		start = (unsigned long)iov[i].iov_base;
-+		/* Make sure iovs don't overlap and sorted */
-+		if (start & ~PAGE_MASK || start < end)
-+			return -EINVAL;
-+		len = ((iov[i].iov_len + ~PAGE_MASK) & PAGE_MASK);
-+
-+		/*
-+		 * Check to see whether len was rounded up from small -ve to
-+		 * zero
-+		 */
-+		if (iov[i].iov_len && !len)
-+			return -EINVAL;
-+
-+		end = start + len;
-+
-+		/*
-+		 * end == start returns error (different against madvise).
-+		 * return 0 is improper as there are other iovs
-+		 */
-+		if (end <= start)
-+			return -EINVAL;
-+
-+		iov[i].iov_len = len;
-+	}
-+
-+	write = madvise_need_mmap_write(behavior);
-+	if (write)
-+		down_write(&current->mm->mmap_sem);
-+	else
-+		down_read(&current->mm->mmap_sem);
-+
-+	if (behavior == MADV_DONTNEED || behavior == MADV_FREE) {
-+		lru_add_drain();
-+		tlb_gather_mmu(&tlb, current->mm,
-+			(unsigned long)iov[0].iov_base, end);
-+		update_hiwater_rss(current->mm);
-+		for (i = 0; i < nr_segs; i++) {
-+			start = (unsigned long)iov[i].iov_base;
-+			len = iov[i].iov_len;
-+
-+			error = madvise_iterate_vma(start, start + len,
-+				&unmapped_error, behavior, madvisev_vma, &tlb);
-+			if (error)
-+				break;
-+		}
-+		tlb_finish_mmu(&tlb, (unsigned long)iov[0].iov_base, end);
-+	} else {
-+		blk_start_plug(&plug);
-+		for (i = 0; i < nr_segs; i++) {
-+			start = (unsigned long)iov[i].iov_base;
-+			len = iov[i].iov_len;
-+
-+			error = madvise_iterate_vma(start, start + len,
-+				&unmapped_error, behavior, madvise_vma, NULL);
-+			if (error)
-+				break;
-+		}
-+		blk_finish_plug(&plug);
-+	}
-+	if (error == 0 && unmapped_error != 0)
-+		error = unmapped_error;
-+
- 	if (write)
- 		up_write(&current->mm->mmap_sem);
- 	else
- 		up_read(&current->mm->mmap_sem);
-+	return error;
-+}
-+
-+/*
-+ * The vector madvise(). Like madvise except running for a vector of virtual
-+ * address ranges
-+ */
-+SYSCALL_DEFINE3(madvisev, const struct iovec __user *, uvector,
-+	unsigned long, nr_segs, int, behavior)
-+{
-+	struct iovec iovstack[UIO_FASTIOV];
-+	struct iovec *iov = NULL;
-+	int error;
-+
-+	error = rw_copy_check_uvector(CHECK_IOVEC_ONLY, uvector, nr_segs,
-+			UIO_FASTIOV, iovstack, &iov);
-+	if (error <= 0)
-+		return error;
-+
-+	error = do_madvisev(iov, nr_segs, behavior);
- 
-+	if (iov != iovstack)
-+		kfree(iov);
- 	return error;
- }
-+
-+#ifdef CONFIG_COMPAT
-+COMPAT_SYSCALL_DEFINE3(madvisev, const struct compat_iovec __user *, uvector,
-+	compat_ulong_t, nr_segs, compat_int_t, behavior)
-+{
-+	struct iovec iovstack[UIO_FASTIOV];
-+	struct iovec *iov = NULL;
-+	int error;
-+
-+	error = compat_rw_copy_check_uvector(CHECK_IOVEC_ONLY, uvector, nr_segs,
-+			UIO_FASTIOV, iovstack, &iov);
-+	if (error <= 0)
-+		return error;
-+
-+	error = do_madvisev(iov, nr_segs, behavior);
-+
-+	if (iov != iovstack)
-+		kfree(iov);
-+	return error;
-+}
-+#endif
+ 	hugetlb_init_hstates();
+ 	gather_bootmem_prealloc();
 _
 
-Patches currently in -mm which might be from shli@fb.com are
+Patches currently in -mm which might be from vaishali.thakkar@oracle.com are
 
-mm-add-a-new-vector-based-madvise-syscall.patch
+mm-hugetlb-fix-incorrect-proc-nr_hugepages-value.patch
 
