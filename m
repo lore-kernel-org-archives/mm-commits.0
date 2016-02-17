@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + timer-convert-timer_slack_ns-from-unsigned-long-to-u64.patch
- added to -mm tree
-Date: Wed, 17 Feb 2016 11:37:48 -0800
-Message-ID: <56c4cc0c.kCKm5UeI70z4Rnxb%akpm@linux-foundation.org>
+Subject: + proc-add-proc-pid-timerslack_ns-interface.patch added to -mm
+ tree
+Date: Wed, 17 Feb 2016 11:37:51 -0800
+Message-ID: <56c4cc0f.NQjKSJiM+knhIuPB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46100 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46112 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030213AbcBQThu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Feb 2016 14:37:50 -0500
+	with ESMTP id S1030213AbcBQThw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 17 Feb 2016 14:37:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: john.stultz@linaro.org, arjan@linux.intel.com, kandoiruchi@google.com, keescook@chromium.org, kernel-team@android.com, orenl@cellrox.com, romlem@android.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: timer: convert timer_slack_ns from unsigned long to u64
+     Subject: proc: add /proc/<pid>/timerslack_ns interface
 has been added to the -mm tree.  Its filename is
-     timer-convert-timer_slack_ns-from-unsigned-long-to-u64.patch
+     proc-add-proc-pid-timerslack_ns-interface.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/timer-convert-timer_slack_ns-from-unsigned-long-to-u64.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-add-proc-pid-timerslack_ns-interface.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/timer-convert-timer_slack_ns-from-unsigned-long-to-u64.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-add-proc-pid-timerslack_ns-interface.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,58 +40,21 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: John Stultz <john.stultz@linaro.org>
-Subject: timer: convert timer_slack_ns from unsigned long to u64
+Subject: proc: add /proc/<pid>/timerslack_ns interface
 
-This patchset introduces a /proc/<pid>/timerslack_ns interface which would
-allow controlling processes to be able to set the timerslack value on
-other processes in order to save power by avoiding wakeups (Something
-Android currently does via out-of-tree patches).
+This patch provides a proc/PID/timerslack_ns interface which exposes a
+task's timerslack value in nanoseconds and allows it to be changed.
 
-The first patch tries to fix the internal timer_slack_ns usage which was
-defined as a long, which limits the slack range to ~4 seconds on 32bit
-systems.  It converts it to a u64, which provides the same basically
-unlimited slack (500 years) on both 32bit and 64bit machines.
+This allows power/performance management software to set timer slack for
+other threads according to its policy for the thread (such as when the
+thread is designated foreground vs.  background activity)
 
-The second patch introduces the /proc/<pid>/timerslack_ns interface which
-allows the full 64bit slack range for a task to be read or set on both
-32bit and 64bit machines.
+If the value written is non-zero, slack is set to that value.  Otherwise
+sets it to the default for the thread.
 
-With these two patches, on a 32bit machine, after setting the slack on
-bash to 10 seconds:
-
-$ time sleep 1
-
-real    0m10.747s
-user    0m0.001s
-sys     0m0.005s
-
-
-The first patch is a little ugly, since I had to chase the slack delta
-arguments through a number of functions converting them to u64s.  Let me
-know if it makes sense to break that up more or not.
-
-Other than that things are fairly straightforward.
-
-
-
-This patch (of 2):
-
-The timer_slack_ns value in the task struct is currently a unsigned long. 
-This means that on 32bit applications, the maximum slack is just over 4
-seconds.  However, on 64bit machines, its much much larger (~500 years).
-
-This disparity could make application development a little (as well as the
-default_slack) to a u64.  This means both 32bit and 64bit systems have the
-same effective internal slack range.
-
-Now the existing ABI via PR_GET_TIMERSLACK and PR_SET_TIMERSLACK specify
-the interface as a unsigned long, so we preserve that limitation on 32bit
-systems, where SET_TIMERSLACK can only set the slack to a unsigned long
-value, and GET_TIMERSLACK will return ULONG_MAX if the slack is actually
-larger then what can be stored by an unsigned long.
-
-This patch also modifies hrtimer functions which specified the slack delta
-as a unsigned long.
+This interface checks that the calling task has permissions to to use
+PTRACE_MODE_ATTACH_FSCREDS on the target task, so that we can ensure
+arbitrary apps do not change the timer slack for other apps.
 
 Signed-off-by: John Stultz <john.stultz@linaro.org>
 Cc: Arjan van de Ven <arjan@linux.intel.com>
@@ -104,215 +67,131 @@ Cc: Android Kernel Team <kernel-team@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/eventpoll.c          |    2 +-
- fs/select.c             |    8 ++++----
- include/linux/freezer.h |    2 +-
- include/linux/hrtimer.h |   12 +++++++-----
- include/linux/poll.h    |    2 +-
- include/linux/sched.h   |    4 ++--
- kernel/sys.c            |    5 ++++-
- kernel/time/hrtimer.c   |    8 ++++----
- kernel/time/timer.c     |    4 ++--
- 9 files changed, 26 insertions(+), 21 deletions(-)
+ Documentation/filesystems/proc.txt |   18 +++++++
+ fs/proc/base.c                     |   69 +++++++++++++++++++++++++++
+ 2 files changed, 87 insertions(+)
 
-diff -puN fs/eventpoll.c~timer-convert-timer_slack_ns-from-unsigned-long-to-u64 fs/eventpoll.c
---- a/fs/eventpoll.c~timer-convert-timer_slack_ns-from-unsigned-long-to-u64
-+++ a/fs/eventpoll.c
-@@ -1616,7 +1616,7 @@ static int ep_poll(struct eventpoll *ep,
- {
- 	int res = 0, eavail, timed_out = 0;
- 	unsigned long flags;
--	long slack = 0;
-+	u64 slack = 0;
- 	wait_queue_t wait;
- 	ktime_t expires, *to = NULL;
+diff -puN Documentation/filesystems/proc.txt~proc-add-proc-pid-timerslack_ns-interface Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~proc-add-proc-pid-timerslack_ns-interface
++++ a/Documentation/filesystems/proc.txt
+@@ -43,6 +43,7 @@ Table of Contents
+   3.7   /proc/<pid>/task/<tid>/children - Information about task children
+   3.8   /proc/<pid>/fdinfo/<fd> - Information about opened file
+   3.9   /proc/<pid>/map_files - Information about memory mapped files
++  3.10  /proc/<pid>/timerslack_ns - Task timerslack value
  
-diff -puN fs/select.c~timer-convert-timer_slack_ns-from-unsigned-long-to-u64 fs/select.c
---- a/fs/select.c~timer-convert-timer_slack_ns-from-unsigned-long-to-u64
-+++ a/fs/select.c
-@@ -70,9 +70,9 @@ static long __estimate_accuracy(struct t
- 	return slack;
- }
+   4	Configuring procfs
+   4.1	Mount options
+@@ -1862,6 +1863,23 @@ time one can open(2) mappings from the l
+ comparing their inode numbers to figure out which anonymous memory areas
+ are actually shared.
  
--long select_estimate_accuracy(struct timespec *tv)
-+u64 select_estimate_accuracy(struct timespec *tv)
- {
--	unsigned long ret;
-+	u64 ret;
- 	struct timespec now;
++3.10	/proc/<pid>/timerslack_ns - Task timerslack value
++---------------------------------------------------------
++This file provides the value of the task's timerslack value in nanoseconds.
++This value specifies a amount of time that normal timers may be deferred
++in order to coalesce timers and avoid unnecessary wakeups.
++
++This allows a task's interactivity vs power consumption trade off to be
++adjusted.
++
++Writing 0 to the file will set the tasks timerslack to the default value.
++
++Valid values are from 0 - ULLONG_MAX
++
++An application setting the value must have PTRACE_MODE_ATTACH_FSCREDS level
++permissions on the task specified to change its timerslack_ns value.
++
++
+ ------------------------------------------------------------------------------
+ Configuring procfs
+ ------------------------------------------------------------------------------
+diff -puN fs/proc/base.c~proc-add-proc-pid-timerslack_ns-interface fs/proc/base.c
+--- a/fs/proc/base.c~proc-add-proc-pid-timerslack_ns-interface
++++ a/fs/proc/base.c
+@@ -2257,6 +2257,74 @@ static const struct file_operations proc
+ 	.release	= seq_release_private,
+ };
  
- 	/*
-@@ -402,7 +402,7 @@ int do_select(int n, fd_set_bits *fds, s
- 	struct poll_wqueues table;
- 	poll_table *wait;
- 	int retval, i, timed_out = 0;
--	unsigned long slack = 0;
-+	u64 slack = 0;
- 	unsigned int busy_flag = net_busy_loop_on() ? POLL_BUSY_LOOP : 0;
- 	unsigned long busy_end = 0;
- 
-@@ -784,7 +784,7 @@ static int do_poll(struct poll_list *lis
- 	poll_table* pt = &wait->pt;
- 	ktime_t expire, *to = NULL;
- 	int timed_out = 0, count = 0;
--	unsigned long slack = 0;
-+	u64 slack = 0;
- 	unsigned int busy_flag = net_busy_loop_on() ? POLL_BUSY_LOOP : 0;
- 	unsigned long busy_end = 0;
- 
-diff -puN include/linux/freezer.h~timer-convert-timer_slack_ns-from-unsigned-long-to-u64 include/linux/freezer.h
---- a/include/linux/freezer.h~timer-convert-timer_slack_ns-from-unsigned-long-to-u64
-+++ a/include/linux/freezer.h
-@@ -231,7 +231,7 @@ static inline long freezable_schedule_ti
-  * call this with locks held.
-  */
- static inline int freezable_schedule_hrtimeout_range(ktime_t *expires,
--		unsigned long delta, const enum hrtimer_mode mode)
-+		u64 delta, const enum hrtimer_mode mode)
- {
- 	int __retval;
- 	freezer_do_not_count();
-diff -puN include/linux/hrtimer.h~timer-convert-timer_slack_ns-from-unsigned-long-to-u64 include/linux/hrtimer.h
---- a/include/linux/hrtimer.h~timer-convert-timer_slack_ns-from-unsigned-long-to-u64
-+++ a/include/linux/hrtimer.h
-@@ -220,7 +220,7 @@ static inline void hrtimer_set_expires_r
- 	timer->node.expires = ktime_add_safe(time, delta);
- }
- 
--static inline void hrtimer_set_expires_range_ns(struct hrtimer *timer, ktime_t time, unsigned long delta)
-+static inline void hrtimer_set_expires_range_ns(struct hrtimer *timer, ktime_t time, u64 delta)
- {
- 	timer->_softexpires = time;
- 	timer->node.expires = ktime_add_safe(time, ns_to_ktime(delta));
-@@ -378,7 +378,7 @@ static inline void destroy_hrtimer_on_st
- 
- /* Basic timer operations: */
- extern void hrtimer_start_range_ns(struct hrtimer *timer, ktime_t tim,
--			unsigned long range_ns, const enum hrtimer_mode mode);
-+				   u64 range_ns, const enum hrtimer_mode mode);
- 
- /**
-  * hrtimer_start - (re)start an hrtimer on the current CPU
-@@ -399,7 +399,7 @@ extern int hrtimer_try_to_cancel(struct
- static inline void hrtimer_start_expires(struct hrtimer *timer,
- 					 enum hrtimer_mode mode)
- {
--	unsigned long delta;
-+	u64 delta;
- 	ktime_t soft, hard;
- 	soft = hrtimer_get_softexpires(timer);
- 	hard = hrtimer_get_expires(timer);
-@@ -477,10 +477,12 @@ extern long hrtimer_nanosleep_restart(st
- extern void hrtimer_init_sleeper(struct hrtimer_sleeper *sl,
- 				 struct task_struct *tsk);
- 
--extern int schedule_hrtimeout_range(ktime_t *expires, unsigned long delta,
-+extern int schedule_hrtimeout_range(ktime_t *expires, u64 delta,
- 						const enum hrtimer_mode mode);
- extern int schedule_hrtimeout_range_clock(ktime_t *expires,
--		unsigned long delta, const enum hrtimer_mode mode, int clock);
-+					  u64 delta,
-+					  const enum hrtimer_mode mode,
-+					  int clock);
- extern int schedule_hrtimeout(ktime_t *expires, const enum hrtimer_mode mode);
- 
- /* Soft interrupt function to run the hrtimer queues: */
-diff -puN include/linux/poll.h~timer-convert-timer_slack_ns-from-unsigned-long-to-u64 include/linux/poll.h
---- a/include/linux/poll.h~timer-convert-timer_slack_ns-from-unsigned-long-to-u64
-+++ a/include/linux/poll.h
-@@ -96,7 +96,7 @@ extern void poll_initwait(struct poll_wq
- extern void poll_freewait(struct poll_wqueues *pwq);
- extern int poll_schedule_timeout(struct poll_wqueues *pwq, int state,
- 				 ktime_t *expires, unsigned long slack);
--extern long select_estimate_accuracy(struct timespec *tv);
-+extern u64 select_estimate_accuracy(struct timespec *tv);
- 
- 
- static inline int poll_schedule(struct poll_wqueues *pwq, int state)
-diff -puN include/linux/sched.h~timer-convert-timer_slack_ns-from-unsigned-long-to-u64 include/linux/sched.h
---- a/include/linux/sched.h~timer-convert-timer_slack_ns-from-unsigned-long-to-u64
-+++ a/include/linux/sched.h
-@@ -1785,8 +1785,8 @@ struct task_struct {
- 	 * time slack values; these are used to round up poll() and
- 	 * select() etc timeout values. These are in nanoseconds.
- 	 */
--	unsigned long timer_slack_ns;
--	unsigned long default_timer_slack_ns;
-+	u64 timer_slack_ns;
-+	u64 default_timer_slack_ns;
- 
- #ifdef CONFIG_KASAN
- 	unsigned int kasan_depth;
-diff -puN kernel/sys.c~timer-convert-timer_slack_ns-from-unsigned-long-to-u64 kernel/sys.c
---- a/kernel/sys.c~timer-convert-timer_slack_ns-from-unsigned-long-to-u64
-+++ a/kernel/sys.c
-@@ -2169,7 +2169,10 @@ SYSCALL_DEFINE5(prctl, int, option, unsi
- 		error = perf_event_task_enable();
- 		break;
- 	case PR_GET_TIMERSLACK:
--		error = current->timer_slack_ns;
-+		if (current->timer_slack_ns > ULONG_MAX)
-+			error = ULONG_MAX;
++static ssize_t timerslack_ns_write(struct file *file, const char __user *buf,
++					size_t count, loff_t *offset)
++{
++	struct inode *inode = file_inode(file);
++	struct task_struct *p;
++	char buffer[PROC_NUMBUF];
++	u64 slack_ns;
++	int err;
++
++	memset(buffer, 0, sizeof(buffer));
++	if (count > sizeof(buffer) - 1)
++		count = sizeof(buffer) - 1;
++
++	if (copy_from_user(buffer, buf, count))
++		return -EFAULT;
++
++	err = kstrtoull(strstrip(buffer), 10, &slack_ns);
++	if (err < 0)
++		return err;
++
++	p = get_proc_task(inode);
++	if (!p)
++		return -ESRCH;
++
++	if (ptrace_may_access(p, PTRACE_MODE_ATTACH_FSCREDS)) {
++		if (slack_ns == 0)
++			p->timer_slack_ns = p->default_timer_slack_ns;
 +		else
-+			error = current->timer_slack_ns;
- 		break;
- 	case PR_SET_TIMERSLACK:
- 		if (arg2 <= 0)
-diff -puN kernel/time/hrtimer.c~timer-convert-timer_slack_ns-from-unsigned-long-to-u64 kernel/time/hrtimer.c
---- a/kernel/time/hrtimer.c~timer-convert-timer_slack_ns-from-unsigned-long-to-u64
-+++ a/kernel/time/hrtimer.c
-@@ -979,7 +979,7 @@ static inline ktime_t hrtimer_update_low
-  *		relative (HRTIMER_MODE_REL)
-  */
- void hrtimer_start_range_ns(struct hrtimer *timer, ktime_t tim,
--			    unsigned long delta_ns, const enum hrtimer_mode mode)
-+			    u64 delta_ns, const enum hrtimer_mode mode)
++			p->timer_slack_ns = slack_ns;
++	} else
++		count = -EINVAL;
++
++	put_task_struct(p);
++
++	return count;
++}
++
++static int timerslack_ns_show(struct seq_file *m, void *v)
++{
++	struct inode *inode = m->private;
++	struct task_struct *p;
++
++	p = get_proc_task(inode);
++	if (!p)
++		return -ESRCH;
++
++	task_lock(p);
++	seq_printf(m, "%llu\n", p->timer_slack_ns);
++	task_unlock(p);
++
++	put_task_struct(p);
++
++	return 0;
++}
++
++static int timerslack_ns_open(struct inode *inode, struct file *filp)
++{
++	return single_open(filp, timerslack_ns_show, inode);
++}
++
++static const struct file_operations proc_pid_set_timerslack_ns_operations = {
++	.open		= timerslack_ns_open,
++	.read		= seq_read,
++	.write		= timerslack_ns_write,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
+ static int proc_pident_instantiate(struct inode *dir,
+ 	struct dentry *dentry, struct task_struct *task, const void *ptr)
  {
- 	struct hrtimer_clock_base *base, *new_base;
- 	unsigned long flags;
-@@ -1548,7 +1548,7 @@ long hrtimer_nanosleep(struct timespec *
- 	struct restart_block *restart;
- 	struct hrtimer_sleeper t;
- 	int ret = 0;
--	unsigned long slack;
-+	u64 slack;
+@@ -2831,6 +2899,7 @@ static const struct pid_entry tgid_base_
+ #ifdef CONFIG_CHECKPOINT_RESTORE
+ 	REG("timers",	  S_IRUGO, proc_timers_operations),
+ #endif
++	REG("timerslack_ns", S_IRUGO|S_IWUSR, proc_pid_set_timerslack_ns_operations),
+ };
  
- 	slack = current->timer_slack_ns;
- 	if (dl_task(current) || rt_task(current))
-@@ -1724,7 +1724,7 @@ void __init hrtimers_init(void)
-  * @clock:	timer clock, CLOCK_MONOTONIC or CLOCK_REALTIME
-  */
- int __sched
--schedule_hrtimeout_range_clock(ktime_t *expires, unsigned long delta,
-+schedule_hrtimeout_range_clock(ktime_t *expires, u64 delta,
- 			       const enum hrtimer_mode mode, int clock)
- {
- 	struct hrtimer_sleeper t;
-@@ -1792,7 +1792,7 @@ schedule_hrtimeout_range_clock(ktime_t *
-  *
-  * Returns 0 when the timer has expired otherwise -EINTR
-  */
--int __sched schedule_hrtimeout_range(ktime_t *expires, unsigned long delta,
-+int __sched schedule_hrtimeout_range(ktime_t *expires, u64 delta,
- 				     const enum hrtimer_mode mode)
- {
- 	return schedule_hrtimeout_range_clock(expires, delta, mode,
-diff -puN kernel/time/timer.c~timer-convert-timer_slack_ns-from-unsigned-long-to-u64 kernel/time/timer.c
---- a/kernel/time/timer.c~timer-convert-timer_slack_ns-from-unsigned-long-to-u64
-+++ a/kernel/time/timer.c
-@@ -1709,10 +1709,10 @@ EXPORT_SYMBOL(msleep_interruptible);
- static void __sched do_usleep_range(unsigned long min, unsigned long max)
- {
- 	ktime_t kmin;
--	unsigned long delta;
-+	u64 delta;
- 
- 	kmin = ktime_set(0, min * NSEC_PER_USEC);
--	delta = (max - min) * NSEC_PER_USEC;
-+	delta = (u64)(max - min) * NSEC_PER_USEC;
- 	schedule_hrtimeout_range(&kmin, delta, HRTIMER_MODE_REL);
- }
- 
+ static int proc_tgid_base_readdir(struct file *file, struct dir_context *ctx)
 _
 
 Patches currently in -mm which might be from john.stultz@linaro.org are
