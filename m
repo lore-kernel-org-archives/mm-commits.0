@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task.patch added
- to -mm tree
-Date: Fri, 19 Feb 2016 12:18:26 -0800
-Message-ID: <56c77892.UFIQSKaj7sXk0zsu%akpm@linux-foundation.org>
+Subject: + proc-add-proc-pid-timerslack_ns-interface-fix.patch added to
+ -mm tree
+Date: Fri, 19 Feb 2016 12:33:36 -0800
+Message-ID: <56c77c20.arAhLfWKtmgdvogA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41786 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42961 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S2993551AbcBSUS1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Feb 2016 15:18:27 -0500
+	with ESMTP id S1426202AbcBSUdh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 19 Feb 2016 15:33:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, hughd@google.com, mgorman@techsingularity.net, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: john.stultz@linaro.org, arjan@linux.intel.com, kandoiruchi@google.com, keescook@chromium.org, kernel-team@android.com, orenl@cellrox.com, romlem@android.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom, oom_reaper: disable oom_reaper for oom_kill_allocating_task
+     Subject: proc: /proc/<pid>/timerslack_ns permissions fixes
 has been added to the -mm tree.  Its filename is
-     oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task.patch
+     proc-add-proc-pid-timerslack_ns-interface-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/proc-add-proc-pid-timerslack_ns-interface-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/proc-add-proc-pid-timerslack_ns-interface-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,82 +39,118 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: oom, oom_reaper: disable oom_reaper for oom_kill_allocating_task
+From: John Stultz <john.stultz@linaro.org>
+Subject: proc: /proc/<pid>/timerslack_ns permissions fixes
 
-Tetsuo has reported that oom_kill_allocating_task=1 will cause
-oom_reaper_list corruption because oom_kill_process doesn't follow
-standard OOM exclusion (aka ignores TIF_MEMDIE) and allows to enqueue
-the same task multiple times - e.g. by sacrificing the same child
-multiple times.
+This patch adjusts the timerslack_ns file permissions to be 0666 but
+requires PTRACE_MODE_ATTACH_FSCREDS to read or write the value.
 
-This patch fixes the issue by introducing a new MMF_OOM_KILLED mm flag
-which is set in oom_kill_process atomically and oom reaper is disabled
-if the flag was already set.
+This allows tasks with sufficient privledges (CAP_SYS_PTRACE) to be able
+to modify a the timerslack for proccesses owned by a different user.
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Rik van Riel <riel@redhat.com>
+This patch also fixes a return value from EINVAL to EPERM, and does task
+locking consistently, given we're handling u64s on 32bit systems.  It also
+makes use of kstrtoull_from_user which simplifies some code.
+
+I've also wired up the Android userspace side to use this interface, and
+tested it there, and things seem to be working properly ( - with some
+selinux noise, I still need to figure out the selinux policy changes, but
+its working with permissive mode).
+
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Oren Laadan <orenl@cellrox.com>
+Cc: Ruchi Kandoi <kandoiruchi@google.com>
+Cc: Rom Lemarchand <romlem@android.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Android Kernel Team <kernel-team@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 ++
- mm/oom_kill.c         |    6 +++++-
- 2 files changed, 7 insertions(+), 1 deletion(-)
+ fs/proc/base.c |   28 +++++++++++++---------------
+ 1 file changed, 13 insertions(+), 15 deletions(-)
 
-diff -puN include/linux/sched.h~oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task include/linux/sched.h
---- a/include/linux/sched.h~oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task
-+++ a/include/linux/sched.h
-@@ -513,6 +513,8 @@ static inline int get_dumpable(struct mm
- #define MMF_HAS_UPROBES		19	/* has uprobes */
- #define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
+diff -puN fs/proc/base.c~proc-add-proc-pid-timerslack_ns-interface-fix fs/proc/base.c
+--- a/fs/proc/base.c~proc-add-proc-pid-timerslack_ns-interface-fix
++++ a/fs/proc/base.c
+@@ -2262,18 +2262,10 @@ static ssize_t timerslack_ns_write(struc
+ {
+ 	struct inode *inode = file_inode(file);
+ 	struct task_struct *p;
+-	char buffer[PROC_NUMBUF];
+ 	u64 slack_ns;
+ 	int err;
  
-+#define MMF_OOM_KILLED		21	/* OOM killer has chosen this mm */
-+
- #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
+-	memset(buffer, 0, sizeof(buffer));
+-	if (count > sizeof(buffer) - 1)
+-		count = sizeof(buffer) - 1;
+-
+-	if (copy_from_user(buffer, buf, count))
+-		return -EFAULT;
+-
+-	err = kstrtoull(strstrip(buffer), 10, &slack_ns);
++	err = kstrtoull_from_user(buf, count, 10, &slack_ns);
+ 	if (err < 0)
+ 		return err;
  
- struct sighand_struct {
-diff -puN mm/oom_kill.c~oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task mm/oom_kill.c
---- a/mm/oom_kill.c~oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task
-+++ a/mm/oom_kill.c
-@@ -686,7 +686,7 @@ void oom_kill_process(struct oom_control
- 	unsigned int victim_points = 0;
- 	static DEFINE_RATELIMIT_STATE(oom_rs, DEFAULT_RATELIMIT_INTERVAL,
- 					      DEFAULT_RATELIMIT_BURST);
--	bool can_oom_reap = true;
-+	bool can_oom_reap;
+@@ -2282,12 +2274,14 @@ static ssize_t timerslack_ns_write(struc
+ 		return -ESRCH;
  
- 	/*
- 	 * If the task is already exiting, don't alarm the sysadmin or kill
-@@ -748,6 +748,10 @@ void oom_kill_process(struct oom_control
- 	/* Get a reference to safely compare mm after task_unlock(victim) */
- 	mm = victim->mm;
- 	atomic_inc(&mm->mm_count);
-+
-+	/* Make sure we do not try to oom reap the mm multiple times */
-+	can_oom_reap = !test_and_set_bit(MMF_OOM_KILLED, &mm->flags);
-+
- 	/*
- 	 * We should send SIGKILL before setting TIF_MEMDIE in order to prevent
- 	 * the OOM victim from depleting the memory reserves from the user
+ 	if (ptrace_may_access(p, PTRACE_MODE_ATTACH_FSCREDS)) {
++		task_lock(p);
+ 		if (slack_ns == 0)
+ 			p->timer_slack_ns = p->default_timer_slack_ns;
+ 		else
+ 			p->timer_slack_ns = slack_ns;
++		task_unlock(p);
+ 	} else
+-		count = -EINVAL;
++		count = -EPERM;
+ 
+ 	put_task_struct(p);
+ 
+@@ -2298,18 +2292,22 @@ static int timerslack_ns_show(struct seq
+ {
+ 	struct inode *inode = m->private;
+ 	struct task_struct *p;
++	int err =  0;
+ 
+ 	p = get_proc_task(inode);
+ 	if (!p)
+ 		return -ESRCH;
+ 
+-	task_lock(p);
+-	seq_printf(m, "%llu\n", p->timer_slack_ns);
+-	task_unlock(p);
++	if (ptrace_may_access(p, PTRACE_MODE_ATTACH_FSCREDS)) {
++		task_lock(p);
++		seq_printf(m, "%llu\n", p->timer_slack_ns);
++		task_unlock(p);
++	} else
++		err = -EPERM;
+ 
+ 	put_task_struct(p);
+ 
+-	return 0;
++	return err;
+ }
+ 
+ static int timerslack_ns_open(struct inode *inode, struct file *filp)
+@@ -2899,7 +2897,7 @@ static const struct pid_entry tgid_base_
+ #ifdef CONFIG_CHECKPOINT_RESTORE
+ 	REG("timers",	  S_IRUGO, proc_timers_operations),
+ #endif
+-	REG("timerslack_ns", S_IRUGO|S_IWUSR, proc_pid_set_timerslack_ns_operations),
++	REG("timerslack_ns", S_IRUGO|S_IWUGO, proc_pid_set_timerslack_ns_operations),
+ };
+ 
+ static int proc_tgid_base_readdir(struct file *file, struct dir_context *ctx)
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from john.stultz@linaro.org are
 
-mm-vmscan-make-zone_reclaimable_pages-more-precise.patch
-mm-oom-introduce-oom-reaper.patch
-oom-reaper-handle-mlocked-pages.patch
-oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
-mm-oom_reaper-report-success-failure.patch
-mm-oom_reaper-report-success-failure-fix-2.patch
-mm-oom_reaper-implement-oom-victims-queuing.patch
-oom-make-oom_reaper-freezable.patch
-oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
+timer-convert-timer_slack_ns-from-unsigned-long-to-u64.patch
+proc-add-proc-pid-timerslack_ns-interface.patch
+proc-add-proc-pid-timerslack_ns-interface-fix.patch
 
