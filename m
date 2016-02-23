@@ -1,142 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fsnotify-turn-fsnotify-reaper-thread-into-a-workqueue-job.patch removed
- from -mm tree
-Date: Tue, 23 Feb 2016 12:49:43 -0800
-Message-ID: <56ccc5e7.G7zm+BWshVs2ugQi%akpm@linux-foundation.org>
+Subject: [merged] mm-fix-regression-in-remap_file_pages-emulation.patch
+ removed from -mm tree
+Date: Tue, 23 Feb 2016 12:49:38 -0800
+Message-ID: <56ccc5e2.Q0OgZ5RbE6Uhd8ZI%akpm__45339.7570913241$1456260593$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53254 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53242 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755013AbcBWUto (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Feb 2016 15:49:44 -0500
+	with ESMTP id S1752579AbcBWUtj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Feb 2016 15:49:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jlayton@poochiereds.net, eparis@parisplace.org, guaneryu@gmail.com, jack@suse.cz, jeff.layton@primarydata.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, notasas@gmail.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fsnotify: turn fsnotify reaper thread into a workqueue job
+     Subject: mm: fix regression in remap_file_pages() emulation
 has been removed from the -mm tree.  Its filename was
-     fsnotify-turn-fsnotify-reaper-thread-into-a-workqueue-job.patch
+     mm-fix-regression-in-remap_file_pages-emulation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jeff Layton <jlayton@poochiereds.net>
-Subject: fsnotify: turn fsnotify reaper thread into a workqueue job
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: mm: fix regression in remap_file_pages() emulation
 
-We don't require a dedicated thread for fsnotify cleanup.  Switch it over
-to a workqueue job instead that runs on the system_unbound_wq.
+Grazvydas Ignotas has reported a regression in remap_file_pages()
+emulation.
 
-In the interest of not thrashing the queued job too often when there are a
-lot of marks being removed, we delay the reaper job slightly when queueing
-it, to allow several to gather on the list.
+Testcase:
+	#define _GNU_SOURCE
+	#include <assert.h>
+	#include <stdlib.h>
+	#include <stdio.h>
+	#include <sys/mman.h>
 
-Signed-off-by: Jeff Layton <jeff.layton@primarydata.com>
-Tested-by: Eryu Guan <guaneryu@gmail.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Eric Paris <eparis@parisplace.org>
+	#define SIZE    (4096 * 3)
+
+	int main(int argc, char **argv)
+	{
+		unsigned long *p;
+		long i;
+
+		p = mmap(NULL, SIZE, PROT_READ | PROT_WRITE,
+				MAP_SHARED | MAP_ANONYMOUS, -1, 0);
+		if (p == MAP_FAILED) {
+			perror("mmap");
+			return -1;
+		}
+
+		for (i = 0; i < SIZE / 4096; i++)
+			p[i * 4096 / sizeof(*p)] = i;
+
+		if (remap_file_pages(p, 4096, 0, 1, 0)) {
+			perror("remap_file_pages");
+			return -1;
+		}
+
+		if (remap_file_pages(p, 4096 * 2, 0, 1, 0)) {
+			perror("remap_file_pages");
+			return -1;
+		}
+
+		assert(p[0] == 1);
+
+		munmap(p, SIZE);
+
+		return 0;
+	}
+
+The second remap_file_pages() fails with -EINVAL.
+
+The reason is that remap_file_pages() emulation assumes that the target
+vma covers whole area we want to over map.  That assumption is broken by
+first remap_file_pages() call: it split the area into two vma.
+
+The solution is to check next adjacent vmas, if they map the same file
+with the same flags.
+
+Fixes: c8d78c1823f4 ("mm: replace remap_file_pages() syscall with emulation")
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Reported-by: Grazvydas Ignotas <notasas@gmail.com>
+Tested-by: Grazvydas Ignotas <notasas@gmail.com>
+Cc: <stable@vger.kernel.org>	[4.0+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/notify/mark.c |   51 ++++++++++++++++-----------------------------
- 1 file changed, 19 insertions(+), 32 deletions(-)
+ mm/mmap.c |   34 +++++++++++++++++++++++++++++-----
+ 1 file changed, 29 insertions(+), 5 deletions(-)
 
-diff -puN fs/notify/mark.c~fsnotify-turn-fsnotify-reaper-thread-into-a-workqueue-job fs/notify/mark.c
---- a/fs/notify/mark.c~fsnotify-turn-fsnotify-reaper-thread-into-a-workqueue-job
-+++ a/fs/notify/mark.c
-@@ -91,10 +91,14 @@
- #include <linux/fsnotify_backend.h>
- #include "fsnotify.h"
+diff -puN mm/mmap.c~mm-fix-regression-in-remap_file_pages-emulation mm/mmap.c
+--- a/mm/mmap.c~mm-fix-regression-in-remap_file_pages-emulation
++++ a/mm/mmap.c
+@@ -2664,12 +2664,29 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 	if (!vma || !(vma->vm_flags & VM_SHARED))
+ 		goto out;
  
-+#define FSNOTIFY_REAPER_DELAY	(1)	/* 1 jiffy */
+-	if (start < vma->vm_start || start + size > vma->vm_end)
++	if (start < vma->vm_start)
+ 		goto out;
+ 
+-	if (pgoff == linear_page_index(vma, start)) {
+-		ret = 0;
+-		goto out;
++	if (start + size > vma->vm_end) {
++		struct vm_area_struct *next;
 +
- struct srcu_struct fsnotify_mark_srcu;
- static DEFINE_SPINLOCK(destroy_lock);
- static LIST_HEAD(destroy_list);
--static DECLARE_WAIT_QUEUE_HEAD(destroy_waitq);
++		for (next = vma->vm_next; next; next = next->vm_next) {
++			/* hole between vmas ? */
++			if (next->vm_start != next->vm_prev->vm_end)
++				goto out;
 +
-+static void fsnotify_mark_destroy(struct work_struct *work);
-+static DECLARE_DELAYED_WORK(reaper_work, fsnotify_mark_destroy);
++			if (next->vm_file != vma->vm_file)
++				goto out;
++
++			if (next->vm_flags != vma->vm_flags)
++				goto out;
++
++			if (start + size <= next->vm_end)
++				break;
++		}
++
++		if (!next)
++			goto out;
+ 	}
  
- void fsnotify_get_mark(struct fsnotify_mark *mark)
- {
-@@ -189,7 +193,8 @@ void fsnotify_free_mark(struct fsnotify_
- 	spin_lock(&destroy_lock);
- 	list_add(&mark->g_list, &destroy_list);
- 	spin_unlock(&destroy_lock);
--	wake_up(&destroy_waitq);
-+	queue_delayed_work(system_unbound_wq, &reaper_work,
-+				FSNOTIFY_REAPER_DELAY);
+ 	prot |= vma->vm_flags & VM_READ ? PROT_READ : 0;
+@@ -2679,9 +2696,16 @@ SYSCALL_DEFINE5(remap_file_pages, unsign
+ 	flags &= MAP_NONBLOCK;
+ 	flags |= MAP_SHARED | MAP_FIXED | MAP_POPULATE;
+ 	if (vma->vm_flags & VM_LOCKED) {
++		struct vm_area_struct *tmp;
+ 		flags |= MAP_LOCKED;
++
+ 		/* drop PG_Mlocked flag for over-mapped range */
+-		munlock_vma_pages_range(vma, start, start + size);
++		for (tmp = vma; tmp->vm_start >= start + size;
++				tmp = tmp->vm_next) {
++			munlock_vma_pages_range(tmp,
++					max(tmp->vm_start, start),
++					min(tmp->vm_end, start + size));
++		}
+ 	}
  
- 	/*
- 	 * Some groups like to know that marks are being freed.  This is a
-@@ -388,7 +393,8 @@ err:
- 	spin_lock(&destroy_lock);
- 	list_add(&mark->g_list, &destroy_list);
- 	spin_unlock(&destroy_lock);
--	wake_up(&destroy_waitq);
-+	queue_delayed_work(system_unbound_wq, &reaper_work,
-+				FSNOTIFY_REAPER_DELAY);
- 
- 	return ret;
- }
-@@ -493,39 +499,20 @@ void fsnotify_init_mark(struct fsnotify_
- 	mark->free_mark = free_mark;
- }
- 
--static int fsnotify_mark_destroy(void *ignored)
-+static void fsnotify_mark_destroy(struct work_struct *work)
- {
- 	struct fsnotify_mark *mark, *next;
- 	struct list_head private_destroy_list;
- 
--	for (;;) {
--		spin_lock(&destroy_lock);
--		/* exchange the list head */
--		list_replace_init(&destroy_list, &private_destroy_list);
--		spin_unlock(&destroy_lock);
--
--		synchronize_srcu(&fsnotify_mark_srcu);
--
--		list_for_each_entry_safe(mark, next, &private_destroy_list, g_list) {
--			list_del_init(&mark->g_list);
--			fsnotify_put_mark(mark);
--		}
--
--		wait_event_interruptible(destroy_waitq, !list_empty(&destroy_list));
--	}
--
--	return 0;
--}
--
--static int __init fsnotify_mark_init(void)
--{
--	struct task_struct *thread;
-+	spin_lock(&destroy_lock);
-+	/* exchange the list head */
-+	list_replace_init(&destroy_list, &private_destroy_list);
-+	spin_unlock(&destroy_lock);
- 
--	thread = kthread_run(fsnotify_mark_destroy, NULL,
--			     "fsnotify_mark");
--	if (IS_ERR(thread))
--		panic("unable to start fsnotify mark destruction thread.");
-+	synchronize_srcu(&fsnotify_mark_srcu);
- 
--	return 0;
-+	list_for_each_entry_safe(mark, next, &private_destroy_list, g_list) {
-+		list_del_init(&mark->g_list);
-+		fsnotify_put_mark(mark);
-+	}
- }
--device_initcall(fsnotify_mark_init);
+ 	file = get_file(vma->vm_file);
 _
 
-Patches currently in -mm which might be from jlayton@poochiereds.net are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
+thp-cleanup-split_huge_page.patch
+thp-vmstats-count-deferred-split-events.patch
+mm-tracing-refresh-__def_vmaflag_names.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
 
