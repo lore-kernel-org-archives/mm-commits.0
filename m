@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + cpumask-remove-incorrect-information-from-comment.patch added
- to -mm tree
-Date: Tue, 23 Feb 2016 16:27:04 -0800
-Message-ID: <56ccf8d8.++OqOiAN/UhgKRuh%akpm@linux-foundation.org>
+Subject: + kfifo-fix-sparse-complains.patch added to -mm tree
+Date: Tue, 23 Feb 2016 16:27:54 -0800
+Message-ID: <56ccf90a.mulG2z/Z+w6UKV9s%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37731 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37751 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753232AbcBXA1E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Feb 2016 19:27:04 -0500
+	with ESMTP id S1753131AbcBXA1y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 23 Feb 2016 19:27:54 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ebiggers3@gmail.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: stefani@seibold.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: cpumask: remove incorrect information from comment
+     Subject: kfifo: fix sparse complaints
 has been added to the -mm tree.  Its filename is
-     cpumask-remove-incorrect-information-from-comment.patch
+     kfifo-fix-sparse-complains.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/cpumask-remove-incorrect-information-from-comment.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kfifo-fix-sparse-complains.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/cpumask-remove-incorrect-information-from-comment.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kfifo-fix-sparse-complains.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,35 +38,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Eric Biggers <ebiggers3@gmail.com>
-Subject: cpumask: remove incorrect information from comment
+From: Stefani Seibold <stefani@seibold.net>
+Subject: kfifo: fix sparse complaints
 
-Since commit cdfdef75e795f ("cpumask: only allocate nr_cpumask_bits."),
-this comment above cpumask_size() is no longer relevant.
+This patch fix complaints by the sparse tool when using kfifo_put() with
+non scalar types like structures (i.e.  drivers/iio/industrialio-event.c).
 
-Signed-off-by: Eric Biggers <ebiggers3@gmail.com>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
+Casting a pointer to the value and read this pointer instead of directly
+casting the value will fix this.
+
+The generated code is equal.
+
+Signed-off-by: Stefani Seibold <stefani@seibold.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/cpumask.h |    2 --
- 1 file changed, 2 deletions(-)
+ include/linux/kfifo.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/cpumask.h~cpumask-remove-incorrect-information-from-comment include/linux/cpumask.h
---- a/include/linux/cpumask.h~cpumask-remove-incorrect-information-from-comment
-+++ a/include/linux/cpumask.h
-@@ -607,8 +607,6 @@ static inline int cpulist_parse(const ch
- 
- /**
-  * cpumask_size - size to allocate for a 'struct cpumask' in bytes
-- *
-- * This will eventually be a runtime variable, depending on nr_cpu_ids.
-  */
- static inline size_t cpumask_size(void)
- {
+diff -puN include/linux/kfifo.h~kfifo-fix-sparse-complains include/linux/kfifo.h
+--- a/include/linux/kfifo.h~kfifo-fix-sparse-complains
++++ a/include/linux/kfifo.h
+@@ -401,7 +401,7 @@ __kfifo_int_must_check_helper( \
+ 			((typeof(__tmp->type))__kfifo->data) : \
+ 			(__tmp->buf) \
+ 			)[__kfifo->in & __tmp->kfifo.mask] = \
+-				(typeof(*__tmp->type))__val; \
++				*(typeof(__tmp->type))&__val; \
+ 			smp_wmb(); \
+ 			__kfifo->in++; \
+ 		} \
 _
 
-Patches currently in -mm which might be from ebiggers3@gmail.com are
+Patches currently in -mm which might be from stefani@seibold.net are
 
-cpumask-remove-incorrect-information-from-comment.patch
+kfifo-fix-sparse-complains.patch
 
