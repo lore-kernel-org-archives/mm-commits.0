@@ -1,46 +1,39 @@
 From: akpm@linux-foundation.org
-Subject: [alternative-merged]
- mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs.patch removed from -mm
+Subject: [folded-merged]
+ mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs-v2.patch removed from -mm
  tree
-Date: Fri, 26 Feb 2016 12:14:24 -0800
-Message-ID: <56d0b220.ZG3HQbewVdpQybLu%akpm@linux-foundation.org>
+Date: Fri, 26 Feb 2016 12:18:22 -0800
+Message-ID: <56d0b30e.UJZlOuR1E3Bb14gq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55000 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55128 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753909AbcBZUOZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 26 Feb 2016 15:14:25 -0500
+	with ESMTP id S1754023AbcBZUSY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 26 Feb 2016 15:18:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kwapulinski.piotr@gmail.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, dan.j.williams@intel.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@suse.de, mm-commits@vger.kernel.org
+To: kwapulinski.piotr@gmail.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mprotect.c: don't imply PROT_EXEC on non-exec fs
+     Subject: mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs-v2
 has been removed from the -mm tree.  Its filename was
-     mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs.patch
+     mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs-v2.patch
 
-This patch was dropped because an alternative patch was merged
+This patch was dropped because it was folded into mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs.patch
 
 ------------------------------------------------------
 From: Piotr Kwapulinski <kwapulinski.piotr@gmail.com>
-Subject: mm/mprotect.c: don't imply PROT_EXEC on non-exec fs
+Subject: mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs-v2
 
-The mprotect(PROT_READ) fails when called by the READ_IMPLIES_EXEC binary
-on a memory mapped file located on non-exec fs.  The mprotect does not
-check whether fs is _executable_ or not.  The PROT_EXEC flag is set
-automatically even if a memory mapped file is located on non-exec fs.  Fix
-it by checking whether a memory mapped file is located on a non-exec fs. 
-If so the PROT_EXEC is not implied by the PROT_READ.  The implementation
-uses the VM_MAYEXEC flag set properly in mmap.  Now it is consistent with
-mmap.
-
-I did the isolated tests (PT_GNU_STACK X/NX, multiple VMAs, X/NX fs).  I
-also patched the official 3.19.0-47-generic Ubuntu 14.04 kernel and it
-seems to work.
+The difference between v1 is that the prot variable is reset to
+ reqprot for each loop iteration (thanks to Konstantin Khlebnikov for
+pointing this out).
+rier means "(current->personality & [R]EAD_[I]MPLIES_[E]XEC) &&
+(prot & PROT_[R]EAD)".
 
 Signed-off-by: Piotr Kwapulinski <kwapulinski.piotr@gmail.com>
 Cc: Mel Gorman <mgorman@suse.de>
@@ -49,35 +42,27 @@ Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
 Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ mm/mprotect.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/mprotect.c~mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs mm/mprotect.c
---- a/mm/mprotect.c~mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs
+diff -puN mm/mprotect.c~mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs-v2 mm/mprotect.c
+--- a/mm/mprotect.c~mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs-v2
 +++ a/mm/mprotect.c
-@@ -354,10 +354,12 @@ fail:
- SYSCALL_DEFINE3(mprotect, unsigned long, start, size_t, len,
- 		unsigned long, prot)
- {
--	unsigned long vm_flags, nstart, end, tmp, reqprot;
-+	unsigned long nstart, end, tmp, reqprot;
- 	struct vm_area_struct *vma, *prev;
- 	int error = -EINVAL;
- 	const int grows = prot & (PROT_GROWSDOWN|PROT_GROWSUP);
-+	const bool rier = (current->personality & READ_IMPLIES_EXEC) &&
-+				(prot & PROT_READ);
- 	prot &= ~(PROT_GROWSDOWN|PROT_GROWSUP);
- 	if (grows == (PROT_GROWSDOWN|PROT_GROWSUP)) /* can't be both */
- 		return -EINVAL;
-@@ -374,13 +376,6 @@ SYSCALL_DEFINE3(mprotect, unsigned long,
- 		return -EINVAL;
- 
- 	reqprot = prot;
--	/*
--	 * Does the application expect PROT_READ to imply PROT_EXEC:
--	 */
--	if ((prot & PROT_READ) && (current->personality & READ_IMPLIES_EXEC))
--		prot |= PROT_EXEC;
+@@ -447,6 +447,7 @@ SYSCALL_DEFINE3(mprotect, unsigned long,
+ 			error = -ENOMEM;
+ 			goto out;
+ 		}
++		prot = reqprot;
+ 	}
+ out:
+ 	up_write(&current->mm->mmap_sem);
+_
+
+Patches currently in -mm which might be from kwapulinski.piotr@gmail.com are
+
+mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs.patch
+
