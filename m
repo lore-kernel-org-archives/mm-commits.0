@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs.patch added to -mm tree
-Date: Fri, 26 Feb 2016 12:18:34 -0800
-Message-ID: <56d0b31a.A9DWUgQ39HiukHIP%akpm@linux-foundation.org>
+Subject: + staging-goldfish-use-6-arg-get_user_pages.patch added to -mm
+ tree
+Date: Fri, 26 Feb 2016 13:27:45 -0800
+Message-ID: <56d0c351.Tl8vteGqLxg5i7F2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55133 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58577 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754023AbcBZUSf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 26 Feb 2016 15:18:35 -0500
+	with ESMTP id S1751975AbcBZV1q (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 26 Feb 2016 16:27:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kwapulinski.piotr@gmail.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, dan.j.williams@intel.com, dave.hansen@linux.intel.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@suse.de, mm-commits@vger.kernel.org
+To: arnd@arndb.de, dave.hansen@linux.intel.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/mprotect.c: don't imply PROT_EXEC on non-exec fs
+     Subject: staging/goldfish: use 6-arg get_user_pages()
 has been added to the -mm tree.  Its filename is
-     mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs.patch
+     staging-goldfish-use-6-arg-get_user_pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/staging-goldfish-use-6-arg-get_user_pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/staging-goldfish-use-6-arg-get_user_pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,83 +39,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Piotr Kwapulinski <kwapulinski.piotr@gmail.com>
-Subject: mm/mprotect.c: don't imply PROT_EXEC on non-exec fs
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: staging/goldfish: use 6-arg get_user_pages()
 
-The mprotect(PROT_READ) fails when called by the READ_IMPLIES_EXEC binary
-on a memory mapped file located on non-exec fs.  The mprotect does not
-check whether fs is _executable_ or not.  The PROT_EXEC flag is set
-automatically even if a memory mapped file is located on non-exec fs.  Fix
-it by checking whether a memory mapped file is located on a non-exec fs. 
-If so the PROT_EXEC is not implied by the PROT_READ.  The implementation
-uses the VM_MAYEXEC flag set properly in mmap.  Now it is consistent with
-mmap.
+After commit cde70140fed8 ("mm/gup: Overload get_user_pages() functions"),
+we get warning for this file, as it calls get_user_pages() with eight
+arguments after the change of the calling convention to use only six:
 
-I did the isolated tests (PT_GNU_STACK X/NX, multiple VMAs, X/NX fs).  I
-also patched the official 3.19.0-47-generic Ubuntu 14.04 kernel and it
-seems to work.
+drivers/platform/goldfish/goldfish_pipe.c: In function 'goldfish_pipe_read_write':
+drivers/platform/goldfish/goldfish_pipe.c:312:3: error: 'get_user_pages8' is deprecated [-Werror=deprecated-declarations]
 
-Signed-off-by: Piotr Kwapulinski <kwapulinski.piotr@gmail.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
+This removes the first two arguments, which are now the default.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Ingo Molnar <mingo@elte.hu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mprotect.c |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+ drivers/platform/goldfish/goldfish_pipe.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN mm/mprotect.c~mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs mm/mprotect.c
---- a/mm/mprotect.c~mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs
-+++ a/mm/mprotect.c
-@@ -359,6 +359,9 @@ SYSCALL_DEFINE3(mprotect, unsigned long,
- 	struct vm_area_struct *vma, *prev;
- 	int error = -EINVAL;
- 	const int grows = prot & (PROT_GROWSDOWN|PROT_GROWSUP);
-+	const bool rier = (current->personality & READ_IMPLIES_EXEC) &&
-+				(prot & PROT_READ);
-+
- 	prot &= ~(PROT_GROWSDOWN|PROT_GROWSUP);
- 	if (grows == (PROT_GROWSDOWN|PROT_GROWSUP)) /* can't be both */
- 		return -EINVAL;
-@@ -375,11 +378,6 @@ SYSCALL_DEFINE3(mprotect, unsigned long,
- 		return -EINVAL;
- 
- 	reqprot = prot;
--	/*
--	 * Does the application expect PROT_READ to imply PROT_EXEC:
--	 */
--	if ((prot & PROT_READ) && (current->personality & READ_IMPLIES_EXEC))
--		prot |= PROT_EXEC;
- 
- 	down_write(&current->mm->mmap_sem);
- 
-@@ -414,6 +412,10 @@ SYSCALL_DEFINE3(mprotect, unsigned long,
- 
- 		/* Here we know that vma->vm_start <= nstart < vma->vm_end. */
- 
-+		/* Does the application expect PROT_READ to imply PROT_EXEC */
-+		if (rier && (vma->vm_flags & VM_MAYEXEC))
-+			prot |= PROT_EXEC;
-+
- 		newflags = calc_vm_prot_bits(prot, pkey);
- 		newflags |= (vma->vm_flags & ~(VM_READ | VM_WRITE | VM_EXEC));
- 
-@@ -445,6 +447,7 @@ SYSCALL_DEFINE3(mprotect, unsigned long,
- 			error = -ENOMEM;
- 			goto out;
- 		}
-+		prot = reqprot;
- 	}
- out:
- 	up_write(&current->mm->mmap_sem);
+diff -puN drivers/platform/goldfish/goldfish_pipe.c~staging-goldfish-use-6-arg-get_user_pages drivers/platform/goldfish/goldfish_pipe.c
+--- a/drivers/platform/goldfish/goldfish_pipe.c~staging-goldfish-use-6-arg-get_user_pages
++++ a/drivers/platform/goldfish/goldfish_pipe.c
+@@ -309,8 +309,7 @@ static ssize_t goldfish_pipe_read_write(
+ 		 * much memory to the process.
+ 		 */
+ 		down_read(&current->mm->mmap_sem);
+-		ret = get_user_pages(current, current->mm, address, 1,
+-				     !is_write, 0, &page, NULL);
++		ret = get_user_pages(address, 1, !is_write, 0, &page, NULL);
+ 		up_read(&current->mm->mmap_sem);
+ 		if (ret < 0)
+ 			break;
 _
 
-Patches currently in -mm which might be from kwapulinski.piotr@gmail.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-mprotectc-dont-imply-prot_exec-on-non-exec-fs.patch
+mm-compaction-introduce-kcompactd-fix.patch
+profile-hide-unused-functions-when-config_proc_fs.patch
+staging-goldfish-use-6-arg-get_user_pages.patch
 
