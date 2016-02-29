@@ -1,124 +1,117 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-numa-quickly-fail-allocations-for-numa-balancing-on-full-nodes.patch
- removed from -mm tree
-Date: Mon, 29 Feb 2016 12:24:39 -0800
-Message-ID: <56d4a907.fSxu2Mz5NBPFKNry%akpm@linux-foundation.org>
+Subject: [merged] block-disable-block-device-dax-by-default.patch removed
+ from -mm tree
+Date: Mon, 29 Feb 2016 12:24:50 -0800
+Message-ID: <56d4a912.b3fSXOgYSK1+8NvH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40711 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40763 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754372AbcB2UYk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Feb 2016 15:24:40 -0500
+	with ESMTP id S1754444AbcB2UYw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Feb 2016 15:24:52 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, hannes@cmpxchg.org, rientjes@google.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, axboe@fb.com, david@fromorbit.com, jack@suse.cz, matthew.r.wilcox@intel.com, ross.zwisler@linux.intel.com, tytso@mit.edu, viro@ftp.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: numa: quickly fail allocations for NUMA balancing on full nodes
+     Subject: block: disable block device DAX by default
 has been removed from the -mm tree.  Its filename was
-     mm-numa-quickly-fail-allocations-for-numa-balancing-on-full-nodes.patch
+     block-disable-block-device-dax-by-default.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: numa: quickly fail allocations for NUMA balancing on full nodes
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: block: disable block device DAX by default
 
-Commit 4167e9b2cf10 ("mm: remove GFP_THISNODE") removed the GFP_THISNODE
-flag combination due to confusing semantics.  It noted that
-alloc_misplaced_dst_page() was one such user after changes made by commit
-e97ca8e5b864 ("mm: fix GFP_THISNODE callers and clarify").  Unfortunately
-when GFP_THISNODE was removed, users of alloc_misplaced_dst_page() started
-waking kswapd and entering direct reclaim because the wrong GFP flags are
-cleared.  The consequence is that workloads that used to fit into memory
-now get reclaimed which is addressed by this patch.
+The recent *sync enabling discovered that we are inserting into the
+block_device pagecache counter to the expectations of the dirty data
+tracking for dax mappings.  This can lead to data corruption.
 
-The problem can be demonstrated with "mutilate" that exercises memcached
-which is software dedicated to memory object caching.  The configuration
-uses 80% of memory and is run 3 times for varying numbers of clients.  The
-results on a 4-socket NUMA box are
+We want to support DAX for block devices eventually, but it requires wider
+changes to properly manage the pagecache.
 
-mutilate
-                            4.4.0                 4.4.0
-                          vanilla           numaswap-v1
-Hmean    1      8394.71 (  0.00%)     8395.32 (  0.01%)
-Hmean    4     30024.62 (  0.00%)    34513.54 ( 14.95%)
-Hmean    7     32821.08 (  0.00%)    70542.96 (114.93%)
-Hmean    12    55229.67 (  0.00%)    93866.34 ( 69.96%)
-Hmean    21    39438.96 (  0.00%)    85749.21 (117.42%)
-Hmean    30    37796.10 (  0.00%)    50231.49 ( 32.90%)
-Hmean    47    18070.91 (  0.00%)    38530.13 (113.22%)
+  [<ffffffff81576d93>] dump_stack+0x85/0xc2
+  [<ffffffff812b9ee0>] dax_writeback_mapping_range+0x60/0xe0
+  [<ffffffff812a1d4f>] blkdev_writepages+0x3f/0x50
+  [<ffffffff811db011>] do_writepages+0x21/0x30
+  [<ffffffff811cb6a6>] __filemap_fdatawrite_range+0xc6/0x100
+  [<ffffffff811cb75a>] filemap_write_and_wait+0x4a/0xa0
+  [<ffffffff812a15e0>] set_blocksize+0x70/0xd0
+  [<ffffffff812a273d>] sb_set_blocksize+0x1d/0x50
+  [<ffffffff8132ac9b>] ext4_fill_super+0x75b/0x3360
+  [<ffffffff81583381>] ? vsnprintf+0x201/0x4c0
+  [<ffffffff815836d9>] ? snprintf+0x49/0x60
+  [<ffffffff81263010>] mount_bdev+0x180/0x1b0
+  [<ffffffff8132a540>] ? ext4_calculate_overhead+0x370/0x370
+  [<ffffffff8131ad95>] ext4_mount+0x15/0x20
+  [<ffffffff81263908>] mount_fs+0x38/0x170
 
-The metric is queries/second with the more the better.  The results are
-way outside of the noise and the reason for the improvement is obvious
-from some of the vmstats
+Mark the support broken so its disabled by default, but otherwise still
+available for testing.
 
-                                 4.4.0       4.4.0
-                               vanillanumaswap-v1r1
-Minor Faults                1929399272  2146148218
-Major Faults                  19746529        3567
-Swap Ins                      57307366        9913
-Swap Outs                     50623229       17094
-Allocation stalls                35909         443
-DMA allocs                           0           0
-DMA32 allocs                  72976349   170567396
-Normal allocs               5306640898  5310651252
-Movable allocs                       0           0
-Direct pages scanned         404130893      799577
-Kswapd pages scanned         160230174           0
-Kswapd pages reclaimed        55928786           0
-Direct pages reclaimed         1843936       41921
-Page writes file                  2391           0
-Page writes anon              50623229       17094
-
-The vanilla kernel is swapping like crazy with large amounts of direct
-reclaim and kswapd activity.  The figures are aggregate but it's known
-that the bad activity is throughout the entire test.
-
-Note that simple streaming anon/file memory consumers also see this
-problem but it's not as obvious.  In those cases, kswapd is awake when it
-should not be.
-
-As there are at least two reclaim-related bugs out there, it's worth
-spelling out the user-visible impact.  This patch only addresses bugs
-related to excessive reclaim on NUMA hardware when the working set is
-larger than a NUMA node.  There is a bug related to high kswapd CPU usage
-but the reports are against laptops and other UMA hardware and is not
-addressed by this patch.
-
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: <stable@vger.kernel.org>	[4.1+]
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Suggested-by: Dave Chinner <david@fromorbit.com>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
+Cc: Al Viro <viro@ftp.linux.org.uk>
+Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ block/Kconfig  |   13 +++++++++++++
+ fs/block_dev.c |    6 +++++-
+ 2 files changed, 18 insertions(+), 1 deletion(-)
 
-diff -puN mm/migrate.c~mm-numa-quickly-fail-allocations-for-numa-balancing-on-full-nodes mm/migrate.c
---- a/mm/migrate.c~mm-numa-quickly-fail-allocations-for-numa-balancing-on-full-nodes
-+++ a/mm/migrate.c
-@@ -1582,7 +1582,7 @@ static struct page *alloc_misplaced_dst_
- 					 (GFP_HIGHUSER_MOVABLE |
- 					  __GFP_THISNODE | __GFP_NOMEMALLOC |
- 					  __GFP_NORETRY | __GFP_NOWARN) &
--					 ~(__GFP_IO | __GFP_FS), 0);
-+					 ~__GFP_RECLAIM, 0);
+diff -puN block/Kconfig~block-disable-block-device-dax-by-default block/Kconfig
+--- a/block/Kconfig~block-disable-block-device-dax-by-default
++++ a/block/Kconfig
+@@ -88,6 +88,19 @@ config BLK_DEV_INTEGRITY
+ 	T10/SCSI Data Integrity Field or the T13/ATA External Path
+ 	Protection.  If in doubt, say N.
  
- 	return newpage;
- }
++config BLK_DEV_DAX
++	bool "Block device DAX support"
++	depends on FS_DAX
++	depends on BROKEN
++	help
++	  When DAX support is available (CONFIG_FS_DAX) raw block
++	  devices can also support direct userspace access to the
++	  storage capacity via MMAP(2) similar to a file on a
++	  DAX-enabled filesystem.  However, the DAX I/O-path disables
++	  some standard I/O-statistics, and the MMAP(2) path has some
++	  operational differences due to bypassing the page
++	  cache.  If in doubt, say N.
++
+ config BLK_DEV_THROTTLING
+ 	bool "Block layer bio throttling support"
+ 	depends on BLK_CGROUP=y
+diff -puN fs/block_dev.c~block-disable-block-device-dax-by-default fs/block_dev.c
+--- a/fs/block_dev.c~block-disable-block-device-dax-by-default
++++ a/fs/block_dev.c
+@@ -1201,7 +1201,11 @@ static int __blkdev_get(struct block_dev
+ 		bdev->bd_disk = disk;
+ 		bdev->bd_queue = disk->queue;
+ 		bdev->bd_contains = bdev;
+-		bdev->bd_inode->i_flags = disk->fops->direct_access ? S_DAX : 0;
++		if (IS_ENABLED(CONFIG_BLK_DEV_DAX) && disk->fops->direct_access)
++			bdev->bd_inode->i_flags = S_DAX;
++		else
++			bdev->bd_inode->i_flags = 0;
++
+ 		if (!partno) {
+ 			ret = -ENXIO;
+ 			bdev->bd_part = disk_get_part(disk, partno);
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-mm-filemap-remove-redundant-code-in-do_read_cache_page.patch
-mm-filemap-avoid-unnecessary-calls-to-lock_page-when-waiting-for-io-to-complete-during-a-read.patch
-mm-thp-set-thp-defrag-by-default-to-madvise-and-add-a-stall-free-defrag-option.patch
+mm-config_nr_zones_extended.patch
 
