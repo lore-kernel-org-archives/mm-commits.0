@@ -1,160 +1,192 @@
 From: akpm@linux-foundation.org
-Subject: [merged] dax-give-dax-clearing-code-correct-bdev.patch removed
- from -mm tree
-Date: Mon, 29 Feb 2016 12:24:56 -0800
-Message-ID: <56d4a918.83EWF5calx33bbP/%akpm@linux-foundation.org>
+Subject: [merged] use-get_random_long.patch removed from -mm tree
+Date: Mon, 29 Feb 2016 12:24:45 -0800
+Message-ID: <56d4a90d.GnM7yT3dtvsnss51%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40797 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40749 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753163AbcB2UY5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Feb 2016 15:24:57 -0500
+	with ESMTP id S1754425AbcB2UYq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Feb 2016 15:24:46 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, axboe@fb.com, dan.j.williams@intel.com, david@fromorbit.com, jack@suse.cz, matthew.r.wilcox@intel.com, tytso@mit.edu, viro@ftp.linux.org.uk, mm-commits@vger.kernel.org
+To: dcashman@android.com, arnd@arndb.de, benh@kernel.crashing.org, catalin.marinas@arm.com, davem@davemloft.net, gregkh@linuxfoundation.org, hpa@zytor.com, jeffv@google.com, keescook@chromium.org, mingo@redhat.com, mpe@ellerman.id.au, nnk@google.com, paulus@samba.org, ralf@linux-mips.org, salyzyn@android.com, tglx@linutronix.de, tytso@mit.edu, viro@zeniv.linux.org.uk, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax: give DAX clearing code correct bdev
+     Subject: mm: ASLR: use get_random_long()
 has been removed from the -mm tree.  Its filename was
-     dax-give-dax-clearing-code-correct-bdev.patch
+     use-get_random_long.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax: give DAX clearing code correct bdev
+From: Daniel Cashman <dcashman@android.com>
+Subject: mm: ASLR: use get_random_long()
 
-dax_clear_blocks() needs a valid struct block_device and previously it was
-using inode->i_sb->s_bdev in all cases.  This is correct for normal inodes
-on mounted ext2, ext4 and XFS filesystems, but is incorrect for DAX raw
-block devices and for XFS real-time devices.
+Replace calls to get_random_int() followed by a cast to (unsigned long)
+with calls to get_random_long().  Also address shifting bug which, in case
+of x86 removed entropy mask for mmap_rnd_bits values > 31 bits.
 
-Instead, rename dax_clear_blocks() to dax_clear_sectors(), and change its
-arguments to take a bdev and a sector instead of an inode and a block. 
-This better reflects what the function does, and it allows the filesystem
-and raw block device code to pass in an appropriate struct block_device.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dan Williams <dan.j.williams@intel.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Theodore Ts'o <tytso@mit.edu>
-Cc: Al Viro <viro@ftp.linux.org.uk>
-Cc: Dave Chinner <david@fromorbit.com>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Theodore Ts'o <tytso@mit.edu>
+Signed-off-by: Daniel Cashman <dcashman@android.com>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: David S. Miller <davem@davemloft.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: Nick Kralevich <nnk@google.com>
+Cc: Jeff Vander Stoep <jeffv@google.com>
+Cc: Mark Salyzyn <salyzyn@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c               |    9 ++++-----
- fs/ext2/inode.c        |    6 ++++--
- fs/xfs/xfs_aops.c      |    2 +-
- fs/xfs/xfs_aops.h      |    1 +
- fs/xfs/xfs_bmap_util.c |    3 ++-
- include/linux/dax.h    |    2 +-
- 6 files changed, 13 insertions(+), 10 deletions(-)
+ arch/arm/mm/mmap.c               |    2 +-
+ arch/arm64/mm/mmap.c             |    4 ++--
+ arch/mips/mm/mmap.c              |    4 ++--
+ arch/powerpc/kernel/process.c    |    4 ++--
+ arch/powerpc/mm/mmap.c           |    4 ++--
+ arch/sparc/kernel/sys_sparc_64.c |    2 +-
+ arch/x86/mm/mmap.c               |    6 +++---
+ fs/binfmt_elf.c                  |    2 +-
+ 8 files changed, 14 insertions(+), 14 deletions(-)
 
-diff -puN fs/dax.c~dax-give-dax-clearing-code-correct-bdev fs/dax.c
---- a/fs/dax.c~dax-give-dax-clearing-code-correct-bdev
-+++ a/fs/dax.c
-@@ -79,15 +79,14 @@ struct page *read_dax_sector(struct bloc
- }
- 
- /*
-- * dax_clear_blocks() is called from within transaction context from XFS,
-+ * dax_clear_sectors() is called from within transaction context from XFS,
-  * and hence this means the stack from this point must follow GFP_NOFS
-  * semantics for all operations.
-  */
--int dax_clear_blocks(struct inode *inode, sector_t block, long _size)
-+int dax_clear_sectors(struct block_device *bdev, sector_t _sector, long _size)
+diff -puN arch/arm/mm/mmap.c~use-get_random_long arch/arm/mm/mmap.c
+--- a/arch/arm/mm/mmap.c~use-get_random_long
++++ a/arch/arm/mm/mmap.c
+@@ -173,7 +173,7 @@ unsigned long arch_mmap_rnd(void)
  {
--	struct block_device *bdev = inode->i_sb->s_bdev;
- 	struct blk_dax_ctl dax = {
--		.sector = block << (inode->i_blkbits - 9),
-+		.sector = _sector,
- 		.size = _size,
- 	};
+ 	unsigned long rnd;
  
-@@ -109,7 +108,7 @@ int dax_clear_blocks(struct inode *inode
- 	wmb_pmem();
- 	return 0;
+-	rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_bits) - 1);
++	rnd = get_random_long() & ((1UL << mmap_rnd_bits) - 1);
+ 
+ 	return rnd << PAGE_SHIFT;
  }
--EXPORT_SYMBOL_GPL(dax_clear_blocks);
-+EXPORT_SYMBOL_GPL(dax_clear_sectors);
+diff -puN arch/arm64/mm/mmap.c~use-get_random_long arch/arm64/mm/mmap.c
+--- a/arch/arm64/mm/mmap.c~use-get_random_long
++++ a/arch/arm64/mm/mmap.c
+@@ -53,10 +53,10 @@ unsigned long arch_mmap_rnd(void)
  
- /* the clear_pmem() calls are ordered by a wmb_pmem() in the caller */
- static void dax_new_buf(void __pmem *addr, unsigned size, unsigned first,
-diff -puN fs/ext2/inode.c~dax-give-dax-clearing-code-correct-bdev fs/ext2/inode.c
---- a/fs/ext2/inode.c~dax-give-dax-clearing-code-correct-bdev
-+++ a/fs/ext2/inode.c
-@@ -737,8 +737,10 @@ static int ext2_get_blocks(struct inode
- 		 * so that it's not found by another thread before it's
- 		 * initialised
- 		 */
--		err = dax_clear_blocks(inode, le32_to_cpu(chain[depth-1].key),
--						1 << inode->i_blkbits);
-+		err = dax_clear_sectors(inode->i_sb->s_bdev,
-+				le32_to_cpu(chain[depth-1].key) <<
-+				(inode->i_blkbits - 9),
-+				1 << inode->i_blkbits);
- 		if (err) {
- 			mutex_unlock(&ei->truncate_mutex);
- 			goto cleanup;
-diff -puN fs/xfs/xfs_aops.c~dax-give-dax-clearing-code-correct-bdev fs/xfs/xfs_aops.c
---- a/fs/xfs/xfs_aops.c~dax-give-dax-clearing-code-correct-bdev
-+++ a/fs/xfs/xfs_aops.c
-@@ -55,7 +55,7 @@ xfs_count_page_state(
- 	} while ((bh = bh->b_this_page) != head);
+ #ifdef CONFIG_COMPAT
+ 	if (test_thread_flag(TIF_32BIT))
+-		rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_compat_bits) - 1);
++		rnd = get_random_long() & ((1UL << mmap_rnd_compat_bits) - 1);
+ 	else
+ #endif
+-		rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_bits) - 1);
++		rnd = get_random_long() & ((1UL << mmap_rnd_bits) - 1);
+ 	return rnd << PAGE_SHIFT;
  }
  
--STATIC struct block_device *
-+struct block_device *
- xfs_find_bdev_for_inode(
- 	struct inode		*inode)
+diff -puN arch/mips/mm/mmap.c~use-get_random_long arch/mips/mm/mmap.c
+--- a/arch/mips/mm/mmap.c~use-get_random_long
++++ a/arch/mips/mm/mmap.c
+@@ -146,7 +146,7 @@ unsigned long arch_mmap_rnd(void)
  {
-diff -puN fs/xfs/xfs_aops.h~dax-give-dax-clearing-code-correct-bdev fs/xfs/xfs_aops.h
---- a/fs/xfs/xfs_aops.h~dax-give-dax-clearing-code-correct-bdev
-+++ a/fs/xfs/xfs_aops.h
-@@ -62,5 +62,6 @@ int	xfs_get_blocks_dax_fault(struct inod
- 			         struct buffer_head *map_bh, int create);
+ 	unsigned long rnd;
  
- extern void xfs_count_page_state(struct page *, int *, int *);
-+extern struct block_device *xfs_find_bdev_for_inode(struct inode *);
+-	rnd = (unsigned long)get_random_int();
++	rnd = get_random_long();
+ 	rnd <<= PAGE_SHIFT;
+ 	if (TASK_IS_32BIT_ADDR)
+ 		rnd &= 0xfffffful;
+@@ -174,7 +174,7 @@ void arch_pick_mmap_layout(struct mm_str
  
- #endif /* __XFS_AOPS_H__ */
-diff -puN fs/xfs/xfs_bmap_util.c~dax-give-dax-clearing-code-correct-bdev fs/xfs/xfs_bmap_util.c
---- a/fs/xfs/xfs_bmap_util.c~dax-give-dax-clearing-code-correct-bdev
-+++ a/fs/xfs/xfs_bmap_util.c
-@@ -75,7 +75,8 @@ xfs_zero_extent(
- 	ssize_t		size = XFS_FSB_TO_B(mp, count_fsb);
+ static inline unsigned long brk_rnd(void)
+ {
+-	unsigned long rnd = get_random_int();
++	unsigned long rnd = get_random_long();
  
- 	if (IS_DAX(VFS_I(ip)))
--		return dax_clear_blocks(VFS_I(ip), block, size);
-+		return dax_clear_sectors(xfs_find_bdev_for_inode(VFS_I(ip)),
-+				sector, size);
+ 	rnd = rnd << PAGE_SHIFT;
+ 	/* 8MB for 32bit, 256MB for 64bit */
+diff -puN arch/powerpc/kernel/process.c~use-get_random_long arch/powerpc/kernel/process.c
+--- a/arch/powerpc/kernel/process.c~use-get_random_long
++++ a/arch/powerpc/kernel/process.c
+@@ -1768,9 +1768,9 @@ static inline unsigned long brk_rnd(void
  
- 	/*
- 	 * let the block layer decide on the fastest method of
-diff -puN include/linux/dax.h~dax-give-dax-clearing-code-correct-bdev include/linux/dax.h
---- a/include/linux/dax.h~dax-give-dax-clearing-code-correct-bdev
-+++ a/include/linux/dax.h
-@@ -7,7 +7,7 @@
+ 	/* 8MB for 32bit, 1GB for 64bit */
+ 	if (is_32bit_task())
+-		rnd = (long)(get_random_int() % (1<<(23-PAGE_SHIFT)));
++		rnd = (get_random_long() % (1UL<<(23-PAGE_SHIFT)));
+ 	else
+-		rnd = (long)(get_random_int() % (1<<(30-PAGE_SHIFT)));
++		rnd = (get_random_long() % (1UL<<(30-PAGE_SHIFT)));
  
- ssize_t dax_do_io(struct kiocb *, struct inode *, struct iov_iter *, loff_t,
- 		  get_block_t, dio_iodone_t, int flags);
--int dax_clear_blocks(struct inode *, sector_t block, long size);
-+int dax_clear_sectors(struct block_device *bdev, sector_t _sector, long _size);
- int dax_zero_page_range(struct inode *, loff_t from, unsigned len, get_block_t);
- int dax_truncate_page(struct inode *, loff_t from, get_block_t);
- int dax_fault(struct vm_area_struct *, struct vm_fault *, get_block_t,
+ 	return rnd << PAGE_SHIFT;
+ }
+diff -puN arch/powerpc/mm/mmap.c~use-get_random_long arch/powerpc/mm/mmap.c
+--- a/arch/powerpc/mm/mmap.c~use-get_random_long
++++ a/arch/powerpc/mm/mmap.c
+@@ -59,9 +59,9 @@ unsigned long arch_mmap_rnd(void)
+ 
+ 	/* 8MB for 32bit, 1GB for 64bit */
+ 	if (is_32bit_task())
+-		rnd = (unsigned long)get_random_int() % (1<<(23-PAGE_SHIFT));
++		rnd = get_random_long() % (1<<(23-PAGE_SHIFT));
+ 	else
+-		rnd = (unsigned long)get_random_int() % (1<<(30-PAGE_SHIFT));
++		rnd = get_random_long() % (1UL<<(30-PAGE_SHIFT));
+ 
+ 	return rnd << PAGE_SHIFT;
+ }
+diff -puN arch/sparc/kernel/sys_sparc_64.c~use-get_random_long arch/sparc/kernel/sys_sparc_64.c
+--- a/arch/sparc/kernel/sys_sparc_64.c~use-get_random_long
++++ a/arch/sparc/kernel/sys_sparc_64.c
+@@ -264,7 +264,7 @@ static unsigned long mmap_rnd(void)
+ 	unsigned long rnd = 0UL;
+ 
+ 	if (current->flags & PF_RANDOMIZE) {
+-		unsigned long val = get_random_int();
++		unsigned long val = get_random_long();
+ 		if (test_thread_flag(TIF_32BIT))
+ 			rnd = (val % (1UL << (23UL-PAGE_SHIFT)));
+ 		else
+diff -puN arch/x86/mm/mmap.c~use-get_random_long arch/x86/mm/mmap.c
+--- a/arch/x86/mm/mmap.c~use-get_random_long
++++ a/arch/x86/mm/mmap.c
+@@ -71,12 +71,12 @@ unsigned long arch_mmap_rnd(void)
+ 
+ 	if (mmap_is_ia32())
+ #ifdef CONFIG_COMPAT
+-		rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_compat_bits) - 1);
++		rnd = get_random_long() & ((1UL << mmap_rnd_compat_bits) - 1);
+ #else
+-		rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_bits) - 1);
++		rnd = get_random_long() & ((1UL << mmap_rnd_bits) - 1);
+ #endif
+ 	else
+-		rnd = (unsigned long)get_random_int() & ((1 << mmap_rnd_bits) - 1);
++		rnd = get_random_long() & ((1UL << mmap_rnd_bits) - 1);
+ 
+ 	return rnd << PAGE_SHIFT;
+ }
+diff -puN fs/binfmt_elf.c~use-get_random_long fs/binfmt_elf.c
+--- a/fs/binfmt_elf.c~use-get_random_long
++++ a/fs/binfmt_elf.c
+@@ -653,7 +653,7 @@ static unsigned long randomize_stack_top
+ 
+ 	if ((current->flags & PF_RANDOMIZE) &&
+ 		!(current->personality & ADDR_NO_RANDOMIZE)) {
+-		random_variable = (unsigned long) get_random_int();
++		random_variable = get_random_long();
+ 		random_variable &= STACK_RND_MASK;
+ 		random_variable <<= PAGE_SHIFT;
+ 	}
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from dcashman@android.com are
 
 
