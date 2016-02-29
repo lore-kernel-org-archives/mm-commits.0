@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + memremap-dont-modify-flags.patch added to -mm tree
-Date: Mon, 29 Feb 2016 15:32:33 -0800
-Message-ID: <56d4d511.IP7Qy+bWbeGOVedX%akpm@linux-foundation.org>
+Subject: +
+ drivers-dma-coherent-use-memset_io-for-dma_memory_io-mappings.patch added
+ to -mm tree
+Date: Mon, 29 Feb 2016 15:32:39 -0800
+Message-ID: <56d4d517.7fHcepsv0VigW2K1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47861 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47871 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750729AbcB2Xce (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Feb 2016 18:32:34 -0500
+	with ESMTP id S1750729AbcB2Xck (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Feb 2016 18:32:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: brian.starkey@arm.com, catalin.marinas@arm.com, dan.j.williams@intel.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memremap: don't modify flags
+     Subject: drivers: dma-coherent: use memset_io for DMA_MEMORY_IO mappings
 has been added to the -mm tree.  Its filename is
-     memremap-dont-modify-flags.patch
+     drivers-dma-coherent-use-memset_io-for-dma_memory_io-mappings.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/memremap-dont-modify-flags.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-dma-coherent-use-memset_io-for-dma_memory_io-mappings.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/memremap-dont-modify-flags.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-dma-coherent-use-memset_io-for-dma_memory_io-mappings.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,81 +41,66 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Brian Starkey <brian.starkey@arm.com>
-Subject: memremap: don't modify flags
+Subject: drivers: dma-coherent: use memset_io for DMA_MEMORY_IO mappings
 
-These patches implement a MEMREMAP_WC flag for memremap(), which can be
-used to obtain writecombine mappings.  This is then used for setting up
-dma_coherent_mem regions which use the DMA_MEMORY_MAP flag.
+Use memset_io() for DMA_MEMORY_IO mappings which are mapped as I/O memory,
+and regular memset() for DMA_MEMORY_MAP mappings.
 
-The motivation is to fix an alignment fault on arm64, and the suggestion
-to implement MEMREMAP_WC for this case was made at [1].  That particular
-issue is handled in patch 4, which makes sure that the appropriate memset
-function is used when zeroing allocations mapped as IO memory.
+This fixes the below alignment fault on arm64 for DMA_MEMORY_IO mappings,
+where memset() uses the DC ZVA instruction which is invalid on device
+memory.
 
-
-This patch (of 4):
-
-Don't modify the flags input argument to memremap(). MEMREMAP_WB is
-already a special case so we can check for it directly instead of
-clearing flag bits in each mapper.
+   Unhandled fault: alignment fault (0x96000061) at 0xffffff8000380000
+   Internal error: : 96000061 [#1] PREEMPT SMP
+   Modules linked in: hdlcd(+) clk_scpi
+   CPU: 4 PID: 1355 Comm: systemd-udevd Not tainted 4.4.0-rc1+ #5
+   Hardware name: ARM Juno development board (r0) (DT)
+   task: ffffffc9763eee00 ti: ffffffc9758c4000 task.ti: ffffffc9758c4000
+   PC is at __efistub_memset+0x1ac/0x200
+   LR is at dma_alloc_from_coherent+0xb0/0x120
+   pc : [<ffffffc00030ff2c>] lr : [<ffffffc00042a918>] pstate: 400001c5
+   sp : ffffffc9758c79a0
+   x29: ffffffc9758c79a0 x28: ffffffc000635cd0
+   x27: 0000000000000124 x26: ffffffc000119ef4
+   x25: 0000000000010000 x24: 0000000000000140
+   x23: ffffffc07e9ac3a8 x22: ffffffc9758c7a58
+   x21: ffffffc9758c7a68 x20: 0000000000000004
+   x19: ffffffc07e9ac380 x18: 0000000000000001
+   x17: 0000007fae1bbba8 x16: ffffffc0001b2d1c
+   x15: ffffffffffffffff x14: 0ffffffffffffffe
+   x13: 0000000000000010 x12: ffffff800837ffff
+   x11: ffffff800837ffff x10: 0000000040000000
+   x9 : 0000000000000000 x8 : ffffff8000380000
+   x7 : 0000000000000000 x6 : 000000000000003f
+   x5 : 0000000000000040 x4 : 0000000000000000
+   x3 : 0000000000000004 x2 : 000000000000ffc0
+   x1 : 0000000000000000 x0 : ffffff8000380000
 
 Signed-off-by: Brian Starkey <brian.starkey@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Catalin Marinas <catalin.marinas@arm.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/memremap.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/base/dma-coherent.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff -puN kernel/memremap.c~memremap-dont-modify-flags kernel/memremap.c
---- a/kernel/memremap.c~memremap-dont-modify-flags
-+++ a/kernel/memremap.c
-@@ -64,6 +64,9 @@ void *memremap(resource_size_t offset, s
- 				       IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
- 	void *addr = NULL;
- 
-+	if (!flags)
-+		return NULL;
-+
- 	if (is_ram == REGION_MIXED) {
- 		WARN_ONCE(1, "memremap attempted on mixed range %pa size: %#lx\n",
- 				&offset, (unsigned long) size);
-@@ -72,7 +75,6 @@ void *memremap(resource_size_t offset, s
- 
- 	/* Try all mapping types requested until one returns non-NULL */
- 	if (flags & MEMREMAP_WB) {
--		flags &= ~MEMREMAP_WB;
- 		/*
- 		 * MEMREMAP_WB is special in that it can be satisifed
- 		 * from the direct map.  Some archs depend on the
-@@ -86,21 +88,19 @@ void *memremap(resource_size_t offset, s
- 	}
- 
- 	/*
--	 * If we don't have a mapping yet and more request flags are
--	 * pending then we will be attempting to establish a new virtual
-+	 * If we don't have a mapping yet and other request flags are
-+	 * present then we will be attempting to establish a new virtual
- 	 * address mapping.  Enforce that this mapping is not aliasing
- 	 * System RAM.
+diff -puN drivers/base/dma-coherent.c~drivers-dma-coherent-use-memset_io-for-dma_memory_io-mappings drivers/base/dma-coherent.c
+--- a/drivers/base/dma-coherent.c~drivers-dma-coherent-use-memset_io-for-dma_memory_io-mappings
++++ a/drivers/base/dma-coherent.c
+@@ -187,7 +187,10 @@ int dma_alloc_from_coherent(struct devic
  	 */
--	if (!addr && is_ram == REGION_INTERSECTS && flags) {
-+	if (!addr && is_ram == REGION_INTERSECTS && flags != MEMREMAP_WB) {
- 		WARN_ONCE(1, "memremap attempted on ram %pa size: %#lx\n",
- 				&offset, (unsigned long) size);
- 		return NULL;
- 	}
+ 	*dma_handle = mem->device_base + (pageno << PAGE_SHIFT);
+ 	*ret = mem->virt_base + (pageno << PAGE_SHIFT);
+-	memset(*ret, 0, size);
++	if (mem->flags & DMA_MEMORY_MAP)
++		memset(*ret, 0, size);
++	else
++		memset_io(*ret, 0, size);
+ 	spin_unlock_irqrestore(&mem->spinlock, flags);
  
--	if (!addr && (flags & MEMREMAP_WT)) {
--		flags &= ~MEMREMAP_WT;
-+	if (!addr && (flags & MEMREMAP_WT))
- 		addr = ioremap_wt(offset, size);
--	}
- 
- 	return addr;
- }
+ 	return 1;
 _
 
 Patches currently in -mm which might be from brian.starkey@arm.com are
