@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-hugetlb_no_page-rate-limit-warning-message.patch
- added to -mm tree
-Date: Mon, 29 Feb 2016 13:09:59 -0800
-Message-ID: <56d4b3a7.Cd0dlWnsfiHDc2Aa%akpm@linux-foundation.org>
+Subject: +
+ mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix.patch added to -mm tree
+Date: Mon, 29 Feb 2016 13:20:28 -0800
+Message-ID: <56d4b61c.9JjBp1YWEDHZ4M1K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42365 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42659 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750821AbcB2VKA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Feb 2016 16:10:00 -0500
+	with ESMTP id S1750763AbcB2VU3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Feb 2016 16:20:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geofft@ldpreload.com, dave.hansen@linux.intel.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: hugetlb_no_page: Rate-limit warning message
+     Subject: mm/page_ref, crypto/async_pq: don't put_page from __exit
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-hugetlb_no_page-rate-limit-warning-message.patch
+     mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-hugetlb_no_page-rate-limit-warning-message.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-hugetlb_no_page-rate-limit-warning-message.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,79 +39,53 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Geoffrey Thomas <geofft@ldpreload.com>
-Subject: mm/hugetlb: hugetlb_no_page: Rate-limit warning message
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm/page_ref, crypto/async_pq: don't put_page from __exit
 
-The warning message "killed due to inadequate hugepage pool" simply
-indicates that SIGBUS was sent, not that the process was forcibly killed. 
-If the process has a signal handler installed does not fix the problem,
-this message can rapidly spam the kernel log.
+The addition of tracepoints to the page reference tracking had an
+unfortunate side-effect in at least one driver that calls put_page
+from its exit function, resulting in a link error:
 
-On my amd64 dev machine that does not have hugepages configured, I can
-reproduce the repeated warnings easily by setting vm.nr_hugepages=2 (i.e.,
-4 megabytes of huge pages) and running something that sets a signal
-handler and forks, like
+`.exit.text' referenced in section `__jump_table' of crypto/built-in.o: defined in discarded section `.exit.text' of crypto/built-in.o
 
-#include <sys/mman.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <unistd.h>
+I could not come up with a nice solution that ignores __jump_table
+entries in discarded code, so we probably now have to treat this
+as something a driver is not allowed to do. Removing the __exit
+annotation avoids the problem in this particular driver, but the
+same problem could come back any time in other code.
 
-sig_atomic_t counter = 10;
-void handler(int signal) {
- 	if (counter-- == 0)
- 		exit(0);
-}
+On a related problem regarding the runtime patching for SMP
+operations on ARM uniprocessor systems, we resorted to not
+drop the .exit section at link time, but that doesn't seem
+appropriate here.
 
-int main(void) {
- 	int status;
- 	char *addr = mmap(NULL, 4 * 1048576, PROT_READ | PROT_WRITE,
- 			  MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
- 	if (addr == MAP_FAILED) {perror("mmap"); return 1;}
- 	*addr = 'x';
- 	switch (fork()) {
- 		case -1:
- 			perror("fork"); return 1;
- 		case 0:
- 			signal(SIGBUS, handler);
- 			*addr = 'x';
- 			break;
- 		default:
- 			*addr = 'x';
- 			wait(&status);
- 			if (WIFSIGNALED(status)) {
- 				psignal(WTERMSIG(status), "child");
- 			}
- 			break;
- 	}
-}
-
-Signed-off-by: Geoffrey Thomas <geofft@ldpreload.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Fixes: 0f80830dd044 ("mm/page_ref: add tracepoint to track down page reference manipulation")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
+ crypto/async_tx/async_pq.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-hugetlb_no_page-rate-limit-warning-message mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-hugetlb_no_page-rate-limit-warning-message
-+++ a/mm/hugetlb.c
-@@ -3502,7 +3502,7 @@ static int hugetlb_no_page(struct mm_str
- 	 * COW. Warn that such a situation has occurred as it may not be obvious
- 	 */
- 	if (is_vma_resv_set(vma, HPAGE_RESV_UNMAPPED)) {
--		pr_warning("PID %d killed due to inadequate hugepage pool\n",
-+		pr_warn_ratelimited("PID %d killed due to inadequate hugepage pool\n",
- 			   current->pid);
- 		return ret;
- 	}
+diff -puN crypto/async_tx/async_pq.c~mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix crypto/async_tx/async_pq.c
+--- a/crypto/async_tx/async_pq.c~mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix
++++ a/crypto/async_tx/async_pq.c
+@@ -442,7 +442,7 @@ static int __init async_pq_init(void)
+ 	return -ENOMEM;
+ }
+ 
+-static void __exit async_pq_exit(void)
++static void async_pq_exit(void)
+ {
+ 	put_page(pq_scribble_page);
+ }
 _
 
-Patches currently in -mm which might be from geofft@ldpreload.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-hugetlb-hugetlb_no_page-rate-limit-warning-message.patch
+mm-compaction-introduce-kcompactd-fix.patch
+mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix.patch
+profile-hide-unused-functions-when-config_proc_fs.patch
+staging-goldfish-use-6-arg-get_user_pages.patch
 
