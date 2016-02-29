@@ -1,117 +1,203 @@
 From: akpm@linux-foundation.org
-Subject: [merged] block-disable-block-device-dax-by-default.patch removed
- from -mm tree
-Date: Mon, 29 Feb 2016 12:24:50 -0800
-Message-ID: <56d4a912.b3fSXOgYSK1+8NvH%akpm@linux-foundation.org>
+Subject: [merged] dax-move-writeback-calls-into-the-filesystems.patch
+ removed from -mm tree
+Date: Mon, 29 Feb 2016 12:24:59 -0800
+Message-ID: <56d4a91b.dNE42HuTfjWJbPQ7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40763 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40804 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754444AbcB2UYw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Feb 2016 15:24:52 -0500
+	with ESMTP id S1753865AbcB2UZA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 29 Feb 2016 15:25:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, axboe@fb.com, david@fromorbit.com, jack@suse.cz, matthew.r.wilcox@intel.com, ross.zwisler@linux.intel.com, tytso@mit.edu, viro@ftp.linux.org.uk, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, axboe@fb.com, dan.j.williams@intel.com, david@fromorbit.com, jack@suse.cz, matthew.r.wilcox@intel.com, tytso@mit.edu, viro@ftp.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: block: disable block device DAX by default
+     Subject: dax: move writeback calls into the filesystems
 has been removed from the -mm tree.  Its filename was
-     block-disable-block-device-dax-by-default.patch
+     dax-move-writeback-calls-into-the-filesystems.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: block: disable block device DAX by default
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: dax: move writeback calls into the filesystems
 
-The recent *sync enabling discovered that we are inserting into the
-block_device pagecache counter to the expectations of the dirty data
-tracking for dax mappings.  This can lead to data corruption.
+Previously calls to dax_writeback_mapping_range() for all DAX filesystems
+(ext2, ext4 & xfs) were centralized in filemap_write_and_wait_range(). 
+dax_writeback_mapping_range() needs a struct block_device, and it used to
+get that from inode->i_sb->s_bdev.  This is correct for normal inodes
+mounted on ext2, ext4 and XFS filesystems, but is incorrect for DAX raw
+block devices and for XFS real-time files.
 
-We want to support DAX for block devices eventually, but it requires wider
-changes to properly manage the pagecache.
+Instead, call dax_writeback_mapping_range() directly from the filesystem
+->writepages function so that it can supply us with a valid block device. 
+This also fixes DAX code to properly flush caches in response to sync(2).
 
-  [<ffffffff81576d93>] dump_stack+0x85/0xc2
-  [<ffffffff812b9ee0>] dax_writeback_mapping_range+0x60/0xe0
-  [<ffffffff812a1d4f>] blkdev_writepages+0x3f/0x50
-  [<ffffffff811db011>] do_writepages+0x21/0x30
-  [<ffffffff811cb6a6>] __filemap_fdatawrite_range+0xc6/0x100
-  [<ffffffff811cb75a>] filemap_write_and_wait+0x4a/0xa0
-  [<ffffffff812a15e0>] set_blocksize+0x70/0xd0
-  [<ffffffff812a273d>] sb_set_blocksize+0x1d/0x50
-  [<ffffffff8132ac9b>] ext4_fill_super+0x75b/0x3360
-  [<ffffffff81583381>] ? vsnprintf+0x201/0x4c0
-  [<ffffffff815836d9>] ? snprintf+0x49/0x60
-  [<ffffffff81263010>] mount_bdev+0x180/0x1b0
-  [<ffffffff8132a540>] ? ext4_calculate_overhead+0x370/0x370
-  [<ffffffff8131ad95>] ext4_mount+0x15/0x20
-  [<ffffffff81263908>] mount_fs+0x38/0x170
-
-Mark the support broken so its disabled by default, but otherwise still
-available for testing.
-
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Suggested-by: Dave Chinner <david@fromorbit.com>
-Reviewed-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Jan Kara <jack@suse.cz>
+Cc: Al Viro <viro@ftp.linux.org.uk>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
 Cc: Jens Axboe <axboe@fb.com>
 Cc: Matthew Wilcox <matthew.r.wilcox@intel.com>
-Cc: Al Viro <viro@ftp.linux.org.uk>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- block/Kconfig  |   13 +++++++++++++
- fs/block_dev.c |    6 +++++-
- 2 files changed, 18 insertions(+), 1 deletion(-)
+ fs/block_dev.c      |   13 ++++++++++++-
+ fs/dax.c            |   12 +++++++-----
+ fs/ext2/inode.c     |    8 ++++++++
+ fs/ext4/inode.c     |    4 ++++
+ fs/xfs/xfs_aops.c   |    4 ++++
+ include/linux/dax.h |    6 ++++--
+ mm/filemap.c        |   12 ++++--------
+ 7 files changed, 43 insertions(+), 16 deletions(-)
 
-diff -puN block/Kconfig~block-disable-block-device-dax-by-default block/Kconfig
---- a/block/Kconfig~block-disable-block-device-dax-by-default
-+++ a/block/Kconfig
-@@ -88,6 +88,19 @@ config BLK_DEV_INTEGRITY
- 	T10/SCSI Data Integrity Field or the T13/ATA External Path
- 	Protection.  If in doubt, say N.
- 
-+config BLK_DEV_DAX
-+	bool "Block device DAX support"
-+	depends on FS_DAX
-+	depends on BROKEN
-+	help
-+	  When DAX support is available (CONFIG_FS_DAX) raw block
-+	  devices can also support direct userspace access to the
-+	  storage capacity via MMAP(2) similar to a file on a
-+	  DAX-enabled filesystem.  However, the DAX I/O-path disables
-+	  some standard I/O-statistics, and the MMAP(2) path has some
-+	  operational differences due to bypassing the page
-+	  cache.  If in doubt, say N.
-+
- config BLK_DEV_THROTTLING
- 	bool "Block layer bio throttling support"
- 	depends on BLK_CGROUP=y
-diff -puN fs/block_dev.c~block-disable-block-device-dax-by-default fs/block_dev.c
---- a/fs/block_dev.c~block-disable-block-device-dax-by-default
+diff -puN fs/block_dev.c~dax-move-writeback-calls-into-the-filesystems fs/block_dev.c
+--- a/fs/block_dev.c~dax-move-writeback-calls-into-the-filesystems
 +++ a/fs/block_dev.c
-@@ -1201,7 +1201,11 @@ static int __blkdev_get(struct block_dev
- 		bdev->bd_disk = disk;
- 		bdev->bd_queue = disk->queue;
- 		bdev->bd_contains = bdev;
--		bdev->bd_inode->i_flags = disk->fops->direct_access ? S_DAX : 0;
-+		if (IS_ENABLED(CONFIG_BLK_DEV_DAX) && disk->fops->direct_access)
-+			bdev->bd_inode->i_flags = S_DAX;
-+		else
-+			bdev->bd_inode->i_flags = 0;
+@@ -1697,13 +1697,24 @@ static int blkdev_releasepage(struct pag
+ 	return try_to_free_buffers(page);
+ }
+ 
++static int blkdev_writepages(struct address_space *mapping,
++			     struct writeback_control *wbc)
++{
++	if (dax_mapping(mapping)) {
++		struct block_device *bdev = I_BDEV(mapping->host);
 +
- 		if (!partno) {
- 			ret = -ENXIO;
- 			bdev->bd_part = disk_get_part(disk, partno);
-_
-
-Patches currently in -mm which might be from dan.j.williams@intel.com are
-
-mm-config_nr_zones_extended.patch
-
++		return dax_writeback_mapping_range(mapping, bdev, wbc);
++	}
++	return generic_writepages(mapping, wbc);
++}
++
+ static const struct address_space_operations def_blk_aops = {
+ 	.readpage	= blkdev_readpage,
+ 	.readpages	= blkdev_readpages,
+ 	.writepage	= blkdev_writepage,
+ 	.write_begin	= blkdev_write_begin,
+ 	.write_end	= blkdev_write_end,
+-	.writepages	= generic_writepages,
++	.writepages	= blkdev_writepages,
+ 	.releasepage	= blkdev_releasepage,
+ 	.direct_IO	= blkdev_direct_IO,
+ 	.is_dirty_writeback = buffer_check_dirty_writeback,
+diff -puN fs/dax.c~dax-move-writeback-calls-into-the-filesystems fs/dax.c
+--- a/fs/dax.c~dax-move-writeback-calls-into-the-filesystems
++++ a/fs/dax.c
+@@ -484,11 +484,10 @@ static int dax_writeback_one(struct bloc
+  * end]. This is required by data integrity operations to ensure file data is
+  * on persistent storage prior to completion of the operation.
+  */
+-int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
+-		loff_t end)
++int dax_writeback_mapping_range(struct address_space *mapping,
++		struct block_device *bdev, struct writeback_control *wbc)
+ {
+ 	struct inode *inode = mapping->host;
+-	struct block_device *bdev = inode->i_sb->s_bdev;
+ 	pgoff_t start_index, end_index, pmd_index;
+ 	pgoff_t indices[PAGEVEC_SIZE];
+ 	struct pagevec pvec;
+@@ -499,8 +498,11 @@ int dax_writeback_mapping_range(struct a
+ 	if (WARN_ON_ONCE(inode->i_blkbits != PAGE_SHIFT))
+ 		return -EIO;
+ 
+-	start_index = start >> PAGE_CACHE_SHIFT;
+-	end_index = end >> PAGE_CACHE_SHIFT;
++	if (!mapping->nrexceptional || wbc->sync_mode != WB_SYNC_ALL)
++		return 0;
++
++	start_index = wbc->range_start >> PAGE_CACHE_SHIFT;
++	end_index = wbc->range_end >> PAGE_CACHE_SHIFT;
+ 	pmd_index = DAX_PMD_INDEX(start_index);
+ 
+ 	rcu_read_lock();
+diff -puN fs/ext2/inode.c~dax-move-writeback-calls-into-the-filesystems fs/ext2/inode.c
+--- a/fs/ext2/inode.c~dax-move-writeback-calls-into-the-filesystems
++++ a/fs/ext2/inode.c
+@@ -876,6 +876,14 @@ ext2_direct_IO(struct kiocb *iocb, struc
+ static int
+ ext2_writepages(struct address_space *mapping, struct writeback_control *wbc)
+ {
++#ifdef CONFIG_FS_DAX
++	if (dax_mapping(mapping)) {
++		return dax_writeback_mapping_range(mapping,
++						   mapping->host->i_sb->s_bdev,
++						   wbc);
++	}
++#endif
++
+ 	return mpage_writepages(mapping, wbc, ext2_get_block);
+ }
+ 
+diff -puN fs/ext4/inode.c~dax-move-writeback-calls-into-the-filesystems fs/ext4/inode.c
+--- a/fs/ext4/inode.c~dax-move-writeback-calls-into-the-filesystems
++++ a/fs/ext4/inode.c
+@@ -2478,6 +2478,10 @@ static int ext4_writepages(struct addres
+ 
+ 	trace_ext4_writepages(inode, wbc);
+ 
++	if (dax_mapping(mapping))
++		return dax_writeback_mapping_range(mapping, inode->i_sb->s_bdev,
++						   wbc);
++
+ 	/*
+ 	 * No pages to write? This is mainly a kludge to avoid starting
+ 	 * a transaction for special inodes like journal inode on last iput()
+diff -puN fs/xfs/xfs_aops.c~dax-move-writeback-calls-into-the-filesystems fs/xfs/xfs_aops.c
+--- a/fs/xfs/xfs_aops.c~dax-move-writeback-calls-into-the-filesystems
++++ a/fs/xfs/xfs_aops.c
+@@ -1208,6 +1208,10 @@ xfs_vm_writepages(
+ 	struct writeback_control *wbc)
+ {
+ 	xfs_iflags_clear(XFS_I(mapping->host), XFS_ITRUNCATED);
++	if (dax_mapping(mapping))
++		return dax_writeback_mapping_range(mapping,
++				xfs_find_bdev_for_inode(mapping->host), wbc);
++
+ 	return generic_writepages(mapping, wbc);
+ }
+ 
+diff -puN include/linux/dax.h~dax-move-writeback-calls-into-the-filesystems include/linux/dax.h
+--- a/include/linux/dax.h~dax-move-writeback-calls-into-the-filesystems
++++ a/include/linux/dax.h
+@@ -52,6 +52,8 @@ static inline bool dax_mapping(struct ad
+ {
+ 	return mapping->host && IS_DAX(mapping->host);
+ }
+-int dax_writeback_mapping_range(struct address_space *mapping, loff_t start,
+-		loff_t end);
++
++struct writeback_control;
++int dax_writeback_mapping_range(struct address_space *mapping,
++		struct block_device *bdev, struct writeback_control *wbc);
+ #endif
+diff -puN mm/filemap.c~dax-move-writeback-calls-into-the-filesystems mm/filemap.c
+--- a/mm/filemap.c~dax-move-writeback-calls-into-the-filesystems
++++ a/mm/filemap.c
+@@ -446,7 +446,8 @@ int filemap_write_and_wait(struct addres
+ {
+ 	int err = 0;
+ 
+-	if (mapping->nrpages) {
++	if ((!dax_mapping(mapping) && mapping->nrpages) ||
++	    (dax_mapping(mapping) && mapping->nrexceptional)) {
+ 		err = filemap_fdatawrite(mapping);
+ 		/*
+ 		 * Even if the above returned error, the pages may be
+@@ -482,13 +483,8 @@ int filemap_write_and_wait_range(struct
+ {
+ 	int err = 0;
+ 
+-	if (dax_mapping(mapping) && mapping->nrexceptional) {
+-		err = dax_writeback_mapping_range(mapping, lstart, lend);
+-		if (err)
+-			return err;
+-	}
