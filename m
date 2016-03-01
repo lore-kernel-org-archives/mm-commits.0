@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kexec-do-a-cleanup-for-function-kexec_load.patch added to -mm
- tree
-Date: Tue, 01 Mar 2016 14:06:34 -0800
-Message-ID: <56d6126a.fHgiIxSityHCW45p%akpm@linux-foundation.org>
+Subject: + maintainers-update-tpmdd-urls.patch added to -mm tree
+Date: Tue, 01 Mar 2016 14:07:23 -0800
+Message-ID: <56d6129b.gzPPB5fsfXLwmv6J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42082 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42155 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751032AbcCAWGf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2016 17:06:35 -0500
+	with ESMTP id S1751032AbcCAWHY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2016 17:07:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mnfhuang@gmail.com, ebiederm@xmission.com, vgoyal@redhat.com, xlpang@redhat.com, mm-commits@vger.kernel.org
+To: jarkko.sakkinen@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec: do a cleanup for function kexec_load
+     Subject: MAINTAINERS: update tpmdd urls
 has been added to the -mm tree.  Its filename is
-     kexec-do-a-cleanup-for-function-kexec_load.patch
+     maintainers-update-tpmdd-urls.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kexec-do-a-cleanup-for-function-kexec_load.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-update-tpmdd-urls.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kexec-do-a-cleanup-for-function-kexec_load.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-update-tpmdd-urls.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,192 +38,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Minfei Huang <mnfhuang@gmail.com>
-Subject: kexec: do a cleanup for function kexec_load
+From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Subject: MAINTAINERS: update tpmdd urls
 
-There are a lof of work to be done in function kexec_load, not only for
-allocating structs and loading initram, but also for some misc.
+Updated GIT and patchwork location both of which were out-of-sync or
+actually patchwork location was incorrect.
 
-To make it more clear, wrap a new function do_kexec_load which is used to
-allocate structs and load initram.  And the pre-work will be done in
-kexec_load.
-
-Signed-off-by: Minfei Huang <mnfhuang@gmail.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: "Eric W. Biederman" <ebiederm@xmission.com>
-Cc: Xunlei Pang <xlpang@redhat.com>
+Signed-off-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/kexec.c |  125 +++++++++++++++++++++++++----------------------
- 1 file changed, 69 insertions(+), 56 deletions(-)
+ MAINTAINERS |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/kexec.c~kexec-do-a-cleanup-for-function-kexec_load kernel/kexec.c
---- a/kernel/kexec.c~kexec-do-a-cleanup-for-function-kexec_load
-+++ a/kernel/kexec.c
-@@ -103,6 +103,74 @@ out_free_image:
- 	return ret;
- }
+diff -puN MAINTAINERS~maintainers-update-tpmdd-urls MAINTAINERS
+--- a/MAINTAINERS~maintainers-update-tpmdd-urls
++++ a/MAINTAINERS
+@@ -11075,8 +11075,8 @@ M:	Jarkko Sakkinen <jarkko.sakkinen@linu
+ R:	Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+ W:	http://tpmdd.sourceforge.net
+ L:	tpmdd-devel@lists.sourceforge.net (moderated for non-subscribers)
+-Q:	git git://github.com/PeterHuewe/linux-tpmdd.git
+-T:	git https://github.com/PeterHuewe/linux-tpmdd
++Q:	https://patchwork.kernel.org/project/tpmdd-devel/list/
++T:	git git://git.infradead.org/users/jjs/linux-tpmdd.git
+ S:	Maintained
+ F:	drivers/char/tpm/
  
-+static int do_kexec_load(unsigned long entry, unsigned long nr_segments,
-+		struct kexec_segment __user *segments, unsigned long flags)
-+{
-+	struct kimage **dest_image, *image;
-+	unsigned long i;
-+	int ret;
-+
-+	if (flags & KEXEC_ON_CRASH) {
-+		dest_image = &kexec_crash_image;
-+		if (kexec_crash_image)
-+			arch_kexec_unprotect_crashkres();
-+	} else {
-+		dest_image = &kexec_image;
-+	}
-+
-+	if (nr_segments == 0) {
-+		/* Uninstall image */
-+		kimage_free(xchg(dest_image, NULL));
-+		return 0;
-+	}
-+	if (flags & KEXEC_ON_CRASH) {
-+		/*
-+		 * Loading another kernel to switch to if this one
-+		 * crashes.  Free any current crash dump kernel before
-+		 * we corrupt it.
-+		 */
-+		kimage_free(xchg(&kexec_crash_image, NULL));
-+	}
-+
-+	ret = kimage_alloc_init(&image, entry, nr_segments, segments, flags);
-+	if (ret)
-+		return ret;
-+
-+	if (flags & KEXEC_ON_CRASH)
-+		crash_map_reserved_pages();
-+
-+	if (flags & KEXEC_PRESERVE_CONTEXT)
-+		image->preserve_context = 1;
-+
-+	ret = machine_kexec_prepare(image);
-+	if (ret)
-+		goto out;
-+
-+	for (i = 0; i < nr_segments; i++) {
-+		ret = kimage_load_segment(image, &image->segment[i]);
-+		if (ret)
-+			goto out;
-+	}
-+
-+	kimage_terminate(image);
-+
-+	/* Install the new kernel and uninstall the old */
-+	image = xchg(dest_image, image);
-+
-+out:
-+	if ((flags & KEXEC_ON_CRASH) && kexec_crash_image)
-+		arch_kexec_protect_crashkres();
-+
-+	/*
-+	 * Once the reserved memory is mapped, we should unmap this memory
-+	 * before returning
-+	 */
-+	if (flags & KEXEC_ON_CRASH)
-+		crash_unmap_reserved_pages();
-+	kimage_free(image);
-+	return ret;
-+}
-+
- /*
-  * Exec Kernel system call: for obvious reasons only root may call it.
-  *
-@@ -127,7 +195,6 @@ out_free_image:
- SYSCALL_DEFINE4(kexec_load, unsigned long, entry, unsigned long, nr_segments,
- 		struct kexec_segment __user *, segments, unsigned long, flags)
- {
--	struct kimage **dest_image, *image;
- 	int result;
- 
- 	/* We only trust the superuser with rebooting the system. */
-@@ -152,9 +219,6 @@ SYSCALL_DEFINE4(kexec_load, unsigned lon
- 	if (nr_segments > KEXEC_SEGMENT_MAX)
- 		return -EINVAL;
- 
--	image = NULL;
--	result = 0;
--
- 	/* Because we write directly to the reserved memory
- 	 * region when loading crash kernels we need a mutex here to
- 	 * prevent multiple crash  kernels from attempting to load
-@@ -166,63 +230,12 @@ SYSCALL_DEFINE4(kexec_load, unsigned lon
- 	if (!mutex_trylock(&kexec_mutex))
- 		return -EBUSY;
- 
--	dest_image = &kexec_image;
--	if (flags & KEXEC_ON_CRASH) {
--		dest_image = &kexec_crash_image;
--		if (kexec_crash_image)
--			arch_kexec_unprotect_crashkres();
--	}
--
--	if (nr_segments > 0) {
--		unsigned long i;
--
--		if (flags & KEXEC_ON_CRASH) {
--			/*
--			 * Loading another kernel to switch to if this one
--			 * crashes.  Free any current crash dump kernel before
--			 * we corrupt it.
--			 */
--
--			kimage_free(xchg(&kexec_crash_image, NULL));
--			result = kimage_alloc_init(&image, entry, nr_segments,
--						   segments, flags);
--			crash_map_reserved_pages();
--		} else {
--			/* Loading another kernel to reboot into. */
--
--			result = kimage_alloc_init(&image, entry, nr_segments,
--						   segments, flags);
--		}
--		if (result)
--			goto unmap_page;
--
--		if (flags & KEXEC_PRESERVE_CONTEXT)
--			image->preserve_context = 1;
--		result = machine_kexec_prepare(image);
--		if (result)
--			goto unmap_page;
--
--		for (i = 0; i < nr_segments; i++) {
--			result = kimage_load_segment(image, &image->segment[i]);
--			if (result)
--				goto unmap_page;
--		}
--		kimage_terminate(image);
--unmap_page:
--		if (flags & KEXEC_ON_CRASH)
--			crash_unmap_reserved_pages();
--		if (result)
--			goto out;
--	}
--	/* Install the new kernel, and  Uninstall the old */
--	image = xchg(dest_image, image);
-+	result = do_kexec_load(entry, nr_segments, segments, flags);
- 
--out:
- 	if ((flags & KEXEC_ON_CRASH) && kexec_crash_image)
- 		arch_kexec_protect_crashkres();
- 
- 	mutex_unlock(&kexec_mutex);
--	kimage_free(image);
- 
- 	return result;
- }
 _
 
-Patches currently in -mm which might be from mnfhuang@gmail.com are
+Patches currently in -mm which might be from jarkko.sakkinen@linux.intel.com are
 
-proc-base-make-prompt-shell-start-from-new-line-after-executing-cat-proc-pid-wchan.patch
-kexec-make-a-pair-of-map-unmap-reserved-pages-in-error-path.patch
-kexec-do-a-cleanup-for-function-kexec_load.patch
+maintainers-update-tpmdd-urls.patch
 
