@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + bug-set-warn-variable-before-calling-warn.patch added to -mm
- tree
-Date: Tue, 01 Mar 2016 11:39:18 -0800
-Message-ID: <56d5efe6.NQZceatubFpg2U9U%akpm@linux-foundation.org>
+Subject: +
+ mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3.patch added to -mm tree
+Date: Tue, 01 Mar 2016 12:55:23 -0800
+Message-ID: <56d601bb.oQr8xxV9m6TqqhTR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35475 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39067 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751646AbcCATjT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2016 14:39:19 -0500
+	with ESMTP id S1751646AbcCAUzY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2016 15:55:24 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rostedt@goodmis.org, peterz@infradead.org, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: bug: set warn variable before calling WARN()
+     Subject: mm/page_ref: fix build failure for xtensa
 has been added to the -mm tree.  Its filename is
-     bug-set-warn-variable-before-calling-warn.patch
+     mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/bug-set-warn-variable-before-calling-warn.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/bug-set-warn-variable-before-calling-warn.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,90 +39,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Steven Rostedt <rostedt@goodmis.org>
-Subject: bug: set warn variable before calling WARN()
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/page_ref: fix build failure for xtensa
 
-This has hit me a couple of times already.  I would be debugging code and
-the system would simply hang and then reboot.  Finally, I found that the
-problem was caused by WARN_ON_ONCE() and friends.
+This patch includes struct page definition to fix build failure on xtensa.
 
-The macro WARN_ON_ONCE(condition) is defined as:
-
-	static bool __section(.data.unlikely) __warned;
-	int __ret_warn_once = !!(condition);
-
-	if (unlikely(__ret_warn_once))
-		if (WARN_ON(!__warned))
-			__warned = true;
-
-	unlikely(__ret_warn_once);
-
-Which looks great and all.  But what I have hit, is an issue when
-WARN_ON() itself hits the same WARN_ON_ONCE() code.  Because, the variable
-__warned is not yet set.  Then it too calls WARN_ON() and that triggers
-the warning again.  It keeps doing this until the stack is overflowed and
-the system crashes.
-
-By setting __warned first before calling WARN_ON() makes the original
-WARN_ON_ONCE() really only warn once, and not an infinite amount of times
-if the WARN_ON() also triggers the warning.
-
-Signed-off-by: Steven Rostedt <rostedt@goodmis.org>
-Acked-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bug.h |   21 ++++++++++++---------
- 1 file changed, 12 insertions(+), 9 deletions(-)
+ mm/debug_page_ref.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/asm-generic/bug.h~bug-set-warn-variable-before-calling-warn include/asm-generic/bug.h
---- a/include/asm-generic/bug.h~bug-set-warn-variable-before-calling-warn
-+++ a/include/asm-generic/bug.h
-@@ -110,9 +110,10 @@ extern void warn_slowpath_null(const cha
- 	static bool __section(.data.unlikely) __warned;		\
- 	int __ret_warn_once = !!(condition);			\
- 								\
--	if (unlikely(__ret_warn_once))				\
--		if (WARN_ON(!__warned)) 			\
--			__warned = true;			\
-+	if (unlikely(__ret_warn_once && !__warned)) {		\
-+		__warned = true;				\
-+		WARN_ON(1);					\
-+	}							\
- 	unlikely(__ret_warn_once);				\
- })
+diff -puN mm/debug_page_ref.c~mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3 mm/debug_page_ref.c
+--- a/mm/debug_page_ref.c~mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3
++++ a/mm/debug_page_ref.c
+@@ -1,3 +1,4 @@
++#include <linux/mm_types.h>
+ #include <linux/tracepoint.h>
  
-@@ -120,9 +121,10 @@ extern void warn_slowpath_null(const cha
- 	static bool __section(.data.unlikely) __warned;		\
- 	int __ret_warn_once = !!(condition);			\
- 								\
--	if (unlikely(__ret_warn_once))				\
--		if (WARN(!__warned, format)) 			\
--			__warned = true;			\
-+	if (unlikely(__ret_warn_once && !__warned)) {		\
-+		__warned = true;				\
-+		WARN(1, format);				\
-+	}							\
- 	unlikely(__ret_warn_once);				\
- })
- 
-@@ -130,9 +132,10 @@ extern void warn_slowpath_null(const cha
- 	static bool __section(.data.unlikely) __warned;		\
- 	int __ret_warn_once = !!(condition);			\
- 								\
--	if (unlikely(__ret_warn_once))				\
--		if (WARN_TAINT(!__warned, taint, format))	\
--			__warned = true;			\
-+	if (unlikely(__ret_warn_once && !__warned)) {		\
-+		__warned = true;				\
-+		WARN_TAINT(1, taint, format);			\
-+	}							\
- 	unlikely(__ret_warn_once);				\
- })
- 
+ #define CREATE_TRACE_POINTS
 _
 
-Patches currently in -mm which might be from rostedt@goodmis.org are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-bug-set-warn-variable-before-calling-warn.patch
+mm-slab-fix-stale-code-comment.patch
+mm-slab-remove-useless-structure-define.patch
+mm-slab-remove-the-checks-for-slab-implementation-bug.patch
+mm-slab-activate-debug_pagealloc-in-slab-when-it-is-actually-enabled.patch
+mm-slab-use-more-appropriate-condition-check-for-debug_pagealloc.patch
+mm-slab-clean-up-debug_pagealloc-processing-code.patch
+mm-slab-alternative-implementation-for-debug_slab_leak.patch
+mm-slab-remove-object-status-buffer-for-debug_slab_leak.patch
+mm-slab-put-the-freelist-at-the-end-of-slab-page.patch
+mm-slab-align-cache-size-first-before-determination-of-off_slab-candidate.patch
+mm-slab-clean-up-cache-type-determination.patch
+mm-slab-do-not-change-cache-size-if-debug-pagealloc-isnt-possible.patch
+mm-slab-make-criteria-for-off-slab-determination-robust-and-simple.patch
+mm-slab-factor-out-slab-list-fixup-code.patch
+mm-slab-factor-out-debugging-initialization-in-cache_init_objs.patch
+mm-slab-introduce-new-slab-management-type-objfreelist_slab.patch
+mm-slab-introduce-new-slab-management-type-objfreelist_slab-fix.patch
+mm-slab-avoid-returning-values-by-reference.patch
+mm-slab-re-implement-pfmemalloc-support.patch
+mm-slab-re-implement-pfmemalloc-support-v2.patch
+mm-slub-support-left-red-zone.patch
+mm-slub-support-left-red-zone-fix.patch
+mm-compaction-fix-invalid-free_pfn-and-compact_cached_free_pfn.patch
+mm-compaction-pass-only-pageblock-aligned-range-to-pageblock_pfn_to_page.patch
+mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous.patch
+mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch
+mm-slub-query-dynamic-debug_pagealloc-setting.patch
+mm-slub-query-dynamic-debug_pagealloc-setting-v2.patch
+sound-query-dynamic-debug_pagealloc-setting.patch
+powerpc-query-dynamic-debug_pagealloc-setting.patch
+tile-query-dynamic-debug_pagealloc-setting.patch
+mm-introduce-page-reference-manipulation-functions.patch
+mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation.patch
+mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3.patch
 
