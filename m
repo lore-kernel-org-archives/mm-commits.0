@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-__delete_from_page_cache-show-bad-page-if-mapped.patch added to -mm tree
-Date: Tue, 01 Mar 2016 13:00:57 -0800
-Message-ID: <56d60309.vaHTIpqB111MFRT8%akpm@linux-foundation.org>
+Subject: + radix-treeshmem-introduce-radix_tree_iter_next-fix.patch added
+ to -mm tree
+Date: Tue, 01 Mar 2016 13:07:42 -0800
+Message-ID: <56d6049e.zgjDiPFE6hLLxmDm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39441 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39685 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752296AbcCAVA6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2016 16:00:58 -0500
+	with ESMTP id S1751778AbcCAVHn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2016 16:07:43 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, kirill@shutemov.name, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: koct9i@gmail.com, hughd@google.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: __delete_from_page_cache show Bad page if mapped
+     Subject: radix-tree: fix bug in radix_tree_iter_next() for tagged iteration
 has been added to the -mm tree.  Its filename is
-     mm-__delete_from_page_cache-show-bad-page-if-mapped.patch
+     radix-treeshmem-introduce-radix_tree_iter_next-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-__delete_from_page_cache-show-bad-page-if-mapped.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/radix-treeshmem-introduce-radix_tree_iter_next-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-__delete_from_page_cache-show-bad-page-if-mapped.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/radix-treeshmem-introduce-radix_tree_iter_next-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,86 +39,41 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: mm: __delete_from_page_cache show Bad page if mapped
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: radix-tree: fix bug in radix_tree_iter_next() for tagged iteration
 
-Commit e1534ae95004 ("mm: differentiate page_mapped() from page_mapcount()
-for compound pages") changed the famous BUG_ON(page_mapped(page)) in
-__delete_from_page_cache() to VM_BUG_ON_PAGE(page_mapped(page)): which
-gives us more info when CONFIG_DEBUG_VM=y, but nothing at all when not.
+Helper radix_tree_iter_next reset slot to NULL and next_index to index +
+1, for tagger iteraction it also must reset cached tags in iterator to
+abort next radix_tree_next_slot and go to slow-path into
+radix_tree_next_chunk.
 
-Although it has not usually been very helpul, being hit long after the
-error in question, we do need to know if it actually happens on users'
-systems; but reinstating a crash there is likely to be opposed :)
-
-In the non-debug case, pr_alert("BUG: Bad page cache") plus dump_page(),
-dump_stack(), add_taint() - I don't really believe LOCKDEP_NOW_UNRELIABLE,
-but that seems to be the standard procedure now.  Move that, or the
-VM_BUG_ON_PAGE(), up before the deletion from tree: so that the
-unNULLified page->mapping gives a little more information.
-
-If the inode is being evicted (rather than truncated), it won't have any
-vmas left, so it's safe(ish) to assume that the raised mapcount is
-erroneous, and we can discount it from page_count to avoid leaking the
-page (I'm less worried by leaking the occasional 4kB, than losing a
-potential 2MB page with each 4kB page leaked).
-
-Signed-off-by: Hugh Dickins <hughd@google.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   25 ++++++++++++++++++++++++-
- 1 file changed, 24 insertions(+), 1 deletion(-)
+ include/linux/radix-tree.h |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/filemap.c~mm-__delete_from_page_cache-show-bad-page-if-mapped mm/filemap.c
---- a/mm/filemap.c~mm-__delete_from_page_cache-show-bad-page-if-mapped
-+++ a/mm/filemap.c
-@@ -195,6 +195,30 @@ void __delete_from_page_cache(struct pag
- 	else
- 		cleancache_invalidate_page(mapping, page);
+diff -puN include/linux/radix-tree.h~radix-treeshmem-introduce-radix_tree_iter_next-fix include/linux/radix-tree.h
+--- a/include/linux/radix-tree.h~radix-treeshmem-introduce-radix_tree_iter_next-fix
++++ a/include/linux/radix-tree.h
+@@ -414,6 +414,7 @@ static inline __must_check
+ void **radix_tree_iter_next(struct radix_tree_iter *iter)
+ {
+ 	iter->next_index = iter->index + 1;
++	iter->tags = 0;
+ 	return NULL;
+ }
  
-+	VM_BUG_ON_PAGE(page_mapped(page), page);
-+	if (!IS_ENABLED(CONFIG_DEBUG_VM) && unlikely(page_mapped(page))) {
-+		int mapcount;
-+
-+		pr_alert("BUG: Bad page cache in process %s  pfn:%05lx\n",
-+			 current->comm, page_to_pfn(page));
-+		dump_page(page, "still mapped when deleted");
-+		dump_stack();
-+		add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
-+
-+		mapcount = page_mapcount(page);
-+		if (mapping_exiting(mapping) &&
-+		    page_count(page) >= mapcount + 2) {
-+			/*
-+			 * All vmas have already been torn down, so it's
-+			 * a good bet that actually the page is unmapped,
-+			 * and we'd prefer not to leak it: if we're wrong,
-+			 * some other bad page check should catch it later.
-+			 */
-+			page_mapcount_reset(page);
-+			atomic_sub(mapcount, &page->_count);
-+		}
-+	}
-+
- 	page_cache_tree_delete(mapping, page, shadow);
- 
- 	page->mapping = NULL;
-@@ -205,7 +229,6 @@ void __delete_from_page_cache(struct pag
- 		__dec_zone_page_state(page, NR_FILE_PAGES);
- 	if (PageSwapBacked(page))
- 		__dec_zone_page_state(page, NR_SHMEM);
--	VM_BUG_ON_PAGE(page_mapped(page), page);
- 
- 	/*
- 	 * At this point page must be either written or cleaned by truncate.
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from koct9i@gmail.com are
 
-mm-__delete_from_page_cache-show-bad-page-if-mapped.patch
+tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering.patch
+radix-treeshmem-introduce-radix_tree_iter_next-fix.patch
+radix-tree-tests-fix-compilation.patch
+radix-tree-tests-add-test-for-radix_tree_iter_next.patch
+radix-tree-tests-add-regression3-test.patch
 
