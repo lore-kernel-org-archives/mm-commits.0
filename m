@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3.patch added to -mm tree
-Date: Tue, 01 Mar 2016 12:55:23 -0800
-Message-ID: <56d601bb.oQr8xxV9m6TqqhTR%akpm@linux-foundation.org>
+Subject: + mm-__delete_from_page_cache-show-bad-page-if-mapped.patch added to -mm tree
+Date: Tue, 01 Mar 2016 13:00:57 -0800
+Message-ID: <56d60309.vaHTIpqB111MFRT8%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39067 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39441 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751646AbcCAUzY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2016 15:55:24 -0500
+	with ESMTP id S1752296AbcCAVA6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2016 16:00:58 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, kirill@shutemov.name, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_ref: fix build failure for xtensa
+     Subject: mm: __delete_from_page_cache show Bad page if mapped
 has been added to the -mm tree.  Its filename is
-     mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3.patch
+     mm-__delete_from_page_cache-show-bad-page-if-mapped.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-__delete_from_page_cache-show-bad-page-if-mapped.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-__delete_from_page_cache-show-bad-page-if-mapped.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,62 +38,86 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_ref: fix build failure for xtensa
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: __delete_from_page_cache show Bad page if mapped
 
-This patch includes struct page definition to fix build failure on xtensa.
+Commit e1534ae95004 ("mm: differentiate page_mapped() from page_mapcount()
+for compound pages") changed the famous BUG_ON(page_mapped(page)) in
+__delete_from_page_cache() to VM_BUG_ON_PAGE(page_mapped(page)): which
+gives us more info when CONFIG_DEBUG_VM=y, but nothing at all when not.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Although it has not usually been very helpul, being hit long after the
+error in question, we do need to know if it actually happens on users'
+systems; but reinstating a crash there is likely to be opposed :)
+
+In the non-debug case, pr_alert("BUG: Bad page cache") plus dump_page(),
+dump_stack(), add_taint() - I don't really believe LOCKDEP_NOW_UNRELIABLE,
+but that seems to be the standard procedure now.  Move that, or the
+VM_BUG_ON_PAGE(), up before the deletion from tree: so that the
+unNULLified page->mapping gives a little more information.
+
+If the inode is being evicted (rather than truncated), it won't have any
+vmas left, so it's safe(ish) to assume that the raised mapcount is
+erroneous, and we can discount it from page_count to avoid leaking the
+page (I'm less worried by leaking the occasional 4kB, than losing a
+potential 2MB page with each 4kB page leaked).
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Sasha Levin <sasha.levin@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_page_ref.c |    1 +
- 1 file changed, 1 insertion(+)
+ mm/filemap.c |   25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
 
-diff -puN mm/debug_page_ref.c~mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3 mm/debug_page_ref.c
---- a/mm/debug_page_ref.c~mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3
-+++ a/mm/debug_page_ref.c
-@@ -1,3 +1,4 @@
-+#include <linux/mm_types.h>
- #include <linux/tracepoint.h>
+diff -puN mm/filemap.c~mm-__delete_from_page_cache-show-bad-page-if-mapped mm/filemap.c
+--- a/mm/filemap.c~mm-__delete_from_page_cache-show-bad-page-if-mapped
++++ a/mm/filemap.c
+@@ -195,6 +195,30 @@ void __delete_from_page_cache(struct pag
+ 	else
+ 		cleancache_invalidate_page(mapping, page);
  
- #define CREATE_TRACE_POINTS
++	VM_BUG_ON_PAGE(page_mapped(page), page);
++	if (!IS_ENABLED(CONFIG_DEBUG_VM) && unlikely(page_mapped(page))) {
++		int mapcount;
++
++		pr_alert("BUG: Bad page cache in process %s  pfn:%05lx\n",
++			 current->comm, page_to_pfn(page));
++		dump_page(page, "still mapped when deleted");
++		dump_stack();
++		add_taint(TAINT_BAD_PAGE, LOCKDEP_NOW_UNRELIABLE);
++
++		mapcount = page_mapcount(page);
++		if (mapping_exiting(mapping) &&
++		    page_count(page) >= mapcount + 2) {
++			/*
++			 * All vmas have already been torn down, so it's
++			 * a good bet that actually the page is unmapped,
++			 * and we'd prefer not to leak it: if we're wrong,
++			 * some other bad page check should catch it later.
++			 */
++			page_mapcount_reset(page);
++			atomic_sub(mapcount, &page->_count);
++		}
++	}
++
+ 	page_cache_tree_delete(mapping, page, shadow);
+ 
+ 	page->mapping = NULL;
+@@ -205,7 +229,6 @@ void __delete_from_page_cache(struct pag
+ 		__dec_zone_page_state(page, NR_FILE_PAGES);
+ 	if (PageSwapBacked(page))
+ 		__dec_zone_page_state(page, NR_SHMEM);
+-	VM_BUG_ON_PAGE(page_mapped(page), page);
+ 
+ 	/*
+ 	 * At this point page must be either written or cleaned by truncate.
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-mm-slab-fix-stale-code-comment.patch
-mm-slab-remove-useless-structure-define.patch
-mm-slab-remove-the-checks-for-slab-implementation-bug.patch
-mm-slab-activate-debug_pagealloc-in-slab-when-it-is-actually-enabled.patch
-mm-slab-use-more-appropriate-condition-check-for-debug_pagealloc.patch
-mm-slab-clean-up-debug_pagealloc-processing-code.patch
-mm-slab-alternative-implementation-for-debug_slab_leak.patch
-mm-slab-remove-object-status-buffer-for-debug_slab_leak.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page.patch
-mm-slab-align-cache-size-first-before-determination-of-off_slab-candidate.patch
-mm-slab-clean-up-cache-type-determination.patch
-mm-slab-do-not-change-cache-size-if-debug-pagealloc-isnt-possible.patch
-mm-slab-make-criteria-for-off-slab-determination-robust-and-simple.patch
-mm-slab-factor-out-slab-list-fixup-code.patch
-mm-slab-factor-out-debugging-initialization-in-cache_init_objs.patch
-mm-slab-introduce-new-slab-management-type-objfreelist_slab.patch
-mm-slab-introduce-new-slab-management-type-objfreelist_slab-fix.patch
-mm-slab-avoid-returning-values-by-reference.patch
-mm-slab-re-implement-pfmemalloc-support.patch
-mm-slab-re-implement-pfmemalloc-support-v2.patch
-mm-slub-support-left-red-zone.patch
-mm-slub-support-left-red-zone-fix.patch
-mm-compaction-fix-invalid-free_pfn-and-compact_cached_free_pfn.patch
-mm-compaction-pass-only-pageblock-aligned-range-to-pageblock_pfn_to_page.patch
-mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous.patch
-mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch
-mm-slub-query-dynamic-debug_pagealloc-setting.patch
-mm-slub-query-dynamic-debug_pagealloc-setting-v2.patch
-sound-query-dynamic-debug_pagealloc-setting.patch
-powerpc-query-dynamic-debug_pagealloc-setting.patch
-tile-query-dynamic-debug_pagealloc-setting.patch
-mm-introduce-page-reference-manipulation-functions.patch
-mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation.patch
-mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3.patch
+mm-__delete_from_page_cache-show-bad-page-if-mapped.patch
 
