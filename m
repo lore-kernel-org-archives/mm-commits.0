@@ -1,110 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-thp-set-thp-defrag-by-default-to-madvise-and-add-a-stall-free-defrag-option-fix.patch added to -mm tree
-Date: Tue, 01 Mar 2016 10:46:03 -0800
-Message-ID: <56d5e36b.nf25wHmmGwTmY1BO%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix.patch removed from -mm tree
+Date: Tue, 01 Mar 2016 11:13:21 -0800
+Message-ID: <56d5e9d1.WBVkfG2vagEQlTr6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33236 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34453 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750877AbcCASqE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2016 13:46:04 -0500
+	with ESMTP id S1753810AbcCATNW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2016 14:13:22 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, aarcange@redhat.com, hannes@cmpxchg.org, riel@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: arnd@arndb.de, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: thp: Set THP defrag by default to madvise and add a stall-free defrag option -fix
-has been added to the -mm tree.  Its filename is
-     mm-thp-set-thp-defrag-by-default-to-madvise-and-add-a-stall-free-defrag-option-fix.patch
+     Subject: mm/page_ref, crypto/async_pq: don't put_page from __exit
+has been removed from the -mm tree.  Its filename was
+     mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-set-thp-defrag-by-default-to-madvise-and-add-a-stall-free-defrag-option-fix.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-set-thp-defrag-by-default-to-madvise-and-add-a-stall-free-defrag-option-fix.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: thp: Set THP defrag by default to madvise and add a stall-free defrag option -fix
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: mm/page_ref, crypto/async_pq: don't put_page from __exit
 
-The following is a fix to the patch
-mm-thp-set-thp-defrag-by-default-to-madvise-and-add-a-stall-free-defrag-option.patch
-based on feedback from Vlastimil Babka.  It removes an unnecessary
-VM_BUG_ON for tidyness, clarifies documentation and adds a check
-forbidding someone writing "defer" to the enable knob for transparent huge
-pages.  The ack from Vlastimil applies for the original patch plus this
-fix combined.
+The addition of tracepoints to the page reference tracking had an
+unfortunate side-effect in at least one driver that calls put_page
+from its exit function, resulting in a link error:
 
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Rik van Riel <riel@redhat.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+`.exit.text' referenced in section `__jump_table' of crypto/built-in.o: defined in discarded section `.exit.text' of crypto/built-in.o
+
+I could not come up with a nice solution that ignores __jump_table
+entries in discarded code, so we probably now have to treat this
+as something a driver is not allowed to do. Removing the __exit
+annotation avoids the problem in this particular driver, but the
+same problem could come back any time in other code.
+
+On a related problem regarding the runtime patching for SMP
+operations on ARM uniprocessor systems, we resorted to not
+drop the .exit section at link time, but that doesn't seem
+appropriate here.
+
+Fixes: 0f80830dd044 ("mm/page_ref: add tracepoint to track down page reference manipulation")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/transhuge.txt |    2 +-
- mm/huge_memory.c               |    7 ++++---
- 2 files changed, 5 insertions(+), 4 deletions(-)
+ crypto/async_tx/async_pq.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN Documentation/vm/transhuge.txt~mm-thp-set-thp-defrag-by-default-to-madvise-and-add-a-stall-free-defrag-option-fix Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~mm-thp-set-thp-defrag-by-default-to-madvise-and-add-a-stall-free-defrag-option-fix
-+++ a/Documentation/vm/transhuge.txt
-@@ -129,7 +129,7 @@ available in the near future. It's the r
- to then install the THP pages later.
+diff -puN crypto/async_tx/async_pq.c~mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix crypto/async_tx/async_pq.c
+--- a/crypto/async_tx/async_pq.c~mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix
++++ a/crypto/async_tx/async_pq.c
+@@ -442,7 +442,7 @@ static int __init async_pq_init(void)
+ 	return -ENOMEM;
+ }
  
- "madvise" will enter direct reclaim like "always" but only for regions
--that are have used madvise(). This is the default behaviour.
-+that are have used madvise(MADV_HUGEPAGE). This is the default behaviour.
- 
- "never" should be self-explanatory.
- 
-diff -puN mm/huge_memory.c~mm-thp-set-thp-defrag-by-default-to-madvise-and-add-a-stall-free-defrag-option-fix mm/huge_memory.c
---- a/mm/huge_memory.c~mm-thp-set-thp-defrag-by-default-to-madvise-and-add-a-stall-free-defrag-option-fix
-+++ a/mm/huge_memory.c
-@@ -279,6 +279,8 @@ static ssize_t triple_flag_store(struct
+-static void __exit async_pq_exit(void)
++static void async_pq_exit(void)
  {
- 	if (!memcmp("defer", buf,
- 		    min(sizeof("defer")-1, count))) {
-+		if (enabled == deferred)
-+			return -EINVAL;
- 		clear_bit(enabled, &transparent_hugepage_flags);
- 		clear_bit(req_madv, &transparent_hugepage_flags);
- 		set_bit(deferred, &transparent_hugepage_flags);
-@@ -306,10 +308,9 @@ static ssize_t triple_flag_store(struct
- static ssize_t enabled_show(struct kobject *kobj,
- 			    struct kobj_attribute *attr, char *buf)
- {
--	if (test_bit(TRANSPARENT_HUGEPAGE_FLAG, &transparent_hugepage_flags)) {
--		VM_BUG_ON(test_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags));
-+	if (test_bit(TRANSPARENT_HUGEPAGE_FLAG, &transparent_hugepage_flags))
- 		return sprintf(buf, "[always] madvise never\n");
--	} else if (test_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags))
-+	else if (test_bit(TRANSPARENT_HUGEPAGE_REQ_MADV_FLAG, &transparent_hugepage_flags))
- 		return sprintf(buf, "always [madvise] never\n");
- 	else
- 		return sprintf(buf, "always madvise [never]\n");
+ 	put_page(pq_scribble_page);
+ }
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-filemap-remove-redundant-code-in-do_read_cache_page.patch
-mm-filemap-avoid-unnecessary-calls-to-lock_page-when-waiting-for-io-to-complete-during-a-read.patch
-mm-thp-set-thp-defrag-by-default-to-madvise-and-add-a-stall-free-defrag-option.patch
-mm-thp-set-thp-defrag-by-default-to-madvise-and-add-a-stall-free-defrag-option-fix.patch
+mm-compaction-introduce-kcompactd-fix.patch
+mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-2.patch
+profile-hide-unused-functions-when-config_proc_fs.patch
+staging-goldfish-use-6-arg-get_user_pages.patch
 
