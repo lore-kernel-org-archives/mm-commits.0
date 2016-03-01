@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-memcontrol-cleanup-css_reset-callback.patch added to -mm
- tree
-Date: Tue, 01 Mar 2016 13:44:49 -0800
-Message-ID: <56d60d51.WM+CJ8vAh6k5ODy4%akpm@linux-foundation.org>
+Subject: + tags-fix-define_per_cpu-expansions.patch added to -mm tree
+Date: Tue, 01 Mar 2016 13:46:36 -0800
+Message-ID: <56d60dbc.kU0xNU8WNzXb4s5b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41168 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41237 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751203AbcCAVou (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2016 16:44:50 -0500
+	with ESMTP id S1750940AbcCAVqh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2016 16:46:37 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@suse.com, tj@kernel.org, mm-commits@vger.kernel.org
+To: peterz@infradead.org, davem@davemloft.net, paulmck@linux.vnet.ibm.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: cleanup css_reset callback
+     Subject: tags: Fix DEFINE_PER_CPU expansions
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-cleanup-css_reset-callback.patch
+     tags-fix-define_per_cpu-expansions.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-cleanup-css_reset-callback.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tags-fix-define_per_cpu-expansions.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-cleanup-css_reset-callback.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tags-fix-define_per_cpu-expansions.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,65 +38,161 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: memcontrol: cleanup css_reset callback
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: tags: Fix DEFINE_PER_CPU expansions
 
-- Do not take memcg_limit_mutex for resetting limits - the cgroup cannot
-  be altered from userspace anymore, so no need to protect them.
+$ make tags
+  GEN     tags
+ctags: Warning: drivers/acpi/processor_idle.c:64: null expansion of name pattern "\1"
+ctags: Warning: drivers/xen/events/events_2l.c:41: null expansion of name pattern "\1"
+ctags: Warning: kernel/locking/lockdep.c:151: null expansion of name pattern "\1"
+ctags: Warning: kernel/rcu/rcutorture.c:133: null expansion of name pattern "\1"
+ctags: Warning: kernel/rcu/rcutorture.c:135: null expansion of name pattern "\1"
+ctags: Warning: kernel/workqueue.c:323: null expansion of name pattern "\1"
+ctags: Warning: net/ipv4/syncookies.c:53: null expansion of name pattern "\1"
+ctags: Warning: net/ipv6/syncookies.c:44: null expansion of name pattern "\1"
+ctags: Warning: net/rds/page.c:45: null expansion of name pattern "\1"
 
-- Use plain page_counter_limit() for resetting ->memory and ->memsw
-  limits instead of mem_cgrouop_resize_* helpers - we enlarge the limits,
-  so no need in special handling.
+Which are all the result of the DEFINE_PER_CPU pattern:
 
-- Reset ->swap and ->tcpmem limits as well.
+scripts/tags.sh:200:	'/\<DEFINE_PER_CPU([^,]*, *\([[:alnum:]_]*\)/\1/v/'
+scripts/tags.sh:201:	'/\<DEFINE_PER_CPU_SHARED_ALIGNED([^,]*, *\([[:alnum:]_]*\)/\1/v/'
 
-Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
-Acked-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
+The below cures them. All except the workqueue one are within reasonable
+distance of the 80 char limit. TJ do you have any preference on how to
+fix the wq one, or shall we just not care its too long?
+
+Signed-off-by: Peter Zijlstra (Intel) <peterz@infradead.org>
+Acked-by: David S. Miller <davem@davemloft.net>
 Cc: Tejun Heo <tj@kernel.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/acpi/processor_idle.c  |    4 ++--
+ drivers/xen/events/events_2l.c |    5 +++--
+ kernel/locking/lockdep.c       |    3 +--
+ kernel/rcu/rcutorture.c        |    6 ++----
+ kernel/workqueue.c             |    3 +--
+ net/ipv4/syncookies.c          |    3 +--
+ net/ipv6/syncookies.c          |    3 +--
+ net/rds/page.c                 |    4 ++--
+ 8 files changed, 13 insertions(+), 18 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-cleanup-css_reset-callback mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-cleanup-css_reset-callback
-+++ a/mm/memcontrol.c
-@@ -4257,9 +4257,11 @@ static void mem_cgroup_css_reset(struct
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(css);
+diff -puN drivers/acpi/processor_idle.c~tags-fix-define_per_cpu-expansions drivers/acpi/processor_idle.c
+--- a/drivers/acpi/processor_idle.c~tags-fix-define_per_cpu-expansions
++++ a/drivers/acpi/processor_idle.c
+@@ -61,8 +61,8 @@ module_param(latency_factor, uint, 0644)
  
--	mem_cgroup_resize_limit(memcg, PAGE_COUNTER_MAX);
--	mem_cgroup_resize_memsw_limit(memcg, PAGE_COUNTER_MAX);
--	memcg_update_kmem_limit(memcg, PAGE_COUNTER_MAX);
-+	page_counter_limit(&memcg->memory, PAGE_COUNTER_MAX);
-+	page_counter_limit(&memcg->swap, PAGE_COUNTER_MAX);
-+	page_counter_limit(&memcg->memsw, PAGE_COUNTER_MAX);
-+	page_counter_limit(&memcg->kmem, PAGE_COUNTER_MAX);
-+	page_counter_limit(&memcg->tcpmem, PAGE_COUNTER_MAX);
- 	memcg->low = 0;
- 	memcg->high = PAGE_COUNTER_MAX;
- 	memcg->soft_limit = PAGE_COUNTER_MAX;
+ static DEFINE_PER_CPU(struct cpuidle_device *, acpi_cpuidle_device);
+ 
+-static DEFINE_PER_CPU(struct acpi_processor_cx * [CPUIDLE_STATE_MAX],
+-								acpi_cstate);
++static
++DEFINE_PER_CPU(struct acpi_processor_cx * [CPUIDLE_STATE_MAX], acpi_cstate);
+ 
+ static int disabled_by_idle_boot_param(void)
+ {
+diff -puN drivers/xen/events/events_2l.c~tags-fix-define_per_cpu-expansions drivers/xen/events/events_2l.c
+--- a/drivers/xen/events/events_2l.c~tags-fix-define_per_cpu-expansions
++++ a/drivers/xen/events/events_2l.c
+@@ -38,8 +38,9 @@
+ /* Find the first set bit in a evtchn mask */
+ #define EVTCHN_FIRST_BIT(w) find_first_bit(BM(&(w)), BITS_PER_EVTCHN_WORD)
+ 
+-static DEFINE_PER_CPU(xen_ulong_t [EVTCHN_2L_NR_CHANNELS/BITS_PER_EVTCHN_WORD],
+-		      cpu_evtchn_mask);
++#define EVTCHN_MASK_SIZE (EVTCHN_2L_NR_CHANNELS/BITS_PER_EVTCHN_WORD)
++
++static DEFINE_PER_CPU(xen_ulong_t [EVTCHN_MASK_SIZE], cpu_evtchn_mask);
+ 
+ static unsigned evtchn_2l_max_channels(void)
+ {
+diff -puN kernel/locking/lockdep.c~tags-fix-define_per_cpu-expansions kernel/locking/lockdep.c
+--- a/kernel/locking/lockdep.c~tags-fix-define_per_cpu-expansions
++++ a/kernel/locking/lockdep.c
+@@ -150,8 +150,7 @@ static inline struct lock_class *hlock_c
+ }
+ 
+ #ifdef CONFIG_LOCK_STAT
+-static DEFINE_PER_CPU(struct lock_class_stats[MAX_LOCKDEP_KEYS],
+-		      cpu_lock_stats);
++static DEFINE_PER_CPU(struct lock_class_stats[MAX_LOCKDEP_KEYS], cpu_lock_stats);
+ 
+ static inline u64 lockstat_clock(void)
+ {
+diff -puN kernel/rcu/rcutorture.c~tags-fix-define_per_cpu-expansions kernel/rcu/rcutorture.c
+--- a/kernel/rcu/rcutorture.c~tags-fix-define_per_cpu-expansions
++++ a/kernel/rcu/rcutorture.c
+@@ -130,10 +130,8 @@ static struct rcu_torture __rcu *rcu_tor
+ static unsigned long rcu_torture_current_version;
+ static struct rcu_torture rcu_tortures[10 * RCU_TORTURE_PIPE_LEN];
+ static DEFINE_SPINLOCK(rcu_torture_lock);
+-static DEFINE_PER_CPU(long [RCU_TORTURE_PIPE_LEN + 1],
+-		      rcu_torture_count) = { 0 };
+-static DEFINE_PER_CPU(long [RCU_TORTURE_PIPE_LEN + 1],
+-		      rcu_torture_batch) = { 0 };
++static DEFINE_PER_CPU(long [RCU_TORTURE_PIPE_LEN + 1], rcu_torture_count) = { 0 };
++static DEFINE_PER_CPU(long [RCU_TORTURE_PIPE_LEN + 1], rcu_torture_batch) = { 0 };
+ static atomic_t rcu_torture_wcount[RCU_TORTURE_PIPE_LEN + 1];
+ static atomic_t n_rcu_torture_alloc;
+ static atomic_t n_rcu_torture_alloc_fail;
+diff -puN kernel/workqueue.c~tags-fix-define_per_cpu-expansions kernel/workqueue.c
+--- a/kernel/workqueue.c~tags-fix-define_per_cpu-expansions
++++ a/kernel/workqueue.c
+@@ -320,8 +320,7 @@ static bool wq_debug_force_rr_cpu = fals
+ module_param_named(debug_force_rr_cpu, wq_debug_force_rr_cpu, bool, 0644);
+ 
+ /* the per-cpu worker pools */
+-static DEFINE_PER_CPU_SHARED_ALIGNED(struct worker_pool [NR_STD_WORKER_POOLS],
+-				     cpu_worker_pools);
++static DEFINE_PER_CPU_SHARED_ALIGNED(struct worker_pool [NR_STD_WORKER_POOLS], cpu_worker_pools);
+ 
+ static DEFINE_IDR(worker_pool_idr);	/* PR: idr of all pools */
+ 
+diff -puN net/ipv4/syncookies.c~tags-fix-define_per_cpu-expansions net/ipv4/syncookies.c
+--- a/net/ipv4/syncookies.c~tags-fix-define_per_cpu-expansions
++++ a/net/ipv4/syncookies.c
+@@ -50,8 +50,7 @@ static u32 syncookie_secret[2][16-4+SHA_
+ #define TSBITS	6
+ #define TSMASK	(((__u32)1 << TSBITS) - 1)
+ 
+-static DEFINE_PER_CPU(__u32 [16 + 5 + SHA_WORKSPACE_WORDS],
+-		      ipv4_cookie_scratch);
++static DEFINE_PER_CPU(__u32 [16 + 5 + SHA_WORKSPACE_WORDS], ipv4_cookie_scratch);
+ 
+ static u32 cookie_hash(__be32 saddr, __be32 daddr, __be16 sport, __be16 dport,
+ 		       u32 count, int c)
+diff -puN net/ipv6/syncookies.c~tags-fix-define_per_cpu-expansions net/ipv6/syncookies.c
+--- a/net/ipv6/syncookies.c~tags-fix-define_per_cpu-expansions
++++ a/net/ipv6/syncookies.c
+@@ -41,8 +41,7 @@ static __u16 const msstab[] = {
+ 	9000 - 60,
+ };
+ 
+-static DEFINE_PER_CPU(__u32 [16 + 5 + SHA_WORKSPACE_WORDS],
+-		      ipv6_cookie_scratch);
++static DEFINE_PER_CPU(__u32 [16 + 5 + SHA_WORKSPACE_WORDS], ipv6_cookie_scratch);
+ 
+ static u32 cookie_hash(const struct in6_addr *saddr, const struct in6_addr *daddr,
+ 		       __be16 sport, __be16 dport, u32 count, int c)
+diff -puN net/rds/page.c~tags-fix-define_per_cpu-expansions net/rds/page.c
+--- a/net/rds/page.c~tags-fix-define_per_cpu-expansions
++++ a/net/rds/page.c
+@@ -42,8 +42,8 @@ struct rds_page_remainder {
+ 	unsigned long	r_offset;
+ };
+ 
+-static DEFINE_PER_CPU_SHARED_ALIGNED(struct rds_page_remainder,
+-				     rds_page_remainders);
++static
++DEFINE_PER_CPU_SHARED_ALIGNED(struct rds_page_remainder, rds_page_remainders);
+ 
+ /*
+  * returns 0 on success or -errno on failure.
 _
 
-Patches currently in -mm which might be from vdavydov@virtuozzo.com are
+Patches currently in -mm which might be from peterz@infradead.org are
 
-mm-vmscan-do-not-clear-shrinker_numa_aware-if-nr_node_ids-==-1.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix-2.patch
-mm-memcontrol-do-not-bypass-slab-charge-if-memcg-is-offline.patch
-mm-memcontrol-make-tree_statevents-fetch-all-stats.patch
-mm-memcontrol-make-tree_statevents-fetch-all-stats-fix.patch
-mm-memcontrol-report-slab-usage-in-cgroup2-memorystat.patch
-mm-memcontrol-report-kernel-stack-usage-in-cgroup2-memorystat.patch
-mm-memcontrol-report-kernel-stack-usage-in-cgroup2-memorystat-v2.patch
-proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix.patch
-tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering-fix.patch
-mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy.patch
-mm-vmscan-pass-root_mem_cgroup-instead-of-null-to-memcg-aware-shrinker.patch
-mm-memcontrol-zap-memcg_kmem_online-helper.patch
-radix-tree-account-radix_tree_node-to-memory-cgroup.patch
-mm-workingset-size-shadow-nodes-lru-basing-on-file-cache-size.patch
-mm-workingset-make-shadow-node-shrinker-memcg-aware.patch
-mm-memcontrol-cleanup-css_reset-callback.patch
+tags-fix-define_per_cpu-expansions.patch
 
