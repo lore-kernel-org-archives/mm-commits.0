@@ -1,179 +1,114 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-page_poisonc-enable-page_poisoning-as-a-separate-option.patch removed
+ mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch removed
  from -mm tree
-Date: Fri, 04 Mar 2016 15:59:06 -0800
-Message-ID: <56da214a.9U4C+xfsepGEEqaJ%akpm@linux-foundation.org>
+Date: Fri, 04 Mar 2016 15:59:14 -0800
+Message-ID: <56da2152.nx9qfc4KxumCZu0G%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46622 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46635 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760458AbcCDX7H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2016 18:59:07 -0500
+	with ESMTP id S1760507AbcCDX7P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2016 18:59:15 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: labbott@fedoraproject.org, dave.hansen@intel.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, mhocko@suse.com, minipli@googlemail.com, nasa4836@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, labbott@fedoraproject.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_poison.c: enable PAGE_POISONING as a separate option
+     Subject: mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     mm-page_poisonc-enable-page_poisoning-as-a-separate-option.patch
+     mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Laura Abbott <labbott@fedoraproject.org>
-Subject: mm/page_poison.c: enable PAGE_POISONING as a separate option
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes
 
-Page poisoning is currently set up as a feature if architectures don't
-have architecture debug page_alloc to allow unmapping of pages.  It has
-uses apart from that though.  Clearing of the pages on free provides an
-increase in security as it helps to limit the risk of information leaks. 
-Allow page poisoning to be enabled as a separate option independent of any
-other debug feature.  Because of how hiberanation is implemented, the
-checks on alloc cannot occur if hibernation is enabled.  This option can
-also be set on !HIBERNATION as well.
+WARNING: 'occuring' may be misspelled - perhaps 'occurring'?
+#57: FILE: mm/Kconfig.debug:74:
++	   zeros. This makes it harder to detect when errors are occuring
 
-Credit to Mathias Krause and grsecurity for original work
+total: 0 errors, 1 warnings, 47 lines checked
 
-Signed-off-by: Laura Abbott <labbott@fedoraproject.org>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Mathias Krause <minipli@googlemail.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Jianyu Zhan <nasa4836@gmail.com>
+./patches/mm-page_poisoningc-allow-for-zero-poisoning.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: Laura Abbott <labbott@fedoraproject.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h   |    3 +++
- mm/Kconfig.debug     |   22 +++++++++++++++++++++-
- mm/debug-pagealloc.c |    8 +-------
- mm/page_alloc.c      |    2 ++
- mm/page_poison.c     |   14 ++++++++++++++
- 5 files changed, 41 insertions(+), 8 deletions(-)
+ mm/Kconfig.debug |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/mm.h~mm-page_poisonc-enable-page_poisoning-as-a-separate-option include/linux/mm.h
---- a/include/linux/mm.h~mm-page_poisonc-enable-page_poisoning-as-a-separate-option
-+++ a/include/linux/mm.h
-@@ -2179,10 +2179,13 @@ extern int apply_to_page_range(struct mm
- extern void poison_pages(struct page *page, int n);
- extern void unpoison_pages(struct page *page, int n);
- extern bool page_poisoning_enabled(void);
-+extern void kernel_poison_pages(struct page *page, int numpages, int enable);
- #else
- static inline void poison_pages(struct page *page, int n) { }
- static inline void unpoison_pages(struct page *page, int n) { }
- static inline bool page_poisoning_enabled(void) { return false; }
-+static inline void kernel_poison_pages(struct page *page, int numpages,
-+					int enable) { }
- #endif
- 
- #ifdef CONFIG_DEBUG_PAGEALLOC
-diff -puN mm/Kconfig.debug~mm-page_poisonc-enable-page_poisoning-as-a-separate-option mm/Kconfig.debug
---- a/mm/Kconfig.debug~mm-page_poisonc-enable-page_poisoning-as-a-separate-option
+diff -puN mm/Kconfig.debug~mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes mm/Kconfig.debug
+--- a/mm/Kconfig.debug~mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes
 +++ a/mm/Kconfig.debug
-@@ -41,4 +41,24 @@ config DEBUG_PAGEALLOC_ENABLE_DEFAULT
- 	  can be overridden by debug_pagealloc=off|on.
- 
- config PAGE_POISONING
--	bool
-+	bool "Poisson pages after freeing"
-+	select PAGE_EXTENSION
-+	select PAGE_POISONING_NO_SANITY if HIBERNATION
-+	---help---
-+	  Fill the pages with poison patterns after free_pages() and verify
-+	  the patterns before alloc_pages. The filling of the memory helps
-+	  reduce the risk of information leaks from freed data. This does
-+	  have a potential performance impact.
-+
-+	  If unsure, say N
-+
-+config PAGE_POISONING_NO_SANITY
-+	depends on PAGE_POISONING
-+	bool "Only poison, don't sanity check"
-+	---help---
-+	   Skip the sanity checking on alloc, only fill the pages with
-+	   poison on free. This reduces some of the overhead of the
-+	   poisoning feature.
-+
-+	   If you are only interested in sanitization, say Y. Otherwise
-+	   say N.
-diff -puN mm/debug-pagealloc.c~mm-page_poisonc-enable-page_poisoning-as-a-separate-option mm/debug-pagealloc.c
---- a/mm/debug-pagealloc.c~mm-page_poisonc-enable-page_poisoning-as-a-separate-option
-+++ a/mm/debug-pagealloc.c
-@@ -8,11 +8,5 @@
- 
- void __kernel_map_pages(struct page *page, int numpages, int enable)
- {
--	if (!page_poisoning_enabled())
--		return;
--
--	if (enable)
--		unpoison_pages(page, numpages);
--	else
--		poison_pages(page, numpages);
-+	kernel_poison_pages(page, numpages, enable);
- }
-diff -puN mm/page_alloc.c~mm-page_poisonc-enable-page_poisoning-as-a-separate-option mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_poisonc-enable-page_poisoning-as-a-separate-option
-+++ a/mm/page_alloc.c
-@@ -1007,6 +1007,7 @@ static bool free_pages_prepare(struct pa
- 					   PAGE_SIZE << order);
- 	}
- 	arch_free_page(page, order);
-+	kernel_poison_pages(page, 1 << order, 0);
- 	kernel_map_pages(page, 1 << order, 0);
- 
- 	return true;
-@@ -1401,6 +1402,7 @@ static int prep_new_page(struct page *pa
- 	set_page_refcounted(page);
- 
- 	arch_alloc_page(page, order);
-+	kernel_poison_pages(page, 1 << order, 1);
- 	kernel_map_pages(page, 1 << order, 1);
- 	kasan_alloc_pages(page, order);
- 
-diff -puN mm/page_poison.c~mm-page_poisonc-enable-page_poisoning-as-a-separate-option mm/page_poison.c
---- a/mm/page_poison.c~mm-page_poisonc-enable-page_poisoning-as-a-separate-option
-+++ a/mm/page_poison.c
-@@ -101,6 +101,9 @@ static void check_poison_mem(unsigned ch
- 	unsigned char *start;
- 	unsigned char *end;
- 
-+	if (IS_ENABLED(CONFIG_PAGE_POISONING_NO_SANITY))
-+		return;
-+
- 	start = memchr_inv(mem, PAGE_POISON, bytes);
- 	if (!start)
- 		return;
-@@ -142,3 +145,14 @@ void unpoison_pages(struct page *page, i
- 	for (i = 0; i < n; i++)
- 		unpoison_page(page + i);
- }
-+
-+void kernel_poison_pages(struct page *page, int numpages, int enable)
-+{
-+	if (!page_poisoning_enabled())
-+		return;
-+
-+	if (enable)
-+		unpoison_pages(page, numpages);
-+	else
-+		poison_pages(page, numpages);
-+}
+@@ -69,7 +69,7 @@ config PAGE_POISONING_ZERO
+ 	depends on PAGE_POISONING
+ 	---help---
+ 	   Instead of using the existing poison value, fill the pages with
+-	   zeros. This makes it harder to detect when errors are occuring
++	   zeros. This makes it harder to detect when errors are occurring
+ 	   due to sanitization but the zeroing at free means that it is
+ 	   no longer necessary to write zeros when GFP_ZERO is used on
+ 	   allocation.
 _
 
-Patches currently in -mm which might be from labbott@fedoraproject.org are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-slub-drop-lock-at-the-end-of-free_debug_processing.patch
-slub-fix-clean-free_debug_processing-return-paths.patch
-slub-convert-slab_debug_free-to-slab_consistency_checks.patch
-slub-relax-cmpxchg-consistency-restrictions.patch
-mm-page_poisoningc-allow-for-zero-poisoning.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-code-clean-up-for-direct-io-fix.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
+mm.patch
+mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
+mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
+slub-drop-lock-at-the-end-of-free_debug_processing-fix.patch
+fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
+mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
+mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
+mm-madvise-update-comment-on-sys_madvise-fix.patch
+mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
+mm-simplify-lock_page_memcg-fix.patch
+sched-add-schedule_timeout_idle.patch
+mm-oom_reaper-report-success-failure-fix.patch
+mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
+proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
+mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
+mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
+sound-query-dynamic-debug_pagealloc-setting-fix.patch
+mm-add-a-new-vector-based-madvise-syscall-fix.patch
+mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+zram-export-the-number-of-available-comp-streams-fix.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+mn10300-c6x-config_generic_bug-must-depend-on-config_bug.patch
+arch-mn10300-kernel-fpu-nofpuc-needs-asm-elfh.patch
+btrfs-use-radix_tree_iter_retry-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
+rapidio-add-mport-char-device-driver-fix.patch
+dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
+kernel-add-kcov-code-coverage-fix.patch
+kernel-add-kcov-code-coverage-fix-2.patch
+kernel-add-kcov-code-coverage-makefile-tweaks.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
