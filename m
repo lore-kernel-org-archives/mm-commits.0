@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ipmi-watchdog-use-nmi_panic-when-kernel-panics-in-nmi-handler.patch added
- to -mm tree
-Date: Fri, 04 Mar 2016 13:52:34 -0800
-Message-ID: <56da03a2.wVbcc9HrZMQRi7Dn%akpm@linux-foundation.org>
+Subject: + hpwdt-use-nmi_panic-when-kernel-panics-in-nmi-handler.patch
+ added to -mm tree
+Date: Fri, 04 Mar 2016 13:52:36 -0800
+Message-ID: <56da03a4.jnyBzQxJbft8TomZ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42376 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42412 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759071AbcCDVwg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2016 16:52:36 -0500
+	with ESMTP id S1759311AbcCDVwk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2016 16:52:40 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hidehiro.kawai.ez@hitachi.com, cminyard@mvista.com, linux@roeck-us.net, mhocko@suse.com, mm-commits@vger.kernel.org
+To: hidehiro.kawai.ez@hitachi.com, linux@roeck-us.net, thomas.mingarelli@hpe.com, wim@iguana.be, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ipmi/watchdog: use nmi_panic() when kernel panics in NMI handler
+     Subject: hpwdt: use nmi_panic() when kernel panics in NMI handler
 has been added to the -mm tree.  Its filename is
-     ipmi-watchdog-use-nmi_panic-when-kernel-panics-in-nmi-handler.patch
+     hpwdt-use-nmi_panic-when-kernel-panics-in-nmi-handler.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ipmi-watchdog-use-nmi_panic-when-kernel-panics-in-nmi-handler.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/hpwdt-use-nmi_panic-when-kernel-panics-in-nmi-handler.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ipmi-watchdog-use-nmi_panic-when-kernel-panics-in-nmi-handler.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/hpwdt-use-nmi_panic-when-kernel-panics-in-nmi-handler.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,7 +40,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Subject: ipmi/watchdog: use nmi_panic() when kernel panics in NMI handler
+Subject: hpwdt: use nmi_panic() when kernel panics in NMI handler
 
 commit 1717f2096b54 ("panic, x86: Fix re-entrance problem due to panic on
 NMI") introduced nmi_panic() which prevents concurrent and recursive
@@ -49,31 +48,56 @@ execution of panic().  It also saves registers for the crash dump on x86
 by later commit 58c5661f2144 ("panic, x86: Allow CPUs to save registers
 even if looping in NMI context").
 
-ipmi_watchdog driver can call panic() from NMI handler, so replace it with
-nmi_panic().
+hpwdt driver can call panic() from NMI handler, so replace it with
+nmi_panic().  Also, do some cleanups.
 
 Signed-off-by: Hidehiro Kawai <hidehiro.kawai.ez@hitachi.com>
-Acked-by: Corey Minyard <cminyard@mvista.com>
 Acked-by: Guenter Roeck <linux@roeck-us.net>
-Reviewed-by: Michal Hocko <mhocko@suse.com>
+Cc: Thomas Mingarelli <thomas.mingarelli@hpe.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/char/ipmi/ipmi_watchdog.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/watchdog/hpwdt.c |   11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-diff -puN drivers/char/ipmi/ipmi_watchdog.c~ipmi-watchdog-use-nmi_panic-when-kernel-panics-in-nmi-handler drivers/char/ipmi/ipmi_watchdog.c
---- a/drivers/char/ipmi/ipmi_watchdog.c~ipmi-watchdog-use-nmi_panic-when-kernel-panics-in-nmi-handler
-+++ a/drivers/char/ipmi/ipmi_watchdog.c
-@@ -1140,7 +1140,7 @@ ipmi_nmi(unsigned int val, struct pt_reg
- 		   the timer.   So do so. */
- 		pretimeout_since_last_heartbeat = 1;
- 		if (atomic_inc_and_test(&preop_panic_excl))
--			panic(PFX "pre-timeout");
-+			nmi_panic(regs, PFX "pre-timeout");
- 	}
+diff -puN drivers/watchdog/hpwdt.c~hpwdt-use-nmi_panic-when-kernel-panics-in-nmi-handler drivers/watchdog/hpwdt.c
+--- a/drivers/watchdog/hpwdt.c~hpwdt-use-nmi_panic-when-kernel-panics-in-nmi-handler
++++ a/drivers/watchdog/hpwdt.c
+@@ -483,7 +483,7 @@ static int hpwdt_pretimeout(unsigned int
+ 	static int die_nmi_called;
  
- 	return NMI_HANDLED;
+ 	if (!hpwdt_nmi_decoding)
+-		goto out;
++		return NMI_DONE;
+ 
+ 	spin_lock_irqsave(&rom_lock, rom_pl);
+ 	if (!die_nmi_called && !is_icru && !is_uefi)
+@@ -496,11 +496,11 @@ static int hpwdt_pretimeout(unsigned int
+ 
+ 	if (!is_icru && !is_uefi) {
+ 		if (cmn_regs.u1.ral == 0) {
+-			panic("An NMI occurred, "
+-				"but unable to determine source.\n");
++			nmi_panic(regs, "An NMI occurred, but unable to determine source.\n");
++			return NMI_HANDLED;
+ 		}
+ 	}
+-	panic("An NMI occurred. Depending on your system the reason "
++	nmi_panic(regs, "An NMI occurred. Depending on your system the reason "
+ 		"for the NMI is logged in any one of the following "
+ 		"resources:\n"
+ 		"1. Integrated Management Log (IML)\n"
+@@ -508,8 +508,7 @@ static int hpwdt_pretimeout(unsigned int
+ 		"3. OA Forward Progress Log\n"
+ 		"4. iLO Event Log");
+ 
+-out:
+-	return NMI_DONE;
++	return NMI_HANDLED;
+ }
+ #endif /* CONFIG_HPWDT_NMI_DECODING */
+ 
 _
 
 Patches currently in -mm which might be from hidehiro.kawai.ez@hitachi.com are
