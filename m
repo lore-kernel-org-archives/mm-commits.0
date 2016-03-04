@@ -1,178 +1,420 @@
 From: akpm@linux-foundation.org
 Subject: [to-be-updated]
- mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch removed from -mm tree
-Date: Fri, 04 Mar 2016 15:59:03 -0800
-Message-ID: <56da2147.P/jkBmnJsyDoOft4%akpm@linux-foundation.org>
+ mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc.patch
+ removed from -mm tree
+Date: Fri, 04 Mar 2016 15:59:00 -0800
+Message-ID: <56da2144.FGmp2Jjtm52josSm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46613 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:46607 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760455AbcCDX7E (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2016 18:59:04 -0500
+	with ESMTP id S1760388AbcCDX7D (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2016 18:59:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, labbott@fedoraproject.org, mm-commits@vger.kernel.org
+To: labbott@fedoraproject.org, dave.hansen@intel.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, mhocko@suse.com, minipli@googlemail.com, nasa4836@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes
+     Subject: mm/debug-pagealloc.c: split out page poisoning from debug page_alloc
 has been removed from the -mm tree.  Its filename was
-     mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
+     mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes
+From: Laura Abbott <labbott@fedoraproject.org>
+Subject: mm/debug-pagealloc.c: split out page poisoning from debug page_alloc
 
-ERROR: Please use git commit description style 'commit <12+ chars of sha1> ("<title line>")' - ie: 'commit 0123456789ab ("commit description")'
-#14: 
+This is an implementation of page poisoning/sanitization for all arches. 
+It takes advantage of the existing implementation for
+!ARCH_SUPPORTS_DEBUG_PAGEALLOC arches.  This is a different approach than
+what the Grsecurity patches were taking but should provide equivalent
+functionality.
+
+For those who aren't familiar with this, the goal of sanitization is to
+reduce the severity of use after free and uninitialized data bugs.  Memory
+is cleared on free so any sensitive data is no longer available. 
+Discussion of sanitization was brough up in a thread about CVEs
 (lkml.kernel.org/g/<20160119112812.GA10818@mwanda>)
 
-ERROR: code indent should use tabs where possible
-#251: FILE: mm/page_poison.c:15:
-+        if (!buf)$
+I eventually expect Kconfig names will want to be changed and or moved if
+this is going to be used for security but that can happen later.
 
-WARNING: please, no spaces at the start of a line
-#251: FILE: mm/page_poison.c:15:
-+        if (!buf)$
+Credit to Mathias Krause for the version in grsecurity
 
-ERROR: code indent should use tabs where possible
-#252: FILE: mm/page_poison.c:16:
-+                return -EINVAL;$
 
-WARNING: please, no spaces at the start of a line
-#252: FILE: mm/page_poison.c:16:
-+                return -EINVAL;$
+This patch (of 3):
 
-ERROR: code indent should use tabs where possible
-#254: FILE: mm/page_poison.c:18:
-+        if (strcmp(buf, "on") == 0)$
+For architectures that do not have debug page_alloc
+(!ARCH_SUPPORTS_DEBUG_PAGEALLOC), page poisoning is used instead.  Even
+architectures that do have DEBUG_PAGEALLOC may want to take advantage of
+the poisoning feature.  Separate out page poisoning into a separate file. 
+This does not change the default behavior for
+!ARCH_SUPPORTS_DEBUG_PAGEALLOC.
 
-WARNING: please, no spaces at the start of a line
-#254: FILE: mm/page_poison.c:18:
-+        if (strcmp(buf, "on") == 0)$
+Credit to Mathias Krause and grsecurity for original work
 
-ERROR: code indent should use tabs where possible
-#255: FILE: mm/page_poison.c:19:
-+                want_page_poisoning = true;$
-
-WARNING: please, no spaces at the start of a line
-#255: FILE: mm/page_poison.c:19:
-+                want_page_poisoning = true;$
-
-ERROR: code indent should use tabs where possible
-#259: FILE: mm/page_poison.c:23:
-+        return 0;$
-
-WARNING: please, no spaces at the start of a line
-#259: FILE: mm/page_poison.c:23:
-+        return 0;$
-
-WARNING: Prefer [subsystem eg: netdev]_err([subsystem]dev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-#352: FILE: mm/page_poison.c:116:
-+		printk(KERN_ERR "pagealloc: single bit error\n");
-
-WARNING: Prefer [subsystem eg: netdev]_err([subsystem]dev, ... then dev_err(dev, ... then pr_err(...  to printk(KERN_ERR ...
-#354: FILE: mm/page_poison.c:118:
-+		printk(KERN_ERR "pagealloc: memory corruption\n");
-
-total: 6 errors, 7 warnings, 311 lines checked
-
-NOTE: Whitespace errors detected.
-      You may wish to use scripts/cleanpatch or scripts/cleanfile
-
-./patches/mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc.patch has style problems, please review.
-
-NOTE: If any of the errors are false positives, please report
-      them to the maintainer, see CHECKPATCH in MAINTAINERS.
-
-Please run checkpatch prior to sending patches
-
-Cc: Laura Abbott <labbott@fedoraproject.org>
+Signed-off-by: Laura Abbott <labbott@fedoraproject.org>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Mathias Krause <minipli@googlemail.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Jianyu Zhan <nasa4836@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_poison.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ Documentation/kernel-parameters.txt |    5 
+ include/linux/mm.h                  |   10 +
+ mm/Makefile                         |    5 
+ mm/debug-pagealloc.c                |  121 ---------------------
+ mm/page_poison.c                    |  144 ++++++++++++++++++++++++++
+ 5 files changed, 164 insertions(+), 121 deletions(-)
 
-diff -puN mm/page_poison.c~mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes mm/page_poison.c
---- a/mm/page_poison.c~mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes
-+++ a/mm/page_poison.c
-@@ -12,15 +12,15 @@ static bool want_page_poisoning __read_m
+diff -puN Documentation/kernel-parameters.txt~mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc
++++ a/Documentation/kernel-parameters.txt
+@@ -2731,6 +2731,11 @@ bytes respectively. Such letter suffixes
+ 			we can turn it on.
+ 			on: enable the feature
  
- static int early_page_poison_param(char *buf)
++	page_poison=	[KNL] Boot-time parameter changing the state of
++			poisoning on the buddy allocator.
++			off: turn off poisoning
++			on: turn on poisoning
++
+ 	panic=		[KNL] Kernel behaviour on panic: delay <timeout>
+ 			timeout > 0: seconds before rebooting
+ 			timeout = 0: wait forever
+diff -puN include/linux/mm.h~mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc include/linux/mm.h
+--- a/include/linux/mm.h~mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc
++++ a/include/linux/mm.h
+@@ -2175,6 +2175,16 @@ extern int apply_to_page_range(struct mm
+ 			       unsigned long size, pte_fn_t fn, void *data);
+ 
+ 
++#ifdef CONFIG_PAGE_POISONING
++extern void poison_pages(struct page *page, int n);
++extern void unpoison_pages(struct page *page, int n);
++extern bool page_poisoning_enabled(void);
++#else
++static inline void poison_pages(struct page *page, int n) { }
++static inline void unpoison_pages(struct page *page, int n) { }
++static inline bool page_poisoning_enabled(void) { return false; }
++#endif
++
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ extern bool _debug_pagealloc_enabled;
+ extern void __kernel_map_pages(struct page *page, int numpages, int enable);
+diff -puN mm/Makefile~mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc mm/Makefile
+--- a/mm/Makefile~mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc
++++ a/mm/Makefile
+@@ -48,7 +48,10 @@ obj-$(CONFIG_SPARSEMEM_VMEMMAP) += spars
+ obj-$(CONFIG_SLOB) += slob.o
+ obj-$(CONFIG_MMU_NOTIFIER) += mmu_notifier.o
+ obj-$(CONFIG_KSM) += ksm.o
+-obj-$(CONFIG_PAGE_POISONING) += debug-pagealloc.o
++ifndef CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC
++	obj-$(CONFIG_DEBUG_PAGEALLOC) += debug-pagealloc.o
++endif
++obj-$(CONFIG_PAGE_POISONING) += page_poison.o
+ obj-$(CONFIG_SLAB) += slab.o
+ obj-$(CONFIG_SLUB) += slub.o
+ obj-$(CONFIG_KMEMCHECK) += kmemcheck.o
+diff -puN mm/debug-pagealloc.c~mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc mm/debug-pagealloc.c
+--- a/mm/debug-pagealloc.c~mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc
++++ a/mm/debug-pagealloc.c
+@@ -6,128 +6,9 @@
+ #include <linux/poison.h>
+ #include <linux/ratelimit.h>
+ 
+-static bool page_poisoning_enabled __read_mostly;
+-
+-static bool need_page_poisoning(void)
+-{
+-	if (!debug_pagealloc_enabled())
+-		return false;
+-
+-	return true;
+-}
+-
+-static void init_page_poisoning(void)
+-{
+-	if (!debug_pagealloc_enabled())
+-		return;
+-
+-	page_poisoning_enabled = true;
+-}
+-
+-struct page_ext_operations page_poisoning_ops = {
+-	.need = need_page_poisoning,
+-	.init = init_page_poisoning,
+-};
+-
+-static inline void set_page_poison(struct page *page)
+-{
+-	struct page_ext *page_ext;
+-
+-	page_ext = lookup_page_ext(page);
+-	__set_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
+-}
+-
+-static inline void clear_page_poison(struct page *page)
+-{
+-	struct page_ext *page_ext;
+-
+-	page_ext = lookup_page_ext(page);
+-	__clear_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
+-}
+-
+-static inline bool page_poison(struct page *page)
+-{
+-	struct page_ext *page_ext;
+-
+-	page_ext = lookup_page_ext(page);
+-	return test_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
+-}
+-
+-static void poison_page(struct page *page)
+-{
+-	void *addr = kmap_atomic(page);
+-
+-	set_page_poison(page);
+-	memset(addr, PAGE_POISON, PAGE_SIZE);
+-	kunmap_atomic(addr);
+-}
+-
+-static void poison_pages(struct page *page, int n)
+-{
+-	int i;
+-
+-	for (i = 0; i < n; i++)
+-		poison_page(page + i);
+-}
+-
+-static bool single_bit_flip(unsigned char a, unsigned char b)
+-{
+-	unsigned char error = a ^ b;
+-
+-	return error && !(error & (error - 1));
+-}
+-
+-static void check_poison_mem(unsigned char *mem, size_t bytes)
+-{
+-	static DEFINE_RATELIMIT_STATE(ratelimit, 5 * HZ, 10);
+-	unsigned char *start;
+-	unsigned char *end;
+-
+-	start = memchr_inv(mem, PAGE_POISON, bytes);
+-	if (!start)
+-		return;
+-
+-	for (end = mem + bytes - 1; end > start; end--) {
+-		if (*end != PAGE_POISON)
+-			break;
+-	}
+-
+-	if (!__ratelimit(&ratelimit))
+-		return;
+-	else if (start == end && single_bit_flip(*start, PAGE_POISON))
+-		printk(KERN_ERR "pagealloc: single bit error\n");
+-	else
+-		printk(KERN_ERR "pagealloc: memory corruption\n");
+-
+-	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 16, 1, start,
+-			end - start + 1, 1);
+-	dump_stack();
+-}
+-
+-static void unpoison_page(struct page *page)
+-{
+-	void *addr;
+-
+-	if (!page_poison(page))
+-		return;
+-
+-	addr = kmap_atomic(page);
+-	check_poison_mem(addr, PAGE_SIZE);
+-	clear_page_poison(page);
+-	kunmap_atomic(addr);
+-}
+-
+-static void unpoison_pages(struct page *page, int n)
+-{
+-	int i;
+-
+-	for (i = 0; i < n; i++)
+-		unpoison_page(page + i);
+-}
+-
+ void __kernel_map_pages(struct page *page, int numpages, int enable)
  {
--        if (!buf)
--                return -EINVAL;
-+	if (!buf)
-+		return -EINVAL;
+-	if (!page_poisoning_enabled)
++	if (!page_poisoning_enabled())
+ 		return;
  
--        if (strcmp(buf, "on") == 0)
--                want_page_poisoning = true;
-+	if (strcmp(buf, "on") == 0)
-+		want_page_poisoning = true;
- 	else if (strcmp(buf, "off") == 0)
- 		want_page_poisoning = false;
- 
--        return 0;
-+	return 0;
- }
- early_param("page_poison", early_page_poison_param);
- 
+ 	if (enable)
+diff -puN /dev/null mm/page_poison.c
+--- /dev/null
++++ a/mm/page_poison.c
+@@ -0,0 +1,144 @@
++#include <linux/kernel.h>
++#include <linux/string.h>
++#include <linux/mm.h>
++#include <linux/highmem.h>
++#include <linux/page_ext.h>
++#include <linux/poison.h>
++#include <linux/ratelimit.h>
++
++static bool __page_poisoning_enabled __read_mostly;
++static bool want_page_poisoning __read_mostly =
++	!IS_ENABLED(CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC);
++
++static int early_page_poison_param(char *buf)
++{
++        if (!buf)
++                return -EINVAL;
++
++        if (strcmp(buf, "on") == 0)
++                want_page_poisoning = true;
++	else if (strcmp(buf, "off") == 0)
++		want_page_poisoning = false;
++
++        return 0;
++}
++early_param("page_poison", early_page_poison_param);
++
++bool page_poisoning_enabled(void)
++{
++	return __page_poisoning_enabled;
++}
++
++static bool need_page_poisoning(void)
++{
++	return want_page_poisoning;
++}
++
++static void init_page_poisoning(void)
++{
++	if (!want_page_poisoning)
++		return;
++
++	__page_poisoning_enabled = true;
++}
++
++struct page_ext_operations page_poisoning_ops = {
++	.need = need_page_poisoning,
++	.init = init_page_poisoning,
++};
++
++static inline void set_page_poison(struct page *page)
++{
++	struct page_ext *page_ext;
++
++	page_ext = lookup_page_ext(page);
++	__set_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
++}
++
++static inline void clear_page_poison(struct page *page)
++{
++	struct page_ext *page_ext;
++
++	page_ext = lookup_page_ext(page);
++	__clear_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
++}
++
++static inline bool page_poison(struct page *page)
++{
++	struct page_ext *page_ext;
++
++	page_ext = lookup_page_ext(page);
++	return test_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
++}
++
++static void poison_page(struct page *page)
++{
++	void *addr = kmap_atomic(page);
++
++	set_page_poison(page);
++	memset(addr, PAGE_POISON, PAGE_SIZE);
++	kunmap_atomic(addr);
++}
++
++void poison_pages(struct page *page, int n)
++{
++	int i;
++
++	for (i = 0; i < n; i++)
++		poison_page(page + i);
++}
++
++static bool single_bit_flip(unsigned char a, unsigned char b)
++{
++	unsigned char error = a ^ b;
++
++	return error && !(error & (error - 1));
++}
++
++static void check_poison_mem(unsigned char *mem, size_t bytes)
++{
++	static DEFINE_RATELIMIT_STATE(ratelimit, 5 * HZ, 10);
++	unsigned char *start;
++	unsigned char *end;
++
++	start = memchr_inv(mem, PAGE_POISON, bytes);
++	if (!start)
++		return;
++
++	for (end = mem + bytes - 1; end > start; end--) {
++		if (*end != PAGE_POISON)
++			break;
++	}
++
++	if (!__ratelimit(&ratelimit))
++		return;
++	else if (start == end && single_bit_flip(*start, PAGE_POISON))
++		printk(KERN_ERR "pagealloc: single bit error\n");
++	else
++		printk(KERN_ERR "pagealloc: memory corruption\n");
++
++	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 16, 1, start,
++			end - start + 1, 1);
++	dump_stack();
++}
++
++static void unpoison_page(struct page *page)
++{
++	void *addr;
++
++	if (!page_poison(page))
++		return;
++
++	addr = kmap_atomic(page);
++	check_poison_mem(addr, PAGE_SIZE);
++	clear_page_poison(page);
++	kunmap_atomic(addr);
++}
++
++void unpoison_pages(struct page *page, int n)
++{
++	int i;
++
++	for (i = 0; i < n; i++)
++		unpoison_page(page + i);
++}
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from labbott@fedoraproject.org are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-code-clean-up-for-direct-io-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
-mm.patch
-mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
-slub-drop-lock-at-the-end-of-free_debug_processing-fix.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
-mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
-mm-simplify-lock_page_memcg-fix.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom_reaper-report-success-failure-fix.patch
-mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
-proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
-mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
-mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
-sound-query-dynamic-debug_pagealloc-setting-fix.patch
-mm-add-a-new-vector-based-madvise-syscall-fix.patch
-mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-mn10300-c6x-config_generic_bug-must-depend-on-config_bug.patch
-arch-mn10300-kernel-fpu-nofpuc-needs-asm-elfh.patch
-btrfs-use-radix_tree_iter_retry-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
-rapidio-add-mport-char-device-driver-fix.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-kernel-add-kcov-code-coverage-fix.patch
-kernel-add-kcov-code-coverage-fix-2.patch
-kernel-add-kcov-code-coverage-makefile-tweaks.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+slub-drop-lock-at-the-end-of-free_debug_processing.patch
+slub-fix-clean-free_debug_processing-return-paths.patch
+slub-convert-slab_debug_free-to-slab_consistency_checks.patch
+slub-relax-cmpxchg-consistency-restrictions.patch
+mm-page_poisonc-enable-page_poisoning-as-a-separate-option.patch
+mm-page_poisoningc-allow-for-zero-poisoning.patch
 
