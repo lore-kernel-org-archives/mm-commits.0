@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + ocfs2-fix-return-value-from-ocfs2_page_mkwrite.patch added to
- -mm tree
-Date: Fri, 04 Mar 2016 14:51:24 -0800
-Message-ID: <56da116c.FZBZEarpBuTY23tG%akpm@linux-foundation.org>
+Subject: + mm-remove-vm_fault_minor.patch added to -mm tree
+Date: Fri, 04 Mar 2016 14:52:10 -0800
+Message-ID: <56da119a.Czn/FKTiL+IxjOGz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44464 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44467 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759311AbcCDWvZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2016 17:51:25 -0500
+	with ESMTP id S1760393AbcCDWwL (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2016 17:52:11 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jack@suse.cz, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix return value from ocfs2_page_mkwrite()
+     Subject: mm: remove VM_FAULT_MINOR
 has been added to the -mm tree.  Its filename is
-     ocfs2-fix-return-value-from-ocfs2_page_mkwrite.patch
+     mm-remove-vm_fault_minor.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-return-value-from-ocfs2_page_mkwrite.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-remove-vm_fault_minor.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-return-value-from-ocfs2_page_mkwrite.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-remove-vm_fault_minor.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,39 +39,79 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Jan Kara <jack@suse.cz>
-Subject: ocfs2: fix return value from ocfs2_page_mkwrite()
+Subject: mm: remove VM_FAULT_MINOR
 
-ocfs2_page_mkwrite() could mistakenly return error code instead of mkwrite
-status value.  Fix it.
+The define has a comment from Nick Piggin from 2007:
+
+/* For backwards compat. Remove me quickly. */
+
+I guess 9 years should not be too hurried sense of 'quickly' even for
+kernel measures.
 
 Signed-off-by: Jan Kara <jack@suse.cz>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/mmap.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ arch/arm/mm/fault.c       |    2 +-
+ arch/arm64/mm/fault.c     |    2 +-
+ arch/unicore32/mm/fault.c |    2 +-
+ arch/xtensa/mm/fault.c    |    2 +-
+ include/linux/mm.h        |    2 --
+ 5 files changed, 4 insertions(+), 6 deletions(-)
 
-diff -puN fs/ocfs2/mmap.c~ocfs2-fix-return-value-from-ocfs2_page_mkwrite fs/ocfs2/mmap.c
---- a/fs/ocfs2/mmap.c~ocfs2-fix-return-value-from-ocfs2_page_mkwrite
-+++ a/fs/ocfs2/mmap.c
-@@ -147,6 +147,10 @@ static int ocfs2_page_mkwrite(struct vm_
- 	ret = ocfs2_inode_lock(inode, &di_bh, 1);
- 	if (ret < 0) {
- 		mlog_errno(ret);
-+		if (ret == -ENOMEM)
-+			ret = VM_FAULT_OOM;
-+		else
-+			ret = VM_FAULT_SIGBUS;
- 		goto out;
- 	}
+diff -puN arch/arm/mm/fault.c~mm-remove-vm_fault_minor arch/arm/mm/fault.c
+--- a/arch/arm/mm/fault.c~mm-remove-vm_fault_minor
++++ a/arch/arm/mm/fault.c
+@@ -346,7 +346,7 @@ retry:
+ 	up_read(&mm->mmap_sem);
  
-_
-
-Patches currently in -mm which might be from jack@suse.cz are
-
-ocfs2-fix-return-value-from-ocfs2_page_mkwrite.patch
-
+ 	/*
+-	 * Handle the "normal" case first - VM_FAULT_MAJOR / VM_FAULT_MINOR
++	 * Handle the "normal" case first - VM_FAULT_MAJOR
+ 	 */
+ 	if (likely(!(fault & (VM_FAULT_ERROR | VM_FAULT_BADMAP | VM_FAULT_BADACCESS))))
+ 		return 0;
+diff -puN arch/arm64/mm/fault.c~mm-remove-vm_fault_minor arch/arm64/mm/fault.c
+--- a/arch/arm64/mm/fault.c~mm-remove-vm_fault_minor
++++ a/arch/arm64/mm/fault.c
+@@ -295,7 +295,7 @@ retry:
+ 	up_read(&mm->mmap_sem);
+ 
+ 	/*
+-	 * Handle the "normal" case first - VM_FAULT_MAJOR / VM_FAULT_MINOR
++	 * Handle the "normal" case first - VM_FAULT_MAJOR
+ 	 */
+ 	if (likely(!(fault & (VM_FAULT_ERROR | VM_FAULT_BADMAP |
+ 			      VM_FAULT_BADACCESS))))
+diff -puN arch/unicore32/mm/fault.c~mm-remove-vm_fault_minor arch/unicore32/mm/fault.c
+--- a/arch/unicore32/mm/fault.c~mm-remove-vm_fault_minor
++++ a/arch/unicore32/mm/fault.c
+@@ -276,7 +276,7 @@ retry:
+ 	up_read(&mm->mmap_sem);
+ 
+ 	/*
+-	 * Handle the "normal" case first - VM_FAULT_MAJOR / VM_FAULT_MINOR
++	 * Handle the "normal" case first - VM_FAULT_MAJOR
+ 	 */
+ 	if (likely(!(fault &
+ 	       (VM_FAULT_ERROR | VM_FAULT_BADMAP | VM_FAULT_BADACCESS))))
+diff -puN arch/xtensa/mm/fault.c~mm-remove-vm_fault_minor arch/xtensa/mm/fault.c
+--- a/arch/xtensa/mm/fault.c~mm-remove-vm_fault_minor
++++ a/arch/xtensa/mm/fault.c
+@@ -146,7 +146,7 @@ good_area:
+ 	perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS, 1, regs, address);
+ 	if (flags & VM_FAULT_MAJOR)
+ 		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MAJ, 1, regs, address);
+-	else if (flags & VM_FAULT_MINOR)
++	else
+ 		perf_sw_event(PERF_COUNT_SW_PAGE_FAULTS_MIN, 1, regs, address);
+ 
+ 	return;
+diff -puN include/linux/mm.h~mm-remove-vm_fault_minor include/linux/mm.h
+--- a/include/linux/mm.h~mm-remove-vm_fault_minor
++++ a/include/linux/mm.h
+@@ -1051,8 +1051,6 @@ static inline void clear_page_pfmemalloc
+  * just gets major/minor fault counters bumped up.
+  */
+ 
+-#define VM_FAULT_MINOR	0 /* For backwards compat. Remove me quickly. */
