@@ -1,85 +1,115 @@
 From: akpm@linux-foundation.org
-Subject: [nacked]
- checkpatchpl-add-switch-to-turn-off-check-for-change-id.patch removed from
- -mm tree
-Date: Tue, 01 Mar 2016 15:39:05 -0800
-Message-ID: <56d62819.HuD1vccEXyKplFQ6%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ libnvdimm-pmem-fix-pfn-support-for-section-misaligned-namespaces-fix.patch
+ removed from -mm tree
+Date: Fri, 04 Mar 2016 11:58:33 -0800
+Message-ID: <56d9e8e9.wdY/2fTbs7agU4jq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:45510 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37963 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240AbcCAXjH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 1 Mar 2016 18:39:07 -0500
+	with ESMTP id S1758796AbcCDT6e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2016 14:58:34 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dwane.pottratz@intel.com, joe@perches.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dan.j.williams@intel.com, lkp@intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch.pl: add switch to turn off check for Change-Id
+     Subject: libnvdimm-pmem-fix-pfn-support-for-section-misaligned-namespaces-fix
 has been removed from the -mm tree.  Its filename was
-     checkpatchpl-add-switch-to-turn-off-check-for-change-id.patch
+     libnvdimm-pmem-fix-pfn-support-for-section-misaligned-namespaces-fix.patch
 
-This patch was dropped because it was nacked
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: "Pottratz, Dwane" <dwane.pottratz@intel.com>
-Subject: checkpatch.pl: add switch to turn off check for Change-Id
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: libnvdimm-pmem-fix-pfn-support-for-section-misaligned-namespaces-fix
 
-A commit hook for the Gerrit code review servers inserts change
-identifiers.  These identifiers are noise in the context of the upstream
-kernel.  However, they are needed in most development environments and the
-error needs to be ignored for static analysis tools.
+fix warning
 
-Signed-off-by: Dwane Pottratz <dwane.pottratz@intel.com>
-Cc: Joe Perches <joe@perches.com>
+Reported-by: kbuild test robot <lkp@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/nvdimm/pmem.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN scripts/checkpatch.pl~checkpatchpl-add-switch-to-turn-off-check-for-change-id scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatchpl-add-switch-to-turn-off-check-for-change-id
-+++ a/scripts/checkpatch.pl
-@@ -21,6 +21,7 @@ use Getopt::Long qw(:config no_auto_abbr
- my $quiet = 0;
- my $tree = 1;
- my $chk_signoff = 1;
-+my $chk_changeid = 1;
- my $chk_patch = 1;
- my $tst_only;
- my $emacs = 0;
-@@ -64,6 +65,7 @@ Options:
-   -q, --quiet                quiet
-   --no-tree                  run without a kernel tree
-   --no-signoff               do not check for 'Signed-off-by' line
-+  --no-changeid              do not check for 'Change-Id' line
-   --patch                    treat FILE as patchfile (default)
-   --emacs                    emacs compile window format
-   --terse                    one line per report
-@@ -136,6 +138,7 @@ GetOptions(
- 	'q|quiet+'	=> \$quiet,
- 	'tree!'		=> \$tree,
- 	'signoff!'	=> \$chk_signoff,
-+	'changeid!'	=> \$chk_changeid,
- 	'patch!'	=> \$chk_patch,
- 	'emacs!'	=> \$emacs,
- 	'terse!'	=> \$terse,
-@@ -2332,7 +2335,7 @@ sub process {
- 		}
+diff -puN drivers/nvdimm/pmem.c~libnvdimm-pmem-fix-pfn-support-for-section-misaligned-namespaces-fix drivers/nvdimm/pmem.c
+--- a/drivers/nvdimm/pmem.c~libnvdimm-pmem-fix-pfn-support-for-section-misaligned-namespaces-fix
++++ a/drivers/nvdimm/pmem.c
+@@ -372,11 +372,13 @@ static unsigned long init_altmap_base(re
  
- # Check for unwanted Gerrit info
--		if ($in_commit_log && $line =~ /^\s*change-id:/i) {
-+		if ($in_commit_log && $line =~ /^\s*change-id:/i && $chk_changeid) {
- 			ERROR("GERRIT_CHANGE_ID",
- 			      "Remove Gerrit Change-Id's before submitting upstream.\n" . $herecurr);
- 		}
+ static unsigned long init_altmap_reserve(resource_size_t base)
+ {
+-	unsigned long base_pfn = __phys_to_pfn(base);
+ 	unsigned long reserve = __phys_to_pfn(SZ_8K);
+ 
+ #ifdef CONFIG_SPARSEMEM
+-	reserve += base_pfn - SECTION_ALIGN_DOWN(base_pfn);
++	{
++		unsigned long base_pfn = __phys_to_pfn(base);
++		reserve += base_pfn - SECTION_ALIGN_DOWN(base_pfn);
++	}
+ #endif
+ 	return reserve;
+ }
 _
 
-Patches currently in -mm which might be from dwane.pottratz@intel.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-code-clean-up-for-direct-io-fix.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
+mm.patch
+mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
+mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
+slub-drop-lock-at-the-end-of-free_debug_processing-fix.patch
+fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
+mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
+mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
+mm-debug-pageallocc-split-out-page-poisoning-from-debug-page_alloc-checkpatch-fixes.patch
+mm-page_poisonc-enable-page_poisoning-as-a-separate-option-fix.patch
+mm-page_poisoningc-allow-for-zero-poisoning-checkpatch-fixes.patch
+mm-madvise-update-comment-on-sys_madvise-fix.patch
+mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
+mm-simplify-lock_page_memcg-fix.patch
+sched-add-schedule_timeout_idle.patch
+mm-oom_reaper-report-success-failure-fix.patch
+mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
+proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
+mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
+mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
+sound-query-dynamic-debug_pagealloc-setting-fix.patch
+mm-config_nr_zones_extended-fix.patch
+mm-add-a-new-vector-based-madvise-syscall-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+zram-export-the-number-of-available-comp-streams-fix.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+mn10300-c6x-config_generic_bug-must-depend-on-config_bug.patch
+arch-mn10300-kernel-fpu-nofpuc-needs-asm-elfh.patch
+btrfs-use-radix_tree_iter_retry-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
+rapidio-add-mport-char-device-driver-fix.patch
+dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
+kernel-add-kcov-code-coverage-fix.patch
+kernel-add-kcov-code-coverage-fix-2.patch
+linux-next-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+net-sched-sch_mqprioc-fix-build-with-older-gcc.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
