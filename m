@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + fix-my-email-addresses.patch added to -mm tree
-Date: Fri, 04 Mar 2016 12:06:05 -0800
-Message-ID: <56d9eaad.CrTGFf0Gge0zUV6O%akpm@linux-foundation.org>
+Subject: + ocfs2-fix-a-tiny-race-that-leads-file-system-read-only.patch
+ added to -mm tree
+Date: Fri, 04 Mar 2016 12:11:06 -0800
+Message-ID: <56d9ebda.XtEyX7Xwr+ocObpm%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38124 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38234 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759066AbcCDUGG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2016 15:06:06 -0500
+	with ESMTP id S1757077AbcCDULH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2016 15:11:07 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: cl@linux.com, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: Fix Christoph's email addresses
+     Subject: ocfs2: fix a tiny race that leads file system read-only
 has been added to the -mm tree.  Its filename is
-     fix-my-email-addresses.patch
+     ocfs2-fix-a-tiny-race-that-leads-file-system-read-only.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/fix-my-email-addresses.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-fix-a-tiny-race-that-leads-file-system-read-only.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/fix-my-email-addresses.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-fix-a-tiny-race-that-leads-file-system-read-only.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,112 +39,164 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Christoph Lameter <cl@linux.com>
-Subject: Fix Christoph's email addresses
+From: Jiufei Xue <xuejiufei@huawei.com>
+Subject: ocfs2: fix a tiny race that leads file system read-only
 
-There are various email addresses for me throughout the kernel. Use the
-one that will always be valid.
+when o2hb detect a node down, it first set the dead node to recovery map
+and create ocfs2rec which will replay journal for dead node.  o2hb thread
+then call dlm_do_local_recovery_cleanup() to delete the lock for dead
+node.  After the lock of dead node is gone, locks for other nodes can be
+granted and may modify the meta data without replaying journal of the dead
+node.  The detail is described as follows.
 
-Signed-off-by: Christoph Lameter <cl@linux.com>
+     N1                         N2                   N3(master)
+modify the extent tree of
+inode, and commit
+dirty metadata to journal,
+then goes down.
+                                                 o2hb thread detects
+                                                 N1 goes down, set
+                                                 recovery map and
+                                                 delete the lock of N1.
+
+                                                 dlm_thread flush ast
+                                                 for the lock of N2.
+                        do not detect the death
+                        of N1, so recovery map is
+                        empty.
+
+                        read inode from disk
+                        without replaying
+                        the journal of N1 and
+                        modify the extent tree
+                        of the inode that N1
+                        had modified.
+                                                 ocfs2rec recover the
+                                                 journal of N1.
+                                                 The modification of N2
+                                                 is lost.
+
+The modification of N1 and N2 are not serial, and it will lead to
+read-only file system.  We can set recovery_waiting flag to the lock
+resource after delete the lock for dead node to prevent other node from
+getting the lock before dlm recovery.  After dlm recovery, the recovery
+map on N2 is not empty, ocfs2_inode_lock_full_nested() will wait for ocfs2
+recovery.
+
+Signed-off-by: Jiufei Xue <xuejiufei@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroup-v1/cgroups.txt |    2 +-
- Documentation/cgroup-v1/cpusets.txt |    2 +-
- MAINTAINERS                         |    2 +-
- arch/ia64/include/asm/rwsem.h       |    2 +-
- include/linux/quicklist.h           |    2 +-
- mm/mmu_notifier.c                   |    2 +-
- mm/quicklist.c                      |    2 +-
- 7 files changed, 7 insertions(+), 7 deletions(-)
+ fs/ocfs2/dlm/dlmcommon.h   |    5 ++++-
+ fs/ocfs2/dlm/dlmmaster.c   |    3 ++-
+ fs/ocfs2/dlm/dlmrecovery.c |    8 ++++++++
+ fs/ocfs2/dlm/dlmthread.c   |    6 ++++--
+ 4 files changed, 18 insertions(+), 4 deletions(-)
 
-diff -puN Documentation/cgroup-v1/cgroups.txt~fix-my-email-addresses Documentation/cgroup-v1/cgroups.txt
---- a/Documentation/cgroup-v1/cgroups.txt~fix-my-email-addresses
-+++ a/Documentation/cgroup-v1/cgroups.txt
-@@ -8,7 +8,7 @@ Original copyright statements from cpuse
- Portions Copyright (C) 2004 BULL SA.
- Portions Copyright (c) 2004-2006 Silicon Graphics, Inc.
- Modified by Paul Jackson <pj@sgi.com>
--Modified by Christoph Lameter <clameter@sgi.com>
-+Modified by Christoph Lameter <cl@linux.com>
+diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-fix-a-tiny-race-that-leads-file-system-read-only fs/ocfs2/dlm/dlmcommon.h
+--- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-fix-a-tiny-race-that-leads-file-system-read-only
++++ a/fs/ocfs2/dlm/dlmcommon.h
+@@ -282,6 +282,7 @@ static inline void __dlm_set_joining_nod
+ #define DLM_LOCK_RES_DROPPING_REF         0x00000040
+ #define DLM_LOCK_RES_BLOCK_DIRTY          0x00001000
+ #define DLM_LOCK_RES_SETREF_INPROG        0x00002000
++#define DLM_LOCK_RES_RECOVERY_WAITING     0x00004000
  
- CONTENTS:
- =========
-diff -puN Documentation/cgroup-v1/cpusets.txt~fix-my-email-addresses Documentation/cgroup-v1/cpusets.txt
---- a/Documentation/cgroup-v1/cpusets.txt~fix-my-email-addresses
-+++ a/Documentation/cgroup-v1/cpusets.txt
-@@ -6,7 +6,7 @@ Written by Simon.Derr@bull.net
+ /* max milliseconds to wait to sync up a network failure with a node death */
+ #define DLM_NODE_DEATH_WAIT_MAX (5 * 1000)
+@@ -804,7 +805,8 @@ __dlm_lockres_state_to_status(struct dlm
  
- Portions Copyright (c) 2004-2006 Silicon Graphics, Inc.
- Modified by Paul Jackson <pj@sgi.com>
--Modified by Christoph Lameter <clameter@sgi.com>
-+Modified by Christoph Lameter <cl@linux.com>
- Modified by Paul Menage <menage@google.com>
- Modified by Hidetoshi Seto <seto.hidetoshi@jp.fujitsu.com>
+ 	assert_spin_locked(&res->spinlock);
  
-diff -puN MAINTAINERS~fix-my-email-addresses MAINTAINERS
---- a/MAINTAINERS~fix-my-email-addresses
-+++ a/MAINTAINERS
-@@ -8431,7 +8431,7 @@ F:	include/crypto/pcrypt.h
+-	if (res->state & DLM_LOCK_RES_RECOVERING)
++	if (res->state & (DLM_LOCK_RES_RECOVERING|
++			DLM_LOCK_RES_RECOVERY_WAITING))
+ 		status = DLM_RECOVERING;
+ 	else if (res->state & DLM_LOCK_RES_MIGRATING)
+ 		status = DLM_MIGRATING;
+@@ -1026,6 +1028,7 @@ static inline void __dlm_wait_on_lockres
+ {
+ 	__dlm_wait_on_lockres_flags(res, (DLM_LOCK_RES_IN_PROGRESS|
+ 				    	  DLM_LOCK_RES_RECOVERING|
++					  DLM_LOCK_RES_RECOVERY_WAITING|
+ 					  DLM_LOCK_RES_MIGRATING));
+ }
  
- PER-CPU MEMORY ALLOCATOR
- M:	Tejun Heo <tj@kernel.org>
--M:	Christoph Lameter <cl@linux-foundation.org>
-+M:	Christoph Lameter <cl@linux.com>
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/tj/percpu.git
- S:	Maintained
- F:	include/linux/percpu*.h
-diff -puN arch/ia64/include/asm/rwsem.h~fix-my-email-addresses arch/ia64/include/asm/rwsem.h
---- a/arch/ia64/include/asm/rwsem.h~fix-my-email-addresses
-+++ a/arch/ia64/include/asm/rwsem.h
-@@ -3,7 +3,7 @@
-  *
-  * Copyright (C) 2003 Ken Chen <kenneth.w.chen@intel.com>
-  * Copyright (C) 2003 Asit Mallick <asit.k.mallick@intel.com>
-- * Copyright (C) 2005 Christoph Lameter <clameter@sgi.com>
-+ * Copyright (C) 2005 Christoph Lameter <cl@linux.com>
-  *
-  * Based on asm-i386/rwsem.h and other architecture implementation.
-  *
-diff -puN include/linux/quicklist.h~fix-my-email-addresses include/linux/quicklist.h
---- a/include/linux/quicklist.h~fix-my-email-addresses
-+++ a/include/linux/quicklist.h
-@@ -5,7 +5,7 @@
-  * as needed after allocation when they are freed. Per cpu lists of pages
-  * are kept that only contain node local pages.
-  *
-- * (C) 2007, SGI. Christoph Lameter <clameter@sgi.com>
-+ * (C) 2007, SGI. Christoph Lameter <cl@linux.com>
-  */
- #include <linux/kernel.h>
- #include <linux/gfp.h>
-diff -puN mm/mmu_notifier.c~fix-my-email-addresses mm/mmu_notifier.c
---- a/mm/mmu_notifier.c~fix-my-email-addresses
-+++ a/mm/mmu_notifier.c
-@@ -3,7 +3,7 @@
-  *
-  *  Copyright (C) 2008  Qumranet, Inc.
-  *  Copyright (C) 2008  SGI
-- *             Christoph Lameter <clameter@sgi.com>
-+ *             Christoph Lameter <cl@linux.com>
-  *
-  *  This work is licensed under the terms of the GNU GPL, version 2. See
-  *  the COPYING file in the top-level directory.
-diff -puN mm/quicklist.c~fix-my-email-addresses mm/quicklist.c
---- a/mm/quicklist.c~fix-my-email-addresses
-+++ a/mm/quicklist.c
-@@ -8,7 +8,7 @@
-  * improved on it.
-  *
-  * Copyright (C) 2007 SGI,
-- * 	Christoph Lameter <clameter@sgi.com>
-+ * 	Christoph Lameter <cl@linux.com>
-  * 		Generalized, added support for multiple lists and
-  * 		constructors / destructors.
-  */
+diff -puN fs/ocfs2/dlm/dlmmaster.c~ocfs2-fix-a-tiny-race-that-leads-file-system-read-only fs/ocfs2/dlm/dlmmaster.c
+--- a/fs/ocfs2/dlm/dlmmaster.c~ocfs2-fix-a-tiny-race-that-leads-file-system-read-only
++++ a/fs/ocfs2/dlm/dlmmaster.c
+@@ -2550,7 +2550,8 @@ static int dlm_is_lockres_migrateable(st
+ 		return 0;
+ 
+ 	/* delay migration when the lockres is in RECOCERING state */
+-	if (res->state & DLM_LOCK_RES_RECOVERING)
++	if (res->state & (DLM_LOCK_RES_RECOVERING|
++			DLM_LOCK_RES_RECOVERY_WAITING))
+ 		return 0;
+ 
+ 	if (res->owner != dlm->node_num)
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-fix-a-tiny-race-that-leads-file-system-read-only fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-fix-a-tiny-race-that-leads-file-system-read-only
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -2175,6 +2175,13 @@ static void dlm_finish_local_lockres_rec
+ 	for (i = 0; i < DLM_HASH_BUCKETS; i++) {
+ 		bucket = dlm_lockres_hash(dlm, i);
+ 		hlist_for_each_entry(res, bucket, hash_node) {
++			if (res->state & DLM_LOCK_RES_RECOVERY_WAITING) {
++				spin_lock(&res->spinlock);
++				res->state &= ~DLM_LOCK_RES_RECOVERY_WAITING;
++				spin_unlock(&res->spinlock);
++				wake_up(&res->wq);
++			}
++
+ 			if (!(res->state & DLM_LOCK_RES_RECOVERING))
+ 				continue;
+ 
+@@ -2312,6 +2319,7 @@ static void dlm_free_dead_locks(struct d
+ 			     res->lockname.len, res->lockname.name, freed, dead_node);
+ 			__dlm_print_one_lock_resource(res);
+ 		}
++		res->state |= DLM_LOCK_RES_RECOVERY_WAITING;
+ 		dlm_lockres_clear_refmap_bit(dlm, res, dead_node);
+ 	} else if (test_bit(dead_node, res->refmap)) {
+ 		mlog(0, "%s:%.*s: dead node %u had a ref, but had "
+diff -puN fs/ocfs2/dlm/dlmthread.c~ocfs2-fix-a-tiny-race-that-leads-file-system-read-only fs/ocfs2/dlm/dlmthread.c
+--- a/fs/ocfs2/dlm/dlmthread.c~ocfs2-fix-a-tiny-race-that-leads-file-system-read-only
++++ a/fs/ocfs2/dlm/dlmthread.c
+@@ -106,7 +106,8 @@ int __dlm_lockres_unused(struct dlm_lock
+ 	if (!list_empty(&res->dirty) || res->state & DLM_LOCK_RES_DIRTY)
+ 		return 0;
+ 
+-	if (res->state & DLM_LOCK_RES_RECOVERING)
++	if (res->state & (DLM_LOCK_RES_RECOVERING|
++			DLM_LOCK_RES_RECOVERY_WAITING))
+ 		return 0;
+ 
+ 	/* Another node has this resource with this node as the master */
+@@ -707,7 +708,8 @@ static int dlm_thread(void *data)
+ 			 * dirty for a short while. */
+ 			BUG_ON(res->state & DLM_LOCK_RES_MIGRATING);
+ 			if (res->state & (DLM_LOCK_RES_IN_PROGRESS |
+-					  DLM_LOCK_RES_RECOVERING)) {
++					  DLM_LOCK_RES_RECOVERING |
++					  DLM_LOCK_RES_RECOVERY_WAITING)) {
+ 				/* move it to the tail and keep going */
+ 				res->state &= ~DLM_LOCK_RES_DIRTY;
+ 				spin_unlock(&res->spinlock);
 _
 
-Patches currently in -mm which might be from cl@linux.com are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
-fix-my-email-addresses.patch
+ocfs2-dlm-add-deref_done-message.patch
+ocfs2-dlm-return-in-progress-if-master-can-not-clear-the-refmap-bit-right-now.patch
+ocfs2-dlm-clear-dropping_ref-flag-when-the-master-goes-down.patch
+ocfs2-dlm-return-einval-when-the-lockres-on-migration-target-is-in-dropping_ref-state.patch
+ocfs2-fix-a-tiny-race-that-leads-file-system-read-only.patch
+ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
+extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
+ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert.patch
 
