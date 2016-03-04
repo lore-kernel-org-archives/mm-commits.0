@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-use-eopnotsupp-in-hugetlb-sysctl-handlers.patch
- added to -mm tree
-Date: Fri, 04 Mar 2016 13:38:41 -0800
-Message-ID: <56da0061.VipX/OnLYuDYcOls%akpm@linux-foundation.org>
+Subject: + eventfd-document-lockless-access-in-eventfd_poll.patch added to -mm tree
+Date: Fri, 04 Mar 2016 13:40:15 -0800
+Message-ID: <56da00bf.878cnoXg5ujdvJDX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41581 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41600 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759678AbcCDVim (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2016 16:38:42 -0500
+	with ESMTP id S1759058AbcCDVkQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2016 16:40:16 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jstancek@redhat.com, dave.hansen@linux.intel.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, mm-commits@vger.kernel.org
+To: pbonzini@redhat.com, aarcange@redhat.com, clm@fb.com, davidel@xmailserver.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: use EOPNOTSUPP in hugetlb sysctl handlers
+     Subject: eventfd: document lockless access in eventfd_poll
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-use-eopnotsupp-in-hugetlb-sysctl-handlers.patch
+     eventfd-document-lockless-access-in-eventfd_poll.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-use-eopnotsupp-in-hugetlb-sysctl-handlers.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/eventfd-document-lockless-access-in-eventfd_poll.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-use-eopnotsupp-in-hugetlb-sysctl-handlers.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/eventfd-document-lockless-access-in-eventfd_poll.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,50 +38,97 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Stancek <jstancek@redhat.com>
-Subject: mm/hugetlb: use EOPNOTSUPP in hugetlb sysctl handlers
+From: Paolo Bonzini <pbonzini@redhat.com>
+Subject: eventfd: document lockless access in eventfd_poll
 
-Replace ENOTSUPP with EOPNOTSUPP.  If hugepages are not supported, this
-value is propagated to userspace.  EOPNOTSUPP is part of uapi and is
-widely supported by libc libraries.
+Since commit e22553e2a25e ("eventfd: don't take the spinlock in
+eventfd_poll", 2015-02-17), eventfd is reading ctx->count outside
+ctx->wqh.lock.
 
-Signed-off-by: Jan Stancek <jstancek@redhat.com>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Mike Kravetz <mike.kravetz@oracle.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
+However, things aren't as simple as the read barrier in eventfd_poll would
+suggest.  In fact, the read barrier, besides lacking a comment, is not
+paired in any obvious manner with another read barrier, and it is
+pointless because it is sitting between a write (deep in poll_wait) and
+the read of ctx->count.  The read barrier is acting just as a compiler
+barrier, for which we can use READ_ONCE instead.  This is what the code
+change in this patch does.
+
+The documentation change is just as important, however.  The question,
+posed by Andrea Arcangeli, is then why the thing is safe on architectures
+where spin_unlock does not imply a store-load memory barrier.  The answer
+is that it's safe because writes of ctx->count use the same lock as
+poll_wait, and hence an acquire barrier implicit in poll_wait provides the
+necessary synchronization between eventfd_poll and callers of
+wake_up_locked_poll.  This is sort of mentioned in the commit message with
+respect to eventfd_ctx_read ("eventfd_read is similar, it will do a single
+decrement with the lock held") but it applies to all other callers too. 
+It's tricky enough that it should be documented in the code.
+
+Signed-off-by: Paolo Bonzini <pbonzini@redhat.com>
+Reviewed-by: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Chris Mason <clm@fb.com>
+Cc: Davide Libenzi <davidel@xmailserver.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/eventfd.c |   42 ++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 40 insertions(+), 2 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-use-eopnotsupp-in-hugetlb-sysctl-handlers mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-use-eopnotsupp-in-hugetlb-sysctl-handlers
-+++ a/mm/hugetlb.c
-@@ -2751,7 +2751,7 @@ static int hugetlb_sysctl_handler_common
- 	int ret;
+diff -puN fs/eventfd.c~eventfd-document-lockless-access-in-eventfd_poll fs/eventfd.c
+--- a/fs/eventfd.c~eventfd-document-lockless-access-in-eventfd_poll
++++ a/fs/eventfd.c
+@@ -121,8 +121,46 @@ static unsigned int eventfd_poll(struct
+ 	u64 count;
  
- 	if (!hugepages_supported())
--		return -ENOTSUPP;
-+		return -EOPNOTSUPP;
+ 	poll_wait(file, &ctx->wqh, wait);
+-	smp_rmb();
+-	count = ctx->count;
++
++	/*
++	 * All writes to ctx->count occur within ctx->wqh.lock.  This read
++	 * can be done outside ctx->wqh.lock because we know that poll_wait
++	 * takes that lock (through add_wait_queue) if our caller will sleep.
++	 *
++	 * The read _can_ therefore seep into add_wait_queue's critical
++	 * section, but cannot move above it!  add_wait_queue's spin_lock acts
++	 * as an acquire barrier and ensures that the read be ordered properly
++	 * against the writes.  The following CAN happen and is safe:
++	 *
++	 *     poll                               write
++	 *     -----------------                  ------------
++	 *     lock ctx->wqh.lock (in poll_wait)
++	 *     count = ctx->count
++	 *     __add_wait_queue
++	 *     unlock ctx->wqh.lock
++	 *                                        lock ctx->qwh.lock
++	 *                                        ctx->count += n
++	 *                                        if (waitqueue_active)
++	 *                                          wake_up_locked_poll
++	 *                                        unlock ctx->qwh.lock
++	 *     eventfd_poll returns 0
++	 *
++	 * but the following, which would miss a wakeup, cannot happen:
++	 *
++	 *     poll                               write
++	 *     -----------------                  ------------
++	 *     count = ctx->count (INVALID!)
++	 *                                        lock ctx->qwh.lock
++	 *                                        ctx->count += n
++	 *                                        **waitqueue_active is false**
++	 *                                        **no wake_up_locked_poll!**
++	 *                                        unlock ctx->qwh.lock
++	 *     lock ctx->wqh.lock (in poll_wait)
++	 *     __add_wait_queue
++	 *     unlock ctx->wqh.lock
++	 *     eventfd_poll returns 0
++	 */
++	count = READ_ONCE(ctx->count);
  
- 	table->data = &tmp;
- 	table->maxlen = sizeof(unsigned long);
-@@ -2792,7 +2792,7 @@ int hugetlb_overcommit_handler(struct ct
- 	int ret;
- 
- 	if (!hugepages_supported())
--		return -ENOTSUPP;
-+		return -EOPNOTSUPP;
- 
- 	tmp = h->nr_overcommit_huge_pages;
- 
+ 	if (count > 0)
+ 		events |= POLLIN;
 _
 
-Patches currently in -mm which might be from jstancek@redhat.com are
+Patches currently in -mm which might be from pbonzini@redhat.com are
 
-mm-hugetlb-use-eopnotsupp-in-hugetlb-sysctl-handlers.patch
+eventfd-document-lockless-access-in-eventfd_poll.patch
 
