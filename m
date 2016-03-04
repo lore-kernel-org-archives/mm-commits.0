@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd-fix.patch
- added to -mm tree
-Date: Fri, 04 Mar 2016 15:05:31 -0800
-Message-ID: <56da14bb.kJ8ipfLYl4aI6PGw%akpm@linux-foundation.org>
+Subject: + mm-compaction-introduce-kcompactd-fix-3.patch added to -mm tree
+Date: Fri, 04 Mar 2016 15:06:11 -0800
+Message-ID: <56da14e3.rojzcQ2KvXpKQBHP%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44845 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44901 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760463AbcCDXFc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2016 18:05:32 -0500
+	with ESMTP id S1760441AbcCDXGM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 4 Mar 2016 18:06:12 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd-fix
+     Subject: mm-compaction-introduce-kcompactd-fix-3
 has been added to the -mm tree.  Its filename is
-     mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd-fix.patch
+     mm-compaction-introduce-kcompactd-fix-3.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-introduce-kcompactd-fix-3.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-introduce-kcompactd-fix-3.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,61 +39,47 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd-fix
+Subject: mm-compaction-introduce-kcompactd-fix-3
 
-Change zone_balanced() check in balance_pgdat() to consider only base
-pages as that's the same what kswapd_shrink_zone() later does.  So a zone
-that would be selected due to lack of high-order pages would not be
-reclaimed anyway, and just cause extra CPU churn.
-
-Also remove unnecessary variable testorder in kswapd_shrink_zone().
+Remove extraneous check for sync compaction before deferring.
+Correctly adjust kcompactd's classzone_idx instead of kswapd's.
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Reported-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmscan.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ mm/compaction.c |   11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmscan.c~mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd-fix mm/vmscan.c
---- a/mm/vmscan.c~mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd-fix
-+++ a/mm/vmscan.c
-@@ -3090,7 +3090,6 @@ static bool kswapd_shrink_zone(struct zo
- 			       int classzone_idx,
- 			       struct scan_control *sc)
- {
--	int testorder = sc->order;
- 	unsigned long balance_gap;
- 	bool lowmem_pressure;
+diff -puN mm/compaction.c~mm-compaction-introduce-kcompactd-fix-3 mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-introduce-kcompactd-fix-3
++++ a/mm/compaction.c
+@@ -1811,8 +1811,11 @@ static void kcompactd_do_work(pg_data_t
+ 						cc.classzone_idx, 0)) {
+ 			success = true;
+ 			compaction_defer_reset(zone, cc.order, false);
+-		} else if (cc.mode != MIGRATE_ASYNC &&
+-						status == COMPACT_COMPLETE) {
++		} else if (status == COMPACT_COMPLETE) {
++			/*
++			 * We use sync migration mode here, so we defer like
++			 * sync direct compaction does.
++			 */
+ 			defer_compaction(zone, cc.order);
+ 		}
  
-@@ -3111,7 +3110,7 @@ static bool kswapd_shrink_zone(struct zo
- 	 * reclaim is necessary
+@@ -1827,8 +1830,8 @@ static void kcompactd_do_work(pg_data_t
  	 */
- 	lowmem_pressure = (buffer_heads_over_limit && is_highmem(zone));
--	if (!lowmem_pressure && zone_balanced(zone, testorder, false,
-+	if (!lowmem_pressure && zone_balanced(zone, sc->order, false,
- 						balance_gap, classzone_idx))
- 		return true;
+ 	if (pgdat->kcompactd_max_order <= cc.order)
+ 		pgdat->kcompactd_max_order = 0;
+-	if (pgdat->classzone_idx >= cc.classzone_idx)
+-		pgdat->classzone_idx = pgdat->nr_zones - 1;
++	if (pgdat->kcompactd_classzone_idx >= cc.classzone_idx)
++		pgdat->kcompactd_classzone_idx = pgdat->nr_zones - 1;
+ }
  
-@@ -3126,7 +3125,7 @@ static bool kswapd_shrink_zone(struct zo
- 	 * waits.
- 	 */
- 	if (zone_reclaimable(zone) &&
--	    zone_balanced(zone, testorder, false, 0, classzone_idx)) {
-+	    zone_balanced(zone, sc->order, false, 0, classzone_idx)) {
- 		clear_bit(ZONE_CONGESTED, &zone->flags);
- 		clear_bit(ZONE_DIRTY, &zone->flags);
- 	}
-@@ -3207,7 +3206,7 @@ static int balance_pgdat(pg_data_t *pgda
- 				break;
- 			}
- 
--			if (!zone_balanced(zone, order, true, 0, 0)) {
-+			if (!zone_balanced(zone, order, false, 0, 0)) {
- 				end_zone = i;
- 				break;
- 			} else {
+ void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx)
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
@@ -118,6 +102,7 @@ mm-debug-move-bad-flags-printing-to-bad_page.patch
 mm-slb-print-gfp_flags-as-strings-in-slab_out_of_memory.patch
 mm-kswapd-remove-bogus-check-of-balance_classzone_idx.patch
 mm-compaction-introduce-kcompactd.patch
+mm-compaction-introduce-kcompactd-fix-3.patch
 mm-memory-hotplug-small-cleanup-in-online_pages.patch
 mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd.patch
 mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd-fix.patch
