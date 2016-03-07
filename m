@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-thp-fix-migration-of-pte-mapped-transparent-huge-pages.patch added to -mm tree
-Date: Mon, 07 Mar 2016 14:09:22 -0800
-Message-ID: <56ddfc12.S5jMLSIVjPupEWN9%akpm@linux-foundation.org>
+Subject: + mm-zone_device-depends-on-sparsemem_vmemmap.patch added to -mm
+ tree
+Date: Mon, 07 Mar 2016 14:18:35 -0800
+Message-ID: <56ddfe3b.KwX1l5JZgovzJOZJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39716 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40028 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753099AbcCGWJX (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2016 17:09:23 -0500
+	with ESMTP id S1752248AbcCGWSg (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2016 17:18:36 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, thp: fix migration of PTE-mapped transparent huge pages
+     Subject: mm: ZONE_DEVICE depends on SPARSEMEM_VMEMMAP
 has been added to the -mm tree.  Its filename is
-     mm-thp-fix-migration-of-pte-mapped-transparent-huge-pages.patch
+     mm-zone_device-depends-on-sparsemem_vmemmap.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-thp-fix-migration-of-pte-mapped-transparent-huge-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-zone_device-depends-on-sparsemem_vmemmap.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-thp-fix-migration-of-pte-mapped-transparent-huge-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-zone_device-depends-on-sparsemem_vmemmap.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,55 +39,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm, thp: fix migration of PTE-mapped transparent huge pages
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: ZONE_DEVICE depends on SPARSEMEM_VMEMMAP
 
-We don't have native support of THP migration, so we have to split huge
-page into small pages in order to migrate it to different node.  This
-includes PTE-mapped huge pages.
+The primary use case for devm_memremap_pages() is to allocate an memmap
+array from persistent memory.  That capabilty requires vmem_altmap which
+requires SPARSEMEM_VMEMMAP.
 
-I made mistake in refcounting patchset: we don't actually split PTE-mapped
-huge page in queue_pages_pte_range(), if we step on head page.
+Also, without SPARSEMEM_VMEMMAP the addition of ZONE_DEVICE expands
+ZONES_WIDTH and triggers the:
 
-The result is that the head page is queued for migration, but none of tail
-pages: putting head page on queue takes pin on the page and any subsequent
-attempts of split_huge_pages() would fail and we skip queuing tail pages.
+"Unfortunate NUMA and NUMA Balancing config, growing page-frame for
+last_cpupid."
 
-unmap_and_move_huge_page() will eventually split the huge pages, but only
-one of 512 pages would get migrated.
+...warning in mm/memory.c.  SPARSEMEM_VMEMMAP=n && ZONE_DEVICE=y is not
+a configuration we should worry about supporting.
 
-Let's fix the situation.
-
-Fixes: 248db92da13f2507 ("migrate_pages: try to split pages on queuing")
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/mempolicy.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/mempolicy.c~mm-thp-fix-migration-of-pte-mapped-transparent-huge-pages mm/mempolicy.c
---- a/mm/mempolicy.c~mm-thp-fix-migration-of-pte-mapped-transparent-huge-pages
-+++ a/mm/mempolicy.c
-@@ -532,7 +532,7 @@ retry:
- 		nid = page_to_nid(page);
- 		if (node_isset(nid, *qp->nmask) == !!(flags & MPOL_MF_INVERT))
- 			continue;
--		if (PageTail(page) && PageAnon(page)) {
-+		if (PageTransCompound(page) && PageAnon(page)) {
- 			get_page(page);
- 			pte_unmap_unlock(pte, ptl);
- 			lock_page(page);
+diff -puN mm/Kconfig~mm-zone_device-depends-on-sparsemem_vmemmap mm/Kconfig
+--- a/mm/Kconfig~mm-zone_device-depends-on-sparsemem_vmemmap
++++ a/mm/Kconfig
+@@ -653,6 +653,7 @@ config ZONE_DEVICE
+ 	bool "Device memory (pmem, etc...) hotplug support" if EXPERT
+ 	depends on MEMORY_HOTPLUG
+ 	depends on MEMORY_HOTREMOVE
++	depends on SPARSEMEM_VMEMMAP
+ 	depends on X86_64 #arch_add_memory() comprehends device memory
+ 
+ 	help
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-mm-thp-fix-migration-of-pte-mapped-transparent-huge-pages.patch
-thp-cleanup-split_huge_page.patch
-thp-vmstats-count-deferred-split-events.patch
-mm-tracing-refresh-__def_vmaflag_names.patch
-mm-cleanup-pte_alloc-interfaces.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+list-kill-list_force_poison.patch
+mm-fix-mixed-zone-detection-in-devm_memremap_pages.patch
+mm-exclude-zone_device-from-gfp_zone_table.patch
+mm-zone_device-depends-on-sparsemem_vmemmap.patch
 
