@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-make-remove_migration_ptes-beyond-mm-migrationc.patch added
- to -mm tree
-Date: Mon, 07 Mar 2016 14:43:25 -0800
-Message-ID: <56de040d.p7jChNeqs2vNNbUx%akpm@linux-foundation.org>
+Subject: + memremap-check-pfn-validity-before-passing-to-pfn_to_page.patch added to -mm tree
+Date: Mon, 07 Mar 2016 15:03:01 -0800
+Message-ID: <56de08a5.ZC/UBMKlSU4l842n%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40857 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:41513 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753378AbcCGWn0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2016 17:43:26 -0500
+	with ESMTP id S932125AbcCGXDC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 7 Mar 2016 18:03:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, mm-commits@vger.kernel.org
+To: ard.biesheuvel@linaro.org, dan.j.williams@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: make remove_migration_ptes() beyond mm/migration.c
+     Subject: memremap: check pfn validity before passing to pfn_to_page()
 has been added to the -mm tree.  Its filename is
-     mm-make-remove_migration_ptes-beyond-mm-migrationc.patch
+     memremap-check-pfn-validity-before-passing-to-pfn_to_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-make-remove_migration_ptes-beyond-mm-migrationc.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/memremap-check-pfn-validity-before-passing-to-pfn_to_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-make-remove_migration_ptes-beyond-mm-migrationc.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/memremap-check-pfn-validity-before-passing-to-pfn_to_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,111 +38,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: mm: make remove_migration_ptes() beyond mm/migration.c
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: memremap: check pfn validity before passing to pfn_to_page()
 
-Make remove_migration_ptes() available to be used in split_huge_page().
+In memremap's helper function try_ram_remap(), we dereference a struct
+page pointer that was derived from a PFN that is known to be covered by a
+'System RAM' iomem region, and is thus assumed to be a 'valid' PFN, i.e.,
+a PFN that has a struct page associated with it and is covered by the
+kernel direct mapping.
 
-New parameter 'locked' added: as with try_to_umap() we need a way to
-indicate that caller holds rmap lock.
+However, the assumption that there is a 1:1 relation between the System RAM
+iomem region and the kernel direct mapping is not universally valid on all
+architectures, and on ARM and arm64, 'System RAM' may include regions for
+which pfn_valid() returns false.
 
-We also shouldn't try to mlock() pte-mapped huge pages: pte-mapeed THP
-pages are never mlocked.
+Generally speaking, both __va() and pfn_to_page() should only ever be
+called on PFNs/physical addresses for which pfn_valid() returns true, so
+add that check to try_ram_remap().
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rmap.h |    2 ++
- mm/migrate.c         |   15 +++++++++------
- 2 files changed, 11 insertions(+), 6 deletions(-)
+ kernel/memremap.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/rmap.h~mm-make-remove_migration_ptes-beyond-mm-migrationc include/linux/rmap.h
---- a/include/linux/rmap.h~mm-make-remove_migration_ptes-beyond-mm-migrationc
-+++ a/include/linux/rmap.h
-@@ -243,6 +243,8 @@ int page_mkclean(struct page *);
-  */
- int try_to_munlock(struct page *);
+diff -puN kernel/memremap.c~memremap-check-pfn-validity-before-passing-to-pfn_to_page kernel/memremap.c
+--- a/kernel/memremap.c~memremap-check-pfn-validity-before-passing-to-pfn_to_page
++++ a/kernel/memremap.c
+@@ -29,10 +29,10 @@ __weak void __iomem *ioremap_cache(resou
  
-+void remove_migration_ptes(struct page *old, struct page *new, bool locked);
-+
- /*
-  * Called by memory-failure.c to kill processes.
-  */
-diff -puN mm/migrate.c~mm-make-remove_migration_ptes-beyond-mm-migrationc mm/migrate.c
---- a/mm/migrate.c~mm-make-remove_migration_ptes-beyond-mm-migrationc
-+++ a/mm/migrate.c
-@@ -172,7 +172,7 @@ static int remove_migration_pte(struct p
- 	else
- 		page_add_file_rmap(new);
- 
--	if (vma->vm_flags & VM_LOCKED)
-+	if (vma->vm_flags & VM_LOCKED && !PageTransCompound(new))
- 		mlock_vma_page(new);
- 
- 	/* No need to invalidate - it was non-present before */
-@@ -187,14 +187,17 @@ out:
-  * Get rid of all migration entries and replace them by
-  * references to the indicated page.
-  */
--static void remove_migration_ptes(struct page *old, struct page *new)
-+void remove_migration_ptes(struct page *old, struct page *new, bool locked)
+ static void *try_ram_remap(resource_size_t offset, size_t size)
  {
- 	struct rmap_walk_control rwc = {
- 		.rmap_one = remove_migration_pte,
- 		.arg = old,
- 	};
+-	struct page *page = pfn_to_page(offset >> PAGE_SHIFT);
++	unsigned long pfn = PHYS_PFN(offset);
  
--	rmap_walk(new, &rwc);
-+	if (locked)
-+		rmap_walk_locked(new, &rwc);
-+	else
-+		rmap_walk(new, &rwc);
+ 	/* In the simple case just return the existing linear address */
+-	if (!PageHighMem(page))
++	if (pfn_valid(pfn) && !PageHighMem(pfn_to_page(pfn)))
+ 		return __va(offset);
+ 	return NULL; /* fallback to ioremap_cache */
  }
- 
- /*
-@@ -702,7 +705,7 @@ static int writeout(struct address_space
- 	 * At this point we know that the migration attempt cannot
- 	 * be successful.
- 	 */
--	remove_migration_ptes(page, page);
-+	remove_migration_ptes(page, page, false);
- 
- 	rc = mapping->a_ops->writepage(page, &wbc);
- 
-@@ -900,7 +903,7 @@ static int __unmap_and_move(struct page
- 
- 	if (page_was_mapped)
- 		remove_migration_ptes(page,
--			rc == MIGRATEPAGE_SUCCESS ? newpage : page);
-+			rc == MIGRATEPAGE_SUCCESS ? newpage : page, false);
- 
- out_unlock_both:
- 	unlock_page(newpage);
-@@ -1070,7 +1073,7 @@ static int unmap_and_move_huge_page(new_
- 
- 	if (page_was_mapped)
- 		remove_migration_ptes(hpage,
--			rc == MIGRATEPAGE_SUCCESS ? new_hpage : hpage);
-+			rc == MIGRATEPAGE_SUCCESS ? new_hpage : hpage, false);
- 
- 	unlock_page(new_hpage);
- 
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
 
-mm-thp-fix-migration-of-pte-mapped-transparent-huge-pages.patch
-thp-cleanup-split_huge_page.patch
-thp-vmstats-count-deferred-split-events.patch
-mm-tracing-refresh-__def_vmaflag_names.patch
-mm-cleanup-pte_alloc-interfaces.patch
-rmap-introduce-rmap_walk_locked.patch
-rmap-extend-try_to_unmap-to-be-usable-by-split_huge_page.patch
-mm-make-remove_migration_ptes-beyond-mm-migrationc.patch
-thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+memremap-check-pfn-validity-before-passing-to-pfn_to_page.patch
+x86-kallsyms-disable-absolute-percpu-symbols-on-smp.patch
+x86-kallsyms-disable-absolute-percpu-symbols-on-smp-v5.patch
+kallsyms-dont-overload-absolute-symbol-type-for-percpu-symbols.patch
+kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table.patch
+kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-v5.patch
 
