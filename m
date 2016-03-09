@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-oom_reaper-report-success-failure-fix-fix.patch added to -mm tree
-Date: Wed, 09 Mar 2016 13:18:55 -0800
-Message-ID: <56e0933f.wYCJJ1/dClYoKzxp%akpm@linux-foundation.org>
+Subject: +
+ oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix-2.patch added to -mm tree
+Date: Wed, 09 Mar 2016 13:22:18 -0800
+Message-ID: <56e0940a.7xZnPXn4RRYdJQul%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55437 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55532 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934101AbcCIVS4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2016 16:18:56 -0500
+	with ESMTP id S932504AbcCIVWT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2016 16:22:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-oom_reaper-report-success-failure-fix-fix
+     Subject: oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix
 has been added to the -mm tree.  Its filename is
-     mm-oom_reaper-report-success-failure-fix-fix.patch
+     oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix-2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_reaper-report-success-failure-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix-2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_reaper-report-success-failure-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix-2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,29 +40,30 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm-oom_reaper-report-success-failure-fix-fix
+Subject: oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix
 
-typo fix
+fix a left over
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
  mm/oom_kill.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~mm-oom_reaper-report-success-failure-fix-fix mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_reaper-report-success-failure-fix-fix
+diff -puN mm/oom_kill.c~oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix-2 mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix-2
 +++ a/mm/oom_kill.c
-@@ -481,7 +481,7 @@ static bool __oom_reap_task(struct task_
- 		}
- 	}
- 	tlb_finish_mmu(&tlb, 0, -1);
--	pr_info("oom_reaper: reaped process %d (%s), now anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lulB\n",
-+	pr_info("oom_reaper: reaped process %d (%s), now anon-rss:%lukB, file-rss:%lukB, shmem-rss:%lukB\n",
- 			task_pid_nr(tsk), tsk->comm,
- 			K(get_mm_counter(mm, MM_ANONPAGES)),
- 			K(get_mm_counter(mm, MM_FILEPAGES)),
+@@ -551,7 +551,7 @@ static int __init oom_init(void)
+ }
+ subsys_initcall(oom_init)
+ #else
+-static void wake_oom_reaper(struct task_struct *mm)
++static void wake_oom_reaper(struct task_struct *tsk)
+ {
+ }
+ #endif
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
@@ -70,6 +72,7 @@ mm-vmscan-make-zone_reclaimable_pages-more-precise.patch
 mm-oom-introduce-oom-reaper.patch
 oom-reaper-handle-mlocked-pages.patch
 oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
+oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix-2.patch
 mm-oom_reaper-report-success-failure.patch
 mm-oom_reaper-report-success-failure-fix-2.patch
 mm-oom_reaper-report-success-failure-fix-fix.patch
