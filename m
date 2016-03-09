@@ -1,107 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: +
- tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-==-1.patch added
- to -mm tree
-Date: Wed, 09 Mar 2016 13:46:59 -0800
-Message-ID: <56e099d3.g9gDIfWlNISgiX0i%akpm@linux-foundation.org>
+Subject: [folded-merged]
+ dax-check-return-value-of-dax_radix_entry-v2.patch removed from -mm tree
+Date: Wed, 09 Mar 2016 14:05:49 -0800
+Message-ID: <56e09e3d.JLG1t7NsgjVEh3h+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56184 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56767 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750872AbcCIVrA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2016 16:47:00 -0500
+	with ESMTP id S934228AbcCIWFu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2016 17:05:50 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, koct9i@gmail.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, david@fromorbit.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm/page-types.c: avoid memset() in walk_pfn() when count == 1
-has been added to the -mm tree.  Its filename is
-     tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-==-1.patch
+     Subject: dax-check-return-value-of-dax_radix_entry-v2
+has been removed from the -mm tree.  Its filename was
+     dax-check-return-value-of-dax_radix_entry-v2.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-%3D%3D-1.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-%3D%3D-1.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it was folded into dax-check-return-value-of-dax_radix_entry.patch
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: tools/vm/page-types.c: avoid memset() in walk_pfn() when count == 1
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: dax-check-return-value-of-dax_radix_entry-v2
 
-I found that page-types is very slow and my testing shows many timeout
-errors.  Here's an example with a simple program allocating 1000 thps.
-
-  $ time ./page-types -p $(pgrep -f test_alloc)
-  ...
-  real    0m17.201s
-  user    0m16.889s
-  sys     0m0.312s
-
-Most of time is spent in memset().  Currently memset() clears over whole
-buffer for every walk_pfn() call, which is inefficient when walk_pfn() is
-called from walk_vma(), because in that case walk_pfn() is called for each
-pfn.  So this patch limits the zero initialization only for the first
-element.
-
-  $ time ./page-types.patched -p $(pgrep -f test_alloc)
-  ...
-  real    0m0.182s
-  user    0m0.046s
-  sys     0m0.135s
-
-Fixes: 954e95584579 ("tools/vm/page-types.c: add memory cgroup dumping and filtering")
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Suggested-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page-types.c |   10 +++++++++-
- 1 file changed, 9 insertions(+), 1 deletion(-)
+ fs/dax.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN tools/vm/page-types.c~tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-==-1 tools/vm/page-types.c
---- a/tools/vm/page-types.c~tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-==-1
-+++ a/tools/vm/page-types.c
-@@ -633,7 +633,15 @@ static void walk_pfn(unsigned long voffs
- 	unsigned long pages;
- 	unsigned long i;
+diff -puN fs/dax.c~dax-check-return-value-of-dax_radix_entry-v2 fs/dax.c
+--- a/fs/dax.c~dax-check-return-value-of-dax_radix_entry-v2
++++ a/fs/dax.c
+@@ -1068,9 +1068,11 @@ int dax_pfn_mkwrite(struct vm_area_struc
+ 	 */
+ 	error = dax_radix_entry(file->f_mapping, vmf->pgoff, NO_SECTOR, false,
+ 			true);
+-	if (error)
+-		return error;
  
--	memset(cgi, 0, sizeof cgi);
-+	/*
-+	 * kpagecgroup_read() reads only if kpagecgroup were opened, but
-+	 * /proc/kpagecgroup might even not exist, so it's better to fill
-+	 * them with zeros here.
-+	 */
-+	if (count == 1)
-+		cgi[0] = 0;
-+	else
-+		memset(cgi, 0, sizeof cgi);
- 
- 	while (count) {
- 		batch = min_t(unsigned long, count, KPAGEFLAGS_BATCH);
++	if (error == -ENOMEM)
++		return VM_FAULT_OOM;
++	if (error)
++		return VM_FAULT_SIGBUS;
+ 	return VM_FAULT_NOPAGE;
+ }
+ EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
 
-mm-madvise-pass-return-code-of-memory_failure-to-userspace.patch
-mm-madvise-update-comment-on-sys_madvise.patch
-proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages.patch
-proc-kpageflags-return-kpf_slab-for-slab-tail-pages.patch
-tools-vm-page-typesc-support-swap-entry.patch
-tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-==-1.patch
+dax-check-return-value-of-dax_radix_entry.patch
 
