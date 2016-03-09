@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + powerpc-mm-enable-page-parallel-initialisation.patch added to
- -mm tree
-Date: Wed, 09 Mar 2016 13:42:10 -0800
-Message-ID: <56e098b2./p3aDaPxRhdZQnxh%akpm@linux-foundation.org>
+Subject: +
+ tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-==-1.patch added
+ to -mm tree
+Date: Wed, 09 Mar 2016 13:46:59 -0800
+Message-ID: <56e099d3.g9gDIfWlNISgiX0i%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56067 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56184 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750819AbcCIVmL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2016 16:42:11 -0500
+	with ESMTP id S1750872AbcCIVrA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2016 16:47:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhlcindy@linux.vnet.ibm.com, mgorman@techsingularity.net, mpe@ellerman.id.au, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, koct9i@gmail.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/mm: Enable page parallel initialisation
+     Subject: tools/vm/page-types.c: avoid memset() in walk_pfn() when count == 1
 has been added to the -mm tree.  Its filename is
-     powerpc-mm-enable-page-parallel-initialisation.patch
+     tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-==-1.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/powerpc-mm-enable-page-parallel-initialisation.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-%3D%3D-1.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/powerpc-mm-enable-page-parallel-initialisation.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-%3D%3D-1.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,41 +40,68 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Li Zhang <zhlcindy@linux.vnet.ibm.com>
-Subject: powerpc/mm: Enable page parallel initialisation
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: tools/vm/page-types.c: avoid memset() in walk_pfn() when count == 1
 
-Parallel initialisation has been enabled for X86, boot time is
-improved greatly. On Power8, it is improved greatly for small
-memory. Here is the result from my test on Power8 platform:
+I found that page-types is very slow and my testing shows many timeout
+errors.  Here's an example with a simple program allocating 1000 thps.
 
-For 4GB of memory, boot time is improved by 59%, from 24.5s to 10s.
+  $ time ./page-types -p $(pgrep -f test_alloc)
+  ...
+  real    0m17.201s
+  user    0m16.889s
+  sys     0m0.312s
 
-For 50GB memory, boot time is improved by 22%, from 56.8s to 43.8s.
+Most of time is spent in memset().  Currently memset() clears over whole
+buffer for every walk_pfn() call, which is inefficient when walk_pfn() is
+called from walk_vma(), because in that case walk_pfn() is called for each
+pfn.  So this patch limits the zero initialization only for the first
+element.
 
-Signed-off-by: Li Zhang <zhlcindy@linux.vnet.ibm.com>
-Acked-by: Mel Gorman <mgorman@techsingularity.net>
-Acked-by: Michael Ellerman <mpe@ellerman.id.au>
+  $ time ./page-types.patched -p $(pgrep -f test_alloc)
+  ...
+  real    0m0.182s
+  user    0m0.046s
+  sys     0m0.135s
+
+Fixes: 954e95584579 ("tools/vm/page-types.c: add memory cgroup dumping and filtering")
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Suggested-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ tools/vm/page-types.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN arch/powerpc/Kconfig~powerpc-mm-enable-page-parallel-initialisation arch/powerpc/Kconfig
---- a/arch/powerpc/Kconfig~powerpc-mm-enable-page-parallel-initialisation
-+++ a/arch/powerpc/Kconfig
-@@ -158,6 +158,7 @@ config PPC
- 	select ARCH_HAS_DEVMEM_IS_ALLOWED
- 	select HAVE_ARCH_SECCOMP_FILTER
- 	select ARCH_HAS_UBSAN_SANITIZE_ALL
-+	select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
+diff -puN tools/vm/page-types.c~tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-==-1 tools/vm/page-types.c
+--- a/tools/vm/page-types.c~tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-==-1
++++ a/tools/vm/page-types.c
+@@ -633,7 +633,15 @@ static void walk_pfn(unsigned long voffs
+ 	unsigned long pages;
+ 	unsigned long i;
  
- config GENERIC_CSUM
- 	def_bool CPU_LITTLE_ENDIAN
+-	memset(cgi, 0, sizeof cgi);
++	/*
++	 * kpagecgroup_read() reads only if kpagecgroup were opened, but
++	 * /proc/kpagecgroup might even not exist, so it's better to fill
++	 * them with zeros here.
++	 */
++	if (count == 1)
++		cgi[0] = 0;
++	else
++		memset(cgi, 0, sizeof cgi);
+ 
+ 	while (count) {
+ 		batch = min_t(unsigned long, count, KPAGEFLAGS_BATCH);
 _
 
-Patches currently in -mm which might be from zhlcindy@linux.vnet.ibm.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-mm-meminit-initialise-more-memory-for-inode-dentry-hash-tables-in-early-boot.patch
-powerpc-mm-enable-page-parallel-initialisation.patch
+mm-madvise-pass-return-code-of-memory_failure-to-userspace.patch
+mm-madvise-update-comment-on-sys_madvise.patch
+proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages.patch
+proc-kpageflags-return-kpf_slab-for-slab-tail-pages.patch
+tools-vm-page-typesc-support-swap-entry.patch
+tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-==-1.patch
 
