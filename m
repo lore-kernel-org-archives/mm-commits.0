@@ -1,505 +1,431 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] mm-add-a-new-vector-based-madvise-syscall.patch
- removed from -mm tree
-Date: Wed, 09 Mar 2016 11:01:53 -0800
-Message-ID: <56e07321.6Z5ZZnN/z9UORW9P%akpm@linux-foundation.org>
+Subject: + mm-kasan-added-gfp-flags-to-kasan-api.patch added to -mm tree
+Date: Wed, 09 Mar 2016 12:23:27 -0800
+Message-ID: <56e0863f.9jS57sSUXaSn4wAU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39404 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48626 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932725AbcCITBz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2016 14:01:55 -0500
+	with ESMTP id S934070AbcCIUX3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2016 15:23:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shli@fb.com, aarcange@redhat.com, andi@firstfloor.org, arnd@arndb.de, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, minchan@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: glider@google.com, adech.fo@gmail.com, cl@linux.com, dvyukov@google.com, iamjoonsoo.kim@lge.com, kcc@google.com, penberg@kernel.org, rientjes@google.com, rostedt@goodmis.org, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: add a new vector based madvise syscall
-has been removed from the -mm tree.  Its filename was
-     mm-add-a-new-vector-based-madvise-syscall.patch
+     Subject: mm, kasan: add GFP flags to KASAN API
+has been added to the -mm tree.  Its filename is
+     mm-kasan-added-gfp-flags-to-kasan-api.patch
 
-This patch was dropped because an updated version will be merged
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-kasan-added-gfp-flags-to-kasan-api.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kasan-added-gfp-flags-to-kasan-api.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Shaohua Li <shli@fb.com>
-Subject: mm: add a new vector based madvise syscall
+From: Alexander Potapenko <glider@google.com>
+Subject: mm, kasan: add GFP flags to KASAN API
 
-In jemalloc, a free(3) doesn't immediately free the memory to OS even the
-memory is page aligned/size, and hope the memory can be reused soon. 
-Later the virtual address becomes fragmented, and more and more free
-memory are aggregated.  If the free memory size is large, jemalloc uses
-madvise(DONT_NEED) to actually free the memory back to OS.
+Add GFP flags to KASAN hooks for future patches to use.
 
-The madvise has significantly overhead paritcularly because of TLB flush. 
-jemalloc does madvise for several virtual address space ranges one time. 
-Instead of calling madvise for each of the ranges, we introduce a new
-syscall to purge memory for several ranges one time.  In this way, we can
-merge several TLB flush for the ranges to one big TLB flush.  This also
-reduce mmap_sem locking and kernel/userspace switching.
+This patch is based on the "mm: kasan: unified support for SLUB and
+SLAB allocators" patch originally prepared by Dmitry Chernenkov.
 
-I'm running a simple memory allocation benchmark. 32 threads do random
-malloc/free/realloc. Corresponding jemalloc patch to utilize this API is
-attached.
-
-Without patch:
-real    0m18.923s
-user    1m11.819s
-sys     7m44.626s
-
-each cpu gets around 3000K/s TLB flush interrupt.  Perf shows TLB flush is
-hotest functions.  mmap_sem read locking (because of page fault) is also
-heavy.
-
-with patch:
-real    0m15.026s
-user    0m48.548s
-sys     6m41.153s
-
-each cpu gets around 140k/s TLB flush interrupt.  TLB flush isn't hot at
-all.  mmap_sem read locking (still because of page fault) becomes the sole
-hot spot.
-
-Another test malloc a bunch of memory in 48 threads, then all threads free
-the memory.  I measure the time of the memory free.
-
-Without patch: 34.332s
-With patch:    17.429s
-
-MADV_FREE does the same TLB flush as MADV_DONTNEED, this also applies to
-MADV_FREE.  Other madvise type can have small benefits too, like reduce
-syscalls/mmap_sem locking.
-
-[akpm@linux-foundation.org: remove an unneeded ifdef]
-Signed-off-by: Shaohua Li <shli@fb.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: Andi Kleen <andi@firstfloor.org>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Andrey Konovalov <adech.fo@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Konstantin Serebryany <kcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/entry/syscalls/syscall_32.tbl |    1 
- arch/x86/entry/syscalls/syscall_64.tbl |    2 
- include/linux/compat.h                 |    3 
- include/linux/syscalls.h               |    3 
- include/uapi/asm-generic/unistd.h      |    4 
- kernel/sys_ni.c                        |    2 
- mm/madvise.c                           |  279 +++++++++++++++++++----
- 7 files changed, 249 insertions(+), 45 deletions(-)
+ include/linux/kasan.h |   19 +++++++++++--------
+ include/linux/slab.h  |    4 ++--
+ mm/kasan/kasan.c      |   15 ++++++++-------
+ mm/mempool.c          |   16 ++++++++--------
+ mm/slab.c             |   15 ++++++++-------
+ mm/slab.h             |    2 +-
+ mm/slab_common.c      |    4 ++--
+ mm/slub.c             |   15 ++++++++-------
+ 8 files changed, 48 insertions(+), 42 deletions(-)
 
-diff -puN arch/x86/entry/syscalls/syscall_32.tbl~mm-add-a-new-vector-based-madvise-syscall arch/x86/entry/syscalls/syscall_32.tbl
---- a/arch/x86/entry/syscalls/syscall_32.tbl~mm-add-a-new-vector-based-madvise-syscall
-+++ a/arch/x86/entry/syscalls/syscall_32.tbl
-@@ -384,3 +384,4 @@
- 375	i386	membarrier		sys_membarrier
- 376	i386	mlock2			sys_mlock2
- 377	i386	copy_file_range		sys_copy_file_range
-+378	i386	madvisev		sys_madvisev			compat_sys_madvisev
-diff -puN arch/x86/entry/syscalls/syscall_64.tbl~mm-add-a-new-vector-based-madvise-syscall arch/x86/entry/syscalls/syscall_64.tbl
---- a/arch/x86/entry/syscalls/syscall_64.tbl~mm-add-a-new-vector-based-madvise-syscall
-+++ a/arch/x86/entry/syscalls/syscall_64.tbl
-@@ -333,6 +333,7 @@
- 324	common	membarrier		sys_membarrier
- 325	common	mlock2			sys_mlock2
- 326	common	copy_file_range		sys_copy_file_range
-+327	64	madvisev		sys_madvisev
+diff -puN include/linux/kasan.h~mm-kasan-added-gfp-flags-to-kasan-api include/linux/kasan.h
+--- a/include/linux/kasan.h~mm-kasan-added-gfp-flags-to-kasan-api
++++ a/include/linux/kasan.h
+@@ -55,13 +55,14 @@ void kasan_poison_slab(struct page *page
+ void kasan_unpoison_object_data(struct kmem_cache *cache, void *object);
+ void kasan_poison_object_data(struct kmem_cache *cache, void *object);
  
- #
- # x32-specific system call numbers start at 512 to avoid cache impact
-@@ -372,3 +373,4 @@
- 543	x32	io_setup		compat_sys_io_setup
- 544	x32	io_submit		compat_sys_io_submit
- 545	x32	execveat		stub_x32_execveat
-+546	x32	madvisev		compat_sys_madvisev
-diff -puN include/linux/compat.h~mm-add-a-new-vector-based-madvise-syscall include/linux/compat.h
---- a/include/linux/compat.h~mm-add-a-new-vector-based-madvise-syscall
-+++ a/include/linux/compat.h
-@@ -689,6 +689,9 @@ asmlinkage long compat_sys_sendfile64(in
- asmlinkage long compat_sys_sigaltstack(const compat_stack_t __user *uss_ptr,
- 				       compat_stack_t __user *uoss_ptr);
+-void kasan_kmalloc_large(const void *ptr, size_t size);
++void kasan_kmalloc_large(const void *ptr, size_t size, gfp_t flags);
+ void kasan_kfree_large(const void *ptr);
+ void kasan_kfree(void *ptr);
+-void kasan_kmalloc(struct kmem_cache *s, const void *object, size_t size);
+-void kasan_krealloc(const void *object, size_t new_size);
++void kasan_kmalloc(struct kmem_cache *s, const void *object, size_t size,
++		  gfp_t flags);
++void kasan_krealloc(const void *object, size_t new_size, gfp_t flags);
  
-+asmlinkage long compat_sys_madvisev(const struct compat_iovec __user *uvector,
-+		compat_ulong_t nr_segs, compat_int_t behavior);
-+
- #ifdef __ARCH_WANT_SYS_SIGPENDING
- asmlinkage long compat_sys_sigpending(compat_old_sigset_t __user *set);
- #endif
-diff -puN include/linux/syscalls.h~mm-add-a-new-vector-based-madvise-syscall include/linux/syscalls.h
---- a/include/linux/syscalls.h~mm-add-a-new-vector-based-madvise-syscall
-+++ a/include/linux/syscalls.h
-@@ -892,4 +892,7 @@ asmlinkage long sys_copy_file_range(int
+-void kasan_slab_alloc(struct kmem_cache *s, void *object);
++void kasan_slab_alloc(struct kmem_cache *s, void *object, gfp_t flags);
+ void kasan_slab_free(struct kmem_cache *s, void *object);
  
- asmlinkage long sys_mlock2(unsigned long start, size_t len, int flags);
+ struct kasan_cache {
+@@ -94,14 +95,16 @@ static inline void kasan_unpoison_object
+ static inline void kasan_poison_object_data(struct kmem_cache *cache,
+ 					void *object) {}
  
-+asmlinkage long sys_madvisev(const struct iovec __user *uvector,
-+		unsigned long nr_segs, int behavior);
-+
- #endif
-diff -puN include/uapi/asm-generic/unistd.h~mm-add-a-new-vector-based-madvise-syscall include/uapi/asm-generic/unistd.h
---- a/include/uapi/asm-generic/unistd.h~mm-add-a-new-vector-based-madvise-syscall
-+++ a/include/uapi/asm-generic/unistd.h
-@@ -717,9 +717,11 @@ __SYSCALL(__NR_membarrier, sys_membarrie
- __SYSCALL(__NR_mlock2, sys_mlock2)
- #define __NR_copy_file_range 285
- __SYSCALL(__NR_copy_file_range, sys_copy_file_range)
-+#define __NR_madvisev 286
-+__SC_COMP(__NR_madvisev, sys_madvisev, compat_sys_madvisev)
+-static inline void kasan_kmalloc_large(void *ptr, size_t size) {}
++static inline void kasan_kmalloc_large(void *ptr, size_t size, gfp_t flags) {}
+ static inline void kasan_kfree_large(const void *ptr) {}
+ static inline void kasan_kfree(void *ptr) {}
+ static inline void kasan_kmalloc(struct kmem_cache *s, const void *object,
+-				size_t size) {}
+-static inline void kasan_krealloc(const void *object, size_t new_size) {}
++				size_t size, gfp_t flags) {}
++static inline void kasan_krealloc(const void *object, size_t new_size,
++				 gfp_t flags) {}
  
- #undef __NR_syscalls
--#define __NR_syscalls 286
-+#define __NR_syscalls 287
+-static inline void kasan_slab_alloc(struct kmem_cache *s, void *object) {}
++static inline void kasan_slab_alloc(struct kmem_cache *s, void *object,
++				   gfp_t flags) {}
+ static inline void kasan_slab_free(struct kmem_cache *s, void *object) {}
  
- /*
-  * All syscalls below here should go away really,
-diff -puN kernel/sys_ni.c~mm-add-a-new-vector-based-madvise-syscall kernel/sys_ni.c
---- a/kernel/sys_ni.c~mm-add-a-new-vector-based-madvise-syscall
-+++ a/kernel/sys_ni.c
-@@ -198,6 +198,8 @@ cond_syscall(sys_munlockall);
- cond_syscall(sys_mlock2);
- cond_syscall(sys_mincore);
- cond_syscall(sys_madvise);
-+cond_syscall(sys_madvisev);
-+cond_syscall(compat_sys_madvisev);
- cond_syscall(sys_mremap);
- cond_syscall(sys_remap_file_pages);
- cond_syscall(compat_sys_move_pages);
-diff -puN mm/madvise.c~mm-add-a-new-vector-based-madvise-syscall mm/madvise.c
---- a/mm/madvise.c~mm-add-a-new-vector-based-madvise-syscall
-+++ a/mm/madvise.c
-@@ -21,7 +21,8 @@
- #include <linux/swap.h>
- #include <linux/swapops.h>
- #include <linux/mmu_notifier.h>
--
-+#include <linux/uio.h>
-+#include <linux/compat.h>
- #include <asm/tlb.h>
- 
- /*
-@@ -565,7 +566,8 @@ static int madvise_hwpoison(int bhv, uns
- 
- static long
- madvise_vma(struct vm_area_struct *vma, struct vm_area_struct **prev,
--		unsigned long start, unsigned long end, int behavior)
-+		unsigned long start, unsigned long end, int behavior,
-+		void *data)
+ static inline int kasan_module_alloc(void *addr, size_t size) { return 0; }
+diff -puN include/linux/slab.h~mm-kasan-added-gfp-flags-to-kasan-api include/linux/slab.h
+--- a/include/linux/slab.h~mm-kasan-added-gfp-flags-to-kasan-api
++++ a/include/linux/slab.h
+@@ -376,7 +376,7 @@ static __always_inline void *kmem_cache_
  {
- 	switch (behavior) {
- 	case MADV_REMOVE:
-@@ -617,6 +619,62 @@ madvise_behavior_valid(int behavior)
- 	}
+ 	void *ret = kmem_cache_alloc(s, flags);
+ 
+-	kasan_kmalloc(s, ret, size);
++	kasan_kmalloc(s, ret, size, flags);
+ 	return ret;
  }
  
-+typedef long (*madvise_iterate_fn)(struct vm_area_struct *vma,
-+	struct vm_area_struct **prev, unsigned long start,
-+	unsigned long end, int behavior, void *data);
-+static int madvise_iterate_vma(unsigned long start, unsigned long end,
-+	int *unmapped_error, int behavior, madvise_iterate_fn fn, void *data)
-+{
-+	struct vm_area_struct *vma, *prev;
-+	unsigned long tmp;
-+	int error = 0;
-+
-+	/*
-+	 * If the interval [start,end) covers some unmapped address
-+	 * ranges, just ignore them, but return -ENOMEM at the end.
-+	 * - different from the way of handling in mlock etc.
-+	 */
-+	vma = find_vma_prev(current->mm, start, &prev);
-+	if (vma && start > vma->vm_start)
-+		prev = vma;
-+
-+	for (;;) {
-+		/* Still start < end. */
-+		error = -ENOMEM;
-+		if (!vma)
-+			break;
-+
-+		/* Here start < (end|vma->vm_end). */
-+		if (start < vma->vm_start) {
-+			*unmapped_error = -ENOMEM;
-+			start = vma->vm_start;
-+			if (start >= end)
-+				break;
-+		}
-+
-+		/* Here vma->vm_start <= start < (end|vma->vm_end) */
-+		tmp = vma->vm_end;
-+		if (end < tmp)
-+			tmp = end;
-+
-+		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
-+		error = fn(vma, &prev, start, tmp, behavior, data);
-+		if (error)
-+			break;
-+		start = tmp;
-+		if (prev && start < prev->vm_end)
-+			start = prev->vm_end;
-+		if (start >= end)
-+			break;
-+		if (prev)
-+			vma = prev->vm_next;
-+		else	/* madvise_remove dropped mmap_sem */
-+			vma = find_vma(current->mm, start);
-+	}
-+
-+	return error;
-+}
-+
- /*
-  * The madvise(2) system call.
-  *
-@@ -675,8 +733,7 @@ madvise_behavior_valid(int behavior)
-  */
- SYSCALL_DEFINE3(madvise, unsigned long, start, size_t, len_in, int, behavior)
+@@ -387,7 +387,7 @@ kmem_cache_alloc_node_trace(struct kmem_
  {
--	unsigned long end, tmp;
--	struct vm_area_struct *vma, *prev;
-+	unsigned long end;
- 	int unmapped_error = 0;
- 	int error = -EINVAL;
- 	int write;
-@@ -712,56 +769,190 @@ SYSCALL_DEFINE3(madvise, unsigned long,
- 	else
- 		down_read(&current->mm->mmap_sem);
+ 	void *ret = kmem_cache_alloc_node(s, gfpflags, node);
  
--	/*
--	 * If the interval [start,end) covers some unmapped address
--	 * ranges, just ignore them, but return -ENOMEM at the end.
--	 * - different from the way of handling in mlock etc.
--	 */
--	vma = find_vma_prev(current->mm, start, &prev);
--	if (vma && start > vma->vm_start)
--		prev = vma;
--
- 	blk_start_plug(&plug);
--	for (;;) {
--		/* Still start < end. */
--		error = -ENOMEM;
--		if (!vma)
--			goto out;
- 
--		/* Here start < (end|vma->vm_end). */
--		if (start < vma->vm_start) {
--			unmapped_error = -ENOMEM;
--			start = vma->vm_start;
--			if (start >= end)
--				goto out;
-+	error = madvise_iterate_vma(start, end, &unmapped_error,
-+			behavior, madvise_vma, NULL);
-+	if (error == 0 && unmapped_error != 0)
-+		error = unmapped_error;
-+
-+	blk_finish_plug(&plug);
-+	if (write)
-+		up_write(&current->mm->mmap_sem);
-+	else
-+		up_read(&current->mm->mmap_sem);
-+
-+	return error;
-+}
-+
-+static long
-+madvisev_vma(struct vm_area_struct *vma, struct vm_area_struct **prev,
-+		unsigned long start, unsigned long end, int behavior,
-+		void *data)
-+{
-+	struct mmu_gather *tlb = data;
-+	*prev = vma;
-+	if (vma->vm_flags & (VM_LOCKED|VM_HUGETLB|VM_PFNMAP))
-+		return -EINVAL;
-+
-+	switch (behavior) {
-+	case MADV_FREE:
-+		/*
-+		 * XXX: In this implementation, MADV_FREE works like
-+		 * MADV_DONTNEED on swapless system or full swap.
-+		 */
-+		if (get_nr_swap_pages() > 0) {
-+			/* MADV_FREE works for only anon vma at the moment */
-+			if (!vma_is_anonymous(vma))
-+				return -EINVAL;
-+			madvise_free_page_range(tlb, vma, start, end);
-+			break;
- 		}
-+		/* passthrough */
-+	case MADV_DONTNEED:
-+		unmap_vmas(tlb, vma, start, end);
-+		break;
-+	}
-+	return 0;
-+}
- 
--		/* Here vma->vm_start <= start < (end|vma->vm_end) */
--		tmp = vma->vm_end;
--		if (end < tmp)
--			tmp = end;
-+static int do_madvisev(struct iovec *iov, unsigned long nr_segs, int behavior)
-+{
-+	unsigned long start, end = 0;
-+	int unmapped_error = 0;
-+	size_t len;
-+	struct mmu_gather tlb;
-+	int error = 0;
-+	int i;
-+	int write;
-+	struct blk_plug plug;
- 
--		/* Here vma->vm_start <= start < tmp <= (end|vma->vm_end). */
--		error = madvise_vma(vma, &prev, start, tmp, behavior);
--		if (error)
--			goto out;
--		start = tmp;
--		if (prev && start < prev->vm_end)
--			start = prev->vm_end;
--		error = unmapped_error;
--		if (start >= end)
--			goto out;
--		if (prev)
--			vma = prev->vm_next;
--		else	/* madvise_remove dropped mmap_sem */
--			vma = find_vma(current->mm, start);
-+#ifdef CONFIG_MEMORY_FAILURE
-+	if (behavior == MADV_HWPOISON || behavior == MADV_SOFT_OFFLINE) {
-+		for (i = 0; i < nr_segs; i++) {
-+			start = (unsigned long)iov[i].iov_base;
-+			len = iov[i].iov_len;
-+			error = madvise_hwpoison(behavior, start, start + len);
-+			if (error)
-+				return error;
-+		}
-+		return 0;
- 	}
--out:
--	blk_finish_plug(&plug);
-+#endif
-+
-+	if (!madvise_behavior_valid(behavior))
-+		return -EINVAL;
-+
-+	for (i = 0; i < nr_segs; i++) {
-+		start = (unsigned long)iov[i].iov_base;
-+		/* Make sure iovs don't overlap and sorted */
-+		if (start & ~PAGE_MASK || start < end)
-+			return -EINVAL;
-+		len = ((iov[i].iov_len + ~PAGE_MASK) & PAGE_MASK);
-+
-+		/*
-+		 * Check to see whether len was rounded up from small -ve to
-+		 * zero
-+		 */
-+		if (iov[i].iov_len && !len)
-+			return -EINVAL;
-+
-+		end = start + len;
-+
-+		/*
-+		 * end == start returns error (different against madvise).
-+		 * return 0 is improper as there are other iovs
-+		 */
-+		if (end <= start)
-+			return -EINVAL;
-+
-+		iov[i].iov_len = len;
-+	}
-+
-+	write = madvise_need_mmap_write(behavior);
-+	if (write)
-+		down_write(&current->mm->mmap_sem);
-+	else
-+		down_read(&current->mm->mmap_sem);
-+
-+	if (behavior == MADV_DONTNEED || behavior == MADV_FREE) {
-+		lru_add_drain();
-+		tlb_gather_mmu(&tlb, current->mm,
-+			(unsigned long)iov[0].iov_base, end);
-+		update_hiwater_rss(current->mm);
-+		for (i = 0; i < nr_segs; i++) {
-+			start = (unsigned long)iov[i].iov_base;
-+			len = iov[i].iov_len;
-+
-+			error = madvise_iterate_vma(start, start + len,
-+				&unmapped_error, behavior, madvisev_vma, &tlb);
-+			if (error)
-+				break;
-+		}
-+		tlb_finish_mmu(&tlb, (unsigned long)iov[0].iov_base, end);
-+	} else {
-+		blk_start_plug(&plug);
-+		for (i = 0; i < nr_segs; i++) {
-+			start = (unsigned long)iov[i].iov_base;
-+			len = iov[i].iov_len;
-+
-+			error = madvise_iterate_vma(start, start + len,
-+				&unmapped_error, behavior, madvise_vma, NULL);
-+			if (error)
-+				break;
-+		}
-+		blk_finish_plug(&plug);
-+	}
-+	if (error == 0 && unmapped_error != 0)
-+		error = unmapped_error;
-+
- 	if (write)
- 		up_write(&current->mm->mmap_sem);
- 	else
- 		up_read(&current->mm->mmap_sem);
-+	return error;
-+}
-+
-+/*
-+ * The vector madvise(). Like madvise except running for a vector of virtual
-+ * address ranges
-+ */
-+SYSCALL_DEFINE3(madvisev, const struct iovec __user *, uvector,
-+	unsigned long, nr_segs, int, behavior)
-+{
-+	struct iovec iovstack[UIO_FASTIOV];
-+	struct iovec *iov = NULL;
-+	int error;
-+
-+	error = rw_copy_check_uvector(CHECK_IOVEC_ONLY, uvector, nr_segs,
-+			UIO_FASTIOV, iovstack, &iov);
-+	if (error <= 0)
-+		return error;
-+
-+	error = do_madvisev(iov, nr_segs, behavior);
- 
-+	if (iov != iovstack)
-+		kfree(iov);
- 	return error;
+-	kasan_kmalloc(s, ret, size);
++	kasan_kmalloc(s, ret, size, gfpflags);
+ 	return ret;
  }
+ #endif /* CONFIG_TRACING */
+diff -puN mm/kasan/kasan.c~mm-kasan-added-gfp-flags-to-kasan-api mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~mm-kasan-added-gfp-flags-to-kasan-api
++++ a/mm/kasan/kasan.c
+@@ -434,9 +434,9 @@ struct kasan_free_meta *get_free_info(st
+ }
+ #endif
+ 
+-void kasan_slab_alloc(struct kmem_cache *cache, void *object)
++void kasan_slab_alloc(struct kmem_cache *cache, void *object, gfp_t flags)
+ {
+-	kasan_kmalloc(cache, object, cache->object_size);
++	kasan_kmalloc(cache, object, cache->object_size, flags);
+ }
+ 
+ void kasan_slab_free(struct kmem_cache *cache, void *object)
+@@ -462,7 +462,8 @@ void kasan_slab_free(struct kmem_cache *
+ 	kasan_poison_shadow(object, rounded_up_size, KASAN_KMALLOC_FREE);
+ }
+ 
+-void kasan_kmalloc(struct kmem_cache *cache, const void *object, size_t size)
++void kasan_kmalloc(struct kmem_cache *cache, const void *object, size_t size,
++		   gfp_t flags)
+ {
+ 	unsigned long redzone_start;
+ 	unsigned long redzone_end;
+@@ -491,7 +492,7 @@ void kasan_kmalloc(struct kmem_cache *ca
+ }
+ EXPORT_SYMBOL(kasan_kmalloc);
+ 
+-void kasan_kmalloc_large(const void *ptr, size_t size)
++void kasan_kmalloc_large(const void *ptr, size_t size, gfp_t flags)
+ {
+ 	struct page *page;
+ 	unsigned long redzone_start;
+@@ -510,7 +511,7 @@ void kasan_kmalloc_large(const void *ptr
+ 		KASAN_PAGE_REDZONE);
+ }
+ 
+-void kasan_krealloc(const void *object, size_t size)
++void kasan_krealloc(const void *object, size_t size, gfp_t flags)
+ {
+ 	struct page *page;
+ 
+@@ -520,9 +521,9 @@ void kasan_krealloc(const void *object,
+ 	page = virt_to_head_page(object);
+ 
+ 	if (unlikely(!PageSlab(page)))
+-		kasan_kmalloc_large(object, size);
++		kasan_kmalloc_large(object, size, flags);
+ 	else
+-		kasan_kmalloc(page->slab_cache, object, size);
++		kasan_kmalloc(page->slab_cache, object, size, flags);
+ }
+ 
+ void kasan_kfree(void *ptr)
+diff -puN mm/mempool.c~mm-kasan-added-gfp-flags-to-kasan-api mm/mempool.c
+--- a/mm/mempool.c~mm-kasan-added-gfp-flags-to-kasan-api
++++ a/mm/mempool.c
+@@ -112,12 +112,12 @@ static void kasan_poison_element(mempool
+ 		kasan_free_pages(element, (unsigned long)pool->pool_data);
+ }
+ 
+-static void kasan_unpoison_element(mempool_t *pool, void *element)
++static void kasan_unpoison_element(mempool_t *pool, void *element, gfp_t flags)
+ {
+ 	if (pool->alloc == mempool_alloc_slab)
+-		kasan_slab_alloc(pool->pool_data, element);
++		kasan_slab_alloc(pool->pool_data, element, flags);
+ 	if (pool->alloc == mempool_kmalloc)
+-		kasan_krealloc(element, (size_t)pool->pool_data);
++		kasan_krealloc(element, (size_t)pool->pool_data, flags);
+ 	if (pool->alloc == mempool_alloc_pages)
+ 		kasan_alloc_pages(element, (unsigned long)pool->pool_data);
+ }
+@@ -130,13 +130,13 @@ static void add_element(mempool_t *pool,
+ 	pool->elements[pool->curr_nr++] = element;
+ }
+ 
+-static void *remove_element(mempool_t *pool)
++static void *remove_element(mempool_t *pool, gfp_t flags)
+ {
+ 	void *element = pool->elements[--pool->curr_nr];
+ 
+ 	BUG_ON(pool->curr_nr < 0);
+ 	check_element(pool, element);
+-	kasan_unpoison_element(pool, element);
++	kasan_unpoison_element(pool, element, flags);
+ 	return element;
+ }
+ 
+@@ -154,7 +154,7 @@ void mempool_destroy(mempool_t *pool)
+ 		return;
+ 
+ 	while (pool->curr_nr) {
+-		void *element = remove_element(pool);
++		void *element = remove_element(pool, GFP_KERNEL);
+ 		pool->free(element, pool->pool_data);
+ 	}
+ 	kfree(pool->elements);
+@@ -250,7 +250,7 @@ int mempool_resize(mempool_t *pool, int
+ 	spin_lock_irqsave(&pool->lock, flags);
+ 	if (new_min_nr <= pool->min_nr) {
+ 		while (new_min_nr < pool->curr_nr) {
+-			element = remove_element(pool);
++			element = remove_element(pool, GFP_KERNEL);
+ 			spin_unlock_irqrestore(&pool->lock, flags);
+ 			pool->free(element, pool->pool_data);
+ 			spin_lock_irqsave(&pool->lock, flags);
+@@ -347,7 +347,7 @@ repeat_alloc:
+ 
+ 	spin_lock_irqsave(&pool->lock, flags);
+ 	if (likely(pool->curr_nr)) {
+-		element = remove_element(pool);
++		element = remove_element(pool, gfp_temp);
+ 		spin_unlock_irqrestore(&pool->lock, flags);
+ 		/* paired with rmb in mempool_free(), read comment there */
+ 		smp_wmb();
+diff -puN mm/slab.c~mm-kasan-added-gfp-flags-to-kasan-api mm/slab.c
+--- a/mm/slab.c~mm-kasan-added-gfp-flags-to-kasan-api
++++ a/mm/slab.c
+@@ -3378,7 +3378,7 @@ void *kmem_cache_alloc(struct kmem_cache
+ {
+ 	void *ret = slab_alloc(cachep, flags, _RET_IP_);
+ 
+-	kasan_slab_alloc(cachep, ret);
++	kasan_slab_alloc(cachep, ret, flags);
+ 	trace_kmem_cache_alloc(_RET_IP_, ret,
+ 			       cachep->object_size, cachep->size, flags);
+ 
+@@ -3444,7 +3444,7 @@ kmem_cache_alloc_trace(struct kmem_cache
+ 
+ 	ret = slab_alloc(cachep, flags, _RET_IP_);
+ 
+-	kasan_kmalloc(cachep, ret, size);
++	kasan_kmalloc(cachep, ret, size, flags);
+ 	trace_kmalloc(_RET_IP_, ret,
+ 		      size, cachep->size, flags);
+ 	return ret;
+@@ -3468,7 +3468,7 @@ void *kmem_cache_alloc_node(struct kmem_
+ {
+ 	void *ret = slab_alloc_node(cachep, flags, nodeid, _RET_IP_);
+ 
+-	kasan_slab_alloc(cachep, ret);
++	kasan_slab_alloc(cachep, ret, flags);
+ 	trace_kmem_cache_alloc_node(_RET_IP_, ret,
+ 				    cachep->object_size, cachep->size,
+ 				    flags, nodeid);
+@@ -3486,7 +3486,8 @@ void *kmem_cache_alloc_node_trace(struct
+ 	void *ret;
+ 
+ 	ret = slab_alloc_node(cachep, flags, nodeid, _RET_IP_);
+-	kasan_kmalloc(cachep, ret, size);
 +
-+#ifdef CONFIG_COMPAT
-+COMPAT_SYSCALL_DEFINE3(madvisev, const struct compat_iovec __user *, uvector,
-+	compat_ulong_t, nr_segs, compat_int_t, behavior)
-+{
-+	struct iovec iovstack[UIO_FASTIOV];
-+	struct iovec *iov = NULL;
-+	int error;
-+
-+	error = compat_rw_copy_check_uvector(CHECK_IOVEC_ONLY, uvector, nr_segs,
-+			UIO_FASTIOV, iovstack, &iov);
-+	if (error <= 0)
-+		return error;
-+
-+	error = do_madvisev(iov, nr_segs, behavior);
-+
-+	if (iov != iovstack)
-+		kfree(iov);
-+	return error;
-+}
-+#endif
++	kasan_kmalloc(cachep, ret, size, flags);
+ 	trace_kmalloc_node(_RET_IP_, ret,
+ 			   size, cachep->size,
+ 			   flags, nodeid);
+@@ -3505,7 +3506,7 @@ __do_kmalloc_node(size_t size, gfp_t fla
+ 	if (unlikely(ZERO_OR_NULL_PTR(cachep)))
+ 		return cachep;
+ 	ret = kmem_cache_alloc_node_trace(cachep, flags, node, size);
+-	kasan_kmalloc(cachep, ret, size);
++	kasan_kmalloc(cachep, ret, size, flags);
+ 
+ 	return ret;
+ }
+@@ -3541,7 +3542,7 @@ static __always_inline void *__do_kmallo
+ 		return cachep;
+ 	ret = slab_alloc(cachep, flags, caller);
+ 
+-	kasan_kmalloc(cachep, ret, size);
++	kasan_kmalloc(cachep, ret, size, flags);
+ 	trace_kmalloc(caller, ret,
+ 		      size, cachep->size, flags);
+ 
+@@ -4323,7 +4324,7 @@ size_t ksize(const void *objp)
+ 	/* We assume that ksize callers could use the whole allocated area,
+ 	 * so we need to unpoison this area.
+ 	 */
+-	kasan_krealloc(objp, size);
++	kasan_krealloc(objp, size, GFP_NOWAIT);
+ 
+ 	return size;
+ }
+diff -puN mm/slab.h~mm-kasan-added-gfp-flags-to-kasan-api mm/slab.h
+--- a/mm/slab.h~mm-kasan-added-gfp-flags-to-kasan-api
++++ a/mm/slab.h
+@@ -405,7 +405,7 @@ static inline void slab_post_alloc_hook(
+ 		kmemcheck_slab_alloc(s, flags, object, slab_ksize(s));
+ 		kmemleak_alloc_recursive(object, s->object_size, 1,
+ 					 s->flags, flags);
+-		kasan_slab_alloc(s, object);
++		kasan_slab_alloc(s, object, flags);
+ 	}
+ 	memcg_kmem_put_cache(s);
+ }
+diff -puN mm/slab_common.c~mm-kasan-added-gfp-flags-to-kasan-api mm/slab_common.c
+--- a/mm/slab_common.c~mm-kasan-added-gfp-flags-to-kasan-api
++++ a/mm/slab_common.c
+@@ -1013,7 +1013,7 @@ void *kmalloc_order(size_t size, gfp_t f
+ 	page = alloc_kmem_pages(flags, order);
+ 	ret = page ? page_address(page) : NULL;
+ 	kmemleak_alloc(ret, size, 1, flags);
+-	kasan_kmalloc_large(ret, size);
++	kasan_kmalloc_large(ret, size, flags);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(kmalloc_order);
+@@ -1192,7 +1192,7 @@ static __always_inline void *__do_kreall
+ 		ks = ksize(p);
+ 
+ 	if (ks >= new_size) {
+-		kasan_krealloc((void *)p, new_size);
++		kasan_krealloc((void *)p, new_size, flags);
+ 		return (void *)p;
+ 	}
+ 
+diff -puN mm/slub.c~mm-kasan-added-gfp-flags-to-kasan-api mm/slub.c
+--- a/mm/slub.c~mm-kasan-added-gfp-flags-to-kasan-api
++++ a/mm/slub.c
+@@ -1313,7 +1313,7 @@ static inline void dec_slabs_node(struct
+ static inline void kmalloc_large_node_hook(void *ptr, size_t size, gfp_t flags)
+ {
+ 	kmemleak_alloc(ptr, size, 1, flags);
+-	kasan_kmalloc_large(ptr, size);
++	kasan_kmalloc_large(ptr, size, flags);
+ }
+ 
+ static inline void kfree_hook(const void *x)
+@@ -2596,7 +2596,7 @@ void *kmem_cache_alloc_trace(struct kmem
+ {
+ 	void *ret = slab_alloc(s, gfpflags, _RET_IP_);
+ 	trace_kmalloc(_RET_IP_, ret, size, s->size, gfpflags);
+-	kasan_kmalloc(s, ret, size);
++	kasan_kmalloc(s, ret, size, gfpflags);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(kmem_cache_alloc_trace);
+@@ -2624,7 +2624,7 @@ void *kmem_cache_alloc_node_trace(struct
+ 	trace_kmalloc_node(_RET_IP_, ret,
+ 			   size, s->size, gfpflags, node);
+ 
+-	kasan_kmalloc(s, ret, size);
++	kasan_kmalloc(s, ret, size, gfpflags);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(kmem_cache_alloc_node_trace);
+@@ -3182,7 +3182,8 @@ static void early_kmem_cache_node_alloc(
+ 	init_object(kmem_cache_node, n, SLUB_RED_ACTIVE);
+ 	init_tracking(kmem_cache_node, n);
+ #endif
+-	kasan_kmalloc(kmem_cache_node, n, sizeof(struct kmem_cache_node));
++	kasan_kmalloc(kmem_cache_node, n, sizeof(struct kmem_cache_node),
++		      GFP_KERNEL);
+ 	init_kmem_cache_node(n);
+ 	inc_slabs_node(kmem_cache_node, node, page->objects);
+ 
+@@ -3561,7 +3562,7 @@ void *__kmalloc(size_t size, gfp_t flags
+ 
+ 	trace_kmalloc(_RET_IP_, ret, size, s->size, flags);
+ 
+-	kasan_kmalloc(s, ret, size);
++	kasan_kmalloc(s, ret, size, flags);
+ 
+ 	return ret;
+ }
+@@ -3606,7 +3607,7 @@ void *__kmalloc_node(size_t size, gfp_t
+ 
+ 	trace_kmalloc_node(_RET_IP_, ret, size, s->size, flags, node);
+ 
+-	kasan_kmalloc(s, ret, size);
++	kasan_kmalloc(s, ret, size, flags);
+ 
+ 	return ret;
+ }
+@@ -3635,7 +3636,7 @@ size_t ksize(const void *object)
+ 	size_t size = __ksize(object);
+ 	/* We assume that ksize callers could use whole allocated area,
+ 	   so we need unpoison this area. */
+-	kasan_krealloc(object, size);
++	kasan_krealloc(object, size, GFP_NOWAIT);
+ 	return size;
+ }
+ EXPORT_SYMBOL(ksize);
 _
 
-Patches currently in -mm which might be from shli@fb.com are
+Patches currently in -mm which might be from glider@google.com are
 
+kasan-modify-kmalloc_large_oob_right-add-kmalloc_pagealloc_oob_right.patch
+mm-kasan-slab-support.patch
+mm-kasan-added-gfp-flags-to-kasan-api.patch
+arch-ftrace-for-kasan-put-hard-soft-irq-entries-into-separate-sections.patch
+mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab.patch
+kasan-test-fix-warn-if-the-uaf-could-not-be-detected-in-kmalloc_uaf2.patch
+mm-kasan-initial-memory-quarantine-implementation.patch
 
