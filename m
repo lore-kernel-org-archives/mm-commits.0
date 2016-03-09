@@ -1,246 +1,607 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
-Date: Wed, 09 Mar 2016 10:23:55 -0800
-Message-ID: <56e06a3b.kNRwu9AR5DxCCnc7%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd.patch removed
+ from -mm tree
+Date: Wed, 09 Mar 2016 10:58:37 -0800
+Message-ID: <56e0725d.E0gn737bB/qzVvPl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36873 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39053 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751450AbcCISX4 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2016 13:23:56 -0500
+	with ESMTP id S1750817AbcCIS6j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2016 13:58:39 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, aarcange@redhat.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: linux-next-git-rejects
+     Subject: mm, kswapd: replace kswapd compaction with waking up kcompactd
 has been removed from the -mm tree.  Its filename was
-     linux-next-git-rejects.patch
+     mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd.patch
 
-This patch was dropped because it is obsolete
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: linux-next-git-rejects
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, kswapd: replace kswapd compaction with waking up kcompactd
 
+Similarly to direct reclaim/compaction, kswapd attempts to combine reclaim
+and compaction to attempt making memory allocation of given order
+available.  The details differ from direct reclaim e.g.  in having high
+watermark as a goal.  The code involved in kswapd's reclaim/compaction
+decisions has evolved to be quite complex.  Testing reveals that it
+doesn't actually work in at least one scenario, and closer inspection
+suggests that it could be greatly simplified without compromising on the
+goal (make high-order page available) or efficiency (don't reclaim too
+much).  The simplification relieas of doing all compaction in kcompactd,
+which is simply woken up when high watermarks are reached by kswapd's
+reclaim.
+
+The scenario where kswapd compaction doesn't work was found with mmtests
+test stress-highalloc configured to attempt order-9 allocations without
+direct reclaim, just waking up kswapd.  There was no compaction attempt
+from kswapd during the whole test.  Some added instrumentation shows what
+happens:
+
+- balance_pgdat() sets end_zone to Normal, as it's not balanced
+- reclaim is attempted on DMA zone, which sets nr_attempted to 99, but it
+   cannot reclaim anything, so sc.nr_reclaimed is 0
+- for zones DMA32 and Normal, kswapd_shrink_zone uses testorder=0, so it
+   merely checks if high watermarks were reached for base pages. This is true,
+   so no reclaim is attempted. For DMA, testorder=0 wasn't used, as
+   compaction_suitable() returned COMPACT_SKIPPED
+- even though the pgdat_needs_compaction flag wasn't set to false, no
+   compaction happens due to the condition sc.nr_reclaimed > nr_attempted
+   being false (as 0 < 99)
+- priority-- due to nr_reclaimed being 0, repeat until priority reaches 0
+   pgdat_balanced() is false as only the small zone DMA appears balanced
+   (curiously in that check, watermark appears OK and compaction_suitable()
+   returns COMPACT_PARTIAL, because a lower classzone_idx is used there)
+
+Now, even if it was decided that reclaim shouldn't be attempted on the DMA
+zone, the scenario would be the same, as (sc.nr_reclaimed=0 >
+nr_attempted=0) is also false.  The condition really should use >= as the
+comment suggests.  Then there is a mismatch in the check for setting
+pgdat_needs_compaction to false using low watermark, while the rest uses
+high watermark, and who knows what other subtlety.  Hopefully this
+demonstrates that this is unsustainable.
+
+Luckily we can simplify this a lot.  The reclaim/compaction decisions make
+sense for direct reclaim scenario, but in kswapd, our primary goal is to
+reach high watermark in order-0 pages.  Afterwards we can attempt
+compaction just once.  Unlike direct reclaim, we don't reclaim extra pages
+(over the high watermark), the current code already disallows it for good
+reasons.
+
+After this patch, we simply wake up kcompactd to process the pgdat, after
+we have either succeeded or failed to reach the high watermarks in kswapd,
+which goes to sleep.  We pass kswapd's order and classzone_idx, so
+kcompactd can apply the same criteria to determine which zones are worth
+compacting.  Note that we use the classzone_idx from wakeup_kswapd(), not
+balanced_classzone_idx which can include higher zones that kswapd tried to
+balance too, but didn't consider them in pgdat_balanced().
+
+Since kswapd now cannot create high-order pages itself, we need to adjust
+how it determines the zones to be balanced.  The key element here is
+adding a "highorder" parameter to zone_balanced, which, when set to false,
+makes it consider only order-0 watermark instead of the desired higher
+order (this was done previously by kswapd_shrink_zone(), but not
+elsewhere).  This false is passed for example in pgdat_balanced(). 
+Importantly, wakeup_kswapd() uses true to make sure kswapd and thus
+kcompactd are woken up for a high-order allocation failure.
+
+For testing, I used stress-highalloc configured to do order-9 allocations
+with GFP_NOWAIT|__GFP_HIGH|__GFP_COMP, so they relied just on
+kswapd/kcompactd reclaim/compaction (the interfering kernel builds in
+phases 1 and 2 work as usual):
+
+stress-highalloc
+                        4.5-rc1+before          4.5-rc1+after
+                             -nodirect              -nodirect
+Success 1 Min          1.00 (  0.00%)        3.00 (-200.00%)
+Success 1 Mean         1.40 (  0.00%)        4.00 (-185.71%)
+Success 1 Max          2.00 (  0.00%)        6.00 (-200.00%)
+Success 2 Min          1.00 (  0.00%)        3.00 (-200.00%)
+Success 2 Mean         1.80 (  0.00%)        4.20 (-133.33%)
+Success 2 Max          3.00 (  0.00%)        6.00 (-100.00%)
+Success 3 Min         34.00 (  0.00%)       63.00 (-85.29%)
+Success 3 Mean        41.80 (  0.00%)       64.60 (-54.55%)
+Success 3 Max         53.00 (  0.00%)       67.00 (-26.42%)
+
+User                          3166.67       3088.82
+System                        1153.37       1142.01
+Elapsed                       1768.53       1780.91
+
+                            4.5-rc1+before  4.5-rc1+after
+                                 -nodirect   -nodirect
+Direct pages scanned                32938       31429
+Kswapd pages scanned              2183166     2185293
+Kswapd pages reclaimed            2152359     2134389
+Direct pages reclaimed              32735       31234
+Percentage direct scans                1%          1%
+THP fault alloc                       579         614
+THP collapse alloc                    304         324
+THP splits                              0           0
+THP fault fallback                    793         730
+THP collapse fail                      11          14
+Compaction stalls                    1013         959
+Compaction success                     92          69
+Compaction failures                   920         890
+Page migrate success               238457      662054
+Page migrate failure                23021       32846
+Compaction pages isolated          504695     1370326
+Compaction migrate scanned         661390     7025772
+Compaction free scanned          13476658    73302642
+Compaction cost                       262         762
+
+After this patch we see improvements in allocation success rate
+(especially for phase 3) along with increased compaction activity.  The
+compaction stalls (direct compaction) in the interfering kernel builds
+(probably THP's) also decreased somewhat thanks to kcompactd activity, yet
+THP alloc successes improved a bit.
+
+Note that elapsed and user time isn't so useful for this benchmark,
+because of the background interference being unpredictable.  It's just to
+quickly spot some major unexpected differences.  System time is somewhat
+more useful and that didn't increase.
+
+Also (after adjusting mmtests' ftrace monitor):
+
+Time kswapd awake               2547781     2269241
+Time kcompactd awake                  0      119253
+Time direct compacting           939937      557649
+Time kswapd compacting                0           0
+Time kcompactd compacting             0      119099
+
+The decrease of overal time spent compacting appears to not match the
+increased compaction stats.  I suspect the tasks get rescheduled and since
+the ftrace monitor doesn't see that, the reported time is wall time, not
+CPU time.  But arguably direct compactors care about overall latency
+anyway, whether busy compacting or waiting for CPU doesn't matter.  And
+that latency seems to almost halved.
+
+It's also interesting how much time kswapd spent awake just going through
+all the priorities and failing to even try compacting, over and over.
+
+We can also configure stress-highalloc to perform both direct
+reclaim/compaction and wakeup kswapd/kcompactd, by using
+GFP_KERNEL|__GFP_HIGH|__GFP_COMP:
+
+stress-highalloc
+                        4.5-rc1+before         4.5-rc1+after
+                               -direct               -direct
+Success 1 Min          4.00 (  0.00%)        6.00 (-50.00%)
+Success 1 Mean         8.00 (  0.00%)        8.40 ( -5.00%)
+Success 1 Max         12.00 (  0.00%)       13.00 ( -8.33%)
+Success 2 Min          4.00 (  0.00%)        6.00 (-50.00%)
+Success 2 Mean         8.20 (  0.00%)        8.60 ( -4.88%)
+Success 2 Max         13.00 (  0.00%)       12.00 (  7.69%)
+Success 3 Min         75.00 (  0.00%)       75.00 (  0.00%)
+Success 3 Mean        75.60 (  0.00%)       75.60 (  0.00%)
+Success 3 Max         77.00 (  0.00%)       76.00 (  1.30%)
+
+User                          3344.73       3258.62
+System                        1194.24       1177.92
+Elapsed                       1838.04       1837.02
+
+                            4.5-rc1+before  4.5-rc1+after
+                                   -direct     -direct
+Direct pages scanned               125146      108854
+Kswapd pages scanned              2119757     2131589
+Kswapd pages reclaimed            2073183     2090937
+Direct pages reclaimed             124909      108699
+Percentage direct scans                5%          4%
+THP fault alloc                       599         567
+THP collapse alloc                    323         326
+THP splits                              0           0
+THP fault fallback                    806         805
+THP collapse fail                      17          18
+Compaction stalls                    2457        2070
+Compaction success                    906         527
+Compaction failures                  1551        1543
+Page migrate success              2031423     2423657
+Page migrate failure                32845       28790
+Compaction pages isolated         4129761     4916017
+Compaction migrate scanned       11996712    19370264
+Compaction free scanned         214970969   360662356
+Compaction cost                      2271        2745
+
+In this scenario, this patch doesn't change the overall success rate as
+direct compaction already tries all it can.  There's however significant
+reduction in direct compaction stalls (that is, the number of allocations
+that went into direct compaction).  The number of successes (i.e.  direct
+compaction stalls that ended up with successful allocation) is reduced by
+the same number.  This means the offload to kcompactd is working as
+expected, and direct compaction is reduced either due to detecting
+contention, or compaction deferred by kcompactd.  In the previous version
+of this patchset there was some apparent reduction of success rate, but
+the changes in this version (such as using sync compaction only), new
+baseline kernel, and/or averaging results from 5 executions (my bet), made
+this go away.
+
+Ftrace-based stats seem to roughly agree:
+
+Time kswapd awake               2532984     2326824
+Time kcompactd awake                  0      257916
+Time direct compacting           864839      735130
+Time kswapd compacting                0           0
+Time kcompactd compacting             0      257585
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/mellanox/mlx5/core/en.h      |    5 --
- drivers/net/ethernet/mellanox/mlx5/core/en_main.c |    3 -
- drivers/net/ethernet/mellanox/mlx5/core/en_tx.c   |    8 ----
- drivers/net/vxlan.c                               |   22 ------------
- drivers/net/wireless/intel/iwlwifi/mvm/fw.c       |    3 -
- include/uapi/linux/bpf.h                          |    3 -
- net/tipc/subscr.c                                 |    5 --
- 7 files changed, 49 deletions(-)
+ mm/vmscan.c |  148 ++++++++++++++++----------------------------------
+ 1 file changed, 49 insertions(+), 99 deletions(-)
 
-diff -puN drivers/net/ethernet/mellanox/mlx5/core/en.h~linux-next-git-rejects drivers/net/ethernet/mellanox/mlx5/core/en.h
---- a/drivers/net/ethernet/mellanox/mlx5/core/en.h~linux-next-git-rejects
-+++ a/drivers/net/ethernet/mellanox/mlx5/core/en.h
-@@ -286,12 +286,7 @@ struct mlx5e_sq_stats {
- 	u64 stopped;
- 	u64 wake;
- 	u64 dropped;
--<<<<<<< HEAD
--	u64 nop;
--#define NUM_SQ_STATS 9
--=======
- #define NUM_SQ_STATS 11
-->>>>>>> linux-next/akpm-base
- };
- 
- struct mlx5e_stats {
-diff -puN drivers/net/ethernet/mellanox/mlx5/core/en_main.c~linux-next-git-rejects drivers/net/ethernet/mellanox/mlx5/core/en_main.c
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c~linux-next-git-rejects
-+++ a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
-@@ -2246,8 +2246,6 @@ void mlx5e_build_default_indir_rqt(u32 *
- 		indirection_rqt[i] = i % num_channels;
+diff -puN mm/vmscan.c~mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd mm/vmscan.c
+--- a/mm/vmscan.c~mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd
++++ a/mm/vmscan.c
+@@ -2968,18 +2968,23 @@ static void age_active_anon(struct zone
+ 	} while (memcg);
  }
  
--<<<<<<< HEAD
--=======
- #ifdef CONFIG_MLX5_CORE_EN_DCB
- static void mlx5e_ets_init(struct mlx5e_priv *priv)
+-static bool zone_balanced(struct zone *zone, int order,
+-			  unsigned long balance_gap, int classzone_idx)
++static bool zone_balanced(struct zone *zone, int order, bool highorder,
++			unsigned long balance_gap, int classzone_idx)
  {
-@@ -2266,7 +2264,6 @@ static void mlx5e_ets_init(struct mlx5e_
+-	if (!zone_watermark_ok_safe(zone, order, high_wmark_pages(zone) +
+-				    balance_gap, classzone_idx))
+-		return false;
++	unsigned long mark = high_wmark_pages(zone) + balance_gap;
+ 
+-	if (IS_ENABLED(CONFIG_COMPACTION) && order && compaction_suitable(zone,
+-				order, 0, classzone_idx) == COMPACT_SKIPPED)
+-		return false;
++	/*
++	 * When checking from pgdat_balanced(), kswapd should stop and sleep
++	 * when it reaches the high order-0 watermark and let kcompactd take
++	 * over. Other callers such as wakeup_kswapd() want to determine the
++	 * true high-order watermark.
++	 */
++	if (IS_ENABLED(CONFIG_COMPACTION) && !highorder) {
++		mark += (1UL << order);
++		order = 0;
++	}
+ 
+-	return true;
++	return zone_watermark_ok_safe(zone, order, mark, classzone_idx);
  }
- #endif
  
-->>>>>>> linux-next/akpm-base
- static void mlx5e_build_netdev_priv(struct mlx5_core_dev *mdev,
- 				    struct net_device *netdev,
- 				    int num_channels)
-diff -puN drivers/net/ethernet/mellanox/mlx5/core/en_tx.c~linux-next-git-rejects drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
---- a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c~linux-next-git-rejects
-+++ a/drivers/net/ethernet/mellanox/mlx5/core/en_tx.c
-@@ -206,13 +206,6 @@ static netdev_tx_t mlx5e_sq_xmit(struct
- 	if (skb_is_gso(skb)) {
- 		eseg->mss    = cpu_to_be16(skb_shinfo(skb)->gso_size);
- 		opcode       = MLX5_OPCODE_LSO;
--<<<<<<< HEAD
--		ihs          = skb_transport_offset(skb) + tcp_hdrlen(skb);
--		payload_len  = skb->len - ihs;
--		num_bytes = skb->len + (skb_shinfo(skb)->gso_segs - 1) * ihs;
--		sq->stats.tso_packets++;
--		sq->stats.tso_bytes += payload_len;
--=======
- 
- 		if (skb->encapsulation) {
- 			ihs = skb_inner_transport_offset(skb) + inner_tcp_hdrlen(skb);
-@@ -225,7 +218,6 @@ static netdev_tx_t mlx5e_sq_xmit(struct
+ /*
+@@ -3029,7 +3034,7 @@ static bool pgdat_balanced(pg_data_t *pg
+ 			continue;
  		}
  
- 		num_bytes = skb->len + (skb_shinfo(skb)->gso_segs - 1) * ihs;
-->>>>>>> linux-next/akpm-base
- 	} else {
- 		bf = sq->bf_budget &&
- 		     !skb->xmit_more &&
-diff -puN drivers/net/vxlan.c~linux-next-git-rejects drivers/net/vxlan.c
---- a/drivers/net/vxlan.c~linux-next-git-rejects
-+++ a/drivers/net/vxlan.c
-@@ -1311,33 +1311,11 @@ static int vxlan_rcv(struct sock *sk, st
- 	/* For backwards compatibility, only allow reserved fields to be
- 	 * used by VXLAN extensions if explicitly requested.
+-		if (zone_balanced(zone, order, 0, i))
++		if (zone_balanced(zone, order, false, 0, i))
+ 			balanced_pages += zone->managed_pages;
+ 		else if (!order)
+ 			return false;
+@@ -3083,8 +3088,7 @@ static bool prepare_kswapd_sleep(pg_data
+  */
+ static bool kswapd_shrink_zone(struct zone *zone,
+ 			       int classzone_idx,
+-			       struct scan_control *sc,
+-			       unsigned long *nr_attempted)
++			       struct scan_control *sc)
+ {
+ 	int testorder = sc->order;
+ 	unsigned long balance_gap;
+@@ -3094,17 +3098,6 @@ static bool kswapd_shrink_zone(struct zo
+ 	sc->nr_to_reclaim = max(SWAP_CLUSTER_MAX, high_wmark_pages(zone));
+ 
+ 	/*
+-	 * Kswapd reclaims only single pages with compaction enabled. Trying
+-	 * too hard to reclaim until contiguous free pages have become
+-	 * available can hurt performance by evicting too much useful data
+-	 * from memory. Do not reclaim more than needed for compaction.
+-	 */
+-	if (IS_ENABLED(CONFIG_COMPACTION) && sc->order &&
+-			compaction_suitable(zone, sc->order, 0, classzone_idx)
+-							!= COMPACT_SKIPPED)
+-		testorder = 0;
+-
+-	/*
+ 	 * We put equal pressure on every zone, unless one zone has way too
+ 	 * many pages free already. The "too many pages" is defined as the
+ 	 * high wmark plus a "gap" where the gap is either the low
+@@ -3118,15 +3111,12 @@ static bool kswapd_shrink_zone(struct zo
+ 	 * reclaim is necessary
  	 */
--<<<<<<< HEAD
--	if ((flags & VXLAN_HF_GBP) && (vs->flags & VXLAN_F_GBP)) {
--		struct vxlanhdr_gbp *gbp;
+ 	lowmem_pressure = (buffer_heads_over_limit && is_highmem(zone));
+-	if (!lowmem_pressure && zone_balanced(zone, testorder,
++	if (!lowmem_pressure && zone_balanced(zone, testorder, false,
+ 						balance_gap, classzone_idx))
+ 		return true;
+ 
+ 	shrink_zone(zone, sc, zone_idx(zone) == classzone_idx);
+ 
+-	/* Account for the number of pages attempted to reclaim */
+-	*nr_attempted += sc->nr_to_reclaim;
 -
--		gbp = (struct vxlanhdr_gbp *)vxh;
--		md->gbp = ntohs(gbp->policy_id);
+ 	clear_bit(ZONE_WRITEBACK, &zone->flags);
+ 
+ 	/*
+@@ -3136,7 +3126,7 @@ static bool kswapd_shrink_zone(struct zo
+ 	 * waits.
+ 	 */
+ 	if (zone_reclaimable(zone) &&
+-	    zone_balanced(zone, testorder, 0, classzone_idx)) {
++	    zone_balanced(zone, testorder, false, 0, classzone_idx)) {
+ 		clear_bit(ZONE_CONGESTED, &zone->flags);
+ 		clear_bit(ZONE_DIRTY, &zone->flags);
+ 	}
+@@ -3148,7 +3138,7 @@ static bool kswapd_shrink_zone(struct zo
+  * For kswapd, balance_pgdat() will work across all this node's zones until
+  * they are all at high_wmark_pages(zone).
+  *
+- * Returns the final order kswapd was reclaiming at
++ * Returns the highest zone idx kswapd was reclaiming at
+  *
+  * There is special handling here for zones which are full of pinned pages.
+  * This can happen if the pages are all mlocked, or if they are all used by
+@@ -3165,8 +3155,7 @@ static bool kswapd_shrink_zone(struct zo
+  * interoperates with the page allocator fallback scheme to ensure that aging
+  * of pages is balanced across the zones.
+  */
+-static unsigned long balance_pgdat(pg_data_t *pgdat, int order,
+-							int *classzone_idx)
++static int balance_pgdat(pg_data_t *pgdat, int order, int classzone_idx)
+ {
+ 	int i;
+ 	int end_zone = 0;	/* Inclusive.  0 = ZONE_DMA */
+@@ -3183,9 +3172,7 @@ static unsigned long balance_pgdat(pg_da
+ 	count_vm_event(PAGEOUTRUN);
+ 
+ 	do {
+-		unsigned long nr_attempted = 0;
+ 		bool raise_priority = true;
+-		bool pgdat_needs_compaction = (order > 0);
+ 
+ 		sc.nr_reclaimed = 0;
+ 
+@@ -3220,7 +3207,7 @@ static unsigned long balance_pgdat(pg_da
+ 				break;
+ 			}
+ 
+-			if (!zone_balanced(zone, order, 0, 0)) {
++			if (!zone_balanced(zone, order, true, 0, 0)) {
+ 				end_zone = i;
+ 				break;
+ 			} else {
+@@ -3236,24 +3223,6 @@ static unsigned long balance_pgdat(pg_da
+ 		if (i < 0)
+ 			goto out;
+ 
+-		for (i = 0; i <= end_zone; i++) {
+-			struct zone *zone = pgdat->node_zones + i;
 -
--		if (tun_dst) {
--			tun_dst->u.tun_info.key.tun_flags |= TUNNEL_VXLAN_OPT;
--			tun_dst->u.tun_info.options_len = sizeof(*md);
+-			if (!populated_zone(zone))
+-				continue;
+-
+-			/*
+-			 * If any zone is currently balanced then kswapd will
+-			 * not call compaction as it is expected that the
+-			 * necessary pages are already available.
+-			 */
+-			if (pgdat_needs_compaction &&
+-					zone_watermark_ok(zone, order,
+-						low_wmark_pages(zone),
+-						*classzone_idx, 0))
+-				pgdat_needs_compaction = false;
 -		}
 -
--		if (gbp->dont_learn)
--			md->gbp |= VXLAN_GBP_DONT_LEARN;
--
--		if (gbp->policy_applied)
--			md->gbp |= VXLAN_GBP_POLICY_APPLIED;
--
--		flags &= ~VXLAN_GBP_USED_BITS;
--	}
--=======
- 	if (vs->flags & VXLAN_F_REMCSUM_RX)
- 		if (!vxlan_remcsum(&unparsed, skb, vs->flags))
- 			goto drop;
- 	if (vs->flags & VXLAN_F_GBP)
- 		vxlan_parse_gbp_hdr(&unparsed, skb, vs->flags, md);
-->>>>>>> linux-next/akpm-base
+ 		/*
+ 		 * If we're getting trouble reclaiming, start doing writepage
+ 		 * even in laptop mode.
+@@ -3297,8 +3266,7 @@ static unsigned long balance_pgdat(pg_da
+ 			 * that that high watermark would be met at 100%
+ 			 * efficiency.
+ 			 */
+-			if (kswapd_shrink_zone(zone, end_zone,
+-					       &sc, &nr_attempted))
++			if (kswapd_shrink_zone(zone, end_zone, &sc))
+ 				raise_priority = false;
+ 		}
  
- 	if (unparsed.vx_flags || unparsed.vx_vni) {
- 		/* If there are any unprocessed flags remaining treat
-diff -puN drivers/net/wireless/intel/iwlwifi/mvm/fw.c~linux-next-git-rejects drivers/net/wireless/intel/iwlwifi/mvm/fw.c
---- a/drivers/net/wireless/intel/iwlwifi/mvm/fw.c~linux-next-git-rejects
-+++ a/drivers/net/wireless/intel/iwlwifi/mvm/fw.c
-@@ -108,8 +108,6 @@ static int iwl_send_tx_ant_cfg(struct iw
- 				    sizeof(tx_ant_cmd), &tx_ant_cmd);
+@@ -3311,49 +3279,29 @@ static unsigned long balance_pgdat(pg_da
+ 				pfmemalloc_watermark_ok(pgdat))
+ 			wake_up_all(&pgdat->pfmemalloc_wait);
+ 
+-		/*
+-		 * Fragmentation may mean that the system cannot be rebalanced
+-		 * for high-order allocations in all zones. If twice the
+-		 * allocation size has been reclaimed and the zones are still
+-		 * not balanced then recheck the watermarks at order-0 to
+-		 * prevent kswapd reclaiming excessively. Assume that a
+-		 * process requested a high-order can direct reclaim/compact.
+-		 */
+-		if (order && sc.nr_reclaimed >= 2UL << order)
+-			order = sc.order = 0;
+-
+ 		/* Check if kswapd should be suspending */
+ 		if (try_to_freeze() || kthread_should_stop())
+ 			break;
+ 
+ 		/*
+-		 * Compact if necessary and kswapd is reclaiming at least the
+-		 * high watermark number of pages as requsted
+-		 */
+-		if (pgdat_needs_compaction && sc.nr_reclaimed > nr_attempted)
+-			compact_pgdat(pgdat, order);
+-
+-		/*
+ 		 * Raise priority if scanning rate is too low or there was no
+ 		 * progress in reclaiming pages
+ 		 */
+ 		if (raise_priority || !sc.nr_reclaimed)
+ 			sc.priority--;
+ 	} while (sc.priority >= 1 &&
+-		 !pgdat_balanced(pgdat, order, *classzone_idx));
++			!pgdat_balanced(pgdat, order, classzone_idx));
+ 
+ out:
+ 	/*
+-	 * Return the order we were reclaiming at so prepare_kswapd_sleep()
+-	 * makes a decision on the order we were last reclaiming at. However,
+-	 * if another caller entered the allocator slow path while kswapd
+-	 * was awake, order will remain at the higher level
++	 * Return the highest zone idx we were reclaiming at so
++	 * prepare_kswapd_sleep() makes the same decisions as here.
+ 	 */
+-	*classzone_idx = end_zone;
+-	return order;
++	return end_zone;
  }
  
--<<<<<<< HEAD
--=======
- static int iwl_send_rss_cfg_cmd(struct iwl_mvm *mvm)
+-static void kswapd_try_to_sleep(pg_data_t *pgdat, int order, int classzone_idx)
++static void kswapd_try_to_sleep(pg_data_t *pgdat, int order,
++				int classzone_idx, int balanced_classzone_idx)
  {
- 	int i;
-@@ -128,7 +126,6 @@ static int iwl_send_rss_cfg_cmd(struct i
- 	return iwl_mvm_send_cmd_pdu(mvm, RSS_CONFIG_CMD, 0, sizeof(cmd), &cmd);
- }
+ 	long remaining = 0;
+ 	DEFINE_WAIT(wait);
+@@ -3364,7 +3312,8 @@ static void kswapd_try_to_sleep(pg_data_
+ 	prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
  
-->>>>>>> linux-next/akpm-base
- void iwl_free_fw_paging(struct iwl_mvm *mvm)
+ 	/* Try to sleep for a short interval */
+-	if (prepare_kswapd_sleep(pgdat, order, remaining, classzone_idx)) {
++	if (prepare_kswapd_sleep(pgdat, order, remaining,
++						balanced_classzone_idx)) {
+ 		remaining = schedule_timeout(HZ/10);
+ 		finish_wait(&pgdat->kswapd_wait, &wait);
+ 		prepare_to_wait(&pgdat->kswapd_wait, &wait, TASK_INTERRUPTIBLE);
+@@ -3374,7 +3323,8 @@ static void kswapd_try_to_sleep(pg_data_
+ 	 * After a short sleep, check if it was a premature sleep. If not, then
+ 	 * go fully to sleep until explicitly woken up.
+ 	 */
+-	if (prepare_kswapd_sleep(pgdat, order, remaining, classzone_idx)) {
++	if (prepare_kswapd_sleep(pgdat, order, remaining,
++						balanced_classzone_idx)) {
+ 		trace_mm_vmscan_kswapd_sleep(pgdat->node_id);
+ 
+ 		/*
+@@ -3395,6 +3345,12 @@ static void kswapd_try_to_sleep(pg_data_
+ 		 */
+ 		reset_isolation_suitable(pgdat);
+ 
++		/*
++		 * We have freed the memory, now we should compact it to make
++		 * allocation of the requested order possible.
++		 */
++		wakeup_kcompactd(pgdat, order, classzone_idx);
++
+ 		if (!kthread_should_stop())
+ 			schedule();
+ 
+@@ -3424,7 +3380,6 @@ static void kswapd_try_to_sleep(pg_data_
+ static int kswapd(void *p)
  {
- 	int i;
-diff -puN include/uapi/linux/bpf.h~linux-next-git-rejects include/uapi/linux/bpf.h
---- a/include/uapi/linux/bpf.h~linux-next-git-rejects
-+++ a/include/uapi/linux/bpf.h
-@@ -324,15 +324,12 @@ enum bpf_func_id {
- /* BPF_FUNC_skb_set_tunnel_key flags. */
- #define BPF_F_ZERO_CSUM_TX		(1ULL << 1)
+ 	unsigned long order, new_order;
+-	unsigned balanced_order;
+ 	int classzone_idx, new_classzone_idx;
+ 	int balanced_classzone_idx;
+ 	pg_data_t *pgdat = (pg_data_t*)p;
+@@ -3457,23 +3412,19 @@ static int kswapd(void *p)
+ 	set_freezable();
  
--<<<<<<< HEAD
--=======
- /* BPF_FUNC_get_stackid flags. */
- #define BPF_F_SKIP_FIELD_MASK		0xffULL
- #define BPF_F_USER_STACK		(1ULL << 8)
- #define BPF_F_FAST_STACK_CMP		(1ULL << 9)
- #define BPF_F_REUSE_STACKID		(1ULL << 10)
+ 	order = new_order = 0;
+-	balanced_order = 0;
+ 	classzone_idx = new_classzone_idx = pgdat->nr_zones - 1;
+ 	balanced_classzone_idx = classzone_idx;
+ 	for ( ; ; ) {
+ 		bool ret;
  
-->>>>>>> linux-next/akpm-base
- /* user accessible mirror of in-kernel sk_buff.
-  * new fields can only be added to the end of this structure
-  */
-diff -puN net/tipc/subscr.c~linux-next-git-rejects net/tipc/subscr.c
---- a/net/tipc/subscr.c~linux-next-git-rejects
-+++ a/net/tipc/subscr.c
-@@ -326,12 +326,7 @@ static void tipc_subscrb_rcv_cb(struct n
- 		return tipc_subscrp_cancel(s, subscriber);
+ 		/*
+-		 * If the last balance_pgdat was unsuccessful it's unlikely a
+-		 * new request of a similar or harder type will succeed soon
+-		 * so consider going to sleep on the basis we reclaimed at
+-		 */
+-		if (balanced_order == new_order) {
+-			new_order = pgdat->kswapd_max_order;
+-			new_classzone_idx = pgdat->classzone_idx;
+-			pgdat->kswapd_max_order =  0;
+-			pgdat->classzone_idx = pgdat->nr_zones - 1;
+-		}
++		 * While we were reclaiming, there might have been another
++		 * wakeup, so check the values.
++		 */
++		new_order = pgdat->kswapd_max_order;
++		new_classzone_idx = pgdat->classzone_idx;
++		pgdat->kswapd_max_order =  0;
++		pgdat->classzone_idx = pgdat->nr_zones - 1;
+ 
+ 		if (order < new_order || classzone_idx > new_classzone_idx) {
+ 			/*
+@@ -3483,7 +3434,7 @@ static int kswapd(void *p)
+ 			order = new_order;
+ 			classzone_idx = new_classzone_idx;
+ 		} else {
+-			kswapd_try_to_sleep(pgdat, balanced_order,
++			kswapd_try_to_sleep(pgdat, order, classzone_idx,
+ 						balanced_classzone_idx);
+ 			order = pgdat->kswapd_max_order;
+ 			classzone_idx = pgdat->classzone_idx;
+@@ -3503,9 +3454,8 @@ static int kswapd(void *p)
+ 		 */
+ 		if (!ret) {
+ 			trace_mm_vmscan_kswapd_wake(pgdat->node_id, order);
+-			balanced_classzone_idx = classzone_idx;
+-			balanced_order = balance_pgdat(pgdat, order,
+-						&balanced_classzone_idx);
++			balanced_classzone_idx = balance_pgdat(pgdat, order,
++								classzone_idx);
+ 		}
  	}
  
--<<<<<<< HEAD
--	if (sub)
--		tipc_nametbl_subscribe(sub);
--=======
- 	tipc_subscrp_subscribe(net, s, subscriber, swap);
-->>>>>>> linux-next/akpm-base
- }
+@@ -3535,7 +3485,7 @@ void wakeup_kswapd(struct zone *zone, in
+ 	}
+ 	if (!waitqueue_active(&pgdat->kswapd_wait))
+ 		return;
+-	if (zone_balanced(zone, order, 0, 0))
++	if (zone_balanced(zone, order, true, 0, 0))
+ 		return;
  
- /* Handle one request to establish a new subscriber */
+ 	trace_mm_vmscan_wakeup_kswapd(pgdat->node_id, zone_idx(zone), order);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-code-clean-up-for-direct-io-fix.patch
-ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
-mm.patch
-mm-slab-clean-up-debug_pagealloc-processing-code-fix.patch
-mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
-slub-drop-lock-at-the-end-of-free_debug_processing-fix.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
-mm-simplify-lock_page_memcg-fix.patch
-sched-add-schedule_timeout_idle.patch
-mm-oom_reaper-report-success-failure-fix.patch
-mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
-proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
-mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
-mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
-sound-query-dynamic-debug_pagealloc-setting-fix.patch
-mm-add-a-new-vector-based-madvise-syscall-fix.patch
-mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-zram-export-the-number-of-available-comp-streams-fix.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-mn10300-c6x-config_generic_bug-must-depend-on-config_bug.patch
-arch-mn10300-kernel-fpu-nofpuc-needs-asm-elfh.patch
-btrfs-use-radix_tree_iter_retry-fix.patch
-sscanf-implement-basic-character-sets-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
-sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
-rapidio-add-mport-char-device-driver-fix.patch
-kernel-add-kcov-code-coverage-fix.patch
-kernel-add-kcov-code-coverage-fix-2.patch
-kernel-add-kcov-code-coverage-makefile-tweaks.patch
-linux-next-rejects.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
+mm-tracing-make-show_gfp_flags-up-to-date.patch
+tools-perf-make-gfp_compact_table-up-to-date.patch
+mm-tracing-unify-mm-flags-handling-in-tracepoints-and-printk.patch
+mm-printk-introduce-new-format-string-for-flags.patch
+mm-printk-introduce-new-format-string-for-flags-fix.patch
+mm-debug-replace-dump_flags-with-the-new-printk-formats.patch
+mm-page_alloc-print-symbolic-gfp_flags-on-allocation-failure.patch
+mm-oom-print-symbolic-gfp_flags-in-oom-warning.patch
+mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
+mm-page_owner-convert-page_owner_inited-to-static-key.patch
+mm-page_owner-copy-page-owner-info-during-migration.patch
+mm-page_owner-track-and-print-last-migrate-reason.patch
+mm-page_owner-dump-page-owner-info-from-dump_page.patch
+mm-debug-move-bad-flags-printing-to-bad_page.patch
+mm-slb-print-gfp_flags-as-strings-in-slab_out_of_memory.patch
+mm-kswapd-remove-bogus-check-of-balance_classzone_idx.patch
+mm-compaction-introduce-kcompactd.patch
+mm-compaction-introduce-kcompactd-fix-3.patch
+mm-memory-hotplug-small-cleanup-in-online_pages.patch
+mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd-fix.patch
+mm-compaction-adapt-isolation_suitable-flushing-to-kcompactd.patch
+mm-tracing-refresh-__def_vmaflag_names-fix.patch
+mm-use-radix_tree_iter_retry-fix.patch
 
