@@ -1,15 +1,17 @@
 From: akpm@linux-foundation.org
-Subject: + mm-kasan-added-gfp-flags-to-kasan-api.patch added to -mm tree
-Date: Wed, 09 Mar 2016 12:23:27 -0800
-Message-ID: <56e0863f.9jS57sSUXaSn4wAU%akpm@linux-foundation.org>
+Subject: +
+ kasan-modify-kmalloc_large_oob_right-add-kmalloc_pagealloc_oob_right.patch
+ added to -mm tree
+Date: Wed, 09 Mar 2016 12:23:22 -0800
+Message-ID: <56e0863a.QZ8FMBLi57wOglkU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48626 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:48612 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934070AbcCIUX3 (ORCPT
+	with ESMTP id S933627AbcCIUX3 (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2016 15:23:29 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
@@ -17,14 +19,14 @@ To: glider@google.com, adech.fo@gmail.com, cl@linux.com, dvyukov@google.com, iam
 
 
 The patch titled
-     Subject: mm, kasan: add GFP flags to KASAN API
+     Subject: kasan: modify kmalloc_large_oob_right(), add kmalloc_pagealloc_oob_right()
 has been added to the -mm tree.  Its filename is
-     mm-kasan-added-gfp-flags-to-kasan-api.patch
+     kasan-modify-kmalloc_large_oob_right-add-kmalloc_pagealloc_oob_right.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kasan-added-gfp-flags-to-kasan-api.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/kasan-modify-kmalloc_large_oob_right-add-kmalloc_pagealloc_oob_right.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kasan-added-gfp-flags-to-kasan-api.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/kasan-modify-kmalloc_large_oob_right-add-kmalloc_pagealloc_oob_right.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,12 +41,28 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: mm, kasan: add GFP flags to KASAN API
+Subject: kasan: modify kmalloc_large_oob_right(), add kmalloc_pagealloc_oob_right()
 
-Add GFP flags to KASAN hooks for future patches to use.
+This patchset implements SLAB support for KASAN
 
-This patch is based on the "mm: kasan: unified support for SLUB and
-SLAB allocators" patch originally prepared by Dmitry Chernenkov.
+Unlike SLUB, SLAB doesn't store allocation/deallocation stacks for heap
+objects, therefore we reimplement this feature in mm/kasan/stackdepot.c. 
+The intention is to ultimately switch SLUB to use this implementation as
+well, which will save a lot of memory (right now SLUB bloats each object
+by 256 bytes to store the allocation/deallocation stacks).
+
+Also neither SLUB nor SLAB delay the reuse of freed memory chunks, which
+is necessary for better detection of use-after-free errors.  We introduce
+memory quarantine (mm/kasan/quarantine.c), which allows delayed reuse of
+deallocated memory.
+
+
+This patch (of 7):
+
+Rename kmalloc_large_oob_right() to kmalloc_pagealloc_oob_right(), as the
+test only checks the page allocator functionality.  Also reimplement
+kmalloc_large_oob_right() so that the test allocates a large enough chunk
+of memory that still does not trigger the page allocator fallback.
 
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -59,364 +77,58 @@ Cc: Konstantin Serebryany <kcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kasan.h |   19 +++++++++++--------
- include/linux/slab.h  |    4 ++--
- mm/kasan/kasan.c      |   15 ++++++++-------
- mm/mempool.c          |   16 ++++++++--------
- mm/slab.c             |   15 ++++++++-------
- mm/slab.h             |    2 +-
- mm/slab_common.c      |    4 ++--
- mm/slub.c             |   15 ++++++++-------
- 8 files changed, 48 insertions(+), 42 deletions(-)
+ lib/test_kasan.c |   28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/kasan.h~mm-kasan-added-gfp-flags-to-kasan-api include/linux/kasan.h
---- a/include/linux/kasan.h~mm-kasan-added-gfp-flags-to-kasan-api
-+++ a/include/linux/kasan.h
-@@ -55,13 +55,14 @@ void kasan_poison_slab(struct page *page
- void kasan_unpoison_object_data(struct kmem_cache *cache, void *object);
- void kasan_poison_object_data(struct kmem_cache *cache, void *object);
+diff -puN lib/test_kasan.c~kasan-modify-kmalloc_large_oob_right-add-kmalloc_pagealloc_oob_right lib/test_kasan.c
+--- a/lib/test_kasan.c~kasan-modify-kmalloc_large_oob_right-add-kmalloc_pagealloc_oob_right
++++ a/lib/test_kasan.c
+@@ -65,11 +65,34 @@ static noinline void __init kmalloc_node
+ 	kfree(ptr);
+ }
  
--void kasan_kmalloc_large(const void *ptr, size_t size);
-+void kasan_kmalloc_large(const void *ptr, size_t size, gfp_t flags);
- void kasan_kfree_large(const void *ptr);
- void kasan_kfree(void *ptr);
--void kasan_kmalloc(struct kmem_cache *s, const void *object, size_t size);
--void kasan_krealloc(const void *object, size_t new_size);
-+void kasan_kmalloc(struct kmem_cache *s, const void *object, size_t size,
-+		  gfp_t flags);
-+void kasan_krealloc(const void *object, size_t new_size, gfp_t flags);
- 
--void kasan_slab_alloc(struct kmem_cache *s, void *object);
-+void kasan_slab_alloc(struct kmem_cache *s, void *object, gfp_t flags);
- void kasan_slab_free(struct kmem_cache *s, void *object);
- 
- struct kasan_cache {
-@@ -94,14 +95,16 @@ static inline void kasan_unpoison_object
- static inline void kasan_poison_object_data(struct kmem_cache *cache,
- 					void *object) {}
- 
--static inline void kasan_kmalloc_large(void *ptr, size_t size) {}
-+static inline void kasan_kmalloc_large(void *ptr, size_t size, gfp_t flags) {}
- static inline void kasan_kfree_large(const void *ptr) {}
- static inline void kasan_kfree(void *ptr) {}
- static inline void kasan_kmalloc(struct kmem_cache *s, const void *object,
--				size_t size) {}
--static inline void kasan_krealloc(const void *object, size_t new_size) {}
-+				size_t size, gfp_t flags) {}
-+static inline void kasan_krealloc(const void *object, size_t new_size,
-+				 gfp_t flags) {}
- 
--static inline void kasan_slab_alloc(struct kmem_cache *s, void *object) {}
-+static inline void kasan_slab_alloc(struct kmem_cache *s, void *object,
-+				   gfp_t flags) {}
- static inline void kasan_slab_free(struct kmem_cache *s, void *object) {}
- 
- static inline int kasan_module_alloc(void *addr, size_t size) { return 0; }
-diff -puN include/linux/slab.h~mm-kasan-added-gfp-flags-to-kasan-api include/linux/slab.h
---- a/include/linux/slab.h~mm-kasan-added-gfp-flags-to-kasan-api
-+++ a/include/linux/slab.h
-@@ -376,7 +376,7 @@ static __always_inline void *kmem_cache_
+-static noinline void __init kmalloc_large_oob_right(void)
++#ifdef CONFIG_SLUB
++static noinline void __init kmalloc_pagealloc_oob_right(void)
  {
- 	void *ret = kmem_cache_alloc(s, flags);
+ 	char *ptr;
+ 	size_t size = KMALLOC_MAX_CACHE_SIZE + 10;
  
--	kasan_kmalloc(s, ret, size);
-+	kasan_kmalloc(s, ret, size, flags);
- 	return ret;
- }
- 
-@@ -387,7 +387,7 @@ kmem_cache_alloc_node_trace(struct kmem_
- {
- 	void *ret = kmem_cache_alloc_node(s, gfpflags, node);
- 
--	kasan_kmalloc(s, ret, size);
-+	kasan_kmalloc(s, ret, size, gfpflags);
- 	return ret;
- }
- #endif /* CONFIG_TRACING */
-diff -puN mm/kasan/kasan.c~mm-kasan-added-gfp-flags-to-kasan-api mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~mm-kasan-added-gfp-flags-to-kasan-api
-+++ a/mm/kasan/kasan.c
-@@ -434,9 +434,9 @@ struct kasan_free_meta *get_free_info(st
- }
- #endif
- 
--void kasan_slab_alloc(struct kmem_cache *cache, void *object)
-+void kasan_slab_alloc(struct kmem_cache *cache, void *object, gfp_t flags)
- {
--	kasan_kmalloc(cache, object, cache->object_size);
-+	kasan_kmalloc(cache, object, cache->object_size, flags);
- }
- 
- void kasan_slab_free(struct kmem_cache *cache, void *object)
-@@ -462,7 +462,8 @@ void kasan_slab_free(struct kmem_cache *
- 	kasan_poison_shadow(object, rounded_up_size, KASAN_KMALLOC_FREE);
- }
- 
--void kasan_kmalloc(struct kmem_cache *cache, const void *object, size_t size)
-+void kasan_kmalloc(struct kmem_cache *cache, const void *object, size_t size,
-+		   gfp_t flags)
- {
- 	unsigned long redzone_start;
- 	unsigned long redzone_end;
-@@ -491,7 +492,7 @@ void kasan_kmalloc(struct kmem_cache *ca
- }
- EXPORT_SYMBOL(kasan_kmalloc);
- 
--void kasan_kmalloc_large(const void *ptr, size_t size)
-+void kasan_kmalloc_large(const void *ptr, size_t size, gfp_t flags)
- {
- 	struct page *page;
- 	unsigned long redzone_start;
-@@ -510,7 +511,7 @@ void kasan_kmalloc_large(const void *ptr
- 		KASAN_PAGE_REDZONE);
- }
- 
--void kasan_krealloc(const void *object, size_t size)
-+void kasan_krealloc(const void *object, size_t size, gfp_t flags)
- {
- 	struct page *page;
- 
-@@ -520,9 +521,9 @@ void kasan_krealloc(const void *object,
- 	page = virt_to_head_page(object);
- 
- 	if (unlikely(!PageSlab(page)))
--		kasan_kmalloc_large(object, size);
-+		kasan_kmalloc_large(object, size, flags);
- 	else
--		kasan_kmalloc(page->slab_cache, object, size);
-+		kasan_kmalloc(page->slab_cache, object, size, flags);
- }
- 
- void kasan_kfree(void *ptr)
-diff -puN mm/mempool.c~mm-kasan-added-gfp-flags-to-kasan-api mm/mempool.c
---- a/mm/mempool.c~mm-kasan-added-gfp-flags-to-kasan-api
-+++ a/mm/mempool.c
-@@ -112,12 +112,12 @@ static void kasan_poison_element(mempool
- 		kasan_free_pages(element, (unsigned long)pool->pool_data);
- }
- 
--static void kasan_unpoison_element(mempool_t *pool, void *element)
-+static void kasan_unpoison_element(mempool_t *pool, void *element, gfp_t flags)
- {
- 	if (pool->alloc == mempool_alloc_slab)
--		kasan_slab_alloc(pool->pool_data, element);
-+		kasan_slab_alloc(pool->pool_data, element, flags);
- 	if (pool->alloc == mempool_kmalloc)
--		kasan_krealloc(element, (size_t)pool->pool_data);
-+		kasan_krealloc(element, (size_t)pool->pool_data, flags);
- 	if (pool->alloc == mempool_alloc_pages)
- 		kasan_alloc_pages(element, (unsigned long)pool->pool_data);
- }
-@@ -130,13 +130,13 @@ static void add_element(mempool_t *pool,
- 	pool->elements[pool->curr_nr++] = element;
- }
- 
--static void *remove_element(mempool_t *pool)
-+static void *remove_element(mempool_t *pool, gfp_t flags)
- {
- 	void *element = pool->elements[--pool->curr_nr];
- 
- 	BUG_ON(pool->curr_nr < 0);
- 	check_element(pool, element);
--	kasan_unpoison_element(pool, element);
-+	kasan_unpoison_element(pool, element, flags);
- 	return element;
- }
- 
-@@ -154,7 +154,7 @@ void mempool_destroy(mempool_t *pool)
- 		return;
- 
- 	while (pool->curr_nr) {
--		void *element = remove_element(pool);
-+		void *element = remove_element(pool, GFP_KERNEL);
- 		pool->free(element, pool->pool_data);
- 	}
- 	kfree(pool->elements);
-@@ -250,7 +250,7 @@ int mempool_resize(mempool_t *pool, int
- 	spin_lock_irqsave(&pool->lock, flags);
- 	if (new_min_nr <= pool->min_nr) {
- 		while (new_min_nr < pool->curr_nr) {
--			element = remove_element(pool);
-+			element = remove_element(pool, GFP_KERNEL);
- 			spin_unlock_irqrestore(&pool->lock, flags);
- 			pool->free(element, pool->pool_data);
- 			spin_lock_irqsave(&pool->lock, flags);
-@@ -347,7 +347,7 @@ repeat_alloc:
- 
- 	spin_lock_irqsave(&pool->lock, flags);
- 	if (likely(pool->curr_nr)) {
--		element = remove_element(pool);
-+		element = remove_element(pool, gfp_temp);
- 		spin_unlock_irqrestore(&pool->lock, flags);
- 		/* paired with rmb in mempool_free(), read comment there */
- 		smp_wmb();
-diff -puN mm/slab.c~mm-kasan-added-gfp-flags-to-kasan-api mm/slab.c
---- a/mm/slab.c~mm-kasan-added-gfp-flags-to-kasan-api
-+++ a/mm/slab.c
-@@ -3378,7 +3378,7 @@ void *kmem_cache_alloc(struct kmem_cache
- {
- 	void *ret = slab_alloc(cachep, flags, _RET_IP_);
- 
--	kasan_slab_alloc(cachep, ret);
-+	kasan_slab_alloc(cachep, ret, flags);
- 	trace_kmem_cache_alloc(_RET_IP_, ret,
- 			       cachep->object_size, cachep->size, flags);
- 
-@@ -3444,7 +3444,7 @@ kmem_cache_alloc_trace(struct kmem_cache
- 
- 	ret = slab_alloc(cachep, flags, _RET_IP_);
- 
--	kasan_kmalloc(cachep, ret, size);
-+	kasan_kmalloc(cachep, ret, size, flags);
- 	trace_kmalloc(_RET_IP_, ret,
- 		      size, cachep->size, flags);
- 	return ret;
-@@ -3468,7 +3468,7 @@ void *kmem_cache_alloc_node(struct kmem_
- {
- 	void *ret = slab_alloc_node(cachep, flags, nodeid, _RET_IP_);
- 
--	kasan_slab_alloc(cachep, ret);
-+	kasan_slab_alloc(cachep, ret, flags);
- 	trace_kmem_cache_alloc_node(_RET_IP_, ret,
- 				    cachep->object_size, cachep->size,
- 				    flags, nodeid);
-@@ -3486,7 +3486,8 @@ void *kmem_cache_alloc_node_trace(struct
- 	void *ret;
- 
- 	ret = slab_alloc_node(cachep, flags, nodeid, _RET_IP_);
--	kasan_kmalloc(cachep, ret, size);
++	/* Allocate a chunk that does not fit into a SLUB cache to trigger
++	 * the page allocator fallback.
++	 */
++	pr_info("kmalloc pagealloc allocation: out-of-bounds to right\n");
++	ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
 +
-+	kasan_kmalloc(cachep, ret, size, flags);
- 	trace_kmalloc_node(_RET_IP_, ret,
- 			   size, cachep->size,
- 			   flags, nodeid);
-@@ -3505,7 +3506,7 @@ __do_kmalloc_node(size_t size, gfp_t fla
- 	if (unlikely(ZERO_OR_NULL_PTR(cachep)))
- 		return cachep;
- 	ret = kmem_cache_alloc_node_trace(cachep, flags, node, size);
--	kasan_kmalloc(cachep, ret, size);
-+	kasan_kmalloc(cachep, ret, size, flags);
- 
- 	return ret;
- }
-@@ -3541,7 +3542,7 @@ static __always_inline void *__do_kmallo
- 		return cachep;
- 	ret = slab_alloc(cachep, flags, caller);
- 
--	kasan_kmalloc(cachep, ret, size);
-+	kasan_kmalloc(cachep, ret, size, flags);
- 	trace_kmalloc(caller, ret,
- 		      size, cachep->size, flags);
- 
-@@ -4323,7 +4324,7 @@ size_t ksize(const void *objp)
- 	/* We assume that ksize callers could use the whole allocated area,
- 	 * so we need to unpoison this area.
- 	 */
--	kasan_krealloc(objp, size);
-+	kasan_krealloc(objp, size, GFP_NOWAIT);
- 
- 	return size;
- }
-diff -puN mm/slab.h~mm-kasan-added-gfp-flags-to-kasan-api mm/slab.h
---- a/mm/slab.h~mm-kasan-added-gfp-flags-to-kasan-api
-+++ a/mm/slab.h
-@@ -405,7 +405,7 @@ static inline void slab_post_alloc_hook(
- 		kmemcheck_slab_alloc(s, flags, object, slab_ksize(s));
- 		kmemleak_alloc_recursive(object, s->object_size, 1,
- 					 s->flags, flags);
--		kasan_slab_alloc(s, object);
-+		kasan_slab_alloc(s, object, flags);
- 	}
- 	memcg_kmem_put_cache(s);
- }
-diff -puN mm/slab_common.c~mm-kasan-added-gfp-flags-to-kasan-api mm/slab_common.c
---- a/mm/slab_common.c~mm-kasan-added-gfp-flags-to-kasan-api
-+++ a/mm/slab_common.c
-@@ -1013,7 +1013,7 @@ void *kmalloc_order(size_t size, gfp_t f
- 	page = alloc_kmem_pages(flags, order);
- 	ret = page ? page_address(page) : NULL;
- 	kmemleak_alloc(ret, size, 1, flags);
--	kasan_kmalloc_large(ret, size);
-+	kasan_kmalloc_large(ret, size, flags);
- 	return ret;
- }
- EXPORT_SYMBOL(kmalloc_order);
-@@ -1192,7 +1192,7 @@ static __always_inline void *__do_kreall
- 		ks = ksize(p);
- 
- 	if (ks >= new_size) {
--		kasan_krealloc((void *)p, new_size);
-+		kasan_krealloc((void *)p, new_size, flags);
- 		return (void *)p;
- 	}
- 
-diff -puN mm/slub.c~mm-kasan-added-gfp-flags-to-kasan-api mm/slub.c
---- a/mm/slub.c~mm-kasan-added-gfp-flags-to-kasan-api
-+++ a/mm/slub.c
-@@ -1313,7 +1313,7 @@ static inline void dec_slabs_node(struct
- static inline void kmalloc_large_node_hook(void *ptr, size_t size, gfp_t flags)
- {
- 	kmemleak_alloc(ptr, size, 1, flags);
--	kasan_kmalloc_large(ptr, size);
-+	kasan_kmalloc_large(ptr, size, flags);
- }
- 
- static inline void kfree_hook(const void *x)
-@@ -2596,7 +2596,7 @@ void *kmem_cache_alloc_trace(struct kmem
- {
- 	void *ret = slab_alloc(s, gfpflags, _RET_IP_);
- 	trace_kmalloc(_RET_IP_, ret, size, s->size, gfpflags);
--	kasan_kmalloc(s, ret, size);
-+	kasan_kmalloc(s, ret, size, gfpflags);
- 	return ret;
- }
- EXPORT_SYMBOL(kmem_cache_alloc_trace);
-@@ -2624,7 +2624,7 @@ void *kmem_cache_alloc_node_trace(struct
- 	trace_kmalloc_node(_RET_IP_, ret,
- 			   size, s->size, gfpflags, node);
- 
--	kasan_kmalloc(s, ret, size);
-+	kasan_kmalloc(s, ret, size, gfpflags);
- 	return ret;
- }
- EXPORT_SYMBOL(kmem_cache_alloc_node_trace);
-@@ -3182,7 +3182,8 @@ static void early_kmem_cache_node_alloc(
- 	init_object(kmem_cache_node, n, SLUB_RED_ACTIVE);
- 	init_tracking(kmem_cache_node, n);
- #endif
--	kasan_kmalloc(kmem_cache_node, n, sizeof(struct kmem_cache_node));
-+	kasan_kmalloc(kmem_cache_node, n, sizeof(struct kmem_cache_node),
-+		      GFP_KERNEL);
- 	init_kmem_cache_node(n);
- 	inc_slabs_node(kmem_cache_node, node, page->objects);
- 
-@@ -3561,7 +3562,7 @@ void *__kmalloc(size_t size, gfp_t flags
- 
- 	trace_kmalloc(_RET_IP_, ret, size, s->size, flags);
- 
--	kasan_kmalloc(s, ret, size);
-+	kasan_kmalloc(s, ret, size, flags);
- 
- 	return ret;
- }
-@@ -3606,7 +3607,7 @@ void *__kmalloc_node(size_t size, gfp_t
- 
- 	trace_kmalloc_node(_RET_IP_, ret, size, s->size, flags, node);
- 
--	kasan_kmalloc(s, ret, size);
-+	kasan_kmalloc(s, ret, size, flags);
- 
- 	return ret;
- }
-@@ -3635,7 +3636,7 @@ size_t ksize(const void *object)
- 	size_t size = __ksize(object);
- 	/* We assume that ksize callers could use whole allocated area,
- 	   so we need unpoison this area. */
--	kasan_krealloc(object, size);
-+	kasan_krealloc(object, size, GFP_NOWAIT);
- 	return size;
- }
- EXPORT_SYMBOL(ksize);
++	ptr[size] = 0;
++	kfree(ptr);
++}
++#endif
++
++static noinline void __init kmalloc_large_oob_right(void)
++{
++	char *ptr;
++	size_t size = KMALLOC_MAX_CACHE_SIZE - 256;
++	/* Allocate a chunk that is large enough, but still fits into a slab
++	 * and does not trigger the page allocator fallback in SLUB.
++	 */
+ 	pr_info("kmalloc large allocation: out-of-bounds to right\n");
+ 	ptr = kmalloc(size, GFP_KERNEL);
+ 	if (!ptr) {
+@@ -324,6 +347,9 @@ static int __init kmalloc_tests_init(voi
+ 	kmalloc_oob_right();
+ 	kmalloc_oob_left();
+ 	kmalloc_node_oob_right();
++#ifdef CONFIG_SLUB
++	kmalloc_pagealloc_oob_right();
++#endif
+ 	kmalloc_large_oob_right();
+ 	kmalloc_oob_krealloc_more();
+ 	kmalloc_oob_krealloc_less();
 _
 
 Patches currently in -mm which might be from glider@google.com are
