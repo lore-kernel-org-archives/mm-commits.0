@@ -1,63 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- dax-check-return-value-of-dax_radix_entry-v2.patch removed from -mm tree
-Date: Wed, 09 Mar 2016 14:05:49 -0800
-Message-ID: <56e09e3d.JLG1t7NsgjVEh3h+%akpm@linux-foundation.org>
+ mm-fix-mixed-zone-detection-in-devm_memremap_pages-fix.patch removed from
+ -mm tree
+Date: Wed, 09 Mar 2016 14:05:26 -0800
+Message-ID: <56e09e26.gdyM0iWtQemAjY+J%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56767 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56739 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934228AbcCIWFu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2016 17:05:50 -0500
+	with ESMTP id S934308AbcCIWF1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 9 Mar 2016 17:05:27 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ross.zwisler@linux.intel.com, dan.j.williams@intel.com, david@fromorbit.com, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, toshi.kani@hpe.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: dax-check-return-value-of-dax_radix_entry-v2
+     Subject: mm: fix 'size' alignment in devm_memremap_pages()
 has been removed from the -mm tree.  Its filename was
-     dax-check-return-value-of-dax_radix_entry-v2.patch
+     mm-fix-mixed-zone-detection-in-devm_memremap_pages-fix.patch
 
-This patch was dropped because it was folded into dax-check-return-value-of-dax_radix_entry.patch
+This patch was dropped because it was folded into mm-fix-mixed-zone-detection-in-devm_memremap_pages.patch
 
 ------------------------------------------------------
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: dax-check-return-value-of-dax_radix_entry-v2
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: fix 'size' alignment in devm_memremap_pages()
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Dave Chinner <david@fromorbit.com>
+We need to align the end address, not just the size.
+
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reviewed-by: Toshi Kani <toshi.kani@hpe.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/dax.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ kernel/memremap.c |   12 +++++++-----
+ 1 file changed, 7 insertions(+), 5 deletions(-)
 
-diff -puN fs/dax.c~dax-check-return-value-of-dax_radix_entry-v2 fs/dax.c
---- a/fs/dax.c~dax-check-return-value-of-dax_radix_entry-v2
-+++ a/fs/dax.c
-@@ -1068,9 +1068,11 @@ int dax_pfn_mkwrite(struct vm_area_struc
- 	 */
- 	error = dax_radix_entry(file->f_mapping, vmf->pgoff, NO_SECTOR, false,
- 			true);
--	if (error)
--		return error;
+diff -puN kernel/memremap.c~mm-fix-mixed-zone-detection-in-devm_memremap_pages-fix kernel/memremap.c
+--- a/kernel/memremap.c~mm-fix-mixed-zone-detection-in-devm_memremap_pages-fix
++++ a/kernel/memremap.c
+@@ -270,14 +270,16 @@ struct dev_pagemap *find_dev_pagemap(res
+ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		struct percpu_ref *ref, struct vmem_altmap *altmap)
+ {
+-	resource_size_t align_start = res->start & ~(SECTION_SIZE - 1);
+-	resource_size_t align_size = ALIGN(resource_size(res), SECTION_SIZE);
+-	int is_ram = region_intersects(align_start, align_size, "System RAM");
+-	resource_size_t key, align_end;
++	resource_size_t key, align_start, align_size, align_end;
+ 	struct dev_pagemap *pgmap;
+ 	struct page_map *page_map;
++	int error, nid, is_ram;
+ 	unsigned long pfn;
+-	int error, nid;
++
++	align_start = res->start & ~(SECTION_SIZE - 1);
++	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
++		- align_start;
++	is_ram = region_intersects(align_start, align_size, "System RAM");
  
-+	if (error == -ENOMEM)
-+		return VM_FAULT_OOM;
-+	if (error)
-+		return VM_FAULT_SIGBUS;
- 	return VM_FAULT_NOPAGE;
- }
- EXPORT_SYMBOL_GPL(dax_pfn_mkwrite);
+ 	if (is_ram == REGION_MIXED) {
+ 		WARN_ONCE(1, "%s attempted on mixed region %pr\n",
 _
 
-Patches currently in -mm which might be from ross.zwisler@linux.intel.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
-dax-check-return-value-of-dax_radix_entry.patch
+list-kill-list_force_poison.patch
+mm-fix-mixed-zone-detection-in-devm_memremap_pages.patch
+mm-exclude-zone_device-from-gfp_zone_table.patch
+mm-zone_device-depends-on-sparsemem_vmemmap.patch
 
