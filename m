@@ -1,32 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-memcontrol-reclaim-when-shrinking-memoryhigh-below-usage.patch added to
- -mm tree
-Date: Thu, 10 Mar 2016 13:30:42 -0800
-Message-ID: <56e1e782.yvEF7wqp6ECjNSH6%akpm__32668.7215049335$1457645476$gmane$org@linux-foundation.org>
+ fs-coredump-prevent-fsuid=0-dumps-into-user-controlled-directories.patch
+ added to -mm tree
+Date: Thu, 10 Mar 2016 13:50:50 -0800
+Message-ID: <56e1ec3a.MjTKEn40SR9lZSFN%akpm__12137.599863536$1457646671$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58083 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59368 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932180AbcCJVan (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Mar 2016 16:30:43 -0500
+	with ESMTP id S932510AbcCJVuv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Mar 2016 16:50:51 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@suse.cz, stable@vger.kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: jann@thejh.net, ebiederm@xmission.com, keescook@chromium.org, luto@kernel.org, oleg@redhat.com, stable@vger.kernel.org, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: reclaim when shrinking memory.high below usage
+     Subject: fs/coredump: prevent fsuid=0 dumps into user-controlled directories
 has been added to the -mm tree.  Its filename is
-     mm-memcontrol-reclaim-when-shrinking-memoryhigh-below-usage.patch
+     fs-coredump-prevent-fsuid=0-dumps-into-user-controlled-directories.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memcontrol-reclaim-when-shrinking-memoryhigh-below-usage.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/fs-coredump-prevent-fsuid%3D0-dumps-into-user-controlled-directories.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memcontrol-reclaim-when-shrinking-memoryhigh-below-usage.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/fs-coredump-prevent-fsuid%3D0-dumps-into-user-controlled-directories.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,68 +40,173 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: reclaim when shrinking memory.high below usage
+From: Jann Horn <jann@thejh.net>
+Subject: fs/coredump: prevent fsuid=0 dumps into user-controlled directories
 
-When setting memory.high below usage, nothing happens until the next
-charge comes along, and then it will only reclaim its own charge and not
-the now potentially huge excess of the new memory.high.  This can cause
-groups to stay in excess of their memory.high indefinitely.
+This commit fixes the following security hole affecting systems where all
+of the following conditions are fulfilled:
 
-To fix that, when shrinking memory.high, kick off a reclaim cycle that
-goes after the delta.
+ - The fs.suid_dumpable sysctl is set to 2.
+ - The kernel.core_pattern sysctl's value starts with "/". (Systems
+   where kernel.core_pattern starts with "|/" are not affected.)
+ - Unprivileged user namespace creation is permitted. (This is
+   true on Linux >=3.8, but some distributions disallow it by
+   default using a distro patch.)
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Michal Hocko <mhocko@suse.cz>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Under these conditions, if a program executes under secure exec rules,
+causing it to run with the SUID_DUMP_ROOT flag, then unshares its user
+namespace, changes its root directory and crashes, the coredump will be
+written using fsuid=0 and a path derived from kernel.core_pattern - but
+this path is interpreted relative to the root directory of the process,
+allowing the attacker to control where a coredump will be written with
+root privileges.
+
+To fix the security issue, always interpret core_pattern for dumps that
+are written under SUID_DUMP_ROOT relative to the root directory of init.
+
+Signed-off-by: Jann Horn <jann@thejh.net>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Cc: "Eric W. Biederman" <ebiederm@xmission.com>
+Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ arch/um/drivers/mconsole_kern.c |    2 +-
+ fs/coredump.c                   |   30 ++++++++++++++++++++++++++----
+ fs/fhandle.c                    |    2 +-
+ fs/open.c                       |    6 ++----
+ include/linux/fs.h              |    2 +-
+ kernel/sysctl_binary.c          |    2 +-
+ 6 files changed, 32 insertions(+), 12 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-reclaim-when-shrinking-memoryhigh-below-usage mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-reclaim-when-shrinking-memoryhigh-below-usage
-+++ a/mm/memcontrol.c
-@@ -4992,6 +4992,7 @@ static ssize_t memory_high_write(struct
- 				 char *buf, size_t nbytes, loff_t off)
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
-+	unsigned long nr_pages;
- 	unsigned long high;
- 	int err;
+diff -puN arch/um/drivers/mconsole_kern.c~fs-coredump-prevent-fsuid=0-dumps-into-user-controlled-directories arch/um/drivers/mconsole_kern.c
+--- a/arch/um/drivers/mconsole_kern.c~fs-coredump-prevent-fsuid=0-dumps-into-user-controlled-directories
++++ a/arch/um/drivers/mconsole_kern.c
+@@ -133,7 +133,7 @@ void mconsole_proc(struct mc_request *re
+ 	ptr += strlen("proc");
+ 	ptr = skip_spaces(ptr);
  
-@@ -5002,6 +5003,11 @@ static ssize_t memory_high_write(struct
+-	file = file_open_root(mnt->mnt_root, mnt, ptr, O_RDONLY);
++	file = file_open_root(mnt->mnt_root, mnt, ptr, O_RDONLY, 0);
+ 	if (IS_ERR(file)) {
+ 		mconsole_reply(req, "Failed to open file", 1, 0);
+ 		printk(KERN_ERR "open /proc/%s: %ld\n", ptr, PTR_ERR(file));
+diff -puN fs/coredump.c~fs-coredump-prevent-fsuid=0-dumps-into-user-controlled-directories fs/coredump.c
+--- a/fs/coredump.c~fs-coredump-prevent-fsuid=0-dumps-into-user-controlled-directories
++++ a/fs/coredump.c
+@@ -32,6 +32,9 @@
+ #include <linux/pipe_fs_i.h>
+ #include <linux/oom.h>
+ #include <linux/compat.h>
++#include <linux/sched.h>
++#include <linux/fs.h>
++#include <linux/path.h>
+ #include <linux/timekeeping.h>
  
- 	memcg->high = high;
+ #include <asm/uaccess.h>
+@@ -649,6 +652,8 @@ void do_coredump(const siginfo_t *siginf
+ 		}
+ 	} else {
+ 		struct inode *inode;
++		int open_flags = O_CREAT | O_RDWR | O_NOFOLLOW |
++				 O_LARGEFILE | O_EXCL;
  
-+	nr_pages = page_counter_read(&memcg->memory);
-+	if (nr_pages > high)
-+		try_to_free_mem_cgroup_pages(memcg, nr_pages - high,
-+					     GFP_KERNEL, true);
+ 		if (cprm.limit < binfmt->min_coredump)
+ 			goto fail_unlock;
+@@ -687,10 +692,27 @@ void do_coredump(const siginfo_t *siginf
+ 		 * what matters is that at least one of the two processes
+ 		 * writes its coredump successfully, not which one.
+ 		 */
+-		cprm.file = filp_open(cn.corename,
+-				 O_CREAT | 2 | O_NOFOLLOW |
+-				 O_LARGEFILE | O_EXCL,
+-				 0600);
++		if (need_suid_safe) {
++			/*
++			 * Using user namespaces, normal user tasks can change
++			 * their current->fs->root to point to arbitrary
++			 * directories. Since the intention of the "only dump
++			 * with a fully qualified path" rule is to control where
++			 * coredumps may be placed using root privileges,
++			 * current->fs->root must not be used. Instead, use the
++			 * root directory of init_task.
++			 */
++			struct path root;
 +
- 	memcg_wb_domain_size_changed(memcg);
- 	return nbytes;
++			task_lock(&init_task);
++			get_fs_root(init_task.fs, &root);
++			task_unlock(&init_task);
++			cprm.file = file_open_root(root.dentry, root.mnt,
++				cn.corename, open_flags, 0600);
++			path_put(&root);
++		} else {
++			cprm.file = filp_open(cn.corename, open_flags, 0600);
++		}
+ 		if (IS_ERR(cprm.file))
+ 			goto fail_unlock;
+ 
+diff -puN fs/fhandle.c~fs-coredump-prevent-fsuid=0-dumps-into-user-controlled-directories fs/fhandle.c
+--- a/fs/fhandle.c~fs-coredump-prevent-fsuid=0-dumps-into-user-controlled-directories
++++ a/fs/fhandle.c
+@@ -228,7 +228,7 @@ long do_handle_open(int mountdirfd,
+ 		path_put(&path);
+ 		return fd;
+ 	}
+-	file = file_open_root(path.dentry, path.mnt, "", open_flag);
++	file = file_open_root(path.dentry, path.mnt, "", open_flag, 0);
+ 	if (IS_ERR(file)) {
+ 		put_unused_fd(fd);
+ 		retval =  PTR_ERR(file);
+diff -puN fs/open.c~fs-coredump-prevent-fsuid=0-dumps-into-user-controlled-directories fs/open.c
+--- a/fs/open.c~fs-coredump-prevent-fsuid=0-dumps-into-user-controlled-directories
++++ a/fs/open.c
+@@ -992,14 +992,12 @@ struct file *filp_open(const char *filen
+ EXPORT_SYMBOL(filp_open);
+ 
+ struct file *file_open_root(struct dentry *dentry, struct vfsmount *mnt,
+-			    const char *filename, int flags)
++			    const char *filename, int flags, umode_t mode)
+ {
+ 	struct open_flags op;
+-	int err = build_open_flags(flags, 0, &op);
++	int err = build_open_flags(flags, mode, &op);
+ 	if (err)
+ 		return ERR_PTR(err);
+-	if (flags & O_CREAT)
+-		return ERR_PTR(-EINVAL);
+ 	return do_file_open_root(dentry, mnt, filename, &op);
  }
+ EXPORT_SYMBOL(file_open_root);
+diff -puN include/linux/fs.h~fs-coredump-prevent-fsuid=0-dumps-into-user-controlled-directories include/linux/fs.h
+--- a/include/linux/fs.h~fs-coredump-prevent-fsuid=0-dumps-into-user-controlled-directories
++++ a/include/linux/fs.h
+@@ -2259,7 +2259,7 @@ extern long do_sys_open(int dfd, const c
+ extern struct file *file_open_name(struct filename *, int, umode_t);
+ extern struct file *filp_open(const char *, int, umode_t);
+ extern struct file *file_open_root(struct dentry *, struct vfsmount *,
+-				   const char *, int);
++				   const char *, int, umode_t);
+ extern struct file * dentry_open(const struct path *, int, const struct cred *);
+ extern int filp_close(struct file *, fl_owner_t id);
+ 
+diff -puN kernel/sysctl_binary.c~fs-coredump-prevent-fsuid=0-dumps-into-user-controlled-directories kernel/sysctl_binary.c
+--- a/kernel/sysctl_binary.c~fs-coredump-prevent-fsuid=0-dumps-into-user-controlled-directories
++++ a/kernel/sysctl_binary.c
+@@ -1321,7 +1321,7 @@ static ssize_t binary_sysctl(const int *
+ 	}
+ 
+ 	mnt = task_active_pid_ns(current)->proc_mnt;
+-	file = file_open_root(mnt->mnt_root, mnt, pathname, flags);
++	file = file_open_root(mnt->mnt_root, mnt, pathname, flags, 0);
+ 	result = PTR_ERR(file);
+ 	if (IS_ERR(file))
+ 		goto out_putname;
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from jann@thejh.net are
 
-mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding.patch
-mm-workingset-define-radix-entry-eviction-mask.patch
-mm-workingset-separate-shadow-unpacking-and-refault-calculation.patch
-mm-workingset-eviction-buckets-for-bigmem-lowbit-machines.patch
-mm-workingset-per-cgroup-cache-thrash-detection.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages.patch
-mm-simplify-lock_page_memcg.patch
-mm-remove-unnecessary-uses-of-lock_page_memcg.patch
-mm-oom_kill-dont-ignore-oom-score-on-exiting-tasks.patch
-mm-migrate-consolidate-mem_cgroup_migrate-calls.patch
-mm-memcontrol-drop-unnecessary-lru-locking-from-mem_cgroup_migrate.patch
-mm-scale-kswapd-watermarks-in-proportion-to-memory.patch
-mm-scale-kswapd-watermarks-in-proportion-to-memory-v3.patch
-mm-memcontrol-reclaim-when-shrinking-memoryhigh-below-usage.patch
-mm-memcontrol-reclaim-and-oom-kill-when-shrinking-memorymax-below-usage.patch
-mm-memcontrol-clarify-the-uncharge_list-loop.patch
+fs-coredump-prevent-fsuid=0-dumps-into-user-controlled-directories.patch
 
