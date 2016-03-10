@@ -1,103 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-hugetlb-hugetlb_no_page-rate-limit-warning-message.patch removed from
- -mm tree
-Date: Thu, 10 Mar 2016 10:57:52 -0800
-Message-ID: <56e1c3b0.zeE/U58XRmpQmdiH%akpm@linux-foundation.org>
+Subject: [merged] mm-fix-mixed-zone-detection-in-devm_memremap_pages.patch removed from -mm tree
+Date: Thu, 10 Mar 2016 10:57:59 -0800
+Message-ID: <56e1c3b7.ygubSL6tG6CLTPmf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51798 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51811 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752267AbcCJS5x (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Mar 2016 13:57:53 -0500
+	with ESMTP id S1752580AbcCJS6A (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Mar 2016 13:58:00 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geofft@ldpreload.com, dave.hansen@linux.intel.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com, toshi.kani@hpe.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: hugetlb_no_page: rate-limit warning message
+     Subject: mm: fix mixed zone detection in devm_memremap_pages
 has been removed from the -mm tree.  Its filename was
-     mm-hugetlb-hugetlb_no_page-rate-limit-warning-message.patch
+     mm-fix-mixed-zone-detection-in-devm_memremap_pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geoffrey Thomas <geofft@ldpreload.com>
-Subject: mm/hugetlb: hugetlb_no_page: rate-limit warning message
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: fix mixed zone detection in devm_memremap_pages
 
-The warning message "killed due to inadequate hugepage pool" simply
-indicates that SIGBUS was sent, not that the process was forcibly killed. 
-If the process has a signal handler installed does not fix the problem,
-this message can rapidly spam the kernel log.
+The check for whether we overlap "System RAM" needs to be done at section
+granularity.  For example a system with the following mapping:
 
-On my amd64 dev machine that does not have hugepages configured, I can
-reproduce the repeated warnings easily by setting vm.nr_hugepages=2 (i.e.,
-4 megabytes of huge pages) and running something that sets a signal
-handler and forks, like
+    100000000-37bffffff : System RAM
+    37c000000-837ffffff : Persistent Memory
 
-#include <sys/mman.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <unistd.h>
+...is unable to use devm_memremap_pages() as it would result in two
+zones colliding within a given section.
 
-sig_atomic_t counter = 10;
-void handler(int signal) {
- 	if (counter-- == 0)
- 		exit(0);
-}
-
-int main(void) {
- 	int status;
- 	char *addr = mmap(NULL, 4 * 1048576, PROT_READ | PROT_WRITE,
- 			  MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB, -1, 0);
- 	if (addr == MAP_FAILED) {perror("mmap"); return 1;}
- 	*addr = 'x';
- 	switch (fork()) {
- 		case -1:
- 			perror("fork"); return 1;
- 		case 0:
- 			signal(SIGBUS, handler);
- 			*addr = 'x';
- 			break;
- 		default:
- 			*addr = 'x';
- 			wait(&status);
- 			if (WIFSIGNALED(status)) {
- 				psignal(WTERMSIG(status), "child");
- 			}
- 			break;
- 	}
-}
-
-Signed-off-by: Geoffrey Thomas <geofft@ldpreload.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reviewed-by: Toshi Kani <toshi.kani@hpe.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/hugetlb.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ kernel/memremap.c |   11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff -puN mm/hugetlb.c~mm-hugetlb-hugetlb_no_page-rate-limit-warning-message mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-hugetlb_no_page-rate-limit-warning-message
-+++ a/mm/hugetlb.c
-@@ -3502,7 +3502,7 @@ static int hugetlb_no_page(struct mm_str
- 	 * COW. Warn that such a situation has occurred as it may not be obvious
- 	 */
- 	if (is_vma_resv_set(vma, HPAGE_RESV_UNMAPPED)) {
--		pr_warning("PID %d killed due to inadequate hugepage pool\n",
-+		pr_warn_ratelimited("PID %d killed due to inadequate hugepage pool\n",
- 			   current->pid);
- 		return ret;
- 	}
+diff -puN kernel/memremap.c~mm-fix-mixed-zone-detection-in-devm_memremap_pages kernel/memremap.c
+--- a/kernel/memremap.c~mm-fix-mixed-zone-detection-in-devm_memremap_pages
++++ a/kernel/memremap.c
+@@ -270,13 +270,16 @@ struct dev_pagemap *find_dev_pagemap(res
+ void *devm_memremap_pages(struct device *dev, struct resource *res,
+ 		struct percpu_ref *ref, struct vmem_altmap *altmap)
+ {
+-	int is_ram = region_intersects(res->start, resource_size(res),
+-			"System RAM");
+ 	resource_size_t key, align_start, align_size, align_end;
+ 	struct dev_pagemap *pgmap;
+ 	struct page_map *page_map;
++	int error, nid, is_ram;
+ 	unsigned long pfn;
+-	int error, nid;
++
++	align_start = res->start & ~(SECTION_SIZE - 1);
++	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
++		- align_start;
++	is_ram = region_intersects(align_start, align_size, "System RAM");
+ 
+ 	if (is_ram == REGION_MIXED) {
+ 		WARN_ONCE(1, "%s attempted on mixed region %pr\n",
+@@ -314,8 +317,6 @@ void *devm_memremap_pages(struct device
+ 
+ 	mutex_lock(&pgmap_lock);
+ 	error = 0;
+-	align_start = res->start & ~(SECTION_SIZE - 1);
+-	align_size = ALIGN(resource_size(res), SECTION_SIZE);
+ 	align_end = align_start + align_size - 1;
+ 	for (key = align_start; key <= align_end; key += SECTION_SIZE) {
+ 		struct dev_pagemap *dup;
 _
 
-Patches currently in -mm which might be from geofft@ldpreload.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
+mm-exclude-zone_device-from-gfp_zone_table.patch
+mm-zone_device-depends-on-sparsemem_vmemmap.patch
 
