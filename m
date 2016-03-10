@@ -1,80 +1,174 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- memremap-check-pfn-validity-before-passing-to-pfn_to_page.patch removed
+Subject: [merged] kasan-add-functions-to-clear-stack-poison.patch removed
  from -mm tree
-Date: Thu, 10 Mar 2016 10:58:16 -0800
-Message-ID: <56e1c3c8.L4LeiqQg0jEWRcJX%akpm@linux-foundation.org>
+Date: Thu, 10 Mar 2016 10:58:01 -0800
+Message-ID: <56e1c3b9.1ptYr15Wd2QntOL6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51850 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51814 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752470AbcCJS6R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Mar 2016 13:58:17 -0500
+	with ESMTP id S1753161AbcCJS6C (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Mar 2016 13:58:02 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ard.biesheuvel@linaro.org, dan.j.williams@intel.com, mm-commits@vger.kernel.org
+To: mark.rutland@arm.com, aryabinin@virtuozzo.com, catalin.marinas@arm.com, glider@google.com, lorenzo.pieralisi@arm.com, mingo@kernel.org, peterz@infradead.org, will.deacon@arm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memremap: check pfn validity before passing to pfn_to_page()
+     Subject: kasan: add functions to clear stack poison
 has been removed from the -mm tree.  Its filename was
-     memremap-check-pfn-validity-before-passing-to-pfn_to_page.patch
+     kasan-add-functions-to-clear-stack-poison.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: memremap: check pfn validity before passing to pfn_to_page()
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: kasan: add functions to clear stack poison
 
-In memremap's helper function try_ram_remap(), we dereference a struct
-page pointer that was derived from a PFN that is known to be covered by a
-'System RAM' iomem region, and is thus assumed to be a 'valid' PFN, i.e.,
-a PFN that has a struct page associated with it and is covered by the
-kernel direct mapping.
+Functions which the compiler has instrumented for ASAN place poison on the
+stack shadow upon entry and remove this poison prior to returning.
 
-However, the assumption that there is a 1:1 relation between the System RAM
-iomem region and the kernel direct mapping is not universally valid on all
-architectures, and on ARM and arm64, 'System RAM' may include regions for
-which pfn_valid() returns false.
+In some cases (e.g.  hotplug and idle), CPUs may exit the kernel a number
+of levels deep in C code.  If there are any instrumented functions on this
+critical path, these will leave portions of the idle thread stack shadow
+poisoned.
 
-Generally speaking, both __va() and pfn_to_page() should only ever be
-called on PFNs/physical addresses for which pfn_valid() returns true, so
-add that check to try_ram_remap().
+If a CPU returns to the kernel via a different path (e.g.  a cold entry),
+then depending on stack frame layout subsequent calls to instrumented
+functions may use regions of the stack with stale poison, resulting in
+(spurious) KASAN splats to the console.
 
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Cc: Dan Williams <dan.j.williams@intel.com>
+Contemporary GCCs always add stack shadow poisoning when ASAN is enabled,
+even when asked to not instrument a function [1], so we can't simply
+annotate functions on the critical path to avoid poisoning.
+
+Instead, this series explicitly removes any stale poison before it can be
+hit.  In the common hotplug case we clear the entire stack shadow in
+common code, before a CPU is brought online.
+
+On architectures which perform a cold return as part of cpu idle may
+retain an architecture-specific amount of stack contents.  To retain the
+poison for this retained context, the arch code must call the core KASAN
+code, passing a "watermark" stack pointer value beyond which shadow will
+be cleared.  Architectures which don't perform a cold return as part of
+idle do not need any additional code.
+
+
+
+This patch (of 3):
+
+Functions which the compiler has instrumented for KASAN place poison on
+the stack shadow upon entry and remove this poision prior to returning.
+
+In some cases (e.g.  hotplug and idle), CPUs may exit the kernel a number
+of levels deep in C code.  If there are any instrumented functions on this
+critical path, these will leave portions of the stack shadow poisoned.
+
+If a CPU returns to the kernel via a different path (e.g.  a cold entry),
+then depending on stack frame layout subsequent calls to instrumented
+functions may use regions of the stack with stale poison, resulting in
+(spurious) KASAN splats to the console.
+
+To avoid this, we must clear stale poison from the stack prior to
+instrumented functions being called.  This patch adds functions to the
+KASAN core for removing poison from (portions of) a task's stack.  These
+will be used by subsequent patches to avoid problems with hotplug and
+idle.
+
+Signed-off-by: Mark Rutland <mark.rutland@arm.com>
+Acked-by: Catalin Marinas <catalin.marinas@arm.com>
+Reviewed-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
+Cc: Alexander Potapenko <glider@google.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/memremap.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/kasan.h |    6 +++++-
+ mm/kasan/kasan.c      |   20 ++++++++++++++++++++
+ 2 files changed, 25 insertions(+), 1 deletion(-)
 
-diff -puN kernel/memremap.c~memremap-check-pfn-validity-before-passing-to-pfn_to_page kernel/memremap.c
---- a/kernel/memremap.c~memremap-check-pfn-validity-before-passing-to-pfn_to_page
-+++ a/kernel/memremap.c
-@@ -29,10 +29,10 @@ __weak void __iomem *ioremap_cache(resou
+diff -puN include/linux/kasan.h~kasan-add-functions-to-clear-stack-poison include/linux/kasan.h
+--- a/include/linux/kasan.h~kasan-add-functions-to-clear-stack-poison
++++ a/include/linux/kasan.h
+@@ -1,6 +1,7 @@
+ #ifndef _LINUX_KASAN_H
+ #define _LINUX_KASAN_H
  
- static void *try_ram_remap(resource_size_t offset, size_t size)
- {
--	struct page *page = pfn_to_page(offset >> PAGE_SHIFT);
-+	unsigned long pfn = PHYS_PFN(offset);
++#include <linux/sched.h>
+ #include <linux/types.h>
  
- 	/* In the simple case just return the existing linear address */
--	if (!PageHighMem(page))
-+	if (pfn_valid(pfn) && !PageHighMem(pfn_to_page(pfn)))
- 		return __va(offset);
- 	return NULL; /* fallback to ioremap_cache */
+ struct kmem_cache;
+@@ -13,7 +14,6 @@ struct vm_struct;
+ 
+ #include <asm/kasan.h>
+ #include <asm/pgtable.h>
+-#include <linux/sched.h>
+ 
+ extern unsigned char kasan_zero_page[PAGE_SIZE];
+ extern pte_t kasan_zero_pte[PTRS_PER_PTE];
+@@ -43,6 +43,8 @@ static inline void kasan_disable_current
+ 
+ void kasan_unpoison_shadow(const void *address, size_t size);
+ 
++void kasan_unpoison_task_stack(struct task_struct *task);
++
+ void kasan_alloc_pages(struct page *page, unsigned int order);
+ void kasan_free_pages(struct page *page, unsigned int order);
+ 
+@@ -66,6 +68,8 @@ void kasan_free_shadow(const struct vm_s
+ 
+ static inline void kasan_unpoison_shadow(const void *address, size_t size) {}
+ 
++static inline void kasan_unpoison_task_stack(struct task_struct *task) {}
++
+ static inline void kasan_enable_current(void) {}
+ static inline void kasan_disable_current(void) {}
+ 
+diff -puN mm/kasan/kasan.c~kasan-add-functions-to-clear-stack-poison mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~kasan-add-functions-to-clear-stack-poison
++++ a/mm/kasan/kasan.c
+@@ -20,6 +20,7 @@
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/kmemleak.h>
++#include <linux/linkage.h>
+ #include <linux/memblock.h>
+ #include <linux/memory.h>
+ #include <linux/mm.h>
+@@ -60,6 +61,25 @@ void kasan_unpoison_shadow(const void *a
+ 	}
  }
+ 
++static void __kasan_unpoison_stack(struct task_struct *task, void *sp)
++{
++	void *base = task_stack_page(task);
++	size_t size = sp - base;
++
++	kasan_unpoison_shadow(base, size);
++}
++
++/* Unpoison the entire stack for a task. */
++void kasan_unpoison_task_stack(struct task_struct *task)
++{
++	__kasan_unpoison_stack(task, task_stack_page(task) + THREAD_SIZE);
++}
++
++/* Unpoison the stack for the current task beyond a watermark sp value. */
++asmlinkage void kasan_unpoison_remaining_stack(void *sp)
++{
++	__kasan_unpoison_stack(current, sp);
++}
+ 
+ /*
+  * All functions below always inlined so compiler could
 _
 
-Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
+Patches currently in -mm which might be from mark.rutland@arm.com are
 
-x86-kallsyms-disable-absolute-percpu-symbols-on-smp.patch
-x86-kallsyms-disable-absolute-percpu-symbols-on-smp-v5.patch
-kallsyms-dont-overload-absolute-symbol-type-for-percpu-symbols.patch
-kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table.patch
-kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-v5.patch
 
