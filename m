@@ -1,86 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-mixed-zone-detection-in-devm_memremap_pages.patch removed from -mm tree
-Date: Thu, 10 Mar 2016 10:57:59 -0800
-Message-ID: <56e1c3b7.ygubSL6tG6CLTPmf%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-hugetlb-use-eopnotsupp-in-hugetlb-sysctl-handlers.patch removed from -mm tree
+Date: Thu, 10 Mar 2016 10:58:18 -0800
+Message-ID: <56e1c3ca.UOowWRmM1L/ZqJkh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:51811 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:51857 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752580AbcCJS6A (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Mar 2016 13:58:00 -0500
+	with ESMTP id S1753199AbcCJS6T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 10 Mar 2016 13:58:19 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dan.j.williams@intel.com, ross.zwisler@linux.intel.com, toshi.kani@hpe.com, mm-commits@vger.kernel.org
+To: jstancek@redhat.com, dave.hansen@linux.intel.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix mixed zone detection in devm_memremap_pages
+     Subject: mm/hugetlb: use EOPNOTSUPP in hugetlb sysctl handlers
 has been removed from the -mm tree.  Its filename was
-     mm-fix-mixed-zone-detection-in-devm_memremap_pages.patch
+     mm-hugetlb-use-eopnotsupp-in-hugetlb-sysctl-handlers.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: mm: fix mixed zone detection in devm_memremap_pages
+From: Jan Stancek <jstancek@redhat.com>
+Subject: mm/hugetlb: use EOPNOTSUPP in hugetlb sysctl handlers
 
-The check for whether we overlap "System RAM" needs to be done at section
-granularity.  For example a system with the following mapping:
+Replace ENOTSUPP with EOPNOTSUPP.  If hugepages are not supported, this
+value is propagated to userspace.  EOPNOTSUPP is part of uapi and is
+widely supported by libc libraries.
 
-    100000000-37bffffff : System RAM
-    37c000000-837ffffff : Persistent Memory
+It gives nicer message to user, rather than:
+# cat /proc/sys/vm/nr_hugepages
+cat: /proc/sys/vm/nr_hugepages: Unknown error 524
 
-...is unable to use devm_memremap_pages() as it would result in two
-zones colliding within a given section.
+And also LTP's proc01 test was failing because this ret code (524)
+was unexpected:
+proc01      1  TFAIL  :  proc01.c:396: read failed: /proc/sys/vm/nr_hugepages: errno=???(524): Unknown error 524
+proc01      2  TFAIL  :  proc01.c:396: read failed: /proc/sys/vm/nr_hugepages_mempolicy: errno=???(524): Unknown error 524
+proc01      3  TFAIL  :  proc01.c:396: read failed: /proc/sys/vm/nr_overcommit_hugepages: errno=???(524): Unknown error 524
 
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reviewed-by: Toshi Kani <toshi.kani@hpe.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/memremap.c |   11 ++++++-----
- 1 file changed, 6 insertions(+), 5 deletions(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/memremap.c~mm-fix-mixed-zone-detection-in-devm_memremap_pages kernel/memremap.c
---- a/kernel/memremap.c~mm-fix-mixed-zone-detection-in-devm_memremap_pages
-+++ a/kernel/memremap.c
-@@ -270,13 +270,16 @@ struct dev_pagemap *find_dev_pagemap(res
- void *devm_memremap_pages(struct device *dev, struct resource *res,
- 		struct percpu_ref *ref, struct vmem_altmap *altmap)
- {
--	int is_ram = region_intersects(res->start, resource_size(res),
--			"System RAM");
- 	resource_size_t key, align_start, align_size, align_end;
- 	struct dev_pagemap *pgmap;
- 	struct page_map *page_map;
-+	int error, nid, is_ram;
- 	unsigned long pfn;
--	int error, nid;
-+
-+	align_start = res->start & ~(SECTION_SIZE - 1);
-+	align_size = ALIGN(res->start + resource_size(res), SECTION_SIZE)
-+		- align_start;
-+	is_ram = region_intersects(align_start, align_size, "System RAM");
+diff -puN mm/hugetlb.c~mm-hugetlb-use-eopnotsupp-in-hugetlb-sysctl-handlers mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-use-eopnotsupp-in-hugetlb-sysctl-handlers
++++ a/mm/hugetlb.c
+@@ -2751,7 +2751,7 @@ static int hugetlb_sysctl_handler_common
+ 	int ret;
  
- 	if (is_ram == REGION_MIXED) {
- 		WARN_ONCE(1, "%s attempted on mixed region %pr\n",
-@@ -314,8 +317,6 @@ void *devm_memremap_pages(struct device
+ 	if (!hugepages_supported())
+-		return -ENOTSUPP;
++		return -EOPNOTSUPP;
  
- 	mutex_lock(&pgmap_lock);
- 	error = 0;
--	align_start = res->start & ~(SECTION_SIZE - 1);
--	align_size = ALIGN(resource_size(res), SECTION_SIZE);
- 	align_end = align_start + align_size - 1;
- 	for (key = align_start; key <= align_end; key += SECTION_SIZE) {
- 		struct dev_pagemap *dup;
+ 	table->data = &tmp;
+ 	table->maxlen = sizeof(unsigned long);
+@@ -2792,7 +2792,7 @@ int hugetlb_overcommit_handler(struct ct
+ 	int ret;
+ 
+ 	if (!hugepages_supported())
+-		return -ENOTSUPP;
++		return -EOPNOTSUPP;
+ 
+ 	tmp = h->nr_overcommit_huge_pages;
+ 
 _
 
-Patches currently in -mm which might be from dan.j.williams@intel.com are
+Patches currently in -mm which might be from jstancek@redhat.com are
 
-mm-exclude-zone_device-from-gfp_zone_table.patch
-mm-zone_device-depends-on-sparsemem_vmemmap.patch
 
