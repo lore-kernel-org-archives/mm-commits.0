@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + printk-add-clear_idx-symbol-to-vmcoreinfo.patch added to -mm
- tree
-Date: Fri, 11 Mar 2016 13:17:01 -0800
-Message-ID: <56e335cd.hNFDVBhCWY4vj42L%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-improve-unspecified_int-test-for-bare-signed-unsigned-uses.patch added to -mm tree
+Date: Fri, 11 Mar 2016 13:24:02 -0800
+Message-ID: <56e33772.tadCpNBYYMI/2v8K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57236 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57434 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752517AbcCKVRC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Mar 2016 16:17:02 -0500
+	with ESMTP id S1752040AbcCKVYD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 11 Mar 2016 16:24:03 -0500
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: colona@arista.com, kay@vrfy.org, nhorman@tuxdriver.com, zzy8200@gmail.com, mm-commits@vger.kernel.org
+To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: add clear_idx symbol to vmcoreinfo
+     Subject: checkpatch: improve UNSPECIFIED_INT test for bare signed/unsigned uses
 has been added to the -mm tree.  Its filename is
-     printk-add-clear_idx-symbol-to-vmcoreinfo.patch
+     checkpatch-improve-unspecified_int-test-for-bare-signed-unsigned-uses.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/printk-add-clear_idx-symbol-to-vmcoreinfo.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-unspecified_int-test-for-bare-signed-unsigned-uses.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/printk-add-clear_idx-symbol-to-vmcoreinfo.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-unspecified_int-test-for-bare-signed-unsigned-uses.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,66 +39,60 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Ivan Delalande <colona@arista.com>
-Subject: printk: add clear_idx symbol to vmcoreinfo
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: improve UNSPECIFIED_INT test for bare signed/unsigned uses
 
-This allows us to extract from the vmcore only the messages emitted since
-the last time the ring buffer was cleared.  We just have to make sure its
-value is always up-to-date, when old messages are discarded to free space
-in log_make_free_space() for example.
+Improve the test to allow casts to (unsigned) or (signed) to be
+found and fixed if desired.
 
-Signed-off-by: Zeyu Zhao <zzy8200@gmail.com>
-Signed-off-by: Ivan Delalande <colona@arista.com>
-Cc: Kay Sievers <kay@vrfy.org>
-Cc: Neil Horman <nhorman@tuxdriver.com>
+Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ scripts/checkpatch.pl |   12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-add-clear_idx-symbol-to-vmcoreinfo kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-add-clear_idx-symbol-to-vmcoreinfo
-+++ a/kernel/printk/printk.c
-@@ -368,16 +368,20 @@ static int logbuf_has_space(u32 msg_size
+diff -puN scripts/checkpatch.pl~checkpatch-improve-unspecified_int-test-for-bare-signed-unsigned-uses scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-unspecified_int-test-for-bare-signed-unsigned-uses
++++ a/scripts/checkpatch.pl
+@@ -3240,10 +3240,11 @@ sub process {
+ 		next if ($line =~ /^[^\+]/);
  
- static int log_make_free_space(u32 msg_size)
- {
--	while (log_first_seq < log_next_seq) {
--		if (logbuf_has_space(msg_size, false))
--			return 0;
-+	while (log_first_seq < log_next_seq &&
-+	       !logbuf_has_space(msg_size, false)) {
- 		/* drop old messages until we have enough contiguous space */
- 		log_first_idx = log_next(log_first_idx);
- 		log_first_seq++;
- 	}
+ # check for declarations of signed or unsigned without int
+-		while ($line =~ m{($Declare++)\s*($Ident)\s*[=,;\[\)]}g) {
++		while ($line =~ m{($Declare)\s*(?!char\b|short\b|int\b|long\b)\s*($Ident)?\s*[=,;\[\)\(]}g) {
+ 			my $type = $1;
+ 			my $var = $2;
+-			if ($type =~ /^((?:un)?signed)((?:\s*\*)*)\s*$/) {
++			$var = "" if (!defined $var);
++			if ($type =~ /^(?:(?:$Storage|$Inline|$Attribute)\s+)*((?:un)?signed)((?:\s*\*)*)\s*$/) {
+ 				my $sign = $1;
+ 				my $pointer = $2;
  
-+	if (clear_seq < log_first_seq) {
-+		clear_seq = log_first_seq;
-+		clear_idx = log_first_idx;
-+	}
-+
- 	/* sequence numbers are equal, so the log buffer is empty */
--	if (logbuf_has_space(msg_size, true))
-+	if (logbuf_has_space(msg_size, log_first_seq == log_next_seq))
- 		return 0;
- 
- 	return -ENOMEM;
-@@ -855,6 +859,7 @@ void log_buf_kexec_setup(void)
- 	VMCOREINFO_SYMBOL(log_buf);
- 	VMCOREINFO_SYMBOL(log_buf_len);
- 	VMCOREINFO_SYMBOL(log_first_idx);
-+	VMCOREINFO_SYMBOL(clear_idx);
- 	VMCOREINFO_SYMBOL(log_next_idx);
- 	/*
- 	 * Export struct printk_log size and field offsets. User space tools can
-@@ -1217,12 +1222,6 @@ static int syslog_print_all(char __user
- 		u32 idx;
- 		enum log_flags prev;
- 
--		if (clear_seq < log_first_seq) {
--			/* messages are gone, move to first available one */
--			clear_seq = log_first_seq;
--			clear_idx = log_first_idx;
--		}
+@@ -3253,8 +3254,11 @@ sub process {
+ 					 "Prefer '" . trim($sign) . " int" . rtrim($pointer) . "' to bare use of '$sign" . rtrim($pointer) . "'\n" . $herecurr) &&
+ 				    $fix) {
+ 					my $decl = trim($sign) . " int ";
+-					$decl .= trim($pointer) if (rtrim($pointer) ne "");
+-					$fixed[$fixlinenr] =~ s@\b\Q$type\E\s*$var\b@$decl$var@;
++					my $comp_pointer = $pointer;
++					$comp_pointer =~ s/\s//g;
++					$decl .= $comp_pointer;
++					$decl = rtrim($decl) if ($var eq "");
++					$fixed[$fixlinenr] =~ s@\b$sign\s*\Q$pointer\E\s*$var\b@$decl$var@;
+ 				}
+ 			}
+ 		}
+_
+
+Patches currently in -mm which might be from joe@perches.com are
+
+mm-convert-pr_warning-to-pr_warn.patch
+mm-coalesce-split-strings.patch
+mm-convert-printkkern_level-to-pr_level.patch
+mm-percpu-use-pr_fmt-to-prefix-output.patch
+checkpatch-exclude-asm-volatile-from-complex-macro-check.patch
+checkpatch-warn-on-bare-unsigned-or-signed-declarations-without-int.patch
+checkpatch-improve-unspecified_int-test-for-bare-signed-unsigned-uses.patch
+kernel-convert-pr_warning-to-pr_warn.patch
+
