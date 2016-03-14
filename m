@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmalloc-reuse-page_aligned-to-check-page_size-aligned.patch
- added to -mm tree
-Date: Mon, 14 Mar 2016 14:51:33 -0700
-Message-ID: <56e73265.0FEbyaR9Z6VQvcmO%akpm@linux-foundation.org>
+Subject: + paride-make-verbose-parameter-an-int-again.patch added to -mm
+ tree
+Date: Mon, 14 Mar 2016 16:05:02 -0700
+Message-ID: <56e7439e.8auwU+SFMAzV73C4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52791 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56074 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751362AbcCNVve (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Mar 2016 17:51:34 -0400
+	with ESMTP id S1751554AbcCNXFD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Mar 2016 19:05:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: shawn.lin@rock-chips.com, mm-commits@vger.kernel.org
+To: arnd@arndb.de, axboe@fb.com, gregkh@linuxfoundation.org, sudipm.mukherjee@gmail.com, tim@cyberelk.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc: use PAGE_ALIGNED() to check PAGE_SIZE alignment
+     Subject: paride: make 'verbose' parameter an 'int' again
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-reuse-page_aligned-to-check-page_size-aligned.patch
+     paride-make-verbose-parameter-an-int-again.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-reuse-page_aligned-to-check-page_size-aligned.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/paride-make-verbose-parameter-an-int-again.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-reuse-page_aligned-to-check-page_size-aligned.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/paride-make-verbose-parameter-an-int-again.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,34 +39,87 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Shawn Lin <shawn.lin@rock-chips.com>
-Subject: mm/vmalloc: use PAGE_ALIGNED() to check PAGE_SIZE alignment
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: paride: make 'verbose' parameter an 'int' again
 
-We have PAGE_ALIGNED() in mm.h, so let's use it instead of IS_ALIGNED()
-for checking PAGE_SIZE aligned case.
+gcc-6.0 found an ancient bug in the paride driver, which had a
+"module_param(verbose, bool, 0);" since before 2.6.12, but actually uses
+it to accept '0', '1' or '2' as arguments:
 
-Signed-off-by: Shawn Lin <shawn.lin@rock-chips.com>
+drivers/block/paride/pd.c: In function 'pd_init_dev_parms':
+drivers/block/paride/pd.c:298:29: warning: comparison of constant '1' with boolean expression is always false [-Wbool-compare]
+ #define DBMSG(msg) ((verbose>1)?(msg):NULL)
+
+In 2012, Rusty did a cleanup patch that also changed the type of the
+variable to 'bool', which introduced what is now a gcc warning.
+
+This changes the type back to 'int' and adapts the module_param() line
+instead, so it should work as documented in case anyone ever cares about
+running the ancient driver with debugging.
+
+Fixes: 90ab5ee94171 ("module_param: make bool parameters really bool (drivers & misc)")
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Rusty Russell <rusty@rustcorp.com.au>
+Cc: Tim Waugh <tim@cyberelk.net>
+Cc: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/vmalloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/block/paride/pd.c |    4 ++--
+ drivers/block/paride/pt.c |    4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-diff -puN mm/vmalloc.c~mm-vmalloc-reuse-page_aligned-to-check-page_size-aligned mm/vmalloc.c
---- a/mm/vmalloc.c~mm-vmalloc-reuse-page_aligned-to-check-page_size-aligned
-+++ a/mm/vmalloc.c
-@@ -1085,7 +1085,7 @@ void vm_unmap_ram(const void *mem, unsig
- 	BUG_ON(!addr);
- 	BUG_ON(addr < VMALLOC_START);
- 	BUG_ON(addr > VMALLOC_END);
--	BUG_ON(!IS_ALIGNED(addr, PAGE_SIZE));
-+	BUG_ON(!PAGE_ALIGNED(addr));
+diff -puN drivers/block/paride/pd.c~paride-make-verbose-parameter-an-int-again drivers/block/paride/pd.c
+--- a/drivers/block/paride/pd.c~paride-make-verbose-parameter-an-int-again
++++ a/drivers/block/paride/pd.c
+@@ -126,7 +126,7 @@
+ */
+ #include <linux/types.h>
  
- 	debug_check_no_locks_freed(mem, size);
- 	vmap_debug_free_range(addr, addr+size);
+-static bool verbose = 0;
++static int verbose = 0;
+ static int major = PD_MAJOR;
+ static char *name = PD_NAME;
+ static int cluster = 64;
+@@ -161,7 +161,7 @@ enum {D_PRT, D_PRO, D_UNI, D_MOD, D_GEO,
+ static DEFINE_MUTEX(pd_mutex);
+ static DEFINE_SPINLOCK(pd_lock);
+ 
+-module_param(verbose, bool, 0);
++module_param(verbose, int, 0);
+ module_param(major, int, 0);
+ module_param(name, charp, 0);
+ module_param(cluster, int, 0);
+diff -puN drivers/block/paride/pt.c~paride-make-verbose-parameter-an-int-again drivers/block/paride/pt.c
+--- a/drivers/block/paride/pt.c~paride-make-verbose-parameter-an-int-again
++++ a/drivers/block/paride/pt.c
+@@ -117,7 +117,7 @@
+ 
+ */
+ 
+-static bool verbose = 0;
++static int verbose = 0;
+ static int major = PT_MAJOR;
+ static char *name = PT_NAME;
+ static int disable = 0;
+@@ -152,7 +152,7 @@ static int (*drives[4])[6] = {&drive0, &
+ 
+ #include <asm/uaccess.h>
+ 
+-module_param(verbose, bool, 0);
++module_param(verbose, int, 0);
+ module_param(major, int, 0);
+ module_param(name, charp, 0);
+ module_param_array(drive0, int, NULL, 0);
 _
 
-Patches currently in -mm which might be from shawn.lin@rock-chips.com are
+Patches currently in -mm which might be from arnd@arndb.de are
 
-mm-vmalloc-reuse-page_aligned-to-check-page_size-aligned.patch
+paride-make-verbose-parameter-an-int-again.patch
+mm-compaction-introduce-kcompactd-fix.patch
+mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-2.patch
+profile-hide-unused-functions-when-config_proc_fs.patch
+staging-goldfish-use-6-arg-get_user_pages.patch
 
