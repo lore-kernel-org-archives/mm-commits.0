@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + scripts-gdb-account-for-changes-in-module-data-structure.patch
+Subject: +
+ watchdog-dont-run-proc_watchdog_update-if-new-value-is-same-as-old.patch
  added to -mm tree
-Date: Mon, 14 Mar 2016 14:48:01 -0700
-Message-ID: <56e73191.qy380ac6l8tI0wqn%akpm@linux-foundation.org>
+Date: Mon, 14 Mar 2016 14:49:55 -0700
+Message-ID: <56e73203.GI4G3NfiE1uG5VIV%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52697 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52710 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750958AbcCNVsC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Mar 2016 17:48:02 -0400
+	with ESMTP id S1751290AbcCNVt4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Mar 2016 17:49:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jan.kiszka@siemens.com, jason.wessel@windriver.com, jkosina@suse.cz, kieran.bingham@linaro.org, rusty@rustcorp.com.au, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: johunt@akamai.com, dzickus@redhat.com, uobergfe@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: account for changes in module data structure
+     Subject: watchdog: don't run proc_watchdog_update if new value is same as old
 has been added to the -mm tree.  Its filename is
-     scripts-gdb-account-for-changes-in-module-data-structure.patch
+     watchdog-dont-run-proc_watchdog_update-if-new-value-is-same-as-old.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-account-for-changes-in-module-data-structure.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/watchdog-dont-run-proc_watchdog_update-if-new-value-is-same-as-old.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-account-for-changes-in-module-data-structure.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/watchdog-dont-run-proc_watchdog_update-if-new-value-is-same-as-old.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,59 +40,71 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Jan Kiszka <jan.kiszka@siemens.com>
-Subject: scripts/gdb: account for changes in module data structure
+From: Joshua Hunt <johunt@akamai.com>
+Subject: watchdog: don't run proc_watchdog_update if new value is same as old
 
-Commit 7523e4dc50 ("module: use a structure to encapsulate layout.")
-factored out the module_layout structure.  Adjust the symbol loader and
-the lsmod command to this.
+While working on a script to restore all sysctl params before a series of
+tests I found that writing any value into the
+/proc/sys/kernel/{nmi_watchdog,soft_watchdog,watchdog,watchdog_thresh}
+causes them to call proc_watchdog_update().  Not only that, but when I
+wrote to these proc files in a loop I could easily trigger a soft lockup.
 
-Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
-Reviewed-by: Kieran Bingham <kieran.bingham@linaro.org>
-Tested-by: Kieran Bingham <kieran.bingham@linaro.org> (qemu-{ARM,x86})
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Jiri Kosina <jkosina@suse.cz>
-Cc: Jason Wessel <jason.wessel@windriver.com>
-Cc: <stable@vger.kernel.org>	[4.4+]
+[  955.756196] NMI watchdog: enabled on all CPUs, permanently consumes one hw-PMU counter.
+[  955.765994] NMI watchdog: enabled on all CPUs, permanently consumes one hw-PMU counter.
+[  955.774619] NMI watchdog: enabled on all CPUs, permanently consumes one hw-PMU counter.
+[  955.783182] NMI watchdog: enabled on all CPUs, permanently consumes one hw-PMU counter.
+[  959.788319] NMI watchdog: BUG: soft lockup - CPU#4 stuck for 30s! [swapper/4:0]
+[  959.788325] NMI watchdog: BUG: soft lockup - CPU#5 stuck for 30s! [swapper/5:0]
+
+There doesn't appear to be a reason for doing this work other every time a
+write occurs, so only do the work when the values change.
+
+Signed-off-by: Josh Hunt <johunt@akamai.com>
+Cc: Ulrich Obergfell <uobergfe@redhat.com>
+Cc: Don Zickus <dzickus@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/modules.py |    5 +++--
- scripts/gdb/linux/symbols.py |    2 +-
- 2 files changed, 4 insertions(+), 3 deletions(-)
+ kernel/watchdog.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff -puN scripts/gdb/linux/modules.py~scripts-gdb-account-for-changes-in-module-data-structure scripts/gdb/linux/modules.py
---- a/scripts/gdb/linux/modules.py~scripts-gdb-account-for-changes-in-module-data-structure
-+++ a/scripts/gdb/linux/modules.py
-@@ -73,10 +73,11 @@ class LxLsmod(gdb.Command):
-                 "        " if utils.get_long_type().sizeof == 8 else ""))
+diff -puN kernel/watchdog.c~watchdog-dont-run-proc_watchdog_update-if-new-value-is-same-as-old kernel/watchdog.c
+--- a/kernel/watchdog.c~watchdog-dont-run-proc_watchdog_update-if-new-value-is-same-as-old
++++ a/kernel/watchdog.c
+@@ -923,6 +923,9 @@ static int proc_watchdog_common(int whic
+ 		 * both lockup detectors are disabled if proc_watchdog_update()
+ 		 * returns an error.
+ 		 */
++		if (old == new)
++			goto out;
++
+ 		err = proc_watchdog_update();
+ 	}
+ out:
+@@ -967,7 +970,7 @@ int proc_soft_watchdog(struct ctl_table
+ int proc_watchdog_thresh(struct ctl_table *table, int write,
+ 			 void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+-	int err, old;
++	int err, old, new;
  
-         for module in module_list():
-+            layout = module['core_layout']
-             gdb.write("{address} {name:<19} {size:>8}  {ref}".format(
--                address=str(module['module_core']).split()[0],
-+                address=str(layout['base']).split()[0],
-                 name=module['name'].string(),
--                size=str(module['core_size']),
-+                size=str(layout['size']),
-                 ref=str(module['refcnt']['counter'])))
- 
-             source_list = module['source_list']
-diff -puN scripts/gdb/linux/symbols.py~scripts-gdb-account-for-changes-in-module-data-structure scripts/gdb/linux/symbols.py
---- a/scripts/gdb/linux/symbols.py~scripts-gdb-account-for-changes-in-module-data-structure
-+++ a/scripts/gdb/linux/symbols.py
-@@ -108,7 +108,7 @@ lx-symbols command."""
- 
-     def load_module_symbols(self, module):
-         module_name = module['name'].string()
--        module_addr = str(module['module_core']).split()[0]
-+        module_addr = str(module['core_layout']['base']).split()[0]
- 
-         module_file = self._get_module_file(module_name)
-         if not module_file and not self.module_files_updated:
+ 	get_online_cpus();
+ 	mutex_lock(&watchdog_proc_mutex);
+@@ -987,6 +990,10 @@ int proc_watchdog_thresh(struct ctl_tabl
+ 	/*
+ 	 * Update the sample period. Restore on failure.
+ 	 */
++	new = ACCESS_ONCE(watchdog_thresh);
++	if (old == new)
++		goto out;
++
+ 	set_sample_period();
+ 	err = proc_watchdog_update();
+ 	if (err) {
 _
 
-Patches currently in -mm which might be from jan.kiszka@siemens.com are
+Patches currently in -mm which might be from johunt@akamai.com are
 
-scripts-gdb-account-for-changes-in-module-data-structure.patch
+block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
+watchdog-dont-run-proc_watchdog_update-if-new-value-is-same-as-old.patch
 
