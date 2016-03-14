@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + proc-vmcore-wrong-data-type-casting-fix.patch added to -mm tree
-Date: Mon, 14 Mar 2016 13:48:13 -0700
-Message-ID: <56e7238d.DUtImh1G5XG9cMXX%akpm@linux-foundation.org>
+Subject: + scripts-gdb-account-for-changes-in-module-data-structure.patch
+ added to -mm tree
+Date: Mon, 14 Mar 2016 14:48:01 -0700
+Message-ID: <56e73191.qy380ac6l8tI0wqn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50992 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52697 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756054AbcCNUsO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Mar 2016 16:48:14 -0400
+	with ESMTP id S1750958AbcCNVsC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 14 Mar 2016 17:48:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dyoung@redhat.com, bhe@redhat.com, d.hatayama@jp.fujitsu.com, mhuang@redhat.com, nasa4836@gmail.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: jan.kiszka@siemens.com, jason.wessel@windriver.com, jkosina@suse.cz, kieran.bingham@linaro.org, rusty@rustcorp.com.au, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-vmcore: wrong data type casting fix
+     Subject: scripts/gdb: account for changes in module data structure
 has been added to the -mm tree.  Its filename is
-     proc-vmcore-wrong-data-type-casting-fix.patch
+     scripts-gdb-account-for-changes-in-module-data-structure.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/proc-vmcore-wrong-data-type-casting-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/scripts-gdb-account-for-changes-in-module-data-structure.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/proc-vmcore-wrong-data-type-casting-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/scripts-gdb-account-for-changes-in-module-data-structure.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,78 +39,59 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Dave Young <dyoung@redhat.com>
-Subject: proc-vmcore: wrong data type casting fix
+From: Jan Kiszka <jan.kiszka@siemens.com>
+Subject: scripts/gdb: account for changes in module data structure
 
-On i686 PAE enabled machine the contiguous physical area could be large
-and it can cause trimming down variables in below calculation in
-read_vmcore() and mmap_vmcore():
+Commit 7523e4dc50 ("module: use a structure to encapsulate layout.")
+factored out the module_layout structure.  Adjust the symbol loader and
+the lsmod command to this.
 
-	tsz = min_t(size_t, m->offset + m->size - *fpos, buflen);
-
-That is, the types being used is like below on i686:
-m->offset: unsigned long long int
-m->size:   unsigned long long int
-*fpos:     loff_t (long long int)
-buflen:    size_t (unsigned int)
-
-So casting (m->offset + m->size - *fpos) by size_t means truncating a given
-value by 4GB.
-
-Suppose (m->offset + m->size - *fpos) being truncated to 0, buflen >0 then
-we will get tsz = 0.  It is of course not an expected result.  Similarly
-we could also get other truncated values less than buflen.  Then the real
-size passed down is not correct any more.
-
-If (m->offset + m->size - *fpos) is above 4GB, read_vmcore or mmap_vmcore
-use the min_t result with truncated values being compared to buflen.
-Then, fpos proceeds with the wrong value so that we reach below bugs:
-
-1) read_vmcore will refuse to continue so makedumpfile fails.
-2) mmap_vmcore will trigger BUG_ON() in remap_pfn_range().
-
-Use unsigned long long in min_t instead so that the variables in  are not
-truncated.
-
-Signed-off-by: Baoquan He <bhe@redhat.com>
-Signed-off-by: Dave Young <dyoung@redhat.com>
-Cc: HATAYAMA Daisuke <d.hatayama@jp.fujitsu.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
-Cc: Jianyu Zhan <nasa4836@gmail.com>
-Cc: Minfei Huang <mhuang@redhat.com>
+Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
+Reviewed-by: Kieran Bingham <kieran.bingham@linaro.org>
+Tested-by: Kieran Bingham <kieran.bingham@linaro.org> (qemu-{ARM,x86})
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: <stable@vger.kernel.org>	[4.4+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/vmcore.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+ scripts/gdb/linux/modules.py |    5 +++--
+ scripts/gdb/linux/symbols.py |    2 +-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN fs/proc/vmcore.c~proc-vmcore-wrong-data-type-casting-fix fs/proc/vmcore.c
---- a/fs/proc/vmcore.c~proc-vmcore-wrong-data-type-casting-fix
-+++ a/fs/proc/vmcore.c
-@@ -231,7 +231,9 @@ static ssize_t __read_vmcore(char *buffe
+diff -puN scripts/gdb/linux/modules.py~scripts-gdb-account-for-changes-in-module-data-structure scripts/gdb/linux/modules.py
+--- a/scripts/gdb/linux/modules.py~scripts-gdb-account-for-changes-in-module-data-structure
++++ a/scripts/gdb/linux/modules.py
+@@ -73,10 +73,11 @@ class LxLsmod(gdb.Command):
+                 "        " if utils.get_long_type().sizeof == 8 else ""))
  
- 	list_for_each_entry(m, &vmcore_list, list) {
- 		if (*fpos < m->offset + m->size) {
--			tsz = min_t(size_t, m->offset + m->size - *fpos, buflen);
-+			tsz = (size_t)min_t(unsigned long long,
-+					    m->offset + m->size - *fpos,
-+					    buflen);
- 			start = m->paddr + *fpos - m->offset;
- 			tmp = read_from_oldmem(buffer, tsz, &start, userbuf);
- 			if (tmp < 0)
-@@ -461,7 +463,8 @@ static int mmap_vmcore(struct file *file
- 		if (start < m->offset + m->size) {
- 			u64 paddr = 0;
+         for module in module_list():
++            layout = module['core_layout']
+             gdb.write("{address} {name:<19} {size:>8}  {ref}".format(
+-                address=str(module['module_core']).split()[0],
++                address=str(layout['base']).split()[0],
+                 name=module['name'].string(),
+-                size=str(module['core_size']),
++                size=str(layout['size']),
+                 ref=str(module['refcnt']['counter'])))
  
--			tsz = min_t(size_t, m->offset + m->size - start, size);
-+			tsz = (size_t)min_t(unsigned long long,
-+					    m->offset + m->size - start, size);
- 			paddr = m->paddr + start - m->offset;
- 			if (vmcore_remap_oldmem_pfn(vma, vma->vm_start + len,
- 						    paddr >> PAGE_SHIFT, tsz,
+             source_list = module['source_list']
+diff -puN scripts/gdb/linux/symbols.py~scripts-gdb-account-for-changes-in-module-data-structure scripts/gdb/linux/symbols.py
+--- a/scripts/gdb/linux/symbols.py~scripts-gdb-account-for-changes-in-module-data-structure
++++ a/scripts/gdb/linux/symbols.py
+@@ -108,7 +108,7 @@ lx-symbols command."""
+ 
+     def load_module_symbols(self, module):
+         module_name = module['name'].string()
+-        module_addr = str(module['module_core']).split()[0]
++        module_addr = str(module['core_layout']['base']).split()[0]
+ 
+         module_file = self._get_module_file(module_name)
+         if not module_file and not self.module_files_updated:
 _
 
-Patches currently in -mm which might be from dyoung@redhat.com are
+Patches currently in -mm which might be from jan.kiszka@siemens.com are
 
-proc-vmcore-wrong-data-type-casting-fix.patch
+scripts-gdb-account-for-changes-in-module-data-structure.patch
 
