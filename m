@@ -1,199 +1,64 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3.patch removed from -mm tree
-Date: Tue, 15 Mar 2016 14:42:50 -0700
-Message-ID: <56e881da.uudN7Hz+btcsfQ1R%akpm@linux-foundation.org>
+ mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch removed from -mm tree
+Date: Tue, 15 Mar 2016 14:42:52 -0700
+Message-ID: <56e881dc.grBk6u0jcl56nnvF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59969 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59980 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752416AbcCOVmv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Mar 2016 17:42:51 -0400
+	with ESMTP id S1752613AbcCOVmx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Mar 2016 17:42:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: js1304@gmail.com, aaron.lu@intel.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, aaron.lu@intel.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3
+     Subject: mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3.patch
+     mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
 
 This patch was dropped because it was folded into mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous.patch
 
 ------------------------------------------------------
-From: Joonsoo Kim <js1304@gmail.com>
-Subject: mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
 
-v3
-o remove pfn_valid_within() check for all pages in the pageblock
-because pageblock_pfn_to_page() is only called with pageblock aligned pfn.
+don't forget to restore zone->contiguous on error path, per Vlastimil
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Reported-by: Aaron Lu <aaron.lu@intel.com>
-Tested-by: Aaron Lu <aaron.lu@intel.com>
+Cc: Aaron Lu <aaron.lu@intel.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
-Cc: David Rientjes <rientjes@google.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |  139 ++++++++++++++++++++++------------------------
- 1 file changed, 69 insertions(+), 70 deletions(-)
+ mm/memory_hotplug.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3 mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-v3
-+++ a/mm/page_alloc.c
-@@ -1128,6 +1128,75 @@ void __init __free_pages_bootmem(struct
- 	return __free_pages_boot_core(page, pfn, order);
- }
- 
-+/*
-+ * Check that the whole (or subset of) a pageblock given by the interval of
-+ * [start_pfn, end_pfn) is valid and within the same zone, before scanning it
-+ * with the migration of free compaction scanner. The scanners then need to
-+ * use only pfn_valid_within() check for arches that allow holes within
-+ * pageblocks.
-+ *
-+ * Return struct page pointer of start_pfn, or NULL if checks were not passed.
-+ *
-+ * It's possible on some configurations to have a setup like node0 node1 node0
-+ * i.e. it's possible that all pages within a zones range of pages do not
-+ * belong to a single zone. We assume that a border between node0 and node1
-+ * can occur within a single pageblock, but not a node0 node1 node0
-+ * interleaving within a single pageblock. It is therefore sufficient to check
-+ * the first and last page of a pageblock and avoid checking each individual
-+ * page in a pageblock.
-+ */
-+struct page *__pageblock_pfn_to_page(unsigned long start_pfn,
-+				     unsigned long end_pfn, struct zone *zone)
-+{
-+	struct page *start_page;
-+	struct page *end_page;
-+
-+	/* end_pfn is one past the range we are checking */
-+	end_pfn--;
-+
-+	if (!pfn_valid(start_pfn) || !pfn_valid(end_pfn))
-+		return NULL;
-+
-+	start_page = pfn_to_page(start_pfn);
-+
-+	if (page_zone(start_page) != zone)
-+		return NULL;
-+
-+	end_page = pfn_to_page(end_pfn);
-+
-+	/* This gives a shorter code than deriving page_zone(end_page) */
-+	if (page_zone_id(start_page) != page_zone_id(end_page))
-+		return NULL;
-+
-+	return start_page;
-+}
-+
-+void set_zone_contiguous(struct zone *zone)
-+{
-+	unsigned long block_start_pfn = zone->zone_start_pfn;
-+	unsigned long block_end_pfn;
-+
-+	block_end_pfn = ALIGN(block_start_pfn + 1, pageblock_nr_pages);
-+	for (; block_start_pfn < zone_end_pfn(zone);
-+			block_start_pfn = block_end_pfn,
-+			 block_end_pfn += pageblock_nr_pages) {
-+
-+		block_end_pfn = min(block_end_pfn, zone_end_pfn(zone));
-+
-+		if (!__pageblock_pfn_to_page(block_start_pfn,
-+					     block_end_pfn, zone))
-+			return;
-+	}
-+
-+	/* We confirm that there is no hole */
-+	zone->contiguous = true;
-+}
-+
-+void clear_zone_contiguous(struct zone *zone)
-+{
-+	zone->contiguous = false;
-+}
-+
- #ifdef CONFIG_DEFERRED_STRUCT_PAGE_INIT
- static void __init deferred_free_range(struct page *page,
- 					unsigned long pfn, int nr_pages)
-@@ -1304,76 +1373,6 @@ void __init page_alloc_init_late(void)
- 		set_zone_contiguous(zone);
- }
- 
--/*
-- * Check that the whole (or subset of) a pageblock given by the interval of
-- * [start_pfn, end_pfn) is valid and within the same zone, before scanning it
-- * with the migration of free compaction scanner. The scanners then need to
-- * use only pfn_valid_within() check for arches that allow holes within
-- * pageblocks.
-- *
-- * Return struct page pointer of start_pfn, or NULL if checks were not passed.
-- *
-- * It's possible on some configurations to have a setup like node0 node1 node0
-- * i.e. it's possible that all pages within a zones range of pages do not
-- * belong to a single zone. We assume that a border between node0 and node1
-- * can occur within a single pageblock, but not a node0 node1 node0
-- * interleaving within a single pageblock. It is therefore sufficient to check
-- * the first and last page of a pageblock and avoid checking each individual
-- * page in a pageblock.
-- */
--struct page *__pageblock_pfn_to_page(unsigned long start_pfn,
--				unsigned long end_pfn, struct zone *zone)
--{
--	struct page *start_page;
--	struct page *end_page;
+diff -puN mm/memory_hotplug.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix mm/memory_hotplug.c
+--- a/mm/memory_hotplug.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
++++ a/mm/memory_hotplug.c
+@@ -526,7 +526,8 @@ int __ref __add_pages(int nid, struct zo
+ 		if (altmap->base_pfn != phys_start_pfn
+ 				|| vmem_altmap_offset(altmap) > nr_pages) {
+ 			pr_warn_once("memory add fail, invalid altmap\n");
+-			return -EINVAL;
++			err = -EINVAL;
++			goto out;
+ 		}
+ 		altmap->alloc = 0;
+ 	}
+@@ -544,9 +545,8 @@ int __ref __add_pages(int nid, struct zo
+ 		err = 0;
+ 	}
+ 	vmemmap_populate_print_last();
 -
--	/* end_pfn is one past the range we are checking */
--	end_pfn--;
--
--	if (!pfn_valid(start_pfn) || !pfn_valid(end_pfn))
--		return NULL;
--
--	start_page = pfn_to_page(start_pfn);
--
--	if (page_zone(start_page) != zone)
--		return NULL;
--
--	end_page = pfn_to_page(end_pfn);
--
--	/* This gives a shorter code than deriving page_zone(end_page) */
--	if (page_zone_id(start_page) != page_zone_id(end_page))
--		return NULL;
--
--	return start_page;
--}
--
--void set_zone_contiguous(struct zone *zone)
--{
--	unsigned long block_start_pfn = zone->zone_start_pfn;
--	unsigned long block_end_pfn;
--	unsigned long pfn;
--
--	block_end_pfn = ALIGN(block_start_pfn + 1, pageblock_nr_pages);
--	for (; block_start_pfn < zone_end_pfn(zone);
--		block_start_pfn = block_end_pfn,
--		block_end_pfn += pageblock_nr_pages) {
--
--		block_end_pfn = min(block_end_pfn, zone_end_pfn(zone));
--
--		if (!__pageblock_pfn_to_page(block_start_pfn,
--					block_end_pfn, zone))
--			return;
--	}
--
--	/* We confirm that there is no hole */
--	zone->contiguous = true;
--}
--
--void clear_zone_contiguous(struct zone *zone)
--{
--	zone->contiguous = false;
--}
++out:
+ 	set_zone_contiguous(zone);
