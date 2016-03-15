@@ -1,60 +1,63 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-debug_pagealloc-ask-users-for-default-setting-of-debug_pagealloc-v3.patch removed from -mm tree
-Date: Tue, 15 Mar 2016 14:38:54 -0700
-Message-ID: <56e880ee.8E4FRIS3uFdeHPES%akpm@linux-foundation.org>
+ mm-printk-introduce-new-format-string-for-flags-fix.patch removed from -mm
+ tree
+Date: Tue, 15 Mar 2016 14:39:13 -0700
+Message-ID: <56e88101.XEOece9yivEuueUe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59821 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59826 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753681AbcCOViz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Mar 2016 17:38:55 -0400
+	with ESMTP id S1752875AbcCOVjO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Mar 2016 17:39:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, iamjoonsoo.kim@lge.com, peterz@infradead.org, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, heiko.carstens@de.ibm.com, linux@roeck-us.net, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-debug_pagealloc-ask-users-for-default-setting-of-debug_pagealloc-v3
+     Subject: mm-printk-introduce-new-format-string-for-flags-fix
 has been removed from the -mm tree.  Its filename was
-     mm-debug_pagealloc-ask-users-for-default-setting-of-debug_pagealloc-v3.patch
+     mm-printk-introduce-new-format-string-for-flags-fix.patch
 
-This patch was dropped because it was folded into mm-debug_pagealloc-ask-users-for-default-setting-of-debug_pagealloc.patch
+This patch was dropped because it was folded into mm-printk-introduce-new-format-string-for-flags.patch
 
 ------------------------------------------------------
-From: Christian Borntraeger <borntraeger@de.ibm.com>
-Subject: mm-debug_pagealloc-ask-users-for-default-setting-of-debug_pagealloc-v3
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm-printk-introduce-new-format-string-for-flags-fix
 
-v2 -> v3: tab/whitespace, off->n (Paul Bolle)
-	remove "If unsure say no."
+Due to rebasing mistake, mmdebug.h keeps including tracepoint.h, causing
+header dependency issues on some arches.
+Remove the include, and related declarations of flags arrays, which reside
+in mm/internal.h and lib/vsprintf.c already includes that header.
 
-Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Peter Zijlstra <peterz@infradead.org>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Guenter Roeck <linux@roeck-us.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig.debug |    8 +++-----
- 1 file changed, 3 insertions(+), 5 deletions(-)
+ include/linux/mmdebug.h |    6 ------
+ 1 file changed, 6 deletions(-)
 
-diff -puN mm/Kconfig.debug~mm-debug_pagealloc-ask-users-for-default-setting-of-debug_pagealloc-v3 mm/Kconfig.debug
---- a/mm/Kconfig.debug~mm-debug_pagealloc-ask-users-for-default-setting-of-debug_pagealloc-v3
-+++ a/mm/Kconfig.debug
-@@ -34,13 +34,11 @@ config DEBUG_PAGEALLOC
+diff -puN include/linux/mmdebug.h~mm-printk-introduce-new-format-string-for-flags-fix include/linux/mmdebug.h
+--- a/include/linux/mmdebug.h~mm-printk-introduce-new-format-string-for-flags-fix
++++ a/include/linux/mmdebug.h
+@@ -3,17 +3,11 @@
  
- config DEBUG_PAGEALLOC_ENABLE_DEFAULT
- 	bool "Enable debug page memory allocations by default?"
--        default off
--        depends on DEBUG_PAGEALLOC
--        ---help---
-+	default n
-+	depends on DEBUG_PAGEALLOC
-+	---help---
- 	  Enable debug page memory allocations by default? This value
- 	  can be overridden by debug_pagealloc=off|on.
+ #include <linux/bug.h>
+ #include <linux/stringify.h>
+-#include <linux/types.h>
+-#include <linux/tracepoint.h>
  
--	  If unsure say no.
+ struct page;
+ struct vm_area_struct;
+ struct mm_struct;
+ 
+-extern const struct trace_print_flags pageflag_names[];
+-extern const struct trace_print_flags vmaflag_names[];
+-extern const struct trace_print_flags gfpflag_names[];
