@@ -1,83 +1,284 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- slub-drop-lock-at-the-end-of-free_debug_processing-fix.patch removed from
- -mm tree
-Date: Tue, 15 Mar 2016 14:37:26 -0700
-Message-ID: <56e88096.xHgCcyKsx0LOiXtR%akpm@linux-foundation.org>
+Subject: [folded-merged] mm-slub-support-left-red-zone-fix.patch removed
+ from -mm tree
+Date: Tue, 15 Mar 2016 14:38:08 -0700
+Message-ID: <56e880c0.zdtuSsDgn1qinWGa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59792 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59806 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753597AbcCOVh1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Mar 2016 17:37:27 -0400
+	with ESMTP id S1752744AbcCOViK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Mar 2016 17:38:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, cl@linux.com, js1304@gmail.com, keescook@chromium.org, labbott@fedoraproject.org, minipli@googlemail.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub-drop-lock-at-the-end-of-free_debug_processing-fix
+     Subject: mm/slub: support left redzone
 has been removed from the -mm tree.  Its filename was
-     slub-drop-lock-at-the-end-of-free_debug_processing-fix.patch
+     mm-slub-support-left-red-zone-fix.patch
 
-This patch was dropped because it was folded into slub-drop-lock-at-the-end-of-free_debug_processing.patch
+This patch was dropped because it was folded into mm-slub-support-left-red-zone.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: slub-drop-lock-at-the-end-of-free_debug_processing-fix
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/slub: support left redzone
 
-fix build
+v2: fixes per Christoph
+o move red_left_pad field to after the non debugging fields.
+o make for_each_object(_idx) handle red_left_pad
+o remove KASAN dependcy which is incorrect
 
-mm/slub.c: In function 'free_debug_processing':
-mm/slub.c:1211:46: warning: return makes integer from pointer without a cast [enabled by default]
-  unsigned long addr, unsigned long *flags) { return NULL; }
-                                              ^
-mm/slub.c: In function '__slab_free':
-mm/slub.c:2589:6: error: too few arguments to function 'free_debug_processing'
-      !free_debug_processing(s, page, head, tail, cnt, addr))
-      ^
-mm/slub.c:1208:19: note: declared here
- static inline int free_debug_processing(
-
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Laura Abbott <labbott@fedoraproject.org>
-Cc: Mathias Krause <minipli@googlemail.com>
 Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ include/linux/slub_def.h |    2 
+ mm/slub.c                |   82 ++++++++++++-------------------------
+ 2 files changed, 28 insertions(+), 56 deletions(-)
 
-diff -puN mm/slub.c~slub-drop-lock-at-the-end-of-free_debug_processing-fix mm/slub.c
---- a/mm/slub.c~slub-drop-lock-at-the-end-of-free_debug_processing-fix
+diff -puN include/linux/slub_def.h~mm-slub-support-left-red-zone-fix include/linux/slub_def.h
+--- a/include/linux/slub_def.h~mm-slub-support-left-red-zone-fix
++++ a/include/linux/slub_def.h
+@@ -77,11 +77,11 @@ struct kmem_cache {
+ 	int refcount;		/* Refcount for slab cache destroy */
+ 	void (*ctor)(void *);
+ 	int inuse;		/* Offset to metadata */
+-	int red_left_pad;	/* Left redzone padding size */
+ 	int align;		/* Alignment */
+ 	int reserved;		/* Reserved bytes at the end of slabs */
+ 	const char *name;	/* Name (only for display!) */
+ 	struct list_head list;	/* List of slab caches */
++	int red_left_pad;	/* Left redzone padding size */
+ #ifdef CONFIG_SYSFS
+ 	struct kobject kobj;	/* For sysfs */
+ #endif
+diff -puN mm/slub.c~mm-slub-support-left-red-zone-fix mm/slub.c
+--- a/mm/slub.c~mm-slub-support-left-red-zone-fix
 +++ a/mm/slub.c
-@@ -1208,7 +1208,7 @@ static inline int alloc_debug_processing
- static inline int free_debug_processing(
- 	struct kmem_cache *s, struct page *page,
- 	void *head, void *tail, int bulk_cnt,
--	unsigned long addr, unsigned long *flags) { return NULL; }
-+	unsigned long addr) { return 0; }
+@@ -39,10 +39,6 @@
  
- static inline int slab_pad_check(struct kmem_cache *s, struct page *page)
- 			{ return 1; }
+ #include "internal.h"
+ 
+-#ifdef CONFIG_KASAN
+-#include "kasan/kasan.h"
+-#endif
+-
+ /*
+  * Lock order:
+  *   1. slab_mutex (Global Mutex)
+@@ -273,12 +269,14 @@ static inline void set_freepointer(struc
+ 
+ /* Loop over all objects in a slab */
+ #define for_each_object(__p, __s, __addr, __objects) \
+-	for (__p = (__addr); __p < (__addr) + (__objects) * (__s)->size;\
+-			__p += (__s)->size)
++	for (__p = fixup_red_left(__s, __addr); \
++		__p < (__addr) + (__objects) * (__s)->size; \
++		__p += (__s)->size)
+ 
+ #define for_each_object_idx(__p, __idx, __s, __addr, __objects) \
+-	for (__p = (__addr), __idx = 1; __idx <= __objects;\
+-			__p += (__s)->size, __idx++)
++	for (__p = fixup_red_left(__s, __addr), __idx = 1; \
++		__idx <= __objects; \
++		__p += (__s)->size, __idx++)
+ 
+ /* Determine object index from a given position */
+ static inline int slab_index(void *p, struct kmem_cache *s, void *addr)
+@@ -1044,17 +1042,14 @@ static inline void dec_slabs_node(struct
+ }
+ 
+ /* Object debug checks for alloc/free paths */
+-static void *setup_object_debug(struct kmem_cache *s, struct page *page,
++static void setup_object_debug(struct kmem_cache *s, struct page *page,
+ 								void *object)
+ {
+ 	if (!(s->flags & (SLAB_STORE_USER|SLAB_RED_ZONE|__OBJECT_POISON)))
+-		return object;
++		return;
+ 
+-	object = fixup_red_left(s, object);
+ 	init_object(s, object, SLUB_RED_INACTIVE);
+ 	init_tracking(s, object);
+-
+-	return object;
+ }
+ 
+ static inline int alloc_consistency_checks(struct kmem_cache *s,
+@@ -1272,8 +1267,8 @@ unsigned long kmem_cache_flags(unsigned
+ 	return flags;
+ }
+ #else /* !CONFIG_SLUB_DEBUG */
+-static inline void *setup_object_debug(struct kmem_cache *s,
+-			struct page *page, void *object) { return object; }
++static inline void setup_object_debug(struct kmem_cache *s,
++			struct page *page, void *object) {}
+ 
+ static inline int alloc_debug_processing(struct kmem_cache *s,
+ 	struct page *page, void *object, unsigned long addr) { return 0; }
+@@ -1376,17 +1371,15 @@ static inline void slab_free_freelist_ho
+ #endif
+ }
+ 
+-static void *setup_object(struct kmem_cache *s, struct page *page,
++static void setup_object(struct kmem_cache *s, struct page *page,
+ 				void *object)
+ {
+-	object = setup_object_debug(s, page, object);
++	setup_object_debug(s, page, object);
+ 	if (unlikely(s->ctor)) {
+ 		kasan_unpoison_object_data(s, object);
+ 		s->ctor(object);
+ 		kasan_poison_object_data(s, object);
+ 	}
+-
+-	return object;
+ }
+ 
+ /*
+@@ -1482,13 +1475,11 @@ static struct page *allocate_slab(struct
+ 	kasan_poison_slab(page);
+ 
+ 	for_each_object_idx(p, idx, s, start, page->objects) {
+-		void *object = setup_object(s, page, p);
+-
+-		if (likely(idx < page->objects)) {
+-			set_freepointer(s, object,
+-				fixup_red_left(s, p + s->size));
+-		} else
+-			set_freepointer(s, object, NULL);
++		setup_object(s, page, p);
++		if (likely(idx < page->objects))
++			set_freepointer(s, p, p + s->size);
++		else
++			set_freepointer(s, p, NULL);
+ 	}
+ 
+ 	page->freelist = fixup_red_left(s, start);
+@@ -1532,11 +1523,8 @@ static void __free_slab(struct kmem_cach
+ 
+ 		slab_pad_check(s, page);
+ 		for_each_object(p, s, page_address(page),
+-						page->objects) {
+-			void *object = fixup_red_left(s, p);
+-
+-			check_object(s, page, object, SLUB_RED_INACTIVE);
+-		}
++						page->objects)
++			check_object(s, page, p, SLUB_RED_INACTIVE);
+ 	}
+ 
+ 	kmemcheck_free_shadow(page, compound_order(page));
+@@ -3323,7 +3311,7 @@ static int calculate_sizes(struct kmem_c
+ 		 */
+ 		size += 2 * sizeof(struct track);
+ 
+-	if (flags & SLAB_RED_ZONE)
++	if (flags & SLAB_RED_ZONE) {
+ 		/*
+ 		 * Add some empty padding so that we can catch
+ 		 * overwrites from earlier objects rather than let
+@@ -3333,12 +3321,7 @@ static int calculate_sizes(struct kmem_c
+ 		 */
+ 		size += sizeof(void *);
+ 
+-	if (flags & SLAB_RED_ZONE) {
+ 		s->red_left_pad = sizeof(void *);
+-#ifdef CONFIG_KASAN
+-		s->red_left_pad = min_t(int, s->red_left_pad,
+-				KASAN_SHADOW_SCALE_SIZE);
+-#endif
+ 		s->red_left_pad = ALIGN(s->red_left_pad, s->align);
+ 		size += s->red_left_pad;
+ 	}
+@@ -3478,12 +3461,10 @@ static void list_slab_objects(struct kme
+ 
+ 	get_map(s, page, map);
+ 	for_each_object(p, s, addr, page->objects) {
+-		void *object = fixup_red_left(s, p);
+ 
+ 		if (!test_bit(slab_index(p, s, addr), map)) {
+-			pr_err("INFO: Object 0x%p @offset=%tu\n",
+-					object, object - addr);
+-			print_tracking(s, object);
++			pr_err("INFO: Object 0x%p @offset=%tu\n", p, p - addr);
++			print_tracking(s, p);
+ 		}
+ 	}
+ 	slab_unlock(page);
+@@ -4148,21 +4129,15 @@ static int validate_slab(struct kmem_cac
+ 
+ 	get_map(s, page, map);
+ 	for_each_object(p, s, addr, page->objects) {
+-		void *object = fixup_red_left(s, p);
+-
+ 		if (test_bit(slab_index(p, s, addr), map))
+-			if (!check_object(s, page, object, SLUB_RED_INACTIVE))
++			if (!check_object(s, page, p, SLUB_RED_INACTIVE))
+ 				return 0;
+ 	}
+ 
+-	for_each_object(p, s, addr, page->objects) {
+-		void *object = fixup_red_left(s, p);
+-
++	for_each_object(p, s, addr, page->objects)
+ 		if (!test_bit(slab_index(p, s, addr), map))
+-			if (!check_object(s, page, object, SLUB_RED_ACTIVE))
++			if (!check_object(s, page, p, SLUB_RED_ACTIVE))
+ 				return 0;
+-	}
+-
+ 	return 1;
+ }
+ 
+@@ -4360,12 +4335,9 @@ static void process_slab(struct loc_trac
+ 	bitmap_zero(map, page->objects);
+ 	get_map(s, page, map);
+ 
+-	for_each_object(p, s, addr, page->objects) {
+-		void *object = fixup_red_left(s, p);
+-
++	for_each_object(p, s, addr, page->objects)
+ 		if (!test_bit(slab_index(p, s, addr), map))
+-			add_location(t, s, get_track(s, object, alloc));
+-	}
++			add_location(t, s, get_track(s, p, alloc));
+ }
+ 
+ static int list_locations(struct kmem_cache *s, char *buf,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-i-need-old-gcc.patch
-slub-drop-lock-at-the-end-of-free_debug_processing.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
-mm-simplify-lock_page_memcg-fix.patch
-mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
+mm-slab-fix-stale-code-comment.patch
+mm-slab-remove-useless-structure-define.patch
+mm-slab-remove-the-checks-for-slab-implementation-bug.patch
+mm-slab-activate-debug_pagealloc-in-slab-when-it-is-actually-enabled.patch
+mm-slab-use-more-appropriate-condition-check-for-debug_pagealloc.patch
+mm-slab-clean-up-debug_pagealloc-processing-code.patch
+mm-slab-alternative-implementation-for-debug_slab_leak.patch
+mm-slab-remove-object-status-buffer-for-debug_slab_leak.patch
+mm-slab-put-the-freelist-at-the-end-of-slab-page.patch
+mm-slab-align-cache-size-first-before-determination-of-off_slab-candidate.patch
+mm-slab-clean-up-cache-type-determination.patch
+mm-slab-do-not-change-cache-size-if-debug-pagealloc-isnt-possible.patch
+mm-slab-make-criteria-for-off-slab-determination-robust-and-simple.patch
+mm-slab-factor-out-slab-list-fixup-code.patch
+mm-slab-factor-out-debugging-initialization-in-cache_init_objs.patch
+mm-slab-introduce-new-slab-management-type-objfreelist_slab.patch
+mm-slab-avoid-returning-values-by-reference.patch
+mm-slab-re-implement-pfmemalloc-support.patch
+mm-slub-support-left-red-zone.patch
+mm-compaction-fix-invalid-free_pfn-and-compact_cached_free_pfn.patch
+mm-compaction-pass-only-pageblock-aligned-range-to-pageblock_pfn_to_page.patch
+mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous.patch
 
