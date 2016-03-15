@@ -1,65 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch removed from -mm tree
-Date: Tue, 15 Mar 2016 14:36:29 -0700
-Message-ID: <56e8805d.Wf5Kok3FGcL4ko36%akpm@linux-foundation.org>
+ mm-slab-introduce-new-slab-management-type-objfreelist_slab-fix.patch
+ removed from -mm tree
+Date: Tue, 15 Mar 2016 14:36:53 -0700
+Message-ID: <56e88075.lWES9O1v+iYls4Re%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59763 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59776 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751393AbcCOVga (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Mar 2016 17:36:30 -0400
+	with ESMTP id S1752722AbcCOVgz (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Mar 2016 17:36:55 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-slab-put-the-freelist-at-the-end-of-slab-page-fix
+     Subject: fix SLAB_DESTROTY_BY_RCU
 has been removed from the -mm tree.  Its filename was
-     mm-slab-put-the-freelist-at-the-end-of-slab-page-fix.patch
+     mm-slab-introduce-new-slab-management-type-objfreelist_slab-fix.patch
 
-This patch was dropped because it was folded into mm-slab-put-the-freelist-at-the-end-of-slab-page.patch
+This patch was dropped because it was folded into mm-slab-introduce-new-slab-management-type-objfreelist_slab.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-slab-put-the-freelist-at-the-end-of-slab-page-fix
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: fix SLAB_DESTROTY_BY_RCU
 
-fix kerneldoc
-
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |    1 -
- 1 file changed, 1 deletion(-)
+ mm/slab.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/slab.c~mm-slab-put-the-freelist-at-the-end-of-slab-page-fix mm/slab.c
---- a/mm/slab.c~mm-slab-put-the-freelist-at-the-end-of-slab-page-fix
+diff -puN mm/slab.c~mm-slab-introduce-new-slab-management-type-objfreelist_slab-fix mm/slab.c
+--- a/mm/slab.c~mm-slab-introduce-new-slab-management-type-objfreelist_slab-fix
 +++ a/mm/slab.c
-@@ -1868,7 +1868,6 @@ static void slabs_destroy(struct kmem_ca
-  * calculate_slab_order - calculate size (page order) of slabs
-  * @cachep: pointer to the cache that is being created
-  * @size: size of objects to be created in this cache.
-- * @align: required alignment for the objects.
-  * @flags: slab allocation flags
-  *
-  * Also calculates the number of objects per slab.
+@@ -2044,7 +2044,7 @@ static bool set_objfreelist_slab_cache(s
+ 
+ 	cachep->num = 0;
+ 
+-	if (cachep->ctor)
++	if (cachep->ctor || flags & SLAB_DESTROY_BY_RCU)
+ 		return false;
+ 
+ 	left = calculate_slab_order(cachep, size,
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-i-need-old-gcc.patch
+mm-slab-fix-stale-code-comment.patch
+mm-slab-remove-useless-structure-define.patch
+mm-slab-remove-the-checks-for-slab-implementation-bug.patch
+mm-slab-activate-debug_pagealloc-in-slab-when-it-is-actually-enabled.patch
+mm-slab-use-more-appropriate-condition-check-for-debug_pagealloc.patch
+mm-slab-clean-up-debug_pagealloc-processing-code.patch
+mm-slab-alternative-implementation-for-debug_slab_leak.patch
+mm-slab-remove-object-status-buffer-for-debug_slab_leak.patch
 mm-slab-put-the-freelist-at-the-end-of-slab-page.patch
-slub-drop-lock-at-the-end-of-free_debug_processing-fix.patch
-fs-mpagec-mpage_readpages-use-lru_to_page-helper.patch
-mm-page_allocc-introduce-kernelcore=mirror-option-fix.patch
-mm-page_allocc-rework-code-layout-in-memmap_init_zone.patch
-mm-madvise-update-comment-on-sys_madvise-fix.patch
-mm-migrate-do-not-touch-page-mem_cgroup-of-live-pages-fix.patch
-mm-simplify-lock_page_memcg-fix.patch
-mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
+mm-slab-align-cache-size-first-before-determination-of-off_slab-candidate.patch
+mm-slab-clean-up-cache-type-determination.patch
+mm-slab-do-not-change-cache-size-if-debug-pagealloc-isnt-possible.patch
+mm-slab-make-criteria-for-off-slab-determination-robust-and-simple.patch
+mm-slab-factor-out-slab-list-fixup-code.patch
+mm-slab-factor-out-debugging-initialization-in-cache_init_objs.patch
+mm-slab-introduce-new-slab-management-type-objfreelist_slab.patch
+mm-slab-avoid-returning-values-by-reference.patch
+mm-slab-re-implement-pfmemalloc-support.patch
+mm-slab-re-implement-pfmemalloc-support-v2.patch
+mm-slub-support-left-red-zone.patch
+mm-slub-support-left-red-zone-fix.patch
+mm-compaction-fix-invalid-free_pfn-and-compact_cached_free_pfn.patch
+mm-compaction-pass-only-pageblock-aligned-range-to-pageblock_pfn_to_page.patch
+mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous.patch
 
