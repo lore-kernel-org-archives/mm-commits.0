@@ -1,64 +1,78 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch removed from -mm tree
-Date: Tue, 15 Mar 2016 14:42:52 -0700
-Message-ID: <56e881dc.grBk6u0jcl56nnvF%akpm@linux-foundation.org>
+ x86-kallsyms-disable-absolute-percpu-symbols-on-smp-v5.patch removed from
+ -mm tree
+Date: Tue, 15 Mar 2016 14:43:38 -0700
+Message-ID: <56e8820a.8bLlunXNU6cAaoOE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59980 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59990 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613AbcCOVmx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Mar 2016 17:42:53 -0400
+	with ESMTP id S1751968AbcCOVnj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Mar 2016 17:43:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, aaron.lu@intel.com, iamjoonsoo.kim@lge.com, mgorman@suse.de, riel@redhat.com, rientjes@google.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: ard.biesheuvel@linaro.org, keescook@chromium.org, linux@roeck-us.net, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
+     Subject: x86-kallsyms-disable-absolute-percpu-symbols-on-smp-v5
 has been removed from the -mm tree.  Its filename was
-     mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix.patch
+     x86-kallsyms-disable-absolute-percpu-symbols-on-smp-v5.patch
 
-This patch was dropped because it was folded into mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous.patch
+This patch was dropped because it was folded into x86-kallsyms-disable-absolute-percpu-symbols-on-smp.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
+From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Subject: x86-kallsyms-disable-absolute-percpu-symbols-on-smp-v5
 
-don't forget to restore zone->contiguous on error path, per Vlastimil
-
-Cc: Aaron Lu <aaron.lu@intel.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
+Tested-by: Guenter Roeck <linux@roeck-us.net>
+Reviewed-by: Kees Cook <keescook@chromium.org>
+Tested-by: Kees Cook <keescook@chromium.org>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ init/Kconfig            |    4 ++++
+ scripts/link-vmlinux.sh |    2 +-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory_hotplug.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-compaction-speed-up-pageblock_pfn_to_page-when-zone-is-contiguous-fix
-+++ a/mm/memory_hotplug.c
-@@ -526,7 +526,8 @@ int __ref __add_pages(int nid, struct zo
- 		if (altmap->base_pfn != phys_start_pfn
- 				|| vmem_altmap_offset(altmap) > nr_pages) {
- 			pr_warn_once("memory add fail, invalid altmap\n");
--			return -EINVAL;
-+			err = -EINVAL;
-+			goto out;
- 		}
- 		altmap->alloc = 0;
- 	}
-@@ -544,9 +545,8 @@ int __ref __add_pages(int nid, struct zo
- 		err = 0;
- 	}
- 	vmemmap_populate_print_last();
--
-+out:
- 	set_zone_contiguous(zone);
+diff -puN init/Kconfig~x86-kallsyms-disable-absolute-percpu-symbols-on-smp-v5 init/Kconfig
+--- a/init/Kconfig~x86-kallsyms-disable-absolute-percpu-symbols-on-smp-v5
++++ a/init/Kconfig
+@@ -1442,6 +1442,10 @@ config KALLSYMS_ALL
+ 
+ 	   Say N unless you really need all symbols.
+ 
++config KALLSYMS_ABSOLUTE_PERCPU
++	bool
++	default X86_64 && SMP
++
+ config PRINTK
+ 	default y
+ 	bool "Enable support for printk" if EXPERT
+diff -puN scripts/link-vmlinux.sh~x86-kallsyms-disable-absolute-percpu-symbols-on-smp-v5 scripts/link-vmlinux.sh
+--- a/scripts/link-vmlinux.sh~x86-kallsyms-disable-absolute-percpu-symbols-on-smp-v5
++++ a/scripts/link-vmlinux.sh
+@@ -86,7 +86,7 @@ kallsyms()
+ 		kallsymopt="${kallsymopt} --page-offset=$CONFIG_PAGE_OFFSET"
+ 	fi
+ 
+-	if [ -n "${CONFIG_X86_64}" ] && [ -n "${CONFIG_SMP}" ]; then
++	if [ -n "${CONFIG_KALLSYMS_ABSOLUTE_PERCPU}" ]; then
+ 		kallsymopt="${kallsymopt} --absolute-percpu"
+ 	fi
+ 
+_
+
+Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
+
+x86-kallsyms-disable-absolute-percpu-symbols-on-smp.patch
+kallsyms-dont-overload-absolute-symbol-type-for-percpu-symbols.patch
+kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table.patch
+kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table-v5.patch
+
