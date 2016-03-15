@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-kasan-initial-memory-quarantine-implementation-v8.patch
+Subject: +
+ mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-v8.patch
  added to -mm tree
-Date: Tue, 15 Mar 2016 11:51:41 -0700
-Message-ID: <56e859bd.E1K1fBVXhe//IlLO%akpm@linux-foundation.org>
+Date: Tue, 15 Mar 2016 11:51:38 -0700
+Message-ID: <56e859ba.AuPV3q3AXpEJghtl%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52107 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52099 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932212AbcCOSvn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Mar 2016 14:51:43 -0400
+	with ESMTP id S932212AbcCOSvk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 15 Mar 2016 14:51:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: glider@google.com, adech.fo@gmail.com, cl@linux.com, dmitryc@google.com, dvyukov@google.com, iamjoonsoo.kim@lge.com, kcc@google.com, penberg@kernel.org, rientjes@google.com, rostedt@goodmis.org, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: kasan: Initial memory quarantine implementation
+     Subject: mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-v8
 has been added to the -mm tree.  Its filename is
-     mm-kasan-initial-memory-quarantine-implementation-v8.patch
+     mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-v8.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kasan-initial-memory-quarantine-implementation-v8.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-v8.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kasan-initial-memory-quarantine-implementation-v8.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-v8.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,19 +41,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Alexander Potapenko <glider@google.com>
-Subject: mm: kasan: Initial memory quarantine implementation
+Subject: mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-v8
 
-v2: - added copyright comments
-    - per request from Joonsoo Kim made __cache_free() more straightforward
-    - added comments for smp_load_acquire()/smp_store_release()
-
-v3: - incorporate changes introduced by the "mm, kasan: SLAB support" patch
-
-v4: - fix kbuild compile-time error (missing ___cache_free() declaration)
-      and a warning (wrong format specifier)
-
-v6: - extended the patch description
-    - dropped the unused qlist_remove() function
+v8: - removed vmalloc() calls - it turned out to be hard to check if
+vmalloc() is available
 
 Signed-off-by: Alexander Potapenko <glider@google.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -68,175 +60,119 @@ Cc: Dmitry Chernenkov <dmitryc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/kasan/quarantine.c |   59 ++++++++++++++--------------------------
- 1 file changed, 21 insertions(+), 38 deletions(-)
+ lib/Kconfig       |    1 +
+ lib/stackdepot.c  |    7 +++++--
+ mm/kasan/kasan.c  |    4 +---
+ mm/kasan/kasan.h  |    9 ++++-----
+ mm/kasan/report.c |    3 +--
+ 5 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementation-v8 mm/kasan/quarantine.c
---- a/mm/kasan/quarantine.c~mm-kasan-initial-memory-quarantine-implementation-v8
-+++ a/mm/kasan/quarantine.c
-@@ -33,7 +33,7 @@
+diff -puN lib/Kconfig~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-v8 lib/Kconfig
+--- a/lib/Kconfig~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-v8
++++ a/lib/Kconfig
+@@ -538,5 +538,6 @@ config ARCH_HAS_MMIO_FLUSH
  
- /* Data structure and operations for quarantine queues. */
+ config STACKDEPOT
+ 	bool
++	select STACKTRACE
  
--/* Each queue is a signled-linked list, which also stores the total size of
-+/* Each queue is a signle-linked list, which also stores the total size of
-  * objects inside of it.
-  */
- struct qlist {
-@@ -44,20 +44,20 @@ struct qlist {
+ endmenu
+diff -puN lib/stackdepot.c~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-v8 lib/stackdepot.c
+--- a/lib/stackdepot.c~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-v8
++++ a/lib/stackdepot.c
+@@ -34,6 +34,7 @@
+ #include <linux/mm.h>
+ #include <linux/percpu.h>
+ #include <linux/printk.h>
++#include <linux/slab.h>
+ #include <linux/stacktrace.h>
+ #include <linux/stackdepot.h>
+ #include <linux/string.h>
+@@ -203,7 +204,7 @@ depot_stack_handle_t depot_save_stack(st
+ 	void *prealloc = NULL;
  
- #define QLIST_INIT { NULL, NULL, 0 }
+ 	if (unlikely(trace->nr_entries == 0))
+-		goto exit;
++		goto fast_exit;
  
--static inline bool empty_qlist(struct qlist *q)
-+static bool qlist_empty(struct qlist *q)
- {
- 	return !q->head;
+ 	hash = hash_stack(trace->entries, trace->nr_entries);
+ 	/* Bad luck, we won't store this stack. */
+@@ -266,10 +267,12 @@ depot_stack_handle_t depot_save_stack(st
+ 
+ 	spin_unlock_irqrestore(&depot_lock, flags);
+ exit:
+-	if (prealloc)
++	if (prealloc) {
+ 		/* Nobody used this memory, ok to free it. */
+ 		free_pages((unsigned long)prealloc, STACK_ALLOC_ORDER);
++	}
+ 	if (found)
+ 		retval = found->handle.handle;
++fast_exit:
+ 	return retval;
+ }
+diff -puN mm/kasan/kasan.c~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-v8 mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-v8
++++ a/mm/kasan/kasan.c
+@@ -414,6 +414,7 @@ void kasan_poison_object_data(struct kme
+ #endif
  }
  
--static inline void init_qlist(struct qlist *q)
-+static void qlist_init(struct qlist *q)
++#ifdef CONFIG_SLAB
+ static inline int in_irqentry_text(unsigned long ptr)
  {
- 	q->head = q->tail = NULL;
- 	q->bytes = 0;
+ 	return (ptr >= (unsigned long)&__irqentry_text_start &&
+@@ -457,13 +458,10 @@ static inline depot_stack_handle_t save_
+ 
+ static inline void set_track(struct kasan_track *track, gfp_t flags)
+ {
+-	track->cpu = raw_smp_processor_id();
+ 	track->pid = current->pid;
+-	track->when = jiffies;
+ 	track->stack = save_stack(flags);
  }
  
--static inline void qlist_put(struct qlist *q, void **qlink, size_t size)
-+static void qlist_put(struct qlist *q, void **qlink, size_t size)
+-#ifdef CONFIG_SLAB
+ struct kasan_alloc_meta *get_alloc_info(struct kmem_cache *cache,
+ 					const void *object)
  {
--	if (unlikely(empty_qlist(q)))
-+	if (unlikely(qlist_empty(q)))
- 		q->head = qlink;
- 	else
- 		*q->tail = qlink;
-@@ -66,31 +66,14 @@ static inline void qlist_put(struct qlis
- 	q->bytes += size;
- }
+diff -puN mm/kasan/kasan.h~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-v8 mm/kasan/kasan.h
+--- a/mm/kasan/kasan.h~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-v8
++++ a/mm/kasan/kasan.h
+@@ -68,16 +68,15 @@ enum kasan_state {
+ #define KASAN_STACK_DEPTH 64
  
--static inline void **qlist_remove(struct qlist *q, void ***prev,
--				 size_t size)
-+static void qlist_move_all(struct qlist *from, struct qlist *to)
+ struct kasan_track {
+-	u64 cpu : 6;			/* for NR_CPUS = 64 */
+-	u64 pid : 16;			/* 65536 processes */
+-	u64 when : 42;			/* ~140 years */
+-	depot_stack_handle_t stack : sizeof(depot_stack_handle_t);
++	u32 pid;
++	depot_stack_handle_t stack;
+ };
+ 
+ struct kasan_alloc_meta {
++	struct kasan_track track;
+ 	u32 state : 2;	/* enum kasan_state */
+ 	u32 alloc_size : 30;
+-	struct kasan_track track;
++	u32 reserved;
+ };
+ 
+ struct kasan_free_meta {
+diff -puN mm/kasan/report.c~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-v8 mm/kasan/report.c
+--- a/mm/kasan/report.c~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-v8
++++ a/mm/kasan/report.c
+@@ -119,8 +119,7 @@ static inline bool init_task_stack_addr(
+ #ifdef CONFIG_SLAB
+ static void print_track(struct kasan_track *track)
  {
--	void **qlink = *prev;
--
--	*prev = *qlink;
--	if (q->tail == qlink) {
--		if (q->head == qlink)
--			q->tail = NULL;
--		else
--			q->tail = (void **)prev;
--	}
--	q->bytes -= size;
--
--	return qlink;
--}
--
--static inline void qlist_move_all(struct qlist *from, struct qlist *to)
--{
--	if (unlikely(empty_qlist(from)))
-+	if (unlikely(qlist_empty(from)))
- 		return;
+-	pr_err("PID = %u, CPU = %u, timestamp = %lu\n", track->pid,
+-	       track->cpu, (unsigned long)track->when);
++	pr_err("PID = %u\n", track->pid);
+ 	if (track->stack) {
+ 		struct stack_trace trace;
  
--	if (empty_qlist(to)) {
-+	if (qlist_empty(to)) {
- 		*to = *from;
--		init_qlist(from);
-+		qlist_init(from);
- 		return;
- 	}
- 
-@@ -98,17 +81,17 @@ static inline void qlist_move_all(struct
- 	to->tail = from->tail;
- 	to->bytes += from->bytes;
- 
--	init_qlist(from);
-+	qlist_init(from);
- }
- 
--static inline void qlist_move(struct qlist *from, void **last, struct qlist *to,
-+static void qlist_move(struct qlist *from, void **last, struct qlist *to,
- 			  size_t size)
- {
- 	if (unlikely(last == from->tail)) {
- 		qlist_move_all(from, to);
- 		return;
- 	}
--	if (empty_qlist(to))
-+	if (qlist_empty(to))
- 		to->head = from->head;
- 	else
- 		*to->tail = from->head;
-@@ -143,12 +126,12 @@ static unsigned long quarantine_size;
- #define QUARANTINE_LOW_SIZE (smp_load_acquire(&quarantine_size) * 3 / 4)
- #define QUARANTINE_PERCPU_SIZE (1 << 20)
- 
--static inline struct kmem_cache *qlink_to_cache(void **qlink)
-+static struct kmem_cache *qlink_to_cache(void **qlink)
- {
- 	return virt_to_head_page(qlink)->slab_cache;
- }
- 
--static inline void *qlink_to_object(void **qlink, struct kmem_cache *cache)
-+static void *qlink_to_object(void **qlink, struct kmem_cache *cache)
- {
- 	struct kasan_free_meta *free_info =
- 		container_of((void ***)qlink, struct kasan_free_meta,
-@@ -157,7 +140,7 @@ static inline void *qlink_to_object(void
- 	return ((void *)free_info) - cache->kasan_info.free_meta_offset;
- }
- 
--static inline void qlink_free(void **qlink, struct kmem_cache *cache)
-+static void qlink_free(void **qlink, struct kmem_cache *cache)
- {
- 	void *object = qlink_to_object(qlink, cache);
- 	struct kasan_alloc_meta *alloc_info = get_alloc_info(cache, object);
-@@ -169,11 +152,11 @@ static inline void qlink_free(void **qli
- 	local_irq_restore(flags);
- }
- 
--static inline void qlist_free_all(struct qlist *q, struct kmem_cache *cache)
-+static void qlist_free_all(struct qlist *q, struct kmem_cache *cache)
- {
- 	void **qlink;
- 
--	if (unlikely(empty_qlist(q)))
-+	if (unlikely(qlist_empty(q)))
- 		return;
- 
- 	qlink = q->head;
-@@ -185,7 +168,7 @@ static inline void qlist_free_all(struct
- 		qlink_free(qlink, obj_cache);
- 		qlink = next;
- 	}
--	init_qlist(q);
-+	qlist_init(q);
- }
- 
- void quarantine_put(struct kasan_free_meta *info, struct kmem_cache *cache)
-@@ -203,7 +186,7 @@ void quarantine_put(struct kasan_free_me
- 
- 	local_irq_restore(flags);
- 
--	if (unlikely(!empty_qlist(&temp))) {
-+	if (unlikely(!qlist_empty(&temp))) {
- 		spin_lock_irqsave(&quarantine_lock, flags);
- 		qlist_move_all(&temp, &global_quarantine);
- 		spin_unlock_irqrestore(&quarantine_lock, flags);
-@@ -251,13 +234,13 @@ void quarantine_reduce(void)
- 	qlist_free_all(&to_free, NULL);
- }
- 
--static inline void qlist_move_cache(struct qlist *from,
-+static void qlist_move_cache(struct qlist *from,
- 				   struct qlist *to,
- 				   struct kmem_cache *cache)
- {
- 	void ***prev;
- 
--	if (unlikely(empty_qlist(from)))
-+	if (unlikely(qlist_empty(from)))
- 		return;
- 
- 	prev = &from->head;
 _
 
 Patches currently in -mm which might be from glider@google.com are
