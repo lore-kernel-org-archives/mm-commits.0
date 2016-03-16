@@ -1,126 +1,134 @@
 From: akpm@linux-foundation.org
-Subject: [merged] thp-cleanup-split_huge_page.patch removed from -mm tree
-Date: Wed, 16 Mar 2016 12:57:02 -0700
-Message-ID: <56e9ba8e.rh7BYmdFRz+DOAgk%akpm@linux-foundation.org>
+Subject: [merged] x86-query-dynamic-debug_pagealloc-setting.patch removed
+ from -mm tree
+Date: Wed, 16 Mar 2016 12:57:04 -0700
+Message-ID: <56e9ba90.u+wb6/uRhP0f7bZE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39083 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39087 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755335AbcCPT5D (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:57:03 -0400
+	with ESMTP id S1755335AbcCPT5F (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:57:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: borntraeger@de.ibm.com, heiko.carstens@de.ibm.com, iamjoonsoo.kim@lge.com, labbott@fedoraproject.org, rientjes@google.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: cleanup split_huge_page()
+     Subject: x86: query dynamic DEBUG_PAGEALLOC setting
 has been removed from the -mm tree.  Its filename was
-     thp-cleanup-split_huge_page.patch
+     x86-query-dynamic-debug_pagealloc-setting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: cleanup split_huge_page()
+From: Christian Borntraeger <borntraeger@de.ibm.com>
+Subject: x86: query dynamic DEBUG_PAGEALLOC setting
 
-After one of bugfixes to freeze_page(), we don't have freezed pages in
-rmap, therefore mapcount of all subpages of freezed THP is zero.  And we
-have assert for that.
+We can use debug_pagealloc_enabled() to check if we can map the identity
+mapping with 2MB pages.  We can also add the state into the dump_stack
+output.
 
-Let's drop code which deal with non-zero mapcount of subpages.
+The patch does not touch the code for the 1GB pages, which ignored
+CONFIG_DEBUG_PAGEALLOC.  Do we need to fence this as well?
 
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Reviewed-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Laura Abbott <labbott@fedoraproject.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |   20 +++++++-------------
- 1 file changed, 7 insertions(+), 13 deletions(-)
+ arch/x86/kernel/dumpstack.c |    5 ++---
+ arch/x86/mm/init.c          |    7 ++++---
+ arch/x86/mm/pageattr.c      |   14 ++++----------
+ 3 files changed, 10 insertions(+), 16 deletions(-)
 
-diff -puN mm/huge_memory.c~thp-cleanup-split_huge_page mm/huge_memory.c
---- a/mm/huge_memory.c~thp-cleanup-split_huge_page
-+++ a/mm/huge_memory.c
-@@ -3220,28 +3220,26 @@ static void unfreeze_page(struct anon_vm
- 	}
- }
+diff -puN arch/x86/kernel/dumpstack.c~x86-query-dynamic-debug_pagealloc-setting arch/x86/kernel/dumpstack.c
+--- a/arch/x86/kernel/dumpstack.c~x86-query-dynamic-debug_pagealloc-setting
++++ a/arch/x86/kernel/dumpstack.c
+@@ -265,9 +265,8 @@ int __die(const char *str, struct pt_reg
+ #ifdef CONFIG_SMP
+ 	printk("SMP ");
+ #endif
+-#ifdef CONFIG_DEBUG_PAGEALLOC
+-	printk("DEBUG_PAGEALLOC ");
+-#endif
++	if (debug_pagealloc_enabled())
++		printk("DEBUG_PAGEALLOC ");
+ #ifdef CONFIG_KASAN
+ 	printk("KASAN");
+ #endif
+diff -puN arch/x86/mm/init.c~x86-query-dynamic-debug_pagealloc-setting arch/x86/mm/init.c
+--- a/arch/x86/mm/init.c~x86-query-dynamic-debug_pagealloc-setting
++++ a/arch/x86/mm/init.c
+@@ -150,13 +150,14 @@ static int page_size_mask;
  
--static int __split_huge_page_tail(struct page *head, int tail,
-+static void __split_huge_page_tail(struct page *head, int tail,
- 		struct lruvec *lruvec, struct list_head *list)
+ static void __init probe_page_size_mask(void)
  {
--	int mapcount;
- 	struct page *page_tail = head + tail;
- 
--	mapcount = atomic_read(&page_tail->_mapcount) + 1;
-+	VM_BUG_ON_PAGE(atomic_read(&page_tail->_mapcount) != -1, page_tail);
- 	VM_BUG_ON_PAGE(atomic_read(&page_tail->_count) != 0, page_tail);
- 
+-#if !defined(CONFIG_DEBUG_PAGEALLOC) && !defined(CONFIG_KMEMCHECK)
++#if !defined(CONFIG_KMEMCHECK)
  	/*
- 	 * tail_page->_count is zero and not changing from under us. But
- 	 * get_page_unless_zero() may be running from under us on the
--	 * tail_page. If we used atomic_set() below instead of atomic_add(), we
-+	 * tail_page. If we used atomic_set() below instead of atomic_inc(), we
- 	 * would then run atomic_set() concurrently with
- 	 * get_page_unless_zero(), and atomic_set() is implemented in C not
- 	 * using locked ops. spin_unlock on x86 sometime uses locked ops
- 	 * because of PPro errata 66, 92, so unless somebody can guarantee
- 	 * atomic_set() here would be safe on all archs (and not only on x86),
--	 * it's safer to use atomic_add().
-+	 * it's safer to use atomic_inc().
+-	 * For CONFIG_DEBUG_PAGEALLOC, identity mapping will use small pages.
++	 * For CONFIG_KMEMCHECK or pagealloc debugging, identity mapping will
++	 * use small pages.
+ 	 * This will simplify cpa(), which otherwise needs to support splitting
+ 	 * large pages into small in interrupt context, etc.
  	 */
--	atomic_add(mapcount + 1, &page_tail->_count);
+-	if (cpu_has_pse)
++	if (cpu_has_pse && !debug_pagealloc_enabled())
+ 		page_size_mask |= 1 << PG_LEVEL_2M;
+ #endif
+ 
+diff -puN arch/x86/mm/pageattr.c~x86-query-dynamic-debug_pagealloc-setting arch/x86/mm/pageattr.c
+--- a/arch/x86/mm/pageattr.c~x86-query-dynamic-debug_pagealloc-setting
++++ a/arch/x86/mm/pageattr.c
+@@ -106,12 +106,6 @@ static inline unsigned long highmap_end_
+ 
+ #endif
+ 
+-#ifdef CONFIG_DEBUG_PAGEALLOC
+-# define debug_pagealloc 1
+-#else
+-# define debug_pagealloc 0
+-#endif
 -
-+	atomic_inc(&page_tail->_count);
+ static inline int
+ within(unsigned long addr, unsigned long start, unsigned long end)
+ {
+@@ -714,10 +708,10 @@ static int split_large_page(struct cpa_d
+ {
+ 	struct page *base;
  
- 	page_tail->flags &= ~PAGE_FLAGS_CHECK_AT_PREP;
- 	page_tail->flags |= (head->flags &
-@@ -3275,8 +3273,6 @@ static int __split_huge_page_tail(struct
- 	page_tail->index = head->index + tail;
- 	page_cpupid_xchg_last(page_tail, page_cpupid_last(head));
- 	lru_add_page_tail(head, page_tail, lruvec, list);
--
--	return mapcount;
- }
+-	if (!debug_pagealloc)
++	if (!debug_pagealloc_enabled())
+ 		spin_unlock(&cpa_lock);
+ 	base = alloc_pages(GFP_KERNEL | __GFP_NOTRACK, 0);
+-	if (!debug_pagealloc)
++	if (!debug_pagealloc_enabled())
+ 		spin_lock(&cpa_lock);
+ 	if (!base)
+ 		return -ENOMEM;
+@@ -1337,10 +1331,10 @@ static int __change_page_attr_set_clr(st
+ 		if (cpa->flags & (CPA_ARRAY | CPA_PAGES_ARRAY))
+ 			cpa->numpages = 1;
  
- static void __split_huge_page(struct page *page, struct list_head *list)
-@@ -3284,7 +3280,7 @@ static void __split_huge_page(struct pag
- 	struct page *head = compound_head(page);
- 	struct zone *zone = page_zone(head);
- 	struct lruvec *lruvec;
--	int i, tail_mapcount;
-+	int i;
- 
- 	/* prevent PageLRU to go away from under us, and freeze lru stats */
- 	spin_lock_irq(&zone->lru_lock);
-@@ -3293,10 +3289,8 @@ static void __split_huge_page(struct pag
- 	/* complete memcg works before add pages to LRU */
- 	mem_cgroup_split_huge_fixup(head);
- 
--	tail_mapcount = 0;
- 	for (i = HPAGE_PMD_NR - 1; i >= 1; i--)
--		tail_mapcount += __split_huge_page_tail(head, i, lruvec, list);
--	atomic_sub(tail_mapcount, &head->_count);
-+		__split_huge_page_tail(head, i, lruvec, list);
- 
- 	ClearPageCompound(head);
- 	spin_unlock_irq(&zone->lru_lock);
+-		if (!debug_pagealloc)
++		if (!debug_pagealloc_enabled())
+ 			spin_lock(&cpa_lock);
+ 		ret = __change_page_attr(cpa, checkalias);
+-		if (!debug_pagealloc)
++		if (!debug_pagealloc_enabled())
+ 			spin_unlock(&cpa_lock);
+ 		if (ret)
+ 			return ret;
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from borntraeger@de.ibm.com are
 
-thp-vmstats-count-deferred-split-events.patch
-mm-tracing-refresh-__def_vmaflag_names.patch
-mm-cleanup-pte_alloc-interfaces.patch
-rmap-introduce-rmap_walk_locked.patch
-rmap-extend-try_to_unmap-to-be-usable-by-split_huge_page.patch
-mm-make-remove_migration_ptes-beyond-mm-migrationc.patch
-thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers.patch
-thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix.patch
-thp-fix-deadlock-in-split_huge_pmd.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
 
