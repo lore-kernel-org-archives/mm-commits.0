@@ -1,68 +1,85 @@
 From: akpm@linux-foundation.org
-Subject: [merged] checkpatch-fix-left-brace-warning.patch removed from -mm tree
-Date: Wed, 16 Mar 2016 12:57:34 -0700
-Message-ID: <56e9baae.IoetrqoJjuoT8uw+%akpm@linux-foundation.org>
+Subject: [merged]
+ checkpatch-warn-on-bare-unsigned-or-signed-declarations-without-int.patch
+ removed from -mm tree
+Date: Wed, 16 Mar 2016 12:57:30 -0700
+Message-ID: <56e9baaa.GQxxsZaVhz9z6p35%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39164 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39160 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755190AbcCPT5f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:57:35 -0400
+	with ESMTP id S934390AbcCPT5b (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:57:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: geyslan@gmail.com, ewk@edkovsky.org, joe@perches.com, peter.senna@gmail.com, mm-commits@vger.kernel.org
+To: joe@perches.com, davem@davemloft.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: fix another left brace warning
+     Subject: checkpatch: warn on bare unsigned or signed declarations without int
 has been removed from the -mm tree.  Its filename was
-     checkpatch-fix-left-brace-warning.patch
+     checkpatch-warn-on-bare-unsigned-or-signed-declarations-without-int.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Geyslan G. Bem <geyslan@gmail.com>
-Subject: checkpatch: fix another left brace warning
+From: Joe Perches <joe@perches.com>
+Subject: checkpatch: warn on bare unsigned or signed declarations without int
 
-This patch escapes a regex that uses left brace.
+Kernel style prefers "unsigned int <foo>" over "unsigned <foo>" and
+"signed int <foo>" over "signed <foo>".
 
-Using checkpatch.pl with Perl 5.22.0 generates the warning: "Unescaped
-left brace in regex is deprecated, passed through in regex;"
+Emit a warning for these simple signed/unsigned <foo> declarations.
+Fix it too if desired.
 
-Comment from regcomp.c in Perl source: "Currently we don't warn when the
-lbrace is at the start of a construct.  This catches it in the middle of a
-literal string, or when it's the first thing after something like "\b"."
-
-This works as a complement to 4e5d56bd ("checkpatch: fix left brace
-warning").
-
-Signed-off-by: Geyslan G. Bem <geyslan@gmail.com>
 Signed-off-by: Joe Perches <joe@perches.com>
-Suggested-by: Peter Senna Tschudin <peter.senna@gmail.com>
-Cc: Eddie Kovsky <ewk@edkovsky.org>
+Acked-by: David S. Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ scripts/checkpatch.pl |   20 ++++++++++++++++++++
+ 1 file changed, 20 insertions(+)
 
-diff -puN scripts/checkpatch.pl~checkpatch-fix-left-brace-warning scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-fix-left-brace-warning
+diff -puN scripts/checkpatch.pl~checkpatch-warn-on-bare-unsigned-or-signed-declarations-without-int scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-warn-on-bare-unsigned-or-signed-declarations-without-int
 +++ a/scripts/checkpatch.pl
-@@ -4132,7 +4132,7 @@ sub process {
- ## 		}
+@@ -3239,6 +3239,26 @@ sub process {
+ #ignore lines not being added
+ 		next if ($line =~ /^[^\+]/);
  
- #need space before brace following if, while, etc
--		if (($line =~ /\(.*\)\{/ && $line !~ /\($Type\){/) ||
-+		if (($line =~ /\(.*\)\{/ && $line !~ /\($Type\)\{/) ||
- 		    $line =~ /do\{/) {
- 			if (ERROR("SPACING",
- 				  "space required before the open brace '{'\n" . $herecurr) &&
++# check for declarations of signed or unsigned without int
++		while ($line =~ m{($Declare++)\s*($Ident)\s*[=,;\[\)]}g) {
++			my $type = $1;
++			my $var = $2;
++			if ($type =~ /^((?:un)?signed)((?:\s*\*)*)\s*$/) {
++				my $sign = $1;
++				my $pointer = $2;
++
++				$pointer = "" if (!defined $pointer);
++
++				if (WARN("UNSPECIFIED_INT",
++					 "Prefer '" . trim($sign) . " int" . rtrim($pointer) . "' to bare use of '$sign" . rtrim($pointer) . "'\n" . $herecurr) &&
++				    $fix) {
++					my $decl = trim($sign) . " int ";
++					$decl .= trim($pointer) if (rtrim($pointer) ne "");
++					$fixed[$fixlinenr] =~ s@\b\Q$type\E\s*$var\b@$decl$var@;
++				}
++			}
++		}
++
+ # TEST: allow direct testing of the type matcher.
+ 		if ($dbg_type) {
+ 			if ($line =~ /^.\s*$Declare\s*$/) {
 _
 
-Patches currently in -mm which might be from geyslan@gmail.com are
+Patches currently in -mm which might be from joe@perches.com are
 
+mm-convert-pr_warning-to-pr_warn.patch
+mm-coalesce-split-strings.patch
+mm-convert-printkkern_level-to-pr_level.patch
+mm-percpu-use-pr_fmt-to-prefix-output.patch
+kernel-convert-pr_warning-to-pr_warn.patch
 
