@@ -1,122 +1,96 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- slub-cleanup-code-for-kmem-cgroup-support-to-kmem_cache_free_bulk.patch
- removed from -mm tree
-Date: Wed, 16 Mar 2016 12:53:32 -0700
-Message-ID: <56e9b9bc.JtVCEjUe9NFLW6lX%akpm@linux-foundation.org>
+ block-partition-add-partition-specific-uevent-callbacks-for-partition-info.patch removed from -mm tree
+Date: Wed, 16 Mar 2016 12:53:26 -0700
+Message-ID: <56e9b9b6.cIXfOgKJRm/1YHCG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38413 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38393 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755335AbcCPTxd (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:53:33 -0400
+	with ESMTP id S1752208AbcCPTx1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:53:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: san@google.com, axboe@kernel.dk, dima@android.com, harald@redhat.com, jmoyer@redhat.com, john.stultz@linaro.org, kay@vrfy.org, keescook@chromium.org, kernel-team@android.com, romlem@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: clean up code for kmem cgroup support to kmem_cache_free_bulk
+     Subject: block: partition: add partition specific uevent callbacks for partition info
 has been removed from the -mm tree.  Its filename was
-     slub-cleanup-code-for-kmem-cgroup-support-to-kmem_cache_free_bulk.patch
+     block-partition-add-partition-specific-uevent-callbacks-for-partition-info.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: slub: clean up code for kmem cgroup support to kmem_cache_free_bulk
+From: San Mehat <san@google.com>
+Subject: block: partition: add partition specific uevent callbacks for partition info
 
-This change is primarily an attempt to make it easier to realize the
-optimizations the compiler performs in-case CONFIG_MEMCG_KMEM is not
-enabled.
+This patch has been carried in the Android tree for quite some time and is
+one of the few patches required to get a mainline kernel up and running
+with an exsiting Android userspace.  So I wanted to submit it for review
+and consideration if it should be merged.
 
-Performance wise, even when CONFIG_MEMCG_KMEM is compiled in, the overhead
-is zero.  This is because, as long as no process have enabled kmem cgroups
-accounting, the assignment is replaced by asm-NOP operations.  This is
-possible because memcg_kmem_enabled() uses a static_key_false() construct.
+For partitions, add new uevent parameters 'PARTN' which specifies the
+partitions index in the table, and 'PARTNAME', which specifies PARTNAME
+specifices the partition name of a partition device.
 
-It also helps readability as it avoid accessing the p[] array like: p[size
-- 1] which "expose" that the array is processed backwards inside helper
-function build_detached_freelist().
+Android's userspace uses this for creating device node links from the
+partition name and number: ie:
+	/dev/block/platform/soc/by-name/system
+or
+	/dev/block/platform/soc/by-num/p1
 
-Lastly this also makes the code more robust, in error case like passing
-NULL pointers in the array.  Which were previously handled before commit
-033745189b1b ("slub: add missing kmem cgroup support to
-kmem_cache_free_bulk").
+One can see its usage here:
+https://android.googlesource.com/platform/system/core/+/master/init/devices.cpp#355
+and
+https://android.googlesource.com/platform/system/core/+/master/init/devices.cpp#494
 
-Fixes: 033745189b1b ("slub: add missing kmem cgroup support to kmem_cache_free_bulk")
-Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+[john.stultz@linaro.org: dropped NPARTS and reworded commit message for context]
+Signed-off-by: Dima Zavin <dima@android.com>
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Rom Lemarchand <romlem@google.com>
+Cc: Android Kernel Team <kernel-team@android.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: <harald@redhat.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Kay Sievers <kay@vrfy.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ block/partition-generic.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff -puN mm/slub.c~slub-cleanup-code-for-kmem-cgroup-support-to-kmem_cache_free_bulk mm/slub.c
---- a/mm/slub.c~slub-cleanup-code-for-kmem-cgroup-support-to-kmem_cache_free_bulk
-+++ a/mm/slub.c
-@@ -2815,6 +2815,7 @@ struct detached_freelist {
- 	void *tail;
- 	void *freelist;
- 	int cnt;
-+	struct kmem_cache *s;
- };
- 
- /*
-@@ -2829,8 +2830,9 @@ struct detached_freelist {
-  * synchronization primitive.  Look ahead in the array is limited due
-  * to performance reasons.
-  */
--static int build_detached_freelist(struct kmem_cache *s, size_t size,
--				   void **p, struct detached_freelist *df)
-+static inline
-+int build_detached_freelist(struct kmem_cache *s, size_t size,
-+			    void **p, struct detached_freelist *df)
- {
- 	size_t first_skipped_index = 0;
- 	int lookahead = 3;
-@@ -2846,8 +2848,11 @@ static int build_detached_freelist(struc
- 	if (!object)
- 		return 0;
- 
-+	/* Support for memcg, compiler can optimize this out */
-+	df->s = cache_from_obj(s, object);
-+
- 	/* Start new detached freelist */
--	set_freepointer(s, object, NULL);
-+	set_freepointer(df->s, object, NULL);
- 	df->page = virt_to_head_page(object);
- 	df->tail = object;
- 	df->freelist = object;
-@@ -2862,7 +2867,7 @@ static int build_detached_freelist(struc
- 		/* df->page is always set at this point */
- 		if (df->page == virt_to_head_page(object)) {
- 			/* Opportunity build freelist */
--			set_freepointer(s, object, df->freelist);
-+			set_freepointer(df->s, object, df->freelist);
- 			df->freelist = object;
- 			df->cnt++;
- 			p[size] = NULL; /* mark object processed */
-@@ -2881,25 +2886,20 @@ static int build_detached_freelist(struc
- 	return first_skipped_index;
+diff -puN block/partition-generic.c~block-partition-add-partition-specific-uevent-callbacks-for-partition-info block/partition-generic.c
+--- a/block/partition-generic.c~block-partition-add-partition-specific-uevent-callbacks-for-partition-info
++++ a/block/partition-generic.c
+@@ -217,10 +217,21 @@ static void part_release(struct device *
+ 	kfree(p);
  }
  
--
- /* Note that interrupts must be enabled when calling this function. */
--void kmem_cache_free_bulk(struct kmem_cache *orig_s, size_t size, void **p)
-+void kmem_cache_free_bulk(struct kmem_cache *s, size_t size, void **p)
- {
- 	if (WARN_ON(!size))
- 		return;
++static int part_uevent(struct device *dev, struct kobj_uevent_env *env)
++{
++	struct hd_struct *part = dev_to_part(dev);
++
++	add_uevent_var(env, "PARTN=%u", part->partno);
++	if (part->info && part->info->volname[0])
++		add_uevent_var(env, "PARTNAME=%s", part->info->volname);
++	return 0;
++}
++
+ struct device_type part_type = {
+ 	.name		= "partition",
+ 	.groups		= part_attr_groups,
+ 	.release	= part_release,
++	.uevent		= part_uevent,
+ };
  
- 	do {
- 		struct detached_freelist df;
--		struct kmem_cache *s;
+ static void delete_partition_rcu_cb(struct rcu_head *head)
+_
+
+Patches currently in -mm which might be from san@google.com are
+
+
