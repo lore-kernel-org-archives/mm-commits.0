@@ -1,57 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_owner-dump-page-owner-info-from-dump_page.patch
+Subject: [merged]
+ mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
  removed from -mm tree
-Date: Wed, 16 Mar 2016 12:56:06 -0700
-Message-ID: <56e9ba56.2vVWLh2POLkNnTOv%akpm@linux-foundation.org>
+Date: Wed, 16 Mar 2016 12:55:57 -0700
+Message-ID: <56e9ba4d.oMzNCXThizACIkMk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38836 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38794 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934033AbcCPT4H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:56:07 -0400
+	with ESMTP id S1752162AbcCPTz6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:55:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_owner: dump page owner info from dump_page()
+     Subject: mm, page_owner: print migratetype of page and pageblock, symbolic flags
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-dump-page-owner-info-from-dump_page.patch
+     mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_owner: dump page owner info from dump_page()
+Subject: mm, page_owner: print migratetype of page and pageblock, symbolic flags
 
-The page_owner mechanism is useful for dealing with memory leaks.  By
-reading /sys/kernel/debug/page_owner one can determine the stack traces
-leading to allocations of all pages, and find e.g.  a buggy driver.
+The information in /sys/kernel/debug/page_owner includes the migratetype
+of the pageblock the page belongs to.  This is also checked against the
+page's migratetype (as declared by gfp_flags during its allocation), and
+the page is reported as Fallback if its migratetype differs from the
+pageblock's one.  t This is somewhat misleading because in fact fallback
+allocation is not the only reason why these two can differ.  It also
+doesn't direcly provide the page's migratetype, although it's possible to
+derive that from the gfp_flags.
 
-This information might be also potentially useful for debugging, such as
-the VM_BUG_ON_PAGE() calls to dump_page().  So let's print the stored info
-from dump_page().
+It's arguably better to print both page and pageblock's migratetype and
+leave the interpretation to the consumer than to suggest fallback
+allocation as the only possible reason.  While at it, we can print the
+migratetypes as string the same way as /proc/pagetypeinfo does, as some of
+the numeric values depend on kernel configuration.  For that, this patch
+moves the migratetype_names array from #ifdef CONFIG_PROC_FS part of
+mm/vmstat.c to mm/page_alloc.c and exports it.
 
-Example output:
+With the new format strings for flags, we can now also provide symbolic
+page and gfp flags in the /sys/kernel/debug/page_owner file.  This
+replaces the positional printing of page flags as single letters, which
+might have looked nicer, but was limited to a subset of flags, and
+required the user to remember the letters.
 
-page:ffffea000292f1c0 count:1 mapcount:0 mapping:ffff8800b2f6cc18 index:0x91d
-flags: 0x1fffff8001002c(referenced|uptodate|lru|mappedtodisk)
-page dumped because: VM_BUG_ON_PAGE(1)
-page->mem_cgroup:ffff8801392c5000
-page allocated via order 0, migratetype Movable, gfp_mask 0x24213ca(GFP_HIGHUSER_MOVABLE|__GFP_COLD|__GFP_NOWARN|__GFP_NORETRY)
+Example page_owner entry after the patch:
+
+Page allocated via order 0, mask 0x24213ca(GFP_HIGHUSER_MOVABLE|__GFP_COLD|__GFP_NOWARN|__GFP_NORETRY)
+PFN 520 type Movable Block 1 type Movable Flags 0xfffff8001006c(referenced|uptodate|lru|active|mappedtodisk)
  [<ffffffff811682c4>] __alloc_pages_nodemask+0x134/0x230
- [<ffffffff811b40c8>] alloc_pages_current+0x88/0x120
+ [<ffffffff811b4058>] alloc_pages_current+0x88/0x120
  [<ffffffff8115e386>] __page_cache_alloc+0xe6/0x120
  [<ffffffff8116ba6c>] __do_page_cache_readahead+0xdc/0x240
  [<ffffffff8116bd05>] ondemand_readahead+0x135/0x260
- [<ffffffff8116be9c>] page_cache_async_readahead+0x6c/0x70
- [<ffffffff811604c2>] generic_file_read_iter+0x3f2/0x760
- [<ffffffff811e0dc7>] __vfs_read+0xa7/0xd0
-page has been migrated, last migrate reason: compaction
+ [<ffffffff8116bfb1>] page_cache_sync_readahead+0x31/0x50
+ [<ffffffff81160523>] generic_file_read_iter+0x453/0x760
+ [<ffffffff811e0d57>] __vfs_read+0xa7/0xd0
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Michal Hocko <mhocko@suse.com>
@@ -63,119 +75,107 @@ Cc: Mel Gorman <mgorman@suse.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/page_owner.h |    9 +++++++++
- mm/debug.c                 |    2 ++
- mm/page_alloc.c            |    1 +
- mm/page_owner.c            |   25 +++++++++++++++++++++++++
- 4 files changed, 37 insertions(+)
+ include/linux/mmzone.h |    3 +++
+ mm/page_alloc.c        |   13 +++++++++++++
+ mm/page_owner.c        |   24 +++++++-----------------
+ mm/vmstat.c            |   13 -------------
+ 4 files changed, 23 insertions(+), 30 deletions(-)
 
-diff -puN include/linux/page_owner.h~mm-page_owner-dump-page-owner-info-from-dump_page include/linux/page_owner.h
---- a/include/linux/page_owner.h~mm-page_owner-dump-page-owner-info-from-dump_page
-+++ a/include/linux/page_owner.h
-@@ -13,6 +13,7 @@ extern void __set_page_owner(struct page
- extern gfp_t __get_page_owner_gfp(struct page *page);
- extern void __copy_page_owner(struct page *oldpage, struct page *newpage);
- extern void __set_page_owner_migrate_reason(struct page *page, int reason);
-+extern void __dump_page_owner(struct page *page);
+diff -puN include/linux/mmzone.h~mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags
++++ a/include/linux/mmzone.h
+@@ -63,6 +63,9 @@ enum {
+ 	MIGRATE_TYPES
+ };
  
- static inline void reset_page_owner(struct page *page, unsigned int order)
- {
-@@ -44,6 +45,11 @@ static inline void set_page_owner_migrat
- 	if (static_branch_unlikely(&page_owner_inited))
- 		__set_page_owner_migrate_reason(page, reason);
- }
-+static inline void dump_page_owner(struct page *page)
-+{
-+	if (static_branch_unlikely(&page_owner_inited))
-+		__dump_page_owner(page);
-+}
++/* In mm/page_alloc.c; keep in sync also with show_migration_types() there */
++extern char * const migratetype_names[MIGRATE_TYPES];
++
+ #ifdef CONFIG_CMA
+ #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
  #else
- static inline void reset_page_owner(struct page *page, unsigned int order)
- {
-@@ -62,5 +68,8 @@ static inline void copy_page_owner(struc
- static inline void set_page_owner_migrate_reason(struct page *page, int reason)
- {
- }
-+static inline void dump_page_owner(struct page *page)
-+{
-+}
- #endif /* CONFIG_PAGE_OWNER */
- #endif /* __LINUX_PAGE_OWNER_H */
-diff -puN mm/debug.c~mm-page_owner-dump-page-owner-info-from-dump_page mm/debug.c
---- a/mm/debug.c~mm-page_owner-dump-page-owner-info-from-dump_page
-+++ a/mm/debug.c
-@@ -11,6 +11,7 @@
- #include <linux/memcontrol.h>
- #include <trace/events/mmflags.h>
- #include <linux/migrate.h>
-+#include <linux/page_owner.h>
- 
- #include "internal.h"
- 
-@@ -67,6 +68,7 @@ void dump_page_badflags(struct page *pag
- void dump_page(struct page *page, const char *reason)
- {
- 	dump_page_badflags(page, reason, 0);
-+	dump_page_owner(page);
- }
- EXPORT_SYMBOL(dump_page);
- 
-diff -puN mm/page_alloc.c~mm-page_owner-dump-page-owner-info-from-dump_page mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_owner-dump-page-owner-info-from-dump_page
+diff -puN mm/page_alloc.c~mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags
 +++ a/mm/page_alloc.c
-@@ -443,6 +443,7 @@ static void bad_page(struct page *page,
- 	printk(KERN_ALERT "BUG: Bad page state in process %s  pfn:%05lx\n",
- 		current->comm, page_to_pfn(page));
- 	dump_page_badflags(page, reason, bad_flags);
-+	dump_page_owner(page);
+@@ -223,6 +223,19 @@ static char * const zone_names[MAX_NR_ZO
+ #endif
+ };
  
- 	print_modules();
- 	dump_stack();
-diff -puN mm/page_owner.c~mm-page_owner-dump-page-owner-info-from-dump_page mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-dump-page-owner-info-from-dump_page
++char * const migratetype_names[MIGRATE_TYPES] = {
++	"Unmovable",
++	"Movable",
++	"Reclaimable",
++	"HighAtomic",
++#ifdef CONFIG_CMA
++	"CMA",
++#endif
++#ifdef CONFIG_MEMORY_ISOLATION
++	"Isolate",
++#endif
++};
++
+ compound_page_dtor * const compound_page_dtors[] = {
+ 	NULL,
+ 	free_compound_page,
+diff -puN mm/page_owner.c~mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags mm/page_owner.c
+--- a/mm/page_owner.c~mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags
 +++ a/mm/page_owner.c
-@@ -183,6 +183,31 @@ err:
- 	return -ENOMEM;
- }
+@@ -100,8 +100,9 @@ print_page_owner(char __user *buf, size_
+ 		return -ENOMEM;
  
-+void __dump_page_owner(struct page *page)
-+{
-+	struct page_ext *page_ext = lookup_page_ext(page);
-+	struct stack_trace trace = {
-+		.nr_entries = page_ext->nr_entries,
-+		.entries = &page_ext->trace_entries[0],
-+	};
-+	gfp_t gfp_mask = page_ext->gfp_mask;
-+	int mt = gfpflags_to_migratetype(gfp_mask);
-+
-+	if (!test_bit(PAGE_EXT_OWNER, &page_ext->flags)) {
-+		pr_alert("page_owner info is not active (free page?)\n");
-+		return;
-+	}
-+
-+	pr_alert("page allocated via order %u, migratetype %s, "
-+			"gfp_mask %#x(%pGg)\n", page_ext->order,
-+			migratetype_names[mt], gfp_mask, &gfp_mask);
-+	print_stack_trace(&trace, 0);
-+
-+	if (page_ext->last_migrate_reason != -1)
-+		pr_alert("page has been migrated, last migrate reason: %s\n",
-+			migrate_reason_names[page_ext->last_migrate_reason]);
-+}
-+
- static ssize_t
- read_page_owner(struct file *file, char __user *buf, size_t count, loff_t *ppos)
- {
-_
-
-Patches currently in -mm which might be from vbabka@suse.cz are
-
-mm-kswapd-remove-bogus-check-of-balance_classzone_idx.patch
-mm-compaction-introduce-kcompactd.patch
-mm-compaction-introduce-kcompactd-fix-3.patch
-mm-compaction-introduce-kcompactd-fix-4.patch
-mm-memory-hotplug-small-cleanup-in-online_pages.patch
-mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd.patch
-mm-tracing-refresh-__def_vmaflag_names-fix.patch
-mm-use-radix_tree_iter_retry-fix.patch
-
+ 	ret = snprintf(kbuf, count,
+-			"Page allocated via order %u, mask 0x%x\n",
+-			page_ext->order, page_ext->gfp_mask);
++			"Page allocated via order %u, mask %#x(%pGg)\n",
++			page_ext->order, page_ext->gfp_mask,
++			&page_ext->gfp_mask);
+ 
+ 	if (ret >= count)
+ 		goto err;
+@@ -110,23 +111,12 @@ print_page_owner(char __user *buf, size_
+ 	pageblock_mt = get_pfnblock_migratetype(page, pfn);
+ 	page_mt  = gfpflags_to_migratetype(page_ext->gfp_mask);
+ 	ret += snprintf(kbuf + ret, count - ret,
+-			"PFN %lu Block %lu type %d %s Flags %s%s%s%s%s%s%s%s%s%s%s%s\n",
++			"PFN %lu type %s Block %lu type %s Flags %#lx(%pGp)\n",
+ 			pfn,
++			migratetype_names[page_mt],
+ 			pfn >> pageblock_order,
+-			pageblock_mt,
+-			pageblock_mt != page_mt ? "Fallback" : "        ",
+-			PageLocked(page)	? "K" : " ",
+-			PageError(page)		? "E" : " ",
+-			PageReferenced(page)	? "R" : " ",
+-			PageUptodate(page)	? "U" : " ",
+-			PageDirty(page)		? "D" : " ",
+-			PageLRU(page)		? "L" : " ",
+-			PageActive(page)	? "A" : " ",
+-			PageSlab(page)		? "S" : " ",
+-			PageWriteback(page)	? "W" : " ",
+-			PageCompound(page)	? "C" : " ",
+-			PageSwapCache(page)	? "B" : " ",
+-			PageMappedToDisk(page)	? "M" : " ");
++			migratetype_names[pageblock_mt],
++			page->flags, &page->flags);
+ 
+ 	if (ret >= count)
+ 		goto err;
+diff -puN mm/vmstat.c~mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags mm/vmstat.c
+--- a/mm/vmstat.c~mm-page_owner-print-migratetype-of-page-and-pageblock-symbolic-flags
++++ a/mm/vmstat.c
+@@ -924,19 +924,6 @@ static void walk_zones_in_node(struct se
+ #endif
+ 
+ #ifdef CONFIG_PROC_FS
+-static char * const migratetype_names[MIGRATE_TYPES] = {
+-	"Unmovable",
+-	"Movable",
+-	"Reclaimable",
+-	"HighAtomic",
+-#ifdef CONFIG_CMA
+-	"CMA",
+-#endif
+-#ifdef CONFIG_MEMORY_ISOLATION
+-	"Isolate",
+-#endif
+-};
