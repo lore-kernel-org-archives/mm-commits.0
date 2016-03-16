@@ -1,85 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] m32r-mm-fix-build-warning.patch removed from -mm tree
-Date: Wed, 16 Mar 2016 12:52:54 -0700
-Message-ID: <56e9b996.ghdtdk31h5M1mwRd%akpm@linux-foundation.org>
+Subject: [merged] blackfin-define-dummy-pgprot_writecombine-for-mmu.patch
+ removed from -mm tree
+Date: Wed, 16 Mar 2016 12:52:56 -0700
+Message-ID: <56e9b998.rJHSfWqejaWfiuyI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38342 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38346 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752208AbcCPTwz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:52:55 -0400
+	with ESMTP id S1752162AbcCPTw5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:52:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, sudip@vectorindia.org, mm-commits@vger.kernel.org
+To: sudipm.mukherjee@gmail.com, realmz6@gmail.com, sudip@vectorindia.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: m32r: mm: fix build warning
+     Subject: blackfin: define dummy pgprot_writecombine for !MMU
 has been removed from the -mm tree.  Its filename was
-     m32r-mm-fix-build-warning.patch
+     blackfin-define-dummy-pgprot_writecombine-for-mmu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: m32r: mm: fix build warning
+Subject: blackfin: define dummy pgprot_writecombine for !MMU
 
-While building we are getting warnings:
-arch/m32r/mm/init.c:63:17: warning: unused variable 'low'
-arch/m32r/mm/init.c:62:17: warning: unused variable 'max_dma'
+blackfin allmodconfig build fails with the error:
 
-max_dma and low are only used if CONFIG_MMU is defined. Lets declare the
-variables inside the #ifdef.
+../sound/core/pcm_native.c: In function 'snd_pcm_lib_default_mmap':
+../sound/core/pcm_native.c:3386:24: error: implicit declaration of function 'pgprot_writecombine' [-Werror=implicit-function-declaration]
+   area->vm_page_prot = pgprot_writecombine(area->vm_page_prot);
+                        ^
+../sound/core/pcm_native.c:3386:22: error: incompatible types when assigning to type 'pgprot_t {aka struct <anonymous>}' from type 'int'
+   area->vm_page_prot = pgprot_writecombine(area->vm_page_prot);
+                      ^
+
+When !MMU, asm-generic will not define default pgprot_writecombine, so
+blackfin needs to define it by itself.
+
+The patch idea is from:
+65b9ab888cd7 ("arch/c6x/include/asm/pgtable.h: define dummy pgprot_writecombine for !MMU")
 
 Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+Cc: Steven Miao <realmz6@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/m32r/mm/init.c |   25 ++++++++++++++-----------
- 1 file changed, 14 insertions(+), 11 deletions(-)
+ arch/blackfin/include/asm/pgtable.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN arch/m32r/mm/init.c~m32r-mm-fix-build-warning arch/m32r/mm/init.c
---- a/arch/m32r/mm/init.c~m32r-mm-fix-build-warning
-+++ a/arch/m32r/mm/init.c
-@@ -59,21 +59,24 @@ void free_initrd_mem(unsigned long, unsi
- void __init zone_sizes_init(void)
- {
- 	unsigned long  zones_size[MAX_NR_ZONES] = {0, };
--	unsigned long  max_dma;
--	unsigned long  low;
- 	unsigned long  start_pfn;
+diff -puN arch/blackfin/include/asm/pgtable.h~blackfin-define-dummy-pgprot_writecombine-for-mmu arch/blackfin/include/asm/pgtable.h
+--- a/arch/blackfin/include/asm/pgtable.h~blackfin-define-dummy-pgprot_writecombine-for-mmu
++++ a/arch/blackfin/include/asm/pgtable.h
+@@ -97,6 +97,8 @@ extern unsigned long get_fb_unmapped_are
+ 					  unsigned long);
+ #define HAVE_ARCH_FB_UNMAPPED_AREA
  
- #ifdef CONFIG_MMU
--	start_pfn = START_PFN(0);
--	max_dma = virt_to_phys((char *)MAX_DMA_ADDRESS) >> PAGE_SHIFT;
--	low = MAX_LOW_PFN(0);
-+	{
-+		unsigned long  low;
-+		unsigned long  max_dma;
- 
--	if (low < max_dma){
--		zones_size[ZONE_DMA] = low - start_pfn;
--		zones_size[ZONE_NORMAL] = 0;
--	} else {
--		zones_size[ZONE_DMA] = low - start_pfn;
--		zones_size[ZONE_NORMAL] = low - max_dma;
-+		start_pfn = START_PFN(0);
-+		max_dma = virt_to_phys((char *)MAX_DMA_ADDRESS) >> PAGE_SHIFT;
-+		low = MAX_LOW_PFN(0);
++#define pgprot_writecombine pgprot_noncached
 +
-+		if (low < max_dma) {
-+			zones_size[ZONE_DMA] = low - start_pfn;
-+			zones_size[ZONE_NORMAL] = 0;
-+		} else {
-+			zones_size[ZONE_DMA] = low - start_pfn;
-+			zones_size[ZONE_NORMAL] = low - max_dma;
-+		}
- 	}
- #else
- 	zones_size[ZONE_DMA] = 0 >> PAGE_SHIFT;
+ #include <asm-generic/pgtable.h>
+ 
+ #endif				/* _BLACKFIN_PGTABLE_H */
 _
 
 Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
