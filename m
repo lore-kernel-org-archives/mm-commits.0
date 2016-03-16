@@ -1,44 +1,37 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-slab-make-criteria-for-off-slab-determination-robust-and-simple.patch
- removed from -mm tree
-Date: Wed, 16 Mar 2016 12:54:41 -0700
-Message-ID: <56e9ba01.NLnHtYxTt+QRTbiU%akpm@linux-foundation.org>
+Subject: [merged] mm-slab-factor-out-slab-list-fixup-code.patch removed
+ from -mm tree
+Date: Wed, 16 Mar 2016 12:54:44 -0700
+Message-ID: <56e9ba04.2FDrEC/NXBDrFshL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38564 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38570 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755598AbcCPTym (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:54:42 -0400
+	with ESMTP id S1755598AbcCPTyp (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:54:45 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: make criteria for off slab determination robust and simple
+     Subject: mm/slab: factor out slab list fixup code
 has been removed from the -mm tree.  Its filename was
-     mm-slab-make-criteria-for-off-slab-determination-robust-and-simple.patch
+     mm-slab-factor-out-slab-list-fixup-code.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: make criteria for off slab determination robust and simple
+Subject: mm/slab: factor out slab list fixup code
 
-To become an off slab, there are some constraints to avoid bootstrapping
-problem and recursive call.  This can be avoided differently by simply
-checking that corresponding kmalloc cache is ready and it's not a off
-slab.  It would be more robust because static size checking can be
-affected by cache size change or architecture type but dynamic checking
-isn't.
-
-One check 'freelist_cache->size > cachep->size / 2' is added to check
-benefit of choosing off slab, because, now, there is no size constraint
-which ensures enough advantage when selecting off slab.
+Slab list should be fixed up after object is detached from the slab and
+this happens at two places.  They do exactly same thing.  They will be
+changed in the following patch, so, to reduce code duplication, this patch
+factor out them and make it common function.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -49,103 +42,59 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   45 +++++++++++++++++----------------------------
- 1 file changed, 17 insertions(+), 28 deletions(-)
+ mm/slab.c |   25 +++++++++++++------------
+ 1 file changed, 13 insertions(+), 12 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-make-criteria-for-off-slab-determination-robust-and-simple mm/slab.c
---- a/mm/slab.c~mm-slab-make-criteria-for-off-slab-determination-robust-and-simple
+diff -puN mm/slab.c~mm-slab-factor-out-slab-list-fixup-code mm/slab.c
+--- a/mm/slab.c~mm-slab-factor-out-slab-list-fixup-code
 +++ a/mm/slab.c
-@@ -272,7 +272,6 @@ static void kmem_cache_node_init(struct
+@@ -2723,6 +2723,17 @@ static void *cache_free_debugcheck(struc
+ #define cache_free_debugcheck(x,objp,z) (objp)
+ #endif
  
- #define CFLGS_OFF_SLAB		(0x80000000UL)
- #define	OFF_SLAB(x)	((x)->flags & CFLGS_OFF_SLAB)
--#define OFF_SLAB_MIN_SIZE (max_t(size_t, PAGE_SIZE >> 5, KMALLOC_MIN_SIZE + 1))
- 
- #define BATCHREFILL_LIMIT	16
- /*
-@@ -1879,7 +1878,6 @@ static void slabs_destroy(struct kmem_ca
- static size_t calculate_slab_order(struct kmem_cache *cachep,
- 				size_t size, unsigned long flags)
++static inline void fixup_slab_list(struct kmem_cache *cachep,
++				struct kmem_cache_node *n, struct page *page)
++{
++	/* move slabp to correct slabp list: */
++	list_del(&page->lru);
++	if (page->active == cachep->num)
++		list_add(&page->lru, &n->slabs_full);
++	else
++		list_add(&page->lru, &n->slabs_partial);
++}
++
+ static struct page *get_first_slab(struct kmem_cache_node *n)
  {
--	unsigned long offslab_limit;
- 	size_t left_over = 0;
- 	int gfporder;
- 
-@@ -1896,16 +1894,24 @@ static size_t calculate_slab_order(struc
- 			break;
- 
- 		if (flags & CFLGS_OFF_SLAB) {
-+			struct kmem_cache *freelist_cache;
-+			size_t freelist_size;
-+
-+			freelist_size = num * sizeof(freelist_idx_t);
-+			freelist_cache = kmalloc_slab(freelist_size, 0u);
-+			if (!freelist_cache)
-+				continue;
-+
- 			/*
--			 * Max number of objs-per-slab for caches which
--			 * use off-slab slabs. Needed to avoid a possible
--			 * looping condition in cache_grow().
-+			 * Needed to avoid possible looping condition
-+			 * in cache_grow()
- 			 */
--			offslab_limit = size;
--			offslab_limit /= sizeof(freelist_idx_t);
-+			if (OFF_SLAB(freelist_cache))
-+				continue;
- 
-- 			if (num > offslab_limit)
--				break;
-+			/* check if off slab has enough benefit */
-+			if (freelist_cache->size > cachep->size / 2)
-+				continue;
+ 	struct page *page;
+@@ -2796,12 +2807,7 @@ retry:
+ 			ac_put_obj(cachep, ac, slab_get_obj(cachep, page));
  		}
  
- 		/* Found something acceptable - save it away */
-@@ -2031,17 +2037,9 @@ static bool set_off_slab_cache(struct km
- 	cachep->num = 0;
- 
- 	/*
--	 * Determine if the slab management is 'on' or 'off' slab.
--	 * (bootstrapping cannot cope with offslab caches so don't do
--	 * it too early on. Always use on-slab management when
--	 * SLAB_NOLEAKTRACE to avoid recursive calls into kmemleak)
-+	 * Always use on-slab management when SLAB_NOLEAKTRACE
-+	 * to avoid recursive calls into kmemleak.
- 	 */
--	if (size < OFF_SLAB_MIN_SIZE)
--		return false;
--
--	if (slab_early_init)
--		return false;
--
- 	if (flags & SLAB_NOLEAKTRACE)
- 		return false;
- 
-@@ -2205,7 +2203,6 @@ __kmem_cache_create (struct kmem_cache *
- 	 * sized slab is initialized in current slab initialization sequence.
- 	 */
- 	if (debug_pagealloc_enabled() && (flags & SLAB_POISON) &&
--		!slab_early_init && size >= kmalloc_size(INDEX_NODE) &&
- 		size >= 256 && cachep->object_size > cache_line_size()) {
- 		if (size < PAGE_SIZE || size % PAGE_SIZE == 0) {
- 			size_t tmp_size = ALIGN(size, PAGE_SIZE);
-@@ -2254,14 +2251,6 @@ done:
- 	if (OFF_SLAB(cachep)) {
- 		cachep->freelist_cache =
- 			kmalloc_slab(cachep->freelist_size, 0u);
--		/*
--		 * This is a possibility for one of the kmalloc_{dma,}_caches.
--		 * But since we go off slab only for object size greater than
--		 * OFF_SLAB_MIN_SIZE, and kmalloc_{dma,}_caches get created
--		 * in ascending order,this should not happen at all.
--		 * But leave a BUG_ON for some lucky dude.
--		 */
--		BUG_ON(ZERO_OR_NULL_PTR(cachep->freelist_cache));
+-		/* move slabp to correct slabp list: */
+-		list_del(&page->lru);
+-		if (page->active == cachep->num)
+-			list_add(&page->lru, &n->slabs_full);
+-		else
+-			list_add(&page->lru, &n->slabs_partial);
++		fixup_slab_list(cachep, n, page);
  	}
  
- 	err = setup_cpu_cache(cachep, gfp);
+ must_grow:
+@@ -3067,13 +3073,8 @@ retry:
+ 
+ 	obj = slab_get_obj(cachep, page);
+ 	n->free_objects--;
+-	/* move slabp to correct slabp list: */
+-	list_del(&page->lru);
+ 
+-	if (page->active == cachep->num)
+-		list_add(&page->lru, &n->slabs_full);
+-	else
+-		list_add(&page->lru, &n->slabs_partial);
++	fixup_slab_list(cachep, n, page);
+ 
+ 	spin_unlock(&n->list_lock);
+ 	goto done;
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
