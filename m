@@ -1,37 +1,40 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-slab-factor-out-slab-list-fixup-code.patch removed
- from -mm tree
-Date: Wed, 16 Mar 2016 12:54:44 -0700
-Message-ID: <56e9ba04.2FDrEC/NXBDrFshL%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-slab-factor-out-debugging-initialization-in-cache_init_objs.patch
+ removed from -mm tree
+Date: Wed, 16 Mar 2016 12:54:47 -0700
+Message-ID: <56e9ba07.ADlLrIlYmm6BIB6X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38570 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38575 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755598AbcCPTyp (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:54:45 -0400
+	with ESMTP id S1755595AbcCPTys (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:54:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: factor out slab list fixup code
+     Subject: mm/slab: factor out debugging initialization in cache_init_objs()
 has been removed from the -mm tree.  Its filename was
-     mm-slab-factor-out-slab-list-fixup-code.patch
+     mm-slab-factor-out-debugging-initialization-in-cache_init_objs.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: factor out slab list fixup code
+Subject: mm/slab: factor out debugging initialization in cache_init_objs()
 
-Slab list should be fixed up after object is detached from the slab and
-this happens at two places.  They do exactly same thing.  They will be
-changed in the following patch, so, to reduce code duplication, this patch
-factor out them and make it common function.
+cache_init_objs() will be changed in following patch and current form
+doesn't fit well for that change.  So, before doing it, this patch
+separates debugging initialization.  This would cause two loop iteration
+when debugging is enabled, but, this overhead seems too light than debug
+feature itself so effect may not be visible.  This patch will greatly
+simplify changes in cache_init_objs() in following patch.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -42,59 +45,56 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   25 +++++++++++++------------
- 1 file changed, 13 insertions(+), 12 deletions(-)
+ mm/slab.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-factor-out-slab-list-fixup-code mm/slab.c
---- a/mm/slab.c~mm-slab-factor-out-slab-list-fixup-code
+diff -puN mm/slab.c~mm-slab-factor-out-debugging-initialization-in-cache_init_objs mm/slab.c
+--- a/mm/slab.c~mm-slab-factor-out-debugging-initialization-in-cache_init_objs
 +++ a/mm/slab.c
-@@ -2723,6 +2723,17 @@ static void *cache_free_debugcheck(struc
- #define cache_free_debugcheck(x,objp,z) (objp)
- #endif
+@@ -2460,14 +2460,14 @@ static inline void set_free_obj(struct p
+ 	((freelist_idx_t *)(page->freelist))[idx] = val;
+ }
  
-+static inline void fixup_slab_list(struct kmem_cache *cachep,
-+				struct kmem_cache_node *n, struct page *page)
-+{
-+	/* move slabp to correct slabp list: */
-+	list_del(&page->lru);
-+	if (page->active == cachep->num)
-+		list_add(&page->lru, &n->slabs_full);
-+	else
-+		list_add(&page->lru, &n->slabs_partial);
+-static void cache_init_objs(struct kmem_cache *cachep,
+-			    struct page *page)
++static void cache_init_objs_debug(struct kmem_cache *cachep, struct page *page)
+ {
++#if DEBUG
+ 	int i;
+ 
+ 	for (i = 0; i < cachep->num; i++) {
+ 		void *objp = index_to_obj(cachep, page, i);
+-#if DEBUG
++
+ 		if (cachep->flags & SLAB_STORE_USER)
+ 			*dbg_userword(cachep, objp) = NULL;
+ 
+@@ -2496,10 +2496,22 @@ static void cache_init_objs(struct kmem_
+ 			poison_obj(cachep, objp, POISON_FREE);
+ 			slab_kernel_map(cachep, objp, 0, 0);
+ 		}
+-#else
+-		if (cachep->ctor)
+-			cachep->ctor(objp);
++	}
+ #endif
 +}
 +
- static struct page *get_first_slab(struct kmem_cache_node *n)
- {
- 	struct page *page;
-@@ -2796,12 +2807,7 @@ retry:
- 			ac_put_obj(cachep, ac, slab_get_obj(cachep, page));
- 		}
- 
--		/* move slabp to correct slabp list: */
--		list_del(&page->lru);
--		if (page->active == cachep->num)
--			list_add(&page->lru, &n->slabs_full);
--		else
--			list_add(&page->lru, &n->slabs_partial);
-+		fixup_slab_list(cachep, n, page);
++static void cache_init_objs(struct kmem_cache *cachep,
++			    struct page *page)
++{
++	int i;
++
++	cache_init_objs_debug(cachep, page);
++
++	for (i = 0; i < cachep->num; i++) {
++		/* constructor could break poison info */
++		if (DEBUG == 0 && cachep->ctor)
++			cachep->ctor(index_to_obj(cachep, page, i));
++
+ 		set_free_obj(page, i, i);
  	}
- 
- must_grow:
-@@ -3067,13 +3073,8 @@ retry:
- 
- 	obj = slab_get_obj(cachep, page);
- 	n->free_objects--;
--	/* move slabp to correct slabp list: */
--	list_del(&page->lru);
- 
--	if (page->active == cachep->num)
--		list_add(&page->lru, &n->slabs_full);
--	else
--		list_add(&page->lru, &n->slabs_partial);
-+	fixup_slab_list(cachep, n, page);
- 
- 	spin_unlock(&n->list_lock);
- 	goto done;
+ }
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
