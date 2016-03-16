@@ -1,69 +1,69 @@
 From: akpm@linux-foundation.org
-Subject: [merged] make-apply_to_page_range-more-robust.patch removed from
- -mm tree
-Date: Wed, 16 Mar 2016 12:56:24 -0700
-Message-ID: <56e9ba68.WOehn0Bkn4XHL7qx%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-mempolicy-skip-vm_hugetlb-and-vm_mixedmap-vma-for-lazy-mbind.patch
+ removed from -mm tree
+Date: Wed, 16 Mar 2016 12:56:21 -0700
+Message-ID: <56e9ba65.c9nsDxmq9hSVtEH3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38970 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38962 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934945AbcCPT4Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:56:25 -0400
+	with ESMTP id S934945AbcCPT4W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:56:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mika.penttila@nextfour.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: liangchen.linux@gmail.com, gavin.guo@canonical.com, mgorman@techsingularity.net, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rientjes@google.com, sj38.park@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory.c: make apply_to_page_range() more robust
+     Subject: mm/mempolicy.c: skip VM_HUGETLB and VM_MIXEDMAP VMA for lazy mbind
 has been removed from the -mm tree.  Its filename was
-     make-apply_to_page_range-more-robust.patch
+     mm-mempolicy-skip-vm_hugetlb-and-vm_mixedmap-vma-for-lazy-mbind.patch
 
-This patch was dropped because it was merged into mainline or a subsyst=
-em tree
+This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-=46rom: Mika Penttil=E4 <mika.penttila@nextfour.com>
-Subject: mm/memory.c: make apply_to_page_range() more robust
+From: Liang Chen <liangchen.linux@gmail.com>
+Subject: mm/mempolicy.c: skip VM_HUGETLB and VM_MIXEDMAP VMA for lazy mbind
 
-Arm and arm64 used to trigger this BUG_ON() - this has now been fixed.
+VM_HUGETLB and VM_MIXEDMAP vma needs to be excluded to avoid compound
+pages being marked for migration and unexpected COWs when handling hugetlb
+fault.
 
-But a WARN_ON() here is sufficient to catch future buggy callers.
+Thanks to Naoya Horiguchi for reminding me on these checks.
 
-Signed-off-by: Mika Penttil=E4 <mika.penttila@nextfour.com>
-Reviewed-by: Pekka Enberg <penberg@kernel.org>
+Signed-off-by: Liang Chen <liangchen.linux@gmail.com>
+Signed-off-by: Gavin Guo <gavin.guo@canonical.com>
+Suggested-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
 Acked-by: David Rientjes <rientjes@google.com>
+Cc: SeongJae Park <sj38.park@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory.c |    4 +++-
+ mm/mempolicy.c |    4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff -puN mm/memory.c~make-apply_to_page_range-more-robust mm/memory.c
---- a/mm/memory.c~make-apply_to_page_range-more-robust
-+++ a/mm/memory.c
-@@ -1876,7 +1876,9 @@ int apply_to_page_range(struct mm_struct
- 	unsigned long end =3D addr + size;
- 	int err;
-=20
--	BUG_ON(addr >=3D end);
-+	if (WARN_ON(addr >=3D end))
-+		return -EINVAL;
-+
- 	pgd =3D pgd_offset(mm, addr);
- 	do {
- 		next =3D pgd_addr_end(addr, end);
+diff -puN mm/mempolicy.c~mm-mempolicy-skip-vm_hugetlb-and-vm_mixedmap-vma-for-lazy-mbind mm/mempolicy.c
+--- a/mm/mempolicy.c~mm-mempolicy-skip-vm_hugetlb-and-vm_mixedmap-vma-for-lazy-mbind
++++ a/mm/mempolicy.c
+@@ -643,7 +643,9 @@ static int queue_pages_test_walk(unsigne
+ 
+ 	if (flags & MPOL_MF_LAZY) {
+ 		/* Similar to task_numa_work, skip inaccessible VMAs */
+-		if (vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE))
++		if (!is_vm_hugetlb_page(vma) &&
++			(vma->vm_flags & (VM_READ | VM_EXEC | VM_WRITE)) &&
++			!(vma->vm_flags & VM_MIXEDMAP))
+ 			change_prot_numa(vma, start, endvma);
+ 		return 1;
+ 	}
 _
 
-Patches currently in -mm which might be from mika.penttila@nextfour.com=
- are
+Patches currently in -mm which might be from liangchen.linux@gmail.com are
 
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
