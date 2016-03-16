@@ -1,35 +1,57 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-slab-remove-object-status-buffer-for-debug_slab_leak.patch removed from
+ mm-slab-alternative-implementation-for-debug_slab_leak.patch removed from
  -mm tree
-Date: Wed, 16 Mar 2016 12:54:26 -0700
-Message-ID: <56e9b9f2.LqKknNtK6MjjdIiL%akpm@linux-foundation.org>
+Date: Wed, 16 Mar 2016 12:54:23 -0700
+Message-ID: <56e9b9ef.K1dtOLtpLdigHxkw%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38534 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38527 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933996AbcCPTy1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:54:27 -0400
+	with ESMTP id S1755600AbcCPTyY (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:54:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: remove object status buffer for DEBUG_SLAB_LEAK
+     Subject: mm/slab: alternative implementation for DEBUG_SLAB_LEAK
 has been removed from the -mm tree.  Its filename was
-     mm-slab-remove-object-status-buffer-for-debug_slab_leak.patch
+     mm-slab-alternative-implementation-for-debug_slab_leak.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: remove object status buffer for DEBUG_SLAB_LEAK
+Subject: mm/slab: alternative implementation for DEBUG_SLAB_LEAK
 
-Now, we don't use object status buffer in any setup. Remove it.
+DEBUG_SLAB_LEAK is a debug option.  It's current implementation requires
+status buffer so we need more memory to use it.  And, it cause kmem_cache
+initialization step more complex.
+
+To remove this extra memory usage and to simplify initialization step,
+this patch implement this feature with another way.
+
+When user requests to get slab object owner information, it marks that
+getting information is started.  And then, all free objects in caches are
+flushed to corresponding slab page.  Now, we can distinguish all freed
+object so we can know all allocated objects, too.  After collecting slab
+object owner information on allocated objects, mark is checked that there
+is no free during the processing.  If true, we can be sure that our
+information is correct so information is returned to user.
+
+Although this way is rather complex, it has two important benefits
+mentioned above.  So, I think it is worth changing.
+
+There is one drawback that it takes more time to get slab object owner
+information but it is just a debug option so it doesn't matter at all.
+
+To help review, this patch implements new way only.  Following patch will
+remove useless code.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -40,125 +62,164 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   34 ++--------------------------------
- 1 file changed, 2 insertions(+), 32 deletions(-)
+ include/linux/slab_def.h |    3 +
+ mm/slab.c                |   85 +++++++++++++++++++++++++++----------
+ 2 files changed, 66 insertions(+), 22 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-remove-object-status-buffer-for-debug_slab_leak mm/slab.c
---- a/mm/slab.c~mm-slab-remove-object-status-buffer-for-debug_slab_leak
+diff -puN include/linux/slab_def.h~mm-slab-alternative-implementation-for-debug_slab_leak include/linux/slab_def.h
+--- a/include/linux/slab_def.h~mm-slab-alternative-implementation-for-debug_slab_leak
++++ a/include/linux/slab_def.h
+@@ -60,6 +60,9 @@ struct kmem_cache {
+ 	atomic_t allocmiss;
+ 	atomic_t freehit;
+ 	atomic_t freemiss;
++#ifdef CONFIG_DEBUG_SLAB_LEAK
++	atomic_t store_user_clean;
++#endif
+ 
+ 	/*
+ 	 * If debugging is enabled, then the allocator can add additional
+diff -puN mm/slab.c~mm-slab-alternative-implementation-for-debug_slab_leak mm/slab.c
+--- a/mm/slab.c~mm-slab-alternative-implementation-for-debug_slab_leak
 +++ a/mm/slab.c
-@@ -380,22 +380,8 @@ static void **dbg_userword(struct kmem_c
+@@ -396,20 +396,25 @@ static void set_obj_status(struct page *
+ 	status[idx] = val;
+ }
  
- #endif
- 
--#define OBJECT_FREE (0)
--#define OBJECT_ACTIVE (1)
--
- #ifdef CONFIG_DEBUG_SLAB_LEAK
- 
--static void set_obj_status(struct page *page, int idx, int val)
--{
+-static inline unsigned int get_obj_status(struct page *page, int idx)
++static inline bool is_store_user_clean(struct kmem_cache *cachep)
+ {
 -	int freelist_size;
 -	char *status;
 -	struct kmem_cache *cachep = page->slab_cache;
--
++	return atomic_read(&cachep->store_user_clean) == 1;
++}
+ 
 -	freelist_size = cachep->num * sizeof(freelist_idx_t);
 -	status = (char *)page->freelist + freelist_size;
--	status[idx] = val;
--}
--
- static inline bool is_store_user_clean(struct kmem_cache *cachep)
- {
- 	return atomic_read(&cachep->store_user_clean) == 1;
-@@ -413,7 +399,6 @@ static inline void set_store_user_dirty(
++static inline void set_store_user_clean(struct kmem_cache *cachep)
++{
++	atomic_set(&cachep->store_user_clean, 1);
++}
+ 
+-	return status[idx];
++static inline void set_store_user_dirty(struct kmem_cache *cachep)
++{
++	if (is_store_user_clean(cachep))
++		atomic_set(&cachep->store_user_clean, 0);
  }
  
  #else
--static inline void set_obj_status(struct page *page, int idx, int val) {}
- static inline void set_store_user_dirty(struct kmem_cache *cachep) {}
+ static inline void set_obj_status(struct page *page, int idx, int val) {}
++static inline void set_store_user_dirty(struct kmem_cache *cachep) {}
  
  #endif
-@@ -476,9 +461,6 @@ static size_t calculate_freelist_size(in
- 	size_t freelist_size;
  
- 	freelist_size = nr_objs * sizeof(freelist_idx_t);
--	if (IS_ENABLED(CONFIG_DEBUG_SLAB_LEAK))
--		freelist_size += nr_objs * sizeof(char);
--
- 	if (align)
- 		freelist_size = ALIGN(freelist_size, align);
+@@ -2550,6 +2555,11 @@ static void *slab_get_obj(struct kmem_ca
+ 	objp = index_to_obj(cachep, page, get_free_obj(page, page->active));
+ 	page->active++;
  
-@@ -491,10 +473,7 @@ static int calculate_nr_objs(size_t slab
- 	int nr_objs;
- 	size_t remained_size;
- 	size_t freelist_size;
--	int extra_space = 0;
++#if DEBUG
++	if (cachep->flags & SLAB_STORE_USER)
++		set_store_user_dirty(cachep);
++#endif
++
+ 	return objp;
+ }
  
--	if (IS_ENABLED(CONFIG_DEBUG_SLAB_LEAK))
--		extra_space = sizeof(char);
- 	/*
- 	 * Ignore padding for the initial guess. The padding
- 	 * is at most @align-1 bytes, and @buffer_size is at
-@@ -503,7 +482,7 @@ static int calculate_nr_objs(size_t slab
- 	 * into the memory allocation when taking the padding
- 	 * into account.
- 	 */
--	nr_objs = slab_size / (buffer_size + idx_size + extra_space);
-+	nr_objs = slab_size / (buffer_size + idx_size);
+@@ -2725,8 +2735,10 @@ static void *cache_free_debugcheck(struc
+ 		*dbg_redzone1(cachep, objp) = RED_INACTIVE;
+ 		*dbg_redzone2(cachep, objp) = RED_INACTIVE;
+ 	}
+-	if (cachep->flags & SLAB_STORE_USER)
++	if (cachep->flags & SLAB_STORE_USER) {
++		set_store_user_dirty(cachep);
+ 		*dbg_userword(cachep, objp) = (void *)caller;
++	}
  
- 	/*
- 	 * This calculated number will be either the right
-@@ -1961,16 +1940,13 @@ static size_t calculate_slab_order(struc
- 			break;
+ 	objnr = obj_to_index(cachep, page, objp);
  
- 		if (flags & CFLGS_OFF_SLAB) {
--			size_t freelist_size_per_obj = sizeof(freelist_idx_t);
- 			/*
- 			 * Max number of objs-per-slab for caches which
- 			 * use off-slab slabs. Needed to avoid a possible
- 			 * looping condition in cache_grow().
- 			 */
--			if (IS_ENABLED(CONFIG_DEBUG_SLAB_LEAK))
--				freelist_size_per_obj += sizeof(char);
- 			offslab_limit = size;
--			offslab_limit /= freelist_size_per_obj;
-+			offslab_limit /= sizeof(freelist_idx_t);
+@@ -4119,15 +4131,34 @@ static void handle_slab(unsigned long *n
+ 						struct page *page)
+ {
+ 	void *p;
+-	int i;
++	int i, j;
++	unsigned long v;
  
-  			if (num > offslab_limit)
- 				break;
-@@ -2533,7 +2509,6 @@ static void cache_init_objs(struct kmem_
- 		if (cachep->ctor)
- 			cachep->ctor(objp);
- #endif
--		set_obj_status(page, i, OBJECT_FREE);
- 		set_free_obj(page, i, i);
+ 	if (n[0] == n[1])
+ 		return;
+ 	for (i = 0, p = page->s_mem; i < c->num; i++, p += c->size) {
+-		if (get_obj_status(page, i) != OBJECT_ACTIVE)
++		bool active = true;
++
++		for (j = page->active; j < c->num; j++) {
++			if (get_free_obj(page, j) == i) {
++				active = false;
++				break;
++			}
++		}
++
++		if (!active)
++			continue;
++
++		/*
++		 * probe_kernel_read() is used for DEBUG_PAGEALLOC. page table
++		 * mapping is established when actual object allocation and
++		 * we could mistakenly access the unmapped object in the cpu
++		 * cache.
++		 */
++		if (probe_kernel_read(&v, dbg_userword(c, p), sizeof(v)))
+ 			continue;
+ 
+-		if (!add_caller(n, (unsigned long)*dbg_userword(c, p)))
++		if (!add_caller(n, v))
+ 			return;
  	}
  }
-@@ -2745,7 +2720,6 @@ static void *cache_free_debugcheck(struc
- 	BUG_ON(objnr >= cachep->num);
- 	BUG_ON(objp != index_to_obj(cachep, page, objnr));
+@@ -4163,21 +4194,31 @@ static int leaks_show(struct seq_file *m
+ 	if (!(cachep->flags & SLAB_RED_ZONE))
+ 		return 0;
  
--	set_obj_status(page, objnr, OBJECT_FREE);
- 	if (cachep->flags & SLAB_POISON) {
- 		poison_obj(cachep, objp, POISON_FREE);
- 		slab_kernel_map(cachep, objp, 0, caller);
-@@ -2878,8 +2852,6 @@ static inline void cache_alloc_debugchec
- static void *cache_alloc_debugcheck_after(struct kmem_cache *cachep,
- 				gfp_t flags, void *objp, unsigned long caller)
- {
--	struct page *page;
--
- 	if (!objp)
- 		return objp;
- 	if (cachep->flags & SLAB_POISON) {
-@@ -2904,8 +2876,6 @@ static void *cache_alloc_debugcheck_afte
- 		*dbg_redzone2(cachep, objp) = RED_ACTIVE;
- 	}
+-	/* OK, we can do it */
++	/*
++	 * Set store_user_clean and start to grab stored user information
++	 * for all objects on this cache. If some alloc/free requests comes
++	 * during the processing, information would be wrong so restart
++	 * whole processing.
++	 */
++	do {
++		set_store_user_clean(cachep);
++		drain_cpu_caches(cachep);
  
--	page = virt_to_head_page(objp);
--	set_obj_status(page, obj_to_index(cachep, page, objp), OBJECT_ACTIVE);
- 	objp += obj_offset(cachep);
- 	if (cachep->ctor && cachep->flags & SLAB_POISON)
- 		cachep->ctor(objp);
+-	x[1] = 0;
++		x[1] = 0;
+ 
+-	for_each_kmem_cache_node(cachep, node, n) {
++		for_each_kmem_cache_node(cachep, node, n) {
+ 
+-		check_irq_on();
+-		spin_lock_irq(&n->list_lock);
++			check_irq_on();
++			spin_lock_irq(&n->list_lock);
++
++			list_for_each_entry(page, &n->slabs_full, lru)
++				handle_slab(x, cachep, page);
++			list_for_each_entry(page, &n->slabs_partial, lru)
++				handle_slab(x, cachep, page);
++			spin_unlock_irq(&n->list_lock);
++		}
++	} while (!is_store_user_clean(cachep));
+ 
+-		list_for_each_entry(page, &n->slabs_full, lru)
+-			handle_slab(x, cachep, page);
+-		list_for_each_entry(page, &n->slabs_partial, lru)
+-			handle_slab(x, cachep, page);
+-		spin_unlock_irq(&n->list_lock);
+-	}
+ 	name = cachep->name;
+ 	if (x[0] == x[1]) {
+ 		/* Increase the buffer size */
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
