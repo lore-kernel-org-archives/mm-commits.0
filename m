@@ -1,48 +1,44 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-page_poisonc-enable-page_poisoning-as-a-separate-option.patch removed
- from -mm tree
-Date: Wed, 16 Mar 2016 12:56:10 -0700
-Message-ID: <56e9ba5a.NT4MpMhNLgBVy74Q%akpm@linux-foundation.org>
+Subject: [merged] mm-page_poisoningc-allow-for-zero-poisoning.patch
+ removed from -mm tree
+Date: Wed, 16 Mar 2016 12:56:12 -0700
+Message-ID: <56e9ba5c.uRyumdiVaiwlMOf0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38881 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38941 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934750AbcCPT4L (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:56:11 -0400
+	with ESMTP id S934750AbcCPT4N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:56:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: labbott@fedoraproject.org, dave.hansen@intel.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, mhocko@suse.com, minipli@googlemail.com, nasa4836@gmail.com, rjw@rjwysocki.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_poison.c: enable PAGE_POISONING as a separate option
+     Subject: mm/page_poisoning.c: allow for zero poisoning
 has been removed from the -mm tree.  Its filename was
-     mm-page_poisonc-enable-page_poisoning-as-a-separate-option.patch
+     mm-page_poisoningc-allow-for-zero-poisoning.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Laura Abbott <labbott@fedoraproject.org>
-Subject: mm/page_poison.c: enable PAGE_POISONING as a separate option
+Subject: mm/page_poisoning.c: allow for zero poisoning
 
-Page poisoning is currently set up as a feature if architectures don't
-have architecture debug page_alloc to allow unmapping of pages.  It has
-uses apart from that though.  Clearing of the pages on free provides an
-increase in security as it helps to limit the risk of information leaks. 
-Allow page poisoning to be enabled as a separate option independent of
-kernel_map pages since the two features do separate work.  Because of how
-hiberanation is implemented, the checks on alloc cannot occur if
-hibernation is enabled.  The runtime alloc checks can also be enabled with
-an option when !HIBERNATION.
+By default, page poisoning uses a poison value (0xaa) on free.  If this is
+changed to 0, the page is not only sanitized but zeroing on alloc with
+__GFP_ZERO can be skipped as well.  The tradeoff is that detecting
+corruption from the poisoning is harder to detect.  This feature also
+cannot be used with hibernation since pages are not guaranteed to be
+zeroed after hibernation.
 
 Credit to Grsecurity/PaX team for inspiring this work
 
 Signed-off-by: Laura Abbott <labbott@fedoraproject.org>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Acked-by: Rafael J. Wysocki <rjw@rjwysocki.net>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Michal Hocko <mhocko@suse.com>
@@ -53,430 +49,200 @@ Cc: Jianyu Zhan <nasa4836@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |    5 
- include/linux/mm.h                  |    9 +
- mm/Kconfig.debug                    |   25 +++
- mm/Makefile                         |    2 
- mm/debug-pagealloc.c                |  137 --------------------
- mm/page_alloc.c                     |    2 
- mm/page_poison.c                    |  173 ++++++++++++++++++++++++++
- 7 files changed, 214 insertions(+), 139 deletions(-)
+ include/linux/mm.h       |    2 ++
+ include/linux/poison.h   |    4 ++++
+ kernel/power/hibernate.c |   17 +++++++++++++++++
+ mm/Kconfig.debug         |   14 ++++++++++++++
+ mm/page_alloc.c          |   11 ++++++++++-
+ mm/page_ext.c            |   10 ++++++++--
+ mm/page_poison.c         |    7 +++++--
+ 7 files changed, 60 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~mm-page_poisonc-enable-page_poisoning-as-a-separate-option Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~mm-page_poisonc-enable-page_poisoning-as-a-separate-option
-+++ a/Documentation/kernel-parameters.txt
-@@ -2731,6 +2731,11 @@ bytes respectively. Such letter suffixes
- 			we can turn it on.
- 			on: enable the feature
- 
-+	page_poison=	[KNL] Boot-time parameter changing the state of
-+			poisoning on the buddy allocator.
-+			off: turn off poisoning
-+			on: turn on poisoning
-+
- 	panic=		[KNL] Kernel behaviour on panic: delay <timeout>
- 			timeout > 0: seconds before rebooting
- 			timeout = 0: wait forever
-diff -puN include/linux/mm.h~mm-page_poisonc-enable-page_poisoning-as-a-separate-option include/linux/mm.h
---- a/include/linux/mm.h~mm-page_poisonc-enable-page_poisoning-as-a-separate-option
+diff -puN include/linux/mm.h~mm-page_poisoningc-allow-for-zero-poisoning include/linux/mm.h
+--- a/include/linux/mm.h~mm-page_poisoningc-allow-for-zero-poisoning
 +++ a/include/linux/mm.h
-@@ -2176,6 +2176,15 @@ extern int apply_to_page_range(struct mm
- 			       unsigned long size, pte_fn_t fn, void *data);
+@@ -2179,10 +2179,12 @@ extern int apply_to_page_range(struct mm
+ #ifdef CONFIG_PAGE_POISONING
+ extern bool page_poisoning_enabled(void);
+ extern void kernel_poison_pages(struct page *page, int numpages, int enable);
++extern bool page_is_poisoned(struct page *page);
+ #else
+ static inline bool page_poisoning_enabled(void) { return false; }
+ static inline void kernel_poison_pages(struct page *page, int numpages,
+ 					int enable) { }
++static inline bool page_is_poisoned(struct page *page) { return false; }
+ #endif
  
- 
-+#ifdef CONFIG_PAGE_POISONING
-+extern bool page_poisoning_enabled(void);
-+extern void kernel_poison_pages(struct page *page, int numpages, int enable);
-+#else
-+static inline bool page_poisoning_enabled(void) { return false; }
-+static inline void kernel_poison_pages(struct page *page, int numpages,
-+					int enable) { }
-+#endif
-+
  #ifdef CONFIG_DEBUG_PAGEALLOC
- extern bool _debug_pagealloc_enabled;
- extern void __kernel_map_pages(struct page *page, int numpages, int enable);
-diff -puN mm/Kconfig.debug~mm-page_poisonc-enable-page_poisoning-as-a-separate-option mm/Kconfig.debug
---- a/mm/Kconfig.debug~mm-page_poisonc-enable-page_poisoning-as-a-separate-option
+diff -puN include/linux/poison.h~mm-page_poisoningc-allow-for-zero-poisoning include/linux/poison.h
+--- a/include/linux/poison.h~mm-page_poisoningc-allow-for-zero-poisoning
++++ a/include/linux/poison.h
+@@ -30,7 +30,11 @@
+ #define TIMER_ENTRY_STATIC	((void *) 0x300 + POISON_POINTER_DELTA)
+ 
+ /********** mm/debug-pagealloc.c **********/
++#ifdef CONFIG_PAGE_POISONING_ZERO
++#define PAGE_POISON 0x00
++#else
+ #define PAGE_POISON 0xaa
++#endif
+ 
+ /********** mm/page_alloc.c ************/
+ 
+diff -puN kernel/power/hibernate.c~mm-page_poisoningc-allow-for-zero-poisoning kernel/power/hibernate.c
+--- a/kernel/power/hibernate.c~mm-page_poisoningc-allow-for-zero-poisoning
++++ a/kernel/power/hibernate.c
+@@ -1158,6 +1158,22 @@ static int __init kaslr_nohibernate_setu
+ 	return nohibernate_setup(str);
+ }
+ 
++static int __init page_poison_nohibernate_setup(char *str)
++{
++#ifdef CONFIG_PAGE_POISONING_ZERO
++	/*
++	 * The zeroing option for page poison skips the checks on alloc.
++	 * since hibernation doesn't save free pages there's no way to
++	 * guarantee the pages will still be zeroed.
++	 */
++	if (!strcmp(str, "on")) {
++		pr_info("Disabling hibernation due to page poisoning\n");
++		return nohibernate_setup(str);
++	}
++#endif
++	return 1;
++}
++
+ __setup("noresume", noresume_setup);
+ __setup("resume_offset=", resume_offset_setup);
+ __setup("resume=", resume_setup);
+@@ -1166,3 +1182,4 @@ __setup("resumewait", resumewait_setup);
+ __setup("resumedelay=", resumedelay_setup);
+ __setup("nohibernate", nohibernate_setup);
+ __setup("kaslr", kaslr_nohibernate_setup);
++__setup("page_poison=", page_poison_nohibernate_setup);
+diff -puN mm/Kconfig.debug~mm-page_poisoningc-allow-for-zero-poisoning mm/Kconfig.debug
+--- a/mm/Kconfig.debug~mm-page_poisoningc-allow-for-zero-poisoning
 +++ a/mm/Kconfig.debug
-@@ -41,4 +41,27 @@ config DEBUG_PAGEALLOC_ENABLE_DEFAULT
- 	  can be overridden by debug_pagealloc=off|on.
+@@ -65,3 +65,17 @@ config PAGE_POISONING_NO_SANITY
  
- config PAGE_POISONING
--	bool
-+	bool "Poison pages after freeing"
-+	select PAGE_EXTENSION
-+	select PAGE_POISONING_NO_SANITY if HIBERNATION
-+	---help---
-+	  Fill the pages with poison patterns after free_pages() and verify
-+	  the patterns before alloc_pages. The filling of the memory helps
-+	  reduce the risk of information leaks from freed data. This does
-+	  have a potential performance impact.
+ 	   If you are only interested in sanitization, say Y. Otherwise
+ 	   say N.
 +
-+	  Note that "poison" here is not the same thing as the "HWPoison"
-+	  for CONFIG_MEMORY_FAILURE. This is software poisoning only.
-+
-+	  If unsure, say N
-+
-+config PAGE_POISONING_NO_SANITY
++config PAGE_POISONING_ZERO
++	bool "Use zero for poisoning instead of random data"
 +	depends on PAGE_POISONING
-+	bool "Only poison, don't sanity check"
 +	---help---
-+	   Skip the sanity checking on alloc, only fill the pages with
-+	   poison on free. This reduces some of the overhead of the
-+	   poisoning feature.
++	   Instead of using the existing poison value, fill the pages with
++	   zeros. This makes it harder to detect when errors are occurring
++	   due to sanitization but the zeroing at free means that it is
++	   no longer necessary to write zeros when GFP_ZERO is used on
++	   allocation.
 +
-+	   If you are only interested in sanitization, say Y. Otherwise
-+	   say N.
-diff -puN mm/Makefile~mm-page_poisonc-enable-page_poisoning-as-a-separate-option mm/Makefile
---- a/mm/Makefile~mm-page_poisonc-enable-page_poisoning-as-a-separate-option
-+++ a/mm/Makefile
-@@ -48,7 +48,7 @@ obj-$(CONFIG_SPARSEMEM_VMEMMAP) += spars
- obj-$(CONFIG_SLOB) += slob.o
- obj-$(CONFIG_MMU_NOTIFIER) += mmu_notifier.o
- obj-$(CONFIG_KSM) += ksm.o
--obj-$(CONFIG_PAGE_POISONING) += debug-pagealloc.o
-+obj-$(CONFIG_PAGE_POISONING) += page_poison.o
- obj-$(CONFIG_SLAB) += slab.o
- obj-$(CONFIG_SLUB) += slub.o
- obj-$(CONFIG_KMEMCHECK) += kmemcheck.o
-diff -puN mm/debug-pagealloc.c~mm-page_poisonc-enable-page_poisoning-as-a-separate-option /dev/null
---- a/mm/debug-pagealloc.c
-+++ /dev/null
-@@ -1,137 +0,0 @@
--#include <linux/kernel.h>
--#include <linux/string.h>
--#include <linux/mm.h>
--#include <linux/highmem.h>
--#include <linux/page_ext.h>
--#include <linux/poison.h>
--#include <linux/ratelimit.h>
--
--static bool page_poisoning_enabled __read_mostly;
--
--static bool need_page_poisoning(void)
--{
--	if (!debug_pagealloc_enabled())
--		return false;
--
--	return true;
--}
--
--static void init_page_poisoning(void)
--{
--	if (!debug_pagealloc_enabled())
--		return;
--
--	page_poisoning_enabled = true;
--}
--
--struct page_ext_operations page_poisoning_ops = {
--	.need = need_page_poisoning,
--	.init = init_page_poisoning,
--};
--
--static inline void set_page_poison(struct page *page)
--{
--	struct page_ext *page_ext;
--
--	page_ext = lookup_page_ext(page);
--	__set_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
--}
--
--static inline void clear_page_poison(struct page *page)
--{
--	struct page_ext *page_ext;
--
--	page_ext = lookup_page_ext(page);
--	__clear_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
--}
--
--static inline bool page_poison(struct page *page)
--{
--	struct page_ext *page_ext;
--
--	page_ext = lookup_page_ext(page);
--	return test_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
--}
--
--static void poison_page(struct page *page)
--{
--	void *addr = kmap_atomic(page);
--
--	set_page_poison(page);
--	memset(addr, PAGE_POISON, PAGE_SIZE);
--	kunmap_atomic(addr);
--}
--
--static void poison_pages(struct page *page, int n)
--{
--	int i;
--
--	for (i = 0; i < n; i++)
--		poison_page(page + i);
--}
--
--static bool single_bit_flip(unsigned char a, unsigned char b)
--{
--	unsigned char error = a ^ b;
--
--	return error && !(error & (error - 1));
--}
--
--static void check_poison_mem(unsigned char *mem, size_t bytes)
--{
--	static DEFINE_RATELIMIT_STATE(ratelimit, 5 * HZ, 10);
--	unsigned char *start;
--	unsigned char *end;
--
--	start = memchr_inv(mem, PAGE_POISON, bytes);
--	if (!start)
--		return;
--
--	for (end = mem + bytes - 1; end > start; end--) {
--		if (*end != PAGE_POISON)
--			break;
--	}
--
--	if (!__ratelimit(&ratelimit))
--		return;
--	else if (start == end && single_bit_flip(*start, PAGE_POISON))
--		printk(KERN_ERR "pagealloc: single bit error\n");
--	else
--		printk(KERN_ERR "pagealloc: memory corruption\n");
--
--	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 16, 1, start,
--			end - start + 1, 1);
--	dump_stack();
--}
--
--static void unpoison_page(struct page *page)
--{
--	void *addr;
--
--	if (!page_poison(page))
--		return;
--
--	addr = kmap_atomic(page);
--	check_poison_mem(addr, PAGE_SIZE);
--	clear_page_poison(page);
--	kunmap_atomic(addr);
--}
--
--static void unpoison_pages(struct page *page, int n)
--{
--	int i;
--
--	for (i = 0; i < n; i++)
--		unpoison_page(page + i);
--}
--
--void __kernel_map_pages(struct page *page, int numpages, int enable)
--{
--	if (!page_poisoning_enabled)
--		return;
--
--	if (enable)
--		unpoison_pages(page, numpages);
--	else
--		poison_pages(page, numpages);
--}
-diff -puN mm/page_alloc.c~mm-page_poisonc-enable-page_poisoning-as-a-separate-option mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_poisonc-enable-page_poisoning-as-a-separate-option
++	   Enabling page poisoning with this option will disable hibernation
++
++	   If unsure, say N
+diff -puN mm/page_alloc.c~mm-page_poisoningc-allow-for-zero-poisoning mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_poisoningc-allow-for-zero-poisoning
 +++ a/mm/page_alloc.c
-@@ -1025,6 +1025,7 @@ static bool free_pages_prepare(struct pa
- 					   PAGE_SIZE << order);
+@@ -1405,15 +1405,24 @@ static inline int check_new_page(struct
+ 	return 0;
+ }
+ 
++static inline bool free_pages_prezeroed(bool poisoned)
++{
++	return IS_ENABLED(CONFIG_PAGE_POISONING_ZERO) &&
++		page_poisoning_enabled() && poisoned;
++}
++
+ static int prep_new_page(struct page *page, unsigned int order, gfp_t gfp_flags,
+ 								int alloc_flags)
+ {
+ 	int i;
++	bool poisoned = true;
+ 
+ 	for (i = 0; i < (1 << order); i++) {
+ 		struct page *p = page + i;
+ 		if (unlikely(check_new_page(p)))
+ 			return 1;
++		if (poisoned)
++			poisoned &= page_is_poisoned(p);
  	}
- 	arch_free_page(page, order);
-+	kernel_poison_pages(page, 1 << order, 0);
- 	kernel_map_pages(page, 1 << order, 0);
  
- 	return true;
-@@ -1420,6 +1421,7 @@ static int prep_new_page(struct page *pa
- 
- 	arch_alloc_page(page, order);
- 	kernel_map_pages(page, 1 << order, 1);
-+	kernel_poison_pages(page, 1 << order, 1);
+ 	set_page_private(page, 0);
+@@ -1424,7 +1433,7 @@ static int prep_new_page(struct page *pa
+ 	kernel_poison_pages(page, 1 << order, 1);
  	kasan_alloc_pages(page, order);
  
- 	if (gfp_flags & __GFP_ZERO)
-diff -puN /dev/null mm/page_poison.c
---- /dev/null
+-	if (gfp_flags & __GFP_ZERO)
++	if (!free_pages_prezeroed(poisoned) && (gfp_flags & __GFP_ZERO))
+ 		for (i = 0; i < (1 << order); i++)
+ 			clear_highpage(page + i);
+ 
+diff -puN mm/page_ext.c~mm-page_poisoningc-allow-for-zero-poisoning mm/page_ext.c
+--- a/mm/page_ext.c~mm-page_poisoningc-allow-for-zero-poisoning
++++ a/mm/page_ext.c
+@@ -106,12 +106,15 @@ struct page_ext *lookup_page_ext(struct
+ 	struct page_ext *base;
+ 
+ 	base = NODE_DATA(page_to_nid(page))->node_page_ext;
+-#ifdef CONFIG_DEBUG_VM
++#if defined(CONFIG_DEBUG_VM) || defined(CONFIG_PAGE_POISONING)
+ 	/*
+ 	 * The sanity checks the page allocator does upon freeing a
+ 	 * page can reach here before the page_ext arrays are
+ 	 * allocated when feeding a range of pages to the allocator
+ 	 * for the first time during bootup or memory hotplug.
++	 *
++	 * This check is also necessary for ensuring page poisoning
++	 * works as expected when enabled
+ 	 */
+ 	if (unlikely(!base))
+ 		return NULL;
+@@ -180,12 +183,15 @@ struct page_ext *lookup_page_ext(struct
+ {
+ 	unsigned long pfn = page_to_pfn(page);
+ 	struct mem_section *section = __pfn_to_section(pfn);
+-#ifdef CONFIG_DEBUG_VM
++#if defined(CONFIG_DEBUG_VM) || defined(CONFIG_PAGE_POISONING)
+ 	/*
+ 	 * The sanity checks the page allocator does upon freeing a
+ 	 * page can reach here before the page_ext arrays are
+ 	 * allocated when feeding a range of pages to the allocator
+ 	 * for the first time during bootup or memory hotplug.
++	 *
++	 * This check is also necessary for ensuring page poisoning
++	 * works as expected when enabled
+ 	 */
+ 	if (!section->page_ext)
+ 		return NULL;
+diff -puN mm/page_poison.c~mm-page_poisoningc-allow-for-zero-poisoning mm/page_poison.c
+--- a/mm/page_poison.c~mm-page_poisoningc-allow-for-zero-poisoning
 +++ a/mm/page_poison.c
-@@ -0,0 +1,173 @@
-+#include <linux/kernel.h>
-+#include <linux/string.h>
-+#include <linux/mm.h>
-+#include <linux/highmem.h>
-+#include <linux/page_ext.h>
-+#include <linux/poison.h>
-+#include <linux/ratelimit.h>
+@@ -71,11 +71,14 @@ static inline void clear_page_poison(str
+ 	__clear_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
+ }
+ 
+-static inline bool page_poison(struct page *page)
++bool page_is_poisoned(struct page *page)
+ {
+ 	struct page_ext *page_ext;
+ 
+ 	page_ext = lookup_page_ext(page);
++	if (!page_ext)
++		return false;
 +
-+static bool __page_poisoning_enabled __read_mostly;
-+static bool want_page_poisoning __read_mostly;
-+
-+static int early_page_poison_param(char *buf)
-+{
-+	if (!buf)
-+		return -EINVAL;
-+
-+	if (strcmp(buf, "on") == 0)
-+		want_page_poisoning = true;
-+	else if (strcmp(buf, "off") == 0)
-+		want_page_poisoning = false;
-+
-+	return 0;
-+}
-+early_param("page_poison", early_page_poison_param);
-+
-+bool page_poisoning_enabled(void)
-+{
-+	return __page_poisoning_enabled;
-+}
-+
-+static bool need_page_poisoning(void)
-+{
-+	return want_page_poisoning;
-+}
-+
-+static void init_page_poisoning(void)
-+{
-+	/*
-+	 * page poisoning is debug page alloc for some arches. If either
-+	 * of those options are enabled, enable poisoning
-+	 */
-+	if (!IS_ENABLED(CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC)) {
-+		if (!want_page_poisoning && !debug_pagealloc_enabled())
-+			return;
-+	} else {
-+		if (!want_page_poisoning)
-+			return;
-+	}
-+
-+	__page_poisoning_enabled = true;
-+}
-+
-+struct page_ext_operations page_poisoning_ops = {
-+	.need = need_page_poisoning,
-+	.init = init_page_poisoning,
-+};
-+
-+static inline void set_page_poison(struct page *page)
-+{
-+	struct page_ext *page_ext;
-+
-+	page_ext = lookup_page_ext(page);
-+	__set_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
-+}
-+
-+static inline void clear_page_poison(struct page *page)
-+{
-+	struct page_ext *page_ext;
-+
-+	page_ext = lookup_page_ext(page);
-+	__clear_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
-+}
-+
-+static inline bool page_poison(struct page *page)
-+{
-+	struct page_ext *page_ext;
-+
-+	page_ext = lookup_page_ext(page);
-+	return test_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
-+}
-+
-+static void poison_page(struct page *page)
-+{
-+	void *addr = kmap_atomic(page);
-+
-+	set_page_poison(page);
-+	memset(addr, PAGE_POISON, PAGE_SIZE);
-+	kunmap_atomic(addr);
-+}
-+
-+static void poison_pages(struct page *page, int n)
-+{
-+	int i;
-+
-+	for (i = 0; i < n; i++)
-+		poison_page(page + i);
-+}
-+
-+static bool single_bit_flip(unsigned char a, unsigned char b)
-+{
-+	unsigned char error = a ^ b;
-+
-+	return error && !(error & (error - 1));
-+}
-+
-+static void check_poison_mem(unsigned char *mem, size_t bytes)
-+{
-+	static DEFINE_RATELIMIT_STATE(ratelimit, 5 * HZ, 10);
-+	unsigned char *start;
-+	unsigned char *end;
-+
-+	if (IS_ENABLED(CONFIG_PAGE_POISONING_NO_SANITY))
-+		return;
-+
-+	start = memchr_inv(mem, PAGE_POISON, bytes);
-+	if (!start)
-+		return;
-+
-+	for (end = mem + bytes - 1; end > start; end--) {
-+		if (*end != PAGE_POISON)
-+			break;
-+	}
-+
-+	if (!__ratelimit(&ratelimit))
-+		return;
-+	else if (start == end && single_bit_flip(*start, PAGE_POISON))
-+		pr_err("pagealloc: single bit error\n");
-+	else
-+		pr_err("pagealloc: memory corruption\n");
-+
-+	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 16, 1, start,
-+			end - start + 1, 1);
-+	dump_stack();
-+}
-+
-+static void unpoison_page(struct page *page)
-+{
-+	void *addr;
-+
-+	if (!page_poison(page))
-+		return;
-+
-+	addr = kmap_atomic(page);
-+	check_poison_mem(addr, PAGE_SIZE);
-+	clear_page_poison(page);
-+	kunmap_atomic(addr);
-+}
-+
-+static void unpoison_pages(struct page *page, int n)
-+{
-+	int i;
-+
-+	for (i = 0; i < n; i++)
-+		unpoison_page(page + i);
-+}
-+
-+void kernel_poison_pages(struct page *page, int numpages, int enable)
-+{
-+	if (!page_poisoning_enabled())
-+		return;
-+
-+	if (enable)
-+		unpoison_pages(page, numpages);
-+	else
-+		poison_pages(page, numpages);
-+}
-+
-+#ifndef CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC
-+void __kernel_map_pages(struct page *page, int numpages, int enable)
-+{
-+	/* This function does nothing, all work is done via poison pages */
-+}
-+#endif
+ 	return test_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
+ }
+ 
+@@ -137,7 +140,7 @@ static void unpoison_page(struct page *p
+ {
+ 	void *addr;
+ 
+-	if (!page_poison(page))
++	if (!page_is_poisoned(page))
+ 		return;
+ 
+ 	addr = kmap_atomic(page);
 _
 
 Patches currently in -mm which might be from labbott@fedoraproject.org are
