@@ -1,70 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slub-drop-lock-at-the-end-of-free_debug_processing.patch removed from -mm tree
-Date: Wed, 16 Mar 2016 12:54:58 -0700
-Message-ID: <56e9ba12.QGiZlEYhcR2d6im8%akpm@linux-foundation.org>
+Subject: [merged] slub-fix-clean-free_debug_processing-return-paths.patch
+ removed from -mm tree
+Date: Wed, 16 Mar 2016 12:55:01 -0700
+Message-ID: <56e9ba15.R4Ch4w2NhS3fyZaj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38598 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38608 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933996AbcCPTy7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:54:59 -0400
+	with ESMTP id S934390AbcCPTzC (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:55:02 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: labbott@fedoraproject.org, cl@linux.com, js1304@gmail.com, keescook@chromium.org, minipli@googlemail.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slub: drop lock at the end of free_debug_processing
+     Subject: slub: fix/clean free_debug_processing return paths
 has been removed from the -mm tree.  Its filename was
-     slub-drop-lock-at-the-end-of-free_debug_processing.patch
+     slub-fix-clean-free_debug_processing-return-paths.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Laura Abbott <labbott@fedoraproject.org>
-Subject: slub: drop lock at the end of free_debug_processing
+Subject: slub: fix/clean free_debug_processing return paths
 
-This series takes the suggestion of Christoph Lameter and only focuses on
-optimizing the slow path where the debug processing runs.  The two main
-optimizations in this series are letting the consistency checks be skipped
-and relaxing the cmpxchg restrictions when we are not doing consistency
-checks.  With hackbench -g 20 -l 1000 averaged over 100 runs:
-
-Before slub_debug=P
-mean 15.607
-variance .086
-stdev .294
-
-After slub_debug=P
-mean 10.836
-variance .155
-stdev .394
-
-This still isn't as fast as what is in grsecurity unfortunately so there's
-still work to be done.  Profiling ___slab_alloc shows that 25-50% of time
-is spent in deactivate_slab.  I haven't looked too closely to see if this
-is something that can be optimized.  My plan for now is to focus on
-getting all of this merged (if appropriate) before digging in to another
-task.
-
-
-This patch (of 4):
-
-Currently, free_debug_processing has a comment "Keep node_lock to preserve
-integrity until the object is actually freed".  In actuallity, the lock is
-dropped immediately in __slab_free.  Rather than wait until __slab_free
-and potentially throw off the unlikely marking, just drop the lock in
-__slab_free.  This also lets free_debug_processing take its own copy of
-the spinlock flags rather than trying to share the ones from __slab_free. 
-Since there is no use for the node afterwards, change the return type of
-free_debug_processing to return an int like alloc_debug_processing.
+Since 19c7ff9ecd89 ("slub: Take node lock during object free checks")
+check_object has been incorrectly returning success as it follows the out
+label which just returns the node.  Thanks to refactoring, the out and
+fail paths are now basically the same.  Combine the two into one and just
+use a single label.
 
 Credit to Mathias Krause for the original work which inspired this series
 
-[akpm@linux-foundation.org: fix build]
 Signed-off-by: Laura Abbott <labbott@fedoraproject.org>
 Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
@@ -75,80 +46,61 @@ Cc: Mathias Krause <minipli@googlemail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |   25 +++++++++++--------------
- 1 file changed, 11 insertions(+), 14 deletions(-)
+ mm/slub.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff -puN mm/slub.c~slub-drop-lock-at-the-end-of-free_debug_processing mm/slub.c
---- a/mm/slub.c~slub-drop-lock-at-the-end-of-free_debug_processing
+diff -puN mm/slub.c~slub-fix-clean-free_debug_processing-return-paths mm/slub.c
+--- a/mm/slub.c~slub-fix-clean-free_debug_processing-return-paths
 +++ a/mm/slub.c
-@@ -1044,16 +1044,17 @@ bad:
- }
- 
- /* Supports checking bulk free of a constructed freelist */
--static noinline struct kmem_cache_node *free_debug_processing(
-+static noinline int free_debug_processing(
- 	struct kmem_cache *s, struct page *page,
- 	void *head, void *tail, int bulk_cnt,
--	unsigned long addr, unsigned long *flags)
-+	unsigned long addr)
- {
- 	struct kmem_cache_node *n = get_node(s, page_to_nid(page));
+@@ -1053,24 +1053,25 @@ static noinline int free_debug_processin
  	void *object = head;
  	int cnt = 0;
-+	unsigned long uninitialized_var(flags);
+ 	unsigned long uninitialized_var(flags);
++	int ret = 0;
  
--	spin_lock_irqsave(&n->list_lock, *flags);
-+	spin_lock_irqsave(&n->list_lock, flags);
+ 	spin_lock_irqsave(&n->list_lock, flags);
  	slab_lock(page);
  
  	if (!check_slab(s, page))
-@@ -1106,17 +1107,14 @@ out:
- 			 bulk_cnt, cnt);
+-		goto fail;
++		goto out;
+ 
+ next_object:
+ 	cnt++;
+ 
+ 	if (!check_valid_pointer(s, page, object)) {
+ 		slab_err(s, page, "Invalid object pointer 0x%p", object);
+-		goto fail;
++		goto out;
+ 	}
+ 
+ 	if (on_freelist(s, page, object)) {
+ 		object_err(s, page, object, "Object already free");
+-		goto fail;
++		goto out;
+ 	}
+ 
+ 	if (!check_object(s, page, object, SLUB_RED_ACTIVE))
+@@ -1087,7 +1088,7 @@ next_object:
+ 		} else
+ 			object_err(s, page, object,
+ 					"page slab pointer corrupt.");
+-		goto fail;
++		goto out;
+ 	}
+ 
+ 	if (s->flags & SLAB_STORE_USER)
+@@ -1101,6 +1102,8 @@ next_object:
+ 		object = get_freepointer(s, object);
+ 		goto next_object;
+ 	}
++	ret = 1;
++
+ out:
+ 	if (cnt != bulk_cnt)
+ 		slab_err(s, page, "Bulk freelist count(%d) invalid(%d)\n",
+@@ -1108,13 +1111,9 @@ out:
  
  	slab_unlock(page);
--	/*
--	 * Keep node_lock to preserve integrity
--	 * until the object is actually freed
--	 */
--	return n;
-+	spin_unlock_irqrestore(&n->list_lock, flags);
-+	return 1;
- 
- fail:
- 	slab_unlock(page);
--	spin_unlock_irqrestore(&n->list_lock, *flags);
-+	spin_unlock_irqrestore(&n->list_lock, flags);
- 	slab_fix(s, "Object at 0x%p not freed", object);
--	return NULL;
-+	return 0;
- }
- 
- static int __init setup_slub_debug(char *str)
-@@ -1207,10 +1205,10 @@ static inline void setup_object_debug(st
- static inline int alloc_debug_processing(struct kmem_cache *s,
- 	struct page *page, void *object, unsigned long addr) { return 0; }
- 
--static inline struct kmem_cache_node *free_debug_processing(
-+static inline int free_debug_processing(
- 	struct kmem_cache *s, struct page *page,
- 	void *head, void *tail, int bulk_cnt,
--	unsigned long addr, unsigned long *flags) { return NULL; }
-+	unsigned long addr) { return 0; }
- 
- static inline int slab_pad_check(struct kmem_cache *s, struct page *page)
- 			{ return 1; }
-@@ -2588,8 +2586,7 @@ static void __slab_free(struct kmem_cach
- 	stat(s, FREE_SLOWPATH);
- 
- 	if (kmem_cache_debug(s) &&
--	    !(n = free_debug_processing(s, page, head, tail, cnt,
--					addr, &flags)))
-+	    !free_debug_processing(s, page, head, tail, cnt, addr))
- 		return;
- 
- 	do {
-_
-
-Patches currently in -mm which might be from labbott@fedoraproject.org are
-
-
+ 	spin_unlock_irqrestore(&n->list_lock, flags);
+-	return 1;
