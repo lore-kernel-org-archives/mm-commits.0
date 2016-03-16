@@ -1,101 +1,77 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-use-spinlock-irqsave-for-downconvert-lock-in-ocfs2_osb_dump.patch
- removed from -mm tree
-Date: Wed, 16 Mar 2016 12:53:02 -0700
-Message-ID: <56e9b99e.YBcXdoB5+4v51TLe%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-dlm-fix-a-typo-in-dlmcommonh.patch removed from
+ -mm tree
+Date: Wed, 16 Mar 2016 12:53:05 -0700
+Message-ID: <56e9b9a1.DXETaIDby/5c0wMJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38355 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38360 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933996AbcCPTxD (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:53:03 -0400
+	with ESMTP id S933996AbcCPTxG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:53:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: use spinlock_irqsave() to downconvert lock in ocfs2_osb_dump()
+     Subject: ocfs2/dlm: fix a typo in dlmcommon.h
 has been removed from the -mm tree.  Its filename was
-     ocfs2-use-spinlock-irqsave-for-downconvert-lock-in-ocfs2_osb_dump.patch
+     ocfs2-dlm-fix-a-typo-in-dlmcommonh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: jiangyiwen <jiangyiwen@huawei.com>
-Subject: ocfs2: use spinlock_irqsave() to downconvert lock in ocfs2_osb_dump()
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2/dlm: fix a typo in dlmcommon.h
 
-commit a75e9ccabd92 ("ocfs2: use spinlock irqsave for downconvert lock")
-missed an unmodified place in ocfs2_osb_dump(), so it still exists a
-deadlock scenario.
+Refer to cluster/tcp.h, NET_MAX_PAYLOAD_BYTES is a typo for
+O2NET_MAX_PAYLOAD_BYTES.
 
-    ocfs2_wake_downconvert_thread
-    ocfs2_rw_unlock
-    ocfs2_dio_end_io
-    dio_complete
-    .....
-    bio_endio
-    req_bio_endio
-    ....
-    scsi_io_completion
-    blk_done_softirq
-    __do_softirq
-    do_softirq
-    irq_exit
-    do_IRQ
-    ocfs2_osb_dump
-    cat /sys/kernel/debug/ocfs2/${uuid}/fs_state
+Since currently DLM_MIG_LOCKRES_RESERVED is not actually used, it won't
+cause any problem.  But we'd better correct it for further use.
 
-This patch still uses spin_lock_irqsave() - replace spin_lock() to solve
-this situation.
-
-Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/super.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ fs/ocfs2/dlm/dlmcommon.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ocfs2/super.c~ocfs2-use-spinlock-irqsave-for-downconvert-lock-in-ocfs2_osb_dump fs/ocfs2/super.c
---- a/fs/ocfs2/super.c~ocfs2-use-spinlock-irqsave-for-downconvert-lock-in-ocfs2_osb_dump
-+++ a/fs/ocfs2/super.c
-@@ -236,6 +236,7 @@ static int ocfs2_osb_dump(struct ocfs2_s
- 	struct ocfs2_recovery_map *rm = osb->recovery_map;
- 	struct ocfs2_orphan_scan *os = &osb->osb_orphan_scan;
- 	int i, out = 0;
-+	unsigned long flags;
+diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-fix-a-typo-in-dlmcommonh fs/ocfs2/dlm/dlmcommon.h
+--- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-fix-a-typo-in-dlmcommonh
++++ a/fs/ocfs2/dlm/dlmcommon.h
+@@ -545,7 +545,7 @@ struct dlm_master_requery
+  * };
+  *
+  * from ../cluster/tcp.h
+- *    NET_MAX_PAYLOAD_BYTES  (4096 - sizeof(net_msg))
++ *    O2NET_MAX_PAYLOAD_BYTES  (4096 - sizeof(net_msg))
+  *    (roughly 4080 bytes)
+  * and sizeof(dlm_migratable_lockres) = 112 bytes
+  * and sizeof(dlm_migratable_lock) = 16 bytes
+@@ -586,7 +586,7 @@ struct dlm_migratable_lockres
  
- 	out += snprintf(buf + out, len - out,
- 			"%10s => Id: %-s  Uuid: %-s  Gen: 0x%X  Label: %-s\n",
-@@ -271,14 +272,14 @@ static int ocfs2_osb_dump(struct ocfs2_s
- 				cconn->cc_version.pv_minor);
- 	}
+ /* from above, 128 bytes
+  * for some undetermined future use */
+-#define DLM_MIG_LOCKRES_RESERVED   (NET_MAX_PAYLOAD_BYTES - \
++#define DLM_MIG_LOCKRES_RESERVED   (O2NET_MAX_PAYLOAD_BYTES - \
+ 				    DLM_MIG_LOCKRES_MAX_LEN)
  
--	spin_lock(&osb->dc_task_lock);
-+	spin_lock_irqsave(&osb->dc_task_lock, flags);
- 	out += snprintf(buf + out, len - out,
- 			"%10s => Pid: %d  Count: %lu  WakeSeq: %lu  "
- 			"WorkSeq: %lu\n", "DownCnvt",
- 			(osb->dc_task ?  task_pid_nr(osb->dc_task) : -1),
- 			osb->blocked_lock_count, osb->dc_wake_sequence,
- 			osb->dc_work_sequence);
--	spin_unlock(&osb->dc_task_lock);
-+	spin_unlock_irqrestore(&osb->dc_task_lock, flags);
- 
- 	spin_lock(&osb->osb_lock);
- 	out += snprintf(buf + out, len - out, "%10s => Pid: %d  Nodes:",
+ struct dlm_create_lock
 _
 
-Patches currently in -mm which might be from jiangyiwen@huawei.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
-ocfs2-avoid-occurring-deadlock-by-changing-ocfs2_wq-from-global-to-local.patch
-ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery-v2.patch
+ocfs2-dlm-fix-race-between-convert-and-recovery-v3.patch
+ocfs2-dlm-fix-bug-in-dlm_move_lockres_to_recovery_list.patch
 
