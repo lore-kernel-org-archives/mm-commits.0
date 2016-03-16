@@ -1,118 +1,157 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
- removed from -mm tree
-Date: Wed, 16 Mar 2016 12:55:36 -0700
-Message-ID: <56e9ba38.w4jEvRAhIZ5NTFG0%akpm@linux-foundation.org>
+ mm-filemap-avoid-unnecessary-calls-to-lock_page-when-waiting-for-io-to-complete-during-a-read.patch removed from -mm tree
+Date: Wed, 16 Mar 2016 12:55:33 -0700
+Message-ID: <56e9ba35.nw50oRnHm25KZWCG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38695 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38685 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965027AbcCPTzh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:55:37 -0400
+	with ESMTP id S964968AbcCPTze (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:55:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, acme@kernel.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, linux@rasmusvillemoes.dk, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, mingo@redhat.com, peterz@infradead.org, rientjes@google.com, rostedt@goodmis.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: mgorman@techsingularity.net, hughd@google.com, jack@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tracepoints: move trace_print_flags definitions to tracepoint-defs.h
+     Subject: mm: filemap: avoid unnecessary calls to lock_page when waiting for IO to complete during a read
 has been removed from the -mm tree.  Its filename was
-     tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
+     mm-filemap-avoid-unnecessary-calls-to-lock_page-when-waiting-for-io-to-complete-during-a-read.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: tracepoints: move trace_print_flags definitions to tracepoint-defs.h
+From: Mel Gorman <mgorman@techsingularity.net>
+Subject: mm: filemap: avoid unnecessary calls to lock_page when waiting for IO to complete during a read
 
-The following patch will need to declare array of struct trace_print_flags
-in a header.  To prevent this header from pulling in all of RCU through
-trace_events.h, move the struct trace_print_flags{_64} definitions to the
-new lightweight tracepoint-defs.h header.
+In the generic read paths the kernel looks up a page in the page cache and
+if it's up to date, it is used.  If not, the page lock is acquired to wait
+for IO to complete and then check the page.  If multiple processes are
+waiting on IO, they all serialise against the lock and duplicate the
+checks.  This is unnecessary.
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
-Cc: Ingo Molnar <mingo@redhat.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sasha Levin <sasha.levin@oracle.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Michal Hocko <mhocko@suse.com>
+The page lock in itself does not give any guarantees to the callers about
+the page state as it can be immediately truncated or reclaimed after the
+page is unlocked.  It's sufficient to wait_on_page_locked and then
+continue if the page is up to date on wakeup.
+
+It is possible that a truncated but up-to-date page is returned but the
+reference taken during read prevents it disappearing underneath the caller
+and the data is still valid if PageUptodate.
+
+The overall impact is small as even if processes serialise on the lock,
+the lock section is tiny once the IO is complete.  Profiles indicated that
+unlock_page and friends are generally a tiny portion of a read-intensive
+workload.  An artificial test was created that had instances of dd access
+a cache-cold file on an ext4 filesystem and measure how long the read
+took.
+
+paralleldd
+                                    4.4.0                 4.4.0
+                                  vanilla             avoidlock
+Amean    Elapsd-1          5.28 (  0.00%)        5.15 (  2.50%)
+Amean    Elapsd-4          5.29 (  0.00%)        5.17 (  2.12%)
+Amean    Elapsd-7          5.28 (  0.00%)        5.18 (  1.78%)
+Amean    Elapsd-12         5.20 (  0.00%)        5.33 ( -2.50%)
+Amean    Elapsd-21         5.14 (  0.00%)        5.21 ( -1.41%)
+Amean    Elapsd-30         5.30 (  0.00%)        5.12 (  3.38%)
+Amean    Elapsd-48         5.78 (  0.00%)        5.42 (  6.21%)
+Amean    Elapsd-79         6.78 (  0.00%)        6.62 (  2.46%)
+Amean    Elapsd-110        9.09 (  0.00%)        8.99 (  1.15%)
+Amean    Elapsd-128       10.60 (  0.00%)       10.43 (  1.66%)
+
+The impact is small but intuitively, it makes sense to avoid unnecessary
+calls to lock_page.
+
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Reviewed-by: Jan Kara <jack@suse.cz>
+Cc: Hugh Dickins <hughd@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/trace_events.h    |   10 ----------
- include/linux/tracepoint-defs.h |   14 ++++++++++++--
- 2 files changed, 12 insertions(+), 12 deletions(-)
+ mm/filemap.c |   49 +++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 49 insertions(+)
 
-diff -puN include/linux/trace_events.h~tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh include/linux/trace_events.h
---- a/include/linux/trace_events.h~tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh
-+++ a/include/linux/trace_events.h
-@@ -15,16 +15,6 @@ struct tracer;
- struct dentry;
- struct bpf_prog;
- 
--struct trace_print_flags {
--	unsigned long		mask;
--	const char		*name;
--};
--
--struct trace_print_flags_u64 {
--	unsigned long long	mask;
--	const char		*name;
--};
--
- const char *trace_print_flags_seq(struct trace_seq *p, const char *delim,
- 				  unsigned long flags,
- 				  const struct trace_print_flags *flag_array);
-diff -puN include/linux/tracepoint-defs.h~tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh include/linux/tracepoint-defs.h
---- a/include/linux/tracepoint-defs.h~tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh
-+++ a/include/linux/tracepoint-defs.h
-@@ -3,13 +3,23 @@
- 
- /*
-  * File can be included directly by headers who only want to access
-- * tracepoint->key to guard out of line trace calls. Otherwise
-- * linux/tracepoint.h should be used.
-+ * tracepoint->key to guard out of line trace calls, or the definition of
-+ * trace_print_flags{_u64}. Otherwise linux/tracepoint.h should be used.
-  */
- 
- #include <linux/atomic.h>
- #include <linux/static_key.h>
- 
-+struct trace_print_flags {
-+	unsigned long		mask;
-+	const char		*name;
-+};
+diff -puN mm/filemap.c~mm-filemap-avoid-unnecessary-calls-to-lock_page-when-waiting-for-io-to-complete-during-a-read mm/filemap.c
+--- a/mm/filemap.c~mm-filemap-avoid-unnecessary-calls-to-lock_page-when-waiting-for-io-to-complete-during-a-read
++++ a/mm/filemap.c
+@@ -1668,6 +1668,15 @@ find_page:
+ 					index, last_index - index);
+ 		}
+ 		if (!PageUptodate(page)) {
++			/*
++			 * See comment in do_read_cache_page on why
++			 * wait_on_page_locked is used to avoid unnecessarily
++			 * serialisations and why it's safe.
++			 */
++			wait_on_page_locked_killable(page);
++			if (PageUptodate(page))
++				goto page_ok;
 +
-+struct trace_print_flags_u64 {
-+	unsigned long long	mask;
-+	const char		*name;
-+};
+ 			if (inode->i_blkbits == PAGE_CACHE_SHIFT ||
+ 					!mapping->a_ops->is_partially_uptodate)
+ 				goto page_not_up_to_date;
+@@ -2341,12 +2350,52 @@ filler:
+ 	if (PageUptodate(page))
+ 		goto out;
+ 
++	/*
++	 * Page is not up to date and may be locked due one of the following
++	 * case a: Page is being filled and the page lock is held
++	 * case b: Read/write error clearing the page uptodate status
++	 * case c: Truncation in progress (page locked)
++	 * case d: Reclaim in progress
++	 *
++	 * Case a, the page will be up to date when the page is unlocked.
++	 *    There is no need to serialise on the page lock here as the page
++	 *    is pinned so the lock gives no additional protection. Even if the
++	 *    the page is truncated, the data is still valid if PageUptodate as
++	 *    it's a race vs truncate race.
++	 * Case b, the page will not be up to date
++	 * Case c, the page may be truncated but in itself, the data may still
++	 *    be valid after IO completes as it's a read vs truncate race. The
++	 *    operation must restart if the page is not uptodate on unlock but
++	 *    otherwise serialising on page lock to stabilise the mapping gives
++	 *    no additional guarantees to the caller as the page lock is
++	 *    released before return.
++	 * Case d, similar to truncation. If reclaim holds the page lock, it
++	 *    will be a race with remove_mapping that determines if the mapping
++	 *    is valid on unlock but otherwise the data is valid and there is
++	 *    no need to serialise with page lock.
++	 *
++	 * As the page lock gives no additional guarantee, we optimistically
++	 * wait on the page to be unlocked and check if it's up to date and
++	 * use the page if it is. Otherwise, the page lock is required to
++	 * distinguish between the different cases. The motivation is that we
++	 * avoid spurious serialisations and wakeups when multiple processes
++	 * wait on the same page for IO to complete.
++	 */
++	wait_on_page_locked(page);
++	if (PageUptodate(page))
++		goto out;
 +
- struct tracepoint_func {
- 	void *func;
- 	void *data;
++	/* Distinguish between all the cases under the safety of the lock */
+ 	lock_page(page);
++
++	/* Case c or d, restart the operation */
+ 	if (!page->mapping) {
+ 		unlock_page(page);
+ 		page_cache_release(page);
+ 		goto repeat;
+ 	}
++
++	/* Someone else locked and filled the page in a very small window */
+ 	if (PageUptodate(page)) {
+ 		unlock_page(page);
+ 		goto out;
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from mgorman@techsingularity.net are
 
-mm-kswapd-remove-bogus-check-of-balance_classzone_idx.patch
-mm-compaction-introduce-kcompactd.patch
-mm-compaction-introduce-kcompactd-fix-3.patch
-mm-compaction-introduce-kcompactd-fix-4.patch
-mm-memory-hotplug-small-cleanup-in-online_pages.patch
-mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd.patch
-mm-tracing-refresh-__def_vmaflag_names-fix.patch
-mm-use-radix_tree_iter_retry-fix.patch
+mm-thp-set-thp-defrag-by-default-to-madvise-and-add-a-stall-free-defrag-option.patch
+mm-thp-set-thp-defrag-by-default-to-madvise-and-add-a-stall-free-defrag-option-fix.patch
 
