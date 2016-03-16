@@ -1,265 +1,484 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_owner-track-and-print-last-migrate-reason.patch
- removed from -mm tree
-Date: Wed, 16 Mar 2016 12:56:04 -0700
-Message-ID: <56e9ba54.rThtggTAXaUEgWNS%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-page_poisonc-enable-page_poisoning-as-a-separate-option.patch removed
+ from -mm tree
+Date: Wed, 16 Mar 2016 12:56:10 -0700
+Message-ID: <56e9ba5a.NT4MpMhNLgBVy74Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38825 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38881 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934033AbcCPT4F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:56:05 -0400
+	with ESMTP id S934750AbcCPT4L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:56:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, hughd@google.com, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: labbott@fedoraproject.org, dave.hansen@intel.com, keescook@chromium.org, kirill.shutemov@linux.intel.com, mhocko@suse.com, minipli@googlemail.com, nasa4836@gmail.com, rjw@rjwysocki.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, page_owner: track and print last migrate reason
+     Subject: mm/page_poison.c: enable PAGE_POISONING as a separate option
 has been removed from the -mm tree.  Its filename was
-     mm-page_owner-track-and-print-last-migrate-reason.patch
+     mm-page_poisonc-enable-page_poisoning-as-a-separate-option.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, page_owner: track and print last migrate reason
+From: Laura Abbott <labbott@fedoraproject.org>
+Subject: mm/page_poison.c: enable PAGE_POISONING as a separate option
 
-During migration, page_owner info is now copied with the rest of the page,
-so the stacktrace leading to free page allocation during migration is
-overwritten.  For debugging purposes, it might be however useful to know
-that the page has been migrated since its initial allocation.  This might
-happen many times during the lifetime for different reasons and fully
-tracking this, especially with stacktraces would incur extra memory costs.
-As a compromise, store and print the migrate_reason of the last migration
-that occurred to the page.  This is enough to distinguish compaction, numa
-balancing etc.
+Page poisoning is currently set up as a feature if architectures don't
+have architecture debug page_alloc to allow unmapping of pages.  It has
+uses apart from that though.  Clearing of the pages on free provides an
+increase in security as it helps to limit the risk of information leaks. 
+Allow page poisoning to be enabled as a separate option independent of
+kernel_map pages since the two features do separate work.  Because of how
+hiberanation is implemented, the checks on alloc cannot occur if
+hibernation is enabled.  The runtime alloc checks can also be enabled with
+an option when !HIBERNATION.
 
-Example page_owner entry after the patch:
+Credit to Grsecurity/PaX team for inspiring this work
 
-Page allocated via order 0, mask 0x24200ca(GFP_HIGHUSER_MOVABLE)
-PFN 628753 type Movable Block 1228 type Movable Flags 0x1fffff80040030(dirty|lru|swapbacked)
- [<ffffffff811682c4>] __alloc_pages_nodemask+0x134/0x230
- [<ffffffff811b6325>] alloc_pages_vma+0xb5/0x250
- [<ffffffff81177491>] shmem_alloc_page+0x61/0x90
- [<ffffffff8117a438>] shmem_getpage_gfp+0x678/0x960
- [<ffffffff8117c2b9>] shmem_fallocate+0x329/0x440
- [<ffffffff811de600>] vfs_fallocate+0x140/0x230
- [<ffffffff811df434>] SyS_fallocate+0x44/0x70
- [<ffffffff8158cc2e>] entry_SYSCALL_64_fastpath+0x12/0x71
-Page has been migrated, last migrate reason: compaction
-
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Minchan Kim <minchan@kernel.org>
-Cc: Sasha Levin <sasha.levin@oracle.com>
+Signed-off-by: Laura Abbott <labbott@fedoraproject.org>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Mel Gorman <mgorman@suse.de>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Michal Hocko <mhocko@suse.com>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Mathias Krause <minipli@googlemail.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Jianyu Zhan <nasa4836@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h    |    6 +++++-
- include/linux/page_ext.h   |    1 +
- include/linux/page_owner.h |    9 +++++++++
- mm/debug.c                 |   11 +++++++++++
- mm/migrate.c               |   10 +++++++---
- mm/page_owner.c            |   17 +++++++++++++++++
- 6 files changed, 50 insertions(+), 4 deletions(-)
+ Documentation/kernel-parameters.txt |    5 
+ include/linux/mm.h                  |    9 +
+ mm/Kconfig.debug                    |   25 +++
+ mm/Makefile                         |    2 
+ mm/debug-pagealloc.c                |  137 --------------------
+ mm/page_alloc.c                     |    2 
+ mm/page_poison.c                    |  173 ++++++++++++++++++++++++++
+ 7 files changed, 214 insertions(+), 139 deletions(-)
 
-diff -puN include/linux/migrate.h~mm-page_owner-track-and-print-last-migrate-reason include/linux/migrate.h
---- a/include/linux/migrate.h~mm-page_owner-track-and-print-last-migrate-reason
-+++ a/include/linux/migrate.h
-@@ -23,9 +23,13 @@ enum migrate_reason {
- 	MR_SYSCALL,		/* also applies to cpusets */
- 	MR_MEMPOLICY_MBIND,
- 	MR_NUMA_MISPLACED,
--	MR_CMA
-+	MR_CMA,
-+	MR_TYPES
- };
+diff -puN Documentation/kernel-parameters.txt~mm-page_poisonc-enable-page_poisoning-as-a-separate-option Documentation/kernel-parameters.txt
+--- a/Documentation/kernel-parameters.txt~mm-page_poisonc-enable-page_poisoning-as-a-separate-option
++++ a/Documentation/kernel-parameters.txt
+@@ -2731,6 +2731,11 @@ bytes respectively. Such letter suffixes
+ 			we can turn it on.
+ 			on: enable the feature
  
-+/* In mm/debug.c; also keep sync with include/trace/events/migrate.h */
-+extern char *migrate_reason_names[MR_TYPES];
++	page_poison=	[KNL] Boot-time parameter changing the state of
++			poisoning on the buddy allocator.
++			off: turn off poisoning
++			on: turn on poisoning
 +
- #ifdef CONFIG_MIGRATION
+ 	panic=		[KNL] Kernel behaviour on panic: delay <timeout>
+ 			timeout > 0: seconds before rebooting
+ 			timeout = 0: wait forever
+diff -puN include/linux/mm.h~mm-page_poisonc-enable-page_poisoning-as-a-separate-option include/linux/mm.h
+--- a/include/linux/mm.h~mm-page_poisonc-enable-page_poisoning-as-a-separate-option
++++ a/include/linux/mm.h
+@@ -2176,6 +2176,15 @@ extern int apply_to_page_range(struct mm
+ 			       unsigned long size, pte_fn_t fn, void *data);
  
- extern void putback_movable_pages(struct list_head *l);
-diff -puN include/linux/page_ext.h~mm-page_owner-track-and-print-last-migrate-reason include/linux/page_ext.h
---- a/include/linux/page_ext.h~mm-page_owner-track-and-print-last-migrate-reason
-+++ a/include/linux/page_ext.h
-@@ -45,6 +45,7 @@ struct page_ext {
- 	unsigned int order;
- 	gfp_t gfp_mask;
- 	unsigned int nr_entries;
-+	int last_migrate_reason;
- 	unsigned long trace_entries[8];
- #endif
- };
-diff -puN include/linux/page_owner.h~mm-page_owner-track-and-print-last-migrate-reason include/linux/page_owner.h
---- a/include/linux/page_owner.h~mm-page_owner-track-and-print-last-migrate-reason
-+++ a/include/linux/page_owner.h
-@@ -12,6 +12,7 @@ extern void __set_page_owner(struct page
- 			unsigned int order, gfp_t gfp_mask);
- extern gfp_t __get_page_owner_gfp(struct page *page);
- extern void __copy_page_owner(struct page *oldpage, struct page *newpage);
-+extern void __set_page_owner_migrate_reason(struct page *page, int reason);
  
- static inline void reset_page_owner(struct page *page, unsigned int order)
- {
-@@ -38,6 +39,11 @@ static inline void copy_page_owner(struc
- 	if (static_branch_unlikely(&page_owner_inited))
- 		__copy_page_owner(oldpage, newpage);
- }
-+static inline void set_page_owner_migrate_reason(struct page *page, int reason)
++#ifdef CONFIG_PAGE_POISONING
++extern bool page_poisoning_enabled(void);
++extern void kernel_poison_pages(struct page *page, int numpages, int enable);
++#else
++static inline bool page_poisoning_enabled(void) { return false; }
++static inline void kernel_poison_pages(struct page *page, int numpages,
++					int enable) { }
++#endif
++
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ extern bool _debug_pagealloc_enabled;
+ extern void __kernel_map_pages(struct page *page, int numpages, int enable);
+diff -puN mm/Kconfig.debug~mm-page_poisonc-enable-page_poisoning-as-a-separate-option mm/Kconfig.debug
+--- a/mm/Kconfig.debug~mm-page_poisonc-enable-page_poisoning-as-a-separate-option
++++ a/mm/Kconfig.debug
+@@ -41,4 +41,27 @@ config DEBUG_PAGEALLOC_ENABLE_DEFAULT
+ 	  can be overridden by debug_pagealloc=off|on.
+ 
+ config PAGE_POISONING
+-	bool
++	bool "Poison pages after freeing"
++	select PAGE_EXTENSION
++	select PAGE_POISONING_NO_SANITY if HIBERNATION
++	---help---
++	  Fill the pages with poison patterns after free_pages() and verify
++	  the patterns before alloc_pages. The filling of the memory helps
++	  reduce the risk of information leaks from freed data. This does
++	  have a potential performance impact.
++
++	  Note that "poison" here is not the same thing as the "HWPoison"
++	  for CONFIG_MEMORY_FAILURE. This is software poisoning only.
++
++	  If unsure, say N
++
++config PAGE_POISONING_NO_SANITY
++	depends on PAGE_POISONING
++	bool "Only poison, don't sanity check"
++	---help---
++	   Skip the sanity checking on alloc, only fill the pages with
++	   poison on free. This reduces some of the overhead of the
++	   poisoning feature.
++
++	   If you are only interested in sanitization, say Y. Otherwise
++	   say N.
+diff -puN mm/Makefile~mm-page_poisonc-enable-page_poisoning-as-a-separate-option mm/Makefile
+--- a/mm/Makefile~mm-page_poisonc-enable-page_poisoning-as-a-separate-option
++++ a/mm/Makefile
+@@ -48,7 +48,7 @@ obj-$(CONFIG_SPARSEMEM_VMEMMAP) += spars
+ obj-$(CONFIG_SLOB) += slob.o
+ obj-$(CONFIG_MMU_NOTIFIER) += mmu_notifier.o
+ obj-$(CONFIG_KSM) += ksm.o
+-obj-$(CONFIG_PAGE_POISONING) += debug-pagealloc.o
++obj-$(CONFIG_PAGE_POISONING) += page_poison.o
+ obj-$(CONFIG_SLAB) += slab.o
+ obj-$(CONFIG_SLUB) += slub.o
+ obj-$(CONFIG_KMEMCHECK) += kmemcheck.o
+diff -puN mm/debug-pagealloc.c~mm-page_poisonc-enable-page_poisoning-as-a-separate-option /dev/null
+--- a/mm/debug-pagealloc.c
++++ /dev/null
+@@ -1,137 +0,0 @@
+-#include <linux/kernel.h>
+-#include <linux/string.h>
+-#include <linux/mm.h>
+-#include <linux/highmem.h>
+-#include <linux/page_ext.h>
+-#include <linux/poison.h>
+-#include <linux/ratelimit.h>
+-
+-static bool page_poisoning_enabled __read_mostly;
+-
+-static bool need_page_poisoning(void)
+-{
+-	if (!debug_pagealloc_enabled())
+-		return false;
+-
+-	return true;
+-}
+-
+-static void init_page_poisoning(void)
+-{
+-	if (!debug_pagealloc_enabled())
+-		return;
+-
+-	page_poisoning_enabled = true;
+-}
+-
+-struct page_ext_operations page_poisoning_ops = {
+-	.need = need_page_poisoning,
+-	.init = init_page_poisoning,
+-};
+-
+-static inline void set_page_poison(struct page *page)
+-{
+-	struct page_ext *page_ext;
+-
+-	page_ext = lookup_page_ext(page);
+-	__set_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
+-}
+-
+-static inline void clear_page_poison(struct page *page)
+-{
+-	struct page_ext *page_ext;
+-
+-	page_ext = lookup_page_ext(page);
+-	__clear_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
+-}
+-
+-static inline bool page_poison(struct page *page)
+-{
+-	struct page_ext *page_ext;
+-
+-	page_ext = lookup_page_ext(page);
+-	return test_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
+-}
+-
+-static void poison_page(struct page *page)
+-{
+-	void *addr = kmap_atomic(page);
+-
+-	set_page_poison(page);
+-	memset(addr, PAGE_POISON, PAGE_SIZE);
+-	kunmap_atomic(addr);
+-}
+-
+-static void poison_pages(struct page *page, int n)
+-{
+-	int i;
+-
+-	for (i = 0; i < n; i++)
+-		poison_page(page + i);
+-}
+-
+-static bool single_bit_flip(unsigned char a, unsigned char b)
+-{
+-	unsigned char error = a ^ b;
+-
+-	return error && !(error & (error - 1));
+-}
+-
+-static void check_poison_mem(unsigned char *mem, size_t bytes)
+-{
+-	static DEFINE_RATELIMIT_STATE(ratelimit, 5 * HZ, 10);
+-	unsigned char *start;
+-	unsigned char *end;
+-
+-	start = memchr_inv(mem, PAGE_POISON, bytes);
+-	if (!start)
+-		return;
+-
+-	for (end = mem + bytes - 1; end > start; end--) {
+-		if (*end != PAGE_POISON)
+-			break;
+-	}
+-
+-	if (!__ratelimit(&ratelimit))
+-		return;
+-	else if (start == end && single_bit_flip(*start, PAGE_POISON))
+-		printk(KERN_ERR "pagealloc: single bit error\n");
+-	else
+-		printk(KERN_ERR "pagealloc: memory corruption\n");
+-
+-	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 16, 1, start,
+-			end - start + 1, 1);
+-	dump_stack();
+-}
+-
+-static void unpoison_page(struct page *page)
+-{
+-	void *addr;
+-
+-	if (!page_poison(page))
+-		return;
+-
+-	addr = kmap_atomic(page);
+-	check_poison_mem(addr, PAGE_SIZE);
+-	clear_page_poison(page);
+-	kunmap_atomic(addr);
+-}
+-
+-static void unpoison_pages(struct page *page, int n)
+-{
+-	int i;
+-
+-	for (i = 0; i < n; i++)
+-		unpoison_page(page + i);
+-}
+-
+-void __kernel_map_pages(struct page *page, int numpages, int enable)
+-{
+-	if (!page_poisoning_enabled)
+-		return;
+-
+-	if (enable)
+-		unpoison_pages(page, numpages);
+-	else
+-		poison_pages(page, numpages);
+-}
+diff -puN mm/page_alloc.c~mm-page_poisonc-enable-page_poisoning-as-a-separate-option mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_poisonc-enable-page_poisoning-as-a-separate-option
++++ a/mm/page_alloc.c
+@@ -1025,6 +1025,7 @@ static bool free_pages_prepare(struct pa
+ 					   PAGE_SIZE << order);
+ 	}
+ 	arch_free_page(page, order);
++	kernel_poison_pages(page, 1 << order, 0);
+ 	kernel_map_pages(page, 1 << order, 0);
+ 
+ 	return true;
+@@ -1420,6 +1421,7 @@ static int prep_new_page(struct page *pa
+ 
+ 	arch_alloc_page(page, order);
+ 	kernel_map_pages(page, 1 << order, 1);
++	kernel_poison_pages(page, 1 << order, 1);
+ 	kasan_alloc_pages(page, order);
+ 
+ 	if (gfp_flags & __GFP_ZERO)
+diff -puN /dev/null mm/page_poison.c
+--- /dev/null
++++ a/mm/page_poison.c
+@@ -0,0 +1,173 @@
++#include <linux/kernel.h>
++#include <linux/string.h>
++#include <linux/mm.h>
++#include <linux/highmem.h>
++#include <linux/page_ext.h>
++#include <linux/poison.h>
++#include <linux/ratelimit.h>
++
++static bool __page_poisoning_enabled __read_mostly;
++static bool want_page_poisoning __read_mostly;
++
++static int early_page_poison_param(char *buf)
 +{
-+	if (static_branch_unlikely(&page_owner_inited))
-+		__set_page_owner_migrate_reason(page, reason);
++	if (!buf)
++		return -EINVAL;
++
++	if (strcmp(buf, "on") == 0)
++		want_page_poisoning = true;
++	else if (strcmp(buf, "off") == 0)
++		want_page_poisoning = false;
++
++	return 0;
 +}
- #else
- static inline void reset_page_owner(struct page *page, unsigned int order)
- {
-@@ -53,5 +59,8 @@ static inline gfp_t get_page_owner_gfp(s
- static inline void copy_page_owner(struct page *oldpage, struct page *newpage)
- {
- }
-+static inline void set_page_owner_migrate_reason(struct page *page, int reason)
++early_param("page_poison", early_page_poison_param);
++
++bool page_poisoning_enabled(void)
 +{
++	return __page_poisoning_enabled;
 +}
- #endif /* CONFIG_PAGE_OWNER */
- #endif /* __LINUX_PAGE_OWNER_H */
-diff -puN mm/debug.c~mm-page_owner-track-and-print-last-migrate-reason mm/debug.c
---- a/mm/debug.c~mm-page_owner-track-and-print-last-migrate-reason
-+++ a/mm/debug.c
-@@ -10,9 +10,20 @@
- #include <linux/trace_events.h>
- #include <linux/memcontrol.h>
- #include <trace/events/mmflags.h>
-+#include <linux/migrate.h>
- 
- #include "internal.h"
- 
-+char *migrate_reason_names[MR_TYPES] = {
-+	"compaction",
-+	"memory_failure",
-+	"memory_hotplug",
-+	"syscall_or_cpuset",
-+	"mempolicy_mbind",
-+	"numa_misplaced",
-+	"cma",
++
++static bool need_page_poisoning(void)
++{
++	return want_page_poisoning;
++}
++
++static void init_page_poisoning(void)
++{
++	/*
++	 * page poisoning is debug page alloc for some arches. If either
++	 * of those options are enabled, enable poisoning
++	 */
++	if (!IS_ENABLED(CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC)) {
++		if (!want_page_poisoning && !debug_pagealloc_enabled())
++			return;
++	} else {
++		if (!want_page_poisoning)
++			return;
++	}
++
++	__page_poisoning_enabled = true;
++}
++
++struct page_ext_operations page_poisoning_ops = {
++	.need = need_page_poisoning,
++	.init = init_page_poisoning,
 +};
 +
- const struct trace_print_flags pageflag_names[] = {
- 	__def_pageflag_names,
- 	{0, NULL}
-diff -puN mm/migrate.c~mm-page_owner-track-and-print-last-migrate-reason mm/migrate.c
---- a/mm/migrate.c~mm-page_owner-track-and-print-last-migrate-reason
-+++ a/mm/migrate.c
-@@ -955,8 +955,10 @@ static ICE_noinline int unmap_and_move(n
- 	}
- 
- 	rc = __unmap_and_move(page, newpage, force, mode);
--	if (rc == MIGRATEPAGE_SUCCESS)
-+	if (rc == MIGRATEPAGE_SUCCESS) {
- 		put_new_page = NULL;
-+		set_page_owner_migrate_reason(newpage, reason);
-+	}
- 
- out:
- 	if (rc != -EAGAIN) {
-@@ -1021,7 +1023,7 @@ out:
- static int unmap_and_move_huge_page(new_page_t get_new_page,
- 				free_page_t put_new_page, unsigned long private,
- 				struct page *hpage, int force,
--				enum migrate_mode mode)
-+				enum migrate_mode mode, int reason)
- {
- 	int rc = -EAGAIN;
- 	int *result = NULL;
-@@ -1079,6 +1081,7 @@ put_anon:
- 	if (rc == MIGRATEPAGE_SUCCESS) {
- 		hugetlb_cgroup_migrate(hpage, new_hpage);
- 		put_new_page = NULL;
-+		set_page_owner_migrate_reason(new_hpage, reason);
- 	}
- 
- 	unlock_page(hpage);
-@@ -1151,7 +1154,7 @@ int migrate_pages(struct list_head *from
- 			if (PageHuge(page))
- 				rc = unmap_and_move_huge_page(get_new_page,
- 						put_new_page, private, page,
--						pass > 2, mode);
-+						pass > 2, mode, reason);
- 			else
- 				rc = unmap_and_move(get_new_page, put_new_page,
- 						private, page, pass > 2, mode,
-@@ -1842,6 +1845,7 @@ fail_putback:
- 	set_page_memcg(new_page, page_memcg(page));
- 	set_page_memcg(page, NULL);
- 	page_remove_rmap(page, true);
-+	set_page_owner_migrate_reason(new_page, MR_NUMA_MISPLACED);
- 
- 	spin_unlock(ptl);
- 	mmu_notifier_invalidate_range_end(mm, mmun_start, mmun_end);
-diff -puN mm/page_owner.c~mm-page_owner-track-and-print-last-migrate-reason mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-track-and-print-last-migrate-reason
-+++ a/mm/page_owner.c
-@@ -6,6 +6,7 @@
- #include <linux/stacktrace.h>
- #include <linux/page_owner.h>
- #include <linux/jump_label.h>
-+#include <linux/migrate.h>
- #include "internal.h"
- 
- static bool page_owner_disabled = true;
-@@ -73,10 +74,18 @@ void __set_page_owner(struct page *page,
- 	page_ext->order = order;
- 	page_ext->gfp_mask = gfp_mask;
- 	page_ext->nr_entries = trace.nr_entries;
-+	page_ext->last_migrate_reason = -1;
- 
- 	__set_bit(PAGE_EXT_OWNER, &page_ext->flags);
- }
- 
-+void __set_page_owner_migrate_reason(struct page *page, int reason)
++static inline void set_page_poison(struct page *page)
 +{
-+	struct page_ext *page_ext = lookup_page_ext(page);
++	struct page_ext *page_ext;
 +
-+	page_ext->last_migrate_reason = reason;
++	page_ext = lookup_page_ext(page);
++	__set_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
 +}
 +
- gfp_t __get_page_owner_gfp(struct page *page)
- {
- 	struct page_ext *page_ext = lookup_page_ext(page);
-@@ -151,6 +160,14 @@ print_page_owner(char __user *buf, size_
- 	if (ret >= count)
- 		goto err;
- 
-+	if (page_ext->last_migrate_reason != -1) {
-+		ret += snprintf(kbuf + ret, count - ret,
-+			"Page has been migrated, last migrate reason: %s\n",
-+			migrate_reason_names[page_ext->last_migrate_reason]);
-+		if (ret >= count)
-+			goto err;
++static inline void clear_page_poison(struct page *page)
++{
++	struct page_ext *page_ext;
++
++	page_ext = lookup_page_ext(page);
++	__clear_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
++}
++
++static inline bool page_poison(struct page *page)
++{
++	struct page_ext *page_ext;
++
++	page_ext = lookup_page_ext(page);
++	return test_bit(PAGE_EXT_DEBUG_POISON, &page_ext->flags);
++}
++
++static void poison_page(struct page *page)
++{
++	void *addr = kmap_atomic(page);
++
++	set_page_poison(page);
++	memset(addr, PAGE_POISON, PAGE_SIZE);
++	kunmap_atomic(addr);
++}
++
++static void poison_pages(struct page *page, int n)
++{
++	int i;
++
++	for (i = 0; i < n; i++)
++		poison_page(page + i);
++}
++
++static bool single_bit_flip(unsigned char a, unsigned char b)
++{
++	unsigned char error = a ^ b;
++
++	return error && !(error & (error - 1));
++}
++
++static void check_poison_mem(unsigned char *mem, size_t bytes)
++{
++	static DEFINE_RATELIMIT_STATE(ratelimit, 5 * HZ, 10);
++	unsigned char *start;
++	unsigned char *end;
++
++	if (IS_ENABLED(CONFIG_PAGE_POISONING_NO_SANITY))
++		return;
++
++	start = memchr_inv(mem, PAGE_POISON, bytes);
++	if (!start)
++		return;
++
++	for (end = mem + bytes - 1; end > start; end--) {
++		if (*end != PAGE_POISON)
++			break;
 +	}
 +
- 	ret += snprintf(kbuf + ret, count - ret, "\n");
- 	if (ret >= count)
- 		goto err;
++	if (!__ratelimit(&ratelimit))
++		return;
++	else if (start == end && single_bit_flip(*start, PAGE_POISON))
++		pr_err("pagealloc: single bit error\n");
++	else
++		pr_err("pagealloc: memory corruption\n");
++
++	print_hex_dump(KERN_ERR, "", DUMP_PREFIX_ADDRESS, 16, 1, start,
++			end - start + 1, 1);
++	dump_stack();
++}
++
++static void unpoison_page(struct page *page)
++{
++	void *addr;
++
++	if (!page_poison(page))
++		return;
++
++	addr = kmap_atomic(page);
++	check_poison_mem(addr, PAGE_SIZE);
++	clear_page_poison(page);
++	kunmap_atomic(addr);
++}
++
++static void unpoison_pages(struct page *page, int n)
++{
++	int i;
++
++	for (i = 0; i < n; i++)
++		unpoison_page(page + i);
++}
++
++void kernel_poison_pages(struct page *page, int numpages, int enable)
++{
++	if (!page_poisoning_enabled())
++		return;
++
++	if (enable)
++		unpoison_pages(page, numpages);
++	else
++		poison_pages(page, numpages);
++}
++
++#ifndef CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC
++void __kernel_map_pages(struct page *page, int numpages, int enable)
++{
++	/* This function does nothing, all work is done via poison pages */
++}
++#endif
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from labbott@fedoraproject.org are
 
-mm-kswapd-remove-bogus-check-of-balance_classzone_idx.patch
-mm-compaction-introduce-kcompactd.patch
-mm-compaction-introduce-kcompactd-fix-3.patch
-mm-compaction-introduce-kcompactd-fix-4.patch
-mm-memory-hotplug-small-cleanup-in-online_pages.patch
-mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd.patch
-mm-tracing-refresh-__def_vmaflag_names-fix.patch
-mm-use-radix_tree_iter_retry-fix.patch
 
