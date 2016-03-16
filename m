@@ -1,413 +1,1106 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table.patch
- removed from -mm tree
-Date: Wed, 16 Mar 2016 12:57:42 -0700
-Message-ID: <56e9bab6.LM3enF42W/SHFqCZ%akpm@linux-foundation.org>
+Subject: [merged] autofs4-coding-style-fixes.patch removed from -mm tree
+Date: Wed, 16 Mar 2016 12:57:47 -0700
+Message-ID: <56e9babb.3RFeRSPk2x7DLWbQ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39200 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39206 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934130AbcCPT5n (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:57:43 -0400
+	with ESMTP id S934130AbcCPT5s (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:57:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ard.biesheuvel@linaro.org, arnd@arndb.de, benh@kernel.crashing.org, heiko.carstens@de.ibm.com, hpa@zytor.com, keescook@chromium.org, linux@roeck-us.net, mingo@kernel.org, mmarek@suse.cz, mpe@ellerman.id.au, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: raven@themaw.net, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kallsyms: add support for relative offsets in kallsyms address table
+     Subject: autofs4: coding style fixes
 has been removed from the -mm tree.  Its filename was
-     kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table.patch
+     autofs4-coding-style-fixes.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Subject: kallsyms: add support for relative offsets in kallsyms address table
+From: Ian Kent <raven@themaw.net>
+Subject: autofs4: coding style fixes
 
-Similar to how relative extables are implemented, it is possible to emit
-the kallsyms table in such a way that it contains offsets relative to some
-anchor point in the kernel image rather than absolute addresses.
+Try and make the coding style completely consistent throughtout the autofs
+module and inline with kernel coding style recommendations.
 
-On 64-bit architectures, it cuts the size of the kallsyms address table in
-half, since offsets between kernel symbols can typically be expressed in
-32 bits.  This saves several hundreds of kilobytes of permanent .rodata on
-average.  In addition, the kallsyms address table is no longer subject to
-dynamic relocation when CONFIG_RELOCATABLE is in effect, so the relocation
-work done after decompression now doesn't have to do relocation updates
-for all these values.  This saves up to 24 bytes (i.e., the size of a
-ELF64 RELA relocation table entry) per value, which easily adds up to a
-couple of megabytes of uncompressed __init data on ppc64 or arm64.  Even
-if these relocation entries typically compress well, the combined size
-reduction of 2.8 MB uncompressed for a ppc64_defconfig build (of which 2.4
-MB is __init data) results in a ~500 KB space saving in the compressed
-image.
-
-Since it is useful for some architectures (like x86) to retain the ability
-to emit absolute values as well, this patch also adds support for
-capturing both absolute and relative values when KALLSYMS_ABSOLUTE_PERCPU
-is in effect, by emitting absolute per-cpu addresses as positive 32-bit
-values, and addresses relative to the lowest encountered relative symbol
-as negative values, which are subtracted from the runtime address of this
-base symbol to produce the actual address.
-
-Support for the above is enabled by default for all architectures except
-IA-64 and Tile-GX, whose symbols are too far apart to capture in this
-manner.
-
-Signed-off-by: Ard Biesheuvel <ard.biesheuvel@linaro.org>
-Tested-by: Guenter Roeck <linux@roeck-us.net>
-Reviewed-by: Kees Cook <keescook@chromium.org>
-Tested-by: Kees Cook <keescook@chromium.org>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Michal Marek <mmarek@suse.cz>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Ian Kent <raven@themaw.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/Kconfig            |   18 ++++++++
- kernel/kallsyms.c       |   42 +++++++++++++++-----
- scripts/kallsyms.c      |   79 +++++++++++++++++++++++++++++++++-----
- scripts/link-vmlinux.sh |    4 +
- scripts/namespace.pl    |    2 
- 5 files changed, 126 insertions(+), 19 deletions(-)
+ fs/autofs4/autofs_i.h          |   55 ++++++++---------
+ fs/autofs4/dev-ioctl.c         |   28 +++++----
+ fs/autofs4/expire.c            |   60 ++++++++++---------
+ fs/autofs4/init.c              |   10 ---
+ fs/autofs4/inode.c             |   25 +++-----
+ fs/autofs4/root.c              |   95 ++++++++++++++++---------------
+ fs/autofs4/symlink.c           |   11 +--
+ fs/autofs4/waitq.c             |   49 ++++++++-------
+ include/linux/auto_dev-ioctl.h |    1 
+ include/linux/auto_fs.h        |   10 ---
+ include/uapi/linux/auto_fs.h   |   19 ++----
+ include/uapi/linux/auto_fs4.h  |   15 +---
+ 12 files changed, 190 insertions(+), 188 deletions(-)
 
-diff -puN init/Kconfig~kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table init/Kconfig
---- a/init/Kconfig~kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table
-+++ a/init/Kconfig
-@@ -1424,6 +1424,24 @@ config KALLSYMS_ABSOLUTE_PERCPU
- 	bool
- 	default X86_64 && SMP
+diff -puN fs/autofs4/autofs_i.h~autofs4-coding-style-fixes fs/autofs4/autofs_i.h
+--- a/fs/autofs4/autofs_i.h~autofs4-coding-style-fixes
++++ a/fs/autofs4/autofs_i.h
+@@ -1,15 +1,11 @@
+-/* -*- c -*- ------------------------------------------------------------- *
+- *   
+- * linux/fs/autofs/autofs_i.h
+- *
+- *   Copyright 1997-1998 Transmeta Corporation - All Rights Reserved
+- *   Copyright 2005-2006 Ian Kent <raven@themaw.net>
++/*
++ *  Copyright 1997-1998 Transmeta Corporation - All Rights Reserved
++ *  Copyright 2005-2006 Ian Kent <raven@themaw.net>
+  *
+  * This file is part of the Linux kernel and is made available under
+  * the terms of the GNU General Public License, version 2, or at your
+  * option, any later version, incorporated herein by reference.
+- *
+- * ----------------------------------------------------------------------- */
++ */
  
-+config KALLSYMS_BASE_RELATIVE
-+	bool
-+	depends on KALLSYMS
-+	default !IA64 && !(TILE && 64BIT)
-+	help
-+	  Instead of emitting them as absolute values in the native word size,
-+	  emit the symbol references in the kallsyms table as 32-bit entries,
-+	  each containing a relative value in the range [base, base + U32_MAX]
-+	  or, when KALLSYMS_ABSOLUTE_PERCPU is in effect, each containing either
-+	  an absolute value in the range [0, S32_MAX] or a relative value in the
-+	  range [base, base + S32_MAX], where base is the lowest relative symbol
-+	  address encountered in the image.
-+
-+	  On 64-bit builds, this reduces the size of the address table by 50%,
-+	  but more importantly, it results in entries whose values are build
-+	  time constants, and no relocation pass is required at runtime to fix
-+	  up the entries based on the runtime load address of the kernel.
-+
- config PRINTK
- 	default y
- 	bool "Enable support for printk" if EXPERT
-diff -puN kernel/kallsyms.c~kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table kernel/kallsyms.c
---- a/kernel/kallsyms.c~kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table
-+++ a/kernel/kallsyms.c
-@@ -38,6 +38,7 @@
-  * during the second link stage.
-  */
- extern const unsigned long kallsyms_addresses[] __weak;
-+extern const int kallsyms_offsets[] __weak;
- extern const u8 kallsyms_names[] __weak;
+ /* Internal header file for autofs */
  
- /*
-@@ -47,6 +48,9 @@ extern const u8 kallsyms_names[] __weak;
- extern const unsigned long kallsyms_num_syms
- __attribute__((weak, section(".rodata")));
+@@ -35,7 +31,7 @@
+ #include <linux/mount.h>
+ #include <linux/namei.h>
+ #include <asm/current.h>
+-#include <asm/uaccess.h>
++#include <linux/uaccess.h>
  
-+extern const unsigned long kallsyms_relative_base
-+__attribute__((weak, section(".rodata")));
-+
- extern const u8 kallsyms_token_table[] __weak;
- extern const u16 kallsyms_token_index[] __weak;
+ /* #define DEBUG */
  
-@@ -176,6 +180,23 @@ static unsigned int get_symbol_offset(un
- 	return name - kallsyms_names;
- }
+@@ -51,12 +47,14 @@
+ 	printk(KERN_ERR "pid %d: %s: " fmt "\n",	\
+ 		current->pid, __func__, ##__VA_ARGS__)
  
-+static unsigned long kallsyms_sym_address(int idx)
-+{
-+	if (!IS_ENABLED(CONFIG_KALLSYMS_BASE_RELATIVE))
-+		return kallsyms_addresses[idx];
-+
-+	/* values are unsigned offsets if --absolute-percpu is not in effect */
-+	if (!IS_ENABLED(CONFIG_KALLSYMS_ABSOLUTE_PERCPU))
-+		return kallsyms_relative_base + (u32)kallsyms_offsets[idx];
-+
-+	/* ...otherwise, positive offsets are absolute values */
-+	if (kallsyms_offsets[idx] >= 0)
-+		return kallsyms_offsets[idx];
-+
-+	/* ...and negative offsets are relative to kallsyms_relative_base - 1 */
-+	return kallsyms_relative_base - 1 - kallsyms_offsets[idx];
-+}
-+
- /* Lookup the address for this symbol. Returns 0 if not found. */
- unsigned long kallsyms_lookup_name(const char *name)
- {
-@@ -187,7 +208,7 @@ unsigned long kallsyms_lookup_name(const
- 		off = kallsyms_expand_symbol(off, namebuf, ARRAY_SIZE(namebuf));
- 
- 		if (strcmp(namebuf, name) == 0)
--			return kallsyms_addresses[i];
-+			return kallsyms_sym_address(i);
- 	}
- 	return module_kallsyms_lookup_name(name);
- }
-@@ -204,7 +225,7 @@ int kallsyms_on_each_symbol(int (*fn)(vo
- 
- 	for (i = 0, off = 0; i < kallsyms_num_syms; i++) {
- 		off = kallsyms_expand_symbol(off, namebuf, ARRAY_SIZE(namebuf));
--		ret = fn(data, namebuf, NULL, kallsyms_addresses[i]);
-+		ret = fn(data, namebuf, NULL, kallsyms_sym_address(i));
- 		if (ret != 0)
- 			return ret;
- 	}
-@@ -220,7 +241,10 @@ static unsigned long get_symbol_pos(unsi
- 	unsigned long i, low, high, mid;
- 
- 	/* This kernel should never had been booted. */
--	BUG_ON(!kallsyms_addresses);
-+	if (!IS_ENABLED(CONFIG_KALLSYMS_BASE_RELATIVE))
-+		BUG_ON(!kallsyms_addresses);
-+	else
-+		BUG_ON(!kallsyms_offsets);
- 
- 	/* Do a binary search on the sorted kallsyms_addresses array. */
- 	low = 0;
-@@ -228,7 +252,7 @@ static unsigned long get_symbol_pos(unsi
- 
- 	while (high - low > 1) {
- 		mid = low + (high - low) / 2;
--		if (kallsyms_addresses[mid] <= addr)
-+		if (kallsyms_sym_address(mid) <= addr)
- 			low = mid;
- 		else
- 			high = mid;
-@@ -238,15 +262,15 @@ static unsigned long get_symbol_pos(unsi
- 	 * Search for the first aliased symbol. Aliased
- 	 * symbols are symbols with the same address.
- 	 */
--	while (low && kallsyms_addresses[low-1] == kallsyms_addresses[low])
-+	while (low && kallsyms_sym_address(low-1) == kallsyms_sym_address(low))
- 		--low;
- 
--	symbol_start = kallsyms_addresses[low];
-+	symbol_start = kallsyms_sym_address(low);
- 
- 	/* Search for next non-aliased symbol. */
- 	for (i = low + 1; i < kallsyms_num_syms; i++) {
--		if (kallsyms_addresses[i] > symbol_start) {
--			symbol_end = kallsyms_addresses[i];
-+		if (kallsyms_sym_address(i) > symbol_start) {
-+			symbol_end = kallsyms_sym_address(i);
- 			break;
- 		}
- 	}
-@@ -470,7 +494,7 @@ static unsigned long get_ksymbol_core(st
- 	unsigned off = iter->nameoff;
- 
- 	iter->module_name[0] = '\0';
--	iter->value = kallsyms_addresses[iter->pos];
-+	iter->value = kallsyms_sym_address(iter->pos);
- 
- 	iter->type = kallsyms_get_symbol_type(off);
- 
-diff -puN scripts/kallsyms.c~kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table scripts/kallsyms.c
---- a/scripts/kallsyms.c~kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table
-+++ a/scripts/kallsyms.c
-@@ -22,6 +22,7 @@
- #include <stdlib.h>
- #include <string.h>
- #include <ctype.h>
-+#include <limits.h>
- 
- #ifndef ARRAY_SIZE
- #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
-@@ -43,6 +44,7 @@ struct addr_range {
+-/* Unified info structure.  This is pointed to by both the dentry and
+-   inode structures.  Each file in the filesystem has an instance of this
+-   structure.  It holds a reference to the dentry, so dentries are never
+-   flushed while the file exists.  All name lookups are dealt with at the
+-   dentry level, although the filesystem can interfere in the validation
+-   process.  Readdir is implemented by traversing the dentry lists. */
++/*
++ * Unified info structure.  This is pointed to by both the dentry and
++ * inode structures.  Each file in the filesystem has an instance of this
++ * structure.  It holds a reference to the dentry, so dentries are never
++ * flushed while the file exists.  All name lookups are dealt with at the
++ * dentry level, although the filesystem can interfere in the validation
++ * process.  Readdir is implemented by traversing the dentry lists.
++ */
+ struct autofs_info {
+ 	struct dentry	*dentry;
+ 	struct inode	*inode;
+@@ -78,7 +76,7 @@ struct autofs_info {
+ 	kgid_t gid;
  };
  
- static unsigned long long _text;
-+static unsigned long long relative_base;
- static struct addr_range text_ranges[] = {
- 	{ "_stext",     "_etext"     },
- 	{ "_sinittext", "_einittext" },
-@@ -62,6 +64,7 @@ static int all_symbols = 0;
- static int absolute_percpu = 0;
- static char symbol_prefix_char = '\0';
- static unsigned long long kernel_start_addr = 0;
-+static int base_relative = 0;
- 
- int token_profit[0x10000];
- 
-@@ -75,7 +78,7 @@ static void usage(void)
- 	fprintf(stderr, "Usage: kallsyms [--all-symbols] "
- 			"[--symbol-prefix=<prefix char>] "
- 			"[--page-offset=<CONFIG_PAGE_OFFSET>] "
--			"< in.map > out.S\n");
-+			"[--base-relative] < in.map > out.S\n");
- 	exit(1);
+-#define AUTOFS_INF_EXPIRING	(1<<0) /* dentry is in the process of expiring */
++#define AUTOFS_INF_EXPIRING	(1<<0) /* dentry in the process of expiring */
+ #define AUTOFS_INF_NO_RCU	(1<<1) /* the dentry is being considered
+ 					* for expiry, so RCU_walk is
+ 					* not permitted
+@@ -140,10 +138,11 @@ static inline struct autofs_info *autofs
  }
  
-@@ -205,6 +208,8 @@ static int symbol_valid(struct sym_entry
- 	 */
- 	static char *special_symbols[] = {
- 		"kallsyms_addresses",
-+		"kallsyms_offsets",
-+		"kallsyms_relative_base",
- 		"kallsyms_num_syms",
- 		"kallsyms_names",
- 		"kallsyms_markers",
-@@ -349,16 +354,48 @@ static void write_src(void)
- 
- 	printf("\t.section .rodata, \"a\"\n");
- 
--	/* Provide proper symbols relocatability by their '_text'
--	 * relativeness.  The symbol names cannot be used to construct
--	 * normal symbol references as the list of symbols contains
--	 * symbols that are declared static and are private to their
--	 * .o files.  This prevents .tmp_kallsyms.o or any other
--	 * object from referencing them.
-+	/* Provide proper symbols relocatability by their relativeness
-+	 * to a fixed anchor point in the runtime image, either '_text'
-+	 * for absolute address tables, in which case the linker will
-+	 * emit the final addresses at build time. Otherwise, use the
-+	 * offset relative to the lowest value encountered of all relative
-+	 * symbols, and emit non-relocatable fixed offsets that will be fixed
-+	 * up at runtime.
-+	 *
-+	 * The symbol names cannot be used to construct normal symbol
-+	 * references as the list of symbols contains symbols that are
-+	 * declared static and are private to their .o files.  This prevents
-+	 * .tmp_kallsyms.o or any other object from referencing them.
- 	 */
--	output_label("kallsyms_addresses");
-+	if (!base_relative)
-+		output_label("kallsyms_addresses");
-+	else
-+		output_label("kallsyms_offsets");
-+
- 	for (i = 0; i < table_cnt; i++) {
--		if (!symbol_absolute(&table[i])) {
-+		if (base_relative) {
-+			long long offset;
-+			int overflow;
-+
-+			if (!absolute_percpu) {
-+				offset = table[i].addr - relative_base;
-+				overflow = (offset < 0 || offset > UINT_MAX);
-+			} else if (symbol_absolute(&table[i])) {
-+				offset = table[i].addr;
-+				overflow = (offset < 0 || offset > INT_MAX);
-+			} else {
-+				offset = relative_base - table[i].addr - 1;
-+				overflow = (offset < INT_MIN || offset >= 0);
-+			}
-+			if (overflow) {
-+				fprintf(stderr, "kallsyms failure: "
-+					"%s symbol value %#llx out of range in relative mode\n",
-+					symbol_absolute(&table[i]) ? "absolute" : "relative",
-+					table[i].addr);
-+				exit(EXIT_FAILURE);
-+			}
-+			printf("\t.long\t%#x\n", (int)offset);
-+		} else if (!symbol_absolute(&table[i])) {
- 			if (_text <= table[i].addr)
- 				printf("\tPTR\t_text + %#llx\n",
- 					table[i].addr - _text);
-@@ -371,6 +408,12 @@ static void write_src(void)
- 	}
- 	printf("\n");
- 
-+	if (base_relative) {
-+		output_label("kallsyms_relative_base");
-+		printf("\tPTR\t_text - %#llx\n", _text - relative_base);
-+		printf("\n");
-+	}
-+
- 	output_label("kallsyms_num_syms");
- 	printf("\tPTR\t%d\n", table_cnt);
- 	printf("\n");
-@@ -695,6 +738,18 @@ static void make_percpus_absolute(void)
- 		}
- }
- 
-+/* find the minimum non-absolute symbol address */
-+static void record_relative_base(void)
+ /* autofs4_oz_mode(): do we see the man behind the curtain?  (The
+-   processes which do manipulations for us in user space sees the raw
+-   filesystem without "magic".) */
+-
+-static inline int autofs4_oz_mode(struct autofs_sb_info *sbi) {
++ * processes which do manipulations for us in user space sees the raw
++ * filesystem without "magic".)
++ */
++static inline int autofs4_oz_mode(struct autofs_sb_info *sbi)
 +{
-+	unsigned int i;
-+
-+	relative_base = -1ULL;
-+	for (i = 0; i < table_cnt; i++)
-+		if (!symbol_absolute(&table[i]) &&
-+		    table[i].addr < relative_base)
-+			relative_base = table[i].addr;
-+}
-+
- int main(int argc, char **argv)
+ 	return sbi->catatonic || task_pgrp(current) == sbi->oz_pgrp;
+ }
+ 
+@@ -154,12 +153,12 @@ void autofs4_free_ino(struct autofs_info
+ int is_autofs4_dentry(struct dentry *);
+ int autofs4_expire_wait(struct dentry *dentry, int rcu_walk);
+ int autofs4_expire_run(struct super_block *, struct vfsmount *,
+-			struct autofs_sb_info *,
+-			struct autofs_packet_expire __user *);
++		       struct autofs_sb_info *,
++		       struct autofs_packet_expire __user *);
+ int autofs4_do_expire_multi(struct super_block *sb, struct vfsmount *mnt,
+ 			    struct autofs_sb_info *sbi, int when);
+ int autofs4_expire_multi(struct super_block *, struct vfsmount *,
+-			struct autofs_sb_info *, int __user *);
++			 struct autofs_sb_info *, int __user *);
+ struct dentry *autofs4_expire_direct(struct super_block *sb,
+ 				     struct vfsmount *mnt,
+ 				     struct autofs_sb_info *sbi, int how);
+@@ -224,8 +223,8 @@ static inline int autofs_prepare_pipe(st
+ 
+ /* Queue management functions */
+ 
+-int autofs4_wait(struct autofs_sb_info *,struct dentry *, enum autofs_notify);
+-int autofs4_wait_release(struct autofs_sb_info *,autofs_wqt_t,int);
++int autofs4_wait(struct autofs_sb_info *, struct dentry *, enum autofs_notify);
++int autofs4_wait_release(struct autofs_sb_info *, autofs_wqt_t, int);
+ void autofs4_catatonic_mode(struct autofs_sb_info *);
+ 
+ static inline u32 autofs4_get_dev(struct autofs_sb_info *sbi)
+@@ -242,37 +241,37 @@ static inline void __autofs4_add_expirin
  {
- 	if (argc >= 2) {
-@@ -713,7 +768,9 @@ int main(int argc, char **argv)
- 			} else if (strncmp(argv[i], "--page-offset=", 14) == 0) {
- 				const char *p = &argv[i][14];
- 				kernel_start_addr = strtoull(p, NULL, 16);
--			} else
-+			} else if (strcmp(argv[i], "--base-relative") == 0)
-+				base_relative = 1;
-+			else
- 				usage();
- 		}
- 	} else if (argc != 1)
-@@ -722,6 +779,8 @@ int main(int argc, char **argv)
- 	read_map(stdin);
- 	if (absolute_percpu)
- 		make_percpus_absolute();
-+	if (base_relative)
-+		record_relative_base();
- 	sort_symbols();
- 	optimize_token_table();
- 	write_src();
-diff -puN scripts/link-vmlinux.sh~kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table scripts/link-vmlinux.sh
---- a/scripts/link-vmlinux.sh~kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table
-+++ a/scripts/link-vmlinux.sh
-@@ -90,6 +90,10 @@ kallsyms()
- 		kallsymopt="${kallsymopt} --absolute-percpu"
- 	fi
- 
-+	if [ -n "${CONFIG_KALLSYMS_BASE_RELATIVE}" ]; then
-+		kallsymopt="${kallsymopt} --base-relative"
-+	fi
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
 +
- 	local aflags="${KBUILD_AFLAGS} ${KBUILD_AFLAGS_KERNEL}               \
- 		      ${NOSTDINC_FLAGS} ${LINUXINCLUDE} ${KBUILD_CPPFLAGS}"
+ 	if (ino) {
+ 		if (list_empty(&ino->expiring))
+ 			list_add(&ino->expiring, &sbi->expiring_list);
+ 	}
+-	return;
+ }
  
-diff -puN scripts/namespace.pl~kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table scripts/namespace.pl
---- a/scripts/namespace.pl~kallsyms-add-support-for-relative-offsets-in-kallsyms-address-table
-+++ a/scripts/namespace.pl
-@@ -117,6 +117,8 @@ my %nameexception = (
-     'kallsyms_names'	=> 1,
-     'kallsyms_num_syms'	=> 1,
-     'kallsyms_addresses'=> 1,
-+    'kallsyms_offsets'	=> 1,
-+    'kallsyms_relative_base'=> 1,
-     '__this_module'	=> 1,
-     '_etext'		=> 1,
-     '_edata'		=> 1,
-_
-
-Patches currently in -mm which might be from ard.biesheuvel@linaro.org are
-
-alpha-extable-use-generic-search-and-sort-routines.patch
-s390-extable-use-generic-search-and-sort-routines.patch
-x86-extable-use-generic-search-and-sort-routines.patch
-ia64-extable-use-generic-search-and-sort-routines.patch
-
+ static inline void autofs4_add_expiring(struct dentry *dentry)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
++
+ 	if (ino) {
+ 		spin_lock(&sbi->lookup_lock);
+ 		if (list_empty(&ino->expiring))
+ 			list_add(&ino->expiring, &sbi->expiring_list);
+ 		spin_unlock(&sbi->lookup_lock);
+ 	}
+-	return;
+ }
+ 
+ static inline void autofs4_del_expiring(struct dentry *dentry)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+ 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
++
+ 	if (ino) {
+ 		spin_lock(&sbi->lookup_lock);
+ 		if (!list_empty(&ino->expiring))
+ 			list_del_init(&ino->expiring);
+ 		spin_unlock(&sbi->lookup_lock);
+ 	}
+-	return;
+ }
+ 
+ extern void autofs4_kill_sb(struct super_block *);
+diff -puN fs/autofs4/dev-ioctl.c~autofs4-coding-style-fixes fs/autofs4/dev-ioctl.c
+--- a/fs/autofs4/dev-ioctl.c~autofs4-coding-style-fixes
++++ a/fs/autofs4/dev-ioctl.c
+@@ -72,8 +72,8 @@ static int check_dev_ioctl_version(int c
+ {
+ 	int err = 0;
+ 
+-	if ((AUTOFS_DEV_IOCTL_VERSION_MAJOR != param->ver_major) ||
+-	    (AUTOFS_DEV_IOCTL_VERSION_MINOR < param->ver_minor)) {
++	if ((param->ver_major != AUTOFS_DEV_IOCTL_VERSION_MAJOR) ||
++	    (param->ver_minor > AUTOFS_DEV_IOCTL_VERSION_MINOR)) {
+ 		AUTOFS_WARN("ioctl control interface version mismatch: "
+ 		     "kernel(%u.%u), user(%u.%u), cmd(%d)",
+ 		     AUTOFS_DEV_IOCTL_VERSION_MAJOR,
+@@ -93,7 +93,8 @@ static int check_dev_ioctl_version(int c
+  * Copy parameter control struct, including a possible path allocated
+  * at the end of the struct.
+  */
+-static struct autofs_dev_ioctl *copy_dev_ioctl(struct autofs_dev_ioctl __user *in)
++static struct autofs_dev_ioctl *
++		copy_dev_ioctl(struct autofs_dev_ioctl __user *in)
+ {
+ 	struct autofs_dev_ioctl tmp, *res;
+ 
+@@ -116,7 +117,6 @@ static struct autofs_dev_ioctl *copy_dev
+ static inline void free_dev_ioctl(struct autofs_dev_ioctl *param)
+ {
+ 	kfree(param);
+-	return;
+ }
+ 
+ /*
+@@ -197,7 +197,9 @@ static int find_autofs_mount(const char
+ 			     void *data)
+ {
+ 	struct path path;
+-	int err = kern_path_mountpoint(AT_FDCWD, pathname, &path, 0);
++	int err;
++
++	err = kern_path_mountpoint(AT_FDCWD, pathname, &path, 0);
+ 	if (err)
+ 		return err;
+ 	err = -ENOENT;
+@@ -225,6 +227,7 @@ static int test_by_dev(struct path *path
+ static int test_by_type(struct path *path, void *p)
+ {
+ 	struct autofs_info *ino = autofs4_dentry_ino(path->dentry);
++
+ 	return ino && ino->sbi->type & *(unsigned *)p;
+ }
+ 
+@@ -456,8 +459,10 @@ static int autofs_dev_ioctl_requester(st
+ 		err = 0;
+ 		autofs4_expire_wait(path.dentry, 0);
+ 		spin_lock(&sbi->fs_lock);
+-		param->requester.uid = from_kuid_munged(current_user_ns(), ino->uid);
+-		param->requester.gid = from_kgid_munged(current_user_ns(), ino->gid);
++		param->requester.uid =
++			from_kuid_munged(current_user_ns(), ino->uid);
++		param->requester.gid =
++			from_kgid_munged(current_user_ns(), ino->gid);
+ 		spin_unlock(&sbi->fs_lock);
+ 	}
+ 	path_put(&path);
+@@ -619,7 +624,8 @@ static ioctl_fn lookup_dev_ioctl(unsigne
+ }
+ 
+ /* ioctl dispatcher */
+-static int _autofs_dev_ioctl(unsigned int command, struct autofs_dev_ioctl __user *user)
++static int _autofs_dev_ioctl(unsigned int command,
++			     struct autofs_dev_ioctl __user *user)
+ {
+ 	struct autofs_dev_ioctl *param;
+ 	struct file *fp;
+@@ -711,6 +717,7 @@ out:
+ static long autofs_dev_ioctl(struct file *file, uint command, ulong u)
+ {
+ 	int err;
++
+ 	err = _autofs_dev_ioctl(command, (struct autofs_dev_ioctl __user *) u);
+ 	return (long) err;
+ }
+@@ -733,8 +740,8 @@ static const struct file_operations _dev
+ 
+ static struct miscdevice _autofs_dev_ioctl_misc = {
+ 	.minor		= AUTOFS_MINOR,
+-	.name  		= AUTOFS_DEVICE_NAME,
+-	.fops  		= &_dev_ioctl_fops
++	.name		= AUTOFS_DEVICE_NAME,
++	.fops		= &_dev_ioctl_fops
+ };
+ 
+ MODULE_ALIAS_MISCDEV(AUTOFS_MINOR);
+@@ -757,6 +764,5 @@ int __init autofs_dev_ioctl_init(void)
+ void autofs_dev_ioctl_exit(void)
+ {
+ 	misc_deregister(&_autofs_dev_ioctl_misc);
+-	return;
+ }
+ 
+diff -puN fs/autofs4/expire.c~autofs4-coding-style-fixes fs/autofs4/expire.c
+--- a/fs/autofs4/expire.c~autofs4-coding-style-fixes
++++ a/fs/autofs4/expire.c
+@@ -1,16 +1,12 @@
+-/* -*- c -*- --------------------------------------------------------------- *
+- *
+- * linux/fs/autofs/expire.c
+- *
+- *  Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
+- *  Copyright 1999-2000 Jeremy Fitzhardinge <jeremy@goop.org>
+- *  Copyright 2001-2006 Ian Kent <raven@themaw.net>
++/*
++ * Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
++ * Copyright 1999-2000 Jeremy Fitzhardinge <jeremy@goop.org>
++ * Copyright 2001-2006 Ian Kent <raven@themaw.net>
+  *
+  * This file is part of the Linux kernel and is made available under
+  * the terms of the GNU General Public License, version 2, or at your
+  * option, any later version, incorporated herein by reference.
+- *
+- * ------------------------------------------------------------------------- */
++ */
+ 
+ #include "autofs_i.h"
+ 
+@@ -18,7 +14,7 @@ static unsigned long now;
+ 
+ /* Check if a dentry can be expired */
+ static inline int autofs4_can_expire(struct dentry *dentry,
+-					unsigned long timeout, int do_now)
++				     unsigned long timeout, int do_now)
+ {
+ 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
+ 
+@@ -58,7 +54,9 @@ static int autofs4_mount_busy(struct vfs
+ 
+ 	/* Update the expiry counter if fs is busy */
+ 	if (!may_umount_tree(path.mnt)) {
+-		struct autofs_info *ino = autofs4_dentry_ino(top);
++		struct autofs_info *ino;
++
++		ino = autofs4_dentry_ino(top);
+ 		ino->last_used = jiffies;
+ 		goto done;
+ 	}
+@@ -74,7 +72,7 @@ done:
+  * Calculate and dget next entry in the subdirs list under root.
+  */
+ static struct dentry *get_next_positive_subdir(struct dentry *prev,
+-						struct dentry *root)
++					       struct dentry *root)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(root->d_sb);
+ 	struct list_head *next;
+@@ -121,7 +119,7 @@ cont:
+  * Calculate and dget next entry in top down tree traversal.
+  */
+ static struct dentry *get_next_positive_dentry(struct dentry *prev,
+-						struct dentry *root)
++					       struct dentry *root)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(root->d_sb);
+ 	struct list_head *next;
+@@ -187,15 +185,17 @@ again:
+  * autofs submounts.
+  */
+ static int autofs4_direct_busy(struct vfsmount *mnt,
+-				struct dentry *top,
+-				unsigned long timeout,
+-				int do_now)
++			       struct dentry *top,
++			       unsigned long timeout,
++			       int do_now)
+ {
+ 	DPRINTK("top %p %pd", top, top);
+ 
+ 	/* If it's busy update the expiry counters */
+ 	if (!may_umount_tree(mnt)) {
+-		struct autofs_info *ino = autofs4_dentry_ino(top);
++		struct autofs_info *ino;
++
++		ino = autofs4_dentry_ino(top);
+ 		if (ino)
+ 			ino->last_used = jiffies;
+ 		return 1;
+@@ -208,7 +208,8 @@ static int autofs4_direct_busy(struct vf
+ 	return 0;
+ }
+ 
+-/* Check a directory tree of mount points for busyness
++/*
++ * Check a directory tree of mount points for busyness
+  * The tree is not busy iff no mountpoints are busy
+  */
+ static int autofs4_tree_busy(struct vfsmount *mnt,
+@@ -404,6 +405,7 @@ static struct dentry *should_expire(stru
+ 	} else {
+ 		/* Path walk currently on this dentry? */
+ 		struct dentry *expired;
++
+ 		ino_count = atomic_read(&ino->count) + 1;
+ 		if (d_count(dentry) > ino_count)
+ 			return NULL;
+@@ -522,21 +524,22 @@ int autofs4_expire_wait(struct dentry *d
+ 
+ /* Perform an expiry operation */
+ int autofs4_expire_run(struct super_block *sb,
+-		      struct vfsmount *mnt,
+-		      struct autofs_sb_info *sbi,
+-		      struct autofs_packet_expire __user *pkt_p)
++		       struct vfsmount *mnt,
++		       struct autofs_sb_info *sbi,
++		       struct autofs_packet_expire __user *pkt_p)
+ {
+ 	struct autofs_packet_expire pkt;
+ 	struct autofs_info *ino;
+ 	struct dentry *dentry;
+ 	int ret = 0;
+ 
+-	memset(&pkt,0,sizeof pkt);
++	memset(&pkt, 0, sizeof(pkt));
+ 
+ 	pkt.hdr.proto_version = sbi->version;
+ 	pkt.hdr.type = autofs_ptype_expire;
+ 
+-	if ((dentry = autofs4_expire_indirect(sb, mnt, sbi, 0)) == NULL)
++	dentry = autofs4_expire_indirect(sb, mnt, sbi, 0);
++	if (!dentry)
+ 		return -EAGAIN;
+ 
+ 	pkt.len = dentry->d_name.len;
+@@ -544,7 +547,7 @@ int autofs4_expire_run(struct super_bloc
+ 	pkt.name[pkt.len] = '\0';
+ 	dput(dentry);
+ 
+-	if ( copy_to_user(pkt_p, &pkt, sizeof(struct autofs_packet_expire)) )
++	if (copy_to_user(pkt_p, &pkt, sizeof(struct autofs_packet_expire)))
+ 		ret = -EFAULT;
+ 
+ 	spin_lock(&sbi->fs_lock);
+@@ -573,7 +576,8 @@ int autofs4_do_expire_multi(struct super
+ 		struct autofs_info *ino = autofs4_dentry_ino(dentry);
+ 
+ 		/* This is synchronous because it makes the daemon a
+-                   little easier */
++		 * little easier
++		 */
+ 		ret = autofs4_wait(sbi, dentry, NFY_EXPIRE);
+ 
+ 		spin_lock(&sbi->fs_lock);
+@@ -588,8 +592,10 @@ int autofs4_do_expire_multi(struct super
+ 	return ret;
+ }
+ 
+-/* Call repeatedly until it returns -EAGAIN, meaning there's nothing
+-   more to be done */
++/*
++ * Call repeatedly until it returns -EAGAIN, meaning there's nothing
++ * more to be done.
++ */
+ int autofs4_expire_multi(struct super_block *sb, struct vfsmount *mnt,
+ 			struct autofs_sb_info *sbi, int __user *arg)
+ {
+diff -puN fs/autofs4/init.c~autofs4-coding-style-fixes fs/autofs4/init.c
+--- a/fs/autofs4/init.c~autofs4-coding-style-fixes
++++ a/fs/autofs4/init.c
+@@ -1,14 +1,10 @@
+-/* -*- c -*- --------------------------------------------------------------- *
+- *
+- * linux/fs/autofs/init.c
+- *
+- *  Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
++/*
++ * Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
+  *
+  * This file is part of the Linux kernel and is made available under
+  * the terms of the GNU General Public License, version 2, or at your
+  * option, any later version, incorporated herein by reference.
+- *
+- * ------------------------------------------------------------------------- */
++ */
+ 
+ #include <linux/module.h>
+ #include <linux/init.h>
+diff -puN fs/autofs4/inode.c~autofs4-coding-style-fixes fs/autofs4/inode.c
+--- a/fs/autofs4/inode.c~autofs4-coding-style-fixes
++++ a/fs/autofs4/inode.c
+@@ -1,15 +1,11 @@
+-/* -*- c -*- --------------------------------------------------------------- *
+- *
+- * linux/fs/autofs/inode.c
+- *
+- *  Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
+- *  Copyright 2005-2006 Ian Kent <raven@themaw.net>
++/*
++ * Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
++ * Copyright 2005-2006 Ian Kent <raven@themaw.net>
+  *
+  * This file is part of the Linux kernel and is made available under
+  * the terms of the GNU General Public License, version 2, or at your
+  * option, any later version, incorporated herein by reference.
+- *
+- * ------------------------------------------------------------------------- */
++ */
+ 
+ #include <linux/kernel.h>
+ #include <linux/slab.h>
+@@ -24,7 +20,9 @@
+ 
+ struct autofs_info *autofs4_new_ino(struct autofs_sb_info *sbi)
+ {
+-	struct autofs_info *ino = kzalloc(sizeof(*ino), GFP_KERNEL);
++	struct autofs_info *ino;
++
++	ino = kzalloc(sizeof(*ino), GFP_KERNEL);
+ 	if (ino) {
+ 		INIT_LIST_HEAD(&ino->active);
+ 		INIT_LIST_HEAD(&ino->expiring);
+@@ -152,6 +150,7 @@ static int parse_options(char *options,
+ 
+ 	while ((p = strsep(&options, ",")) != NULL) {
+ 		int token;
++
+ 		if (!*p)
+ 			continue;
+ 
+@@ -209,9 +208,9 @@ static int parse_options(char *options,
+ 
+ int autofs4_fill_super(struct super_block *s, void *data, int silent)
+ {
+-	struct inode * root_inode;
+-	struct dentry * root;
+-	struct file * pipe;
++	struct inode *root_inode;
++	struct dentry *root;
++	struct file *pipe;
+ 	int pipefd;
+ 	struct autofs_sb_info *sbi;
+ 	struct autofs_info *ino;
+@@ -222,7 +221,7 @@ int autofs4_fill_super(struct super_bloc
+ 	sbi = kzalloc(sizeof(*sbi), GFP_KERNEL);
+ 	if (!sbi)
+ 		return -ENOMEM;
+-	DPRINTK("starting up, sbi = %p",sbi);
++	DPRINTK("starting up, sbi = %p", sbi);
+ 
+ 	s->s_fs_info = sbi;
+ 	sbi->magic = AUTOFS_SBI_MAGIC;
+diff -puN fs/autofs4/root.c~autofs4-coding-style-fixes fs/autofs4/root.c
+--- a/fs/autofs4/root.c~autofs4-coding-style-fixes
++++ a/fs/autofs4/root.c
+@@ -1,16 +1,12 @@
+-/* -*- c -*- --------------------------------------------------------------- *
+- *
+- * linux/fs/autofs/root.c
+- *
+- *  Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
+- *  Copyright 1999-2000 Jeremy Fitzhardinge <jeremy@goop.org>
+- *  Copyright 2001-2006 Ian Kent <raven@themaw.net>
++/*
++ * Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
++ * Copyright 1999-2000 Jeremy Fitzhardinge <jeremy@goop.org>
++ * Copyright 2001-2006 Ian Kent <raven@themaw.net>
+  *
+  * This file is part of the Linux kernel and is made available under
+  * the terms of the GNU General Public License, version 2, or at your
+  * option, any later version, incorporated herein by reference.
+- *
+- * ------------------------------------------------------------------------- */
++ */
+ 
+ #include <linux/capability.h>
+ #include <linux/errno.h>
+@@ -23,16 +19,18 @@
+ 
+ #include "autofs_i.h"
+ 
+-static int autofs4_dir_symlink(struct inode *,struct dentry *,const char *);
+-static int autofs4_dir_unlink(struct inode *,struct dentry *);
+-static int autofs4_dir_rmdir(struct inode *,struct dentry *);
+-static int autofs4_dir_mkdir(struct inode *,struct dentry *,umode_t);
+-static long autofs4_root_ioctl(struct file *,unsigned int,unsigned long);
++static int autofs4_dir_symlink(struct inode *, struct dentry *, const char *);
++static int autofs4_dir_unlink(struct inode *, struct dentry *);
++static int autofs4_dir_rmdir(struct inode *, struct dentry *);
++static int autofs4_dir_mkdir(struct inode *, struct dentry *, umode_t);
++static long autofs4_root_ioctl(struct file *, unsigned int, unsigned long);
+ #ifdef CONFIG_COMPAT
+-static long autofs4_root_compat_ioctl(struct file *,unsigned int,unsigned long);
++static long autofs4_root_compat_ioctl(struct file *,
++				      unsigned int, unsigned long);
+ #endif
+ static int autofs4_dir_open(struct inode *inode, struct file *file);
+-static struct dentry *autofs4_lookup(struct inode *,struct dentry *, unsigned int);
++static struct dentry *autofs4_lookup(struct inode *,
++				     struct dentry *, unsigned int);
+ static struct vfsmount *autofs4_d_automount(struct path *);
+ static int autofs4_d_manage(struct dentry *, bool);
+ static void autofs4_dentry_release(struct dentry *);
+@@ -74,7 +72,9 @@ const struct dentry_operations autofs4_d
+ static void autofs4_add_active(struct dentry *dentry)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+-	struct autofs_info *ino = autofs4_dentry_ino(dentry);
++	struct autofs_info *ino;
++
++	ino = autofs4_dentry_ino(dentry);
+ 	if (ino) {
+ 		spin_lock(&sbi->lookup_lock);
+ 		if (!ino->active_count) {
+@@ -84,13 +84,14 @@ static void autofs4_add_active(struct de
+ 		ino->active_count++;
+ 		spin_unlock(&sbi->lookup_lock);
+ 	}
+-	return;
+ }
+ 
+ static void autofs4_del_active(struct dentry *dentry)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dentry->d_sb);
+-	struct autofs_info *ino = autofs4_dentry_ino(dentry);
++	struct autofs_info *ino;
++
++	ino = autofs4_dentry_ino(dentry);
+ 	if (ino) {
+ 		spin_lock(&sbi->lookup_lock);
+ 		ino->active_count--;
+@@ -100,7 +101,6 @@ static void autofs4_del_active(struct de
+ 		}
+ 		spin_unlock(&sbi->lookup_lock);
+ 	}
+-	return;
+ }
+ 
+ static int autofs4_dir_open(struct inode *inode, struct file *file)
+@@ -320,7 +320,9 @@ static struct dentry *autofs4_mountpoint
+ 	if (autofs_type_indirect(sbi->type) && d_unhashed(dentry)) {
+ 		struct dentry *parent = dentry->d_parent;
+ 		struct autofs_info *ino;
+-		struct dentry *new = d_lookup(parent, &dentry->d_name);
++		struct dentry *new;
++
++		new = d_lookup(parent, &dentry->d_name);
+ 		if (!new)
+ 			return NULL;
+ 		ino = autofs4_dentry_ino(new);
+@@ -455,6 +457,7 @@ static int autofs4_d_manage(struct dentr
+ 		 * a mount-trap.
+ 		 */
+ 		struct inode *inode;
++
+ 		if (ino->flags & (AUTOFS_INF_EXPIRING | AUTOFS_INF_NO_RCU))
+ 			return 0;
+ 		if (d_mountpoint(dentry))
+@@ -494,7 +497,8 @@ static int autofs4_d_manage(struct dentr
+ }
+ 
+ /* Lookups in the root directory */
+-static struct dentry *autofs4_lookup(struct inode *dir, struct dentry *dentry, unsigned int flags)
++static struct dentry *autofs4_lookup(struct inode *dir,
++				     struct dentry *dentry, unsigned int flags)
+ {
+ 	struct autofs_sb_info *sbi;
+ 	struct autofs_info *ino;
+@@ -513,9 +517,9 @@ static struct dentry *autofs4_lookup(str
+ 		autofs4_oz_mode(sbi));
+ 
+ 	active = autofs4_lookup_active(dentry);
+-	if (active) {
++	if (active)
+ 		return active;
+-	} else {
++	else {
+ 		/*
+ 		 * A dentry that is not within the root can never trigger a
+ 		 * mount operation, unless the directory already exists, so we
+@@ -526,7 +530,8 @@ static struct dentry *autofs4_lookup(str
+ 			return ERR_PTR(-ENOENT);
+ 
+ 		/* Mark entries in the root as mount triggers */
+-		if (autofs_type_indirect(sbi->type) && IS_ROOT(dentry->d_parent))
++		if (IS_ROOT(dentry->d_parent) &&
++		    autofs_type_indirect(sbi->type))
+ 			__managed_dentry_set_managed(dentry);
+ 
+ 		ino = autofs4_new_ino(sbi);
+@@ -664,7 +669,6 @@ static void autofs_set_leaf_automount_fl
+ 	if (IS_ROOT(parent->d_parent))
+ 		return;
+ 	managed_dentry_clear_managed(parent);
+-	return;
+ }
+ 
+ static void autofs_clear_leaf_automount_flags(struct dentry *dentry)
+@@ -687,7 +691,6 @@ static void autofs_clear_leaf_automount_
+ 	if (d_child->next == &parent->d_subdirs &&
+ 	    d_child->prev == &parent->d_subdirs)
+ 		managed_dentry_set_managed(parent);
+-	return;
+ }
+ 
+ static int autofs4_dir_rmdir(struct inode *dir, struct dentry *dentry)
+@@ -728,7 +731,8 @@ static int autofs4_dir_rmdir(struct inod
+ 	return 0;
+ }
+ 
+-static int autofs4_dir_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
++static int autofs4_dir_mkdir(struct inode *dir,
++			     struct dentry *dentry, umode_t mode)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dir->i_sb);
+ 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
+@@ -768,7 +772,7 @@ static int autofs4_dir_mkdir(struct inod
+ /* Get/set timeout ioctl() operation */
+ #ifdef CONFIG_COMPAT
+ static inline int autofs4_compat_get_set_timeout(struct autofs_sb_info *sbi,
+-					 compat_ulong_t __user *p)
++						 compat_ulong_t __user *p)
+ {
+ 	int rv;
+ 	unsigned long ntimeout;
+@@ -787,7 +791,7 @@ static inline int autofs4_compat_get_set
+ #endif
+ 
+ static inline int autofs4_get_set_timeout(struct autofs_sb_info *sbi,
+-					 unsigned long __user *p)
++					  unsigned long __user *p)
+ {
+ 	int rv;
+ 	unsigned long ntimeout;
+@@ -805,13 +809,15 @@ static inline int autofs4_get_set_timeou
+ }
+ 
+ /* Return protocol version */
+-static inline int autofs4_get_protover(struct autofs_sb_info *sbi, int __user *p)
++static inline int autofs4_get_protover(struct autofs_sb_info *sbi,
++				       int __user *p)
+ {
+ 	return put_user(sbi->version, p);
+ }
+ 
+ /* Return protocol sub version */
+-static inline int autofs4_get_protosubver(struct autofs_sb_info *sbi, int __user *p)
++static inline int autofs4_get_protosubver(struct autofs_sb_info *sbi,
++					  int __user *p)
+ {
+ 	return put_user(sbi->sub_version, p);
+ }
+@@ -834,9 +840,9 @@ static inline int autofs4_ask_umount(str
+ }
+ 
+ /* Identify autofs4_dentries - this is so we can tell if there's
+-   an extra dentry refcount or not.  We only hold a refcount on the
+-   dentry if its non-negative (ie, d_inode != NULL)
+-*/
++ * an extra dentry refcount or not.  We only hold a refcount on the
++ * dentry if its non-negative (ie, d_inode != NULL)
++ */
+ int is_autofs4_dentry(struct dentry *dentry)
+ {
+ 	return dentry && d_really_is_positive(dentry) &&
+@@ -855,7 +861,7 @@ static int autofs4_root_ioctl_unlocked(s
+ 	void __user *p = (void __user *)arg;
+ 
+ 	DPRINTK("cmd = 0x%08x, arg = 0x%08lx, sbi = %p, pgrp = %u",
+-		cmd,arg,sbi,task_pgrp_nr(current));
++		cmd, arg, sbi, task_pgrp_nr(current));
+ 
+ 	if (_IOC_TYPE(cmd) != _IOC_TYPE(AUTOFS_IOC_FIRST) ||
+ 	     _IOC_NR(cmd) - _IOC_NR(AUTOFS_IOC_FIRST) >= AUTOFS_IOC_COUNT)
+@@ -864,11 +870,11 @@ static int autofs4_root_ioctl_unlocked(s
+ 	if (!autofs4_oz_mode(sbi) && !capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 	
+-	switch(cmd) {
++	switch (cmd) {
+ 	case AUTOFS_IOC_READY:	/* Wait queue: go ahead and retry */
+-		return autofs4_wait_release(sbi,(autofs_wqt_t)arg,0);
++		return autofs4_wait_release(sbi, (autofs_wqt_t) arg, 0);
+ 	case AUTOFS_IOC_FAIL:	/* Wait queue: fail with ENOENT */
+-		return autofs4_wait_release(sbi,(autofs_wqt_t)arg,-ENOENT);
++		return autofs4_wait_release(sbi, (autofs_wqt_t) arg, -ENOENT);
+ 	case AUTOFS_IOC_CATATONIC: /* Enter catatonic mode (daemon shutdown) */
+ 		autofs4_catatonic_mode(sbi);
+ 		return 0;
+@@ -888,10 +894,12 @@ static int autofs4_root_ioctl_unlocked(s
+ 
+ 	/* return a single thing to expire */
+ 	case AUTOFS_IOC_EXPIRE:
+-		return autofs4_expire_run(inode->i_sb,filp->f_path.mnt,sbi, p);
++		return autofs4_expire_run(inode->i_sb,
++					  filp->f_path.mnt, sbi, p);
+ 	/* same as above, but can send multiple expires through pipe */
+ 	case AUTOFS_IOC_EXPIRE_MULTI:
+-		return autofs4_expire_multi(inode->i_sb,filp->f_path.mnt,sbi, p);
++		return autofs4_expire_multi(inode->i_sb,
++					    filp->f_path.mnt, sbi, p);
+ 
+ 	default:
+ 		return -ENOSYS;
+@@ -902,12 +910,13 @@ static long autofs4_root_ioctl(struct fi
+ 			       unsigned int cmd, unsigned long arg)
+ {
+ 	struct inode *inode = file_inode(filp);
++
+ 	return autofs4_root_ioctl_unlocked(inode, filp, cmd, arg);
+ }
+ 
+ #ifdef CONFIG_COMPAT
+ static long autofs4_root_compat_ioctl(struct file *filp,
+-			     unsigned int cmd, unsigned long arg)
++				      unsigned int cmd, unsigned long arg)
+ {
+ 	struct inode *inode = file_inode(filp);
+ 	int ret;
+@@ -916,7 +925,7 @@ static long autofs4_root_compat_ioctl(st
+ 		ret = autofs4_root_ioctl_unlocked(inode, filp, cmd, arg);
+ 	else
+ 		ret = autofs4_root_ioctl_unlocked(inode, filp, cmd,
+-			(unsigned long)compat_ptr(arg));
++					      (unsigned long) compat_ptr(arg));
+ 
+ 	return ret;
+ }
+diff -puN fs/autofs4/symlink.c~autofs4-coding-style-fixes fs/autofs4/symlink.c
+--- a/fs/autofs4/symlink.c~autofs4-coding-style-fixes
++++ a/fs/autofs4/symlink.c
+@@ -1,14 +1,10 @@
+-/* -*- c -*- --------------------------------------------------------------- *
+- *
+- * linux/fs/autofs/symlink.c
+- *
+- *  Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
++/*
++ * Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
+  *
+  * This file is part of the Linux kernel and is made available under
+  * the terms of the GNU General Public License, version 2, or at your
+  * option, any later version, incorporated herein by reference.
+- *
+- * ------------------------------------------------------------------------- */
++ */
+ 
+ #include "autofs_i.h"
+ 
+@@ -18,6 +14,7 @@ static const char *autofs4_get_link(stru
+ {
+ 	struct autofs_sb_info *sbi;
+ 	struct autofs_info *ino;
++
+ 	if (!dentry)
+ 		return ERR_PTR(-ECHILD);
+ 	sbi = autofs4_sbi(dentry->d_sb);
+diff -puN fs/autofs4/waitq.c~autofs4-coding-style-fixes fs/autofs4/waitq.c
+--- a/fs/autofs4/waitq.c~autofs4-coding-style-fixes
++++ a/fs/autofs4/waitq.c
+@@ -1,15 +1,11 @@
+-/* -*- c -*- --------------------------------------------------------------- *
+- *
+- * linux/fs/autofs/waitq.c
+- *
+- *  Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
+- *  Copyright 2001-2006 Ian Kent <raven@themaw.net>
++/*
++ * Copyright 1997-1998 Transmeta Corporation -- All Rights Reserved
++ * Copyright 2001-2006 Ian Kent <raven@themaw.net>
+  *
+  * This file is part of the Linux kernel and is made available under
+  * the terms of the GNU General Public License, version 2, or at your
+  * option, any later version, incorporated herein by reference.
+- *
+- * ------------------------------------------------------------------------- */
++ */
+ 
+ #include <linux/slab.h>
+ #include <linux/time.h>
+@@ -18,7 +14,8 @@
+ #include "autofs_i.h"
+ 
+ /* We make this a static variable rather than a part of the superblock; it
+-   is better if we don't reassign numbers easily even across filesystems */
++ * is better if we don't reassign numbers easily even across filesystems
++ */
+ static autofs_wqt_t autofs4_next_wait_queue = 1;
+ 
+ /* These are the signals we allow interrupting a pending mount */
+@@ -69,17 +66,19 @@ static int autofs4_write(struct autofs_s
+ 	set_fs(KERNEL_DS);
+ 
+ 	mutex_lock(&sbi->pipe_mutex);
+-	while (bytes &&
+-	       (wr = __vfs_write(file,data,bytes,&file->f_pos)) > 0) {
++	wr = __vfs_write(file, data, bytes, &file->f_pos);
++	while (bytes && wr) {
+ 		data += wr;
+ 		bytes -= wr;
++		wr = __vfs_write(file, data, bytes, &file->f_pos);
+ 	}
+ 	mutex_unlock(&sbi->pipe_mutex);
+ 
+ 	set_fs(fs);
+ 
+ 	/* Keep the currently executing process from receiving a
+-	   SIGPIPE unless it was already supposed to get one */
++	 * SIGPIPE unless it was already supposed to get one
++	 */
+ 	if (wr == -EPIPE && !sigpipe) {
+ 		spin_lock_irqsave(&current->sighand->siglock, flags);
+ 		sigdelset(&current->pending.signal, SIGPIPE);
+@@ -103,9 +102,10 @@ static void autofs4_notify_daemon(struct
+ 	size_t pktsz;
+ 
+ 	DPRINTK("wait id = 0x%08lx, name = %.*s, type=%d",
+-		(unsigned long) wq->wait_queue_token, wq->name.len, wq->name.name, type);
++		(unsigned long) wq->wait_queue_token,
++		wq->name.len, wq->name.name, type);
+ 
+-	memset(&pkt,0,sizeof pkt); /* For security reasons */
++	memset(&pkt, 0, sizeof(pkt)); /* For security reasons */
+ 
+ 	pkt.hdr.proto_version = sbi->version;
+ 	pkt.hdr.type = type;
+@@ -126,7 +126,8 @@ static void autofs4_notify_daemon(struct
+ 	}
+ 	case autofs_ptype_expire_multi:
+ 	{
+-		struct autofs_packet_expire_multi *ep = &pkt.v4_pkt.expire_multi;
++		struct autofs_packet_expire_multi *ep =
++					&pkt.v4_pkt.expire_multi;
+ 
+ 		pktsz = sizeof(*ep);
+ 
+@@ -231,7 +232,7 @@ autofs4_find_wait(struct autofs_sb_info
+ 		if (wq->name.hash == qstr->hash &&
+ 		    wq->name.len == qstr->len &&
+ 		    wq->name.name &&
+-			 !memcmp(wq->name.name, qstr->name, qstr->len))
++		    !memcmp(wq->name.name, qstr->name, qstr->len))
+ 			break;
+ 	}
+ 	return wq;
+@@ -248,7 +249,7 @@ autofs4_find_wait(struct autofs_sb_info
+ static int validate_request(struct autofs_wait_queue **wait,
+ 			    struct autofs_sb_info *sbi,
+ 			    struct qstr *qstr,
+-			    struct dentry*dentry, enum autofs_notify notify)
++			    struct dentry *dentry, enum autofs_notify notify)
+ {
+ 	struct autofs_wait_queue *wq;
+ 	struct autofs_info *ino;
+@@ -322,8 +323,10 @@ static int validate_request(struct autof
+ 		 * continue on and create a new request.
+ 		 */
+ 		if (!IS_ROOT(dentry)) {
+-			if (d_really_is_positive(dentry) && d_unhashed(dentry)) {
++			if (d_unhashed(dentry) &&
++			    d_really_is_positive(dentry)) {
+ 				struct dentry *parent = dentry->d_parent;
++
+ 				new = d_lookup(parent, &dentry->d_name);
+ 				if (new)
+ 					dentry = new;
+@@ -340,8 +343,8 @@ static int validate_request(struct autof
+ 	return 1;
+ }
+ 
+-int autofs4_wait(struct autofs_sb_info *sbi, struct dentry *dentry,
+-		enum autofs_notify notify)
++int autofs4_wait(struct autofs_sb_info *sbi,
++		 struct dentry *dentry, enum autofs_notify notify)
+ {
+ 	struct autofs_wait_queue *wq;
+ 	struct qstr qstr;
+@@ -411,7 +414,7 @@ int autofs4_wait(struct autofs_sb_info *
+ 
+ 	if (!wq) {
+ 		/* Create a new wait queue */
+-		wq = kmalloc(sizeof(struct autofs_wait_queue),GFP_KERNEL);
++		wq = kmalloc(sizeof(struct autofs_wait_queue), GFP_KERNEL);
+ 		if (!wq) {
+ 			kfree(qstr.name);
+ 			mutex_unlock(&sbi->wq_mutex);
+@@ -454,7 +457,9 @@ int autofs4_wait(struct autofs_sb_info *
+ 			(unsigned long) wq->wait_queue_token, wq->name.len,
+ 			wq->name.name, notify);
+ 
+-		/* autofs4_notify_daemon() may block; it will unlock ->wq_mutex */
++		/*
++		 * autofs4_notify_daemon() may block; it will unlock ->wq_mutex
++		 */
+ 		autofs4_notify_daemon(sbi, wq, type);
+ 	} else {
+ 		wq->wait_ctr++;
+diff -puN include/linux/auto_dev-ioctl.h~autofs4-coding-style-fixes include/linux/auto_dev-ioctl.h
+--- a/include/linux/auto_dev-ioctl.h~autofs4-coding-style-fixes
++++ a/include/linux/auto_dev-ioctl.h
+@@ -125,7 +125,6 @@ static inline void init_autofs_dev_ioctl
+ 	in->ver_minor = AUTOFS_DEV_IOCTL_VERSION_MINOR;
+ 	in->size = sizeof(struct autofs_dev_ioctl);
+ 	in->ioctlfd = -1;
+-	return;
+ }
+ 
+ /*
+diff -puN include/linux/auto_fs.h~autofs4-coding-style-fixes include/linux/auto_fs.h
+--- a/include/linux/auto_fs.h~autofs4-coding-style-fixes
++++ a/include/linux/auto_fs.h
+@@ -1,14 +1,10 @@
+-/* -*- linux-c -*- ------------------------------------------------------- *
+- *   
+- * linux/include/linux/auto_fs.h
+- *
+- *   Copyright 1997 Transmeta Corporation - All Rights Reserved
++/*
++ * Copyright 1997 Transmeta Corporation - All Rights Reserved
+  *
+  * This file is part of the Linux kernel and is made available under
+  * the terms of the GNU General Public License, version 2, or at your
+  * option, any later version, incorporated herein by reference.
+- *
+- * ----------------------------------------------------------------------- */
++ */
+ 
+ #ifndef _LINUX_AUTO_FS_H
+ #define _LINUX_AUTO_FS_H
+diff -puN include/uapi/linux/auto_fs.h~autofs4-coding-style-fixes include/uapi/linux/auto_fs.h
+--- a/include/uapi/linux/auto_fs.h~autofs4-coding-style-fixes
++++ a/include/uapi/linux/auto_fs.h
+@@ -1,7 +1,4 @@
+-/* -*- linux-c -*- ------------------------------------------------------- *
+- *   
+- * linux/include/linux/auto_fs.h
+- *
++/*
+  *   Copyright 1997 Transmeta Corporation - All Rights Reserved
+  *
+  * This file is part of the Linux kernel and is made available under
+@@ -63,12 +60,12 @@ struct autofs_packet_expire {
+ 	char name[NAME_MAX+1];
+ };
+ 
+-#define AUTOFS_IOC_READY      _IO(0x93,0x60)
+-#define AUTOFS_IOC_FAIL       _IO(0x93,0x61)
+-#define AUTOFS_IOC_CATATONIC  _IO(0x93,0x62)
+-#define AUTOFS_IOC_PROTOVER   _IOR(0x93,0x63,int)
+-#define AUTOFS_IOC_SETTIMEOUT32 _IOWR(0x93,0x64,compat_ulong_t)
+-#define AUTOFS_IOC_SETTIMEOUT _IOWR(0x93,0x64,unsigned long)
+-#define AUTOFS_IOC_EXPIRE     _IOR(0x93,0x65,struct autofs_packet_expire)
++#define AUTOFS_IOC_READY      _IO(0x93, 0x60)
++#define AUTOFS_IOC_FAIL       _IO(0x93, 0x61)
++#define AUTOFS_IOC_CATATONIC  _IO(0x93, 0x62)
++#define AUTOFS_IOC_PROTOVER   _IOR(0x93, 0x63, int)
++#define AUTOFS_IOC_SETTIMEOUT32 _IOWR(0x93, 0x64, compat_ulong_t)
++#define AUTOFS_IOC_SETTIMEOUT _IOWR(0x93, 0x64, unsigned long)
++#define AUTOFS_IOC_EXPIRE     _IOR(0x93, 0x65, struct autofs_packet_expire)
+ 
+ #endif /* _UAPI_LINUX_AUTO_FS_H */
+diff -puN include/uapi/linux/auto_fs4.h~autofs4-coding-style-fixes include/uapi/linux/auto_fs4.h
+--- a/include/uapi/linux/auto_fs4.h~autofs4-coding-style-fixes
++++ a/include/uapi/linux/auto_fs4.h
+@@ -1,6 +1,4 @@
+-/* -*- c -*-
+- * linux/include/linux/auto_fs4.h
+- *
++/*
+  * Copyright 1999-2000 Jeremy Fitzhardinge <jeremy@goop.org>
+  *
+  * This file is part of the Linux kernel and is made available under
+@@ -38,7 +36,6 @@
+ static inline void set_autofs_type_indirect(unsigned int *type)
+ {
+ 	*type = AUTOFS_TYPE_INDIRECT;
+-	return;
+ }
+ 
+ static inline unsigned int autofs_type_indirect(unsigned int type)
+@@ -49,7 +46,6 @@ static inline unsigned int autofs_type_i
+ static inline void set_autofs_type_direct(unsigned int *type)
+ {
+ 	*type = AUTOFS_TYPE_DIRECT;
+-	return;
+ }
+ 
+ static inline unsigned int autofs_type_direct(unsigned int type)
+@@ -60,7 +56,6 @@ static inline unsigned int autofs_type_d
+ static inline void set_autofs_type_offset(unsigned int *type)
+ {
+ 	*type = AUTOFS_TYPE_OFFSET;
+-	return;
+ }
+ 
+ static inline unsigned int autofs_type_offset(unsigned int type)
+@@ -81,7 +76,6 @@ static inline unsigned int autofs_type_t
+ static inline void set_autofs_type_any(unsigned int *type)
+ {
+ 	*type = AUTOFS_TYPE_ANY;
+-	return;
+ }
+ 
+ static inline unsigned int autofs_type_any(unsigned int type)
+@@ -154,11 +148,10 @@ union autofs_v5_packet_union {
+ 	autofs_packet_expire_direct_t expire_direct;
+ };
+ 
+-#define AUTOFS_IOC_EXPIRE_MULTI		_IOW(0x93,0x66,int)
++#define AUTOFS_IOC_EXPIRE_MULTI		_IOW(0x93, 0x66, int)
+ #define AUTOFS_IOC_EXPIRE_INDIRECT	AUTOFS_IOC_EXPIRE_MULTI
+ #define AUTOFS_IOC_EXPIRE_DIRECT	AUTOFS_IOC_EXPIRE_MULTI
+-#define AUTOFS_IOC_PROTOSUBVER		_IOR(0x93,0x67,int)
+-#define AUTOFS_IOC_ASKUMOUNT		_IOR(0x93,0x70,int)
