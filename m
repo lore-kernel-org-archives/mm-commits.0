@@ -1,126 +1,144 @@
 From: akpm@linux-foundation.org
-Subject: [merged] xen_balloon-support-memory-auto-onlining-policy.patch
+Subject: [merged]
+ mm-workingset-separate-shadow-unpacking-and-refault-calculation.patch
  removed from -mm tree
-Date: Wed, 16 Mar 2016 12:56:28 -0700
-Message-ID: <56e9ba6c.gOamhGO6pi8jihgi%akpm@linux-foundation.org>
+Date: Wed, 16 Mar 2016 12:56:43 -0700
+Message-ID: <56e9ba7b.74am9zN+qcAFH7+X%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39003 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39036 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755590AbcCPT4a (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:56:30 -0400
+	with ESMTP id S934130AbcCPT4o (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:56:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vkuznets@redhat.com, boris.ostrovsky@oracle.com, corbet@lwn.net, dan.j.williams@intel.com, daniel.kiper@oracle.com, david.vrabel@citrix.com, gregkh@linuxfoundation.org, imammedo@redhat.com, kay@vrfy.org, konrad.wilk@oracle.com, kys@microsoft.com, mgorman@techsingularity.net, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, rientjes@google.com, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: xen_balloon: support memory auto onlining policy
+     Subject: mm: workingset: separate shadow unpacking and refault calculation
 has been removed from the -mm tree.  Its filename was
-     xen_balloon-support-memory-auto-onlining-policy.patch
+     mm-workingset-separate-shadow-unpacking-and-refault-calculation.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vitaly Kuznetsov <vkuznets@redhat.com>
-Subject: xen_balloon: support memory auto onlining policy
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: workingset: separate shadow unpacking and refault calculation
 
-Add support for the newly added kernel memory auto onlining policy to Xen
-ballon driver.
+Per-cgroup thrash detection will need to derive a live memcg from the
+eviction cookie, and doing that inside unpack_shadow() will get nasty with
+the reference handling spread over two functions.
 
-Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
-Suggested-by: Daniel Kiper <daniel.kiper@oracle.com>
-Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
-Acked-by: David Vrabel <david.vrabel@citrix.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Daniel Kiper <daniel.kiper@oracle.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
+In preparation, make unpack_shadow() clearly about extracting static data,
+and let workingset_refault() do all the higher-level handling.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Michal Hocko <mhocko@suse.cz>
 Cc: David Rientjes <rientjes@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: Kay Sievers <kay@vrfy.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/xen/Kconfig   |   23 +++++++++++++++--------
- drivers/xen/balloon.c |   11 ++++++++++-
- 2 files changed, 25 insertions(+), 9 deletions(-)
+ mm/workingset.c |   56 +++++++++++++++++++++++-----------------------
+ 1 file changed, 28 insertions(+), 28 deletions(-)
 
-diff -puN drivers/xen/Kconfig~xen_balloon-support-memory-auto-onlining-policy drivers/xen/Kconfig
---- a/drivers/xen/Kconfig~xen_balloon-support-memory-auto-onlining-policy
-+++ a/drivers/xen/Kconfig
-@@ -37,23 +37,30 @@ config XEN_BALLOON_MEMORY_HOTPLUG
+diff -puN mm/workingset.c~mm-workingset-separate-shadow-unpacking-and-refault-calculation mm/workingset.c
+--- a/mm/workingset.c~mm-workingset-separate-shadow-unpacking-and-refault-calculation
++++ a/mm/workingset.c
+@@ -165,13 +165,10 @@ static void *pack_shadow(unsigned long e
+ 	return (void *)(eviction | RADIX_TREE_EXCEPTIONAL_ENTRY);
+ }
  
- 	  Memory could be hotplugged in following steps:
+-static void unpack_shadow(void *shadow,
+-			  struct zone **zone,
+-			  unsigned long *distance)
++static void unpack_shadow(void *shadow, struct zone **zonep,
++			  unsigned long *evictionp)
+ {
+ 	unsigned long entry = (unsigned long)shadow;
+-	unsigned long eviction;
+-	unsigned long refault;
+ 	int zid, nid;
  
--	    1) dom0: xl mem-max <domU> <maxmem>
-+	    1) target domain: ensure that memory auto online policy is in
-+	       effect by checking /sys/devices/system/memory/auto_online_blocks
-+	       file (should be 'online').
+ 	entry >>= RADIX_TREE_EXCEPTIONAL_SHIFT;
+@@ -179,29 +176,9 @@ static void unpack_shadow(void *shadow,
+ 	entry >>= ZONES_SHIFT;
+ 	nid = entry & ((1UL << NODES_SHIFT) - 1);
+ 	entry >>= NODES_SHIFT;
+-	eviction = entry;
+-
+-	*zone = NODE_DATA(nid)->node_zones + zid;
+ 
+-	refault = atomic_long_read(&(*zone)->inactive_age);
+-
+-	/*
+-	 * The unsigned subtraction here gives an accurate distance
+-	 * across inactive_age overflows in most cases.
+-	 *
+-	 * There is a special case: usually, shadow entries have a
+-	 * short lifetime and are either refaulted or reclaimed along
+-	 * with the inode before they get too old.  But it is not
+-	 * impossible for the inactive_age to lap a shadow entry in
+-	 * the field, which can then can result in a false small
+-	 * refault distance, leading to a false activation should this
+-	 * old entry actually refault again.  However, earlier kernels
+-	 * used to deactivate unconditionally with *every* reclaim
+-	 * invocation for the longest time, so the occasional
+-	 * inappropriate activation leading to pressure on the active
+-	 * list is not a problem.
+-	 */
+-	*distance = (refault - eviction) & EVICTION_MASK;
++	*zonep = NODE_DATA(nid)->node_zones + zid;
++	*evictionp = entry;
+ }
+ 
+ /**
+@@ -233,9 +210,32 @@ void *workingset_eviction(struct address
+ bool workingset_refault(void *shadow)
+ {
+ 	unsigned long refault_distance;
++	unsigned long eviction;
++	unsigned long refault;
+ 	struct zone *zone;
+ 
+-	unpack_shadow(shadow, &zone, &refault_distance);
++	unpack_shadow(shadow, &zone, &eviction);
 +
-+	    2) control domain: xl mem-max <target-domain> <maxmem>
- 	       where <maxmem> is >= requested memory size,
- 
--	    2) dom0: xl mem-set <domU> <memory>
-+	    3) control domain: xl mem-set <target-domain> <memory>
- 	       where <memory> is requested memory size; alternatively memory
- 	       could be added by writing proper value to
- 	       /sys/devices/system/xen_memory/xen_memory0/target or
--	       /sys/devices/system/xen_memory/xen_memory0/target_kb on dumU,
-+	       /sys/devices/system/xen_memory/xen_memory0/target_kb on the
-+	       target domain.
- 
--	    3) domU: for i in /sys/devices/system/memory/memory*/state; do \
--	               [ "`cat "$i"`" = offline ] && echo online > "$i"; done
-+	  Alternatively, if memory auto onlining was not requested at step 1
-+	  the newly added memory can be manually onlined in the target domain
-+	  by doing the following:
- 
--	  Memory could be onlined automatically on domU by adding following line to udev rules:
-+		for i in /sys/devices/system/memory/memory*/state; do \
-+		  [ "`cat "$i"`" = offline ] && echo online > "$i"; done
- 
--	  SUBSYSTEM=="memory", ACTION=="add", RUN+="/bin/sh -c '[ -f /sys$devpath/state ] && echo online > /sys$devpath/state'"
-+	  or by adding the following line to udev rules:
- 
--	  In that case step 3 should be omitted.
-+	  SUBSYSTEM=="memory", ACTION=="add", RUN+="/bin/sh -c '[ -f /sys$devpath/state ] && echo online > /sys$devpath/state'"
- 
- config XEN_BALLOON_MEMORY_HOTPLUG_LIMIT
- 	int "Hotplugged memory limit (in GiB) for a PV guest"
-diff -puN drivers/xen/balloon.c~xen_balloon-support-memory-auto-onlining-policy drivers/xen/balloon.c
---- a/drivers/xen/balloon.c~xen_balloon-support-memory-auto-onlining-policy
-+++ a/drivers/xen/balloon.c
-@@ -338,7 +338,16 @@ static enum bp_state reserve_additional_
- 	}
- #endif
- 
--	rc = add_memory_resource(nid, resource, false);
++	refault = atomic_long_read(&zone->inactive_age);
++
 +	/*
-+	 * add_memory_resource() will call online_pages() which in its turn
-+	 * will call xen_online_page() callback causing deadlock if we don't
-+	 * release balloon_mutex here. Unlocking here is safe because the
-+	 * callers drop the mutex before trying again.
++	 * The unsigned subtraction here gives an accurate distance
++	 * across inactive_age overflows in most cases.
++	 *
++	 * There is a special case: usually, shadow entries have a
++	 * short lifetime and are either refaulted or reclaimed along
++	 * with the inode before they get too old.  But it is not
++	 * impossible for the inactive_age to lap a shadow entry in
++	 * the field, which can then can result in a false small
++	 * refault distance, leading to a false activation should this
++	 * old entry actually refault again.  However, earlier kernels
++	 * used to deactivate unconditionally with *every* reclaim
++	 * invocation for the longest time, so the occasional
++	 * inappropriate activation leading to pressure on the active
++	 * list is not a problem.
 +	 */
-+	mutex_unlock(&balloon_mutex);
-+	rc = add_memory_resource(nid, resource, memhp_auto_online);
-+	mutex_lock(&balloon_mutex);
++	refault_distance = (refault - eviction) & EVICTION_MASK;
 +
- 	if (rc) {
- 		pr_warn("Cannot add additional memory (%i)\n", rc);
- 		goto err;
+ 	inc_zone_state(zone, WORKINGSET_REFAULT);
+ 
+ 	if (refault_distance <= zone_page_state(zone, NR_ACTIVE_FILE)) {
 _
 
-Patches currently in -mm which might be from vkuznets@redhat.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
+mm-oom_kill-dont-ignore-oom-score-on-exiting-tasks.patch
+mm-scale-kswapd-watermarks-in-proportion-to-memory.patch
+mm-scale-kswapd-watermarks-in-proportion-to-memory-v3.patch
+mm-memcontrol-reclaim-when-shrinking-memoryhigh-below-usage.patch
+mm-memcontrol-reclaim-and-oom-kill-when-shrinking-memorymax-below-usage.patch
+mm-memcontrol-clarify-the-uncharge_list-loop.patch
 
