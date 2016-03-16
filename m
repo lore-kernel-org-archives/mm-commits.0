@@ -1,268 +1,562 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory.patch removed from -mm tree
-Date: Wed, 16 Mar 2016 12:56:26 -0700
-Message-ID: <56e9ba6a.+ffCYsPhdSyzwJII%akpm@linux-foundation.org>
+ mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding.patch
+ removed from -mm tree
+Date: Wed, 16 Mar 2016 12:56:38 -0700
+Message-ID: <56e9ba76./xLAGQrUukS0KAgp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38985 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39028 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934945AbcCPT41 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:56:27 -0400
+	with ESMTP id S1755641AbcCPT4j (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:56:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vkuznets@redhat.com, boris.ostrovsky@oracle.com, corbet@lwn.net, dan.j.williams@intel.com, daniel.kiper@oracle.com, david.vrabel@citrix.com, gregkh@linuxfoundation.org, imammedo@redhat.com, kay@vrfy.org, konrad.wilk@oracle.com, kys@microsoft.com, mgorman@techsingularity.net, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, rientjes@google.com, tangchen@cn.fujitsu.com, mm-commits@vger.kernel.org
+To: hannes@cmpxchg.org, mhocko@suse.cz, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memory-hotplug: add automatic onlining policy for the newly added memory
+     Subject: mm: memcontrol: generalize locking for the page->mem_cgroup binding
 has been removed from the -mm tree.  Its filename was
-     memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory.patch
+     mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vitaly Kuznetsov <vkuznets@redhat.com>
-Subject: memory-hotplug: add automatic onlining policy for the newly added memory
+From: Johannes Weiner <hannes@cmpxchg.org>
+Subject: mm: memcontrol: generalize locking for the page->mem_cgroup binding
 
-Currently, all newly added memory blocks remain in 'offline' state unless
-someone onlines them, some linux distributions carry special udev rules
-like:
+These patches tag the page cache radix tree eviction entries with the
+memcg an evicted page belonged to, thus making per-cgroup LRU reclaim work
+properly and be as adaptive to new cache workingsets as global reclaim
+already is.
 
-SUBSYSTEM=="memory", ACTION=="add", ATTR{state}=="offline", ATTR{state}="online"
+This should have been part of the original thrash detection patch series,
+but was deferred due to the complexity of those patches.
 
-to make this happen automatically.  This is not a great solution for
-virtual machines where memory hotplug is being used to address high memory
-pressure situations as such onlining is slow and a userspace process doing
-this (udev) has a chance of being killed by the OOM killer as it will
-probably require to allocate some memory.
 
-Introduce default policy for the newly added memory blocks in
-/sys/devices/system/memory/auto_online_blocks file with two possible
-values: "offline" which preserves the current behavior and "online" which
-causes all newly added memory blocks to go online as soon as they're
-added.  The default is "offline".
 
-Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
-Reviewed-by: Daniel Kiper <daniel.kiper@oracle.com>
-Cc: Jonathan Corbet <corbet@lwn.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Daniel Kiper <daniel.kiper@oracle.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: David Vrabel <david.vrabel@citrix.com>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: "K. Y. Srinivasan" <kys@microsoft.com>
-Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: Kay Sievers <kay@vrfy.org>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+This patch (of 5):
+
+So far the only sites that needed to exclude charge migration to stabilize
+page->mem_cgroup have been per-cgroup page statistics, hence the name
+mem_cgroup_begin_page_stat().  But per-cgroup thrash detection will add
+another site that needs to ensure page->mem_cgroup lifetime.
+
+Rename these locking functions to the more generic lock_page_memcg() and
+unlock_page_memcg().  Since charge migration is a cgroup1 feature only, we
+might be able to delete it at some point, and these now easy to identify
+locking sites along with it.
+
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Suggested-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Michal Hocko <mhocko@suse.cz>
+Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/memory-hotplug.txt |   23 +++++++++++++++++--
- drivers/base/memory.c            |   34 ++++++++++++++++++++++++++++-
- drivers/xen/balloon.c            |    2 -
- include/linux/memory.h           |    3 ++
- include/linux/memory_hotplug.h   |    4 ++-
- mm/memory_hotplug.c              |   17 ++++++++++++--
- 6 files changed, 75 insertions(+), 8 deletions(-)
+ fs/buffer.c                |   14 +++++++-------
+ fs/xfs/xfs_aops.c          |    8 ++++----
+ include/linux/memcontrol.h |   16 +++++++++++-----
+ mm/filemap.c               |   12 ++++++------
+ mm/memcontrol.c            |   34 ++++++++++++++--------------------
+ mm/page-writeback.c        |   28 ++++++++++++++--------------
+ mm/rmap.c                  |    8 ++++----
+ mm/truncate.c              |    6 +++---
+ mm/vmscan.c                |    8 ++++----
+ 9 files changed, 67 insertions(+), 67 deletions(-)
 
-diff -puN Documentation/memory-hotplug.txt~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory Documentation/memory-hotplug.txt
---- a/Documentation/memory-hotplug.txt~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory
-+++ a/Documentation/memory-hotplug.txt
-@@ -256,10 +256,27 @@ If the memory block is offline, you'll r
+diff -puN fs/buffer.c~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding fs/buffer.c
+--- a/fs/buffer.c~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding
++++ a/fs/buffer.c
+@@ -621,7 +621,7 @@ EXPORT_SYMBOL(mark_buffer_dirty_inode);
+  * If warn is true, then emit a warning if the page is not uptodate and has
+  * not been truncated.
+  *
+- * The caller must hold mem_cgroup_begin_page_stat() lock.
++ * The caller must hold lock_page_memcg().
+  */
+ static void __set_page_dirty(struct page *page, struct address_space *mapping,
+ 			     struct mem_cgroup *memcg, int warn)
+@@ -683,17 +683,17 @@ int __set_page_dirty_buffers(struct page
+ 		} while (bh != head);
+ 	}
+ 	/*
+-	 * Use mem_group_begin_page_stat() to keep PageDirty synchronized with
+-	 * per-memcg dirty page counters.
++	 * Lock out page->mem_cgroup migration to keep PageDirty
++	 * synchronized with per-memcg dirty page counters.
+ 	 */
+-	memcg = mem_cgroup_begin_page_stat(page);
++	memcg = lock_page_memcg(page);
+ 	newly_dirty = !TestSetPageDirty(page);
+ 	spin_unlock(&mapping->private_lock);
  
- 5.2. How to online memory
- ------------
--Even if the memory is hot-added, it is not at ready-to-use state.
--For using newly added memory, you have to "online" the memory block.
-+When the memory is hot-added, the kernel decides whether or not to "online"
-+it according to the policy which can be read from "auto_online_blocks" file:
+ 	if (newly_dirty)
+ 		__set_page_dirty(page, mapping, memcg, 1);
  
--For onlining, you have to write "online" to the memory block's state file as:
-+% cat /sys/devices/system/memory/auto_online_blocks
-+
-+The default is "offline" which means the newly added memory is not in a
-+ready-to-use state and you have to "online" the newly added memory blocks
-+manually. Automatic onlining can be requested by writing "online" to
-+"auto_online_blocks" file:
-+
-+% echo online > /sys/devices/system/memory/auto_online_blocks
-+
-+This sets a global policy and impacts all memory blocks that will subsequently
-+be hotplugged. Currently offline blocks keep their state. It is possible, under
-+certain circumstances, that some memory blocks will be added but will fail to
-+online. User space tools can check their "state" files
-+(/sys/devices/system/memory/memoryXXX/state) and try to online them manually.
-+
-+If the automatic onlining wasn't requested, failed, or some memory block was
-+offlined it is possible to change the individual block's state by writing to the
-+"state" file:
+-	mem_cgroup_end_page_stat(memcg);
++	unlock_page_memcg(memcg);
  
- % echo online > /sys/devices/system/memory/memoryXXX/state
+ 	if (newly_dirty)
+ 		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+@@ -1169,13 +1169,13 @@ void mark_buffer_dirty(struct buffer_hea
+ 		struct address_space *mapping = NULL;
+ 		struct mem_cgroup *memcg;
  
-diff -puN drivers/base/memory.c~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory drivers/base/memory.c
---- a/drivers/base/memory.c~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory
-+++ a/drivers/base/memory.c
-@@ -251,7 +251,7 @@ memory_block_action(unsigned long phys_i
- 	return ret;
+-		memcg = mem_cgroup_begin_page_stat(page);
++		memcg = lock_page_memcg(page);
+ 		if (!TestSetPageDirty(page)) {
+ 			mapping = page_mapping(page);
+ 			if (mapping)
+ 				__set_page_dirty(page, mapping, memcg, 0);
+ 		}
+-		mem_cgroup_end_page_stat(memcg);
++		unlock_page_memcg(memcg);
+ 		if (mapping)
+ 			__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+ 	}
+diff -puN fs/xfs/xfs_aops.c~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding fs/xfs/xfs_aops.c
+--- a/fs/xfs/xfs_aops.c~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding
++++ a/fs/xfs/xfs_aops.c
+@@ -1978,10 +1978,10 @@ xfs_vm_set_page_dirty(
+ 		} while (bh != head);
+ 	}
+ 	/*
+-	 * Use mem_group_begin_page_stat() to keep PageDirty synchronized with
+-	 * per-memcg dirty page counters.
++	 * Lock out page->mem_cgroup migration to keep PageDirty
++	 * synchronized with per-memcg dirty page counters.
+ 	 */
+-	memcg = mem_cgroup_begin_page_stat(page);
++	memcg = lock_page_memcg(page);
+ 	newly_dirty = !TestSetPageDirty(page);
+ 	spin_unlock(&mapping->private_lock);
+ 
+@@ -1998,7 +1998,7 @@ xfs_vm_set_page_dirty(
+ 		}
+ 		spin_unlock_irqrestore(&mapping->tree_lock, flags);
+ 	}
+-	mem_cgroup_end_page_stat(memcg);
++	unlock_page_memcg(memcg);
+ 	if (newly_dirty)
+ 		__mark_inode_dirty(mapping->host, I_DIRTY_PAGES);
+ 	return newly_dirty;
+diff -puN include/linux/memcontrol.h~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding
++++ a/include/linux/memcontrol.h
+@@ -429,8 +429,8 @@ bool mem_cgroup_oom_synchronize(bool wai
+ extern int do_swap_account;
+ #endif
+ 
+-struct mem_cgroup *mem_cgroup_begin_page_stat(struct page *page);
+-void mem_cgroup_end_page_stat(struct mem_cgroup *memcg);
++struct mem_cgroup *lock_page_memcg(struct page *page);
++void unlock_page_memcg(struct mem_cgroup *memcg);
+ 
+ /**
+  * mem_cgroup_update_page_stat - update page state statistics
+@@ -438,7 +438,13 @@ void mem_cgroup_end_page_stat(struct mem
+  * @idx: page state item to account
+  * @val: number of pages (positive or negative)
+  *
+- * See mem_cgroup_begin_page_stat() for locking requirements.
++ * Callers must use lock_page_memcg() to prevent double accounting
++ * when the page is concurrently being moved to another memcg:
++ *
++ *   memcg = lock_page_memcg(page);
++ *   if (TestClearPageState(page))
++ *     mem_cgroup_update_page_stat(memcg, state, -1);
++ *   unlock_page_memcg(memcg);
+  */
+ static inline void mem_cgroup_update_page_stat(struct mem_cgroup *memcg,
+ 				 enum mem_cgroup_stat_index idx, int val)
+@@ -613,12 +619,12 @@ mem_cgroup_print_oom_info(struct mem_cgr
+ {
  }
  
--static int memory_block_change_state(struct memory_block *mem,
-+int memory_block_change_state(struct memory_block *mem,
- 		unsigned long to_state, unsigned long from_state_req)
+-static inline struct mem_cgroup *mem_cgroup_begin_page_stat(struct page *page)
++static inline struct mem_cgroup *lock_page_memcg(struct page *page)
  {
- 	int ret = 0;
-@@ -439,6 +439,37 @@ print_block_size(struct device *dev, str
- static DEVICE_ATTR(block_size_bytes, 0444, print_block_size, NULL);
+ 	return NULL;
+ }
+ 
+-static inline void mem_cgroup_end_page_stat(struct mem_cgroup *memcg)
++static inline void unlock_page_memcg(struct mem_cgroup *memcg)
+ {
+ }
+ 
+diff -puN mm/filemap.c~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding mm/filemap.c
+--- a/mm/filemap.c~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding
++++ a/mm/filemap.c
+@@ -101,7 +101,7 @@
+  *    ->tree_lock		(page_remove_rmap->set_page_dirty)
+  *    bdi.wb->list_lock		(page_remove_rmap->set_page_dirty)
+  *    ->inode->i_lock		(page_remove_rmap->set_page_dirty)
+- *    ->memcg->move_lock	(page_remove_rmap->mem_cgroup_begin_page_stat)
++ *    ->memcg->move_lock	(page_remove_rmap->lock_page_memcg)
+  *    bdi.wb->list_lock		(zap_pte_range->set_page_dirty)
+  *    ->inode->i_lock		(zap_pte_range->set_page_dirty)
+  *    ->private_lock		(zap_pte_range->__set_page_dirty_buffers)
+@@ -177,7 +177,7 @@ static void page_cache_tree_delete(struc
+  * Delete a page from the page cache and free it. Caller has to make
+  * sure the page is locked and that nobody else uses it - or that usage
+  * is safe.  The caller must hold the mapping's tree_lock and
+- * mem_cgroup_begin_page_stat().
++ * lock_page_memcg().
+  */
+ void __delete_from_page_cache(struct page *page, void *shadow,
+ 			      struct mem_cgroup *memcg)
+@@ -263,11 +263,11 @@ void delete_from_page_cache(struct page
+ 
+ 	freepage = mapping->a_ops->freepage;
+ 
+-	memcg = mem_cgroup_begin_page_stat(page);
++	memcg = lock_page_memcg(page);
+ 	spin_lock_irqsave(&mapping->tree_lock, flags);
+ 	__delete_from_page_cache(page, NULL, memcg);
+ 	spin_unlock_irqrestore(&mapping->tree_lock, flags);
+-	mem_cgroup_end_page_stat(memcg);
++	unlock_page_memcg(memcg);
+ 
+ 	if (freepage)
+ 		freepage(page);
+@@ -561,7 +561,7 @@ int replace_page_cache_page(struct page
+ 		new->mapping = mapping;
+ 		new->index = offset;
+ 
+-		memcg = mem_cgroup_begin_page_stat(old);
++		memcg = lock_page_memcg(old);
+ 		spin_lock_irqsave(&mapping->tree_lock, flags);
+ 		__delete_from_page_cache(old, NULL, memcg);
+ 		error = radix_tree_insert(&mapping->page_tree, offset, new);
+@@ -576,7 +576,7 @@ int replace_page_cache_page(struct page
+ 		if (PageSwapBacked(new))
+ 			__inc_zone_page_state(new, NR_SHMEM);
+ 		spin_unlock_irqrestore(&mapping->tree_lock, flags);
+-		mem_cgroup_end_page_stat(memcg);
++		unlock_page_memcg(memcg);
+ 		mem_cgroup_replace_page(old, new);
+ 		radix_tree_preload_end();
+ 		if (freepage)
+diff -puN mm/memcontrol.c~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding
++++ a/mm/memcontrol.c
+@@ -1709,19 +1709,13 @@ cleanup:
+ }
+ 
+ /**
+- * mem_cgroup_begin_page_stat - begin a page state statistics transaction
+- * @page: page that is going to change accounted state
++ * lock_page_memcg - lock a page->mem_cgroup binding
++ * @page: the page
+  *
+- * This function must mark the beginning of an accounted page state
+- * change to prevent double accounting when the page is concurrently
+- * being moved to another memcg:
+- *
+- *   memcg = mem_cgroup_begin_page_stat(page);
+- *   if (TestClearPageState(page))
+- *     mem_cgroup_update_page_stat(memcg, state, -1);
+- *   mem_cgroup_end_page_stat(memcg);
++ * This function protects unlocked LRU pages from being moved to
++ * another cgroup and stabilizes their page->mem_cgroup binding.
+  */
+-struct mem_cgroup *mem_cgroup_begin_page_stat(struct page *page)
++struct mem_cgroup *lock_page_memcg(struct page *page)
+ {
+ 	struct mem_cgroup *memcg;
+ 	unsigned long flags;
+@@ -1759,20 +1753,20 @@ again:
+ 	/*
+ 	 * When charge migration first begins, we can have locked and
+ 	 * unlocked page stat updates happening concurrently.  Track
+-	 * the task who has the lock for mem_cgroup_end_page_stat().
++	 * the task who has the lock for unlock_page_memcg().
+ 	 */
+ 	memcg->move_lock_task = current;
+ 	memcg->move_lock_flags = flags;
+ 
+ 	return memcg;
+ }
+-EXPORT_SYMBOL(mem_cgroup_begin_page_stat);
++EXPORT_SYMBOL(lock_page_memcg);
+ 
+ /**
+- * mem_cgroup_end_page_stat - finish a page state statistics transaction
+- * @memcg: the memcg that was accounted against
++ * unlock_page_memcg - unlock a page->mem_cgroup binding
++ * @memcg: the memcg returned by lock_page_memcg()
+  */
+-void mem_cgroup_end_page_stat(struct mem_cgroup *memcg)
++void unlock_page_memcg(struct mem_cgroup *memcg)
+ {
+ 	if (memcg && memcg->move_lock_task == current) {
+ 		unsigned long flags = memcg->move_lock_flags;
+@@ -1785,7 +1779,7 @@ void mem_cgroup_end_page_stat(struct mem
+ 
+ 	rcu_read_unlock();
+ }
+-EXPORT_SYMBOL(mem_cgroup_end_page_stat);
++EXPORT_SYMBOL(unlock_page_memcg);
  
  /*
-+ * Memory auto online policy.
-+ */
-+
-+static ssize_t
-+show_auto_online_blocks(struct device *dev, struct device_attribute *attr,
-+			char *buf)
-+{
-+	if (memhp_auto_online)
-+		return sprintf(buf, "online\n");
-+	else
-+		return sprintf(buf, "offline\n");
-+}
-+
-+static ssize_t
-+store_auto_online_blocks(struct device *dev, struct device_attribute *attr,
-+			 const char *buf, size_t count)
-+{
-+	if (sysfs_streq(buf, "online"))
-+		memhp_auto_online = true;
-+	else if (sysfs_streq(buf, "offline"))
-+		memhp_auto_online = false;
-+	else
-+		return -EINVAL;
-+
-+	return count;
-+}
-+
-+static DEVICE_ATTR(auto_online_blocks, 0644, show_auto_online_blocks,
-+		   store_auto_online_blocks);
-+
-+/*
-  * Some architectures will have custom drivers to do this, and
-  * will not need to do it from userspace.  The fake hot-add code
-  * as well as ppc64 will do all of their discovery in userspace
-@@ -746,6 +777,7 @@ static struct attribute *memory_root_att
- #endif
+  * size of first charge trial. "32" comes from vmscan.c's magic value.
+@@ -4923,9 +4917,9 @@ static void mem_cgroup_move_charge(struc
  
- 	&dev_attr_block_size_bytes.attr,
-+	&dev_attr_auto_online_blocks.attr,
- 	NULL
- };
- 
-diff -puN drivers/xen/balloon.c~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory drivers/xen/balloon.c
---- a/drivers/xen/balloon.c~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory
-+++ a/drivers/xen/balloon.c
-@@ -338,7 +338,7 @@ static enum bp_state reserve_additional_
- 	}
- #endif
- 
--	rc = add_memory_resource(nid, resource);
-+	rc = add_memory_resource(nid, resource, false);
- 	if (rc) {
- 		pr_warn("Cannot add additional memory (%i)\n", rc);
- 		goto err;
-diff -puN include/linux/memory.h~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory include/linux/memory.h
---- a/include/linux/memory.h~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory
-+++ a/include/linux/memory.h
-@@ -109,6 +109,9 @@ extern void unregister_memory_notifier(s
- extern int register_memory_isolate_notifier(struct notifier_block *nb);
- extern void unregister_memory_isolate_notifier(struct notifier_block *nb);
- extern int register_new_memory(int, struct mem_section *);
-+extern int memory_block_change_state(struct memory_block *mem,
-+				     unsigned long to_state,
-+				     unsigned long from_state_req);
- #ifdef CONFIG_MEMORY_HOTREMOVE
- extern int unregister_memory_section(struct mem_section *);
- #endif
-diff -puN include/linux/memory_hotplug.h~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory include/linux/memory_hotplug.h
---- a/include/linux/memory_hotplug.h~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory
-+++ a/include/linux/memory_hotplug.h
-@@ -99,6 +99,8 @@ extern void __online_page_free(struct pa
- 
- extern int try_online_node(int nid);
- 
-+extern bool memhp_auto_online;
-+
- #ifdef CONFIG_MEMORY_HOTREMOVE
- extern bool is_pageblock_removable_nolock(struct page *page);
- extern int arch_remove_memory(u64 start, u64 size);
-@@ -267,7 +269,7 @@ static inline void remove_memory(int nid
- extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
- 		void *arg, int (*func)(struct memory_block *, void *));
- extern int add_memory(int nid, u64 start, u64 size);
--extern int add_memory_resource(int nid, struct resource *resource);
-+extern int add_memory_resource(int nid, struct resource *resource, bool online);
- extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
- 		bool for_device);
- extern int arch_add_memory(int nid, u64 start, u64 size, bool for_device);
-diff -puN mm/memory_hotplug.c~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~memory-hotplug-add-automatic-onlining-policy-for-the-newly-added-memory
-+++ a/mm/memory_hotplug.c
-@@ -77,6 +77,9 @@ static struct {
- #define memhp_lock_acquire()      lock_map_acquire(&mem_hotplug.dep_map)
- #define memhp_lock_release()      lock_map_release(&mem_hotplug.dep_map)
- 
-+bool memhp_auto_online;
-+EXPORT_SYMBOL_GPL(memhp_auto_online);
-+
- void get_online_mems(void)
+ 	lru_add_drain_all();
+ 	/*
+-	 * Signal mem_cgroup_begin_page_stat() to take the memcg's
+-	 * move_lock while we're moving its pages to another memcg.
+-	 * Then wait for already started RCU-only updates to finish.
++	 * Signal lock_page_memcg() to take the memcg's move_lock
++	 * while we're moving its pages to another memcg. Then wait
++	 * for already started RCU-only updates to finish.
+ 	 */
+ 	atomic_inc(&mc.from->moving_account);
+ 	synchronize_rcu();
+diff -puN mm/page-writeback.c~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding
++++ a/mm/page-writeback.c
+@@ -2410,7 +2410,7 @@ int __set_page_dirty_no_writeback(struct
+ /*
+  * Helper function for set_page_dirty family.
+  *
+- * Caller must hold mem_cgroup_begin_page_stat().
++ * Caller must hold lock_page_memcg().
+  *
+  * NOTE: This relies on being atomic wrt interrupts.
+  */
+@@ -2442,7 +2442,7 @@ EXPORT_SYMBOL(account_page_dirtied);
+ /*
+  * Helper function for deaccounting dirty page without writeback.
+  *
+- * Caller must hold mem_cgroup_begin_page_stat().
++ * Caller must hold lock_page_memcg().
+  */
+ void account_page_cleaned(struct page *page, struct address_space *mapping,
+ 			  struct mem_cgroup *memcg, struct bdi_writeback *wb)
+@@ -2471,13 +2471,13 @@ int __set_page_dirty_nobuffers(struct pa
  {
- 	might_sleep();
-@@ -1261,8 +1264,13 @@ int zone_for_memory(int nid, u64 start,
- 	return zone_default;
+ 	struct mem_cgroup *memcg;
+ 
+-	memcg = mem_cgroup_begin_page_stat(page);
++	memcg = lock_page_memcg(page);
+ 	if (!TestSetPageDirty(page)) {
+ 		struct address_space *mapping = page_mapping(page);
+ 		unsigned long flags;
+ 
+ 		if (!mapping) {
+-			mem_cgroup_end_page_stat(memcg);
++			unlock_page_memcg(memcg);
+ 			return 1;
+ 		}
+ 
+@@ -2488,7 +2488,7 @@ int __set_page_dirty_nobuffers(struct pa
+ 		radix_tree_tag_set(&mapping->page_tree, page_index(page),
+ 				   PAGECACHE_TAG_DIRTY);
+ 		spin_unlock_irqrestore(&mapping->tree_lock, flags);
+-		mem_cgroup_end_page_stat(memcg);
++		unlock_page_memcg(memcg);
+ 
+ 		if (mapping->host) {
+ 			/* !PageAnon && !swapper_space */
+@@ -2496,7 +2496,7 @@ int __set_page_dirty_nobuffers(struct pa
+ 		}
+ 		return 1;
+ 	}
+-	mem_cgroup_end_page_stat(memcg);
++	unlock_page_memcg(memcg);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(__set_page_dirty_nobuffers);
+@@ -2629,14 +2629,14 @@ void cancel_dirty_page(struct page *page
+ 		struct mem_cgroup *memcg;
+ 		bool locked;
+ 
+-		memcg = mem_cgroup_begin_page_stat(page);
++		memcg = lock_page_memcg(page);
+ 		wb = unlocked_inode_to_wb_begin(inode, &locked);
+ 
+ 		if (TestClearPageDirty(page))
+ 			account_page_cleaned(page, mapping, memcg, wb);
+ 
+ 		unlocked_inode_to_wb_end(inode, locked);
+-		mem_cgroup_end_page_stat(memcg);
++		unlock_page_memcg(memcg);
+ 	} else {
+ 		ClearPageDirty(page);
+ 	}
+@@ -2705,7 +2705,7 @@ int clear_page_dirty_for_io(struct page
+ 		 * always locked coming in here, so we get the desired
+ 		 * exclusion.
+ 		 */
+-		memcg = mem_cgroup_begin_page_stat(page);
++		memcg = lock_page_memcg(page);
+ 		wb = unlocked_inode_to_wb_begin(inode, &locked);
+ 		if (TestClearPageDirty(page)) {
+ 			mem_cgroup_dec_page_stat(memcg, MEM_CGROUP_STAT_DIRTY);
+@@ -2714,7 +2714,7 @@ int clear_page_dirty_for_io(struct page
+ 			ret = 1;
+ 		}
+ 		unlocked_inode_to_wb_end(inode, locked);
+-		mem_cgroup_end_page_stat(memcg);
++		unlock_page_memcg(memcg);
+ 		return ret;
+ 	}
+ 	return TestClearPageDirty(page);
+@@ -2727,7 +2727,7 @@ int test_clear_page_writeback(struct pag
+ 	struct mem_cgroup *memcg;
+ 	int ret;
+ 
+-	memcg = mem_cgroup_begin_page_stat(page);
++	memcg = lock_page_memcg(page);
+ 	if (mapping) {
+ 		struct inode *inode = mapping->host;
+ 		struct backing_dev_info *bdi = inode_to_bdi(inode);
+@@ -2755,7 +2755,7 @@ int test_clear_page_writeback(struct pag
+ 		dec_zone_page_state(page, NR_WRITEBACK);
+ 		inc_zone_page_state(page, NR_WRITTEN);
+ 	}
+-	mem_cgroup_end_page_stat(memcg);
++	unlock_page_memcg(memcg);
+ 	return ret;
  }
  
-+static int online_memory_block(struct memory_block *mem, void *arg)
-+{
-+	return memory_block_change_state(mem, MEM_ONLINE, MEM_OFFLINE);
-+}
-+
- /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
--int __ref add_memory_resource(int nid, struct resource *res)
-+int __ref add_memory_resource(int nid, struct resource *res, bool online)
- {
- 	u64 start, size;
- 	pg_data_t *pgdat = NULL;
-@@ -1322,6 +1330,11 @@ int __ref add_memory_resource(int nid, s
- 	/* create new memmap entry */
- 	firmware_map_add_hotplug(start, start + size, "System RAM");
+@@ -2765,7 +2765,7 @@ int __test_set_page_writeback(struct pag
+ 	struct mem_cgroup *memcg;
+ 	int ret;
  
-+	/* online pages if requested */
-+	if (online)
-+		walk_memory_range(PFN_DOWN(start), PFN_UP(start + size - 1),
-+				  NULL, online_memory_block);
-+
- 	goto out;
- 
- error:
-@@ -1345,7 +1358,7 @@ int __ref add_memory(int nid, u64 start,
- 	if (IS_ERR(res))
- 		return PTR_ERR(res);
- 
--	ret = add_memory_resource(nid, res);
-+	ret = add_memory_resource(nid, res, memhp_auto_online);
- 	if (ret < 0)
- 		release_memory_resource(res);
+-	memcg = mem_cgroup_begin_page_stat(page);
++	memcg = lock_page_memcg(page);
+ 	if (mapping) {
+ 		struct inode *inode = mapping->host;
+ 		struct backing_dev_info *bdi = inode_to_bdi(inode);
+@@ -2796,7 +2796,7 @@ int __test_set_page_writeback(struct pag
+ 		mem_cgroup_inc_page_stat(memcg, MEM_CGROUP_STAT_WRITEBACK);
+ 		inc_zone_page_state(page, NR_WRITEBACK);
+ 	}
+-	mem_cgroup_end_page_stat(memcg);
++	unlock_page_memcg(memcg);
  	return ret;
+ 
+ }
+diff -puN mm/rmap.c~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding mm/rmap.c
+--- a/mm/rmap.c~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding
++++ a/mm/rmap.c
+@@ -1289,19 +1289,19 @@ void page_add_file_rmap(struct page *pag
+ {
+ 	struct mem_cgroup *memcg;
+ 
+-	memcg = mem_cgroup_begin_page_stat(page);
++	memcg = lock_page_memcg(page);
+ 	if (atomic_inc_and_test(&page->_mapcount)) {
+ 		__inc_zone_page_state(page, NR_FILE_MAPPED);
+ 		mem_cgroup_inc_page_stat(memcg, MEM_CGROUP_STAT_FILE_MAPPED);
+ 	}
+-	mem_cgroup_end_page_stat(memcg);
++	unlock_page_memcg(memcg);
+ }
+ 
+ static void page_remove_file_rmap(struct page *page)
+ {
+ 	struct mem_cgroup *memcg;
+ 
+-	memcg = mem_cgroup_begin_page_stat(page);
++	memcg = lock_page_memcg(page);
+ 
+ 	/* Hugepages are not counted in NR_FILE_MAPPED for now. */
+ 	if (unlikely(PageHuge(page))) {
+@@ -1325,7 +1325,7 @@ static void page_remove_file_rmap(struct
+ 	if (unlikely(PageMlocked(page)))
+ 		clear_page_mlock(page);
+ out:
+-	mem_cgroup_end_page_stat(memcg);
++	unlock_page_memcg(memcg);
+ }
+ 
+ static void page_remove_anon_compound_rmap(struct page *page)
+diff -puN mm/truncate.c~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding mm/truncate.c
+--- a/mm/truncate.c~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding
++++ a/mm/truncate.c
+@@ -528,7 +528,7 @@ invalidate_complete_page2(struct address
+ 	if (page_has_private(page) && !try_to_release_page(page, GFP_KERNEL))
+ 		return 0;
+ 
+-	memcg = mem_cgroup_begin_page_stat(page);
++	memcg = lock_page_memcg(page);
+ 	spin_lock_irqsave(&mapping->tree_lock, flags);
+ 	if (PageDirty(page))
+ 		goto failed;
+@@ -536,7 +536,7 @@ invalidate_complete_page2(struct address
+ 	BUG_ON(page_has_private(page));
+ 	__delete_from_page_cache(page, NULL, memcg);
+ 	spin_unlock_irqrestore(&mapping->tree_lock, flags);
+-	mem_cgroup_end_page_stat(memcg);
++	unlock_page_memcg(memcg);
+ 
+ 	if (mapping->a_ops->freepage)
+ 		mapping->a_ops->freepage(page);
+@@ -545,7 +545,7 @@ invalidate_complete_page2(struct address
+ 	return 1;
+ failed:
+ 	spin_unlock_irqrestore(&mapping->tree_lock, flags);
+-	mem_cgroup_end_page_stat(memcg);
++	unlock_page_memcg(memcg);
+ 	return 0;
+ }
+ 
+diff -puN mm/vmscan.c~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding mm/vmscan.c
+--- a/mm/vmscan.c~mm-memcontrol-generalize-locking-for-the-page-mem_cgroup-binding
++++ a/mm/vmscan.c
+@@ -608,7 +608,7 @@ static int __remove_mapping(struct addre
+ 	BUG_ON(!PageLocked(page));
+ 	BUG_ON(mapping != page_mapping(page));
+ 
+-	memcg = mem_cgroup_begin_page_stat(page);
++	memcg = lock_page_memcg(page);
+ 	spin_lock_irqsave(&mapping->tree_lock, flags);
+ 	/*
+ 	 * The non racy check for a busy page.
+@@ -648,7 +648,7 @@ static int __remove_mapping(struct addre
+ 		mem_cgroup_swapout(page, swap);
+ 		__delete_from_swap_cache(page);
+ 		spin_unlock_irqrestore(&mapping->tree_lock, flags);
+-		mem_cgroup_end_page_stat(memcg);
++		unlock_page_memcg(memcg);
+ 		swapcache_free(swap);
+ 	} else {
+ 		void (*freepage)(struct page *);
+@@ -676,7 +676,7 @@ static int __remove_mapping(struct addre
+ 			shadow = workingset_eviction(mapping, page);
+ 		__delete_from_page_cache(page, shadow, memcg);
+ 		spin_unlock_irqrestore(&mapping->tree_lock, flags);
+-		mem_cgroup_end_page_stat(memcg);
++		unlock_page_memcg(memcg);
+ 
+ 		if (freepage != NULL)
+ 			freepage(page);
+@@ -686,7 +686,7 @@ static int __remove_mapping(struct addre
+ 
+ cannot_free:
+ 	spin_unlock_irqrestore(&mapping->tree_lock, flags);
+-	mem_cgroup_end_page_stat(memcg);
++	unlock_page_memcg(memcg);
+ 	return 0;
+ }
+ 
 _
 
-Patches currently in -mm which might be from vkuznets@redhat.com are
+Patches currently in -mm which might be from hannes@cmpxchg.org are
 
+mm-oom_kill-dont-ignore-oom-score-on-exiting-tasks.patch
+mm-scale-kswapd-watermarks-in-proportion-to-memory.patch
+mm-scale-kswapd-watermarks-in-proportion-to-memory-v3.patch
+mm-memcontrol-reclaim-when-shrinking-memoryhigh-below-usage.patch
+mm-memcontrol-reclaim-and-oom-kill-when-shrinking-memorymax-below-usage.patch
+mm-memcontrol-clarify-the-uncharge_list-loop.patch
 
