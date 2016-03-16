@@ -1,228 +1,123 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-page_allocc-calculate-zone_start_pfn-at-zone_spanned_pages_in_node.patch removed from -mm tree
-Date: Wed, 16 Mar 2016 12:55:15 -0700
-Message-ID: <56e9ba23.nEyutMF5Ec7KJrQy%akpm@linux-foundation.org>
+ mm-debug_pagealloc-ask-users-for-default-setting-of-debug_pagealloc.patch
+ removed from -mm tree
+Date: Wed, 16 Mar 2016 12:55:26 -0700
+Message-ID: <56e9ba2e.Jv0gAyfn3U1pJ7Zt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38638 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38675 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755600AbcCPTzQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:55:16 -0400
+	with ESMTP id S1755335AbcCPTz1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:55:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: izumi.taku@jp.fujitsu.com, arnd@arndb.de, dave.hansen@intel.com, kamezawa.hiroyu@jp.fujitsu.com, matt@codeblueprint.co.uk, mel@csn.ul.ie, qiuxishi@huawei.com, steve.capper@linaro.org, sudeep.holla@arm.com, tony.luck@intel.com, mm-commits@vger.kernel.org
+To: borntraeger@de.ibm.com, 569F5E29.3090107@de.ibm.com, 56A20F30.4050705@de.ibm.com, heiko.carstens@de.ibm.com, iamjoonsoo.kim@lge.com, peterz@infradead.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: calculate zone_start_pfn at zone_spanned_pages_in_node()
+     Subject: mm/debug_pagealloc: ask users for default setting of debug_pagealloc
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-calculate-zone_start_pfn-at-zone_spanned_pages_in_node.patch
+     mm-debug_pagealloc-ask-users-for-default-setting-of-debug_pagealloc.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: mm/page_alloc.c: calculate zone_start_pfn at zone_spanned_pages_in_node()
+From: Christian Borntraeger <borntraeger@de.ibm.com>
+Subject: mm/debug_pagealloc: ask users for default setting of debug_pagealloc
 
-Xeon E7 v3 based systems supports Address Range Mirroring and UEFI BIOS
-complied with UEFI spec 2.5 can notify which ranges are mirrored
-(reliable) via EFI memory map.  Now Linux kernel utilize its information
-and allocates boot time memory from reliable region.
+Since commit 031bc5743f158 ("mm/debug-pagealloc: make debug-pagealloc
+boottime configurable") CONFIG_DEBUG_PAGEALLOC is by default not adding
+any page debugging.
 
-My requirement is:
-  - allocate kernel memory from mirrored region 
-  - allocate user memory from non-mirrored region
+This resulted in several unnoticed bugs, e.g.
 
-In order to meet my requirement, ZONE_MOVABLE is useful.  By arranging
-non-mirrored range into ZONE_MOVABLE, mirrored memory is used for kernel
-allocations.
+https://lkml.kernel.org/g/<569F5E29.3090107@de.ibm.com>
+or
+https://lkml.kernel.org/g/<56A20F30.4050705@de.ibm.com>
 
-My idea is to extend existing "kernelcore" option and introduces
-kernelcore=mirror option.  By specifying "mirror" instead of specifying
-the amount of memory, non-mirrored region will be arranged into
-ZONE_MOVABLE.
+as this behaviour change was not even documented in Kconfig.
 
-Earlier discussions are at: 
- https://lkml.org/lkml/2015/10/9/24
- https://lkml.org/lkml/2015/10/15/9
- https://lkml.org/lkml/2015/11/27/18
- https://lkml.org/lkml/2015/12/8/836
+Let's provide a new Kconfig symbol that allows to change the default back
+to enabled, e.g.  for debug kernels.  This also makes the change obvious
+to kernel packagers.
 
-For example, suppose 2-nodes system with the following memory range: 
+Let's also change the Kconfig description for CONFIG_DEBUG_PAGEALLOC,
+to indicate that there are two stages of overhead.
 
-  node 0 [mem 0x0000000000001000-0x000000109fffffff] 
-  node 1 [mem 0x00000010a0000000-0x000000209fffffff]
-and the following ranges are marked as reliable (mirrored):
-  [0x0000000000000000-0x0000000100000000] 
-  [0x0000000100000000-0x0000000180000000] 
-  [0x0000000800000000-0x0000000880000000] 
-  [0x00000010a0000000-0x0000001120000000]
-  [0x00000017a0000000-0x0000001820000000] 
-
-If you specify kernelcore=mirror, ZONE_NORMAL and ZONE_MOVABLE are
-arranged like bellow:
-
- - node 0:
-  ZONE_NORMAL : [0x0000000100000000-0x00000010a0000000]
-  ZONE_MOVABLE: [0x0000000180000000-0x00000010a0000000]
- - node 1: 
-  ZONE_NORMAL : [0x00000010a0000000-0x00000020a0000000]
-  ZONE_MOVABLE: [0x0000001120000000-0x00000020a0000000]
-
-In overlapped range, pages to be ZONE_MOVABLE in ZONE_NORMAL are treated
-as absent pages, and vice versa.
-
-
-This patch (of 2):
-
-Currently each zone's zone_start_pfn is calculated at
-free_area_init_core().  However zone's range is fixed at the time when
-invoking zone_spanned_pages_in_node().
-
-This patch changes how each zone->zone_start_pfn is calculated in
-zone_spanned_pages_in_node().
-
-Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Mel Gorman <mel@csn.ul.ie>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: Steve Capper <steve.capper@linaro.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>
+Signed-off-by: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   40 +++++++++++++++++++++++++++++-----------
- 1 file changed, 29 insertions(+), 11 deletions(-)
+ mm/Kconfig.debug |   18 ++++++++++++++++--
+ mm/page_alloc.c  |    6 +++++-
+ 2 files changed, 21 insertions(+), 3 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_allocc-calculate-zone_start_pfn-at-zone_spanned_pages_in_node mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-calculate-zone_start_pfn-at-zone_spanned_pages_in_node
+diff -puN mm/Kconfig.debug~mm-debug_pagealloc-ask-users-for-default-setting-of-debug_pagealloc mm/Kconfig.debug
+--- a/mm/Kconfig.debug~mm-debug_pagealloc-ask-users-for-default-setting-of-debug_pagealloc
++++ a/mm/Kconfig.debug
+@@ -16,8 +16,8 @@ config DEBUG_PAGEALLOC
+ 	select PAGE_POISONING if !ARCH_SUPPORTS_DEBUG_PAGEALLOC
+ 	---help---
+ 	  Unmap pages from the kernel linear mapping after free_pages().
+-	  This results in a large slowdown, but helps to find certain types
+-	  of memory corruption.
++	  Depending on runtime enablement, this results in a small or large
++	  slowdown, but helps to find certain types of memory corruption.
+ 
+ 	  For architectures which don't enable ARCH_SUPPORTS_DEBUG_PAGEALLOC,
+ 	  fill the pages with poison patterns after free_pages() and verify
+@@ -26,5 +26,19 @@ config DEBUG_PAGEALLOC
+ 	  that would result in incorrect warnings of memory corruption after
+ 	  a resume because free pages are not saved to the suspend image.
+ 
++	  By default this option will have a small overhead, e.g. by not
++	  allowing the kernel mapping to be backed by large pages on some
++	  architectures. Even bigger overhead comes when the debugging is
++	  enabled by DEBUG_PAGEALLOC_ENABLE_DEFAULT or the debug_pagealloc
++	  command line parameter.
++
++config DEBUG_PAGEALLOC_ENABLE_DEFAULT
++	bool "Enable debug page memory allocations by default?"
++	default n
++	depends on DEBUG_PAGEALLOC
++	---help---
++	  Enable debug page memory allocations by default? This value
++	  can be overridden by debug_pagealloc=off|on.
++
+ config PAGE_POISONING
+ 	bool
+diff -puN mm/page_alloc.c~mm-debug_pagealloc-ask-users-for-default-setting-of-debug_pagealloc mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-debug_pagealloc-ask-users-for-default-setting-of-debug_pagealloc
 +++ a/mm/page_alloc.c
-@@ -4953,31 +4953,31 @@ static unsigned long __meminit zone_span
- 					unsigned long zone_type,
- 					unsigned long node_start_pfn,
- 					unsigned long node_end_pfn,
-+					unsigned long *zone_start_pfn,
-+					unsigned long *zone_end_pfn,
- 					unsigned long *ignored)
- {
--	unsigned long zone_start_pfn, zone_end_pfn;
--
- 	/* When hotadd a new node from cpu_up(), the node should be empty */
- 	if (!node_start_pfn && !node_end_pfn)
- 		return 0;
+@@ -478,7 +478,8 @@ void prep_compound_page(struct page *pag
  
- 	/* Get the start and end of the zone */
--	zone_start_pfn = arch_zone_lowest_possible_pfn[zone_type];
--	zone_end_pfn = arch_zone_highest_possible_pfn[zone_type];
-+	*zone_start_pfn = arch_zone_lowest_possible_pfn[zone_type];
-+	*zone_end_pfn = arch_zone_highest_possible_pfn[zone_type];
- 	adjust_zone_range_for_zone_movable(nid, zone_type,
- 				node_start_pfn, node_end_pfn,
--				&zone_start_pfn, &zone_end_pfn);
-+				zone_start_pfn, zone_end_pfn);
+ #ifdef CONFIG_DEBUG_PAGEALLOC
+ unsigned int _debug_guardpage_minorder;
+-bool _debug_pagealloc_enabled __read_mostly;
++bool _debug_pagealloc_enabled __read_mostly
++			= IS_ENABLED(CONFIG_DEBUG_PAGEALLOC_ENABLE_DEFAULT);
+ bool _debug_guardpage_enabled __read_mostly;
  
- 	/* Check that this node has pages within the zone's required range */
--	if (zone_end_pfn < node_start_pfn || zone_start_pfn > node_end_pfn)
-+	if (*zone_end_pfn < node_start_pfn || *zone_start_pfn > node_end_pfn)
- 		return 0;
+ static int __init early_debug_pagealloc(char *buf)
+@@ -489,6 +490,9 @@ static int __init early_debug_pagealloc(
+ 	if (strcmp(buf, "on") == 0)
+ 		_debug_pagealloc_enabled = true;
  
- 	/* Move the zone boundaries inside the node if necessary */
--	zone_end_pfn = min(zone_end_pfn, node_end_pfn);
--	zone_start_pfn = max(zone_start_pfn, node_start_pfn);
-+	*zone_end_pfn = min(*zone_end_pfn, node_end_pfn);
-+	*zone_start_pfn = max(*zone_start_pfn, node_start_pfn);
- 
- 	/* Return the spanned pages */
--	return zone_end_pfn - zone_start_pfn;
-+	return *zone_end_pfn - *zone_start_pfn;
- }
- 
- /*
-@@ -5042,8 +5042,18 @@ static inline unsigned long __meminit zo
- 					unsigned long zone_type,
- 					unsigned long node_start_pfn,
- 					unsigned long node_end_pfn,
-+					unsigned long *zone_start_pfn,
-+					unsigned long *zone_end_pfn,
- 					unsigned long *zones_size)
- {
-+	unsigned int zone;
++	if (strcmp(buf, "off") == 0)
++		_debug_pagealloc_enabled = false;
 +
-+	*zone_start_pfn = node_start_pfn;
-+	for (zone = 0; zone < zone_type; zone++)
-+		*zone_start_pfn += zones_size[zone];
-+
-+	*zone_end_pfn = *zone_start_pfn + zones_size[zone_type];
-+
- 	return zones_size[zone_type];
+ 	return 0;
  }
- 
-@@ -5072,15 +5082,22 @@ static void __meminit calculate_node_tot
- 
- 	for (i = 0; i < MAX_NR_ZONES; i++) {
- 		struct zone *zone = pgdat->node_zones + i;
-+		unsigned long zone_start_pfn, zone_end_pfn;
- 		unsigned long size, real_size;
- 
- 		size = zone_spanned_pages_in_node(pgdat->node_id, i,
- 						  node_start_pfn,
- 						  node_end_pfn,
-+						  &zone_start_pfn,
-+						  &zone_end_pfn,
- 						  zones_size);
- 		real_size = size - zone_absent_pages_in_node(pgdat->node_id, i,
- 						  node_start_pfn, node_end_pfn,
- 						  zholes_size);
-+		if (size)
-+			zone->zone_start_pfn = zone_start_pfn;
-+		else
-+			zone->zone_start_pfn = 0;
- 		zone->spanned_pages = size;
- 		zone->present_pages = real_size;
- 
-@@ -5201,7 +5218,6 @@ static void __paginginit free_area_init_
- {
- 	enum zone_type j;
- 	int nid = pgdat->node_id;
--	unsigned long zone_start_pfn = pgdat->node_start_pfn;
- 	int ret;
- 
- 	pgdat_resize_init(pgdat);
-@@ -5222,6 +5238,7 @@ static void __paginginit free_area_init_
- 	for (j = 0; j < MAX_NR_ZONES; j++) {
- 		struct zone *zone = pgdat->node_zones + j;
- 		unsigned long size, realsize, freesize, memmap_pages;
-+		unsigned long zone_start_pfn = zone->zone_start_pfn;
- 
- 		size = zone->spanned_pages;
- 		realsize = freesize = zone->present_pages;
-@@ -5290,7 +5307,6 @@ static void __paginginit free_area_init_
- 		ret = init_currently_empty_zone(zone, zone_start_pfn, size);
- 		BUG_ON(ret);
- 		memmap_init(size, nid, j, zone_start_pfn);
--		zone_start_pfn += size;
- 	}
- }
- 
-@@ -5358,6 +5374,8 @@ void __paginginit free_area_init_node(in
- 	pr_info("Initmem setup node %d [mem %#018Lx-%#018Lx]\n", nid,
- 		(u64)start_pfn << PAGE_SHIFT,
- 		end_pfn ? ((u64)end_pfn << PAGE_SHIFT) - 1 : 0);
-+#else
-+	start_pfn = node_start_pfn;
- #endif
- 	calculate_node_totalpages(pgdat, start_pfn, end_pfn,
- 				  zones_size, zholes_size);
+ early_param("debug_pagealloc", early_debug_pagealloc);
 _
 
-Patches currently in -mm which might be from izumi.taku@jp.fujitsu.com are
+Patches currently in -mm which might be from borntraeger@de.ibm.com are
 
 
