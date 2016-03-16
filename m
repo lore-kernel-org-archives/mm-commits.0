@@ -1,41 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_allocc-introduce-kernelcore=mirror-option.patch
- removed from -mm tree
-Date: Wed, 16 Mar 2016 12:55:18 -0700
-Message-ID: <56e9ba26.8R7eHFcAaI3PJ6u2%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-page_allocc-calculate-zone_start_pfn-at-zone_spanned_pages_in_node.patch removed from -mm tree
+Date: Wed, 16 Mar 2016 12:55:15 -0700
+Message-ID: <56e9ba23.nEyutMF5Ec7KJrQy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38652 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38638 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934026AbcCPTzT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:55:19 -0400
+	with ESMTP id S1755600AbcCPTzQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:55:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: izumi.taku@jp.fujitsu.com, arnd@arndb.de, dave.hansen@intel.com, kamezawa.hiroyu@jp.fujitsu.com, matt@codeblueprint.co.uk, mel@csn.ul.ie, qiuxishi@huawei.com, steve.capper@linaro.org, sudeep.holla@arm.com, tony.luck@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: introduce kernelcore=mirror option
+     Subject: mm/page_alloc.c: calculate zone_start_pfn at zone_spanned_pages_in_node()
 has been removed from the -mm tree.  Its filename was
-     mm-page_allocc-introduce-kernelcore=mirror-option.patch
+     mm-page_allocc-calculate-zone_start_pfn-at-zone_spanned_pages_in_node.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: mm/page_alloc.c: introduce kernelcore=mirror option
+Subject: mm/page_alloc.c: calculate zone_start_pfn at zone_spanned_pages_in_node()
 
-This patch extends existing "kernelcore" option and introduces
+Xeon E7 v3 based systems supports Address Range Mirroring and UEFI BIOS
+complied with UEFI spec 2.5 can notify which ranges are mirrored
+(reliable) via EFI memory map.  Now Linux kernel utilize its information
+and allocates boot time memory from reliable region.
+
+My requirement is:
+  - allocate kernel memory from mirrored region 
+  - allocate user memory from non-mirrored region
+
+In order to meet my requirement, ZONE_MOVABLE is useful.  By arranging
+non-mirrored range into ZONE_MOVABLE, mirrored memory is used for kernel
+allocations.
+
+My idea is to extend existing "kernelcore" option and introduces
 kernelcore=mirror option.  By specifying "mirror" instead of specifying
-the amount of memory, non-mirrored (non-reliable) region will be arranged
-into ZONE_MOVABLE.
+the amount of memory, non-mirrored region will be arranged into
+ZONE_MOVABLE.
 
-[akpm@linux-foundation.org: fix build with CONFIG_HAVE_MEMBLOCK_NODE_MAP=n]
+Earlier discussions are at: 
+ https://lkml.org/lkml/2015/10/9/24
+ https://lkml.org/lkml/2015/10/15/9
+ https://lkml.org/lkml/2015/11/27/18
+ https://lkml.org/lkml/2015/12/8/836
+
+For example, suppose 2-nodes system with the following memory range: 
+
+  node 0 [mem 0x0000000000001000-0x000000109fffffff] 
+  node 1 [mem 0x00000010a0000000-0x000000209fffffff]
+and the following ranges are marked as reliable (mirrored):
+  [0x0000000000000000-0x0000000100000000] 
+  [0x0000000100000000-0x0000000180000000] 
+  [0x0000000800000000-0x0000000880000000] 
+  [0x00000010a0000000-0x0000001120000000]
+  [0x00000017a0000000-0x0000001820000000] 
+
+If you specify kernelcore=mirror, ZONE_NORMAL and ZONE_MOVABLE are
+arranged like bellow:
+
+ - node 0:
+  ZONE_NORMAL : [0x0000000100000000-0x00000010a0000000]
+  ZONE_MOVABLE: [0x0000000180000000-0x00000010a0000000]
+ - node 1: 
+  ZONE_NORMAL : [0x00000010a0000000-0x00000020a0000000]
+  ZONE_MOVABLE: [0x0000001120000000-0x00000020a0000000]
+
+In overlapped range, pages to be ZONE_MOVABLE in ZONE_NORMAL are treated
+as absent pages, and vice versa.
+
+
+This patch (of 2):
+
+Currently each zone's zone_start_pfn is calculated at
+free_area_init_core().  However zone's range is fixed at the time when
+invoking zone_spanned_pages_in_node().
+
+This patch changes how each zone->zone_start_pfn is calculated in
+zone_spanned_pages_in_node().
+
 Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Tested-by: Sudeep Holla <sudeep.holla@arm.com>
 Cc: Tony Luck <tony.luck@intel.com>
 Cc: Xishi Qiu <qiuxishi@huawei.com>
 Cc: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
@@ -44,215 +95,132 @@ Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Matt Fleming <matt@codeblueprint.co.uk>
 Cc: Arnd Bergmann <arnd@arndb.de>
 Cc: Steve Capper <steve.capper@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/kernel-parameters.txt |   12 ++
- mm/page_alloc.c                     |  114 ++++++++++++++++++++++++--
- 2 files changed, 119 insertions(+), 7 deletions(-)
+ mm/page_alloc.c |   40 +++++++++++++++++++++++++++++-----------
+ 1 file changed, 29 insertions(+), 11 deletions(-)
 
-diff -puN Documentation/kernel-parameters.txt~mm-page_allocc-introduce-kernelcore=mirror-option Documentation/kernel-parameters.txt
---- a/Documentation/kernel-parameters.txt~mm-page_allocc-introduce-kernelcore=mirror-option
-+++ a/Documentation/kernel-parameters.txt
-@@ -1750,7 +1750,9 @@ bytes respectively. Such letter suffixes
- 
- 	keepinitrd	[HW,ARM]
- 
--	kernelcore=nn[KMG]	[KNL,X86,IA-64,PPC] This parameter
-+	kernelcore=	[KNL,X86,IA-64,PPC]
-+			Format: nn[KMGTPE] | "mirror"
-+			This parameter
- 			specifies the amount of memory usable by the kernel
- 			for non-movable allocations.  The requested amount is
- 			spread evenly throughout all nodes in the system. The
-@@ -1766,6 +1768,14 @@ bytes respectively. Such letter suffixes
- 			use the HighMem zone if it exists, and the Normal
- 			zone if it does not.
- 
-+			Instead of specifying the amount of memory (nn[KMGTPE]),
-+			you can specify "mirror" option. In case "mirror"
-+			option is specified, mirrored (reliable) memory is used
-+			for non-movable allocations and remaining memory is used
-+			for Movable pages. nn[KMGTPE] and "mirror" are exclusive,
-+			so you can NOT specify nn[KMGTPE] and "mirror" at the same
-+			time.
-+
- 	kgdbdbgp=	[KGDB,HW] kgdb over EHCI usb debug port.
- 			Format: <Controller#>[,poll interval]
- 			The controller # is the number of the ehci usb debug
-diff -puN mm/page_alloc.c~mm-page_allocc-introduce-kernelcore=mirror-option mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_allocc-introduce-kernelcore=mirror-option
+diff -puN mm/page_alloc.c~mm-page_allocc-calculate-zone_start_pfn-at-zone_spanned_pages_in_node mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_allocc-calculate-zone_start_pfn-at-zone_spanned_pages_in_node
 +++ a/mm/page_alloc.c
-@@ -247,6 +247,7 @@ static unsigned long __meminitdata arch_
- static unsigned long __initdata required_kernelcore;
- static unsigned long __initdata required_movablecore;
- static unsigned long __meminitdata zone_movable_pfn[MAX_NUMNODES];
-+static bool mirrored_kernelcore;
- 
- /* movable_zone is the "real" zone pages in ZONE_MOVABLE are taken from */
- int movable_zone;
-@@ -4491,6 +4492,9 @@ void __meminit memmap_init_zone(unsigned
- 	pg_data_t *pgdat = NODE_DATA(nid);
- 	unsigned long pfn;
- 	unsigned long nr_initialised = 0;
-+#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
-+	struct memblock_region *r = NULL, *tmp;
-+#endif
- 
- 	if (highest_memmap_pfn < end_pfn - 1)
- 		highest_memmap_pfn = end_pfn - 1;
-@@ -4516,6 +4520,40 @@ void __meminit memmap_init_zone(unsigned
- 			if (!update_defer_init(pgdat, pfn, end_pfn,
- 						&nr_initialised))
- 				break;
-+
-+#ifdef CONFIG_HAVE_MEMBLOCK_NODE_MAP
-+			/*
-+			 * if not mirrored_kernelcore and ZONE_MOVABLE exists,
-+			 * range from zone_movable_pfn[nid] to end of each node
-+			 * should be ZONE_MOVABLE not ZONE_NORMAL. skip it.
-+			 */
-+			if (!mirrored_kernelcore && zone_movable_pfn[nid])
-+				if (zone == ZONE_NORMAL &&
-+				    pfn >= zone_movable_pfn[nid])
-+					continue;
-+
-+			/*
-+			 * check given memblock attribute by firmware which
-+			 * can affect kernel memory layout.
-+			 * if zone==ZONE_MOVABLE but memory is mirrored,
-+			 * it's an overlapped memmap init. skip it.
-+			 */
-+			if (mirrored_kernelcore && zone == ZONE_MOVABLE) {
-+				if (!r ||
-+				    pfn >= memblock_region_memory_end_pfn(r)) {
-+					for_each_memblock(memory, tmp)
-+						if (pfn < memblock_region_memory_end_pfn(tmp))
-+							break;
-+					r = tmp;
-+				}
-+				if (pfn >= memblock_region_memory_base_pfn(r) &&
-+				    memblock_is_mirror(r)) {
-+					/* already initialized as NORMAL */
-+					pfn = memblock_region_memory_end_pfn(r);
-+					continue;
-+				}
-+			}
-+#endif
- 		}
- 
- 		/*
-@@ -4934,11 +4972,6 @@ static void __meminit adjust_zone_range_
- 			*zone_end_pfn = min(node_end_pfn,
- 				arch_zone_highest_possible_pfn[movable_zone]);
- 
--		/* Adjust for ZONE_MOVABLE starting within this range */
--		} else if (*zone_start_pfn < zone_movable_pfn[nid] &&
--				*zone_end_pfn > zone_movable_pfn[nid]) {
--			*zone_end_pfn = zone_movable_pfn[nid];
+@@ -4953,31 +4953,31 @@ static unsigned long __meminit zone_span
+ 					unsigned long zone_type,
+ 					unsigned long node_start_pfn,
+ 					unsigned long node_end_pfn,
++					unsigned long *zone_start_pfn,
++					unsigned long *zone_end_pfn,
+ 					unsigned long *ignored)
+ {
+-	unsigned long zone_start_pfn, zone_end_pfn;
 -
- 		/* Check if this whole range is within ZONE_MOVABLE */
- 		} else if (*zone_start_pfn >= zone_movable_pfn[nid])
- 			*zone_start_pfn = *zone_end_pfn;
-@@ -5023,6 +5056,7 @@ static unsigned long __meminit zone_abse
- 	unsigned long zone_low = arch_zone_lowest_possible_pfn[zone_type];
- 	unsigned long zone_high = arch_zone_highest_possible_pfn[zone_type];
- 	unsigned long zone_start_pfn, zone_end_pfn;
-+	unsigned long nr_absent;
- 
  	/* When hotadd a new node from cpu_up(), the node should be empty */
  	if (!node_start_pfn && !node_end_pfn)
-@@ -5034,7 +5068,39 @@ static unsigned long __meminit zone_abse
+ 		return 0;
+ 
+ 	/* Get the start and end of the zone */
+-	zone_start_pfn = arch_zone_lowest_possible_pfn[zone_type];
+-	zone_end_pfn = arch_zone_highest_possible_pfn[zone_type];
++	*zone_start_pfn = arch_zone_lowest_possible_pfn[zone_type];
++	*zone_end_pfn = arch_zone_highest_possible_pfn[zone_type];
  	adjust_zone_range_for_zone_movable(nid, zone_type,
- 			node_start_pfn, node_end_pfn,
- 			&zone_start_pfn, &zone_end_pfn);
--	return __absent_pages_in_range(nid, zone_start_pfn, zone_end_pfn);
-+	nr_absent = __absent_pages_in_range(nid, zone_start_pfn, zone_end_pfn);
-+
-+	/*
-+	 * ZONE_MOVABLE handling.
-+	 * Treat pages to be ZONE_MOVABLE in ZONE_NORMAL as absent pages
-+	 * and vice versa.
-+	 */
-+	if (zone_movable_pfn[nid]) {
-+		if (mirrored_kernelcore) {
-+			unsigned long start_pfn, end_pfn;
-+			struct memblock_region *r;
-+
-+			for_each_memblock(memory, r) {
-+				start_pfn = clamp(memblock_region_memory_base_pfn(r),
-+						  zone_start_pfn, zone_end_pfn);
-+				end_pfn = clamp(memblock_region_memory_end_pfn(r),
-+						zone_start_pfn, zone_end_pfn);
-+
-+				if (zone_type == ZONE_MOVABLE &&
-+				    memblock_is_mirror(r))
-+					nr_absent += end_pfn - start_pfn;
-+
-+				if (zone_type == ZONE_NORMAL &&
-+				    !memblock_is_mirror(r))
-+					nr_absent += end_pfn - start_pfn;
-+			}
-+		} else {
-+			if (zone_type == ZONE_NORMAL)
-+				nr_absent += node_end_pfn - zone_movable_pfn[nid];
-+		}
-+	}
-+
-+	return nr_absent;
+ 				node_start_pfn, node_end_pfn,
+-				&zone_start_pfn, &zone_end_pfn);
++				zone_start_pfn, zone_end_pfn);
+ 
+ 	/* Check that this node has pages within the zone's required range */
+-	if (zone_end_pfn < node_start_pfn || zone_start_pfn > node_end_pfn)
++	if (*zone_end_pfn < node_start_pfn || *zone_start_pfn > node_end_pfn)
+ 		return 0;
+ 
+ 	/* Move the zone boundaries inside the node if necessary */
+-	zone_end_pfn = min(zone_end_pfn, node_end_pfn);
+-	zone_start_pfn = max(zone_start_pfn, node_start_pfn);
++	*zone_end_pfn = min(*zone_end_pfn, node_end_pfn);
++	*zone_start_pfn = max(*zone_start_pfn, node_start_pfn);
+ 
+ 	/* Return the spanned pages */
+-	return zone_end_pfn - zone_start_pfn;
++	return *zone_end_pfn - *zone_start_pfn;
  }
  
- #else /* CONFIG_HAVE_MEMBLOCK_NODE_MAP */
-@@ -5547,6 +5613,36 @@ static void __init find_zone_movable_pfn
- 	}
- 
- 	/*
-+	 * If kernelcore=mirror is specified, ignore movablecore option
-+	 */
-+	if (mirrored_kernelcore) {
-+		bool mem_below_4gb_not_mirrored = false;
-+
-+		for_each_memblock(memory, r) {
-+			if (memblock_is_mirror(r))
-+				continue;
-+
-+			nid = r->nid;
-+
-+			usable_startpfn = memblock_region_memory_base_pfn(r);
-+
-+			if (usable_startpfn < 0x100000) {
-+				mem_below_4gb_not_mirrored = true;
-+				continue;
-+			}
-+
-+			zone_movable_pfn[nid] = zone_movable_pfn[nid] ?
-+				min(usable_startpfn, zone_movable_pfn[nid]) :
-+				usable_startpfn;
-+		}
-+
-+		if (mem_below_4gb_not_mirrored)
-+			pr_warn("This configuration results in unmirrored kernel memory.");
-+
-+		goto out2;
-+	}
-+
-+	/*
- 	 * If movablecore=nn[KMG] was specified, calculate what size of
- 	 * kernelcore that corresponds so that memory usable for
- 	 * any allocation type is evenly spread. If both kernelcore
-@@ -5806,6 +5902,12 @@ static int __init cmdline_parse_core(cha
-  */
- static int __init cmdline_parse_kernelcore(char *p)
+ /*
+@@ -5042,8 +5042,18 @@ static inline unsigned long __meminit zo
+ 					unsigned long zone_type,
+ 					unsigned long node_start_pfn,
+ 					unsigned long node_end_pfn,
++					unsigned long *zone_start_pfn,
++					unsigned long *zone_end_pfn,
+ 					unsigned long *zones_size)
  {
-+	/* parse kernelcore=mirror */
-+	if (parse_option_str(p, "mirror")) {
-+		mirrored_kernelcore = true;
-+		return 0;
-+	}
++	unsigned int zone;
 +
- 	return cmdline_parse_core(p, &required_kernelcore);
++	*zone_start_pfn = node_start_pfn;
++	for (zone = 0; zone < zone_type; zone++)
++		*zone_start_pfn += zones_size[zone];
++
++	*zone_end_pfn = *zone_start_pfn + zones_size[zone_type];
++
+ 	return zones_size[zone_type];
  }
  
+@@ -5072,15 +5082,22 @@ static void __meminit calculate_node_tot
+ 
+ 	for (i = 0; i < MAX_NR_ZONES; i++) {
+ 		struct zone *zone = pgdat->node_zones + i;
++		unsigned long zone_start_pfn, zone_end_pfn;
+ 		unsigned long size, real_size;
+ 
+ 		size = zone_spanned_pages_in_node(pgdat->node_id, i,
+ 						  node_start_pfn,
+ 						  node_end_pfn,
++						  &zone_start_pfn,
++						  &zone_end_pfn,
+ 						  zones_size);
+ 		real_size = size - zone_absent_pages_in_node(pgdat->node_id, i,
+ 						  node_start_pfn, node_end_pfn,
+ 						  zholes_size);
++		if (size)
++			zone->zone_start_pfn = zone_start_pfn;
++		else
++			zone->zone_start_pfn = 0;
+ 		zone->spanned_pages = size;
+ 		zone->present_pages = real_size;
+ 
+@@ -5201,7 +5218,6 @@ static void __paginginit free_area_init_
+ {
+ 	enum zone_type j;
+ 	int nid = pgdat->node_id;
+-	unsigned long zone_start_pfn = pgdat->node_start_pfn;
+ 	int ret;
+ 
+ 	pgdat_resize_init(pgdat);
+@@ -5222,6 +5238,7 @@ static void __paginginit free_area_init_
+ 	for (j = 0; j < MAX_NR_ZONES; j++) {
+ 		struct zone *zone = pgdat->node_zones + j;
+ 		unsigned long size, realsize, freesize, memmap_pages;
++		unsigned long zone_start_pfn = zone->zone_start_pfn;
+ 
+ 		size = zone->spanned_pages;
+ 		realsize = freesize = zone->present_pages;
+@@ -5290,7 +5307,6 @@ static void __paginginit free_area_init_
+ 		ret = init_currently_empty_zone(zone, zone_start_pfn, size);
+ 		BUG_ON(ret);
+ 		memmap_init(size, nid, j, zone_start_pfn);
+-		zone_start_pfn += size;
+ 	}
+ }
+ 
+@@ -5358,6 +5374,8 @@ void __paginginit free_area_init_node(in
+ 	pr_info("Initmem setup node %d [mem %#018Lx-%#018Lx]\n", nid,
+ 		(u64)start_pfn << PAGE_SHIFT,
+ 		end_pfn ? ((u64)end_pfn << PAGE_SHIFT) - 1 : 0);
++#else
++	start_pfn = node_start_pfn;
+ #endif
+ 	calculate_node_totalpages(pgdat, start_pfn, end_pfn,
+ 				  zones_size, zholes_size);
 _
 
 Patches currently in -mm which might be from izumi.taku@jp.fujitsu.com are
