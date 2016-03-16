@@ -1,71 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [merged] blackfin-define-dummy-pgprot_writecombine-for-mmu.patch
+Subject: [merged]
+ ocfs2-use-spinlock-irqsave-for-downconvert-lock-in-ocfs2_osb_dump.patch
  removed from -mm tree
-Date: Wed, 16 Mar 2016 12:52:56 -0700
-Message-ID: <56e9b998.rJHSfWqejaWfiuyI%akpm@linux-foundation.org>
+Date: Wed, 16 Mar 2016 12:53:02 -0700
+Message-ID: <56e9b99e.YBcXdoB5+4v51TLe%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38346 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38355 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752162AbcCPTw5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:52:57 -0400
+	with ESMTP id S933996AbcCPTxD (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:53:03 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sudipm.mukherjee@gmail.com, realmz6@gmail.com, sudip@vectorindia.org, mm-commits@vger.kernel.org
+To: jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: blackfin: define dummy pgprot_writecombine for !MMU
+     Subject: ocfs2: use spinlock_irqsave() to downconvert lock in ocfs2_osb_dump()
 has been removed from the -mm tree.  Its filename was
-     blackfin-define-dummy-pgprot_writecombine-for-mmu.patch
+     ocfs2-use-spinlock-irqsave-for-downconvert-lock-in-ocfs2_osb_dump.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
-Subject: blackfin: define dummy pgprot_writecombine for !MMU
+From: jiangyiwen <jiangyiwen@huawei.com>
+Subject: ocfs2: use spinlock_irqsave() to downconvert lock in ocfs2_osb_dump()
 
-blackfin allmodconfig build fails with the error:
+commit a75e9ccabd92 ("ocfs2: use spinlock irqsave for downconvert lock")
+missed an unmodified place in ocfs2_osb_dump(), so it still exists a
+deadlock scenario.
 
-../sound/core/pcm_native.c: In function 'snd_pcm_lib_default_mmap':
-../sound/core/pcm_native.c:3386:24: error: implicit declaration of function 'pgprot_writecombine' [-Werror=implicit-function-declaration]
-   area->vm_page_prot = pgprot_writecombine(area->vm_page_prot);
-                        ^
-../sound/core/pcm_native.c:3386:22: error: incompatible types when assigning to type 'pgprot_t {aka struct <anonymous>}' from type 'int'
-   area->vm_page_prot = pgprot_writecombine(area->vm_page_prot);
-                      ^
+    ocfs2_wake_downconvert_thread
+    ocfs2_rw_unlock
+    ocfs2_dio_end_io
+    dio_complete
+    .....
+    bio_endio
+    req_bio_endio
+    ....
+    scsi_io_completion
+    blk_done_softirq
+    __do_softirq
+    do_softirq
+    irq_exit
+    do_IRQ
+    ocfs2_osb_dump
+    cat /sys/kernel/debug/ocfs2/${uuid}/fs_state
 
-When !MMU, asm-generic will not define default pgprot_writecombine, so
-blackfin needs to define it by itself.
+This patch still uses spin_lock_irqsave() - replace spin_lock() to solve
+this situation.
 
-The patch idea is from:
-65b9ab888cd7 ("arch/c6x/include/asm/pgtable.h: define dummy pgprot_writecombine for !MMU")
-
-Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
-Cc: Steven Miao <realmz6@gmail.com>
+Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/blackfin/include/asm/pgtable.h |    2 ++
- 1 file changed, 2 insertions(+)
+ fs/ocfs2/super.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff -puN arch/blackfin/include/asm/pgtable.h~blackfin-define-dummy-pgprot_writecombine-for-mmu arch/blackfin/include/asm/pgtable.h
---- a/arch/blackfin/include/asm/pgtable.h~blackfin-define-dummy-pgprot_writecombine-for-mmu
-+++ a/arch/blackfin/include/asm/pgtable.h
-@@ -97,6 +97,8 @@ extern unsigned long get_fb_unmapped_are
- 					  unsigned long);
- #define HAVE_ARCH_FB_UNMAPPED_AREA
+diff -puN fs/ocfs2/super.c~ocfs2-use-spinlock-irqsave-for-downconvert-lock-in-ocfs2_osb_dump fs/ocfs2/super.c
+--- a/fs/ocfs2/super.c~ocfs2-use-spinlock-irqsave-for-downconvert-lock-in-ocfs2_osb_dump
++++ a/fs/ocfs2/super.c
+@@ -236,6 +236,7 @@ static int ocfs2_osb_dump(struct ocfs2_s
+ 	struct ocfs2_recovery_map *rm = osb->recovery_map;
+ 	struct ocfs2_orphan_scan *os = &osb->osb_orphan_scan;
+ 	int i, out = 0;
++	unsigned long flags;
  
-+#define pgprot_writecombine pgprot_noncached
-+
- #include <asm-generic/pgtable.h>
+ 	out += snprintf(buf + out, len - out,
+ 			"%10s => Id: %-s  Uuid: %-s  Gen: 0x%X  Label: %-s\n",
+@@ -271,14 +272,14 @@ static int ocfs2_osb_dump(struct ocfs2_s
+ 				cconn->cc_version.pv_minor);
+ 	}
  
- #endif				/* _BLACKFIN_PGTABLE_H */
+-	spin_lock(&osb->dc_task_lock);
++	spin_lock_irqsave(&osb->dc_task_lock, flags);
+ 	out += snprintf(buf + out, len - out,
+ 			"%10s => Pid: %d  Count: %lu  WakeSeq: %lu  "
+ 			"WorkSeq: %lu\n", "DownCnvt",
+ 			(osb->dc_task ?  task_pid_nr(osb->dc_task) : -1),
+ 			osb->blocked_lock_count, osb->dc_wake_sequence,
+ 			osb->dc_work_sequence);
+-	spin_unlock(&osb->dc_task_lock);
++	spin_unlock_irqrestore(&osb->dc_task_lock, flags);
+ 
+ 	spin_lock(&osb->osb_lock);
+ 	out += snprintf(buf + out, len - out, "%10s => Pid: %d  Nodes:",
 _
 
-Patches currently in -mm which might be from sudipm.mukherjee@gmail.com are
+Patches currently in -mm which might be from jiangyiwen@huawei.com are
 
+ocfs2-avoid-occurring-deadlock-by-changing-ocfs2_wq-from-global-to-local.patch
+ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups.patch
 
