@@ -1,53 +1,41 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-printk-introduce-new-format-string-for-flags.patch
+Subject: [merged] tools-perf-make-gfp_compact_table-up-to-date.patch
  removed from -mm tree
-Date: Wed, 16 Mar 2016 12:55:48 -0700
-Message-ID: <56e9ba44.tmNKFBGEGHFZkU2b%akpm@linux-foundation.org>
+Date: Wed, 16 Mar 2016 12:55:42 -0700
+Message-ID: <56e9ba3e.HxXQKerfoGUi3yY5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38751 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38726 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934033AbcCPTzt (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:55:49 -0400
+	with ESMTP id S965057AbcCPTzn (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:55:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, acme@kernel.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, linux@rasmusvillemoes.dk, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, mingo@redhat.com, peterz@infradead.org, rostedt@goodmis.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, acme@kernel.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, linux@rasmusvillemoes.dk, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, mingo@redhat.com, peterz@infradead.org, rientjes@google.com, rostedt@goodmis.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, printk: introduce new format string for flags
+     Subject: tools, perf: make gfp_compact_table up to date
 has been removed from the -mm tree.  Its filename was
-     mm-printk-introduce-new-format-string-for-flags.patch
+     tools-perf-make-gfp_compact_table-up-to-date.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, printk: introduce new format string for flags
+Subject: tools, perf: make gfp_compact_table up to date
 
-In mm we use several kinds of flags bitfields that are sometimes printed
-for debugging purposes, or exported to userspace via sysfs.  To make them
-easier to interpret independently on kernel version and config, we want to
-dump also the symbolic flag names.  So far this has been done with
-repeated calls to pr_cont(), which is unreliable on SMP, and not usable
-for e.g.  sysfs export.
+When updating tracing's show_gfp_flags() I have noticed that perf's
+gfp_compact_table is also outdated.  Fill in the missing flags and place a
+note in gfp.h to increase chance that future updates are synced.  Convert
+the __GFP_X flags from "GFP_X" to "__GFP_X" strings in line with the
+previous patch.
 
-To get a more reliable and universal solution, this patch extends printk()
-format string for pointers to handle the page flags (%pGp), gfp_flags
-(%pGg) and vma flags (%pGv).  Existing users of dump_flag_names() are
-converted and simplified.
-
-It would be possible to pass flags by value instead of pointer, but the %p
-format string for pointers already has extensions for various kernel
-structures, so it's a good fit, and the extra indirection in a
-non-critical path is negligible.
-
-[linux@rasmusvillemoes.dk: lots of good implementation suggestions]
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Acked-by: David Rientjes <rientjes@google.com>
 Cc: Steven Rostedt <rostedt@goodmis.org>
 Cc: Peter Zijlstra <peterz@infradead.org>
 Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
@@ -58,326 +46,88 @@ Cc: Minchan Kim <minchan@kernel.org>
 Cc: Sasha Levin <sasha.levin@oracle.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/printk-formats.txt |   18 ++++++
- lib/test_printf.c                |   53 ++++++++++++++++++++
- lib/vsprintf.c                   |   75 +++++++++++++++++++++++++++++
- mm/debug.c                       |   34 +++++++------
- mm/internal.h                    |    6 ++
- 5 files changed, 172 insertions(+), 14 deletions(-)
+ include/linux/gfp.h       |    2 -
+ tools/perf/builtin-kmem.c |   47 +++++++++++++++++++++---------------
+ 2 files changed, 29 insertions(+), 20 deletions(-)
 
-diff -puN Documentation/printk-formats.txt~mm-printk-introduce-new-format-string-for-flags Documentation/printk-formats.txt
---- a/Documentation/printk-formats.txt~mm-printk-introduce-new-format-string-for-flags
-+++ a/Documentation/printk-formats.txt
-@@ -298,6 +298,24 @@ bitmap and its derivatives such as cpuma
- 
- 	Passed by reference.
- 
-+Flags bitfields such as page flags, gfp_flags:
-+
-+	%pGp	referenced|uptodate|lru|active|private
-+	%pGg	GFP_USER|GFP_DMA32|GFP_NOWARN
-+	%pGv	read|exec|mayread|maywrite|mayexec|denywrite
-+
-+	For printing flags bitfields as a collection of symbolic constants that
-+	would construct the value. The type of flags is given by the third
-+	character. Currently supported are [p]age flags, [v]ma_flags (both
-+	expect unsigned long *) and [g]fp_flags (expects gfp_t *). The flag
-+	names and print order depends on the particular	type.
-+
-+	Note that this format should not be used directly in TP_printk() part
-+	of a tracepoint. Instead, use the show_*_flags() functions from
-+	<trace/events/mmflags.h>.
-+
-+	Passed by reference.
-+
- Network device features:
- 
- 	%pNF	0x000000000000c000
-diff -puN lib/test_printf.c~mm-printk-introduce-new-format-string-for-flags lib/test_printf.c
---- a/lib/test_printf.c~mm-printk-introduce-new-format-string-for-flags
-+++ a/lib/test_printf.c
-@@ -17,6 +17,9 @@
- #include <linux/socket.h>
- #include <linux/in.h>
- 
-+#include <linux/gfp.h>
-+#include <linux/mm.h>
-+
- #define BUF_SIZE 256
- #define PAD_SIZE 16
- #define FILL_CHAR '$'
-@@ -411,6 +414,55 @@ netdev_features(void)
- }
- 
- static void __init
-+flags(void)
-+{
-+	unsigned long flags;
-+	gfp_t gfp;
-+	char *cmp_buffer;
-+
-+	flags = 0;
-+	test("", "%pGp", &flags);
-+
-+	/* Page flags should filter the zone id */
-+	flags = 1UL << NR_PAGEFLAGS;
-+	test("", "%pGp", &flags);
-+
-+	flags |= 1UL << PG_uptodate | 1UL << PG_dirty | 1UL << PG_lru
-+		| 1UL << PG_active | 1UL << PG_swapbacked;
-+	test("uptodate|dirty|lru|active|swapbacked", "%pGp", &flags);
-+
-+
-+	flags = VM_READ | VM_EXEC | VM_MAYREAD | VM_MAYWRITE | VM_MAYEXEC
-+			| VM_DENYWRITE;
-+	test("read|exec|mayread|maywrite|mayexec|denywrite", "%pGv", &flags);
-+
-+	gfp = GFP_TRANSHUGE;
-+	test("GFP_TRANSHUGE", "%pGg", &gfp);
-+
-+	gfp = GFP_ATOMIC|__GFP_DMA;
-+	test("GFP_ATOMIC|GFP_DMA", "%pGg", &gfp);
-+
-+	gfp = __GFP_ATOMIC;
-+	test("__GFP_ATOMIC", "%pGg", &gfp);
-+
-+	cmp_buffer = kmalloc(BUF_SIZE, GFP_KERNEL);
-+	if (!cmp_buffer)
-+		return;
-+
-+	/* Any flags not translated by the table should remain numeric */
-+	gfp = ~__GFP_BITS_MASK;
-+	snprintf(cmp_buffer, BUF_SIZE, "%#lx", (unsigned long) gfp);
-+	test(cmp_buffer, "%pGg", &gfp);
-+
-+	snprintf(cmp_buffer, BUF_SIZE, "__GFP_ATOMIC|%#lx",
-+							(unsigned long) gfp);
-+	gfp |= __GFP_ATOMIC;
-+	test(cmp_buffer, "%pGg", &gfp);
-+
-+	kfree(cmp_buffer);
-+}
-+
-+static void __init
- test_pointer(void)
- {
- 	plain();
-@@ -428,6 +480,7 @@ test_pointer(void)
- 	struct_clk();
- 	bitmap();
- 	netdev_features();
-+	flags();
- }
- 
- static int __init
-diff -puN lib/vsprintf.c~mm-printk-introduce-new-format-string-for-flags lib/vsprintf.c
---- a/lib/vsprintf.c~mm-printk-introduce-new-format-string-for-flags
-+++ a/lib/vsprintf.c
-@@ -35,6 +35,8 @@
- #include <linux/blkdev.h>
- #endif
- 
-+#include "../mm/internal.h"	/* For the trace_print_flags arrays */
-+
- #include <asm/page.h>		/* for PAGE_SIZE */
- #include <asm/sections.h>	/* for dereference_function_descriptor() */
- #include <asm/byteorder.h>	/* cpu_to_le16 */
-@@ -1407,6 +1409,72 @@ char *clock(char *buf, char *end, struct
- 	}
- }
- 
-+static
-+char *format_flags(char *buf, char *end, unsigned long flags,
-+					const struct trace_print_flags *names)
-+{
-+	unsigned long mask;
-+	const struct printf_spec strspec = {
-+		.field_width = -1,
-+		.precision = -1,
-+	};
-+	const struct printf_spec numspec = {
-+		.flags = SPECIAL|SMALL,
-+		.field_width = -1,
-+		.precision = -1,
-+		.base = 16,
-+	};
-+
-+	for ( ; flags && names->name; names++) {
-+		mask = names->mask;
-+		if ((flags & mask) != mask)
-+			continue;
-+
-+		buf = string(buf, end, names->name, strspec);
-+
-+		flags &= ~mask;
-+		if (flags) {
-+			if (buf < end)
-+				*buf = '|';
-+			buf++;
-+		}
-+	}
-+
-+	if (flags)
-+		buf = number(buf, end, flags, numspec);
-+
-+	return buf;
-+}
-+
-+static noinline_for_stack
-+char *flags_string(char *buf, char *end, void *flags_ptr, const char *fmt)
-+{
-+	unsigned long flags;
-+	const struct trace_print_flags *names;
-+
-+	switch (fmt[1]) {
-+	case 'p':
-+		flags = *(unsigned long *)flags_ptr;
-+		/* Remove zone id */
-+		flags &= (1UL << NR_PAGEFLAGS) - 1;
-+		names = pageflag_names;
-+		break;
-+	case 'v':
-+		flags = *(unsigned long *)flags_ptr;
-+		names = vmaflag_names;
-+		break;
-+	case 'g':
-+		flags = *(gfp_t *)flags_ptr;
-+		names = gfpflag_names;
-+		break;
-+	default:
-+		WARN_ONCE(1, "Unsupported flags modifier: %c\n", fmt[1]);
-+		return buf;
-+	}
-+
-+	return format_flags(buf, end, flags, names);
-+}
-+
- int kptr_restrict __read_mostly;
+diff -puN include/linux/gfp.h~tools-perf-make-gfp_compact_table-up-to-date include/linux/gfp.h
+--- a/include/linux/gfp.h~tools-perf-make-gfp_compact_table-up-to-date
++++ a/include/linux/gfp.h
+@@ -11,7 +11,7 @@ struct vm_area_struct;
  
  /*
-@@ -1495,6 +1563,11 @@ int kptr_restrict __read_mostly;
-  * - 'Cn' For a clock, it prints the name (Common Clock Framework) or address
-  *        (legacy clock framework) of the clock
-  * - 'Cr' For a clock, it prints the current rate of the clock
-+ * - 'G' For flags to be printed as a collection of symbolic strings that would
-+ *       construct the specific value. Supported flags given by option:
-+ *       p page flags (see struct page) given as pointer to unsigned long
-+ *       g gfp flags (GFP_* and __GFP_*) given as pointer to gfp_t
-+ *       v vma flags (VM_*) given as pointer to unsigned long
-  *
-  * ** Please update also Documentation/printk-formats.txt when making changes **
-  *
-@@ -1648,6 +1721,8 @@ char *pointer(const char *fmt, char *buf
- 		return bdev_name(buf, end, ptr, spec, fmt);
- #endif
+  * In case of changes, please don't forget to update
+- * include/trace/events/gfpflags.h
++ * include/trace/events/gfpflags.h and tools/perf/builtin-kmem.c
+  */
  
-+	case 'G':
-+		return flags_string(buf, end, ptr, fmt);
- 	}
- 	spec.flags |= SMALL;
- 	if (spec.field_width == -1) {
-diff -puN mm/debug.c~mm-printk-introduce-new-format-string-for-flags mm/debug.c
---- a/mm/debug.c~mm-printk-introduce-new-format-string-for-flags
-+++ a/mm/debug.c
-@@ -11,12 +11,21 @@
- #include <linux/memcontrol.h>
- #include <trace/events/mmflags.h>
- 
--static const struct trace_print_flags pageflag_names[] = {
--	__def_pageflag_names
-+#include "internal.h"
-+
-+const struct trace_print_flags pageflag_names[] = {
-+	__def_pageflag_names,
-+	{0, NULL}
-+};
-+
-+const struct trace_print_flags gfpflag_names[] = {
-+	__def_gfpflag_names,
-+	{0, NULL}
+ /* Plain integer GFP bitmasks. Do not use this directly. */
+diff -puN tools/perf/builtin-kmem.c~tools-perf-make-gfp_compact_table-up-to-date tools/perf/builtin-kmem.c
+--- a/tools/perf/builtin-kmem.c~tools-perf-make-gfp_compact_table-up-to-date
++++ a/tools/perf/builtin-kmem.c
+@@ -612,30 +612,39 @@ static const struct {
+ 	{ "GFP_HIGHUSER",		"HU" },
+ 	{ "GFP_USER",			"U" },
+ 	{ "GFP_TEMPORARY",		"TMP" },
++	{ "GFP_KERNEL_ACCOUNT",		"KAC" },
+ 	{ "GFP_KERNEL",			"K" },
+ 	{ "GFP_NOFS",			"NF" },
+ 	{ "GFP_ATOMIC",			"A" },
+ 	{ "GFP_NOIO",			"NI" },
+-	{ "GFP_HIGH",			"H" },
+-	{ "GFP_WAIT",			"W" },
+-	{ "GFP_IO",			"I" },
+-	{ "GFP_COLD",			"CO" },
+-	{ "GFP_NOWARN",			"NWR" },
+-	{ "GFP_REPEAT",			"R" },
+-	{ "GFP_NOFAIL",			"NF" },
+-	{ "GFP_NORETRY",		"NR" },
+-	{ "GFP_COMP",			"C" },
+-	{ "GFP_ZERO",			"Z" },
+-	{ "GFP_NOMEMALLOC",		"NMA" },
+-	{ "GFP_MEMALLOC",		"MA" },
+-	{ "GFP_HARDWALL",		"HW" },
+-	{ "GFP_THISNODE",		"TN" },
+-	{ "GFP_RECLAIMABLE",		"RC" },
+-	{ "GFP_MOVABLE",		"M" },
+-	{ "GFP_NOTRACK",		"NT" },
+-	{ "GFP_NO_KSWAPD",		"NK" },
+-	{ "GFP_OTHER_NODE",		"ON" },
+ 	{ "GFP_NOWAIT",			"NW" },
++	{ "GFP_DMA",			"D" },
++	{ "__GFP_HIGHMEM",		"HM" },
++	{ "GFP_DMA32",			"D32" },
++	{ "__GFP_HIGH",			"H" },
++	{ "__GFP_ATOMIC",		"_A" },
++	{ "__GFP_IO",			"I" },
++	{ "__GFP_FS",			"F" },
++	{ "__GFP_COLD",			"CO" },
++	{ "__GFP_NOWARN",		"NWR" },
++	{ "__GFP_REPEAT",		"R" },
++	{ "__GFP_NOFAIL",		"NF" },
++	{ "__GFP_NORETRY",		"NR" },
++	{ "__GFP_COMP",			"C" },
++	{ "__GFP_ZERO",			"Z" },
++	{ "__GFP_NOMEMALLOC",		"NMA" },
++	{ "__GFP_MEMALLOC",		"MA" },
++	{ "__GFP_HARDWALL",		"HW" },
++	{ "__GFP_THISNODE",		"TN" },
++	{ "__GFP_RECLAIMABLE",		"RC" },
++	{ "__GFP_MOVABLE",		"M" },
++	{ "__GFP_ACCOUNT",		"AC" },
++	{ "__GFP_NOTRACK",		"NT" },
++	{ "__GFP_WRITE",		"WR" },
++	{ "__GFP_RECLAIM",		"R" },
++	{ "__GFP_DIRECT_RECLAIM",	"DR" },
++	{ "__GFP_KSWAPD_RECLAIM",	"KR" },
++	{ "__GFP_OTHER_NODE",		"ON" },
  };
  
--static const struct trace_print_flags gfpflag_names[] = {
--	__def_gfpflag_names
-+const struct trace_print_flags vmaflag_names[] = {
-+	__def_vmaflag_names,
-+	{0, NULL}
- };
- 
- static void dump_flags(unsigned long flags,
-@@ -58,14 +67,15 @@ void dump_page_badflags(struct page *pag
- 	if (PageCompound(page))
- 		pr_cont(" compound_mapcount: %d", compound_mapcount(page));
- 	pr_cont("\n");
--	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS);
--	dump_flags(page->flags, pageflag_names, ARRAY_SIZE(pageflag_names));
-+	BUILD_BUG_ON(ARRAY_SIZE(pageflag_names) != __NR_PAGEFLAGS + 1);
-+	dump_flags(page->flags, pageflag_names,
-+					ARRAY_SIZE(pageflag_names) - 1);
- 	if (reason)
- 		pr_alert("page dumped because: %s\n", reason);
- 	if (page->flags & badflags) {
- 		pr_alert("bad because of flags:\n");
--		dump_flags(page->flags & badflags,
--				pageflag_names, ARRAY_SIZE(pageflag_names));
-+		dump_flags(page->flags & badflags, pageflag_names,
-+					ARRAY_SIZE(pageflag_names) - 1);
- 	}
- #ifdef CONFIG_MEMCG
- 	if (page->mem_cgroup)
-@@ -81,10 +91,6 @@ EXPORT_SYMBOL(dump_page);
- 
- #ifdef CONFIG_DEBUG_VM
- 
--static const struct trace_print_flags vmaflag_names[] = {
--	__def_vmaflag_names
--};
--
- void dump_vma(const struct vm_area_struct *vma)
- {
- 	pr_emerg("vma %p start %p end %p\n"
-@@ -96,7 +102,7 @@ void dump_vma(const struct vm_area_struc
- 		(unsigned long)pgprot_val(vma->vm_page_prot),
- 		vma->anon_vma, vma->vm_ops, vma->vm_pgoff,
- 		vma->vm_file, vma->vm_private_data);
--	dump_flags(vma->vm_flags, vmaflag_names, ARRAY_SIZE(vmaflag_names));
-+	dump_flags(vma->vm_flags, vmaflag_names, ARRAY_SIZE(vmaflag_names) - 1);
- }
- EXPORT_SYMBOL(dump_vma);
- 
-@@ -168,7 +174,7 @@ void dump_mm(const struct mm_struct *mm)
- 		);
- 
- 		dump_flags(mm->def_flags, vmaflag_names,
--				ARRAY_SIZE(vmaflag_names));
-+				ARRAY_SIZE(vmaflag_names) - 1);
- }
- 
- #endif		/* CONFIG_DEBUG_VM */
-diff -puN mm/internal.h~mm-printk-introduce-new-format-string-for-flags mm/internal.h
---- a/mm/internal.h~mm-printk-introduce-new-format-string-for-flags
-+++ a/mm/internal.h
-@@ -14,6 +14,7 @@
- #include <linux/fs.h>
- #include <linux/mm.h>
- #include <linux/pagemap.h>
-+#include <linux/tracepoint-defs.h>
- 
- /*
-  * The set of flags that only affect watermark checking and reclaim
-@@ -466,4 +467,9 @@ static inline void try_to_unmap_flush_di
- }
- 
- #endif /* CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH */
-+
-+extern const struct trace_print_flags pageflag_names[];
-+extern const struct trace_print_flags vmaflag_names[];
-+extern const struct trace_print_flags gfpflag_names[];
-+
- #endif	/* __MM_INTERNAL_H */
+ static size_t max_gfp_len;
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
