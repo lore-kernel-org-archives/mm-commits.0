@@ -1,102 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged] slab-implement-bulk-alloc-in-slab-allocator.patch
- removed from -mm tree
-Date: Wed, 16 Mar 2016 12:53:50 -0700
-Message-ID: <56e9b9ce.pVL1G28JIAeNobe7%akpm@linux-foundation.org>
+Subject: [merged] mm-slab-remove-useless-structure-define.patch removed
+ from -mm tree
+Date: Wed, 16 Mar 2016 12:54:08 -0700
+Message-ID: <56e9b9e0.53P8U5aa9hP0QOys%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38456 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38499 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755595AbcCPTxv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:53:51 -0400
+	with ESMTP id S1755190AbcCPTyJ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:54:09 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: brouer@redhat.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: slab: implement bulk alloc in SLAB allocator
+     Subject: mm/slab: remove useless structure define
 has been removed from the -mm tree.  Its filename was
-     slab-implement-bulk-alloc-in-slab-allocator.patch
+     mm-slab-remove-useless-structure-define.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Jesper Dangaard Brouer <brouer@redhat.com>
-Subject: slab: implement bulk alloc in SLAB allocator
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/slab: remove useless structure define
 
-This patch implements the alloc side of bulk API for the SLAB allocator.
+It is obsolete so remove it.
 
-Further optimization are still possible by changing the call to
-__do_cache_alloc() into something that can return multiple objects.  This
-optimization is left for later, given end results already show in the area
-of 80% speedup.
-
-Signed-off-by: Jesper Dangaard Brouer <brouer@redhat.com>
-Cc: Christoph Lameter <cl@linux.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: Christoph Lameter <cl@linux.com>
 Cc: Pekka Enberg <penberg@kernel.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   37 +++++++++++++++++++++++++++++++++++--
- 1 file changed, 35 insertions(+), 2 deletions(-)
+ mm/slab.c |   11 +----------
+ 1 file changed, 1 insertion(+), 10 deletions(-)
 
-diff -puN mm/slab.c~slab-implement-bulk-alloc-in-slab-allocator mm/slab.c
---- a/mm/slab.c~slab-implement-bulk-alloc-in-slab-allocator
+diff -puN mm/slab.c~mm-slab-remove-useless-structure-define mm/slab.c
+--- a/mm/slab.c~mm-slab-remove-useless-structure-define
 +++ a/mm/slab.c
-@@ -3392,9 +3392,42 @@ void kmem_cache_free_bulk(struct kmem_ca
- EXPORT_SYMBOL(kmem_cache_free_bulk);
- 
- int kmem_cache_alloc_bulk(struct kmem_cache *s, gfp_t flags, size_t size,
--								void **p)
-+			  void **p)
- {
--	return __kmem_cache_alloc_bulk(s, flags, size, p);
-+	size_t i;
-+
-+	s = slab_pre_alloc_hook(s, flags);
-+	if (!s)
-+		return 0;
-+
-+	cache_alloc_debugcheck_before(s, flags);
-+
-+	local_irq_disable();
-+	for (i = 0; i < size; i++) {
-+		void *objp = __do_cache_alloc(s, flags);
-+
-+		/* this call could be done outside IRQ disabled section */
-+		objp = cache_alloc_debugcheck_after(s, flags, objp, _RET_IP_);
-+
-+		if (unlikely(!objp))
-+			goto error;
-+		p[i] = objp;
-+	}
-+	local_irq_enable();
-+
-+	/* Clear memory outside IRQ disabled section */
-+	if (unlikely(flags & __GFP_ZERO))
-+		for (i = 0; i < size; i++)
-+			memset(p[i], 0, s->object_size);
-+
-+	slab_post_alloc_hook(s, flags, size, p);
-+	/* FIXME: Trace call missing. Christoph would like a bulk variant */
-+	return size;
-+error:
-+	local_irq_enable();
-+	slab_post_alloc_hook(s, flags, i, p);
-+	__kmem_cache_free_bulk(s, i, p);
-+	return 0;
+@@ -225,16 +225,6 @@ static inline void clear_obj_pfmemalloc(
  }
- EXPORT_SYMBOL(kmem_cache_alloc_bulk);
  
+ /*
+- * bootstrap: The caches do not work without cpuarrays anymore, but the
+- * cpuarrays are allocated from the generic caches...
+- */
+-#define BOOT_CPUCACHE_ENTRIES	1
+-struct arraycache_init {
+-	struct array_cache cache;
+-	void *entries[BOOT_CPUCACHE_ENTRIES];
+-};
+-
+-/*
+  * Need this for bootstrapping a per node allocator.
+  */
+ #define NUM_INIT_LISTS (2 * MAX_NUMNODES)
+@@ -457,6 +447,7 @@ static inline unsigned int obj_to_index(
+ 	return reciprocal_divide(offset, cache->reciprocal_buffer_size);
+ }
+ 
++#define BOOT_CPUCACHE_ENTRIES	1
+ /* internal cache of cache description objs */
+ static struct kmem_cache kmem_cache_boot = {
+ 	.batchcount = 1,
 _
 
-Patches currently in -mm which might be from brouer@redhat.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
+mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch
+mm-slub-query-dynamic-debug_pagealloc-setting.patch
+mm-slub-query-dynamic-debug_pagealloc-setting-v2.patch
+sound-query-dynamic-debug_pagealloc-setting.patch
+powerpc-query-dynamic-debug_pagealloc-setting.patch
+tile-query-dynamic-debug_pagealloc-setting.patch
+mm-introduce-page-reference-manipulation-functions.patch
+mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation.patch
+mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3.patch
 
