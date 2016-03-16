@@ -1,128 +1,118 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-filemap-remove-redundant-code-in-do_read_cache_page.patch removed from
- -mm tree
-Date: Wed, 16 Mar 2016 12:55:31 -0700
-Message-ID: <56e9ba33.ORpwvqr53M7GJZGX%akpm@linux-foundation.org>
+ tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
+ removed from -mm tree
+Date: Wed, 16 Mar 2016 12:55:36 -0700
+Message-ID: <56e9ba38.w4jEvRAhIZ5NTFG0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38681 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38695 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934790AbcCPTzc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:55:32 -0400
+	with ESMTP id S965027AbcCPTzh (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 16 Mar 2016 15:55:37 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mgorman@techsingularity.net, hughd@google.com, jack@suse.cz, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, acme@kernel.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, linux@rasmusvillemoes.dk, mgorman@suse.de, mhocko@suse.com, minchan@kernel.org, mingo@redhat.com, peterz@infradead.org, rientjes@google.com, rostedt@goodmis.org, sasha.levin@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: filemap: remove redundant code in do_read_cache_page
+     Subject: tracepoints: move trace_print_flags definitions to tracepoint-defs.h
 has been removed from the -mm tree.  Its filename was
-     mm-filemap-remove-redundant-code-in-do_read_cache_page.patch
+     tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Mel Gorman <mgorman@techsingularity.net>
-Subject: mm: filemap: remove redundant code in do_read_cache_page
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: tracepoints: move trace_print_flags definitions to tracepoint-defs.h
 
-do_read_cache_page and __read_cache_page duplicate page filler code when
-filling the page for the first time.  This patch simply removes the
-duplicate logic.
+The following patch will need to declare array of struct trace_print_flags
+in a header.  To prevent this header from pulling in all of RCU through
+trace_events.h, move the struct trace_print_flags{_64} definitions to the
+new lightweight tracepoint-defs.h header.
 
-Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
-Reviewed-by: Jan Kara <jack@suse.cz>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Arnaldo Carvalho de Melo <acme@kernel.org>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Sasha Levin <sasha.levin@oracle.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/filemap.c |   43 ++++++++++++-------------------------------
- 1 file changed, 12 insertions(+), 31 deletions(-)
+ include/linux/trace_events.h    |   10 ----------
+ include/linux/tracepoint-defs.h |   14 ++++++++++++--
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN mm/filemap.c~mm-filemap-remove-redundant-code-in-do_read_cache_page mm/filemap.c
---- a/mm/filemap.c~mm-filemap-remove-redundant-code-in-do_read_cache_page
-+++ a/mm/filemap.c
-@@ -2303,7 +2303,7 @@ static struct page *wait_on_page_read(st
- 	return page;
- }
+diff -puN include/linux/trace_events.h~tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh include/linux/trace_events.h
+--- a/include/linux/trace_events.h~tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh
++++ a/include/linux/trace_events.h
+@@ -15,16 +15,6 @@ struct tracer;
+ struct dentry;
+ struct bpf_prog;
  
--static struct page *__read_cache_page(struct address_space *mapping,
-+static struct page *do_read_cache_page(struct address_space *mapping,
- 				pgoff_t index,
- 				int (*filler)(void *, struct page *),
- 				void *data,
-@@ -2325,31 +2325,19 @@ repeat:
- 			/* Presumably ENOMEM for radix tree node */
- 			return ERR_PTR(err);
- 		}
-+
-+filler:
- 		err = filler(data, page);
- 		if (err < 0) {
- 			page_cache_release(page);
--			page = ERR_PTR(err);
--		} else {
--			page = wait_on_page_read(page);
-+			return ERR_PTR(err);
- 		}
--	}
--	return page;
--}
+-struct trace_print_flags {
+-	unsigned long		mask;
+-	const char		*name;
+-};
 -
--static struct page *do_read_cache_page(struct address_space *mapping,
--				pgoff_t index,
--				int (*filler)(void *, struct page *),
--				void *data,
--				gfp_t gfp)
- 
--{
--	struct page *page;
--	int err;
+-struct trace_print_flags_u64 {
+-	unsigned long long	mask;
+-	const char		*name;
+-};
 -
--retry:
--	page = __read_cache_page(mapping, index, filler, data, gfp);
--	if (IS_ERR(page))
--		return page;
-+		page = wait_on_page_read(page);
-+		if (IS_ERR(page))
-+			return page;
-+		goto out;
-+	}
- 	if (PageUptodate(page))
- 		goto out;
+ const char *trace_print_flags_seq(struct trace_seq *p, const char *delim,
+ 				  unsigned long flags,
+ 				  const struct trace_print_flags *flag_array);
+diff -puN include/linux/tracepoint-defs.h~tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh include/linux/tracepoint-defs.h
+--- a/include/linux/tracepoint-defs.h~tracepoints-move-trace_print_flags-definitions-to-tracepoint-defsh
++++ a/include/linux/tracepoint-defs.h
+@@ -3,13 +3,23 @@
  
-@@ -2357,21 +2345,14 @@ retry:
- 	if (!page->mapping) {
- 		unlock_page(page);
- 		page_cache_release(page);
--		goto retry;
-+		goto repeat;
- 	}
- 	if (PageUptodate(page)) {
- 		unlock_page(page);
- 		goto out;
- 	}
--	err = filler(data, page);
--	if (err < 0) {
--		page_cache_release(page);
--		return ERR_PTR(err);
--	} else {
--		page = wait_on_page_read(page);
--		if (IS_ERR(page))
--			return page;
--	}
-+	goto filler;
+ /*
+  * File can be included directly by headers who only want to access
+- * tracepoint->key to guard out of line trace calls. Otherwise
+- * linux/tracepoint.h should be used.
++ * tracepoint->key to guard out of line trace calls, or the definition of
++ * trace_print_flags{_u64}. Otherwise linux/tracepoint.h should be used.
+  */
+ 
+ #include <linux/atomic.h>
+ #include <linux/static_key.h>
+ 
++struct trace_print_flags {
++	unsigned long		mask;
++	const char		*name;
++};
 +
- out:
- 	mark_page_accessed(page);
- 	return page;
++struct trace_print_flags_u64 {
++	unsigned long long	mask;
++	const char		*name;
++};
++
+ struct tracepoint_func {
+ 	void *func;
+ 	void *data;
 _
 
-Patches currently in -mm which might be from mgorman@techsingularity.net are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
-mm-thp-set-thp-defrag-by-default-to-madvise-and-add-a-stall-free-defrag-option.patch
-mm-thp-set-thp-defrag-by-default-to-madvise-and-add-a-stall-free-defrag-option-fix.patch
+mm-kswapd-remove-bogus-check-of-balance_classzone_idx.patch
+mm-compaction-introduce-kcompactd.patch
+mm-compaction-introduce-kcompactd-fix-3.patch
+mm-compaction-introduce-kcompactd-fix-4.patch
+mm-memory-hotplug-small-cleanup-in-online_pages.patch
+mm-kswapd-replace-kswapd-compaction-with-waking-up-kcompactd.patch
+mm-tracing-refresh-__def_vmaflag_names-fix.patch
+mm-use-radix_tree_iter_retry-fix.patch
 
