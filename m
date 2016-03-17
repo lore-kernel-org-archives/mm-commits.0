@@ -1,149 +1,60 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix.patch
- removed from -mm tree
-Date: Thu, 17 Mar 2016 13:59:13 -0700
-Message-ID: <56eb1aa1.gA7EVav5lHJs8pSI%akpm@linux-foundation.org>
+ mm-zsmalloc-add-freeable-column-to-pool-stat-fix.patch removed from -mm
+ tree
+Date: Thu, 17 Mar 2016 13:59:35 -0700
+Message-ID: <56eb1ab7.evaGBZR/8SorX64E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44584 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44587 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965007AbcCQU7O (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Mar 2016 16:59:14 -0400
+	with ESMTP id S965007AbcCQU7g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Mar 2016 16:59:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, mm-commits@vger.kernel.org
+To: sergey.senozhatsky.work@gmail.com, minchan@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: thp: make sure we replace the right page with migration entires
+     Subject: mm-zsmalloc-add-freeable-column-to-pool-stat-fix
 has been removed from the -mm tree.  Its filename was
-     thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix.patch
+     mm-zsmalloc-add-freeable-column-to-pool-stat-fix.patch
 
-This patch was dropped because it was folded into thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers.patch
+This patch was dropped because it was folded into mm-zsmalloc-add-freeable-column-to-pool-stat.patch
 
 ------------------------------------------------------
-From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Subject: thp: make sure we replace the right page with migration entires
+From: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Subject: mm-zsmalloc-add-freeable-column-to-pool-stat-fix
 
-split_huge_pmd_address(freeze == true) would split the pmd and setup
-migration entries into ptes.
+looks like I failed to squash patches on my side properly and
+`total_freeable' is not exactly aligned with the `freeable'
+column name (off by one char %7 -> %8).
 
-To get it work properly we need a page to check pmd against. Otherwise
-we can end up replacing wrong page (i.e. after COW break).
-
-Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    4 ++--
- mm/huge_memory.c        |   17 +++++++++++++----
- mm/rmap.c               |    3 ++-
- 3 files changed, 17 insertions(+), 7 deletions(-)
+ mm/zsmalloc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/huge_mm.h~thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix
-+++ a/include/linux/huge_mm.h
-@@ -109,7 +109,7 @@ void __split_huge_pmd(struct vm_area_str
- 
- 
- void split_huge_pmd_address(struct vm_area_struct *vma, unsigned long address,
--		bool freeze);
-+		bool freeze, struct page *page);
- 
- #if HPAGE_PMD_ORDER >= MAX_ORDER
- #error "hugepages can't be allocated by the buddy allocator"
-@@ -180,7 +180,7 @@ static inline void deferred_split_huge_p
- 	do { } while (0)
- 
- static inline void split_huge_pmd_address(struct vm_area_struct *vma,
--		unsigned long address, bool freeze) {}
-+		unsigned long address, bool freeze, struct page *page) {}
- 
- static inline int hugepage_madvise(struct vm_area_struct *vma,
- 				   unsigned long *vm_flags, int advice)
-diff -puN mm/huge_memory.c~thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix mm/huge_memory.c
---- a/mm/huge_memory.c~thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix
-+++ a/mm/huge_memory.c
-@@ -3007,7 +3007,7 @@ out:
- }
- 
- void split_huge_pmd_address(struct vm_area_struct *vma, unsigned long address,
--		bool freeze)
-+		bool freeze, struct page *page)
- {
- 	pgd_t *pgd;
- 	pud_t *pud;
-@@ -3024,6 +3024,15 @@ void split_huge_pmd_address(struct vm_ar
- 	pmd = pmd_offset(pud, address);
- 	if (!pmd_present(*pmd) || (!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)))
- 		return;
-+
-+	/*
-+	 * If caller asks to setup a migration entries, we need a page to check
-+	 * pmd against. Otherwise we can end up replacing wrong page.
-+	 */
-+	VM_BUG_ON(freeze && !page);
-+	if (page && page != pmd_page(*pmd))
-+		return;
-+
- 	/*
- 	 * Caller holds the mmap_sem write mode, so a huge pmd cannot
- 	 * materialize from under us.
-@@ -3044,7 +3053,7 @@ void vma_adjust_trans_huge(struct vm_are
- 	if (start & ~HPAGE_PMD_MASK &&
- 	    (start & HPAGE_PMD_MASK) >= vma->vm_start &&
- 	    (start & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= vma->vm_end)
--		split_huge_pmd_address(vma, start, false);
-+		split_huge_pmd_address(vma, start, false, NULL);
- 
- 	/*
- 	 * If the new end address isn't hpage aligned and it could
-@@ -3054,7 +3063,7 @@ void vma_adjust_trans_huge(struct vm_are
- 	if (end & ~HPAGE_PMD_MASK &&
- 	    (end & HPAGE_PMD_MASK) >= vma->vm_start &&
- 	    (end & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= vma->vm_end)
--		split_huge_pmd_address(vma, end, false);
-+		split_huge_pmd_address(vma, end, false, NULL);
- 
- 	/*
- 	 * If we're also updating the vma->vm_next->vm_start, if the new
-@@ -3068,7 +3077,7 @@ void vma_adjust_trans_huge(struct vm_are
- 		if (nstart & ~HPAGE_PMD_MASK &&
- 		    (nstart & HPAGE_PMD_MASK) >= next->vm_start &&
- 		    (nstart & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= next->vm_end)
--			split_huge_pmd_address(next, nstart, false);
-+			split_huge_pmd_address(next, nstart, false, NULL);
+diff -puN mm/zsmalloc.c~mm-zsmalloc-add-freeable-column-to-pool-stat-fix mm/zsmalloc.c
+--- a/mm/zsmalloc.c~mm-zsmalloc-add-freeable-column-to-pool-stat-fix
++++ a/mm/zsmalloc.c
+@@ -547,7 +547,7 @@ static int zs_stats_size_show(struct seq
  	}
- }
  
-diff -puN mm/rmap.c~thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix mm/rmap.c
---- a/mm/rmap.c~thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix
-+++ a/mm/rmap.c
-@@ -1432,7 +1432,8 @@ static int try_to_unmap_one(struct page
- 		goto out;
- 
- 	if (flags & TTU_SPLIT_HUGE_PMD) {
--		split_huge_pmd_address(vma, address, flags & TTU_MIGRATION);
-+		split_huge_pmd_address(vma, address,
-+				flags & TTU_MIGRATION, page);
- 		/* check if we have anything to do after split */
- 		if (page_mapcount(page) == 0)
- 			goto out;
+ 	seq_puts(s, "\n");
+-	seq_printf(s, " %5s %5s %11lu %12lu %13lu %10lu %10lu %16s %7lu\n",
++	seq_printf(s, " %5s %5s %11lu %12lu %13lu %10lu %10lu %16s %8lu\n",
+ 			"Total", "", total_class_almost_full,
+ 			total_class_almost_empty, total_objs,
+ 			total_used_objs, total_pages, "", total_freeable);
 _
 
-Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+Patches currently in -mm which might be from sergey.senozhatsky.work@gmail.com are
 
-thp-vmstats-count-deferred-split-events.patch
-mm-tracing-refresh-__def_vmaflag_names.patch
-mm-cleanup-pte_alloc-interfaces.patch
-rmap-introduce-rmap_walk_locked.patch
-rmap-extend-try_to_unmap-to-be-usable-by-split_huge_page.patch
-mm-make-remove_migration_ptes-beyond-mm-migrationc.patch
-thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers.patch
-thp-fix-deadlock-in-split_huge_pmd.patch
+mm-zsmalloc-add-freeable-column-to-pool-stat.patch
 
