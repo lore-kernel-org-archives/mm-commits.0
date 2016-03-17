@@ -1,59 +1,65 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch removed from -mm
+ mm-slub-query-dynamic-debug_pagealloc-setting-v2.patch removed from -mm
  tree
-Date: Thu, 17 Mar 2016 13:50:06 -0700
-Message-ID: <56eb187e.aC1GgtNVepGKlKOf%akpm@linux-foundation.org>
+Date: Thu, 17 Mar 2016 13:50:11 -0700
+Message-ID: <56eb1883.Ll7SLR/QC8ZEHUYi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44200 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44207 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752457AbcCQUuH (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Mar 2016 16:50:07 -0400
+	with ESMTP id S936862AbcCQUuM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Mar 2016 16:50:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, benh@kernel.crashing.org, borntraeger@de.ibm.com, cl@linux.com, cmetcalf@ezchip.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, tiwai@suse.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, borntraeger@de.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-slub-query-dynamic-debug_pagealloc-setting-fix
+     Subject: mm-slub-query-dynamic-debug_pagealloc-setting-v2
 has been removed from the -mm tree.  Its filename was
-     mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
+     mm-slub-query-dynamic-debug_pagealloc-setting-v2.patch
 
 This patch was dropped because it was folded into mm-slub-query-dynamic-debug_pagealloc-setting.patch
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-slub-query-dynamic-debug_pagealloc-setting-fix
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm-slub-query-dynamic-debug_pagealloc-setting-v2
 
-clean up code, per Christian
+v2: clean up code, per Christian.
 
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Chris Metcalf <cmetcalf@ezchip.com>
-Cc: Christian Borntraeger <borntraeger@de.ibm.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: Takashi Iwai <tiwai@suse.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Christian Borntraeger <borntraeger@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slub.c |    9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
+ mm/slub.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN mm/slub.c~mm-slub-query-dynamic-debug_pagealloc-setting-fix mm/slub.c
---- a/mm/slub.c~mm-slub-query-dynamic-debug_pagealloc-setting-fix
+diff -puN mm/slub.c~mm-slub-query-dynamic-debug_pagealloc-setting-v2 mm/slub.c
+--- a/mm/slub.c~mm-slub-query-dynamic-debug_pagealloc-setting-v2
 +++ a/mm/slub.c
-@@ -254,12 +254,9 @@ static inline void *get_freepointer_safe
- {
- 	void *p;
+@@ -256,6 +256,7 @@ static inline void *get_freepointer_safe
  
--	if (debug_pagealloc_enabled()) {
--		probe_kernel_read(&p,
--			(void **)(object + s->offset), sizeof(p));
--	} else
--		p = get_freepointer(s, object);
+ 	if (!debug_pagealloc_enabled())
+ 		return get_freepointer(s, object);
++
+ 	probe_kernel_read(&p, (void **)(object + s->offset), sizeof(p));
+ 	return p;
+ }
+_
+
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+
+mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch
+mm-slub-query-dynamic-debug_pagealloc-setting.patch
+sound-query-dynamic-debug_pagealloc-setting.patch
+powerpc-query-dynamic-debug_pagealloc-setting.patch
+tile-query-dynamic-debug_pagealloc-setting.patch
+mm-introduce-page-reference-manipulation-functions.patch
+mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation.patch
+mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3.patch
+
