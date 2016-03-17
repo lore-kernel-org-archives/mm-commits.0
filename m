@@ -1,65 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- radix-treeshmem-introduce-radix_tree_iter_next-fix.patch removed from -mm
- tree
-Date: Thu, 17 Mar 2016 14:01:54 -0700
-Message-ID: <56eb1b42.y1+bQIBNVhmAKQyM%akpm@linux-foundation.org>
+ lib-string-introduce-match_string-helper-fix.patch removed from -mm tree
+Date: Thu, 17 Mar 2016 14:02:34 -0700
+Message-ID: <56eb1b6a.Dx42qCLjWwgVQ+nF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44689 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44694 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030437AbcCQVBz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Mar 2016 17:01:55 -0400
+	with ESMTP id S1030620AbcCQVCf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Mar 2016 17:02:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: koct9i@gmail.com, hughd@google.com, willy@linux.intel.com, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: fix bug in radix_tree_iter_next() for tagged iteration
+     Subject: lib-string-introduce-match_string-helper fix
 has been removed from the -mm tree.  Its filename was
-     radix-treeshmem-introduce-radix_tree_iter_next-fix.patch
+     lib-string-introduce-match_string-helper-fix.patch
 
-This patch was dropped because it was folded into radix-treeshmem-introduce-radix_tree_iter_next.patch
+This patch was dropped because it was folded into lib-string-introduce-match_string-helper.patch
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: radix-tree: fix bug in radix_tree_iter_next() for tagged iteration
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib-string-introduce-match_string-helper fix
 
-Helper radix_tree_iter_next reset slot to NULL and next_index to index +
-1, for tagger iteraction it also must reset cached tags in iterator to
-abort next radix_tree_next_slot and go to slow-path into
-radix_tree_next_chunk.
+Fix return code to be -EINVAL instead of -ENODATA.
 
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |    1 +
- 1 file changed, 1 insertion(+)
+ lib/string.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix-treeshmem-introduce-radix_tree_iter_next-fix include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-treeshmem-introduce-radix_tree_iter_next-fix
-+++ a/include/linux/radix-tree.h
-@@ -414,6 +414,7 @@ static inline __must_check
- void **radix_tree_iter_next(struct radix_tree_iter *iter)
+diff -puN lib/string.c~lib-string-introduce-match_string-helper-fix lib/string.c
+--- a/lib/string.c~lib-string-introduce-match_string-helper-fix
++++ a/lib/string.c
+@@ -637,7 +637,7 @@ EXPORT_SYMBOL(sysfs_streq);
+  * @string:	string to match with
+  *
+  * Return:
+- * index of a @string in the @array if matches, or %-ENODATA otherwise.
++ * index of a @string in the @array if matches, or %-EINVAL otherwise.
+  */
+ int match_string(const char * const *array, size_t n, const char *string)
  {
- 	iter->next_index = iter->index + 1;
-+	iter->tags = 0;
- 	return NULL;
+@@ -652,7 +652,7 @@ int match_string(const char * const *arr
+ 			return index;
+ 	}
+ 
+-	return -ENODATA;
++	return -EINVAL;
  }
+ EXPORT_SYMBOL(match_string);
  
 _
 
-Patches currently in -mm which might be from koct9i@gmail.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering.patch
-radix-treeshmem-introduce-radix_tree_iter_next.patch
-radix-tree-tests-add-regression3-test.patch
-radix-tree-tests-add-test-for-radix_tree_iter_next.patch
+lib-string-introduce-match_string-helper.patch
+device-property-convert-to-use-match_string-helper.patch
+device-property-convert-to-use-match_string-helper-fix.patch
+pinctrl-convert-to-use-match_string-helper.patch
+drm-edid-convert-to-use-match_string-helper.patch
+power-charger_manager-convert-to-use-match_string-helper.patch
+power-ab8500-convert-to-use-match_string-helper.patch
+ata-hpt366-convert-to-use-match_string-helper.patch
+ide-hpt366-convert-to-use-match_string-helper.patch
 
