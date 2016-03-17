@@ -1,141 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- proc-add-proc-pid-timerslack_ns-interface-fix.patch removed from -mm tree
-Date: Thu, 17 Mar 2016 13:59:53 -0700
-Message-ID: <56eb1ac9.GQjrp0WwhZBiWmb/%akpm@linux-foundation.org>
+Subject: [folded-merged] radix-tree-test-harness-fix.patch removed from
+ -mm tree
+Date: Thu, 17 Mar 2016 14:00:14 -0700
+Message-ID: <56eb1ade.UJ4/0F79VYScwx1q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44592 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44600 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965007AbcCQU7y (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Mar 2016 16:59:54 -0400
+	with ESMTP id S965007AbcCQVAP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Mar 2016 17:00:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: john.stultz@linaro.org, arjan@linux.intel.com, kandoiruchi@google.com, keescook@chromium.org, kernel-team@android.com, orenl@cellrox.com, romlem@android.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: koct9i@gmail.com, willy@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: /proc/<pid>/timerslack_ns permissions fixes
+     Subject: radix-tree tests: fix compilation
 has been removed from the -mm tree.  Its filename was
-     proc-add-proc-pid-timerslack_ns-interface-fix.patch
+     radix-tree-test-harness-fix.patch
 
-This patch was dropped because it was folded into proc-add-proc-pid-timerslack_ns-interface.patch
+This patch was dropped because it was folded into radix-tree-test-harness.patch
 
 ------------------------------------------------------
-From: John Stultz <john.stultz@linaro.org>
-Subject: proc: /proc/<pid>/timerslack_ns permissions fixes
+From: Konstantin Khlebnikov <koct9i@gmail.com>
+Subject: radix-tree tests: fix compilation
 
-This patch adjusts the timerslack_ns file permissions to be 0666 but
-requires PTRACE_MODE_ATTACH_FSCREDS to read or write the value.
+Couple GFP flags and empty header linux/init.h
 
-This allows tasks with sufficient privledges (CAP_SYS_PTRACE) to be able
-to modify a the timerslack for proccesses owned by a different user.
-
-This patch also fixes a return value from EINVAL to EPERM, and does task
-locking consistently, given we're handling u64s on 32bit systems.  It also
-makes use of kstrtoull_from_user which simplifies some code.
-
-I've also wired up the Android userspace side to use this interface, and
-tested it there, and things seem to be working properly ( - with some
-selinux noise, I still need to figure out the selinux policy changes, but
-its working with permissive mode).
-
-Signed-off-by: John Stultz <john.stultz@linaro.org>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Oren Laadan <orenl@cellrox.com>
-Cc: Ruchi Kandoi <kandoiruchi@google.com>
-Cc: Rom Lemarchand <romlem@android.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Android Kernel Team <kernel-team@android.com>
+Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Matthew Wilcox <willy@linux.intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/base.c |   28 +++++++++++++---------------
- 1 file changed, 13 insertions(+), 15 deletions(-)
+ tools/testing/radix-tree/linux/gfp.h |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN fs/proc/base.c~proc-add-proc-pid-timerslack_ns-interface-fix fs/proc/base.c
---- a/fs/proc/base.c~proc-add-proc-pid-timerslack_ns-interface-fix
-+++ a/fs/proc/base.c
-@@ -2262,18 +2262,10 @@ static ssize_t timerslack_ns_write(struc
- {
- 	struct inode *inode = file_inode(file);
- 	struct task_struct *p;
--	char buffer[PROC_NUMBUF];
- 	u64 slack_ns;
- 	int err;
+diff -puN tools/testing/radix-tree/linux/gfp.h~radix-tree-test-harness-fix tools/testing/radix-tree/linux/gfp.h
+--- a/tools/testing/radix-tree/linux/gfp.h~radix-tree-test-harness-fix
++++ a/tools/testing/radix-tree/linux/gfp.h
+@@ -4,5 +4,7 @@
+ #define __GFP_BITS_SHIFT 22
+ #define __GFP_BITS_MASK ((gfp_t)((1 << __GFP_BITS_SHIFT) - 1))
+ #define __GFP_WAIT 1
++#define __GFP_ACCOUNT 0
++#define __GFP_NOWARN 0
  
--	memset(buffer, 0, sizeof(buffer));
--	if (count > sizeof(buffer) - 1)
--		count = sizeof(buffer) - 1;
--
--	if (copy_from_user(buffer, buf, count))
--		return -EFAULT;
--
--	err = kstrtoull(strstrip(buffer), 10, &slack_ns);
-+	err = kstrtoull_from_user(buf, count, 10, &slack_ns);
- 	if (err < 0)
- 		return err;
- 
-@@ -2282,12 +2274,14 @@ static ssize_t timerslack_ns_write(struc
- 		return -ESRCH;
- 
- 	if (ptrace_may_access(p, PTRACE_MODE_ATTACH_FSCREDS)) {
-+		task_lock(p);
- 		if (slack_ns == 0)
- 			p->timer_slack_ns = p->default_timer_slack_ns;
- 		else
- 			p->timer_slack_ns = slack_ns;
-+		task_unlock(p);
- 	} else
--		count = -EINVAL;
-+		count = -EPERM;
- 
- 	put_task_struct(p);
- 
-@@ -2298,18 +2292,22 @@ static int timerslack_ns_show(struct seq
- {
- 	struct inode *inode = m->private;
- 	struct task_struct *p;
-+	int err =  0;
- 
- 	p = get_proc_task(inode);
- 	if (!p)
- 		return -ESRCH;
- 
--	task_lock(p);
--	seq_printf(m, "%llu\n", p->timer_slack_ns);
--	task_unlock(p);
-+	if (ptrace_may_access(p, PTRACE_MODE_ATTACH_FSCREDS)) {
-+		task_lock(p);
-+		seq_printf(m, "%llu\n", p->timer_slack_ns);
-+		task_unlock(p);
-+	} else
-+		err = -EPERM;
- 
- 	put_task_struct(p);
- 
--	return 0;
-+	return err;
- }
- 
- static int timerslack_ns_open(struct inode *inode, struct file *filp)
-@@ -2899,7 +2897,7 @@ static const struct pid_entry tgid_base_
- #ifdef CONFIG_CHECKPOINT_RESTORE
- 	REG("timers",	  S_IRUGO, proc_timers_operations),
  #endif
--	REG("timerslack_ns", S_IRUGO|S_IWUSR, proc_pid_set_timerslack_ns_operations),
-+	REG("timerslack_ns", S_IRUGO|S_IWUGO, proc_pid_set_timerslack_ns_operations),
- };
- 
- static int proc_tgid_base_readdir(struct file *file, struct dir_context *ctx)
 _
 
-Patches currently in -mm which might be from john.stultz@linaro.org are
+Patches currently in -mm which might be from koct9i@gmail.com are
 
-timer-convert-timer_slack_ns-from-unsigned-long-to-u64.patch
-proc-add-proc-pid-timerslack_ns-interface.patch
+tools-vm-page-typesc-add-memory-cgroup-dumping-and-filtering.patch
+radix-tree-test-harness.patch
+radix-treeshmem-introduce-radix_tree_iter_next-fix.patch
+radix-tree-tests-add-regression3-test.patch
+radix-tree-tests-add-test-for-radix_tree_iter_next.patch
 
