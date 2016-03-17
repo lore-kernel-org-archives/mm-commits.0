@@ -1,59 +1,149 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3.patch removed from -mm tree
-Date: Thu, 17 Mar 2016 13:58:06 -0700
-Message-ID: <56eb1a5e.G/9P+0FvniBL3qR0%akpm@linux-foundation.org>
+ thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix.patch
+ removed from -mm tree
+Date: Thu, 17 Mar 2016 13:59:13 -0700
+Message-ID: <56eb1aa1.gA7EVav5lHJs8pSI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44564 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44584 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965007AbcCQU6H (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Mar 2016 16:58:07 -0400
+	with ESMTP id S965007AbcCQU7O (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Mar 2016 16:59:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_ref: fix build failure for xtensa
+     Subject: thp: make sure we replace the right page with migration entires
 has been removed from the -mm tree.  Its filename was
-     mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3.patch
+     thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix.patch
 
-This patch was dropped because it was folded into mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation.patch
+This patch was dropped because it was folded into thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers.patch
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_ref: fix build failure for xtensa
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp: make sure we replace the right page with migration entires
 
-This patch includes struct page definition to fix build failure on xtensa.
+split_huge_pmd_address(freeze == true) would split the pmd and setup
+migration entries into ptes.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+To get it work properly we need a page to check pmd against. Otherwise
+we can end up replacing wrong page (i.e. after COW break).
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/debug_page_ref.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/huge_mm.h |    4 ++--
+ mm/huge_memory.c        |   17 +++++++++++++----
+ mm/rmap.c               |    3 ++-
+ 3 files changed, 17 insertions(+), 7 deletions(-)
 
-diff -puN mm/debug_page_ref.c~mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3 mm/debug_page_ref.c
---- a/mm/debug_page_ref.c~mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3
-+++ a/mm/debug_page_ref.c
-@@ -1,3 +1,4 @@
-+#include <linux/mm_types.h>
- #include <linux/tracepoint.h>
+diff -puN include/linux/huge_mm.h~thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix
++++ a/include/linux/huge_mm.h
+@@ -109,7 +109,7 @@ void __split_huge_pmd(struct vm_area_str
  
- #define CREATE_TRACE_POINTS
+ 
+ void split_huge_pmd_address(struct vm_area_struct *vma, unsigned long address,
+-		bool freeze);
++		bool freeze, struct page *page);
+ 
+ #if HPAGE_PMD_ORDER >= MAX_ORDER
+ #error "hugepages can't be allocated by the buddy allocator"
+@@ -180,7 +180,7 @@ static inline void deferred_split_huge_p
+ 	do { } while (0)
+ 
+ static inline void split_huge_pmd_address(struct vm_area_struct *vma,
+-		unsigned long address, bool freeze) {}
++		unsigned long address, bool freeze, struct page *page) {}
+ 
+ static inline int hugepage_madvise(struct vm_area_struct *vma,
+ 				   unsigned long *vm_flags, int advice)
+diff -puN mm/huge_memory.c~thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix
++++ a/mm/huge_memory.c
+@@ -3007,7 +3007,7 @@ out:
+ }
+ 
+ void split_huge_pmd_address(struct vm_area_struct *vma, unsigned long address,
+-		bool freeze)
++		bool freeze, struct page *page)
+ {
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+@@ -3024,6 +3024,15 @@ void split_huge_pmd_address(struct vm_ar
+ 	pmd = pmd_offset(pud, address);
+ 	if (!pmd_present(*pmd) || (!pmd_trans_huge(*pmd) && !pmd_devmap(*pmd)))
+ 		return;
++
++	/*
++	 * If caller asks to setup a migration entries, we need a page to check
++	 * pmd against. Otherwise we can end up replacing wrong page.
++	 */
++	VM_BUG_ON(freeze && !page);
++	if (page && page != pmd_page(*pmd))
++		return;
++
+ 	/*
+ 	 * Caller holds the mmap_sem write mode, so a huge pmd cannot
+ 	 * materialize from under us.
+@@ -3044,7 +3053,7 @@ void vma_adjust_trans_huge(struct vm_are
+ 	if (start & ~HPAGE_PMD_MASK &&
+ 	    (start & HPAGE_PMD_MASK) >= vma->vm_start &&
+ 	    (start & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= vma->vm_end)
+-		split_huge_pmd_address(vma, start, false);
++		split_huge_pmd_address(vma, start, false, NULL);
+ 
+ 	/*
+ 	 * If the new end address isn't hpage aligned and it could
+@@ -3054,7 +3063,7 @@ void vma_adjust_trans_huge(struct vm_are
+ 	if (end & ~HPAGE_PMD_MASK &&
+ 	    (end & HPAGE_PMD_MASK) >= vma->vm_start &&
+ 	    (end & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= vma->vm_end)
+-		split_huge_pmd_address(vma, end, false);
++		split_huge_pmd_address(vma, end, false, NULL);
+ 
+ 	/*
+ 	 * If we're also updating the vma->vm_next->vm_start, if the new
+@@ -3068,7 +3077,7 @@ void vma_adjust_trans_huge(struct vm_are
+ 		if (nstart & ~HPAGE_PMD_MASK &&
+ 		    (nstart & HPAGE_PMD_MASK) >= next->vm_start &&
+ 		    (nstart & HPAGE_PMD_MASK) + HPAGE_PMD_SIZE <= next->vm_end)
+-			split_huge_pmd_address(next, nstart, false);
++			split_huge_pmd_address(next, nstart, false, NULL);
+ 	}
+ }
+ 
+diff -puN mm/rmap.c~thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix mm/rmap.c
+--- a/mm/rmap.c~thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers-fix
++++ a/mm/rmap.c
+@@ -1432,7 +1432,8 @@ static int try_to_unmap_one(struct page
+ 		goto out;
+ 
+ 	if (flags & TTU_SPLIT_HUGE_PMD) {
+-		split_huge_pmd_address(vma, address, flags & TTU_MIGRATION);
++		split_huge_pmd_address(vma, address,
++				flags & TTU_MIGRATION, page);
+ 		/* check if we have anything to do after split */
+ 		if (page_mapcount(page) == 0)
+ 			goto out;
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch
-mm-slub-query-dynamic-debug_pagealloc-setting.patch
-sound-query-dynamic-debug_pagealloc-setting.patch
-powerpc-query-dynamic-debug_pagealloc-setting.patch
-tile-query-dynamic-debug_pagealloc-setting.patch
-mm-introduce-page-reference-manipulation-functions.patch
-mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation.patch
+thp-vmstats-count-deferred-split-events.patch
+mm-tracing-refresh-__def_vmaflag_names.patch
+mm-cleanup-pte_alloc-interfaces.patch
+rmap-introduce-rmap_walk_locked.patch
+rmap-extend-try_to_unmap-to-be-usable-by-split_huge_page.patch
+mm-make-remove_migration_ptes-beyond-mm-migrationc.patch
+thp-rewrite-freeze_page-unfreeze_page-with-generic-rmap-walkers.patch
+thp-fix-deadlock-in-split_huge_pmd.patch
 
