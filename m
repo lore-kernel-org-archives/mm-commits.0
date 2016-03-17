@@ -1,61 +1,83 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch removed from -mm tree
-Date: Thu, 17 Mar 2016 13:49:00 -0700
-Message-ID: <56eb183c.PK506snD4WgUmVPZ%akpm@linux-foundation.org>
+ mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch removed from -mm tree
+Date: Thu, 17 Mar 2016 13:49:32 -0700
+Message-ID: <56eb185c.nBgMmq0RxQijW0yS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:44183 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:44188 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932832AbcCQUtB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Mar 2016 16:49:01 -0400
+	with ESMTP id S936842AbcCQUtd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 17 Mar 2016 16:49:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, n-horiguchi@ah.jp.nec.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, benh@kernel.crashing.org, borntraeger@de.ibm.com, cl@linux.com, cmetcalf@ezchip.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, tiwai@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix
+     Subject: mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix
 has been removed from the -mm tree.  Its filename was
-     proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix.patch
+     mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
 
-This patch was dropped because it was folded into proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages.patch
+This patch was dropped because it was folded into mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix
+Subject: mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix
 
-update comment, per Naoya
+update comment, per David.  Adjust comment to use 80 cols
 
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: Takashi Iwai <tiwai@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/page.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/vmalloc.c |   17 ++++++++---------
+ 1 file changed, 8 insertions(+), 9 deletions(-)
 
-diff -puN fs/proc/page.c~proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix fs/proc/page.c
---- a/fs/proc/page.c~proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages-fix-fix
-+++ a/fs/proc/page.c
-@@ -103,7 +103,7 @@ u64 stable_page_flags(struct page *page)
- 	 * pseudo flags for the well known (anonymous) memory mapped pages
+diff -puN mm/vmalloc.c~mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix mm/vmalloc.c
+--- a/mm/vmalloc.c~mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix
++++ a/mm/vmalloc.c
+@@ -531,17 +531,16 @@ static void unmap_vmap_area(struct vmap_
+ static void vmap_debug_free_range(unsigned long start, unsigned long end)
+ {
+ 	/*
+-	 * Unmap page tables and force a TLB flush immediately if
+-	 * CONFIG_DEBUG_PAGEALLOC is set. This catches use after free
+-	 * bugs similarly to those in linear kernel virtual address
+-	 * space after a page has been freed.
++	 * Unmap page tables and force a TLB flush immediately if pagealloc
++	 * debugging is enabled.  This catches use after free bugs similarly to
++	 * those in linear kernel virtual address space after a page has been
++	 * freed.
  	 *
- 	 * Note that page->_mapcount is overloaded in SLOB/SLUB/SLQB, so the
--	 * simple test in page_mapcount() is not enough.
-+	 * simple test in page_mapped() is not enough.
+-	 * All the lazy freeing logic is still retained, in order to
+-	 * minimise intrusiveness of this debugging feature.
++	 * All the lazy freeing logic is still retained, in order to minimise
++	 * intrusiveness of this debugging feature.
+ 	 *
+-	 * This is going to be *slow* (linear kernel virtual address
+-	 * debugging doesn't do a broadcast TLB flush so it is a lot
+-	 * faster).
++	 * This is going to be *slow* (linear kernel virtual address debugging
++	 * doesn't do a broadcast TLB flush so it is a lot faster).
  	 */
- 	if (!PageSlab(page) && page_mapped(page))
- 		u |= 1 << KPF_MMAP;
+ 	if (debug_pagealloc_enabled()) {
+ 		vunmap_page_range(start, end);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-proc-kpageflags-return-kpf_buddy-for-tail-buddy-pages.patch
-mm-vmalloc-query-dynamic-debug_pagealloc-setting-fix.patch
+mm-vmalloc-query-dynamic-debug_pagealloc-setting.patch
 mm-slub-query-dynamic-debug_pagealloc-setting-fix.patch
 sound-query-dynamic-debug_pagealloc-setting-fix.patch
 mm-page_ref-add-tracepoint-to-track-down-page-reference-manipulation-fix-3-fix.patch
