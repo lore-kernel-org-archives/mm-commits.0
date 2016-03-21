@@ -1,179 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- calculate-available-memory-in-the-separate-function.patch removed from -mm
- tree
-Date: Mon, 21 Mar 2016 11:39:17 -0700
-Message-ID: <56f03fd5.UAYRMWfWjvKpmexp%akpm@linux-foundation.org>
+Subject: [merged] mm-remove-__gfp_nofail-is-deprecated-comment.patch
+ removed from -mm tree
+Date: Mon, 21 Mar 2016 11:39:41 -0700
+Message-ID: <56f03fed.7vDx1FDCs9qDZ00j%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53453 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53463 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932316AbcCUT4T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:19 -0400
+	with ESMTP id S932238AbcCUT4U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: redkoi@virtuozzo.com, den@openvz.org, mst@redhat.com, rkagan@virtuozzo.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, kernel@kyup.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc.c: calculate 'available' memory in a separate function
+     Subject: mm: remove __GFP_NOFAIL is deprecated comment
 has been removed from the -mm tree.  Its filename was
-     calculate-available-memory-in-the-separate-function.patch
+     mm-remove-__gfp_nofail-is-deprecated-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Igor Redko <redkoi@virtuozzo.com>
-Subject: mm/page_alloc.c: calculate 'available' memory in a separate function
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm: remove __GFP_NOFAIL is deprecated comment
 
-Add a new field, VIRTIO_BALLOON_S_AVAIL, to virtio_balloon memory
-statistics protocol, corresponding to 'Available' in /proc/meminfo.
+647757197cd3 ("mm: clarify __GFP_NOFAIL deprecation status") was
+incomplete and didn't remove the comment about __GFP_NOFAIL being
+deprecated in buffered_rmqueue.  Let's get rid of this leftover but keep
+the WARN_ON_ONCE for order > 1 because we should really discourage from
+using __GFP_NOFAIL with higher order allocations because those are just
+too subtle.
 
-It indicates to the hypervisor how big the balloon can be inflated without
-pushing the guest system to swap.  This metric would be very useful in VM
-orchestration software to improve memory management of different VMs under
-overcommit.
-
-
-This patch (of 2):
-
-Factor out calculation of the available memory counter into a separate
-exportable function, in order to be able to use it in other parts of the
-kernel.
-
-In particular, it appears a relevant metric to report to the hypervisor
-via virtio-balloon statistics interface (in a followup patch).
-
-Signed-off-by: Igor Redko <redkoi@virtuozzo.com>
-Signed-off-by: Denis V. Lunev <den@openvz.org>
-Reviewed-by: Roman Kagan <rkagan@virtuozzo.com>
-Cc: Michael S. Tsirkin <mst@redhat.com>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reviewed-by: Nikolay Borisov <kernel@kyup.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/meminfo.c  |   31 +------------------------------
- include/linux/mm.h |    1 +
- mm/page_alloc.c    |   43 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 45 insertions(+), 30 deletions(-)
+ mm/page_alloc.c |   18 +++++-------------
+ 1 file changed, 5 insertions(+), 13 deletions(-)
 
-diff -puN fs/proc/meminfo.c~calculate-available-memory-in-the-separate-function fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~calculate-available-memory-in-the-separate-function
-+++ a/fs/proc/meminfo.c
-@@ -29,10 +29,7 @@ static int meminfo_proc_show(struct seq_
- 	unsigned long committed;
- 	long cached;
- 	long available;
--	unsigned long pagecache;
--	unsigned long wmark_low = 0;
- 	unsigned long pages[NR_LRU_LISTS];
--	struct zone *zone;
- 	int lru;
- 
- /*
-@@ -51,33 +48,7 @@ static int meminfo_proc_show(struct seq_
- 	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
- 		pages[lru] = global_page_state(NR_LRU_BASE + lru);
- 
--	for_each_zone(zone)
--		wmark_low += zone->watermark[WMARK_LOW];
--
--	/*
--	 * Estimate the amount of memory available for userspace allocations,
--	 * without causing swapping.
--	 */
--	available = i.freeram - totalreserve_pages;
--
--	/*
--	 * Not all the page cache can be freed, otherwise the system will
--	 * start swapping. Assume at least half of the page cache, or the
--	 * low watermark worth of cache, needs to stay.
--	 */
--	pagecache = pages[LRU_ACTIVE_FILE] + pages[LRU_INACTIVE_FILE];
--	pagecache -= min(pagecache / 2, wmark_low);
--	available += pagecache;
--
--	/*
--	 * Part of the reclaimable slab consists of items that are in use,
--	 * and cannot be freed. Cap this estimate at the low watermark.
--	 */
--	available += global_page_state(NR_SLAB_RECLAIMABLE) -
--		     min(global_page_state(NR_SLAB_RECLAIMABLE) / 2, wmark_low);
--
--	if (available < 0)
--		available = 0;
-+	available = si_mem_available();
- 
- 	/*
- 	 * Tagged format, for easy grepping and expansion.
-diff -puN include/linux/mm.h~calculate-available-memory-in-the-separate-function include/linux/mm.h
---- a/include/linux/mm.h~calculate-available-memory-in-the-separate-function
-+++ a/include/linux/mm.h
-@@ -1875,6 +1875,7 @@ extern int __meminit init_per_zone_wmark
- extern void mem_init(void);
- extern void __init mmap_init(void);
- extern void show_mem(unsigned int flags);
-+extern long si_mem_available(void);
- extern void si_meminfo(struct sysinfo * val);
- extern void si_meminfo_node(struct sysinfo *val, int nid);
- 
-diff -puN mm/page_alloc.c~calculate-available-memory-in-the-separate-function mm/page_alloc.c
---- a/mm/page_alloc.c~calculate-available-memory-in-the-separate-function
+diff -puN mm/page_alloc.c~mm-remove-__gfp_nofail-is-deprecated-comment mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-remove-__gfp_nofail-is-deprecated-comment
 +++ a/mm/page_alloc.c
-@@ -3713,6 +3713,49 @@ static inline void show_node(struct zone
- 		printk("Node %d ", zone_to_nid(zone));
- }
+@@ -2350,19 +2350,11 @@ struct page *buffered_rmqueue(struct zon
+ 		list_del(&page->lru);
+ 		pcp->count--;
+ 	} else {
+-		if (unlikely(gfp_flags & __GFP_NOFAIL)) {
+-			/*
+-			 * __GFP_NOFAIL is not to be used in new code.
+-			 *
+-			 * All __GFP_NOFAIL callers should be fixed so that they
+-			 * properly detect and handle allocation failures.
+-			 *
+-			 * We most definitely don't want callers attempting to
+-			 * allocate greater than order-1 page units with
+-			 * __GFP_NOFAIL.
+-			 */
+-			WARN_ON_ONCE(order > 1);
+-		}
++		/*
++		 * We most definitely don't want callers attempting to
++		 * allocate greater than order-1 page units with __GFP_NOFAIL.
++		 */
++		WARN_ON_ONCE((gfp_flags & __GFP_NOFAIL) && (order > 1));
+ 		spin_lock_irqsave(&zone->lock, flags);
  
-+long si_mem_available(void)
-+{
-+	long available;
-+	unsigned long pagecache;
-+	unsigned long wmark_low = 0;
-+	unsigned long pages[NR_LRU_LISTS];
-+	struct zone *zone;
-+	int lru;
-+
-+	for (lru = LRU_BASE; lru < NR_LRU_LISTS; lru++)
-+		pages[lru] = global_page_state(NR_LRU_BASE + lru);
-+
-+	for_each_zone(zone)
-+		wmark_low += zone->watermark[WMARK_LOW];
-+
-+	/*
-+	 * Estimate the amount of memory available for userspace allocations,
-+	 * without causing swapping.
-+	 */
-+	available = global_page_state(NR_FREE_PAGES) - totalreserve_pages;
-+
-+	/*
-+	 * Not all the page cache can be freed, otherwise the system will
-+	 * start swapping. Assume at least half of the page cache, or the
-+	 * low watermark worth of cache, needs to stay.
-+	 */
-+	pagecache = pages[LRU_ACTIVE_FILE] + pages[LRU_INACTIVE_FILE];
-+	pagecache -= min(pagecache / 2, wmark_low);
-+	available += pagecache;
-+
-+	/*
-+	 * Part of the reclaimable slab consists of items that are in use,
-+	 * and cannot be freed. Cap this estimate at the low watermark.
-+	 */
-+	available += global_page_state(NR_SLAB_RECLAIMABLE) -
-+		     min(global_page_state(NR_SLAB_RECLAIMABLE) / 2, wmark_low);
-+
-+	if (available < 0)
-+		available = 0;
-+	return available;
-+}
-+EXPORT_SYMBOL_GPL(si_mem_available);
-+
- void si_meminfo(struct sysinfo *val)
- {
- 	val->totalram = totalram_pages;
+ 		page = NULL;
 _
 
-Patches currently in -mm which might be from redkoi@virtuozzo.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+mm-oom-introduce-oom-reaper.patch
+oom-reaper-handle-mlocked-pages.patch
+oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
+oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix-2.patch
+mm-oom_reaper-report-success-failure.patch
+mm-oom_reaper-report-success-failure-fix-2.patch
+mm-oom_reaper-report-success-failure-fix-fix.patch
+mm-oom_reaper-implement-oom-victims-queuing.patch
+oom-make-oom_reaper-freezable.patch
+oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task.patch
+mm-oom-rework-oom-detection.patch
+mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
 
