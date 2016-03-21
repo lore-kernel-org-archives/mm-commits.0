@@ -1,62 +1,90 @@
 From: akpm@linux-foundation.org
-Subject: [merged] radix-tree-add-an-explicit-include-of-bitopsh.patch
- removed from -mm tree
-Date: Mon, 21 Mar 2016 11:41:31 -0700
-Message-ID: <56f0405b.TRFrFQ5umZ3G/bgV%akpm@linux-foundation.org>
+Subject: [merged] printk-add-clear_idx-symbol-to-vmcoreinfo.patch removed
+ from -mm tree
+Date: Mon, 21 Mar 2016 11:41:21 -0700
+Message-ID: <56f04051.oeSyuUKuyp7y1f/M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52796 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52793 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757753AbcCUTVT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:21:19 -0400
+	with ESMTP id S1757943AbcCUTVV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:21:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@linux.intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: colona@arista.com, kay@vrfy.org, nhorman@tuxdriver.com, zzy8200@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree: add an explicit include of bitops.h
+     Subject: printk: add clear_idx symbol to vmcoreinfo
 has been removed from the -mm tree.  Its filename was
-     radix-tree-add-an-explicit-include-of-bitopsh.patch
+     printk-add-clear_idx-symbol-to-vmcoreinfo.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix-tree: add an explicit include of bitops.h
+From: Ivan Delalande <colona@arista.com>
+Subject: printk: add clear_idx symbol to vmcoreinfo
 
-The radix-tree header uses the __ffs() function, which is defined in
-bitops.h.  The current kernel headers implicitly include bitops.h, but the
-userspace test harness does not.
+This allows us to extract from the vmcore only the messages emitted since
+the last time the ring buffer was cleared.  We just have to make sure its
+value is always up-to-date, when old messages are discarded to free space
+in log_make_free_space() for example.
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Zeyu Zhao <zzy8200@gmail.com>
+Signed-off-by: Ivan Delalande <colona@arista.com>
+Cc: Kay Sievers <kay@vrfy.org>
+Cc: Neil Horman <nhorman@tuxdriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |    1 +
- 1 file changed, 1 insertion(+)
+ kernel/printk/printk.c |   19 +++++++++----------
+ 1 file changed, 9 insertions(+), 10 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix-tree-add-an-explicit-include-of-bitopsh include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-tree-add-an-explicit-include-of-bitopsh
-+++ a/include/linux/radix-tree.h
-@@ -21,6 +21,7 @@
- #ifndef _LINUX_RADIX_TREE_H
- #define _LINUX_RADIX_TREE_H
+diff -puN kernel/printk/printk.c~printk-add-clear_idx-symbol-to-vmcoreinfo kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-add-clear_idx-symbol-to-vmcoreinfo
++++ a/kernel/printk/printk.c
+@@ -367,16 +367,20 @@ static int logbuf_has_space(u32 msg_size
  
-+#include <linux/bitops.h>
- #include <linux/preempt.h>
- #include <linux/types.h>
- #include <linux/bug.h>
-_
-
-Patches currently in -mm which might be from willy@linux.intel.com are
-
-
+ static int log_make_free_space(u32 msg_size)
+ {
+-	while (log_first_seq < log_next_seq) {
+-		if (logbuf_has_space(msg_size, false))
+-			return 0;
++	while (log_first_seq < log_next_seq &&
++	       !logbuf_has_space(msg_size, false)) {
+ 		/* drop old messages until we have enough contiguous space */
+ 		log_first_idx = log_next(log_first_idx);
+ 		log_first_seq++;
+ 	}
+ 
++	if (clear_seq < log_first_seq) {
++		clear_seq = log_first_seq;
++		clear_idx = log_first_idx;
++	}
++
+ 	/* sequence numbers are equal, so the log buffer is empty */
+-	if (logbuf_has_space(msg_size, true))
++	if (logbuf_has_space(msg_size, log_first_seq == log_next_seq))
+ 		return 0;
+ 
+ 	return -ENOMEM;
+@@ -854,6 +858,7 @@ void log_buf_kexec_setup(void)
+ 	VMCOREINFO_SYMBOL(log_buf);
+ 	VMCOREINFO_SYMBOL(log_buf_len);
+ 	VMCOREINFO_SYMBOL(log_first_idx);
++	VMCOREINFO_SYMBOL(clear_idx);
+ 	VMCOREINFO_SYMBOL(log_next_idx);
+ 	/*
+ 	 * Export struct printk_log size and field offsets. User space tools can
+@@ -1216,12 +1221,6 @@ static int syslog_print_all(char __user
+ 		u32 idx;
+ 		enum log_flags prev;
+ 
+-		if (clear_seq < log_first_seq) {
+-			/* messages are gone, move to first available one */
+-			clear_seq = log_first_seq;
+-			clear_idx = log_first_idx;
+-		}
