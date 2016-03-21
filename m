@@ -1,9 +1,8 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-thp-migration-switch-from-flush_tlb_range-to-flush_pmd_tlb_range.patch
- removed from -mm tree
-Date: Mon, 21 Mar 2016 11:39:10 -0700
-Message-ID: <56f03fce.iIQ4IFtE2FPQ0Xdt%akpm@linux-foundation.org>
+Subject: [merged] rmap-introduce-rmap_walk_locked.patch removed from -mm
+ tree
+Date: Mon, 21 Mar 2016 11:40:04 -0700
+Message-ID: <56f04004.YQJihObwa4hS+lR4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -11,114 +10,173 @@ Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
 Received: from mail.linuxfoundation.org ([140.211.169.12]:53455 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932428AbcCUT4Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:25 -0400
+	with ESMTP id S932239AbcCUT4T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aneesh.kumar@linux.vnet.ibm.com, Vineet.Gupta1@synopsys.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, aarcange@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/thp/migration: switch from flush_tlb_range to flush_pmd_tlb_range
+     Subject: rmap: introduce rmap_walk_locked()
 has been removed from the -mm tree.  Its filename was
-     mm-thp-migration-switch-from-flush_tlb_range-to-flush_pmd_tlb_range.patch
+     rmap-introduce-rmap_walk_locked.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Aneesh Kumar K.V" <aneesh.kumar@linux.vnet.ibm.com>
-Subject: mm/thp/migration: switch from flush_tlb_range to flush_pmd_tlb_range
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: rmap: introduce rmap_walk_locked()
 
-We remove one instace of flush_tlb_range here.  That was added by
-f714f4f20e59ea6eea ("mm: numa: call MMU notifiers on THP migration").  But
-the pmdp_huge_clear_flush_notify should have done the require flush for
-us.  Hence remove the extra flush.
+This patchset rewrites freeze_page() and unfreeze_page() using
+try_to_unmap() and remove_migration_ptes().  Result is much simpler, but
+somewhat slower.
 
-Signed-off-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Vineet Gupta <Vineet.Gupta1@synopsys.com>
+Migration 8GiB worth of PMD-mapped THP:
+
+Baseline	20.21 +/- 0.393
+Patched		20.73 +/- 0.082
+Slowdown	1.03x
+
+It's 3% slower, comparing to 14% in v1. I don't it should be a stopper.
+
+Splitting of PTE-mapped pages slowed more.  But this is not a common case.
+
+Migration 8GiB worth of PMD-mapped THP:
+
+Baseline	20.39 +/- 0.225
+Patched		22.43 +/- 0.496
+Slowdown	1.10x
+
+
+
+rmap_walk_locked() is the same as rmap_walk(), but the caller takes care
+of the relevant rmap lock.
+
+This is preparation for switching THP splitting from custom rmap walk in
+freeze_page()/unfreeze_page() to the generic one.
+
+There is no support for KSM pages for now: not clear which lock is implied.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/pgtable.h |   17 +++++++++++++++++
- mm/migrate.c                  |    8 +++++---
- mm/pgtable-generic.c          |   14 --------------
- 3 files changed, 22 insertions(+), 17 deletions(-)
+ include/linux/rmap.h |    1 +
+ mm/rmap.c            |   41 ++++++++++++++++++++++++++++++++---------
+ 2 files changed, 33 insertions(+), 9 deletions(-)
 
-diff -puN include/asm-generic/pgtable.h~mm-thp-migration-switch-from-flush_tlb_range-to-flush_pmd_tlb_range include/asm-generic/pgtable.h
---- a/include/asm-generic/pgtable.h~mm-thp-migration-switch-from-flush_tlb_range-to-flush_pmd_tlb_range
-+++ a/include/asm-generic/pgtable.h
-@@ -783,6 +783,23 @@ static inline int pmd_clear_huge(pmd_t *
- }
- #endif	/* CONFIG_HAVE_ARCH_HUGE_VMAP */
+diff -puN include/linux/rmap.h~rmap-introduce-rmap_walk_locked include/linux/rmap.h
+--- a/include/linux/rmap.h~rmap-introduce-rmap_walk_locked
++++ a/include/linux/rmap.h
+@@ -266,6 +266,7 @@ struct rmap_walk_control {
+ };
  
-+#ifndef __HAVE_ARCH_FLUSH_PMD_TLB_RANGE
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+/*
-+ * ARCHes with special requirements for evicting THP backing TLB entries can
-+ * implement this. Otherwise also, it can help optimize normal TLB flush in
-+ * THP regime. stock flush_tlb_range() typically has optimization to nuke the
-+ * entire TLB TLB if flush span is greater than a threshold, which will
-+ * likely be true for a single huge page. Thus a single thp flush will
-+ * invalidate the entire TLB which is not desitable.
-+ * e.g. see arch/arc: flush_pmd_tlb_range
-+ */
-+#define flush_pmd_tlb_range(vma, addr, end)	flush_tlb_range(vma, addr, end)
-+#else
-+#define flush_pmd_tlb_range(vma, addr, end)	BUILD_BUG()
-+#endif
-+#endif
-+
- #endif /* !__ASSEMBLY__ */
+ int rmap_walk(struct page *page, struct rmap_walk_control *rwc);
++int rmap_walk_locked(struct page *page, struct rmap_walk_control *rwc);
  
- #ifndef io_remap_pfn_range
-diff -puN mm/migrate.c~mm-thp-migration-switch-from-flush_tlb_range-to-flush_pmd_tlb_range mm/migrate.c
---- a/mm/migrate.c~mm-thp-migration-switch-from-flush_tlb_range-to-flush_pmd_tlb_range
-+++ a/mm/migrate.c
-@@ -1773,7 +1773,10 @@ int migrate_misplaced_transhuge_page(str
- 		put_page(new_page);
- 		goto out_fail;
+ #else	/* !CONFIG_MMU */
+ 
+diff -puN mm/rmap.c~rmap-introduce-rmap_walk_locked mm/rmap.c
+--- a/mm/rmap.c~rmap-introduce-rmap_walk_locked
++++ a/mm/rmap.c
+@@ -1715,14 +1715,21 @@ static struct anon_vma *rmap_walk_anon_l
+  * vm_flags for that VMA.  That should be OK, because that vma shouldn't be
+  * LOCKED.
+  */
+-static int rmap_walk_anon(struct page *page, struct rmap_walk_control *rwc)
++static int rmap_walk_anon(struct page *page, struct rmap_walk_control *rwc,
++		bool locked)
+ {
+ 	struct anon_vma *anon_vma;
+ 	pgoff_t pgoff;
+ 	struct anon_vma_chain *avc;
+ 	int ret = SWAP_AGAIN;
+ 
+-	anon_vma = rmap_walk_anon_lock(page, rwc);
++	if (locked) {
++		anon_vma = page_anon_vma(page);
++		/* anon_vma disappear under us? */
++		VM_BUG_ON_PAGE(!anon_vma, page);
++	} else {
++		anon_vma = rmap_walk_anon_lock(page, rwc);
++	}
+ 	if (!anon_vma)
+ 		return ret;
+ 
+@@ -1742,7 +1749,9 @@ static int rmap_walk_anon(struct page *p
+ 		if (rwc->done && rwc->done(page))
+ 			break;
  	}
--
-+	/*
-+	 * We are not sure a pending tlb flush here is for a huge page
-+	 * mapping or not. Hence use the tlb range variant
-+	 */
- 	if (mm_tlb_flush_pending(mm))
- 		flush_tlb_range(vma, mmun_start, mmun_end);
+-	anon_vma_unlock_read(anon_vma);
++
++	if (!locked)
++		anon_vma_unlock_read(anon_vma);
+ 	return ret;
+ }
  
-@@ -1829,12 +1832,11 @@ fail_putback:
- 	page_add_anon_rmap(new_page, vma, mmun_start, true);
- 	pmdp_huge_clear_flush_notify(vma, mmun_start, pmd);
- 	set_pmd_at(mm, mmun_start, pmd, entry);
--	flush_tlb_range(vma, mmun_start, mmun_end);
- 	update_mmu_cache_pmd(vma, address, &entry);
+@@ -1759,9 +1768,10 @@ static int rmap_walk_anon(struct page *p
+  * vm_flags for that VMA.  That should be OK, because that vma shouldn't be
+  * LOCKED.
+  */
+-static int rmap_walk_file(struct page *page, struct rmap_walk_control *rwc)
++static int rmap_walk_file(struct page *page, struct rmap_walk_control *rwc,
++		bool locked)
+ {
+-	struct address_space *mapping = page->mapping;
++	struct address_space *mapping = page_mapping(page);
+ 	pgoff_t pgoff;
+ 	struct vm_area_struct *vma;
+ 	int ret = SWAP_AGAIN;
+@@ -1778,7 +1788,8 @@ static int rmap_walk_file(struct page *p
+ 		return ret;
  
- 	if (page_count(page) != 2) {
- 		set_pmd_at(mm, mmun_start, pmd, orig_entry);
--		flush_tlb_range(vma, mmun_start, mmun_end);
-+		flush_pmd_tlb_range(vma, mmun_start, mmun_end);
- 		mmu_notifier_invalidate_range(mm, mmun_start, mmun_end);
- 		update_mmu_cache_pmd(vma, address, &entry);
- 		page_remove_rmap(new_page, true);
-diff -puN mm/pgtable-generic.c~mm-thp-migration-switch-from-flush_tlb_range-to-flush_pmd_tlb_range mm/pgtable-generic.c
---- a/mm/pgtable-generic.c~mm-thp-migration-switch-from-flush_tlb_range-to-flush_pmd_tlb_range
-+++ a/mm/pgtable-generic.c
-@@ -84,20 +84,6 @@ pte_t ptep_clear_flush(struct vm_area_st
+ 	pgoff = page_to_pgoff(page);
+-	i_mmap_lock_read(mapping);
++	if (!locked)
++		i_mmap_lock_read(mapping);
+ 	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
+ 		unsigned long address = vma_address(page, vma);
  
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+@@ -1795,7 +1806,8 @@ static int rmap_walk_file(struct page *p
+ 	}
  
--#ifndef __HAVE_ARCH_FLUSH_PMD_TLB_RANGE
--
--/*
-- * ARCHes with special requirements for evicting THP backing TLB entries can
-- * implement this. Otherwise also, it can help optimize normal TLB flush in
-- * THP regime. stock flush_tlb_range() typically has optimization to nuke the
-- * entire TLB if flush span is greater than a threshold, which will
-- * likely be true for a single huge page. Thus a single thp flush will
-- * invalidate the entire TLB which is not desirable.
-- * e.g. see arch/arc: flush_pmd_tlb_range
-- */
--#define flush_pmd_tlb_range(vma, addr, end)	flush_tlb_range(vma, addr, end)
--#endif
+ done:
+-	i_mmap_unlock_read(mapping);
++	if (!locked)
++		i_mmap_unlock_read(mapping);
+ 	return ret;
+ }
+ 
+@@ -1804,9 +1816,20 @@ int rmap_walk(struct page *page, struct
+ 	if (unlikely(PageKsm(page)))
+ 		return rmap_walk_ksm(page, rwc);
+ 	else if (PageAnon(page))
+-		return rmap_walk_anon(page, rwc);
++		return rmap_walk_anon(page, rwc, false);
++	else
++		return rmap_walk_file(page, rwc, false);
++}
++
++/* Like rmap_walk, but caller holds relevant rmap lock */
++int rmap_walk_locked(struct page *page, struct rmap_walk_control *rwc)
++{
++	/* no ksm support for now */
++	VM_BUG_ON_PAGE(PageKsm(page), page);
++	if (PageAnon(page))
++		return rmap_walk_anon(page, rwc, true);
+ 	else
+-		return rmap_walk_file(page, rwc);
++		return rmap_walk_file(page, rwc, true);
+ }
+ 
+ #ifdef CONFIG_HUGETLB_PAGE
+_
+
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
+
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
+
