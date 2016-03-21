@@ -1,90 +1,231 @@
 From: akpm@linux-foundation.org
-Subject: [merged] printk-add-clear_idx-symbol-to-vmcoreinfo.patch removed
- from -mm tree
-Date: Mon, 21 Mar 2016 11:41:21 -0700
-Message-ID: <56f04051.oeSyuUKuyp7y1f/M%akpm@linux-foundation.org>
+Subject: [merged] mm-use-radix_tree_iter_retry.patch removed from -mm tree
+Date: Mon, 21 Mar 2016 11:41:52 -0700
+Message-ID: <56f04070.h93Obvv9QnVVfCPi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52793 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52801 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757943AbcCUTVV (ORCPT
+	with ESMTP id S1757944AbcCUTVV (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:21:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: colona@arista.com, kay@vrfy.org, nhorman@tuxdriver.com, zzy8200@gmail.com, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, hughd@google.com, khlebnikov@openvz.org, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: printk: add clear_idx symbol to vmcoreinfo
+     Subject: mm: use radix_tree_iter_retry()
 has been removed from the -mm tree.  Its filename was
-     printk-add-clear_idx-symbol-to-vmcoreinfo.patch
+     mm-use-radix_tree_iter_retry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Ivan Delalande <colona@arista.com>
-Subject: printk: add clear_idx symbol to vmcoreinfo
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: mm: use radix_tree_iter_retry()
 
-This allows us to extract from the vmcore only the messages emitted since
-the last time the ring buffer was cleared.  We just have to make sure its
-value is always up-to-date, when old messages are discarded to free space
-in log_make_free_space() for example.
+Instead of a 'goto restart', we can now use radix_tree_iter_retry() to
+restart from our current position.  This will make a difference when there
+are more ways to happen across an indirect pointer.  And it eliminates
+some confusing gotos.
 
-Signed-off-by: Zeyu Zhao <zzy8200@gmail.com>
-Signed-off-by: Ivan Delalande <colona@arista.com>
-Cc: Kay Sievers <kay@vrfy.org>
-Cc: Neil Horman <nhorman@tuxdriver.com>
+[vbabka@suse.cz: remove now-obsolete-and-misleading comment]
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/printk/printk.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ mm/filemap.c |   53 +++++++++++++++----------------------------------
+ mm/shmem.c   |   23 +++++++++++----------
+ 2 files changed, 29 insertions(+), 47 deletions(-)
 
-diff -puN kernel/printk/printk.c~printk-add-clear_idx-symbol-to-vmcoreinfo kernel/printk/printk.c
---- a/kernel/printk/printk.c~printk-add-clear_idx-symbol-to-vmcoreinfo
-+++ a/kernel/printk/printk.c
-@@ -367,16 +367,20 @@ static int logbuf_has_space(u32 msg_size
- 
- static int log_make_free_space(u32 msg_size)
- {
--	while (log_first_seq < log_next_seq) {
--		if (logbuf_has_space(msg_size, false))
--			return 0;
-+	while (log_first_seq < log_next_seq &&
-+	       !logbuf_has_space(msg_size, false)) {
- 		/* drop old messages until we have enough contiguous space */
- 		log_first_idx = log_next(log_first_idx);
- 		log_first_seq++;
- 	}
- 
-+	if (clear_seq < log_first_seq) {
-+		clear_seq = log_first_seq;
-+		clear_idx = log_first_idx;
-+	}
-+
- 	/* sequence numbers are equal, so the log buffer is empty */
--	if (logbuf_has_space(msg_size, true))
-+	if (logbuf_has_space(msg_size, log_first_seq == log_next_seq))
+diff -puN mm/filemap.c~mm-use-radix_tree_iter_retry mm/filemap.c
+--- a/mm/filemap.c~mm-use-radix_tree_iter_retry
++++ a/mm/filemap.c
+@@ -1255,7 +1255,6 @@ unsigned find_get_entries(struct address
  		return 0;
  
- 	return -ENOMEM;
-@@ -854,6 +858,7 @@ void log_buf_kexec_setup(void)
- 	VMCOREINFO_SYMBOL(log_buf);
- 	VMCOREINFO_SYMBOL(log_buf_len);
- 	VMCOREINFO_SYMBOL(log_first_idx);
-+	VMCOREINFO_SYMBOL(clear_idx);
- 	VMCOREINFO_SYMBOL(log_next_idx);
- 	/*
- 	 * Export struct printk_log size and field offsets. User space tools can
-@@ -1216,12 +1221,6 @@ static int syslog_print_all(char __user
- 		u32 idx;
- 		enum log_flags prev;
+ 	rcu_read_lock();
+-restart:
+ 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
+ 		struct page *page;
+ repeat:
+@@ -1263,8 +1262,10 @@ repeat:
+ 		if (unlikely(!page))
+ 			continue;
+ 		if (radix_tree_exception(page)) {
+-			if (radix_tree_deref_retry(page))
+-				goto restart;
++			if (radix_tree_deref_retry(page)) {
++				slot = radix_tree_iter_retry(&iter);
++				continue;
++			}
+ 			/*
+ 			 * A shadow entry of a recently evicted page, a swap
+ 			 * entry from shmem/tmpfs or a DAX entry.  Return it
+@@ -1317,7 +1318,6 @@ unsigned find_get_pages(struct address_s
+ 		return 0;
  
--		if (clear_seq < log_first_seq) {
--			/* messages are gone, move to first available one */
--			clear_seq = log_first_seq;
--			clear_idx = log_first_idx;
--		}
+ 	rcu_read_lock();
+-restart:
+ 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
+ 		struct page *page;
+ repeat:
+@@ -1327,13 +1327,8 @@ repeat:
+ 
+ 		if (radix_tree_exception(page)) {
+ 			if (radix_tree_deref_retry(page)) {
+-				/*
+-				 * Transient condition which can only trigger
+-				 * when entry at index 0 moves out of or back
+-				 * to root: none yet gotten, safe to restart.
+-				 */
+-				WARN_ON(iter.index);
+-				goto restart;
++				slot = radix_tree_iter_retry(&iter);
++				continue;
+ 			}
+ 			/*
+ 			 * A shadow entry of a recently evicted page,
+@@ -1384,7 +1379,6 @@ unsigned find_get_pages_contig(struct ad
+ 		return 0;
+ 
+ 	rcu_read_lock();
+-restart:
+ 	radix_tree_for_each_contig(slot, &mapping->page_tree, &iter, index) {
+ 		struct page *page;
+ repeat:
+@@ -1395,12 +1389,8 @@ repeat:
+ 
+ 		if (radix_tree_exception(page)) {
+ 			if (radix_tree_deref_retry(page)) {
+-				/*
+-				 * Transient condition which can only trigger
+-				 * when entry at index 0 moves out of or back
+-				 * to root: none yet gotten, safe to restart.
+-				 */
+-				goto restart;
++				slot = radix_tree_iter_retry(&iter);
++				continue;
+ 			}
+ 			/*
+ 			 * A shadow entry of a recently evicted page,
+@@ -1460,7 +1450,6 @@ unsigned find_get_pages_tag(struct addre
+ 		return 0;
+ 
+ 	rcu_read_lock();
+-restart:
+ 	radix_tree_for_each_tagged(slot, &mapping->page_tree,
+ 				   &iter, *index, tag) {
+ 		struct page *page;
+@@ -1471,12 +1460,8 @@ repeat:
+ 
+ 		if (radix_tree_exception(page)) {
+ 			if (radix_tree_deref_retry(page)) {
+-				/*
+-				 * Transient condition which can only trigger
+-				 * when entry at index 0 moves out of or back
+-				 * to root: none yet gotten, safe to restart.
+-				 */
+-				goto restart;
++				slot = radix_tree_iter_retry(&iter);
++				continue;
+ 			}
+ 			/*
+ 			 * A shadow entry of a recently evicted page.
+@@ -1539,7 +1524,6 @@ unsigned find_get_entries_tag(struct add
+ 		return 0;
+ 
+ 	rcu_read_lock();
+-restart:
+ 	radix_tree_for_each_tagged(slot, &mapping->page_tree,
+ 				   &iter, start, tag) {
+ 		struct page *page;
+@@ -1549,12 +1533,8 @@ repeat:
+ 			continue;
+ 		if (radix_tree_exception(page)) {
+ 			if (radix_tree_deref_retry(page)) {
+-				/*
+-				 * Transient condition which can only trigger
+-				 * when entry at index 0 moves out of or back
+-				 * to root: none yet gotten, safe to restart.
+-				 */
+-				goto restart;
++				slot = radix_tree_iter_retry(&iter);
++				continue;
+ 			}
+ 
+ 			/*
+@@ -2171,10 +2151,11 @@ repeat:
+ 		if (unlikely(!page))
+ 			goto next;
+ 		if (radix_tree_exception(page)) {
+-			if (radix_tree_deref_retry(page))
+-				break;
+-			else
+-				goto next;
++			if (radix_tree_deref_retry(page)) {
++				slot = radix_tree_iter_retry(&iter);
++				continue;
++			}
++			goto next;
+ 		}
+ 
+ 		if (!page_cache_get_speculative(page))
+diff -puN mm/shmem.c~mm-use-radix_tree_iter_retry mm/shmem.c
+--- a/mm/shmem.c~mm-use-radix_tree_iter_retry
++++ a/mm/shmem.c
+@@ -383,13 +383,10 @@ restart:
+ 
+ 		page = radix_tree_deref_slot(slot);
+ 
+-		/*
+-		 * This should only be possible to happen at index 0, so we
+-		 * don't need to reset the counter, nor do we risk infinite
+-		 * restarts.
+-		 */
+-		if (radix_tree_deref_retry(page))
+-			goto restart;
++		if (radix_tree_deref_retry(page)) {
++			slot = radix_tree_iter_retry(&iter);
++			continue;
++		}
+ 
+ 		if (radix_tree_exceptional_entry(page))
+ 			swapped++;
+@@ -1951,8 +1948,10 @@ restart:
+ 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
+ 		page = radix_tree_deref_slot(slot);
+ 		if (!page || radix_tree_exception(page)) {
+-			if (radix_tree_deref_retry(page))
+-				goto restart;
++			if (radix_tree_deref_retry(page)) {
++				slot = radix_tree_iter_retry(&iter);
++				continue;
++			}
+ 		} else if (page_count(page) - page_mapcount(page) > 1) {
+ 			spin_lock_irq(&mapping->tree_lock);
+ 			radix_tree_tag_set(&mapping->page_tree, iter.index,
+@@ -2006,8 +2005,10 @@ restart:
+ 
+ 			page = radix_tree_deref_slot(slot);
+ 			if (radix_tree_exception(page)) {
+-				if (radix_tree_deref_retry(page))
+-					goto restart;
++				if (radix_tree_deref_retry(page)) {
++					slot = radix_tree_iter_retry(&iter);
++					continue;
++				}
+ 
+ 				page = NULL;
+ 			}
+_
+
+Patches currently in -mm which might be from willy@linux.intel.com are
+
+
