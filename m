@@ -1,71 +1,186 @@
 From: akpm@linux-foundation.org
-Subject: [merged] btrfs-use-radix_tree_iter_retry.patch removed from -mm
- tree
-Date: Mon, 21 Mar 2016 11:41:49 -0700
-Message-ID: <56f0406d.r2ZsfXIjeR/B/GGy%akpm@linux-foundation.org>
+Subject: [merged] power-ab8500-convert-to-use-match_string-helper.patch
+ removed from -mm tree
+Date: Mon, 21 Mar 2016 11:42:14 -0700
+Message-ID: <56f04086.Qw4sgO7npHrk28gn%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52795 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52806 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757946AbcCUTVW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:21:22 -0400
+	with ESMTP id S1757778AbcCUTV0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:21:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@linux.intel.com, clm@fb.com, dsterba@suse.com, hughd@google.com, jbacik@fb.com, khlebnikov@openvz.org, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, linus.walleij@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: btrfs: use radix_tree_iter_retry()
+     Subject: power: ab8500: convert to use match_string() helper
 has been removed from the -mm tree.  Its filename was
-     btrfs-use-radix_tree_iter_retry.patch
+     power-ab8500-convert-to-use-match_string-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: btrfs: use radix_tree_iter_retry()
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: power: ab8500: convert to use match_string() helper
 
-Even though this is a 'can't happen' situation, use the new
-radix_tree_iter_retry() pattern to eliminate a goto.
+The new helper returns index of the mathing string in an array.  We would
+use it here.
 
-[akpm@linux-foundation.org: fix btrfs build]
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Konstantin Khlebnikov <khlebnikov@openvz.org>
-Cc: Chris Mason <clm@fb.com>
-Cc: Josef Bacik <jbacik@fb.com>
-Cc: David Sterba <dsterba@suse.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/btrfs/tests/btrfs-tests.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ drivers/power/ab8500_btemp.c    |   15 +++++----------
+ drivers/power/ab8500_charger.c  |   16 +++++-----------
+ drivers/power/ab8500_fg.c       |   15 +++++----------
+ drivers/power/abx500_chargalg.c |   14 +++++---------
+ 4 files changed, 20 insertions(+), 40 deletions(-)
 
-diff -puN fs/btrfs/tests/btrfs-tests.c~btrfs-use-radix_tree_iter_retry fs/btrfs/tests/btrfs-tests.c
---- a/fs/btrfs/tests/btrfs-tests.c~btrfs-use-radix_tree_iter_retry
-+++ a/fs/btrfs/tests/btrfs-tests.c
-@@ -137,7 +137,6 @@ static void btrfs_free_dummy_fs_info(str
- 	void **slot;
+diff -puN drivers/power/ab8500_btemp.c~power-ab8500-convert-to-use-match_string-helper drivers/power/ab8500_btemp.c
+--- a/drivers/power/ab8500_btemp.c~power-ab8500-convert-to-use-match_string-helper
++++ a/drivers/power/ab8500_btemp.c
+@@ -906,26 +906,21 @@ static int ab8500_btemp_get_property(str
+ static int ab8500_btemp_get_ext_psy_data(struct device *dev, void *data)
+ {
+ 	struct power_supply *psy;
+-	struct power_supply *ext;
++	struct power_supply *ext = dev_get_drvdata(dev);
++	const char **supplicants = (const char **)ext->supplied_to;
+ 	struct ab8500_btemp *di;
+ 	union power_supply_propval ret;
+-	int i, j;
+-	bool psy_found = false;
++	int j;
  
- 	spin_lock(&fs_info->buffer_lock);
--restart:
- 	radix_tree_for_each_slot(slot, &fs_info->buffer_radix, &iter, 0) {
- 		struct extent_buffer *eb;
+ 	psy = (struct power_supply *)data;
+-	ext = dev_get_drvdata(dev);
+ 	di = power_supply_get_drvdata(psy);
  
-@@ -147,7 +146,7 @@ restart:
- 		/* Shouldn't happen but that kind of thinking creates CVE's */
- 		if (radix_tree_exception(eb)) {
- 			if (radix_tree_deref_retry(eb))
--				goto restart;
-+				slot = radix_tree_iter_retry(&iter);
- 			continue;
- 		}
- 		spin_unlock(&fs_info->buffer_lock);
+ 	/*
+ 	 * For all psy where the name of your driver
+ 	 * appears in any supplied_to
+ 	 */
+-	for (i = 0; i < ext->num_supplicants; i++) {
+-		if (!strcmp(ext->supplied_to[i], psy->desc->name))
+-			psy_found = true;
+-	}
+-
+-	if (!psy_found)
++	j = match_string(supplicants, ext->num_supplicants, psy->desc->name);
++	if (j < 0)
+ 		return 0;
+ 
+ 	/* Go through all properties for the psy */
+diff -puN drivers/power/ab8500_charger.c~power-ab8500-convert-to-use-match_string-helper drivers/power/ab8500_charger.c
+--- a/drivers/power/ab8500_charger.c~power-ab8500-convert-to-use-match_string-helper
++++ a/drivers/power/ab8500_charger.c
+@@ -1929,11 +1929,11 @@ static int ab8540_charger_usb_pre_chg_en
+ static int ab8500_charger_get_ext_psy_data(struct device *dev, void *data)
+ {
+ 	struct power_supply *psy;
+-	struct power_supply *ext;
++	struct power_supply *ext = dev_get_drvdata(dev);
++	const char **supplicants = (const char **)ext->supplied_to;
+ 	struct ab8500_charger *di;
+ 	union power_supply_propval ret;
+-	int i, j;
+-	bool psy_found = false;
++	int j;
+ 	struct ux500_charger *usb_chg;
+ 
+ 	usb_chg = (struct ux500_charger *)data;
+@@ -1941,15 +1941,9 @@ static int ab8500_charger_get_ext_psy_da
+ 
+ 	di = to_ab8500_charger_usb_device_info(usb_chg);
+ 
+-	ext = dev_get_drvdata(dev);
+-
+ 	/* For all psy where the driver name appears in any supplied_to */
+-	for (i = 0; i < ext->num_supplicants; i++) {
+-		if (!strcmp(ext->supplied_to[i], psy->desc->name))
+-			psy_found = true;
+-	}
+-
+-	if (!psy_found)
++	j = match_string(supplicants, ext->num_supplicants, psy->desc->name);
++	if (j < 0)
+ 		return 0;
+ 
+ 	/* Go through all properties for the psy */
+diff -puN drivers/power/ab8500_fg.c~power-ab8500-convert-to-use-match_string-helper drivers/power/ab8500_fg.c
+--- a/drivers/power/ab8500_fg.c~power-ab8500-convert-to-use-match_string-helper
++++ a/drivers/power/ab8500_fg.c
+@@ -2168,26 +2168,21 @@ static int ab8500_fg_get_property(struct
+ static int ab8500_fg_get_ext_psy_data(struct device *dev, void *data)
+ {
+ 	struct power_supply *psy;
+-	struct power_supply *ext;
++	struct power_supply *ext = dev_get_drvdata(dev);
++	const char **supplicants = (const char **)ext->supplied_to;
+ 	struct ab8500_fg *di;
+ 	union power_supply_propval ret;
+-	int i, j;
+-	bool psy_found = false;
++	int j;
+ 
+ 	psy = (struct power_supply *)data;
+-	ext = dev_get_drvdata(dev);
+ 	di = power_supply_get_drvdata(psy);
+ 
+ 	/*
+ 	 * For all psy where the name of your driver
+ 	 * appears in any supplied_to
+ 	 */
+-	for (i = 0; i < ext->num_supplicants; i++) {
+-		if (!strcmp(ext->supplied_to[i], psy->desc->name))
+-			psy_found = true;
+-	}
+-
+-	if (!psy_found)
++	j = match_string(supplicants, ext->num_supplicants, psy->desc->name);
++	if (j < 0)
+ 		return 0;
+ 
+ 	/* Go through all properties for the psy */
+diff -puN drivers/power/abx500_chargalg.c~power-ab8500-convert-to-use-match_string-helper drivers/power/abx500_chargalg.c
+--- a/drivers/power/abx500_chargalg.c~power-ab8500-convert-to-use-match_string-helper
++++ a/drivers/power/abx500_chargalg.c
+@@ -975,22 +975,18 @@ static void handle_maxim_chg_curr(struct
+ static int abx500_chargalg_get_ext_psy_data(struct device *dev, void *data)
+ {
+ 	struct power_supply *psy;
+-	struct power_supply *ext;
++	struct power_supply *ext = dev_get_drvdata(dev);
++	const char **supplicants = (const char **)ext->supplied_to;
+ 	struct abx500_chargalg *di;
+ 	union power_supply_propval ret;
+-	int i, j;
+-	bool psy_found = false;
++	int j;
+ 	bool capacity_updated = false;
+ 
+ 	psy = (struct power_supply *)data;
+-	ext = dev_get_drvdata(dev);
+ 	di = power_supply_get_drvdata(psy);
+ 	/* For all psy where the driver name appears in any supplied_to */
+-	for (i = 0; i < ext->num_supplicants; i++) {
+-		if (!strcmp(ext->supplied_to[i], psy->desc->name))
+-			psy_found = true;
+-	}
+-	if (!psy_found)
++	j = match_string(supplicants, ext->num_supplicants, psy->desc->name);
++	if (j < 0)
+ 		return 0;
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from willy@linux.intel.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
 
