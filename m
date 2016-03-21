@@ -1,57 +1,64 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-kconfig-remove-redundant-arch-depend-for-memory-hotplug.patch removed
+Subject: [merged] mmoom-make-oom_killer_disable-killable.patch removed
  from -mm tree
-Date: Mon, 21 Mar 2016 11:39:15 -0700
-Message-ID: <56f03fd3.xjFodRQsQGICalrC%akpm@linux-foundation.org>
+Date: Mon, 21 Mar 2016 11:40:43 -0700
+Message-ID: <56f0402b.iHaa9PLn/pshdRvS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53459 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53456 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932545AbcCUT4g (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:36 -0400
+	with ESMTP id S932297AbcCUT4e (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: yang.shi@linaro.org, mm-commits@vger.kernel.org
+To: penguin-kernel@I-love.SAKURA.ne.jp, mhocko@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/Kconfig: remove redundant arch depend for memory hotplug
+     Subject: mm,oom: make oom_killer_disable() killable
 has been removed from the -mm tree.  Its filename was
-     mm-kconfig-remove-redundant-arch-depend-for-memory-hotplug.patch
+     mmoom-make-oom_killer_disable-killable.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Yang Shi <yang.shi@linaro.org>
-Subject: mm/Kconfig: remove redundant arch depend for memory hotplug
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: mm,oom: make oom_killer_disable() killable
 
-MEMORY_HOTPLUG already depends on ARCH_ENABLE_MEMORY_HOTPLUG which is selected
-by the supported architectures, so the following arch depend is unnecessary.
+While oom_killer_disable() is called by freeze_processes() after all user
+threads except the current thread are frozen, it is possible that kernel
+threads invoke the OOM killer and sends SIGKILL to the current thread due
+to sharing the thawed victim's memory.  Therefore, checking for SIGKILL is
+preferable than TIF_MEMDIE.
 
-Signed-off-by: Yang Shi <yang.shi@linaro.org>
+Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/Kconfig |    1 -
- 1 file changed, 1 deletion(-)
+ mm/oom_kill.c |   10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff -puN mm/Kconfig~mm-kconfig-remove-redundant-arch-depend-for-memory-hotplug mm/Kconfig
---- a/mm/Kconfig~mm-kconfig-remove-redundant-arch-depend-for-memory-hotplug
-+++ a/mm/Kconfig
-@@ -187,7 +187,6 @@ config MEMORY_HOTPLUG
- 	bool "Allow for memory hot-add"
- 	depends on SPARSEMEM || X86_64_ACPI_NUMA
- 	depends on ARCH_ENABLE_MEMORY_HOTPLUG
--	depends on (IA64 || X86 || PPC_BOOK3S_64 || SUPERH || S390)
- 
- config MEMORY_HOTPLUG_SPARSE
- 	def_bool y
-_
-
-Patches currently in -mm which might be from yang.shi@linaro.org are
-
-
+diff -puN mm/oom_kill.c~mmoom-make-oom_killer_disable-killable mm/oom_kill.c
+--- a/mm/oom_kill.c~mmoom-make-oom_killer_disable-killable
++++ a/mm/oom_kill.c
+@@ -455,15 +455,11 @@ void exit_oom_victim(void)
+ bool oom_killer_disable(void)
+ {
+ 	/*
+-	 * Make sure to not race with an ongoing OOM killer
+-	 * and that the current is not the victim.
++	 * Make sure to not race with an ongoing OOM killer. Check that the
++	 * current is not killed (possibly due to sharing the victim's memory).
+ 	 */
+-	mutex_lock(&oom_lock);
+-	if (test_thread_flag(TIF_MEMDIE)) {
+-		mutex_unlock(&oom_lock);
++	if (mutex_lock_killable(&oom_lock))
+ 		return false;
+-	}
