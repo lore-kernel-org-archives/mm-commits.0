@@ -1,68 +1,86 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mmoom-do-not-loop-__gfp_fs-allocation-if-the-oom-killer-is-disabled.patch
- removed from -mm tree
-Date: Mon, 21 Mar 2016 11:40:45 -0700
-Message-ID: <56f0402d.G5AkRuyo5LKhjnEB%akpm@linux-foundation.org>
+ tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-==-1.patch removed from -mm tree
+Date: Mon, 21 Mar 2016 11:40:20 -0700
+Message-ID: <56f04014.Cy1cgl85SmRsG/Ox%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53449 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53466 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932436AbcCUT40 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:26 -0400
+	with ESMTP id S1757713AbcCUT4W (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, hannes@cmpxchg.org, mhocko@suse.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, koct9i@gmail.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm,oom: do not loop !__GFP_FS allocation if the OOM killer is disabled
+     Subject: tools/vm/page-types.c: avoid memset() in walk_pfn() when count == 1
 has been removed from the -mm tree.  Its filename was
-     mmoom-do-not-loop-__gfp_fs-allocation-if-the-oom-killer-is-disabled.patch
+     tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-==-1.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: mm,oom: do not loop !__GFP_FS allocation if the OOM killer is disabled
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: tools/vm/page-types.c: avoid memset() in walk_pfn() when count == 1
 
-After the OOM killer is disabled during suspend operation, any
-!__GFP_NOFAIL && __GFP_FS allocations are forced to fail.  Thus, any
-!__GFP_NOFAIL && !__GFP_FS allocations should be forced to fail as well.
+I found that page-types is very slow and my testing shows many timeout
+errors.  Here's an example with a simple program allocating 1000 thps.
 
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Acked-by: David Rientjes <rientjes@google.com>
+  $ time ./page-types -p $(pgrep -f test_alloc)
+  ...
+  real    0m17.201s
+  user    0m16.889s
+  sys     0m0.312s
+
+Most of time is spent in memset().  Currently memset() clears over whole
+buffer for every walk_pfn() call, which is inefficient when walk_pfn() is
+called from walk_vma(), because in that case walk_pfn() is called for each
+pfn.  So this patch limits the zero initialization only for the first
+element.
+
+  $ time ./page-types.patched -p $(pgrep -f test_alloc)
+  ...
+  real    0m0.182s
+  user    0m0.046s
+  sys     0m0.135s
+
+Fixes: 954e95584579 ("tools/vm/page-types.c: add memory cgroup dumping and filtering")
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Suggested-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ tools/vm/page-types.c |   10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mmoom-do-not-loop-__gfp_fs-allocation-if-the-oom-killer-is-disabled mm/page_alloc.c
---- a/mm/page_alloc.c~mmoom-do-not-loop-__gfp_fs-allocation-if-the-oom-killer-is-disabled
-+++ a/mm/page_alloc.c
-@@ -2858,8 +2858,12 @@ __alloc_pages_may_oom(gfp_t gfp_mask, un
- 			 * XXX: Page reclaim didn't yield anything,
- 			 * and the OOM killer can't be invoked, but
- 			 * keep looping as per tradition.
-+			 *
-+			 * But do not keep looping if oom_killer_disable()
-+			 * was already called, for the system is trying to
-+			 * enter a quiescent state during suspend.
- 			 */
--			*did_some_progress = 1;
-+			*did_some_progress = !oom_killer_disabled;
- 			goto out;
- 		}
- 		if (pm_suspended_storage())
+diff -puN tools/vm/page-types.c~tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-==-1 tools/vm/page-types.c
+--- a/tools/vm/page-types.c~tools-vm-page-typesc-avoid-memset-in-walk_pfn-when-count-==-1
++++ a/tools/vm/page-types.c
+@@ -633,7 +633,15 @@ static void walk_pfn(unsigned long voffs
+ 	unsigned long pages;
+ 	unsigned long i;
+ 
+-	memset(cgi, 0, sizeof cgi);
++	/*
++	 * kpagecgroup_read() reads only if kpagecgroup were opened, but
++	 * /proc/kpagecgroup might even not exist, so it's better to fill
++	 * them with zeros here.
++	 */
++	if (count == 1)
++		cgi[0] = 0;
++	else
++		memset(cgi, 0, sizeof cgi);
+ 
+ 	while (count) {
+ 		batch = min_t(unsigned long, count, KPAGEFLAGS_BATCH);
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-kernel-hung_taskc-use-timeout-diff-when-timeout-is-updated.patch
 
