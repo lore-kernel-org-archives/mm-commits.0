@@ -1,129 +1,183 @@
 From: akpm@linux-foundation.org
-Subject: [merged] tools-vm-page-typesc-support-swap-entry.patch removed
+Subject: [merged] proc-add-proc-pid-timerslack_ns-interface.patch removed
  from -mm tree
-Date: Mon, 21 Mar 2016 11:38:11 -0700
-Message-ID: <56f03f93.tHC5UxjAGv2OUH/4%akpm@linux-foundation.org>
+Date: Mon, 21 Mar 2016 11:40:51 -0700
+Message-ID: <56f04033.JtzUtN6sEI96v5tz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53451 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53448 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757587AbcCUT4T (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:19 -0400
+	with ESMTP id S932367AbcCUT4V (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: n-horiguchi@ah.jp.nec.com, koct9i@gmail.com, vdavydov@parallels.com, mm-commits@vger.kernel.org
+To: john.stultz@linaro.org, arjan@linux.intel.com, kandoiruchi@google.com, keescook@chromium.org, kernel-team@android.com, orenl@cellrox.com, romlem@android.com, tglx@linutronix.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tools/vm/page-types.c: support swap entry
+     Subject: proc: add /proc/<pid>/timerslack_ns interface
 has been removed from the -mm tree.  Its filename was
-     tools-vm-page-typesc-support-swap-entry.patch
+     proc-add-proc-pid-timerslack_ns-interface.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Subject: tools/vm/page-types.c: support swap entry
+From: John Stultz <john.stultz@linaro.org>
+Subject: proc: add /proc/<pid>/timerslack_ns interface
 
-/proc/pid/pagemap (pte_to_pagemap_entry() internally) already reports
-about swap entry, so let's make the in-kernel utility aware of it.
+This patch provides a proc/PID/timerslack_ns interface which exposes a
+task's timerslack value in nanoseconds and allows it to be changed.
 
-Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Vladimir Davydov <vdavydov@parallels.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+This allows power/performance management software to set timer slack for
+other threads according to its policy for the thread (such as when the
+thread is designated foreground vs.  background activity)
+
+If the value written is non-zero, slack is set to that value.  Otherwise
+sets it to the default for the thread.
+
+This interface checks that the calling task has permissions to to use
+PTRACE_MODE_ATTACH_FSCREDS on the target task, so that we can ensure
+arbitrary apps do not change the timer slack for other apps.
+
+Signed-off-by: John Stultz <john.stultz@linaro.org>
+Acked-by: Kees Cook <keescook@chromium.org>
+Cc: Arjan van de Ven <arjan@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Oren Laadan <orenl@cellrox.com>
+Cc: Ruchi Kandoi <kandoiruchi@google.com>
+Cc: Rom Lemarchand <romlem@android.com>
+Cc: Android Kernel Team <kernel-team@android.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- tools/vm/page-types.c |   30 +++++++++++++++++++++++++++++-
- 1 file changed, 29 insertions(+), 1 deletion(-)
+ Documentation/filesystems/proc.txt |   18 +++++++
+ fs/proc/base.c                     |   67 +++++++++++++++++++++++++++
+ 2 files changed, 85 insertions(+)
 
-diff -puN tools/vm/page-types.c~tools-vm-page-typesc-support-swap-entry tools/vm/page-types.c
---- a/tools/vm/page-types.c~tools-vm-page-typesc-support-swap-entry
-+++ a/tools/vm/page-types.c
-@@ -61,6 +61,8 @@
- #define PM_PFRAME_BITS		55
- #define PM_PFRAME_MASK		((1LL << PM_PFRAME_BITS) - 1)
- #define PM_PFRAME(x)		((x) & PM_PFRAME_MASK)
-+#define MAX_SWAPFILES_SHIFT	5
-+#define PM_SWAP_OFFSET(x)	(((x) & PM_PFRAME_MASK) >> MAX_SWAPFILES_SHIFT)
- #define PM_SOFT_DIRTY		(1ULL << 55)
- #define PM_MMAP_EXCLUSIVE	(1ULL << 56)
- #define PM_FILE			(1ULL << 61)
-@@ -92,7 +94,8 @@
- #define KPF_SLOB_FREE		49
- #define KPF_SLUB_FROZEN		50
- #define KPF_SLUB_DEBUG		51
--#define KPF_FILE		62
-+#define KPF_FILE		61
-+#define KPF_SWAP		62
- #define KPF_MMAP_EXCLUSIVE	63
+diff -puN Documentation/filesystems/proc.txt~proc-add-proc-pid-timerslack_ns-interface Documentation/filesystems/proc.txt
+--- a/Documentation/filesystems/proc.txt~proc-add-proc-pid-timerslack_ns-interface
++++ a/Documentation/filesystems/proc.txt
+@@ -43,6 +43,7 @@ Table of Contents
+   3.7   /proc/<pid>/task/<tid>/children - Information about task children
+   3.8   /proc/<pid>/fdinfo/<fd> - Information about opened file
+   3.9   /proc/<pid>/map_files - Information about memory mapped files
++  3.10  /proc/<pid>/timerslack_ns - Task timerslack value
  
- #define KPF_ALL_BITS		((uint64_t)~0ULL)
-@@ -146,6 +149,7 @@ static const char * const page_flag_name
- 	[KPF_SLUB_DEBUG]	= "E:slub_debug",
+   4	Configuring procfs
+   4.1	Mount options
+@@ -1862,6 +1863,23 @@ time one can open(2) mappings from the l
+ comparing their inode numbers to figure out which anonymous memory areas
+ are actually shared.
  
- 	[KPF_FILE]		= "F:file",
-+	[KPF_SWAP]		= "w:swap",
- 	[KPF_MMAP_EXCLUSIVE]	= "1:mmap_exclusive",
++3.10	/proc/<pid>/timerslack_ns - Task timerslack value
++---------------------------------------------------------
++This file provides the value of the task's timerslack value in nanoseconds.
++This value specifies a amount of time that normal timers may be deferred
++in order to coalesce timers and avoid unnecessary wakeups.
++
++This allows a task's interactivity vs power consumption trade off to be
++adjusted.
++
++Writing 0 to the file will set the tasks timerslack to the default value.
++
++Valid values are from 0 - ULLONG_MAX
++
++An application setting the value must have PTRACE_MODE_ATTACH_FSCREDS level
++permissions on the task specified to change its timerslack_ns value.
++
++
+ ------------------------------------------------------------------------------
+ Configuring procfs
+ ------------------------------------------------------------------------------
+diff -puN fs/proc/base.c~proc-add-proc-pid-timerslack_ns-interface fs/proc/base.c
+--- a/fs/proc/base.c~proc-add-proc-pid-timerslack_ns-interface
++++ a/fs/proc/base.c
+@@ -2257,6 +2257,72 @@ static const struct file_operations proc
+ 	.release	= seq_release_private,
  };
  
-@@ -297,6 +301,10 @@ static unsigned long pagemap_pfn(uint64_
- 	return pfn;
- }
- 
-+static unsigned long pagemap_swap_offset(uint64_t val)
++static ssize_t timerslack_ns_write(struct file *file, const char __user *buf,
++					size_t count, loff_t *offset)
 +{
-+	return val & PM_SWAP ? PM_SWAP_OFFSET(val) : 0;
-+}
- 
- /*
-  * page flag names
-@@ -452,6 +460,8 @@ static uint64_t expand_overloaded_flags(
- 		flags |= BIT(SOFTDIRTY);
- 	if (pme & PM_FILE)
- 		flags |= BIT(FILE);
-+	if (pme & PM_SWAP)
-+		flags |= BIT(SWAP);
- 	if (pme & PM_MMAP_EXCLUSIVE)
- 		flags |= BIT(MMAP_EXCLUSIVE);
- 
-@@ -613,6 +623,22 @@ static void walk_pfn(unsigned long voffs
- 	}
- }
- 
-+static void walk_swap(unsigned long voffset, uint64_t pme)
-+{
-+	uint64_t flags = kpageflags_flags(0, pme);
++	struct inode *inode = file_inode(file);
++	struct task_struct *p;
++	u64 slack_ns;
++	int err;
 +
-+	if (!bit_mask_ok(flags))
-+		return;
++	err = kstrtoull_from_user(buf, count, 10, &slack_ns);
++	if (err < 0)
++		return err;
 +
-+	if (opt_list == 1)
-+		show_page_range(voffset, pagemap_swap_offset(pme), 1, flags);
-+	else if (opt_list == 2)
-+		show_page(voffset, pagemap_swap_offset(pme), flags);
++	p = get_proc_task(inode);
++	if (!p)
++		return -ESRCH;
 +
-+	nr_pages[hash_slot(flags)]++;
-+	total_pages++;
++	if (ptrace_may_access(p, PTRACE_MODE_ATTACH_FSCREDS)) {
++		task_lock(p);
++		if (slack_ns == 0)
++			p->timer_slack_ns = p->default_timer_slack_ns;
++		else
++			p->timer_slack_ns = slack_ns;
++		task_unlock(p);
++	} else
++		count = -EPERM;
++
++	put_task_struct(p);
++
++	return count;
 +}
 +
- #define PAGEMAP_BATCH	(64 << 10)
- static void walk_vma(unsigned long index, unsigned long count)
++static int timerslack_ns_show(struct seq_file *m, void *v)
++{
++	struct inode *inode = m->private;
++	struct task_struct *p;
++	int err =  0;
++
++	p = get_proc_task(inode);
++	if (!p)
++		return -ESRCH;
++
++	if (ptrace_may_access(p, PTRACE_MODE_ATTACH_FSCREDS)) {
++		task_lock(p);
++		seq_printf(m, "%llu\n", p->timer_slack_ns);
++		task_unlock(p);
++	} else
++		err = -EPERM;
++
++	put_task_struct(p);
++
++	return err;
++}
++
++static int timerslack_ns_open(struct inode *inode, struct file *filp)
++{
++	return single_open(filp, timerslack_ns_show, inode);
++}
++
++static const struct file_operations proc_pid_set_timerslack_ns_operations = {
++	.open		= timerslack_ns_open,
++	.read		= seq_read,
++	.write		= timerslack_ns_write,
++	.llseek		= seq_lseek,
++	.release	= single_release,
++};
++
+ static int proc_pident_instantiate(struct inode *dir,
+ 	struct dentry *dentry, struct task_struct *task, const void *ptr)
  {
-@@ -632,6 +658,8 @@ static void walk_vma(unsigned long index
- 			pfn = pagemap_pfn(buf[i]);
- 			if (pfn)
- 				walk_pfn(index + i, pfn, 1, buf[i]);
-+			if (buf[i] & PM_SWAP)
-+				walk_swap(index + i, buf[i]);
- 		}
+@@ -2831,6 +2897,7 @@ static const struct pid_entry tgid_base_
+ #ifdef CONFIG_CHECKPOINT_RESTORE
+ 	REG("timers",	  S_IRUGO, proc_timers_operations),
+ #endif
++	REG("timerslack_ns", S_IRUGO|S_IWUGO, proc_pid_set_timerslack_ns_operations),
+ };
  
- 		index += pages;
+ static int proc_tgid_base_readdir(struct file *file, struct dir_context *ctx)
 _
 
-Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
+Patches currently in -mm which might be from john.stultz@linaro.org are
 
 
