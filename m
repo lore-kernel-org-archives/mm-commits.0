@@ -1,91 +1,129 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-remove-__gfp_nofail-is-deprecated-comment.patch
- removed from -mm tree
-Date: Mon, 21 Mar 2016 11:39:41 -0700
-Message-ID: <56f03fed.7vDx1FDCs9qDZ00j%akpm@linux-foundation.org>
+Subject: [merged] tools-vm-page-typesc-support-swap-entry.patch removed
+ from -mm tree
+Date: Mon, 21 Mar 2016 11:38:11 -0700
+Message-ID: <56f03f93.tHC5UxjAGv2OUH/4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53463 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53451 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932238AbcCUT4U (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:20 -0400
+	with ESMTP id S1757587AbcCUT4T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, kernel@kyup.com, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, koct9i@gmail.com, vdavydov@parallels.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove __GFP_NOFAIL is deprecated comment
+     Subject: tools/vm/page-types.c: support swap entry
 has been removed from the -mm tree.  Its filename was
-     mm-remove-__gfp_nofail-is-deprecated-comment.patch
+     tools-vm-page-typesc-support-swap-entry.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm: remove __GFP_NOFAIL is deprecated comment
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: tools/vm/page-types.c: support swap entry
 
-647757197cd3 ("mm: clarify __GFP_NOFAIL deprecation status") was
-incomplete and didn't remove the comment about __GFP_NOFAIL being
-deprecated in buffered_rmqueue.  Let's get rid of this leftover but keep
-the WARN_ON_ONCE for order > 1 because we should really discourage from
-using __GFP_NOFAIL with higher order allocations because those are just
-too subtle.
+/proc/pid/pagemap (pte_to_pagemap_entry() internally) already reports
+about swap entry, so let's make the in-kernel utility aware of it.
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Reviewed-by: Nikolay Borisov <kernel@kyup.com>
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Vladimir Davydov <vdavydov@parallels.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   18 +++++-------------
- 1 file changed, 5 insertions(+), 13 deletions(-)
+ tools/vm/page-types.c |   30 +++++++++++++++++++++++++++++-
+ 1 file changed, 29 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-remove-__gfp_nofail-is-deprecated-comment mm/page_alloc.c
---- a/mm/page_alloc.c~mm-remove-__gfp_nofail-is-deprecated-comment
-+++ a/mm/page_alloc.c
-@@ -2350,19 +2350,11 @@ struct page *buffered_rmqueue(struct zon
- 		list_del(&page->lru);
- 		pcp->count--;
- 	} else {
--		if (unlikely(gfp_flags & __GFP_NOFAIL)) {
--			/*
--			 * __GFP_NOFAIL is not to be used in new code.
--			 *
--			 * All __GFP_NOFAIL callers should be fixed so that they
--			 * properly detect and handle allocation failures.
--			 *
--			 * We most definitely don't want callers attempting to
--			 * allocate greater than order-1 page units with
--			 * __GFP_NOFAIL.
--			 */
--			WARN_ON_ONCE(order > 1);
--		}
-+		/*
-+		 * We most definitely don't want callers attempting to
-+		 * allocate greater than order-1 page units with __GFP_NOFAIL.
-+		 */
-+		WARN_ON_ONCE((gfp_flags & __GFP_NOFAIL) && (order > 1));
- 		spin_lock_irqsave(&zone->lock, flags);
+diff -puN tools/vm/page-types.c~tools-vm-page-typesc-support-swap-entry tools/vm/page-types.c
+--- a/tools/vm/page-types.c~tools-vm-page-typesc-support-swap-entry
++++ a/tools/vm/page-types.c
+@@ -61,6 +61,8 @@
+ #define PM_PFRAME_BITS		55
+ #define PM_PFRAME_MASK		((1LL << PM_PFRAME_BITS) - 1)
+ #define PM_PFRAME(x)		((x) & PM_PFRAME_MASK)
++#define MAX_SWAPFILES_SHIFT	5
++#define PM_SWAP_OFFSET(x)	(((x) & PM_PFRAME_MASK) >> MAX_SWAPFILES_SHIFT)
+ #define PM_SOFT_DIRTY		(1ULL << 55)
+ #define PM_MMAP_EXCLUSIVE	(1ULL << 56)
+ #define PM_FILE			(1ULL << 61)
+@@ -92,7 +94,8 @@
+ #define KPF_SLOB_FREE		49
+ #define KPF_SLUB_FROZEN		50
+ #define KPF_SLUB_DEBUG		51
+-#define KPF_FILE		62
++#define KPF_FILE		61
++#define KPF_SWAP		62
+ #define KPF_MMAP_EXCLUSIVE	63
  
- 		page = NULL;
+ #define KPF_ALL_BITS		((uint64_t)~0ULL)
+@@ -146,6 +149,7 @@ static const char * const page_flag_name
+ 	[KPF_SLUB_DEBUG]	= "E:slub_debug",
+ 
+ 	[KPF_FILE]		= "F:file",
++	[KPF_SWAP]		= "w:swap",
+ 	[KPF_MMAP_EXCLUSIVE]	= "1:mmap_exclusive",
+ };
+ 
+@@ -297,6 +301,10 @@ static unsigned long pagemap_pfn(uint64_
+ 	return pfn;
+ }
+ 
++static unsigned long pagemap_swap_offset(uint64_t val)
++{
++	return val & PM_SWAP ? PM_SWAP_OFFSET(val) : 0;
++}
+ 
+ /*
+  * page flag names
+@@ -452,6 +460,8 @@ static uint64_t expand_overloaded_flags(
+ 		flags |= BIT(SOFTDIRTY);
+ 	if (pme & PM_FILE)
+ 		flags |= BIT(FILE);
++	if (pme & PM_SWAP)
++		flags |= BIT(SWAP);
+ 	if (pme & PM_MMAP_EXCLUSIVE)
+ 		flags |= BIT(MMAP_EXCLUSIVE);
+ 
+@@ -613,6 +623,22 @@ static void walk_pfn(unsigned long voffs
+ 	}
+ }
+ 
++static void walk_swap(unsigned long voffset, uint64_t pme)
++{
++	uint64_t flags = kpageflags_flags(0, pme);
++
++	if (!bit_mask_ok(flags))
++		return;
++
++	if (opt_list == 1)
++		show_page_range(voffset, pagemap_swap_offset(pme), 1, flags);
++	else if (opt_list == 2)
++		show_page(voffset, pagemap_swap_offset(pme), flags);
++
++	nr_pages[hash_slot(flags)]++;
++	total_pages++;
++}
++
+ #define PAGEMAP_BATCH	(64 << 10)
+ static void walk_vma(unsigned long index, unsigned long count)
+ {
+@@ -632,6 +658,8 @@ static void walk_vma(unsigned long index
+ 			pfn = pagemap_pfn(buf[i]);
+ 			if (pfn)
+ 				walk_pfn(index + i, pfn, 1, buf[i]);
++			if (buf[i] & PM_SWAP)
++				walk_swap(index + i, buf[i]);
+ 		}
+ 
+ 		index += pages;
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
-mm-oom-introduce-oom-reaper.patch
-oom-reaper-handle-mlocked-pages.patch
-oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
-oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space-fix-2.patch
-mm-oom_reaper-report-success-failure.patch
-mm-oom_reaper-report-success-failure-fix-2.patch
-mm-oom_reaper-report-success-failure-fix-fix.patch
-mm-oom_reaper-implement-oom-victims-queuing.patch
-oom-make-oom_reaper-freezable.patch
-oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
 
