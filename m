@@ -1,134 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] radix-treeshmem-introduce-radix_tree_iter_next.patch
- removed from -mm tree
-Date: Mon, 21 Mar 2016 11:41:55 -0700
-Message-ID: <56f04073.07T9aS6FMRudSlLF%akpm@linux-foundation.org>
+Subject: [merged] lib-add-on-off-support-to-kstrtobool.patch removed from
+ -mm tree
+Date: Mon, 21 Mar 2016 11:42:36 -0700
+Message-ID: <56f0409c.xDWhu9fRFC7UOC49%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52803 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52792 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757509AbcCUTVV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:21:21 -0400
+	with ESMTP id S1757934AbcCUTVX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:21:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@linux.intel.com, hughd@google.com, koct9i@gmail.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, akarwar@marvell.com, andy.shevchenko@gmail.com, daniel@iogearbox.net, heiko.carstens@de.ibm.com, joe@perches.com, kvalo@codeaurora.org, linux@rasmusvillemoes.dk, mpe@ellerman.id.au, nishants@marvell.com, schwidefsky@de.ibm.com, sfrench@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix-tree,shmem: introduce radix_tree_iter_next()
+     Subject: lib: add "on"/"off" support to kstrtobool
 has been removed from the -mm tree.  Its filename was
-     radix-treeshmem-introduce-radix_tree_iter_next.patch
+     lib-add-on-off-support-to-kstrtobool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix-tree,shmem: introduce radix_tree_iter_next()
+From: Kees Cook <keescook@chromium.org>
+Subject: lib: add "on"/"off" support to kstrtobool
 
-shmem likes to occasionally drop the lock, schedule, then reacqire the
-lock and continue with the iteration from the last place it left off. 
-This is currently done with a pretty ugly goto.  Introduce
-radix_tree_iter_next() and use it throughout shmem.c.
+Add support for "on" and "off" when converting to boolean.
 
-[koct9i@gmail.com: fix bug in radix_tree_iter_next() for tagged iteration]
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Amitkumar Karwar <akarwar@marvell.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Kalle Valo <kvalo@codeaurora.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Nishant Sarmukadam <nishants@marvell.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Steve French <sfrench@samba.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |   16 ++++++++++++++++
- mm/shmem.c                 |   12 +++---------
- 2 files changed, 19 insertions(+), 9 deletions(-)
+ lib/kstrtox.c |   20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix-treeshmem-introduce-radix_tree_iter_next include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix-treeshmem-introduce-radix_tree_iter_next
-+++ a/include/linux/radix-tree.h
-@@ -403,6 +403,22 @@ void **radix_tree_iter_retry(struct radi
- }
- 
- /**
-+ * radix_tree_iter_next - resume iterating when the chunk may be invalid
-+ * @iter:	iterator state
-+ *
-+ * If the iterator needs to release then reacquire a lock, the chunk may
-+ * have been invalidated by an insertion or deletion.  Call this function
-+ * to continue the iteration from the next index.
-+ */
-+static inline __must_check
-+void **radix_tree_iter_next(struct radix_tree_iter *iter)
-+{
-+	iter->next_index = iter->index + 1;
-+	iter->tags = 0;
-+	return NULL;
-+}
-+
-+/**
-  * radix_tree_chunk_size - get current chunk size
+diff -puN lib/kstrtox.c~lib-add-on-off-support-to-kstrtobool lib/kstrtox.c
+--- a/lib/kstrtox.c~lib-add-on-off-support-to-kstrtobool
++++ a/lib/kstrtox.c
+@@ -326,9 +326,9 @@ EXPORT_SYMBOL(kstrtos8);
+  * @s: input string
+  * @res: result
   *
-  * @iter:	pointer to radix tree iterator
-diff -puN mm/shmem.c~radix-treeshmem-introduce-radix_tree_iter_next mm/shmem.c
---- a/mm/shmem.c~radix-treeshmem-introduce-radix_tree_iter_next
-+++ a/mm/shmem.c
-@@ -376,7 +376,6 @@ unsigned long shmem_partial_swap_usage(s
- 
- 	rcu_read_lock();
- 
--restart:
- 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
- 		if (iter.index >= end)
- 			break;
-@@ -393,8 +392,7 @@ restart:
- 
- 		if (need_resched()) {
- 			cond_resched_rcu();
--			start = iter.index + 1;
--			goto restart;
-+			slot = radix_tree_iter_next(&iter);
- 		}
+- * This routine returns 0 iff the first character is one of 'Yy1Nn0'.
+- * Otherwise it will return -EINVAL.  Value pointed to by res is
+- * updated upon finding a match.
++ * This routine returns 0 iff the first character is one of 'Yy1Nn0', or
++ * [oO][NnFf] for "on" and "off". Otherwise it will return -EINVAL.  Value
++ * pointed to by res is updated upon finding a match.
+  */
+ int kstrtobool(const char *s, bool *res)
+ {
+@@ -346,6 +346,20 @@ int kstrtobool(const char *s, bool *res)
+ 	case '0':
+ 		*res = false;
+ 		return 0;
++	case 'o':
++	case 'O':
++		switch (s[1]) {
++		case 'n':
++		case 'N':
++			*res = true;
++			return 0;
++		case 'f':
++		case 'F':
++			*res = false;
++			return 0;
++		default:
++			break;
++		}
+ 	default:
+ 		break;
  	}
- 
-@@ -1944,7 +1942,6 @@ static void shmem_tag_pins(struct addres
- 	start = 0;
- 	rcu_read_lock();
- 
--restart:
- 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, start) {
- 		page = radix_tree_deref_slot(slot);
- 		if (!page || radix_tree_exception(page)) {
-@@ -1961,8 +1958,7 @@ restart:
- 
- 		if (need_resched()) {
- 			cond_resched_rcu();
--			start = iter.index + 1;
--			goto restart;
-+			slot = radix_tree_iter_next(&iter);
- 		}
- 	}
- 	rcu_read_unlock();
-@@ -1999,7 +1995,6 @@ static int shmem_wait_for_pins(struct ad
- 
- 		start = 0;
- 		rcu_read_lock();
--restart:
- 		radix_tree_for_each_tagged(slot, &mapping->page_tree, &iter,
- 					   start, SHMEM_TAG_PINNED) {
- 
-@@ -2033,8 +2028,7 @@ restart:
- continue_resched:
- 			if (need_resched()) {
- 				cond_resched_rcu();
--				start = iter.index + 1;
--				goto restart;
-+				slot = radix_tree_iter_next(&iter);
- 			}
- 		}
- 		rcu_read_unlock();
 _
 
-Patches currently in -mm which might be from willy@linux.intel.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 
