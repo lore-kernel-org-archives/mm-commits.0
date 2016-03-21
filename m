@@ -1,83 +1,93 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memory-hotplug-small-cleanup-in-online_pages.patch
+Subject: [merged] sound-query-dynamic-debug_pagealloc-setting.patch
  removed from -mm tree
-Date: Mon, 21 Mar 2016 11:38:34 -0700
-Message-ID: <56f03faa.wVLheLD3RR9i9+A8%akpm@linux-foundation.org>
+Date: Mon, 21 Mar 2016 11:38:20 -0700
+Message-ID: <56f03f9c.2Hln+0i79nw5IfiW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53450 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53459 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757485AbcCUT4S (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:18 -0400
+	with ESMTP id S1757525AbcCUT4T (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vbabka@suse.cz, aarcange@redhat.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, benh@kernel.crashing.org, borntraeger@de.ibm.com, cl@linux.com, cmetcalf@ezchip.com, penberg@kernel.org, rientjes@google.com, tiwai@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, memory hotplug: small cleanup in online_pages()
+     Subject: sound: query dynamic DEBUG_PAGEALLOC setting
 has been removed from the -mm tree.  Its filename was
-     mm-memory-hotplug-small-cleanup-in-online_pages.patch
+     sound-query-dynamic-debug_pagealloc-setting.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, memory hotplug: small cleanup in online_pages()
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: sound: query dynamic DEBUG_PAGEALLOC setting
 
-We can reuse the nid we've determined instead of repeated pfn_to_nid() usages.
-Also zone_to_nid() should be a bit cheaper in general than pfn_to_nid().
+We can disable debug_pagealloc processing even if the code is compiled
+with CONFIG_DEBUG_PAGEALLOC. This patch changes the code to query
+whether it is enabled or not in runtime.
 
-Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Mel Gorman <mgorman@techsingularity.net>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+[akpm@linux-foundation.org: export _debug_pagealloc_enabled to modules]
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Acked-by: David Rientjes <rientjes@google.com>
+Acked-by: Takashi Iwai <tiwai@suse.de>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Chris Metcalf <cmetcalf@ezchip.com>
+Cc: Christian Borntraeger <borntraeger@de.ibm.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memory_hotplug.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ mm/page_alloc.c           |    1 +
+ sound/drivers/pcsp/pcsp.c |    9 +++++----
+ 2 files changed, 6 insertions(+), 4 deletions(-)
 
-diff -puN mm/memory_hotplug.c~mm-memory-hotplug-small-cleanup-in-online_pages mm/memory_hotplug.c
---- a/mm/memory_hotplug.c~mm-memory-hotplug-small-cleanup-in-online_pages
-+++ a/mm/memory_hotplug.c
-@@ -1055,7 +1055,7 @@ int __ref online_pages(unsigned long pfn
- 	arg.nr_pages = nr_pages;
- 	node_states_check_changes_online(nr_pages, zone, &arg);
+diff -puN mm/page_alloc.c~sound-query-dynamic-debug_pagealloc-setting mm/page_alloc.c
+--- a/mm/page_alloc.c~sound-query-dynamic-debug_pagealloc-setting
++++ a/mm/page_alloc.c
+@@ -498,6 +498,7 @@ void prep_compound_page(struct page *pag
+ unsigned int _debug_guardpage_minorder;
+ bool _debug_pagealloc_enabled __read_mostly
+ 			= IS_ENABLED(CONFIG_DEBUG_PAGEALLOC_ENABLE_DEFAULT);
++EXPORT_SYMBOL(_debug_pagealloc_enabled);
+ bool _debug_guardpage_enabled __read_mostly;
  
--	nid = pfn_to_nid(pfn);
-+	nid = zone_to_nid(zone);
+ static int __init early_debug_pagealloc(char *buf)
+diff -puN sound/drivers/pcsp/pcsp.c~sound-query-dynamic-debug_pagealloc-setting sound/drivers/pcsp/pcsp.c
+--- a/sound/drivers/pcsp/pcsp.c~sound-query-dynamic-debug_pagealloc-setting
++++ a/sound/drivers/pcsp/pcsp.c
+@@ -14,6 +14,7 @@
+ #include <linux/input.h>
+ #include <linux/delay.h>
+ #include <linux/bitops.h>
++#include <linux/mm.h>
+ #include "pcsp_input.h"
+ #include "pcsp.h"
  
- 	ret = memory_notify(MEM_GOING_ONLINE, &arg);
- 	ret = notifier_to_errno(ret);
-@@ -1095,7 +1095,7 @@ int __ref online_pages(unsigned long pfn
- 	pgdat_resize_unlock(zone->zone_pgdat, &flags);
- 
- 	if (onlined_pages) {
--		node_states_set_node(zone_to_nid(zone), &arg);
-+		node_states_set_node(nid, &arg);
- 		if (need_zonelists_rebuild)
- 			build_all_zonelists(NULL, NULL);
- 		else
-@@ -1107,7 +1107,7 @@ int __ref online_pages(unsigned long pfn
- 	init_per_zone_wmark_min();
- 
- 	if (onlined_pages) {
--		kswapd_run(zone_to_nid(zone));
-+		kswapd_run(nid);
- 		kcompactd_run(nid);
+@@ -148,11 +149,11 @@ static int alsa_card_pcsp_init(struct de
+ 		return err;
  	}
  
+-#ifdef CONFIG_DEBUG_PAGEALLOC
+ 	/* Well, CONFIG_DEBUG_PAGEALLOC makes the sound horrible. Lets alert */
+-	printk(KERN_WARNING "PCSP: CONFIG_DEBUG_PAGEALLOC is enabled, "
+-	       "which may make the sound noisy.\n");
+-#endif
++	if (debug_pagealloc_enabled()) {
++		printk(KERN_WARNING "PCSP: CONFIG_DEBUG_PAGEALLOC is enabled, "
++		       "which may make the sound noisy.\n");
++	}
+ 
+ 	return 0;
+ }
 _
 
-Patches currently in -mm which might be from vbabka@suse.cz are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
 
