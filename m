@@ -1,194 +1,276 @@
 From: akpm@linux-foundation.org
-Subject: [merged] force-inlining-of-unaligned-byteswap-operations.patch
+Subject: [merged] lib-update-single-char-callers-of-strtobool.patch
  removed from -mm tree
-Date: Mon, 21 Mar 2016 11:42:28 -0700
-Message-ID: <56f04094.1Ap8Y+4Pfmhpjl4Q%akpm@linux-foundation.org>
+Date: Mon, 21 Mar 2016 11:42:33 -0700
+Message-ID: <56f04099.Lab9K378CJYrESma%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52787 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52791 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757519AbcCUTVO (ORCPT
+	with ESMTP id S1757925AbcCUTVO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:21:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvlasenk@redhat.com, arnd@arndb.de, mingo@kernel.org, peterz@infradead.org, rientjes@google.com, tgraf@suug.ch, mm-commits@vger.kernel.org
+To: keescook@chromium.org, akarwar@marvell.com, andy.shevchenko@gmail.com, daniel@iogearbox.net, heiko.carstens@de.ibm.com, joe@perches.com, kvalo@codeaurora.org, linux@rasmusvillemoes.dk, mpe@ellerman.id.au, nishants@marvell.com, schwidefsky@de.ibm.com, sfrench@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/unaligned: force inlining of byteswap operations
+     Subject: lib: update single-char callers of strtobool()
 has been removed from the -mm tree.  Its filename was
-     force-inlining-of-unaligned-byteswap-operations.patch
+     lib-update-single-char-callers-of-strtobool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Denys Vlasenko <dvlasenk@redhat.com>
-Subject: include/linux/unaligned: force inlining of byteswap operations
+From: Kees Cook <keescook@chromium.org>
+Subject: lib: update single-char callers of strtobool()
 
-Sometimes gcc mysteriously doesn't inline
-very small functions we expect to be inlined. See
-    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66122
+Some callers of strtobool() were passing a pointer to unterminated
+strings.  In preparation of adding multi-character processing to
+kstrtobool(), update the callers to not pass single-character pointers,
+and switch to using the new kstrtobool_from_user() helper where possible.
 
-With this .config:
-http://busybox.net/~vda/kernel_config_OPTIMIZE_INLINING_and_Os,
-the following functions get deinlined many times.
-Examples of disassembly:
-
-<get_unaligned_be16> (24 copies, 108 calls):
-       66 8b 07                mov    (%rdi),%ax
-       55                      push   %rbp
-       48 89 e5                mov    %rsp,%rbp
-       86 e0                   xchg   %ah,%al
-       5d                      pop    %rbp
-       c3                      retq
-
-<get_unaligned_be32> (25 copies, 181 calls):
-       8b 07                   mov    (%rdi),%eax
-       55                      push   %rbp
-       48 89 e5                mov    %rsp,%rbp
-       0f c8                   bswap  %eax
-       5d                      pop    %rbp
-       c3                      retq
-
-<get_unaligned_be64> (23 copies, 94 calls):
-       48 8b 07                mov    (%rdi),%rax
-       55                      push   %rbp
-       48 89 e5                mov    %rsp,%rbp
-       48 0f c8                bswap  %rax
-       5d                      pop    %rbp
-       c3                      retq
-
-<put_unaligned_be16> (2 copies, 11 calls):
-       89 f8                   mov    %edi,%eax
-       55                      push   %rbp
-       c1 ef 08                shr    $0x8,%edi
-       c1 e0 08                shl    $0x8,%eax
-       09 c7                   or     %eax,%edi
-       48 89 e5                mov    %rsp,%rbp
-       66 89 3e                mov    %di,(%rsi)
-
-<put_unaligned_be32> (8 copies, 43 calls):
-       55                      push   %rbp
-       0f cf                   bswap  %edi
-       89 3e                   mov    %edi,(%rsi)
-       48 89 e5                mov    %rsp,%rbp
-       5d                      pop    %rbp
-       c3                      retq
-
-<put_unaligned_be64> (26 copies, 157 calls):
-       55                      push   %rbp
-       48 0f cf                bswap  %rdi
-       48 89 3e                mov    %rdi,(%rsi)
-       48 89 e5                mov    %rsp,%rbp
-       5d                      pop    %rbp
-       c3                      retq
-
-This patch fixes this via s/inline/__always_inline/.
-
-It only affects arches with efficient unaligned access insns, such as x86.
-(arched which lack such ops do not include linux/unaligned/access_ok.h)
-
-Code size decrease after the patch is ~8.5k:
-
-    text     data      bss       dec     hex filename
-92197848 20826112 36417536 149441496 8e84bd8 vmlinux
-92189231 20826144 36417536 149432911 8e82a4f vmlinux6_unaligned_be_after
-
-Signed-off-by: Denys Vlasenko <dvlasenk@redhat.com>
-Acked-by: Ingo Molnar <mingo@kernel.org>
-Cc: Thomas Graf <tgraf@suug.ch>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Amitkumar Karwar <akarwar@marvell.com>
+Cc: Nishant Sarmukadam <nishants@marvell.com>
+Cc: Kalle Valo <kvalo@codeaurora.org>
+Cc: Steve French <sfrench@samba.org>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Kees Cook <keescook@chromium.org>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/unaligned/access_ok.h |   24 ++++++++++++------------
- 1 file changed, 12 insertions(+), 12 deletions(-)
+ drivers/net/wireless/marvell/mwifiex/debugfs.c |   10 +-
+ fs/cifs/cifs_debug.c                           |   56 +++------------
+ fs/cifs/cifs_debug.h                           |    2 
+ fs/cifs/cifsfs.c                               |    6 -
+ fs/cifs/cifsglob.h                             |    4 -
+ 5 files changed, 24 insertions(+), 54 deletions(-)
 
-diff -puN include/linux/unaligned/access_ok.h~force-inlining-of-unaligned-byteswap-operations include/linux/unaligned/access_ok.h
---- a/include/linux/unaligned/access_ok.h~force-inlining-of-unaligned-byteswap-operations
-+++ a/include/linux/unaligned/access_ok.h
-@@ -4,62 +4,62 @@
- #include <linux/kernel.h>
- #include <asm/byteorder.h>
- 
--static inline u16 get_unaligned_le16(const void *p)
-+static __always_inline u16 get_unaligned_le16(const void *p)
+diff -puN drivers/net/wireless/marvell/mwifiex/debugfs.c~lib-update-single-char-callers-of-strtobool drivers/net/wireless/marvell/mwifiex/debugfs.c
+--- a/drivers/net/wireless/marvell/mwifiex/debugfs.c~lib-update-single-char-callers-of-strtobool
++++ a/drivers/net/wireless/marvell/mwifiex/debugfs.c
+@@ -880,14 +880,12 @@ mwifiex_reset_write(struct file *file,
  {
- 	return le16_to_cpup((__le16 *)p);
+ 	struct mwifiex_private *priv = file->private_data;
+ 	struct mwifiex_adapter *adapter = priv->adapter;
+-	char cmd;
+ 	bool result;
++	int rc;
+ 
+-	if (copy_from_user(&cmd, ubuf, sizeof(cmd)))
+-		return -EFAULT;
+-
+-	if (strtobool(&cmd, &result))
+-		return -EINVAL;
++	rc = kstrtobool_from_user(ubuf, count, &result);
++	if (rc)
++		return rc;
+ 
+ 	if (!result)
+ 		return -EINVAL;
+diff -puN fs/cifs/cifs_debug.c~lib-update-single-char-callers-of-strtobool fs/cifs/cifs_debug.c
+--- a/fs/cifs/cifs_debug.c~lib-update-single-char-callers-of-strtobool
++++ a/fs/cifs/cifs_debug.c
+@@ -255,7 +255,6 @@ static const struct file_operations cifs
+ static ssize_t cifs_stats_proc_write(struct file *file,
+ 		const char __user *buffer, size_t count, loff_t *ppos)
+ {
+-	char c;
+ 	bool bv;
+ 	int rc;
+ 	struct list_head *tmp1, *tmp2, *tmp3;
+@@ -263,11 +262,8 @@ static ssize_t cifs_stats_proc_write(str
+ 	struct cifs_ses *ses;
+ 	struct cifs_tcon *tcon;
+ 
+-	rc = get_user(c, buffer);
+-	if (rc)
+-		return rc;
+-
+-	if (strtobool(&c, &bv) == 0) {
++	rc = kstrtobool_from_user(buffer, count, &bv);
++	if (rc == 0) {
+ #ifdef CONFIG_CIFS_STATS2
+ 		atomic_set(&totBufAllocCount, 0);
+ 		atomic_set(&totSmBufAllocCount, 0);
+@@ -290,6 +286,8 @@ static ssize_t cifs_stats_proc_write(str
+ 			}
+ 		}
+ 		spin_unlock(&cifs_tcp_ses_lock);
++	} else {
++		return rc;
+ 	}
+ 
+ 	return count;
+@@ -433,17 +431,17 @@ static int cifsFYI_proc_open(struct inod
+ static ssize_t cifsFYI_proc_write(struct file *file, const char __user *buffer,
+ 		size_t count, loff_t *ppos)
+ {
+-	char c;
++	char c[2] = { '\0' };
+ 	bool bv;
+ 	int rc;
+ 
+-	rc = get_user(c, buffer);
++	rc = get_user(c[0], buffer);
+ 	if (rc)
+ 		return rc;
+-	if (strtobool(&c, &bv) == 0)
++	if (strtobool(c, &bv) == 0)
+ 		cifsFYI = bv;
+-	else if ((c > '1') && (c <= '9'))
+-		cifsFYI = (int) (c - '0'); /* see cifs_debug.h for meanings */
++	else if ((c[0] > '1') && (c[0] <= '9'))
++		cifsFYI = (int) (c[0] - '0'); /* see cifs_debug.h for meanings */
+ 
+ 	return count;
+ }
+@@ -471,20 +469,12 @@ static int cifs_linux_ext_proc_open(stru
+ static ssize_t cifs_linux_ext_proc_write(struct file *file,
+ 		const char __user *buffer, size_t count, loff_t *ppos)
+ {
+-	char c;
+-	bool bv;
+ 	int rc;
+ 
+-	rc = get_user(c, buffer);
++	rc = kstrtobool_from_user(buffer, count, &linuxExtEnabled);
+ 	if (rc)
+ 		return rc;
+ 
+-	rc = strtobool(&c, &bv);
+-	if (rc)
+-		return rc;
+-
+-	linuxExtEnabled = bv;
+-
+ 	return count;
  }
  
--static inline u32 get_unaligned_le32(const void *p)
-+static __always_inline u32 get_unaligned_le32(const void *p)
+@@ -511,20 +501,12 @@ static int cifs_lookup_cache_proc_open(s
+ static ssize_t cifs_lookup_cache_proc_write(struct file *file,
+ 		const char __user *buffer, size_t count, loff_t *ppos)
  {
- 	return le32_to_cpup((__le32 *)p);
+-	char c;
+-	bool bv;
+ 	int rc;
+ 
+-	rc = get_user(c, buffer);
++	rc = kstrtobool_from_user(buffer, count, &lookupCacheEnabled);
+ 	if (rc)
+ 		return rc;
+ 
+-	rc = strtobool(&c, &bv);
+-	if (rc)
+-		return rc;
+-
+-	lookupCacheEnabled = bv;
+-
+ 	return count;
  }
  
--static inline u64 get_unaligned_le64(const void *p)
-+static __always_inline u64 get_unaligned_le64(const void *p)
+@@ -551,20 +533,12 @@ static int traceSMB_proc_open(struct ino
+ static ssize_t traceSMB_proc_write(struct file *file, const char __user *buffer,
+ 		size_t count, loff_t *ppos)
  {
- 	return le64_to_cpup((__le64 *)p);
+-	char c;
+-	bool bv;
+ 	int rc;
+ 
+-	rc = get_user(c, buffer);
++	rc = kstrtobool_from_user(buffer, count, &traceSMB);
+ 	if (rc)
+ 		return rc;
+ 
+-	rc = strtobool(&c, &bv);
+-	if (rc)
+-		return rc;
+-
+-	traceSMB = bv;
+-
+ 	return count;
  }
  
--static inline u16 get_unaligned_be16(const void *p)
-+static __always_inline u16 get_unaligned_be16(const void *p)
- {
- 	return be16_to_cpup((__be16 *)p);
- }
+@@ -622,7 +596,6 @@ static ssize_t cifs_security_flags_proc_
+ 	int rc;
+ 	unsigned int flags;
+ 	char flags_string[12];
+-	char c;
+ 	bool bv;
  
--static inline u32 get_unaligned_be32(const void *p)
-+static __always_inline u32 get_unaligned_be32(const void *p)
- {
- 	return be32_to_cpup((__be32 *)p);
- }
+ 	if ((count < 1) || (count > 11))
+@@ -635,11 +608,10 @@ static ssize_t cifs_security_flags_proc_
  
--static inline u64 get_unaligned_be64(const void *p)
-+static __always_inline u64 get_unaligned_be64(const void *p)
- {
- 	return be64_to_cpup((__be64 *)p);
- }
+ 	if (count < 3) {
+ 		/* single char or single char followed by null */
+-		c = flags_string[0];
+-		if (strtobool(&c, &bv) == 0) {
++		if (strtobool(flags_string, &bv) == 0) {
+ 			global_secflags = bv ? CIFSSEC_MAX : CIFSSEC_DEF;
+ 			return count;
+-		} else if (!isdigit(c)) {
++		} else if (!isdigit(flags_string[0])) {
+ 			cifs_dbg(VFS, "Invalid SecurityFlags: %s\n",
+ 					flags_string);
+ 			return -EINVAL;
+diff -puN fs/cifs/cifs_debug.h~lib-update-single-char-callers-of-strtobool fs/cifs/cifs_debug.h
+--- a/fs/cifs/cifs_debug.h~lib-update-single-char-callers-of-strtobool
++++ a/fs/cifs/cifs_debug.h
+@@ -25,7 +25,7 @@
+ void cifs_dump_mem(char *label, void *data, int length);
+ void cifs_dump_detail(void *);
+ void cifs_dump_mids(struct TCP_Server_Info *);
+-extern int traceSMB;		/* flag which enables the function below */
++extern bool traceSMB;		/* flag which enables the function below */
+ void dump_smb(void *, int);
+ #define CIFS_INFO	0x01
+ #define CIFS_RC		0x02
+diff -puN fs/cifs/cifsfs.c~lib-update-single-char-callers-of-strtobool fs/cifs/cifsfs.c
+--- a/fs/cifs/cifsfs.c~lib-update-single-char-callers-of-strtobool
++++ a/fs/cifs/cifsfs.c
+@@ -54,10 +54,10 @@
+ #endif
  
--static inline void put_unaligned_le16(u16 val, void *p)
-+static __always_inline void put_unaligned_le16(u16 val, void *p)
- {
- 	*((__le16 *)p) = cpu_to_le16(val);
- }
+ int cifsFYI = 0;
+-int traceSMB = 0;
++bool traceSMB;
+ bool enable_oplocks = true;
+-unsigned int linuxExtEnabled = 1;
+-unsigned int lookupCacheEnabled = 1;
++bool linuxExtEnabled = true;
++bool lookupCacheEnabled = true;
+ unsigned int global_secflags = CIFSSEC_DEF;
+ /* unsigned int ntlmv2_support = 0; */
+ unsigned int sign_CIFS_PDUs = 1;
+diff -puN fs/cifs/cifsglob.h~lib-update-single-char-callers-of-strtobool fs/cifs/cifsglob.h
+--- a/fs/cifs/cifsglob.h~lib-update-single-char-callers-of-strtobool
++++ a/fs/cifs/cifsglob.h
+@@ -1596,11 +1596,11 @@ GLOBAL_EXTERN atomic_t midCount;
  
--static inline void put_unaligned_le32(u32 val, void *p)
-+static __always_inline void put_unaligned_le32(u32 val, void *p)
- {
- 	*((__le32 *)p) = cpu_to_le32(val);
- }
- 
--static inline void put_unaligned_le64(u64 val, void *p)
-+static __always_inline void put_unaligned_le64(u64 val, void *p)
- {
- 	*((__le64 *)p) = cpu_to_le64(val);
- }
- 
--static inline void put_unaligned_be16(u16 val, void *p)
-+static __always_inline void put_unaligned_be16(u16 val, void *p)
- {
- 	*((__be16 *)p) = cpu_to_be16(val);
- }
- 
--static inline void put_unaligned_be32(u32 val, void *p)
-+static __always_inline void put_unaligned_be32(u32 val, void *p)
- {
- 	*((__be32 *)p) = cpu_to_be32(val);
- }
- 
--static inline void put_unaligned_be64(u64 val, void *p)
-+static __always_inline void put_unaligned_be64(u64 val, void *p)
- {
- 	*((__be64 *)p) = cpu_to_be64(val);
- }
+ /* Misc globals */
+ GLOBAL_EXTERN bool enable_oplocks; /* enable or disable oplocks */
+-GLOBAL_EXTERN unsigned int lookupCacheEnabled;
++GLOBAL_EXTERN bool lookupCacheEnabled;
+ GLOBAL_EXTERN unsigned int global_secflags;	/* if on, session setup sent
+ 				with more secure ntlmssp2 challenge/resp */
+ GLOBAL_EXTERN unsigned int sign_CIFS_PDUs;  /* enable smb packet signing */
+-GLOBAL_EXTERN unsigned int linuxExtEnabled;/*enable Linux/Unix CIFS extensions*/
++GLOBAL_EXTERN bool linuxExtEnabled;/*enable Linux/Unix CIFS extensions*/
+ GLOBAL_EXTERN unsigned int CIFSMaxBufSize;  /* max size not including hdr */
+ GLOBAL_EXTERN unsigned int cifs_min_rcv;    /* min size of big ntwrk buf pool */
+ GLOBAL_EXTERN unsigned int cifs_min_small;  /* min size of small buf pool */
 _
 
-Patches currently in -mm which might be from dvlasenk@redhat.com are
+Patches currently in -mm which might be from keescook@chromium.org are
 
 
