@@ -1,77 +1,85 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-memcontrol-reclaim-when-shrinking-memoryhigh-below-usage.patch removed
- from -mm tree
-Date: Mon, 21 Mar 2016 11:40:22 -0700
-Message-ID: <56f04016.D7KgV+GEz+DE3Oso%akpm__49502.5540156805$1458590233$gmane$org@linux-foundation.org>
+ radix-tree-account-radix_tree_node-to-memory-cgroup.patch removed from -mm
+ tree
+Date: Mon, 21 Mar 2016 11:38:55 -0700
+Message-ID: <56f03fbf.fPoEAq0yBzBQFhsb%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53451 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53460 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932341AbcCUT43 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:29 -0400
+	with ESMTP id S932302AbcCUT4Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: reclaim when shrinking memory.high below usage
+     Subject: radix-tree: account radix_tree_node to memory cgroup
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-reclaim-when-shrinking-memoryhigh-below-usage.patch
+     radix-tree-account-radix_tree_node-to-memory-cgroup.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: reclaim when shrinking memory.high below usage
+From: Vladimir Davydov <vdavydov@virtuozzo.com>
+Subject: radix-tree: account radix_tree_node to memory cgroup
 
-When setting memory.high below usage, nothing happens until the next
-charge comes along, and then it will only reclaim its own charge and not
-the now potentially huge excess of the new memory.high.  This can cause
-groups to stay in excess of their memory.high indefinitely.
+Allocation of radix_tree_node objects can be easily triggered from
+userspace, so we should account them to memory cgroup.  Besides, we need
+them accounted for making shadow node shrinker per memcg (see
+mm/workingset.c).
 
-To fix that, when shrinking memory.high, kick off a reclaim cycle that
-goes after the delta.
+A tricky thing about accounting radix_tree_node objects is that they are
+mostly allocated through radix_tree_preload(), so we can't just set
+SLAB_ACCOUNT for radix_tree_node_cachep - that would likely result in a
+lot of unrelated cgroups using objects from each other's caches.
 
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: <stable@vger.kernel.org>
+One way to overcome this would be making radix tree preloads per memcg,
+but that would probably look cumbersome and overcomplicated.
+
+Instead, we make radix_tree_node_alloc() first try to allocate from the
+cache with __GFP_ACCOUNT, no matter if the caller has preloaded or not,
+and only if it fails fall back on using per cpu preloads.  This should
+make most allocations accounted.
+
+Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Acked-by: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/memcontrol.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ lib/radix-tree.c |   16 +++++++++++++---
+ 1 file changed, 13 insertions(+), 3 deletions(-)
 
-diff -puN mm/memcontrol.c~mm-memcontrol-reclaim-when-shrinking-memoryhigh-below-usage mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-reclaim-when-shrinking-memoryhigh-below-usage
-+++ a/mm/memcontrol.c
-@@ -4992,6 +4992,7 @@ static ssize_t memory_high_write(struct
- 				 char *buf, size_t nbytes, loff_t off)
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
-+	unsigned long nr_pages;
- 	unsigned long high;
- 	int err;
+diff -puN lib/radix-tree.c~radix-tree-account-radix_tree_node-to-memory-cgroup lib/radix-tree.c
+--- a/lib/radix-tree.c~radix-tree-account-radix_tree_node-to-memory-cgroup
++++ a/lib/radix-tree.c
+@@ -192,6 +192,15 @@ radix_tree_node_alloc(struct radix_tree_
+ 		struct radix_tree_preload *rtp;
  
-@@ -5002,6 +5003,11 @@ static ssize_t memory_high_write(struct
- 
- 	memcg->high = high;
- 
-+	nr_pages = page_counter_read(&memcg->memory);
-+	if (nr_pages > high)
-+		try_to_free_mem_cgroup_pages(memcg, nr_pages - high,
-+					     GFP_KERNEL, true);
+ 		/*
++		 * Even if the caller has preloaded, try to allocate from the
++		 * cache first for the new node to get accounted.
++		 */
++		ret = kmem_cache_alloc(radix_tree_node_cachep,
++				       gfp_mask | __GFP_ACCOUNT | __GFP_NOWARN);
++		if (ret)
++			goto out;
 +
- 	memcg_wb_domain_size_changed(memcg);
- 	return nbytes;
- }
-_
-
-Patches currently in -mm which might be from hannes@cmpxchg.org are
-
-
++		/*
+ 		 * Provided the caller has preloaded here, we will always
+ 		 * succeed in getting a node here (and never reach
+ 		 * kmem_cache_alloc)
+@@ -208,10 +217,11 @@ radix_tree_node_alloc(struct radix_tree_
+ 		 * for debugging.
+ 		 */
+ 		kmemleak_update_trace(ret);
++		goto out;
+ 	}
+-	if (ret == NULL)
+-		ret = kmem_cache_alloc(radix_tree_node_cachep, gfp_mask);
