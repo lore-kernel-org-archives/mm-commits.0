@@ -1,303 +1,304 @@
 From: akpm@linux-foundation.org
-Subject: [merged] force-inlining-of-some-byteswap-operations.patch removed from -mm tree
-Date: Mon, 21 Mar 2016 11:42:25 -0700
-Message-ID: <56f04091.dttrsF1LuAFK5AlL%akpm@linux-foundation.org>
+Subject: [merged]
+ printk-move-can_use_console-out-of-console_trylock_for_printk.patch removed from -mm tree
+Date: Mon, 21 Mar 2016 11:41:12 -0700
+Message-ID: <56f04048.6z9dm1AjUgyhYWJ2%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52788 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52867 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757926AbcCUTVO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:21:14 -0400
+	with ESMTP id S932415AbcCUTbO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:31:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvlasenk@redhat.com, arnd@arndb.de, mingo@kernel.org, peterz@infradead.org, rientjes@google.com, tgraf@suug.ch, mm-commits@vger.kernel.org
+To: sergey.senozhatsky@gmail.com, calvinowens@fb.com, davej@codemonkey.org.uk, jack@suse.com, kyle@kernel.org, pmladek@suse.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/uapi/linux/byteorder, swab: force inlining of some byteswap operations
+     Subject: printk: move can_use_console() out of console_trylock_for_printk()
 has been removed from the -mm tree.  Its filename was
-     force-inlining-of-some-byteswap-operations.patch
+     printk-move-can_use_console-out-of-console_trylock_for_printk.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Denys Vlasenko <dvlasenk@redhat.com>
-Subject: include/uapi/linux/byteorder, swab: force inlining of some byteswap operations
+From: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Subject: printk: move can_use_console() out of console_trylock_for_printk()
 
-Sometimes gcc mysteriously doesn't inline
-very small functions we expect to be inlined. See
-    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66122
+console_unlock() allows to cond_resched() if its caller has set
+`console_may_schedule' to 1 (this functionality is present since
+8d91f8b15361 ("printk: do cond_resched() between lines while outputting to
+consoles").
 
-With this .config:
-http://busybox.net/~vda/kernel_config_OPTIMIZE_INLINING_and_Os,
-the following functions get deinlined many times.
-Examples of disassembly:
+The rules are:
+-- console_lock() always sets `console_may_schedule' to 1
+-- console_trylock() always sets `console_may_schedule' to 0
 
-<get_unaligned_be16> (12 copies, 51 calls):
-       66 8b 07                mov    (%rdi),%ax
-       55                      push   %rbp
-       48 89 e5                mov    %rsp,%rbp
-       86 e0                   xchg   %ah,%al
-       5d                      pop    %rbp
-       c3                      retq
+printk() calls console_unlock() with preemption desabled, which basically
+can lead to RCU stalls, watchdog soft lockups, etc.  if something is
+simultaneously calling printk() frequent enough (IOW, console_sem owner
+always has new data to send to console divers and can't leave
+console_unlock() for a long time).
 
-<get_unaligned_be32> (12 copies, 135 calls):
-       8b 07                   mov    (%rdi),%eax
-       55                      push   %rbp
-       48 89 e5                mov    %rsp,%rbp
-       0f c8                   bswap  %eax
-       5d                      pop    %rbp
-       c3                      retq
+printk()->console_trylock() callers do not necessarily execute in atomic
+contexts, and some of them can cond_resched() in console_unlock(). 
+console_trylock() can set `console_may_schedule' to 1 (allow
+cond_resched() later in consoe_unlock()) when it's safe.
 
-<get_unaligned_be64> (2 copies, 20 calls):
-       48 8b 07                mov    (%rdi),%rax
-       55                      push   %rbp
-       48 89 e5                mov    %rsp,%rbp
-       48 0f c8                bswap  %rax
-       5d                      pop    %rbp
-       c3                      retq
 
-<__swab16p> (16 copies, 146 calls):
-       55                      push   %rbp
-       89 f8                   mov    %edi,%eax
-       86 e0                   xchg   %ah,%al
-       48 89 e5                mov    %rsp,%rbp
-       5d                      pop    %rbp
-       c3                      retq
 
-<__swab32p> (43 copies, ~560 calls):
-       55                      push   %rbp
-       89 f8                   mov    %edi,%eax
-       0f c8                   bswap  %eax
-       48 89 e5                mov    %rsp,%rbp
-       5d                      pop    %rbp
-       c3                      retq
+This patch (of 3):
 
-<__swab64p> (21 copies, 119 calls):
-       55                      push   %rbp
-       48 89 f8                mov    %rdi,%rax
-       48 0f c8                bswap  %rax
-       48 89 e5                mov    %rsp,%rbp
-       5d                      pop    %rbp
-       c3                      retq
+vprintk_emit() disables preemption around console_trylock_for_printk() and
+console_unlock() calls for a strong reason -- can_use_console() check. 
+The thing is that vprintl_emit() can be called on a CPU that is not fully
+brought up yet (!cpu_online()), which potentially can cause problems if
+console driver wants to access per-cpu data.  A console driver can
+explicitly state that it's safe to call it from !online cpu by setting
+CON_ANYTIME bit in console ->flags.  That's why for !cpu_online()
+can_use_console() iterates all the console to find out if there is a
+CON_ANYTIME console, otherwise console_unlock() must be avoided.
 
-<__swab32s> (6 copies, 47 calls):
-       8b 07                   mov    (%rdi),%eax
-       55                      push   %rbp
-       48 89 e5                mov    %rsp,%rbp
-       0f c8                   bswap  %eax
-       89 07                   mov    %eax,(%rdi)
-       5d                      pop    %rbp
-       c3                      retq
+can_use_console() ensures that console_unlock() call is safe in
+vprintk_emit() only; console_lock() and console_trylock() are not covered
+by this check.  Even though call_console_drivers(), invoked from
+console_cont_flush() and console_unlock(), tests `!cpu_online() &&
+CON_ANYTIME' for_each_console(), it may be too late, which can result in
+messages loss.
 
-This patch fixes this via s/inline/__always_inline/.
-Code size decrease after the patch is ~4.5k:
+Assume that we have 2 cpus -- CPU0 is online, CPU1 is !online, and
+no CON_ANYTIME consoles available.
 
-    text     data      bss       dec     hex filename
-92202377 20826112 36417536 149446025 8e85d89 vmlinux
-92197848 20826112 36417536 149441496 8e84bd8 vmlinux5_swap_after
+CPU0 online                        CPU1 !online
+                                 console_trylock()
+                                 ...
+                                 console_unlock()
+                                   console_cont_flush
+                                     spin_lock logbuf_lock
+                                     if (!cont.len) {
+                                        spin_unlock logbuf_lock
+                                        return
+                                     }
+                                   for (;;) {
+vprintk_emit
+  spin_lock logbuf_lock
+  log_store
+  spin_unlock logbuf_lock
+                                     spin_lock logbuf_lock
+  !console_trylock_for_printk        msg_print_text
+ return                              console_idx = log_next()
+                                     console_seq++
+                                     console_prev = msg->flags
+                                     spin_unlock logbuf_lock
 
-Signed-off-by: Denys Vlasenko <dvlasenk@redhat.com>
-Acked-by: Ingo Molnar <mingo@kernel.org>
-Cc: Thomas Graf <tgraf@suug.ch>
-Cc: Peter Zijlstra <peterz@infradead.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Arnd Bergmann <arnd@arndb.de>
+                                     call_console_drivers()
+                                       for_each_console(con) {
+                                         if (!cpu_online() &&
+                                             !(con->flags & CON_ANYTIME))
+                                                 continue;
+                                         }
+                                   /*
+                                    * no message printed, we lost it
+                                    */
+vprintk_emit
+  spin_lock logbuf_lock
+  log_store
+  spin_unlock logbuf_lock
+  !console_trylock_for_printk
+ return
+                                   /*
+                                    * go to the beginning of the loop,
+                                    * find out there are new messages,
+                                    * lose it
+                                    */
+                                   }
+
+console_trylock()/console_lock() call on CPU1 may come from cpu notifiers
+registered on that CPU.  Since notifiers are not getting unregistered when
+CPU is going DOWN, all of the notifiers receive notifications during CPU
+UP.  For example, on my x86_64, I see around 50 notification sent from
+offline CPU to itself
+
+ [swapper/2] from cpu:2 to:2 action:CPU_STARTING hotplug_hrtick
+ [swapper/2] from cpu:2 to:2 action:CPU_STARTING blk_mq_main_cpu_notify
+ [swapper/2] from cpu:2 to:2 action:CPU_STARTING blk_mq_queue_reinit_notify
+ [swapper/2] from cpu:2 to:2 action:CPU_STARTING console_cpu_notify
+
+while doing
+  echo 0 > /sys/devices/system/cpu/cpu2/online
+  echo 1 > /sys/devices/system/cpu/cpu2/online
+
+So grabbing the console_sem lock while CPU is !online is possible,
+in theory.
+
+This patch moves can_use_console() check out of
+console_trylock_for_printk().  Instead it calls it in console_unlock(), so
+now console_lock()/console_unlock() are also 'protected' by
+can_use_console().  This also means that console_trylock_for_printk() is
+not really needed anymore and can be removed.
+
+Signed-off-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Reviewed-by: Petr Mladek <pmladek@suse.com>
+Cc: Jan Kara <jack@suse.com>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Kyle McMartin <kyle@kernel.org>
+Cc: Dave Jones <davej@codemonkey.org.uk>
+Cc: Calvin Owens <calvinowens@fb.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/byteorder/big_endian.h    |   24 ++++++++---------
- include/uapi/linux/byteorder/little_endian.h |   24 ++++++++---------
- include/uapi/linux/swab.h                    |   10 +++----
- 3 files changed, 29 insertions(+), 29 deletions(-)
+ kernel/printk/printk.c |   97 ++++++++++++++++-----------------------
+ 1 file changed, 42 insertions(+), 55 deletions(-)
 
-diff -puN include/uapi/linux/byteorder/big_endian.h~force-inlining-of-some-byteswap-operations include/uapi/linux/byteorder/big_endian.h
---- a/include/uapi/linux/byteorder/big_endian.h~force-inlining-of-some-byteswap-operations
-+++ a/include/uapi/linux/byteorder/big_endian.h
-@@ -40,51 +40,51 @@
- #define __cpu_to_be16(x) ((__force __be16)(__u16)(x))
- #define __be16_to_cpu(x) ((__force __u16)(__be16)(x))
+diff -puN kernel/printk/printk.c~printk-move-can_use_console-out-of-console_trylock_for_printk kernel/printk/printk.c
+--- a/kernel/printk/printk.c~printk-move-can_use_console-out-of-console_trylock_for_printk
++++ a/kernel/printk/printk.c
+@@ -1483,58 +1483,6 @@ static void zap_locks(void)
+ 	sema_init(&console_sem, 1);
+ }
  
--static inline __le64 __cpu_to_le64p(const __u64 *p)
-+static __always_inline __le64 __cpu_to_le64p(const __u64 *p)
- {
- 	return (__force __le64)__swab64p(p);
- }
--static inline __u64 __le64_to_cpup(const __le64 *p)
-+static __always_inline __u64 __le64_to_cpup(const __le64 *p)
- {
- 	return __swab64p((__u64 *)p);
- }
--static inline __le32 __cpu_to_le32p(const __u32 *p)
-+static __always_inline __le32 __cpu_to_le32p(const __u32 *p)
- {
- 	return (__force __le32)__swab32p(p);
- }
--static inline __u32 __le32_to_cpup(const __le32 *p)
-+static __always_inline __u32 __le32_to_cpup(const __le32 *p)
- {
- 	return __swab32p((__u32 *)p);
- }
--static inline __le16 __cpu_to_le16p(const __u16 *p)
-+static __always_inline __le16 __cpu_to_le16p(const __u16 *p)
- {
- 	return (__force __le16)__swab16p(p);
- }
--static inline __u16 __le16_to_cpup(const __le16 *p)
-+static __always_inline __u16 __le16_to_cpup(const __le16 *p)
- {
- 	return __swab16p((__u16 *)p);
- }
--static inline __be64 __cpu_to_be64p(const __u64 *p)
-+static __always_inline __be64 __cpu_to_be64p(const __u64 *p)
- {
- 	return (__force __be64)*p;
- }
--static inline __u64 __be64_to_cpup(const __be64 *p)
-+static __always_inline __u64 __be64_to_cpup(const __be64 *p)
- {
- 	return (__force __u64)*p;
- }
--static inline __be32 __cpu_to_be32p(const __u32 *p)
-+static __always_inline __be32 __cpu_to_be32p(const __u32 *p)
- {
- 	return (__force __be32)*p;
- }
--static inline __u32 __be32_to_cpup(const __be32 *p)
-+static __always_inline __u32 __be32_to_cpup(const __be32 *p)
- {
- 	return (__force __u32)*p;
- }
--static inline __be16 __cpu_to_be16p(const __u16 *p)
-+static __always_inline __be16 __cpu_to_be16p(const __u16 *p)
- {
- 	return (__force __be16)*p;
- }
--static inline __u16 __be16_to_cpup(const __be16 *p)
-+static __always_inline __u16 __be16_to_cpup(const __be16 *p)
- {
- 	return (__force __u16)*p;
- }
-diff -puN include/uapi/linux/byteorder/little_endian.h~force-inlining-of-some-byteswap-operations include/uapi/linux/byteorder/little_endian.h
---- a/include/uapi/linux/byteorder/little_endian.h~force-inlining-of-some-byteswap-operations
-+++ a/include/uapi/linux/byteorder/little_endian.h
-@@ -40,51 +40,51 @@
- #define __cpu_to_be16(x) ((__force __be16)__swab16((x)))
- #define __be16_to_cpu(x) __swab16((__force __u16)(__be16)(x))
+-/*
+- * Check if we have any console that is capable of printing while cpu is
+- * booting or shutting down. Requires console_sem.
+- */
+-static int have_callable_console(void)
+-{
+-	struct console *con;
+-
+-	for_each_console(con)
+-		if (con->flags & CON_ANYTIME)
+-			return 1;
+-
+-	return 0;
+-}
+-
+-/*
+- * Can we actually use the console at this time on this cpu?
+- *
+- * Console drivers may assume that per-cpu resources have been allocated. So
+- * unless they're explicitly marked as being able to cope (CON_ANYTIME) don't
+- * call them until this CPU is officially up.
+- */
+-static inline int can_use_console(unsigned int cpu)
+-{
+-	return cpu_online(cpu) || have_callable_console();
+-}
+-
+-/*
+- * Try to get console ownership to actually show the kernel
+- * messages from a 'printk'. Return true (and with the
+- * console_lock held, and 'console_locked' set) if it
+- * is successful, false otherwise.
+- */
+-static int console_trylock_for_printk(void)
+-{
+-	unsigned int cpu = smp_processor_id();
+-
+-	if (!console_trylock())
+-		return 0;
+-	/*
+-	 * If we can't use the console, we need to release the console
+-	 * semaphore by hand to avoid flushing the buffer. We need to hold the
+-	 * console semaphore in order to do this test safely.
+-	 */
+-	if (!can_use_console(cpu)) {
+-		console_locked = 0;
+-		up_console_sem();
+-		return 0;
+-	}
+-	return 1;
+-}
+-
+ int printk_delay_msec __read_mostly;
  
--static inline __le64 __cpu_to_le64p(const __u64 *p)
-+static __always_inline __le64 __cpu_to_le64p(const __u64 *p)
- {
- 	return (__force __le64)*p;
+ static inline void printk_delay(void)
+@@ -1681,7 +1629,6 @@ asmlinkage int vprintk_emit(int facility
+ 	boot_delay_msec(level);
+ 	printk_delay();
+ 
+-	/* This stops the holder of console_sem just where we want him */
+ 	local_irq_save(flags);
+ 	this_cpu = smp_processor_id();
+ 
+@@ -1705,6 +1652,7 @@ asmlinkage int vprintk_emit(int facility
+ 	}
+ 
+ 	lockdep_off();
++	/* This stops the holder of console_sem just where we want him */
+ 	raw_spin_lock(&logbuf_lock);
+ 	logbuf_cpu = this_cpu;
+ 
+@@ -1821,7 +1769,7 @@ asmlinkage int vprintk_emit(int facility
+ 		 * semaphore.  The release will print out buffers and wake up
+ 		 * /dev/kmsg and syslog() users.
+ 		 */
+-		if (console_trylock_for_printk())
++		if (console_trylock())
+ 			console_unlock();
+ 		preempt_enable();
+ 		lockdep_on();
+@@ -2184,6 +2132,33 @@ int is_console_locked(void)
+ 	return console_locked;
  }
--static inline __u64 __le64_to_cpup(const __le64 *p)
-+static __always_inline __u64 __le64_to_cpup(const __le64 *p)
+ 
++/*
++ * Check if we have any console that is capable of printing while cpu is
++ * booting or shutting down. Requires console_sem.
++ */
++static int have_callable_console(void)
++{
++	struct console *con;
++
++	for_each_console(con)
++		if (con->flags & CON_ANYTIME)
++			return 1;
++
++	return 0;
++}
++
++/*
++ * Can we actually use the console at this time on this cpu?
++ *
++ * Console drivers may assume that per-cpu resources have been allocated. So
++ * unless they're explicitly marked as being able to cope (CON_ANYTIME) don't
++ * call them until this CPU is officially up.
++ */
++static inline int can_use_console(void)
++{
++	return cpu_online(raw_smp_processor_id()) || have_callable_console();
++}
++
+ static void console_cont_flush(char *text, size_t size)
  {
- 	return (__force __u64)*p;
- }
--static inline __le32 __cpu_to_le32p(const __u32 *p)
-+static __always_inline __le32 __cpu_to_le32p(const __u32 *p)
- {
- 	return (__force __le32)*p;
- }
--static inline __u32 __le32_to_cpup(const __le32 *p)
-+static __always_inline __u32 __le32_to_cpup(const __le32 *p)
- {
- 	return (__force __u32)*p;
- }
--static inline __le16 __cpu_to_le16p(const __u16 *p)
-+static __always_inline __le16 __cpu_to_le16p(const __u16 *p)
- {
- 	return (__force __le16)*p;
- }
--static inline __u16 __le16_to_cpup(const __le16 *p)
-+static __always_inline __u16 __le16_to_cpup(const __le16 *p)
- {
- 	return (__force __u16)*p;
- }
--static inline __be64 __cpu_to_be64p(const __u64 *p)
-+static __always_inline __be64 __cpu_to_be64p(const __u64 *p)
- {
- 	return (__force __be64)__swab64p(p);
- }
--static inline __u64 __be64_to_cpup(const __be64 *p)
-+static __always_inline __u64 __be64_to_cpup(const __be64 *p)
- {
- 	return __swab64p((__u64 *)p);
- }
--static inline __be32 __cpu_to_be32p(const __u32 *p)
-+static __always_inline __be32 __cpu_to_be32p(const __u32 *p)
- {
- 	return (__force __be32)__swab32p(p);
- }
--static inline __u32 __be32_to_cpup(const __be32 *p)
-+static __always_inline __u32 __be32_to_cpup(const __be32 *p)
- {
- 	return __swab32p((__u32 *)p);
- }
--static inline __be16 __cpu_to_be16p(const __u16 *p)
-+static __always_inline __be16 __cpu_to_be16p(const __u16 *p)
- {
- 	return (__force __be16)__swab16p(p);
- }
--static inline __u16 __be16_to_cpup(const __be16 *p)
-+static __always_inline __u16 __be16_to_cpup(const __be16 *p)
- {
- 	return __swab16p((__u16 *)p);
- }
-diff -puN include/uapi/linux/swab.h~force-inlining-of-some-byteswap-operations include/uapi/linux/swab.h
---- a/include/uapi/linux/swab.h~force-inlining-of-some-byteswap-operations
-+++ a/include/uapi/linux/swab.h
-@@ -151,7 +151,7 @@ static inline __attribute_const__ __u32
-  * __swab16p - return a byteswapped 16-bit value from a pointer
-  * @p: pointer to a naturally-aligned 16-bit value
-  */
--static inline __u16 __swab16p(const __u16 *p)
-+static __always_inline __u16 __swab16p(const __u16 *p)
- {
- #ifdef __arch_swab16p
- 	return __arch_swab16p(p);
-@@ -164,7 +164,7 @@ static inline __u16 __swab16p(const __u1
-  * __swab32p - return a byteswapped 32-bit value from a pointer
-  * @p: pointer to a naturally-aligned 32-bit value
-  */
--static inline __u32 __swab32p(const __u32 *p)
-+static __always_inline __u32 __swab32p(const __u32 *p)
- {
- #ifdef __arch_swab32p
- 	return __arch_swab32p(p);
-@@ -177,7 +177,7 @@ static inline __u32 __swab32p(const __u3
-  * __swab64p - return a byteswapped 64-bit value from a pointer
-  * @p: pointer to a naturally-aligned 64-bit value
-  */
--static inline __u64 __swab64p(const __u64 *p)
-+static __always_inline __u64 __swab64p(const __u64 *p)
- {
- #ifdef __arch_swab64p
- 	return __arch_swab64p(p);
-@@ -232,7 +232,7 @@ static inline void __swab16s(__u16 *p)
-  * __swab32s - byteswap a 32-bit value in-place
-  * @p: pointer to a naturally-aligned 32-bit value
-  */
--static inline void __swab32s(__u32 *p)
-+static __always_inline void __swab32s(__u32 *p)
- {
- #ifdef __arch_swab32s
- 	__arch_swab32s(p);
-@@ -245,7 +245,7 @@ static inline void __swab32s(__u32 *p)
-  * __swab64s - byteswap a 64-bit value in-place
-  * @p: pointer to a naturally-aligned 64-bit value
-  */
--static inline void __swab64s(__u64 *p)
-+static __always_inline void __swab64s(__u64 *p)
- {
- #ifdef __arch_swab64s
- 	__arch_swab64s(p);
+ 	unsigned long flags;
+@@ -2254,9 +2229,21 @@ void console_unlock(void)
+ 	do_cond_resched = console_may_schedule;
+ 	console_may_schedule = 0;
+ 
++again:
++	/*
++	 * We released the console_sem lock, so we need to recheck if
++	 * cpu is online and (if not) is there at least one CON_ANYTIME
++	 * console.
++	 */
++	if (!can_use_console()) {
++		console_locked = 0;
++		up_console_sem();
++		return;
++	}
++
+ 	/* flush buffered message fragment immediately to console */
+ 	console_cont_flush(text, sizeof(text));
+-again:
++
+ 	for (;;) {
+ 		struct printk_log *msg;
+ 		size_t ext_len = 0;
 _
 
-Patches currently in -mm which might be from dvlasenk@redhat.com are
+Patches currently in -mm which might be from sergey.senozhatsky@gmail.com are
 
 
