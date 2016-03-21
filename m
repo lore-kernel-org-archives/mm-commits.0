@@ -1,65 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged] remove-v850-from-linux-elf-emh.patch removed from -mm
+Subject: [merged]
+ proc-kpageflags-return-kpf_slab-for-slab-tail-pages.patch removed from -mm
  tree
-Date: Mon, 21 Mar 2016 11:41:10 -0700
-Message-ID: <56f04046./z74jwm27PMovmw/%akpm@linux-foundation.org>
+Date: Mon, 21 Mar 2016 11:38:08 -0700
+Message-ID: <56f03f90.pnp+s2koAkJZv+i7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53457 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53455 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932294AbcCUT4f (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:35 -0400
+	with ESMTP id S932380AbcCUT4d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: rob@landley.net, mm-commits@vger.kernel.org
+To: n-horiguchi@ah.jp.nec.com, koct9i@gmail.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/uapi/linux/elf-em.h: remove v850
+     Subject: /proc/kpageflags: return KPF_SLAB for slab tail pages
 has been removed from the -mm tree.  Its filename was
-     remove-v850-from-linux-elf-emh.patch
+     proc-kpageflags-return-kpf_slab-for-slab-tail-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Rob Landley <rob@landley.net>
-Subject: include/uapi/linux/elf-em.h: remove v850
+From: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Subject: /proc/kpageflags: return KPF_SLAB for slab tail pages
 
-The v850 port was removed by commits f606ddf42fd4 and 07a887d399b8 in
-2008.  These #defines are not used in the current kernel.
+Currently /proc/kpageflags returns just KPF_COMPOUND_TAIL for slab tail
+pages, which is inconvenient when grasping how slab pages are distributed
+(userspace always needs to check which kind of tail pages by itself). 
+This patch sets KPF_SLAB for such pages.
 
-Signed-off-by: Rob Landley <rob@landley.net>
+With this patch:
+
+  $ grep Slab /proc/meminfo ; tools/vm/page-types -b slab
+  Slab:              64880 kB
+               flags      page-count       MB  symbolic-flags                     long-symbolic-flags
+  0x0000000000000080           16220       63  _______S__________________________________ slab
+               total           16220       63
+
+16220 pages equals to 64880 kB, so returned result is consistent with the
+global counter.
+
+Signed-off-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Reviewed-by: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/uapi/linux/elf-em.h |    3 ---
- 1 file changed, 3 deletions(-)
+ fs/proc/page.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff -puN include/uapi/linux/elf-em.h~remove-v850-from-linux-elf-emh include/uapi/linux/elf-em.h
---- a/include/uapi/linux/elf-em.h~remove-v850-from-linux-elf-emh
-+++ a/include/uapi/linux/elf-em.h
-@@ -30,7 +30,6 @@
- #define EM_X86_64	62	/* AMD x86-64 */
- #define EM_S390		22	/* IBM S/390 */
- #define EM_CRIS		76	/* Axis Communications 32-bit embedded processor */
--#define EM_V850		87	/* NEC v850 */
- #define EM_M32R		88	/* Renesas M32R */
- #define EM_MN10300	89	/* Panasonic/MEI MN10300, AM33 */
- #define EM_OPENRISC     92     /* OpenRISC 32-bit embedded processor */
-@@ -50,8 +49,6 @@
-  */
- #define EM_ALPHA	0x9026
+diff -puN fs/proc/page.c~proc-kpageflags-return-kpf_slab-for-slab-tail-pages fs/proc/page.c
+--- a/fs/proc/page.c~proc-kpageflags-return-kpf_slab-for-slab-tail-pages
++++ a/fs/proc/page.c
+@@ -160,6 +160,8 @@ u64 stable_page_flags(struct page *page)
+ 	u |= kpf_copy_bit(k, KPF_LOCKED,	PG_locked);
  
--/* Bogus old v850 magic number, used by old tools. */
--#define EM_CYGNUS_V850	0x9080
- /* Bogus old m32r magic number, used by old tools. */
- #define EM_CYGNUS_M32R	0x9041
- /* This is the old interim value for S/390 architecture */
+ 	u |= kpf_copy_bit(k, KPF_SLAB,		PG_slab);
++	if (PageTail(page) && PageSlab(compound_head(page)))
++		u |= 1 << KPF_SLAB;
+ 
+ 	u |= kpf_copy_bit(k, KPF_ERROR,		PG_error);
+ 	u |= kpf_copy_bit(k, KPF_DIRTY,		PG_dirty);
 _
 
-Patches currently in -mm which might be from rob@landley.net are
+Patches currently in -mm which might be from n-horiguchi@ah.jp.nec.com are
 
 
