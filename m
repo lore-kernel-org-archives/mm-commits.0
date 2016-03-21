@@ -1,69 +1,73 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- power-charger_manager-convert-to-use-match_string-helper.patch removed from -mm tree
-Date: Mon, 21 Mar 2016 11:42:11 -0700
-Message-ID: <56f04083.VXjDm3CgSl12SbQo%akpm@linux-foundation.org>
+Subject: [merged] ata-hpt366-convert-to-use-match_string-helper.patch
+ removed from -mm tree
+Date: Mon, 21 Mar 2016 11:42:16 -0700
+Message-ID: <56f04088.spG5EBc6hXzUOGR1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52796 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52795 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757940AbcCUTVV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:21:21 -0400
+	with ESMTP id S1757936AbcCUTVU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:21:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, dbaryshkov@gmail.com, dwmw2@infradead.org, sre@kernel.org, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, b.zolnierkie@samsung.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: power: charger_manager: convert to use match_string() helper
+     Subject: ata: hpt366: convert to use match_string() helper
 has been removed from the -mm tree.  Its filename was
-     power-charger_manager-convert-to-use-match_string-helper.patch
+     ata-hpt366-convert-to-use-match_string-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: power: charger_manager: convert to use match_string() helper
+Subject: ata: hpt366: convert to use match_string() helper
 
-The new helper returns index of the mathing string in an array. We would use it
-here.
+The new helper returns index of the mathing string in an array.  We would
+use it here.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Sebastian Reichel <sre@kernel.org>
-Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
-Cc: David Woodhouse <dwmw2@infradead.org>
+Acked-by: Tejun Heo <tj@kernel.org>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/power/charger-manager.c |   27 ++++-----------------------
- 1 file changed, 4 insertions(+), 23 deletions(-)
+ drivers/ata/pata_hpt366.c |   13 +++++--------
+ 1 file changed, 5 insertions(+), 8 deletions(-)
 
-diff -puN drivers/power/charger-manager.c~power-charger_manager-convert-to-use-match_string-helper drivers/power/charger-manager.c
---- a/drivers/power/charger-manager.c~power-charger_manager-convert-to-use-match_string-helper
-+++ a/drivers/power/charger-manager.c
-@@ -2020,27 +2020,6 @@ static void __exit charger_manager_clean
- module_exit(charger_manager_cleanup);
+diff -puN drivers/ata/pata_hpt366.c~ata-hpt366-convert-to-use-match_string-helper drivers/ata/pata_hpt366.c
+--- a/drivers/ata/pata_hpt366.c~ata-hpt366-convert-to-use-match_string-helper
++++ a/drivers/ata/pata_hpt366.c
+@@ -176,17 +176,14 @@ static int hpt_dma_blacklisted(const str
+ 			       const char * const list[])
+ {
+ 	unsigned char model_num[ATA_ID_PROD_LEN + 1];
+-	int i = 0;
++	int i;
  
- /**
-- * find_power_supply - find the associated power_supply of charger
-- * @cm: the Charger Manager representing the battery
-- * @psy: pointer to instance of charger's power_supply
-- */
--static bool find_power_supply(struct charger_manager *cm,
--			struct power_supply *psy)
--{
--	int i;
--	bool found = false;
--
--	for (i = 0; cm->desc->psy_charger_stat[i]; i++) {
--		if (!strcmp(psy->desc->name, cm->desc->psy_charger_stat[i])) {
--			found = true;
--			break;
+ 	ata_id_c_string(dev->id, model_num, ATA_ID_PROD, sizeof(model_num));
+ 
+-	while (list[i] != NULL) {
+-		if (!strcmp(list[i], model_num)) {
+-			pr_warn("%s is not supported for %s\n",
+-				modestr, list[i]);
+-			return 1;
 -		}
--	}
--
--	return found;
--}
+-		i++;
++	i = match_string(list, -1, model_num);
++	if (i >= 0) {
++		pr_warn("%s is not supported for %s\n", modestr, list[i]);
++		return 1;
+ 	}
+ 	return 0;
+ }
+_
+
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+
+
