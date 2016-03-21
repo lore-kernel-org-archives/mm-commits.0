@@ -1,196 +1,194 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers.patch removed
- from -mm tree
-Date: Mon, 21 Mar 2016 11:41:37 -0700
-Message-ID: <56f04061.1EznghxT52cmYvjR%akpm@linux-foundation.org>
+Subject: [merged] force-inlining-of-unaligned-byteswap-operations.patch
+ removed from -mm tree
+Date: Mon, 21 Mar 2016 11:42:28 -0700
+Message-ID: <56f04094.1Ap8Y+4Pfmhpjl4Q%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52807 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52787 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757945AbcCUTVW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:21:22 -0400
+	with ESMTP id S1757519AbcCUTVO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:21:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@linux.intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: dvlasenk@redhat.com, arnd@arndb.de, mingo@kernel.org, peterz@infradead.org, rientjes@google.com, tgraf@suug.ch, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix_tree: tag all internal tree nodes as indirect pointers
+     Subject: include/linux/unaligned: force inlining of byteswap operations
 has been removed from the -mm tree.  Its filename was
-     radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers.patch
+     force-inlining-of-unaligned-byteswap-operations.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix_tree: tag all internal tree nodes as indirect pointers
+From: Denys Vlasenko <dvlasenk@redhat.com>
+Subject: include/linux/unaligned: force inlining of byteswap operations
 
-Set the 'indirect_ptr' bit on all the pointers to internal nodes, not just
-on the root node.  This enables the following patches to support
-multi-order entries in the radix tree.  This patch is split out for ease
-of bisection.
+Sometimes gcc mysteriously doesn't inline
+very small functions we expect to be inlined. See
+    https://gcc.gnu.org/bugzilla/show_bug.cgi?id=66122
 
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
+With this .config:
+http://busybox.net/~vda/kernel_config_OPTIMIZE_INLINING_and_Os,
+the following functions get deinlined many times.
+Examples of disassembly:
+
+<get_unaligned_be16> (24 copies, 108 calls):
+       66 8b 07                mov    (%rdi),%ax
+       55                      push   %rbp
+       48 89 e5                mov    %rsp,%rbp
+       86 e0                   xchg   %ah,%al
+       5d                      pop    %rbp
+       c3                      retq
+
+<get_unaligned_be32> (25 copies, 181 calls):
+       8b 07                   mov    (%rdi),%eax
+       55                      push   %rbp
+       48 89 e5                mov    %rsp,%rbp
+       0f c8                   bswap  %eax
+       5d                      pop    %rbp
+       c3                      retq
+
+<get_unaligned_be64> (23 copies, 94 calls):
+       48 8b 07                mov    (%rdi),%rax
+       55                      push   %rbp
+       48 89 e5                mov    %rsp,%rbp
+       48 0f c8                bswap  %rax
+       5d                      pop    %rbp
+       c3                      retq
+
+<put_unaligned_be16> (2 copies, 11 calls):
+       89 f8                   mov    %edi,%eax
+       55                      push   %rbp
+       c1 ef 08                shr    $0x8,%edi
+       c1 e0 08                shl    $0x8,%eax
+       09 c7                   or     %eax,%edi
+       48 89 e5                mov    %rsp,%rbp
+       66 89 3e                mov    %di,(%rsi)
+
+<put_unaligned_be32> (8 copies, 43 calls):
+       55                      push   %rbp
+       0f cf                   bswap  %edi
+       89 3e                   mov    %edi,(%rsi)
+       48 89 e5                mov    %rsp,%rbp
+       5d                      pop    %rbp
+       c3                      retq
+
+<put_unaligned_be64> (26 copies, 157 calls):
+       55                      push   %rbp
+       48 0f cf                bswap  %rdi
+       48 89 3e                mov    %rdi,(%rsi)
+       48 89 e5                mov    %rsp,%rbp
+       5d                      pop    %rbp
+       c3                      retq
+
+This patch fixes this via s/inline/__always_inline/.
+
+It only affects arches with efficient unaligned access insns, such as x86.
+(arched which lack such ops do not include linux/unaligned/access_ok.h)
+
+Code size decrease after the patch is ~8.5k:
+
+    text     data      bss       dec     hex filename
+92197848 20826112 36417536 149441496 8e84bd8 vmlinux
+92189231 20826144 36417536 149432911 8e82a4f vmlinux6_unaligned_be_after
+
+Signed-off-by: Denys Vlasenko <dvlasenk@redhat.com>
+Acked-by: Ingo Molnar <mingo@kernel.org>
+Cc: Thomas Graf <tgraf@suug.ch>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/radix-tree.c                |   24 ++++++++++++++++++------
- tools/testing/radix-tree/test.c |    5 +++--
- 2 files changed, 21 insertions(+), 8 deletions(-)
+ include/linux/unaligned/access_ok.h |   24 ++++++++++++------------
+ 1 file changed, 12 insertions(+), 12 deletions(-)
 
-diff -puN lib/radix-tree.c~radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers lib/radix-tree.c
---- a/lib/radix-tree.c~radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers
-+++ a/lib/radix-tree.c
-@@ -368,9 +368,10 @@ static int radix_tree_extend(struct radi
- 		node->count = 1;
- 		node->parent = NULL;
- 		slot = root->rnode;
--		if (newheight > 1) {
-+		if (radix_tree_is_indirect_ptr(slot) && newheight > 1) {
- 			slot = indirect_to_ptr(slot);
- 			slot->parent = node;
-+			slot = ptr_to_indirect(slot);
- 		}
- 		node->slots[0] = slot;
- 		node = ptr_to_indirect(node);
-@@ -425,17 +426,20 @@ int __radix_tree_create(struct radix_tre
- 			slot->path = height;
- 			slot->parent = node;
- 			if (node) {
--				rcu_assign_pointer(node->slots[offset], slot);
-+				rcu_assign_pointer(node->slots[offset],
-+							ptr_to_indirect(slot));
- 				node->count++;
- 				slot->path |= offset << RADIX_TREE_HEIGHT_SHIFT;
- 			} else
--				rcu_assign_pointer(root->rnode, ptr_to_indirect(slot));
-+				rcu_assign_pointer(root->rnode,
-+							ptr_to_indirect(slot));
- 		}
+diff -puN include/linux/unaligned/access_ok.h~force-inlining-of-unaligned-byteswap-operations include/linux/unaligned/access_ok.h
+--- a/include/linux/unaligned/access_ok.h~force-inlining-of-unaligned-byteswap-operations
++++ a/include/linux/unaligned/access_ok.h
+@@ -4,62 +4,62 @@
+ #include <linux/kernel.h>
+ #include <asm/byteorder.h>
  
- 		/* Go a level down */
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
- 		node = slot;
- 		slot = node->slots[offset];
-+		slot = indirect_to_ptr(slot);
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		height--;
- 	}
-@@ -533,6 +537,7 @@ void *__radix_tree_lookup(struct radix_t
- 		node = rcu_dereference_raw(*slot);
- 		if (node == NULL)
- 			return NULL;
-+		node = indirect_to_ptr(node);
- 
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		height--;
-@@ -619,6 +624,7 @@ void *radix_tree_tag_set(struct radix_tr
- 			tag_set(slot, tag, offset);
- 		slot = slot->slots[offset];
- 		BUG_ON(slot == NULL);
-+		slot = indirect_to_ptr(slot);
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		height--;
- 	}
-@@ -658,11 +664,12 @@ void *radix_tree_tag_clear(struct radix_
- 		goto out;
- 
- 	shift = height * RADIX_TREE_MAP_SHIFT;
--	slot = indirect_to_ptr(root->rnode);
-+	slot = root->rnode;
- 
- 	while (shift) {
- 		if (slot == NULL)
- 			goto out;
-+		slot = indirect_to_ptr(slot);
- 
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
-@@ -738,6 +745,7 @@ int radix_tree_tag_get(struct radix_tree
- 
- 		if (node == NULL)
- 			return 0;
-+		node = indirect_to_ptr(node);
- 
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
- 		if (!tag_get(node, tag, offset))
-@@ -838,6 +846,7 @@ restart:
- 		node = rcu_dereference_raw(node->slots[offset]);
- 		if (node == NULL)
- 			goto restart;
-+		node = indirect_to_ptr(node);
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
- 	}
-@@ -939,6 +948,7 @@ unsigned long radix_tree_range_tag_if_ta
- 			shift -= RADIX_TREE_MAP_SHIFT;
- 			node = slot;
- 			slot = slot->slots[offset];
-+			slot = indirect_to_ptr(slot);
- 			continue;
- 		}
- 
-@@ -1195,6 +1205,7 @@ static unsigned long __locate(struct rad
- 		slot = rcu_dereference_raw(slot->slots[i]);
- 		if (slot == NULL)
- 			goto out;
-+		slot = indirect_to_ptr(slot);
- 	}
- 
- 	/* Bottom level: check items */
-@@ -1278,7 +1289,8 @@ static inline void radix_tree_shrink(str
- 		 */
- 		if (to_free->count != 1)
- 			break;
--		if (!to_free->slots[0])
-+		slot = to_free->slots[0];
-+		if (!slot)
- 			break;
- 
- 		/*
-@@ -1288,8 +1300,8 @@ static inline void radix_tree_shrink(str
- 		 * (to_free->slots[0]), it will be safe to dereference the new
- 		 * one (root->rnode) as far as dependent read barriers go.
- 		 */
--		slot = to_free->slots[0];
- 		if (root->height > 1) {
-+			slot = indirect_to_ptr(slot);
- 			slot->parent = NULL;
- 			slot = ptr_to_indirect(slot);
- 		}
-diff -puN tools/testing/radix-tree/test.c~radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers tools/testing/radix-tree/test.c
---- a/tools/testing/radix-tree/test.c~radix_tree-tag-all-internal-tree-nodes-as-indirect-pointers
-+++ a/tools/testing/radix-tree/test.c
-@@ -142,6 +142,8 @@ static int verify_node(struct radix_tree
- 	int i;
- 	int j;
- 
-+	slot = indirect_to_ptr(slot);
-+
- 	/* Verify consistency at this level */
- 	for (i = 0; i < RADIX_TREE_TAG_LONGS; i++) {
- 		if (slot->tags[tag][i]) {
-@@ -184,8 +186,7 @@ void verify_tag_consistency(struct radix
+-static inline u16 get_unaligned_le16(const void *p)
++static __always_inline u16 get_unaligned_le16(const void *p)
  {
- 	if (!root->height)
- 		return;
--	verify_node(indirect_to_ptr(root->rnode),
--			tag, root->height, !!root_tag_get(root, tag));
-+	verify_node(root->rnode, tag, root->height, !!root_tag_get(root, tag));
+ 	return le16_to_cpup((__le16 *)p);
  }
  
- void item_kill_tree(struct radix_tree_root *root)
+-static inline u32 get_unaligned_le32(const void *p)
++static __always_inline u32 get_unaligned_le32(const void *p)
+ {
+ 	return le32_to_cpup((__le32 *)p);
+ }
+ 
+-static inline u64 get_unaligned_le64(const void *p)
++static __always_inline u64 get_unaligned_le64(const void *p)
+ {
+ 	return le64_to_cpup((__le64 *)p);
+ }
+ 
+-static inline u16 get_unaligned_be16(const void *p)
++static __always_inline u16 get_unaligned_be16(const void *p)
+ {
+ 	return be16_to_cpup((__be16 *)p);
+ }
+ 
+-static inline u32 get_unaligned_be32(const void *p)
++static __always_inline u32 get_unaligned_be32(const void *p)
+ {
+ 	return be32_to_cpup((__be32 *)p);
+ }
+ 
+-static inline u64 get_unaligned_be64(const void *p)
++static __always_inline u64 get_unaligned_be64(const void *p)
+ {
+ 	return be64_to_cpup((__be64 *)p);
+ }
+ 
+-static inline void put_unaligned_le16(u16 val, void *p)
++static __always_inline void put_unaligned_le16(u16 val, void *p)
+ {
+ 	*((__le16 *)p) = cpu_to_le16(val);
+ }
+ 
+-static inline void put_unaligned_le32(u32 val, void *p)
++static __always_inline void put_unaligned_le32(u32 val, void *p)
+ {
+ 	*((__le32 *)p) = cpu_to_le32(val);
+ }
+ 
+-static inline void put_unaligned_le64(u64 val, void *p)
++static __always_inline void put_unaligned_le64(u64 val, void *p)
+ {
+ 	*((__le64 *)p) = cpu_to_le64(val);
+ }
+ 
+-static inline void put_unaligned_be16(u16 val, void *p)
++static __always_inline void put_unaligned_be16(u16 val, void *p)
+ {
+ 	*((__be16 *)p) = cpu_to_be16(val);
+ }
+ 
+-static inline void put_unaligned_be32(u32 val, void *p)
++static __always_inline void put_unaligned_be32(u32 val, void *p)
+ {
+ 	*((__be32 *)p) = cpu_to_be32(val);
+ }
+ 
+-static inline void put_unaligned_be64(u64 val, void *p)
++static __always_inline void put_unaligned_be64(u64 val, void *p)
+ {
+ 	*((__be64 *)p) = cpu_to_be64(val);
+ }
 _
 
-Patches currently in -mm which might be from willy@linux.intel.com are
+Patches currently in -mm which might be from dvlasenk@redhat.com are
 
 
