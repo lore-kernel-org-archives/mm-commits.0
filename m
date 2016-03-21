@@ -1,61 +1,57 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-remove-unnecessary-description-about-a-non-exist-gfp-flag.patch removed
+ mm-kconfig-remove-redundant-arch-depend-for-memory-hotplug.patch removed
  from -mm tree
-Date: Mon, 21 Mar 2016 11:39:29 -0700
-Message-ID: <56f03fe1.tR7EMLfMpDiM0Q7Z%akpm@linux-foundation.org>
+Date: Mon, 21 Mar 2016 11:39:15 -0700
+Message-ID: <56f03fd3.xjFodRQsQGICalrC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53466 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53459 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932457AbcCUT42 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:28 -0400
+	with ESMTP id S932545AbcCUT4g (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: takeuchi_satoru@jp.fujitsu.com, mhocko@suse.com, mm-commits@vger.kernel.org
+To: yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: remove unnecessary description about a non-exist gfp flag
+     Subject: mm/Kconfig: remove redundant arch depend for memory hotplug
 has been removed from the -mm tree.  Its filename was
-     mm-remove-unnecessary-description-about-a-non-exist-gfp-flag.patch
+     mm-kconfig-remove-redundant-arch-depend-for-memory-hotplug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>
-Subject: mm: remove unnecessary description about a non-exist gfp flag
+From: Yang Shi <yang.shi@linaro.org>
+Subject: mm/Kconfig: remove redundant arch depend for memory hotplug
 
-Since __GFP_NOACCOUNT is removed by the following commit,
-its description is not necessary.
+MEMORY_HOTPLUG already depends on ARCH_ENABLE_MEMORY_HOTPLUG which is selected
+by the supported architectures, so the following arch depend is unnecessary.
 
-commit 20b5c3039863 ("Revert 'gfp: add __GFP_NOACCOUNT'")
-
-Signed-off-by: Satoru Takeuchi <takeuchi_satoru@jp.fujitsu.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Yang Shi <yang.shi@linaro.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/gfp.h |    2 --
- 1 file changed, 2 deletions(-)
+ mm/Kconfig |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN include/linux/gfp.h~mm-remove-unnecessary-description-about-a-non-exist-gfp-flag include/linux/gfp.h
---- a/include/linux/gfp.h~mm-remove-unnecessary-description-about-a-non-exist-gfp-flag
-+++ a/include/linux/gfp.h
-@@ -105,8 +105,6 @@ struct vm_area_struct;
-  *
-  * __GFP_NOMEMALLOC is used to explicitly forbid access to emergency reserves.
-  *   This takes precedence over the __GFP_MEMALLOC flag if both are set.
-- *
-- * __GFP_NOACCOUNT ignores the accounting for kmemcg limit enforcement.
-  */
- #define __GFP_ATOMIC	((__force gfp_t)___GFP_ATOMIC)
- #define __GFP_HIGH	((__force gfp_t)___GFP_HIGH)
+diff -puN mm/Kconfig~mm-kconfig-remove-redundant-arch-depend-for-memory-hotplug mm/Kconfig
+--- a/mm/Kconfig~mm-kconfig-remove-redundant-arch-depend-for-memory-hotplug
++++ a/mm/Kconfig
+@@ -187,7 +187,6 @@ config MEMORY_HOTPLUG
+ 	bool "Allow for memory hot-add"
+ 	depends on SPARSEMEM || X86_64_ACPI_NUMA
+ 	depends on ARCH_ENABLE_MEMORY_HOTPLUG
+-	depends on (IA64 || X86 || PPC_BOOK3S_64 || SUPERH || S390)
+ 
+ config MEMORY_HOTPLUG_SPARSE
+ 	def_bool y
 _
 
-Patches currently in -mm which might be from takeuchi_satoru@jp.fujitsu.com are
+Patches currently in -mm which might be from yang.shi@linaro.org are
 
 
