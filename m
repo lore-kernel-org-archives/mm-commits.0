@@ -1,276 +1,201 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-update-single-char-callers-of-strtobool.patch
- removed from -mm tree
-Date: Mon, 21 Mar 2016 11:42:33 -0700
-Message-ID: <56f04099.Lab9K378CJYrESma%akpm@linux-foundation.org>
+Subject: [merged] lib-bugc-use-common-warn-helper.patch removed from -mm
+ tree
+Date: Mon, 21 Mar 2016 11:42:40 -0700
+Message-ID: <56f040a0.8AzivYMavWdxPpjx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52791 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52789 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757925AbcCUTVO (ORCPT
+	with ESMTP id S1757927AbcCUTVO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:21:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: keescook@chromium.org, akarwar@marvell.com, andy.shevchenko@gmail.com, daniel@iogearbox.net, heiko.carstens@de.ibm.com, joe@perches.com, kvalo@codeaurora.org, linux@rasmusvillemoes.dk, mpe@ellerman.id.au, nishants@marvell.com, schwidefsky@de.ibm.com, sfrench@samba.org, mm-commits@vger.kernel.org
+To: jpoimboe@redhat.com, chuhu@redhat.com, heiko.carstens@de.ibm.com, prarit@redhat.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib: update single-char callers of strtobool()
+     Subject: lib/bug.c: use common WARN helper
 has been removed from the -mm tree.  Its filename was
-     lib-update-single-char-callers-of-strtobool.patch
+     lib-bugc-use-common-warn-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kees Cook <keescook@chromium.org>
-Subject: lib: update single-char callers of strtobool()
+From: Josh Poimboeuf <jpoimboe@redhat.com>
+Subject: lib/bug.c: use common WARN helper
 
-Some callers of strtobool() were passing a pointer to unterminated
-strings.  In preparation of adding multi-character processing to
-kstrtobool(), update the callers to not pass single-character pointers,
-and switch to using the new kstrtobool_from_user() helper where possible.
+The traceoff_on_warning option doesn't have any effect on s390, powerpc,
+arm64, parisc, and sh because there are two different types of WARN
+implementations:
 
-Signed-off-by: Kees Cook <keescook@chromium.org>
-Cc: Amitkumar Karwar <akarwar@marvell.com>
-Cc: Nishant Sarmukadam <nishants@marvell.com>
-Cc: Kalle Valo <kvalo@codeaurora.org>
-Cc: Steve French <sfrench@samba.org>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Daniel Borkmann <daniel@iogearbox.net>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Joe Perches <joe@perches.com>
-Cc: Kees Cook <keescook@chromium.org>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Michael Ellerman <mpe@ellerman.id.au>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+1) The above mentioned architectures treat WARN() as a special case of a
+   BUG() exception.  They handle warnings in report_bug() in lib/bug.c.
+
+2) All other architectures just call warn_slowpath_*() directly.  Their
+   warnings are handled in warn_slowpath_common() in kernel/panic.c.
+
+Support traceoff_on_warning on all architectures and prevent any future
+divergence by using a single common function to emit the warning.
+
+Also remove the '()' from '%pS()', because the parentheses look funky:
+
+  [   45.607629] WARNING: at /root/warn_mod/warn_mod.c:17 .init_dummy+0x20/0x40 [warn_mod]()
+
+Reported-by: Chunyu Hu <chuhu@redhat.com>
+Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
+Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>
+Tested-by: Prarit Bhargava <prarit@redhat.com>
+Acked-by: Prarit Bhargava <prarit@redhat.com>
+Acked-by: Steven Rostedt <rostedt@goodmis.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/wireless/marvell/mwifiex/debugfs.c |   10 +-
- fs/cifs/cifs_debug.c                           |   56 +++------------
- fs/cifs/cifs_debug.h                           |    2 
- fs/cifs/cifsfs.c                               |    6 -
- fs/cifs/cifsglob.h                             |    4 -
- 5 files changed, 24 insertions(+), 54 deletions(-)
+ include/asm-generic/bug.h |    6 +++++
+ kernel/panic.c            |   41 ++++++++++++++++++++++--------------
+ lib/bug.c                 |   26 +---------------------
+ 3 files changed, 34 insertions(+), 39 deletions(-)
 
-diff -puN drivers/net/wireless/marvell/mwifiex/debugfs.c~lib-update-single-char-callers-of-strtobool drivers/net/wireless/marvell/mwifiex/debugfs.c
---- a/drivers/net/wireless/marvell/mwifiex/debugfs.c~lib-update-single-char-callers-of-strtobool
-+++ a/drivers/net/wireless/marvell/mwifiex/debugfs.c
-@@ -880,14 +880,12 @@ mwifiex_reset_write(struct file *file,
- {
- 	struct mwifiex_private *priv = file->private_data;
- 	struct mwifiex_adapter *adapter = priv->adapter;
--	char cmd;
- 	bool result;
-+	int rc;
- 
--	if (copy_from_user(&cmd, ubuf, sizeof(cmd)))
--		return -EFAULT;
--
--	if (strtobool(&cmd, &result))
--		return -EINVAL;
-+	rc = kstrtobool_from_user(ubuf, count, &result);
-+	if (rc)
-+		return rc;
- 
- 	if (!result)
- 		return -EINVAL;
-diff -puN fs/cifs/cifs_debug.c~lib-update-single-char-callers-of-strtobool fs/cifs/cifs_debug.c
---- a/fs/cifs/cifs_debug.c~lib-update-single-char-callers-of-strtobool
-+++ a/fs/cifs/cifs_debug.c
-@@ -255,7 +255,6 @@ static const struct file_operations cifs
- static ssize_t cifs_stats_proc_write(struct file *file,
- 		const char __user *buffer, size_t count, loff_t *ppos)
- {
--	char c;
- 	bool bv;
- 	int rc;
- 	struct list_head *tmp1, *tmp2, *tmp3;
-@@ -263,11 +262,8 @@ static ssize_t cifs_stats_proc_write(str
- 	struct cifs_ses *ses;
- 	struct cifs_tcon *tcon;
- 
--	rc = get_user(c, buffer);
--	if (rc)
--		return rc;
--
--	if (strtobool(&c, &bv) == 0) {
-+	rc = kstrtobool_from_user(buffer, count, &bv);
-+	if (rc == 0) {
- #ifdef CONFIG_CIFS_STATS2
- 		atomic_set(&totBufAllocCount, 0);
- 		atomic_set(&totSmBufAllocCount, 0);
-@@ -290,6 +286,8 @@ static ssize_t cifs_stats_proc_write(str
- 			}
- 		}
- 		spin_unlock(&cifs_tcp_ses_lock);
-+	} else {
-+		return rc;
- 	}
- 
- 	return count;
-@@ -433,17 +431,17 @@ static int cifsFYI_proc_open(struct inod
- static ssize_t cifsFYI_proc_write(struct file *file, const char __user *buffer,
- 		size_t count, loff_t *ppos)
- {
--	char c;
-+	char c[2] = { '\0' };
- 	bool bv;
- 	int rc;
- 
--	rc = get_user(c, buffer);
-+	rc = get_user(c[0], buffer);
- 	if (rc)
- 		return rc;
--	if (strtobool(&c, &bv) == 0)
-+	if (strtobool(c, &bv) == 0)
- 		cifsFYI = bv;
--	else if ((c > '1') && (c <= '9'))
--		cifsFYI = (int) (c - '0'); /* see cifs_debug.h for meanings */
-+	else if ((c[0] > '1') && (c[0] <= '9'))
-+		cifsFYI = (int) (c[0] - '0'); /* see cifs_debug.h for meanings */
- 
- 	return count;
- }
-@@ -471,20 +469,12 @@ static int cifs_linux_ext_proc_open(stru
- static ssize_t cifs_linux_ext_proc_write(struct file *file,
- 		const char __user *buffer, size_t count, loff_t *ppos)
- {
--	char c;
--	bool bv;
- 	int rc;
- 
--	rc = get_user(c, buffer);
-+	rc = kstrtobool_from_user(buffer, count, &linuxExtEnabled);
- 	if (rc)
- 		return rc;
- 
--	rc = strtobool(&c, &bv);
--	if (rc)
--		return rc;
--
--	linuxExtEnabled = bv;
--
- 	return count;
- }
- 
-@@ -511,20 +501,12 @@ static int cifs_lookup_cache_proc_open(s
- static ssize_t cifs_lookup_cache_proc_write(struct file *file,
- 		const char __user *buffer, size_t count, loff_t *ppos)
- {
--	char c;
--	bool bv;
- 	int rc;
- 
--	rc = get_user(c, buffer);
-+	rc = kstrtobool_from_user(buffer, count, &lookupCacheEnabled);
- 	if (rc)
- 		return rc;
- 
--	rc = strtobool(&c, &bv);
--	if (rc)
--		return rc;
--
--	lookupCacheEnabled = bv;
--
- 	return count;
- }
- 
-@@ -551,20 +533,12 @@ static int traceSMB_proc_open(struct ino
- static ssize_t traceSMB_proc_write(struct file *file, const char __user *buffer,
- 		size_t count, loff_t *ppos)
- {
--	char c;
--	bool bv;
- 	int rc;
- 
--	rc = get_user(c, buffer);
-+	rc = kstrtobool_from_user(buffer, count, &traceSMB);
- 	if (rc)
- 		return rc;
- 
--	rc = strtobool(&c, &bv);
--	if (rc)
--		return rc;
--
--	traceSMB = bv;
--
- 	return count;
- }
- 
-@@ -622,7 +596,6 @@ static ssize_t cifs_security_flags_proc_
- 	int rc;
- 	unsigned int flags;
- 	char flags_string[12];
--	char c;
- 	bool bv;
- 
- 	if ((count < 1) || (count > 11))
-@@ -635,11 +608,10 @@ static ssize_t cifs_security_flags_proc_
- 
- 	if (count < 3) {
- 		/* single char or single char followed by null */
--		c = flags_string[0];
--		if (strtobool(&c, &bv) == 0) {
-+		if (strtobool(flags_string, &bv) == 0) {
- 			global_secflags = bv ? CIFSSEC_MAX : CIFSSEC_DEF;
- 			return count;
--		} else if (!isdigit(c)) {
-+		} else if (!isdigit(flags_string[0])) {
- 			cifs_dbg(VFS, "Invalid SecurityFlags: %s\n",
- 					flags_string);
- 			return -EINVAL;
-diff -puN fs/cifs/cifs_debug.h~lib-update-single-char-callers-of-strtobool fs/cifs/cifs_debug.h
---- a/fs/cifs/cifs_debug.h~lib-update-single-char-callers-of-strtobool
-+++ a/fs/cifs/cifs_debug.h
-@@ -25,7 +25,7 @@
- void cifs_dump_mem(char *label, void *data, int length);
- void cifs_dump_detail(void *);
- void cifs_dump_mids(struct TCP_Server_Info *);
--extern int traceSMB;		/* flag which enables the function below */
-+extern bool traceSMB;		/* flag which enables the function below */
- void dump_smb(void *, int);
- #define CIFS_INFO	0x01
- #define CIFS_RC		0x02
-diff -puN fs/cifs/cifsfs.c~lib-update-single-char-callers-of-strtobool fs/cifs/cifsfs.c
---- a/fs/cifs/cifsfs.c~lib-update-single-char-callers-of-strtobool
-+++ a/fs/cifs/cifsfs.c
-@@ -54,10 +54,10 @@
+diff -puN include/asm-generic/bug.h~lib-bugc-use-common-warn-helper include/asm-generic/bug.h
+--- a/include/asm-generic/bug.h~lib-bugc-use-common-warn-helper
++++ a/include/asm-generic/bug.h
+@@ -81,6 +81,12 @@ extern void warn_slowpath_null(const cha
+ 	do { printk(arg); __WARN_TAINT(taint); } while (0)
  #endif
  
- int cifsFYI = 0;
--int traceSMB = 0;
-+bool traceSMB;
- bool enable_oplocks = true;
--unsigned int linuxExtEnabled = 1;
--unsigned int lookupCacheEnabled = 1;
-+bool linuxExtEnabled = true;
-+bool lookupCacheEnabled = true;
- unsigned int global_secflags = CIFSSEC_DEF;
- /* unsigned int ntlmv2_support = 0; */
- unsigned int sign_CIFS_PDUs = 1;
-diff -puN fs/cifs/cifsglob.h~lib-update-single-char-callers-of-strtobool fs/cifs/cifsglob.h
---- a/fs/cifs/cifsglob.h~lib-update-single-char-callers-of-strtobool
-+++ a/fs/cifs/cifsglob.h
-@@ -1596,11 +1596,11 @@ GLOBAL_EXTERN atomic_t midCount;
++/* used internally by panic.c */
++struct warn_args;
++
++void __warn(const char *file, int line, void *caller, unsigned taint,
++	    struct pt_regs *regs, struct warn_args *args);
++
+ #ifndef WARN_ON
+ #define WARN_ON(condition) ({						\
+ 	int __ret_warn_on = !!(condition);				\
+diff -puN kernel/panic.c~lib-bugc-use-common-warn-helper kernel/panic.c
+--- a/kernel/panic.c~lib-bugc-use-common-warn-helper
++++ a/kernel/panic.c
+@@ -24,6 +24,7 @@
+ #include <linux/init.h>
+ #include <linux/nmi.h>
+ #include <linux/console.h>
++#include <linux/bug.h>
  
- /* Misc globals */
- GLOBAL_EXTERN bool enable_oplocks; /* enable or disable oplocks */
--GLOBAL_EXTERN unsigned int lookupCacheEnabled;
-+GLOBAL_EXTERN bool lookupCacheEnabled;
- GLOBAL_EXTERN unsigned int global_secflags;	/* if on, session setup sent
- 				with more secure ntlmssp2 challenge/resp */
- GLOBAL_EXTERN unsigned int sign_CIFS_PDUs;  /* enable smb packet signing */
--GLOBAL_EXTERN unsigned int linuxExtEnabled;/*enable Linux/Unix CIFS extensions*/
-+GLOBAL_EXTERN bool linuxExtEnabled;/*enable Linux/Unix CIFS extensions*/
- GLOBAL_EXTERN unsigned int CIFSMaxBufSize;  /* max size not including hdr */
- GLOBAL_EXTERN unsigned int cifs_min_rcv;    /* min size of big ntwrk buf pool */
- GLOBAL_EXTERN unsigned int cifs_min_small;  /* min size of small buf pool */
-_
-
-Patches currently in -mm which might be from keescook@chromium.org are
-
-
+ #define PANIC_TIMER_STEP 100
+ #define PANIC_BLINK_SPD 18
+@@ -449,20 +450,25 @@ void oops_exit(void)
+ 	kmsg_dump(KMSG_DUMP_OOPS);
+ }
+ 
+-#ifdef WANT_WARN_ON_SLOWPATH
+-struct slowpath_args {
++struct warn_args {
+ 	const char *fmt;
+ 	va_list args;
+ };
+ 
+-static void warn_slowpath_common(const char *file, int line, void *caller,
+-				 unsigned taint, struct slowpath_args *args)
++void __warn(const char *file, int line, void *caller, unsigned taint,
++	    struct pt_regs *regs, struct warn_args *args)
+ {
+ 	disable_trace_on_warning();
+ 
+ 	pr_warn("------------[ cut here ]------------\n");
+-	pr_warn("WARNING: CPU: %d PID: %d at %s:%d %pS()\n",
+-		raw_smp_processor_id(), current->pid, file, line, caller);
++
++	if (file)
++		pr_warn("WARNING: CPU: %d PID: %d at %s:%d %pS\n",
++			raw_smp_processor_id(), current->pid, file, line,
++			caller);
++	else
++		pr_warn("WARNING: CPU: %d PID: %d at %pS\n",
++			raw_smp_processor_id(), current->pid, caller);
+ 
+ 	if (args)
+ 		vprintk(args->fmt, args->args);
+@@ -479,20 +485,27 @@ static void warn_slowpath_common(const c
+ 	}
+ 
+ 	print_modules();
+-	dump_stack();
++
++	if (regs)
++		show_regs(regs);
++	else
++		dump_stack();
++
+ 	print_oops_end_marker();
++
+ 	/* Just a warning, don't kill lockdep. */
+ 	add_taint(taint, LOCKDEP_STILL_OK);
+ }
+ 
++#ifdef WANT_WARN_ON_SLOWPATH
+ void warn_slowpath_fmt(const char *file, int line, const char *fmt, ...)
+ {
+-	struct slowpath_args args;
++	struct warn_args args;
+ 
+ 	args.fmt = fmt;
+ 	va_start(args.args, fmt);
+-	warn_slowpath_common(file, line, __builtin_return_address(0),
+-			     TAINT_WARN, &args);
++	__warn(file, line, __builtin_return_address(0), TAINT_WARN, NULL,
++	       &args);
+ 	va_end(args.args);
+ }
+ EXPORT_SYMBOL(warn_slowpath_fmt);
+@@ -500,20 +513,18 @@ EXPORT_SYMBOL(warn_slowpath_fmt);
+ void warn_slowpath_fmt_taint(const char *file, int line,
+ 			     unsigned taint, const char *fmt, ...)
+ {
+-	struct slowpath_args args;
++	struct warn_args args;
+ 
+ 	args.fmt = fmt;
+ 	va_start(args.args, fmt);
+-	warn_slowpath_common(file, line, __builtin_return_address(0),
+-			     taint, &args);
++	__warn(file, line, __builtin_return_address(0), taint, NULL, &args);
+ 	va_end(args.args);
+ }
+ EXPORT_SYMBOL(warn_slowpath_fmt_taint);
+ 
+ void warn_slowpath_null(const char *file, int line)
+ {
+-	warn_slowpath_common(file, line, __builtin_return_address(0),
+-			     TAINT_WARN, NULL);
++	__warn(file, line, __builtin_return_address(0), TAINT_WARN, NULL, NULL);
+ }
+ EXPORT_SYMBOL(warn_slowpath_null);
+ #endif
+diff -puN lib/bug.c~lib-bugc-use-common-warn-helper lib/bug.c
+--- a/lib/bug.c~lib-bugc-use-common-warn-helper
++++ a/lib/bug.c
+@@ -167,30 +167,8 @@ enum bug_trap_type report_bug(unsigned l
+ 
+ 	if (warning) {
+ 		/* this is a WARN_ON rather than BUG/BUG_ON */
+-		pr_warn("------------[ cut here ]------------\n");
+-
+-		if (file)
+-			pr_warn("WARNING: at %s:%u\n", file, line);
+-		else
+-			pr_warn("WARNING: at %p [verbose debug info unavailable]\n",
+-				(void *)bugaddr);
+-
+-		if (panic_on_warn) {
+-			/*
+-			 * This thread may hit another WARN() in the panic path.
+-			 * Resetting this prevents additional WARN() from
+-			 * panicking the system on this thread.  Other threads
+-			 * are blocked by the panic_mutex in panic().
+-			 */
+-			panic_on_warn = 0;
+-			panic("panic_on_warn set ...\n");
+-		}
