@@ -1,93 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- lib-bug-make-panic_on_warn-available-for-all-architectures.patch removed
- from -mm tree
-Date: Mon, 21 Mar 2016 11:41:28 -0700
-Message-ID: <56f04058.19mElFRGp2fcreWM%akpm@linux-foundation.org>
+Subject: [merged] mm-zone_device-depends-on-sparsemem_vmemmap.patch
+ removed from -mm tree
+Date: Mon, 21 Mar 2016 11:40:01 -0700
+Message-ID: <56f04001.8jTs4+5shi0gSwZo%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52977 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53444 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756398AbcCUTlN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:41:13 -0400
+	with ESMTP id S1757370AbcCUT4N (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: heiko.carstens@de.ibm.com, benh@kernel.crashing.org, borntraeger@de.ibm.com, catalin.marinas@arm.com, deller@gmx.de, jejb@parisc-linux.org, mpe@ellerman.id.au, paulus@samba.org, prarit@redhat.com, schwidefsky@de.ibm.com, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: dan.j.williams@intel.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/bug.c: make panic_on_warn available for all architectures
+     Subject: mm: ZONE_DEVICE depends on SPARSEMEM_VMEMMAP
 has been removed from the -mm tree.  Its filename was
-     lib-bug-make-panic_on_warn-available-for-all-architectures.patch
+     mm-zone_device-depends-on-sparsemem_vmemmap.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Heiko Carstens <heiko.carstens@de.ibm.com>
-Subject: lib/bug.c: make panic_on_warn available for all architectures
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: mm: ZONE_DEVICE depends on SPARSEMEM_VMEMMAP
 
-Christian Borntraeger reported that panic_on_warn doesn't have any effect
-on s390.
+The primary use case for devm_memremap_pages() is to allocate an memmap
+array from persistent memory.  That capabilty requires vmem_altmap which
+requires SPARSEMEM_VMEMMAP.
 
-The panic_on_warn feature was introduced with 9e3961a09798 ("kernel: add
-panic_on_warn").  However it did care only for the case when
-WANT_WARN_ON_SLOWPATH is defined.  This is turn is only the case for
-architectures which do not have an own __WARN_TAINT defined.
+Also, without SPARSEMEM_VMEMMAP the addition of ZONE_DEVICE expands
+ZONES_WIDTH and triggers the:
 
-Other architectures which do have __WARN_TAINT defined call report_bug()
-for warnings within lib/bug.c which does not call panic() in case
-panic_on_warn is set.
+"Unfortunate NUMA and NUMA Balancing config, growing page-frame for
+last_cpupid."
 
-Let's simply enable the panic_on_warn feature by adding the same code like
-it was added to warn_slowpath_common() in panic.c.
+...warning in mm/memory.c.  SPARSEMEM_VMEMMAP=n && ZONE_DEVICE=y is not
+a configuration we should worry about supporting.
 
-This enables panic_on_warn also for arm64, parisc, powerpc, s390 and sh.
-
-Signed-off-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Reported-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Tested-by: Christian Borntraeger <borntraeger@de.ibm.com>
-Acked-by: Prarit Bhargava <prarit@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
-Cc: Helge Deller <deller@gmx.de>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Paul Mackerras <paulus@samba.org>
-Tested-by: Michael Ellerman <mpe@ellerman.id.au> (powerpc)
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+Reported-by: Vlastimil Babka <vbabka@suse.cz>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/bug.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ mm/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN lib/bug.c~lib-bug-make-panic_on_warn-available-for-all-architectures lib/bug.c
---- a/lib/bug.c~lib-bug-make-panic_on_warn-available-for-all-architectures
-+++ a/lib/bug.c
-@@ -175,6 +175,17 @@ enum bug_trap_type report_bug(unsigned l
- 			pr_warn("WARNING: at %p [verbose debug info unavailable]\n",
- 				(void *)bugaddr);
+diff -puN mm/Kconfig~mm-zone_device-depends-on-sparsemem_vmemmap mm/Kconfig
+--- a/mm/Kconfig~mm-zone_device-depends-on-sparsemem_vmemmap
++++ a/mm/Kconfig
+@@ -653,6 +653,7 @@ config ZONE_DEVICE
+ 	bool "Device memory (pmem, etc...) hotplug support" if EXPERT
+ 	depends on MEMORY_HOTPLUG
+ 	depends on MEMORY_HOTREMOVE
++	depends on SPARSEMEM_VMEMMAP
+ 	depends on X86_64 #arch_add_memory() comprehends device memory
  
-+		if (panic_on_warn) {
-+			/*
-+			 * This thread may hit another WARN() in the panic path.
-+			 * Resetting this prevents additional WARN() from
-+			 * panicking the system on this thread.  Other threads
-+			 * are blocked by the panic_mutex in panic().
-+			 */
-+			panic_on_warn = 0;
-+			panic("panic_on_warn set ...\n");
-+		}
-+
- 		print_modules();
- 		show_regs(regs);
- 		print_oops_end_marker();
+ 	help
 _
 
-Patches currently in -mm which might be from heiko.carstens@de.ibm.com are
+Patches currently in -mm which might be from dan.j.williams@intel.com are
 
 
