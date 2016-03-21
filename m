@@ -1,201 +1,107 @@
 From: akpm@linux-foundation.org
-Subject: [merged] lib-bugc-use-common-warn-helper.patch removed from -mm
- tree
-Date: Mon, 21 Mar 2016 11:42:40 -0700
-Message-ID: <56f040a0.8AzivYMavWdxPpjx%akpm@linux-foundation.org>
+Subject: [merged] lib-string-introduce-match_string-helper.patch removed
+ from -mm tree
+Date: Mon, 21 Mar 2016 11:42:01 -0700
+Message-ID: <56f04079.fQ9jJ6b9znz/tfsH%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52789 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52790 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757927AbcCUTVO (ORCPT
+	with ESMTP id S1757928AbcCUTVO (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:21:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jpoimboe@redhat.com, chuhu@redhat.com, heiko.carstens@de.ibm.com, prarit@redhat.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, airlied@linux.ie, b.zolnierkie@samsung.com, davem@davemloft.net, dbaryshkov@gmail.com, dwmw2@infradead.org, gregkh@linuxfoundation.org, heikki.krogerus@linux.intel.com, linus.walleij@linaro.org, linux@rasmusvillemoes.dk, mika.westerberg@linux.intel.com, rafael.j.wysocki@intel.com, sre@kernel.org, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/bug.c: use common WARN helper
+     Subject: lib/string: introduce match_string() helper
 has been removed from the -mm tree.  Its filename was
-     lib-bugc-use-common-warn-helper.patch
+     lib-string-introduce-match_string-helper.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Josh Poimboeuf <jpoimboe@redhat.com>
-Subject: lib/bug.c: use common WARN helper
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib/string: introduce match_string() helper
 
-The traceoff_on_warning option doesn't have any effect on s390, powerpc,
-arm64, parisc, and sh because there are two different types of WARN
-implementations:
+Occasionally we have to search for an occurrence of a string in an array
+of strings.  Make a simple helper for that purpose.
 
-1) The above mentioned architectures treat WARN() as a special case of a
-   BUG() exception.  They handle warnings in report_bug() in lib/bug.c.
-
-2) All other architectures just call warn_slowpath_*() directly.  Their
-   warnings are handled in warn_slowpath_common() in kernel/panic.c.
-
-Support traceoff_on_warning on all architectures and prevent any future
-divergence by using a single common function to emit the warning.
-
-Also remove the '()' from '%pS()', because the parentheses look funky:
-
-  [   45.607629] WARNING: at /root/warn_mod/warn_mod.c:17 .init_dummy+0x20/0x40 [warn_mod]()
-
-Reported-by: Chunyu Hu <chuhu@redhat.com>
-Signed-off-by: Josh Poimboeuf <jpoimboe@redhat.com>
-Acked-by: Heiko Carstens <heiko.carstens@de.ibm.com>
-Tested-by: Prarit Bhargava <prarit@redhat.com>
-Acked-by: Prarit Bhargava <prarit@redhat.com>
-Acked-by: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: Bartlomiej Zolnierkiewicz <b.zolnierkie@samsung.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Linus Walleij <linus.walleij@linaro.org>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Sebastian Reichel <sre@kernel.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/asm-generic/bug.h |    6 +++++
- kernel/panic.c            |   41 ++++++++++++++++++++++--------------
- lib/bug.c                 |   26 +---------------------
- 3 files changed, 34 insertions(+), 39 deletions(-)
+ include/linux/string.h |    2 ++
+ lib/string.c           |   26 ++++++++++++++++++++++++++
+ 2 files changed, 28 insertions(+)
 
-diff -puN include/asm-generic/bug.h~lib-bugc-use-common-warn-helper include/asm-generic/bug.h
---- a/include/asm-generic/bug.h~lib-bugc-use-common-warn-helper
-+++ a/include/asm-generic/bug.h
-@@ -81,6 +81,12 @@ extern void warn_slowpath_null(const cha
- 	do { printk(arg); __WARN_TAINT(taint); } while (0)
- #endif
+diff -puN include/linux/string.h~lib-string-introduce-match_string-helper include/linux/string.h
+--- a/include/linux/string.h~lib-string-introduce-match_string-helper
++++ a/include/linux/string.h
+@@ -130,6 +130,8 @@ extern void argv_free(char **argv);
+ extern bool sysfs_streq(const char *s1, const char *s2);
+ extern int strtobool(const char *s, bool *res);
  
-+/* used internally by panic.c */
-+struct warn_args;
++int match_string(const char * const *array, size_t n, const char *string);
 +
-+void __warn(const char *file, int line, void *caller, unsigned taint,
-+	    struct pt_regs *regs, struct warn_args *args);
+ #ifdef CONFIG_BINARY_PRINTF
+ int vbin_printf(u32 *bin_buf, size_t size, const char *fmt, va_list args);
+ int bstr_printf(char *buf, size_t size, const char *fmt, const u32 *bin_buf);
+diff -puN lib/string.c~lib-string-introduce-match_string-helper lib/string.c
+--- a/lib/string.c~lib-string-introduce-match_string-helper
++++ a/lib/string.c
+@@ -631,6 +631,32 @@ bool sysfs_streq(const char *s1, const c
+ EXPORT_SYMBOL(sysfs_streq);
+ 
+ /**
++ * match_string - matches given string in an array
++ * @array:	array of strings
++ * @n:		number of strings in the array or -1 for NULL terminated arrays
++ * @string:	string to match with
++ *
++ * Return:
++ * index of a @string in the @array if matches, or %-EINVAL otherwise.
++ */
++int match_string(const char * const *array, size_t n, const char *string)
++{
++	int index;
++	const char *item;
 +
- #ifndef WARN_ON
- #define WARN_ON(condition) ({						\
- 	int __ret_warn_on = !!(condition);				\
-diff -puN kernel/panic.c~lib-bugc-use-common-warn-helper kernel/panic.c
---- a/kernel/panic.c~lib-bugc-use-common-warn-helper
-+++ a/kernel/panic.c
-@@ -24,6 +24,7 @@
- #include <linux/init.h>
- #include <linux/nmi.h>
- #include <linux/console.h>
-+#include <linux/bug.h>
- 
- #define PANIC_TIMER_STEP 100
- #define PANIC_BLINK_SPD 18
-@@ -449,20 +450,25 @@ void oops_exit(void)
- 	kmsg_dump(KMSG_DUMP_OOPS);
- }
- 
--#ifdef WANT_WARN_ON_SLOWPATH
--struct slowpath_args {
-+struct warn_args {
- 	const char *fmt;
- 	va_list args;
- };
- 
--static void warn_slowpath_common(const char *file, int line, void *caller,
--				 unsigned taint, struct slowpath_args *args)
-+void __warn(const char *file, int line, void *caller, unsigned taint,
-+	    struct pt_regs *regs, struct warn_args *args)
- {
- 	disable_trace_on_warning();
- 
- 	pr_warn("------------[ cut here ]------------\n");
--	pr_warn("WARNING: CPU: %d PID: %d at %s:%d %pS()\n",
--		raw_smp_processor_id(), current->pid, file, line, caller);
++	for (index = 0; index < n; index++) {
++		item = array[index];
++		if (!item)
++			break;
++		if (!strcmp(item, string))
++			return index;
++	}
 +
-+	if (file)
-+		pr_warn("WARNING: CPU: %d PID: %d at %s:%d %pS\n",
-+			raw_smp_processor_id(), current->pid, file, line,
-+			caller);
-+	else
-+		pr_warn("WARNING: CPU: %d PID: %d at %pS\n",
-+			raw_smp_processor_id(), current->pid, caller);
- 
- 	if (args)
- 		vprintk(args->fmt, args->args);
-@@ -479,20 +485,27 @@ static void warn_slowpath_common(const c
- 	}
- 
- 	print_modules();
--	dump_stack();
++	return -EINVAL;
++}
++EXPORT_SYMBOL(match_string);
 +
-+	if (regs)
-+		show_regs(regs);
-+	else
-+		dump_stack();
-+
- 	print_oops_end_marker();
-+
- 	/* Just a warning, don't kill lockdep. */
- 	add_taint(taint, LOCKDEP_STILL_OK);
- }
- 
-+#ifdef WANT_WARN_ON_SLOWPATH
- void warn_slowpath_fmt(const char *file, int line, const char *fmt, ...)
- {
--	struct slowpath_args args;
-+	struct warn_args args;
- 
- 	args.fmt = fmt;
- 	va_start(args.args, fmt);
--	warn_slowpath_common(file, line, __builtin_return_address(0),
--			     TAINT_WARN, &args);
-+	__warn(file, line, __builtin_return_address(0), TAINT_WARN, NULL,
-+	       &args);
- 	va_end(args.args);
- }
- EXPORT_SYMBOL(warn_slowpath_fmt);
-@@ -500,20 +513,18 @@ EXPORT_SYMBOL(warn_slowpath_fmt);
- void warn_slowpath_fmt_taint(const char *file, int line,
- 			     unsigned taint, const char *fmt, ...)
- {
--	struct slowpath_args args;
-+	struct warn_args args;
- 
- 	args.fmt = fmt;
- 	va_start(args.args, fmt);
--	warn_slowpath_common(file, line, __builtin_return_address(0),
--			     taint, &args);
-+	__warn(file, line, __builtin_return_address(0), taint, NULL, &args);
- 	va_end(args.args);
- }
- EXPORT_SYMBOL(warn_slowpath_fmt_taint);
- 
- void warn_slowpath_null(const char *file, int line)
- {
--	warn_slowpath_common(file, line, __builtin_return_address(0),
--			     TAINT_WARN, NULL);
-+	__warn(file, line, __builtin_return_address(0), TAINT_WARN, NULL, NULL);
- }
- EXPORT_SYMBOL(warn_slowpath_null);
- #endif
-diff -puN lib/bug.c~lib-bugc-use-common-warn-helper lib/bug.c
---- a/lib/bug.c~lib-bugc-use-common-warn-helper
-+++ a/lib/bug.c
-@@ -167,30 +167,8 @@ enum bug_trap_type report_bug(unsigned l
- 
- 	if (warning) {
- 		/* this is a WARN_ON rather than BUG/BUG_ON */
--		pr_warn("------------[ cut here ]------------\n");
--
--		if (file)
--			pr_warn("WARNING: at %s:%u\n", file, line);
--		else
--			pr_warn("WARNING: at %p [verbose debug info unavailable]\n",
--				(void *)bugaddr);
--
--		if (panic_on_warn) {
--			/*
--			 * This thread may hit another WARN() in the panic path.
--			 * Resetting this prevents additional WARN() from
--			 * panicking the system on this thread.  Other threads
--			 * are blocked by the panic_mutex in panic().
--			 */
--			panic_on_warn = 0;
--			panic("panic_on_warn set ...\n");
--		}
++/**
+  * strtobool - convert common user inputs into boolean values
+  * @s: input string
+  * @res: result
+_
+
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+
+
