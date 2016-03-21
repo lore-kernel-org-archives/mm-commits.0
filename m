@@ -1,47 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-memcontrol-zap-memcg_kmem_online-helper.patch removed from -mm tree
-Date: Mon, 21 Mar 2016 11:38:53 -0700
-Message-ID: <56f03fbd.GFA07N+pcufixSBv%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy.patch removed from -mm tree
+Date: Mon, 21 Mar 2016 11:38:48 -0700
+Message-ID: <56f03fb8.2qVFUKo7wXTfYD27%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53462 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53456 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932419AbcCUT4Z (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:25 -0400
+	with ESMTP id S932355AbcCUT4U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vdavydov@virtuozzo.com, hannes@cmpxchg.org, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: zap memcg_kmem_online helper
+     Subject: mm: memcontrol: enable kmem accounting for all cgroups in the legacy hierarchy
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-zap-memcg_kmem_online-helper.patch
+     mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Vladimir Davydov <vdavydov@virtuozzo.com>
-Subject: mm: memcontrol: zap memcg_kmem_online helper
+Subject: mm: memcontrol: enable kmem accounting for all cgroups in the legacy hierarchy
 
-As kmem accounting is now either enabled for all cgroups or disabled
-system-wide, there's no point in having memcg_kmem_online() helper -
-instead one can use memcg_kmem_enabled() and mem_cgroup_online(), as
-shrink_slab() now does.
+Workingset code was recently made memcg aware, but shadow node shrinker is
+still global.  As a result, one small cgroup can consume all memory
+available for shadow nodes, possibly hurting other cgroups by reclaiming
+their shadow nodes, even though reclaim distances stored in its shadow
+nodes have no effect.  To avoid this, we need to make shadow node shrinker
+memcg aware.
 
-There are only two places left where this helper is used -
-__memcg_kmem_charge() and memcg_create_kmem_cache().  The former can only
-be called if memcg_kmem_enabled() returned true.  Since the cgroup it
-operates on is online, mem_cgroup_is_root() check will be enough.
+The actual work is done in patch 6 of the series.  Patches 1 and 2 prepare
+memcg/shrinker infrastructure for the change.  Patch 3 is just a
+collateral cleanup.  Patch 4 makes radix_tree_node accounted, which is
+necessary for making shadow node shrinker memcg aware.  Patch 5 reduces
+shadow nodes overhead in case workload mostly uses anonymous pages.
 
-memcg_create_kmem_cache() can't use mem_cgroup_online() helper instead of
-memcg_kmem_online(), because it relies on the fact that in
-memcg_offline_kmem() memcg->kmem_state is changed before
-memcg_deactivate_kmem_caches() is called, but there we can just open-code
-the check.
+
+
+This patch:
+
+Currently, in the legacy hierarchy kmem accounting is off for all cgroups
+by default and must be enabled explicitly by writing something to
+memory.kmem.limit_in_bytes.  Since we don't support reclaim on hitting
+kmem limit, nor do we have any plans to implement it, this is likely to be
+-1, just to enable kmem accounting and limit kernel memory consumption by
+the memory.limit_in_bytes along with user memory.
+
+This user API was introduced when the implementation of kmem accounting
+lacked slab shrinker support and hence was useless in practice.  Things
+have changed since then - slab shrinkers were made memcg aware, the
+accounting overhead seems to be negligible, and a failure to charge a kmem
+allocation should not have critical consequences, because we only account
+those kernel objects that should be safe to fail.  That's why kmem
+accounting is enabled by default for all cgroups in the default hierarchy,
+which will eventually replace the legacy one.
+
+The ability to enable kmem accounting for some cgroups while keeping it
+disabled for others is getting difficult to maintain.  E.g.  to make
+shadow node shrinker memcg aware (see mm/workingset.c), we need to know
+the relationship between the number of shadow nodes allocated for a cgroup
+and the size of its lru list.  If kmem accounting is enabled for all
+cgroups there is no problem, but what should we do if kmem accounting is
+enabled only for half of cgroups?  We've no other choice but use global
+lru stats while scanning root cgroup's shadow nodes, but that would be
+wrong if kmem accounting was enabled for all cgroups (which is the case if
+the unified hierarchy is used), in which case we should use lru stats of
+the root cgroup's lruvec.
+
+That being said, let's enable kmem accounting for all memory cgroups by
+default.  If one finds it unstable or too costly, it can always be
+disabled system-wide by passing cgroup.memory=nokmem to the kernel at boot
+time.
 
 Signed-off-by: Vladimir Davydov <vdavydov@virtuozzo.com>
 Acked-by: Johannes Weiner <hannes@cmpxchg.org>
@@ -49,62 +84,91 @@ Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   10 ----------
- mm/memcontrol.c            |    2 +-
- mm/slab_common.c           |    2 +-
- 3 files changed, 2 insertions(+), 12 deletions(-)
+ mm/memcontrol.c |   41 +++++------------------------------------
+ 1 file changed, 5 insertions(+), 36 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-memcontrol-zap-memcg_kmem_online-helper include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-memcontrol-zap-memcg_kmem_online-helper
-+++ a/include/linux/memcontrol.h
-@@ -795,11 +795,6 @@ static inline bool memcg_kmem_enabled(vo
- 	return static_branch_unlikely(&memcg_kmem_enabled_key);
- }
- 
--static inline bool memcg_kmem_online(struct mem_cgroup *memcg)
--{
--	return memcg->kmem_state == KMEM_ONLINE;
--}
--
- /*
-  * In general, we'll do everything in our power to not incur in any overhead
-  * for non-memcg users for the kmem functions. Not even a function call, if we
-@@ -908,11 +903,6 @@ static inline bool memcg_kmem_enabled(vo
- {
- 	return false;
- }
--
--static inline bool memcg_kmem_online(struct mem_cgroup *memcg)
--{
--	return false;
--}
- 
- static inline int memcg_kmem_charge(struct page *page, gfp_t gfp, int order)
- {
-diff -puN mm/memcontrol.c~mm-memcontrol-zap-memcg_kmem_online-helper mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-zap-memcg_kmem_online-helper
+diff -puN mm/memcontrol.c~mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-memcontrol-enable-kmem-accounting-for-all-cgroups-in-the-legacy-hierarchy
 +++ a/mm/memcontrol.c
-@@ -2346,7 +2346,7 @@ int __memcg_kmem_charge(struct page *pag
- 	int ret = 0;
+@@ -2824,6 +2824,9 @@ static int memcg_online_kmem(struct mem_
+ {
+ 	int memcg_id;
  
- 	memcg = get_mem_cgroup_from_mm(current->mm);
--	if (memcg_kmem_online(memcg))
-+	if (!mem_cgroup_is_root(memcg))
- 		ret = __memcg_kmem_charge_memcg(page, gfp, order, memcg);
- 	css_put(&memcg->css);
++	if (cgroup_memory_nokmem)
++		return 0;
++
+ 	BUG_ON(memcg->kmemcg_id >= 0);
+ 	BUG_ON(memcg->kmem_state);
+ 
+@@ -2844,24 +2847,6 @@ static int memcg_online_kmem(struct mem_
+ 	return 0;
+ }
+ 
+-static int memcg_propagate_kmem(struct mem_cgroup *parent,
+-				struct mem_cgroup *memcg)
+-{
+-	int ret = 0;
+-
+-	mutex_lock(&memcg_limit_mutex);
+-	/*
+-	 * If the parent cgroup is not kmem-online now, it cannot be
+-	 * onlined after this point, because it has at least one child
+-	 * already.
+-	 */
+-	if (memcg_kmem_online(parent) ||
+-	    (cgroup_subsys_on_dfl(memory_cgrp_subsys) && !cgroup_memory_nokmem))
+-		ret = memcg_online_kmem(memcg);
+-	mutex_unlock(&memcg_limit_mutex);
+-	return ret;
+-}
+-
+ static void memcg_offline_kmem(struct mem_cgroup *memcg)
+ {
+ 	struct cgroup_subsys_state *css;
+@@ -2920,10 +2905,6 @@ static void memcg_free_kmem(struct mem_c
+ 	}
+ }
+ #else
+-static int memcg_propagate_kmem(struct mem_cgroup *parent, struct mem_cgroup *memcg)
+-{
+-	return 0;
+-}
+ static int memcg_online_kmem(struct mem_cgroup *memcg)
+ {
+ 	return 0;
+@@ -2939,22 +2920,10 @@ static void memcg_free_kmem(struct mem_c
+ static int memcg_update_kmem_limit(struct mem_cgroup *memcg,
+ 				   unsigned long limit)
+ {
+-	int ret = 0;
++	int ret;
+ 
+ 	mutex_lock(&memcg_limit_mutex);
+-	/* Top-level cgroup doesn't propagate from root */
+-	if (!memcg_kmem_online(memcg)) {
+-		if (cgroup_is_populated(memcg->css.cgroup) ||
+-		    (memcg->use_hierarchy && memcg_has_children(memcg)))
+-			ret = -EBUSY;
+-		if (ret)
+-			goto out;
+-		ret = memcg_online_kmem(memcg);
+-		if (ret)
+-			goto out;
+-	}
+ 	ret = page_counter_limit(&memcg->kmem, limit);
+-out:
+ 	mutex_unlock(&memcg_limit_mutex);
  	return ret;
-diff -puN mm/slab_common.c~mm-memcontrol-zap-memcg_kmem_online-helper mm/slab_common.c
---- a/mm/slab_common.c~mm-memcontrol-zap-memcg_kmem_online-helper
-+++ a/mm/slab_common.c
-@@ -510,7 +510,7 @@ void memcg_create_kmem_cache(struct mem_
- 	 * The memory cgroup could have been offlined while the cache
- 	 * creation work was pending.
- 	 */
--	if (!memcg_kmem_online(memcg))
-+	if (memcg->kmem_state != KMEM_ONLINE)
- 		goto out_unlock;
+ }
+@@ -4205,7 +4174,7 @@ mem_cgroup_css_alloc(struct cgroup_subsy
+ 		return &memcg->css;
+ 	}
  
- 	idx = memcg_cache_id(memcg);
+-	error = memcg_propagate_kmem(parent, memcg);
++	error = memcg_online_kmem(memcg);
+ 	if (error)
+ 		goto fail;
+ 
 _
 
 Patches currently in -mm which might be from vdavydov@virtuozzo.com are
