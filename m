@@ -1,183 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: [merged] proc-add-proc-pid-timerslack_ns-interface.patch removed
- from -mm tree
-Date: Mon, 21 Mar 2016 11:40:51 -0700
-Message-ID: <56f04033.JtzUtN6sEI96v5tz%akpm@linux-foundation.org>
+Subject: [merged]
+ mm-kswapd-remove-bogus-check-of-balance_classzone_idx.patch removed from
+ -mm tree
+Date: Mon, 21 Mar 2016 11:38:28 -0700
+Message-ID: <56f03fa4.wL4aVCodzyQxPten%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53448 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53451 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932367AbcCUT4V (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:21 -0400
+	with ESMTP id S1757684AbcCUT4P (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: john.stultz@linaro.org, arjan@linux.intel.com, kandoiruchi@google.com, keescook@chromium.org, kernel-team@android.com, orenl@cellrox.com, romlem@android.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: vbabka@suse.cz, aarcange@redhat.com, hannes@cmpxchg.org, iamjoonsoo.kim@lge.com, kirill.shutemov@linux.intel.com, mgorman@techsingularity.net, mhocko@suse.com, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: proc: add /proc/<pid>/timerslack_ns interface
+     Subject: mm, kswapd: remove bogus check of balance_classzone_idx
 has been removed from the -mm tree.  Its filename was
-     proc-add-proc-pid-timerslack_ns-interface.patch
+     mm-kswapd-remove-bogus-check-of-balance_classzone_idx.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: John Stultz <john.stultz@linaro.org>
-Subject: proc: add /proc/<pid>/timerslack_ns interface
+From: Vlastimil Babka <vbabka@suse.cz>
+Subject: mm, kswapd: remove bogus check of balance_classzone_idx
 
-This patch provides a proc/PID/timerslack_ns interface which exposes a
-task's timerslack value in nanoseconds and allows it to be changed.
+During work on kcompactd integration I have spotted a confusing check of
+balance_classzone_idx, which I believe is bogus.
 
-This allows power/performance management software to set timer slack for
-other threads according to its policy for the thread (such as when the
-thread is designated foreground vs.  background activity)
+The balanced_classzone_idx is filled by balance_pgdat() as the highest
+zone it attempted to balance.  This was introduced by commit dc83edd941f4
+("mm: kswapd: use the classzone idx that kswapd was using for
+sleeping_prematurely()").  The intention is that (as expressed in today's
+function names), the value used for kswapd_shrink_zone() calls in
+balance_pgdat() is the same as for the decisions in kswapd_try_to_sleep().
+An unwanted side-effect of that commit was breaking the checks in
+kswapd() whether there was another kswapd_wakeup with a tighter (=lower)
+classzone_idx.  Commits 215ddd6664ce ("mm: vmscan: only read
+new_classzone_idx from pgdat when reclaiming successfully") and
+d2ebd0f6b895 ("kswapd: avoid unnecessary rebalance after an unsuccessful
+balancing") tried to fixed, but apparently introduced a bogus check that
+this patch removes.
 
-If the value written is non-zero, slack is set to that value.  Otherwise
-sets it to the default for the thread.
+Consider zone indexes X < Y < Z, where:
+- Z is the value used for the first kswapd wakeup.
+- Y is returned as balanced_classzone_idx, which means zones with index higher
+  than Y (including Z) were found to be unreclaimable.
+- X is the value used for the second kswapd wakeup
 
-This interface checks that the calling task has permissions to to use
-PTRACE_MODE_ATTACH_FSCREDS on the target task, so that we can ensure
-arbitrary apps do not change the timer slack for other apps.
+The new wakeup with value X means that kswapd is now supposed to balance
+harder all zones with index <= X.  But instead, due to Y < Z, it will go
+sleep and won't read the new value X.  This is subtly wrong.
 
-Signed-off-by: John Stultz <john.stultz@linaro.org>
-Acked-by: Kees Cook <keescook@chromium.org>
-Cc: Arjan van de Ven <arjan@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Oren Laadan <orenl@cellrox.com>
-Cc: Ruchi Kandoi <kandoiruchi@google.com>
-Cc: Rom Lemarchand <romlem@android.com>
-Cc: Android Kernel Team <kernel-team@android.com>
+The effect of this patch is that kswapd will react better in some
+situations, where e.g.  the first wakeup is for ZONE_DMA32, the second is
+for ZONE_DMA, and due to unreclaimable ZONE_NORMAL.  Before this patch,
+kswapd would go sleep instead of reclaiming ZONE_DMA harder.  I expect
+these situations are very rare, and more value is in better
+maintainability due to the removal of confusing and bogus check.
+
+Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Michal Hocko <mhocko@suse.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   18 +++++++
- fs/proc/base.c                     |   67 +++++++++++++++++++++++++++
- 2 files changed, 85 insertions(+)
+ mm/vmscan.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~proc-add-proc-pid-timerslack_ns-interface Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~proc-add-proc-pid-timerslack_ns-interface
-+++ a/Documentation/filesystems/proc.txt
-@@ -43,6 +43,7 @@ Table of Contents
-   3.7   /proc/<pid>/task/<tid>/children - Information about task children
-   3.8   /proc/<pid>/fdinfo/<fd> - Information about opened file
-   3.9   /proc/<pid>/map_files - Information about memory mapped files
-+  3.10  /proc/<pid>/timerslack_ns - Task timerslack value
- 
-   4	Configuring procfs
-   4.1	Mount options
-@@ -1862,6 +1863,23 @@ time one can open(2) mappings from the l
- comparing their inode numbers to figure out which anonymous memory areas
- are actually shared.
- 
-+3.10	/proc/<pid>/timerslack_ns - Task timerslack value
-+---------------------------------------------------------
-+This file provides the value of the task's timerslack value in nanoseconds.
-+This value specifies a amount of time that normal timers may be deferred
-+in order to coalesce timers and avoid unnecessary wakeups.
-+
-+This allows a task's interactivity vs power consumption trade off to be
-+adjusted.
-+
-+Writing 0 to the file will set the tasks timerslack to the default value.
-+
-+Valid values are from 0 - ULLONG_MAX
-+
-+An application setting the value must have PTRACE_MODE_ATTACH_FSCREDS level
-+permissions on the task specified to change its timerslack_ns value.
-+
-+
- ------------------------------------------------------------------------------
- Configuring procfs
- ------------------------------------------------------------------------------
-diff -puN fs/proc/base.c~proc-add-proc-pid-timerslack_ns-interface fs/proc/base.c
---- a/fs/proc/base.c~proc-add-proc-pid-timerslack_ns-interface
-+++ a/fs/proc/base.c
-@@ -2257,6 +2257,72 @@ static const struct file_operations proc
- 	.release	= seq_release_private,
- };
- 
-+static ssize_t timerslack_ns_write(struct file *file, const char __user *buf,
-+					size_t count, loff_t *offset)
-+{
-+	struct inode *inode = file_inode(file);
-+	struct task_struct *p;
-+	u64 slack_ns;
-+	int err;
-+
-+	err = kstrtoull_from_user(buf, count, 10, &slack_ns);
-+	if (err < 0)
-+		return err;
-+
-+	p = get_proc_task(inode);
-+	if (!p)
-+		return -ESRCH;
-+
-+	if (ptrace_may_access(p, PTRACE_MODE_ATTACH_FSCREDS)) {
-+		task_lock(p);
-+		if (slack_ns == 0)
-+			p->timer_slack_ns = p->default_timer_slack_ns;
-+		else
-+			p->timer_slack_ns = slack_ns;
-+		task_unlock(p);
-+	} else
-+		count = -EPERM;
-+
-+	put_task_struct(p);
-+
-+	return count;
-+}
-+
-+static int timerslack_ns_show(struct seq_file *m, void *v)
-+{
-+	struct inode *inode = m->private;
-+	struct task_struct *p;
-+	int err =  0;
-+
-+	p = get_proc_task(inode);
-+	if (!p)
-+		return -ESRCH;
-+
-+	if (ptrace_may_access(p, PTRACE_MODE_ATTACH_FSCREDS)) {
-+		task_lock(p);
-+		seq_printf(m, "%llu\n", p->timer_slack_ns);
-+		task_unlock(p);
-+	} else
-+		err = -EPERM;
-+
-+	put_task_struct(p);
-+
-+	return err;
-+}
-+
-+static int timerslack_ns_open(struct inode *inode, struct file *filp)
-+{
-+	return single_open(filp, timerslack_ns_show, inode);
-+}
-+
-+static const struct file_operations proc_pid_set_timerslack_ns_operations = {
-+	.open		= timerslack_ns_open,
-+	.read		= seq_read,
-+	.write		= timerslack_ns_write,
-+	.llseek		= seq_lseek,
-+	.release	= single_release,
-+};
-+
- static int proc_pident_instantiate(struct inode *dir,
- 	struct dentry *dentry, struct task_struct *task, const void *ptr)
- {
-@@ -2831,6 +2897,7 @@ static const struct pid_entry tgid_base_
- #ifdef CONFIG_CHECKPOINT_RESTORE
- 	REG("timers",	  S_IRUGO, proc_timers_operations),
- #endif
-+	REG("timerslack_ns", S_IRUGO|S_IWUGO, proc_pid_set_timerslack_ns_operations),
- };
- 
- static int proc_tgid_base_readdir(struct file *file, struct dir_context *ctx)
+diff -puN mm/vmscan.c~mm-kswapd-remove-bogus-check-of-balance_classzone_idx mm/vmscan.c
+--- a/mm/vmscan.c~mm-kswapd-remove-bogus-check-of-balance_classzone_idx
++++ a/mm/vmscan.c
+@@ -3468,8 +3468,7 @@ static int kswapd(void *p)
+ 		 * new request of a similar or harder type will succeed soon
+ 		 * so consider going to sleep on the basis we reclaimed at
+ 		 */
+-		if (balanced_classzone_idx >= new_classzone_idx &&
+-					balanced_order == new_order) {
++		if (balanced_order == new_order) {
+ 			new_order = pgdat->kswapd_max_order;
+ 			new_classzone_idx = pgdat->classzone_idx;
+ 			pgdat->kswapd_max_order =  0;
 _
 
-Patches currently in -mm which might be from john.stultz@linaro.org are
+Patches currently in -mm which might be from vbabka@suse.cz are
 
 
