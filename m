@@ -1,389 +1,185 @@
 From: akpm@linux-foundation.org
-Subject: [merged] radix_tree-add-support-for-multi-order-entries.patch
- removed from -mm tree
-Date: Mon, 21 Mar 2016 11:41:43 -0700
-Message-ID: <56f04067.GglORV0CDRjSK0QV%akpm@linux-foundation.org>
+Subject: [merged] lib-move-strtobool-to-kstrtobool.patch removed from -mm
+ tree
+Date: Mon, 21 Mar 2016 11:42:31 -0700
+Message-ID: <56f04097.lb6PAohXS5n2Uvg6%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52793 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52801 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757933AbcCUTVU (ORCPT
+	with ESMTP id S1757934AbcCUTVU (ORCPT
 	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:21:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@linux.intel.com, hannes@cmpxchg.org, hughd@google.com, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
+To: keescook@chromium.org, akarwar@marvell.com, andy.shevchenko@gmail.com, daniel@iogearbox.net, heiko.carstens@de.ibm.com, joe@perches.com, kvalo@codeaurora.org, linux@rasmusvillemoes.dk, mpe@ellerman.id.au, nishants@marvell.com, schwidefsky@de.ibm.com, sfrench@samba.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: radix_tree: add support for multi-order entries
+     Subject: lib: move strtobool() to kstrtobool()
 has been removed from the -mm tree.  Its filename was
-     radix_tree-add-support-for-multi-order-entries.patch
+     lib-move-strtobool-to-kstrtobool.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: radix_tree: add support for multi-order entries
+From: Kees Cook <keescook@chromium.org>
+Subject: lib: move strtobool() to kstrtobool()
 
-With huge pages, it is convenient to have the radix tree be able to return
-an entry that covers multiple indices.  Previous attempts to deal with the
-problem have involved inserting N duplicate entries, which is a waste of
-memory and leads to problems trying to handle aliased tags, or probing the
-tree multiple times to find alternative entries which might cover the
-requested index.
+Create the kstrtobool_from_user() helper and move strtobool() logic into
+the new kstrtobool() (matching all the other kstrto* functions).  Provides
+an inline wrapper for existing strtobool() callers.
 
-This approach inserts one canonical entry into the tree for a given range
-of indices, and may also insert other entries in order to ensure that
-lookups find the canonical entry.
-
-This solution only tolerates inserting powers of two that are greater than
-the fanout of the tree.  If we wish to expand the radix tree's abilities
-to support large-ish pages that is less than the fanout at the penultimate
-level of the tree, then we would need to add one more step in lookup to
-ensure that any sibling nodes in the final level of the tree are
-dereferenced and we return the canonical entry that they reference.
-
-Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Hugh Dickins <hughd@google.com>
+Signed-off-by: Kees Cook <keescook@chromium.org>
+Cc: Joe Perches <joe@perches.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Cc: Daniel Borkmann <daniel@iogearbox.net>
+Cc: Amitkumar Karwar <akarwar@marvell.com>
+Cc: Nishant Sarmukadam <nishants@marvell.com>
+Cc: Kalle Valo <kvalo@codeaurora.org>
+Cc: Steve French <sfrench@samba.org>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/radix-tree.h |   11 ++-
- lib/radix-tree.c           |  109 ++++++++++++++++++++++++++---------
- mm/filemap.c               |    2 
- 3 files changed, 93 insertions(+), 29 deletions(-)
+ include/linux/kernel.h |    2 +
+ include/linux/string.h |    6 +++-
+ lib/kstrtox.c          |   50 +++++++++++++++++++++++++++++++++++++++
+ lib/string.c           |   29 ----------------------
+ 4 files changed, 57 insertions(+), 30 deletions(-)
 
-diff -puN include/linux/radix-tree.h~radix_tree-add-support-for-multi-order-entries include/linux/radix-tree.h
---- a/include/linux/radix-tree.h~radix_tree-add-support-for-multi-order-entries
-+++ a/include/linux/radix-tree.h
-@@ -271,8 +271,15 @@ static inline void radix_tree_replace_sl
- }
+diff -puN include/linux/kernel.h~lib-move-strtobool-to-kstrtobool include/linux/kernel.h
+--- a/include/linux/kernel.h~lib-move-strtobool-to-kstrtobool
++++ a/include/linux/kernel.h
+@@ -357,6 +357,7 @@ int __must_check kstrtou16(const char *s
+ int __must_check kstrtos16(const char *s, unsigned int base, s16 *res);
+ int __must_check kstrtou8(const char *s, unsigned int base, u8 *res);
+ int __must_check kstrtos8(const char *s, unsigned int base, s8 *res);
++int __must_check kstrtobool(const char *s, bool *res);
  
- int __radix_tree_create(struct radix_tree_root *root, unsigned long index,
--			struct radix_tree_node **nodep, void ***slotp);
--int radix_tree_insert(struct radix_tree_root *, unsigned long, void *);
-+			unsigned order, struct radix_tree_node **nodep,
-+			void ***slotp);
-+int __radix_tree_insert(struct radix_tree_root *, unsigned long index,
-+			unsigned order, void *);
-+static inline int radix_tree_insert(struct radix_tree_root *root,
-+			unsigned long index, void *entry)
+ int __must_check kstrtoull_from_user(const char __user *s, size_t count, unsigned int base, unsigned long long *res);
+ int __must_check kstrtoll_from_user(const char __user *s, size_t count, unsigned int base, long long *res);
+@@ -368,6 +369,7 @@ int __must_check kstrtou16_from_user(con
+ int __must_check kstrtos16_from_user(const char __user *s, size_t count, unsigned int base, s16 *res);
+ int __must_check kstrtou8_from_user(const char __user *s, size_t count, unsigned int base, u8 *res);
+ int __must_check kstrtos8_from_user(const char __user *s, size_t count, unsigned int base, s8 *res);
++int __must_check kstrtobool_from_user(const char __user *s, size_t count, bool *res);
+ 
+ static inline int __must_check kstrtou64_from_user(const char __user *s, size_t count, unsigned int base, u64 *res)
+ {
+diff -puN include/linux/string.h~lib-move-strtobool-to-kstrtobool include/linux/string.h
+--- a/include/linux/string.h~lib-move-strtobool-to-kstrtobool
++++ a/include/linux/string.h
+@@ -128,7 +128,11 @@ extern char **argv_split(gfp_t gfp, cons
+ extern void argv_free(char **argv);
+ 
+ extern bool sysfs_streq(const char *s1, const char *s2);
+-extern int strtobool(const char *s, bool *res);
++extern int kstrtobool(const char *s, bool *res);
++static inline int strtobool(const char *s, bool *res)
 +{
-+	return __radix_tree_insert(root, index, 0, entry);
++	return kstrtobool(s, res);
 +}
- void *__radix_tree_lookup(struct radix_tree_root *root, unsigned long index,
- 			  struct radix_tree_node **nodep, void ***slotp);
- void *radix_tree_lookup(struct radix_tree_root *, unsigned long);
-diff -puN lib/radix-tree.c~radix_tree-add-support-for-multi-order-entries lib/radix-tree.c
---- a/lib/radix-tree.c~radix_tree-add-support-for-multi-order-entries
-+++ a/lib/radix-tree.c
-@@ -333,7 +333,8 @@ static inline unsigned long radix_tree_m
- /*
-  *	Extend a radix tree so it can store key @index.
-  */
--static int radix_tree_extend(struct radix_tree_root *root, unsigned long index)
-+static int radix_tree_extend(struct radix_tree_root *root,
-+				unsigned long index, unsigned order)
- {
- 	struct radix_tree_node *node;
- 	struct radix_tree_node *slot;
-@@ -345,7 +346,7 @@ static int radix_tree_extend(struct radi
- 	while (index > radix_tree_maxindex(height))
- 		height++;
  
--	if (root->rnode == NULL) {
-+	if ((root->rnode == NULL) && (order == 0)) {
- 		root->height = height;
- 		goto out;
- 	}
-@@ -386,6 +387,7 @@ out:
-  *	__radix_tree_create	-	create a slot in a radix tree
-  *	@root:		radix tree root
-  *	@index:		index key
-+ *	@order:		index occupies 2^order aligned slots
-  *	@nodep:		returns node
-  *	@slotp:		returns slot
-  *
-@@ -399,26 +401,29 @@ out:
-  *	Returns -ENOMEM, or 0 for success.
-  */
- int __radix_tree_create(struct radix_tree_root *root, unsigned long index,
--			struct radix_tree_node **nodep, void ***slotp)
-+			unsigned order, struct radix_tree_node **nodep,
-+			void ***slotp)
- {
- 	struct radix_tree_node *node = NULL, *slot;
- 	unsigned int height, shift, offset;
- 	int error;
+ int match_string(const char * const *array, size_t n, const char *string);
  
-+	BUG_ON((0 < order) && (order < RADIX_TREE_MAP_SHIFT));
+diff -puN lib/kstrtox.c~lib-move-strtobool-to-kstrtobool lib/kstrtox.c
+--- a/lib/kstrtox.c~lib-move-strtobool-to-kstrtobool
++++ a/lib/kstrtox.c
+@@ -321,6 +321,56 @@ int kstrtos8(const char *s, unsigned int
+ }
+ EXPORT_SYMBOL(kstrtos8);
+ 
++/**
++ * kstrtobool - convert common user inputs into boolean values
++ * @s: input string
++ * @res: result
++ *
++ * This routine returns 0 iff the first character is one of 'Yy1Nn0'.
++ * Otherwise it will return -EINVAL.  Value pointed to by res is
++ * updated upon finding a match.
++ */
++int kstrtobool(const char *s, bool *res)
++{
++	if (!s)
++		return -EINVAL;
 +
- 	/* Make sure the tree is high enough.  */
- 	if (index > radix_tree_maxindex(root->height)) {
--		error = radix_tree_extend(root, index);
-+		error = radix_tree_extend(root, index, order);
- 		if (error)
- 			return error;
- 	}
- 
--	slot = indirect_to_ptr(root->rnode);
-+	slot = root->rnode;
- 
- 	height = root->height;
- 	shift = height * RADIX_TREE_MAP_SHIFT;
- 
- 	offset = 0;			/* uninitialised var warning */
--	while (shift > 0) {
-+	while (shift > order) {
- 		if (slot == NULL) {
- 			/* Have to add a child node.  */
- 			if (!(slot = radix_tree_node_alloc(root)))
-@@ -433,15 +438,31 @@ int __radix_tree_create(struct radix_tre
- 			} else
- 				rcu_assign_pointer(root->rnode,
- 							ptr_to_indirect(slot));
--		}
-+		} else if (!radix_tree_is_indirect_ptr(slot))
-+			break;
- 
- 		/* Go a level down */
-+		height--;
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
--		node = slot;
-+		node = indirect_to_ptr(slot);
- 		slot = node->slots[offset];
--		slot = indirect_to_ptr(slot);
--		height--;
++	switch (s[0]) {
++	case 'y':
++	case 'Y':
++	case '1':
++		*res = true;
++		return 0;
++	case 'n':
++	case 'N':
++	case '0':
++		*res = false;
++		return 0;
++	default:
++		break;
 +	}
 +
-+	/* Insert pointers to the canonical entry */
-+	if ((shift - order) > 0) {
-+		int i, n = 1 << (shift - order);
-+		offset = offset & ~(n - 1);
-+		slot = ptr_to_indirect(&node->slots[offset]);
-+		for (i = 0; i < n; i++) {
-+			if (node->slots[offset + i])
-+				return -EEXIST;
-+		}
++	return -EINVAL;
++}
++EXPORT_SYMBOL(kstrtobool);
 +
-+		for (i = 1; i < n; i++) {
-+			rcu_assign_pointer(node->slots[offset + i], slot);
-+			node->count++;
-+		}
- 	}
- 
- 	if (nodep)
-@@ -452,15 +473,16 @@ int __radix_tree_create(struct radix_tre
- }
- 
- /**
-- *	radix_tree_insert    -    insert into a radix tree
-+ *	__radix_tree_insert    -    insert into a radix tree
-  *	@root:		radix tree root
-  *	@index:		index key
-+ *	@order:		key covers the 2^order indices around index
-  *	@item:		item to insert
-  *
-  *	Insert an item into the radix tree at position @index.
-  */
--int radix_tree_insert(struct radix_tree_root *root,
--			unsigned long index, void *item)
-+int __radix_tree_insert(struct radix_tree_root *root, unsigned long index,
-+			unsigned order, void *item)
- {
- 	struct radix_tree_node *node;
- 	void **slot;
-@@ -468,7 +490,7 @@ int radix_tree_insert(struct radix_tree_
- 
- 	BUG_ON(radix_tree_is_indirect_ptr(item));
- 
--	error = __radix_tree_create(root, index, &node, &slot);
-+	error = __radix_tree_create(root, index, order, &node, &slot);
- 	if (error)
- 		return error;
- 	if (*slot != NULL)
-@@ -486,7 +508,7 @@ int radix_tree_insert(struct radix_tree_
- 
- 	return 0;
- }
--EXPORT_SYMBOL(radix_tree_insert);
-+EXPORT_SYMBOL(__radix_tree_insert);
- 
- /**
-  *	__radix_tree_lookup	-	lookup an item in a radix tree
-@@ -537,6 +559,8 @@ void *__radix_tree_lookup(struct radix_t
- 		node = rcu_dereference_raw(*slot);
- 		if (node == NULL)
- 			return NULL;
-+		if (!radix_tree_is_indirect_ptr(node))
-+			break;
- 		node = indirect_to_ptr(node);
- 
- 		shift -= RADIX_TREE_MAP_SHIFT;
-@@ -624,6 +648,8 @@ void *radix_tree_tag_set(struct radix_tr
- 			tag_set(slot, tag, offset);
- 		slot = slot->slots[offset];
- 		BUG_ON(slot == NULL);
-+		if (!radix_tree_is_indirect_ptr(slot))
-+			break;
- 		slot = indirect_to_ptr(slot);
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		height--;
-@@ -669,6 +695,8 @@ void *radix_tree_tag_clear(struct radix_
- 	while (shift) {
- 		if (slot == NULL)
- 			goto out;
-+		if (!radix_tree_is_indirect_ptr(slot))
-+			break;
- 		slot = indirect_to_ptr(slot);
- 
- 		shift -= RADIX_TREE_MAP_SHIFT;
-@@ -753,6 +781,8 @@ int radix_tree_tag_get(struct radix_tree
- 		if (height == 1)
- 			return 1;
- 		node = rcu_dereference_raw(node->slots[offset]);
-+		if (!radix_tree_is_indirect_ptr(node))
-+			return 1;
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		height--;
- 	}
-@@ -813,6 +843,7 @@ restart:
- 
- 	node = rnode;
- 	while (1) {
-+		struct radix_tree_node *slot;
- 		if ((flags & RADIX_TREE_ITER_TAGGED) ?
- 				!test_bit(offset, node->tags[tag]) :
- 				!node->slots[offset]) {
-@@ -843,10 +874,12 @@ restart:
- 		if (!shift)
- 			break;
- 
--		node = rcu_dereference_raw(node->slots[offset]);
--		if (node == NULL)
-+		slot = rcu_dereference_raw(node->slots[offset]);
-+		if (slot == NULL)
- 			goto restart;
--		node = indirect_to_ptr(node);
-+		if (!radix_tree_is_indirect_ptr(slot))
-+			break;
-+		node = indirect_to_ptr(slot);
- 		shift -= RADIX_TREE_MAP_SHIFT;
- 		offset = (index >> shift) & RADIX_TREE_MAP_MASK;
- 	}
-@@ -944,16 +977,20 @@ unsigned long radix_tree_range_tag_if_ta
- 		if (!tag_get(slot, iftag, offset))
- 			goto next;
- 		if (shift) {
--			/* Go down one level */
--			shift -= RADIX_TREE_MAP_SHIFT;
- 			node = slot;
- 			slot = slot->slots[offset];
--			slot = indirect_to_ptr(slot);
--			continue;
-+			if (radix_tree_is_indirect_ptr(slot)) {
-+				slot = indirect_to_ptr(slot);
-+				shift -= RADIX_TREE_MAP_SHIFT;
-+				continue;
-+			} else {
-+				slot = node;
-+				node = node->parent;
-+			}
- 		}
- 
- 		/* tag the leaf */
--		tagged++;
-+		tagged += 1 << shift;
- 		tag_set(slot, settag, offset);
- 
- 		/* walk back up the path tagging interior nodes */
-@@ -1201,11 +1238,20 @@ static unsigned long __locate(struct rad
- 				goto out;
- 		}
- 
--		shift -= RADIX_TREE_MAP_SHIFT;
- 		slot = rcu_dereference_raw(slot->slots[i]);
- 		if (slot == NULL)
- 			goto out;
-+		if (!radix_tree_is_indirect_ptr(slot)) {
-+			if (slot == item) {
-+				*found_index = index + i;
-+				index = 0;
-+			} else {
-+				index += shift;
-+			}
-+			goto out;
-+		}
- 		slot = indirect_to_ptr(slot);
-+		shift -= RADIX_TREE_MAP_SHIFT;
- 	}
- 
- 	/* Bottom level: check items */
-@@ -1285,7 +1331,8 @@ static inline void radix_tree_shrink(str
- 
- 		/*
- 		 * The candidate node has more than one child, or its child
--		 * is not at the leftmost slot, we cannot shrink.
-+		 * is not at the leftmost slot, or it is a multiorder entry,
-+		 * we cannot shrink.
- 		 */
- 		if (to_free->count != 1)
- 			break;
-@@ -1301,6 +1348,9 @@ static inline void radix_tree_shrink(str
- 		 * one (root->rnode) as far as dependent read barriers go.
- 		 */
- 		if (root->height > 1) {
-+			if (!radix_tree_is_indirect_ptr(slot))
-+				break;
++/*
++ * Since "base" would be a nonsense argument, this open-codes the
++ * _from_user helper instead of using the helper macro below.
++ */
++int kstrtobool_from_user(const char __user *s, size_t count, bool *res)
++{
++	/* Longest string needed to differentiate, newline, terminator */
++	char buf[4];
 +
- 			slot = indirect_to_ptr(slot);
- 			slot->parent = NULL;
- 			slot = ptr_to_indirect(slot);
-@@ -1399,7 +1449,7 @@ void *radix_tree_delete_item(struct radi
- 			     unsigned long index, void *item)
- {
- 	struct radix_tree_node *node;
--	unsigned int offset;
-+	unsigned int offset, i;
- 	void **slot;
- 	void *entry;
- 	int tag;
-@@ -1428,6 +1478,13 @@ void *radix_tree_delete_item(struct radi
- 			radix_tree_tag_clear(root, index, tag);
- 	}
++	count = min(count, sizeof(buf) - 1);
++	if (copy_from_user(buf, s, count))
++		return -EFAULT;
++	buf[count] = '\0';
++	return kstrtobool(buf, res);
++}
++EXPORT_SYMBOL(kstrtobool_from_user);
++
+ #define kstrto_from_user(f, g, type)					\
+ int f(const char __user *s, size_t count, unsigned int base, type *res)	\
+ {									\
+diff -puN lib/string.c~lib-move-strtobool-to-kstrtobool lib/string.c
+--- a/lib/string.c~lib-move-strtobool-to-kstrtobool
++++ a/lib/string.c
+@@ -656,35 +656,6 @@ int match_string(const char * const *arr
+ }
+ EXPORT_SYMBOL(match_string);
  
-+	/* Delete any sibling slots pointing to this slot */
-+	for (i = 1; offset + i < RADIX_TREE_MAP_SIZE; i++) {
-+		if (node->slots[offset + i] != ptr_to_indirect(slot))
-+			break;
-+		node->slots[offset + i] = NULL;
-+		node->count--;
-+	}
- 	node->slots[offset] = NULL;
- 	node->count--;
- 
-diff -puN mm/filemap.c~radix_tree-add-support-for-multi-order-entries mm/filemap.c
---- a/mm/filemap.c~radix_tree-add-support-for-multi-order-entries
-+++ a/mm/filemap.c
-@@ -586,7 +586,7 @@ static int page_cache_tree_insert(struct
- 	void **slot;
- 	int error;
- 
--	error = __radix_tree_create(&mapping->page_tree, page->index,
-+	error = __radix_tree_create(&mapping->page_tree, page->index, 0,
- 				    &node, &slot);
- 	if (error)
- 		return error;
-_
-
-Patches currently in -mm which might be from willy@linux.intel.com are
-
-
+-/**
+- * strtobool - convert common user inputs into boolean values
+- * @s: input string
+- * @res: result
+- *
+- * This routine returns 0 iff the first character is one of 'Yy1Nn0'.
+- * Otherwise it will return -EINVAL.  Value pointed to by res is
+- * updated upon finding a match.
+- */
+-int strtobool(const char *s, bool *res)
+-{
+-	switch (s[0]) {
+-	case 'y':
+-	case 'Y':
+-	case '1':
+-		*res = true;
+-		break;
+-	case 'n':
+-	case 'N':
+-	case '0':
+-		*res = false;
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-	return 0;
+-}
+-EXPORT_SYMBOL(strtobool);
