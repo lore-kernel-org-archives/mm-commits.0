@@ -1,147 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-memcontrol-reclaim-and-oom-kill-when-shrinking-memorymax-below-usage.patch removed from -mm tree
-Date: Mon, 21 Mar 2016 11:40:24 -0700
-Message-ID: <56f04018.Tx66lv74nSewNlg6%akpm__456.614528275345$1458590238$gmane$org@linux-foundation.org>
+Subject: [merged] mm-percpu-use-pr_fmt-to-prefix-output.patch removed from -mm tree
+Date: Mon, 21 Mar 2016 11:39:57 -0700
+Message-ID: <56f03ffd.JIj2VmdO/WS58ys5%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53450 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53461 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932330AbcCUT42 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:28 -0400
+	with ESMTP id S932490AbcCUT4d (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 15:56:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hannes@cmpxchg.org, mhocko@suse.com, stable@vger.kernel.org, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: joe@perches.com, tj@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: memcontrol: reclaim and OOM kill when shrinking memory.max below usage
+     Subject: mm: percpu: use pr_fmt to prefix output
 has been removed from the -mm tree.  Its filename was
-     mm-memcontrol-reclaim-and-oom-kill-when-shrinking-memorymax-below-usage.patch
+     mm-percpu-use-pr_fmt-to-prefix-output.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Johannes Weiner <hannes@cmpxchg.org>
-Subject: mm: memcontrol: reclaim and OOM kill when shrinking memory.max below usage
+From: Joe Perches <joe@perches.com>
+Subject: mm: percpu: use pr_fmt to prefix output
 
-Setting the original memory.limit_in_bytes hardlimit is subject to a race
-condition when the desired value is below the current usage.  The code
-tries a few times to first reclaim and then see if the usage has dropped
-to where we would like it to be, but there is no locking, and the workload
-is free to continue making new charges up to the old limit.  Thus,
-attempting to shrink a workload relies on pure luck and hope that the
-workload happens to cooperate.
+Use the normal mechanism to make the logging output consistently "percpu:
+" instead of a mix of "PERCPU: " and "percpu: "
 
-To fix this in the cgroup2 memory.max knob, do it the other way round: set
-the limit first, then try enforcement.  And if reclaim is not able to
-succeed, trigger OOM kills in the group.  Keep going until the new limit
-is met, we run out of OOM victims and there's only unreclaimable memory
-left, or the task writing to memory.max is killed.  This allows users to
-shrink groups reliably, and the behavior is consistent with what happens
-when new charges are attempted in excess of memory.max.
-
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: <stable@vger.kernel.org>
+Signed-off-by: Joe Perches <joe@perches.com>
+Acked-by: Tejun Heo <tj@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroup-v2.txt |    6 +++++
- mm/memcontrol.c             |   38 ++++++++++++++++++++++++++++++----
- 2 files changed, 40 insertions(+), 4 deletions(-)
+ mm/percpu-km.c |    4 ++--
+ mm/percpu.c    |   20 +++++++++++---------
+ 2 files changed, 13 insertions(+), 11 deletions(-)
 
-diff -puN Documentation/cgroup-v2.txt~mm-memcontrol-reclaim-and-oom-kill-when-shrinking-memorymax-below-usage Documentation/cgroup-v2.txt
---- a/Documentation/cgroup-v2.txt~mm-memcontrol-reclaim-and-oom-kill-when-shrinking-memorymax-below-usage
-+++ a/Documentation/cgroup-v2.txt
-@@ -1387,6 +1387,12 @@ system than killing the group.  Otherwis
- limit this type of spillover and ultimately contain buggy or even
- malicious applications.
+diff -puN mm/percpu-km.c~mm-percpu-use-pr_fmt-to-prefix-output mm/percpu-km.c
+--- a/mm/percpu-km.c~mm-percpu-use-pr_fmt-to-prefix-output
++++ a/mm/percpu-km.c
+@@ -95,7 +95,7 @@ static int __init pcpu_verify_alloc_info
  
-+Setting the original memory.limit_in_bytes below the current usage was
-+subject to a race condition, where concurrent charges could cause the
-+limit setting to fail. memory.max on the other hand will first set the
-+limit to prevent new charges, and then reclaim and OOM kill until the
-+new limit is met - or the task writing to memory.max is killed.
-+
- The combined memory+swap accounting and limiting is replaced by real
- control over swap space.
- 
-diff -puN mm/memcontrol.c~mm-memcontrol-reclaim-and-oom-kill-when-shrinking-memorymax-below-usage mm/memcontrol.c
---- a/mm/memcontrol.c~mm-memcontrol-reclaim-and-oom-kill-when-shrinking-memorymax-below-usage
-+++ a/mm/memcontrol.c
-@@ -1236,7 +1236,7 @@ static unsigned long mem_cgroup_get_limi
- 	return limit;
- }
- 
--static void mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
-+static bool mem_cgroup_out_of_memory(struct mem_cgroup *memcg, gfp_t gfp_mask,
- 				     int order)
- {
- 	struct oom_control oc = {
-@@ -1314,6 +1314,7 @@ static void mem_cgroup_out_of_memory(str
+ 	/* all units must be in a single group */
+ 	if (ai->nr_groups != 1) {
+-		pr_crit("percpu: can't handle more than one groups\n");
++		pr_crit("can't handle more than one group\n");
+ 		return -EINVAL;
  	}
- unlock:
- 	mutex_unlock(&oom_lock);
-+	return chosen;
+ 
+@@ -103,7 +103,7 @@ static int __init pcpu_verify_alloc_info
+ 	alloc_pages = roundup_pow_of_two(nr_pages);
+ 
+ 	if (alloc_pages > nr_pages)
+-		pr_warn("percpu: wasting %zu pages per chunk\n",
++		pr_warn("wasting %zu pages per chunk\n",
+ 			alloc_pages - nr_pages);
+ 
+ 	return 0;
+diff -puN mm/percpu.c~mm-percpu-use-pr_fmt-to-prefix-output mm/percpu.c
+--- a/mm/percpu.c~mm-percpu-use-pr_fmt-to-prefix-output
++++ a/mm/percpu.c
+@@ -53,6 +53,8 @@
+  *   setup the first chunk containing the kernel static percpu area
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
+ #include <linux/bitmap.h>
+ #include <linux/bootmem.h>
+ #include <linux/err.h>
+@@ -1033,11 +1035,11 @@ fail_unlock:
+ 	spin_unlock_irqrestore(&pcpu_lock, flags);
+ fail:
+ 	if (!is_atomic && warn_limit) {
+-		pr_warn("PERCPU: allocation failed, size=%zu align=%zu atomic=%d, %s\n",
++		pr_warn("allocation failed, size=%zu align=%zu atomic=%d, %s\n",
+ 			size, align, is_atomic, err);
+ 		dump_stack();
+ 		if (!--warn_limit)
+-			pr_info("PERCPU: limit reached, disable warning\n");
++			pr_info("limit reached, disable warning\n");
+ 	}
+ 	if (is_atomic) {
+ 		/* see the flag handling in pcpu_blance_workfn() */
+@@ -1538,8 +1540,8 @@ int __init pcpu_setup_first_chunk(const
+ 
+ #define PCPU_SETUP_BUG_ON(cond)	do {					\
+ 	if (unlikely(cond)) {						\
+-		pr_emerg("PERCPU: failed to initialize, %s", #cond);	\
+-		pr_emerg("PERCPU: cpu_possible_mask=%*pb\n",		\
++		pr_emerg("failed to initialize, %s\n", #cond);		\
++		pr_emerg("cpu_possible_mask=%*pb\n",			\
+ 			 cpumask_pr_args(cpu_possible_mask));		\
+ 		pcpu_dump_alloc_info(KERN_EMERG, ai);			\
+ 		BUG();							\
+@@ -1723,7 +1725,7 @@ static int __init percpu_alloc_setup(cha
+ 		pcpu_chosen_fc = PCPU_FC_PAGE;
+ #endif
+ 	else
+-		pr_warn("PERCPU: unknown allocator %s specified\n", str);
++		pr_warn("unknown allocator %s specified\n", str);
+ 
+ 	return 0;
  }
+@@ -2016,7 +2018,7 @@ int __init pcpu_embed_first_chunk(size_t
  
- #if MAX_NUMNODES > 1
-@@ -5029,6 +5030,8 @@ static ssize_t memory_max_write(struct k
- 				char *buf, size_t nbytes, loff_t off)
- {
- 	struct mem_cgroup *memcg = mem_cgroup_from_css(of_css(of));
-+	unsigned int nr_reclaims = MEM_CGROUP_RECLAIM_RETRIES;
-+	bool drained = false;
- 	unsigned long max;
- 	int err;
+ 	/* warn if maximum distance is further than 75% of vmalloc space */
+ 	if (max_distance > VMALLOC_TOTAL * 3 / 4) {
+-		pr_warn("PERCPU: max_distance=0x%zx too large for vmalloc space 0x%lx\n",
++		pr_warn("max_distance=0x%zx too large for vmalloc space 0x%lx\n",
+ 			max_distance, VMALLOC_TOTAL);
+ #ifdef CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK
+ 		/* and fail if we have fallback */
+@@ -2025,7 +2027,7 @@ int __init pcpu_embed_first_chunk(size_t
+ #endif
+ 	}
  
-@@ -5037,9 +5040,36 @@ static ssize_t memory_max_write(struct k
- 	if (err)
- 		return err;
+-	pr_info("PERCPU: Embedded %zu pages/cpu @%p s%zu r%zu d%zu u%zu\n",
++	pr_info("Embedded %zu pages/cpu @%p s%zu r%zu d%zu u%zu\n",
+ 		PFN_DOWN(size_sum), base, ai->static_size, ai->reserved_size,
+ 		ai->dyn_size, ai->unit_size);
  
--	err = mem_cgroup_resize_limit(memcg, max);
--	if (err)
--		return err;
-+	xchg(&memcg->memory.limit, max);
-+
-+	for (;;) {
-+		unsigned long nr_pages = page_counter_read(&memcg->memory);
-+
-+		if (nr_pages <= max)
-+			break;
-+
-+		if (signal_pending(current)) {
-+			err = -EINTR;
-+			break;
-+		}
-+
-+		if (!drained) {
-+			drain_all_stock(memcg);
-+			drained = true;
-+			continue;
-+		}
-+
-+		if (nr_reclaims) {
-+			if (!try_to_free_mem_cgroup_pages(memcg, nr_pages - max,
-+							  GFP_KERNEL, true))
-+				nr_reclaims--;
-+			continue;
-+		}
-+
-+		mem_cgroup_events(memcg, MEMCG_OOM, 1);
-+		if (!mem_cgroup_out_of_memory(memcg, GFP_KERNEL, 0))
-+			break;
-+	}
+@@ -2099,7 +2101,7 @@ int __init pcpu_page_first_chunk(size_t
  
- 	memcg_wb_domain_size_changed(memcg);
- 	return nbytes;
+ 			ptr = alloc_fn(cpu, PAGE_SIZE, PAGE_SIZE);
+ 			if (!ptr) {
+-				pr_warn("PERCPU: failed to allocate %s page for cpu%u\n",
++				pr_warn("failed to allocate %s page for cpu%u\n",
+ 					psize_str, cpu);
+ 				goto enomem;
+ 			}
+@@ -2139,7 +2141,7 @@ int __init pcpu_page_first_chunk(size_t
+ 	}
+ 
+ 	/* we're ready, commit */
+-	pr_info("PERCPU: %d %s pages/cpu @%p s%zu r%zu d%zu\n",
++	pr_info("%d %s pages/cpu @%p s%zu r%zu d%zu\n",
+ 		unit_pages, psize_str, vm.addr, ai->static_size,
+ 		ai->reserved_size, ai->dyn_size);
+ 
 _
 
-Patches currently in -mm which might be from hannes@cmpxchg.org are
+Patches currently in -mm which might be from joe@perches.com are
 
+kernel-convert-pr_warning-to-pr_warn.patch
 
