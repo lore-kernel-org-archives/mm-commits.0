@@ -1,36 +1,35 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- rapidio-add-lock-protection-for-doorbell-list-fix.patch removed from -mm
- tree
-Date: Tue, 22 Mar 2016 13:55:13 -0700
-Message-ID: <56f1b131.P1xxbgZo4F1G40QI%akpm@linux-foundation.org>
+ rapidio-move-rio_pw_enable-into-core-code-fix.patch removed from -mm tree
+Date: Tue, 22 Mar 2016 13:55:29 -0700
+Message-ID: <56f1b141.I4XkELy8kbUQNwmz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59391 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59398 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751249AbcCVUzO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2016 16:55:14 -0400
+	with ESMTP id S1751041AbcCVUza (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2016 16:55:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: add lock protection for doorbell list fix
+     Subject: rapidio: move rio_pw_enable into core code fix
 has been removed from the -mm tree.  Its filename was
-     rapidio-add-lock-protection-for-doorbell-list-fix.patch
+     rapidio-move-rio_pw_enable-into-core-code-fix.patch
 
-This patch was dropped because it was folded into rapidio-add-lock-protection-for-doorbell-list.patch
+This patch was dropped because it was folded into rapidio-move-rio_pw_enable-into-core-code.patch
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: add lock protection for doorbell list fix
+Subject: rapidio: move rio_pw_enable into core code fix
 
 Fix documentation warning for patch:
-	rapidio: add lock protection for doorbell list
+	rapidio: move rio_pw_enable into core code
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -39,30 +38,21 @@ Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/rio.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/rapidio/rio.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/rio.h~rapidio-add-lock-protection-for-doorbell-list-fix include/linux/rio.h
---- a/include/linux/rio.h~rapidio-add-lock-protection-for-doorbell-list-fix
-+++ a/include/linux/rio.h
-@@ -248,7 +248,7 @@ enum rio_phy_type {
-  * @node: Node in global list of master ports
-  * @nnode: Node in network list of master ports
-  * @net: RIO net this mport is attached to
-- * @mutex lock: lock to synchronize lists manipulations
-+ * @lock: lock to synchronize lists manipulations
-  * @iores: I/O mem resource that this master port interface owns
-  * @riores: RIO resources that this master port interfaces owns
-  * @inb_msg: RIO inbound message event descriptors
-@@ -272,7 +272,7 @@ struct rio_mport {
- 	struct list_head node;	/* node in global list of ports */
- 	struct list_head nnode;	/* node in net list of ports */
- 	struct rio_net *net;	/* RIO net this mport is attached to */
--	struct mutex lock;	/* lock to synchronize lists manipulations */
-+	struct mutex lock;
- 	struct resource iores;
- 	struct resource riores[RIO_MAX_MPORT_RESOURCES];
- 	struct rio_msg inb_msg[RIO_MAX_MBOX];
+diff -puN drivers/rapidio/rio.c~rapidio-move-rio_pw_enable-into-core-code-fix drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-move-rio_pw_enable-into-core-code-fix
++++ a/drivers/rapidio/rio.c
+@@ -561,7 +561,7 @@ EXPORT_SYMBOL_GPL(rio_release_inb_pwrite
+ 
+ /**
+  * rio_pw_enable - Enables/disables port-write handling by a master port
+- * @port: Master port associated with port-write handling
++ * @mport: Master port associated with port-write handling
+  * @enable:  1=enable,  0=disable
+  */
+ void rio_pw_enable(struct rio_mport *mport, int enable)
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
@@ -86,7 +76,6 @@ rapidio-rionet-add-mport-removal-handling.patch
 rapidio-add-lock-protection-for-doorbell-list.patch
 rapidio-move-rio_local_set_device_id-function-to-the-common-core.patch
 rapidio-move-rio_pw_enable-into-core-code.patch
-rapidio-move-rio_pw_enable-into-core-code-fix.patch
 rapidio-add-global-inbound-port-write-interfaces.patch
 rapidio-add-global-inbound-port-write-interfaces-fix.patch
 rapidio-tsi721-fix-locking-in-ob_msg-processing.patch
