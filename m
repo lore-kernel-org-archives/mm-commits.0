@@ -1,191 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] kernel-add-kcov-code-coverage-clean-up-code.patch removed from -mm tree
-Date: Tue, 22 Mar 2016 13:57:40 -0700
-Message-ID: <56f1b1c4.Cofb19+3+VLa+S3C%akpm@linux-foundation.org>
+Subject: [withdrawn]
+ dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch removed from -mm tree
+Date: Tue, 22 Mar 2016 13:59:22 -0700
+Message-ID: <56f1b22a.lGDqbH9/W/QFQJzB%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59436 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59445 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751249AbcCVU5l (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2016 16:57:41 -0400
+	with ESMTP id S1751041AbcCVU7X (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2016 16:59:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: dvyukov@google.com, keescook@chromium.org, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mcgrof@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kcov: clean up code
+     Subject: dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes
 has been removed from the -mm tree.  Its filename was
-     kernel-add-kcov-code-coverage-clean-up-code.patch
+     dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
 
-This patch was dropped because it was folded into kernel-add-kcov-code-coverage.patch
+This patch was dropped because it was withdrawn
 
 ------------------------------------------------------
-From: Dmitry Vyukov <dvyukov@google.com>
-Subject: kcov: clean up code
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes
 
-Address several issues in the original kcov submission
-(based on Andrew comments):
+WARNING: line over 80 characters
+#353: FILE: drivers/gpu/drm/omapdrm/omap_dmm_tiler.c:704:
++					   REFILL_BUFFER_SIZE * omap_dmm->num_engines,
 
-1. Introduce KCOV_MODE_DISABLED, use it instead of 0.
-2. Rename kcov.rc to kcov.refcount (rc can be confused with
-   'return code').
-3. Give name to ioctl argument (size/unused instead of arg).
-4. Check that trace buffer size does not overflow on 32-bit
-   arches (preventive since currently only x86_64 is supported).
-5. Return ENOTTY instead of EINVAL for unknown ioctls.
-6. Add comments to struct kcov fields.
+ERROR: code indent should use tabs where possible
+#557: FILE: drivers/gpu/host1x/job.c:581:
++^I^I            job->gather_copy_mapped, job->gather_copy);$
 
-Signed-off-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Kees Cook <keescook@chromium.org>
+ERROR: code indent should use tabs where possible
+#925: FILE: drivers/video/fbdev/s3c-fb.c:1134:
++^I^I            fbi->screen_base, fbi->fix.smem_start);$
+
+total: 2 errors, 1 warnings, 867 lines checked
+
+NOTE: Whitespace errors detected.
+      You may wish to use scripts/cleanpatch or scripts/cleanfile
+
+./patches/dma-rename-dma__writecombine-to-dma__wc.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+Cc: "Luis R. Rodriguez" <mcgrof@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/kcov.h |    2 ++
- kernel/kcov.c        |   38 +++++++++++++++++++++++++-------------
- 2 files changed, 27 insertions(+), 13 deletions(-)
+ drivers/gpu/host1x/job.c     |    2 +-
+ drivers/video/fbdev/s3c-fb.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN include/linux/kcov.h~kernel-add-kcov-code-coverage-clean-up-code include/linux/kcov.h
---- a/include/linux/kcov.h~kernel-add-kcov-code-coverage-clean-up-code
-+++ a/include/linux/kcov.h
-@@ -11,6 +11,8 @@ void kcov_task_init(struct task_struct *
- void kcov_task_exit(struct task_struct *t);
+diff -puN drivers/gpu/host1x/job.c~dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes drivers/gpu/host1x/job.c
+--- a/drivers/gpu/host1x/job.c~dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes
++++ a/drivers/gpu/host1x/job.c
+@@ -578,7 +578,7 @@ void host1x_job_unpin(struct host1x_job
  
- enum kcov_mode {
-+	/* Coverage collection is not enabled yet. */
-+	KCOV_MODE_DISABLED = 0,
- 	/*
- 	 * Tracing coverage collection mode.
- 	 * Covered PCs are collected in a per-task buffer.
-diff -puN kernel/kcov.c~kernel-add-kcov-code-coverage-clean-up-code kernel/kcov.c
---- a/kernel/kcov.c~kernel-add-kcov-code-coverage-clean-up-code
-+++ a/kernel/kcov.c
-@@ -27,12 +27,15 @@ struct kcov {
- 	 *  - opened file descriptor
- 	 *  - task with enabled coverage (we can't unwire it from another task)
- 	 */
--	atomic_t		rc;
-+	atomic_t		refcount;
- 	/* The lock protects mode, size, area and t. */
- 	spinlock_t		lock;
- 	enum kcov_mode		mode;
-+	/* Size of arena (in long's for KCOV_MODE_TRACE). */
- 	unsigned		size;
-+	/* Coverage buffer shared with user space. */
- 	void			*area;
-+	/* Task for which we collect coverage, or NULL. */
- 	struct task_struct	*t;
- };
+ 	if (job->gather_copy_size)
+ 		dma_free_wc(job->channel->dev, job->gather_copy_size,
+-		            job->gather_copy_mapped, job->gather_copy);
++			    job->gather_copy_mapped, job->gather_copy);
+ }
+ EXPORT_SYMBOL(host1x_job_unpin);
  
-@@ -78,12 +81,12 @@ EXPORT_SYMBOL(__sanitizer_cov_trace_pc);
+diff -puN drivers/video/fbdev/s3c-fb.c~dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes drivers/video/fbdev/s3c-fb.c
+--- a/drivers/video/fbdev/s3c-fb.c~dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes
++++ a/drivers/video/fbdev/s3c-fb.c
+@@ -1131,7 +1131,7 @@ static void s3c_fb_free_memory(struct s3
  
- static void kcov_get(struct kcov *kcov)
- {
--	atomic_inc(&kcov->rc);
-+	atomic_inc(&kcov->refcount);
+ 	if (fbi->screen_base)
+ 		dma_free_wc(sfb->dev, PAGE_ALIGN(fbi->fix.smem_len),
+-		            fbi->screen_base, fbi->fix.smem_start);
++			    fbi->screen_base, fbi->fix.smem_start);
  }
  
- static void kcov_put(struct kcov *kcov)
- {
--	if (atomic_dec_and_test(&kcov->rc)) {
-+	if (atomic_dec_and_test(&kcov->refcount)) {
- 		vfree(kcov->area);
- 		kfree(kcov);
- 	}
-@@ -91,7 +94,7 @@ static void kcov_put(struct kcov *kcov)
- 
- void kcov_task_init(struct task_struct *t)
- {
--	t->kcov_mode = 0;
-+	t->kcov_mode = KCOV_MODE_DISABLED;
- 	t->kcov_size = 0;
- 	t->kcov_area = NULL;
- 	t->kcov = NULL;
-@@ -130,7 +133,7 @@ static int kcov_mmap(struct file *filep,
- 
- 	spin_lock(&kcov->lock);
- 	size = kcov->size * sizeof(unsigned long);
--	if (kcov->mode == 0 || vma->vm_pgoff != 0 ||
-+	if (kcov->mode == KCOV_MODE_DISABLED || vma->vm_pgoff != 0 ||
- 	    vma->vm_end - vma->vm_start != size) {
- 		res = -EINVAL;
- 		goto exit;
-@@ -159,7 +162,7 @@ static int kcov_open(struct inode *inode
- 	kcov = kzalloc(sizeof(*kcov), GFP_KERNEL);
- 	if (!kcov)
- 		return -ENOMEM;
--	atomic_set(&kcov->rc, 1);
-+	atomic_set(&kcov->refcount, 1);
- 	spin_lock_init(&kcov->lock);
- 	filep->private_data = kcov;
- 	return nonseekable_open(inode, filep);
-@@ -175,20 +178,26 @@ static int kcov_ioctl_locked(struct kcov
- 			     unsigned long arg)
- {
- 	struct task_struct *t;
-+	unsigned long size, unused;
- 
- 	switch (cmd) {
- 	case KCOV_INIT_TRACE:
- 		/*
- 		 * Enable kcov in trace mode and setup buffer size.
- 		 * Must happen before anything else.
-+		 */
-+		if (kcov->mode != KCOV_MODE_DISABLED)
-+			return -EBUSY;
-+		/*
- 		 * Size must be at least 2 to hold current position and one PC.
-+		 * Later we allocate size * sizeof(unsigned long) memory,
-+		 * that must not overflow.
- 		 */
--		if (arg < 2 || arg > INT_MAX)
-+		size = arg;
-+		if (size < 2 || size > INT_MAX / sizeof(unsigned long))
- 			return -EINVAL;
--		if (kcov->mode != 0)
--			return -EBUSY;
-+		kcov->size = size;
- 		kcov->mode = KCOV_MODE_TRACE;
--		kcov->size = arg;
- 		return 0;
- 	case KCOV_ENABLE:
- 		/*
-@@ -198,7 +207,9 @@ static int kcov_ioctl_locked(struct kcov
- 		 * at task exit or voluntary by KCOV_DISABLE. After that it can
- 		 * be enabled for another task.
- 		 */
--		if (arg != 0 || kcov->mode == 0 || kcov->area == NULL)
-+		unused = arg;
-+		if (unused != 0 || kcov->mode == KCOV_MODE_DISABLED ||
-+		    kcov->area == NULL)
- 			return -EINVAL;
- 		if (kcov->t != NULL)
- 			return -EBUSY;
-@@ -216,7 +227,8 @@ static int kcov_ioctl_locked(struct kcov
- 		return 0;
- 	case KCOV_DISABLE:
- 		/* Disable coverage for the current task. */
--		if (arg != 0 || current->kcov != kcov)
-+		unused = arg;
-+		if (unused != 0 || current->kcov != kcov)
- 			return -EINVAL;
- 		t = current;
- 		if (WARN_ON(kcov->t != t))
-@@ -226,7 +238,7 @@ static int kcov_ioctl_locked(struct kcov
- 		kcov_put(kcov);
- 		return 0;
- 	default:
--		return -EINVAL;
-+		return -ENOTTY;
- 	}
- }
- 
+ /**
 _
 
-Patches currently in -mm which might be from dvyukov@google.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kernel-add-kcov-code-coverage.patch
 
