@@ -1,119 +1,95 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- rapidio-add-global-inbound-port-write-interfaces-fix.patch removed from -mm tree
-Date: Tue, 22 Mar 2016 13:55:43 -0700
-Message-ID: <56f1b14f.0jmvjPWoyqZe/F51%akpm@linux-foundation.org>
+Subject: [folded-merged] rapidio-add-mport-char-device-driver-fix-3.patch
+ removed from -mm tree
+Date: Tue, 22 Mar 2016 13:56:28 -0700
+Message-ID: <56f1b17c.Vcexs/wWOa2Ss1y9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59403 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59422 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751249AbcCVUzo (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2016 16:55:44 -0400
+	with ESMTP id S1751110AbcCVU43 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2016 16:56:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, benh@kernel.crashing.org, mporter@kernel.crashing.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, mporter@kernel.crashing.org, rdunlap@infradead.org, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: powerpc/fsl_rio: update for port-write interface change
+     Subject: rapidio/rio_mport_cdev: fix build failure if CONFIG_DMA_ENGINE is not enabled
 has been removed from the -mm tree.  Its filename was
-     rapidio-add-global-inbound-port-write-interfaces-fix.patch
+     rapidio-add-mport-char-device-driver-fix-3.patch
 
-This patch was dropped because it was folded into rapidio-add-global-inbound-port-write-interfaces.patch
+This patch was dropped because it was folded into rapidio-add-mport-char-device-driver.patch
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: powerpc/fsl_rio: update for port-write interface change
+Subject: rapidio/rio_mport_cdev: fix build failure if CONFIG_DMA_ENGINE is not enabled
 
-Platform-specific update following changes in port-write handler interface.
-
-This is a follow-up patch for
-    [PATCH 22/30] rapidio: add global inbound port write interfaces
-
-Fixes powerpc build with RapidIO enabled.
+Fix the driver build failure if CONFIG_DMA_ENGINE option is not enabled
+This patch is applicable to linux-next tree.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Reported-by: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Randy Dunlap <rdunlap@infradead.org>
 Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
-Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
-Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/powerpc/sysdev/fsl_rio.c |    1 +
- arch/powerpc/sysdev/fsl_rio.h |    1 +
- arch/powerpc/sysdev/fsl_rmu.c |   16 ++++++++++------
- 3 files changed, 12 insertions(+), 6 deletions(-)
+ drivers/rapidio/devices/rio_mport_cdev.c |   18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-diff -puN arch/powerpc/sysdev/fsl_rio.c~rapidio-add-global-inbound-port-write-interfaces-fix arch/powerpc/sysdev/fsl_rio.c
---- a/arch/powerpc/sysdev/fsl_rio.c~rapidio-add-global-inbound-port-write-interfaces-fix
-+++ a/arch/powerpc/sysdev/fsl_rio.c
-@@ -726,6 +726,7 @@ int fsl_rio_setup(struct platform_device
- 		fsl_rio_inbound_mem_init(priv);
- 
- 		dbell->mport[i] = port;
-+		pw->mport[i] = port;
- 
- 		if (rio_register_mport(port)) {
- 			release_resource(&port->iores);
-diff -puN arch/powerpc/sysdev/fsl_rio.h~rapidio-add-global-inbound-port-write-interfaces-fix arch/powerpc/sysdev/fsl_rio.h
---- a/arch/powerpc/sysdev/fsl_rio.h~rapidio-add-global-inbound-port-write-interfaces-fix
-+++ a/arch/powerpc/sysdev/fsl_rio.h
-@@ -97,6 +97,7 @@ struct fsl_rio_dbell {
- };
- 
- struct fsl_rio_pw {
-+	struct rio_mport *mport[MAX_PORT_NUM];
- 	struct device *dev;
- 	struct rio_pw_regs __iomem *pw_regs;
- 	struct rio_port_write_msg port_write_msg;
-diff -puN arch/powerpc/sysdev/fsl_rmu.c~rapidio-add-global-inbound-port-write-interfaces-fix arch/powerpc/sysdev/fsl_rmu.c
---- a/arch/powerpc/sysdev/fsl_rmu.c~rapidio-add-global-inbound-port-write-interfaces-fix
-+++ a/arch/powerpc/sysdev/fsl_rmu.c
-@@ -481,14 +481,14 @@ pw_done:
- static void fsl_pw_dpc(struct work_struct *work)
- {
- 	struct fsl_rio_pw *pw = container_of(work, struct fsl_rio_pw, pw_work);
--	u32 msg_buffer[RIO_PW_MSG_SIZE/sizeof(u32)];
-+	union rio_pw_msg msg_buffer;
-+	int i;
- 
- 	/*
- 	 * Process port-write messages
- 	 */
--	while (kfifo_out_spinlocked(&pw->pw_fifo, (unsigned char *)msg_buffer,
-+	while (kfifo_out_spinlocked(&pw->pw_fifo, (unsigned char *)&msg_buffer,
- 			 RIO_PW_MSG_SIZE, &pw->pw_fifo_lock)) {
--		/* Process one message */
- #ifdef DEBUG_PW
- 		{
- 		u32 i;
-@@ -496,15 +496,19 @@ static void fsl_pw_dpc(struct work_struc
- 		for (i = 0; i < RIO_PW_MSG_SIZE/sizeof(u32); i++) {
- 			if ((i%4) == 0)
- 				pr_debug("\n0x%02x: 0x%08x", i*4,
--					 msg_buffer[i]);
-+					 msg_buffer.raw[i]);
- 			else
--				pr_debug(" 0x%08x", msg_buffer[i]);
-+				pr_debug(" 0x%08x", msg_buffer.raw[i]);
- 		}
- 		pr_debug("\n");
- 		}
- #endif
- 		/* Pass the port-write message to RIO core for processing */
--		rio_inb_pwrite_handler((union rio_pw_msg *)msg_buffer);
-+		for (i = 0; i < MAX_PORT_NUM; i++) {
-+			if (pw->mport[i])
-+				rio_inb_pwrite_handler(pw->mport[i],
-+						       &msg_buffer);
-+		}
- 	}
+diff -puN drivers/rapidio/devices/rio_mport_cdev.c~rapidio-add-mport-char-device-driver-fix-3 drivers/rapidio/devices/rio_mport_cdev.c
+--- a/drivers/rapidio/devices/rio_mport_cdev.c~rapidio-add-mport-char-device-driver-fix-3
++++ a/drivers/rapidio/devices/rio_mport_cdev.c
+@@ -1133,7 +1133,7 @@ static int rio_mport_transfer_ioctl(stru
+ 	return -ENODEV;
  }
+ 
+-static int rio_mport_wait_for_async_dma(struct file *filp, int32_t arg)
++static int rio_mport_wait_for_async_dma(struct file *filp, void __user *arg)
+ {
+ 	return -ENODEV;
+ }
+@@ -1227,6 +1227,16 @@ static int rio_mport_free_dma(struct fil
+ 
+ 	return 0;
+ }
++#else
++static int rio_mport_alloc_dma(struct file *filp, void __user *arg)
++{
++	return -ENODEV;
++}
++
++static int rio_mport_free_dma(struct file *filp, void __user *arg)
++{
++	return -ENODEV;
++}
+ 
+ #endif /* CONFIG_RAPIDIO_DMA_ENGINE */
+ 
+@@ -1935,10 +1945,7 @@ static int mport_cdev_open(struct inode
+ 
+ 	INIT_LIST_HEAD(&priv->db_filters);
+ 	INIT_LIST_HEAD(&priv->pw_filters);
+-	INIT_LIST_HEAD(&priv->async_list);
+-	INIT_LIST_HEAD(&priv->pend_list);
+ 	spin_lock_init(&priv->fifo_lock);
+-	spin_lock_init(&priv->req_lock);
+ 	init_waitqueue_head(&priv->event_rx_wait);
+ 	ret = kfifo_alloc(&priv->event_fifo,
+ 			  sizeof(struct rio_event) * MPORT_EVENT_DEPTH,
+@@ -1950,6 +1957,9 @@ static int mport_cdev_open(struct inode
+ 	}
+ 
+ #ifdef CONFIG_DMA_ENGINE
++	INIT_LIST_HEAD(&priv->async_list);
++	INIT_LIST_HEAD(&priv->pend_list);
++	spin_lock_init(&priv->req_lock);
+ 	mutex_init(&priv->dma_lock);
+ #endif
  
 _
 
@@ -147,6 +123,5 @@ rapidio-tsi721_dma-update-error-reporting-from-prep_sg-callback.patch
 rapidio-tsi721_dma-fix-synchronization-issues.patch
 rapidio-tsi721_dma-fix-hardware-error-handling.patch
 rapidio-add-mport-char-device-driver.patch
-rapidio-add-mport-char-device-driver-fix-3.patch
 rapidio-add-mport-char-device-driver-fix-4.patch
 
