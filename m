@@ -1,97 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: + oom-oom_reaper-protect-oom_reaper_list-using-simpler-way.patch
- added to -mm tree
-Date: Tue, 22 Mar 2016 15:59:21 -0700
-Message-ID: <56f1ce49.LKpL9q2cBksfhvEx%akpm@linux-foundation.org>
+Subject: [obsolete] oom-reaper-handle-mlocked-pages.patch removed from -mm tree
+Date: Tue, 22 Mar 2016 16:02:55 -0700
+Message-ID: <56f1cf1f.0merJuAFYGXxlnjj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33709 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33742 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751378AbcCVW7W (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2016 18:59:22 -0400
+	with ESMTP id S1751322AbcCVXC5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2016 19:02:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, mhocko@suse.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, andrea@kernel.org, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom, oom_reaper: protect oom_reaper_list using simpler way
-has been added to the -mm tree.  Its filename is
-     oom-oom_reaper-protect-oom_reaper_list-using-simpler-way.patch
+     Subject: oom reaper: handle mlocked pages
+has been removed from the -mm tree.  Its filename was
+     oom-reaper-handle-mlocked-pages.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/oom-oom_reaper-protect-oom_reaper_list-using-simpler-way.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/oom-oom_reaper-protect-oom_reaper_list-using-simpler-way.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: oom, oom_reaper: protect oom_reaper_list using simpler way
+From: Michal Hocko <mhocko@suse.com>
+Subject: oom reaper: handle mlocked pages
 
-"oom, oom_reaper: disable oom_reaper for oom_kill_allocating_task" tried
-to protect oom_reaper_list using MMF_OOM_KILLED flag.  But we can do it by
-simply checking tsk->oom_reaper_list != NULL.
+__oom_reap_vmas current skips over all mlocked vmas because they need a
+special treatment before they are unmapped.  This is primarily done for
+simplicity.  There is no reason to skip over them and reduce the amount of
+reclaimed memory.  This is safe from the semantic point of view because
+try_to_unmap_one during rmap walk would keep tell the reclaim to cull the
+page back and mlock it again.
 
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+munlock_vma_pages_all is also safe to be called from the oom reaper
+context because it doesn't sit on any locks but mmap_sem (for read).
+
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Andrea Argangeli <andrea@kernel.org>
+Acked-by: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    2 --
- mm/oom_kill.c         |    8 ++------
- 2 files changed, 2 insertions(+), 8 deletions(-)
+ mm/oom_kill.c |   12 ++++--------
+ 1 file changed, 4 insertions(+), 8 deletions(-)
 
-diff -puN include/linux/sched.h~oom-oom_reaper-protect-oom_reaper_list-using-simpler-way include/linux/sched.h
---- a/include/linux/sched.h~oom-oom_reaper-protect-oom_reaper_list-using-simpler-way
-+++ a/include/linux/sched.h
-@@ -512,8 +512,6 @@ static inline int get_dumpable(struct mm
- #define MMF_HAS_UPROBES		19	/* has uprobes */
- #define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
- 
--#define MMF_OOM_KILLED		21	/* OOM killer has chosen this mm */
--
- #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
- 
- struct sighand_struct {
-diff -puN mm/oom_kill.c~oom-oom_reaper-protect-oom_reaper_list-using-simpler-way mm/oom_kill.c
---- a/mm/oom_kill.c~oom-oom_reaper-protect-oom_reaper_list-using-simpler-way
+diff -puN mm/oom_kill.c~oom-reaper-handle-mlocked-pages mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-reaper-handle-mlocked-pages
 +++ a/mm/oom_kill.c
-@@ -542,7 +542,7 @@ static int oom_reaper(void *unused)
+@@ -442,13 +442,6 @@ static bool __oom_reap_vmas(struct mm_st
+ 			continue;
  
- static void wake_oom_reaper(struct task_struct *tsk)
- {
--	if (!oom_reaper_th)
-+	if (!oom_reaper_th || tsk->oom_reaper_list)
- 		return;
- 
- 	get_task_struct(tsk);
-@@ -676,7 +676,7 @@ void oom_kill_process(struct oom_control
- 	unsigned int victim_points = 0;
- 	static DEFINE_RATELIMIT_STATE(oom_rs, DEFAULT_RATELIMIT_INTERVAL,
- 					      DEFAULT_RATELIMIT_BURST);
--	bool can_oom_reap;
-+	bool can_oom_reap = true;
- 
- 	/*
- 	 * If the task is already exiting, don't alarm the sysadmin or kill
-@@ -738,10 +738,6 @@ void oom_kill_process(struct oom_control
- 	/* Get a reference to safely compare mm after task_unlock(victim) */
- 	mm = victim->mm;
- 	atomic_inc(&mm->mm_count);
+ 		/*
+-		 * mlocked VMAs require explicit munlocking before unmap.
+-		 * Let's keep it simple here and skip such VMAs.
+-		 */
+-		if (vma->vm_flags & VM_LOCKED)
+-			continue;
 -
--	/* Make sure we do not try to oom reap the mm multiple times */
--	can_oom_reap = !test_and_set_bit(MMF_OOM_KILLED, &mm->flags);
+-		/*
+ 		 * Only anonymous pages have a good chance to be dropped
+ 		 * without additional steps which we cannot afford as we
+ 		 * are OOM already.
+@@ -458,9 +451,12 @@ static bool __oom_reap_vmas(struct mm_st
+ 		 * we do not want to block exit_mmap by keeping mm ref
+ 		 * count elevated without a good reason.
+ 		 */
+-		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED))
++		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED)) {
++			if (vma->vm_flags & VM_LOCKED)
++				munlock_vma_pages_all(vma);
+ 			unmap_page_range(&tlb, vma, vma->vm_start, vma->vm_end,
+ 					 &details);
++		}
+ 	}
+ 	tlb_finish_mmu(&tlb, 0, -1);
+ 	up_read(&mm->mmap_sem);
+_
+
+Patches currently in -mm which might be from mhocko@suse.com are
+
+mm-oom-introduce-oom-reaper.patch
+oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
+mm-oom_reaper-report-success-failure.patch
+mm-oom_reaper-report-success-failure-v6.patch
+mm-oom_reaper-implement-oom-victims-queuing.patch
+mm-oom_reaper-implement-oom-victims-queuing-v6.patch
+oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task.patch
+oom-make-oom_reaper-freezable.patch
+mm-oom-rework-oom-detection.patch
+mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
+
