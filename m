@@ -1,168 +1,91 @@
 From: akpm@linux-foundation.org
-Subject: + zram-revive-swap_slot_free_notify.patch added to -mm tree
-Date: Mon, 21 Mar 2016 13:37:54 -0700
-Message-ID: <56f05ba2.RRoL+r+f+pFRLciM%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-rejects.patch removed from -mm tree
+Date: Tue, 22 Mar 2016 10:46:50 -0700
+Message-ID: <56f1850a.7WdrPcUMCeak6+Sh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53728 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56619 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753736AbcCUUhz (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 21 Mar 2016 16:37:55 -0400
+	with ESMTP id S1755571AbcCVRqv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2016 13:46:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, chan.jeong@lge.com, karam.lee@lge.com, sangseok.lee@lge.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zram: revive swap_slot_free_notify
-has been added to the -mm tree.  Its filename is
-     zram-revive-swap_slot_free_notify.patch
+     Subject: linux-next-rejects
+has been removed from the -mm tree.  Its filename was
+     linux-next-rejects.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zram-revive-swap_slot_free_notify.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zram-revive-swap_slot_free_notify.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Minchan Kim <minchan@kernel.org>
-Subject: zram: revive swap_slot_free_notify
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-b430e9d1c6d4 ("remove compressed copy from zram in-memory") applied
-swap_slot_free_notify call in *end_swap_bio_read* to remove duplicated
-memory between zram and memory.
-
-However, with the introduction of rw_page in zram: 8c7f01025f7b ("zram:
-implement rw_page operation of zram"), it became void because rw_page
-doesn't need bio.
-
-This patch restores the function for rw_page.
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
-Cc: karam.lee <karam.lee@lge.com>
-Cc: <sangseok.lee@lge.com>
-Cc: Chan Jeong <chan.jeong@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_io.c |   93 ++++++++++++++++++++++++++-----------------------
- 1 file changed, 50 insertions(+), 43 deletions(-)
+ arch/mips/Kconfig |    1 +
+ fs/ocfs2/aops.c   |    2 ++
+ 2 files changed, 3 insertions(+)
 
-diff -puN mm/page_io.c~zram-revive-swap_slot_free_notify mm/page_io.c
---- a/mm/page_io.c~zram-revive-swap_slot_free_notify
-+++ a/mm/page_io.c
-@@ -66,6 +66,54 @@ void end_swap_bio_write(struct bio *bio)
- 	bio_put(bio);
+diff -puN arch/mips/Kconfig~linux-next-rejects arch/mips/Kconfig
+--- a/arch/mips/Kconfig~linux-next-rejects
++++ a/arch/mips/Kconfig
+@@ -52,6 +52,7 @@ config MIPS
+ 	select MODULES_USE_ELF_REL if MODULES
+ 	select MODULES_USE_ELF_RELA if MODULES && 64BIT
+ 	select CLONE_BACKWARDS
++	select HANDLE_DOMAIN_IRQ
+ 	select HAVE_DEBUG_STACKOVERFLOW
+ 	select HAVE_CC_STACKPROTECTOR
+ 	select CPU_PM if CPU_IDLE
+diff -puN fs/ocfs2/aops.c~linux-next-rejects fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~linux-next-rejects
++++ a/fs/ocfs2/aops.c
+@@ -2420,6 +2420,8 @@ static int ocfs2_dio_end_io(struct kiocb
+ 
+ 	level = ocfs2_iocb_rw_locked_level(iocb);
+ 	ocfs2_rw_unlock(inode, level);
++
++	return 0;
  }
  
-+static void swap_slot_free_notify(struct page *page)
-+{
-+	struct swap_info_struct *sis;
-+	struct gendisk *disk;
-+
-+	/*
-+	 * There is no guarantee that the page is in swap cache - the software
-+	 * suspend code (at least) uses end_swap_bio_read() against a non-
-+	 * swapcache page.  So we must check PG_swapcache before proceeding with
-+	 * this optimization.
-+	 */
-+	if (unlikely(!PageSwapCache(page)))
-+		return;
-+
-+	sis = page_swap_info(page);
-+	if (!(sis->flags & SWP_BLKDEV))
-+		return;
-+
-+	/*
-+	 * The swap subsystem performs lazy swap slot freeing,
-+	 * expecting that the page will be swapped out again.
-+	 * So we can avoid an unnecessary write if the page
-+	 * isn't redirtied.
-+	 * This is good for real swap storage because we can
-+	 * reduce unnecessary I/O and enhance wear-leveling
-+	 * if an SSD is used as the as swap device.
-+	 * But if in-memory swap device (eg zram) is used,
-+	 * this causes a duplicated copy between uncompressed
-+	 * data in VM-owned memory and compressed data in
-+	 * zram-owned memory.  So let's free zram-owned memory
-+	 * and make the VM-owned decompressed page *dirty*,
-+	 * so the page should be swapped out somewhere again if
-+	 * we again wish to reclaim it.
-+	 */
-+	disk = sis->bdev->bd_disk;
-+	if (disk->fops->swap_slot_free_notify) {
-+		swp_entry_t entry;
-+		unsigned long offset;
-+
-+		entry.val = page_private(page);
-+		offset = swp_offset(entry);
-+
-+		SetPageDirty(page);
-+		disk->fops->swap_slot_free_notify(sis->bdev,
-+				offset);
-+	}
-+}
-+
- static void end_swap_bio_read(struct bio *bio)
- {
- 	struct page *page = bio->bi_io_vec[0].bv_page;
-@@ -81,49 +129,7 @@ static void end_swap_bio_read(struct bio
- 	}
- 
- 	SetPageUptodate(page);
--
--	/*
--	 * There is no guarantee that the page is in swap cache - the software
--	 * suspend code (at least) uses end_swap_bio_read() against a non-
--	 * swapcache page.  So we must check PG_swapcache before proceeding with
--	 * this optimization.
--	 */
--	if (likely(PageSwapCache(page))) {
--		struct swap_info_struct *sis;
--
--		sis = page_swap_info(page);
--		if (sis->flags & SWP_BLKDEV) {
--			/*
--			 * The swap subsystem performs lazy swap slot freeing,
--			 * expecting that the page will be swapped out again.
--			 * So we can avoid an unnecessary write if the page
--			 * isn't redirtied.
--			 * This is good for real swap storage because we can
--			 * reduce unnecessary I/O and enhance wear-leveling
--			 * if an SSD is used as the as swap device.
--			 * But if in-memory swap device (eg zram) is used,
--			 * this causes a duplicated copy between uncompressed
--			 * data in VM-owned memory and compressed data in
--			 * zram-owned memory.  So let's free zram-owned memory
--			 * and make the VM-owned decompressed page *dirty*,
--			 * so the page should be swapped out somewhere again if
--			 * we again wish to reclaim it.
--			 */
--			struct gendisk *disk = sis->bdev->bd_disk;
--			if (disk->fops->swap_slot_free_notify) {
--				swp_entry_t entry;
--				unsigned long offset;
--
--				entry.val = page_private(page);
--				offset = swp_offset(entry);
--
--				SetPageDirty(page);
--				disk->fops->swap_slot_free_notify(sis->bdev,
--						offset);
--			}
--		}
--	}
+ static ssize_t ocfs2_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
+_
+
+Patches currently in -mm which might be from akpm@linux-foundation.org are
+
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-code-clean-up-for-direct-io-fix.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
+mm.patch
+sched-add-schedule_timeout_idle.patch
+mm-oom_reaper-report-success-failure-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-fix.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
+rapidio-add-mport-char-device-driver-fix.patch
+kernel-add-kcov-code-coverage-fix.patch
+kernel-add-kcov-code-coverage-fix-2.patch
+kernel-add-kcov-code-coverage-makefile-tweaks.patch
+linux-next-git-rejects.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+
