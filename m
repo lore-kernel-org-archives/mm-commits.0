@@ -1,161 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- kernel-add-kcov-code-coverage-makefile-tweaks.patch removed from -mm tree
-Date: Tue, 22 Mar 2016 13:57:43 -0700
-Message-ID: <56f1b1c7.9YSnr2Hgl+agZ3NO%akpm@linux-foundation.org>
+Subject: [folded-merged] kernel-add-kcov-code-coverage-fix.patch removed
+ from -mm tree
+Date: Tue, 22 Mar 2016 13:57:34 -0700
+Message-ID: <56f1b1be.cf6EFYLMAokYW0Tt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59439 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59431 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751249AbcCVU5o (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2016 16:57:44 -0400
+	with ESMTP id S1751305AbcCVU5f (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2016 16:57:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dvyukov@google.com, hpa@zytor.com, mingo@elte.hu, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dvyukov@google.com, keescook@chromium.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel-add-kcov-code-coverage-makefile-tweaks
+     Subject: kernel-add-kcov-code-coverage-fix
 has been removed from the -mm tree.  Its filename was
-     kernel-add-kcov-code-coverage-makefile-tweaks.patch
+     kernel-add-kcov-code-coverage-fix.patch
 
 This patch was dropped because it was folded into kernel-add-kcov-code-coverage.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: kernel-add-kcov-code-coverage-makefile-tweaks
+Subject: kernel-add-kcov-code-coverage-fix
 
-follow x86 Makefile layout standards
+make task_struct.kcov_mode have type `enum kcov_mode'.
 
-Cc: "H. Peter Anvin" <hpa@zytor.com>
-Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Kees Cook <keescook@chromium.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/boot/Makefile            |    2 +-
- arch/x86/boot/compressed/Makefile |    2 +-
- arch/x86/entry/vdso/Makefile      |    2 +-
- arch/x86/kernel/Makefile          |    2 +-
- arch/x86/kernel/apic/Makefile     |    2 +-
- arch/x86/lib/Makefile             |    2 +-
- arch/x86/mm/Makefile              |    2 +-
- arch/x86/realmode/rm/Makefile     |    2 +-
- kernel/locking/Makefile           |    2 +-
- 9 files changed, 9 insertions(+), 9 deletions(-)
+ include/linux/kcov.h  |    8 ++++++++
+ include/linux/sched.h |    3 ++-
+ kernel/kcov.c         |    8 --------
+ 3 files changed, 10 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86/boot/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks arch/x86/boot/Makefile
---- a/arch/x86/boot/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks
-+++ a/arch/x86/boot/Makefile
-@@ -17,7 +17,7 @@ OBJECT_FILES_NON_STANDARD	:= y
- # callback into middle of per-cpu data enabling code. Thus the callback observed
- # inconsistent state and crashed. We are interested mostly in syscall coverage,
- # so boot code is not interesting anyway.
--KCOV_INSTRUMENT := n
-+KCOV_INSTRUMENT		:= n
+diff -puN include/linux/kcov.h~kernel-add-kcov-code-coverage-fix include/linux/kcov.h
+--- a/include/linux/kcov.h~kernel-add-kcov-code-coverage-fix
++++ a/include/linux/kcov.h
+@@ -10,6 +10,14 @@ struct task_struct;
+ void kcov_task_init(struct task_struct *t);
+ void kcov_task_exit(struct task_struct *t);
  
- # If you want to preset the SVGA mode, uncomment the next line and
- # set SVGA_MODE to whatever number you want.
-diff -puN arch/x86/boot/compressed/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks arch/x86/boot/compressed/Makefile
---- a/arch/x86/boot/compressed/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks
-+++ a/arch/x86/boot/compressed/Makefile
-@@ -20,7 +20,7 @@ KASAN_SANITIZE			:= n
- OBJECT_FILES_NON_STANDARD	:= y
++enum kcov_mode {
++	/*
++	 * Tracing coverage collection mode.
++	 * Covered PCs are collected in a per-task buffer.
++	 */
++	KCOV_MODE_TRACE = 1,
++};
++
+ #else
  
- # Prevents link failures: __sanitizer_cov_trace_pc() is not linked in.
--KCOV_INSTRUMENT := n
-+KCOV_INSTRUMENT		:= n
+ static inline void kcov_task_init(struct task_struct *t) {}
+diff -puN include/linux/sched.h~kernel-add-kcov-code-coverage-fix include/linux/sched.h
+--- a/include/linux/sched.h~kernel-add-kcov-code-coverage-fix
++++ a/include/linux/sched.h
+@@ -51,6 +51,7 @@ struct sched_param {
+ #include <linux/resource.h>
+ #include <linux/timer.h>
+ #include <linux/hrtimer.h>
++#include <linux/kcov.h>
+ #include <linux/task_io_accounting.h>
+ #include <linux/latencytop.h>
+ #include <linux/cred.h>
+@@ -1823,7 +1824,7 @@ struct task_struct {
+ #endif /* CONFIG_TRACING */
+ #ifdef CONFIG_KCOV
+ 	/* Coverage collection mode enabled for this task (0 if disabled). */
+-	int		kcov_mode;
++	enum kcov_mode kcov_mode;
+ 	/* Size of the kcov_area. */
+ 	unsigned	kcov_size;
+ 	/* Buffer for coverage collection. */
+diff -puN kernel/kcov.c~kernel-add-kcov-code-coverage-fix kernel/kcov.c
+--- a/kernel/kcov.c~kernel-add-kcov-code-coverage-fix
++++ a/kernel/kcov.c
+@@ -13,14 +13,6 @@
+ #include <linux/uaccess.h>
+ #include <linux/kcov.h>
  
- targets := vmlinux vmlinux.bin vmlinux.bin.gz vmlinux.bin.bz2 vmlinux.bin.lzma \
- 	vmlinux.bin.xz vmlinux.bin.lzo vmlinux.bin.lz4
-diff -puN arch/x86/entry/vdso/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks arch/x86/entry/vdso/Makefile
---- a/arch/x86/entry/vdso/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks
-+++ a/arch/x86/entry/vdso/Makefile
-@@ -8,7 +8,7 @@ UBSAN_SANITIZE			:= n
- OBJECT_FILES_NON_STANDARD	:= y
- 
- # Prevents link failures: __sanitizer_cov_trace_pc() is not linked in.
--KCOV_INSTRUMENT := n
-+KCOV_INSTRUMENT		:= n
- 
- VDSO64-$(CONFIG_X86_64)		:= y
- VDSOX32-$(CONFIG_X86_X32_ABI)	:= y
-diff -puN arch/x86/kernel/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks arch/x86/kernel/Makefile
---- a/arch/x86/kernel/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks
-+++ a/arch/x86/kernel/Makefile
-@@ -30,7 +30,7 @@ OBJECT_FILES_NON_STANDARD_test_nx.o			:=
- # Probably could be more selective here, but note that files related to irqs,
- # boot, dumpstack/stacktrace, etc are either non-interesting or can lead to
- # non-deterministic coverage.
--KCOV_INSTRUMENT := n
-+KCOV_INSTRUMENT		:= n
- 
- CFLAGS_irq.o := -I$(src)/../include/asm/trace
- 
-diff -puN arch/x86/kernel/apic/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks arch/x86/kernel/apic/Makefile
---- a/arch/x86/kernel/apic/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks
-+++ a/arch/x86/kernel/apic/Makefile
-@@ -4,7 +4,7 @@
- 
- # Leads to non-deterministic coverage that is not a function of syscall inputs.
- # In particualr, smp_apic_timer_interrupt() is called in random places.
--KCOV_INSTRUMENT := n
-+KCOV_INSTRUMENT		:= n
- 
- obj-$(CONFIG_X86_LOCAL_APIC)	+= apic.o apic_noop.o ipi.o vector.o
- obj-y				+= hw_nmi.o
-diff -puN arch/x86/lib/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks arch/x86/lib/Makefile
---- a/arch/x86/lib/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks
-+++ a/arch/x86/lib/Makefile
-@@ -3,7 +3,7 @@
- #
- 
- # Produces uninteresting flaky coverage.
--KCOV_INSTRUMENT_delay.o := n
-+KCOV_INSTRUMENT_delay.o	:= n
- 
- inat_tables_script = $(srctree)/arch/x86/tools/gen-insn-attr-x86.awk
- inat_tables_maps = $(srctree)/arch/x86/lib/x86-opcode-map.txt
-diff -puN arch/x86/mm/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks arch/x86/mm/Makefile
---- a/arch/x86/mm/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks
-+++ a/arch/x86/mm/Makefile
-@@ -1,5 +1,5 @@
- # Kernel does not boot with instrumentation of tlb.c.
--KCOV_INSTRUMENT_tlb.o := n
-+KCOV_INSTRUMENT_tlb.o	:= n
- 
- obj-y	:=  init.o init_$(BITS).o fault.o ioremap.o extable.o pageattr.o mmap.o \
- 	    pat.o pgtable.o physaddr.o gup.o setup_nx.o
-diff -puN arch/x86/realmode/rm/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks arch/x86/realmode/rm/Makefile
---- a/arch/x86/realmode/rm/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks
-+++ a/arch/x86/realmode/rm/Makefile
-@@ -10,7 +10,7 @@ KASAN_SANITIZE			:= n
- OBJECT_FILES_NON_STANDARD	:= y
- 
- # Prevents link failures: __sanitizer_cov_trace_pc() is not linked in.
--KCOV_INSTRUMENT := n
-+KCOV_INSTRUMENT		:= n
- 
- always := realmode.bin realmode.relocs
- 
-diff -puN kernel/locking/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks kernel/locking/Makefile
---- a/kernel/locking/Makefile~kernel-add-kcov-code-coverage-makefile-tweaks
-+++ a/kernel/locking/Makefile
-@@ -1,6 +1,6 @@
- # Any varying coverage in these files is non-deterministic
- # and is generally not a function of system call inputs.
--KCOV_INSTRUMENT := n
-+KCOV_INSTRUMENT		:= n
- 
- obj-y += mutex.o semaphore.o rwsem.o percpu-rwsem.o
- 
-_
-
-Patches currently in -mm which might be from akpm@linux-foundation.org are
-
-kernel-add-kcov-code-coverage.patch
-dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
-
+-enum kcov_mode {
+-	/*
+-	 * Tracing coverage collection mode.
+-	 * Covered PCs are collected in a per-task buffer.
+-	 */
+-	KCOV_MODE_TRACE = 1,
+-};
