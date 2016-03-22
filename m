@@ -1,98 +1,157 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- kexec-provide-arch_kexec_protectunprotect_crashkres-v4.patch removed from
+Subject: + drivers-input-eliminate-input_compat_test-macro.patch added to
  -mm tree
-Date: Tue, 22 Mar 2016 11:30:25 -0700
-Message-ID: <56f18f41.sPbF7HrINlHJhzkP%akpm@linux-foundation.org>
+Date: Tue, 22 Mar 2016 13:52:02 -0700
+Message-ID: <56f1b072.j6qMMsK95J5QMv6g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57729 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59288 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750770AbcCVSa0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2016 14:30:26 -0400
+	with ESMTP id S1751408AbcCVUwE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2016 16:52:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xlpang@redhat.com, dyoung@redhat.com, ebiederm@xmission.com, mhuang@redhat.com, vgoyal@redhat.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, dmitry.torokhov@gmail.com, luto@amacapital.net, luto@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kexec-provide-arch_kexec_protectunprotect_crashkres-v4
-has been removed from the -mm tree.  Its filename was
-     kexec-provide-arch_kexec_protectunprotect_crashkres-v4.patch
+     Subject: drivers/input: eliminate INPUT_COMPAT_TEST macro
+has been added to the -mm tree.  Its filename is
+     drivers-input-eliminate-input_compat_test-macro.patch
 
-This patch was dropped because it was folded into kexec-provide-arch_kexec_protectunprotect_crashkres.patch
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/drivers-input-eliminate-input_compat_test-macro.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/drivers-input-eliminate-input_compat_test-macro.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Xunlei Pang <xlpang@redhat.com>
-Subject: kexec-provide-arch_kexec_protectunprotect_crashkres-v4
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: drivers/input: eliminate INPUT_COMPAT_TEST macro
 
-v3->v4:
-Add some comments according to Minfei's suggestion.
+INPUT_COMPAT_TEST because much simpler after "input: redefine
+INPUT_COMPAT_TEST as in_compat_syscall()" so we can cleanly eliminate it
+altogether.
 
-Signed-off-by: Xunlei Pang <xlpang@redhat.com>
-Cc: Eric Biederman <ebiederm@xmission.com>
-Cc: Dave Young <dyoung@redhat.com>
-Cc: Minfei Huang <mhuang@redhat.com>
-Cc: Vivek Goyal <vgoyal@redhat.com>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Andy Lutomirski <luto@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/machine_kexec_64.c |   16 +++++++++-------
- 1 file changed, 9 insertions(+), 7 deletions(-)
+ drivers/input/input-compat.c |    6 +++---
+ drivers/input/input-compat.h |    4 +---
+ drivers/input/input.c        |    2 +-
+ drivers/input/misc/uinput.c  |    4 ++--
+ 4 files changed, 7 insertions(+), 9 deletions(-)
 
-diff -puN arch/x86/kernel/machine_kexec_64.c~kexec-provide-arch_kexec_protectunprotect_crashkres-v4 arch/x86/kernel/machine_kexec_64.c
---- a/arch/x86/kernel/machine_kexec_64.c~kexec-provide-arch_kexec_protectunprotect_crashkres-v4
-+++ a/arch/x86/kernel/machine_kexec_64.c
-@@ -539,18 +539,21 @@ overflow:
- }
- #endif /* CONFIG_KEXEC_FILE */
+diff -puN drivers/input/input-compat.h~drivers-input-eliminate-input_compat_test-macro drivers/input/input-compat.h
+--- a/drivers/input/input-compat.h~drivers-input-eliminate-input_compat_test-macro
++++ a/drivers/input/input-compat.h
+@@ -17,8 +17,6 @@
  
--#ifdef CONFIG_KEXEC_CORE
- static int
- kexec_mark_range(unsigned long start, unsigned long end, bool protect)
+ #ifdef CONFIG_COMPAT
+ 
+-#define INPUT_COMPAT_TEST in_compat_syscall()
+-
+ struct input_event_compat {
+ 	struct compat_timeval time;
+ 	__u16 type;
+@@ -57,7 +55,7 @@ struct ff_effect_compat {
+ 
+ static inline size_t input_event_size(void)
  {
- 	struct page *page;
- 	unsigned int nr_pages;
- 
--	if (!start || !end || start >= end)
-+	/*
-+	 * For physical range: [start, end]. We must skip the unassigned
-+	 * crashk resource with zero-valued "end" member.
-+	 */
-+	if (!end || start > end)
- 		return 0;
- 
- 	page = pfn_to_page(start >> PAGE_SHIFT);
--	nr_pages = (end + 1 - start) >> PAGE_SHIFT;
-+	nr_pages = (end >> PAGE_SHIFT) - (start >> PAGE_SHIFT) + 1;
- 	if (protect)
- 		return set_pages_ro(page, nr_pages);
- 	else
-@@ -566,9 +569,9 @@ static void kexec_mark_crashkres(bool pr
- 	/* Don't touch the control code page used in crash_kexec().*/
- 	control = PFN_PHYS(page_to_pfn(kexec_crash_image->control_code_page));
- 	/* Control code page is located in the 2nd page. */
--	control = control + PAGE_SIZE;
--	kexec_mark_range(crashk_res.start, control - 1, protect);
--	kexec_mark_range(control + PAGE_SIZE, crashk_res.end, protect);
-+	kexec_mark_range(crashk_res.start, control + PAGE_SIZE - 1, protect);
-+	control += KEXEC_CONTROL_PAGE_SIZE;
-+	kexec_mark_range(control, crashk_res.end, protect);
+-	return (INPUT_COMPAT_TEST && !COMPAT_USE_64BIT_TIME) ?
++	return (in_compat_syscall() && !COMPAT_USE_64BIT_TIME) ?
+ 		sizeof(struct input_event_compat) : sizeof(struct input_event);
  }
  
- void arch_kexec_protect_crashkres(void)
-@@ -580,4 +583,3 @@ void arch_kexec_unprotect_crashkres(void
+diff -puN drivers/input/misc/uinput.c~drivers-input-eliminate-input_compat_test-macro drivers/input/misc/uinput.c
+--- a/drivers/input/misc/uinput.c~drivers-input-eliminate-input_compat_test-macro
++++ a/drivers/input/misc/uinput.c
+@@ -664,7 +664,7 @@ struct uinput_ff_upload_compat {
+ static int uinput_ff_upload_to_user(char __user *buffer,
+ 				    const struct uinput_ff_upload *ff_up)
  {
- 	kexec_mark_crashkres(false);
- }
--#endif
+-	if (INPUT_COMPAT_TEST) {
++	if (in_compat_syscall()) {
+ 		struct uinput_ff_upload_compat ff_up_compat;
+ 
+ 		ff_up_compat.request_id = ff_up->request_id;
+@@ -695,7 +695,7 @@ static int uinput_ff_upload_to_user(char
+ static int uinput_ff_upload_from_user(const char __user *buffer,
+ 				      struct uinput_ff_upload *ff_up)
+ {
+-	if (INPUT_COMPAT_TEST) {
++	if (in_compat_syscall()) {
+ 		struct uinput_ff_upload_compat ff_up_compat;
+ 
+ 		if (copy_from_user(&ff_up_compat, buffer,
+diff -puN drivers/input/input-compat.c~drivers-input-eliminate-input_compat_test-macro drivers/input/input-compat.c
+--- a/drivers/input/input-compat.c~drivers-input-eliminate-input_compat_test-macro
++++ a/drivers/input/input-compat.c
+@@ -17,7 +17,7 @@
+ int input_event_from_user(const char __user *buffer,
+ 			  struct input_event *event)
+ {
+-	if (INPUT_COMPAT_TEST && !COMPAT_USE_64BIT_TIME) {
++	if (in_compat_syscall() && !COMPAT_USE_64BIT_TIME) {
+ 		struct input_event_compat compat_event;
+ 
+ 		if (copy_from_user(&compat_event, buffer,
+@@ -41,7 +41,7 @@ int input_event_from_user(const char __u
+ int input_event_to_user(char __user *buffer,
+ 			const struct input_event *event)
+ {
+-	if (INPUT_COMPAT_TEST && !COMPAT_USE_64BIT_TIME) {
++	if (in_compat_syscall() && !COMPAT_USE_64BIT_TIME) {
+ 		struct input_event_compat compat_event;
+ 
+ 		compat_event.time.tv_sec = event->time.tv_sec;
+@@ -65,7 +65,7 @@ int input_event_to_user(char __user *buf
+ int input_ff_effect_from_user(const char __user *buffer, size_t size,
+ 			      struct ff_effect *effect)
+ {
+-	if (INPUT_COMPAT_TEST) {
++	if (in_compat_syscall()) {
+ 		struct ff_effect_compat *compat_effect;
+ 
+ 		if (size != sizeof(struct ff_effect_compat))
+diff -puN drivers/input/input.c~drivers-input-eliminate-input_compat_test-macro drivers/input/input.c
+--- a/drivers/input/input.c~drivers-input-eliminate-input_compat_test-macro
++++ a/drivers/input/input.c
+@@ -1015,7 +1015,7 @@ static int input_bits_to_string(char *bu
+ {
+ 	int len = 0;
+ 
+-	if (INPUT_COMPAT_TEST) {
++	if (in_compat_syscall()) {
+ 		u32 dword = bits >> 32;
+ 		if (dword || !skip_empty)
+ 			len += snprintf(buf, buf_size, "%x ", dword);
 _
 
-Patches currently in -mm which might be from xlpang@redhat.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory.patch
-kexec-provide-arch_kexec_protectunprotect_crashkres.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix.patch
+sparc-compat-provide-an-accurate-in_compat_syscall-implementation-fix-fix.patch
+rapidio-add-mport-char-device-driver-fix.patch
+kernel-add-kcov-code-coverage-fix.patch
+kernel-add-kcov-code-coverage-fix-2.patch
+kernel-add-kcov-code-coverage-makefile-tweaks.patch
+dma-rename-dma__writecombine-to-dma__wc-checkpatch-fixes.patch
+drivers-input-eliminate-input_compat_test-macro.patch
 
