@@ -1,41 +1,36 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- rapidio-tsi721-add-check-for-overlapped-ib-window-mappings.patch removed
+ rapidio-tsi721_dma-fix-pending-transaction-queue-handling.patch removed
  from -mm tree
-Date: Wed, 23 Mar 2016 10:41:17 -0700
-Message-ID: <56f2d53d.ELWXyvJobUSShFhX%akpm@linux-foundation.org>
+Date: Wed, 23 Mar 2016 10:41:21 -0700
+Message-ID: <56f2d541.ekPFh22XVqh90z3H%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59168 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59180 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756338AbcCWRlS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:41:18 -0400
+	with ESMTP id S1756639AbcCWRlW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:41:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/tsi721: add check for overlapped IB window mappings
+     Subject: rapidio/tsi721_dma: fix pending transaction queue handling
 has been removed from the -mm tree.  Its filename was
-     rapidio-tsi721-add-check-for-overlapped-ib-window-mappings.patch
+     rapidio-tsi721_dma-fix-pending-transaction-queue-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/tsi721: add check for overlapped IB window mappings
+Subject: rapidio/tsi721_dma: fix pending transaction queue handling
 
-Add check for attempts to request mapping of inbound RapidIO address space
-that overlaps with existing active mapping windows.
-
-Tsi721 device does not support overlapped inbound windows and SRIO address
-decoding behavior is not defined in such cases.
-
-This patch is applicable to kernel versions starting from v3.7.
+Fix pending DMA request queue handling to avoid broken ordering during
+concurrent request submissions.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -44,159 +39,163 @@ Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.c |   72 ++++++++++++++++++++---------
- drivers/rapidio/devices/tsi721.h |   11 ++++
- 2 files changed, 62 insertions(+), 21 deletions(-)
+ drivers/rapidio/devices/tsi721.h     |    2 
+ drivers/rapidio/devices/tsi721_dma.c |   60 ++++++++++++-------------
+ 2 files changed, 32 insertions(+), 30 deletions(-)
 
-diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-add-check-for-overlapped-ib-window-mappings drivers/rapidio/devices/tsi721.c
---- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-add-check-for-overlapped-ib-window-mappings
-+++ a/drivers/rapidio/devices/tsi721.c
-@@ -885,26 +885,52 @@ static int tsi721_rio_map_inb_mem(struct
- 		u64 rstart, u32 size, u32 flags)
- {
- 	struct tsi721_device *priv = mport->priv;
--	int i;
-+	int i, avail = -1;
- 	u32 regval;
-+	struct tsi721_ib_win *ib_win;
-+	int ret = -EBUSY;
- 
- 	if (!is_power_of_2(size) || size < 0x1000 ||
- 	    ((u64)lstart & (size - 1)) || (rstart & (size - 1)))
- 		return -EINVAL;
- 
--	/* Search for free inbound translation window */
-+	spin_lock(&priv->win_lock);
-+	/*
-+	 * Scan for overlapping with active regions and mark the first available
-+	 * IB window at the same time.
-+	 */
- 	for (i = 0; i < TSI721_IBWIN_NUM; i++) {
--		regval = ioread32(priv->regs + TSI721_IBWIN_LB(i));
--		if (!(regval & TSI721_IBWIN_LB_WEN))
-+		ib_win = &priv->ib_win[i];
-+		if (!ib_win->active) {
-+			if (avail == -1) {
-+				avail = i;
-+				ret = 0;
-+			}
-+		} else if (rstart < (ib_win->rstart + ib_win->size) &&
-+					(rstart + size) > ib_win->rstart) {
-+			ret = -EFAULT;
- 			break;
-+		}
- 	}
- 
--	if (i >= TSI721_IBWIN_NUM) {
--		dev_err(&priv->pdev->dev,
--			"Unable to find free inbound window\n");
--		return -EBUSY;
-+	if (ret)
-+		goto err_out;
-+	i = avail;
-+
-+	/* Sanity check: available IB window must be disabled at this point */
-+	regval = ioread32(priv->regs + TSI721_IBWIN_LB(i));
-+	if (WARN_ON(regval & TSI721_IBWIN_LB_WEN)) {
-+		ret = -EIO;
-+		goto err_out;
- 	}
- 
-+	ib_win = &priv->ib_win[i];
-+	ib_win->active = true;
-+	ib_win->rstart = rstart;
-+	ib_win->lstart = lstart;
-+	ib_win->size = size;
-+	spin_unlock(&priv->win_lock);
-+
- 	iowrite32(TSI721_IBWIN_SIZE(size) << 8,
- 			priv->regs + TSI721_IBWIN_SZ(i));
- 
-@@ -920,6 +946,9 @@ static int tsi721_rio_map_inb_mem(struct
- 		i, rstart, (unsigned long long)lstart);
- 
- 	return 0;
-+err_out:
-+	spin_unlock(&priv->win_lock);
-+	return ret;
- }
- 
- /**
-@@ -931,25 +960,25 @@ static void tsi721_rio_unmap_inb_mem(str
- 				dma_addr_t lstart)
- {
- 	struct tsi721_device *priv = mport->priv;
-+	struct tsi721_ib_win *ib_win;
- 	int i;
--	u64 addr;
--	u32 regval;
- 
- 	/* Search for matching active inbound translation window */
-+	spin_lock(&priv->win_lock);
- 	for (i = 0; i < TSI721_IBWIN_NUM; i++) {
--		regval = ioread32(priv->regs + TSI721_IBWIN_LB(i));
--		if (regval & TSI721_IBWIN_LB_WEN) {
--			regval = ioread32(priv->regs + TSI721_IBWIN_TUA(i));
--			addr = (u64)regval << 32;
--			regval = ioread32(priv->regs + TSI721_IBWIN_TLA(i));
--			addr |= regval & TSI721_IBWIN_TLA_ADD;
--
--			if (addr == (u64)lstart) {
--				iowrite32(0, priv->regs + TSI721_IBWIN_LB(i));
--				break;
--			}
-+		ib_win = &priv->ib_win[i];
-+		if (ib_win->active && ib_win->lstart == lstart) {
-+			iowrite32(0, priv->regs + TSI721_IBWIN_LB(i));
-+			ib_win->active = false;
-+			break;
- 		}
- 	}
-+	spin_unlock(&priv->win_lock);
-+
-+	if (i == TSI721_IBWIN_NUM)
-+		dev_err(&priv->pdev->dev,
-+			"IB window mapped to %llx not found\n",
-+			(unsigned long long)lstart);
- }
- 
- /**
-@@ -966,6 +995,7 @@ static void tsi721_init_sr2pc_mapping(st
- 	/* Disable all SR2PC inbound windows */
- 	for (i = 0; i < TSI721_IBWIN_NUM; i++)
- 		iowrite32(0, priv->regs + TSI721_IBWIN_LB(i));
-+	spin_lock_init(&priv->win_lock);
- }
- 
- /**
-diff -puN drivers/rapidio/devices/tsi721.h~rapidio-tsi721-add-check-for-overlapped-ib-window-mappings drivers/rapidio/devices/tsi721.h
---- a/drivers/rapidio/devices/tsi721.h~rapidio-tsi721-add-check-for-overlapped-ib-window-mappings
+diff -puN drivers/rapidio/devices/tsi721.h~rapidio-tsi721_dma-fix-pending-transaction-queue-handling drivers/rapidio/devices/tsi721.h
+--- a/drivers/rapidio/devices/tsi721.h~rapidio-tsi721_dma-fix-pending-transaction-queue-handling
 +++ a/drivers/rapidio/devices/tsi721.h
-@@ -808,6 +808,13 @@ struct msix_irq {
- };
- #endif /* CONFIG_PCI_MSI */
+@@ -674,7 +674,7 @@ struct tsi721_bdma_chan {
+ 	struct dma_chan		dchan;
+ 	struct tsi721_tx_desc	*tx_desc;
+ 	spinlock_t		lock;
+-	struct list_head	active_list;
++	struct tsi721_tx_desc	*active_tx;
+ 	struct list_head	queue;
+ 	struct list_head	free_list;
+ 	struct tasklet_struct	tasklet;
+diff -puN drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721_dma-fix-pending-transaction-queue-handling drivers/rapidio/devices/tsi721_dma.c
+--- a/drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721_dma-fix-pending-transaction-queue-handling
++++ a/drivers/rapidio/devices/tsi721_dma.c
+@@ -63,14 +63,6 @@ struct tsi721_tx_desc *to_tsi721_desc(st
+ 	return container_of(txd, struct tsi721_tx_desc, txd);
+ }
  
-+struct tsi721_ib_win {
-+	u64		rstart;
-+	u32		size;
-+	dma_addr_t	lstart;
-+	bool		active;
-+};
-+
- struct tsi721_device {
- 	struct pci_dev	*pdev;
- 	struct rio_mport *mport;
-@@ -843,6 +850,10 @@ struct tsi721_device {
- 	/* Outbound Messaging */
- 	int		omsg_init[TSI721_OMSG_CHNUM];
- 	struct tsi721_omsg_ring	omsg_ring[TSI721_OMSG_CHNUM];
-+
-+	/* Inbound Mapping Windows */
-+	struct tsi721_ib_win ib_win[TSI721_IBWIN_NUM];
-+	spinlock_t	win_lock;
- };
+-static inline
+-struct tsi721_tx_desc *tsi721_dma_first_active(
+-				struct tsi721_bdma_chan *bdma_chan)
+-{
+-	return list_first_entry(&bdma_chan->active_list,
+-				struct tsi721_tx_desc, desc_node);
+-}
+-
+ static int tsi721_bdma_ch_init(struct tsi721_bdma_chan *bdma_chan, int bd_num)
+ {
+ 	struct tsi721_dma_desc *bd_ptr;
+@@ -534,23 +526,30 @@ entry_done:
+ 	return err;
+ }
  
- #ifdef CONFIG_RAPIDIO_DMA_ENGINE
+-static void tsi721_advance_work(struct tsi721_bdma_chan *bdma_chan)
++static void tsi721_advance_work(struct tsi721_bdma_chan *bdma_chan,
++				struct tsi721_tx_desc *desc)
+ {
+-	struct tsi721_tx_desc *desc;
+ 	int err;
+ 
+ 	dev_dbg(bdma_chan->dchan.device->dev, "%s: Enter\n", __func__);
+ 
++	if (!tsi721_dma_is_idle(bdma_chan))
++		return;
++
+ 	/*
+-	 * If there are any new transactions in the queue add them
+-	 * into the processing list
+-	 */
+-	if (!list_empty(&bdma_chan->queue))
+-		list_splice_init(&bdma_chan->queue, &bdma_chan->active_list);
++	 * If there is no data transfer in progress, fetch new descriptor from
++	 * the pending queue.
++	*/
++
++	if (desc == NULL && bdma_chan->active_tx == NULL &&
++					!list_empty(&bdma_chan->queue)) {
++		desc = list_first_entry(&bdma_chan->queue,
++					struct tsi721_tx_desc, desc_node);
++		list_del_init((&desc->desc_node));
++		bdma_chan->active_tx = desc;
++	}
+ 
+-	/* Start new transaction (if available) */
+-	if (!list_empty(&bdma_chan->active_list)) {
+-		desc = tsi721_dma_first_active(bdma_chan);
++	if (desc) {
+ 		err = tsi721_submit_sg(desc);
+ 		if (!err)
+ 			tsi721_start_dma(bdma_chan);
+@@ -581,6 +580,10 @@ static void tsi721_dma_tasklet(unsigned
+ 		dev_err(bdma_chan->dchan.device->dev,
+ 			"%s: DMA ERROR - DMAC%d_STS = 0x%x\n",
+ 			__func__, bdma_chan->id, dmac_sts);
++
++		spin_lock(&bdma_chan->lock);
++		bdma_chan->active_tx = NULL;
++		spin_unlock(&bdma_chan->lock);
+ 	}
+ 
+ 	if (dmac_int & TSI721_DMAC_INT_STFULL) {
+@@ -594,7 +597,7 @@ static void tsi721_dma_tasklet(unsigned
+ 
+ 		tsi721_clr_stat(bdma_chan);
+ 		spin_lock(&bdma_chan->lock);
+-		desc = tsi721_dma_first_active(bdma_chan);
++		desc = bdma_chan->active_tx;
+ 
+ 		if (desc->sg_len == 0) {
+ 			dma_async_tx_callback callback = NULL;
+@@ -606,14 +609,15 @@ static void tsi721_dma_tasklet(unsigned
+ 				callback = desc->txd.callback;
+ 				param = desc->txd.callback_param;
+ 			}
+-			list_move(&desc->desc_node, &bdma_chan->free_list);
++			list_add(&desc->desc_node, &bdma_chan->free_list);
++			bdma_chan->active_tx = NULL;
+ 			spin_unlock(&bdma_chan->lock);
+ 			if (callback)
+ 				callback(param);
+ 			spin_lock(&bdma_chan->lock);
+ 		}
+ 
+-		tsi721_advance_work(bdma_chan);
++		tsi721_advance_work(bdma_chan, bdma_chan->active_tx);
+ 		spin_unlock(&bdma_chan->lock);
+ 	}
+ 
+@@ -720,9 +724,6 @@ static void tsi721_free_chan_resources(s
+ 	if (bdma_chan->bd_base == NULL)
+ 		return;
+ 
+-	BUG_ON(!list_empty(&bdma_chan->active_list));
+-	BUG_ON(!list_empty(&bdma_chan->queue));
+-
+ 	tsi721_bdma_interrupt_enable(bdma_chan, 0);
+ 	bdma_chan->active = false;
+ 	tsi721_sync_dma_irq(bdma_chan);
+@@ -745,11 +746,11 @@ static void tsi721_issue_pending(struct
+ 
+ 	dev_dbg(dchan->device->dev, "%s: Enter\n", __func__);
+ 
++	spin_lock_bh(&bdma_chan->lock);
+ 	if (tsi721_dma_is_idle(bdma_chan) && bdma_chan->active) {
+-		spin_lock_bh(&bdma_chan->lock);
+-		tsi721_advance_work(bdma_chan);
+-		spin_unlock_bh(&bdma_chan->lock);
++		tsi721_advance_work(bdma_chan, NULL);
+ 	}
++	spin_unlock_bh(&bdma_chan->lock);
+ }
+ 
+ static
+@@ -839,7 +840,8 @@ static int tsi721_terminate_all(struct d
+ 		} while ((dmac_int & TSI721_DMAC_INT_SUSP) == 0);
+ 	}
+ 
+-	list_splice_init(&bdma_chan->active_list, &list);
++	if (bdma_chan->active_tx)
++		list_add(&bdma_chan->active_tx->desc_node, &list);
+ 	list_splice_init(&bdma_chan->queue, &list);
+ 
+ 	list_for_each_entry_safe(desc, _d, &list, desc_node)
+@@ -875,7 +877,7 @@ int tsi721_register_dma(struct tsi721_de
+ 
+ 		spin_lock_init(&bdma_chan->lock);
+ 
+-		INIT_LIST_HEAD(&bdma_chan->active_list);
++		bdma_chan->active_tx = NULL;
+ 		INIT_LIST_HEAD(&bdma_chan->queue);
+ 		INIT_LIST_HEAD(&bdma_chan->free_list);
+ 
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
