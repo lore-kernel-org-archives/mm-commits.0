@@ -1,60 +1,58 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- net-sctp-use-in_compat_syscall-for-sctp_getsockopt_connectx3.patch removed
- from -mm tree
-Date: Wed, 23 Mar 2016 10:40:47 -0700
-Message-ID: <56f2d51f.jb5vO4JwCumj3G2c%akpm@linux-foundation.org>
+ staging-lustre-switch-from-is_compat_task-to-in_compat_syscall.patch
+ removed from -mm tree
+Date: Wed, 23 Mar 2016 10:40:43 -0700
+Message-ID: <56f2d51b.5HnAyfthJY6H/E4k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59097 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59087 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756382AbcCWRks (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:40:48 -0400
+	with ESMTP id S1756382AbcCWRkt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:40:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luto@kernel.org, davem@davemloft.net, nhorman@tuxdriver.com, vyasevich@gmail.com, mm-commits@vger.kernel.org
+To: luto@kernel.org, adilger.kernel@dilger.ca, oleg.drokin@intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: net/sctp: use in_compat_syscall for sctp_getsockopt_connectx3
+     Subject: staging/lustre: switch from is_compat_task to in_compat_syscall
 has been removed from the -mm tree.  Its filename was
-     net-sctp-use-in_compat_syscall-for-sctp_getsockopt_connectx3.patch
+     staging-lustre-switch-from-is_compat_task-to-in_compat_syscall.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andy Lutomirski <luto@kernel.org>
-Subject: net/sctp: use in_compat_syscall for sctp_getsockopt_connectx3
+Subject: staging/lustre: switch from is_compat_task to in_compat_syscall
 
-SCTP unfortunately has a different ABI for SCTP_SOCKOPT_CONNECTX3
-for 32-bit and 64-bit callers.  Use in_compat_syscall to correctly
-distinguish them on all architectures.
+AFAICT, lustre is trying to determine syscall bitness.  Use the new
+accessor.
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Cc: Vlad Yasevich <vyasevich@gmail.com>
-Cc: Neil Horman <nhorman@tuxdriver.com>
-Cc: David Miller <davem@davemloft.net>
+Cc: Oleg Drokin <oleg.drokin@intel.com>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- net/sctp/socket.c |    2 +-
+ drivers/staging/lustre/lustre/llite/llite_internal.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN net/sctp/socket.c~net-sctp-use-in_compat_syscall-for-sctp_getsockopt_connectx3 net/sctp/socket.c
---- a/net/sctp/socket.c~net-sctp-use-in_compat_syscall-for-sctp_getsockopt_connectx3
-+++ a/net/sctp/socket.c
-@@ -1389,7 +1389,7 @@ static int sctp_getsockopt_connectx3(str
- 	int err = 0;
- 
- #ifdef CONFIG_COMPAT
--	if (is_compat_task()) {
-+	if (in_compat_syscall()) {
- 		struct compat_sctp_getaddrs_old param32;
- 
- 		if (len < sizeof(param32))
+diff -puN drivers/staging/lustre/lustre/llite/llite_internal.h~staging-lustre-switch-from-is_compat_task-to-in_compat_syscall drivers/staging/lustre/lustre/llite/llite_internal.h
+--- a/drivers/staging/lustre/lustre/llite/llite_internal.h~staging-lustre-switch-from-is_compat_task-to-in_compat_syscall
++++ a/drivers/staging/lustre/lustre/llite/llite_internal.h
+@@ -657,7 +657,7 @@ static inline int ll_need_32bit_api(stru
+ #if BITS_PER_LONG == 32
+ 	return 1;
+ #elif defined(CONFIG_COMPAT)
+-	return unlikely(is_compat_task() || (sbi->ll_flags & LL_SBI_32BIT_API));
++	return unlikely(in_compat_syscall() || (sbi->ll_flags & LL_SBI_32BIT_API));
+ #else
+ 	return unlikely(sbi->ll_flags & LL_SBI_32BIT_API);
+ #endif
 _
 
 Patches currently in -mm which might be from luto@kernel.org are
