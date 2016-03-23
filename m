@@ -1,157 +1,160 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-add-feature-document-for-online-file-check.patch
- removed from -mm tree
-Date: Wed, 23 Mar 2016 10:40:23 -0700
-Message-ID: <56f2d507.Lq23H6Qno0ICZPPv%akpm@linux-foundation.org>
+Subject: [merged] zram-revive-swap_slot_free_notify.patch removed from -mm tree
+Date: Wed, 23 Mar 2016 10:40:25 -0700
+Message-ID: <56f2d509.c58K1wG9vWkmCsZR%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59036 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59041 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756478AbcCWRkY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:40:24 -0400
+	with ESMTP id S1756531AbcCWRk0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:40:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: minchan@kernel.org, chan.jeong@lge.com, karam.lee@lge.com, sangseok.lee@lge.com, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: add feature document for online file check
+     Subject: zram: revive swap_slot_free_notify
 has been removed from the -mm tree.  Its filename was
-     ocfs2-add-feature-document-for-online-file-check.patch
+     zram-revive-swap_slot_free_notify.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Gang He <ghe@suse.com>
-Subject: ocfs2: add feature document for online file check
+From: Minchan Kim <minchan@kernel.org>
+Subject: zram: revive swap_slot_free_notify
 
-This document will describe OCFS2 online file check feature.  OCFS2 is
-often used in high-availaibility systems.  However, OCFS2 usually converts
-the filesystem to read-only when encounters an error.  This may not be
-necessary, since turning the filesystem read-only would affect other
-running processes as well, decreasing availability.
+b430e9d1c6d4 ("remove compressed copy from zram in-memory") applied
+swap_slot_free_notify call in *end_swap_bio_read* to remove duplicated
+memory between zram and memory.
 
-Then, a mount option (errors=continue) is introduced, which would return
-the -EIO errno to the calling process and terminate furhter processing so
-that the filesystem is not corrupted further.  The filesystem is not
-converted to read-only, and the problematic file's inode number is
-reported in the kernel log.  The user can try to check/fix this file via
-online filecheck feature.
+However, with the introduction of rw_page in zram: 8c7f01025f7b ("zram:
+implement rw_page operation of zram"), it became void because rw_page
+doesn't need bio.
 
-Signed-off-by: Gang He <ghe@suse.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+Memory footprint is really important in embedded platforms which have
+small memory, for example, 512M) recently because it could start to kill
+processes if memory footprint exceeds some threshold by LMK or some
+similar memory management modules.
+
+This patch restores the function for rw_page, thereby eliminating this
+duplication.
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: karam.lee <karam.lee@lge.com>
+Cc: <sangseok.lee@lge.com>
+Cc: Chan Jeong <chan.jeong@lge.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/ocfs2-online-filecheck.txt |   94 ++++++++++
- 1 file changed, 94 insertions(+)
+ mm/page_io.c |   93 ++++++++++++++++++++++++++-----------------------
+ 1 file changed, 50 insertions(+), 43 deletions(-)
 
-diff -puN /dev/null Documentation/filesystems/ocfs2-online-filecheck.txt
---- /dev/null
-+++ a/Documentation/filesystems/ocfs2-online-filecheck.txt
-@@ -0,0 +1,94 @@
-+		    OCFS2 online file check
-+		    -----------------------
+diff -puN mm/page_io.c~zram-revive-swap_slot_free_notify mm/page_io.c
+--- a/mm/page_io.c~zram-revive-swap_slot_free_notify
++++ a/mm/page_io.c
+@@ -66,6 +66,54 @@ void end_swap_bio_write(struct bio *bio)
+ 	bio_put(bio);
+ }
+ 
++static void swap_slot_free_notify(struct page *page)
++{
++	struct swap_info_struct *sis;
++	struct gendisk *disk;
 +
-+This document will describe OCFS2 online file check feature.
++	/*
++	 * There is no guarantee that the page is in swap cache - the software
++	 * suspend code (at least) uses end_swap_bio_read() against a non-
++	 * swapcache page.  So we must check PG_swapcache before proceeding with
++	 * this optimization.
++	 */
++	if (unlikely(!PageSwapCache(page)))
++		return;
 +
-+Introduction
-+============
-+OCFS2 is often used in high-availaibility systems. However, OCFS2 usually
-+converts the filesystem to read-only when encounters an error. This may not be
-+necessary, since turning the filesystem read-only would affect other running
-+processes as well, decreasing availability.
-+Then, a mount option (errors=continue) is introduced, which would return the
-+-EIO errno to the calling process and terminate furhter processing so that the
-+filesystem is not corrupted further. The filesystem is not converted to
-+read-only, and the problematic file's inode number is reported in the kernel
-+log. The user can try to check/fix this file via online filecheck feature.
++	sis = page_swap_info(page);
++	if (!(sis->flags & SWP_BLKDEV))
++		return;
 +
-+Scope
-+=====
-+This effort is to check/fix small issues which may hinder day-to-day operations
-+of a cluster filesystem by turning the filesystem read-only. The scope of
-+checking/fixing is at the file level, initially for regular files and eventually
-+to all files (including system files) of the filesystem.
++	/*
++	 * The swap subsystem performs lazy swap slot freeing,
++	 * expecting that the page will be swapped out again.
++	 * So we can avoid an unnecessary write if the page
++	 * isn't redirtied.
++	 * This is good for real swap storage because we can
++	 * reduce unnecessary I/O and enhance wear-leveling
++	 * if an SSD is used as the as swap device.
++	 * But if in-memory swap device (eg zram) is used,
++	 * this causes a duplicated copy between uncompressed
++	 * data in VM-owned memory and compressed data in
++	 * zram-owned memory.  So let's free zram-owned memory
++	 * and make the VM-owned decompressed page *dirty*,
++	 * so the page should be swapped out somewhere again if
++	 * we again wish to reclaim it.
++	 */
++	disk = sis->bdev->bd_disk;
++	if (disk->fops->swap_slot_free_notify) {
++		swp_entry_t entry;
++		unsigned long offset;
 +
-+In case of directory to file links is incorrect, the directory inode is
-+reported as erroneous.
++		entry.val = page_private(page);
++		offset = swp_offset(entry);
 +
-+This feature is not suited for extravagant checks which involve dependency of
-+other components of the filesystem, such as but not limited to, checking if the
-+bits for file blocks in the allocation has been set. In case of such an error,
-+the offline fsck should/would be recommended.
++		SetPageDirty(page);
++		disk->fops->swap_slot_free_notify(sis->bdev,
++				offset);
++	}
++}
 +
-+Finally, such an operation/feature should not be automated lest the filesystem
-+may end up with more damage than before the repair attempt. So, this has to
-+be performed using user interaction and consent.
-+
-+User interface
-+==============
-+When there are errors in the OCFS2 filesystem, they are usually accompanied
-+by the inode number which caused the error. This inode number would be the
-+input to check/fix the file.
-+
-+There is a sysfs directory for each OCFS2 file system mounting:
-+
-+  /sys/fs/ocfs2/<devname>/filecheck
-+
-+Here, <devname> indicates the name of OCFS2 volumn device which has been already
-+mounted. The file above would accept inode numbers. This could be used to
-+communicate with kernel space, tell which file(inode number) will be checked or
-+fixed. Currently, three operations are supported, which includes checking
-+inode, fixing inode and setting the size of result record history.
-+
-+1. If you want to know what error exactly happened to <inode> before fixing, do
-+
-+  # echo "<inode>" > /sys/fs/ocfs2/<devname>/filecheck/check
-+  # cat /sys/fs/ocfs2/<devname>/filecheck/check
-+
-+The output is like this:
-+  INO		DONE	ERROR
-+39502		1	GENERATION
-+
-+<INO> lists the inode numbers.
-+<DONE> indicates whether the operation has been finished.
-+<ERROR> says what kind of errors was found. For the detailed error numbers,
-+please refer to the file linux/fs/ocfs2/filecheck.h.
-+
-+2. If you determine to fix this inode, do
-+
-+  # echo "<inode>" > /sys/fs/ocfs2/<devname>/filecheck/fix
-+  # cat /sys/fs/ocfs2/<devname>/filecheck/fix
-+
-+The output is like this:
-+  INO		DONE	ERROR
-+39502		1	SUCCESS
-+
-+This time, the <ERROR> column indicates whether this fix is successful or not.
-+
-+3. The record cache is used to store the history of check/fix results. It's
-+defalut size is 10, and can be adjust between the range of 10 ~ 100. You can
-+adjust the size like this:
-+
-+  # echo "<size>" > /sys/fs/ocfs2/<devname>/filecheck/set
-+
-+Fixing stuff
-+============
-+On receivng the inode, the filesystem would read the inode and the
-+file metadata. In case of errors, the filesystem would fix the errors
-+and report the problems it fixed in the kernel log. As a precautionary measure,
-+the inode must first be checked for errors before performing a final fix.
-+
-+The inode and the result history will be maintained temporarily in a
-+small linked list buffer which would contain the last (N) inodes
-+fixed/checked, the detailed errors which were fixed/checked are printed in the
-+kernel log.
-_
-
-Patches currently in -mm which might be from ghe@suse.com are
-
-
+ static void end_swap_bio_read(struct bio *bio)
+ {
+ 	struct page *page = bio->bi_io_vec[0].bv_page;
+@@ -81,49 +129,7 @@ static void end_swap_bio_read(struct bio
+ 	}
+ 
+ 	SetPageUptodate(page);
+-
+-	/*
+-	 * There is no guarantee that the page is in swap cache - the software
+-	 * suspend code (at least) uses end_swap_bio_read() against a non-
+-	 * swapcache page.  So we must check PG_swapcache before proceeding with
+-	 * this optimization.
+-	 */
+-	if (likely(PageSwapCache(page))) {
+-		struct swap_info_struct *sis;
+-
+-		sis = page_swap_info(page);
+-		if (sis->flags & SWP_BLKDEV) {
+-			/*
+-			 * The swap subsystem performs lazy swap slot freeing,
+-			 * expecting that the page will be swapped out again.
+-			 * So we can avoid an unnecessary write if the page
+-			 * isn't redirtied.
+-			 * This is good for real swap storage because we can
+-			 * reduce unnecessary I/O and enhance wear-leveling
+-			 * if an SSD is used as the as swap device.
+-			 * But if in-memory swap device (eg zram) is used,
+-			 * this causes a duplicated copy between uncompressed
+-			 * data in VM-owned memory and compressed data in
+-			 * zram-owned memory.  So let's free zram-owned memory
+-			 * and make the VM-owned decompressed page *dirty*,
+-			 * so the page should be swapped out somewhere again if
+-			 * we again wish to reclaim it.
+-			 */
+-			struct gendisk *disk = sis->bdev->bd_disk;
+-			if (disk->fops->swap_slot_free_notify) {
+-				swp_entry_t entry;
+-				unsigned long offset;
+-
+-				entry.val = page_private(page);
+-				offset = swp_offset(entry);
+-
+-				SetPageDirty(page);
+-				disk->fops->swap_slot_free_notify(sis->bdev,
+-						offset);
+-			}
+-		}
+-	}
