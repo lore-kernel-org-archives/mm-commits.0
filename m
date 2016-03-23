@@ -1,195 +1,150 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-tsi721_dma-fix-hardware-error-handling.patch
- removed from -mm tree
-Date: Wed, 23 Mar 2016 10:42:09 -0700
-Message-ID: <56f2d571.6A2tplJwo8451Npx%akpm@linux-foundation.org>
+Subject: [merged] rapidio-add-outbound-window-support.patch removed from
+ -mm tree
+Date: Wed, 23 Mar 2016 10:41:58 -0700
+Message-ID: <56f2d566.8TIsmV8TsQIt48Uh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59300 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59269 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756198AbcCWRmK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:42:10 -0400
+	with ESMTP id S1756505AbcCWRl7 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:41:59 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, barry.wood@idt.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, leoli@freescale.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/tsi721_dma: fix hardware error handling
+     Subject: rapidio: add outbound window support
 has been removed from the -mm tree.  Its filename was
-     rapidio-tsi721_dma-fix-hardware-error-handling.patch
+     rapidio-add-outbound-window-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/tsi721_dma: fix hardware error handling
+Subject: rapidio: add outbound window support
 
-Add DMA channel re-initialization after an error to avoid termination
-of all pending transfer requests.
+Add RapidIO controller (mport) outbound window configuration operations.
+  This patch is a part of the original patch submitted by Li Yang
+  (https://lists.ozlabs.org/pipermail/linuxppc-dev/2009-April/071210.html).
+  For some reason the original part was not applied to mainline code
+  tree.  The inbound window mapping part has been applied later during
+  tsi721 mport driver submission.  Now goes the second part with
+  corresponding HW support.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Reported-by: Barry Wood <barry.wood@idt.com>
-Tested-by: Barry Wood <barry.wood@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Li Yang <leoli@freescale.com>
 Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
 Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
-Cc: Barry Wood <barry.wood@idt.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721_dma.c |   82 ++++++++++++++++++++++---
- 1 file changed, 73 insertions(+), 9 deletions(-)
+ drivers/rapidio/rio.c   |   50 ++++++++++++++++++++++++++++++++++++++
+ include/linux/rio.h     |    5 +++
+ include/linux/rio_drv.h |    4 +++
+ 3 files changed, 59 insertions(+)
 
-diff -puN drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721_dma-fix-hardware-error-handling drivers/rapidio/devices/tsi721_dma.c
---- a/drivers/rapidio/devices/tsi721_dma.c~rapidio-tsi721_dma-fix-hardware-error-handling
-+++ a/drivers/rapidio/devices/tsi721_dma.c
-@@ -282,7 +282,7 @@ void tsi721_bdma_handler(struct tsi721_b
- 	/* Disable BDMA channel interrupts */
- 	iowrite32(0, bdma_chan->regs + TSI721_DMAC_INTE);
- 	if (bdma_chan->active)
--		tasklet_schedule(&bdma_chan->tasklet);
-+		tasklet_hi_schedule(&bdma_chan->tasklet);
- }
+diff -puN drivers/rapidio/rio.c~rapidio-add-outbound-window-support drivers/rapidio/rio.c
+--- a/drivers/rapidio/rio.c~rapidio-add-outbound-window-support
++++ a/drivers/rapidio/rio.c
+@@ -700,6 +700,56 @@ void rio_unmap_inb_region(struct rio_mpo
+ EXPORT_SYMBOL_GPL(rio_unmap_inb_region);
  
- #ifdef CONFIG_PCI_MSI
-@@ -298,7 +298,7 @@ static irqreturn_t tsi721_bdma_msix(int
- 	struct tsi721_bdma_chan *bdma_chan = ptr;
+ /**
++ * rio_map_outb_region -- Map outbound memory region.
++ * @mport: Master port.
++ * @destid: destination id window points to
++ * @rbase: RIO base address window translates to
++ * @size: Size of the memory region
++ * @rflags: Flags for mapping.
++ * @local: physical address of memory region mapped
++ *
++ * Return: 0 -- Success.
++ *
++ * This function will create the mapping from RIO space to local memory.
++ */
++int rio_map_outb_region(struct rio_mport *mport, u16 destid, u64 rbase,
++			u32 size, u32 rflags, dma_addr_t *local)
++{
++	int rc = 0;
++	unsigned long flags;
++
++	if (!mport->ops->map_outb)
++		return -ENODEV;
++
++	spin_lock_irqsave(&rio_mmap_lock, flags);
++	rc = mport->ops->map_outb(mport, destid, rbase, size,
++		rflags, local);
++	spin_unlock_irqrestore(&rio_mmap_lock, flags);
++
++	return rc;
++}
++EXPORT_SYMBOL_GPL(rio_map_outb_region);
++
++/**
++ * rio_unmap_inb_region -- Unmap the inbound memory region
++ * @mport: Master port
++ * @destid: destination id mapping points to
++ * @rstart: RIO base address window translates to
++ */
++void rio_unmap_outb_region(struct rio_mport *mport, u16 destid, u64 rstart)
++{
++	unsigned long flags;
++
++	if (!mport->ops->unmap_outb)
++		return;
++
++	spin_lock_irqsave(&rio_mmap_lock, flags);
++	mport->ops->unmap_outb(mport, destid, rstart);
++	spin_unlock_irqrestore(&rio_mmap_lock, flags);
++}
++EXPORT_SYMBOL_GPL(rio_unmap_outb_region);
++
++/**
+  * rio_mport_get_physefb - Helper function that returns register offset
+  *                      for Physical Layer Extended Features Block.
+  * @port: Master port to issue transaction
+diff -puN include/linux/rio.h~rapidio-add-outbound-window-support include/linux/rio.h
+--- a/include/linux/rio.h~rapidio-add-outbound-window-support
++++ a/include/linux/rio.h
+@@ -400,6 +400,8 @@ struct rio_mport_attr {
+  * @map_inb: Callback to map RapidIO address region into local memory space.
+  * @unmap_inb: Callback to unmap RapidIO address region mapped with map_inb().
+  * @query_mport: Callback to query mport device attributes.
++ * @map_outb: Callback to map outbound address region into local memory space.
++ * @unmap_outb: Callback to unmap outbound RapidIO address region.
+  */
+ struct rio_ops {
+ 	int (*lcread) (struct rio_mport *mport, int index, u32 offset, int len,
+@@ -427,6 +429,9 @@ struct rio_ops {
+ 	void (*unmap_inb)(struct rio_mport *mport, dma_addr_t lstart);
+ 	int (*query_mport)(struct rio_mport *mport,
+ 			   struct rio_mport_attr *attr);
++	int (*map_outb)(struct rio_mport *mport, u16 destid, u64 rstart,
++			u32 size, u32 flags, dma_addr_t *laddr);
++	void (*unmap_outb)(struct rio_mport *mport, u16 destid, u64 rstart);
+ };
  
- 	if (bdma_chan->active)
--		tasklet_schedule(&bdma_chan->tasklet);
-+		tasklet_hi_schedule(&bdma_chan->tasklet);
- 	return IRQ_HANDLED;
- }
- #endif /* CONFIG_PCI_MSI */
-@@ -584,13 +584,71 @@ static void tsi721_dma_tasklet(unsigned
- 	iowrite32(dmac_int, bdma_chan->regs + TSI721_DMAC_INT);
+ #define RIO_RESOURCE_MEM	0x00000100
+diff -puN include/linux/rio_drv.h~rapidio-add-outbound-window-support include/linux/rio_drv.h
+--- a/include/linux/rio_drv.h~rapidio-add-outbound-window-support
++++ a/include/linux/rio_drv.h
+@@ -369,6 +369,10 @@ void rio_release_region(struct rio_dev *
+ extern int rio_map_inb_region(struct rio_mport *mport, dma_addr_t local,
+ 			u64 rbase, u32 size, u32 rflags);
+ extern void rio_unmap_inb_region(struct rio_mport *mport, dma_addr_t lstart);
++extern int rio_map_outb_region(struct rio_mport *mport, u16 destid, u64 rbase,
++			u32 size, u32 rflags, dma_addr_t *local);
++extern void rio_unmap_outb_region(struct rio_mport *mport,
++				  u16 destid, u64 rstart);
  
- 	if (dmac_int & TSI721_DMAC_INT_ERR) {
-+		int i = 10000;
-+		struct tsi721_tx_desc *desc;
-+
-+		desc = bdma_chan->active_tx;
- 		dmac_sts = ioread32(bdma_chan->regs + TSI721_DMAC_STS);
- 		tsi_err(&bdma_chan->dchan.dev->device,
--			"ERR - DMAC%d_STS = 0x%x",
--			bdma_chan->id, dmac_sts);
-+			"DMAC%d_STS = 0x%x did=%d raddr=0x%llx",
-+			bdma_chan->id, dmac_sts, desc->destid, desc->rio_addr);
-+
-+		/* Re-initialize DMA channel if possible */
-+
-+		if ((dmac_sts & TSI721_DMAC_STS_ABORT) == 0)
-+			goto err_out;
-+
-+		tsi721_clr_stat(bdma_chan);
- 
- 		spin_lock(&bdma_chan->lock);
-+
-+		/* Put DMA channel into init state */
-+		iowrite32(TSI721_DMAC_CTL_INIT,
-+			  bdma_chan->regs + TSI721_DMAC_CTL);
-+		do {
-+			udelay(1);
-+			dmac_sts = ioread32(bdma_chan->regs + TSI721_DMAC_STS);
-+			i--;
-+		} while ((dmac_sts & TSI721_DMAC_STS_ABORT) && i);
-+
-+		if (dmac_sts & TSI721_DMAC_STS_ABORT) {
-+			tsi_err(&bdma_chan->dchan.dev->device,
-+				"Failed to re-initiate DMAC%d",	bdma_chan->id);
-+			spin_unlock(&bdma_chan->lock);
-+			goto err_out;
-+		}
-+
-+		/* Setup DMA descriptor pointers */
-+		iowrite32(((u64)bdma_chan->bd_phys >> 32),
-+			bdma_chan->regs + TSI721_DMAC_DPTRH);
-+		iowrite32(((u64)bdma_chan->bd_phys & TSI721_DMAC_DPTRL_MASK),
-+			bdma_chan->regs + TSI721_DMAC_DPTRL);
-+
-+		/* Setup descriptor status FIFO */
-+		iowrite32(((u64)bdma_chan->sts_phys >> 32),
-+			bdma_chan->regs + TSI721_DMAC_DSBH);
-+		iowrite32(((u64)bdma_chan->sts_phys & TSI721_DMAC_DSBL_MASK),
-+			bdma_chan->regs + TSI721_DMAC_DSBL);
-+		iowrite32(TSI721_DMAC_DSSZ_SIZE(bdma_chan->sts_size),
-+			bdma_chan->regs + TSI721_DMAC_DSSZ);
-+
-+		/* Clear interrupt bits */
-+		iowrite32(TSI721_DMAC_INT_ALL,
-+			bdma_chan->regs + TSI721_DMAC_INT);
-+
-+		ioread32(bdma_chan->regs + TSI721_DMAC_INT);
-+
-+		bdma_chan->wr_count = bdma_chan->wr_count_next = 0;
-+		bdma_chan->sts_rdptr = 0;
-+		udelay(10);
-+
-+		desc = bdma_chan->active_tx;
-+		desc->status = DMA_ERROR;
-+		dma_cookie_complete(&desc->txd);
-+		list_add(&desc->desc_node, &bdma_chan->free_list);
- 		bdma_chan->active_tx = NULL;
-+		if (bdma_chan->active)
-+			tsi721_advance_work(bdma_chan, NULL);
- 		spin_unlock(&bdma_chan->lock);
- 	}
- 
-@@ -619,16 +677,19 @@ static void tsi721_dma_tasklet(unsigned
- 			}
- 			list_add(&desc->desc_node, &bdma_chan->free_list);
- 			bdma_chan->active_tx = NULL;
--			tsi721_advance_work(bdma_chan, NULL);
-+			if (bdma_chan->active)
-+				tsi721_advance_work(bdma_chan, NULL);
- 			spin_unlock(&bdma_chan->lock);
- 			if (callback)
- 				callback(param);
- 		} else {
--			tsi721_advance_work(bdma_chan, bdma_chan->active_tx);
-+			if (bdma_chan->active)
-+				tsi721_advance_work(bdma_chan,
-+						    bdma_chan->active_tx);
- 			spin_unlock(&bdma_chan->lock);
- 		}
- 	}
--
-+err_out:
- 	/* Re-Enable BDMA channel interrupts */
- 	iowrite32(TSI721_DMAC_INT_ALL, bdma_chan->regs + TSI721_DMAC_INTE);
- }
-@@ -841,7 +902,6 @@ static int tsi721_terminate_all(struct d
- {
- 	struct tsi721_bdma_chan *bdma_chan = to_tsi721_chan(dchan);
- 	struct tsi721_tx_desc *desc, *_d;
--	u32 dmac_int;
- 	LIST_HEAD(list);
- 
- 	tsi_debug(DMA, &dchan->dev->device, "DMAC%d", bdma_chan->id);
-@@ -850,7 +910,10 @@ static int tsi721_terminate_all(struct d
- 
- 	bdma_chan->active = false;
- 
--	if (!tsi721_dma_is_idle(bdma_chan)) {
-+	while (!tsi721_dma_is_idle(bdma_chan)) {
-+
-+		udelay(5);
-+#if (0)
- 		/* make sure to stop the transfer */
- 		iowrite32(TSI721_DMAC_CTL_SUSP,
- 			  bdma_chan->regs + TSI721_DMAC_CTL);
-@@ -859,6 +922,7 @@ static int tsi721_terminate_all(struct d
- 		do {
- 			dmac_int = ioread32(bdma_chan->regs + TSI721_DMAC_INT);
- 		} while ((dmac_int & TSI721_DMAC_INT_SUSP) == 0);
-+#endif
- 	}
- 
- 	if (bdma_chan->active_tx)
+ /* Port-Write management */
+ extern int rio_request_inb_pwrite(struct rio_dev *,
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
