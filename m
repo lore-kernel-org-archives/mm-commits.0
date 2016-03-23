@@ -1,59 +1,75 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ext4-in-ext4_dir_llseek-check-syscall-bitness-directly.patch removed from
+ amdkfd-use-in_compat_syscall-to-check-open-caller-type.patch removed from
  -mm tree
-Date: Wed, 23 Mar 2016 10:40:45 -0700
-Message-ID: <56f2d51d.XKfFOZvQxo+Oi31Q%akpm@linux-foundation.org>
+Date: Wed, 23 Mar 2016 10:40:55 -0700
+Message-ID: <56f2d527.GV5NQh4+majqwVam%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59091 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59111 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755721AbcCWRkq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:40:46 -0400
+	with ESMTP id S1756447AbcCWRk4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:40:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luto@kernel.org, adilger.kernel@dilger.ca, tytso@mit.edu, mm-commits@vger.kernel.org
+To: luto@kernel.org, airlied@linux.ie, oded.gabbay@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ext4: in ext4_dir_llseek, check syscall bitness directly
+     Subject: drivers/gpu/drm/amd/amdkfd: use in_compat_syscall to check open() caller type
 has been removed from the -mm tree.  Its filename was
-     ext4-in-ext4_dir_llseek-check-syscall-bitness-directly.patch
+     amdkfd-use-in_compat_syscall-to-check-open-caller-type.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andy Lutomirski <luto@kernel.org>
-Subject: ext4: in ext4_dir_llseek, check syscall bitness directly
+Subject: drivers/gpu/drm/amd/amdkfd: use in_compat_syscall to check open() caller type
 
-ext4 treats directory offsets differently for 32-bit and 64-bit
-callers.  Check the caller type using in_compat_syscall, not
-is_compat_task.  This changes behavior on SPARC slightly.
+amdkfd wants to know syscall type, not task type.  Check directly.
+
+Unfortunately, amdkfd is making nasty assumptions that a process' bitness
+is a well-defined constant thing.  This isn't the case on x86.  I don't
+know how much this matters, but this patch has no effect on generated code
+on x86, so amdkfd is equally broken with and without this patch.
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Oded Gabbay <oded.gabbay@gmail.com>
+Cc: David Airlie <airlied@linux.ie>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ext4/dir.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/gpu/drm/amd/amdkfd/kfd_chardev.c |    2 +-
+ drivers/gpu/drm/amd/amdkfd/kfd_process.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN fs/ext4/dir.c~ext4-in-ext4_dir_llseek-check-syscall-bitness-directly fs/ext4/dir.c
---- a/fs/ext4/dir.c~ext4-in-ext4_dir_llseek-check-syscall-bitness-directly
-+++ a/fs/ext4/dir.c
-@@ -285,7 +285,7 @@ errout:
- static inline int is_32bit_api(void)
- {
- #ifdef CONFIG_COMPAT
--	return is_compat_task();
-+	return in_compat_syscall();
- #else
- 	return (BITS_PER_LONG == 32);
- #endif
+diff -puN drivers/gpu/drm/amd/amdkfd/kfd_chardev.c~amdkfd-use-in_compat_syscall-to-check-open-caller-type drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c~amdkfd-use-in_compat_syscall-to-check-open-caller-type
++++ a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
+@@ -107,7 +107,7 @@ static int kfd_open(struct inode *inode,
+ 	if (iminor(inode) != 0)
+ 		return -ENODEV;
+ 
+-	is_32bit_user_mode = is_compat_task();
++	is_32bit_user_mode = in_compat_syscall();
+ 
+ 	if (is_32bit_user_mode == true) {
+ 		dev_warn(kfd_device,
+diff -puN drivers/gpu/drm/amd/amdkfd/kfd_process.c~amdkfd-use-in_compat_syscall-to-check-open-caller-type drivers/gpu/drm/amd/amdkfd/kfd_process.c
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_process.c~amdkfd-use-in_compat_syscall-to-check-open-caller-type
++++ a/drivers/gpu/drm/amd/amdkfd/kfd_process.c
+@@ -311,7 +311,7 @@ static struct kfd_process *create_proces
+ 		goto err_process_pqm_init;
+ 
+ 	/* init process apertures*/
+-	process->is_32bit_user_mode = is_compat_task();
++	process->is_32bit_user_mode = in_compat_syscall();
+ 	if (kfd_init_apertures(process) != 0)
+ 		goto err_init_apretures;
+ 
 _
 
 Patches currently in -mm which might be from luto@kernel.org are
