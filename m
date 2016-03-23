@@ -1,34 +1,35 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-add-query_mport-operation.patch removed from -mm tree
-Date: Wed, 23 Mar 2016 10:41:23 -0700
-Message-ID: <56f2d543.EuvwglhL/iYlmkbi%akpm@linux-foundation.org>
+Subject: [merged] rapidio-rionet-add-shutdown-event-handling.patch removed from -mm tree
+Date: Wed, 23 Mar 2016 10:41:31 -0700
+Message-ID: <56f2d54b.yHwuF8Lxsom6zjqh%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59182 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59205 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756645AbcCWRlY (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:41:24 -0400
+	with ESMTP id S1756645AbcCWRlc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:41:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: add query_mport operation
+     Subject: rapidio/rionet: add shutdown event handling
 has been removed from the -mm tree.  Its filename was
-     rapidio-add-query_mport-operation.patch
+     rapidio-rionet-add-shutdown-event-handling.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: add query_mport operation
+Subject: rapidio/rionet: add shutdown event handling
 
-Add mport query operation to report master port RapidIO capabilities and
-run time configuration to upper level drivers.
+Add shutdown notification handler which terminates active connections with
+remote RapidIO nodes.  This prevents remote nodes from sending packets to
+the powered off node and eliminates hardware error events on remote nodes.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
@@ -37,137 +38,80 @@ Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c    |   17 ++++++++++++
- include/linux/rio.h      |   49 +++++++++++++++++++++++++++++++++++++
- include/linux/rio_regs.h |    3 ++
- 3 files changed, 69 insertions(+)
+ drivers/net/rionet.c |   38 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 38 insertions(+)
 
-diff -puN drivers/rapidio/rio.c~rapidio-add-query_mport-operation drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-add-query_mport-operation
-+++ a/drivers/rapidio/rio.c
-@@ -68,6 +68,23 @@ u16 rio_local_get_device_id(struct rio_m
+diff -puN drivers/net/rionet.c~rapidio-rionet-add-shutdown-event-handling drivers/net/rionet.c
+--- a/drivers/net/rionet.c~rapidio-rionet-add-shutdown-event-handling
++++ a/drivers/net/rionet.c
+@@ -24,6 +24,7 @@
+ #include <linux/skbuff.h>
+ #include <linux/crc32.h>
+ #include <linux/ethtool.h>
++#include <linux/reboot.h>
+ 
+ #define DRV_NAME        "rionet"
+ #define DRV_VERSION     "0.3"
+@@ -599,6 +600,30 @@ out:
+ 	return rc;
  }
  
- /**
-+ * rio_query_mport - Query mport device attributes
-+ * @port: mport device to query
-+ * @mport_attr: mport attributes data structure
-+ *
-+ * Returns attributes of specified mport through the
-+ * pointer to attributes data structure.
-+ */
-+int rio_query_mport(struct rio_mport *port,
-+		    struct rio_mport_attr *mport_attr)
++static int rionet_shutdown(struct notifier_block *nb, unsigned long code,
++			   void *unused)
 +{
-+	if (!port->ops->query_mport)
-+		return -ENODATA;
-+	return port->ops->query_mport(port, mport_attr);
++	struct rionet_peer *peer, *tmp;
++	int i;
++
++	pr_debug("%s: %s\n", DRV_NAME, __func__);
++
++	for (i = 0; i < RIONET_MAX_NETS; i++) {
++		if (!nets[i].ndev)
++			continue;
++
++		list_for_each_entry_safe(peer, tmp, &nets[i].peers, node) {
++			if (nets[i].active[peer->rdev->destid]) {
++				rio_send_doorbell(peer->rdev,
++						  RIONET_DOORBELL_LEAVE);
++				nets[i].active[peer->rdev->destid] = NULL;
++			}
++		}
++	}
++
++	return NOTIFY_DONE;
 +}
-+EXPORT_SYMBOL(rio_query_mport);
 +
-+/**
-  * rio_add_device- Adds a RIO device to the device model
-  * @rdev: RIO device
-  *
-diff -puN include/linux/rio.h~rapidio-add-query_mport-operation include/linux/rio.h
---- a/include/linux/rio.h~rapidio-add-query_mport-operation
-+++ a/include/linux/rio.h
-@@ -314,6 +314,50 @@ struct rio_net {
- 	struct rio_id_table destid_table;  /* destID allocation table */
+ #ifdef MODULE
+ static struct rio_device_id rionet_id_table[] = {
+ 	{RIO_DEVICE(RIO_ANY_ID, RIO_ANY_ID)},
+@@ -615,8 +640,20 @@ static struct subsys_interface rionet_in
+ 	.remove_dev	= rionet_remove_dev,
  };
  
-+enum rio_link_speed {
-+	RIO_LINK_DOWN = 0, /* SRIO Link not initialized */
-+	RIO_LINK_125 = 1, /* 1.25 GBaud  */
-+	RIO_LINK_250 = 2, /* 2.5 GBaud   */
-+	RIO_LINK_312 = 3, /* 3.125 GBaud */
-+	RIO_LINK_500 = 4, /* 5.0 GBaud   */
-+	RIO_LINK_625 = 5  /* 6.25 GBaud  */
++static struct notifier_block rionet_notifier = {
++	.notifier_call = rionet_shutdown,
 +};
 +
-+enum rio_link_width {
-+	RIO_LINK_1X  = 0,
-+	RIO_LINK_1XR = 1,
-+	RIO_LINK_2X  = 3,
-+	RIO_LINK_4X  = 2,
-+	RIO_LINK_8X  = 4,
-+	RIO_LINK_16X = 5
-+};
+ static int __init rionet_init(void)
+ {
++	int ret;
 +
-+enum rio_mport_flags {
-+	RIO_MPORT_DMA	 = (1 << 0), /* supports DMA data transfers */
-+	RIO_MPORT_DMA_SG = (1 << 1), /* DMA supports HW SG mode */
-+	RIO_MPORT_IBSG	 = (1 << 2), /* inbound mapping supports SG */
-+};
-+
-+/**
-+ * struct rio_mport_attr - RIO mport device attributes
-+ * @flags: mport device capability flags
-+ * @link_speed: SRIO link speed value (as defined by RapidIO specification)
-+ * @link_width:	SRIO link width value (as defined by RapidIO specification)
-+ * @dma_max_sge: number of SG list entries that can be handled by DMA channel(s)
-+ * @dma_max_size: max number of bytes in single DMA transfer (SG entry)
-+ * @dma_align: alignment shift for DMA operations (as for other DMA operations)
-+ */
-+struct rio_mport_attr {
-+	int flags;
-+	int link_speed;
-+	int link_width;
-+
-+	/* DMA capability info: valid only if RIO_MPORT_DMA flag is set */
-+	int dma_max_sge;
-+	int dma_max_size;
-+	int dma_align;
-+};
-+
- /* Low-level architecture-dependent routines */
++	ret = register_reboot_notifier(&rionet_notifier);
++	if (ret) {
++		pr_err("%s: failed to register reboot notifier (err=%d)\n",
++		       DRV_NAME, ret);
++		return ret;
++	}
+ 	return subsys_interface_register(&rionet_interface);
+ }
  
- /**
-@@ -333,6 +377,7 @@ struct rio_net {
-  * @get_inb_message: Callback to get a message from an inbound mailbox queue.
-  * @map_inb: Callback to map RapidIO address region into local memory space.
-  * @unmap_inb: Callback to unmap RapidIO address region mapped with map_inb().
-+ * @query_mport: Callback to query mport device attributes.
-  */
- struct rio_ops {
- 	int (*lcread) (struct rio_mport *mport, int index, u32 offset, int len,
-@@ -358,6 +403,8 @@ struct rio_ops {
- 	int (*map_inb)(struct rio_mport *mport, dma_addr_t lstart,
- 			u64 rstart, u32 size, u32 flags);
- 	void (*unmap_inb)(struct rio_mport *mport, dma_addr_t lstart);
-+	int (*query_mport)(struct rio_mport *mport,
-+			   struct rio_mport_attr *attr);
- };
+@@ -648,6 +685,7 @@ static void __exit rionet_exit(void)
+ 		}
+ 	}
  
- #define RIO_RESOURCE_MEM	0x00000100
-@@ -481,5 +528,7 @@ extern int rio_open_inb_mbox(struct rio_
- extern void rio_close_inb_mbox(struct rio_mport *, int);
- extern int rio_open_outb_mbox(struct rio_mport *, void *, int, int);
- extern void rio_close_outb_mbox(struct rio_mport *, int);
-+extern int rio_query_mport(struct rio_mport *port,
-+			   struct rio_mport_attr *mport_attr);
++	unregister_reboot_notifier(&rionet_notifier);
+ 	subsys_interface_unregister(&rionet_interface);
+ }
  
- #endif				/* LINUX_RIO_H */
-diff -puN include/linux/rio_regs.h~rapidio-add-query_mport-operation include/linux/rio_regs.h
---- a/include/linux/rio_regs.h~rapidio-add-query_mport-operation
-+++ a/include/linux/rio_regs.h
-@@ -238,6 +238,8 @@
- #define  RIO_PORT_N_ACK_INBOUND		0x3f000000
- #define  RIO_PORT_N_ACK_OUTSTAND	0x00003f00
- #define  RIO_PORT_N_ACK_OUTBOUND	0x0000003f
-+#define RIO_PORT_N_CTL2_CSR(x)		(0x0054 + x*0x20)
-+#define  RIO_PORT_N_CTL2_SEL_BAUD	0xf0000000
- #define RIO_PORT_N_ERR_STS_CSR(x)	(0x0058 + x*0x20)
- #define  RIO_PORT_N_ERR_STS_PW_OUT_ES	0x00010000 /* Output Error-stopped */
- #define  RIO_PORT_N_ERR_STS_PW_INP_ES	0x00000100 /* Input Error-stopped */
-@@ -249,6 +251,7 @@
- #define  RIO_PORT_N_CTL_PWIDTH		0xc0000000
- #define  RIO_PORT_N_CTL_PWIDTH_1	0x00000000
- #define  RIO_PORT_N_CTL_PWIDTH_4	0x40000000
-+#define  RIO_PORT_N_CTL_IPW		0x38000000 /* Initialized Port Width */
- #define  RIO_PORT_N_CTL_P_TYP_SER	0x00000001
- #define  RIO_PORT_N_CTL_LOCKOUT		0x00000002
- #define  RIO_PORT_N_CTL_EN_RX_SER	0x00200000
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
