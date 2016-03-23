@@ -1,98 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-tsi721-add-query_mport-callback.patch removed
- from -mm tree
-Date: Wed, 23 Mar 2016 10:41:25 -0700
-Message-ID: <56f2d545.DbCFZ5VCfbuD/q/X%akpm@linux-foundation.org>
+Subject: [merged] cpumask-remove-incorrect-information-from-comment.patch
+ removed from -mm tree
+Date: Wed, 23 Mar 2016 10:41:09 -0700
+Message-ID: <56f2d535.K347DQP+HHgxEJbp%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59190 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59143 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756645AbcCWRl0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:41:26 -0400
+	with ESMTP id S1756634AbcCWRlP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:41:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: ebiggers3@gmail.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio/tsi721: add query_mport callback
+     Subject: cpumask: remove incorrect information from comment
 has been removed from the -mm tree.  Its filename was
-     rapidio-tsi721-add-query_mport-callback.patch
+     cpumask-remove-incorrect-information-from-comment.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio/tsi721: add query_mport callback
+From: Eric Biggers <ebiggers3@gmail.com>
+Subject: cpumask: remove incorrect information from comment
 
-Add device-specific implementation of query_mport callback function.
+Since commit cdfdef75e795f ("cpumask: only allocate nr_cpumask_bits."),
+this comment above cpumask_size() is no longer relevant.
 
-Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
-Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
+Signed-off-by: Eric Biggers <ebiggers3@gmail.com>
+Cc: Rusty Russell <rusty@rustcorp.com.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/devices/tsi721.c |   34 +++++++++++++++++++++++++++++
- 1 file changed, 34 insertions(+)
+ include/linux/cpumask.h |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-add-query_mport-callback drivers/rapidio/devices/tsi721.c
---- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-add-query_mport-callback
-+++ a/drivers/rapidio/devices/tsi721.c
-@@ -2288,6 +2288,39 @@ static int tsi721_messages_init(struct t
- }
+diff -puN include/linux/cpumask.h~cpumask-remove-incorrect-information-from-comment include/linux/cpumask.h
+--- a/include/linux/cpumask.h~cpumask-remove-incorrect-information-from-comment
++++ a/include/linux/cpumask.h
+@@ -607,8 +607,6 @@ static inline int cpulist_parse(const ch
  
  /**
-+ * tsi721_query_mport - Fetch inbound message from the Tsi721 MSG Queue
-+ * @mport: Master port implementing the Inbound Messaging Engine
-+ * @mbox: Inbound mailbox number
-+ *
-+ * Returns pointer to the message on success or NULL on failure.
-+ */
-+static int tsi721_query_mport(struct rio_mport *mport,
-+			      struct rio_mport_attr *attr)
-+{
-+	struct tsi721_device *priv = mport->priv;
-+	u32 rval;
-+
-+	rval = ioread32(priv->regs + (0x100 + RIO_PORT_N_ERR_STS_CSR(0)));
-+	if (rval & RIO_PORT_N_ERR_STS_PORT_OK) {
-+		rval = ioread32(priv->regs + (0x100 + RIO_PORT_N_CTL2_CSR(0)));
-+		attr->link_speed = (rval & RIO_PORT_N_CTL2_SEL_BAUD) >> 28;
-+		rval = ioread32(priv->regs + (0x100 + RIO_PORT_N_CTL_CSR(0)));
-+		attr->link_width = (rval & RIO_PORT_N_CTL_IPW) >> 27;
-+	} else
-+		attr->link_speed = RIO_LINK_DOWN;
-+
-+#ifdef CONFIG_RAPIDIO_DMA_ENGINE
-+	attr->flags = RIO_MPORT_DMA | RIO_MPORT_DMA_SG;
-+	attr->dma_max_sge = 0;
-+	attr->dma_max_size = TSI721_BDMA_MAX_BCOUNT;
-+	attr->dma_align = 0;
-+#else
-+	attr->flags = 0;
-+#endif
-+	return 0;
-+}
-+
-+/**
-  * tsi721_disable_ints - disables all device interrupts
-  * @priv: pointer to tsi721 private data
+  * cpumask_size - size to allocate for a 'struct cpumask' in bytes
+- *
+- * This will eventually be a runtime variable, depending on nr_cpu_ids.
   */
-@@ -2372,6 +2405,7 @@ static int tsi721_setup_mport(struct tsi
- 	ops->get_inb_message = tsi721_get_inb_message;
- 	ops->map_inb = tsi721_rio_map_inb_mem;
- 	ops->unmap_inb = tsi721_rio_unmap_inb_mem;
-+	ops->query_mport = tsi721_query_mport;
- 
- 	mport = kzalloc(sizeof(struct rio_mport), GFP_KERNEL);
- 	if (!mport) {
+ static inline size_t cpumask_size(void)
+ {
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from ebiggers3@gmail.com are
 
 
