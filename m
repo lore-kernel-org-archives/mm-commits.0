@@ -1,79 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ubsan-fix-tree-wide-wmaybe-uninitialized-false-positives.patch removed from -mm tree
-Date: Wed, 23 Mar 2016 10:42:39 -0700
-Message-ID: <56f2d58f.AQ9CDucM5GNOVyQn%akpm@linux-foundation.org>
+Subject: [merged] scripts-gdb-add-cmdline-reader-command.patch removed
+ from -mm tree
+Date: Wed, 23 Mar 2016 10:42:32 -0700
+Message-ID: <56f2d588.2XCtckO3wTDE3ySI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59381 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59369 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756387AbcCWRmk (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:42:40 -0400
+	with ESMTP id S1756349AbcCWRmd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:42:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, fengguang.wu@intel.com, mm-commits@vger.kernel.org
+To: kieran.bingham@linaro.org, jan.kiszka@siemens.com, jason.wessel@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ubsan: fix tree-wide -Wmaybe-uninitialized false positives
+     Subject: scripts/gdb: add cmdline reader command
 has been removed from the -mm tree.  Its filename was
-     ubsan-fix-tree-wide-wmaybe-uninitialized-false-positives.patch
+     scripts-gdb-add-cmdline-reader-command.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: ubsan: fix tree-wide -Wmaybe-uninitialized false positives
+From: Kieran Bingham <kieran.bingham@linaro.org>
+Subject: scripts/gdb: add cmdline reader command
 
--fsanitize=* options makes GCC less smart than usual and increase number
-of 'maybe-uninitialized' false-positives. So this patch does two things:
- * Add -Wno-maybe-uninitialized to CFLAGS_UBSAN which will disable all
-   such warnings for instrumented files.
- * Remove CONFIG_UBSAN_SANITIZE_ALL from all[yes|mod]config builds. So
-   the all[yes|mod]config build goes without -fsanitize=* and still with
-   -Wmaybe-uninitialized.
+lx-cmdline  Report the Linux Commandline used in the current kernel
 
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+[jan.kiszka@siemens.com: remove blank line from help output and fix pep8 warning]
+Signed-off-by: Kieran Bingham <kieran.bingham@linaro.org>
+Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
+Cc: Jason Wessel <jason.wessel@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/Kconfig.ubsan      |    5 +++++
- scripts/Makefile.ubsan |    4 ++++
- 2 files changed, 9 insertions(+)
+ scripts/gdb/linux/proc.py |   13 +++++++++++++
+ 1 file changed, 13 insertions(+)
 
-diff -puN lib/Kconfig.ubsan~ubsan-fix-tree-wide-wmaybe-uninitialized-false-positives lib/Kconfig.ubsan
---- a/lib/Kconfig.ubsan~ubsan-fix-tree-wide-wmaybe-uninitialized-false-positives
-+++ a/lib/Kconfig.ubsan
-@@ -13,6 +13,11 @@ config UBSAN_SANITIZE_ALL
- 	bool "Enable instrumentation for the entire kernel"
- 	depends on UBSAN
- 	depends on ARCH_HAS_UBSAN_SANITIZE_ALL
+diff -puN scripts/gdb/linux/proc.py~scripts-gdb-add-cmdline-reader-command scripts/gdb/linux/proc.py
+--- a/scripts/gdb/linux/proc.py~scripts-gdb-add-cmdline-reader-command
++++ a/scripts/gdb/linux/proc.py
+@@ -14,6 +14,19 @@
+ import gdb
+ 
+ 
++class LxCmdLine(gdb.Command):
++    """ Report the Linux Commandline used in the current kernel.
++        Equivalent to cat /proc/cmdline on a running target"""
 +
-+	# We build with -Wno-maybe-uninitilzed, but we still want to
-+	# use -Wmaybe-uninitilized in allmodconfig builds.
-+	# So dependsy bellow used to disable this option in allmodconfig
-+	depends on !COMPILE_TEST
- 	default y
- 	help
- 	  This option activates instrumentation for the entire kernel.
-diff -puN scripts/Makefile.ubsan~ubsan-fix-tree-wide-wmaybe-uninitialized-false-positives scripts/Makefile.ubsan
---- a/scripts/Makefile.ubsan~ubsan-fix-tree-wide-wmaybe-uninitialized-false-positives
-+++ a/scripts/Makefile.ubsan
-@@ -14,4 +14,8 @@ ifdef CONFIG_UBSAN
- ifdef CONFIG_UBSAN_ALIGNMENT
-       CFLAGS_UBSAN += $(call cc-option, -fsanitize=alignment)
- endif
++    def __init__(self):
++        super(LxCmdLine, self).__init__("lx-cmdline", gdb.COMMAND_DATA)
 +
-+      # -fsanitize=* options makes GCC less smart than usual and
-+      # increase number of 'maybe-uninitialized false-positives
-+      CFLAGS_UBSAN += $(call cc-option, -Wno-maybe-uninitialized)
- endif
++    def invoke(self, arg, from_tty):
++        gdb.write(gdb.parse_and_eval("saved_command_line").string() + "\n")
++
++LxCmdLine()
++
++
+ class LxVersion(gdb.Command):
+     """ Report the Linux Version of the current kernel.
+         Equivalent to cat /proc/version on a running target"""
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from kieran.bingham@linaro.org are
 
 
