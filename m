@@ -1,95 +1,82 @@
 From: akpm@linux-foundation.org
-Subject: [merged] scripts-gdb-add-version-command.patch removed from -mm
- tree
-Date: Wed, 23 Mar 2016 10:42:30 -0700
-Message-ID: <56f2d586.J0lMsByEv+3+B4WK%akpm@linux-foundation.org>
+Subject: [merged]
+ scripts-gdb-account-for-changes-in-module-data-structure.patch removed from -mm tree
+Date: Wed, 23 Mar 2016 10:42:34 -0700
+Message-ID: <56f2d58a.JqDgRd0Im5nMupGf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59365 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59375 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756262AbcCWRmb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:42:31 -0400
+	with ESMTP id S1756387AbcCWRmf (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:42:35 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: kieran.bingham@linaro.org, jan.kiszka@siemens.com, jason.wessel@windriver.com, mm-commits@vger.kernel.org
+To: jan.kiszka@siemens.com, jason.wessel@windriver.com, jkosina@suse.cz, kieran.bingham@linaro.org, rusty@rustcorp.com.au, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: scripts/gdb: add version command
+     Subject: scripts/gdb: account for changes in module data structure
 has been removed from the -mm tree.  Its filename was
-     scripts-gdb-add-version-command.patch
+     scripts-gdb-account-for-changes-in-module-data-structure.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Kieran Bingham <kieran.bingham@linaro.org>
-Subject: scripts/gdb: add version command
+From: Jan Kiszka <jan.kiszka@siemens.com>
+Subject: scripts/gdb: account for changes in module data structure
 
-lx-version  Report the Linux Version of the current kernel.
+Commit 7523e4dc50 ("module: use a structure to encapsulate layout.")
+factored out the module_layout structure.  Adjust the symbol loader and
+the lsmod command to this.
 
-Add a command to identify the version specified by the banner in the
-debugged kernel.
-
-This lets the user identify the kernel of the running kernel, and will let
-later scripts compare the banner of the attached kernel against the banner
-in the vmlinux symbols files to verify that the files are correct.
-
-[jan.kiszka@siemens.com: remove blank line from help output and fix pep8 warning]
-Signed-off-by: Kieran Bingham <kieran.bingham@linaro.org>
 Signed-off-by: Jan Kiszka <jan.kiszka@siemens.com>
+Reviewed-by: Kieran Bingham <kieran.bingham@linaro.org>
+Tested-by: Kieran Bingham <kieran.bingham@linaro.org> (qemu-{ARM,x86})
+Cc: Rusty Russell <rusty@rustcorp.com.au>
+Cc: Jiri Kosina <jkosina@suse.cz>
 Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: <stable@vger.kernel.org>	[4.4+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/gdb/linux/proc.py  |   28 ++++++++++++++++++++++++++++
- scripts/gdb/vmlinux-gdb.py |    1 +
- 2 files changed, 29 insertions(+)
+ scripts/gdb/linux/modules.py |    5 +++--
+ scripts/gdb/linux/symbols.py |    2 +-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN /dev/null scripts/gdb/linux/proc.py
---- /dev/null
-+++ a/scripts/gdb/linux/proc.py
-@@ -0,0 +1,28 @@
-+#
-+# gdb helper commands and functions for Linux kernel debugging
-+#
-+#  Kernel proc information reader
-+#
-+# Copyright (c) 2016 Linaro Ltd
-+#
-+# Authors:
-+#  Kieran Bingham <kieran.bingham@linaro.org>
-+#
-+# This work is licensed under the terms of the GNU GPL version 2.
-+#
-+
-+import gdb
-+
-+
-+class LxVersion(gdb.Command):
-+    """ Report the Linux Version of the current kernel.
-+        Equivalent to cat /proc/version on a running target"""
-+
-+    def __init__(self):
-+        super(LxVersion, self).__init__("lx-version", gdb.COMMAND_DATA)
-+
-+    def invoke(self, arg, from_tty):
-+        # linux_banner should contain a newline
-+        gdb.write(gdb.parse_and_eval("linux_banner").string())
-+
-+LxVersion()
-diff -puN scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-version-command scripts/gdb/vmlinux-gdb.py
---- a/scripts/gdb/vmlinux-gdb.py~scripts-gdb-add-version-command
-+++ a/scripts/gdb/vmlinux-gdb.py
-@@ -29,3 +29,4 @@ else:
-     import linux.tasks
-     import linux.cpus
-     import linux.lists
-+    import linux.proc
+diff -puN scripts/gdb/linux/modules.py~scripts-gdb-account-for-changes-in-module-data-structure scripts/gdb/linux/modules.py
+--- a/scripts/gdb/linux/modules.py~scripts-gdb-account-for-changes-in-module-data-structure
++++ a/scripts/gdb/linux/modules.py
+@@ -73,10 +73,11 @@ class LxLsmod(gdb.Command):
+                 "        " if utils.get_long_type().sizeof == 8 else ""))
+ 
+         for module in module_list():
++            layout = module['core_layout']
+             gdb.write("{address} {name:<19} {size:>8}  {ref}".format(
+-                address=str(module['module_core']).split()[0],
++                address=str(layout['base']).split()[0],
+                 name=module['name'].string(),
+-                size=str(module['core_size']),
++                size=str(layout['size']),
+                 ref=str(module['refcnt']['counter'])))
+ 
+             source_list = module['source_list']
+diff -puN scripts/gdb/linux/symbols.py~scripts-gdb-account-for-changes-in-module-data-structure scripts/gdb/linux/symbols.py
+--- a/scripts/gdb/linux/symbols.py~scripts-gdb-account-for-changes-in-module-data-structure
++++ a/scripts/gdb/linux/symbols.py
+@@ -108,7 +108,7 @@ lx-symbols command."""
+ 
+     def load_module_symbols(self, module):
+         module_name = module['name'].string()
+-        module_addr = str(module['module_core']).split()[0]
++        module_addr = str(module['core_layout']['base']).split()[0]
+ 
+         module_file = self._get_module_file(module_name)
+         if not module_file and not self.module_files_updated:
 _
 
-Patches currently in -mm which might be from kieran.bingham@linaro.org are
+Patches currently in -mm which might be from jan.kiszka@siemens.com are
 
 
