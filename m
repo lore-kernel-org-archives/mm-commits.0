@@ -1,60 +1,58 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged]
- ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch removed from -mm tree
-Date: Wed, 23 Mar 2016 13:00:00 -0700
-Message-ID: <56f2f5c0.lfEoV+0DISQtucTp%akpm@linux-foundation.org>
+Subject: [folded-merged] ocfs2-code-clean-up-for-direct-io-fix.patch
+ removed from -mm tree
+Date: Wed, 23 Mar 2016 13:01:06 -0700
+Message-ID: <56f2f602.0oH2+Q69Z4M66qv4%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33031 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33036 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752752AbcCWUAB (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 16:00:01 -0400
+	with ESMTP id S1752752AbcCWUBH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 16:01:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, xuejiufei@huawei.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, fengguang.wu@intel.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, ryan.ding@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix
+     Subject: ocfs2-code-clean-up-for-direct-io-fix
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
+     ocfs2-code-clean-up-for-direct-io-fix.patch
 
-This patch was dropped because it was folded into ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert.patch
+This patch was dropped because it was folded into ocfs2-code-clean-up-for-direct-io.patch
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix
+Subject: ocfs2-code-clean-up-for-direct-io-fix
 
-tweak comment
+remove unused label
 
+Reported-by: kbuild test robot <fengguang.wu@intel.com>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Joseph Qi <joseph.qi@huawei.com>
 Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: xuejiufei <xuejiufei@huawei.com>
+Cc: Ryan Ding <ryan.ding@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmconvert.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/file.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN fs/ocfs2/dlm/dlmconvert.c~ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix fs/ocfs2/dlm/dlmconvert.c
---- a/fs/ocfs2/dlm/dlmconvert.c~ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix
-+++ a/fs/ocfs2/dlm/dlmconvert.c
-@@ -213,8 +213,8 @@ grant:
- 		memcpy(res->lvb, lock->lksb->lvb, DLM_LVB_LEN);
+diff -puN fs/ocfs2/file.c~ocfs2-code-clean-up-for-direct-io-fix fs/ocfs2/file.c
+--- a/fs/ocfs2/file.c~ocfs2-code-clean-up-for-direct-io-fix
++++ a/fs/ocfs2/file.c
+@@ -2195,7 +2195,6 @@ static ssize_t ocfs2_file_write_iter(str
  
+ 	inode_lock(inode);
+ 
+-relock:
  	/*
--	 * move the lock to tail because it may be the only lock who has
--	 * a invalid lvb.
-+	 * Move the lock to the tail because it may be the only lock which has
-+	 * an invalid lvb.
- 	 */
- 	list_move_tail(&lock->list, &res->granted);
- 
+ 	 * Concurrent O_DIRECT writes are allowed with
+ 	 * mount_option "coherency=buffered".
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -66,8 +64,7 @@ drivers-gpu-drm-i915-intel_tvc-fix-build.patch
 sched-add-schedule_timeout_idle.patch
 drivers-input-eliminate-input_compat_test-macro.patch
 arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-ocfs2-code-clean-up-for-direct-io-fix.patch
-ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert.patch
+ocfs2-code-clean-up-for-direct-io.patch
 mm.patch
 ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
 mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-fix.patch
