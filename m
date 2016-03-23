@@ -1,107 +1,84 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memremap-dont-modify-flags.patch removed from -mm tree
-Date: Wed, 23 Mar 2016 10:42:50 -0700
-Message-ID: <56f2d59a.ezH35s7BktnyfOL/%akpm@linux-foundation.org>
+Subject: [merged] add-compile-time-check-for-__arch_si_preamble_size.patch removed from -mm tree
+Date: Wed, 23 Mar 2016 10:42:47 -0700
+Message-ID: <56f2d597.XmQ1SbrXEcNQVubt%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59405 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59401 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756325AbcCWRmv (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:42:51 -0400
+	with ESMTP id S1756387AbcCWRms (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:42:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: brian.starkey@arm.com, catalin.marinas@arm.com, dan.j.williams@intel.com, gregkh@linuxfoundation.org, mm-commits@vger.kernel.org
+To: deller@gmx.de, mpe@ellerman.id.au, oleg@redhat.com, sfr@canb.auug.org.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: memremap: don't modify flags
+     Subject: kernel/signal.c: add compile-time check for __ARCH_SI_PREAMBLE_SIZE
 has been removed from the -mm tree.  Its filename was
-     memremap-dont-modify-flags.patch
+     add-compile-time-check-for-__arch_si_preamble_size.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Brian Starkey <brian.starkey@arm.com>
-Subject: memremap: don't modify flags
+From: Helge Deller <deller@gmx.de>
+Subject: kernel/signal.c: add compile-time check for __ARCH_SI_PREAMBLE_SIZE
 
-These patches implement a MEMREMAP_WC flag for memremap(), which can be
-used to obtain writecombine mappings.  This is then used for setting up
-dma_coherent_mem regions which use the DMA_MEMORY_MAP flag.
+The value of __ARCH_SI_PREAMBLE_SIZE defines the size (including padding)
+of the part of the struct siginfo that is before the union, and it is then
+used to calculate the needed padding (SI_PAD_SIZE) to make the size of
+struct siginfo equal to 128 (SI_MAX_SIZE) bytes.
 
-The motivation is to fix an alignment fault on arm64, and the suggestion
-to implement MEMREMAP_WC for this case was made at [1].  That particular
-issue is handled in patch 4, which makes sure that the appropriate memset
-function is used when zeroing allocations mapped as IO memory.
+Depending on the target architecture and word width it equals to either 3
+or 4 times sizeof int.
 
+Since the very beginning we had __ARCH_SI_PREAMBLE_SIZE wrong on the
+parisc architecture for the 64bit kernel build.  It's even more
+frustrating, because it can easily be checked at compile time if the value
+was defined correctly.
 
-This patch (of 4):
+This patch adds such a check for the correctness of
+__ARCH_SI_PREAMBLE_SIZE in the hope that it will prevent existing and
+future architectures from running into the same problem.
 
-Don't modify the flags input argument to memremap(). MEMREMAP_WB is
-already a special case so we can check for it directly instead of
-clearing flag bits in each mapper.
+I refrained from replacing __ARCH_SI_PREAMBLE_SIZE by offsetof() in
+copy_siginfo() in include/asm-generic/siginfo.h, because a) it doesn't
+make any difference and b) it's used in the Documentation/kmemcheck.txt
+example.
 
-Signed-off-by: Brian Starkey <brian.starkey@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+I ran this patch through the 0-DAY kernel test infrastructure and only the
+parisc architecture triggered as expected.  That means that this patch
+should be OK for all major architectures.
+
+Signed-off-by: Helge Deller <deller@gmx.de>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/memremap.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ kernel/signal.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN kernel/memremap.c~memremap-dont-modify-flags kernel/memremap.c
---- a/kernel/memremap.c~memremap-dont-modify-flags
-+++ a/kernel/memremap.c
-@@ -64,6 +64,9 @@ void *memremap(resource_size_t offset, s
- 				       IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE);
- 	void *addr = NULL;
+diff -puN kernel/signal.c~add-compile-time-check-for-__arch_si_preamble_size kernel/signal.c
+--- a/kernel/signal.c~add-compile-time-check-for-__arch_si_preamble_size
++++ a/kernel/signal.c
+@@ -3585,6 +3585,10 @@ __weak const char *arch_vma_name(struct
  
-+	if (!flags)
-+		return NULL;
+ void __init signals_init(void)
+ {
++	/* If this check fails, the __ARCH_SI_PREAMBLE_SIZE value is wrong! */
++	BUILD_BUG_ON(__ARCH_SI_PREAMBLE_SIZE
++		!= offsetof(struct siginfo, _sifields._pad));
 +
- 	if (is_ram == REGION_MIXED) {
- 		WARN_ONCE(1, "memremap attempted on mixed range %pa size: %#lx\n",
- 				&offset, (unsigned long) size);
-@@ -72,7 +75,6 @@ void *memremap(resource_size_t offset, s
- 
- 	/* Try all mapping types requested until one returns non-NULL */
- 	if (flags & MEMREMAP_WB) {
--		flags &= ~MEMREMAP_WB;
- 		/*
- 		 * MEMREMAP_WB is special in that it can be satisifed
- 		 * from the direct map.  Some archs depend on the
-@@ -86,21 +88,19 @@ void *memremap(resource_size_t offset, s
- 	}
- 
- 	/*
--	 * If we don't have a mapping yet and more request flags are
--	 * pending then we will be attempting to establish a new virtual
-+	 * If we don't have a mapping yet and other request flags are
-+	 * present then we will be attempting to establish a new virtual
- 	 * address mapping.  Enforce that this mapping is not aliasing
- 	 * System RAM.
- 	 */
--	if (!addr && is_ram == REGION_INTERSECTS && flags) {
-+	if (!addr && is_ram == REGION_INTERSECTS && flags != MEMREMAP_WB) {
- 		WARN_ONCE(1, "memremap attempted on ram %pa size: %#lx\n",
- 				&offset, (unsigned long) size);
- 		return NULL;
- 	}
- 
--	if (!addr && (flags & MEMREMAP_WT)) {
--		flags &= ~MEMREMAP_WT;
-+	if (!addr && (flags & MEMREMAP_WT))
- 		addr = ioremap_wt(offset, size);
--	}
- 
- 	return addr;
+ 	sigqueue_cachep = KMEM_CACHE(sigqueue, SLAB_PANIC);
  }
+ 
 _
 
-Patches currently in -mm which might be from brian.starkey@arm.com are
+Patches currently in -mm which might be from deller@gmx.de are
 
 
