@@ -1,92 +1,103 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- kernel-hung_taskc-use-timeout-diff-when-timeout-is-updated.patch removed
- from -mm tree
-Date: Wed, 23 Mar 2016 10:40:28 -0700
-Message-ID: <56f2d50c.F22jukRstL4f5p4V%akpm@linux-foundation.org>
+ compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall.patch
+ removed from -mm tree
+Date: Wed, 23 Mar 2016 10:40:30 -0700
+Message-ID: <56f2d50e.kwC1Ck065HcUsA5M%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59045 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59057 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756559AbcCWRk3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:40:29 -0400
+	with ESMTP id S1756537AbcCWRkc (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:40:32 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, atomlin@redhat.com, oleg@redhat.com, mm-commits@vger.kernel.org
+To: luto@kernel.org, adilger.kernel@dilger.ca, airlied@linux.ie, clemens@ladisch.de, davem@davemloft.net, dh.herrmann@googlemail.com, dmitry.torokhov@gmail.com, eparis@redhat.com, herbert@gondor.apana.org.au, hpa@zytor.com, jkosina@suse.cz, matt@codeblueprint.co.uk, mingo@elte.hu, nhorman@tuxdriver.com, oded.gabbay@gmail.com, oleg.drokin@intel.com, oleg@redhat.com, paul@paul-moore.com, sam@ravnborg.org, steffen.klassert@secunet.com, tglx@linutronix.de, tytso@mit.edu, vyasevich@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/hung_task.c: use timeout diff when timeout is updated
+     Subject: compat: add in_compat_syscall to ask whether we're in a compat syscall
 has been removed from the -mm tree.  Its filename was
-     kernel-hung_taskc-use-timeout-diff-when-timeout-is-updated.patch
+     compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: kernel/hung_task.c: use timeout diff when timeout is updated
+From: Andy Lutomirski <luto@kernel.org>
+Subject: compat: add in_compat_syscall to ask whether we're in a compat syscall
 
-When new timeout is written to /proc/sys/kernel/hung_task_timeout_secs,
-khungtaskd is interrupted and again sleeps for full timeout duration.
+A lot of code currently abuses is_compat_task to determine this.
 
-This means that hang task will not be checked if new timeout is written
-periodically within old timeout duration and/or checking of hang task will
-be delayed for up to previous timeout duration.  Fix this by remembering
-last time khungtaskd checked hang task.
-
-This change will allow other watchdog tasks (if any) to share khungtaskd
-by sleeping for minimal timeout diff of all watchdog tasks.  Doing more
-watchdog tasks from khungtaskd will reduce the possibility of printk()
-collisions by multiple watchdog threads.
-
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Andreas Dilger <adilger.kernel@dilger.ca>
+Cc: Clemens Ladisch <clemens@ladisch.de>
+Cc: David Airlie <airlied@linux.ie>
+Cc: David Herrmann <dh.herrmann@googlemail.com>
+Cc: David Miller <davem@davemloft.net>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Eric Paris <eparis@redhat.com>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: Ingo Molnar <mingo@elte.hu>
+Acked-by: Jiri Kosina <jkosina@suse.cz>
+Cc: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Neil Horman <nhorman@tuxdriver.com>
+Cc: Oded Gabbay <oded.gabbay@gmail.com>
+Cc: Oleg Drokin <oleg.drokin@intel.com>
 Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Aaron Tomlin <atomlin@redhat.com>
+Cc: Paul Moore <paul@paul-moore.com>
+Cc: Sam Ravnborg <sam@ravnborg.org>
+Cc: Steffen Klassert <steffen.klassert@secunet.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Vlad Yasevich <vyasevich@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/hung_task.c |   21 +++++++++++++--------
- 1 file changed, 13 insertions(+), 8 deletions(-)
+ include/linux/compat.h |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-diff -puN kernel/hung_task.c~kernel-hung_taskc-use-timeout-diff-when-timeout-is-updated kernel/hung_task.c
---- a/kernel/hung_task.c~kernel-hung_taskc-use-timeout-diff-when-timeout-is-updated
-+++ a/kernel/hung_task.c
-@@ -185,10 +185,12 @@ static void check_hung_uninterruptible_t
- 	rcu_read_unlock();
- }
- 
--static unsigned long timeout_jiffies(unsigned long timeout)
-+static long hung_timeout_jiffies(unsigned long last_checked,
-+				 unsigned long timeout)
- {
- 	/* timeout of 0 will disable the watchdog */
--	return timeout ? timeout * HZ : MAX_SCHEDULE_TIMEOUT;
-+	return timeout ? last_checked - jiffies + timeout * HZ :
-+		MAX_SCHEDULE_TIMEOUT;
- }
- 
- /*
-@@ -224,18 +226,21 @@ EXPORT_SYMBOL_GPL(reset_hung_task_detect
+diff -puN include/linux/compat.h~compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall include/linux/compat.h
+--- a/include/linux/compat.h~compat-add-in_compat_syscall-to-ask-whether-were-in-a-compat-syscall
++++ a/include/linux/compat.h
+@@ -5,6 +5,8 @@
+  * syscall compatibility layer.
   */
- static int watchdog(void *dummy)
- {
-+	unsigned long hung_last_checked = jiffies;
+ 
++#include <linux/types.h>
 +
- 	set_user_nice(current, 0);
+ #ifdef CONFIG_COMPAT
  
- 	for ( ; ; ) {
- 		unsigned long timeout = sysctl_hung_task_timeout_secs;
-+		long t = hung_timeout_jiffies(hung_last_checked, timeout);
+ #include <linux/stat.h>
+@@ -719,9 +721,22 @@ asmlinkage long compat_sys_sched_rr_get_
  
--		while (schedule_timeout_interruptible(timeout_jiffies(timeout)))
--			timeout = sysctl_hung_task_timeout_secs;
--
--		if (atomic_xchg(&reset_hung_task, 0))
-+		if (t <= 0) {
-+			if (!atomic_xchg(&reset_hung_task, 0))
-+				check_hung_uninterruptible_tasks(timeout);
-+			hung_last_checked = jiffies;
- 			continue;
+ asmlinkage long compat_sys_fanotify_mark(int, unsigned int, __u32, __u32,
+ 					    int, const char __user *);
++
++/*
++ * For most but not all architectures, "am I in a compat syscall?" and
++ * "am I a compat task?" are the same question.  For architectures on which
++ * they aren't the same question, arch code can override in_compat_syscall.
++ */
++
++#ifndef in_compat_syscall
++static inline bool in_compat_syscall(void) { return is_compat_task(); }
++#endif
++
+ #else
+ 
+ #define is_compat_task() (0)
++static inline bool in_compat_syscall(void) { return false; }
+ 
+ #endif /* CONFIG_COMPAT */
++
+ #endif /* _LINUX_COMPAT_H */
+_
+
+Patches currently in -mm which might be from luto@kernel.org are
+
+
