@@ -1,39 +1,37 @@
 From: akpm@linux-foundation.org
 Subject: [folded-merged]
- ocfs2-dlm-fix-race-between-convert-and-recovery-v2.patch removed from -mm
+ ocfs2-dlm-fix-race-between-convert-and-recovery-v3.patch removed from -mm
  tree
-Date: Wed, 23 Mar 2016 12:59:16 -0700
-Message-ID: <56f2f594.NdsoRKOtN43Ys+p+%akpm@linux-foundation.org>
+Date: Wed, 23 Mar 2016 12:59:19 -0700
+Message-ID: <56f2f597.oJHEEnlvSXhpG4SA%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33021 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33027 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756171AbcCWT7R (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 15:59:17 -0400
+	with ESMTP id S1756171AbcCWT7U (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 15:59:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joseph.qi@huawei.com, jiangyiwen@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.de, tariq.x.saeed@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2-dlm-fix-race-between-convert-and-recovery-v2
+     Subject: ocfs2-dlm-fix-race-between-convert-and-recovery-v3
 has been removed from the -mm tree.  Its filename was
-     ocfs2-dlm-fix-race-between-convert-and-recovery-v2.patch
+     ocfs2-dlm-fix-race-between-convert-and-recovery-v3.patch
 
 This patch was dropped because it was folded into ocfs2-dlm-fix-race-between-convert-and-recovery.patch
 
 ------------------------------------------------------
 From: Joseph Qi <joseph.qi@huawei.com>
-Subject: ocfs2-dlm-fix-race-between-convert-and-recovery-v2
-
-changelog since v1:
-Clean up convert_pending since it is now useless.
+Subject: ocfs2-dlm-fix-race-between-convert-and-recovery-v3
 
 Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
 Reported-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Cc: Tariq Saeed <tariq.x.saeed@oracle.com>
@@ -41,96 +39,138 @@ Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/dlm/dlmcommon.h  |    1 -
- fs/ocfs2/dlm/dlmconvert.c |    2 --
- fs/ocfs2/dlm/dlmdebug.c   |    7 +++----
- fs/ocfs2/dlm/dlmlock.c    |    1 -
- 4 files changed, 3 insertions(+), 8 deletions(-)
+ fs/ocfs2/dlm/dlmcommon.h   |    1 +
+ fs/ocfs2/dlm/dlmconvert.c  |   13 ++++++++++++-
+ fs/ocfs2/dlm/dlmdebug.c    |    7 ++++---
+ fs/ocfs2/dlm/dlmlock.c     |    1 +
+ fs/ocfs2/dlm/dlmrecovery.c |   10 +++++++++-
+ 5 files changed, 27 insertions(+), 5 deletions(-)
 
-diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-fix-race-between-convert-and-recovery-v2 fs/ocfs2/dlm/dlmcommon.h
---- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-fix-race-between-convert-and-recovery-v2
+diff -puN fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-fix-race-between-convert-and-recovery-v3 fs/ocfs2/dlm/dlmcommon.h
+--- a/fs/ocfs2/dlm/dlmcommon.h~ocfs2-dlm-fix-race-between-convert-and-recovery-v3
 +++ a/fs/ocfs2/dlm/dlmcommon.h
-@@ -370,7 +370,6 @@ struct dlm_lock
+@@ -370,6 +370,7 @@ struct dlm_lock
  	struct dlm_lockstatus *lksb;
  	unsigned ast_pending:1,
  		 bast_pending:1,
--		 convert_pending:1,
++		 convert_pending:1,
  		 lock_pending:1,
  		 cancel_pending:1,
  		 unlock_pending:1,
-diff -puN fs/ocfs2/dlm/dlmconvert.c~ocfs2-dlm-fix-race-between-convert-and-recovery-v2 fs/ocfs2/dlm/dlmconvert.c
---- a/fs/ocfs2/dlm/dlmconvert.c~ocfs2-dlm-fix-race-between-convert-and-recovery-v2
+diff -puN fs/ocfs2/dlm/dlmconvert.c~ocfs2-dlm-fix-race-between-convert-and-recovery-v3 fs/ocfs2/dlm/dlmconvert.c
+--- a/fs/ocfs2/dlm/dlmconvert.c~ocfs2-dlm-fix-race-between-convert-and-recovery-v3
 +++ a/fs/ocfs2/dlm/dlmconvert.c
-@@ -291,7 +291,6 @@ enum dlm_status dlmconvert_remote(struct
+@@ -262,6 +262,7 @@ enum dlm_status dlmconvert_remote(struct
+ 				  struct dlm_lock *lock, int flags, int type)
+ {
+ 	enum dlm_status status;
++	u8 old_owner = res->owner;
+ 
+ 	mlog(0, "type=%d, convert_type=%d, busy=%d\n", lock->ml.type,
+ 	     lock->ml.convert_type, res->state & DLM_LOCK_RES_IN_PROGRESS);
+@@ -291,6 +292,7 @@ enum dlm_status dlmconvert_remote(struct
  	/* move lock to local convert queue */
  	/* do not alter lock refcount.  switching lists. */
  	list_move_tail(&lock->list, &res->converting);
--	lock->convert_pending = 1;
++	lock->convert_pending = 1;
  	lock->ml.convert_type = type;
  
  	if (flags & LKM_VALBLK) {
-@@ -315,7 +314,6 @@ enum dlm_status dlmconvert_remote(struct
+@@ -314,11 +316,20 @@ enum dlm_status dlmconvert_remote(struct
  
  	spin_lock(&res->spinlock);
  	res->state &= ~DLM_LOCK_RES_IN_PROGRESS;
--	lock->convert_pending = 0;
- 	/* if it failed, move it back to granted queue */
+-	/* if it failed, move it back to granted queue */
++	lock->convert_pending = 0;
++	/* if it failed, move it back to granted queue.
++	 * if master returns DLM_NORMAL and then down before sending ast,
++	 * it may have already been moved to granted queue, reset to
++	 * DLM_RECOVERING and retry convert */
  	if (status != DLM_NORMAL) {
  		if (status != DLM_NOTQUEUED)
-diff -puN fs/ocfs2/dlm/dlmdebug.c~ocfs2-dlm-fix-race-between-convert-and-recovery-v2 fs/ocfs2/dlm/dlmdebug.c
---- a/fs/ocfs2/dlm/dlmdebug.c~ocfs2-dlm-fix-race-between-convert-and-recovery-v2
+ 			dlm_error(status);
+ 		dlm_revert_pending_convert(res, lock);
++	} else if ((res->state & DLM_LOCK_RES_RECOVERING) ||
++			(old_owner != res->owner)) {
++		mlog(0, "res %.*s is in recovering or has been recovered.\n",
++				res->lockname.len, res->lockname.name);
++		status = DLM_RECOVERING;
+ 	}
+ bail:
+ 	spin_unlock(&res->spinlock);
+diff -puN fs/ocfs2/dlm/dlmdebug.c~ocfs2-dlm-fix-race-between-convert-and-recovery-v3 fs/ocfs2/dlm/dlmdebug.c
+--- a/fs/ocfs2/dlm/dlmdebug.c~ocfs2-dlm-fix-race-between-convert-and-recovery-v3
 +++ a/fs/ocfs2/dlm/dlmdebug.c
 @@ -77,7 +77,7 @@ static void __dlm_print_lock(struct dlm_
  
  	printk("    type=%d, conv=%d, node=%u, cookie=%u:%llu, "
  	       "ref=%u, ast=(empty=%c,pend=%c), bast=(empty=%c,pend=%c), "
--	       "pending=(conv=%c,lock=%c,cancel=%c,unlock=%c)\n",
-+	       "pending=(lock=%c,cancel=%c,unlock=%c)\n",
+-	       "pending=(lock=%c,cancel=%c,unlock=%c)\n",
++	       "pending=(conv=%c,lock=%c,cancel=%c,unlock=%c)\n",
  	       lock->ml.type, lock->ml.convert_type, lock->ml.node,
  	       dlm_get_lock_cookie_node(be64_to_cpu(lock->ml.cookie)),
  	       dlm_get_lock_cookie_seq(be64_to_cpu(lock->ml.cookie)),
-@@ -86,7 +86,6 @@ static void __dlm_print_lock(struct dlm_
+@@ -86,6 +86,7 @@ static void __dlm_print_lock(struct dlm_
  	       (lock->ast_pending ? 'y' : 'n'),
  	       (list_empty(&lock->bast_list) ? 'y' : 'n'),
  	       (lock->bast_pending ? 'y' : 'n'),
--	       (lock->convert_pending ? 'y' : 'n'),
++	       (lock->convert_pending ? 'y' : 'n'),
  	       (lock->lock_pending ? 'y' : 'n'),
  	       (lock->cancel_pending ? 'y' : 'n'),
  	       (lock->unlock_pending ? 'y' : 'n'));
-@@ -502,7 +501,7 @@ static int dump_lock(struct dlm_lock *lo
+@@ -501,7 +502,7 @@ static int dump_lock(struct dlm_lock *lo
  
  #define DEBUG_LOCK_VERSION	1
  	spin_lock(&lock->spinlock);
--	out = snprintf(buf, len, "LOCK:%d,%d,%d,%d,%d,%d:%lld,%d,%d,%d,%d,%d,"
-+	out = snprintf(buf, len, "LOCK:%d,%d,%d,%d,%d,%d:%lld,%d,%d,%d,%d,"
+-	out = snprintf(buf, len, "LOCK:%d,%d,%d,%d,%d,%d:%lld,%d,%d,%d,%d,"
++	out = snprintf(buf, len, "LOCK:%d,%d,%d,%d,%d,%d:%lld,%d,%d,%d,%d,%d,"
  		       "%d,%d,%d,%d\n",
  		       DEBUG_LOCK_VERSION,
  		       list_type, lock->ml.type, lock->ml.convert_type,
-@@ -512,7 +511,7 @@ static int dump_lock(struct dlm_lock *lo
+@@ -511,7 +512,7 @@ static int dump_lock(struct dlm_lock *lo
  		       !list_empty(&lock->ast_list),
  		       !list_empty(&lock->bast_list),
  		       lock->ast_pending, lock->bast_pending,
--		       lock->convert_pending, lock->lock_pending,
-+		       lock->lock_pending,
+-		       lock->lock_pending,
++		       lock->convert_pending, lock->lock_pending,
  		       lock->cancel_pending, lock->unlock_pending,
  		       atomic_read(&lock->lock_refs.refcount));
  	spin_unlock(&lock->spinlock);
-diff -puN fs/ocfs2/dlm/dlmlock.c~ocfs2-dlm-fix-race-between-convert-and-recovery-v2 fs/ocfs2/dlm/dlmlock.c
---- a/fs/ocfs2/dlm/dlmlock.c~ocfs2-dlm-fix-race-between-convert-and-recovery-v2
+diff -puN fs/ocfs2/dlm/dlmlock.c~ocfs2-dlm-fix-race-between-convert-and-recovery-v3 fs/ocfs2/dlm/dlmlock.c
+--- a/fs/ocfs2/dlm/dlmlock.c~ocfs2-dlm-fix-race-between-convert-and-recovery-v3
 +++ a/fs/ocfs2/dlm/dlmlock.c
-@@ -411,7 +411,6 @@ static void dlm_init_lock(struct dlm_loc
+@@ -411,6 +411,7 @@ static void dlm_init_lock(struct dlm_loc
  	newlock->ml.cookie = cpu_to_be64(cookie);
  	newlock->ast_pending = 0;
  	newlock->bast_pending = 0;
--	newlock->convert_pending = 0;
++	newlock->convert_pending = 0;
  	newlock->lock_pending = 0;
  	newlock->unlock_pending = 0;
  	newlock->cancel_pending = 0;
+diff -puN fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-race-between-convert-and-recovery-v3 fs/ocfs2/dlm/dlmrecovery.c
+--- a/fs/ocfs2/dlm/dlmrecovery.c~ocfs2-dlm-fix-race-between-convert-and-recovery-v3
++++ a/fs/ocfs2/dlm/dlmrecovery.c
+@@ -2081,7 +2081,15 @@ void dlm_move_lockres_to_recovery_list(s
+ 		queue = dlm_list_idx_to_ptr(res, i);
+ 		list_for_each_entry_safe(lock, next, queue, list) {
+ 			dlm_lock_get(lock);
+-			if (lock->lock_pending) {
++			if (lock->convert_pending) {
++				/* move converting lock back to granted */
++				BUG_ON(i != DLM_CONVERTING_LIST);
++				mlog(0, "node died with convert pending "
++				     "on %.*s. move back to granted list.\n",
++				     res->lockname.len, res->lockname.name);
++				dlm_revert_pending_convert(res, lock);
++				lock->convert_pending = 0;
++			} else if (lock->lock_pending) {
+ 				/* remove pending lock requests completely */
+ 				BUG_ON(i != DLM_BLOCKED_LIST);
+ 				mlog(0, "node died with lock pending "
 _
 
 Patches currently in -mm which might be from joseph.qi@huawei.com are
 
 ocfs2-dlm-fix-race-between-convert-and-recovery.patch
-ocfs2-dlm-fix-race-between-convert-and-recovery-v3.patch
 ocfs2-dlm-fix-bug-in-dlm_move_lockres_to_recovery_list.patch
 
