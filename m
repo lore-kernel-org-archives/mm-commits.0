@@ -1,73 +1,68 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- sparc-compat-provide-an-accurate-in_compat_syscall-implementation.patch
- removed from -mm tree
-Date: Wed, 23 Mar 2016 10:40:33 -0700
-Message-ID: <56f2d511.ysF6hze3iOJZWXo7%akpm@linux-foundation.org>
+ input-redefine-input_compat_test-as-in_compat_syscall.patch removed from
+ -mm tree
+Date: Wed, 23 Mar 2016 10:40:57 -0700
+Message-ID: <56f2d529.scSwFFyFAAjMf15N%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59070 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59115 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756590AbcCWRkj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:40:39 -0400
+	with ESMTP id S1756604AbcCWRk6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:40:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luto@kernel.org, davem@davemloft.net, sam@ravnborg.org, mm-commits@vger.kernel.org
+To: luto@kernel.org, dmitry.torokhov@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: sparc/compat: provide an accurate in_compat_syscall implementation
+     Subject: input: redefine INPUT_COMPAT_TEST as in_compat_syscall()
 has been removed from the -mm tree.  Its filename was
-     sparc-compat-provide-an-accurate-in_compat_syscall-implementation.patch
+     input-redefine-input_compat_test-as-in_compat_syscall.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andy Lutomirski <luto@kernel.org>
-Subject: sparc/compat: provide an accurate in_compat_syscall implementation
+Subject: input: redefine INPUT_COMPAT_TEST as in_compat_syscall()
 
-On sparc64 compat-enabled kernels, any task can make 32-bit and 64-bit
-syscalls.  is_compat_task returns true in 32-bit tasks, which does not
-necessarily imply that the current syscall is 32-bit.
+The input compat code should work like all other compat code: for 32-bit
+syscalls, use the 32-bit ABI and for 64-bit syscalls, use the 64-bit ABI. 
+We have a helper for that (in_compat_syscall()): just use it.
 
-Provide an in_compat_syscall implementation that checks whether the
-current syscall is compat.
-
-As far as I know, sparc is the only architecture on which is_compat_task
-checks the compat status of the task and on which the compat status of a
-syscall can differ from the compat status of the task.  On x86,
-is_compat_task checks the syscall type, not the task type.
-
-[akpm@linux-foundation.org: add comment, per Sam]
-[akpm@linux-foundation.org: update comment, per Andy]
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Acked-by: David S. Miller <davem@davemloft.net>
-Cc: Sam Ravnborg <sam@ravnborg.org>
-Cc: Andy Lutomirski <luto@kernel.org>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/sparc/include/asm/compat.h |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/input/input-compat.h |   12 +-----------
+ 1 file changed, 1 insertion(+), 11 deletions(-)
 
-diff -puN arch/sparc/include/asm/compat.h~sparc-compat-provide-an-accurate-in_compat_syscall-implementation arch/sparc/include/asm/compat.h
---- a/arch/sparc/include/asm/compat.h~sparc-compat-provide-an-accurate-in_compat_syscall-implementation
-+++ a/arch/sparc/include/asm/compat.h
-@@ -307,4 +307,11 @@ static inline int is_compat_task(void)
- 	return test_thread_flag(TIF_32BIT);
- }
+diff -puN drivers/input/input-compat.h~input-redefine-input_compat_test-as-in_compat_syscall drivers/input/input-compat.h
+--- a/drivers/input/input-compat.h~input-redefine-input_compat_test-as-in_compat_syscall
++++ a/drivers/input/input-compat.h
+@@ -17,17 +17,7 @@
  
-+static inline bool in_compat_syscall(void)
-+{
-+	/* Vector 0x110 is LINUX_32BIT_SYSCALL_TRAP */
-+	return pt_regs_trap_type(current_pt_regs()) == 0x110;
-+}
-+#define in_compat_syscall in_compat_syscall
-+
- #endif /* _ASM_SPARC64_COMPAT_H */
+ #ifdef CONFIG_COMPAT
+ 
+-/* Note to the author of this code: did it ever occur to
+-   you why the ifdefs are needed? Think about it again. -AK */
+-#if defined(CONFIG_X86_64) || defined(CONFIG_TILE)
+-#  define INPUT_COMPAT_TEST is_compat_task()
+-#elif defined(CONFIG_S390)
+-#  define INPUT_COMPAT_TEST test_thread_flag(TIF_31BIT)
+-#elif defined(CONFIG_MIPS)
+-#  define INPUT_COMPAT_TEST test_thread_flag(TIF_32BIT_ADDR)
+-#else
+-#  define INPUT_COMPAT_TEST test_thread_flag(TIF_32BIT)
+-#endif
++#define INPUT_COMPAT_TEST in_compat_syscall()
+ 
+ struct input_event_compat {
+ 	struct compat_timeval time;
 _
 
 Patches currently in -mm which might be from luto@kernel.org are
