@@ -1,97 +1,74 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- rapidio-add-shutdown-notification-for-rapidio-devices.patch removed from
+Subject: [merged] rapidio-rionet-fix-deadlock-on-smp.patch removed from
  -mm tree
-Date: Wed, 23 Mar 2016 10:41:27 -0700
-Message-ID: <56f2d547.GGq41bMzpFUwhQ7o%akpm@linux-foundation.org>
+Date: Wed, 23 Mar 2016 10:41:11 -0700
+Message-ID: <56f2d537.7IxKQ56Xr5P06HYF%akpm__2479.63283113695$1458754892$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59194 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59145 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756645AbcCWRl2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:41:28 -0400
+	with ESMTP id S1756338AbcCWRlM (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:41:12 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: a-jacquiot@ti.com, alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: add shutdown notification for RapidIO devices
+     Subject: rapidio/rionet: fix deadlock on SMP
 has been removed from the -mm tree.  Its filename was
-     rapidio-add-shutdown-notification-for-rapidio-devices.patch
+     rapidio-rionet-fix-deadlock-on-smp.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: add shutdown notification for RapidIO devices
+From: Aurelien Jacquiot <a-jacquiot@ti.com>
+Subject: rapidio/rionet: fix deadlock on SMP
 
-Add bus-specific callback to stop RapidIO devices during a system shutdown.
+Fix deadlocking during concurrent receive and transmit operations on SMP
+platforms caused by the use of incorrect lock: on transmit 'tx_lock'
+spinlock should be used instead of 'lock' which is used for receive
+operation.
 
+This fix is applicable to kernel versions starting from v2.15.
+
+Signed-off-by: Aurelien Jacquiot <a-jacquiot@ti.com>
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
 Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio-driver.c |   12 ++++++++++++
- include/linux/rio.h          |    2 ++
- 2 files changed, 14 insertions(+)
+ drivers/net/rionet.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/rapidio/rio-driver.c~rapidio-add-shutdown-notification-for-rapidio-devices drivers/rapidio/rio-driver.c
---- a/drivers/rapidio/rio-driver.c~rapidio-add-shutdown-notification-for-rapidio-devices
-+++ a/drivers/rapidio/rio-driver.c
-@@ -131,6 +131,17 @@ static int rio_device_remove(struct devi
- 	return 0;
+diff -puN drivers/net/rionet.c~rapidio-rionet-fix-deadlock-on-smp drivers/net/rionet.c
+--- a/drivers/net/rionet.c~rapidio-rionet-fix-deadlock-on-smp
++++ a/drivers/net/rionet.c
+@@ -280,7 +280,7 @@ static void rionet_outb_msg_event(struct
+ 	struct net_device *ndev = dev_id;
+ 	struct rionet_private *rnet = netdev_priv(ndev);
+ 
+-	spin_lock(&rnet->lock);
++	spin_lock(&rnet->tx_lock);
+ 
+ 	if (netif_msg_intr(rnet))
+ 		printk(KERN_INFO
+@@ -299,7 +299,7 @@ static void rionet_outb_msg_event(struct
+ 	if (rnet->tx_cnt < RIONET_TX_RING_SIZE)
+ 		netif_wake_queue(ndev);
+ 
+-	spin_unlock(&rnet->lock);
++	spin_unlock(&rnet->tx_lock);
  }
  
-+static void rio_device_shutdown(struct device *dev)
-+{
-+	struct rio_dev *rdev = to_rio_dev(dev);
-+	struct rio_driver *rdrv = rdev->driver;
-+
-+	dev_dbg(dev, "RIO: %s\n", __func__);
-+
-+	if (rdrv && rdrv->shutdown)
-+		rdrv->shutdown(rdev);
-+}
-+
- /**
-  *  rio_register_driver - register a new RIO driver
-  *  @rdrv: the RIO driver structure to register
-@@ -229,6 +240,7 @@ struct bus_type rio_bus_type = {
- 	.bus_groups = rio_bus_groups,
- 	.probe = rio_device_probe,
- 	.remove = rio_device_remove,
-+	.shutdown = rio_device_shutdown,
- 	.uevent	= rio_uevent,
- };
- 
-diff -puN include/linux/rio.h~rapidio-add-shutdown-notification-for-rapidio-devices include/linux/rio.h
---- a/include/linux/rio.h~rapidio-add-shutdown-notification-for-rapidio-devices
-+++ a/include/linux/rio.h
-@@ -423,6 +423,7 @@ struct rio_ops {
-  * @id_table: RIO device ids to be associated with this driver
-  * @probe: RIO device inserted
-  * @remove: RIO device removed
-+ * @shutdown: shutdown notification callback
-  * @suspend: RIO device suspended
-  * @resume: RIO device awakened
-  * @enable_wake: RIO device enable wake event
-@@ -437,6 +438,7 @@ struct rio_driver {
- 	const struct rio_device_id *id_table;
- 	int (*probe) (struct rio_dev * dev, const struct rio_device_id * id);
- 	void (*remove) (struct rio_dev * dev);
-+	void (*shutdown)(struct rio_dev *dev);
- 	int (*suspend) (struct rio_dev * dev, u32 state);
- 	int (*resume) (struct rio_dev * dev);
- 	int (*enable_wake) (struct rio_dev * dev, u32 state, int enable);
+ static int rionet_open(struct net_device *ndev)
 _
 
-Patches currently in -mm which might be from alexandre.bounine@idt.com are
+Patches currently in -mm which might be from a-jacquiot@ti.com are
 
 
