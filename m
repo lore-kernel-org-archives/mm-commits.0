@@ -1,127 +1,113 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- fat-add-config-option-to-set-utf-8-mount-option-by-default.patch removed
- from -mm tree
-Date: Wed, 23 Mar 2016 10:41:03 -0700
-Message-ID: <56f2d52f.C4XZWS8saVAQvAXA%akpm@linux-foundation.org>
+Subject: [merged] rapidio-rionet-add-capability-to-change-mtu.patch
+ removed from -mm tree
+Date: Wed, 23 Mar 2016 10:41:13 -0700
+Message-ID: <56f2d539.JuWU5BHnaHfb58mK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59127 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59152 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756338AbcCWRlJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:41:09 -0400
+	with ESMTP id S1756516AbcCWRlO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:41:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mail@maciej.szmigiero.name, hirofumi@mail.parknet.co.jp, mm-commits@vger.kernel.org
+To: a-jacquiot@ti.com, alexandre.bounine@idt.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: fat: add config option to set UTF-8 mount option by default
+     Subject: rapidio/rionet: add capability to change MTU
 has been removed from the -mm tree.  Its filename was
-     fat-add-config-option-to-set-utf-8-mount-option-by-default.patch
+     rapidio-rionet-add-capability-to-change-mtu.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: "Maciej S. Szmigiero" <mail@maciej.szmigiero.name>
-Subject: fat: add config option to set UTF-8 mount option by default
+From: Aurelien Jacquiot <a-jacquiot@ti.com>
+Subject: rapidio/rionet: add capability to change MTU
 
-FAT has long supported its own default file name encoding config setting,
-separate from CONFIG_NLS_DEFAULT.
+These patches are the result of extensive collaboration within the
+RapidIO.org Software Task Group between Texas Instruments, Freescale,
+Prodrive Technologies, Nokia Networks, BAE and IDT.  Additional input was
+received from other members of RapidIO.org.  The objective was to create a
+character mode driver interface which exposes the capabilities of RapidIO
+devices directly to applications, in a manner that allows the numerous and
+varied RapidIO implementations to interoperate.
 
-However, if UTF-8 encoded file names are desired FAT character set should
-not be set to utf8 since this would make file names case sensitive even if
-case insensitive matching is requested.  Instead, "utf8" mount options
-should be provided to enable UTF-8 file names in FAT file system.
+The Software Task Group has also developed fabric management, Remote
+Memory Access, and sockets applications which make use of these interfaces
+in user space.  Intensive testing with these applications prompted the
+RapidIO subsystem updates provided within this set of patches.
 
-Unfortunately, there was no possibility to set the default value of this
-option so on UTF-8 system "utf8" mount option had to be added manually to
-most FAT mounts.
 
-This patch adds config option to set such default value.
+This patch (of 29):
 
-Signed-off-by: Maciej S. Szmigiero <mail@maciej.szmigiero.name>
-Acked-by: OGAWA Hirofumi <hirofumi@mail.parknet.co.jp>
+Replace default Ethernet-specific routine by the custom one to allow
+setting of larger MTU supported by RapidIO messaging (max RIO packet size
+is 4096 bytes).
+
+Signed-off-by: Aurelien Jacquiot <a-jacquiot@ti.com>
+Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
+Cc: Matt Porter <mporter@kernel.crashing.org>
+Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/vfat.txt |    7 ++++---
- fs/fat/Kconfig                     |   18 +++++++++++++++++-
- fs/fat/inode.c                     |    4 +++-
- 3 files changed, 24 insertions(+), 5 deletions(-)
+ drivers/net/rionet.c |   17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/filesystems/vfat.txt~fat-add-config-option-to-set-utf-8-mount-option-by-default Documentation/filesystems/vfat.txt
---- a/Documentation/filesystems/vfat.txt~fat-add-config-option-to-set-utf-8-mount-option-by-default
-+++ a/Documentation/filesystems/vfat.txt
-@@ -56,9 +56,10 @@ iocharset=<name> -- Character set to use
- 		 you should consider the following option instead.
+diff -puN drivers/net/rionet.c~rapidio-rionet-add-capability-to-change-mtu drivers/net/rionet.c
+--- a/drivers/net/rionet.c~rapidio-rionet-add-capability-to-change-mtu
++++ a/drivers/net/rionet.c
+@@ -48,6 +48,8 @@ MODULE_LICENSE("GPL");
+ #define RIONET_TX_RING_SIZE	CONFIG_RIONET_TX_SIZE
+ #define RIONET_RX_RING_SIZE	CONFIG_RIONET_RX_SIZE
+ #define RIONET_MAX_NETS		8
++#define RIONET_MSG_SIZE         RIO_MAX_MSG_SIZE
++#define RIONET_MAX_MTU          (RIONET_MSG_SIZE - ETH_HLEN)
  
- utf8=<bool>   -- UTF-8 is the filesystem safe version of Unicode that
--		 is used by the console.  It can be enabled for the
--		 filesystem with this option. If 'uni_xlate' gets set,
--		 UTF-8 gets disabled.
-+		 is used by the console. It can be enabled or disabled
-+		 for the filesystem with this option.
-+		 If 'uni_xlate' gets set, UTF-8 gets disabled.
-+		 By default, FAT_DEFAULT_UTF8 setting is used.
+ struct rionet_private {
+ 	struct rio_mport *mport;
+@@ -443,6 +445,17 @@ static void rionet_set_msglevel(struct n
+ 	rnet->msg_enable = value;
+ }
  
- uni_xlate=<bool> -- Translate unhandled Unicode characters to special
- 		 escaped sequences.  This would let you backup and
-diff -puN fs/fat/Kconfig~fat-add-config-option-to-set-utf-8-mount-option-by-default fs/fat/Kconfig
---- a/fs/fat/Kconfig~fat-add-config-option-to-set-utf-8-mount-option-by-default
-+++ a/fs/fat/Kconfig
-@@ -93,8 +93,24 @@ config FAT_DEFAULT_IOCHARSET
- 	  that most of your FAT filesystems use, and can be overridden
- 	  with the "iocharset" mount option for FAT filesystems.
- 	  Note that "utf8" is not recommended for FAT filesystems.
--	  If unsure, you shouldn't set "utf8" here.
-+	  If unsure, you shouldn't set "utf8" here - select the next option
-+	  instead if you would like to use UTF-8 encoded file names by default.
- 	  See <file:Documentation/filesystems/vfat.txt> for more information.
++static int rionet_change_mtu(struct net_device *ndev, int new_mtu)
++{
++	if ((new_mtu < 68) || (new_mtu > RIONET_MAX_MTU)) {
++		printk(KERN_ERR "%s: Invalid MTU size %d\n",
++		       ndev->name, new_mtu);
++		return -EINVAL;
++	}
++	ndev->mtu = new_mtu;
++	return 0;
++}
++
+ static const struct ethtool_ops rionet_ethtool_ops = {
+ 	.get_drvinfo = rionet_get_drvinfo,
+ 	.get_msglevel = rionet_get_msglevel,
+@@ -454,7 +467,7 @@ static const struct net_device_ops rione
+ 	.ndo_open		= rionet_open,
+ 	.ndo_stop		= rionet_close,
+ 	.ndo_start_xmit		= rionet_start_xmit,
+-	.ndo_change_mtu		= eth_change_mtu,
++	.ndo_change_mtu		= rionet_change_mtu,
+ 	.ndo_validate_addr	= eth_validate_addr,
+ 	.ndo_set_mac_address	= eth_mac_addr,
+ };
+@@ -489,7 +502,7 @@ static int rionet_setup_netdev(struct ri
+ 	ndev->dev_addr[5] = device_id & 0xff;
  
- 	  Enable any character sets you need in File Systems/Native Language
- 	  Support.
-+
-+config FAT_DEFAULT_UTF8
-+	bool "Enable FAT UTF-8 option by default"
-+	depends on VFAT_FS
-+	default n
-+	help
-+	  Set this if you would like to have "utf8" mount option set
-+	  by default when mounting FAT filesystems.
-+
-+	  Even if you say Y here can always disable UTF-8 for
-+	  particular mount by adding "utf8=0" to mount options.
-+
-+	  Say Y if you use UTF-8 encoding for file names, N otherwise.
-+
-+	  See <file:Documentation/filesystems/vfat.txt> for more information.
-diff -puN fs/fat/inode.c~fat-add-config-option-to-set-utf-8-mount-option-by-default fs/fat/inode.c
---- a/fs/fat/inode.c~fat-add-config-option-to-set-utf-8-mount-option-by-default
-+++ a/fs/fat/inode.c
-@@ -1127,7 +1127,7 @@ static int parse_options(struct super_bl
- 	}
- 	opts->name_check = 'n';
- 	opts->quiet = opts->showexec = opts->sys_immutable = opts->dotsOK =  0;
--	opts->utf8 = opts->unicode_xlate = 0;
-+	opts->unicode_xlate = 0;
- 	opts->numtail = 1;
- 	opts->usefree = opts->nocase = 0;
- 	opts->tz_set = 0;
-@@ -1135,6 +1135,8 @@ static int parse_options(struct super_bl
- 	opts->errors = FAT_ERRORS_RO;
- 	*debug = 0;
- 
-+	opts->utf8 = IS_ENABLED(CONFIG_FAT_DEFAULT_UTF8) && is_vfat;
-+
- 	if (!options)
- 		goto out;
- 
+ 	ndev->netdev_ops = &rionet_netdev_ops;
+-	ndev->mtu = RIO_MAX_MSG_SIZE - 14;
++	ndev->mtu = RIONET_MAX_MTU;
+ 	ndev->features = NETIF_F_LLTX;
+ 	SET_NETDEV_DEV(ndev, &mport->dev);
+ 	ndev->ethtool_ops = &rionet_ethtool_ops;
 _
 
-Patches currently in -mm which might be from mail@maciej.szmigiero.name are
+Patches currently in -mm which might be from a-jacquiot@ti.com are
 
 
