@@ -1,61 +1,69 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- auditsc-for-seccomp-events-log-syscall-compat-state-using-in_compat_syscall.patch removed from -mm tree
-Date: Wed, 23 Mar 2016 10:40:41 -0700
-Message-ID: <56f2d519.efwpVWXFH5vK12nu%akpm@linux-foundation.org>
+ seccomp-check-in_compat_syscall-not-is_compat_task-in-strict-mode.patch
+ removed from -mm tree
+Date: Wed, 23 Mar 2016 10:40:37 -0700
+Message-ID: <56f2d515.1yeRgIbjcHkYkQbc%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59083 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59077 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756260AbcCWRkr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:40:47 -0400
+	with ESMTP id S1756537AbcCWRki (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:40:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: luto@kernel.org, davem@davemloft.net, eparis@redhat.com, paul@paul-moore.com, mm-commits@vger.kernel.org
+To: luto@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: auditsc: for seccomp events, log syscall compat state using in_compat_syscall
+     Subject: seccomp: check in_compat_syscall, not is_compat_task, in strict mode
 has been removed from the -mm tree.  Its filename was
-     auditsc-for-seccomp-events-log-syscall-compat-state-using-in_compat_syscall.patch
+     seccomp-check-in_compat_syscall-not-is_compat_task-in-strict-mode.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Andy Lutomirski <luto@kernel.org>
-Subject: auditsc: for seccomp events, log syscall compat state using in_compat_syscall
+Subject: seccomp: check in_compat_syscall, not is_compat_task, in strict mode
 
-Except on SPARC, this is what the code always did.  SPARC compat
-seccomp was buggy, although the impact of the bug was limited
-because SPARC 32-bit and 64-bit syscall numbers are the same.
+Seccomp wants to know the syscall bitness, not the caller task bitness,
+when it selects the syscall whitelist.
+
+As far as I know, this makes no difference on any architecture, so it's
+not a security problem.  (It generates identical code everywhere except
+sparc, and, on sparc, the syscall numbering is the same for both ABIs.)
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
-Cc: Paul Moore <paul@paul-moore.com>
-Cc: Eric Paris <eparis@redhat.com>
-Cc: David Miller <davem@davemloft.net>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/auditsc.c |    4 ++--
+ kernel/seccomp.c |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN kernel/auditsc.c~auditsc-for-seccomp-events-log-syscall-compat-state-using-in_compat_syscall kernel/auditsc.c
---- a/kernel/auditsc.c~auditsc-for-seccomp-events-log-syscall-compat-state-using-in_compat_syscall
-+++ a/kernel/auditsc.c
-@@ -2412,8 +2412,8 @@ void __audit_seccomp(unsigned long sysca
- 		return;
- 	audit_log_task(ab);
- 	audit_log_format(ab, " sig=%ld arch=%x syscall=%ld compat=%d ip=0x%lx code=0x%x",
--			 signr, syscall_get_arch(), syscall, is_compat_task(),
--			 KSTK_EIP(current), code);
-+			 signr, syscall_get_arch(), syscall,
-+			 in_compat_syscall(), KSTK_EIP(current), code);
- 	audit_log_end(ab);
- }
+diff -puN kernel/seccomp.c~seccomp-check-in_compat_syscall-not-is_compat_task-in-strict-mode kernel/seccomp.c
+--- a/kernel/seccomp.c~seccomp-check-in_compat_syscall-not-is_compat_task-in-strict-mode
++++ a/kernel/seccomp.c
+@@ -395,7 +395,7 @@ seccomp_prepare_user_filter(const char _
+ 	struct seccomp_filter *filter = ERR_PTR(-EFAULT);
  
+ #ifdef CONFIG_COMPAT
+-	if (is_compat_task()) {
++	if (in_compat_syscall()) {
+ 		struct compat_sock_fprog fprog32;
+ 		if (copy_from_user(&fprog32, user_filter, sizeof(fprog32)))
+ 			goto out;
+@@ -529,7 +529,7 @@ static void __secure_computing_strict(in
+ {
+ 	int *syscall_whitelist = mode1_syscalls;
+ #ifdef CONFIG_COMPAT
+-	if (is_compat_task())
++	if (in_compat_syscall())
+ 		syscall_whitelist = mode1_syscalls_32;
+ #endif
+ 	do {
 _
 
 Patches currently in -mm which might be from luto@kernel.org are
