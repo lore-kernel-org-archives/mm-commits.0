@@ -1,101 +1,101 @@
 From: akpm@linux-foundation.org
-Subject: [obsolete] oom-reaper-handle-mlocked-pages.patch removed from -mm tree
-Date: Tue, 22 Mar 2016 16:02:55 -0700
-Message-ID: <56f1cf1f.0merJuAFYGXxlnjj%akpm@linux-foundation.org>
+Subject: [obsolete] linux-next-git-rejects.patch removed from -mm tree
+Date: Wed, 23 Mar 2016 10:40:03 -0700
+Message-ID: <56f2d4f3.sFAnqj2EeB8U++Sz%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33742 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59006 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751322AbcCVXC5 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 22 Mar 2016 19:02:57 -0400
+	with ESMTP id S1756351AbcCWRkF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:40:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, andrea@kernel.org, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom reaper: handle mlocked pages
+     Subject: linux-next-git-rejects
 has been removed from the -mm tree.  Its filename was
-     oom-reaper-handle-mlocked-pages.patch
+     linux-next-git-rejects.patch
 
 This patch was dropped because it is obsolete
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: oom reaper: handle mlocked pages
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-git-rejects
 
-__oom_reap_vmas current skips over all mlocked vmas because they need a
-special treatment before they are unmapped.  This is primarily done for
-simplicity.  There is no reason to skip over them and reduce the amount of
-reclaimed memory.  This is safe from the semantic point of view because
-try_to_unmap_one during rmap walk would keep tell the reclaim to cull the
-page back and mlock it again.
-
-munlock_vma_pages_all is also safe to be called from the oom reaper
-context because it doesn't sit on any locks but mmap_sem (for read).
-
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Andrea Argangeli <andrea@kernel.org>
-Acked-by: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ fs/btrfs/ctree.h   |    9 ---------
+ fs/btrfs/disk-io.c |    5 -----
+ 2 files changed, 14 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-reaper-handle-mlocked-pages mm/oom_kill.c
---- a/mm/oom_kill.c~oom-reaper-handle-mlocked-pages
-+++ a/mm/oom_kill.c
-@@ -442,13 +442,6 @@ static bool __oom_reap_vmas(struct mm_st
- 			continue;
+diff -puN fs/btrfs/ctree.h~linux-next-git-rejects fs/btrfs/ctree.h
+--- a/fs/btrfs/ctree.h~linux-next-git-rejects
++++ a/fs/btrfs/ctree.h
+@@ -2200,21 +2200,12 @@ struct btrfs_ioctl_defrag_range_args {
+  *
+  * - balance status item
+  *   (BTRFS_BALANCE_OBJECTID, BTRFS_TEMPORARY_ITEM_KEY, 0)
+-<<<<<<< HEAD
+  */
+ #define BTRFS_TEMPORARY_ITEM_KEY	248
  
- 		/*
--		 * mlocked VMAs require explicit munlocking before unmap.
--		 * Let's keep it simple here and skip such VMAs.
--		 */
--		if (vma->vm_flags & VM_LOCKED)
--			continue;
+ /*
+  * Obsolete name, see BTRFS_PERSISTENT_ITEM_KEY
+  */
+-=======
+- */
+-#define BTRFS_TEMPORARY_ITEM_KEY	248
 -
--		/*
- 		 * Only anonymous pages have a good chance to be dropped
- 		 * without additional steps which we cannot afford as we
- 		 * are OOM already.
-@@ -458,9 +451,12 @@ static bool __oom_reap_vmas(struct mm_st
- 		 * we do not want to block exit_mmap by keeping mm ref
- 		 * count elevated without a good reason.
- 		 */
--		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED))
-+		if (vma_is_anonymous(vma) || !(vma->vm_flags & VM_SHARED)) {
-+			if (vma->vm_flags & VM_LOCKED)
-+				munlock_vma_pages_all(vma);
- 			unmap_page_range(&tlb, vma, vma->vm_start, vma->vm_end,
- 					 &details);
-+		}
- 	}
- 	tlb_finish_mmu(&tlb, 0, -1);
- 	up_read(&mm->mmap_sem);
+-/*
+- * Obsolete name, see BTRFS_PERSISTENT_ITEM_KEY
+- */
+->>>>>>> linux-next/akpm-base
+ #define BTRFS_DEV_STATS_KEY		249
+ 
+ /*
+diff -puN fs/btrfs/disk-io.c~linux-next-git-rejects fs/btrfs/disk-io.c
+--- a/fs/btrfs/disk-io.c~linux-next-git-rejects
++++ a/fs/btrfs/disk-io.c
+@@ -670,12 +670,7 @@ static int btree_readpage_end_io_hook(st
+ 				       eb, found_level);
+ 
+ 	ret = csum_tree_block(fs_info, eb, 1);
+-<<<<<<< HEAD
+-	if (ret) {
+-		ret = -EIO;
+-=======
+ 	if (ret)
+->>>>>>> linux-next/akpm-base
+ 		goto err;
+ 
+ 	/*
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-oom-introduce-oom-reaper.patch
-oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
-mm-oom_reaper-report-success-failure.patch
-mm-oom_reaper-report-success-failure-v6.patch
-mm-oom_reaper-implement-oom-victims-queuing.patch
-mm-oom_reaper-implement-oom-victims-queuing-v6.patch
-oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task.patch
-oom-make-oom_reaper-freezable.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+sched-add-schedule_timeout_idle.patch
+drivers-input-eliminate-input_compat_test-macro.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+ocfs2-code-clean-up-for-direct-io-fix.patch
+ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue-fix.patch
+ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert-fix.patch
+mm.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-fix.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
