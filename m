@@ -1,150 +1,344 @@
 From: akpm@linux-foundation.org
-Subject: [merged] rapidio-add-outbound-window-support.patch removed from
- -mm tree
-Date: Wed, 23 Mar 2016 10:41:58 -0700
-Message-ID: <56f2d566.8TIsmV8TsQIt48Uh%akpm@linux-foundation.org>
+Subject: [merged]
+ rapidio-tsi721-add-outbound-windows-mapping-support.patch removed from -mm
+ tree
+Date: Wed, 23 Mar 2016 10:42:00 -0700
+Message-ID: <56f2d568.t8gYrx86pG+Wlc8v%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59269 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:59279 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756505AbcCWRl7 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:41:59 -0400
+	with ESMTP id S1756526AbcCWRmB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 13:42:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, leoli@freescale.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
+To: alexandre.bounine@idt.com, a-jacquiot@ti.com, andre.van.herk@prodrive-technologies.com, mporter@kernel.crashing.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: rapidio: add outbound window support
+     Subject: rapidio/tsi721: add outbound windows mapping support
 has been removed from the -mm tree.  Its filename was
-     rapidio-add-outbound-window-support.patch
+     rapidio-tsi721-add-outbound-windows-mapping-support.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Alexandre Bounine <alexandre.bounine@idt.com>
-Subject: rapidio: add outbound window support
+Subject: rapidio/tsi721: add outbound windows mapping support
 
-Add RapidIO controller (mport) outbound window configuration operations.
-  This patch is a part of the original patch submitted by Li Yang
-  (https://lists.ozlabs.org/pipermail/linuxppc-dev/2009-April/071210.html).
-  For some reason the original part was not applied to mainline code
-  tree.  The inbound window mapping part has been applied later during
-  tsi721 mport driver submission.  Now goes the second part with
-  corresponding HW support.
+Add device-specific callback functions to support outbound windows mapping
+and release.
 
 Signed-off-by: Alexandre Bounine <alexandre.bounine@idt.com>
 Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Li Yang <leoli@freescale.com>
 Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
 Cc: Andre van Herk <andre.van.herk@prodrive-technologies.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/rapidio/rio.c   |   50 ++++++++++++++++++++++++++++++++++++++
- include/linux/rio.h     |    5 +++
- include/linux/rio_drv.h |    4 +++
- 3 files changed, 59 insertions(+)
+ drivers/rapidio/devices/tsi721.c |  222 ++++++++++++++++++++++++++++-
+ drivers/rapidio/devices/tsi721.h |   20 ++
+ 2 files changed, 235 insertions(+), 7 deletions(-)
 
-diff -puN drivers/rapidio/rio.c~rapidio-add-outbound-window-support drivers/rapidio/rio.c
---- a/drivers/rapidio/rio.c~rapidio-add-outbound-window-support
-+++ a/drivers/rapidio/rio.c
-@@ -700,6 +700,56 @@ void rio_unmap_inb_region(struct rio_mpo
- EXPORT_SYMBOL_GPL(rio_unmap_inb_region);
+diff -puN drivers/rapidio/devices/tsi721.c~rapidio-tsi721-add-outbound-windows-mapping-support drivers/rapidio/devices/tsi721.c
+--- a/drivers/rapidio/devices/tsi721.c~rapidio-tsi721-add-outbound-windows-mapping-support
++++ a/drivers/rapidio/devices/tsi721.c
+@@ -841,6 +841,169 @@ static void tsi721_free_irq(struct tsi72
+ 	free_irq(priv->pdev->irq, (void *)priv);
+ }
+ 
++static int
++tsi721_obw_alloc(struct tsi721_device *priv, struct tsi721_obw_bar *pbar,
++		 u32 size, int *win_id)
++{
++	u64 win_base;
++	u64 bar_base;
++	u64 bar_end;
++	u32 align;
++	struct tsi721_ob_win *win;
++	struct tsi721_ob_win *new_win = NULL;
++	int new_win_idx = -1;
++	int i = 0;
++
++	bar_base = pbar->base;
++	bar_end =  bar_base + pbar->size;
++	win_base = bar_base;
++	align = size/TSI721_PC2SR_ZONES;
++
++	while (i < TSI721_IBWIN_NUM) {
++		for (i = 0; i < TSI721_IBWIN_NUM; i++) {
++			if (!priv->ob_win[i].active) {
++				if (new_win == NULL) {
++					new_win = &priv->ob_win[i];
++					new_win_idx = i;
++				}
++				continue;
++			}
++
++			/*
++			 * If this window belongs to the current BAR check it
++			 * for overlap
++			 */
++			win = &priv->ob_win[i];
++
++			if (win->base >= bar_base && win->base < bar_end) {
++				if (win_base < (win->base + win->size) &&
++						(win_base + size) > win->base) {
++					/* Overlap detected */
++					win_base = win->base + win->size;
++					win_base = ALIGN(win_base, align);
++					break;
++				}
++			}
++		}
++	}
++
++	if (win_base + size > bar_end)
++		return -ENOMEM;
++
++	if (!new_win) {
++		dev_err(&priv->pdev->dev, "ERR: OBW count tracking failed\n");
++		return -EIO;
++	}
++
++	new_win->active = true;
++	new_win->base = win_base;
++	new_win->size = size;
++	new_win->pbar = pbar;
++	priv->obwin_cnt--;
++	pbar->free -= size;
++	*win_id = new_win_idx;
++	return 0;
++}
++
++static int tsi721_map_outb_win(struct rio_mport *mport, u16 destid, u64 rstart,
++			u32 size, u32 flags, dma_addr_t *laddr)
++{
++	struct tsi721_device *priv = mport->priv;
++	int i;
++	struct tsi721_obw_bar *pbar;
++	struct tsi721_ob_win *ob_win;
++	int obw = -1;
++	u32 rval;
++	u64 rio_addr;
++	u32 zsize;
++	int ret = -ENOMEM;
++
++	if (!is_power_of_2(size) || (size < 0x8000) || (rstart & (size - 1)))
++		return -EINVAL;
++
++	if (priv->obwin_cnt == 0)
++		return -EBUSY;
++
++	for (i = 0; i < 2; i++) {
++		if (priv->p2r_bar[i].free >= size) {
++			pbar = &priv->p2r_bar[i];
++			ret = tsi721_obw_alloc(priv, pbar, size, &obw);
++			if (!ret)
++				break;
++		}
++	}
++
++	if (ret)
++		return ret;
++
++	WARN_ON(obw == -1);
++	ob_win = &priv->ob_win[obw];
++	ob_win->destid = destid;
++	ob_win->rstart = rstart;
++
++	/*
++	 * Configure Outbound Window
++	 */
++
++	zsize = size/TSI721_PC2SR_ZONES;
++	rio_addr = rstart;
++
++	/*
++	 * Program Address Translation Zones:
++	 *  This implementation uses all 8 zones associated wit window.
++	 */
++	for (i = 0; i < TSI721_PC2SR_ZONES; i++) {
++
++		while (ioread32(priv->regs + TSI721_ZONE_SEL) &
++			TSI721_ZONE_SEL_GO) {
++			udelay(1);
++		}
++
++		rval = (u32)(rio_addr & TSI721_LUT_DATA0_ADD) |
++			TSI721_LUT_DATA0_NREAD | TSI721_LUT_DATA0_NWR;
++		iowrite32(rval, priv->regs + TSI721_LUT_DATA0);
++		rval = (u32)(rio_addr >> 32);
++		iowrite32(rval, priv->regs + TSI721_LUT_DATA1);
++		rval = destid;
++		iowrite32(rval, priv->regs + TSI721_LUT_DATA2);
++
++		rval = TSI721_ZONE_SEL_GO | (obw << 3) | i;
++		iowrite32(rval, priv->regs + TSI721_ZONE_SEL);
++
++		rio_addr += zsize;
++	}
++
++	iowrite32(TSI721_OBWIN_SIZE(size) << 8,
++		  priv->regs + TSI721_OBWINSZ(obw));
++	iowrite32((u32)(ob_win->base >> 32), priv->regs + TSI721_OBWINUB(obw));
++	iowrite32((u32)(ob_win->base & TSI721_OBWINLB_BA) | TSI721_OBWINLB_WEN,
++		  priv->regs + TSI721_OBWINLB(obw));
++
++	*laddr = ob_win->base;
++	return 0;
++}
++
++static void tsi721_unmap_outb_win(struct rio_mport *mport,
++				  u16 destid, u64 rstart)
++{
++	struct tsi721_device *priv = mport->priv;
++	struct tsi721_ob_win *ob_win;
++	int i;
++
++	for (i = 0; i < TSI721_OBWIN_NUM; i++) {
++		ob_win = &priv->ob_win[i];
++
++		if (ob_win->active &&
++		    ob_win->destid == destid && ob_win->rstart == rstart) {
++			ob_win->active = false;
++			iowrite32(0, priv->regs + TSI721_OBWINLB(i));
++			ob_win->pbar->free += ob_win->size;
++			priv->obwin_cnt++;
++			break;
++		}
++	}
++}
++
+ /**
+  * tsi721_init_pc2sr_mapping - initializes outbound (PCIe->SRIO)
+  * translation regions.
+@@ -850,11 +1013,41 @@ static void tsi721_free_irq(struct tsi72
+  */
+ static void tsi721_init_pc2sr_mapping(struct tsi721_device *priv)
+ {
+-	int i;
++	int i, z;
++	u32 rval;
+ 
+ 	/* Disable all PC2SR translation windows */
+ 	for (i = 0; i < TSI721_OBWIN_NUM; i++)
+ 		iowrite32(0, priv->regs + TSI721_OBWINLB(i));
++
++	/* Initialize zone lookup tables to avoid ECC errors on reads */
++	iowrite32(0, priv->regs + TSI721_LUT_DATA0);
++	iowrite32(0, priv->regs + TSI721_LUT_DATA1);
++	iowrite32(0, priv->regs + TSI721_LUT_DATA2);
++
++	for (i = 0; i < TSI721_OBWIN_NUM; i++) {
++		for (z = 0; z < TSI721_PC2SR_ZONES; z++) {
++			while (ioread32(priv->regs + TSI721_ZONE_SEL) &
++				TSI721_ZONE_SEL_GO) {
++				udelay(1);
++			}
++			rval = TSI721_ZONE_SEL_GO | (i << 3) | z;
++			iowrite32(rval, priv->regs + TSI721_ZONE_SEL);
++		}
++	}
++
++	if (priv->p2r_bar[0].size == 0 && priv->p2r_bar[1].size == 0) {
++		priv->obwin_cnt = 0;
++		return;
++	}
++
++	priv->p2r_bar[0].free = priv->p2r_bar[0].size;
++	priv->p2r_bar[1].free = priv->p2r_bar[1].size;
++
++	for (i = 0; i < TSI721_OBWIN_NUM; i++)
++		priv->ob_win[i].active = false;
++
++	priv->obwin_cnt = TSI721_OBWIN_NUM;
+ }
  
  /**
-+ * rio_map_outb_region -- Map outbound memory region.
-+ * @mport: Master port.
-+ * @destid: destination id window points to
-+ * @rbase: RIO base address window translates to
-+ * @size: Size of the memory region
-+ * @rflags: Flags for mapping.
-+ * @local: physical address of memory region mapped
-+ *
-+ * Return: 0 -- Success.
-+ *
-+ * This function will create the mapping from RIO space to local memory.
-+ */
-+int rio_map_outb_region(struct rio_mport *mport, u16 destid, u64 rbase,
-+			u32 size, u32 rflags, dma_addr_t *local)
-+{
-+	int rc = 0;
-+	unsigned long flags;
-+
-+	if (!mport->ops->map_outb)
-+		return -ENODEV;
-+
-+	spin_lock_irqsave(&rio_mmap_lock, flags);
-+	rc = mport->ops->map_outb(mport, destid, rbase, size,
-+		rflags, local);
-+	spin_unlock_irqrestore(&rio_mmap_lock, flags);
-+
-+	return rc;
-+}
-+EXPORT_SYMBOL_GPL(rio_map_outb_region);
-+
-+/**
-+ * rio_unmap_inb_region -- Unmap the inbound memory region
-+ * @mport: Master port
-+ * @destid: destination id mapping points to
-+ * @rstart: RIO base address window translates to
-+ */
-+void rio_unmap_outb_region(struct rio_mport *mport, u16 destid, u64 rstart)
-+{
-+	unsigned long flags;
-+
-+	if (!mport->ops->unmap_outb)
-+		return;
-+
-+	spin_lock_irqsave(&rio_mmap_lock, flags);
-+	mport->ops->unmap_outb(mport, destid, rstart);
-+	spin_unlock_irqrestore(&rio_mmap_lock, flags);
-+}
-+EXPORT_SYMBOL_GPL(rio_unmap_outb_region);
-+
-+/**
-  * rio_mport_get_physefb - Helper function that returns register offset
-  *                      for Physical Layer Extended Features Block.
-  * @port: Master port to issue transaction
-diff -puN include/linux/rio.h~rapidio-add-outbound-window-support include/linux/rio.h
---- a/include/linux/rio.h~rapidio-add-outbound-window-support
-+++ a/include/linux/rio.h
-@@ -400,6 +400,8 @@ struct rio_mport_attr {
-  * @map_inb: Callback to map RapidIO address region into local memory space.
-  * @unmap_inb: Callback to unmap RapidIO address region mapped with map_inb().
-  * @query_mport: Callback to query mport device attributes.
-+ * @map_outb: Callback to map outbound address region into local memory space.
-+ * @unmap_outb: Callback to unmap outbound RapidIO address region.
-  */
- struct rio_ops {
- 	int (*lcread) (struct rio_mport *mport, int index, u32 offset, int len,
-@@ -427,6 +429,9 @@ struct rio_ops {
- 	void (*unmap_inb)(struct rio_mport *mport, dma_addr_t lstart);
- 	int (*query_mport)(struct rio_mport *mport,
- 			   struct rio_mport_attr *attr);
-+	int (*map_outb)(struct rio_mport *mport, u16 destid, u64 rstart,
-+			u32 size, u32 flags, dma_addr_t *laddr);
-+	void (*unmap_outb)(struct rio_mport *mport, u16 destid, u64 rstart);
+@@ -2418,6 +2611,8 @@ static struct rio_ops tsi721_rio_ops = {
+ 	.unmap_inb		= tsi721_rio_unmap_inb_mem,
+ 	.pwenable		= tsi721_pw_enable,
+ 	.query_mport		= tsi721_query_mport,
++	.map_outb		= tsi721_map_outb_win,
++	.unmap_outb		= tsi721_unmap_outb_win,
  };
  
- #define RIO_RESOURCE_MEM	0x00000100
-diff -puN include/linux/rio_drv.h~rapidio-add-outbound-window-support include/linux/rio_drv.h
---- a/include/linux/rio_drv.h~rapidio-add-outbound-window-support
-+++ a/include/linux/rio_drv.h
-@@ -369,6 +369,10 @@ void rio_release_region(struct rio_dev *
- extern int rio_map_inb_region(struct rio_mport *mport, dma_addr_t local,
- 			u64 rbase, u32 size, u32 rflags);
- extern void rio_unmap_inb_region(struct rio_mport *mport, dma_addr_t lstart);
-+extern int rio_map_outb_region(struct rio_mport *mport, u16 destid, u64 rbase,
-+			u32 size, u32 rflags, dma_addr_t *local);
-+extern void rio_unmap_outb_region(struct rio_mport *mport,
-+				  u16 destid, u64 rstart);
+ static void tsi721_mport_release(struct device *dev)
+@@ -2573,14 +2768,27 @@ static int tsi721_probe(struct pci_dev *
+ 	 * It may be a good idea to keep them disabled using HW configuration
+ 	 * to save PCI memory space.
+ 	 */
+-	if ((pci_resource_flags(pdev, BAR_2) & IORESOURCE_MEM) &&
+-	    (pci_resource_flags(pdev, BAR_2) & IORESOURCE_MEM_64)) {
+-		dev_info(&pdev->dev, "Outbound BAR2 is not used but enabled.\n");
++
++	priv->p2r_bar[0].size = priv->p2r_bar[1].size = 0;
++
++	if (pci_resource_flags(pdev, BAR_2) & IORESOURCE_MEM_64) {
++		if (pci_resource_flags(pdev, BAR_2) & IORESOURCE_PREFETCH)
++			dev_info(&pdev->dev,
++				 "Prefetchable OBW BAR2 will not be used\n");
++		else {
++			priv->p2r_bar[0].base = pci_resource_start(pdev, BAR_2);
++			priv->p2r_bar[0].size = pci_resource_len(pdev, BAR_2);
++		}
+ 	}
  
- /* Port-Write management */
- extern int rio_request_inb_pwrite(struct rio_dev *,
+-	if ((pci_resource_flags(pdev, BAR_4) & IORESOURCE_MEM) &&
+-	    (pci_resource_flags(pdev, BAR_4) & IORESOURCE_MEM_64)) {
+-		dev_info(&pdev->dev, "Outbound BAR4 is not used but enabled.\n");
++	if (pci_resource_flags(pdev, BAR_4) & IORESOURCE_MEM_64) {
++		if (pci_resource_flags(pdev, BAR_4) & IORESOURCE_PREFETCH)
++			dev_info(&pdev->dev,
++				 "Prefetchable OBW BAR4 will not be used\n");
++		else {
++			priv->p2r_bar[1].base = pci_resource_start(pdev, BAR_4);
++			priv->p2r_bar[1].size = pci_resource_len(pdev, BAR_4);
++		}
+ 	}
+ 
+ 	err = pci_request_regions(pdev, DRV_NAME);
+diff -puN drivers/rapidio/devices/tsi721.h~rapidio-tsi721-add-outbound-windows-mapping-support drivers/rapidio/devices/tsi721.h
+--- a/drivers/rapidio/devices/tsi721.h~rapidio-tsi721-add-outbound-windows-mapping-support
++++ a/drivers/rapidio/devices/tsi721.h
+@@ -822,6 +822,21 @@ struct tsi721_ib_win {
+ 	struct list_head mappings;
+ };
+ 
++struct tsi721_obw_bar {
++	u64		base;
++	u64		size;
++	u64		free;
++};
++
++struct tsi721_ob_win {
++	u64		base;
++	u32		size;
++	u16		destid;
++	u64		rstart;
++	bool		active;
++	struct tsi721_obw_bar *pbar;
++};
++
+ struct tsi721_device {
+ 	struct pci_dev	*pdev;
+ 	struct rio_mport mport;
+@@ -861,6 +876,11 @@ struct tsi721_device {
+ 	/* Inbound Mapping Windows */
+ 	struct tsi721_ib_win ib_win[TSI721_IBWIN_NUM];
+ 	int		ibwin_cnt;
++
++	/* Outbound Mapping Windows */
++	struct tsi721_obw_bar p2r_bar[2];
++	struct tsi721_ob_win  ob_win[TSI721_OBWIN_NUM];
++	int		obwin_cnt;
+ };
+ 
+ #ifdef CONFIG_RAPIDIO_DMA_ENGINE
 _
 
 Patches currently in -mm which might be from alexandre.bounine@idt.com are
