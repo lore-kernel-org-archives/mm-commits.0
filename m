@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mmoom-remove-undefined-oom_kills_count-note_oom_kill.patch
- added to -mm tree
-Date: Wed, 23 Mar 2016 14:20:14 -0700
-Message-ID: <56f3088e.S5iD1MAsxaPN5x42%akpm@linux-foundation.org>
+Subject: + ocfs2-o2hb-add-nego_timeout-message-v2.patch added to -mm tree
+Date: Thu, 24 Mar 2016 12:54:05 -0700
+Message-ID: <56f445dd.bUA3B41mkAhTJ6qY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:35870 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40357 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753156AbcCWVUP (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 23 Mar 2016 17:20:15 -0400
+	with ESMTP id S1751262AbcCXTyG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2016 15:54:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, mhocko@suse.com, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, ghe@suse.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, rwxybh@126.com, ryan.ding@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/oom.h: remove undefined oom_kills_count()/note_oom_kill()
+     Subject: ocfs2-o2hb-add-nego_timeout-message-v2
 has been added to the -mm tree.  Its filename is
-     mmoom-remove-undefined-oom_kills_count-note_oom_kill.patch
+     ocfs2-o2hb-add-nego_timeout-message-v2.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmoom-remove-undefined-oom_kills_count-note_oom_kill.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-o2hb-add-nego_timeout-message-v2.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmoom-remove-undefined-oom_kills_count-note_oom_kill.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-o2hb-add-nego_timeout-message-v2.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,36 +38,62 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: include/linux/oom.h: remove undefined oom_kills_count()/note_oom_kill()
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2-o2hb-add-nego_timeout-message-v2
 
-A leftover from c32b3cbe0d06 ("oom, PM: make OOM detection in the freezer
-path raceless").
-
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Ryan Ding <ryan.ding@oracle.com>
+Cc: Gang He <ghe@suse.com>
+Cc: rwxybh <rwxybh@126.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h |    2 --
- 1 file changed, 2 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN include/linux/oom.h~mmoom-remove-undefined-oom_kills_count-note_oom_kill include/linux/oom.h
---- a/include/linux/oom.h~mmoom-remove-undefined-oom_kills_count-note_oom_kill
-+++ a/include/linux/oom.h
-@@ -76,8 +76,6 @@ extern unsigned long oom_badness(struct
- 		struct mem_cgroup *memcg, const nodemask_t *nodemask,
- 		unsigned long totalpages);
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-add-nego_timeout-message-v2 fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-add-nego_timeout-message-v2
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -420,7 +420,7 @@ static void o2hb_nego_timeout(struct wor
+ static int o2hb_nego_timeout_handler(struct o2net_msg *msg, u32 len, void *data,
+ 				void **ret_data)
+ {
+-	struct o2hb_region *reg = (struct o2hb_region *)data;
++	struct o2hb_region *reg = data;
+ 	struct o2hb_nego_msg *nego_msg;
  
--extern int oom_kills_count(void);
--extern void note_oom_kill(void);
- extern void oom_kill_process(struct oom_control *oc, struct task_struct *p,
- 			     unsigned int points, unsigned long totalpages,
- 			     struct mem_cgroup *memcg, const char *message);
+ 	nego_msg = (struct o2hb_nego_msg *)msg->buf;
+@@ -2103,12 +2103,12 @@ static struct config_item *o2hb_heartbea
+ 	ret = o2hb_debug_region_init(reg, o2hb_debug_dir);
+ 	if (ret) {
+ 		config_item_put(&reg->hr_item);
+-		goto free_handler;
++		goto unregister_handler;
+ 	}
+ 
+ 	return &reg->hr_item;
+ 
+-free_handler:
++unregister_handler:
+ 	o2net_unregister_handler_list(&reg->hr_handler_list);
+ free:
+ 	kfree(reg);
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
-oom-oom_reaper-protect-oom_reaper_list-using-simpler-way.patch
-mmoom-remove-undefined-oom_kills_count-note_oom_kill.patch
+ocfs2-o2hb-fix-double-free-bug.patch
+ocfs2-o2hb-add-negotiate-timer.patch
+ocfs2-o2hb-add-negotiate-timer-v2.patch
+ocfs2-o2hb-add-nego_timeout-message.patch
+ocfs2-o2hb-add-nego_timeout-message-v2.patch
+ocfs2-o2hb-add-negotiate_approve-message.patch
+ocfs2-o2hb-add-negotiate_approve-message-v2.patch
+ocfs2-o2hb-add-some-user-debug-log.patch
+ocfs2-o2hb-add-some-user-debug-log-v2.patch
+ocfs2-o2hb-dont-negotiate-if-last-hb-fail.patch
+ocfs2-o2hb-fix-hb-hung-time.patch
 
