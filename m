@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + compilerh-add-support-for-malloc-attribute.patch added to -mm
- tree
-Date: Thu, 24 Mar 2016 15:38:31 -0700
-Message-ID: <56f46c67.ckJuIonOAvhpCIAW%akpm@linux-foundation.org>
+Subject: + include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
+ added to -mm tree
+Date: Thu, 24 Mar 2016 15:39:38 -0700
+Message-ID: <56f46caa.AkTBKoWWP0gZ8aSJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:42566 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:42575 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751087AbcCXWid (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2016 18:38:33 -0400
+	with ESMTP id S1751087AbcCXWjj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 24 Mar 2016 18:39:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, ak@linux.intel.com, cl@linux.com, iamjoonsoo.kim@lge.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, linux@rasmusvillemoes.dk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: compiler.h: add support for malloc attribute
+     Subject: include-linux-apply-__malloc-attribute-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     compilerh-add-support-for-malloc-attribute.patch
+     include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/compilerh-add-support-for-malloc-attribute.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/compilerh-add-support-for-malloc-attribute.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,87 +39,56 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: compiler.h: add support for malloc attribute
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: include-linux-apply-__malloc-attribute-checkpatch-fixes
 
-gcc as far back as at least 3.04 documents the function attribute
-__malloc__.  Add a shorthand for attaching that to a function declaration.
-This was also suggested by Andi Kleen way back in 2002 [1], but didn't
-get applied, perhaps because gcc at that time generated the exact same
-code with and without this attribute.
+ERROR: "foo * bar" should be "foo *bar"
+#171: FILE: include/linux/mempool.h:35:
++extern void * mempool_alloc(mempool_t *pool, gfp_t gfp_mask) __malloc;
 
-This attribute tells the compiler that the return value (if non-NULL) can
-be assumed not to alias any other valid pointers at the time of the call.
-
-Please note that the documentation for a range of gcc versions (starting
-from around 4.7) contained a somewhat confusing and self-contradicting
-text:
-
-  The malloc attribute is used to tell the compiler that a function may
-  be treated as if any non-NULL pointer it returns cannot alias any other
-  pointer valid when the function returns and *that the memory has
-  undefined content*.  [...] Standard functions with this property include
-  malloc and *calloc*.
-
-(emphasis mine). The intended meaning has later been clarified [2]:
-
-  This tells the compiler that a function is malloc-like, i.e., that the
-  pointer P returned by the function cannot alias any other pointer valid
-  when the function returns, and moreover no pointers to valid objects
-  occur in any storage addressed by P.
-
-What this means is that we can apply the attribute to kmalloc and friends,
-and it is ok for the returned memory to have well-defined contents
-(__GFP_ZERO).  But it is not ok to apply it to kmemdup(), nor to other
-functions which both allocate and possibly initialize the memory with
-existing pointers.  So unless someone is doing something pretty perverted
-kstrdup() should also be a fine candidate.
-
-[1] http://thread.gmane.org/gmane.linux.kernel/57172
-[2] https://gcc.gnu.org/bugzilla/show_bug.cgi?id=56955
-
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compiler-gcc.h |    1 +
- include/linux/compiler.h     |    4 ++++
- 2 files changed, 5 insertions(+)
+ include/linux/mempool.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN include/linux/compiler-gcc.h~compilerh-add-support-for-malloc-attribute include/linux/compiler-gcc.h
---- a/include/linux/compiler-gcc.h~compilerh-add-support-for-malloc-attribute
-+++ a/include/linux/compiler-gcc.h
-@@ -142,6 +142,7 @@
+diff -puN include/linux/bootmem.h~include-linux-apply-__malloc-attribute-checkpatch-fixes include/linux/bootmem.h
+diff -puN include/linux/device.h~include-linux-apply-__malloc-attribute-checkpatch-fixes include/linux/device.h
+diff -puN include/linux/kernel.h~include-linux-apply-__malloc-attribute-checkpatch-fixes include/linux/kernel.h
+diff -puN include/linux/mempool.h~include-linux-apply-__malloc-attribute-checkpatch-fixes include/linux/mempool.h
+--- a/include/linux/mempool.h~include-linux-apply-__malloc-attribute-checkpatch-fixes
++++ a/include/linux/mempool.h
+@@ -32,7 +32,7 @@ extern mempool_t *mempool_create_node(in
  
- #if GCC_VERSION >= 30400
- #define __must_check		__attribute__((warn_unused_result))
-+#define __malloc		__attribute__((__malloc__))
- #endif
+ extern int mempool_resize(mempool_t *pool, int new_min_nr);
+ extern void mempool_destroy(mempool_t *pool);
+-extern void * mempool_alloc(mempool_t *pool, gfp_t gfp_mask) __malloc;
++extern void *mempool_alloc(mempool_t *pool, gfp_t gfp_mask) __malloc;
+ extern void mempool_free(void *element, mempool_t *pool);
  
- #if GCC_VERSION >= 40000
-diff -puN include/linux/compiler.h~compilerh-add-support-for-malloc-attribute include/linux/compiler.h
---- a/include/linux/compiler.h~compilerh-add-support-for-malloc-attribute
-+++ a/include/linux/compiler.h
-@@ -357,6 +357,10 @@ static __always_inline void __write_once
- #define __deprecated_for_modules
- #endif
- 
-+#ifndef __malloc
-+#define __malloc
-+#endif
-+
  /*
-  * Allow us to avoid 'defined but not used' warnings on functions and data,
-  * as well as force them to be emitted to the assembly file.
+diff -puN include/linux/slab.h~include-linux-apply-__malloc-attribute-checkpatch-fixes include/linux/slab.h
+diff -puN include/linux/string.h~include-linux-apply-__malloc-attribute-checkpatch-fixes include/linux/string.h
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-compilerh-add-support-for-malloc-attribute.patch
-include-linux-apply-__malloc-attribute.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+sched-add-schedule_timeout_idle.patch
+drivers-input-eliminate-input_compat_test-macro.patch
+mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
