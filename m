@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-fix-2.patch
- added to -mm tree
-Date: Fri, 25 Mar 2016 11:46:59 -0700
-Message-ID: <56f587a3.nfxA7+JvqNRDls00%akpm@linux-foundation.org>
+Subject: + thp-fix-typo-in-khugepaged_scan_pmd.patch added to -mm tree
+Date: Fri, 25 Mar 2016 11:48:49 -0700
+Message-ID: <56f58811.cuMeCJtd4yLQaVfd%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36946 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37164 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753820AbcCYSrA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2016 14:47:00 -0400
+	with ESMTP id S1753262AbcCYSsu (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2016 14:48:50 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, glider@google.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, ebru.akagunduz@gmail.com, riel@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject:  mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-fix-2
+     Subject: thp: fix typo in khugepaged_scan_pmd()
 has been added to the -mm tree.  Its filename is
-     mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-fix-2.patch
+     thp-fix-typo-in-khugepaged_scan_pmd.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-fix-2.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/thp-fix-typo-in-khugepaged_scan_pmd.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-fix-2.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/thp-fix-typo-in-khugepaged_scan_pmd.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,106 +38,39 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject:  mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-fix-2
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp: fix typo in khugepaged_scan_pmd()
 
-Comments style fixes.
+!PageLRU should lead to SCAN_PAGE_LRU, not SCAN_SCAN_ABORT result.
 
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- lib/stackdepot.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN lib/stackdepot.c~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-fix-2 lib/stackdepot.c
---- a/lib/stackdepot.c~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-fix-2
-+++ a/lib/stackdepot.c
-@@ -81,7 +81,8 @@ static bool init_stack_slab(void **preal
- {
- 	if (!*prealloc)
- 		return false;
--	/* This smp_load_acquire() pairs with smp_store_release() to
-+	/*
-+	 * This smp_load_acquire() pairs with smp_store_release() to
- 	 * |next_slab_inited| below and in depot_alloc_stack().
- 	 */
- 	if (smp_load_acquire(&next_slab_inited))
-@@ -90,7 +91,8 @@ static bool init_stack_slab(void **preal
- 		stack_slabs[depot_index] = *prealloc;
- 	} else {
- 		stack_slabs[depot_index + 1] = *prealloc;
--		/* This smp_store_release pairs with smp_load_acquire() from
-+		/*
-+		 * This smp_store_release pairs with smp_load_acquire() from
- 		 * |next_slab_inited| above and in depot_save_stack().
- 		 */
- 		smp_store_release(&next_slab_inited, 1);
-@@ -116,7 +118,8 @@ static struct stack_record *depot_alloc_
+diff -puN mm/huge_memory.c~thp-fix-typo-in-khugepaged_scan_pmd mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-fix-typo-in-khugepaged_scan_pmd
++++ a/mm/huge_memory.c
+@@ -2578,7 +2578,7 @@ static int khugepaged_scan_pmd(struct mm
  		}
- 		depot_index++;
- 		depot_offset = 0;
--		/* smp_store_release() here pairs with smp_load_acquire() from
-+		/*
-+		 * smp_store_release() here pairs with smp_load_acquire() from
- 		 * |next_slab_inited| in depot_save_stack() and
- 		 * init_stack_slab().
- 		 */
-@@ -186,7 +189,7 @@ void depot_fetch_stack(depot_stack_handl
- 	trace->skip = 0;
- }
- 
--/*
-+/**
-  * depot_save_stack - save stack in a stack depot.
-  * @trace - the stacktrace to save.
-  * @alloc_flags - flags for allocating additional memory if required.
-@@ -213,8 +216,8 @@ depot_stack_handle_t depot_save_stack(st
- 
- 	bucket = &stack_table[hash & STACK_HASH_MASK];
- 
--	/* Fast path: look the stack trace up without locking.
--	 *
-+	/*
-+	 * Fast path: look the stack trace up without locking.
- 	 * The smp_load_acquire() here pairs with smp_store_release() to
- 	 * |bucket| below.
- 	 */
-@@ -223,7 +226,8 @@ depot_stack_handle_t depot_save_stack(st
- 	if (found)
- 		goto exit;
- 
--	/* Check if the current or the next stack slab need to be initialized.
-+	/*
-+	 * Check if the current or the next stack slab need to be initialized.
- 	 * If so, allocate the memory - we won't be able to do that under the
- 	 * lock.
- 	 *
-@@ -231,7 +235,8 @@ depot_stack_handle_t depot_save_stack(st
- 	 * |next_slab_inited| in depot_alloc_stack() and init_stack_slab().
- 	 */
- 	if (unlikely(!smp_load_acquire(&next_slab_inited))) {
--		/* Zero out zone modifiers, as we don't have specific zone
-+		/*
-+		 * Zero out zone modifiers, as we don't have specific zone
- 		 * requirements. Keep the flags related to allocation in atomic
- 		 * contexts and I/O.
- 		 */
-@@ -251,7 +256,8 @@ depot_stack_handle_t depot_save_stack(st
- 					  hash, &prealloc, alloc_flags);
- 		if (new) {
- 			new->next = *bucket;
--			/* This smp_store_release() pairs with
-+			/*
-+			 * This smp_store_release() pairs with
- 			 * smp_load_acquire() from |bucket| above.
- 			 */
- 			smp_store_release(bucket, new);
+ 		khugepaged_node_load[node]++;
+ 		if (!PageLRU(page)) {
+-			result = SCAN_SCAN_ABORT;
++			result = SCAN_PAGE_LRU;
+ 			goto out_unmap;
+ 		}
+ 		if (PageLocked(page)) {
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
-mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-fix-2.patch
-maintainers-fill-entries-for-kasan.patch
+thp-fix-typo-in-khugepaged_scan_pmd.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
 
