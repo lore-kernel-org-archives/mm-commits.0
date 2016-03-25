@@ -1,72 +1,87 @@
 From: akpm@linux-foundation.org
-Subject: [folded-merged] mm-oom_reaper-report-success-failure-v6.patch
- removed from -mm tree
-Date: Fri, 25 Mar 2016 14:11:57 -0700
-Message-ID: <56f5a99d.aIcoSfxBCeH4pq48%akpm@linux-foundation.org>
+Subject: [folded-merged] mm-oom_reaper-report-success-failure-v6-fix.patch removed from -mm tree
+Date: Fri, 25 Mar 2016 14:12:00 -0700
+Message-ID: <56f5a9a0.L62LS+fHh4TCC59+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:40140 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40142 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753273AbcCYVL6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2016 17:11:58 -0400
+	with ESMTP id S1754038AbcCYVMB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2016 17:12:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-oom_reaper-report-success-failure-v6
+     Subject: mm-oom_reaper-report-success-failure-v6-fix
 has been removed from the -mm tree.  Its filename was
-     mm-oom_reaper-report-success-failure-v6.patch
+     mm-oom_reaper-report-success-failure-v6-fix.patch
 
 This patch was dropped because it was folded into mm-oom_reaper-report-success-failure.patch
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm-oom_reaper-report-success-failure-v6
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-oom_reaper-report-success-failure-v6-fix
 
-Signed-off-by: Michal Hocko <mhocko@suse.com>
+mm/oom_kill.c: In function 'oom_kill_process':
+mm/oom_kill.c:749: error: implicit declaration of function 'K'
+mm/oom_kill.c:749: warning: format '%lu' expects type 'long unsigned int', but argument 4 has type 'int'
+mm/oom_kill.c:749: warning: format '%lu' expects type 'long unsigned int', but argument 5 has type 'int'
+mm/oom_kill.c:749: warning: format '%lu' expects type 'long unsigned int', but argument 6 has type 'int'
+mm/oom_kill.c:749: warning: format '%lu' expects type 'long unsigned int', but argument 7 has type 'int'
+
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/oom_kill.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~mm-oom_reaper-report-success-failure-v6 mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_reaper-report-success-failure-v6
+diff -puN mm/oom_kill.c~mm-oom_reaper-report-success-failure-v6-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_reaper-report-success-failure-v6-fix
 +++ a/mm/oom_kill.c
-@@ -410,8 +410,6 @@ static DECLARE_WAIT_QUEUE_HEAD(oom_victi
+@@ -410,6 +410,8 @@ static DECLARE_WAIT_QUEUE_HEAD(oom_victi
  
  bool oom_killer_disabled __read_mostly;
  
--#define K(x) ((x) << (PAGE_SHIFT-10))
--
++#define K(x) ((x) << (PAGE_SHIFT-10))
++
  #ifdef CONFIG_MMU
  /*
   * OOM Reaper kernel thread which tries to reap the memory used by the OOM
-@@ -421,6 +419,7 @@ static struct task_struct *oom_reaper_th
+@@ -419,7 +421,6 @@ static struct task_struct *oom_reaper_th
  static struct task_struct *task_to_reap;
  static DECLARE_WAIT_QUEUE_HEAD(oom_reaper_wait);
  
-+#define K(x) ((x) << (PAGE_SHIFT-10))
+-#define K(x) ((x) << (PAGE_SHIFT-10))
  static bool __oom_reap_task(struct task_struct *tsk)
  {
  	struct mmu_gather tlb;
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-oom-introduce-oom-reaper.patch
-oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+sched-add-schedule_timeout_idle.patch
 mm-oom_reaper-report-success-failure.patch
-mm-oom_reaper-implement-oom-victims-queuing.patch
-mm-oom_reaper-implement-oom-victims-queuing-v6.patch
-oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task.patch
-oom-make-oom_reaper-freezable.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
+drivers-input-eliminate-input_compat_test-macro.patch
+mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
+include-linux-nodemaskh-create-next_node_in-helper.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
