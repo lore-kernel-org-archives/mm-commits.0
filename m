@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec.patch
- added to -mm tree
-Date: Fri, 25 Mar 2016 12:35:53 -0700
-Message-ID: <56f59319.HRE35poM0y9G4S/3%akpm@linux-foundation.org>
+Subject: + mm-oom_reaper-report-success-failure-v6-fix.patch added to -mm
+ tree
+Date: Fri, 25 Mar 2016 13:56:23 -0700
+Message-ID: <56f5a5f7.V79g0PkCMFXldy95%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38555 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40010 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753321AbcCYTfy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2016 15:35:54 -0400
+	with ESMTP id S1754200AbcCYU4Y (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2016 16:56:24 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: piaojun@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mhocko@suse.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: clean up an unused variable 'wants_rotate' in ocfs2_truncate_rec
+     Subject: mm-oom_reaper-report-success-failure-v6-fix
 has been added to the -mm tree.  Its filename is
-     ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec.patch
+     mm-oom_reaper-report-success-failure-v6-fix.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-oom_reaper-report-success-failure-v6-fix.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-oom_reaper-report-success-failure-v6-fix.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,45 +39,64 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: piaojun <piaojun@huawei.com>
-Subject: ocfs2: clean up an unused variable 'wants_rotate' in ocfs2_truncate_rec
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: mm-oom_reaper-report-success-failure-v6-fix
 
-Clean up an unused variable 'wants_rotate' in ocfs2_truncate_rec.
+mm/oom_kill.c: In function 'oom_kill_process':
+mm/oom_kill.c:749: error: implicit declaration of function 'K'
+mm/oom_kill.c:749: warning: format '%lu' expects type 'long unsigned int', but argument 4 has type 'int'
+mm/oom_kill.c:749: warning: format '%lu' expects type 'long unsigned int', but argument 5 has type 'int'
+mm/oom_kill.c:749: warning: format '%lu' expects type 'long unsigned int', but argument 6 has type 'int'
+mm/oom_kill.c:749: warning: format '%lu' expects type 'long unsigned int', but argument 7 has type 'int'
 
-Signed-off-by: Jun Piao <piaojun@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ mm/oom_kill.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec
-+++ a/fs/ocfs2/alloc.c
-@@ -5351,7 +5351,7 @@ static int ocfs2_truncate_rec(handle_t *
+diff -puN mm/oom_kill.c~mm-oom_reaper-report-success-failure-v6-fix mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_reaper-report-success-failure-v6-fix
++++ a/mm/oom_kill.c
+@@ -410,6 +410,8 @@ static DECLARE_WAIT_QUEUE_HEAD(oom_victi
+ 
+ bool oom_killer_disabled __read_mostly;
+ 
++#define K(x) ((x) << (PAGE_SHIFT-10))
++
+ #ifdef CONFIG_MMU
+ /*
+  * OOM Reaper kernel thread which tries to reap the memory used by the OOM
+@@ -419,7 +421,6 @@ static struct task_struct *oom_reaper_th
+ static struct task_struct *task_to_reap;
+ static DECLARE_WAIT_QUEUE_HEAD(oom_reaper_wait);
+ 
+-#define K(x) ((x) << (PAGE_SHIFT-10))
+ static bool __oom_reap_task(struct task_struct *tsk)
  {
- 	int ret;
- 	u32 left_cpos, rec_range, trunc_range;
--	int wants_rotate = 0, is_rightmost_tree_rec = 0;
-+	int is_rightmost_tree_rec = 0;
- 	struct super_block *sb = ocfs2_metadata_cache_get_super(et->et_ci);
- 	struct ocfs2_path *left_path = NULL;
- 	struct ocfs2_extent_list *el = path_leaf_el(path);
-@@ -5457,7 +5457,6 @@ static int ocfs2_truncate_rec(handle_t *
- 
- 		memset(rec, 0, sizeof(*rec));
- 		ocfs2_cleanup_merge(el, index);
--		wants_rotate = 1;
- 
- 		next_free = le16_to_cpu(el->l_next_free_rec);
- 		if (is_rightmost_tree_rec && next_free > 1) {
+ 	struct mmu_gather tlb;
 _
 
-Patches currently in -mm which might be from piaojun@huawei.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+sched-add-schedule_timeout_idle.patch
+mm-oom_reaper-report-success-failure-v6-fix.patch
+drivers-input-eliminate-input_compat_test-macro.patch
+mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab-fix.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
+include-linux-nodemaskh-create-next_node_in-helper.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
