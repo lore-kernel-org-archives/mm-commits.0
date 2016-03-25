@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + init-mainc-simplify-initcall_blacklisted.patch added to -mm
- tree
-Date: Fri, 25 Mar 2016 12:34:28 -0700
-Message-ID: <56f592c4.VTLOfthtMtbr4mcK%akpm@linux-foundation.org>
+Subject: +
+ ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec.patch
+ added to -mm tree
+Date: Fri, 25 Mar 2016 12:35:53 -0700
+Message-ID: <56f59319.HRE35poM0y9G4S/3%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38549 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38555 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753321AbcCYTe3 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2016 15:34:29 -0400
+	with ESMTP id S1753321AbcCYTfy (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2016 15:35:54 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: linux@rasmusvillemoes.dk, oleg@redhat.com, prarit@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
+To: piaojun@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: init/main.c: simplify initcall_blacklisted()
+     Subject: ocfs2: clean up an unused variable 'wants_rotate' in ocfs2_truncate_rec
 has been added to the -mm tree.  Its filename is
-     init-mainc-simplify-initcall_blacklisted.patch
+     ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/init-mainc-simplify-initcall_blacklisted.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/init-mainc-simplify-initcall_blacklisted.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,63 +40,45 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Subject: init/main.c: simplify initcall_blacklisted()
+From: piaojun <piaojun@huawei.com>
+Subject: ocfs2: clean up an unused variable 'wants_rotate' in ocfs2_truncate_rec
 
-Using kasprintf to get the function name makes us look up the name twice,
-along with all the vsnprintf overhead of parsing the format string etc. 
-It also means there is an allocation failure case to deal with.  Since
-symbol_string in vsprintf.c would anyway allocate an array of size
-KSYM_SYMBOL_LEN on the stack, that might as well be done up here.
+Clean up an unused variable 'wants_rotate' in ocfs2_truncate_rec.
 
-Moreover, since this is a debug feature and the blacklisted_initcalls list
-is usually empty, we might as well test that and thus avoid looking up the
-symbol name even once in the common case.
-
-Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Acked-by: Rusty Russell <rusty@rustcorp.com.au>
-Acked-by: Prarit Bhargava <prarit@redhat.com>
-Cc: Oleg Nesterov <oleg@redhat.com>
+Signed-off-by: Jun Piao <piaojun@huawei.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- init/main.c |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ fs/ocfs2/alloc.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff -puN init/main.c~init-mainc-simplify-initcall_blacklisted init/main.c
---- a/init/main.c~init-mainc-simplify-initcall_blacklisted
-+++ a/init/main.c
-@@ -706,21 +706,20 @@ static int __init initcall_blacklist(cha
- static bool __init_or_module initcall_blacklisted(initcall_t fn)
+diff -puN fs/ocfs2/alloc.c~ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec
++++ a/fs/ocfs2/alloc.c
+@@ -5351,7 +5351,7 @@ static int ocfs2_truncate_rec(handle_t *
  {
- 	struct blacklist_entry *entry;
--	char *fn_name;
-+	char fn_name[KSYM_SYMBOL_LEN];
+ 	int ret;
+ 	u32 left_cpos, rec_range, trunc_range;
+-	int wants_rotate = 0, is_rightmost_tree_rec = 0;
++	int is_rightmost_tree_rec = 0;
+ 	struct super_block *sb = ocfs2_metadata_cache_get_super(et->et_ci);
+ 	struct ocfs2_path *left_path = NULL;
+ 	struct ocfs2_extent_list *el = path_leaf_el(path);
+@@ -5457,7 +5457,6 @@ static int ocfs2_truncate_rec(handle_t *
  
--	fn_name = kasprintf(GFP_KERNEL, "%pf", fn);
--	if (!fn_name)
-+	if (list_empty(&blacklisted_initcalls))
- 		return false;
+ 		memset(rec, 0, sizeof(*rec));
+ 		ocfs2_cleanup_merge(el, index);
+-		wants_rotate = 1;
  
-+	sprint_symbol_no_offset(fn_name, (unsigned long)fn);
-+
- 	list_for_each_entry(entry, &blacklisted_initcalls, next) {
- 		if (!strcmp(fn_name, entry->buf)) {
- 			pr_debug("initcall %s blacklisted\n", fn_name);
--			kfree(fn_name);
- 			return true;
- 		}
- 	}
- 
--	kfree(fn_name);
- 	return false;
- }
- #else
+ 		next_free = le16_to_cpu(el->l_next_free_rec);
+ 		if (is_rightmost_tree_rec && next_free > 1) {
 _
 
-Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
+Patches currently in -mm which might be from piaojun@huawei.com are
 
-compilerh-add-support-for-malloc-attribute.patch
-include-linux-apply-__malloc-attribute.patch
-init-mainc-simplify-initcall_blacklisted.patch
+ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec.patch
 
