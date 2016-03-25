@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- ocfs2-error-code-comments-and-amendments-the-comment-of-ocfs2_extended_slot-should-be-0x08.patch added to -mm tree
-Date: Fri, 25 Mar 2016 12:32:21 -0700
-Message-ID: <56f59245.IKF9S7pcOjxJHcy3%akpm@linux-foundation.org>
+Subject: + init-mainc-simplify-initcall_blacklisted.patch added to -mm
+ tree
+Date: Fri, 25 Mar 2016 12:34:28 -0700
+Message-ID: <56f592c4.VTLOfthtMtbr4mcK%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38541 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38549 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752859AbcCYTcW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2016 15:32:22 -0400
+	with ESMTP id S1753321AbcCYTe3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2016 15:34:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: guozhonghua@h3c.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
+To: linux@rasmusvillemoes.dk, oleg@redhat.com, prarit@redhat.com, rusty@rustcorp.com.au, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: fix comment in struct ocfs2_extended_slot
+     Subject: init/main.c: simplify initcall_blacklisted()
 has been added to the -mm tree.  Its filename is
-     ocfs2-error-code-comments-and-amendments-the-comment-of-ocfs2_extended_slot-should-be-0x08.patch
+     init-mainc-simplify-initcall_blacklisted.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/ocfs2-error-code-comments-and-amendments-the-comment-of-ocfs2_extended_slot-should-be-0x08.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/init-mainc-simplify-initcall_blacklisted.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/ocfs2-error-code-comments-and-amendments-the-comment-of-ocfs2_extended_slot-should-be-0x08.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/init-mainc-simplify-initcall_blacklisted.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,36 +39,63 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Guozhonghua <guozhonghua@h3c.com>
-Subject: ocfs2: fix comment in struct ocfs2_extended_slot
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: init/main.c: simplify initcall_blacklisted()
 
-The comment in ocfs2_extended_slot has the offset wrong.
+Using kasprintf to get the function name makes us look up the name twice,
+along with all the vsnprintf overhead of parsing the format string etc. 
+It also means there is an allocation failure case to deal with.  Since
+symbol_string in vsprintf.c would anyway allocate an array of size
+KSYM_SYMBOL_LEN on the stack, that might as well be done up here.
 
-Cc: Mark Fasheh <mfasheh@suse.de>
-Cc: Joel Becker <jlbec@evilplan.org>
-Cc: Junxiao Bi <junxiao.bi@oracle.com>
-Cc: Joseph Qi <joseph.qi@huawei.com>
+Moreover, since this is a debug feature and the blacklisted_initcalls list
+is usually empty, we might as well test that and thus avoid looking up the
+symbol name even once in the common case.
+
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Acked-by: Rusty Russell <rusty@rustcorp.com.au>
+Acked-by: Prarit Bhargava <prarit@redhat.com>
+Cc: Oleg Nesterov <oleg@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/ocfs2_fs.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/main.c |    9 ++++-----
+ 1 file changed, 4 insertions(+), 5 deletions(-)
 
-diff -puN fs/ocfs2/ocfs2_fs.h~ocfs2-error-code-comments-and-amendments-the-comment-of-ocfs2_extended_slot-should-be-0x08 fs/ocfs2/ocfs2_fs.h
---- a/fs/ocfs2/ocfs2_fs.h~ocfs2-error-code-comments-and-amendments-the-comment-of-ocfs2_extended_slot-should-be-0x08
-+++ a/fs/ocfs2/ocfs2_fs.h
-@@ -580,7 +580,7 @@ struct ocfs2_extended_slot {
- /*00*/	__u8	es_valid;
- 	__u8	es_reserved1[3];
- 	__le32	es_node_num;
--/*10*/
-+/*08*/
- };
+diff -puN init/main.c~init-mainc-simplify-initcall_blacklisted init/main.c
+--- a/init/main.c~init-mainc-simplify-initcall_blacklisted
++++ a/init/main.c
+@@ -706,21 +706,20 @@ static int __init initcall_blacklist(cha
+ static bool __init_or_module initcall_blacklisted(initcall_t fn)
+ {
+ 	struct blacklist_entry *entry;
+-	char *fn_name;
++	char fn_name[KSYM_SYMBOL_LEN];
  
- /*
+-	fn_name = kasprintf(GFP_KERNEL, "%pf", fn);
+-	if (!fn_name)
++	if (list_empty(&blacklisted_initcalls))
+ 		return false;
+ 
++	sprint_symbol_no_offset(fn_name, (unsigned long)fn);
++
+ 	list_for_each_entry(entry, &blacklisted_initcalls, next) {
+ 		if (!strcmp(fn_name, entry->buf)) {
+ 			pr_debug("initcall %s blacklisted\n", fn_name);
+-			kfree(fn_name);
+ 			return true;
+ 		}
+ 	}
+ 
+-	kfree(fn_name);
+ 	return false;
+ }
+ #else
 _
 
-Patches currently in -mm which might be from guozhonghua@h3c.com are
+Patches currently in -mm which might be from linux@rasmusvillemoes.dk are
 
-ocfs2-error-code-comments-and-amendments-the-comment-of-ocfs2_extended_slot-should-be-0x08.patch
+compilerh-add-support-for-malloc-attribute.patch
+include-linux-apply-__malloc-attribute.patch
+init-mainc-simplify-initcall_blacklisted.patch
 
