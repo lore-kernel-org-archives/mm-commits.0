@@ -1,232 +1,81 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch removed from -mm tree
-Date: Sat, 26 Mar 2016 20:31:03 -0700
-Message-ID: <56f753f7.8pz9UmH/b50tqIEu%akpm@linux-foundation.org>
+ ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert.patch removed from -mm tree
+Date: Sat, 26 Mar 2016 20:31:00 -0700
+Message-ID: <56f753f4.QzLwa6FLI4peCGz1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33224 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33219 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645AbcC0DbE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:31:04 -0400
+	with ESMTP id S1754645AbcC0DbB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:31:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: xuejiufei@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.com, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: extend transaction for ocfs2_remove_rightmost_path() and ocfs2_update_edge_lengths() before to avoid inconsistency between inode and et
+     Subject: ocfs2/dlm: move lock to the tail of grant queue while doing in-place convert
 has been removed from the -mm tree.  Its filename was
-     ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
+     ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xue jiufei <xuejiufei@huawei.com>
-Subject: ocfs2: extend transaction for ocfs2_remove_rightmost_path() and ocfs2_update_edge_lengths() before to avoid inconsistency between inode and et
+From: xuejiufei <xuejiufei@huawei.com>
+Subject: ocfs2/dlm: move lock to the tail of grant queue while doing in-place convert
 
-I found that jbd2_journal_restart() is called in some places without
-keeping things consistently before.  However, jbd2_journal_restart() may
-commit the handle's transaction and restart another one.  If the first
-transaction is committed successfully while another not, it may cause
-filesystem inconsistency or read only.  This is an effort to fix this kind
-of problems.
+We have found a bug when two nodes doing umount one after another.
 
+1) Node 1 migrate a lockres that has 3 locks in grant queue such as
+   N2(PR)<->N3(NL)<->N4(PR) to N2.  After migration, lvb of the lock
+   N3(NL) and N4(PR) are empty on node 2 because migration target do not
+   copy lvb to these two lock.
 
-This patch (of 3):
+2) Node 3 want to convert to PR, it can be granted in
+   __dlmconvert_master(), and the order of these locks is unchanged.  The
+   lvb of the lock N3(PR) on node 2 is copyed from lockres in function
+   dlm_update_lvb() while the lvb of lock N4(PR) is still empty.
 
-The following functions will be called while truncating an extent:
-ocfs2_remove_btree_range
-  -> ocfs2_start_trans
-  -> ocfs2_remove_extent
-     -> ocfs2_truncate_rec
-       -> ocfs2_extend_rotate_transaction
-         -> jbd2_journal_restart if jbd2_journal_extend fail
-       -> ocfs2_rotate_tree_left
-         -> ocfs2_remove_rightmost_path
-             -> ocfs2_extend_rotate_transaction
-               -> ocfs2_unlink_subtree
-                -> ocfs2_update_edge_lengths
-                  -> ocfs2_extend_trans
-                    -> jbd2_journal_restart if jbd2_journal_extend fail
-  -> ocfs2_et_update_clusters
-  -> ocfs2_commit_trans
+3) Node 2 want to leave domain, it will migrate this lockres to node 3.
+   Then node 2 will trigger the BUG in dlm_prepare_lvb_for_migration()
+   when adding the lock N4(PR) to mres with the following message because
+   the lvb of mres is already copied from lock N3(PR), but the lvb of lock
+   N4(PR) is empty.
 
-jbd2_journal_restart() may be called and it may happened that the buffers
-dirtied in ocfs2_truncate_rec() are committed while buffers dirtied in
-ocfs2_et_update_clusters() are not, the total clusters on extent tree and
-i_clusters in ocfs2_dinode is inconsistency.  So the clusters got from
-ocfs2_dinode is incorrect, and it also cause read-only problem when call
-ocfs2_commit_truncate() with the error message: "Inode %llu has empty
-extent block at %llu".
+"Mismatched lvb in lock cookie=%u:%llu, name=%.*s, node=%u"
 
-We should extend enough credits for function ocfs2_remove_rightmost_path
-and ocfs2_update_edge_lengths to avoid this inconsistency.
-
-Signed-off-by: joyce.xue <xuejiufei@huawei.com>
+[akpm@linux-foundation.org: tweak comment]
+Signed-off-by: xuejiufei <xuejiufei@huawei.com>
 Acked-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/alloc.c |   82 +++++++++++++++++++++++++++++----------------
- 1 file changed, 54 insertions(+), 28 deletions(-)
+ fs/ocfs2/dlm/dlmconvert.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff -puN fs/ocfs2/alloc.c~ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et fs/ocfs2/alloc.c
---- a/fs/ocfs2/alloc.c~ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et
-+++ a/fs/ocfs2/alloc.c
-@@ -2516,21 +2516,6 @@ static int ocfs2_update_edge_lengths(han
- 	struct ocfs2_extent_block *eb;
- 	u32 range;
+diff -puN fs/ocfs2/dlm/dlmconvert.c~ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert fs/ocfs2/dlm/dlmconvert.c
+--- a/fs/ocfs2/dlm/dlmconvert.c~ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert
++++ a/fs/ocfs2/dlm/dlmconvert.c
+@@ -212,6 +212,12 @@ grant:
+ 	if (lock->lksb->flags & DLM_LKSB_PUT_LVB)
+ 		memcpy(res->lvb, lock->lksb->lvb, DLM_LVB_LEN);
  
--	/*
--	 * In normal tree rotation process, we will never touch the
--	 * tree branch above subtree_index and ocfs2_extend_rotate_transaction
--	 * doesn't reserve the credits for them either.
--	 *
--	 * But we do have a special case here which will update the rightmost
--	 * records for all the bh in the path.
--	 * So we have to allocate extra credits and access them.
--	 */
--	ret = ocfs2_extend_trans(handle, subtree_index);
--	if (ret) {
--		mlog_errno(ret);
--		goto out;
--	}
--
- 	ret = ocfs2_journal_access_path(et->et_ci, handle, path);
- 	if (ret) {
- 		mlog_errno(ret);
-@@ -2956,7 +2941,7 @@ static int __ocfs2_rotate_tree_left(hand
- 		     right_path->p_node[subtree_root].bh->b_blocknr,
- 		     right_path->p_tree_depth);
- 
--		ret = ocfs2_extend_rotate_transaction(handle, subtree_root,
-+		ret = ocfs2_extend_rotate_transaction(handle, 0,
- 						      orig_credits, left_path);
- 		if (ret) {
- 			mlog_errno(ret);
-@@ -3029,21 +3014,9 @@ static int ocfs2_remove_rightmost_path(h
- 	struct ocfs2_extent_block *eb;
- 	struct ocfs2_extent_list *el;
- 
--
- 	ret = ocfs2_et_sanity_check(et);
- 	if (ret)
- 		goto out;
--	/*
--	 * There's two ways we handle this depending on
--	 * whether path is the only existing one.
--	 */
--	ret = ocfs2_extend_rotate_transaction(handle, 0,
--					      handle->h_buffer_credits,
--					      path);
--	if (ret) {
--		mlog_errno(ret);
--		goto out;
--	}
- 
- 	ret = ocfs2_journal_access_path(et->et_ci, handle, path);
- 	if (ret) {
-@@ -3641,6 +3614,14 @@ static int ocfs2_merge_rec_left(struct o
- 		 */
- 		if (le16_to_cpu(right_rec->e_leaf_clusters) == 0 &&
- 		    le16_to_cpu(el->l_next_free_rec) == 1) {
-+			/* extend credit for ocfs2_remove_rightmost_path */
-+			ret = ocfs2_extend_rotate_transaction(handle, 0,
-+					handle->h_buffer_credits,
-+					right_path);
-+			if (ret) {
-+				mlog_errno(ret);
-+				goto out;
-+			}
- 
- 			ret = ocfs2_remove_rightmost_path(handle, et,
- 							  right_path,
-@@ -3679,6 +3660,14 @@ static int ocfs2_try_to_merge_extent(han
- 	BUG_ON(ctxt->c_contig_type == CONTIG_NONE);
- 
- 	if (ctxt->c_split_covers_rec && ctxt->c_has_empty_extent) {
-+		/* extend credit for ocfs2_remove_rightmost_path */
-+		ret = ocfs2_extend_rotate_transaction(handle, 0,
-+				handle->h_buffer_credits,
-+				path);
-+		if (ret) {
-+			mlog_errno(ret);
-+			goto out;
-+		}
- 		/*
- 		 * The merge code will need to create an empty
- 		 * extent to take the place of the newly
-@@ -3727,6 +3716,15 @@ static int ocfs2_try_to_merge_extent(han
- 		 */
- 		BUG_ON(!ocfs2_is_empty_extent(&el->l_recs[0]));
- 
-+		/* extend credit for ocfs2_remove_rightmost_path */
-+		ret = ocfs2_extend_rotate_transaction(handle, 0,
-+					handle->h_buffer_credits,
-+					path);
-+		if (ret) {
-+			mlog_errno(ret);
-+			goto out;
-+		}
++	/*
++	 * Move the lock to the tail because it may be the only lock which has
++	 * an invalid lvb.
++	 */
++	list_move_tail(&lock->list, &res->granted);
 +
- 		/* The merge left us with an empty extent, remove it. */
- 		ret = ocfs2_rotate_tree_left(handle, et, path, dealloc);
- 		if (ret) {
-@@ -3748,6 +3746,15 @@ static int ocfs2_try_to_merge_extent(han
- 			goto out;
- 		}
- 
-+		/* extend credit for ocfs2_remove_rightmost_path */
-+		ret = ocfs2_extend_rotate_transaction(handle, 0,
-+				handle->h_buffer_credits,
-+				path);
-+		if (ret) {
-+			mlog_errno(ret);
-+			goto out;
-+		}
-+
- 		ret = ocfs2_rotate_tree_left(handle, et, path, dealloc);
- 		/*
- 		 * Error from this last rotate is not critical, so
-@@ -3783,6 +3790,16 @@ static int ocfs2_try_to_merge_extent(han
- 		}
- 
- 		if (ctxt->c_split_covers_rec) {
-+			/* extend credit for ocfs2_remove_rightmost_path */
-+			ret = ocfs2_extend_rotate_transaction(handle, 0,
-+					handle->h_buffer_credits,
-+					path);
-+			if (ret) {
-+				mlog_errno(ret);
-+				ret = 0;
-+				goto out;
-+			}
-+
- 			/*
- 			 * The merge may have left an empty extent in
- 			 * our leaf. Try to rotate it away.
-@@ -5342,6 +5359,15 @@ static int ocfs2_truncate_rec(handle_t *
- 	struct ocfs2_extent_block *eb;
- 
- 	if (ocfs2_is_empty_extent(&el->l_recs[0]) && index > 0) {
-+		/* extend credit for ocfs2_remove_rightmost_path */
-+		ret = ocfs2_extend_rotate_transaction(handle, 0,
-+				handle->h_buffer_credits,
-+				path);
-+		if (ret) {
-+			mlog_errno(ret);
-+			goto out;
-+		}
-+
- 		ret = ocfs2_rotate_tree_left(handle, et, path, dealloc);
- 		if (ret) {
- 			mlog_errno(ret);
+ 	status = DLM_NORMAL;
+ 	*call_ast = 1;
+ 	goto unlock_exit;
 _
 
 Patches currently in -mm which might be from xuejiufei@huawei.com are
