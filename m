@@ -1,67 +1,112 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups.patch
+Subject: [merged] ocfs2-dlm-fix-race-between-convert-and-recovery.patch
  removed from -mm tree
-Date: Sat, 26 Mar 2016 20:30:57 -0700
-Message-ID: <56f753f1.P+DHYbxhqST6nkGz%akpm@linux-foundation.org>
+Date: Sat, 26 Mar 2016 20:30:48 -0700
+Message-ID: <56f753e8.uR1n0WnnI1YTkd5v%akpm__43288.8354095214$1459049463$gmane$org@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33216 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33200 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645AbcC0Da6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:30:58 -0400
+	with ESMTP id S1754645AbcC0Dat (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:30:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: jiangyiwen@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, xuejiufei@huawei.com, mm-commits@vger.kernel.org
+To: joseph.qi@huawei.com, jiangyiwen@huawei.com, jlbec@evilplan.org, junxiao.bi@oracle.com, mfasheh@suse.de, stable@vger.kernel.org, tariq.x.saeed@oracle.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: solve a problem of crossing the boundary in updating backups
+     Subject: ocfs2/dlm: fix race between convert and recovery
 has been removed from the -mm tree.  Its filename was
-     ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups.patch
+     ocfs2-dlm-fix-race-between-convert-and-recovery.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: jiangyiwen <jiangyiwen@huawei.com>
-Subject: ocfs2: solve a problem of crossing the boundary in updating backups
+From: Joseph Qi <joseph.qi@huawei.com>
+Subject: ocfs2/dlm: fix race between convert and recovery
 
-In update_backups() there exists a problem of crossing the boundary
-as follows:
+There is a race window between dlmconvert_remote and
+dlm_move_lockres_to_recovery_list, which will cause a lock with
+OCFS2_LOCK_BUSY in grant list, thus system hangs.
 
-we assume that lun will be resized to 1TB(cluster_size is 32kb),
-it will include 0~33554431 cluster, in update_backups func,
-it will backup super block in location of 1TB which is the 33554432th
-cluster, so the phenomenon of crossing the boundary happens.
+dlmconvert_remote
+{
+        spin_lock(&res->spinlock);
+        list_move_tail(&lock->list, &res->converting);
+        lock->convert_pending = 1;
+        spin_unlock(&res->spinlock);
 
-Signed-off-by: Yiwen Jiang <jiangyiwen@huawei.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
-Cc: Xue jiufei <xuejiufei@huawei.com>
+        status = dlm_send_remote_convert_request();
+        >>>>>> race window, master has queued ast and return DLM_NORMAL,
+               and then down before sending ast.
+               this node detects master down and calls
+               dlm_move_lockres_to_recovery_list, which will revert the
+               lock to grant list.
+               Then OCFS2_LOCK_BUSY won't be cleared as new master won't
+               send ast any more because it thinks already be authorized.
+
+        spin_lock(&res->spinlock);
+        lock->convert_pending = 0;
+        if (status != DLM_NORMAL)
+                dlm_revert_pending_convert(res, lock);
+        spin_unlock(&res->spinlock);
+}
+
+In this case, check if res->state has DLM_LOCK_RES_RECOVERING bit set (res
+is still in recovering) or res master changed (new master has finished
+recovery), reset the status to DLM_RECOVERING, then it will retry convert.
+
+Signed-off-by: Joseph Qi <joseph.qi@huawei.com>
+Reported-by: Yiwen Jiang <jiangyiwen@huawei.com>
+Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Tariq Saeed <tariq.x.saeed@oracle.com>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/resize.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ fs/ocfs2/dlm/dlmconvert.c |   11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
 
-diff -puN fs/ocfs2/resize.c~ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups fs/ocfs2/resize.c
---- a/fs/ocfs2/resize.c~ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups
-+++ a/fs/ocfs2/resize.c
-@@ -196,7 +196,7 @@ static int update_backups(struct inode *
- 	for (i = 0; i < OCFS2_MAX_BACKUP_SUPERBLOCKS; i++) {
- 		blkno = ocfs2_backup_super_blkno(inode->i_sb, i);
- 		cluster = ocfs2_blocks_to_clusters(inode->i_sb, blkno);
--		if (cluster > clusters)
-+		if (cluster >= clusters)
- 			break;
+diff -puN fs/ocfs2/dlm/dlmconvert.c~ocfs2-dlm-fix-race-between-convert-and-recovery fs/ocfs2/dlm/dlmconvert.c
+--- a/fs/ocfs2/dlm/dlmconvert.c~ocfs2-dlm-fix-race-between-convert-and-recovery
++++ a/fs/ocfs2/dlm/dlmconvert.c
+@@ -262,6 +262,7 @@ enum dlm_status dlmconvert_remote(struct
+ 				  struct dlm_lock *lock, int flags, int type)
+ {
+ 	enum dlm_status status;
++	u8 old_owner = res->owner;
  
- 		ret = ocfs2_read_blocks_sync(osb, blkno, 1, &backup);
+ 	mlog(0, "type=%d, convert_type=%d, busy=%d\n", lock->ml.type,
+ 	     lock->ml.convert_type, res->state & DLM_LOCK_RES_IN_PROGRESS);
+@@ -316,11 +317,19 @@ enum dlm_status dlmconvert_remote(struct
+ 	spin_lock(&res->spinlock);
+ 	res->state &= ~DLM_LOCK_RES_IN_PROGRESS;
+ 	lock->convert_pending = 0;
+-	/* if it failed, move it back to granted queue */
++	/* if it failed, move it back to granted queue.
++	 * if master returns DLM_NORMAL and then down before sending ast,
++	 * it may have already been moved to granted queue, reset to
++	 * DLM_RECOVERING and retry convert */
+ 	if (status != DLM_NORMAL) {
+ 		if (status != DLM_NOTQUEUED)
+ 			dlm_error(status);
+ 		dlm_revert_pending_convert(res, lock);
++	} else if ((res->state & DLM_LOCK_RES_RECOVERING) ||
++			(old_owner != res->owner)) {
++		mlog(0, "res %.*s is in recovering or has been recovered.\n",
++				res->lockname.len, res->lockname.name);
++		status = DLM_RECOVERING;
+ 	}
+ bail:
+ 	spin_unlock(&res->spinlock);
 _
 
-Patches currently in -mm which might be from jiangyiwen@huawei.com are
+Patches currently in -mm which might be from joseph.qi@huawei.com are
 
 
