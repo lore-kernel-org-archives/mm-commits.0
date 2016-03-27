@@ -1,324 +1,92 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-code-clean-up-for-direct-io.patch removed from -mm tree
-Date: Sat, 26 Mar 2016 20:30:34 -0700
-Message-ID: <56f753da.FC179LzyXFGRJHbh%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-fix-disk-file-size-and-memory-file-size-mismatch.patch removed from
+ -mm tree
+Date: Sat, 26 Mar 2016 20:30:42 -0700
+Message-ID: <56f753e2.cujNzxgDFpltKFSf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33173 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33184 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754660AbcC0Daf (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:30:35 -0400
+	with ESMTP id S1754645AbcC0Dan (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:30:43 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: ryan.ding@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: code clean up for direct io
+     Subject: ocfs2: fix disk file size and memory file size mismatch
 has been removed from the -mm tree.  Its filename was
-     ocfs2-code-clean-up-for-direct-io.patch
+     ocfs2-fix-disk-file-size-and-memory-file-size-mismatch.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
 From: Ryan Ding <ryan.ding@oracle.com>
-Subject: ocfs2: code clean up for direct io
+Subject: ocfs2: fix disk file size and memory file size mismatch
 
-Clean up ocfs2_file_write_iter & ocfs2_prepare_inode_for_write:
-* remove append dio check: it will be checked in ocfs2_direct_IO()
-* remove file hole check: file hole is supported for now
-* remove inline data check: it will be checked in ocfs2_direct_IO()
-* remove the full_coherence check when append dio: we will get the inode_lock
-  in ocfs2_dio_get_block, there is no need to fall back to buffer io to ensure
-  the coherence semantics.
+When doing append direct write in an already allocated cluster, and fast
+path in ocfs2_dio_get_block() is triggered, function
+ocfs2_dio_end_io_write() will be skipped as there is no context allocated.
+ So disk file size will not be changed as it should be.  The solution is
+to skip fast path when we are about to change file size.
 
-Now the drop dio procedure is gone. :)
-
-[akpm@linux-foundation.org: remove unused label]
+Fixes: af1310367f41 ("ocfs2: fix sparse file & data ordering issue in direct io.")
 Signed-off-by: Ryan Ding <ryan.ding@oracle.com>
-Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
+Acked-by: Junxiao Bi <junxiao.bi@oracle.com>
 Cc: Joseph Qi <joseph.qi@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/file.c        |  138 +--------------------------------------
- fs/ocfs2/ocfs2_trace.h |   16 +---
- 2 files changed, 10 insertions(+), 144 deletions(-)
+ fs/ocfs2/aops.c |   27 +++++++++++++++++----------
+ 1 file changed, 17 insertions(+), 10 deletions(-)
 
-diff -puN fs/ocfs2/file.c~ocfs2-code-clean-up-for-direct-io fs/ocfs2/file.c
---- a/fs/ocfs2/file.c~ocfs2-code-clean-up-for-direct-io
-+++ a/fs/ocfs2/file.c
-@@ -1381,44 +1381,6 @@ out:
- 	return ret;
- }
+diff -puN fs/ocfs2/aops.c~ocfs2-fix-disk-file-size-and-memory-file-size-mismatch fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-fix-disk-file-size-and-memory-file-size-mismatch
++++ a/fs/ocfs2/aops.c
+@@ -2167,19 +2167,26 @@ static int ocfs2_dio_get_block(struct in
+ 	mlog(0, "get block of %lu at %llu:%u req %u\n",
+ 			inode->i_ino, pos, len, total_len);
  
--/*
-- * Will look for holes and unwritten extents in the range starting at
-- * pos for count bytes (inclusive).
-- */
--static int ocfs2_check_range_for_holes(struct inode *inode, loff_t pos,
--				       size_t count)
--{
--	int ret = 0;
--	unsigned int extent_flags;
--	u32 cpos, clusters, extent_len, phys_cpos;
--	struct super_block *sb = inode->i_sb;
--
--	cpos = pos >> OCFS2_SB(sb)->s_clustersize_bits;
--	clusters = ocfs2_clusters_for_bytes(sb, pos + count) - cpos;
--
--	while (clusters) {
--		ret = ocfs2_get_clusters(inode, cpos, &phys_cpos, &extent_len,
--					 &extent_flags);
--		if (ret < 0) {
--			mlog_errno(ret);
--			goto out;
--		}
--
--		if (phys_cpos == 0 || (extent_flags & OCFS2_EXT_UNWRITTEN)) {
--			ret = 1;
--			break;
--		}
--
--		if (extent_len > clusters)
--			extent_len = clusters;
--
--		clusters -= extent_len;
--		cpos += extent_len;
--	}
--out:
--	return ret;
--}
--
- static int ocfs2_write_remove_suid(struct inode *inode)
- {
- 	int ret;
-@@ -2129,18 +2091,12 @@ out:
+-	down_read(&oi->ip_alloc_sem);
+-	/* This is the fast path for re-write. */
+-	ret = ocfs2_get_block(inode, iblock, bh_result, create);
++	/*
++	 * Because we need to change file size in ocfs2_dio_end_io_write(), or
++	 * we may need to add it to orphan dir. So can not fall to fast path
++	 * while file size will be changed.
++	 */
++	if (pos + total_len <= i_size_read(inode)) {
++		down_read(&oi->ip_alloc_sem);
++		/* This is the fast path for re-write. */
++		ret = ocfs2_get_block(inode, iblock, bh_result, create);
  
- static int ocfs2_prepare_inode_for_write(struct file *file,
- 					 loff_t pos,
--					 size_t count,
--					 int appending,
--					 int *direct_io,
--					 int *has_refcount)
-+					 size_t count)
- {
- 	int ret = 0, meta_level = 0;
- 	struct dentry *dentry = file->f_path.dentry;
- 	struct inode *inode = d_inode(dentry);
- 	loff_t end;
--	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
--	int full_coherency = !(osb->s_mount_opt &
--		OCFS2_MOUNT_COHERENCY_BUFFERED);
+-	up_read(&oi->ip_alloc_sem);
++		up_read(&oi->ip_alloc_sem);
  
- 	/*
- 	 * We start with a read level meta lock and only jump to an ex
-@@ -2189,10 +2145,6 @@ static int ocfs2_prepare_inode_for_write
- 							       pos,
- 							       count,
- 							       &meta_level);
--			if (has_refcount)
--				*has_refcount = 1;
--			if (direct_io)
--				*direct_io = 0;
- 		}
+-	if (buffer_mapped(bh_result) &&
+-	    !buffer_new(bh_result) &&
+-	    ret == 0)
+-		goto out;
++		if (buffer_mapped(bh_result) &&
++		    !buffer_new(bh_result) &&
++		    ret == 0)
++			goto out;
  
- 		if (ret < 0) {
-@@ -2200,67 +2152,12 @@ static int ocfs2_prepare_inode_for_write
- 			goto out_unlock;
- 		}
+-	/* Clear state set by ocfs2_get_block. */
+-	bh_result->b_state = 0;
++		/* Clear state set by ocfs2_get_block. */
++		bh_result->b_state = 0;
++	}
  
--		/*
--		 * Skip the O_DIRECT checks if we don't need
--		 * them.
--		 */
--		if (!direct_io || !(*direct_io))
--			break;
--
--		/*
--		 * There's no sane way to do direct writes to an inode
--		 * with inline data.
--		 */
--		if (OCFS2_I(inode)->ip_dyn_features & OCFS2_INLINE_DATA_FL) {
--			*direct_io = 0;
--			break;
--		}
--
--		/*
--		 * Allowing concurrent direct writes means
--		 * i_size changes wouldn't be synchronized, so
--		 * one node could wind up truncating another
--		 * nodes writes.
--		 */
--		if (end > i_size_read(inode) && !full_coherency) {
--			*direct_io = 0;
--			break;
--		}
--
--		/*
--		 * Fallback to old way if the feature bit is not set.
--		 */
--		if (end > i_size_read(inode) &&
--				!ocfs2_supports_append_dio(osb)) {
--			*direct_io = 0;
--			break;
--		}
--
--		/*
--		 * We don't fill holes during direct io, so
--		 * check for them here. If any are found, the
--		 * caller will have to retake some cluster
--		 * locks and initiate the io as buffered.
--		 */
--		ret = ocfs2_check_range_for_holes(inode, pos, count);
--		if (ret == 1) {
--			/*
--			 * Fallback to old way if the feature bit is not set.
--			 * Otherwise try dio first and then complete the rest
--			 * request through buffer io.
--			 */
--			if (!ocfs2_supports_append_dio(osb))
--				*direct_io = 0;
--			ret = 0;
--		} else if (ret < 0)
--			mlog_errno(ret);
- 		break;
- 	}
- 
- out_unlock:
- 	trace_ocfs2_prepare_inode_for_write(OCFS2_I(inode)->ip_blkno,
--					    pos, appending, count,
--					    direct_io, has_refcount);
-+					    pos, count);
- 
- 	if (meta_level >= 0)
- 		ocfs2_inode_unlock(inode, meta_level);
-@@ -2272,18 +2169,16 @@ out:
- static ssize_t ocfs2_file_write_iter(struct kiocb *iocb,
- 				    struct iov_iter *from)
- {
--	int direct_io, appending, rw_level;
--	int can_do_direct, has_refcount = 0;
-+	int direct_io, rw_level;
- 	ssize_t written = 0;
- 	ssize_t ret;
--	size_t count = iov_iter_count(from), orig_count;
-+	size_t count = iov_iter_count(from);
- 	struct file *file = iocb->ki_filp;
- 	struct inode *inode = file_inode(file);
- 	struct ocfs2_super *osb = OCFS2_SB(inode->i_sb);
- 	int full_coherency = !(osb->s_mount_opt &
- 			       OCFS2_MOUNT_COHERENCY_BUFFERED);
- 	int unaligned_dio = 0;
--	int dropped_dio = 0;
- 	int append_write = ((iocb->ki_pos + count) >=
- 			i_size_read(inode) ? 1 : 0);
- 
-@@ -2296,12 +2191,10 @@ static ssize_t ocfs2_file_write_iter(str
- 	if (count == 0)
- 		return 0;
- 
--	appending = iocb->ki_flags & IOCB_APPEND ? 1 : 0;
- 	direct_io = iocb->ki_flags & IOCB_DIRECT ? 1 : 0;
- 
- 	inode_lock(inode);
- 
--relock:
- 	/*
- 	 * Concurrent O_DIRECT writes are allowed with
- 	 * mount_option "coherency=buffered".
-@@ -2334,7 +2227,6 @@ relock:
- 		ocfs2_inode_unlock(inode, 1);
- 	}
- 
--	orig_count = iov_iter_count(from);
- 	ret = generic_write_checks(iocb, from);
- 	if (ret <= 0) {
- 		if (ret)
-@@ -2343,9 +2235,7 @@ relock:
- 	}
- 	count = ret;
- 
--	can_do_direct = direct_io;
--	ret = ocfs2_prepare_inode_for_write(file, iocb->ki_pos, count, appending,
--					    &can_do_direct, &has_refcount);
-+	ret = ocfs2_prepare_inode_for_write(file, iocb->ki_pos, count);
- 	if (ret < 0) {
- 		mlog_errno(ret);
- 		goto out;
-@@ -2354,22 +2244,6 @@ relock:
- 	if (direct_io && !is_sync_kiocb(iocb))
- 		unaligned_dio = ocfs2_is_io_unaligned(inode, count, iocb->ki_pos);
- 
--	/*
--	 * We can't complete the direct I/O as requested, fall back to
--	 * buffered I/O.
--	 */
--	if (direct_io && !can_do_direct) {
--		ocfs2_rw_unlock(inode, rw_level);
--
--		rw_level = -1;
--
--		direct_io = 0;
--		iocb->ki_flags &= ~IOCB_DIRECT;
--		iov_iter_reexpand(from, orig_count);
--		dropped_dio = 1;
--		goto relock;
--	}
--
- 	if (unaligned_dio) {
- 		/*
- 		 * Wait on previous unaligned aio to complete before
-@@ -2405,7 +2279,7 @@ relock:
- 		goto no_sync;
- 
- 	if (((file->f_flags & O_DSYNC) && !direct_io) ||
--	    IS_SYNC(inode) || dropped_dio) {
-+	    IS_SYNC(inode)) {
- 		ret = filemap_fdatawrite_range(file->f_mapping,
- 					       iocb->ki_pos - written,
- 					       iocb->ki_pos - 1);
-diff -puN fs/ocfs2/ocfs2_trace.h~ocfs2-code-clean-up-for-direct-io fs/ocfs2/ocfs2_trace.h
---- a/fs/ocfs2/ocfs2_trace.h~ocfs2-code-clean-up-for-direct-io
-+++ a/fs/ocfs2/ocfs2_trace.h
-@@ -1450,28 +1450,20 @@ DEFINE_OCFS2_ULL_ULL_ULL_EVENT(ocfs2_rem
- 
- TRACE_EVENT(ocfs2_prepare_inode_for_write,
- 	TP_PROTO(unsigned long long ino, unsigned long long saved_pos,
--		 int appending, unsigned long count,
--		 int *direct_io, int *has_refcount),
--	TP_ARGS(ino, saved_pos, appending, count, direct_io, has_refcount),
-+		 unsigned long count),
-+	TP_ARGS(ino, saved_pos, count),
- 	TP_STRUCT__entry(
- 		__field(unsigned long long, ino)
- 		__field(unsigned long long, saved_pos)
--		__field(int, appending)
- 		__field(unsigned long, count)
--		__field(int, direct_io)
--		__field(int, has_refcount)
- 	),
- 	TP_fast_assign(
- 		__entry->ino = ino;
- 		__entry->saved_pos = saved_pos;
--		__entry->appending = appending;
- 		__entry->count = count;
--		__entry->direct_io = direct_io ? *direct_io : -1;
--		__entry->has_refcount = has_refcount ? *has_refcount : -1;
- 	),
--	TP_printk("%llu %llu %d %lu %d %d", __entry->ino,
--		  __entry->saved_pos, __entry->appending, __entry->count,
--		  __entry->direct_io, __entry->has_refcount)
-+	TP_printk("%llu %llu %lu", __entry->ino,
-+		  __entry->saved_pos, __entry->count)
- );
- 
- DEFINE_OCFS2_INT_EVENT(generic_file_aio_read_ret);
+ 	dwc = ocfs2_dio_alloc_write_ctx(bh_result, &first_get_block);
+ 	if (unlikely(dwc == NULL)) {
 _
 
 Patches currently in -mm which might be from ryan.ding@oracle.com are
