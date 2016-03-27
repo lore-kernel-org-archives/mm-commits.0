@@ -1,74 +1,125 @@
 From: akpm@linux-foundation.org
-Subject: [merged] memstick-r592-avoid-gcc-6-warning.patch removed from -mm tree
-Date: Sat, 26 Mar 2016 20:31:08 -0700
-Message-ID: <56f753fc.J0ylaGFwCC3fAijK%akpm@linux-foundation.org>
+Subject: [merged]
+ kasan-modify-kmalloc_large_oob_right-add-kmalloc_pagealloc_oob_right.patch
+ removed from -mm tree
+Date: Sat, 26 Mar 2016 20:31:15 -0700
+Message-ID: <56f75403.ogs7aPJacsMTxFvv%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33235 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33259 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645AbcC0DbJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:31:09 -0400
+	with ESMTP id S1754645AbcC0DbQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:31:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: arnd@arndb.de, lambert.quentin@gmail.com, maximlevitsky@gmail.com, mm-commits@vger.kernel.org
+To: glider@google.com, adech.fo@gmail.com, cl@linux.com, dmitryc@google.com, dvyukov@google.com, iamjoonsoo.kim@lge.com, kcc@google.com, penberg@kernel.org, rientjes@google.com, rostedt@goodmis.org, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/memstick/host/r592.c: avoid gcc-6 warning
+     Subject: kasan: modify kmalloc_large_oob_right(), add kmalloc_pagealloc_oob_right()
 has been removed from the -mm tree.  Its filename was
-     memstick-r592-avoid-gcc-6-warning.patch
+     kasan-modify-kmalloc_large_oob_right-add-kmalloc_pagealloc_oob_right.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: drivers/memstick/host/r592.c: avoid gcc-6 warning
+From: Alexander Potapenko <glider@google.com>
+Subject: kasan: modify kmalloc_large_oob_right(), add kmalloc_pagealloc_oob_right()
 
-The r592 driver relies on behavior of the DMA mapping API that is normally
-observed but not guaranteed by the API.  Instead it uses a runtime check
-to fail transfers if the API ever behaves
+This patchset implements SLAB support for KASAN
 
-When CONFIG_NEED_SG_DMA_LENGTH is not set, one of the checks turns into a
-comparison of a variable with itself, which gcc-6.0 now warns about:
+Unlike SLUB, SLAB doesn't store allocation/deallocation stacks for heap
+objects, therefore we reimplement this feature in mm/kasan/stackdepot.c. 
+The intention is to ultimately switch SLUB to use this implementation as
+well, which will save a lot of memory (right now SLUB bloats each object
+by 256 bytes to store the allocation/deallocation stacks).
 
-drivers/memstick/host/r592.c: In function 'r592_transfer_fifo_dma':
-drivers/memstick/host/r592.c:302:31: error: self-comparison always evaluates to false [-Werror=tautological-compare]
-    (sg_dma_len(&dev->req->sg) < dev->req->sg.length)) {
-                               ^
+Also neither SLUB nor SLAB delay the reuse of freed memory chunks, which
+is necessary for better detection of use-after-free errors.  We introduce
+memory quarantine (mm/kasan/quarantine.c), which allows delayed reuse of
+deallocated memory.
 
-The check itself is not a problem, so this patch just rephrases the
-condition in a way that gcc does not consider an indication of a mistake. 
-We already know that dev->req->sg.length was initially R592_LFIFO_SIZE, so
-we can compare it to that constant again.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Quentin Lambert <lambert.quentin@gmail.com>
+This patch (of 7):
+
+Rename kmalloc_large_oob_right() to kmalloc_pagealloc_oob_right(), as the
+test only checks the page allocator functionality.  Also reimplement
+kmalloc_large_oob_right() so that the test allocates a large enough chunk
+of memory that still does not trigger the page allocator fallback.
+
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Pekka Enberg <penberg@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Andrey Konovalov <adech.fo@gmail.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Konstantin Serebryany <kcc@google.com>
+Cc: Dmitry Chernenkov <dmitryc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/memstick/host/r592.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+ lib/test_kasan.c |   28 +++++++++++++++++++++++++++-
+ 1 file changed, 27 insertions(+), 1 deletion(-)
 
-diff -puN drivers/memstick/host/r592.c~memstick-r592-avoid-gcc-6-warning drivers/memstick/host/r592.c
---- a/drivers/memstick/host/r592.c~memstick-r592-avoid-gcc-6-warning
-+++ a/drivers/memstick/host/r592.c
-@@ -298,8 +298,7 @@ static int r592_transfer_fifo_dma(struct
- 	sg_count = dma_map_sg(&dev->pci_dev->dev, &dev->req->sg, 1, is_write ?
- 		PCI_DMA_TODEVICE : PCI_DMA_FROMDEVICE);
+diff -puN lib/test_kasan.c~kasan-modify-kmalloc_large_oob_right-add-kmalloc_pagealloc_oob_right lib/test_kasan.c
+--- a/lib/test_kasan.c~kasan-modify-kmalloc_large_oob_right-add-kmalloc_pagealloc_oob_right
++++ a/lib/test_kasan.c
+@@ -65,11 +65,34 @@ static noinline void __init kmalloc_node
+ 	kfree(ptr);
+ }
  
--	if (sg_count != 1 ||
--			(sg_dma_len(&dev->req->sg) < dev->req->sg.length)) {
-+	if (sg_count != 1 || sg_dma_len(&dev->req->sg) < R592_LFIFO_SIZE) {
- 		message("problem in dma_map_sg");
- 		return -EIO;
- 	}
+-static noinline void __init kmalloc_large_oob_right(void)
++#ifdef CONFIG_SLUB
++static noinline void __init kmalloc_pagealloc_oob_right(void)
+ {
+ 	char *ptr;
+ 	size_t size = KMALLOC_MAX_CACHE_SIZE + 10;
+ 
++	/* Allocate a chunk that does not fit into a SLUB cache to trigger
++	 * the page allocator fallback.
++	 */
++	pr_info("kmalloc pagealloc allocation: out-of-bounds to right\n");
++	ptr = kmalloc(size, GFP_KERNEL);
++	if (!ptr) {
++		pr_err("Allocation failed\n");
++		return;
++	}
++
++	ptr[size] = 0;
++	kfree(ptr);
++}
++#endif
++
++static noinline void __init kmalloc_large_oob_right(void)
++{
++	char *ptr;
++	size_t size = KMALLOC_MAX_CACHE_SIZE - 256;
++	/* Allocate a chunk that is large enough, but still fits into a slab
++	 * and does not trigger the page allocator fallback in SLUB.
++	 */
+ 	pr_info("kmalloc large allocation: out-of-bounds to right\n");
+ 	ptr = kmalloc(size, GFP_KERNEL);
+ 	if (!ptr) {
+@@ -324,6 +347,9 @@ static int __init kmalloc_tests_init(voi
+ 	kmalloc_oob_right();
+ 	kmalloc_oob_left();
+ 	kmalloc_node_oob_right();
++#ifdef CONFIG_SLUB
++	kmalloc_pagealloc_oob_right();
++#endif
+ 	kmalloc_large_oob_right();
+ 	kmalloc_oob_krealloc_more();
+ 	kmalloc_oob_krealloc_less();
 _
 
-Patches currently in -mm which might be from arnd@arndb.de are
+Patches currently in -mm which might be from glider@google.com are
 
-staging-goldfish-use-6-arg-get_user_pages.patch
+mm-kasan-initial-memory-quarantine-implementation.patch
+mm-kasan-initial-memory-quarantine-implementation-v8.patch
 
