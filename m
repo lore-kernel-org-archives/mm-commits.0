@@ -1,168 +1,94 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-oom_reaper-implement-oom-victims-queuing.patch
- removed from -mm tree
-Date: Sat, 26 Mar 2016 20:29:59 -0700
-Message-ID: <56f753b7.ZekaF3unMvln+iST%akpm@linux-foundation.org>
+Subject: [merged] sched-add-schedule_timeout_idle.patch removed from -mm
+ tree
+Date: Sat, 26 Mar 2016 20:29:50 -0700
+Message-ID: <56f753ae.h7jlmucNiPhilWcU%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33057 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33010 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754648AbcC0DaA (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:30:00 -0400
+	with ESMTP id S1754648AbcC0D3v (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:29:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, andrea@kernel.org, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, a.p.zijlstra@chello.nl, mhocko@suse.com, mingo@elte.hu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, oom_reaper: implement OOM victims queuing
+     Subject: sched: add schedule_timeout_idle()
 has been removed from the -mm tree.  Its filename was
-     mm-oom_reaper-implement-oom-victims-queuing.patch
+     sched-add-schedule_timeout_idle.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: mm, oom_reaper: implement OOM victims queuing
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: sched: add schedule_timeout_idle()
 
-wake_oom_reaper has allowed only 1 oom victim to be queued.  The main
-reason for that was the simplicity as other solutions would require some
-way of queuing.  The current approach is racy and that was deemed
-sufficient as the oom_reaper is considered a best effort approach to help
-with oom handling when the OOM victim cannot terminate in a reasonable
-time.  The race could lead to missing an oom victim which can get stuck
+This will be needed in the patch "mm, oom: introduce oom reaper".
 
-out_of_memory
-  wake_oom_reaper
-    cmpxchg // OK
-    			oom_reaper
-			  oom_reap_task
-			    __oom_reap_task
-oom_victim terminates
-			      atomic_inc_not_zero // fail
-out_of_memory
-  wake_oom_reaper
-    cmpxchg // fails
-			  task_to_reap = NULL
-
-This race requires 2 OOM invocations in a short time period which is not
-very likely but certainly not impossible.  E.g.  the original victim might
-have not released a lot of memory for some reason.
-
-The situation would improve considerably if wake_oom_reaper used a more
-robust queuing.  This is what this patch implements.  This means adding
-oom_reaper_list list_head into task_struct (eat a hole before embeded
-thread_struct for that purpose) and a oom_reaper_lock spinlock for queuing
-synchronization.  wake_oom_reaper will then add the task on the queue and
-oom_reaper will dequeue it.
-
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
-Cc: Andrea Argangeli <andrea@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Hugh Dickins <hughd@google.com>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Oleg Nesterov <oleg@redhat.com>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Acked-by: Michal Hocko <mhocko@suse.com>
+Cc: Ingo Molnar <mingo@elte.hu>
+Cc: Peter Zijlstra <a.p.zijlstra@chello.nl>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/sched.h |    3 +++
- mm/oom_kill.c         |   36 +++++++++++++++++++-----------------
- 2 files changed, 22 insertions(+), 17 deletions(-)
+ include/linux/sched.h |    1 +
+ kernel/time/timer.c   |   11 +++++++++++
+ 2 files changed, 12 insertions(+)
 
-diff -puN include/linux/sched.h~mm-oom_reaper-implement-oom-victims-queuing include/linux/sched.h
---- a/include/linux/sched.h~mm-oom_reaper-implement-oom-victims-queuing
+diff -puN include/linux/sched.h~sched-add-schedule_timeout_idle include/linux/sched.h
+--- a/include/linux/sched.h~sched-add-schedule_timeout_idle
 +++ a/include/linux/sched.h
-@@ -1849,6 +1849,9 @@ struct task_struct {
- 	unsigned long	task_state_change;
- #endif
- 	int pagefault_disabled;
-+#ifdef CONFIG_MMU
-+	struct list_head oom_reaper_list;
-+#endif
- /* CPU-specific state of this task */
- 	struct thread_struct thread;
- /*
-diff -puN mm/oom_kill.c~mm-oom_reaper-implement-oom-victims-queuing mm/oom_kill.c
---- a/mm/oom_kill.c~mm-oom_reaper-implement-oom-victims-queuing
-+++ a/mm/oom_kill.c
-@@ -418,8 +418,10 @@ bool oom_killer_disabled __read_mostly;
-  * victim (if that is possible) to help the OOM killer to move on.
-  */
- static struct task_struct *oom_reaper_th;
--static struct task_struct *task_to_reap;
- static DECLARE_WAIT_QUEUE_HEAD(oom_reaper_wait);
-+static LIST_HEAD(oom_reaper_list);
-+static DEFINE_SPINLOCK(oom_reaper_lock);
-+
+@@ -426,6 +426,7 @@ extern signed long schedule_timeout(sign
+ extern signed long schedule_timeout_interruptible(signed long timeout);
+ extern signed long schedule_timeout_killable(signed long timeout);
+ extern signed long schedule_timeout_uninterruptible(signed long timeout);
++extern signed long schedule_timeout_idle(signed long timeout);
+ asmlinkage void schedule(void);
+ extern void schedule_preempt_disabled(void);
  
- static bool __oom_reap_task(struct task_struct *tsk)
- {
-@@ -524,12 +526,20 @@ static void oom_reap_task(struct task_st
- static int oom_reaper(void *unused)
- {
- 	while (true) {
--		struct task_struct *tsk;
-+		struct task_struct *tsk = NULL;
- 
- 		wait_event_freezable(oom_reaper_wait,
--				     (tsk = READ_ONCE(task_to_reap)));
--		oom_reap_task(tsk);
--		WRITE_ONCE(task_to_reap, NULL);
-+				     (!list_empty(&oom_reaper_list)));
-+		spin_lock(&oom_reaper_lock);
-+		if (!list_empty(&oom_reaper_list)) {
-+			tsk = list_first_entry(&oom_reaper_list,
-+					struct task_struct, oom_reaper_list);
-+			list_del(&tsk->oom_reaper_list);
-+		}
-+		spin_unlock(&oom_reaper_lock);
-+
-+		if (tsk)
-+			oom_reap_task(tsk);
- 	}
- 
- 	return 0;
-@@ -537,23 +547,15 @@ static int oom_reaper(void *unused)
- 
- static void wake_oom_reaper(struct task_struct *tsk)
- {
--	struct task_struct *old_tsk;
--
- 	if (!oom_reaper_th)
- 		return;
- 
- 	get_task_struct(tsk);
- 
--	/*
--	 * Make sure that only a single mm is ever queued for the reaper
--	 * because multiple are not necessary and the operation might be
--	 * disruptive so better reduce it to the bare minimum.
--	 */
--	old_tsk = cmpxchg(&task_to_reap, NULL, tsk);
--	if (!old_tsk)
--		wake_up(&oom_reaper_wait);
--	else
--		put_task_struct(tsk);
-+	spin_lock(&oom_reaper_lock);
-+	list_add(&tsk->oom_reaper_list, &oom_reaper_list);
-+	spin_unlock(&oom_reaper_lock);
-+	wake_up(&oom_reaper_wait);
+diff -puN kernel/time/timer.c~sched-add-schedule_timeout_idle kernel/time/timer.c
+--- a/kernel/time/timer.c~sched-add-schedule_timeout_idle
++++ a/kernel/time/timer.c
+@@ -1566,6 +1566,17 @@ signed long __sched schedule_timeout_uni
  }
+ EXPORT_SYMBOL(schedule_timeout_uninterruptible);
  
- static int __init oom_init(void)
++/*
++ * Like schedule_timeout_uninterruptible(), except this task will not contribute
++ * to load average.
++ */
++signed long __sched schedule_timeout_idle(signed long timeout)
++{
++	__set_current_state(TASK_IDLE);
++	return schedule_timeout(timeout);
++}
++EXPORT_SYMBOL(schedule_timeout_idle);
++
+ #ifdef CONFIG_HOTPLUG_CPU
+ static void migrate_timer_list(struct tvec_base *new_base, struct hlist_head *head)
+ {
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
+include-linux-nodemaskh-create-next_node_in-helper.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
 
