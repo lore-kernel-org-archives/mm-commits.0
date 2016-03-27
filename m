@@ -1,150 +1,140 @@
 From: akpm@linux-foundation.org
-Subject: [merged] drivers-input-eliminate-input_compat_test-macro.patch
- removed from -mm tree
-Date: Sat, 26 Mar 2016 20:30:10 -0700
-Message-ID: <56f753c2.awzrnltYMTYAHU/6%akpm@linux-foundation.org>
+Subject: [merged] ocfs2-o2hb-fix-double-free-bug.patch removed from -mm
+ tree
+Date: Sat, 26 Mar 2016 20:30:12 -0700
+Message-ID: <56f753c4.HCOKXXZgc8v/SPSu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33111 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33123 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754648AbcC0DaL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:30:11 -0400
+	with ESMTP id S1754648AbcC0DaN (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:30:13 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, dmitry.torokhov@gmail.com, luto@amacapital.net, luto@kernel.org, mm-commits@vger.kernel.org
+To: junxiao.bi@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, stable@vger.kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: drivers/input: eliminate INPUT_COMPAT_TEST macro
+     Subject: ocfs2: o2hb: fix double free bug
 has been removed from the -mm tree.  Its filename was
-     drivers-input-eliminate-input_compat_test-macro.patch
+     ocfs2-o2hb-fix-double-free-bug.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: drivers/input: eliminate INPUT_COMPAT_TEST macro
+From: Junxiao Bi <junxiao.bi@oracle.com>
+Subject: ocfs2: o2hb: fix double free bug
 
-INPUT_COMPAT_TEST because much simpler after f4056b52845283 ("input:
-redefine INPUT_COMPAT_TEST as in_compat_syscall()") so we can cleanly
-eliminate it altogether.
+This is a regression issue and caused the following kernel panic when do
+ocfs2 multiple test.
 
-Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Andy Lutomirski <luto@amacapital.net>
-Cc: Andy Lutomirski <luto@kernel.org>
+[  254.604228] BUG: unable to handle kernel paging request at
+00000002000800c0
+[  254.605013] IP: [<ffffffff81192978>] kmem_cache_alloc+0x78/0x160
+[  254.605013] PGD 7bbe5067 PUD 0
+[  254.605013] Oops: 0000 [#1] SMP
+[  254.605013] Modules linked in: ocfs2_dlmfs ocfs2_stack_o2cb ocfs2_dlm
+ocfs2_nodemanager ocfs2_stackglue iscsi_tcp libiscsi_tcp libiscsi
+scsi_transport_iscsi xen_kbdfront xen_netfront xen_fbfront xen_blkfront
+[  254.605013] CPU: 2 PID: 4044 Comm: mpirun Not tainted
+4.5.0-rc5-next-20160225 #1
+[  254.605013] Hardware name: Xen HVM domU, BIOS 4.3.1OVM 05/14/2014
+[  254.605013] task: ffff88007a521a80 ti: ffff88007aed0000 task.ti:
+ffff88007aed0000
+[  254.605013] RIP: 0010:[<ffffffff81192978>]  [<ffffffff81192978>]
+kmem_cache_alloc+0x78/0x160
+[  254.605013] RSP: 0018:ffff88007aed3a48  EFLAGS: 00010282
+[  254.605013] RAX: 0000000000000000 RBX: 0000000000000000 RCX:
+0000000000001991
+[  254.605013] RDX: 0000000000001990 RSI: 00000000024000c0 RDI:
+000000000001b330
+[  254.605013] RBP: ffff88007aed3a98 R08: ffff88007d29b330 R09:
+00000002000800c0
+[  254.605013] R10: 0000000c51376d87 R11: ffff8800792cac38 R12:
+ffff88007cc30f00
+[  254.605013] R13: 00000000024000c0 R14: ffffffff811b053f R15:
+ffff88007aed3ce7
+[  254.605013] FS:  0000000000000000(0000) GS:ffff88007d280000(0000)
+knlGS:0000000000000000
+[  254.605013] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  254.605013] CR2: 00000002000800c0 CR3: 000000007aeb2000 CR4:
+00000000000406e0
+[  254.605013] Stack:
+[  254.605013]  0000000013082000 ffff88007aed3d28 0000007900000000
+0000000000000001
+[  254.605013]  2f2f2f2f00000000 ffff8800792cac00 ffff88007aed3d38
+0000000000000101
+[  254.605013]  ffff88007a5e2000 ffff88007aed3ce7 ffff88007aed3b08
+ffffffff811b053f
+[  254.605013] Call Trace:
+[  254.605013]  [<ffffffff811b053f>] __d_alloc+0x2f/0x1a0
+[  254.605013]  [<ffffffff811a58f2>] ? unlazy_walk+0xe2/0x160
+[  254.605013]  [<ffffffff811b1c67>] d_alloc+0x17/0x80
+[  254.605013]  [<ffffffff811a5b0a>] lookup_dcache+0x8a/0xc0
+[  254.605013]  [<ffffffff81143e63>] ? __alloc_pages_nodemask+0x173/0xeb0
+[  254.605013]  [<ffffffff811aa523>] path_openat+0x3c3/0x1210
+[  254.605013]  [<ffffffff81354eb3>] ? radix_tree_lookup_slot+0x13/0x30
+[  254.605013]  [<ffffffff81139002>] ? find_get_entry+0x32/0xc0
+[  254.605013]  [<ffffffff811b4065>] ? atime_needs_update+0x55/0xe0
+[  254.605013]  [<ffffffff8113b7a1>] ? filemap_fault+0xd1/0x4b0
+[  254.605013]  [<ffffffff81168296>] ? do_set_pte+0xb6/0x140
+[  254.605013]  [<ffffffff811ab3f0>] do_filp_open+0x80/0xe0
+[  254.605013]  [<ffffffff811b7c48>] ? __alloc_fd+0x48/0x1a0
+[  254.605013]  [<ffffffff811a60aa>] ? getname_flags+0x7a/0x1e0
+[  254.605013]  [<ffffffff8119a2d0>] do_sys_open+0x110/0x200
+[  254.605013]  [<ffffffff8119a3f9>] SyS_open+0x19/0x20
+[  254.605013]  [<ffffffff81003ec2>] do_syscall_64+0x72/0x230
+[  254.605013]  [<ffffffff8105fc37>] ? __do_page_fault+0x177/0x430
+[  254.605013]  [<ffffffff8193bc61>] entry_SYSCALL64_slow_path+0x25/0x25
+[  254.605013] Code: 05 e6 77 e7 7e 4d 8b 08 49 8b 40 10 4d 85 c9 0f 84
+dd 00 00 00 48 85 c0 0f 84 d4 00 00 00 49 63 44 24 20 49 8b 3c 24 48 8d
+4a 01 <49> 8b 1c 01 4c 89 c8 65 48 0f c7 0f 0f 94 c0 3c 01 75 b6 49 63
+[  254.605013] RIP  [<ffffffff81192978>] kmem_cache_alloc+0x78/0x160
+[  254.605013]  RSP <ffff88007aed3a48>
+[  254.605013] CR2: 00000002000800c0
+[  254.792273] ---[ end trace 823969e602e4aaac ]---
+
+Fixes: a4a1dfa4bb8b("ocfs2/cluster: fix memory leak in o2hb_region_release")
+Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
+Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Mark Fasheh <mfasheh@suse.de>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/input/input-compat.c |    6 +++---
- drivers/input/input-compat.h |    4 +---
- drivers/input/input.c        |    2 +-
- drivers/input/misc/uinput.c  |    4 ++--
- 4 files changed, 7 insertions(+), 9 deletions(-)
+ fs/ocfs2/cluster/heartbeat.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN drivers/input/input-compat.c~drivers-input-eliminate-input_compat_test-macro drivers/input/input-compat.c
---- a/drivers/input/input-compat.c~drivers-input-eliminate-input_compat_test-macro
-+++ a/drivers/input/input-compat.c
-@@ -17,7 +17,7 @@
- int input_event_from_user(const char __user *buffer,
- 			  struct input_event *event)
- {
--	if (INPUT_COMPAT_TEST && !COMPAT_USE_64BIT_TIME) {
-+	if (in_compat_syscall() && !COMPAT_USE_64BIT_TIME) {
- 		struct input_event_compat compat_event;
+diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-fix-double-free-bug fs/ocfs2/cluster/heartbeat.c
+--- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-fix-double-free-bug
++++ a/fs/ocfs2/cluster/heartbeat.c
+@@ -1444,8 +1444,8 @@ static void o2hb_region_release(struct c
+ 	debugfs_remove(reg->hr_debug_dir);
+ 	kfree(reg->hr_db_livenodes);
+ 	kfree(reg->hr_db_regnum);
+-	kfree(reg->hr_debug_elapsed_time);
+-	kfree(reg->hr_debug_pinned);
++	kfree(reg->hr_db_elapsed_time);
++	kfree(reg->hr_db_pinned);
  
- 		if (copy_from_user(&compat_event, buffer,
-@@ -41,7 +41,7 @@ int input_event_from_user(const char __u
- int input_event_to_user(char __user *buffer,
- 			const struct input_event *event)
- {
--	if (INPUT_COMPAT_TEST && !COMPAT_USE_64BIT_TIME) {
-+	if (in_compat_syscall() && !COMPAT_USE_64BIT_TIME) {
- 		struct input_event_compat compat_event;
- 
- 		compat_event.time.tv_sec = event->time.tv_sec;
-@@ -65,7 +65,7 @@ int input_event_to_user(char __user *buf
- int input_ff_effect_from_user(const char __user *buffer, size_t size,
- 			      struct ff_effect *effect)
- {
--	if (INPUT_COMPAT_TEST) {
-+	if (in_compat_syscall()) {
- 		struct ff_effect_compat *compat_effect;
- 
- 		if (size != sizeof(struct ff_effect_compat))
-diff -puN drivers/input/input-compat.h~drivers-input-eliminate-input_compat_test-macro drivers/input/input-compat.h
---- a/drivers/input/input-compat.h~drivers-input-eliminate-input_compat_test-macro
-+++ a/drivers/input/input-compat.h
-@@ -17,8 +17,6 @@
- 
- #ifdef CONFIG_COMPAT
- 
--#define INPUT_COMPAT_TEST in_compat_syscall()
--
- struct input_event_compat {
- 	struct compat_timeval time;
- 	__u16 type;
-@@ -57,7 +55,7 @@ struct ff_effect_compat {
- 
- static inline size_t input_event_size(void)
- {
--	return (INPUT_COMPAT_TEST && !COMPAT_USE_64BIT_TIME) ?
-+	return (in_compat_syscall() && !COMPAT_USE_64BIT_TIME) ?
- 		sizeof(struct input_event_compat) : sizeof(struct input_event);
- }
- 
-diff -puN drivers/input/input.c~drivers-input-eliminate-input_compat_test-macro drivers/input/input.c
---- a/drivers/input/input.c~drivers-input-eliminate-input_compat_test-macro
-+++ a/drivers/input/input.c
-@@ -1015,7 +1015,7 @@ static int input_bits_to_string(char *bu
- {
- 	int len = 0;
- 
--	if (INPUT_COMPAT_TEST) {
-+	if (in_compat_syscall()) {
- 		u32 dword = bits >> 32;
- 		if (dword || !skip_empty)
- 			len += snprintf(buf, buf_size, "%x ", dword);
-diff -puN drivers/input/misc/uinput.c~drivers-input-eliminate-input_compat_test-macro drivers/input/misc/uinput.c
---- a/drivers/input/misc/uinput.c~drivers-input-eliminate-input_compat_test-macro
-+++ a/drivers/input/misc/uinput.c
-@@ -664,7 +664,7 @@ struct uinput_ff_upload_compat {
- static int uinput_ff_upload_to_user(char __user *buffer,
- 				    const struct uinput_ff_upload *ff_up)
- {
--	if (INPUT_COMPAT_TEST) {
-+	if (in_compat_syscall()) {
- 		struct uinput_ff_upload_compat ff_up_compat;
- 
- 		ff_up_compat.request_id = ff_up->request_id;
-@@ -695,7 +695,7 @@ static int uinput_ff_upload_to_user(char
- static int uinput_ff_upload_from_user(const char __user *buffer,
- 				      struct uinput_ff_upload *ff_up)
- {
--	if (INPUT_COMPAT_TEST) {
-+	if (in_compat_syscall()) {
- 		struct uinput_ff_upload_compat ff_up_compat;
- 
- 		if (copy_from_user(&ff_up_compat, buffer,
+ 	spin_lock(&o2hb_live_lock);
+ 	list_del(&reg->hr_all_item);
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from junxiao.bi@oracle.com are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
-include-linux-nodemaskh-create-next_node_in-helper.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+ocfs2-o2hb-add-negotiate-timer.patch
+ocfs2-o2hb-add-negotiate-timer-v2.patch
+ocfs2-o2hb-add-nego_timeout-message.patch
+ocfs2-o2hb-add-nego_timeout-message-v2.patch
+ocfs2-o2hb-add-negotiate_approve-message.patch
+ocfs2-o2hb-add-negotiate_approve-message-v2.patch
+ocfs2-o2hb-add-some-user-debug-log.patch
+ocfs2-o2hb-add-some-user-debug-log-v2.patch
+ocfs2-o2hb-dont-negotiate-if-last-hb-fail.patch
+ocfs2-o2hb-fix-hb-hung-time.patch
 
