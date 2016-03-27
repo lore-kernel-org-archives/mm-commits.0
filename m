@@ -1,199 +1,168 @@
 From: akpm@linux-foundation.org
-Subject: mmotm 2016-03-25-15-13 uploaded
-Date: Fri, 25 Mar 2016 15:14:08 -0700
-Message-ID: <56f5b830.Yvs8wbhgxQwqXiSe%akpm__20323.8373659135$1458944087$gmane$org@linux-foundation.org>
+Subject: [merged] mm-oom_reaper-implement-oom-victims-queuing.patch
+ removed from -mm tree
+Date: Sat, 26 Mar 2016 20:29:59 -0700
+Message-ID: <56f753b7.ZekaF3unMvln+iST%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:41868 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33057 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754506AbcCYWOK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 25 Mar 2016 18:14:10 -0400
+	with ESMTP id S1754648AbcC0DaA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:30:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mm-commits@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, linux-fsdevel@vger.kernel.org, linux-next@vger.kernel.org, sfr@canb.auug.org.au, mhocko@suse.cz, broonie@kernel.org
-
-The mm-of-the-moment snapshot 2016-03-25-15-13 has been uploaded to
-
-   http://www.ozlabs.org/~akpm/mmotm/
-
-mmotm-readme.txt says
-
-README for mm-of-the-moment:
-
-http://www.ozlabs.org/~akpm/mmotm/
-
-This is a snapshot of my -mm patch queue.  Uploaded at random hopefully
-more than once a week.
-
-You will need quilt to apply these patches to the latest Linus release (4.x
-or 4.x-rcY).  The series file is in broken-out.tar.gz and is duplicated in
-http://ozlabs.org/~akpm/mmotm/series
-
-The file broken-out.tar.gz contains two datestamp files: .DATE and
-.DATE-yyyy-mm-dd-hh-mm-ss.  Both contain the string yyyy-mm-dd-hh-mm-ss,
-followed by the base kernel version against which this patch series is to
-be applied.
-
-This tree is partially included in linux-next.  To see which patches are
-included in linux-next, consult the `series' file.  Only the patches
-within the #NEXT_PATCHES_START/#NEXT_PATCHES_END markers are included in
-linux-next.
-
-A git tree which contains the memory management portion of this tree is
-maintained at git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-by Michal Hocko.  It contains the patches which are between the
-"#NEXT_PATCHES_START mm" and "#NEXT_PATCHES_END" markers, from the series
-file, http://www.ozlabs.org/~akpm/mmotm/series.
+To: mhocko@suse.com, andrea@kernel.org, hannes@cmpxchg.org, hughd@google.com, mgorman@suse.de, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
-A full copy of the full kernel tree with the linux-next and mmotm patches
-already applied is available through git within an hour of the mmotm
-release.  Individual mmotm releases are tagged.  The master branch always
-points to the latest release, so it's constantly rebasing.
+The patch titled
+     Subject: mm, oom_reaper: implement OOM victims queuing
+has been removed from the -mm tree.  Its filename was
+     mm-oom_reaper-implement-oom-victims-queuing.patch
 
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/
+This patch was dropped because it was merged into mainline or a subsystem tree
 
-To develop on top of mmotm git:
+------------------------------------------------------
+From: Michal Hocko <mhocko@suse.com>
+Subject: mm, oom_reaper: implement OOM victims queuing
 
-  $ git remote add mmotm git://git.kernel.org/pub/scm/linux/kernel/git/mhocko/mm.git
-  $ git remote update mmotm
-  $ git checkout -b topic mmotm/master
-  <make changes, commit>
-  $ git send-email mmotm/master.. [...]
+wake_oom_reaper has allowed only 1 oom victim to be queued.  The main
+reason for that was the simplicity as other solutions would require some
+way of queuing.  The current approach is racy and that was deemed
+sufficient as the oom_reaper is considered a best effort approach to help
+with oom handling when the OOM victim cannot terminate in a reasonable
+time.  The race could lead to missing an oom victim which can get stuck
 
-To rebase a branch with older patches to a new mmotm release:
+out_of_memory
+  wake_oom_reaper
+    cmpxchg // OK
+    			oom_reaper
+			  oom_reap_task
+			    __oom_reap_task
+oom_victim terminates
+			      atomic_inc_not_zero // fail
+out_of_memory
+  wake_oom_reaper
+    cmpxchg // fails
+			  task_to_reap = NULL
 
-  $ git remote update mmotm
-  $ git rebase --onto mmotm/master <topic base> topic
+This race requires 2 OOM invocations in a short time period which is not
+very likely but certainly not impossible.  E.g.  the original victim might
+have not released a lot of memory for some reason.
 
+The situation would improve considerably if wake_oom_reaper used a more
+robust queuing.  This is what this patch implements.  This means adding
+oom_reaper_list list_head into task_struct (eat a hole before embeded
+thread_struct for that purpose) and a oom_reaper_lock spinlock for queuing
+synchronization.  wake_oom_reaper will then add the task on the queue and
+oom_reaper will dequeue it.
 
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
+Cc: Andrea Argangeli <andrea@kernel.org>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
+ include/linux/sched.h |    3 +++
+ mm/oom_kill.c         |   36 +++++++++++++++++++-----------------
+ 2 files changed, 22 insertions(+), 17 deletions(-)
 
-The directory http://www.ozlabs.org/~akpm/mmots/ (mm-of-the-second)
-contains daily snapshots of the -mm tree.  It is updated more frequently
-than mmotm, and is untested.
+diff -puN include/linux/sched.h~mm-oom_reaper-implement-oom-victims-queuing include/linux/sched.h
+--- a/include/linux/sched.h~mm-oom_reaper-implement-oom-victims-queuing
++++ a/include/linux/sched.h
+@@ -1849,6 +1849,9 @@ struct task_struct {
+ 	unsigned long	task_state_change;
+ #endif
+ 	int pagefault_disabled;
++#ifdef CONFIG_MMU
++	struct list_head oom_reaper_list;
++#endif
+ /* CPU-specific state of this task */
+ 	struct thread_struct thread;
+ /*
+diff -puN mm/oom_kill.c~mm-oom_reaper-implement-oom-victims-queuing mm/oom_kill.c
+--- a/mm/oom_kill.c~mm-oom_reaper-implement-oom-victims-queuing
++++ a/mm/oom_kill.c
+@@ -418,8 +418,10 @@ bool oom_killer_disabled __read_mostly;
+  * victim (if that is possible) to help the OOM killer to move on.
+  */
+ static struct task_struct *oom_reaper_th;
+-static struct task_struct *task_to_reap;
+ static DECLARE_WAIT_QUEUE_HEAD(oom_reaper_wait);
++static LIST_HEAD(oom_reaper_list);
++static DEFINE_SPINLOCK(oom_reaper_lock);
++
+ 
+ static bool __oom_reap_task(struct task_struct *tsk)
+ {
+@@ -524,12 +526,20 @@ static void oom_reap_task(struct task_st
+ static int oom_reaper(void *unused)
+ {
+ 	while (true) {
+-		struct task_struct *tsk;
++		struct task_struct *tsk = NULL;
+ 
+ 		wait_event_freezable(oom_reaper_wait,
+-				     (tsk = READ_ONCE(task_to_reap)));
+-		oom_reap_task(tsk);
+-		WRITE_ONCE(task_to_reap, NULL);
++				     (!list_empty(&oom_reaper_list)));
++		spin_lock(&oom_reaper_lock);
++		if (!list_empty(&oom_reaper_list)) {
++			tsk = list_first_entry(&oom_reaper_list,
++					struct task_struct, oom_reaper_list);
++			list_del(&tsk->oom_reaper_list);
++		}
++		spin_unlock(&oom_reaper_lock);
++
++		if (tsk)
++			oom_reap_task(tsk);
+ 	}
+ 
+ 	return 0;
+@@ -537,23 +547,15 @@ static int oom_reaper(void *unused)
+ 
+ static void wake_oom_reaper(struct task_struct *tsk)
+ {
+-	struct task_struct *old_tsk;
+-
+ 	if (!oom_reaper_th)
+ 		return;
+ 
+ 	get_task_struct(tsk);
+ 
+-	/*
+-	 * Make sure that only a single mm is ever queued for the reaper
+-	 * because multiple are not necessary and the operation might be
+-	 * disruptive so better reduce it to the bare minimum.
+-	 */
+-	old_tsk = cmpxchg(&task_to_reap, NULL, tsk);
+-	if (!old_tsk)
+-		wake_up(&oom_reaper_wait);
+-	else
+-		put_task_struct(tsk);
++	spin_lock(&oom_reaper_lock);
++	list_add(&tsk->oom_reaper_list, &oom_reaper_list);
++	spin_unlock(&oom_reaper_lock);
++	wake_up(&oom_reaper_wait);
+ }
+ 
+ static int __init oom_init(void)
+_
 
-A git copy of this tree is available at
+Patches currently in -mm which might be from mhocko@suse.com are
 
-	http://git.cmpxchg.org/cgit.cgi/linux-mmots.git/
+oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task.patch
+mm-oom-rework-oom-detection.patch
+mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
 
-and use of this tree is similar to
-http://git.cmpxchg.org/cgit.cgi/linux-mmotm.git/, described above.
-
-
-This mmotm tree contains the following patches against 4.5:
-(patches marked "*" will be included in linux-next)
-
-  origin.patch
-* sched-add-schedule_timeout_idle.patch
-* mm-oom-introduce-oom-reaper.patch
-* oom-clear-tif_memdie-after-oom_reaper-managed-to-unmap-the-address-space.patch
-* mm-oom_reaper-report-success-failure.patch
-* mm-oom_reaper-implement-oom-victims-queuing.patch
-* oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task.patch
-* oom-make-oom_reaper_list-single-linked.patch
-* oom-make-oom_reaper-freezable.patch
-* oom-oom_reaper-protect-oom_reaper_list-using-simpler-way.patch
-* drivers-input-eliminate-input_compat_test-macro.patch
-* ocfs2-o2hb-fix-double-free-bug.patch
-* ocfs2-add-ocfs2_write_type_t-type-to-identify-the-caller-of-write.patch
-* ocfs2-use-c_new-to-indicate-newly-allocated-extents.patch
-* ocfs2-test-target-page-before-change-it.patch
-* ocfs2-do-not-change-i_size-in-write_end-for-direct-io.patch
-* ocfs2-return-the-physical-address-in-ocfs2_write_cluster.patch
-* ocfs2-record-unwritten-extents-when-populate-write-desc.patch
-* ocfs2-fix-sparse-file-data-ordering-issue-in-direct-io.patch
-* ocfs2-code-clean-up-for-direct-io.patch
-* ocfs2-fix-ip_unaligned_aio-deadlock-with-dio-work-queue.patch
-* ocfs2-take-ip_alloc_sem-in-ocfs2_dio_get_block-ocfs2_dio_end_io_write.patch
-* ocfs2-fix-disk-file-size-and-memory-file-size-mismatch.patch
-* ocfs2-fix-a-deadlock-issue-in-ocfs2_dio_end_io_write.patch
-* ocfs2-dlm-fix-race-between-convert-and-recovery.patch
-* ocfs2-dlm-fix-bug-in-dlm_move_lockres_to_recovery_list.patch
-* ocfs2-avoid-occurring-deadlock-by-changing-ocfs2_wq-from-global-to-local.patch
-* ocfs2-solve-a-problem-of-crossing-the-boundary-in-updating-backups.patch
-* ocfs2-dlm-move-lock-to-the-tail-of-grant-queue-while-doing-in-place-convert.patch
-* ocfs2-extend-transaction-for-ocfs2_remove_rightmost_path-and-ocfs2_update_edge_lengths-before-to-avoid-inconsistency-between-inode-and-et.patch
-* extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
-* memstick-r592-avoid-gcc-6-warning.patch
-* mm-page_alloc-prevent-merging-between-isolated-and-other-pageblocks.patch
-* mmoom-remove-undefined-oom_kills_count-note_oom_kill.patch
-* kasan-modify-kmalloc_large_oob_right-add-kmalloc_pagealloc_oob_right.patch
-* mm-kasan-slab-support.patch
-* mm-kasan-added-gfp-flags-to-kasan-api.patch
-* arch-ftrace-for-kasan-put-hard-soft-irq-entries-into-separate-sections.patch
-* mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab.patch
-* kasan-test-fix-warn-if-the-uaf-could-not-be-detected-in-kmalloc_uaf2.patch
-* mm-filemap-generic_file_read_iter-check-for-zero-reads-unconditionally.patch
-* maintainers-fill-entries-for-kasan.patch
-* thp-fix-typo-in-khugepaged_scan_pmd.patch
-  i-need-old-gcc.patch
-  arch-alpha-kernel-systblss-remove-debug-check.patch
-  drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-  drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-* mm-fix-invalid-node-in-alloc_migrate_target.patch
-* arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-* fs-ext4-fsyncc-generic_file_fsync-call-based-on-barrier-flag.patch
-* ocfs2-error-code-comments-and-amendments-the-comment-of-ocfs2_extended_slot-should-be-0x08.patch
-* ocfs2-clean-up-an-unused-variable-wants_rotate-in-ocfs2_truncate_rec.patch
-* ocfs2-o2hb-add-negotiate-timer.patch
-* ocfs2-o2hb-add-negotiate-timer-v2.patch
-* ocfs2-o2hb-add-nego_timeout-message.patch
-* ocfs2-o2hb-add-nego_timeout-message-v2.patch
-* ocfs2-o2hb-add-negotiate_approve-message.patch
-* ocfs2-o2hb-add-negotiate_approve-message-v2.patch
-* ocfs2-o2hb-add-some-user-debug-log.patch
-* ocfs2-o2hb-add-some-user-debug-log-v2.patch
-* ocfs2-o2hb-dont-negotiate-if-last-hb-fail.patch
-* ocfs2-o2hb-fix-hb-hung-time.patch
-* block-restore-proc-partitions-to-not-display-non-partitionable-removable-devices.patch
-  mm.patch
-* compilerh-add-support-for-malloc-attribute.patch
-* include-linux-apply-__malloc-attribute.patch
-* include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
-* include-linux-nodemaskh-create-next_node_in-helper.patch
-* ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit.patch
-* ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-* ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-3.patch
-* mm-make-optimistic-check-for-swapin-readahead.patch
-* mm-make-optimistic-check-for-swapin-readahead-fix-2.patch
-* mm-make-swapin-readahead-to-improve-thp-collapse-rate.patch
-* mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
-* mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
-* mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
-* mm-kasan-initial-memory-quarantine-implementation.patch
-* mm-kasan-initial-memory-quarantine-implementation-v8.patch
-* mm-oom-rework-oom-detection.patch
-* mm-oom-rework-oom-detection-checkpatch-fixes.patch
-* mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-* mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
-* mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-* mm-memblock-if-nr_new-is-0-just-return.patch
-* maintainers-remove-linux-listsopenriscnet.patch
-* mm-utilc-add-kstrimdup.patch
-* lib-add-crc64-ecma-module.patch
-* init-mainc-simplify-initcall_blacklisted.patch
-* kexec-introduce-a-protection-mechanism-for-the-crashkernel-reserved-memory.patch
-* kexec-provide-arch_kexec_protectunprotect_crashkres.patch
-* kexec-make-a-pair-of-map-unmap-reserved-pages-in-error-path.patch
-* kexec-do-a-cleanup-for-function-kexec_load.patch
-* kdump-vmcoreinfo-report-actual-value-of-phys_base.patch
-* ipc-semc-fix-complex_count-vs-simple-op-race.patch
-* ipc-msgc-msgsnd-use-freezable-blocking-call.patch
-* msgrcv-use-freezable-blocking-call.patch
-  linux-next.patch
-* drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-* staging-goldfish-use-6-arg-get_user_pages.patch
-  mm-add-strictlimit-knob-v2.patch
-  do_shared_fault-check-that-mmap_sem-is-held.patch
-  make-sure-nobodys-leaking-resources.patch
-  releasing-resources-with-children.patch
-  make-frame_pointer-default=y.patch
-  kernel-forkc-export-kernel_thread-to-modules.patch
-  mutex-subsystem-synchro-test-module.patch
-  slab-leaks3-default-y.patch
-  add-debugging-aid-for-memory-initialisation-problems.patch
-  workaround-for-a-pci-restoring-bug.patch
