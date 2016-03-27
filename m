@@ -1,58 +1,96 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mmoom-remove-undefined-oom_kills_count-note_oom_kill.patch removed from -mm tree
-Date: Sat, 26 Mar 2016 20:31:13 -0700
-Message-ID: <56f75401.XS4T7SEX7F6OWsqg%akpm@linux-foundation.org>
+ extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch removed from -mm tree
+Date: Sat, 26 Mar 2016 20:31:06 -0700
+Message-ID: <56f753fa.l2FrOH3dAqgDb/8K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33255 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33230 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645AbcC0DbO (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:31:14 -0400
+	with ESMTP id S1754645AbcC0DbH (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:31:07 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: penguin-kernel@I-love.SAKURA.ne.jp, mhocko@suse.com, mm-commits@vger.kernel.org
+To: xuejiufei@huawei.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/oom.h: remove undefined oom_kills_count()/note_oom_kill()
+     Subject: ocfs2: extend enough credits for freeing one truncate record while replaying truncate records
 has been removed from the -mm tree.  Its filename was
-     mmoom-remove-undefined-oom_kills_count-note_oom_kill.patch
+     extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: include/linux/oom.h: remove undefined oom_kills_count()/note_oom_kill()
+From: Xue jiufei <xuejiufei@huawei.com>
+Subject: ocfs2: extend enough credits for freeing one truncate record while replaying truncate records
 
-A leftover from c32b3cbe0d06 ("oom, PM: make OOM detection in the freezer
-path raceless").
+Now function ocfs2_replay_truncate_records() first modifies tl_used, then
+calls ocfs2_extend_trans() to extend transactions for gd and alloc inode
+used for freeing clusters.  jbd2_journal_restart() may be called and it
+may happen that tl_used in truncate log is decreased but the clusters are
+not freed, which means these clusters are lost.  So we should avoid
+extending transactions in these two operations.
 
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Acked-by: Michal Hocko <mhocko@suse.com>
+Signed-off-by: joyce.xue <xuejiufei@huawei.com>
+Reviewed-by: Mark Fasheh <mfasheh@suse.de>
+Acked-by: Joseph Qi <joseph.qi@huawei.com>
+Cc: Joel Becker <jlbec@evilplan.org>
+Cc: Junxiao Bi <junxiao.bi@oracle.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/oom.h |    2 --
- 1 file changed, 2 deletions(-)
+ fs/ocfs2/alloc.c |   19 ++++++++-----------
+ 1 file changed, 8 insertions(+), 11 deletions(-)
 
-diff -puN include/linux/oom.h~mmoom-remove-undefined-oom_kills_count-note_oom_kill include/linux/oom.h
---- a/include/linux/oom.h~mmoom-remove-undefined-oom_kills_count-note_oom_kill
-+++ a/include/linux/oom.h
-@@ -76,8 +76,6 @@ extern unsigned long oom_badness(struct
- 		struct mem_cgroup *memcg, const nodemask_t *nodemask,
- 		unsigned long totalpages);
+diff -puN fs/ocfs2/alloc.c~extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records fs/ocfs2/alloc.c
+--- a/fs/ocfs2/alloc.c~extend-enough-credits-for-freeing-one-truncate-record-while-replaying-truncate-records
++++ a/fs/ocfs2/alloc.c
+@@ -5954,16 +5954,6 @@ static int ocfs2_replay_truncate_records
  
--extern int oom_kills_count(void);
--extern void note_oom_kill(void);
- extern void oom_kill_process(struct oom_control *oc, struct task_struct *p,
- 			     unsigned int points, unsigned long totalpages,
- 			     struct mem_cgroup *memcg, const char *message);
+ 		ocfs2_journal_dirty(handle, tl_bh);
+ 
+-		/* TODO: Perhaps we can calculate the bulk of the
+-		 * credits up front rather than extending like
+-		 * this. */
+-		status = ocfs2_extend_trans(handle,
+-					    OCFS2_TRUNCATE_LOG_FLUSH_ONE_REC);
+-		if (status < 0) {
+-			mlog_errno(status);
+-			goto bail;
+-		}
+-
+ 		rec = tl->tl_recs[i];
+ 		start_blk = ocfs2_clusters_to_blocks(data_alloc_inode->i_sb,
+ 						    le32_to_cpu(rec.t_start));
+@@ -5984,6 +5974,13 @@ static int ocfs2_replay_truncate_records
+ 				goto bail;
+ 			}
+ 		}
++
++		status = ocfs2_extend_trans(handle,
++				OCFS2_TRUNCATE_LOG_FLUSH_ONE_REC);
++		if (status < 0) {
++			mlog_errno(status);
++			goto bail;
++		}
+ 		i--;
+ 	}
+ 
+@@ -6042,7 +6039,7 @@ int __ocfs2_flush_truncate_log(struct oc
+ 		goto out_mutex;
+ 	}
+ 
+-	handle = ocfs2_start_trans(osb, OCFS2_TRUNCATE_LOG_UPDATE);
++	handle = ocfs2_start_trans(osb, OCFS2_TRUNCATE_LOG_FLUSH_ONE_REC);
+ 	if (IS_ERR(handle)) {
+ 		status = PTR_ERR(handle);
+ 		mlog_errno(status);
 _
 
-Patches currently in -mm which might be from penguin-kernel@I-love.SAKURA.ne.jp are
+Patches currently in -mm which might be from xuejiufei@huawei.com are
 
 
