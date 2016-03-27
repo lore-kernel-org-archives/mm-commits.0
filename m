@@ -1,140 +1,182 @@
 From: akpm@linux-foundation.org
-Subject: [merged] ocfs2-o2hb-fix-double-free-bug.patch removed from -mm
- tree
-Date: Sat, 26 Mar 2016 20:30:12 -0700
-Message-ID: <56f753c4.HCOKXXZgc8v/SPSu%akpm@linux-foundation.org>
+Subject: [merged]
+ ocfs2-add-ocfs2_write_type_t-type-to-identify-the-caller-of-write.patch
+ removed from -mm tree
+Date: Sat, 26 Mar 2016 20:30:15 -0700
+Message-ID: <56f753c7.53yDrvABE0OdqNWC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33123 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33139 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754648AbcC0DaN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:30:13 -0400
+	with ESMTP id S1754648AbcC0DaQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:30:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: junxiao.bi@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, mfasheh@suse.de, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: ryan.ding@oracle.com, jlbec@evilplan.org, joseph.qi@huawei.com, junxiao.bi@oracle.com, mfasheh@suse.de, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: ocfs2: o2hb: fix double free bug
+     Subject: ocfs2: add ocfs2_write_type_t type to identify the caller of write
 has been removed from the -mm tree.  Its filename was
-     ocfs2-o2hb-fix-double-free-bug.patch
+     ocfs2-add-ocfs2_write_type_t-type-to-identify-the-caller-of-write.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Junxiao Bi <junxiao.bi@oracle.com>
-Subject: ocfs2: o2hb: fix double free bug
+From: Ryan Ding <ryan.ding@oracle.com>
+Subject: ocfs2: add ocfs2_write_type_t type to identify the caller of write
 
-This is a regression issue and caused the following kernel panic when do
-ocfs2 multiple test.
+Patchset: fix ocfs2 direct io code patch to support sparse file and data
+ordering semantics
 
-[  254.604228] BUG: unable to handle kernel paging request at
-00000002000800c0
-[  254.605013] IP: [<ffffffff81192978>] kmem_cache_alloc+0x78/0x160
-[  254.605013] PGD 7bbe5067 PUD 0
-[  254.605013] Oops: 0000 [#1] SMP
-[  254.605013] Modules linked in: ocfs2_dlmfs ocfs2_stack_o2cb ocfs2_dlm
-ocfs2_nodemanager ocfs2_stackglue iscsi_tcp libiscsi_tcp libiscsi
-scsi_transport_iscsi xen_kbdfront xen_netfront xen_fbfront xen_blkfront
-[  254.605013] CPU: 2 PID: 4044 Comm: mpirun Not tainted
-4.5.0-rc5-next-20160225 #1
-[  254.605013] Hardware name: Xen HVM domU, BIOS 4.3.1OVM 05/14/2014
-[  254.605013] task: ffff88007a521a80 ti: ffff88007aed0000 task.ti:
-ffff88007aed0000
-[  254.605013] RIP: 0010:[<ffffffff81192978>]  [<ffffffff81192978>]
-kmem_cache_alloc+0x78/0x160
-[  254.605013] RSP: 0018:ffff88007aed3a48  EFLAGS: 00010282
-[  254.605013] RAX: 0000000000000000 RBX: 0000000000000000 RCX:
-0000000000001991
-[  254.605013] RDX: 0000000000001990 RSI: 00000000024000c0 RDI:
-000000000001b330
-[  254.605013] RBP: ffff88007aed3a98 R08: ffff88007d29b330 R09:
-00000002000800c0
-[  254.605013] R10: 0000000c51376d87 R11: ffff8800792cac38 R12:
-ffff88007cc30f00
-[  254.605013] R13: 00000000024000c0 R14: ffffffff811b053f R15:
-ffff88007aed3ce7
-[  254.605013] FS:  0000000000000000(0000) GS:ffff88007d280000(0000)
-knlGS:0000000000000000
-[  254.605013] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[  254.605013] CR2: 00000002000800c0 CR3: 000000007aeb2000 CR4:
-00000000000406e0
-[  254.605013] Stack:
-[  254.605013]  0000000013082000 ffff88007aed3d28 0000007900000000
-0000000000000001
-[  254.605013]  2f2f2f2f00000000 ffff8800792cac00 ffff88007aed3d38
-0000000000000101
-[  254.605013]  ffff88007a5e2000 ffff88007aed3ce7 ffff88007aed3b08
-ffffffff811b053f
-[  254.605013] Call Trace:
-[  254.605013]  [<ffffffff811b053f>] __d_alloc+0x2f/0x1a0
-[  254.605013]  [<ffffffff811a58f2>] ? unlazy_walk+0xe2/0x160
-[  254.605013]  [<ffffffff811b1c67>] d_alloc+0x17/0x80
-[  254.605013]  [<ffffffff811a5b0a>] lookup_dcache+0x8a/0xc0
-[  254.605013]  [<ffffffff81143e63>] ? __alloc_pages_nodemask+0x173/0xeb0
-[  254.605013]  [<ffffffff811aa523>] path_openat+0x3c3/0x1210
-[  254.605013]  [<ffffffff81354eb3>] ? radix_tree_lookup_slot+0x13/0x30
-[  254.605013]  [<ffffffff81139002>] ? find_get_entry+0x32/0xc0
-[  254.605013]  [<ffffffff811b4065>] ? atime_needs_update+0x55/0xe0
-[  254.605013]  [<ffffffff8113b7a1>] ? filemap_fault+0xd1/0x4b0
-[  254.605013]  [<ffffffff81168296>] ? do_set_pte+0xb6/0x140
-[  254.605013]  [<ffffffff811ab3f0>] do_filp_open+0x80/0xe0
-[  254.605013]  [<ffffffff811b7c48>] ? __alloc_fd+0x48/0x1a0
-[  254.605013]  [<ffffffff811a60aa>] ? getname_flags+0x7a/0x1e0
-[  254.605013]  [<ffffffff8119a2d0>] do_sys_open+0x110/0x200
-[  254.605013]  [<ffffffff8119a3f9>] SyS_open+0x19/0x20
-[  254.605013]  [<ffffffff81003ec2>] do_syscall_64+0x72/0x230
-[  254.605013]  [<ffffffff8105fc37>] ? __do_page_fault+0x177/0x430
-[  254.605013]  [<ffffffff8193bc61>] entry_SYSCALL64_slow_path+0x25/0x25
-[  254.605013] Code: 05 e6 77 e7 7e 4d 8b 08 49 8b 40 10 4d 85 c9 0f 84
-dd 00 00 00 48 85 c0 0f 84 d4 00 00 00 49 63 44 24 20 49 8b 3c 24 48 8d
-4a 01 <49> 8b 1c 01 4c 89 c8 65 48 0f c7 0f 0f 94 c0 3c 01 75 b6 49 63
-[  254.605013] RIP  [<ffffffff81192978>] kmem_cache_alloc+0x78/0x160
-[  254.605013]  RSP <ffff88007aed3a48>
-[  254.605013] CR2: 00000002000800c0
-[  254.792273] ---[ end trace 823969e602e4aaac ]---
+The idea is to use buffer io(more precisely use the interface
+ocfs2_write_begin_nolock & ocfs2_write_end_nolock) to do the zero work
+beyond block size.  And clear UNWRITTEN flag until direct io data has been
+written to disk, which can prevent data corruption when system crashed
+during direct write.
 
-Fixes: a4a1dfa4bb8b("ocfs2/cluster: fix memory leak in o2hb_region_release")
-Signed-off-by: Junxiao Bi <junxiao.bi@oracle.com>
-Reviewed-by: Joseph Qi <joseph.qi@huawei.com>
+And we will also archive a better performance:
+eg. dd direct write new file with block size 4KB:
+before this patchset:
+2.5 MB/s
+after this patchset:
+66.4 MB/s
+
+
+This patch (of 8):
+
+
+To support direct io in ocfs2_write_begin_nolock & ocfs2_write_end_nolock.
+
+Remove unused args filp & flags.  Add new arg type.  The type is one of
+buffer/direct/mmap.  Indicate 3 way to perform write.  buffer/mmap type
+has implemented.  direct type will be implemented later.
+
+Signed-off-by: Ryan Ding <ryan.ding@oracle.com>
+Reviewed-by: Junxiao Bi <junxiao.bi@oracle.com>
+Cc: Joseph Qi <joseph.qi@huawei.com>
 Cc: Mark Fasheh <mfasheh@suse.de>
 Cc: Joel Becker <jlbec@evilplan.org>
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/ocfs2/cluster/heartbeat.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ fs/ocfs2/aops.c |   20 ++++++++++++--------
+ fs/ocfs2/aops.h |   11 ++++++++---
+ fs/ocfs2/mmap.c |    4 ++--
+ 3 files changed, 22 insertions(+), 13 deletions(-)
 
-diff -puN fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-fix-double-free-bug fs/ocfs2/cluster/heartbeat.c
---- a/fs/ocfs2/cluster/heartbeat.c~ocfs2-o2hb-fix-double-free-bug
-+++ a/fs/ocfs2/cluster/heartbeat.c
-@@ -1444,8 +1444,8 @@ static void o2hb_region_release(struct c
- 	debugfs_remove(reg->hr_debug_dir);
- 	kfree(reg->hr_db_livenodes);
- 	kfree(reg->hr_db_regnum);
--	kfree(reg->hr_debug_elapsed_time);
--	kfree(reg->hr_debug_pinned);
-+	kfree(reg->hr_db_elapsed_time);
-+	kfree(reg->hr_db_pinned);
+diff -puN fs/ocfs2/aops.c~ocfs2-add-ocfs2_write_type_t-type-to-identify-the-caller-of-write fs/ocfs2/aops.c
+--- a/fs/ocfs2/aops.c~ocfs2-add-ocfs2_write_type_t-type-to-identify-the-caller-of-write
++++ a/fs/ocfs2/aops.c
+@@ -1224,6 +1224,9 @@ struct ocfs2_write_ctxt {
+ 	/* First cluster allocated in a nonsparse extend */
+ 	u32				w_first_new_cpos;
  
- 	spin_lock(&o2hb_live_lock);
- 	list_del(&reg->hr_all_item);
++	/* Type of caller. Must be one of buffer, mmap, direct.  */
++	ocfs2_write_type_t		w_type;
++
+ 	struct ocfs2_write_cluster_desc	w_desc[OCFS2_MAX_CLUSTERS_PER_PAGE];
+ 
+ 	/*
+@@ -1319,7 +1322,8 @@ static void ocfs2_free_write_ctxt(struct
+ 
+ static int ocfs2_alloc_write_ctxt(struct ocfs2_write_ctxt **wcp,
+ 				  struct ocfs2_super *osb, loff_t pos,
+-				  unsigned len, struct buffer_head *di_bh)
++				  unsigned len, ocfs2_write_type_t type,
++				  struct buffer_head *di_bh)
+ {
+ 	u32 cend;
+ 	struct ocfs2_write_ctxt *wc;
+@@ -1334,6 +1338,7 @@ static int ocfs2_alloc_write_ctxt(struct
+ 	wc->w_clen = cend - wc->w_cpos + 1;
+ 	get_bh(di_bh);
+ 	wc->w_di_bh = di_bh;
++	wc->w_type = type;
+ 
+ 	if (unlikely(PAGE_CACHE_SHIFT > osb->s_clustersize_bits))
+ 		wc->w_large_pages = 1;
+@@ -2077,9 +2082,8 @@ out:
+ 	return ret;
+ }
+ 
+-int ocfs2_write_begin_nolock(struct file *filp,
+-			     struct address_space *mapping,
+-			     loff_t pos, unsigned len, unsigned flags,
++int ocfs2_write_begin_nolock(struct address_space *mapping,
++			     loff_t pos, unsigned len, ocfs2_write_type_t type,
+ 			     struct page **pagep, void **fsdata,
+ 			     struct buffer_head *di_bh, struct page *mmap_page)
+ {
+@@ -2096,7 +2100,7 @@ int ocfs2_write_begin_nolock(struct file
+ 	int try_free = 1, ret1;
+ 
+ try_again:
+-	ret = ocfs2_alloc_write_ctxt(&wc, osb, pos, len, di_bh);
++	ret = ocfs2_alloc_write_ctxt(&wc, osb, pos, len, type, di_bh);
+ 	if (ret) {
+ 		mlog_errno(ret);
+ 		return ret;
+@@ -2153,7 +2157,7 @@ try_again:
+ 			(unsigned long long)OCFS2_I(inode)->ip_blkno,
+ 			(long long)i_size_read(inode),
+ 			le32_to_cpu(di->i_clusters),
+-			pos, len, flags, mmap_page,
++			pos, len, type, mmap_page,
+ 			clusters_to_alloc, extents_to_split);
+ 
+ 	/*
+@@ -2323,8 +2327,8 @@ static int ocfs2_write_begin(struct file
+ 	 */
+ 	down_write(&OCFS2_I(inode)->ip_alloc_sem);
+ 
+-	ret = ocfs2_write_begin_nolock(file, mapping, pos, len, flags, pagep,
+-				       fsdata, di_bh, NULL);
++	ret = ocfs2_write_begin_nolock(mapping, pos, len, OCFS2_WRITE_BUFFER,
++				       pagep, fsdata, di_bh, NULL);
+ 	if (ret) {
+ 		mlog_errno(ret);
+ 		goto out_fail;
+diff -puN fs/ocfs2/aops.h~ocfs2-add-ocfs2_write_type_t-type-to-identify-the-caller-of-write fs/ocfs2/aops.h
+--- a/fs/ocfs2/aops.h~ocfs2-add-ocfs2_write_type_t-type-to-identify-the-caller-of-write
++++ a/fs/ocfs2/aops.h
+@@ -47,9 +47,14 @@ int ocfs2_write_end_nolock(struct addres
+ 			   loff_t pos, unsigned len, unsigned copied,
+ 			   struct page *page, void *fsdata);
+ 
+-int ocfs2_write_begin_nolock(struct file *filp,
+-			     struct address_space *mapping,
+-			     loff_t pos, unsigned len, unsigned flags,
++typedef enum {
++	OCFS2_WRITE_BUFFER = 0,
++	OCFS2_WRITE_DIRECT,
++	OCFS2_WRITE_MMAP,
++} ocfs2_write_type_t;
++
++int ocfs2_write_begin_nolock(struct address_space *mapping,
++			     loff_t pos, unsigned len, ocfs2_write_type_t type,
+ 			     struct page **pagep, void **fsdata,
+ 			     struct buffer_head *di_bh, struct page *mmap_page);
+ 
+diff -puN fs/ocfs2/mmap.c~ocfs2-add-ocfs2_write_type_t-type-to-identify-the-caller-of-write fs/ocfs2/mmap.c
+--- a/fs/ocfs2/mmap.c~ocfs2-add-ocfs2_write_type_t-type-to-identify-the-caller-of-write
++++ a/fs/ocfs2/mmap.c
+@@ -104,8 +104,8 @@ static int __ocfs2_page_mkwrite(struct f
+ 	if (page->index == last_index)
+ 		len = ((size - 1) & ~PAGE_CACHE_MASK) + 1;
+ 
+-	ret = ocfs2_write_begin_nolock(file, mapping, pos, len, 0, &locked_page,
+-				       &fsdata, di_bh, page);
++	ret = ocfs2_write_begin_nolock(mapping, pos, len, OCFS2_WRITE_MMAP,
++				       &locked_page, &fsdata, di_bh, page);
+ 	if (ret) {
+ 		if (ret != -ENOSPC)
+ 			mlog_errno(ret);
 _
 
-Patches currently in -mm which might be from junxiao.bi@oracle.com are
+Patches currently in -mm which might be from ryan.ding@oracle.com are
 
-ocfs2-o2hb-add-negotiate-timer.patch
-ocfs2-o2hb-add-negotiate-timer-v2.patch
-ocfs2-o2hb-add-nego_timeout-message.patch
-ocfs2-o2hb-add-nego_timeout-message-v2.patch
-ocfs2-o2hb-add-negotiate_approve-message.patch
-ocfs2-o2hb-add-negotiate_approve-message-v2.patch
-ocfs2-o2hb-add-some-user-debug-log.patch
-ocfs2-o2hb-add-some-user-debug-log-v2.patch
-ocfs2-o2hb-dont-negotiate-if-last-hb-fail.patch
-ocfs2-o2hb-fix-hb-hung-time.patch
 
