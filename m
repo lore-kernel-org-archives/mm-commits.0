@@ -1,68 +1,62 @@
 From: akpm@linux-foundation.org
-Subject: [merged] maintainers-fill-entries-for-kasan.patch removed from
+Subject: [merged] thp-fix-typo-in-khugepaged_scan_pmd.patch removed from
  -mm tree
-Date: Sat, 26 Mar 2016 20:31:35 -0700
-Message-ID: <56f75417.n4DbAacgBSc8xKrI%akpm@linux-foundation.org>
+Date: Sat, 26 Mar 2016 20:31:37 -0700
+Message-ID: <56f75419.eceUGW2TlUExigJx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33309 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33311 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645AbcC0Dbg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:31:36 -0400
+	with ESMTP id S1754645AbcC0Dbi (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:31:38 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: aryabinin@virtuozzo.com, dvyukov@google.com, glider@google.com, mm-commits@vger.kernel.org
+To: kirill.shutemov@linux.intel.com, ebru.akagunduz@gmail.com, riel@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: fill entries for KASAN
+     Subject: thp: fix typo in khugepaged_scan_pmd()
 has been removed from the -mm tree.  Its filename was
-     maintainers-fill-entries-for-kasan.patch
+     thp-fix-typo-in-khugepaged_scan_pmd.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Subject: MAINTAINERS: fill entries for KASAN
+From: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Subject: thp: fix typo in khugepaged_scan_pmd()
 
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Alexander Potapenko <glider@google.com>
-Acked-by: Dmitry Vyukov <dvyukov@google.com>
+!PageLRU should lead to SCAN_PAGE_LRU, not SCAN_SCAN_ABORT result.
+
+Signed-off-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Ebru Akagunduz <ebru.akagunduz@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+ mm/huge_memory.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-fill-entries-for-kasan MAINTAINERS
---- a/MAINTAINERS~maintainers-fill-entries-for-kasan
-+++ a/MAINTAINERS
-@@ -6165,6 +6165,20 @@ S:	Maintained
- F:	Documentation/hwmon/k8temp
- F:	drivers/hwmon/k8temp.c
- 
-+KASAN
-+M:	Andrey Ryabinin <aryabinin@virtuozzo.com>
-+R:	Alexander Potapenko <glider@google.com>
-+R:	Dmitry Vyukov <dvyukov@google.com>
-+L:	kasan-dev@googlegroups.com
-+S:	Maintained
-+F:	arch/*/include/asm/kasan.h
-+F:	arch/*/mm/kasan_init*
-+F:	Documentation/kasan.txt
-+F:	include/linux/kasan.h
-+F:	lib/test_kasan.c
-+F:	mm/kasan/
-+F:	scripts/Makefile.kasan
-+
- KCONFIG
- M:	"Yann E. MORIN" <yann.morin.1998@free.fr>
- L:	linux-kbuild@vger.kernel.org
+diff -puN mm/huge_memory.c~thp-fix-typo-in-khugepaged_scan_pmd mm/huge_memory.c
+--- a/mm/huge_memory.c~thp-fix-typo-in-khugepaged_scan_pmd
++++ a/mm/huge_memory.c
+@@ -2578,7 +2578,7 @@ static int khugepaged_scan_pmd(struct mm
+ 		}
+ 		khugepaged_node_load[node]++;
+ 		if (!PageLRU(page)) {
+-			result = SCAN_SCAN_ABORT;
++			result = SCAN_PAGE_LRU;
+ 			goto out_unmap;
+ 		}
+ 		if (PageLocked(page)) {
 _
 
-Patches currently in -mm which might be from aryabinin@virtuozzo.com are
+Patches currently in -mm which might be from kirill.shutemov@linux.intel.com are
 
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-2.patch
+mm-make-swapin-readahead-to-improve-thp-collapse-rate-fix-3.patch
 
