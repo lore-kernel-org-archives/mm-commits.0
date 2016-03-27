@@ -1,618 +1,115 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab.patch removed from -mm tree
-Date: Sat, 26 Mar 2016 20:31:27 -0700
-Message-ID: <56f7540f.52C8kiiHW1DoMfDz%akpm@linux-foundation.org>
+ mm-filemap-generic_file_read_iter-check-for-zero-reads-unconditionally.patch removed from -mm tree
+Date: Sat, 26 Mar 2016 20:31:33 -0700
+Message-ID: <56f75415.7eMNg4KfYge44X6c%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33292 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:33305 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645AbcC0Db2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:31:28 -0400
+	with ESMTP id S1754645AbcC0Dbe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Sat, 26 Mar 2016 23:31:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: glider@google.com, adech.fo@gmail.com, aryabinin@virtuozzo.com, cl@linux.com, dmitryc@google.com, dvyukov@google.com, iamjoonsoo.kim@lge.com, kcc@google.com, penberg@kernel.org, rientjes@google.com, rostedt@goodmis.org, mm-commits@vger.kernel.org
+To: nicstange@gmail.com, jack@suse.cz, viro@zeniv.linux.org.uk, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, kasan: stackdepot implementation. Enable stackdepot for SLAB
+     Subject: mm/filemap: generic_file_read_iter(): check for zero reads unconditionally
 has been removed from the -mm tree.  Its filename was
-     mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab.patch
+     mm-filemap-generic_file_read_iter-check-for-zero-reads-unconditionally.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Alexander Potapenko <glider@google.com>
-Subject: mm, kasan: stackdepot implementation. Enable stackdepot for SLAB
+From: Nicolai Stange <nicstange@gmail.com>
+Subject: mm/filemap: generic_file_read_iter(): check for zero reads unconditionally
 
-Implement the stack depot and provide CONFIG_STACKDEPOT.  Stack depot will
-allow KASAN store allocation/deallocation stack traces for memory chunks. 
-The stack traces are stored in a hash table and referenced by handles
-which reside in the kasan_alloc_meta and kasan_free_meta structures in the
-allocated memory chunks.
+If
+- generic_file_read_iter() gets called with a zero read length,
+- the read offset is at a page boundary,
+- IOCB_DIRECT is not set
+- and the page in question hasn't made it into the page cache yet,
+then do_generic_file_read() will trigger a readahead with a req_size hint
+of zero.
 
-IRQ stack traces are cut below the IRQ entry point to avoid unnecessary
-duplication.
+Since roundup_pow_of_two(0) is undefined, UBSAN reports
 
-Right now stackdepot support is only enabled in SLAB allocator.  Once
-KASAN features in SLAB are on par with those in SLUB we can switch SLUB to
-stackdepot as well, thus removing the dependency on SLUB stack
-bookkeeping, which wastes a lot of memory.
+  UBSAN: Undefined behaviour in include/linux/log2.h:63:13
+  shift exponent 64 is too large for 64-bit type 'long unsigned int'
+  CPU: 3 PID: 1017 Comm: sa1 Tainted: G L 4.5.0-next-20160318+ #14
+  [...]
+  Call Trace:
+   [...]
+   [<ffffffff813ef61a>] ondemand_readahead+0x3aa/0x3d0
+   [<ffffffff813ef61a>] ? ondemand_readahead+0x3aa/0x3d0
+   [<ffffffff813c73bd>] ? find_get_entry+0x2d/0x210
+   [<ffffffff813ef9c3>] page_cache_sync_readahead+0x63/0xa0
+   [<ffffffff813cc04d>] do_generic_file_read+0x80d/0xf90
+   [<ffffffff813cc955>] generic_file_read_iter+0x185/0x420
+   [...]
+   [<ffffffff81510b06>] __vfs_read+0x256/0x3d0
+   [...]
 
-This patch is based on the "mm: kasan: stack depots" patch originally
-prepared by Dmitry Chernenkov.
+when get_init_ra_size() gets called from ondemand_readahead().
 
-Joonsoo has said that he plans to reuse the stackdepot code for the
-mm/page_owner.c debugging facility.
+The net effect is that the initial readahead size is arch dependent for
+requested read lengths of zero: for example, since
 
-[akpm@linux-foundation.org: s/depot_stack_handle/depot_stack_handle_t]
-[aryabinin@virtuozzo.com: comment style fixes]
-Signed-off-by: Alexander Potapenko <glider@google.com>
-Signed-off-by: Andrey Ryabinin <aryabinin@virtuozzo.com>
-Cc: Christoph Lameter <cl@linux.com>
-Cc: Pekka Enberg <penberg@kernel.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Andrey Konovalov <adech.fo@gmail.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-Cc: Konstantin Serebryany <kcc@google.com>
-Cc: Dmitry Chernenkov <dmitryc@google.com>
+  1UL << (sizeof(unsigned long) * 8)
+
+evaluates to 1 on x86 while its result is 0 on ARMv7, the initial readahead
+size becomes 4 on the former and 0 on the latter.
+
+What's more, whether or not the file access timestamp is updated for zero
+length reads is decided differently for the two cases of IOCB_DIRECT
+being set or cleared: in the first case, generic_file_read_iter()
+explicitly skips updating that timestamp while in the latter case, it is
+always updated through the call to do_generic_file_read().
+
+According to POSIX, zero length reads "do not modify the last data access
+timestamp" and thus, the IOCB_DIRECT behaviour is POSIXly correct.
+
+Let generic_file_read_iter() unconditionally check the requested read
+length at its entry and return immediately with success if it is zero.
+
+Signed-off-by: Nicolai Stange <nicstange@gmail.com>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Reviewed-by: Jan Kara <jack@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kernel/Makefile   |    1 
- include/linux/stackdepot.h |   32 +++
- lib/Kconfig                |    4 
- lib/Kconfig.kasan          |    1 
- lib/Makefile               |    3 
- lib/stackdepot.c           |  284 +++++++++++++++++++++++++++++++++++
- mm/kasan/kasan.c           |   55 ++++++
- mm/kasan/kasan.h           |   11 -
- mm/kasan/report.c          |   12 +
- 9 files changed, 391 insertions(+), 12 deletions(-)
+ mm/filemap.c |    7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/kernel/Makefile~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab arch/x86/kernel/Makefile
---- a/arch/x86/kernel/Makefile~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab
-+++ a/arch/x86/kernel/Makefile
-@@ -19,6 +19,7 @@ endif
- KASAN_SANITIZE_head$(BITS).o				:= n
- KASAN_SANITIZE_dumpstack.o				:= n
- KASAN_SANITIZE_dumpstack_$(BITS).o			:= n
-+KASAN_SANITIZE_stacktrace.o := n
+diff -puN mm/filemap.c~mm-filemap-generic_file_read_iter-check-for-zero-reads-unconditionally mm/filemap.c
+--- a/mm/filemap.c~mm-filemap-generic_file_read_iter-check-for-zero-reads-unconditionally
++++ a/mm/filemap.c
+@@ -1840,15 +1840,16 @@ generic_file_read_iter(struct kiocb *ioc
+ 	ssize_t retval = 0;
+ 	loff_t *ppos = &iocb->ki_pos;
+ 	loff_t pos = *ppos;
++	size_t count = iov_iter_count(iter);
++
++	if (!count)
++		goto out; /* skip atime */
  
- OBJECT_FILES_NON_STANDARD_head_$(BITS).o		:= y
- OBJECT_FILES_NON_STANDARD_relocate_kernel_$(BITS).o	:= y
-diff -puN /dev/null include/linux/stackdepot.h
---- /dev/null
-+++ a/include/linux/stackdepot.h
-@@ -0,0 +1,32 @@
-+/*
-+ * A generic stack depot implementation
-+ *
-+ * Author: Alexander Potapenko <glider@google.com>
-+ * Copyright (C) 2016 Google, Inc.
-+ *
-+ * Based on code by Dmitry Chernenkov.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ */
-+
-+#ifndef _LINUX_STACKDEPOT_H
-+#define _LINUX_STACKDEPOT_H
-+
-+typedef u32 depot_stack_handle_t;
-+
-+struct stack_trace;
-+
-+depot_stack_handle_t depot_save_stack(struct stack_trace *trace, gfp_t flags);
-+
-+void depot_fetch_stack(depot_stack_handle_t handle, struct stack_trace *trace);
-+
-+#endif
-diff -puN lib/Kconfig~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab lib/Kconfig
---- a/lib/Kconfig~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab
-+++ a/lib/Kconfig
-@@ -536,4 +536,8 @@ config ARCH_HAS_PMEM_API
- config ARCH_HAS_MMIO_FLUSH
- 	bool
+ 	if (iocb->ki_flags & IOCB_DIRECT) {
+ 		struct address_space *mapping = file->f_mapping;
+ 		struct inode *inode = mapping->host;
+-		size_t count = iov_iter_count(iter);
+ 		loff_t size;
  
-+config STACKDEPOT
-+	bool
-+	select STACKTRACE
-+
- endmenu
-diff -puN lib/Kconfig.kasan~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab lib/Kconfig.kasan
---- a/lib/Kconfig.kasan~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab
-+++ a/lib/Kconfig.kasan
-@@ -7,6 +7,7 @@ config KASAN
- 	bool "KASan: runtime memory debugger"
- 	depends on SLUB_DEBUG || (SLAB && !DEBUG_SLAB)
- 	select CONSTRUCTORS
-+	select STACKDEPOT if SLAB
- 	help
- 	  Enables kernel address sanitizer - runtime memory debugger,
- 	  designed to find out-of-bounds accesses and use-after-free bugs.
-diff -puN lib/Makefile~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab lib/Makefile
---- a/lib/Makefile~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab
-+++ a/lib/Makefile
-@@ -181,6 +181,9 @@ obj-$(CONFIG_SG_SPLIT) += sg_split.o
- obj-$(CONFIG_STMP_DEVICE) += stmp_device.o
- obj-$(CONFIG_IRQ_POLL) += irq_poll.o
- 
-+obj-$(CONFIG_STACKDEPOT) += stackdepot.o
-+KASAN_SANITIZE_stackdepot.o := n
-+
- libfdt_files = fdt.o fdt_ro.o fdt_wip.o fdt_rw.o fdt_sw.o fdt_strerror.o \
- 	       fdt_empty_tree.o
- $(foreach file, $(libfdt_files), \
-diff -puN /dev/null lib/stackdepot.c
---- /dev/null
-+++ a/lib/stackdepot.c
-@@ -0,0 +1,284 @@
-+/*
-+ * Generic stack depot for storing stack traces.
-+ *
-+ * Some debugging tools need to save stack traces of certain events which can
-+ * be later presented to the user. For example, KASAN needs to safe alloc and
-+ * free stacks for each object, but storing two stack traces per object
-+ * requires too much memory (e.g. SLUB_DEBUG needs 256 bytes per object for
-+ * that).
-+ *
-+ * Instead, stack depot maintains a hashtable of unique stacktraces. Since alloc
-+ * and free stacks repeat a lot, we save about 100x space.
-+ * Stacks are never removed from depot, so we store them contiguously one after
-+ * another in a contiguos memory allocation.
-+ *
-+ * Author: Alexander Potapenko <glider@google.com>
-+ * Copyright (C) 2016 Google, Inc.
-+ *
-+ * Based on code by Dmitry Chernenkov.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ */
-+
-+#include <linux/gfp.h>
-+#include <linux/jhash.h>
-+#include <linux/kernel.h>
-+#include <linux/mm.h>
-+#include <linux/percpu.h>
-+#include <linux/printk.h>
-+#include <linux/slab.h>
-+#include <linux/stacktrace.h>
-+#include <linux/stackdepot.h>
-+#include <linux/string.h>
-+#include <linux/types.h>
-+
-+#define DEPOT_STACK_BITS (sizeof(depot_stack_handle_t) * 8)
-+
-+#define STACK_ALLOC_ORDER 2 /* 'Slab' size order for stack depot, 4 pages */
-+#define STACK_ALLOC_SIZE (1LL << (PAGE_SHIFT + STACK_ALLOC_ORDER))
-+#define STACK_ALLOC_ALIGN 4
-+#define STACK_ALLOC_OFFSET_BITS (STACK_ALLOC_ORDER + PAGE_SHIFT - \
-+					STACK_ALLOC_ALIGN)
-+#define STACK_ALLOC_INDEX_BITS (DEPOT_STACK_BITS - STACK_ALLOC_OFFSET_BITS)
-+#define STACK_ALLOC_SLABS_CAP 1024
-+#define STACK_ALLOC_MAX_SLABS \
-+	(((1LL << (STACK_ALLOC_INDEX_BITS)) < STACK_ALLOC_SLABS_CAP) ? \
-+	 (1LL << (STACK_ALLOC_INDEX_BITS)) : STACK_ALLOC_SLABS_CAP)
-+
-+/* The compact structure to store the reference to stacks. */
-+union handle_parts {
-+	depot_stack_handle_t handle;
-+	struct {
-+		u32 slabindex : STACK_ALLOC_INDEX_BITS;
-+		u32 offset : STACK_ALLOC_OFFSET_BITS;
-+	};
-+};
-+
-+struct stack_record {
-+	struct stack_record *next;	/* Link in the hashtable */
-+	u32 hash;			/* Hash in the hastable */
-+	u32 size;			/* Number of frames in the stack */
-+	union handle_parts handle;
-+	unsigned long entries[1];	/* Variable-sized array of entries. */
-+};
-+
-+static void *stack_slabs[STACK_ALLOC_MAX_SLABS];
-+
-+static int depot_index;
-+static int next_slab_inited;
-+static size_t depot_offset;
-+static DEFINE_SPINLOCK(depot_lock);
-+
-+static bool init_stack_slab(void **prealloc)
-+{
-+	if (!*prealloc)
-+		return false;
-+	/*
-+	 * This smp_load_acquire() pairs with smp_store_release() to
-+	 * |next_slab_inited| below and in depot_alloc_stack().
-+	 */
-+	if (smp_load_acquire(&next_slab_inited))
-+		return true;
-+	if (stack_slabs[depot_index] == NULL) {
-+		stack_slabs[depot_index] = *prealloc;
-+	} else {
-+		stack_slabs[depot_index + 1] = *prealloc;
-+		/*
-+		 * This smp_store_release pairs with smp_load_acquire() from
-+		 * |next_slab_inited| above and in depot_save_stack().
-+		 */
-+		smp_store_release(&next_slab_inited, 1);
-+	}
-+	*prealloc = NULL;
-+	return true;
-+}
-+
-+/* Allocation of a new stack in raw storage */
-+static struct stack_record *depot_alloc_stack(unsigned long *entries, int size,
-+		u32 hash, void **prealloc, gfp_t alloc_flags)
-+{
-+	int required_size = offsetof(struct stack_record, entries) +
-+		sizeof(unsigned long) * size;
-+	struct stack_record *stack;
-+
-+	required_size = ALIGN(required_size, 1 << STACK_ALLOC_ALIGN);
-+
-+	if (unlikely(depot_offset + required_size > STACK_ALLOC_SIZE)) {
-+		if (unlikely(depot_index + 1 >= STACK_ALLOC_MAX_SLABS)) {
-+			WARN_ONCE(1, "Stack depot reached limit capacity");
-+			return NULL;
-+		}
-+		depot_index++;
-+		depot_offset = 0;
-+		/*
-+		 * smp_store_release() here pairs with smp_load_acquire() from
-+		 * |next_slab_inited| in depot_save_stack() and
-+		 * init_stack_slab().
-+		 */
-+		if (depot_index + 1 < STACK_ALLOC_MAX_SLABS)
-+			smp_store_release(&next_slab_inited, 0);
-+	}
-+	init_stack_slab(prealloc);
-+	if (stack_slabs[depot_index] == NULL)
-+		return NULL;
-+
-+	stack = stack_slabs[depot_index] + depot_offset;
-+
-+	stack->hash = hash;
-+	stack->size = size;
-+	stack->handle.slabindex = depot_index;
-+	stack->handle.offset = depot_offset >> STACK_ALLOC_ALIGN;
-+	memcpy(stack->entries, entries, size * sizeof(unsigned long));
-+	depot_offset += required_size;
-+
-+	return stack;
-+}
-+
-+#define STACK_HASH_ORDER 20
-+#define STACK_HASH_SIZE (1L << STACK_HASH_ORDER)
-+#define STACK_HASH_MASK (STACK_HASH_SIZE - 1)
-+#define STACK_HASH_SEED 0x9747b28c
-+
-+static struct stack_record *stack_table[STACK_HASH_SIZE] = {
-+	[0 ...	STACK_HASH_SIZE - 1] = NULL
-+};
-+
-+/* Calculate hash for a stack */
-+static inline u32 hash_stack(unsigned long *entries, unsigned int size)
-+{
-+	return jhash2((u32 *)entries,
-+			       size * sizeof(unsigned long) / sizeof(u32),
-+			       STACK_HASH_SEED);
-+}
-+
-+/* Find a stack that is equal to the one stored in entries in the hash */
-+static inline struct stack_record *find_stack(struct stack_record *bucket,
-+					     unsigned long *entries, int size,
-+					     u32 hash)
-+{
-+	struct stack_record *found;
-+
-+	for (found = bucket; found; found = found->next) {
-+		if (found->hash == hash &&
-+		    found->size == size &&
-+		    !memcmp(entries, found->entries,
-+			    size * sizeof(unsigned long))) {
-+			return found;
-+		}
-+	}
-+	return NULL;
-+}
-+
-+void depot_fetch_stack(depot_stack_handle_t handle, struct stack_trace *trace)
-+{
-+	union handle_parts parts = { .handle = handle };
-+	void *slab = stack_slabs[parts.slabindex];
-+	size_t offset = parts.offset << STACK_ALLOC_ALIGN;
-+	struct stack_record *stack = slab + offset;
-+
-+	trace->nr_entries = trace->max_entries = stack->size;
-+	trace->entries = stack->entries;
-+	trace->skip = 0;
-+}
-+
-+/**
-+ * depot_save_stack - save stack in a stack depot.
-+ * @trace - the stacktrace to save.
-+ * @alloc_flags - flags for allocating additional memory if required.
-+ *
-+ * Returns the handle of the stack struct stored in depot.
-+ */
-+depot_stack_handle_t depot_save_stack(struct stack_trace *trace,
-+				    gfp_t alloc_flags)
-+{
-+	u32 hash;
-+	depot_stack_handle_t retval = 0;
-+	struct stack_record *found = NULL, **bucket;
-+	unsigned long flags;
-+	struct page *page = NULL;
-+	void *prealloc = NULL;
-+
-+	if (unlikely(trace->nr_entries == 0))
-+		goto fast_exit;
-+
-+	hash = hash_stack(trace->entries, trace->nr_entries);
-+	/* Bad luck, we won't store this stack. */
-+	if (hash == 0)
-+		goto exit;
-+
-+	bucket = &stack_table[hash & STACK_HASH_MASK];
-+
-+	/*
-+	 * Fast path: look the stack trace up without locking.
-+	 * The smp_load_acquire() here pairs with smp_store_release() to
-+	 * |bucket| below.
-+	 */
-+	found = find_stack(smp_load_acquire(bucket), trace->entries,
-+			   trace->nr_entries, hash);
-+	if (found)
-+		goto exit;
-+
-+	/*
-+	 * Check if the current or the next stack slab need to be initialized.
-+	 * If so, allocate the memory - we won't be able to do that under the
-+	 * lock.
-+	 *
-+	 * The smp_load_acquire() here pairs with smp_store_release() to
-+	 * |next_slab_inited| in depot_alloc_stack() and init_stack_slab().
-+	 */
-+	if (unlikely(!smp_load_acquire(&next_slab_inited))) {
-+		/*
-+		 * Zero out zone modifiers, as we don't have specific zone
-+		 * requirements. Keep the flags related to allocation in atomic
-+		 * contexts and I/O.
-+		 */
-+		alloc_flags &= ~GFP_ZONEMASK;
-+		alloc_flags &= (GFP_ATOMIC | GFP_KERNEL);
-+		page = alloc_pages(alloc_flags, STACK_ALLOC_ORDER);
-+		if (page)
-+			prealloc = page_address(page);
-+	}
-+
-+	spin_lock_irqsave(&depot_lock, flags);
-+
-+	found = find_stack(*bucket, trace->entries, trace->nr_entries, hash);
-+	if (!found) {
-+		struct stack_record *new =
-+			depot_alloc_stack(trace->entries, trace->nr_entries,
-+					  hash, &prealloc, alloc_flags);
-+		if (new) {
-+			new->next = *bucket;
-+			/*
-+			 * This smp_store_release() pairs with
-+			 * smp_load_acquire() from |bucket| above.
-+			 */
-+			smp_store_release(bucket, new);
-+			found = new;
-+		}
-+	} else if (prealloc) {
-+		/*
-+		 * We didn't need to store this stack trace, but let's keep
-+		 * the preallocated memory for the future.
-+		 */
-+		WARN_ON(!init_stack_slab(&prealloc));
-+	}
-+
-+	spin_unlock_irqrestore(&depot_lock, flags);
-+exit:
-+	if (prealloc) {
-+		/* Nobody used this memory, ok to free it. */
-+		free_pages((unsigned long)prealloc, STACK_ALLOC_ORDER);
-+	}
-+	if (found)
-+		retval = found->handle.handle;
-+fast_exit:
-+	return retval;
-+}
-diff -puN mm/kasan/kasan.c~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab mm/kasan/kasan.c
---- a/mm/kasan/kasan.c~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab
-+++ a/mm/kasan/kasan.c
-@@ -17,7 +17,9 @@
- #define DISABLE_BRANCH_PROFILING
- 
- #include <linux/export.h>
-+#include <linux/interrupt.h>
- #include <linux/init.h>
-+#include <linux/kasan.h>
- #include <linux/kernel.h>
- #include <linux/kmemleak.h>
- #include <linux/linkage.h>
-@@ -32,7 +34,6 @@
- #include <linux/string.h>
- #include <linux/types.h>
- #include <linux/vmalloc.h>
--#include <linux/kasan.h>
- 
- #include "kasan.h"
- #include "../slab.h"
-@@ -413,23 +414,65 @@ void kasan_poison_object_data(struct kme
- #endif
- }
- 
--static inline void set_track(struct kasan_track *track)
-+#ifdef CONFIG_SLAB
-+static inline int in_irqentry_text(unsigned long ptr)
-+{
-+	return (ptr >= (unsigned long)&__irqentry_text_start &&
-+		ptr < (unsigned long)&__irqentry_text_end) ||
-+		(ptr >= (unsigned long)&__softirqentry_text_start &&
-+		 ptr < (unsigned long)&__softirqentry_text_end);
-+}
-+
-+static inline void filter_irq_stacks(struct stack_trace *trace)
-+{
-+	int i;
-+
-+	if (!trace->nr_entries)
-+		return;
-+	for (i = 0; i < trace->nr_entries; i++)
-+		if (in_irqentry_text(trace->entries[i])) {
-+			/* Include the irqentry function into the stack. */
-+			trace->nr_entries = i + 1;
-+			break;
-+		}
-+}
-+
-+static inline depot_stack_handle_t save_stack(gfp_t flags)
-+{
-+	unsigned long entries[KASAN_STACK_DEPTH];
-+	struct stack_trace trace = {
-+		.nr_entries = 0,
-+		.entries = entries,
-+		.max_entries = KASAN_STACK_DEPTH,
-+		.skip = 0
-+	};
-+
-+	save_stack_trace(&trace);
-+	filter_irq_stacks(&trace);
-+	if (trace.nr_entries != 0 &&
-+	    trace.entries[trace.nr_entries-1] == ULONG_MAX)
-+		trace.nr_entries--;
-+
-+	return depot_save_stack(&trace, flags);
-+}
-+
-+static inline void set_track(struct kasan_track *track, gfp_t flags)
- {
--	track->cpu = raw_smp_processor_id();
- 	track->pid = current->pid;
--	track->when = jiffies;
-+	track->stack = save_stack(flags);
- }
- 
--#ifdef CONFIG_SLAB
- struct kasan_alloc_meta *get_alloc_info(struct kmem_cache *cache,
- 					const void *object)
- {
-+	BUILD_BUG_ON(sizeof(struct kasan_alloc_meta) > 32);
- 	return (void *)object + cache->kasan_info.alloc_meta_offset;
- }
- 
- struct kasan_free_meta *get_free_info(struct kmem_cache *cache,
- 				      const void *object)
- {
-+	BUILD_BUG_ON(sizeof(struct kasan_free_meta) > 32);
- 	return (void *)object + cache->kasan_info.free_meta_offset;
- }
- #endif
-@@ -486,7 +529,7 @@ void kasan_kmalloc(struct kmem_cache *ca
- 
- 		alloc_info->state = KASAN_STATE_ALLOC;
- 		alloc_info->alloc_size = size;
--		set_track(&alloc_info->track);
-+		set_track(&alloc_info->track, flags);
- 	}
- #endif
- }
-diff -puN mm/kasan/kasan.h~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab mm/kasan/kasan.h
---- a/mm/kasan/kasan.h~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab
-+++ a/mm/kasan/kasan.h
-@@ -2,6 +2,7 @@
- #define __MM_KASAN_KASAN_H
- 
- #include <linux/kasan.h>
-+#include <linux/stackdepot.h>
- 
- #define KASAN_SHADOW_SCALE_SIZE (1UL << KASAN_SHADOW_SCALE_SHIFT)
- #define KASAN_SHADOW_MASK       (KASAN_SHADOW_SCALE_SIZE - 1)
-@@ -64,16 +65,18 @@ enum kasan_state {
- 	KASAN_STATE_FREE
- };
- 
-+#define KASAN_STACK_DEPTH 64
-+
- struct kasan_track {
--	u64 cpu : 6;			/* for NR_CPUS = 64 */
--	u64 pid : 16;			/* 65536 processes */
--	u64 when : 42;			/* ~140 years */
-+	u32 pid;
-+	depot_stack_handle_t stack;
- };
- 
- struct kasan_alloc_meta {
-+	struct kasan_track track;
- 	u32 state : 2;	/* enum kasan_state */
- 	u32 alloc_size : 30;
--	struct kasan_track track;
-+	u32 reserved;
- };
- 
- struct kasan_free_meta {
-diff -puN mm/kasan/report.c~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab mm/kasan/report.c
---- a/mm/kasan/report.c~mm-kasan-stackdepot-implementation-enable-stackdepot-for-slab
-+++ a/mm/kasan/report.c
-@@ -18,6 +18,7 @@
- #include <linux/printk.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
-+#include <linux/stackdepot.h>
- #include <linux/stacktrace.h>
- #include <linux/string.h>
- #include <linux/types.h>
-@@ -118,8 +119,15 @@ static inline bool init_task_stack_addr(
- #ifdef CONFIG_SLAB
- static void print_track(struct kasan_track *track)
- {
--	pr_err("PID = %u, CPU = %u, timestamp = %lu\n", track->pid,
--	       track->cpu, (unsigned long)track->when);
-+	pr_err("PID = %u\n", track->pid);
-+	if (track->stack) {
-+		struct stack_trace trace;
-+
-+		depot_fetch_stack(track->stack, &trace);
-+		print_stack_trace(&trace, 0);
-+	} else {
-+		pr_err("(stack is not available)\n");
-+	}
- }
- 
- static void object_err(struct kmem_cache *cache, struct page *page,
+-		if (!count)
+-			goto out; /* skip atime */
+ 		size = i_size_read(inode);
+ 		retval = filemap_write_and_wait_range(mapping, pos,
+ 					pos + count - 1);
 _
 
-Patches currently in -mm which might be from glider@google.com are
+Patches currently in -mm which might be from nicstange@gmail.com are
 
-mm-kasan-initial-memory-quarantine-implementation.patch
-mm-kasan-initial-memory-quarantine-implementation-v8.patch
 
