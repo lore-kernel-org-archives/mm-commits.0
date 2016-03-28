@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mm-tlb_remote_send_ipi-should-count-pages.patch added to
- -mm tree
-Date: Mon, 28 Mar 2016 13:49:14 -0700
-Message-ID: <56f998ca.UcdKUd2nXg3bIT0d%akpm@linux-foundation.org>
+Subject: + mm-rmap-batched-invalidations-should-use-existing-api.patch
+ added to -mm tree
+Date: Mon, 28 Mar 2016 13:49:16 -0700
+Message-ID: <56f998cc.vQiV12/IHBusz2bq%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55038 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55041 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751245AbcC1UtQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 16:49:16 -0400
+	with ESMTP id S1751785AbcC1UtR (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 16:49:17 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: namit@vmware.com, dave.hansen@intel.com, mgorman@suse.de, mingo@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/mm: TLB_REMOTE_SEND_IPI should count pages
+     Subject: mm/rmap: batched invalidations should use existing api
 has been added to the -mm tree.  Its filename is
-     x86-mm-tlb_remote_send_ipi-should-count-pages.patch
+     mm-rmap-batched-invalidations-should-use-existing-api.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-tlb_remote_send_ipi-should-count-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rmap-batched-invalidations-should-use-existing-api.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-tlb_remote_send_ipi-should-count-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rmap-batched-invalidations-should-use-existing-api.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,14 +40,18 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Nadav Amit <namit@vmware.com>
-Subject: x86/mm: TLB_REMOTE_SEND_IPI should count pages
+Subject: mm/rmap: batched invalidations should use existing api
 
-TLB_REMOTE_SEND_IPI was recently introduced, but it counts bytes instead
-of pages.  In addition, it does not report correctly the case in which
-flush_tlb_page flushes a page.  Fix it to be consistent with other TLB
-counters.
+The recently introduced batched invalidations mechanism uses its own
+mechanism for shootdown.  However, it does wrong accounting of interrupts
+(e.g., inc_irq_stat is called for local invalidations), trace-points
+(e.g., TLB_REMOTE_SHOOTDOWN for local invalidations) and may break some
+platforms as it bypasses the invalidation mechanisms of Xen and SGI UV.
 
-Fixes: 5b74283ab251b9d ("x86, mm: trace when an IPI is about to be sent")
+This patch reuses the existing TLB flushing mechnaisms instead.  We use
+NULL as mm to indicate a global invalidation is required.
+
+Fixes 72b252aed506b8 ("mm: send one IPI per CPU to TLB flush all entries after unmapping pages")
 Signed-off-by: Nadav Amit <namit@vmware.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Rik van Riel <riel@redhat.com>
@@ -56,47 +60,67 @@ Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/tlb.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ arch/x86/include/asm/tlbflush.h |    6 ------
+ arch/x86/mm/tlb.c               |    2 +-
+ mm/rmap.c                       |   28 +++++++---------------------
+ 3 files changed, 8 insertions(+), 28 deletions(-)
 
-diff -puN arch/x86/mm/tlb.c~x86-mm-tlb_remote_send_ipi-should-count-pages arch/x86/mm/tlb.c
---- a/arch/x86/mm/tlb.c~x86-mm-tlb_remote_send_ipi-should-count-pages
-+++ a/arch/x86/mm/tlb.c
-@@ -106,8 +106,6 @@ static void flush_tlb_func(void *info)
+diff -puN arch/x86/include/asm/tlbflush.h~mm-rmap-batched-invalidations-should-use-existing-api arch/x86/include/asm/tlbflush.h
+--- a/arch/x86/include/asm/tlbflush.h~mm-rmap-batched-invalidations-should-use-existing-api
++++ a/arch/x86/include/asm/tlbflush.h
+@@ -319,12 +319,6 @@ static inline void reset_lazy_tlbstate(v
  
- 	if (f->flush_mm != this_cpu_read(cpu_tlbstate.active_mm))
+ #endif	/* SMP */
+ 
+-/* Not inlined due to inc_irq_stat not being defined yet */
+-#define flush_tlb_local() {		\
+-	inc_irq_stat(irq_tlb_count);	\
+-	local_flush_tlb();		\
+-}
+-
+ #ifndef CONFIG_PARAVIRT
+ #define flush_tlb_others(mask, mm, start, end)	\
+ 	native_flush_tlb_others(mask, mm, start, end)
+diff -puN arch/x86/mm/tlb.c~mm-rmap-batched-invalidations-should-use-existing-api arch/x86/mm/tlb.c
+--- a/arch/x86/mm/tlb.c~mm-rmap-batched-invalidations-should-use-existing-api
++++ a/arch/x86/mm/tlb.c
+@@ -104,7 +104,7 @@ static void flush_tlb_func(void *info)
+ 
+ 	inc_irq_stat(irq_tlb_count);
+ 
+-	if (f->flush_mm != this_cpu_read(cpu_tlbstate.active_mm))
++	if (f->flush_mm && f->flush_mm != this_cpu_read(cpu_tlbstate.active_mm))
  		return;
--	if (!f->flush_end)
--		f->flush_end = f->flush_start + PAGE_SIZE;
  
  	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH_RECEIVED);
- 	if (this_cpu_read(cpu_tlbstate.state) == TLBSTATE_OK) {
-@@ -135,12 +133,20 @@ void native_flush_tlb_others(const struc
- 				 unsigned long end)
- {
- 	struct flush_tlb_info info;
-+
-+	if (end == 0)
-+		end = start + PAGE_SIZE;
- 	info.flush_mm = mm;
- 	info.flush_start = start;
- 	info.flush_end = end;
+diff -puN mm/rmap.c~mm-rmap-batched-invalidations-should-use-existing-api mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-batched-invalidations-should-use-existing-api
++++ a/mm/rmap.c
+@@ -569,19 +569,6 @@ void page_unlock_anon_vma_read(struct an
+ }
  
- 	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH);
--	trace_tlb_flush(TLB_REMOTE_SEND_IPI, end - start);
-+	if (end == TLB_FLUSH_ALL)
-+		trace_tlb_flush(TLB_REMOTE_SEND_IPI, TLB_FLUSH_ALL);
-+	else
-+		trace_tlb_flush(TLB_REMOTE_SEND_IPI,
-+				(end - start) >> PAGE_SHIFT);
-+
- 	if (is_uv_system()) {
- 		unsigned int cpu;
+ #ifdef CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
+-static void percpu_flush_tlb_batch_pages(void *data)
+-{
+-	/*
+-	 * All TLB entries are flushed on the assumption that it is
+-	 * cheaper to flush all TLBs and let them be refilled than
+-	 * flushing individual PFNs. Note that we do not track mm's
+-	 * to flush as that might simply be multiple full TLB flushes
+-	 * for no gain.
+-	 */
+-	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH_RECEIVED);
+-	flush_tlb_local();
+-}
+-
+ /*
+  * Flush TLB entries for recently unmapped pages from remote CPUs. It is
+  * important if a PTE was dirty when it was unmapped that it's flushed
+@@ -598,15 +585,14 @@ void try_to_unmap_flush(void)
  
-_
-
-Patches currently in -mm which might be from namit@vmware.com are
-
-x86-mm-tlb_remote_send_ipi-should-count-pages.patch
-mm-rmap-batched-invalidations-should-use-existing-api.patch
-
+ 	cpu = get_cpu();
+ 
+-	trace_tlb_flush(TLB_REMOTE_SHOOTDOWN, -1UL);
+-
+-	if (cpumask_test_cpu(cpu, &tlb_ubc->cpumask))
+-		percpu_flush_tlb_batch_pages(&tlb_ubc->cpumask);
