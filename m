@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count.patch added to -mm tree
-Date: Mon, 28 Mar 2016 13:52:30 -0700
-Message-ID: <56f9998e.99DoBx6KjvA284OA%akpm@linux-foundation.org>
+Subject: + mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
+ added to -mm tree
+Date: Mon, 28 Mar 2016 13:52:32 -0700
+Message-ID: <56f99990.c2R6pZ/y1eRQR5Pr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55342 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55354 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754618AbcC1Uwb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 16:52:31 -0400
+	with ESMTP id S1754618AbcC1Uwe (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 16:52:34 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, cmetcalf@mellanox.com, davem@davemloft.net, hughd@google.com, johannes@sipsolutions.net, sgoutham@cavium.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_ref: use page_ref helper instead of direct modification of _count
+     Subject: mm: rename _count, field of the struct page, to _refcount
 has been added to the -mm tree.  Its filename is
-     mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count.patch
+     mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +40,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_ref: use page_ref helper instead of direct modification of _count
+Subject: mm: rename _count, field of the struct page, to _refcount
 
-page_reference manipulation functions are introduced to track down
-reference count change of the page.  Use it instead of direct modification
-of _count.
+Many developers already know that field for reference count of the struct
+page is _count and atomic type.  They would try to handle it directly and
+this could break the purpose of page reference count tracepoint.  To
+prevent direct _count modification, this patch rename it to _refcount and
+add warning message on the code.  After that, developer who need to handle
+reference count will find that field should not be accessed directly.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Hugh Dickins <hughd@google.com>
@@ -55,60 +58,171 @@ Cc: Chris Metcalf <cmetcalf@mellanox.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- drivers/net/ethernet/cavium/thunder/nicvf_queues.c |    2 +-
- drivers/net/ethernet/qlogic/qede/qede_main.c       |    2 +-
- mm/filemap.c                                       |    2 +-
- net/wireless/util.c                                |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ arch/tile/mm/init.c      |    2 +-
+ include/linux/mm_types.h |    8 ++++++--
+ include/linux/page_ref.h |   26 +++++++++++++-------------
+ kernel/kexec_core.c      |    2 +-
+ 4 files changed, 21 insertions(+), 17 deletions(-)
 
-diff -puN drivers/net/ethernet/cavium/thunder/nicvf_queues.c~mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count drivers/net/ethernet/cavium/thunder/nicvf_queues.c
---- a/drivers/net/ethernet/cavium/thunder/nicvf_queues.c~mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count
-+++ a/drivers/net/ethernet/cavium/thunder/nicvf_queues.c
-@@ -23,7 +23,7 @@ static void nicvf_get_page(struct nicvf
- 	if (!nic->rb_pageref || !nic->rb_page)
- 		return;
- 
--	atomic_add(nic->rb_pageref, &nic->rb_page->_count);
-+	page_ref_add(nic->rb_page, nic->rb_pageref);
- 	nic->rb_pageref = 0;
- }
- 
-diff -puN drivers/net/ethernet/qlogic/qede/qede_main.c~mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count drivers/net/ethernet/qlogic/qede/qede_main.c
---- a/drivers/net/ethernet/qlogic/qede/qede_main.c~mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count
-+++ a/drivers/net/ethernet/qlogic/qede/qede_main.c
-@@ -791,7 +791,7 @@ static inline int qede_realloc_rx_buffer
- 		 * network stack to take the ownership of the page
- 		 * which can be recycled multiple times by the driver.
- 		 */
--		atomic_inc(&curr_cons->data->_count);
-+		page_ref_inc(curr_cons->data);
- 		qede_reuse_page(edev, rxq, curr_cons);
- 	}
- 
-diff -puN mm/filemap.c~mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count mm/filemap.c
---- a/mm/filemap.c~mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count
-+++ a/mm/filemap.c
-@@ -213,7 +213,7 @@ void __delete_from_page_cache(struct pag
- 			 * some other bad page check should catch it later.
+diff -puN arch/tile/mm/init.c~mm-rename-_count-field-of-the-struct-page-to-_refcount arch/tile/mm/init.c
+--- a/arch/tile/mm/init.c~mm-rename-_count-field-of-the-struct-page-to-_refcount
++++ a/arch/tile/mm/init.c
+@@ -679,7 +679,7 @@ static void __init init_free_pfn_range(u
+ 			 * Hacky direct set to avoid unnecessary
+ 			 * lock take/release for EVERY page here.
  			 */
- 			page_mapcount_reset(page);
--			atomic_sub(mapcount, &page->_count);
-+			page_ref_sub(page, mapcount);
+-			p->_count.counter = 0;
++			p->_refcount.counter = 0;
+ 			p->_mapcount.counter = -1;
  		}
- 	}
+ 		init_page_count(page);
+diff -puN include/linux/mm_types.h~mm-rename-_count-field-of-the-struct-page-to-_refcount include/linux/mm_types.h
+--- a/include/linux/mm_types.h~mm-rename-_count-field-of-the-struct-page-to-_refcount
++++ a/include/linux/mm_types.h
+@@ -97,7 +97,11 @@ struct page {
+ 					};
+ 					int units;	/* SLOB */
+ 				};
+-				atomic_t _count;		/* Usage count, see below. */
++				/*
++				 * Usage count, *USE WRAPPER FUNCTION*
++				 * when manual accounting. See page_ref.h
++				 */
++				atomic_t _refcount;
+ 			};
+ 			unsigned int active;	/* SLAB */
+ 		};
+@@ -248,7 +252,7 @@ struct page_frag_cache {
+ 	__u32 offset;
+ #endif
+ 	/* we maintain a pagecount bias, so that we dont dirty cache line
+-	 * containing page->_count every time we allocate a fragment.
++	 * containing page->_refcount every time we allocate a fragment.
+ 	 */
+ 	unsigned int		pagecnt_bias;
+ 	bool pfmemalloc;
+diff -puN include/linux/page_ref.h~mm-rename-_count-field-of-the-struct-page-to-_refcount include/linux/page_ref.h
+--- a/include/linux/page_ref.h~mm-rename-_count-field-of-the-struct-page-to-_refcount
++++ a/include/linux/page_ref.h
+@@ -63,17 +63,17 @@ static inline void __page_ref_unfreeze(s
  
-diff -puN net/wireless/util.c~mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count net/wireless/util.c
---- a/net/wireless/util.c~mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count
-+++ a/net/wireless/util.c
-@@ -651,7 +651,7 @@ __frame_add_frag(struct sk_buff *skb, st
- 	struct skb_shared_info *sh = skb_shinfo(skb);
- 	int page_offset;
- 
--	atomic_inc(&page->_count);
-+	page_ref_inc(page);
- 	page_offset = ptr - page_address(page);
- 	skb_add_rx_frag(skb, sh->nr_frags, page, page_offset, len, size);
+ static inline int page_ref_count(struct page *page)
+ {
+-	return atomic_read(&page->_count);
++	return atomic_read(&page->_refcount);
  }
+ 
+ static inline int page_count(struct page *page)
+ {
+-	return atomic_read(&compound_head(page)->_count);
++	return atomic_read(&compound_head(page)->_refcount);
+ }
+ 
+ static inline void set_page_count(struct page *page, int v)
+ {
+-	atomic_set(&page->_count, v);
++	atomic_set(&page->_refcount, v);
+ 	if (page_ref_tracepoint_active(__tracepoint_page_ref_set))
+ 		__page_ref_set(page, v);
+ }
+@@ -89,35 +89,35 @@ static inline void init_page_count(struc
+ 
+ static inline void page_ref_add(struct page *page, int nr)
+ {
+-	atomic_add(nr, &page->_count);
++	atomic_add(nr, &page->_refcount);
+ 	if (page_ref_tracepoint_active(__tracepoint_page_ref_mod))
+ 		__page_ref_mod(page, nr);
+ }
+ 
+ static inline void page_ref_sub(struct page *page, int nr)
+ {
+-	atomic_sub(nr, &page->_count);
++	atomic_sub(nr, &page->_refcount);
+ 	if (page_ref_tracepoint_active(__tracepoint_page_ref_mod))
+ 		__page_ref_mod(page, -nr);
+ }
+ 
+ static inline void page_ref_inc(struct page *page)
+ {
+-	atomic_inc(&page->_count);
++	atomic_inc(&page->_refcount);
+ 	if (page_ref_tracepoint_active(__tracepoint_page_ref_mod))
+ 		__page_ref_mod(page, 1);
+ }
+ 
+ static inline void page_ref_dec(struct page *page)
+ {
+-	atomic_dec(&page->_count);
++	atomic_dec(&page->_refcount);
+ 	if (page_ref_tracepoint_active(__tracepoint_page_ref_mod))
+ 		__page_ref_mod(page, -1);
+ }
+ 
+ static inline int page_ref_sub_and_test(struct page *page, int nr)
+ {
+-	int ret = atomic_sub_and_test(nr, &page->_count);
++	int ret = atomic_sub_and_test(nr, &page->_refcount);
+ 
+ 	if (page_ref_tracepoint_active(__tracepoint_page_ref_mod_and_test))
+ 		__page_ref_mod_and_test(page, -nr, ret);
+@@ -126,7 +126,7 @@ static inline int page_ref_sub_and_test(
+ 
+ static inline int page_ref_dec_and_test(struct page *page)
+ {
+-	int ret = atomic_dec_and_test(&page->_count);
++	int ret = atomic_dec_and_test(&page->_refcount);
+ 
+ 	if (page_ref_tracepoint_active(__tracepoint_page_ref_mod_and_test))
+ 		__page_ref_mod_and_test(page, -1, ret);
+@@ -135,7 +135,7 @@ static inline int page_ref_dec_and_test(
+ 
+ static inline int page_ref_dec_return(struct page *page)
+ {
+-	int ret = atomic_dec_return(&page->_count);
++	int ret = atomic_dec_return(&page->_refcount);
+ 
+ 	if (page_ref_tracepoint_active(__tracepoint_page_ref_mod_and_return))
+ 		__page_ref_mod_and_return(page, -1, ret);
+@@ -144,7 +144,7 @@ static inline int page_ref_dec_return(st
+ 
+ static inline int page_ref_add_unless(struct page *page, int nr, int u)
+ {
+-	int ret = atomic_add_unless(&page->_count, nr, u);
++	int ret = atomic_add_unless(&page->_refcount, nr, u);
+ 
+ 	if (page_ref_tracepoint_active(__tracepoint_page_ref_mod_unless))
+ 		__page_ref_mod_unless(page, nr, ret);
+@@ -153,7 +153,7 @@ static inline int page_ref_add_unless(st
+ 
+ static inline int page_ref_freeze(struct page *page, int count)
+ {
+-	int ret = likely(atomic_cmpxchg(&page->_count, count, 0) == count);
++	int ret = likely(atomic_cmpxchg(&page->_refcount, count, 0) == count);
+ 
+ 	if (page_ref_tracepoint_active(__tracepoint_page_ref_freeze))
+ 		__page_ref_freeze(page, count, ret);
+@@ -165,7 +165,7 @@ static inline void page_ref_unfreeze(str
+ 	VM_BUG_ON_PAGE(page_count(page) != 0, page);
+ 	VM_BUG_ON(count == 0);
+ 
+-	atomic_set(&page->_count, count);
++	atomic_set(&page->_refcount, count);
+ 	if (page_ref_tracepoint_active(__tracepoint_page_ref_unfreeze))
+ 		__page_ref_unfreeze(page, count);
+ }
+diff -puN kernel/kexec_core.c~mm-rename-_count-field-of-the-struct-page-to-_refcount kernel/kexec_core.c
+--- a/kernel/kexec_core.c~mm-rename-_count-field-of-the-struct-page-to-_refcount
++++ a/kernel/kexec_core.c
+@@ -1410,7 +1410,7 @@ static int __init crash_save_vmcoreinfo_
+ 	VMCOREINFO_STRUCT_SIZE(list_head);
+ 	VMCOREINFO_SIZE(nodemask_t);
+ 	VMCOREINFO_OFFSET(page, flags);
+-	VMCOREINFO_OFFSET(page, _count);
++	VMCOREINFO_OFFSET(page, _refcount);
+ 	VMCOREINFO_OFFSET(page, mapping);
+ 	VMCOREINFO_OFFSET(page, lru);
+ 	VMCOREINFO_OFFSET(page, _mapcount);
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
