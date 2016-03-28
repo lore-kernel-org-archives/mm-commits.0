@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmalloc-is_vmalloc_addr-can-be-boolean.patch added to -mm
+Subject: + mm-mempolicy-vma_migratable-can-be-boolean.patch added to -mm
  tree
-Date: Mon, 28 Mar 2016 16:08:24 -0700
-Message-ID: <56f9b968.suGdsjeBeoSl/jCE%akpm@linux-foundation.org>
+Date: Mon, 28 Mar 2016 16:08:26 -0700
+Message-ID: <56f9b96a.XytVQACxl/mlLBfi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58251 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58252 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752562AbcC1XIZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 19:08:25 -0400
+	with ESMTP id S1755407AbcC1XI1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 19:08:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: baiyaowei@cmss.chinamobile.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/vmalloc.c: is_vmalloc_addr() can return bool
+     Subject: mm/mempolicy.c: vma_migratable() can return bool
 has been added to the -mm tree.  Its filename is
-     mm-vmalloc-is_vmalloc_addr-can-be-boolean.patch
+     mm-mempolicy-vma_migratable-can-be-boolean.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmalloc-is_vmalloc_addr-can-be-boolean.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-mempolicy-vma_migratable-can-be-boolean.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmalloc-is_vmalloc_addr-can-be-boolean.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-mempolicy-vma_migratable-can-be-boolean.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,38 +40,50 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Subject: mm/vmalloc.c: is_vmalloc_addr() can return bool
+Subject: mm/mempolicy.c: vma_migratable() can return bool
 
-Make is_vmalloc_addr() return bool to improve readability due to this
-particular function only using either one or zero as its return value.
+Make vma_migratable() return bool due to this particular function only
+using either one or zero as its return value.
 
 Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ include/linux/mempolicy.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff -puN include/linux/mm.h~mm-vmalloc-is_vmalloc_addr-can-be-boolean include/linux/mm.h
---- a/include/linux/mm.h~mm-vmalloc-is_vmalloc_addr-can-be-boolean
-+++ a/include/linux/mm.h
-@@ -443,14 +443,14 @@ unsigned long vmalloc_to_pfn(const void
-  * On nommu, vmalloc/vfree wrap through kmalloc/kfree directly, so there
-  * is no special casing required.
-  */
--static inline int is_vmalloc_addr(const void *x)
-+static inline bool is_vmalloc_addr(const void *x)
- {
- #ifdef CONFIG_MMU
- 	unsigned long addr = (unsigned long)x;
+diff -puN include/linux/mempolicy.h~mm-mempolicy-vma_migratable-can-be-boolean include/linux/mempolicy.h
+--- a/include/linux/mempolicy.h~mm-mempolicy-vma_migratable-can-be-boolean
++++ a/include/linux/mempolicy.h
+@@ -172,14 +172,14 @@ extern int mpol_parse_str(char *str, str
+ extern void mpol_to_str(char *buffer, int maxlen, struct mempolicy *pol);
  
- 	return addr >= VMALLOC_START && addr < VMALLOC_END;
- #else
--	return 0;
-+	return false;
+ /* Check if a vma is migratable */
+-static inline int vma_migratable(struct vm_area_struct *vma)
++static inline bool vma_migratable(struct vm_area_struct *vma)
+ {
+ 	if (vma->vm_flags & (VM_IO | VM_PFNMAP))
+-		return 0;
++		return false;
+ 
+ #ifndef CONFIG_ARCH_ENABLE_HUGEPAGE_MIGRATION
+ 	if (vma->vm_flags & VM_HUGETLB)
+-		return 0;
++		return false;
  #endif
+ 
+ 	/*
+@@ -190,8 +190,8 @@ static inline int vma_migratable(struct
+ 	if (vma->vm_file &&
+ 		gfp_zone(mapping_gfp_mask(vma->vm_file->f_mapping))
+ 								< policy_zone)
+-			return 0;
+-	return 1;
++			return false;
++	return true;
  }
- #ifdef CONFIG_MMU
+ 
+ extern int mpol_misplaced(struct page *, struct vm_area_struct *, unsigned long);
 _
 
 Patches currently in -mm which might be from baiyaowei@cmss.chinamobile.com are
