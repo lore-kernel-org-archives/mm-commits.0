@@ -1,87 +1,98 @@
 From: akpm@linux-foundation.org
-Subject: +
- wait-allow-sys_waitid-to-accept-__wnothread-__wclone-__wall.patch added to
- -mm tree
-Date: Mon, 28 Mar 2016 15:51:32 -0700
-Message-ID: <56f9b574.Y+ae6eg9xYnL45hE%akpm@linux-foundation.org>
+Subject: [alternative-merged]
+ oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task.patch
+ removed from -mm tree
+Date: Mon, 28 Mar 2016 15:55:41 -0700
+Message-ID: <56f9b66d.tite3BzTCbNmTXdy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58051 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58060 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755189AbcC1Wve (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 18:51:34 -0400
+	with ESMTP id S1755308AbcC1Wzm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 18:55:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: oleg@redhat.com, dvlasenk@redhat.com, dvyukov@google.com, jan.kratochvil@redhat.com, mtk.manpages@gmail.com, palves@redhat.com, roland@hack.frob.com, syzkaller@googlegroups.com, torvalds@linux-foundation.org, mm-commits@vger.kernel.org
+To: mhocko@suse.com, hughd@google.com, mgorman@techsingularity.net, oleg@redhat.com, penguin-kernel@I-love.SAKURA.ne.jp, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: wait: allow sys_waitid() to accept __WNOTHREAD/__WCLONE/__WALL
-has been added to the -mm tree.  Its filename is
-     wait-allow-sys_waitid-to-accept-__wnothread-__wclone-__wall.patch
+     Subject: oom, oom_reaper: disable oom_reaper for oom_kill_allocating_task
+has been removed from the -mm tree.  Its filename was
+     oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/wait-allow-sys_waitid-to-accept-__wnothread-__wclone-__wall.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/wait-allow-sys_waitid-to-accept-__wnothread-__wclone-__wall.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an alternative patch was merged
 
 ------------------------------------------------------
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: wait: allow sys_waitid() to accept __WNOTHREAD/__WCLONE/__WALL
+From: Michal Hocko <mhocko@suse.com>
+Subject: oom, oom_reaper: disable oom_reaper for oom_kill_allocating_task
 
-I see no reason why waitid() can't support other linux-specific flags
-allowed in sys_wait4().
+Tetsuo has reported that oom_kill_allocating_task=1 will cause
+oom_reaper_list corruption because oom_kill_process doesn't follow
+standard OOM exclusion (aka ignores TIF_MEMDIE) and allows to enqueue
+the same task multiple times - e.g. by sacrificing the same child
+multiple times.
 
-In particular this change can help if we reconsider the previous change
-("wait/ptrace: assume __WALL if the child is traced") which adds the
-"automagical" __WALL for debugger.
+This patch fixes the issue by introducing a new MMF_OOM_KILLED mm flag
+which is set in oom_kill_process atomically and oom reaper is disabled
+if the flag was already set.
 
-Signed-off-by: Oleg Nesterov <oleg@redhat.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Denys Vlasenko <dvlasenk@redhat.com>
-Cc: Jan Kratochvil <jan.kratochvil@redhat.com>
-Cc: "Michael Kerrisk (man-pages)" <mtk.manpages@gmail.com>
-Cc: Pedro Alves <palves@redhat.com>
-Cc: Roland McGrath <roland@hack.frob.com>
-Cc: <syzkaller@googlegroups.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Reported-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Oleg Nesterov <oleg@redhat.com>
+Cc: Hugh Dickins <hughd@google.com>
+Cc: Rik van Riel <riel@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/exit.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ include/linux/sched.h |    2 ++
+ mm/oom_kill.c         |    6 +++++-
+ 2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff -puN kernel/exit.c~wait-allow-sys_waitid-to-accept-__wnothread-__wclone-__wall kernel/exit.c
---- a/kernel/exit.c~wait-allow-sys_waitid-to-accept-__wnothread-__wclone-__wall
-+++ a/kernel/exit.c
-@@ -1535,7 +1535,8 @@ SYSCALL_DEFINE5(waitid, int, which, pid_
- 	enum pid_type type;
- 	long ret;
+diff -puN include/linux/sched.h~oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task include/linux/sched.h
+--- a/include/linux/sched.h~oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task
++++ a/include/linux/sched.h
+@@ -512,6 +512,8 @@ static inline int get_dumpable(struct mm
+ #define MMF_HAS_UPROBES		19	/* has uprobes */
+ #define MMF_RECALC_UPROBES	20	/* MMF_HAS_UPROBES can be wrong */
  
--	if (options & ~(WNOHANG|WNOWAIT|WEXITED|WSTOPPED|WCONTINUED))
-+	if (options & ~(WNOHANG|WNOWAIT|WEXITED|WSTOPPED|WCONTINUED|
-+			__WNOTHREAD|__WCLONE|__WALL))
- 		return -EINVAL;
- 	if (!(options & (WEXITED|WSTOPPED|WCONTINUED)))
- 		return -EINVAL;
++#define MMF_OOM_KILLED		21	/* OOM killer has chosen this mm */
++
+ #define MMF_INIT_MASK		(MMF_DUMPABLE_MASK | MMF_DUMP_FILTER_MASK)
+ 
+ struct sighand_struct {
+diff -puN mm/oom_kill.c~oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-oom_reaper-disable-oom_reaper-for-oom_kill_allocating_task
++++ a/mm/oom_kill.c
+@@ -680,7 +680,7 @@ void oom_kill_process(struct oom_control
+ 	unsigned int victim_points = 0;
+ 	static DEFINE_RATELIMIT_STATE(oom_rs, DEFAULT_RATELIMIT_INTERVAL,
+ 					      DEFAULT_RATELIMIT_BURST);
+-	bool can_oom_reap = true;
++	bool can_oom_reap;
+ 
+ 	/*
+ 	 * If the task is already exiting, don't alarm the sysadmin or kill
+@@ -742,6 +742,10 @@ void oom_kill_process(struct oom_control
+ 	/* Get a reference to safely compare mm after task_unlock(victim) */
+ 	mm = victim->mm;
+ 	atomic_inc(&mm->mm_count);
++
++	/* Make sure we do not try to oom reap the mm multiple times */
++	can_oom_reap = !test_and_set_bit(MMF_OOM_KILLED, &mm->flags);
++
+ 	/*
+ 	 * We should send SIGKILL before setting TIF_MEMDIE in order to prevent
+ 	 * the OOM victim from depleting the memory reserves from the user
 _
 
-Patches currently in -mm which might be from oleg@redhat.com are
+Patches currently in -mm which might be from mhocko@suse.com are
 
-wait-ptrace-assume-__wall-if-the-child-is-traced.patch
-wait-allow-sys_waitid-to-accept-__wnothread-__wclone-__wall.patch
+mm-oom-rework-oom-detection.patch
+mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
 
