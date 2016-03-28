@@ -1,108 +1,231 @@
 From: akpm@linux-foundation.org
-Subject: [-] mm-utilc-add-kstrimdup.patch removed from -mm tree
-Date: Mon, 28 Mar 2016 12:58:57 -0700
-Message-ID: <56f98d01.yShThyLorMEDV9q+%akpm@linux-foundation.org>
+Subject: + zsmalloc-use-first_page-rather-than-page.patch added to -mm
+ tree
+Date: Mon, 28 Mar 2016 13:22:19 -0700
+Message-ID: <56f9927b.TkMTyj7rOqqgTTXC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52723 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53122 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754127AbcC1T67 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 15:58:59 -0400
+	with ESMTP id S1751537AbcC1UWU (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 16:22:20 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: sebastian.capella@linaro.org, joe@perches.com, rientjes@google.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, sergey.senozhatsky@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/util.c: add kstrimdup()
-has been removed from the -mm tree.  Its filename was
-     mm-utilc-add-kstrimdup.patch
+     Subject: zsmalloc: use first_page rather than page
+has been added to the -mm tree.  Its filename is
+     zsmalloc-use-first_page-rather-than-page.patch
 
-This patch was dropped because it still has no users
+This patch should soon appear at
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-use-first_page-rather-than-page.patch
+and later at
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-use-first_page-rather-than-page.patch
+
+Before you just go and hit "reply", please:
+   a) Consider who else should be cc'ed
+   b) Prefer to cc a suitable mailing list as well
+   c) Ideally: find the original patch on the mailing list and do a
+      reply-to-all to that, adding suitable additional cc's
+
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
+The -mm tree is included into linux-next and is updated
+there every 3-4 working days
 
 ------------------------------------------------------
-From: Sebastian Capella <sebastian.capella@linaro.org>
-Subject: mm/util.c: add kstrimdup()
+From: Minchan Kim <minchan@kernel.org>
+Subject: zsmalloc: use first_page rather than page
 
-kstrimdup() creates a whitespace-trimmed duplicate of the passed in
-null-terminated string.  This is useful for strings coming from sysfs that
-often include trailing whitespace due to user input.
+This patch cleans up function parameter "struct page".  Many functions of
+zsmalloc expect that page paramter is "first_page" so use "first_page"
+rather than "page" for code readability.
 
-Thanks to Joe Perches for this implementation.
-
-Signed-off-by: Sebastian Capella <sebastian.capella@linaro.org>
-Cc: Joe Perches <joe@perches.com>
-Acked-by: David Rientjes <rientjes@google.com>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Reviewed-by: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/string.h |    1 +
- mm/util.c              |   30 ++++++++++++++++++++++++++++++
- 2 files changed, 31 insertions(+)
+ mm/zsmalloc.c |   62 ++++++++++++++++++++++++------------------------
+ 1 file changed, 32 insertions(+), 30 deletions(-)
 
-diff -puN include/linux/string.h~mm-utilc-add-kstrimdup include/linux/string.h
---- a/include/linux/string.h~mm-utilc-add-kstrimdup
-+++ a/include/linux/string.h
-@@ -122,6 +122,7 @@ extern void kfree_const(const void *x);
- extern char *kstrdup(const char *s, gfp_t gfp) __malloc;
- extern const char *kstrdup_const(const char *s, gfp_t gfp);
- extern char *kstrndup(const char *s, size_t len, gfp_t gfp);
-+extern char *kstrimdup(const char *s, gfp_t gfp);
- extern void *kmemdup(const void *src, size_t len, gfp_t gfp);
+diff -puN mm/zsmalloc.c~zsmalloc-use-first_page-rather-than-page mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-use-first_page-rather-than-page
++++ a/mm/zsmalloc.c
+@@ -413,26 +413,28 @@ static int is_last_page(struct page *pag
+ 	return PagePrivate2(page);
+ }
  
- extern char **argv_split(gfp_t gfp, const char *str, int *argcp);
-diff -puN mm/util.c~mm-utilc-add-kstrimdup mm/util.c
---- a/mm/util.c~mm-utilc-add-kstrimdup
-+++ a/mm/util.c
-@@ -3,6 +3,7 @@
- #include <linux/string.h>
- #include <linux/compiler.h>
- #include <linux/export.h>
-+#include <linux/ctype.h>
- #include <linux/err.h>
- #include <linux/sched.h>
- #include <linux/security.h>
-@@ -100,6 +101,35 @@ char *kstrndup(const char *s, size_t max
- EXPORT_SYMBOL(kstrndup);
+-static void get_zspage_mapping(struct page *page, unsigned int *class_idx,
++static void get_zspage_mapping(struct page *first_page,
++				unsigned int *class_idx,
+ 				enum fullness_group *fullness)
+ {
+ 	unsigned long m;
+-	BUG_ON(!is_first_page(page));
++	BUG_ON(!is_first_page(first_page));
  
- /**
-+ * kstrimdup - Trim and copy a %NUL terminated string.
-+ * @s: the string to trim and duplicate
-+ * @gfp: the GFP mask used in the kmalloc() call when allocating memory
-+ *
-+ * Returns an address, which the caller must kfree, containing
-+ * a duplicate of the passed string with leading and/or trailing
-+ * whitespace (as defined by isspace) removed.
-+ */
-+char *kstrimdup(const char *s, gfp_t gfp)
-+{
-+	char *buf;
-+	char *begin = skip_spaces(s);
-+	size_t len = strlen(begin);
-+
-+	while (len && isspace(begin[len - 1]))
-+		len--;
-+
-+	buf = kmalloc_track_caller(len + 1, gfp);
-+	if (!buf)
-+		return NULL;
-+
-+	memcpy(buf, begin, len);
-+	buf[len] = '\0';
-+
-+	return buf;
-+}
-+EXPORT_SYMBOL(kstrimdup);
-+
-+/**
-  * kmemdup - duplicate region of memory
-  *
-  * @src: memory region to duplicate
+-	m = (unsigned long)page->mapping;
++	m = (unsigned long)first_page->mapping;
+ 	*fullness = m & FULLNESS_MASK;
+ 	*class_idx = (m >> FULLNESS_BITS) & CLASS_IDX_MASK;
+ }
+ 
+-static void set_zspage_mapping(struct page *page, unsigned int class_idx,
++static void set_zspage_mapping(struct page *first_page,
++				unsigned int class_idx,
+ 				enum fullness_group fullness)
+ {
+ 	unsigned long m;
+-	BUG_ON(!is_first_page(page));
++	BUG_ON(!is_first_page(first_page));
+ 
+ 	m = ((class_idx & CLASS_IDX_MASK) << FULLNESS_BITS) |
+ 			(fullness & FULLNESS_MASK);
+-	page->mapping = (struct address_space *)m;
++	first_page->mapping = (struct address_space *)m;
+ }
+ 
+ /*
+@@ -625,14 +627,14 @@ static inline void zs_pool_stat_destroy(
+  * the pool (not yet implemented). This function returns fullness
+  * status of the given page.
+  */
+-static enum fullness_group get_fullness_group(struct page *page)
++static enum fullness_group get_fullness_group(struct page *first_page)
+ {
+ 	int inuse, max_objects;
+ 	enum fullness_group fg;
+-	BUG_ON(!is_first_page(page));
++	BUG_ON(!is_first_page(first_page));
+ 
+-	inuse = page->inuse;
+-	max_objects = page->objects;
++	inuse = first_page->inuse;
++	max_objects = first_page->objects;
+ 
+ 	if (inuse == 0)
+ 		fg = ZS_EMPTY;
+@@ -652,12 +654,12 @@ static enum fullness_group get_fullness_
+  * have. This functions inserts the given zspage into the freelist
+  * identified by <class, fullness_group>.
+  */
+-static void insert_zspage(struct page *page, struct size_class *class,
++static void insert_zspage(struct page *first_page, struct size_class *class,
+ 				enum fullness_group fullness)
+ {
+ 	struct page **head;
+ 
+-	BUG_ON(!is_first_page(page));
++	BUG_ON(!is_first_page(first_page));
+ 
+ 	if (fullness >= _ZS_NR_FULLNESS_GROUPS)
+ 		return;
+@@ -667,7 +669,7 @@ static void insert_zspage(struct page *p
+ 
+ 	head = &class->fullness_list[fullness];
+ 	if (!*head) {
+-		*head = page;
++		*head = first_page;
+ 		return;
+ 	}
+ 
+@@ -675,21 +677,21 @@ static void insert_zspage(struct page *p
+ 	 * We want to see more ZS_FULL pages and less almost
+ 	 * empty/full. Put pages with higher ->inuse first.
+ 	 */
+-	list_add_tail(&page->lru, &(*head)->lru);
+-	if (page->inuse >= (*head)->inuse)
+-		*head = page;
++	list_add_tail(&first_page->lru, &(*head)->lru);
++	if (first_page->inuse >= (*head)->inuse)
++		*head = first_page;
+ }
+ 
+ /*
+  * This function removes the given zspage from the freelist identified
+  * by <class, fullness_group>.
+  */
+-static void remove_zspage(struct page *page, struct size_class *class,
++static void remove_zspage(struct page *first_page, struct size_class *class,
+ 				enum fullness_group fullness)
+ {
+ 	struct page **head;
+ 
+-	BUG_ON(!is_first_page(page));
++	BUG_ON(!is_first_page(first_page));
+ 
+ 	if (fullness >= _ZS_NR_FULLNESS_GROUPS)
+ 		return;
+@@ -698,11 +700,11 @@ static void remove_zspage(struct page *p
+ 	BUG_ON(!*head);
+ 	if (list_empty(&(*head)->lru))
+ 		*head = NULL;
+-	else if (*head == page)
++	else if (*head == first_page)
+ 		*head = (struct page *)list_entry((*head)->lru.next,
+ 					struct page, lru);
+ 
+-	list_del_init(&page->lru);
++	list_del_init(&first_page->lru);
+ 	zs_stat_dec(class, fullness == ZS_ALMOST_EMPTY ?
+ 			CLASS_ALMOST_EMPTY : CLASS_ALMOST_FULL, 1);
+ }
+@@ -717,21 +719,21 @@ static void remove_zspage(struct page *p
+  * fullness group.
+  */
+ static enum fullness_group fix_fullness_group(struct size_class *class,
+-						struct page *page)
++						struct page *first_page)
+ {
+ 	int class_idx;
+ 	enum fullness_group currfg, newfg;
+ 
+-	BUG_ON(!is_first_page(page));
++	BUG_ON(!is_first_page(first_page));
+ 
+-	get_zspage_mapping(page, &class_idx, &currfg);
+-	newfg = get_fullness_group(page);
++	get_zspage_mapping(first_page, &class_idx, &currfg);
++	newfg = get_fullness_group(first_page);
+ 	if (newfg == currfg)
+ 		goto out;
+ 
+-	remove_zspage(page, class, currfg);
+-	insert_zspage(page, class, newfg);
+-	set_zspage_mapping(page, class_idx, newfg);
++	remove_zspage(first_page, class, currfg);
++	insert_zspage(first_page, class, newfg);
++	set_zspage_mapping(first_page, class_idx, newfg);
+ 
+ out:
+ 	return newfg;
+@@ -1234,11 +1236,11 @@ static bool can_merge(struct size_class
+ 	return true;
+ }
+ 
+-static bool zspage_full(struct page *page)
++static bool zspage_full(struct page *first_page)
+ {
+-	BUG_ON(!is_first_page(page));
++	BUG_ON(!is_first_page(first_page));
+ 
+-	return page->inuse == page->objects;
++	return first_page->inuse == first_page->objects;
+ }
+ 
+ unsigned long zs_get_total_pages(struct zs_pool *pool)
 _
 
-Patches currently in -mm which might be from sebastian.capella@linaro.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
+zsmalloc-use-first_page-rather-than-page.patch
+zsmalloc-clean-up-many-bug_on.patch
+zsmalloc-reordering-function-parameter.patch
+zsmalloc-remove-unused-pool-param-in-obj_free.patch
 
