@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-separate-cache_grow-to-two-parts.patch added to -mm
- tree
-Date: Mon, 28 Mar 2016 14:22:37 -0700
-Message-ID: <56f9a09d.IF7X8AmAaarvDw+3%akpm@linux-foundation.org>
+Subject: + mm-slab-clean-up-kmem_cache_node-setup.patch added to -mm tree
+Date: Mon, 28 Mar 2016 14:22:29 -0700
+Message-ID: <56f9a095./x3jL2c1Pfw4QYzx%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57331 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57305 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755361AbcC1VWi (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 17:22:38 -0400
+	with ESMTP id S1755308AbcC1VWa (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 17:22:30 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: separate cache_grow() to two parts
+     Subject: mm/slab: clean-up kmem_cache_node setup
 has been added to the -mm tree.  Its filename is
-     mm-slab-separate-cache_grow-to-two-parts.patch
+     mm-slab-clean-up-kmem_cache_node-setup.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-separate-cache_grow-to-two-parts.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-clean-up-kmem_cache_node-setup.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-separate-cache_grow-to-two-parts.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-clean-up-kmem_cache_node-setup.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,15 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: separate cache_grow() to two parts
+Subject: mm/slab: clean-up kmem_cache_node setup
 
-This is a preparation step to implement lockless allocation path when
-there is no free objects in kmem_cache.  What we'd like to do here is to
-refill cpu cache without holding a node lock.  To accomplish this purpose,
-refill should be done after new slab allocation but before attaching the
-slab to the management list.  So, this patch separates cache_grow() to two
-parts, allocation and attaching to the list in order to add some code
-inbetween them in the following patch.
+There are mostly same code for setting up kmem_cache_node either in
+cpuup_prepare() or alloc_kmem_cache_node().  Factor out and clean-up them.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -58,181 +52,229 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   74 ++++++++++++++++++++++++++++++++++++----------------
- 1 file changed, 52 insertions(+), 22 deletions(-)
+ mm/slab.c |  167 ++++++++++++++++++++--------------------------------
+ 1 file changed, 67 insertions(+), 100 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-separate-cache_grow-to-two-parts mm/slab.c
---- a/mm/slab.c~mm-slab-separate-cache_grow-to-two-parts
+diff -puN mm/slab.c~mm-slab-clean-up-kmem_cache_node-setup mm/slab.c
+--- a/mm/slab.c~mm-slab-clean-up-kmem_cache_node-setup
 +++ a/mm/slab.c
-@@ -213,6 +213,11 @@ static void slabs_destroy(struct kmem_ca
- static int enable_cpucache(struct kmem_cache *cachep, gfp_t gfp);
- static void cache_reap(struct work_struct *unused);
- 
-+static inline void fixup_objfreelist_debug(struct kmem_cache *cachep,
-+						void **list);
-+static inline void fixup_slab_list(struct kmem_cache *cachep,
-+				struct kmem_cache_node *n, struct page *page,
-+				void **list);
- static int slab_early_init = 1;
- 
- #define INDEX_NODE kmalloc_index(sizeof(struct kmem_cache_node))
-@@ -1803,7 +1808,7 @@ static size_t calculate_slab_order(struc
- 
- 			/*
- 			 * Needed to avoid possible looping condition
--			 * in cache_grow()
-+			 * in cache_grow_begin()
- 			 */
- 			if (OFF_SLAB(freelist_cache))
- 				continue;
-@@ -2525,7 +2530,8 @@ static void slab_map_pages(struct kmem_c
-  * Grow (by 1) the number of slabs within a cache.  This is called by
-  * kmem_cache_alloc() when there are no active objs left in a cache.
-  */
--static int cache_grow(struct kmem_cache *cachep, gfp_t flags, int nodeid)
-+static struct page *cache_grow_begin(struct kmem_cache *cachep,
-+				gfp_t flags, int nodeid)
- {
- 	void *freelist;
- 	size_t offset;
-@@ -2591,21 +2597,40 @@ static int cache_grow(struct kmem_cache
- 
- 	if (gfpflags_allow_blocking(local_flags))
- 		local_irq_disable();
--	check_irq_off();
--	spin_lock(&n->list_lock);
- 
--	/* Make slab active. */
--	list_add_tail(&page->lru, &(n->slabs_free));
--	STATS_INC_GROWN(cachep);
--	n->free_objects += cachep->num;
--	spin_unlock(&n->list_lock);
--	return page_node;
-+	return page;
-+
- opps1:
- 	kmem_freepages(cachep, page);
- failed:
- 	if (gfpflags_allow_blocking(local_flags))
- 		local_irq_disable();
--	return -1;
-+	return NULL;
-+}
-+
-+static void cache_grow_end(struct kmem_cache *cachep, struct page *page)
-+{
-+	struct kmem_cache_node *n;
-+	void *list = NULL;
-+
-+	check_irq_off();
-+
-+	if (!page)
-+		return;
-+
-+	INIT_LIST_HEAD(&page->lru);
-+	n = get_node(cachep, page_to_nid(page));
-+
-+	spin_lock(&n->list_lock);
-+	if (!page->active)
-+		list_add_tail(&page->lru, &(n->slabs_free));
-+	else
-+		fixup_slab_list(cachep, n, page, &list);
-+	STATS_INC_GROWN(cachep);
-+	n->free_objects += cachep->num - page->active;
-+	spin_unlock(&n->list_lock);
-+
-+	fixup_objfreelist_debug(cachep, &list);
+@@ -905,6 +905,62 @@ static int init_cache_node_node(int node
+ 	return 0;
  }
  
- #if DEBUG
-@@ -2816,6 +2841,7 @@ static void *cache_alloc_refill(struct k
- 	struct array_cache *ac;
- 	int node;
- 	void *list = NULL;
-+	struct page *page;
++static int setup_kmem_cache_node(struct kmem_cache *cachep,
++				int node, gfp_t gfp, bool force_change)
++{
++	int ret = -ENOMEM;
++	struct kmem_cache_node *n;
++	struct array_cache *old_shared = NULL;
++	struct array_cache *new_shared = NULL;
++	struct alien_cache **new_alien = NULL;
++	LIST_HEAD(list);
++
++	if (use_alien_caches) {
++		new_alien = alloc_alien_cache(node, cachep->limit, gfp);
++		if (!new_alien)
++			goto fail;
++	}
++
++	if (cachep->shared) {
++		new_shared = alloc_arraycache(node,
++			cachep->shared * cachep->batchcount, 0xbaadf00d, gfp);
++		if (!new_shared)
++			goto fail;
++	}
++
++	ret = init_cache_node(cachep, node, gfp);
++	if (ret)
++		goto fail;
++
++	n = get_node(cachep, node);
++	spin_lock_irq(&n->list_lock);
++	if (n->shared) {
++		free_block(cachep, n->shared->entry,
++				n->shared->avail, node, &list);
++	}
++
++	if (!n->shared || force_change) {
++		old_shared = n->shared;
++		n->shared = new_shared;
++		new_shared = NULL;
++	}
++
++	if (!n->alien) {
++		n->alien = new_alien;
++		new_alien = NULL;
++	}
++
++	spin_unlock_irq(&n->list_lock);
++	slabs_destroy(cachep, &list);
++
++fail:
++	kfree(old_shared);
++	kfree(new_shared);
++	free_alien_cache(new_alien);
++
++	return ret;
++}
++
+ static void cpuup_canceled(long cpu)
+ {
+ 	struct kmem_cache *cachep;
+@@ -976,7 +1032,6 @@ free_slab:
+ static int cpuup_prepare(long cpu)
+ {
+ 	struct kmem_cache *cachep;
+-	struct kmem_cache_node *n = NULL;
+ 	int node = cpu_to_mem(cpu);
+ 	int err;
  
- 	check_irq_off();
- 	node = numa_mem_id();
-@@ -2843,7 +2869,6 @@ retry:
+@@ -995,44 +1050,9 @@ static int cpuup_prepare(long cpu)
+ 	 * array caches
+ 	 */
+ 	list_for_each_entry(cachep, &slab_caches, list) {
+-		struct array_cache *shared = NULL;
+-		struct alien_cache **alien = NULL;
+-
+-		if (cachep->shared) {
+-			shared = alloc_arraycache(node,
+-				cachep->shared * cachep->batchcount,
+-				0xbaadf00d, GFP_KERNEL);
+-			if (!shared)
+-				goto bad;
+-		}
+-		if (use_alien_caches) {
+-			alien = alloc_alien_cache(node, cachep->limit, GFP_KERNEL);
+-			if (!alien) {
+-				kfree(shared);
+-				goto bad;
+-			}
+-		}
+-		n = get_node(cachep, node);
+-		BUG_ON(!n);
+-
+-		spin_lock_irq(&n->list_lock);
+-		if (!n->shared) {
+-			/*
+-			 * We are serialised from CPU_DEAD or
+-			 * CPU_UP_CANCELLED by the cpucontrol lock
+-			 */
+-			n->shared = shared;
+-			shared = NULL;
+-		}
+-#ifdef CONFIG_NUMA
+-		if (!n->alien) {
+-			n->alien = alien;
+-			alien = NULL;
+-		}
+-#endif
+-		spin_unlock_irq(&n->list_lock);
+-		kfree(shared);
+-		free_alien_cache(alien);
++		err = setup_kmem_cache_node(cachep, node, GFP_KERNEL, false);
++		if (err)
++			goto bad;
  	}
  
- 	while (batchcount > 0) {
--		struct page *page;
- 		/* Get slab alloc is to come from. */
- 		page = get_first_slab(n, false);
- 		if (!page)
-@@ -2876,8 +2901,6 @@ alloc_done:
- 	fixup_objfreelist_debug(cachep, &list);
- 
- 	if (unlikely(!ac->avail)) {
--		int x;
--
- 		/* Check if we can use obj in pfmemalloc slab */
- 		if (sk_memalloc_socks()) {
- 			void *obj = cache_alloc_pfmemalloc(cachep, n, flags);
-@@ -2886,14 +2909,18 @@ alloc_done:
- 				return obj;
- 		}
- 
--		x = cache_grow(cachep, gfp_exact_node(flags), node);
-+		page = cache_grow_begin(cachep, gfp_exact_node(flags), node);
-+		cache_grow_end(cachep, page);
- 
--		/* cache_grow can reenable interrupts, then ac could change. */
-+		/*
-+		 * cache_grow_begin() can reenable interrupts,
-+		 * then ac could change.
-+		 */
- 		ac = cpu_cache_get(cachep);
- 		node = numa_mem_id();
- 
- 		/* no objects in sight? abort */
--		if (x < 0 && ac->avail == 0)
-+		if (!page && ac->avail == 0)
- 			return NULL;
- 
- 		if (!ac->avail)		/* objects refilled by interrupt? */
-@@ -3026,6 +3053,7 @@ static void *fallback_alloc(struct kmem_
- 	struct zone *zone;
- 	enum zone_type high_zoneidx = gfp_zone(flags);
- 	void *obj = NULL;
-+	struct page *page;
- 	int nid;
- 	unsigned int cpuset_mems_cookie;
- 
-@@ -3061,8 +3089,10 @@ retry:
- 		 * We may trigger various forms of reclaim on the allowed
- 		 * set and go into memory reserves if necessary.
- 		 */
--		nid = cache_grow(cache, flags, numa_mem_id());
--		if (nid >= 0) {
-+		page = cache_grow_begin(cache, flags, numa_mem_id());
-+		cache_grow_end(cache, page);
-+		if (page) {
-+			nid = page_to_nid(page);
- 			obj = ____cache_alloc_node(cache,
- 				gfp_exact_node(flags), nid);
- 
-@@ -3090,7 +3120,6 @@ static void *____cache_alloc_node(struct
+ 	return 0;
+@@ -3648,72 +3668,19 @@ EXPORT_SYMBOL(kfree);
+ /*
+  * This initializes kmem_cache_node or resizes various caches for all nodes.
+  */
+-static int alloc_kmem_cache_node(struct kmem_cache *cachep, gfp_t gfp)
++static int setup_kmem_cache_node_node(struct kmem_cache *cachep, gfp_t gfp)
+ {
++	int ret;
+ 	int node;
  	struct kmem_cache_node *n;
- 	void *obj;
- 	void *list = NULL;
--	int x;
+-	struct array_cache *new_shared;
+-	struct alien_cache **new_alien = NULL;
  
- 	VM_BUG_ON(nodeid < 0 || nodeid >= MAX_NUMNODES);
- 	n = get_node(cachep, nodeid);
-@@ -3122,8 +3151,9 @@ retry:
+ 	for_each_online_node(node) {
+-
+-		if (use_alien_caches) {
+-			new_alien = alloc_alien_cache(node, cachep->limit, gfp);
+-			if (!new_alien)
+-				goto fail;
+-		}
+-
+-		new_shared = NULL;
+-		if (cachep->shared) {
+-			new_shared = alloc_arraycache(node,
+-				cachep->shared*cachep->batchcount,
+-					0xbaadf00d, gfp);
+-			if (!new_shared) {
+-				free_alien_cache(new_alien);
+-				goto fail;
+-			}
+-		}
+-
+-		n = get_node(cachep, node);
+-		if (n) {
+-			struct array_cache *shared = n->shared;
+-			LIST_HEAD(list);
+-
+-			spin_lock_irq(&n->list_lock);
+-
+-			if (shared)
+-				free_block(cachep, shared->entry,
+-						shared->avail, node, &list);
+-
+-			n->shared = new_shared;
+-			if (!n->alien) {
+-				n->alien = new_alien;
+-				new_alien = NULL;
+-			}
+-			n->free_limit = (1 + nr_cpus_node(node)) *
+-					cachep->batchcount + cachep->num;
+-			spin_unlock_irq(&n->list_lock);
+-			slabs_destroy(cachep, &list);
+-			kfree(shared);
+-			free_alien_cache(new_alien);
+-			continue;
+-		}
+-		n = kmalloc_node(sizeof(struct kmem_cache_node), gfp, node);
+-		if (!n) {
+-			free_alien_cache(new_alien);
+-			kfree(new_shared);
++		ret = setup_kmem_cache_node(cachep, node, gfp, true);
++		if (ret)
+ 			goto fail;
+-		}
  
- must_grow:
- 	spin_unlock(&n->list_lock);
--	x = cache_grow(cachep, gfp_exact_node(flags), nodeid);
--	if (x >= 0)
-+	page = cache_grow_begin(cachep, gfp_exact_node(flags), nodeid);
-+	cache_grow_end(cachep, page);
-+	if (page)
- 		goto retry;
+-		kmem_cache_node_init(n);
+-		n->next_reap = jiffies + REAPTIMEOUT_NODE +
+-				((unsigned long)cachep) % REAPTIMEOUT_NODE;
+-		n->shared = new_shared;
+-		n->alien = new_alien;
+-		n->free_limit = (1 + nr_cpus_node(node)) *
+-					cachep->batchcount + cachep->num;
+-		cachep->node[node] = n;
+ 	}
++
+ 	return 0;
  
- 	return fallback_alloc(cachep, flags);
+ fail:
+@@ -3755,7 +3722,7 @@ static int __do_tune_cpucache(struct kme
+ 	cachep->shared = shared;
+ 
+ 	if (!prev)
+-		goto alloc_node;
++		goto setup_node;
+ 
+ 	for_each_online_cpu(cpu) {
+ 		LIST_HEAD(list);
+@@ -3772,8 +3739,8 @@ static int __do_tune_cpucache(struct kme
+ 	}
+ 	free_percpu(prev);
+ 
+-alloc_node:
+-	return alloc_kmem_cache_node(cachep, gfp);
++setup_node:
++	return setup_kmem_cache_node_node(cachep, gfp);
+ }
+ 
+ static int do_tune_cpucache(struct kmem_cache *cachep, int limit,
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
