@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-slab-drain-the-free-slab-as-much-as-possible.patch added to
- -mm tree
-Date: Mon, 28 Mar 2016 14:22:25 -0700
-Message-ID: <56f9a091.fCO7eTrKlPG+pVBV%akpm@linux-foundation.org>
+Subject: + mm-slab-factor-out-kmem_cache_node-initialization-code.patch
+ added to -mm tree
+Date: Mon, 28 Mar 2016 14:22:27 -0700
+Message-ID: <56f9a093.sHHlqjnjgADX/t9b%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57293 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57298 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755120AbcC1VW0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 17:22:26 -0400
+	with ESMTP id S1752548AbcC1VW2 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 17:22:28 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, brouer@redhat.com, cl@linux.com, penberg@kernel.org, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/slab: drain the free slab as much as possible
+     Subject: mm/slab: factor out kmem_cache_node initialization code
 has been added to the -mm tree.  Its filename is
-     mm-slab-drain-the-free-slab-as-much-as-possible.patch
+     mm-slab-factor-out-kmem_cache_node-initialization-code.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-drain-the-free-slab-as-much-as-possible.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-slab-factor-out-kmem_cache_node-initialization-code.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-drain-the-free-slab-as-much-as-possible.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-slab-factor-out-kmem_cache_node-initialization-code.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,10 +40,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/slab: drain the free slab as much as possible
+Subject: mm/slab: factor out kmem_cache_node initialization code
 
-slabs_tofree() implies freeing all free slab. We can do it with
-just providing INT_MAX.
+It can be reused on other place, so factor out it.  Following patch will
+use it.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Christoph Lameter <cl@linux.com>
@@ -53,52 +53,98 @@ Cc: Jesper Dangaard Brouer <brouer@redhat.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/slab.c |   12 +++---------
- 1 file changed, 3 insertions(+), 9 deletions(-)
+ mm/slab.c |   68 +++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 39 insertions(+), 29 deletions(-)
 
-diff -puN mm/slab.c~mm-slab-drain-the-free-slab-as-much-as-possible mm/slab.c
---- a/mm/slab.c~mm-slab-drain-the-free-slab-as-much-as-possible
+diff -puN mm/slab.c~mm-slab-factor-out-kmem_cache_node-initialization-code mm/slab.c
+--- a/mm/slab.c~mm-slab-factor-out-kmem_cache_node-initialization-code
 +++ a/mm/slab.c
-@@ -895,12 +895,6 @@ static int init_cache_node_node(int node
+@@ -848,6 +848,40 @@ static inline gfp_t gfp_exact_node(gfp_t
+ }
+ #endif
+ 
++static int init_cache_node(struct kmem_cache *cachep, int node, gfp_t gfp)
++{
++	struct kmem_cache_node *n;
++
++	/*
++	 * Set up the kmem_cache_node for cpu before we can
++	 * begin anything. Make sure some other cpu on this
++	 * node has not already allocated this
++	 */
++	n = get_node(cachep, node);
++	if (n)
++		return 0;
++
++	n = kmalloc_node(sizeof(struct kmem_cache_node), gfp, node);
++	if (!n)
++		return -ENOMEM;
++
++	kmem_cache_node_init(n);
++	n->next_reap = jiffies + REAPTIMEOUT_NODE +
++		    ((unsigned long)cachep) % REAPTIMEOUT_NODE;
++
++	n->free_limit =
++		(1 + nr_cpus_node(node)) * cachep->batchcount + cachep->num;
++
++	/*
++	 * The kmem_cache_nodes don't come and go as CPUs
++	 * come and go.  slab_mutex is sufficient
++	 * protection here.
++	 */
++	cachep->node[node] = n;
++
++	return 0;
++}
++
+ /*
+  * Allocates and initializes node for a node on each slab cache, used for
+  * either memory or cpu hotplug.  If memory is being hot-added, the kmem_cache_node
+@@ -859,39 +893,15 @@ static inline gfp_t gfp_exact_node(gfp_t
+  */
+ static int init_cache_node_node(int node)
+ {
++	int ret;
+ 	struct kmem_cache *cachep;
+-	struct kmem_cache_node *n;
+-	const size_t memsize = sizeof(struct kmem_cache_node);
+ 
+ 	list_for_each_entry(cachep, &slab_caches, list) {
+-		/*
+-		 * Set up the kmem_cache_node for cpu before we can
+-		 * begin anything. Make sure some other cpu on this
+-		 * node has not already allocated this
+-		 */
+-		n = get_node(cachep, node);
+-		if (!n) {
+-			n = kmalloc_node(memsize, GFP_KERNEL, node);
+-			if (!n)
+-				return -ENOMEM;
+-			kmem_cache_node_init(n);
+-			n->next_reap = jiffies + REAPTIMEOUT_NODE +
+-			    ((unsigned long)cachep) % REAPTIMEOUT_NODE;
+-
+-			/*
+-			 * The kmem_cache_nodes don't come and go as CPUs
+-			 * come and go.  slab_mutex is sufficient
+-			 * protection here.
+-			 */
+-			cachep->node[node] = n;
+-		}
+-
+-		spin_lock_irq(&n->list_lock);
+-		n->free_limit =
+-			(1 + nr_cpus_node(node)) *
+-			cachep->batchcount + cachep->num;
+-		spin_unlock_irq(&n->list_lock);
++		ret = init_cache_node(cachep, node, GFP_KERNEL);
++		if (ret)
++			return ret;
+ 	}
++
  	return 0;
  }
  
--static inline int slabs_tofree(struct kmem_cache *cachep,
--						struct kmem_cache_node *n)
--{
--	return (n->free_objects + cachep->num - 1) / cachep->num;
--}
--
- static void cpuup_canceled(long cpu)
- {
- 	struct kmem_cache *cachep;
-@@ -965,7 +959,7 @@ free_slab:
- 		n = get_node(cachep, node);
- 		if (!n)
- 			continue;
--		drain_freelist(cachep, n, slabs_tofree(cachep, n));
-+		drain_freelist(cachep, n, INT_MAX);
- 	}
- }
- 
-@@ -1117,7 +1111,7 @@ static int __meminit drain_cache_node_no
- 		if (!n)
- 			continue;
- 
--		drain_freelist(cachep, n, slabs_tofree(cachep, n));
-+		drain_freelist(cachep, n, INT_MAX);
- 
- 		if (!list_empty(&n->slabs_full) ||
- 		    !list_empty(&n->slabs_partial)) {
-@@ -2287,7 +2281,7 @@ int __kmem_cache_shrink(struct kmem_cach
- 
- 	check_irq_on();
- 	for_each_kmem_cache_node(cachep, node, n) {
--		drain_freelist(cachep, n, slabs_tofree(cachep, n));
-+		drain_freelist(cachep, n, INT_MAX);
- 
- 		ret += !list_empty(&n->slabs_full) ||
- 			!list_empty(&n->slabs_partial);
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
