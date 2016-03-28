@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + x86-mm-use-hugetlb_bad_size.patch added to -mm tree
-Date: Mon, 28 Mar 2016 16:06:00 -0700
-Message-ID: <56f9b8d8.4t7lirCaDBk+hIET%akpm@linux-foundation.org>
+Subject: + mm-hugetlb-is_vm_hugetlb_page-can-be-boolean.patch added to -mm tree
+Date: Mon, 28 Mar 2016 16:08:20 -0700
+Message-ID: <56f9b964.iq3jRrlx1RJ2riUi%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58233 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58249 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755437AbcC1XGC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 19:06:02 -0400
+	with ESMTP id S1752562AbcC1XIV (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 19:08:21 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vaishali.thakkar@oracle.com, baiyaowei@cmss.chinamobile.com, dave.hansen@linux.intel.com, dingel@linux.vnet.ibm.com, hillf.zj@alibaba-inc.com, hpa@zytor.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mingo@elte.hu, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: baiyaowei@cmss.chinamobile.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86: mm: use hugetlb_bad_size()
+     Subject: mm/hugetlb: is_vm_hugetlb_page() can return bool
 has been added to the -mm tree.  Its filename is
-     x86-mm-use-hugetlb_bad_size.patch
+     mm-hugetlb-is_vm_hugetlb_page-can-be-boolean.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/x86-mm-use-hugetlb_bad_size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-is_vm_hugetlb_page-can-be-boolean.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/x86-mm-use-hugetlb_bad_size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-is_vm_hugetlb_page-can-be-boolean.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,50 +38,48 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Vaishali Thakkar <vaishali.thakkar@oracle.com>
-Subject: x86: mm: use hugetlb_bad_size()
+From: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
+Subject: mm/hugetlb: is_vm_hugetlb_page() can return bool
 
-Update setup_hugepagesz() to call hugetlb_bad_size() when unsupported
-hugepage size is found.
+Make is_vm_hugetlb_page() return bool to improve readability due to this
+particular function only using either one or zero as its return value.
 
-Signed-off-by: Vaishali Thakkar <vaishali.thakkar@oracle.com>
-Reviewed-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
-Acked-by: Michal Hocko <mhocko@suse.com>
-Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
-Cc: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
-Cc: Dominik Dingel <dingel@linux.vnet.ibm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
-Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
+Signed-off-by: Yaowei Bai <baiyaowei@cmss.chinamobile.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/hugetlbpage.c |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/hugetlb_inline.h |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff -puN arch/x86/mm/hugetlbpage.c~x86-mm-use-hugetlb_bad_size arch/x86/mm/hugetlbpage.c
---- a/arch/x86/mm/hugetlbpage.c~x86-mm-use-hugetlb_bad_size
-+++ a/arch/x86/mm/hugetlbpage.c
-@@ -165,6 +165,7 @@ static __init int setup_hugepagesz(char
- 	} else if (ps == PUD_SIZE && cpu_has_gbpages) {
- 		hugetlb_add_hstate(PUD_SHIFT - PAGE_SHIFT);
- 	} else {
-+		hugetlb_bad_size();
- 		printk(KERN_ERR "hugepagesz: Unsupported page size %lu M\n",
- 			ps >> 20);
- 		return 0;
+diff -puN include/linux/hugetlb_inline.h~mm-hugetlb-is_vm_hugetlb_page-can-be-boolean include/linux/hugetlb_inline.h
+--- a/include/linux/hugetlb_inline.h~mm-hugetlb-is_vm_hugetlb_page-can-be-boolean
++++ a/include/linux/hugetlb_inline.h
+@@ -5,16 +5,16 @@
+ 
+ #include <linux/mm.h>
+ 
+-static inline int is_vm_hugetlb_page(struct vm_area_struct *vma)
++static inline bool is_vm_hugetlb_page(struct vm_area_struct *vma)
+ {
+ 	return !!(vma->vm_flags & VM_HUGETLB);
+ }
+ 
+ #else
+ 
+-static inline int is_vm_hugetlb_page(struct vm_area_struct *vma)
++static inline bool is_vm_hugetlb_page(struct vm_area_struct *vma)
+ {
+-	return 0;
++	return false;
+ }
+ 
+ #endif
 _
 
-Patches currently in -mm which might be from vaishali.thakkar@oracle.com are
+Patches currently in -mm which might be from baiyaowei@cmss.chinamobile.com are
 
-mm-hugetlb-introduce-hugetlb_bad_size.patch
-arm64-mm-use-hugetlb_bad_size.patch
-metag-mm-use-hugetlb_bad_size.patch
-powerpc-mm-use-hugetlb_bad_size.patch
-tile-mm-use-hugetlb_bad_size.patch
-x86-mm-use-hugetlb_bad_size.patch
+mm-hugetlb-is_vm_hugetlb_page-can-be-boolean.patch
+mm-memory_hotplug-is_mem_section_removable-can-be-boolean.patch
+mm-vmalloc-is_vmalloc_addr-can-be-boolean.patch
+mm-mempolicy-vma_migratable-can-be-boolean.patch
 
