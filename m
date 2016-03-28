@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + maintainers-orangefs-mailing-list-is-subscribers-only.patch
+Subject: + mm-hugetlb-optimize-minimum-size-min_size-accounting.patch
  added to -mm tree
-Date: Mon, 28 Mar 2016 14:50:25 -0700
-Message-ID: <56f9a721.jUE7p3wOYqroHmLf%akpm@linux-foundation.org>
+Date: Mon, 28 Mar 2016 14:58:17 -0700
+Message-ID: <56f9a8f9.FFzc2NFVwekHVzPO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57462 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57792 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752548AbcC1Vu0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 17:50:26 -0400
+	with ESMTP id S1752562AbcC1V6S (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 17:58:18 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, hubcap@omnibond.com, mm-commits@vger.kernel.org
+To: mike.kravetz@oracle.com, dave.hansen@linux.intel.com, hillf.zj@alibaba-inc.com, kirill.shutemov@linux.intel.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: orangefs mailing list is subscribers-only
+     Subject: mm/hugetlb: optimize minimum size (min_size) accounting
 has been added to the -mm tree.  Its filename is
-     maintainers-orangefs-mailing-list-is-subscribers-only.patch
+     mm-hugetlb-optimize-minimum-size-min_size-accounting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-orangefs-mailing-list-is-subscribers-only.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-optimize-minimum-size-min_size-accounting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-orangefs-mailing-list-is-subscribers-only.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-optimize-minimum-size-min_size-accounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,36 +39,65 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: orangefs mailing list is subscribers-only
+From: Mike Kravetz <mike.kravetz@oracle.com>
+Subject: mm/hugetlb: optimize minimum size (min_size) accounting
 
-So update MAINTAINERS to say so.
+It was observed that minimum size accounting associated with the
+hugetlbfs min_size mount option may not perform optimally and as
+expected.  As huge pages/reservations are released from the filesystem
+and given back to the global pools, they are reserved for subsequent
+filesystem use as long as the subpool reserved count is less than
+subpool minimum size.  It does not take into account used pages
+within the filesystem.  The filesystem size limits are not exceeded
+and this is technically not a bug.  However, better behavior would
+be to wait for the number of used pages/reservations associated with
+the filesystem to drop below the minimum size before taking reservations
+to satisfy minimum size.
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Mike Marshall <hubcap@omnibond.com>
+An optimization is also made to the hugepage_subpool_get_pages()
+routine which is called when pages/reservations are allocated.  This
+does not change behavior, but simply avoids the accounting if all
+reservations have already been taken (subpool reserved count == 0).
+
+Signed-off-by: Mike Kravetz <mike.kravetz@oracle.com>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Dave Hansen <dave.hansen@linux.intel.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/hugetlb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff -puN MAINTAINERS~maintainers-orangefs-mailing-list-is-subscribers-only MAINTAINERS
---- a/MAINTAINERS~maintainers-orangefs-mailing-list-is-subscribers-only
-+++ a/MAINTAINERS
-@@ -8253,7 +8253,7 @@ F:	Documentation/filesystems/overlayfs.t
+diff -puN mm/hugetlb.c~mm-hugetlb-optimize-minimum-size-min_size-accounting mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlb-optimize-minimum-size-min_size-accounting
++++ a/mm/hugetlb.c
+@@ -144,7 +144,8 @@ static long hugepage_subpool_get_pages(s
+ 		}
+ 	}
  
- ORANGEFS FILESYSTEM
- M:	Mike Marshall <hubcap@omnibond.com>
--L:	pvfs2-developers@beowulf-underground.org
-+L:	pvfs2-developers@beowulf-underground.org (subscribers-only)
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/hubcap/linux.git
- S:	Supported
- F:	fs/orangefs/
+-	if (spool->min_hpages != -1) {		/* minimum size accounting */
++	/* minimum size accounting */
++	if (spool->min_hpages != -1 && spool->rsv_hpages) {
+ 		if (delta > spool->rsv_hpages) {
+ 			/*
+ 			 * Asking for more reserves than those already taken on
+@@ -182,7 +183,8 @@ static long hugepage_subpool_put_pages(s
+ 	if (spool->max_hpages != -1)		/* maximum size accounting */
+ 		spool->used_hpages -= delta;
+ 
+-	if (spool->min_hpages != -1) {		/* minimum size accounting */
++	 /* minimum size accounting */
++	if (spool->min_hpages != -1 && spool->used_hpages < spool->min_hpages) {
+ 		if (spool->rsv_hpages + delta <= spool->min_hpages)
+ 			ret = 0;
+ 		else
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from mike.kravetz@oracle.com are
 
-maintainers-orangefs-mailing-list-is-subscribers-only.patch
-checkpatch-add-prefer_is_enabled-test.patch
-checkpatch-improve-constant_comparison-test-for-structure-members.patch
+mm-hugetlb-optimize-minimum-size-min_size-accounting.patch
 
