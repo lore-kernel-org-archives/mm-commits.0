@@ -1,30 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + checkpatch-add-prefer_is_enabled-test.patch added to -mm tree
-Date: Mon, 28 Mar 2016 14:48:03 -0700
-Message-ID: <56f9a693./lg7irtC80WdJ3OF%akpm@linux-foundation.org>
+Subject: +
+ checkpatch-improve-constant_comparison-test-for-structure-members.patch
+ added to -mm tree
+Date: Mon, 28 Mar 2016 14:48:52 -0700
+Message-ID: <56f9a6c4.2sE5uo1cSwPHY+dj%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57456 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57459 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752548AbcC1VsE (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 17:48:04 -0400
+	with ESMTP id S1752252AbcC1Vsx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 17:48:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: joe@perches.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: add PREFER_IS_ENABLED test
+     Subject: checkpatch: improve CONSTANT_COMPARISON test for structure members
 has been added to the -mm tree.  Its filename is
-     checkpatch-add-prefer_is_enabled-test.patch
+     checkpatch-improve-constant_comparison-test-for-structure-members.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-add-prefer_is_enabled-test.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-constant_comparison-test-for-structure-members.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-add-prefer_is_enabled-test.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-constant_comparison-test-for-structure-members.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,45 +41,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: add PREFER_IS_ENABLED test
+Subject: checkpatch: improve CONSTANT_COMPARISON test for structure members
 
-Using #if defined CONFIG_<FOO> || defined CONFIG_<FOO>_MODULE is
-more verbose than necessary and IS_ENABLED(CONFIG_<FOO>) is preferred.
+A "." dereference to an all uppercase structure member can be
+incorrectly reported as a CONSTANT_COMPARISON.
 
-So add a test and a message for it.
+ie: "if (table[i].PANELID == tempdx)"
 
---fix it to if desired.
+Fix it by checking for "." before the constant test.
 
 Signed-off-by: Joe Perches <joe@perches.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+ scripts/checkpatch.pl |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-add-prefer_is_enabled-test scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-add-prefer_is_enabled-test
+diff -puN scripts/checkpatch.pl~checkpatch-improve-constant_comparison-test-for-structure-members scripts/checkpatch.pl
+--- a/scripts/checkpatch.pl~checkpatch-improve-constant_comparison-test-for-structure-members
 +++ a/scripts/checkpatch.pl
-@@ -5637,6 +5637,16 @@ sub process {
- 			}
- 		}
- 
-+# check for #if defined CONFIG_<FOO> || defined CONFIG_<FOO>_MODULE
-+		if ($line =~ /^\+\s*#\s*if\s+defined(?:\s*\(?\s*|\s+)(CONFIG_[A-Z_]+)\s*\)?\s*\|\|\s*defined(?:\s*\(?\s*|\s+)\1_MODULE\s*\)?\s*$/) {
-+			my $config = $1;
-+			if (WARN("PREFER_IS_ENABLED",
-+				 "Prefer IS_ENABLED(<FOO>) to CONFIG_<FOO> || CONFIG_<FOO>_MODULE\n" . $herecurr) &&
-+			    $fix) {
-+				$fixed[$fixlinenr] = "\+#if IS_ENABLED($config)";
-+			}
-+		}
-+
- # check for case / default statements not preceded by break/fallthrough/switch
- 		if ($line =~ /^.\s*(?:case\s+(?:$Ident|$Constant)\s*|default):/) {
- 			my $has_break = 0;
+@@ -4291,7 +4291,7 @@ sub process {
+ 			my $comp = $3;
+ 			my $to = $4;
+ 			my $newcomp = $comp;
+-			if ($lead !~ /$Operators\s*$/ &&
++			if ($lead !~ /(?:$Operators|\.)\s*$/ &&
+ 			    $to !~ /^(?:Constant|[A-Z_][A-Z0-9_]*)$/ &&
+ 			    WARN("CONSTANT_COMPARISON",
+ 				 "Comparisons should place the constant on the right side of the test\n" . $herecurr) &&
 _
 
 Patches currently in -mm which might be from joe@perches.com are
 
 checkpatch-add-prefer_is_enabled-test.patch
+checkpatch-improve-constant_comparison-test-for-structure-members.patch
 
