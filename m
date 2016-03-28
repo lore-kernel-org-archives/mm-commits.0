@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-hugetlb-introduce-hugetlb_bad_size.patch added to -mm tree
-Date: Mon, 28 Mar 2016 16:05:50 -0700
-Message-ID: <56f9b8ce.rTrYTLs+zh1yycak%akpm@linux-foundation.org>
+Subject: + tile-mm-use-hugetlb_bad_size.patch added to -mm tree
+Date: Mon, 28 Mar 2016 16:05:58 -0700
+Message-ID: <56f9b8d6.1oREqLVOIhTj6NOF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58187 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58221 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752562AbcC1XFw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 19:05:52 -0400
+	with ESMTP id S1752562AbcC1XGA (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 19:06:00 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: vaishali.thakkar@oracle.com, baiyaowei@cmss.chinamobile.com, benh@kernel.crashing.org, dave.hansen@linux.intel.com, dingel@linux.vnet.ibm.com, hillf.zj@alibaba-inc.com, hpa@zytor.com, james.hogan@imgtec.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, mingo@elte.hu, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, tglx@linutronix.de, mm-commits@vger.kernel.org
+To: vaishali.thakkar@oracle.com, baiyaowei@cmss.chinamobile.com, dave.hansen@linux.intel.com, dingel@linux.vnet.ibm.com, hillf.zj@alibaba-inc.com, james.hogan@imgtec.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mike.kravetz@oracle.com, n-horiguchi@ah.jp.nec.com, paul.gortmaker@windriver.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/hugetlb: introduce hugetlb_bad_size()
+     Subject: tile: mm: use hugetlb_bad_size()
 has been added to the -mm tree.  Its filename is
-     mm-hugetlb-introduce-hugetlb_bad_size.patch
+     tile-mm-use-hugetlb_bad_size.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlb-introduce-hugetlb_bad_size.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tile-mm-use-hugetlb_bad_size.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlb-introduce-hugetlb_bad_size.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tile-mm-use-hugetlb_bad_size.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,31 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vaishali Thakkar <vaishali.thakkar@oracle.com>
-Subject: mm/hugetlb: introduce hugetlb_bad_size()
+Subject: tile: mm: use hugetlb_bad_size()
 
-When any unsupported hugepage size is specified, 'hugepagesz=' and
-'hugepages=' should be ignored during command line parsing until any
-supported hugepage size is found.  But currently incorrect number of
-hugepages are allocated when unsupported size is specified as it fails to
-ignore the 'hugepages=' command.
-
-Test case:
-
-Note that this is specific to x86 architecture.
-
-Boot the kernel with command line option 'hugepagesz=256M hugepages=X'. 
-After boot, dmesg output shows that X number of hugepages of the size 2M
-is pre-allocated instead of 0.
-
-So, to handle such command line options, introduce new routine
-hugetlb_bad_size.  The routine hugetlb_bad_size sets the global variable
-parsed_valid_hugepagesz.  We are using parsed_valid_hugepagesz to save the
-state when unsupported hugepagesize is found so that we can ignore the
-'hugepages=' parameters after that and then reset the variable when
-supported hugepage size is found.
-
-The routine hugetlb_bad_size can be called while setting 'hugepagesz='
-parameter in an architecture specific code.
+Update setup_hugepagesz() to call hugetlb_bad_size() when unsupported
+hugepage size is found.
 
 Signed-off-by: Vaishali Thakkar <vaishali.thakkar@oracle.com>
 Reviewed-by: Mike Kravetz <mike.kravetz@oracle.com>
@@ -75,71 +54,34 @@ Cc: Dominik Dingel <dingel@linux.vnet.ibm.com>
 Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
 Cc: Dave Hansen <dave.hansen@linux.intel.com>
-Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
 Cc: James Hogan <james.hogan@imgtec.com>
-Cc: Ingo Molnar <mingo@elte.hu>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/hugetlb.h |    1 +
- mm/hugetlb.c            |   14 +++++++++++++-
- 2 files changed, 14 insertions(+), 1 deletion(-)
+ arch/tile/mm/hugetlbpage.c |    7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/hugetlb.h~mm-hugetlb-introduce-hugetlb_bad_size include/linux/hugetlb.h
---- a/include/linux/hugetlb.h~mm-hugetlb-introduce-hugetlb_bad_size
-+++ a/include/linux/hugetlb.h
-@@ -338,6 +338,7 @@ int huge_add_to_page_cache(struct page *
- /* arch callback */
- int __init alloc_bootmem_huge_page(struct hstate *h);
+diff -puN arch/tile/mm/hugetlbpage.c~tile-mm-use-hugetlb_bad_size arch/tile/mm/hugetlbpage.c
+--- a/arch/tile/mm/hugetlbpage.c~tile-mm-use-hugetlb_bad_size
++++ a/arch/tile/mm/hugetlbpage.c
+@@ -308,11 +308,16 @@ static bool saw_hugepagesz;
  
-+void __init hugetlb_bad_size(void);
- void __init hugetlb_add_hstate(unsigned order);
- struct hstate *size_to_hstate(unsigned long size);
- 
-diff -puN mm/hugetlb.c~mm-hugetlb-introduce-hugetlb_bad_size mm/hugetlb.c
---- a/mm/hugetlb.c~mm-hugetlb-introduce-hugetlb_bad_size
-+++ a/mm/hugetlb.c
-@@ -51,6 +51,7 @@ __initdata LIST_HEAD(huge_boot_pages);
- static struct hstate * __initdata parsed_hstate;
- static unsigned long __initdata default_hstate_max_huge_pages;
- static unsigned long __initdata default_hstate_size;
-+static bool __initdata parsed_valid_hugepagesz = true;
- 
- /*
-  * Protects updates to hugepage_freelists, hugepage_activelist, nr_huge_pages,
-@@ -2659,6 +2660,11 @@ static int __init hugetlb_init(void)
- subsys_initcall(hugetlb_init);
- 
- /* Should be called on processing a hugepagesz=... option */
-+void __init hugetlb_bad_size(void)
-+{
-+	parsed_valid_hugepagesz = false;
-+}
-+
- void __init hugetlb_add_hstate(unsigned int order)
+ static __init int setup_hugepagesz(char *opt)
  {
- 	struct hstate *h;
-@@ -2691,11 +2697,17 @@ static int __init hugetlb_nrpages_setup(
- 	unsigned long *mhp;
- 	static unsigned long *last_mhp;
++	int rc;
++
+ 	if (!saw_hugepagesz) {
+ 		saw_hugepagesz = true;
+ 		memset(huge_shift, 0, sizeof(huge_shift));
+ 	}
+-	return __setup_hugepagesz(memparse(opt, NULL));
++	rc = __setup_hugepagesz(memparse(opt, NULL));
++	if (rc)
++		hugetlb_bad_size();
++	return rc;
+ }
+ __setup("hugepagesz=", setup_hugepagesz);
  
-+	if (!parsed_valid_hugepagesz) {
-+		pr_warn("hugepages = %s preceded by "
-+			"an unsupported hugepagesz, ignoring\n", s);
-+		parsed_valid_hugepagesz = true;
-+		return 1;
-+	}
- 	/*
- 	 * !hugetlb_max_hstate means we haven't parsed a hugepagesz= parameter yet,
- 	 * so this hugepages= parameter goes to the "default hstate".
- 	 */
--	if (!hugetlb_max_hstate)
-+	else if (!hugetlb_max_hstate)
- 		mhp = &default_hstate_max_huge_pages;
- 	else
- 		mhp = &parsed_hstate->max_huge_pages;
 _
 
 Patches currently in -mm which might be from vaishali.thakkar@oracle.com are
