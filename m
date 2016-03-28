@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- checkpatch-improve-constant_comparison-test-for-structure-members.patch
+Subject: + maintainers-orangefs-mailing-list-is-subscribers-only.patch
  added to -mm tree
-Date: Mon, 28 Mar 2016 14:48:52 -0700
-Message-ID: <56f9a6c4.2sE5uo1cSwPHY+dj%akpm@linux-foundation.org>
+Date: Mon, 28 Mar 2016 14:50:25 -0700
+Message-ID: <56f9a721.jUE7p3wOYqroHmLf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57459 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57462 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752252AbcC1Vsx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 17:48:53 -0400
+	with ESMTP id S1752548AbcC1Vu0 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 28 Mar 2016 17:50:26 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, mm-commits@vger.kernel.org
+To: joe@perches.com, hubcap@omnibond.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: checkpatch: improve CONSTANT_COMPARISON test for structure members
+     Subject: MAINTAINERS: orangefs mailing list is subscribers-only
 has been added to the -mm tree.  Its filename is
-     checkpatch-improve-constant_comparison-test-for-structure-members.patch
+     maintainers-orangefs-mailing-list-is-subscribers-only.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/checkpatch-improve-constant_comparison-test-for-structure-members.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/maintainers-orangefs-mailing-list-is-subscribers-only.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/checkpatch-improve-constant_comparison-test-for-structure-members.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/maintainers-orangefs-mailing-list-is-subscribers-only.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,38 +40,35 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joe Perches <joe@perches.com>
-Subject: checkpatch: improve CONSTANT_COMPARISON test for structure members
+Subject: MAINTAINERS: orangefs mailing list is subscribers-only
 
-A "." dereference to an all uppercase structure member can be
-incorrectly reported as a CONSTANT_COMPARISON.
-
-ie: "if (table[i].PANELID == tempdx)"
-
-Fix it by checking for "." before the constant test.
+So update MAINTAINERS to say so.
 
 Signed-off-by: Joe Perches <joe@perches.com>
+Cc: Mike Marshall <hubcap@omnibond.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- scripts/checkpatch.pl |    2 +-
+ MAINTAINERS |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN scripts/checkpatch.pl~checkpatch-improve-constant_comparison-test-for-structure-members scripts/checkpatch.pl
---- a/scripts/checkpatch.pl~checkpatch-improve-constant_comparison-test-for-structure-members
-+++ a/scripts/checkpatch.pl
-@@ -4291,7 +4291,7 @@ sub process {
- 			my $comp = $3;
- 			my $to = $4;
- 			my $newcomp = $comp;
--			if ($lead !~ /$Operators\s*$/ &&
-+			if ($lead !~ /(?:$Operators|\.)\s*$/ &&
- 			    $to !~ /^(?:Constant|[A-Z_][A-Z0-9_]*)$/ &&
- 			    WARN("CONSTANT_COMPARISON",
- 				 "Comparisons should place the constant on the right side of the test\n" . $herecurr) &&
+diff -puN MAINTAINERS~maintainers-orangefs-mailing-list-is-subscribers-only MAINTAINERS
+--- a/MAINTAINERS~maintainers-orangefs-mailing-list-is-subscribers-only
++++ a/MAINTAINERS
+@@ -8253,7 +8253,7 @@ F:	Documentation/filesystems/overlayfs.t
+ 
+ ORANGEFS FILESYSTEM
+ M:	Mike Marshall <hubcap@omnibond.com>
+-L:	pvfs2-developers@beowulf-underground.org
++L:	pvfs2-developers@beowulf-underground.org (subscribers-only)
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/hubcap/linux.git
+ S:	Supported
+ F:	fs/orangefs/
 _
 
 Patches currently in -mm which might be from joe@perches.com are
 
+maintainers-orangefs-mailing-list-is-subscribers-only.patch
 checkpatch-add-prefer_is_enabled-test.patch
 checkpatch-improve-constant_comparison-test-for-structure-members.patch
 
