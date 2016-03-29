@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mmdebug-always-evaluate-the-arguments-to-vm_bug_on_.patch added to -mm tree
-Date: Tue, 29 Mar 2016 14:08:02 -0700
-Message-ID: <56faeeb2.ESx2f+6N/2y7bsER%akpm@linux-foundation.org>
+Subject: + mm-convert-an-open-coded-vm_bug_on_vma.patch added to -mm tree
+Date: Tue, 29 Mar 2016 14:08:04 -0700
+Message-ID: <56faeeb4.C5rF7wEr/74yC2Da%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56882 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56898 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753968AbcC2VID (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Mar 2016 17:08:03 -0400
+	with ESMTP id S1753968AbcC2VIG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Mar 2016 17:08:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: willy@linux.intel.com, dan.j.williams@intel.com, david@fromorbit.com, hpa@zytor.com, jack@suse.cz, kirill@shutemov.name, mingo@elte.hu, rientjes@google.com, ross.zwisler@linux.intel.com, tglx@linutronix.de, tytso@mit.edu, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, dan.j.williams@intel.com, david@fromorbit.com, hpa@zytor.com, jack@suse.cz, kirill.shutemov@linux.intel.com, mingo@elte.hu, rientjes@google.com, ross.zwisler@linux.intel.com, tglx@linutronix.de, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mmdebug: always evaluate the arguments to VM_BUG_ON_*
+     Subject: mm: convert an open-coded VM_BUG_ON_VMA
 has been added to the -mm tree.  Its filename is
-     mmdebug-always-evaluate-the-arguments-to-vm_bug_on_.patch
+     mm-convert-an-open-coded-vm_bug_on_vma.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mmdebug-always-evaluate-the-arguments-to-vm_bug_on_.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-convert-an-open-coded-vm_bug_on_vma.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mmdebug-always-evaluate-the-arguments-to-vm_bug_on_.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-convert-an-open-coded-vm_bug_on_vma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,40 +39,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Matthew Wilcox <willy@linux.intel.com>
-Subject: mmdebug: always evaluate the arguments to VM_BUG_ON_*
+Subject: mm: convert an open-coded VM_BUG_ON_VMA
 
-We have customer demand to use 1GB pages to map DAX files.  Unlike the 2MB
-page support, the Linux MM does not currently support PUD pages, so I have
-attempted to add support for the necessary pieces for DAX huge PUD pages.
-
-Filesystems still need work to allocate 1GB pages.  With ext4, I can only
-get 16MB of contiguous space, although it is aligned.  With XFS, I can get
-80MB less than 1GB, and it's not aligned.  The XFS problem may be due to
-the small amount of RAM in my test machine.
-
-I'd like to thank Dave Chinner & Kirill Shutemov for their reviews of v1. 
-The conversion of pmd_fault & pud_fault to huge_fault is thanks to Dave's
-poking, and Kirill spotted a couple of problems in the MM code.
-
-I've done some light testing using a program to mmap a block device with
-DAX enabled, calling mincore() and examining /proc/smaps and
-/proc/pagemap.
-
-
-This patch (of 14):
-
-I recently got the order of arguments to VM_BUG_ON_VMA the wrong way
-around, which was only noticable when compiling with CONFIG_DEBUG_VM. 
-Prevent the next mistake of this kind by making the macros evaluate both
-their arguments at compile time (this has no effect on the built kernel).
+Spotted during PUD support review.
 
 Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Reported-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
 Cc: Dave Chinner <david@fromorbit.com>
 Cc: Jan Kara <jack@suse.cz>
 Cc: Theodore Ts'o <tytso@mit.edu>
 Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: "Kirill A. Shutemov" <kirill@shutemov.name>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Ingo Molnar <mingo@elte.hu>
 Cc: Thomas Gleixner <tglx@linutronix.de>
@@ -80,40 +57,29 @@ Cc: "H. Peter Anvin" <hpa@zytor.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mmdebug.h |   21 ++++++++++++++++++---
- 1 file changed, 18 insertions(+), 3 deletions(-)
+ mm/memory.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN include/linux/mmdebug.h~mmdebug-always-evaluate-the-arguments-to-vm_bug_on_ include/linux/mmdebug.h
---- a/include/linux/mmdebug.h~mmdebug-always-evaluate-the-arguments-to-vm_bug_on_
-+++ a/include/linux/mmdebug.h
-@@ -41,9 +41,24 @@ void dump_mm(const struct mm_struct *mm)
- #define VM_WARN_ONCE(cond, format...) WARN_ONCE(cond, format)
- #else
- #define VM_BUG_ON(cond) BUILD_BUG_ON_INVALID(cond)
--#define VM_BUG_ON_PAGE(cond, page) VM_BUG_ON(cond)
--#define VM_BUG_ON_VMA(cond, vma) VM_BUG_ON(cond)
--#define VM_BUG_ON_MM(cond, mm) VM_BUG_ON(cond)
-+#define VM_BUG_ON_PAGE(cond, page)					\
-+	do {								\
-+		if (0) dump_page(page, "");				\
-+		VM_BUG_ON(cond);					\
-+	} while (0)
-+
-+#define VM_BUG_ON_VMA(cond, vma)					\
-+	do {								\
-+		if (0) dump_vma(vma);					\
-+		VM_BUG_ON(cond);					\
-+	} while (0)
-+
-+#define VM_BUG_ON_MM(cond, mm)						\
-+	do {								\
-+		if (0) dump_mm(mm);					\
-+		VM_BUG_ON(cond);					\
-+	} while (0)
-+
- #define VM_WARN_ON(cond) BUILD_BUG_ON_INVALID(cond)
- #define VM_WARN_ON_ONCE(cond) BUILD_BUG_ON_INVALID(cond)
- #define VM_WARN_ONCE(cond, format...) BUILD_BUG_ON_INVALID(cond)
+diff -puN mm/memory.c~mm-convert-an-open-coded-vm_bug_on_vma mm/memory.c
+--- a/mm/memory.c~mm-convert-an-open-coded-vm_bug_on_vma
++++ a/mm/memory.c
+@@ -1182,15 +1182,7 @@ static inline unsigned long zap_pmd_rang
+ 		next = pmd_addr_end(addr, end);
+ 		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
+ 			if (next - addr != HPAGE_PMD_SIZE) {
+-#ifdef CONFIG_DEBUG_VM
+-				if (!rwsem_is_locked(&tlb->mm->mmap_sem)) {
+-					pr_err("%s: mmap_sem is unlocked! addr=0x%lx end=0x%lx vma->vm_start=0x%lx vma->vm_end=0x%lx\n",
+-						__func__, addr, end,
+-						vma->vm_start,
+-						vma->vm_end);
+-					BUG();
+-				}
+-#endif
++				VM_BUG_ON_VMA(!rwsem_is_locked(&tlb->mm->mmap_sem), vma);
+ 				split_huge_pmd(vma, pmd, addr);
+ 			} else if (zap_huge_pmd(tlb, vma, pmd, addr))
+ 				goto next;
 _
 
 Patches currently in -mm which might be from willy@linux.intel.com are
