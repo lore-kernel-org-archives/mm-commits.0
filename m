@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- oom-oom_reaper-do-not-enqueue-task-if-it-is-on-the-oom_reaper_list-head.patch added to -mm tree
-Date: Tue, 29 Mar 2016 12:50:09 -0700
-Message-ID: <56fadc71.DJ2UGxTlO8HG2h4f%akpm@linux-foundation.org>
+Subject: + mm-page_isolationc-fix-the-function-comments.patch added to -mm tree
+Date: Tue, 29 Mar 2016 12:50:57 -0700
+Message-ID: <56fadca1.jKeFPo+/9+V16ibD%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50580 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:50583 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754110AbcC2TuK (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Mar 2016 15:50:10 -0400
+	with ESMTP id S1753251AbcC2Tu6 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Mar 2016 15:50:58 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
+To: neilzhang1123@hotmail.com, js1304@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom, oom_reaper: do not enqueue task if it is on the oom_reaper_list head
+     Subject: mm/page_isolation.c: fix the function comments
 has been added to the -mm tree.  Its filename is
-     oom-oom_reaper-do-not-enqueue-task-if-it-is-on-the-oom_reaper_list-head.patch
+     mm-page_isolationc-fix-the-function-comments.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/oom-oom_reaper-do-not-enqueue-task-if-it-is-on-the-oom_reaper_list-head.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_isolationc-fix-the-function-comments.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/oom-oom_reaper-do-not-enqueue-task-if-it-is-on-the-oom_reaper_list-head.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_isolationc-fix-the-function-comments.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,47 +38,36 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: oom, oom_reaper: do not enqueue task if it is on the oom_reaper_list head
+From: Neil Zhang <neilzhang1123@hotmail.com>
+Subject: mm/page_isolation.c: fix the function comments
 
-bb29902a7515 ("oom, oom_reaper: protect oom_reaper_list using simpler
-way") has simplified the check for tasks already enqueued for the oom
-reaper by checking tsk->oom_reaper_list != NULL.  This check is not
-sufficient because the tsk might be the head of the queue without any
-other tasks queued and then we would simply lockup looping on the same
-task.  Fix the condition by checking for the head as well.
+commit fea85cff11de ("mm/page_isolation.c: return last tested pfn rather
+than failure indicator") changed the meaning of the return value.
+Let's change the function comments as well.
 
-Fixes: bb29902a7515 ("oom, oom_reaper: protect oom_reaper_list using simpler way")
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Signed-off-by: Neil Zhang <neilzhang1123@hotmail.com>
+Cc: Joonsoo Kim <js1304@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ mm/page_isolation.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/oom_kill.c~oom-oom_reaper-do-not-enqueue-task-if-it-is-on-the-oom_reaper_list-head mm/oom_kill.c
---- a/mm/oom_kill.c~oom-oom_reaper-do-not-enqueue-task-if-it-is-on-the-oom_reaper_list-head
-+++ a/mm/oom_kill.c
-@@ -547,7 +547,11 @@ static int oom_reaper(void *unused)
- 
- static void wake_oom_reaper(struct task_struct *tsk)
- {
--	if (!oom_reaper_th || tsk->oom_reaper_list)
-+	if (!oom_reaper_th)
-+		return;
-+
-+	/* tsk is already queued? */
-+	if (tsk == oom_reaper_list || tsk->oom_reaper_list)
- 		return;
- 
- 	get_task_struct(tsk);
+diff -puN mm/page_isolation.c~mm-page_isolationc-fix-the-function-comments mm/page_isolation.c
+--- a/mm/page_isolation.c~mm-page_isolationc-fix-the-function-comments
++++ a/mm/page_isolation.c
+@@ -215,7 +215,7 @@ int undo_isolate_page_range(unsigned lon
+  * all pages in [start_pfn...end_pfn) must be in the same zone.
+  * zone->lock must be held before call this.
+  *
+- * Returns 1 if all pages in the range are isolated.
++ * Returns the last tested pfn.
+  */
+ static unsigned long
+ __test_page_isolated_in_pageblock(unsigned long pfn, unsigned long end_pfn,
 _
 
-Patches currently in -mm which might be from mhocko@suse.com are
+Patches currently in -mm which might be from neilzhang1123@hotmail.com are
 
-oom-oom_reaper-do-not-enqueue-task-if-it-is-on-the-oom_reaper_list-head.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
+mm-page_isolationc-fix-the-function-comments.patch
 
