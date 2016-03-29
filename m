@@ -1,100 +1,68 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-page_alloc-remove-useless-parameter-of-__free_pages_boot_core.patch
- added to -mm tree
-Date: Tue, 29 Mar 2016 13:06:52 -0700
-Message-ID: <56fae05c.7ohC0pZoYdh4D9VD%akpm@linux-foundation.org>
+Subject: [to-be-updated] mm-convert-an-open-coded-vm_bug_on_vma.patch
+ removed from -mm tree
+Date: Tue, 29 Mar 2016 13:43:35 -0700
+Message-ID: <56fae8f7.OPmMvpknB06+78MW%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:50786 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52234 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932510AbcC2UGx (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Mar 2016 16:06:53 -0400
+	with ESMTP id S932205AbcC2Ung (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 29 Mar 2016 16:43:36 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: zhlcindy@linux.vnet.ibm.com, xinhui.pan@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: willy@linux.intel.com, dan.j.williams@intel.com, jack@suse.cz, kirill.shutemov@linux.intel.com, ross.zwisler@linux.intel.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: Remove useless parameter of __free_pages_boot_core
-has been added to the -mm tree.  Its filename is
-     mm-page_alloc-remove-useless-parameter-of-__free_pages_boot_core.patch
+     Subject: mm: convert an open-coded VM_BUG_ON_VMA
+has been removed from the -mm tree.  Its filename was
+     mm-convert-an-open-coded-vm_bug_on_vma.patch
 
-This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-remove-useless-parameter-of-__free_pages_boot_core.patch
-and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-remove-useless-parameter-of-__free_pages_boot_core.patch
-
-Before you just go and hit "reply", please:
-   a) Consider who else should be cc'ed
-   b) Prefer to cc a suitable mailing list as well
-   c) Ideally: find the original patch on the mailing list and do a
-      reply-to-all to that, adding suitable additional cc's
-
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
-
-The -mm tree is included into linux-next and is updated
-there every 3-4 working days
+This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
-From: Li Zhang <zhlcindy@linux.vnet.ibm.com>
-Subject: mm/page_alloc: Remove useless parameter of __free_pages_boot_core
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: mm: convert an open-coded VM_BUG_ON_VMA
 
-__free_pages_boot_core has parameter pfn which is not used at all.  Remove
-it.
+Spotted during PUD support review.
 
-Signed-off-by: Li Zhang <zhlcindy@linux.vnet.ibm.com>
-Reviewed-by: Pan Xinhui <xinhui.pan@linux.vnet.ibm.com>
+Signed-off-by: Matthew Wilcox <willy@linux.intel.com>
+Reported-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+ mm/memory.c |   10 +---------
+ 1 file changed, 1 insertion(+), 9 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-remove-useless-parameter-of-__free_pages_boot_core mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-remove-useless-parameter-of-__free_pages_boot_core
-+++ a/mm/page_alloc.c
-@@ -1076,8 +1076,7 @@ static void __free_pages_ok(struct page
- 	local_irq_restore(flags);
- }
- 
--static void __init __free_pages_boot_core(struct page *page,
--					unsigned long pfn, unsigned int order)
-+static void __init __free_pages_boot_core(struct page *page, unsigned int order)
- {
- 	unsigned int nr_pages = 1 << order;
- 	struct page *p = page;
-@@ -1154,7 +1153,7 @@ void __init __free_pages_bootmem(struct
- {
- 	if (early_page_uninitialised(pfn))
- 		return;
--	return __free_pages_boot_core(page, pfn, order);
-+	return __free_pages_boot_core(page, order);
- }
- 
- /*
-@@ -1239,12 +1238,12 @@ static void __init deferred_free_range(s
- 	if (nr_pages == MAX_ORDER_NR_PAGES &&
- 	    (pfn & (MAX_ORDER_NR_PAGES-1)) == 0) {
- 		set_pageblock_migratetype(page, MIGRATE_MOVABLE);
--		__free_pages_boot_core(page, pfn, MAX_ORDER-1);
-+		__free_pages_boot_core(page, MAX_ORDER-1);
- 		return;
- 	}
- 
--	for (i = 0; i < nr_pages; i++, page++, pfn++)
--		__free_pages_boot_core(page, pfn, 0);
-+	for (i = 0; i < nr_pages; i++, page++)
-+		__free_pages_boot_core(page, 0);
- }
- 
- /* Completion tracking for deferred_init_memmap() threads */
+diff -puN mm/memory.c~mm-convert-an-open-coded-vm_bug_on_vma mm/memory.c
+--- a/mm/memory.c~mm-convert-an-open-coded-vm_bug_on_vma
++++ a/mm/memory.c
+@@ -1179,15 +1179,7 @@ static inline unsigned long zap_pmd_rang
+ 		next = pmd_addr_end(addr, end);
+ 		if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd)) {
+ 			if (next - addr != HPAGE_PMD_SIZE) {
+-#ifdef CONFIG_DEBUG_VM
+-				if (!rwsem_is_locked(&tlb->mm->mmap_sem)) {
+-					pr_err("%s: mmap_sem is unlocked! addr=0x%lx end=0x%lx vma->vm_start=0x%lx vma->vm_end=0x%lx\n",
+-						__func__, addr, end,
+-						vma->vm_start,
+-						vma->vm_end);
+-					BUG();
+-				}
+-#endif
++				VM_BUG_ON_VMA(!rwsem_is_locked(&tlb->mm->mmap_sem), vma);
+ 				split_huge_pmd(vma, pmd, addr);
+ 			} else if (zap_huge_pmd(tlb, vma, pmd, addr))
+ 				goto next;
 _
 
-Patches currently in -mm which might be from zhlcindy@linux.vnet.ibm.com are
+Patches currently in -mm which might be from willy@linux.intel.com are
 
-mm-page_alloc-remove-useless-parameter-of-__free_pages_boot_core.patch
 
