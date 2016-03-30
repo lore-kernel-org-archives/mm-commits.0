@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
- added to -mm tree
-Date: Wed, 30 Mar 2016 16:10:23 -0700
-Message-ID: <56fc5cdf.9gPcHR+28X0VgfZk%akpm@linux-foundation.org>
+Subject: + mm-add-non-lru-movable-page-support-document.patch added to -mm tree
+Date: Wed, 30 Mar 2016 16:10:29 -0700
+Message-ID: <56fc5ce5.4xeTDcLnXbyZJjrr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47873 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47903 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750940AbcC3XKZ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Mar 2016 19:10:25 -0400
+	with ESMTP id S1750940AbcC3XKb (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Mar 2016 19:10:31 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, aquini@redhat.com, chan.jeong@lge.com, gi-oh.kim@profitbricks.com, hughd@google.com, iamjoonsoo.kim@lge.com, koct9i@gmail.com, mgorman@suse.de, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rknize@motorola.com, sangseok.lee@lge.com, sergey.senozhatsky@gmail.com, vbabka@suse.cz, viro@ZenIV.linux.org.uk, xuyiping@hisilicon.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, aquini@redhat.com, chan.jeong@lge.com, corbet@lwn.net, gi-oh.kim@profitbricks.com, hughd@google.com, iamjoonsoo.kim@lge.com, koct9i@gmail.com, mgorman@suse.de, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rknize@motorola.com, sangseok.lee@lge.com, sergey.senozhatsky@gmail.com, vbabka@suse.cz, viro@ZenIV.linux.org.uk, xuyiping@hisilicon.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use put_page to free page instead of putback_lru_page
+     Subject: mm: add non-lru movable page support document
 has been added to the -mm tree.  Its filename is
-     mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
+     mm-add-non-lru-movable-page-support-document.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-add-non-lru-movable-page-support-document.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-add-non-lru-movable-page-support-document.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,110 +39,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: mm: use put_page to free page instead of putback_lru_page
+Subject: mm: add non-lru movable page support document
 
-Recently, I got many reports about performance degradation in embedded
-system(Android mobile phone, webOS TV and so on) and failed to fork
-easily.
-
-The problem was fragmentation caused by zram and GPU driver pages.  Their
-pages cannot be migrated so compaction cannot work well, either so
-reclaimer ends up shrinking all of working set pages.  It made system very
-slow and even to fail to fork easily.
-
-Other pain point is that they cannot work with CMA.  Most of CMA memory
-space could be idle(ie, it could be used for movable pages unless driver
-is using) but if driver(i.e., zram) cannot migrate his page, that memory
-space could be wasted.  In our product which has big CMA memory, it
-reclaims zones too exccessively although there are lots of free space in
-CMA so system was very slow easily.
-
-To solve these problem, this patch try to add facility to migrate non-lru
-pages via introducing new friend functions of migratepage in
-address_space_operation and new page flags.
-
-	(isolate_page, putback_page)
-	(PG_movable, PG_isolated)
-
-For details, please read description in "mm/compaction: support non-lru
-movable page migration".
-
-Originally, Gioh Kim tried to support this feature but he moved so I took
-over the work.  But I took many code from his work and changed a little
-bit.  Thanks, Gioh!
-
-And I should mention Konstantin Khlebnikov.  He really heped Gioh at that
-time so he should deserve to have many credit, too.  Thanks, Konstantin!
-
-This patchset consists of five parts.
-
-1. clean up migration
-  mm: use put_page to free page instead of putback_lru_page
-
-2. add non-lru page migration feature
-  mm/compaction: support non-lru movable page migration
-  mm: add non-lru movable page support document
-
-3. rework KVM memory-ballooning
-  mm/balloon: use general movable page feature into balloon
-
-4. zsmalloc clean-up for preparing page migration
-  zsmalloc: keep max_object in size_class
-  zsmalloc: squeeze inuse into page->mapping
-  zsmalloc: remove page_mapcount_reset
-  zsmalloc: squeeze freelist into page->mapping
-  zsmalloc: move struct zs_meta from mapping to freelist
-  zsmalloc: factor page chain functionality out
-  zsmalloc: separate free_zspage from putback_zspage
-  zsmalloc: zs_compact refactoring
-
-5. add zsmalloc page migration
-  zsmalloc: migrate head page of zspage
-  zsmalloc: use single linked list for page chain
-  zsmalloc: migrate tail pages in zspage
-  zram: use __GFP_MOVABLE for memory allocation
-
-
-
-
-This patch (of 16):
-
-Procedure of page migration is as follows:
-
-First of all, it should isolate a page from LRU and try to migrate the
-page.  If it is successful, it releases the page for freeing.  Otherwise,
-it should put the page back to LRU list.
-
-For LRU pages, we have used putback_lru_page for both freeing and putback
-to LRU list.  It's okay because put_page is aware of LRU list so if it
-releases last refcount of the page, it removes the page from LRU list. 
-However, It makes unnecessary operations (e.g., lru_cache_add, pagevec and
-flags operations.  It would be not significant but no worth to do) and
-harder to support new non-lru page migration because put_page isn't aware
-of non-lru page's data structure.
-
-To solve the problem, we can add new hook in put_page with PageMovable
-flags check but it can increase overhead in hot path and needs new locking
-scheme to stabilize the flag check with put_page.
-
-So, this patch cleans it up to divide two semantic(ie, put and putback). 
-If migration is successful, use put_page instead of putback_lru_page and
-use putback_lru_page only on failure.  That makes code more readable and
-doesn't add overhead in put_page.
-
-Comment from Vlastimil
-"Yeah, and compaction (perhaps also other migration users) has to drain
-the lru pvec... Getting rid of this stuff is worth even by itself."
+Describe what a subsystem should do for non-lru movable page supporting.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Hugh Dickins <hughd@google.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Rafael Aquini <aquini@redhat.com>
 Cc: Russ Knize <rknize@motorola.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
 Cc: Rik van Riel <riel@redhat.com>
 Cc: Gioh Kim <gi-oh.kim@profitbricks.com>
@@ -154,97 +63,113 @@ Cc: YiPing Xu <xuyiping@hisilicon.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c |   50 ++++++++++++++++++++++++++++++-------------------
- 1 file changed, 31 insertions(+), 19 deletions(-)
+ Documentation/filesystems/vfs.txt |   11 ++++
+ Documentation/vm/page_migration   |   69 +++++++++++++++++++++++++++-
+ 2 files changed, 78 insertions(+), 2 deletions(-)
 
-diff -puN mm/migrate.c~mm-use-put_page-to-free-page-instead-of-putback_lru_page mm/migrate.c
---- a/mm/migrate.c~mm-use-put_page-to-free-page-instead-of-putback_lru_page
-+++ a/mm/migrate.c
-@@ -913,6 +913,14 @@ out_unlock:
- 		put_anon_vma(anon_vma);
- 	unlock_page(page);
- out:
-+	/* If migration is successful, move newpage to right list */
-+	if (rc == MIGRATEPAGE_SUCCESS) {
-+		if (unlikely(__is_movable_balloon_page(newpage)))
-+			put_page(newpage);
-+		else
-+			putback_lru_page(newpage);
-+	}
+diff -puN Documentation/filesystems/vfs.txt~mm-add-non-lru-movable-page-support-document Documentation/filesystems/vfs.txt
+--- a/Documentation/filesystems/vfs.txt~mm-add-non-lru-movable-page-support-document
++++ a/Documentation/filesystems/vfs.txt
+@@ -752,12 +752,21 @@ struct address_space_operations {
+         and transfer data directly between the storage and the
+         application's address space.
+ 
++  isolate_page: Called by the VM when isolating a movable non-lru page.
++	If page is successfully isolated, we should mark the page as
++	PG_isolated via __SetPageIsolated.
 +
- 	return rc;
- }
- 
-@@ -946,6 +954,12 @@ static ICE_noinline int unmap_and_move(n
- 
- 	if (page_count(page) == 1) {
- 		/* page was freed from under us. So we are done. */
-+		ClearPageActive(page);
-+		ClearPageUnevictable(page);
-+		if (put_new_page)
-+			put_new_page(newpage, private);
-+		else
-+			put_page(newpage);
- 		goto out;
- 	}
- 
-@@ -958,10 +972,8 @@ static ICE_noinline int unmap_and_move(n
- 	}
- 
- 	rc = __unmap_and_move(page, newpage, force, mode);
--	if (rc == MIGRATEPAGE_SUCCESS) {
--		put_new_page = NULL;
-+	if (rc == MIGRATEPAGE_SUCCESS)
- 		set_page_owner_migrate_reason(newpage, reason);
--	}
- 
- out:
- 	if (rc != -EAGAIN) {
-@@ -974,28 +986,28 @@ out:
- 		list_del(&page->lru);
- 		dec_zone_page_state(page, NR_ISOLATED_ANON +
- 				page_is_file_cache(page));
--		/* Soft-offlined page shouldn't go through lru cache list */
-+	}
+   migrate_page:  This is used to compact the physical memory usage.
+         If the VM wants to relocate a page (maybe off a memory card
+         that is signalling imminent failure) it will pass a new page
+ 	and an old page to this function.  migrate_page should
+ 	transfer any private data across and update any references
+-        that it has to the page.
++	that it has to the page. If migrated page is non-lru page,
++	we should clear PG_isolated and PG_movable via __ClearPageIsolated
++	and __ClearPageMovable.
 +
-+	/*
-+	 * If migration is successful, drop the reference grabbed during
-+	 * isolation. Otherwise, restore the page to LRU list unless we
-+	 * want to retry.
-+	 */
-+	if (rc == MIGRATEPAGE_SUCCESS) {
-+		put_page(page);
- 		if (reason == MR_MEMORY_FAILURE) {
--			put_page(page);
- 			if (!test_set_page_hwpoison(page))
- 				num_poisoned_pages_inc();
--		} else
-+		}
-+	} else {
-+		if (rc != -EAGAIN)
- 			putback_lru_page(page);
-+		if (put_new_page)
-+			put_new_page(newpage, private);
-+		else
-+			put_page(newpage);
- 	}
++  putback_page: Called by the VM when isolated page's migration fails.
++	We should clear PG_isolated marked in isolated_page function.
  
--	/*
--	 * If migration was not successful and there's a freeing callback, use
--	 * it.  Otherwise, putback_lru_page() will drop the reference grabbed
--	 * during isolation.
--	 */
--	if (put_new_page)
--		put_new_page(newpage, private);
--	else if (unlikely(__is_movable_balloon_page(newpage))) {
--		/* drop our reference, page already in the balloon */
--		put_page(newpage);
--	} else
--		putback_lru_page(newpage);
--
- 	if (result) {
- 		if (rc)
- 			*result = rc;
+   launder_page: Called before freeing a page - it writes back the dirty page. To
+   	prevent redirtying the page, it is kept locked during the whole
+diff -puN Documentation/vm/page_migration~mm-add-non-lru-movable-page-support-document Documentation/vm/page_migration
+--- a/Documentation/vm/page_migration~mm-add-non-lru-movable-page-support-document
++++ a/Documentation/vm/page_migration
+@@ -142,5 +142,72 @@ Steps:
+ 20. The new page is moved to the LRU and can be scanned by the swapper
+     etc again.
+ 
+-Christoph Lameter, May 8, 2006.
++C. Non-LRU Page migration
++-------------------------
++
++Although original migration aimed for reducing the latency of memory access
++for NUMA, compaction who want to create high-order page is also main customer.
++
++Ppage migration's disadvantage is that it was designed to migrate only
++*LRU* pages. However, there are potential non-lru movable pages which can be
++migrated in system, for example, zsmalloc, virtio-balloon pages.
++For virtio-balloon pages, some parts of migration code path was hooked up
++and added virtio-balloon specific functions to intercept logi.
++It's too specific to one subsystem so other subsystem who want to make
++their pages movable should add own specific hooks in migration path.
++
++To solve such problem, VM supports non-LRU page migration which provides
++generic functions for non-LRU movable pages without needing subsystem
++specific hook in mm/{migrate|compact}.c.
++
++If a subsystem want to make own pages movable, it should mark pages as
++PG_movable via __SetPageMovable. __SetPageMovable needs address_space for
++argument for register functions which will be called by VM.
++
++Three functions in address_space_operation related to non-lru movable page:
++
++	bool (*isolate_page) (struct page *, isolate_mode_t);
++	int (*migratepage) (struct address_space *,
++		struct page *, struct page *, enum migrate_mode);
++	void (*putback_page)(struct page *);
++
++1. Isolation
++
++What VM expected on isolate_page of subsystem is to set PG_isolated flags
++of the page if it was successful. With that, concurrent isolation among
++CPUs skips the isolated page by other CPU earlier. VM calls isolate_page
++under PG_lock of page. If a subsystem cannot isolate the page, it should
++return false.
+ 
++2. Migration
++
++After successful isolation, VM calls migratepage. The migratepage's goal is
++to move content of the old page to new page and set up struct page fields
++of new page. If migration is successful, subsystem should release old page's
++refcount to free. Keep in mind that subsystem should clear PG_movable and
++PG_isolated before releasing the refcount.  If everything are done, user
++should return MIGRATEPAGE_SUCCESS. If subsystem cannot migrate the page
++at the moment, migratepage can return -EAGAIN. On -EAGAIN, VM will retry page
++migration because VM interprets -EAGAIN as "temporal migration failure".
++
++3. Putback
++
++If migration was unsuccessful, VM calls putback_page. The subsystem should
++insert isolated page to own data structure again if it has. And subsystem
++should clear PG_isolated which was marked in isolation step.
++
++Note about releasing page:
++
++Subsystem can release pages whenever it want but if it releses the page
++which is already isolated, it should clear PG_isolated but doesn't touch
++PG_movable under PG_lock. Instead of it, VM will clear PG_movable after
++his job done. Otherweise, subsystem should clear both page flags before
++releasing the page.
++
++Note about PG_isolated:
++
++PG_isolated check on a page is valid only if the page's flag is already
++set to PG_movable.
++
++Christoph Lameter, May 8, 2006.
++Minchan Kim, Mar 28, 2016.
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
