@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-move-struct-zs_meta-from-mapping-to-freelist.patch
- added to -mm tree
-Date: Wed, 30 Mar 2016 16:10:45 -0700
-Message-ID: <56fc5cf5.RkjW+Y1nGvjH4LMJ%akpm@linux-foundation.org>
+Subject: + zsmalloc-separate-free_zspage-from-putback_zspage.patch added
+ to -mm tree
+Date: Wed, 30 Mar 2016 16:10:51 -0700
+Message-ID: <56fc5cfb.dvVRJUnSAKZAG1r7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47976 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47997 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751209AbcC3XKr (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Mar 2016 19:10:47 -0400
+	with ESMTP id S1751209AbcC3XKx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Mar 2016 19:10:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: minchan@kernel.org, aquini@redhat.com, chan.jeong@lge.com, gi-oh.kim@profitbricks.com, hughd@google.com, iamjoonsoo.kim@lge.com, koct9i@gmail.com, mgorman@suse.de, riel@redhat.com, rknize@motorola.com, sangseok.lee@lge.com, sergey.senozhatsky@gmail.com, vbabka@suse.cz, viro@ZenIV.linux.org.uk, xuyiping@hisilicon.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: move struct zs_meta from mapping to freelist
+     Subject: zsmalloc: separate free_zspage from putback_zspage
 has been added to the -mm tree.  Its filename is
-     zsmalloc-move-struct-zs_meta-from-mapping-to-freelist.patch
+     zsmalloc-separate-free_zspage-from-putback_zspage.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-move-struct-zs_meta-from-mapping-to-freelist.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-separate-free_zspage-from-putback_zspage.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-move-struct-zs_meta-from-mapping-to-freelist.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-separate-free_zspage-from-putback_zspage.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,11 +40,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: zsmalloc: move struct zs_meta from mapping to freelist
+Subject: zsmalloc: separate free_zspage from putback_zspage
 
-For supporting migration from VM, we need to have address_space on every
-page so zsmalloc shouldn't use page->mapping.  So, this patch moves
-zs_meta from mapping to freelist.
+Currently, putback_zspage does free zspage under class->lock if fullness
+become ZS_EMPTY but it makes trouble to implement locking scheme for new
+zspage migration.
+
+So this patch is to separate free_zspage from putback_zspage and free
+zspage out of class->lock which is preparation for zspage migration.
 
 Signed-off-by: Minchan Kim <minchan@kernel.org>Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
@@ -64,112 +67,112 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ mm/zsmalloc.c |   46 +++++++++++++++++++++++-----------------------
+ 1 file changed, 23 insertions(+), 23 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-move-struct-zs_meta-from-mapping-to-freelist mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-move-struct-zs_meta-from-mapping-to-freelist
+diff -puN mm/zsmalloc.c~zsmalloc-separate-free_zspage-from-putback_zspage mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-separate-free_zspage-from-putback_zspage
 +++ a/mm/zsmalloc.c
-@@ -29,7 +29,7 @@
-  *		Look at size_class->huge.
-  *	page->lru: links together first pages of various zspages.
-  *		Basically forming list of zspages in a fullness group.
-- *	page->mapping: override by struct zs_meta
-+ *	page->freelist: override by struct zs_meta
-  *
-  * Usage of struct page flags:
-  *	PG_private: identifies the first component page
-@@ -418,7 +418,7 @@ static int get_zspage_inuse(struct page
- 
- 	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
- 
--	m = (struct zs_meta *)&first_page->mapping;
-+	m = (struct zs_meta *)&first_page->freelist;
- 
- 	return m->inuse;
- }
-@@ -429,7 +429,7 @@ static void set_zspage_inuse(struct page
- 
- 	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
- 
--	m = (struct zs_meta *)&first_page->mapping;
-+	m = (struct zs_meta *)&first_page->freelist;
- 	m->inuse = val;
- }
- 
-@@ -439,7 +439,7 @@ static void mod_zspage_inuse(struct page
- 
- 	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
- 
--	m = (struct zs_meta *)&first_page->mapping;
-+	m = (struct zs_meta *)&first_page->freelist;
- 	m->inuse += val;
- }
- 
-@@ -449,7 +449,7 @@ static void set_freeobj(struct page *fir
- 
- 	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
- 
--	m = (struct zs_meta *)&first_page->mapping;
-+	m = (struct zs_meta *)&first_page->freelist;
- 	m->freeobj = idx;
- }
- 
-@@ -459,7 +459,7 @@ static unsigned long get_freeobj(struct
- 
- 	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
- 
--	m = (struct zs_meta *)&first_page->mapping;
-+	m = (struct zs_meta *)&first_page->freelist;
- 	return m->freeobj;
- }
- 
-@@ -471,7 +471,7 @@ static void get_zspage_mapping(struct pa
- 
- 	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
- 
--	m = (struct zs_meta *)&first_page->mapping;
-+	m = (struct zs_meta *)&first_page->freelist;
- 	*fullness = m->fullness;
- 	*class_idx = m->class;
- }
-@@ -484,7 +484,7 @@ static void set_zspage_mapping(struct pa
- 
- 	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
- 
--	m = (struct zs_meta *)&first_page->mapping;
-+	m = (struct zs_meta *)&first_page->freelist;
- 	m->fullness = fullness;
- 	m->class = class_idx;
- }
-@@ -946,7 +946,6 @@ static void reset_page(struct page *page
- 	clear_bit(PG_private, &page->flags);
- 	clear_bit(PG_private_2, &page->flags);
- 	set_page_private(page, 0);
--	page->mapping = NULL;
+@@ -949,7 +949,8 @@ static void reset_page(struct page *page
  	page->freelist = NULL;
  }
  
-@@ -1056,6 +1055,7 @@ static struct page *alloc_zspage(struct
+-static void free_zspage(struct page *first_page)
++static void free_zspage(struct zs_pool *pool, struct size_class *class,
++			struct page *first_page)
+ {
+ 	struct page *nextp, *tmp, *head_extra;
  
- 		INIT_LIST_HEAD(&page->lru);
- 		if (i == 0) {	/* first page */
-+			page->freelist = NULL;
- 			SetPagePrivate(page);
- 			set_page_private(page, 0);
- 			first_page = page;
-@@ -2068,9 +2068,9 @@ static int __init zs_init(void)
+@@ -972,6 +973,11 @@ static void free_zspage(struct page *fir
+ 	}
+ 	reset_page(head_extra);
+ 	__free_page(head_extra);
++
++	zs_stat_dec(class, OBJ_ALLOCATED, get_maxobj_per_zspage(
++			class->size, class->pages_per_zspage));
++	atomic_long_sub(class->pages_per_zspage,
++				&pool->pages_allocated);
+ }
  
- 	/*
- 	 * A zspage's a free object index, class index, fullness group,
--	 * inuse object count are encoded in its (first)page->mapping
-+	 * inuse object count are encoded in its (first)page->freelist
- 	 * so sizeof(struct zs_meta) should be less than
--	 * sizeof(page->mapping(i.e., unsigned long)).
-+	 * sizeof(page->freelist(i.e., void *)).
- 	 */
- 	BUILD_BUG_ON(sizeof(struct zs_meta) > sizeof(unsigned long));
+ /* Initialize a newly allocated zspage */
+@@ -1559,13 +1565,8 @@ void zs_free(struct zs_pool *pool, unsig
+ 	spin_lock(&class->lock);
+ 	obj_free(class, obj);
+ 	fullness = fix_fullness_group(class, first_page);
+-	if (fullness == ZS_EMPTY) {
+-		zs_stat_dec(class, OBJ_ALLOCATED, get_maxobj_per_zspage(
+-				class->size, class->pages_per_zspage));
+-		atomic_long_sub(class->pages_per_zspage,
+-				&pool->pages_allocated);
+-		free_zspage(first_page);
+-	}
++	if (fullness == ZS_EMPTY)
++		free_zspage(pool, class, first_page);
+ 	spin_unlock(&class->lock);
+ 	unpin_tag(handle);
  
+@@ -1752,7 +1753,7 @@ static struct page *isolate_target_page(
+  * @class: destination class
+  * @first_page: target page
+  *
+- * Return @fist_page's fullness_group
++ * Return @first_page's updated fullness_group
+  */
+ static enum fullness_group putback_zspage(struct zs_pool *pool,
+ 			struct size_class *class,
+@@ -1764,15 +1765,6 @@ static enum fullness_group putback_zspag
+ 	insert_zspage(class, fullness, first_page);
+ 	set_zspage_mapping(first_page, class->index, fullness);
+ 
+-	if (fullness == ZS_EMPTY) {
+-		zs_stat_dec(class, OBJ_ALLOCATED, get_maxobj_per_zspage(
+-			class->size, class->pages_per_zspage));
+-		atomic_long_sub(class->pages_per_zspage,
+-				&pool->pages_allocated);
+-
+-		free_zspage(first_page);
+-	}
+-
+ 	return fullness;
+ }
+ 
+@@ -1835,23 +1827,31 @@ static void __zs_compact(struct zs_pool
+ 			if (!migrate_zspage(pool, class, &cc))
+ 				break;
+ 
+-			putback_zspage(pool, class, dst_page);
++			VM_BUG_ON_PAGE(putback_zspage(pool, class,
++				dst_page) == ZS_EMPTY, dst_page);
+ 		}
+ 
+ 		/* Stop if we couldn't find slot */
+ 		if (dst_page == NULL)
+ 			break;
+ 
+-		putback_zspage(pool, class, dst_page);
+-		if (putback_zspage(pool, class, src_page) == ZS_EMPTY)
++		VM_BUG_ON_PAGE(putback_zspage(pool, class,
++				dst_page) == ZS_EMPTY, dst_page);
++		if (putback_zspage(pool, class, src_page) == ZS_EMPTY) {
+ 			pool->stats.pages_compacted += class->pages_per_zspage;
+-		spin_unlock(&class->lock);
++			spin_unlock(&class->lock);
++			free_zspage(pool, class, src_page);
++		} else {
++			spin_unlock(&class->lock);
++		}
++
+ 		cond_resched();
+ 		spin_lock(&class->lock);
+ 	}
+ 
+ 	if (src_page)
+-		putback_zspage(pool, class, src_page);
++		VM_BUG_ON_PAGE(putback_zspage(pool, class,
++				src_page) == ZS_EMPTY, src_page);
+ 
+ 	spin_unlock(&class->lock);
+ }
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
