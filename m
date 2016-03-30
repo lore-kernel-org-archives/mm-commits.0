@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + zsmalloc-squeeze-inuse-into-page-mapping.patch added to -mm
- tree
-Date: Wed, 30 Mar 2016 16:10:37 -0700
-Message-ID: <56fc5ced.aRWacltnQjMeQdso%akpm@linux-foundation.org>
+Subject: + zsmalloc-remove-page_mapcount_reset.patch added to -mm tree
+Date: Wed, 30 Mar 2016 16:10:40 -0700
+Message-ID: <56fc5cf0.18Mq0wVEAMH+tvVC%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47936 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47949 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752627AbcC3XKj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Mar 2016 19:10:39 -0400
+	with ESMTP id S1752627AbcC3XKm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Mar 2016 19:10:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, aquini@redhat.com, chan.jeong@lge.com, gi-oh.kim@profitbricks.com, hughd@google.com, iamjoonsoo.kim@lge.com, koct9i@gmail.com, mgorman@suse.de, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rknize@motorola.com, sangseok.lee@lge.com, sergey.senozhatsky@gmail.com, vbabka@suse.cz, viro@ZenIV.linux.org.uk, xuyiping@hisilicon.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, aquini@redhat.com, chan.jeong@lge.com, gi-oh.kim@profitbricks.com, hughd@google.com, iamjoonsoo.kim@lge.com, koct9i@gmail.com, mgorman@suse.de, riel@redhat.com, rknize@motorola.com, sangseok.lee@lge.com, sergey.senozhatsky@gmail.com, vbabka@suse.cz, viro@ZenIV.linux.org.uk, xuyiping@hisilicon.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: squeeze inuse into page->mapping
+     Subject: zsmalloc: remove page_mapcount_reset
 has been added to the -mm tree.  Its filename is
-     zsmalloc-squeeze-inuse-into-page-mapping.patch
+     zsmalloc-remove-page_mapcount_reset.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-squeeze-inuse-into-page-mapping.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/zsmalloc-remove-page_mapcount_reset.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-squeeze-inuse-into-page-mapping.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/zsmalloc-remove-page_mapcount_reset.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,24 +39,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: zsmalloc: squeeze inuse into page->mapping
+Subject: zsmalloc: remove page_mapcount_reset
 
-Currently, we store class:fullness into page->mapping.  The number of
-class we can support is 255 and fullness is 4 so (8 + 2 = 10bit) is enough
-to represent them.  Meanwhile, the bits we need to store in-use objects in
-zspage is that 11bit is enough.
+We don't use page->_mapcount any more so no need to reset.
 
-For example, If we assume that 64K PAGE_SIZE, class_size 32 which is worst
-case, class->pages_per_zspage become 1 so the number of objects in zspage
-is 2048 so 11bit is enough.  The next class is 32 + 256(i.e.,
-ZS_SIZE_CLASS_DELTA).  With worst case that ZS_MAX_PAGES_PER_ZSPAGE, 64K *
-4 / (32 + 256) = 910 so 11bit is still enough.
-
-So, we could squeeze inuse object count to page->mapping.
-
-Signed-off-by: Minchan Kim <minchan@kernel.org>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Minchan Kim <minchan@kernel.org>Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Rafael Aquini <aquini@redhat.com>
@@ -75,229 +61,20 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |  103 +++++++++++++++++++++++++++++++++---------------
- 1 file changed, 71 insertions(+), 32 deletions(-)
+ mm/zsmalloc.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-squeeze-inuse-into-page-mapping mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-squeeze-inuse-into-page-mapping
+diff -puN mm/zsmalloc.c~zsmalloc-remove-page_mapcount_reset mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-remove-page_mapcount_reset
 +++ a/mm/zsmalloc.c
-@@ -34,8 +34,7 @@
-  *		metadata.
-  *	page->lru: links together first pages of various zspages.
-  *		Basically forming list of zspages in a fullness group.
-- *	page->mapping: class index and fullness group of the zspage
-- *	page->inuse: the number of objects that are used in this zspage
-+ *	page->mapping: override by struct zs_meta
-  *
-  * Usage of struct page flags:
-  *	PG_private: identifies the first component page
-@@ -132,6 +131,13 @@
- /* each chunk includes extra space to keep handle */
- #define ZS_MAX_ALLOC_SIZE	PAGE_SIZE
- 
-+#define CLASS_BITS	8
-+#define CLASS_MASK	((1 << CLASS_BITS) - 1)
-+#define FULLNESS_BITS	2
-+#define FULLNESS_MASK	((1 << FULLNESS_BITS) - 1)
-+#define INUSE_BITS	11
-+#define INUSE_MASK	((1 << INUSE_BITS) - 1)
-+
- /*
-  * On systems with 4K page size, this gives 255 size classes! There is a
-  * trader-off here:
-@@ -145,7 +151,7 @@
-  *  ZS_MIN_ALLOC_SIZE and ZS_SIZE_CLASS_DELTA must be multiple of ZS_ALIGN
-  *  (reason above)
-  */
--#define ZS_SIZE_CLASS_DELTA	(PAGE_SIZE >> 8)
-+#define ZS_SIZE_CLASS_DELTA	(PAGE_SIZE >> CLASS_BITS)
- 
- /*
-  * We do not maintain any list for completely empty or full pages
-@@ -155,7 +161,7 @@ enum fullness_group {
- 	ZS_ALMOST_EMPTY,
- 	_ZS_NR_FULLNESS_GROUPS,
- 
--	ZS_EMPTY,
-+	ZS_EMPTY = _ZS_NR_FULLNESS_GROUPS,
- 	ZS_FULL
- };
- 
-@@ -263,14 +269,11 @@ struct zs_pool {
- #endif
- };
- 
--/*
-- * A zspage's class index and fullness group
-- * are encoded in its (first)page->mapping
-- */
--#define CLASS_IDX_BITS	28
--#define FULLNESS_BITS	4
--#define CLASS_IDX_MASK	((1 << CLASS_IDX_BITS) - 1)
--#define FULLNESS_MASK	((1 << FULLNESS_BITS) - 1)
-+struct zs_meta {
-+	unsigned long class:CLASS_BITS;
-+	unsigned long fullness:FULLNESS_BITS;
-+	unsigned long inuse:INUSE_BITS;
-+};
- 
- struct mapping_area {
- #ifdef CONFIG_PGTABLE_MAPPING
-@@ -412,28 +415,61 @@ static int is_last_page(struct page *pag
- 	return PagePrivate2(page);
+@@ -922,7 +922,6 @@ static void reset_page(struct page *page
+ 	set_page_private(page, 0);
+ 	page->mapping = NULL;
+ 	page->freelist = NULL;
+-	page_mapcount_reset(page);
  }
  
-+static int get_zspage_inuse(struct page *first_page)
-+{
-+	struct zs_meta *m;
-+
-+	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
-+
-+	m = (struct zs_meta *)&first_page->mapping;
-+
-+	return m->inuse;
-+}
-+
-+static void set_zspage_inuse(struct page *first_page, int val)
-+{
-+	struct zs_meta *m;
-+
-+	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
-+
-+	m = (struct zs_meta *)&first_page->mapping;
-+	m->inuse = val;
-+}
-+
-+static void mod_zspage_inuse(struct page *first_page, int val)
-+{
-+	struct zs_meta *m;
-+
-+	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
-+
-+	m = (struct zs_meta *)&first_page->mapping;
-+	m->inuse += val;
-+}
-+
- static void get_zspage_mapping(struct page *first_page,
- 				unsigned int *class_idx,
- 				enum fullness_group *fullness)
- {
--	unsigned long m;
-+	struct zs_meta *m;
-+
- 	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
- 
--	m = (unsigned long)first_page->mapping;
--	*fullness = m & FULLNESS_MASK;
--	*class_idx = (m >> FULLNESS_BITS) & CLASS_IDX_MASK;
-+	m = (struct zs_meta *)&first_page->mapping;
-+	*fullness = m->fullness;
-+	*class_idx = m->class;
- }
- 
- static void set_zspage_mapping(struct page *first_page,
- 				unsigned int class_idx,
- 				enum fullness_group fullness)
- {
--	unsigned long m;
-+	struct zs_meta *m;
-+
- 	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
- 
--	m = ((class_idx & CLASS_IDX_MASK) << FULLNESS_BITS) |
--			(fullness & FULLNESS_MASK);
--	first_page->mapping = (struct address_space *)m;
-+	m = (struct zs_meta *)&first_page->mapping;
-+	m->fullness = fullness;
-+	m->class = class_idx;
- }
- 
- /*
-@@ -632,9 +668,7 @@ static enum fullness_group get_fullness_
- 	int inuse, objs_per_zspage;
- 	enum fullness_group fg;
- 
--	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
--
--	inuse = first_page->inuse;
-+	inuse = get_zspage_inuse(first_page);
- 	objs_per_zspage = class->objs_per_zspage;
- 
- 	if (inuse == 0)
-@@ -677,10 +711,10 @@ static void insert_zspage(struct size_cl
- 
- 	/*
- 	 * We want to see more ZS_FULL pages and less almost
--	 * empty/full. Put pages with higher ->inuse first.
-+	 * empty/full. Put pages with higher inuse first.
- 	 */
- 	list_add_tail(&first_page->lru, &(*head)->lru);
--	if (first_page->inuse >= (*head)->inuse)
-+	if (get_zspage_inuse(first_page) >= get_zspage_inuse(*head))
- 		*head = first_page;
- }
- 
-@@ -896,7 +930,7 @@ static void free_zspage(struct page *fir
- 	struct page *nextp, *tmp, *head_extra;
- 
- 	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
--	VM_BUG_ON_PAGE(first_page->inuse, first_page);
-+	VM_BUG_ON_PAGE(get_zspage_inuse(first_page), first_page);
- 
- 	head_extra = (struct page *)page_private(first_page);
- 
-@@ -992,7 +1026,7 @@ static struct page *alloc_zspage(struct
- 			SetPagePrivate(page);
- 			set_page_private(page, 0);
- 			first_page = page;
--			first_page->inuse = 0;
-+			set_zspage_inuse(page, 0);
- 		}
- 		if (i == 1)
- 			set_page_private(first_page, (unsigned long)page);
-@@ -1237,9 +1271,7 @@ static bool can_merge(struct size_class
- 
- static bool zspage_full(struct size_class *class, struct page *first_page)
- {
--	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
--
--	return first_page->inuse == class->objs_per_zspage;
-+	return get_zspage_inuse(first_page) == class->objs_per_zspage;
- }
- 
- unsigned long zs_get_total_pages(struct zs_pool *pool)
-@@ -1372,7 +1404,7 @@ static unsigned long obj_malloc(struct s
- 		/* record handle in first_page->private */
- 		set_page_private(first_page, handle);
- 	kunmap_atomic(vaddr);
--	first_page->inuse++;
-+	mod_zspage_inuse(first_page, 1);
- 	zs_stat_inc(class, OBJ_USED, 1);
- 
- 	return obj;
-@@ -1457,7 +1489,7 @@ static void obj_free(struct size_class *
- 		set_page_private(first_page, 0);
- 	kunmap_atomic(vaddr);
- 	first_page->freelist = (void *)obj;
--	first_page->inuse--;
-+	mod_zspage_inuse(first_page, -1);
- 	zs_stat_dec(class, OBJ_USED, 1);
- }
- 
-@@ -2002,6 +2034,13 @@ static int __init zs_init(void)
- 	if (ret)
- 		goto notifier_fail;
- 
-+	/*
-+	 * A zspage's class index, fullness group, inuse object count are
-+	 * encoded in its (first)page->mapping so sizeof(struct zs_meta)
-+	 * should be less than sizeof(page->mapping(i.e., unsigned long)).
-+	 */
-+	BUILD_BUG_ON(sizeof(struct zs_meta) > sizeof(unsigned long));
-+
- 	init_zs_size_classes();
- 
- #ifdef CONFIG_ZPOOL
+ static void free_zspage(struct page *first_page)
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
