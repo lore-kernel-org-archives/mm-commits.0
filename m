@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch added
- to -mm tree
-Date: Wed, 30 Mar 2016 14:50:29 -0700
-Message-ID: <56fc4a25.QC+KN8CwUQ7b0Jda%akpm@linux-foundation.org>
+Subject: + mm-hugetlbc-use-first_memory_node.patch added to -mm tree
+Date: Wed, 30 Mar 2016 16:06:39 -0700
+Message-ID: <56fc5bff.os9PgGN2b7U3RR6E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:43382 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47486 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754819AbcC3Vua (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Mar 2016 17:50:30 -0400
+	with ESMTP id S1750940AbcC3XGk (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Mar 2016 19:06:40 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, iamjoonsoo.kim@lge.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix
+     Subject: mm/hugetlb.c: use first_memory_node
 has been added to the -mm tree.  Its filename is
-     mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
+     mm-hugetlbc-use-first_memory_node.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-hugetlbc-use-first_memory_node.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-hugetlbc-use-first_memory_node.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,52 +39,31 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix
+Subject: mm/hugetlb.c: use first_memory_node
 
-Documentation/vm/transhuge.txt too
+Instead of open-coding it.
 
-Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/vm/transhuge.txt |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ mm/hugetlb.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff -puN Documentation/vm/transhuge.txt~mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix Documentation/vm/transhuge.txt
---- a/Documentation/vm/transhuge.txt~mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix
-+++ a/Documentation/vm/transhuge.txt
-@@ -394,9 +394,9 @@ hugepage natively. Once finished you can
- Refcounting on THP is mostly consistent with refcounting on other compound
- pages:
+diff -puN mm/hugetlb.c~mm-hugetlbc-use-first_memory_node mm/hugetlb.c
+--- a/mm/hugetlb.c~mm-hugetlbc-use-first_memory_node
++++ a/mm/hugetlb.c
+@@ -2676,8 +2676,8 @@ void __init hugetlb_add_hstate(unsigned
+ 	for (i = 0; i < MAX_NUMNODES; ++i)
+ 		INIT_LIST_HEAD(&h->hugepage_freelists[i]);
+ 	INIT_LIST_HEAD(&h->hugepage_activelist);
+-	h->next_nid_to_alloc = first_node(node_states[N_MEMORY]);
+-	h->next_nid_to_free = first_node(node_states[N_MEMORY]);
++	h->next_nid_to_alloc = first_memory_node;
++	h->next_nid_to_free = first_memory_node;
+ 	snprintf(h->name, HSTATE_NAME_LEN, "hugepages-%lukB",
+ 					huge_page_size(h)/1024);
  
--  - get_page()/put_page() and GUP operate in head page's ->_count.
-+  - get_page()/put_page() and GUP operate in head page's ->_refcount.
- 
--  - ->_count in tail pages is always zero: get_page_unless_zero() never
-+  - ->_refcount in tail pages is always zero: get_page_unless_zero() never
-     succeed on tail pages.
- 
-   - map/unmap of the pages with PTE entry increment/decrement ->_mapcount
-@@ -426,15 +426,15 @@ requests to split pinned huge page: it e
- sum of mapcount of all sub-pages plus one (split_huge_page caller must
- have reference for head page).
- 
--split_huge_page uses migration entries to stabilize page->_count and
-+split_huge_page uses migration entries to stabilize page->_refcount and
- page->_mapcount.
- 
- We safe against physical memory scanners too: the only legitimate way
- scanner can get reference to a page is get_page_unless_zero().
- 
--All tail pages has zero ->_count until atomic_add(). It prevent scanner
-+All tail pages has zero ->_refcount until atomic_add(). It prevent scanner
- from geting reference to tail page up to the point. After the atomic_add()
--we don't care about ->_count value.  We already known how many references
-+we don't care about ->_refcount value.  We already known how many references
- with should uncharge from head page.
- 
- For head page get_page_unless_zero() will succeed and we don't mind. It's
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -108,4 +85,6 @@ drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
 do_shared_fault-check-that-mmap_sem-is-held.patch
 kernel-forkc-export-kernel_thread-to-modules.patch
 slab-leaks3-default-y.patch
+include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
+mm-hugetlbc-use-first_memory_node.patch
 
