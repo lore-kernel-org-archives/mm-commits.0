@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch added to
- -mm tree
-Date: Wed, 30 Mar 2016 16:08:42 -0700
-Message-ID: <56fc5c7a.6tPl/b/EePPF/6/j%akpm@linux-foundation.org>
+Subject: + mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
+ added to -mm tree
+Date: Wed, 30 Mar 2016 16:10:23 -0700
+Message-ID: <56fc5cdf.9gPcHR+28X0VgfZk%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:47858 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:47873 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751445AbcC3XIn (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Mar 2016 19:08:43 -0400
+	with ESMTP id S1750940AbcC3XKZ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Wed, 30 Mar 2016 19:10:25 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, hannes@cmpxchg.org, js1304@gmail.com, lauraa@codeaurora.org, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, qiuxishi@huawei.com, rientjes@google.com, wangxq10@lzu.edu.cn, zhuhui@xiaomi.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, aquini@redhat.com, chan.jeong@lge.com, gi-oh.kim@profitbricks.com, hughd@google.com, iamjoonsoo.kim@lge.com, koct9i@gmail.com, mgorman@suse.de, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rknize@motorola.com, sangseok.lee@lge.com, sergey.senozhatsky@gmail.com, vbabka@suse.cz, viro@ZenIV.linux.org.uk, xuyiping@hisilicon.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include-linux-nodemaskh-create-next_node_in-helper-fix-fix
+     Subject: mm: use put_page to free page instead of putback_lru_page
 has been added to the -mm tree.  Its filename is
-     include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
+     mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,151 +39,234 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include-linux-nodemaskh-create-next_node_in-helper-fix-fix
+From: Minchan Kim <minchan@kernel.org>
+Subject: mm: use put_page to free page instead of putback_lru_page
 
-next_node_in() is rather large.  Uninline it to saves 420 bytes for 8
-callsites.
+Recently, I got many reports about performance degradation in embedded
+system(Android mobile phone, webOS TV and so on) and failed to fork
+easily.
 
-Create lib/nodemask.c for this.  Move node_random() into lib/nodemask.c.
+The problem was fragmentation caused by zram and GPU driver pages.  Their
+pages cannot be migrated so compaction cannot work well, either so
+reclaimer ends up shrinking all of working set pages.  It made system very
+slow and even to fail to fork easily.
 
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
+Other pain point is that they cannot work with CMA.  Most of CMA memory
+space could be idle(ie, it could be used for movable pages unless driver
+is using) but if driver(i.e., zram) cannot migrate his page, that memory
+space could be wasted.  In our product which has big CMA memory, it
+reclaims zones too exccessively although there are lots of free space in
+CMA so system was very slow easily.
+
+To solve these problem, this patch try to add facility to migrate non-lru
+pages via introducing new friend functions of migratepage in
+address_space_operation and new page flags.
+
+	(isolate_page, putback_page)
+	(PG_movable, PG_isolated)
+
+For details, please read description in "mm/compaction: support non-lru
+movable page migration".
+
+Originally, Gioh Kim tried to support this feature but he moved so I took
+over the work.  But I took many code from his work and changed a little
+bit.  Thanks, Gioh!
+
+And I should mention Konstantin Khlebnikov.  He really heped Gioh at that
+time so he should deserve to have many credit, too.  Thanks, Konstantin!
+
+This patchset consists of five parts.
+
+1. clean up migration
+  mm: use put_page to free page instead of putback_lru_page
+
+2. add non-lru page migration feature
+  mm/compaction: support non-lru movable page migration
+  mm: add non-lru movable page support document
+
+3. rework KVM memory-ballooning
+  mm/balloon: use general movable page feature into balloon
+
+4. zsmalloc clean-up for preparing page migration
+  zsmalloc: keep max_object in size_class
+  zsmalloc: squeeze inuse into page->mapping
+  zsmalloc: remove page_mapcount_reset
+  zsmalloc: squeeze freelist into page->mapping
+  zsmalloc: move struct zs_meta from mapping to freelist
+  zsmalloc: factor page chain functionality out
+  zsmalloc: separate free_zspage from putback_zspage
+  zsmalloc: zs_compact refactoring
+
+5. add zsmalloc page migration
+  zsmalloc: migrate head page of zspage
+  zsmalloc: use single linked list for page chain
+  zsmalloc: migrate tail pages in zspage
+  zram: use __GFP_MOVABLE for memory allocation
+
+
+
+
+This patch (of 16):
+
+Procedure of page migration is as follows:
+
+First of all, it should isolate a page from LRU and try to migrate the
+page.  If it is successful, it releases the page for freeing.  Otherwise,
+it should put the page back to LRU list.
+
+For LRU pages, we have used putback_lru_page for both freeing and putback
+to LRU list.  It's okay because put_page is aware of LRU list so if it
+releases last refcount of the page, it removes the page from LRU list. 
+However, It makes unnecessary operations (e.g., lru_cache_add, pagevec and
+flags operations.  It would be not significant but no worth to do) and
+harder to support new non-lru page migration because put_page isn't aware
+of non-lru page's data structure.
+
+To solve the problem, we can add new hook in put_page with PageMovable
+flags check but it can increase overhead in hot path and needs new locking
+scheme to stabilize the flag check with put_page.
+
+So, this patch cleans it up to divide two semantic(ie, put and putback). 
+If migration is successful, use put_page instead of putback_lru_page and
+use putback_lru_page only on failure.  That makes code more readable and
+doesn't add overhead in put_page.
+
+Comment from Vlastimil
+"Yeah, and compaction (perhaps also other migration users) has to drain
+the lru pvec... Getting rid of this stuff is worth even by itself."
+
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Hugh Dickins <hughd@google.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: "Laura Abbott" <lauraa@codeaurora.org>
-Cc: Hui Zhu <zhuhui@xiaomi.com>
-Cc: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
-Cc: Johannes Weiner <hannes@cmpxchg.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Rafael Aquini <aquini@redhat.com>
+Cc: Russ Knize <rknize@motorola.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky@gmail.com>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Gioh Kim <gi-oh.kim@profitbricks.com>
+Cc: Sangseok Lee <sangseok.lee@lge.com>
+Cc: Chan Gyun Jeong <chan.jeong@lge.com>
+Cc: Al Viro <viro@ZenIV.linux.org.uk>
+Cc: YiPing Xu <xuyiping@hisilicon.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/nodemask.h |    9 +--------
- lib/Makefile             |    2 +-
- lib/nodemask.c           |   30 ++++++++++++++++++++++++++++++
- mm/mempolicy.c           |   16 ----------------
- 4 files changed, 32 insertions(+), 25 deletions(-)
+ mm/migrate.c |   50 ++++++++++++++++++++++++++++++-------------------
+ 1 file changed, 31 insertions(+), 19 deletions(-)
 
-diff -puN include/linux/nodemask.h~include-linux-nodemaskh-create-next_node_in-helper-fix-fix include/linux/nodemask.h
---- a/include/linux/nodemask.h~include-linux-nodemaskh-create-next_node_in-helper-fix-fix
-+++ a/include/linux/nodemask.h
-@@ -266,14 +266,7 @@ static inline int __next_node(int n, con
-  * the first node in src if needed.  Returns MAX_NUMNODES if src is empty.
-  */
- #define next_node_in(n, src) __next_node_in((n), &(src))
--static inline int __next_node_in(int node, const nodemask_t *srcp)
--{
--	int ret = __next_node(node, srcp);
--
--	if (ret == MAX_NUMNODES)
--		ret = __first_node(srcp);
--	return ret;
--}
-+int __next_node_in(int node, const nodemask_t *srcp);
- 
- static inline void init_nodemask_of_node(nodemask_t *mask, int node)
- {
-diff -puN lib/Makefile~include-linux-nodemaskh-create-next_node_in-helper-fix-fix lib/Makefile
---- a/lib/Makefile~include-linux-nodemaskh-create-next_node_in-helper-fix-fix
-+++ a/lib/Makefile
-@@ -25,7 +25,7 @@ lib-y := ctype.o string.o vsprintf.o cmd
- 	 sha1.o md5.o irq_regs.o argv_split.o \
- 	 proportions.o flex_proportions.o ratelimit.o show_mem.o \
- 	 is_single_threaded.o plist.o decompress.o kobject_uevent.o \
--	 earlycpio.o seq_buf.o nmi_backtrace.o
-+	 earlycpio.o seq_buf.o nmi_backtrace.o nodemask.o
- 
- obj-$(CONFIG_ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS) += usercopy.o
- lib-$(CONFIG_MMU) += ioremap.o
-diff -puN /dev/null lib/nodemask.c
---- /dev/null
-+++ a/lib/nodemask.c
-@@ -0,0 +1,30 @@
-+#include <linux/nodemask.h>
-+#include <linux/module.h>
-+#include <linux/random.h>
+diff -puN mm/migrate.c~mm-use-put_page-to-free-page-instead-of-putback_lru_page mm/migrate.c
+--- a/mm/migrate.c~mm-use-put_page-to-free-page-instead-of-putback_lru_page
++++ a/mm/migrate.c
+@@ -913,6 +913,14 @@ out_unlock:
+ 		put_anon_vma(anon_vma);
+ 	unlock_page(page);
+ out:
++	/* If migration is successful, move newpage to right list */
++	if (rc == MIGRATEPAGE_SUCCESS) {
++		if (unlikely(__is_movable_balloon_page(newpage)))
++			put_page(newpage);
++		else
++			putback_lru_page(newpage);
++	}
 +
-+int __next_node_in(int node, const nodemask_t *srcp)
-+{
-+	int ret = __next_node(node, srcp);
-+
-+	if (ret == MAX_NUMNODES)
-+		ret = __first_node(srcp);
-+	return ret;
-+}
-+EXPORT_SYMBOL(__next_node_in);
-+
-+#ifdef CONFIG_NUMA
-+/*
-+ * Return the bit number of a random bit set in the nodemask.
-+ * (returns NUMA_NO_NODE if nodemask is empty)
-+ */
-+int node_random(const nodemask_t *maskp)
-+{
-+	int w, bit = NUMA_NO_NODE;
-+
-+	w = nodes_weight(*maskp);
-+	if (w)
-+		bit = bitmap_ord_to_pos(maskp->bits,
-+			get_random_int() % w, MAX_NUMNODES);
-+	return bit;
-+}
-+#endif
-diff -puN mm/mempolicy.c~include-linux-nodemaskh-create-next_node_in-helper-fix-fix mm/mempolicy.c
---- a/mm/mempolicy.c~include-linux-nodemaskh-create-next_node_in-helper-fix-fix
-+++ a/mm/mempolicy.c
-@@ -97,7 +97,6 @@
- 
- #include <asm/tlbflush.h>
- #include <asm/uaccess.h>
--#include <linux/random.h>
- 
- #include "internal.h"
- 
-@@ -1801,21 +1800,6 @@ static inline unsigned interleave_nid(st
- 		return interleave_nodes(pol);
+ 	return rc;
  }
  
--/*
-- * Return the bit number of a random bit set in the nodemask.
-- * (returns NUMA_NO_NODE if nodemask is empty)
-- */
--int node_random(const nodemask_t *maskp)
--{
--	int w, bit = NUMA_NO_NODE;
+@@ -946,6 +954,12 @@ static ICE_noinline int unmap_and_move(n
+ 
+ 	if (page_count(page) == 1) {
+ 		/* page was freed from under us. So we are done. */
++		ClearPageActive(page);
++		ClearPageUnevictable(page);
++		if (put_new_page)
++			put_new_page(newpage, private);
++		else
++			put_page(newpage);
+ 		goto out;
+ 	}
+ 
+@@ -958,10 +972,8 @@ static ICE_noinline int unmap_and_move(n
+ 	}
+ 
+ 	rc = __unmap_and_move(page, newpage, force, mode);
+-	if (rc == MIGRATEPAGE_SUCCESS) {
+-		put_new_page = NULL;
++	if (rc == MIGRATEPAGE_SUCCESS)
+ 		set_page_owner_migrate_reason(newpage, reason);
+-	}
+ 
+ out:
+ 	if (rc != -EAGAIN) {
+@@ -974,28 +986,28 @@ out:
+ 		list_del(&page->lru);
+ 		dec_zone_page_state(page, NR_ISOLATED_ANON +
+ 				page_is_file_cache(page));
+-		/* Soft-offlined page shouldn't go through lru cache list */
++	}
++
++	/*
++	 * If migration is successful, drop the reference grabbed during
++	 * isolation. Otherwise, restore the page to LRU list unless we
++	 * want to retry.
++	 */
++	if (rc == MIGRATEPAGE_SUCCESS) {
++		put_page(page);
+ 		if (reason == MR_MEMORY_FAILURE) {
+-			put_page(page);
+ 			if (!test_set_page_hwpoison(page))
+ 				num_poisoned_pages_inc();
+-		} else
++		}
++	} else {
++		if (rc != -EAGAIN)
+ 			putback_lru_page(page);
++		if (put_new_page)
++			put_new_page(newpage, private);
++		else
++			put_page(newpage);
+ 	}
+ 
+-	/*
+-	 * If migration was not successful and there's a freeing callback, use
+-	 * it.  Otherwise, putback_lru_page() will drop the reference grabbed
+-	 * during isolation.
+-	 */
+-	if (put_new_page)
+-		put_new_page(newpage, private);
+-	else if (unlikely(__is_movable_balloon_page(newpage))) {
+-		/* drop our reference, page already in the balloon */
+-		put_page(newpage);
+-	} else
+-		putback_lru_page(newpage);
 -
--	w = nodes_weight(*maskp);
--	if (w)
--		bit = bitmap_ord_to_pos(maskp->bits,
--			get_random_int() % w, MAX_NUMNODES);
--	return bit;
--}
--
- #ifdef CONFIG_HUGETLBFS
- /*
-  * huge_zonelist(@vma, @addr, @gfp_flags, @mpol)
+ 	if (result) {
+ 		if (rc)
+ 			*result = rc;
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from minchan@kernel.org are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
-include-linux-nodemaskh-create-next_node_in-helper.patch
-include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
-mm-hugetlbc-use-first_memory_node.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+zsmalloc-use-first_page-rather-than-page.patch
+zsmalloc-clean-up-many-bug_on.patch
+zsmalloc-reordering-function-parameter.patch
+zsmalloc-remove-unused-pool-param-in-obj_free.patch
+mm-use-put_page-to-free-page-instead-of-putback_lru_page.patch
+mm-compaction-support-non-lru-movable-page-migration.patch
+mm-add-non-lru-movable-page-support-document.patch
+mm-balloon-use-general-movable-page-feature-into-balloon.patch
+zsmalloc-keep-max_object-in-size_class.patch
+zsmalloc-squeeze-inuse-into-page-mapping.patch
+zsmalloc-remove-page_mapcount_reset.patch
+zsmalloc-squeeze-freelist-into-page-mapping.patch
+zsmalloc-move-struct-zs_meta-from-mapping-to-freelist.patch
+zsmalloc-factor-page-chain-functionality-out.patch
+zsmalloc-separate-free_zspage-from-putback_zspage.patch
+zsmalloc-zs_compact-refactoring.patch
+zsmalloc-migrate-head-page-of-zspage.patch
+zsmalloc-use-single-linked-list-for-page-chain.patch
+zsmalloc-migrate-tail-pages-in-zspage.patch
+zram-use-__gfp_movable-for-memory-allocation.patch
 
