@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mailmap-add-christophe-ricard.patch added to -mm tree
-Date: Thu, 31 Mar 2016 15:30:50 -0700
-Message-ID: <56fda51a.Yn/keByP9B/BFXO2%akpm@linux-foundation.org>
+Subject: + mm-highmem-simplify-is_highmem.patch added to -mm tree
+Date: Thu, 31 Mar 2016 15:39:28 -0700
+Message-ID: <56fda720.gcYKHhCVeMGETEo1%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36479 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37208 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757630AbcCaWav (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2016 18:30:51 -0400
+	with ESMTP id S1757630AbcCaWj3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2016 18:39:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: christophe.ricard@gmail.com, christophe-h.ricard@st.com, mm-commits@vger.kernel.org
+To: chanho.min@lge.com, dan.j.williams@intel.com, mhocko@kernel.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: .mailmap: add Christophe Ricard
+     Subject: mm/highmem: simplify is_highmem()
 has been added to the -mm tree.  Its filename is
-     mailmap-add-christophe-ricard.patch
+     mm-highmem-simplify-is_highmem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mailmap-add-christophe-ric=
-ard.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-highmem-simplify-is_highmem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mailmap-add-christophe-ric=
-ard.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-highmem-simplify-is_highmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -34,46 +32,48 @@ Before you just go and hit "reply", please:
    c) Ideally: find the original patch on the mailing list and do a
       reply-to-all to that, adding suitable additional cc's
 
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-=46rom: Christophe Ricard <christophe.ricard@gmail.com>
-Subject: .mailmap: add Christophe Ricard
+From: Chanho Min <chanho.min@lge.com>
+Subject: mm/highmem: simplify is_highmem()
 
-Different computers had different settings in the mail client. Some
-contributions appear as Christophe Ricard, others as Christophe RICARD.
+is_highmem() can be simplified by use of is_highmem_idx().  This patch
+removes redundant code and will make it easier to maintain if the zone
+policy is changed or a new zone is added.
 
-Signed-off-by: Christophe Ricard <christophe-h.ricard@st.com>
+(akpm: saves me 25 bytes of text per is_highmem() callsite)
+
+Signed-off-by: Chanho Min <chanho.min@lge.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Michal Hocko <mhocko@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- .mailmap |    1 +
- 1 file changed, 1 insertion(+)
+ include/linux/mmzone.h |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-diff -puN .mailmap~mailmap-add-christophe-ricard .mailmap
---- a/.mailmap~mailmap-add-christophe-ricard
-+++ a/.mailmap
-@@ -33,6 +33,7 @@ Bj=C3=B6rn Steinbrink <B.Steinbrink@gmx.de>
- Brian Avery <b.avery@hp.com>
- Brian King <brking@us.ibm.com>
- Christoph Hellwig <hch@lst.de>
-+Christophe Ricard <christophe.ricard@gmail.com>
- Corey Minyard <minyard@acm.org>
- Damian Hobson-Garcia <dhobsong@igel.co.jp>
- David Brownell <david-b@pacbell.net>
+diff -puN include/linux/mmzone.h~mm-highmem-simplify-is_highmem include/linux/mmzone.h
+--- a/include/linux/mmzone.h~mm-highmem-simplify-is_highmem
++++ a/include/linux/mmzone.h
+@@ -828,10 +828,7 @@ static inline int is_highmem_idx(enum zo
+ static inline int is_highmem(struct zone *zone)
+ {
+ #ifdef CONFIG_HIGHMEM
+-	int zone_off = (char *)zone - (char *)zone->zone_pgdat->node_zones;
+-	return zone_off == ZONE_HIGHMEM * sizeof(*zone) ||
+-	       (zone_off == ZONE_MOVABLE * sizeof(*zone) &&
+-		zone_movable_is_highmem());
++	return is_highmem_idx(zone_idx(zone));
+ #else
+ 	return 0;
+ #endif
 _
 
-Patches currently in -mm which might be from christophe.ricard@gmail.co=
-m are
+Patches currently in -mm which might be from chanho.min@lge.com are
 
-mailmap-add-christophe-ricard.patch
+mm-highmem-simplify-is_highmem.patch
 
---
-To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
