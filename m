@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-uninline-page_mapped.patch added to -mm tree
-Date: Thu, 31 Mar 2016 16:07:01 -0700
-Message-ID: <56fdad95./IlaS7HiFfpbfD54%akpm@linux-foundation.org>
+Subject: + mm-uninline-page_mapped-checkpatch-fixes.patch added to -mm
+ tree
+Date: Thu, 31 Mar 2016 16:07:28 -0700
+Message-ID: <56fdadb0.vfdwzt9pXTI3Z0pG%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38454 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:38457 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756627AbcCaXHC (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2016 19:07:02 -0400
+	with ESMTP id S1757883AbcCaXH3 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2016 19:07:29 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, kirill.shutemov@linux.intel.com, steve.capper@arm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: uninline page_mapped()
+     Subject: mm-uninline-page_mapped-checkpatch-fixes
 has been added to the -mm tree.  Its filename is
-     mm-uninline-page_mapped.patch
+     mm-uninline-page_mapped-checkpatch-fixes.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-uninline-page_mapped.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-uninline-page_mapped-checkpatch-fixes.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-uninline-page_mapped.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-uninline-page_mapped-checkpatch-fixes.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,83 +40,41 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andrew Morton <akpm@linux-foundation.org>
-Subject: mm: uninline page_mapped()
+Subject: mm-uninline-page_mapped-checkpatch-fixes
 
-It's huge.  Uninlining it saves 206 bytes per callsite.  Shaves 4924 bytes
-from the x86_64 allmodconfig vmlinux.
+WARNING: Missing a blank line after declarations
+#61: FILE: mm/util.c:356:
++	int i;
++	if (likely(!PageCompound(page)))
 
-Cc: Steve Capper <steve.capper@arm.com>
-Cc: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+total: 0 errors, 1 warnings, 55 lines checked
+
+./patches/mm-uninline-page_mapped.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.
+
+Please run checkpatch prior to sending patches
+
+
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |   21 +--------------------
- mm/util.c          |   22 ++++++++++++++++++++++
- 2 files changed, 23 insertions(+), 20 deletions(-)
+ mm/util.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN include/linux/mm.h~mm-uninline-page_mapped include/linux/mm.h
---- a/include/linux/mm.h~mm-uninline-page_mapped
-+++ a/include/linux/mm.h
-@@ -1019,26 +1019,7 @@ static inline pgoff_t page_file_index(st
- 	return page->index;
- }
- 
--/*
-- * Return true if this page is mapped into pagetables.
-- * For compound page it returns true if any subpage of compound page is mapped.
-- */
--static inline bool page_mapped(struct page *page)
--{
--	int i;
--	if (likely(!PageCompound(page)))
--		return atomic_read(&page->_mapcount) >= 0;
--	page = compound_head(page);
--	if (atomic_read(compound_mapcount_ptr(page)) >= 0)
--		return true;
--	if (PageHuge(page))
--		return false;
--	for (i = 0; i < hpage_nr_pages(page); i++) {
--		if (atomic_read(&page[i]._mapcount) >= 0)
--			return true;
--	}
--	return false;
--}
-+bool page_mapped(struct page *page);
- 
- /*
-  * Return true only if the page has been allocated with
-diff -puN mm/util.c~mm-uninline-page_mapped mm/util.c
---- a/mm/util.c~mm-uninline-page_mapped
+diff -puN include/linux/mm.h~mm-uninline-page_mapped-checkpatch-fixes include/linux/mm.h
+diff -puN mm/util.c~mm-uninline-page_mapped-checkpatch-fixes mm/util.c
+--- a/mm/util.c~mm-uninline-page_mapped-checkpatch-fixes
 +++ a/mm/util.c
-@@ -346,6 +346,28 @@ void *page_rmapping(struct page *page)
- 	return __page_rmapping(page);
- }
- 
-+/*
-+ * Return true if this page is mapped into pagetables.
-+ * For compound page it returns true if any subpage of compound page is mapped.
-+ */
-+bool page_mapped(struct page *page)
-+{
-+	int i;
-+	if (likely(!PageCompound(page)))
-+		return atomic_read(&page->_mapcount) >= 0;
-+	page = compound_head(page);
-+	if (atomic_read(compound_mapcount_ptr(page)) >= 0)
-+		return true;
-+	if (PageHuge(page))
-+		return false;
-+	for (i = 0; i < hpage_nr_pages(page); i++) {
-+		if (atomic_read(&page[i]._mapcount) >= 0)
-+			return true;
-+	}
-+	return false;
-+}
-+EXPORT_SYMBOL(page_mapped);
-+
- struct anon_vma *page_anon_vma(struct page *page)
+@@ -353,6 +353,7 @@ void *page_rmapping(struct page *page)
+ bool page_mapped(struct page *page)
  {
- 	unsigned long mapping;
+ 	int i;
++
+ 	if (likely(!PageCompound(page)))
+ 		return atomic_read(&page->_mapcount) >= 0;
+ 	page = compound_head(page);
 _
 
 Patches currently in -mm which might be from akpm@linux-foundation.org are
@@ -136,6 +95,7 @@ mm-hugetlbc-use-first_memory_node.patch
 mm-mempolicyc-offset_il_node-document-and-clarify.patch
 mm-compaction-direct-freepage-allocation-for-async-direct-compaction-checkpatch-fixes.patch
 mm-uninline-page_mapped.patch
+mm-uninline-page_mapped-checkpatch-fixes.patch
 mm-oom-rework-oom-detection-checkpatch-fixes.patch
 mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
 exit_thread-remove-empty-bodies-fix.patch
