@@ -1,32 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix.patch
- added to -mm tree
-Date: Thu, 31 Mar 2016 13:04:19 -0700
-Message-ID: <56fd82c3.6+JGRJAI/PGSLgoB%akpm@linux-foundation.org>
+Subject: + make-config_fhandle-default-y.patch added to -mm tree
+Date: Thu, 31 Mar 2016 13:22:09 -0700
+Message-ID: <56fd86f1.m/fK9T1qvezwony9%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:58294 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:58657 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757605AbcCaUEU (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2016 16:04:20 -0400
+	with ESMTP id S932791AbcCaUWK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2016 16:22:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: iamjoonsoo.kim@lge.com, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, richard.weinberger@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix
+     Subject: Make CONFIG_FHANDLE default y
 has been added to the -mm tree.  Its filename is
-     mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix.patch
+     make-config_fhandle-default-y.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/make-config_fhandle-default-y.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/make-config_fhandle-default-y.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,47 +38,47 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix
- fix fix
+From: Andi Kleen <ak@linux.intel.com>
+Subject: Make CONFIG_FHANDLE default y
 
-String in mm/page_alloc.c too
+Newer Fedora and OpenSUSE didn't boot with my standard configuration.  It
+took me some time to figure out why, in fact I had to write a script to
+try different config options systematically.
 
-Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+The problem is that something (systemd) in dracut depends on
+CONFIG_FHANDLE, which adds open by file handle syscalls.
+
+While it is set in defconfigs it is very easy to miss when updating older
+configs because it is not default y.
+
+Make it default y and also depend on EXPERT, as dracut use is likely
+widespread.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Richard Weinberger <richard.weinberger@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ init/Kconfig |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_alloc.c~mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix mm/page_alloc.c
---- a/mm/page_alloc.c~mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix
-+++ a/mm/page_alloc.c
-@@ -794,7 +794,7 @@ static inline int free_pages_check(struc
- 	if (unlikely(page->mapping != NULL))
- 		bad_reason = "non-NULL mapping";
- 	if (unlikely(page_ref_count(page) != 0))
--		bad_reason = "nonzero _count";
-+		bad_reason = "nonzero _refcount";
- 	if (unlikely(page->flags & PAGE_FLAGS_CHECK_AT_FREE)) {
- 		bad_reason = "PAGE_FLAGS_CHECK_AT_FREE flag(s) set";
- 		bad_flags = PAGE_FLAGS_CHECK_AT_FREE;
+diff -puN init/Kconfig~make-config_fhandle-default-y init/Kconfig
+--- a/init/Kconfig~make-config_fhandle-default-y
++++ a/init/Kconfig
+@@ -272,8 +272,9 @@ config CROSS_MEMORY_ATTACH
+ 	  See the man page for more details.
+ 
+ config FHANDLE
+-	bool "open by fhandle syscalls"
++	bool "open by fhandle syscalls" if EXPERT
+ 	select EXPORTFS
++	default y
+ 	help
+ 	  If you say Y here, a user level program will be able to map
+ 	  file names to handle and then later use the handle for
 _
 
-Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
-mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix.patch
-mm-slab-hold-a-slab_mutex-when-calling-__kmem_cache_shrink.patch
-mm-slab-remove-bad_alien_magic-again.patch
-mm-slab-drain-the-free-slab-as-much-as-possible.patch
-mm-slab-factor-out-kmem_cache_node-initialization-code.patch
-mm-slab-clean-up-kmem_cache_node-setup.patch
-mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
-mm-slab-racy-access-modify-the-slab-color.patch
-mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
-mm-slab-separate-cache_grow-to-two-parts.patch
-mm-slab-refill-cpu-cache-through-a-new-slab-without-holding-a-node-lock.patch
-mm-slab-lockless-decision-to-grow-cache.patch
+make-config_fhandle-default-y.patch
 
