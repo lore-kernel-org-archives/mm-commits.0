@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + exit_thread-remove-empty-bodies-fix.patch added to -mm tree
-Date: Thu, 31 Mar 2016 15:30:12 -0700
-Message-ID: <56fda4f4.Yr2mbzH5wjCz/z+T%akpm@linux-foundation.org>
+Subject: + mn10300-let-exit_fpu-accept-a-task.patch added to -mm tree
+Date: Thu, 31 Mar 2016 15:30:05 -0700
+Message-ID: <56fda4ed.O0qCv2kyO9/+dVan%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36391 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36326 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757479AbcCaWaN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2016 18:30:13 -0400
+	with ESMTP id S1755647AbcCaWaI (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2016 18:30:08 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: akpm@linux-foundation.org, jslaby@suse.cz, mm-commits@vger.kernel.org
+To: jslaby@suse.cz, a-jacquiot@ti.com, benh@kernel.crashing.org, catalin.marinas@arm.com, chris@zankel.net, cmetcalf@mellanox.com, dalias@libc.org, davem@davemloft.net, deller@gmx.de, dhowells@redhat.com, egtvedt@samfundet.no, fenghua.yu@intel.com, geert@linux-m68k.org, gxt@mprc.pku.edu.cn, heiko.carstens@de.ibm.com, hpa@zytor.com, hskinnemoen@gmail.com, ink@jurassic.park.msu.ru, james.hogan@imgtec.com, jcmvbkbc@gmail.com, jdike@addtoit.com, jejb@parisc-linux.org, jesper.nilsson@axis.com, jonas@southpole.se, lennox.wu@gmail.com, lftan@altera.com, linux@arm.linux.org.uk, liqin.linux@gmail.com, mattst88@gmail.com, mingo@redhat.com, monstr@monstr.eu, mpe@ellerman.id.au, msalter@redhat.com, paulus@samba.org, peterz@infradead.org, ralf@linux-mips.org, realmz6@gmail.com, richard@nod.at, rkuo@codeaurora.org, rth@twiddle.net, schwidefsky@de.ibm.com, starvik@axis.com, tglx@linutroni
 
 
 The patch titled
-     Subject: exit_thread-remove-empty-bodies-fix
+     Subject: mn10300: let exit_fpu accept a task
 has been added to the -mm tree.  Its filename is
-     exit_thread-remove-empty-bodies-fix.patch
+     mn10300-let-exit_fpu-accept-a-task.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/exit_thread-remove-empty-bodies-fix.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mn10300-let-exit_fpu-accept-a-task.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/exit_thread-remove-empty-bodies-fix.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mn10300-let-exit_fpu-accept-a-task.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,57 +38,113 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: exit_thread-remove-empty-bodies-fix
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: mn10300: let exit_fpu accept a task
 
-fix mips
+We need to call exit_thread from copy_process in a fail path.  Since
+exit_thread on mn10300 calls exit_thread_runtime_instr, make it accept
+task_struct as a parameter now.
 
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: "H. Peter Anvin" <hpa@zytor.com>
+Cc: "James E.J. Bottomley" <jejb@parisc-linux.org>
+Cc: Aurelien Jacquiot <a-jacquiot@ti.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Catalin Marinas <catalin.marinas@arm.com>
+Cc: Chen Liqin <liqin.linux@gmail.com>
+Cc: Chris Metcalf <cmetcalf@mellanox.com>
+Cc: Chris Zankel <chris@zankel.net>
+Cc: David Howells <dhowells@redhat.com>
+Cc: Fenghua Yu <fenghua.yu@intel.com>
+Cc: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: Haavard Skinnemoen <hskinnemoen@gmail.com>
+Cc: Hans-Christian Egtvedt <egtvedt@samfundet.no>
+Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
+Cc: Helge Deller <deller@gmx.de>
+Cc: Ingo Molnar <mingo@redhat.com>
+Cc: Ivan Kokshaysky <ink@jurassic.park.msu.ru>
+Cc: James Hogan <james.hogan@imgtec.com>
+Cc: Jeff Dike <jdike@addtoit.com>
+Cc: Jesper Nilsson <jesper.nilsson@axis.com>
 Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Jonas Bonn <jonas@southpole.se>
+Cc: Koichi Yasutake <yasutake.koichi@jp.panasonic.com>
+Cc: Lennox Wu <lennox.wu@gmail.com>
+Cc: Ley Foon Tan <lftan@altera.com>
+Cc: Mark Salter <msalter@redhat.com>
+Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
+Cc: Matt Turner <mattst88@gmail.com>
+Cc: Max Filippov <jcmvbkbc@gmail.com>
+Cc: Michael Ellerman <mpe@ellerman.id.au>
+Cc: Michal Simek <monstr@monstr.eu>
+Cc: Mikael Starvik <starvik@axis.com>
+Cc: Paul Mackerras <paulus@samba.org>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Ralf Baechle <ralf@linux-mips.org>
+Cc: Rich Felker <dalias@libc.org>
+Cc: Richard Henderson <rth@twiddle.net>
+Cc: Richard Kuo <rkuo@codeaurora.org>
+Cc: Richard Weinberger <richard@nod.at>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Steven Miao <realmz6@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Tony Luck <tony.luck@intel.com>
+Cc: Vineet Gupta <vgupta@synopsys.com>
+Cc: Will Deacon <will.deacon@arm.com>
+Cc: Yoshinori Sato <ysato@users.sourceforge.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/mips/kernel/process.c |    4 ----
- 1 file changed, 4 deletions(-)
+ arch/mn10300/include/asm/fpu.h |    6 ++----
+ arch/mn10300/kernel/process.c  |    2 +-
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
-diff -puN arch/mips/kernel/process.c~exit_thread-remove-empty-bodies-fix arch/mips/kernel/process.c
---- a/arch/mips/kernel/process.c~exit_thread-remove-empty-bodies-fix
-+++ a/arch/mips/kernel/process.c
-@@ -73,10 +73,6 @@ void start_thread(struct pt_regs * regs,
- 	regs->regs[29] = sp;
+diff -puN arch/mn10300/include/asm/fpu.h~mn10300-let-exit_fpu-accept-a-task arch/mn10300/include/asm/fpu.h
+--- a/arch/mn10300/include/asm/fpu.h~mn10300-let-exit_fpu-accept-a-task
++++ a/arch/mn10300/include/asm/fpu.h
+@@ -76,11 +76,9 @@ static inline void unlazy_fpu(struct tas
+ 	preempt_enable();
  }
  
--void exit_thread(void)
--{
--}
--
- void flush_thread(void)
+-static inline void exit_fpu(void)
++static inline void exit_fpu(struct task_struct *tsk)
  {
+ #ifdef CONFIG_LAZY_SAVE_FPU
+-	struct task_struct *tsk = current;
+-
+ 	preempt_disable();
+ 	if (fpu_state_owner == tsk)
+ 		fpu_state_owner = NULL;
+@@ -123,7 +121,7 @@ static inline void fpu_init_state(void)
+ static inline void fpu_save(struct fpu_state_struct *s) {}
+ static inline void fpu_kill_state(struct task_struct *tsk) {}
+ static inline void unlazy_fpu(struct task_struct *tsk) {}
+-static inline void exit_fpu(void) {}
++static inline void exit_fpu(struct task_struct *tsk) {}
+ static inline void flush_fpu(void) {}
+ static inline int fpu_setup_sigcontext(struct fpucontext *buf) { return 0; }
+ static inline int fpu_restore_sigcontext(struct fpucontext *buf) { return 0; }
+diff -puN arch/mn10300/kernel/process.c~mn10300-let-exit_fpu-accept-a-task arch/mn10300/kernel/process.c
+--- a/arch/mn10300/kernel/process.c~mn10300-let-exit_fpu-accept-a-task
++++ a/arch/mn10300/kernel/process.c
+@@ -105,7 +105,7 @@ void show_regs(struct pt_regs *regs)
+  */
+ void exit_thread(void)
+ {
+-	exit_fpu();
++	exit_fpu(current);
  }
+ 
+ void flush_thread(void)
 _
 
-Patches currently in -mm which might be from akpm@linux-foundation.org are
+Patches currently in -mm which might be from jslaby@suse.cz are
 
-i-need-old-gcc.patch
-arch-alpha-kernel-systblss-remove-debug-check.patch
-drivers-gpu-drm-i915-intel_spritec-fix-build.patch
-drivers-gpu-drm-i915-intel_tvc-fix-build.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
-mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
-ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
-arm-arch-arm-include-asm-pageh-needs-personalityh.patch
-mm.patch
-include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
-include-linux-nodemaskh-create-next_node_in-helper.patch
-include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
-mm-hugetlbc-use-first_memory_node.patch
-mm-mempolicyc-offset_il_node-document-and-clarify.patch
-mm-compaction-direct-freepage-allocation-for-async-direct-compaction-checkpatch-fixes.patch
-mm-oom-rework-oom-detection-checkpatch-fixes.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
-exit_thread-remove-empty-bodies-fix.patch
-exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
-drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
-do_shared_fault-check-that-mmap_sem-is-held.patch
-kernel-forkc-export-kernel_thread-to-modules.patch
-slab-leaks3-default-y.patch
+mn10300-let-exit_fpu-accept-a-task.patch
+exit_thread-remove-empty-bodies.patch
+exit_thread-accept-a-task-parameter-to-be-exited.patch
+fork-free-thread-in-copy_process-on-failure.patch
+maintainers-remove-linux-listsopenriscnet.patch
 
