@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
 Subject: +
- mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction.patch added to -mm tree
-Date: Thu, 31 Mar 2016 15:10:11 -0700
-Message-ID: <56fda043.JZd+WkC6EDwZ8JYb%akpm@linux-foundation.org>
+ mm-compaction-direct-freepage-allocation-for-async-direct-compaction.patch
+ added to -mm tree
+Date: Thu, 31 Mar 2016 15:10:13 -0700
+Message-ID: <56fda045.ZvJpsRUuCh72gy0k%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36173 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36181 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755210AbcCaWKM (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2016 18:10:12 -0400
+	with ESMTP id S1757883AbcCaWKO (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2016 18:10:14 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: vbabka@suse.cz, iamjoonsoo.kim@lge.com, mgorman@techsingularity.net, mhocko@suse.com, minchan@kernel.org, riel@redhat.com, rientjes@google.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: skip blocks where isolation fails in async direct compaction
+     Subject: mm, compaction: direct freepage allocation for async direct compaction
 has been added to the -mm tree.  Its filename is
-     mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction.patch
+     mm-compaction-direct-freepage-allocation-for-async-direct-compaction.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-direct-freepage-allocation-for-async-direct-compaction.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-direct-freepage-allocation-for-async-direct-compaction.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,21 +41,32 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Vlastimil Babka <vbabka@suse.cz>
-Subject: mm, compaction: skip blocks where isolation fails in async direct compaction
+Subject: mm, compaction: direct freepage allocation for async direct compaction
 
 The goal of direct compaction is to quickly make a high-order page
-available for the pending allocation.  Within an aligned block of pages of
-desired order, a single allocated page that cannot be isolated for
-migration means that the block cannot fully merge to a buddy page that
-would satisfy the allocation request.  Therefore we can reduce the
-allocation stall by skipping the rest of the block immediately on
-isolation failure.  For async compaction, this also means a higher chance
-of succeeding until it detects contention.
+available for the pending allocation.  The free page scanner can add
+significant latency when searching for migration targets, although to
+succeed the compaction, the only important limit on the target free pages
+is that they must not come from the same order-aligned block as the
+migrated pages.
 
-We however shouldn't completely sacrifice the second objective of
-compaction, which is to reduce overal long-term memory fragmentation.  As
-a compromise, perform the eager skipping only in direct async compaction,
-while sync compaction (including kcompactd) remains thorough.
+This patch therefore makes direct async compaction allocate freepages
+directly from freelists.  Pages that do come from the same block (which we
+cannot simply exclude from the freelist allocation) are put on separate
+list and released only after migration to allow them to merge.
+
+In addition to reduced stall, another advantage is that we split larger
+free pages for migration targets only when smaller pages are depleted,
+while the free scanner can split pages up to (order - 1) as it encouters
+them.  However, this approach likely sacrifices some of the long-term
+anti-fragmentation features of a thorough compaction, so we limit the
+direct allocation approach to direct async compaction.
+
+For observational purposes, the patch introduces two new counters to
+/proc/vmstat.  compact_free_direct_alloc counts how many pages were
+allocated directly without scanning, and compact_free_direct_miss counts
+the subset of these allocations that were from the wrong range and had to
+be held on the separate list.
 
 Signed-off-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
@@ -66,173 +78,199 @@ Cc: Michal Hocko <mhocko@suse.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   84 ++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 77 insertions(+), 7 deletions(-)
+ include/linux/vm_event_item.h |    1 
+ mm/compaction.c               |   52 +++++++++++++++++++++++++++++++-
+ mm/internal.h                 |    5 +++
+ mm/page_alloc.c               |   27 ++++++++++++++++
+ mm/vmstat.c                   |    2 +
+ 5 files changed, 86 insertions(+), 1 deletion(-)
 
-diff -puN mm/compaction.c~mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction mm/compaction.c
---- a/mm/compaction.c~mm-compaction-skip-blocks-where-isolation-fails-in-async-direct-compaction
+diff -puN include/linux/vm_event_item.h~mm-compaction-direct-freepage-allocation-for-async-direct-compaction include/linux/vm_event_item.h
+--- a/include/linux/vm_event_item.h~mm-compaction-direct-freepage-allocation-for-async-direct-compaction
++++ a/include/linux/vm_event_item.h
+@@ -51,6 +51,7 @@ enum vm_event_item { PGPGIN, PGPGOUT, PS
+ #endif
+ #ifdef CONFIG_COMPACTION
+ 		COMPACTMIGRATE_SCANNED, COMPACTFREE_SCANNED,
++		COMPACTFREE_DIRECT_ALLOC, COMPACTFREE_DIRECT_MISS,
+ 		COMPACTISOLATED,
+ 		COMPACTSTALL, COMPACTFAIL, COMPACTSUCCESS,
+ 		KCOMPACTD_WAKE,
+diff -puN mm/compaction.c~mm-compaction-direct-freepage-allocation-for-async-direct-compaction mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-direct-freepage-allocation-for-async-direct-compaction
 +++ a/mm/compaction.c
-@@ -644,6 +644,8 @@ isolate_migratepages_block(struct compac
- 	bool locked = false;
- 	struct page *page = NULL, *valid_page = NULL;
- 	unsigned long start_pfn = low_pfn;
-+	bool skip_on_failure = false;
-+	unsigned long next_skip_pfn = 0;
+@@ -1088,6 +1088,41 @@ static void isolate_freepages(struct com
+ 	cc->free_pfn = isolate_start_pfn;
+ }
  
- 	/*
- 	 * Ensure that there are not too many pages isolated from the LRU
-@@ -664,10 +666,37 @@ isolate_migratepages_block(struct compac
- 	if (compact_should_abort(cc))
- 		return 0;
- 
-+	if (cc->direct_compaction && (cc->mode == MIGRATE_ASYNC)) {
-+		skip_on_failure = true;
-+		next_skip_pfn = block_end_pfn(low_pfn, cc->order);
++static void isolate_freepages_direct(struct compact_control *cc)
++{
++	unsigned long nr_pages;
++	unsigned long flags;
++
++	nr_pages = cc->nr_migratepages - cc->nr_freepages;
++
++	if (!compact_trylock_irqsave(&cc->zone->lock, &flags, cc))
++		return;
++
++	while (nr_pages) {
++		struct page *page;
++		unsigned long pfn;
++
++		page = alloc_pages_zone(cc->zone, 0, MIGRATE_MOVABLE);
++		if (!page)
++			break;
++		pfn = page_to_pfn(page);
++
++		count_compact_event(COMPACTFREE_DIRECT_ALLOC);
++
++		/* Is the free page in the block we are migrating from? */
++		if (pfn >> cc->order ==	(cc->migrate_pfn - 1) >> cc->order) {
++			list_add(&page->lru, &cc->freepages_held);
++			count_compact_event(COMPACTFREE_DIRECT_MISS);
++		} else {
++			list_add(&page->lru, &cc->freepages);
++			cc->nr_freepages++;
++			nr_pages--;
++		}
 +	}
 +
- 	/* Time to isolate some pages for migration */
- 	for (; low_pfn < end_pfn; low_pfn++) {
- 		bool is_lru;
- 
-+		if (skip_on_failure && low_pfn >= next_skip_pfn) {
-+			/*
-+			 * We have isolated all migration candidates in the
-+			 * previous order-aligned block, and did not skip it due
-+			 * to failure. We should migrate the pages now and
-+			 * hopefully succeed compaction.
-+			 */
-+			if (nr_isolated)
-+				break;
++	spin_unlock_irqrestore(&cc->zone->lock, flags);
++}
 +
-+			/*
-+			 * We failed to isolate in the previous order-aligned
-+			 * block. Set the new boundary to the end of the
-+			 * current block. Note we can't simply increase
-+			 * next_skip_pfn by 1 << order, as low_pfn might have
-+			 * been incremented by a higher number due to skipping
-+			 * a compound or a high-order buddy page in the
-+			 * previous loop iteration.
-+			 */
-+			next_skip_pfn = block_end_pfn(low_pfn, cc->order);
-+		}
+ /*
+  * This is a migrate-callback that "allocates" freepages by taking pages
+  * from the isolated freelists in the block we are migrating to.
+@@ -1104,7 +1139,12 @@ static struct page *compaction_alloc(str
+ 	 * contention.
+ 	 */
+ 	if (list_empty(&cc->freepages)) {
+-		if (!cc->contended)
++		if (cc->contended)
++			return NULL;
 +
- 		/*
- 		 * Periodically drop the lock (if held) regardless of its
- 		 * contention, to give chance to IRQs. Abort async compaction
-@@ -679,7 +708,7 @@ isolate_migratepages_block(struct compac
- 			break;
++		if (cc->direct_compaction && (cc->mode == MIGRATE_ASYNC))
++			isolate_freepages_direct(cc);
++		else
+ 			isolate_freepages(cc);
  
- 		if (!pfn_valid_within(low_pfn))
--			continue;
-+			goto isolate_fail;
- 		nr_scanned++;
- 
- 		page = pfn_to_page(low_pfn);
-@@ -739,11 +768,11 @@ isolate_migratepages_block(struct compac
- 			if (likely(comp_order < MAX_ORDER))
- 				low_pfn += (1UL << comp_order) - 1;
- 
--			continue;
-+			goto isolate_fail;
- 		}
- 
- 		if (!is_lru)
--			continue;
-+			goto isolate_fail;
- 
- 		/*
- 		 * Migration will fail if an anonymous page is pinned in memory,
-@@ -752,7 +781,7 @@ isolate_migratepages_block(struct compac
- 		 */
- 		if (!page_mapping(page) &&
- 		    page_count(page) > page_mapcount(page))
--			continue;
-+			goto isolate_fail;
- 
- 		/* If we already hold the lock, we can skip some rechecking */
- 		if (!locked) {
-@@ -763,7 +792,7 @@ isolate_migratepages_block(struct compac
- 
- 			/* Recheck PageLRU and PageCompound under lock */
- 			if (!PageLRU(page))
--				continue;
-+				goto isolate_fail;
- 
- 			/*
- 			 * Page become compound since the non-locked check,
-@@ -772,7 +801,7 @@ isolate_migratepages_block(struct compac
- 			 */
- 			if (unlikely(PageCompound(page))) {
- 				low_pfn += (1UL << compound_order(page)) - 1;
--				continue;
-+				goto isolate_fail;
- 			}
- 		}
- 
-@@ -780,7 +809,7 @@ isolate_migratepages_block(struct compac
- 
- 		/* Try isolate the page */
- 		if (__isolate_lru_page(page, isolate_mode) != 0)
--			continue;
-+			goto isolate_fail;
- 
- 		VM_BUG_ON_PAGE(PageCompound(page), page);
- 
-@@ -806,6 +835,35 @@ isolate_success:
- 			++low_pfn;
- 			break;
- 		}
+ 		if (list_empty(&cc->freepages))
+@@ -1480,6 +1520,10 @@ static int compact_zone(struct zone *zon
+ 						(cc->mode == MIGRATE_ASYNC)) {
+ 				cc->migrate_pfn = block_end_pfn(
+ 						cc->migrate_pfn - 1, cc->order);
 +
-+		continue;
-+isolate_fail:
-+		if (!skip_on_failure)
-+			continue;
++				if (!list_empty(&cc->freepages_held))
++					release_freepages(&cc->freepages_held);
 +
-+		/*
-+		 * We have isolated some pages, but then failed. Release them
-+		 * instead of migrating, as we cannot form the cc->order buddy
-+		 * page anyway.
-+		 */
-+		if (nr_isolated) {
-+			if (locked) {
-+				spin_unlock_irqrestore(&zone->lru_lock,	flags);
-+				locked = false;
-+			}
-+			putback_movable_pages(migratelist);
-+			nr_isolated = 0;
-+			cc->last_migrated_pfn = 0;
-+		}
-+
-+		if (low_pfn < next_skip_pfn) {
-+			low_pfn = next_skip_pfn - 1;
-+			/*
-+			 * The check near the loop beginning would have updated
-+			 * next_skip_pfn too, but this is a bit simpler.
-+			 */
-+			next_skip_pfn += 1UL << cc->order;
-+		}
+ 				/* Draining pcplists is useless in this case */
+ 				cc->last_migrated_pfn = 0;
+ 
+@@ -1500,6 +1544,8 @@ check_drain:
+ 				block_start_pfn(cc->migrate_pfn, cc->order);
+ 
+ 			if (cc->last_migrated_pfn < current_block_start) {
++				if (!list_empty(&cc->freepages_held))
++					release_freepages(&cc->freepages_held);
+ 				cpu = get_cpu();
+ 				lru_add_drain_cpu(cpu);
+ 				drain_local_pages(zone);
+@@ -1530,6 +1576,8 @@ out:
+ 		if (free_pfn > zone->compact_cached_free_pfn)
+ 			zone->compact_cached_free_pfn = free_pfn;
  	}
++	if (!list_empty(&cc->freepages_held))
++		release_freepages(&cc->freepages_held);
  
- 	/*
-@@ -1414,6 +1472,18 @@ static int compact_zone(struct zone *zon
- 				ret = COMPACT_CONTENDED;
- 				goto out;
- 			}
-+			/*
-+			 * We failed to migrate at least one page in the current
-+			 * order-aligned block, so skip the rest of it.
-+			 */
-+			if (cc->direct_compaction &&
-+						(cc->mode == MIGRATE_ASYNC)) {
-+				cc->migrate_pfn = block_end_pfn(
-+						cc->migrate_pfn - 1, cc->order);
-+				/* Draining pcplists is useless in this case */
-+				cc->last_migrated_pfn = 0;
+ 	trace_mm_compaction_end(start_pfn, cc->migrate_pfn,
+ 				cc->free_pfn, end_pfn, sync, ret);
+@@ -1558,6 +1606,7 @@ static unsigned long compact_zone_order(
+ 	};
+ 	INIT_LIST_HEAD(&cc.freepages);
+ 	INIT_LIST_HEAD(&cc.migratepages);
++	INIT_LIST_HEAD(&cc.freepages_held);
+ 
+ 	ret = compact_zone(zone, &cc);
+ 
+@@ -1703,6 +1752,7 @@ static void __compact_pgdat(pg_data_t *p
+ 		cc->zone = zone;
+ 		INIT_LIST_HEAD(&cc->freepages);
+ 		INIT_LIST_HEAD(&cc->migratepages);
++		INIT_LIST_HEAD(&cc->freepages_held);
+ 
+ 		/*
+ 		 * When called via /proc/sys/vm/compact_memory
+diff -puN mm/internal.h~mm-compaction-direct-freepage-allocation-for-async-direct-compaction mm/internal.h
+--- a/mm/internal.h~mm-compaction-direct-freepage-allocation-for-async-direct-compaction
++++ a/mm/internal.h
+@@ -145,6 +145,8 @@ static inline struct page *pageblock_pfn
+ }
+ 
+ extern int __isolate_free_page(struct page *page, unsigned int order);
++extern struct page * alloc_pages_zone(struct zone *zone, unsigned int order,
++							int migratetype);
+ extern void __free_pages_bootmem(struct page *page, unsigned long pfn,
+ 					unsigned int order);
+ extern void prep_compound_page(struct page *page, unsigned int order);
+@@ -165,6 +167,9 @@ extern int user_min_free_kbytes;
+ struct compact_control {
+ 	struct list_head freepages;	/* List of free pages to migrate to */
+ 	struct list_head migratepages;	/* List of pages being migrated */
++	struct list_head freepages_held;/* List of free pages from the block
++					 * that's being migrated
++					 */
+ 	unsigned long nr_freepages;	/* Number of isolated free pages */
+ 	unsigned long nr_migratepages;	/* Number of pages to migrate */
+ 	unsigned long free_pfn;		/* isolate_freepages search base */
+diff -puN mm/page_alloc.c~mm-compaction-direct-freepage-allocation-for-async-direct-compaction mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-direct-freepage-allocation-for-async-direct-compaction
++++ a/mm/page_alloc.c
+@@ -2342,6 +2342,33 @@ int split_free_page(struct page *page)
+ }
+ 
+ /*
++ * Like split_free_page, but given the zone, it will grab a free page from
++ * the freelists.
++ */
++struct page *
++alloc_pages_zone(struct zone *zone, unsigned int order, int migratetype)
++{
++	struct page *page;
++	unsigned long watermark;
 +
-+			}
- 		}
- 
- check_drain:
++	watermark = low_wmark_pages(zone) + (1 << order);
++	if (!zone_watermark_ok(zone, 0, watermark, 0, 0))
++		return NULL;
++
++	page = __rmqueue(zone, order, migratetype);
++	if (!page)
++		return NULL;
++
++	__mod_zone_freepage_state(zone, -(1 << order),
++					  get_pcppage_migratetype(page));
++
++	set_page_owner(page, order, __GFP_MOVABLE);
++	set_page_refcounted(page);
++
++	return page;
++}
++
++/*
+  * Allocate a page from the given zone. Use pcplists for order-0 allocations.
+  */
+ static inline
+diff -puN mm/vmstat.c~mm-compaction-direct-freepage-allocation-for-async-direct-compaction mm/vmstat.c
+--- a/mm/vmstat.c~mm-compaction-direct-freepage-allocation-for-async-direct-compaction
++++ a/mm/vmstat.c
+@@ -822,6 +822,8 @@ const char * const vmstat_text[] = {
+ #ifdef CONFIG_COMPACTION
+ 	"compact_migrate_scanned",
+ 	"compact_free_scanned",
++	"compact_free_direct_alloc",
++	"compact_free_direct_miss",
+ 	"compact_isolated",
+ 	"compact_stall",
+ 	"compact_fail",
 _
 
 Patches currently in -mm which might be from vbabka@suse.cz are
