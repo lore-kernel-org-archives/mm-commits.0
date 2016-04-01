@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch added to -mm tree
-Date: Fri, 01 Apr 2016 15:57:03 -0700
-Message-ID: <56fefcbf.xu+KcumrDVIDF338%akpm@linux-foundation.org>
+Subject: + mm-vmstat-add-zone-range-overlapping-check.patch added to -mm
+ tree
+Date: Fri, 01 Apr 2016 15:57:05 -0700
+Message-ID: <56fefcc1.XG1YxzzWcvAPaPmy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55043 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55059 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753252AbcDAW5F (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Apr 2016 18:57:05 -0400
+	with ESMTP id S1753749AbcDAW5G (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Apr 2016 18:57:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, hannes@cmpxchg.org, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mpe@ellerman.id.au, paulus@samba.org, riel@redhat.com, rjw@rjwysocki.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/memory_hotplug: add comment to some functions related to memory hotplug
+     Subject: mm/vmstat: add zone range overlapping check
 has been added to the -mm tree.  Its filename is
-     mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch
+     mm-vmstat-add-zone-range-overlapping-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-add-zone-range-overlapping-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-add-zone-range-overlapping-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,13 +40,20 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/memory_hotplug: add comment to some functions related to memory hotplug
+Subject: mm/vmstat: add zone range overlapping check
 
-__offline_isolated_pages() and test_pages_isolated() are used by memory
-hotplug.  These functions require that range is in a single zone but there
-is no code to do this because memory hotplug checks it before calling
-these functions.  To avoid confusing future user of these functions, this
-patch adds comments to them.
+There is a system thats node's pfns are overlapped as follows:
+
+-----pfn-------->
+N0 N1 N2 N0 N1 N2
+
+Therefore, we need to care this overlapping when iterating pfn range.
+
+There are two places in vmstat.c that iterates pfn range and they don't
+consider this overlapping.  Add it.
+
+Without this patch, above system could over count pageblock number on a
+zone.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
@@ -65,34 +72,33 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c     |    3 ++-
- mm/page_isolation.c |    1 +
- 2 files changed, 3 insertions(+), 1 deletion(-)
+ mm/vmstat.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff -puN mm/page_alloc.c~mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug mm/page_alloc.c
---- a/mm/page_alloc.c~mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug
-+++ a/mm/page_alloc.c
-@@ -7203,7 +7203,8 @@ void zone_pcp_reset(struct zone *zone)
+diff -puN mm/vmstat.c~mm-vmstat-add-zone-range-overlapping-check mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstat-add-zone-range-overlapping-check
++++ a/mm/vmstat.c
+@@ -1012,6 +1012,9 @@ static void pagetypeinfo_showblockcount_
+ 		if (!memmap_valid_within(pfn, page, zone))
+ 			continue;
  
- #ifdef CONFIG_MEMORY_HOTREMOVE
- /*
-- * All pages in the range must be isolated before calling this.
-+ * All pages in the range must be in a single zone and isolated
-+ * before calling this.
-  */
- void
- __offline_isolated_pages(unsigned long start_pfn, unsigned long end_pfn)
-diff -puN mm/page_isolation.c~mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug mm/page_isolation.c
---- a/mm/page_isolation.c~mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug
-+++ a/mm/page_isolation.c
-@@ -246,6 +246,7 @@ __test_page_isolated_in_pageblock(unsign
- 	return pfn;
- }
++		if (page_zone(page) != zone)
++			continue;
++
+ 		mtype = get_pageblock_migratetype(page);
  
-+/* Caller should ensure that requested range is in a single zone */
- int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn,
- 			bool skip_hwpoisoned_pages)
- {
+ 		if (mtype < MIGRATE_TYPES)
+@@ -1078,6 +1081,10 @@ static void pagetypeinfo_showmixedcount_
+ 				continue;
+ 
+ 			page = pfn_to_page(pfn);
++
++			if (page_zone(page) != zone)
++				continue;
++
+ 			if (PageBuddy(page)) {
+ 				pfn += (1UL << page_order(page)) - 1;
+ 				continue;
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
