@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-exclude-hugetlb-pages-from-thp-page_mapped-logic.patch added to -mm tree
-Date: Thu, 31 Mar 2016 16:07:47 -0700
-Message-ID: <56fdadc3.XaV9ayk7qniiceII%akpm@linux-foundation.org>
+Subject: + linux-next-rejects.patch added to -mm tree
+Date: Fri, 01 Apr 2016 11:54:03 -0700
+Message-ID: <56fec3cb.CoZ2n8TpN4VTG2en%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38459 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39253 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753140AbcCaXHs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Thu, 31 Mar 2016 19:07:48 -0400
+	with ESMTP id S1751035AbcDASyF (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Apr 2016 14:54:05 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: steve.capper@arm.com, catalin.marinas@arm.com, kirill.shutemov@linux.intel.com, mhocko@suse.com, mingo@kernel.org, stable@vger.kernel.org, will.deacon@arm.com, mm-commits@vger.kernel.org
+To: akpm@linux-foundation.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: exclude HugeTLB pages from THP page_mapped() logic
+     Subject: linux-next-rejects
 has been added to the -mm tree.  Its filename is
-     mm-exclude-hugetlb-pages-from-thp-page_mapped-logic.patch
+     linux-next-rejects.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-exclude-hugetlb-pages-from-thp-page_mapped-logic.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/linux-next-rejects.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-exclude-hugetlb-pages-from-thp-page_mapped-logic.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/linux-next-rejects.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,56 +38,57 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Steve Capper <steve.capper@arm.com>
-Subject: mm: exclude HugeTLB pages from THP page_mapped() logic
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: linux-next-rejects
 
-HugeTLB pages cannot be split, so we use the compound_mapcount to track
-rmaps.
-
-Currently page_mapped() will check the compound_mapcount, but will also go
-through the constituent pages of a THP compound page and query the
-individual _mapcount's too.
-
-Unfortunately, page_mapped() does not distinguish between HugeTLB and THP
-compound pages and assumes that a compound page always needs to have
-HPAGE_PMD_NR pages querying.
-
-For most cases when dealing with HugeTLB this is just inefficient, but for
-scenarios where the HugeTLB page size is less than the pmd block size
-(e.g.  when using contiguous bit on ARM) this can lead to crashes.
-
-This patch adjusts the page_mapped function such that we skip the
-unnecessary THP reference checks for HugeTLB pages.
-
-Fixes: e1534ae95004 ("mm: differentiate page_mapped() from page_mapcount() for compound pages")
-Signed-off-by: Steve Capper <steve.capper@arm.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: <stable@vger.kernel.org>	[4.4+]
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mm.h |    2 ++
- 1 file changed, 2 insertions(+)
+ arch/mips/kernel/process.c |    4 ----
+ 1 file changed, 4 deletions(-)
 
-diff -puN include/linux/mm.h~mm-exclude-hugetlb-pages-from-thp-page_mapped-logic include/linux/mm.h
---- a/include/linux/mm.h~mm-exclude-hugetlb-pages-from-thp-page_mapped-logic
-+++ a/include/linux/mm.h
-@@ -1031,6 +1031,8 @@ static inline bool page_mapped(struct pa
- 	page = compound_head(page);
- 	if (atomic_read(compound_mapcount_ptr(page)) >= 0)
- 		return true;
-+	if (PageHuge(page))
-+		return false;
- 	for (i = 0; i < hpage_nr_pages(page); i++) {
- 		if (atomic_read(&page[i]._mapcount) >= 0)
- 			return true;
+diff -puN arch/mips/kernel/process.c~linux-next-rejects arch/mips/kernel/process.c
+--- a/arch/mips/kernel/process.c~linux-next-rejects
++++ a/arch/mips/kernel/process.c
+@@ -73,10 +73,6 @@ void start_thread(struct pt_regs * regs,
+ 	regs->regs[29] = sp;
+ }
+ 
+-void flush_thread(void)
+-{
+-}
+-
+ int arch_dup_task_struct(struct task_struct *dst, struct task_struct *src)
+ {
+ 	/*
 _
 
-Patches currently in -mm which might be from steve.capper@arm.com are
+Patches currently in -mm which might be from akpm@linux-foundation.org are
 
-mm-exclude-hugetlb-pages-from-thp-page_mapped-logic.patch
+i-need-old-gcc.patch
+arch-alpha-kernel-systblss-remove-debug-check.patch
+drivers-gpu-drm-i915-intel_spritec-fix-build.patch
+drivers-gpu-drm-i915-intel_tvc-fix-build.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix.patch
+ksm-introduce-ksm_max_page_sharing-per-page-deduplication-limit-fix-2.patch
+arm-arch-arm-include-asm-pageh-needs-personalityh.patch
+mm.patch
+include-linux-apply-__malloc-attribute-checkpatch-fixes.patch
+include-linux-nodemaskh-create-next_node_in-helper.patch
+include-linux-nodemaskh-create-next_node_in-helper-fix-fix.patch
+mm-hugetlbc-use-first_memory_node.patch
+mm-mempolicyc-offset_il_node-document-and-clarify.patch
+mm-compaction-direct-freepage-allocation-for-async-direct-compaction-checkpatch-fixes.patch
+mm-uninline-page_mapped.patch
+mm-uninline-page_mapped-checkpatch-fixes.patch
+mm-oom-rework-oom-detection-checkpatch-fixes.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations-checkpatch-fixes.patch
+exit_thread-remove-empty-bodies-fix.patch
+exit_thread-accept-a-task-parameter-to-be-exited-checkpatch-fixes.patch
+drivers-net-wireless-intel-iwlwifi-dvm-calibc-fix-min-warning.patch
+do_shared_fault-check-that-mmap_sem-is-held.patch
+kernel-forkc-export-kernel_thread-to-modules.patch
+slab-leaks3-default-y.patch
+linux-next-rejects.patch
 
