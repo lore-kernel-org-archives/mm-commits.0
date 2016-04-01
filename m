@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_owner-add-zone-range-overlapping-check.patch added to
- -mm tree
-Date: Fri, 01 Apr 2016 15:57:07 -0700
-Message-ID: <56fefcc3.WIdBiyD+QXhH5LfP%akpm@linux-foundation.org>
+Subject: + power-add-zone-range-overlapping-check.patch added to -mm tree
+Date: Fri, 01 Apr 2016 15:57:09 -0700
+Message-ID: <56fefcc5.CmgCj/dqbw0qMKWf%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55074 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55094 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753749AbcDAW5J (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Apr 2016 18:57:09 -0400
+	with ESMTP id S1753749AbcDAW5L (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Fri, 1 Apr 2016 18:57:11 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, benh@kernel.crashing.org, hannes@cmpxchg.org, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, mpe@ellerman.id.au, paulus@samba.org, riel@redhat.com, rjw@rjwysocki.net, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_owner: add zone range overlapping check
+     Subject: power: add zone range overlapping check
 has been added to the -mm tree.  Its filename is
-     mm-page_owner-add-zone-range-overlapping-check.patch
+     power-add-zone-range-overlapping-check.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_owner-add-zone-range-overlapping-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/power-add-zone-range-overlapping-check.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_owner-add-zone-range-overlapping-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/power-add-zone-range-overlapping-check.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_owner: add zone range overlapping check
+Subject: power: add zone range overlapping check
 
 There is a system thats node's pfns are overlapped as follows:
 
@@ -49,11 +48,12 @@ N0 N1 N2 N0 N1 N2
 
 Therefore, we need to care this overlapping when iterating pfn range.
 
-There are one place in page_owner.c that iterates pfn range and
-it doesn't consider this overlapping. Add it.
-
-Without this patch, above system could over count early allocated
-page number before page_owner is activated.
+mark_free_pages() iterates requested zone's pfn range and unset all
+range's bitmap first.  And then it marks freepages in a zone to the
+bitmap.  If there is an overlapping zone, above unset could clear previous
+marked bit and reference to this bitmap in the future will cause the
+problem.  To prevent it, this patch adds a zone check in
+mark_free_pages().
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Acked-by: Vlastimil Babka <vbabka@suse.cz>
@@ -72,22 +72,23 @@ Cc: Michael Ellerman <mpe@ellerman.id.au>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_owner.c |    3 +++
- 1 file changed, 3 insertions(+)
+ mm/page_alloc.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-diff -puN mm/page_owner.c~mm-page_owner-add-zone-range-overlapping-check mm/page_owner.c
---- a/mm/page_owner.c~mm-page_owner-add-zone-range-overlapping-check
-+++ a/mm/page_owner.c
-@@ -301,6 +301,9 @@ static void init_pages_in_zone(pg_data_t
- 
+diff -puN mm/page_alloc.c~power-add-zone-range-overlapping-check mm/page_alloc.c
+--- a/mm/page_alloc.c~power-add-zone-range-overlapping-check
++++ a/mm/page_alloc.c
+@@ -2156,6 +2156,10 @@ void mark_free_pages(struct zone *zone)
+ 	for (pfn = zone->zone_start_pfn; pfn < max_zone_pfn; pfn++)
+ 		if (pfn_valid(pfn)) {
  			page = pfn_to_page(pfn);
- 
++
 +			if (page_zone(page) != zone)
 +				continue;
 +
- 			/*
- 			 * We are safe to check buddy flag and order, because
- 			 * this is init stage and only single thread runs.
+ 			if (!swsusp_page_is_forbidden(page))
+ 				swsusp_unset_page_free(page);
+ 		}
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
