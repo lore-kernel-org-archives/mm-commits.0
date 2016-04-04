@@ -1,60 +1,66 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- maintainers-orangefs-mailing-list-is-subscribers-only.patch removed from
- -mm tree
-Date: Mon, 04 Apr 2016 11:09:29 -0700
-Message-ID: <5702add9.7Ew+K8mJsSqFgWxA%akpm@linux-foundation.org>
+Subject: [merged] mm-kasan-fix-compilation-for-config_slab.patch removed
+ from -mm tree
+Date: Mon, 04 Apr 2016 11:09:32 -0700
+Message-ID: <5702addc.8T1RPWw4yIdoSghu%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56918 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56924 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751513AbcDDSJb (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 14:09:31 -0400
+	with ESMTP id S1755392AbcDDSJd (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 14:09:33 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: joe@perches.com, hubcap@omnibond.com, mm-commits@vger.kernel.org
+To: glider@google.com, adech.fo@gmail.com, cl@linux.com, dvyukov@google.com, iamjoonsoo.kim@lge.com, kcc@google.com, rostedt@goodmis.org, ryabinin.a.a@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: MAINTAINERS: orangefs mailing list is subscribers-only
+     Subject: mm, kasan: fix compilation for CONFIG_SLAB
 has been removed from the -mm tree.  Its filename was
-     maintainers-orangefs-mailing-list-is-subscribers-only.patch
+     mm-kasan-fix-compilation-for-config_slab.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Joe Perches <joe@perches.com>
-Subject: MAINTAINERS: orangefs mailing list is subscribers-only
+From: Alexander Potapenko <glider@google.com>
+Subject: mm, kasan: fix compilation for CONFIG_SLAB
 
-So update MAINTAINERS to say so.
+Add the missing argument to set_track().
 
-Signed-off-by: Joe Perches <joe@perches.com>
-Cc: Mike Marshall <hubcap@omnibond.com>
+Fixes: cd11016e5f52 ("mm, kasan: stackdepot implementation. Enable stackdepot for SLAB")
+Signed-off-by: Alexander Potapenko <glider@google.com>
+Cc: Andrey Konovalov <adech.fo@gmail.com>
+Cc: Christoph Lameter <cl@linux.com>
+Cc: Dmitry Vyukov <dvyukov@google.com>
+Cc: Andrey Ryabinin <ryabinin.a.a@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Cc: Konstantin Serebryany <kcc@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- MAINTAINERS |    2 +-
+ mm/kasan/kasan.c |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN MAINTAINERS~maintainers-orangefs-mailing-list-is-subscribers-only MAINTAINERS
---- a/MAINTAINERS~maintainers-orangefs-mailing-list-is-subscribers-only
-+++ a/MAINTAINERS
-@@ -8253,7 +8253,7 @@ F:	Documentation/filesystems/overlayfs.t
+diff -puN mm/kasan/kasan.c~mm-kasan-fix-compilation-for-config_slab mm/kasan/kasan.c
+--- a/mm/kasan/kasan.c~mm-kasan-fix-compilation-for-config_slab
++++ a/mm/kasan/kasan.c
+@@ -498,7 +498,7 @@ void kasan_slab_free(struct kmem_cache *
+ 		struct kasan_alloc_meta *alloc_info =
+ 			get_alloc_info(cache, object);
+ 		alloc_info->state = KASAN_STATE_FREE;
+-		set_track(&free_info->track);
++		set_track(&free_info->track, GFP_NOWAIT);
+ 	}
+ #endif
  
- ORANGEFS FILESYSTEM
- M:	Mike Marshall <hubcap@omnibond.com>
--L:	pvfs2-developers@beowulf-underground.org
-+L:	pvfs2-developers@beowulf-underground.org (subscribers-only)
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/hubcap/linux.git
- S:	Supported
- F:	fs/orangefs/
 _
 
-Patches currently in -mm which might be from joe@perches.com are
+Patches currently in -mm which might be from glider@google.com are
 
-checkpatch-add-prefer_is_enabled-test.patch
-checkpatch-improve-constant_comparison-test-for-structure-members.patch
+mm-kasan-initial-memory-quarantine-implementation.patch
+mm-kasan-initial-memory-quarantine-implementation-v8.patch
 
