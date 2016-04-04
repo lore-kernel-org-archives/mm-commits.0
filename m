@@ -1,71 +1,113 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- oom-oom_reaper-do-not-enqueue-task-if-it-is-on-the-oom_reaper_list-head.patch removed from -mm tree
-Date: Mon, 04 Apr 2016 11:09:47 -0700
-Message-ID: <5702adeb.jXdwbyZEWAMnhImI%akpm@linux-foundation.org>
+ mm-rmap-batched-invalidations-should-use-existing-api.patch removed from
+ -mm tree
+Date: Mon, 04 Apr 2016 11:09:43 -0700
+Message-ID: <5702ade7.Maf/TNVVvyDhfNRE%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56963 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56954 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753517AbcDDSJs (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 14:09:48 -0400
+	with ESMTP id S1753517AbcDDSJo (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 14:09:44 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
+To: namit@vmware.com, dave.hansen@intel.com, mgorman@suse.de, mingo@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: oom, oom_reaper: do not enqueue task if it is on the oom_reaper_list head
+     Subject: mm/rmap: batched invalidations should use existing api
 has been removed from the -mm tree.  Its filename was
-     oom-oom_reaper-do-not-enqueue-task-if-it-is-on-the-oom_reaper_list-head.patch
+     mm-rmap-batched-invalidations-should-use-existing-api.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Michal Hocko <mhocko@suse.com>
-Subject: oom, oom_reaper: do not enqueue task if it is on the oom_reaper_list head
+From: Nadav Amit <namit@vmware.com>
+Subject: mm/rmap: batched invalidations should use existing api
 
-bb29902a7515 ("oom, oom_reaper: protect oom_reaper_list using simpler
-way") has simplified the check for tasks already enqueued for the oom
-reaper by checking tsk->oom_reaper_list != NULL.  This check is not
-sufficient because the tsk might be the head of the queue without any
-other tasks queued and then we would simply lockup looping on the same
-task.  Fix the condition by checking for the head as well.
+The recently introduced batched invalidations mechanism uses its own
+mechanism for shootdown.  However, it does wrong accounting of interrupts
+(e.g., inc_irq_stat is called for local invalidations), trace-points
+(e.g., TLB_REMOTE_SHOOTDOWN for local invalidations) and may break some
+platforms as it bypasses the invalidation mechanisms of Xen and SGI UV.
 
-Fixes: bb29902a7515 ("oom, oom_reaper: protect oom_reaper_list using simpler way")
-Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+This patch reuses the existing TLB flushing mechnaisms instead.  We use
+NULL as mm to indicate a global invalidation is required.
+
+Fixes 72b252aed506b8 ("mm: send one IPI per CPU to TLB flush all entries after unmapping pages")
+Signed-off-by: Nadav Amit <namit@vmware.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/oom_kill.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ arch/x86/include/asm/tlbflush.h |    6 ------
+ arch/x86/mm/tlb.c               |    2 +-
+ mm/rmap.c                       |   28 +++++++---------------------
+ 3 files changed, 8 insertions(+), 28 deletions(-)
 
-diff -puN mm/oom_kill.c~oom-oom_reaper-do-not-enqueue-task-if-it-is-on-the-oom_reaper_list-head mm/oom_kill.c
---- a/mm/oom_kill.c~oom-oom_reaper-do-not-enqueue-task-if-it-is-on-the-oom_reaper_list-head
-+++ a/mm/oom_kill.c
-@@ -547,7 +547,11 @@ static int oom_reaper(void *unused)
+diff -puN arch/x86/include/asm/tlbflush.h~mm-rmap-batched-invalidations-should-use-existing-api arch/x86/include/asm/tlbflush.h
+--- a/arch/x86/include/asm/tlbflush.h~mm-rmap-batched-invalidations-should-use-existing-api
++++ a/arch/x86/include/asm/tlbflush.h
+@@ -319,12 +319,6 @@ static inline void reset_lazy_tlbstate(v
  
- static void wake_oom_reaper(struct task_struct *tsk)
- {
--	if (!oom_reaper_th || tsk->oom_reaper_list)
-+	if (!oom_reaper_th)
-+		return;
-+
-+	/* tsk is already queued? */
-+	if (tsk == oom_reaper_list || tsk->oom_reaper_list)
+ #endif	/* SMP */
+ 
+-/* Not inlined due to inc_irq_stat not being defined yet */
+-#define flush_tlb_local() {		\
+-	inc_irq_stat(irq_tlb_count);	\
+-	local_flush_tlb();		\
+-}
+-
+ #ifndef CONFIG_PARAVIRT
+ #define flush_tlb_others(mask, mm, start, end)	\
+ 	native_flush_tlb_others(mask, mm, start, end)
+diff -puN arch/x86/mm/tlb.c~mm-rmap-batched-invalidations-should-use-existing-api arch/x86/mm/tlb.c
+--- a/arch/x86/mm/tlb.c~mm-rmap-batched-invalidations-should-use-existing-api
++++ a/arch/x86/mm/tlb.c
+@@ -104,7 +104,7 @@ static void flush_tlb_func(void *info)
+ 
+ 	inc_irq_stat(irq_tlb_count);
+ 
+-	if (f->flush_mm != this_cpu_read(cpu_tlbstate.active_mm))
++	if (f->flush_mm && f->flush_mm != this_cpu_read(cpu_tlbstate.active_mm))
  		return;
  
- 	get_task_struct(tsk);
-_
-
-Patches currently in -mm which might be from mhocko@suse.com are
-
-include-linux-nodemaskh-create-next_node_in-helper-fix.patch
-mm-oom-rework-oom-detection.patch
-mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
-mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
-
+ 	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH_RECEIVED);
+diff -puN mm/rmap.c~mm-rmap-batched-invalidations-should-use-existing-api mm/rmap.c
+--- a/mm/rmap.c~mm-rmap-batched-invalidations-should-use-existing-api
++++ a/mm/rmap.c
+@@ -569,19 +569,6 @@ void page_unlock_anon_vma_read(struct an
+ }
+ 
+ #ifdef CONFIG_ARCH_WANT_BATCHED_UNMAP_TLB_FLUSH
+-static void percpu_flush_tlb_batch_pages(void *data)
+-{
+-	/*
+-	 * All TLB entries are flushed on the assumption that it is
+-	 * cheaper to flush all TLBs and let them be refilled than
+-	 * flushing individual PFNs. Note that we do not track mm's
+-	 * to flush as that might simply be multiple full TLB flushes
+-	 * for no gain.
+-	 */
+-	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH_RECEIVED);
+-	flush_tlb_local();
+-}
+-
+ /*
+  * Flush TLB entries for recently unmapped pages from remote CPUs. It is
+  * important if a PTE was dirty when it was unmapped that it's flushed
+@@ -598,15 +585,14 @@ void try_to_unmap_flush(void)
+ 
+ 	cpu = get_cpu();
+ 
+-	trace_tlb_flush(TLB_REMOTE_SHOOTDOWN, -1UL);
+-
+-	if (cpumask_test_cpu(cpu, &tlb_ubc->cpumask))
+-		percpu_flush_tlb_batch_pages(&tlb_ubc->cpumask);
