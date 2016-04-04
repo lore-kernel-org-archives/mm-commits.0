@@ -1,86 +1,63 @@
 From: akpm@linux-foundation.org
-Subject: [merged] x86-mm-tlb_remote_send_ipi-should-count-pages.patch
- removed from -mm tree
-Date: Mon, 04 Apr 2016 11:09:41 -0700
-Message-ID: <5702ade5.DtpnbaFMSqVoOWO+%akpm@linux-foundation.org>
+Subject: [merged] mailmap-add-christophe-ricard.patch removed from -mm
+ tree
+Date: Mon, 04 Apr 2016 11:09:53 -0700
+Message-ID: <5702adf1.5PFU2QF540hVBHVa%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56944 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56972 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753517AbcDDSJm (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 14:09:42 -0400
+	with ESMTP id S1755675AbcDDSJx (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 14:09:53 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: namit@vmware.com, dave.hansen@intel.com, mgorman@suse.de, mingo@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
+To: christophe.ricard@gmail.com, christophe-h.ricard@st.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: x86/mm: TLB_REMOTE_SEND_IPI should count pages
+     Subject: .mailmap: add Christophe Ricard
 has been removed from the -mm tree.  Its filename was
-     x86-mm-tlb_remote_send_ipi-should-count-pages.patch
+     mailmap-add-christophe-ricard.patch
 
-This patch was dropped because it was merged into mainline or a subsystem tree
+This patch was dropped because it was merged into mainline or a subsyst=
+em tree
 
 ------------------------------------------------------
-From: Nadav Amit <namit@vmware.com>
-Subject: x86/mm: TLB_REMOTE_SEND_IPI should count pages
+=46rom: Christophe Ricard <christophe.ricard@gmail.com>
+Subject: .mailmap: add Christophe Ricard
 
-TLB_REMOTE_SEND_IPI was recently introduced, but it counts bytes instead
-of pages.  In addition, it does not report correctly the case in which
-flush_tlb_page flushes a page.  Fix it to be consistent with other TLB
-counters.
+Different computers had different settings in the mail client. Some
+contributions appear as Christophe Ricard, others as Christophe RICARD.
 
-Fixes: 5b74283ab251b9d ("x86, mm: trace when an IPI is about to be sent")
-Signed-off-by: Nadav Amit <namit@vmware.com>
-Cc: Mel Gorman <mgorman@suse.de>
-Cc: Rik van Riel <riel@redhat.com>
-Cc: Dave Hansen <dave.hansen@intel.com>
-Cc: Ingo Molnar <mingo@kernel.org>
+Signed-off-by: Christophe Ricard <christophe-h.ricard@st.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/mm/tlb.c |   12 +++++++++---
- 1 file changed, 9 insertions(+), 3 deletions(-)
+ .mailmap |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff -puN arch/x86/mm/tlb.c~x86-mm-tlb_remote_send_ipi-should-count-pages arch/x86/mm/tlb.c
---- a/arch/x86/mm/tlb.c~x86-mm-tlb_remote_send_ipi-should-count-pages
-+++ a/arch/x86/mm/tlb.c
-@@ -106,8 +106,6 @@ static void flush_tlb_func(void *info)
- 
- 	if (f->flush_mm != this_cpu_read(cpu_tlbstate.active_mm))
- 		return;
--	if (!f->flush_end)
--		f->flush_end = f->flush_start + PAGE_SIZE;
- 
- 	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH_RECEIVED);
- 	if (this_cpu_read(cpu_tlbstate.state) == TLBSTATE_OK) {
-@@ -135,12 +133,20 @@ void native_flush_tlb_others(const struc
- 				 unsigned long end)
- {
- 	struct flush_tlb_info info;
-+
-+	if (end == 0)
-+		end = start + PAGE_SIZE;
- 	info.flush_mm = mm;
- 	info.flush_start = start;
- 	info.flush_end = end;
- 
- 	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH);
--	trace_tlb_flush(TLB_REMOTE_SEND_IPI, end - start);
-+	if (end == TLB_FLUSH_ALL)
-+		trace_tlb_flush(TLB_REMOTE_SEND_IPI, TLB_FLUSH_ALL);
-+	else
-+		trace_tlb_flush(TLB_REMOTE_SEND_IPI,
-+				(end - start) >> PAGE_SHIFT);
-+
- 	if (is_uv_system()) {
- 		unsigned int cpu;
- 
+diff -puN .mailmap~mailmap-add-christophe-ricard .mailmap
+--- a/.mailmap~mailmap-add-christophe-ricard
++++ a/.mailmap
+@@ -33,6 +33,7 @@ Bj=C3=B6rn Steinbrink <B.Steinbrink@gmx.de>
+ Brian Avery <b.avery@hp.com>
+ Brian King <brking@us.ibm.com>
+ Christoph Hellwig <hch@lst.de>
++Christophe Ricard <christophe.ricard@gmail.com>
+ Corey Minyard <minyard@acm.org>
+ Damian Hobson-Garcia <dhobsong@igel.co.jp>
+ David Brownell <david-b@pacbell.net>
 _
 
-Patches currently in -mm which might be from namit@vmware.com are
+Patches currently in -mm which might be from christophe.ricard@gmail.co=
+m are
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe mm-commits" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
