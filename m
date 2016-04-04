@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-huge_memory-replace-vm_no_thp-vm_bug_on-with-actual-vma-check.patch
- added to -mm tree
-Date: Mon, 04 Apr 2016 13:15:20 -0700
-Message-ID: <5702cb58.bGzmS4EL/eqHqtQp%akpm@linux-foundation.org>
+Subject: + mm-workingset-only-do-workingset-activations-on-reads.patch
+ tentatively added to -mm tree
+Date: Mon, 04 Apr 2016 14:23:14 -0700
+Message-ID: <5702db42.yMaO7j+5f6JVg2dr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:32886 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:34606 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756286AbcDDUPV (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 16:15:21 -0400
+	with ESMTP id S1756277AbcDDVXP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 17:23:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: koct9i@gmail.com, aarcange@redhat.com, dvyukov@google.com, stable@vger.kernel.org, mm-commits@vger.kernel.org
+To: riel@redhat.com, andres@anarazel.de, hannes@cmpxchg.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     From: Konstantin Khlebnikov <koct9i@gmail.com>
+     Subject: mm: workingset: only do workingset activations on reads
 has been added to the -mm tree.  Its filename is
-     mm-huge_memory-replace-vm_no_thp-vm_bug_on-with-actual-vma-check.patch
+     mm-workingset-only-do-workingset-activations-on-reads.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-huge_memory-replace-vm_no_thp-vm_bug_on-with-actual-vma-check.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-workingset-only-do-workingset-activations-on-reads.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-huge_memory-replace-vm_no_thp-vm_bug_on-with-actual-vma-check.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-workingset-only-do-workingset-activations-on-reads.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,57 +39,79 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: mm/huge_memory: replace VM_NO_THP VM_BUG_ON with actual VMA check
+From: Rik van Riel <riel@redhat.com>
+Subject: mm: workingset: only do workingset activations on reads
 
-Khugepaged detects own VMAs by checking vm_file and vm_ops but this
-way it cannot distinguish private /dev/zero mappings from other special
-mappings like /dev/hpet which has no vm_ops and popultes PTEs in mmap.
+This is a follow-up to
+http://www.spinics.net/lists/linux-mm/msg101739.html where Andres reported
+his database workingset being pushed out by the minimum size enforcement
+of the inactive file list - currently 50% of cache - as well as repeatedly
+written file pages that are never actually read.
 
-This fixes false-positive VM_BUG_ON and prevents installing THP where
-they are not expected.
+Two changes fell out of the discussions.  The first change observes that
+pages that are only ever written don't benefit from caching beyond what
+the writeback cache does for partial page writes, and so we shouldn't
+promote them to the active file list where they compete with pages whose
+cached data is actually accessed repeatedly.  This change comes in two
+patches - one for in-cache write accesses and one for refaults triggered
+by writes, neither of which should promote a cache page.
 
-Link: http://lkml.kernel.org/r/CACT4Y+ZmuZMV5CjSFOeXviwQdABAgT7T+StKfTqan9YDtgEi5g@mail.gmail.com
-Fixes: 78f11a255749 ("mm: thp: fix /dev/zero MAP_PRIVATE and vm_flags cleanups")
-Signed-off-by: Konstantin Khlebnikov <koct9i@gmail.com>
-Reported-by: Dmitry Vyukov <dvyukov@google.com>
-Cc: Dmitry Vyukov <dvyukov@google.com>
-Cc: Andrea Arcangeli <aarcange@redhat.com>
-Cc: stable <stable@vger.kernel.org>
+Second, with the refault detection we don't need to set 50% of the cache
+aside for used-once cache anymore since we can detect frequently used
+pages even when they are evicted between accesses.  We can allow the
+active list to be bigger and thus protect a bigger workingset that isn't
+challenged by streamers.  Depending on the access patterns, this can
+increase major faults during workingset transitions for better performance
+during stable phases.
+
+
+
+This patch (of 3):
+
+When rewriting a page, the data in that page is replaced with new data. 
+This means that evicting something else from the active file list, in
+order to cache data that will be replaced by something else, is likely to
+be a waste of memory.
+
+It is better to save the active list for frequently read pages, because
+reads actually use the data that is in the page.
+
+This patch ignores partial writes, because it is unclear whether the
+complexity of identifying those is worth any potential performance gain
+obtained from better caching pages that see repeated partial writes at
+large enough intervals to not get caught by the use-twice promotion code
+used for the inactive file list.
+
+Signed-off-by: Rik van Riel <riel@redhat.com>
+Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
+Reported-by: Andres Freund <andres@anarazel.de>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/huge_memory.c |    6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ mm/filemap.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN mm/huge_memory.c~mm-huge_memory-replace-vm_no_thp-vm_bug_on-with-actual-vma-check mm/huge_memory.c
---- a/mm/huge_memory.c~mm-huge_memory-replace-vm_no_thp-vm_bug_on-with-actual-vma-check
-+++ a/mm/huge_memory.c
-@@ -1960,10 +1960,9 @@ int khugepaged_enter_vma_merge(struct vm
- 		 * page fault if needed.
+diff -puN mm/filemap.c~mm-workingset-only-do-workingset-activations-on-reads mm/filemap.c
+--- a/mm/filemap.c~mm-workingset-only-do-workingset-activations-on-reads
++++ a/mm/filemap.c
+@@ -713,8 +713,12 @@ int add_to_page_cache_lru(struct page *p
+ 		 * The page might have been evicted from cache only
+ 		 * recently, in which case it should be activated like
+ 		 * any other repeatedly accessed page.
++		 * The exception is pages getting rewritten; evicting other
++		 * data from the working set, only to cache data that will
++		 * get overwritten with something else, is a waste of memory.
  		 */
- 		return 0;
--	if (vma->vm_ops)
-+	if (vma->vm_ops || (vm_flags & VM_NO_THP))
- 		/* khugepaged not yet working on file or special mappings */
- 		return 0;
--	VM_BUG_ON_VMA(vm_flags & VM_NO_THP, vma);
- 	hstart = (vma->vm_start + ~HPAGE_PMD_MASK) & HPAGE_PMD_MASK;
- 	hend = vma->vm_end & HPAGE_PMD_MASK;
- 	if (hstart < hend)
-@@ -2352,8 +2351,7 @@ static bool hugepage_vma_check(struct vm
- 		return false;
- 	if (is_vma_temporary_stack(vma))
- 		return false;
--	VM_BUG_ON_VMA(vma->vm_flags & VM_NO_THP, vma);
--	return true;
-+	return !(vma->vm_flags & VM_NO_THP);
- }
- 
- static void collapse_huge_page(struct mm_struct *mm,
+-		if (shadow && workingset_refault(shadow)) {
++		if (!(gfp_mask & __GFP_WRITE) &&
++		    shadow && workingset_refault(shadow)) {
+ 			SetPageActive(page);
+ 			workingset_activation(page);
+ 		} else
 _
 
-Patches currently in -mm which might be from koct9i@gmail.com are
+Patches currently in -mm which might be from riel@redhat.com are
 
-mm-huge_memory-replace-vm_no_thp-vm_bug_on-with-actual-vma-check.patch
+mm-workingset-only-do-workingset-activations-on-reads.patch
+mm-vmscan-reduce-size-of-inactive-file-list.patch
 
