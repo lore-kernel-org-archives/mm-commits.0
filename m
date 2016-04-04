@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-vmscan-reduce-size-of-inactive-file-list.patch tentatively
- added to -mm tree
-Date: Mon, 04 Apr 2016 14:23:26 -0700
-Message-ID: <5702db4e.WdpoSbMndMRbh1ZX%akpm@linux-foundation.org>
+Subject: + lib-uuid-move-generate_random_uuid-to-uuidc.patch added to -mm
+ tree
+Date: Mon, 04 Apr 2016 16:40:48 -0700
+Message-ID: <5702fb80.xkwYeeiWDfPtE2ff%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:34617 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39096 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756463AbcDDVX1 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 17:23:27 -0400
+	with ESMTP id S932495AbcDDXkt (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 19:40:49 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: riel@redhat.com, andres@anarazel.de, hannes@cmpxchg.org, mm-commits@vger.kernel.org
+To: andriy.shevchenko@linux.intel.com, arnd@arndb.de, linux@rasmusvillemoes.dk, matt@codeblueprint.co.uk, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: vmscan: reduce size of inactive file list
+     Subject: lib/uuid: move generate_random_uuid() to uuid.c
 has been added to the -mm tree.  Its filename is
-     mm-vmscan-reduce-size-of-inactive-file-list.patch
+     lib-uuid-move-generate_random_uuid-to-uuidc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmscan-reduce-size-of-inactive-file-list.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-uuid-move-generate_random_uuid-to-uuidc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmscan-reduce-size-of-inactive-file-list.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-uuid-move-generate_random_uuid-to-uuidc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,297 +39,200 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Rik van Riel <riel@redhat.com>
-Subject: mm: vmscan: reduce size of inactive file list
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: lib/uuid: move generate_random_uuid() to uuid.c
 
-The inactive file list should still be large enough to contain readahead
-windows and freshly written file data, but it no longer is the only source
-for detecting multiple accesses to file pages.  The workingset refault
-measurement code causes recently evicted file pages that get accessed
-again after a shorter interval to be promoted directly to the active list.
+Let's gather the UUID related functions under one hood.
 
-With that mechanism in place, we can afford to (on a larger system)
-dedicate more memory to the active file list, so we can actually cache
-more of the frequently used file pages in memory, and not have them pushed
-out by streaming writes, once-used streaming file reads, etc.
-
-This can help things like database workloads, where only half the page
-cache can currently be used to cache the database working set.  This patch
-automatically increases that fraction on larger systems, using the same
-ratio that has already been used for anonymous memory.
-
-[hannes@cmpxchg.org: cgroup-awareness]
-Signed-off-by: Rik van Riel <riel@redhat.com>
-Signed-off-by: Johannes Weiner <hannes@cmpxchg.org>
-Reported-by: Andres Freund <andres@anarazel.de>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: "Theodore Ts'o" <tytso@mit.edu>
+Cc: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/memcontrol.h |   25 --------
- mm/page_alloc.c            |   44 --------------
- mm/vmscan.c                |  104 ++++++++++++++---------------------
- 3 files changed, 42 insertions(+), 131 deletions(-)
+ drivers/char/random.c  |   21 +--------------------
+ fs/btrfs/volumes.c     |    2 +-
+ fs/ext4/ioctl.c        |    2 +-
+ fs/f2fs/file.c         |    2 +-
+ fs/reiserfs/objectid.c |    2 +-
+ fs/ubifs/sb.c          |    2 +-
+ include/linux/random.h |    1 -
+ include/linux/uuid.h   |    2 ++
+ lib/uuid.c             |   20 ++++++++++++++++++++
+ 9 files changed, 28 insertions(+), 26 deletions(-)
 
-diff -puN include/linux/memcontrol.h~mm-vmscan-reduce-size-of-inactive-file-list include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~mm-vmscan-reduce-size-of-inactive-file-list
-+++ a/include/linux/memcontrol.h
-@@ -415,25 +415,6 @@ unsigned long mem_cgroup_get_lru_size(st
- 	return mz->lru_size[lru];
+diff -puN drivers/char/random.c~lib-uuid-move-generate_random_uuid-to-uuidc drivers/char/random.c
+--- a/drivers/char/random.c~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/drivers/char/random.c
+@@ -260,6 +260,7 @@
+ #include <linux/irq.h>
+ #include <linux/syscalls.h>
+ #include <linux/completion.h>
++#include <linux/uuid.h>
+ 
+ #include <asm/processor.h>
+ #include <asm/uaccess.h>
+@@ -1621,26 +1622,6 @@ SYSCALL_DEFINE3(getrandom, char __user *
+ 	return urandom_read(NULL, buf, count, NULL);
  }
  
--static inline bool mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
--{
--	unsigned long inactive_ratio;
--	unsigned long inactive;
--	unsigned long active;
--	unsigned long gb;
--
--	inactive = mem_cgroup_get_lru_size(lruvec, LRU_INACTIVE_ANON);
--	active = mem_cgroup_get_lru_size(lruvec, LRU_ACTIVE_ANON);
--
--	gb = (inactive + active) >> (30 - PAGE_SHIFT);
--	if (gb)
--		inactive_ratio = int_sqrt(10 * gb);
--	else
--		inactive_ratio = 1;
--
--	return inactive * inactive_ratio < active;
--}
--
- void mem_cgroup_handle_over_high(void);
- 
- void mem_cgroup_print_oom_info(struct mem_cgroup *memcg,
-@@ -645,12 +626,6 @@ static inline bool mem_cgroup_online(str
- {
- 	return true;
- }
--
--static inline bool
--mem_cgroup_inactive_anon_is_low(struct lruvec *lruvec)
--{
--	return true;
--}
- 
- static inline unsigned long
- mem_cgroup_get_lru_size(struct lruvec *lruvec, enum lru_list lru)
-diff -puN mm/page_alloc.c~mm-vmscan-reduce-size-of-inactive-file-list mm/page_alloc.c
---- a/mm/page_alloc.c~mm-vmscan-reduce-size-of-inactive-file-list
-+++ a/mm/page_alloc.c
-@@ -6425,49 +6425,6 @@ void setup_per_zone_wmarks(void)
- }
- 
- /*
-- * The inactive anon list should be small enough that the VM never has to
-- * do too much work, but large enough that each inactive page has a chance
-- * to be referenced again before it is swapped out.
+-/***************************************************************
+- * Random UUID interface
 - *
-- * The inactive_anon ratio is the target ratio of ACTIVE_ANON to
-- * INACTIVE_ANON pages on this zone's LRU, maintained by the
-- * pageout code. A zone->inactive_ratio of 3 means 3:1 or 25% of
-- * the anonymous pages are kept on the inactive list.
-- *
-- * total     target    max
-- * memory    ratio     inactive anon
-- * -------------------------------------
-- *   10MB       1         5MB
-- *  100MB       1        50MB
-- *    1GB       3       250MB
-- *   10GB      10       0.9GB
-- *  100GB      31         3GB
-- *    1TB     101        10GB
-- *   10TB     320        32GB
-- */
--static void __meminit calculate_zone_inactive_ratio(struct zone *zone)
--{
--	unsigned int gb, ratio;
--
--	/* Zone size in gigabytes */
--	gb = zone->managed_pages >> (30 - PAGE_SHIFT);
--	if (gb)
--		ratio = int_sqrt(10 * gb);
--	else
--		ratio = 1;
--
--	zone->inactive_ratio = ratio;
--}
--
--static void __meminit setup_per_zone_inactive_ratio(void)
--{
--	struct zone *zone;
--
--	for_each_zone(zone)
--		calculate_zone_inactive_ratio(zone);
--}
+- * Used here for a Boot ID, but can be useful for other kernel
+- * drivers.
+- ***************************************************************/
 -
 -/*
-  * Initialise min_free_kbytes.
-  *
-  * For small machines we want it small (128k min).  For large machines
-@@ -6512,7 +6469,6 @@ int __meminit init_per_zone_wmark_min(vo
- 	setup_per_zone_wmarks();
- 	refresh_zone_stat_thresholds();
- 	setup_per_zone_lowmem_reserve();
--	setup_per_zone_inactive_ratio();
- 	return 0;
- }
- module_init(init_per_zone_wmark_min)
-diff -puN mm/vmscan.c~mm-vmscan-reduce-size-of-inactive-file-list mm/vmscan.c
---- a/mm/vmscan.c~mm-vmscan-reduce-size-of-inactive-file-list
-+++ a/mm/vmscan.c
-@@ -1865,83 +1865,63 @@ static void shrink_active_list(unsigned
- 	free_hot_cold_page_list(&l_hold, true);
- }
- 
--#ifdef CONFIG_SWAP
--static bool inactive_anon_is_low_global(struct zone *zone)
--{
--	unsigned long active, inactive;
--
--	active = zone_page_state(zone, NR_ACTIVE_ANON);
--	inactive = zone_page_state(zone, NR_INACTIVE_ANON);
--
--	return inactive * zone->inactive_ratio < active;
--}
--
--/**
-- * inactive_anon_is_low - check if anonymous pages need to be deactivated
-- * @lruvec: LRU vector to check
-+/*
-+ * The inactive anon list should be small enough that the VM never has
-+ * to do too much work.
-  *
-- * Returns true if the zone does not have enough inactive anon pages,
-- * meaning some active anon pages need to be deactivated.
+- * Generate random UUID
 - */
--static bool inactive_anon_is_low(struct lruvec *lruvec)
+-void generate_random_uuid(unsigned char uuid_out[16])
 -{
--	/*
--	 * If we don't have swap space, anonymous page deactivation
--	 * is pointless.
--	 */
--	if (!total_swap_pages)
--		return false;
--
--	if (!mem_cgroup_disabled())
--		return mem_cgroup_inactive_anon_is_low(lruvec);
--
--	return inactive_anon_is_low_global(lruvec_zone(lruvec));
+-	get_random_bytes(uuid_out, 16);
+-	/* Set UUID version to 4 --- truly random generation */
+-	uuid_out[6] = (uuid_out[6] & 0x0F) | 0x40;
+-	/* Set the UUID variant to DCE */
+-	uuid_out[8] = (uuid_out[8] & 0x3F) | 0x80;
 -}
--#else
--static inline bool inactive_anon_is_low(struct lruvec *lruvec)
--{
--	return false;
--}
--#endif
+-EXPORT_SYMBOL(generate_random_uuid);
 -
--/**
-- * inactive_file_is_low - check if file pages need to be deactivated
-- * @lruvec: LRU vector to check
-+ * The inactive file list should be small enough to leave most memory
-+ * to the established workingset on the scan-resistant active list,
-+ * but large enough to avoid thrashing the aggregate readahead window.
+ /********************************************************************
   *
-- * When the system is doing streaming IO, memory pressure here
-- * ensures that active file pages get deactivated, until more
-- * than half of the file pages are on the inactive list.
-+ * Both inactive lists should also be large enough that each inactive
-+ * page has a chance to be referenced again before it is reclaimed.
-  *
-- * Once we get to that situation, protect the system's working
-- * set from being evicted by disabling active file page aging.
-+ * The inactive_ratio is the target ratio of ACTIVE to INACTIVE pages
-+ * on this LRU, maintained by the pageout code. A zone->inactive_ratio
-+ * of 3 means 3:1 or 25% of the pages are kept on the inactive list.
-  *
-- * This uses a different ratio than the anonymous pages, because
-- * the page cache uses a use-once replacement algorithm.
-+ * total     target    max
-+ * memory    ratio     inactive
-+ * -------------------------------------
-+ *   10MB       1         5MB
-+ *  100MB       1        50MB
-+ *    1GB       3       250MB
-+ *   10GB      10       0.9GB
-+ *  100GB      31         3GB
-+ *    1TB     101        10GB
-+ *   10TB     320        32GB
+  * Sysctl interface
+diff -puN fs/btrfs/volumes.c~lib-uuid-move-generate_random_uuid-to-uuidc fs/btrfs/volumes.c
+--- a/fs/btrfs/volumes.c~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/fs/btrfs/volumes.c
+@@ -20,13 +20,13 @@
+ #include <linux/slab.h>
+ #include <linux/buffer_head.h>
+ #include <linux/blkdev.h>
+-#include <linux/random.h>
+ #include <linux/iocontext.h>
+ #include <linux/capability.h>
+ #include <linux/ratelimit.h>
+ #include <linux/kthread.h>
+ #include <linux/raid/pq.h>
+ #include <linux/semaphore.h>
++#include <linux/uuid.h>
+ #include <asm/div64.h>
+ #include "ctree.h"
+ #include "extent_map.h"
+diff -puN fs/ext4/ioctl.c~lib-uuid-move-generate_random_uuid-to-uuidc fs/ext4/ioctl.c
+--- a/fs/ext4/ioctl.c~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/fs/ext4/ioctl.c
+@@ -13,8 +13,8 @@
+ #include <linux/compat.h>
+ #include <linux/mount.h>
+ #include <linux/file.h>
+-#include <linux/random.h>
+ #include <linux/quotaops.h>
++#include <linux/uuid.h>
+ #include <asm/uaccess.h>
+ #include "ext4_jbd2.h"
+ #include "ext4.h"
+diff -puN fs/f2fs/file.c~lib-uuid-move-generate_random_uuid-to-uuidc fs/f2fs/file.c
+--- a/fs/f2fs/file.c~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/fs/f2fs/file.c
+@@ -20,7 +20,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/mount.h>
+ #include <linux/pagevec.h>
+-#include <linux/random.h>
++#include <linux/uuid.h>
+ 
+ #include "f2fs.h"
+ #include "node.h"
+diff -puN fs/reiserfs/objectid.c~lib-uuid-move-generate_random_uuid-to-uuidc fs/reiserfs/objectid.c
+--- a/fs/reiserfs/objectid.c~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/fs/reiserfs/objectid.c
+@@ -3,8 +3,8 @@
   */
--static bool inactive_file_is_low(struct lruvec *lruvec)
-+static bool inactive_list_is_low(struct lruvec *lruvec, bool file)
- {
-+	unsigned long inactive_ratio;
- 	unsigned long inactive;
- 	unsigned long active;
-+	unsigned long gb;
  
--	inactive = lruvec_lru_size(lruvec, LRU_INACTIVE_FILE);
--	active = lruvec_lru_size(lruvec, LRU_ACTIVE_FILE);
-+	/*
-+	 * If we don't have swap space, anonymous page deactivation
-+	 * is pointless.
-+	 */
-+	if (!file && !total_swap_pages)
-+		return false;
+ #include <linux/string.h>
+-#include <linux/random.h>
+ #include <linux/time.h>
++#include <linux/uuid.h>
+ #include "reiserfs.h"
  
--	return active > inactive;
--}
-+	inactive = lruvec_lru_size(lruvec, file * LRU_FILE);
-+	active = lruvec_lru_size(lruvec, file * LRU_FILE + LRU_ACTIVE);
+ /* find where objectid map starts */
+diff -puN fs/ubifs/sb.c~lib-uuid-move-generate_random_uuid-to-uuidc fs/ubifs/sb.c
+--- a/fs/ubifs/sb.c~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/fs/ubifs/sb.c
+@@ -28,8 +28,8 @@
  
--static bool inactive_list_is_low(struct lruvec *lruvec, enum lru_list lru)
--{
--	if (is_file_lru(lru))
--		return inactive_file_is_low(lruvec);
-+	gb = (inactive + active) >> (30 - PAGE_SHIFT);
-+	if (gb)
-+		inactive_ratio = int_sqrt(10 * gb);
- 	else
--		return inactive_anon_is_low(lruvec);
-+		inactive_ratio = 1;
-+
-+	return inactive * inactive_ratio < active;
+ #include "ubifs.h"
+ #include <linux/slab.h>
+-#include <linux/random.h>
+ #include <linux/math64.h>
++#include <linux/uuid.h>
+ 
+ /*
+  * Default journal size in logical eraseblocks as a percent of total
+diff -puN include/linux/random.h~lib-uuid-move-generate_random_uuid-to-uuidc include/linux/random.h
+--- a/include/linux/random.h~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/include/linux/random.h
+@@ -26,7 +26,6 @@ extern void get_random_bytes(void *buf,
+ extern int add_random_ready_callback(struct random_ready_callback *rdy);
+ extern void del_random_ready_callback(struct random_ready_callback *rdy);
+ extern void get_random_bytes_arch(void *buf, int nbytes);
+-void generate_random_uuid(unsigned char uuid_out[16]);
+ extern int random_int_secret_init(void);
+ 
+ #ifndef MODULE
+diff -puN include/linux/uuid.h~lib-uuid-move-generate_random_uuid-to-uuidc include/linux/uuid.h
+--- a/include/linux/uuid.h~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/include/linux/uuid.h
+@@ -33,6 +33,8 @@ static inline int uuid_be_cmp(const uuid
+ 	return memcmp(&u1, &u2, sizeof(uuid_be));
  }
  
- static unsigned long shrink_list(enum lru_list lru, unsigned long nr_to_scan,
- 				 struct lruvec *lruvec, struct scan_control *sc)
++void generate_random_uuid(unsigned char uuid[16]);
++
+ extern void uuid_le_gen(uuid_le *u);
+ extern void uuid_be_gen(uuid_be *u);
+ 
+diff -puN lib/uuid.c~lib-uuid-move-generate_random_uuid-to-uuidc lib/uuid.c
+--- a/lib/uuid.c~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/lib/uuid.c
+@@ -23,6 +23,26 @@
+ #include <linux/uuid.h>
+ #include <linux/random.h>
+ 
++/***************************************************************
++ * Random UUID interface
++ *
++ * Used here for a Boot ID, but can be useful for other kernel
++ * drivers.
++ ***************************************************************/
++
++/*
++ * Generate random UUID
++ */
++void generate_random_uuid(unsigned char uuid[16])
++{
++	get_random_bytes(uuid, 16);
++	/* Set UUID version to 4 --- truly random generation */
++	uuid[6] = (uuid[6] & 0x0F) | 0x40;
++	/* Set the UUID variant to DCE */
++	uuid[8] = (uuid[8] & 0x3F) | 0x80;
++}
++EXPORT_SYMBOL(generate_random_uuid);
++
+ static void __uuid_gen_common(__u8 b[16])
  {
- 	if (is_active_lru(lru)) {
--		if (inactive_list_is_low(lruvec, lru))
-+		if (inactive_list_is_low(lruvec, is_file_lru(lru)))
- 			shrink_active_list(nr_to_scan, lruvec, sc, lru);
- 		return 0;
- 	}
-@@ -2062,7 +2042,7 @@ static void get_scan_count(struct lruvec
- 	 * lruvec even if it has plenty of old anonymous pages unless the
- 	 * system is under heavy pressure.
- 	 */
--	if (!inactive_file_is_low(lruvec) &&
-+	if (!inactive_list_is_low(lruvec, true) &&
- 	    lruvec_lru_size(lruvec, LRU_INACTIVE_FILE) >> sc->priority) {
- 		scan_balance = SCAN_FILE;
- 		goto out;
-@@ -2304,7 +2284,7 @@ static void shrink_zone_memcg(struct zon
- 	 * Even if we did not try to evict anon pages at all, we want to
- 	 * rebalance the anon lru active/inactive ratio.
- 	 */
--	if (inactive_anon_is_low(lruvec))
-+	if (inactive_list_is_low(lruvec, false))
- 		shrink_active_list(SWAP_CLUSTER_MAX, lruvec,
- 				   sc, LRU_ACTIVE_ANON);
- 
-@@ -2965,7 +2945,7 @@ static void age_active_anon(struct zone
- 	do {
- 		struct lruvec *lruvec = mem_cgroup_zone_lruvec(zone, memcg);
- 
--		if (inactive_anon_is_low(lruvec))
-+		if (inactive_list_is_low(lruvec, false))
- 			shrink_active_list(SWAP_CLUSTER_MAX, lruvec,
- 					   sc, LRU_ACTIVE_ANON);
- 
+ 	prandom_bytes(b, 16);
 _
 
-Patches currently in -mm which might be from riel@redhat.com are
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
 
-mm-workingset-only-do-workingset-activations-on-reads.patch
-mm-vmscan-reduce-size-of-inactive-file-list.patch
+lib-vsprintf-simplify-uuid-printing.patch
+lib-uuid-move-generate_random_uuid-to-uuidc.patch
+lib-uuid-introduce-few-more-generic-helpers-for-uuid.patch
+lib-uuid-remove-fsf-address.patch
+sysctl-drop-away-useless-label.patch
+sysctl-use-generic-uuid-library.patch
+efi-redefine-type-constant-macro-from-generic-code.patch
+efivars-use-generic-uuid-library.patch
 
