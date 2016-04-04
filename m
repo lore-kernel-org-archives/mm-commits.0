@@ -1,74 +1,70 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-fix-invalid-node-in-alloc_migrate_target.patch
- removed from -mm tree
-Date: Mon, 04 Apr 2016 11:09:38 -0700
-Message-ID: <5702ade2.O8+qDVWXYp7Sju1a%akpm__8166.42139475352$1459793401$gmane$org@linux-foundation.org>
+Subject: [merged] make-config_fhandle-default-y.patch removed from -mm
+ tree
+Date: Mon, 04 Apr 2016 11:09:51 -0700
+Message-ID: <5702adef.LDO43T65X0uxvK4w%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56934 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56970 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753517AbcDDSJj (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 14:09:39 -0400
+	with ESMTP id S1755675AbcDDSJw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 14:09:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: qiuxishi@huawei.com, js1304@gmail.com, lauraa@codeaurora.org, n-horiguchi@ah.jp.nec.com, rientjes@google.com, stable@vger.kernel.org, vbabka@suse.cz, wangxq10@lzu.edu.cn, zhuhui@xiaomi.com, mm-commits@vger.kernel.org
+To: ak@linux.intel.com, richard.weinberger@gmail.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: fix invalid node in alloc_migrate_target()
+     Subject: Make CONFIG_FHANDLE default y
 has been removed from the -mm tree.  Its filename was
-     mm-fix-invalid-node-in-alloc_migrate_target.patch
+     make-config_fhandle-default-y.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Xishi Qiu <qiuxishi@huawei.com>
-Subject: mm: fix invalid node in alloc_migrate_target()
+From: Andi Kleen <ak@linux.intel.com>
+Subject: Make CONFIG_FHANDLE default y
 
-It is incorrect to use next_node to find a target node, it will
-return MAX_NUMNODES or invalid node. This will lead to crash in
-buddy system allocation.
+Newer Fedora and OpenSUSE didn't boot with my standard configuration.  It
+took me some time to figure out why, in fact I had to write a script to
+try different config options systematically.
 
-Fixes: c8721bbbdd36 ("mm: memory-hotplug: enable memory hotplug to handle hugepage")
-Signed-off-by: Xishi Qiu <qiuxishi@huawei.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Joonsoo Kim <js1304@gmail.com>
-Cc: David Rientjes <rientjes@google.com>
-Cc: "Laura Abbott" <lauraa@codeaurora.org>
-Cc: Hui Zhu <zhuhui@xiaomi.com>
-Cc: Wang Xiaoqiang <wangxq10@lzu.edu.cn>
-Cc: <stable@vger.kernel.org>
+The problem is that something (systemd) in dracut depends on
+CONFIG_FHANDLE, which adds open by file handle syscalls.
+
+While it is set in defconfigs it is very easy to miss when updating older
+configs because it is not default y.
+
+Make it default y and also depend on EXPERT, as dracut use is likely
+widespread.
+
+Signed-off-by: Andi Kleen <ak@linux.intel.com>
+Cc: Richard Weinberger <richard.weinberger@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ init/Kconfig |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff -puN mm/page_isolation.c~mm-fix-invalid-node-in-alloc_migrate_target mm/page_isolation.c
---- a/mm/page_isolation.c~mm-fix-invalid-node-in-alloc_migrate_target
-+++ a/mm/page_isolation.c
-@@ -289,11 +289,11 @@ struct page *alloc_migrate_target(struct
- 	 * now as a simple work-around, we use the next node for destination.
- 	 */
- 	if (PageHuge(page)) {
--		nodemask_t src = nodemask_of_node(page_to_nid(page));
--		nodemask_t dst;
--		nodes_complement(dst, src);
-+		int node = next_online_node(page_to_nid(page));
-+		if (node == MAX_NUMNODES)
-+			node = first_online_node;
- 		return alloc_huge_page_node(page_hstate(compound_head(page)),
--					    next_node(page_to_nid(page), dst));
-+					    node);
- 	}
+diff -puN init/Kconfig~make-config_fhandle-default-y init/Kconfig
+--- a/init/Kconfig~make-config_fhandle-default-y
++++ a/init/Kconfig
+@@ -272,8 +272,9 @@ config CROSS_MEMORY_ATTACH
+ 	  See the man page for more details.
  
- 	if (PageHighMem(page))
+ config FHANDLE
+-	bool "open by fhandle syscalls"
++	bool "open by fhandle syscalls" if EXPERT
+ 	select EXPORTFS
++	default y
+ 	help
+ 	  If you say Y here, a user level program will be able to map
+ 	  file names to handle and then later use the handle for
 _
 
-Patches currently in -mm which might be from qiuxishi@huawei.com are
+Patches currently in -mm which might be from ak@linux.intel.com are
 
 
