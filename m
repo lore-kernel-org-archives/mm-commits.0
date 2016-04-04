@@ -1,58 +1,71 @@
 From: akpm@linux-foundation.org
 Subject: [merged]
- include-linux-huge_mmh-return-null-instead-of-false-for-pmd_trans_huge_lock.patch removed from -mm tree
-Date: Mon, 04 Apr 2016 11:09:35 -0700
-Message-ID: <5702addf.Jh7KGrLz8t1fn9TG%akpm@linux-foundation.org>
+ oom-oom_reaper-do-not-enqueue-task-if-it-is-on-the-oom_reaper_list-head.patch removed from -mm tree
+Date: Mon, 04 Apr 2016 11:09:47 -0700
+Message-ID: <5702adeb.jXdwbyZEWAMnhImI%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56928 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56963 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755443AbcDDSJg (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 14:09:36 -0400
+	with ESMTP id S1753517AbcDDSJs (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 14:09:48 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: chengang@emindsoft.com.cn, gang.chen.5i5j@gmail.com, kirill.shutemov@linux.intel.com, mm-commits@vger.kernel.org
+To: mhocko@suse.com, penguin-kernel@I-love.SAKURA.ne.jp, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/huge_mm.h: return NULL instead of false for pmd_trans_huge_lock()
+     Subject: oom, oom_reaper: do not enqueue task if it is on the oom_reaper_list head
 has been removed from the -mm tree.  Its filename was
-     include-linux-huge_mmh-return-null-instead-of-false-for-pmd_trans_huge_lock.patch
+     oom-oom_reaper-do-not-enqueue-task-if-it-is-on-the-oom_reaper_list-head.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Chen Gang <chengang@emindsoft.com.cn>
-Subject: include/linux/huge_mm.h: return NULL instead of false for pmd_trans_huge_lock()
+From: Michal Hocko <mhocko@suse.com>
+Subject: oom, oom_reaper: do not enqueue task if it is on the oom_reaper_list head
 
-The return value of pmd_trans_huge_lock() is a pointer, not a boolean
-value, so use NULL instead of false as the return value.
+bb29902a7515 ("oom, oom_reaper: protect oom_reaper_list using simpler
+way") has simplified the check for tasks already enqueued for the oom
+reaper by checking tsk->oom_reaper_list != NULL.  This check is not
+sufficient because the tsk might be the head of the queue without any
+other tasks queued and then we would simply lockup looping on the same
+task.  Fix the condition by checking for the head as well.
 
-Signed-off-by: Chen Gang <gang.chen.5i5j@gmail.com>
-Acked-by: Kirill A. Shutemov <kirill.shutemov@linux.intel.com>
+Fixes: bb29902a7515 ("oom, oom_reaper: protect oom_reaper_list using simpler way")
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/huge_mm.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ mm/oom_kill.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-diff -puN include/linux/huge_mm.h~include-linux-huge_mmh-return-null-instead-of-false-for-pmd_trans_huge_lock include/linux/huge_mm.h
---- a/include/linux/huge_mm.h~include-linux-huge_mmh-return-null-instead-of-false-for-pmd_trans_huge_lock
-+++ a/include/linux/huge_mm.h
-@@ -127,7 +127,7 @@ static inline spinlock_t *pmd_trans_huge
- 	if (pmd_trans_huge(*pmd) || pmd_devmap(*pmd))
- 		return __pmd_trans_huge_lock(pmd, vma);
- 	else
--		return false;
-+		return NULL;
- }
- static inline int hpage_nr_pages(struct page *page)
+diff -puN mm/oom_kill.c~oom-oom_reaper-do-not-enqueue-task-if-it-is-on-the-oom_reaper_list-head mm/oom_kill.c
+--- a/mm/oom_kill.c~oom-oom_reaper-do-not-enqueue-task-if-it-is-on-the-oom_reaper_list-head
++++ a/mm/oom_kill.c
+@@ -547,7 +547,11 @@ static int oom_reaper(void *unused)
+ 
+ static void wake_oom_reaper(struct task_struct *tsk)
  {
+-	if (!oom_reaper_th || tsk->oom_reaper_list)
++	if (!oom_reaper_th)
++		return;
++
++	/* tsk is already queued? */
++	if (tsk == oom_reaper_list || tsk->oom_reaper_list)
+ 		return;
+ 
+ 	get_task_struct(tsk);
 _
 
-Patches currently in -mm which might be from chengang@emindsoft.com.cn are
+Patches currently in -mm which might be from mhocko@suse.com are
 
+include-linux-nodemaskh-create-next_node_in-helper-fix.patch
+mm-oom-rework-oom-detection.patch
+mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+mm-use-watermak-checks-for-__gfp_repeat-high-order-allocations.patch
 
