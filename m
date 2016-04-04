@@ -1,61 +1,86 @@
 From: akpm@linux-foundation.org
-Subject: [merged]
- mm-page_isolation-fix-tracepoint-to-mirror-check-function-behavior.patch
+Subject: [merged] x86-mm-tlb_remote_send_ipi-should-count-pages.patch
  removed from -mm tree
-Date: Mon, 04 Apr 2016 11:09:45 -0700
-Message-ID: <5702ade9.ZsgRvgR2HS9mhRW0%akpm@linux-foundation.org>
+Date: Mon, 04 Apr 2016 11:09:41 -0700
+Message-ID: <5702ade5.DtpnbaFMSqVoOWO+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56959 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56944 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751587AbcDDSJq (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 14:09:46 -0400
+	with ESMTP id S1753517AbcDDSJm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 14:09:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: l.stach@pengutronix.de, js1304@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: namit@vmware.com, dave.hansen@intel.com, mgorman@suse.de, mingo@kernel.org, riel@redhat.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_isolation: fix tracepoint to mirror check function behavior
+     Subject: x86/mm: TLB_REMOTE_SEND_IPI should count pages
 has been removed from the -mm tree.  Its filename was
-     mm-page_isolation-fix-tracepoint-to-mirror-check-function-behavior.patch
+     x86-mm-tlb_remote_send_ipi-should-count-pages.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Lucas Stach <l.stach@pengutronix.de>
-Subject: mm/page_isolation: fix tracepoint to mirror check function behavior
+From: Nadav Amit <namit@vmware.com>
+Subject: x86/mm: TLB_REMOTE_SEND_IPI should count pages
 
-Page isolation has not failed if the fin pfn extends beyond the end pfn
-and test_pages_isolated checks this correctly.  Fix the tracepoint to
-report the same result as the actual check function.
+TLB_REMOTE_SEND_IPI was recently introduced, but it counts bytes instead
+of pages.  In addition, it does not report correctly the case in which
+flush_tlb_page flushes a page.  Fix it to be consistent with other TLB
+counters.
 
-Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Cc: Joonsoo Kim <js1304@gmail.com>
+Fixes: 5b74283ab251b9d ("x86, mm: trace when an IPI is about to be sent")
+Signed-off-by: Nadav Amit <namit@vmware.com>
+Cc: Mel Gorman <mgorman@suse.de>
+Cc: Rik van Riel <riel@redhat.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Ingo Molnar <mingo@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/trace/events/page_isolation.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/mm/tlb.c |   12 +++++++++---
+ 1 file changed, 9 insertions(+), 3 deletions(-)
 
-diff -puN include/trace/events/page_isolation.h~mm-page_isolation-fix-tracepoint-to-mirror-check-function-behavior include/trace/events/page_isolation.h
---- a/include/trace/events/page_isolation.h~mm-page_isolation-fix-tracepoint-to-mirror-check-function-behavior
-+++ a/include/trace/events/page_isolation.h
-@@ -29,7 +29,7 @@ TRACE_EVENT(test_pages_isolated,
+diff -puN arch/x86/mm/tlb.c~x86-mm-tlb_remote_send_ipi-should-count-pages arch/x86/mm/tlb.c
+--- a/arch/x86/mm/tlb.c~x86-mm-tlb_remote_send_ipi-should-count-pages
++++ a/arch/x86/mm/tlb.c
+@@ -106,8 +106,6 @@ static void flush_tlb_func(void *info)
  
- 	TP_printk("start_pfn=0x%lx end_pfn=0x%lx fin_pfn=0x%lx ret=%s",
- 		__entry->start_pfn, __entry->end_pfn, __entry->fin_pfn,
--		__entry->end_pfn == __entry->fin_pfn ? "success" : "fail")
-+		__entry->end_pfn <= __entry->fin_pfn ? "success" : "fail")
- );
+ 	if (f->flush_mm != this_cpu_read(cpu_tlbstate.active_mm))
+ 		return;
+-	if (!f->flush_end)
+-		f->flush_end = f->flush_start + PAGE_SIZE;
  
- #endif /* _TRACE_PAGE_ISOLATION_H */
+ 	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH_RECEIVED);
+ 	if (this_cpu_read(cpu_tlbstate.state) == TLBSTATE_OK) {
+@@ -135,12 +133,20 @@ void native_flush_tlb_others(const struc
+ 				 unsigned long end)
+ {
+ 	struct flush_tlb_info info;
++
++	if (end == 0)
++		end = start + PAGE_SIZE;
+ 	info.flush_mm = mm;
+ 	info.flush_start = start;
+ 	info.flush_end = end;
+ 
+ 	count_vm_tlb_event(NR_TLB_REMOTE_FLUSH);
+-	trace_tlb_flush(TLB_REMOTE_SEND_IPI, end - start);
++	if (end == TLB_FLUSH_ALL)
++		trace_tlb_flush(TLB_REMOTE_SEND_IPI, TLB_FLUSH_ALL);
++	else
++		trace_tlb_flush(TLB_REMOTE_SEND_IPI,
++				(end - start) >> PAGE_SHIFT);
++
+ 	if (is_uv_system()) {
+ 		unsigned int cpu;
+ 
 _
 
-Patches currently in -mm which might be from l.stach@pengutronix.de are
+Patches currently in -mm which might be from namit@vmware.com are
 
 
