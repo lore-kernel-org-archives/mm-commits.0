@@ -1,59 +1,61 @@
 From: akpm@linux-foundation.org
-Subject: [merged] mm-page_isolationc-fix-the-function-comments.patch
+Subject: [merged]
+ mm-page_isolation-fix-tracepoint-to-mirror-check-function-behavior.patch
  removed from -mm tree
-Date: Mon, 04 Apr 2016 11:09:49 -0700
-Message-ID: <5702aded.8pJGc/7WxpFTf5Wi%akpm@linux-foundation.org>
+Date: Mon, 04 Apr 2016 11:09:45 -0700
+Message-ID: <5702ade9.ZsgRvgR2HS9mhRW0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56966 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56959 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755653AbcDDSJu (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 14:09:50 -0400
+	with ESMTP id S1751587AbcDDSJq (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 14:09:46 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: neilzhang1123@hotmail.com, js1304@gmail.com, mm-commits@vger.kernel.org
+To: l.stach@pengutronix.de, js1304@gmail.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_isolation.c: fix the function comments
+     Subject: mm/page_isolation: fix tracepoint to mirror check function behavior
 has been removed from the -mm tree.  Its filename was
-     mm-page_isolationc-fix-the-function-comments.patch
+     mm-page_isolation-fix-tracepoint-to-mirror-check-function-behavior.patch
 
 This patch was dropped because it was merged into mainline or a subsystem tree
 
 ------------------------------------------------------
-From: Neil Zhang <neilzhang1123@hotmail.com>
-Subject: mm/page_isolation.c: fix the function comments
+From: Lucas Stach <l.stach@pengutronix.de>
+Subject: mm/page_isolation: fix tracepoint to mirror check function behavior
 
-commit fea85cff11de ("mm/page_isolation.c: return last tested pfn rather
-than failure indicator") changed the meaning of the return value.
-Let's change the function comments as well.
+Page isolation has not failed if the fin pfn extends beyond the end pfn
+and test_pages_isolated checks this correctly.  Fix the tracepoint to
+report the same result as the actual check function.
 
-Signed-off-by: Neil Zhang <neilzhang1123@hotmail.com>
+Signed-off-by: Lucas Stach <l.stach@pengutronix.de>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Cc: Joonsoo Kim <js1304@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_isolation.c |    2 +-
+ include/trace/events/page_isolation.h |    2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff -puN mm/page_isolation.c~mm-page_isolationc-fix-the-function-comments mm/page_isolation.c
---- a/mm/page_isolation.c~mm-page_isolationc-fix-the-function-comments
-+++ a/mm/page_isolation.c
-@@ -215,7 +215,7 @@ int undo_isolate_page_range(unsigned lon
-  * all pages in [start_pfn...end_pfn) must be in the same zone.
-  * zone->lock must be held before call this.
-  *
-- * Returns 1 if all pages in the range are isolated.
-+ * Returns the last tested pfn.
-  */
- static unsigned long
- __test_page_isolated_in_pageblock(unsigned long pfn, unsigned long end_pfn,
+diff -puN include/trace/events/page_isolation.h~mm-page_isolation-fix-tracepoint-to-mirror-check-function-behavior include/trace/events/page_isolation.h
+--- a/include/trace/events/page_isolation.h~mm-page_isolation-fix-tracepoint-to-mirror-check-function-behavior
++++ a/include/trace/events/page_isolation.h
+@@ -29,7 +29,7 @@ TRACE_EVENT(test_pages_isolated,
+ 
+ 	TP_printk("start_pfn=0x%lx end_pfn=0x%lx fin_pfn=0x%lx ret=%s",
+ 		__entry->start_pfn, __entry->end_pfn, __entry->fin_pfn,
+-		__entry->end_pfn == __entry->fin_pfn ? "success" : "fail")
++		__entry->end_pfn <= __entry->fin_pfn ? "success" : "fail")
+ );
+ 
+ #endif /* _TRACE_PAGE_ISOLATION_H */
 _
 
-Patches currently in -mm which might be from neilzhang1123@hotmail.com are
+Patches currently in -mm which might be from l.stach@pengutronix.de are
 
 
