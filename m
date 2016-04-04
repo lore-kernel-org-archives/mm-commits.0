@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + lib-uuid-remove-fsf-address.patch added to -mm tree
-Date: Mon, 04 Apr 2016 16:40:52 -0700
-Message-ID: <5702fb84.vp9BZWx4MMwZjfKm%akpm@linux-foundation.org>
+Subject: + sysctl-use-generic-uuid-library.patch added to -mm tree
+Date: Mon, 04 Apr 2016 16:40:56 -0700
+Message-ID: <5702fb88.nG8sQyz5inunp8tr%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39108 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:39124 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932495AbcDDXk6 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 19:40:58 -0400
+	with ESMTP id S932468AbcDDXk5 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Mon, 4 Apr 2016 19:40:57 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, arnd@arndb.de, linux@rasmusvillemoes.dk, matt@codeblueprint.co.uk, tytso@mit.edu, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/uuid: remove FSF address
+     Subject: sysctl: use generic UUID library
 has been added to the -mm tree.  Its filename is
-     lib-uuid-remove-fsf-address.patch
+     sysctl-use-generic-uuid-library.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-uuid-remove-fsf-address.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-use-generic-uuid-library.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-uuid-remove-fsf-address.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-use-generic-uuid-library.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,12 +39,10 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/uuid: remove FSF address
+Subject: sysctl: use generic UUID library
 
-There is no point to keep an address in the file since it's a subject to
-change.
-
-While here, update Intel Copyright years.
+UUID library provides uuid_be type and uuid_be_to_bin() function. This
+substitutes open coded variant by generic library calls.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Cc: Arnd Bergmann <arnd@arndb.de>
@@ -54,71 +52,57 @@ Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uuid.h      |    6 +-----
- include/uapi/linux/uuid.h |    4 ----
- lib/uuid.c                |    6 +-----
- 3 files changed, 2 insertions(+), 14 deletions(-)
+ kernel/sysctl_binary.c |   20 ++++++--------------
+ 1 file changed, 6 insertions(+), 14 deletions(-)
 
-diff -puN include/linux/uuid.h~lib-uuid-remove-fsf-address include/linux/uuid.h
---- a/include/linux/uuid.h~lib-uuid-remove-fsf-address
-+++ a/include/linux/uuid.h
-@@ -1,7 +1,7 @@
- /*
-  * UUID/GUID definition
-  *
-- * Copyright (C) 2010, Intel Corp.
-+ * Copyright (C) 2010, 2016 Intel Corp.
-  *	Huang Ying <ying.huang@intel.com>
-  *
-  * This program is free software; you can redistribute it and/or
-@@ -12,10 +12,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- #ifndef _LINUX_UUID_H_
- #define _LINUX_UUID_H_
-diff -puN include/uapi/linux/uuid.h~lib-uuid-remove-fsf-address include/uapi/linux/uuid.h
---- a/include/uapi/linux/uuid.h~lib-uuid-remove-fsf-address
-+++ a/include/uapi/linux/uuid.h
-@@ -12,10 +12,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- 
- #ifndef _UAPI_LINUX_UUID_H_
-diff -puN lib/uuid.c~lib-uuid-remove-fsf-address lib/uuid.c
---- a/lib/uuid.c~lib-uuid-remove-fsf-address
-+++ a/lib/uuid.c
-@@ -1,7 +1,7 @@
- /*
-  * Unified UUID/GUID definition
-  *
-- * Copyright (C) 2009, Intel Corp.
-+ * Copyright (C) 2009, 2015 Intel Corp.
-  *	Huang Ying <ying.huang@intel.com>
-  *
-  * This program is free software; you can redistribute it and/or
-@@ -12,10 +12,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- 
+diff -puN kernel/sysctl_binary.c~sysctl-use-generic-uuid-library kernel/sysctl_binary.c
+--- a/kernel/sysctl_binary.c~sysctl-use-generic-uuid-library
++++ a/kernel/sysctl_binary.c
+@@ -13,6 +13,7 @@
+ #include <linux/ctype.h>
+ #include <linux/netdevice.h>
  #include <linux/kernel.h>
++#include <linux/uuid.h>
+ #include <linux/slab.h>
+ #include <linux/compat.h>
+ 
+@@ -1117,9 +1118,8 @@ static ssize_t bin_uuid(struct file *fil
+ 
+ 	/* Only supports reads */
+ 	if (oldval && oldlen) {
+-		char buf[40], *str = buf;
+-		unsigned char uuid[16];
+-		int i;
++		char buf[UUID_STRING_LEN + 1];
++		uuid_be uuid;
+ 
+ 		result = kernel_read(file, 0, buf, sizeof(buf) - 1);
+ 		if (result < 0)
+@@ -1128,21 +1128,13 @@ static ssize_t bin_uuid(struct file *fil
+ 		buf[result] = '\0';
+ 
+ 		/* Convert the uuid to from a string to binary */
+-		for (i = 0; i < 16; i++) {
+-			if (!isxdigit(str[0]) || !isxdigit(str[1]))
+-				return -EIO;
+-
+-			uuid[i] = (hex_to_bin(str[0]) << 4) |
+-					hex_to_bin(str[1]);
+-			str += 2;
+-			if (*str == '-')
+-				str++;
+-		}
++		if (uuid_be_to_bin(buf, &uuid))
++			return -EIO;
+ 
+ 		if (oldlen > 16)
+ 			oldlen = 16;
+ 
+-		if (copy_to_user(oldval, uuid, oldlen))
++		if (copy_to_user(oldval, &uuid, oldlen))
+ 			return -EFAULT;
+ 
+ 		copied = oldlen;
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
