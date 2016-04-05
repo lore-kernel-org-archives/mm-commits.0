@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + sysctl-use-generic-uuid-library.patch added to -mm tree
-Date: Tue, 05 Apr 2016 15:17:05 -0700
-Message-ID: <57043961.p8PCJV5nC0C9Wy+K%akpm@linux-foundation.org>
+Subject: + efivars-use-generic-uuid-library.patch added to -mm tree
+Date: Tue, 05 Apr 2016 15:17:09 -0700
+Message-ID: <57043965.odKWmYkfcYTGzwFF%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55230 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55244 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933817AbcDEWRG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 18:17:06 -0400
+	with ESMTP id S933753AbcDEWRK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 18:17:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, arnd@arndb.de, axboe@kernel.dk, dmitry.kasatkin@gmail.com, linux@rasmusvillemoes.dk, matt@codeblueprint.co.uk, tytso@mit.edu, viro@zeniv.linux.org.uk, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kernel/sysctl_binary.c: use generic UUID library
+     Subject: fs/efivarfs/inode.c: use generic UUID library
 has been added to the -mm tree.  Its filename is
-     sysctl-use-generic-uuid-library.patch
+     efivars-use-generic-uuid-library.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-use-generic-uuid-library.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/efivars-use-generic-uuid-library.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-use-generic-uuid-library.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/efivars-use-generic-uuid-library.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,10 +39,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: kernel/sysctl_binary.c: use generic UUID library
+Subject: fs/efivarfs/inode.c: use generic UUID library
 
-UUID library provides uuid_be type and uuid_be_to_bin() function.  This
-substitutes open coded variant by generic library calls.
+Instead of opencoding let's use generic UUID library functions here.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Reviewed-by: Matt Fleming <matt@codeblueprint.co.uk>
@@ -56,61 +55,81 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- kernel/sysctl_binary.c |   23 +++++++----------------
- 1 file changed, 7 insertions(+), 16 deletions(-)
+ fs/efivarfs/inode.c |   40 +++-------------------------------------
+ 1 file changed, 3 insertions(+), 37 deletions(-)
 
-diff -puN kernel/sysctl_binary.c~sysctl-use-generic-uuid-library kernel/sysctl_binary.c
---- a/kernel/sysctl_binary.c~sysctl-use-generic-uuid-library
-+++ a/kernel/sysctl_binary.c
-@@ -13,6 +13,7 @@
+diff -puN fs/efivarfs/inode.c~efivars-use-generic-uuid-library fs/efivarfs/inode.c
+--- a/fs/efivarfs/inode.c~efivars-use-generic-uuid-library
++++ a/fs/efivarfs/inode.c
+@@ -11,6 +11,7 @@
+ #include <linux/fs.h>
  #include <linux/ctype.h>
- #include <linux/netdevice.h>
- #include <linux/kernel.h>
-+#include <linux/uuid.h>
  #include <linux/slab.h>
- #include <linux/compat.h>
++#include <linux/uuid.h>
  
-@@ -1117,9 +1118,8 @@ static ssize_t bin_uuid(struct file *fil
+ #include "internal.h"
  
- 	/* Only supports reads */
- 	if (oldval && oldlen) {
--		char buf[40], *str = buf;
--		unsigned char uuid[16];
--		int i;
-+		char buf[UUID_STRING_LEN + 1];
-+		uuid_be uuid;
+@@ -46,11 +47,7 @@ struct inode *efivarfs_get_inode(struct
+  */
+ bool efivarfs_valid_name(const char *str, int len)
+ {
+-	static const char dashes[EFI_VARIABLE_GUID_LEN] = {
+-		[8] = 1, [13] = 1, [18] = 1, [23] = 1
+-	};
+ 	const char *s = str + len - EFI_VARIABLE_GUID_LEN;
+-	int i;
  
- 		result = kernel_read(file, 0, buf, sizeof(buf) - 1);
- 		if (result < 0)
-@@ -1127,24 +1127,15 @@ static ssize_t bin_uuid(struct file *fil
- 
- 		buf[result] = '\0';
- 
--		/* Convert the uuid to from a string to binary */
--		for (i = 0; i < 16; i++) {
--			result = -EIO;
--			if (!isxdigit(str[0]) || !isxdigit(str[1]))
--				goto out;
--
--			uuid[i] = (hex_to_bin(str[0]) << 4) |
--					hex_to_bin(str[1]);
--			str += 2;
--			if (*str == '-')
--				str++;
+ 	/*
+ 	 * We need a GUID, plus at least one letter for the variable name,
+@@ -68,37 +65,7 @@ bool efivarfs_valid_name(const char *str
+ 	 *
+ 	 *	12345678-1234-1234-1234-123456789abc
+ 	 */
+-	for (i = 0; i < EFI_VARIABLE_GUID_LEN; i++) {
+-		if (dashes[i]) {
+-			if (*s++ != '-')
+-				return false;
+-		} else {
+-			if (!isxdigit(*s++))
+-				return false;
 -		}
-+		result = -EIO;
-+		if (uuid_be_to_bin(buf, &uuid))
-+			goto out;
+-	}
+-
+-	return true;
+-}
+-
+-static void efivarfs_hex_to_guid(const char *str, efi_guid_t *guid)
+-{
+-	guid->b[0] = hex_to_bin(str[6]) << 4 | hex_to_bin(str[7]);
+-	guid->b[1] = hex_to_bin(str[4]) << 4 | hex_to_bin(str[5]);
+-	guid->b[2] = hex_to_bin(str[2]) << 4 | hex_to_bin(str[3]);
+-	guid->b[3] = hex_to_bin(str[0]) << 4 | hex_to_bin(str[1]);
+-	guid->b[4] = hex_to_bin(str[11]) << 4 | hex_to_bin(str[12]);
+-	guid->b[5] = hex_to_bin(str[9]) << 4 | hex_to_bin(str[10]);
+-	guid->b[6] = hex_to_bin(str[16]) << 4 | hex_to_bin(str[17]);
+-	guid->b[7] = hex_to_bin(str[14]) << 4 | hex_to_bin(str[15]);
+-	guid->b[8] = hex_to_bin(str[19]) << 4 | hex_to_bin(str[20]);
+-	guid->b[9] = hex_to_bin(str[21]) << 4 | hex_to_bin(str[22]);
+-	guid->b[10] = hex_to_bin(str[24]) << 4 | hex_to_bin(str[25]);
+-	guid->b[11] = hex_to_bin(str[26]) << 4 | hex_to_bin(str[27]);
+-	guid->b[12] = hex_to_bin(str[28]) << 4 | hex_to_bin(str[29]);
+-	guid->b[13] = hex_to_bin(str[30]) << 4 | hex_to_bin(str[31]);
+-	guid->b[14] = hex_to_bin(str[32]) << 4 | hex_to_bin(str[33]);
+-	guid->b[15] = hex_to_bin(str[34]) << 4 | hex_to_bin(str[35]);
++	return uuid_is_valid(s);
+ }
  
- 		if (oldlen > 16)
- 			oldlen = 16;
+ static int efivarfs_create(struct inode *dir, struct dentry *dentry,
+@@ -119,8 +86,7 @@ static int efivarfs_create(struct inode
+ 	/* length of the variable name itself: remove GUID and separator */
+ 	namelen = dentry->d_name.len - EFI_VARIABLE_GUID_LEN - 1;
  
- 		result = -EFAULT;
--		if (copy_to_user(oldval, uuid, oldlen))
-+		if (copy_to_user(oldval, &uuid, oldlen))
- 			goto out;
+-	efivarfs_hex_to_guid(dentry->d_name.name + namelen + 1,
+-			&var->var.VendorGuid);
++	uuid_le_to_bin(dentry->d_name.name + namelen + 1, &var->var.VendorGuid);
  
- 		copied = oldlen;
+ 	if (efivar_variable_is_removable(var->var.VendorGuid,
+ 					 dentry->d_name.name, namelen))
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
