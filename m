@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask.patch
+Subject: + huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase.patch
  added to -mm tree
-Date: Tue, 05 Apr 2016 16:16:39 -0700
-Message-ID: <57044757.OqA2O5mAhnmgfuQJ%akpm@linux-foundation.org>
+Date: Tue, 05 Apr 2016 16:16:35 -0700
+Message-ID: <57044753.i0M8VNsGFBgWss+g%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57191 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57173 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760067AbcDEXQl (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 19:16:41 -0400
+	with ESMTP id S1760094AbcDEXQm (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 19:16:42 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, quning@gmail.com, rientjes@google.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge tmpfs: shmem_huge_gfpmask and shmem_recovery_gfpmask
+     Subject: huge tmpfs recovery: debugfs stats to complete this phase
 has been added to the -mm tree.  Its filename is
-     huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask.patch
+     huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,40 +40,38 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: huge tmpfs: shmem_huge_gfpmask and shmem_recovery_gfpmask
+Subject: huge tmpfs recovery: debugfs stats to complete this phase
 
-We know that compaction latencies can be a problem for transparent
-hugepage allocation; and there has been a history of tweaking the gfpmask
-used for anon THP allocation at fault time and by khugepaged.  Plus we
-keep on changing our minds as to whether local smallpages are generally
-preferable to remote hugepages, or not.
+Implement the shr_stats(name) macro that has been inserted all over, to
+make the success of recovery visible in debugfs.  After a little testing,
+"cd /sys/kernel/debug/shmem_huge_recovery; grep . *" showed:
 
-Anon THP has at least /sys/kernel/mm/transparent_hugepage/defrag and
-/sys/kernel/mm/transparent_hugepage/khugepaged/defrag to play with
-__GFP_RECLAIM bits in its gfpmasks; but so far there's been nothing at all
-in huge tmpfs to experiment with these issues, and doubts looming on
-whether we've made the right choices.
-
-Add /proc/sys/vm/{shmem_huge_gfpmask,shmem_recovery_gfpmask} to override
-the defaults we've been using for its synchronous and asynchronous
-hugepage allocations so far: make these tunable now, but no thought yet
-given to what values worth experimenting with.  Only numeric validation of
-the input: root must just take care.
-
-Three things make this a more awkward patch than you might expect:
-
-1. We shall want to play with __GFP_THISNODE, but that got added
-   down inside alloc_pages_vma(): change huge_memory.c to supply it
-   for anon THP, then alloc_pages_vma() remove it when unsuitable.
-
-2. It took some time to work out how a global gfpmask template should
-   modulate a non-standard incoming gfpmask, different bits having
-   different effects: shmem_huge_gfp() helper added for that.
-
-3. __alloc_pages_slowpath() compared gfpmask with GFP_TRANSHUGE
-   in a couple of places: which is appropriate for anonymous THP,
-   but needed a little rework to extend it to huge tmpfs usage,
-   when we're hoping to be able to tune behavior with these sysctls.
+huge_alloced:15872
+huge_failed:0
+huge_too_late:0
+page_created:0
+page_migrate:1298014
+page_off_lru:300
+page_raced:0
+page_teamed:6831300
+page_unmigrated:3243
+recov_completed:15484
+recov_failed:0
+recov_partial:696
+recov_retried:2463
+remap_another:0
+remap_faulter:15484
+remap_untried:0
+resume_tagged:279
+resume_teamed:68
+swap_cached:699229
+swap_entry:7530549
+swap_gone:20
+swap_read:6831300
+work_already:43218374
+work_queued:16221
+work_too_late:2
+work_too_many:0
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -85,345 +83,130 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/tmpfs.txt |   19 ++++++++
- Documentation/sysctl/vm.txt         |   23 +++++++++-
- include/linux/shmem_fs.h            |    2 
- kernel/sysctl.c                     |   14 ++++++
- mm/huge_memory.c                    |    2 
- mm/mempolicy.c                      |   13 +++--
- mm/page_alloc.c                     |   34 ++++++++-------
- mm/shmem.c                          |   58 +++++++++++++++++++++++---
- 8 files changed, 134 insertions(+), 31 deletions(-)
+ Documentation/filesystems/tmpfs.txt |    2 
+ mm/shmem.c                          |   91 ++++++++++++++++++++++++--
+ 2 files changed, 88 insertions(+), 5 deletions(-)
 
-diff -puN Documentation/filesystems/tmpfs.txt~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask Documentation/filesystems/tmpfs.txt
---- a/Documentation/filesystems/tmpfs.txt~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask
+diff -puN Documentation/filesystems/tmpfs.txt~huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase Documentation/filesystems/tmpfs.txt
+--- a/Documentation/filesystems/tmpfs.txt~huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase
 +++ a/Documentation/filesystems/tmpfs.txt
-@@ -192,11 +192,28 @@ In addition to 0 and 1, it also accepts
- automatically on for all tmpfs mounts (intended for testing), or -1
- to force huge off for all (intended for safety if bugs appeared).
+@@ -224,6 +224,8 @@ shmem_pmdmapped 12582912   bytes tmpfs h
+ Note: the individual pages of a huge team might be charged to different
+ memcgs, but these counts assume that they are all charged to the same as head.
  
-+/proc/sys/vm/shmem_huge_gfpmask (intended for experimentation only):
++/sys/kernel/debug/shmem_huge_recovery: recovery stats to assist development.
 +
-+Default 38146762, that is 0x24612ca:
-+GFP_HIGHUSER_MOVABLE|__GFP_NOWARN|__GFP_THISNODE|__GFP_NORETRY.
-+Write a gfpmask built from __GFP flags in include/linux/gfp.h, to experiment
-+with better alternatives for the synchronous huge tmpfs allocation used
-+when faulting or writing.
-+
- /proc/sys/vm/shmem_huge_recoveries:
- 
- Default 8, allows up to 8 concurrent workitems, recovering hugepages
- after fragmentation prevented or reclaim disbanded; write 0 to disable
--huge recoveries, or a higher number to allow more concurrent recoveries.
-+huge recoveries, or a higher number to allow more concurrent recoveries
-+(or a negative number to disable both retry after shrinking, and recovery).
-+
-+/proc/sys/vm/shmem_recovery_gfpmask (intended for experimentation only):
-+
-+Default 38142666, that is 0x24602ca:
-+GFP_HIGHUSER_MOVABLE|__GFP_NOWARN|__GFP_THISNODE.
-+Write a gfpmask built from __GFP flags in include/linux/gfp.h, to experiment
-+with alternatives for the asynchronous huge tmpfs allocation used in recovery
-+from fragmentation or swapping.
- 
- /proc/<pid>/smaps shows:
- 
-diff -puN Documentation/sysctl/vm.txt~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask Documentation/sysctl/vm.txt
---- a/Documentation/sysctl/vm.txt~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask
-+++ a/Documentation/sysctl/vm.txt
-@@ -57,7 +57,9 @@ Currently, these files are in /proc/sys/
- - panic_on_oom
- - percpu_pagelist_fraction
- - shmem_huge
-+- shmem_huge_gfpmask
- - shmem_huge_recoveries
-+- shmem_recovery_gfpmask
- - stat_interval
- - stat_refresh
- - swappiness
-@@ -765,11 +767,30 @@ See Documentation/filesystems/tmpfs.txt
- 
- ==============================================================
- 
-+shmem_huge_gfpmask
-+
-+Write a gfpmask built from __GFP flags in include/linux/gfp.h, to experiment
-+with better alternatives for the synchronous huge tmpfs allocation used
-+when faulting or writing.  See Documentation/filesystems/tmpfs.txt.
-+/proc/sys/vm/shmem_huge_gfpmask is intended for experimentation only.
-+
-+==============================================================
-+
- shmem_huge_recoveries
- 
- Default 8, allows up to 8 concurrent workitems, recovering hugepages
- after fragmentation prevented or reclaim disbanded; write 0 to disable
--huge recoveries, or a higher number to allow more concurrent recoveries.
-+huge recoveries, or a higher number to allow more concurrent recoveries
-+(or a negative number to disable both retry after shrinking, and recovery).
-+
-+==============================================================
-+
-+shmem_recovery_gfpmask
-+
-+Write a gfpmask built from __GFP flags in include/linux/gfp.h, to experiment
-+with alternatives for the asynchronous huge tmpfs allocation used in recovery
-+from fragmentation or swapping.  See Documentation/filesystems/tmpfs.txt.
-+/proc/sys/vm/shmem_recovery_gfpmask is intended for experimentation only.
- 
- ==============================================================
- 
-diff -puN include/linux/shmem_fs.h~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask include/linux/shmem_fs.h
---- a/include/linux/shmem_fs.h~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask
-+++ a/include/linux/shmem_fs.h
-@@ -89,7 +89,7 @@ extern bool shmem_recovery_migrate_page(
- # ifdef CONFIG_SYSCTL
- struct ctl_table;
- extern int shmem_huge, shmem_huge_min, shmem_huge_max;
--extern int shmem_huge_recoveries;
-+extern int shmem_huge_recoveries, shmem_huge_gfpmask, shmem_recovery_gfpmask;
- extern int shmem_huge_sysctl(struct ctl_table *table, int write,
- 			     void __user *buffer, size_t *lenp, loff_t *ppos);
- # endif /* CONFIG_SYSCTL */
-diff -puN kernel/sysctl.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask kernel/sysctl.c
---- a/kernel/sysctl.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask
-+++ a/kernel/sysctl.c
-@@ -1325,12 +1325,26 @@ static struct ctl_table vm_table[] = {
- 		.extra2		= &shmem_huge_max,
- 	},
- 	{
-+		.procname	= "shmem_huge_gfpmask",
-+		.data		= &shmem_huge_gfpmask,
-+		.maxlen		= sizeof(shmem_huge_gfpmask),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec,
-+	},
-+	{
- 		.procname	= "shmem_huge_recoveries",
- 		.data		= &shmem_huge_recoveries,
- 		.maxlen		= sizeof(shmem_huge_recoveries),
- 		.mode		= 0644,
- 		.proc_handler	= proc_dointvec,
- 	},
-+	{
-+		.procname	= "shmem_recovery_gfpmask",
-+		.data		= &shmem_recovery_gfpmask,
-+		.maxlen		= sizeof(shmem_recovery_gfpmask),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec,
-+	},
- #endif
- #ifdef CONFIG_HUGETLB_PAGE
- 	{
-diff -puN mm/huge_memory.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask mm/huge_memory.c
---- a/mm/huge_memory.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask
-+++ a/mm/huge_memory.c
-@@ -883,7 +883,7 @@ static inline gfp_t alloc_hugepage_direc
- 	else if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags))
- 		reclaim_flags = __GFP_DIRECT_RECLAIM;
- 
--	return GFP_TRANSHUGE | reclaim_flags;
-+	return GFP_TRANSHUGE | __GFP_THISNODE | reclaim_flags;
- }
- 
- /* Defrag for khugepaged will enter direct reclaim/compaction if necessary */
-diff -puN mm/mempolicy.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask mm/mempolicy.c
---- a/mm/mempolicy.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask
-+++ a/mm/mempolicy.c
-@@ -1989,11 +1989,14 @@ retry_cpuset:
- 
- 		nid = interleave_nid(pol, vma, addr, PAGE_SHIFT + order);
- 		mpol_cond_put(pol);
-+		if (hugepage)
-+			gfp &= ~__GFP_THISNODE;
- 		page = alloc_page_interleave(gfp, order, nid);
- 		goto out;
- 	}
- 
--	if (unlikely(IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && hugepage)) {
-+	if (unlikely(IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && hugepage &&
-+	    (gfp & __GFP_THISNODE))) {
- 		int hpage_node = node;
- 
- 		/*
-@@ -2006,17 +2009,17 @@ retry_cpuset:
- 		 * If the policy is interleave, or does not allow the current
- 		 * node in its nodemask, we allocate the standard way.
- 		 */
--		if (pol->mode == MPOL_PREFERRED &&
--						!(pol->flags & MPOL_F_LOCAL))
-+		if (pol->mode == MPOL_PREFERRED && !(pol->flags & MPOL_F_LOCAL))
- 			hpage_node = pol->v.preferred_node;
- 
- 		nmask = policy_nodemask(gfp, pol);
- 		if (!nmask || node_isset(hpage_node, *nmask)) {
- 			mpol_cond_put(pol);
--			page = __alloc_pages_node(hpage_node,
--						gfp | __GFP_THISNODE, order);
-+			page = __alloc_pages_node(hpage_node, gfp, order);
- 			goto out;
- 		}
-+
-+		gfp &= ~__GFP_THISNODE;
- 	}
- 
- 	nmask = policy_nodemask(gfp, pol);
-diff -puN mm/page_alloc.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask mm/page_alloc.c
---- a/mm/page_alloc.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask
-+++ a/mm/page_alloc.c
-@@ -3135,9 +3135,15 @@ bool gfp_pfmemalloc_allowed(gfp_t gfp_ma
- 	return !!(gfp_to_alloc_flags(gfp_mask) & ALLOC_NO_WATERMARKS);
- }
- 
--static inline bool is_thp_gfp_mask(gfp_t gfp_mask)
-+static inline bool is_thp_allocation(gfp_t gfp_mask, unsigned int order)
- {
--	return (gfp_mask & (GFP_TRANSHUGE | __GFP_KSWAPD_RECLAIM)) == GFP_TRANSHUGE;
-+	/*
-+	 * !__GFP_KSWAPD_RECLAIM is an unusual choice, and no harm is done if a
-+	 * similar high order allocation is occasionally misinterpreted as THP.
-+	 */
-+	return IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
-+		!(gfp_mask & __GFP_KSWAPD_RECLAIM) &&
-+		(order == HPAGE_PMD_ORDER);
- }
- 
- static inline struct page *
-@@ -3255,7 +3261,7 @@ retry:
- 		goto got_pg;
- 
- 	/* Checks for THP-specific high-order allocations */
--	if (is_thp_gfp_mask(gfp_mask)) {
-+	if (is_thp_allocation(gfp_mask, order)) {
- 		/*
- 		 * If compaction is deferred for high-order allocations, it is
- 		 * because sync compaction recently failed. If this is the case
-@@ -3277,20 +3283,16 @@ retry:
- 
- 		/*
- 		 * If compaction was aborted due to need_resched(), we do not
--		 * want to further increase allocation latency, unless it is
--		 * khugepaged trying to collapse.
--		 */
--		if (contended_compaction == COMPACT_CONTENDED_SCHED
--			&& !(current->flags & PF_KTHREAD))
-+		 * want to further increase allocation latency at fault.
-+		 * If continuing, still use asynchronous memory compaction
-+		 * for THP, unless it is khugepaged trying to collapse,
-+		 * or an asynchronous huge tmpfs recovery work item.
-+		 */
-+		if (current->flags & PF_KTHREAD)
-+			migration_mode = MIGRATE_SYNC_LIGHT;
-+		else if (contended_compaction == COMPACT_CONTENDED_SCHED)
- 			goto nopage;
--	}
--
--	/*
--	 * It can become very expensive to allocate transparent hugepages at
--	 * fault, so use asynchronous memory compaction for THP unless it is
--	 * khugepaged trying to collapse.
--	 */
--	if (!is_thp_gfp_mask(gfp_mask) || (current->flags & PF_KTHREAD))
-+	} else
- 		migration_mode = MIGRATE_SYNC_LIGHT;
- 
- 	/* Try direct reclaim and then allocating */
-diff -puN mm/shmem.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask mm/shmem.c
---- a/mm/shmem.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask
+ Author:
+    Christoph Rohland <cr@sap.com>, 1.12.01
+ Updated:
+diff -puN mm/shmem.c~huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase mm/shmem.c
+--- a/mm/shmem.c~huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase
 +++ a/mm/shmem.c
-@@ -323,6 +323,43 @@ static DEFINE_SPINLOCK(shmem_shrinklist_
- int shmem_huge __read_mostly;
- int shmem_huge_recoveries __read_mostly = 8;	/* concurrent recovery limit */
+@@ -6,8 +6,8 @@
+  *		 2000-2001 Christoph Rohland
+  *		 2000-2001 SAP AG
+  *		 2002 Red Hat Inc.
+- * Copyright (C) 2002-2011 Hugh Dickins.
+- * Copyright (C) 2011 Google Inc.
++ * Copyright (C) 2002-2016 Hugh Dickins.
++ * Copyright (C) 2011-2016 Google Inc.
+  * Copyright (C) 2002-2005 VERITAS Software Corporation.
+  * Copyright (C) 2004 Andi Kleen, SuSE Labs
+  *
+@@ -788,9 +788,90 @@ struct recovery {
+ 	bool exposed_team;
+ };
  
-+int shmem_huge_gfpmask __read_mostly =
-+	(int)(GFP_HIGHUSER_MOVABLE|__GFP_NOWARN|__GFP_THISNODE|__GFP_NORETRY);
-+int shmem_recovery_gfpmask __read_mostly =
-+	(int)(GFP_HIGHUSER_MOVABLE|__GFP_NOWARN|__GFP_THISNODE);
+-#define shr_stats(x)	do {} while (0)
+-#define shr_stats_add(x, n) do {} while (0)
+-/* Stats implemented in a later patch */
++#ifdef CONFIG_DEBUG_FS
++#include <linux/debugfs.h>
 +
-+/*
-+ * Compose the requested_gfp for a small page together with the tunable
-+ * template above, to construct a suitable gfpmask for a huge allocation.
-+ */
-+static gfp_t shmem_huge_gfp(int tunable_template, gfp_t requested_gfp)
++static struct dentry *shr_debugfs_root;
++static struct {
++	/*
++	 * Just stats: no need to use atomics; and although many of these
++	 * u32s can soon overflow, debugging doesn't need them to be u64s.
++	 */
++	u32 huge_alloced;
++	u32 huge_failed;
++	u32 huge_too_late;
++	u32 page_created;
++	u32 page_migrate;
++	u32 page_off_lru;
++	u32 page_raced;
++	u32 page_teamed;
++	u32 page_unmigrated;
++	u32 recov_completed;
++	u32 recov_failed;
++	u32 recov_partial;
++	u32 recov_retried;
++	u32 remap_another;
++	u32 remap_faulter;
++	u32 remap_untried;
++	u32 resume_tagged;
++	u32 resume_teamed;
++	u32 swap_cached;
++	u32 swap_entry;
++	u32 swap_gone;
++	u32 swap_read;
++	u32 work_already;
++	u32 work_queued;
++	u32 work_too_late;
++	u32 work_too_many;
++} shmem_huge_recovery_stats;
++
++#define shr_create(x)	debugfs_create_u32(#x, S_IRUGO, shr_debugfs_root, \
++					   &shmem_huge_recovery_stats.x)
++static int __init shmem_debugfs_init(void)
 +{
-+	gfp_t huge_gfpmask = (gfp_t)tunable_template;
-+	gfp_t relaxants;
++	if (!debugfs_initialized())
++		return -ENODEV;
++	shr_debugfs_root = debugfs_create_dir("shmem_huge_recovery", NULL);
++	if (!shr_debugfs_root)
++		return -ENOMEM;
 +
-+	/*
-+	 * Relaxants must only be applied when they are permitted in both.
-+	 * GFP_KERNEL happens to be the name for
-+	 * __GFP_IO|__GFP_FS|__GFP_DIRECT_RECLAIM|__GFP_KSWAPD_RECLAIM.
-+	 */
-+	relaxants = huge_gfpmask & requested_gfp & GFP_KERNEL;
-+
-+	/*
-+	 * Zone bits must be taken exclusively from the requested gfp mask.
-+	 * __GFP_COMP would be a disaster: make sure the sysctl cannot add it.
-+	 */
-+	huge_gfpmask &= __GFP_BITS_MASK & ~(GFP_ZONEMASK|__GFP_COMP|GFP_KERNEL);
-+
-+	/*
-+	 * These might be right for a small page, but unsuitable for the huge.
-+	 * REPEAT and NOFAIL very likely wrong in huge_gfpmask, but permitted.
-+	 */
-+	requested_gfp &= ~(__GFP_REPEAT|__GFP_NOFAIL|__GFP_COMP|GFP_KERNEL);
-+
-+	/* Beyond that, we can simply use the union, sensible or not */
-+	return huge_gfpmask | requested_gfp | relaxants;
++	shr_create(huge_alloced);
++	shr_create(huge_failed);
++	shr_create(huge_too_late);
++	shr_create(page_created);
++	shr_create(page_migrate);
++	shr_create(page_off_lru);
++	shr_create(page_raced);
++	shr_create(page_teamed);
++	shr_create(page_unmigrated);
++	shr_create(recov_completed);
++	shr_create(recov_failed);
++	shr_create(recov_partial);
++	shr_create(recov_retried);
++	shr_create(remap_another);
++	shr_create(remap_faulter);
++	shr_create(remap_untried);
++	shr_create(resume_tagged);
++	shr_create(resume_teamed);
++	shr_create(swap_cached);
++	shr_create(swap_entry);
++	shr_create(swap_gone);
++	shr_create(swap_read);
++	shr_create(work_already);
++	shr_create(work_queued);
++	shr_create(work_too_late);
++	shr_create(work_too_many);
++	return 0;
 +}
++fs_initcall(shmem_debugfs_init);
 +
- static struct page *shmem_hugeteam_lookup(struct address_space *mapping,
- 					  pgoff_t index, bool speculative)
++#undef  shr_create
++#define shr_stats(x)		(shmem_huge_recovery_stats.x++)
++#define shr_stats_add(x, n)	(shmem_huge_recovery_stats.x += n)
++#else
++#define shr_stats(x)		do {} while (0)
++#define shr_stats_add(x, n)	do {} while (0)
++#endif /* CONFIG_DEBUG_FS */
+ 
+ static bool shmem_work_still_useful(struct recovery *recovery)
  {
-@@ -1395,8 +1432,9 @@ static void shmem_recovery_work(struct w
- 		 * often choose an unsuitable NUMA node: something to fix soon,
- 		 * but not an immediate blocker.
- 		 */
-+		gfp = shmem_huge_gfp(shmem_recovery_gfpmask, gfp);
- 		head = __alloc_pages_node(page_to_nid(page),
--			gfp | __GFP_NOWARN | __GFP_THISNODE, HPAGE_PMD_ORDER);
-+					  gfp, HPAGE_PMD_ORDER);
- 		if (!head) {
- 			shr_stats(huge_failed);
- 			error = -ENOMEM;
-@@ -1732,9 +1770,15 @@ static struct shrinker shmem_hugehole_sh
- #else /* !CONFIG_TRANSPARENT_HUGEPAGE */
- 
- #define shmem_huge SHMEM_HUGE_DENY
-+#define shmem_huge_gfpmask GFP_HIGHUSER_MOVABLE
- #define shmem_huge_recoveries 0
- #define shr_stats(x) do {} while (0)
- 
-+static inline gfp_t shmem_huge_gfp(int tunable_template, gfp_t requested_gfp)
-+{
-+	return requested_gfp;
-+}
-+
- static inline struct page *shmem_hugeteam_lookup(struct address_space *mapping,
- 					pgoff_t index, bool speculative)
- {
-@@ -2626,14 +2670,16 @@ static struct page *shmem_alloc_page(gfp
- 		rcu_read_unlock();
- 
- 		if (*hugehint == SHMEM_ALLOC_HUGE_PAGE) {
--			head = alloc_pages_vma(gfp|__GFP_NORETRY|__GFP_NOWARN,
--				HPAGE_PMD_ORDER, &pvma, 0, numa_node_id(),
--				true);
-+			gfp_t huge_gfp;
-+
-+			huge_gfp = shmem_huge_gfp(shmem_huge_gfpmask, gfp);
-+			head = alloc_pages_vma(huge_gfp,
-+					HPAGE_PMD_ORDER, &pvma, 0,
-+					numa_node_id(), true);
- 			/* Shrink and retry? Or leave it to recovery worker */
- 			if (!head && !shmem_huge_recoveries &&
- 			    shmem_shrink_hugehole(NULL, NULL) != SHRINK_STOP) {
--				head = alloc_pages_vma(
--					gfp|__GFP_NORETRY|__GFP_NOWARN,
-+				head = alloc_pages_vma(huge_gfp,
- 					HPAGE_PMD_ORDER, &pvma, 0,
- 					numa_node_id(), true);
- 			}
 _
 
 Patches currently in -mm which might be from hughd@google.com are
