@@ -1,44 +1,48 @@
 From: akpm@linux-foundation.org
-Subject: [to-be-updated] zsmalloc-migrate-tail-pages-in-zspage.patch
- removed from -mm tree
-Date: Tue, 05 Apr 2016 14:14:24 -0700
-Message-ID: <57042ab0.cFhT34LM/4bohpKM%akpm@linux-foundation.org>
+Subject: [to-be-updated]
+ zsmalloc-use-single-linked-list-for-page-chain.patch removed from -mm tree
+Date: Tue, 05 Apr 2016 14:14:21 -0700
+Message-ID: <57042aad.ge6wP75Bitf1ML1f%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:52421 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:52411 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760143AbcDEVO0 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 17:14:26 -0400
+	with ESMTP id S1760143AbcDEVOX (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 17:14:23 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: minchan@kernel.org, aquini@redhat.com, chan.jeong@lge.com, gi-oh.kim@profitbricks.com, hughd@google.com, iamjoonsoo.kim@lge.com, koct9i@gmail.com, mgorman@suse.de, riel@redhat.com, rknize@motorola.com, sangseok.lee@lge.com, sergey.senozhatsky@gmail.com, vbabka@suse.cz, viro@ZenIV.linux.org.uk, xuyiping@hisilicon.com, mm-commits@vger.kernel.org
+To: minchan@kernel.org, aquini@redhat.com, chan.jeong@lge.com, gi-oh.kim@profitbricks.com, hughd@google.com, iamjoonsoo.kim@lge.com, koct9i@gmail.com, mgorman@suse.de, n-horiguchi@ah.jp.nec.com, riel@redhat.com, rknize@motorola.com, sangseok.lee@lge.com, sergey.senozhatsky@gmail.com, vbabka@suse.cz, viro@ZenIV.linux.org.uk, xuyiping@hisilicon.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: zsmalloc: migrate tail pages in zspage
+     Subject: zsmalloc: use single linked list for page chain
 has been removed from the -mm tree.  Its filename was
-     zsmalloc-migrate-tail-pages-in-zspage.patch
+     zsmalloc-use-single-linked-list-for-page-chain.patch
 
 This patch was dropped because an updated version will be merged
 
 ------------------------------------------------------
 From: Minchan Kim <minchan@kernel.org>
-Subject: zsmalloc: migrate tail pages in zspage
+Subject: zsmalloc: use single linked list for page chain
 
-This patch enables tail page migration of zspage.
+For tail page migration, we shouldn't use page->lru which was used for
+page chaining because VM will use it for own purpose so that we need
+another field for chaining.  For chaining, singly linked list is enough
+and page->index of tail page to point first object offset in the page
+could be replaced in run-time calculation.
 
-In this point, I tested zsmalloc regression with micro-benchmark which
-does zs_malloc/map/unmap/zs_free for all size class in every CPU(my system
-is 12) during 20 sec.
+So this patch change page->lru list for chaining with singly linked list
+via page->freelist squeeze and introduces get_first_obj_ofs to get first
+object offset in a page.
 
-It shows 1% regression which is really small when we consider the benefit
-of this feature and realworkload overhead(i.e., most overhead comes from
-compression).
+With that, it could maintain page chaining without using page->lru.
 
-Signed-off-by: Minchan Kim <minchan@kernel.org>Cc: Vlastimil Babka <vbabka@suse.cz>
+Signed-off-by: Minchan Kim <minchan@kernel.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Cc: Rafael Aquini <aquini@redhat.com>
@@ -56,294 +60,208 @@ Cc: Minchan Kim <minchan@kernel.org>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/zsmalloc.c |  129 ++++++++++++++++++++++++++++++++++++++++++------
- 1 file changed, 114 insertions(+), 15 deletions(-)
+ mm/zsmalloc.c |  119 +++++++++++++++++++++++++++++++-----------------
+ 1 file changed, 78 insertions(+), 41 deletions(-)
 
-diff -puN mm/zsmalloc.c~zsmalloc-migrate-tail-pages-in-zspage mm/zsmalloc.c
---- a/mm/zsmalloc.c~zsmalloc-migrate-tail-pages-in-zspage
+diff -puN mm/zsmalloc.c~zsmalloc-use-single-linked-list-for-page-chain mm/zsmalloc.c
+--- a/mm/zsmalloc.c~zsmalloc-use-single-linked-list-for-page-chain
 +++ a/mm/zsmalloc.c
-@@ -551,6 +551,19 @@ static void set_zspage_mapping(struct pa
- 	m->class = class_idx;
+@@ -17,10 +17,7 @@
+  *
+  * Usage of struct page fields:
+  *	page->private: points to the first component (0-order) page
+- *	page->index (union with page->freelist): offset of the first object
+- *		starting in this page.
+- *	page->lru: links together all component pages (except the first page)
+- *		of a zspage
++ *	page->index (union with page->freelist): override by struct zs_meta
+  *
+  *	For _first_ page only:
+  *
+@@ -271,10 +268,19 @@ struct zs_pool {
+ };
+ 
+ struct zs_meta {
+-	unsigned long freeobj:FREEOBJ_BITS;
+-	unsigned long class:CLASS_BITS;
+-	unsigned long fullness:FULLNESS_BITS;
+-	unsigned long inuse:INUSE_BITS;
++	union {
++		/* first page */
++		struct {
++			unsigned long freeobj:FREEOBJ_BITS;
++			unsigned long class:CLASS_BITS;
++			unsigned long fullness:FULLNESS_BITS;
++			unsigned long inuse:INUSE_BITS;
++		};
++		/* tail pages */
++		struct {
++			struct page *next;
++		};
++	};
+ };
+ 
+ struct mapping_area {
+@@ -491,6 +497,34 @@ static unsigned long get_freeobj(struct
+ 	return m->freeobj;
  }
  
-+static bool check_isolated_page(struct page *first_page)
++static void set_next_page(struct page *page, struct page *next)
 +{
-+	struct page *cursor;
++	struct zs_meta *m;
 +
-+	for (cursor = first_page; cursor != NULL; cursor =
-+					get_next_page(cursor)) {
-+		if (PageIsolated(cursor))
-+			return true;
-+	}
++	VM_BUG_ON_PAGE(is_first_page(page), page);
 +
-+	return false;
++	m = (struct zs_meta *)&page->index;
++	m->next = next;
 +}
 +
- /*
-  * zsmalloc divides the pool into various size classes where each
-  * class maintains a list of zspages where each zspage is divided
-@@ -1052,6 +1065,44 @@ void lock_zspage(struct page *first_page
- 	} while ((cursor = get_next_page(cursor)) != NULL);
++static struct page *get_next_page(struct page *page)
++{
++	struct page *next;
++
++	if (is_last_page(page))
++		next = NULL;
++	else if (is_first_page(page))
++		next = (struct page *)page_private(page);
++	else {
++		struct zs_meta *m = (struct zs_meta *)&page->index;
++
++		VM_BUG_ON(!m->next);
++		next = m->next;
++	}
++
++	return next;
++}
++
+ static void get_zspage_mapping(struct page *first_page,
+ 				unsigned int *class_idx,
+ 				enum fullness_group *fullness)
+@@ -871,18 +905,30 @@ static struct page *get_first_page(struc
+ 		return (struct page *)page_private(page);
  }
  
-+int trylock_zspage(struct page *first_page, struct page *locked_page)
-+{
-+	struct page *cursor, *fail;
-+
-+	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
-+
-+	for (cursor = first_page; cursor != NULL; cursor =
-+			get_next_page(cursor)) {
-+		if (cursor != locked_page) {
-+			if (!trylock_page(cursor)) {
-+				fail = cursor;
-+				goto unlock;
-+			}
-+		}
-+	}
-+
-+	return 1;
-+unlock:
-+	for (cursor = first_page; cursor != fail; cursor =
-+			get_next_page(cursor)) {
-+		if (cursor != locked_page)
-+			unlock_page(cursor);
-+	}
-+
-+	return 0;
-+}
-+
-+void unlock_zspage(struct page *first_page, struct page *locked_page)
-+{
+-static struct page *get_next_page(struct page *page)
++int get_first_obj_ofs(struct size_class *class, struct page *first_page,
++			struct page *page)
+ {
+-	struct page *next;
++	int pos, bound;
++	int page_idx = 0;
++	int ofs = 0;
 +	struct page *cursor = first_page;
-+
-+	for (; cursor != NULL; cursor = get_next_page(cursor)) {
-+		VM_BUG_ON_PAGE(!PageLocked(cursor), cursor);
-+		if (cursor != locked_page)
-+			unlock_page(cursor);
+ 
+-	if (is_last_page(page))
+-		next = NULL;
+-	else if (is_first_page(page))
+-		next = (struct page *)page_private(page);
+-	else
+-		next = list_entry(page->lru.next, struct page, lru);
++	if (first_page == page)
++		goto out;
+ 
+-	return next;
++	while (page != cursor) {
++		page_idx++;
++		cursor = get_next_page(cursor);
 +	}
-+}
 +
++	bound = PAGE_SIZE * page_idx;
++	pos = (((class->objs_per_zspage * class->size) *
++		page_idx / class->pages_per_zspage) / class->size
++		) * class->size;
++
++	ofs = (pos + class->size) % PAGE_SIZE;
++out:
++	return ofs;
+ }
+ 
+ static void objidx_to_page_and_offset(struct size_class *class,
+@@ -1008,27 +1054,25 @@ void lock_zspage(struct page *first_page
+ 
  static void free_zspage(struct zs_pool *pool, struct page *first_page)
  {
- 	struct page *nextp, *tmp;
-@@ -1090,15 +1141,16 @@ static void init_zspage(struct size_clas
- 	first_page->freelist = NULL;
- 	INIT_LIST_HEAD(&first_page->lru);
- 	set_zspage_inuse(first_page, 0);
--	BUG_ON(!trylock_page(first_page));
--	__SetPageMovable(first_page, mapping);
--	unlock_page(first_page);
+-	struct page *nextp, *tmp, *head_extra;
++	struct page *nextp, *tmp;
  
- 	while (page) {
- 		struct page *next_page;
+ 	VM_BUG_ON_PAGE(!is_first_page(first_page), first_page);
+ 	VM_BUG_ON_PAGE(get_zspage_inuse(first_page), first_page);
+ 
+ 	lock_zspage(first_page);
+-	head_extra = (struct page *)page_private(first_page);
++	nextp = (struct page *)page_private(first_page);
+ 
+ 	/* zspage with only 1 system page */
+-	if (!head_extra)
++	if (!nextp)
+ 		goto out;
+ 
+-	list_for_each_entry_safe(nextp, tmp, &head_extra->lru, lru) {
+-		list_del(&nextp->lru);
+-		reset_page(nextp);
+-		unlock_page(nextp);
+-		put_page(nextp);
+-	}
+-	reset_page(head_extra);
+-	unlock_page(head_extra);
+-	put_page(head_extra);
++	do {
++		tmp = nextp;
++		nextp = get_next_page(nextp);
++		reset_page(tmp);
++		unlock_page(tmp);
++		put_page(tmp);
++	} while (nextp);
+ out:
+ 	reset_page(first_page);
+ 	unlock_page(first_page);
+@@ -1055,13 +1099,6 @@ static void init_zspage(struct size_clas
  		struct link_free *link;
  		void *vaddr;
  
-+		BUG_ON(!trylock_page(page));
-+		__SetPageMovable(page, mapping);
-+		unlock_page(page);
-+
+-		/*
+-		 * page->index stores offset of first object starting
+-		 * in the page.
+-		 */
+-		if (page != first_page)
+-			page->index = off;
+-
  		vaddr = kmap_atomic(page);
  		link = (struct link_free *)vaddr + off / sizeof(*link);
  
-@@ -1848,6 +1900,7 @@ static enum fullness_group putback_zspag
+@@ -1103,7 +1140,6 @@ static void create_page_chain(struct pag
+ 	for (i = 0; i < nr_pages; i++) {
+ 		page = pages[i];
  
- 	VM_BUG_ON_PAGE(!list_empty(&first_page->lru), first_page);
- 	VM_BUG_ON_PAGE(ZsPageIsolate(first_page), first_page);
-+	VM_BUG_ON_PAGE(check_isolated_page(first_page), first_page);
+-		INIT_LIST_HEAD(&page->lru);
+ 		if (i == 0) {
+ 			SetPagePrivate(page);
+ 			set_page_private(page, 0);
+@@ -1112,10 +1148,12 @@ static void create_page_chain(struct pag
  
- 	fullness = get_fullness_group(class, first_page);
- 	insert_zspage(class, fullness, first_page);
-@@ -1954,6 +2007,12 @@ static struct page *isolate_source_page(
- 		if (!page)
- 			continue;
- 
-+		/* To prevent race between object and page migration */
-+		if (!trylock_zspage(page, NULL)) {
-+			page = NULL;
-+			continue;
+ 		if (i == 1)
+ 			set_page_private(first_page, (unsigned long)page);
+-		if (i >= 1)
++		if (i >= 1) {
++			set_next_page(page, NULL);
+ 			set_page_private(page, (unsigned long)first_page);
 +		}
-+
- 		remove_zspage(class, i, page);
+ 		if (i >= 2)
+-			list_add(&page->lru, &prev_page->lru);
++			set_next_page(prev_page, page);
+ 		if (i == nr_pages - 1)
+ 			SetPagePrivate2(page);
  
- 		inuse = get_zspage_inuse(page);
-@@ -1962,6 +2021,7 @@ static struct page *isolate_source_page(
- 		if (inuse != freezed) {
- 			unfreeze_zspage(class, page, freezed);
- 			putback_zspage(class, page);
-+			unlock_zspage(page, NULL);
- 			page = NULL;
- 			continue;
- 		}
-@@ -1993,6 +2053,12 @@ static struct page *isolate_target_page(
- 		if (!page)
- 			continue;
+@@ -2239,8 +2277,7 @@ int zs_page_migrate(struct address_space
+ 	kunmap_atomic(d_addr);
+ 	kunmap_atomic(s_addr);
  
-+		/* To prevent race between object and page migration */
-+		if (!trylock_zspage(page, NULL)) {
-+			page = NULL;
-+			continue;
-+		}
-+
- 		remove_zspage(class, i, page);
+-	if (!is_first_page(page))
+-		offset = page->index;
++	offset = get_first_obj_ofs(class, first_page, page);
  
- 		inuse = get_zspage_inuse(page);
-@@ -2001,6 +2067,7 @@ static struct page *isolate_target_page(
- 		if (inuse != freezed) {
- 			unfreeze_zspage(class, page, freezed);
- 			putback_zspage(class, page);
-+			unlock_zspage(page, NULL);
- 			page = NULL;
- 			continue;
- 		}
-@@ -2074,11 +2141,13 @@ static void __zs_compact(struct zs_pool
- 			putback_zspage(class, dst_page);
- 			unfreeze_zspage(class, dst_page,
- 				class->objs_per_zspage);
-+			unlock_zspage(dst_page, NULL);
- 			spin_unlock(&class->lock);
- 			dst_page = NULL;
- 		}
- 
- 		if (zspage_empty(class, src_page)) {
-+			unlock_zspage(src_page, NULL);
- 			free_zspage(pool, src_page);
- 			spin_lock(&class->lock);
- 			zs_stat_dec(class, OBJ_ALLOCATED,
-@@ -2101,12 +2170,14 @@ static void __zs_compact(struct zs_pool
- 		putback_zspage(class, src_page);
- 		unfreeze_zspage(class, src_page,
- 				class->objs_per_zspage);
-+		unlock_zspage(src_page, NULL);
- 	}
- 
- 	if (dst_page) {
- 		putback_zspage(class, dst_page);
- 		unfreeze_zspage(class, dst_page,
- 				class->objs_per_zspage);
-+		unlock_zspage(dst_page, NULL);
- 	}
- 
- 	spin_unlock(&class->lock);
-@@ -2209,10 +2280,11 @@ bool zs_page_isolate(struct page *page,
- 	VM_BUG_ON_PAGE(!PageLocked(page), page);
- 	VM_BUG_ON_PAGE(PageIsolated(page), page);
- 	/*
--	 * In this implementation, it allows only first page migration.
-+	 * first_page will not be destroyed by PG_lock of @page but it could
-+	 * be migrated out. For prohibiting it, zs_page_migrate calls
-+	 * trylock_zspage so it closes the race.
- 	 */
--	VM_BUG_ON_PAGE(!is_first_page(page), page);
--	first_page = page;
-+	first_page = get_first_page(page);
- 
- 	/*
- 	 * Without class lock, fullness is meaningless while constant
-@@ -2226,9 +2298,18 @@ bool zs_page_isolate(struct page *page,
- 	if (!spin_trylock(&class->lock))
- 		return false;
- 
-+	if (check_isolated_page(first_page))
-+		goto skip_isolate;
-+
-+	/*
-+	 * If this is first time isolation for zspage, isolate zspage from
-+	 * size_class to prevent further allocations from the zspage.
-+	 */
- 	get_zspage_mapping(first_page, &class_idx, &fullness);
- 	remove_zspage(class, fullness, first_page);
- 	SetZsPageIsolate(first_page);
-+
-+skip_isolate:
- 	SetPageIsolated(page);
- 	spin_unlock(&class->lock);
- 
-@@ -2251,7 +2332,7 @@ int zs_page_migrate(struct address_space
- 	VM_BUG_ON_PAGE(!PageMovable(page), page);
- 	VM_BUG_ON_PAGE(!PageIsolated(page), page);
- 
--	first_page = page;
-+	first_page = get_first_page(page);
- 	get_zspage_mapping(first_page, &class_idx, &fullness);
- 	pool = page->mapping->private_data;
- 	class = pool->size_class[class_idx];
-@@ -2266,6 +2347,13 @@ int zs_page_migrate(struct address_space
- 	if (get_zspage_inuse(first_page) == 0)
- 		goto out_class_unlock;
- 
-+	/*
-+	 * It prevents first_page migration during tail page opeartion for
-+	 * get_first_page's stability.
-+	 */
-+	if (!trylock_zspage(first_page, page))
-+		goto out_class_unlock;
-+
- 	freezed = freeze_zspage(class, first_page);
- 	if (freezed != get_zspage_inuse(first_page))
- 		goto out_unfreeze;
-@@ -2304,21 +2392,26 @@ int zs_page_migrate(struct address_space
- 	kunmap_atomic(addr);
- 
- 	replace_sub_page(class, first_page, newpage, page);
--	first_page = newpage;
-+	first_page = get_first_page(newpage);
- 	get_page(newpage);
- 	VM_BUG_ON_PAGE(get_fullness_group(class, first_page) ==
- 			ZS_EMPTY, first_page);
--	ClearZsPageIsolate(first_page);
--	putback_zspage(class, first_page);
-+	if (!check_isolated_page(first_page)) {
-+		INIT_LIST_HEAD(&first_page->lru);
-+		ClearZsPageIsolate(first_page);
-+		putback_zspage(class, first_page);
-+	}
-+
- 
- 	/* Migration complete. Free old page */
- 	ClearPageIsolated(page);
- 	reset_page(page);
- 	put_page(page);
- 	ret = MIGRATEPAGE_SUCCESS;
--
-+	page = newpage;
- out_unfreeze:
- 	unfreeze_zspage(class, first_page, freezed);
-+	unlock_zspage(first_page, page);
- out_class_unlock:
- 	spin_unlock(&class->lock);
- 
-@@ -2336,7 +2429,7 @@ void zs_page_putback(struct page *page)
- 	VM_BUG_ON_PAGE(!PageMovable(page), page);
- 	VM_BUG_ON_PAGE(!PageIsolated(page), page);
- 
--	first_page = page;
-+	first_page = get_first_page(page);
- 	get_zspage_mapping(first_page, &class_idx, &fullness);
- 	pool = page->mapping->private_data;
- 	class = pool->size_class[class_idx];
-@@ -2346,11 +2439,17 @@ void zs_page_putback(struct page *page)
- 	 * in zs_free will wait the page lock of @page without
- 	 * destroying of zspage.
- 	 */
--	INIT_LIST_HEAD(&first_page->lru);
- 	spin_lock(&class->lock);
- 	ClearPageIsolated(page);
--	ClearZsPageIsolate(first_page);
--	putback_zspage(class, first_page);
-+	/*
-+	 * putback zspage to right list if this is last isolated page
-+	 * putback in the zspage.
-+	 */
-+	if (!check_isolated_page(first_page)) {
-+		INIT_LIST_HEAD(&first_page->lru);
-+		ClearZsPageIsolate(first_page);
-+		putback_zspage(class, first_page);
-+	}
- 	spin_unlock(&class->lock);
- }
- 
+ 	addr = kmap_atomic(page);
+ 	do {
 _
 
 Patches currently in -mm which might be from minchan@kernel.org are
@@ -355,5 +273,6 @@ zsmalloc-use-first_page-rather-than-page.patch
 zsmalloc-clean-up-many-bug_on.patch
 zsmalloc-reordering-function-parameter.patch
 zsmalloc-remove-unused-pool-param-in-obj_free.patch
+zsmalloc-migrate-tail-pages-in-zspage.patch
 zram-use-__gfp_movable-for-memory-allocation.patch
 
