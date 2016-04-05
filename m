@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-page_alloc-correct-highmem-memory-statistics.patch added to
+Subject: +
+ mm-vmstat-make-node_page_state-handles-all-zones-by-itself.patch added to
  -mm tree
-Date: Tue, 05 Apr 2016 13:30:04 -0700
-Message-ID: <5704204c.deDTpKoBgLzyy0RX%akpm@linux-foundation.org>
+Date: Tue, 05 Apr 2016 13:30:08 -0700
+Message-ID: <57042050.3vxcqbggbz3OOMNL%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49623 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49645 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933626AbcDEUaG (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 16:30:06 -0400
+	with ESMTP id S933626AbcDEUaK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 16:30:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, riel@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/page_alloc: correct highmem memory statistics
+     Subject: mm/vmstat: make node_page_state() handles all zones by itself
 has been added to the -mm tree.  Its filename is
-     mm-page_alloc-correct-highmem-memory-statistics.patch
+     mm-vmstat-make-node_page_state-handles-all-zones-by-itself.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-correct-highmem-memory-statistics.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-vmstat-make-node_page_state-handles-all-zones-by-itself.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-correct-highmem-memory-statistics.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-vmstat-make-node_page_state-handles-all-zones-by-itself.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,14 +41,11 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/page_alloc: correct highmem memory statistics
+Subject: mm/vmstat: make node_page_state() handles all zones by itself
 
-ZONE_MOVABLE could be treated as highmem so we need to consider it for
-accurate statistics.  And, in following patches, ZONE_CMA will be
-introduced and it can be treated as highmem, too.  So, instead of manually
-adding stat of ZONE_MOVABLE, looping all zones and check whether the zone
-is highmem or not and add stat of the zone which can be treated as
-highmem.
+node_page_state() manually adds statistics per each zone and returns total
+value for all zones.  Whenever we add a new zone, we need to consider this
+function and it's really troublesome.  Make it handle all zones by itself.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
@@ -62,46 +60,38 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/page_alloc.c |   19 ++++++++++++++-----
- 1 file changed, 14 insertions(+), 5 deletions(-)
+ mm/vmstat.c |   18 ++++++------------
+ 1 file changed, 6 insertions(+), 12 deletions(-)
 
-diff -puN mm/page_alloc.c~mm-page_alloc-correct-highmem-memory-statistics mm/page_alloc.c
---- a/mm/page_alloc.c~mm-page_alloc-correct-highmem-memory-statistics
-+++ a/mm/page_alloc.c
-@@ -3820,6 +3820,8 @@ void si_meminfo_node(struct sysinfo *val
+diff -puN mm/vmstat.c~mm-vmstat-make-node_page_state-handles-all-zones-by-itself mm/vmstat.c
+--- a/mm/vmstat.c~mm-vmstat-make-node_page_state-handles-all-zones-by-itself
++++ a/mm/vmstat.c
+@@ -600,19 +600,13 @@ void zone_statistics(struct zone *prefer
+ unsigned long node_page_state(int node, enum zone_stat_item item)
  {
- 	int zone_type;		/* needs to be signed */
- 	unsigned long managed_pages = 0;
-+	unsigned long managed_highpages = 0;
-+	unsigned long free_highpages = 0;
- 	pg_data_t *pgdat = NODE_DATA(nid);
+ 	struct zone *zones = NODE_DATA(node)->node_zones;
++	int i;
++	unsigned long count = 0;
  
- 	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++)
-@@ -3828,12 +3830,19 @@ void si_meminfo_node(struct sysinfo *val
- 	val->sharedram = node_page_state(nid, NR_SHMEM);
- 	val->freeram = node_page_state(nid, NR_FREE_PAGES);
- #ifdef CONFIG_HIGHMEM
--	val->totalhigh = pgdat->node_zones[ZONE_HIGHMEM].managed_pages;
--	val->freehigh = zone_page_state(&pgdat->node_zones[ZONE_HIGHMEM],
--			NR_FREE_PAGES);
-+	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++) {
-+		struct zone *zone = &pgdat->node_zones[zone_type];
+-	return
+-#ifdef CONFIG_ZONE_DMA
+-		zone_page_state(&zones[ZONE_DMA], item) +
+-#endif
+-#ifdef CONFIG_ZONE_DMA32
+-		zone_page_state(&zones[ZONE_DMA32], item) +
+-#endif
+-#ifdef CONFIG_HIGHMEM
+-		zone_page_state(&zones[ZONE_HIGHMEM], item) +
+-#endif
+-		zone_page_state(&zones[ZONE_NORMAL], item) +
+-		zone_page_state(&zones[ZONE_MOVABLE], item);
++	for (i = 0; i < MAX_NR_ZONES; i++)
++		count += zone_page_state(zones + i, item);
 +
-+		if (is_highmem(zone)) {
-+			managed_highpages += zone->managed_pages;
-+			free_highpages += zone_page_state(zone, NR_FREE_PAGES);
-+		}
-+	}
-+	val->totalhigh = managed_highpages;
-+	val->freehigh = free_highpages;
- #else
--	val->totalhigh = 0;
--	val->freehigh = 0;
-+	val->totalhigh = managed_highpages;
-+	val->freehigh = free_highpages;
- #endif
- 	val->mem_unit = PAGE_SIZE;
++	return count;
  }
+ 
+ #endif
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
