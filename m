@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch added to -mm tree
-Date: Tue, 05 Apr 2016 14:51:11 -0700
-Message-ID: <5704334f.xGoBVxMvitqKJHga%akpm@linux-foundation.org>
+Subject: + mm-compaction-change-compact_-constants-into-enum.patch added
+ to -mm tree
+Date: Tue, 05 Apr 2016 14:51:13 -0700
+Message-ID: <57043351.FI7LXL3b3AArXg4z%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53589 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53597 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760504AbcDEVvS (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 17:51:18 -0400
+	with ESMTP id S1760497AbcDEVvQ (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 17:51:16 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, hillf.zj@alibaba-inc.com, js1304@gmail.com, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: throttle on IO only when there are too many dirty and writeback pages
+     Subject: mm, compaction: change COMPACT_ constants into enum
 has been added to the -mm tree.  Its filename is
-     mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+     mm-compaction-change-compact_-constants-into-enum.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-change-compact_-constants-into-enum.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-change-compact_-constants-into-enum.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,148 +40,226 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm: throttle on IO only when there are too many dirty and writeback pages
+Subject: mm, compaction: change COMPACT_ constants into enum
 
-wait_iff_congested has been used to throttle allocator before it retried
-another round of direct reclaim to allow the writeback to make some
-progress and prevent reclaim from looping over dirty/writeback pages
-without making any progress.  We used to do congestion_wait before
-0e093d99763e ("writeback: do not sleep on the congestion queue if there
-are no congested BDIs or if significant congestion is not being
-encountered in the current zone") but that led to undesirable stalls and
-sleeping for the full timeout even when the BDI wasn't congested.  Hence
-wait_iff_congested was used instead.  But it seems that even
-wait_iff_congested doesn't work as expected.  We might have a small file
-LRU list with all pages dirty/writeback and yet the bdi is not congested
-so this is just a cond_resched in the end and can end up triggering pre
-mature OOM.
+compaction code is doing weird dances between COMPACT_FOO -> int ->
+unsigned long
 
-This patch replaces the unconditional wait_iff_congested by
-congestion_wait which is executed only if we _know_ that the last round of
-direct reclaim didn't make any progress and dirty+writeback pages are more
-than a half of the reclaimable pages on the zone which might be usable for
-our target allocation.  This shouldn't reintroduce stalls fixed by
-0e093d99763e because congestion_wait is called only when we are getting
-hopeless when sleeping is a better choice than OOM with many pages under
-IO.
+but there doesn't seem to be any reason for that.  All functions which
+return/use one of those constants are not expecting any other value so it
+really makes sense to define an enum for them and make it clear that no
+other values are expected.
 
-We have to preserve logic introduced by 373ccbe59270 ("mm, vmstat: allow
-WQ concurrency to discover memory reclaim doesn't make any progress") into
-the __alloc_pages_slowpath now that wait_iff_congested is not used
-anymore.  As the only remaining user of wait_iff_congested is
-shrink_inactive_list we can remove the WQ specific short sleep from
-wait_iff_congested because the sleep is needed to be done only once in the
-allocation retry cycle.
+This is a pure cleanup and shouldn't introduce any functional changes.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
 Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Joonsoo Kim <js1304@gmail.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/backing-dev.c |   20 +++-----------------
- mm/page_alloc.c  |   39 ++++++++++++++++++++++++++++++++++++---
- 2 files changed, 39 insertions(+), 20 deletions(-)
+ include/linux/compaction.h |   45 +++++++++++++++++++++--------------
+ mm/compaction.c            |   27 ++++++++++-----------
+ mm/page_alloc.c            |    2 -
+ 3 files changed, 42 insertions(+), 32 deletions(-)
 
-diff -puN mm/backing-dev.c~mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages mm/backing-dev.c
---- a/mm/backing-dev.c~mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages
-+++ a/mm/backing-dev.c
-@@ -957,9 +957,8 @@ EXPORT_SYMBOL(congestion_wait);
-  * jiffies for either a BDI to exit congestion of the given @sync queue
-  * or a write to complete.
-  *
-- * In the absence of zone congestion, a short sleep or a cond_resched is
-- * performed to yield the processor and to allow other subsystems to make
-- * a forward progress.
-+ * In the absence of zone congestion, cond_resched() is called to yield
-+ * the processor if necessary but otherwise does not sleep.
-  *
-  * The return value is 0 if the sleep is for the full timeout. Otherwise,
-  * it is the number of jiffies that were still remaining when the function
-@@ -979,20 +978,7 @@ long wait_iff_congested(struct zone *zon
- 	 */
- 	if (atomic_read(&nr_wb_congested[sync]) == 0 ||
- 	    !test_bit(ZONE_CONGESTED, &zone->flags)) {
--
--		/*
--		 * Memory allocation/reclaim might be called from a WQ
--		 * context and the current implementation of the WQ
--		 * concurrency control doesn't recognize that a particular
--		 * WQ is congested if the worker thread is looping without
--		 * ever sleeping. Therefore we have to do a short sleep
--		 * here rather than calling cond_resched().
--		 */
--		if (current->flags & PF_WQ_WORKER)
--			schedule_timeout_uninterruptible(1);
--		else
--			cond_resched();
--
-+		cond_resched();
- 		/* In case we scheduled, work out time remaining */
- 		ret = timeout - (jiffies - start);
- 		if (ret < 0)
-diff -puN mm/page_alloc.c~mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages mm/page_alloc.c
---- a/mm/page_alloc.c~mm-throttle-on-io-only-when-there-are-too-many-dirty-and-writeback-pages
-+++ a/mm/page_alloc.c
-@@ -3190,8 +3190,9 @@ should_reclaim_retry(gfp_t gfp_mask, uns
- 	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx,
- 					ac->nodemask) {
- 		unsigned long available;
-+		unsigned long reclaimable;
+diff -puN include/linux/compaction.h~mm-compaction-change-compact_-constants-into-enum include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-change-compact_-constants-into-enum
++++ a/include/linux/compaction.h
+@@ -2,21 +2,29 @@
+ #define _LINUX_COMPACTION_H
  
--		available = zone_reclaimable_pages(zone);
-+		available = reclaimable = zone_reclaimable_pages(zone);
- 		available -= DIV_ROUND_UP(no_progress_loops * available,
- 					  MAX_RECLAIM_RETRIES);
- 		available += zone_page_state_snapshot(zone, NR_FREE_PAGES);
-@@ -3202,8 +3203,40 @@ should_reclaim_retry(gfp_t gfp_mask, uns
- 		 */
- 		if (__zone_watermark_ok(zone, order, min_wmark_pages(zone),
- 				ac->high_zoneidx, alloc_flags, available)) {
--			/* Wait for some write requests to complete then retry */
--			wait_iff_congested(zone, BLK_RW_ASYNC, HZ/50);
-+			/*
-+			 * If we didn't make any progress and have a lot of
-+			 * dirty + writeback pages then we should wait for
-+			 * an IO to complete to slow down the reclaim and
-+			 * prevent from pre mature OOM
-+			 */
-+			if (!did_some_progress) {
-+				unsigned long writeback;
-+				unsigned long dirty;
-+
-+				writeback = zone_page_state_snapshot(zone,
-+								     NR_WRITEBACK);
-+				dirty = zone_page_state_snapshot(zone, NR_FILE_DIRTY);
-+
-+				if (2*(writeback + dirty) > reclaimable) {
-+					congestion_wait(BLK_RW_ASYNC, HZ/10);
-+					return true;
-+				}
-+			}
-+
-+			/*
-+			 * Memory allocation/reclaim might be called from a WQ
-+			 * context and the current implementation of the WQ
-+			 * concurrency control doesn't recognize that
-+			 * a particular WQ is congested if the worker thread is
-+			 * looping without ever sleeping. Therefore we have to
-+			 * do a short sleep here rather than calling
-+			 * cond_resched().
-+			 */
-+			if (current->flags & PF_WQ_WORKER)
-+				schedule_timeout_uninterruptible(1);
-+			else
-+				cond_resched();
-+
- 			return true;
- 		}
- 	}
+ /* Return values for compact_zone() and try_to_compact_pages() */
+-/* compaction didn't start as it was deferred due to past failures */
+-#define COMPACT_DEFERRED	0
+-/* compaction didn't start as it was not possible or direct reclaim was more suitable */
+-#define COMPACT_SKIPPED		1
+-/* compaction should continue to another pageblock */
+-#define COMPACT_CONTINUE	2
+-/* direct compaction partially compacted a zone and there are suitable pages */
+-#define COMPACT_PARTIAL		3
+-/* The full zone was compacted */
+-#define COMPACT_COMPLETE	4
+-/* For more detailed tracepoint output */
+-#define COMPACT_NO_SUITABLE_PAGE	5
+-#define COMPACT_NOT_SUITABLE_ZONE	6
+-#define COMPACT_CONTENDED		7
+ /* When adding new states, please adjust include/trace/events/compaction.h */
++enum compact_result {
++	/* compaction didn't start as it was deferred due to past failures */
++	COMPACT_DEFERRED,
++	/*
++	 * compaction didn't start as it was not possible or direct reclaim
++	 * was more suitable
++	 */
++	COMPACT_SKIPPED,
++	/* compaction should continue to another pageblock */
++	COMPACT_CONTINUE,
++	/*
++	 * direct compaction partially compacted a zone and there are suitable
++	 * pages
++	 */
++	COMPACT_PARTIAL,
++	/* The full zone was compacted */
++	COMPACT_COMPLETE,
++	/* For more detailed tracepoint output */
++	COMPACT_NO_SUITABLE_PAGE,
++	COMPACT_NOT_SUITABLE_ZONE,
++	COMPACT_CONTENDED,
++};
+ 
+ /* Used to signal whether compaction detected need_sched() or lock contention */
+ /* No contention detected */
+@@ -38,12 +46,13 @@ extern int sysctl_extfrag_handler(struct
+ extern int sysctl_compact_unevictable_allowed;
+ 
+ extern int fragmentation_index(struct zone *zone, unsigned int order);
+-extern unsigned long try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
++extern enum compact_result try_to_compact_pages(gfp_t gfp_mask,
++			unsigned int order,
+ 			int alloc_flags, const struct alloc_context *ac,
+ 			enum migrate_mode mode, int *contended);
+ extern void compact_pgdat(pg_data_t *pgdat, int order);
+ extern void reset_isolation_suitable(pg_data_t *pgdat);
+-extern unsigned long compaction_suitable(struct zone *zone, int order,
++extern enum compact_result compaction_suitable(struct zone *zone, int order,
+ 					int alloc_flags, int classzone_idx);
+ 
+ extern void defer_compaction(struct zone *zone, int order);
+@@ -57,7 +66,7 @@ extern void kcompactd_stop(int nid);
+ extern void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx);
+ 
+ #else
+-static inline unsigned long try_to_compact_pages(gfp_t gfp_mask,
++static inline enum compact_result try_to_compact_pages(gfp_t gfp_mask,
+ 			unsigned int order, int alloc_flags,
+ 			const struct alloc_context *ac,
+ 			enum migrate_mode mode, int *contended)
+@@ -73,7 +82,7 @@ static inline void reset_isolation_suita
+ {
+ }
+ 
+-static inline unsigned long compaction_suitable(struct zone *zone, int order,
++static inline enum compact_result compaction_suitable(struct zone *zone, int order,
+ 					int alloc_flags, int classzone_idx)
+ {
+ 	return COMPACT_SKIPPED;
+diff -puN mm/compaction.c~mm-compaction-change-compact_-constants-into-enum mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-change-compact_-constants-into-enum
++++ a/mm/compaction.c
+@@ -1276,7 +1276,7 @@ static inline bool is_via_compact_memory
+ 	return order == -1;
+ }
+ 
+-static int __compact_finished(struct zone *zone, struct compact_control *cc,
++static enum compact_result __compact_finished(struct zone *zone, struct compact_control *cc,
+ 			    const int migratetype)
+ {
+ 	unsigned int order;
+@@ -1339,8 +1339,9 @@ static int __compact_finished(struct zon
+ 	return COMPACT_NO_SUITABLE_PAGE;
+ }
+ 
+-static int compact_finished(struct zone *zone, struct compact_control *cc,
+-			    const int migratetype)
++static enum compact_result compact_finished(struct zone *zone,
++			struct compact_control *cc,
++			const int migratetype)
+ {
+ 	int ret;
+ 
+@@ -1359,7 +1360,7 @@ static int compact_finished(struct zone
+  *   COMPACT_PARTIAL  - If the allocation would succeed without compaction
+  *   COMPACT_CONTINUE - If compaction should run now
+  */
+-static unsigned long __compaction_suitable(struct zone *zone, int order,
++static enum compact_result __compaction_suitable(struct zone *zone, int order,
+ 					int alloc_flags, int classzone_idx)
+ {
+ 	int fragindex;
+@@ -1404,10 +1405,10 @@ static unsigned long __compaction_suitab
+ 	return COMPACT_CONTINUE;
+ }
+ 
+-unsigned long compaction_suitable(struct zone *zone, int order,
++enum compact_result compaction_suitable(struct zone *zone, int order,
+ 					int alloc_flags, int classzone_idx)
+ {
+-	unsigned long ret;
++	enum compact_result ret;
+ 
+ 	ret = __compaction_suitable(zone, order, alloc_flags, classzone_idx);
+ 	trace_mm_compaction_suitable(zone, order, ret);
+@@ -1417,9 +1418,9 @@ unsigned long compaction_suitable(struct
+ 	return ret;
+ }
+ 
+-static int compact_zone(struct zone *zone, struct compact_control *cc)
++static enum compact_result compact_zone(struct zone *zone, struct compact_control *cc)
+ {
+-	int ret;
++	enum compact_result ret;
+ 	unsigned long start_pfn = zone->zone_start_pfn;
+ 	unsigned long end_pfn = zone_end_pfn(zone);
+ 	const int migratetype = gfpflags_to_migratetype(cc->gfp_mask);
+@@ -1583,11 +1584,11 @@ out:
+ 	return ret;
+ }
+ 
+-static unsigned long compact_zone_order(struct zone *zone, int order,
++static enum compact_result compact_zone_order(struct zone *zone, int order,
+ 		gfp_t gfp_mask, enum migrate_mode mode, int *contended,
+ 		int alloc_flags, int classzone_idx)
+ {
+-	unsigned long ret;
++	enum compact_result ret;
+ 	struct compact_control cc = {
+ 		.nr_freepages = 0,
+ 		.nr_migratepages = 0,
+@@ -1626,7 +1627,7 @@ int sysctl_extfrag_threshold = 500;
+  *
+  * This is the main entry point for direct page compaction.
+  */
+-unsigned long try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
++enum compact_result try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
+ 			int alloc_flags, const struct alloc_context *ac,
+ 			enum migrate_mode mode, int *contended)
+ {
+@@ -1634,7 +1635,7 @@ unsigned long try_to_compact_pages(gfp_t
+ 	int may_perform_io = gfp_mask & __GFP_IO;
+ 	struct zoneref *z;
+ 	struct zone *zone;
+-	int rc = COMPACT_DEFERRED;
++	enum compact_result rc = COMPACT_DEFERRED;
+ 	int all_zones_contended = COMPACT_CONTENDED_LOCK; /* init for &= op */
+ 
+ 	*contended = COMPACT_CONTENDED_NONE;
+@@ -1648,7 +1649,7 @@ unsigned long try_to_compact_pages(gfp_t
+ 	/* Compact each zone in the list */
+ 	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx,
+ 								ac->nodemask) {
+-		int status;
++		enum compact_result status;
+ 		int zone_contended;
+ 
+ 		if (compaction_deferred(zone, order))
+diff -puN mm/page_alloc.c~mm-compaction-change-compact_-constants-into-enum mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-change-compact_-constants-into-enum
++++ a/mm/page_alloc.c
+@@ -2951,7 +2951,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
+ 		enum migrate_mode mode, int *contended_compaction,
+ 		bool *deferred_compaction)
+ {
+-	unsigned long compact_result;
++	enum compact_result compact_result;
+ 	struct page *page;
+ 
+ 	if (!order)
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
