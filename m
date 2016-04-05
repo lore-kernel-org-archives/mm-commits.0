@@ -1,31 +1,32 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-change-compact_-constants-into-enum.patch added
- to -mm tree
-Date: Tue, 05 Apr 2016 14:51:13 -0700
-Message-ID: <57043351.FI7LXL3b3AArXg4z%akpm@linux-foundation.org>
+Subject: +
+ mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
+ added to -mm tree
+Date: Tue, 05 Apr 2016 14:51:19 -0700
+Message-ID: <57043357.nomAia0bRxSkwoh0%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53597 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53623 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760497AbcDEVvQ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 17:51:16 -0400
+	with ESMTP id S1760511AbcDEVvW (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 17:51:22 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, hillf.zj@alibaba-inc.com, js1304@gmail.com, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: change COMPACT_ constants into enum
+     Subject: mm, compaction: distinguish between full and partial COMPACT_COMPLETE
 has been added to the -mm tree.  Its filename is
-     mm-compaction-change-compact_-constants-into-enum.patch
+     mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-change-compact_-constants-into-enum.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-change-compact_-constants-into-enum.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-distinguish-between-full-and-partial-compact_complete.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,226 +41,129 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, compaction: change COMPACT_ constants into enum
+Subject: mm, compaction: distinguish between full and partial COMPACT_COMPLETE
 
-compaction code is doing weird dances between COMPACT_FOO -> int ->
-unsigned long
+COMPACT_COMPLETE now means that compaction and free scanner met.  This is
+not very useful information if somebody just wants to use this feedback
+and make any decisions based on that.  The current caller might be a poor
+guy who just happened to scan tiny portion of the zone and that could be
+the reason no suitable pages were compacted.  Make sure we distinguish the
+full and partial zone walks.
 
-but there doesn't seem to be any reason for that.  All functions which
-return/use one of those constants are not expecting any other value so it
-really makes sense to define an enum for them and make it clear that no
-other values are expected.
+Consumers should treat COMPACT_PARTIAL_SKIPPED as a potential success and
+be optimistic in retrying.
 
-This is a pure cleanup and shouldn't introduce any functional changes.
+The existing users of COMPACT_COMPLETE are conservatively changed to use
+COMPACT_PARTIAL_SKIPPED as well but some of them should be probably
+reconsidered and only defer the compaction only for COMPACT_COMPLETE with
+the new semantic.
+
+This patch shouldn't introduce any functional changes.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Joonsoo Kim <js1304@gmail.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/compaction.h |   45 +++++++++++++++++++++--------------
- mm/compaction.c            |   27 ++++++++++-----------
- mm/page_alloc.c            |    2 -
- 3 files changed, 42 insertions(+), 32 deletions(-)
+ include/linux/compaction.h        |   10 +++++++++-
+ include/trace/events/compaction.h |    1 +
+ mm/compaction.c                   |   14 +++++++++++---
+ mm/internal.h                     |    1 +
+ 4 files changed, 22 insertions(+), 4 deletions(-)
 
-diff -puN include/linux/compaction.h~mm-compaction-change-compact_-constants-into-enum include/linux/compaction.h
---- a/include/linux/compaction.h~mm-compaction-change-compact_-constants-into-enum
+diff -puN include/linux/compaction.h~mm-compaction-distinguish-between-full-and-partial-compact_complete include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-distinguish-between-full-and-partial-compact_complete
 +++ a/include/linux/compaction.h
-@@ -2,21 +2,29 @@
- #define _LINUX_COMPACTION_H
- 
- /* Return values for compact_zone() and try_to_compact_pages() */
--/* compaction didn't start as it was deferred due to past failures */
--#define COMPACT_DEFERRED	0
--/* compaction didn't start as it was not possible or direct reclaim was more suitable */
--#define COMPACT_SKIPPED		1
--/* compaction should continue to another pageblock */
--#define COMPACT_CONTINUE	2
--/* direct compaction partially compacted a zone and there are suitable pages */
--#define COMPACT_PARTIAL		3
--/* The full zone was compacted */
--#define COMPACT_COMPLETE	4
--/* For more detailed tracepoint output */
--#define COMPACT_NO_SUITABLE_PAGE	5
--#define COMPACT_NOT_SUITABLE_ZONE	6
--#define COMPACT_CONTENDED		7
- /* When adding new states, please adjust include/trace/events/compaction.h */
-+enum compact_result {
-+	/* compaction didn't start as it was deferred due to past failures */
-+	COMPACT_DEFERRED,
+@@ -21,7 +21,15 @@ enum compact_result {
+ 	 * pages
+ 	 */
+ 	COMPACT_PARTIAL,
+-	/* The full zone was compacted */
 +	/*
-+	 * compaction didn't start as it was not possible or direct reclaim
-+	 * was more suitable
++	 * direct compaction has scanned part of the zone but wasn't successfull
++	 * to compact suitable pages.
 +	 */
-+	COMPACT_SKIPPED,
-+	/* compaction should continue to another pageblock */
-+	COMPACT_CONTINUE,
++	COMPACT_PARTIAL_SKIPPED,
 +	/*
-+	 * direct compaction partially compacted a zone and there are suitable
-+	 * pages
++	 * The full zone was compacted scanned but wasn't successfull to compact
++	 * suitable pages.
 +	 */
-+	COMPACT_PARTIAL,
-+	/* The full zone was compacted */
-+	COMPACT_COMPLETE,
-+	/* For more detailed tracepoint output */
-+	COMPACT_NO_SUITABLE_PAGE,
-+	COMPACT_NOT_SUITABLE_ZONE,
-+	COMPACT_CONTENDED,
-+};
- 
- /* Used to signal whether compaction detected need_sched() or lock contention */
- /* No contention detected */
-@@ -38,12 +46,13 @@ extern int sysctl_extfrag_handler(struct
- extern int sysctl_compact_unevictable_allowed;
- 
- extern int fragmentation_index(struct zone *zone, unsigned int order);
--extern unsigned long try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
-+extern enum compact_result try_to_compact_pages(gfp_t gfp_mask,
-+			unsigned int order,
- 			int alloc_flags, const struct alloc_context *ac,
- 			enum migrate_mode mode, int *contended);
- extern void compact_pgdat(pg_data_t *pgdat, int order);
- extern void reset_isolation_suitable(pg_data_t *pgdat);
--extern unsigned long compaction_suitable(struct zone *zone, int order,
-+extern enum compact_result compaction_suitable(struct zone *zone, int order,
- 					int alloc_flags, int classzone_idx);
- 
- extern void defer_compaction(struct zone *zone, int order);
-@@ -57,7 +66,7 @@ extern void kcompactd_stop(int nid);
- extern void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx);
- 
- #else
--static inline unsigned long try_to_compact_pages(gfp_t gfp_mask,
-+static inline enum compact_result try_to_compact_pages(gfp_t gfp_mask,
- 			unsigned int order, int alloc_flags,
- 			const struct alloc_context *ac,
- 			enum migrate_mode mode, int *contended)
-@@ -73,7 +82,7 @@ static inline void reset_isolation_suita
- {
- }
- 
--static inline unsigned long compaction_suitable(struct zone *zone, int order,
-+static inline enum compact_result compaction_suitable(struct zone *zone, int order,
- 					int alloc_flags, int classzone_idx)
- {
- 	return COMPACT_SKIPPED;
-diff -puN mm/compaction.c~mm-compaction-change-compact_-constants-into-enum mm/compaction.c
---- a/mm/compaction.c~mm-compaction-change-compact_-constants-into-enum
+ 	COMPACT_COMPLETE,
+ 	/* For more detailed tracepoint output */
+ 	COMPACT_NO_SUITABLE_PAGE,
+diff -puN include/trace/events/compaction.h~mm-compaction-distinguish-between-full-and-partial-compact_complete include/trace/events/compaction.h
+--- a/include/trace/events/compaction.h~mm-compaction-distinguish-between-full-and-partial-compact_complete
++++ a/include/trace/events/compaction.h
+@@ -14,6 +14,7 @@
+ 	EM( COMPACT_DEFERRED,		"deferred")		\
+ 	EM( COMPACT_CONTINUE,		"continue")		\
+ 	EM( COMPACT_PARTIAL,		"partial")		\
++	EM( COMPACT_PARTIAL_SKIPPED,	"partial_skipped")	\
+ 	EM( COMPACT_COMPLETE,		"complete")		\
+ 	EM( COMPACT_NO_SUITABLE_PAGE,	"no_suitable_page")	\
+ 	EM( COMPACT_NOT_SUITABLE_ZONE,	"not_suitable_zone")	\
+diff -puN mm/compaction.c~mm-compaction-distinguish-between-full-and-partial-compact_complete mm/compaction.c
+--- a/mm/compaction.c~mm-compaction-distinguish-between-full-and-partial-compact_complete
 +++ a/mm/compaction.c
-@@ -1276,7 +1276,7 @@ static inline bool is_via_compact_memory
- 	return order == -1;
- }
+@@ -1299,7 +1299,10 @@ static enum compact_result __compact_fin
+ 		if (cc->direct_compaction)
+ 			zone->compact_blockskip_flush = true;
  
--static int __compact_finished(struct zone *zone, struct compact_control *cc,
-+static enum compact_result __compact_finished(struct zone *zone, struct compact_control *cc,
- 			    const int migratetype)
- {
- 	unsigned int order;
-@@ -1339,8 +1339,9 @@ static int __compact_finished(struct zon
- 	return COMPACT_NO_SUITABLE_PAGE;
- }
+-		return COMPACT_COMPLETE;
++		if (cc->whole_zone)
++			return COMPACT_COMPLETE;
++		else
++			return COMPACT_PARTIAL_SKIPPED;
+ 	}
  
--static int compact_finished(struct zone *zone, struct compact_control *cc,
--			    const int migratetype)
-+static enum compact_result compact_finished(struct zone *zone,
-+			struct compact_control *cc,
-+			const int migratetype)
- {
- 	int ret;
+ 	if (is_via_compact_memory(cc->order))
+@@ -1458,6 +1461,10 @@ static enum compact_result compact_zone(
+ 		zone->compact_cached_migrate_pfn[0] = cc->migrate_pfn;
+ 		zone->compact_cached_migrate_pfn[1] = cc->migrate_pfn;
+ 	}
++
++	if (cc->migrate_pfn == start_pfn)
++		cc->whole_zone = true;
++
+ 	cc->last_migrated_pfn = 0;
  
-@@ -1359,7 +1360,7 @@ static int compact_finished(struct zone
-  *   COMPACT_PARTIAL  - If the allocation would succeed without compaction
-  *   COMPACT_CONTINUE - If compaction should run now
-  */
--static unsigned long __compaction_suitable(struct zone *zone, int order,
-+static enum compact_result __compaction_suitable(struct zone *zone, int order,
- 					int alloc_flags, int classzone_idx)
- {
- 	int fragindex;
-@@ -1404,10 +1405,10 @@ static unsigned long __compaction_suitab
- 	return COMPACT_CONTINUE;
- }
+ 	trace_mm_compaction_begin(start_pfn, cc->migrate_pfn,
+@@ -1688,7 +1695,8 @@ enum compact_result try_to_compact_pages
+ 			goto break_loop;
+ 		}
  
--unsigned long compaction_suitable(struct zone *zone, int order,
-+enum compact_result compaction_suitable(struct zone *zone, int order,
- 					int alloc_flags, int classzone_idx)
- {
--	unsigned long ret;
-+	enum compact_result ret;
- 
- 	ret = __compaction_suitable(zone, order, alloc_flags, classzone_idx);
- 	trace_mm_compaction_suitable(zone, order, ret);
-@@ -1417,9 +1418,9 @@ unsigned long compaction_suitable(struct
- 	return ret;
- }
- 
--static int compact_zone(struct zone *zone, struct compact_control *cc)
-+static enum compact_result compact_zone(struct zone *zone, struct compact_control *cc)
- {
--	int ret;
-+	enum compact_result ret;
- 	unsigned long start_pfn = zone->zone_start_pfn;
- 	unsigned long end_pfn = zone_end_pfn(zone);
- 	const int migratetype = gfpflags_to_migratetype(cc->gfp_mask);
-@@ -1583,11 +1584,11 @@ out:
- 	return ret;
- }
- 
--static unsigned long compact_zone_order(struct zone *zone, int order,
-+static enum compact_result compact_zone_order(struct zone *zone, int order,
- 		gfp_t gfp_mask, enum migrate_mode mode, int *contended,
- 		int alloc_flags, int classzone_idx)
- {
--	unsigned long ret;
-+	enum compact_result ret;
- 	struct compact_control cc = {
- 		.nr_freepages = 0,
- 		.nr_migratepages = 0,
-@@ -1626,7 +1627,7 @@ int sysctl_extfrag_threshold = 500;
-  *
-  * This is the main entry point for direct page compaction.
-  */
--unsigned long try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
-+enum compact_result try_to_compact_pages(gfp_t gfp_mask, unsigned int order,
- 			int alloc_flags, const struct alloc_context *ac,
- 			enum migrate_mode mode, int *contended)
- {
-@@ -1634,7 +1635,7 @@ unsigned long try_to_compact_pages(gfp_t
- 	int may_perform_io = gfp_mask & __GFP_IO;
- 	struct zoneref *z;
- 	struct zone *zone;
--	int rc = COMPACT_DEFERRED;
-+	enum compact_result rc = COMPACT_DEFERRED;
- 	int all_zones_contended = COMPACT_CONTENDED_LOCK; /* init for &= op */
- 
- 	*contended = COMPACT_CONTENDED_NONE;
-@@ -1648,7 +1649,7 @@ unsigned long try_to_compact_pages(gfp_t
- 	/* Compact each zone in the list */
- 	for_each_zone_zonelist_nodemask(zone, z, ac->zonelist, ac->high_zoneidx,
- 								ac->nodemask) {
--		int status;
-+		enum compact_result status;
- 		int zone_contended;
- 
- 		if (compaction_deferred(zone, order))
-diff -puN mm/page_alloc.c~mm-compaction-change-compact_-constants-into-enum mm/page_alloc.c
---- a/mm/page_alloc.c~mm-compaction-change-compact_-constants-into-enum
-+++ a/mm/page_alloc.c
-@@ -2951,7 +2951,7 @@ __alloc_pages_direct_compact(gfp_t gfp_m
- 		enum migrate_mode mode, int *contended_compaction,
- 		bool *deferred_compaction)
- {
--	unsigned long compact_result;
-+	enum compact_result compact_result;
- 	struct page *page;
- 
- 	if (!order)
+-		if (mode != MIGRATE_ASYNC && status == COMPACT_COMPLETE) {
++		if (mode != MIGRATE_ASYNC && (status == COMPACT_COMPLETE ||
++					status == COMPACT_PARTIAL_SKIPPED)) {
+ 			/*
+ 			 * We think that allocation won't succeed in this zone
+ 			 * so we defer compaction there. If it ends up
+@@ -1934,7 +1942,7 @@ static void kcompactd_do_work(pg_data_t
+ 						cc.classzone_idx, 0)) {
+ 			success = true;
+ 			compaction_defer_reset(zone, cc.order, false);
+-		} else if (status == COMPACT_COMPLETE) {
++		} else if (status == COMPACT_PARTIAL_SKIPPED || status == COMPACT_COMPLETE) {
+ 			/*
+ 			 * We use sync migration mode here, so we defer like
+ 			 * sync direct compaction does.
+diff -puN mm/internal.h~mm-compaction-distinguish-between-full-and-partial-compact_complete mm/internal.h
+--- a/mm/internal.h~mm-compaction-distinguish-between-full-and-partial-compact_complete
++++ a/mm/internal.h
+@@ -182,6 +182,7 @@ struct compact_control {
+ 	enum migrate_mode mode;		/* Async or sync migration mode */
+ 	bool ignore_skip_hint;		/* Scan blocks even if marked skip */
+ 	bool direct_compaction;		/* False from kcompactd or /proc/... */
++	bool whole_zone;		/* Whole zone has been scanned */
+ 	int order;			/* order a direct compactor needs */
+ 	const gfp_t gfp_mask;		/* gfp mask of a direct compactor */
+ 	const int alloc_flags;		/* alloc flags of a direct compactor */
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
