@@ -1,31 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + kvm-plumb-return-of-hva-when-resolving-page-fault.patch added
- to -mm tree
-Date: Tue, 05 Apr 2016 16:16:09 -0700
-Message-ID: <57044739.x4MpFH4aCqw/2RT0%akpm@linux-foundation.org>
+Subject: + huge-tmpfs-mem_cgroup-shmem_hugepages-accounting.patch added to -mm tree
+Date: Tue, 05 Apr 2016 16:16:17 -0700
+Message-ID: <57044741.Q71AedMXH8rKWkUy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57009 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57034 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752933AbcDEXQL (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 19:16:11 -0400
+	with ESMTP id S1752933AbcDEXQT (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 19:16:19 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andreslc@google.com, aarcange@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, quning@gmail.com, rientjes@google.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: kvm: plumb return of hva when resolving page fault.
+     Subject: huge tmpfs: mem_cgroup shmem_hugepages accounting
 has been added to the -mm tree.  Its filename is
-     kvm-plumb-return-of-hva-when-resolving-page-fault.patch
+     huge-tmpfs-mem_cgroup-shmem_hugepages-accounting.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/kvm-plumb-return-of-hva-when-resolving-page-fault.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-mem_cgroup-shmem_hugepages-accounting.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/kvm-plumb-return-of-hva-when-resolving-page-fault.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-mem_cgroup-shmem_hugepages-accounting.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +39,25 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andres Lagar-Cavilla <andreslc@google.com>
-Subject: kvm: plumb return of hva when resolving page fault.
+Subject: huge tmpfs: mem_cgroup shmem_hugepages accounting
 
-So we don't have to redo this work later.  Note the hva is not racy, it is
-simple arithmetic based on the memslot.
+Keep track of all hugepages, not just those mapped.
 
-This will be used in the huge tmpfs commits.
+This has gone through several anguished iterations, memcg stats being
+harder to protect against mem_cgroup_move_account() than you might expect.
+Abandon the pretence that miscellaneous stats can all be protected by the
+same lock_page_memcg(),unlock_page_memcg() scheme: add
+mem_cgroup_update_page_stat_treelocked(), using mapping->tree_lock for
+safe updates of MEM_CGROUP_STAT_SHMEM_HUGEPAGES (where tree_lock is
+already held, but nests inside not outside of memcg->move_lock).
+
+Nowadays, when mem_cgroup_move_account() takes page lock, and is only
+called when immigrating pages found in page tables, it almost seems as if
+this reliance on tree_lock is unnecessary.  But consider the case when the
+team head is pte-mapped, and being migrated to a new memcg, racing with
+the last page of the team being instantiated: the page lock is held on the
+page being instantiated, not on the team head, so we do still need the
+tree_lock to serialize them.
 
 Signed-off-by: Andres Lagar-Cavilla <andreslc@google.com>
 Signed-off-by: Hugh Dickins <hughd@google.com>
@@ -57,170 +69,213 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- arch/x86/kvm/mmu.c         |   20 ++++++++++++++------
- arch/x86/kvm/paging_tmpl.h |    3 ++-
- include/linux/kvm_host.h   |    2 +-
- virt/kvm/kvm_main.c        |   14 ++++++++------
- 4 files changed, 25 insertions(+), 14 deletions(-)
+ Documentation/cgroup-v1/memory.txt  |    2 +
+ Documentation/filesystems/tmpfs.txt |    8 ++++
+ include/linux/memcontrol.h          |   10 +++++
+ include/linux/pageteam.h            |    3 +
+ mm/memcontrol.c                     |   47 ++++++++++++++++++++++----
+ mm/shmem.c                          |    4 ++
+ 6 files changed, 66 insertions(+), 8 deletions(-)
 
-diff -puN arch/x86/kvm/mmu.c~kvm-plumb-return-of-hva-when-resolving-page-fault arch/x86/kvm/mmu.c
---- a/arch/x86/kvm/mmu.c~kvm-plumb-return-of-hva-when-resolving-page-fault
-+++ a/arch/x86/kvm/mmu.c
-@@ -2992,7 +2992,8 @@ exit:
- }
+diff -puN Documentation/cgroup-v1/memory.txt~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting Documentation/cgroup-v1/memory.txt
+--- a/Documentation/cgroup-v1/memory.txt~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting
++++ a/Documentation/cgroup-v1/memory.txt
+@@ -487,6 +487,8 @@ rss		- # of bytes of anonymous and swap
+ 		transparent hugepages).
+ rss_huge	- # of bytes of anonymous transparent hugepages.
+ mapped_file	- # of bytes of mapped file (includes tmpfs/shmem)
++shmem_hugepages - # of bytes of tmpfs huge pages completed (subset of cache)
++shmem_pmdmapped - # of bytes of tmpfs huge mapped huge (subset of mapped_file)
+ pgpgin		- # of charging events to the memory cgroup. The charging
+ 		event happens each time a page is accounted as either mapped
+ 		anon page(RSS) or cache page(Page Cache) to the cgroup.
+diff -puN Documentation/filesystems/tmpfs.txt~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting Documentation/filesystems/tmpfs.txt
+--- a/Documentation/filesystems/tmpfs.txt~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting
++++ a/Documentation/filesystems/tmpfs.txt
+@@ -200,6 +200,14 @@ nr_shmem_hugepages 13         tmpfs huge
+ nr_shmem_pmdmapped 6          tmpfs hugepages with huge mappings in userspace
+ nr_shmem_freeholes 167861     pages reserved for team but available to shrinker
  
- static bool try_async_pf(struct kvm_vcpu *vcpu, bool prefault, gfn_t gfn,
--			 gva_t gva, kvm_pfn_t *pfn, bool write, bool *writable);
-+			 gva_t gva, kvm_pfn_t *pfn, bool write, bool *writable,
-+			 unsigned long *hva);
- static void make_mmu_pages_available(struct kvm_vcpu *vcpu);
- 
- static int nonpaging_map(struct kvm_vcpu *vcpu, gva_t v, u32 error_code,
-@@ -3003,6 +3004,7 @@ static int nonpaging_map(struct kvm_vcpu
- 	bool force_pt_level = false;
- 	kvm_pfn_t pfn;
- 	unsigned long mmu_seq;
-+	unsigned long hva;
- 	bool map_writable, write = error_code & PFERR_WRITE_MASK;
- 
- 	level = mapping_level(vcpu, gfn, &force_pt_level);
-@@ -3024,7 +3026,8 @@ static int nonpaging_map(struct kvm_vcpu
- 	mmu_seq = vcpu->kvm->mmu_notifier_seq;
- 	smp_rmb();
- 
--	if (try_async_pf(vcpu, prefault, gfn, v, &pfn, write, &map_writable))
-+	if (try_async_pf(vcpu, prefault, gfn, v, &pfn, write,
-+			 &map_writable, &hva))
- 		return 0;
- 
- 	if (handle_abnormal_pfn(vcpu, v, gfn, pfn, ACC_ALL, &r))
-@@ -3487,14 +3490,16 @@ static bool can_do_async_pf(struct kvm_v
- }
- 
- static bool try_async_pf(struct kvm_vcpu *vcpu, bool prefault, gfn_t gfn,
--			 gva_t gva, kvm_pfn_t *pfn, bool write, bool *writable)
-+			 gva_t gva, kvm_pfn_t *pfn, bool write, bool *writable,
-+			 unsigned long *hva)
- {
- 	struct kvm_memory_slot *slot;
- 	bool async;
- 
- 	slot = kvm_vcpu_gfn_to_memslot(vcpu, gfn);
- 	async = false;
--	*pfn = __gfn_to_pfn_memslot(slot, gfn, false, &async, write, writable);
-+	*pfn = __gfn_to_pfn_memslot(slot, gfn,
-+				    false, &async, write, writable, hva);
- 	if (!async)
- 		return false; /* *pfn has correct page already */
- 
-@@ -3508,7 +3513,8 @@ static bool try_async_pf(struct kvm_vcpu
- 			return true;
- 	}
- 
--	*pfn = __gfn_to_pfn_memslot(slot, gfn, false, NULL, write, writable);
-+	*pfn = __gfn_to_pfn_memslot(slot, gfn,
-+				    false, NULL, write, writable, hva);
- 	return false;
- }
- 
-@@ -3531,6 +3537,7 @@ static int tdp_page_fault(struct kvm_vcp
- 	bool force_pt_level;
- 	gfn_t gfn = gpa >> PAGE_SHIFT;
- 	unsigned long mmu_seq;
-+	unsigned long hva;
- 	int write = error_code & PFERR_WRITE_MASK;
- 	bool map_writable;
- 
-@@ -3559,7 +3566,8 @@ static int tdp_page_fault(struct kvm_vcp
- 	mmu_seq = vcpu->kvm->mmu_notifier_seq;
- 	smp_rmb();
- 
--	if (try_async_pf(vcpu, prefault, gfn, gpa, &pfn, write, &map_writable))
-+	if (try_async_pf(vcpu, prefault, gfn, gpa, &pfn, write,
-+			 &map_writable, &hva))
- 		return 0;
- 
- 	if (handle_abnormal_pfn(vcpu, 0, gfn, pfn, ACC_ALL, &r))
-diff -puN arch/x86/kvm/paging_tmpl.h~kvm-plumb-return-of-hva-when-resolving-page-fault arch/x86/kvm/paging_tmpl.h
---- a/arch/x86/kvm/paging_tmpl.h~kvm-plumb-return-of-hva-when-resolving-page-fault
-+++ a/arch/x86/kvm/paging_tmpl.h
-@@ -712,6 +712,7 @@ static int FNAME(page_fault)(struct kvm_
- 	int level = PT_PAGE_TABLE_LEVEL;
- 	bool force_pt_level = false;
- 	unsigned long mmu_seq;
-+	unsigned long hva;
- 	bool map_writable, is_self_change_mapping;
- 
- 	pgprintk("%s: addr %lx err %x\n", __func__, addr, error_code);
-@@ -765,7 +766,7 @@ static int FNAME(page_fault)(struct kvm_
- 	smp_rmb();
- 
- 	if (try_async_pf(vcpu, prefault, walker.gfn, addr, &pfn, write_fault,
--			 &map_writable))
-+			 &map_writable, &hva))
- 		return 0;
- 
- 	if (handle_abnormal_pfn(vcpu, mmu_is_nested(vcpu) ? 0 : addr,
-diff -puN include/linux/kvm_host.h~kvm-plumb-return-of-hva-when-resolving-page-fault include/linux/kvm_host.h
---- a/include/linux/kvm_host.h~kvm-plumb-return-of-hva-when-resolving-page-fault
-+++ a/include/linux/kvm_host.h
-@@ -600,7 +600,7 @@ kvm_pfn_t gfn_to_pfn_memslot(struct kvm_
- kvm_pfn_t gfn_to_pfn_memslot_atomic(struct kvm_memory_slot *slot, gfn_t gfn);
- kvm_pfn_t __gfn_to_pfn_memslot(struct kvm_memory_slot *slot, gfn_t gfn,
- 			       bool atomic, bool *async, bool write_fault,
--			       bool *writable);
-+			       bool *writable, unsigned long *hva);
- 
- void kvm_release_pfn_clean(kvm_pfn_t pfn);
- void kvm_set_pfn_dirty(kvm_pfn_t pfn);
-diff -puN virt/kvm/kvm_main.c~kvm-plumb-return-of-hva-when-resolving-page-fault virt/kvm/kvm_main.c
---- a/virt/kvm/kvm_main.c~kvm-plumb-return-of-hva-when-resolving-page-fault
-+++ a/virt/kvm/kvm_main.c
-@@ -1444,7 +1444,7 @@ exit:
- 
- kvm_pfn_t __gfn_to_pfn_memslot(struct kvm_memory_slot *slot, gfn_t gfn,
- 			       bool atomic, bool *async, bool write_fault,
--			       bool *writable)
-+			       bool *writable, unsigned long *hva)
- {
- 	unsigned long addr = __gfn_to_hva_many(slot, gfn, NULL, write_fault);
- 
-@@ -1466,8 +1466,10 @@ kvm_pfn_t __gfn_to_pfn_memslot(struct kv
- 		writable = NULL;
- 	}
- 
--	return hva_to_pfn(addr, atomic, async, write_fault,
--			  writable);
-+	if (hva)
-+		*hva = addr;
++/sys/fs/cgroup/memory/<cgroup>/memory.stat shows:
 +
-+	return hva_to_pfn(addr, atomic, async, write_fault, writable);
++shmem_hugepages 27262976   bytes tmpfs hugepage completed (subset of cache)
++shmem_pmdmapped 12582912   bytes tmpfs huge mapped huge (subset of mapped_file)
++
++Note: the individual pages of a huge team might be charged to different
++memcgs, but these counts assume that they are all charged to the same as head.
++
+ Author:
+    Christoph Rohland <cr@sap.com>, 1.12.01
+ Updated:
+diff -puN include/linux/memcontrol.h~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting
++++ a/include/linux/memcontrol.h
+@@ -50,6 +50,8 @@ enum mem_cgroup_stat_index {
+ 	MEM_CGROUP_STAT_DIRTY,          /* # of dirty pages in page cache */
+ 	MEM_CGROUP_STAT_WRITEBACK,	/* # of pages under writeback */
+ 	MEM_CGROUP_STAT_SWAP,		/* # of pages, swapped out */
++	/* # of pages charged as non-disbanded huge teams */
++	MEM_CGROUP_STAT_SHMEM_HUGEPAGES,
+ 	/* # of pages charged as hugely mapped teams */
+ 	MEM_CGROUP_STAT_SHMEM_PMDMAPPED,
+ 	MEM_CGROUP_STAT_NSTATS,
+@@ -472,6 +474,9 @@ static inline void mem_cgroup_update_pag
+ 		this_cpu_add(page->mem_cgroup->stat->count[idx], val);
  }
- EXPORT_SYMBOL_GPL(__gfn_to_pfn_memslot);
  
-@@ -1475,19 +1477,19 @@ kvm_pfn_t gfn_to_pfn_prot(struct kvm *kv
- 		      bool *writable)
++void mem_cgroup_update_page_stat_treelocked(struct page *page,
++				enum mem_cgroup_stat_index idx, int val);
++
+ static inline void mem_cgroup_inc_page_stat(struct page *page,
+ 					    enum mem_cgroup_stat_index idx)
  {
- 	return __gfn_to_pfn_memslot(gfn_to_memslot(kvm, gfn), gfn, false, NULL,
--				    write_fault, writable);
-+				    write_fault, writable, NULL);
- }
- EXPORT_SYMBOL_GPL(gfn_to_pfn_prot);
- 
- kvm_pfn_t gfn_to_pfn_memslot(struct kvm_memory_slot *slot, gfn_t gfn)
+@@ -681,6 +686,11 @@ static inline void mem_cgroup_update_pag
+ 				enum mem_cgroup_stat_index idx, int val)
  {
--	return __gfn_to_pfn_memslot(slot, gfn, false, NULL, true, NULL);
-+	return __gfn_to_pfn_memslot(slot, gfn, false, NULL, true, NULL, NULL);
  }
- EXPORT_SYMBOL_GPL(gfn_to_pfn_memslot);
++
++static inline void mem_cgroup_update_page_stat_treelocked(struct page *page,
++				enum mem_cgroup_stat_index idx, int val)
++{
++}
  
- kvm_pfn_t gfn_to_pfn_memslot_atomic(struct kvm_memory_slot *slot, gfn_t gfn)
+ static inline void mem_cgroup_inc_page_stat(struct page *page,
+ 					    enum mem_cgroup_stat_index idx)
+diff -puN include/linux/pageteam.h~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting include/linux/pageteam.h
+--- a/include/linux/pageteam.h~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting
++++ a/include/linux/pageteam.h
+@@ -139,12 +139,13 @@ static inline bool dec_team_pmd_mapped(s
+  * needs to maintain memcg's huge tmpfs stats correctly.
+  */
+ static inline void count_team_pmd_mapped(struct page *head, int *file_mapped,
+-					 bool *pmd_mapped)
++					 bool *pmd_mapped, bool *team_complete)
  {
--	return __gfn_to_pfn_memslot(slot, gfn, true, NULL, true, NULL);
-+	return __gfn_to_pfn_memslot(slot, gfn, true, NULL, true, NULL, NULL);
- }
- EXPORT_SYMBOL_GPL(gfn_to_pfn_memslot_atomic);
+ 	long team_usage;
  
+ 	*file_mapped = 1;
+ 	team_usage = atomic_long_read(&head->team_usage);
++	*team_complete = team_usage >= TEAM_COMPLETE;
+ 	*pmd_mapped = team_usage >= TEAM_PMD_MAPPED;
+ 	if (*pmd_mapped)
+ 		*file_mapped = HPAGE_PMD_NR - team_pte_count(team_usage);
+diff -puN mm/memcontrol.c~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting mm/memcontrol.c
+--- a/mm/memcontrol.c~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting
++++ a/mm/memcontrol.c
+@@ -107,6 +107,7 @@ static const char * const mem_cgroup_sta
+ 	"dirty",
+ 	"writeback",
+ 	"swap",
++	"shmem_hugepages",
+ 	"shmem_pmdmapped",
+ };
+ 
+@@ -4428,6 +4429,17 @@ static struct page *mc_handle_file_pte(s
+ 	return page;
+ }
+ 
++void mem_cgroup_update_page_stat_treelocked(struct page *page,
++				enum mem_cgroup_stat_index idx, int val)
++{
++	/* Update this VM_BUG_ON if other cases are added */
++	VM_BUG_ON(idx != MEM_CGROUP_STAT_SHMEM_HUGEPAGES);
++	lockdep_assert_held(&page->mapping->tree_lock);
++
++	if (page->mem_cgroup)
++		__this_cpu_add(page->mem_cgroup->stat->count[idx], val);
++}
++
+ /**
+  * mem_cgroup_move_account - move account of the page
+  * @page: the page
+@@ -4445,6 +4457,7 @@ static int mem_cgroup_move_account(struc
+ 				   struct mem_cgroup *from,
+ 				   struct mem_cgroup *to)
+ {
++	spinlock_t *tree_lock = NULL;
+ 	unsigned long flags;
+ 	int nr_pages = compound ? hpage_nr_pages(page) : 1;
+ 	int file_mapped = 1;
+@@ -4484,9 +4497,9 @@ static int mem_cgroup_move_account(struc
+ 	 * So mapping should be stable for dirty pages.
+ 	 */
+ 	if (!anon && PageDirty(page)) {
+-		struct address_space *mapping = page_mapping(page);
++		struct address_space *mapping = page->mapping;
+ 
+-		if (mapping_cap_account_dirty(mapping)) {
++		if (mapping && mapping_cap_account_dirty(mapping)) {
+ 			__this_cpu_sub(from->stat->count[MEM_CGROUP_STAT_DIRTY],
+ 				       nr_pages);
+ 			__this_cpu_add(to->stat->count[MEM_CGROUP_STAT_DIRTY],
+@@ -4495,10 +4508,28 @@ static int mem_cgroup_move_account(struc
+ 	}
+ 
+ 	if (!anon && PageTeam(page)) {
+-		if (page == team_head(page)) {
+-			bool pmd_mapped;
++		struct address_space *mapping = page->mapping;
+ 
+-			count_team_pmd_mapped(page, &file_mapped, &pmd_mapped);
++		if (mapping && page == team_head(page)) {
++			bool pmd_mapped, team_complete;
++			/*
++			 * We avoided taking mapping->tree_lock unnecessarily.
++			 * Is it safe to take mapping->tree_lock below?  Was it
++			 * safe to peek at PageTeam above, without tree_lock?
++			 * Yes, this is a team head, just now taken from its
++			 * lru: PageTeam must already be set. And we took
++			 * page lock above, so page->mapping is stable.
++			 */
++			tree_lock = &mapping->tree_lock;
++			spin_lock(tree_lock);
++			count_team_pmd_mapped(page, &file_mapped, &pmd_mapped,
++					      &team_complete);
++			if (team_complete) {
++				__this_cpu_sub(from->stat->count[
++				MEM_CGROUP_STAT_SHMEM_HUGEPAGES], HPAGE_PMD_NR);
++				__this_cpu_add(to->stat->count[
++				MEM_CGROUP_STAT_SHMEM_HUGEPAGES], HPAGE_PMD_NR);
++			}
+ 			if (pmd_mapped) {
+ 				__this_cpu_sub(from->stat->count[
+ 				MEM_CGROUP_STAT_SHMEM_PMDMAPPED], HPAGE_PMD_NR);
+@@ -4519,10 +4550,12 @@ static int mem_cgroup_move_account(struc
+ 	 * It is safe to change page->mem_cgroup here because the page
+ 	 * is referenced, charged, and isolated - we can't race with
+ 	 * uncharging, charging, migration, or LRU putback.
++	 * Caller should have done css_get.
+ 	 */
+-
+-	/* caller should have done css_get */
+ 	page->mem_cgroup = to;
++
++	if (tree_lock)
++		spin_unlock(tree_lock);
+ 	spin_unlock_irqrestore(&from->move_lock, flags);
+ 
+ 	ret = 0;
+diff -puN mm/shmem.c~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting mm/shmem.c
+--- a/mm/shmem.c~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting
++++ a/mm/shmem.c
+@@ -413,6 +413,8 @@ static void shmem_added_to_hugeteam(stru
+ 				&head->team_usage) >= TEAM_COMPLETE) {
+ 			shmem_clear_tag_hugehole(mapping, head->index);
+ 			__inc_zone_state(zone, NR_SHMEM_HUGEPAGES);
++			mem_cgroup_update_page_stat_treelocked(head,
++				MEM_CGROUP_STAT_SHMEM_HUGEPAGES, HPAGE_PMD_NR);
+ 		}
+ 		__dec_zone_state(zone, NR_SHMEM_FREEHOLES);
+ 	}
+@@ -523,6 +525,8 @@ again2:
+ 		if (nr >= HPAGE_PMD_NR) {
+ 			ClearPageChecked(head);
+ 			__dec_zone_state(zone, NR_SHMEM_HUGEPAGES);
++			mem_cgroup_update_page_stat_treelocked(head,
++				MEM_CGROUP_STAT_SHMEM_HUGEPAGES, -HPAGE_PMD_NR);
+ 			VM_BUG_ON(nr != HPAGE_PMD_NR);
+ 		} else if (nr) {
+ 			shmem_clear_tag_hugehole(mapping, head->index);
 _
 
 Patches currently in -mm which might be from andreslc@google.com are
