@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m.patch
+Subject: + huge-tmpfs-avoid-premature-exposure-of-new-pagetable.patch
  added to -mm tree
-Date: Tue, 05 Apr 2016 16:15:31 -0700
-Message-ID: <57044713.3n/g8qh2j1sSBDCM%akpm@linux-foundation.org>
+Date: Tue, 05 Apr 2016 16:15:50 -0700
+Message-ID: <57044726.RQmJlC3dwUcI6Ah7%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56914 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56964 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752267AbcDEXPc (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 19:15:32 -0400
+	with ESMTP id S1753202AbcDEXPw (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 19:15:52 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, quning@gmail.com, rientjes@google.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge tmpfs: prepare counts in meminfo, vmstat and SysRq-m
+     Subject: huge tmpfs: avoid premature exposure of new pagetable
 has been added to the -mm tree.  Its filename is
-     huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m.patch
+     huge-tmpfs-avoid-premature-exposure-of-new-pagetable.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-avoid-premature-exposure-of-new-pagetable.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-avoid-premature-exposure-of-new-pagetable.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,89 +40,91 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: huge tmpfs: prepare counts in meminfo, vmstat and SysRq-m
+Subject: huge tmpfs: avoid premature exposure of new pagetable
 
-Here is my "huge tmpfs" implementation of Transparent Huge Pagecache,
-rebased to v4.6-rc2 plus the "mm: easy preliminaries to THPagecache"
-series.
+In early development, a huge tmpfs fault simply replaced the pmd which
+pointed to the empty pagetable just allocated in __handle_mm_fault(): but
+that is unsafe.
 
-The design is just the same as before, when I posted against v3.19: using
-a team of pagecache pages placed within a huge-order extent, instead of
-using a compound page (see 04/31 for more info on that).
+Andrea wrote a very interesting comment on THP in mm/memory.c, just before
+the end of __handle_mm_fault():
 
-Patches 01-17 are much as before, but with whatever changes were needed
-for the rebase, and bugfixes folded back in.  Patches 18-22 add memcg and
-smaps visibility.  But the more important ones are patches 23-29, which
-add recovery: reassembling a hugepage after fragmentation or swapping. 
-Patches 30-31 reflect gfpmask doubts: you might prefer that I fold 31 back
-in and keep 30 internal.
+ * A regular pmd is established and it can't morph into a huge pmd
+ * from under us anymore at this point because we hold the mmap_sem
+ * read mode and khugepaged takes it in write mode. So now it's
+ * safe to run pte_offset_map().
 
-It was lack of recovery which stopped me from proposing inclusion of the
-series a year ago: this series now is fully featured, and ready for v4.7 -
-but I expect we shall want to wait a release to give time to consider the
-alternatives.
+This comment hints at several difficulties, which anon THP solved for
+itself with mmap_sem and anon_vma lock, but which huge tmpfs may need to
+solve differently.
 
-I currently believe that the same functionality (including the team
-implementation's support for small files, standard mlocking, and recovery)
-can be achieved with compound pages, but not easily: I think the huge
-tmpfs functionality should be made available soon, then converted at
-leisure to compound pages, if that works out (but it's not a job I want to
-do - what we have here is good enough).
+The reference to pte_offset_map() above: I believe that's a hint that on a
+32-bit machine, the pagetables might need to come from kernel-mapped
+memory, but a huge pmd pointing to user memory beyond that limit could be
+racily substituted, causing undefined behavior in the
+architecture-dependent pte_offset_map().
 
-Huge tmpfs has been in use within Google for about a year: it's been a
-success, and gaining ever wider adoption.  Several TODOs have not yet been
-toDONE, because they just haven't surfaced as real-life issues yet: that
-includes NUMA migration, which is at the top of my list, but so far we've
-done well enough without it.
+That itself is not a problem on x86_64, but there's plenty more: how about
+those places which use pte_offset_map_lock() - if that spinlock is in the
+struct page of a pagetable, which has been deposited and might be
+withdrawn and freed at any moment (being on a list unattached to the
+allocating pmd in the case of x86), taking the spinlock might corrupt
+someone else's struct page.
 
+Because THP has departed from the earlier rules (when pagetable was only
+freed under exclusive mmap_sem, or at exit_mmap, after removing all
+affected vmas from the rmap list): zap_huge_pmd() does pte_free() even
+when serving MADV_DONTNEED under down_read of mmap_sem.
 
+And what of the "entry = *pte" at the start of handle_pte_fault(), getting
+the entry used in pte_same(,orig_pte) tests to validate all fault
+handling?  If that entry can itself be junk picked out of some freed and
+reused pagetable, it's hard to estimate the consequences.
 
-This patch (of 31):
+We need to consider the safety of concurrent faults, and the safety of
+rmap lookups, and the safety of miscellaneous operations such as
+smaps_pte_range() for reading /proc/<pid>/smaps.
 
-Abbreviate NR_ANON_TRANSPARENT_HUGEPAGES to NR_ANON_HUGEPAGES,
-add NR_SHMEM_HUGEPAGES, NR_SHMEM_PMDMAPPED, NR_SHMEM_FREEHOLES:
-to be accounted in later commits, when we shall need some visibility.
+I set out to make safe the places which descend pgd,pud,pmd,pte, using
+more careful access techniques like mm_find_pmd(); but with
+pte_offset_map() being architecture-defined, found it too big a job to
+tighten up all over.
 
-Shown in /proc/meminfo and /sys/devices/system/node/nodeN/meminfo
-as AnonHugePages (as before), ShmemHugePages, ShmemPmdMapped,
-ShmemFreeHoles; /proc/vmstat and /sys/devices/system/node/nodeN/vmstat
-as nr_anon_transparent_hugepages (as before), nr_shmem_hugepages,
-nr_shmem_pmdmapped, nr_shmem_freeholes.
+Instead, approach from the opposite direction: just do not expose a
+pagetable in an empty *pmd, until vm_ops->fault has had a chance to ask
+for a huge pmd there.  This is a much easier change to make, and we are
+lucky that all the driver faults appear to be using interfaces (like
+vm_insert_page() and remap_pfn_range()) which automatically do the
+pte_alloc() if it was not already done.
 
-Be upfront about this being Shmem, neither file nor anon: Shmem
-is sometimes counted as file (as in Cached) and sometimes as anon
-(as in Active(anon)); which is too confusing.  Shmem is already
-shown in meminfo, so use that term, rather than tmpfs or shm.
+But we must not get stuck refaulting: need FAULT_FLAG_MAY_HUGE for
+__do_fault() to tell shmem_fault() to try for huge only when *pmd is empty
+(could instead add pmd to vmf and let shmem work that out for itself, but
+probably better to hide pmd from vm_ops->faults).
 
-ShmemHugePages will show that portion of Shmem which is allocated
-on complete huge pages.  ShmemPmdMapped (named not to misalign the
-%8lu) will show that portion of ShmemHugePages which is mapped into
-userspace with huge pmds.  ShmemFreeHoles will show the wastage
-from using huge pages for small, or sparsely occupied, or unrounded
-files: wastage not included in Shmem or MemFree, but will be freed
-under memory pressure.  (But no count for the partially occupied
-portions of huge pages: seems less important, but could be added.)
+Without a pagetable to hold the pte_none() entry found in a newly
+allocated pagetable, handle_pte_fault() would like to provide a static
+none entry for later orig_pte checks.  But architectures have never had to
+provide that definition before; and although almost all use zeroes for an
+empty pagetable, a few do not - nios2, s390, um, xtensa.
 
-Since shmem_freeholes are otherwise hidden, they ought to be shown by
-show_free_areas(), in OOM-kill or ALT-SysRq-m or /proc/sysrq-trigger m.
-shmem_hugepages is a subset of shmem, and shmem_pmdmapped a subset of
-shmem_hugepages: there is not a strong argument for adding them here
-(anon_hugepages is not shown), but include them anyway for reassurance.
-Note that shmem_hugepages (and _pmdmapped and _freeholes) page counts
-are shown in smallpage units, like other fields: not in hugepage units.
+Never mind, forget about pte_same(,orig_pte), the three __do_fault()
+callers can follow do_anonymous_page(), and just use a pte_none() check.
 
-The lines get rather long: abbreviate thus
-  mapped:19778 shmem:38 pagetables:1153 bounce:0
-  shmem_hugepages:0 _pmdmapped:0 _freeholes:2044
-  free:3261805 free_pcp:9444 free_cma:0
-and
-... shmem:92kB _hugepages:0kB _pmdmapped:0kB _freeholes:0kB ...
+do_fault_around() presents one last problem: it wants pagetable to have
+been allocated, but was being called by do_read_fault() before
+__do_fault().  I see no disadvantage to moving it after, allowing huge pmd
+to be chosen first; but Kirill reports additional radix-tree lookup in hot
+pagecache case when he implemented faultaround: needs further
+investigation.
 
-Tidy up the CONFIG_TRANSPARENT_HUGEPAGE printf blocks in
-fs/proc/meminfo.c and drivers/base/node.c: the shorter names help.
-Clarify a comment in page_remove_rmap() to refer to "hugetlbfs pages"
-rather than hugepages generally.  I left arch/tile/mm/pgtable.c's
-show_mem() unchanged: tile does not HAVE_ARCH_TRANSPARENT_HUGEPAGE.
+Note: after months of use, we recently hit an OOM deadlock: this patch
+moves the new pagetable allocation inside where page lock is held on a
+pagecache page, and exit's munlock_vma_pages_all() takes page lock on all
+mlocked pages.  Both parties are behaving badly: we hope to change munlock
+to use trylock_page() instead, but should certainly switch here to
+preallocating the pagetable outside the page lock.  But I've not yet
+written and tested that change.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -134,271 +136,421 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/filesystems/proc.txt |   10 ++++++++--
- drivers/base/node.c                |   20 +++++++++++---------
- fs/proc/meminfo.c                  |   11 ++++++++---
- include/linux/mmzone.h             |    5 ++++-
- mm/huge_memory.c                   |    2 +-
- mm/page_alloc.c                    |   17 +++++++++++++++++
- mm/rmap.c                          |   14 ++++++--------
- mm/vmstat.c                        |    3 +++
- 8 files changed, 58 insertions(+), 24 deletions(-)
+ mm/filemap.c |   10 +-
+ mm/memory.c  |  215 ++++++++++++++++++++++++++-----------------------
+ 2 files changed, 123 insertions(+), 102 deletions(-)
 
-diff -puN Documentation/filesystems/proc.txt~huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m Documentation/filesystems/proc.txt
---- a/Documentation/filesystems/proc.txt~huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m
-+++ a/Documentation/filesystems/proc.txt
-@@ -853,7 +853,7 @@ Dirty:             968 kB
- Writeback:           0 kB
- AnonPages:      861800 kB
- Mapped:         280372 kB
--Shmem:             644 kB
-+Shmem:           26396 kB
- Slab:           284364 kB
- SReclaimable:   159856 kB
- SUnreclaim:     124508 kB
-@@ -867,6 +867,9 @@ VmallocTotal:   112216 kB
- VmallocUsed:       428 kB
- VmallocChunk:   111088 kB
- AnonHugePages:   49152 kB
-+ShmemHugePages:  20480 kB
-+ShmemPmdMapped:  12288 kB
-+ShmemFreeHoles:      0 kB
- 
-     MemTotal: Total usable ram (i.e. physical ram minus a few reserved
-               bits and the kernel binary code)
-@@ -908,7 +911,6 @@ MemAvailable: An estimate of how much me
-        Dirty: Memory which is waiting to get written back to the disk
-    Writeback: Memory which is actively being written back to the disk
-    AnonPages: Non-file backed pages mapped into userspace page tables
--AnonHugePages: Non-file backed huge pages mapped into userspace page tables
-       Mapped: files which have been mmaped, such as libraries
-        Shmem: Total memory used by shared memory (shmem) and tmpfs
-         Slab: in-kernel data structures cache
-@@ -949,6 +951,10 @@ Committed_AS: The amount of memory prese
- VmallocTotal: total size of vmalloc memory area
-  VmallocUsed: amount of vmalloc area which is used
- VmallocChunk: largest contiguous block of vmalloc area which is free
-+ AnonHugePages: Non-file backed huge pages mapped into userspace page tables
-+ShmemHugePages: tmpfs-file backed huge pages completed (subset of Shmem)
-+ShmemPmdMapped: tmpfs-file backed huge pages with huge mappings into userspace
-+ShmemFreeHoles: Space reserved for tmpfs team pages but available to shrinker
- 
- ..............................................................................
- 
-diff -puN drivers/base/node.c~huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m drivers/base/node.c
---- a/drivers/base/node.c~huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m
-+++ a/drivers/base/node.c
-@@ -111,9 +111,6 @@ static ssize_t node_read_meminfo(struct
- 		       "Node %d Slab:           %8lu kB\n"
- 		       "Node %d SReclaimable:   %8lu kB\n"
- 		       "Node %d SUnreclaim:     %8lu kB\n"
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--		       "Node %d AnonHugePages:  %8lu kB\n"
--#endif
- 			,
- 		       nid, K(node_page_state(nid, NR_FILE_DIRTY)),
- 		       nid, K(node_page_state(nid, NR_WRITEBACK)),
-@@ -130,13 +127,18 @@ static ssize_t node_read_meminfo(struct
- 		       nid, K(node_page_state(nid, NR_SLAB_RECLAIMABLE) +
- 				node_page_state(nid, NR_SLAB_UNRECLAIMABLE)),
- 		       nid, K(node_page_state(nid, NR_SLAB_RECLAIMABLE)),
--#ifdef CONFIG_TRANSPARENT_HUGEPAGE
--		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE))
--			, nid,
--			K(node_page_state(nid, NR_ANON_TRANSPARENT_HUGEPAGES) *
--			HPAGE_PMD_NR));
--#else
- 		       nid, K(node_page_state(nid, NR_SLAB_UNRECLAIMABLE)));
+diff -puN mm/filemap.c~huge-tmpfs-avoid-premature-exposure-of-new-pagetable mm/filemap.c
+--- a/mm/filemap.c~huge-tmpfs-avoid-premature-exposure-of-new-pagetable
++++ a/mm/filemap.c
+@@ -2151,6 +2151,10 @@ void filemap_map_pages(struct vm_area_st
+ 	radix_tree_for_each_slot(slot, &mapping->page_tree, &iter, vmf->pgoff) {
+ 		if (iter.index > vmf->max_pgoff)
+ 			break;
 +
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+	n += sprintf(buf + n,
-+		"Node %d AnonHugePages:  %8lu kB\n"
-+		"Node %d ShmemHugePages: %8lu kB\n"
-+		"Node %d ShmemPmdMapped: %8lu kB\n"
-+		"Node %d ShmemFreeHoles: %8lu kB\n",
-+		nid, K(node_page_state(nid, NR_ANON_HUGEPAGES)*HPAGE_PMD_NR),
-+		nid, K(node_page_state(nid, NR_SHMEM_HUGEPAGES)*HPAGE_PMD_NR),
-+		nid, K(node_page_state(nid, NR_SHMEM_PMDMAPPED)*HPAGE_PMD_NR),
-+		nid, K(node_page_state(nid, NR_SHMEM_FREEHOLES)));
- #endif
- 	n += hugetlb_report_node_meminfo(nid, buf + n);
- 	return n;
-diff -puN fs/proc/meminfo.c~huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m fs/proc/meminfo.c
---- a/fs/proc/meminfo.c~huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m
-+++ a/fs/proc/meminfo.c
-@@ -105,6 +105,9 @@ static int meminfo_proc_show(struct seq_
- #endif
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 		"AnonHugePages:  %8lu kB\n"
-+		"ShmemHugePages: %8lu kB\n"
-+		"ShmemPmdMapped: %8lu kB\n"
-+		"ShmemFreeHoles: %8lu kB\n"
- #endif
- #ifdef CONFIG_CMA
- 		"CmaTotal:       %8lu kB\n"
-@@ -159,11 +162,13 @@ static int meminfo_proc_show(struct seq_
- 		0ul, // used to be vmalloc 'used'
- 		0ul  // used to be vmalloc 'largest_chunk'
- #ifdef CONFIG_MEMORY_FAILURE
--		, atomic_long_read(&num_poisoned_pages) << (PAGE_SHIFT - 10)
-+		, K(atomic_long_read(&num_poisoned_pages))
- #endif
- #ifdef CONFIG_TRANSPARENT_HUGEPAGE
--		, K(global_page_state(NR_ANON_TRANSPARENT_HUGEPAGES) *
--		   HPAGE_PMD_NR)
-+		, K(global_page_state(NR_ANON_HUGEPAGES) * HPAGE_PMD_NR)
-+		, K(global_page_state(NR_SHMEM_HUGEPAGES) * HPAGE_PMD_NR)
-+		, K(global_page_state(NR_SHMEM_PMDMAPPED) * HPAGE_PMD_NR)
-+		, K(global_page_state(NR_SHMEM_FREEHOLES))
- #endif
- #ifdef CONFIG_CMA
- 		, K(totalcma_pages)
-diff -puN include/linux/mmzone.h~huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m include/linux/mmzone.h
---- a/include/linux/mmzone.h~huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m
-+++ a/include/linux/mmzone.h
-@@ -158,7 +158,10 @@ enum zone_stat_item {
- 	WORKINGSET_REFAULT,
- 	WORKINGSET_ACTIVATE,
- 	WORKINGSET_NODERECLAIM,
--	NR_ANON_TRANSPARENT_HUGEPAGES,
-+	NR_ANON_HUGEPAGES,	/* transparent anon huge pages */
-+	NR_SHMEM_HUGEPAGES,	/* transparent shmem huge pages */
-+	NR_SHMEM_PMDMAPPED,	/* shmem huge pages currently mapped hugely */
-+	NR_SHMEM_FREEHOLES,	/* unused memory of high-order allocations */
- 	NR_FREE_CMA_PAGES,
- 	NR_VM_ZONE_STAT_ITEMS };
++		pte = vmf->pte + iter.index - vmf->pgoff;
++		if (!pte_none(*pte))
++			goto next;
+ repeat:
+ 		page = radix_tree_deref_slot(slot);
+ 		if (unlikely(!page))
+@@ -2172,6 +2176,8 @@ repeat:
+ 			goto repeat;
+ 		}
  
-diff -puN mm/huge_memory.c~huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m mm/huge_memory.c
---- a/mm/huge_memory.c~huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m
-+++ a/mm/huge_memory.c
-@@ -2941,7 +2941,7 @@ static void __split_huge_pmd_locked(stru
++		VM_BUG_ON_PAGE(page->index != iter.index, page);
++
+ 		if (!PageUptodate(page) ||
+ 				PageReadahead(page) ||
+ 				PageHWPoison(page))
+@@ -2186,10 +2192,6 @@ repeat:
+ 		if (page->index >= size >> PAGE_SHIFT)
+ 			goto unlock;
  
- 	if (atomic_add_negative(-1, compound_mapcount_ptr(page))) {
- 		/* Last compound_mapcount is gone. */
--		__dec_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
-+		__dec_zone_page_state(page, NR_ANON_HUGEPAGES);
- 		if (TestClearPageDoubleMap(page)) {
- 			/* No need in mapcount reference anymore */
- 			for (i = 0; i < HPAGE_PMD_NR; i++)
-diff -puN mm/page_alloc.c~huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m mm/page_alloc.c
---- a/mm/page_alloc.c~huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m
-+++ a/mm/page_alloc.c
-@@ -3869,6 +3869,11 @@ out:
+-		pte = vmf->pte + page->index - vmf->pgoff;
+-		if (!pte_none(*pte))
+-			goto unlock;
+-
+ 		if (file->f_ra.mmap_miss > 0)
+ 			file->f_ra.mmap_miss--;
+ 		addr = address + (page->index - vmf->pgoff) * PAGE_SIZE;
+diff -puN mm/memory.c~huge-tmpfs-avoid-premature-exposure-of-new-pagetable mm/memory.c
+--- a/mm/memory.c~huge-tmpfs-avoid-premature-exposure-of-new-pagetable
++++ a/mm/memory.c
+@@ -2717,20 +2717,17 @@ static inline int check_stack_guard_page
+ 
+ /*
+  * We enter with non-exclusive mmap_sem (to exclude vma changes,
+- * but allow concurrent faults), and pte mapped but not yet locked.
+- * We return with mmap_sem still held, but pte unmapped and unlocked.
++ * but allow concurrent faults).  We return with mmap_sem still held.
+  */
+ static int do_anonymous_page(struct mm_struct *mm, struct vm_area_struct *vma,
+-		unsigned long address, pte_t *page_table, pmd_t *pmd,
+-		unsigned int flags)
++		unsigned long address, pmd_t *pmd, unsigned int flags)
+ {
+ 	struct mem_cgroup *memcg;
++	pte_t *page_table;
+ 	struct page *page;
+ 	spinlock_t *ptl;
+ 	pte_t entry;
+ 
+-	pte_unmap(page_table);
+-
+ 	/* File mapping without ->vm_ops ? */
+ 	if (vma->vm_flags & VM_SHARED)
+ 		return VM_FAULT_SIGBUS;
+@@ -2739,6 +2736,27 @@ static int do_anonymous_page(struct mm_s
+ 	if (check_stack_guard_page(vma, address) < 0)
+ 		return VM_FAULT_SIGSEGV;
+ 
++	/*
++	 * Use pte_alloc instead of pte_alloc_map, because we can't
++	 * run pte_offset_map on the pmd, if an huge pmd could
++	 * materialize from under us from a different thread.
++	 */
++	if (unlikely(pte_alloc(mm, pmd, address)))
++		return VM_FAULT_OOM;
++	/*
++	 * If a huge pmd materialized under us just retry later.  Use
++	 * pmd_trans_unstable() instead of pmd_trans_huge() to ensure the pmd
++	 * didn't become pmd_trans_huge under us and then back to pmd_none, as
++	 * a result of MADV_DONTNEED running immediately after a huge pmd fault
++	 * in a different thread of this mm, in turn leading to a misleading
++	 * pmd_trans_huge() retval.  All we have to ensure is that it is a
++	 * regular pmd that we can walk with pte_offset_map() and we can do that
++	 * through an atomic read in C, which is what pmd_trans_unstable()
++	 * provides.
++	 */
++	if (unlikely(pmd_trans_unstable(pmd) || pmd_devmap(*pmd)))
++		return 0;
++
+ 	/* Use the zero-page for reads */
+ 	if (!(flags & FAULT_FLAG_WRITE) && !mm_forbids_zeropage(mm)) {
+ 		entry = pte_mkspecial(pfn_pte(my_zero_pfn(address),
+@@ -2817,8 +2835,8 @@ oom:
+  * See filemap_fault() and __lock_page_retry().
+  */
+ static int __do_fault(struct vm_area_struct *vma, unsigned long address,
+-			pgoff_t pgoff, unsigned int flags,
+-			struct page *cow_page, struct page **page)
++		      pmd_t *pmd, pgoff_t pgoff, unsigned int flags,
++		      struct page *cow_page, struct page **page)
+ {
+ 	struct vm_fault vmf;
+ 	int ret;
+@@ -2836,21 +2854,40 @@ static int __do_fault(struct vm_area_str
+ 	if (!vmf.page)
+ 		goto out;
+ 
+-	if (unlikely(PageHWPoison(vmf.page))) {
+-		if (ret & VM_FAULT_LOCKED)
+-			unlock_page(vmf.page);
+-		put_page(vmf.page);
+-		return VM_FAULT_HWPOISON;
+-	}
+-
+ 	if (unlikely(!(ret & VM_FAULT_LOCKED)))
+ 		lock_page(vmf.page);
+ 	else
+ 		VM_BUG_ON_PAGE(!PageLocked(vmf.page), vmf.page);
+ 
++	if (unlikely(PageHWPoison(vmf.page))) {
++		ret = VM_FAULT_HWPOISON;
++		goto err;
++	}
++
++	/*
++	 * Use pte_alloc instead of pte_alloc_map, because we can't
++	 * run pte_offset_map on the pmd, if an huge pmd could
++	 * materialize from under us from a different thread.
++	 */
++	if (unlikely(pte_alloc(vma->vm_mm, pmd, address))) {
++		ret = VM_FAULT_OOM;
++		goto err;
++	}
++	/*
++	 * If a huge pmd materialized under us just retry later.  Allow for
++	 * a racing transition of huge pmd to none to huge pmd or pagetable.
++	 */
++	if (unlikely(pmd_trans_unstable(pmd) || pmd_devmap(*pmd))) {
++		ret = VM_FAULT_NOPAGE;
++		goto err;
++	}
+  out:
+ 	*page = vmf.page;
+ 	return ret;
++err:
++	unlock_page(vmf.page);
++	put_page(vmf.page);
++	return ret;
  }
  
- #define K(x) ((x) << (PAGE_SHIFT-10))
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+#define THPAGE_PMD_NR	HPAGE_PMD_NR
-+#else
-+#define THPAGE_PMD_NR	0	/* Avoid BUILD_BUG() */
-+#endif
+ /**
+@@ -3000,32 +3037,19 @@ static void do_fault_around(struct vm_ar
  
- static void show_migration_types(unsigned char type)
+ static int do_read_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		unsigned long address, pmd_t *pmd,
+-		pgoff_t pgoff, unsigned int flags, pte_t orig_pte)
++		pgoff_t pgoff, unsigned int flags)
  {
-@@ -3925,6 +3930,7 @@ void show_free_areas(unsigned int filter
- 		" unevictable:%lu dirty:%lu writeback:%lu unstable:%lu\n"
- 		" slab_reclaimable:%lu slab_unreclaimable:%lu\n"
- 		" mapped:%lu shmem:%lu pagetables:%lu bounce:%lu\n"
-+		" shmem_hugepages:%lu _pmdmapped:%lu _freeholes:%lu\n"
- 		" free:%lu free_pcp:%lu free_cma:%lu\n",
- 		global_page_state(NR_ACTIVE_ANON),
- 		global_page_state(NR_INACTIVE_ANON),
-@@ -3942,6 +3948,9 @@ void show_free_areas(unsigned int filter
- 		global_page_state(NR_SHMEM),
- 		global_page_state(NR_PAGETABLE),
- 		global_page_state(NR_BOUNCE),
-+		global_page_state(NR_SHMEM_HUGEPAGES) * THPAGE_PMD_NR,
-+		global_page_state(NR_SHMEM_PMDMAPPED) * THPAGE_PMD_NR,
-+		global_page_state(NR_SHMEM_FREEHOLES),
- 		global_page_state(NR_FREE_PAGES),
- 		free_pcp,
- 		global_page_state(NR_FREE_CMA_PAGES));
-@@ -3976,6 +3985,9 @@ void show_free_areas(unsigned int filter
- 			" writeback:%lukB"
- 			" mapped:%lukB"
- 			" shmem:%lukB"
-+			" _hugepages:%lukB"
-+			" _pmdmapped:%lukB"
-+			" _freeholes:%lukB"
- 			" slab_reclaimable:%lukB"
- 			" slab_unreclaimable:%lukB"
- 			" kernel_stack:%lukB"
-@@ -4008,6 +4020,11 @@ void show_free_areas(unsigned int filter
- 			K(zone_page_state(zone, NR_WRITEBACK)),
- 			K(zone_page_state(zone, NR_FILE_MAPPED)),
- 			K(zone_page_state(zone, NR_SHMEM)),
-+			K(zone_page_state(zone, NR_SHMEM_HUGEPAGES) *
-+							THPAGE_PMD_NR),
-+			K(zone_page_state(zone, NR_SHMEM_PMDMAPPED) *
-+							THPAGE_PMD_NR),
-+			K(zone_page_state(zone, NR_SHMEM_FREEHOLES)),
- 			K(zone_page_state(zone, NR_SLAB_RECLAIMABLE)),
- 			K(zone_page_state(zone, NR_SLAB_UNRECLAIMABLE)),
- 			zone_page_state(zone, NR_KERNEL_STACK) *
-diff -puN mm/rmap.c~huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m mm/rmap.c
---- a/mm/rmap.c~huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m
-+++ a/mm/rmap.c
-@@ -1213,10 +1213,8 @@ void do_page_add_anon_rmap(struct page *
- 		 * pte lock(a spinlock) is held, which implies preemption
- 		 * disabled.
- 		 */
--		if (compound) {
--			__inc_zone_page_state(page,
--					      NR_ANON_TRANSPARENT_HUGEPAGES);
--		}
-+		if (compound)
-+			__inc_zone_page_state(page, NR_ANON_HUGEPAGES);
- 		__mod_zone_page_state(page_zone(page), NR_ANON_PAGES, nr);
+ 	struct page *fault_page;
+ 	spinlock_t *ptl;
+ 	pte_t *pte;
+-	int ret = 0;
+-
+-	/*
+-	 * Let's call ->map_pages() first and use ->fault() as fallback
+-	 * if page by the offset is not ready to be mapped (cold cache or
+-	 * something).
+-	 */
+-	if (vma->vm_ops->map_pages && fault_around_bytes >> PAGE_SHIFT > 1) {
+-		pte = pte_offset_map_lock(mm, pmd, address, &ptl);
+-		do_fault_around(vma, address, pte, pgoff, flags);
+-		if (!pte_same(*pte, orig_pte))
+-			goto unlock_out;
+-		pte_unmap_unlock(pte, ptl);
+-	}
++	int ret;
+ 
+-	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page);
++	ret = __do_fault(vma, address, pmd, pgoff, flags, NULL, &fault_page);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		return ret;
+ 
+ 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
+-	if (unlikely(!pte_same(*pte, orig_pte))) {
++	if (unlikely(!pte_none(*pte))) {
+ 		pte_unmap_unlock(pte, ptl);
+ 		unlock_page(fault_page);
+ 		put_page(fault_page);
+@@ -3033,14 +3057,20 @@ static int do_read_fault(struct mm_struc
  	}
- 	if (unlikely(PageKsm(page)))
-@@ -1254,7 +1252,7 @@ void page_add_new_anon_rmap(struct page
- 		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
- 		/* increment count (starts at -1) */
- 		atomic_set(compound_mapcount_ptr(page), 0);
--		__inc_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
-+		__inc_zone_page_state(page, NR_ANON_HUGEPAGES);
- 	} else {
- 		/* Anon THP always mapped first with PMD */
- 		VM_BUG_ON_PAGE(PageTransCompound(page), page);
-@@ -1285,7 +1283,7 @@ static void page_remove_file_rmap(struct
+ 	do_set_pte(vma, address, fault_page, pte, false, false);
+ 	unlock_page(fault_page);
+-unlock_out:
++
++	/*
++	 * Finally call ->map_pages() to fault around the pte we just set.
++	 */
++	if (vma->vm_ops->map_pages && fault_around_bytes >> PAGE_SHIFT > 1)
++		do_fault_around(vma, address, pte, pgoff, flags);
++
+ 	pte_unmap_unlock(pte, ptl);
+ 	return ret;
+ }
+ 
+ static int do_cow_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		unsigned long address, pmd_t *pmd,
+-		pgoff_t pgoff, unsigned int flags, pte_t orig_pte)
++		pgoff_t pgoff, unsigned int flags)
  {
- 	lock_page_memcg(page);
+ 	struct page *fault_page, *new_page;
+ 	struct mem_cgroup *memcg;
+@@ -3060,7 +3090,7 @@ static int do_cow_fault(struct mm_struct
+ 		return VM_FAULT_OOM;
+ 	}
  
--	/* Hugepages are not counted in NR_FILE_MAPPED for now. */
-+	/* hugetlbfs pages are not counted in NR_FILE_MAPPED for now. */
- 	if (unlikely(PageHuge(page))) {
- 		/* hugetlb pages are always mapped with pmds */
- 		atomic_dec(compound_mapcount_ptr(page));
-@@ -1317,14 +1315,14 @@ static void page_remove_anon_compound_rm
- 	if (!atomic_add_negative(-1, compound_mapcount_ptr(page)))
- 		return;
+-	ret = __do_fault(vma, address, pgoff, flags, new_page, &fault_page);
++	ret = __do_fault(vma, address, pmd, pgoff, flags, new_page, &fault_page);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		goto uncharge_out;
  
--	/* Hugepages are not counted in NR_ANON_PAGES for now. */
-+	/* hugetlbfs pages are not counted in NR_ANON_PAGES for now. */
- 	if (unlikely(PageHuge(page)))
- 		return;
+@@ -3069,7 +3099,7 @@ static int do_cow_fault(struct mm_struct
+ 	__SetPageUptodate(new_page);
  
- 	if (!IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE))
- 		return;
+ 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
+-	if (unlikely(!pte_same(*pte, orig_pte))) {
++	if (unlikely(!pte_none(*pte))) {
+ 		pte_unmap_unlock(pte, ptl);
+ 		if (fault_page) {
+ 			unlock_page(fault_page);
+@@ -3106,7 +3136,7 @@ uncharge_out:
  
--	__dec_zone_page_state(page, NR_ANON_TRANSPARENT_HUGEPAGES);
-+	__dec_zone_page_state(page, NR_ANON_HUGEPAGES);
+ static int do_shared_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+ 		unsigned long address, pmd_t *pmd,
+-		pgoff_t pgoff, unsigned int flags, pte_t orig_pte)
++		pgoff_t pgoff, unsigned int flags)
+ {
+ 	struct page *fault_page;
+ 	struct address_space *mapping;
+@@ -3115,7 +3145,7 @@ static int do_shared_fault(struct mm_str
+ 	int dirtied = 0;
+ 	int ret, tmp;
  
- 	if (TestClearPageDoubleMap(page)) {
- 		/*
-diff -puN mm/vmstat.c~huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m mm/vmstat.c
---- a/mm/vmstat.c~huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m
-+++ a/mm/vmstat.c
-@@ -756,6 +756,9 @@ const char * const vmstat_text[] = {
- 	"workingset_activate",
- 	"workingset_nodereclaim",
- 	"nr_anon_transparent_hugepages",
-+	"nr_shmem_hugepages",
-+	"nr_shmem_pmdmapped",
-+	"nr_shmem_freeholes",
- 	"nr_free_cma",
+-	ret = __do_fault(vma, address, pgoff, flags, NULL, &fault_page);
++	ret = __do_fault(vma, address, pmd, pgoff, flags, NULL, &fault_page);
+ 	if (unlikely(ret & (VM_FAULT_ERROR | VM_FAULT_NOPAGE | VM_FAULT_RETRY)))
+ 		return ret;
  
- 	/* enum writeback_stat_item counters */
+@@ -3134,7 +3164,7 @@ static int do_shared_fault(struct mm_str
+ 	}
+ 
+ 	pte = pte_offset_map_lock(mm, pmd, address, &ptl);
+-	if (unlikely(!pte_same(*pte, orig_pte))) {
++	if (unlikely(!pte_none(*pte))) {
+ 		pte_unmap_unlock(pte, ptl);
+ 		unlock_page(fault_page);
+ 		put_page(fault_page);
+@@ -3174,22 +3204,18 @@ static int do_shared_fault(struct mm_str
+  * return value.  See filemap_fault() and __lock_page_or_retry().
+  */
+ static int do_fault(struct mm_struct *mm, struct vm_area_struct *vma,
+-		unsigned long address, pte_t *page_table, pmd_t *pmd,
+-		unsigned int flags, pte_t orig_pte)
++		unsigned long address, pmd_t *pmd, unsigned int flags)
+ {
+ 	pgoff_t pgoff = linear_page_index(vma, address);
+ 
+-	pte_unmap(page_table);
+ 	/* The VMA was not fully populated on mmap() or missing VM_DONTEXPAND */
+ 	if (!vma->vm_ops->fault)
+ 		return VM_FAULT_SIGBUS;
+ 	if (!(flags & FAULT_FLAG_WRITE))
+-		return do_read_fault(mm, vma, address, pmd, pgoff, flags,
+-				orig_pte);
++		return do_read_fault(mm, vma, address, pmd, pgoff, flags);
+ 	if (!(vma->vm_flags & VM_SHARED))
+-		return do_cow_fault(mm, vma, address, pmd, pgoff, flags,
+-				orig_pte);
+-	return do_shared_fault(mm, vma, address, pmd, pgoff, flags, orig_pte);
++		return do_cow_fault(mm, vma, address, pmd, pgoff, flags);
++	return do_shared_fault(mm, vma, address, pmd, pgoff, flags);
+ }
+ 
+ static int numa_migrate_prep(struct page *page, struct vm_area_struct *vma,
+@@ -3329,20 +3355,49 @@ static int wp_huge_pmd(struct mm_struct
+  * with external mmu caches can use to update those (ie the Sparc or
+  * PowerPC hashed page tables that act as extended TLBs).
+  *
+- * We enter with non-exclusive mmap_sem (to exclude vma changes,
+- * but allow concurrent faults), and pte mapped but not yet locked.
+- * We return with pte unmapped and unlocked.
+- *
++ * We enter with non-exclusive mmap_sem
++ * (to exclude vma changes, but allow concurrent faults).
+  * The mmap_sem may have been released depending on flags and our
+  * return value.  See filemap_fault() and __lock_page_or_retry().
+  */
+-static int handle_pte_fault(struct mm_struct *mm,
+-		     struct vm_area_struct *vma, unsigned long address,
+-		     pte_t *pte, pmd_t *pmd, unsigned int flags)
++static int handle_pte_fault(struct mm_struct *mm, struct vm_area_struct *vma,
++		unsigned long address, pmd_t *pmd, unsigned int flags)
+ {
++	pmd_t pmdval;
++	pte_t *pte;
+ 	pte_t entry;
+ 	spinlock_t *ptl;
+ 
++	/* If a huge pmd materialized under us just retry later */
++	pmdval = *pmd;
++	barrier();
++	if (unlikely(pmd_trans_huge(pmdval) || pmd_devmap(pmdval)))
++		return 0;
++
++	if (unlikely(pmd_none(pmdval))) {
++		/*
++		 * Leave pte_alloc() until later: because huge tmpfs may
++		 * want to map_team_by_pmd(), and if we expose page table
++		 * for an instant, it will be difficult to retract from
++		 * concurrent faults and from rmap lookups.
++		 */
++		pte = NULL;
++	} else {
++		/*
++		 * A regular pmd is established and it can't morph into a huge
++		 * pmd from under us anymore at this point because we hold the
++		 * mmap_sem read mode and khugepaged takes it in write mode.
++		 * So now it's safe to run pte_offset_map().
++		 */
++		pte = pte_offset_map(pmd, address);
++		entry = *pte;
++		barrier();
++		if (pte_none(entry)) {
++			pte_unmap(pte);
++			pte = NULL;
++		}
++	}
++
+ 	/*
+ 	 * some architectures can have larger ptes than wordsize,
+ 	 * e.g.ppc44x-defconfig has CONFIG_PTE_64BIT=y and CONFIG_32BIT=y,
+@@ -3351,21 +3406,14 @@ static int handle_pte_fault(struct mm_st
+ 	 * we later double check anyway with the ptl lock held. So here
+ 	 * a barrier will do.
+ 	 */
+-	entry = *pte;
+-	barrier();
+-	if (!pte_present(entry)) {
+-		if (pte_none(entry)) {
+-			if (vma_is_anonymous(vma))
+-				return do_anonymous_page(mm, vma, address,
+-							 pte, pmd, flags);
+-			else
+-				return do_fault(mm, vma, address, pte, pmd,
+-						flags, entry);
+-		}
+-		return do_swap_page(mm, vma, address,
+-					pte, pmd, flags, entry);
+-	}
+ 
++	if (!pte) {
++		if (!vma_is_anonymous(vma))
++			return do_fault(mm, vma, address, pmd, flags);
++		return do_anonymous_page(mm, vma, address, pmd, flags);
++	}
++	if (!pte_present(entry))
++		return do_swap_page(mm, vma, address, pte, pmd, flags, entry);
+ 	if (pte_protnone(entry))
+ 		return do_numa_page(mm, vma, address, entry, pte, pmd);
+ 
+@@ -3409,7 +3457,6 @@ static int __handle_mm_fault(struct mm_s
+ 	pgd_t *pgd;
+ 	pud_t *pud;
+ 	pmd_t *pmd;
+-	pte_t *pte;
+ 
+ 	if (!arch_vma_access_permitted(vma, flags & FAULT_FLAG_WRITE,
+ 					    flags & FAULT_FLAG_INSTRUCTION,
+@@ -3455,35 +3502,7 @@ static int __handle_mm_fault(struct mm_s
+ 		}
+ 	}
+ 
+-	/*
+-	 * Use pte_alloc() instead of pte_alloc_map, because we can't
+-	 * run pte_offset_map on the pmd, if an huge pmd could
+-	 * materialize from under us from a different thread.
+-	 */
+-	if (unlikely(pte_alloc(mm, pmd, address)))
+-		return VM_FAULT_OOM;
+-	/*
+-	 * If a huge pmd materialized under us just retry later.  Use
+-	 * pmd_trans_unstable() instead of pmd_trans_huge() to ensure the pmd
+-	 * didn't become pmd_trans_huge under us and then back to pmd_none, as
+-	 * a result of MADV_DONTNEED running immediately after a huge pmd fault
+-	 * in a different thread of this mm, in turn leading to a misleading
+-	 * pmd_trans_huge() retval.  All we have to ensure is that it is a
+-	 * regular pmd that we can walk with pte_offset_map() and we can do that
+-	 * through an atomic read in C, which is what pmd_trans_unstable()
+-	 * provides.
+-	 */
+-	if (unlikely(pmd_trans_unstable(pmd) || pmd_devmap(*pmd)))
+-		return 0;
+-	/*
+-	 * A regular pmd is established and it can't morph into a huge pmd
+-	 * from under us anymore at this point because we hold the mmap_sem
+-	 * read mode and khugepaged takes it in write mode. So now it's
+-	 * safe to run pte_offset_map().
+-	 */
+-	pte = pte_offset_map(pmd, address);
+-
+-	return handle_pte_fault(mm, vma, address, pte, pmd, flags);
++	return handle_pte_fault(mm, vma, address, pmd, flags);
+ }
+ 
+ /*
 _
 
 Patches currently in -mm which might be from hughd@google.com are
