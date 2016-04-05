@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- huge-tmpfs-recovery-shmem_recovery_populate-to-fill-huge-page.patch added
- to -mm tree
-Date: Tue, 05 Apr 2016 16:16:26 -0700
-Message-ID: <5704474a.SurSoy1yus4xsQYF%akpm@linux-foundation.org>
+Subject: + huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask.patch
+ added to -mm tree
+Date: Tue, 05 Apr 2016 16:16:39 -0700
+Message-ID: <57044757.OqA2O5mAhnmgfuQJ%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57072 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57191 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757691AbcDEXQ2 (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 19:16:28 -0400
+	with ESMTP id S1760067AbcDEXQl (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 19:16:41 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, quning@gmail.com, rientjes@google.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge tmpfs recovery: shmem_recovery_populate to fill huge page
+     Subject: huge tmpfs: shmem_huge_gfpmask and shmem_recovery_gfpmask
 has been added to the -mm tree.  Its filename is
-     huge-tmpfs-recovery-shmem_recovery_populate-to-fill-huge-page.patch
+     huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-recovery-shmem_recovery_populate-to-fill-huge-page.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-recovery-shmem_recovery_populate-to-fill-huge-page.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,45 +40,40 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: huge tmpfs recovery: shmem_recovery_populate to fill huge page
+Subject: huge tmpfs: shmem_huge_gfpmask and shmem_recovery_gfpmask
 
-The outline of shmem_recovery_populate() is straightforward: a loop
-applying shmem_getpage_gfp() to each offset that belongs to the extent,
-converting swapcache to pagecache, checking existing pagecache, or
-allocating new pagecache; adding each correctly placed page into the team,
-or isolating each misplaced page, for passing to migrate_pages() at the
-end of the loop.  Repeated (skipping quickly over those pages resolved in
-the previous pass) to add in those pages just migrated, until the team is
-complete, or cannot be completed.
+We know that compaction latencies can be a problem for transparent
+hugepage allocation; and there has been a history of tweaking the gfpmask
+used for anon THP allocation at fault time and by khugepaged.  Plus we
+keep on changing our minds as to whether local smallpages are generally
+preferable to remote hugepages, or not.
 
-But the details are difficult: not so much an architected design, as a
-series of improvisations arrived at by trial and much error, which in the
-end works well.  It has to cope with a variety of races: pages being
-concurrently created or swapped in or disbanded or deleted by other
-actors.
+Anon THP has at least /sys/kernel/mm/transparent_hugepage/defrag and
+/sys/kernel/mm/transparent_hugepage/khugepaged/defrag to play with
+__GFP_RECLAIM bits in its gfpmasks; but so far there's been nothing at all
+in huge tmpfs to experiment with these issues, and doubts looming on
+whether we've made the right choices.
 
-Most awkward is the handling of the head page of the team: which, as
-usual, needs PageTeam and mapping and index set even before it is
-instantiated (so that shmem_hugeteam_lookup() can validate tails against
-it); but must not be confused with an instantiated team page until
-PageSwapBacked is set.  This awkwardness is compounded by the (unlocked)
-interval between when migrate_pages() migrates an old page into its new
-team location, and the next repeat of the loop which fixes the new
-location as PageTeam.  Yet migrate_page_move_mapping() will have already
-composed PageSwapBacked (from old page) with PageTeam (from new) in the
-case of the team head: "account_head" to track this case correctly, but a
-later patch offers a tighter alternative to remove the need for it.
+Add /proc/sys/vm/{shmem_huge_gfpmask,shmem_recovery_gfpmask} to override
+the defaults we've been using for its synchronous and asynchronous
+hugepage allocations so far: make these tunable now, but no thought yet
+given to what values worth experimenting with.  Only numeric validation of
+the input: root must just take care.
 
-That interval between migration and enteamment also involves giving up on
-the SHMEM_RETRY_HUGE_PAGE option from shmem_hugeteam_lookup():
-SHMEM_ALLOC_SMALL_PAGE is not ideal, but does for now; and the later patch
-can restore the SHMEM_RETRY_HUGE_PAGE optimization.
+Three things make this a more awkward patch than you might expect:
 
-Note: this series was originally written with a swapin pass before
-population, whereas this commit simply lets shmem_getpage_gfp() do the
-swapin synchronously.  The swapin pass is reintroduced as an optimization
-afterwards, but some comments on swap in this commit may anticipate that:
-sorry, a precise sequence of developing comments took too much trouble.
+1. We shall want to play with __GFP_THISNODE, but that got added
+   down inside alloc_pages_vma(): change huge_memory.c to supply it
+   for anon THP, then alloc_pages_vma() remove it when unsuitable.
+
+2. It took some time to work out how a global gfpmask template should
+   modulate a non-standard incoming gfpmask, different bits having
+   different effects: shmem_huge_gfp() helper added for that.
+
+3. __alloc_pages_slowpath() compared gfpmask with GFP_TRANSHUGE
+   in a couple of places: which is appropriate for anonymous THP,
+   but needed a little rework to extend it to huge tmpfs usage,
+   when we're hoping to be able to tune behavior with these sysctls.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -91,503 +85,345 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/migrate.h        |    1 
- include/trace/events/migrate.h |    3 
- mm/migrate.c                   |   15 +
- mm/shmem.c                     |  339 +++++++++++++++++++++++++++++--
- 4 files changed, 338 insertions(+), 20 deletions(-)
+ Documentation/filesystems/tmpfs.txt |   19 ++++++++
+ Documentation/sysctl/vm.txt         |   23 +++++++++-
+ include/linux/shmem_fs.h            |    2 
+ kernel/sysctl.c                     |   14 ++++++
+ mm/huge_memory.c                    |    2 
+ mm/mempolicy.c                      |   13 +++--
+ mm/page_alloc.c                     |   34 ++++++++-------
+ mm/shmem.c                          |   58 +++++++++++++++++++++++---
+ 8 files changed, 134 insertions(+), 31 deletions(-)
 
-diff -puN include/linux/migrate.h~huge-tmpfs-recovery-shmem_recovery_populate-to-fill-huge-page include/linux/migrate.h
---- a/include/linux/migrate.h~huge-tmpfs-recovery-shmem_recovery_populate-to-fill-huge-page
-+++ a/include/linux/migrate.h
-@@ -25,6 +25,7 @@ enum migrate_reason {
- 	MR_NUMA_MISPLACED,
- 	MR_CMA,
- 	MR_SHMEM_HUGEHOLE,
-+	MR_SHMEM_RECOVERY,
- 	MR_TYPES
- };
+diff -puN Documentation/filesystems/tmpfs.txt~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask Documentation/filesystems/tmpfs.txt
+--- a/Documentation/filesystems/tmpfs.txt~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask
++++ a/Documentation/filesystems/tmpfs.txt
+@@ -192,11 +192,28 @@ In addition to 0 and 1, it also accepts
+ automatically on for all tmpfs mounts (intended for testing), or -1
+ to force huge off for all (intended for safety if bugs appeared).
  
-diff -puN include/trace/events/migrate.h~huge-tmpfs-recovery-shmem_recovery_populate-to-fill-huge-page include/trace/events/migrate.h
---- a/include/trace/events/migrate.h~huge-tmpfs-recovery-shmem_recovery_populate-to-fill-huge-page
-+++ a/include/trace/events/migrate.h
-@@ -20,7 +20,8 @@
- 	EM( MR_MEMPOLICY_MBIND,	"mempolicy_mbind")		\
- 	EM( MR_NUMA_MISPLACED,	"numa_misplaced")		\
- 	EM( MR_CMA,		"cma")				\
--	EMe(MR_SHMEM_HUGEHOLE,	"shmem_hugehole")
-+	EM( MR_SHMEM_HUGEHOLE,	"shmem_hugehole")		\
-+	EMe(MR_SHMEM_RECOVERY,	"shmem_recovery")
++/proc/sys/vm/shmem_huge_gfpmask (intended for experimentation only):
++
++Default 38146762, that is 0x24612ca:
++GFP_HIGHUSER_MOVABLE|__GFP_NOWARN|__GFP_THISNODE|__GFP_NORETRY.
++Write a gfpmask built from __GFP flags in include/linux/gfp.h, to experiment
++with better alternatives for the synchronous huge tmpfs allocation used
++when faulting or writing.
++
+ /proc/sys/vm/shmem_huge_recoveries:
  
- /*
-  * First define the enums in the above macros to be exported to userspace
-diff -puN mm/migrate.c~huge-tmpfs-recovery-shmem_recovery_populate-to-fill-huge-page mm/migrate.c
---- a/mm/migrate.c~huge-tmpfs-recovery-shmem_recovery_populate-to-fill-huge-page
-+++ a/mm/migrate.c
-@@ -786,7 +786,7 @@ static int move_to_new_page(struct page
+ Default 8, allows up to 8 concurrent workitems, recovering hugepages
+ after fragmentation prevented or reclaim disbanded; write 0 to disable
+-huge recoveries, or a higher number to allow more concurrent recoveries.
++huge recoveries, or a higher number to allow more concurrent recoveries
++(or a negative number to disable both retry after shrinking, and recovery).
++
++/proc/sys/vm/shmem_recovery_gfpmask (intended for experimentation only):
++
++Default 38142666, that is 0x24602ca:
++GFP_HIGHUSER_MOVABLE|__GFP_NOWARN|__GFP_THISNODE.
++Write a gfpmask built from __GFP flags in include/linux/gfp.h, to experiment
++with alternatives for the asynchronous huge tmpfs allocation used in recovery
++from fragmentation or swapping.
+ 
+ /proc/<pid>/smaps shows:
+ 
+diff -puN Documentation/sysctl/vm.txt~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask Documentation/sysctl/vm.txt
+--- a/Documentation/sysctl/vm.txt~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask
++++ a/Documentation/sysctl/vm.txt
+@@ -57,7 +57,9 @@ Currently, these files are in /proc/sys/
+ - panic_on_oom
+ - percpu_pagelist_fraction
+ - shmem_huge
++- shmem_huge_gfpmask
+ - shmem_huge_recoveries
++- shmem_recovery_gfpmask
+ - stat_interval
+ - stat_refresh
+ - swappiness
+@@ -765,11 +767,30 @@ See Documentation/filesystems/tmpfs.txt
+ 
+ ==============================================================
+ 
++shmem_huge_gfpmask
++
++Write a gfpmask built from __GFP flags in include/linux/gfp.h, to experiment
++with better alternatives for the synchronous huge tmpfs allocation used
++when faulting or writing.  See Documentation/filesystems/tmpfs.txt.
++/proc/sys/vm/shmem_huge_gfpmask is intended for experimentation only.
++
++==============================================================
++
+ shmem_huge_recoveries
+ 
+ Default 8, allows up to 8 concurrent workitems, recovering hugepages
+ after fragmentation prevented or reclaim disbanded; write 0 to disable
+-huge recoveries, or a higher number to allow more concurrent recoveries.
++huge recoveries, or a higher number to allow more concurrent recoveries
++(or a negative number to disable both retry after shrinking, and recovery).
++
++==============================================================
++
++shmem_recovery_gfpmask
++
++Write a gfpmask built from __GFP flags in include/linux/gfp.h, to experiment
++with alternatives for the asynchronous huge tmpfs allocation used in recovery
++from fragmentation or swapping.  See Documentation/filesystems/tmpfs.txt.
++/proc/sys/vm/shmem_recovery_gfpmask is intended for experimentation only.
+ 
+ ==============================================================
+ 
+diff -puN include/linux/shmem_fs.h~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask include/linux/shmem_fs.h
+--- a/include/linux/shmem_fs.h~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask
++++ a/include/linux/shmem_fs.h
+@@ -89,7 +89,7 @@ extern bool shmem_recovery_migrate_page(
+ # ifdef CONFIG_SYSCTL
+ struct ctl_table;
+ extern int shmem_huge, shmem_huge_min, shmem_huge_max;
+-extern int shmem_huge_recoveries;
++extern int shmem_huge_recoveries, shmem_huge_gfpmask, shmem_recovery_gfpmask;
+ extern int shmem_huge_sysctl(struct ctl_table *table, int write,
+ 			     void __user *buffer, size_t *lenp, loff_t *ppos);
+ # endif /* CONFIG_SYSCTL */
+diff -puN kernel/sysctl.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask kernel/sysctl.c
+--- a/kernel/sysctl.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask
++++ a/kernel/sysctl.c
+@@ -1325,12 +1325,26 @@ static struct ctl_table vm_table[] = {
+ 		.extra2		= &shmem_huge_max,
+ 	},
+ 	{
++		.procname	= "shmem_huge_gfpmask",
++		.data		= &shmem_huge_gfpmask,
++		.maxlen		= sizeof(shmem_huge_gfpmask),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++	},
++	{
+ 		.procname	= "shmem_huge_recoveries",
+ 		.data		= &shmem_huge_recoveries,
+ 		.maxlen		= sizeof(shmem_huge_recoveries),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec,
+ 	},
++	{
++		.procname	= "shmem_recovery_gfpmask",
++		.data		= &shmem_recovery_gfpmask,
++		.maxlen		= sizeof(shmem_recovery_gfpmask),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec,
++	},
+ #endif
+ #ifdef CONFIG_HUGETLB_PAGE
+ 	{
+diff -puN mm/huge_memory.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask mm/huge_memory.c
+--- a/mm/huge_memory.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask
++++ a/mm/huge_memory.c
+@@ -883,7 +883,7 @@ static inline gfp_t alloc_hugepage_direc
+ 	else if (test_bit(TRANSPARENT_HUGEPAGE_DEFRAG_DIRECT_FLAG, &transparent_hugepage_flags))
+ 		reclaim_flags = __GFP_DIRECT_RECLAIM;
+ 
+-	return GFP_TRANSHUGE | reclaim_flags;
++	return GFP_TRANSHUGE | __GFP_THISNODE | reclaim_flags;
  }
  
- static int __unmap_and_move(struct page *page, struct page *newpage,
--				int force, enum migrate_mode mode)
-+		int force, enum migrate_mode mode, enum migrate_reason reason)
- {
- 	int rc = -EAGAIN;
- 	int page_was_mapped = 0;
-@@ -815,6 +815,17 @@ static int __unmap_and_move(struct page
- 		lock_page(page);
+ /* Defrag for khugepaged will enter direct reclaim/compaction if necessary */
+diff -puN mm/mempolicy.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask mm/mempolicy.c
+--- a/mm/mempolicy.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask
++++ a/mm/mempolicy.c
+@@ -1989,11 +1989,14 @@ retry_cpuset:
+ 
+ 		nid = interleave_nid(pol, vma, addr, PAGE_SHIFT + order);
+ 		mpol_cond_put(pol);
++		if (hugepage)
++			gfp &= ~__GFP_THISNODE;
+ 		page = alloc_page_interleave(gfp, order, nid);
+ 		goto out;
  	}
  
-+	/*
-+	 * huge tmpfs recovery: must not proceed if page has been truncated,
-+	 * because the newpage we are about to migrate into *might* then be
-+	 * already in use, on lru, with data newly written for that offset.
-+	 * We can only be sure of this check once we have the page locked.
-+	 */
-+	if (reason == MR_SHMEM_RECOVERY && !page->mapping) {
-+		rc = -ENOMEM;	/* quit migrate_pages() immediately */
-+		goto out_unlock;
-+	}
-+
- 	if (PageWriteback(page)) {
+-	if (unlikely(IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && hugepage)) {
++	if (unlikely(IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) && hugepage &&
++	    (gfp & __GFP_THISNODE))) {
+ 		int hpage_node = node;
+ 
  		/*
- 		 * Only in the case of a full synchronous migration is it
-@@ -962,7 +973,7 @@ static ICE_noinline int unmap_and_move(n
+@@ -2006,17 +2009,17 @@ retry_cpuset:
+ 		 * If the policy is interleave, or does not allow the current
+ 		 * node in its nodemask, we allocate the standard way.
+ 		 */
+-		if (pol->mode == MPOL_PREFERRED &&
+-						!(pol->flags & MPOL_F_LOCAL))
++		if (pol->mode == MPOL_PREFERRED && !(pol->flags & MPOL_F_LOCAL))
+ 			hpage_node = pol->v.preferred_node;
+ 
+ 		nmask = policy_nodemask(gfp, pol);
+ 		if (!nmask || node_isset(hpage_node, *nmask)) {
+ 			mpol_cond_put(pol);
+-			page = __alloc_pages_node(hpage_node,
+-						gfp | __GFP_THISNODE, order);
++			page = __alloc_pages_node(hpage_node, gfp, order);
  			goto out;
- 	}
- 
--	rc = __unmap_and_move(page, newpage, force, mode);
-+	rc = __unmap_and_move(page, newpage, force, mode, reason);
- 	if (rc == MIGRATEPAGE_SUCCESS) {
- 		put_new_page = NULL;
- 		set_page_owner_migrate_reason(newpage, reason);
-diff -puN mm/shmem.c~huge-tmpfs-recovery-shmem_recovery_populate-to-fill-huge-page mm/shmem.c
---- a/mm/shmem.c~huge-tmpfs-recovery-shmem_recovery_populate-to-fill-huge-page
-+++ a/mm/shmem.c
-@@ -60,6 +60,7 @@ static struct vfsmount *shm_mnt;
- #include <linux/security.h>
- #include <linux/shrinker.h>
- #include <linux/workqueue.h>
-+#include <linux/rmap.h>
- #include <linux/sysctl.h>
- #include <linux/swapops.h>
- #include <linux/pageteam.h>
-@@ -305,7 +306,6 @@ static bool shmem_confirm_swap(struct ad
- /* hugehint values: NULL to choose a small page always */
- #define SHMEM_ALLOC_SMALL_PAGE	((struct page *)1)
- #define SHMEM_ALLOC_HUGE_PAGE	((struct page *)2)
--#define SHMEM_RETRY_HUGE_PAGE	((struct page *)3)
- /* otherwise hugehint is the hugeteam page to be used */
- 
- /* tag for shrinker to locate unfilled hugepages */
-@@ -368,6 +368,20 @@ restart:
- 			put_page(page);
- 		return SHMEM_ALLOC_SMALL_PAGE;
- 	}
-+	if (PageSwapBacked(page)) {
-+		if (speculative)
-+			put_page(page);
-+		/*
-+		 * This is very often a case of two tasks racing to instantiate
-+		 * the same hole in the huge page, and we don't particularly
-+		 * want to allocate a small page.  But holepunch racing with
-+		 * recovery migration, in between migrating to the page and
-+		 * marking it team, can leave a PageSwapBacked NULL mapping
-+		 * page here which we should avoid, and this is the easiest
-+		 * way to handle all the cases correctly.
-+		 */
-+		return SHMEM_ALLOC_SMALL_PAGE;
-+	}
- 	return page;
- }
- 
-@@ -407,16 +421,18 @@ static void shmem_added_to_hugeteam(stru
- {
- 	struct address_space *mapping = page->mapping;
- 	struct page *head = team_head(page);
-+	long team_usage;
- 
--	if (hugehint == SHMEM_ALLOC_HUGE_PAGE) {
--		atomic_long_set(&head->team_usage,
--				TEAM_PAGE_COUNTER + TEAM_LRU_WEIGHT_ONE);
--		radix_tree_tag_set(&mapping->page_tree, page->index,
-+	VM_BUG_ON_PAGE(!PageTeam(page), page);
-+	team_usage = atomic_long_add_return(TEAM_PAGE_COUNTER,
-+					    &head->team_usage);
-+	if (team_usage < TEAM_PAGE_COUNTER + TEAM_PAGE_COUNTER) {
-+		if (hugehint == SHMEM_ALLOC_HUGE_PAGE)
-+			radix_tree_tag_set(&mapping->page_tree, page->index,
- 					SHMEM_TAG_HUGEHOLE);
- 		__mod_zone_page_state(zone, NR_SHMEM_FREEHOLES, HPAGE_PMD_NR-1);
- 	} else {
--		if (atomic_long_add_return(TEAM_PAGE_COUNTER,
--				&head->team_usage) >= TEAM_COMPLETE) {
-+		if (team_usage >= TEAM_COMPLETE) {
- 			shmem_clear_tag_hugehole(mapping, head->index);
- 			__inc_zone_state(zone, NR_SHMEM_HUGEPAGES);
- 			mem_cgroup_update_page_stat_treelocked(head,
-@@ -644,6 +660,8 @@ static void shmem_disband_hugetails(stru
- 		while (++page < endpage) {
- 			if (PageTeam(page))
- 				ClearPageTeam(page);
-+			else if (PageSwapBacked(page))	/* half recovered */
-+				put_page(page);
- 			else if (put_page_testzero(page))
- 				free_hot_cold_page(page, 1);
  		}
-@@ -765,9 +783,12 @@ struct recovery {
- 	struct inode *inode;
- 	struct page *page;
- 	pgoff_t head_index;
-+	struct page *migrated_head;
-+	bool exposed_team;
- };
++
++		gfp &= ~__GFP_THISNODE;
+ 	}
  
- #define shr_stats(x)	do {} while (0)
-+#define shr_stats_add(x, n) do {} while (0)
- /* Stats implemented in a later patch */
- 
- static bool shmem_work_still_useful(struct recovery *recovery)
-@@ -783,11 +804,295 @@ static bool shmem_work_still_useful(stru
- 		!RB_EMPTY_ROOT(&mapping->i_mmap);  /* file is still mapped */
+ 	nmask = policy_nodemask(gfp, pol);
+diff -puN mm/page_alloc.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask mm/page_alloc.c
+--- a/mm/page_alloc.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask
++++ a/mm/page_alloc.c
+@@ -3135,9 +3135,15 @@ bool gfp_pfmemalloc_allowed(gfp_t gfp_ma
+ 	return !!(gfp_to_alloc_flags(gfp_mask) & ALLOC_NO_WATERMARKS);
  }
  
-+static struct page *shmem_get_recovery_page(struct page *page,
-+					unsigned long private, int **result)
-+{
-+	struct recovery *recovery = (struct recovery *)private;
-+	struct page *head = recovery->page;
-+	struct page *newpage = head + (page->index & (HPAGE_PMD_NR-1));
-+
-+	/* Increment refcount to match other routes through recovery_populate */
-+	if (!get_page_unless_zero(newpage))
-+		return NULL;
-+	if (!PageTeam(head)) {
-+		put_page(newpage);
-+		return NULL;
-+	}
-+	/* Note when migrating to head: tricky case because already PageTeam */
-+	if (newpage == head)
-+		recovery->migrated_head = head;
-+	return newpage;
-+}
-+
-+static void shmem_put_recovery_page(struct page *newpage, unsigned long private)
-+{
-+	struct recovery *recovery = (struct recovery *)private;
-+
-+	/* Must reset migrated_head if in the end it was not used */
-+	if (recovery->migrated_head == newpage)
-+		recovery->migrated_head = NULL;
-+	/* Decrement refcount again if newpage was not used */
-+	put_page(newpage);
-+}
-+
- static int shmem_recovery_populate(struct recovery *recovery, struct page *head)
+-static inline bool is_thp_gfp_mask(gfp_t gfp_mask)
++static inline bool is_thp_allocation(gfp_t gfp_mask, unsigned int order)
  {
--	/* Huge page has been split but is not yet PageTeam */
--	shmem_disband_hugetails(head, NULL, 0);
--	return -ENOENT;
-+	LIST_HEAD(migrate);
-+	struct address_space *mapping = recovery->inode->i_mapping;
-+	gfp_t gfp = mapping_gfp_mask(mapping) | __GFP_NORETRY;
-+	struct zone *zone = page_zone(head);
-+	pgoff_t index;
-+	bool drained_all = false;
-+	bool account_head = false;
-+	int migratable;
-+	int unmigratable;
-+	struct page *team;
-+	struct page *endteam = head + HPAGE_PMD_NR;
-+	struct page *page;
-+	int error = 0;
-+	int nr;
+-	return (gfp_mask & (GFP_TRANSHUGE | __GFP_KSWAPD_RECLAIM)) == GFP_TRANSHUGE;
++	/*
++	 * !__GFP_KSWAPD_RECLAIM is an unusual choice, and no harm is done if a
++	 * similar high order allocation is occasionally misinterpreted as THP.
++	 */
++	return IS_ENABLED(CONFIG_TRANSPARENT_HUGEPAGE) &&
++		!(gfp_mask & __GFP_KSWAPD_RECLAIM) &&
++		(order == HPAGE_PMD_ORDER);
+ }
+ 
+ static inline struct page *
+@@ -3255,7 +3261,7 @@ retry:
+ 		goto got_pg;
+ 
+ 	/* Checks for THP-specific high-order allocations */
+-	if (is_thp_gfp_mask(gfp_mask)) {
++	if (is_thp_allocation(gfp_mask, order)) {
+ 		/*
+ 		 * If compaction is deferred for high-order allocations, it is
+ 		 * because sync compaction recently failed. If this is the case
+@@ -3277,20 +3283,16 @@ retry:
+ 
+ 		/*
+ 		 * If compaction was aborted due to need_resched(), we do not
+-		 * want to further increase allocation latency, unless it is
+-		 * khugepaged trying to collapse.
+-		 */
+-		if (contended_compaction == COMPACT_CONTENDED_SCHED
+-			&& !(current->flags & PF_KTHREAD))
++		 * want to further increase allocation latency at fault.
++		 * If continuing, still use asynchronous memory compaction
++		 * for THP, unless it is khugepaged trying to collapse,
++		 * or an asynchronous huge tmpfs recovery work item.
++		 */
++		if (current->flags & PF_KTHREAD)
++			migration_mode = MIGRATE_SYNC_LIGHT;
++		else if (contended_compaction == COMPACT_CONTENDED_SCHED)
+ 			goto nopage;
+-	}
+-
+-	/*
+-	 * It can become very expensive to allocate transparent hugepages at
+-	 * fault, so use asynchronous memory compaction for THP unless it is
+-	 * khugepaged trying to collapse.
+-	 */
+-	if (!is_thp_gfp_mask(gfp_mask) || (current->flags & PF_KTHREAD))
++	} else
+ 		migration_mode = MIGRATE_SYNC_LIGHT;
+ 
+ 	/* Try direct reclaim and then allocating */
+diff -puN mm/shmem.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask mm/shmem.c
+--- a/mm/shmem.c~huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask
++++ a/mm/shmem.c
+@@ -323,6 +323,43 @@ static DEFINE_SPINLOCK(shmem_shrinklist_
+ int shmem_huge __read_mostly;
+ int shmem_huge_recoveries __read_mostly = 8;	/* concurrent recovery limit */
+ 
++int shmem_huge_gfpmask __read_mostly =
++	(int)(GFP_HIGHUSER_MOVABLE|__GFP_NOWARN|__GFP_THISNODE|__GFP_NORETRY);
++int shmem_recovery_gfpmask __read_mostly =
++	(int)(GFP_HIGHUSER_MOVABLE|__GFP_NOWARN|__GFP_THISNODE);
 +
-+	/* Warning: this optimization relies on disband's ClearPageChecked */
-+	if (PageTeam(head) && PageChecked(head))
-+		return 0;
-+again:
-+	migratable = 0;
-+	unmigratable = 0;
-+	index = recovery->head_index;
-+	for (team = head; team < endteam && !error; index++, team++) {
-+		if (PageTeam(team) && PageUptodate(team) && PageDirty(team) &&
-+		    !account_head)
-+			continue;
-+
-+		error = shmem_getpage_gfp(recovery->inode, index, &page,
-+					  SGP_TEAM, gfp, recovery->mm, NULL);
-+		if (error)
-+			break;
-+
-+		VM_BUG_ON_PAGE(!PageUptodate(page), page);
-+		VM_BUG_ON_PAGE(PageSwapCache(page), page);
-+		if (!PageDirty(page))
-+			SetPageDirty(page);
-+
-+		if (PageTeam(page) && PageTeam(team_head(page))) {
-+			/*
-+			 * The page's old team might be being disbanded, but its
-+			 * PageTeam not yet cleared, hence the head check above.
-+			 *
-+			 * We used to have VM_BUG_ON(page != team) here, and
-+			 * never hit it; but I cannot see what else excludes
-+			 * the race of two teams being built for the same area
-+			 * (one through faulting and another through recovery).
-+			 */
-+			if (page != team)
-+				error = -ENOENT;
-+			if (error || !account_head)
-+				goto unlock;
-+		}
-+
-+		if (PageSwapBacked(team) && page != team) {
-+			/*
-+			 * Team page was prepared, yet shmem_getpage_gfp() has
-+			 * given us a different page: that implies that this
-+			 * offset was truncated or hole-punched meanwhile, so we
-+			 * might as well give up now.  It might or might not be
-+			 * still PageSwapCache.  We must not go on to use the
-+			 * team page while it's swap - its swap entry, where
-+			 * team_usage should be, causes crashes and softlockups
-+			 * when disbanding.  And even if it has been removed
-+			 * from swapcache, it is on (or temporarily off) LRU,
-+			 * which crashes putback_lru_page() if we migrate to it.
-+			 */
-+			error = -ENOENT;
-+			goto unlock;
-+		}
-+
-+		if (!recovery->exposed_team) {
-+			VM_BUG_ON(team != head);
-+			recovery->exposed_team = true;
-+			atomic_long_set(&head->team_usage, TEAM_LRU_WEIGHT_ONE);
-+			SetPageTeam(head);
-+			head->mapping = mapping;
-+			head->index = index;
-+			if (page == head)
-+				account_head = true;
-+		}
-+
-+		/* Eviction or truncation or hole-punch already disbanded? */
-+		if (!PageTeam(head)) {
-+			error = -ENOENT;
-+			goto unlock;
-+		}
-+
-+		if (page == team) {
-+			VM_BUG_ON_PAGE(!PageSwapBacked(page), page);
-+			/*
-+			 * A task may have already mapped this page, before
-+			 * we set PageTeam: so now we would need to add it
-+			 * into head's team_pte_mapped count.  But it might
-+			 * get unmapped while we do this: so artificially
-+			 * bump the mapcount here, then use page_remove_rmap
-+			 * below to get all the counts right.  Luckily our page
-+			 * lock forbids it from transitioning from unmapped to
-+			 * mapped while we do so: that would be more difficult.
-+			 * Preemption disabled to suit zone_page_state updates.
-+			 */
-+			if (page_mapped(page)) {
-+				preempt_disable();
-+				page_add_file_rmap(page);
-+			}
-+			spin_lock_irq(&mapping->tree_lock);
-+			if (PageTeam(head)) {
-+				if (page != head) {
-+					atomic_long_set(&page->team_usage,
-+							TEAM_LRU_WEIGHT_ONE);
-+					SetPageTeam(page);
-+				}
-+				if (page != head || account_head) {
-+					shmem_added_to_hugeteam(page, zone,
-+								NULL);
-+					put_page(page);
-+					shr_stats(page_teamed);
-+				}
-+			}
-+			spin_unlock_irq(&mapping->tree_lock);
-+			if (page_mapped(page)) {
-+				inc_team_pte_mapped(page);
-+				page_remove_rmap(page, false);
-+				preempt_enable();
-+			}
-+			account_head = false;
-+		} else {
-+			VM_BUG_ON(account_head);
-+			if (!PageLRU(page))
-+				lru_add_drain();
-+			if (isolate_lru_page(page) == 0) {
-+				inc_zone_page_state(page, NR_ISOLATED_ANON);
-+				list_add_tail(&page->lru, &migrate);
-+				shr_stats(page_migrate);
-+				migratable++;
-+			} else {
-+				shr_stats(page_off_lru);
-+				unmigratable++;
-+			}
-+		}
-+unlock:
-+		unlock_page(page);
-+		put_page(page);
-+		cond_resched();
-+	}
-+
-+	if (!list_empty(&migrate)) {
-+		lru_add_drain(); /* not necessary but may help debugging */
-+		if (!error) {
-+			VM_BUG_ON(recovery->page != head);
-+			recovery->migrated_head = NULL;
-+			nr = migrate_pages(&migrate, shmem_get_recovery_page,
-+				shmem_put_recovery_page, (unsigned long)
-+				recovery, MIGRATE_SYNC, MR_SHMEM_RECOVERY);
-+			account_head = !!recovery->migrated_head;
-+			if (nr < 0) {
-+				/*
-+				 * If migrate_pages() returned error (-ENOMEM)
-+				 * instead of number of pages failed, we don't
-+				 * know how many failed; but it's irrelevant,
-+				 * the team should be disbanded now anyway.
-+				 * Increment page_unmigrated?  No, we would not
-+				 * if the error were found during the main loop.
-+				 */
-+				error = -ENOENT;
-+			}
-+			if (nr > 0) {
-+				shr_stats_add(page_unmigrated, nr);
-+				unmigratable += nr;
-+				migratable -= nr;
-+			}
-+		}
-+		putback_movable_pages(&migrate);
-+		lru_add_drain(); /* not necessary but may help debugging */
-+	}
++/*
++ * Compose the requested_gfp for a small page together with the tunable
++ * template above, to construct a suitable gfpmask for a huge allocation.
++ */
++static gfp_t shmem_huge_gfp(int tunable_template, gfp_t requested_gfp)
++{
++	gfp_t huge_gfpmask = (gfp_t)tunable_template;
++	gfp_t relaxants;
 +
 +	/*
-+	 * migrate_pages() is prepared to make ten tries on each page,
-+	 * but the preparatory isolate_lru_page() can too easily fail;
-+	 * and we refrained from the IPIs of draining all CPUs before.
++	 * Relaxants must only be applied when they are permitted in both.
++	 * GFP_KERNEL happens to be the name for
++	 * __GFP_IO|__GFP_FS|__GFP_DIRECT_RECLAIM|__GFP_KSWAPD_RECLAIM.
 +	 */
-+	if (!error) {
-+		if (unmigratable && !drained_all) {
-+			drained_all = true;
-+			lru_add_drain_all();
-+			shr_stats(recov_retried);
-+			goto again;
-+		}
-+		if (migratable) {
-+			/* Make another pass to SetPageTeam on them */
-+			goto again;
-+		}
-+	}
++	relaxants = huge_gfpmask & requested_gfp & GFP_KERNEL;
 +
-+	lock_page(head);
-+	nr = HPAGE_PMD_NR;
-+	if (!recovery->exposed_team) {
-+		/* Failed before even setting team head */
-+		VM_BUG_ON(!error);
-+		shmem_disband_hugetails(head, NULL, 0);
-+	} else if (PageTeam(head)) {
-+		if (!error) {
-+			nr = shmem_freeholes(head);
-+			if (nr == HPAGE_PMD_NR) {
-+				/* We made no progress so not worth resuming */
-+				error = -ENOENT;
-+			}
-+		}
-+		if (error) {
-+			/* Unsafe to let shrinker back in on this team */
-+			shmem_disband_hugeteam(head);
-+		}
-+	} else if (!error) {
-+		/* A concurrent actor took over our team and disbanded it */
-+		error = -ENOENT;
-+	}
++	/*
++	 * Zone bits must be taken exclusively from the requested gfp mask.
++	 * __GFP_COMP would be a disaster: make sure the sysctl cannot add it.
++	 */
++	huge_gfpmask &= __GFP_BITS_MASK & ~(GFP_ZONEMASK|__GFP_COMP|GFP_KERNEL);
 +
-+	if (error) {
-+		shr_stats(recov_failed);
-+	} else if (!nr) {
-+		/* Team is complete and ready for pmd mapping */
-+		SetPageChecked(head);
-+		shr_stats(recov_completed);
-+	} else {
-+		struct shmem_inode_info *info = SHMEM_I(recovery->inode);
-+		/*
-+		 * All swapcache has been transferred to pagecache, but not
-+		 * all migrations succeeded, so holes remain to be filled.
-+		 * Allow shrinker to take these holes; but also tell later
-+		 * recovery attempts where the huge page is, so migration to it
-+		 * is resumed, so long as reclaim and shrinker did not disband.
-+		 */
-+		for (team = head;; team++) {
-+			VM_BUG_ON(team >= endteam);
-+			if (PageSwapBacked(team)) {
-+				VM_BUG_ON(!PageTeam(team));
-+				spin_lock_irq(&mapping->tree_lock);
-+				radix_tree_tag_set(&mapping->page_tree,
-+					team->index, SHMEM_TAG_HUGEHOLE);
-+				spin_unlock_irq(&mapping->tree_lock);
-+				break;
-+			}
-+		}
-+		if (list_empty(&info->shrinklist)) {
-+			spin_lock(&shmem_shrinklist_lock);
-+			if (list_empty(&info->shrinklist)) {
-+				list_add_tail(&info->shrinklist,
-+					      &shmem_shrinklist);
-+				shmem_shrinklist_depth++;
-+			}
-+			spin_unlock(&shmem_shrinklist_lock);
-+		}
-+		shr_stats(recov_partial);
-+		error = -EAGAIN;
-+	}
-+	unlock_page(head);
-+	return error;
- }
- 
- static void shmem_recovery_remap(struct recovery *recovery, struct page *head)
-@@ -841,6 +1146,7 @@ static void shmem_recovery_work(struct w
- 
- 	if (head) {
- 		/* We are resuming work from a previous partial recovery */
-+		recovery->exposed_team = true;
- 		if (PageTeam(page))
- 			shr_stats(resume_teamed);
- 		else
-@@ -867,6 +1173,7 @@ static void shmem_recovery_work(struct w
- 		split_page(head, HPAGE_PMD_ORDER);
- 		get_page(head);
- 		shr_stats(huge_alloced);
-+		recovery->exposed_team = false;
- 	}
- 
- 	put_page(page);			/* before trying to migrate it */
-@@ -2120,9 +2427,11 @@ static struct page *shmem_alloc_page(gfp
- 			 * add_to_page_cache has the tree_lock.
- 			 */
- 			lock_page(page);
--			if (PageSwapBacked(page) || !PageTeam(head))
--				*hugehint = SHMEM_RETRY_HUGE_PAGE;
--			goto out;
-+			if (!PageSwapBacked(page) && PageTeam(head))
-+				goto out;
-+			unlock_page(page);
-+			put_page(page);
-+			*hugehint = SHMEM_ALLOC_SMALL_PAGE;
- 		}
- 	}
- 
-@@ -2390,10 +2699,6 @@ repeat:
++	/*
++	 * These might be right for a small page, but unsuitable for the huge.
++	 * REPEAT and NOFAIL very likely wrong in huge_gfpmask, but permitted.
++	 */
++	requested_gfp &= ~(__GFP_REPEAT|__GFP_NOFAIL|__GFP_COMP|GFP_KERNEL);
++
++	/* Beyond that, we can simply use the union, sensible or not */
++	return huge_gfpmask | requested_gfp | relaxants;
++}
++
+ static struct page *shmem_hugeteam_lookup(struct address_space *mapping,
+ 					  pgoff_t index, bool speculative)
+ {
+@@ -1395,8 +1432,9 @@ static void shmem_recovery_work(struct w
+ 		 * often choose an unsuitable NUMA node: something to fix soon,
+ 		 * but not an immediate blocker.
+ 		 */
++		gfp = shmem_huge_gfp(shmem_recovery_gfpmask, gfp);
+ 		head = __alloc_pages_node(page_to_nid(page),
+-			gfp | __GFP_NOWARN | __GFP_THISNODE, HPAGE_PMD_ORDER);
++					  gfp, HPAGE_PMD_ORDER);
+ 		if (!head) {
+ 			shr_stats(huge_failed);
  			error = -ENOMEM;
- 			goto decused;
- 		}
--		if (hugehint == SHMEM_RETRY_HUGE_PAGE) {
--			error = -EEXIST;
--			goto decused;
--		}
- 		if (sgp == SGP_WRITE)
- 			__SetPageReferenced(page);
+@@ -1732,9 +1770,15 @@ static struct shrinker shmem_hugehole_sh
+ #else /* !CONFIG_TRANSPARENT_HUGEPAGE */
  
+ #define shmem_huge SHMEM_HUGE_DENY
++#define shmem_huge_gfpmask GFP_HIGHUSER_MOVABLE
+ #define shmem_huge_recoveries 0
+ #define shr_stats(x) do {} while (0)
+ 
++static inline gfp_t shmem_huge_gfp(int tunable_template, gfp_t requested_gfp)
++{
++	return requested_gfp;
++}
++
+ static inline struct page *shmem_hugeteam_lookup(struct address_space *mapping,
+ 					pgoff_t index, bool speculative)
+ {
+@@ -2626,14 +2670,16 @@ static struct page *shmem_alloc_page(gfp
+ 		rcu_read_unlock();
+ 
+ 		if (*hugehint == SHMEM_ALLOC_HUGE_PAGE) {
+-			head = alloc_pages_vma(gfp|__GFP_NORETRY|__GFP_NOWARN,
+-				HPAGE_PMD_ORDER, &pvma, 0, numa_node_id(),
+-				true);
++			gfp_t huge_gfp;
++
++			huge_gfp = shmem_huge_gfp(shmem_huge_gfpmask, gfp);
++			head = alloc_pages_vma(huge_gfp,
++					HPAGE_PMD_ORDER, &pvma, 0,
++					numa_node_id(), true);
+ 			/* Shrink and retry? Or leave it to recovery worker */
+ 			if (!head && !shmem_huge_recoveries &&
+ 			    shmem_shrink_hugehole(NULL, NULL) != SHRINK_STOP) {
+-				head = alloc_pages_vma(
+-					gfp|__GFP_NORETRY|__GFP_NOWARN,
++				head = alloc_pages_vma(huge_gfp,
+ 					HPAGE_PMD_ORDER, &pvma, 0,
+ 					numa_node_id(), true);
+ 			}
 _
 
 Patches currently in -mm which might be from hughd@google.com are
