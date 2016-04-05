@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + huge-tmpfs-mem_cgroup-shmem_hugepages-accounting.patch added to -mm tree
-Date: Tue, 05 Apr 2016 16:16:17 -0700
-Message-ID: <57044741.Q71AedMXH8rKWkUy%akpm@linux-foundation.org>
+Subject: + huge-tmpfs-mem_cgroup-move-charge-on-shmem-huge-pages.patch
+ added to -mm tree
+Date: Tue, 05 Apr 2016 16:16:13 -0700
+Message-ID: <5704473d.1MS8DpN+xyO/JK7u%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57034 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57021 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752933AbcDEXQT (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 19:16:19 -0400
+	with ESMTP id S1752933AbcDEXQP (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 19:16:15 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andreslc@google.com, aarcange@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, quning@gmail.com, rientjes@google.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
+To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, quning@gmail.com, rientjes@google.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge tmpfs: mem_cgroup shmem_hugepages accounting
+     Subject: huge tmpfs: mem_cgroup move charge on shmem huge pages
 has been added to the -mm tree.  Its filename is
-     huge-tmpfs-mem_cgroup-shmem_hugepages-accounting.patch
+     huge-tmpfs-mem_cgroup-move-charge-on-shmem-huge-pages.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-mem_cgroup-shmem_hugepages-accounting.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-mem_cgroup-move-charge-on-shmem-huge-pages.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-mem_cgroup-shmem_hugepages-accounting.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-mem_cgroup-move-charge-on-shmem-huge-pages.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,253 +39,262 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andres Lagar-Cavilla <andreslc@google.com>
-Subject: huge tmpfs: mem_cgroup shmem_hugepages accounting
+From: Hugh Dickins <hughd@google.com>
+Subject: huge tmpfs: mem_cgroup move charge on shmem huge pages
 
-Keep track of all hugepages, not just those mapped.
+Early on, for simplicity, we disabled moving huge tmpfs pages from one
+memcg to another (nowadays only required when moving a task into a memcg
+having move_charge_at_immigrate exceptionally set).  We're about to add a
+couple of memcg stats for huge tmpfs, and will need to confront how to
+handle moving those stats, so better enable moving the pages now.
 
-This has gone through several anguished iterations, memcg stats being
-harder to protect against mem_cgroup_move_account() than you might expect.
-Abandon the pretence that miscellaneous stats can all be protected by the
-same lock_page_memcg(),unlock_page_memcg() scheme: add
-mem_cgroup_update_page_stat_treelocked(), using mapping->tree_lock for
-safe updates of MEM_CGROUP_STAT_SHMEM_HUGEPAGES (where tree_lock is
-already held, but nests inside not outside of memcg->move_lock).
+Although they're discovered by the pmd's get_mctgt_type_thp(), they have
+to be considered page by page, in what's usually the pte scan: because
+although the common case is for each member of the team to be owned by the
+same memcg, nowhere is that enforced - perhaps one day we shall need to
+enforce such a limitation, but not so far.
 
-Nowadays, when mem_cgroup_move_account() takes page lock, and is only
-called when immigrating pages found in page tables, it almost seems as if
-this reliance on tree_lock is unnecessary.  But consider the case when the
-team head is pte-mapped, and being migrated to a new memcg, racing with
-the last page of the team being instantiated: the page lock is held on the
-page being instantiated, not on the team head, so we do still need the
-tree_lock to serialize them.
-
-Signed-off-by: Andres Lagar-Cavilla <andreslc@google.com>
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andres Lagar-Cavilla <andreslc@google.com>
 Cc: Yang Shi <yang.shi@linaro.org>
 Cc: Ning Qu <quning@gmail.com>
 Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- Documentation/cgroup-v1/memory.txt  |    2 +
- Documentation/filesystems/tmpfs.txt |    8 ++++
- include/linux/memcontrol.h          |   10 +++++
- include/linux/pageteam.h            |    3 +
- mm/memcontrol.c                     |   47 ++++++++++++++++++++++----
- mm/shmem.c                          |    4 ++
- 6 files changed, 66 insertions(+), 8 deletions(-)
+ mm/memcontrol.c |  103 +++++++++++++++++++++++++---------------------
+ 1 file changed, 58 insertions(+), 45 deletions(-)
 
-diff -puN Documentation/cgroup-v1/memory.txt~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting Documentation/cgroup-v1/memory.txt
---- a/Documentation/cgroup-v1/memory.txt~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting
-+++ a/Documentation/cgroup-v1/memory.txt
-@@ -487,6 +487,8 @@ rss		- # of bytes of anonymous and swap
- 		transparent hugepages).
- rss_huge	- # of bytes of anonymous transparent hugepages.
- mapped_file	- # of bytes of mapped file (includes tmpfs/shmem)
-+shmem_hugepages - # of bytes of tmpfs huge pages completed (subset of cache)
-+shmem_pmdmapped - # of bytes of tmpfs huge mapped huge (subset of mapped_file)
- pgpgin		- # of charging events to the memory cgroup. The charging
- 		event happens each time a page is accounted as either mapped
- 		anon page(RSS) or cache page(Page Cache) to the cgroup.
-diff -puN Documentation/filesystems/tmpfs.txt~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting Documentation/filesystems/tmpfs.txt
---- a/Documentation/filesystems/tmpfs.txt~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting
-+++ a/Documentation/filesystems/tmpfs.txt
-@@ -200,6 +200,14 @@ nr_shmem_hugepages 13         tmpfs huge
- nr_shmem_pmdmapped 6          tmpfs hugepages with huge mappings in userspace
- nr_shmem_freeholes 167861     pages reserved for team but available to shrinker
- 
-+/sys/fs/cgroup/memory/<cgroup>/memory.stat shows:
-+
-+shmem_hugepages 27262976   bytes tmpfs hugepage completed (subset of cache)
-+shmem_pmdmapped 12582912   bytes tmpfs huge mapped huge (subset of mapped_file)
-+
-+Note: the individual pages of a huge team might be charged to different
-+memcgs, but these counts assume that they are all charged to the same as head.
-+
- Author:
-    Christoph Rohland <cr@sap.com>, 1.12.01
- Updated:
-diff -puN include/linux/memcontrol.h~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting include/linux/memcontrol.h
---- a/include/linux/memcontrol.h~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting
-+++ a/include/linux/memcontrol.h
-@@ -50,6 +50,8 @@ enum mem_cgroup_stat_index {
- 	MEM_CGROUP_STAT_DIRTY,          /* # of dirty pages in page cache */
- 	MEM_CGROUP_STAT_WRITEBACK,	/* # of pages under writeback */
- 	MEM_CGROUP_STAT_SWAP,		/* # of pages, swapped out */
-+	/* # of pages charged as non-disbanded huge teams */
-+	MEM_CGROUP_STAT_SHMEM_HUGEPAGES,
- 	/* # of pages charged as hugely mapped teams */
- 	MEM_CGROUP_STAT_SHMEM_PMDMAPPED,
- 	MEM_CGROUP_STAT_NSTATS,
-@@ -472,6 +474,9 @@ static inline void mem_cgroup_update_pag
- 		this_cpu_add(page->mem_cgroup->stat->count[idx], val);
- }
- 
-+void mem_cgroup_update_page_stat_treelocked(struct page *page,
-+				enum mem_cgroup_stat_index idx, int val);
-+
- static inline void mem_cgroup_inc_page_stat(struct page *page,
- 					    enum mem_cgroup_stat_index idx)
- {
-@@ -681,6 +686,11 @@ static inline void mem_cgroup_update_pag
- 				enum mem_cgroup_stat_index idx, int val)
- {
- }
-+
-+static inline void mem_cgroup_update_page_stat_treelocked(struct page *page,
-+				enum mem_cgroup_stat_index idx, int val)
-+{
-+}
- 
- static inline void mem_cgroup_inc_page_stat(struct page *page,
- 					    enum mem_cgroup_stat_index idx)
-diff -puN include/linux/pageteam.h~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting include/linux/pageteam.h
---- a/include/linux/pageteam.h~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting
-+++ a/include/linux/pageteam.h
-@@ -139,12 +139,13 @@ static inline bool dec_team_pmd_mapped(s
-  * needs to maintain memcg's huge tmpfs stats correctly.
-  */
- static inline void count_team_pmd_mapped(struct page *head, int *file_mapped,
--					 bool *pmd_mapped)
-+					 bool *pmd_mapped, bool *team_complete)
- {
- 	long team_usage;
- 
- 	*file_mapped = 1;
- 	team_usage = atomic_long_read(&head->team_usage);
-+	*team_complete = team_usage >= TEAM_COMPLETE;
- 	*pmd_mapped = team_usage >= TEAM_PMD_MAPPED;
- 	if (*pmd_mapped)
- 		*file_mapped = HPAGE_PMD_NR - team_pte_count(team_usage);
-diff -puN mm/memcontrol.c~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting mm/memcontrol.c
---- a/mm/memcontrol.c~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting
+diff -puN mm/memcontrol.c~huge-tmpfs-mem_cgroup-move-charge-on-shmem-huge-pages mm/memcontrol.c
+--- a/mm/memcontrol.c~huge-tmpfs-mem_cgroup-move-charge-on-shmem-huge-pages
 +++ a/mm/memcontrol.c
-@@ -107,6 +107,7 @@ static const char * const mem_cgroup_sta
- 	"dirty",
- 	"writeback",
- 	"swap",
-+	"shmem_hugepages",
- 	"shmem_pmdmapped",
+@@ -4329,6 +4329,7 @@ static int mem_cgroup_do_precharge(unsig
+  *   2(MC_TARGET_SWAP): if the swap entry corresponding to this pte is a
+  *     target for charge migration. if @target is not NULL, the entry is stored
+  *     in target->ent.
++ *   3(MC_TARGET_TEAM): if pmd entry is not an anon THP: check it page by page
+  *
+  * Called with pte lock held.
+  */
+@@ -4341,6 +4342,7 @@ enum mc_target_type {
+ 	MC_TARGET_NONE = 0,
+ 	MC_TARGET_PAGE,
+ 	MC_TARGET_SWAP,
++	MC_TARGET_TEAM,
  };
  
-@@ -4428,6 +4429,17 @@ static struct page *mc_handle_file_pte(s
- 	return page;
- }
+ static struct page *mc_handle_present_pte(struct vm_area_struct *vma,
+@@ -4562,19 +4564,22 @@ static enum mc_target_type get_mctgt_typ
  
-+void mem_cgroup_update_page_stat_treelocked(struct page *page,
-+				enum mem_cgroup_stat_index idx, int val)
-+{
-+	/* Update this VM_BUG_ON if other cases are added */
-+	VM_BUG_ON(idx != MEM_CGROUP_STAT_SHMEM_HUGEPAGES);
-+	lockdep_assert_held(&page->mapping->tree_lock);
-+
-+	if (page->mem_cgroup)
-+		__this_cpu_add(page->mem_cgroup->stat->count[idx], val);
-+}
-+
- /**
-  * mem_cgroup_move_account - move account of the page
-  * @page: the page
-@@ -4445,6 +4457,7 @@ static int mem_cgroup_move_account(struc
- 				   struct mem_cgroup *from,
- 				   struct mem_cgroup *to)
+ #ifdef CONFIG_TRANSPARENT_HUGEPAGE
+ /*
+- * We don't consider swapping or file mapped pages because THP does not
+- * support them for now.
+  * Caller should make sure that pmd_trans_huge(pmd) is true.
+  */
+-static enum mc_target_type get_mctgt_type_thp(struct vm_area_struct *vma,
+-		unsigned long addr, pmd_t pmd, union mc_target *target)
++static enum mc_target_type get_mctgt_type_thp(pmd_t pmd,
++		union mc_target *target, unsigned long *pfn)
  {
-+	spinlock_t *tree_lock = NULL;
- 	unsigned long flags;
- 	int nr_pages = compound ? hpage_nr_pages(page) : 1;
- 	int file_mapped = 1;
-@@ -4484,9 +4497,9 @@ static int mem_cgroup_move_account(struc
- 	 * So mapping should be stable for dirty pages.
- 	 */
- 	if (!anon && PageDirty(page)) {
--		struct address_space *mapping = page_mapping(page);
-+		struct address_space *mapping = page->mapping;
+-	struct page *page = NULL;
++	struct page *page;
+ 	enum mc_target_type ret = MC_TARGET_NONE;
  
--		if (mapping_cap_account_dirty(mapping)) {
-+		if (mapping && mapping_cap_account_dirty(mapping)) {
- 			__this_cpu_sub(from->stat->count[MEM_CGROUP_STAT_DIRTY],
- 				       nr_pages);
- 			__this_cpu_add(to->stat->count[MEM_CGROUP_STAT_DIRTY],
-@@ -4495,10 +4508,28 @@ static int mem_cgroup_move_account(struc
+ 	page = pmd_page(pmd);
+-	/* Don't attempt to move huge tmpfs pages yet: can be enabled later */
+-	if (!(mc.flags & MOVE_ANON) || !PageAnon(page))
++	if (!PageAnon(page)) {
++		if (!(mc.flags & MOVE_FILE))
++			return ret;
++		*pfn = page_to_pfn(page);
++		return MC_TARGET_TEAM;
++	}
++	if (!(mc.flags & MOVE_ANON))
+ 		return ret;
+ 	if (page->mem_cgroup == mc.from) {
+ 		ret = MC_TARGET_PAGE;
+@@ -4586,8 +4591,8 @@ static enum mc_target_type get_mctgt_typ
+ 	return ret;
+ }
+ #else
+-static inline enum mc_target_type get_mctgt_type_thp(struct vm_area_struct *vma,
+-		unsigned long addr, pmd_t pmd, union mc_target *target)
++static inline enum mc_target_type get_mctgt_type_thp(pmd_t pmd,
++		union mc_target *target, unsigned long *pfn)
+ {
+ 	return MC_TARGET_NONE;
+ }
+@@ -4598,24 +4603,33 @@ static int mem_cgroup_count_precharge_pt
+ 					struct mm_walk *walk)
+ {
+ 	struct vm_area_struct *vma = walk->vma;
+-	pte_t *pte;
++	enum mc_target_type target_type;
++	unsigned long uninitialized_var(pfn);
++	pte_t ptent;
++	pte_t *pte = NULL;
+ 	spinlock_t *ptl;
+ 
+ 	ptl = pmd_trans_huge_lock(pmd, vma);
+ 	if (ptl) {
+-		if (get_mctgt_type_thp(vma, addr, *pmd, NULL) == MC_TARGET_PAGE)
++		target_type = get_mctgt_type_thp(*pmd, NULL, &pfn);
++		if (target_type == MC_TARGET_PAGE)
+ 			mc.precharge += HPAGE_PMD_NR;
+-		spin_unlock(ptl);
+-		return 0;
++		if (target_type != MC_TARGET_TEAM)
++			goto unlock;
++	} else {
++		if (pmd_trans_unstable(pmd))
++			return 0;
++		pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
  	}
- 
- 	if (!anon && PageTeam(page)) {
--		if (page == team_head(page)) {
--			bool pmd_mapped;
-+		struct address_space *mapping = page->mapping;
- 
--			count_team_pmd_mapped(page, &file_mapped, &pmd_mapped);
-+		if (mapping && page == team_head(page)) {
-+			bool pmd_mapped, team_complete;
-+			/*
-+			 * We avoided taking mapping->tree_lock unnecessarily.
-+			 * Is it safe to take mapping->tree_lock below?  Was it
-+			 * safe to peek at PageTeam above, without tree_lock?
-+			 * Yes, this is a team head, just now taken from its
-+			 * lru: PageTeam must already be set. And we took
-+			 * page lock above, so page->mapping is stable.
-+			 */
-+			tree_lock = &mapping->tree_lock;
-+			spin_lock(tree_lock);
-+			count_team_pmd_mapped(page, &file_mapped, &pmd_mapped,
-+					      &team_complete);
-+			if (team_complete) {
-+				__this_cpu_sub(from->stat->count[
-+				MEM_CGROUP_STAT_SHMEM_HUGEPAGES], HPAGE_PMD_NR);
-+				__this_cpu_add(to->stat->count[
-+				MEM_CGROUP_STAT_SHMEM_HUGEPAGES], HPAGE_PMD_NR);
-+			}
- 			if (pmd_mapped) {
- 				__this_cpu_sub(from->stat->count[
- 				MEM_CGROUP_STAT_SHMEM_PMDMAPPED], HPAGE_PMD_NR);
-@@ -4519,10 +4550,12 @@ static int mem_cgroup_move_account(struc
- 	 * It is safe to change page->mem_cgroup here because the page
- 	 * is referenced, charged, and isolated - we can't race with
- 	 * uncharging, charging, migration, or LRU putback.
-+	 * Caller should have done css_get.
- 	 */
 -
--	/* caller should have done css_get */
- 	page->mem_cgroup = to;
-+
-+	if (tree_lock)
-+		spin_unlock(tree_lock);
- 	spin_unlock_irqrestore(&from->move_lock, flags);
+-	if (pmd_trans_unstable(pmd))
+-		return 0;
+-	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+-	for (; addr != end; pte++, addr += PAGE_SIZE)
+-		if (get_mctgt_type(vma, addr, *pte, NULL))
++	for (; addr != end; addr += PAGE_SIZE) {
++		ptent = pte ? *(pte++) : pfn_pte(pfn++, vma->vm_page_prot);
++		if (get_mctgt_type(vma, addr, ptent, NULL))
+ 			mc.precharge++;	/* increment precharge temporarily */
+-	pte_unmap_unlock(pte - 1, ptl);
++	}
++	if (pte)
++		pte_unmap(pte - 1);
++unlock:
++	spin_unlock(ptl);
+ 	cond_resched();
  
- 	ret = 0;
-diff -puN mm/shmem.c~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting mm/shmem.c
---- a/mm/shmem.c~huge-tmpfs-mem_cgroup-shmem_hugepages-accounting
-+++ a/mm/shmem.c
-@@ -413,6 +413,8 @@ static void shmem_added_to_hugeteam(stru
- 				&head->team_usage) >= TEAM_COMPLETE) {
- 			shmem_clear_tag_hugehole(mapping, head->index);
- 			__inc_zone_state(zone, NR_SHMEM_HUGEPAGES);
-+			mem_cgroup_update_page_stat_treelocked(head,
-+				MEM_CGROUP_STAT_SHMEM_HUGEPAGES, HPAGE_PMD_NR);
+ 	return 0;
+@@ -4784,22 +4798,21 @@ static int mem_cgroup_move_charge_pte_ra
+ {
+ 	int ret = 0;
+ 	struct vm_area_struct *vma = walk->vma;
+-	pte_t *pte;
++	unsigned long uninitialized_var(pfn);
++	pte_t ptent;
++	pte_t *pte = NULL;
+ 	spinlock_t *ptl;
+ 	enum mc_target_type target_type;
+ 	union mc_target target;
+ 	struct page *page;
+-
++retry:
+ 	ptl = pmd_trans_huge_lock(pmd, vma);
+ 	if (ptl) {
+-		if (mc.precharge < HPAGE_PMD_NR) {
+-			spin_unlock(ptl);
+-			return 0;
+-		}
+-		target_type = get_mctgt_type_thp(vma, addr, *pmd, &target);
++		target_type = get_mctgt_type_thp(*pmd, &target, &pfn);
+ 		if (target_type == MC_TARGET_PAGE) {
+ 			page = target.page;
+-			if (!isolate_lru_page(page)) {
++			if (mc.precharge >= HPAGE_PMD_NR &&
++			    !isolate_lru_page(page)) {
+ 				if (!mem_cgroup_move_account(page, true,
+ 							     mc.from, mc.to)) {
+ 					mc.precharge -= HPAGE_PMD_NR;
+@@ -4808,22 +4821,19 @@ static int mem_cgroup_move_charge_pte_ra
+ 				putback_lru_page(page);
+ 			}
+ 			put_page(page);
++			addr = end;
  		}
- 		__dec_zone_state(zone, NR_SHMEM_FREEHOLES);
+-		spin_unlock(ptl);
+-		return 0;
++		if (target_type != MC_TARGET_TEAM)
++			goto unlock;
++		/* addr is not aligned when retrying after precharge ran out */
++		pfn += (addr & (HPAGE_PMD_SIZE-1)) >> PAGE_SHIFT;
++	} else {
++		if (pmd_trans_unstable(pmd))
++			return 0;
++		pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
  	}
-@@ -523,6 +525,8 @@ again2:
- 		if (nr >= HPAGE_PMD_NR) {
- 			ClearPageChecked(head);
- 			__dec_zone_state(zone, NR_SHMEM_HUGEPAGES);
-+			mem_cgroup_update_page_stat_treelocked(head,
-+				MEM_CGROUP_STAT_SHMEM_HUGEPAGES, -HPAGE_PMD_NR);
- 			VM_BUG_ON(nr != HPAGE_PMD_NR);
- 		} else if (nr) {
- 			shmem_clear_tag_hugehole(mapping, head->index);
+-
+-	if (pmd_trans_unstable(pmd))
+-		return 0;
+-retry:
+-	pte = pte_offset_map_lock(vma->vm_mm, pmd, addr, &ptl);
+-	for (; addr != end; addr += PAGE_SIZE) {
+-		pte_t ptent = *(pte++);
+-		swp_entry_t ent;
+-
+-		if (!mc.precharge)
+-			break;
+-
++	for (; addr != end && mc.precharge; addr += PAGE_SIZE) {
++		ptent = pte ? *(pte++) : pfn_pte(pfn++, vma->vm_page_prot);
+ 		switch (get_mctgt_type(vma, addr, ptent, &target)) {
+ 		case MC_TARGET_PAGE:
+ 			page = target.page;
+@@ -4848,8 +4858,8 @@ put:			/* get_mctgt_type() gets the page
+ 			put_page(page);
+ 			break;
+ 		case MC_TARGET_SWAP:
+-			ent = target.ent;
+-			if (!mem_cgroup_move_swap_account(ent, mc.from, mc.to)) {
++			if (!mem_cgroup_move_swap_account(target.ent,
++							  mc.from, mc.to)) {
+ 				mc.precharge--;
+ 				/* we fixup refcnts and charges later. */
+ 				mc.moved_swap++;
+@@ -4859,7 +4869,10 @@ put:			/* get_mctgt_type() gets the page
+ 			break;
+ 		}
+ 	}
+-	pte_unmap_unlock(pte - 1, ptl);
++	if (pte)
++		pte_unmap(pte - 1);
++unlock:
++	spin_unlock(ptl);
+ 	cond_resched();
+ 
+ 	if (addr != end) {
 _
 
-Patches currently in -mm which might be from andreslc@google.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm.patch
-kvm-plumb-return-of-hva-when-resolving-page-fault.patch
-kvm-teach-kvm-to-map-page-teams-as-huge-pages.patch
-huge-tmpfs-mem_cgroup-shmem_pmdmapped-accounting.patch
-huge-tmpfs-mem_cgroup-shmem_hugepages-accounting.patch
-huge-tmpfs-show-page-team-flag-in-pageflags.patch
-huge-tmpfs-no-kswapd-by-default-on-sync-allocations.patch
+mm-update_lru_size-warn-and-reset-bad-lru_size.patch
+mm-update_lru_size-do-the-__mod_zone_page_state.patch
+mm-use-__setpageswapbacked-and-dont-clearpageswapbacked.patch
+tmpfs-preliminary-minor-tidyups.patch
+mm-proc-sys-vm-stat_refresh-to-force-vmstat-update.patch
+huge-mm-move_huge_pmd-does-not-need-new_vma.patch
+huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files.patch
+huge-pagecache-mmap_sem-is-unlocked-when-truncation-splits-pmd.patch
+arch-fix-has_transparent_hugepage.patch
+huge-tmpfs-prepare-counts-in-meminfo-vmstat-and-sysrq-m.patch
+huge-tmpfs-include-shmem-freeholes-in-available-memory.patch
+huge-tmpfs-huge=n-mount-option-and-proc-sys-vm-shmem_huge.patch
+huge-tmpfs-try-to-allocate-huge-pages-split-into-a-team.patch
+huge-tmpfs-avoid-team-pages-in-a-few-places.patch
+huge-tmpfs-shrinker-to-migrate-and-free-underused-holes.patch
+huge-tmpfs-get_unmapped_area-align-fault-supply-huge-page.patch
+huge-tmpfs-try_to_unmap_one-use-page_check_address_transhuge.patch
+huge-tmpfs-avoid-premature-exposure-of-new-pagetable.patch
+huge-tmpfs-map-shmem-by-huge-page-pmd-or-by-page-team-ptes.patch
+huge-tmpfs-disband-split-huge-pmds-on-race-or-memory-failure.patch
+huge-tmpfs-extend-get_user_pages_fast-to-shmem-pmd.patch
+huge-tmpfs-use-unevictable-lru-with-variable-hpage_nr_pages.patch
+huge-tmpfs-fix-mlocked-meminfo-track-huge-unhuge-mlocks.patch
+huge-tmpfs-fix-mapped-meminfo-track-huge-unhuge-mappings.patch
+huge-tmpfs-mem_cgroup-move-charge-on-shmem-huge-pages.patch
+huge-tmpfs-proc-pid-smaps-show-shmemhugepages.patch
+huge-tmpfs-recovery-framework-for-reconstituting-huge-pages.patch
+huge-tmpfs-recovery-shmem_recovery_populate-to-fill-huge-page.patch
+huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd.patch
+huge-tmpfs-recovery-shmem_recovery_swapin-to-read-from-swap.patch
+huge-tmpfs-recovery-tweak-shmem_getpage_gfp-to-fill-team.patch
+huge-tmpfs-recovery-debugfs-stats-to-complete-this-phase.patch
+huge-tmpfs-recovery-page-migration-call-back-into-shmem.patch
+huge-tmpfs-shmem_huge_gfpmask-and-shmem_recovery_gfpmask.patch
 
