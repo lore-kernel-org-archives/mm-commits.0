@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-use-__setpageswapbacked-and-dont-clearpageswapbacked.patch
- added to -mm tree
-Date: Tue, 05 Apr 2016 15:53:51 -0700
-Message-ID: <570441ff.XyTWMRnmq9p+fCK4%akpm@linux-foundation.org>
+Subject: + huge-mm-move_huge_pmd-does-not-need-new_vma.patch added to -mm
+ tree
+Date: Tue, 05 Apr 2016 15:53:59 -0700
+Message-ID: <57044207.BmzGaLYr2UNnkLDy%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56487 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56514 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752476AbcDEWxw (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 18:53:52 -0400
+	with ESMTP id S1752450AbcDEWyB (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 18:54:01 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm: use __SetPageSwapBacked and dont ClearPageSwapBacked
+     Subject: huge mm: move_huge_pmd does not need new_vma
 has been added to the -mm tree.  Its filename is
-     mm-use-__setpageswapbacked-and-dont-clearpageswapbacked.patch
+     huge-mm-move_huge_pmd-does-not-need-new_vma.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-use-__setpageswapbacked-and-dont-clearpageswapbacked.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/huge-mm-move_huge_pmd-does-not-need-new_vma.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-use-__setpageswapbacked-and-dont-clearpageswapbacked.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/huge-mm-move_huge_pmd-does-not-need-new_vma.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,25 +40,12 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: mm: use __SetPageSwapBacked and dont ClearPageSwapBacked
+Subject: huge mm: move_huge_pmd does not need new_vma
 
-v3.16 commit 07a427884348 ("mm: shmem: avoid atomic operation during
-shmem_getpage_gfp") rightly replaced one instance of SetPageSwapBacked by
-__SetPageSwapBacked, pointing out that the newly allocated page is not yet
-visible to other users (except speculative get_page_unless_zero- ers, who
-may not update page flags before their further checks).
-
-That was part of a series in which Mel was focused on tmpfs profiles: but
-almost all SetPageSwapBacked uses can be so optimized, with the same
-justification.  Remove ClearPageSwapBacked from __read_swap_cache_async()
-error path: it's not an error to free a page with PG_swapbacked set.
-
-Follow a convention of __SetPageLocked, __SetPageSwapBacked instead of
-doing it differently in different places; but that's for tidiness - if the
-ordering actually mattered, we should not be using the __variants.
-
-There's probably scope for further __SetPageFlags in other places, but
-SwapBacked is the one I'm interested in at the moment.
+Remove move_huge_pmd()'s redundant new_vma arg: all it was used for was a
+VM_NOHUGEPAGE check on new_vma flags, but the new_vma is cloned from the
+old vma, so a trans_huge_pmd in the new_vma will be as acceptable as it
+was in the old vma, alignment and size permitting.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -67,101 +54,71 @@ Cc: Andres Lagar-Cavilla <andreslc@google.com>
 Cc: Yang Shi <yang.shi@linaro.org>
 Cc: Ning Qu <quning@gmail.com>
 Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Andres Lagar-Cavilla <andreslc@google.com>
 Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/migrate.c    |    6 +++---
- mm/rmap.c       |    2 +-
- mm/shmem.c      |    4 ++--
- mm/swap_state.c |    3 +--
- 4 files changed, 7 insertions(+), 8 deletions(-)
+ include/linux/huge_mm.h |    4 +---
+ mm/huge_memory.c        |    7 ++-----
+ mm/mremap.c             |    5 ++---
+ 3 files changed, 5 insertions(+), 11 deletions(-)
 
-diff -puN mm/migrate.c~mm-use-__setpageswapbacked-and-dont-clearpageswapbacked mm/migrate.c
---- a/mm/migrate.c~mm-use-__setpageswapbacked-and-dont-clearpageswapbacked
-+++ a/mm/migrate.c
-@@ -332,7 +332,7 @@ int migrate_page_move_mapping(struct add
- 		newpage->index = page->index;
- 		newpage->mapping = page->mapping;
- 		if (PageSwapBacked(page))
--			SetPageSwapBacked(newpage);
-+			__SetPageSwapBacked(newpage);
+diff -puN include/linux/huge_mm.h~huge-mm-move_huge_pmd-does-not-need-new_vma include/linux/huge_mm.h
+--- a/include/linux/huge_mm.h~huge-mm-move_huge_pmd-does-not-need-new_vma
++++ a/include/linux/huge_mm.h
+@@ -28,9 +28,7 @@ extern int zap_huge_pmd(struct mmu_gathe
+ extern int mincore_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+ 			unsigned long addr, unsigned long end,
+ 			unsigned char *vec);
+-extern bool move_huge_pmd(struct vm_area_struct *vma,
+-			 struct vm_area_struct *new_vma,
+-			 unsigned long old_addr,
++extern bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
+ 			 unsigned long new_addr, unsigned long old_end,
+ 			 pmd_t *old_pmd, pmd_t *new_pmd);
+ extern int change_huge_pmd(struct vm_area_struct *vma, pmd_t *pmd,
+diff -puN mm/huge_memory.c~huge-mm-move_huge_pmd-does-not-need-new_vma mm/huge_memory.c
+--- a/mm/huge_memory.c~huge-mm-move_huge_pmd-does-not-need-new_vma
++++ a/mm/huge_memory.c
+@@ -1704,20 +1704,17 @@ int zap_huge_pmd(struct mmu_gather *tlb,
+ 	return 1;
+ }
  
- 		return MIGRATEPAGE_SUCCESS;
- 	}
-@@ -378,7 +378,7 @@ int migrate_page_move_mapping(struct add
- 	newpage->index = page->index;
- 	newpage->mapping = page->mapping;
- 	if (PageSwapBacked(page))
--		SetPageSwapBacked(newpage);
-+		__SetPageSwapBacked(newpage);
+-bool move_huge_pmd(struct vm_area_struct *vma, struct vm_area_struct *new_vma,
+-		  unsigned long old_addr,
++bool move_huge_pmd(struct vm_area_struct *vma, unsigned long old_addr,
+ 		  unsigned long new_addr, unsigned long old_end,
+ 		  pmd_t *old_pmd, pmd_t *new_pmd)
+ {
+ 	spinlock_t *old_ptl, *new_ptl;
+ 	pmd_t pmd;
+-
+ 	struct mm_struct *mm = vma->vm_mm;
  
- 	get_page(newpage);	/* add cache reference */
- 	if (PageSwapCache(page)) {
-@@ -1791,7 +1791,7 @@ int migrate_misplaced_transhuge_page(str
+ 	if ((old_addr & ~HPAGE_PMD_MASK) ||
+ 	    (new_addr & ~HPAGE_PMD_MASK) ||
+-	    old_end - old_addr < HPAGE_PMD_SIZE ||
+-	    (new_vma->vm_flags & VM_NOHUGEPAGE))
++	    old_end - old_addr < HPAGE_PMD_SIZE)
+ 		return false;
  
- 	/* Prepare a page as a migration target */
- 	__SetPageLocked(new_page);
--	SetPageSwapBacked(new_page);
-+	__SetPageSwapBacked(new_page);
- 
- 	/* anon mapping, we can simply copy page->mapping to the new page: */
- 	new_page->mapping = page->mapping;
-diff -puN mm/rmap.c~mm-use-__setpageswapbacked-and-dont-clearpageswapbacked mm/rmap.c
---- a/mm/rmap.c~mm-use-__setpageswapbacked-and-dont-clearpageswapbacked
-+++ a/mm/rmap.c
-@@ -1249,7 +1249,7 @@ void page_add_new_anon_rmap(struct page
- 	int nr = compound ? hpage_nr_pages(page) : 1;
- 
- 	VM_BUG_ON_VMA(address < vma->vm_start || address >= vma->vm_end, vma);
--	SetPageSwapBacked(page);
-+	__SetPageSwapBacked(page);
- 	if (compound) {
- 		VM_BUG_ON_PAGE(!PageTransHuge(page), page);
- 		/* increment count (starts at -1) */
-diff -puN mm/shmem.c~mm-use-__setpageswapbacked-and-dont-clearpageswapbacked mm/shmem.c
---- a/mm/shmem.c~mm-use-__setpageswapbacked-and-dont-clearpageswapbacked
-+++ a/mm/shmem.c
-@@ -1085,8 +1085,8 @@ static int shmem_replace_page(struct pag
- 	flush_dcache_page(newpage);
- 
- 	__SetPageLocked(newpage);
-+	__SetPageSwapBacked(newpage);
- 	SetPageUptodate(newpage);
--	SetPageSwapBacked(newpage);
- 	set_page_private(newpage, swap_index);
- 	SetPageSwapCache(newpage);
- 
-@@ -1276,8 +1276,8 @@ repeat:
- 			goto decused;
- 		}
- 
--		__SetPageSwapBacked(page);
- 		__SetPageLocked(page);
-+		__SetPageSwapBacked(page);
- 		if (sgp == SGP_WRITE)
- 			__SetPageReferenced(page);
- 
-diff -puN mm/swap_state.c~mm-use-__setpageswapbacked-and-dont-clearpageswapbacked mm/swap_state.c
---- a/mm/swap_state.c~mm-use-__setpageswapbacked-and-dont-clearpageswapbacked
-+++ a/mm/swap_state.c
-@@ -358,7 +358,7 @@ struct page *__read_swap_cache_async(swp
- 
- 		/* May fail (-ENOMEM) if radix-tree node allocation failed. */
- 		__SetPageLocked(new_page);
--		SetPageSwapBacked(new_page);
-+		__SetPageSwapBacked(new_page);
- 		err = __add_to_swap_cache(new_page, entry);
- 		if (likely(!err)) {
- 			radix_tree_preload_end();
-@@ -370,7 +370,6 @@ struct page *__read_swap_cache_async(swp
- 			return new_page;
- 		}
- 		radix_tree_preload_end();
--		ClearPageSwapBacked(new_page);
- 		__ClearPageLocked(new_page);
- 		/*
- 		 * add_to_swap_cache() doesn't return -EEXIST, so we can safely
+ 	/*
+diff -puN mm/mremap.c~huge-mm-move_huge_pmd-does-not-need-new_vma mm/mremap.c
+--- a/mm/mremap.c~huge-mm-move_huge_pmd-does-not-need-new_vma
++++ a/mm/mremap.c
+@@ -198,9 +198,8 @@ unsigned long move_page_tables(struct vm
+ 				/* See comment in move_ptes() */
+ 				if (need_rmap_locks)
+ 					anon_vma_lock_write(vma->anon_vma);
+-				moved = move_huge_pmd(vma, new_vma, old_addr,
+-						    new_addr, old_end,
+-						    old_pmd, new_pmd);
++				moved = move_huge_pmd(vma, old_addr, new_addr,
++						    old_end, old_pmd, new_pmd);
+ 				if (need_rmap_locks)
+ 					anon_vma_unlock_write(vma->anon_vma);
+ 				if (moved) {
 _
 
 Patches currently in -mm which might be from hughd@google.com are
