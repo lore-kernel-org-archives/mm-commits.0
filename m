@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + lib-uuid-remove-fsf-address.patch added to -mm tree
-Date: Tue, 05 Apr 2016 15:17:03 -0700
-Message-ID: <5704395f.OPF9FqM2AWmljrl/%akpm@linux-foundation.org>
+Subject: + mm-update_lru_size-do-the-__mod_zone_page_state.patch added to
+ -mm tree
+Date: Tue, 05 Apr 2016 15:53:49 -0700
+Message-ID: <570441fd.NDhu2jaWiGATRbPO%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55230 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56483 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933473AbcDEWRF (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 18:17:05 -0400
+	with ESMTP id S1752476AbcDEWxv (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 18:53:51 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: andriy.shevchenko@linux.intel.com, arnd@arndb.de, axboe@kernel.dk, dmitry.kasatkin@gmail.com, linux@rasmusvillemoes.dk, matt@codeblueprint.co.uk, tytso@mit.edu, viro@zeniv.linux.org.uk, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
+To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: lib/uuid.c: remove FSF address
+     Subject: mm: update_lru_size do the __mod_zone_page_state
 has been added to the -mm tree.  Its filename is
-     lib-uuid-remove-fsf-address.patch
+     mm-update_lru_size-do-the-__mod_zone_page_state.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/lib-uuid-remove-fsf-address.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-update_lru_size-do-the-__mod_zone_page_state.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/lib-uuid-remove-fsf-address.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-update_lru_size-do-the-__mod_zone_page_state.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,102 +39,211 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: lib/uuid.c: remove FSF address
+From: Hugh Dickins <hughd@google.com>
+Subject: mm: update_lru_size do the __mod_zone_page_state
 
-There is no point in keeping an address in the file since it's subject to
-change.
+Konstantin Khlebnikov pointed out (nearly four years ago, when lumpy
+reclaim was removed) that lru_size can be updated by -nr_taken once per
+call to isolate_lru_pages(), instead of page by page.
 
-While here, update Intel Copyright years.
+Update it inside isolate_lru_pages(), or at its two callsites?  I chose to
+update it at the callsites, rearranging and grouping the updates by
+nr_taken and nr_scanned together in both.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Reviewed-by: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: Dmitry Kasatkin <dmitry.kasatkin@gmail.com>
-Cc: Mimi Zohar <zohar@linux.vnet.ibm.com>
-Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: "Theodore Ts'o" <tytso@mit.edu>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Jens Axboe <axboe@kernel.dk>
+With one exception, mem_cgroup_update_lru_size(,lru,) is then used where
+__mod_zone_page_state(,NR_LRU_BASE+lru,) is used; and we shall be adding
+some more calls in a future commit.  Make the code a little smaller and
+simpler by incorporating stat update in lru_size update.
+
+The exception was move_active_pages_to_lru(), which aggregated the pgmoved
+stat update separately from the individual lru_size updates; but I still
+think this a simplification worth making.
+
+However, the __mod_zone_page_state is not peculiar to mem_cgroups: so
+better use the name update_lru_size, calls mem_cgroup_update_lru_size when
+CONFIG_MEMCG.
+
+Signed-off-by: Hugh Dickins <hughd@google.com>
+Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
+Cc: Andrea Arcangeli <aarcange@redhat.com>
+Cc: Andres Lagar-Cavilla <andreslc@google.com>
+Cc: Yang Shi <yang.shi@linaro.org>
+Cc: Ning Qu <quning@gmail.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/uuid.h      |    6 +-----
- include/uapi/linux/uuid.h |    4 ----
- lib/uuid.c                |    6 +-----
- 3 files changed, 2 insertions(+), 14 deletions(-)
+ include/linux/memcontrol.h |    6 ------
+ include/linux/mm_inline.h  |   24 ++++++++++++++++++------
+ mm/memcontrol.c            |    2 ++
+ mm/vmscan.c                |   23 ++++++++++-------------
+ 4 files changed, 30 insertions(+), 25 deletions(-)
 
-diff -puN include/linux/uuid.h~lib-uuid-remove-fsf-address include/linux/uuid.h
---- a/include/linux/uuid.h~lib-uuid-remove-fsf-address
-+++ a/include/linux/uuid.h
-@@ -1,7 +1,7 @@
- /*
-  * UUID/GUID definition
-  *
-- * Copyright (C) 2010, Intel Corp.
-+ * Copyright (C) 2010, 2016 Intel Corp.
-  *	Huang Ying <ying.huang@intel.com>
-  *
-  * This program is free software; you can redistribute it and/or
-@@ -12,10 +12,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- #ifndef _LINUX_UUID_H_
- #define _LINUX_UUID_H_
-diff -puN include/uapi/linux/uuid.h~lib-uuid-remove-fsf-address include/uapi/linux/uuid.h
---- a/include/uapi/linux/uuid.h~lib-uuid-remove-fsf-address
-+++ a/include/uapi/linux/uuid.h
-@@ -12,10 +12,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
+diff -puN include/linux/memcontrol.h~mm-update_lru_size-do-the-__mod_zone_page_state include/linux/memcontrol.h
+--- a/include/linux/memcontrol.h~mm-update_lru_size-do-the-__mod_zone_page_state
++++ a/include/linux/memcontrol.h
+@@ -633,12 +633,6 @@ mem_cgroup_get_lru_size(struct lruvec *l
+ 	return 0;
+ }
  
- #ifndef _UAPI_LINUX_UUID_H_
-diff -puN lib/uuid.c~lib-uuid-remove-fsf-address lib/uuid.c
---- a/lib/uuid.c~lib-uuid-remove-fsf-address
-+++ a/lib/uuid.c
-@@ -1,7 +1,7 @@
- /*
-  * Unified UUID/GUID definition
-  *
-- * Copyright (C) 2009, Intel Corp.
-+ * Copyright (C) 2009, 2016 Intel Corp.
-  *	Huang Ying <ying.huang@intel.com>
-  *
-  * This program is free software; you can redistribute it and/or
-@@ -12,10 +12,6 @@
-  * but WITHOUT ANY WARRANTY; without even the implied warranty of
-  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  * GNU General Public License for more details.
-- *
-- * You should have received a copy of the GNU General Public License
-- * along with this program; if not, write to the Free Software
-- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
+-static inline void
+-mem_cgroup_update_lru_size(struct lruvec *lruvec, enum lru_list lru,
+-			      int increment)
+-{
+-}
+-
+ static inline unsigned long
+ mem_cgroup_node_nr_lru_pages(struct mem_cgroup *memcg,
+ 			     int nid, unsigned int lru_mask)
+diff -puN include/linux/mm_inline.h~mm-update_lru_size-do-the-__mod_zone_page_state include/linux/mm_inline.h
+--- a/include/linux/mm_inline.h~mm-update_lru_size-do-the-__mod_zone_page_state
++++ a/include/linux/mm_inline.h
+@@ -22,22 +22,34 @@ static inline int page_is_file_cache(str
+ 	return !PageSwapBacked(page);
+ }
  
- #include <linux/kernel.h>
++static __always_inline void __update_lru_size(struct lruvec *lruvec,
++				enum lru_list lru, int nr_pages)
++{
++	__mod_zone_page_state(lruvec_zone(lruvec), NR_LRU_BASE + lru, nr_pages);
++}
++
++static __always_inline void update_lru_size(struct lruvec *lruvec,
++				enum lru_list lru, int nr_pages)
++{
++#ifdef CONFIG_MEMCG
++	mem_cgroup_update_lru_size(lruvec, lru, nr_pages);
++#else
++	__update_lru_size(lruvec, lru, nr_pages);
++#endif
++}
++
+ static __always_inline void add_page_to_lru_list(struct page *page,
+ 				struct lruvec *lruvec, enum lru_list lru)
+ {
+-	int nr_pages = hpage_nr_pages(page);
+-	mem_cgroup_update_lru_size(lruvec, lru, nr_pages);
++	update_lru_size(lruvec, lru, hpage_nr_pages(page));
+ 	list_add(&page->lru, &lruvec->lists[lru]);
+-	__mod_zone_page_state(lruvec_zone(lruvec), NR_LRU_BASE + lru, nr_pages);
+ }
+ 
+ static __always_inline void del_page_from_lru_list(struct page *page,
+ 				struct lruvec *lruvec, enum lru_list lru)
+ {
+-	int nr_pages = hpage_nr_pages(page);
+ 	list_del(&page->lru);
+-	mem_cgroup_update_lru_size(lruvec, lru, -nr_pages);
+-	__mod_zone_page_state(lruvec_zone(lruvec), NR_LRU_BASE + lru, -nr_pages);
++	update_lru_size(lruvec, lru, -hpage_nr_pages(page));
+ }
+ 
+ /**
+diff -puN mm/memcontrol.c~mm-update_lru_size-do-the-__mod_zone_page_state mm/memcontrol.c
+--- a/mm/memcontrol.c~mm-update_lru_size-do-the-__mod_zone_page_state
++++ a/mm/memcontrol.c
+@@ -1034,6 +1034,8 @@ void mem_cgroup_update_lru_size(struct l
+ 	long size;
+ 	bool empty;
+ 
++	__update_lru_size(lruvec, lru, nr_pages);
++
+ 	if (mem_cgroup_disabled())
+ 		return;
+ 
+diff -puN mm/vmscan.c~mm-update_lru_size-do-the-__mod_zone_page_state mm/vmscan.c
+--- a/mm/vmscan.c~mm-update_lru_size-do-the-__mod_zone_page_state
++++ a/mm/vmscan.c
+@@ -1374,7 +1374,6 @@ static unsigned long isolate_lru_pages(u
+ 	for (scan = 0; scan < nr_to_scan && nr_taken < nr_to_scan &&
+ 					!list_empty(src); scan++) {
+ 		struct page *page;
+-		int nr_pages;
+ 
+ 		page = lru_to_page(src);
+ 		prefetchw_prev_lru_page(page, src, flags);
+@@ -1383,10 +1382,8 @@ static unsigned long isolate_lru_pages(u
+ 
+ 		switch (__isolate_lru_page(page, mode)) {
+ 		case 0:
+-			nr_pages = hpage_nr_pages(page);
+-			mem_cgroup_update_lru_size(lruvec, lru, -nr_pages);
++			nr_taken += hpage_nr_pages(page);
+ 			list_move(&page->lru, dst);
+-			nr_taken += nr_pages;
+ 			break;
+ 
+ 		case -EBUSY:
+@@ -1602,8 +1599,9 @@ shrink_inactive_list(unsigned long nr_to
+ 	nr_taken = isolate_lru_pages(nr_to_scan, lruvec, &page_list,
+ 				     &nr_scanned, sc, isolate_mode, lru);
+ 
+-	__mod_zone_page_state(zone, NR_LRU_BASE + lru, -nr_taken);
++	update_lru_size(lruvec, lru, -nr_taken);
+ 	__mod_zone_page_state(zone, NR_ISOLATED_ANON + file, nr_taken);
++	reclaim_stat->recent_scanned[file] += nr_taken;
+ 
+ 	if (global_reclaim(sc)) {
+ 		__mod_zone_page_state(zone, NR_PAGES_SCANNED, nr_scanned);
+@@ -1624,8 +1622,6 @@ shrink_inactive_list(unsigned long nr_to
+ 
+ 	spin_lock_irq(&zone->lru_lock);
+ 
+-	reclaim_stat->recent_scanned[file] += nr_taken;
+-
+ 	if (global_reclaim(sc)) {
+ 		if (current_is_kswapd())
+ 			__count_zone_vm_events(PGSTEAL_KSWAPD, zone,
+@@ -1742,7 +1738,7 @@ static void move_active_pages_to_lru(str
+ 		SetPageLRU(page);
+ 
+ 		nr_pages = hpage_nr_pages(page);
+-		mem_cgroup_update_lru_size(lruvec, lru, nr_pages);
++		update_lru_size(lruvec, lru, nr_pages);
+ 		list_move(&page->lru, &lruvec->lists[lru]);
+ 		pgmoved += nr_pages;
+ 
+@@ -1760,7 +1756,7 @@ static void move_active_pages_to_lru(str
+ 				list_add(&page->lru, pages_to_free);
+ 		}
+ 	}
+-	__mod_zone_page_state(zone, NR_LRU_BASE + lru, pgmoved);
++
+ 	if (!is_active_lru(lru))
+ 		__count_vm_events(PGDEACTIVATE, pgmoved);
+ }
+@@ -1794,14 +1790,15 @@ static void shrink_active_list(unsigned
+ 
+ 	nr_taken = isolate_lru_pages(nr_to_scan, lruvec, &l_hold,
+ 				     &nr_scanned, sc, isolate_mode, lru);
+-	if (global_reclaim(sc))
+-		__mod_zone_page_state(zone, NR_PAGES_SCANNED, nr_scanned);
+ 
++	update_lru_size(lruvec, lru, -nr_taken);
++	__mod_zone_page_state(zone, NR_ISOLATED_ANON + file, nr_taken);
+ 	reclaim_stat->recent_scanned[file] += nr_taken;
+ 
++	if (global_reclaim(sc))
++		__mod_zone_page_state(zone, NR_PAGES_SCANNED, nr_scanned);
+ 	__count_zone_vm_events(PGREFILL, zone, nr_scanned);
+-	__mod_zone_page_state(zone, NR_LRU_BASE + lru, -nr_taken);
+-	__mod_zone_page_state(zone, NR_ISOLATED_ANON + file, nr_taken);
++
+ 	spin_unlock_irq(&zone->lru_lock);
+ 
+ 	while (!list_empty(&l_hold)) {
 _
 
-Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+Patches currently in -mm which might be from hughd@google.com are
 
-lib-vsprintf-simplify-uuid-printing.patch
-ima-use-%pu-to-output-uuid-in-printable-format.patch
-lib-uuid-move-generate_random_uuid-to-uuidc.patch
-lib-uuid-introduce-few-more-generic-helpers-for-uuid.patch
-lib-uuid-remove-fsf-address.patch
-sysctl-use-generic-uuid-library.patch
-efi-redefine-type-constant-macro-from-generic-code.patch
-efivars-use-generic-uuid-library.patch
-genhd-move-to-use-generic-uuid-library.patch
+mm-update_lru_size-warn-and-reset-bad-lru_size.patch
+mm-update_lru_size-do-the-__mod_zone_page_state.patch
+mm-use-__setpageswapbacked-and-dont-clearpageswapbacked.patch
+tmpfs-preliminary-minor-tidyups.patch
+mm-proc-sys-vm-stat_refresh-to-force-vmstat-update.patch
+huge-mm-move_huge_pmd-does-not-need-new_vma.patch
+huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files.patch
+huge-pagecache-mmap_sem-is-unlocked-when-truncation-splits-pmd.patch
+arch-fix-has_transparent_hugepage.patch
 
