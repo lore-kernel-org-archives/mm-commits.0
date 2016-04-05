@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + tmpfs-preliminary-minor-tidyups.patch added to -mm tree
-Date: Tue, 05 Apr 2016 15:53:53 -0700
-Message-ID: <57044201.3020JQdnYhf5LRNg%akpm@linux-foundation.org>
+Subject: + tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm.patch
+ added to -mm tree
+Date: Tue, 05 Apr 2016 15:53:55 -0700
+Message-ID: <57044203.ucSulqNLujjQJ2k+%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:56496 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:56504 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752476AbcDEWxy (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 18:53:54 -0400
+	with ESMTP id S1752450AbcDEWx4 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 18:53:56 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
+To: andreslc@google.com, aarcange@redhat.com, hughd@google.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@techsingularity.net, quning@gmail.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: tmpfs: preliminary minor tidyups
+     Subject: tmpfs: mem_cgroup charge fault to vm_mm not current mm
 has been added to the -mm tree.  Its filename is
-     tmpfs-preliminary-minor-tidyups.patch
+     tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/tmpfs-preliminary-minor-tidyups.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/tmpfs-preliminary-minor-tidyups.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,33 +39,23 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Hugh Dickins <hughd@google.com>
-Subject: tmpfs: preliminary minor tidyups
+From: Andres Lagar-Cavilla <andreslc@google.com>
+Subject: tmpfs: mem_cgroup charge fault to vm_mm not current mm
 
-Make a few cleanups in mm/shmem.c, before going on to complicate it.
+Although shmem_fault() has been careful to count a major fault to vm_mm,
+shmem_getpage_gfp() has been careless in charging a remote access fault to
+current->mm owner's memcg instead of to vma->vm_mm owner's memcg: that is
+inconsistent with all the mem_cgroup charging on remote access faults in
+mm/memory.c.
 
-shmem_alloc_page() will become more complicated: we can't afford to to
-have that complication duplicated between a CONFIG_NUMA version and a
-!CONFIG_NUMA version, so rearrange the #ifdef'ery there to yield a single
-shmem_swapin() and a single shmem_alloc_page().
+Fix it by passing fault_mm along with fault_type to shmem_get_page_gfp();
+but in that case, now knowing the right mm, it's better for it to handle
+the PGMAJFAULT updates itself.
 
-Yes, it's a shame to inflict the horrid pseudo-vma on non-NUMA
-configurations, but eliminating it is a larger cleanup: I have an
-alloc_pages_mpol() patchset not yet ready - mpol handling is subtle and
-bug-prone, and changed yet again since my last version.
+And let's keep this clutter out of most callers' way: change the common
+shmem_getpage() wrapper to hide fault_mm and fault_type as well as gfp.
 
-Move __SetPageLocked, __SetPageSwapBacked from shmem_getpage_gfp() to
-shmem_alloc_page(): that SwapBacked flag will be useful in future, to help
-to distinguish different cases appropriately.
-
-And the SGP_DIRTY variant of SGP_CACHE is hard to understand and of little
-use (IIRC it dates back to when shmem_getpage() returned the page
-unlocked): kill it and do the necessary in shmem_file_read_iter().
-
-But an arm64 build then complained that info may be uninitialized (where
-shmem_getpage_gfp() deletes a freshly alloced page beyond eof), and
-advancing to an "sgp <= SGP_CACHE" test jogged it back to reality.
-
+Signed-off-by: Andres Lagar-Cavilla <andreslc@google.com>
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
 Cc: Andrea Arcangeli <aarcange@redhat.com>
@@ -76,196 +67,213 @@ Cc: Konstantin Khlebnikov <koct9i@gmail.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/mempolicy.h |    6 +++
- mm/shmem.c                |   69 +++++++++++++-----------------------
- 2 files changed, 32 insertions(+), 43 deletions(-)
+ mm/shmem.c |   61 ++++++++++++++++++++++++++++-----------------------
+ 1 file changed, 34 insertions(+), 27 deletions(-)
 
-diff -puN include/linux/mempolicy.h~tmpfs-preliminary-minor-tidyups include/linux/mempolicy.h
---- a/include/linux/mempolicy.h~tmpfs-preliminary-minor-tidyups
-+++ a/include/linux/mempolicy.h
-@@ -228,6 +228,12 @@ static inline void mpol_free_shared_poli
- {
- }
- 
-+static inline struct mempolicy *
-+mpol_shared_policy_lookup(struct shared_policy *sp, unsigned long idx)
-+{
-+	return NULL;
-+}
-+
- #define vma_policy(vma) NULL
- 
- static inline int
-diff -puN mm/shmem.c~tmpfs-preliminary-minor-tidyups mm/shmem.c
---- a/mm/shmem.c~tmpfs-preliminary-minor-tidyups
+diff -puN mm/shmem.c~tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm mm/shmem.c
+--- a/mm/shmem.c~tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm
 +++ a/mm/shmem.c
-@@ -101,7 +101,6 @@ struct shmem_falloc {
- enum sgp_type {
- 	SGP_READ,	/* don't exceed i_size, don't allocate page */
- 	SGP_CACHE,	/* don't exceed i_size, may allocate page */
--	SGP_DIRTY,	/* like SGP_CACHE, but set new page dirty */
- 	SGP_WRITE,	/* may exceed i_size, may allocate !Uptodate page */
- 	SGP_FALLOC,	/* like SGP_WRITE, but make existing page Uptodate */
- };
-@@ -169,7 +168,7 @@ static inline int shmem_reacct_size(unsi
+@@ -121,13 +121,14 @@ static bool shmem_should_replace_page(st
+ static int shmem_replace_page(struct page **pagep, gfp_t gfp,
+ 				struct shmem_inode_info *info, pgoff_t index);
+ static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
+-	struct page **pagep, enum sgp_type sgp, gfp_t gfp, int *fault_type);
++		struct page **pagep, enum sgp_type sgp,
++		gfp_t gfp, struct mm_struct *fault_mm, int *fault_type);
  
- /*
-  * ... whereas tmpfs objects are accounted incrementally as
-- * pages are allocated, in order to allow huge sparse files.
-+ * pages are allocated, in order to allow large sparse files.
-  * shmem_getpage reports shmem_acct_block failure as -ENOSPC not -ENOMEM,
-  * so that a failure on a sparse tmpfs mapping will give SIGBUS not OOM.
-  */
-@@ -947,8 +946,7 @@ redirty:
- 	return 0;
- }
- 
--#ifdef CONFIG_NUMA
--#ifdef CONFIG_TMPFS
-+#if defined(CONFIG_NUMA) && defined(CONFIG_TMPFS)
- static void shmem_show_mpol(struct seq_file *seq, struct mempolicy *mpol)
+ static inline int shmem_getpage(struct inode *inode, pgoff_t index,
+-	struct page **pagep, enum sgp_type sgp, int *fault_type)
++		struct page **pagep, enum sgp_type sgp)
  {
- 	char buffer[64];
-@@ -972,7 +970,18 @@ static struct mempolicy *shmem_get_sbmpo
- 	}
- 	return mpol;
+ 	return shmem_getpage_gfp(inode, index, pagep, sgp,
+-			mapping_gfp_mask(inode->i_mapping), fault_type);
++		mapping_gfp_mask(inode->i_mapping), NULL, NULL);
  }
--#endif /* CONFIG_TMPFS */
-+#else /* !CONFIG_NUMA || !CONFIG_TMPFS */
-+static inline void shmem_show_mpol(struct seq_file *seq, struct mempolicy *mpol)
-+{
-+}
-+static inline struct mempolicy *shmem_get_sbmpol(struct shmem_sb_info *sbinfo)
-+{
-+	return NULL;
-+}
-+#endif /* CONFIG_NUMA && CONFIG_TMPFS */
-+#ifndef CONFIG_NUMA
-+#define vm_policy vm_private_data
-+#endif
  
- static struct page *shmem_swapin(swp_entry_t swap, gfp_t gfp,
- 			struct shmem_inode_info *info, pgoff_t index)
-@@ -1008,39 +1017,17 @@ static struct page *shmem_alloc_page(gfp
- 	pvma.vm_ops = NULL;
- 	pvma.vm_policy = mpol_shared_policy_lookup(&info->policy, index);
+ static inline struct shmem_sb_info *SHMEM_SB(struct super_block *sb)
+@@ -527,7 +528,7 @@ static void shmem_undo_range(struct inod
  
--	page = alloc_page_vma(gfp, &pvma, 0);
-+	page = alloc_pages_vma(gfp, 0, &pvma, 0, numa_node_id(), false);
-+	if (page) {
-+		__SetPageLocked(page);
-+		__SetPageSwapBacked(page);
-+	}
- 
- 	/* Drop reference taken by mpol_shared_policy_lookup() */
- 	mpol_cond_put(pvma.vm_policy);
- 
- 	return page;
- }
--#else /* !CONFIG_NUMA */
--#ifdef CONFIG_TMPFS
--static inline void shmem_show_mpol(struct seq_file *seq, struct mempolicy *mpol)
--{
--}
--#endif /* CONFIG_TMPFS */
--
--static inline struct page *shmem_swapin(swp_entry_t swap, gfp_t gfp,
--			struct shmem_inode_info *info, pgoff_t index)
--{
--	return swapin_readahead(swap, gfp, NULL, 0);
--}
--
--static inline struct page *shmem_alloc_page(gfp_t gfp,
--			struct shmem_inode_info *info, pgoff_t index)
--{
--	return alloc_page(gfp);
--}
--#endif /* CONFIG_NUMA */
--
--#if !defined(CONFIG_NUMA) || !defined(CONFIG_TMPFS)
--static inline struct mempolicy *shmem_get_sbmpol(struct shmem_sb_info *sbinfo)
--{
--	return NULL;
--}
--#endif
- 
- /*
-  * When a page is moved from swapcache to shmem filecache (either by the
-@@ -1084,8 +1071,6 @@ static int shmem_replace_page(struct pag
- 	copy_highpage(newpage, oldpage);
- 	flush_dcache_page(newpage);
- 
--	__SetPageLocked(newpage);
--	__SetPageSwapBacked(newpage);
- 	SetPageUptodate(newpage);
- 	set_page_private(newpage, swap_index);
- 	SetPageSwapCache(newpage);
-@@ -1155,7 +1140,7 @@ repeat:
- 		page = NULL;
+ 	if (partial_start) {
+ 		struct page *page = NULL;
+-		shmem_getpage(inode, start - 1, &page, SGP_READ, NULL);
++		shmem_getpage(inode, start - 1, &page, SGP_READ);
+ 		if (page) {
+ 			unsigned int top = PAGE_SIZE;
+ 			if (start > end) {
+@@ -542,7 +543,7 @@ static void shmem_undo_range(struct inod
  	}
+ 	if (partial_end) {
+ 		struct page *page = NULL;
+-		shmem_getpage(inode, end, &page, SGP_READ, NULL);
++		shmem_getpage(inode, end, &page, SGP_READ);
+ 		if (page) {
+ 			zero_user_segment(page, 0, partial_end);
+ 			set_page_dirty(page);
+@@ -1115,14 +1116,19 @@ static int shmem_replace_page(struct pag
+  *
+  * If we allocate a new one we do not mark it dirty. That's up to the
+  * vm. If we swap it in we mark it dirty since we also free the swap
+- * entry since a page cannot live in both the swap and page cache
++ * entry since a page cannot live in both the swap and page cache.
++ *
++ * fault_mm and fault_type are only supplied by shmem_fault:
++ * otherwise they are NULL.
+  */
+ static int shmem_getpage_gfp(struct inode *inode, pgoff_t index,
+-	struct page **pagep, enum sgp_type sgp, gfp_t gfp, int *fault_type)
++	struct page **pagep, enum sgp_type sgp, gfp_t gfp,
++	struct mm_struct *fault_mm, int *fault_type)
+ {
+ 	struct address_space *mapping = inode->i_mapping;
+ 	struct shmem_inode_info *info;
+ 	struct shmem_sb_info *sbinfo;
++	struct mm_struct *charge_mm;
+ 	struct mem_cgroup *memcg;
+ 	struct page *page;
+ 	swp_entry_t swap;
+@@ -1168,14 +1174,19 @@ repeat:
+ 	 */
+ 	info = SHMEM_I(inode);
+ 	sbinfo = SHMEM_SB(inode->i_sb);
++	charge_mm = fault_mm ? : current->mm;
  
--	if (sgp != SGP_WRITE && sgp != SGP_FALLOC &&
-+	if (sgp <= SGP_CACHE &&
- 	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode)) {
- 		error = -EINVAL;
- 		goto unlock;
-@@ -1275,9 +1260,6 @@ repeat:
- 			error = -ENOMEM;
- 			goto decused;
+ 	if (swap.val) {
+ 		/* Look it up and read it in.. */
+ 		page = lookup_swap_cache(swap);
+ 		if (!page) {
+-			/* here we actually do the io */
+-			if (fault_type)
++			/* Or update major stats only when swapin succeeds?? */
++			if (fault_type) {
+ 				*fault_type |= VM_FAULT_MAJOR;
++				count_vm_event(PGMAJFAULT);
++				mem_cgroup_count_vm_event(fault_mm, PGMAJFAULT);
++			}
++			/* Here we actually start the io */
+ 			page = shmem_swapin(swap, gfp, info, index);
+ 			if (!page) {
+ 				error = -ENOMEM;
+@@ -1202,7 +1213,7 @@ repeat:
+ 				goto failed;
  		}
--
--		__SetPageLocked(page);
--		__SetPageSwapBacked(page);
+ 
+-		error = mem_cgroup_try_charge(page, current->mm, gfp, &memcg,
++		error = mem_cgroup_try_charge(page, charge_mm, gfp, &memcg,
+ 				false);
+ 		if (!error) {
+ 			error = shmem_add_to_page_cache(page, mapping, index,
+@@ -1263,7 +1274,7 @@ repeat:
  		if (sgp == SGP_WRITE)
  			__SetPageReferenced(page);
  
-@@ -1321,12 +1303,10 @@ clear:
- 			flush_dcache_page(page);
- 			SetPageUptodate(page);
- 		}
--		if (sgp == SGP_DIRTY)
--			set_page_dirty(page);
+-		error = mem_cgroup_try_charge(page, current->mm, gfp, &memcg,
++		error = mem_cgroup_try_charge(page, charge_mm, gfp, &memcg,
+ 				false);
+ 		if (error)
+ 			goto decused;
+@@ -1352,6 +1363,7 @@ unlock:
+ static int shmem_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	struct inode *inode = file_inode(vma->vm_file);
++	gfp_t gfp = mapping_gfp_mask(inode->i_mapping);
+ 	int error;
+ 	int ret = VM_FAULT_LOCKED;
+ 
+@@ -1413,14 +1425,10 @@ static int shmem_fault(struct vm_area_st
+ 		spin_unlock(&inode->i_lock);
  	}
  
- 	/* Perhaps the file has been truncated since we checked */
--	if (sgp != SGP_WRITE && sgp != SGP_FALLOC &&
-+	if (sgp <= SGP_CACHE &&
- 	    ((loff_t)index << PAGE_SHIFT) >= i_size_read(inode)) {
- 		if (alloced) {
- 			ClearPageDirty(page);
-@@ -1633,7 +1613,7 @@ static ssize_t shmem_file_read_iter(stru
- 	 * and even mark them dirty, so it cannot exceed the max_blocks limit.
- 	 */
- 	if (!iter_is_iovec(to))
--		sgp = SGP_DIRTY;
-+		sgp = SGP_CACHE;
+-	error = shmem_getpage(inode, vmf->pgoff, &vmf->page, SGP_CACHE, &ret);
++	error = shmem_getpage_gfp(inode, vmf->pgoff, &vmf->page, SGP_CACHE,
++				  gfp, vma->vm_mm, &ret);
+ 	if (error)
+ 		return ((error == -ENOMEM) ? VM_FAULT_OOM : VM_FAULT_SIGBUS);
+-
+-	if (ret & VM_FAULT_MAJOR) {
+-		count_vm_event(PGMAJFAULT);
+-		mem_cgroup_count_vm_event(vma->vm_mm, PGMAJFAULT);
+-	}
+ 	return ret;
+ }
  
- 	index = *ppos >> PAGE_SHIFT;
- 	offset = *ppos & ~PAGE_MASK;
-@@ -1659,8 +1639,11 @@ static ssize_t shmem_file_read_iter(stru
- 				error = 0;
- 			break;
+@@ -1567,7 +1575,7 @@ shmem_write_begin(struct file *file, str
+ 			return -EPERM;
+ 	}
+ 
+-	return shmem_getpage(inode, index, pagep, SGP_WRITE, NULL);
++	return shmem_getpage(inode, index, pagep, SGP_WRITE);
+ }
+ 
+ static int
+@@ -1633,7 +1641,7 @@ static ssize_t shmem_file_read_iter(stru
+ 				break;
  		}
--		if (page)
-+		if (page) {
-+			if (sgp == SGP_CACHE)
-+				set_page_dirty(page);
- 			unlock_page(page);
-+		}
  
- 		/*
- 		 * We must evaluate after, since reads (unlike writes)
+-		error = shmem_getpage(inode, index, &page, sgp, NULL);
++		error = shmem_getpage(inode, index, &page, sgp);
+ 		if (error) {
+ 			if (error == -EINVAL)
+ 				error = 0;
+@@ -1749,7 +1757,7 @@ static ssize_t shmem_file_splice_read(st
+ 	error = 0;
+ 
+ 	while (spd.nr_pages < nr_pages) {
+-		error = shmem_getpage(inode, index, &page, SGP_CACHE, NULL);
++		error = shmem_getpage(inode, index, &page, SGP_CACHE);
+ 		if (error)
+ 			break;
+ 		unlock_page(page);
+@@ -1771,8 +1779,7 @@ static ssize_t shmem_file_splice_read(st
+ 		page = spd.pages[page_nr];
+ 
+ 		if (!PageUptodate(page) || page->mapping != mapping) {
+-			error = shmem_getpage(inode, index, &page,
+-							SGP_CACHE, NULL);
++			error = shmem_getpage(inode, index, &page, SGP_CACHE);
+ 			if (error)
+ 				break;
+ 			unlock_page(page);
+@@ -2215,8 +2222,7 @@ static long shmem_fallocate(struct file
+ 		else if (shmem_falloc.nr_unswapped > shmem_falloc.nr_falloced)
+ 			error = -ENOMEM;
+ 		else
+-			error = shmem_getpage(inode, index, &page, SGP_FALLOC,
+-									NULL);
++			error = shmem_getpage(inode, index, &page, SGP_FALLOC);
+ 		if (error) {
+ 			/* Remove the !PageUptodate pages we added */
+ 			shmem_undo_range(inode,
+@@ -2534,7 +2540,7 @@ static int shmem_symlink(struct inode *d
+ 		inode->i_op = &shmem_short_symlink_operations;
+ 	} else {
+ 		inode_nohighmem(inode);
+-		error = shmem_getpage(inode, 0, &page, SGP_WRITE, NULL);
++		error = shmem_getpage(inode, 0, &page, SGP_WRITE);
+ 		if (error) {
+ 			iput(inode);
+ 			return error;
+@@ -2575,7 +2581,7 @@ static const char *shmem_get_link(struct
+ 			return ERR_PTR(-ECHILD);
+ 		}
+ 	} else {
+-		error = shmem_getpage(inode, 0, &page, SGP_READ, NULL);
++		error = shmem_getpage(inode, 0, &page, SGP_READ);
+ 		if (error)
+ 			return ERR_PTR(error);
+ 		unlock_page(page);
+@@ -3478,7 +3484,8 @@ struct page *shmem_read_mapping_page_gfp
+ 	int error;
+ 
+ 	BUG_ON(mapping->a_ops != &shmem_aops);
+-	error = shmem_getpage_gfp(inode, index, &page, SGP_CACHE, gfp, NULL);
++	error = shmem_getpage_gfp(inode, index, &page, SGP_CACHE,
++				  gfp, NULL, NULL);
+ 	if (error)
+ 		page = ERR_PTR(error);
+ 	else
 _
 
-Patches currently in -mm which might be from hughd@google.com are
+Patches currently in -mm which might be from andreslc@google.com are
 
-mm-update_lru_size-warn-and-reset-bad-lru_size.patch
-mm-update_lru_size-do-the-__mod_zone_page_state.patch
-mm-use-__setpageswapbacked-and-dont-clearpageswapbacked.patch
-tmpfs-preliminary-minor-tidyups.patch
-mm-proc-sys-vm-stat_refresh-to-force-vmstat-update.patch
-huge-mm-move_huge_pmd-does-not-need-new_vma.patch
-huge-pagecache-extend-mremap-pmd-rmap-lockout-to-files.patch
-huge-pagecache-mmap_sem-is-unlocked-when-truncation-splits-pmd.patch
-arch-fix-has_transparent_hugepage.patch
+tmpfs-mem_cgroup-charge-fault-to-vm_mm-not-current-mm.patch
 
