@@ -1,30 +1,30 @@
 From: akpm@linux-foundation.org
-Subject: + genhd-move-to-use-generic-uuid-library.patch added to -mm tree
-Date: Tue, 05 Apr 2016 15:17:11 -0700
-Message-ID: <57043967.hwAv5xUZF1RTY7p+%akpm@linux-foundation.org>
+Subject: + sysctl-use-generic-uuid-library.patch added to -mm tree
+Date: Tue, 05 Apr 2016 15:17:05 -0700
+Message-ID: <57043961.p8PCJV5nC0C9Wy+K%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55263 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55230 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933819AbcDEWRN (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 18:17:13 -0400
+	with ESMTP id S933817AbcDEWRG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 18:17:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, arnd@arndb.de, axboe@kernel.dk, dmitry.kasatkin@gmail.com, linux@rasmusvillemoes.dk, matt@codeblueprint.co.uk, tytso@mit.edu, viro@zeniv.linux.org.uk, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/genhd.h: move to use generic UUID library
+     Subject: kernel/sysctl_binary.c: use generic UUID library
 has been added to the -mm tree.  Its filename is
-     genhd-move-to-use-generic-uuid-library.patch
+     sysctl-use-generic-uuid-library.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/genhd-move-to-use-generic-uuid-library.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/sysctl-use-generic-uuid-library.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/genhd-move-to-use-generic-uuid-library.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/sysctl-use-generic-uuid-library.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -39,7 +39,7 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: include/linux/genhd.h: move to use generic UUID library
+Subject: kernel/sysctl_binary.c: use generic UUID library
 
 UUID library provides uuid_be type and uuid_be_to_bin() function.  This
 substitutes open coded variant by generic library calls.
@@ -56,47 +56,72 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/genhd.h |   23 +++--------------------
- 1 file changed, 3 insertions(+), 20 deletions(-)
+ kernel/sysctl_binary.c |   23 +++++++----------------
+ 1 file changed, 7 insertions(+), 16 deletions(-)
 
-diff -puN include/linux/genhd.h~genhd-move-to-use-generic-uuid-library include/linux/genhd.h
---- a/include/linux/genhd.h~genhd-move-to-use-generic-uuid-library
-+++ a/include/linux/genhd.h
-@@ -14,6 +14,7 @@
- #include <linux/rcupdate.h>
- #include <linux/slab.h>
- #include <linux/percpu-refcount.h>
+diff -puN kernel/sysctl_binary.c~sysctl-use-generic-uuid-library kernel/sysctl_binary.c
+--- a/kernel/sysctl_binary.c~sysctl-use-generic-uuid-library
++++ a/kernel/sysctl_binary.c
+@@ -13,6 +13,7 @@
+ #include <linux/ctype.h>
+ #include <linux/netdevice.h>
+ #include <linux/kernel.h>
 +#include <linux/uuid.h>
+ #include <linux/slab.h>
+ #include <linux/compat.h>
  
- #ifdef CONFIG_BLOCK
+@@ -1117,9 +1118,8 @@ static ssize_t bin_uuid(struct file *fil
  
-@@ -93,7 +94,7 @@ struct disk_stats {
-  * Enough for the string representation of any kind of UUID plus NULL.
-  * EFI UUID is 36 characters. MSDOS UUID is 11 characters.
-  */
--#define PARTITION_META_INFO_UUIDLTH	37
-+#define PARTITION_META_INFO_UUIDLTH	(UUID_STRING_LEN + 1)
+ 	/* Only supports reads */
+ 	if (oldval && oldlen) {
+-		char buf[40], *str = buf;
+-		unsigned char uuid[16];
+-		int i;
++		char buf[UUID_STRING_LEN + 1];
++		uuid_be uuid;
  
- struct partition_meta_info {
- 	char uuid[PARTITION_META_INFO_UUIDLTH];
-@@ -228,27 +229,9 @@ static inline struct gendisk *part_to_di
- 	return NULL;
- }
+ 		result = kernel_read(file, 0, buf, sizeof(buf) - 1);
+ 		if (result < 0)
+@@ -1127,24 +1127,15 @@ static ssize_t bin_uuid(struct file *fil
  
--static inline void part_pack_uuid(const u8 *uuid_str, u8 *to)
--{
--	int i;
--	for (i = 0; i < 16; ++i) {
--		*to++ = (hex_to_bin(*uuid_str) << 4) |
--			(hex_to_bin(*(uuid_str + 1)));
--		uuid_str += 2;
--		switch (i) {
--		case 3:
--		case 5:
--		case 7:
--		case 9:
--			uuid_str++;
--			continue;
+ 		buf[result] = '\0';
+ 
+-		/* Convert the uuid to from a string to binary */
+-		for (i = 0; i < 16; i++) {
+-			result = -EIO;
+-			if (!isxdigit(str[0]) || !isxdigit(str[1]))
+-				goto out;
+-
+-			uuid[i] = (hex_to_bin(str[0]) << 4) |
+-					hex_to_bin(str[1]);
+-			str += 2;
+-			if (*str == '-')
+-				str++;
 -		}
--	}
--}
++		result = -EIO;
++		if (uuid_be_to_bin(buf, &uuid))
++			goto out;
+ 
+ 		if (oldlen > 16)
+ 			oldlen = 16;
+ 
+ 		result = -EFAULT;
+-		if (copy_to_user(oldval, uuid, oldlen))
++		if (copy_to_user(oldval, &uuid, oldlen))
+ 			goto out;
+ 
+ 		copied = oldlen;
+_
+
+Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
+
+lib-vsprintf-simplify-uuid-printing.patch
+ima-use-%pu-to-output-uuid-in-printable-format.patch
+lib-uuid-move-generate_random_uuid-to-uuidc.patch
+lib-uuid-introduce-few-more-generic-helpers-for-uuid.patch
+lib-uuid-remove-fsf-address.patch
+sysctl-use-generic-uuid-library.patch
+efi-redefine-type-constant-macro-from-generic-code.patch
+efivars-use-generic-uuid-library.patch
+genhd-move-to-use-generic-uuid-library.patch
+
