@@ -1,30 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + numa-fix-proc-pid-numa_maps-for-thp.patch added to -mm tree
-Date: Tue, 05 Apr 2016 13:20:35 -0700
-Message-ID: <57041e13.PZLyaLPSKjuUsyPG%akpm@linux-foundation.org>
+Subject: + mm-page_alloc-correct-highmem-memory-statistics.patch added to
+ -mm tree
+Date: Tue, 05 Apr 2016 13:30:04 -0700
+Message-ID: <5704204c.deDTpKoBgLzyy0RX%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49422 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49623 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752757AbcDEUUh (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 16:20:37 -0400
+	with ESMTP id S933626AbcDEUaG (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 16:30:06 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
-To: gerald.schaefer@de.ibm.com, dan.j.williams@intel.com, dave.hansen@intel.com, hannes@cmpxchg.org, heiko.carstens@de.ibm.com, holzheu@linux.vnet.ibm.com, jmarchan@redhat.com, kirill.shutemov@linux.intel.com, koct9i@gmail.com, mgorman@suse.de, mhocko@suse.com, n-horiguchi@ah.jp.nec.com, schwidefsky@de.ibm.com, stable@vger.kernel.org, vbabka@suse.cz, mm-commits@vger.kernel.org
+To: iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, riel@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: numa: fix /proc/<pid>/numa_maps for THP
+     Subject: mm/page_alloc: correct highmem memory statistics
 has been added to the -mm tree.  Its filename is
-     numa-fix-proc-pid-numa_maps-for-thp.patch
+     mm-page_alloc-correct-highmem-memory-statistics.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/numa-fix-proc-pid-numa_maps-for-thp.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-page_alloc-correct-highmem-memory-statistics.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/numa-fix-proc-pid-numa_maps-for-thp.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-page_alloc-correct-highmem-memory-statistics.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -38,176 +39,94 @@ The -mm tree is included into linux-next and is updated
 there every 3-4 working days
 
 ------------------------------------------------------
-From: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Subject: numa: fix /proc/<pid>/numa_maps for THP
+From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Subject: mm/page_alloc: correct highmem memory statistics
 
-In gather_pte_stats() a THP pmd is cast into a pte, which is wrong because
-the layouts may differ depending on the architecture.  On s390 this will
-lead to inaccurate numa_maps accounting in /proc because of misguided
-pte_present() and pte_dirty() checks on the fake pte.
+ZONE_MOVABLE could be treated as highmem so we need to consider it for
+accurate statistics.  And, in following patches, ZONE_CMA will be
+introduced and it can be treated as highmem, too.  So, instead of manually
+adding stat of ZONE_MOVABLE, looping all zones and check whether the zone
+is highmem or not and add stat of the zone which can be treated as
+highmem.
 
-On other architectures pte_present() and pte_dirty() may work by chance,
-but there may be an issue with direct-access (dax) mappings w/o underlying
-struct pages when HAVE_PTE_SPECIAL is set and THP is available.  In
-vm_normal_page() the fake pte will be checked with pte_special() and
-because there is no "special" bit in a pmd, this will always return false
-and the VM_PFNMAP | VM_MIXEDMAP checking will be skipped.  On dax mappings
-w/o struct pages, an invalid struct page pointer would then be returned
-that can crash the kernel.
-
-This patch fixes the numa_maps THP handling by introducing new "_pmd" variants
-of the can_gather_numa_stats() and vm_normal_page() functions.
-
-Signed-off-by: Gerald Schaefer <gerald.schaefer@de.ibm.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: "Kirill A . Shutemov" <kirill.shutemov@linux.intel.com>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>
-Cc: Michal Hocko <mhocko@suse.com>
-Cc: Vlastimil Babka <vbabka@suse.cz>
-Cc: Jerome Marchand <jmarchan@redhat.com>
+Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
+Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
+Cc: Rik van Riel <riel@redhat.com>
 Cc: Johannes Weiner <hannes@cmpxchg.org>
-Cc: Dave Hansen <dave.hansen@intel.com>
 Cc: Mel Gorman <mgorman@suse.de>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Martin Schwidefsky <schwidefsky@de.ibm.com>
-Cc: Heiko Carstens <heiko.carstens@de.ibm.com>
-Cc: Michael Holzheu <holzheu@linux.vnet.ibm.com>
-Cc: <stable@vger.kernel.org>	[4.3+]
+Cc: Laura Abbott <lauraa@codeaurora.org>
+Cc: Minchan Kim <minchan@kernel.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- fs/proc/task_mmu.c |   33 ++++++++++++++++++++++++++++++---
- include/linux/mm.h |    2 ++
- mm/memory.c        |   40 ++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 72 insertions(+), 3 deletions(-)
+ mm/page_alloc.c |   19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-diff -puN fs/proc/task_mmu.c~numa-fix-proc-pid-numa_maps-for-thp fs/proc/task_mmu.c
---- a/fs/proc/task_mmu.c~numa-fix-proc-pid-numa_maps-for-thp
-+++ a/fs/proc/task_mmu.c
-@@ -1518,6 +1518,32 @@ static struct page *can_gather_numa_stat
- 	return page;
- }
- 
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+static struct page *can_gather_numa_stats_pmd(pmd_t pmd,
-+					      struct vm_area_struct *vma,
-+					      unsigned long addr)
-+{
-+	struct page *page;
-+	int nid;
-+
-+	if (!pmd_present(pmd))
-+		return NULL;
-+
-+	page = vm_normal_page_pmd(vma, addr, pmd);
-+	if (!page)
-+		return NULL;
-+
-+	if (PageReserved(page))
-+		return NULL;
-+
-+	nid = page_to_nid(page);
-+	if (!node_isset(nid, node_states[N_MEMORY]))
-+		return NULL;
-+
-+	return page;
-+}
-+#endif
-+
- static int gather_pte_stats(pmd_t *pmd, unsigned long addr,
- 		unsigned long end, struct mm_walk *walk)
+diff -puN mm/page_alloc.c~mm-page_alloc-correct-highmem-memory-statistics mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-page_alloc-correct-highmem-memory-statistics
++++ a/mm/page_alloc.c
+@@ -3820,6 +3820,8 @@ void si_meminfo_node(struct sysinfo *val
  {
-@@ -1527,14 +1553,14 @@ static int gather_pte_stats(pmd_t *pmd,
- 	pte_t *orig_pte;
- 	pte_t *pte;
+ 	int zone_type;		/* needs to be signed */
+ 	unsigned long managed_pages = 0;
++	unsigned long managed_highpages = 0;
++	unsigned long free_highpages = 0;
+ 	pg_data_t *pgdat = NODE_DATA(nid);
  
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
- 	ptl = pmd_trans_huge_lock(pmd, vma);
- 	if (ptl) {
--		pte_t huge_pte = *(pte_t *)pmd;
- 		struct page *page;
- 
--		page = can_gather_numa_stats(huge_pte, vma, addr);
-+		page = can_gather_numa_stats_pmd(*pmd, vma, addr);
- 		if (page)
--			gather_stats(page, md, pte_dirty(huge_pte),
-+			gather_stats(page, md, pmd_dirty(*pmd),
- 				     HPAGE_PMD_SIZE/PAGE_SIZE);
- 		spin_unlock(ptl);
- 		return 0;
-@@ -1542,6 +1568,7 @@ static int gather_pte_stats(pmd_t *pmd,
- 
- 	if (pmd_trans_unstable(pmd))
- 		return 0;
-+#endif
- 	orig_pte = pte = pte_offset_map_lock(walk->mm, pmd, addr, &ptl);
- 	do {
- 		struct page *page = can_gather_numa_stats(*pte, vma, addr);
-diff -puN include/linux/mm.h~numa-fix-proc-pid-numa_maps-for-thp include/linux/mm.h
---- a/include/linux/mm.h~numa-fix-proc-pid-numa_maps-for-thp
-+++ a/include/linux/mm.h
-@@ -1140,6 +1140,8 @@ struct zap_details {
- 
- struct page *vm_normal_page(struct vm_area_struct *vma, unsigned long addr,
- 		pte_t pte);
-+struct page *vm_normal_page_pmd(struct vm_area_struct *vma, unsigned long addr,
-+				pmd_t pmd);
- 
- int zap_vma_ptes(struct vm_area_struct *vma, unsigned long address,
- 		unsigned long size);
-diff -puN mm/memory.c~numa-fix-proc-pid-numa_maps-for-thp mm/memory.c
---- a/mm/memory.c~numa-fix-proc-pid-numa_maps-for-thp
-+++ a/mm/memory.c
-@@ -789,6 +789,46 @@ out:
- 	return pfn_to_page(pfn);
- }
- 
-+#ifdef CONFIG_TRANSPARENT_HUGEPAGE
-+struct page *vm_normal_page_pmd(struct vm_area_struct *vma, unsigned long addr,
-+				pmd_t pmd)
-+{
-+	unsigned long pfn = pmd_pfn(pmd);
+ 	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++)
+@@ -3828,12 +3830,19 @@ void si_meminfo_node(struct sysinfo *val
+ 	val->sharedram = node_page_state(nid, NR_SHMEM);
+ 	val->freeram = node_page_state(nid, NR_FREE_PAGES);
+ #ifdef CONFIG_HIGHMEM
+-	val->totalhigh = pgdat->node_zones[ZONE_HIGHMEM].managed_pages;
+-	val->freehigh = zone_page_state(&pgdat->node_zones[ZONE_HIGHMEM],
+-			NR_FREE_PAGES);
++	for (zone_type = 0; zone_type < MAX_NR_ZONES; zone_type++) {
++		struct zone *zone = &pgdat->node_zones[zone_type];
 +
-+	/*
-+	 * There is no pmd_special() but there may be special pmds, e.g.
-+	 * in a direct-access (dax) mapping, so let's just replicate the
-+	 * !HAVE_PTE_SPECIAL case from vm_normal_page() here.
-+	 */
-+	if (unlikely(vma->vm_flags & (VM_PFNMAP|VM_MIXEDMAP))) {
-+		if (vma->vm_flags & VM_MIXEDMAP) {
-+			if (!pfn_valid(pfn))
-+				return NULL;
-+			goto out;
-+		} else {
-+			unsigned long off;
-+			off = (addr - vma->vm_start) >> PAGE_SHIFT;
-+			if (pfn == vma->vm_pgoff + off)
-+				return NULL;
-+			if (!is_cow_mapping(vma->vm_flags))
-+				return NULL;
++		if (is_highmem(zone)) {
++			managed_highpages += zone->managed_pages;
++			free_highpages += zone_page_state(zone, NR_FREE_PAGES);
 +		}
 +	}
-+
-+	if (is_zero_pfn(pfn))
-+		return NULL;
-+	if (unlikely(pfn > highest_memmap_pfn))
-+		return NULL;
-+
-+	/*
-+	 * NOTE! We still have PageReserved() pages in the page tables.
-+	 * eg. VDSO mappings can cause them to exist.
-+	 */
-+out:
-+	return pfn_to_page(pfn);
-+}
-+#endif
-+
- /*
-  * copy one vm_area from one task to the other. Assumes the page tables
-  * already present in the new task to be cleared in the whole range
++	val->totalhigh = managed_highpages;
++	val->freehigh = free_highpages;
+ #else
+-	val->totalhigh = 0;
+-	val->freehigh = 0;
++	val->totalhigh = managed_highpages;
++	val->freehigh = free_highpages;
+ #endif
+ 	val->mem_unit = PAGE_SIZE;
+ }
 _
 
-Patches currently in -mm which might be from gerald.schaefer@de.ibm.com are
+Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
 
-numa-fix-proc-pid-numa_maps-for-thp.patch
+mm-slab-hold-a-slab_mutex-when-calling-__kmem_cache_shrink.patch
+mm-slab-remove-bad_alien_magic-again.patch
+mm-slab-drain-the-free-slab-as-much-as-possible.patch
+mm-slab-factor-out-kmem_cache_node-initialization-code.patch
+mm-slab-clean-up-kmem_cache_node-setup.patch
+mm-slab-dont-keep-free-slabs-if-free_objects-exceeds-free_limit.patch
+mm-slab-racy-access-modify-the-slab-color.patch
+mm-slab-make-cache_grow-handle-the-page-allocated-on-arbitrary-node.patch
+mm-slab-separate-cache_grow-to-two-parts.patch
+mm-slab-refill-cpu-cache-through-a-new-slab-without-holding-a-node-lock.patch
+mm-slab-lockless-decision-to-grow-cache.patch
+mm-page_ref-use-page_ref-helper-instead-of-direct-modification-of-_count.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount.patch
+mm-rename-_count-field-of-the-struct-page-to-_refcount-fix-fix-fix.patch
+mm-hugetlb-add-same-zone-check-in-pfn_range_valid_gigantic.patch
+mm-memory_hotplug-add-comment-to-some-functions-related-to-memory-hotplug.patch
+mm-vmstat-add-zone-range-overlapping-check.patch
+mm-page_owner-add-zone-range-overlapping-check.patch
+power-add-zone-range-overlapping-check.patch
+mm-writeback-correct-dirty-page-calculation-for-highmem.patch
+mm-page_alloc-correct-highmem-memory-statistics.patch
+mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself.patch
+mm-vmstat-make-node_page_state-handles-all-zones-by-itself.patch
 
