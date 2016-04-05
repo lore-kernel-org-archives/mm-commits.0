@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself.patch added to -mm tree
-Date: Tue, 05 Apr 2016 13:30:06 -0700
-Message-ID: <5704204e.11aCPHHcg40K3YSx%akpm@linux-foundation.org>
+Subject: + mm-writeback-correct-dirty-page-calculation-for-highmem.patch
+ added to -mm tree
+Date: Tue, 05 Apr 2016 13:30:01 -0700
+Message-ID: <57042049.afFD2u267TPK4U8E%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:49634 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:49606 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933626AbcDEUaI (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 16:30:08 -0400
+	with ESMTP id S933626AbcDEUaE (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 16:30:04 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: iamjoonsoo.kim@lge.com, aneesh.kumar@linux.vnet.ibm.com, hannes@cmpxchg.org, lauraa@codeaurora.org, m.szyprowski@samsung.com, mgorman@suse.de, mina86@mina86.com, minchan@kernel.org, riel@redhat.com, vbabka@suse.cz, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm/highmem: make nr_free_highpages() handles all highmem zones by itself
+     Subject: mm/writeback: correct dirty page calculation for highmem
 has been added to the -mm tree.  Its filename is
-     mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself.patch
+     mm-writeback-correct-dirty-page-calculation-for-highmem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-writeback-correct-dirty-page-calculation-for-highmem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-writeback-correct-dirty-page-calculation-for-highmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +40,14 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Joonsoo Kim <iamjoonsoo.kim@lge.com>
-Subject: mm/highmem: make nr_free_highpages() handles all highmem zones by itself
+Subject: mm/writeback: correct dirty page calculation for highmem
 
-nr_free_highpages() manually adds statistics per each highmem zone and
-returns a total value for them.  Whenever we add a new highmem zone, we
-need to consider this function and it's really troublesome.  Make it
-handle all highmem zones by itself.
+ZONE_MOVABLE could be treated as highmem so we need to consider it for
+accurate calculation of dirty pages.  And, in following patches, ZONE_CMA
+will be introduced and it can be treated as highmem, too.  So, instead of
+manually adding stat of ZONE_MOVABLE, looping all zones and check whether
+the zone is highmem or not and add stat of the zone which can be treated
+as highmem.
 
 Signed-off-by: Joonsoo Kim <iamjoonsoo.kim@lge.com>
 Reviewed-by: Aneesh Kumar K.V <aneesh.kumar@linux.vnet.ibm.com>
@@ -60,33 +62,30 @@ Cc: Vlastimil Babka <vbabka@suse.cz>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/highmem.c |   12 ++++--------
- 1 file changed, 4 insertions(+), 8 deletions(-)
+ mm/page-writeback.c |    8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff -puN mm/highmem.c~mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself mm/highmem.c
---- a/mm/highmem.c~mm-highmem-make-nr_free_highpages-handles-all-highmem-zones-by-itself
-+++ a/mm/highmem.c
-@@ -112,16 +112,12 @@ EXPORT_PER_CPU_SYMBOL(__kmap_atomic_idx)
+diff -puN mm/page-writeback.c~mm-writeback-correct-dirty-page-calculation-for-highmem mm/page-writeback.c
+--- a/mm/page-writeback.c~mm-writeback-correct-dirty-page-calculation-for-highmem
++++ a/mm/page-writeback.c
+@@ -296,11 +296,15 @@ static unsigned long highmem_dirtyable_m
+ #ifdef CONFIG_HIGHMEM
+ 	int node;
+ 	unsigned long x = 0;
++	int i;
  
- unsigned int nr_free_highpages (void)
- {
--	pg_data_t *pgdat;
-+	struct zone *zone;
- 	unsigned int pages = 0;
+ 	for_each_node_state(node, N_HIGH_MEMORY) {
+-		struct zone *z = &NODE_DATA(node)->node_zones[ZONE_HIGHMEM];
++		for (i = 0; i < MAX_NR_ZONES; i++) {
++			struct zone *z = &NODE_DATA(node)->node_zones[i];
  
--	for_each_online_pgdat(pgdat) {
--		pages += zone_page_state(&pgdat->node_zones[ZONE_HIGHMEM],
--			NR_FREE_PAGES);
--		if (zone_movable_is_highmem())
--			pages += zone_page_state(
--					&pgdat->node_zones[ZONE_MOVABLE],
--					NR_FREE_PAGES);
-+	for_each_populated_zone(zone) {
-+		if (is_highmem(zone))
-+			pages += zone_page_state(zone, NR_FREE_PAGES);
+-		x += zone_dirtyable_memory(z);
++			if (is_highmem(z))
++				x += zone_dirtyable_memory(z);
++		}
  	}
- 
- 	return pages;
+ 	/*
+ 	 * Unreclaimable memory (kernel memory or anonymous memory
 _
 
 Patches currently in -mm which might be from iamjoonsoo.kim@lge.com are
