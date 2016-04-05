@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
+Subject: + mm-compaction-abstract-compaction-feedback-to-helpers.patch
  added to -mm tree
-Date: Tue, 05 Apr 2016 14:51:15 -0700
-Message-ID: <57043353.Q5gqriAut6AWb+Tk%akpm@linux-foundation.org>
+Date: Tue, 05 Apr 2016 14:51:25 -0700
+Message-ID: <5704335d.A92XUtdF706Bh9ea%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:53605 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:53661 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760520AbcDEVvW (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 17:51:22 -0400
+	with ESMTP id S1760506AbcDEVv1 (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 17:51:27 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: mhocko@suse.com, hillf.zj@alibaba-inc.com, js1304@gmail.com, mgorman@suse.de, penguin-kernel@I-love.SAKURA.ne.jp, rientjes@google.com, vbabka@suse.cz, vdavydov@virtuozzo.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: mm, compaction: cover all compaction mode in compact_zone
+     Subject: mm, compaction: Abstract compaction feedback to helpers
 has been added to the -mm tree.  Its filename is
-     mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
+     mm-compaction-abstract-compaction-feedback-to-helpers.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/mm-compaction-abstract-compaction-feedback-to-helpers.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-cover-all-compaction-mode-in-compact_zone.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/mm-compaction-abstract-compaction-feedback-to-helpers.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,62 +40,166 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Michal Hocko <mhocko@suse.com>
-Subject: mm, compaction: cover all compaction mode in compact_zone
+Subject: mm, compaction: Abstract compaction feedback to helpers
 
-the compiler is complaining after "mm, compaction: change COMPACT_
-constants into enum"
+Compaction can provide a wild variation of feedback to the caller.  Many
+of them are implementation specific and the caller of the compaction
+(especially the page allocator) shouldn't be bound to specifics of the
+current implementation.
 
-mm/compaction.c: In function `compact_zone':
-mm/compaction.c:1350:2: warning: enumeration value `COMPACT_DEFERRED' not handled in switch [-Wswitch]
-  switch (ret) {
-  ^
-mm/compaction.c:1350:2: warning: enumeration value `COMPACT_COMPLETE' not handled in switch [-Wswitch]
-mm/compaction.c:1350:2: warning: enumeration value `COMPACT_NO_SUITABLE_PAGE' not handled in switch [-Wswitch]
-mm/compaction.c:1350:2: warning: enumeration value `COMPACT_NOT_SUITABLE_ZONE' not handled in switch [-Wswitch]
-mm/compaction.c:1350:2: warning: enumeration value `COMPACT_CONTENDED' not handled in switch [-Wswitch]
-
-compaction_suitable is allowed to return only COMPACT_PARTIAL,
-COMPACT_SKIPPED and COMPACT_CONTINUE so other cases are simply impossible.
-Put a VM_BUG_ON to catch an impossible return value.
+This patch abstracts the feedback into three basic types:
+	- compaction_made_progress - compaction was active and made some
+	  progress.
+	- compaction_failed - compaction failed and further attempts to
+	  invoke it would most probably fail and therefore it is not
+	  worth retrying
+	- compaction_withdrawn - compaction wasn't invoked for an
+          implementation specific reasons. In the current implementation
+          it means that the compaction was deferred, contended or the
+          page scanners met too early without any progress. Retrying is
+          still worthwhile.
 
 Signed-off-by: Michal Hocko <mhocko@suse.com>
-Acked-by: Vlastimil Babka <vbabka@suse.cz>
-Acked-by: Hillf Danton <hillf.zj@alibaba-inc.com>
+Cc: Hillf Danton <hillf.zj@alibaba-inc.com>
 Cc: Joonsoo Kim <js1304@gmail.com>
 Cc: Mel Gorman <mgorman@suse.de>
 Cc: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Vlastimil Babka <vbabka@suse.cz>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Vladimir Davydov <vdavydov@virtuozzo.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- mm/compaction.c |   13 +++++--------
- 1 file changed, 5 insertions(+), 8 deletions(-)
+ include/linux/compaction.h |   74 +++++++++++++++++++++++++++++++++++
+ mm/page_alloc.c            |   25 ++---------
+ 2 files changed, 80 insertions(+), 19 deletions(-)
 
-diff -puN mm/compaction.c~mm-compaction-cover-all-compaction-mode-in-compact_zone mm/compaction.c
---- a/mm/compaction.c~mm-compaction-cover-all-compaction-mode-in-compact_zone
-+++ a/mm/compaction.c
-@@ -1428,15 +1428,12 @@ static enum compact_result compact_zone(
+diff -puN include/linux/compaction.h~mm-compaction-abstract-compaction-feedback-to-helpers include/linux/compaction.h
+--- a/include/linux/compaction.h~mm-compaction-abstract-compaction-feedback-to-helpers
++++ a/include/linux/compaction.h
+@@ -78,6 +78,70 @@ extern void compaction_defer_reset(struc
+ 				bool alloc_success);
+ extern bool compaction_restarting(struct zone *zone, int order);
  
- 	ret = compaction_suitable(zone, cc->order, cc->alloc_flags,
- 							cc->classzone_idx);
--	switch (ret) {
--	case COMPACT_PARTIAL:
--	case COMPACT_SKIPPED:
--		/* Compaction is likely to fail */
-+	/* Compaction is likely to fail */
-+	if (ret == COMPACT_PARTIAL || ret == COMPACT_SKIPPED)
- 		return ret;
--	case COMPACT_CONTINUE:
--		/* Fall through to compaction */
--		;
--	}
++/* Compaction has made some progress and retrying makes sense */
++static inline bool compaction_made_progress(enum compact_result result)
++{
++	/*
++	 * Even though this might sound confusing this in fact tells us
++	 * that the compaction successfully isolated and migrated some
++	 * pageblocks.
++	 */
++	if (result == COMPACT_PARTIAL)
++		return true;
 +
-+	/* huh, compaction_suitable is returning something unexpected */
-+	VM_BUG_ON(ret != COMPACT_CONTINUE);
++	return false;
++}
++
++/* Compaction has failed and it doesn't make much sense to keep retrying. */
++static inline bool compaction_failed(enum compact_result result)
++{
++	/* All zones where scanned completely and still not result. */
++	if (result == COMPACT_COMPLETE)
++		return true;
++
++	return false;
++}
++
++/*
++ * Compaction  has backed off for some reason. It might be throttling or
++ * lock contention. Retrying is still worthwhile.
++ */
++static inline bool compaction_withdrawn(enum compact_result result)
++{
++	/*
++	 * Compaction backed off due to watermark checks for order-0
++	 * so the regular reclaim has to try harder and reclaim something.
++	 */
++	if (result == COMPACT_SKIPPED)
++		return true;
++
++	/*
++	 * If compaction is deferred for high-order allocations, it is
++	 * because sync compaction recently failed. If this is the case
++	 * and the caller requested a THP allocation, we do not want
++	 * to heavily disrupt the system, so we fail the allocation
++	 * instead of entering direct reclaim.
++	 */
++	if (result == COMPACT_DEFERRED)
++		return true;
++
++	/*
++	 * If compaction in async mode encounters contention or blocks higher
++	 * priority task we back off early rather than cause stalls.
++	 */
++	if (result == COMPACT_CONTENDED)
++		return true;
++
++	/*
++	 * Page scanners have met but we haven't scanned full zones so this
++	 * is a back off in fact.
++	 */
++	if (result == COMPACT_PARTIAL_SKIPPED)
++		return true;
++
++	return false;
++}
++
+ extern int kcompactd_run(int nid);
+ extern void kcompactd_stop(int nid);
+ extern void wakeup_kcompactd(pg_data_t *pgdat, int order, int classzone_idx);
+@@ -113,6 +177,16 @@ static inline bool compaction_deferred(s
+ {
+ 	return true;
+ }
++
++static inline bool compaction_made_progress(enum compact_result result)
++{
++	return false;
++}
++
++static inline bool compaction_withdrawn(enum compact_result result)
++{
++	return true;
++}
+ 
+ static inline int kcompactd_run(int nid)
+ {
+diff -puN mm/page_alloc.c~mm-compaction-abstract-compaction-feedback-to-helpers mm/page_alloc.c
+--- a/mm/page_alloc.c~mm-compaction-abstract-compaction-feedback-to-helpers
++++ a/mm/page_alloc.c
+@@ -3366,25 +3366,12 @@ retry:
+ 	if (page)
+ 		goto got_pg;
+ 
+-	/* Checks for THP-specific high-order allocations */
+-	if (is_thp_gfp_mask(gfp_mask)) {
+-		/*
+-		 * If compaction is deferred for high-order allocations, it is
+-		 * because sync compaction recently failed. If this is the case
+-		 * and the caller requested a THP allocation, we do not want
+-		 * to heavily disrupt the system, so we fail the allocation
+-		 * instead of entering direct reclaim.
+-		 */
+-		if (compact_result == COMPACT_DEFERRED)
+-			goto nopage;
+-
+-		/*
+-		 * Compaction is contended so rather back off than cause
+-		 * excessive stalls.
+-		 */
+-		if(compact_result == COMPACT_CONTENDED)
+-			goto nopage;
+-	}
++	/*
++	 * Checks for THP-specific high-order allocations and back off
++	 * if the the compaction backed off
++	 */
++	if (is_thp_gfp_mask(gfp_mask) && compaction_withdrawn(compact_result))
++		goto nopage;
  
  	/*
- 	 * Clear pageblock skip if there were failures recently and compaction
+ 	 * It can become very expensive to allocate transparent hugepages at
 _
 
 Patches currently in -mm which might be from mhocko@suse.com are
