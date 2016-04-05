@@ -1,32 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: +
- huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd.patch added to
- -mm tree
-Date: Tue, 05 Apr 2016 16:16:29 -0700
-Message-ID: <5704474d.dDiu3uIlwRSkaY2V%akpm@linux-foundation.org>
+Subject: + huge-tmpfs-recovery-page-migration-call-back-into-shmem.patch
+ added to -mm tree
+Date: Tue, 05 Apr 2016 16:16:37 -0700
+Message-ID: <57044755.EWCxI83ET9glKiEY%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:57126 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:57179 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753195AbcDEXQa (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 19:16:30 -0400
+	with ESMTP id S1760067AbcDEXQj (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 19:16:39 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: hughd@google.com, aarcange@redhat.com, andreslc@google.com, kirill.shutemov@linux.intel.com, quning@gmail.com, rientjes@google.com, yang.shi@linaro.org, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: huge tmpfs recovery: shmem_recovery_remap & remap_team_by_pmd
+     Subject: huge tmpfs recovery: page migration call back into shmem
 has been added to the -mm tree.  Its filename is
-     huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd.patch
+     huge-tmpfs-recovery-page-migration-call-back-into-shmem.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/huge-tmpfs-recovery-page-migration-call-back-into-shmem.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/huge-tmpfs-recovery-page-migration-call-back-into-shmem.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -41,40 +40,17 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Hugh Dickins <hughd@google.com>
-Subject: huge tmpfs recovery: shmem_recovery_remap & remap_team_by_pmd
+Subject: huge tmpfs recovery: page migration call back into shmem
 
-And once we have a fully populated huge page, replace the pte mappings (by
-now already pointing into this huge page, as page migration has arranged)
-by a huge pmd mapping - not just in the mm which prompted this work, but
-in any other mm which might benefit from it.
+What we have works; but involves tricky "account_head" handling, and more
+trips around the shmem_recovery_populate() loop than I'm comfortable with.
 
-However, the transition from pte mappings to huge pmd mapping is a new
-one, which may surprise code elsewhere - pte_offset_map() and
-pte_offset_map_lock() in particular.  See the earlier discussion in "huge
-tmpfs: avoid premature exposure of new pagetable", but now we are forced
-to go beyond its solution.
+Tighten it all up with a MIGRATE_SHMEM_RECOVERY mode, and
+shmem_recovery_migrate_page() callout from migrate_page_move_mapping(), so
+that the migrated page can be made PageTeam immediately.
 
-The answer will be to put *pmd checking inside them, and examine whether a
-pagetable page could ever be recycled for another purpose before the pte
-lock is taken: the deposit/withdraw protocol, and mmap_sem conventions,
-work nicely against that danger; but special attention will have to be
-paid to MADV_DONTNEED's zap_huge_pmd() pte_free under down_read of
-mmap_sem.
-
-Avoid those complications for now: just use a rather unwelcome down_write
-or down_write_trylock of mmap_sem here in shmem_recovery_remap(), to
-exclude msyscalls or faults or ptrace or GUP or NUMA work or /proc access.
-rmap access is already excluded by our holding i_mmap_rwsem.  Fast GUP on
-x86 is made safe by the TLB flush in remap_team_by_pmd()'s
-pmdp_collapse_flush(), its IPIs as usual blocked by fast GUP's
-local_irq_disable().  Fast GUP on powerpc is made safe as usual by its RCU
-freeing of page tables (though zap_huge_pmd()'s pte_free appears to
-violate that, but if so it's an issue for anon THP too: investigate
-further later).
-
-Does remap_team_by_pmd() really need its mmu_notifier_invalidate_range
-pair?  The manner of mapping changes, but nothing is actually unmapped. 
-Of course, the same question can be asked of remap_team_by_ptes().
+Which allows the SHMEM_RETRY_HUGE_PAGE hugehint to be reintroduced, for
+what little that's worth.
 
 Signed-off-by: Hugh Dickins <hughd@google.com>
 Cc: "Kirill A. Shutemov" <kirill.shutemov@linux.intel.com>
@@ -86,203 +62,357 @@ Cc: David Rientjes <rientjes@google.com>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/pageteam.h |    2 
- mm/huge_memory.c         |   87 +++++++++++++++++++++++++++++++++++++
- mm/shmem.c               |   76 ++++++++++++++++++++++++++++++++
- 3 files changed, 165 insertions(+)
+ include/linux/migrate_mode.h   |    2 
+ include/linux/shmem_fs.h       |    6 +
+ include/trace/events/migrate.h |    3 
+ mm/migrate.c                   |   17 ++++-
+ mm/shmem.c                     |   99 ++++++++++++-------------------
+ 5 files changed, 62 insertions(+), 65 deletions(-)
 
-diff -puN include/linux/pageteam.h~huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd include/linux/pageteam.h
---- a/include/linux/pageteam.h~huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd
-+++ a/include/linux/pageteam.h
-@@ -313,6 +313,8 @@ void unmap_team_by_pmd(struct vm_area_st
- 			unsigned long addr, pmd_t *pmd, struct page *page);
- void remap_team_by_ptes(struct vm_area_struct *vma,
- 			unsigned long addr, pmd_t *pmd);
-+void remap_team_by_pmd(struct vm_area_struct *vma,
-+			unsigned long addr, pmd_t *pmd, struct page *page);
- #else
- static inline int map_team_by_pmd(struct vm_area_struct *vma,
- 			unsigned long addr, pmd_t *pmd, struct page *page)
-diff -puN mm/huge_memory.c~huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd mm/huge_memory.c
---- a/mm/huge_memory.c~huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd
-+++ a/mm/huge_memory.c
-@@ -3704,3 +3704,90 @@ raced:
- 	spin_unlock(pml);
- 	mmu_notifier_invalidate_range_end(mm, addr, end);
- }
-+
-+void remap_team_by_pmd(struct vm_area_struct *vma, unsigned long addr,
-+		       pmd_t *pmd, struct page *head)
+diff -puN include/linux/migrate_mode.h~huge-tmpfs-recovery-page-migration-call-back-into-shmem include/linux/migrate_mode.h
+--- a/include/linux/migrate_mode.h~huge-tmpfs-recovery-page-migration-call-back-into-shmem
++++ a/include/linux/migrate_mode.h
+@@ -6,11 +6,13 @@
+  *	on most operations but not ->writepage as the potential stall time
+  *	is too significant
+  * MIGRATE_SYNC will block when migrating pages
++ * MIGRATE_SHMEM_RECOVERY is a MIGRATE_SYNC specific to huge tmpfs recovery.
+  */
+ enum migrate_mode {
+ 	MIGRATE_ASYNC,
+ 	MIGRATE_SYNC_LIGHT,
+ 	MIGRATE_SYNC,
++	MIGRATE_SHMEM_RECOVERY,
+ };
+ 
+ #endif		/* MIGRATE_MODE_H_INCLUDED */
+diff -puN include/linux/shmem_fs.h~huge-tmpfs-recovery-page-migration-call-back-into-shmem include/linux/shmem_fs.h
+--- a/include/linux/shmem_fs.h~huge-tmpfs-recovery-page-migration-call-back-into-shmem
++++ a/include/linux/shmem_fs.h
+@@ -85,6 +85,7 @@ static inline long shmem_fcntl(struct fi
+ #endif /* CONFIG_TMPFS */
+ 
+ #if defined(CONFIG_TRANSPARENT_HUGEPAGE) && defined(CONFIG_SHMEM)
++extern bool shmem_recovery_migrate_page(struct page *new, struct page *page);
+ # ifdef CONFIG_SYSCTL
+ struct ctl_table;
+ extern int shmem_huge, shmem_huge_min, shmem_huge_max;
+@@ -92,6 +93,11 @@ extern int shmem_huge_recoveries;
+ extern int shmem_huge_sysctl(struct ctl_table *table, int write,
+ 			     void __user *buffer, size_t *lenp, loff_t *ppos);
+ # endif /* CONFIG_SYSCTL */
++#else
++static inline bool shmem_recovery_migrate_page(struct page *new, struct page *p)
 +{
-+	struct mm_struct *mm = vma->vm_mm;
-+	struct page *page = head;
-+	pgtable_t pgtable;
-+	unsigned long end;
-+	spinlock_t *pml;
-+	spinlock_t *ptl;
-+	pmd_t pmdval;
-+	pte_t *pte;
-+	int rss = 0;
-+
-+	VM_BUG_ON_PAGE(!PageTeam(head), head);
-+	VM_BUG_ON_PAGE(!PageLocked(head), head);
-+	VM_BUG_ON(addr & ~HPAGE_PMD_MASK);
-+	end = addr + HPAGE_PMD_SIZE;
-+
-+	mmu_notifier_invalidate_range_start(mm, addr, end);
-+	pml = pmd_lock(mm, pmd);
-+	pmdval = *pmd;
-+	/* I don't see how this can happen now, but be defensive */
-+	if (pmd_trans_huge(pmdval) || pmd_none(pmdval))
-+		goto out;
-+
-+	ptl = pte_lockptr(mm, pmd);
-+	if (ptl != pml)
-+		spin_lock(ptl);
-+
-+	pgtable = pmd_pgtable(pmdval);
-+	pmdval = mk_pmd(head, vma->vm_page_prot);
-+	pmdval = pmd_mkhuge(pmd_mkdirty(pmdval));
-+
-+	/* Perhaps wise to mark head as mapped before removing pte rmaps */
-+	page_add_file_rmap(head);
-+
-+	/*
-+	 * Just as remap_team_by_ptes() would prefer to fill the page table
-+	 * earlier, remap_team_by_pmd() would prefer to empty it later; but
-+	 * ppc64's variant of the deposit/withdraw protocol prevents that.
-+	 */
-+	pte = pte_offset_map(pmd, addr);
-+	do {
-+		if (pte_none(*pte))
-+			continue;
-+
-+		VM_BUG_ON(!pte_present(*pte));
-+		VM_BUG_ON(pte_page(*pte) != page);
-+
-+		pte_clear(mm, addr, pte);
-+		page_remove_rmap(page, false);
-+		put_page(page);
-+		rss++;
-+	} while (pte++, page++, addr += PAGE_SIZE, addr != end);
-+
-+	pte -= HPAGE_PMD_NR;
-+	addr -= HPAGE_PMD_SIZE;
-+
-+	if (rss) {
-+		pmdp_collapse_flush(vma, addr, pmd);
-+		pgtable_trans_huge_deposit(mm, pmd, pgtable);
-+		set_pmd_at(mm, addr, pmd, pmdval);
-+		update_mmu_cache_pmd(vma, addr, pmd);
-+		get_page(head);
-+		page_add_team_rmap(head);
-+		add_mm_counter(mm, MM_SHMEMPAGES, HPAGE_PMD_NR - rss);
-+	} else {
-+		/*
-+		 * Hmm.  We might have caught this vma in between unmap_vmas()
-+		 * and free_pgtables(), which is a surprising time to insert a
-+		 * huge page.  Before our caller checked mm_users, I sometimes
-+		 * saw a "bad pmd" report, and pgtable_pmd_page_dtor() BUG on
-+		 * pmd_huge_pte, when killing off tests.  But checking mm_users
-+		 * is not enough to protect against munmap(): so for safety,
-+		 * back out if we found no ptes to replace.
-+		 */
-+		page_remove_rmap(head, false);
-+	}
-+
-+	if (ptl != pml)
-+		spin_unlock(ptl);
-+	pte_unmap(pte);
-+out:
-+	spin_unlock(pml);
-+	mmu_notifier_invalidate_range_end(mm, addr, end);
++	return true;	/* Never called: true will optimize out the fallback */
 +}
-diff -puN mm/shmem.c~huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd mm/shmem.c
---- a/mm/shmem.c~huge-tmpfs-recovery-shmem_recovery_remap-remap_team_by_pmd
-+++ a/mm/shmem.c
-@@ -1097,6 +1097,82 @@ unlock:
+ #endif /* CONFIG_TRANSPARENT_HUGEPAGE && CONFIG_SHMEM */
  
- static void shmem_recovery_remap(struct recovery *recovery, struct page *head)
- {
-+	struct mm_struct *mm = recovery->mm;
-+	struct address_space *mapping = head->mapping;
-+	pgoff_t pgoff = head->index;
-+	struct vm_area_struct *vma;
-+	unsigned long addr;
-+	pmd_t *pmd;
-+	bool try_other_mms = false;
-+
-+	/*
-+	 * XXX: This use of mmap_sem is regrettable.  It is needed for one
-+	 * reason only: because callers of pte_offset_map(_lock)() are not
-+	 * prepared for a huge pmd to appear in place of a page table at any
-+	 * instant.  That can be fixed in pte_offset_map(_lock)() and callers,
-+	 * but that is a more invasive change, so just do it this way for now.
-+	 */
-+	down_write(&mm->mmap_sem);
-+	lock_page(head);
-+	if (!PageTeam(head)) {
-+		unlock_page(head);
-+		up_write(&mm->mmap_sem);
-+		return;
-+	}
-+	VM_BUG_ON_PAGE(!PageChecked(head), head);
-+	i_mmap_lock_write(mapping);
-+	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
-+		/* XXX: Use anon_vma as over-strict hint of COWed pages */
-+		if (vma->anon_vma)
-+			continue;
-+		addr = vma_address(head, vma);
-+		if (addr & (HPAGE_PMD_SIZE-1))
-+			continue;
-+		if (vma->vm_end < addr + HPAGE_PMD_SIZE)
-+			continue;
-+		if (!atomic_read(&vma->vm_mm->mm_users))
-+			continue;
-+		if (vma->vm_mm != mm) {
-+			try_other_mms = true;
-+			continue;
+ #endif
+diff -puN include/trace/events/migrate.h~huge-tmpfs-recovery-page-migration-call-back-into-shmem include/trace/events/migrate.h
+--- a/include/trace/events/migrate.h~huge-tmpfs-recovery-page-migration-call-back-into-shmem
++++ a/include/trace/events/migrate.h
+@@ -9,7 +9,8 @@
+ #define MIGRATE_MODE						\
+ 	EM( MIGRATE_ASYNC,	"MIGRATE_ASYNC")		\
+ 	EM( MIGRATE_SYNC_LIGHT,	"MIGRATE_SYNC_LIGHT")		\
+-	EMe(MIGRATE_SYNC,	"MIGRATE_SYNC")
++	EM( MIGRATE_SYNC,	"MIGRATE_SYNC")			\
++	EMe(MIGRATE_SHMEM_RECOVERY, "MIGRATE_SHMEM_RECOVERY")
+ 
+ 
+ #define MIGRATE_REASON						\
+diff -puN mm/migrate.c~huge-tmpfs-recovery-page-migration-call-back-into-shmem mm/migrate.c
+--- a/mm/migrate.c~huge-tmpfs-recovery-page-migration-call-back-into-shmem
++++ a/mm/migrate.c
+@@ -23,6 +23,7 @@
+ #include <linux/pagevec.h>
+ #include <linux/ksm.h>
+ #include <linux/rmap.h>
++#include <linux/shmem_fs.h>
+ #include <linux/topology.h>
+ #include <linux/cpu.h>
+ #include <linux/cpuset.h>
+@@ -371,6 +372,15 @@ int migrate_page_move_mapping(struct add
+ 		return -EAGAIN;
+ 	}
+ 
++	if (mode == MIGRATE_SHMEM_RECOVERY) {
++		if (!shmem_recovery_migrate_page(newpage, page)) {
++			page_ref_unfreeze(page, expected_count);
++			spin_unlock_irq(&mapping->tree_lock);
++			return -ENOMEM;	/* quit migrate_pages() immediately */
 +		}
-+		/* Only replace existing ptes: empty pmd can fault for itself */
-+		pmd = mm_find_pmd(vma->vm_mm, addr);
-+		if (!pmd)
-+			continue;
-+		remap_team_by_pmd(vma, addr, pmd, head);
-+		shr_stats(remap_faulter);
-+	}
-+	up_write(&mm->mmap_sem);
-+	if (!try_other_mms)
-+		goto out;
-+	vma_interval_tree_foreach(vma, &mapping->i_mmap, pgoff, pgoff) {
-+		if (vma->vm_mm == mm)
-+			continue;
-+		/* XXX: Use anon_vma as over-strict hint of COWed pages */
-+		if (vma->anon_vma)
-+			continue;
-+		addr = vma_address(head, vma);
-+		if (addr & (HPAGE_PMD_SIZE-1))
-+			continue;
-+		if (vma->vm_end < addr + HPAGE_PMD_SIZE)
-+			continue;
-+		if (!atomic_read(&vma->vm_mm->mm_users))
-+			continue;
-+		/* Only replace existing ptes: empty pmd can fault for itself */
-+		pmd = mm_find_pmd(vma->vm_mm, addr);
-+		if (!pmd)
-+			continue;
-+		if (down_write_trylock(&vma->vm_mm->mmap_sem)) {
-+			remap_team_by_pmd(vma, addr, pmd, head);
-+			shr_stats(remap_another);
-+			up_write(&vma->vm_mm->mmap_sem);
-+		} else
-+			shr_stats(remap_untried);
-+	}
-+out:
-+	i_mmap_unlock_write(mapping);
-+	unlock_page(head);
++	} else
++		get_page(newpage);	/* add cache reference */
++
+ 	/*
+ 	 * Now we know that no one else is looking at the page:
+ 	 * no turning back from here.
+@@ -380,7 +390,6 @@ int migrate_page_move_mapping(struct add
+ 	if (PageSwapBacked(page))
+ 		__SetPageSwapBacked(newpage);
+ 
+-	get_page(newpage);	/* add cache reference */
+ 	if (PageSwapCache(page)) {
+ 		SetPageSwapCache(newpage);
+ 		set_page_private(newpage, page_private(page));
+@@ -786,7 +795,7 @@ static int move_to_new_page(struct page
  }
  
- static void shmem_recovery_work(struct work_struct *work)
+ static int __unmap_and_move(struct page *page, struct page *newpage,
+-		int force, enum migrate_mode mode, enum migrate_reason reason)
++				int force, enum migrate_mode mode)
+ {
+ 	int rc = -EAGAIN;
+ 	int page_was_mapped = 0;
+@@ -821,7 +830,7 @@ static int __unmap_and_move(struct page
+ 	 * already in use, on lru, with data newly written for that offset.
+ 	 * We can only be sure of this check once we have the page locked.
+ 	 */
+-	if (reason == MR_SHMEM_RECOVERY && !page->mapping) {
++	if (mode == MIGRATE_SHMEM_RECOVERY && !page->mapping) {
+ 		rc = -ENOMEM;	/* quit migrate_pages() immediately */
+ 		goto out_unlock;
+ 	}
+@@ -973,7 +982,7 @@ static ICE_noinline int unmap_and_move(n
+ 			goto out;
+ 	}
+ 
+-	rc = __unmap_and_move(page, newpage, force, mode, reason);
++	rc = __unmap_and_move(page, newpage, force, mode);
+ 	if (rc == MIGRATEPAGE_SUCCESS) {
+ 		put_new_page = NULL;
+ 		set_page_owner_migrate_reason(newpage, reason);
+diff -puN mm/shmem.c~huge-tmpfs-recovery-page-migration-call-back-into-shmem mm/shmem.c
+--- a/mm/shmem.c~huge-tmpfs-recovery-page-migration-call-back-into-shmem
++++ a/mm/shmem.c
+@@ -306,6 +306,7 @@ static bool shmem_confirm_swap(struct ad
+ /* hugehint values: NULL to choose a small page always */
+ #define SHMEM_ALLOC_SMALL_PAGE	((struct page *)1)
+ #define SHMEM_ALLOC_HUGE_PAGE	((struct page *)2)
++#define SHMEM_RETRY_HUGE_PAGE	((struct page *)3)
+ /* otherwise hugehint is the hugeteam page to be used */
+ 
+ /* tag for shrinker to locate unfilled hugepages */
+@@ -368,20 +369,6 @@ restart:
+ 			put_page(page);
+ 		return SHMEM_ALLOC_SMALL_PAGE;
+ 	}
+-	if (PageSwapBacked(page)) {
+-		if (speculative)
+-			put_page(page);
+-		/*
+-		 * This is very often a case of two tasks racing to instantiate
+-		 * the same hole in the huge page, and we don't particularly
+-		 * want to allocate a small page.  But holepunch racing with
+-		 * recovery migration, in between migrating to the page and
+-		 * marking it team, can leave a PageSwapBacked NULL mapping
+-		 * page here which we should avoid, and this is the easiest
+-		 * way to handle all the cases correctly.
+-		 */
+-		return SHMEM_ALLOC_SMALL_PAGE;
+-	}
+ 	return page;
+ }
+ 
+@@ -784,7 +771,6 @@ struct recovery {
+ 	struct inode *inode;
+ 	struct page *page;
+ 	pgoff_t head_index;
+-	struct page *migrated_head;
+ 	bool exposed_team;
+ };
+ 
+@@ -988,8 +974,7 @@ static void shmem_recovery_swapin(struct
+ static struct page *shmem_get_recovery_page(struct page *page,
+ 					unsigned long private, int **result)
+ {
+-	struct recovery *recovery = (struct recovery *)private;
+-	struct page *head = recovery->page;
++	struct page *head = (struct page *)private;
+ 	struct page *newpage = head + (page->index & (HPAGE_PMD_NR-1));
+ 
+ 	/* Increment refcount to match other routes through recovery_populate */
+@@ -999,19 +984,33 @@ static struct page *shmem_get_recovery_p
+ 		put_page(newpage);
+ 		return NULL;
+ 	}
+-	/* Note when migrating to head: tricky case because already PageTeam */
+-	if (newpage == head)
+-		recovery->migrated_head = head;
+ 	return newpage;
+ }
+ 
+-static void shmem_put_recovery_page(struct page *newpage, unsigned long private)
++/*
++ * shmem_recovery_migrate_page() is called from the heart of page migration's
++ * migrate_page_move_mapping(): with interrupts disabled, mapping->tree_lock
++ * held, page's reference count frozen to 0, and no other reason to turn back.
++ */
++bool shmem_recovery_migrate_page(struct page *newpage, struct page *page)
+ {
+-	struct recovery *recovery = (struct recovery *)private;
++	struct page *head = newpage - (page->index & (HPAGE_PMD_NR-1));
++
++	if (!PageTeam(head))
++		return false;
++	if (newpage != head) {
++		/* Needs to be initialized before shmem_added_to_hugeteam() */
++		atomic_long_set(&newpage->team_usage, TEAM_LRU_WEIGHT_ONE);
++		SetPageTeam(newpage);
++		newpage->mapping = page->mapping;
++		newpage->index = page->index;
++	}
++	shmem_added_to_hugeteam(newpage, page_zone(newpage), NULL);
++	return true;
++}
+ 
+-	/* Must reset migrated_head if in the end it was not used */
+-	if (recovery->migrated_head == newpage)
+-		recovery->migrated_head = NULL;
++static void shmem_put_recovery_page(struct page *newpage, unsigned long private)
++{
+ 	/* Decrement refcount again if newpage was not used */
+ 	put_page(newpage);
+ }
+@@ -1024,9 +1023,7 @@ static int shmem_recovery_populate(struc
+ 	struct zone *zone = page_zone(head);
+ 	pgoff_t index;
+ 	bool drained_all = false;
+-	bool account_head = false;
+-	int migratable;
+-	int unmigratable;
++	int unmigratable = 0;
+ 	struct page *team;
+ 	struct page *endteam = head + HPAGE_PMD_NR;
+ 	struct page *page;
+@@ -1039,12 +1036,9 @@ static int shmem_recovery_populate(struc
+ 
+ 	shmem_recovery_swapin(recovery, head);
+ again:
+-	migratable = 0;
+-	unmigratable = 0;
+ 	index = recovery->head_index;
+ 	for (team = head; team < endteam && !error; index++, team++) {
+-		if (PageTeam(team) && PageUptodate(team) && PageDirty(team) &&
+-		    !account_head)
++		if (PageTeam(team) && PageUptodate(team) && PageDirty(team))
+ 			continue;
+ 
+ 		page = team;	/* used as hint if not yet instantiated */
+@@ -1070,8 +1064,7 @@ again:
+ 			 */
+ 			if (page != team)
+ 				error = -ENOENT;
+-			if (error || !account_head)
+-				goto unlock;
++			goto unlock;
+ 		}
+ 
+ 		if (PageSwapBacked(team) && page != team) {
+@@ -1098,8 +1091,6 @@ again:
+ 			SetPageTeam(head);
+ 			head->mapping = mapping;
+ 			head->index = index;
+-			if (page == head)
+-				account_head = true;
+ 		}
+ 
+ 		/* Eviction or truncation or hole-punch already disbanded? */
+@@ -1132,12 +1123,9 @@ again:
+ 							TEAM_LRU_WEIGHT_ONE);
+ 					SetPageTeam(page);
+ 				}
+-				if (page != head || account_head) {
+-					shmem_added_to_hugeteam(page, zone,
+-								NULL);
+-					put_page(page);
+-					shr_stats(page_teamed);
+-				}
++				shmem_added_to_hugeteam(page, zone, NULL);
++				put_page(page);
++				shr_stats(page_teamed);
+ 			}
+ 			spin_unlock_irq(&mapping->tree_lock);
+ 			if (page_mapped(page)) {
+@@ -1145,16 +1133,13 @@ again:
+ 				page_remove_rmap(page, false);
+ 				preempt_enable();
+ 			}
+-			account_head = false;
+ 		} else {
+-			VM_BUG_ON(account_head);
+ 			if (!PageLRU(page))
+ 				lru_add_drain();
+ 			if (isolate_lru_page(page) == 0) {
+ 				inc_zone_page_state(page, NR_ISOLATED_ANON);
+ 				list_add_tail(&page->lru, &migrate);
+ 				shr_stats(page_migrate);
+-				migratable++;
+ 			} else {
+ 				shr_stats(page_off_lru);
+ 				unmigratable++;
+@@ -1169,12 +1154,9 @@ unlock:
+ 	if (!list_empty(&migrate)) {
+ 		lru_add_drain(); /* not necessary but may help debugging */
+ 		if (!error) {
+-			VM_BUG_ON(recovery->page != head);
+-			recovery->migrated_head = NULL;
+ 			nr = migrate_pages(&migrate, shmem_get_recovery_page,
+-				shmem_put_recovery_page, (unsigned long)
+-				recovery, MIGRATE_SYNC, MR_SHMEM_RECOVERY);
+-			account_head = !!recovery->migrated_head;
++				shmem_put_recovery_page, (unsigned long)head,
++				MIGRATE_SHMEM_RECOVERY, MR_SHMEM_RECOVERY);
+ 			if (nr < 0) {
+ 				/*
+ 				 * If migrate_pages() returned error (-ENOMEM)
+@@ -1189,7 +1171,6 @@ unlock:
+ 			if (nr > 0) {
+ 				shr_stats_add(page_unmigrated, nr);
+ 				unmigratable += nr;
+-				migratable -= nr;
+ 			}
+ 		}
+ 		putback_movable_pages(&migrate);
+@@ -1208,10 +1189,6 @@ unlock:
+ 			shr_stats(recov_retried);
+ 			goto again;
+ 		}
+-		if (migratable) {
+-			/* Make another pass to SetPageTeam on them */
+-			goto again;
+-		}
+ 	}
+ 
+ 	lock_page(head);
+@@ -2687,11 +2664,9 @@ static struct page *shmem_alloc_page(gfp
+ 			 * add_to_page_cache has the tree_lock.
+ 			 */
+ 			lock_page(page);
+-			if (!PageSwapBacked(page) && PageTeam(head))
+-				goto out;
+-			unlock_page(page);
+-			put_page(page);
+-			*hugehint = SHMEM_ALLOC_SMALL_PAGE;
++			if (PageSwapBacked(page) || !PageTeam(head))
++				*hugehint = SHMEM_RETRY_HUGE_PAGE;
++			goto out;
+ 		}
+ 	}
+ 
+@@ -2991,6 +2966,10 @@ repeat:
+ 			error = -ENOMEM;
+ 			goto decused;
+ 		}
++		if (hugehint == SHMEM_RETRY_HUGE_PAGE) {
++			error = -EEXIST;
++			goto decused;
++		}
+ 		if (sgp == SGP_WRITE)
+ 			__SetPageReferenced(page);
+ memcg:
 _
 
 Patches currently in -mm which might be from hughd@google.com are
