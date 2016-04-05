@@ -1,31 +1,31 @@
 From: akpm@linux-foundation.org
-Subject: + efi-redefine-type-constant-macro-from-generic-code.patch added
- to -mm tree
-Date: Tue, 05 Apr 2016 15:17:07 -0700
-Message-ID: <57043963.crb5eSP1NTBL0rLP%akpm@linux-foundation.org>
+Subject: + lib-uuid-move-generate_random_uuid-to-uuidc.patch added to -mm
+ tree
+Date: Tue, 05 Apr 2016 15:16:59 -0700
+Message-ID: <5704395b.Q+tggEdEtSij+3AS%akpm@linux-foundation.org>
 Reply-To: linux-kernel@vger.kernel.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <mm-commits-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:55244 "EHLO
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55206 "EHLO
 	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933753AbcDEWRJ (ORCPT
-	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 18:17:09 -0400
+	with ESMTP id S933819AbcDEWRK (ORCPT
+	<rfc822;mm-commits@vger.kernel.org>); Tue, 5 Apr 2016 18:17:10 -0400
 Sender: mm-commits-owner@vger.kernel.org
 List-Id: mm-commits@vger.kernel.org
 To: andriy.shevchenko@linux.intel.com, arnd@arndb.de, axboe@kernel.dk, dmitry.kasatkin@gmail.com, linux@rasmusvillemoes.dk, matt@codeblueprint.co.uk, tytso@mit.edu, viro@zeniv.linux.org.uk, zohar@linux.vnet.ibm.com, mm-commits@vger.kernel.org
 
 
 The patch titled
-     Subject: include/linux/efi.h: redefine type, constant, macro from generic code
+     Subject: lib/uuid.c: move generate_random_uuid() to uuid.c
 has been added to the -mm tree.  Its filename is
-     efi-redefine-type-constant-macro-from-generic-code.patch
+     lib-uuid-move-generate_random_uuid-to-uuidc.patch
 
 This patch should soon appear at
-    http://ozlabs.org/~akpm/mmots/broken-out/efi-redefine-type-constant-macro-from-generic-code.patch
+    http://ozlabs.org/~akpm/mmots/broken-out/lib-uuid-move-generate_random_uuid-to-uuidc.patch
 and later at
-    http://ozlabs.org/~akpm/mmotm/broken-out/efi-redefine-type-constant-macro-from-generic-code.patch
+    http://ozlabs.org/~akpm/mmotm/broken-out/lib-uuid-move-generate_random_uuid-to-uuidc.patch
 
 Before you just go and hit "reply", please:
    a) Consider who else should be cc'ed
@@ -40,12 +40,9 @@ there every 3-4 working days
 
 ------------------------------------------------------
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: include/linux/efi.h: redefine type, constant, macro from generic code
+Subject: lib/uuid.c: move generate_random_uuid() to uuid.c
 
-Generic UUID library defines structure type, macro to define UUID, and the
-length of the UUID string.  This patch removes duplicate data structure
-definition, UUID string length constant as well as macro for UUID
-handling.
+Let's gather the UUID related functions under one hood.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 Reviewed-by: Matt Fleming <matt@codeblueprint.co.uk>
@@ -59,49 +56,177 @@ Cc: Jens Axboe <axboe@kernel.dk>
 Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
 ---
 
- include/linux/efi.h |   14 ++++----------
- 1 file changed, 4 insertions(+), 10 deletions(-)
+ drivers/char/random.c  |   21 +--------------------
+ fs/btrfs/volumes.c     |    2 +-
+ fs/ext4/ioctl.c        |    2 +-
+ fs/f2fs/file.c         |    2 +-
+ fs/reiserfs/objectid.c |    2 +-
+ fs/ubifs/sb.c          |    2 +-
+ include/linux/random.h |    1 -
+ include/linux/uuid.h   |    2 ++
+ lib/uuid.c             |   20 ++++++++++++++++++++
+ 9 files changed, 28 insertions(+), 26 deletions(-)
 
-diff -puN include/linux/efi.h~efi-redefine-type-constant-macro-from-generic-code include/linux/efi.h
---- a/include/linux/efi.h~efi-redefine-type-constant-macro-from-generic-code
-+++ a/include/linux/efi.h
-@@ -21,6 +21,7 @@
- #include <linux/pfn.h>
- #include <linux/pstore.h>
- #include <linux/reboot.h>
+diff -puN drivers/char/random.c~lib-uuid-move-generate_random_uuid-to-uuidc drivers/char/random.c
+--- a/drivers/char/random.c~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/drivers/char/random.c
+@@ -260,6 +260,7 @@
+ #include <linux/irq.h>
+ #include <linux/syscalls.h>
+ #include <linux/completion.h>
 +#include <linux/uuid.h>
  
- #include <asm/page.h>
+ #include <asm/processor.h>
+ #include <asm/uaccess.h>
+@@ -1621,26 +1622,6 @@ SYSCALL_DEFINE3(getrandom, char __user *
+ 	return urandom_read(NULL, buf, count, NULL);
+ }
  
-@@ -43,17 +44,10 @@ typedef u16 efi_char16_t;		/* UNICODE ch
- typedef u64 efi_physical_addr_t;
- typedef void *efi_handle_t;
- 
+-/***************************************************************
+- * Random UUID interface
+- *
+- * Used here for a Boot ID, but can be useful for other kernel
+- * drivers.
+- ***************************************************************/
 -
--typedef struct {
--	u8 b[16];
--} efi_guid_t;
-+typedef uuid_le efi_guid_t;
+-/*
+- * Generate random UUID
+- */
+-void generate_random_uuid(unsigned char uuid_out[16])
+-{
+-	get_random_bytes(uuid_out, 16);
+-	/* Set UUID version to 4 --- truly random generation */
+-	uuid_out[6] = (uuid_out[6] & 0x0F) | 0x40;
+-	/* Set the UUID variant to DCE */
+-	uuid_out[8] = (uuid_out[8] & 0x3F) | 0x80;
+-}
+-EXPORT_SYMBOL(generate_random_uuid);
+-
+ /********************************************************************
+  *
+  * Sysctl interface
+diff -puN fs/btrfs/volumes.c~lib-uuid-move-generate_random_uuid-to-uuidc fs/btrfs/volumes.c
+--- a/fs/btrfs/volumes.c~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/fs/btrfs/volumes.c
+@@ -20,13 +20,13 @@
+ #include <linux/slab.h>
+ #include <linux/buffer_head.h>
+ #include <linux/blkdev.h>
+-#include <linux/random.h>
+ #include <linux/iocontext.h>
+ #include <linux/capability.h>
+ #include <linux/ratelimit.h>
+ #include <linux/kthread.h>
+ #include <linux/raid/pq.h>
+ #include <linux/semaphore.h>
++#include <linux/uuid.h>
+ #include <asm/div64.h>
+ #include "ctree.h"
+ #include "extent_map.h"
+diff -puN fs/ext4/ioctl.c~lib-uuid-move-generate_random_uuid-to-uuidc fs/ext4/ioctl.c
+--- a/fs/ext4/ioctl.c~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/fs/ext4/ioctl.c
+@@ -13,8 +13,8 @@
+ #include <linux/compat.h>
+ #include <linux/mount.h>
+ #include <linux/file.h>
+-#include <linux/random.h>
+ #include <linux/quotaops.h>
++#include <linux/uuid.h>
+ #include <asm/uaccess.h>
+ #include "ext4_jbd2.h"
+ #include "ext4.h"
+diff -puN fs/f2fs/file.c~lib-uuid-move-generate_random_uuid-to-uuidc fs/f2fs/file.c
+--- a/fs/f2fs/file.c~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/fs/f2fs/file.c
+@@ -20,7 +20,7 @@
+ #include <linux/uaccess.h>
+ #include <linux/mount.h>
+ #include <linux/pagevec.h>
+-#include <linux/random.h>
++#include <linux/uuid.h>
  
- #define EFI_GUID(a,b,c,d0,d1,d2,d3,d4,d5,d6,d7) \
--((efi_guid_t) \
--{{ (a) & 0xff, ((a) >> 8) & 0xff, ((a) >> 16) & 0xff, ((a) >> 24) & 0xff, \
--  (b) & 0xff, ((b) >> 8) & 0xff, \
--  (c) & 0xff, ((c) >> 8) & 0xff, \
--  (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
-+	UUID_LE(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7)
- 
- /*
-  * Generic EFI table header
-@@ -1050,7 +1044,7 @@ efi_reboot(enum reboot_mode reboot_mode,
-  * Length of a GUID string (strlen("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"))
-  * not including trailing NUL
+ #include "f2fs.h"
+ #include "node.h"
+diff -puN fs/reiserfs/objectid.c~lib-uuid-move-generate_random_uuid-to-uuidc fs/reiserfs/objectid.c
+--- a/fs/reiserfs/objectid.c~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/fs/reiserfs/objectid.c
+@@ -3,8 +3,8 @@
   */
--#define EFI_VARIABLE_GUID_LEN 36
-+#define EFI_VARIABLE_GUID_LEN	UUID_STRING_LEN
+ 
+ #include <linux/string.h>
+-#include <linux/random.h>
+ #include <linux/time.h>
++#include <linux/uuid.h>
+ #include "reiserfs.h"
+ 
+ /* find where objectid map starts */
+diff -puN fs/ubifs/sb.c~lib-uuid-move-generate_random_uuid-to-uuidc fs/ubifs/sb.c
+--- a/fs/ubifs/sb.c~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/fs/ubifs/sb.c
+@@ -28,8 +28,8 @@
+ 
+ #include "ubifs.h"
+ #include <linux/slab.h>
+-#include <linux/random.h>
+ #include <linux/math64.h>
++#include <linux/uuid.h>
  
  /*
-  * The type of search to perform when calling boottime->locate_handle
+  * Default journal size in logical eraseblocks as a percent of total
+diff -puN include/linux/random.h~lib-uuid-move-generate_random_uuid-to-uuidc include/linux/random.h
+--- a/include/linux/random.h~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/include/linux/random.h
+@@ -26,7 +26,6 @@ extern void get_random_bytes(void *buf,
+ extern int add_random_ready_callback(struct random_ready_callback *rdy);
+ extern void del_random_ready_callback(struct random_ready_callback *rdy);
+ extern void get_random_bytes_arch(void *buf, int nbytes);
+-void generate_random_uuid(unsigned char uuid_out[16]);
+ extern int random_int_secret_init(void);
+ 
+ #ifndef MODULE
+diff -puN include/linux/uuid.h~lib-uuid-move-generate_random_uuid-to-uuidc include/linux/uuid.h
+--- a/include/linux/uuid.h~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/include/linux/uuid.h
+@@ -33,6 +33,8 @@ static inline int uuid_be_cmp(const uuid
+ 	return memcmp(&u1, &u2, sizeof(uuid_be));
+ }
+ 
++void generate_random_uuid(unsigned char uuid[16]);
++
+ extern void uuid_le_gen(uuid_le *u);
+ extern void uuid_be_gen(uuid_be *u);
+ 
+diff -puN lib/uuid.c~lib-uuid-move-generate_random_uuid-to-uuidc lib/uuid.c
+--- a/lib/uuid.c~lib-uuid-move-generate_random_uuid-to-uuidc
++++ a/lib/uuid.c
+@@ -23,6 +23,26 @@
+ #include <linux/uuid.h>
+ #include <linux/random.h>
+ 
++/***************************************************************
++ * Random UUID interface
++ *
++ * Used here for a Boot ID, but can be useful for other kernel
++ * drivers.
++ ***************************************************************/
++
++/*
++ * Generate random UUID
++ */
++void generate_random_uuid(unsigned char uuid[16])
++{
++	get_random_bytes(uuid, 16);
++	/* Set UUID version to 4 --- truly random generation */
++	uuid[6] = (uuid[6] & 0x0F) | 0x40;
++	/* Set the UUID variant to DCE */
++	uuid[8] = (uuid[8] & 0x3F) | 0x80;
++}
++EXPORT_SYMBOL(generate_random_uuid);
++
+ static void __uuid_gen_common(__u8 b[16])
+ {
+ 	prandom_bytes(b, 16);
 _
 
 Patches currently in -mm which might be from andriy.shevchenko@linux.intel.com are
